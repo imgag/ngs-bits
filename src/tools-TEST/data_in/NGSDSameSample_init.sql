@@ -48,9 +48,13 @@ INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane
 (6, 3, 46, 1, 1, 1, 3, 1, 'good', NULL),
 (8, 4, 23, 2, 1, 1, 4, 1, 'good', NULL),
 (9, 4, 28, 2, 1, 1, 4, 1, 'good', NULL),
-(10, 5, 2, 1, 1, 1, 5, 1, 'good', NULL);
+(10, 5, 2, 1, 1, 1, 5, 1, 'good', NULL),
+(11, 3, 44, 1, 1, 1, 3, 1, 'good', NULL);
 
 INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
 (2, 'same sample', 3),
 (3, 'same patient', 4),
 (4, 'same sample', 5);
+
+INSERT INTO `merged_processed_samples` (`processed_sample_id`, `merged_into`) VALUES
+(11, 5);

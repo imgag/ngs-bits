@@ -78,5 +78,19 @@ private slots:
 		COMPARE_FILES("out/NGSDSameSample_out5.tsv", TESTDATA("data_out/NGSDSameSample_out5.tsv"));
 	}
 
+	void include_merged()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDSameSample_init.sql"));
+
+		//test
+		EXECUTE("NGSDSameSample", "-test -include_merged -system_type WGS,lrGS -ps NA12880_01 -out out/NGSDSameSample_out6.tsv");
+		COMPARE_FILES("out/NGSDSameSample_out6.tsv", TESTDATA("data_out/NGSDSameSample_out6.tsv"));
+	}
+
 
 };

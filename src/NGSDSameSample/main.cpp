@@ -24,10 +24,12 @@ public:
 		addString("system_type", "Type(s) of processing system (can be a comma-separated list).", true, "");
 		addString("system", "Processing system (short) name(s) (can be a comma-separated list).", true, "");
 		addEnum("mode", "Type of relation (either only same-sample or same-patient (includes same-sample)", true, QStringList() << "SAME_SAMPLE" << "SAME_PATIENT", "SAME_PATIENT");
+		addFlag("include_merged", "Include merged samples in the output (will be ignored on default).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 
 		changeLog(2023, 11, 15, "initial commit");
+		changeLog(2023, 11, 21, "remove merged sample on default");
 	}
 
 	virtual void main()
@@ -85,6 +87,11 @@ public:
 				ProcessedSampleData ps_data = db.getProcessedSampleData(QString::number(ps_id));
 				QDate run_start_date = db.getValue("SELECT start_date FROM sequencing_run WHERE name=:0", false, ps_data.run_name).toDate();
 				QString sys_name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", false, ps_data.processing_system).toString();
+				if (!getFlag("include_merged"))
+				{
+					if (db.getValue("SELECT COUNT(processed_sample_id) FROM merged_processed_samples WHERE processed_sample_id=:0", false, QString::number(ps_id)).toInt() > 0) continue;
+				}
+
 
 				//apply filter
 				if (!filter_sample_types.isEmpty() && !filter_sample_types.contains(s_data.type)) continue;
