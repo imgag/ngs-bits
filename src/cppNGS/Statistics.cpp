@@ -1742,13 +1742,13 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			hist_all.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());;
 			if(variants[i].filtersPassed()) hist_filtered.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());
 		}
-        //MuTect2
-        //##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+		//MuTect2
+		//##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
 		else if(variants.vcfHeader().formatIdDefined("AF"))
-        {
-            hist_all.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());;
+		{
+			hist_all.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());;
 			if(variants[i].filtersPassed()) hist_filtered.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());
-        }
+		}
 		// else: strelka indel
 	}
 
@@ -1880,19 +1880,19 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
 		else if(variants.vcfHeader().formatIdDefined("FA"))
 		{
-            af_tumor = variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble();
+			af_tumor = variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble();
 			af_normal = variants[i].formatValueFromSample("FA", normal_id.toUtf8()).toDouble();
 		}
-        //MuTect2
-        //##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+		//MuTect2
+		//##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
 		else if(variants.vcfHeader().formatIdDefined("AF"))
-        {
-            af_tumor = variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble();
-            af_normal = variants[i].formatValueFromSample("AF", normal_id.toUtf8()).toDouble();
-        }
+		{
+			af_tumor = variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble();
+			af_normal = variants[i].formatValueFromSample("AF", normal_id.toUtf8()).toDouble();
+		}
 		else
 		{
-            Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka, freebayes and mutect2 are currently supported.");
+			Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka, freebayes and mutect2 are currently supported.");
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields
@@ -2502,11 +2502,12 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file)
 {
-	//create analysis chunks (200 lines)
+	//create analysis chunks
 	QList<WorkerAverageCoverage::Chunk> chunks;
-	for (int start=0; start<bed_file.count(); start += 200)
+	const int chunk_size = 200;
+	for (int start=0; start<bed_file.count(); start += chunk_size)
 	{
-		int end = start+199;
+		int end = start+chunk_size-1;
 		if (end>=bed_file.count()) end = bed_file.count() -1;
 		chunks << WorkerAverageCoverage::Chunk{bed_file, start, end, ""};
 	}
@@ -2515,7 +2516,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	QThreadPool thread_pool;
 	thread_pool.setMaxThreadCount(threads);
 
-	//start analysis chunks (of 200 lines)
+	//start analysis chunks
 	for (int i=0; i<chunks.count(); ++i)
 	{
 		WorkerAverageCoverage* worker = new WorkerAverageCoverage(chunks[i], bam_file, min_mapq, decimals, ref_file);
@@ -2533,7 +2534,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 }
 
 BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
-{	
+{
 	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true);
 }
 
