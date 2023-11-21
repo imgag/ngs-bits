@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2023_06-98-g044e3ed3)
+	NGSDExportSamples (2023_09-93-gad5c47c9)
 	
 	Lists processed samples from the NGSD.
 	
@@ -75,6 +75,8 @@
 	                           Default value: 'false'
 	  -add_dates               Adds a column with the normal germline sample associated to a for tumor samples.
 	                           Default value: 'false'
+	  -add_call_details        Adds variant caller and version and variant calling date columns for small variants, CNVs and SVs.
+	                           Default value: 'false'
 	  -test                    Uses the test database instead of on the production database.
 	                           Default value: 'false'
 	
@@ -85,8 +87,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2023_06-98-g044e3ed3
+	NGSDExportSamples 2023_09-93-gad5c47c9
 	
+	2023-11-16 Added 'add_call_details' flag.
 	2023-07-13 Added 'add_dates' flag.
 	2022-11-11 Added 'ancestry' and 'phenotypes' filter options.
 	2022-03-03 Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.

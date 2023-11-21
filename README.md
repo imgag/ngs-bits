@@ -176,15 +176,15 @@ Changes of master since last release:
 
 * none so far
 
-Changes in release 2023_09:
+Changes in release 2023_11:
 
-* new tools: VcfAnnotateMaxEntScan, SamplePath, NGSDImportGenlab, NGSDImportOncotree
-* NGSDExportSamples: added '-add_dates' flag.
-* VcfLeftNormalize: added flag '-right' to right-normaliazion.
+* new tools: NGSDSameSample
+* MappingQC: added long-read support
+* NGSDExportGff: added parameter 'genes' to add/skip gene lines
+* NGSDExportSamples: added parameter 'add_call_details' to export variant calling tools and dates
+* VariantQC: added long-read support
 * NGSD
-	* Updated enums of 'sequencing_run' for NovaSeqX+ suppport.
-	* Added 'year_of_borth, 'order_date' and 'sampling_date' to 'sample' table.
-	* Added 'processing_modus' enum and 'batch number' varchar to 'processed_sample' table.
-	* Added tables 'oncotree_term', 'oncotree_parent' and 'oncotree_obsolete'.
+	* Added 'small_variants_callset' table.
+	* Added field 'classification' to 'somatic_vicc_interpretation' table.
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
