@@ -15,17 +15,16 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Lists all processed samples from the NGSD of the same patient/sample to a given processed sample.");
-		setExtendedDescription(QStringList() << "Does not contain the provided process sample itself");
-		addString("ps", "Processd sample name.", false);
+		setDescription("For the given processed sample, lists all processed samples of the same patient or sample.");
+		setExtendedDescription(QStringList() << "Does not contain the given processed sample itself.");
+		addString("ps", "Processed sample name.", false);
 		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
-		addString("sample_type", "Type(s) of samples (can be a comma-separated list).", true, "");
-		addString("system_type", "Type(s) of processing system (can be a comma-separated list).", true, "");
-		addString("system", "Processing system (short) name(s) (can be a comma-separated list).", true, "");
-		addEnum("mode", "Type of relation (either only same-sample or same-patient (includes same-sample)", true, QStringList() << "SAME_SAMPLE" << "SAME_PATIENT", "SAME_PATIENT");
+		addString("sample_type", "Comma-separated list of sample types.", true, "");
+		addString("system_type", "Comma-separated list of processing system types.", true, "");
+		addString("system", "Comma-separated list of processing system (short) names.", true, "");
+		addEnum("mode", "Type of relation (either only same-sample or same-patient (includes same-sample).", true, QStringList() << "SAME_SAMPLE" << "SAME_PATIENT", "SAME_PATIENT");
 		addFlag("test", "Uses the test database instead of on the production database.");
-
 
 		changeLog(2023, 11, 15, "initial commit");
 	}
