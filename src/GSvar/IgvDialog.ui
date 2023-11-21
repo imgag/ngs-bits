@@ -64,45 +64,79 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>3</number>
      </property>
-    </widget>
+     <item>
+      <widget class="QPushButton" name="btn_skip">
+       <property name="text">
+        <string>skip initialization for this session</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_ok">
+       <property name="text">
+        <string>Ok</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_cancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
+   <sender>btn_ok</sender>
+   <signal>clicked()</signal>
    <receiver>IgvDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>408</y>
+     <x>480</x>
+     <y>684</y>
     </hint>
     <hint type="destinationlabel">
-     <x>220</x>
-     <y>211</y>
+     <x>299</x>
+     <y>349</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
+   <sender>btn_cancel</sender>
+   <signal>clicked()</signal>
    <receiver>IgvDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>408</y>
+     <x>558</x>
+     <y>684</y>
     </hint>
     <hint type="destinationlabel">
-     <x>220</x>
-     <y>211</y>
+     <x>299</x>
+     <y>349</y>
     </hint>
    </hints>
   </connection>

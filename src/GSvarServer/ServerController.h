@@ -114,9 +114,9 @@ private:
 	/// Creates a temporary URL for a file (includes a file name and its full path)
 	static QString createTempUrl(const QString& file, const QString& token);
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
-    static HttpResponse createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, const bool& is_downloadable);
+	static HttpResponse createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, bool is_downloadable);
 	/// Serves a stream, used to transfer large files without opening multiple connections
-    static HttpResponse createStaticStreamResponse(const QString& filename, const bool& is_downloadable);
+	static HttpResponse createStaticStreamResponse(const QString& filename, bool is_downloadable);
     static HttpResponse createStaticFileResponse(const QString& filename, const HttpRequest& request);
 	static HttpResponse createStaticFolderResponse(const QString path, const HttpRequest& request);
 	static HttpResponse createStaticLocationResponse(const QString path, const HttpRequest& request);

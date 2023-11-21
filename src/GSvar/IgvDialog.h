@@ -21,11 +21,16 @@ public:
 	//Returns the files to load
 	QStringList filesToLoad();
 
+	//Returns if initialization should be skipped for the session - dialog is rejected in this case!
+	bool skipInitialization() const;
+
 protected slots:
 	void treeItemChanged(QTreeWidgetItem* item);
+	void skipInitializationClicked();
 
 private:
 	Ui::IgvDialog ui_;
+	bool skip_;
 };
 
 #endif // IGVDIALOG_H

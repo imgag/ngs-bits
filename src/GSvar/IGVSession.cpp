@@ -31,9 +31,13 @@ int IGVSession::getPort() const
 	return igv_data_.port;
 }
 
-void IGVSession::setInitialized(const bool& is_initialized)
+void IGVSession::setInitialized(bool is_initialized)
 {
-    is_initialized_ = is_initialized;
+	if (is_initialized_!=is_initialized)
+	{
+		is_initialized_ = is_initialized;
+		emit initializationStatusChanged(is_initialized);
+	}
 }
 
 bool IGVSession::isInitialized() const
@@ -57,20 +61,24 @@ void IGVSession::execute(const QStringList& commands, bool init_if_not_done)
 	{
 		Log::info("Initialzing IGV for the current sample");
 
-		commands_init << "new";
-
 		QStringList user_selected_commands;
+		bool skip_init_for_session = false;
 		if (igv_data_.name=="Default IGV")
 		{
-			user_selected_commands = initRegularIGV();
+			user_selected_commands = initRegularIGV(skip_init_for_session);
 		}
 		if (igv_data_.name=="Virus IGV")
 		{
-			user_selected_commands = initVirusIGV();
+			user_selected_commands = initVirusIGV(skip_init_for_session);
 		}
 
-		if (!user_selected_commands.isEmpty())
+		if (skip_init_for_session)
 		{
+			setInitialized(true);
+		}
+		else if (!user_selected_commands.isEmpty())
+		{
+			commands_init << "new";
 			commands_init << user_selected_commands;
 			setInitialized(true);
 		}
@@ -212,7 +220,7 @@ QColor IGVSession::statusToColor(IGVStatus status)
 	THROW(ProgrammingException, "Unknown IGV status " + QString::number(status));
 }
 
-QStringList IGVSession::initRegularIGV()
+QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
 {
 	MainWindow* main_window = GlobalServiceProvider::mainWindow();
 
@@ -368,12 +376,16 @@ QStringList IGVSession::initRegularIGV()
 	parent_->setFocus();
 
 	//execute dialog
-	if (!dlg.exec()) return QStringList();
+	if (!dlg.exec())
+	{
+		skip_init_for_session = dlg.skipInitialization();
+		return QStringList();
+	}
 
 	return filesToCommands(dlg.filesToLoad());
 }
 
-QStringList IGVSession::initVirusIGV()
+QStringList IGVSession::initVirusIGV(bool& skip_init_for_session)
 {
     IgvDialog dlg(parent_);
 
@@ -396,7 +408,11 @@ QStringList IGVSession::initVirusIGV()
 	parent_->setFocus();
 
 	//execute dialog
-	if (!dlg.exec()) return QStringList();
+	if (!dlg.exec())
+	{
+		skip_init_for_session = dlg.skipInitialization();
+		return QStringList();
+	}
 
 	return filesToCommands(dlg.filesToLoad());
 }

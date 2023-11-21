@@ -3529,14 +3529,8 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	QTime timer;
 	timer.start();
 
-	//clear IGV only if there is no overlapping samples between old and new analysis
-	QSet<QString> samples_old = variants_.getSampleHeader(false).sampleNames();
-	if (filename!="") variants_.loadHeaderOnly(filename);
-	QSet<QString> samples_new = variants_.getSampleHeader(false).sampleNames();
-	if (!samples_old.intersects(samples_new))
-	{
-		IgvSessionManager::clearAll();
-	}
+	//mark IGV as not initialized
+	IgvSessionManager::get(0).setInitialized(false);
 
 	//reset GUI and data structures
 	setWindowTitle(appName());

@@ -6,9 +6,11 @@
 
 IgvDialog::IgvDialog(QWidget *parent)
 	: QDialog(parent)
+	, skip_(false)
 {
 	ui_.setupUi(this);
 	connect(ui_.tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
+	connect(ui_.btn_skip, SIGNAL(clicked(bool)), this, SLOT(skipInitializationClicked()));
 }
 
 void IgvDialog::addFile(const FileLocation& file, bool checked)
@@ -80,10 +82,21 @@ QStringList IgvDialog::filesToLoad()
 	return output;
 }
 
+bool IgvDialog::skipInitialization() const
+{
+	return skip_;
+}
+
 void IgvDialog::treeItemChanged(QTreeWidgetItem* item)
 {
 	for (int i=0; i<item->childCount(); ++i)
 	{
 		item->child(i)->setCheckState(0, item->child(i)->isDisabled() ? Qt::Unchecked :  item->checkState(0));
 	}
+}
+
+void IgvDialog::skipInitializationClicked()
+{
+	skip_ = true;
+	reject();
 }

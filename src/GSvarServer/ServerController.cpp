@@ -49,7 +49,7 @@ HttpResponse ServerController::serveStaticFromTempUrl(const HttpRequest& request
 	return createStaticLocationResponse(findPathForTempUrl(request.getPathItems()), request);
 }
 
-HttpResponse ServerController::createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, const bool& is_downloadable)
+HttpResponse ServerController::createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, bool is_downloadable)
 {
 	quint64 total_length = 0;
 	for (int i = 0; i < byte_ranges.count(); ++i)
@@ -70,7 +70,7 @@ HttpResponse ServerController::createStaticFileRangeResponse(const QString& file
 	return HttpResponse(response_data);
 }
 
-HttpResponse ServerController::createStaticStreamResponse(const QString& filename, const bool& is_downloadable)
+HttpResponse ServerController::createStaticStreamResponse(const QString& filename, bool is_downloadable)
 {
 	BasicResponseData response_data;
 	response_data.length = QFile(filename).size();
