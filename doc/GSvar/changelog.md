@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2023_11-5 (21.11.23)
+
+- IGV: improved IGV integration to make several parallel GSvar instances work with a single IGV
+- variant tab: variant consequence on transcripts now shown as a table.
+- sample search: added option to show variant calling information (caller, caller version, calling date)
+
 ## 2023_09-53 (15.11.23)
 
 - open variant dialog: variant not contained in NGSD can now be added
