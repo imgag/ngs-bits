@@ -98,10 +98,9 @@ public:
 		}
 	}
 
-	void importPseudogenes(const QHash<QByteArray, QByteArray>& enst2ensg, const QHash<QByteArray, QByteArray>& ensg2symbol, QString pseudogene_file_path)
+	void importPseudogenes(NGSD& db, const QHash<QByteArray, QByteArray>& enst2ensg, const QHash<QByteArray, QByteArray>& ensg2symbol, QString pseudogene_file_path)
 	{
 		//init
-		NGSD db(getFlag("test"));
 		QTextStream out(stdout);
 
 		SqlQuery q_insert_pseudogene = db.getQuery();
@@ -247,6 +246,33 @@ public:
 		out << "\t pseudogenes already in database: " << n_duplicate_pseudogenes << "\n";
 	}
 
+	void statistics(NGSD& db, QTextStream& out, bool protein_coding)
+	{
+		QString constraint = protein_coding ? "g.type='protein-coding gene'" : "g.type!='protein-coding gene'";
+
+		QList<int> gene_ids = db.getValuesInt("SELECT id FROM gene g WHERE " + constraint);
+		out << "NGSD contains " << gene_ids.count() << " " << (protein_coding? "protein-coding" : "other") << " genes" << endl;
+		out << "  - with at least one Ensembl transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='Ensembl'").count() << endl;
+		out << "  - with a CCDS transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='CCDS'").count() << endl;
+		out << "  - with MANE transcripts: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND (gt.is_mane_select=1 || gt.is_mane_plus_clinical=1)").count() << endl;
+		GeneSet no_chr_genes;
+		GeneSet multi_chr_genes;
+		foreach (int gene_id, gene_ids)
+		{
+			QStringList chrs = db.getValues("SELECT DISTINCT chromosome FROM gene_transcript WHERE gene_id=" + QString::number(gene_id));
+			if (chrs.count()==0)
+			{
+				no_chr_genes << db.geneSymbol(gene_id);
+			}
+			else if (chrs.count()>1)
+			{
+				multi_chr_genes << db.geneSymbol(gene_id);
+			}
+		}
+		out << "  - without transcripts: " << no_chr_genes.count() << " (" << no_chr_genes.join(", ") << ")" << endl;
+		out << "  - with transcripts on several chromosomes: " << multi_chr_genes.count() << " (" << multi_chr_genes.join(", ") << ")" << endl;
+	}
+
 	virtual void main()
 	{
 		//init
@@ -347,12 +373,16 @@ public:
             }
         }
 
-		// parse Pseudogene file
+		//import pseudo-genes
 		QStringList pseudogene_file_paths = getInfileList("pseudogenes");
 		foreach (const QString& file_path, pseudogene_file_paths)
 		{
-			importPseudogenes(data.enst2ensg, data.ensg2symbol, file_path);
+			importPseudogenes(db, data.enst2ensg, data.ensg2symbol, file_path);
 		}
+
+		//statistics output
+		statistics(db, out, true);
+		statistics(db, out, false);
 	}
 };
 
