@@ -38,11 +38,29 @@ public:
 		changeLog(2017,  7,  6, "Added first version");
 	}
 
-    int geneByHGNC(SqlQuery& query, const QByteArray& hgnc_id)
+	int geneByEnsembl(SqlQuery& query, QByteArray ensembl_id)
+	{
+		if(ensembl_id=="") return -1;
+
+		query.bindValue(0, ensembl_id);
+		query.exec();
+
+		if (query.size()==0) return -1;
+
+		query.next();
+		return query.value(0).toInt();
+	}
+
+	int geneByHGNC(SqlQuery& query, QByteArray hgnc_id)
 	{
         if(hgnc_id=="") return -1;
 
-		//get NGSD gene ID
+		//remove prefix "HGNC:" if present
+		if (hgnc_id.contains(':'))
+		{
+			hgnc_id = hgnc_id.mid(hgnc_id.indexOf(':')+1);
+		}
+
 		query.bindValue(0, hgnc_id);
 		query.exec();
 
@@ -309,8 +327,11 @@ public:
 		SqlQuery q_exon = db.getQuery();
 		q_exon.prepare("INSERT INTO gene_exon (transcript_id, start, end) VALUES (:0, :1, :2);");
 
-		SqlQuery q_gene = db.getQuery();
-		q_gene.prepare("SELECT id FROM gene WHERE hgnc_id=:0;");
+		SqlQuery q_gene_hgnc = db.getQuery();
+		q_gene_hgnc.prepare("SELECT id FROM gene WHERE hgnc_id=:0;");
+
+		SqlQuery q_gene_ensembl = db.getQuery();
+		q_gene_ensembl.prepare("SELECT id FROM gene WHERE ensembl_id=:0;");
 
 		//parse input - format description at https://www.gencodegenes.org/data_format.html and http://www.ensembl.org/info/website/upload/gff3.html
 		GffSettings gff_settings;
@@ -331,19 +352,22 @@ public:
 
             //transform gene name to approved gene ID
 			QByteArray gene = t.gene();
-			int ngsd_gene_id = db.geneId(gene);
-            if(ngsd_gene_id==-1) //fallback to HGNC ID
+			int ngsd_gene_id = geneByHGNC(q_gene_hgnc, t.hgncId());
+			if(ngsd_gene_id==-1) //fallback to Ensembl gene ID
+			{
+				ngsd_gene_id = geneByEnsembl(q_gene_ensembl, t.geneId());
+			}
+			if (ngsd_gene_id==-1) //fallback to approved gene name
+			{
+				if (db.approvedGeneNames().contains(gene))
+				{
+					ngsd_gene_id = db.geneId(gene);
+					out << "Notice: HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << " determined via gene name" << endl;
+				}
+			}
+			if (ngsd_gene_id==-1) //fallback to gene symbol ID
             {
-                ngsd_gene_id = geneByHGNC(q_gene, t.hgncId());
-                if (ngsd_gene_id!=-1)
-                {
-                    out << "Notice: Gene " << t.geneId() << "/" << gene << " without HGNC-approved name identified by HGNC identifier." << endl;
-                }
-            }
-
-            if (ngsd_gene_id==-1)
-            {
-                out << "Notice: Gene " << t.geneId() << "/" << gene << " without HGNC-approved name is skipped." << endl;
+				out << "Notice: Could not determine HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << endl;
                 continue;
             }
 
