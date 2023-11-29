@@ -264,7 +264,7 @@ public:
 		out << "\t pseudogenes already in database: " << n_duplicate_pseudogenes << "\n";
 	}
 
-	void statistics(NGSD& db, QTextStream& out, bool protein_coding)
+	void statistics(NGSD& db, QTextStream& out, bool protein_coding, QHash<int, QSet<QByteArray>>& gene2ensg)
 	{
 		QString constraint = protein_coding ? "g.type='protein-coding gene'" : "g.type!='protein-coding gene'";
 
@@ -275,6 +275,7 @@ public:
 		out << "  - with MANE transcripts: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND (gt.is_mane_select=1 || gt.is_mane_plus_clinical=1)").count() << endl;
 		GeneSet no_chr_genes;
 		GeneSet multi_chr_genes;
+		GeneSet duplicate_ensg;
 		foreach (int gene_id, gene_ids)
 		{
 			QStringList chrs = db.getValues("SELECT DISTINCT chromosome FROM gene_transcript WHERE gene_id=" + QString::number(gene_id));
@@ -286,9 +287,14 @@ public:
 			{
 				multi_chr_genes << db.geneSymbol(gene_id);
 			}
+			if (gene2ensg[gene_id].count()>1)
+			{
+				duplicate_ensg << db.geneSymbol(gene_id);
+			}
 		}
 		out << "  - without transcripts: " << no_chr_genes.count() << " (" << no_chr_genes.join(", ") << ")" << endl;
 		out << "  - with transcripts on several chromosomes: " << multi_chr_genes.count() << " (" << multi_chr_genes.join(", ") << ")" << endl;
+		out << "  - with transcripts from severl ENSGs: " << duplicate_ensg.count() << " (" << duplicate_ensg.join(", ") << ")" << endl;
 	}
 
 	virtual void main()
@@ -297,6 +303,7 @@ public:
 		NGSD db(getFlag("test"));
 		QTextStream out(stdout);
 		bool all = getFlag("all");
+		const BedFile& par = NGSHelper::pseudoAutosomalRegion(GenomeBuild::HG38);
 
 		//check tables exist
 		db.tableExists("gene");
@@ -339,6 +346,7 @@ public:
 		gff_settings.skip_not_gencode_basic = false;
 		GffData data = NGSHelper::loadGffFile(getInfile("in"), gff_settings);
         QSet<QByteArray> ccds_transcripts_added;
+		QHash<int, QSet<QByteArray>> gene2ensg;
 		foreach(const Transcript& t, data.transcripts)
         {
 			QByteArray transcript_id = t.name();
@@ -370,6 +378,16 @@ public:
 				out << "Notice: Could not determine HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << endl;
                 continue;
             }
+
+			//skip transcripts in chrY PAR as it is masked - necessary since Ensembl 110 release: https://www.ensembl.info/2023/07/17/ensembl-110-has-been-released/
+			if (t.chr().isY() && par.overlapsWith(t.chr(), t.start(), t.end()))
+			{
+				out << "Notice: skipped chrY PAR transcript of " << gene << "/" << t.geneId() << "/" << t.hgncId() << endl;
+				continue;
+			}
+
+			//log gene ENSG mapping for output
+			gene2ensg[ngsd_gene_id] << t.geneId();
 
 			//add Ensembl transcript
 			int trans_id = addTranscript(q_trans, ngsd_gene_id, transcript_id, t.version(), "ensembl", t, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical);
@@ -405,8 +423,9 @@ public:
 		}
 
 		//statistics output
-		statistics(db, out, true);
-		statistics(db, out, false);
+		out << "Imported " << db.getValue("SELECT count(*) FROM gene_transcript").toInt() << " transcripts into NGSD" << endl;
+		statistics(db, out, true, gene2ensg);
+		statistics(db, out, false, gene2ensg);
 	}
 };
 
