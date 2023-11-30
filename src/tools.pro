@@ -571,3 +571,7 @@ BedpeExtractInfoField.depends = cppNGS
 SUBDIRS += NGSDSameSample
 tools-TEST.depends += NGSDSameSample
 NGSDSameSample.depends = cppNGSD
+
+SUBDIRS += BamExtract
+tools-TEST.depends += BamExtract
+BamExtract.depends = cppNGS
