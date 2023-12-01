@@ -329,11 +329,9 @@ void BurdenTestWidget::validateInputData()
 	{
 		//skip samples which will be removed anyways
 		if(s_ids_to_remove_cases.contains(s_id)) continue;
-		QSet<int> same_samples = db_.sameSamples(s_id);
-		qDebug() << "same samples" << same_samples;
+		QSet<int> same_samples = db_.sameSamples(s_id, SameSampleMode::SAME_PATIENT);
 		//add sample itself
 		same_samples.insert(s_id);
-		qDebug() << "same samples + self " << same_samples;
 		QSet<int> same_sample_overlap = same_samples & sample_ids_cases.keys().toSet();
 		if (same_sample_overlap.size() > 1)
 		{
@@ -379,7 +377,7 @@ void BurdenTestWidget::validateInputData()
 	{
 		//skip samples which will be removed anyways
 		if(s_ids_to_remove_controls.contains(s_id)) continue;
-		QSet<int> same_samples = db_.sameSamples(s_id);
+		QSet<int> same_samples = db_.sameSamples(s_id, SameSampleMode::SAME_PATIENT);
 		//add sample itself
 		same_samples.insert(s_id);
 		QSet<int> same_sample_overlap = same_samples & sample_ids_controls.keys().toSet();
@@ -1256,7 +1254,7 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 				continue;
 			}
 			// skip hom vars in X on male samples
-			QString gender = db_.getSampleData(db_.processedSampleName(QString::number(ps_id))).gender;
+			QString gender = db_.getSampleData(db_.sampleId(db_.processedSampleName(QString::number(ps_id)))).gender;
 			if (gender == "male")
 			{
 				Variant var = db_.variant(QString::number(variant_id));

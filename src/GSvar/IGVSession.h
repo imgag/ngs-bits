@@ -54,10 +54,10 @@ public:
 	bool isIgvRunning();
 	//checks if the IGV instance is currently executing a command
 	bool hasRunningCommands();
-	//returns if the session is initializized with tracks of the current analysis
+	//returns if the session is initialized with tracks of the current analysis
 	bool isInitialized() const;
-	//sets if the session is initializized with tracks of the current analysis
-	void setInitialized(const bool& is_initialized);
+	//sets if the session is initialized with tracks of the current analysis
+	void setInitialized(bool is_initialized);
 
 	//Queues a list of commands for execution. Starts IGV if not running. Intializes IGV with current GSvar analysis tracks if @init_if_not_done is set to true.
 	void execute(const QStringList& commands, bool init_if_not_done);
@@ -78,14 +78,15 @@ public:
 
 protected:
 	//initialize IGV with tracks from current sample (shows dialog for track selection to user). Returns if the user accepted the dialog.
-	QStringList initRegularIGV();
+	QStringList initRegularIGV(bool& skip_init_for_session);
 	//initialize IGV with tracks from current sample (shows dialog for track selection to user). Returns if the user accepted the dialog.
-	QStringList initVirusIGV();
+	QStringList initVirusIGV(bool& skip_init_for_session);
 	//converts a list of files to load to a command list
 	QStringList filesToCommands(QStringList files_to_load);
 
 signals:
 	void historyUpdated(QString, QList<IGVCommand>);
+	void initializationStatusChanged(bool);
     void started();
     void finished();
 

@@ -558,11 +558,20 @@ NGSDImportOncotree.depends = cppNGS
 
 SUBDIRS += FastqCheckUMI
 tools-TEST.depends += FastqCheckUMI
-SamplePath.depends = cppNGS
+FastqCheckUMI.depends = cppNGS
+
 SUBDIRS += BedpeExtractGenotype
 tools-TEST.depends += BedpeExtractGenotype
-SamplePath.depends = cppNGS
+BedpeExtractGenotype.depends = cppNGS
 
 SUBDIRS += BedpeExtractInfoField
 tools-TEST.depends += BedpeExtractInfoField
-SamplePath.depends = cppNGS
+BedpeExtractInfoField.depends = cppNGS
+
+SUBDIRS += NGSDSameSample
+tools-TEST.depends += NGSDSameSample
+NGSDSameSample.depends = cppNGSD
+
+SUBDIRS += BamExtract
+tools-TEST.depends += BamExtract
+BamExtract.depends = cppNGS

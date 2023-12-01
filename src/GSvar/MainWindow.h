@@ -249,8 +249,6 @@ public slots:
 	void openVariantListQcFiles();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
-	///Action for debugging
-	void on_actionDebug_triggered();
 	///Action for variant conversion (VCF > GSvar)
 	void on_actionConvertVcfToGSvar_triggered();
 	///Action for variant conversion (HGVS.c > GSvar)
@@ -314,6 +312,10 @@ public slots:
 	///Finished the report generation (germline)
 	void reportGenerationFinished(bool success);
 
+	///User-specific debug function
+	void userSpecificDebugFunction();
+	///Quick tab opening for debugging
+	void openDebugTab();
 
 	///Shows the variant header context menu
 	void varHeaderContextMenu(QPoint pos);

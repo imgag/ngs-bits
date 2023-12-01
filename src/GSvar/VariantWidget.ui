@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,1">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -209,29 +209,6 @@
          </widget>
         </item>
         <item row="6" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>transcripts:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLabel" name="transcripts">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-          <property name="textInteractionFlags">
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
          <widget class="QLabel" name="label_12">
           <property name="text">
            <string>PubMed ids:</string>
@@ -241,7 +218,7 @@
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
+        <item row="6" column="1">
          <widget class="QLabel" name="pubmed">
           <property name="text">
            <string/>
@@ -323,6 +300,76 @@
          </spacer>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
+      <string>Consequence on transcripts</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <item>
+       <widget class="QTableWidget" name="transcripts">
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectItems</enum>
+        </property>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>gene</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>transcript</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>HGVS.c</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>HGVS.p</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>variant type</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>flags</string>
+         </property>
+        </column>
+       </widget>
       </item>
      </layout>
     </widget>

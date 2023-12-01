@@ -174,21 +174,19 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(0, 10);
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled", true));
-	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
 
 	// add rna menu
 	rna_menu_btn_ = new QToolButton();
 	rna_menu_btn_->setObjectName("rna_btn");
 	rna_menu_btn_->setIcon(QIcon(":/Icons/RNA.png"));
 	rna_menu_btn_->setToolTip("Open RNA menu entries");
+	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 	rna_menu_btn_->setMenu(new QMenu());
 	rna_menu_btn_->menu()->addAction(ui_.actionExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionExonExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowSplicing);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowProcessingSystemCoverage);
-	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionExonExpressionData->setEnabled(false);
@@ -203,16 +201,33 @@ MainWindow::MainWindow(QWidget *parent)
 	cfdna_menu_btn_->setObjectName("cfdna_btn");
 	cfdna_menu_btn_->setIcon(QIcon(":/Icons/cfDNA.png"));
 	cfdna_menu_btn_->setToolTip("Open cfDNA menu entries");
+	cfdna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 	cfdna_menu_btn_->setMenu(new QMenu());
 	cfdna_menu_btn_->menu()->addAction(ui_.actionDesignCfDNAPanel);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionShowCfDNAPanel);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNADiseaseCourse);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNAAddExcludedRegions);
-	cfdna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->addWidget(cfdna_menu_btn_);
 	// deaktivate on default (only available in somatic)
 	cfdna_menu_btn_->setVisible(false);
 	cfdna_menu_btn_->setEnabled(false);
+
+	//debugging
+	if (Settings::boolean("debug_mode_enabled", true))
+	{
+		QToolButton* debug_btn = new QToolButton();
+		debug_btn->setObjectName("cfdna_btn");
+		debug_btn->setIcon(QIcon(":/Icons/bug.png"));
+		debug_btn->setPopupMode(QToolButton::InstantPopup);
+		debug_btn->setMenu(new QMenu());
+		debug_btn->menu()->addAction("user-specific function", this, SLOT(userSpecificDebugFunction()));
+		debug_btn->menu()->addSeparator();
+		debug_btn->menu()->addAction("variant: chr1:948519-948519 T>G", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addSeparator();
+		debug_btn->menu()->addAction("gene: BRCA2", this, SLOT(openDebugTab()));
+		ui_.tools->addWidget(debug_btn);
+	}
+	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
 
 	//signals and slots
     connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
@@ -445,13 +460,12 @@ AnalysisType MainWindow::getCurrentAnalysisType()
     return variants_.type();
 }
 
-void MainWindow::on_actionDebug_triggered()
+void MainWindow::userSpecificDebugFunction()
 {
 	QTime timer;
 	timer.start();
 
 	QString user = Helper::userName();
-	qDebug() << user;
 	if (user=="ahsturm1")
 	{
 		//VariantHgvsAnnotator debugging
@@ -1559,9 +1573,6 @@ void MainWindow::on_actionDebug_triggered()
 		}
 		*/
 	}
-	else if (user=="ahgscha1")
-	{
-	}
 	else if (user=="ahschul1")
 	{
 		//Test sample sheet
@@ -1575,7 +1586,25 @@ void MainWindow::on_actionDebug_triggered()
 
 	}
 
-	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);
+	qDebug() << "Elapsed time debug function:" << Helper::elapsedTime(timer, true);
+}
+
+void MainWindow::openDebugTab()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	QString text = action->text();
+	if (text.startsWith("variant:"))
+	{
+		openVariantTab(Variant::fromString(text.mid(8).trimmed()));
+	}
+	else if (text.startsWith("gene:"))
+	{
+		openGeneTab(text.mid(5).trimmed());
+	}
+	else
+	{
+		THROW(ProgrammingException, "Unprocessed debug action: " + text);
+	}
 }
 
 
@@ -1766,7 +1795,7 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	IgvSessionManager::clearAll();
+	IgvSessionManager::get(0).clear();
 }
 
 void MainWindow::on_actionIgvDocumentation_triggered()
@@ -3500,14 +3529,8 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	QTime timer;
 	timer.start();
 
-	//clear IGV only if there is no overlapping samples between old and new analysis
-	QSet<QString> samples_old = variants_.getSampleHeader(false).sampleNames();
-	if (filename!="") variants_.loadHeaderOnly(filename);
-	QSet<QString> samples_new = variants_.getSampleHeader(false).sampleNames();
-	if (!samples_old.intersects(samples_new))
-	{
-		IgvSessionManager::clearAll();
-	}
+	//mark IGV as not initialized
+	IgvSessionManager::get(0).setInitialized(false);
 
 	//reset GUI and data structures
 	setWindowTitle(appName());
@@ -6608,8 +6631,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	//unload the data
 	loadFile();
 
+    //TODO: turn it on back again after fixing token update in IGV
     //close user session on the server
-    if (ClientHelper::isClientServerMode()) performLogout();
+    //if (ClientHelper::isClientServerMode()) performLogout();
 
 	//here one could cancel closing the window by calling event->ignore()
 
@@ -6922,7 +6946,8 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 
 void MainWindow::closeAndLogout()
 {
-    if (ClientHelper::isClientServerMode()) performLogout();
+    //TODO: turn it on back again after fixing token update in IGV
+    //if (ClientHelper::isClientServerMode()) performLogout();
     close();
 }
 

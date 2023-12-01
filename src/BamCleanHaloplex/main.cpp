@@ -22,7 +22,6 @@ public:
 		//optional
 		addInt("min_match", "Minimum number of CIGAR matches (M).", true, 30);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
-		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
 	}

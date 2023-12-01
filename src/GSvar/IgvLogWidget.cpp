@@ -23,6 +23,8 @@ void IgvLogWidget::switchCurrentSession(int index)
 	IGVSession& session = IgvSessionManager::get(index);
 	updateTable(session.getName(), session.getCommands());
 	connect(&session, SIGNAL(historyUpdated(QString, QList<IGVCommand>)), this, SLOT(updateTable(QString, QList<IGVCommand>)));
+	connect(&session, SIGNAL(initializationStatusChanged(bool)), this, SLOT(updateInitStatus(bool)));
+	ui_.initialized->setText(session.isInitialized() ? "yes" : "no");
 	ui_.port->setText(QString::number(session.getPort()));
 }
 
@@ -52,4 +54,9 @@ void IgvLogWidget::updateTable(QString name, QList<IGVCommand> commands)
 
 	//scroll to last entry
 	ui_.table->scrollToBottom();
+}
+
+void IgvLogWidget::updateInitStatus(bool is_inizialized)
+{
+	ui_.initialized->setText(is_inizialized ? "yes" : "no");
 }

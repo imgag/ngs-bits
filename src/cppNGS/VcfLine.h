@@ -384,9 +384,7 @@ public:
 		return overlapsWith(line.chr(), line.start(), line.end());
 	}
 
-	//Returns if the variant is a SNV
-	//allow_several_alternatives=TRUE if all alternatives in the vector shall be considered,
-	//otherwise only the first variant is checked
+	//Returns if the variant is a SNV. If allow_several_alternatives=TRUE all alternatives in the vector are considered, otherwise only the first variant is checked
 	bool isSNV(bool allow_several_alternatives = false) const
 	{
 		if(allow_several_alternatives)
@@ -408,12 +406,14 @@ public:
 	{
 		return alt().count() > 1;
 	}
-	//Returns if the variant is a combined insertion and deletion. Cannot be called on multi-allelic variants.
+	//Returns if the variant is a combined insertion and deletion (MNPs are also considered InDels). Cannot be called on multi-allelic variants.
 	bool isInDel() const;
 	//Returns if the variant is an insertion. Cannot be called on multi-allelic variants.
     bool isIns() const;
 	//Returns if the variant is a deletion. Cannot be called on multi-allelic variants.
     bool isDel() const;
+	//Returns if the variant is a MNP. Cannot be called on multi-allelic variants.
+	bool isMNP() const;
 	//Returns if the VCF variant is valid (only checks the base variant, i.e. chr, pos, ref, alt)
 	bool isValid() const;
 	//Overload of the above function that also checks if the reference bases of the variants are correct.

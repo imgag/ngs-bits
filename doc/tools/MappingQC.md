@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (2023_03-63-gec44de43)
+	MappingQC (2023_09-93-gad5c47c9)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -34,6 +34,8 @@
 	                             Default value: ''
 	  -read_qc <file>            If set, a read QC file in qcML format is created (just like ReadQC/SeqPurge).
 	                             Default value: ''
+	  -long_read                 Support long reads (> 1kb).
+	                             Default value: 'false'
 	
 	Special parameters:
 	  --help                     Shows this help and exits.
@@ -42,8 +44,9 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 2023_03-63-gec44de43
+	MappingQC 2023_09-93-gad5c47c9
 	
+	2023-11-08 Added long_read support.
 	2023-05-12 Added 'read_qc' parameter.
 	2022-05-25 Added new QC metrics to WGS mode.
 	2021-02-09 Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).

@@ -23,17 +23,27 @@ private slots:
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line21.log", QRegExp("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line21.log", TESTDATA("data_out/NGSDAddVariantsGermline_out1.log"));
 
+		//check callset (freebayes)
+		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "freebayes");
+		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "v1.3.3");
+		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='3999'").toDate().toString(Qt::ISODate), "2022-04-25");
+
 		//2. import - to check that reimporting works
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -var_force -cnv_force");
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line27.log", QRegExp("^WARNING: transactions"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line27.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line27.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegExp("^WARNING: transactions"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line32.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
 
 		//3. import - test that updating of small variants works
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.1.GSvar") + " -var_update");
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line33.log", QRegExp("^WARNING: transactions"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line33.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line33.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line38.log", QRegExp("^WARNING: transactions"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line38.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line38.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
+
+		//check callset (Clair3)
+		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "Clair3");
+		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "1.0.0");
+		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='3999'").toDate().toString(Qt::ISODate), "2023-11-03");
 	}
 
 	//ClinCNV cnvs
@@ -48,9 +58,14 @@ private slots:
 
 		//import
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_38 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.tsv"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line50.log", QRegExp("^WARNING: transactions"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line50.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line50.log", TESTDATA("data_out/NGSDAddVariantsGermline_out4.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line60.log", QRegExp("^WARNING: transactions"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line60.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line60.log", TESTDATA("data_out/NGSDAddVariantsGermline_out4.log"));
+
+		//check callset (DRAGEN)
+		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='4000'").toString(), "DRAGEN");
+		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='4000'").toString(), "3.0.2");
+		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='4000'").toDate().toString(Qt::ISODate), "2018-11-08");
 
 		//check if PubMed ids are imported
 		Variant var = Variant(Chromosome("chrX"), 155255024, 155255024, "C", "T");
@@ -93,8 +108,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line79.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line79.log", TESTDATA("data_out/NGSDAddVariantsGermline_out5.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line94.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line94.log", TESTDATA("data_out/NGSDAddVariantsGermline_out5.log"));
 	}
 
 
@@ -127,10 +142,10 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line110.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line110.log", TESTDATA("data_out/NGSDAddVariantsGermline_out6.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line113.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line113.log", TESTDATA("data_out/NGSDAddVariantsGermline_out7.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line125.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line125.log", TESTDATA("data_out/NGSDAddVariantsGermline_out6.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line128.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line128.log", TESTDATA("data_out/NGSDAddVariantsGermline_out7.log"));
 	}
 
 
@@ -163,10 +178,10 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line146.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line146.log", TESTDATA("data_out/NGSDAddVariantsGermline_out8.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line149.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line149.log", TESTDATA("data_out/NGSDAddVariantsGermline_out9.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line161.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line161.log", TESTDATA("data_out/NGSDAddVariantsGermline_out8.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line164.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line164.log", TESTDATA("data_out/NGSDAddVariantsGermline_out9.log"));
 	}
 
 	void import_with_existing_report_config()
@@ -200,10 +215,10 @@ private slots:
 		I_EQUAL(count, 0);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line183.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line183.log", TESTDATA("data_out/NGSDAddVariantsGermline_out10.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line184.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line184.log", TESTDATA("data_out/NGSDAddVariantsGermline_out11.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line198.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line198.log", TESTDATA("data_out/NGSDAddVariantsGermline_out10.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line199.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line199.log", TESTDATA("data_out/NGSDAddVariantsGermline_out11.log"));
 	}
 
 	void sv_longread_import()
@@ -232,8 +247,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line79.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line79.log", TESTDATA("data_out/NGSDAddVariantsGermline_out5.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line233.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line233.log", TESTDATA("data_out/NGSDAddVariantsGermline_Test_line233.log"));
 	}
 };
 

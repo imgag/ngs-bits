@@ -440,7 +440,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			   << "ps.quality as processed_sample_quality";
 	}
 
-	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
+	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY r.name ASC, s.name ASC, ps.process_id ASC");
 
 	//remove duplicates
 	QSet<int> done;
@@ -578,6 +578,36 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			new_col << normalSample(ps_id);
 		}
 		output.addColumn(new_col, "normal_sample");
+	}
+
+	if (p.add_call_details)
+	{
+		QStringList small_caller;
+		QStringList small_date;
+		QStringList cnv_caller;
+		QStringList cnv_date;
+		QStringList sv_caller;
+		QStringList sv_date;
+
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			VariantCallingInfo call_info = variantCallingInfo(output.row(r).id());
+			small_caller << (call_info.small_caller+" "+call_info.small_caller_version).trimmed();
+			small_date << call_info.small_call_date.trimmed();
+
+			cnv_caller << (call_info.cnv_caller+" "+call_info.cnv_caller_version).trimmed();
+			cnv_date << call_info.cnv_call_date.trimmed();
+
+			sv_caller << (call_info.sv_caller+" "+call_info.sv_caller_version).trimmed();
+			sv_date << call_info.sv_call_date.trimmed();
+		}
+
+		output.addColumn(small_caller, "small_variants_caller");
+		output.addColumn(small_date, "small_variants_call_date");
+		output.addColumn(cnv_caller, "cvn_caller");
+		output.addColumn(cnv_date, "cnv_call_date");
+		output.addColumn(sv_caller, "sv_caller");
+		output.addColumn(sv_date, "sv_call_date");
 	}
 
 	return output;
@@ -757,51 +787,95 @@ QString NGSD::normalSample(const QString& processed_sample_id)
 	return processedSampleName(value.toString());
 }
 
-const QSet<int>& NGSD::sameSamples(int sample_id)
+const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
 {
 	static QSet<int> empty_entry;
-	QHash<int, QSet<int>>& same_samples = getCache().same_samples;
+	QHash<int, QSet<int>>& same_samples = (mode == SameSampleMode::SAME_PATIENT)? getCache().same_patients : getCache().same_samples;
+
+	//prepare iterative query
+	SqlQuery query_iterative = getQuery();
+	query_iterative.prepare(QString("SELECT sample1_id, sample2_id FROM sample_relations WHERE (relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient')": ")")
+					 + " AND (sample1_id=:0 OR sample2_id=:0)");
 
 	//init if empty
 	if (same_samples.isEmpty())
 	{
 		//sample relation
 		SqlQuery query = getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
+		query.exec(QString("SELECT sample1_id FROM sample_relations WHERE relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient'": ""));
 		while (query.next())
 		{
 			int sample1_id = query.value(0).toInt();
-			int sample2_id = query.value(1).toInt();
-			same_samples[sample1_id] << sample2_id;
-			same_samples[sample2_id] << sample1_id;
-		}
 
-		//same patient identifier
-		query.exec("SELECT id, patient_identifier FROM sample WHERE patient_identifier IS NOT NULL AND patient_identifier!=''");
-		QHash<QString, QList<int>> sample_ids_by_patient_id;
-		while (query.next())
-		{
-			int sample_id = query.value(0).toInt();
-			QString patient_identifier = query.value(1).toString().trimmed();
-			if (patient_identifier.isEmpty()) continue;
+			//skip already checked samples
+			if (same_samples.contains(sample1_id)) continue;
 
-			sample_ids_by_patient_id[patient_identifier] << sample_id;
-		}
-		foreach(QString patient_id, sample_ids_by_patient_id.keys())
-		{
-			QList<int>& sample_ids = sample_ids_by_patient_id[patient_id];
-
-			for (int i=0; i<sample_ids.count(); ++i)
+			//look-up iteratively and get the same-sample cluster
+			QSet<int> cluster;
+			cluster << sample1_id;
+			int n_ids = 0;
+			while(n_ids != cluster.size())
 			{
-				for (int j=i+1; j<sample_ids.count(); ++j)
+				//store current set size
+				n_ids = cluster.size();
+				foreach (int id, cluster)
 				{
-					int sample1_id = sample_ids[i];
-					int sample2_id = sample_ids[j];
-					same_samples[sample1_id] << sample2_id;
-					same_samples[sample2_id] << sample1_id;
+					query_iterative.bindValue(0, id);
+					query_iterative.exec();
+					while (query_iterative.next())
+					{
+						cluster << query_iterative.value(0).toInt() << query_iterative.value(1).toInt();
+					}
+				}
+			}
+			//set same samples for all samples of cluster (exclude key itself)
+			foreach (int id, cluster)
+			{
+				QSet<int> current_cluster = cluster;
+				current_cluster.remove(id);
+				same_samples[id] = current_cluster;
+			}
+		}
+
+		if (mode == SameSampleMode::SAME_PATIENT)
+		{
+			//same patient identifier
+			query.exec("SELECT id, patient_identifier FROM sample WHERE patient_identifier IS NOT NULL AND patient_identifier!=''");
+			QHash<QString, QSet<int>> sample_ids_by_patient_id;
+			while (query.next())
+			{
+				int sample_id = query.value(0).toInt();
+				QString patient_identifier = query.value(1).toString().trimmed();
+				if (patient_identifier.isEmpty()) continue;
+
+				sample_ids_by_patient_id[patient_identifier] << sample_id;
+			}
+
+			foreach(QString patient_id, sample_ids_by_patient_id.keys())
+			{
+				QSet<int>& sample_ids = sample_ids_by_patient_id[patient_id];
+
+				//skip all patient ids with only 1 linked sample id
+				if (sample_ids.size() < 2) continue;
+
+				//else: merge cluster
+				QSet<int> combined_sample_ids;
+				foreach (int s_id, sample_ids)
+				{
+					combined_sample_ids << s_id;
+					combined_sample_ids += same_samples[s_id];
+				}
+
+				//update each sample in the cluster
+				foreach (int id, combined_sample_ids)
+				{
+					QSet<int> current_cluster = combined_sample_ids;
+					current_cluster.remove(id);
+					same_samples[id] = current_cluster;
 				}
 			}
 		}
+
 	}
 
 	if (same_samples.contains(sample_id))
@@ -1451,14 +1525,14 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 				++c_het;
 
 				samples_done_het << sample_id;
-				samples_done_het.unite(sameSamples(sample_id));
+				samples_done_het.unite(sameSamples(sample_id, SameSampleMode::SAME_PATIENT));
 			}
 			if (mosaic && !samples_done_mosaic.contains(sample_id))
 			{
 				++c_mosaic;
 
 				samples_done_mosaic << sample_id;
-				samples_done_mosaic.unite(sameSamples(sample_id));
+				samples_done_mosaic.unite(sameSamples(sample_id, SameSampleMode::SAME_PATIENT));
 			}
 
 		}
@@ -1467,7 +1541,7 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 			++c_hom;
 
 			samples_done_hom << sample_id;
-			samples_done_hom.unite(sameSamples(sample_id));
+			samples_done_hom.unite(sameSamples(sample_id, SameSampleMode::SAME_PATIENT));
 		}
 	}
 
@@ -1512,6 +1586,7 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 {
 	if (type==VariantType::SNVS_INDELS)
 	{
+		getQuery().exec("DELETE FROM small_variants_callset WHERE processed_sample_id='" + ps_id + "'");
 		getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id=" + ps_id);
 	}
 	else if (type==VariantType::CNVS)
@@ -4927,6 +5002,41 @@ void NGSD::addGapComment(int id, const QString& comment)
 	query.prepare("UPDATE gaps SET history=:0 WHERE id='" + id_str + "'");
 	query.bindValue(0, history);
 	query.exec();
+}
+
+VariantCallingInfo NGSD::variantCallingInfo(QString ps_id)
+{
+	VariantCallingInfo output;
+
+	SqlQuery query = getQuery();
+
+	//small variants
+	query.exec("SELECT caller, caller_version, call_date FROM small_variants_callset WHERE processed_sample_id="+ps_id);
+	if (query.next())
+	{
+		output.small_caller = query.value(0).toString().trimmed();
+		output.small_caller_version = query.value(1).toString().trimmed();
+		output.small_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
+	}
+
+	//CNVs
+	query.exec("SELECT caller, caller_version, call_date FROM cnv_callset WHERE processed_sample_id="+ps_id);
+	if (query.next())
+	{
+		output.cnv_caller = query.value(0).toString().trimmed();
+		output.cnv_caller_version = query.value(1).toString().trimmed();
+		output.cnv_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
+	}
+
+	//SVs
+	query.exec("SELECT caller, caller_version, call_date FROM sv_callset WHERE processed_sample_id="+ps_id);
+	if (query.next())
+	{
+		output.sv_caller = query.value(0).toString().trimmed();
+		output.sv_caller_version = query.value(1).toString().trimmed();
+		output.sv_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
+	}
+	return output;
 }
 
 QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)
@@ -8889,6 +8999,7 @@ void NGSD::clearCache()
 
 	cache_instance.table_infos.clear();
 	cache_instance.same_samples.clear();
+	cache_instance.same_patients.clear();
 	cache_instance.related_samples.clear();
 	cache_instance.approved_gene_names.clear();
 	cache_instance.gene2id.clear();
@@ -8954,7 +9065,7 @@ void NGSD::initTranscriptCache()
 
 	//create all transcripts
 	QHash<QByteArray, int> tmp_name2id;
-	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_gencode_basic, t.is_ensembl_canonical, t.is_mane_select, t.is_mane_plus_clinical, t.version FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_gencode_basic, t.is_ensembl_canonical, t.is_mane_select, t.is_mane_plus_clinical, t.version, g.ensembl_id FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
 	while(query.next())
 	{
 		int trans_id = query.value(0).toInt();
@@ -8962,6 +9073,7 @@ void NGSD::initTranscriptCache()
 		//get base information
 		Transcript transcript;
 		transcript.setGene(query.value(1).toByteArray());
+		transcript.setGeneId(query.value(14).toByteArray());
 		transcript.setName(query.value(2).toByteArray());
 		transcript.setSource(Transcript::stringToSource(query.value(3).toString()));
 		transcript.setStrand(Transcript::stringToStrand(query.value(4).toByteArray()));

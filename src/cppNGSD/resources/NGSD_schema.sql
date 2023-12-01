@@ -2408,6 +2408,28 @@ CREATE TABLE IF NOT EXISTS `oncotree_obsolete`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `small_variants_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `small_variants_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `caller` ENUM('freebayes', 'DRAGEN', 'Clair3') NOT NULL,
+  `caller_version` varchar(25) NOT NULL,
+  `call_date` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `call_date` (`call_date` ASC),
+  UNIQUE KEY `small_variants_callset_references_processed_sample` (`processed_sample_id`),
+  CONSTRAINT `small_variants_callset_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='small variants call set';
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START

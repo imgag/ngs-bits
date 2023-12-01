@@ -1,6 +1,8 @@
 ##CREATION_DATE=2021-07-19
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.2-22-g23d3396
+##SOURCE=Clair3 1.0.0
+##CALLING_DATE=2023-11-03
 ##SAMPLE=<ID=NA12878_18,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
 ##VariantAnnotateASE_BAM=/mnt/storage1/projects/test//Twist_Exome_Test/Sample_NA12878x2_16/NA12878x2_16.bam
 ##DESCRIPTION=NA12878_18=Genotype of variant in sample.

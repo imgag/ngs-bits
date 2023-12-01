@@ -391,35 +391,31 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
 	Sequence alt = obs_;
 
 	//prepend base for InDels if they are not MNPs
-	if (!isSNV())
+	if (!isSNV() && !isMNP())
 	{
-		bool is_mnp = ref.length()==alt.length() && ref!="-" && alt!="-";
-		if (!is_mnp)
+		bool prepend_ref_base = false;
+		if (ref=="-" || ref.isEmpty()) //insertion
 		{
-			bool prepend_ref_base = false;
-			if (ref=="-" || ref.isEmpty()) //insertion
-			{
-				ref.clear();
-				prepend_ref_base = true;
-			}
-			else if (alt=="-" || alt.isEmpty()) //deletion
-			{
-				pos -= 1;
-				alt.clear();
-				prepend_ref_base = true;
-			}
-			else if(ref[0]!=alt[0]) //complex variant (insertion plus deletion), but not already prefixed
-			{
-				pos -= 1;
-				prepend_ref_base = true;
-			}
+			ref.clear();
+			prepend_ref_base = true;
+		}
+		else if (alt=="-" || alt.isEmpty()) //deletion
+		{
+			pos -= 1;
+			alt.clear();
+			prepend_ref_base = true;
+		}
+		else if(ref[0]!=alt[0]) //complex variant (insertion plus deletion), but not already prefixed
+		{
+			pos -= 1;
+			prepend_ref_base = true;
+		}
 
-			if (prepend_ref_base)
-			{
-				Sequence prefix_base = genome_index.seq(chr_, pos, 1);
-				ref = prefix_base + ref;
-				alt = prefix_base + alt;
-			}
+		if (prepend_ref_base)
+		{
+			Sequence prefix_base = genome_index.seq(chr_, pos, 1);
+			ref = prefix_base + ref;
+			alt = prefix_base + alt;
 		}
 	}
 
@@ -1186,6 +1182,36 @@ AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 	}
 
 	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
+}
+
+VariantCaller VariantList::getCaller() const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##SOURCE="))
+		{
+			QString tmp = line.mid(9).trimmed() + ' ';
+			int sep_idx = tmp.indexOf(' ');
+			return VariantCaller{tmp.left(sep_idx).trimmed(), tmp.mid(sep_idx).trimmed()};
+		}
+	}
+
+	return VariantCaller();
+}
+
+QDate VariantList::getCallingDate() const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##CALLING_DATE="))
+		{
+			QString date = line.mid(15).trimmed();
+			date.truncate(10); // cut off time if present
+			return QDate::fromString(date, "yyyy-MM-dd");
+		}
+	}
+
+	return QDate();
 }
 
 int VariantList::indexOf(const Variant& var)

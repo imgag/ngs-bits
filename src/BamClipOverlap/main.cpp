@@ -40,7 +40,6 @@ public:
 		addFlag("ignore_indels","Turn off indel detection in overlap.");
 		addFlag("v", "Verbose mode.");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
-		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		//changelog
 		changeLog(2020,  11, 27, "Added CRAM support.");

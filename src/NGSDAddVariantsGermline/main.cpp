@@ -94,8 +94,7 @@ public:
 
 			//remove old variants
 			sub_timer.start();
-			SqlQuery query = db.getQuery();
-			query.exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
+			db.deleteVariants(ps_id, VariantType::SNVS_INDELS);
 			out << "Deleted previous variants" << endl;
 			sub_times << ("deleted previous detected variants took: " + Helper::elapsedTime(sub_timer));
 		}
@@ -104,9 +103,24 @@ public:
 			out << "DEBUG: Found " << var_ids_class_4_or_5.count() << " class 4/5 variants" << endl;
 		}
 
-		//abort if there are no variants in the input file
+		//add callset (if caller info in header)
 		VariantList variants;
 		variants.load(filename);
+		VariantCaller caller = variants.getCaller();
+		QDate calling_date = variants.getCallingDate();
+		if (caller.name!="" && caller.version!="")
+		{
+			SqlQuery q_set = db.getQuery();
+			q_set.exec("DELETE FROM small_variants_callset WHERE processed_sample_id='" + ps_id + "'");
+			q_set.prepare("INSERT INTO small_variants_callset (`processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
+			q_set.bindValue(0, ps_id);
+			q_set.bindValue(1, caller.name);
+			q_set.bindValue(2, caller.version);
+			q_set.bindValue(3, calling_date);
+			q_set.exec();
+		}
+
+		//abort if there are no variants in the input file
 		if (variants.count()==0)
 		{
 			out << "No variants imported (empty GSvar file)." << endl;
