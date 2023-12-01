@@ -79,6 +79,8 @@ public:
 			mtb_data.oncotree_code = row[idx_oncotree_code];
 
 			QStringList processed_samples = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps LEFT JOIN sample s ON s.id = ps.sample_id LEFT JOIN project as p ON ps.project_id = p.id WHERE p.type='diagnostic' AND ps.sample_id = '" + sample_id + "'");
+			if (processed_samples.count() == 0) THROW(ArgumentException, "No processed samples found for: " + row[idx_tumor_name] + " with sample id: " + sample_id);
+
 			foreach(QString tumor_ps, processed_samples)
 			{
 				qDebug() << "\tps: " << tumor_ps;
@@ -105,7 +107,7 @@ public:
 
 				if (! QFile(gsvar_file).exists())
 				{
-					qDebug() << "No Gsvar file found for tumor: " + tumor_ps + " - skipping sample.";
+					qDebug() << "No Gsvar file found for tumor: " + tumor_ps + " - skipping sample. - " + gsvar_file;
 					continue;
 				}
 
