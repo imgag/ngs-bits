@@ -895,24 +895,17 @@ QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type
 	QStringList parameter_list;
 
 	// add common parameter
-	parameter_list << "QC:2000007"; // Q20 read percentage
 	parameter_list << "QC:2000008"; // Q30 base percentage
-	parameter_list << "QC:2000010"; // gc content percentage
 	parameter_list << "QC:2000020"; // mapped read percentage
 	parameter_list << "QC:2000021"; // on-target read percentage
 	parameter_list << "QC:2000025"; // target region read depth
-	parameter_list << "QC:2000049"; // bases sequenced (MB)
-	parameter_list << "QC:2000050"; // bases usable (MB)
+	parameter_list << "QC:2000058"; // target region half depth percentage
 
 	// add type-specific parameter
 	if (sample_type == "DNA" || sample_type == "DNA (amplicon)" || sample_type == "DNA (native)")
 	{
 		parameter_list << "QC:2000013"; // variant count
 		parameter_list << "QC:2000014"; // known variants percentage
-		parameter_list << "QC:2000015"; // high-impact variants percentage
-		parameter_list << "QC:2000016"; // homozygous variants percentage
-		parameter_list << "QC:2000017"; // indel variants percentage
-		parameter_list << "QC:2000018"; // transition/transversion ratio
 		parameter_list << "QC:2000022"; // properly-paired read percentage
 		parameter_list << "QC:2000023"; // insert size
 		parameter_list << "QC:2000024"; // duplicate read percentage
