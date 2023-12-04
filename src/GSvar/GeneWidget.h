@@ -21,10 +21,14 @@ private slots:
 	void openGeneDatabase();
     void parseLink(QString link);
 	void openGeneTab(QString symbol);
+	void updatePhenotypeSearch();
 
 private:
     Ui::GeneWidget ui_;
     QByteArray symbol_;
+	QStringList omim_lines;
+	QStringList orpha_lines;
+	QStringList hpo_lines;
 
 	void updateTranscriptsTable(NGSD& db);
 };

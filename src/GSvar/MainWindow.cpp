@@ -225,6 +225,9 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("variant: chr1:948519-948519 T>G", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
 		debug_btn->menu()->addAction("gene: BRCA2", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addSeparator();
+		debug_btn->menu()->addAction("processed sample: NA12878_58", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("processed sample: NA12878_45", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
 	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
@@ -1600,6 +1603,10 @@ void MainWindow::openDebugTab()
 	else if (text.startsWith("gene:"))
 	{
 		openGeneTab(text.mid(5).trimmed());
+	}
+	else if (text.startsWith("processed sample:"))
+	{
+		openProcessedSampleTab(text.mid(17).trimmed());
 	}
 	else
 	{
