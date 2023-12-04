@@ -43,7 +43,6 @@ SOURCES += main.cpp\
     PhenotypeSelectionWidget.cpp \
     RohWidget.cpp \
     DiagnosticStatusWidget.cpp \
-    DiagnosticStatusOverviewDialog.cpp \
     SvWidget.cpp \
     SingleSampleAnalysisDialog.cpp \
     SomaticDialog.cpp \
@@ -163,7 +162,6 @@ HEADERS += MainWindow.h \
     PhenotypeSelectionWidget.h \
     RohWidget.h \
     DiagnosticStatusWidget.h \
-    DiagnosticStatusOverviewDialog.h \
     SvWidget.h \
     SingleSampleAnalysisDialog.h \
     SomaticDialog.h \
@@ -277,7 +275,6 @@ FORMS    += MainWindow.ui \
     PhenotypeSelectionWidget.ui \
     RohWidget.ui \
     DiagnosticStatusWidget.ui \
-    DiagnosticStatusOverviewDialog.ui \
     SvWidget.ui \
     SingleSampleAnalysisDialog.ui \
     SomaticDialog.ui \

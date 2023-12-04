@@ -1,6 +1,5 @@
-#include "ProjectWidget.h"
+ #include "ProjectWidget.h"
 #include "NGSD.h"
-#include "DiagnosticStatusOverviewDialog.h"
 #include "DBEditor.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
@@ -14,7 +13,6 @@ ProjectWidget::ProjectWidget(QWidget* parent, QString name)
 	ui_.setupUi(this);
 	connect(ui_.sample_overview, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_.refresh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
-	connect(ui_.diag_btn, SIGNAL(clicked(bool)), this, SLOT(showDiagnosticStatusDialog()));
 	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 }
 
@@ -82,12 +80,6 @@ void ProjectWidget::edit()
 		widget->store();
 		updateGUI();
 	}
-}
-
-void ProjectWidget::showDiagnosticStatusDialog()
-{
-	DiagnosticStatusOverviewDialog* dlg = new DiagnosticStatusOverviewDialog(this, name_);
-	dlg->exec();
 }
 
 void ProjectWidget::openProcessedSampleTab(QString ps)
