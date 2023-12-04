@@ -96,7 +96,7 @@ void IGVSession::execute(const QStringList& commands, bool init_if_not_done)
 	command_history_mutex_.lock();
 	foreach (const IgvWorkerCommand& command, worker_commands)
 	{
-		command_history_ << IGVCommand{command.id, command.text, IGVStatus::QUEUED, "", 0.0};
+		command_history_ << IGVCommand{command.id, command.text, IGVStatus::QUEUED, "", QDateTime(), 0.0};
 	}
 	emit historyUpdated(igv_data_.name, command_history_);
 	command_history_mutex_.unlock();
@@ -459,6 +459,7 @@ void IGVSession::updateHistoryStart(int id)
 		if (command.id==id)
 		{
 			command.status = IGVStatus::STARTED;
+			command.execution_start_time = QDateTime::currentDateTime();
 		}
 	}
 
@@ -481,7 +482,7 @@ void IGVSession::updateHistoryFinished(int id, QString answer, double sec_elapse
 		{
 			command.status = IGVStatus::FINISHED;
 			command.answer = answer;
-			command.execution_time_sec = sec_elapsed;
+			command.execution_duration_sec = sec_elapsed;
 		}
 	}
 
@@ -504,7 +505,7 @@ void IGVSession::updateHistoryFailed(int id, QString error, double sec_elapsed)
 		{
 			command.status = IGVStatus::FAILED;
 			command.answer = error;
-			command.execution_time_sec = sec_elapsed;
+			command.execution_duration_sec = sec_elapsed;
 		}
 	}
 

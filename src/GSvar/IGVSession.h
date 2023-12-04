@@ -23,7 +23,8 @@ struct IGVCommand
 	QString command;
 	IGVStatus status;
 	QString answer;
-	double execution_time_sec;
+	QDateTime execution_start_time;
+	double execution_duration_sec;
 };
 
 //Base data of IGV instance
