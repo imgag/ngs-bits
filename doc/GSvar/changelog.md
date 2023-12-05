@@ -1,5 +1,12 @@
 # GSvar change log
 
+## 2023_11-19 (04.12.23)
+
+- gene tab: added search box to disease/phenotype data.
+- IGV log: added command start time to IGV log window.
+- bugfix: increased timeout for IGV echo command from 500 to 1500 ms to prevent unwanted clearing of IGV.
+- bugfix: Fixed handling of missing region number in CNV filters.
+
 ## 2023_11-5 (21.11.23)
 
 - IGV: improved IGV integration to make several parallel GSvar instances work with a single IGV

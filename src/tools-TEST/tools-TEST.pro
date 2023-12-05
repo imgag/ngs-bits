@@ -158,7 +158,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     TranscriptsToBed_Test.h \
     GenesToTranscripts_Test.h \
     NGSDImportSampleQC_Test.h \
-    SamplePath_Test.h
+    SamplePath_Test.h \
+    BamExtract_Test.h
 
 SOURCES += \
     main.cpp

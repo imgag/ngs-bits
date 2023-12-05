@@ -27,7 +27,7 @@ public:
 	virtual void main()
 	{
 		//init
-		QTextStream out(stdout);
+		QTextStream stdout_stream(stdout);
 		QString ref = getInfile("ref");
 		QString out2 = getOutfile("out2");
 
@@ -42,6 +42,7 @@ public:
 			ids << line;
 		}
 		file->close();
+		stdout_stream << "Read IDs: " << ids.count() << endl;
 
 		//open intput/output streams
 		BamReader reader(getInfile("in"), ref);
@@ -56,17 +57,28 @@ public:
 		}
 
 		//process alignments
+		long long c_match = 0;
+		long long c_other = 0;
+
 		BamAlignment al;
 		while (reader.getNextAlignment(al))
 		{
 			if (ids.contains(al.name()))
 			{
 				writer.writeAlignment(al);
+				++c_match;
 			}
 			else if (!writer2.isNull())
 			{
 				writer2->writeAlignment(al);
+				++c_other;
 			}
+		}
+
+		stdout_stream << "Reads written to 'out': " << c_match<< endl;
+		if (out2!="")
+		{
+			stdout_stream << "Reads written to 'out2': " << c_other << endl;
 		}
 	}
 };
