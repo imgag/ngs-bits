@@ -41,7 +41,7 @@ private slots:
 	void copyWarningsToClipboard();
 	void validateCCRGenes();
 	void initCCR();
-//	void updateCNVCheckbox();
+	void updateCNVCheckbox();
 
 
 private:
