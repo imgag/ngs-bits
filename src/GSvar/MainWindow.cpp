@@ -225,6 +225,9 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("variant: chr1:948519-948519 T>G", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
 		debug_btn->menu()->addAction("gene: BRCA2", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addSeparator();
+		debug_btn->menu()->addAction("processed sample: NA12878_58", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("processed sample: NA12878_45", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
 	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
@@ -1600,6 +1603,10 @@ void MainWindow::openDebugTab()
 	else if (text.startsWith("gene:"))
 	{
 		openGeneTab(text.mid(5).trimmed());
+	}
+	else if (text.startsWith("processed sample:"))
+	{
+		openProcessedSampleTab(text.mid(17).trimmed());
 	}
 	else
 	{
@@ -3529,14 +3536,8 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	QTime timer;
 	timer.start();
 
-	//clear IGV only if there is no overlapping samples between old and new analysis
-	QSet<QString> samples_old = variants_.getSampleHeader(false).sampleNames();
-	if (filename!="") variants_.loadHeaderOnly(filename);
-	QSet<QString> samples_new = variants_.getSampleHeader(false).sampleNames();
-	if (!samples_old.intersects(samples_new))
-	{
-		IgvSessionManager::clearAll();
-	}
+	//mark IGV as not initialized
+	IgvSessionManager::get(0).setInitialized(false);
 
 	//reset GUI and data structures
 	setWindowTitle(appName());

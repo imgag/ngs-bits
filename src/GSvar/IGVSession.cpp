@@ -31,9 +31,13 @@ int IGVSession::getPort() const
 	return igv_data_.port;
 }
 
-void IGVSession::setInitialized(const bool& is_initialized)
+void IGVSession::setInitialized(bool is_initialized)
 {
-    is_initialized_ = is_initialized;
+	if (is_initialized_!=is_initialized)
+	{
+		is_initialized_ = is_initialized;
+		emit initializationStatusChanged(is_initialized);
+	}
 }
 
 bool IGVSession::isInitialized() const
@@ -57,20 +61,24 @@ void IGVSession::execute(const QStringList& commands, bool init_if_not_done)
 	{
 		Log::info("Initialzing IGV for the current sample");
 
-		commands_init << "new";
-
 		QStringList user_selected_commands;
+		bool skip_init_for_session = false;
 		if (igv_data_.name=="Default IGV")
 		{
-			user_selected_commands = initRegularIGV();
+			user_selected_commands = initRegularIGV(skip_init_for_session);
 		}
 		if (igv_data_.name=="Virus IGV")
 		{
-			user_selected_commands = initVirusIGV();
+			user_selected_commands = initVirusIGV(skip_init_for_session);
 		}
 
-		if (!user_selected_commands.isEmpty())
+		if (skip_init_for_session)
 		{
+			setInitialized(true);
+		}
+		else if (!user_selected_commands.isEmpty())
+		{
+			commands_init << "new";
 			commands_init << user_selected_commands;
 			setInitialized(true);
 		}
@@ -88,7 +96,7 @@ void IGVSession::execute(const QStringList& commands, bool init_if_not_done)
 	command_history_mutex_.lock();
 	foreach (const IgvWorkerCommand& command, worker_commands)
 	{
-		command_history_ << IGVCommand{command.id, command.text, IGVStatus::QUEUED, "", 0.0};
+		command_history_ << IGVCommand{command.id, command.text, IGVStatus::QUEUED, "", QDateTime(), 0.0};
 	}
 	emit historyUpdated(igv_data_.name, command_history_);
 	command_history_mutex_.unlock();
@@ -136,7 +144,7 @@ bool IGVSession::isIgvRunning()
 	commands << IgvWorkerCommand{-1, "echo running"};
 
 	//start command
-	IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 500);
+	IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 1500);
 	command_worker->setAutoDelete(false);
     execution_pool_.start(command_worker);
 
@@ -212,7 +220,7 @@ QColor IGVSession::statusToColor(IGVStatus status)
 	THROW(ProgrammingException, "Unknown IGV status " + QString::number(status));
 }
 
-QStringList IGVSession::initRegularIGV()
+QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
 {
 	MainWindow* main_window = GlobalServiceProvider::mainWindow();
 
@@ -368,12 +376,16 @@ QStringList IGVSession::initRegularIGV()
 	parent_->setFocus();
 
 	//execute dialog
-	if (!dlg.exec()) return QStringList();
+	if (!dlg.exec())
+	{
+		skip_init_for_session = dlg.skipInitialization();
+		return QStringList();
+	}
 
 	return filesToCommands(dlg.filesToLoad());
 }
 
-QStringList IGVSession::initVirusIGV()
+QStringList IGVSession::initVirusIGV(bool& skip_init_for_session)
 {
     IgvDialog dlg(parent_);
 
@@ -396,7 +408,11 @@ QStringList IGVSession::initVirusIGV()
 	parent_->setFocus();
 
 	//execute dialog
-	if (!dlg.exec()) return QStringList();
+	if (!dlg.exec())
+	{
+		skip_init_for_session = dlg.skipInitialization();
+		return QStringList();
+	}
 
 	return filesToCommands(dlg.filesToLoad());
 }
@@ -443,6 +459,7 @@ void IGVSession::updateHistoryStart(int id)
 		if (command.id==id)
 		{
 			command.status = IGVStatus::STARTED;
+			command.execution_start_time = QDateTime::currentDateTime();
 		}
 	}
 
@@ -465,7 +482,7 @@ void IGVSession::updateHistoryFinished(int id, QString answer, double sec_elapse
 		{
 			command.status = IGVStatus::FINISHED;
 			command.answer = answer;
-			command.execution_time_sec = sec_elapsed;
+			command.execution_duration_sec = sec_elapsed;
 		}
 	}
 
@@ -488,7 +505,7 @@ void IGVSession::updateHistoryFailed(int id, QString error, double sec_elapsed)
 		{
 			command.status = IGVStatus::FAILED;
 			command.answer = error;
-			command.execution_time_sec = sec_elapsed;
+			command.execution_duration_sec = sec_elapsed;
 		}
 	}
 

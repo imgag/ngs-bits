@@ -42,50 +42,50 @@ struct FilterDefinition
 
 class ConcreteTool: public ToolBase
 {
-    Q_OBJECT
+	Q_OBJECT
 
 	// Checks if a filter is satisified
 	static bool satisfiesFilter(const QByteArray& value, const FilterDefinition& filter_def, const QByteArray& line)
-    {
+	{
 		if (filter_def.op == ">")
-        {
+		{
 			return toDouble(value, filter_def.field, line) > filter_def.value.toDouble();
-        }
+		}
 		else if (filter_def.op == ">=")
-        {
+		{
 			return toDouble(value, filter_def.field, line) >= filter_def.value.toDouble();
-        }
+		}
 		else if (filter_def.op == "!=")
-        {
+		{
 			return toDouble(value, filter_def.field, line) != filter_def.value.toDouble();
-        }
+		}
 		else if (filter_def.op == "=")
-        {
+		{
 			return toDouble(value, filter_def.field, line) == filter_def.value.toDouble();
-        }
+		}
 		else if (filter_def.op == "<=")
-        {
+		{
 			return toDouble(value, filter_def.field, line) <= filter_def.value.toDouble();
-        }
+		}
 		else if (filter_def.op == "<")
-        {
+		{
 			return toDouble(value, filter_def.field, line) < filter_def.value.toDouble();
-        }
+		}
 		else if (filter_def.op == "is")
-        {
+		{
 			return filter_def.value == value;
-        }
+		}
 		else if (filter_def.op == "not")
-        {
+		{
 			return filter_def.value != value;
-        }
+		}
 		else if (filter_def.op == "contains")
-        {
+		{
 			return value.contains(filter_def.value);
-        }
+		}
 
 		THROW(ProgrammingException, "Unsupported filter operation " + filter_def.op + "!");
-    }
+	}
 
 	//Convert a value to a double
 	static double toDouble(const QByteArray& value, const QByteArray& filter_name, const QByteArray& line)
@@ -106,27 +106,27 @@ class ConcreteTool: public ToolBase
 	}
 
 public:
-    ConcreteTool(int& argc, char *argv[])
-        : ToolBase(argc, argv)
+	ConcreteTool(int& argc, char *argv[])
+		: ToolBase(argc, argv)
 
 	{
 		op_numeric << ">" << ">=" << "=" << "!=" << "<=" << "<";
 		op_string << "is" << "not" << "contains";
 		variant_types << "snp" << "indel" << "multi-allelic" << "other";
-    }
+	}
 
 	QByteArrayList op_numeric;
 	QByteArrayList op_string;
-    QStringList variant_types;
+	QStringList variant_types;
 
-    virtual void setup()
-    {
+	virtual void setup()
+	{
 		setDescription("Filters a VCF based on the given criteria.");
 		setExtendedDescription(QStringList() << "Missing annotation in the SAMPLE filter are treated as passing the filter."
 											 << "INFO flags (i.e. entries without value) are ignored, i.e. they cannot be filtered."
 							   );
-        //optional
-        addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
+		//optional
+		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 
 		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
@@ -141,56 +141,60 @@ public:
 		addString("info", "Filter by INFO column entries - use ';' as separator for several filters, e.g. 'DP > 5;AO > 2' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addString("sample", "Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addFlag("sample_one_match", "If set, a line will pass if one sample passes all filters (default behaviour is that all samples have to pass all filters).");
+		addFlag("no_special_chr", "Removes variants that are on special chromosomes, i.e. not on autosomes, not on gonosomes and not on chrMT.");
+
+		changeLog(2023, 11, 21, "Added flag 'no_special_chr'.");
 		changeLog(2018, 10, 31, "Initial implementation.");
-    }
+	}
 
-    virtual void main()
-    {
-        //init roi
-        QString reg = getString("reg");
+	virtual void main()
+	{
+		//init roi
+		QString reg = getString("reg");
 
-        //load target region
-        BedFile roi;
-        if (reg != "")
-        {
-            if (QFile::exists(reg))
-            {
-                roi.load(reg);
-            }
-            else //parse comma-separated regions
-            {
+		//load target region
+		BedFile roi;
+		if (reg != "")
+		{
+			if (QFile::exists(reg))
+			{
+				roi.load(reg);
+			}
+			else //parse comma-separated regions
+			{
 				QStringList regions = reg.split(',');
-                foreach(QString region, regions)
-                {
-                    BedLine line = BedLine::fromString(region);
-                    if (!line.isValid()) THROW(ArgumentException, "Invalid region '" + region + "' given in parameter 'reg'!");
-                    roi.append(line);
-                }
-            }
-        }
-        roi.merge();
-        ChromosomalIndex<BedFile> roi_index(roi);
+				foreach(QString region, regions)
+				{
+					BedLine line = BedLine::fromString(region);
+					if (!line.isValid()) THROW(ArgumentException, "Invalid region '" + region + "' given in parameter 'reg'!");
+					roi.append(line);
+				}
+			}
+		}
+		roi.merge();
+		ChromosomalIndex<BedFile> roi_index(roi);
 
-        //open input/output streams
-        QString in = getInfile("in");
-        QString out = getOutfile("out");
-        if(in!="" && in==out)
-        {
-            THROW(ArgumentException, "Input and output files must be different when streaming!");
-        }
-        QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
-        QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
+		//open input/output streams
+		QString in = getInfile("in");
+		QString out = getOutfile("out");
+		if(in!="" && in==out)
+		{
+			THROW(ArgumentException, "Input and output files must be different when streaming!");
+		}
+		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
+		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
-        //init parameters
-        double quality = getFloat("qual");
-        bool filter_empty = getFlag("filter_empty");
+		//init parameters
+		double quality = getFloat("qual");
+		bool filter_empty = getFlag("filter_empty");
 		bool remove_invalid = getFlag("remove_invalid");
+		bool sample_one_match = getFlag("sample_one_match");
+		bool no_special_chr = getFlag("no_special_chr");
 		bool remove_non_ref = getFlag("remove_non_ref");
-        bool sample_one_match = getFlag("sample_one_match");
 		QString filter = getString("filter");
 		QString filter_exclude = getString("filter_exclude");
 		QString id = getString("id");
-        QString variant_type = getString("variant_type");
+		QString variant_type = getString("variant_type");
 		if (variant_type != "" && !variant_types.contains(variant_type))
 		{
 			THROW(ArgumentException, "Variant type " + variant_type + " is not a supported variant type!");
@@ -198,16 +202,16 @@ public:
 		QString info = getString("info");
 		QString sample = getString("sample");
 
-        QRegularExpression filter_re;
+		QRegularExpression filter_re;
 		if (filter != "")
-        {
-            // Prepare static filter regexes
+		{
+			// Prepare static filter regexes
 			filter_re.setPattern(filter);
-            if (!filter_re.isValid())
-            {
+			if (!filter_re.isValid())
+			{
 				THROW(ArgumentException, "Filter regexp '" + filter + "' is not a valid regular expression! ( + " + filter_re.errorString() + " )");
-            }
-        }
+			}
+		}
 
 		QRegularExpression filter_exclude_re;
 		if (filter_exclude != "")
@@ -220,14 +224,14 @@ public:
 			}
 		}
 
-        QRegularExpression id_re;
+		QRegularExpression id_re;
 		if (id != "")
-        {
+		{
 			id_re.setPattern(id);
-            if (!id_re.isValid())
-            {
+			if (!id_re.isValid())
+			{
 				THROW(ArgumentException, "ID regexp '" + id + "' is not a valid regular expression! ( " + id_re.errorString() + " )");
-            }
+			}
 		}
 
 		//parse INFO filters
@@ -271,11 +275,11 @@ public:
 			}
 		}
 
-        // Read input
+		// Read input
 		QTextStream std_err(stderr);
 		int column_count = 0;
-        while (!in_p->atEnd())
-        {
+		while (!in_p->atEnd())
+		{
 			QByteArray line = in_p->readLine();
 
 			//skip empty lines
@@ -286,41 +290,47 @@ public:
 			std::for_each(parts.begin(), parts.end(), [](QByteArray& line){ line = line.trimmed(); });
 
 			//handle header columns
-            if (line.startsWith('#'))
-            {
+			if (line.startsWith('#'))
+			{
 				if (!line.startsWith("##"))
 				{
 					column_count = parts.count();
 				}
 
-                out_p->write(line);
-                continue;
-            }
+				out_p->write(line);
+				continue;
+			}
 
 			//Filter by region
-            if (reg != "")
-            {
+			if (reg != "")
+			{
 				const QByteArray& chr = col(parts, VcfFile::CHROM);
 				const QByteArray& start = col(parts, VcfFile::POS);
 				const QByteArray& ref = col(parts, VcfFile::REF);
 				int pos = Helper::toInt(start, "genomic position");
 				if (roi_index.matchingIndex(chr, pos, pos + ref.length()-1)==-1)
-                {
+				{
 					continue;
-                }
-            }
+				}
+			}
+
+			//filter out special chromosomes
+			if (no_special_chr && !Chromosome(col(parts, VcfFile::CHROM)).isNonSpecial())
+			{
+				continue;
+			}
 
 			//Filter by variant_type
-            if (variant_type != "")
+			if (variant_type != "")
 			{
 				const QByteArray& ref = col(parts, VcfFile::REF);
 				const QByteArray& alt = col(parts, VcfFile::ALT);
 
-                QString type;
-                if (ref.length() == 1 && alt.length() == 1)
-                {
-                    type = "snp";
-                }
+				QString type;
+				if (ref.length() == 1 && alt.length() == 1)
+				{
+					type = "snp";
+				}
 				else if (alt.contains(','))
 				{
 					type = "multi-allelic";
@@ -330,20 +340,20 @@ public:
 					type = "other";
 				}
 				else if (ref.length() > 1 || alt.length() > 1)
-                {
+				{
 					type = "indel";
 				}
-                else
-                {
-                    THROW(ProgrammingException, "Unsupported variant type '" + alt + "' in line " + line);
-                }
+				else
+				{
+					THROW(ProgrammingException, "Unsupported variant type '" + alt + "' in line " + line);
+				}
 
-                if (type != variant_type)
-                {
-                    continue;
-                }
+				if (type != variant_type)
+				{
+					continue;
+				}
 
-            }
+			}
 
 			//filter out invalid lines
 			if (remove_invalid)
@@ -376,31 +386,31 @@ public:
 			{
 				if (Helper::toDouble(col(parts, VcfFile::QUAL), "quality") < quality)
 				{
-                    continue;
-                }
-            }
+					continue;
+				}
+			}
 
 			//filter by empty filters (will remove empty filters).
-            if (filter_empty)
-            {
+			if (filter_empty)
+			{
 				const QByteArray& filter = col(parts, VcfFile::FILTER);
 
 				if (filter!="." && filter!="" && filter!="PASS")
-                {
-                    continue;
-                }
-            }
+				{
+					continue;
+				}
+			}
 
 			//filter FILTER column via regex (include match)
 			if (!filter.isEmpty())
-            {
+			{
 				const QByteArray& filter = col(parts, VcfFile::FILTER);
 				auto match = filter_re.match(filter);
-                if (!match.hasMatch())
-                {
-                    continue;
-                }
-            }
+				if (!match.hasMatch())
+				{
+					continue;
+				}
+			}
 
 			//filter FILTER column via regex (exclude match)
 			if (!filter_exclude.isEmpty())
@@ -415,18 +425,18 @@ public:
 
 			//filter ID column via regex
 			if (!id.isEmpty())
-            {
+			{
 				const QByteArray& id = col(parts, VcfFile::ID);
-                auto match = id_re.match(id);
-                if (!match.hasMatch())
-                {
-                    continue;
-                }
-            }
+				auto match = id_re.match(id);
+				if (!match.hasMatch())
+				{
+					continue;
+				}
+			}
 
 			//filter by info operators in INFO column
 			if (!info_filters.isEmpty())
-            {
+			{
 				QByteArrayList info_parts = col(parts, VcfFile::INFO).split(';');
 
 				bool passes_filters = true;
@@ -449,20 +459,20 @@ public:
 					if (!passes_filters) break;
 				}
 
-                if (!passes_filters)
-                {
-                    continue;
-                }
-            }
+				if (!passes_filters)
+				{
+					continue;
+				}
+			}
 
 			//filter by sample operators in the SAMPLE column
 			if (!sample_filters.isEmpty())
-            {
+			{
 				QByteArrayList format_entries = col(parts, VcfFile::FORMAT).split(':');
 
 				int samples_passing = 0;
 				int samples_failing = 0;
-                for (int i = VcfFile::MIN_COLS + 1; i < column_count; ++i)
+				for (int i = VcfFile::MIN_COLS + 1; i < column_count; ++i)
 				{
 					QByteArrayList sample_parts = col(parts, i).split(':');
 
@@ -488,25 +498,25 @@ public:
 						++samples_failing;
 						if (!sample_one_match) break;
 					}
-                }
+				}
 
 				if ((sample_one_match && samples_passing==0) || (!sample_one_match && samples_failing!=0)) continue;
-            }
+			}
 
-            out_p->write(line);
+			out_p->write(line);
 
-        }
+		}
 
 		//close streams
-        in_p->close();
-        out_p->close();
-    }
+		in_p->close();
+		out_p->close();
+	}
 };
 
 #include "main.moc"
 
 int main(int argc, char *argv[])
 {
-    ConcreteTool tool(argc, argv);
-    return tool.execute();
+	ConcreteTool tool(argc, argv);
+	return tool.execute();
 }

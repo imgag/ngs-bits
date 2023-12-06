@@ -16,6 +16,7 @@ public:
 public slots:
     void switchCurrentSession(int index);
 	void updateTable(QString name, QList<IGVCommand> commands);
+	void updateInitStatus(bool);
 
 private:
     Ui::IgvLogWidget ui_;

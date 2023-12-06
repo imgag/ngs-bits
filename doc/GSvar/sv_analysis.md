@@ -44,6 +44,8 @@ The "Structural variants" dialog shows the filtered list of all detected SVs wit
 Additionally the `Format` and `Info` columns of the currently selected SV is expanded below this table (2). On the right side there is a filter widget similar to the variant or CNV view where filters can be added and modified (3). Below that the target, chromosomal or phenotype region can be defined and the SVs filtered by genes or text (4). 
 ![SV window](sv_window.png)
 
+More documentation about the Manta output can be found in the [Manta documentation](https://github.com/Illumina/manta/blob/master/docs/userGuide/README.md).
+
 ## Filtering SVs
 
 A set of default filters can be loaded by selecting a set of filters in the drop-down menu above the filter widget (3). Since the useful filter settings highly depends on the sample, most of the filters are deactivated by default and can be activated by checking the corresponding checkbox. There are four default filter sets for germline which can be selected depending on the sample:

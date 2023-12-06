@@ -18,7 +18,6 @@ private slots:
 	void delayedInitialization();
 	void updateGUI();
 	void edit();
-	void showDiagnosticStatusDialog();
 	void openProcessedSampleTab(QString ps);
 
 private:

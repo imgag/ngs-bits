@@ -23,6 +23,7 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
 	connect(ui_.variation_btn, SIGNAL(clicked(bool)), this, SLOT(showGeneVariationDialog()));
     connect(ui_.pseudogenes, SIGNAL(linkActivated(QString)), this, SLOT(parseLink(QString)));
 	connect(ui_.type, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
+	connect(ui_.pheno_search, SIGNAL(editingFinished()), this, SLOT(updatePhenotypeSearch()));
 
     //edit button
     QMenu* menu = new QMenu();
@@ -148,7 +149,7 @@ void GeneWidget::updateGUI()
 	ui_.hgnc_synonymous->setText(db.synonymousSymbols(gene_id).join(", "));
 
 	//show phenotypes/diseases from HPO
-	QStringList hpo_links;
+	hpo_lines.clear();
 	PhenotypeList pheno_list = db.phenotypes(symbol_);
 	foreach(const Phenotype& pheno, pheno_list)
 	{
@@ -165,12 +166,12 @@ void GeneWidget::updateGUI()
 			}
 
 		}
-		hpo_links << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.toList().join(", ") + ")";
+		hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.toList().join(", ") + ")";
 	}
-	ui_.hpo->setText(hpo_links.join("<br>"));
+	ui_.hpo->setText(hpo_lines.join("<br>"));
 
     //show OMIM info
-	QStringList omim_lines;
+	omim_lines.clear();
 	QList<OmimInfo> omim_infos = db.omimInfo(symbol_);
 	foreach(const OmimInfo& omim, omim_infos)
 	{
@@ -184,7 +185,7 @@ void GeneWidget::updateGUI()
 	ui_.omim->setText(omim_lines.join("<br>"));
 
 	//show OrphaNet info
-	QByteArrayList orpha_links;
+	orpha_lines.clear();
 	SqlQuery query = db.getQuery();
 	query.exec("SELECT dt.* FROM disease_term dt, disease_gene dg WHERE dg.disease_term_id=dt.id AND dt.source='OrphaNet' AND dg.gene='" + symbol_ + "'");
 	while (query.next())
@@ -192,9 +193,9 @@ void GeneWidget::updateGUI()
 		QByteArray identifier = query.value("identifier").toByteArray();
 		QByteArray number = identifier.mid(6);
 		QByteArray name = query.value("name").toByteArray();
-		orpha_links << ("<a href=\"https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Expert=" + number + "\">" + identifier + "</a> " + name);
+		orpha_lines << ("<a href=\"https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Expert=" + number + "\">" + identifier + "</a> " + name);
 	}
-	ui_.diseases->setText(orpha_links.join(orpha_links.count()>20 ? " " : "<br>"));
+	ui_.diseases->setText(orpha_lines.join("<br>"));
 
 	updateTranscriptsTable(db);
 }
@@ -264,6 +265,32 @@ void GeneWidget::openGeneTab(QString symbol)
 	GlobalServiceProvider::openGeneTab(symbol);
 }
 
+void GeneWidget::updatePhenotypeSearch()
+{
+	QString search_text = ui_.pheno_search->text().trimmed();
+
+	QStringList tmp;
+	foreach(const QString& line, omim_lines)
+	{
+		if (line.contains(search_text, Qt::CaseInsensitive)) tmp << line;
+	}
+	ui_.omim->setText(tmp.join("<br>"));
+
+	tmp.clear();
+	foreach(const QString& line, orpha_lines)
+	{
+		if (line.contains(search_text, Qt::CaseInsensitive)) tmp << line;
+	}
+	ui_.diseases->setText(tmp.join("<br>"));
+
+	tmp.clear();
+	foreach(const QString& line, hpo_lines)
+	{
+		if (line.contains(search_text, Qt::CaseInsensitive)) tmp << line;
+	}
+	ui_.hpo->setText(tmp.join("<br>"));
+}
+
 void GeneWidget::updateTranscriptsTable(NGSD& db)
 {
 	//clear
@@ -327,9 +354,6 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		ui_.transcripts->setCellWidget(row, 7, GUIHelper::createLinkLabel(refseq.join(", ")));
 
 		QStringList flags = transcript.flags(false);
-		QString transcript_id = db.getValue("SELECT id FROM gene_transcript WHERE name=:0", true, transcript.name()).toString();
-		if (db.getValue("SELECT is_ensembl_canonical FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "Ensembl canonical";
-		if (db.getValue("SELECT is_gencode_basic FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "GENCODE basic";
 		ui_.transcripts->setItem(row, 8, GUIHelper::createTableItem(flags.join(", ")));
 
 	}

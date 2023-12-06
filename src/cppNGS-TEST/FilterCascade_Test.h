@@ -1418,11 +1418,11 @@ private slots:
 	void default_filters_ClinCNV_germline_multi()
 	{
 		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline_multi.tsv"));
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline_trio_with_regions.tsv"));
 
 		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (ClinCNV)");
 		FilterResult result = filters.apply(cnvs, true);
-		I_EQUAL(result.countPassing(), 32);
+		I_EQUAL(result.countPassing(), 116);
 	}
 
 	void default_filters_ClinCNV_somatic()

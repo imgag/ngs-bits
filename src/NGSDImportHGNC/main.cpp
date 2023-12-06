@@ -163,8 +163,6 @@ public:
 		//get enum data
 		QStringList valid_types = db.getEnum("gene", "type");
 
-
-
 		//debug
 		QSet<QByteArray> ensg_ids;
 		QSet<QByteArray> duplicate_ensg_ids;
@@ -195,7 +193,7 @@ public:
 				ensg_ids.insert(ensg_id);
 			}
 		}
-		out << "Multiple ENSG ids (" << QByteArray::number(duplicate_ensg_ids.size()) << "): " << duplicate_ensg_ids.toList().join(", ") << endl;
+		out << "ENSG IDs used for more than one gene (" << QByteArray::number(duplicate_ensg_ids.size()) << "): " << duplicate_ensg_ids.toList().join(", ") << endl;
 
 
 		//get ENSG->HGNC mapping from ensembl file
@@ -239,7 +237,7 @@ public:
 
 			//extract Ensembl ID
 			QVariant ensg_id = QVariant();
-			if ((parts.size() > 19) && (!parts[19].trimmed().isEmpty()))
+			if (parts.size()>19 && !parts[19].trimmed().isEmpty())
 			{
 				ensg_id = QVariant(parts[19].trimmed());
 
@@ -276,7 +274,12 @@ public:
 			addAliases(alias_query, gene_id, parts[8], "synonym");
 		}
 
-		out << "  " << n_imported << " genes imported into the NGSD" << endl;
+		out << "  " << db.getValue("SELECT count(*) FROM gene").toInt() << " gene symbols imported into the NGSD:" << endl;
+		foreach(QString type, valid_types)
+		{
+			out << "    " << db.getValue("SELECT count(*) FROM gene WHERE type='" + type + "'").toInt() << " genes of type '" << type + "'" << endl;
+		}
+		out << "    " << db.getValue("SELECT count(*) FROM gene WHERE ensembl_id IS NULL ").toInt() << " genes without Ensembl ID" << endl;
 
 		//update gene symbols in geneinfo_germline and somatic_gene_role table
 		updateTable(db, "geneinfo_germline");
