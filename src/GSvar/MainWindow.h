@@ -19,6 +19,19 @@
 #include "Log.h"
 #include "ClickableLabel.h"
 
+///Tab type
+enum class TabType
+{
+	SAMPLE = 1,
+	PROJECT = 2,
+	RUN = 3,
+	SYSTEM = 4,
+	GENE = 5,
+	VARIANT = 6,
+	SAMPLE_SEARCH = 101,
+	ANANLYSIS_STATUS = 102
+};
+
 ///Main window class
 class MainWindow
 		: public QMainWindow
@@ -392,9 +405,11 @@ public slots:
 	///Open project tab
 	void openProjectTab(QString name);
 	///Opens a tab and returns its index.
-	int openTab(QIcon icon, QString name, QWidget* widget);
+	int openTab(QIcon icon, QString name, TabType type, QWidget* widget);
 	///Closes a tab by index
 	void closeTab(int index);
+	///Focus tab based on type and name. Returns if a tab was found and focused.
+	bool focusTab(TabType type, QString name);
 
 	///Edits the variant configuration for the variant with the given index
 	void editVariantReportConfiguration(int index);

@@ -3112,14 +3112,22 @@ void MainWindow::on_actionSettings_triggered()
 
 void MainWindow::on_actionSampleSearch_triggered()
 {
+	TabType type = TabType::SAMPLE_SEARCH;
+	QString name = "Sample search";
+	if (focusTab(type, name)) return;
+
 	SampleSearchWidget* widget = new SampleSearchWidget(this);
-	openTab(QIcon(":/Icons/NGSD_sample_search.png"), "Sample search", widget);
+	openTab(QIcon(":/Icons/NGSD_sample_search.png"), name, type, widget);
 }
 
 void MainWindow::on_actionRunOverview_triggered()
 {
+	TabType type = TabType::RUN;
+	QString name = "Sequencing run overview";
+	if (focusTab(type, name)) return;
+
 	SequencingRunOverview* widget = new SequencingRunOverview(this);
-	openTab(QIcon(":/Icons/NGSD_run_overview.png"), "Sequencing run overview", widget);
+	openTab(QIcon(":/Icons/NGSD_run_overview.png"), name, type, widget);
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
@@ -3368,6 +3376,9 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 
 void MainWindow::openProcessedSampleTab(QString ps_name)
 {
+	TabType type = TabType::SAMPLE;
+	if (focusTab(type, ps_name)) return;
+
 	try
 	{
 		QString ps_id = NGSD().processedSampleId(ps_name);
@@ -3375,7 +3386,7 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 		ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
 		connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
 		connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
-		int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
+		int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, type, widget);
 		if (Settings::boolean("debug_mode_enabled"))
 		{
 			ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
@@ -3389,6 +3400,9 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 
 void MainWindow::openRunTab(QString run_name)
 {
+	TabType type = TabType::RUN;
+	if (focusTab(type, run_name)) return;
+
 	QString run_id;
 	try
 	{
@@ -3402,7 +3416,7 @@ void MainWindow::openRunTab(QString run_name)
 
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
 	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
-	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, type, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
 		ui_.tabs->setTabToolTip(index, "NGSD ID: " + run_id);
@@ -3411,6 +3425,9 @@ void MainWindow::openRunTab(QString run_name)
 
 void MainWindow::openGeneTab(QString symbol)
 {
+	TabType type = TabType::GENE;
+	if (focusTab(type, symbol)) return;
+
 	QPair<QString, QString> approved = NGSD().geneToApprovedWithMessage(symbol);
 	if (approved.second.startsWith("ERROR:"))
 	{
@@ -3419,7 +3436,7 @@ void MainWindow::openGeneTab(QString symbol)
 	}
 
 	GeneWidget* widget = new GeneWidget(this, symbol.toUtf8());
-	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, type, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
 		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneId(symbol.toUtf8())));
@@ -3434,9 +3451,13 @@ void MainWindow::openVariantTab(Variant variant)
 		NGSD db;
 		QString v_id = db.variantId(variant);
 
+		TabType type = TabType::VARIANT;
+		QString name = variant.toString(false, -1, true);
+		if (focusTab(type, name)) return;
+
 		//open tab
 		VariantWidget* widget = new VariantWidget(variant, this);
-		int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(false, -1, true), widget);
+		int index = openTab(QIcon(":/Icons/NGSD_variant.png"), name, type, widget);
 
 		//add database id
 		if (Settings::boolean("debug_mode_enabled"))
@@ -3460,8 +3481,12 @@ void MainWindow::openProcessingSystemTab(QString system_name)
 		return;
 	}
 
+	TabType type = TabType::SYSTEM;
+	QString name = db.getProcessingSystemData(sys_id).name;
+	if (focusTab(type, name)) return;
+
 	ProcessingSystemWidget* widget = new ProcessingSystemWidget(this, sys_id);
-	int index = openTab(QIcon(":/Icons/NGSD_processing_system.png"), db.getProcessingSystemData(sys_id).name, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_processing_system.png"), name, type, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
 		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(sys_id));
@@ -3470,20 +3495,24 @@ void MainWindow::openProcessingSystemTab(QString system_name)
 
 void MainWindow::openProjectTab(QString name)
 {
+	TabType type = TabType::PROJECT;
+	if (focusTab(type, name)) return;
+
 	ProjectWidget* widget = new ProjectWidget(this, name);
-	int index = openTab(QIcon(":/Icons/NGSD_project.png"), name, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_project.png"), name, type, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
 		ui_.tabs->setTabToolTip(index, "NGSD ID: " + NGSD().getValue("SELECT id FROM project WHERE name=:0", true, name).toString());
 	}
 }
 
-int MainWindow::openTab(QIcon icon, QString name, QWidget* widget)
+int MainWindow::openTab(QIcon icon, QString name, TabType type, QWidget* widget)
 {
 	QScrollArea* scroll_area = new QScrollArea(this);
 	scroll_area->setFrameStyle(QFrame::NoFrame);
 	scroll_area->setWidgetResizable(true);
 	scroll_area->setWidget(widget);
+	scroll_area->setProperty("TabType", (int)type);
 	//fix color problems
 	QPalette pal;
 	pal.setColor(QPalette::Window,QColor(0,0,0,0));
@@ -3514,6 +3543,20 @@ void MainWindow::closeTab(int index)
 		ui_.tabs->removeTab(index);
 		widget->deleteLater();
 	}
+}
+
+bool MainWindow::focusTab(TabType type, QString name)
+{
+	for (int t=0; t<ui_.tabs->count(); ++t)
+	{
+		if (ui_.tabs->widget(t)->property("TabType").toInt()==(int)type && ui_.tabs->tabText(t)==name)
+		{
+			ui_.tabs->setCurrentIndex(t);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void MainWindow::on_actionChangeLog_triggered()
@@ -6128,20 +6171,13 @@ void MainWindow::on_actionSampleAncestry_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	//check if already open
-	for (int t=0; t<ui_.tabs->count(); ++t)
-	{
-		if (ui_.tabs->tabText(t)=="Analysis status")
-		{
-			ui_.tabs->setCurrentIndex(t);
-			return;
-		}
-	}
+	TabType type = TabType::ANANLYSIS_STATUS;
+	if (focusTab(type, "Analysis status")) return;
 
 	//open new
 	AnalysisStatusWidget* widget = new AnalysisStatusWidget(this);
 	connect(widget, SIGNAL(loadFile(QString)), this, SLOT(loadFile(QString)));
-	openTab(QIcon(":/Icons/Server.png"), "Analysis status", widget);
+	openTab(QIcon(":/Icons/Server.png"), "Analysis status", type, widget);
 }
 
 void MainWindow::on_actionGapsLookup_triggered()
