@@ -33,7 +33,8 @@ BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 	connect(ui_->b_clear_excluded_regions, SIGNAL(clicked(bool)), this, SLOT(clearExcludedRegions()));
 	connect(ui_->b_copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_->b_check_input, SIGNAL(clicked(bool)), this, SLOT(validateInputData()));
-	connect(ui_->cb_only_ccr, SIGNAL(stateChanged(int state)), this, SLOT(validateCCRGenes()));
+	connect(ui_->cb_inheritance, SIGNAL(currentIndexChanged(int)), this, SLOT(updateCNVCheckbox()));
+	connect(ui_->cb_only_ccr, SIGNAL(stateChanged(int)), this, SLOT(validateCCRGenes()));
 
 	//initial GUI setup:
 	//disable test start until data is validated
@@ -837,7 +838,7 @@ QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, co
 	QStringList chr_ranges;
 	for (int i = 0; i < regions.count(); ++i)
 	{
-		chr_ranges << "(v.chr='" + regions[i].chr().strNormalized(true) + "' AND v.start>=" + QString::number(regions[i].start()) + " AND v.end<=" + QString::number(regions[i].end()) + ")";
+		chr_ranges << "(v.chr='" + regions[i].chr().strNormalized(true) + "' AND v.end>=" + QString::number(regions[i].start()) + " AND v.start<=" + QString::number(regions[i].end()) + ")";
 	}
 	//collapse to final query
 	query_text += " AND (" + chr_ranges.join(" OR ") + ") ORDER BY start";
@@ -886,9 +887,11 @@ QSet<int> BurdenTestWidget::removeDiseaseStatus(const QSet<int>& s_list, const Q
 void BurdenTestWidget::performBurdenTest()
 {
 
-	if(test_running) return;
-	test_running = true;
+	if(test_running_) return;
+	test_running_ = true;
 	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	bool include_cnvs = ui_->cb_include_cnvs->isChecked();
 
 	QTime timer;
 	timer.start();
@@ -896,6 +899,21 @@ void BurdenTestWidget::performBurdenTest()
 	//delete old table and disable sorting
 	ui_->tw_gene_table->setRowCount(0);
 	ui_->tw_gene_table->setSortingEnabled(false);
+	ui_->tw_gene_table->setColumnCount(6);
+	ui_->tw_gene_table->setHorizontalHeaderItem(0, GUIHelper::createTableItem("gene"));
+	ui_->tw_gene_table->setHorizontalHeaderItem(1, GUIHelper::createTableItem("p-value"));
+	ui_->tw_gene_table->setHorizontalHeaderItem(2, GUIHelper::createTableItem("counts cases"));
+	ui_->tw_gene_table->setHorizontalHeaderItem(3, GUIHelper::createTableItem("counts controls"));
+	ui_->tw_gene_table->setHorizontalHeaderItem(4, GUIHelper::createTableItem("samples cases"));
+	ui_->tw_gene_table->setHorizontalHeaderItem(5, GUIHelper::createTableItem("samples controls"));
+	if(include_cnvs)
+	{
+		ui_->tw_gene_table->setColumnCount(10);
+		ui_->tw_gene_table->setHorizontalHeaderItem(6, GUIHelper::createTableItem("counts cases (CNVs)"));
+		ui_->tw_gene_table->setHorizontalHeaderItem(7, GUIHelper::createTableItem("counts controls (CNVs)"));
+		ui_->tw_gene_table->setHorizontalHeaderItem(8, GUIHelper::createTableItem("samples cases (CNVs)"));
+		ui_->tw_gene_table->setHorizontalHeaderItem(9, GUIHelper::createTableItem("samples controls (CNVs)"));
+	}
 
 	//parse options
 	int max_ngsd = ui_->sb_max_ngsd_count->value();
@@ -934,6 +952,66 @@ void BurdenTestWidget::performBurdenTest()
 	}
 	qDebug() << "get gene ids: " << Helper::elapsedTime(timer);
 
+	QSet<int> callset_ids_cases;
+	QSet<int> callset_ids_controls;
+	BedFile cnv_polymorphism_region;
+	if (include_cnvs)
+	{
+		//TODO: filter by ref correlation
+		//get callset ids for each processed sample
+		SqlQuery cnv_callset_query = db_.getQuery();
+		cnv_callset_query.prepare("SELECT id, quality_metrics FROM cnv_callset WHERE processed_sample_id=:0");
+		foreach (int ps_id, case_samples_)
+		{
+			//get sample type
+			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
+			double min_correlation = (processing_system_type == "WGS")? 0.55: 0.9;
+			cnv_callset_query.bindValue(0, ps_id);
+			cnv_callset_query.exec();
+			while(cnv_callset_query.next())
+			{
+				int callset_id = cnv_callset_query.value(0).toInt();
+				QMap<QString, QVariant> quality_metrics = QJsonDocument::fromJson(cnv_callset_query.value(1).toByteArray()).object().toVariantMap();
+				double ref_correlation = quality_metrics.value("mean correlation to reference samples").toDouble();
+				qDebug() << quality_metrics;
+				qDebug() << ref_correlation;
+				//TODO adapt
+				if (ref_correlation >= min_correlation) callset_ids_cases << callset_id;
+			}
+			qDebug() << "callset ids cases:" << callset_ids_cases.size();
+		}
+		foreach (int ps_id, control_samples_)
+		{
+			//get sample type
+			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
+			double min_correlation = (processing_system_type == "WGS")? 0.55: 0.9;
+			cnv_callset_query.bindValue(0, ps_id);
+			cnv_callset_query.exec();
+			while(cnv_callset_query.next())
+			{
+				int callset_id = cnv_callset_query.value(0).toInt();
+				QJsonDocument quality_metrics = QJsonDocument::fromJson(cnv_callset_query.value(1).toByteArray());
+				double ref_correlation = quality_metrics.object().value("mean correlation to reference samples").toDouble();
+
+				if (ref_correlation >= min_correlation) callset_ids_controls << callset_id;
+			}
+			qDebug() << "callset ids controls:" << callset_ids_controls.size();
+		}
+
+		//read polymorphism region
+		QStringList igv_tracks = Settings::stringList("igv_menu"); //TODO seperate entry?
+		QString cnv_file_path;
+		foreach (const QString& track, igv_tracks)
+		{
+			QStringList columns = track.split('\t');
+			if (columns.at(0).startsWith("Copy-number polymorphism regions"))
+			{
+				cnv_polymorphism_region.load(columns.at(2).trimmed());
+			}
+		}
+
+	}
+	ChromosomalIndex<BedFile> cnv_polymorphism_region_index(cnv_polymorphism_region);
 
 	int i=0;
 	double n_sec_single_query = 0;
@@ -1014,10 +1092,39 @@ void BurdenTestWidget::performBurdenTest()
 		std::sort(ps_names_cases.begin(), ps_names_cases.end());
 		std::sort(ps_names_controls.begin(), ps_names_controls.end());
 
-		//calculate p-value (fisher)
-		double p_value = BasicStatistics::fishersExactTest(n_cases, n_controls, case_samples_.size(), control_samples_.size(), "greater");
+		//init optional values
+		double p_value;
+		int n_cases_cnv = 0;
+		int n_controls_cnv = 0;
+		QStringList ps_names_cases_cnv;
+		QStringList ps_names_controls_cnv;
+		if (include_cnvs)
+		{
+			//get cnv counts
+			if (callset_ids_cases.size() > 0 ) n_cases_cnv = countOccurencesCNV(callset_ids_cases, gene_regions, cnv_polymorphism_region, cnv_polymorphism_region_index, ps_names_cases_cnv);
+			if (callset_ids_controls.size() > 0 ) n_controls_cnv = countOccurencesCNV(callset_ids_controls, gene_regions, cnv_polymorphism_region, cnv_polymorphism_region_index, ps_names_controls_cnv);
+			//sort processed samples
+			std::sort(ps_names_cases_cnv.begin(), ps_names_cases_cnv.end());
+			std::sort(ps_names_controls_cnv.begin(), ps_names_controls_cnv.end());
+
+			//get combined counts
+			int n_cases_combined = (ps_names_cases.toSet() + ps_names_cases_cnv.toSet()).size();
+			int n_controls_combined = (ps_names_controls.toSet() + ps_names_controls_cnv.toSet()).size();
+
+			//calculate p-value (fisher) (SNPs only)
+			p_value = BasicStatistics::fishersExactTest(n_cases_combined, n_controls_combined, case_samples_.size(), control_samples_.size(), "greater");
+		}
+		else
+		{
+			//calculate p-value (fisher) (SNPs only)
+			p_value = BasicStatistics::fishersExactTest(n_cases, n_controls, case_samples_.size(), control_samples_.size(), "greater");
+		}
+
 
 		qDebug() << gene_name << "calculating counts took: " << Helper::elapsedTime(timer);
+
+
+
 
 		//create table line
 		int row_idx = ui_->tw_gene_table->rowCount();
@@ -1025,7 +1132,7 @@ void BurdenTestWidget::performBurdenTest()
 		ui_->tw_gene_table->setRowCount(row_idx+1);
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(gene_name));
-		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(p_value,  8));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(p_value, -1));
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_cases));
 		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases.join(", "));
@@ -1036,12 +1143,29 @@ void BurdenTestWidget::performBurdenTest()
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases.join(", ")));
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls.join(", ")));
 
+		if (include_cnvs)
+		{
+			ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_cases_cnv));
+			ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases_cnv.join(", "));
+			ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_controls_cnv));
+			ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_controls_cnv.join(", "));
+
+			// add infos for hidden columns (ps names)
+			ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases_cnv.join(", ")));
+			ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls_cnv.join(", ")));
+		}
+
 	}
 
 	//final adjustments
 	ui_->tw_gene_table->verticalHeader()->hide();
 	ui_->tw_gene_table->setColumnHidden(4, true);
 	ui_->tw_gene_table->setColumnHidden(5, true);
+	if (include_cnvs)
+	{
+		ui_->tw_gene_table->setColumnHidden(8, true);
+		ui_->tw_gene_table->setColumnHidden(9, true);
+	}
 	GUIHelper::resizeTableCells(ui_->tw_gene_table, 200);
 	ui_->tw_gene_table->setSortingEnabled(true);
 	ui_->tw_gene_table->sortByColumn(1, Qt::AscendingOrder);
@@ -1049,7 +1173,7 @@ void BurdenTestWidget::performBurdenTest()
 
 	qDebug() << "Burden test took: " << Helper::elapsedTime(timer);
 	QApplication::restoreOverrideCursor();
-	test_running = false;
+	test_running_ = false;
 }
 
 void BurdenTestWidget::copyToClipboard()
@@ -1097,6 +1221,15 @@ void BurdenTestWidget::copyToClipboard()
 	comments << "impact=" + impacts.join(",");
 	comments << QString("include_mosaic=") + ((ui_->cb_include_mosaic->isChecked())?"1":"0");
 	comments << "inheritance=" + ui_->cb_inheritance->currentText();
+
+	if(ui_->cb_include_cnvs->isChecked())
+	{
+		comments << "CNV_scaled_log_likelihood=15";
+		comments << "CNV_reference_correlation>=0.9(WES)|>=0.55(WGS)";
+		comments << "CNV_polymorphism_overlap<=0.95";
+		comments << "CNV_copy_number=0";
+
+	}
 
 	GUIHelper::copyToClipboard(ui_->tw_gene_table, false, comments);
 }
@@ -1148,58 +1281,20 @@ void BurdenTestWidget::initCCR()
 	}
 }
 
-/*
-QStringList BurdenTestWidget::createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic, bool include_mosaic)
+void BurdenTestWidget::updateCNVCheckbox()
 {
-	QString ngsd_counts = (include_mosaic)?"(germline_het+germline_hom+germline_mosaic)<=":"(germline_het+germline_hom)<=";
-	//prepare db queries
-	QString query_text_prefix = QString() + "SELECT v.id, v.start, v.end FROM variant v WHERE"
-			+ " (germline_het>0 OR germline_hom>0) AND " + ngsd_counts + QString::number(max_ngsd)
-			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")"
-			+ " AND v.chr='" + regions[0].chr().strNormalized(true) + "'";
-	//impacts
-	if(impacts.size() > 0)
+	if(ui_->cb_inheritance->currentText().startsWith("recessive"))
 	{
-		query_text_prefix += " AND (";
-		QStringList impact_query_statement;
-		foreach (const QString& impact, impacts)
-		{
-			if (!predict_pathogenic || impact == "HIGH")
-			{
-				impact_query_statement << "(v.coding LIKE '%" + impact + "%')";
-			}
-			else
-			{
-				impact_query_statement << "(v.coding LIKE '%" + impact + "%' AND (v.cadd>=20 OR v.spliceai>=0.5))";
-			}
-
-		}
-		query_text_prefix += impact_query_statement.join(" OR ");
-		query_text_prefix += ")";
+		ui_->cb_include_cnvs->setEnabled(true);
+		ui_->cb_include_cnvs->setCheckState(Qt::Unchecked);
 	}
-
-	//gene regions
-	QStringList queries;
-	QStringList chr_ranges;
-	for (int i = 0; i < regions.count(); ++i)
+	else
 	{
-		//split large query into smaller ones
-		if(chr_ranges.size() >= 100)
-		{
-			queries << query_text_prefix + " AND " + chr_ranges.join(" OR ") + " ORDER BY start";
-			chr_ranges.clear();
-		}
-
-		chr_ranges << "(v.start>=" + QString::number(regions[i].start()) + " AND v.end<=" + QString::number(regions[i].end()) + ")";
+		ui_->cb_include_cnvs->setEnabled(false);
+		ui_->cb_include_cnvs->setCheckState(Qt::Unchecked);
 	}
-	//add final batch
-	queries << query_text_prefix + " AND " + chr_ranges.join(" OR ") + " ORDER BY start";
-
-	qDebug() << chr_ranges.size();
-	qDebug() << queries;
-	return queries;
 }
-*/
+
 
 int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int>>& detected_variants, Inheritance inheritance, QStringList& ps_names)
 {
@@ -1248,25 +1343,106 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 			// check for hom var
 			QString genotype = db_.getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id=" + QString::number(ps_id) + " AND variant_id="
 											+ QString::number(variant_id)).toString();
-			// skip het vars
-			if (genotype != "hom")
-			{
-				continue;
-			}
-			// skip hom vars in X on male samples
-			QString gender = db_.getSampleData(db_.sampleId(db_.processedSampleName(QString::number(ps_id)))).gender;
-			if (gender == "male")
-			{
-				Variant var = db_.variant(QString::number(variant_id));
-				BedFile par = NGSHelper::pseudoAutosomalRegion(GSvarHelper::build());
-				if (var.chr().isX() && (!par.overlapsWith(var.chr(), var.start(), var.end()))) continue;
-			}
 
+			// skip het vars (except het on chr X in male samples)
+			if (genotype == "het")
+			{
+				QString gender = db_.getSampleData(db_.sampleId(db_.processedSampleName(QString::number(ps_id)))).gender;
+				if (gender != "male") continue;
+				Variant var = db_.variant(QString::number(variant_id));
+				if (!var.chr().isX()) continue;
+				BedFile par = NGSHelper::pseudoAutosomalRegion(GSvarHelper::build());
+				if (!par.overlapsWith(var.chr(), var.start(), var.end())) continue;
+
+				//else: variant is kept since it is a het variant on the chr X of a male sample
+			}
 		}
-		//else (at least two hits or non-ressesive:
+		//else: at least two hits or non-ressesive:
 		n_hits++;
 		ps_names << db_.processedSampleName(QString::number(ps_id));
 	}
 
 	return n_hits;
+}
+
+int BurdenTestWidget::
+countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const BedFile& cnv_polymorphism_region, const ChromosomalIndex<BedFile>& cnv_polymorphism_region_index, QStringList& ps_names)
+{
+	ps_names.clear();
+
+	//debug logs:
+	int skipped_wrong_cn = 0;
+	int skipped_low_logll = 0;
+	int skipped_overlap_pmr = 0;
+	//get all cnvs intersecting the given region
+	//create query
+	QString query_text = QString("SELECT id FROM cnv WHERE ");
+
+	//filter by callset
+	QStringList callset_str;
+	foreach (int c_id, callset_ids)
+	{
+		callset_str << QString::number(c_id);
+	}
+	query_text += "cnv_callset_id IN (" +  callset_str.join(", ") + ") AND ";
+
+	//filter by region
+	QStringList chr_ranges;
+	for (int i = 0; i < regions.count(); ++i)
+	{
+		chr_ranges << "(chr='" + regions[i].chr().strNormalized(true) + "' AND end>=" + QString::number(regions[i].start()) + " AND start<=" + QString::number(regions[i].end()) + ")";
+	}
+	query_text += "(" + chr_ranges.join(" OR ") + ")";
+
+	//execute
+	QList<int> cnv_ids = db_.getValuesInt(query_text);
+
+	//filter down variants
+	foreach (int cnv_id, cnv_ids)
+	{
+		//filter by CN
+		int cn = db_.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toInt();
+		if (cn != 0)
+		{
+			skipped_wrong_cn++;
+			continue;
+		}
+
+		//filter by logll
+		QJsonDocument json = QJsonDocument::fromJson(db_.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toByteArray());
+		int ll = json.object().value("loglikelihood").toInt();
+		int n_regions = (json.object().contains("regions"))?json.object().value("regions").toInt():json.object().value("no_of_regions").toInt();
+		double scaled_ll = (double) ll / n_regions;
+		if (scaled_ll < 15.0)
+		{
+			skipped_low_logll++;
+			continue;
+		}
+
+		//filter by polymorphim region
+		CopyNumberVariant cnv = db_.cnv(cnv_id);
+		QVector<int> indices = cnv_polymorphism_region_index.matchingIndices(cnv.chr(), cnv.start(), cnv.end());
+		BedFile overlap_regions;
+		foreach (int idx, indices)
+		{
+			const BedLine& match = cnv_polymorphism_region[idx];
+			overlap_regions.append(BedLine(cnv.chr(), std::max(cnv.start(),match.start()), std::min(cnv.end(),match.end())));
+		}
+		overlap_regions.sort();
+		overlap_regions.merge();
+		double overlap = (double) overlap_regions.baseCount() / cnv.size();
+		if(overlap > 0.95)
+		{
+			skipped_overlap_pmr++;
+			continue;
+		}
+
+		int ps_id = db_.getValue("SELECT cc.processed_sample_id FROM cnv c INNER JOIN cnv_callset cc ON cc.id=c.cnv_callset_id WHERE c.id=:0", false, QString::number(cnv_id)).toInt();
+		ps_names.append(db_.processedSampleName(QString::number(ps_id)));
+	}
+
+
+	//report results
+	ps_names.removeDuplicates();
+	return ps_names.size();
 }

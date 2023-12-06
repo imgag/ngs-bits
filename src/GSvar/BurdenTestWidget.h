@@ -36,12 +36,12 @@ private slots:
 	void updateSampleCounts();
 	void updateGeneCounts();
 	void updateExcludedRegions();
-//	void updateGeneSelectionMenu();
 	void performBurdenTest();
 	void copyToClipboard();
 	void copyWarningsToClipboard();
 	void validateCCRGenes();
 	void initCCR();
+//	void updateCNVCheckbox();
 
 
 private:
@@ -56,18 +56,21 @@ private:
 	NGSD db_;
 	BedFile excluded_regions_;
 	QMap<QByteArray,BedFile> ccr80_region_;
-	bool test_running = false;
+	bool test_running_ = false;
 	QTextEdit* te_excluded_regions_;
 	QStringList excluded_regions_file_names;
 	QTableWidget* tw_warnings_;
 	QStringList createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic, bool include_mosaic);
 	int countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int> >& detected_variants, Inheritance inheritance, QStringList& ps_names);
+	int countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const BedFile& cnv_polymorphism_region, const ChromosomalIndex<BedFile>& cnv_polymorphism_region_index, QStringList& ps_names);
 	QSet<int> loadSampleList(const QString& type, const QSet<int>& selected_ps_ids=QSet<int>());
 	QSet<int> getVariantsForRegion(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QString& gene_symbol, const QStringList& impacts, bool predict_pathogenic);
 	QString createGeneQuery(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic);
 	int getNewestProcessedSample(const QSet<int>& ps_list);
 	int getNewestSample(const QSet<int>& s_list);
 	QSet<int> removeDiseaseStatus(const QSet<int>& s_list, const QStringList& stati_to_remove);
+
+
 
 
 
