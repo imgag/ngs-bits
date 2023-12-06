@@ -132,7 +132,7 @@ void BedFile::load(QString filename, bool stdin_if_empty, bool read_annotations)
 		if(line.length()==0) continue;
 
 		//store headers
-		if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser "))
+		if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser ") || line.startsWith("Chromosome\tStart\tEnd"))
 		{
 			headers_.append(line);
 			continue;

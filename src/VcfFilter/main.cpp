@@ -131,6 +131,7 @@ public:
 
 		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
 		addFlag("remove_invalid", "Removes invalid variant, i.e. invalid position of ref/alt.");
+		addFlag("remove_non_ref", "Remove '<NON_REF>' entries. (Used in gVCF files)");
 		addString("variant_type", "Filters by variant type. Possible types are: '" + variant_types.join("','") + "'.", true);
 		addString("id", "Filter by ID column (regular expression).", true);
 		addFloat("qual", "Filter by QUAL column (minimum).", true, 0.0);
@@ -184,6 +185,7 @@ public:
         double quality = getFloat("qual");
         bool filter_empty = getFlag("filter_empty");
 		bool remove_invalid = getFlag("remove_invalid");
+		bool remove_non_ref = getFlag("remove_non_ref");
         bool sample_one_match = getFlag("sample_one_match");
 		QString filter = getString("filter");
 		QString filter_exclude = getString("filter_exclude");
@@ -352,6 +354,19 @@ public:
 				if (!vcf_line.isValid())
 				{
 					std_err << "filtered invalid variant: " << vcf_line.chr().strNormalized(true) << ":" << vcf_line.start() << " " << vcf_line.ref() << ">" << vcf_line.altString() << "\n";
+					continue;
+				}
+			}
+
+			//filter out <NON_REF> entries
+			if (remove_non_ref)
+			{
+				QList<Sequence> alts;
+				foreach(const QByteArray& alt, col(parts, VcfFile::ALT).split(',')) alts << alt;
+				VcfLine vcf_line(col(parts, VcfFile::CHROM), Helper::toInt(col(parts, VcfFile::POS), "genomic position"), col(parts, VcfFile::REF), alts);
+				if (alts.contains("<NON_REF>"))
+				{
+					std_err << "filtered '<NON_REF>' variant: " << vcf_line.chr().strNormalized(true) << ":" << vcf_line.start() << " " << vcf_line.ref() << ">" << vcf_line.altString() << "\n";
 					continue;
 				}
 			}

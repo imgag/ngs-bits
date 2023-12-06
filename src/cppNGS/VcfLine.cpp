@@ -411,7 +411,7 @@ bool VcfLine::isValid() const
 	if (alt_.isEmpty()) return false;
 	foreach(const Sequence& alt, alt_)
 	{
-		if (!valid_seq_regexp.exactMatch(alt)) return false;
+		if (!valid_seq_regexp.exactMatch(alt) && (alt != "<NON_REF>")) return false;
 	}
 
 	return true;

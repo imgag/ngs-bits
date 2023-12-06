@@ -105,6 +105,13 @@ private slots:
 		VCF_IS_VALID("out/VcfFilter_out14.vcf");
 	}
 
+	void remove_non_ref()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in03.vcf") + " -out out/VcfFilter_out15.vcf" + " -remove_non_ref");
+		COMPARE_FILES("out/VcfFilter_out15.vcf", TESTDATA("data_out/VcfFilter_out15.vcf"));
+		VCF_IS_VALID("out/VcfFilter_out15.vcf");
+	}
+
 /************************************ BUGS ************************************/
 
 	void bugfix_tab_before_column_returned()
