@@ -1016,7 +1016,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	int l = 0;
 	const int buffer_size = 1048576; //1MB buffer
 	char* buffer = new char[buffer_size];
-	while(!gzeof(file) && l<max_lines)
+	while(!gzeof(file) && c_data<max_lines)
 	{
 		++l;
 
