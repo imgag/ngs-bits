@@ -774,31 +774,23 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 
 HttpResponse ServerController::annotateVariant(const HttpRequest& request)
 {
-    QTemporaryFile temp_file;
-    if (!temp_file.open()) return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not initiate a temporary file for the annotation data"));
-
-    QString full_temp_path = temp_file.fileName();
-    QSharedPointer<QFile> outfile = Helper::openFileForWriting(full_temp_path);
-    outfile->write(request.getBody());
-
-    QTextStream out_stream(stdout, QIODevice::WriteOnly);
-    if (!VcfFile::isValid(full_temp_path, Settings::string("reference_genome", true), out_stream, true))
+    QString input_vcf = Helper::tempFileName(".vcf");
+    Helper::storeTextFile(input_vcf, QStringList() << request.getBody());
+    QString validation_result;
+    QTextStream out_stream(&validation_result);
+    if (!VcfFile::isValid(input_vcf, Settings::string("reference_genome", true), out_stream, false, std::numeric_limits<int>::max()))
     {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Invalid input VCF data"));
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Invalid input VCF data: " + validation_result));
     }
 
     QString megsap_root = Settings::path("megsap_root", true);
     if (megsap_root.isEmpty()) return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "megSAP root path is not set"));
 
-    if (!megsap_root.endsWith(QDir::separator())) megsap_root = megsap_root + QDir::separator();
-
     QProcess process;
     process.setProcessChannelMode(QProcess::MergedChannels);
-    QString an_vep_out = "an_vep_out.vcf";
-    an_vep_out = QFileInfo(full_temp_path).path().endsWith(QDir::separator()) ? QFileInfo(full_temp_path).path() + an_vep_out : QFileInfo(full_temp_path).path() + QDir::separator() + an_vep_out;
-
+    QString an_vep_out = Helper::tempFileName(".vcf");
     Log::info("Running megSAP >> an_vep.php: " + an_vep_out);
-    process.start("php", QStringList() << megsap_root + "src/NGS/an_vep.php" << "-in" << full_temp_path << "-out" << an_vep_out);
+    process.start("php", QStringList() << megsap_root + "/src/NGS/an_vep.php" << "-in" << input_vcf << "-out" << an_vep_out);
     bool success = process.waitForFinished(-1);
     if (!success)
     {
@@ -806,11 +798,9 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
     }
     Log::info(process.readAll());
 
-    QString vcf2gsvar_out = ServerHelper::generateUniqueStr() + ".gsvar";
-    vcf2gsvar_out = QDir::tempPath().endsWith(QDir::separator()) ? QDir::tempPath() + vcf2gsvar_out : QDir::tempPath() + QDir::separator() + vcf2gsvar_out;
-
+    QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
     Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
-    process.start("php", QStringList() << megsap_root + "src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
+    process.start("php", QStringList() << megsap_root + "/src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
     success = process.waitForFinished(-1);
     if (!success)
     {
