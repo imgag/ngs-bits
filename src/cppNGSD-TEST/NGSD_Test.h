@@ -2070,9 +2070,11 @@ private slots:
 		som_rep_conf.set(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
 		som_rep_conf.setTargetRegionName("/path/to/somewhere.bed");
-		som_rep_conf.setTumContentByMaxSNV(true);
-		som_rep_conf.setTumContentByClonality(true);
-		som_rep_conf.setTumContentByHistological(true);
+		som_rep_conf.setIncludeTumContentByMaxSNV(true);
+		som_rep_conf.setIncludeTumContentByClonality(true);
+		som_rep_conf.setIncludeTumContentByHistological(true);
+		som_rep_conf.setIncludeTumContentByEstimated(true);
+		som_rep_conf.setTumContentByEstimated(42);
 		som_rep_conf.setMsiStatus(true);
 		som_rep_conf.setCnvBurden(true);
 		som_rep_conf.setHrdStatement("undeterminable");
@@ -2086,7 +2088,6 @@ private slots:
 		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
 		som_rep_conf.setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
 		som_rep_conf.setFilter("somatic");
-
 
 
 		SomaticReportVariantConfiguration cnv1;
@@ -2128,20 +2129,19 @@ private slots:
 		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).variant_type, VariantType::CNVS);
 
 
-
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
 		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
-
-
 
 		QStringList messages = {};
 
 		//Test resolving report config
 		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
-		IS_TRUE(res_config.tumContentByMaxSNV());
-		IS_TRUE(res_config.tumContentByClonality());
-		IS_TRUE(res_config.tumContentByHistological());
+		IS_TRUE(res_config.includeTumContentByMaxSNV());
+		IS_TRUE(res_config.includeTumContentByClonality());
+		IS_TRUE(res_config.includeTumContentByHistological());
+		IS_TRUE(res_config.includeTumContentByEstimated());
+		I_EQUAL(res_config.tumContentByEstimated(), 42);
 		IS_TRUE(res_config.msiStatus());
 		IS_TRUE(res_config.cnvBurden());
 		S_EQUAL(res_config.hrdStatement(), "undeterminable");
@@ -2213,9 +2213,11 @@ private slots:
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits
 		som_rep_conf.setTargetRegionName("/path/to/somewhere/else.bed");
-		som_rep_conf.setTumContentByMaxSNV(false);
-		som_rep_conf.setTumContentByClonality(false);
-		som_rep_conf.setTumContentByHistological(false);
+		som_rep_conf.setIncludeTumContentByMaxSNV(false);
+		som_rep_conf.setIncludeTumContentByClonality(false);
+		som_rep_conf.setIncludeTumContentByHistological(false);
+		som_rep_conf.setIncludeTumContentByEstimated(false);
+		som_rep_conf.setTumContentByEstimated(31);
 		som_rep_conf.setMsiStatus(false);
 		som_rep_conf.setCnvBurden(false);
 
@@ -2237,9 +2239,11 @@ private slots:
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
 
 		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
-		IS_FALSE(res_config_2.tumContentByMaxSNV());
-		IS_FALSE(res_config_2.tumContentByClonality());
-		IS_FALSE(res_config_2.tumContentByHistological());
+		IS_FALSE(res_config_2.includeTumContentByMaxSNV());
+		IS_FALSE(res_config_2.includeTumContentByClonality());
+		IS_FALSE(res_config_2.includeTumContentByHistological());
+		IS_FALSE(res_config_2.includeTumContentByEstimated());
+		I_EQUAL(res_config_2.tumContentByEstimated(), 31);
 		IS_FALSE(res_config_2.msiStatus());
 		IS_FALSE(res_config_2.cnvBurden());
 
@@ -2574,8 +2578,10 @@ private slots:
 
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
 
-		somatic_report_settings.report_config.setTumContentByHistological(true);
-		somatic_report_settings.report_config.setTumContentByClonality(true);
+		somatic_report_settings.report_config.setIncludeTumContentByHistological(true);
+		somatic_report_settings.report_config.setIncludeTumContentByClonality(true);
+		somatic_report_settings.report_config.setIncludeTumContentByEstimated(42);
+		somatic_report_settings.report_config.setTumContentByEstimated(true);
 		somatic_report_settings.report_config.setMsiStatus(true);
 		somatic_report_settings.report_config.setFusionsDetected(true);
 		somatic_report_settings.report_config.setCnvBurden(true);

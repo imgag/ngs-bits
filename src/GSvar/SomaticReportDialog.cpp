@@ -275,7 +275,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	//Update GUI
 	if(BasicStatistics::isValidFloat(tum_cont_snps_))
 	{
-		ui_.include_max_tum_freq->setChecked(settings_.report_config.tumContentByMaxSNV());
+		ui_.include_max_tum_freq->setChecked(settings_.report_config.includeTumContentByMaxSNV());
 		ui_.include_max_tum_freq->setText(ui_.include_max_tum_freq->text() + " ("  + QString::number(tum_cont_snps_, 'f', 1) +"%)");
 	}
 	else
@@ -285,7 +285,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	if(BasicStatistics::isValidFloat( tum_cont_max_clonality_))
 	{
-		ui_.include_max_clonality->setChecked(settings_.report_config.tumContentByClonality());
+		ui_.include_max_clonality->setChecked(settings_.report_config.includeTumContentByClonality());
 		ui_.include_max_clonality->setText(ui_.include_max_clonality->text() + " ("  + QString::number(tum_cont_max_clonality_ * 100., 'f', 1) +"%)");
 	}
 	else
@@ -296,7 +296,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	if(BasicStatistics::isValidFloat( tum_cont_histological_) && tum_cont_histological_ > 0.)
 	{
-		ui_.include_tum_content_histological->setChecked(settings_.report_config.tumContentByHistological());
+		ui_.include_tum_content_histological->setChecked(settings_.report_config.includeTumContentByHistological());
 		ui_.include_tum_content_histological->setText(ui_.include_tum_content_histological->text() + " (" + QString::number(tum_cont_histological_, 'f', 1)+"%)");
 	}
 	else
@@ -403,9 +403,12 @@ void SomaticReportDialog::writeBackSettings()
 {
 	if(getReportType() == RNA) return; //No report configuration for RNA samples
 
-	settings_.report_config.setTumContentByMaxSNV(ui_.include_max_tum_freq->isChecked());
-	settings_.report_config.setTumContentByClonality(ui_.include_max_clonality->isChecked());
-	settings_.report_config.setTumContentByHistological(ui_.include_tum_content_histological->isChecked());
+	settings_.report_config.setIncludeTumContentByMaxSNV(ui_.include_max_tum_freq->isChecked());
+	settings_.report_config.setIncludeTumContentByClonality(ui_.include_max_clonality->isChecked());
+	settings_.report_config.setIncludeTumContentByHistological(ui_.include_tum_content_histological->isChecked());
+	settings_.report_config.setIncludeTumContentByEstimated(ui_.include_tum_content_estimated->isChecked());
+	settings_.report_config.setTumContentByEstimated(ui_.tum_content_estimated->value());
+
 	settings_.report_config.setMsiStatus(ui_.include_msi_status->isChecked());
 	settings_.report_config.setCnvBurden(ui_.include_cnv_burden->isChecked());
 	settings_.report_config.setFusionsDetected(ui_.fusions_detected->isChecked());

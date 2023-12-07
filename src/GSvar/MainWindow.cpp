@@ -4659,9 +4659,9 @@ void MainWindow::generateReportSomaticRTF()
 	//Preselect report settings if not already exists to most common values
 	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1)
 	{
-		somatic_report_settings_.report_config.setTumContentByMaxSNV(true);
-		somatic_report_settings_.report_config.setTumContentByClonality(true);
-		somatic_report_settings_.report_config.setTumContentByHistological(true);
+		somatic_report_settings_.report_config.setIncludeTumContentByMaxSNV(true);
+		somatic_report_settings_.report_config.setIncludeTumContentByClonality(true);
+		somatic_report_settings_.report_config.setIncludeTumContentByHistological(true);
 		somatic_report_settings_.report_config.setMsiStatus(true);
 		somatic_report_settings_.report_config.setCnvBurden(true);
 	}

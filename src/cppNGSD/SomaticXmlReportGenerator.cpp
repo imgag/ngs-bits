@@ -29,17 +29,17 @@ void SomaticXmlReportGeneratorData::check() const
 {
 	QStringList messages;
 
-	if( settings.report_config.tumContentByHistological() && !BasicStatistics::isValidFloat(tumor_content_histology))
+	if( settings.report_config.includeTumContentByHistological() && !BasicStatistics::isValidFloat(tumor_content_histology))
 	{
 		messages << "Tumor content by histology selected but value is not valid float";
 	}
 
-	if( settings.report_config.tumContentByMaxSNV() && !BasicStatistics::isValidFloat(tumor_content_snvs))
+	if( settings.report_config.includeTumContentByMaxSNV() && !BasicStatistics::isValidFloat(tumor_content_snvs))
 	{
 		messages << "Tumor content by median SNV B-AF selected but value is not valid float";
 	}
 
-	if( settings.report_config.tumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) )
+	if( settings.report_config.includeTumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) )
 	{
 		messages << "Tumor content by maximum CNV clonality selected but value is not valid float";
 	}
@@ -159,15 +159,15 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	{
 		w.writeAttribute("tissue", tissue);
 	}
-	if( data.settings.report_config.tumContentByHistological())
+	if( data.settings.report_config.includeTumContentByHistological())
 	{
 		w.writeAttribute("tumor_content_histology", QByteArray::number(data.tumor_content_histology, 'f', 3) );
 	}
-	if( data.settings.report_config.tumContentByClonality() && BasicStatistics::isValidFloat(data.tumor_content_clonality) )
+	if( data.settings.report_config.includeTumContentByClonality() && BasicStatistics::isValidFloat(data.tumor_content_clonality) )
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_clonality, 'f', 3));
 	}
-	else if( data.settings.report_config.tumContentByMaxSNV() && BasicStatistics::isValidFloat(data.tumor_content_snvs) )
+	else if( data.settings.report_config.includeTumContentByMaxSNV() && BasicStatistics::isValidFloat(data.tumor_content_snvs) )
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_snvs, 'f', 3));
 	}

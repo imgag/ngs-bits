@@ -1228,6 +1228,8 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `tum_content_max_af` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by median value maximum allele frequency',
   `tum_content_max_clonality` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by maximum CNV clonality',
   `tum_content_hist` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include histological tumor content estimate ',
+  `tum_content_estimated` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include estimated tumor content',
+  `tum_content_estimated_value` INT(11) UNSIGNED NULL DEFAULT NULL COMMENT 'the estimated tumor content as value between 0-100',
   `msi_status` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include microsatellite instability status',
   `cnv_burden` BOOLEAN NOT NULL DEFAULT FALSE,
   `hrd_score` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'homologous recombination deficiency score, determined manually by user',

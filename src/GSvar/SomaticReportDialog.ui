@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>549</height>
+    <width>1100</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -128,6 +128,12 @@
             </property>
             <item row="0" column="0">
              <widget class="QCheckBox" name="include_max_tum_freq">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Display median of maximum allele frequency as tumor content in report</string>
               </property>
@@ -136,8 +142,37 @@
               </property>
              </widget>
             </item>
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="include_tum_content_histological">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Display histological tumor content from NGSD in report</string>
+              </property>
+              <property name="text">
+               <string>histological tumor content</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QCheckBox" name="include_tum_content_estimated">
+              <property name="text">
+               <string>estimated tumor content:</string>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="0">
              <widget class="QCheckBox" name="include_max_clonality">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="toolTip">
                <string>Display maximum value of tumor clonality in CNV file as tumor content in report</string>
               </property>
@@ -146,13 +181,19 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="QCheckBox" name="include_tum_content_histological">
-              <property name="toolTip">
-               <string>Display histological tumor content from NGSD in report</string>
+            <item row="3" column="1">
+             <widget class="QSpinBox" name="tum_content_estimated">
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>16777215</height>
+               </size>
               </property>
-              <property name="text">
-               <string>histological tumor content</string>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="value">
+               <number>0</number>
               </property>
              </widget>
             </item>
@@ -1288,8 +1329,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>251</x>
+     <y>596</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -1304,8 +1345,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>319</x>
+     <y>596</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

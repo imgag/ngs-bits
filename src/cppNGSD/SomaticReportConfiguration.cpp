@@ -247,34 +247,54 @@ void SomaticReportConfiguration::sortByPosition()
 	std::sort(variant_config_.begin(), variant_config_.end(), [](const SomaticReportVariantConfiguration& a, const SomaticReportVariantConfiguration& b){return a.variant_index < b.variant_index;});
 }
 
-bool SomaticReportConfiguration::tumContentByClonality() const
+bool SomaticReportConfiguration::includeTumContentByClonality() const
 {
 	return include_tum_content_clonality_;
 }
 
-void SomaticReportConfiguration::setTumContentByClonality(bool include_tum_content_clonality)
+void SomaticReportConfiguration::setIncludeTumContentByClonality(bool include_tum_content_clonality)
 {
 	include_tum_content_clonality_ = include_tum_content_clonality;
 }
 
-bool SomaticReportConfiguration::tumContentByMaxSNV() const
+bool SomaticReportConfiguration::includeTumContentByMaxSNV() const
 {
 	return include_tum_content_snp_af_;
 }
 
-void SomaticReportConfiguration::setTumContentByMaxSNV(bool include_tum_content_snp_af)
+void SomaticReportConfiguration::setIncludeTumContentByMaxSNV(bool include_tum_content_snp_af)
 {
 	include_tum_content_snp_af_ = include_tum_content_snp_af;
 }
 
-bool SomaticReportConfiguration::tumContentByHistological() const
+bool SomaticReportConfiguration::includeTumContentByHistological() const
 {
 	return include_tum_content_histological_;
 }
 
-void SomaticReportConfiguration::setTumContentByHistological(bool include_tum_content_histological)
+void SomaticReportConfiguration::setIncludeTumContentByHistological(bool include_tum_content_histological)
 {
 	include_tum_content_histological_ = include_tum_content_histological;
+}
+
+bool SomaticReportConfiguration::includeTumContentByEstimated() const
+{
+	return include_tum_content_estimated_;
+}
+
+void SomaticReportConfiguration::setIncludeTumContentByEstimated(bool include_tum_content_estimated)
+{
+	include_tum_content_estimated_ = include_tum_content_estimated;
+}
+
+double SomaticReportConfiguration::tumContentByEstimated() const
+{
+	return tum_content_estimated_;
+}
+
+void SomaticReportConfiguration::setTumContentByEstimated(double tum_content_estimated)
+{
+	tum_content_estimated_ = tum_content_estimated;
 }
 
 bool SomaticReportConfiguration::msiStatus() const

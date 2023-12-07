@@ -1686,8 +1686,8 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	general_info_table.addRow(RtfTableRow("Allgemeine genetische Charakteristika (" + RtfText(settings_.tumor_ps.toUtf8() + "-" + settings_.normal_ps.toUtf8()).setFontSize(16).setBold(false).RtfCode() +")",doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("c").setBold(true)).setBackgroundColor(4).setBorders(1,"brdrhair",4));
 
 	QByteArray tumor_content_bioinf = "";
-	if(settings_.report_config.tumContentByClonality()) tumor_content_bioinf = QByteArray::number(getCnvMaxTumorClonality(cnvs_) * 100., 'f', 0) + " \%";
-	if(settings_.report_config.tumContentByMaxSNV())
+	if(settings_.report_config.includeTumContentByClonality()) tumor_content_bioinf = QByteArray::number(getCnvMaxTumorClonality(cnvs_) * 100., 'f', 0) + " \%";
+	if(settings_.report_config.includeTumContentByMaxSNV())
 	{
 		double tumor_molecular_proportion = getTumorContentBySNVs();
 		if(tumor_content_bioinf != "") tumor_content_bioinf += ", ";
@@ -1695,17 +1695,24 @@ RtfSourceCode SomaticReportHelper::partSummary()
 		tumor_content_bioinf += QByteArray::number(tumor_molecular_proportion, 'f', 1) + " \%";
 	}
 
-	if(!settings_.report_config.tumContentByClonality() && !settings_.report_config.tumContentByMaxSNV())
+	if(!settings_.report_config.includeTumContentByClonality() && !settings_.report_config.includeTumContentByMaxSNV())
 	{
 		tumor_content_bioinf = "nicht bestimmbar";
 	}
 
 	QByteArray tumor_content_hist = "nicht bestimmbar";
-	if(settings_.report_config.tumContentByHistological())
+	if(settings_.report_config.includeTumContentByHistological())
 	{
 		tumor_content_hist = QByteArray::number(histol_tumor_fraction_, 'f', 0) + " \%";
 	}
 	general_info_table.addRow(RtfTableRow({"Tumoranteil (hist./bioinf.)", tumor_content_hist + " / " + tumor_content_bioinf}, {2500, 7421}).setBorders(1,"brdrhair", 4));
+
+	//estimated tumor content
+	if(settings_.report_config.includeTumContentByEstimated())
+	{
+		QByteArray tumor_content_est = QByteArray::number(settings_.report_config.tumContentByEstimated(), 'f', 0) + " \%";
+		general_info_table.addRow(RtfTableRow({"Tumoranteil (geschätzt)", tumor_content_est}, {2500, 7421}).setBorders(1,"brdrhair", 4));
+	}
 
 	RtfText mutation_burden_text(QByteArray::number(mutation_burden_).replace(".", ",") + " Var/Mbp");
 	if(settings_.report_config.tmbReferenceText() != "")
@@ -2010,13 +2017,13 @@ QByteArray SomaticReportHelper::prepareTranscriptType(QByteArray transcript_type
 
 double SomaticReportHelper::getTumorContentBioinf()
 {
-	if(settings_.report_config.tumContentByClonality() && settings_.report_config.tumContentByMaxSNV())
+	if(settings_.report_config.includeTumContentByClonality() && settings_.report_config.includeTumContentByMaxSNV())
 	{
 		return std::max(getCnvMaxTumorClonality(cnvs_), getTumorContentBySNVs());
 	}
 
-	if(settings_.report_config.tumContentByClonality()) return getCnvMaxTumorClonality(cnvs_);
-	if(settings_.report_config.tumContentByMaxSNV()) return getTumorContentBySNVs();
+	if(settings_.report_config.includeTumContentByClonality()) return getCnvMaxTumorClonality(cnvs_);
+	if(settings_.report_config.includeTumContentByMaxSNV()) return getTumorContentBySNVs();
 
 	return -1;
 
