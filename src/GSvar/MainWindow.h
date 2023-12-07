@@ -29,7 +29,7 @@ enum class TabType
 	GENE = 5,
 	VARIANT = 6,
 	SAMPLE_SEARCH = 101,
-	ANANLYSIS_STATUS = 102
+	ANALYSIS_STATUS = 102
 };
 
 ///Main window class

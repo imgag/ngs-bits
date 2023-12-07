@@ -144,7 +144,7 @@ bool IGVSession::isIgvRunning()
 	commands << IgvWorkerCommand{-1, "echo running"};
 
 	//start command
-	IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 1500);
+	IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 2000);
 	command_worker->setAutoDelete(false);
     execution_pool_.start(command_worker);
 

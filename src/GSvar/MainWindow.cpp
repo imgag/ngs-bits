@@ -6171,7 +6171,7 @@ void MainWindow::on_actionSampleAncestry_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	TabType type = TabType::ANANLYSIS_STATUS;
+	TabType type = TabType::ANALYSIS_STATUS;
 	if (focusTab(type, "Analysis status")) return;
 
 	//open new
