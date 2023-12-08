@@ -8924,7 +8924,7 @@ QString NGSD::escapeText(QString text)
 	return db_->driver()->formatValue(f);
 }
 
-void NGSD::exportTable(const QString& table, QTextStream& out, QString where_clause, QMap<QString, QSet<int>> *sql_history) const
+void NGSD::exportTable(const QString& table, QTextStream& out, QString where_clause, QMap<QString, QSet<int>> *sql_history)
 {
 	if (!table.isEmpty())
 	{
@@ -8963,16 +8963,12 @@ void NGSD::exportTable(const QString& table, QTextStream& out, QString where_cla
 			for (int i=0; i<field_count; i++)
 			{
 				QString field_value = query.value(field_names[i]).toString();
-				if (((field_value.isEmpty()) || (field_value=="0")) && (table_info.fieldInfo()[i].is_nullable)) field_value = "NULL";
-				field_value = field_value.replace("'", "\\'");
-				field_value = field_value.replace("\"", "\\\"");
-				field_value = field_value.replace("\r", "\\r");
-				field_value = field_value.replace("\n", "\\n");
-				values.append(field_value);
+				if (((field_value.isEmpty()) || (field_value=="0")) && (table_info.fieldInfo()[i].is_nullable)) field_value = "NULL";                
+                values.append(escapeText(field_value));
 			}
 
-			QString insert_query =  "('" + values.join("', '") + "')";
-			insert_query = insert_query.replace("'NULL'", "NULL");
+            QString insert_query =  "(" + values.join(", ") + ")";
+            insert_query = insert_query.replace("'NULL'", "NULL");
 			out << insert_query;
 
 			if (row_count>=1000)
