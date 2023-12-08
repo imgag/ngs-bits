@@ -317,6 +317,16 @@ void SomaticReportConfiguration::setCnvBurden(bool include_cnv_burden)
 	include_cnv_burden_ = include_cnv_burden;
 }
 
+bool SomaticReportConfiguration::includeMutationBurden() const
+{
+	return include_mutation_burden_;
+}
+
+void SomaticReportConfiguration::setIncludeMutationBurden(bool include_mutation_burden)
+{
+	include_mutation_burden_ = include_mutation_burden;
+}
+
 const QList<QString>& SomaticReportConfiguration::cinChromosomes() const
 {
 	return cin_chromosomes_;

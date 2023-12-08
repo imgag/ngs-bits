@@ -273,6 +273,8 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 
 	//Update GUI
+	ui_.include_msi_status->setText(ui_.include_msi_status->text() + " (" + QString::number(settings.get_msi_value(), 'f', 4) + "/0.4)");
+
 	if(BasicStatistics::isValidFloat(tum_cont_snps_))
 	{
 		ui_.include_max_tum_freq->setChecked(settings_.report_config.includeTumContentByMaxSNV());

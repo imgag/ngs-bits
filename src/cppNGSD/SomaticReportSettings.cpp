@@ -1,5 +1,5 @@
 #include "SomaticReportSettings.h"
-
+#include "TSVFileStream.h"
 
 SomaticReportSettings::SomaticReportSettings()
 	: report_config()
@@ -7,6 +7,23 @@ SomaticReportSettings::SomaticReportSettings()
 	, normal_ps()
 	, filters()
 {
+}
+
+double SomaticReportSettings::get_msi_value()
+{
+	//load MSI Mantis data
+	try
+	{
+		TSVFileStream msi_filestream(msi_file);
+		//Use step wise difference (-> stored in the first line of MSI status file) for MSI status
+		QByteArrayList data = msi_filestream.readLine();
+		if(data.count() > 0) return data[1].toDouble();
+		else return std::numeric_limits<double>::quiet_NaN();
+	}
+	catch(...)
+	{
+		 return std::numeric_limits<double>::quiet_NaN();
+	}
 }
 
 VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const SomaticReportSettings& sett, bool throw_errors)

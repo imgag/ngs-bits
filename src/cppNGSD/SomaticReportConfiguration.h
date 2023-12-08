@@ -112,6 +112,9 @@ public:
 	bool cnvBurden() const;
 	void setCnvBurden(bool include_cnv_burden);
 
+	bool includeMutationBurden() const;
+	void setIncludeMutationBurden(bool include_mutation_burden);
+
 	const QList<QString>& cinChromosomes() const;
 	///Setter for CIN chromosomes, pass argument in the form {"chr1", "chr2", ...}
 	void setCinChromosomes(const QList<QString>& chromosomes);
@@ -167,6 +170,7 @@ private:
 
 	bool include_msi_status_;
 	bool include_cnv_burden_;
+	bool include_mutation_burden_;
 	double ploidy_;
 
 	QString hrd_statement_;

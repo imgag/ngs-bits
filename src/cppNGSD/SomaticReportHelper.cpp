@@ -1738,6 +1738,10 @@ RtfSourceCode SomaticReportHelper::partSummary()
 			general_info_table.addRow(RtfTableRow({"Mikrosatelliten", ( mantis_msi_swd_value_ <= 0.16 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI" ) },{2500,7421}).setBorders(1,"brdrhair",4));
 		}
 	}
+	else
+	{
+		general_info_table.addRow(RtfTableRow({"Mikrosatelliten", "nicht bestimmbar" },{2500,7421}).setBorders(1,"brdrhair",4));
+	}
 
 	//Fusion status
 	if(settings_.report_config.fusionsDetected())
