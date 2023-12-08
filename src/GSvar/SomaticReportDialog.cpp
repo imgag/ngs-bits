@@ -327,6 +327,8 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 		ui_.include_cnv_burden->setEnabled(false);
 	}
 
+	ui_.include_mutation_burden->setChecked(settings_.report_config.includeMutationBurden());
+
 	if(cnvs_.count() > 0)
 	{
 		ui_.cnv_loh_count->setText( QString::number(settings_.report_config.cnvLohCount()) );
@@ -413,6 +415,7 @@ void SomaticReportDialog::writeBackSettings()
 
 	settings_.report_config.setMsiStatus(ui_.include_msi_status->isChecked());
 	settings_.report_config.setCnvBurden(ui_.include_cnv_burden->isChecked());
+	settings_.report_config.setIncludeMutationBurden(ui_.include_mutation_burden->isChecked());
 	settings_.report_config.setFusionsDetected(ui_.fusions_detected->isChecked());
 
 	//current index of hrd_score is identical to value!

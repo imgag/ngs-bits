@@ -217,6 +217,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QCheckBox" name="include_mutation_burden">
+           <property name="text">
+            <string>Include mutation burden</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QCheckBox" name="include_msi_status">
            <property name="minimumSize">
             <size>

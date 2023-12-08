@@ -2077,6 +2077,7 @@ private slots:
 		som_rep_conf.setTumContentByEstimated(42);
 		som_rep_conf.setMsiStatus(true);
 		som_rep_conf.setCnvBurden(true);
+		som_rep_conf.setIncludeMutationBurden(true);
 		som_rep_conf.setHrdStatement("undeterminable");
 		som_rep_conf.setCnvLohCount(12);
 		som_rep_conf.setCnvTaiCount(3);
@@ -2144,6 +2145,7 @@ private slots:
 		I_EQUAL(res_config.tumContentByEstimated(), 42);
 		IS_TRUE(res_config.msiStatus());
 		IS_TRUE(res_config.cnvBurden());
+		IS_TRUE(res_config.includeMutationBurden());
 		S_EQUAL(res_config.hrdStatement(), "undeterminable");
 		I_EQUAL(res_config.cnvLohCount(), 12);
 		I_EQUAL(res_config.cnvTaiCount(), 3);
@@ -2220,6 +2222,7 @@ private slots:
 		som_rep_conf.setTumContentByEstimated(31);
 		som_rep_conf.setMsiStatus(false);
 		som_rep_conf.setCnvBurden(false);
+		som_rep_conf.setIncludeMutationBurden(false);
 
 		som_rep_conf.setHrdStatement("proof");
 		som_rep_conf.setCnvLohCount(9);
@@ -2246,6 +2249,7 @@ private slots:
 		I_EQUAL(res_config_2.tumContentByEstimated(), 31);
 		IS_FALSE(res_config_2.msiStatus());
 		IS_FALSE(res_config_2.cnvBurden());
+		IS_FALSE(res_config_2.includeMutationBurden());
 
 		S_EQUAL(res_config_2.hrdStatement(), "proof");
 		I_EQUAL(res_config_2.cnvLohCount(), 9);
@@ -2585,6 +2589,7 @@ private slots:
 		somatic_report_settings.report_config.setMsiStatus(true);
 		somatic_report_settings.report_config.setFusionsDetected(true);
 		somatic_report_settings.report_config.setCnvBurden(true);
+		somatic_report_settings.report_config.setIncludeMutationBurden(true);
 		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
 
 		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings, true);

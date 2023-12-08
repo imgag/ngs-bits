@@ -1713,12 +1713,19 @@ RtfSourceCode SomaticReportHelper::partSummary()
 		QByteArray tumor_content_est = QByteArray::number(settings_.report_config.tumContentByEstimated(), 'f', 0) + " \%";
 		general_info_table.addRow(RtfTableRow({"Tumoranteil (geschätzt)", tumor_content_est}, {2500, 7421}).setBorders(1,"brdrhair", 4));
 	}
-
-	RtfText mutation_burden_text(QByteArray::number(mutation_burden_).replace(".", ",") + " Var/Mbp");
-	if(settings_.report_config.tmbReferenceText() != "")
+	RtfText mutation_burden_text;
+	if (settings_.report_config.includeMutationBurden())
 	{
-		mutation_burden_text.append(";");
-		mutation_burden_text.append(RtfText("Vergleichswerte: " + settings_.report_config.tmbReferenceText().toUtf8()).setFontSize(14).RtfCode(), true);
+		mutation_burden_text.setContent(QByteArray::number(mutation_burden_).replace(".", ",") + " Var/Mbp");
+		if(settings_.report_config.tmbReferenceText() != "")
+		{
+			mutation_burden_text.append(";");
+			mutation_burden_text.append(RtfText("Vergleichswerte: " + settings_.report_config.tmbReferenceText().toUtf8()).setFontSize(14).RtfCode(), true);
+		}
+	}
+	else
+	{
+		mutation_burden_text.setContent("nicht bestimmbar");
 	}
 
 	general_info_table.addRow(RtfTableRow({"Mutationslast", mutation_burden_text.RtfCode()}, {2500,7421}).setBorders(1,"brdrhair",4));
