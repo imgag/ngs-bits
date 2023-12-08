@@ -5817,6 +5817,7 @@ void MainWindow::on_actionExportTestData_triggered()
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
 		QTextStream output_stream(file.data());
+        output_stream.setCodec("UTF-8");
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 

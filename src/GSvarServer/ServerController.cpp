@@ -792,6 +792,7 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
     Log::info("Running megSAP >> an_vep.php: " + an_vep_out);
     process.start("php", QStringList() << megsap_root + "/src/NGS/an_vep.php" << "-in" << input_vcf << "-out" << an_vep_out);
     bool success = process.waitForFinished(-1);
+    Log::error("Exit code = " + QString::number(process.exitCode()));
     if (!success)
     {
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_vep.php: " + process.readAll())));
