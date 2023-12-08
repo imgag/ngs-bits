@@ -803,7 +803,7 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
     Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
     process.start("php", QStringList() << megsap_root + "/src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
     success = process.waitForFinished(-1);
-    if (!success)
+    if (!success || process.exitCode()>0)
     {
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing vcf2gsvar.php: " + process.readAll())));
     }
