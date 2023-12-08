@@ -1910,6 +1910,9 @@ RtfSourceCode SomaticReportHelper::partPathways()
 	QByteArray heading_text = "Informationen zu molekularen Signalwegen";
 	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
 
+	int germline_index_coding_splicing = germline_vl_.annotationIndexByName("coding_and_splicing");
+	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
+
 	for (int i=0; i<pathways.count(); i+=4)
 	{
 		QByteArrayList headers;
@@ -1925,6 +1928,32 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				//determine entries for small variants
 				QList<PathwaysEntry> entries;
 				GeneSet genes_pathway = db_.getSomaticPathwayGenes(pathway);
+
+				//germline Variants
+				for (int g=0; g<som_var_in_normal.count(); ++g)
+				{
+					const Variant& variant = germline_vl_[g];
+					VariantTranscript transcript = selectSomaticTranscript(variant, settings_, germline_index_coding_splicing);
+					if (genes_pathway.contains(transcript.gene))
+					{
+						QByteArray variant_text;
+						if(!transcript.hgvs_p.trimmed().isEmpty())
+						{
+							variant_text = transcript.hgvs_p;
+						}
+						else if(!transcript.hgvs_c.trimmed().isEmpty())
+						{
+							variant_text = transcript.hgvs_c;
+						}
+
+						PathwaysEntry entry;
+						entry.gene = transcript.gene;
+						entry.alteration = variant_text.isEmpty() ?  RtfText("???").highlight(3).RtfCode() : variant_text;
+						entries.append(entry);
+					}
+				}
+
+				//somatic Variants
 				for(int v=0; v<somatic_vl_.count(); ++v)
 				{
 					const Variant& variant = somatic_vl_[v];
