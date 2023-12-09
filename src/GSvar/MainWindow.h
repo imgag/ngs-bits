@@ -216,6 +216,8 @@ public slots:
 	void on_actionClose_triggered();
 	///Close all meta data tabs
 	void on_actionCloseMetaDataTabs_triggered();
+	///Import variants
+	void on_actionImportVariants_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
 	///Open IGV documentation in browser

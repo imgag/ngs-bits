@@ -32,6 +32,7 @@ public:
 	static void openProcessingSystemTab(QString system_short_name);
 
 	//opening GSvar files
+	static void openGSvarFile(QString filename);
 	static void openGSvarViaNGSD(QString processed_sample_name, bool search_multi);
 
 	//add modeless dialog

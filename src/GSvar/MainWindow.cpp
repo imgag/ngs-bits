@@ -150,6 +150,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "IgvLogWidget.h"
 #include "SettingsDialog.h"
 #include "GlobalServiceProvider.h"
+#include "ImportDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -222,7 +223,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->setMenu(new QMenu());
 		debug_btn->menu()->addAction("user-specific function", this, SLOT(userSpecificDebugFunction()));
 		debug_btn->menu()->addSeparator();
-		debug_btn->menu()->addAction("variant: chr1:948519-948519 T>G", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("variant: chr1:1212033-1212033 G>T", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
 		debug_btn->menu()->addAction("gene: BRCA2", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
@@ -1797,6 +1798,22 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 	for (int t=ui_.tabs->count()-1; t>0; --t)
 	{
 		closeTab(t);
+	}
+}
+
+void MainWindow::on_actionImportVariants_triggered()
+{
+	try
+	{
+		ImportDialog dlg(this, ImportDialog::VARIANTS);
+		if (dlg.exec())
+		{
+			dlg.openVariants();
+		}
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, "Variant import");
 	}
 }
 
@@ -5817,7 +5834,7 @@ void MainWindow::on_actionExportTestData_triggered()
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
 		QTextStream output_stream(file.data());
-        output_stream.setCodec("UTF-8");
+		output_stream.setCodec("UTF-8");
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 

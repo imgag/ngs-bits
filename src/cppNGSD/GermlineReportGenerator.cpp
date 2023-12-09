@@ -2303,7 +2303,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	QString genotype = v.annotations()[i_genotype];
 	if (v.annotations()[i_filter].contains("mosaic")) genotype += " (mosaic)";
 	stream << "       <td>" << genotype << "</td>" << endl;
-	stream << "       <td style='white-space: nowrap'>" << v.toString(false, 20) << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
+	stream << "       <td style='white-space: nowrap'>" << v.toString(QChar(), 20) << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
 	stream << "       <td>" << hgvs_ps.join(", ") << "</td>" << endl;

@@ -125,7 +125,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	}
 
 	//variant
-	QString variant = vl[index].toString(false, 10);
+	QString variant = vl[index].toString(QChar(), 10);
 	variant_str = vl[index].toString();
 	if(geno_i!=-1)
 	{
@@ -498,7 +498,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			//make gnomAD value clickable
 			if(name=="gnomAD")
 			{
-				text = formatLink(text, vl[index].toString(true));
+				text = formatLink(text, vl[index].toString(' '));
 			}
 		}
 		else if (name=="gnomAD_sub")

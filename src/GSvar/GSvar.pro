@@ -15,6 +15,7 @@ SOURCES += main.cpp\
     IGVSession.cpp \
     IgvLogWidget.cpp \
     IgvSessionManager.cpp \
+    ImportDialog.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
@@ -136,6 +137,7 @@ HEADERS += MainWindow.h \
     IGVSession.h \
     IgvLogWidget.h \
     IgvSessionManager.h \
+    ImportDialog.h \
     MaintenanceDialog.h \
     ReportDialog.h \
     ReportWorker.h \
@@ -251,6 +253,7 @@ FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
     IgvLogWidget.ui \
+    ImportDialog.ui \
     MaintenanceDialog.ui \
     ReportDialog.ui \
     SettingsDialog.ui \

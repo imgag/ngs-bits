@@ -164,7 +164,7 @@ QByteArrayList VcfLine::vepAnnotations(int field_index) const
 void VcfHeader::storeHeaderInformation(QTextStream& stream) const
 {
 	//first line should always be the fileformat
-	stream << "##fileformat=" << fileformat_ << "\n";
+	stream << "##fileformat=" << (fileformat_.isEmpty() ? "VCFv4.2" : fileformat_) << "\n";
 	//store all comment lines
 	foreach(const VcfHeaderLine& comment, file_comments_)
 	{

@@ -16,6 +16,8 @@
 #include <QStandardPaths>
 #include <QBuffer>
 #include <VariantHgvsAnnotator.h>
+#include "ClientHelper.h"
+#include "ApiCaller.h"
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -612,10 +614,7 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 
 QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags, int offset)
 {
-	if (!LoginManager::active())
-	{
-		THROW(ArgumentException, "No access to the NGSD! You need access to the NGSD for annotation!");
-	}
+	if (!LoginManager::active()) THROW(ArgumentException, "No access to the NGSD! You need access to the NGSD for annotation!");
 
 	QList<QStringList> annotations;
 	genes.clear();
@@ -646,4 +645,28 @@ QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant
 	}
 
 	return annotations;
+}
+
+void GSvarHelper::annotate(const VariantList& variants, QString filename)
+{
+	if (!LoginManager::active()) THROW(ArgumentException, "This is supported in client-server mode only after successfull login!");
+
+	FastaFileIndex genome_idx(Settings::string("reference_genome"));
+	VcfFile vcf;
+	vcf.vcfHeader().addCommentLine(VcfHeaderLine{"SAMPLE", "<ID=DUMMY,DiseaseStatus=affected>"});
+	vcf.vcfHeader().addCommentLine(VcfHeaderLine{"FORMAT", "<ID=GT,Number=1,Type=String,Description=\"Genotype\">"});
+	vcf.setSampleNames(QByteArrayList() << "DUMMY");
+	for(int i=0; i<variants.count(); ++i)
+	{
+		VcfLine line = variants[i].toVCF(genome_idx);
+		line.setFormatKeys(QByteArrayList() << "GT");
+		line.addFormatValues(QByteArrayList() << "0/1");
+		vcf.append(line);
+	}
+
+	//call API
+	QByteArray reply = ApiCaller().post("variant_annotation", RequestUrlParams(), HttpHeaders(), vcf.toText(), true, false, true);
+
+	//store GSvar
+	Helper::storeTextFile(filename, QStringList() << reply);
 }

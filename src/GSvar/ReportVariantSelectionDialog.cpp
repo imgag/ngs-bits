@@ -105,7 +105,7 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 			if (ignored_rcv_id == rvc_id) continue;
 			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variantTypeToString(rvc.variant_type)));
 			report_variants_.insert(QPair<int, VariantType>(rvc_id, rvc.variant_type), rvc);
-			QTableWidgetItem* variant_item = GUIHelper::createTableItem(var.toString(false, -1, true));
+			QTableWidgetItem* variant_item = GUIHelper::createTableItem(var.toString(QChar(), -1, true));
 			variant_item->setData(Qt::UserRole, rvc_id);
 			ui_->tw_report_variants->setItem(row_idx, col_idx++, variant_item);
 		}

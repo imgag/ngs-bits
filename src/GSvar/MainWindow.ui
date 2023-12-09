@@ -373,8 +373,10 @@
     <addaction name="actionOpen"/>
     <addaction name="actionOpenByName"/>
     <addaction name="actionRecent"/>
-    <addaction name="actionClose"/>
     <addaction name="separator"/>
+    <addaction name="actionImportVariants"/>
+    <addaction name="separator"/>
+    <addaction name="actionClose"/>
     <addaction name="actionCloseMetaDataTabs"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -765,7 +767,7 @@
   </action>
   <action name="actionClose">
    <property name="text">
-    <string>Close</string>
+    <string>Close sample</string>
    </property>
    <property name="toolTip">
     <string>Close file</string>
@@ -1452,6 +1454,11 @@
   <action name="actionDeleteIgvFolder">
    <property name="text">
     <string>Delete IGV folder</string>
+   </property>
+  </action>
+  <action name="actionImportVariants">
+   <property name="text">
+    <string>Import variants</string>
    </property>
   </action>
  </widget>

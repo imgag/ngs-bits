@@ -237,7 +237,7 @@ void ExportWorker::run()
 				if (vcf_lines_written%10000==0) vcf_stream.flush(); //flush VCF stream from time to time to make monitoring the progress possible
 				vcf_file_writing_sum += tmp_timer.nsecsElapsed()/1000000.0;
 
-				if (params_.verbose) emit log(chr_, variant.toString(false) + " gnomAD=" + gnomad + " time=" + getTimeString(v_timer.elapsed()));
+				if (params_.verbose) emit log(chr_, variant.toString(QChar()) + " gnomAD=" + gnomad + " time=" + getTimeString(v_timer.elapsed()));
 
 				if (params_.max_vcf_lines>0 && vcf_lines_written>=params_.max_vcf_lines) break;
 			}

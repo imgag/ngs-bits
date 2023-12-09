@@ -4075,7 +4075,7 @@ SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_f
 	{
 		if(throw_on_fail)
 		{
-			THROW(DatabaseException, "Cannot find somatic VICC data for variant " + variant.toString(true, 100, true));
+			THROW(DatabaseException, "Cannot find somatic VICC data for variant " + variant.toString(' ', 100, true));
 		}
 		else
 		{

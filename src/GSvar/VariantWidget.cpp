@@ -12,6 +12,7 @@
 #include <QInputDialog>
 #include <QClipboard>
 #include "VariantHgvsAnnotator.h"
+#include "ClientHelper.h"
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
@@ -28,6 +29,8 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 	connect(ui_.pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(tableCellDoubleClicked(int, int)));
+	connect(ui_.anno_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantInTab()));
+	ui_.anno_btn->setEnabled(ClientHelper::isClientServerMode());
 
 	//set up copy button for different formats
 	QMenu* menu = new QMenu();
@@ -470,6 +473,25 @@ void VariantWidget::copyVariant()
 	else
 	{
 		THROW(ProgrammingException, "Unprocessed format '" + format + "' selected!");
+	}
+}
+
+void VariantWidget::openVariantInTab()
+{
+	try
+	{
+		//create annotated GSvar file
+		VariantList variants;
+		variants.append(variant_);
+		QString gsvar_file = Helper::tempFileName(".GSvar");
+		GSvarHelper::annotate(variants, gsvar_file);
+
+		//open GSvar
+		GlobalServiceProvider::openGSvarFile(gsvar_file);
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error annotating variant");
 	}
 }
 
