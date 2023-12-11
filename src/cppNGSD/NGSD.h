@@ -675,7 +675,7 @@ public:
 	QString escapeText(QString text);
 
 	///Creates a SQL dump for a given table. sql_history is a hash table that keeps track of already exported records: table name > exported IDs set.
-	void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr) const;	
+    void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr);
 
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
