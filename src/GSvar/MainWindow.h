@@ -296,6 +296,11 @@ public slots:
 	void on_actionVirusDetection_triggered();
 	///Perform Burden test
 	void on_actionBurdenTest_triggered();
+	///Shows the GSvar log file
+	void on_actionOpenLogFile_triggered();
+	///Clears the log file
+	void on_actionClearLogFile_triggered();
+
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration

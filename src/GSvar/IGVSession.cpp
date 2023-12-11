@@ -143,17 +143,24 @@ bool IGVSession::isIgvRunning()
 	QList<IgvWorkerCommand> commands;
 	commands << IgvWorkerCommand{-1, "echo running"};
 
-	//start command
-	IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 2000);
-	command_worker->setAutoDelete(false);
-    execution_pool_.start(command_worker);
+	//try up to four times
+	for (int i=0; i<4; ++i)
+	{
+		//start command
+		IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 500);
+		command_worker->setAutoDelete(false);
+		execution_pool_.start(command_worker);
 
-	//get answer
-	execution_pool_.waitForDone();
-	QString answer = command_worker->answer();
-	command_worker->deleteLater();
+		//get answer
+		execution_pool_.waitForDone();
+		QString answer = command_worker->answer();
+		command_worker->deleteLater();
 
-	return answer=="running";
+		if (answer=="running") return true;
+		else Log::info("No answer for 'echo running' from IGV (try " + QString::number(i+1) + " of 4)");
+	}
+
+	return false;
 }
 
 bool IGVSession::hasRunningCommands()

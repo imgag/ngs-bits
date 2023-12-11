@@ -1838,7 +1838,7 @@ void MainWindow::on_actionDeleteIgvFolder_triggered()
 	   return;
 	}
 
-	int res = QMessageBox::question(this, "Delete IGV folder", "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will use all settings (proxy, alignment options, ...)!");
+	int res = QMessageBox::question(this, title, "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will use all settings (proxy, alignment options, ...)!");
 	if (res==QMessageBox::Yes)
 	{
 		QDir(path_canonical).removeRecursively();
@@ -7062,6 +7062,23 @@ void MainWindow::on_actionBurdenTest_triggered()
 	auto dlg = GUIHelper::createDialog(widget, "Gene-based burden test");
 	addModelessDialog(dlg);
 }
+
+void MainWindow::on_actionOpenLogFile_triggered()
+{
+	QDesktopServices::openUrl("file:///"+ Log::fileName());
+}
+
+void MainWindow::on_actionClearLogFile_triggered()
+{
+	QString title = "Delete GSvar log file";
+	QString filename = Log::fileName();
+
+	int res = QMessageBox::question(this, title, "Do you want to delete the GSvar log file?\nLocation: "+filename);
+	if (res==QMessageBox::Yes)
+	{
+		QFile::remove(filename);
+	}
+ }
 
 
 void MainWindow::editVariantClassification(VariantList& variants, int index, bool is_somatic)
