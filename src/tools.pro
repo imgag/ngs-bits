@@ -575,3 +575,7 @@ NGSDSameSample.depends = cppNGSD
 SUBDIRS += BamExtract
 tools-TEST.depends += BamExtract
 BamExtract.depends = cppNGS
+
+SUBDIRS += VcfSplit
+tools-TEST.depends += VcfSplit
+VcfSplit.depends = cppNGS
