@@ -1,5 +1,5 @@
 ### NGSDSameSample tool help
-	NGSDSameSample (2023_09-93-gad5c47c9)
+	NGSDSameSample (2023_11-42-ga9d1687d)
 	
 	For the given processed sample, lists all processed samples of the same patient or sample.
 	
@@ -20,6 +20,8 @@
 	  -mode <enum>          Type of relation (either only same-sample or same-patient (includes same-sample).
 	                        Default value: 'SAME_PATIENT'
 	                        Valid: 'SAME_SAMPLE,SAME_PATIENT'
+	  -include_merged       Include merged samples in the output (will be ignored on default).
+	                        Default value: 'false'
 	  -test                 Uses the test database instead of on the production database.
 	                        Default value: 'false'
 	
@@ -30,7 +32,8 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDSameSample changelog
-	NGSDSameSample 2023_09-93-gad5c47c9
+	NGSDSameSample 2023_11-42-ga9d1687d
 	
+	2023-11-21 remove merged sample on default
 	2023-11-15 initial commit
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

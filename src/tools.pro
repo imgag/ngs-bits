@@ -579,3 +579,7 @@ BamExtract.depends = cppNGS
 SUBDIRS += VcfSplit
 tools-TEST.depends += VcfSplit
 VcfSplit.depends = cppNGS
+
+SUBDIRS += VcfMerge
+tools-TEST.depends += VcfMerge
+VcfMerge.depends = cppNGS

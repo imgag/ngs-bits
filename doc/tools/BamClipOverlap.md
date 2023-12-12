@@ -1,5 +1,5 @@
 ### BamClipOverlap tool help
-	BamClipOverlap (2020_12-85-g5ff87d17)
+	BamClipOverlap (2023_11-42-ga9d1687d)
 	
 	Softclipping of overlapping reads.
 	
@@ -24,8 +24,6 @@
 	                            Default value: 'false'
 	  -ref <file>               Reference genome for CRAM support (mandatory if CRAM is used).
 	                            Default value: ''
-	  -write_cram               Writes a CRAM file as output.
-	                            Default value: 'false'
 	
 	Special parameters:
 	  --help                    Shows this help and exits.
@@ -34,7 +32,7 @@
 	  --tdx                     Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamClipOverlap changelog
-	BamClipOverlap 2020_12-85-g5ff87d17
+	BamClipOverlap 2023_11-42-ga9d1687d
 	
 	2020-11-27 Added CRAM support.
 	2018-01-11 Updated base quality handling within overlap.

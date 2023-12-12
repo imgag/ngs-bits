@@ -131,7 +131,7 @@ public:
 
 		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
 		addFlag("remove_invalid", "Removes invalid variant, i.e. invalid position of ref/alt.");
-		addFlag("remove_non_ref", "Remove '<NON_REF>' entries. (Used in gVCF files)");
+		addFlag("remove_non_ref", "Remove '<NON_REF>' entries (used in gVCF files).");
 		addString("variant_type", "Filters by variant type. Possible types are: '" + variant_types.join("','") + "'.", true);
 		addString("id", "Filter by ID column (regular expression).", true);
 		addFloat("qual", "Filter by QUAL column (minimum).", true, 0.0);

@@ -160,7 +160,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     NGSDImportSampleQC_Test.h \
     SamplePath_Test.h \
     BamExtract_Test.h \
-    VcfSplit_Test.h
+    VcfSplit_Test.h \
+    VcfMerge_Test.h
 
 SOURCES += \
     main.cpp

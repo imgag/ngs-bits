@@ -1,5 +1,5 @@
 ### BamCleanHaloplex tool help
-	BamCleanHaloplex (2020_12-85-g5ff87d17)
+	BamCleanHaloplex (2023_11-42-ga9d1687d)
 	
 	BAM cleaning for Haloplex.
 	
@@ -12,8 +12,6 @@
 	                   Default value: '30'
 	  -ref <file>      Reference genome for CRAM support (mandatory if CRAM is used).
 	                   Default value: ''
-	  -write_cram      Writes a CRAM file as output.
-	                   Default value: 'false'
 	
 	Special parameters:
 	  --help           Shows this help and exits.
@@ -22,7 +20,7 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamCleanHaloplex changelog
-	BamCleanHaloplex 2020_12-85-g5ff87d17
+	BamCleanHaloplex 2023_11-42-ga9d1687d
 	
 	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
