@@ -183,6 +183,16 @@ void ImportDialog::pasteRow(int row_index, QString line)
 			{
 				const TableFieldInfo& field_info =  db_.tableInfo(db_table_).fieldInfo(db_fields_[c]);
 				fixValue(value, field_info, actual, validation_error);
+
+				//additional check to make sure a corresponding tumor sample exists for each cfDNA sample
+				if (type_==PROCESSED_SAMPLES && field_info.name=="processing_system_id" && db_.getValue("SELECT type FROM processing_system WHERE name_manufacturer=:0", false, value).toString()=="cfDNA (patient-specific)")
+				{
+					int sample_id = ui_.table->item(row_index, 0)->data(Qt::UserRole).toInt();
+					if (db_.relatedSamples(sample_id, "tumor-cfDNA").isEmpty())
+					{
+						THROW(Exception, "No tumor sample spefified for cfDNA (patient-specific) sample!");
+					}
+				}
 			}
 
 			//create item
