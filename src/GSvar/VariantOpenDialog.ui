@@ -36,7 +36,7 @@
     <number>3</number>
    </property>
    <item row="0" column="0" colspan="3">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="format_layout">
      <item>
       <widget class="QLabel" name="label">
        <property name="text">

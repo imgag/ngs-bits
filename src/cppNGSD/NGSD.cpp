@@ -4075,7 +4075,7 @@ SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_f
 	{
 		if(throw_on_fail)
 		{
-			THROW(DatabaseException, "Cannot find somatic VICC data for variant " + variant.toString(true, 100, true));
+			THROW(DatabaseException, "Cannot find somatic VICC data for variant " + variant.toString(' ', 100, true));
 		}
 		else
 		{
@@ -8678,6 +8678,54 @@ QString TableFieldInfo::typeToString(TableFieldInfo::Type type)
 			break;
 		default:
 			THROW(NotImplementedException, "Unhandled type '" + QString::number(type) + "' in TableFieldInfo::typeToString!");
+	}
+}
+
+bool TableFieldInfo::isValid(QString text) const
+{
+	if (is_nullable && text.isEmpty()) return true;
+
+	switch(type)
+	{
+		case BOOL:
+			return text=="0" || text=="1";
+			break;
+		case INT:
+		case TIMESTAMP:
+		case FK: //hande FKs as ints - to check if it's a valid column id, we would need a NGSD instance...
+			{
+				bool ok = false;
+				int tmp = text.toInt(&ok);
+				return ok && !(is_unsigned && tmp<0);
+			}
+			break;
+		case FLOAT:
+			{
+				bool ok = false;
+				double tmp = text.toDouble(&ok);
+				return ok && !(is_unsigned && tmp<0);
+			}
+			break;
+		case TEXT:
+			return true;
+			break;
+		case VARCHAR:
+			return text.length()<=type_constraints.max_length;
+			break;
+		case VARCHAR_PASSWORD:
+			return text.length()<=type_constraints.max_length;
+			break;
+		case ENUM:
+			return type_constraints.valid_strings.contains(text);
+			break;
+		case DATE:
+			return QDate::fromString(text, Qt::ISODate).isValid();
+			break;
+		case DATETIME:
+			return QDateTime::fromString(text, Qt::ISODate).isValid();
+			break;
+		default:
+			THROW(NotImplementedException, "Unhandled type '" + QString::number(type) + "' in TableFieldInfo::isValid!");
 	}
 }
 

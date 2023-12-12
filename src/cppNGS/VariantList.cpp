@@ -122,7 +122,7 @@ bool Variant::operator<(const Variant& rhs) const
 	return false;
 }
 
-QString Variant::toString(bool space_separated, int max_sequence_length, bool chr_normalized) const
+QString Variant::toString(QChar sep, int max_sequence_length, bool chr_normalized) const
 {
 	QByteArray ref = ref_;
 	QByteArray obs = obs_;
@@ -137,13 +137,13 @@ QString Variant::toString(bool space_separated, int max_sequence_length, bool ch
 			obs = obs.left(max_sequence_length) + "...[" + QByteArray::number(obs.length()) + " bases]";
 		}
 	}
-	if (space_separated)
+	if (sep.isNull())
 	{
-		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + " " + QString::number(start_) + " " + QString::number(end_) + " " + ref + " " + obs;
+		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref + ">" + obs;
 	}
 	else
 	{
-		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref + ">" + obs;
+		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + sep.toLatin1() + QString::number(start_) + sep.toLatin1() + QString::number(end_) + sep.toLatin1() + ref + sep.toLatin1() + obs;
 	}
 }
 

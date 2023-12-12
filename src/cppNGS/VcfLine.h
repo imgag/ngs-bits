@@ -14,8 +14,8 @@ enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 //basic header line storing comments (every comment must be a key=value pair)
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
 {
-	QByteArray value;
 	QByteArray key;
+	QByteArray value;
 
 	void storeLine(QTextStream& stream) const
 	{
@@ -106,6 +106,10 @@ public:
 	void removeCommentLine(int pos)
 	{
 		file_comments_.removeAt(pos);
+	}
+	void addCommentLine(const VcfHeaderLine& line)
+	{
+		file_comments_ << line;
 	}
 
 	//functions setting header content from a whole vcf line as QByteArray

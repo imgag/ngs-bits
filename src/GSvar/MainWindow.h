@@ -18,6 +18,7 @@
 #include "VersatileTextStream.h"
 #include "Log.h"
 #include "ClickableLabel.h"
+#include "ImportDialog.h"
 
 ///Tab type
 enum class TabType
@@ -81,9 +82,6 @@ public:
 	QString selectProcessedSample();
 	///Target region information of filter widget.
 	const TargetRegionInfo& targetRegion();
-
-	///Performs batch import of table rows
-	void importBatch(QString title, QString text, QString table, QStringList fields);
 
 	///Returns the variant lists of the currently loaded sample
 	const VariantList& getSmallVariantList();
@@ -216,6 +214,8 @@ public slots:
 	void on_actionClose_triggered();
 	///Close all meta data tabs
 	void on_actionCloseMetaDataTabs_triggered();
+	///Import variants
+	void on_actionImportVariants_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
 	///Open IGV documentation in browser
@@ -456,7 +456,7 @@ public slots:
     void changeIgvIconToNormal();
 
     ///close the app and logout (if in client-sever mode)
-    void closeAndLogout();
+	void closeAndLogout();
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);

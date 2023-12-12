@@ -187,7 +187,7 @@ public:
 		//check that all important variant are still there (we unset all re-imported variants above)
 		foreach(int id, var_ids_class_4_or_5)
 		{
-			THROW(ArgumentException, "Variant (" + db.variant(QString::number(id)).toString(false, 20) + ") with classification 4/5 is no longer in variant list!");
+			THROW(ArgumentException, "Variant (" + db.variant(QString::number(id)).toString(QChar(), 20) + ") with classification 4/5 is no longer in variant list!");
 		}
 
 

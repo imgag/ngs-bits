@@ -150,6 +150,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "IgvLogWidget.h"
 #include "SettingsDialog.h"
 #include "GlobalServiceProvider.h"
+#include "ImportDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -222,7 +223,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->setMenu(new QMenu());
 		debug_btn->menu()->addAction("user-specific function", this, SLOT(userSpecificDebugFunction()));
 		debug_btn->menu()->addSeparator();
-		debug_btn->menu()->addAction("variant: chr1:948519-948519 T>G", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("variant: chr1:1212033-1212033 G>T", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
 		debug_btn->menu()->addAction("gene: BRCA2", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
@@ -1798,6 +1799,12 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 	{
 		closeTab(t);
 	}
+}
+
+void MainWindow::on_actionImportVariants_triggered()
+{
+	ImportDialog dlg(this, ImportDialog::VARIANTS);
+	dlg.exec();
 }
 
 void MainWindow::on_actionIgvClear_triggered()
@@ -5202,286 +5209,6 @@ const TargetRegionInfo& MainWindow::targetRegion()
 	return ui_.filters->targetRegion();
 }
 
-void MainWindow::importBatch(QString title, QString text, QString table, QStringList fields)
-{
-	//show dialog
-	QTextEdit* edit = new QTextEdit();
-	edit->setAcceptRichText(false);
-	auto dlg = GUIHelper::createDialog(edit, title, text, true);
-	if (dlg->exec()!=QDialog::Accepted) return;
-
-	// load input text as table
-	QList<QStringList> table_content;
-	QStringList lines = edit->toPlainText().split("\n");
-	foreach(const QString& line, lines)
-	{
-		// skip empty lines
-		if (line.trimmed().isEmpty()) continue;
-
-		table_content.append(line.split("\t"));
-	}
-
-	NGSD db;
-
-	//special handling of processed sample: add 'process_id' and get the list of all cfDNA processing systems
-	QStringList cfdna_processing_systems;
-	if (table=="processed_sample")
-	{
-		fields.append("process_id");
-
-		// get all cfDNA processing system
-		cfdna_processing_systems = db.getValues("SELECT name_manufacturer FROM processing_system WHERE type='cfDNA (patient-specific)'");
-	}
-
-	// special handling of sample: extract last column containing the corresponding tumor sample id for a cfDNA sample
-	QList<QPair<QString,QString>> cfdna_tumor_relation;
-	if (table=="sample")
-	{
-		int name_idx = fields.indexOf("name");
-		for (int i = 0; i < table_content.size(); ++i)
-		{
-			QStringList& row = table_content[i];
-			if (row.length() == (fields.length() + 1))
-			{
-				//store tumor-cfDNA relation
-				QString tumor_sample = row.last();
-				QString cfdna_sample = row.at(name_idx).trimmed();
-				// only import if not empty
-				if (!tumor_sample.isEmpty()) cfdna_tumor_relation.append(QPair<QString,QString>(tumor_sample, cfdna_sample));
-
-				// remove last element
-				row.removeLast();
-			}
-		}
-	}
-
-	//special handling of sample_relations: add user
-	if (table=="sample_relations")
-	{
-		fields.append("user_id");
-	}
-
-	//special handling of sample_disease_info: add type and user
-	if (table=="sample_disease_info")
-	{
-		fields.append("type");
-		fields.append("user_id");
-	}
-
-	//prepare query
-	QString query_str = "INSERT INTO " + table + " (" + fields.join(", ") + ") VALUES (";
-	for(int i=0; i<fields.count(); ++i)
-	{
-		if (i!=0) query_str += ", ";
-		query_str += ":" + QString::number(i);
-	}
-	query_str += ")";
-
-	SqlQuery q_insert = db.getQuery();
-	q_insert.prepare(query_str);
-
-	//check and insert
-	QString last_processed_line;
-	try
-	{
-		db.transaction();
-
-		int imported = 0;
-		QStringList duplicates;
-		QStringList missing_cfDNA_relation;
-		for (int i = 0; i < table_content.size(); ++i)
-		{
-			QStringList& row = table_content[i];
-			last_processed_line = row.join("\t");
-
-			//special handling of processed sample: add 'process_id'
-			if (table=="processed_sample")
-			{
-				QString sample_name = row[0].trimmed();
-				QString sample_id = db.sampleId(sample_name);
-
-				QString next_id = db.nextProcessingId(sample_id);
-				if (next_id.toInt() > 99)
-				{
-					THROW(ArgumentException, "Error: For sample " + sample_name + " already exist 99 processed samples.\nCannot create more processed samples for " + sample_name + ".\n\nPlease import a new sample ex. NA12878 -> NA12878x2");
-				}
-				row.append(next_id);
-			}
-
-			//special handling of sample duplicates
-			if (table=="sample")
-			{
-				QString sample_name = row[0].trimmed();
-				QString sample_id = db.sampleId(sample_name, false);
-				if (sample_id!="")
-				{
-					duplicates << sample_name;
-					continue;
-				}
-			}
-
-			//special handling of sample_relations: add user
-			if (table=="sample_relations")
-			{
-				row.append(LoginManager::userName());
-			}
-
-			//special handling of sample_disease_info:
-			if (table=="sample_disease_info")
-			{
-				//add type and user
-				row.append("HPO term id");
-				row.append(LoginManager::userName());
-
-				//skip duplicates
-				QString sample_name = row[0].trimmed();
-				QString hpo_id = row[1].trimmed();
-				QString sample_id = db.sampleId(sample_name, false);
-				QList<int> duplicate_ids = db.getValuesInt("SELECT id FROM sample_disease_info WHERE sample_id='"+sample_id+"' AND disease_info='"+hpo_id+"' AND type='HPO term id'");
-				if (!duplicate_ids.isEmpty())
-				{
-					duplicates << sample_name+"/"+hpo_id;
-					continue;
-				}
-			}
-
-			//special handling of study-sample relation
-			if (table=="study_sample")
-			{
-				//skip duplicates
-				QString study = row[0].trimmed();
-				QString study_id = db.getValue("SELECT id FROM study WHERE name=:0", true, study).toString();
-				QString ps = row[1].trimmed();
-				QString ps_id = db.processedSampleId(ps, false);
-				QList<int> duplicate_ids = db.getValuesInt("SELECT id FROM study_sample ss WHERE processed_sample_id='"+ps_id+"' AND study_id='"+study_id+"'");
-				if (!duplicate_ids.isEmpty())
-				{
-					duplicates << study+"/"+ps;
-					continue;
-				}
-			}
-
-			//check tab-separated parts count
-			if (row.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.");
-			//check and bind
-			for(int i=0; i<fields.count(); ++i)
-			{
-				QString field = fields[i];
-				const TableFieldInfo& field_info = db.tableInfo(table).fieldInfo(field);
-
-				QString value = row[i].trimmed();
-
-				//check for cfDNA samples if a corresponding tumor sample exists
-				if (table=="processed_sample" && field=="processing_system_id" && cfdna_processing_systems.contains(value))
-				{
-					// get tumor relation
-					int sample_id = db.sampleId(row[0].trimmed()).toInt();
-					if (db.relatedSamples(sample_id, "tumor-cfDNA").size() < 1)
-					{
-						//No corresponding tumor found!
-						missing_cfDNA_relation.append(row[0].trimmed());
-					}
-				}
-
-				//special handling of sample_disease_info
-				if (table=="sample_disease_info" && field=="disease_info")
-				{
-					//check HPO term id is valid
-					db.getValue("SELECT id FROM hpo_term WHERE hpo_id=:0", false, value);
-				}
-
-				//FK: name to id
-				if (field_info.type==TableFieldInfo::FK && !value.isEmpty())
-				{
-					QString name_field = field_info.fk_name_sql;
-					if (name_field.startsWith("CONCAT(name")) //some FK-fields show additional information after the name > use only the name
-					{
-						name_field = name_field.left(name_field.indexOf(','));
-						name_field = name_field.mid(7);
-					}
-					value = db.getValue("SELECT " + field_info.fk_field + " FROM " + field_info.fk_table + " WHERE " + name_field + "=:0", false, value).toString();
-				}
-
-				//accept German dates as well
-				if (field_info.type==TableFieldInfo::DATE && !value.isEmpty())
-				{
-					QDate date_german = QDate::fromString(value, "dd.MM.yyyy");
-					if (date_german.isValid())
-					{
-						value = date_german.toString(Qt::ISODate);
-					}
-				}
-
-				//decimal point for numbers
-				if (field_info.type==TableFieldInfo::FLOAT && value.contains(','))
-				{
-					value = value.replace(',', '.');
-				}
-
-				//check errors
-				QStringList errors = db.checkValue(table, field, value, true);
-				if (errors.count()>0)
-				{
-					THROW(ArgumentException, "Error: Invalid value '" + value + "' for field '" + field + "':\n" + errors.join("\n"));
-				}
-
-				q_insert.bindValue(i, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
-			}
-
-			//insert
-			q_insert.exec();
-			++imported;
-		}
-
-		//ask user if duplicates should be skipped
-		if (duplicates.count()>0)
-		{
-			int button = QMessageBox::question(this, title, QString::number(duplicates.count()) +" entries are already present in the NGSD:\n" + duplicates.join(" ") + "\n\n Do you want to skip these duplicates and continue?", QMessageBox::Ok, QMessageBox::Abort);
-			if (button==QMessageBox::Abort)
-			{
-				db.rollback();
-				return;
-			}
-		}
-
-		//import tumor-cfDNA relations
-		int imported_relations = 0;
-		for (int i = 0; i < cfdna_tumor_relation.size(); ++i)
-		{
-			const QPair<QString, QString>& relation = cfdna_tumor_relation.at(i);
-			// check for valid input
-			if (db.getSampleData(db.sampleId(relation.first)).is_tumor)
-			{
-				// add relation
-				db.addSampleRelation(SampleRelation{relation.first.toUtf8(), "tumor-cfDNA", relation.second.toUtf8()}, true);
-				imported_relations++;
-			}
-			else
-			{
-				THROW(DatabaseException, "Sample " + relation.first + " is not a tumor! Can't import relation.");
-			}
-		}
-
-		// abort if cfDNA-tumor relations are missing
-		if (missing_cfDNA_relation.size() > 0)
-		{
-			THROW(ArgumentException, "The NGSD does not contain a cfDNA-tumor relation for the following cfDNA samples:\n" + missing_cfDNA_relation.join(", ") + "\nAborting import.");
-		}
-
-		db.commit();
-
-		QString message = "Imported " + QString::number(imported) + " table rows.";
-		if (duplicates.count()>0) message += "\n\nSkipped " + QString::number(duplicates.count()) + " table rows.";
-		if (imported_relations > 0) message += "\n\nImported " + QString::number(imported_relations) + " tumor-cfDNA relations.";
-		QMessageBox::information(this, title,  message);
-	}
-	catch (Exception& e)
-	{
-		db.rollback();
-		QMessageBox::warning(this, title + " - failed", "Import failed - no data was imported!\n\nLine:\n"+ last_processed_line.trimmed() + "\n\nError message:\n" + e.message());
-	}
-}
-
 const VariantList&MainWindow::getSmallVariantList()
 {
 	return variants_;
@@ -5817,7 +5544,7 @@ void MainWindow::on_actionExportTestData_triggered()
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
 		QTextStream output_stream(file.data());
-        output_stream.setCodec("UTF-8");
+		output_stream.setCodec("UTF-8");
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -5879,11 +5606,8 @@ void MainWindow::on_actionExportTestData_triggered()
 
 void MainWindow::on_actionImportSequencingRuns_triggered()
 {
-	importBatch("Import sequencing runs",
-				"Batch import of sequencing runs. Must contain the following tab-separated fields:<br><b>name</b>, flowcell ID, <b>flowcell type</b>, start date, end date, <b>device</b>, <b>recipe</b>, pool_molarity, <b>pool quantification method</b>, comment",
-				"sequencing_run",
-				QStringList() << "name" << "fcid" << "flowcell_type" << "start_date" << "end_date" << "device_id" << "recipe" << "pool_molarity" << "pool_quantification_method" << "comment"
-				);
+	ImportDialog dlg(this, ImportDialog::RUNS);
+	dlg.exec();
 }
 
 void MainWindow::on_actionImportTestData_triggered()
@@ -5943,63 +5667,43 @@ void MainWindow::on_actionImportTestData_triggered()
 
 void MainWindow::on_actionImportMids_triggered()
 {
-	importBatch("Import MIDs",
-				"Batch import of MIDs. Please enter MIDs as tab-delimited text.<br>Example:<br><br>illumina 1 → CGTGAT<br>illumina 2 → AGATA<br>illumina 3 → GTCATG",
-				 "mid",
-				QStringList() << "name" << "sequence"
-				);
+	ImportDialog dlg(this, ImportDialog::MIDS);
+	dlg.exec();
 }
 
 void MainWindow::on_actionImportStudy_triggered()
 {
-	importBatch("Import study",
-				"Batch import of stamples to studies. Please enter study, processed sample and study-specific name of sample (can be empty).<br>Example:<br><br>SomeStudy → NA12345_01 → NameOfSampleInStudy",
-				 "study_sample",
-				QStringList() << "study_id" << "processed_sample_id" << "study_sample_idendifier"
-				);
+	ImportDialog dlg(this, ImportDialog::STUDY_SAMPLE);
+	dlg.exec();
 }
 void MainWindow::on_actionImportSamples_triggered()
 {
-	importBatch("Import samples",
-				"Batch import of samples. Must contain the following tab-separated fields:<br><b>name</b>, name external, <b>sender</b>, received, received by, <b>sample type</b>, <b>tumor</b>, <b>ffpe</b>, <b>species</b>, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, <b>gender</b>, <b>quality</b>, comment, disease group, disease status, tissue. <br> (For cfDNA Samples a additional column which defines the corresponding tumor sample can be given.) ",
-				"sample",
-				QStringList() << "name" << "name_external" << "sender_id" << "received" << "receiver_id" << "sample_type" << "tumor" << "ffpe" << "species_id" << "concentration" << "volume" << "od_260_280" << "od_260_230" << "integrity_number" << "gender" << "quality" << "comment" << "disease_group" << "disease_status" << "tissue"
-				);
+	ImportDialog dlg(this, ImportDialog::SAMPLES);
+	dlg.exec();
 }
 
 void MainWindow::on_actionImportProcessedSamples_triggered()
 {
-	importBatch("Import processed samples",
-				"Batch import of processed samples. Must contain the following tab-separated fields:<br><b>sample</b>, <b>project</b>, <b>run name</b>, <b>lane</b>, mid1 name, mid2 name, operator, <b>processing system</b>, processing input [ng], molarity [nM], comment, normal processed sample, <b>processing modus</b>, batch number",
-				"processed_sample",
-				QStringList() << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id" << "processing_modus" << "batch_number"
-				);
+	ImportDialog dlg(this, ImportDialog::PROCESSED_SAMPLES);
+	dlg.exec();
 }
 
 void MainWindow::on_actionImportSampleRelations_triggered()
 {
-	importBatch("Import sample relations",
-				"Batch import of sample relations. Must contain the following tab-separated fields:<br><b>sample1</b>, <b>relation</b>, <b>sample2</b>",
-				"sample_relations",
-				QStringList() << "sample1_id" << "relation" << "sample2_id"
-				);
+	ImportDialog dlg(this, ImportDialog::SAMPLE_RELATIONS);
+	dlg.exec();
 }
 
 void MainWindow::on_actionImportSampleHpoTerms_triggered()
 {
-	importBatch("Import sample HPO terms",
-				"Batch import of sample HPO terms. Must contain the following tab-separated fields:<br><b>sample1</b>, <b>HPO term id e.g. 'HP:0003002'</b>",
-				"sample_disease_info",
-				QStringList() << "sample_id" << "disease_info"
-				);
+	ImportDialog dlg(this, ImportDialog::SAMPLE_HPOS);
+	dlg.exec();
 }
 
 void MainWindow::on_actionImportCfDNAPanels_triggered()
 {
-	CfDNAPanelBatchImport* widget = new CfDNAPanelBatchImport();
-//	auto dlg = GUIHelper::createDialog(widget, "Import cfDNA panels");
-//	addModelessDialog(dlg);
-	widget->exec();
+	CfDNAPanelBatchImport* dlg = new CfDNAPanelBatchImport(this);
+	dlg->exec();
 }
 
 void MainWindow::on_actionMidClashDetection_triggered()
@@ -6992,7 +6696,7 @@ void MainWindow::closeAndLogout()
 {
     //TODO: turn it on back again after fixing token update in IGV
     //if (ClientHelper::isClientServerMode()) performLogout();
-    close();
+	close();
 }
 
 void MainWindow::displayIgvHistoryTable(QPoint /*pos*/)
