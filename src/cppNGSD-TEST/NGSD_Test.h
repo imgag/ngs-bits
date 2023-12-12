@@ -57,8 +57,18 @@ private slots:
 
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
+		S_EQUAL(enum_values.join(", "), "n/a, Neoplasms, Diseases of the blood or blood-forming organs, Diseases of the immune system, Endocrine, nutritional or metabolic diseases, Mental, behavioural or neurodevelopmental disorders, Sleep-wake disorders, Diseases of the nervous system, Diseases of the visual system, Diseases of the ear or mastoid process, Diseases of the circulatory system, Diseases of the respiratory system, Diseases of the digestive system, Diseases of the skin, Diseases of the musculoskeletal system or connective tissue, Diseases of the genitourinary system, Developmental anomalies, Other diseases");
 		I_EQUAL(enum_values.count(), 18);
 		S_EQUAL(enum_values[4], "Endocrine, nutritional or metabolic diseases");
+		enum_values = db.getEnum("sample_disease_info", "type");
+		S_EQUAL(enum_values.join(", "), "HPO term id, ICD10 code, OMIM disease/phenotype identifier, Orpha number, CGI cancer type, tumor fraction, age of onset, clinical phenotype (free text), RNA reference tissue, Oncotree code")
+		I_EQUAL(enum_values.count(), 10);
+
+		//getEnum on Set type:
+		//setInfo:
+		enum_values = db.getEnum("somatic_report_configuration", "quality");
+		I_EQUAL(enum_values.count(), 6);
+		S_EQUAL(enum_values.join(", "), "no abnormalities, tumor cell content too low, quality of tumor DNA too low, DNA quantity too low, heterogeneous sample, contamination");
 
 		//processedSampleName
 		QString ps_name = db.processedSampleName(db.processedSampleId("NA12878_03"), false);
@@ -2083,7 +2093,7 @@ private slots:
 		som_rep_conf.setCnvTaiCount(3);
 		som_rep_conf.setCnvLstCount(43);
 		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
-		som_rep_conf.setQuality("DNA quantity too low");
+		som_rep_conf.setQuality(QStringList("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE"));
 		som_rep_conf.setFusionsDetected(true);
 
 		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
@@ -2152,7 +2162,7 @@ private slots:
 		I_EQUAL(res_config.cnvLstCount(), 43);
 
 		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
-		S_EQUAL(res_config.quality(), "DNA quantity too low");
+		I_EQUAL(res_config.quality().count(), 0);
 		IS_TRUE(res_config.fusionsDetected());
 		S_EQUAL(res_config.cinChromosomes().join(','), "chr1,chr5,chr9,chrX,chrY");
 		IS_THROWN(ArgumentException, som_rep_conf.setCinChromosomes({"chr1", "chr24"}));
@@ -2231,7 +2241,7 @@ private slots:
 
 
 		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
-		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
+		som_rep_conf.setQuality(QStringList("DNA quantity too low"));
 		som_rep_conf.setFusionsDetected(false);
 		som_rep_conf.setCinChromosomes({"chr10","chr21"});
 		som_rep_conf.setLimitations("With German umlauts: ???????");
@@ -2257,7 +2267,7 @@ private slots:
 		I_EQUAL(res_config_2.cnvLstCount(), 23);
 
 		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
-		S_EQUAL(res_config_2.quality(), "");
+		S_EQUAL(res_config_2.quality()[0], "DNA quantity too low");
 		IS_FALSE(res_config_2.fusionsDetected());
 		S_EQUAL(res_config_2.cinChromosomes().join(','), "chr10,chr21");
 		S_EQUAL(res_config_2.limitations(), "With German umlauts: ???????");
@@ -2591,6 +2601,10 @@ private slots:
 		somatic_report_settings.report_config.setCnvBurden(true);
 		somatic_report_settings.report_config.setIncludeMutationBurden(true);
 		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
+		QStringList quality;
+		quality.append("DNA quantity too low");
+		quality.append("heterogeneous sample");
+		somatic_report_settings.report_config.setQuality(quality);
 
 		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings, true);
 		report.storeRtf("out/somatic_report_tumor_normal.rtf");

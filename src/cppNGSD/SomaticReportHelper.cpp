@@ -1795,9 +1795,18 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	general_info_table.addRow(RtfTableRow({"HRD-Score", hrd_text}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 
-	if(settings_.report_config.quality() != "no abnormalities")
+	if(settings_.report_config.quality().count() >= 1)
 	{
-		general_info_table.addRow(RtfTableRow({"Anmerkungen", trans(settings_.report_config.quality()).toUtf8()}, {2500, 7421}, RtfParagraph()).setBorders(1, "brdrhair", 4));
+		QStringList quality_comments = settings_.report_config.quality();
+		if (quality_comments[0]  != "no abnormalities" && quality_comments[0].trimmed() != "")
+		{
+			QStringList translated;
+			foreach(QString qual_comment, quality_comments)
+			{
+				translated.append(trans(qual_comment.toUtf8()));
+			}
+			general_info_table.addRow(RtfTableRow({"Anmerkungen", translated.join(", ").toUtf8()}, {2500, 7421}, RtfParagraph()).setBorders(1, "brdrhair", 4));
+		}
 	}
 
 	RtfSourceCode desc = "";

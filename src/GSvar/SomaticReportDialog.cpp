@@ -77,6 +77,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
 	connect(ui_.limitations_check, SIGNAL(stateChanged(int)), this, SLOT(limitationState()));
+	connect(ui_.quality_no_abnormalities, SIGNAL(stateChanged(int)), this, SLOT(qualityState()));
 
 	connect( ui_.label_hint_igv_screenshot_available, SIGNAL(linkActivated(QString)), this, SLOT(createIgvScreenshot()) );
 
@@ -347,19 +348,33 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	//Load possible quality settings
 	QStringList quality_entries = db_.getEnum("somatic_report_configuration", "quality");
+
 	for(const auto& entry: quality_entries)
 	{
-		ui_.quality->addItem(entry);
+		if (entry == "no abnormalities") continue;
+		ui_.quality_list->addItem(entry);
 	}
 
 	//Set selected entry to old setting
-	for(int i=0; i<ui_.quality->count();++i)
+	QListWidgetItem* item = 0;
+	for(int i=0; i<ui_.quality_list->count();++i)
 	{
-		if(ui_.quality->itemText(i) == settings_.report_config.quality())
+		item = ui_.quality_list->item(i);
+		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+
+		if(settings_.report_config.quality().contains(ui_.quality_list->item(i)->text()))
 		{
-			ui_.quality->setCurrentIndex(i);
-			break;
+			ui_.quality_list->item(i)->setCheckState(Qt::CheckState::Checked);
 		}
+		else
+		{
+			ui_.quality_list->item(i)->setCheckState(Qt::CheckState::Unchecked);
+		}
+	}
+
+	if (settings_.report_config.quality().count() == 1 && settings_.report_config.quality()[0] == "no abnormalities")
+	{
+		ui_.quality_no_abnormalities->setChecked(true);
 	}
 
 
@@ -419,7 +434,23 @@ void SomaticReportDialog::writeBackSettings()
 	settings_.report_config.setFusionsDetected(ui_.fusions_detected->isChecked());
 
 	//current index of hrd_score is identical to value!
-	settings_.report_config.setQuality( ui_.quality->currentText() );
+	QStringList quality;
+	if (ui_.quality_no_abnormalities->isChecked())
+	{
+		quality.append(ui_.quality_no_abnormalities->text());
+	}
+	else
+	{
+		for(int i=0; i< ui_.quality_list->count(); i++)
+		{
+			QListWidgetItem* item = ui_.quality_list->item(i);
+			if (item->checkState() == Qt::Checked)
+			{
+				quality.append(item->text());
+			}
+		}
+	}
+	settings_.report_config.setQuality(quality);
 
 	settings_.report_config.setHrdStatement( ui_.hrd_statement->currentText() );
 
@@ -573,8 +604,20 @@ void SomaticReportDialog::setRNAids(const QStringList& rna_ids)
 
 void SomaticReportDialog::limitationState()
 {
-	if(ui_.limitations_check->isChecked()) ui_.limitations_text->setEnabled(true);
-	else ui_.limitations_text->setEnabled(false);
+	ui_.limitations_text->setEnabled(ui_.limitations_check->isChecked());
+}
+
+void SomaticReportDialog::qualityState()
+{
+	ui_.quality_list->setEnabled(! ui_.quality_no_abnormalities->isChecked());
+	if (ui_.quality_no_abnormalities->isChecked())
+	{
+		//uncheck all other options:
+		for(int i=0; i<ui_.quality_list->count();++i)
+		{
+			ui_.quality_list->item(i)->setCheckState(Qt::CheckState::Unchecked);
+		}
+	}
 }
 
 void SomaticReportDialog::createIgvScreenshot()

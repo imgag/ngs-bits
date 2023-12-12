@@ -3234,6 +3234,11 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 				info.type = TableFieldInfo::ENUM;
 				info.type_constraints.valid_strings = getEnum(table, info.name);
 			}
+			else if (type.startsWith("set("))
+			{
+				info.type = TableFieldInfo::SET;
+				info.type_constraints.valid_strings = getEnum(table, info.name);
+			}
 			else if(type.startsWith("varchar("))
 			{
 				info.type = TableFieldInfo::VARCHAR;
@@ -5696,8 +5701,20 @@ QStringList NGSD::getEnum(QString table, QString column) const
 	while (q.next())
 	{
 		QString type = q.value(1).toString();
-		type = type.mid(6,type.length()-8);
-		cache[hash] = type.split("','");
+		if (type.startsWith("enum("))
+		{
+			type = type.mid(6,type.length()-8);
+			cache[hash] = type.split("','");
+		}
+		else if (type.startsWith("set("))
+		{
+			type = type.mid(5,type.length()-7);
+			cache[hash] = type.split("','");
+		}
+		else
+		{
+			THROW(ProgrammingException, "Could not determine enum values of column '"+column+"' in table '"+table+"'! Column type doesn't start with 'enum' or 'set'. Type: " + type);
+		}
 		return cache[hash];
 	}
 
@@ -8160,7 +8177,16 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 		query.bindValue(11, config.tmbReferenceText());
 
-		if( getEnum("somatic_report_configuration", "quality").contains(config.quality()) ) query.bindValue(12, config.quality());
+		bool all_valid = true;
+		foreach(QString qual_comment, config.quality())
+		{
+			if ( ! getEnum("somatic_report_configuration", "quality").contains(qual_comment))
+			{
+				all_valid = false;
+				break;
+			}
+		}
+		if( all_valid) query.bindValue(12, config.quality().join(","));
 		else query.bindValue(12, QVariant(QVariant::String));
 
 		query.bindValue(13, config.fusionsDetected());
@@ -8214,7 +8240,16 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 		query.bindValue(15, config.tmbReferenceText());
 
-		if( getEnum("somatic_report_configuration", "quality").contains(config.quality()) ) query.bindValue(16, config.quality());
+		bool all_valid = true;
+		foreach(QString qual_comment, config.quality())
+		{
+			if ( ! getEnum("somatic_report_configuration", "quality").contains(qual_comment))
+			{
+				all_valid = false;
+				break;
+			}
+		}
+		if( all_valid) query.bindValue(16, config.quality().join(","));
 		else query.bindValue(16, QVariant(QVariant::String));
 
 		query.bindValue(17, config.fusionsDetected());
@@ -8411,8 +8446,8 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	if(query.value("tmb_ref_text").isNull()) output.setTmbReferenceText("");
 	else output.setTmbReferenceText(query.value("tmb_ref_text").toString());
 
-	if(query.value("quality").isNull()) output.setQuality("");
-	else output.setQuality(query.value("quality").toString());
+	if(query.value("quality").isNull()) output.setQuality(QStringList());
+	else output.setQuality(query.value("quality").toString().split(","));
 
 	output.setFusionsDetected(query.value("fusions_detected").toBool());
 

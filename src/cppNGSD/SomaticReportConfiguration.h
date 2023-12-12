@@ -125,8 +125,8 @@ public:
 	QString tmbReferenceText() const;
 	void setTmbReferenceText(QString ref_text);
 
-	QString quality() const;
-	void setQuality(QString qual);
+	QStringList quality() const;
+	void setQuality(QStringList qual);
 
 	QString limitations() const;
 	void setLimitations(QString limitations);
@@ -191,7 +191,7 @@ private:
 	QString tmb_reference_text_;
 
 	//Quality description
-	QString quality_;
+	QStringList quality_;
 
 	//Name of filter
 	QString filter_;
