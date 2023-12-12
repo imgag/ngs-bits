@@ -113,6 +113,9 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	///Converts type to human-readable string.
 	static QString typeToString(Type type);
+
+	///Returns if the given text is a valid entry for this field.
+	bool isValid(QString text) const;
 };
 
 ///General database table information.

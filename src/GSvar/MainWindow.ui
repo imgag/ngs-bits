@@ -532,12 +532,11 @@
      <addaction name="actionImportSequencingRuns"/>
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
-     <addaction name="actionImportSampleRelations"/>
      <addaction name="actionImportSampleHpoTerms"/>
-     <addaction name="actionImportCfDNAPanels"/>
-     <addaction name="separator"/>
-     <addaction name="actionImportMids"/>
+     <addaction name="actionImportSampleRelations"/>
      <addaction name="actionImportStudy"/>
+     <addaction name="actionImportMids"/>
+     <addaction name="actionImportCfDNAPanels"/>
     </widget>
     <widget class="QMenu" name="menuVariant_search">
      <property name="title">
@@ -1467,11 +1466,6 @@
   <action name="actionClearLogFile">
    <property name="text">
     <string>Clear log file</string>
-   </property>
-  </action>
- </widget>
- <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
    </property>
   </action>
   <action name="actionImportVariants">
