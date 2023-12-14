@@ -7,13 +7,13 @@
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
     <metaDataParameter ID="md0004" name="source file" value="MappingQC_in5.bam" cvRef="QC" accession="QC:1000005"/>
-    <qualityParameter ID="qp0001" name="read count" description="Total number of reads (forward and reverse reads of paired-end sequencing count as two reads)." value="5309" cvRef="QC" accession="QC:2000005"/>
-    <qualityParameter ID="qp0002" name="read length" description="Raw read length of a single read before trimming. Comma-separated list of lenghs or length range, if reads have different lengths." value="30-151" cvRef="QC" accession="QC:2000006"/>
+    <qualityParameter ID="qp0001" name="read count" description="Total number of reads (forward and reverse reads of paired-end sequencing count as two reads)." value="5302" cvRef="QC" accession="QC:2000005"/>
+    <qualityParameter ID="qp0002" name="read length" description="Raw read length of a single read before trimming. Comma-separated list of lenghs or length range, if reads have different lengths." value="69-151" cvRef="QC" accession="QC:2000006"/>
     <qualityParameter ID="qp0003" name="bases sequenced (MB)" description="Bases sequenced in total (in megabases)." value="0.80" cvRef="QC" accession="QC:2000049"/>
     <qualityParameter ID="qp0004" name="Q20 read percentage" description="The percentage of reads with a mean base quality score greater than Q20." value="99.91" cvRef="QC" accession="QC:2000007"/>
-    <qualityParameter ID="qp0005" name="Q30 base percentage" description="The percentage of bases with a minimum quality score of Q30." value="89.42" cvRef="QC" accession="QC:2000008"/>
+    <qualityParameter ID="qp0005" name="Q30 base percentage" description="The percentage of bases with a minimum quality score of Q30." value="89.43" cvRef="QC" accession="QC:2000008"/>
     <qualityParameter ID="qp0006" name="no base call percentage" description="The percentage of bases without base call (N)." value="0.00" cvRef="QC" accession="QC:2000009"/>
-    <qualityParameter ID="qp0007" name="gc content percentage" description="The percentage of bases that are called to be G or C." value="49.06" cvRef="QC" accession="QC:2000010"/>
+    <qualityParameter ID="qp0007" name="gc content percentage" description="The percentage of bases that are called to be G or C." value="49.07" cvRef="QC" accession="QC:2000010"/>
     <attachment ID="qp0008" name="base distribution plot" description="Base distribution plot per cycle." cvRef="QC" accession="QC:2000011">
     </attachment>
     <attachment ID="qp0009" name="Q score plot" description="Mean Q score per cycle for forward/reverse reads." cvRef="QC" accession="QC:2000012">
