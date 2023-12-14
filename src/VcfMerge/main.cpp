@@ -1,5 +1,6 @@
 #include "ToolBase.h"
 #include "Helper.h"
+#include <zlib.h>
 
 class ConcreteTool: public ToolBase
 {
@@ -19,6 +20,7 @@ public:
 		addOutfile("out", "Output VCF. If unset, writes to STDOUT.", true, true);
 
 		changeLog(2023, 12, 12, "Initial implementation.");
+		changeLog(2023, 12, 14, "Added support for gzipped input.");
 	}
 
 	virtual void main()
@@ -28,13 +30,43 @@ public:
 		QString out = getOutfile("out");
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
+		//init
+		const int buffer_size = 1048576; //1MB buffer
+		char* buffer = new char[buffer_size];
+
 		bool is_first_vcf = true;
 		foreach(QString in, ins)
 		{
-			QSharedPointer<QFile> in_p = Helper::openFileForReading(in, false);
-			while (!in_p->atEnd())
+			FILE* instream = fopen(in.toUtf8().data(), "rb");
+			gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
+			if (file==NULL)
 			{
-				QByteArray line = in_p->readLine();
+				THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
+			}
+			while(!gzeof(file))
+			{
+				char* char_array = gzgets(file, buffer, buffer_size);
+				//handle errors like truncated GZ file
+				if (char_array==nullptr)
+				{
+					int error_no = Z_OK;
+					QByteArray error_message = gzerror(file, &error_no);
+					if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+					{
+						THROW(FileParseException, "Error while reading file '" + in + "': " + error_message);
+					}
+
+					continue;
+				}
+
+				//determine end of read line
+				int i=0;
+				while(i<buffer_size && char_array[i]!='\0' && char_array[i]!='\n' && char_array[i]!='\r')
+				{
+					++i;
+				}
+
+				QByteArray line = QByteArray::fromRawData(char_array, i);
 				while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
 				//skip empty lines
@@ -50,11 +82,12 @@ public:
 				//variant rows
 				out_p->write(line + '\n');
 			}
-			in_p->close();
+			gzclose(file);
 
 			is_first_vcf = false;
 		}
 		out_p->close();
+		delete[] buffer;
 	}
 };
 
