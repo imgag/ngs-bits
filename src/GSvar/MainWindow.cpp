@@ -128,7 +128,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "ClinvarUploadDialog.h"
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
-#include "CacheInitWorker.h"
 #include "BlatWidget.h"
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
@@ -151,6 +150,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SettingsDialog.h"
 #include "GlobalServiceProvider.h"
 #include "ImportDialog.h"
+#include "Background/NGSDCacheInitializer.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -158,12 +158,13 @@ MainWindow::MainWindow(QWidget *parent)
 	, var_last_(-1)
 	, busy_dialog_(nullptr)
 	, notification_label_(new QLabel())
-    , igv_history_label_(new ClickableLabel())
+	, igv_history_label_(new ClickableLabel())
+	, background_job_label_(new ClickableLabel())
 	, filename_()
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
-    , init_timer_(this, true)
-    , server_version_()
+	, init_timer_(this, true)
+	, server_version_()
 {
 	//setup GUI
 	ui_.setupUi(this);
@@ -212,6 +213,7 @@ MainWindow::MainWindow(QWidget *parent)
 	// deaktivate on default (only available in somatic)
 	cfdna_menu_btn_->setVisible(false);
 	cfdna_menu_btn_->setEnabled(false);
+	ui_.actionVirusDetection->setEnabled(false);
 
 	//debugging
 	if (Settings::boolean("debug_mode_enabled", true))
@@ -286,24 +288,30 @@ MainWindow::MainWindow(QWidget *parent)
 		last_report_path_ = gsvar_report_folder;
 	}
 
-	//add notification icon
+	//toolbar: add notification icon
 	notification_label_->hide();
 	notification_label_->setScaledContents(true);
 	notification_label_->setMaximumSize(16,16);
 	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
-	ui_.statusBar->addPermanentWidget(notification_label_);	
-	ui_.actionVirusDetection->setEnabled(false);
+	ui_.statusBar->addPermanentWidget(notification_label_);
 
-    igv_history_label_->setScaledContents(true);
+	//toolbar: add IGV history icon
+	igv_history_label_->setScaledContents(true);
     igv_history_label_->setMaximumSize(16,16);
     igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
     igv_history_label_->setToolTip("Show the history of IGV commands");
     ui_.statusBar->addPermanentWidget(igv_history_label_);
-    connect(igv_history_label_, SIGNAL(clicked(QPoint)), this, SLOT(displayIgvHistoryTable(QPoint)));
+	connect(igv_history_label_, SIGNAL(clicked(QPoint)), this, SLOT(displayIgvHistoryTable()));
 
-	//init cache in background thread (it takes about 6 seconds)
-	CacheInitWorker* worker = new CacheInitWorker();
-	worker->start();
+	//toolbar: add background job
+	bg_job_dialog_ = new BackgroundJobDialog(this);
+	bg_job_dialog_->hide();
+	background_job_label_->setScaledContents(true);
+	background_job_label_->setMaximumSize(16,16);
+	background_job_label_->setPixmap(QPixmap(":/Icons/multithreading.png"));
+	background_job_label_->setToolTip("Show the history of background jobs");
+	ui_.statusBar->addPermanentWidget(background_job_label_);
+	connect(background_job_label_, SIGNAL(clicked(QPoint)), this, SLOT(showBackgroundJobDialog()));
 
 	// Setting a value for the current working directory. On Linux it is defined in the TMPDIR environment
 	// variable or /tmp if TMPDIR is not set. On Windows it is saved in the TEMP or TMP environment variable.
@@ -353,10 +361,6 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
-
-	update_info_toolbar_ = new QToolBar;
-	update_info_toolbar_->hide();
-	addToolBar(Qt::TopToolBarArea, update_info_toolbar_);
 }
 
 QString MainWindow::appName() const
@@ -432,26 +436,14 @@ void MainWindow::checkClientUpdates()
 	}
 
 	int commit_pos = QCoreApplication::applicationVersion().lastIndexOf("-");
-	if (commit_pos>-1)
-	{
-		QString short_version = QCoreApplication::applicationVersion().left(commit_pos);
-		if (ClientInfo(short_version, "").isOlderThan(client_info))
-		{
-			Log::info("Client version from the server: " + client_info.version);
-			update_info_toolbar_->clear();
-			update_info_toolbar_->setAutoFillBackground(true);
-			update_info_toolbar_->setStyleSheet("QToolBar {background: red;}");
-			QLabel *update_info_label = new QLabel;
-			update_info_label->setText(client_info.message.isEmpty() ? "Please restart the application" : client_info.message);
-			update_info_label->setStyleSheet("QLabel {color: white}");
-			update_info_toolbar_->addWidget(update_info_label);
-			update_info_toolbar_->show();
-		}
-		else
-		{
-			update_info_toolbar_->hide();
-        }
-    }
+	if (commit_pos==-1) return;
+
+	QString short_version = QCoreApplication::applicationVersion().left(commit_pos);
+	if (!ClientInfo(short_version, "").isOlderThan(client_info)) return;
+
+	Log::info("Client version from the server: " + client_info.version);
+	QString message = client_info.message.isEmpty() ? "Please restart the application" : client_info.message;
+	QMessageBox::warning(this, "GSvar client notification", message);
 }
 
 QString MainWindow::getCurrentFileName()
@@ -2671,6 +2663,10 @@ void MainWindow::delayedInitialization()
 				Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
 			}
 		}
+
+		//start initialization of NGSD gene/transcript cache
+		NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
+		bg_job_dialog_->start(ngsd_initializer);
 	}
 
 	//create default IGV session (variants)
@@ -6699,7 +6695,7 @@ void MainWindow::closeAndLogout()
 	close();
 }
 
-void MainWindow::displayIgvHistoryTable(QPoint /*pos*/)
+void MainWindow::displayIgvHistoryTable()
 {
 	//check if already present > bring to front
 	QList<IgvLogWidget*> dialogs = findChildren<IgvLogWidget*>();
@@ -6726,6 +6722,11 @@ void MainWindow::changeIgvIconToNormal()
 {
 	igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
 	igv_history_label_->setToolTip("IGV is idle at the moment");
+}
+
+void MainWindow::showBackgroundJobDialog()
+{
+	bg_job_dialog_->show();
 }
 
 void MainWindow::on_actionVirusDetection_triggered()

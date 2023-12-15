@@ -9167,6 +9167,7 @@ void NGSD::initTranscriptCache()
 
 	initializing = false;
 }
+
 void NGSD::initGeneExpressionCache()
 {
 	//make sure initialization is done only once

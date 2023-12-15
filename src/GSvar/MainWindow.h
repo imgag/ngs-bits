@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QAbstractSocket>
+#include "Background/BackgroundJobDialog.h"
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "BedFile.h"
@@ -449,11 +450,13 @@ public slots:
 	void showMatchingCnvsAndSvs(BedLine region);
 
     //Open a window with the IGV command history
-    void displayIgvHistoryTable(QPoint pos);
+	void displayIgvHistoryTable();
     //Show in the status bar that IGV is currently executing a command
     void changeIgvIconToActive();
     //Show in the status bar that IGV is idle
     void changeIgvIconToNormal();
+	//Open background jobs dialog
+	void showBackgroundJobDialog();
 
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
@@ -479,6 +482,8 @@ private:
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 	QLabel* notification_label_;
     ClickableLabel* igv_history_label_;
+	ClickableLabel* background_job_label_;
+	BackgroundJobDialog* bg_job_dialog_;
 
 	//DATA
 	QString filename_;
@@ -507,7 +512,6 @@ private:
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
-	QToolBar *update_info_toolbar_;
 
 	//single vars context menu
 	struct ContextMenuActions

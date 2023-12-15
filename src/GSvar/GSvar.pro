@@ -7,6 +7,9 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
+    Background/BackgroundJobDialog.cpp \
+    Background/BackgroundWorkerBase.cpp \
+    Background/NGSDCacheInitializer.cpp \
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
@@ -108,7 +111,6 @@ SOURCES += main.cpp\
     cfDNARemovedRegions.cpp \
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
-    CacheInitWorker.cpp \
     BlatWidget.cpp \
     AnalysisInformationWidget.cpp \
     FusionWidget.cpp \
@@ -128,6 +130,9 @@ SOURCES += main.cpp\
     OncoTreeSelector.cpp
 
 HEADERS += MainWindow.h \
+    Background/BackgroundJobDialog.h \
+    Background/BackgroundWorkerBase.h \
+    Background/NGSDCacheInitializer.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
@@ -231,7 +236,6 @@ HEADERS += MainWindow.h \
     LiftOverWidget.h \
     BlatWidget.h \
     AnalysisInformationWidget.h \
-    CacheInitWorker.h \
     FusionWidget.h \
     CohortExpressionDataWidget.h \
     GapClosingEditDialog.h \
@@ -249,6 +253,7 @@ HEADERS += MainWindow.h \
     OncoTreeSelector.h
 
 FORMS    += MainWindow.ui \
+    Background/BackgroundJobDialog.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
