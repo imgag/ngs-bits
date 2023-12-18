@@ -19,5 +19,6 @@
 ### VcfMerge changelog
 	VcfMerge 2023_11-42-ga9d1687d
 	
+	2023-12-14 Added support for gzipped input.
 	2023-12-12 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

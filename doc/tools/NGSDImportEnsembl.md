@@ -1,10 +1,10 @@
 ### NGSDImportEnsembl tool help
-	NGSDImportEnsembl (2023_02-56-g0fe5818f)
+	NGSDImportEnsembl (2023_11-42-ga9d1687d)
 	
 	Imports Ensembl/CCDS transcript information into NGSD.
 	
 	Mandatory parameters:
-	  -in <file>              Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-109/gff3/homo_sapiens/Homo_sapiens.GRCh38.109.gff3.gz).
+	  -in <file>              Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-110/gff3/homo_sapiens/Homo_sapiens.GRCh38.110.gff3.gz).
 	
 	Optional parameters:
 	  -pseudogenes <filelist> Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt and http://pseudogene.org/psicube/data/gencode.v10.pgene.parents.txt).
@@ -23,7 +23,7 @@
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportEnsembl changelog
-	NGSDImportEnsembl 2023_02-56-g0fe5818f
+	NGSDImportEnsembl 2023_11-42-ga9d1687d
 	
 	2023-03-22 Removed parameters 'ensembl_canonical' and 'mane' as the information is now contained in the Ensembl GFF3 file.
 	2022-10-17 Added transcript versions.

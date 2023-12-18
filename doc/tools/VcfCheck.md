@@ -12,7 +12,7 @@
 	  -out <file>  Output file. If unset, writes to STDOUT.
 	               Default value: ''
 	  -lines <int> Number of variant lines to check in the VCF file (unlimited if 0)
-	               Default value: '1000'
+	               Default value: '5000'
 	  -ref <file>  Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	               Default value: ''
 	  -info        Add general information about the input file to the output.

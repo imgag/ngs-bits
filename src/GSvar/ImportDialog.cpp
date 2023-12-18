@@ -261,6 +261,20 @@ void ImportDialog::fixValue(QString value, const TableFieldInfo& field_info, QSt
 		QVariant hpo_id = db_.getValue("SELECT id FROM hpo_term WHERE hpo_id=:0", true, value);
 		if (!hpo_id.isValid()) THROW(ArgumentException, "Invalid HPO term id '" + value + "' given!");
 	}
+
+	//additional check to make sure sample names are unique
+	if (db_table_=="sample" && field_info.name=="name" && db_.getValue("SELECT id FROM sample WHERE name=:0", true, actual).toString()!="")
+	{
+		QString error = "Sample with name '" + actual + " already exists in NGSD!";
+		if (validation_error.isEmpty())
+		{
+			validation_error = error;
+		}
+		else
+		{
+			validation_error += "; " + error;
+		}
+	}
 }
 
 bool ImportDialog::addItem(int r, int c, const QString& value, const QString& actual, const QString& validation_error)
