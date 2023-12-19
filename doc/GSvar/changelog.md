@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2023_11-53 (19.12.23)
+
+- general: refactoring of import dialogs (runs, samples, processed samples)
+- general: added functionality to open variants not contained in a sample (File > Import variants)
+- IGV: improved logging to find out why IGV tracks are sometimes cleared (IGV does not respond to echo command)
+
 ## 2023_11-19 (04.12.23)
 
 - gene tab: added search box to disease/phenotype data.
