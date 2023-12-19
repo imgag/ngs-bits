@@ -1,9 +1,13 @@
 #include "ReportWorker.h"
 #include "Settings.h"
+#include "GUIHelper.h"
+#include "Helper.h"
 #include <QFileInfo>
+#include <QMessageBox>
+#include <QDesktopServices>
 
 ReportWorker::ReportWorker(GermlineReportGeneratorData data, QString filename)
-	: WorkerBase("Report generation")
+	: BackgroundWorkerBase("Report generation (germline)")
 	, data_(data)
 	, filename_(filename)
 {
@@ -15,7 +19,7 @@ void ReportWorker::process()
 	QString temp_filename = Helper::tempFileName(".html");
 	GermlineReportGenerator report_generator(data_);
 	report_generator.writeHTML(temp_filename);
-	moveReport(temp_filename, filename_);
+	Helper::moveFile(temp_filename, filename_);
 
 	//copy HTML report to archive folder
 	QString archive_folder = Settings::path("gsvar_report_archive");
@@ -42,7 +46,7 @@ void ReportWorker::process()
 			report_generator.writeXML(temp_filename, filename_);
 
 			QString xml_file = gsvar_xml_folder + "/" + QFileInfo(filename_).fileName().replace(".html", ".xml");
-			moveReport(temp_filename, xml_file);
+			Helper::moveFile(temp_filename, xml_file);
 		}
 		catch (Exception& e)
 		{
@@ -51,14 +55,20 @@ void ReportWorker::process()
 	}
 }
 
-void ReportWorker::moveReport(QString temp_filename, QString filename)
+void ReportWorker::userInteration()
 {
-	if (QFile::exists(filename) && !QFile(filename).remove())
+	//show result info box
+	if (error_.isEmpty())
 	{
-		THROW(FileAccessException,"Could not remove previous report: " + filename);
+		if (QMessageBox::question(GUIHelper::mainWindow(), "Report", "Report generated successfully!\nDo you want to open the report in your browser?")==QMessageBox::Yes)
+		{
+			QDesktopServices::openUrl(QUrl::fromLocalFile(filename_));
+		}
 	}
-	if (!QFile::rename(temp_filename, filename))
+	else
 	{
-		THROW(FileAccessException,"Could not move report from temporary file " + temp_filename + " to " + filename + " !");
+		QMessageBox::warning(GUIHelper::mainWindow(), "Error", "Report generation failed:\n" + error_);
 	}
 }
+
+

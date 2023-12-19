@@ -328,8 +328,6 @@ public slots:
 	void generateReportTumorOnly();
 	///Generates a report (germline)
 	void generateReportGermline();
-	///Finished the report generation (germline)
-	void reportGenerationFinished(bool success);
 
 	///User-specific debug function
 	void userSpecificDebugFunction();
@@ -457,6 +455,8 @@ public slots:
     void changeIgvIconToNormal();
 	//Open background jobs dialog
 	void showBackgroundJobDialog();
+	//Starts a background job
+	void startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
 
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
@@ -478,7 +478,6 @@ private:
 	//GUI
 	Ui::MainWindow ui_;
 	int var_last_;
-	BusyDialog* busy_dialog_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 	QLabel* notification_label_;
     ClickableLabel* igv_history_label_;

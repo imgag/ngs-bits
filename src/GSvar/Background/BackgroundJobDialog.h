@@ -3,7 +3,9 @@
 
 #include "ui_BackgroundJobDialog.h"
 #include "Background/BackgroundWorkerBase.h"
+#include "BusyDialog.h"
 #include <QThreadPool>
+#include <QDateTime>
 
 
 class BackgroundJobDialog
@@ -12,19 +14,34 @@ class BackgroundJobDialog
 	Q_OBJECT
 
 public:
-	 BackgroundJobDialog(QWidget *parent = nullptr);
-	 void start(BackgroundWorkerBase* job);
+	 BackgroundJobDialog(QWidget* parent);
+	 void start(BackgroundWorkerBase* job, bool show_busy_dialog);
 
 private slots:
-	 void started(int id);
-	 void finished(int id, int elapsed_ms);
-	 void failed(int id, int elapsed_ms, QString error);
-	 void updateTableWidths();
+	 void started();
+	 void finished();
+	 void failed();
 
 private:
 	Ui::BackgroundJobDialog ui_;
 	QThreadPool pool_;
 	int next_id_;
+
+	struct JobInfo
+	{
+		int id = -1;
+		QString name;
+		QDateTime started;
+		QString status;
+		int elapsed_ms = -1;
+		QString messages;
+
+		BusyDialog* busy_dlg = nullptr;
+	};
+	QList<JobInfo> jobs_;
+
+	//Re-draws the table (or only one line, if id is given)
+	void updateTable(int id=-1);
 };
 
 #endif // BACKGROUNDJOBDIALOG_H

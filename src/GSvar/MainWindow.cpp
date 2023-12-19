@@ -33,7 +33,7 @@
 #include <QImage>
 #include <QBuffer>
 QT_CHARTS_USE_NAMESPACE
-#include "ReportWorker.h"
+#include "Background/ReportWorker.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
 #include "HttpHandler.h"
@@ -156,7 +156,6 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
 	, var_last_(-1)
-	, busy_dialog_(nullptr)
 	, notification_label_(new QLabel())
 	, igv_history_label_(new ClickableLabel())
 	, background_job_label_(new ClickableLabel())
@@ -2666,7 +2665,7 @@ void MainWindow::delayedInitialization()
 
 		//start initialization of NGSD gene/transcript cache
 		NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
-		bg_job_dialog_->start(ngsd_initializer);
+		startJob(ngsd_initializer, false);
 	}
 
 	//create default IGV session (variants)
@@ -4583,7 +4582,7 @@ void MainWindow::generateReportTumorOnly()
 
 		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 		worker.writeRtf(temp_filename);
-		ReportWorker::moveReport(temp_filename, file_rep);
+		Helper::moveFile(temp_filename, file_rep);
 
 		if(!ui_.filters->targetRegion().isValid()) //if no ROI filter was set, use panel target information instead
 		{
@@ -4600,7 +4599,7 @@ void MainWindow::generateReportTumorOnly()
 			QString xml_file = gsvar_xml_folder + "/" + ps + "_tumor_only.xml" ;
 			QByteArray temp_xml = Helper::tempFileName(".xml").toUtf8();
 			worker.writeXML(temp_xml);
-			ReportWorker::moveReport(temp_xml,xml_file);
+			Helper::moveFile(temp_xml,xml_file);
 		}
 	}
 	catch(Exception e)
@@ -4849,7 +4848,7 @@ void MainWindow::generateReportSomaticRTF()
 				timer.start();
 				QString tmp_xml = Helper::tempFileName(".xml");
 				report.storeXML(tmp_xml);
-				ReportWorker::moveReport(tmp_xml, Settings::path("gsvar_xml_folder") + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml");
+				Helper::moveFile(tmp_xml, Settings::path("gsvar_xml_folder") + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml");
 
 				Log::perf("Generating somatic report XML took ", timer);
 			}
@@ -4862,7 +4861,7 @@ void MainWindow::generateReportSomaticRTF()
 			timer.start();
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 			report.storeRtf(temp_filename);
-			ReportWorker::moveReport(temp_filename, file_rep);
+			Helper::moveFile(temp_filename, file_rep);
 			Log::perf("Generating somatic report RTF took ", timer);
 
 			//Generate files for QBIC upload
@@ -4966,7 +4965,7 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 
 			rna_report.writeRtf(temp_filename);
-			ReportWorker::moveReport(temp_filename, file_rep);
+			Helper::moveFile(temp_filename, file_rep);
 			QApplication::restoreOverrideCursor();
 		}
 		catch(Exception& error)
@@ -4998,7 +4997,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 			report.writeRtf(temp_filename);
-			ReportWorker::moveReport(temp_filename, file_rep);
+			Helper::moveFile(temp_filename, file_rep);
 			QApplication::restoreOverrideCursor();
 
 			if (QMessageBox::question(this, "cfDNA report", "cfDNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
@@ -5077,35 +5076,9 @@ void MainWindow::generateReportGermline()
 		data.roi.genes = db.genesToApproved(data.roi.genes, true);
 	}
 
-	//show busy dialog
-	busy_dialog_ = new BusyDialog("Report", this);
-	busy_dialog_->init("Generating report", false);
-
-	//start worker in new thread
+	//start worker in background
 	ReportWorker* worker = new ReportWorker(data, file_rep);
-	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
-	worker->start();
-}
-
-void MainWindow::reportGenerationFinished(bool success)
-{
-	delete busy_dialog_;
-
-	//show result info box
-	ReportWorker* worker = qobject_cast<ReportWorker*>(sender());
-	if (success)
-	{
-		if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your browser?")==QMessageBox::Yes)
-		{
-			QDesktopServices::openUrl(QUrl::fromLocalFile(worker->getReportFile()));
-		}
-	}
-	else
-	{
-		QMessageBox::warning(this, "Error", "Report generation failed:\n" + worker->errorMessage());
-	}
-	//clean
-	worker->deleteLater();
+	startJob(worker, true);
 }
 
 void MainWindow::openProcessedSampleTabsCurrentAnalysis()
@@ -6727,6 +6700,11 @@ void MainWindow::changeIgvIconToNormal()
 void MainWindow::showBackgroundJobDialog()
 {
 	bg_job_dialog_->show();
+}
+
+void MainWindow::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
+{
+	bg_job_dialog_->start(worker, show_busy_dialog);
 }
 
 void MainWindow::on_actionVirusDetection_triggered()

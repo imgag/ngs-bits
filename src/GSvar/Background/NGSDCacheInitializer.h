@@ -11,7 +11,7 @@ class NGSDCacheInitializer
 
 public:
 	NGSDCacheInitializer();
-	void run() override;
+	void process() override;
 };
 
 #endif // NGSDCACHEINITIALIZER_H

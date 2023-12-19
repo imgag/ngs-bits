@@ -61,8 +61,6 @@ public:
 	//Returns the coding and splicing entry (and genes through GeneSet reference) for a given variant
 	static QList<QStringList> annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags=true, int offset=5000);
 
-	//Annotates the variants using the GSvar server and stores the annotated GSVar file to the given filename.
-	static void annotate(const VariantList& variants, QString filename);
 
 protected:
 	GSvarHelper() = delete;

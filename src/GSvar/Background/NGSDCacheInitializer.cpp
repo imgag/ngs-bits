@@ -6,22 +6,8 @@ NGSDCacheInitializer::NGSDCacheInitializer()
 {
 }
 
-void NGSDCacheInitializer::run()
+void NGSDCacheInitializer::process()
 {
-	QTime timer;
-	timer.start();
-
-	try
-	{
-		emit started(id_);
-
-		NGSD db;
-		db.transcripts();
-
-		emit finished(id_, timer.elapsed());
-	}
-	catch (Exception& e)
-	{
-		emit failed(id_, timer.elapsed(), e.message());
-	}
+	NGSD db;
+	db.transcripts();
 }

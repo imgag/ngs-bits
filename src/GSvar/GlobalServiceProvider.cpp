@@ -144,3 +144,8 @@ MainWindow* GlobalServiceProvider::mainWindow()
 
 	THROW(ProgrammingException, "Could not find main window!");
 }
+
+void GlobalServiceProvider::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
+{
+	mainWindow()->startJob(worker, show_busy_dialog);
+}

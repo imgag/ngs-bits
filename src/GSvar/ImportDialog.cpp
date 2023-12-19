@@ -2,11 +2,13 @@
 #include "Exceptions.h"
 #include <QMessageBox>
 #include <QClipboard>
+#include <QAction>
 #include "VariantOpenDialog.h"
 #include "GUIHelper.h"
 #include "NGSD.h"
-#include "GSvarHelper.h"
 #include "GlobalServiceProvider.h"
+#include "Background/VariantAnnotator.h"
+#include "LoginManager.h"
 
 ImportDialog::ImportDialog(QWidget* parent, Type type)
 	: QDialog(parent)
@@ -365,11 +367,9 @@ void ImportDialog::import()
 					variants.append(Variant::fromString(text));
 				}
 			}
-			QString gsvar_file = Helper::tempFileName(".GSvar");
-			GSvarHelper::annotate(variants, gsvar_file);
 
-			//open GSvar
-			GlobalServiceProvider::openGSvarFile(gsvar_file);
+			VariantAnnotator* worker = new VariantAnnotator(variants);
+			GlobalServiceProvider::startJob(worker, true);
 		}
 		else if (type_==MIDS || type_==STUDY_SAMPLE || type_==RUNS || type_==PROCESSED_SAMPLES || type_==SAMPLE_RELATIONS || type_==SAMPLE_HPOS)
 		{

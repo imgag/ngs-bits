@@ -10,6 +10,7 @@ SOURCES += main.cpp\
     Background/BackgroundJobDialog.cpp \
     Background/BackgroundWorkerBase.cpp \
     Background/NGSDCacheInitializer.cpp \
+    Background/VariantAnnotator.cpp \
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
@@ -23,7 +24,7 @@ SOURCES += main.cpp\
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
     ReportDialog.cpp \
-    ReportWorker.cpp \
+    Background/ReportWorker.cpp \
     SettingsDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
@@ -133,6 +134,7 @@ HEADERS += MainWindow.h \
     Background/BackgroundJobDialog.h \
     Background/BackgroundWorkerBase.h \
     Background/NGSDCacheInitializer.h \
+    Background/VariantAnnotator.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
@@ -145,7 +147,7 @@ HEADERS += MainWindow.h \
     ImportDialog.h \
     MaintenanceDialog.h \
     ReportDialog.h \
-    ReportWorker.h \
+    Background/ReportWorker.h \
     SettingsDialog.h \
     TrioDialog.h \
     HttpHandler.h \

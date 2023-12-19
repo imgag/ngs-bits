@@ -13,6 +13,7 @@
 #include <QClipboard>
 #include "VariantHgvsAnnotator.h"
 #include "ClientHelper.h"
+#include "Background/VariantAnnotator.h"
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
@@ -478,20 +479,10 @@ void VariantWidget::copyVariant()
 
 void VariantWidget::openVariantInTab()
 {
-	try
-	{
-		//create annotated GSvar file
-		VariantList variants;
-		variants.append(variant_);
-		QString gsvar_file = Helper::tempFileName(".GSvar");
-		GSvarHelper::annotate(variants, gsvar_file);
+	VariantList variants;
+	variants.append(variant_);
 
-		//open GSvar
-		GlobalServiceProvider::openGSvarFile(gsvar_file);
-	}
-	catch(Exception& e)
-	{
-		GUIHelper::showException(this, e, "Error annotating variant");
-	}
+	VariantAnnotator* worker = new VariantAnnotator(variants);
+	GlobalServiceProvider::startJob(worker, true);
 }
 

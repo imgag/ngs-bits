@@ -45,6 +45,7 @@ public:
 
 	//general
 	static MainWindow* mainWindow();
+	static void startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
 
 protected:
 	GlobalServiceProvider();
