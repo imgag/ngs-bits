@@ -68,7 +68,6 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     FastqMidParser_Test.h \
     FastqTrim_Test.h \
     FastqConvert_Test.h \
-    CnvHunter_Test.h \
     BedGeneOverlap_Test.h \
     SeqPurge_Test.h \
     VcfToTsv_Test.h \

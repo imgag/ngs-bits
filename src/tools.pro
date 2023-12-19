@@ -165,10 +165,6 @@ SUBDIRS += SampleOverview
 tools-TEST.depends += SampleOverview
 SampleOverview.depends = cppNGS
 
-SUBDIRS += CnvHunter
-tools-TEST.depends += CnvHunter
-CnvHunter.depends = cppNGS
-
 SUBDIRS += BedGeneOverlap
 tools-TEST.depends += BedGeneOverlap
 BedGeneOverlap.depends = cppNGSD
