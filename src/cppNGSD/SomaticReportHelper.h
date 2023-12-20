@@ -135,6 +135,8 @@ private:
 	RtfSourceCode partIgvScreenshot();
 	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
 	RtfTable snvTable(const QSet<int>& indices, bool high_impact_table=true);
+	///creates a table row of the given variant for the SNV table.
+	RtfTableRow snvRow(const Variant& snv, const VariantTranscript& transcript, const QList<int>& col_widths);
 	//creates table with hla_genotyper information
 	RtfTable hlaTable(QString ps_name, QByteArray type);
 	//creates table with hla_genotyper information
@@ -152,6 +154,8 @@ private:
 	VariantList somatic_vl_;
 	QSet<int> somatic_vl_high_impact_indices_; //small variants with high impact i.e. they are added to the pathway list in bold
 	QSet<int> somatic_vl_low_impact_indices_; //small variants with low impact i.e. they are added to the pathway list, but not bold
+
+	QSet<int> low_impact_indices_converted_to_high_; // small variants with low impact, in the same gene as a high impact variant. (variants that were moved to the high impact table).
 
 	GenomeBuild build_;
 
