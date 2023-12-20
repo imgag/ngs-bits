@@ -467,23 +467,20 @@ bool VcfLine::operator<(const VcfLine& rhs) const
 	return false;
 }
 
-void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool check_reference, bool add_prefix_base_to_mnps)
+VcfLine::ShiftResult VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool add_prefix_base_to_mnps)
 {
-	//check reference base is correct
-	if (check_reference)
+	//skip variants with incorrect referance bases
+	if (ref_ != reference.seq(chr_, pos_, ref_.length()))
 	{
-		if (ref_ != reference.seq(chr_, pos_, ref_.length()))
-		{
-			THROW(ArgumentException, "Reference sequence of variant ("+toString()+") does not match reference bases in genome (" + reference.seq(chr_, pos_, ref_.length()) + ").")
-		}
+		return ShiftResult::SKIPPED;
 	}
 
     //skip multi-allelic and empty variants
-	if(isMultiAllelic() || alt().empty()) return;
+	if(isMultiAllelic() || alt().empty()) return ShiftResult::SKIPPED;
 
 	//skip SNVs and MNPs
 	Variant::normalize(pos_, ref_, alt_[0]);
-	if (ref_.length()==1 && alt_[0].length()==1) return;
+	if (ref_.length()==1 && alt_[0].length()==1) return ShiftResult::SKIPPED;
 
 	//skip complex indels (e.g. ACGT => CA)
 	if (ref_.length()!=0 && alt(0).length()!=0)
@@ -495,13 +492,13 @@ void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& referenc
 			ref_ = reference.seq(chr_, pos_, 1) + ref_;
 			alt_[0] = reference.seq(chr_, pos_, 1) + alt_[0];
 		}
-		return;
+		return ShiftResult::SKIPPED;
 	}
 
     //skip all variants starting at first/ending at last base of chromosome
     if ((pos_ == 1 && shift_dir == ShiftDirection::LEFT) || (pos_ + ref_.length() - 1 == reference.lengthOf(chr_) && shift_dir == ShiftDirection::RIGHT))
     {
-        return;
+		return ShiftResult::SKIPPED;
     }
 
     if (shift_dir == ShiftDirection::LEFT)
@@ -607,4 +604,6 @@ void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& referenc
             }
         }
     }
+
+	return ShiftResult::PROCESSED;
 }

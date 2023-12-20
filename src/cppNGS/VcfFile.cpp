@@ -558,7 +558,7 @@ void VcfFile::leftNormalize(QString reference_genome)
 
 	for(int i=0; i<vcf_lines_.count(); ++i)
 	{
-		vcf_lines_[i].leftNormalize(reference, true);
+		vcf_lines_[i].leftNormalize(reference);
 	}
 }
 
@@ -568,7 +568,7 @@ void VcfFile::rightNormalize(QString reference_genome)
 
 	for(int i=0; i<vcf_lines_.count(); ++i)
 	{
-		vcf_lines_[i].rightNormalize(reference, true);
+		vcf_lines_[i].rightNormalize(reference);
 	}
 }
 
