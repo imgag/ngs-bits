@@ -93,7 +93,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	//Resolve histological tumor content (if available in NGSD)
 	QList<SampleDiseaseInfo> disease_infos = db_.getSampleDiseaseInfo(db_.sampleId(settings.tumor_ps), "tumor fraction");
-	for(const auto& entry : disease_infos)
+	foreach(const auto& entry, disease_infos)
 	{
 		if(entry.type == "tumor fraction")
 		{
@@ -111,7 +111,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	//Load HPO terms from database
 	QStringList hpos_ngsd;
 	QList<SampleDiseaseInfo> details = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps));
-	for(const auto& info : details)
+	foreach(const auto& info, details)
 	{
 		if(info.type == "HPO term id")
 		{
@@ -122,7 +122,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	QList<tmbInfo> hpo_tmbs = tmbInfo::load("://Resources/hpoterms_tmb.tsv");
 
 	//Set Reference value proposals
-	for(const auto& hpo_tmb : hpo_tmbs)
+	foreach(const auto& hpo_tmb, hpo_tmbs)
 	{
 		if( !hpos_ngsd.contains(hpo_tmb.hpoterm) ) continue;
 
@@ -253,28 +253,16 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	}
 	else
 	{
-		QString text = "Aufgrund der\n";
-		text += "geringen DNA-Konzentration (x,y ng/µl) \n";
-		text += "DNA-Qualität \n";
-		text += "des geringen Tumorgehaltes \n";
-		text += "der Heterogenität der verwendeten Tumorprobe \n";
-		text +=	"war nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen)\n";
-
-		text += "(Kopienzahlveränderungen) möglich. ";
-		text += "Es zeigte sich ein komplexes Bild, dass am ehesten mit einer Polysomie bzw. Monosomie mehrerer Chromosomen vereinbar ist. ";
-		text += "Die Mutationslast und der MSI-Status sind nicht bestimmbar. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.\n\n";
-		text += "Aufgrund der Allelfrequenz der einzelnen tumorspezifischen Varianten schätzen wir den Tumorgehalt der eingesandten Probe bei unter 10%. Aufgrund des geringen Tumorgehaltes der ";
-		text += "verwendeten Tumorprobe war nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen) möglich. Die Mutationslast und";
-		text += " MSI-Status sind nicht bestimmbar. Die hier berichteten Varianten wurden vor allem durch eine Senkung des Detektionslimits der Allelfrequenz auf unter 5% detektiert ";
-		text += " und wurden manuell überprüft. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.\n\n";
-		text += "Es gibt Hinweise auf eine heterogene Probe. Die Auswertung der Kopienzahlveränderungen ist bei Tumorsubpopulationen mit niedrigem Anteil an Tumorzellen limitiert.";
+		QString text = "Limitationen: Es gibt Hinweise auf eine heterogene Probe. Die Auswertung der Kopienzahlveränderungen ist bei Tumorsubpopulationen mit niedrigem Anteil an Tumorzellen limitiert.\n\n";
+		text += "Limitationen: Die durchgeführte Sequenzierung der Tumor-DNA zeigte zudem eine Vermischung mit einer in unserem Labor nicht bekannten Probe mit einem Anteil von unter 10 %. Eine Auswertung der somatischen Tumordiagnostik war daher nur für Varianten mit höherer Klonalität möglich.\n\n";
+		text += "Limitationen: Aufgrund der reduzierten Qualität des Tumorblocks konnte nur eine geringen DNA-Menge gewonnen werden. Aufgrund der daraus resultierenden niedrigen Sequenziertiefe (durchschnittl. 75x) und der detektierten Heterogenität der verwendeten Tumorprobe war nur eine eingeschränkte Detektion somatischer Punktmutationen und Kopienzahlveränderungen, der Mutationslast und auch Mikrosatelliteninstabilität möglich.\n";
 		ui_.limitations_text->setPlainText(text);
 	}
 
 
 
 	//Update GUI
-	ui_.include_msi_status->setText(ui_.include_msi_status->text() + " (" + QString::number(settings.get_msi_value(), 'f', 4) + "/0.4)");
+	ui_.include_msi_status->setText(ui_.include_msi_status->text() + " (" + QString::number(settings.get_msi_value(), 'f', 4) + ")");
 
 	if(BasicStatistics::isValidFloat(tum_cont_snps_))
 	{
@@ -349,7 +337,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	//Load possible quality settings
 	QStringList quality_entries = db_.getEnum("somatic_report_configuration", "quality");
 
-	for(const auto& entry: quality_entries)
+	foreach(const auto& entry, quality_entries)
 	{
 		if (entry == "no abnormalities") continue;
 		ui_.quality_list->addItem(entry);
@@ -379,7 +367,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 
 	//Load possible HRD statements
-	for(const auto& entry : db_.getEnum("somatic_report_configuration", "hrd_statement"))
+	foreach(const auto& entry, db_.getEnum("somatic_report_configuration", "hrd_statement"))
 	{
 		ui_.hrd_statement->addItem(entry);
 	}
@@ -590,7 +578,7 @@ void SomaticReportDialog::cinState()
 		ui_.tabs->setTabEnabled(2, false); //CIN tab
 
 
-		for(const auto& checkbox : ui_.cin->findChildren<QCheckBox*>())
+		foreach(const auto& checkbox, ui_.cin->findChildren<QCheckBox*>())
 		{
 			checkbox->setChecked(false);
 		}
@@ -715,7 +703,7 @@ void SomaticReportDialog::createIgvScreenshot()
 QList<QString> SomaticReportDialog::resolveCIN()
 {
 	QList<QString> out = {};
-	for(const auto& checkbox : ui_.cin->findChildren<QCheckBox*>())
+	foreach(const auto& checkbox, ui_.cin->findChildren<QCheckBox*>())
 	{
 		if(checkbox->isChecked()) out << checkbox->text();
 	}
