@@ -100,6 +100,9 @@ private slots:
 
 	void remove_invalid()
 	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in03.vcf") + " -out out/VcfFilter_out14.vcf" + " -remove_invalid");
 		COMPARE_FILES("out/VcfFilter_out14.vcf", TESTDATA("data_out/VcfFilter_out14.vcf"));
 		VCF_IS_VALID("out/VcfFilter_out14.vcf");
