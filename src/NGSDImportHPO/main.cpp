@@ -794,6 +794,7 @@ public:
 		{
 			if (getFlag("force"))
 			{
+				db.clearTable("hpo_obsolete");
 				db.clearTable("hpo_genes");
 				db.clearTable("hpo_parent");
 				db.clearTable("hpo_term");
@@ -1211,7 +1212,7 @@ public:
 							QByteArray gene_approved = db.geneSymbol(approved_id);
 
 							// add gene to hpo list:
-							if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << endl;
+							if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << " (cui=" << cui << " phenid=" << phen_id << ")" << endl;
 							int term_db_id = id2ngsd.value(hpo, -1);
 							if (term_db_id != -1)
 							{
