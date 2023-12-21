@@ -265,8 +265,8 @@ void ProcessedSampleWidget::updateGUI()
 	GUIHelper::resizeTableHeight(ui_->disease_details);
 
 	//#### sample relations ####
-	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
-	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "relation" << "sample 2" << "type 2" << "added_by" << "added_date");
+	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), (SELECT gender FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT gender  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
+	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "gender 1" << "relation" << "sample 2" << "type 2" << "gender 2" << "added_by" << "added_date");
 	ui_->sample_relations->setData(rel_table);
 	GUIHelper::resizeTableHeight(ui_->sample_relations);
 
