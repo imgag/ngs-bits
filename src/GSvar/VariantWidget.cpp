@@ -309,7 +309,9 @@ void VariantWidget::calculateSimilarity()
 			int overlap = QSet<QString>(ps_vars[i]).intersect(ps_vars[j]).count();
 			table->setItem(row, 4, new QTableWidgetItem(QString::number(overlap)));
 			double overlap_perc = 100.0 * overlap / (double)std::min(c_s1, c_s2);
-			table->setItem(row, 5, new QTableWidgetItem(QString::number(overlap_perc, 'f', 2)));
+			auto item = new QTableWidgetItem();
+			item->setData(Qt::DisplayRole, overlap_perc); //set as display role instead of string to allow sorting
+			table->setItem(row, 5, item);
 
 			++row;
 		}
@@ -321,7 +323,7 @@ void VariantWidget::calculateSimilarity()
 
 	//show results
 	auto dlg = GUIHelper::createDialog(table, "Sample similarity based on rare variants from NGSD", "Note: this method uses variants from NGSD only, i.e. variants with a maximum AF of 5%, to quickly find related samples.<br>"
-																									"Using rare variants only, enriches for artefacts. Thus, the overlap numbers are not as accurate as with 'Tools > Sample similarity'!");
+																									"Using rare variants only, enriches for artefacts. Thus, the overlap numbers are not as accurate as with the 'sample similarity tool'!");
 	dlg->exec();
 }
 
