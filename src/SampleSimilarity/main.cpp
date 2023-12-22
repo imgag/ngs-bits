@@ -23,13 +23,15 @@ public:
 		setExtendedDescription(QStringList() << "In VCF mode, multi-allelic variants are not supported. Use 'skip_multi' to ignore them, or VcfBreakMulti to split multi-allelic variants into several lines."
 											 << "Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample."
 											 << "In VCF mode, it is assumed that variant lists are left-normalized, e.g. with VcfLeftNormalize."
-											 << "BAM mode supports BAM as well as CRAM files.");
+											 << "BAM mode supports BAM as well as CRAM files."
+											 << "Note: When working on hg38 WES or WGS samples, it is recommended to use the 'roi_hg38_wes_wgs' flag!");
 
         addInfileList("in", "Input variant lists in VCF format (two or more). If only one file is given, each line in this file is interpreted as an input file path.", false, true);
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "gsvar" << "bam", "vcf");
 		addInfile("roi", "Restrict similarity calculation to variants in target region.", true);
+		addFlag("roi_hg38_wes_wgs", "Used pre-defined high-confidence coding region of hg38. Speeds up calculations, especially for WGS. Also makes scores comparable when mixing WES and WGS or different WES kits.");
 		addFlag("include_gonosomes", "Includes gonosomes into calculation (by default only variants on autosomes are considered).");
 		addFlag("skip_multi", "Skip multi-allelic variants instead of throwing an error (VCF mode).");
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
@@ -39,6 +41,7 @@ public:
 		addFlag("debug", "Print debug output.");
 
 		//changelog
+		changeLog(2023, 12, 22, "Added 'roi_hg38_wes_wgs' flag.");
 		changeLog(2022,  7,  7, "Changed BAM mode: max_snps is now 5000 by default because this results in a better separation of related and unrelated samples.");
 		changeLog(2022,  6, 30, "Changed GSvar mode: MODIFIER impact variants are now ingnored to make scores more similar between exomes and genomes.");
 		changeLog(2020, 11, 27, "Added CRAM support.");
@@ -64,6 +67,7 @@ public:
 		int min_cov = getInt("min_cov");
 		int max_snps = getInt("max_snps");
 		QString roi = getInfile("roi");
+		bool roi_hg38_wes_wgs = getFlag("roi_hg38_wes_wgs");
 		bool include_gonosomes = getFlag("include_gonosomes");
 		GenomeBuild build = stringToBuild(getEnum("build"));
 		bool skip_multi = getFlag("skip_multi");
@@ -85,24 +89,28 @@ public:
 			THROW(ProgrammingException, "Invalid mode " + mode + "!");
 		}
 
+		//load ROI
+		if (!roi.isEmpty() && roi_hg38_wes_wgs) THROW(ArgumentException, "Parameters 'roi' and 'roi_hg38_wes_wgs' are mutually exclusive!");
+		if (roi_hg38_wes_wgs && build==GenomeBuild::HG19) THROW(ArgumentException, "Parameters 'build hg19' and 'roi_hg38_wes_wgs' are mutually exclusive!");
+		BedFile roi_reg;
+		if (!roi.isEmpty()) roi_reg.load(roi);
+		if (roi_hg38_wes_wgs) roi_reg.load(":/Resources/hg38_coding_highconf_all_kits.bed");
+
 		//load genotype data
 		QList<SampleSimilarity::VariantGenotypes> genotype_data;
-		bool use_roi = !roi.isEmpty();
-		BedFile roi_reg;
-		if (use_roi) roi_reg.load(roi);
 		foreach(QString filename, in)
 		{
 			if (mode=="vcf")
 			{
-				genotype_data << (use_roi ? SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, roi_reg) : SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi));
+				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, roi_reg) : SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi));
 			}
 			else if(mode=="gsvar")
 			{
-				genotype_data << (use_roi ? SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, roi_reg) : SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes));
+				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, roi_reg) : SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes));
 			}
 			else
 			{
-				genotype_data << (use_roi ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref")) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref")));
+				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref")) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref")));
 			}
 			if (debug && genotype_data.count()%100==0)
 			{
