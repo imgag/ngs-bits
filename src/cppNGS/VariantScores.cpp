@@ -158,17 +158,11 @@ QStringList VariantScores::prefilters(const Parameters& parameters)
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
 			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
-			<< "Impact	impact=HIGH,MODERATE,LOW";
-	if (parameters.use_clinvar)
-	{
-			filters << "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false";
-	}
-	else
-	{
-		filters << "Annotated pathogenic	action=KEEP	sources=HGMD	also_likely_pathogenic=false";
-	}
-	filters << "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
+			<< "Impact	impact=HIGH,MODERATE,LOW"
+			<< "Annotated pathogenic	action=KEEP	sources=HGMD"+QString(parameters.use_clinvar ? ",ClinVar" : "")+"	also_likely_pathogenic=false"
+			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
+			<< "Count NGSD	max_count=100	ignore_genotype=false	mosaic_as_het=false"
 			<< "Filter columns	entries=mosaic	action=REMOVE";
 	if (parameters.use_ngsd_classifications)
 	{
