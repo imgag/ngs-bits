@@ -253,9 +253,9 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	}
 	else
 	{
-		QString text = "Limitationen: Es gibt Hinweise auf eine heterogene Probe. Die Auswertung der Kopienzahlveränderungen ist bei Tumorsubpopulationen mit niedrigem Anteil an Tumorzellen limitiert.\n\n";
-		text += "Limitationen: Die durchgeführte Sequenzierung der Tumor-DNA zeigte zudem eine Vermischung mit einer in unserem Labor nicht bekannten Probe mit einem Anteil von unter 10 %. Eine Auswertung der somatischen Tumordiagnostik war daher nur für Varianten mit höherer Klonalität möglich.\n\n";
-		text += "Limitationen: Aufgrund der reduzierten Qualität des Tumorblocks konnte nur eine geringen DNA-Menge gewonnen werden. Aufgrund der daraus resultierenden niedrigen Sequenziertiefe (durchschnittl. 75x) und der detektierten Heterogenität der verwendeten Tumorprobe war nur eine eingeschränkte Detektion somatischer Punktmutationen und Kopienzahlveränderungen, der Mutationslast und auch Mikrosatelliteninstabilität möglich.\n";
+		QString text = "Es gibt Hinweise auf eine heterogene Probe. Die Auswertung der Kopienzahlveränderungen ist bei Tumorsubpopulationen mit niedrigem Anteil an Tumorzellen limitiert.\n\n";
+		text += "Die durchgeführte Sequenzierung der Tumor-DNA zeigte zudem eine Vermischung mit einer in unserem Labor nicht bekannten Probe mit einem Anteil von unter 10 %. Eine Auswertung der somatischen Tumordiagnostik war daher nur für Varianten mit höherer Klonalität möglich.\n\n";
+		text += "Aufgrund der reduzierten Qualität des Tumorblocks konnte nur eine geringen DNA-Menge gewonnen werden. Aufgrund der daraus resultierenden niedrigen Sequenziertiefe (durchschnittl. 75x) und der detektierten Heterogenität der verwendeten Tumorprobe war nur eine eingeschränkte Detektion somatischer Punktmutationen und Kopienzahlveränderungen, der Mutationslast und auch Mikrosatelliteninstabilität möglich.\n";
 		ui_.limitations_text->setPlainText(text);
 	}
 
