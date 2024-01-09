@@ -287,6 +287,20 @@
          </widget>
         </item>
         <item>
+         <widget class="QToolButton" name="anno_btn">
+          <property name="toolTip">
+           <string>Annotate this variant with megSAP and open it in variant tab.</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="GSvar.qrc">
+            <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
            <enum>Qt::Vertical</enum>

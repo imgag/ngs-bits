@@ -123,17 +123,19 @@ void ExternalToolDialog::browse()
 			}
 			else //VCF/GSvar
 			{
+				BedFile roi;
+				roi.load(":/Resources/hg38_coding_highconf_all_kits.bed");
 				SampleSimilarity::VariantGenotypes geno1;
 				SampleSimilarity::VariantGenotypes geno2;
 				if (mode_=="vcf")
 				{
-					geno1 = SampleSimilarity::genotypesFromVcf(filename1, false, true);
-					geno2 = SampleSimilarity::genotypesFromVcf(filename2, false, true);
+					geno1 = SampleSimilarity::genotypesFromVcf(filename1, false, true, roi);
+					geno2 = SampleSimilarity::genotypesFromVcf(filename2, false, true, roi);
 				}
 				else
 				{
-					geno1 = SampleSimilarity::genotypesFromGSvar(filename1, false);
-					geno2 = SampleSimilarity::genotypesFromGSvar(filename2, false);
+					geno1 = SampleSimilarity::genotypesFromGSvar(filename1, false, roi);
+					geno2 = SampleSimilarity::genotypesFromGSvar(filename2, false, roi);
 				}
 
 				SampleSimilarity sc;

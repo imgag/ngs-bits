@@ -25,7 +25,7 @@ private slots:
 
 	void test_vcf()
 	{
-		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in6.vcf.gz") + " " + TESTDATA("data_in/SampleSimilarity_in7.vcf.gz") + " -mode vcf -skip_multi -build hg19 -out out/SampleSimilarity_out4.tsv");
+		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in6.vcf.gz") + " " + TESTDATA("data_in/SampleSimilarity_in7.vcf.gz") + " -mode vcf -build hg19 -out out/SampleSimilarity_out4.tsv");
 		COMPARE_FILES("out/SampleSimilarity_out4.tsv", TESTDATA("data_out/SampleSimilarity_out4.tsv"));
 	}
 
@@ -33,7 +33,7 @@ private slots:
 	{
 		QString tmp = Helper::tempFileName("_samples.txt");
 		Helper::storeTextFile(tmp, QStringList() << TESTDATA("data_in/SampleSimilarity_in6.vcf.gz") << TESTDATA("data_in/SampleSimilarity_in7.vcf.gz"));
-		EXECUTE("SampleSimilarity", "-in " + tmp + " -mode vcf -skip_multi -build hg19 -out out/SampleSimilarity_out5.tsv -roi " + TESTDATA("data_in/SampleSimilarity_roi.bed"));
+		EXECUTE("SampleSimilarity", "-in " + tmp + " -mode vcf -build hg19 -out out/SampleSimilarity_out5.tsv -roi " + TESTDATA("data_in/SampleSimilarity_roi.bed"));
 		COMPARE_FILES("out/SampleSimilarity_out5.tsv", TESTDATA("data_out/SampleSimilarity_out5.tsv"));
 	}
 

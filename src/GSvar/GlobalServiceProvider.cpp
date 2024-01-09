@@ -105,6 +105,11 @@ void GlobalServiceProvider::openProcessingSystemTab(QString system_short_name)
 	mainWindow()->openProcessingSystemTab(system_short_name);
 }
 
+void GlobalServiceProvider::openGSvarFile(QString filename)
+{
+	mainWindow()->loadFile(filename);
+}
+
 void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool search_multi)
 {
 	mainWindow()->openProcessedSampleFromNGSD(processed_sample_name, search_multi);
@@ -138,4 +143,9 @@ MainWindow* GlobalServiceProvider::mainWindow()
 	}
 
 	THROW(ProgrammingException, "Could not find main window!");
+}
+
+void GlobalServiceProvider::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
+{
+	mainWindow()->startJob(worker, show_busy_dialog);
 }

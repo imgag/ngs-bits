@@ -28,6 +28,7 @@ private slots:
 	void pubmedClicked(QString link);
 	void tableCellDoubleClicked(int row, int column);
 	void copyVariant();
+	void openVariantInTab();
 
 private:
 	Ui::VariantWidget ui_;

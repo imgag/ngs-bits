@@ -1,6 +1,5 @@
 #include "GeneSelectorDialog.h"
 #include "ui_GeneSelectorDialog.h"
-#include "ReportWorker.h"
 #include "Helper.h"
 #include "NGSD.h"
 #include "NGSHelper.h"

@@ -7,6 +7,10 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
+    Background/BackgroundJobDialog.cpp \
+    Background/BackgroundWorkerBase.cpp \
+    Background/NGSDCacheInitializer.cpp \
+    Background/VariantAnnotator.cpp \
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
@@ -15,11 +19,12 @@ SOURCES += main.cpp\
     IGVSession.cpp \
     IgvLogWidget.cpp \
     IgvSessionManager.cpp \
+    ImportDialog.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
     ReportDialog.cpp \
-    ReportWorker.cpp \
+    Background/ReportWorker.cpp \
     SettingsDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
@@ -43,7 +48,6 @@ SOURCES += main.cpp\
     PhenotypeSelectionWidget.cpp \
     RohWidget.cpp \
     DiagnosticStatusWidget.cpp \
-    DiagnosticStatusOverviewDialog.cpp \
     SvWidget.cpp \
     SingleSampleAnalysisDialog.cpp \
     SomaticDialog.cpp \
@@ -108,7 +112,6 @@ SOURCES += main.cpp\
     cfDNARemovedRegions.cpp \
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
-    CacheInitWorker.cpp \
     BlatWidget.cpp \
     AnalysisInformationWidget.cpp \
     FusionWidget.cpp \
@@ -128,6 +131,10 @@ SOURCES += main.cpp\
     OncoTreeSelector.cpp
 
 HEADERS += MainWindow.h \
+    Background/BackgroundJobDialog.h \
+    Background/BackgroundWorkerBase.h \
+    Background/NGSDCacheInitializer.h \
+    Background/VariantAnnotator.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
@@ -137,9 +144,10 @@ HEADERS += MainWindow.h \
     IGVSession.h \
     IgvLogWidget.h \
     IgvSessionManager.h \
+    ImportDialog.h \
     MaintenanceDialog.h \
     ReportDialog.h \
-    ReportWorker.h \
+    Background/ReportWorker.h \
     SettingsDialog.h \
     TrioDialog.h \
     HttpHandler.h \
@@ -163,7 +171,6 @@ HEADERS += MainWindow.h \
     PhenotypeSelectionWidget.h \
     RohWidget.h \
     DiagnosticStatusWidget.h \
-    DiagnosticStatusOverviewDialog.h \
     SvWidget.h \
     SingleSampleAnalysisDialog.h \
     SomaticDialog.h \
@@ -231,7 +238,6 @@ HEADERS += MainWindow.h \
     LiftOverWidget.h \
     BlatWidget.h \
     AnalysisInformationWidget.h \
-    CacheInitWorker.h \
     FusionWidget.h \
     CohortExpressionDataWidget.h \
     GapClosingEditDialog.h \
@@ -249,10 +255,12 @@ HEADERS += MainWindow.h \
     OncoTreeSelector.h
 
 FORMS    += MainWindow.ui \
+    Background/BackgroundJobDialog.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
     IgvLogWidget.ui \
+    ImportDialog.ui \
     MaintenanceDialog.ui \
     ReportDialog.ui \
     SettingsDialog.ui \
@@ -277,7 +285,6 @@ FORMS    += MainWindow.ui \
     PhenotypeSelectionWidget.ui \
     RohWidget.ui \
     DiagnosticStatusWidget.ui \
-    DiagnosticStatusOverviewDialog.ui \
     SvWidget.ui \
     SingleSampleAnalysisDialog.ui \
     SomaticDialog.ui \

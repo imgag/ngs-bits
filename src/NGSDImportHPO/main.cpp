@@ -18,16 +18,16 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
-		addInfile("obo", "HPO ontology file from 'http://purl.obolibrary.org/obo/hp.obo'.", false);
-		addInfile("anno", "HPO annotations file from 'http://purl.obolibrary.org/obo/hp/hpoa/phenotype_to_genes.txt'", false);
+		addInfile("obo", "HPO ontology file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/hp.obo'.", false);
+		addInfile("anno", "HPO annotations file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/phenotype_to_genes.txt'", false);
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20230311.vcf.gz'.", true);
-		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.4.dump').", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20231121.vcf.gz'.", true);
+		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2023.3.dump').", true);
 
 		// optional (for evidence information):
-		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from http://purl.obolibrary.org/obo/hp/hpoa/phenotype.hpoa", true);
+		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from wget https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/phenotype.hpoa", true);
 		addInfile("gencc", "gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. Download from https://search.thegencc.org/download", true);
 		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information. Download from https://www.deciphergenomics.org/about/downloads/data", true);
 
@@ -794,6 +794,7 @@ public:
 		{
 			if (getFlag("force"))
 			{
+				db.clearTable("hpo_obsolete");
 				db.clearTable("hpo_genes");
 				db.clearTable("hpo_parent");
 				db.clearTable("hpo_term");
@@ -1211,7 +1212,7 @@ public:
 							QByteArray gene_approved = db.geneSymbol(approved_id);
 
 							// add gene to hpo list:
-							if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << endl;
+							if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << " (cui=" << cui << " phenid=" << phen_id << ")" << endl;
 							int term_db_id = id2ngsd.value(hpo, -1);
 							if (term_db_id != -1)
 							{

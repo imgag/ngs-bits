@@ -169,7 +169,7 @@ void ReportDialog::updateVariantTable()
 		addCheckBox(row, 0, in_roi && genotype!="wt", !in_roi)->setData(Qt::UserRole, i);
 		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
 		addTableItem(row, 2, variantTypeToString(VariantType::SNVS_INDELS));
-		addTableItem(row, 3, variant.toString(false, 30) + " (" + genotype + ")");
+		addTableItem(row, 3, variant.toString(QChar(), 30) + " (" + genotype + ")");
 		addTableItem(row, 4, variant.annotations().at(gene_idx));
 		addTableItem(row, 5, variant.annotations().at(class_idx));
 		++row;

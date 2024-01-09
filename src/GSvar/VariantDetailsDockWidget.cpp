@@ -125,7 +125,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	}
 
 	//variant
-	QString variant = vl[index].toString(false, 10);
+	QString variant = vl[index].toString(QChar(), 10);
 	variant_str = vl[index].toString();
 	if(geno_i!=-1)
 	{
@@ -498,7 +498,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			//make gnomAD value clickable
 			if(name=="gnomAD")
 			{
-				text = formatLink(text, vl[index].toString(true));
+				text = formatLink(text, vl[index].toString(' '));
 			}
 		}
 		else if (name=="gnomAD_sub")
@@ -733,22 +733,21 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 				break;
 			}
 		}
-		//use first high-impact transcript
-		if (trans_curr==-1)
+		//fallback: first best transcript
+		if (trans_curr==-1 && LoginManager::active())
 		{
+			NGSD db;
 			for (int i=0; i<trans_data.count(); ++i)
 			{
-				if (trans_data[i].impact=="HIGH")
+				int gene_id = db.geneId(trans_data[i].gene);
+				if (gene_id==-1) continue;
+				Transcript best = db.bestTranscript(gene_id);
+				if (trans_data[i].id==best.nameWithVersion())
 				{
 					setTranscript(i);
 					break;
 				}
 			}
-		}
-		//fallback: first transcript
-		if (trans_curr==-1)
-		{
-			setTranscript(0);
 		}
 	}
 

@@ -11,7 +11,7 @@ CopyNumberVariant::CopyNumberVariant()
 	: chr_()
 	, start_(0)
 	, end_(0)
-	, num_regs_()
+	, num_regs_(0)
 	, genes_()
 	, annotations_()
 {
@@ -21,7 +21,7 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
-	, num_regs_(-1)
+	, num_regs_(0)
 	, genes_()
 	, annotations_()
 {
@@ -39,7 +39,9 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, 
 
 QString CopyNumberVariant::toStringWithMetaData() const
 {
-	return toString() + " regions=" + QString::number(num_regs_) + " size=" + QString::number((end_-start_)/1000.0, 'f', 3) + "kb";
+	QString regs = "n/a";
+	if (num_regs_>=1) regs = QString::number(num_regs_);
+	return toString() + " regions=" + regs + " size=" + QString::number((end_-start_)/1000.0, 'f', 3) + "kb";
 }
 
 int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found) const
@@ -273,7 +275,9 @@ void CnvList::loadInternal(QString filename, bool header_only)
 			int region_count = 0;
 			if (i_region_count>=0)
 			{
-				 region_count = parts[i_region_count].toInt();
+				bool ok = false;
+				int tmp = parts[i_region_count].toInt(&ok);
+				if (ok) region_count = tmp;
 			}
 
 			//genes

@@ -23,7 +23,7 @@ public:
 		//optional
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true, true);
-		addInt("lines", "Number of lines to check in the VCF file (unlimited if 0)", true, 1000);
+		addInt("lines", "Number of variant lines to check in the VCF file (unlimited if 0)", true, 5000);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("info", "Add general information about the input file to the output.");
 

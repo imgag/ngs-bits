@@ -131,6 +131,7 @@ public:
 
 		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
 		addFlag("remove_invalid", "Removes invalid variant, i.e. invalid position of ref/alt.");
+		addFlag("remove_non_ref", "Remove '<NON_REF>' entries (used in gVCF files).");
 		addString("variant_type", "Filters by variant type. Possible types are: '" + variant_types.join("','") + "'.", true);
 		addString("id", "Filter by ID column (regular expression).", true);
 		addFloat("qual", "Filter by QUAL column (minimum).", true, 0.0);
@@ -141,6 +142,7 @@ public:
 		addString("sample", "Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addFlag("sample_one_match", "If set, a line will pass if one sample passes all filters (default behaviour is that all samples have to pass all filters).");
 		addFlag("no_special_chr", "Removes variants that are on special chromosomes, i.e. not on autosomes, not on gonosomes and not on chrMT.");
+		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
 		changeLog(2023, 11, 21, "Added flag 'no_special_chr'.");
 		changeLog(2018, 10, 31, "Initial implementation.");
@@ -148,8 +150,14 @@ public:
 
 	virtual void main()
 	{
-		//init roi
+		//init
 		QString reg = getString("reg");
+
+		//open refererence genome file
+		QString ref_file = getInfile("ref");
+		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
+		FastaFileIndex reference(ref_file);
 
 		//load target region
 		BedFile roi;
@@ -189,6 +197,7 @@ public:
 		bool remove_invalid = getFlag("remove_invalid");
 		bool sample_one_match = getFlag("sample_one_match");
 		bool no_special_chr = getFlag("no_special_chr");
+		bool remove_non_ref = getFlag("remove_non_ref");
 		QString filter = getString("filter");
 		QString filter_exclude = getString("filter_exclude");
 		QString id = getString("id");
@@ -359,9 +368,22 @@ public:
 				QList<Sequence> alts;
 				foreach(const QByteArray& alt, col(parts, VcfFile::ALT).split(',')) alts << alt;
 				VcfLine vcf_line(col(parts, VcfFile::CHROM), Helper::toInt(col(parts, VcfFile::POS), "genomic position"), col(parts, VcfFile::REF), alts);
-				if (!vcf_line.isValid())
+				if (!vcf_line.isValid(reference))
 				{
 					std_err << "filtered invalid variant: " << vcf_line.chr().strNormalized(true) << ":" << vcf_line.start() << " " << vcf_line.ref() << ">" << vcf_line.altString() << "\n";
+					continue;
+				}
+			}
+
+			//filter out <NON_REF> entries
+			if (remove_non_ref)
+			{
+				QList<Sequence> alts;
+				foreach(const QByteArray& alt, col(parts, VcfFile::ALT).split(',')) alts << alt;
+				VcfLine vcf_line(col(parts, VcfFile::CHROM), Helper::toInt(col(parts, VcfFile::POS), "genomic position"), col(parts, VcfFile::REF), alts);
+				if (alts.contains("<NON_REF>"))
+				{
+					std_err << "filtered '<NON_REF>' variant: " << vcf_line.chr().strNormalized(true) << ":" << vcf_line.start() << " " << vcf_line.ref() << ">" << vcf_line.altString() << "\n";
 					continue;
 				}
 			}

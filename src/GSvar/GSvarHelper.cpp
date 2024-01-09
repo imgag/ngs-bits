@@ -16,6 +16,8 @@
 #include <QStandardPaths>
 #include <QBuffer>
 #include <VariantHgvsAnnotator.h>
+#include "ClientHelper.h"
+#include "ApiCaller.h"
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -612,10 +614,7 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 
 QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags, int offset)
 {
-	if (!LoginManager::active())
-	{
-		THROW(ArgumentException, "No access to the NGSD! You need access to the NGSD for annotation!");
-	}
+	if (!LoginManager::active()) THROW(ArgumentException, "No access to the NGSD! You need access to the NGSD for annotation!");
 
 	QList<QStringList> annotations;
 	genes.clear();

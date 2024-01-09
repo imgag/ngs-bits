@@ -14,8 +14,8 @@ enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 //basic header line storing comments (every comment must be a key=value pair)
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
 {
-	QByteArray value;
 	QByteArray key;
+	QByteArray value;
 
 	void storeLine(QTextStream& stream) const
 	{
@@ -106,6 +106,10 @@ public:
 	void removeCommentLine(int pos)
 	{
 		file_comments_.removeAt(pos);
+	}
+	void addCommentLine(const VcfHeaderLine& line)
+	{
+		file_comments_ << line;
 	}
 
 	//functions setting header content from a whole vcf line as QByteArray
@@ -424,19 +428,21 @@ public:
 		return chr_.str() + ":" + QByteArray::number(start()) + (add_end ? "-" + QByteArray::number(end()): "") + " " + ref() + ">" + altString();
 	}
 	QByteArrayList vepAnnotations(int field_index) const;
+
+	//Normalizes variants to left or right
+	enum ShiftDirection {LEFT, RIGHT};
+	enum ShiftResult {SKIPPED, PROCESSED};
+	ShiftResult normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool add_prefix_base_to_mnps=false);
 	// Left-normalize all variants.
-	void leftNormalize(FastaFileIndex& reference, bool check_reference)
+	ShiftResult leftNormalize(FastaFileIndex& reference)
 	{
-		normalize(ShiftDirection::LEFT, reference, check_reference);
+		return normalize(ShiftDirection::LEFT, reference);
 	}
 	//Right-normalize all variants
-	void rightNormalize(FastaFileIndex& reference, bool check_reference=true)
+	ShiftResult rightNormalize(FastaFileIndex& reference)
 	{
-		normalize(ShiftDirection::RIGHT, reference, check_reference);
+		return normalize(ShiftDirection::RIGHT, reference);
 	}
-    // Removes the common prefix/suffix from indels, shifts the variant left or right, and adds a common reference base
-	enum ShiftDirection {LEFT, RIGHT};
-	void normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool check_reference, bool add_prefix_base_to_mnps=false);
 
 	//Equality operator (only compares the variant location itself, not further annotations).
 	bool operator==(const VcfLine& rhs) const

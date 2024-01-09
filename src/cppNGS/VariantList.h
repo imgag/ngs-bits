@@ -194,8 +194,8 @@ public:
 	{
 		return ref_.length()>1 && obs_.length()>1 && ref_.length()==obs_.length();
 	}
-    ///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G"
-	QString toString(bool space_separated=false, int max_sequence_length=-1, bool chr_normalized=false) const;
+	///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G" when no separator is set
+	QString toString(QChar sep=QChar(), int max_sequence_length=-1, bool chr_normalized=false) const;
 
 	///Checks if the variant is valid (without annotations). Throws an exception in case of an error.
 	void checkValid() const;

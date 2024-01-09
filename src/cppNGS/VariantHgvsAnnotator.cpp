@@ -27,7 +27,7 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	}
 
 	//normalization and 3' shifting for indel variants (MNPs are converted into InDels in this step)
-	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true, true);
+	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true);
 	int start = variant.start();
 	int end = variant.end();
 	hgvs.normalized = variant.toString();

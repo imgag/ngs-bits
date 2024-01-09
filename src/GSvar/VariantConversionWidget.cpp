@@ -108,7 +108,7 @@ void VariantConversionWidget::convert()
 
 				variant.checkValid(ref_genome_idx);
 
-				output << variant.toString(true, -1, true).replace(" ", "\t");
+				output << variant.toString(' ', -1, true).replace(" ", "\t");
 			}
 		}
 		else if (mode_==HGVSC_TO_GSVAR)
@@ -154,7 +154,7 @@ void VariantConversionWidget::convert()
 
 				variant.checkValid(ref_genome_idx);
 
-				output << variant.toString(true, -1, true).replace(" ", "\t");
+				output << variant.toString(' ', -1, true).replace(" ", "\t");
 			}
 		}
 		else if (mode_==GSVAR_TO_VCF)

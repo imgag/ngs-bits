@@ -1,7 +1,7 @@
 #include "ServerController.h"
 #include <QUrl>
 #include <QProcess>
-#include <QTemporaryDir>
+#include <QTemporaryFile>
 
 ServerController::ServerController()
 {
@@ -774,48 +774,43 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 
 HttpResponse ServerController::annotateVariant(const HttpRequest& request)
 {
-    QTemporaryDir tmp_dir("variant");
-    if (!tmp_dir.isValid()) HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Failed to craeate a temporary directory for the variant annotation"));
-
-    HttpResponse upload_response = uploadFileToFolder(tmp_dir.path(), request);
-	if (upload_response.getStatus() != ResponseStatus::OK) return upload_response;
-
-	QString uploaded_file = upload_response.getPayload();
+    QString input_vcf = Helper::tempFileName(".vcf");
+    Helper::storeTextFile(input_vcf, QStringList() << request.getBody());
+    QString validation_result;
+    QTextStream out_stream(&validation_result);
+    if (!VcfFile::isValid(input_vcf, Settings::string("reference_genome", true), out_stream, false, std::numeric_limits<int>::max()))
+    {
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Invalid input VCF data: " + validation_result));
+    }
 
     QString megsap_root = Settings::path("megsap_root", true);
     if (megsap_root.isEmpty()) return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "megSAP root path is not set"));
 
-	if (!megsap_root.endsWith(QDir::separator())) megsap_root = megsap_root + QDir::separator();
-
-	QProcess process;
-	process.setProcessChannelMode(QProcess::MergedChannels);
-	QString an_vep_out = "an_vep_out.vcf";
-	an_vep_out = QFileInfo(uploaded_file).path().endsWith(QDir::separator()) ? QFileInfo(uploaded_file).path() + an_vep_out : QFileInfo(uploaded_file).path() + QDir::separator() + an_vep_out;
-
-	Log::info("Running megSAP >> an_vep.php: " + an_vep_out);
-	process.start("php", QStringList() << megsap_root + "src/NGS/an_vep.php" << "-in" << uploaded_file << "-out" << an_vep_out);
-	bool success = process.waitForFinished(-1);
-	if (!success)
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    QString an_vep_out = Helper::tempFileName(".vcf");
+    Log::info("Running megSAP >> an_vep.php: " + an_vep_out);
+    process.start("php", QStringList() << megsap_root + "/src/NGS/an_vep.php" << "-in" << input_vcf << "-out" << an_vep_out);
+    bool success = process.waitForFinished(-1);
+    Log::error("Exit code = " + QString::number(process.exitCode()));
+    if (!success || process.exitCode()>0)
     {
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_vep.php: " + process.readAll())));
-	}
-	Log::info(process.readAll());
+    }
+    Log::info(process.readAll());
 
-	QString vcf2gsvar_out = ServerHelper::generateUniqueStr() + ".gsvar";
-	vcf2gsvar_out = QDir::tempPath().endsWith(QDir::separator()) ? QDir::tempPath() + vcf2gsvar_out : QDir::tempPath() + QDir::separator() + vcf2gsvar_out;
-
-	Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
-	process.start("php", QStringList() << megsap_root + "src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
-	success = process.waitForFinished(-1);
-	if (!success)
+    QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
+    Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
+    process.start("php", QStringList() << megsap_root + "/src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
+    success = process.waitForFinished(-1);
+    if (!success || process.exitCode()>0)
     {
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing vcf2gsvar.php: " + process.readAll())));
     }
     Log::info(EndpointManager::formatResponseMessage(request, process.readAll()));
 
-	return createStaticStreamResponse(vcf2gsvar_out, true);
+    return createStaticStreamResponse(vcf2gsvar_out, true);
 }
-
 HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 {
 	BedFile roi;

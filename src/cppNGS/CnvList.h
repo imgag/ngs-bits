@@ -57,7 +57,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			end_ = end;
 		}
 
-		///Returns the number of regions/exons.
+		///Returns the number of regions/exons. 0 if unset or unknown.
 		int regions() const
 		{
 			return num_regs_;

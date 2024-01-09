@@ -558,8 +558,11 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	filters	<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
 			<< "Filter columns	entries=mosaic	action=REMOVE";
-	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=REMOVE	classes=1,2";
-	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=KEEP	classes=4,5";
+	if (parameters.use_ngsd_classifications)
+	{
+		filters << "Classification NGSD	action=REMOVE	classes=1,2";
+		filters << "Classification NGSD	action=KEEP	classes=4,5";
+	}
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
 
@@ -828,11 +831,15 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	{
 		filters << "Annotated pathogenic	action=KEEP	sources=HGMD	also_likely_pathogenic=false";
 	}
-	filters		<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
+	filters << "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
 			<< "Filter columns	entries=mosaic	action=REMOVE";
-	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=REMOVE	classes=1,2";
-	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=KEEP	classes=4,5";
+	if (parameters.use_ngsd_classifications)
+	{
+		filters << "Classification NGSD	action=REMOVE	classes=1,2";
+		filters << "Classification NGSD	action=KEEP	classes=4,5";
+	}
+	
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
 

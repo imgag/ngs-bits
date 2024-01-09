@@ -66,6 +66,9 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 
 void StatisticsReads::update(const BamAlignment& al)
 {
+	// ignore supplement and secondary reads
+	if (al.isSupplementaryAlignment() || al.isSecondaryAlignment()) return;
+
 	//update read counts
 	bool is_forward;
 	if(long_read_)

@@ -127,5 +127,6 @@
         <file>Resources/CCR_supported_genes.txt</file>
         <file>Resources/CCR80_GRCh38.bed</file>
         <file>Icons/NovaSeqX.png</file>
+        <file>Icons/multithreading.png</file>
     </qresource>
 </RCC>

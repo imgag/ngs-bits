@@ -2798,9 +2798,10 @@ void FilterCnvRegions::apply(const CnvList& cnvs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		if (cnvs[i].regions()==0) continue; //multi-sample CNV lists sometimes don't contain region counts (e.g. for ClinCNV)
+		int number_of_regions = cnvs[i].regions();
+		if (number_of_regions<1) THROW(FileParseException, "Invalid/unset number of regions!");
 
-		if (cnvs[i].regions() < min_regions)
+		if (number_of_regions< min_regions)
 		{
 			result.flags()[i] = false;
 		}
@@ -3008,7 +3009,7 @@ void FilterCnvMaxLoglikelihood::apply(const CnvList &cnvs, FilterResult &result)
 		if (scale_by_regions)
 		{
 			int number_of_regions = cnvs[i].regions();
-			if (number_of_regions < 0) THROW(FileParseException, "Invalid/unset number of regions!");
+			if (number_of_regions<1) THROW(FileParseException, "Invalid/unset number of regions!");
 			double scaled_ll = cnvs[i].annotations()[i_ll].toDouble() / number_of_regions;
 			if (scaled_ll > max_ll)
 			{
@@ -3059,7 +3060,7 @@ void FilterCnvLoglikelihood::apply(const CnvList& cnvs, FilterResult& result) co
 			if (scale_by_regions)
 			{
 				int number_of_regions = cnvs[i].regions();
-				if (number_of_regions < 0) THROW(FileParseException, "Invalid/unset number of regions!");
+				if (number_of_regions<1) THROW(FileParseException, "Invalid/unset number of regions!");
 				double scaled_ll = cnvs[i].annotations()[i_ll].toDouble() / number_of_regions;
 				if (scaled_ll < min_ll)
 				{
@@ -3087,7 +3088,7 @@ void FilterCnvLoglikelihood::apply(const CnvList& cnvs, FilterResult& result) co
 				if (scale_by_regions)
 				{
 					int number_of_regions = cnvs[i].regions();
-					if (number_of_regions < 0) THROW(FileParseException, "Invalid/unset number of regions!");
+					if (number_of_regions<1) THROW(FileParseException, "Invalid/unset number of regions!");
 					double scaled_ll = ll.toDouble() / number_of_regions;
 					if (scaled_ll < min_ll)
 					{

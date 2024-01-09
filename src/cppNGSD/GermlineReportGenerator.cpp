@@ -1102,7 +1102,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		int cn = cnv.copyNumber(data_.cnvs.annotationHeaders());
 		w.writeAttribute("type", cn>=2 ? "dup" : "del"); //2 can be dup in chrX/chrY
 		w.writeAttribute("cn", QString::number(cn));
-		w.writeAttribute("regions", QString::number(std::max(1, cnv.regions()))); //trio CNV lists don't contain number of regions > fix
+		w.writeAttribute("regions", QString::number(std::max(1, cnv.regions())));
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
@@ -2303,7 +2303,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	QString genotype = v.annotations()[i_genotype];
 	if (v.annotations()[i_filter].contains("mosaic")) genotype += " (mosaic)";
 	stream << "       <td>" << genotype << "</td>" << endl;
-	stream << "       <td style='white-space: nowrap'>" << v.toString(false, 20) << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
+	stream << "       <td style='white-space: nowrap'>" << v.toString(QChar(), 20) << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
 	stream << "       <td>" << hgvs_ps.join(", ") << "</td>" << endl;

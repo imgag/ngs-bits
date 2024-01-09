@@ -373,8 +373,10 @@
     <addaction name="actionOpen"/>
     <addaction name="actionOpenByName"/>
     <addaction name="actionRecent"/>
-    <addaction name="actionClose"/>
     <addaction name="separator"/>
+    <addaction name="actionImportVariants"/>
+    <addaction name="separator"/>
+    <addaction name="actionClose"/>
     <addaction name="actionCloseMetaDataTabs"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -388,6 +390,9 @@
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="actionEncrypt"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpenLogFile"/>
+    <addaction name="actionClearLogFile"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -527,12 +532,11 @@
      <addaction name="actionImportSequencingRuns"/>
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
-     <addaction name="actionImportSampleRelations"/>
      <addaction name="actionImportSampleHpoTerms"/>
-     <addaction name="actionImportCfDNAPanels"/>
-     <addaction name="separator"/>
-     <addaction name="actionImportMids"/>
+     <addaction name="actionImportSampleRelations"/>
      <addaction name="actionImportStudy"/>
+     <addaction name="actionImportMids"/>
+     <addaction name="actionImportCfDNAPanels"/>
     </widget>
     <widget class="QMenu" name="menuVariant_search">
      <property name="title">
@@ -765,7 +769,7 @@
   </action>
   <action name="actionClose">
    <property name="text">
-    <string>Close</string>
+    <string>Close sample</string>
    </property>
    <property name="toolTip">
     <string>Close file</string>
@@ -1452,6 +1456,21 @@
   <action name="actionDeleteIgvFolder">
    <property name="text">
     <string>Delete IGV folder</string>
+   </property>
+  </action>
+  <action name="actionOpenLogFile">
+   <property name="text">
+    <string>Open log file</string>
+   </property>
+  </action>
+  <action name="actionClearLogFile">
+   <property name="text">
+    <string>Clear log file</string>
+   </property>
+  </action>
+  <action name="actionImportVariants">
+   <property name="text">
+    <string>Import variants</string>
    </property>
   </action>
  </widget>

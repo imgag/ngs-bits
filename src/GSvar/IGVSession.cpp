@@ -96,7 +96,7 @@ void IGVSession::execute(const QStringList& commands, bool init_if_not_done)
 	command_history_mutex_.lock();
 	foreach (const IgvWorkerCommand& command, worker_commands)
 	{
-		command_history_ << IGVCommand{command.id, command.text, IGVStatus::QUEUED, "", 0.0};
+		command_history_ << IGVCommand{command.id, command.text, IGVStatus::QUEUED, "", QDateTime(), 0.0};
 	}
 	emit historyUpdated(igv_data_.name, command_history_);
 	command_history_mutex_.unlock();
@@ -143,17 +143,24 @@ bool IGVSession::isIgvRunning()
 	QList<IgvWorkerCommand> commands;
 	commands << IgvWorkerCommand{-1, "echo running"};
 
-	//start command
-	IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 500);
-	command_worker->setAutoDelete(false);
-    execution_pool_.start(command_worker);
+	//try up to four times
+	for (int i=0; i<4; ++i)
+	{
+		//start command
+		IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 500);
+		command_worker->setAutoDelete(false);
+		execution_pool_.start(command_worker);
 
-	//get answer
-	execution_pool_.waitForDone();
-	QString answer = command_worker->answer();
-	command_worker->deleteLater();
+		//get answer
+		execution_pool_.waitForDone();
+		QString answer = command_worker->answer();
+		command_worker->deleteLater();
 
-	return answer=="running";
+		if (answer=="running") return true;
+		else Log::info("No answer for 'echo running' from IGV (try " + QString::number(i+1) + " of 4)");
+	}
+
+	return false;
 }
 
 bool IGVSession::hasRunningCommands()
@@ -459,6 +466,7 @@ void IGVSession::updateHistoryStart(int id)
 		if (command.id==id)
 		{
 			command.status = IGVStatus::STARTED;
+			command.execution_start_time = QDateTime::currentDateTime();
 		}
 	}
 
@@ -481,7 +489,7 @@ void IGVSession::updateHistoryFinished(int id, QString answer, double sec_elapse
 		{
 			command.status = IGVStatus::FINISHED;
 			command.answer = answer;
-			command.execution_time_sec = sec_elapsed;
+			command.execution_duration_sec = sec_elapsed;
 		}
 	}
 
@@ -504,7 +512,7 @@ void IGVSession::updateHistoryFailed(int id, QString error, double sec_elapsed)
 		{
 			command.status = IGVStatus::FAILED;
 			command.answer = error;
-			command.execution_time_sec = sec_elapsed;
+			command.execution_duration_sec = sec_elapsed;
 		}
 	}
 

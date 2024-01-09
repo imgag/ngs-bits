@@ -12,6 +12,8 @@
 #include <QInputDialog>
 #include <QClipboard>
 #include "VariantHgvsAnnotator.h"
+#include "ClientHelper.h"
+#include "Background/VariantAnnotator.h"
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
@@ -28,6 +30,8 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 	connect(ui_.pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(tableCellDoubleClicked(int, int)));
+	connect(ui_.anno_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantInTab()));
+	ui_.anno_btn->setEnabled(ClientHelper::isClientServerMode());
 
 	//set up copy button for different formats
 	QMenu* menu = new QMenu();
@@ -281,7 +285,7 @@ void VariantWidget::calculateSimilarity()
 		ps_names << ps;
 
 		QString ps_id = db.processedSampleId(ps);
-		ps_vars << db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id).toSet();
+		ps_vars << db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0").toSet();
 	}
 
 	//calculate and show overlap
@@ -306,7 +310,7 @@ void VariantWidget::calculateSimilarity()
 			table->setItem(row, 4, new QTableWidgetItem(QString::number(overlap)));
 			double overlap_perc = 100.0 * overlap / (double)std::min(c_s1, c_s2);
 			auto item = new QTableWidgetItem();
-			item->setData(Qt::DisplayRole, overlap_perc);
+			item->setData(Qt::DisplayRole, overlap_perc); //set as display role instead of string to allow sorting
 			table->setItem(row, 5, item);
 
 			++row;
@@ -318,7 +322,8 @@ void VariantWidget::calculateSimilarity()
 	QApplication::restoreOverrideCursor();
 
 	//show results
-	auto dlg = GUIHelper::createDialog(table, "Sample correlation based on rare variants from NGSD");
+	auto dlg = GUIHelper::createDialog(table, "Sample similarity based on rare variants from NGSD", "Note: this method uses variants from NGSD only, i.e. variants with a maximum AF of 5%, to quickly find related samples.<br>"
+																									"Using rare variants only, enriches for artefacts. Thus, the overlap numbers are not as accurate as with the 'sample similarity tool'!");
 	dlg->exec();
 }
 
@@ -471,5 +476,14 @@ void VariantWidget::copyVariant()
 	{
 		THROW(ProgrammingException, "Unprocessed format '" + format + "' selected!");
 	}
+}
+
+void VariantWidget::openVariantInTab()
+{
+	VariantList variants;
+	variants.append(variant_);
+
+	VariantAnnotator* worker = new VariantAnnotator(variants);
+	GlobalServiceProvider::startJob(worker, true);
 }
 

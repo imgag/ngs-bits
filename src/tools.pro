@@ -165,10 +165,6 @@ SUBDIRS += SampleOverview
 tools-TEST.depends += SampleOverview
 SampleOverview.depends = cppNGS
 
-SUBDIRS += CnvHunter
-tools-TEST.depends += CnvHunter
-CnvHunter.depends = cppNGS
-
 SUBDIRS += BedGeneOverlap
 tools-TEST.depends += BedGeneOverlap
 BedGeneOverlap.depends = cppNGSD
@@ -575,3 +571,11 @@ NGSDSameSample.depends = cppNGSD
 SUBDIRS += BamExtract
 tools-TEST.depends += BamExtract
 BamExtract.depends = cppNGS
+
+SUBDIRS += VcfSplit
+tools-TEST.depends += VcfSplit
+VcfSplit.depends = cppNGS
+
+SUBDIRS += VcfMerge
+tools-TEST.depends += VcfMerge
+VcfMerge.depends = cppNGS

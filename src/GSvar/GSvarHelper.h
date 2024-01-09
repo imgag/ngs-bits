@@ -61,6 +61,7 @@ public:
 	//Returns the coding and splicing entry (and genes through GeneSet reference) for a given variant
 	static QList<QStringList> annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags=true, int offset=5000);
 
+
 protected:
 	GSvarHelper() = delete;
 };

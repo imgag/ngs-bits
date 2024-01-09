@@ -1,5 +1,5 @@
 ### VcfFilter tool help
-	VcfFilter (2022_11-75-gf99b2041)
+	VcfFilter (2023_11-42-ga9d1687d)
 	
 	Filters a VCF based on the given criteria.
 	
@@ -14,6 +14,8 @@
 	  -reg <string>            Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.
 	                           Default value: ''
 	  -remove_invalid          Removes invalid variant, i.e. invalid position of ref/alt.
+	                           Default value: 'false'
+	  -remove_non_ref          Remove '<NON_REF>' entries (used in gVCF files).
 	                           Default value: 'false'
 	  -variant_type <string>   Filters by variant type. Possible types are: 'snp','indel','multi-allelic','other'.
 	                           Default value: ''
@@ -35,6 +37,8 @@
 	                           Default value: ''
 	  -sample_one_match        If set, a line will pass if one sample passes all filters (default behaviour is that all samples have to pass all filters).
 	                           Default value: 'false'
+	  -no_special_chr          Removes variants that are on special chromosomes, i.e. not on autosomes, not on gonosomes and not on chrMT.
+	                           Default value: 'false'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -43,7 +47,8 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfFilter changelog
-	VcfFilter 2022_11-75-gf99b2041
+	VcfFilter 2023_11-42-ga9d1687d
 	
+	2023-11-21 Added flag 'no_special_chr'.
 	2018-10-31 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

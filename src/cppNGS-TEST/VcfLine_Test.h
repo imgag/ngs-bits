@@ -245,7 +245,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("A");
         v_line.setChromosome("chr17");
         v_line.setPos(41246534);
-        v_line.leftNormalize(reference, true);
+		v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 41246534);
         I_EQUAL(v_line.end(), 41246534);
         S_EQUAL(v_line.ref(), "T");
@@ -269,7 +269,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("TT");
         v_line.setChromosome("chr17");
         v_line.setPos(41246534);
-        v_line.leftNormalize(reference, true);
+		v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 41246532);
         I_EQUAL(v_line.end(), 41246532);
         S_EQUAL(v_line.ref(), "G");
@@ -293,7 +293,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("CTTC");
         v_line.setChromosome("chr3");
         v_line.setPos(195307240);
-        v_line.leftNormalize(reference, true);
+		v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 195307239);
         I_EQUAL(v_line.end(), 195307239);
         S_EQUAL(v_line.ref(), "C");
@@ -317,7 +317,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("G");
         v_line.setChromosome("chr3");
         v_line.setPos(196229875);
-        v_line.leftNormalize(reference, true);
+		v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 196229855);
         I_EQUAL(v_line.end(), 196229857);
         S_EQUAL(v_line.ref(), "AAG");
@@ -341,7 +341,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("A");
         v_line.setChromosome("chr4");
         v_line.setPos(87615730);
-        v_line.leftNormalize(reference, true);
+		v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 87615716);
         I_EQUAL(v_line.end(), 87615734);
         S_EQUAL(v_line.ref(), "TAGTGACAGCAGCAATAGC");
@@ -365,7 +365,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("G");
         v_line.setChromosome("chr3");
         v_line.setPos(106172408);
-        v_line.leftNormalize(reference, true);
+		v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 106172403);
         I_EQUAL(v_line.end(), 106172405);
         S_EQUAL(v_line.ref(), "GGA");

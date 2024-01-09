@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QAbstractSocket>
+#include "Background/BackgroundJobDialog.h"
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "BedFile.h"
@@ -18,6 +19,20 @@
 #include "VersatileTextStream.h"
 #include "Log.h"
 #include "ClickableLabel.h"
+#include "ImportDialog.h"
+
+///Tab type
+enum class TabType
+{
+	SAMPLE = 1,
+	PROJECT = 2,
+	RUN = 3,
+	SYSTEM = 4,
+	GENE = 5,
+	VARIANT = 6,
+	SAMPLE_SEARCH = 101,
+	ANALYSIS_STATUS = 102
+};
 
 ///Main window class
 class MainWindow
@@ -68,9 +83,6 @@ public:
 	QString selectProcessedSample();
 	///Target region information of filter widget.
 	const TargetRegionInfo& targetRegion();
-
-	///Performs batch import of table rows
-	void importBatch(QString title, QString text, QString table, QStringList fields);
 
 	///Returns the variant lists of the currently loaded sample
 	const VariantList& getSmallVariantList();
@@ -203,6 +215,8 @@ public slots:
 	void on_actionClose_triggered();
 	///Close all meta data tabs
 	void on_actionCloseMetaDataTabs_triggered();
+	///Import variants
+	void on_actionImportVariants_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
 	///Open IGV documentation in browser
@@ -281,6 +295,11 @@ public slots:
 	void on_actionVirusDetection_triggered();
 	///Perform Burden test
 	void on_actionBurdenTest_triggered();
+	///Shows the GSvar log file
+	void on_actionOpenLogFile_triggered();
+	///Clears the log file
+	void on_actionClearLogFile_triggered();
+
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
@@ -309,8 +328,6 @@ public slots:
 	void generateReportTumorOnly();
 	///Generates a report (germline)
 	void generateReportGermline();
-	///Finished the report generation (germline)
-	void reportGenerationFinished(bool success);
 
 	///User-specific debug function
 	void userSpecificDebugFunction();
@@ -392,9 +409,11 @@ public slots:
 	///Open project tab
 	void openProjectTab(QString name);
 	///Opens a tab and returns its index.
-	int openTab(QIcon icon, QString name, QWidget* widget);
+	int openTab(QIcon icon, QString name, TabType type, QWidget* widget);
 	///Closes a tab by index
 	void closeTab(int index);
+	///Focus tab based on type and name. Returns if a tab was found and focused.
+	bool focusTab(TabType type, QString name);
 
 	///Edits the variant configuration for the variant with the given index
 	void editVariantReportConfiguration(int index);
@@ -429,14 +448,18 @@ public slots:
 	void showMatchingCnvsAndSvs(BedLine region);
 
     //Open a window with the IGV command history
-    void displayIgvHistoryTable(QPoint pos);
+	void displayIgvHistoryTable();
     //Show in the status bar that IGV is currently executing a command
     void changeIgvIconToActive();
     //Show in the status bar that IGV is idle
     void changeIgvIconToNormal();
+	//Open background jobs dialog
+	void showBackgroundJobDialog();
+	//Starts a background job
+	void startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
 
     ///close the app and logout (if in client-sever mode)
-    void closeAndLogout();
+	void closeAndLogout();
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -455,10 +478,11 @@ private:
 	//GUI
 	Ui::MainWindow ui_;
 	int var_last_;
-	BusyDialog* busy_dialog_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 	QLabel* notification_label_;
     ClickableLabel* igv_history_label_;
+	ClickableLabel* background_job_label_;
+	BackgroundJobDialog* bg_job_dialog_;
 
 	//DATA
 	QString filename_;
@@ -487,7 +511,6 @@ private:
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
-	QToolBar *update_info_toolbar_;
 
 	//single vars context menu
 	struct ContextMenuActions
