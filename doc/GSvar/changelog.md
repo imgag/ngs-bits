@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2023_11-67 (09.01.23)
+
+- variant details dock: best transcript is automatically shown if there is no preferred transcript
+- sample tab: added gender to sample relation table
+- sample relation: using hg38 coding region for sample similarity calculations now to make scores comparable between different kits
+
 ## 2023_11-53 (19.12.23)
 
 - general: refactoring of import dialogs (runs, samples, processed samples)
