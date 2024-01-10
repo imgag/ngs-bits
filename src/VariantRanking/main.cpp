@@ -23,7 +23,7 @@ public:
 		addEnum("algorithm", "Algorithm used for ranking.", true, VariantScores::algorithms() , "GSvar_v1");
 		addFlag("add_explanation", "Add a third column with an explanation how that score was calculated.");
 		addFlag("use_blacklist", "Use variant blacklist from settings.ini file.");
-		addFlag("use_ngsd_classifications", "Use variant classifications from NGSD.");
+		addFlag("skip_ngsd_classifications", "Do not use variant classifications from NGSD.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2020, 11, 20, "Initial commit.");
@@ -78,7 +78,7 @@ public:
 		//rank
 		VariantScores::Parameters parameters;
 		parameters.use_blacklist = getFlag("use_blacklist");
-		parameters.use_ngsd_classifications = getFlag("use_ngsd_classifications");
+		parameters.use_ngsd_classifications = !getFlag("skip_ngsd_classifications");
 		VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, parameters);
 		VariantScores::annotate(variants, result, add_explanation);
 
