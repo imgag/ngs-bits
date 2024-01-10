@@ -1,0 +1,2 @@
+ERROR: Main header line missing! - in line 11:
+chr1	27360975	rs35659744	G	T	11836.9	off-target	.	GT:GL:DP:RO:QR:AO:QA	0/1:-1224.52,0,-1168.27:722:351:12995:371:13620

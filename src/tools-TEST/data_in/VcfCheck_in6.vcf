@@ -1,0 +1,11 @@
+##fileformat=VCFv4.2
+##fileDate=20150327
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GL,Number=G,Type=Float,Description="Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
+##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+chr1	27360975	rs35659744	G	T	11836.9	off-target	.	GT:GL:DP:RO:QR:AO:QA	0/1:-1224.52,0,-1168.27:722:351:12995:371:13620
