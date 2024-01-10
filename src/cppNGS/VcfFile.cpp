@@ -1012,6 +1012,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	QByteArrayList defined_samples;
 	int expected_parts = MIN_COLS;
 	bool in_header = true;
+	bool vcf_main_header_found = false;
 	int c_data = 0;
 	int l = 0;
 	const int buffer_size = 1048576; //1MB buffer
@@ -1123,6 +1124,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			else //main header line
 			{
 				QByteArrayList parts = line.split('\t');
+				vcf_main_header_found = true;
 
 				if (parts.count() < MIN_COLS)
 				{
@@ -1147,6 +1149,12 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 		//data line: chr1	62732421	rs11207949	T	C	13777.5	off-target	AB=0.515753;ABP=4.85745;AC=1;AF=0.5;AN=2;AO=442;CIGAR=1X;DP=857;DPB=857;DPRA=0;EPP=3.50158;EPPR=3.89459;GTI=0;LEN=1;MEANALT=1;MQM=60;MQMR=60;NS=1;NUMALT=1;ODDS=3022.34;PAIRED=0.995475;PAIREDR=1;PAO=0;PQA=0;PQR=0;PRO=0;QA=16752;QR=15862;RO=415;RPL=437;RPP=919.863;RPPR=827.694;RPR=5;RUN=1;SAF=221;SAP=3.0103;SAR=221;SRF=210;SRP=3.14111;SRR=205;TYPE=snp;technology.ILLUMINA=1;CSQ=C|missense_variant|MODERATE|KANK4|KANK4|transcript|NM_181712.4|Coding|6/10|c.2302A>G|p.Thr768Ala|2679/5477|2302/2988|768/995||;dbNSFP_Polyphen2_HDIV_pred=B,B;dbNSFP_phyloP100way_vertebrate=2.380000;dbNSFP_MutationTaster_pred=P;dbNSFP_Polyphen2_HVAR_pred=B,B;dbNSFP_SIFT_pred=T;ESP6500EA_AF=0.2449;ESP6500AA_AF=0.2229;1000G_AF=0.305511;EXAC_AF=0.284	GT:GL:DP:RO:QR:AO:QA	0/1:-1506.31,0,-1426.21:857:415:15862:442:16752
 		else
 		{
+			//check that main header line is before first variant
+			if (!vcf_main_header_found)
+			{
+				printError(out_stream, "Main header line missing!", l, line);
+				return false;
+			}
 			++c_data;
 
 			//split line
