@@ -17,6 +17,7 @@
 #include "BedpeFile.h"
 #include "SomaticReportSettings.h"
 #include "HttpRequestHandler.h"
+#include "SomaticXmlReportGenerator.h"
 
 struct CPPNGSDSHARED_EXPORT SomaticVirusInfo
 {
@@ -97,6 +98,26 @@ public:
 
 	///adds necessary colors to the to the RTF document
 	static void addColors(RtfDocument& doc);
+
+
+	//functions for testing functionality:
+	double getHistTumorContent()
+	{
+		return histol_tumor_fraction_;
+	}
+
+	double getTumorMutationBurden()
+	{
+		return mutation_burden_;
+	}
+
+	double getMsiValue()
+	{
+		return mantis_msi_swd_value_;
+	}
+
+	SomaticXmlReportGeneratorData getXmlData(const VariantList& som_var_in_normal);
+
 
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard

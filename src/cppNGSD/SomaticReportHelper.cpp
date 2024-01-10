@@ -1677,6 +1677,15 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 void SomaticReportHelper::storeXML(QString file_name)
 {
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
+	SomaticXmlReportGeneratorData data = getXmlData(som_var_in_normal);
+
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
+	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);
+	out_file->close();
+}
+
+SomaticXmlReportGeneratorData SomaticReportHelper::getXmlData(const VariantList& som_var_in_normal)
+{
 	SomaticXmlReportGeneratorData data(build_, settings_, somatic_vl_, som_var_in_normal, cnvs_);
 
 	data.tumor_content_histology = histol_tumor_fraction_ / 100.0; //is stored as double between 0 and 1, NGSD contains percentages
@@ -1704,9 +1713,7 @@ void SomaticReportHelper::storeXML(QString file_name)
 	data.rtf_part_mtb_summary = partPathways();
 	data.rtf_part_hla_summary = hlaTable(settings_.normal_ps, "Normal").RtfCode() + RtfParagraph("").RtfCode() + hlaTable(settings_.tumor_ps, "Tumor").RtfCode();
 
-	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
-	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);
-	out_file->close();
+	return data;
 }
 
 void SomaticReportHelper::storeQbicData(QString path)

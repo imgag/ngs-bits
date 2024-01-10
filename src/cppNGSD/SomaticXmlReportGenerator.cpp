@@ -20,6 +20,7 @@ SomaticXmlReportGeneratorData::SomaticXmlReportGeneratorData(GenomeBuild genome_
 	, tumor_content_histology(std::numeric_limits<double>::quiet_NaN())
 	, tumor_content_snvs(std::numeric_limits<double>::quiet_NaN())
 	, tumor_content_clonality(std::numeric_limits<double>::quiet_NaN())
+	, tumor_content_estimated(std::numeric_limits<double>::quiet_NaN())
 	, tumor_mutation_burden(std::numeric_limits<double>::quiet_NaN())
 	, mantis_msi(std::numeric_limits<double>::quiet_NaN())
 {
@@ -44,7 +45,12 @@ void SomaticXmlReportGeneratorData::check() const
 		messages << "Tumor content by maximum CNV clonality selected but value is not valid float";
 	}
 
-	if( !BasicStatistics::isValidFloat(tumor_mutation_burden))
+	if( settings.report_config.includeTumContentByEstimated() && !BasicStatistics::isValidFloat(tumor_content_estimated) )
+	{
+		messages << "Tumor content by estimation is selected but value is not valid float";
+	}
+
+	if( settings.report_config.includeMutationBurden() && !BasicStatistics::isValidFloat(tumor_mutation_burden))
 	{
 		messages << "Tumor mutation burden is not a valid float";
 	}
@@ -163,7 +169,11 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	{
 		w.writeAttribute("tumor_content_histology", QByteArray::number(data.tumor_content_histology, 'f', 3) );
 	}
-	if( data.settings.report_config.includeTumContentByClonality() && BasicStatistics::isValidFloat(data.tumor_content_clonality) )
+	if (data.settings.report_config.includeTumContentByEstimated() && BasicStatistics::isValidFloat(data.tumor_content_estimated))
+	{
+		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_estimated, 'f', 3));
+	}
+	else if( data.settings.report_config.includeTumContentByClonality() && BasicStatistics::isValidFloat(data.tumor_content_clonality) )
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_clonality, 'f', 3));
 	}
@@ -171,7 +181,10 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_snvs, 'f', 3));
 	}
-	w.writeAttribute( "mutation_burden", QString::number(data.tumor_mutation_burden,'f', 2) );
+	if ( data.settings.report_config.includeMutationBurden())
+	{
+		w.writeAttribute( "mutation_burden", QString::number(data.tumor_mutation_burden,'f', 2) );
+	}
 	if( data.settings.report_config.msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.mantis_msi, 'f', 2) );
 	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config.cnvLohCount() + data.settings.report_config.cnvTaiCount() + data.settings.report_config.cnvLstCount()));
 

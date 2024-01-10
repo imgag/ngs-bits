@@ -2635,6 +2635,18 @@ private slots:
 		report.storeRtf("out/somatic_report_tumor_normal_1.rtf");
 
 		COMPARE_FILES("out/somatic_report_tumor_normal_1.rtf", TESTDATA("data_out/somatic_report_tumor_normal_1.rtf"));
+
+		// test xml generation is legal:
+
+		VariantList som_vars_in_germline = SomaticReportSettings::filterGermlineVariants(control_tissue_variants, somatic_report_settings);
+		SomaticXmlReportGeneratorData xml_data = report.getXmlData(som_vars_in_germline);
+
+		SomaticXmlReportGenerator xml_report;
+		QSharedPointer<QFile> out_xml = Helper::openFileForWriting("out/somatic_report_tumor_normal_1.xml");
+		xml_report.generateXML(xml_data, out_xml, db, true);
+
+		COMPARE_FILES("out/somatic_report_tumor_normal_1.xml", TESTDATA("data_out/somatic_report_tumor_normal_1.xml"));
+
 	}
 
 	void test_somatic_rtf_2()
@@ -2687,8 +2699,8 @@ private slots:
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
 
 		somatic_report_settings.report_config.setIncludeTumContentByHistological(true);
-		somatic_report_settings.report_config.setIncludeTumContentByClonality(true);
-		somatic_report_settings.report_config.setIncludeTumContentByMaxSNV(true);
+		somatic_report_settings.report_config.setIncludeTumContentByClonality(false);
+		somatic_report_settings.report_config.setIncludeTumContentByMaxSNV(false);
 		somatic_report_settings.report_config.setIncludeTumContentByEstimated(true);
 		somatic_report_settings.report_config.setTumContentByEstimated(42);
 		somatic_report_settings.report_config.setMsiStatus(false);
@@ -2714,6 +2726,15 @@ private slots:
 		report.storeRtf("out/somatic_report_tumor_normal_2.rtf");
 
 		COMPARE_FILES("out/somatic_report_tumor_normal_2.rtf", TESTDATA("data_out/somatic_report_tumor_normal_2.rtf"));
+
+		VariantList som_vars_in_germline = SomaticReportSettings::filterGermlineVariants(control_tissue_variants, somatic_report_settings);
+		SomaticXmlReportGeneratorData xml_data = report.getXmlData(som_vars_in_germline);
+
+		SomaticXmlReportGenerator xml_report;
+		QSharedPointer<QFile> out_xml = Helper::openFileForWriting("out/somatic_report_tumor_normal_2.xml");
+		xml_report.generateXML(xml_data, out_xml, db, true);
+
+		COMPARE_FILES("out/somatic_report_tumor_normal_2.xml", TESTDATA("data_out/somatic_report_tumor_normal_2.xml"));
 	}
 
 
