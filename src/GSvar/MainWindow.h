@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QAbstractSocket>
 #include "Background/BackgroundJobDialog.h"
 #include "ui_MainWindow.h"
 #include "VariantList.h"
