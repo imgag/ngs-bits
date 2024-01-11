@@ -47,6 +47,7 @@ INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `o
 
 
 INSERT INTO `gene`(`id`,`hgnc_id`,`symbol`,`name`,`type`,`ensembl_id`,`ncbi_id`) VALUES
+(496188,7881, 'NOTCH1', 'notch receptor 1', 'protein-coding gene', 'ENSG00000148400',	4851),
 (473377,76,'ABL1','ABL proto-oncogene 1, non-receptor tyrosine kinase','protein-coding gene','ENSG00000097007',25),
 (473378,77,'ABL2','ABL proto-oncogene 2, non-receptor tyrosine kinase','protein-coding gene','ENSG00000143322',27),
 (473387,25829,'ABRAXAS1','abraxas 1, BRCA1 A complex subunit','protein-coding gene','ENSG00000163322',84142),
@@ -448,6 +449,12 @@ INSERT INTO `gene`(`id`,`hgnc_id`,`symbol`,`name`,`type`,`ensembl_id`,`ncbi_id`)
 -- (1515930, 652410, 'ENST00000341316', '11', 'ensembl', '16', 89574826, 89603318, '+',0);
 
 INSERT INTO `gene_transcript` (`id`,`gene_id`,`name`,`version`,`source`,`chromosome`,`start_coding`,`end_coding`,`strand`,`biotype`,`is_gencode_basic`,`is_ensembl_canonical`,`is_mane_select`,`is_mane_plus_clinical`) VALUES
+(1341659, 496188, 'CCDS43905', 1, 'ccds', '9', 136496071, 136545786, '-', 'protein coding', 0, 0, 0, 0),
+(1341658, 496188, 'ENST00000651671',1, 'ensembl', '9', 136496071, 136545786, '-', 'protein coding', 1, 1, 1, 0),
+(1341657, 496188, 'ENST00000680133',1, 'ensembl', '9', 136496071, 136545786, '-', 'protein coding', 1, 0, 0, 0),
+(1341654, 496188, 'ENST00000680218',1, 'ensembl', '9', 136496071, 136545786, '-', 'protein coding', 1, 0, 0, 0),
+(1341656, 496188, 'ENST00000680668',1, 'ensembl', '9', 136496071, 136545786, '-', 'protein coding', 1, 0, 0, 0),
+(1341655, 496188, 'ENST00000680778',1, 'ensembl', '9', 136496071, 136512756, '-', 'protein coding', 1, 0, 0, 0),
 (1341192,473377,'CCDS35165',1,'ccds','9',130714320,130885683,'+','protein coding',0,0,0,0),
 (1341194,473377,'CCDS35166',1,'ccds','9',130835447,130885683,'+','protein coding',0,0,0,0),
 (1341193,473377,'ENST00000318560',6,'ensembl','9',130835447,130885683,'+','protein coding',1,1,1,0),
@@ -3460,7 +3467,9 @@ INSERT INTO `preferred_transcripts`(`name`, `added_by`, `added_date`) VALUES
 ('ENST00000219476',99,'2021-01-07 17:22:21'),
 ('ENST00000371199',99,'2022-11-29 13:06:30'),
 ('ENST00000359321',99,'2022-09-30 10:15:53'),
-('ENST00000341316',99, '2020-09-04 10:48:01');
+('ENST00000341316',99,'2020-09-04 10:48:01'),
+('ENST00000651671',99,'2022-09-30 10:15:53');
+
 
 
 INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `gnomad_oe_syn`, `gnomad_oe_mis`, `gnomad_oe_lof`, `comments`) VALUES
@@ -3825,8 +3834,8 @@ INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `gnomAD`, `cod
 (2407602, 'chr13', 32340199, 32340222, 'TGATGTTAGTTTGGAAACTTCAGA', '-', 0, 'BRCA2:ENST00000544455.6:inframe_deletion:MODERATE:exon11/27:c.5845_5868del:p.Asp1949_Asp1956del:,BRCA2:ENST00000380152.8:inframe_deletion:MODERATE:exon11/27:c.5845_5868del:p.Asp1949_Asp1956del:'),
 (2407603, 'chr13', 32340219, 32340219, 'C', 'A', 0, 'BRCA2:ENST00000544455.6:stop_gained:HIGH:exon11/27:c.5864C>A:p.Ser1955Ter:,BRCA2:ENST00000380152.8:stop_gained:HIGH:exon11/27:c.5864C>A:p.Ser1955Ter:'),
 (2407604, 'chr7', 55191822, 55191822, 'T', 'G', 0, 'EGFR:ENST00000275493.7:missense_variant:MODERATE:exon21/28:c.2573T>G:p.Leu858Arg:,EGFR:ENST00000455089.5:missense_variant:MODERATE:exon20/26:c.2438T>G:p.Leu813Arg:,EGFR:ENST00000450046.2:missense_variant:MODERATE:exon21/28:c.2414T>G:p.Leu805Arg:'),
-(2407605, 'chr7', 5987255, 5987255, 'C', 'A', 0, 'PMS2:ENST00000265849.12:stop_gained:HIGH:exon11/15:c.1510G>T:p.Glu504Ter:,PMS2:ENST00000699811.1:stop_gained:HIGH:exon11/15:c.1105G>T:p.Glu369Ter:,PMS2:ENST00000699752.1:stop_gained:HIGH:exon10/14:c.1354G>T:p.Glu452Ter:,PMS2:ENST00000699818.1:stop_gained:HIGH:exon11/15:c.1105G>T:p.Glu369Ter:,PMS2:ENST00000699754.1:stop_gained:HIGH:exon9/13:c.1312G>T:p.Glu438Ter:,PMS2:ENST00000699760.1:stop_gained:HIGH:exon9/13:c.1192G>T:p.Glu398Ter:');
-
+(2407605, 'chr7', 5987255, 5987255, 'C', 'A', 0, 'PMS2:ENST00000265849.12:stop_gained:HIGH:exon11/15:c.1510G>T:p.Glu504Ter:,PMS2:ENST00000699811.1:stop_gained:HIGH:exon11/15:c.1105G>T:p.Glu369Ter:,PMS2:ENST00000699752.1:stop_gained:HIGH:exon10/14:c.1354G>T:p.Glu452Ter:,PMS2:ENST00000699818.1:stop_gained:HIGH:exon11/15:c.1105G>T:p.Glu369Ter:,PMS2:ENST00000699754.1:stop_gained:HIGH:exon9/13:c.1312G>T:p.Glu438Ter:,PMS2:ENST00000699760.1:stop_gained:HIGH:exon9/13:c.1192G>T:p.Glu398Ter:'),
+(2407606, 'chr9', 136503194, 136503194, 'C', 'A', 0, 'NOTCH1:ENST00000651671.1:stop_gained:HIGH:exon27/34:c.5155G>T:p.Glu1719Ter:PF07684 [NOTCH protein],NOTCH1:ENST00000680133.1:stop_gained:HIGH:exon26/33:c.5041G>T:p.Glu1681Ter:PF07684 [NOTCH protein],NOTCH1:ENST00000680218.1:stop_gained:HIGH:exon27/34:c.5035G>T:p.Glu1679Ter:PF07684 [NOTCH protein],NOTCH1:ENST00000680668.1:stop_gained:HIGH:exon26/33:c.5041G>T:p.Glu1681Ter:PF07684 [NOTCH protein],NOTCH1:ENST00000680778.1:stop_gained:HIGH:exon13/20:c.2752G>T:p.Glu918Ter:PF07684 [NOTCH protein]');
 
 
 INSERT INTO `detected_somatic_variant` (`id`, `processed_sample_id_tumor`, `processed_sample_id_normal`, `variant_id`, `variant_frequency`, `depth`, `quality_snp`) VALUES
@@ -3909,7 +3918,8 @@ INSERT INTO `detected_somatic_variant` (`id`, `processed_sample_id_tumor`, `proc
 (5, 4000, 3999, 2346588, 0.6, 642, 0.9),
 (6, 4004, 3999, 2346588, 0.6, 642, 0.9),
 (7, 4004, 3999, 2407602, 0.119, 153, 79),
-(8, 4004, 3999, 2407604, 0.1588, 450, 167);
+(8, 4004, 3999, 2407604, 0.1588, 450, 167),
+(9, 4004, 3999, 2407606, 0.4076, 499, 874);
 
 INSERT INTO `detected_variant` (`processed_sample_id`, `variant_id`, `genotype`) VALUES
 (3999, 6, 'hom'),

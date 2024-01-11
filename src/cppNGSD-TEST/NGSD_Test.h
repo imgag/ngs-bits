@@ -11,6 +11,7 @@
 #include "StatisticsServiceLocal.h"
 #include "FileLocationProviderLocal.h"
 #include "VariantHgvsAnnotator.h"
+#include "OntologyTermCollection.h"
 
 #include <QThread>
 
@@ -2621,6 +2622,18 @@ private slots:
 		somatic_report_settings.report_config.setTmbReferenceText("Test reference text for the tmb of this analysis!");
 		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
 		somatic_report_settings.report_config.setLimitations("This text should appear as limitations!");
+		//preferred transcripts
+		somatic_report_settings.preferred_transcripts = db.getPreferredTranscripts();
+
+		OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
+		QList<QByteArray> ids;
+		ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+		ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+		foreach(const QByteArray& id, ids)
+		{
+			somatic_report_settings.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+		}
+
 		TargetRegionInfo target_region = TargetRegionInfo();
 		target_region.name = "VirtualTumorPanel_v5_exon20_ahott1a1_20230505";
 		target_region.genes = db.subpanelGenes(target_region.name);
@@ -2714,6 +2727,20 @@ private slots:
 		somatic_report_settings.report_config.setTmbReferenceText("Test reference text for the tmb of this analysis!");
 		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
 		somatic_report_settings.report_config.setLimitations("This text should appear as limitations!");
+
+		//preferred transcripts
+		somatic_report_settings.preferred_transcripts = db.getPreferredTranscripts();
+
+		OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
+		QList<QByteArray> ids;
+		ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+		ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+		foreach(const QByteArray& id, ids)
+		{
+			somatic_report_settings.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+		}
+
+
 		TargetRegionInfo target_region = TargetRegionInfo();
 		target_region.name = "VirtualTumorPanel_v5_exon20_ahott1a1_20230505";
 		target_region.genes = db.subpanelGenes(target_region.name);

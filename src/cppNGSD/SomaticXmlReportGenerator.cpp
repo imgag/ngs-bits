@@ -5,6 +5,7 @@
 #include "XmlHelper.h"
 
 #include "SomaticReportConfiguration.h"
+#include "SomaticReportHelper.h"
 
 #include <QXmlStreamWriter>
 #include <QCoreApplication>
@@ -364,8 +365,8 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 
 				//Elements transcript information
-				bool is_first = true;
-				for(const auto& trans : snv.transcriptAnnotations(i_co_sp) )
+				VariantTranscript selected_transcript = SomaticReportHelper::selectSomaticTranscript(snv, data.settings, i_co_sp);
+				foreach(const auto& trans, snv.transcriptAnnotations(i_co_sp) )
 				{
 					w.writeStartElement("TranscriptInformation");
 
@@ -377,10 +378,9 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 					w.writeAttribute("exon", trans.exon);
 					w.writeAttribute("variant_type", trans.type);
 
-					if(is_first)
+					if(selected_transcript.id == trans.id)
 					{
 						w.writeAttribute("main_transcript", "true");
-						is_first = false;
 					}
 					else
 					{
