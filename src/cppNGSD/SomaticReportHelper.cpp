@@ -1413,7 +1413,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 
 	QList<int> cell_widths = {2000,1000,1500,1500,800,722,800,800,800};
 	RtfTable table;
-	table.addRow(RtfTableRow("HLA Resultate " + type,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
+	table.addRow(RtfTableRow("HLA " + type,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
 
 	if (VersatileFile(hla_file).exists())
 	{
