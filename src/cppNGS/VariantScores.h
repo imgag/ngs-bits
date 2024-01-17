@@ -52,6 +52,7 @@ public:
 private:
 	//Returns the variant blackist from the settings file.
 	static QList<Variant> loadBlacklist();
+	static QStringList prefilters(const Parameters& parameters);
 
 	static Result score_GSvar_v1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
 	static Result score_GSvar_v2_dominant(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);

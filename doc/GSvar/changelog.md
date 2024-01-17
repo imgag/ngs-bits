@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2023_11-75 (15.01.23)
+
+- IGV: no longer using 'echo' command to check if IGV is running because IGV sometimes does not reply
+- report: merged CNV and SV table in technical report
+
 ## 2023_11-67 (09.01.23)
 
 - variant details dock: best transcript is automatically shown if there is no preferred transcript
