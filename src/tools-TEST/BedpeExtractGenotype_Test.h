@@ -30,4 +30,12 @@ private slots:
 
 		COMPARE_FILES("out/BedpeExtractGenotype_out3.bedpe", TESTDATA("data_out/BedpeExtractGenotype_out2.bedpe"));
 	}
+
+	void test_multisample()
+	{
+		//test
+		EXECUTE("BedpeExtractGenotype", "-in " + TESTDATA("data_in/BedpeExtractGenotype_in3.bedpe") + " -include_unphased -out out/BedpeExtractGenotype_out4.bedpe");
+
+		COMPARE_FILES("out/BedpeExtractGenotype_out4.bedpe", TESTDATA("data_out/BedpeExtractGenotype_out4.bedpe"));
+	}
 };

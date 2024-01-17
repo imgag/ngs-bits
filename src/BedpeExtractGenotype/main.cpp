@@ -39,20 +39,39 @@ public:
 		BedpeFile bedpe_file;
 		bedpe_file.load(in);
 
-		//TODO: add multisample support
-		//check if multisample
-		if (bedpe_file.sampleHeaderInfo().size() > 1) THROW(ArgumentException, "Multisamples are not supported!");
-
-		// check if annotation already exisits:
-		int i_annotation = bedpe_file.annotationIndexByName("GENOTYPE", false);
-
 		// create output buffer and copy comments and header
 		QByteArrayList output_buffer;
 		output_buffer.append(bedpe_file.headers());
-		// get header
-		QByteArrayList updated_header = bedpe_file.annotationHeaders();
-		// modify header if gene columns not already present
-		if (i_annotation < 0) updated_header.append("GENOTYPE");
+		QByteArrayList updated_header;
+
+		//check if multisample
+		SampleHeaderInfo sample_header_info = bedpe_file.sampleHeaderInfo();
+		bool is_multisample = (sample_header_info.size() > 1);
+		QList<int> i_annotations;
+
+		if (is_multisample)
+		{
+			// get header
+			updated_header = bedpe_file.annotationHeaders();
+
+			foreach (const SampleInfo& sample_info, sample_header_info)
+			{
+				// check if annotation already exisits:
+				i_annotations.append(bedpe_file.annotationIndexByName(sample_info.name.toUtf8() + "_GENOTYPE", false));
+				// modify header if gene columns not already present
+				if (i_annotations.last() < 0) updated_header.append(sample_info.name.toUtf8() + "_GENOTYPE");
+			}
+		}
+		else //single sample
+		{
+			// check if annotation already exisits:
+			i_annotations.append(bedpe_file.annotationIndexByName("GENOTYPE", false));
+			// get header
+			updated_header = bedpe_file.annotationHeaders();
+			// modify header if gene columns not already present
+			if (i_annotations[0] < 0) updated_header.append("GENOTYPE");
+		}
+
 		// copy header
 		output_buffer << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + updated_header.join("\t");
 
@@ -60,23 +79,31 @@ public:
 		{
 			BedpeLine line = bedpe_file[i];
 
-			// get genotype/phasing
-			QByteArray genotype = getFormatValue("GT", line, bedpe_file.annotationHeaders());
-			QByteArray phasing_block = getFormatValue("PS", line, bedpe_file.annotationHeaders());
-
-			QByteArray phasing_entry;
-			if (genotype.contains("|")) phasing_entry = genotype + " (" + phasing_block + ")";
-			else if(getFlag("include_unphased")) phasing_entry = genotype;
-
 			//add phasing to output
 			QList<QByteArray> annotations = line.annotations();
-			if (i_annotation < 0)
+
+			for (int s = 0; s < i_annotations.size(); ++s)
 			{
-				annotations.append(phasing_entry);
-			}
-			else
-			{
-				annotations[i_annotation] = phasing_entry;
+				// get genotype/phasing
+				int idx_format_value = -1;
+				if (is_multisample) idx_format_value = sample_header_info.at(s).column_index;
+				QByteArray genotype = getFormatValue("GT", line, bedpe_file.annotationHeaders(), idx_format_value);
+				QByteArray phasing_block = getFormatValue("PS", line, bedpe_file.annotationHeaders(), idx_format_value, false);
+
+				QByteArray phasing_entry;
+				if (genotype.contains("|")) phasing_entry = genotype;
+				else if(getFlag("include_unphased")) phasing_entry = genotype;
+				if (!phasing_block.isEmpty() && phasing_block.trimmed() != ".") phasing_entry += " (" + phasing_block + ")";
+
+				if (i_annotations[s] < 0)
+				{
+					annotations.append(phasing_entry);
+				}
+				else
+				{
+					annotations[i_annotations[s]] = phasing_entry;
+				}
+
 			}
 			line.setAnnotations(annotations);
 
@@ -97,14 +124,19 @@ public:
 	}
 
 private:
-	QByteArray getFormatValue(QByteArray key, const BedpeLine& line, const QList<QByteArray>& annotation_headers)
+	QByteArray getFormatValue(QByteArray key, const BedpeLine& line, const QList<QByteArray>& annotation_headers, int idx_format_value = -1, bool error_on_missing_key = true)
 	{
 		int format_idx = annotation_headers.indexOf("FORMAT");
 		if (format_idx < 0 ) THROW(ArgumentException, "No FORMAT column found!");
 		int key_idx = line.annotations().at(format_idx).split(':').indexOf(key);
-		if (key_idx < 0 ) THROW(ArgumentException, "Key '" + key + "' not found in FORMAT column!");
+		if (key_idx < 0 )
+		{
+			if (!error_on_missing_key) return QByteArray();
+			THROW(ArgumentException, "Key '" + key + "' not found in FORMAT column!");
+		}
+		if (idx_format_value < 0) idx_format_value = format_idx + 1;
 
-		return line.annotations().at(format_idx + 1).split(':').at(key_idx);
+		return line.annotations().at(idx_format_value).split(':').at(key_idx);
 	}
 };
 
