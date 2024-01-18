@@ -225,6 +225,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("user-specific function", this, SLOT(userSpecificDebugFunction()));
 		debug_btn->menu()->addSeparator();
 		debug_btn->menu()->addAction("variant: chr1:1212033-1212033 G>T", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("variant: chr15:42411019-42411019 C>T", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
 		debug_btn->menu()->addAction("gene: BRCA2", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
