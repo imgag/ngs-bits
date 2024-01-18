@@ -27,6 +27,7 @@ public:
 		addString("info_column", "Header name of the INFO column.", true, "INFO_A");
 
 		changeLog(2023, 10, 4, "Initial commit.");
+		changeLog(2024, 1, 18, "Removed single sample restriction");
 
 	}
 
@@ -61,9 +62,6 @@ public:
 		//process BEDPE file
 		BedpeFile bedpe_file;
 		bedpe_file.load(in);
-
-		//check if multisample
-		if (bedpe_file.sampleHeaderInfo().size() > 1) THROW(ArgumentException, "Multisamples are not supported!");
 
 		// check if annotation already exisits:
 		QMap<QByteArray,int> column_indices;
