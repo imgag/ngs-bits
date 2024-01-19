@@ -754,7 +754,7 @@
     <string>Open by name</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+O</string>
+    <string>Ctrl+Alt+O</string>
    </property>
   </action>
   <action name="actionDesignSubpanel">
