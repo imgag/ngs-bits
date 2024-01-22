@@ -387,7 +387,7 @@ void RequestWorker::closeConnection(QSslSocket* socket)
 	}
 
     if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
-    socket->close();
+    socket->abort();
 }
 
 void RequestWorker::sendResponseDataPart(QSslSocket* socket, const QByteArray& data)

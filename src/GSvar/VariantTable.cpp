@@ -944,7 +944,7 @@ void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_r
 
 	//check quality column is present
 	QStringList quality_keys;
-	quality_keys << "QUAL" << "DP" << "AF" << "MQM" << "SAP" << "ABP" << "TRIO"; //if modified, also modify quality_values!!!
+	quality_keys << "QUAL" << "DP" << "QD" << "AF" << "MQM" << "SAP" << "ABP" << "TRIO" << "SAR" << "SAF"; //if modified, also modify quality_values!!!
 	int qual_index = -1;
 	if (split_quality)
 	{
