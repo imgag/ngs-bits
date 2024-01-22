@@ -63,7 +63,7 @@ public:
         {
             const QByteArray gene_id = trans.geneId();
             const QByteArray chrom = trans.chr().strNormalized(true);
-            const QByteArray strand = trans.strandToString(transcripts[0].strand());
+			const QByteArray strand = trans.strandToString(trans.strand());
 
             if (getFlag("genes") && (gene_id == "")) {
                 continue;
