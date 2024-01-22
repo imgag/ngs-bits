@@ -625,6 +625,9 @@
    <property name="text">
     <string>Exit</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
+   </property>
   </action>
   <action name="actionAbout">
    <property name="text">
@@ -754,7 +757,7 @@
     <string>Open by name</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Alt+O</string>
+    <string>Ctrl+Shift+O</string>
    </property>
   </action>
   <action name="actionDesignSubpanel">
