@@ -983,15 +983,6 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 	int i_co_sp = germline_vl_.annotationIndexByName("coding_and_splicing",true,false);
 	int i_genotype = germline_vl_.getSampleHeader().infoByStatus(true).column_index;
 
-	if(i_dbsnp == -1)
-	{
-		table.addRow(RtfTableRow("Nicht nachgewiesen", doc_.maxWidth()));
-		table.prependRow(RtfTableRow({"Pharmakogenetisch relevante Polymorphismen"},doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
-		table.setUniqueBorder(1,"brdrhair",4);
-		return table.RtfCode();
-	}
-
-
 	for(int i=0;i<germline_vl_.count();++i)
 	{
 		const Variant& snv = germline_vl_[i];
@@ -1054,6 +1045,13 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 		table.prependRow(RtfTableRow({"Pharmakogenetisch relevante Polymorphismen"},doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
 		table.setUniqueBorder(1,"brdrhair",4);
 		table.addRow(RtfTableRow("Nähere Informationen erhalten Sie aus der Datenbank pharmGKB (https://www.pharmgkb.org)",doc_.maxWidth(), RtfParagraph().setFontSize(14)));
+	}
+	else
+	{
+		table.addRow(RtfTableRow("Nicht nachgewiesen", doc_.maxWidth()));
+		table.prependRow(RtfTableRow({"Pharmakogenetisch relevante Polymorphismen"},doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
+		table.setUniqueBorder(1,"brdrhair",4);
+		return table.RtfCode();
 	}
 
 	return table.RtfCode();
@@ -1375,8 +1373,7 @@ RtfTableRow SomaticReportHelper::snvRow(const Variant& snv, const VariantTranscr
 	return row;
 }
 
-
-RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
+QString SomaticReportHelper::getHlaFilepath(QString ps_name)
 {
 	QString hla_file;
 	if (!ClientHelper::isClientServerMode())
@@ -1410,39 +1407,32 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 		THROW(DatabaseException, "hla file for the processed sample '" + ps_name + "' was not found!");
 	}
 
+	return hla_file;
+}
 
-	QList<int> cell_widths = {2000,1000,1500,1500,800,722,800,800,800};
+
+RtfTable SomaticReportHelper::hlaTable(QString ps_tumor, QString ps_normal)
+{
+	SomaticHlaInfo tumor_hla = SomaticHlaInfo(getHlaFilepath(ps_tumor));
+	SomaticHlaInfo normal_hla = SomaticHlaInfo(getHlaFilepath(ps_normal));
+
 	RtfTable table;
-	table.addRow(RtfTableRow("HLA " + type,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
+	table.addRow(RtfTableRow("HLA",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
 
-	if (VersatileFile(hla_file).exists())
+	table.addRow(RtfTableRow({"Gene","Blut (" + ps_normal.toUtf8() + ")", "Tumor (" + ps_tumor.toUtf8() + ")"}, {1522, 4200, 4200}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)));
+
+	foreach(QByteArray gene, QByteArrayList({"HLA-A", "HLA-B", "HLA-C"}))
 	{
-		table.addRow(RtfTableRow({"Sample","Gene","a1","a2","Precision","Qual","a1 reads","a2 reads", "a1+a2"}, cell_widths, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)));
+		QByteArray normal_hla_allel1 = normal_hla.isValid() ? normal_hla.getGeneAllele(gene, true)  : "nicht bestimmbar";
+		QByteArray normal_hla_allel2 = normal_hla.isValid() ? normal_hla.getGeneAllele(gene, false) : "nicht bestimmbar";
 
-		TSVFileStream hla_stream(hla_file);
-		while (!hla_stream.atEnd())
-		{
-			QByteArrayList values = hla_stream.readLine();
-			RtfTableRow row;
-			row.addCell(cell_widths[0], values[1], RtfParagraph().setFontSize(16));
+		QByteArray tumor_hla_allel1 = tumor_hla.isValid() ? tumor_hla.getGeneAllele(gene, true)  : "nicht bestimmbar";
+		QByteArray tumor_hla_allel2 = tumor_hla.isValid() ? tumor_hla.getGeneAllele(gene, false) : "nicht bestimmbar";
 
-			row.addCell(cell_widths[1], values[3], RtfParagraph().setFontSize(16));
-			row.addCell(cell_widths[2], values[4], RtfParagraph().setFontSize(16));
 
-			row.addCell(cell_widths[3], values[5], RtfParagraph().setFontSize(16));
-			row.addCell(cell_widths[4], values[6], RtfParagraph().setFontSize(16));
-			row.addCell(cell_widths[5], values[7], RtfParagraph().setFontSize(16));
-			row.addCell(cell_widths[6], values[8], RtfParagraph().setFontSize(16));
-			row.addCell(cell_widths[7], values[9], RtfParagraph().setFontSize(16));
-			row.addCell(cell_widths[8], values[10], RtfParagraph().setFontSize(16));
-			table.addRow(row);
-		}
-
+		table.addRow(RtfTableRow({gene, normal_hla_allel1, normal_hla_allel2, tumor_hla_allel1, tumor_hla_allel2}, {1522, 2100, 2100, 2100, 2100}));
 	}
-	else
-	{
-		table.addRow(RtfTableRow("HLA wurde für diese Probe nicht bestimmt.",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)));
-	}
+
 
 	table.setUniqueBorder(1,"brdrhair",4);
 	return table;
@@ -1657,9 +1647,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 *************/
 
 	doc_.addPart(RtfParagraph("").RtfCode());
-	doc_.addPart(hlaTable(settings_.normal_ps, "Normal").RtfCode());
-	doc_.addPart(RtfParagraph("").RtfCode());
-	doc_.addPart(hlaTable(settings_.tumor_ps, "Tumor").RtfCode());
+	doc_.addPart(hlaTable(settings_.tumor_ps, settings_.normal_ps).RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	/***********************
@@ -1711,7 +1699,7 @@ SomaticXmlReportGeneratorData SomaticReportHelper::getXmlData(const VariantList&
 	data.rtf_part_general_info = partMetaData();
 	data.rtf_part_igv_screenshot = partIgvScreenshot();
 	data.rtf_part_mtb_summary = partPathways();
-	data.rtf_part_hla_summary = hlaTable(settings_.normal_ps, "Normal").RtfCode() + RtfParagraph("").RtfCode() + hlaTable(settings_.tumor_ps, "Tumor").RtfCode();
+	data.rtf_part_hla_summary = hlaTable(settings_.tumor_ps, settings_.normal_ps).RtfCode();
 
 	return data;
 }
@@ -1735,6 +1723,7 @@ QString SomaticReportHelper::trans(const QString &text)
 	en2de["quality of tumor DNA too low"] = "Qualität der Tumor-DNA zu gering";
 	en2de["DNA quantity too low"] = "DNA-Menge im Tumor zu gering";
 	en2de["heterogeneous sample"] = "Probe heterogen";
+	en2de["contamination"] = "Hinweise auf Fremd-DNA";
 	en2de["activating"] = "aktivierend";
 	en2de["test_dependent"] = "testabhängige Bedeutung";
 	en2de["ONCOGENIC"] = "onkogene Variante";

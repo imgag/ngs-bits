@@ -54,6 +54,89 @@ struct CPPNGSDSHARED_EXPORT SomaticVirusInfo
 	}
 };
 
+struct CPPNGSDSHARED_EXPORT HlaLine
+{
+	QByteArray bam_file;
+	QByteArray sample;
+	QByteArray ethnicity;
+	QByteArray gene;
+	QByteArray allele1;
+	QByteArray allele2;
+	float precision;
+	bool passed;
+	int depth_allele1;
+	int depth_allele2;
+};
+
+struct CPPNGSDSHARED_EXPORT SomaticHlaInfo
+{
+	QList<HlaLine> lines;
+
+	SomaticHlaInfo(QString hla_file)
+	{
+		if (! VersatileFile(hla_file).exists()) return;
+
+		TSVFileStream hla_stream(hla_file);
+		while (!hla_stream.atEnd())
+		{
+			bool float_ok;
+			bool depth1_ok;
+			bool depth2_ok;
+
+			QByteArrayList values = hla_stream.readLine();
+
+			if (values.count() != 11)
+			{
+				THROW(FileParseException, "HLA file '" + hla_file + "' contained a line string with an unexpected number of columns! Column values: " + values.join(","));
+			}
+
+			HlaLine hla;
+			hla.bam_file =	values[0];
+			hla.sample =	values[1];
+			hla.ethnicity = values[2];
+			hla.gene =		values[3];
+			hla.allele1 =	values[4];
+			hla.allele2 =	values[5];
+			hla.precision =	values[6].toFloat(&float_ok);
+			hla.passed =	values[7] == "Pass";
+			hla.depth_allele1 =	values[8].toInt(&depth1_ok);
+			hla.depth_allele2 =	values[9].toInt(&depth2_ok);
+
+			if (! (float_ok && depth1_ok && depth2_ok))
+			{
+				THROW(FileParseException, "HLA file '" + hla_file + "' contained a unexpected string in a number column (pval, a1_reads or a2_reads)!");
+			}
+
+			lines.append(hla);
+		}
+	}
+
+	bool isValid()
+	{
+		return this->lines.count() != 0;
+	}
+
+	QByteArray getGeneAllele(QString gene, bool allele1)
+	{
+		foreach(HlaLine line, this->lines)
+		{
+			if (line.gene == gene)
+			{
+				if (allele1)
+				{
+					return line.allele1;
+				}
+				else
+				{
+					return line.allele2;
+				}
+			}
+		}
+		THROW(ArgumentException, "Given Gene not found in HLA lines: " + gene);
+	}
+
+};
+
 ///creates a somatic RTF report
 class CPPNGSDSHARED_EXPORT SomaticReportHelper
 {
@@ -158,9 +241,11 @@ private:
 	RtfTable snvTable(const QSet<int>& indices, bool high_impact_table=true);
 	///creates a table row of the given variant for the SNV table.
 	RtfTableRow snvRow(const Variant& snv, const VariantTranscript& transcript, const QList<int>& col_widths);
-	//creates table with hla_genotyper information
-	RtfTable hlaTable(QString ps_name, QByteArray type);
-	//creates table with hla_genotyper information
+	///get filepath for HLA file
+	QString getHlaFilepath(QString ps_name);
+	///creates table with hla_genotyper information
+	RtfTable hlaTable(QString ps_tumor, QString ps_normal);
+	///creates table with hla_genotyper information
 	RtfTable signatureTable();
 
 	void signatureTableHelper(RtfTable& table, QString file, const QMap<QByteArray, QByteArray>& descriptions, const QByteArray& type);
