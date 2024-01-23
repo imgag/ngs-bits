@@ -139,28 +139,17 @@ bool IGVSession::isIgvRunning()
 	//commands are being executed > IGV is running
 	if (hasRunningCommands()) return true;
 
-	//no commands are executed > ping IGV
-	QList<IgvWorkerCommand> commands;
-	commands << IgvWorkerCommand{-1, "echo running"};
-
-	//try up to four times
-	for (int i=0; i<4; ++i)
+	//no commands are executed > try to open a connection
+	QTcpSocket socket;
+	socket.connectToHost(igv_data_.host, igv_data_.port);
+	if (!socket.waitForConnected(1500))
 	{
-		//start command
-		IGVCommandWorker* command_worker = new IGVCommandWorker(igv_data_, commands, 500);
-		command_worker->setAutoDelete(false);
-		execution_pool_.start(command_worker);
-
-		//get answer
-		execution_pool_.waitForDone();
-		QString answer = command_worker->answer();
-		command_worker->deleteLater();
-
-		if (answer=="running") return true;
-		else Log::info("No answer for 'echo running' from IGV (try " + QString::number(i+1) + " of 4)");
+		Log::info("Could not open socket to IGV");
+		return false;
 	}
+	socket.abort();
 
-	return false;
+	return true;
 }
 
 bool IGVSession::hasRunningCommands()

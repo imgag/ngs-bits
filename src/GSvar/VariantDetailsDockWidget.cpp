@@ -749,6 +749,11 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 				}
 			}
 		}
+		//fallback: first transcript
+		if (trans_curr==-1)
+		{
+			setTranscript(0);
+		}
 	}
 
 	//tooltip if more than one transcript

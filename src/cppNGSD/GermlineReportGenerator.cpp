@@ -258,10 +258,11 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (selected_small_.count()==0) stream << "<tr><td colspan=\"" << colspan << "\">" << trans("Keine") << "</td></tr>";
 	stream << "</table>" << endl;
 
-	//CNVs
-	stream << "<br /><b>" << trans("Kopienzahlver&auml;nderungen (CNV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
+	//--------------------------------------------------------------------------------------
+	//CNVs + SVs
+	stream << "<br /><b>" << trans("Kopienzahlver&auml;nderungen (CNV) und/oder Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Kopienzahl") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>RNA</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("CNV/SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Kopienzahl/Genotyp") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 	colspan = 8;
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -288,16 +289,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
-	if (selected_cnvs_.count()==0) stream << "<tr><td colspan=\"" << colspan << "\">" << trans("Keine") << "</td></tr>";
-	stream << "</table>" << endl;
-
-	//--------------------------------------------------------------------------------------
-	//SVs
-	stream << "<br /><b>" << trans("Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
-	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>RNA</b></td></tr>" << endl;
-	colspan = 8;
-
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SVS) continue;
@@ -368,8 +359,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		//RNA info
 		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
-	}
-	if (selected_svs_.count()==0) stream << "<tr><td colspan=\"" << colspan << "\">" << trans("Keine") << "</td></tr>";
+	}	
+	if (selected_cnvs_.count()==0 && selected_svs_.count()==0) stream << "<tr><td colspan=\"" << colspan << "\">" << trans("Keine") << "</td></tr>";
 	stream << "</table>" << endl;
 
 	//-----------------------------------------------------------------------------------
@@ -1516,8 +1507,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Anzahl SVs ausgew&auml;hlt f&uuml;r Report"] = "SVs selected for report";
 		de2en["Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report"] = "Other variants selected for report";
 		de2en["Einzelbasenver&auml;nderungen (SNVs) und Insertionen/Deletionen (InDels) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized small variants";
-		de2en["Kopienzahlver&auml;nderungen (CNV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized copy-number variants";
-		de2en["Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized structural variants";
+		de2en["Kopienzahlver&auml;nderungen (CNV) und/oder Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized copy-number variants and/or structural variants";
 		de2en["Erbgang"] = "Inheritance";
 		de2en["gnomAD Allelfrequenz"] = "gnomAD allele frequency";
 		de2en["Kontrollkohorte"] = "control cohort";
@@ -1576,10 +1566,9 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Mutter"] = "mother";
 		de2en["Regionen"] = "regions";
 		de2en["Gene"] = "genes";
-		de2en["CNV"] = "CNV";
-		de2en["Kopienzahl"] = "copy-number";
+		de2en["CNV/SV"] = "CNV/SV";
+		de2en["Kopienzahl/Genotyp"] = "copy-number/genotype";
 		de2en["n/a"] = "n/a";
-		de2en["SV"] = "SV";
 		de2en["Position"] = "Position";
 		de2en["Deletion"] = "deletion";
 		de2en["Duplikation"] = "duplication";

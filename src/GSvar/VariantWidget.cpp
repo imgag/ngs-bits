@@ -119,8 +119,7 @@ void VariantWidget::updateGUI()
 		ui_.transcripts->setItem(i, 4, GUIHelper::createTableItem(consequence.typesToString(", ")));
 		ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(trans.flags(false).join(", ")));
 	}
-	GUIHelper::resizeTableCells(ui_.transcripts, 400);
-	GUIHelper::resizeTableHeight(ui_.transcripts);
+	GUIHelper::resizeTableCells(ui_.transcripts, 450);
 
 
 	//classification
