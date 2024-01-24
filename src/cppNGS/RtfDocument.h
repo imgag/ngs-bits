@@ -536,6 +536,21 @@ public:
 		rows_.append(row);
 	}
 
+	void addTitelRow(const QByteArrayList& headers, const QList<int>& widths, int fontsize=18)
+	{
+		rows_.append(RtfTableRow(headers, widths, RtfParagraph().setFontSize(fontsize).setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
+	}
+
+	void addHeaderRow(const QByteArrayList& headers, const QList<int>& widths, int fontsize=16)
+	{
+		rows_.append(RtfTableRow(headers, widths, RtfParagraph().setFontSize(fontsize).setBold(true).setHorizontalAlignment("c")));
+	}
+
+	void addDataRow(const QByteArrayList& headers, const QList<int>& widths, int fontsize=16)
+	{
+		rows_.append(RtfTableRow(headers, widths, RtfParagraph().setFontSize(fontsize)));
+	}
+
 	void prependRow(const RtfTableRow& row)
 	{
 		rows_.prepend(row);

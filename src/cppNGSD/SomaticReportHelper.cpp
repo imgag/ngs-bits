@@ -1417,9 +1417,8 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_tumor, QString ps_normal)
 	SomaticHlaInfo normal_hla = SomaticHlaInfo(getHlaFilepath(ps_normal));
 
 	RtfTable table;
-	table.addRow(RtfTableRow("HLA",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
-
-	table.addRow(RtfTableRow({"Gene","Blut (" + ps_normal.toUtf8() + ")", "Tumor (" + ps_tumor.toUtf8() + ")"}, {1522, 4200, 4200}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)));
+	table.addTitelRow({"HLA"},{doc_.maxWidth()});
+	table.addHeaderRow({"Gene","Blut (" + ps_normal.toUtf8() + ")", "Tumor (" + ps_tumor.toUtf8() + ")"}, {1522, 4200, 4200});
 
 	foreach(QByteArray gene, QByteArrayList({"HLA-A", "HLA-B", "HLA-C"}))
 	{
@@ -1430,9 +1429,8 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_tumor, QString ps_normal)
 		QByteArray tumor_hla_allel2 = tumor_hla.isValid() ? tumor_hla.getGeneAllele(gene, false) : "nicht bestimmbar";
 
 
-		table.addRow(RtfTableRow({gene, normal_hla_allel1, normal_hla_allel2, tumor_hla_allel1, tumor_hla_allel2}, {1522, 2100, 2100, 2100, 2100}));
+		table.addDataRow({gene, normal_hla_allel1, normal_hla_allel2, tumor_hla_allel1, tumor_hla_allel2}, {1522, 2100, 2100, 2100, 2100});
 	}
-
 
 	table.setUniqueBorder(1,"brdrhair",4);
 	return table;
