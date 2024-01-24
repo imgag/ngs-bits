@@ -2094,7 +2094,7 @@ private slots:
 		som_rep_conf.setCnvTaiCount(3);
 		som_rep_conf.setCnvLstCount(43);
 		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
-		som_rep_conf.setQuality(QStringList("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE"));
+		som_rep_conf.setQuality(QStringList(""));
 		som_rep_conf.setFusionsDetected(true);
 
 		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
