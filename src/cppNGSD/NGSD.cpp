@@ -8177,16 +8177,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 		query.bindValue(11, config.tmbReferenceText());
 
-		bool all_valid = true;
-		foreach(QString qual_comment, config.quality())
-		{
-			if ( ! getEnum("somatic_report_configuration", "quality").contains(qual_comment))
-			{
-				all_valid = false;
-				break;
-			}
-		}
-		if( all_valid) query.bindValue(12, config.quality().join(","));
+		if(config.quality().count() > 0) query.bindValue(12, config.quality().join(","));
 		else query.bindValue(12, QVariant(QVariant::String));
 
 		query.bindValue(13, config.fusionsDetected());
@@ -8240,16 +8231,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 		query.bindValue(15, config.tmbReferenceText());
 
-		bool all_valid = true;
-		foreach(QString qual_comment, config.quality())
-		{
-			if ( ! getEnum("somatic_report_configuration", "quality").contains(qual_comment))
-			{
-				all_valid = false;
-				break;
-			}
-		}
-		if( all_valid) query.bindValue(16, config.quality().join(","));
+		if(config.quality().count() > 0) query.bindValue(16, config.quality().join(","));
 		else query.bindValue(16, QVariant(QVariant::String));
 
 		query.bindValue(17, config.fusionsDetected());
