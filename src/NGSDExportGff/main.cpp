@@ -23,7 +23,7 @@ public:
         addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
-	void write_gff_line(const QSharedPointer<QFile> outfile, const QByteArray& chromosome, const QByteArray& linetype, const QByteArray& start, const QByteArray& end, const QByteArray& strand, const QByteArray& info) {
+	void write_gff_line(const QSharedPointer<QFile> outfile, const QByteArray& chromosome, const QByteArray& linetype, const QByteArray& start, const QByteArray& end, const QByteArray& strand, const QByteArray& info, const QByteArray& phase) {
 			outfile->write(chromosome + "\t");
 			outfile->write("NGSD\t");
 			outfile->write(linetype + "\t");
@@ -31,7 +31,7 @@ public:
 			outfile->write(end + "\t");
 			outfile->write(".\t");
 			outfile->write(strand + "\t");
-			outfile->write(".\t");
+			outfile->write(phase + "\t");
 			outfile->write(info);
 			outfile->write("\n");
 	}
@@ -64,6 +64,16 @@ public:
             const QByteArray gene_id = trans.geneId();
             const QByteArray chrom = trans.chr().strNormalized(true);
 			const QByteArray strand = trans.strandToString(trans.strand());
+			QByteArray phase = ".";
+			//calculate codon offset
+			if (strand == "+")
+			{
+				phase = QByteArray::number((trans.codingStart()-trans.start()) % 3);
+			}
+			else if (strand == "-")
+			{
+				phase = QByteArray::number(3 - ((trans.end()-trans.codingStart()) % 3));
+			}
 
             if (getFlag("genes") && (gene_id == "")) {
                 continue;
@@ -82,7 +92,7 @@ public:
                 parts.append("type=" + gene["type"]);
                 parts.append("description=" + gene["name"]);                
                 info = parts.join(';');
-                write_gff_line(outfile, chrom, "gene", gene["start"], gene["end"], strand, info);
+				write_gff_line(outfile, chrom, "gene", gene["start"], gene["end"], strand, info, ".");
             }
             last_gene_id = gene_id;
 
@@ -110,7 +120,7 @@ public:
             st.setNum(trans.start());
             ed.setNum(trans.end());
 
-			write_gff_line(outfile, trans.chr().strNormalized(true), "RNA", st, ed, strand, info);
+			write_gff_line(outfile, trans.chr().strNormalized(true), "RNA", st, ed, strand, info, ".");
 
             const BedFile& coding_regions = trans.codingRegions();
 
@@ -125,20 +135,28 @@ public:
                     parts.clear();
 					parts.append("Parent=" + transcriptId);
                     info = parts.join(";");
-                    write_gff_line(outfile, reg.chr().strNormalized(true), "three_prime_UTR", st, ed, strand, info);
+					write_gff_line(outfile, reg.chr().strNormalized(true), "three_prime_UTR", st, ed, strand, info, ".");
                 }
 
-		        for ( int i=0; i<coding_regions.count(); ++i )
-                {
-                    // CDS LINEs
-                    const BedLine& coding_region = coding_regions[i];
-                    st.setNum(coding_region.start());
-                    ed.setNum(coding_region.end());
-                    parts.clear();
+				//TODO: optimize
+
+				int cds_offset = 0;
+				for ( int i=0; i<coding_regions.count(); ++i )
+				{
+					// CDS LINEs
+					// for transcripts on the reverse strand: start with the last exon and run backwards
+					const BedLine& coding_region = (trans.strand() == Transcript::MINUS)? coding_regions[(coding_regions.count()-1)-i]: coding_regions[i];
+					st.setNum(coding_region.start());
+					ed.setNum(coding_region.end());
+					//save current offset
+					phase = QByteArray::number((3-cds_offset)%3);
+					//determine new offset:
+					cds_offset = (cds_offset + coding_region.length()) % 3;
+					parts.clear();
 					parts.append("Parent=" + transcriptId);
-                    info = parts.join(";");
-                    write_gff_line(outfile, coding_region.chr().strNormalized(true), "CDS", st, ed, strand, info);
-                }
+					info = parts.join(";");
+					write_gff_line(outfile, coding_region.chr().strNormalized(true), "CDS", st, ed, strand, info, phase);
+				}
 
                 const BedFile& utr5prime = trans.utr5prime();
                 for ( int i=0; i<utr5prime.count(); ++i )
@@ -150,7 +168,7 @@ public:
                     parts.clear();
 					parts.append("Parent=" + transcriptId);
                     info = parts.join(";");
-                    write_gff_line(outfile, reg.chr().strNormalized(true), "five_prime_UTR", st, ed, strand, info);
+					write_gff_line(outfile, reg.chr().strNormalized(true), "five_prime_UTR", st, ed, strand, info, ".");
                 }
             } else {
                 const BedFile& exons = trans.regions();
@@ -163,7 +181,7 @@ public:
                     parts.clear();
 					parts.append("Parent=" + transcriptId);
                     info = parts.join(";");
-                    write_gff_line(outfile, reg.chr().strNormalized(true), "exon", st, ed, strand, info);
+					write_gff_line(outfile, reg.chr().strNormalized(true), "exon", st, ed, strand, info, ".");
                 }
             }
         }
