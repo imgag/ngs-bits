@@ -894,7 +894,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		//Check that the number of annotations is correct
 		if (variants_.last().annotations().count()!=annotations().count())
 		{
-			THROW(FileParseException, "Variant with less than expected annotation fields found:\n" + variants_.last().toString() + "\nExprected " + QString::number(annotations().count()) + ", found " + QString::number(variants_.last().annotations().count()) + "!\n\nThis should not happen! Please inform the bioinformatics team!");
+			THROW(FileParseException, "Variant with less than expected annotation fields found:\n" + variants_.last().toString() + "\nExpected " + QString::number(annotations().count()) + ", found " + QString::number(variants_.last().annotations().count()) + "!\n\nThis should not happen! Please inform the bioinformatics team!");
 		}
 	}
 }

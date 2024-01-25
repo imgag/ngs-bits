@@ -76,6 +76,9 @@ private slots:
 	///Disable/Enable limitations text field
 	void limitationState();
 
+	///Disable/Enable quality comments to be checkable.
+	void qualityState();
+
 	///Creates screenshot with somatic tracks from IGV
 	void createIgvScreenshot();
 

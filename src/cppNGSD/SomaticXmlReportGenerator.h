@@ -25,6 +25,7 @@ struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
 	double tumor_content_histology;
 	double tumor_content_snvs;
 	double tumor_content_clonality;
+	double tumor_content_estimated;
 
 	double tumor_mutation_burden;
 	double mantis_msi;

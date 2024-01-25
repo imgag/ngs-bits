@@ -46,6 +46,8 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 
 	TargetRegionInfo target_region_filter;
 
+	//parse msi-file and return the stepwise difference value
+	double get_msi_value();
 
 	///returns variant list according filters and include/exclude report_config settings. Include from settings will overwrite FilterCascade entry
 	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett, bool throw_errors=true);

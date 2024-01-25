@@ -11,6 +11,7 @@
 #include "StatisticsServiceLocal.h"
 #include "FileLocationProviderLocal.h"
 #include "VariantHgvsAnnotator.h"
+#include "OntologyTermCollection.h"
 
 #include <QThread>
 
@@ -57,8 +58,18 @@ private slots:
 
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
+		S_EQUAL(enum_values.join(", "), "n/a, Neoplasms, Diseases of the blood or blood-forming organs, Diseases of the immune system, Endocrine, nutritional or metabolic diseases, Mental, behavioural or neurodevelopmental disorders, Sleep-wake disorders, Diseases of the nervous system, Diseases of the visual system, Diseases of the ear or mastoid process, Diseases of the circulatory system, Diseases of the respiratory system, Diseases of the digestive system, Diseases of the skin, Diseases of the musculoskeletal system or connective tissue, Diseases of the genitourinary system, Developmental anomalies, Other diseases");
 		I_EQUAL(enum_values.count(), 18);
 		S_EQUAL(enum_values[4], "Endocrine, nutritional or metabolic diseases");
+		enum_values = db.getEnum("sample_disease_info", "type");
+		S_EQUAL(enum_values.join(", "), "HPO term id, ICD10 code, OMIM disease/phenotype identifier, Orpha number, CGI cancer type, tumor fraction, age of onset, clinical phenotype (free text), RNA reference tissue, Oncotree code")
+		I_EQUAL(enum_values.count(), 10);
+
+		//getEnum on Set type:
+		//setInfo:
+		enum_values = db.getEnum("somatic_report_configuration", "quality");
+		I_EQUAL(enum_values.count(), 6);
+		S_EQUAL(enum_values.join(", "), "no abnormalities, tumor cell content too low, quality of tumor DNA too low, DNA quantity too low, heterogeneous sample, contamination");
 
 		//processedSampleName
 		QString ps_name = db.processedSampleName(db.processedSampleId("NA12878_03"), false);
@@ -2070,23 +2081,25 @@ private slots:
 		som_rep_conf.set(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
 		som_rep_conf.setTargetRegionName("/path/to/somewhere.bed");
-		som_rep_conf.setTumContentByMaxSNV(true);
-		som_rep_conf.setTumContentByClonality(true);
-		som_rep_conf.setTumContentByHistological(true);
+		som_rep_conf.setIncludeTumContentByMaxSNV(true);
+		som_rep_conf.setIncludeTumContentByClonality(true);
+		som_rep_conf.setIncludeTumContentByHistological(true);
+		som_rep_conf.setIncludeTumContentByEstimated(true);
+		som_rep_conf.setTumContentByEstimated(42);
 		som_rep_conf.setMsiStatus(true);
 		som_rep_conf.setCnvBurden(true);
+		som_rep_conf.setIncludeMutationBurden(true);
 		som_rep_conf.setHrdStatement("undeterminable");
 		som_rep_conf.setCnvLohCount(12);
 		som_rep_conf.setCnvTaiCount(3);
 		som_rep_conf.setCnvLstCount(43);
 		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
-		som_rep_conf.setQuality("DNA quantity too low");
+		som_rep_conf.setQuality(QStringList(""));
 		som_rep_conf.setFusionsDetected(true);
 
 		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
 		som_rep_conf.setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
 		som_rep_conf.setFilter("somatic");
-
 
 
 		SomaticReportVariantConfiguration cnv1;
@@ -2128,29 +2141,29 @@ private slots:
 		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).variant_type, VariantType::CNVS);
 
 
-
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
 		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
-
-
 
 		QStringList messages = {};
 
 		//Test resolving report config
 		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
-		IS_TRUE(res_config.tumContentByMaxSNV());
-		IS_TRUE(res_config.tumContentByClonality());
-		IS_TRUE(res_config.tumContentByHistological());
+		IS_TRUE(res_config.includeTumContentByMaxSNV());
+		IS_TRUE(res_config.includeTumContentByClonality());
+		IS_TRUE(res_config.includeTumContentByHistological());
+		IS_TRUE(res_config.includeTumContentByEstimated());
+		I_EQUAL(res_config.tumContentByEstimated(), 42);
 		IS_TRUE(res_config.msiStatus());
 		IS_TRUE(res_config.cnvBurden());
+		IS_TRUE(res_config.includeMutationBurden());
 		S_EQUAL(res_config.hrdStatement(), "undeterminable");
 		I_EQUAL(res_config.cnvLohCount(), 12);
 		I_EQUAL(res_config.cnvTaiCount(), 3);
 		I_EQUAL(res_config.cnvLstCount(), 43);
 
 		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
-		S_EQUAL(res_config.quality(), "DNA quantity too low");
+		I_EQUAL(res_config.quality().count(), 0);
 		IS_TRUE(res_config.fusionsDetected());
 		S_EQUAL(res_config.cinChromosomes().join(','), "chr1,chr5,chr9,chrX,chrY");
 		IS_THROWN(ArgumentException, som_rep_conf.setCinChromosomes({"chr1", "chr24"}));
@@ -2213,11 +2226,14 @@ private slots:
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits
 		som_rep_conf.setTargetRegionName("/path/to/somewhere/else.bed");
-		som_rep_conf.setTumContentByMaxSNV(false);
-		som_rep_conf.setTumContentByClonality(false);
-		som_rep_conf.setTumContentByHistological(false);
+		som_rep_conf.setIncludeTumContentByMaxSNV(false);
+		som_rep_conf.setIncludeTumContentByClonality(false);
+		som_rep_conf.setIncludeTumContentByHistological(false);
+		som_rep_conf.setIncludeTumContentByEstimated(false);
+		som_rep_conf.setTumContentByEstimated(31);
 		som_rep_conf.setMsiStatus(false);
 		som_rep_conf.setCnvBurden(false);
+		som_rep_conf.setIncludeMutationBurden(false);
 
 		som_rep_conf.setHrdStatement("proof");
 		som_rep_conf.setCnvLohCount(9);
@@ -2226,7 +2242,7 @@ private slots:
 
 
 		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
-		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
+		som_rep_conf.setQuality(QStringList("DNA quantity too low"));
 		som_rep_conf.setFusionsDetected(false);
 		som_rep_conf.setCinChromosomes({"chr10","chr21"});
 		som_rep_conf.setLimitations("With German umlauts: ???????");
@@ -2237,11 +2253,14 @@ private slots:
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
 
 		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
-		IS_FALSE(res_config_2.tumContentByMaxSNV());
-		IS_FALSE(res_config_2.tumContentByClonality());
-		IS_FALSE(res_config_2.tumContentByHistological());
+		IS_FALSE(res_config_2.includeTumContentByMaxSNV());
+		IS_FALSE(res_config_2.includeTumContentByClonality());
+		IS_FALSE(res_config_2.includeTumContentByHistological());
+		IS_FALSE(res_config_2.includeTumContentByEstimated());
+		I_EQUAL(res_config_2.tumContentByEstimated(), 31);
 		IS_FALSE(res_config_2.msiStatus());
 		IS_FALSE(res_config_2.cnvBurden());
+		IS_FALSE(res_config_2.includeMutationBurden());
 
 		S_EQUAL(res_config_2.hrdStatement(), "proof");
 		I_EQUAL(res_config_2.cnvLohCount(), 9);
@@ -2249,7 +2268,7 @@ private slots:
 		I_EQUAL(res_config_2.cnvLstCount(), 23);
 
 		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
-		S_EQUAL(res_config_2.quality(), "");
+		S_EQUAL(res_config_2.quality()[0], "DNA quantity too low");
 		IS_FALSE(res_config_2.fusionsDetected());
 		S_EQUAL(res_config_2.cinChromosomes().join(','), "chr10,chr21");
 		S_EQUAL(res_config_2.limitations(), "With German umlauts: ???????");
@@ -2542,13 +2561,17 @@ private slots:
 	}
 
 	// Test the somatic report RTF generation
-	void test_somatic_rtf()
+	void test_somatic_rtf_1()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4.sql"));
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4_gene_exons.sql"));
+		SqlQuery query = db.getQuery();
+		query.prepare("UPDATE processed_sample SET folder_override = '" + TESTDATA("data_in/somatic/Sample_DNA123456_01/") + "' WHERE id = 4004");
+		query.exec();
 
 		QString tumor_sample = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/DNA123456_01-NA12878_03.GSvar");
 		QString normal_sample = TESTDATA("data_in/somatic/Sample_NA12878_03/NA12878_03.GSvar");
@@ -2559,33 +2582,188 @@ private slots:
 		VariantList control_tissue_variants;
 		control_tissue_variants.load(normal_sample);
 
-		CnvList cnv_list;
 
 		QSharedPointer<FileLocationProvider> flp = QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(tumor_sample, vl.getSampleHeader(), AnalysisType::SOMATIC_SINGLESAMPLE)); //vl.type()
-
 		FileLocation cnv_loc = flp->getAnalysisCnvFile();
-		if (cnv_loc.exists) cnv_list.load(cnv_loc.filename);
+
+		CnvList cnv_list;
+		cnv_list.load(cnv_loc.filename);
+
+		QStringList messages;
 
 		SomaticReportSettings somatic_report_settings;
+		SomaticReportConfiguration somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, control_tissue_variants, messages);
+		somatic_report_settings.report_config = somatic_report_config;
+
 		somatic_report_settings.tumor_ps = "DNA123456_01";
 		somatic_report_settings.normal_ps = "NA12878_03";
 		somatic_report_settings.msi_file = flp->getSomaticMsiFile().filename;
-		somatic_report_settings.viral_file = "";
+		somatic_report_settings.viral_file = TESTDATA("data_in/somatic/Sample_DNA123456_01/DNA123456_01_viral_1.tsv");
+
+
+
+		QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
+		somatic_report_settings.filters = FilterCascadeFile::load(filterFileName, somatic_report_settings.report_config.filter());
 
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
 
-		somatic_report_settings.report_config.setTumContentByHistological(true);
-		somatic_report_settings.report_config.setTumContentByClonality(true);
+		somatic_report_settings.report_config.setIncludeTumContentByHistological(true);
+		somatic_report_settings.report_config.setIncludeTumContentByClonality(true);
+		somatic_report_settings.report_config.setIncludeTumContentByMaxSNV(true);
+		somatic_report_settings.report_config.setIncludeTumContentByEstimated(false);
 		somatic_report_settings.report_config.setMsiStatus(true);
 		somatic_report_settings.report_config.setFusionsDetected(true);
 		somatic_report_settings.report_config.setCnvBurden(true);
+		somatic_report_settings.report_config.setIncludeMutationBurden(true);
+		somatic_report_settings.report_config.setHrdStatement("proof");
+		somatic_report_settings.report_config.setCnvLohCount(12);
+		somatic_report_settings.report_config.setCnvTaiCount(3);
+		somatic_report_settings.report_config.setCnvLstCount(33);
+		somatic_report_settings.report_config.setTmbReferenceText("Test reference text for the tmb of this analysis!");
 		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
+		somatic_report_settings.report_config.setLimitations("This text should appear as limitations!");
+		//preferred transcripts
+		somatic_report_settings.preferred_transcripts = db.getPreferredTranscripts();
+
+		OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
+		QList<QByteArray> ids;
+		ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+		ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+		foreach(const QByteArray& id, ids)
+		{
+			somatic_report_settings.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+		}
+
+		TargetRegionInfo target_region = TargetRegionInfo();
+		target_region.name = "VirtualTumorPanel_v5_exon20_ahott1a1_20230505";
+		target_region.genes = db.subpanelGenes(target_region.name);
+		target_region.regions = db.subpanelRegions(target_region.name);
+		somatic_report_settings.target_region_filter = target_region;
+		QStringList quality;
+		quality.append("DNA quantity too low");
+		quality.append("heterogeneous sample");
+		somatic_report_settings.report_config.setQuality(quality);
 
 		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings, true);
-		report.storeRtf("out/somatic_report_tumor_normal.rtf");
+		report.storeRtf("out/somatic_report_tumor_normal_1.rtf");
 
-		COMPARE_FILES("out/somatic_report_tumor_normal.rtf", TESTDATA("data_out/somatic_report_tumor_normal.rtf"));
+		COMPARE_FILES("out/somatic_report_tumor_normal_1.rtf", TESTDATA("data_out/somatic_report_tumor_normal_1.rtf"));
+
+		// test xml generation is legal:
+
+		VariantList som_vars_in_germline = SomaticReportSettings::filterGermlineVariants(control_tissue_variants, somatic_report_settings);
+		SomaticXmlReportGeneratorData xml_data = report.getXmlData(som_vars_in_germline);
+
+		SomaticXmlReportGenerator xml_report;
+		QSharedPointer<QFile> out_xml = Helper::openFileForWriting("out/somatic_report_tumor_normal_1.xml");
+		xml_report.generateXML(xml_data, out_xml, db, true);
+
+		COMPARE_FILES("out/somatic_report_tumor_normal_1.xml", TESTDATA("data_out/somatic_report_tumor_normal_1.xml"));
+
 	}
+
+	void test_somatic_rtf_2()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4.sql"));
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4_gene_exons.sql"));
+		SqlQuery query = db.getQuery();
+		query.prepare("UPDATE processed_sample SET folder_override = '" + TESTDATA("data_in/somatic/Sample_DNA123456_01/") + "' WHERE id = 4004");
+		query.exec();
+
+		QString tumor_sample = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/DNA123456_01-NA12878_03.GSvar");
+		QString normal_sample = TESTDATA("data_in/somatic/Sample_NA12878_03/NA12878_03.GSvar");
+
+		VariantList vl;
+		vl.load(tumor_sample);
+
+		VariantList control_tissue_variants;
+		control_tissue_variants.load(normal_sample);
+
+
+		QSharedPointer<FileLocationProvider> flp = QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(tumor_sample, vl.getSampleHeader(), AnalysisType::SOMATIC_SINGLESAMPLE)); //vl.type()
+		FileLocation cnv_loc = flp->getAnalysisCnvFile();
+
+		CnvList cnv_list;
+		cnv_list.load(cnv_loc.filename);
+
+		QStringList messages;
+
+		SomaticReportSettings somatic_report_settings;
+		SomaticReportConfiguration somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, control_tissue_variants, messages);
+		somatic_report_settings.report_config = somatic_report_config;
+
+		somatic_report_settings.tumor_ps = "DNA123456_01";
+		somatic_report_settings.normal_ps = "NA12878_03";
+		somatic_report_settings.msi_file = flp->getSomaticMsiFile().filename;
+		somatic_report_settings.viral_file = TESTDATA("data_in/somatic/Sample_DNA123456_01/DNA123456_01_viral_2.tsv");
+
+		somatic_report_settings.sbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_SBS96.csv");
+		somatic_report_settings.dbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_DBS78.csv");
+		somatic_report_settings.id_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_ID83.csv");
+		somatic_report_settings.cnv_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/cnv_signatures/De_Novo_map_to_COSMIC_CNV48.csv");
+
+		QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
+		somatic_report_settings.filters = FilterCascadeFile::load(filterFileName, somatic_report_settings.report_config.filter());
+
+		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
+
+		somatic_report_settings.report_config.setIncludeTumContentByHistological(true);
+		somatic_report_settings.report_config.setIncludeTumContentByClonality(false);
+		somatic_report_settings.report_config.setIncludeTumContentByMaxSNV(false);
+		somatic_report_settings.report_config.setIncludeTumContentByEstimated(true);
+		somatic_report_settings.report_config.setTumContentByEstimated(42);
+		somatic_report_settings.report_config.setMsiStatus(false);
+		somatic_report_settings.report_config.setFusionsDetected(false);
+		somatic_report_settings.report_config.setCnvBurden(false);
+		somatic_report_settings.report_config.setIncludeMutationBurden(false);
+		somatic_report_settings.report_config.setHrdStatement("no proof");
+		somatic_report_settings.report_config.setCnvLohCount(0);
+		somatic_report_settings.report_config.setCnvTaiCount(1);
+		somatic_report_settings.report_config.setCnvLstCount(2);
+		somatic_report_settings.report_config.setTmbReferenceText("Test reference text for the tmb of this analysis!");
+		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
+		somatic_report_settings.report_config.setLimitations("This text should appear as limitations!");
+
+		//preferred transcripts
+		somatic_report_settings.preferred_transcripts = db.getPreferredTranscripts();
+
+		OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
+		QList<QByteArray> ids;
+		ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+		ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+		foreach(const QByteArray& id, ids)
+		{
+			somatic_report_settings.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+		}
+
+
+		TargetRegionInfo target_region = TargetRegionInfo();
+		target_region.name = "VirtualTumorPanel_v5_exon20_ahott1a1_20230505";
+		target_region.genes = db.subpanelGenes(target_region.name);
+		target_region.regions = db.subpanelRegions(target_region.name);
+		somatic_report_settings.target_region_filter = target_region;
+		QStringList quality;
+		somatic_report_settings.report_config.setQuality(quality);
+
+		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings, true);
+		report.storeRtf("out/somatic_report_tumor_normal_2.rtf");
+
+		COMPARE_FILES("out/somatic_report_tumor_normal_2.rtf", TESTDATA("data_out/somatic_report_tumor_normal_2.rtf"));
+
+		VariantList som_vars_in_germline = SomaticReportSettings::filterGermlineVariants(control_tissue_variants, somatic_report_settings);
+		SomaticXmlReportGeneratorData xml_data = report.getXmlData(som_vars_in_germline);
+
+		SomaticXmlReportGenerator xml_report;
+		QSharedPointer<QFile> out_xml = Helper::openFileForWriting("out/somatic_report_tumor_normal_2.xml");
+		xml_report.generateXML(xml_data, out_xml, db, true);
+
+		COMPARE_FILES("out/somatic_report_tumor_normal_2.xml", TESTDATA("data_out/somatic_report_tumor_normal_2.xml"));
+	}
+
 
 	//Test tumor only RTF report generation
 	void report_tumor_only()

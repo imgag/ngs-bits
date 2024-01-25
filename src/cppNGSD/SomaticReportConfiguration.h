@@ -91,20 +91,29 @@ public:
 	QDateTime createdAt() const;
 	void setCreatedAt(QDateTime time);
 
-	bool tumContentByClonality() const;
-	void setTumContentByClonality(bool include_tum_content_clonality);
+	bool includeTumContentByClonality() const;
+	void setIncludeTumContentByClonality(bool include_tum_content_clonality);
 
-	bool tumContentByMaxSNV() const;
-	void setTumContentByMaxSNV(bool include_tum_content_snp_af);
+	bool includeTumContentByMaxSNV() const;
+	void setIncludeTumContentByMaxSNV(bool include_tum_content_snp_af);
 
-	bool tumContentByHistological() const;
-	void setTumContentByHistological(bool include_tum_content_histological);
+	bool includeTumContentByHistological() const;
+	void setIncludeTumContentByHistological(bool include_tum_content_histological);
+
+	bool includeTumContentByEstimated() const;
+	void setIncludeTumContentByEstimated(bool include_tum_content_estimated);
+
+	double tumContentByEstimated() const;
+	void setTumContentByEstimated(double tum_content_estimated);
 
 	bool msiStatus() const;
 	void setMsiStatus(bool include_msi_status);
 
 	bool cnvBurden() const;
 	void setCnvBurden(bool include_cnv_burden);
+
+	bool includeMutationBurden() const;
+	void setIncludeMutationBurden(bool include_mutation_burden);
 
 	const QList<QString>& cinChromosomes() const;
 	///Setter for CIN chromosomes, pass argument in the form {"chr1", "chr2", ...}
@@ -116,8 +125,8 @@ public:
 	QString tmbReferenceText() const;
 	void setTmbReferenceText(QString ref_text);
 
-	QString quality() const;
-	void setQuality(QString qual);
+	QStringList quality() const;
+	void setQuality(QStringList qual);
 
 	QString limitations() const;
 	void setLimitations(QString limitations);
@@ -155,9 +164,13 @@ private:
 	bool include_tum_content_clonality_;
 	bool include_tum_content_snp_af_;
 	bool include_tum_content_histological_;
+	bool include_tum_content_estimated_;
+
+	double tum_content_estimated_;
 
 	bool include_msi_status_;
 	bool include_cnv_burden_;
+	bool include_mutation_burden_;
 	double ploidy_;
 
 	QString hrd_statement_;
@@ -178,7 +191,7 @@ private:
 	QString tmb_reference_text_;
 
 	//Quality description
-	QString quality_;
+	QStringList quality_;
 
 	//Name of filter
 	QString filter_;
