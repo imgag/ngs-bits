@@ -39,6 +39,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, include_tum_content_histological_(false)
 	, include_msi_status_(false)
 	, include_cnv_burden_(false)
+	, include_mutation_burden_(true)
 	, ploidy_(0)
 	, hrd_statement_()
 	, cnv_loh_count_(0)
@@ -247,34 +248,54 @@ void SomaticReportConfiguration::sortByPosition()
 	std::sort(variant_config_.begin(), variant_config_.end(), [](const SomaticReportVariantConfiguration& a, const SomaticReportVariantConfiguration& b){return a.variant_index < b.variant_index;});
 }
 
-bool SomaticReportConfiguration::tumContentByClonality() const
+bool SomaticReportConfiguration::includeTumContentByClonality() const
 {
 	return include_tum_content_clonality_;
 }
 
-void SomaticReportConfiguration::setTumContentByClonality(bool include_tum_content_clonality)
+void SomaticReportConfiguration::setIncludeTumContentByClonality(bool include_tum_content_clonality)
 {
 	include_tum_content_clonality_ = include_tum_content_clonality;
 }
 
-bool SomaticReportConfiguration::tumContentByMaxSNV() const
+bool SomaticReportConfiguration::includeTumContentByMaxSNV() const
 {
 	return include_tum_content_snp_af_;
 }
 
-void SomaticReportConfiguration::setTumContentByMaxSNV(bool include_tum_content_snp_af)
+void SomaticReportConfiguration::setIncludeTumContentByMaxSNV(bool include_tum_content_snp_af)
 {
 	include_tum_content_snp_af_ = include_tum_content_snp_af;
 }
 
-bool SomaticReportConfiguration::tumContentByHistological() const
+bool SomaticReportConfiguration::includeTumContentByHistological() const
 {
 	return include_tum_content_histological_;
 }
 
-void SomaticReportConfiguration::setTumContentByHistological(bool include_tum_content_histological)
+void SomaticReportConfiguration::setIncludeTumContentByHistological(bool include_tum_content_histological)
 {
 	include_tum_content_histological_ = include_tum_content_histological;
+}
+
+bool SomaticReportConfiguration::includeTumContentByEstimated() const
+{
+	return include_tum_content_estimated_;
+}
+
+void SomaticReportConfiguration::setIncludeTumContentByEstimated(bool include_tum_content_estimated)
+{
+	include_tum_content_estimated_ = include_tum_content_estimated;
+}
+
+double SomaticReportConfiguration::tumContentByEstimated() const
+{
+	return tum_content_estimated_;
+}
+
+void SomaticReportConfiguration::setTumContentByEstimated(double tum_content_estimated)
+{
+	tum_content_estimated_ = tum_content_estimated;
 }
 
 bool SomaticReportConfiguration::msiStatus() const
@@ -295,6 +316,16 @@ bool SomaticReportConfiguration::cnvBurden() const
 void SomaticReportConfiguration::setCnvBurden(bool include_cnv_burden)
 {
 	include_cnv_burden_ = include_cnv_burden;
+}
+
+bool SomaticReportConfiguration::includeMutationBurden() const
+{
+	return include_mutation_burden_;
+}
+
+void SomaticReportConfiguration::setIncludeMutationBurden(bool include_mutation_burden)
+{
+	include_mutation_burden_ = include_mutation_burden;
 }
 
 const QList<QString>& SomaticReportConfiguration::cinChromosomes() const
@@ -339,12 +370,12 @@ void SomaticReportConfiguration::setTmbReferenceText(QString ref_text)
 	tmb_reference_text_ = ref_text.mid(0,200); //NGSD schema allows ref text up to 200 chars
 }
 
-QString SomaticReportConfiguration::quality() const
+QStringList SomaticReportConfiguration::quality() const
 {
 	return quality_;
 }
 
-void SomaticReportConfiguration::setQuality(QString qual)
+void SomaticReportConfiguration::setQuality(QStringList qual)
 {
 	quality_ = qual;
 }

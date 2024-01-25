@@ -74,6 +74,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 		VARCHAR, //one line text
 		VARCHAR_PASSWORD, //note: special handling when shown and edited
 		ENUM,
+		SET,
 		DATE,
 		DATETIME, //note: hidden by default
 		TIMESTAMP, //note: hidden by default
