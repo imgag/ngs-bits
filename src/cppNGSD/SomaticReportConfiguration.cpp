@@ -120,7 +120,12 @@ bool SomaticReportConfiguration::exists(VariantType type, int index) const
 	return false;
 }
 
-bool SomaticReportConfiguration::set(const SomaticReportVariantConfiguration &config)
+void SomaticReportConfiguration::clearSomaticVariantConfigurations()
+{
+	variant_config_.clear();
+}
+
+void SomaticReportConfiguration::addSomaticVariantConfiguration(const SomaticReportVariantConfiguration &config)
 {	
 	if(config.variant_type == VariantType::INVALID)
 	{
@@ -138,30 +143,30 @@ bool SomaticReportConfiguration::set(const SomaticReportVariantConfiguration &co
 		if (var_conf.variant_index==config.variant_index && var_conf.variant_type==config.variant_type)
 		{
 			variant_config_[i] = config;
-			return true;
 		}
 	}
 	//set variant config (if not yet contained)
 	variant_config_ << config;
 
 	sortByPosition();
-
-	return false;
 }
 
-bool SomaticReportConfiguration::setGermline(const SomaticReportGermlineVariantConfiguration& config)
+void SomaticReportConfiguration::clearGermlineVariantConfigurations()
+{
+	germ_variant_config_.clear();
+}
+
+void SomaticReportConfiguration::addGermlineVariantConfiguration(const SomaticReportGermlineVariantConfiguration& config)
 {
 	for(int i=0; i< germ_variant_config_.count(); ++i)
 	{
 		if(config.variant_index == germ_variant_config_[i].variant_index)
 		{
 			germ_variant_config_[i] = config;
-			return true;
 		}
 	}
 
 	germ_variant_config_ << config;
-	return false;
 }
 
 const SomaticReportVariantConfiguration& SomaticReportConfiguration::get(VariantType type, int index) const

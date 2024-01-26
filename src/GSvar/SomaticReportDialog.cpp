@@ -448,7 +448,9 @@ void SomaticReportDialog::writeBackSettings()
 		settings_.report_config.setTmbReferenceText(ref_text);
 	}
 
-	//get selected variants in germline sample
+	//get selected variants in germline sample - clear current and replace by the selected
+	settings_.report_config.clearGermlineVariantConfigurations();
+
 	for(int i=0; i<ui_.germline_variants->rowCount(); ++i)
 	{
 		if(ui_.germline_variants->item(i,0)->checkState() == Qt::Checked)
@@ -474,11 +476,7 @@ void SomaticReportDialog::writeBackSettings()
 				var_conf.tum_depth = std::numeric_limits<double>::quiet_NaN();
 			}
 
-			settings_.report_config.setGermline(var_conf);
-		}
-		else
-		{
-			settings_.report_config.removeGermline(ui_.germline_variants->verticalHeaderItem(i)->text().toInt());
+			settings_.report_config.addGermlineVariantConfiguration(var_conf);
 		}
 	}
 

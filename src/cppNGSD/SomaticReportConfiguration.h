@@ -60,10 +60,14 @@ public:
 	///Check whether variant configuration exists for index
 	bool exists(VariantType type, int index) const;
 
-	///sets / adds somatic variant configuration to list.
-	bool set(const SomaticReportVariantConfiguration& config);
-	///sets /adds germline variant to somatic report configuration
-	bool setGermline(const SomaticReportGermlineVariantConfiguration& config);
+	/// clears the current list of somatic variant configurations.
+	void clearSomaticVariantConfigurations();
+	/// adds somatic variant configuration to list if variant is already contained it updates the config.
+	void addSomaticVariantConfiguration(const SomaticReportVariantConfiguration& config);
+	/// clears the current list of germline variant configurations.
+	void clearGermlineVariantConfigurations();
+	/// adds germline variant to somatic report configuration if variant is already contained it updates the config.
+	void addGermlineVariantConfiguration(const SomaticReportGermlineVariantConfiguration& config);
 
 	///Somatic variant report configuration according type and index in file
 	const SomaticReportVariantConfiguration& get(VariantType type, int index) const;

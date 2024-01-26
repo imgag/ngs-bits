@@ -5967,7 +5967,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(variants_[index].toString(), var_config, this);
 
 		if(dlg->exec() != QDialog::Accepted) return;
-		somatic_report_settings_.report_config.set(var_config);
+		somatic_report_settings_.report_config.addSomaticVariantConfiguration(var_config);
 
 		storeSomaticReportConfig();
 		updateReportConfigHeaderIcon(index);
