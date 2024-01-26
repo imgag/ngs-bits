@@ -7,6 +7,7 @@ MultiSampleDialog::MultiSampleDialog(QWidget *parent)
 	, db_()
 	, samples_()
 	, steps_(SingleSampleAnalysisDialog::loadSteps("analysis_steps_multi_sample"))
+	, steps_lr_(SingleSampleAnalysisDialog::loadSteps("analysis_steps_multi_sample_lr"))
 {
 	ui_.setupUi(this);
 	SingleSampleAnalysisDialog::initTable(ui_.samples_table);
@@ -21,6 +22,8 @@ void MultiSampleDialog::setSamples(QList<AnalysisJobSample> samples)
 	{
 		addSample(sample.info, sample.name);
 	}
+
+	checkLongread();
 	updateSampleTable();
 	updateStartButton();
 }
@@ -43,6 +46,7 @@ bool MultiSampleDialog::highPriority() const
 void MultiSampleDialog::on_add_affected_clicked(bool)
 {
 	addSample("affected");
+	checkLongread();
 	updateSampleTable();
 	updateStartButton();
 }
@@ -57,6 +61,7 @@ void MultiSampleDialog::on_clear_clicked(bool)
 void MultiSampleDialog::on_add_control_clicked(bool)
 {
 	addSample("control");
+	checkLongread();
 	updateSampleTable();
 	updateStartButton();
 }
@@ -90,7 +95,6 @@ void MultiSampleDialog::annotate_only_state_changed()
 	}
 }
 
-
 void MultiSampleDialog::addSample(QString status, QString sample)
 {
 	try
@@ -110,3 +114,45 @@ void MultiSampleDialog::updateSampleTable()
 	SingleSampleAnalysisDialog::updateSampleTable(samples_, ui_.samples_table);
 }
 
+void MultiSampleDialog::checkLongread()
+{
+	if (samples_.size() > 0)
+	{
+		//check if all samples are either long-read or short-read
+		QSet<bool> is_longread_sample;
+		foreach (const SampleDetails& sample, samples_)
+		{
+			qDebug() << db_.getProcessedSampleData(db_.processedSampleId(sample.name)).processing_system_type;
+			is_longread_sample.insert(db_.getProcessedSampleData(db_.processedSampleId(sample.name)).processing_system_type == "lrGS");
+		}
+		if (is_longread_sample.size() > 1)
+		{
+			QMessageBox::warning(this, "Error in sample selection", "You cannot mix short-read and long-read samples in multi analysis!");
+			samples_.clear();
+		}
+		else
+		{
+			//remove old step entries
+			QList<QWidget*> old_steps;
+			foreach (QWidget* widget, ui_.param_group->findChildren<QWidget *>(QString(), Qt::FindDirectChildrenOnly))
+			{
+				if (widget->objectName().startsWith("step_")) old_steps.append(widget);
+				if (widget->objectName().isEmpty()) old_steps.append(widget);
+			}
+			qDeleteAll(old_steps);
+			//update steps
+			if (is_longread_sample.values().first())
+			{
+				SingleSampleAnalysisDialog::addStepsToParameters(steps_lr_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+				ui_.annotate_only->setEnabled(false);
+				ui_.annotate_only->setChecked(false);
+			}
+			else
+			{
+				SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+				ui_.annotate_only->setEnabled(true);
+			}
+
+		}
+	}
+}

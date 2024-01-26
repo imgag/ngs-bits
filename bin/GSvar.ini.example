@@ -22,6 +22,8 @@ analysis_steps_somatic=vc - variant calling, vi - virus detection, cn - copy num
 analysis_steps_single_sample_rna = ma - mapping, rc - read counting, an -annotation, plt - plot, fu - fusion, db - database import
 analysis_steps_cfdna=ma - mapping, vc - SNV/InDel calling + annotation, db - database import
 analysis_steps_single_sample_lr=ma - mapping, vc - SNV/InDel calling, cn - CNV calling, sv - SV calling, an - annotation, db - database import
+analysis_steps_trio_lr=vc - SNV/InDel calling, cn - CNV calling, sv - SV calling, an - annotation, db - database import
+analysis_steps_multi_sample_lr=vc - SNV/InDel calling, cn - CNV calling, sv - SV calling, an - annotation, db - database import
 
 #webservice URLs
 PrimerDesign = ""

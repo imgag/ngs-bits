@@ -269,6 +269,7 @@ QByteArray BedpeLine::genotypeHumanReadable(const QList<QByteArray>& annotation_
 	else if (gt=="1/0") return "het";
 	else if (gt=="0/0") return "wt";
 	else if (gt=="") return "n/a";
+	else if (gt=="./.") return "n/a";
 	else THROW(ArgumentException, "Unhandled SV genotype '" + gt + "'!");
 }
 
