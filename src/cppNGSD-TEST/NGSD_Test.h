@@ -2077,8 +2077,8 @@ private slots:
 		var2.comment = "known test driver was not included in any db yet.";
 
 		SomaticReportConfiguration som_rep_conf;
-		som_rep_conf.set(var1);
-		som_rep_conf.set(var2);
+		som_rep_conf.addSomaticVariantConfiguration(var1);
+		som_rep_conf.addSomaticVariantConfiguration(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
 		som_rep_conf.setTargetRegionName("/path/to/somewhere.bed");
 		som_rep_conf.setIncludeTumContentByMaxSNV(true);
@@ -2108,7 +2108,7 @@ private slots:
 		cnv1.exclude_artefact = true;
 		cnv1.exclude_other_reason = true;
 		cnv1.comment = "This test somatic cnv shall be excluded.";
-		som_rep_conf.set(cnv1);
+		som_rep_conf.addSomaticVariantConfiguration(cnv1);
 
 		SomaticReportGermlineVariantConfiguration var1_germl, var2_germl;
 		var1_germl.variant_index = 2;
@@ -2118,8 +2118,8 @@ private slots:
 		var2_germl.variant_index = 4;
 		var2_germl.tum_freq = 0.68;
 		var2_germl.tum_depth = 1022;
-		som_rep_conf.setGermline(var1_germl);
-		som_rep_conf.setGermline(var2_germl);
+		som_rep_conf.addGermlineVariantConfiguration(var1_germl);
+		som_rep_conf.addGermlineVariantConfiguration(var2_germl);
 
 
 		//Check resolving single variant config from report configuration

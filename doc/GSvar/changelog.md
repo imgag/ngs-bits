@@ -1,5 +1,11 @@
 # GSvar change log
 
+
+## 2023_11-93 (29.01.23)
+
+- Somatic Report improvements 
+- Changed "open by name" shortcut to Ctrl+Alt+O
+
 ## 2023_11-75 (15.01.23)
 
 - IGV: no longer using 'echo' command to check if IGV is running because IGV sometimes does not reply

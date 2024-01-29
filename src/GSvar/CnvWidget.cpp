@@ -1101,7 +1101,7 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 	dlg->disableIncludeForm();
 	if(dlg->exec()!=QDialog::Accepted) return;
 
-	somatic_report_config_->set(var_config);
+	somatic_report_config_->addSomaticVariantConfiguration(var_config);
 	updateReportConfigHeaderIcon(row);
 	emit storeSomaticReportConfiguration();
 }
@@ -1183,7 +1183,7 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 		SomaticReportVariantConfiguration temp_var_config = generic_var_config;
 		temp_var_config.variant_index = row;
 
-		somatic_report_config_->set(temp_var_config);
+		somatic_report_config_->addSomaticVariantConfiguration(temp_var_config);
 
 		updateReportConfigHeaderIcon(row);
 	}
@@ -1350,7 +1350,7 @@ void CnvWidget::flagInvisibleSomaticCnvsAsArtefacts()
 		if(ui->cnvs->isRowHidden(r))
 		{
 			generic_var_config.variant_index = r;
-			somatic_report_config_->set(generic_var_config);
+			somatic_report_config_->addSomaticVariantConfiguration(generic_var_config);
 			updateReportConfigHeaderIcon(r);
 		}
 	}
@@ -1375,7 +1375,7 @@ void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
 		if(!ui->cnvs->isRowHidden(r))
 		{
 			generic_var_config.variant_index = r;
-			somatic_report_config_->set(generic_var_config);
+			somatic_report_config_->addSomaticVariantConfiguration(generic_var_config);
 			updateReportConfigHeaderIcon(r);
 		}
 	}

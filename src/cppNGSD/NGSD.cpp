@@ -8469,7 +8469,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 
 		var_conf.comment = query.value("comment").toString();
 
-		output.set(var_conf);
+		output.addSomaticVariantConfiguration(var_conf);
 	}
 
 	//Load Cnvs
@@ -8500,7 +8500,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		var_conf.exclude_other_reason = query.value("exclude_other_reason").toBool();
 		var_conf.comment = query.value("comment").toString();
 
-		output.set(var_conf);
+		output.addSomaticVariantConfiguration(var_conf);
 	}
 
 	//Load germline SNVs related to tumor
@@ -8524,7 +8524,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		if(!query.value("tum_depth").isNull() ) var_conf.tum_depth = query.value("tum_depth").toDouble();
 		else var_conf.tum_depth = std::numeric_limits<double>::quiet_NaN();
 
-		output.setGermline(var_conf);
+		output.addGermlineVariantConfiguration(var_conf);
 	}
 
 	return output;
