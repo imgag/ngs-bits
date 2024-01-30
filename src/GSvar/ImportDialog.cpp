@@ -251,10 +251,17 @@ void ImportDialog::fixValue(QString value, const TableFieldInfo& field_info, QSt
 		actual = db_.getValue("SELECT " + field_info.fk_field + " FROM " + field_info.fk_table + " WHERE " + name_field + "=:0", true, value).toString();
 	}
 
-	//check if valid
+	//check if valid type
 	if (!field_info.isValid(actual))
 	{
 		validation_error = "'" + actual + "' is not valid for " + field_info.toString();
+	}
+
+	//check if valid constraints
+	QStringList constraint_errors = db_.checkValue(db_table_, field_info.name, actual, false);
+	if (!constraint_errors.isEmpty())
+	{
+		validation_error = "'" + actual + "' does not match constraints for " + db_table_ + "/" + field_info.name + ": " + constraint_errors.join(", ");
 	}
 
 	//additional check to make sure a valid HPO term id was given
