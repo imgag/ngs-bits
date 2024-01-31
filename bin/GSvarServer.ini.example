@@ -48,3 +48,12 @@ proxy_host = ""
 proxy_port = 
 proxy_user = ""
 proxy_password = ""
+
+# thread pool settings (time is seconds)
+thread_timeout = 10
+thread_count = 8
+
+# request worker settings (time in seconds)
+socket_read_timeout = 10
+socket_write_timeout = 10
+socket_encryption_timeout = 5

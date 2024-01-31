@@ -35,6 +35,8 @@ private:
 	QSslConfiguration current_ssl_configuration_;
 	QString client_version_;
     QThreadPool thread_pool_;
+    RequestWorkerParams worker_params_;
+
 };
 
 #endif // SSLSERVER_P_H
