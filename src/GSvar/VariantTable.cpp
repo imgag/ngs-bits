@@ -298,7 +298,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	{
 		int pos = variant.start();
 		if (variant.ref()=="-") pos += 1;
-		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
+		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants?search_chromosome=%3D%22" + variant.chr().strNormalized(false) + "%22&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
 	}
 	else if (action == a_clinvar_find)
 	{
