@@ -149,6 +149,9 @@ SERVER_DEP_PATH=/opt/GSvarServer/GSvarServer-$(NGSBITS_VER)
 deploy_server_nobuild:
 	@if [ ! -e ./bin/GSvarServer ] ; then echo "Error: bin/GSvarServer is missing!"; false; fi;
 	@if [ ! -e ./src/cppCORE/CRYPT_KEY.txt ] ; then echo "Error: src/cppCORE/CRYPT_KEY.txt is missing!"; false; fi;
+	@echo "Check configuration files"
+	diff /opt/GSvarServer/GSvarServer-current/GSvarServer.ini /mnt/storage2/megSAP/tools/ngs-bits-settings/GSvarServer.ini -s
+	diff /opt/GSvarServer/GSvarServer-current/GSvarServer.ini /mnt/storage2/megSAP/tools/ngs-bits-settings/GSvarServer.ini
 	@echo "#Clean up source"
 	rm -rf bin/out bin/*-TEST
 	@echo ""
