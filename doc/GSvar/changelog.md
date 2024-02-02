@@ -1,17 +1,25 @@
 # GSvar change log
 
 
-## 2023_11-93 (29.01.23)
+## 2023_11-103 (02.02.24)
+
+- IGV: update to 2.17.0
+- run tab: added checkbox to show sample comments in overview table.
+- sample batch import: now highlights but skips samples already in NGSD.
+- general batch import: added checking of constraints of some fields, e.g. processed sample lanes.
+- general: updated LOVD search links
+
+## 2023_11-93 (29.01.24)
 
 - Somatic Report improvements 
 - Changed "open by name" shortcut to Ctrl+Alt+O
 
-## 2023_11-75 (15.01.23)
+## 2023_11-75 (15.01.24)
 
 - IGV: no longer using 'echo' command to check if IGV is running because IGV sometimes does not reply
 - report: merged CNV and SV table in technical report
 
-## 2023_11-67 (09.01.23)
+## 2023_11-67 (09.01.24)
 
 - variant details dock: best transcript is automatically shown if there is no preferred transcript
 - sample tab: added gender to sample relation table
