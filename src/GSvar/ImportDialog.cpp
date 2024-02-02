@@ -179,6 +179,7 @@ void ImportDialog::pasteRow(int row_index, QString line)
 			QString value = parts[c];
 			QString actual = value;
 			QString validation_error;
+			QString notice;
 
 			//get field info and perform checks/conversions
 			if (c<db_fields_.count())
@@ -195,10 +196,16 @@ void ImportDialog::pasteRow(int row_index, QString line)
 						THROW(Exception, "No tumor sample spefified for cfDNA (patient-specific) sample!");
 					}
 				}
+
+				//additional check to make sure sample names are unique
+				if (db_table_=="sample" && field_info.name=="name" && db_.getValue("SELECT id FROM sample WHERE name=:0", true, actual).toString()!="")
+				{
+					notice = "Sample with name '" + actual + " already exists in NGSD. Import will be skipped!";
+				}
 			}
 
 			//create item
-			all_valid &= addItem(row_index, c, value, actual, validation_error);
+			all_valid &= addItem(row_index, c, value, actual, validation_error, notice);
 		}
 	}
 	else
@@ -270,23 +277,9 @@ void ImportDialog::fixValue(QString value, const TableFieldInfo& field_info, QSt
 		QVariant hpo_id = db_.getValue("SELECT id FROM hpo_term WHERE hpo_id=:0", true, value);
 		if (!hpo_id.isValid()) THROW(ArgumentException, "Invalid HPO term id '" + value + "' given!");
 	}
-
-	//additional check to make sure sample names are unique
-	if (db_table_=="sample" && field_info.name=="name" && db_.getValue("SELECT id FROM sample WHERE name=:0", true, actual).toString()!="")
-	{
-		QString error = "Sample with name '" + actual + " already exists in NGSD!";
-		if (validation_error.isEmpty())
-		{
-			validation_error = error;
-		}
-		else
-		{
-			validation_error += "; " + error;
-		}
-	}
 }
 
-bool ImportDialog::addItem(int r, int c, const QString& value, const QString& actual, const QString& validation_error)
+bool ImportDialog::addItem(int r, int c, const QString& value, const QString& actual, const QString& validation_error, const QString& notice)
 {
 	QTableWidgetItem* item = GUIHelper::createTableItem(value);
 	ui_.table->setItem(r, c, item);
@@ -298,6 +291,13 @@ bool ImportDialog::addItem(int r, int c, const QString& value, const QString& ac
 		item->setBackgroundColor("#FF9600");
 		item->setToolTip(validation_error);
 		return false;
+	}
+
+	//color item if not valid
+	if(!notice.trimmed().isEmpty())
+	{
+		item->setBackgroundColor("#BCBCBC");
+		item->setToolTip(notice);
 	}
 
 	return true;
@@ -359,6 +359,7 @@ void ImportDialog::import()
 	ui_.warnings->clear();
 	db_.transaction();
 	int row_num = 0;
+	int skipped = 0;
 
 	try
 	{
@@ -405,6 +406,15 @@ void ImportDialog::import()
 			for (int r=0; r<ui_.table->rowCount(); ++r)
 			{
 				++row_num;
+
+				//skip already imported samples
+				QString sample_name = ui_.table->item(r,0)->data(Qt::UserRole).toString();
+				if (db_.getValue("SELECT id FROM sample WHERE name=:0", true, sample_name).toString()!="")
+				{
+					++skipped;
+					continue;
+				}
+
 				addRow(query, r);
 
 				//link corresponding tumor and cfDNA sample
@@ -422,6 +432,10 @@ void ImportDialog::import()
 
 			db_.commit();
 			ui_.warnings->appendPlainText("Import successful!");
+			if (skipped>0)
+			{
+				ui_.warnings->appendPlainText("Skipped " + QString::number(skipped) + " rows!");
+			}
 			ui_.import_btn->setEnabled(false);
 		}
 		else
