@@ -392,6 +392,42 @@ void ProcessedSampleWidget::updateQCMetrics()
 			colors << color;
 		}
 		ui_->qc_table->setColumnColors("value", colors);
+
+		//Format large numbers
+		QString large_number_adjustment = Settings::string("view_adjust_large_numbers", true);
+		if (!large_number_adjustment.isEmpty() && large_number_adjustment != "raw_counts")
+		{
+			for (int r=0; r<qc_table.rowCount(); ++r)
+			{
+				QString accession = qc_table.row(r).value(0);
+				if (accession == "QC:2000005")
+				{
+					qc_table.setValue(r, 2, Helper::FormatLargeNumber(qc_table.row(r).value(2).toLongLong(), large_number_adjustment));
+				}
+				if (accession == "QC:2000006")
+				{
+					QString value = qc_table.row(r).value(2);
+					//range
+					if (value.contains('-'))
+					{
+						QStringList values = value.split('-');
+						qc_table.setValue(r, 2, Helper::FormatLargeNumber(values.at(0).toInt(), large_number_adjustment) + "-"
+										  + Helper::FormatLargeNumber(values.at(1).toInt(), large_number_adjustment));
+					}
+					else
+					{
+						QStringList values = value.split(", ");
+						for (int i = 0; i < values.size(); ++i)
+						{
+							values[i] = Helper::FormatLargeNumber(values[i].toInt(), large_number_adjustment);
+						}
+						qc_table.setValue(r, 2, values.join(", "));
+					}
+				}
+			}
+			ui_->qc_table->setData(qc_table);
+		}
+
 	}
 	catch (Exception& e)
 	{

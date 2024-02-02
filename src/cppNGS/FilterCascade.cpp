@@ -979,6 +979,9 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["RNA gene expression"] = &createInstance<FilterVariantRNAGeneExpression>;
 		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
 		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
+		//SV lrGS
+		output["SV-lr AF"] = &createInstance<FilterSvLrAF>;
+		output["SV-lr support reads"] = &createInstance<FilterSvLrSupportReads>;
 	}
 
 	return output;
@@ -3769,7 +3772,7 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 			QString sv_genotype;
 
 			// convert genotype into GSvar format
-			if (sv_genotype_string == "0/1" || (sv_genotype_string == "1/0")) sv_genotype = "het";
+			if (sv_genotype_string == "0/1" || sv_genotype_string == "1/0" || sv_genotype_string == "0|1" || sv_genotype_string == "1|0") sv_genotype = "het";
 			else if (sv_genotype_string == "1/1") sv_genotype = "hom";
 			else if (sv_genotype_string == "0/0") sv_genotype = "wt";
 			else sv_genotype = "n/a";
@@ -5657,3 +5660,94 @@ void FilterSvCnvOverlap::apply(const BedpeFile& svs, FilterResult& result) const
 	}
 }
 
+
+FilterSvLrAF::FilterSvLrAF()
+{
+	name_ = "SV-lr AF";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Show only (lr) SVs with a certain Allele Frequency +/- 10%";
+	params_ << FilterParameter("AF", FilterParameterType::DOUBLE, 0.0, "Allele Frequency +/- 10%");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvLrAF::toText() const
+{
+	return name() + " = " + QByteArray::number(getDouble("AF", false), 'f', 2) + " &plusmn; 10%";
+}
+
+void FilterSvLrAF::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+	if (svs.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		// ignore filter if applied to tumor-normal sample
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to somatic tumor normal sample!");
+		return;
+	}
+
+	// get allowed interval
+	double upper_limit = getDouble("AF", false) + 0.1;
+	double lower_limit = getDouble("AF", false) - 0.1;
+
+
+	int col_index = svs.annotationIndexByName("AF");
+
+	if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
+	{
+		// ignore filter if applied to trio/multi samples
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied on multi-samples!");
+		return;
+	}
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//some SVs do not have a AF due to insufficient coverage, keep them in
+		if (svs[i].annotations()[col_index].isEmpty()) continue;
+
+		//get AF
+		double af = Helper::toDouble(svs[i].annotations()[col_index]);
+
+		// compare AF with filter
+		if(af > upper_limit || af < lower_limit) result.flags()[i] = false;
+	}
+}
+
+FilterSvLrSupportReads::FilterSvLrSupportReads()
+{
+	name_ = "SV-lr support reads";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Show only (lr) SVs with a minimum number of supporting reads";
+	params_ << FilterParameter("min_support", FilterParameterType::INT, 5, "Minimum support read count");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "10000";
+
+	checkIsRegistered();
+}
+
+QString FilterSvLrSupportReads::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_support", false), 'f', 2);
+}
+
+void FilterSvLrSupportReads::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	int col_index = svs.annotationIndexByName("SUPPORT");
+	int min_support = getInt("min_support", true);
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//get supporting read count
+		int sup_reads = Helper::toInt(svs[i].annotations()[col_index]);
+
+		// compare AF with filter
+		if(sup_reads < min_support) result.flags()[i] = false;
+	}
+}
