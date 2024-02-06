@@ -35,6 +35,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 	connect(ui->genome_nexus, SIGNAL(linkActivated(QString)), this, SLOT(genomeNexusClicked(QString)));
+	connect(ui->spliceai, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(spliceaiContextMenu(QPoint)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -1032,8 +1033,6 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 
 void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 {
-	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
-
 	QMenu menu;
 	QAction* a_v4 = menu.addAction("Open in gnomAD 4.0");
 
@@ -1047,5 +1046,19 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 	}
 }
 
+void VariantDetailsDockWidget::spliceaiContextMenu(QPoint pos)
+{
+	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
 
+	QMenu menu;
+	QAction* a_lookup = menu.addAction("Open SpliceAI Lookup");
 
+	QAction* action = menu.exec(ui->spliceai->mapToGlobal(pos));
+
+	if (action==a_lookup)
+	{
+		FastaFileIndex genome_index(Settings::string("reference_genome"));
+		QString var_rep = Variant::fromString(variant_str).toGnomAD(genome_index);
+		QDesktopServices::openUrl(QUrl("https://spliceailookup.broadinstitute.org/#variant=" + var_rep + "&hg=38&distance=500&mask=1&ra=0"));
+	}
+}

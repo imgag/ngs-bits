@@ -1,9 +1,10 @@
 #include "RequestWorker.h"
 
-RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket)
+RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket, RequestWorkerParams params)
     : QRunnable()
     , ssl_configuration_(ssl_configuration)
 	, socket_(socket)
+    , params_(params)
 	, is_terminated_(false)
 {
 }
@@ -43,9 +44,9 @@ void RequestWorker::run()
 		qint64 request_headers_size = 0;
 		qint64 request_body_size = 0;
 
-		while (ssl_socket->waitForReadyRead())
+        while (ssl_socket->waitForReadyRead(params_.socket_read_timeout))
 		{
-			ssl_socket->waitForEncrypted();
+            ssl_socket->waitForEncrypted(params_.socket_encryption_timeout);
 
 			if (!ssl_socket->isEncrypted() || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState))
 			{
@@ -386,7 +387,7 @@ void RequestWorker::closeConnection(QSslSocket* socket)
         return;
 	}
 
-    if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
+    if (socket->bytesToWrite()) socket->waitForBytesWritten(params_.socket_write_timeout); //5000
     socket->abort();
 }
 
@@ -395,7 +396,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, const QByteArray& d
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		socket->write(data, data.size());
-		if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
+        if (socket->bytesToWrite()) socket->waitForBytesWritten(params_.socket_write_timeout);
 	}
 }
 

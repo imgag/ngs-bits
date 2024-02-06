@@ -542,7 +542,7 @@ int main(int argc, char **argv)
 	}
 	if (server_port == 0)
 	{
-		Log::error("HTTPS port number is invalid");
+        Log::error("HTTPS port number is missing or invalid");
 		app.exit(EXIT_FAILURE);
 		return app.exec();
 	}
