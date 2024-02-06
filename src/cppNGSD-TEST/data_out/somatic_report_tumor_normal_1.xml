@@ -21046,7 +21046,7 @@
     <VariantList>
         <Variant chr="chr2" start="29193683" end="29193683" ref="C" obs="-" af_tumor="0.2128" depth_tumor="877" af_normal="0" depth_normal="803">
             <Gene name="ALK" id="HGNC:427" role="activating">
-                <IsOncoGene source="Network of Cancer Genes" source_version="6.0"/>
+                <IsOncoGene source="Network of Cancer Genes" source_version="7.1"/>
             </Gene>
             <TranscriptInformation transcript_id="ENST00000389048.8" gene="ALK" type="frameshift_variant" hgvs_c="c.4404del" hgvs_p="p.Pro1469ArgfsTer8" exon="exon29/29" variant_type="frameshift_variant" main_transcript="true"/>
             <TranscriptInformation transcript_id="ENST00000618119.4" gene="ALK" type="frameshift_variant" hgvs_c="c.3273del" hgvs_p="p.Pro1092ArgfsTer8" exon="exon28/28" variant_type="frameshift_variant" main_transcript="false"/>
@@ -21055,14 +21055,14 @@
         </Variant>
         <Variant chr="chr13" start="32340199" end="32340222" ref="TGATGTTAGTTTGGAAACTTCAGA" obs="-" af_tumor="0.119" depth_tumor="153" af_normal="0" depth_normal="79">
             <Gene name="BRCA2" id="HGNC:1101" role="loss_of_function">
-                <IsTumorSuppressor source="Network of Cancer Genes" source_version="6.0"/>
+                <IsTumorSuppressor source="Network of Cancer Genes" source_version="7.1"/>
             </Gene>
             <TranscriptInformation transcript_id="ENST00000544455.6" gene="BRCA2" type="inframe_deletion" hgvs_c="c.5845_5868del" hgvs_p="p.Asp1949_Asp1956del" exon="exon11/27" variant_type="inframe_deletion" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000380152.8" gene="BRCA2" type="inframe_deletion" hgvs_c="c.5845_5868del" hgvs_p="p.Asp1949_Asp1956del" exon="exon11/27" variant_type="inframe_deletion" main_transcript="true"/>
         </Variant>
         <Variant chr="chr7" start="55191822" end="55191822" ref="T" obs="G" af_tumor="0.1588" depth_tumor="450" af_normal="0" depth_normal="181">
             <Gene name="EGFR" id="HGNC:3236" role="activating">
-                <IsOncoGene source="Network of Cancer Genes" source_version="6.0"/>
+                <IsOncoGene source="Network of Cancer Genes" source_version="7.1"/>
             </Gene>
             <TranscriptInformation transcript_id="ENST00000275493.7" gene="EGFR" type="missense_variant" hgvs_c="c.2573T&gt;G" hgvs_p="p.Leu858Arg" exon="exon21/28" variant_type="missense_variant" main_transcript="true"/>
             <TranscriptInformation transcript_id="ENST00000455089.5" gene="EGFR" type="missense_variant" hgvs_c="c.2438T&gt;G" hgvs_p="p.Leu813Arg" exon="exon20/26" variant_type="missense_variant" main_transcript="false"/>
