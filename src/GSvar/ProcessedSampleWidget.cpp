@@ -477,12 +477,16 @@ void ProcessedSampleWidget::openSampleTab()
 	//determine processed sample names
 	QStringList ps_names;
 	QString s_name = db.getValue("SELECT s.name FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.id='" + ps_id_ + "'").toString();
+
+	int idx_sample1 = ui_->sample_relations->columnIndex("sample 1");
+	int idx_sample2 = ui_->sample_relations->columnIndex("sample 2");
+
 	foreach(int row, selected_rows)
 	{
-		QString s = ui_->sample_relations->item(row, 0)->text();
+		QString s = ui_->sample_relations->item(row, idx_sample1)->text();
 		if (s==s_name)
 		{
-			s = ui_->sample_relations->item(row, 3)->text();
+			s = ui_->sample_relations->item(row, idx_sample2)->text();
 		}
 
 		QStringList tmp = db.getValues("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:0 AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)", s);

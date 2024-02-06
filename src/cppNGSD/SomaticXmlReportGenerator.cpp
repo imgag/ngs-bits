@@ -99,7 +99,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	w.setAutoFormatting(true);
 
-
 	w.writeStartDocument();
 
 	//Element SomaticNgsReport
@@ -130,7 +129,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(tumor_s_id, "ICD10 code");
 		if(!disease_infos.empty())
 		{
-			for(const auto& disease_info : disease_infos)
+			foreach(const auto& disease_info, disease_infos)
 			{
 				w.writeStartElement("DiseaseInfo");
 				w.writeAttribute("type", "ICD10");
@@ -236,8 +235,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeStartElement("AnalysisPipeline");
 	w.writeAttribute("name", "megSAP");
 
-
-
 	w.writeAttribute("version", data.tumor_snvs.getPipeline().replace("megSAP","").trimmed());
 
 	w.writeAttribute("url", "https://github.com/imgag/megSAP");
@@ -321,7 +318,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(snv)).toLower() );
 			}
 
-
 				QByteArrayList genes = snv.annotations()[i_genes].split(',');
 				QByteArrayList oncogenes = snv.annotations()[i_ncg_oncogene].split(',');
 				QByteArrayList tsg = snv.annotations()[i_ncg_tsg].split(',');
@@ -348,7 +344,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 					{
 						w.writeStartElement("IsTumorSuppressor");
 						w.writeAttribute("source", "Network of Cancer Genes");
-						w.writeAttribute("source_version", "6.0");
+						w.writeAttribute("source_version", "7.1");
 						w.writeEndElement();
 					}
 
@@ -356,13 +352,12 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 					{
 						w.writeStartElement("IsOncoGene");
 						w.writeAttribute("source", "Network of Cancer Genes");
-						w.writeAttribute("source_version", "6.0");
+						w.writeAttribute("source_version", "7.1");
 						w.writeEndElement();
 					}
 
 					w.writeEndElement();
 				}
-
 
 				//Elements transcript information
 				VariantTranscript selected_transcript = SomaticReportHelper::selectSomaticTranscript(snv, data.settings, i_co_sp);
@@ -394,7 +389,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeEndElement();
 		}
 
-
 		int i_germl_freq_in_tum = data.germline_snvs.annotationIndexByName("freq_in_tum");
 		int i_germl_depth_in_tum = data.germline_snvs.annotationIndexByName("depth_in_tum");
 		int i_germl_hom_het = data.germline_snvs.annotationIndexByName(data.settings.normal_ps);
@@ -420,7 +414,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			}
 
 			//Elements transcript information
-			for(const auto& trans : snv.transcriptAnnotations(i_germl_co_sp) )
+			foreach(const auto& trans, snv.transcriptAnnotations(i_germl_co_sp) )
 			{
 				w.writeStartElement("TranscriptInformation");
 
@@ -526,7 +520,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 				w.writeEndElement();
 			}
-
 
 			w.writeEndElement();
 		}

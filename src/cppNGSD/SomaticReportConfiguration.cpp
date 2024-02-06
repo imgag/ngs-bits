@@ -143,12 +143,13 @@ void SomaticReportConfiguration::addSomaticVariantConfiguration(const SomaticRep
 		if (var_conf.variant_index==config.variant_index && var_conf.variant_type==config.variant_type)
 		{
 			variant_config_[i] = config;
+			return;
 		}
 	}
 	//set variant config (if not yet contained)
 	variant_config_ << config;
-
 	sortByPosition();
+	return;
 }
 
 void SomaticReportConfiguration::clearGermlineVariantConfigurations()
@@ -163,10 +164,12 @@ void SomaticReportConfiguration::addGermlineVariantConfiguration(const SomaticRe
 		if(config.variant_index == germ_variant_config_[i].variant_index)
 		{
 			germ_variant_config_[i] = config;
+			return;
 		}
 	}
 
 	germ_variant_config_ << config;
+	return;
 }
 
 const SomaticReportVariantConfiguration& SomaticReportConfiguration::get(VariantType type, int index) const
