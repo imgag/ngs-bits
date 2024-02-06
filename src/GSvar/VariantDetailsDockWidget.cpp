@@ -569,19 +569,26 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="SpliceAI")
 		{
-			bool ok = true;
-			double value = anno.toDouble(&ok);
-			if (ok && value >= 0.5)
+			double value = NGSHelper::maxSpliceAiScore(anno, &tooltip);
+			if (value<0)
 			{
-				text = formatText(anno, ORANGE);
-			}
-			else if (ok && value >= 0.8)
-			{
-				text = formatText(anno, RED);
+				text = "";
 			}
 			else
 			{
-				text = anno;
+				QString value_str = QString::number(value, 'f', 2);
+				if (value >= 0.5)
+				{
+					text = formatText(value_str, ORANGE);
+				}
+				else if (value >= 0.8)
+				{
+					text = formatText(value_str, RED);
+				}
+				else
+				{
+					text = value_str;
+				}
 			}
 		}
 		else if(name=="MaxEntScan")

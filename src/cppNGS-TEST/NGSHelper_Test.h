@@ -349,4 +349,17 @@ private slots:
 		I_EQUAL(impact, MaxEntScanImpact::HIGH);
 		S_EQUAL(score_pairs_with_impact, "9.5>8.5 / -3.4>8.7(HIGH) / 2.7>8.6(HIGH)");
 	}
+
+	void maxSpliceAiScore()
+	{
+		//old format
+		I_EQUAL(NGSHelper::maxSpliceAiScore(""), -1.0);
+		I_EQUAL(NGSHelper::maxSpliceAiScore("0.55"), 0.55);
+
+		//new format
+		I_EQUAL(NGSHelper::maxSpliceAiScore("BABAM1|0.03|0.00|0.01|0.00|-2|2|41|2"), 0.03);
+		I_EQUAL(NGSHelper::maxSpliceAiScore("BABAM1|0.88|0.00|0.01|0.00|-2|2|41|2,CTD-2278I10.6|0.99|0.00|0.01|0.00|-2|2|41|2"), 0.99);
+		I_EQUAL(NGSHelper::maxSpliceAiScore("BABAM1|0.88|0.00|0.01|0.00|-2|2|41|2,CTD-2278I10.6|0.77|0.00|0.01|0.00|-2|2|41|2"), 0.88);
+		I_EQUAL(NGSHelper::maxSpliceAiScore("BABAM1|.|.|.|.|-2|2|41|2,CTD-2278I10.6|.|.|.|.|-2|2|41|2"), -1.0);
+	}
 };

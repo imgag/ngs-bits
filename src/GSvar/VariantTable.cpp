@@ -512,7 +512,12 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_spliceai && anno.toDouble() >= 0.5)
+			else if (j==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.8)
+			{
+				item->setBackgroundColor(Qt::red);
+				is_notice_line = true;
+			}
+			else if (j==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.5)
 			{
 				item->setBackgroundColor(QColor(255, 135, 60)); //orange
 				is_notice_line = true;

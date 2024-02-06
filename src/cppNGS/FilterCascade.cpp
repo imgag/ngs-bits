@@ -5164,8 +5164,7 @@ FilterSpliceEffect::FilterSpliceEffect()
 	params_.last().constraints["max"] = "1";
 	params_ << FilterParameter("MaxEntScan", FilterParameterType::STRING, "HIGH", "Minimum predicted splice effect. Disabled if set to LOW.");
 	params_.last().constraints["valid"] = "HIGH,MODERATE,LOW";
-	params_ << FilterParameter("splice_site_only", FilterParameterType::BOOL, true, "Use native splice site predictions only. Skip de-novo acceptor/donor predictions (MaxEntScan).");
-	params_.last().constraints["valid"] = "both,native splice sites,de-novo acceptors/donors";
+	params_ << FilterParameter("splice_site_only", FilterParameterType::BOOL, true, "Use native splice site predictions only and skip de-novo acceptor/donor predictions.");
 	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 	checkIsRegistered();
@@ -5230,7 +5229,7 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			}
 
 			//apply filters
-			if (applySpliceAi_(sai_anno, min_sai)) continue;
+			if (applySpliceAi_(sai_anno, min_sai, splice_site_only)) continue;
 			if (applyMaxEntScanFilter_(mes_anno, min_mes, splice_site_only)) continue;
 
 			result.flags()[i] = false;
@@ -5243,7 +5242,7 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 		{
 			if (result.flags()[i]) continue;
 
-			if (applySpliceAi_(variant_list[i].annotations()[idx_sai].trimmed(), min_sai))
+			if (applySpliceAi_(variant_list[i].annotations()[idx_sai].trimmed(), min_sai, splice_site_only))
 			{
 				result.flags()[i] = true;
 				continue;
@@ -5270,15 +5269,44 @@ bool FilterSpliceEffect::applyMaxEntScanFilter_(const QByteArray& mes_anno, MaxE
 			if (impact==MaxEntScanImpact::MODERATE && min_mes==MaxEntScanImpact::MODERATE) return true;
 		}
 	}
+
 	return false;
 }
 
-bool FilterSpliceEffect::applySpliceAi_(const QByteArray& sai_anno, double min_sai) const
+bool FilterSpliceEffect::applySpliceAi_(const QByteArray& sai_anno, double min_sai, bool splice_site_only) const
 {
 	if (!sai_anno.isEmpty() && min_sai>0)
 	{
-		if (sai_anno.toDouble() >= min_sai)	return true;
+		//old format - maximum score for all transcripts/genes only
+		bool ok = false;
+		double max_score = sai_anno.toDouble(&ok);
+		if (ok) return max_score>=min_sai;
+
+		//new format - comma-speparated list of predictions, e.g. BABAM1|0.03|0.00|0.01|0.00|-2|2|41|2,CTD-2278I10.6|0.03|0.00|0.01|0.00|-2|2|41|2 (GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL)
+		 max_score = 0.0;
+		foreach(QByteArray entry, sai_anno.split(','))
+		{
+			QByteArrayList parts = entry.split('|');
+			if (parts.count()!=9) THROW(ProgrammingException, "Invalid SpliceAI annotation - not 9 parts: " + entry);
+
+			//determine maximum score
+			QList<int> indices;
+			indices << 2 << 4;
+			if (!splice_site_only) indices << 1 << 3;
+			foreach(int i, indices)
+			{
+				QString score = parts[i];
+				if (parts.count()!=9) THROW(ProgrammingException, "Invalid SpliceAI annotation - score with index "+QString::number(i)+" is not numeric: " + entry);
+
+				bool ok = false;
+				double score_val = score.toDouble(&ok);
+				if (!ok || score_val<0 || score_val>1) continue;
+				max_score = std::max(score_val, max_score);
+			}
+		}
+		return max_score>=min_sai;
 	}
+
 	return false;
 }
 
