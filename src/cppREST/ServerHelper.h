@@ -10,6 +10,13 @@
 #include "Exceptions.h"
 #include "Settings.h"
 
+struct CPPRESTSHARED_EXPORT RequestWorkerParams
+{
+    int socket_read_timeout;
+    int socket_encryption_timeout;
+    int socket_write_timeout;
+};
+
 class CPPRESTSHARED_EXPORT ServerHelper
 {
 public:

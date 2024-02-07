@@ -122,6 +122,8 @@ public:
 
 	///Returns the MaxEntScan impact. 'score_pairs_with_impact' returns the score apirs with annotation of impact (if not low).
 	static MaxEntScanImpact maxEntScanImpact(const QByteArrayList& score_pairs, QByteArray& score_pairs_with_impact, bool splice_site_only);
+	///Returns the maximum SpliceAI score based on the annotation. Returns -1 if no score was calculated. If tooltip is set, detail for showing in a GUI (gene, score, position offset) are written into the variable.
+	static double maxSpliceAiScore(QString annotation_string, QString* tooltip = nullptr);
 
 private:
 	///Constructor declared away

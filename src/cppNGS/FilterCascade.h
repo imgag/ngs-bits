@@ -678,7 +678,7 @@ public:
 private:
 	double calculatePercentageChangeMES_(const QByteArray& value) const;
 	bool applyMaxEntScanFilter_(const QByteArray& mes_anno, MaxEntScanImpact min_mes, bool splice_site_only) const;
-	bool applySpliceAi_(const QByteArray& sai_anno, double min_sai) const;
+	bool applySpliceAi_(const QByteArray& sai_anno, double min_sai, bool splice_site_only) const;
 };
 
 //Filter RNA ASE allele frequency

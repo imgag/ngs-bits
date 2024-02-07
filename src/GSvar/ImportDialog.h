@@ -48,7 +48,7 @@ private:
 	void pasteRow(int row_index, QString line);
 	void keyPressEvent(QKeyEvent* e) override;
 	void fixValue(QString value, const TableFieldInfo& field_info, QString& actual, QString& validation_error);
-	bool addItem(int r, int c, const QString& value, const QString& actual, const QString& validation_error);
+	bool addItem(int r, int c, const QString& value, const QString& actual, const QString& validation_error, const QString& notice);
 	void checkNumberOfParts(const QStringList& parts);
 	QString insertQuery();
 	void addRow(SqlQuery& query, int r);

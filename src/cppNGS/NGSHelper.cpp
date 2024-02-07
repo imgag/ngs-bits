@@ -1,6 +1,7 @@
 #include "NGSHelper.h"
 #include "Helper.h"
 #include "FilterCascade.h"
+#include "Log.h"
 
 #include <QFileInfo>
 
@@ -908,6 +909,63 @@ MaxEntScanImpact NGSHelper::maxEntScanImpact(const QByteArrayList& score_pairs, 
 	if (impacts.contains(MaxEntScanImpact::HIGH)) return MaxEntScanImpact::HIGH;
 	if (impacts.contains(MaxEntScanImpact::MODERATE)) return MaxEntScanImpact::MODERATE;
 	return MaxEntScanImpact::LOW;
+}
+
+double NGSHelper::maxSpliceAiScore(QString annotation_string, QString* tooltip)
+{
+	annotation_string = annotation_string.trimmed();
+
+	//support for legacy format (maximum score per variant only)
+	if (annotation_string.isEmpty()) return -1;
+	bool ok = false;
+	double max_score = annotation_string.toDouble(&ok);
+	if (ok) return max_score;
+
+	//new format - comma-speparated list of predictions, e.g. BABAM1|0.03|0.00|0.01|0.00|-2|2|41|2,CTD-2278I10.6|0.03|0.00|0.01|0.00|-2|2|41|2 (GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL)
+	max_score = -1.0;
+	QStringList tooltip_lines;
+	QStringList entries = annotation_string.split(",");
+	foreach(QString entry, entries)
+	{
+		QStringList parts = entry.split("|");
+		if (parts.count()!=9)
+		{
+			Log::warn("Invalid SpliceAI annotation (not 9 fields): " + entry);
+			continue;
+		}
+
+		//determine maximum score
+		for (int i=1; i<5; ++i)
+		{
+			QString score = parts[i];
+			if (score==".") continue;
+			bool ok = false;
+			double score_val = score.toDouble(&ok);
+			if (!ok || score_val<0 || score_val>1)
+			{
+				Log::warn("Invalid SpliceAI score in field with index " + QString::number(i) + ": " + entry);
+				continue;
+			}
+			max_score = std::max(score_val, max_score);
+		}
+
+		//format tooltip
+		if (tooltip!=nullptr)
+		{
+			QString gene = parts[0];
+			tooltip_lines <<  gene + " acceptor gain: " + parts[1] + " (" + parts[5] + ")";
+			tooltip_lines <<  gene + " acceptor loss: " + parts[2] + " (" + parts[6] + ")";
+			tooltip_lines <<  gene + " donor gain: " + parts[3] + " (" + parts[7] + ")";
+			tooltip_lines <<  gene + " donor loss: " + parts[4] + " (" + parts[8] + ")";
+		}
+	}
+
+	if (tooltip!=nullptr)
+	{
+		*tooltip = tooltip_lines.join("<br>");
+	}
+
+	return max_score;
 }
 
 //Helper struct for GFF parsing

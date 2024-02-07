@@ -298,7 +298,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	{
 		int pos = variant.start();
 		if (variant.ref()=="-") pos += 1;
-		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
+		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants?search_chromosome=%3D%22" + variant.chr().strNormalized(false) + "%22&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
 	}
 	else if (action == a_clinvar_find)
 	{
@@ -512,7 +512,12 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_spliceai && anno.toDouble() >= 0.5)
+			else if (j==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.8)
+			{
+				item->setBackgroundColor(Qt::red);
+				is_notice_line = true;
+			}
+			else if (j==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.5)
 			{
 				item->setBackgroundColor(QColor(255, 135, 60)); //orange
 				is_notice_line = true;

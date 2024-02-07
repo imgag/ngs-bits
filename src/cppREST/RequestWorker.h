@@ -20,7 +20,7 @@ class CPPRESTSHARED_EXPORT RequestWorker
 {
 
 public:
-    explicit RequestWorker(QSslConfiguration ssl_configuration, qintptr socket);
+    explicit RequestWorker(QSslConfiguration ssl_configuration, qintptr socket, RequestWorkerParams params);
     void run() override;
 
 private:
@@ -33,6 +33,7 @@ private:
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;
+    RequestWorkerParams params_;
 	bool is_terminated_;
 };
 

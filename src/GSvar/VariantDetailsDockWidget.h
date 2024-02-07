@@ -54,6 +54,7 @@ private slots:
 	void genomeNexusClicked(QString link);
 	void variantButtonClicked();
 	void gnomadContextMenu(QPoint pos);
+	void spliceaiContextMenu(QPoint pos);
 
 private:
 	enum Color

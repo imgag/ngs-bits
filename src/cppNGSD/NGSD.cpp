@@ -1391,7 +1391,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 
 
 		QByteArray cadd = variant.annotations()[i_cadd].trimmed();
-		QByteArray spliceai = variant.annotations()[i_spliceai].trimmed();
+		double spliceai = NGSHelper::maxSpliceAiScore(variant.annotations()[i_spliceai]);
 		QByteArrayList pubmed_ids;
 		if (i_pubmed > 0) pubmed_ids = variant.annotations()[i_pubmed].split(',');
 
@@ -1410,13 +1410,13 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			if (q_id.value(1).toByteArray().toDouble()!=gnomad.toDouble() //numeric comparison (NULL > "" > 0.0)
 				|| q_id.value(2).toByteArray()!=variant.annotations()[i_co_sp]
 				|| q_id.value(3).toByteArray().toDouble()!=cadd.toDouble() //numeric comparison (NULL > "" > 0.0)
-				|| q_id.value(4).toByteArray().toDouble()!=spliceai.toDouble() //numeric comparison (NULL > "" > 0.0)
+				|| q_id.value(4).toByteArray().toDouble()!=std::max(0.0, spliceai) //numeric comparison (NULL > "" > 0.0); no SpliceAI leads to a score of -1, so we use max to set it to 0.
 				)
 			{
 				q_update.bindValue(0, gnomad.isEmpty() ? QVariant() : gnomad);
 				q_update.bindValue(1, variant.annotations()[i_co_sp]);
 				q_update.bindValue(2, cadd.isEmpty() ? QVariant() : cadd);
-				q_update.bindValue(3, spliceai.isEmpty() ? QVariant() : spliceai);
+				q_update.bindValue(3, spliceai<0 ? QVariant() : spliceai);
 				q_update.bindValue(4, id);
 				q_update.exec();
 				++c_update;
@@ -1434,7 +1434,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			q_insert.bindValue(5, gnomad.isEmpty() ? QVariant() : gnomad);
 			q_insert.bindValue(6, variant.annotations()[i_co_sp]);
 			q_insert.bindValue(7, cadd.isEmpty() ? QVariant() : cadd);
-			q_insert.bindValue(8, spliceai.isEmpty() ? QVariant() : spliceai);
+			q_insert.bindValue(8, spliceai<0 ? QVariant() : spliceai);
 			q_insert.exec();
 			++c_add;
 			QVariant last_insert_id = q_insert.lastInsertId();

@@ -579,3 +579,7 @@ VcfSplit.depends = cppNGS
 SUBDIRS += VcfMerge
 tools-TEST.depends += VcfMerge
 VcfMerge.depends = cppNGS
+
+SUBDIRS += NGSDExportIgvGeneTrack
+tools-TEST.depends += NGSDExportIgvGeneTrack
+NGSDExportIgvGeneTrack.depends = cppNGSD
