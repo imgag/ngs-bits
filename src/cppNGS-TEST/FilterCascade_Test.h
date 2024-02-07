@@ -1917,6 +1917,40 @@ private slots:
 		I_EQUAL(result.countPassing(), 5);
 	}
 
+	/********************************************* Filters for lrSVs *********************************************/
+
+	void FilterSvLrAF_apply()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvLrAF filter;
+		filter.setDouble("AF", 0.3);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 15);
+	}
+
+	void FilterSvLrSupportReads_apply()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvLrSupportReads filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 73);
+
+		filter.setDouble("min_support", 15);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 32);
+	}
+
 
 	/********************************************* Default filters for SVs *********************************************/
 
