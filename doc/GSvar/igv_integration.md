@@ -34,6 +34,10 @@ When IGV initialization was perfomed or when was skipped for the session, the in
 
 **Note:** Custom tracks can be added by your administrator through the GSvar INI file (see [configuration](configuration.md)).
 
+### IGV gene track/genome
+
+To generate a custom gene track with all genes from the NGSD to display in IGV you can use the tool `NGSDExportIgvGeneTrack`. This tool will create two gene track text files (one with all genes and one containing only MANE + Clinical transcripts). These files then can be (bg)zipped and manually loaded into IGV. Much easier is it to create a custom IGV genome with our megSAP script [`create_igv_genome.php`](https://github.com/imgag/megSAP/blob/master/src/Tools/create_igv_genome.php) which contains the genes/transcripts from your NGSD, the masked GRCh38 genome and additional tracks. This geneome should then be set in your `GSvar.ini` and then will always be loaded when you use IGV through GSvar.
+
 
 ## FAQ
 
