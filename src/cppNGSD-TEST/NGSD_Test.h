@@ -2145,6 +2145,21 @@ private slots:
 		QString n_ps_id = db.processedSampleId("NA12123_04");
 		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
 
+		//test changing existing variant config:
+
+		SomaticReportVariantConfiguration var2_changed;
+		var2_changed.variant_index = 2;
+		var2_changed.variant_type = VariantType::SNVS_INDELS;
+		var2_changed.include_variant_alteration = "c.-124A>C";
+		var2_changed.include_variant_description = "Testtreiber (bekannt)";
+		var2_changed.comment = "known test driver was not included in any db yet. Now published in NCBI:XYZ.";
+
+		som_rep_conf.addSomaticVariantConfiguration(var2_changed);
+
+		config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will still be 52 in test NGSD
+
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet. Now published in NCBI:XYZ.");
+
 		QStringList messages = {};
 
 		//Test resolving report config
@@ -2196,7 +2211,7 @@ private slots:
 		IS_FALSE(res1.exclude_other_reason);
 		S_EQUAL(res1.include_variant_alteration, "c.-124A>C");
 		S_EQUAL(res1.include_variant_description, "Testtreiber (bekannt)");
-		S_EQUAL(res1.comment, "known test driver was not included in any db yet.");
+		S_EQUAL(res1.comment, "known test driver was not included in any db yet. Now published in NCBI:XYZ.");
 		IS_TRUE(res1.showInReport());
 
 		//Test germline variants included in resolved report
