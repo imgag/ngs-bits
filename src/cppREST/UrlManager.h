@@ -50,24 +50,19 @@ struct CPPRESTSHARED_EXPORT StaticFile
 class CPPRESTSHARED_EXPORT UrlManager
 {
 public:
-	static void rewriteFile();
-	static void saveUrlToFile(QString id, UrlEntity in);
 	static void restoreFromFile();
-	static void addNewUrl(QString id, UrlEntity url_entity, bool save_to_file = true);
+    static void addNewUrl(QString id, UrlEntity url_entity);
 	static void removeUrl(const QString& id);
 	static bool isInStorageAlready(const QString& filename_with_path);
 	static UrlEntity getURLById(const QString& id);
-
-
-public slots:
-	static void removeExpiredUrls();
+    static bool isUrlExpired(UrlEntity in);
+    static QMap<QString, UrlEntity> removeExpiredUrls();
 
 protected:
 	UrlManager();	
 
 private:
-	static UrlManager& instance();
-	QSharedPointer<QFile> backup_file_;
+    static UrlManager& instance();
 	QMutex mutex_;
 	QMap<QString, UrlEntity> url_storage_;
 };
