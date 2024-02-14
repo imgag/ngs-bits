@@ -44,18 +44,16 @@ struct CPPRESTSHARED_EXPORT Session
 class CPPRESTSHARED_EXPORT SessionManager
 {
 public:
-	static const qint64 DEFAULT_VALID_PERIOD = 3600; // in seconds
-	static void rewriteFile();
-	static void saveSessionToFile(QString id, Session in);
+    static const qint64 DEFAULT_VALID_PERIOD = 3600; // in seconds
 	static void restoreFromFile();
-	static void addNewSession(QString id, Session in, bool save_to_file = true);
+    static void addNewSession(QString id, Session in);
 	static void removeSession(QString id);	
 	static Session getSessionBySecureToken(QString token);
 	static bool isSessionExpired(Session in);
 	static bool isSessionExpired(QString token);
 
 	static bool isTokenReal(QString token);
-    static void removeExpiredSessions();
+    static QMap<QString, Session> removeExpiredSessions();
 
 	static ClientInfo getCurrentClientInfo();
 	static void setCurrentClientInfo(ClientInfo info);
@@ -67,8 +65,7 @@ protected:
 	SessionManager();
 
 private:
-	static SessionManager& instance();
-	QSharedPointer<QFile> backup_file_;
+    static SessionManager& instance();
 	QMutex mutex_;
 	QMap<QString, Session> session_store_;
 	ClientInfo current_client_info_;
