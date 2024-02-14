@@ -1,4 +1,4 @@
-#track graphtype=bar autoScale=on windowingFunction=none coords=0 name="SV break point density"
+#track graphtype=bar autoScale=on windowingFunction=none coords=0 name="SV break point density (hpHBOCv5)"
 chr1	5	51	.	2
 chr1	1000	1021	.	4
 chr1	12000	13001	.	4
