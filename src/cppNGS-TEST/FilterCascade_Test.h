@@ -1946,7 +1946,7 @@ private slots:
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 73);
 
-		filter.setDouble("min_support", 15);
+		filter.setInteger("min_support", 15);
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 32);
 	}
