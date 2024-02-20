@@ -467,10 +467,23 @@ void MainWindow::userSpecificDebugFunction()
 	}
 	else if (user=="ahschul1")
 	{
-		//Test sample sheet
-		QString run_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name='#03178'").toString();
+		//Extract MANE transcript names
+		const TranscriptList transcripts = NGSD().transcripts();
+		const auto matches = NGSHelper::transcriptMatches(GenomeBuild::HG38);
 
-		QMessageBox::information(this, "SampleSheet", NGSD().createSampleSheet(run_id.toInt()));
+
+		foreach(const Transcript& trans, transcripts)
+		{
+			if (!trans.isManeSelectTranscript()) continue;
+			QByteArray enst = trans.name();
+			QByteArrayList nm;
+			foreach (const QByteArray& match, matches[enst])
+			{
+				if (match.startsWith("NM_")) nm << match;
+			}
+			if (!nm.isEmpty()) qDebug() << enst << nm.join(",");
+		}
+
 	}
 	else if (user=="ahott1a1")
 	{
