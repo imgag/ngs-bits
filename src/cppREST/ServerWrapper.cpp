@@ -1,9 +1,13 @@
 #include "ServerWrapper.h"
+#include "UrlBackupWorker.h"
+#include "SessionBackupWorker.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
-{	
-	QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
+    , cleanup_pool_()
+{
+    cleanup_pool_.setMaxThreadCount(2);
+    QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
 	if (ssl_certificate.isEmpty())
 	{
 		ssl_certificate = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-cert.crt";
@@ -64,13 +68,13 @@ ServerWrapper::ServerWrapper(const quint16& port)
 
             // Remove expired URLs on schedule
             QTimer *url_timer = new QTimer(this);
-            connect(url_timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
-            url_timer->start(60 * 30 * 1000); // every 30 minutes
+            connect(url_timer, SIGNAL(timeout()), this, SLOT(cleanupUrls()));
+            url_timer->start(60 * 5 * 1000); // every 5 minutes
 
             // Remove expired sessions (invalidate tokens) on schedule
             QTimer *session_timer = new QTimer(this);
-            connect(session_timer, &QTimer::timeout, this, &SessionManager::removeExpiredSessions);
-            url_timer->start(60 * 30 * 1000); // every 30 minutes
+            connect(session_timer, SIGNAL(timeout()), this, SLOT(cleanupSessions()));
+            session_timer->start(60 * 10 * 1000); // every 10 minutes
 
             // ClinVar submission status automatic update on schedule
             QTimer *clinvar_timer = new QTimer(this);
@@ -210,5 +214,41 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
 		Log::error("Error while reading the notification file: " + e.message());
 	}
 
-	return content;
+    return content;
+}
+
+void ServerWrapper::cleanupUrls()
+{
+    Log::info("Backup URLs on timer");
+    try
+    {
+        UrlBackupWorker *url_backup_worker = new UrlBackupWorker(UrlManager::removeExpiredUrls());
+        cleanup_pool_.start(url_backup_worker);
+    }
+    catch (FileAccessException& e)
+    {
+        Log::error("Error while accessing a URL backup file: " + e.message());
+    }
+    catch (...)
+    {
+         Log::error("Unexpected error while trying to backup URLs");
+    }
+}
+
+void ServerWrapper::cleanupSessions()
+{
+    Log::info("Backup sessions on timer");
+    try
+    {
+        SessionBackupWorker *session_backup_worker = new SessionBackupWorker(SessionManager::removeExpiredSessions());
+        cleanup_pool_.start(session_backup_worker);
+    }
+    catch (FileAccessException& e)
+    {
+        Log::error("Error while accessing a session backup file: " + e.message());
+    }
+    catch (...)
+    {
+        Log::error("Unexpected error while trying to backup sessions");
+    }
 }

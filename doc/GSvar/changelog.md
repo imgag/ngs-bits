@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2023_11-113 (07.02.24)
+
+- changed SpliceAI annotation (was max score, now contains gene-specific scores/positions)
+- variant details dock: added Link to SpliceAI Lookup page via the SpliceAI value context menu
 
 ## 2023_11-103 (02.02.24)
 

@@ -34,6 +34,11 @@ When IGV initialization was perfomed or when was skipped for the session, the in
 
 **Note:** Custom tracks can be added by your administrator through the GSvar INI file (see [configuration](configuration.md)).
 
+### IGV gene track/genome
+
+To generate a custom genome for IGV with all Ensembl transcripts use the megSAP script [`create_igv_genome.php`](https://github.com/imgag/megSAP/blob/master/src/Tools/create_igv_genome.php).  
+The created JSON genome file must only be set as `igv_genome` in the `GSvar.ini` and then will always be loaded when you use IGV through GSvar.
+
 
 ## FAQ
 

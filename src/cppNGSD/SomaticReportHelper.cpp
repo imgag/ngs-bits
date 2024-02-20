@@ -70,7 +70,10 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
 		QByteArray gene = selectSomaticTranscript(somatic_vl_[i], settings_, snv_index_coding_splicing_).gene;
-		if(important_genes.contains(gene))
+		int i_vicc = somatic_vl_.annotationIndexByName("NGSD_som_vicc_interpretation");
+		Variant var = somatic_vl_[i];
+
+		if(important_genes.contains(gene) && (var.annotations()[i_vicc] == "ONCOGENIC" || var.annotations()[i_vicc] == "LIKELY_ONCOGENIC"))
 		{
 			somatic_vl_high_impact_indices_ << i;
 		}
@@ -1197,12 +1200,12 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 				const Variant& low_impact_snv = somatic_vl_[l];
 
 				VariantTranscript transcript_low_impact = selectSomaticTranscript(low_impact_snv, settings_, snv_index_coding_splicing_);
-				transcript_low_impact.type = transcript.type.replace("_variant","");
+				transcript_low_impact.type.replace("_variant","");
 				transcript_low_impact.type.replace("&",", ");
 
 				if (! low_impact_indices_converted_to_high_.contains(l) && transcript.gene == transcript_low_impact.gene)
 				{
-					table.addRow(snvRow(low_impact_snv, transcript, col_widths));
+					table.addRow(snvRow(low_impact_snv, transcript_low_impact, col_widths));
 					low_impact_indices_converted_to_high_.insert(l);
 				}
 			}

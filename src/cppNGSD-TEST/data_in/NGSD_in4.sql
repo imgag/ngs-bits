@@ -53,6 +53,7 @@ INSERT INTO `gene`(`id`,`hgnc_id`,`symbol`,`name`,`type`,`ensembl_id`,`ncbi_id`)
 (473387,25829,'ABRAXAS1','abraxas 1, BRCA1 A complex subunit','protein-coding gene','ENSG00000163322',84142),
 (473590,171,'ACVR1','activin A receptor type 1','protein-coding gene','ENSG00000115170',90),
 (473957,20250,'AJUBA','ajuba LIM protein','protein-coding gene','ENSG00000129474',84962),
+(474510,583,'APC','APC regulator of WNT signaling pathway','protein-coding gene','ENSG00000134982',	324),
 (473996,379,'AKAP9','A-kinase anchoring protein 9','protein-coding gene','ENSG00000127914',10142),
 (474043,391,'AKT1','AKT serine/threonine kinase 1','protein-coding gene','ENSG00000142208',207),
 (474045,392,'AKT2','AKT serine/threonine kinase 2','protein-coding gene','ENSG00000105221',208),
@@ -449,6 +450,13 @@ INSERT INTO `gene`(`id`,`hgnc_id`,`symbol`,`name`,`type`,`ensembl_id`,`ncbi_id`)
 -- (1515930, 652410, 'ENST00000341316', '11', 'ensembl', '16', 89574826, 89603318, '+',0);
 
 INSERT INTO `gene_transcript` (`id`,`gene_id`,`name`,`version`,`source`,`chromosome`,`start_coding`,`end_coding`,`strand`,`biotype`,`is_gencode_basic`,`is_ensembl_canonical`,`is_mane_select`,`is_mane_plus_clinical`) VALUES
+(1316843,474510,'CCDS4107',1,'ccds',5,112754891,112844126,'+','protein coding',0,0,0,0),
+(1316845,474510,'ENST00000257430',9,'ensembl',5,112754891,112844126,'+','protein coding',1,1,1,0),
+(1316847,474510,'ENST00000504915',3,'ensembl',5,112754891,112844126,'+','protein coding',1,0,0,0),
+(1316844,474510,'ENST00000507379',6,'ensembl',5,112707718,112844126,'+','protein coding',1,0,0,0),
+(1316848,474510,'ENST00000508376',6,'ensembl',5,112754891,112844126,'+','protein coding',1,0,0,0),
+(1316846,474510,'ENST00000509732',6,'ensembl',5,112754891,112844126,'+','protein coding',1,0,0,0),
+(1316842,474510,'ENST00000512211',7,'ensembl',5,112754891,112844126,'+','protein coding',1,0,0,0),
 (1341659, 496188, 'CCDS43905', 1, 'ccds', '9', 136496071, 136545786, '-', 'protein coding', 0, 0, 0, 0),
 (1341658, 496188, 'ENST00000651671',1, 'ensembl', '9', 136496071, 136545786, '-', 'protein coding', 1, 1, 1, 0),
 (1341657, 496188, 'ENST00000680133',1, 'ensembl', '9', 136496071, 136545786, '-', 'protein coding', 1, 0, 0, 0),
@@ -4236,6 +4244,7 @@ INSERT INTO `somatic_pathway` (`id`, `name`) VALUES
 (3,'Rezeptor-Tyrosinkinase'),
 (4,'Ras-Raf-Mek-Erk'),
 (5,'Hormone'),
+(6,	'WNT'),
 (41,'HRD');
 
 
@@ -4631,7 +4640,33 @@ INSERT INTO `somatic_pathway_gene` (`id`, `symbol`, `pathway_id`) VALUES
 (754,'XRCC3',41),
 (1195,'YES1',3),
 (1197,'ZBTB7A',1),
-(712,'ZNF217',5);
+(712,'ZNF217',5),
+(210,'AMER1',6),
+(211,'APC',6),
+(212,'AXIN1',6),
+(213,'AXIN2',6),
+(214,'BMPR1A',6),
+(215,'CCN6',6),
+(216,'CHD8',6),
+(217,'FAT1',6),
+(218,'FAT3',6),
+(219,'GPC3',6),
+(220,'RNF43',6),
+(221,'TCF7L2',6),
+(222,'ZNRF3',6),
+(223,'CTNNB1',6),
+(631,'ADAM10',6),
+(863,'FAT4',6),
+(1073,'ROR1',6),
+(1082,'RSPO2',6),
+(1083,'RSPO3',6),
+(1156,'TNNI3',6),
+(1189,'WIF1',6),
+(1258,'GPC5',6),
+(1264,'ISX',6),
+(1308,'SIX2',6),
+(1310,'SKI',6),
+(1313,'SOX21',6);
 
 -- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES

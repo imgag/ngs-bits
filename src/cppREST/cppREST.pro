@@ -55,8 +55,10 @@ SOURCES += \
     RequestWorker.cpp \
     ServerHelper.cpp \
     ServerWrapper.cpp \
+    SessionBackupWorker.cpp \
     SessionManager.cpp \
     SslServer.cpp \
+    UrlBackupWorker.cpp \
     UrlManager.cpp
 
 HEADERS += \
@@ -70,8 +72,10 @@ HEADERS += \
     RequestWorker.h \
     ServerHelper.h \
     ServerWrapper.h \
+    SessionBackupWorker.h \
     SessionManager.h \
     SslServer.h \
+    UrlBackupWorker.h \
     UrlManager.h
 
 RESOURCES +=
