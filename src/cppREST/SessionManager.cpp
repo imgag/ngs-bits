@@ -56,26 +56,24 @@ void SessionManager::addNewSession(QString id, Session in)
 
 void SessionManager::removeSession(QString id)
 {
-	if (instance().session_store_.contains(id))
-	{
-		instance().mutex_.lock();
-		instance().session_store_.remove(id);
-		instance().mutex_.unlock();
-	}
+    instance().mutex_.lock();
+    if (instance().session_store_.contains(id))
+    {
+		instance().session_store_.remove(id);	
+    }
+    instance().mutex_.unlock();
 }
 
 Session SessionManager::getSessionBySecureToken(QString token)
 {
-	QMapIterator<QString, Session> i(instance().session_store_);
-	while (i.hasNext())
-	{
-		i.next();
-		if (i.key() == token)
-		{
-			return i.value();
-		}
-	}
-	return Session();
+    Session found_session = {};
+    instance().mutex_.lock();
+    if (instance().session_store_.contains(token))
+    {
+        found_session = instance().session_store_[token];
+    }
+    instance().mutex_.unlock();
+    return found_session;
 }
 
 bool SessionManager::isSessionExpired(Session in)
@@ -97,16 +95,14 @@ bool SessionManager::isSessionExpired(QString token)
 
 bool SessionManager::isTokenReal(QString token)
 {
-	QMapIterator<QString, Session> i(instance().session_store_);
-	while (i.hasNext())
-	{
-		i.next();
-		if (i.key() == token)
-		{
-			return true;
-		}
-	}
-	return false;
+    bool is_real = false;
+    instance().mutex_.lock();
+    if (instance().session_store_.contains(token))
+    {
+        is_real = true;
+    }
+    instance().mutex_.unlock();
+    return is_real;
 }
 
 QMap<QString, Session> SessionManager::removeExpiredSessions()
