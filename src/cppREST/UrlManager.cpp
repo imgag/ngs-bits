@@ -56,42 +56,36 @@ void UrlManager::addNewUrl(QString id, UrlEntity in)
 
 void UrlManager::removeUrl(const QString& id)
 {
-    instance().mutex_.lock();
-    if (instance().url_storage_.contains(id))
-    {
-        instance().url_storage_.remove(id);
+	if (instance().url_storage_.contains(id))
+	{
+		instance().mutex_.lock();
+		instance().url_storage_.remove(id);
+		instance().mutex_.unlock();
     }
-    instance().mutex_.unlock();
 }
 
 bool UrlManager::isInStorageAlready(const QString& filename_with_path)
 {
-    bool is_found = false;
-    instance().mutex_.lock();
-    QMapIterator<QString, UrlEntity> i(instance().url_storage_);
+	QMapIterator<QString, UrlEntity> i(instance().url_storage_);
     while (i.hasNext())
     {
 		i.next();		
 		if (i.value().filename_with_path == filename_with_path)
 		{
-            is_found = true;
+			return true;
 		}
 	}
-    instance().mutex_.unlock();
 
-    return is_found;
+	return false;
 }
 
 UrlEntity UrlManager::getURLById(const QString& id)
 {
-    UrlEntity found_entity = {};
-    instance().mutex_.lock();
-    if (instance().url_storage_.contains(id))
+	if (instance().url_storage_.contains(id))
     {
-        found_entity = instance().url_storage_[id];
+        return instance().url_storage_[id];
 	}
-    instance().mutex_.lock();
-    return found_entity;
+	return UrlEntity{};
 }
 
 bool UrlManager::isUrlExpired(UrlEntity in)
