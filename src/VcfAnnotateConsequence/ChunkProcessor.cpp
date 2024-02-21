@@ -239,7 +239,7 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 	}
 
 	output << consequence_type;
-	output << hgvs.impact;
+	output << variantImpactToString(hgvs.impact);
 
 	//gene symbol, HGNC ID, transcript ID, feature type
 	if (t.isValid())

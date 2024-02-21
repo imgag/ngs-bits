@@ -3189,7 +3189,7 @@ private slots:
 					}
 
 					QByteArray vep_impact = vep_annos[5];
-					if (vep_impact!=cons.impact) differences << vep_impact + " > " + cons.impact;
+					if (vep_impact != variantImpactToString(cons.impact)) differences << vep_impact + " > " + variantImpactToString(cons.impact);
 
 					QByteArray vep_exon = vep_annos[6].split('/')[0];
 					if (vep_exon.contains('-')) vep_exon = vep_exon.split('-')[0]; //we annotate only the first affected exon

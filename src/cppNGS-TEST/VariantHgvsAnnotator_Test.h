@@ -312,7 +312,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SYNONYMOUS_VARIANT));
         I_EQUAL(hgvs.exon_number, 2);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "LOW");
+		S_EQUAL(variantImpactToString(hgvs.impact), "LOW");
 
 		//SNV exon stop gained
         variant.setPos(196233116);
@@ -326,7 +326,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::STOP_GAINED));
         I_EQUAL(hgvs.exon_number, 9);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "HIGH");
+		S_EQUAL(variantImpactToString(hgvs.impact), "HIGH");
 
 		//SNV exon stop lost
         variant.setPos(196233197);
@@ -354,7 +354,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
         I_EQUAL(hgvs.exon_number, 2);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "MODERATE");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODERATE");
 
 
 		//SNV intron splice acceptor
@@ -432,7 +432,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "MODIFIER");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODIFIER");
 
 		// deletion intron
         variant.setPos(196217223);
@@ -707,7 +707,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::MISSENSE_VARIANT));
         I_EQUAL(hgvs.exon_number, 3);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "MODERATE");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODERATE");
 
 		//SNV exon stop gained
         variant.setPos(195569086);
@@ -721,7 +721,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::STOP_GAINED));
         I_EQUAL(hgvs.exon_number, 5);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "HIGH");
+		S_EQUAL(variantImpactToString(hgvs.impact), "HIGH");
 
 		//SNV intron splice acceptor
         variant.setPos(195573973);
@@ -802,7 +802,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 5);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "MODIFIER");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODIFIER");
 
 		//SNV 5 prime utr intron
         variant.setPos(195579497);
@@ -823,7 +823,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "MODIFIER");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODIFIER");
 
 		// downstream gene variant
         variant.setPos(195563767);
@@ -834,7 +834,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "MODIFIER");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODIFIER");
 
 		// deletion upstream
         variant.setPos(195584151);
@@ -845,7 +845,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.impact, "MODIFIER");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODIFIER");
 
 		// deletion 5 prime utr
         variant.setPos(195583887);
@@ -1250,7 +1250,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
-		S_EQUAL(hgvs.impact, "HIGH");
+		S_EQUAL(variantImpactToString(hgvs.impact), "HIGH");
 		I_EQUAL(hgvs.exon_number, 26);
 		I_EQUAL(hgvs.intron_number, -1);
 	}
@@ -1270,7 +1270,7 @@ private slots:
 		S_EQUAL(hgvs.hgvs_c, "c.-11_-10del");
 		S_EQUAL(hgvs.hgvs_p, "");
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
-		S_EQUAL(hgvs.impact, "MODIFIER");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODIFIER");
 		I_EQUAL(hgvs.exon_number, 2);
 		I_EQUAL(hgvs.intron_number, -1);
 	}
@@ -1291,7 +1291,7 @@ private slots:
 		S_EQUAL(hgvs.hgvs_p, "p.Asn490LysfsTer16");
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
-		S_EQUAL(hgvs.impact, "HIGH");
+		S_EQUAL(variantImpactToString(hgvs.impact), "HIGH");
 		I_EQUAL(hgvs.exon_number, 16);
 		I_EQUAL(hgvs.intron_number, -1);
 	}
@@ -1312,7 +1312,7 @@ private slots:
 		S_EQUAL(hgvs.hgvs_p, "p.Pro19LeufsTer5");
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
-		S_EQUAL(hgvs.impact, "HIGH");
+		S_EQUAL(variantImpactToString(hgvs.impact), "HIGH");
 		I_EQUAL(hgvs.exon_number, 1);
 		I_EQUAL(hgvs.intron_number, -1);
 	}
@@ -1333,7 +1333,7 @@ private slots:
 		S_EQUAL(hgvs.hgvs_p, "p.Pro474ThrfsTer33");
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
-		S_EQUAL(hgvs.impact, "HIGH");
+		S_EQUAL(variantImpactToString(hgvs.impact), "HIGH");
 		I_EQUAL(hgvs.exon_number, 13);
 		I_EQUAL(hgvs.intron_number, -1);
 	}
@@ -1353,7 +1353,7 @@ private slots:
 		S_EQUAL(hgvs.hgvs_c, "c.-21_-20insCGGGGCAGGGC");
 		S_EQUAL(hgvs.hgvs_p, "");
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
-		S_EQUAL(hgvs.impact, "MODIFIER");
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODIFIER");
 		I_EQUAL(hgvs.exon_number, 1);
 		I_EQUAL(hgvs.intron_number, -1);
 	}

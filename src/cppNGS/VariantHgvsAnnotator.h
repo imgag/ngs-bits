@@ -10,6 +10,7 @@
 #include "Sequence.h"
 #include "NGSHelper.h"
 #include "Exceptions.h"
+#include "VariantImpact.h"
 
 ///Representation of the effect of a variant
 ///NOTE: the order is important as it defines the severity of the variant.
@@ -53,7 +54,7 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
 	QByteArray hgvs_c;
 	QByteArray hgvs_p;
 	QSet<VariantConsequenceType> types;
-	QByteArray impact;
+	VariantImpact impact;
     int exon_number{-1};
     int intron_number{-1};
 
@@ -123,7 +124,7 @@ public:
 	VariantConsequence annotate(const Transcript& transcript, const Variant& variant, bool debug=false);
 
 	///Converts consequence type to impact
-	static QByteArray consequenceTypeToImpact(VariantConsequenceType type);
+	static VariantImpact consequenceTypeToImpact(VariantConsequenceType type);
 
 private:
 	Parameters params_;

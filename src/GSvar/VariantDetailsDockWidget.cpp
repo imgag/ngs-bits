@@ -799,15 +799,15 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	ui->trans_refseq->setText(refseq_links.join(", "));
 
 	//set detail labels
-	if (trans.impact=="HIGH")
+	if (trans.impact==VariantImpact::HIGH)
 	{
 		ui->detail_type->setText(formatText(trans.type, RED));
-		ui->detail_impact->setText(formatText(trans.impact, RED));
+		ui->detail_impact->setText(formatText(variantImpactToString(trans.impact), RED));
 	}
 	else
 	{
 		ui->detail_type->setText(trans.type);
-		ui->detail_impact->setText(trans.impact);
+		ui->detail_impact->setText(variantImpactToString(trans.impact));
 	}
 	QString exon_nr = trans.exon;
 	if (exon_nr.startsWith("exon"))

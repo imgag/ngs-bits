@@ -40,6 +40,7 @@ SOURCES += BedFile.cpp \
     Chromosome.cpp \
     ClientHelper.cpp \
     RefGenomeService.cpp \
+    VariantImpact.cpp \
     VariantList.cpp \
     Statistics.cpp \
     Pileup.cpp \
@@ -85,6 +86,7 @@ HEADERS += BedFile.h \
     ClientHelper.h \
     FileInfo.h \
     RefGenomeService.h \
+    VariantImpact.h \
     VariantList.h \
     ChromosomalIndex.h \
     Statistics.h \
