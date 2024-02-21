@@ -323,6 +323,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		/**
 		  @brief Returns the pileup at the given chromosomal position (1-based).
 		  @param indel_window The value controls how far up- and down-stream of the given postion, indels are considered to compensate for alignment differences. Indels are not reported when this parameter is set to -1.
+		  @param anom also uses reads which are not properly paired
 		*/
 		Pileup getPileup(const Chromosome& chr, int pos, int indel_window = -1, int min_mapq = 1, bool anom = false, int min_baseq = 13);
 
