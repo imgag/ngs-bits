@@ -90,7 +90,7 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid user token");
 	}
 
-	if (SessionManager::isSessionExpired(getTokenIfAvailable(request)))
+    if (SessionManager::isSessionExpired(SessionManager::getSessionBySecureToken(getTokenIfAvailable(request))))
     {
         return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), EndpointManager::formatResponseMessage(request, "Secure token has expired"));
 	}
@@ -105,7 +105,7 @@ HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
         return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "You are not authorized with a valid database token"));
 	}
 
-	if (SessionManager::isSessionExpired(request.getFormUrlEncoded()["dbtoken"]))
+    if (SessionManager::isSessionExpired(SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["dbtoken"])))
     {
         return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), EndpointManager::formatResponseMessage(request, "Database token has expired"));
 	}
