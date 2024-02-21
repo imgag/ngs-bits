@@ -10,6 +10,8 @@
 #include <QNetworkProxy>
 #include "EndpointManager.h"
 #include "ServerController.h"
+#include "TestWorker.h"
+#include <QThreadPool>
 
 int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
@@ -90,7 +92,7 @@ private slots:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=454-");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -247,6 +249,33 @@ private slots:
 		QJsonDocument out = QJsonDocument::fromJson(reply);
 		IS_TRUE(out.isObject());
 	}
+
+    void test_multiple_authentication_requests()
+    {
+        QThreadPool thread_pool;
+        thread_pool.setMaxThreadCount(4);
+        for (int i=0; i < 160; i++)
+        {
+
+            try
+            {
+                TestWorker *test_worker = new TestWorker();
+                thread_pool.start(test_worker);
+                Log::info("Active thread count: " + QString::number(thread_pool.activeThreadCount()));
+            }
+            catch(Exception& e)
+            {
+                Log::error("Worker crushed");
+                Log::error(e.message());
+            }
+            catch(...)
+            {
+                Log::error("Worker crushed unexpectedly");
+            }
+
+            // IS_THROWN(Exception, thread_pool.start(test_worker));
+        }
+    }
 };
 
 #endif // SERVERINTEGRATIONTEST_H

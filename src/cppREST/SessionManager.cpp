@@ -66,16 +66,25 @@ void SessionManager::removeSession(QString id)
 
 Session SessionManager::getSessionBySecureToken(QString token)
 {
-	QMapIterator<QString, Session> i(instance().session_store_);
-	while (i.hasNext())
-	{
-		i.next();
-		if (i.key() == token)
-		{
-			return i.value();
-		}
-	}
-	return Session();
+    // QMapIterator<QString, Session> i(instance().session_store_);
+    // while (i.hasNext())
+    // {
+    //     i.next();
+    //     if (i.key() == token)
+    //     {
+    //         return i.value();
+    //     }
+    // }
+    // return Session();
+
+    Session found_session = {};
+    instance().mutex_.lock();
+    if (instance().session_store_.contains(token))
+    {
+        found_session = instance().session_store_[token];
+    }
+    instance().mutex_.unlock();
+    return found_session;
 }
 
 bool SessionManager::isSessionExpired(Session in)
