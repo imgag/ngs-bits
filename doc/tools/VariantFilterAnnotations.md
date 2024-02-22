@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2023_09-93-gad5c47c9)
+	VariantFilterAnnotations (2023_11-133-g87eceb58)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -128,7 +128,7 @@
 	                                   Parameters:
 	                                     SpliceAi - Minimum SpliceAi score. Disabled if set to zero. [default=0.5] [min=0] [max=1]
 	                                     MaxEntScan - Minimum predicted splice effect. Disabled if set to LOW. [default=HIGH] [valid=HIGH,MODERATE,LOW]
-	                                     splice_site_only - Use native splice site predictions only. Skip de-novo acceptor/donor predictions (MaxEntScan). [default=true]
+	                                     splice_site_only - Use native splice site predictions only and skip de-novo acceptor/donor predictions. [default=true]
 	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
 	Text search                        Filter for text match in variant annotations.
 	                                   The text comparison ignores the case.
@@ -174,7 +174,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2023_09-93-gad5c47c9
+	VariantFilterAnnotations 2023_11-133-g87eceb58
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

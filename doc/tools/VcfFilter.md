@@ -1,5 +1,5 @@
 ### VcfFilter tool help
-	VcfFilter (2023_11-42-ga9d1687d)
+	VcfFilter (2023_11-133-g87eceb58)
 	
 	Filters a VCF based on the given criteria.
 	
@@ -39,6 +39,8 @@
 	                           Default value: 'false'
 	  -no_special_chr          Removes variants that are on special chromosomes, i.e. not on autosomes, not on gonosomes and not on chrMT.
 	                           Default value: 'false'
+	  -ref <file>              Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
+	                           Default value: ''
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -47,7 +49,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfFilter changelog
-	VcfFilter 2023_11-42-ga9d1687d
+	VcfFilter 2023_11-133-g87eceb58
 	
 	2023-11-21 Added flag 'no_special_chr'.
 	2018-10-31 Initial implementation.
