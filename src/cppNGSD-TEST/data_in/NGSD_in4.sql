@@ -429,7 +429,11 @@ INSERT INTO `gene`(`id`,`hgnc_id`,`symbol`,`name`,`type`,`ensembl_id`,`ncbi_id`)
 (515817,12830,'XRCC3','X-ray repair cross complementing 3','protein-coding gene','ENSG00000126215',7517),
 (515866,12841,'YES1','YES proto-oncogene 1, Src family tyrosine kinase','protein-coding gene','ENSG00000176105',7525),
 (515975,18078,'ZBTB7A','zinc finger and BTB domain containing 7A','protein-coding gene','ENSG00000178951',51341),
-(516388,13009,'ZNF217','zinc finger protein 217','protein-coding gene','ENSG00000171940',7764);
+(516388,13009,'ZNF217','zinc finger protein 217','protein-coding gene','ENSG00000171940',7764),
+(511836,11730,'TERT','telomerase reverse transcriptase','protein-coding gene','ENSG00000164362',7015),
+(484453,4764,'H3-3A','H3.3 histone A','protein-coding gene','ENSG00000163041',3020),
+(507739,10519,'SACS','sacsin molecular chaperone','protein-coding gene','ENSG00000151835',26278),
+(499316,9122,'PMS2','PMS1 homolog 2, mismatch repair system component','protein-coding gene','ENSG00000122512',5395);
 
 -- INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
 -- (427667, 'COX2', 'synonym'),

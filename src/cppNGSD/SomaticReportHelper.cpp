@@ -42,7 +42,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		QByteArray vicc = variant.annotations()[i_som_vicc];
 		if(vicc == "ONCOGENIC" || vicc == "LIKELY_ONCOGENIC")
 		{
-			important_genes << selectSomaticTranscript(variant, settings_, snv_index_coding_splicing_).gene;
+			important_genes << selectSomaticTranscript(db_, variant, settings_, snv_index_coding_splicing_).gene;
 		}
 	}
 
@@ -69,7 +69,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	//create lists of important and not imporant variants
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
-		QByteArray gene = selectSomaticTranscript(somatic_vl_[i], settings_, snv_index_coding_splicing_).gene;
+		QByteArray gene = selectSomaticTranscript(db_, somatic_vl_[i], settings_, snv_index_coding_splicing_).gene;
 		int i_vicc = somatic_vl_.annotationIndexByName("NGSD_som_vicc_interpretation");
 		Variant var = somatic_vl_[i];
 
@@ -388,7 +388,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 		stream << variant.annotations().at(i_tumor_depth) << "\t";
 
 		//determine transcript, usually first coding/splicing
-		VariantTranscript transcript = selectSomaticTranscript(variant, settings_, snv_index_coding_splicing_);
+		VariantTranscript transcript = selectSomaticTranscript(db_, variant, settings_, snv_index_coding_splicing_);
 
 		//affected gene
 		stream << transcript.gene << "\t";
@@ -593,7 +593,14 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 VariantTranscript SomaticReportHelper::selectSomaticTranscript(NGSD& db, const Variant& variant, const SomaticReportSettings& settings, int index_co_sp)
 {
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(index_co_sp);
+	if (transcripts.count() == 0) return VariantTranscript();
 
+	Transcript best = db.bestTranscript(db.geneId(transcripts[0].gene), transcripts);
+
+	foreach(const VariantTranscript& trans, transcripts) // if "best transcript" is annotated take that (logic that is also used in GSvar)
+	{
+		if (trans.idWithoutVersion() == best.name()) return trans;
+	}
 
 	//use preferred transcript that is coding or splicing if available
 	foreach(const VariantTranscript& trans, transcripts)
@@ -1145,7 +1152,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			{
 				const Variant& low_impact_snv = somatic_vl_[l];
 
-				VariantTranscript transcript = selectSomaticTranscript(low_impact_snv, settings_, snv_index_coding_splicing_);
+				VariantTranscript transcript = selectSomaticTranscript(db_, low_impact_snv, settings_, snv_index_coding_splicing_);
 				transcript.type = transcript.type.replace("_variant","");
 				transcript.type.replace("&",", ");
 
@@ -1168,7 +1175,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 		const Variant& snv = somatic_vl_[i];
 
-		VariantTranscript transcript = selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_);
+		VariantTranscript transcript = selectSomaticTranscript(db_, snv, settings_, snv_index_coding_splicing_);
 		transcript.type = transcript.type.replace("_variant","");
 		transcript.type.replace("&",", ");
 
@@ -1200,7 +1207,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			{
 				const Variant& low_impact_snv = somatic_vl_[l];
 
-				VariantTranscript transcript_low_impact = selectSomaticTranscript(low_impact_snv, settings_, snv_index_coding_splicing_);
+				VariantTranscript transcript_low_impact = selectSomaticTranscript(db_, low_impact_snv, settings_, snv_index_coding_splicing_);
 				transcript_low_impact.type.replace("_variant","");
 				transcript_low_impact.type.replace("&",", ");
 
@@ -2020,7 +2027,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				for (int g=0; g<som_var_in_normal.count(); ++g)
 				{
 					const Variant& variant = som_var_in_normal[g];
-					VariantTranscript transcript = selectSomaticTranscript(variant, settings_, germline_index_coding_splicing);
+					VariantTranscript transcript = selectSomaticTranscript(db_, variant, settings_, germline_index_coding_splicing);
 					if (genes_pathway.contains(transcript.gene))
 					{
 						QByteArray variant_text;
@@ -2045,7 +2052,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				for(int v=0; v<somatic_vl_.count(); ++v)
 				{
 					const Variant& variant = somatic_vl_[v];
-					VariantTranscript transcript = selectSomaticTranscript(variant, settings_, snv_index_coding_splicing_);
+					VariantTranscript transcript = selectSomaticTranscript(db_, variant, settings_, snv_index_coding_splicing_);
 					if (genes_pathway.contains(transcript.gene))
 					{
 						QByteArray variant_text;
