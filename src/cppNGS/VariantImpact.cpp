@@ -1,7 +1,6 @@
 #include "VariantImpact.h"
 #include "Exceptions.h"
 
-
 QByteArray variantImpactToString(VariantImpact type)
 {
 	if (type == VariantImpact::MODIFIER)
@@ -56,4 +55,3 @@ bool lowerImpactThan(VariantImpact left, VariantImpact right)
 {
 	return (static_cast<int>(left) < static_cast<int>(right));
 }
-

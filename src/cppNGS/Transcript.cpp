@@ -951,6 +951,16 @@ bool TranscriptList::contains(const QByteArray& name) const
 	return false;
 }
 
+Transcript TranscriptList::getTranscript(const QByteArray& name)
+{
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if (it->name()==name) return *it;
+	}
+
+	return Transcript();
+}
+
 void TranscriptList::sortByBases()
 {
 	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });

@@ -749,7 +749,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 			{
 				int gene_id = db.geneId(trans_data[i].gene);
 				if (gene_id==-1) continue;
-				Transcript best = db.bestTranscript(gene_id);
+				Transcript best = db.bestTranscript(gene_id, vl[index].parseTranscriptString(vl[index].annotations()[a_index]));
 				if (trans_data[i].id==best.nameWithVersion())
 				{
 					setTranscript(i);

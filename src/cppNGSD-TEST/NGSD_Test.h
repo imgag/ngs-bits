@@ -464,6 +464,69 @@ private slots:
 		transcript = db.bestTranscript(1); //BRCA1, only CCDS transcript > invalid
 		IS_FALSE(transcript.isValid());
 
+		transcript = db.bestTranscript(415153); // EPRS 3 transcripts: 2 mane+clinical, 1 gencode-basic
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "EPRS_TR2");
+
+		transcript = db.bestTranscript(427667); // MT-CO2 4 transcripts: 3 mane+clinical (2-4), 1 normal (1), 2 of mane+clinical as preffered (3+4)
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "MT-CO2_TR3");
+
+		//bestTranscript with impact:
+		VariantTranscript t1;
+		t1.id = "EPRS_TR2.1";
+		t1.impact = VariantImpact::LOW;
+
+		VariantTranscript t2;
+		t2.id = "EPRS_TR3.1";
+		t2.impact = VariantImpact::HIGH;
+
+		QList<VariantTranscript> var_trans;
+		var_trans.append(t1);
+		var_trans.append(t2);
+
+		transcript = db.bestTranscript(415153, var_trans);
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "EPRS_TR3");
+
+		t1.id = "MT-CO2_TR3.1";
+		t1.impact = VariantImpact::LOW;
+
+		t2.id = "MT-CO2_TR4.1";
+		t2.impact = VariantImpact::MODERATE;
+
+		VariantTranscript t3;
+		t3.id = "MT-CO2_TR2.1"; //not preferred
+		t3.impact = VariantImpact::HIGH;
+
+		var_trans.clear();
+		var_trans.append(t1);
+		var_trans.append(t2);
+		var_trans.append(t3);
+
+		transcript = db.bestTranscript(427667, var_trans);
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "MT-CO2_TR4");
+
+		t1.id = "MT-CO2_TR3.1";
+		t1.impact = VariantImpact::LOW;
+
+		t2.id = "MT-CO2_TR4.1";
+		t2.impact = VariantImpact::LOW;
+
+		t3.id = "MT-CO2_TR2.1"; //not preferred
+		t3.impact = VariantImpact::HIGH;
+
+		var_trans.clear();
+		var_trans.append(t1);
+		var_trans.append(t2);
+		var_trans.append(t3);
+
+		transcript = db.bestTranscript(427667, var_trans);
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "MT-CO2_TR3");
+
+
 		//releventTranscripts
 		transcripts = db.releventTranscripts(3); //NIPA1 (only best)
 		I_EQUAL(transcripts.count(), 2);
@@ -1405,7 +1468,7 @@ private slots:
 
 		//getPreferredTranscripts
 		QMap<QByteArray, QByteArrayList> pt = db.getPreferredTranscripts();
-		I_EQUAL(pt.count(), 3);
+		I_EQUAL(pt.count(), 4);
 		IS_TRUE(pt.contains("NIPA1"));
 		IS_TRUE(pt.contains("NON-CODING"));
 		I_EQUAL(pt["NIPA1"].count(), 2);
@@ -1415,6 +1478,9 @@ private slots:
 		IS_TRUE(pt["NON-CODING"].contains("NON-CODING_TR1"));
 		I_EQUAL(pt["SPG7"].count(), 1);
 		IS_TRUE(pt["SPG7"].contains("ENST00000341316"));
+		I_EQUAL(pt["MT-CO2"].count(), 2);
+		IS_TRUE(pt["MT-CO2"].contains("MT-CO2_TR3"));
+		IS_TRUE(pt["MT-CO2"].contains("MT-CO2_TR4"));
 
 		//addSampleRelation
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});

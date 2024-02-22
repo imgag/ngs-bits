@@ -590,9 +590,10 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	saveReportData("QBIC_metadata.tsv", path_target_folder, content);
 }
 
-VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant, const SomaticReportSettings& settings, int index_co_sp)
+VariantTranscript SomaticReportHelper::selectSomaticTranscript(NGSD& db, const Variant& variant, const SomaticReportSettings& settings, int index_co_sp)
 {
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(index_co_sp);
+
 
 	//use preferred transcript that is coding or splicing if available
 	foreach(const VariantTranscript& trans, transcripts)

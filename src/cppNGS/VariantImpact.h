@@ -15,13 +15,11 @@ enum class VariantImpact
 
 };
 
-//Type to string conversion
+//Type <-> string conversions
 QByteArray CPPNGSSHARED_EXPORT variantImpactToString(VariantImpact type);
 VariantImpact CPPNGSSHARED_EXPORT stringToVariantImpact(QString str);
 
-bool lowerImpactThan(VariantImpact left, VariantImpact right);
-
-
+bool CPPNGSSHARED_EXPORT lowerImpactThan(VariantImpact left, VariantImpact right);
 
 
 #endif // VARIANTIMPACT_H
