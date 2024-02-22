@@ -87,11 +87,24 @@ public:
 					//determine new offset:
 					cds_offset = (cds_offset + coding_region.length()) % 3;
 
+					//update cds status
+					cds_status = "cmpl";
+
+//					if (((trans.strand()==Transcript::MINUS && i==0) || (trans.strand()==Transcript::PLUS && i==(coding_regions.count()-1))) && exon_ranges.size()>0)
+//					{
+//						//on first iteration: check if utr and exon are connected
+//						if (exon_ranges.last()[1] == coding_region.start())
+//						{
+//							exon_ranges.last()[1] = coding_region.end();
+//							exon_ranges.last()[2] = phase;
+//							continue;
+//						}
+//					}
+
 					//add (exon) start, end and frame offset
 					exon_ranges.append(QList<int>() << coding_region.start() << coding_region.end() << phase);
 
-					//update cds status
-					cds_status = "cmpl";
+
 
 				}
 
@@ -100,6 +113,16 @@ public:
                 {
                     // 5prime UTR LINEs
                     const BedLine& reg = utr5prime[i];
+
+//					if (((trans.strand()==Transcript::MINUS && i==0) || (trans.strand()==Transcript::PLUS && i==(coding_regions.count()-1))) && exon_ranges.size()>0)
+//					{
+//						//on first iteration: check if utr and exon are connected
+//						if (exon_ranges.last()[1] == (reg.start()-1))
+//						{
+//							exon_ranges.last()[1] = reg.end();
+//							continue;
+//						}
+//					}
 					//add (exon) start, end and frame offset
 					exon_ranges.append(QList<int>() << reg.start() << reg.end() << -1);
                 }
@@ -116,11 +139,30 @@ public:
 
 			//sort exons by coordinate
 			std::sort(exon_ranges.begin(), exon_ranges.end(),[](const QList<int>& a, const QList<int>& b)->bool{return a.at(0)<b.at(0);});
+
+			//merge regions (and convert to 0-based)
+			QList<QList<int>> merged_exon_ranges;
+			foreach(QList<int> exon, exon_ranges)
+			{
+				if (merged_exon_ranges.size() > 0)
+				{
+					if (merged_exon_ranges.last()[1] == (exon[0]-1))
+					{
+						merged_exon_ranges.last()[1] = exon[1];
+						merged_exon_ranges.last()[2] = std::max(merged_exon_ranges.last()[2], exon[2]);
+						continue;
+					}
+				}
+				exon[0] -= 1; //convert to 0-based
+				merged_exon_ranges.append(exon);
+			}
+
+
 			//format for columns
 			QByteArray exon_starts, exon_ends, exon_frames;
-			foreach(const QList<int>& exon, exon_ranges)
+			foreach(const QList<int>& exon, merged_exon_ranges)
 			{
-				exon_starts += QByteArray::number(exon.at(0)-1) + ","; // convert to 0-based
+				exon_starts += QByteArray::number(exon.at(0)) + ",";
 				exon_ends += QByteArray::number(exon.at(1)) + ",";
 				exon_frames += QByteArray::number(exon.at(2)) + ",";
 			}
@@ -136,7 +178,7 @@ public:
 			line.append(QByteArray::number(trans.end()));
 			line.append(cds_start);
 			line.append(cds_end);
-			line.append(QByteArray::number(exon_ranges.size()));
+			line.append(QByteArray::number(merged_exon_ranges.size()));
 			line.append(exon_starts);
 			line.append(exon_ends);
 			line.append("0"); //score
