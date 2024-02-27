@@ -25,11 +25,11 @@ public:
 		setDescription("Annotates a BEDPE file with breakpoint density.");
 		addInfile("density", "IGV density file containing break point density.", false);
 		//optional
+		addInfile("density_sys", "Optional IGV density file containing break point density for a specific processing system.", true);
 		addInfile("in", "Input BEDPE file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BEDPE file. If unset, writes to STDOUT.", true);
-		addInfile("density_sys", "Optional IGV density file containing break point density for a specific processing system.", true);
 
-
+		changeLog(2024, 2, 26, "Added system-specific density.");
 		changeLog(2022, 2, 23, "Initial commit.");
 	}
 
@@ -64,7 +64,7 @@ public:
 
 		// check if annotation already exisits:
 		int i_annotation = bedpe_file.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY", false);
-		int i_annotation_sys;
+		int i_annotation_sys = -1;
 		if (optional_sys_file) i_annotation_sys = bedpe_file.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY_SYS", false);
 
 

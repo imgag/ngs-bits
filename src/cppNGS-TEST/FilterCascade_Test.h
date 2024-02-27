@@ -1871,7 +1871,7 @@ private slots:
 		// default maximum
 		FilterSvBreakpointDensityNGSD filter;
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 70);
+		I_EQUAL(result.countPassing(), 85);
 	}
 
 	void FilterSvBreakpointDensityNGSD_custom()
@@ -1884,10 +1884,26 @@ private slots:
 
 		// custom maximum
 		FilterSvBreakpointDensityNGSD filter;
-		filter.setInteger("max_density", 257);
+		filter.setInteger("max_density", 4);
 		filter.setBool("remove_strict", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 73);
+		I_EQUAL(result.countPassing(), 82);
+	}
+
+	void FilterSvBreakpointDensityNGSD_system_specific()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvBreakpointDensityNGSD filter;
+		filter.setInteger("max_density", 1);
+		filter.setBool("only_system_specific", true);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 84);
 	}
 
 	void FilterSvTrio_apply()

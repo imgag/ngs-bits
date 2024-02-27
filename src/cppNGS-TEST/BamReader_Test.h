@@ -219,6 +219,11 @@ private slots:
 		I_EQUAL(pileup.depth(false), 167);
 		IS_TRUE(!BasicStatistics::isValidFloat(pileup.frequency('A', 'T')));
 		I_EQUAL(pileup.indels().count(), 0);
+		//SNP not properly paired
+		pileup = reader.getPileup("1", 12001405, 1, 1, true);
+		I_EQUAL(pileup.depth(false), 292);
+		F_EQUAL2(pileup.frequency('G', 'T'), 0.0069, 0.0001);
+		I_EQUAL(pileup.indels().count(), 0);
 		//INSERTATION
 		pileup = reader.getPileup("chr6", 109732622, 1);
 		I_EQUAL(pileup.depth(false), 40);

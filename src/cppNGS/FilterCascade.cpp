@@ -4702,13 +4702,14 @@ FilterSvBreakpointDensityNGSD::FilterSvBreakpointDensityNGSD()
 	params_ << FilterParameter("max_density", FilterParameterType::INT, 20, "Maximum density in the confidence interval of the SV");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("remove_strict", FilterParameterType::BOOL, false, "Remove also SVs in which only one break point is above threshold.");
+	params_ << FilterParameter("only_system_specific", FilterParameterType::BOOL, false, "Filter only based on the density of breakpoint of the current processing system.");
 
 	checkIsRegistered();
 }
 
 QString FilterSvBreakpointDensityNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_density", false)) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"");
+	return name() + " &le; " + QString::number(getInt("max_density", false)) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"") + QByteArray((getBool("only_system_specific"))?" (only_system_specific)":"");
 }
 
 void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4717,8 +4718,9 @@ void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& re
 
 	int max_density = getInt("max_density");
 	bool remove_strict = getBool("remove_strict");
+	bool only_system_specific = getBool("only_system_specific");
 
-	int idx_ngsd_density = svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY");
+	int idx_ngsd_density = (only_system_specific)? svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY_SYS") : svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY");
 
 	for(int i=0; i<svs.count(); ++i)
 	{
@@ -4731,20 +4733,20 @@ void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& re
 		if (densities.size() == 1)
 		{
 			//only one break point (INS)
-			result.flags()[i] = Helper::toInt(density, "NGSD_SV_BREAKPOINT_DENSITY") <= max_density;
+			result.flags()[i] = Helper::toInt(density, "NGSD_SV_BREAKPOINT_DENSITY(_SYS)") <= max_density;
 		}
 		else
 		{
 			//2 break points
 			if (remove_strict)
 			{
-				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
-						&& (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY(_SYS) (BP1)") <= max_density)
+						&& (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY(_SYS) (BP2)") <= max_density);
 			}
 			else
 			{
-				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
-						|| (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY(_SYS) (BP1)") <= max_density)
+						|| (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY(_SYS) (BP2)") <= max_density);
 			}
 		}
 

@@ -76,7 +76,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList 
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesBam(const VcfFile& snps, BamReader& reader, int min_cov, int max_snps, bool include_gonosomes)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesBam(const VcfFile& snps, BamReader& reader, int min_cov, int max_snps, bool include_gonosomes,  bool include_single_end_reads)
 {
 	VariantGenotypes output;
 	for(int i=0; i<snps.count(); ++i)
@@ -86,7 +86,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesBam(const VcfFile&
 
 		if (!chr.isAutosome() && !include_gonosomes) continue;
 
-		Pileup pileup = reader.getPileup(chr, pos);
+		Pileup pileup = reader.getPileup(chr, pos, -1, 1, include_single_end_reads);
 		if (pileup.depth(false)<min_cov) continue;
 
 		QChar ref = snps[i].ref()[0];
@@ -166,7 +166,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString 
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file, bool include_single_end_reads)
 {
 	//get known SNP list
 	VcfFile snps;
@@ -176,12 +176,12 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuil
 	BamReader reader(filename, ref_file);
 
 	//get VariantGenotypes
-	VariantGenotypes output = genotypesBam(snps, reader, min_cov, max_snps, include_gonosomes);
+	VariantGenotypes output = genotypesBam(snps, reader, min_cov, max_snps, include_gonosomes, include_single_end_reads);
 
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file, bool include_single_end_reads)
 {
 	//get known SNP list
 	VcfFile snps;
@@ -191,7 +191,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuil
 	BamReader reader(filename, ref_file);
 
 	//get VariantGenotypes
-	VariantGenotypes output = genotypesBam(snps, reader, min_cov, max_snps, include_gonosomes);
+	VariantGenotypes output = genotypesBam(snps, reader, min_cov, max_snps, include_gonosomes, include_single_end_reads);
 
 	return output;
 }

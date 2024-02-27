@@ -37,4 +37,13 @@ private slots:
 		COMPARE_FILES("out/SampleSimilarity_out5.tsv", TESTDATA("data_out/SampleSimilarity_out5.tsv"));
 	}
 
+	void test_longread_hg38()
+	{
+		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in8.bam") + " " + TESTDATA("data_in/SampleSimilarity_in9.bam") + " -out out/SampleSimilarity_out6.tsv -mode bam -max_snps 200");
+		COMPARE_FILES("out/SampleSimilarity_out6.tsv", TESTDATA("data_out/SampleSimilarity_out6.tsv"));
+
+		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in8.bam") + " " + TESTDATA("data_in/SampleSimilarity_in9.bam") + " -out out/SampleSimilarity_out7.tsv -mode bam -max_snps 200 -include_single_end_reads -min_cov 5");
+		COMPARE_FILES("out/SampleSimilarity_out7.tsv", TESTDATA("data_out/SampleSimilarity_out7.tsv"));
+	}
+
 };

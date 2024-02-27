@@ -324,7 +324,7 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 	foreach(const CigarOp& op, cigar_data)
 	{
 		//update positions
-		if (op.Type==BAM_CMATCH)
+		if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF)
 		{
 			genome_pos += op.Length;
 			read_pos += op.Length;

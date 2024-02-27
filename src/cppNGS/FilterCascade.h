@@ -1160,7 +1160,7 @@ class CPPNGSSHARED_EXPORT FilterSvTrio
 };
 
 
-//NGSD SV break point density filter
+//NGSD SV CNV overlap filter
 class CPPNGSSHARED_EXPORT FilterSvCnvOverlap
 	: public FilterBase
 {
