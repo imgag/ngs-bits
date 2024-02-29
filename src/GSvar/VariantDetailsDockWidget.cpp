@@ -749,7 +749,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 			{
 				int gene_id = db.geneId(trans_data[i].gene);
 				if (gene_id==-1) continue;
-				Transcript best = db.bestTranscript(gene_id);
+				Transcript best = db.bestTranscript(gene_id, vl[index].parseTranscriptString(vl[index].annotations()[a_index]));
 				if (trans_data[i].id==best.nameWithVersion())
 				{
 					setTranscript(i);
@@ -799,15 +799,15 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	ui->trans_refseq->setText(refseq_links.join(", "));
 
 	//set detail labels
-	if (trans.impact=="HIGH")
+	if (trans.impact==VariantImpact::HIGH)
 	{
 		ui->detail_type->setText(formatText(trans.type, RED));
-		ui->detail_impact->setText(formatText(trans.impact, RED));
+		ui->detail_impact->setText(formatText(variantImpactToString(trans.impact), RED));
 	}
 	else
 	{
 		ui->detail_type->setText(trans.type);
-		ui->detail_impact->setText(trans.impact);
+		ui->detail_impact->setText(variantImpactToString(trans.impact));
 	}
 	QString exon_nr = trans.exon;
 	if (exon_nr.startsWith("exon"))

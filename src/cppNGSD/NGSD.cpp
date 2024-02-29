@@ -8,6 +8,7 @@
 #include "FilterCascade.h"
 #include "LoginManager.h"
 #include "UserPermissionList.h"
+#include "VariantImpact.h"
 #include <QFileInfo>
 #include <QPair>
 #include <QSqlDriver>
@@ -24,6 +25,7 @@
 #include "cmath"
 #include "QUuid"
 #include "ClientHelper.h"
+
 
 NGSD::NGSD(bool test_db, QString name_suffix)
 	: test_db_(test_db)
@@ -6761,21 +6763,34 @@ TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, in
 	return output;
 }
 
-Transcript NGSD::bestTranscript(int gene_id)
+Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts)
 {
 	TranscriptList list = transcripts(gene_id, Transcript::ENSEMBL, false);
 
 	//preferred
 	list.sortByCodingBases();
+	TranscriptList list_lvl;
+
 	foreach(const Transcript& t, list)
 	{
-		if (t.isPreferredTranscript()) return t;
+		if (t.isPreferredTranscript()) list_lvl.append(t);
 	}
+
+	if (list_lvl.count() > 0)
+	{
+		return highestImpactTranscript(list_lvl, var_transcripts);
+	}
+
 
 	//MANE select
 	foreach(const Transcript& t, list)
 	{
-		if (t.isManeSelectTranscript()) return t;
+		if (t.isManeSelectTranscript()) list_lvl.append(t);
+	}
+
+	if (list_lvl.count() > 0)
+	{
+		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
 	//MANE plus clinical
@@ -6784,13 +6799,23 @@ Transcript NGSD::bestTranscript(int gene_id)
 	//Ensembl canonical
 	foreach(const Transcript& t, list)
 	{
-		if (t.isEnsemblCanonicalTranscript()) return t;
+		if (t.isEnsemblCanonicalTranscript()) list_lvl.append(t);
+	}
+
+	if (list_lvl.count() > 0)
+	{
+		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
 	//longest coding
 	foreach(const Transcript& t, list)
 	{
-		if (t.isCoding()) return t;
+		if (t.isCoding()) list_lvl.append(t);
+	}
+
+	if (list_lvl.count() > 0)
+	{
+		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
 	//longest
@@ -6801,6 +6826,39 @@ Transcript NGSD::bestTranscript(int gene_id)
 	}
 
 	return Transcript();
+}
+
+Transcript NGSD::highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts)
+{
+	if (transcripts.count() == 0) return Transcript();
+
+	if (var_transcripts.isEmpty() || transcripts.count() == 1)
+	{
+		return transcripts[0];
+	}
+	else
+	{
+		VariantImpact current_impact = VariantImpact::MODIFIER;
+		Transcript current_transcript;
+
+		foreach (VariantTranscript var_t, var_transcripts)
+		{
+			if (transcripts.contains(var_t.idWithoutVersion()) && (! current_transcript.isValid() || lowerImpactThan(current_impact, var_t.impact)))
+			{
+				current_impact = var_t.impact;
+				current_transcript = transcripts.getTranscript(var_t.idWithoutVersion());
+			}
+		}
+
+		if (current_transcript.isValid())
+		{
+			return current_transcript;
+		}
+		else
+		{
+			return transcripts[0];
+		}
+	}
 }
 
 TranscriptList NGSD::releventTranscripts(int gene_id)

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PathogenicWtDialog</class>
+ <widget class="QDialog" name="PathogenicWtDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>350</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>800</width>
+    <height>350</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Pathogenic WT variants</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>3</number>
+   </property>
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>This dialog looks up variants that are pathognic or disease modifiers if present in WT genotype.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="variants">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
+     <property name="windowTitle">
+      <string>Pathogenic WT variants</string>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <row>
+      <property name="text">
+       <string>New Row</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>New Row</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>New Row</string>
+      </property>
+     </row>
+     <column>
+      <property name="text">
+       <string>variant</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>disease</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>gene</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>depth</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>genotype</string>
+      </property>
+     </column>
+     <item row="0" column="0">
+      <property name="text">
+       <string>chr2:27508073-27508073 T&gt;C</string>
+      </property>
+     </item>
+     <item row="0" column="1">
+      <property name="text">
+       <string>fatty liver</string>
+      </property>
+     </item>
+     <item row="0" column="2">
+      <property name="text">
+       <string>GCKR</string>
+      </property>
+     </item>
+     <item row="1" column="0">
+      <property name="text">
+       <string>chr2:27518370-27518370 T&gt;C</string>
+      </property>
+     </item>
+     <item row="1" column="1">
+      <property name="text">
+       <string>fatty liver</string>
+      </property>
+     </item>
+     <item row="1" column="2">
+      <property name="text">
+       <string>GCKR</string>
+      </property>
+     </item>
+     <item row="2" column="0">
+      <property name="text">
+       <string>chr7:87450090-87450090 T&gt;A</string>
+      </property>
+     </item>
+     <item row="2" column="1">
+      <property name="text">
+       <string>cholestasis</string>
+      </property>
+     </item>
+     <item row="2" column="2">
+      <property name="text">
+       <string>ABCB4</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

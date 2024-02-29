@@ -49,8 +49,7 @@ public:
     static void addNewSession(QString id, Session in);
 	static void removeSession(QString id);	
 	static Session getSessionBySecureToken(QString token);
-	static bool isSessionExpired(Session in);
-	static bool isSessionExpired(QString token);
+    static bool isSessionExpired(Session in);
 
 	static bool isTokenReal(QString token);
     static QMap<QString, Session> removeExpiredSessions();

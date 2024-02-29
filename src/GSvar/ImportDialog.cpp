@@ -333,7 +333,8 @@ void ImportDialog::addRow(SqlQuery& query, int r)
 	int c=0;
 	foreach (const QString& field, db_fields_)
 	{
-		QString value = ui_.table->item(r,c)->data(Qt::UserRole).toString();
+		QTableWidgetItem* item = ui_.table->item(r,c);
+		QString value = item==nullptr ? "" : item->data(Qt::UserRole).toString();
 		const TableFieldInfo& field_info = db_.tableInfo(db_table_).fieldInfo(field);
 		query.bindValue(c, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
 		++c;

@@ -177,7 +177,7 @@ public:
 	}
 
 	///returns best matching transcript - or an empty transcript
-	static VariantTranscript selectSomaticTranscript(const Variant& variant, const SomaticReportSettings& settings, int index_co_sp);
+	static VariantTranscript selectSomaticTranscript(NGSD& db, const Variant& variant, const SomaticReportSettings& settings, int index_co_sp);
 
 	///adds necessary colors to the to the RTF document
 	static void addColors(RtfDocument& doc);

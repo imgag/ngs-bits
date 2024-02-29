@@ -8,6 +8,7 @@
 #include "OntologyTermCollection.h"
 #include "GenomeBuild.h"
 #include "VcfLine.h"
+#include "VariantImpact.h"
 
 ///Variant caller information
 struct VariantCaller
@@ -22,7 +23,7 @@ struct CPPNGSSHARED_EXPORT VariantTranscript
 	QByteArray gene;
 	QByteArray id; //Attention: older GSvar files contain Ensembl transcripts without version number. Since 12/2020 a version number is included.
 	QByteArray type;
-	QByteArray impact;
+	VariantImpact impact;
 	QByteArray exon;
 	QByteArray hgvs_c;
 	QByteArray hgvs_p;

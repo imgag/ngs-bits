@@ -129,7 +129,7 @@ public:
 				// get all svs in the SV region
 				int ngsd_count_hom = 0;
 				int ngsd_count_het = 0;
-				QByteArrayList matches = count_indices[sv.type()].getMatchingLines(sv_region.chr(), sv_region.start(), sv_region.end());
+				QByteArrayList matches = count_indices[sv.type()].getMatchingLines(sv_region.chr(), sv_region.start(), sv_region.end(), true);
 
 				// check resulting lines for exact matches
 				foreach (const QByteArray& match, matches)

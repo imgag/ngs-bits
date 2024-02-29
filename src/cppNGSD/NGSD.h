@@ -770,7 +770,9 @@ public:
 	///Returns all transcripts overlapping the given region (extended by some bases).
 	TranscriptList transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend=0, Transcript::SOURCE source=Transcript::ENSEMBL);
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
-	Transcript bestTranscript(int gene_id);
+	Transcript bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts=QList<VariantTranscript>());
+	//Return the transcript with the highest impact given the variant transcript impacts
+	Transcript highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene (best transcript, prefered transcripts, MANE select transcript, MANE plus clinical transcript)
 	TranscriptList releventTranscripts(int gene_id);
 	///Returns longest coding transcript of a gene.

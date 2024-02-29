@@ -1347,7 +1347,7 @@ QList<VariantTranscript> Variant::parseTranscriptString(QByteArray text, bool al
 		trans.gene = parts[0].trimmed();
 		trans.id = parts[1].trimmed();
 		trans.type = parts[2].trimmed();
-		trans.impact = parts[3].trimmed();
+		trans.impact = stringToVariantImpact(parts[3].trimmed());
 		trans.exon = parts[4].trimmed();
 		trans.hgvs_c = parts[5].trimmed();
 		trans.hgvs_p = parts[6].trimmed();
@@ -1368,7 +1368,7 @@ QDebug operator<<(QDebug d, const Variant& v)
 
 QByteArray VariantTranscript::toString(char sep) const
 {
-	return gene + sep + id + sep + type + sep + impact + sep + exon + sep + hgvs_c + sep + hgvs_p + sep + domain;
+	return gene + sep + id + sep + type + sep + variantImpactToString(impact) + sep + exon + sep + hgvs_c + sep + hgvs_p + sep + domain;
 }
 
 bool VariantTranscript::typeMatchesTerms(const OntologyTermCollection& terms) const

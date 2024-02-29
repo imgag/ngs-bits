@@ -359,6 +359,9 @@ public:
 	///Returns if a transcript with the name (without version) is contained
 	bool contains(const QByteArray& name) const;
 
+	///Returns the transcript with the given id if contained else an invalid transcript
+	Transcript getTranscript(const QByteArray& name);
+
 	//sorts transcripts by relevance (gene, coding size, non-coding size, ...). Mainly used when displaying transcripts of a gene or variant.
 	void sortByRelevance();
 	//sorts transcripts by base count (longest first)

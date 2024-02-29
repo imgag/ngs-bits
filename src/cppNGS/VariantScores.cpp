@@ -359,15 +359,15 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		double impact_score = 0.0;
 		foreach(const VariantTranscript& transcript, transcript_info)
 		{
-			if(transcript.impact=="HIGH")
+			if(transcript.impact == VariantImpact::HIGH)
 			{
 				impact_score = std::max(impact_score, 3.0);
 			}
-			else if(transcript.impact=="MODERATE")
+			else if(transcript.impact==VariantImpact::MODERATE)
 			{
 				impact_score = std::max(impact_score, 2.0);
 			}
-			else if(transcript.impact=="LOW")
+			else if(transcript.impact==VariantImpact::LOW)
 			{
 				impact_score = std::max(impact_score, 1.0);
 			}
@@ -723,15 +723,15 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		foreach(const VariantTranscript& transcript, transcript_info)
 		{
-			if(transcript.impact=="HIGH")
+			if(transcript.impact==VariantImpact::HIGH)
 			{
 				scores.add("impact", 3.0, transcript.gene);
 			}
-			else if(transcript.impact=="MODERATE")
+			else if(transcript.impact==VariantImpact::MODERATE)
 			{
 				scores.add("impact", 2.0, transcript.gene);
 			}
-			else if(transcript.impact=="LOW")
+			else if(transcript.impact==VariantImpact::LOW)
 			{
 				scores.add("impact", 1.0, transcript.gene);
 			}
@@ -992,15 +992,15 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		foreach(const VariantTranscript& transcript, transcript_info)
 		{
-			if(transcript.impact=="HIGH")
+			if(transcript.impact==VariantImpact::HIGH)
 			{
 				scores.add("impact", 3.0, transcript.gene);
 			}
-			else if(transcript.impact=="MODERATE")
+			else if(transcript.impact==VariantImpact::MODERATE)
 			{
 				scores.add("impact", 2.0, transcript.gene);
 			}
-			else if(transcript.impact=="LOW")
+			else if(transcript.impact==VariantImpact::LOW)
 			{
 				scores.add("impact", 1.0, transcript.gene);
 			}

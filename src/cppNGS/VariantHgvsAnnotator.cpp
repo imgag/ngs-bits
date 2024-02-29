@@ -242,7 +242,7 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	{
 		hgvs.hgvs_c = "";
 		hgvs.hgvs_p = "";
-		hgvs.impact = "MODIFIER";
+		hgvs.impact = VariantImpact::MODIFIER;
 		return hgvs;
 	}
 
@@ -368,15 +368,11 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	if (debug) qDebug() << "annotate" << __LINE__ << "hgvs_c:" << hgvs.hgvs_c << "hgvs_p:" << hgvs.hgvs_p << "types:" << hgvs.typesToString();
 
 	//determine max impact
-	QSet<QByteArray> impact_set;
+	hgvs.impact = VariantImpact::MODIFIER;
 	foreach(VariantConsequenceType type, hgvs.types)
 	{
-		impact_set << consequenceTypeToImpact(type);
+		if (lowerImpactThan(hgvs.impact, consequenceTypeToImpact(type))) hgvs.impact = consequenceTypeToImpact(type);
 	}
-	if (impact_set.contains("HIGH")) hgvs.impact = "HIGH";
-	else if (impact_set.contains("MODERATE")) hgvs.impact = "MODERATE";
-	else if (impact_set.contains("LOW")) hgvs.impact = "LOW";
-	else hgvs.impact = "MODIFIER";
 
     return hgvs;
 }
@@ -389,7 +385,7 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	return annotate(transcript, vcf_variant, debug);
 }
 
-QByteArray VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType type)
+VariantImpact VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType type)
 {
 	switch(type)
 	{
@@ -399,20 +395,20 @@ QByteArray VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType 
 		case VariantConsequenceType::FRAMESHIFT_VARIANT:
 		case VariantConsequenceType::STOP_LOST:
 		case VariantConsequenceType::START_LOST:
-			return "HIGH";
+			return VariantImpact::HIGH;
 			break;
 		case VariantConsequenceType::INFRAME_INSERTION:
 		case VariantConsequenceType::INFRAME_DELETION:
 		case VariantConsequenceType::MISSENSE_VARIANT:
 		case VariantConsequenceType::PROTEIN_ALTERING_VARIANT:
-			return "MODERATE";
+			return VariantImpact::MODERATE;
 			break;
 		case VariantConsequenceType::SPLICE_REGION_VARIANT:
 		case VariantConsequenceType::INCOMPLETE_TERMINAL_CODON_VARIANT:
 		case VariantConsequenceType::START_RETAINED_VARIANT:
 		case VariantConsequenceType::STOP_RETAINED_VARIANT:
 		case VariantConsequenceType::SYNONYMOUS_VARIANT:
-			return "LOW";
+			return VariantImpact::LOW;
 			break;
 		case VariantConsequenceType::CODING_SEQUENCE_VARIANT:
 		case VariantConsequenceType::FIVE_PRIME_UTR_VARIANT:
@@ -424,7 +420,7 @@ QByteArray VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType 
 		case VariantConsequenceType::DOWNSTREAM_GENE_VARIANT:
 		case VariantConsequenceType::INTERGENIC_VARIANT:
 		case VariantConsequenceType::NMD_TRANSCRIPT_VARIANT:
-			return "MODIFIER";
+			return VariantImpact::MODIFIER;
 			break;
 	}
 	THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
@@ -1510,7 +1506,7 @@ QByteArray VariantConsequence::typesToString(QByteArray sep) const
 
 QByteArray VariantConsequence::toString() const
 {
-	QByteArray output = "HGVS.c=" + hgvs_c + " HGVS.p=" + hgvs_p + " impact=" + impact + " types=" + typesToString();
+	QByteArray output = "HGVS.c=" + hgvs_c + " HGVS.p=" + hgvs_p + " impact=" + variantImpactToString(impact) + " types=" + typesToString();
 
 	if (exon_number!=-1) output += " exon=" + QByteArray::number(exon_number);
 	if (intron_number!=-1) output += " intron=" + QByteArray::number(intron_number);

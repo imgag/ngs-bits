@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2023_11
+	> git checkout 2024_02
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -172,19 +172,16 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ## ChangeLog
 
-Changes of master since last release:
+Changes in release 2024_02:
 
-* none so far
+* new tools: NGSDExportIgvGeneTrack, VcfMerge, VcfSplit, BamExtract
+* removed tools: CnvHunter
+* NGSDSameSample: Added option '-include_merged'
+* VcfFilter: Added options '-remove_non_ref' and '-no_special_chr'
+* VcfCheck: Added check for main header line
+* VariantRanking: using NGSD annotations by default now, skipping mosaic variants now
+* SampleSimilarity: added parameter 'roi_hg38_wes_wgs'
+* VcfLeftNormalize: now skips invalid variants
 
-Changes in release 2023_11:
-
-* new tools: NGSDSameSample
-* MappingQC: added long-read support
-* NGSDExportGff: added parameter 'genes' to add/skip gene lines
-* NGSDExportSamples: added parameter 'add_call_details' to export variant calling tools and dates
-* VariantQC: added long-read support
-* NGSD
-	* Added 'small_variants_callset' table.
-	* Added field 'classification' to 'somatic_vicc_interpretation' table.
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
