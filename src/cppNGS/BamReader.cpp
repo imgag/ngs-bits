@@ -537,6 +537,40 @@ GenomeBuild BamReader::build() const
 	THROW(Exception, "Could not determine genome build of BAM file '" + bam_file_ + "'!");
 }
 
+bool BamReader::is_single_end(int reads)
+{
+	if (build() == GenomeBuild::HG38)
+	{
+		setRegion(Chromosome("chr17"), 43091500, 43094000);
+	}
+	else //HG19
+	{
+		setRegion(Chromosome("chr17"), 41243500, 41246500);
+	}
+
+	//iterate through all alignments and create counts
+	BamAlignment al;
+	int n_all = 0;
+	int n_paired = 0;
+	while (getNextAlignment(al))
+	{
+		//ignore
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.isDuplicate()) continue;
+		if (al.isUnmapped()) continue;
+
+		//count reads
+		n_all++;
+		if (al.isPaired()) n_paired++;
+
+		if (n_all >= reads) break;
+	}
+
+	//if less than 10% is paired return true
+	if (((float) n_paired/n_all) < 0.1) return true;
+	return false;
+}
+
 void BamReader::setRegion(const Chromosome& chr, int start, int end)
 {
 	//clear data from previous calls

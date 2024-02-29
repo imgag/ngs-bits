@@ -83,9 +83,9 @@ public:
 	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString());
 
 	///Determines the gender based on the read ratio between X and Y chromosome.
-	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString());
+	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString(), bool include_single_end_reads = false);
 	///Determines the gender based on the fraction of heterozygous SNPs on chromosome X.
-	static GenderEstimate genderHetX(GenomeBuild build, QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString());
+	static GenderEstimate genderHetX(GenomeBuild build, QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString(), bool include_single_end_reads = false);
 	///Determines the gender based on the coverge of the SRY gene on chrY.
 	static GenderEstimate genderSRY(GenomeBuild build, QString bam_file, double min_cov=20.0, const QString& ref_file = QString());
 

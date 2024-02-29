@@ -292,6 +292,13 @@ class CPPNGSSHARED_EXPORT BamReader
 		QByteArrayList headerLines() const;
 		//Returns the genome build based on the length of the chr1 (works for human only). Throws an exception if it could not be determined.
 		GenomeBuild build() const;
+		/**
+			@brief Returns true if reads from loaded BAM file are from long-read sequencing
+			@warning WARNING: function changes the set region, use before setting a region or re-set your region
+			@details Checks the BRCA1 locus for single-end reads
+			@param reads	number of reads which are checked
+		*/
+		bool is_single_end(int reads=100);
 
 		//Set region for alignment retrieval (1-based coordinates).
 		void setRegion(const Chromosome& chr, int start, int end);

@@ -2543,7 +2543,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 	return lowOrHighCoverage(bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true);
 }
 
-GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file)
+GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file, bool include_single_end_reads)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2557,7 +2557,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	BamAlignment al;
 	while (reader.getNextAlignment(al))
 	{
-		if (!al.isProperPair()) continue;
+		if (!include_single_end_reads && !al.isProperPair()) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
 
@@ -2570,7 +2570,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	reader.setRegion(chry, 1, reader.chromosomeSize(chry));
 	while (reader.getNextAlignment(al))
 	{
-		if (!al.isProperPair()) continue;
+		if (!include_single_end_reads && !al.isProperPair()) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
 
@@ -2592,7 +2592,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file)
+GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_single_end_reads)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2612,7 +2612,7 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 	for (int i=0; i<snps.count(); ++i)
 	{
 		const VcfLine& snp = snps[i];
-		Pileup pileup = reader.getPileup(snp.chr(), snp.start(), -1, 20, false, 20);
+		Pileup pileup = reader.getPileup(snp.chr(), snp.start(), -1, 20, include_single_end_reads, 20);
 
 		int depth = pileup.depth(false);
 		if (depth<20) continue;
