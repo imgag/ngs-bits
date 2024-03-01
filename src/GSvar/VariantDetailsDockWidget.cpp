@@ -1042,6 +1042,7 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 {
 	QMenu menu;
 	QAction* a_v4 = menu.addAction("Open in gnomAD 4.0");
+	QAction* a_aoa = menu.addAction("Open in All of Us");
 
 	QAction* action = menu.exec(ui->gnomad->mapToGlobal(pos));
 
@@ -1049,6 +1050,12 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 	{
 		Variant v = Variant::fromString(variant_str);
 		QString link = GSvarHelper::gnomADLink(v, true);
+		QDesktopServices::openUrl(QUrl(link));
+	}
+	if (action==a_aoa)
+	{
+		Variant v = Variant::fromString(variant_str);
+		QString link = GSvarHelper::allOfUsLink(v);
 		QDesktopServices::openUrl(QUrl(link));
 	}
 }
