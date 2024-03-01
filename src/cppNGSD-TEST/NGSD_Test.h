@@ -2165,7 +2165,7 @@ private slots:
 
 		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
 		som_rep_conf.setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
-		som_rep_conf.setFilter("somatic");
+		som_rep_conf.setFilterName("somatic");
 
 
 		SomaticReportVariantConfiguration cnv1;
@@ -2249,7 +2249,7 @@ private slots:
 		S_EQUAL(res_config.cinChromosomes().join(','), "chr1,chr5,chr9,chrX,chrY");
 		IS_THROWN(ArgumentException, som_rep_conf.setCinChromosomes({"chr1", "chr24"}));
 		S_EQUAL(res_config.limitations(), "Due to low coverage we could not detect all variants for gene BRAF.");
-		S_EQUAL(res_config.filter(), "somatic");
+		S_EQUAL(res_config.filterName(), "somatic");
 
 		//Test variants included in resolved report
 		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
@@ -2327,9 +2327,7 @@ private slots:
 		som_rep_conf.setFusionsDetected(false);
 		som_rep_conf.setCinChromosomes({"chr10","chr21"});
 		som_rep_conf.setLimitations("With German umlauts: ???????");
-		som_rep_conf.setFilter("");
-
-
+		som_rep_conf.setFilterName("");
 
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
 
@@ -2353,7 +2351,7 @@ private slots:
 		IS_FALSE(res_config_2.fusionsDetected());
 		S_EQUAL(res_config_2.cinChromosomes().join(','), "chr10,chr21");
 		S_EQUAL(res_config_2.limitations(), "With German umlauts: ???????");
-		S_EQUAL(res_config_2.filter(), "");
+		S_EQUAL(res_config_2.filterName(), "");
 
 		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_2.created_by, "Max Mustermann");
@@ -2365,6 +2363,7 @@ private slots:
 		//report config in case of no target file
 		som_rep_conf.setTargetRegionName("");
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
+
 		SomaticReportConfigurationData config_data_3 = db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_3.target_file, "");
 
@@ -2410,13 +2409,11 @@ private slots:
 		settings.target_region_filter.genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));;
 		settings.target_region_filter.regions.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
 
-
 		//Test somatic XML report
 
 		VariantList vl_filtered = SomaticReportSettings::filterVariants(vl, settings);
 		VariantList vl_germl_filtered =  SomaticReportSettings::filterGermlineVariants(vl_germl, settings);
 		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
-
 		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
 
 
@@ -2556,7 +2553,6 @@ private slots:
 
 		I_EQUAL(db.getSomaticViccId(Variant("chr17", 59763465, 59763465, "T", "C")), 5); //id of new inserted vicc data set is 5 in TEST-NGSD
 
-
 		//When updating one variant, all other data sets must not change (test case initially created for Bugfix)
 		db.setSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C"), new_vicc_data, "ahkerra1");
 		SomaticViccData vicc_data3 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T") );
@@ -2681,11 +2677,6 @@ private slots:
 		somatic_report_settings.msi_file = flp->getSomaticMsiFile().filename;
 		somatic_report_settings.viral_file = TESTDATA("data_in/somatic/Sample_DNA123456_01/DNA123456_01_viral_1.tsv");
 
-
-
-		QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
-		somatic_report_settings.filters = FilterCascadeFile::load(filterFileName, somatic_report_settings.report_config.filter());
-
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
 
 		somatic_report_settings.report_config.setIncludeTumContentByHistological(true);
@@ -2786,9 +2777,6 @@ private slots:
 		somatic_report_settings.dbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_DBS78.csv");
 		somatic_report_settings.id_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_ID83.csv");
 		somatic_report_settings.cnv_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/cnv_signatures/De_Novo_map_to_COSMIC_CNV48.csv");
-
-		QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
-		somatic_report_settings.filters = FilterCascadeFile::load(filterFileName, somatic_report_settings.report_config.filter());
 
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
 

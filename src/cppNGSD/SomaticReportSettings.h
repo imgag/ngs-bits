@@ -15,8 +15,6 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	QString tumor_ps;
 	QString normal_ps;
 
-	FilterCascade filters;
-
 	QString msi_file;
 	QString viral_file;
 

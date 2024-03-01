@@ -750,6 +750,13 @@ void FilterCascade::load(QString filename)
 void FilterCascade::store(QString filename)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	file->write(toText().join("\n").toUtf8());
+	file->close();
+}
+
+QStringList FilterCascade::toText()
+{
+	QStringList lines;
 	foreach(QSharedPointer<FilterBase> filter, filters_)
 	{
 		QStringList params;
@@ -759,11 +766,10 @@ void FilterCascade::store(QString filename)
 		}
 		if (!filter->enabled()) params << "disabled";
 
-		QString line = filter->name() + "\t" + params.join("\t") + "\n";
-
-		file->write(line.toUtf8());
+		lines << filter->name() + "\t" + params.join("\t");
 	}
-	file->close();
+
+	return lines;
 }
 
 FilterCascade FilterCascade::fromText(const QStringList& lines)

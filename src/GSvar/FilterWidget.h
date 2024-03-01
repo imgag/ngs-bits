@@ -82,6 +82,8 @@ public:
 	static QString filterFileName();
 	///Sets the filter by name. Returns if the filter name was found and set.
 	bool setFilter(QString name);
+	///Sets filterCascade
+	void setFilterCascade(const FilterCascade& filter_cascade);
 
 	///Returns current filter name
 	QString filterName() const;

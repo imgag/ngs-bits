@@ -1243,7 +1243,8 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `fusions_detected` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'fusions or other SVs were detected. Cannot be determined automatically, because manta files contain too many false positives',
   `cin_chr` TEXT NULL DEFAULT NULL COMMENT 'comma separated list of instable chromosomes',
   `limitations` TEXT NULL DEFAULT NULL COMMENT 'manually created text if the analysis has special limitations',
-  `filter` VARCHAR(255) NULL DEFAULT NULL COMMENT 'name of the variant filter',
+  `filter_base_name` VARCHAR(255) NULL DEFAULT NULL COMMENT 'Name of the preset filter used as the base of the filter set.',
+  `filters` TEXT NULL DEFAULT NULL COMMENT 'text representation of the used filters',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user`
