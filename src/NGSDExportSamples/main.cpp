@@ -58,12 +58,12 @@ public:
 		addFlag("no_bad_runs", "If set, sequencing runs with 'bad' quality are excluded.");
 		addFlag("add_qc", "If set, QC columns are added to output.");
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
-		addFlag("add_disease_details", "If set, disease details columns are added to output.");
+		addFlag("add_disease_details", "If set, disease details columns are added to the output.");
 		addEnum("add_path", "Adds a column with the given path type.", true, validPathStrings());
 		addFlag("add_report_config", "Adds a column with report configuration information (if it exists and if causal variants exist).");
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
-		addFlag("add_normal_sample", "Adds a column with the normal germline sample associated to a for tumor samples.");
-		addFlag("add_dates", "Adds a column with the normal germline sample associated to a for tumor samples.");
+		addFlag("add_normal_sample", "Adds a column with the normal germline sample associated to a tumor samples.");
+		addFlag("add_dates", "Adds four columns with year of birth, order date, sampling date and sample receipt date.");
 		addFlag("add_call_details", "Adds variant caller and version and variant calling date columns for small variants, CNVs and SVs.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 

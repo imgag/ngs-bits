@@ -296,6 +296,13 @@ QString GSvarHelper::gnomADLink(const Variant& v, bool open_in_v4)
 	return "https://gnomad.broadinstitute.org/variant/" + v.toGnomAD(idx) + "?dataset=" + (open_in_v4 ? "gnomad_r4" : "gnomad_r3");
 }
 
+QString GSvarHelper::allOfUsLink(const Variant& v)
+{
+	FastaFileIndex idx(Settings::string("reference_genome"));
+	return "https://databrowser.researchallofus.org/variants/" + v.toGnomAD(idx);
+}
+
+
 QString GSvarHelper::clinVarSearchLink(const Variant& v, GenomeBuild build)
 {
 	return "https://www.ncbi.nlm.nih.gov/clinvar/?term=" + v.chr().strNormalized(false)+"[chr]+AND+" + QString::number(v.start()) + "%3A" + QString::number(v.end()) + (build==GenomeBuild::HG38? "[chrpos38]" : "[chrpos37]");

@@ -43,6 +43,8 @@ public:
 
 	//Returns gnomAD link for a variant
 	static QString gnomADLink(const Variant& v, bool open_in_v4);
+	//Returns All of Us link for a variant
+	static QString allOfUsLink(const Variant& v);
 	//Returns ClinVar search link for a variant
 	static QString clinVarSearchLink(const Variant& v, GenomeBuild build);
 
