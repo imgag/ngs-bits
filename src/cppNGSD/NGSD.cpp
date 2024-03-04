@@ -6763,7 +6763,7 @@ TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, in
 	return output;
 }
 
-Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts)
+Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts, int *return_quality)
 {
 	TranscriptList list = transcripts(gene_id, Transcript::ENSEMBL, false);
 
@@ -6773,11 +6773,13 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 
 	foreach(const Transcript& t, list)
 	{
+
 		if (t.isPreferredTranscript()) list_lvl.append(t);
 	}
 
 	if (list_lvl.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 5;
 		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
@@ -6790,6 +6792,7 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 
 	if (list_lvl.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 4;
 		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
@@ -6799,11 +6802,13 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 	//Ensembl canonical
 	foreach(const Transcript& t, list)
 	{
+
 		if (t.isEnsemblCanonicalTranscript()) list_lvl.append(t);
 	}
 
 	if (list_lvl.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 3;
 		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
@@ -6815,6 +6820,7 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 
 	if (list_lvl.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 2;
 		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
@@ -6822,9 +6828,11 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 	list.sortByBases();
 	foreach(const Transcript& t, list)
 	{
+		if (return_quality != nullptr) *return_quality = 1;
 		return t;
 	}
 
+	if (return_quality != nullptr) *return_quality = -1;
 	return Transcript();
 }
 
