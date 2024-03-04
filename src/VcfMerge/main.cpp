@@ -38,11 +38,10 @@ public:
 		foreach(QString in, ins)
 		{
 			FILE* instream = fopen(in.toUtf8().data(), "rb");
+			if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
 			gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-			if (file==NULL)
-			{
-				THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
-			}
+			if (file==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
+
 			while(!gzeof(file))
 			{
 				char* char_array = gzgets(file, buffer, buffer_size);

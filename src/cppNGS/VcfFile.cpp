@@ -341,11 +341,9 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 		char* buffer = new char[buffer_size];
 		//open stream
 		FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toUtf8().data(), "rb");
+		if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
 		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-		if (file==NULL)
-		{
-			THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-		}
+		if (file==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
 
 		while(!gzeof(file))
 		{
@@ -977,11 +975,9 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 {
 	//open input file
 	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toUtf8().data(), "rb");
+	if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
 	gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
-	if (file==NULL)
-	{
-		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	}
+	if (file==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
 	
 	//open reference genome
 	FastaFileIndex reference(ref_file);

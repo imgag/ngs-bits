@@ -92,11 +92,22 @@ public:
 		BedFile roi_reg;
 		if (!roi.isEmpty()) roi_reg.load(roi);
 		if (roi_hg38_wes_wgs) roi_reg.load(":/Resources/hg38_coding_highconf_all_kits.bed");
+		if (debug)
+		{
+			out << "##loaded target region (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+			timer.restart();
+		}
 
 		//load genotype data
 		QList<SampleSimilarity::VariantGenotypes> genotype_data;
+
 		foreach(QString filename, in)
 		{
+			if (!QFile::exists(filename))
+			{
+				out << "##skipped missing file " << filename << endl;
+				continue;
+			}
 			if (mode=="vcf")
 			{
 				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, true, roi_reg) : SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, true));
@@ -109,15 +120,11 @@ public:
 			{
 				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref")) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref")));
 			}
-			if (debug && genotype_data.count()%100==0)
+			if (debug)
 			{
-				out << "##loaded " << genotype_data.count() << " input files (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+				out << "##loaded input file " << filename << " (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+				timer.restart();
 			}
-		}
-		if (debug)
-		{
-			out << "##loaded all input files (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
-			timer.restart();
 		}
 
 		//process
