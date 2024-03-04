@@ -236,6 +236,8 @@ public slots:
 	void on_actionRE_triggered();
 	///Open PRS dialog
 	void on_actionPRS_triggered();
+	///Open dialog for pathogenic WT variants
+	void on_actionPathogenicWT_triggered();
 	///Open cfDNA panel design dialog
 	void on_actionDesignCfDNAPanel_triggered();
 	/// Open the generated cfDNA BED file

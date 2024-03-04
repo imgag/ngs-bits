@@ -150,6 +150,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SettingsDialog.h"
 #include "GlobalServiceProvider.h"
 #include "ImportDialog.h"
+#include "PathogenicWtDialog.h"
 #include "Background/NGSDCacheInitializer.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -1327,6 +1328,18 @@ void MainWindow::on_actionPRS_triggered()
 	PRSWidget* widget = new PRSWidget(prs_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Polygenic Risk Scores of " + variants_.analysisName());
 	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionPathogenicWT_triggered()
+{
+	if (filename_=="") return;
+
+	// determine PRS file name
+	FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false);
+	if (bams.isEmpty()) return; //this should not happen because the button is not enabled then...
+
+	PathogenicWtDialog dlg(this, bams[0].filename);
+	dlg.exec();
 }
 
 void MainWindow::on_actionDesignCfDNAPanel_triggered()

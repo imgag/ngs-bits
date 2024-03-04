@@ -609,6 +609,7 @@
    <addaction name="actionROH"/>
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
+   <addaction name="actionPathogenicWT"/>
    <addaction name="actionCircos"/>
    <addaction name="separator"/>
    <addaction name="actionVirusDetection"/>
@@ -1474,6 +1475,15 @@
   <action name="actionImportVariants">
    <property name="text">
     <string>Import variants</string>
+   </property>
+  </action>
+  <action name="actionPathogenicWT">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/wt_pathogenic.png</normaloff>:/Icons/wt_pathogenic.png</iconset>
+   </property>
+   <property name="text">
+    <string>pathogenic WT variants</string>
    </property>
   </action>
  </widget>

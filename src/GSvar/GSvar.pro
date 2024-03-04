@@ -23,6 +23,7 @@ SOURCES += main.cpp\
     MainWindow.cpp \
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
+    PathogenicWtDialog.cpp \
     ReportDialog.cpp \
     Background/ReportWorker.cpp \
     SettingsDialog.cpp \
@@ -146,6 +147,7 @@ HEADERS += MainWindow.h \
     IgvSessionManager.h \
     ImportDialog.h \
     MaintenanceDialog.h \
+    PathogenicWtDialog.h \
     ReportDialog.h \
     Background/ReportWorker.h \
     SettingsDialog.h \
@@ -262,6 +264,7 @@ FORMS    += MainWindow.ui \
     IgvLogWidget.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
+    PathogenicWtDialog.ui \
     ReportDialog.ui \
     SettingsDialog.ui \
     TrioDialog.ui \
