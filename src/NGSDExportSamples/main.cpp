@@ -65,6 +65,7 @@ public:
 		addFlag("add_normal_sample", "Adds a column with the normal germline sample associated to a tumor samples.");
 		addFlag("add_dates", "Adds four columns with year of birth, order date, sampling date and sample receipt date.");
 		addFlag("add_call_details", "Adds variant caller and version and variant calling date columns for small variants, CNVs and SVs.");
+		addFlag("add_lab_columns", "Adds columns input, molarity, operator, processing method and batch number.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2023, 11, 16, "Added 'add_call_details' flag.");
@@ -146,6 +147,8 @@ public:
 		params.add_comments = getFlag("add_comments");
 		params.add_dates = getFlag("add_dates");
 		params.add_call_details = getFlag("add_call_details");
+		params.add_lab_columns = getFlag("add_lab_columns");
+
 
 		//check parameters
 
