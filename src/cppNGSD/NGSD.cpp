@@ -442,6 +442,17 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			   << "ps.quality as processed_sample_quality";
 	}
 
+	if (p.add_lab_columns)
+	{
+		tables << "user u";
+		conditions << "u.id=ps.operator_id";
+		fields << "u.name as operator"
+			   << "ps.processing_input as 'processing input [ng]'"
+			   << "ps.molarity as 'molarity [nM]'"
+			   << "ps.processing_modus"
+			   << "ps.batch_number";
+	}
+
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY r.name ASC, s.name ASC, ps.process_id ASC");
 
 	//remove duplicates

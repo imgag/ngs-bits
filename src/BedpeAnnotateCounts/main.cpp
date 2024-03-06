@@ -248,11 +248,9 @@ private:
 		QTextStream out(stdout);
 		//open input file
 		FILE* instream = fopen(file_path.toUtf8().data(), "rb");
+		if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + file_path + "' for reading!");
 		gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
-		if (file==NULL)
-		{
-			THROW(FileAccessException, "Could not open file '" + file_path + "' for reading!");
-		}
+		if (file==nullptr) THROW(FileAccessException, "Could not open file '" + file_path + "' for reading!");
 
 		const int buffer_size = 1048576; //1MB buffer
 		char* buffer = new char[buffer_size];

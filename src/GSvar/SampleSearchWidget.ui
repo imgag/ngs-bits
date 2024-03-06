@@ -564,26 +564,6 @@
       <property name="spacing">
        <number>3</number>
       </property>
-      <item row="0" column="4">
-       <widget class="QCheckBox" name="add_report_config">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds a column about the report configuration:&lt;br/&gt;- if it exists for the sample&lt;br/&gt;- if it contains causal small variants (variant, genotype, genes)&lt;br/&gt;- if it contains causal CNVs (CNV, copy-number)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>add report configuration info</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="add_disease_details">
-        <property name="text">
-         <string>add disease details</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QCheckBox" name="add_comments">
         <property name="text">
@@ -594,30 +574,13 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="7">
-       <widget class="QCheckBox" name="add_dates">
+      <item row="0" column="4">
+       <widget class="QCheckBox" name="add_report_config">
         <property name="toolTip">
-         <string>Adds year of birth and year of sample entry</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds a column about the report configuration:&lt;br/&gt;- if it exists for the sample&lt;br/&gt;- if it contains causal small variants (variant, genotype, genes)&lt;br/&gt;- if it contains causal CNVs (CNV, copy-number)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>add dates</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QCheckBox" name="add_outcome">
-        <property name="text">
-         <string>add diagnostic outcome</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5">
-       <widget class="QCheckBox" name="add_qc">
-        <property name="text">
-         <string>add QC metrics</string>
+         <string>add report configuration info</string>
         </property>
        </widget>
       </item>
@@ -631,13 +594,60 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="8">
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="add_outcome">
+        <property name="text">
+         <string>add diagnostic outcome</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="9">
        <widget class="QCheckBox" name="add_call_details">
         <property name="toolTip">
          <string>Added variant caller, variant caller version and variant calling date for small variants, CNVs and SVs.</string>
         </property>
         <property name="text">
          <string>add calling details</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="8">
+       <widget class="QCheckBox" name="add_dates">
+        <property name="toolTip">
+         <string>Adds year of birth and year of sample entry</string>
+        </property>
+        <property name="text">
+         <string>add dates</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <widget class="QCheckBox" name="add_qc">
+        <property name="text">
+         <string>add QC metrics</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="add_disease_details">
+        <property name="text">
+         <string>add disease details</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="10">
+       <widget class="QCheckBox" name="add_lab_columns">
+        <property name="toolTip">
+         <string>Adds columns input, molarity, operator, processing method and batch number.</string>
+        </property>
+        <property name="text">
+         <string>add lab columns</string>
         </property>
        </widget>
       </item>
