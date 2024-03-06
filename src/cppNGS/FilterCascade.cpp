@@ -1742,7 +1742,7 @@ FilterGenotypeAffected::FilterGenotypeAffected()
 	name_ = "Genotype affected";
 	description_ = QStringList() << "Filter for genotype(s) of the 'affected' sample(s)." << "Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s).";
 	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
-	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het";
+	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)";
 	params_.last().constraints["not_empty"] = "";
 
 	checkIsRegistered();
@@ -1759,14 +1759,29 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 	QStringList genotypes = getStringList("genotypes");
 
+	//check input
+	if (((int)genotypes.contains("comp-het") + (int)genotypes.contains("comp-het (phased)") + (int)genotypes.contains("comp-het (unphased)")) > 1)
+	{
+		THROW(ArgumentException, "You can select only one of comp-het, comp-het (phased) and comp-het (unphased)!");
+	}
+
 	//get affected column indices
 	QList<int> geno_indices = variants.getSampleHeader().sampleColumns(true);
 	geno_indices.removeAll(-1);
 	if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 
+	//get index of phasing entry
+	int i_phasing = variants.annotationIndexByName("genotype_phased", true, false);
+
+	if (genotypes.contains("comp-het (phased)") || genotypes.contains("comp-het (unphased)"))
+	{
+		if (variants.getSampleHeader().sampleColumns(true).size() > 1) THROW(ArgumentException, "Cannot apply phased filter '" + name() + "' to variant list with multiple affected samples!");
+		if (i_phasing < 0) THROW(ArgumentException, "Cannot apply phased filter '" + name() + "' to variant list without phasing information!");
+	}
+
 
 	//filter
-	if (!genotypes.contains("comp-het"))
+	if (!(genotypes.contains("comp-het") || genotypes.contains("comp-het (phased)") || genotypes.contains("comp-het (unphased)")))
 	{
 		for(int i=0; i<variants.count(); ++i)
 		{
@@ -1786,6 +1801,10 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 		//(1) filter for all genotypes but comp-het
 		//(2) count heterozygous passing variants per gene
 		QHash<QByteArray, int> gene_to_het;
+		QHash<QByteArray, int> gene_to_het_phase1;
+		QHash<QByteArray, int> gene_to_het_phase2;
+		QHash<QByteArray, int> gene_to_het_unphased;
+		QHash<QByteArray, QSet<int>> gene_to_phasing_block;
 		FilterResult result_other(variants.count());
 		for(int i=0; i<variants.count(); ++i)
 		{
@@ -1803,9 +1822,34 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					gene_to_het[gene.trimmed()] += 1;
-				}
+					//init hash:
+					if (!gene_to_het_phase1.contains(gene.trimmed())) gene_to_het_phase1[gene.trimmed()] = 0;
+					if (!gene_to_het_phase2.contains(gene.trimmed())) gene_to_het_phase2[gene.trimmed()] = 0;
+					if (!gene_to_het_unphased.contains(gene.trimmed())) gene_to_het_unphased[gene.trimmed()] = 0;
+					if (!gene_to_phasing_block.contains(gene.trimmed())) gene_to_phasing_block[gene.trimmed()] = QSet<int>();
 
+					gene_to_het[gene.trimmed()] += 1; //old method
+					if (!genotypes.contains("comp-het"))
+					{
+						//get phasing info:
+						QStringList phasing_entry = QString(variants[i].annotations()[i_phasing]).split(' ');
+						if (phasing_entry.size() < 2)
+						{
+							 gene_to_het_unphased[gene.trimmed()] += 1;
+							 gene_to_phasing_block[gene.trimmed()] << -1;
+						}
+						else
+						{
+							QByteArray phased_genotype = phasing_entry.at(0).toUtf8();
+							QString pb_raw = phasing_entry.at(1);
+							int phasing_block = Helper::toInt(pb_raw.remove(QRegExp("[()]")), "Phasing block", QString::number(i));
+
+							if (phased_genotype == "1|0") gene_to_het_phase1[gene.trimmed()] += 1;
+							else gene_to_het_phase2[gene.trimmed()] += 1;
+							gene_to_phasing_block[gene.trimmed()] << phasing_block;
+						}
+					}
+				}
 			}
 		}
 
@@ -1825,16 +1869,48 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					if (gene_to_het[gene.trimmed()]>=2)
+					if (genotypes.contains("comp-het"))
 					{
-						pass = true;
-						break;
+						//old method
+						if (gene_to_het[gene.trimmed()]>=2)
+						{
+							pass = true;
+							break;
+						}
+
+					}
+					else if (genotypes.contains("comp-het (phased)"))
+					{
+						//look only on variants of completely phased genes
+						if ((gene_to_het_phase1[gene.trimmed()] >= 1) && (gene_to_het_phase2[gene.trimmed()] >= 1)
+							&& (gene_to_phasing_block[gene.trimmed()].size() < 2) && (gene_to_het_unphased[gene.trimmed()] == 0))
+						{
+							pass = true;
+							break;
+						}
+
+
+					}
+					else if (genotypes.contains("comp-het (unphased)"))
+					{
+						//look only on (partly) unphased genes
+						if ((gene_to_phasing_block[gene.trimmed()].size() > 1) || (gene_to_het_unphased[gene.trimmed()] > 0))
+						{
+							//old method
+							if (gene_to_het[gene.trimmed()]>=2)
+							{
+								pass = true;
+								break;
+							}
+						}
+
 					}
 				}
 			}
 			result.flags()[i] = pass;
 		}
 	}
+
 }
 
 QByteArray FilterGenotypeAffected::checkSameGenotype(const QList<int>& geno_indices, const Variant& v) const

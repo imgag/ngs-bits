@@ -558,6 +558,44 @@ private slots:
 		I_EQUAL(result.countPassing(), 3);
 	}
 
+	void FilterGenotypeAffected_apply_comphet_phased()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_phased.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//old method
+		FilterGenotypeAffected filter1;
+		filter1.setStringList("genotypes", QStringList() << "comp-het");
+		filter1.apply(vl, result);
+		I_EQUAL(result.countPassing(), 187);
+		result.reset();
+
+		//only phased
+		FilterGenotypeAffected filter2;
+		filter2.setStringList("genotypes", QStringList() << "comp-het (phased)");
+		filter2.apply(vl, result);
+		I_EQUAL(result.countPassing(), 68);
+		result.reset();
+
+		//only unphased
+		FilterGenotypeAffected filter3;
+		filter3.setStringList("genotypes", QStringList() << "comp-het (unphased)");
+		filter3.apply(vl, result);
+		I_EQUAL(result.countPassing(), 89);
+		result.reset();
+
+		//invalid input
+		FilterGenotypeAffected filter4;
+		filter4.setStringList("genotypes", QStringList() << "comp-het" << "comp-het (phased)");
+		IS_THROWN(ArgumentException, filter4.apply(vl, result));
+		filter4.setStringList("genotypes", QStringList() << "comp-het" << "comp-het (unphased)");
+		IS_THROWN(ArgumentException, filter4.apply(vl, result));
+		filter4.setStringList("genotypes", QStringList() << "comp-het (phased)" << "comp-het (unphased)");
+		IS_THROWN(ArgumentException, filter4.apply(vl, result));
+	}
+
 	void FilterAnnotationPathogenic_apply()
 	{
 		VariantList vl;

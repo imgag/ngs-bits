@@ -1,0 +1,254 @@
+##GENOME_BUILD=GRCh38										
+##CREATION_DATE=2024-03-04										
+##SOURCE=Clair3 1.0.4										
+##CALLING_DATE=2024-03-03										
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE										
+##PIPELINE=megSAP 2023_11-110-g034051af										
+##SAMPLE=<ID=23014LRa023L2_01,Gender=n/a,ExternalSampleName=DNA-2300790 A/GLAB NA12878,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>										
+##FILTER=LowQual=Low quality variant										
+##FILTER=PASS=All filters passed										
+##FILTER=RefCall=Reference call										
+##FILTER=off-target=Variant marked as 'off-target'.										
+##FILTER=low_conf_region=Variant marked as 'low_conf_region'.										
+##DESCRIPTION=23014LRa023L2_01=Genotype of variant in sample.										
+##DESCRIPTION=genotype_phased=Phasing information of variant in sample. Containing phased genotype and id of the phased block.										
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.										
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), quality divided by depth (QD), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)										
+##DESCRIPTION=gene=Affected gene list (comma-separated).										
+##DESCRIPTION=variant_type=Variant type.										
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).										
+##DESCRIPTION=regulatory=Regulatory consequence details.										
+##DESCRIPTION=OMIM=OMIM database annotation.										
+##DESCRIPTION=ClinVar=ClinVar database annotation.										
+##DESCRIPTION=HGMD=HGMD database annotation.										
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.										
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.										
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.										
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.										
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous/hemizygous case count of gnomAD project (genome data).										
+##DESCRIPTION=gnomAD_het=Heterozygous allele count of the gnomAD project (genome data).										
+##DESCRIPTION=gnomAD_wt=Wildtype allele count of the gnomAD project (genome data).										
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.										
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.										
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.										
+##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity score. Deleterious threshold > 0.564.										
+##DESCRIPTION=MaxEntScan=MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts.										
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.										
+##DESCRIPTION=SpliceAI=SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL.										
+##DESCRIPTION=PubMed=PubMed ids to publications on the given variant.										
+##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.										
+##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.										
+##DESCRIPTION=NGSD_mosaic=Mosaic variant count in NGSD.										
+##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group.										
+##DESCRIPTION=classification=Classification from the NGSD.										
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.										
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!										
+##DESCRIPTION=comment=Variant comments from the NGSD.										
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).										
+##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.										
+#chr	start	end	ref	obs	23014LRa023L2_01	genotype_phased	filter	quality	gene	
+chr1	10038	10038	A	-	het	0|1 (10039)		QUAL=7;DP=9;QD=0.78;AF=0.222	BRCA1	
+chr1	10039	10039	A	T	het	0|1 (10039)		QUAL=6;DP=9;QD=0.67;AF=0.222	BRCA1	
+chr1	10043	10043	T	G	het	0|1 (10039)		QUAL=8;DP=9;QD=0.89;AF=0.222	BRCA1	
+chr1	10056	10056	A	-	het	0|1 (10039)		QUAL=5;DP=9;QD=0.56;AF=0.333	BRCA1	
+chr1	10057	10057	A	T	het	0|1 (10039)		QUAL=10;DP=9;QD=1.11;AF=0.222	BRCA1	
+chr1	10105	10105	A	C	het	0|1 (10039)		QUAL=5;DP=12;QD=0.42;AF=0.167	BRCA1	
+chr1	10108	10108	C	T	het	0|1 (10039)		QUAL=5;DP=17;QD=0.29;AF=0.235	BRCA1	
+chr1	10147	10147	C	A	het	0|1 (10039)	low_conf_region	QUAL=9;DP=17;QD=0.53;AF=0.177	BRCA1	
+chr1	10164	10164	A	C	het	0|1 (10039)	low_conf_region	QUAL=15;DP=13;QD=1.15;AF=0.231	BRCA1	
+chr1	10181	10181	A	C	het	0|1 (10039)	low_conf_region	QUAL=13;DP=18;QD=0.72;AF=0.278	BRCA1	
+chr1	10186	10186	T	C	het	0|1 (10039)	low_conf_region	QUAL=6;DP=13;QD=0.46;AF=0.154	BRCA1	
+chr1	10187	10187	A	C	het	0|1 (10039)	low_conf_region	QUAL=14;DP=18;QD=0.78;AF=0.333	BRCA1	
+chr1	10193	10193	A	C	het	0|1 (10039)	low_conf_region	QUAL=14;DP=13;QD=1.08;AF=0.231	BRCA1	
+chr1	10198	10198	T	C	het	0|1 (10039)	low_conf_region	QUAL=7;DP=13;QD=0.54;AF=0.154	BRCA1	
+chr1	10255	10255	A	-	het	0|1 (10039)	low_conf_region	QUAL=6;DP=20;QD=0.30;AF=0.300	BRCA1	
+chr1	10257	10257	A	C	het	0|1 (10039)	low_conf_region	QUAL=9;DP=20;QD=0.45;AF=0.350	BRCA1	
+chr1	10261	10261	T	C	het	0|1 (10039)	low_conf_region	QUAL=8;DP=15;QD=0.53;AF=0.200	BRCA1	
+chr1	10267	10267	T	C	het	0|1 (10039)	low_conf_region	QUAL=11;DP=15;QD=0.73;AF=0.333	BRCA1	
+chr1	10269	10269	A	C	het	0|1 (10039)	low_conf_region	QUAL=11;DP=15;QD=0.73;AF=0.267	BRCA1	
+chr1	10273	10273	T	C	het	0|1 (10039)	low_conf_region	QUAL=13;DP=15;QD=0.87;AF=0.333	BRCA1	
+chr1	10275	10275	A	C	het	0|1 (10039)	low_conf_region	QUAL=5;DP=15;QD=0.33;AF=0.133	BRCA1	
+chr1	10279	10279	T	C	het	0|1 (10039)	low_conf_region	QUAL=12;DP=15;QD=0.80;AF=0.267	BRCA1	
+chr1	10280	10280	A	C	het	0|1 (10039)	low_conf_region	QUAL=13;DP=20;QD=0.65;AF=0.400	BRCA1	
+chr1	10285	10285	T	C	het	0|1 (10039)	low_conf_region	QUAL=6;DP=16;QD=0.38;AF=0.188	BRCA1	
+chr1	10286	10286	A	C	het	0|1 (10039)	low_conf_region	QUAL=12;DP=21;QD=0.57;AF=0.381	BRCA1	
+chr1	10291	10291	C	T	het	0|1 (10039)	low_conf_region	QUAL=11;DP=22;QD=0.50;AF=0.455	BRCA1	
+chr1	10292	10292	A	C	het	0|1 (10039)	low_conf_region	QUAL=9;DP=22;QD=0.41;AF=0.227	BRCA1	
+chr1	10297	10297	C	T	het	0|1 (10039)	low_conf_region	QUAL=12;DP=22;QD=0.55;AF=0.455	BRCA1	
+chr1	10303	10303	C	T	het	0|1 (10039)	low_conf_region	QUAL=13;DP=22;QD=0.59;AF=0.500	BRCA1	
+chr1	10304	10304	A	C	het	0|1 (10039)	low_conf_region	QUAL=9;DP=22;QD=0.41;AF=0.227	BRCA1	
+chr1	10309	10309	C	T	het	0|1 (10039)	low_conf_region	QUAL=8;DP=22;QD=0.36;AF=0.409	RPH3AL	
+chr1	10310	10310	A	C	het	0|1 (10039)	low_conf_region	QUAL=7;DP=22;QD=0.32;AF=0.227	RPH3AL	
+chr1	10315	10315	C	T	het	0|1 (10039)	low_conf_region	QUAL=6;DP=22;QD=0.27;AF=0.682	RPH3AL	
+chr1	10321	10321	C	T	het	0|1 (10039)	low_conf_region	QUAL=11;DP=22;QD=0.50;AF=0.546	RPH3AL	
+chr1	10328	10328	A	T	het	0|1 (10039)	low_conf_region	QUAL=11;DP=17;QD=0.65;AF=0.177	RPH3AL	
+chr1	10330	10330	C	A	het	0|1 (10039)	low_conf_region	QUAL=10;DP=17;QD=0.59;AF=0.177	RPH3AL	
+chr1	10341	10341	A	C	het	0|1 (10039)	low_conf_region	QUAL=12;DP=22;QD=0.55;AF=0.273	RPH3AL	
+chr1	10347	10347	A	C	het	0|1 (10039)	low_conf_region	QUAL=13;DP=22;QD=0.59;AF=0.273	RPH3AL	
+chr1	10352	10352	-	C	het	0|1 (10039)	low_conf_region	QUAL=7;DP=22;QD=0.32;AF=0.182	RPH3AL	
+chr1	10358	10358	A	C	het	0|1 (10039)	low_conf_region	QUAL=10;DP=21;QD=0.48;AF=0.238	RPH3AL	
+chr1	10363	10363	T	C	het	0|1 (10039)	low_conf_region	QUAL=6;DP=16;QD=0.38;AF=0.188	RPH3AL	
+chr1	10364	10364	A	C	het	0|1 (10039)	low_conf_region	QUAL=10;DP=16;QD=0.63;AF=0.250	RPH3AL	
+chr1	10369	10369	T	C	het	0|1 (10039)	low_conf_region	QUAL=9;DP=16;QD=0.56;AF=0.250	RPH3AL	
+chr1	10370	10370	A	C	het	0|1 (10039)	low_conf_region	QUAL=13;DP=16;QD=0.81;AF=0.313	RPH3AL	
+chr1	10375	10375	T	C	het	0|1 (10039)	low_conf_region	QUAL=12;DP=16;QD=0.75;AF=0.250	RPH3AL	
+chr1	10376	10376	A	C	het	0|1 (10039)	low_conf_region	QUAL=15;DP=16;QD=0.94;AF=0.313	RPH3AL	
+chr1	10378	10378	C	A	het	0|1 (10039)	low_conf_region	QUAL=9;DP=16;QD=0.56;AF=0.125	RPH3AL	
+chr1	10381	10381	T	C	het	0|1 (10039)	low_conf_region	QUAL=14;DP=16;QD=0.88;AF=0.313	RPH3AL	
+chr1	10382	10382	A	C	het	0|1 (10039)	low_conf_region	QUAL=12;DP=16;QD=0.75;AF=0.563	RPH3AL	
+chr1	10387	10387	T	C	het	0|1 (10039)	low_conf_region	QUAL=12;DP=21;QD=0.57;AF=0.333	RPH3AL	
+chr1	10388	10388	A	C	het	0|1 (10039)	low_conf_region	QUAL=17;DP=16;QD=1.06;AF=0.500	RPH3AL	
+chr1	10394	10394	T	C	het	0|1 (10039)	low_conf_region	QUAL=10;DP=22;QD=0.45;AF=0.273	RPH3AL	
+chr1	10801	10801	C	G	het	1|0 (10039)		QUAL=12;DP=33;QD=0.36;AF=0.455	RPH3AL	
+chr1	10804	10804	A	G	het	0|1 (10039)		QUAL=10;DP=23;QD=0.43;AF=0.304	RPH3AL	
+chr1	10815	10815	T	C	het	1|0 (10039)		QUAL=8;DP=33;QD=0.24;AF=0.606	RPH3AL	
+chr1	10828	10828	-	CGCCGCGC	het	0|1 (10039)		QUAL=5;DP=33;QD=0.15;AF=0.242	RPH3AL	
+chr1	10829	10829	T	C	het	1|0 (10039)		QUAL=15;DP=33;QD=0.45;AF=0.667	RPH3AL	
+chr1	10884	10884	C	G	het	1|0 (10039)		QUAL=12;DP=33;QD=0.36;AF=0.727	RPH3AL	
+chr1	10897	10897	T	A	het	1|0 (10039)		QUAL=9;DP=33;QD=0.27;AF=0.758	RPH3AL	
+chr1	10931	10931	C	T	het	1|0 (10039)		QUAL=15;DP=33;QD=0.45;AF=0.606	RPH3AL	
+chr1	10934	10934	C	T	het	1|0 (10039)		QUAL=15;DP=33;QD=0.45;AF=0.636	RPH3AL	
+chr1	10936	10936	G	C	het	1|0 (10039)		QUAL=13;DP=33;QD=0.39;AF=0.727	RPH3AL	
+chr1	10968	10968	-	G	het	0|1 (10039)		QUAL=8;DP=34;QD=0.24;AF=0.441	RPH3AL	
+chr1	11002	11002	A	C	het	1|0 (10039)		QUAL=15;DP=34;QD=0.44;AF=0.794	RPH3AL	
+chr1	11013	11013	G	-	het	0|1 (10039)		QUAL=7;DP=34;QD=0.21;AF=0.471	RPH3AL	
+chr1	11017	11017	G	T	het	0|1 (10039)		QUAL=11;DP=34;QD=0.32;AF=0.324	RPH3AL	
+chr1	11019	11019	T	G	het	0|1 (10039)		QUAL=6;DP=34;QD=0.18;AF=0.324	RPH3AL	
+chr1	11035	11035	G	A	het	1|0 (10039)		QUAL=14;DP=34;QD=0.41;AF=0.677	RPH3AL	
+chr1	11075	11075	A	G	het	1|0 (10039)		QUAL=7;DP=35;QD=0.20;AF=0.229	RPH3AL	
+chr1	11079	11079	T	G	het	1|0 (10039)		QUAL=7;DP=35;QD=0.20;AF=0.343	RPH3AL	
+chr1	11113	11113	T	C	het	1|0 (10039)		QUAL=14;DP=35;QD=0.40;AF=0.800	RPH3AL	
+chr1	11134	11134	A	G	het	1|0 (10039)		QUAL=11;DP=35;QD=0.31;AF=0.771	IL12A	
+chr1	11154	11154	A	C	het	1|0 (10039)		QUAL=14;DP=35;QD=0.40;AF=0.829	IL12A	
+chr1	11167	11167	C	A	het	1|0 (10039)		QUAL=9;DP=35;QD=0.26;AF=0.743	IL12A	
+chr1	11391	11391	T	A	het	1|0 (10039)		QUAL=11;DP=36;QD=0.31;AF=0.806	IL12A	
+chr1	11398	11398	G	T	het			QUAL=7;DP=36;QD=0.19;AF=0.222	IL12A	
+chr1	11409	11409	A	G	het	1|0 (10039)		QUAL=9;DP=36;QD=0.25;AF=0.778	IL12A	
+chr1	11457	11457	C	G	hom			QUAL=6;DP=37;QD=0.16;AF=0.811	IL12A	
+chr1	11470	11470	G	A	het			QUAL=6;DP=23;QD=0.26;AF=0.217	IL12A	
+chr1	11508	11508	A	G	het	1|0 (10039)		QUAL=10;DP=38;QD=0.26;AF=0.790	IL12A	
+chr1	11542	11542	A	T	het	1|0 (10039)		QUAL=9;DP=38;QD=0.24;AF=0.790	IL12A	
+chr1	11565	11565	G	T	het	1|0 (10039)		QUAL=9;DP=38;QD=0.24;AF=0.790	IL12A	
+chr1	11772	11772	G	A	het			QUAL=9;DP=38;QD=0.24;AF=0.237	IL12A	
+chr1	11863	11863	C	A	het			QUAL=14;DP=37;QD=0.38;AF=0.378	IL12A	
+chr1	11922	11922	T	A	het			QUAL=10;DP=37;QD=0.27;AF=0.297	IL12A	
+chr1	12198	12198	G	C	het	1|0 (10039)		QUAL=8;DP=39;QD=0.21;AF=0.821	IL12A	
+chr1	12305	12305	C	T	het			QUAL=13;DP=39;QD=0.33;AF=0.333	IL12A	
+chr1	12332	12332	G	A	het			QUAL=13;DP=39;QD=0.33;AF=0.205	IL12A	
+chr1	12383	12383	G	A	het	1|0 (10039)		QUAL=8;DP=39;QD=0.21;AF=0.846	IL12A	
+chr1	12783	12783	G	A	het	1|0 (10039)		QUAL=8;DP=38;QD=0.21;AF=0.790	IL12A	
+chr1	13116	13116	T	G	het	1|0 (10039)		QUAL=10;DP=40;QD=0.25;AF=0.700	IL12A	
+chr1	13118	13118	A	G	hom			QUAL=8;DP=40;QD=0.20;AF=0.850	IL12A	
+chr1	13138	13138	T	C	het	0|1 (10039)		QUAL=7;DP=40;QD=0.18;AF=0.150	IL12A	
+chr1	13302	13302	C	T	het	1|0 (10039)		QUAL=6;DP=40;QD=0.15;AF=0.800	IL12A	
+chr1	13327	13327	G	C	hom			QUAL=34;DP=40;QD=0.85;AF=0.975	IL12A	
+chr1	13424	13424	A	G	het	0|1 (10039)		QUAL=10;DP=41;QD=0.24;AF=0.146	IL12A	
+chr1	13508	13508	T	C	het	0|1 (10039)		QUAL=8;DP=42;QD=0.19;AF=0.167	IL12A	
+chr1	13657	13658	AG	-	het			QUAL=17;DP=43;QD=0.40;AF=0.698	IL12A	
+chr1	13896	13896	C	A	het			QUAL=9;DP=47;QD=0.19;AF=0.213	IL12A	
+chr1	13980	13980	T	C	hom			QUAL=36;DP=48;QD=0.75;AF=0.958	IL12A	
+chr1	14455	14455	-	AAGAG	het			QUAL=8;DP=50;QD=0.16;AF=0.540	IL12A	
+chr1	14673	14673	G	C	hom			QUAL=5;DP=52;QD=0.10;AF=0.712	IL12A	
+chr1	14699	14699	C	G	hom			QUAL=27;DP=53;QD=0.51;AF=0.906	IL12A	
+chr1	15817	15817	G	T	het	0|1 (10039)		QUAL=13;DP=64;QD=0.20;AF=0.266	IL12A	
+chr1	15906	15906	A	G	hom			QUAL=17;DP=65;QD=0.26;AF=0.862	IL12A	
+chr1	15922	15922	A	G	hom			QUAL=28;DP=66;QD=0.42;AF=0.985	IL12A	
+chr1	15956	15956	G	A	het	1|0 (10039)		QUAL=9;DP=65;QD=0.14;AF=0.877	IL12A	
+chr1	16014	16014	C	T	het	1|0 (10039)		QUAL=10;DP=66;QD=0.15;AF=0.606	IL12A	
+chr1	16068	16068	T	C	hom			QUAL=35;DP=68;QD=0.51;AF=0.897	IL12A	
+chr1	16807	16807	G	C	het			QUAL=9;DP=91;QD=0.10;AF=0.319	IL12A	
+chr1	16809	16809	C	G	het	0|1 (10039)		QUAL=10;DP=91;QD=0.11;AF=0.484	IL12A	
+chr1	16856	16856	A	G	het			QUAL=11;DP=93;QD=0.12;AF=0.398	IL12A	
+chr1	17385	17385	G	A	het	1|0 (10039)	low_conf_region	QUAL=13;DP=112;QD=0.12;AF=0.446	IL12A	
+chr1	17626	17626	G	A	het	0|1 (10039)	low_conf_region	QUAL=7;DP=61;QD=0.11;AF=0.164	IL12A	
+chr1	17746	17746	A	G	het	0|1 (10039)	low_conf_region	QUAL=9;DP=62;QD=0.15;AF=0.161	IL12A	
+chr1	17904	17904	G	A	het	0|1 (10039)		QUAL=6;DP=57;QD=0.11;AF=0.123	IL12A	
+chr1	18030	18030	C	T	het	0|1 (10039)		QUAL=7;DP=102;QD=0.07;AF=0.186	IL12A	
+chr1	18089	18089	G	T	het			QUAL=16;DP=56;QD=0.29;AF=0.232	IL12A	
+chr1	18164	18164	T	C	het	0|1 (10039)		QUAL=11;DP=101;QD=0.11;AF=0.426	IL12A	
+chr1	18200	18200	A	G	het	0|1 (10039)		QUAL=11;DP=102;QD=0.11;AF=0.186	IL12A	
+chr1	18422	18422	T	C	het	0|1 (10039)		QUAL=8;DP=56;QD=0.14;AF=0.179	IL12A	
+chr1	18499	18499	A	G	het	0|1 (10039)		QUAL=10;DP=56;QD=0.18;AF=0.214	IL12A	
+chr1	18631	18631	A	C	het	0|1 (10039)		QUAL=11;DP=54;QD=0.20;AF=0.130	IL12A	
+chr1	18746	18746	T	A	het	0|1 (10039)		QUAL=8;DP=94;QD=0.09;AF=0.202	IL12A	
+chr1	18849	18849	C	G	hom			QUAL=12;DP=92;QD=0.13;AF=0.913	IL12A	
+chr1	18955	18955	A	G	het	0|1 (10039)		QUAL=9;DP=91;QD=0.10;AF=0.132	IL12A	
+chr1	19090	19090	A	G	het	0|1 (10039)		QUAL=5;DP=51;QD=0.10;AF=0.098	IL12A	
+chr1	19172	19172	A	G	hom			QUAL=26;DP=91;QD=0.29;AF=0.945	IL12A	
+chr1	19241	19241	C	T	het	1|0 (10039)		QUAL=10;DP=89;QD=0.11;AF=0.742	IL12A	
+chr1	19268	19268	C	T	het	0|1 (10039)		QUAL=7;DP=51;QD=0.14;AF=0.137	IL12A	
+chr1	19600	19600	A	T	het	0|1 (10039)		QUAL=6;DP=50;QD=0.12;AF=0.200	IL12A	
+chr1	19685	19685	G	A	het	1|0 (10039)		QUAL=15;DP=86;QD=0.17;AF=0.512	IL12A	
+chr1	19776	19776	A	G	hom			QUAL=34;DP=88;QD=0.39;AF=0.955	IL12A	
+chr1	20128	20128	G	A	het	1|0 (10039)		QUAL=13;DP=86;QD=0.15;AF=0.756	IL12A	
+chr1	20221	20221	G	C	het	1|0 (10039)		QUAL=13;DP=86;QD=0.15;AF=0.721	TEKT4P2	
+chr1	21024	21024	C	T	het	0|1 (10039)		QUAL=11;DP=77;QD=0.14;AF=0.390	TEKT4P2	
+chr1	21093	21093	C	A	het	0|1 (10039)		QUAL=6;DP=44;QD=0.14;AF=0.182	TEKT4P2	
+chr1	21121	21121	G	A	het	0|1 (10039)		QUAL=10;DP=44;QD=0.23;AF=0.227	TEKT4P2	
+chr1	21419	21419	C	T	het	1|0 (10039)		QUAL=10;DP=71;QD=0.14;AF=0.563	TEKT4P2	
+chr1	21580	21580	C	T	het	0|1 (10039)		QUAL=10;DP=71;QD=0.14;AF=0.409	TEKT4P2	
+chr1	21694	21694	C	T	het	1|0 (10039)		QUAL=13;DP=70;QD=0.19;AF=0.571	TEKT4P2	
+chr1	21710	21710	G	A	het	0|1 (10039)		QUAL=14;DP=40;QD=0.35;AF=0.225	TEKT4P2	
+chr1	22158	22158	A	G	het	0|1 (10039)		QUAL=13;DP=61;QD=0.21;AF=0.328	TEKT4P2	
+chr1	22246	22246	C	T	het	1|0 (10039)		QUAL=12;DP=61;QD=0.20;AF=0.295	TEKT4P2	
+chr1	23071	23071	T	C	het	0|1 (10039)		QUAL=12;DP=56;QD=0.21;AF=0.357	TEKT4P2	
+chr1	23148	23148	G	A	het	1|0 (10039)		QUAL=10;DP=55;QD=0.18;AF=0.655	TEKT4P2	
+chr1	23155	23155	G	A	het	0|1 (10039)		QUAL=9;DP=55;QD=0.16;AF=0.236	TEKT4P2	
+chr1	23359	23359	C	G	het	0|1 (10039)		QUAL=6;DP=49;QD=0.12;AF=0.245	TEKT4P2	
+chr1	23395	23395	A	G	het	0|1 (10039)		QUAL=13;DP=49;QD=0.27;AF=0.306	TEKT4P2	
+chr1	23506	23506	G	A	het	0|1 (10039)		QUAL=5;DP=32;QD=0.16;AF=0.156	TEKT4P2	
+chr1	23559	23559	T	C	het	0|1 (10055)		QUAL=6;DP=31;QD=0.19;AF=0.129	TEKT4P2	
+chr1	23584	23584	A	G	het	0|1 (10055)		QUAL=8;DP=31;QD=0.26;AF=0.129	TEKT4P2	
+chr1	23653	23653	T	C	het	0|1 (10055)		QUAL=7;DP=30;QD=0.23;AF=0.133	TEKT4P2	
+chr1	23700	23700	A	G	het	0|1 (10055)		QUAL=8;DP=30;QD=0.27;AF=0.133	TEKT4P2	
+chr1	23710	23710	G	C	het	0|1 (10055)		QUAL=10;DP=48;QD=0.21;AF=0.250	TEKT4P2	
+chr1	23847	23847	C	A	het	0|1 (10055)		QUAL=6;DP=30;QD=0.20;AF=0.100	TEKT4P2	
+chr1	23975	23975	G	A	het	0|1 (10055)		QUAL=13;DP=45;QD=0.29;AF=0.244	TEKT4P2	
+chr1	24132	24132	C	T	het	0|1 (10055)		QUAL=11;DP=44;QD=0.25;AF=0.273	TEKT4P2	
+chr1	24193	24193	G	C	het	0|1 (10055)		QUAL=7;DP=27;QD=0.26;AF=0.111	TEKT4P2	
+chr1	24220	24220	T	G	het	0|1 (10055)		QUAL=10;DP=27;QD=0.37;AF=0.148	TEKT4P2	
+chr1	24269	24269	C	T	het	0|1 (10055)		QUAL=7;DP=27;QD=0.26;AF=0.148	TEKT4P2	
+chr1	24425	24425	G	A	het	0|1 (10055)		QUAL=9;DP=27;QD=0.33;AF=0.111	TEKT4P2	
+chr1	24723	24723	A	G	het	0|1 (10055)		QUAL=13;DP=26;QD=0.50;AF=0.154	TEKT4P2	
+chr1	24754	24754	C	T	het	0|1 (10055)		QUAL=8;DP=26;QD=0.31;AF=0.115	TEKT4P2	
+chr1	24832	24832	A	G	het	0|1 (10055)		QUAL=12;DP=46;QD=0.26;AF=0.196	TEKT4P2	
+chr1	24934	24934	G	T	het	0|1 (10055)		QUAL=11;DP=26;QD=0.42;AF=0.154	TEKT4P2	
+chr1	24957	24957	C	G	het	0|1 (10055)		QUAL=6;DP=26;QD=0.23;AF=0.154	TEKT4P2	
+chr1	25082	25082	G	A	het	0|1 (10055)		QUAL=7;DP=26;QD=0.27;AF=0.115	TEKT4P2	
+chr1	25313	25313	A	G	het	0|1 (10055)		QUAL=12;DP=40;QD=0.30;AF=0.300	TEKT4P2	
+chr1	25347	25347	A	C	het	0|1 (10055)		QUAL=12;DP=39;QD=0.31;AF=0.231	TEKT4P2	
+chr1	25505	25505	A	C	het	0|1 (10055)		QUAL=7;DP=39;QD=0.18;AF=0.205	TEKT4P2	
+chr1	25568	25568	A	C	het	0|1 (10055)		QUAL=10;DP=24;QD=0.42;AF=0.125	TEKT4P2	
+chr1	25733	25733	A	G	het	0|1 (10039)		QUAL=16;DP=35;QD=0.46;AF=0.343	FAM138A	
+chr1	25876	25876	C	T	het	0|1 (10039)		QUAL=12;DP=33;QD=0.36;AF=0.273	FAM138A	
+chr1	25984	25984	T	C	het	0|1 (10039)		QUAL=12;DP=33;QD=0.36;AF=0.273	FAM138A	
+chr1	26013	26013	C	T	het	0|1 (10039)		QUAL=6;DP=33;QD=0.18;AF=0.152	FAM138A	
+chr1	26266	26266	C	T	het	0|1 (10039)		QUAL=12;DP=31;QD=0.39;AF=0.258	FAM138A	
+chr1	26711	26711	G	A	het	0|1 (10039)		QUAL=12;DP=24;QD=0.50;AF=0.208	FAM138A	
+chr1	26996	26996	A	G	hom			QUAL=13;DP=13;QD=1.00;AF=0.923	FAM138A	
+chr1	27054	27054	G	A	het	0|1 (10039)		QUAL=10;DP=21;QD=0.48;AF=0.191	FAM138A	
+chr1	28589	28589	T	G	hom		low_conf_region	QUAL=9;DP=17;QD=0.53;AF=0.294	FAM138A	
+chr1	29443	29443	A	G	hom			QUAL=18;DP=14;QD=1.29;AF=0.929	FAM138A	
+chr1	30617	30619	AAG	-	het	0|1 (10039)		QUAL=14;DP=8;QD=1.75;AF=0.250	FAM138A	
+chr1	30966	30966	T	C	het	0|1 (10039)		QUAL=10;DP=6;QD=1.67;AF=0.333	FAM138A	
+chr1	31131	31131	T	G	het	0|1 (10039)		QUAL=6;DP=6;QD=1.00;AF=0.167	FAM138A	
+chr1	31159	31159	C	T	hom			QUAL=11;DP=6;QD=1.83;AF=0.833	FAM138A	
+chr1	31295	31295	A	C	hom			QUAL=11;DP=4;QD=2.75;AF=1.000	FAM138A	
+chr1	33278	33278	G	A	het	0|1 (10039)		QUAL=7;DP=4;QD=1.75;AF=0.250	FAM138A	
+chr1	33411	33411	A	C	hom			QUAL=11;DP=4;QD=2.75;AF=1.000	FAM138A	
+chr1	34305	34305	G	T	het	0|1 (10039)		QUAL=15;DP=6;QD=2.50;AF=0.333	FAM138A	
+chr1	34456	34456	G	A	het	0|1 (10039)		QUAL=13;DP=6;QD=2.17;AF=0.333	FAM138A	
+chr1	34467	34467	C	T	het	0|1 (10039)		QUAL=13;DP=6;QD=2.17;AF=0.333	FAM138A	
+chr1	34755	34755	G	A	het	0|1 (10039)		QUAL=6;DP=6;QD=1.00;AF=0.333	FAM138A	
+chr1	34763	34763	G	T	het	0|1 (10039)		QUAL=13;DP=6;QD=2.17;AF=0.333	FAM138A	
+chr1	34982	34982	G	A	het	0|1 (10039)		QUAL=12;DP=6;QD=2.00;AF=0.167	FAM138A	
+chr1	35079	35079	C	A	het	0|1 (10039)		QUAL=13;DP=6;QD=2.17;AF=0.333	FAM138A	
+chr1	35172	35172	G	A	het	0|1 (10039)		QUAL=14;DP=5;QD=2.80;AF=0.400	FAM138A	
+chr1	35206	35206	C	T	het	0|1 (10039)		QUAL=13;DP=5;QD=2.60;AF=0.400	FAM138A	
+chr1	35208	35208	G	C	het	1|0 (10039)		QUAL=15;DP=5;QD=3.00;AF=0.400	FAM138A	
+chr1	35232	35232	G	C	het	0|1 (10039)		QUAL=17;DP=5;QD=3.40;AF=0.400	FAM138A	
+chr1	35287	35287	T	C	het	0|1 (10039)		QUAL=14;DP=5;QD=2.80;AF=0.400	FAM138A	
+chr1	35316	35316	G	A	het	0|1 (10039)		QUAL=15;DP=5;QD=3.00;AF=0.400	FAM138A	
+chr1	35416	35416	A	G	het	0|1 (10039)		QUAL=12;DP=5;QD=2.40;AF=0.400	FAM138A	
+chr1	35510	35510	C	G	het	0|1 (10039)		QUAL=16;DP=5;QD=3.20;AF=0.400	FAM138A	
+chr1	35758	35758	C	T	het	0|1 (10039)		QUAL=13;DP=5;QD=2.60;AF=0.400	FAM138A	
