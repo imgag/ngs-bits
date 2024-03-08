@@ -56,6 +56,9 @@
          <height>0</height>
         </size>
        </property>
+       <property name="maxVisibleItems">
+        <number>30</number>
+       </property>
        <item>
         <property name="text">
          <string>[NGSD]</string>
@@ -83,6 +86,11 @@
        </item>
        <item>
         <property name="text">
+         <string>Link samples from same patient</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>[GenLab]</string>
         </property>
        </item>
@@ -99,6 +107,11 @@
        <item>
         <property name="text">
          <string>Import tissue</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Import patient IDs</string>
         </property>
        </item>
       </widget>

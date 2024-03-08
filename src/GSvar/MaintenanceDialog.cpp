@@ -441,7 +441,6 @@ void MaintenanceDialog::importTissue()
 	{
 		QString ps = ps_list[i];
 		QString tissue = genlab.tissue(ps).trimmed();
-		qDebug() << i << ps << tissue;
 		if (tissue.isEmpty())
 		{
 			++c_not_in_genlab;
@@ -453,7 +452,7 @@ void MaintenanceDialog::importTissue()
 		QString tissue_ngsd = db.getValue("SELECT tissue FROM sample WHERE id='" + s_id + "'").toString();
 		if (tissue_ngsd!="n/a" && tissue_ngsd!=tissue)
 		{
-			appendOutputLine(ps  + " skipped: NGSD contains " + tissue_ngsd + ", but GenLab contains '" + tissue);
+			appendOutputLine(ps  + " skipped: NGSD contains " + tissue_ngsd + ", but GenLab contains " + tissue);
 			continue;
 		}
 
@@ -468,5 +467,127 @@ void MaintenanceDialog::importTissue()
 	appendOutputLine("");
 	appendOutputLine("Imported tissues: " + QString::number(c_imported));
 	appendOutputLine("Skipped because no valid tissue available in GenLab: " + QString::number(c_not_in_genlab));
+}
+
+void MaintenanceDialog::importPatientIDs()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	GenLabDB genlab;
+
+	int c_not_in_genlab = 0;
+	int c_imported = 0;
+
+	//import study samples from GenLab
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.patient_identifier, s.id as sample_id FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' ORDER BY ps.id ASC");
+
+	int i = 0;
+	while(query.next())
+	{
+		QString ps = query.value("ps").toString();
+		if (i%500==0) appendOutputLine("progressed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
+		++i;
+
+		QString patient_id = genlab.patientIdentifier(ps).trimmed();
+		if (patient_id.isEmpty())
+		{
+			++c_not_in_genlab;
+			continue;
+		}
+
+		//if already in NGSD, check if consistent
+		QString patient_id_ngsd = query.value("patient_identifier").toString().trimmed();
+		if (patient_id_ngsd!="" && patient_id!=patient_id_ngsd)
+		{
+			appendOutputLine(ps  + " skipped: NGSD contains " + patient_id_ngsd + ", but GenLab contains " + patient_id);
+			continue;
+		}
+
+		//check if already set
+		if (patient_id==patient_id_ngsd) continue;
+
+		//update NGSD
+		db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_id +"' WHERE id='" + query.value("sample_id").toString() + "'");
+		++c_imported;
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//output
+	appendOutputLine("");
+	appendOutputLine("Skipped because no patient ID available in GenLab: " + QString::number(c_not_in_genlab));
+	appendOutputLine("Imported patient IDs: " + QString::number(c_imported));
+}
+
+void MaintenanceDialog::linkSamplesFromSamePatient()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	QString user_id = db.getValue("SELECT id FROM user WHERE user_id='genlab_import'").toString();
+
+	//get sample names for each patient identifier
+	QHash<QString, QStringList> pat2samples;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT name, patient_identifier FROM sample WHERE patient_identifier IS NOT NULL");
+	while(query.next())
+	{
+		QString patient_id = query.value("patient_identifier").toString().trimmed();
+		if (patient_id.isEmpty()) continue;
+
+		pat2samples[patient_id] << query.value("name").toString();
+	}
+
+
+	int c_multi_sample = 0;
+	int c_relation_missing = 0;
+	int c_relation_present = 0;
+
+	for (auto it=pat2samples.begin(); it!=pat2samples.end(); ++it)
+	{
+		const QStringList& samples = it.value();
+		if (samples.count()<2) continue;
+		++c_multi_sample;
+
+		for (int i=0; i<samples.count(); ++i)
+		{
+			for (int j=i+1; j<samples.count(); ++j)
+			{
+				QString s1 = samples[i];
+				int s1_id = db.sampleId(s1).toInt();
+				QString s2 = samples[j];
+				int s2_id = db.sampleId(s2).toInt();
+
+				QSet<int> s1_related = db.relatedSamples(s1_id);
+				if (!s1_related.contains(s2_id))
+				{
+					++c_relation_missing;
+
+					SqlQuery query = db.getQuery();
+					query.prepare("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (:0, 'same patient', :1, "+user_id+")");
+					query.bindValue(0, s1_id);
+					query.bindValue(1, s2_id);
+					query.exec();
+
+					appendOutputLine("Added 'same sample' relation for " + s1 + " and " + s2);
+				}
+				else
+				{
+					++c_relation_present;
+				}
+			}
+		}
+
+	}
+
+	appendOutputLine("Patients with patient identifier: " + QString::number(pat2samples.count()));
+	appendOutputLine("Patients with at least 2 samples: " + QString::number(c_multi_sample));
+
+	appendOutputLine("Relations present: " + QString::number(c_relation_present));
+	appendOutputLine("Relations missing - added now: " + QString::number(c_relation_missing));
+
+	QApplication::restoreOverrideCursor();
 }
 
