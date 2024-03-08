@@ -100,7 +100,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	int i_co_sp = dna_snvs_.annotationIndexByName("coding_and_splicing");
 	for(int i=0;i<dna_snvs_.count(); ++i)
 	{
-		QByteArray gene = SomaticReportHelper::selectSomaticTranscript(db_, dna_snvs_[i], data_, i_co_sp).gene;
+		QByteArray gene = SomaticReportHelper::selectSomaticTranscript(db_, dna_snvs_[i], i_co_sp).gene;
 		if(!genes_with_var.contains(gene))
 		{
 			genes_with_var << gene;
@@ -356,7 +356,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::ONCOGENIC && vicc_result != SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) continue;
 
-		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(db_, var, data_, i_co_sp);
+		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(db_, var, i_co_sp);
 
 		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
 
@@ -742,7 +742,7 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE) continue;
 
-		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(db_, var, data_, i_co_sp);
+		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(db_, var, i_co_sp);
 
 		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
 

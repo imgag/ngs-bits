@@ -732,29 +732,33 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	}
 	else
 	{
-		//use first preferred transcript
-		for (int i=0; i<trans_data.count(); ++i)
-		{
-			if (preferred_transcripts.value(trans_data[i].gene).contains(trans_data[i].idWithoutVersion()))
-			{
-				setTranscript(i);
-				break;
-			}
-		}
-		//fallback: first best transcript
+		//best transcript
 		if (trans_curr==-1 && LoginManager::active())
 		{
 			NGSD db;
+			int current_best_quality = -1;
+			int transcript_idx = -1;
+
+
 			for (int i=0; i<trans_data.count(); ++i)
 			{
 				int gene_id = db.geneId(trans_data[i].gene);
 				if (gene_id==-1) continue;
-				Transcript best = db.bestTranscript(gene_id, vl[index].parseTranscriptString(vl[index].annotations()[a_index]));
+				int quality;
+				Transcript best = db.bestTranscript(gene_id, vl[index].parseTranscriptString(vl[index].annotations()[a_index]), &quality);
 				if (trans_data[i].id==best.nameWithVersion())
 				{
-					setTranscript(i);
-					break;
+					if (current_best_quality < quality)
+					{
+						current_best_quality = quality;
+						transcript_idx = i;
+					}
 				}
+			}
+
+			if (transcript_idx != -1)
+			{
+				setTranscript(transcript_idx);
 			}
 		}
 		//fallback: first transcript

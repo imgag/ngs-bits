@@ -258,6 +258,11 @@ bool FilterWidget::setFilter(QString name)
 	return false;
 }
 
+void FilterWidget::setFilterCascade(const FilterCascade& filter_cascade)
+{
+	ui_.cascade_widget->setFilters(filter_cascade);
+}
+
 QString FilterWidget::filterName() const
 {
 	return ui_.filters->currentText();

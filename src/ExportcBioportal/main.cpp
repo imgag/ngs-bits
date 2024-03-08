@@ -148,10 +148,6 @@ public:
 
 				report_settings.report_config = db.somaticReportConfig(tumor_id, normal_id, somatic_vl, cnvs, germline_vl, messages);
 
-//				qDebug() << report_settings.report_config.filter();
-				QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
-				report_settings.filters = FilterCascadeFile::load(filterFileName, report_settings.report_config.filter());
-
 				export_settings.addSample(report_settings, files, mtb_data);
 			}
 		}

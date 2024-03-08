@@ -50,7 +50,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, fusions_detected_(false)
 	, tmb_reference_text_()
 	, quality_()
-	, filter_()
+	, filter_name_()
 {
 }
 
@@ -398,14 +398,24 @@ void SomaticReportConfiguration::setLimitations(QString limitations)
 	limitations_ = limitations;
 }
 
-QString SomaticReportConfiguration::filter() const
+QString SomaticReportConfiguration::filterName() const
 {
-	return filter_;
+	return filter_name_;
 }
 
-void SomaticReportConfiguration::setFilter(QString filter)
+void SomaticReportConfiguration::setFilterName(QString filter)
 {
-	filter_ = filter;
+	filter_name_ = filter;
+}
+
+FilterCascade SomaticReportConfiguration::filters() const
+{
+	return filters_;
+}
+
+void SomaticReportConfiguration::setFilters(FilterCascade filters)
+{
+	filters_ = filters;
 }
 
 int SomaticReportConfiguration::cnvLohCount() const

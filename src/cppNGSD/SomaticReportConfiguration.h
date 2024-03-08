@@ -4,6 +4,7 @@
 #include "VariantType.h"
 #include "Helper.h"
 #include "ReportConfiguration.h"
+#include "FilterCascade.h"
 #include <Chromosome.h>
 #include <QString>
 #include <QDateTime>
@@ -135,8 +136,11 @@ public:
 	QString limitations() const;
 	void setLimitations(QString limitations);
 
-	QString filter() const;
-	void setFilter(QString filter);
+	QString filterName() const;
+	void setFilterName(QString filter);
+
+	FilterCascade filters() const;
+	void setFilters(FilterCascade filters);
 
 	int cnvLohCount() const;
 	void setCnvLohCount(int cnv_loh_count);
@@ -198,7 +202,9 @@ private:
 	QStringList quality_;
 
 	//Name of filter
-	QString filter_;
+	QString filter_name_;
+	//filters
+	FilterCascade filters_;
 
 	//Date when evaluation was performed
 	QDate evaluation_date_;
