@@ -437,6 +437,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_normal_sample = false;
 	bool add_dates = false;
 	bool add_call_details = false;
+	bool add_lab_columns = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)

@@ -1,5 +1,12 @@
 # GSvar change log
 
+## 2024_02-6 (07.03.24)
+
+- general: added dialog to call variants with pathogenic WT allele
+- variant details: added link to `All of Us` in gnomAD allele frequency context menu
+- sample search: added checkbox to add lab columns
+- somatic report: several minor improvements
+
 ## 2023_11-113 (07.02.24)
 
 - changed SpliceAI annotation (was max score, now contains gene-specific scores/positions)

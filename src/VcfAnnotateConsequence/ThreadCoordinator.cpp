@@ -31,8 +31,9 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaDat
 
 	//open input steam
 	FILE* instream = params_.in.isEmpty() ? stdin : fopen(params_.in.toLatin1().data(), "rb");
+	if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + params_.in + "' for reading!");
 	in_stream_ = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
-	if (in_stream_==NULL) THROW(FileAccessException, "Could not open file '" + params_.in + "' for reading!");
+	if (in_stream_==nullptr) THROW(FileAccessException, "Could not open file '" + params_.in + "' for reading!");
 
 	//initially fill thread pool with analysis jobs
 	for (int i=0; i<params_.prefetch; ++i)
