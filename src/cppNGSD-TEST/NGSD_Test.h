@@ -2166,6 +2166,12 @@ private slots:
 		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
 		som_rep_conf.setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
 		som_rep_conf.setFilterName("somatic");
+		QStringList filter_text;
+		filter_text << "Variant type	HIGH=frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost	MODERATE=inframe_deletion,inframe_insertion,missense_variant	LOW=splice_region_variant	MODIFIER=";
+		filter_text << "Column match	pattern=promoter	column=regulatory	action=KEEP";
+		filter_text << "Filter column empty";
+		FilterCascade filters = FilterCascade::fromText(filter_text);
+		som_rep_conf.setFilters(filters);
 
 
 		SomaticReportVariantConfiguration cnv1;
@@ -2250,6 +2256,13 @@ private slots:
 		IS_THROWN(ArgumentException, som_rep_conf.setCinChromosomes({"chr1", "chr24"}));
 		S_EQUAL(res_config.limitations(), "Due to low coverage we could not detect all variants for gene BRAF.");
 		S_EQUAL(res_config.filterName(), "somatic");
+		IS_TRUE(res_config.filters() == filters)
+
+		QStringList res_filter_text = res_config.filters().toText();
+		for (int i=0; i< filter_text.count(); i++)
+		{
+			S_EQUAL(res_filter_text[i].trimmed(), filter_text[i]);
+		}
 
 		//Test variants included in resolved report
 		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
