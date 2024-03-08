@@ -252,7 +252,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	tables	<< "sample s"
 			<< "processing_system sys"
 			<< "project p"
-			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id LEFT JOIN processed_sample_ancestry psa ON psa.processed_sample_id=ps.id"; //sequencing_run and diag_status are optional
+			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id LEFT JOIN processed_sample_ancestry psa ON psa.processed_sample_id=ps.id LEFT JOIN user u ON ps.operator_id=u.id"; //sequencing_run, operator and diag_status are optional
 
 	QStringList conditions;
 	conditions	<< "ps.sample_id=s.id"
@@ -444,8 +444,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 	if (p.add_lab_columns)
 	{
-		tables << "user u";
-		conditions << "u.id=ps.operator_id";
 		fields << "u.name as operator"
 			   << "ps.processing_input as 'processing input [ng]'"
 			   << "ps.molarity as 'molarity [nM]'"
