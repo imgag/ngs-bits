@@ -21,8 +21,8 @@ public:
 	{
 		setDescription("Filter a variant list based on a target region.");
 		addInfile("in", "Input variant list. In VCF (default) or GSvar format.", false);
-		addOutfile("out", "Output variant list (same format as 'in').", false);
 		//optional
+		addOutfile("out", "Output variant list (same format as 'in'). If unset, writes to STDOUT.", true);
 		addInfile("reg", "Input target region in BED format.", true);
 		addString("r", "Single target region in the format chr17:41194312-41279500.", true);
 		addString("mark", "If set, instead of removing variants, they are marked with the given flag in the 'filter' column.", true);
@@ -77,7 +77,7 @@ public:
 				variants.load(getInfile("in"), roi, true, inv);
 			}
 			int compression_level = getInt("compression_level");
-			variants.store(getOutfile("out"), false, compression_level);
+			variants.store(getOutfile("out"), true, compression_level);
 		}
 		else if(mode=="gsvar")
 		{
