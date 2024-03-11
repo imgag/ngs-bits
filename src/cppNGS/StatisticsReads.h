@@ -9,6 +9,7 @@
 #include <QMap>
 #include <QMutex>
 #include "BamReader.h"
+#include "Histogram.h"
 
 ///Read statistics for quality control.
 class CPPNGSSHARED_EXPORT StatisticsReads
@@ -42,6 +43,8 @@ private:
 	QVector<Pileup> pileups_;
 	QVector<double> qualities1_;
 	QVector<double> qualities2_;
+	Histogram qscore_dist_r1;
+	Histogram qscore_dist_r2;
 	bool long_read_;
 };
 

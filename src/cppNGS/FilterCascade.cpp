@@ -1740,7 +1740,11 @@ QByteArray FilterGenotypeControl::checkSameGenotype(const QList<int>& geno_indic
 FilterGenotypeAffected::FilterGenotypeAffected()
 {
 	name_ = "Genotype affected";
-	description_ = QStringList() << "Filter for genotype(s) of the 'affected' sample(s)." << "Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s).";
+	description_ = QStringList() << "Filter for genotype(s) of the 'affected' sample(s)." << "Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s)."
+								 << "comp-het works on unphased data (short-read) and keeps all het variants where are at least two (remaining) variants per gene."
+								 << "comp-het (phased) only works on phased data (long-read) on completely phased genes and keeps all het variants where are at least one het variant on each allele per gene."
+								 << "comp-het (unphased) only works on phased data (long-read) on genes with at least one unphased variant or multiple phasing blocks and keeps all het variants where are at least two het variant per gene (inverse of com-het (phased))."
+								 << "You can only select one of the three above at a time.";
 	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
 	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)";
 	params_.last().constraints["not_empty"] = "";

@@ -1557,3 +1557,12 @@ is_a: QC:2000004 ! NGS aquisition parameter
 is_a: QC:0000050 ! image plot
 xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
 created_by: schuetz
+
+[Term]
+id: QC:2000138
+name: Q score distribution
+def: "Distrubition of the mean forward/reverse Q score for each read." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: sturm

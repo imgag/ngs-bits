@@ -1,9 +1,8 @@
 #include "StatisticsReads.h"
 #include "LinePlot.h"
 #include "Helper.h"
-
 #include <BarPlot.h>
-#include <Histogram.h>
+
 
 StatisticsReads::StatisticsReads(bool long_read)
 	: c_forward_(0)
@@ -15,7 +14,10 @@ StatisticsReads::StatisticsReads(bool long_read)
 	, pileups_()
 	, qualities1_()
 	, qualities2_()
+	, qscore_dist_r1(0, 60, 1)
+	, qscore_dist_r2(0, 60, 1)
 	, long_read_(long_read)
+
 {
 }
 
@@ -61,7 +63,10 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 			qualities2_[i] += q;
 		}
 	}
-	if (q_sum/cycles>=20.0) ++c_read_q20_;
+	double mean_qscore = q_sum/cycles;
+	if (direction==FORWARD) qscore_dist_r1.inc(mean_qscore, true);
+	else qscore_dist_r2.inc(mean_qscore, true);
+	if (mean_qscore>=20.0) ++c_read_q20_;
 }
 
 void StatisticsReads::update(const BamAlignment& al)
@@ -132,7 +137,10 @@ void StatisticsReads::update(const BamAlignment& al)
 			qualities2_[i] += q;
 		}
 	}
-	if (q_sum/cycles>=20.0) ++c_read_q20_;
+	double mean_qscore = q_sum/cycles;
+	if (is_forward) qscore_dist_r1.inc(mean_qscore, true);
+	else qscore_dist_r2.inc(mean_qscore, true);
+	if (mean_qscore>=20.0) ++c_read_q20_;
 }
 
 QCCollection StatisticsReads::getResult()
@@ -234,6 +242,22 @@ QCCollection StatisticsReads::getResult()
 	//calculate long read QC values:
 	if(long_read_)
 	{
+		// plot Q score distribution
+		LinePlot plot2b;
+		plot2b.setXLabel("read Q score");
+		plot2b.setYLabel("read density");
+		plot2b.setYRange(1, 1.1*std::max(qscore_dist_r1.maxValue(), qscore_dist_r2.maxValue()));
+		plot2b.setXValues(qscore_dist_r1.xCoords());
+		plot2b.addLine(qscore_dist_r1.yCoords(), "forward reads");
+		if (c_reverse_>0)
+		{
+			plot2b.addLine(qscore_dist_r2.yCoords(), "reverse reads");
+		}
+		QString plotname2b = Helper::tempFileName(".png");
+		plot2b.store(plotname2b);
+		output.insert(QCValue::ImageFromFile("Q score distribution", plotname2b, "Distrubition of the mean forward/reverse Q score for each read.", "QC:2000138"));
+		QFile::remove(plotname2b);
+
 		//calculate N50 value
 		long long bases = 0;
 		int n50 = 0;
@@ -262,7 +286,7 @@ QCCollection StatisticsReads::getResult()
 			for (int i = 0; i < it.value(); ++i) read_length_hist.inc(it.key());
 		}
 
-		//add depth distribtion plot
+		//add read length histogram
 		BarPlot plot3;
 		plot3.setXLabel("read length (bp)");
 		plot3.setYLabel("read counts");
