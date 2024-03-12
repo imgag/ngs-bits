@@ -592,7 +592,7 @@ INSERT INTO `somatic_cnv` (`id`, `somatic_cnv_callset_id`, `chr`, `start`, `end`
 (4, 5, 'chr7', 87000, 350000, 3.14, 4, 0.8);
 
 -- somatic_report_configuration
-INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `mtb_xml_upload_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter`) VALUES 
+INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `mtb_xml_upload_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter_base_name`) VALUES 
 (3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10', '2020-07-29 09:06:10', NULL, false, false, false, false, false, 0, NULL, 'tumor cell content too low', 'somatic'),
 (51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10', '2020-07-27 09:20:10', 'nowhere.bed' , true, true, true, true, true, 1, "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp", NULL, NULL);
 

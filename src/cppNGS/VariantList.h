@@ -387,7 +387,7 @@ public:
 	void load(QString filename);
 	void loadHeaderOnly(QString filename);
 
-    ///Stores the variant list to a file.
+	///Stores the variant list to a file. If filename is empty, writes to STDOUT.
 	void store(QString filename) const;
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs.

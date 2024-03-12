@@ -21,6 +21,8 @@ private slots:
 	void findInconsistenciesForCausalDiagnosticVariants();
 	void importYearOfBirth();
 	void importTissue();
+	void importPatientIDs();
+	void linkSamplesFromSamePatient();
 
 private:
 	Ui::MaintenanceDialog ui_;

@@ -902,7 +902,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 void VariantList::store(QString filename) const
 {
 	//open stream
-	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
 
 	//comments

@@ -3115,9 +3115,10 @@ void MainWindow::loadSomaticReportConfig()
 	}
 
 	//Preselect filter from NGSD som. rep. conf.
-	if(somatic_report_settings_.report_config.filter() != "")
+	if(somatic_report_settings_.report_config.filterName() != "")
 	{
-		ui_.filters->setFilter( somatic_report_settings_.report_config.filter() );
+		ui_.filters->setFilter( somatic_report_settings_.report_config.filterName() );
+		ui_.filters->setFilterCascade(somatic_report_settings_.report_config.filters());
 	}
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
@@ -3582,8 +3583,8 @@ void MainWindow::generateReportSomaticRTF()
 	//Set data in somatic report settings
 	somatic_report_settings_.report_config.setTargetRegionName(ui_.filters->targetRegion().name);
 
-	somatic_report_settings_.report_config.setFilter((ui_.filters->filterName() != "[none]" ? ui_.filters->filterName() : "") ); //filter name -> goes to NGSD som. rep. conf.
-	somatic_report_settings_.filters = ui_.filters->filters(); //filter cascase -> goes to report helper
+	somatic_report_settings_.report_config.setFilterName((ui_.filters->filterName() != "[none]" ? ui_.filters->filterName() : "") ); //filter name -> goes to NGSD som. rep. conf.
+	somatic_report_settings_.report_config.setFilters(ui_.filters->filters()); //filter cascase -> goes to report helper
 
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;

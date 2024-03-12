@@ -5,7 +5,6 @@ SomaticReportSettings::SomaticReportSettings()
 	: report_config()
 	, tumor_ps()
 	, normal_ps()
-	, filters()
 {
 }
 
@@ -34,7 +33,7 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 
 	result.copyMetaData(snvs);
 
-	FilterResult filter_res = sett.filters.apply(snvs, throw_errors); //does not regard "include" result of report_config
+	FilterResult filter_res = sett.report_config.filters().apply(snvs, throw_errors); //does not regard "include" result of report_config
 
 	//filter for target region
 	if(sett.target_region_filter.regions.count() > 0)

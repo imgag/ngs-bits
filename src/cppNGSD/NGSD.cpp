@@ -252,7 +252,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	tables	<< "sample s"
 			<< "processing_system sys"
 			<< "project p"
-			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id LEFT JOIN processed_sample_ancestry psa ON psa.processed_sample_id=ps.id"; //sequencing_run and diag_status are optional
+			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id LEFT JOIN processed_sample_ancestry psa ON psa.processed_sample_id=ps.id LEFT JOIN user u ON ps.operator_id=u.id"; //sequencing_run, operator and diag_status are optional
 
 	QStringList conditions;
 	conditions	<< "ps.sample_id=s.id"
@@ -444,8 +444,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 	if (p.add_lab_columns)
 	{
-		tables << "user u";
-		conditions << "u.id=ps.operator_id";
 		fields << "u.name as operator"
 			   << "ps.processing_input as 'processing input [ng]'"
 			   << "ps.molarity as 'molarity [nM]'"
@@ -6788,7 +6786,7 @@ TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, in
 	return output;
 }
 
-Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts)
+Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts, int *return_quality)
 {
 	TranscriptList list = transcripts(gene_id, Transcript::ENSEMBL, false);
 
@@ -6798,11 +6796,13 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 
 	foreach(const Transcript& t, list)
 	{
+
 		if (t.isPreferredTranscript()) list_lvl.append(t);
 	}
 
 	if (list_lvl.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 5;
 		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
@@ -6815,6 +6815,7 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 
 	if (list_lvl.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 4;
 		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
@@ -6824,11 +6825,13 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 	//Ensembl canonical
 	foreach(const Transcript& t, list)
 	{
+
 		if (t.isEnsemblCanonicalTranscript()) list_lvl.append(t);
 	}
 
 	if (list_lvl.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 3;
 		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
@@ -6840,6 +6843,7 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 
 	if (list_lvl.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 2;
 		return highestImpactTranscript(list_lvl, var_transcripts);
 	}
 
@@ -6847,9 +6851,11 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 	list.sortByBases();
 	foreach(const Transcript& t, list)
 	{
+		if (return_quality != nullptr) *return_quality = 1;
 		return t;
 	}
 
+	if (return_quality != nullptr) *return_quality = -1;
 	return Transcript();
 }
 
@@ -8241,7 +8247,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.exec("DELETE FROM `somatic_report_configuration_germl_var` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
 
 		//Update somatic report configuration: last_edit_by, last_edit_user and target_file
-		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1, `tum_content_max_af` =:2, `tum_content_max_clonality` =:3, `tum_content_hist` =:4, `msi_status` =:5, `cnv_burden` =:6, `hrd_statement` =:7, `cnv_loh_count` =:8, `cnv_tai_count` =:9, `cnv_lst_count` =:10, `tmb_ref_text` =:11, `quality` =:12, `fusions_detected`=:13, `cin_chr`=:14, `limitations` = :15, `filter` =:16, `tum_content_estimated` =:17, `tum_content_estimated_value` =:18, `include_mutation_burden` =:19 WHERE id=:20");
+		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1, `tum_content_max_af` =:2, `tum_content_max_clonality` =:3, `tum_content_hist` =:4, `msi_status` =:5, `cnv_burden` =:6, `hrd_statement` =:7, `cnv_loh_count` =:8, `cnv_tai_count` =:9, `cnv_lst_count` =:10, `tmb_ref_text` =:11, `quality` =:12, `fusions_detected`=:13, `cin_chr`=:14, `limitations` = :15, `filter_base_name` =:16, `tum_content_estimated` =:17, `tum_content_estimated_value` =:18, `include_mutation_burden` =:19, `filters` =:20 WHERE id=:21");
 		query.bindValue(0, userId(user_name));
 		if(target_file != "") query.bindValue(1, target_file);
 		else query.bindValue(1, QVariant(QVariant::String));
@@ -8271,23 +8277,23 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		if( !config.limitations().isEmpty()) query.bindValue(15, config.limitations() );
 		else query.bindValue( 15, QVariant(QVariant::String) );
 
-		if( !config.filter().isEmpty() ) query.bindValue(16, config.filter());
-		else query.bindValue( 16, QVariant(QVariant::String) );
-
-		if( !config.filter().isEmpty() ) query.bindValue(16, config.filter());
+		if( !config.filterName().isEmpty() ) query.bindValue(16, config.filterName());
 		else query.bindValue( 16, QVariant(QVariant::String) );
 
 		query.bindValue(17, config.includeTumContentByEstimated());
 		query.bindValue(18, config.tumContentByEstimated());
 		query.bindValue(19, config.includeMutationBurden());
 
-		query.bindValue(20, id);
+		if (config.filters().count() > 0) query.bindValue(20, config.filters().toText().join("\n"));
+		else query.bindValue(20, QVariant(QVariant::String));
+
+		query.bindValue(21, id);
 		query.exec();
 	}
 	else
 	{
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_statement`, `cnv_loh_count`, `cnv_tai_count`, `cnv_lst_count`, `tmb_ref_text`, `quality`, `fusions_detected`, `cin_chr`, `limitations`, `filter`,  `tum_content_estimated`, `tum_content_estimated_value`, `include_mutation_burden`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23)");
+		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_statement`, `cnv_loh_count`, `cnv_tai_count`, `cnv_lst_count`, `tmb_ref_text`, `quality`, `fusions_detected`, `cin_chr`, `limitations`, `filter_base_name`,  `tum_content_estimated`, `tum_content_estimated_value`, `include_mutation_burden`, `filters`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24)");
 
 		query.bindValue(0, t_ps_id);
 		query.bindValue(1, n_ps_id);
@@ -8325,12 +8331,15 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		if(!config.limitations().isEmpty()) query.bindValue(19, config.limitations());
 		else query.bindValue(19, QVariant(QVariant::String));
 
-		if( !config.filter().isEmpty() ) query.bindValue( 20, config.filter() );
+		if( !config.filterName().isEmpty() ) query.bindValue( 20, config.filterName() );
 		else query.bindValue( 20, QVariant(QVariant::String) );
 
 		query.bindValue(21, config.includeTumContentByEstimated());
 		query.bindValue(22, config.tumContentByEstimated());
 		query.bindValue(23, config.includeMutationBurden());
+
+		if (config.filters().count() > 0) query.bindValue(24, config.filters().toText().join("\n"));
+		else query.bindValue(24, QVariant(QVariant::String));
 
 		query.exec();
 		id = query.lastInsertId().toInt();
@@ -8520,7 +8529,19 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 
 	if(!query.value("limitations").isNull()) output.setLimitations( query.value("limitations").toString() );
 
-	if(!query.value("filter").isNull()) output.setFilter( query.value("filter").toString() );
+	if(!query.value("filter_base_name").isNull()) output.setFilterName( query.value("filter_base_name").toString() );
+
+	if(!query.value("filters").isNull())
+	{
+		output.setFilters(FilterCascade::fromText(query.value("filters").toString().split("\n")));
+	} else if (!query.value("filter_base_name").isNull()) { // TODO temp loading help while converting to having the filters completely in the DB
+		QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
+		output.setFilters(FilterCascadeFile::load(filterFileName, query.value("filter_base_name").toString()));
+	}
+	else
+	{
+		output.setFilters(FilterCascade());
+	}
 
 	//Load SNVs
 	//Resolve variants stored in NGSD and compare to those in VariantList snvs
