@@ -163,6 +163,12 @@ public:
 			if (debug) debug_stream << "Performing somatic special QC took: " << Helper::elapsedTime(timer) << endl;
 		}
 
+		//post-processing long_read
+		if (long_read)
+		{
+			parameters << "-long_read";
+		}
+
 		//store output
 		QString out = getOutfile("out");
 		if (getFlag("txt"))

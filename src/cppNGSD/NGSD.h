@@ -1174,7 +1174,7 @@ public:
 	void maintain(QTextStream* messages, bool fix_errors);
 
 	///Returns the content of a NovaSeqX Plus SampleSheet for a given run
-	QString createSampleSheet(int run_id);
+	QString createSampleSheet(int run_id, QStringList& warnings);
 
 signals:
 	void initProgress(QString text, bool percentage);
