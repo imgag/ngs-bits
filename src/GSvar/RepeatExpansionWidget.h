@@ -23,7 +23,7 @@ class RepeatExpansionWidget
 	Q_OBJECT
 
 public:
-	RepeatExpansionWidget(QString vcf_filename, bool is_exome=false, QWidget *parent = 0);
+	RepeatExpansionWidget(QWidget* parent, QString vcf);
 
 private slots:
     ///Context menu that shall appear if right click on repeat expansion
@@ -34,13 +34,16 @@ private slots:
 protected:
 	///Override copy command
 	void keyPressEvent(QKeyEvent* event) override;
+	///Sets value
+	QTableWidgetItem* setCell(int row, QString column, QString value);
 
 private:
 	Ui::RepeatExpansionWidget ui_;
-	QString vcf_filename_;
-	bool is_exome_;
+	QColor red_ = QColor(255, 0, 0, 128);
+	QColor green_ = QColor(0, 255, 0, 128);
+	QColor orange_ = QColor(255, 135, 60, 128);
 
-	void loadRepeatExpansionData();
+	void loadDataFromVCF(QString vcf);
 };
 
 #endif // REPEATEXPANSIONWIDGET_H

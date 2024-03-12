@@ -1300,17 +1300,8 @@ void MainWindow::on_actionRE_triggered()
 
 	QString ps_name = variants_.mainSampleName();
 
-	//get sample type
-	bool is_exome = false;
-	if (LoginManager::active())
-	{
-		NGSD db;
-		QString ps_id = db.processedSampleId(ps_name, false);
-		is_exome = ps_id!="" && db.getProcessedSampleData(ps_id).processing_system_type=="WES";
-	}
-
 	//show dialog
-	RepeatExpansionWidget* widget = new RepeatExpansionWidget(re_files[0].filename, is_exome);
+	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, re_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + variants_.analysisName());
 
 	addModelessDialog(dlg);

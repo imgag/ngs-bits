@@ -61,6 +61,86 @@
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
+     <column>
+      <property name="text">
+       <string>repeat ID</string>
+      </property>
+      <property name="toolTip">
+       <string>Repeat identifier as defined in the repeat catalog</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>region</string>
+      </property>
+      <property name="toolTip">
+       <string>Genomic region of repeat</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>repeat unit</string>
+      </property>
+      <property name="toolTip">
+       <string>Repeat unit sequence in reference genome orientation (plus strand)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>filters</string>
+      </property>
+      <property name="toolTip">
+       <string>LowDepth: The overall locus depth is below 10x or number of reads spanning one or both ends is below 5</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>genotype</string>
+      </property>
+      <property name="toolTip">
+       <string>Repeat unit count for each allele</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>genotype CI</string>
+      </property>
+      <property name="toolTip">
+       <string>Confidence interval of repeat unit counts</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>locus coverage</string>
+      </property>
+      <property name="toolTip">
+       <string>Average coverage of locus</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>reads flanking</string>
+      </property>
+      <property name="toolTip">
+       <string>Number of flanking reads consistent with called alleles</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>reads in repeat</string>
+      </property>
+      <property name="toolTip">
+       <string>Number of in-repeat reads consistent with called alleles</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>reads spanning</string>
+      </property>
+      <property name="toolTip">
+       <string>Number of spanning reads consistent with called alleles</string>
+      </property>
+     </column>
     </widget>
    </item>
   </layout>

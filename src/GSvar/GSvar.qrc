@@ -94,7 +94,6 @@
         <file>Icons/Add_batch.png</file>
         <file>Icons/gnomAD.png</file>
         <file>Icons/Circos.png</file>
-        <file>Resources/repeat_expansion_cutoffs.tsv</file>
         <file>Icons/RepeatExpansion.png</file>
         <file>Icons/PGSCatalog.png</file>
         <file>Icons/PolygenicRiskScores.png</file>

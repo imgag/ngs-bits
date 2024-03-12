@@ -2435,6 +2435,23 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='small variants call set';
 
+-- -----------------------------------------------------
+-- Table `repeat_expansion_info`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `small_variants_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` varchar(25) NOT NULL,
+  `repeat_unit` varchar(25) NOT NULL,
+  `max_normal` int(10) DEFAULT NULL,
+  `min_pathogenic` int(10) DEFAULT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `name` (`name` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START
 -- ----------------------------------------------------------------------------------------------------------

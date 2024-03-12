@@ -15,18 +15,16 @@
 #include "ClientHelper.h"
 #include "Log.h"
 
-RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome, QWidget* parent)
+RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
 	: QWidget(parent)
 	, ui_()
-	, vcf_filename_(vcf_filename)
-	, is_exome_(is_exome)
 {
 	ui_.setupUi(this);
 
 	connect(ui_.repeat_expansions,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 	connect(ui_.repeat_expansions,SIGNAL(cellDoubleClicked(int,int)), this, SLOT(cellDoubleClicked(int, int)));
 
-	loadRepeatExpansionData();
+	loadDataFromVCF(vcf);
 }
 
 void RepeatExpansionWidget::showContextMenu(QPoint pos)
@@ -93,162 +91,89 @@ void RepeatExpansionWidget::keyPressEvent(QKeyEvent* event)
 	QWidget::keyPressEvent(event);
 }
 
-void RepeatExpansionWidget::loadRepeatExpansionData()
+QTableWidgetItem* RepeatExpansionWidget::setCell(int row, QString column, QString value)
+{
+	//make alle-specific information more readable
+	if (value=="-" || value=="-/-") value = "";
+	value.replace("/", " / ");
+
+	//determine column index
+	int col = GUIHelper::columnIndex(ui_.repeat_expansions, column);
+
+	//set item
+	QTableWidgetItem* item = GUIHelper::createTableItem(value);
+	ui_.repeat_expansions->setItem(row, col, item);
+
+	return item;
+}
+
+void RepeatExpansionWidget::loadDataFromVCF(QString vcf)
 {
 	//load VCF file
 	VcfFile repeat_expansions;
-	repeat_expansions.load(vcf_filename_);
-
-	//load filter file
-	QMap<QPair<QByteArray,QByteArray>, RepeatCutoffInfo> cutoff_info_map;
-	QStringList cutoff_file_content = Helper::loadTextFile(":/Resources/repeat_expansion_cutoffs.tsv", false);
-
-	foreach(const QString& line, cutoff_file_content)
-	{
-		// skip empty lines and comments
-		if(line=="" || line.startsWith("#")) continue;
-
-		//parse line
-		QStringList split_line = line.split('\t');
-		if (split_line.size() < 7) THROW(FileParseException, "Error parsing repeat expansion. 7 tab-separated columns expected, but " + QString::number(split_line.size()) + " found in line:\n" + line);
-		RepeatCutoffInfo repeat_cutoff;
-
-		repeat_cutoff.repeat_id = split_line.at(0).trimmed().toUtf8();
-		repeat_cutoff.repeat_unit = split_line.at(1).trimmed().toUtf8();
-		if(split_line.at(2).trimmed() == "") repeat_cutoff.max_normal = -1;
-		else repeat_cutoff.max_normal = Helper::toInt(split_line.at(2));
-		if(split_line.at(3).trimmed() == "") repeat_cutoff.min_pathogenic = -1;
-		else repeat_cutoff.min_pathogenic = Helper::toInt(split_line.at(3));
-		repeat_cutoff.inheritance = split_line.at(4).trimmed().toUtf8();
-
-
-		//parse exome reliability
-		QByteArray reliable_in_exomes = split_line.at(5).trimmed().toUtf8();
-		if(reliable_in_exomes == "0") repeat_cutoff.reliable_in_exomes = false;
-		else repeat_cutoff.reliable_in_exomes = true;
-		//parse additional info
-		QByteArrayList additional_info = split_line.at(6).trimmed().toUtf8().split(';');
-		foreach(const QByteArray& info, additional_info)
-		{
-			if(info.trimmed() != "") repeat_cutoff.additional_info.append(info.trimmed());
-		}
-
-		cutoff_info_map.insert(QPair<QByteArray,QByteArray>(repeat_cutoff.repeat_id, repeat_cutoff.repeat_unit), repeat_cutoff);
-	}
-
-	//create table
-
-	//define columns
-	QStringList column_names;
-	QVector<bool> numeric_columns;
-	QStringList description;
-	column_names << "chr" << "start" << "end" << "repeat_id" << "repeat_unit"
-				 << "repeats" << "wt_repeat" << "repeat_ci"<< "filter" << "locus_coverage"
-				 << "reads_flanking" << "reads_in_repeat" << "reads_spanning";
-	numeric_columns << false << true << true << false << false << false << true << false << true << false << false << false;
-	description << ""
-				<< ""
-				<< ""
-				<< "Repeat identifier as specified in the variant catalog"
-				<< "Repeat unit in the reference orientation"
-				<< "Number of repeat units spanned by the allele"
-				<< "Reference repeat count"
-				<< "Confidence interval for allele copy number"
-				<< QString("Filter:\n")
-				   + "  PASS:\t\tAll filters passed\n"
-				   + "  LowDepth:\tThe overall locus depth is below 10x or number of reads spanning one or both breakends is below 5."
-				<< "Locus coverage"
-				<< "Number of flanking reads consistent with the allele"
-				<< "Number of in-repeat reads consistent with the allele"
-				<< "Number of spanning reads consistent with the allele";
-
-
-	//create header
-	ui_.repeat_expansions->setColumnCount(column_names.size());
-	for (int col_idx = 0; col_idx < column_names.size(); ++col_idx)
-	{
-		ui_.repeat_expansions->setHorizontalHeaderItem(col_idx, new QTableWidgetItem(column_names.at(col_idx)));
-		if (description.at(col_idx) != "")
-		{
-			ui_.repeat_expansions->horizontalHeaderItem(col_idx)->setToolTip(description.at(col_idx));
-		}
-	}
+	repeat_expansions.load(vcf);
 
 	// check that there is exactly one sample
 	const QByteArrayList& samples = repeat_expansions.sampleIDs();
 	if (samples.count()!=1)
 	{
-		THROW(ArgumentException, "Repeat expansion VCF file '" + vcf_filename_ + "' does not contain exactly one sample!");
+		THROW(ArgumentException, "Repeat expansion VCF file '" + vcf + "' does not contain exactly one sample!");
 	}
-
-	// define table backround colors
-	QColor bg_red = Qt::red;
-	bg_red.setAlphaF(0.5);
-	QColor bg_green = Qt::darkGreen;
-	bg_green.setAlphaF(0.5);
-	QColor bg_orange = QColor(255, 135, 60);
-	bg_orange.setAlphaF(0.5);
-
 
 	// fill table widget with variants/repeat expansions
 	ui_.repeat_expansions->setRowCount(repeat_expansions.count());
 	for(int row_idx=0; row_idx<repeat_expansions.count(); ++row_idx)
 	{
 		const VcfLine& re = repeat_expansions[row_idx];
-		int col_idx = 0;
 
-		//extract info/format values
-		QByteArray info_repid = re.info("REPID").trimmed();
-		QByteArray info_ru = re.info("RU").trimmed();
-		QByteArray info_end = re.info("END").trimmed();
-		QByteArray info_ref = re.info("REF").trimmed();
+		//repeat ID
+		QByteArray repeat_id = re.info("REPID").trimmed();
+		setCell(row_idx, "repeat ID", repeat_id);
 
-		QByteArray format_repcn = re.formatValueFromSample("REPCN").trimmed();
-		QByteArray format_repci = re.formatValueFromSample("REPCI").trimmed();
-		QByteArray format_lc = re.formatValueFromSample("LC").trimmed();
-		QByteArray format_adfl = re.formatValueFromSample("ADFL").trimmed();
-		QByteArray format_adir = re.formatValueFromSample("ADIR").trimmed();
-		QByteArray format_adsp = re.formatValueFromSample("ADSP").trimmed();
+		//region
+		QString region = re.chr().strNormalized(true) + ":" + QString::number(re.start()) + "-" + re.info("END").trimmed();
+		setCell(row_idx, "region", region);
 
-		// get cutoff/reliability info from cutoff file
-		QPair<QByteArray, QByteArray> key = QPair<QByteArray, QByteArray>(info_repid, info_ru);
-		if(!cutoff_info_map.contains(key))
-		{
-			Log::warn("Repeat '" + info_repid + ", " + info_ru + "' not found in cutoff file!");
-		}
-		RepeatCutoffInfo cutoff_info = cutoff_info_map.value(key);
+		//repreat unit
+		QByteArray repeat_unit = re.info("RU").trimmed();
+		setCell(row_idx, "repeat unit", repeat_unit);
 
-		//create repeat tool tip:
-		QStringList repeat_tool_tip_text;
-		if(cutoff_info.max_normal != -1) repeat_tool_tip_text.append("normal:  \t\t≤ " + QString::number(cutoff_info.max_normal));
-		else repeat_tool_tip_text.append("normal: \t unkown ");
-		if(cutoff_info.min_pathogenic != -1) repeat_tool_tip_text.append("pathogenic: \t≥ " + QString::number(cutoff_info.min_pathogenic));
-		else repeat_tool_tip_text.append("pathogenic: \t unkown ");
-		if(cutoff_info.inheritance != "" ) repeat_tool_tip_text.append("inheritance: \t" + cutoff_info.inheritance);
-		if(cutoff_info.additional_info.size() > 0) repeat_tool_tip_text.append("info: \t\t" + cutoff_info.additional_info.join("\n\t\t"));
+		//filters
+		QString filters = re.filters().join(",");
+		if (filters=="PASS") filters = "";
+		QTableWidgetItem* item = setCell(row_idx, "filters", filters);
+		if (filters!="") item->setBackgroundColor(orange_);
 
-		//add position
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.chr().strNormalized(true))));
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(re.start()));
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_end.toInt()));
+		//genotype
+		QString genotype = re.formatValueFromSample("REPCN").trimmed().replace(".", "-");
+		setCell(row_idx, "genotype", genotype);
 
-		//add repeat
-		QTableWidgetItem* repeat_id_cell = GUIHelper::createTableItem(info_repid);
-		if (is_exome_ && !cutoff_info.reliable_in_exomes )
-		{
-			repeat_id_cell->setBackgroundColor(bg_red);
-			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in exomes!");
-		}
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, repeat_id_cell);
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_ru));
+		//genotype CI
+		QByteArray genotype_ci = re.formatValueFromSample("REPCI").trimmed().replace(".", "-");
+		setCell(row_idx, "genotype CI", genotype_ci);
 
-		//add allele/ref copy number
-		//replace "." with "-"
-		QString repeat_text = format_repcn;
-		if ((repeat_text == ".") || (repeat_text == "")) repeat_text = "-";
-		if (repeat_text == "./.") repeat_text = "-/-";
-		QTableWidgetItem* repeat_cell = GUIHelper::createTableItem(repeat_text);
+		//local coverage
+		double coverage = Helper::toDouble(re.formatValueFromSample("LC").trimmed());
+		setCell(row_idx, "locus coverage", QString::number(coverage, 'f', 2));
 
+		//reads flanking
+		QByteArray reads_flanking = re.formatValueFromSample("ADFL").trimmed().replace(".", "-");
+		setCell(row_idx, "reads flanking", reads_flanking);
+
+		//reads in repeat
+		QByteArray read_in_repeat = re.formatValueFromSample("ADIR").trimmed().replace(".", "-");
+		setCell(row_idx, "reads in repeat", read_in_repeat);
+
+		//reads flanking
+		QByteArray reads_spanning = re.formatValueFromSample("ADSP").trimmed().replace(".", "-");
+		setCell(row_idx, "reads spanning", reads_spanning);
+	}
+
+	GUIHelper::resizeTableCells(ui_.repeat_expansions);
+}
+
+
+/*
 		//color table acording to cutoff table
 		QByteArrayList repeats = format_repcn.split('/');
 		int repeats_allele1, repeats_allele2;
@@ -281,29 +206,4 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 
 
 		repeat_cell->setToolTip(repeat_tool_tip_text.join('\n'));
-
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, repeat_cell);
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_ref.toInt()));
-
-		//add additional info
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_repci.replace(".", "-")));
-
-		//add filter column and color background if not 'PASS'
-		QTableWidgetItem* filter_cell = GUIHelper::createTableItem(re.filters().join(","));
-		if(filter_cell->text().trimmed() != "PASS") filter_cell->setBackgroundColor(bg_orange);
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, filter_cell);
-
-		//round local coverage
-		double coverage = Helper::toDouble(format_lc);
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(coverage, 2));
-
-		//add read counts
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adfl.replace(".", "-")));
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adir.replace(".", "-")));
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adsp.replace(".", "-")));
-
-	}
-
-	// optimize column width
-	GUIHelper::resizeTableCells(ui_.repeat_expansions);
-}
+*/
