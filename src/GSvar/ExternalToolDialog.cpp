@@ -74,14 +74,20 @@ void ExternalToolDialog::browse()
 			//process
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 
+			//open BAM file
+			BamReader reader(filename);
+			bool is_single_end = reader.is_single_end();
+			//TODO: remove
+			qDebug() << "is_single_end" << is_single_end;
+
 			GenderEstimate estimate;
 			if (mode_=="xy")
 			{
-				estimate = Statistics::genderXY(filename);
+				estimate = Statistics::genderXY(filename, 0.06, 0.09, QString(), is_single_end);
 			}
 			else if (mode_=="hetx")
 			{
-				estimate = Statistics::genderHetX(GSvarHelper::build(), filename);
+				estimate = Statistics::genderHetX(GSvarHelper::build(), filename, 0.15, 0.24, QString(), is_single_end);
 			}
 			else if (mode_=="sry")
 			{

@@ -35,9 +35,11 @@ private:
 	NGSD db_;
 	QList<SampleDetails> samples_;
 	QList<AnalysisStep> steps_;
+	QList<AnalysisStep> steps_lr_;
 
 	void addSample(QString status, QString sample="");
 	void updateSampleTable();
+	void checkLongread();
 };
 
 #endif // MULTISAMPLEDIALOG_H

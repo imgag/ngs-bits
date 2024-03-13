@@ -1162,12 +1162,32 @@ class CPPNGSSHARED_EXPORT FilterSvTrio
 };
 
 
-//NGSD SV break point density filter
+//NGSD SV CNV overlap filter
 class CPPNGSSHARED_EXPORT FilterSvCnvOverlap
 	: public FilterBase
 {
 	public:
 		FilterSvCnvOverlap();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter lr SVs for AF
+class CPPNGSSHARED_EXPORT FilterSvLrAF
+	: public FilterBase
+{
+	public:
+		FilterSvLrAF();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter lr SVs for AF
+class CPPNGSSHARED_EXPORT FilterSvLrSupportReads
+	: public FilterBase
+{
+	public:
+		FilterSvLrSupportReads();
 		QString toText() const override;
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };

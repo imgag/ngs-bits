@@ -292,6 +292,13 @@ class CPPNGSSHARED_EXPORT BamReader
 		QByteArrayList headerLines() const;
 		//Returns the genome build based on the length of the chr1 (works for human only). Throws an exception if it could not be determined.
 		GenomeBuild build() const;
+		/**
+			@brief Returns true if reads from loaded BAM file are from long-read sequencing
+			@warning WARNING: function changes the set region, use before setting a region or re-set your region
+			@details Checks the BRCA1 locus for single-end reads
+			@param reads	number of reads which are checked
+		*/
+		bool is_single_end(int reads=100);
 
 		//Set region for alignment retrieval (1-based coordinates).
 		void setRegion(const Chromosome& chr, int start, int end);
@@ -323,6 +330,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		/**
 		  @brief Returns the pileup at the given chromosomal position (1-based).
 		  @param indel_window The value controls how far up- and down-stream of the given postion, indels are considered to compensate for alignment differences. Indels are not reported when this parameter is set to -1.
+		  @param anom also uses reads which are not properly paired
 		*/
 		Pileup getPileup(const Chromosome& chr, int pos, int indel_window = -1, int min_mapq = 1, bool anom = false, int min_baseq = 13);
 

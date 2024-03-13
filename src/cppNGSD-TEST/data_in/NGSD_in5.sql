@@ -14,8 +14,9 @@ INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysi
 (2, 'NovaSeqX_Exomes', 'test', 1, 'variants'),
 (3, 'NovaSeqX_RNA', 'test', 1, 'variants');
 
-INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`) VALUES
-(1, '#09876', 'FLO3C3LL', 1, '151+19+10+151', 'run_finished');
+INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`, `flowcell_type`) VALUES
+(1, '#09876', 'FLO3C3LL', 1, '151+19+10+151', 'run_finished', 'Illumina NovaSeqX 10B'),
+(2, '#08765', 'F1O3C311', 1, '151+19+10+151', 'run_finished', 'Illumina NovaSeqX 1.5B');
 
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected'),
@@ -26,7 +27,8 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `umi_type`, `target_file`, `genome_id`) VALUES
 (1, 'TruSeqPCRfree', 'TruSeq DNA PCR-Free', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'WGS', 1, 'n/a', 'WGS_hg38.bed', 1),
 (2, 'twistCustomExomeV2', 'Twist Custom Exome IMGAG V2 (TE-94167158)', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'WES', 1, 'n/a', 'twistCustomExomeV2_2021_12_14.bed', 1),
-(3, 'nebRNAU2_qiaRRNA_umi', 'NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTG', 'RNA', 1, 'IDT-UDI-UMI', 'nebRNAU2_qiaRRNA_2021_12_13.bed', 1);
+(3, 'nebRNAU2_qiaRRNA_umi', 'NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTG', 'RNA', 1, 'IDT-UDI-UMI', 'nebRNAU2_qiaRRNA_2021_12_13.bed', 1),
+(4, 'NoAdapter', 'NoAdapter TruSeq DNA PCR-Free', NULL, NULL, 'WGS', 1, 'n/a', 'WGS_hg38.bed', 1);
 
 INSERT INTO `mid` (`id`, `name`, `sequence`) VALUES
 ( 1, 'TruSeq_i7_01', "CGATCGAT"),
@@ -50,4 +52,6 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (125, 1, 59, 1, '3', 5, 6, 2, 2, 'n/a', 'WES sample', null),
 (126, 3, 1, 1, '4', 7, 8, 2, 2, 'n/a', 'WES Normal sample', null),
 (127, 2, 1, 1, '4', 9, 10, 2, 2, 'n/a', 'WES Tumor sample', 126),
-(128, 4, 1, 1, '5', 13, 14, 3, 3, 'n/a', 'RNA sample', null);
+(128, 4, 1, 1, '5', 13, 14, 3, 3, 'n/a', 'RNA sample', null),
+(129, 1, 77, 2, '1,2', 1, 2, 4, 1, 'n/a', 'WGS sample', null),
+(130, 1, 66, 2, '3', 3, 4, 4, 2, 'n/a', 'WES sample', null);

@@ -22,10 +22,12 @@ public:
 		addInt("maxMM", "Maximum number of mismatches in aligned read, -1 to disable.", true, 4);
 		addInt("maxGap", "Maximum number of gaps (indels) in aligned read, -1 to disable.", true, 1);
 		addInt("minDup", "Minimum number of duplicates.", true, 0);
+		addInt("maxIS", "Maximum insert size, -1 to disable.", true, -1);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
+		changeLog(2024,   2, 15, "Added option to remove large fragments.");
 	}
 
 	bool alignment_pass(BamAlignment& al) const
@@ -47,6 +49,7 @@ public:
 
 		bool filter_gap = maxGap == -1 ? true : n_gaps <= maxGap;
 		bool filter_mismatches = maxMM == -1 ? true : n_mismatches <= maxMM;
+		bool filter_insert_size = maxIS == -1 ? true : al.insertSize() <= maxIS;
 
 		return (!al.isUnmapped() &&
 				al.isPaired() &&
@@ -54,7 +57,8 @@ public:
 				al.mappingQuality() >= minMQ &&
 				filter_gap &&
 				filter_mismatches &&
-				n_duplicates >= minDup
+				n_duplicates >= minDup &&
+				filter_insert_size
 				);
 	}
 
@@ -70,6 +74,7 @@ public:
 		maxMM = getInt("maxMM");
 		maxGap = getInt("maxGap");
 		minDup = getInt("minDup");
+		maxIS = getInt("maxIS");
 
 		BamReader reader(getInfile("in"), getInfile("ref"));
 		BamWriter writer(getOutfile("out"), getInfile("ref"));
@@ -127,6 +132,7 @@ private:
 	int maxMM;
 	int maxGap;
 	int minDup;
+	int maxIS;
 };
 
 #include "main.moc"

@@ -7,10 +7,10 @@ TrioDialog::TrioDialog(QWidget* parent)
 	, db_()
 	, samples_()
 	, steps_(SingleSampleAnalysisDialog::loadSteps("analysis_steps_trio"))
+	, steps_lr_(SingleSampleAnalysisDialog::loadSteps("analysis_steps_trio_lr"))
 {
 	ui_.setupUi(this);
 	SingleSampleAnalysisDialog::initTable(ui_.samples_table);
-	SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
 
 	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
 }
@@ -21,6 +21,7 @@ void TrioDialog::setSamples(QList<AnalysisJobSample> samples)
 	{
 		addSample(sample.info, sample.name);
 	}
+	checkLongread();
 	updateSampleTable();
 	updateStartButton();
 }
@@ -87,6 +88,7 @@ void TrioDialog::on_add_samples_clicked(bool)
 		samples_.clear();
 	}
 
+	checkLongread();
 	//update table/button
 	updateSampleTable();
 	updateStartButton();
@@ -133,4 +135,47 @@ QString TrioDialog::addSample(QString status, QString sample, bool force_showing
 void TrioDialog::updateSampleTable()
 {
 	SingleSampleAnalysisDialog::updateSampleTable(samples_, ui_.samples_table);
+}
+
+void TrioDialog::checkLongread()
+{
+	if (samples_.size() > 0)
+	{
+		//check if all samples are either long-read or short-read
+		QSet<bool> is_longread_sample;
+		foreach (const SampleDetails& sample, samples_)
+		{
+			qDebug() << db_.getProcessedSampleData(db_.processedSampleId(sample.name)).processing_system_type;
+			is_longread_sample.insert(db_.getProcessedSampleData(db_.processedSampleId(sample.name)).processing_system_type == "lrGS");
+		}
+		if (is_longread_sample.size() > 1)
+		{
+			QMessageBox::warning(this, "Error in sample selection", "You cannot mix short-read and long-read samples in trio analysis!");
+			samples_.clear();
+		}
+		else
+		{
+			//remove old step entries
+			QList<QWidget*> old_steps;
+			foreach (QWidget* widget, ui_.param_group->findChildren<QWidget *>(QString(), Qt::FindDirectChildrenOnly))
+			{
+				if (widget->objectName().startsWith("step_")) old_steps.append(widget);
+				if (widget->objectName().isEmpty()) old_steps.append(widget);
+			}
+			qDeleteAll(old_steps);
+			//update steps
+			if (is_longread_sample.values().first())
+			{
+				SingleSampleAnalysisDialog::addStepsToParameters(steps_lr_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+				ui_.annotate_only->setEnabled(false);
+				ui_.annotate_only->setChecked(false);
+			}
+			else
+			{
+				SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+				ui_.annotate_only->setEnabled(true);
+			}
+
+		}
+	}
 }

@@ -985,6 +985,9 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["RNA gene expression"] = &createInstance<FilterVariantRNAGeneExpression>;
 		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
 		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
+		//SV lrGS
+		output["SV-lr AF"] = &createInstance<FilterSvLrAF>;
+		output["SV-lr support reads"] = &createInstance<FilterSvLrSupportReads>;
 	}
 
 	return output;
@@ -1743,9 +1746,13 @@ QByteArray FilterGenotypeControl::checkSameGenotype(const QList<int>& geno_indic
 FilterGenotypeAffected::FilterGenotypeAffected()
 {
 	name_ = "Genotype affected";
-	description_ = QStringList() << "Filter for genotype(s) of the 'affected' sample(s)." << "Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s).";
+	description_ = QStringList() << "Filter for genotype(s) of the 'affected' sample(s)." << "Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s)."
+								 << "comp-het works on unphased data (short-read) and keeps all het variants where are at least two (remaining) variants per gene."
+								 << "comp-het (phased) only works on phased data (long-read) on completely phased genes and keeps all het variants where are at least one het variant on each allele per gene."
+								 << "comp-het (unphased) only works on phased data (long-read) on genes with at least one unphased variant or multiple phasing blocks and keeps all het variants where are at least two het variant per gene (inverse of com-het (phased))."
+								 << "You can only select one of the three above at a time.";
 	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
-	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het";
+	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)";
 	params_.last().constraints["not_empty"] = "";
 
 	checkIsRegistered();
@@ -1762,14 +1769,29 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 	QStringList genotypes = getStringList("genotypes");
 
+	//check input
+	if (((int)genotypes.contains("comp-het") + (int)genotypes.contains("comp-het (phased)") + (int)genotypes.contains("comp-het (unphased)")) > 1)
+	{
+		THROW(ArgumentException, "You can select only one of comp-het, comp-het (phased) and comp-het (unphased)!");
+	}
+
 	//get affected column indices
 	QList<int> geno_indices = variants.getSampleHeader().sampleColumns(true);
 	geno_indices.removeAll(-1);
 	if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 
+	//get index of phasing entry
+	int i_phasing = variants.annotationIndexByName("genotype_phased", true, false);
+
+	if (genotypes.contains("comp-het (phased)") || genotypes.contains("comp-het (unphased)"))
+	{
+		if (variants.getSampleHeader().sampleColumns(true).size() > 1) THROW(ArgumentException, "Cannot apply phased filter '" + name() + "' to variant list with multiple affected samples!");
+		if (i_phasing < 0) THROW(ArgumentException, "Cannot apply phased filter '" + name() + "' to variant list without phasing information!");
+	}
+
 
 	//filter
-	if (!genotypes.contains("comp-het"))
+	if (!(genotypes.contains("comp-het") || genotypes.contains("comp-het (phased)") || genotypes.contains("comp-het (unphased)")))
 	{
 		for(int i=0; i<variants.count(); ++i)
 		{
@@ -1789,6 +1811,10 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 		//(1) filter for all genotypes but comp-het
 		//(2) count heterozygous passing variants per gene
 		QHash<QByteArray, int> gene_to_het;
+		QHash<QByteArray, int> gene_to_het_phase1;
+		QHash<QByteArray, int> gene_to_het_phase2;
+		QHash<QByteArray, int> gene_to_het_unphased;
+		QHash<QByteArray, QSet<int>> gene_to_phasing_block;
 		FilterResult result_other(variants.count());
 		for(int i=0; i<variants.count(); ++i)
 		{
@@ -1806,9 +1832,34 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					gene_to_het[gene.trimmed()] += 1;
-				}
+					//init hash:
+					if (!gene_to_het_phase1.contains(gene.trimmed())) gene_to_het_phase1[gene.trimmed()] = 0;
+					if (!gene_to_het_phase2.contains(gene.trimmed())) gene_to_het_phase2[gene.trimmed()] = 0;
+					if (!gene_to_het_unphased.contains(gene.trimmed())) gene_to_het_unphased[gene.trimmed()] = 0;
+					if (!gene_to_phasing_block.contains(gene.trimmed())) gene_to_phasing_block[gene.trimmed()] = QSet<int>();
 
+					gene_to_het[gene.trimmed()] += 1; //old method
+					if (!genotypes.contains("comp-het"))
+					{
+						//get phasing info:
+						QStringList phasing_entry = QString(variants[i].annotations()[i_phasing]).split(' ');
+						if (phasing_entry.size() < 2)
+						{
+							 gene_to_het_unphased[gene.trimmed()] += 1;
+							 gene_to_phasing_block[gene.trimmed()] << -1;
+						}
+						else
+						{
+							QByteArray phased_genotype = phasing_entry.at(0).toUtf8();
+							QString pb_raw = phasing_entry.at(1);
+							int phasing_block = Helper::toInt(pb_raw.remove(QRegExp("[()]")), "Phasing block", QString::number(i));
+
+							if (phased_genotype == "1|0") gene_to_het_phase1[gene.trimmed()] += 1;
+							else gene_to_het_phase2[gene.trimmed()] += 1;
+							gene_to_phasing_block[gene.trimmed()] << phasing_block;
+						}
+					}
+				}
 			}
 		}
 
@@ -1828,16 +1879,48 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					if (gene_to_het[gene.trimmed()]>=2)
+					if (genotypes.contains("comp-het"))
 					{
-						pass = true;
-						break;
+						//old method
+						if (gene_to_het[gene.trimmed()]>=2)
+						{
+							pass = true;
+							break;
+						}
+
+					}
+					else if (genotypes.contains("comp-het (phased)"))
+					{
+						//look only on variants of completely phased genes
+						if ((gene_to_het_phase1[gene.trimmed()] >= 1) && (gene_to_het_phase2[gene.trimmed()] >= 1)
+							&& (gene_to_phasing_block[gene.trimmed()].size() < 2) && (gene_to_het_unphased[gene.trimmed()] == 0))
+						{
+							pass = true;
+							break;
+						}
+
+
+					}
+					else if (genotypes.contains("comp-het (unphased)"))
+					{
+						//look only on (partly) unphased genes
+						if ((gene_to_phasing_block[gene.trimmed()].size() > 1) || (gene_to_het_unphased[gene.trimmed()] > 0))
+						{
+							//old method
+							if (gene_to_het[gene.trimmed()]>=2)
+							{
+								pass = true;
+								break;
+							}
+						}
+
 					}
 				}
 			}
 			result.flags()[i] = pass;
 		}
 	}
+
 }
 
 QByteArray FilterGenotypeAffected::checkSameGenotype(const QList<int>& geno_indices, const Variant& v) const
@@ -3775,7 +3858,7 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 			QString sv_genotype;
 
 			// convert genotype into GSvar format
-			if (sv_genotype_string == "0/1" || (sv_genotype_string == "1/0")) sv_genotype = "het";
+			if (sv_genotype_string == "0/1" || sv_genotype_string == "1/0" || sv_genotype_string == "0|1" || sv_genotype_string == "1|0") sv_genotype = "het";
 			else if (sv_genotype_string == "1/1") sv_genotype = "hom";
 			else if (sv_genotype_string == "0/0") sv_genotype = "wt";
 			else sv_genotype = "n/a";
@@ -4705,13 +4788,14 @@ FilterSvBreakpointDensityNGSD::FilterSvBreakpointDensityNGSD()
 	params_ << FilterParameter("max_density", FilterParameterType::INT, 20, "Maximum density in the confidence interval of the SV");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("remove_strict", FilterParameterType::BOOL, false, "Remove also SVs in which only one break point is above threshold.");
+	params_ << FilterParameter("only_system_specific", FilterParameterType::BOOL, false, "Filter only based on the density of breakpoint of the current processing system.");
 
 	checkIsRegistered();
 }
 
 QString FilterSvBreakpointDensityNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_density", false)) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"");
+	return name() + " &le; " + QString::number(getInt("max_density", false)) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"") + QByteArray((getBool("only_system_specific"))?" (only_system_specific)":"");
 }
 
 void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4720,8 +4804,9 @@ void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& re
 
 	int max_density = getInt("max_density");
 	bool remove_strict = getBool("remove_strict");
+	bool only_system_specific = getBool("only_system_specific");
 
-	int idx_ngsd_density = svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY");
+	int idx_ngsd_density = (only_system_specific)? svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY_SYS") : svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY");
 
 	for(int i=0; i<svs.count(); ++i)
 	{
@@ -4734,20 +4819,20 @@ void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& re
 		if (densities.size() == 1)
 		{
 			//only one break point (INS)
-			result.flags()[i] = Helper::toInt(density, "NGSD_SV_BREAKPOINT_DENSITY") <= max_density;
+			result.flags()[i] = Helper::toInt(density, "NGSD_SV_BREAKPOINT_DENSITY(_SYS)") <= max_density;
 		}
 		else
 		{
 			//2 break points
 			if (remove_strict)
 			{
-				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
-						&& (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY(_SYS) (BP1)") <= max_density)
+						&& (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY(_SYS) (BP2)") <= max_density);
 			}
 			else
 			{
-				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
-						|| (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY(_SYS) (BP1)") <= max_density)
+						|| (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY(_SYS) (BP2)") <= max_density);
 			}
 		}
 
@@ -5691,3 +5776,94 @@ void FilterSvCnvOverlap::apply(const BedpeFile& svs, FilterResult& result) const
 	}
 }
 
+
+FilterSvLrAF::FilterSvLrAF()
+{
+	name_ = "SV-lr AF";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Show only (lr) SVs with a certain Allele Frequency +/- 10%";
+	params_ << FilterParameter("AF", FilterParameterType::DOUBLE, 0.0, "Allele Frequency +/- 10%");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvLrAF::toText() const
+{
+	return name() + " = " + QByteArray::number(getDouble("AF", false), 'f', 2) + " &plusmn; 10%";
+}
+
+void FilterSvLrAF::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+	if (svs.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		// ignore filter if applied to tumor-normal sample
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to somatic tumor normal sample!");
+		return;
+	}
+
+	// get allowed interval
+	double upper_limit = getDouble("AF", false) + 0.1;
+	double lower_limit = getDouble("AF", false) - 0.1;
+
+
+	int col_index = svs.annotationIndexByName("AF");
+
+	if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
+	{
+		// ignore filter if applied to trio/multi samples
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied on multi-samples!");
+		return;
+	}
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//some SVs do not have a AF due to insufficient coverage, keep them in
+		if (svs[i].annotations()[col_index].isEmpty()) continue;
+
+		//get AF
+		double af = Helper::toDouble(svs[i].annotations()[col_index]);
+
+		// compare AF with filter
+		if(af > upper_limit || af < lower_limit) result.flags()[i] = false;
+	}
+}
+
+FilterSvLrSupportReads::FilterSvLrSupportReads()
+{
+	name_ = "SV-lr support reads";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Show only (lr) SVs with a minimum number of supporting reads";
+	params_ << FilterParameter("min_support", FilterParameterType::INT, 5, "Minimum support read count");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "10000";
+
+	checkIsRegistered();
+}
+
+QString FilterSvLrSupportReads::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_support", false), 'f', 2);
+}
+
+void FilterSvLrSupportReads::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	int col_index = svs.annotationIndexByName("SUPPORT");
+	int min_support = getInt("min_support", true);
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//get supporting read count
+		int sup_reads = Helper::toInt(svs[i].annotations()[col_index]);
+
+		// compare AF with filter
+		if(sup_reads < min_support) result.flags()[i] = false;
+	}
+}

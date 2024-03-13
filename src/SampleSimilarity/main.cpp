@@ -37,6 +37,7 @@ public:
 		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).",  true, 5000);
 		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addFlag("include_single_end_reads", "In bam mode: include reads which are not (properly) paired. Required e.g. for long-read input data.");
 		addFlag("debug", "Print debug output.");
 
 		//changelog
@@ -118,7 +119,8 @@ public:
 			}
 			else
 			{
-				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref")) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref")));
+				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref"), getFlag("include_single_end_reads"))
+													: SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref"), getFlag("include_single_end_reads")));
 			}
 			if (debug)
 			{

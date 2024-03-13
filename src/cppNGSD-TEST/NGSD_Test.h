@@ -3311,7 +3311,9 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
 
-		QString sample_sheet = db.createSampleSheet(1);
+		QStringList warnings;
+		QString sample_sheet = db.createSampleSheet(1, warnings);
+		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (5) and the number of lanes on the flow cell (8) does not match!");
 
 		//write to file
 		QSharedPointer<QFile> output_file = Helper::openFileForWriting("out/NovaSeqX_samplesheet.csv");
@@ -3320,6 +3322,21 @@ private slots:
 		output_file->close();
 
 		COMPARE_FILES("out/NovaSeqX_samplesheet.csv",  TESTDATA("data_out/NovaSeqX_samplesheet.csv") );
+
+		//second run without adapter sequence
+		warnings.clear();
+		sample_sheet = db.createSampleSheet(2, warnings);
+		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (3) and the number of lanes on the flow cell (2) does not match!");
+		S_EQUAL(warnings.at(1), "WARNING: No adapter for read 1 provided! Adapter trimming will not work.");
+		S_EQUAL(warnings.at(2), "WARNING: No adapter for read 2 provided! Adapter trimming will not work.");
+
+		//write to file
+		output_file = Helper::openFileForWriting("out/NovaSeqX_samplesheet2.csv");
+		output_file->write(sample_sheet.toLatin1());
+		output_file->flush();
+		output_file->close();
+
+		COMPARE_FILES("out/NovaSeqX_samplesheet2.csv",  TESTDATA("data_out/NovaSeqX_samplesheet2.csv") );
 
 	}
 };

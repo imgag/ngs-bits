@@ -28,13 +28,15 @@ public:
 
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addInt("common_sys_threshold", "Minimal number of samples for which a seperate density file is created.", true, 50);
 
 		changeLog(2022, 2, 10, "Initial struct.");
 		changeLog(2022, 2, 18, "Implemented tool.");
 		changeLog(2022, 2, 24, "Changed SV break point output format.");
+		changeLog(2024, 2,  7, "Added output of processing specific breakpoint density.");
 	}
 
-	void collapseSvDensity(QString output_folder, QHash<Chromosome, QMap<int,int>> sv_density, const QStringList& chromosomes)
+	void collapseSvDensity(QString output_folder, QHash<Chromosome, QMap<int,int>> sv_density, const QStringList& chromosomes, const QByteArray& sys="")
 	{
 
 		QTextStream std_out(stdout);
@@ -42,7 +44,7 @@ public:
 		double debug_time_collapse_density = 0;
 		timer_collapse_density.start();
 		BedFile sv_density_file;
-		sv_density_file.appendHeader("#track graphtype=bar autoScale=on windowingFunction=none coords=0 name=\"SV break point density\"");
+		sv_density_file.appendHeader("#track graphtype=bar autoScale=on windowingFunction=none coords=0 name=\"SV break point density" + ((sys.isEmpty())?"":(" (" + sys + ")")) + "\"");
 
 		//iterate over all chromosomes
 		foreach (const QString& chr_str, chromosomes)
@@ -85,9 +87,17 @@ public:
 		debug_time_collapse_density += timer_collapse_density.elapsed();
 
 		//write to file
-		sv_density_file.store(QDir(output_folder).filePath("sv_breakpoint_density.igv"), false);
+		if (sys.isEmpty())
+		{
+			sv_density_file.store(QDir(output_folder).filePath("sv_breakpoint_density.igv"), false);
+		}
+		else
+		{
+			sv_density_file.store(QDir(output_folder).filePath("sv_breakpoint_density_" + sys + ".igv"), false);
+		}
 
-		std_out << "Collapsing SV density took " << QByteArray::number(debug_time_collapse_density) << "s" << endl;
+
+		std_out << "Collapsing SV density took " << QByteArray::number(debug_time_collapse_density/1000.0) << "s" << endl;
 	}
 
 	virtual void main()
@@ -95,6 +105,7 @@ public:
 		//init
 		QString output_folder = getOutfile("out_folder");
 		bool test = getFlag("test");
+		int common_sys_threshold = getInt("common_sys_threshold");
 		NGSD db(test);
 		QTime timer;
 		timer.start();
@@ -105,7 +116,6 @@ public:
 		QTime timer_get_sys;
 		QTime timer_write_file;
 		QTime timer_extract_density;
-		QTime timer_collapse_density;
 		double debug_time_get_var = 0;
 		double debug_time_get_sys = 0;
 		double debug_time_write_file = 0;
@@ -128,6 +138,7 @@ public:
 
 		//init QMap for SV density map
 		QHash<Chromosome, QMap<int,int>> sv_density;
+		QMap<QByteArray, QHash<Chromosome, QMap<int,int>>> sv_density_per_sys;
 		foreach (const QString& chr, chromosomes)
 		{
 			sv_density.insert(Chromosome(chr), QMap<int,int>());
@@ -148,6 +159,13 @@ public:
 		std_out << " done. " << Helper::elapsedTime(timer) << endl;
 
 
+		//get all common processing systems (will be written in seperate files)
+		foreach (const QString& key, sample_counts.keys())
+		{
+			if (sample_counts.value(key) >= common_sys_threshold) sv_density_per_sys.insert(key.toUtf8(), sv_density);
+		}
+
+
 		//get all valid callset ids (are not bad quality and not merged)
 		std_out << "Get all valid callset ids..." << endl;
 
@@ -157,10 +175,7 @@ public:
 
 		std_out << " done. " << Helper::elapsedTime(timer) << endl;
 
-
-
 		std_out << "NGSD preperation done. " << Helper::elapsedTime(timer) << endl;
-
 
 
 		foreach (StructuralVariantType sv_type, sv_types)
@@ -211,7 +226,6 @@ public:
 			{
 				out << "##sample_count=(" + key + ", " + QString::number(sample_counts.value(key)) + ")\n";
 			}
-
 
 			//write header
 			out << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + bedpe_structure.annotationHeaders().join('\t') + "\n";
@@ -320,6 +334,21 @@ public:
 							sv_density[sv.chr1()].insert(i, allele_count);
 						}
 					}
+					//per processing system
+					if (sv_density_per_sys.contains(processing_system))
+					{
+						for (int i = sv.start1(); i <= sv.end1(); ++i)
+						{
+							if (sv_density_per_sys[processing_system][sv.chr1()].contains(i))
+							{
+								sv_density_per_sys[processing_system][sv.chr1()][i] += allele_count;
+							}
+							else
+							{
+								sv_density_per_sys[processing_system][sv.chr1()].insert(i, allele_count);
+							}
+						}
+					}
 
 					// 2nd breakpoint (except INS)
 					if (sv_type != StructuralVariantType::INS)
@@ -333,6 +362,21 @@ public:
 							else
 							{
 								sv_density[sv.chr2()].insert(i, allele_count);
+							}
+						}
+						//per processing system
+						if (sv_density_per_sys.contains(processing_system))
+						{
+							for (int i = sv.start2(); i <= sv.end2(); ++i)
+							{
+								if (sv_density_per_sys[processing_system][sv.chr2()].contains(i))
+								{
+									sv_density_per_sys[processing_system][sv.chr2()][i] += allele_count;
+								}
+								else
+								{
+									sv_density_per_sys[processing_system][sv.chr2()].insert(i, allele_count);
+								}
 							}
 						}
 					}
@@ -360,6 +404,10 @@ public:
 
 		//collape SV density to BED file
 		collapseSvDensity(output_folder, sv_density, chromosomes);
+		foreach (const QByteArray& sys, sv_density_per_sys.keys())
+		{
+			collapseSvDensity(output_folder, sv_density_per_sys[sys], chromosomes, sys);
+		}
 
 	}
 

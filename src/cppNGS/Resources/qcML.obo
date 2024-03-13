@@ -1502,7 +1502,7 @@ created_by: ott
 
 [Term]
 id: QC:2000131
-name: N50
+name: N50 read length (bp)
 def: "Minimum read length to reach 50% of sequenced bases." [PXS:QC]
 is_a: QC:2000002 ! NGS aquisition parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
@@ -1521,7 +1521,7 @@ created_by: schuetz
 id: QC:2000133
 name: mean phasing block size
 def: "Mean size of all annotated phasing blocks." [PXS:QC]
-is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:2000004 ! NGS aquisition parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schuetz
 
@@ -1529,7 +1529,7 @@ created_by: schuetz
 id: QC:2000134
 name: median phasing block size
 def: "Median size of all annotated phasing blocks." [PXS:QC]
-is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:2000004 ! NGS aquisition parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schuetz
 
@@ -1537,7 +1537,7 @@ created_by: schuetz
 id: QC:2000135
 name: phasing block count
 def: "Number of different phasing bocks." [PXS:QC]
-is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:2000004 ! NGS aquisition parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schuetz
 
@@ -1545,7 +1545,7 @@ created_by: schuetz
 id: QC:2000136
 name: phased variants percentage
 def: "Percentage of (heterozygous) variants which contains phasing annotations." [PXS:QC]
-is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:2000004 ! NGS aquisition parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schuetz
 
@@ -1553,7 +1553,16 @@ created_by: schuetz
 id: QC:2000137
 name: phasing block distribution plot
 def: "Plots a histogram of phasing block size distribution." [PXS:QC]
-is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:2000004 ! NGS aquisition parameter
 is_a: QC:0000050 ! image plot
 xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
 created_by: schuetz
+
+[Term]
+id: QC:2000138
+name: Q score distribution
+def: "Distrubition of the mean forward/reverse Q score for each read." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: sturm

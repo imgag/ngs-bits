@@ -26,6 +26,7 @@ INCLUDEPATH += $$PWD/../VcfToBedpe
 
 
 HEADERS += NGSDAddVariantsSomatic_Test.h \
+    BedpeAnnotateBreakpointDensity_Test.h \
     NGSDExportGff_Test.h \
     FastqCheckUMI.h \
     BedpeExtractGenotype_Test.h \
@@ -139,7 +140,6 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BedpeSort_Test.h \
     NGSDExportSV_Test.h \
     BedpeAnnotateCounts_Test.h \
-    BedpeAnnotateBreakpointDensity.h \
     VcfAnnotateConsequence_Test.h \
     HgvsToVcf_Test.h\
     RnaQC_Test.h \
