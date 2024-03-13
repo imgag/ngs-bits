@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
+    <width>1300</width>
     <height>920</height>
    </rect>
   </property>
@@ -18,14 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1024</width>
+    <width>1300</width>
     <height>920</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -41,6 +41,61 @@
    <property name="bottomMargin">
     <number>3</number>
    </property>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>filter by expansion status:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="filter_expanded">
+       <item>
+        <property name="text">
+         <string>all</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>larger than normal</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>pathogenic</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>statistical outlier</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="filter_hpo">
+       <property name="text">
+        <string>matching HPOs only</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
    <item>
     <widget class="QTableWidget" name="repeat_expansions">
      <property name="sizePolicy">
@@ -139,6 +194,55 @@
       </property>
       <property name="toolTip">
        <string>Number of spanning reads consistent with called alleles</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>max. normal</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>min. pathogenic</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>diseases</string>
+      </property>
+      <property name="toolTip">
+       <string>Disease abbreviations</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>OMIM disease IDs</string>
+      </property>
+      <property name="toolTip">
+       <string>OMIM disease identifiers</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>inheritance</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>location</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>comments</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>HPO terms</string>
+      </property>
+      <property name="toolTip">
+       <string>HPO terms</string>
       </property>
      </column>
     </widget>

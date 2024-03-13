@@ -2420,7 +2420,7 @@ CREATE  TABLE IF NOT EXISTS `small_variants_callset`
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('freebayes', 'DRAGEN', 'Clair3') NOT NULL,
-  `caller_version` varchar(25) NOT NULL,
+  `caller_version` VARCHAR(25) NOT NULL,
   `call_date` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
@@ -2436,18 +2436,22 @@ DEFAULT CHARACTER SET = utf8
 COMMENT='small variants call set';
 
 -- -----------------------------------------------------
--- Table `repeat_expansion_info`
+-- Table `repeat_expansion_meta_data`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `small_variants_callset`
+CREATE  TABLE IF NOT EXISTS `repeat_expansion_meta_data`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` varchar(25) NOT NULL,
-  `repeat_unit` varchar(25) NOT NULL,
-  `max_normal` int(10) DEFAULT NULL,
-  `min_pathogenic` int(10) DEFAULT NULL,
-  `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') DEFAULT NULL,
+  `repeat_id` VARCHAR(50) NOT NULL,
+  `max_normal` INT(10) DEFAULT NULL,
+  `min_pathogenic` INT(10) DEFAULT NULL,
+  `inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') DEFAULT NULL,
+  `disease_names` TEXT COMMENT 'Comma-separated list of diease names',
+  `disease_ids_omim` TEXT COMMENT 'Comma-separated list of OMIM disease identifiers',
+  `hpo_terms` TEXT COMMENT 'Comma-separated list of HPO identifiers without name',
+  `location` TEXT DEFAULT NULL COMMENT 'Location of repeat',
+  `comments` TEXT DEFAULT NULL,
   PRIMARY KEY (`id`),
-  INDEX `name` (`name` ASC)
+  INDEX `repeat_id` (`repeat_id` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;

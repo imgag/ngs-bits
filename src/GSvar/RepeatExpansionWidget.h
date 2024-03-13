@@ -34,16 +34,24 @@ private slots:
 protected:
 	///Override copy command
 	void keyPressEvent(QKeyEvent* event) override;
-	///Sets value
+
+	///Sets the text value of a cell. Return the item pointer.
 	QTableWidgetItem* setCell(int row, QString column, QString value);
+	///Returns the text value of a cell.
+	QString getCell(int row, QString column);
+
+	///Sets the cell decoration
+	void setCellDecoration(int row, QString column, QString tooltip, QColor bg_color=QColor());
 
 private:
 	Ui::RepeatExpansionWidget ui_;
 	QColor red_ = QColor(255, 0, 0, 128);
-	QColor green_ = QColor(0, 255, 0, 128);
 	QColor orange_ = QColor(255, 135, 60, 128);
 
 	void loadDataFromVCF(QString vcf);
+	void loadMetaDataFromNGSD();
+	void colorRepeatCountBasedOnCutoffs();
+	void updateFilters();
 };
 
 #endif // REPEATEXPANSIONWIDGET_H

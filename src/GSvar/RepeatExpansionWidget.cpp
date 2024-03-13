@@ -21,10 +21,15 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
 {
 	ui_.setupUi(this);
 
-	connect(ui_.repeat_expansions,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
-	connect(ui_.repeat_expansions,SIGNAL(cellDoubleClicked(int,int)), this, SLOT(cellDoubleClicked(int, int)));
+	connect(ui_.repeat_expansions, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+	connect(ui_.filter_expanded, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFilters()));
+	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateFilters()));
 
 	loadDataFromVCF(vcf);
+	loadMetaDataFromNGSD();
+	GUIHelper::resizeTableCells(ui_.repeat_expansions);
+
+	colorRepeatCountBasedOnCutoffs();
 }
 
 void RepeatExpansionWidget::showContextMenu(QPoint pos)
@@ -35,14 +40,16 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	int row = selection.at(0).indexes().at(0).row();
 
 	//get image
-	QString locus = ui_.repeat_expansions->item(row,3)->text().split('_').at(0);
-	FileLocation image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus);
+	QString locus_base_name = getCell(row, "repeat ID").split('_').at(0); //TODO support ARX_1, ARX_2, ATXN8OS_CTA
+	FileLocation image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus_base_name);
 
     //create menu
 	QMenu menu(ui_.repeat_expansions);
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
-	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page");
+	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
+	menu.addSeparator();
+	QAction* a_comments = menu.addAction("Show/edit comments");
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
@@ -67,16 +74,22 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_omim)
 	{
-		QString repeat_id = ui_.repeat_expansions->item(row, 3)->text();
-		QString gene = repeat_id.contains("_") ? repeat_id.left(repeat_id.indexOf("_")) : repeat_id;
-		GeneInfoDBs::openUrl("OMIM", gene);
+		QStringList omim_ids = getCell(row, "OMIM disease IDs").split(",");
+		foreach(QString omim_id, omim_ids)
+		{
+			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + omim_id.trimmed()));
+		}
+	}
+	else if (action==a_comments)
+	{
+		//TODO show/edit comment
 	}
 }
 
 void RepeatExpansionWidget::cellDoubleClicked(int row, int /*col*/)
 {
-	QString region = ui_.repeat_expansions->item(row, 0)->text() + ":" + ui_.repeat_expansions->item(row, 1)->text() + "-" + ui_.repeat_expansions->item(row, 2)->text();
-    IgvSessionManager::get(0).gotoInIGV(region, true);
+	QString region = getCell(row, "region");
+	IgvSessionManager::get(0).gotoInIGV(region, true);
 }
 
 void RepeatExpansionWidget::keyPressEvent(QKeyEvent* event)
@@ -105,6 +118,44 @@ QTableWidgetItem* RepeatExpansionWidget::setCell(int row, QString column, QStrin
 	ui_.repeat_expansions->setItem(row, col, item);
 
 	return item;
+}
+
+QString RepeatExpansionWidget::getCell(int row, QString column)
+{
+	//determine column index
+	int col = GUIHelper::columnIndex(ui_.repeat_expansions, column);
+
+	//set item
+	QTableWidgetItem* item = ui_.repeat_expansions->item(row, col);
+	if (item==nullptr) return "";
+
+	return item->text().trimmed();
+}
+
+void RepeatExpansionWidget::setCellDecoration(int row, QString column, QString tooltip, QColor bg_color)
+{
+	//determine column index
+	int col = GUIHelper::columnIndex(ui_.repeat_expansions, column);
+	QTableWidgetItem* item = ui_.repeat_expansions->item(row, col);
+
+	//create item if missing
+	if (item==nullptr)
+	{
+		item = GUIHelper::createTableItem("");
+		ui_.repeat_expansions->setItem(row, col, item);
+	}
+
+	//set tooltip
+	if (!tooltip.isEmpty())
+	{
+		item->setToolTip(tooltip);
+	}
+
+	//set background color
+	if (bg_color.isValid())
+	{
+		item->setBackgroundColor(bg_color);
+	}
 }
 
 void RepeatExpansionWidget::loadDataFromVCF(QString vcf)
@@ -141,8 +192,7 @@ void RepeatExpansionWidget::loadDataFromVCF(QString vcf)
 		//filters
 		QString filters = re.filters().join(",");
 		if (filters=="PASS") filters = "";
-		QTableWidgetItem* item = setCell(row_idx, "filters", filters);
-		if (filters!="") item->setBackgroundColor(orange_);
+		setCell(row_idx, "filters", filters);
 
 		//genotype
 		QString genotype = re.formatValueFromSample("REPCN").trimmed().replace(".", "-");
@@ -168,42 +218,139 @@ void RepeatExpansionWidget::loadDataFromVCF(QString vcf)
 		QByteArray reads_spanning = re.formatValueFromSample("ADSP").trimmed().replace(".", "-");
 		setCell(row_idx, "reads spanning", reads_spanning);
 	}
-
-	GUIHelper::resizeTableCells(ui_.repeat_expansions);
 }
 
+void RepeatExpansionWidget::loadMetaDataFromNGSD()
+{
+	if (!LoginManager::active()) return;
 
-/*
-		//color table acording to cutoff table
-		QByteArrayList repeats = format_repcn.split('/');
-		int repeats_allele1, repeats_allele2;
-		if ((repeats.size() < 1) || (repeats.size() > 2)) THROW(FileParseException, "Invalid allele count in repeat entries!");
+	NGSD db;
 
-		// skip coloring if no repeat information is available:
-		if ((repeats.at(0).trimmed() != ".") && (repeats.at(0).trimmed() != ""))
+	for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+	{
+		QString repeat_id = getCell(row, "repeat ID");
+
+		//check if repeat is in NGSD
+		QString id = db.getValue("SELECT id FROM repeat_expansion_meta_data WHERE repeat_id=:0", true, repeat_id).toString().trimmed();
+		if (id.isEmpty())
 		{
-			repeats_allele1 = Helper::toInt(repeats.at(0), "Repeat allele 1", QString::number(row_idx));
-
-			if (repeats.size() == 1) repeats_allele2 = 0; // special case for male samples on chrX
-			else repeats_allele2 = Helper::toInt(repeats.at(1), "Repeat allele 2", QString::number(row_idx));
-
-			//check if pathogenic
-			if (cutoff_info.min_pathogenic!=-1 && (repeats_allele1>=cutoff_info.min_pathogenic || repeats_allele2>=cutoff_info.min_pathogenic))
-			{
-				repeat_cell->setBackgroundColor(bg_red);
-			}
-			//above normal
-			else if (cutoff_info.max_normal!=-1 && (repeats_allele1>cutoff_info.max_normal || repeats_allele2>cutoff_info.max_normal))
-			{
-				repeat_cell->setBackgroundColor(bg_orange);
-			}
-			//normal
-			else if (cutoff_info.max_normal != -1)
-			{
-				repeat_cell->setBackgroundColor(bg_green);
-			}
+			setCellDecoration(row, "repeat ID", "Repeat ID not found in NGSD", orange_);
+			continue;
 		}
 
+		//max_normal
+		QString max_normal = db.getValue("SELECT max_normal FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		setCell(row, "max. normal", max_normal);
 
-		repeat_cell->setToolTip(repeat_tool_tip_text.join('\n'));
-*/
+		//min_pathogenic
+		QString min_pathogenic = db.getValue("SELECT min_pathogenic FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		setCell(row, "min. pathogenic", min_pathogenic);
+
+		//inheritance
+		QString inheritance = db.getValue("SELECT inheritance FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		setCell(row, "inheritance", inheritance);
+
+		//location
+		QString location = db.getValue("SELECT location FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		setCell(row, "location", location);
+
+		//diseases
+		QString disease_names = db.getValue("SELECT disease_names FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		setCell(row, "diseases", disease_names);
+
+		//OMIM IDs
+		QString disease_ids_omim = db.getValue("SELECT disease_ids_omim FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		setCell(row, "OMIM disease IDs", disease_ids_omim);
+
+		//comments
+		QString comments = db.getValue("SELECT comments FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		setCell(row, "comments", "present..."); //TODO icon
+		setCellDecoration(row, "comments", comments);
+
+		//HPO terms
+		QString hpo_terms = db.getValue("SELECT hpo_terms FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		setCell(row, "HPO terms", hpo_terms);
+	}
+}
+
+void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
+{
+	for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+	{
+		bool ok = false;
+
+		//determine cutoffs
+		int max_normal = getCell(row, "max. normal").toInt(&ok);
+		if(!ok) continue;
+		int min_pathogenic = getCell(row, "min. pathogenic").toInt(&ok);
+		if(!ok) continue;
+
+		//determine maximum
+		QStringList genotypes = getCell(row, "genotype").split("/");
+		int max = -1;
+		foreach(QString geno, genotypes)
+		{
+			bool ok = false;
+			int repeat_count = geno.trimmed().toInt(&ok);
+			if (ok)
+			{
+				max = std::max(max, repeat_count);
+			}
+		}
+		if (max==-1) continue;
+
+		//color
+		if (max>=min_pathogenic)
+		{
+			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
+		}
+		else if (max>max_normal)
+		{
+			setCellDecoration(row, "genotype", "Above max. normal cutoff!", orange_);
+		}
+	}
+}
+
+void RepeatExpansionWidget::updateFilters()
+{
+	QBitArray hidden(ui_.repeat_expansions->rowCount(), false);
+
+	//expansion status
+	if (ui_.filter_expanded->currentText()=="larger than normal")
+	{
+		for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+		{
+			//TODO
+		}
+	}
+	if (ui_.filter_expanded->currentText()=="pathogenic")
+	{
+		for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+		{
+			//TODO
+		}
+	}
+	if (ui_.filter_expanded->currentText()=="statistical outlier")
+	{
+		for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+		{
+			//TODO
+		}
+	}
+
+	//HPO filter
+	if (ui_.filter_hpo->isChecked())
+	{
+		for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+		{
+			//TODO
+		}
+	}
+
+	//show/hide rows
+	for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+	{
+		ui_.repeat_expansions->setRowHidden(row, hidden[row]);
+	}
+	qDebug() << hidden;
+}
