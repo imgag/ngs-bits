@@ -3,19 +3,8 @@
 
 #include <QWidget>
 #include <QTableWidget>
+#include "PhenotypeList.h"
 #include "ui_RepeatExpansionWidget.h"
-
-// helper struct to store repeat cutoff values
-struct RepeatCutoffInfo
-{
-	QByteArray repeat_id;
-	QByteArray repeat_unit;
-	int max_normal = -1;
-	int min_pathogenic = -1;
-	QByteArray inheritance;
-	bool reliable_in_exomes = true;
-	QByteArrayList additional_info;
-};
 
 class RepeatExpansionWidget
 	: public QWidget
@@ -30,6 +19,8 @@ private slots:
     void showContextMenu(QPoint pos);
 	///Open the region in IGV if a cell is double-clicked
 	void cellDoubleClicked(int row, int col);
+	///Show/hide rows according to filters
+	void updateRowVisibility();
 
 protected:
 	///Override copy command
@@ -45,13 +36,13 @@ protected:
 
 private:
 	Ui::RepeatExpansionWidget ui_;
+
 	QColor red_ = QColor(255, 0, 0, 128);
 	QColor orange_ = QColor(255, 135, 60, 128);
 
 	void loadDataFromVCF(QString vcf);
 	void loadMetaDataFromNGSD();
 	void colorRepeatCountBasedOnCutoffs();
-	void updateFilters();
 };
 
 #endif // REPEATEXPANSIONWIDGET_H

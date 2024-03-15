@@ -43,6 +43,9 @@ public:
 	static const CnvList& getCnvList();
 	static const BedpeFile& getSvList();
 
+	//small variant filters
+	static const PhenotypeList& getPhenotypesFromSmallVariantFilter();
+
 	//general
 	static MainWindow* mainWindow();
 	static void startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);

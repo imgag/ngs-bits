@@ -4107,6 +4107,11 @@ const BedpeFile&MainWindow::getSvList()
 	return svs_;
 }
 
+const PhenotypeList& MainWindow::getPhenotypesFromSmallVariantFilter()
+{
+	return ui_.filters->phenotypes();
+}
+
 void MainWindow::on_actionOpenGeneTabByName_triggered()
 {
 	QString symbol = selectGene();

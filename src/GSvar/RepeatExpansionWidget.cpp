@@ -20,22 +20,26 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
 	, ui_()
 {
 	ui_.setupUi(this);
+	ui_.filter_hpo->setEnabled(LoginManager::active());
+	ui_.filter_hpo->setEnabled(!GlobalServiceProvider::getPhenotypesFromSmallVariantFilter().isEmpty());
 
-	connect(ui_.repeat_expansions, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
-	connect(ui_.filter_expanded, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFilters()));
-	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateFilters()));
+	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+	connect(ui_.filter_expanded, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));
+	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
+	connect(ui_.filter_ngsd, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 
 	loadDataFromVCF(vcf);
 	loadMetaDataFromNGSD();
-	GUIHelper::resizeTableCells(ui_.repeat_expansions);
+	GUIHelper::resizeTableCells(ui_.table, 200);
 
 	colorRepeatCountBasedOnCutoffs();
+	updateRowVisibility();
 }
 
 void RepeatExpansionWidget::showContextMenu(QPoint pos)
 {
 	// determine selected row
-	QItemSelection selection = ui_.repeat_expansions->selectionModel()->selection();
+	QItemSelection selection = ui_.table->selectionModel()->selection();
 	if(selection.count() != 1) return;
 	int row = selection.at(0).indexes().at(0).row();
 
@@ -44,7 +48,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	FileLocation image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus_base_name);
 
     //create menu
-	QMenu menu(ui_.repeat_expansions);
+	QMenu menu(ui_.table);
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
 	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
@@ -55,7 +59,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
 
     //execute menu
-	QAction* action = menu.exec(ui_.repeat_expansions->viewport()->mapToGlobal(pos));
+	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
 	if (action==a_show_svg)
     {
         //open SVG in browser
@@ -66,11 +70,11 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_copy)
 	{
-		GUIHelper::copyToClipboard(ui_.repeat_expansions);
+		GUIHelper::copyToClipboard(ui_.table);
 	}
 	else if (action==a_copy_sel)
 	{
-		GUIHelper::copyToClipboard(ui_.repeat_expansions, true);
+		GUIHelper::copyToClipboard(ui_.table, true);
 	}
 	else if (action==a_omim)
 	{
@@ -96,7 +100,7 @@ void RepeatExpansionWidget::keyPressEvent(QKeyEvent* event)
 {
 	if(event->matches(QKeySequence::Copy))
 	{
-		GUIHelper::copyToClipboard(ui_.repeat_expansions, true);
+		GUIHelper::copyToClipboard(ui_.table, true);
 		event->accept();
 		return;
 	}
@@ -111,11 +115,11 @@ QTableWidgetItem* RepeatExpansionWidget::setCell(int row, QString column, QStrin
 	value.replace("/", " / ");
 
 	//determine column index
-	int col = GUIHelper::columnIndex(ui_.repeat_expansions, column);
+	int col = GUIHelper::columnIndex(ui_.table, column);
 
 	//set item
 	QTableWidgetItem* item = GUIHelper::createTableItem(value);
-	ui_.repeat_expansions->setItem(row, col, item);
+	ui_.table->setItem(row, col, item);
 
 	return item;
 }
@@ -123,10 +127,10 @@ QTableWidgetItem* RepeatExpansionWidget::setCell(int row, QString column, QStrin
 QString RepeatExpansionWidget::getCell(int row, QString column)
 {
 	//determine column index
-	int col = GUIHelper::columnIndex(ui_.repeat_expansions, column);
+	int col = GUIHelper::columnIndex(ui_.table, column);
 
 	//set item
-	QTableWidgetItem* item = ui_.repeat_expansions->item(row, col);
+	QTableWidgetItem* item = ui_.table->item(row, col);
 	if (item==nullptr) return "";
 
 	return item->text().trimmed();
@@ -135,14 +139,14 @@ QString RepeatExpansionWidget::getCell(int row, QString column)
 void RepeatExpansionWidget::setCellDecoration(int row, QString column, QString tooltip, QColor bg_color)
 {
 	//determine column index
-	int col = GUIHelper::columnIndex(ui_.repeat_expansions, column);
-	QTableWidgetItem* item = ui_.repeat_expansions->item(row, col);
+	int col = GUIHelper::columnIndex(ui_.table, column);
+	QTableWidgetItem* item = ui_.table->item(row, col);
 
 	//create item if missing
 	if (item==nullptr)
 	{
 		item = GUIHelper::createTableItem("");
-		ui_.repeat_expansions->setItem(row, col, item);
+		ui_.table->setItem(row, col, item);
 	}
 
 	//set tooltip
@@ -172,7 +176,7 @@ void RepeatExpansionWidget::loadDataFromVCF(QString vcf)
 	}
 
 	// fill table widget with variants/repeat expansions
-	ui_.repeat_expansions->setRowCount(repeat_expansions.count());
+	ui_.table->setRowCount(repeat_expansions.count());
 	for(int row_idx=0; row_idx<repeat_expansions.count(); ++row_idx)
 	{
 		const VcfLine& re = repeat_expansions[row_idx];
@@ -226,7 +230,8 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 
 	NGSD db;
 
-	for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+	//get infos from NGSD
+	for (int row=0; row<ui_.table->rowCount(); ++row)
 	{
 		QString repeat_id = getCell(row, "repeat ID");
 
@@ -264,8 +269,12 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 
 		//comments
 		QString comments = db.getValue("SELECT comments FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
-		setCell(row, "comments", "present..."); //TODO icon
-		setCellDecoration(row, "comments", comments);
+		QTableWidgetItem* item = setCell(row, "comments", "");
+		if (!comments.isEmpty())
+		{
+			setCellDecoration(row, "comments", comments);
+			item->setIcon(QIcon(":/Icons/Info.png"));
+		}
 
 		//HPO terms
 		QString hpo_terms = db.getValue("SELECT hpo_terms FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
@@ -275,7 +284,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 
 void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 {
-	for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+	for (int row=0; row<ui_.table->rowCount(); ++row)
 	{
 		bool ok = false;
 
@@ -311,28 +320,46 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 	}
 }
 
-void RepeatExpansionWidget::updateFilters()
+void RepeatExpansionWidget::updateRowVisibility()
 {
-	QBitArray hidden(ui_.repeat_expansions->rowCount(), false);
+	QBitArray hidden(ui_.table->rowCount(), false);
+
+	//in NGSD?
+	if (ui_.filter_ngsd->isChecked())
+	{
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+			int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
+			for (int row=0; row<ui_.table->rowCount(); ++row)
+			{
+				if (ui_.table->item(row, col)->backgroundColor()==orange_)
+				{
+					hidden[row] = true;
+				}
+			}
+		}
+	}
 
 	//expansion status
 	if (ui_.filter_expanded->currentText()=="larger than normal")
 	{
-		for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+		int col = GUIHelper::columnIndex(ui_.table, "genotype");
+		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			//TODO
+			if (ui_.table->item(row, col)->backgroundColor()!=orange_) hidden[row] = true;
 		}
 	}
 	if (ui_.filter_expanded->currentText()=="pathogenic")
 	{
-		for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+		int col = GUIHelper::columnIndex(ui_.table, "genotype");
+		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			//TODO
+			if (ui_.table->item(row, col)->backgroundColor()!=red_) hidden[row] = true;
 		}
 	}
 	if (ui_.filter_expanded->currentText()=="statistical outlier")
 	{
-		for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			//TODO
 		}
@@ -341,16 +368,40 @@ void RepeatExpansionWidget::updateFilters()
 	//HPO filter
 	if (ui_.filter_hpo->isChecked())
 	{
-		for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+		//determine hpo subtree of patient
+		PhenotypeList pheno_subtrees;
+		NGSD db;
+		foreach(const Phenotype& pheno, GlobalServiceProvider::getPhenotypesFromSmallVariantFilter())
 		{
-			//TODO
+
+			pheno_subtrees << db.phenotypeChildTerms(db.phenotypeIdByAccession(pheno.accession()), true);
+		}
+
+		//filter REs based on overlap with HPOs
+		int col = GUIHelper::columnIndex(ui_.table, "HPO terms");
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+
+			bool hpo_match = false;
+			QTableWidgetItem* item = ui_.table->item(row, col);
+			if (item!=nullptr)
+			{
+				foreach(QByteArray hpo_acc, item->text().toUtf8().split(','))
+				{
+					if (pheno_subtrees.containsAccession(hpo_acc))
+					{
+						hpo_match = true;
+						break;
+					}
+				}
+			}
+			if (!hpo_match) hidden[row] = true;
 		}
 	}
 
 	//show/hide rows
-	for (int row=0; row<ui_.repeat_expansions->rowCount(); ++row)
+	for (int row=0; row<ui_.table->rowCount(); ++row)
 	{
-		ui_.repeat_expansions->setRowHidden(row, hidden[row]);
+		ui_.table->setRowHidden(row, hidden[row]);
 	}
-	qDebug() << hidden;
 }
