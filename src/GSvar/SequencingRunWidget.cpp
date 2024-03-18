@@ -481,7 +481,17 @@ void SequencingRunWidget::exportSampleSheet()
 	try
 	{
 		QString output_path = Settings::string("sample_sheet_path") + "/" + ui_->name->text().remove(0, 1) + ".csv";
-		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_id_, "Sequencing run id"));
+		QStringList warnings;
+		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_id_, "Sequencing run id"), warnings);
+
+		if (warnings.size() > 0)
+		{
+			// create dlg
+			QLabel* label = new QLabel(warnings.join("<br/>") + "<br/>Do you want to continue?");
+			auto dlg = GUIHelper::createDialog(label, "Warnings during SampleSheet export", "<br/>During the export of the SampleSheet the following warnings occured:<br/>", true);
+			int btn = dlg->exec();
+			if (btn != 1) return;
+		}
 
 		QSharedPointer<QFile> output_file = Helper::openFileForWriting(output_path);
 		output_file->write(sample_sheet.toLatin1());

@@ -33,8 +33,10 @@ public:
 		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
 		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addFlag("include_single_end_reads", "In bam mode: include reads which are not (properly) paired. Required e.g. for long-read input data.");
 
 		//changelog
+		changeLog(2024,  2, 29, "Added parameter to include single-end reads (long-read).");
 		changeLog(2022,  8,  5, "Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.");
 		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2018,  7, 13, "Change of output to TSV format for batch support.");
@@ -58,11 +60,11 @@ public:
 			GenderEstimate estimate;
 			if (method=="xy")
 			{
-				estimate = Statistics::genderXY(bam, getFloat("max_female"), getFloat("min_male"), getInfile("ref"));
+				estimate = Statistics::genderXY(bam, getFloat("max_female"), getFloat("min_male"), getInfile("ref"), getFlag("include_single_end_reads"));
 			}
 			else if (method=="hetx")
 			{
-				estimate = Statistics::genderHetX(build, bam, getFloat("max_male"), getFloat("min_female"), getInfile("ref"));
+				estimate = Statistics::genderHetX(build, bam, getFloat("max_male"), getFloat("min_female"), getInfile("ref"), getFlag("include_single_end_reads"));
 			}
 			else if (method=="sry")
 			{

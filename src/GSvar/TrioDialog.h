@@ -33,10 +33,12 @@ private:
 	NGSD db_;
 	QList<SampleDetails> samples_;
 	QList<AnalysisStep> steps_;
+	QList<AnalysisStep> steps_lr_;
 
-	//Adds a sample and returns the processed sample ID (throws an empty exception if canelled)
+	//Adds a sample and returns the processed sample ID (throws an empty exception if canceled)
 	QString addSample(QString status, QString sample="", bool force_showing_dialog=false);
 	void updateSampleTable();
+	void checkLongread();
 };
 
 #endif // TRIODIALOG_H

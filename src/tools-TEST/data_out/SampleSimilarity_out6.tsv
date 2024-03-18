@@ -1,0 +1,2 @@
+#file1	file2	variant_count	correlation	ibs0_percent	ibs2_percent	comments
+SampleSimilarity_in8.bam	SampleSimilarity_in9.bam	0	nan	nan	nan	Zero overlap between variant lists!

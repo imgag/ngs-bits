@@ -558,6 +558,44 @@ private slots:
 		I_EQUAL(result.countPassing(), 3);
 	}
 
+	void FilterGenotypeAffected_apply_comphet_phased()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_phased.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//old method
+		FilterGenotypeAffected filter1;
+		filter1.setStringList("genotypes", QStringList() << "comp-het");
+		filter1.apply(vl, result);
+		I_EQUAL(result.countPassing(), 187);
+		result.reset();
+
+		//only phased
+		FilterGenotypeAffected filter2;
+		filter2.setStringList("genotypes", QStringList() << "comp-het (phased)");
+		filter2.apply(vl, result);
+		I_EQUAL(result.countPassing(), 68);
+		result.reset();
+
+		//only unphased
+		FilterGenotypeAffected filter3;
+		filter3.setStringList("genotypes", QStringList() << "comp-het (unphased)");
+		filter3.apply(vl, result);
+		I_EQUAL(result.countPassing(), 89);
+		result.reset();
+
+		//invalid input
+		FilterGenotypeAffected filter4;
+		filter4.setStringList("genotypes", QStringList() << "comp-het" << "comp-het (phased)");
+		IS_THROWN(ArgumentException, filter4.apply(vl, result));
+		filter4.setStringList("genotypes", QStringList() << "comp-het" << "comp-het (unphased)");
+		IS_THROWN(ArgumentException, filter4.apply(vl, result));
+		filter4.setStringList("genotypes", QStringList() << "comp-het (phased)" << "comp-het (unphased)");
+		IS_THROWN(ArgumentException, filter4.apply(vl, result));
+	}
+
 	void FilterAnnotationPathogenic_apply()
 	{
 		VariantList vl;
@@ -1871,7 +1909,7 @@ private slots:
 		// default maximum
 		FilterSvBreakpointDensityNGSD filter;
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 70);
+		I_EQUAL(result.countPassing(), 85);
 	}
 
 	void FilterSvBreakpointDensityNGSD_custom()
@@ -1884,10 +1922,26 @@ private slots:
 
 		// custom maximum
 		FilterSvBreakpointDensityNGSD filter;
-		filter.setInteger("max_density", 257);
+		filter.setInteger("max_density", 4);
 		filter.setBool("remove_strict", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 73);
+		I_EQUAL(result.countPassing(), 82);
+	}
+
+	void FilterSvBreakpointDensityNGSD_system_specific()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvBreakpointDensityNGSD filter;
+		filter.setInteger("max_density", 1);
+		filter.setBool("only_system_specific", true);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 84);
 	}
 
 	void FilterSvTrio_apply()
@@ -1915,6 +1969,40 @@ private slots:
 		result.reset();
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 5);
+	}
+
+	/********************************************* Filters for lrSVs *********************************************/
+
+	void FilterSvLrAF_apply()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvLrAF filter;
+		filter.setDouble("AF", 0.3);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 15);
+	}
+
+	void FilterSvLrSupportReads_apply()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvLrSupportReads filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 73);
+
+		filter.setInteger("min_support", 15);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 32);
 	}
 
 

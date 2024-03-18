@@ -5455,16 +5455,15 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 	}
 }
 
-QString NGSD::createSampleSheet(int run_id)
+QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 {
 	QStringList sample_sheet;
 
 	QString sw_version = Settings::string("nova_seq_x_sw_version");
 	QString app_version = Settings::string("nova_seq_x_app_version");
-	QString fastq_compression_format = "dragen"; //can be "gzip" or "dragen" //TODO: make adjustable?
-	int barcode_mismatch_index1 = 1; //TODO: make adjustable?
-	int barcode_mismatch_index2 = 1; //TODO: make adjustable?
-
+	QString fastq_compression_format = "dragen"; //can be "gzip" or "dragen"
+	int barcode_mismatch_index1 = 1;
+	int barcode_mismatch_index2 = 1;
 
 
 	//get info from db
@@ -5481,6 +5480,7 @@ QString NGSD::createSampleSheet(int run_id)
 	int index1_read_length = Helper::toInt(recipe.at(1), "index1");
 	int index2_read_length = Helper::toInt(recipe.at(2), "index2");
 	int reverse_read_length = Helper::toInt(recipe.at(3), "reverse read");
+	QString flowcell_type = query.value("flowcell_type").toString();
 
 
 	//create header
@@ -5503,6 +5503,7 @@ QString NGSD::createSampleSheet(int run_id)
 	//get sample info
 	QSet<QString> adapter_sequences_read1;
 	QSet<QString> adapter_sequences_read2;
+	QSet<int> used_lanes; //helper var to track if all lanes are used
 	QStringList bcl_convert;
 	QStringList germline_analysis;
 	QStringList enrichment_analysis;
@@ -5521,12 +5522,12 @@ QString NGSD::createSampleSheet(int run_id)
 		QString sample_type = query.value("sample_type").toString();
 		QByteArray system_type = query.value("system_type").toByteArray();
 		QByteArray system_name = query.value("system_name").toByteArray();
-		QString project = query.value("project").toString();
+//		QString project = query.value("project").toString();
 
 		//get adapter sequence
 		ProcessingSystemData sys_info = getProcessingSystemData(processingSystemId(system_name));
-		adapter_sequences_read1.insert(sys_info.adapter1_p5);
-		adapter_sequences_read2.insert(sys_info.adapter2_p7);
+		if (!sys_info.adapter1_p5.trimmed().isEmpty()) adapter_sequences_read1.insert(sys_info.adapter1_p5);
+		if (!sys_info.adapter2_p7.trimmed().isEmpty()) adapter_sequences_read2.insert(sys_info.adapter2_p7);
 
 
 		if (sample_type == "DNA")
@@ -5558,6 +5559,9 @@ QString NGSD::createSampleSheet(int run_id)
 			line.append(ps_name);
 			line.append(mid1);
 			line.append(mid2);
+
+			//track lane
+			used_lanes.insert(Helper::toInt(lane, "Sequencing lane", ps_name));
 
 			QString override_cycles;
 			// forward read
@@ -5593,20 +5597,30 @@ QString NGSD::createSampleSheet(int run_id)
 		}
 	}
 
+	// check if all lanes are used
+	if ((flowcell_type == "Illumina NovaSeqX 25B") || (flowcell_type == "Illumina NovaSeqX 10B"))
+	{
+		if (used_lanes.size() != 8) warnings << "WARNING: The number of lanes covered by samples (" + QString::number(used_lanes.size()) + ") and the number of lanes on the flow cell (8) does not match!";
+	}
+	else if(used_lanes.size() != 2) //"Illumina NovaSeqX 1.5B"
+	{
+		warnings << "WARNING: The number of lanes covered by samples (" + QString::number(used_lanes.size()) + ") and the number of lanes on the flow cell (2) does not match!";
+	}
+
 
 	//BCLConvert
 	sample_sheet.append("[BCLConvert_Settings]");
 	sample_sheet.append("SoftwareVersion,"  + sw_version);
-//	sample_sheet.append("BarcodeMismatchesIndex1,1");//TODO: make adjustable
-//	sample_sheet.append("BarcodeMismatchesIndex2,1");//TODO: make adjustable
 
 	//sort adapter to make it testable
 	QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
 	adapter_sequences_read1_list.sort();
-	sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
+	if (adapter_sequences_read1_list.length() > 0) sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
+	else warnings << "WARNING: No adapter for read 1 provided! Adapter trimming will not work.";
 	QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
 	adapter_sequences_read2_list.sort();
-	sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
+	if (adapter_sequences_read2_list.length() > 0) sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
+	else warnings << "WARNING: No adapter for read 2 provided! Adapter trimming will not work.";
 
 	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
 	sample_sheet.append("");

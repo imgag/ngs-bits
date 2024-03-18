@@ -324,7 +324,7 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 	foreach(const CigarOp& op, cigar_data)
 	{
 		//update positions
-		if (op.Type==BAM_CMATCH)
+		if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF)
 		{
 			genome_pos += op.Length;
 			read_pos += op.Length;
@@ -535,6 +535,40 @@ GenomeBuild BamReader::build() const
 	if (chr1_size==248956422) return GenomeBuild::HG38;
 
 	THROW(Exception, "Could not determine genome build of BAM file '" + bam_file_ + "'!");
+}
+
+bool BamReader::is_single_end(int reads)
+{
+	if (build() == GenomeBuild::HG38)
+	{
+		setRegion(Chromosome("chr17"), 43091500, 43094000);
+	}
+	else //HG19
+	{
+		setRegion(Chromosome("chr17"), 41243500, 41246500);
+	}
+
+	//iterate through all alignments and create counts
+	BamAlignment al;
+	int n_all = 0;
+	int n_paired = 0;
+	while (getNextAlignment(al))
+	{
+		//ignore
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.isDuplicate()) continue;
+		if (al.isUnmapped()) continue;
+
+		//count reads
+		n_all++;
+		if (al.isPaired()) n_paired++;
+
+		if (n_all >= reads) break;
+	}
+
+	//if less than 10% is paired return true
+	if (((float) n_paired/n_all) < 0.1) return true;
+	return false;
 }
 
 void BamReader::setRegion(const Chromosome& chr, int start, int end)

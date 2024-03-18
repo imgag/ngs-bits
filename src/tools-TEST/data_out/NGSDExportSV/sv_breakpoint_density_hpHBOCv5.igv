@@ -1,0 +1,16 @@
+#track graphtype=bar autoScale=on windowingFunction=none coords=0 name="SV break point density (hpHBOCv5)"
+chr1	5	51	.	2
+chr1	1000	1021	.	4
+chr1	12000	13001	.	4
+chr1	20000	20001	.	2
+chr1	100005	100051	.	1
+chr1	101000	101021	.	2
+chr1	112000	113001	.	2
+chr1	120000	120001	.	1
+chr1	9100005	9100051	.	3
+chr1	9101000	9101021	.	6
+chr1	9112000	9113001	.	4
+chr1	9120000	9120001	.	2
+chr1	15482205	15482456	.	2
+chr1	16482455	16482516	.	2
+chr5	4112000	4113001	.	2

@@ -47,6 +47,11 @@ void SettingsDialog::loadSettings()
 	ui_.igv_default_small->setChecked(Settings::boolean("igv_default_small", true));
 	ui_.igv_default_sv->setChecked(Settings::boolean("igv_default_sv", true));
 	ui_.igv_default_lowcov->setChecked(Settings::boolean("igv_default_lowcov", true));
+
+	//View
+	if (Settings::string("view_adjust_large_numbers", true) == "raw_counts") ui_.view_adjust_large_numbers->setCurrentText( "raw counts");
+	if (Settings::string("view_adjust_large_numbers", true) == "modifier") ui_.view_adjust_large_numbers->setCurrentText("T, G, M, k modifier");
+	if (Settings::string("view_adjust_large_numbers", true) == "thousands_separator") ui_.view_adjust_large_numbers->setCurrentText( "use ',' as thousands separator");
 }
 
 void SettingsDialog::storeSettings()
@@ -61,4 +66,9 @@ void SettingsDialog::storeSettings()
 	Settings::setBoolean("igv_default_small", ui_.igv_default_small->isChecked());
 	Settings::setBoolean("igv_default_sv", ui_.igv_default_sv->isChecked());
 	Settings::setBoolean("igv_default_lowcov", ui_.igv_default_lowcov->isChecked());
+
+	//View
+	if (ui_.view_adjust_large_numbers->currentText() == "raw counts") Settings::setString("view_adjust_large_numbers", "raw_counts");
+	if (ui_.view_adjust_large_numbers->currentText() == "T, G, M, k modifier") Settings::setString("view_adjust_large_numbers", "modifier");
+	if (ui_.view_adjust_large_numbers->currentText() == "use ',' as thousands separator") Settings::setString("view_adjust_large_numbers", "thousands_separator");
 }

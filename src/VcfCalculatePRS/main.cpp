@@ -21,7 +21,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Calculates the Polgenic Risk Score(s) for a sample.");
-		setExtendedDescription(QStringList() << "The PRS VCF files have to contain a WEIGHT entry in the INFO column." << "Additionally some information about the PRS score is required in the VCF header." << "An example VCF file can be found at https://github.com/imgag/ngs-bits/blob/master/src/tools-TEST/data_in/VcfCalculatePRS_prs2.vcf");
+		setExtendedDescription(QStringList() << "The PRS VCF files have to contain WEIGHT and POP_AF fields in the INFO column." << "Additionally some information about the PRS score is required in the VCF header." << "An example VCF file can be found at https://github.com/imgag/ngs-bits/blob/master/src/tools-TEST/data_in/VcfCalculatePRS_prs2.vcf");
 		addInfile("in", "Tabix indexed VCF.GZ file of a sample.", false);
 		addInfileList("prs", "List of PRS VCFs.", false);
 		addInfile("bam", "BAM file corresponding to the VCF.", false);
@@ -29,6 +29,7 @@ public:
 
 		//optional
 		addInfile("ref", "Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addInt("min_depth", "Depth cutoff below which uncalled SNPs are considered not callable and POP_AF is used instead of genotype.", true, 10);
 
 		changeLog(2020,  7, 22, "Initial version of this tool.");
 		changeLog(2022,  12, 15, "Added BAM depth check and population AF.");
@@ -38,6 +39,7 @@ public:
 	{
 		//init
 		QTextStream out(stdout);
+		int min_depth = getInt("min_depth");
 
 		//load sample VCF
 		TabixIndexedFile sample_vcf;
@@ -54,7 +56,7 @@ public:
 
 		//open output file and write header
 		QSharedPointer<QFile> output_tsv = Helper::openFileForWriting(getOutfile("out"), true);
-		QByteArrayList column_headers = QByteArrayList() << "pgs_id" << "trait" << "score" << "percentile" << "build" << "n_var" << "pgp_id" << "citation";
+		QByteArrayList column_headers = QByteArrayList() << "pgs_id" << "trait" << "score" << "percentile" << "build" << "variants_in_prs" << "variants_low_depth" << "pgp_id" << "citation";
 		output_tsv->write("#" + column_headers.join("\t") + "\n");
 
 		//iterate over all given PRS files
@@ -105,18 +107,19 @@ public:
 			}
 
 			//check if all required comment lines are present
-			QByteArrayList col_entries_not_in_header = QByteArrayList() << "score" << "percentile";
+			QByteArrayList col_entries_not_in_header = QByteArrayList() << "score" << "percentile" << "variants_in_prs" << "variants_low_depth";
 			foreach (const QByteArray& key, column_headers)
 			{
 				if(col_entries_not_in_header.contains(key)) continue;
 				if(!column_entries.contains(key))
 				{
-					THROW(FileParseException, "Comment section of PRS VCFs does not contsin an entry for '" + key + "': " + prs_file_path);
+					THROW(FileParseException, "Comment section of PRS VCFs does not contain an entry for '" + key + "': " + prs_file_path);
 				}
 			}
 
 			//iterate over all variants in PRS
 			int c_found = 0;
+			int c_low_depth = 0;
 			for(int i = 0; i < prs_variant_list.count(); ++i)
 			{	
 				const VcfLine& prs_variant = prs_variant_list[i];
@@ -142,7 +145,7 @@ public:
 
 				if(matching_variants.size() > 1)
 				{
-					THROW(FileParseException, "Variant occures multiple times in sample VCF: " +  prs_variant.toString());
+					THROW(FileParseException, "Variant occurs multiple times in sample VCF: " +  prs_variant.toString());
 				}
 
 				if(matching_variants.size() == 1)
@@ -169,17 +172,16 @@ public:
 					//no variant called: check bam file
 
 					VariantDetails var_details = bam_file.getVariantDetails(reference, prs_variant);
-					if (var_details.depth < 6)
+					if (var_details.depth < min_depth)
 					{
 						// No call possible -> use population AF
 						double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
-						double pop_af = Helper::toDouble(prs_variant.info("POP_AF"), "PRS population allele frequence");
+						double pop_af = Helper::toDouble(prs_variant.info("POP_AF"), "PRS population allele frequency");
 						prs += weight * pop_af;
-
+						++c_low_depth;
 					}
 					// else: sufficient depth & no call => wildtype
 				}
-
 			}
 
 			// compute percentile
@@ -203,7 +205,7 @@ public:
 			}
 
 			QByteArrayList prs_line = QByteArrayList() << column_entries["pgs_id"] << column_entries["trait"] << QByteArray::number(prs)
-													   << percentile_string << column_entries["build"] << column_entries["n_var"]
+													   << percentile_string << column_entries["build"] << QByteArray::number(prs_variant_list.count()) << QByteArray::number(c_low_depth)
 													   << column_entries["pgp_id"] << column_entries["citation"];
 			output_tsv->write(prs_line.join("\t") + "\n");
 

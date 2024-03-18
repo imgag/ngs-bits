@@ -817,12 +817,36 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(estimate.add_info[2].key, "ratio_chry_chrx");
 		S_EQUAL(estimate.add_info[2].value, "0.0001");
 		S_EQUAL(estimate.gender, "female");
+
+		//longread test
+		estimate = Statistics::genderXY(TESTDATA("data_in/Statistics_longread.bam"), 0.06, 0.09, QString(), true);
+		I_EQUAL(estimate.add_info.count(), 3);
+		S_EQUAL(estimate.add_info[0].key, "reads_chry");
+		S_EQUAL(estimate.add_info[0].value, "0");
+		S_EQUAL(estimate.add_info[1].key, "reads_chrx");
+		S_EQUAL(estimate.add_info[1].value, "214");
+		S_EQUAL(estimate.add_info[2].key, "ratio_chry_chrx");
+		S_EQUAL(estimate.add_info[2].value, "0.0000");
+		S_EQUAL(estimate.gender, "female");
 	}
 
 	void genderHetX()
 	{
 		GenderEstimate estimate = Statistics::genderHetX(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, QString("unknown (too few SNPs)"));
+
+		//longread test
+		estimate = Statistics::genderHetX(GenomeBuild::HG38, TESTDATA("data_in/Statistics_longread.bam"), 0.15, 0.24, QString(), true);
+		I_EQUAL(estimate.add_info.count(), 4);
+		S_EQUAL(estimate.add_info[0].key, "snps_usable");
+		S_EQUAL(estimate.add_info[0].value, "10 of 437");
+		S_EQUAL(estimate.add_info[1].key, "hom_count");
+		S_EQUAL(estimate.add_info[1].value, "10");
+		S_EQUAL(estimate.add_info[2].key, "het_count");
+		S_EQUAL(estimate.add_info[2].value, "0");
+		S_EQUAL(estimate.add_info[3].key, "het_fraction");
+		S_EQUAL(estimate.add_info[3].value, "0.0000");
+		S_EQUAL(estimate.gender, "unknown (too few SNPs)");
 	}
 
 	void genderSRY()
