@@ -1,2 +1,2 @@
-#pgs_id	trait	score	percentile	build	n_var	pgp_id	citation
-PGS000004	Breast Cancer	-0.261822	55	GRCh37	313	PGP000002	Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002
+#pgs_id	trait	score	percentile	build	variants_in_prs	variants_low_depth	pgp_id	citation
+PGS000004	Breast Cancer	-0.253908	55	GRCh37	313	109	PGP000002	Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002
