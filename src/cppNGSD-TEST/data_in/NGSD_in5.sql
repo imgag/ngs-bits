@@ -22,7 +22,8 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected'),
 (2, 'DX000001' , 'ext_tum 1', 'DNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a'),
 (3, 'DX000002' , 'ext_normal 1', 'DNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a'),
-(4, 'RX123456', 'ex1 RNA', 'RNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected');
+(4, 'RX123456', 'ex1 RNA', 'RNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected'),
+(5, 'cfDNA005' , 'ext_normal 1', 'cfDNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a');
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `umi_type`, `target_file`, `genome_id`) VALUES
 (1, 'TruSeqPCRfree', 'TruSeq DNA PCR-Free', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'WGS', 1, 'n/a', 'WGS_hg38.bed', 1),
@@ -54,4 +55,5 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (127, 2, 1, 1, '4', 9, 10, 2, 2, 'n/a', 'WES Tumor sample', 126),
 (128, 4, 1, 1, '5', 13, 14, 3, 3, 'n/a', 'RNA sample', null),
 (129, 1, 77, 2, '1,2', 1, 2, 4, 1, 'n/a', 'WGS sample', null),
-(130, 1, 66, 2, '3', 3, 4, 4, 2, 'n/a', 'WES sample', null);
+(130, 1, 66, 2, '3', 3, 4, 4, 2, 'n/a', 'WES sample', null),
+(131, 5, 1, 2, '1,2', 5, 6, 4, 2, 'n/a', 'cfDNA sample', null);

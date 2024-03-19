@@ -5530,7 +5530,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		if (!sys_info.adapter2_p7.trimmed().isEmpty()) adapter_sequences_read2.insert(sys_info.adapter2_p7);
 
 
-		if (sample_type == "DNA")
+		if (sample_type == "DNA" || sample_type == "cfDNA")
 		{
 			if (system_type == "WGS")
 			{
@@ -5574,7 +5574,12 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 				override_cycles += "U11";
 				umi_length = 11;
 			}
-			else if(sys_info.umi_type != "n/a")
+			else if (sys_info.umi_type == "IDT-xGen-Prism")
+			{
+				//TODO: implement mapping on NovaSeqX?
+				qDebug() << "UMI processing will be done in megSAP";
+			}
+			else if (sys_info.umi_type != "n/a")
 			{
 				//TODO: extend
 				THROW(NotImplementedException, "Unsupported UMI type '" + sys_info.umi_type + "!");
