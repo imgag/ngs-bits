@@ -5574,7 +5574,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 				override_cycles += "U11";
 				umi_length = 11;
 			}
-			else if (sys_info.umi_type == "IDT-xGen-Prism")
+			else if ((sys_info.umi_type == "IDT-xGen-Prism") || (sys_info.umi_type == "Twist"))
 			{
 				//TODO: implement mapping on NovaSeqX?
 				qDebug() << "UMI processing will be done in megSAP";

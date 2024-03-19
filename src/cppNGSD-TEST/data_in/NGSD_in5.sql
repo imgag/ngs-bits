@@ -29,7 +29,8 @@ INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapt
 (1, 'TruSeqPCRfree', 'TruSeq DNA PCR-Free', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'WGS', 1, 'n/a', 'WGS_hg38.bed', 1),
 (2, 'twistCustomExomeV2', 'Twist Custom Exome IMGAG V2 (TE-94167158)', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'WES', 1, 'n/a', 'twistCustomExomeV2_2021_12_14.bed', 1),
 (3, 'nebRNAU2_qiaRRNA_umi', 'NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTG', 'RNA', 1, 'IDT-UDI-UMI', 'nebRNAU2_qiaRRNA_2021_12_13.bed', 1),
-(4, 'NoAdapter', 'NoAdapter TruSeq DNA PCR-Free', NULL, NULL, 'WGS', 1, 'n/a', 'WGS_hg38.bed', 1);
+(4, 'NoAdapter', 'NoAdapter TruSeq DNA PCR-Free', NULL, NULL, 'WGS', 1, 'n/a', 'WGS_hg38.bed', 1),
+(5, 'NA_xGen-Prism', 'NoAdapter x-Gen Prism', NULL, NULL, 'cfDNA (patient-specific)', 1, 'IDT-xGen-Prism', 'idt_HumanID.bed', 1);
 
 INSERT INTO `mid` (`id`, `name`, `sequence`) VALUES
 ( 1, 'TruSeq_i7_01', "CGATCGAT"),
@@ -56,4 +57,4 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (128, 4, 1, 1, '5', 13, 14, 3, 3, 'n/a', 'RNA sample', null),
 (129, 1, 77, 2, '1,2', 1, 2, 4, 1, 'n/a', 'WGS sample', null),
 (130, 1, 66, 2, '3', 3, 4, 4, 2, 'n/a', 'WES sample', null),
-(131, 5, 1, 2, '1,2', 5, 6, 4, 2, 'n/a', 'cfDNA sample', null);
+(131, 5, 1, 2, '1,2', 5, 6, 5, 2, 'n/a', 'cfDNA sample', null);
