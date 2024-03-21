@@ -486,11 +486,12 @@ void SequencingRunWidget::exportSampleSheet()
 
 		if (warnings.size() > 0)
 		{
-			// create dlg
-			QLabel* label = new QLabel(warnings.join("<br/>") + "<br/>Do you want to continue?");
-			auto dlg = GUIHelper::createDialog(label, "Warnings during SampleSheet export", "<br/>During the export of the SampleSheet the following warnings occured:<br/>", true);
-			int btn = dlg->exec();
-			if (btn != 1) return;
+			QMessageBox::StandardButton reply;
+			reply = QMessageBox::question(this, "Warning during SampleSheet export",
+										  "During the export of the SampleSheet the following warnings occured:\n" + warnings.join("\n") + "\n Do you want to continue?",
+										  QMessageBox::Yes|QMessageBox::No);
+			// Abort if 'No' was clicked
+			if (reply== QMessageBox::No) return;
 		}
 
 		QSharedPointer<QFile> output_file = Helper::openFileForWriting(output_path);
