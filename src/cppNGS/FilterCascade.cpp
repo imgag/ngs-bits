@@ -2457,11 +2457,15 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 			}
 			else if ((min_af > 0 || max_af < 1) && part.startsWith("AF="))
 			{
-				double af = part.mid(3).toDouble();
-				if (af < min_af || max_af < af)
+				QByteArrayList afs = part.mid(3).split(',');
+				bool af_in_interval = false;
+				foreach (const QByteArray& entry, afs)
 				{
-					result.flags()[i] = false;
+					double af = entry.toDouble();
+					if (af >= min_af && max_af >= af) af_in_interval = true;
+
 				}
+				if (!af_in_interval) result.flags()[i] = false;
 			}
 		}
 	}
