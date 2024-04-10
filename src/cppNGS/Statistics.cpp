@@ -2518,7 +2518,6 @@ double Statistics::yxRatio(BamReader& reader)
 	reader.setRegion("chrY", 1, reader.chromosomeSize("chrY"));
 	while(reader.getNextAlignment(al))
 	{
-		if (!al.isProperPair()) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.mappingQuality()<30) continue;
 		reads_y += 1.0;
@@ -2528,7 +2527,6 @@ double Statistics::yxRatio(BamReader& reader)
 	reader.setRegion("chrX", 1, reader.chromosomeSize("chrX"));
 	while(reader.getNextAlignment(al))
 	{
-		if (!al.isProperPair()) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.mappingQuality()<30) continue;
 		reads_x += 1.0;
