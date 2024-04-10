@@ -701,6 +701,13 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
 	QFile::remove(plotname);
 
+	//add YX read ratio
+	double yx_ratio = yxRatio(reader);
+	if (!std::isnan(yx_ratio))
+	{
+		addQcValue(output, "QC:2000139", "chrY/chrX read ratio", QString::number(yx_ratio, 'f', 4));
+	}
+
 	return output;
 }
 
@@ -845,6 +852,13 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 		{
 			Log::warn("Skipping insert size histogram - no read pairs found!");
 		}
+	}
+
+	//add YX read ratio
+	double yx_ratio = yxRatio(reader);
+	if (!std::isnan(yx_ratio))
+	{
+		addQcValue(output, "QC:2000139", "chrY/chrX read ratio", QString::number(yx_ratio, 'f', 4));
 	}
 
 	return output;
@@ -1159,9 +1173,9 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		}
 	}
 
+	//add GC bias plot
 	if (roi_available)
 	{
-		//add GC bias plot
 		LinePlot plot3;
 		plot3.setXLabel("GC bin");
 		plot3.setYLabel("count [%]");
@@ -1172,6 +1186,13 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		plot3.store(plotname);
 		addQcPlot(output, "QC:2000061","GC bias plot", plotname);
 		QFile::remove(plotname);
+	}
+
+	//add YX read ratio
+	double yx_ratio = yxRatio(reader);
+	if (!std::isnan(yx_ratio))
+	{
+		addQcValue(output, "QC:2000139", "chrY/chrX read ratio", QString::number(yx_ratio, 'f', 4));
 	}
 
 	return output;
@@ -2488,6 +2509,34 @@ BedFile Statistics::lowOrHighCoverage(const QString& bam_file, int cutoff, int m
 
 	output.merge();
 	return output;
+}
+
+double Statistics::yxRatio(BamReader& reader)
+{
+	double reads_y = 0;
+	BamAlignment al;
+	reader.setRegion("chrY", 1, reader.chromosomeSize("chrY"));
+	while(reader.getNextAlignment(al))
+	{
+		if (!al.isProperPair()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.mappingQuality()<30) continue;
+		reads_y += 1.0;
+	}
+
+	double reads_x = 0;
+	reader.setRegion("chrX", 1, reader.chromosomeSize("chrX"));
+	while(reader.getNextAlignment(al))
+	{
+		if (!al.isProperPair()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.mappingQuality()<30) continue;
+		reads_x += 1.0;
+	}
+
+	if (reads_x==0) return std::numeric_limits<double>::quiet_NaN();
+
+	return reads_y / reads_x;
 }
 
 BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
