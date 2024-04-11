@@ -285,13 +285,13 @@ void ProcessedSampleWidget::updateQCMetrics()
 	try
 	{
 		NGSD db;
-		QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
+		SampleData sample_data = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_)));
 
 		//create table
 		QString conditions;
 		if (!ui_->qc_all->isChecked())
 		{
-			QStringList preferred_qc_parameters = limitedQCParameter(sample_type);
+			QStringList preferred_qc_parameters = limitedQCParameter(sample_data.type);
 			conditions = "AND (t.qcml_id IN ('" + preferred_qc_parameters.join("', '") + "'))";
 		}
 		DBTable qc_table = db.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions);
@@ -386,6 +386,10 @@ void ProcessedSampleWidget::updateQCMetrics()
 				{
 					if (value>4) color = orange;
 					if (value>5) color = red;
+				}
+				else if(accession=="QC:2000139") //chrY/chrX read ratio
+				{
+					if (sample_data.gender=="female" && value>0.02) color = orange;
 				}
 			}
 
@@ -944,6 +948,7 @@ QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type
 	// add type-specific parameter
 	if (sample_type == "DNA" || sample_type == "DNA (amplicon)" || sample_type == "DNA (native)")
 	{
+		parameter_list << "QC:2000139"; // chrY/chrX read ratio
 		parameter_list << "QC:2000013"; // variant count
 		parameter_list << "QC:2000014"; // known variants percentage
 		parameter_list << "QC:2000022"; // properly-paired read percentage

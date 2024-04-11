@@ -215,7 +215,7 @@ TEST_CLASS(Statistics_Test)
 		bed_file.merge();
 
 		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/panel.bam"), ref_file, 20);
-		I_EQUAL(stats.count(), 24);
+		I_EQUAL(stats.count(), 25);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("10.82"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
@@ -264,6 +264,8 @@ TEST_CLASS(Statistics_Test)
 		IS_TRUE(stats[22].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[23].name(), QString("GC bias plot"));
 		IS_TRUE(stats[23].type()==QCValueType::IMAGE);
+		S_EQUAL(stats[24].name(), QString("chrY/chrX read ratio"));
+		S_EQUAL(stats[24].toString(), QString("0.0000"));
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
