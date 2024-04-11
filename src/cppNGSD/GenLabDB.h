@@ -8,6 +8,12 @@
 #include "PhenotypeList.h"
 #include "NGSD.h"
 
+struct Sender
+{
+	QString name;
+	QString affiliation;
+};
+
 /// GenLab database access (only views that serve as API)
 class CPPNGSDSHARED_EXPORT GenLabDB
 		: public QObject
@@ -83,6 +89,9 @@ public:
 
 	///Returns the tissue type of a sample, or an empty string if it could not be determined.
 	QString tissue(QString ps_name);
+
+	///Returns the sender of a sample
+	Sender sender(QString ps_name);
 
 protected:
 	///Copy constructor "declared away".
