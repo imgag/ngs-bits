@@ -153,6 +153,16 @@
        </spacer>
       </item>
       <item>
+       <widget class="QCheckBox" name="filter_diagnostic">
+        <property name="text">
+         <string>show diagnostic only</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="filter_ngsd">
         <property name="text">
          <string>REs in NGSD only</string>
@@ -312,6 +322,11 @@
       </property>
       <property name="toolTip">
        <string>HPO terms</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>type</string>
       </property>
      </column>
     </widget>

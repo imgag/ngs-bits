@@ -28,6 +28,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
 	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_ngsd, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_id, SIGNAL(textEdited(QString)), this, SLOT(updateRowVisibility()));
+	connect(ui_.filter_diagnostic, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 
 	loadDataFromVCF(vcf);
 	loadMetaDataFromNGSD();
@@ -281,6 +282,10 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		//HPO terms
 		QString hpo_terms = db.getValue("SELECT hpo_terms FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "HPO terms", hpo_terms);
+
+		//type
+		QString type = db.getValue("SELECT type FROM repeat_expansion WHERE id=" + id).toString().trimmed();
+		setCell(row, "type", type);
 	}
 }
 
@@ -329,15 +334,12 @@ void RepeatExpansionWidget::updateRowVisibility()
 	//in NGSD?
 	if (ui_.filter_ngsd->isChecked())
 	{
+		int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
-			for (int row=0; row<ui_.table->rowCount(); ++row)
+			if (ui_.table->item(row, col)->backgroundColor()==orange_)
 			{
-				if (ui_.table->item(row, col)->backgroundColor()==orange_)
-				{
-					hidden[row] = true;
-				}
+				hidden[row] = true;
 			}
 		}
 	}
@@ -405,15 +407,27 @@ void RepeatExpansionWidget::updateRowVisibility()
 	QString id_search_str = ui_.filter_id->text().trimmed();
 	if (!id_search_str.isEmpty())
 	{
+		int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
-			for (int row=0; row<ui_.table->rowCount(); ++row)
+			if (!ui_.table->item(row, col)->text().contains(id_search_str, Qt::CaseInsensitive))
 			{
-				if (!ui_.table->item(row, col)->text().contains(id_search_str, Qt::CaseInsensitive))
-				{
-					hidden[row] = true;
-				}
+				hidden[row] = true;
+			}
+		}
+	}
+
+	//diagnostic only
+	if (ui_.filter_diagnostic->isChecked())
+	{
+		int col = GUIHelper::columnIndex(ui_.table, "type");
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+			QTableWidgetItem* item = ui_.table->item(row, col);
+			if (item==nullptr) continue;
+			if (!item->text().startsWith("diagnostic"))
+			{
+				hidden[row] = true;
 			}
 		}
 	}
@@ -423,4 +437,6 @@ void RepeatExpansionWidget::updateRowVisibility()
 	{
 		ui_.table->setRowHidden(row, hidden[row]);
 	}
+
+	QTextStream(stdout) << "REs shown: " << hidden.count(false) << endl; //TODO remove
 }

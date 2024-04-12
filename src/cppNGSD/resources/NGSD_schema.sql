@@ -2452,8 +2452,10 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `hpo_terms` TEXT COMMENT 'Comma-separated list of HPO identifiers without name',
   `location` TEXT DEFAULT NULL COMMENT 'Location of repeat',
   `comments` TEXT DEFAULT NULL,
+  `type` ENUM('diagnostic - in-house testing','diagnostic - external testing','research') NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `repeat_id` (`repeat_id` ASC)
+  UNIQUE INDEX `repeat_id` (`name` ASC),
+  UNIQUE INDEX `region_unit` (`region` ASC, `repeat_unit` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
