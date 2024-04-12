@@ -27,6 +27,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
 	connect(ui_.filter_expanded, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_ngsd, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
+	connect(ui_.filter_id, SIGNAL(textEdited(QString)), this, SLOT(updateRowVisibility()));
 
 	loadDataFromVCF(vcf);
 	loadMetaDataFromNGSD();
@@ -233,42 +234,43 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 	//get infos from NGSD
 	for (int row=0; row<ui_.table->rowCount(); ++row)
 	{
-		QString repeat_id = getCell(row, "repeat ID");
+		QString region = getCell(row, "region");
+		QString repeat_unit = getCell(row, "repeat unit");
 
 		//check if repeat is in NGSD
-		QString id = db.getValue("SELECT id FROM repeat_expansion_meta_data WHERE repeat_id=:0", true, repeat_id).toString().trimmed();
+		QString id = db.getValue("SELECT id FROM repeat_expansion WHERE region='"+region+"' and repeat_unit='" + repeat_unit + "'", true).toString().trimmed();
 		if (id.isEmpty())
 		{
-			setCellDecoration(row, "repeat ID", "Repeat ID not found in NGSD", orange_);
+			setCellDecoration(row, "repeat ID", "Repeat not found in NGSD", orange_);
 			continue;
 		}
 
 		//max_normal
-		QString max_normal = db.getValue("SELECT max_normal FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		QString max_normal = db.getValue("SELECT max_normal FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "max. normal", max_normal);
 
 		//min_pathogenic
-		QString min_pathogenic = db.getValue("SELECT min_pathogenic FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		QString min_pathogenic = db.getValue("SELECT min_pathogenic FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "min. pathogenic", min_pathogenic);
 
 		//inheritance
-		QString inheritance = db.getValue("SELECT inheritance FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		QString inheritance = db.getValue("SELECT inheritance FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "inheritance", inheritance);
 
 		//location
-		QString location = db.getValue("SELECT location FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		QString location = db.getValue("SELECT location FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "location", location);
 
 		//diseases
-		QString disease_names = db.getValue("SELECT disease_names FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		QString disease_names = db.getValue("SELECT disease_names FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "diseases", disease_names);
 
 		//OMIM IDs
-		QString disease_ids_omim = db.getValue("SELECT disease_ids_omim FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		QString disease_ids_omim = db.getValue("SELECT disease_ids_omim FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "OMIM disease IDs", disease_ids_omim);
 
 		//comments
-		QString comments = db.getValue("SELECT comments FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		QString comments = db.getValue("SELECT comments FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		QTableWidgetItem* item = setCell(row, "comments", "");
 		if (!comments.isEmpty())
 		{
@@ -277,7 +279,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		}
 
 		//HPO terms
-		QString hpo_terms = db.getValue("SELECT hpo_terms FROM repeat_expansion_meta_data WHERE id=" + id).toString().trimmed();
+		QString hpo_terms = db.getValue("SELECT hpo_terms FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "HPO terms", hpo_terms);
 	}
 }
@@ -396,6 +398,23 @@ void RepeatExpansionWidget::updateRowVisibility()
 				}
 			}
 			if (!hpo_match) hidden[row] = true;
+		}
+	}
+
+	//repeat ID text search
+	QString id_search_str = ui_.filter_id->text().trimmed();
+	if (!id_search_str.isEmpty())
+	{
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+			int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
+			for (int row=0; row<ui_.table->rowCount(); ++row)
+			{
+				if (!ui_.table->item(row, col)->text().contains(id_search_str, Qt::CaseInsensitive))
+				{
+					hidden[row] = true;
+				}
+			}
 		}
 	}
 

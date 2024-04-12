@@ -2436,12 +2436,14 @@ DEFAULT CHARACTER SET = utf8
 COMMENT='small variants call set';
 
 -- -----------------------------------------------------
--- Table `repeat_expansion_meta_data`
+-- Table `repeat_expansion`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `repeat_expansion_meta_data`
+CREATE  TABLE IF NOT EXISTS `repeat_expansion`
 (
-  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `repeat_id` VARCHAR(50) NOT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL COMMENT 'Used for displaying only! Do not used this to identify a RE!',
+  `region` VARCHAR(25) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
+  `repeat_unit` VARCHAR(25) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
   `max_normal` INT(10) DEFAULT NULL,
   `min_pathogenic` INT(10) DEFAULT NULL,
   `inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') DEFAULT NULL,
@@ -2455,6 +2457,33 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion_meta_data`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `repeat_expansion_genotype`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `repeat_expansion_genotype`
+(
+  `processed_sample_id` INT(11) NOT NULL,
+  `repeat_expansion_id` INT(11) NOT NULL,
+  `allele1` INT(11) NOT NULL,
+  `allele2` INT(11) DEFAULT NULL COMMENT 'Can be NULL on chrX/chrY for males, or if there is a deletion of the second allele.',
+  `filter` VARCHAR(100) DEFAULT NULL COMMENT 'NULL if not filter entry present, or PASS.',
+  PRIMARY KEY (`processed_sample_id`, `repeat_expansion_id`),
+  INDEX `fk_repeat_expansion` (`repeat_expansion_id` ASC),
+  CONSTRAINT `fk_repeat_expansion_genotype_has_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_repeat_expansion_genotype_has_repeat_expansion`
+    FOREIGN KEY (`repeat_expansion_id`)
+    REFERENCES `repeat_expansion` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START
