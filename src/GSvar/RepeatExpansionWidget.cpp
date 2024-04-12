@@ -46,8 +46,13 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	int row = selection.at(0).indexes().at(0).row();
 
 	//get image
-	QString locus_base_name = getCell(row, "repeat ID").split('_').at(0); //TODO support ARX_1, ARX_2, ATXN8OS_CTA
+	QString locus_base_name = getCell(row, "repeat ID").trimmed();
 	FileLocation image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus_base_name);
+	if (!image_loc.exists) //TODO support repeats with underscore in name
+	{
+		locus_base_name = locus_base_name.split('_').at(0);
+		image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus_base_name);
+	}
 
     //create menu
 	QMenu menu(ui_.table);
