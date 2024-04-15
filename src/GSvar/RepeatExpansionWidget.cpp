@@ -48,7 +48,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	//get image
 	QString locus_base_name = getCell(row, "repeat ID").trimmed();
 	FileLocation image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus_base_name);
-	if (!image_loc.exists) //TODO support repeats with underscore in name
+	if (!image_loc.exists) //support repeats with underscore in name
 	{
 		locus_base_name = locus_base_name.split('_').at(0);
 		image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus_base_name);
