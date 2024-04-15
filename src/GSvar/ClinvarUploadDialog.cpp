@@ -36,10 +36,9 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
 	LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
 
     ui_.setupUi(this);
+	connect(ui_.tw_disease_info, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(diseaseContextMenu(QPoint)));
 
     initGui();
-
-
 }
 
 void ClinvarUploadDialog::setData(ClinvarUploadData data)
@@ -315,8 +314,7 @@ void ClinvarUploadDialog::initGui()
     // set headers for disease info
     ui_.tw_disease_info->setColumnCount(2);
     ui_.tw_disease_info->setHorizontalHeaderItem(0, new QTableWidgetItem("type"));
-    ui_.tw_disease_info->setHorizontalHeaderItem(1, new QTableWidgetItem("id"));
-	//GUIHelper::resizeTableCells(ui_.tw_disease_info);
+	ui_.tw_disease_info->setHorizontalHeaderItem(1, new QTableWidgetItem("id"));
     ui_.tw_disease_info->setColumnWidth(0, 250);
     ui_.tw_disease_info->setColumnWidth(1, 150);
 
@@ -511,6 +509,7 @@ void ClinvarUploadDialog::upload()
             {
                 condition << ui_.tw_disease_info->item(row_idx, 0)->text() + "|" + ui_.tw_disease_info->item(row_idx, 1)->text();
             }
+			GUIHelper::resizeTableCells(ui_.tw_disease_info);
             details << "condition=" + condition.join(',');
 			if (manual_upload_)
 			{
@@ -1106,7 +1105,11 @@ bool ClinvarUploadDialog::checkGuiData()
 	// check disease info
 	if (ui_.tw_disease_info->rowCount() == 0)
 	{
-		errors << "No disease information provided!";
+		errors << "No disease ID provided!";
+	}
+	if (ui_.tw_disease_info->rowCount() > 1)
+	{
+		errors << "More than one disease ID provided - please delete all but one through the context menu!";
 	}
 
 	// check sample name (only for manual upload)
@@ -1386,6 +1389,54 @@ void ClinvarUploadDialog::removeDiseaseInfo()
 	ui_.tw_disease_info->removeRow(row);
 }
 
+void ClinvarUploadDialog::diseaseContextMenu(QPoint pos)
+{
+	//make sure only one row is selected
+	QList<int> selected_rows = GUIHelper::selectedTableRows(ui_.tw_disease_info);
+	if (selected_rows.count()!=1) return;
+	int row = selected_rows[0];
+
+	//create menu
+	QMenu menu;
+	QAction* action_del = new QAction(QIcon(":/Icons/Delete.png"), "Delete");
+	menu.addAction(action_del);
+
+	QAction* action_open = new QAction(QIcon(":/Icons/Link.png"), "Open external database (if available)", this);
+	menu.addAction(action_open);
+
+	//execute
+	QAction* action = menu.exec(ui_.tw_disease_info->viewport()->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	//perform actions
+	if (action==action_del)
+	{
+		ui_.tw_disease_info->removeRow(row);
+		checkGuiData();
+	}
+	if (action==action_open)
+	{
+		QString value = ui_.tw_disease_info->item(row, 1)->text().trimmed();
+
+		QString link;
+		if (value.startsWith("#"))
+		{
+			value.replace("#", ""); //remove prefix
+			link = "https://omim.org/entry/" + value;
+		}
+		else if (value.startsWith("ORPHA:"))
+		{
+			value.replace("ORPHA:", ""); //remove prefix
+			link = "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&Expert=" + value;
+		}
+
+		if (!link.isEmpty())
+		{
+			QDesktopServices::openUrl(QUrl(link));
+		}
+	}
+}
+
 QJsonObject ClinvarUploadDialog::createJson()
 {
     //Check GUI for correct entries
@@ -1394,7 +1445,6 @@ QJsonObject ClinvarUploadDialog::createJson()
         QMessageBox::warning(this, "Gui validation failed!", "There are errors in you GUI input. Please fix them and try again.");
         return QJsonObject();
     }
-
 
     //build up JSON
     QJsonObject json;

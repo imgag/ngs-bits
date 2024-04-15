@@ -1304,7 +1304,7 @@ void MainWindow::on_actionRE_triggered()
 	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, re_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + variants_.analysisName());
 
-	addModelessDialog(dlg);
+	addModelessDialog(dlg, true);
 }
 
 void MainWindow::on_actionPRS_triggered()

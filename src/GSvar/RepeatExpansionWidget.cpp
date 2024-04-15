@@ -229,6 +229,11 @@ void RepeatExpansionWidget::loadDataFromVCF(QString vcf)
 		QByteArray reads_spanning = re.formatValueFromSample("ADSP").trimmed().replace(".", "-");
 		setCell(row_idx, "reads spanning", reads_spanning);
 	}
+
+	if (ui_.table->rowCount()<40)
+	{
+		GUIHelper::showMessage("Repeat expansions", "Repeat expansion calls are outdated. Please re-do the repeat expansion calling!");
+	}
 }
 
 void RepeatExpansionWidget::loadMetaDataFromNGSD()
