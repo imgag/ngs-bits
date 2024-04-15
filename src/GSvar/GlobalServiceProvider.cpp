@@ -149,3 +149,8 @@ void GlobalServiceProvider::startJob(BackgroundWorkerBase* worker, bool show_bus
 {
 	mainWindow()->startJob(worker, show_busy_dialog);
 }
+
+const PhenotypeList& GlobalServiceProvider::getPhenotypesFromSmallVariantFilter()
+{
+	return mainWindow()->getPhenotypesFromSmallVariantFilter();
+}

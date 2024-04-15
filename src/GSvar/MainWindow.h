@@ -87,6 +87,7 @@ public:
 	const VariantList& getSmallVariantList();
 	const CnvList& getCnvList();
 	const BedpeFile& getSvList();
+	const PhenotypeList& getPhenotypesFromSmallVariantFilter();
 
 	/// Checks if there is a new client version available
 	void checkClientUpdates();

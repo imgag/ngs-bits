@@ -172,9 +172,6 @@ void VariantTable::customContextMenu(QPoint pos)
 	QMetaMethod signal = QMetaMethod::fromSignal(&VariantTable::publishToClinvarTriggered);
 	a_clinvar_pub->setEnabled(ngsd_user_logged_in && isSignalConnected(signal) && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
-	//MitoMap
-	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
-	a_mitomap->setEnabled(variant.chr().isM());
 	//varsome
 	QAction* a_varsome = menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
 
@@ -308,10 +305,6 @@ void VariantTable::customContextMenu(QPoint pos)
 	else if (action == a_clinvar_pub)
 	{
 		emit publishToClinvarTriggered(index);
-	}
-	else if (action == a_mitomap)
-	{
-		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?pstns="+QString::number(variant.start())));
 	}
 	else if (action == a_varsome)
 	{

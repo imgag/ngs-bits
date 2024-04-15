@@ -1566,3 +1566,13 @@ is_a: QC:2000002 ! NGS aquisition parameter
 is_a: QC:0000050 ! image plot
 xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
 created_by: sturm
+
+[Term]
+id: QC:2000139
+name: chrY/chrX read ratio
+def: "Ratio of reads on chrY and chrX."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+

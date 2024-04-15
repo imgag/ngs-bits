@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
+    <width>1300</width>
     <height>920</height>
    </rect>
   </property>
@@ -18,14 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1024</width>
+    <width>1300</width>
     <height>920</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -42,7 +42,141 @@
     <number>3</number>
    </property>
    <item>
-    <widget class="QTableWidget" name="repeat_expansions">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Filters</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>repeat ID:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="filter_id">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>expansion status:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="filter_expanded">
+        <item>
+         <property name="text">
+          <string>all</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>larger than normal</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>pathogenic</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>statistical outlier</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="filter_hpo">
+        <property name="toolTip">
+         <string>Filter for repeat expansions that have at least one phenotype matching the phenotypes given in the small variants filter.</string>
+        </property>
+        <property name="text">
+         <string>matching HPOs only</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="filter_diagnostic">
+        <property name="text">
+         <string>show diagnostic only</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="filter_ngsd">
+        <property name="text">
+         <string>REs in NGSD only</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="table">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -61,6 +195,140 @@
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
+     <column>
+      <property name="text">
+       <string>repeat ID</string>
+      </property>
+      <property name="toolTip">
+       <string>Repeat identifier as defined in the repeat catalog</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>region</string>
+      </property>
+      <property name="toolTip">
+       <string>Genomic region of repeat</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>repeat unit</string>
+      </property>
+      <property name="toolTip">
+       <string>Repeat unit sequence in reference genome orientation (plus strand)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>filters</string>
+      </property>
+      <property name="toolTip">
+       <string>LowDepth: The overall locus depth is below 10x or number of reads spanning one or both ends is below 5</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>genotype</string>
+      </property>
+      <property name="toolTip">
+       <string>Repeat unit count for each allele</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>genotype CI</string>
+      </property>
+      <property name="toolTip">
+       <string>Confidence interval of repeat unit counts</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>locus coverage</string>
+      </property>
+      <property name="toolTip">
+       <string>Average coverage of locus</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>reads flanking</string>
+      </property>
+      <property name="toolTip">
+       <string>Number of flanking reads consistent with called alleles</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>reads in repeat</string>
+      </property>
+      <property name="toolTip">
+       <string>Number of in-repeat reads consistent with called alleles</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>reads spanning</string>
+      </property>
+      <property name="toolTip">
+       <string>Number of spanning reads consistent with called alleles</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>max. normal</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>min. pathogenic</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>diseases</string>
+      </property>
+      <property name="toolTip">
+       <string>Disease abbreviations</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>OMIM disease IDs</string>
+      </property>
+      <property name="toolTip">
+       <string>OMIM disease identifiers</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>inheritance</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>location</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>comments</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>HPO terms</string>
+      </property>
+      <property name="toolTip">
+       <string>HPO terms</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>type</string>
+      </property>
+     </column>
     </widget>
    </item>
   </layout>
