@@ -587,6 +587,11 @@ public:
 
 			//check genotypes are numeric
 			QByteArray genotype_str = re.formatValueFromSample("REPCN").trimmed();
+			if (genotype_str=="./.")
+			{
+				if (debug) out << "Skipped repeat '" << region << "/" << repeat_unit << "' because it has no genotype calls!" << endl;
+				continue;
+			}
 			QByteArrayList genotypes = genotype_str.split('/');
 			if (genotypes.count()!=1 && genotypes.count()!=2) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype: " + genotype_str);
 			bool ok = false;
