@@ -23,12 +23,12 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
 	ui_.filter_hpo->setEnabled(LoginManager::active());
 	ui_.filter_hpo->setEnabled(!GlobalServiceProvider::getPhenotypesFromSmallVariantFilter().isEmpty());
 
+	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(cellDoubleClicked(int, int)));
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui_.filter_expanded, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
-	connect(ui_.filter_ngsd, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_id, SIGNAL(textEdited(QString)), this, SLOT(updateRowVisibility()));
-	connect(ui_.filter_diagnostic, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
+	connect(ui_.filter_show, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));
 
 	loadDataFromVCF(vcf);
 	loadMetaDataFromNGSD();
@@ -341,13 +341,40 @@ void RepeatExpansionWidget::updateRowVisibility()
 {
 	QBitArray hidden(ui_.table->rowCount(), false);
 
-	//in NGSD?
-	if (ui_.filter_ngsd->isChecked())
+
+	//show
+	QString show = ui_.filter_show->currentText();
+	if (show=="diagnostic (in NGSD)")
 	{
-		int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
+		int col = GUIHelper::columnIndex(ui_.table, "type");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			if (ui_.table->item(row, col)->backgroundColor()==orange_)
+			QTableWidgetItem* item = ui_.table->item(row, col);
+			if (item==nullptr || !item->text().startsWith("diagnostic"))
+			{
+				hidden[row] = true;
+			}
+		}
+	}
+	if (show=="research (in NGSD)")
+	{
+		int col = GUIHelper::columnIndex(ui_.table, "type");
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+			QTableWidgetItem* item = ui_.table->item(row, col);
+			if (item==nullptr || !item->text().startsWith("research"))
+			{
+				hidden[row] = true;
+			}
+		}
+	}
+	if (show=="other (not in NGSD)")
+	{
+		int col = GUIHelper::columnIndex(ui_.table, "type");
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+			QTableWidgetItem* item = ui_.table->item(row, col);
+			if (item!=nullptr)
 			{
 				hidden[row] = true;
 			}
@@ -421,21 +448,6 @@ void RepeatExpansionWidget::updateRowVisibility()
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			if (!ui_.table->item(row, col)->text().contains(id_search_str, Qt::CaseInsensitive))
-			{
-				hidden[row] = true;
-			}
-		}
-	}
-
-	//diagnostic only
-	if (ui_.filter_diagnostic->isChecked())
-	{
-		int col = GUIHelper::columnIndex(ui_.table, "type");
-		for (int row=0; row<ui_.table->rowCount(); ++row)
-		{
-			QTableWidgetItem* item = ui_.table->item(row, col);
-			if (item==nullptr) continue;
-			if (!item->text().startsWith("diagnostic"))
 			{
 				hidden[row] = true;
 			}
