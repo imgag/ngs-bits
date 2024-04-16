@@ -2469,7 +2469,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion_genotype`
   `repeat_expansion_id` INT(11) NOT NULL,
   `allele1` INT(11) NOT NULL,
   `allele2` INT(11) DEFAULT NULL COMMENT 'Can be NULL on chrX/chrY for males, or if there is a deletion of the second allele.',
-  `filter` VARCHAR(100) DEFAULT NULL COMMENT 'NULL if not filter entry present, or PASS.',
+  `filter` VARCHAR(100) DEFAULT NULL COMMENT 'NULL if no filter entry present, or PASS.',
   PRIMARY KEY (`processed_sample_id`, `repeat_expansion_id`),
   INDEX `fk_repeat_expansion` (`repeat_expansion_id` ASC),
   CONSTRAINT `fk_repeat_expansion_genotype_has_processed_sample`
