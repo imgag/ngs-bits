@@ -64,7 +64,7 @@ ProcessedSampleDataDeletionDialog::ProcessedSampleDataDeletionDialog(QWidget* pa
 void ProcessedSampleDataDeletionDialog::deleteData()
 {
 	//check consistency of selection
-	if (!ui_.report_config->isChecked() && (ui_.var_small->isChecked() || ui_.var_cnv->isChecked() || ui_.var_sv->isChecked()))
+	if (!ui_.report_config->isChecked() && (ui_.var_small->isChecked() || ui_.var_cnv->isChecked() || ui_.var_sv->isChecked() || ui_.var_re->isChecked()))
 	{
 		QMessageBox::information(this, "Deleting variants from NGSD", "You cannot delete variants and keep the report configuration.\nPlease correct the selection and try again!");
 		return;
@@ -176,6 +176,16 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 				db.deleteVariants(ps_id, VariantType::SVS);
 			}
 		}
+
+		if (ui_.var_re->isChecked())
+		{
+			foreach(const QString& ps_id, ps_ids_)
+			{
+				//TODO db.deleteVariants(ps_id, VariantType::RES);
+				db.getQuery().exec("DELETE FROM repeat_expansion_genotype WHERE processed_sample_id='" + ps_id + "'");
+			}
+		}
+
 
 		if (ui_.expression_data->isChecked())
 		{

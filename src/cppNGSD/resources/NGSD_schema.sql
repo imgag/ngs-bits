@@ -2443,7 +2443,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) NOT NULL COMMENT 'Used for displaying only! Do not used this to identify a RE!',
   `region` VARCHAR(25) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
-  `repeat_unit` VARCHAR(25) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
+  `repeat_unit` VARCHAR(50) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
   `max_normal` INT(10) DEFAULT NULL,
   `min_pathogenic` INT(10) DEFAULT NULL,
   `inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') DEFAULT NULL,
@@ -2452,7 +2452,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `hpo_terms` TEXT COMMENT 'Comma-separated list of HPO identifiers without name',
   `location` TEXT DEFAULT NULL COMMENT 'Location of repeat',
   `comments` TEXT DEFAULT NULL,
-  `type` ENUM('diagnostic - in-house testing','diagnostic - external testing','research') NOT NULL,
+  `type` ENUM('diagnostic - in-house testing', 'diagnostic - external testing', 'research', 'low evidence') NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `repeat_id` (`name` ASC),
   UNIQUE INDEX `region_unit` (`region` ASC, `repeat_unit` ASC)
