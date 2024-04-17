@@ -1298,22 +1298,11 @@ void MainWindow::on_actionRE_triggered()
 	FileLocationList re_files = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false);
 	if (re_files.isEmpty()) return; //this should not happen because the button is not enabled then...
 
-	QString ps_name = variants_.mainSampleName();
-
-	//get sample type
-	bool is_exome = false;
-	if (LoginManager::active())
-	{
-		NGSD db;
-		QString ps_id = db.processedSampleId(ps_name, false);
-		is_exome = ps_id!="" && db.getProcessedSampleData(ps_id).processing_system_type=="WES";
-	}
-
 	//show dialog
-	RepeatExpansionWidget* widget = new RepeatExpansionWidget(re_files[0].filename, is_exome);
+	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, re_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + variants_.analysisName());
 
-	addModelessDialog(dlg);
+	addModelessDialog(dlg, true);
 }
 
 void MainWindow::on_actionPRS_triggered()
@@ -4114,6 +4103,11 @@ const CnvList&MainWindow::getCnvList()
 const BedpeFile&MainWindow::getSvList()
 {
 	return svs_;
+}
+
+const PhenotypeList& MainWindow::getPhenotypesFromSmallVariantFilter()
+{
+	return ui_.filters->phenotypes();
 }
 
 void MainWindow::on_actionOpenGeneTabByName_triggered()

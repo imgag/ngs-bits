@@ -250,6 +250,35 @@ private slots:
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line233.log", QRegExp("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line233.log", TESTDATA("data_out/NGSDAddVariantsGermline_Test_line233.log"));
 	}
+
+	void re_import()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_init.sql"));
+
+		//check db is empty
+		int count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
+		I_EQUAL(count, 0);
+
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in5.vcf"));
+
+		//check db is filled
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
+		I_EQUAL(count, 50);
+
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();
+		I_EQUAL(count, 6);
+
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele1 > 30").toInt();
+		I_EQUAL(count, 2);
+
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 > 30").toInt();
+		I_EQUAL(count, 4);
+	}
 };
 
 

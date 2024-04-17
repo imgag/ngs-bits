@@ -30,6 +30,8 @@ public:
 		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
 		addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
 		addFlag("sv_force", "Force import of SVs, even if already imported.");
+		addInfile("re", "RE list in VCF format (as produced by megSAP).", true, true);
+		addFlag("re_force", "Force import of REs, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFloat("max_af", "Maximum allele frequency of small variants to import (gnomAD).", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -502,6 +504,129 @@ public:
 		}
 	}
 
+	void importREs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool re_force)
+	{
+		QString filename = getInfile("re");
+		if (filename=="") return;
+
+		out << endl;
+		out << "### importing REs for " << ps_name << " ###" << endl;
+		out << "filename: " << filename << endl;
+
+		QTime timer;
+		timer.start();
+
+		// get processed sample id
+		QString ps_id = db.processedSampleId(ps_name);
+		if(debug)
+		{
+			out << "Processed sample id: " << ps_id << endl;
+			out << "REs in NGSD: " << db.getValue("SELECT count(*) FROM repeat_expansion").toString() << endl;
+		}
+
+		//TODO prevent import if report config contains REs
+		/*
+		int report_conf_id = db.reportConfigId(QString::number(ps_id));
+		if (report_conf_id!=-1)
+		{
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT * FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(report_conf_id));
+			if (query.size()>0)
+			{
+				out << "Skipped import of SVs for sample " + ps_name + ": a report configuration with SVs exists for this sample!" << endl;
+				return;
+			}
+		}
+		*/
+
+		// check if processed sample has already been imported
+		int imported_re_genotypes = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE processed_sample_id=:0", true, ps_id).toInt();
+		if(imported_re_genotypes>0 && !re_force)
+		{
+			out << "NOTE: REs were already imported for '" << ps_name << "' - skipping import" << endl;
+			return;
+		}
+		//remove old imports of this processed sample
+		if (imported_re_genotypes>0 && re_force)
+		{
+			QSqlQuery query = db.getQuery();
+			query.exec("DELETE FROM repeat_expansion_genotype WHERE processed_sample_id='" + ps_id + "'");
+			out << "Deleted " << query.numRowsAffected() << " previous repeat expansion calls" << endl;
+		}
+
+		//load VCF file
+		VcfFile repeat_expansions;
+		repeat_expansions.load(filename);
+
+		// check that there is exactly one sample
+		const QByteArrayList& samples = repeat_expansions.sampleIDs();
+		if (samples.count()!=1)
+		{
+			THROW(ArgumentException, "Repeat expansion VCF file '" + filename + "' does not contain exactly one sample!");
+		}
+
+		//prepeare queries
+		SqlQuery q_insert = db.getQuery();
+		q_insert.prepare("INSERT INTO repeat_expansion_genotype (`processed_sample_id`, `repeat_expansion_id`, `allele1`, `allele2`, `filter`) VALUES (:0,:1,:2,:3,:4)");
+
+		//add repeat expansions
+		int re_imported = 0;
+		for(int r=0; r<repeat_expansions.count(); ++r)
+		{
+			const VcfLine& re = repeat_expansions[r];
+
+			//get repeat ID
+			QString region = re.chr().strNormalized(true) + ":" + QString::number(re.start()) + "-" + re.info("END").trimmed();
+			QByteArray repeat_unit = re.info("RU").trimmed();
+			QVariant repeat_id = db.getValue("SELECT id FROM repeat_expansion WHERE region='"+region+"' AND repeat_unit='"+repeat_unit+"'", true);
+			if (!repeat_id.isValid())
+			{
+				if (debug) out << "Skipped repeat '" << region << "/" << repeat_unit << "' because it is not in NGSD!" << endl;
+				continue;
+			}
+
+			//check genotypes are numeric
+			QByteArray genotype_str = re.formatValueFromSample("REPCN").trimmed();
+			if (genotype_str=="./.")
+			{
+				if (debug) out << "Skipped repeat '" << region << "/" << repeat_unit << "' because it has no genotype calls!" << endl;
+				continue;
+			}
+			QByteArrayList genotypes = genotype_str.split('/');
+			if (genotypes.count()!=1 && genotypes.count()!=2) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype: " + genotype_str);
+			bool ok = false;
+			genotypes[0].toInt(&ok);
+			if (!ok) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype of allele 1: " + genotype_str);
+			if (genotypes.count()==2)
+			{
+				genotypes[1].toInt(&ok);
+				if (!ok) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype of allele 3: " + genotype_str);
+			}
+
+			//insert
+			QString filters = re.filters().join(",");
+			if (filters=="PASS" || filters==".") filters = "";
+
+			q_insert.bindValue(0, ps_id);
+			q_insert.bindValue(1, repeat_id);
+			q_insert.bindValue(2, genotypes[0]);
+			q_insert.bindValue(3, genotypes.count()==2 ? genotypes[1] : QVariant());
+			q_insert.bindValue(4, !filters.isEmpty() ? filters : QVariant());
+			q_insert.exec();
+
+			++re_imported;
+		}
+
+		out << "Imported REs: " << re_imported << endl;
+		out << "Skipped REs not found in NGSD: " << repeat_expansions.count() - re_imported << endl;
+
+		//output timing
+		if (!no_time)
+		{
+			out << "Import took: " << Helper::elapsedTime(timer) << endl;
+		}
+	}
+
 	virtual void main()
 	{
 		//init
@@ -515,6 +640,7 @@ public:
 		bool var_update = getFlag("var_update");
 		bool cnv_force = getFlag("cnv_force");
 		bool sv_force = getFlag("sv_force");
+		bool re_force = getFlag("re_force");
 
 		//prevent tumor samples from being imported into the germline variant tables
 		QString s_id = db.sampleId(ps_name);
@@ -528,6 +654,7 @@ public:
 		importSmallVariants(db, stream, ps_name, debug, no_time, var_force, var_update);
 		importCNVs(db, stream, ps_name, debug, no_time, cnv_force);
 		importSVs(db, stream, ps_name, debug, no_time, sv_force);
+		importREs(db, stream, ps_name, debug, no_time, re_force);
 	}
 };
 

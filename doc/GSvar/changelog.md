@@ -1,5 +1,14 @@
 # GSvar change log
 
+
+## 2024_02-38 (15.04.24)
+
+- variant details: removed MitoMap link (no longer working from outside of the MitoMap website)
+- ClinVar upload: only allowing one disease entry in ClinVar upload now
+- Reworking of RE dialog (84 REs, more filter options, ...)
+- QC: added chrY/chrX read ratio metric to detect chrY material in females
+- general: added support for long-read trio/multi analysis
+
 ## 2024_02-6 (07.03.24)
 
 - general: added dialog to call variants with pathogenic WT allele

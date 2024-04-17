@@ -64,8 +64,6 @@ public:
 	///Calculates unnormalized raw mutation burden
 	static QCValue mutationBurden(QString somatic_vcf, QString target, QString blacklist);
 
-
-
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
 	static QCCollection contamination(GenomeBuild build, QString bam, const QString& ref_file = QString(), bool debug = false, int min_cov = 20, int min_snps = 50);
 	///Returns ancestry estimates for a variant list in VCF format.
@@ -101,7 +99,8 @@ private:
 
 	static BedFile lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), const bool is_high=false);
 	static BedFile lowOrHighCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), const bool is_high=false);
-
+	//Returns the ratio of chrY and chrX reads (for gender check and determining XXY karyotype). If no reads are found on chrX, nan is returned;
+	static double yxRatio(BamReader& reader);
 
 	template <typename T>
 	static void addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value);

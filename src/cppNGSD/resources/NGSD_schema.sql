@@ -2420,7 +2420,7 @@ CREATE  TABLE IF NOT EXISTS `small_variants_callset`
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('freebayes', 'DRAGEN', 'Clair3') NOT NULL,
-  `caller_version` varchar(25) NOT NULL,
+  `caller_version` VARCHAR(25) NOT NULL,
   `call_date` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
@@ -2434,6 +2434,58 @@ CREATE  TABLE IF NOT EXISTS `small_variants_callset`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='small variants call set';
+
+-- -----------------------------------------------------
+-- Table `repeat_expansion`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `repeat_expansion`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL COMMENT 'Used for displaying only! Do not used this to identify a RE!',
+  `region` VARCHAR(25) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
+  `repeat_unit` VARCHAR(25) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
+  `max_normal` INT(10) DEFAULT NULL,
+  `min_pathogenic` INT(10) DEFAULT NULL,
+  `inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') DEFAULT NULL,
+  `disease_names` TEXT COMMENT 'Comma-separated list of diease names',
+  `disease_ids_omim` TEXT COMMENT 'Comma-separated list of OMIM disease identifiers',
+  `hpo_terms` TEXT COMMENT 'Comma-separated list of HPO identifiers without name',
+  `location` TEXT DEFAULT NULL COMMENT 'Location of repeat',
+  `comments` TEXT DEFAULT NULL,
+  `type` ENUM('diagnostic - in-house testing','diagnostic - external testing','research') NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `repeat_id` (`name` ASC),
+  UNIQUE INDEX `region_unit` (`region` ASC, `repeat_unit` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `repeat_expansion_genotype`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `repeat_expansion_genotype`
+(
+  `processed_sample_id` INT(11) NOT NULL,
+  `repeat_expansion_id` INT(11) NOT NULL,
+  `allele1` INT(11) NOT NULL,
+  `allele2` INT(11) DEFAULT NULL COMMENT 'Can be NULL on chrX/chrY for males, or if there is a deletion of the second allele.',
+  `filter` VARCHAR(100) DEFAULT NULL COMMENT 'NULL if no filter entry present, or PASS.',
+  PRIMARY KEY (`processed_sample_id`, `repeat_expansion_id`),
+  INDEX `fk_repeat_expansion` (`repeat_expansion_id` ASC),
+  CONSTRAINT `fk_repeat_expansion_genotype_has_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_repeat_expansion_genotype_has_repeat_expansion`
+    FOREIGN KEY (`repeat_expansion_id`)
+    REFERENCES `repeat_expansion` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START
