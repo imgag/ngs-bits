@@ -168,7 +168,7 @@
          </size>
         </property>
         <property name="currentText">
-         <string>diagnostic (in NGSD)</string>
+         <string>diagnostic</string>
         </property>
         <item>
          <property name="text">
@@ -177,17 +177,17 @@
         </item>
         <item>
          <property name="text">
-          <string>diagnostic (in NGSD)</string>
+          <string>diagnostic</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>research (in NGSD)</string>
+          <string>research</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>other (not in NGSD)</string>
+          <string>low evidence</string>
          </property>
         </item>
        </widget>

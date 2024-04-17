@@ -257,11 +257,13 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		}
 
 		//max_normal
-		QString max_normal = db.getValue("SELECT max_normal FROM repeat_expansion WHERE id=" + id).toString().trimmed();
+		QVariant tmp = db.getValue("SELECT max_normal FROM repeat_expansion WHERE id=" + id);
+		QString max_normal = tmp.isNull() ? "" : tmp.toString().trimmed();
 		setCell(row, "max. normal", max_normal);
 
 		//min_pathogenic
-		QString min_pathogenic = db.getValue("SELECT min_pathogenic FROM repeat_expansion WHERE id=" + id).toString().trimmed();
+		tmp = db.getValue("SELECT min_pathogenic FROM repeat_expansion WHERE id=" + id);
+		QString min_pathogenic = tmp.isNull() ? "" : tmp.toString().trimmed();
 		setCell(row, "min. pathogenic", min_pathogenic);
 
 		//inheritance
@@ -344,7 +346,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 
 	//show
 	QString show = ui_.filter_show->currentText();
-	if (show=="diagnostic (in NGSD)")
+	if (show=="diagnostic")
 	{
 		int col = GUIHelper::columnIndex(ui_.table, "type");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
@@ -356,7 +358,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 			}
 		}
 	}
-	if (show=="research (in NGSD)")
+	if (show=="research")
 	{
 		int col = GUIHelper::columnIndex(ui_.table, "type");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
@@ -368,13 +370,13 @@ void RepeatExpansionWidget::updateRowVisibility()
 			}
 		}
 	}
-	if (show=="other (not in NGSD)")
+	if (show=="low evidence")
 	{
 		int col = GUIHelper::columnIndex(ui_.table, "type");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			QTableWidgetItem* item = ui_.table->item(row, col);
-			if (item!=nullptr)
+			if (item==nullptr || !item->text().startsWith("low evidence"))
 			{
 				hidden[row] = true;
 			}
