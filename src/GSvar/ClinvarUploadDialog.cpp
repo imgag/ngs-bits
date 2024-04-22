@@ -1136,7 +1136,7 @@ bool ClinvarUploadDialog::checkGuiData()
 		upload_comment_text << QString("<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? ")
 							   + ((clinvar_upload_data_.stable_id.isEmpty())?"":"The variant will be replaced on ClinVar. ")
 							   + "</font><br>"
-							   + upload_details_var1.replace("\n", "<br>");
+							   + upload_details_var1.replace("\n", "<br>").replace("%20", " ");
 	}
 	if (var2_uploaded_to_clinvar)
 	{
@@ -1155,9 +1155,8 @@ bool ClinvarUploadDialog::checkGuiData()
 		upload_comment_text << QString("<font color='red'>WARNING: The second variant has already been uploaded to ClinVar! Are you sure you want to upload it again? ")
 							   + ((clinvar_upload_data_.stable_id.isEmpty())?"":"The variant will be replaced on ClinVar. ")
 							   + "</font><br>"
-							   + upload_details_var2.replace("\n", "<br>");
+							   + upload_details_var2.replace("\n", "<br>").replace("%20", " ");
 	}
-
 
     //show error or enable upload button
     if (errors.count()>0)

@@ -272,13 +272,17 @@ void DBQCWidget::updatePlot()
 
 		//add sample constraints to query
 		QString sample_type = ui_.sample_type->currentText().trimmed();
-		if (sample_type=="tumor only")
+		if (sample_type=="tumor")
 		{
 			query_string += " AND s.tumor = 1";
 		}
-		if (sample_type=="normal only")
+		else if (sample_type=="normal (no FFPE)")
 		{
-			query_string += " AND s.tumor = 0";
+			query_string += " AND s.tumor = 0 AND s.ffpe = 0";
+		}
+		else if (sample_type=="normal (FFPE)")
+		{
+			query_string += " AND s.tumor = 0 AND s.ffpe = 1";
 		}
 		QString tissue = ui_.sample_tissue->currentText().trimmed();
 		if (!tissue.isEmpty())
