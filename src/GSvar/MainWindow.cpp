@@ -4321,6 +4321,13 @@ void MainWindow::on_actionProject_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionRepeatExpansion_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("repeat_expansion");
+	auto dlg = GUIHelper::createDialog(widget, "Repeat expansion administration");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionSample_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("sample");

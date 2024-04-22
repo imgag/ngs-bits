@@ -5,6 +5,8 @@
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QMenu>
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "TsvFile.h"
@@ -56,11 +58,12 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 
     //create menu
 	QMenu menu(ui_.table);
+	QAction* a_comments = menu.addAction(QIcon(":/Icons/Comment.png"), "Show comments");
+	QAction* a_distribution = menu.addAction(QIcon(":/Icons/AF_histogram.png"), "Show distribution");
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
-	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
 	menu.addSeparator();
-	QAction* a_comments = menu.addAction("Show/edit comments");
+	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
@@ -93,7 +96,63 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_comments)
 	{
-		//TODO show/edit comment
+		//get repeat data
+		QString region = getCell(row, "region");
+		QString repeat_unit = getCell(row, "repeat unit");
+
+		//get comments
+		NGSD db;
+		QString id = db.repeatExpansionId(region, repeat_unit, false);
+		QString comments;
+		if (!id.isEmpty()) comments = db.repeatExpansionComments(id.toInt());
+		//show dialog
+		QTextEdit* edit = new QTextEdit(this);
+		edit->setMinimumWidth(800);
+		edit->setMinimumHeight(500);
+		edit->setReadOnly(true);
+		edit->setHtml(comments);
+		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(edit, "Comments");
+		dlg->exec();
+	}
+	else if (action==a_distribution)
+	{
+		QString title = getCell(row, "repeat ID") + " repeat histogram";
+
+		try
+		{
+			//get repeat data
+			QString region = getCell(row, "region");
+			QString repeat_unit = getCell(row, "repeat unit");
+
+			//get RE lengths
+			NGSD db;
+			QString id = db.repeatExpansionId(region, repeat_unit, true);
+			QVector<double> lengths = db.getValuesDouble("SELECT allele1 FROM repeat_expansion_genotype WHERE repeat_expansion_id=" + id);
+			lengths << db.getValuesDouble("SELECT allele2 FROM repeat_expansion_genotype WHERE repeat_expansion_id=" + id);
+
+			//determine min, max and bin size
+			std::sort(lengths.begin(), lengths.end());
+			double min = 0;
+			int max_bin = 0.995 * lengths.count();
+			double max = lengths[max_bin];
+			double median = BasicStatistics::median(lengths, false);
+			if (2*median > max) max = 2*median;
+			double bin_size = (max-min)/40;
+
+			//create histogram
+			Histogram hist(min, max, bin_size);
+			hist.inc(lengths, true);
+
+			//show chart
+			QChartView* view = GUIHelper::histogramChart(hist, "BAF");
+			auto dlg = GUIHelper::createDialog(view, title);
+			dlg->exec();
+		}
+		catch(Exception& e)
+		{
+			QMessageBox::warning(this, title, "Error:\n" + e.message());
+			return;
+		}
 	}
 }
 
@@ -249,7 +308,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		QString repeat_unit = getCell(row, "repeat unit");
 
 		//check if repeat is in NGSD
-		QString id = db.getValue("SELECT id FROM repeat_expansion WHERE region='"+region+"' and repeat_unit='" + repeat_unit + "'", true).toString().trimmed();
+		QString id = db.repeatExpansionId(region, repeat_unit);
 		if (id.isEmpty())
 		{
 			setCellDecoration(row, "repeat ID", "Repeat not found in NGSD", orange_);
@@ -283,7 +342,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		setCell(row, "OMIM disease IDs", disease_ids_omim);
 
 		//comments
-		QString comments = db.getValue("SELECT comments FROM repeat_expansion WHERE id=" + id).toString().trimmed();
+		QString comments = db.repeatExpansionComments(id.toInt());
 		QTableWidgetItem* item = setCell(row, "comments", "");
 		if (!comments.isEmpty())
 		{
@@ -461,6 +520,4 @@ void RepeatExpansionWidget::updateRowVisibility()
 	{
 		ui_.table->setRowHidden(row, hidden[row]);
 	}
-
-	QTextStream(stdout) << "REs shown: " << hidden.count(false) << endl; //TODO remove
 }
