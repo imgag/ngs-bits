@@ -1298,13 +1298,11 @@ void MainWindow::on_actionRE_triggered()
 	FileLocationList re_files = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false);
 	if (re_files.isEmpty()) return; //this should not happen because the button is not enabled then...
 
-	QString ps_name = variants_.mainSampleName();
-
 	//show dialog
 	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, re_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + variants_.analysisName());
 
-	addModelessDialog(dlg);
+	addModelessDialog(dlg, true);
 }
 
 void MainWindow::on_actionPRS_triggered()

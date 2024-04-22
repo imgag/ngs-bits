@@ -153,23 +153,43 @@
        </spacer>
       </item>
       <item>
-       <widget class="QCheckBox" name="filter_diagnostic">
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>show diagnostic only</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>show:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="filter_ngsd">
-        <property name="text">
-         <string>REs in NGSD only</string>
+       <widget class="QComboBox" name="filter_show">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
         </property>
-        <property name="checked">
-         <bool>true</bool>
+        <property name="currentText">
+         <string>diagnostic</string>
         </property>
+        <item>
+         <property name="text">
+          <string>all</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>diagnostic</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>research</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>low evidence</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>

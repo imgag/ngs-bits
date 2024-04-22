@@ -79,7 +79,7 @@ private slots:
 	void setDiseaseInfo();
 	void addDiseaseInfo();
 	void removeDiseaseInfo();
-
+	void diseaseContextMenu(QPoint pos);
 
 private:
     Ui::ClinVarUploadDialog ui_;

@@ -23,12 +23,12 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
 	ui_.filter_hpo->setEnabled(LoginManager::active());
 	ui_.filter_hpo->setEnabled(!GlobalServiceProvider::getPhenotypesFromSmallVariantFilter().isEmpty());
 
+	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(cellDoubleClicked(int, int)));
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui_.filter_expanded, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
-	connect(ui_.filter_ngsd, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_id, SIGNAL(textEdited(QString)), this, SLOT(updateRowVisibility()));
-	connect(ui_.filter_diagnostic, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
+	connect(ui_.filter_show, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));
 
 	loadDataFromVCF(vcf);
 	loadMetaDataFromNGSD();
@@ -229,6 +229,11 @@ void RepeatExpansionWidget::loadDataFromVCF(QString vcf)
 		QByteArray reads_spanning = re.formatValueFromSample("ADSP").trimmed().replace(".", "-");
 		setCell(row_idx, "reads spanning", reads_spanning);
 	}
+
+	if (ui_.table->rowCount()<40)
+	{
+		GUIHelper::showMessage("Repeat expansions", "Repeat expansion calls are outdated. Please re-do the repeat expansion calling!");
+	}
 }
 
 void RepeatExpansionWidget::loadMetaDataFromNGSD()
@@ -252,11 +257,13 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		}
 
 		//max_normal
-		QString max_normal = db.getValue("SELECT max_normal FROM repeat_expansion WHERE id=" + id).toString().trimmed();
+		QVariant tmp = db.getValue("SELECT max_normal FROM repeat_expansion WHERE id=" + id);
+		QString max_normal = tmp.isNull() ? "" : tmp.toString().trimmed();
 		setCell(row, "max. normal", max_normal);
 
 		//min_pathogenic
-		QString min_pathogenic = db.getValue("SELECT min_pathogenic FROM repeat_expansion WHERE id=" + id).toString().trimmed();
+		tmp = db.getValue("SELECT min_pathogenic FROM repeat_expansion WHERE id=" + id);
+		QString min_pathogenic = tmp.isNull() ? "" : tmp.toString().trimmed();
 		setCell(row, "min. pathogenic", min_pathogenic);
 
 		//inheritance
@@ -336,13 +343,40 @@ void RepeatExpansionWidget::updateRowVisibility()
 {
 	QBitArray hidden(ui_.table->rowCount(), false);
 
-	//in NGSD?
-	if (ui_.filter_ngsd->isChecked())
+
+	//show
+	QString show = ui_.filter_show->currentText();
+	if (show=="diagnostic")
 	{
-		int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
+		int col = GUIHelper::columnIndex(ui_.table, "type");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			if (ui_.table->item(row, col)->backgroundColor()==orange_)
+			QTableWidgetItem* item = ui_.table->item(row, col);
+			if (item==nullptr || !item->text().startsWith("diagnostic"))
+			{
+				hidden[row] = true;
+			}
+		}
+	}
+	if (show=="research")
+	{
+		int col = GUIHelper::columnIndex(ui_.table, "type");
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+			QTableWidgetItem* item = ui_.table->item(row, col);
+			if (item==nullptr || !item->text().startsWith("research"))
+			{
+				hidden[row] = true;
+			}
+		}
+	}
+	if (show=="low evidence")
+	{
+		int col = GUIHelper::columnIndex(ui_.table, "type");
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+			QTableWidgetItem* item = ui_.table->item(row, col);
+			if (item==nullptr || !item->text().startsWith("low evidence"))
 			{
 				hidden[row] = true;
 			}
@@ -416,21 +450,6 @@ void RepeatExpansionWidget::updateRowVisibility()
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			if (!ui_.table->item(row, col)->text().contains(id_search_str, Qt::CaseInsensitive))
-			{
-				hidden[row] = true;
-			}
-		}
-	}
-
-	//diagnostic only
-	if (ui_.filter_diagnostic->isChecked())
-	{
-		int col = GUIHelper::columnIndex(ui_.table, "type");
-		for (int row=0; row<ui_.table->rowCount(); ++row)
-		{
-			QTableWidgetItem* item = ui_.table->item(row, col);
-			if (item==nullptr) continue;
-			if (!item->text().startsWith("diagnostic"))
 			{
 				hidden[row] = true;
 			}
