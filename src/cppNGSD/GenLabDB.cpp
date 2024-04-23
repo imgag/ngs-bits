@@ -623,23 +623,28 @@ Sender GenLabDB::sender(QString ps_name)
 	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT * FROM v_ngs_sender WHERE LABORNUMMER='" + name + "'");
+		query.exec("SELECT * FROM v_ngs_einsender WHERE LABORNUMMER='" + name + "'");
 		while (query.next())
 		{
 			//name
-			QString name = query.value("VORNAME_EINSENDER").toString().trimmed() + " " + query.value("NACHNAME_EINSENDER").toString().trimmed();
+			QString first_name = query.value("einsender_vorname").toString().trimmed();
+			QString last_name = query.value("einsender_nachname").toString().trimmed();
+			QString name = first_name + " " + last_name;
 
 			//affiliation
 			QStringList affiliation_parts;
-			QString tmp = query.value("ABTEILUNG_EINSENDER").toString().trimmed();
-			if (!affiliation_parts.isEmpty()) affiliation_parts << tmp;
-			tmp = query.value("KRANKENHAUS_EINSENDER").toString().trimmed();
-			if (!affiliation_parts.isEmpty()) affiliation_parts << tmp;
-			tmp = query.value("ORT_EINSENDER").toString().trimmed();
-			if (!affiliation_parts.isEmpty()) affiliation_parts << tmp;
+			QString tmp = query.value("einsender_abteilung").toString().trimmed();
+			if (!tmp.isEmpty()) affiliation_parts << tmp;
+			tmp = query.value("einsender_abteilung").toString().trimmed();
+			if (!tmp.isEmpty()) affiliation_parts << tmp;
+			tmp = query.value("einsender_ort").toString().trimmed();
+			if (!tmp.isEmpty()) affiliation_parts << tmp;
 			QString affiliation = affiliation_parts.join(", ");
 
-			return Sender{name, affiliation};
+			if (!first_name.isEmpty() && !last_name.isEmpty() && !affiliation.isEmpty())
+			{
+				return Sender{name, affiliation};
+			}
 		}
 	}
 

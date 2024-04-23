@@ -182,11 +182,11 @@ private slots:
 
 		GenLabDB db;
 		Sender sender = db.sender("DXtest1");
-		S_EQUAL(sender.name, "2");
-		S_EQUAL(sender.affiliation, "2");
+		S_EQUAL(sender.name.left(8), "Olaf Rie");
+		S_EQUAL(sender.affiliation.left(43), "Medizinische Genetik und Angewandte Genomik");
 		sender = db.sender("DXtest2");
-		S_EQUAL(sender.name, "2");
-		S_EQUAL(sender.affiliation, "2");
+		S_EQUAL(sender.name.left(8), "Olaf Rie");
+		S_EQUAL(sender.affiliation.left(43), "Medizinische Genetik und Angewandte Genomik");
 	}
 };
 

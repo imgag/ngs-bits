@@ -521,6 +521,65 @@ void MaintenanceDialog::importPatientIDs()
 	appendOutputLine("Imported patient IDs: " + QString::number(c_imported));
 }
 
+void MaintenanceDialog::importSender()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	GenLabDB genlab;
+
+	int c_not_in_genlab = 0;
+	int c_imported = 0;
+
+	//import study samples from GenLab
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.patient_identifier, s.id as sample_id FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' ORDER BY ps.id ASC");
+
+	appendOutputLine("PS:" + QString::number(query.size())); //TODO
+
+	int i = 0;
+	while(query.next())
+	{
+		QString ps = query.value("ps").toString();
+		if (i%500==0) appendOutputLine("progressed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
+		++i;
+
+		Sender sender = genlab.sender(ps);
+		if (sender.isEmpty())
+		{
+			++c_not_in_genlab;
+			continue;
+		}
+
+		appendOutputLine("PS:" + ps + " / " + sender.name + " / " + sender.affiliation); //TODO
+		/*
+
+		//if already in NGSD, check if consistent
+		QString patient_id_ngsd = query.value("patient_identifier").toString().trimmed();
+		if (patient_id_ngsd!="" && patient_id!=patient_id_ngsd)
+		{
+			appendOutputLine(ps  + " skipped: NGSD contains " + patient_id_ngsd + ", but GenLab contains " + patient_id);
+			continue;
+		}
+
+		//check if already set
+		if (patient_id==patient_id_ngsd) continue;
+
+		//update NGSD
+		db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_id +"' WHERE id='" + query.value("sample_id").toString() + "'");
+		*/
+
+		++c_imported;
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//output
+	appendOutputLine("");
+	appendOutputLine("Skipped because not (valid) in GenLab: " + QString::number(c_not_in_genlab));
+	appendOutputLine("Imported patient IDs: " + QString::number(c_imported));
+}
+
 void MaintenanceDialog::linkSamplesFromSamePatient()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);

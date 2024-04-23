@@ -29,6 +29,18 @@
 #include "TsvFile.h"
 #include "HttpRequestHandler.h"
 
+//Sender of a sample
+struct Sender
+{
+	QString name;
+	QString affiliation;
+
+	bool isEmpty() const
+	{
+		return name.isEmpty() && affiliation.isEmpty();
+	}
+};
+
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
 {

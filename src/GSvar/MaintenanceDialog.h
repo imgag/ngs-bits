@@ -22,6 +22,7 @@ private slots:
 	void importYearOfBirth();
 	void importTissue();
 	void importPatientIDs();
+	void importSender();
 	void linkSamplesFromSamePatient();
 
 private:
