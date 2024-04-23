@@ -87,6 +87,7 @@ public:
 	const VariantList& getSmallVariantList();
 	const CnvList& getCnvList();
 	const BedpeFile& getSvList();
+	const PhenotypeList& getPhenotypesFromSmallVariantFilter();
 
 	/// Checks if there is a new client version available
 	void checkClientUpdates();
@@ -140,6 +141,7 @@ public slots:
 	void on_actionMID_triggered();
 	void on_actionProcessingSystem_triggered();
 	void on_actionProject_triggered();
+	void on_actionRepeatExpansion_triggered();
 	void on_actionSample_triggered();
 	void on_actionSampleGroup_triggered();
 	void on_actionSender_triggered();

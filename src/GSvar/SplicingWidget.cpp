@@ -77,7 +77,7 @@ void SplicingWidget::loadSplicingFile(const QString& file_path)
 		{
 			if (numeric_columns.contains(col_idx))
 			{
-				ui_->tw_splicing->setItem(row_idx, col_idx, GUIHelper::createTableItem(row.at(col_idx).toDouble()));
+				ui_->tw_splicing->setItem(row_idx, col_idx, GUIHelper::createTableItem(row.at(col_idx).toInt()));
 			}
 			else
 			{

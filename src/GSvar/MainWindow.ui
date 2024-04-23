@@ -502,6 +502,7 @@
      <addaction name="actionMID"/>
      <addaction name="actionProcessingSystem"/>
      <addaction name="actionProject"/>
+     <addaction name="actionRepeatExpansion"/>
      <addaction name="actionSample"/>
      <addaction name="actionSampleGroup"/>
      <addaction name="actionSender"/>
@@ -1484,6 +1485,11 @@
    </property>
    <property name="text">
     <string>pathogenic WT variants</string>
+   </property>
+  </action>
+  <action name="actionRepeatExpansion">
+   <property name="text">
+    <string>Repeat expansion</string>
    </property>
   </action>
  </widget>

@@ -49,12 +49,17 @@
        </item>
        <item>
         <property name="text">
-         <string>normal only</string>
+         <string>normal (no FFPE)</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>tumor only</string>
+         <string>normal (FFPE)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>tumor</string>
         </property>
        </item>
       </widget>

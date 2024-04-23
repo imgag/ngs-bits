@@ -15,7 +15,7 @@ email_run_analyzed=""
 clinvar_api_key=
 
 #Analysis steps for queuing
-analysis_steps_single_sample=ma - mapping, vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, db - database import
+analysis_steps_single_sample=ma - mapping, vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, re - repeat expansion calling, db - database import
 analysis_steps_multi_sample=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, db - database import
 analysis_steps_trio=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, db - database import
 analysis_steps_somatic=vc - variant calling, vi - virus detection, cn - copy number calling, an - annotation, msi - microsatellite instabilty, an_rna - RNA annotation, db - database import

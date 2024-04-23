@@ -70,6 +70,9 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br />" << trans("Geschlecht") << ": " << trans(processed_sample_data.gender) << endl;
 	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
 	stream << "<br />" << trans("Prozessierungssystem-Typ") << ": " << processed_sample_data.processing_system_type << endl;
+	QString run_id = db_.getValue("SELECT id FROM sequencing_run WHERE name=:0", false, processed_sample_data.run_name).toString();
+	stream << "<br />" << trans("Sequenziersystem") << ": " << db_.getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.id=:0", false, run_id).toString() << endl;
+	stream << "<br />" << trans("Readl&auml;nge") << ": " << db_.getValue("SELECT recipe FROM sequencing_run WHERE id=:0", false, run_id).toString() << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
 	stream << "<br />" << trans("Datum") << ": " << date_.toString("dd.MM.yyyy") << endl;
 	stream << "<br />" << trans("Analysepipeline") << ": "  << data_.variants.getPipeline() << endl;
@@ -1493,6 +1496,8 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Probe"] = "Sample";
 		de2en["Prozessierungssystem"] = "Processing system";
 		de2en["Prozessierungssystem-Typ"] = "Processing system type";
+		de2en["Sequenziersystem"] = "Sequencer";
+		de2en["Readl&auml;nge"] = "Read length";
 		de2en["Referenzgenom"] = "Reference genome";
 		de2en["Datum"] = "Date";
 		de2en["Benutzer"] = "User";

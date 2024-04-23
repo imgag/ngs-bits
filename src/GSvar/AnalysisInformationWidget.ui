@@ -99,6 +99,16 @@
        <string>NGSD import</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>date</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>caller</string>
+      </property>
+     </column>
     </widget>
    </item>
   </layout>

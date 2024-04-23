@@ -57,6 +57,7 @@ void AnalysisInformationWidget::updateGUI()
 		if (sample_data.type.startsWith("DNA"))
 		{
 			ImportStatusGermline import_status = db.importStatus(ps_id_);
+			VariantCallingInfo call_info = db.variantCallingInfo(ps_id_);
 
 			//BAM
 			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
@@ -95,6 +96,8 @@ void AnalysisInformationWidget::updateGUI()
 				}
 			}
 			ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.small_variants) + " small variants"));
+			ui_.table->setItem(1, 3, GUIHelper::createTableItem(call_info.small_call_date));
+			ui_.table->setItem(1, 4, GUIHelper::createTableItem(call_info.small_caller + " " + call_info.small_caller_version));
 
 			//CNVs
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COPY_NUMBER_CALLS);
@@ -113,6 +116,8 @@ void AnalysisInformationWidget::updateGUI()
 				}
 			}
 			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
+			ui_.table->setItem(2, 3, GUIHelper::createTableItem(call_info.cnv_call_date));
+			ui_.table->setItem(2, 4, GUIHelper::createTableItem(call_info.cnv_caller + " " + call_info.cnv_caller_version));
 
 			//SVs
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::STRUCTURAL_VARIANTS);
@@ -131,6 +136,8 @@ void AnalysisInformationWidget::updateGUI()
 				}
 			}
 			ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.svs) + " SVs"));
+			ui_.table->setItem(3, 3, GUIHelper::createTableItem(call_info.sv_call_date));
+			ui_.table->setItem(3, 4, GUIHelper::createTableItem(call_info.sv_caller + " " + call_info.sv_caller_version));
 
 			GUIHelper::resizeTableCells(ui_.table);
 		}

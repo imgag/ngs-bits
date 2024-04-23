@@ -221,6 +221,8 @@
             <property name="font">
              <font>
               <pointsize>8</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -1038,6 +1040,8 @@
           <property name="font">
            <font>
             <pointsize>8</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -1060,6 +1064,8 @@
           <property name="font">
            <font>
             <pointsize>8</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -1072,6 +1078,8 @@
           <property name="font">
            <font>
             <pointsize>8</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -1238,8 +1246,17 @@
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
            <widget class="QTableWidget" name="tw_disease_info">
+            <property name="contextMenuPolicy">
+             <enum>Qt::CustomContextMenu</enum>
+            </property>
             <property name="editTriggers">
              <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
             </property>
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>
