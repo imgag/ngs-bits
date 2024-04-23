@@ -26,13 +26,15 @@ public:
 		addInfileList("prs", "List of PRS VCFs.", false);
 		addInfile("bam", "BAM file corresponding to the VCF.", false);
 		addOutfile("out", "Output TSV file containing Scores and PRS details", false);
+		addOutfile("details", "Output TSV containing each variant with weight, allele count and population AF.", true);
 
 		//optional
 		addInfile("ref", "Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addInt("min_depth", "Depth cutoff below which uncalled SNPs are considered not callable and POP_AF is used instead of genotype.", true, 10);
 
 		changeLog(2020,  7, 22, "Initial version of this tool.");
-		changeLog(2022,  12, 15, "Added BAM depth check and population AF.");
+		changeLog(2022, 12, 15, "Added BAM depth check and population AF.");
+		changeLog(2024,  4, 22, "Added output of factors and support for wt variants.");
 	}
 
 	virtual void main()
@@ -58,6 +60,17 @@ public:
 		QSharedPointer<QFile> output_tsv = Helper::openFileForWriting(getOutfile("out"), true);
 		QByteArrayList column_headers = QByteArrayList() << "pgs_id" << "trait" << "score" << "percentile" << "build" << "variants_in_prs" << "variants_low_depth" << "pgp_id" << "citation";
 		output_tsv->write("#" + column_headers.join("\t") + "\n");
+
+		//create optional output file containing all the factors used to calculate the PRS
+		bool detail_output = !getOutfile("details").isEmpty();
+		QSharedPointer<QFile> detail_tsv;
+		if (detail_output)
+		{
+			detail_tsv = Helper::openFileForWriting(getOutfile("details"), false);
+			detail_tsv->write("## allele_count: A '.' in the allele_count column means insufficient depth and the tool uses the population_af as fallback allele count\n");
+			QByteArrayList detail_tsv_headers = QByteArrayList() << "variant" << "pgs_id" << "weight" << "allele_count" << "population_af";
+			detail_tsv->write("#" + column_headers.join("\t") + "\n");
+		}
 
 		//iterate over all given PRS files
 		foreach (const QString& prs_file_path, getInfileList("prs"))
@@ -130,57 +143,129 @@ public:
 					THROW(FileParseException, "Multi-allelic variants in PRS VCF files are not supported: " + prs_variant.toString());
 				}
 
+				bool prs_is_wildtype = ((prs_variant.altString() == ".") || (prs_variant.altString() == prs_variant.ref()));
+
 				//get all matching variants at this position
 				QByteArrayList matching_lines = sample_vcf.getMatchingLines(prs_variant.chr(), prs_variant.start(), prs_variant.end(), true);
 				QByteArrayList matching_variants;
-				foreach(const QByteArray& line, matching_lines)
+
+				// get weight/pop_af from PRS VCF
+				double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
+				double pop_af = Helper::toDouble(prs_variant.info("POP_AF"), "PRS population allele frequency");
+				int allele_count = -1;
+
+				if (prs_is_wildtype)
 				{
-					// check if overlapping variant is actually the one we are looking for
-					QByteArrayList parts = line.split('\t');
-					if(parts[1].toInt()==prs_variant.start() && parts[3]==prs_variant.ref() && parts[4]==prs_variant.alt(0))
+					if (matching_lines.size() > 0)
 					{
-						matching_variants.append(line);
+						allele_count = 2;
+						//each variant at this position reduces the allele count by 1 (het) or 2 (hom)
+						foreach(const QByteArray& line, matching_lines)
+						{
+							//get genotype
+							QByteArrayList split_line = line.split('\t');
+							QByteArrayList format_header_items = split_line[8].split(':');
+							QByteArrayList format_value_items = split_line[9].split(':');
+							int genotype_idx = format_header_items.indexOf("GT");
+							if(genotype_idx < 0) THROW(FileParseException, "Genotype information is missing for sample variant: " + matching_variants[0]);
+
+							int var_allele_count = format_value_items[genotype_idx].count('1');
+
+							if (var_allele_count > 2) THROW(FileParseException, "Invalid genotype '" + format_value_items[genotype_idx].trimmed() + "' in sample variant: " + matching_variants[0]);
+
+							allele_count -= var_allele_count;
+
+							//prevent allele count to drop below 0
+							allele_count = std::max(allele_count, 0);
+						}
+
+						if (allele_count > 0)
+						{
+							//calculate PRS part
+							prs += weight * allele_count;
+
+							++c_found;
+						}
+						//else: both alleles contain (non wt) variants
+
+					}
+					else
+					{
+						//no variant called: check bam file
+						VariantDetails var_details = bam_file.getVariantDetails(reference, prs_variant);
+						if (var_details.depth < min_depth)
+						{
+							allele_count = -1;
+							// No call possible -> use population AF
+							prs += weight * pop_af;
+							++c_low_depth;
+						}
+						else  //sufficient depth & no call => both alleles wildtype
+						{
+							allele_count = 2;
+							++c_found;
+						}
+					}
+
+				}
+				else
+				{
+					foreach(const QByteArray& line, matching_lines)
+					{
+						// check if overlapping variant is actually the one we are looking for
+						QByteArrayList parts = line.split('\t');
+						if(parts[1].toInt()==prs_variant.start() && parts[3]==prs_variant.ref() && parts[4]==prs_variant.alt(0))
+						{
+							matching_variants.append(line);
+						}
+					}
+
+					if(matching_variants.size() > 1)
+					{
+						THROW(FileParseException, "Variant occurs multiple times in sample VCF: " +  prs_variant.toString());
+					}
+
+					if(matching_variants.size() == 1)
+					{
+						//get genotype
+						QByteArrayList split_line = matching_variants[0].split('\t');
+						QByteArrayList format_header_items = split_line[8].split(':');
+						QByteArrayList format_value_items = split_line[9].split(':');
+						int genotype_idx = format_header_items.indexOf("GT");
+						if(genotype_idx < 0) THROW(FileParseException, "Genotype information is missing for sample variant: " + matching_variants[0]);
+
+						allele_count = format_value_items[genotype_idx].count('1');
+
+						if (allele_count > 2) THROW(FileParseException, "Invalid genotype '" + format_value_items[genotype_idx].trimmed() + "' in sample variant: " + matching_variants[0]);
+
+						//calculate PRS part
+						prs += weight * allele_count;
+
+						++c_found;
+					}
+					else //0 matching variants
+					{
+						//no variant called: check bam file
+						VariantDetails var_details = bam_file.getVariantDetails(reference, prs_variant);
+						if (var_details.depth < min_depth)
+						{
+							allele_count = -1;
+							// No call possible -> use population AF
+							prs += weight * pop_af;
+							++c_low_depth;
+						}
+						else  //sufficient depth & no call => wildtype
+						{
+							allele_count = 0;
+						}
 					}
 				}
 
-				if(matching_variants.size() > 1)
+				if (detail_output)
 				{
-					THROW(FileParseException, "Variant occurs multiple times in sample VCF: " +  prs_variant.toString());
-				}
-
-				if(matching_variants.size() == 1)
-				{
-					//get genotype
-					QByteArrayList split_line = matching_variants[0].split('\t');
-					QByteArrayList format_header_items = split_line[8].split(':');
-					QByteArrayList format_value_items = split_line[9].split(':');
-					int genotype_idx = format_header_items.indexOf("GT");
-					if(genotype_idx < 0) THROW(FileParseException, "Genotype information is missing for sample variant: " + matching_variants[0]);
-
-					int allele_count = format_value_items[genotype_idx].count('1');
-
-					if (allele_count > 2) THROW(FileParseException, "Invalid genotype '" + format_value_items[genotype_idx].trimmed() + "' in sample variant: " + matching_variants[0]);
-
-					//calculate PRS part
-					double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
-					prs += weight * allele_count;
-
-					++c_found;
-				}
-				else //0 matching variants
-				{
-					//no variant called: check bam file
-
-					VariantDetails var_details = bam_file.getVariantDetails(reference, prs_variant);
-					if (var_details.depth < min_depth)
-					{
-						// No call possible -> use population AF
-						double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
-						double pop_af = Helper::toDouble(prs_variant.info("POP_AF"), "PRS population allele frequency");
-						prs += weight * pop_af;
-						++c_low_depth;
-					}
-					// else: sufficient depth & no call => wildtype
+					QByteArrayList detail_tsv_line = QByteArrayList() << prs_variant.toString() << column_entries["pgs_id"] << QByteArray::number(weight)
+																	  << ((allele_count < 0)?".":QByteArray::number(allele_count)) << QByteArray::number(pop_af);
+					detail_tsv->write(detail_tsv_line.join("\t") + "\n");
 				}
 			}
 
@@ -216,6 +301,12 @@ public:
 
 		output_tsv->flush();
 		output_tsv->close();
+
+		if (detail_output)
+		{
+			detail_tsv->flush();
+			detail_tsv->close();
+		}
 
 	}
 };
