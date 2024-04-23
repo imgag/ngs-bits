@@ -339,6 +339,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 	}
+	if (p.only_with_small_variants)
+	{
+		conditions << "ps.id IN (SELECT DISTINCT processed_sample_id FROM small_variants_callset)";
+	}
 	if (!p.s_phenotypes.isEmpty())
 	{
 		tables	<< "sample_disease_info sdi";

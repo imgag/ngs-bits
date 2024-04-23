@@ -1,5 +1,5 @@
 ### BamFilter tool help
-	BamFilter (2020_12-85-g5ff87d17)
+	BamFilter (2024_02-42-g36bb2635)
 	
 	Filter alignments in BAM/CRAM file (no input sorting required).
 	
@@ -16,6 +16,8 @@
 	                Default value: '1'
 	  -minDup <int> Minimum number of duplicates.
 	                Default value: '0'
+	  -maxIS <int>  Maximum insert size, -1 to disable.
+	                Default value: '-1'
 	  -ref <file>   Reference genome for CRAM support (mandatory if CRAM is used).
 	                Default value: ''
 	  -write_cram   Writes a CRAM file as output.
@@ -28,7 +30,8 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamFilter changelog
-	BamFilter 2020_12-85-g5ff87d17
+	BamFilter 2024_02-42-g36bb2635
 	
+	2024-02-15 Added option to remove large fragments.
 	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

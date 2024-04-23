@@ -37,6 +37,7 @@ public:
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
 		addFlag("match_external_names", "If set, also samples for which the external name matches 'sample' are exported.");
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
+		addFlag("only_with_small_variants", "If set, only processed samples that have small variants in NGSD are listed.");
 		addString("species", "Species filter.", true, "");
 		addString("tissue", "Tissue filter.", true, "");
 		addString("ancestry", "Ancestry filter.", true, "");
@@ -111,6 +112,7 @@ public:
 		params.include_germline_samples = !getFlag("no_normal");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
 		params.include_merged_samples = getFlag("with_merged");
+		params.only_with_small_variants = getFlag("only_with_small_variants");
 		params.p_name = getString("project");
 		params.p_type = getString("project_type");
 		params.include_archived_projects = !getFlag("no_archived_projects");

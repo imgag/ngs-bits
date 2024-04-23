@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2023_11-133-g87eceb58)
+	VariantFilterAnnotations (2024_02-42-g36bb2635)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -66,8 +66,12 @@
 	                                     genes - Gene set [non-empty]
 	Genotype affected                  Filter for genotype(s) of the 'affected' sample(s).
 	                                   Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s).
+	                                   comp-het works on unphased data (short-read) and keeps all het variants where are at least two (remaining) variants per gene.
+	                                   comp-het (phased) only works on phased data (long-read) on completely phased genes and keeps all het variants where are at least one het variant on each allele per gene.
+	                                   comp-het (unphased) only works on phased data (long-read) on genes with at least one unphased variant or multiple phasing blocks and keeps all het variants where are at least two het variant per gene (inverse of com-het (phased)).
+	                                   You can only select one of the three above at a time.
 	                                   Parameters:
-	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a,comp-het] [non-empty]
+	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)] [non-empty]
 	Genotype control                   Filter for genotype of the 'control' sample(s).
 	                                   Parameters:
 	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a] [non-empty]
@@ -142,8 +146,8 @@
 	                                     build - Genome build used for pseudoautosomal region coordinates [default=hg38] [valid=hg19,hg38]
 	Tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.
 	                                   Parameters:
-	                                     het_af_range - Consider allele frequencies of 50% Â± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
-	                                     hom_af_range - Consider allele frequencies of 100% Â± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
+	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
+	                                     hom_af_range - Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
 	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
@@ -174,7 +178,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2023_11-133-g87eceb58
+	VariantFilterAnnotations 2024_02-42-g36bb2635
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.
