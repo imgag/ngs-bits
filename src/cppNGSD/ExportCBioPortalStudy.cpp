@@ -245,7 +245,7 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::PROCESSING_SYSTEM:
 			return getProcessingSystem(sample_idx);
 		case Attribute::CLINICAL_PHENOTYPE:
-			return getClinicalPhenotype(sample_idx);
+			return getClinicalPhenotype(sample_idx).replace("\n", " ").replace("\r", " ");
 		case Attribute::COMMENT:
 			return getComments(sample_idx).replace("\n", ", ").replace("\t", " ");
 		case Attribute::HPO_TERMS:
