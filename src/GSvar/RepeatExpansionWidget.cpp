@@ -7,6 +7,8 @@
 #include <QMenu>
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
+#include <QSvgWidget>
+#include <QSvgRenderer>
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "TsvFile.h"
@@ -72,11 +74,25 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
 	if (action==a_show_svg)
     {
-        //open SVG in browser
-		QString filename = image_loc.filename;
-		if (!ClientHelper::isClientServerMode()) filename = QFileInfo(image_loc.filename).absoluteFilePath();
+		QString filename;
+		if (!ClientHelper::isClientServerMode())
+		{
+			filename = QFileInfo(image_loc.filename).absoluteFilePath();
+		}
+		QByteArray svg = VersatileFile(image_loc.filename).readAll();
 
-		QDesktopServices::openUrl(QUrl(filename));
+		QSvgWidget* widget = new QSvgWidget();
+		widget->load(svg);
+		QRect rect = widget->renderer()->viewBox();
+		widget->setMinimumSize(rect.width(), rect.height());
+
+		QScrollArea* scroll_area = new QScrollArea(this);
+		scroll_area->setFrameStyle(QFrame::NoFrame);
+		scroll_area->setWidget(widget);
+		scroll_area->setMinimumSize(1200, 800);
+
+		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Image of " + getCell(row, "repeat ID").trimmed());
+		dlg->exec();
 	}
 	else if (action==a_copy)
 	{
@@ -144,7 +160,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 			hist.inc(lengths, true);
 
 			//show chart
-			QChartView* view = GUIHelper::histogramChart(hist, "BAF");
+			QChartView* view = GUIHelper::histogramChart(hist, "repeat length");
 			auto dlg = GUIHelper::createDialog(view, title);
 			dlg->exec();
 		}
@@ -505,10 +521,11 @@ void RepeatExpansionWidget::updateRowVisibility()
 	QString id_search_str = ui_.filter_id->text().trimmed();
 	if (!id_search_str.isEmpty())
 	{
-		int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
+		int col_repeat_id = GUIHelper::columnIndex(ui_.table, "repeat ID");
+		int col_diseases = GUIHelper::columnIndex(ui_.table, "diseases");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			if (!ui_.table->item(row, col)->text().contains(id_search_str, Qt::CaseInsensitive))
+			if (!ui_.table->item(row, col_repeat_id)->text().contains(id_search_str, Qt::CaseInsensitive) && !ui_.table->item(row, col_diseases)->text().contains(id_search_str, Qt::CaseInsensitive))
 			{
 				hidden[row] = true;
 			}

@@ -639,7 +639,7 @@ void MaintenanceDialog::deleteVariantsOfBadSamples()
 	appendOutputLine("Processed samples with bad quality: " + db.getValue("SELECT count(*) FROM processed_sample WHERE quality='bad'").toString());
 	appendOutputLine("Processed samples with bad quality (not tumor/FFPE): " + QString::number(ids.count()));
 	appendOutputLine("Processed samples with variants: " + QString::number(c_variants));
-	appendOutputLine("Processed samples with variants (deleted): " + QString::number(c_variants));
+	appendOutputLine("Processed samples with variants (deleted): " + QString::number(c_deleted));
 	appendOutputLine("Processed samples with variants (deletion failed): " + QString::number(c_failed));
 
 	QApplication::restoreOverrideCursor();

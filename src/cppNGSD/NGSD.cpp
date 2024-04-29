@@ -1656,7 +1656,7 @@ QString NGSD::repeatExpansionId(const QString& region, const QString& repeat_uni
 
 QString NGSD::repeatExpansionComments(int id)
 {
-	QStringList output = getValue("SELECT comments FROM repeat_expansion WHERE id="+QString::number(id)).toString().trimmed().split("\n");
+	QStringList output = getValue("SELECT comments FROM repeat_expansion WHERE id="+QString::number(id)).toString().replace("<br>", "\n").trimmed().split("\n");
 	for (int i=0; i<output.count(); ++i)
 	{
 		QString line = output[i].trimmed();
