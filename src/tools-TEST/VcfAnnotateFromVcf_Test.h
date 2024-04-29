@@ -11,14 +11,14 @@ private slots:
 	{
 		EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out1.vcf -config_file " + TESTDATA("data_in/VcfAnnotateFromVcf_config.tsv") );
 		COMPARE_FILES("out/VcfAnnotateFromVcf_out1.vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out1.vcf"));
-		VCF_IS_VALID("out/VcfAnnotateFromVcf_out1.vcf");
+		VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out1.vcf");
 	}
 
 	void test_with_parameters()
 	{
 		EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out2.vcf -source " + TESTDATA("data_in/VcfAnnotateFromVcf_an2_NGSD.vcf.gz") + " -info_keys COUNTS,GSC01=GROUP,HAF,CLAS,CLAS_COM,COM -id_column ID -prefix NGSD" );
 		COMPARE_FILES("out/VcfAnnotateFromVcf_out2.vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out2.vcf"));
-		VCF_IS_VALID("out/VcfAnnotateFromVcf_out2.vcf");
+		VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out2.vcf");
 	}
 
 	//multi-thread test
@@ -30,11 +30,11 @@ private slots:
 
 			EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out1_" + suffix +".vcf -config_file " + TESTDATA("data_in/VcfAnnotateFromVcf_config.tsv") + " -block_size 30 -threads " + QString::number(i));
 			COMPARE_FILES("out/VcfAnnotateFromVcf_out1_" + suffix +".vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out1.vcf"));
-			VCF_IS_VALID("out/VcfAnnotateFromVcf_out1_" + suffix +".vcf");
+			VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out1_" + suffix +".vcf");
 
 			EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out2_" + suffix +".vcf -source " + TESTDATA("data_in/VcfAnnotateFromVcf_an2_NGSD.vcf.gz") + " -info_keys COUNTS,GSC01=GROUP,HAF,CLAS,CLAS_COM,COM -id_column ID -prefix NGSD -block_size 30 -threads " + QString::number(i) );
 			COMPARE_FILES("out/VcfAnnotateFromVcf_out2_" + suffix +".vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out2.vcf"));
-			VCF_IS_VALID("out/VcfAnnotateFromVcf_out2_" + suffix +".vcf");
+			VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out2_" + suffix +".vcf");
 		}
 	}
 
@@ -42,14 +42,14 @@ private slots:
 	{
 		EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out3.vcf -source " + TESTDATA("data_in/VcfAnnotateFromVcf_an2_NGSD.vcf.gz") + " -info_keys GSC01=GROUP,CLAS,COM,CLAS_COM,COUNTS,HAF -id_column ID -prefix NGSD" );
 		COMPARE_FILES("out/VcfAnnotateFromVcf_out3.vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out3.vcf"));
-		VCF_IS_VALID("out/VcfAnnotateFromVcf_out3.vcf");
+		VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out3.vcf");
 	}
 
 	void test_with_parameters_id_only()
 	{
 		EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out4.vcf -source " + TESTDATA("data_in/VcfAnnotateFromVcf_an2_NGSD.vcf.gz") + " -id_column ID -prefix NGSD" );
 		COMPARE_FILES("out/VcfAnnotateFromVcf_out4.vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out4.vcf"));
-		VCF_IS_VALID("out/VcfAnnotateFromVcf_out4.vcf");
+		VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out4.vcf");
 	}
 
 };
