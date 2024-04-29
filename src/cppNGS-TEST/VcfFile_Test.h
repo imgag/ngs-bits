@@ -219,7 +219,7 @@ private slots:
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.store("out/VariantList_store_01.vcf", false, BGZF_NO_COMPRESSION);
-		VCF_IS_VALID("out/VariantList_store_01.vcf")
+		VCF_IS_VALID_HG19("out/VariantList_store_01.vcf")
 
 		//reload and check that everything stayed the same
 		vl.load("out/VariantList_store_01.vcf");
@@ -291,7 +291,7 @@ private slots:
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/VariantList_emptyDescriptions.vcf"));
 		vl.store("out/VariantList_emptyDescriptions_fixed.vcf", false, BGZF_NO_COMPRESSION);
-		VCF_IS_VALID("out/VariantList_emptyDescriptions_fixed.vcf")
+		VCF_IS_VALID_HG19("out/VariantList_emptyDescriptions_fixed.vcf")
 
 		VcfFile vl2;
 		vl2.load("out/VariantList_emptyDescriptions_fixed.vcf");
@@ -451,7 +451,7 @@ private slots:
 		vl.sortByFile(TESTDATA("data_in/variantList_sortbyFile.fai"));
 		vl.store("out/sortByFile.vcf", false, BGZF_NO_COMPRESSION);
 		//entries should be sorted by variantList_sortbyFile.fai, which is reverse-numeric concerning chromosomes
-		VCF_IS_VALID("out/sortByFile.vcf")
+		VCF_IS_VALID_HG19("out/sortByFile.vcf")
 		X_EQUAL(vl[0].chr(),Chromosome("chr19"));
 		I_EQUAL(vl[0].start(),14466629);
 		X_EQUAL(vl[1].chr(),Chromosome("chr18"));
