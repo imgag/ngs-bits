@@ -1,5 +1,5 @@
 ### NGSDAddVariantsGermline tool help
-	NGSDAddVariantsGermline (2022_04-62-gc5232248)
+	NGSDAddVariantsGermline (2024_02-42-g36bb2635)
 	
 	Imports variants of a processed sample into the NGSD.
 	
@@ -21,6 +21,10 @@
 	                  Default value: ''
 	  -sv_force       Force import of SVs, even if already imported.
 	                  Default value: 'false'
+	  -re <file>      RE list in VCF format (as produced by megSAP).
+	                  Default value: ''
+	  -re_force       Force import of REs, even if already imported.
+	                  Default value: 'false'
 	  -out <file>     Output file. If unset, writes to STDOUT.
 	                  Default value: ''
 	  -max_af <float> Maximum allele frequency of small variants to import (gnomAD).
@@ -39,7 +43,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAddVariantsGermline changelog
-	NGSDAddVariantsGermline 2022_04-62-gc5232248
+	NGSDAddVariantsGermline 2024_02-42-g36bb2635
 	
 	2021-07-19 Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

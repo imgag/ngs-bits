@@ -276,6 +276,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="button_store_and_close">
+       <property name="text">
+        <string>store in NGSD and close</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="1" column="0">
@@ -1270,22 +1277,22 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="benign_benign_computational_evidence"/>
   <buttongroup name="onco_protein_length_change"/>
   <buttongroup name="benign_synonymous_mutation"/>
+  <buttongroup name="onco_other_aa_known_oncogenic"/>
+  <buttongroup name="onco_very_weak_cancerhotspot"/>
   <buttongroup name="onco_located_in_canerhotspot"/>
-  <buttongroup name="onco_oncogenic_functional_studies"/>
-  <buttongroup name="onco_known_oncogenic_aa"/>
-  <buttongroup name="onco_absent_from_controls"/>
   <buttongroup name="onco_computational_evidence"/>
   <buttongroup name="onco_weak_cancerhotspot"/>
+  <buttongroup name="onco_oncogenic_functional_studies"/>
+  <buttongroup name="onco_strong_cancerhotspot"/>
+  <buttongroup name="onco_absent_from_controls"/>
+  <buttongroup name="benign_very_high_maf"/>
+  <buttongroup name="benign_benign_computational_evidence"/>
   <buttongroup name="benign_high_maf"/>
   <buttongroup name="onco_null_mutation_in_tsg"/>
+  <buttongroup name="onco_known_oncogenic_aa"/>
   <buttongroup name="onco_mutation_in_gene_with_etiology"/>
-  <buttongroup name="benign_very_high_maf"/>
-  <buttongroup name="onco_other_aa_known_oncogenic"/>
   <buttongroup name="benign_benign_functional_studies"/>
-  <buttongroup name="onco_strong_cancerhotspot"/>
-  <buttongroup name="onco_very_weak_cancerhotspot"/>
  </buttongroups>
 </ui>

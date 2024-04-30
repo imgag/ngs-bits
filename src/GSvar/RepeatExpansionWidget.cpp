@@ -5,6 +5,10 @@
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QMenu>
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
+#include <QSvgWidget>
+#include <QSvgRenderer>
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "TsvFile.h"
@@ -56,11 +60,12 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 
     //create menu
 	QMenu menu(ui_.table);
+	QAction* a_comments = menu.addAction(QIcon(":/Icons/Comment.png"), "Show comments");
+	QAction* a_distribution = menu.addAction(QIcon(":/Icons/AF_histogram.png"), "Show distribution");
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
-	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
 	menu.addSeparator();
-	QAction* a_comments = menu.addAction("Show/edit comments");
+	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
@@ -69,11 +74,25 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
 	if (action==a_show_svg)
     {
-        //open SVG in browser
-		QString filename = image_loc.filename;
-		if (!ClientHelper::isClientServerMode()) filename = QFileInfo(image_loc.filename).absoluteFilePath();
+		QString filename;
+		if (!ClientHelper::isClientServerMode())
+		{
+			filename = QFileInfo(image_loc.filename).absoluteFilePath();
+		}
+		QByteArray svg = VersatileFile(image_loc.filename).readAll();
 
-		QDesktopServices::openUrl(QUrl(filename));
+		QSvgWidget* widget = new QSvgWidget();
+		widget->load(svg);
+		QRect rect = widget->renderer()->viewBox();
+		widget->setMinimumSize(rect.width(), rect.height());
+
+		QScrollArea* scroll_area = new QScrollArea(this);
+		scroll_area->setFrameStyle(QFrame::NoFrame);
+		scroll_area->setWidget(widget);
+		scroll_area->setMinimumSize(1200, 800);
+
+		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Image of " + getCell(row, "repeat ID").trimmed());
+		dlg->exec();
 	}
 	else if (action==a_copy)
 	{
@@ -93,7 +112,63 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_comments)
 	{
-		//TODO show/edit comment
+		//get repeat data
+		QString region = getCell(row, "region");
+		QString repeat_unit = getCell(row, "repeat unit");
+
+		//get comments
+		NGSD db;
+		QString id = db.repeatExpansionId(region, repeat_unit, false);
+		QString comments;
+		if (!id.isEmpty()) comments = db.repeatExpansionComments(id.toInt());
+		//show dialog
+		QTextEdit* edit = new QTextEdit(this);
+		edit->setMinimumWidth(800);
+		edit->setMinimumHeight(500);
+		edit->setReadOnly(true);
+		edit->setHtml(comments);
+		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(edit, "Comments");
+		dlg->exec();
+	}
+	else if (action==a_distribution)
+	{
+		QString title = getCell(row, "repeat ID") + " repeat histogram";
+
+		try
+		{
+			//get repeat data
+			QString region = getCell(row, "region");
+			QString repeat_unit = getCell(row, "repeat unit");
+
+			//get RE lengths
+			NGSD db;
+			QString id = db.repeatExpansionId(region, repeat_unit, true);
+			QVector<double> lengths = db.getValuesDouble("SELECT allele1 FROM repeat_expansion_genotype WHERE repeat_expansion_id=" + id);
+			lengths << db.getValuesDouble("SELECT allele2 FROM repeat_expansion_genotype WHERE repeat_expansion_id=" + id);
+
+			//determine min, max and bin size
+			std::sort(lengths.begin(), lengths.end());
+			double min = 0;
+			int max_bin = 0.995 * lengths.count();
+			double max = lengths[max_bin];
+			double median = BasicStatistics::median(lengths, false);
+			if (2*median > max) max = 2*median;
+			double bin_size = (max-min)/40;
+
+			//create histogram
+			Histogram hist(min, max, bin_size);
+			hist.inc(lengths, true);
+
+			//show chart
+			QChartView* view = GUIHelper::histogramChart(hist, "repeat length");
+			auto dlg = GUIHelper::createDialog(view, title);
+			dlg->exec();
+		}
+		catch(Exception& e)
+		{
+			QMessageBox::warning(this, title, "Error:\n" + e.message());
+			return;
+		}
 	}
 }
 
@@ -249,7 +324,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		QString repeat_unit = getCell(row, "repeat unit");
 
 		//check if repeat is in NGSD
-		QString id = db.getValue("SELECT id FROM repeat_expansion WHERE region='"+region+"' and repeat_unit='" + repeat_unit + "'", true).toString().trimmed();
+		QString id = db.repeatExpansionId(region, repeat_unit);
 		if (id.isEmpty())
 		{
 			setCellDecoration(row, "repeat ID", "Repeat not found in NGSD", orange_);
@@ -283,7 +358,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		setCell(row, "OMIM disease IDs", disease_ids_omim);
 
 		//comments
-		QString comments = db.getValue("SELECT comments FROM repeat_expansion WHERE id=" + id).toString().trimmed();
+		QString comments = db.repeatExpansionComments(id.toInt());
 		QTableWidgetItem* item = setCell(row, "comments", "");
 		if (!comments.isEmpty())
 		{
@@ -446,10 +521,11 @@ void RepeatExpansionWidget::updateRowVisibility()
 	QString id_search_str = ui_.filter_id->text().trimmed();
 	if (!id_search_str.isEmpty())
 	{
-		int col = GUIHelper::columnIndex(ui_.table, "repeat ID");
+		int col_repeat_id = GUIHelper::columnIndex(ui_.table, "repeat ID");
+		int col_diseases = GUIHelper::columnIndex(ui_.table, "diseases");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			if (!ui_.table->item(row, col)->text().contains(id_search_str, Qt::CaseInsensitive))
+			if (!ui_.table->item(row, col_repeat_id)->text().contains(id_search_str, Qt::CaseInsensitive) && !ui_.table->item(row, col_diseases)->text().contains(id_search_str, Qt::CaseInsensitive))
 			{
 				hidden[row] = true;
 			}
@@ -461,6 +537,4 @@ void RepeatExpansionWidget::updateRowVisibility()
 	{
 		ui_.table->setRowHidden(row, hidden[row]);
 	}
-
-	QTextStream(stdout) << "REs shown: " << hidden.count(false) << endl; //TODO remove
 }

@@ -4321,6 +4321,13 @@ void MainWindow::on_actionProject_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionRepeatExpansion_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("repeat_expansion");
+	auto dlg = GUIHelper::createDialog(widget, "Repeat expansion administration");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionSample_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("sample");
@@ -5742,6 +5749,7 @@ void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int ind
 	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(index, vl, this);
 	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
 	connect(interpreter, SIGNAL(stored(int, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(int, QString, QString)) );
+	connect(interpreter, SIGNAL(closeDialog() ), dlg.data(), SLOT(close()) );
 
 	dlg->exec();
 }

@@ -79,5 +79,14 @@ private slots:
 		EXECUTE_FAIL("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in6.vcf") + " -out out/VcfCheck_out8.txt");
 		COMPARE_FILES("out/VcfCheck_out8.txt", TESTDATA("data_out/VcfCheck_out8.txt"));
 	}
+
+	void invalid_reference_sequence()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE_FAIL("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in7.vcf") + " -out out/VcfCheck_out9.txt");
+		COMPARE_FILES("out/VcfCheck_out9.txt", TESTDATA("data_out/VcfCheck_out9.txt"));
+	}
 };
 

@@ -406,6 +406,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
 	bool include_merged_samples = false;
+	bool only_with_small_variants = false;
 
 	//filters project
 	QString p_name;
@@ -704,6 +705,8 @@ public:
 	///Executes an SQL query and returns the integer value list.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QList<int> getValuesInt(const QString& query, QString bind_value = QString()) const;
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
+	QVector<double> getValuesDouble(const QString& query, QString bind_value = QString()) const;
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
@@ -847,6 +850,11 @@ public:
 	void deleteVariants(const QString& ps_id);
 	///Deletes the variants of a processed sample (a specific type)
 	void deleteVariants(const QString& ps_id, VariantType type);
+
+	///Returns the repeat expansion NGSD ID
+	QString repeatExpansionId(const QString& region, const QString& repeat_unit, bool throw_if_fails=true);
+	///Retunrs the (rich text) comments of the repeat with the given ID
+	QString repeatExpansionComments(int id);
 
 	///Adds PubMed ID to a variant
 	void addPubmedId(int variant_id, const QString& pubmed_id);

@@ -577,9 +577,9 @@ public:
 
 			//get repeat ID
 			QString region = re.chr().strNormalized(true) + ":" + QString::number(re.start()) + "-" + re.info("END").trimmed();
-			QByteArray repeat_unit = re.info("RU").trimmed();
-			QVariant repeat_id = db.getValue("SELECT id FROM repeat_expansion WHERE region='"+region+"' AND repeat_unit='"+repeat_unit+"'", true);
-			if (!repeat_id.isValid())
+			QString repeat_unit = re.info("RU").trimmed();
+			QString repeat_id = db.repeatExpansionId(region, repeat_unit, false);
+			if (repeat_id.isEmpty())
 			{
 				if (debug) out << "Skipped repeat '" << region << "/" << repeat_unit << "' because it is not in NGSD!" << endl;
 				continue;

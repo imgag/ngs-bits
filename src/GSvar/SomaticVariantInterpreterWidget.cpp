@@ -41,6 +41,7 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(int variant_ind
 	connect(ui_->button_select_from_input_anno, SIGNAL(clicked(bool)), this, SLOT(preselectFromInputAnno()));
 	connect(ui_->button_select_from_NGSD, SIGNAL(clicked(bool)), this, SLOT(preselectFromNGSD()));
 	connect(ui_->button_store_in_ngsd, SIGNAL(clicked(bool)), this, SLOT(storeInNGSD()));
+	connect(ui_->button_store_and_close, SIGNAL(clicked(bool)), this, SLOT(storeAndClose()));
 
 
 	//Preselect from NGSD, if not existing according annotations
@@ -200,6 +201,12 @@ void SomaticVariantInterpreterWidget::storeInNGSD()
 	setNGSDMetaData();
 
 	emit stored(variant_index_, SomaticVariantInterpreter::viccScoreAsString(vicc_data), vicc_data.comment);
+}
+
+void SomaticVariantInterpreterWidget::storeAndClose()
+{
+	storeInNGSD();
+	emit closeDialog();
 }
 
 

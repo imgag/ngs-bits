@@ -268,10 +268,10 @@ private slots:
 
 		//check db is filled
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
-		I_EQUAL(count, 50);
+		I_EQUAL(count, 84);
 
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();
-		I_EQUAL(count, 6);
+		I_EQUAL(count, 11);
 
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele1 > 30").toInt();
 		I_EQUAL(count, 2);

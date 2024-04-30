@@ -339,6 +339,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 	}
+	if (p.only_with_small_variants)
+	{
+		conditions << "ps.id IN (SELECT DISTINCT processed_sample_id FROM small_variants_callset)";
+	}
 	if (!p.s_phenotypes.isEmpty())
 	{
 		tables	<< "sample_disease_info sdi";
@@ -1626,6 +1630,43 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 	{
 		THROW(NotImplementedException, "Deleting variants of type '" + QString::number((int)type) + "' not implemented!");
 	}
+}
+
+QString NGSD::repeatExpansionId(const QString& region, const QString& repeat_unit, bool throw_if_fails)
+{
+	SqlQuery query = getQuery(); //use binding user input (safety)
+	query.prepare("SELECT id FROM repeat_expansion WHERE region=:0 and repeat_unit=:1");
+	query.bindValue(0, region);
+	query.bindValue(1, repeat_unit);
+	query.exec();
+	if (!query.next())
+	{
+		if (throw_if_fails)
+		{
+			THROW(DatabaseException, "Repeat expansion " + region + "/" + repeat_unit + " not found in NGSD!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+
+	return query.value(0).toString();
+}
+
+QString NGSD::repeatExpansionComments(int id)
+{
+	QStringList output = getValue("SELECT comments FROM repeat_expansion WHERE id="+QString::number(id)).toString().replace("<br>", "\n").trimmed().split("\n");
+	for (int i=0; i<output.count(); ++i)
+	{
+		QString line = output[i].trimmed();
+		if (line.startsWith('#') && line.endsWith('#'))
+		{
+			output[i] = "<b>" + line.mid(1, line.length()-2) + "</b>";
+		}
+	}
+
+	return output.join("<br>");
 }
 
 void NGSD::addPubmedId(int variant_id, const QString& pubmed_id)
@@ -3121,7 +3162,38 @@ QList<int> NGSD::getValuesInt(const QString& query, QString bind_value) const
 	output.reserve(q.size());
 	while(q.next())
 	{
-		output << q.value(0).toInt();
+		QVariant value = q.value(0);
+		if (!value.isNull())
+		{
+			output << value.toInt();
+		}
+	}
+	return output;
+}
+
+QVector<double> NGSD::getValuesDouble(const QString& query, QString bind_value) const
+{
+	SqlQuery q = getQuery();
+	if (bind_value.isNull())
+	{
+		q.exec(query);
+	}
+	else
+	{
+		q.prepare(query);
+		q.bindValue(0, bind_value);
+		q.exec();
+	}
+
+	QVector<double> output;
+	output.reserve(q.size());
+	while(q.next())
+	{
+		QVariant value = q.value(0);
+		if (!value.isNull())
+		{
+			output << value.toDouble();
+		}
 	}
 	return output;
 }
