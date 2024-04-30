@@ -591,3 +591,57 @@ void MaintenanceDialog::linkSamplesFromSamePatient()
 	QApplication::restoreOverrideCursor();
 }
 
+void MaintenanceDialog::deleteVariantsOfBadSamples()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+
+	int c_variants = 0;
+	int c_deleted = 0;
+	int c_failed = 0;
+
+	//determine bad processed samples with variants
+	QList<int> ids = db.getValuesInt("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.quality='bad' AND (s.tumor=0 AND s.ffpe=0)");
+	foreach(int id, ids)
+	{
+		QString id_str =  QString::number(id);
+		int c_small = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id='" + id_str + "'").toInt();
+		int c_cnv = db.getValue("SELECT count(*) FROM cnv_callset WHERE processed_sample_id='" + id_str + "'").toInt();
+		int c_sv = db.getValue("SELECT count(*) FROM sv_callset WHERE processed_sample_id='" + id_str + "'").toInt();
+		int c_re = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE processed_sample_id='" + id_str + "'").toInt();
+
+		QStringList vars;
+		if (c_small) vars << "small variants";
+		if (c_cnv) vars << "CNVs";
+		if (c_sv) vars << "SVs";
+		if (c_re) vars << "REs";
+		if (vars.isEmpty()) continue;
+		++c_variants;
+
+		QString ps = db.processedSampleName(id_str);
+		QString project = db.getValue("SELECT p.name FROM project p, processed_sample ps WHERE ps.project_id=p.id and ps.id='" + id_str + "'").toString();
+		try
+		{
+			appendOutputLine("Deleting variants of " + ps + " (" + project + ")");
+
+			db.deleteVariants(id_str);
+			++c_deleted;
+		}
+		catch (Exception& e)
+		{
+			++c_failed;
+			appendOutputLine("  Deleting variants failed: " + e.message());
+		}
+	}
+
+	appendOutputLine("Processed samples: " + db.getValue("SELECT count(*) FROM processed_sample").toString());
+	appendOutputLine("Processed samples with bad quality: " + db.getValue("SELECT count(*) FROM processed_sample WHERE quality='bad'").toString());
+	appendOutputLine("Processed samples with bad quality (not tumor/FFPE): " + QString::number(ids.count()));
+	appendOutputLine("Processed samples with variants: " + QString::number(c_variants));
+	appendOutputLine("Processed samples with variants (deleted): " + QString::number(c_deleted));
+	appendOutputLine("Processed samples with variants (deletion failed): " + QString::number(c_failed));
+
+	QApplication::restoreOverrideCursor();
+}
+

@@ -27,7 +27,6 @@ void GHGAUploadDialog::search()
 	//determine search paramters
 	ProcessedSampleSearchParameters params;
 	params.include_bad_quality_samples=false;
-	params.include_merged_samples=false;
 	params.run_finished=true;
 	if (ui_.s_project_type->currentText()!="")
 	{

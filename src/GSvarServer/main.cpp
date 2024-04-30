@@ -11,20 +11,20 @@ int main(int argc, char **argv)
 	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationVersion(SERVER_VERSION);
 
-    Log::setFileName(ServerHelper::getCurrentServerLogFile());
-	Log::setCMDEnabled(true);
-	Log::appInfo();
-
 	QCommandLineParser parser;
 	parser.setApplicationDescription("GSvar file server");
-	parser.addHelpOption();
-	parser.addVersionOption();
+    parser.addHelpOption();
+    parser.addVersionOption();
 	QCommandLineOption httpsServerPortOption(QStringList() << "p" << "port",
 			QCoreApplication::translate("main", "HTTPS server port number"),
 			QCoreApplication::translate("main", "https_port"));
 	parser.addOption(httpsServerPortOption);
 	parser.process(app);
 	QString server_port_cli = parser.value(httpsServerPortOption);
+
+    Log::setFileName(ServerHelper::getCurrentServerLogFile());
+    Log::setCMDEnabled(true);
+    Log::appInfo();
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"",

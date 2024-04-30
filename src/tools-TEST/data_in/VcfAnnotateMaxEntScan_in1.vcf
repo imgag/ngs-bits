@@ -14,5 +14,5 @@ chr2	42656380	.	C	CTTTTTTTTTTTTAGCACGGTGAGTATGTTTTTTTTTTTTTTTTTTTT	.	.	type=inse
 chr2	42656200	.	GAGA	G	.	.	type=deletion_only_swa
 chr1	3069297	.	G	T	.	.	.
 chr14	93603419	.	G	T	.	.	.
-chrY	22168819	.	G	T	.	.	.
+chrY	22168819	.	T	G	.	.	.
 chr2	238904060	.	T	TG	.	.	.

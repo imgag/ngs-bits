@@ -23,6 +23,7 @@ private slots:
 	void importTissue();
 	void importPatientIDs();
 	void linkSamplesFromSamePatient();
+	void deleteVariantsOfBadSamples();
 
 private:
 	Ui::MaintenanceDialog ui_;

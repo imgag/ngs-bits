@@ -339,6 +339,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 	}
+	if (p.only_with_small_variants)
+	{
+		conditions << "ps.id IN (SELECT DISTINCT processed_sample_id FROM small_variants_callset)";
+	}
 	if (!p.s_phenotypes.isEmpty())
 	{
 		tables	<< "sample_disease_info sdi";
@@ -1652,7 +1656,7 @@ QString NGSD::repeatExpansionId(const QString& region, const QString& repeat_uni
 
 QString NGSD::repeatExpansionComments(int id)
 {
-	QStringList output = getValue("SELECT comments FROM repeat_expansion WHERE id="+QString::number(id)).toString().trimmed().split("\n");
+	QStringList output = getValue("SELECT comments FROM repeat_expansion WHERE id="+QString::number(id)).toString().replace("<br>", "\n").trimmed().split("\n");
 	for (int i=0; i<output.count(); ++i)
 	{
 		QString line = output[i].trimmed();

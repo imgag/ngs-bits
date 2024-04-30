@@ -36,6 +36,8 @@ private:
 signals:
 	///signal should be emitted when report was stored
 	void stored(int variant_index, QString result, QString comment);
+	///signal should be emitted if the dialog should be closed
+	void closeDialog();
 
 public slots:
 	void disableNGSD();
@@ -56,6 +58,8 @@ private slots:
 	void disableUnapplicableParameters();
 	///stores/updates VICC interpretation in NGSD
 	void storeInNGSD();
+	///stores/updates VICC interpretation in NGSD and closes the window after
+	void storeAndClose();
 	///preselects radiobutton according parameters in input SomaticViccData
 	void preselect(const SomaticViccData& data);
 	///sets qt labels for metadata stored in NGSD (created by, comment...)

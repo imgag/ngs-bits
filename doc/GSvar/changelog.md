@@ -1,5 +1,12 @@
 # GSvar change log
 
+## 2024_02-51 (23.04.24)
+
+- sample search: Added option to search for samples with variants in NGSD only
+- analysis status: Showing variant caller information in analysis status dialog now
+- report: added sequencing platform and read length to technical report
+- REs: added length distribution plots
+- 
 
 ## 2024_02-38 (15.04.24)
 

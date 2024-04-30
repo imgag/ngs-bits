@@ -1,13 +1,14 @@
 ### VariantFilterRegions tool help
-	VariantFilterRegions (2021_03-23-g5c26fea8)
+	VariantFilterRegions (2024_02-42-g36bb2635)
 	
 	Filter a variant list based on a target region.
 	
 	Mandatory parameters:
 	  -in <file>               Input variant list. In VCF (default) or GSvar format.
-	  -out <file>              Output variant list (same format as 'in').
 	
 	Optional parameters:
+	  -out <file>              Output variant list (same format as 'in'). If unset, writes to STDOUT.
+	                           Default value: ''
 	  -reg <file>              Input target region in BED format.
 	                           Default value: ''
 	  -r <string>              Single target region in the format chr17:41194312-41279500.
@@ -29,7 +30,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterRegions changelog
-	VariantFilterRegions 2021_03-23-g5c26fea8
+	VariantFilterRegions 2024_02-42-g36bb2635
 	
 	2020-08-12 Added parameter '-compression_level' for compression level of output vcf files.
 	2018-01-23 Added parameter '-inv' and made parameter '-mark' a string parameter to allow custom annotations names.

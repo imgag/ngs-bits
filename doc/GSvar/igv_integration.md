@@ -81,7 +81,7 @@ In case you need to access the internet through a proxy, do this:
 ![alt text](igv_proxy.png)
 
 
-### IGV hands at startup showning a dialog to enter Proxy credentials
+### IGV hangs at startup showning a dialog to enter Proxy credentials
 
 Please do the following:
 

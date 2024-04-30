@@ -1009,6 +1009,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	int expected_parts = MIN_COLS;
 	bool in_header = true;
 	bool vcf_main_header_found = false;
+	bool error_found = false;
 	int c_data = 0;
 	int l = 0;
 	const int buffer_size = 1048576; //1MB buffer
@@ -1187,6 +1188,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 				if (ref.isEmpty())
 				{
 					printError(out_stream, "Reference base(s) not set!", l, line);
+					error_found = true;
 				}
 				else
 				{
@@ -1194,6 +1196,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					if (ref!=ref_exp)
 					{
 						printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+						error_found = true;
 					}
 				}
 			}
@@ -1213,6 +1216,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					if (alt.isEmpty() || !alt_regexp.exactMatch(alt))
 					{
 						printError(out_stream, "Invalid alternative allele '" + alt + "'!", l, line);
+						error_found = true;
 					}
 				}
 			}
@@ -1228,6 +1232,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					if (alt[0]!=ref[0])
 					{
 						printError(out_stream, "First base of insertion/deletion not matching - ref: '" + ref + "' alt: '" + alt + "'!", l, line);
+						error_found = true;
 					}
 				}
 			}
@@ -1449,7 +1454,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 		printInfo(out_stream, "Finished - checked " + QByteArray::number(l) + " lines - " + QByteArray::number(c_data) + " data lines.");
 	}
 
-	return true;
+	return !error_found;
 }
 
 VcfFile::DefinitionLine VcfFile::parseDefinitionLine(QTextStream& out, int l, QByteArray line)

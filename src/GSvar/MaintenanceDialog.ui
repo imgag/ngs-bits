@@ -91,6 +91,11 @@
        </item>
        <item>
         <property name="text">
+         <string>Delete variants of bad samples</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>[GenLab]</string>
         </property>
        </item>

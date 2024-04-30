@@ -5749,6 +5749,7 @@ void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int ind
 	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(index, vl, this);
 	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
 	connect(interpreter, SIGNAL(stored(int, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(int, QString, QString)) );
+	connect(interpreter, SIGNAL(closeDialog() ), dlg.data(), SLOT(close()) );
 
 	dlg->exec();
 }

@@ -50,7 +50,7 @@ Restart the server:
 
 		> sudo service mysql restart
 
-## Initial import of data
+## Initial import of gene, transcript and diesease data
 
 The initial import of database content using ngs-bits.
 
@@ -79,7 +79,26 @@ The initial import of database content using ngs-bits.
 		> ngs-bits/bin/NGSDImportGeneInfo --help
 		> ngs-bits/bin/NGSDImportOMIM --help
 		> ngs-bits/bin/NGSDImportORPHA --help
-		
+
+
+## Update of gene, transcript and diesease data
+
+To keep gene, transcript and diesease data in NGSD up-to-date, you need to perform regular updates.  
+To do that, update ngs-bits and re-run these import eools:
+
+		> ngs-bits/bin/NGSDImportHGNC --help
+		> ngs-bits/bin/NGSDImportEnsembl --help
+		> ngs-bits/bin/NGSDImportHPO --help
+		> ngs-bits/bin/NGSDImportGeneInfo --help
+		> ngs-bits/bin/NGSDImportOMIM --help
+		> ngs-bits/bin/NGSDImportORPHA --help
+
+*Note:  
+The data links in these tools are updated roughly every 3 months.  
+We recommend to leave the data links unchanged, even if there is newer data available.  
+For the default links, we have verify that the linked data is in valid format for the import.  
+If you change the data links to perform an update to with newer data, there is a risk that the data format has changed and the imported data is corrupted or incomplete.*
+
 ## Export NGSD annotation data
 
 The NGSD variant counts for germline and somatic as well as the gene info can be exported to a VCF/BED file using NGSDExportAnnotationData. 

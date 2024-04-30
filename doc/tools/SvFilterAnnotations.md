@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2023_03-63-gec44de43)
+	SvFilterAnnotations (2024_02-42-g36bb2635)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -37,6 +37,7 @@
 	                            Parameters:
 	                              max_density - Maximum density in the confidence interval of the SV [default=20] [min=0]
 	                              remove_strict - Remove also SVs in which only one break point is above threshold. [default=false]
+	                              only_system_specific - Filter only based on the density of breakpoint of the current processing system. [default=false]
 	SV compound-heterozygous    Filter for compound-heterozygous SVs.
 	                            Mode 'SV-SV' detects genes with two or more SV hits.
 	                            Mode 'SV-SNV/INDEL' detectes genes with exactly one SV and exactly one small variant hit (after other filters are applied).
@@ -96,6 +97,12 @@
 	SV type                     Filter based on SV types.
 	                            Parameters:
 	                              Structural variant type - Structural variant type [valid=DEL,DUP,INS,INV,BND] [non-empty]
+	SV-lr AF                    Show only (lr) SVs with a certain Allele Frequency +/- 10%
+	                            Parameters:
+	                              AF - Allele Frequency +/- 10% [default=0] [min=0.0] [max=1.0]
+	SV-lr support reads         Show only (lr) SVs with a minimum number of supporting reads
+	                            Parameters:
+	                              min_support - Minimum support read count [default=5] [min=0] [max=10000]
 	
 	Mandatory parameters:
 	  -in <file>      Input structural variant list in BEDPE format.
@@ -109,7 +116,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2023_03-63-gec44de43
+	SvFilterAnnotations 2024_02-42-g36bb2635
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

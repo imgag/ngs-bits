@@ -406,6 +406,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
 	bool include_merged_samples = false;
+	bool only_with_small_variants = false;
 
 	//filters project
 	QString p_name;
