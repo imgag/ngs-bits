@@ -5,6 +5,7 @@
 #include <QTableWidget>
 #include "PhenotypeList.h"
 #include "ui_RepeatExpansionWidget.h"
+#include "NGSD.h"
 
 class RepeatExpansionWidget
 	: public QWidget
@@ -12,7 +13,7 @@ class RepeatExpansionWidget
 	Q_OBJECT
 
 public:
-	RepeatExpansionWidget(QWidget* parent, QString vcf);
+	RepeatExpansionWidget(QWidget* parent, QString vcf, QString sys_type);
 
 private slots:
     ///Context menu that shall appear if right click on repeat expansion
@@ -30,12 +31,14 @@ protected:
 	QTableWidgetItem* setCell(int row, QString column, QString value);
 	///Returns the text value of a cell.
 	QString getCell(int row, QString column);
+	QString getRepeatId(NGSD& db, int row, bool throw_if_fails=true);
 
 	///Sets the cell decoration
 	void setCellDecoration(int row, QString column, QString tooltip, QColor bg_color=QColor());
 
 private:
 	Ui::RepeatExpansionWidget ui_;
+	QString sys_type_cutoff_col_;
 
 	QColor red_ = QColor(255, 0, 0, 128);
 	QColor orange_ = QColor(255, 135, 60, 128);

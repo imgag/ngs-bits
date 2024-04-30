@@ -79,7 +79,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
 * [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
-* [BamToFastq](doc/tools/BamToFastq.md) - Converts a BAM file to FASTQ files (paired-end only).
+* [BamToFastq](doc/tools/BamToFastq.md) - Converts a coordinate-sorted BAM file to FASTQ files.
 
 ### BED tools
 
