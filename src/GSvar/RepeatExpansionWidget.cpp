@@ -19,9 +19,10 @@ QT_CHARTS_USE_NAMESPACE
 #include "ClientHelper.h"
 #include "Log.h"
 
-RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
+RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf, QString sys_type)
 	: QWidget(parent)
 	, ui_()
+	, sys_type_cutoff_col_("")
 {
 	ui_.setupUi(this);
 	ui_.filter_hpo->setEnabled(LoginManager::active());
@@ -33,6 +34,17 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf)
 	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_id, SIGNAL(textEdited(QString)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_show, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));
+
+	//allow statistical filtering only if there is a cutoff for the system type
+	if (sys_type=="WGS")
+	{
+		sys_type_cutoff_col_ = "staticial_cutoff_wgs";
+	}
+	else
+	{
+		int idx = ui_.filter_expanded->findText("statistical outlier");
+		ui_.filter_expanded->removeItem(idx);
+	}
 
 	loadDataFromVCF(vcf);
 	loadMetaDataFromNGSD();
@@ -112,13 +124,9 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_comments)
 	{
-		//get repeat data
-		QString region = getCell(row, "region");
-		QString repeat_unit = getCell(row, "repeat unit");
-
 		//get comments
 		NGSD db;
-		QString id = db.repeatExpansionId(region, repeat_unit, false);
+		QString id = getRepeatId(db, row, false);
 		QString comments;
 		if (!id.isEmpty()) comments = db.repeatExpansionComments(id.toInt());
 		//show dialog
@@ -136,13 +144,9 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 
 		try
 		{
-			//get repeat data
-			QString region = getCell(row, "region");
-			QString repeat_unit = getCell(row, "repeat unit");
-
 			//get RE lengths
 			NGSD db;
-			QString id = db.repeatExpansionId(region, repeat_unit, true);
+			QString id = getRepeatId(db, row, false);
 			QVector<double> lengths = db.getValuesDouble("SELECT allele1 FROM repeat_expansion_genotype WHERE repeat_expansion_id=" + id);
 			lengths << db.getValuesDouble("SELECT allele2 FROM repeat_expansion_genotype WHERE repeat_expansion_id=" + id);
 
@@ -216,6 +220,14 @@ QString RepeatExpansionWidget::getCell(int row, QString column)
 	if (item==nullptr) return "";
 
 	return item->text().trimmed();
+}
+
+QString RepeatExpansionWidget::getRepeatId(NGSD& db, int row, bool throw_if_fails)
+{
+	QString region = getCell(row, "region");
+	QString repeat_unit = getCell(row, "repeat unit");
+
+	return db.repeatExpansionId(region, repeat_unit, throw_if_fails);
 }
 
 void RepeatExpansionWidget::setCellDecoration(int row, QString column, QString tooltip, QColor bg_color)
@@ -320,11 +332,8 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 	//get infos from NGSD
 	for (int row=0; row<ui_.table->rowCount(); ++row)
 	{
-		QString region = getCell(row, "region");
-		QString repeat_unit = getCell(row, "repeat unit");
-
 		//check if repeat is in NGSD
-		QString id = db.repeatExpansionId(region, repeat_unit);
+		QString id = getRepeatId(db, row);
 		if (id.isEmpty())
 		{
 			setCellDecoration(row, "repeat ID", "Repeat not found in NGSD", orange_);
@@ -477,9 +486,25 @@ void RepeatExpansionWidget::updateRowVisibility()
 	}
 	if (ui_.filter_expanded->currentText()=="statistical outlier")
 	{
+
+		NGSD db;
+		int col_geno = GUIHelper::columnIndex(ui_.table, "genotype");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			//TODO
+			QString id = getRepeatId(db, row, false);
+			QVariant cutoff = db.getValue("SELECT " + sys_type_cutoff_col_ + " FROM repeat_expansion WHERE id=:0", true, id);
+			if (!cutoff.isValid()) continue;
+
+			bool above_cutoff = false;
+			foreach(QString geno, ui_.table->item(row, col_geno)->text().split("/"))
+			{
+				geno = geno.trimmed();
+				if (geno.isEmpty()) continue;
+
+				double value = geno.toInt();
+				if(value>cutoff.toDouble()) above_cutoff = true;
+			}
+			if (!above_cutoff) hidden[row] = true;
 		}
 	}
 

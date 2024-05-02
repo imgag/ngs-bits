@@ -1299,7 +1299,14 @@ void MainWindow::on_actionRE_triggered()
 	if (re_files.isEmpty()) return; //this should not happen because the button is not enabled then...
 
 	//show dialog
-	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, re_files[0].filename);
+	QString sys_type = "";
+	if (LoginManager::active())
+	{
+		NGSD db;
+		QString ps_id = db.processedSampleId(germline_report_ps_);
+		sys_type = db.getProcessedSampleData(ps_id).processing_system_type;
+	}
+	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, re_files[0].filename, sys_type);
 	auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + variants_.analysisName());
 
 	addModelessDialog(dlg, true);
