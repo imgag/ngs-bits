@@ -67,9 +67,10 @@ public:
 		if (detail_output)
 		{
 			detail_tsv = Helper::openFileForWriting(getOutfile("details"), false);
-			detail_tsv->write("## allele_count: A '.' in the allele_count column means insufficient depth and the tool uses the population_af as fallback allele count\n");
-			QByteArrayList detail_tsv_headers = QByteArrayList() << "variant" << "pgs_id" << "weight" << "allele_count" << "population_af";
-			detail_tsv->write("#" + column_headers.join("\t") + "\n");
+			detail_tsv->write("## allele_count: A '.' in the count_effect_allele column means insufficient depth and the tool uses the population_af as fallback allele count\n");
+			QByteArrayList detail_tsv_headers = QByteArrayList() << "chr" << "start" << "end" << "ref_allele" << "effect_allele" << "other_allele" << "patient_allele1" << "patient_allele2"  << "count_effect_allele"
+																 << "weight" << "population_af" << "pgs_id";
+			detail_tsv->write("#" + detail_tsv_headers.join("\t") + "\n");
 		}
 
 		//iterate over all given PRS files
@@ -143,7 +144,7 @@ public:
 					THROW(FileParseException, "Multi-allelic variants in PRS VCF files are not supported: " + prs_variant.toString());
 				}
 
-				bool prs_is_wildtype = ((prs_variant.altString() == ".") || (prs_variant.altString() == prs_variant.ref()));
+				bool prs_var_is_wildtype = ((prs_variant.altString() == ".") || (prs_variant.altString() == prs_variant.ref()));
 
 				//get all matching variants at this position
 				QByteArrayList matching_lines = sample_vcf.getMatchingLines(prs_variant.chr(), prs_variant.start(), prs_variant.end(), true);
@@ -152,9 +153,11 @@ public:
 				// get weight/pop_af from PRS VCF
 				double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
 				double pop_af = Helper::toDouble(prs_variant.info("POP_AF"), "PRS population allele frequency");
+				QByteArray other_allele = prs_variant.info("OTHER_ALLELE");
 				int allele_count = -1;
+				QList<QByteArray> patient_alleles;
 
-				if (prs_is_wildtype)
+				if (prs_var_is_wildtype)
 				{
 					if (matching_lines.size() > 0)
 					{
@@ -177,6 +180,17 @@ public:
 
 							//prevent allele count to drop below 0
 							allele_count = std::max(allele_count, 0);
+
+							if (detail_output)
+							{
+								//get patient allele
+								Sequence ref = split_line[3].trimmed();
+								Sequence alt = split_line[4].trimmed();
+								for (int j = 0; j < var_allele_count; j++)
+								{
+									patient_alleles << ref + ">" + alt;
+								}
+							}
 						}
 
 						if (allele_count > 0)
@@ -185,8 +199,22 @@ public:
 							prs += weight * allele_count;
 
 							++c_found;
+
+							if (detail_output)
+							{
+								//get patient allele
+								for (int j = 0; j < allele_count; j++)
+								{
+									patient_alleles << prs_variant.ref() + ">" + prs_variant.ref();
+								}
+							}
 						}
 						//else: both alleles contain (non wt) variants
+
+						if (patient_alleles.size() > 2)
+						{
+							THROW(ArgumentException, "More than 2 alleles found at position " + prs_variant.chr().strNormalized(true) + ":" + QByteArray::number(prs_variant.start()) + "!");
+						}
 
 					}
 					else
@@ -204,6 +232,9 @@ public:
 						{
 							allele_count = 2;
 							++c_found;
+
+							//both allele are ref
+							if (detail_output) patient_alleles << prs_variant.ref() + ">" + prs_variant.ref() << prs_variant.ref() + ">" + prs_variant.ref();
 						}
 					}
 
@@ -217,6 +248,27 @@ public:
 						if(parts[1].toInt()==prs_variant.start() && parts[3]==prs_variant.ref() && parts[4]==prs_variant.alt(0))
 						{
 							matching_variants.append(line);
+						}
+						else if(detail_output) //get alt allele of patient
+						{
+							//get genotype
+							QByteArrayList split_line = line.split('\t');
+							QByteArrayList format_header_items = split_line[8].split(':');
+							QByteArrayList format_value_items = split_line[9].split(':');
+							int genotype_idx = format_header_items.indexOf("GT");
+							if(genotype_idx < 0) THROW(FileParseException, "Genotype information is missing for sample variant: " + matching_variants[0]);
+
+							int var_allele_count = format_value_items[genotype_idx].count('1');
+
+							if (var_allele_count > 2) THROW(FileParseException, "Invalid genotype '" + format_value_items[genotype_idx].trimmed() + "' in sample variant: " + matching_variants[0]);
+
+							//get patient allele
+							Sequence ref = split_line[3].trimmed();
+							Sequence alt = split_line[4].trimmed();
+							for (int j = 0; j < var_allele_count; j++)
+							{
+								patient_alleles << ref + ">" + alt;
+							}
 						}
 					}
 
@@ -242,6 +294,17 @@ public:
 						prs += weight * allele_count;
 
 						++c_found;
+
+						if (detail_output)
+						{
+							for (int j = 0; j < allele_count; j++)
+							{
+								patient_alleles << prs_variant.ref() + ">" + prs_variant.altString();
+							}
+							//fill up with ref calls
+							if (patient_alleles.size() == 1) patient_alleles << prs_variant.ref() + ">" + prs_variant.ref();
+
+						}
 					}
 					else //0 matching variants
 					{
@@ -254,17 +317,33 @@ public:
 							prs += weight * pop_af;
 							++c_low_depth;
 						}
-						else  //sufficient depth & no call => wildtype
+						else  //sufficient depth & no call => wildtype/alt call
 						{
 							allele_count = 0;
+							if (detail_output)
+							{
+								//fill up with ref calls
+								if (patient_alleles.size() == 0) patient_alleles << prs_variant.ref() + ">" + prs_variant.ref() << prs_variant.ref() + ">" + prs_variant.ref();
+								if (patient_alleles.size() == 1) patient_alleles << prs_variant.ref() + ">" + prs_variant.ref();
+
+							}
 						}
+					}
+
+					if (patient_alleles.size() > 2)
+					{
+						qDebug() << patient_alleles;
+						THROW(ArgumentException, "More than 2 alleles found at position " + prs_variant.chr().strNormalized(true) + ":" + QByteArray::number(prs_variant.start()) + "!");
 					}
 				}
 
 				if (detail_output)
 				{
-					QByteArrayList detail_tsv_line = QByteArrayList() << prs_variant.toString() << column_entries["pgs_id"] << QByteArray::number(weight)
-																	  << ((allele_count < 0)?".":QByteArray::number(allele_count)) << QByteArray::number(pop_af);
+					QByteArrayList detail_tsv_line = QByteArrayList() << prs_variant.chr().strNormalized(true) << QByteArray::number(prs_variant.start()) << QByteArray::number(prs_variant.end())
+																	  << prs_variant.ref() << ((prs_var_is_wildtype)?prs_variant.ref():prs_variant.altString()) << other_allele
+																	  << ((patient_alleles.size() > 0)?patient_alleles[0]:".") << ((patient_alleles.size() > 1)?patient_alleles[1]:".")
+																	  << ((allele_count < 0)?".":QByteArray::number(allele_count)) << QByteArray::number(weight)
+																	  << QByteArray::number(pop_af) <<  column_entries["pgs_id"];
 					detail_tsv->write(detail_tsv_line.join("\t") + "\n");
 				}
 			}
