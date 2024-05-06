@@ -138,6 +138,7 @@ QDateTime ServerHelper::getServerStartDateTime()
 
 QString ServerHelper::getCurrentServerLogFile()
 {
+    Log::info("Checking log files at: " + QCoreApplication::applicationDirPath());
     QDir directory(QCoreApplication::applicationDirPath());
     QStringList logs = directory.entryList(QStringList() << "*.log" << "*.LOG", QDir::Files);
 
@@ -145,6 +146,7 @@ QString ServerHelper::getCurrentServerLogFile()
     QString last_mod_file;
     foreach(QString filename, logs)
     {
+        Log::info("Checking " + filename);
         if (QFileInfo(filename).lastModified() > last_mod_time)
         {
             last_mod_time = QFileInfo(filename).lastModified();
@@ -152,14 +154,21 @@ QString ServerHelper::getCurrentServerLogFile()
         }
     }
 
-    if (last_mod_file.isEmpty()) return QCoreApplication::applicationFilePath().replace(".exe", "") + ".log";
+    if (last_mod_file.isEmpty())
+    {
+        QString new_file_name = QCoreApplication::applicationFilePath().replace(".exe", "") + ".log";
+        Log::warn("Could not locate the previous log file. The following file will be used: " + new_file_name);
+        return new_file_name;
+    }
     if (QFileInfo(last_mod_file).size()>(1024*1024*50))
     {
+        Log::warn("Log file is too large: " + last_mod_file);
         QList<QString> name_items = last_mod_file.split(".");
         if (name_items.size()>1)
         {
             name_items[name_items.count()-2] = name_items[name_items.count()-2] + "_" + QDateTime().currentDateTime().toString("hh-mm-ss-dd-MM-yyyy");
             last_mod_file = name_items.join(".");
+            Log::info("Suggested file name for the logs: " + last_mod_file);
         }
     }
 
@@ -170,7 +179,7 @@ QString ServerHelper::getCurrentServerLogFile()
 
     last_mod_file = QCoreApplication::applicationDirPath() + last_mod_file;
     if (!QFile::exists(last_mod_file)) Helper::touchFile(last_mod_file);
-
+    Log::info("The following file will be used for logs: " + last_mod_file);
     return last_mod_file;
 }
 
