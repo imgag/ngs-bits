@@ -52,4 +52,18 @@ private slots:
 		VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out4.vcf");
 	}
 
+	void test_with_config_file_and_existence_only()
+	{
+		EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out5.vcf -config_file " + TESTDATA("data_in/VcfAnnotateFromVcf_config2.tsv") );
+		COMPARE_FILES("out/VcfAnnotateFromVcf_out5.vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out5.vcf"));
+		VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out5.vcf");
+	}
+
+	void test_with_existence_only_from_cli()
+	{
+		EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -source " + TESTDATA("data_in/VcfAnnotateFromVcf_an3_ExOnly.vcf.gz") + " -out out/VcfAnnotateFromVcf_out6.vcf -existence_only");
+		COMPARE_FILES("out/VcfAnnotateFromVcf_out6.vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out6.vcf"));
+		VCF_IS_VALID_HG19("out/VcfAnnotateFromVcf_out6.vcf");
+	}
+
 };

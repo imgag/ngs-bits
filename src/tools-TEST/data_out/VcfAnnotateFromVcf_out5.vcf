@@ -1,0 +1,481 @@
+##fileformat=VCFv4.2
+##fileDate=20190627
+##source=freeBayes v1.2.0
+##reference=/tmp/local_ngs_data//GRCh37.fa
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
+##contig=<ID=chr10,length=135534747>
+##contig=<ID=chr11,length=135006516>
+##contig=<ID=chr12,length=133851895>
+##contig=<ID=chr13,length=115169878>
+##contig=<ID=chr14,length=107349540>
+##contig=<ID=chr15,length=102531392>
+##contig=<ID=chr16,length=90354753>
+##contig=<ID=chr17,length=81195210>
+##contig=<ID=chr18,length=78077248>
+##contig=<ID=chr19,length=59128983>
+##contig=<ID=chr20,length=63025520>
+##contig=<ID=chr21,length=48129895>
+##contig=<ID=chr22,length=51304566>
+##contig=<ID=chrX,length=155270560>
+##contig=<ID=chrY,length=59373566>
+##contig=<ID=chrMT,length=16569>
+##contig=<ID=chrGL000207.1,length=4262>
+##contig=<ID=chrGL000226.1,length=15008>
+##contig=<ID=chrGL000229.1,length=19913>
+##contig=<ID=chrGL000231.1,length=27386>
+##contig=<ID=chrGL000210.1,length=27682>
+##contig=<ID=chrGL000239.1,length=33824>
+##contig=<ID=chrGL000235.1,length=34474>
+##contig=<ID=chrGL000201.1,length=36148>
+##contig=<ID=chrGL000247.1,length=36422>
+##contig=<ID=chrGL000245.1,length=36651>
+##contig=<ID=chrGL000197.1,length=37175>
+##contig=<ID=chrGL000203.1,length=37498>
+##contig=<ID=chrGL000246.1,length=38154>
+##contig=<ID=chrGL000249.1,length=38502>
+##contig=<ID=chrGL000196.1,length=38914>
+##contig=<ID=chrGL000248.1,length=39786>
+##contig=<ID=chrGL000244.1,length=39929>
+##contig=<ID=chrGL000238.1,length=39939>
+##contig=<ID=chrGL000202.1,length=40103>
+##contig=<ID=chrGL000234.1,length=40531>
+##contig=<ID=chrGL000232.1,length=40652>
+##contig=<ID=chrGL000206.1,length=41001>
+##contig=<ID=chrGL000240.1,length=41933>
+##contig=<ID=chrGL000236.1,length=41934>
+##contig=<ID=chrGL000241.1,length=42152>
+##contig=<ID=chrGL000243.1,length=43341>
+##contig=<ID=chrGL000242.1,length=43523>
+##contig=<ID=chrGL000230.1,length=43691>
+##contig=<ID=chrGL000237.1,length=45867>
+##contig=<ID=chrGL000233.1,length=45941>
+##contig=<ID=chrGL000204.1,length=81310>
+##contig=<ID=chrGL000198.1,length=90085>
+##contig=<ID=chrGL000208.1,length=92689>
+##contig=<ID=chrGL000191.1,length=106433>
+##contig=<ID=chrGL000227.1,length=128374>
+##contig=<ID=chrGL000228.1,length=129120>
+##contig=<ID=chrGL000214.1,length=137718>
+##contig=<ID=chrGL000221.1,length=155397>
+##contig=<ID=chrGL000209.1,length=159169>
+##contig=<ID=chrGL000218.1,length=161147>
+##contig=<ID=chrGL000220.1,length=161802>
+##contig=<ID=chrGL000213.1,length=164239>
+##contig=<ID=chrGL000211.1,length=166566>
+##contig=<ID=chrGL000199.1,length=169874>
+##contig=<ID=chrGL000217.1,length=172149>
+##contig=<ID=chrGL000216.1,length=172294>
+##contig=<ID=chrGL000215.1,length=172545>
+##contig=<ID=chrGL000205.1,length=174588>
+##contig=<ID=chrGL000219.1,length=179198>
+##contig=<ID=chrGL000224.1,length=179693>
+##contig=<ID=chrGL000223.1,length=180455>
+##contig=<ID=chrGL000195.1,length=182896>
+##contig=<ID=chrGL000212.1,length=186858>
+##contig=<ID=chrGL000222.1,length=186861>
+##contig=<ID=chrGL000200.1,length=187035>
+##contig=<ID=chrGL000193.1,length=189789>
+##contig=<ID=chrGL000194.1,length=191469>
+##contig=<ID=chrGL000225.1,length=211173>
+##contig=<ID=chrGL000192.1,length=547496>
+##contig=<ID=chrNC_007605,length=171823>
+##contig=<ID=chrhs37d5,length=35477943>
+##phasing=none
+##commandline="/mnt/share/opt/freebayes-1.2.0/bin/freebayes -t /tmp/6286.1.priority_srv018/megSAP_user_ahsturm1/vc_freebayes_pid12396_pYbTpM/chr1.bed --min-alternate-fraction 0.1 --min-mapping-quality 1 --min-base-quality 10 --min-alternate-qsum 90 -f /tmp/local_ngs_data//GRCh37.fa -b /mnt/projects/test/KontrollDNACoriell/Sample_NA12878_38//NA12878_38.bam -v /tmp/6286.1.priority_srv018/megSAP_user_ahsturm1/vc_freebayes_pid12396_pYbTpM/chr1.vcf"
+##filter="QUAL > 5 & AO > 2"
+##INFO=<ID=NS,Number=.,Type=Integer,Description="Number of samples with data">
+##INFO=<ID=DP,Number=.,Type=Integer,Description="Total read depth at the locus">
+##INFO=<ID=DPB,Number=.,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Total number of alternate alleles in called genotypes">
+##INFO=<ID=AN,Number=.,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Estimated allele frequency in the range (0,1]">
+##INFO=<ID=RO,Number=.,Type=Integer,Description="Count of full observations of the reference haplotype.">
+##INFO=<ID=AO,Number=A,Type=Integer,Description="Count of full observations of this alternate haplotype.">
+##INFO=<ID=PRO,Number=.,Type=Float,Description="Reference allele observation count, with partial observations recorded fractionally">
+##INFO=<ID=PAO,Number=A,Type=Float,Description="Alternate allele observations, with partial observations recorded fractionally">
+##INFO=<ID=QR,Number=.,Type=Integer,Description="Reference allele quality sum in phred">
+##INFO=<ID=QA,Number=A,Type=Integer,Description="Alternate allele quality sum in phred">
+##INFO=<ID=PQR,Number=.,Type=Float,Description="Reference allele quality sum in phred for partial observations">
+##INFO=<ID=PQA,Number=A,Type=Float,Description="Alternate allele quality sum in phred for partial observations">
+##INFO=<ID=SRF,Number=.,Type=Integer,Description="Number of reference observations on the forward strand">
+##INFO=<ID=SRR,Number=.,Type=Integer,Description="Number of reference observations on the reverse strand">
+##INFO=<ID=SAF,Number=A,Type=Integer,Description="Number of alternate observations on the forward strand">
+##INFO=<ID=SAR,Number=A,Type=Integer,Description="Number of alternate observations on the reverse strand">
+##INFO=<ID=SRP,Number=.,Type=Float,Description="Strand balance probability for the reference allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SRF and SRR given E(SRF/SRR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=SAP,Number=A,Type=Float,Description="Strand balance probability for the alternate allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SAF and SAR given E(SAF/SAR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=AB,Number=A,Type=Float,Description="Allele balance at heterozygous sites: a number between 0 and 1 representing the ratio of reads showing the reference allele to all reads, considering only reads from individuals called as heterozygous">
+##INFO=<ID=ABP,Number=A,Type=Float,Description="Allele balance probability at heterozygous sites: Phred-scaled upper-bounds estimate of the probability of observing the deviation between ABR and ABA given E(ABR/ABA) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RUN,Number=A,Type=Integer,Description="Run length: the number of consecutive repeats of the alternate allele in the reference genome">
+##INFO=<ID=RPP,Number=A,Type=Float,Description="Read Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RPPR,Number=.,Type=Float,Description="Read Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RPL,Number=A,Type=Float,Description="Reads Placed Left: number of reads supporting the alternate balanced to the left (5') of the alternate allele">
+##INFO=<ID=RPR,Number=A,Type=Float,Description="Reads Placed Right: number of reads supporting the alternate balanced to the right (3') of the alternate allele">
+##INFO=<ID=EPP,Number=A,Type=Float,Description="End Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=EPPR,Number=.,Type=Float,Description="End Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=DPRA,Number=A,Type=Float,Description="Alternate allele depth ratio.  Ratio between depth in samples with each called alternate allele and those without.">
+##INFO=<ID=ODDS,Number=.,Type=Float,Description="The log odds ratio of the best genotype combination to the second-best.">
+##INFO=<ID=GTI,Number=.,Type=Integer,Description="Number of genotyping iterations required to reach convergence or bailout.">
+##INFO=<ID=TYPE,Number=A,Type=String,Description="The type of allele, either snp, mnp, ins, del, or complex.">
+##INFO=<ID=CIGAR,Number=A,Type=String,Description="The extended CIGAR representation of each alternate allele, with the exception that '=' is replaced by 'M' to ease VCF parsing.  Note that INDEL alleles do not have the first matched base (which is provided by default, per the spec) referred to by the CIGAR.">
+##INFO=<ID=NUMALT,Number=.,Type=Integer,Description="Number of unique non-reference alleles in called genotypes at this position.">
+##INFO=<ID=MEANALT,Number=A,Type=Float,Description="Mean number of unique non-reference allele observations per sample with the corresponding alternate alleles.">
+##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
+##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
+##INFO=<ID=MQMR,Number=.,Type=Float,Description="Mean mapping quality of observed reference alleles">
+##INFO=<ID=PAIRED,Number=A,Type=Float,Description="Proportion of observed alternate alleles which are supported by properly paired read fragments">
+##INFO=<ID=PAIREDR,Number=.,Type=Float,Description="Proportion of observed reference alleles which are supported by properly paired read fragments">
+##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
+##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">
+##FORMAT=<ID=GL,Number=G,Type=Float,Description="Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Number of observation for each allele">
+##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
+##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
+##PIPELINE=megSAP 0.1-1150-g9c8dd4c
+##SAMPLE=<ID=NA12878_38,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation, added \" to test parser (from file VcfAnnotateFromVcf_an1_ClinVar.vcf.gz)">
+##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file VcfAnnotateFromVcf_an1_ClinVar.vcf.gz)">
+##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
+##INFO=<ID=NGSD_GROUP,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for neoplasms. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
+##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
+##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
+##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
+##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
+##INFO=<ID=NGSD_ID,Number=.,Type=String,Description="ID column (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
+##INFO=<ID=IN_SHORTREAD_SAMPLE,Number=0,Type=Flag,Description="Variant is present in annotation file '../src/tools-TEST/data_in/VcfAnnotateFromVcf_an3_ExOnly.vcf.gz'">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_38
+chr1	13656	.	CAG	C	426	.	MQM=18	GT:DP:AO	1/1:37:37
+chr1	17385	.	G	A	292	.	MQM=33;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:56:21
+chr1	17407	.	G	A	53	.	MQM=39	GT:DP:AO	0/1:72:13
+chr1	139781	.	G	A	39	.	MQM=24	GT:DP:AO	1/1:3:3
+chr1	324822	.	A	T	383	.	MQM=37;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:21:18
+chr1	664834	.	T	G	44	.	MQM=25	GT:DP:AO	0/1:34:14
+chr1	762273	.	G	A	4198	.	MQM=39;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:150:150
+chr1	762589	.	G	C	1056	.	MQM=46;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:35:34
+chr1	762592	.	C	G	1056	off-target	MQM=46;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:35:34
+chr1	762601	.	T	C	923	off-target	MQM=46	GT:DP:AO	1/1:31:31
+chr1	762632	.	T	A	531	off-target	MQM=47;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:18:18
+chr1	866511	.	C	CCCCT	308	off-target	MQM=60	GT:DP:AO	1/1:12:11
+chr1	871334	.	G	T	179	off-target	MQM=60	GT:DP:AO	1/1:7:7
+chr1	876499	.	A	G	933	off-target	MQM=60	GT:DP:AO	1/1:29:29
+chr1	877831	.	T	C	183	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:6:6
+chr1	879676	.	G	A	540	.	MQM=60	GT:DP:AO	1/1:20:20
+chr1	879687	.	T	C	389	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:14:14
+chr1	880238	.	A	G	2963	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:89:89
+chr1	881627	.	G	A	2945	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:90:90
+chr1	883625	.	A	G	4031	.	MQM=60	GT:DP:AO	1/1:121:121
+chr1	883899	.	T	G	2797	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:203:107
+chr1	887560	.	A	C	3354	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:102:102
+chr1	887801	.	A	G	5310	.	MQM=60	GT:DP:AO	1/1:164:164
+chr1	888639	.	T	C	5210	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:159:159
+chr1	888659	.	T	C	5231	.	MQM=60	GT:DP:AO	1/1:159:158
+chr1	889158	.	G	C	721	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:23:23
+chr1	889159	.	A	C	721	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:23:23
+chr1	894573	.	G	A	2888	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:87:87
+chr1	897325	.	G	C	8595	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:262:260
+chr1	897460	.	A	C	38	.	MQM=59;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:161:52
+chr1	897564	.	T	C	8755	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:265:265
+chr1	898323	.	T	C	2817	off-target	MQM=60	GT:DP:AO	1/1:87:87
+chr1	899928	.	G	C	1131	.	MQM=60	GT:DP:AO	1/1:40:40
+chr1	899937	.	G	T	761	off-target	MQM=60	GT:DP:AO	1/1:27:27
+chr1	899938	.	G	C	761	off-target	MQM=60	GT:DP:AO	1/1:27:27
+chr1	899942	.	G	A	761	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:27:27
+chr1	900285	.	C	T	1204	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:41:41
+chr1	900286	.	A	G	1204	off-target	MQM=60	GT:DP:AO	1/1:41:41
+chr1	900298	.	C	G	555	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:59:27
+chr1	909419	.	C	T	364	.	MQM=60	GT:DP:AO	0/1:23:15
+chr1	909768	.	A	G	6715	off-target	MQM=60	GT:DP:AO	1/1:205:205
+chr1	911595	.	A	G	2800	.	MQM=60	GT:DP:AO	1/1:84:84
+chr1	912049	.	T	C	125	off-target	MQM=60	GT:DP:AO	0/1:22:8
+chr1	914333	.	C	G	828	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:67:32
+chr1	914414	.	CGAA	C	1098	.	MQM=60	GT:DP:AO	0/1:129:50
+chr1	914852	.	G	C	1737	.	MQM=60	GT:DP:AO	0/1:141:67
+chr1	914876	.	T	C	5914	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:178:178
+chr1	914940	.	T	C	2456	.	MQM=60	GT:DP:AO	0/1:218:96
+chr1	915227	.	A	G	3781	.	MQM=60	GT:DP:AO	1/1:118:117
+chr1	916549	.	A	G	980	.	MQM=60	GT:DP:AO	0/1:120:44
+chr1	916590	.	G	A	1461	off-target	MQM=60	GT:DP:AO	0/1:78:55
+chr1	935222	.	C	A	292	.	MQM=60	GT:DP:AO	0/1:30:14
+chr1	948921	.	T	C	2133	off-target	MQM=60	GT:DP:AO	1/1:65:65
+chr1	948929	.	GGCCCACA	G	734	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:65:31
+chr1	949608	.	G	A	2872	.	MQM=60;CLINVAR_ID=402986;CLINVAR_DETAILS=benign[p]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:266:111
+chr1	949654	.	A	G	7618	.	MQM=60	GT:DP:AO	1/1:231:230
+chr1	949925	.	C	T	410	off-target	MQM=60	GT:DP:AO	1/1:14:14
+chr1	976514	.	C	A	205	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:16:11
+chr1	977330	.	T	C	475	.	MQM=60;CLINVAR_ID=128292;CLINVAR_DETAILS=benign[p]not_specified	GT:DP:AO	0/1:73:24
+chr1	977570	.	G	A	1179	off-target	MQM=60;CLINVAR_ID=263159;CLINVAR_DETAILS=benign[p]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:82:46
+chr1	978603	.	CCT	C	1857	.	MQM=60;CLINVAR_ID=263160;CLINVAR_DETAILS=benign[p]not_specified	GT:DP:AO	0/1:159:75
+chr1	981087	.	A	G	4270	off-target	MQM=60;CLINVAR_ID=263172;CLINVAR_DETAILS=benign[p]not_specified	GT:DP:AO	0/1:317:160
+chr1	981931	.	A	G	1582	.	MQM=60;CLINVAR_ID=128297;CLINVAR_DETAILS=benign[p]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:163:70
+chr1	982941	.	T	C	1977	.	MQM=60;CLINVAR_ID=263181;CLINVAR_DETAILS=benign[p]not_specified	GT:DP:AO	0/1:166:76
+chr1	982994	.	T	C	2281	.	MQM=60;CLINVAR_ID=128302;CLINVAR_DETAILS=benign[p]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:210:90
+chr1	984302	.	T	C	125	.	MQM=60;CLINVAR_ID=128307;CLINVAR_DETAILS=benign[p]not_specified	GT:DP:AO	0/1:14:6
+chr1	985266	.	C	T	1697	.	MQM=60;CLINVAR_ID=263188;CLINVAR_DETAILS=benign[p]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:144:66
+chr1	985446	.	G	T	179	off-target	MQM=60;CLINVAR_ID=263191;CLINVAR_DETAILS=benign[p]not_specified	GT:DP:AO	0/1:12:4
+chr1	985449	.	G	A	179	off-target	MQM=59;CLINVAR_ID=263192;CLINVAR_DETAILS=benign[p]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:12:4
+chr1	986443	.	C	T	1558	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:132:61
+chr1	987200	.	C	T	854	.	MQM=60;CLINVAR_ID=128317;CLINVAR_DETAILS=benign[p]not_specified	GT:DP:AO	0/1:56:32
+chr1	988932	.	G	C	1141	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:83:44
+chr1	990280	.	C	T	1275	.	MQM=60;CLINVAR_ID=128319;CLINVAR_DETAILS=benign[p]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:40:40
+chr2	1079143	.	A	G	2510	off-target	MQM=60	GT:DP:AO	1/1:80:79
+chr2	1079320	.	C	T	1543	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:51:51
+chr2	1168781	.	C	A	1850	.	MQM=60	GT:DP:AO	0/1:140:70
+chr2	1241592	.	C	T	440	off-target	MQM=60	GT:DP:AO	1/1:15:15
+chr2	1243608	.	A	C	1196	off-target	MQM=60	GT:DP:AO	0/1:116:50
+chr2	1251088	.	C	CAGGTTT	1417	.	MQM=60	GT:DP:AO	0/1:132:54
+chr2	1271230	.	A	G	1195	.	MQM=60	GT:DP:AO	0/1:122:48
+chr2	1320143	.	C	T	4368	.	MQM=60	GT:DP:AO	1/1:136:134
+chr2	1418192	.	C	G	1458	.	MQM=60;CLINVAR_ID=256607;CLINVAR_DETAILS=benign/likely_benign[p]Congenital_hypothyroidism[c]Deficiency_of_iodide_peroxidase[c]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:89:55
+chr2	1426787	.	G	A	1687	off-target	MQM=60	GT:DP:AO	0/1:118:62
+chr2	1437410	.	C	T	216	off-target	MQM=60	GT:DP:AO	0/1:21:11
+chr2	1442551	.	AT	A	155	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:23:9
+chr2	1459806	.	A	G	634	off-target	MQM=60	GT:DP:AO	1/1:22:22
+chr2	1481155	.	G	T	1019	.	MQM=60;CLINVAR_ID=256605;CLINVAR_DETAILS=benign/likely_benign[p]Congenital_hypothyroidism[c]Deficiency_of_iodide_peroxidase[c]not_specified	GT:DP:AO	1/1:37:35
+chr2	1481231	.	G	C	860	.	MQM=60;CLINVAR_ID=256606;CLINVAR_DETAILS=benign[p]Congenital_hypothyroidism[c]Deficiency_of_iodide_peroxidase[c]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:31:29
+chr2	1481355	.	G	A	362	.	MQM=60;CLINVAR_ID=331317;CLINVAR_DETAILS=uncertain_significance[p]Congenital_hypothyroidism;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:26:15
+chr2	1520676	.	T	C	2118	.	MQM=60;CLINVAR_ID=256614;CLINVAR_DETAILS=benign[p]Congenital_hypothyroidism[c]Deficiency_of_iodide_peroxidase[c]not_specified	GT:DP:AO	1/1:69:69
+chr2	1642790	.	T	C	1070	off-target	MQM=60	GT:DP:AO	0/1:98:44
+chr2	1664654	.	A	G	3225	.	MQM=60;CLINVAR_ID=260220;CLINVAR_DETAILS=benign[p]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:105:105
+chr2	1667310	.	G	A	6216	off-target	MQM=60	GT:DP:AO	1/1:188:188
+chr2	1842968	.	T	C	2028	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:134:78
+chr2	1844652	.	C	T	552	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:57:27
+chr2	1844676	.	C	T	99	off-target	MQM=58	GT:DP:AO	0/1:19:8
+chr2	1907109	.	G	A	240	off-target	MQM=60	GT:DP:AO	0/1:31:13
+chr2	1926437	.	G	T	3245	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:99:99
+chr5	5140632	.	T	C	227	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:21:10
+chr5	5146200	.	A	T	746	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:57:30
+chr5	5146223	.	G	C	2136	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:67:67
+chr5	5146335	.	C	G	2902	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:90:89
+chr5	5146377	.	T	C	1408	.	MQM=60	GT:DP:AO	0/1:94:53
+chr5	5146395	.	A	G	983	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:91:40
+chr5	5186416	.	T	G	1022	off-target	MQM=60	GT:DP:AO	1/1:42:34
+chr5	5187776	.	G	A	4514	off-target	MQM=60	GT:DP:AO	1/1:138:138
+chr5	5200220	.	A	ATC	2622	off-target	MQM=60	GT:DP:AO	1/1:93:86
+chr5	5200281	.	C	T	4264	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:134:134
+chr5	5223073	.	A	G	783	off-target	MQM=60	GT:DP:AO	0/1:64:33
+chr5	5235096	.	A	G	324	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:23:14
+chr5	5239921	.	C	T	1495	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:119:57
+chr5	5240002	.	C	A	1194	.	MQM=60	GT:DP:AO	0/1:88:45
+chr5	5262766	.	G	A	2971	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:204:111
+chr5	5436609	.	G	A	748	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:50:29
+chr5	5460569	.	C	T	168	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:26:9
+chr5	5460619	.	G	C	437	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:54:20
+chr5	5462148	.	G	A	1352	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:103:53
+chr5	5476250	.	T	TG	242	off-target	MQM=60	GT:DP:AO	0/1:23:12
+chr8	8098169	.	A	G	2149	off-target	MQM=60	GT:DP:AO	1/1:65:65
+chr8	8176221	.	C	T	2038	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:171:81
+chr8	8176825	.	A	G	1527	.	MQM=60	GT:DP:AO	0/1:118:59
+chr8	8234868	.	C	CGCCGCT	2086	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:185:86
+chr8	8235510	.	G	C	1777	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:145:68
+chr8	8560151	.	G	A	1671	.	MQM=60	GT:DP:AO	0/1:137:66
+chr8	8643582	.	C	G	3851	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:117:117
+chr8	8655023	.	C	T	1781	off-target	MQM=60	GT:DP:AO	1/1:56:56
+chr8	8747537	.	T	C	2260	off-target	MQM=60	GT:DP:AO	0/1:146:82
+chr8	8747894	.	A	G	3255	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:99:99
+chr8	8749729	.	G	C	354	.	MQM=60	GT:DP:AO	0/1:49:18
+chr8	8750467	.	A	G	884	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:85:36
+chr8	8860620	.	T	C	203	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:16:9
+chr8	8861650	.	C	T	2192	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:180:83
+chr8	8869035	.	C	G	997	.	MQM=60	GT:DP:AO	0/1:73:38
+chr8	8869199	.	T	G	873	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:90:37
+chr8	8887566	.	A	G	422	off-target	MQM=60	GT:DP:AO	0/1:43:19
+chr8	8905926	.	A	G	1696	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:121:65
+chr11	11292635	.	C	T	36	off-target	MQM=60	GT:DP:AO	0/1:6:3
+chr11	11292700	.	G	C	240	.	MQM=60	GT:DP:AO	0/1:20:11
+chr11	11292859	.	G	T	677	off-target	MQM=60	GT:DP:AO	0/1:61:28
+chr11	11292864	.	C	T	682	off-target	MQM=60	GT:DP:AO	0/1:58:28
+chr11	11314538	.	C	T	787	off-target	MQM=60	GT:DP:AO	0/1:48:31
+chr11	11354346	.	T	C	874	.	MQM=60	GT:DP:AO	0/1:78:36
+chr11	11354393	.	A	G	1241	.	MQM=60	GT:DP:AO	1/1:42:41
+chr11	11373441	.	G	A	50	off-target	MQM=24	GT:DP:AO	1/1:4:4
+chr11	11373508	.	T	C	435	.	MQM=38	GT:DP:AO	1/1:18:18
+chr11	11373587	.	A	G	2491	.	MQM=56;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:80:80
+chr11	11373635	.	C	T	3288	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:102:102
+chr11	11373808	.	T	G	2956	.	MQM=57	GT:DP:AO	1/1:90:90
+chr11	11373925	.	A	C	5865	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:176:176
+chr11	11374016	.	T	A	4648	.	MQM=60	GT:DP:AO	1/1:145:145
+chr11	11374283	.	T	G	8297	.	MQM=60	GT:DP:AO	1/1:247:247
+chr11	11398698	.	G	A	139	off-target	MQM=60	GT:DP:AO	0/1:21:9
+chr11	11804698	.	G	A	10839	.	MQM=56;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:995:441
+chr11	11905993	.	C	T	703	off-target	MQM=60	GT:DP:AO	1/1:24:24
+chr11	11913585	.	G	T	3565	.	MQM=60	GT:DP:AO	1/1:109:109
+chr11	11944265	.	A	G	812	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:56:32
+chr11	11969971	.	G	A	433	off-target	MQM=60	GT:DP:AO	0/1:28:18
+chr11	11976628	.	G	A	872	.	MQM=60	GT:DP:AO	0/1:96:37
+chr11	11977573	.	T	C	201	.	MQM=60	GT:DP:AO	0/1:25:10
+chr11	11986061	.	T	C	1246	.	MQM=60	GT:DP:AO	0/1:96:48
+chr11	11989899	.	T	C	2081	off-target	MQM=60	GT:DP:AO	1/1:66:66
+chr17	17035036	.	A	G	1859	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:56:56
+chr17	17039561	.	CCAG	C	1060	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:90:45
+chr17	17046024	.	C	A	917	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:74:36
+chr17	17050573	.	G	A	1457	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:100:56
+chr17	17062241	.	C	G	788	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:24:24
+chr17	17069105	.	G	A	6484	.	MQM=60	GT:DP:AO	1/1:196:194
+chr17	17122286	.	C	T	529	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:19:19
+chr17	17122327	.	G	A	690	.	MQM=60;CLINVAR_ID=96468;CLINVAR_DETAILS=benign[p]Spontaneous_pneumothorax[c]Multiple_fibrofolliculomas[c]not_specified[c]not_provided;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:46:28
+chr17	17127471	.	G	A	713	.	MQM=60;CLINVAR_ID=96486;CLINVAR_DETAILS=benign[p]Spontaneous_pneumothorax[c]Multiple_fibrofolliculomas[c]not_specified[c]not_provided;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:78:32
+chr17	17168164	.	G	A	1564	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:101:57
+chr17	17179299	.	C	G	94	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:27:9
+chr17	17179481	.	G	A	2669	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:188:98
+chr17	17184399	.	A	C	1296	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:134:56
+chr17	17394611	.	G	A	112	.	MQM=60	GT:DP:AO	0/1:14:6
+chr17	17409560	.	C	T	5809	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:181:180
+chr17	17412032	.	G	C	4952	off-target	MQM=60	GT:DP:AO	1/1:152:152
+chr17	17425631	.	C	T	929	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:73:37
+chr17	17480195	.	A	G	1749	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:124:68
+chr17	17697093	.	CCAG	C	94	.	MQM=60;CLINVAR_ID=196559;CLINVAR_DETAILS=benign[p]History_of_neurodevelopmental_disorder[c]not_specified	GT:DP:AO	0/1:62:13
+chr17	17698254	.	G	A	3809	.	MQM=60;CLINVAR_ID=96179;CLINVAR_DETAILS=benign[p]Smith-Magenis_syndrome[c]History_of_neurodevelopmental_disorder[c]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:118:117
+chr17	17700037	.	AAGG	A	1714	.	MQM=60;CLINVAR_ID=96187;CLINVAR_DETAILS=likely_benign(replaced_by_megSAP_based_on_classifications:2x1[c]4x2[c]1x3)[p]History_of_neurodevelopmental_disorder[c]not_specified[c]not_provided;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:146:70
+chr17	17707105	.	T	C	4373	.	MQM=60;CLINVAR_ID=96195;CLINVAR_DETAILS=benign[p]Smith-Magenis_syndrome[c]History_of_neurodevelopmental_disorder[c]not_specified;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:133:133
+chr17	17715317	.	C	G	1824	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:56:56
+chr17	17719503	.	G	T	69	.	MQM=60	GT:DP:AO	1/1:3:3
+chr17	17726965	.	C	T	312	off-target	MQM=60	GT:DP:AO	1/1:12:12
+chr17	17740164	.	GC	G	335	off-target	MQM=60	GT:DP:AO	1/1:12:12
+chr17	17750907	.	G	A	515	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:17:17
+chr17	17910477	.	T	G	113	.	MQM=60	GT:DP:AO	0/1:14:7
+chr17	17948475	.	G	A	6415	.	MQM=60	GT:DP:AO	1/1:194:194
+chr17	17997209	.	G	A	3421	.	MQM=60	GT:DP:AO	1/1:103:103
+chr22	22007370	.	T	C	921	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:28:28
+chr22	22024150	.	C	T	460	off-target	MQM=60	GT:DP:AO	0/1:49:20
+chr22	22036832	.	T	C	313	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:23:13
+chr22	22042079	.	G	T	139	off-target	MQM=60	GT:DP:AO	0/1:21:8
+chr22	22055394	.	A	G	2410	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:191:92
+chr22	22058355	.	A	G	724	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:93:33
+chr22	22287964	.	T	C	4309	.	MQM=60	GT:DP:AO	0/1:317:160
+chr22	22309964	.	C	T	105	.	MQM=30;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:16:9
+chr22	22318354	.	T	C	987	.	MQM=60	GT:DP:AO	0/1:69:38
+chr22	22319757	.	AG	A	495	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:50:21
+chr22	22326326	.	GC	G	113	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:16:7
+chr22	22330082	.	T	C	1428	.	MQM=60	GT:DP:AO	0/1:119:55
+chr22	22385524	.	C	T	2530	off-target	MQM=60	GT:DP:AO	0/1:280:105
+chr22	22385627	.	A	G	1859	.	MQM=60	GT:DP:AO	0/1:205:78
+chr22	22385660	.	G	A	1300	.	MQM=60	GT:DP:AO	0/1:168:59
+chr22	22385669	.	T	C	1106	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:156:53
+chr22	22385687	.	A	G	487	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:129:34
+chr22	22385691	.	AGAGAAGGGCCC	A	478	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:108:30
+chr22	22385703	.	TCGG	T	478	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:108:30
+chr22	22385714	.	T	C	287	.	MQM=60	GT:DP:AO	0/1:110:24
+chr22	22385719	.	C	G	281	.	MQM=60	GT:DP:AO	0/1:109:24
+chr22	22385728	.	G	A	233	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:108:22
+chr22	22385741	.	G	C	32	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:96:15
+chr22	22385831	.	A	C	37	.	MQM=59;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:75:12
+chr22	22516883	.	TC	T	1890	.	MQM=60	GT:DP:AO	0/1:97:71
+chr22	22516998	.	C	T	1648	.	MQM=60	GT:DP:AO	0/1:79:59
+chr22	22517026	.	T	C	2514	.	MQM=60	GT:DP:AO	1/1:76:76
+chr22	22550339	.	G	C	6759	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:204:204
+chr22	22550450	.	C	G	3805	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:118:118
+chr22	22550510	.	T	G	1441	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:46:46
+chr22	22556270	.	T	C	178	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:148:25
+chr22	22556368	.	C	T	165	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:98:19
+chr22	22556662	.	A	T	42	off-target	MQM=60	GT:DP:AO	0/1:21:5
+chr22	22569448	.	T	A	262	.	MQM=60	GT:DP:AO	0/1:57:15
+chr22	22569554	.	C	A	73	.	MQM=60	GT:DP:AO	0/1:38:8
+chr22	22569640	.	T	G	54	.	MQM=60	GT:DP:AO	0/1:28:6
+chr22	22599380	.	G	A	23	.	MQM=60	GT:DP:AO	0/1:127:19
+chr22	22673639	.	T	C	229	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:77:17
+chr22	22676970	.	T	C	332	off-target	MQM=45	GT:DP:AO	0/1:66:20
+chr22	22681721	.	T	C	394	.	MQM=59;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:55:19
+chr22	22681765	.	G	A	463	.	MQM=59;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:69:22
+chr22	22698027	.	A	G	2742	.	MQM=60	GT:DP:AO	1/1:84:83
+chr22	22707388	.	T	C	77	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:64:12
+chr22	22707443	.	T	A	135	.	MQM=54;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:126:22
+chr22	22707452	.	G	GT	98	.	MQM=57;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:134:22
+chr22	22707473	.	C	G	131	.	MQM=51;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:160:27
+chr22	22707555	.	A	G	29	.	MQM=33	GT:DP:AO	0/1:108:18
+chr22	22707557	.	C	G	29	.	MQM=33	GT:DP:AO	0/1:108:18
+chr22	22707782	.	T	C	160	.	MQM=44;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:51:14
+chr22	22707814	.	A	G	198	off-target	MQM=47	GT:DP:AO	0/1:51:15
+chr22	22707820	.	T	C	256	off-target	MQM=48	GT:DP:AO	0/1:52:17
+chr22	22707835	.	G	GT	200	off-target	MQM=58	GT:DP:AO	0/1:42:13
+chr22	22724135	.	GT	G	275	.	MQM=60	GT:DP:AO	0/1:44:14
+chr22	22730504	.	C	T	172	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:151:26
+chr22	22730634	.	G	A	175	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:129:23
+chr22	22730739	.	G	C	21	.	MQM=37	GT:DP:AO	0/1:36:7
+chr22	22782394	.	A	G	818	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:40:31
+chr22	22786410	.	C	T	1313	off-target	MQM=60	GT:DP:AO	0/1:67:49
+chr22	22842206	.	T	C	3266	.	MQM=60	GT:DP:AO	1/1:99:99
+chr22	22842957	.	T	G	5065	.	MQM=60	GT:DP:AO	1/1:153:153
+chr22	22843118	.	C	T	3698	.	MQM=60	GT:DP:AO	1/1:111:111
+chr22	22868493	.	G	T	901	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:43:28
+chr22	22868497	.	G	C	901	.	MQM=60	GT:DP:AO	0/1:43:28
+chr22	22868773	.	G	A	2249	.	MQM=49;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:102:76
+chr22	22868776	.	G	A	2249	.	MQM=49	GT:DP:AO	0/1:102:76
+chr22	22869123	.	T	C	2455	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:121:88
+chr22	22869209	.	C	G	2270	.	MQM=60	GT:DP:AO	0/1:121:83
+chr22	22869218	.	T	C	2099	.	MQM=60	GT:DP:AO	0/1:110:75
+chr22	22869538	.	A	G	2090	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:96:77
+chr22	22869545	.	T	G	2148	.	MQM=60	GT:DP:AO	0/1:96:76
+chr22	22869548	.	T	C	2148	.	MQM=60	GT:DP:AO	0/1:96:76
+chr22	22869649	.	G	C	1974	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:94:71
+chr22	22869742	.	C	A	2071	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:89:74
+chr22	22890492	.	G	A	3078	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:137:112
+chr22	22890752	.	A	G	1255	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:62:46
+chr22	22890792	.	T	C	1192	.	MQM=60	GT:DP:AO	0/1:60:44
+chr22	22891081	.	G	T	135	.	MQM=60	GT:DP:AO	0/1:27:9
+chr22	22892449	.	T	C	221	.	MQM=60	GT:DP:AO	0/1:81:17
+chr22	22893463	.	G	C	89	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:80:14
+chr22	22899234	.	A	G	16	.	MQM=60	GT:DP:AO	0/1:74:11
+chr22	22930770	.	A	G	3260	off-target	MQM=60	GT:DP:AO	1/1:98:98
+chr22	22985303	.	C	G	1104	.	MQM=32	GT:DP:AO	1/1:44:44
+chr22	22985617	.	T	C	69	.	MQM=18	GT:DP:AO	0/1:79:30
+chr22	22985653	.	A	G	408	.	MQM=21;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:96:46
+chr22	22985819	.	T	C	34	.	MQM=22;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:51:14
+chr22	22988911	.	G	A	256	.	MQM=28	GT:DP:AO	1/1:13:13
+chr22	22989256	.	A	G	2258	.	MQM=56;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:70:70
+chrX	10085674	.	T	C	5696	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:172:172
+chrX	10085738	.	G	C	1730	.	MQM=60;NGSD_ID=2102664;NGSD_COUNTS=67,150;NGSD_GROUP=3,19;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:121:65
+chrX	10098055	.	C	T	527	.	MQM=60;NGSD_ID=2337211;NGSD_COUNTS=1,4	GT:DP:AO	0/1:41:21
+chrX	10104606	.	C	T	1430	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:140:58
+chrX	10174386	.	C	T	1665	.	MQM=60;NGSD_HAF;NGSD_ID=557130;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:131:63
+chrY	21154323	.	G	A	601	off-target	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:20:20
+chrY	21154466	.	T	A	2759	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:85:85
+chrY	21154529	.	G	A	85	.	MQM=60;NGSD_ID=2462968;NGSD_COUNTS=108,62;NGSD_GROUP=7,6;NGSD_CLAS=2;NGSD_CLAS_COM="[2]%20auto-classification%2026.11.2017%20%20"	GT:DP:AO	1/1:3:3
+chrMT	152	.	T	C	825	.	MQM=60;NGSD_ID=3864902;NGSD_COUNTS=1505,110;NGSD_GROUP=100,12	GT:DP:AO	0/1:33:29
+chrMT	263	.	A	G	841	.	MQM=60;CLINVAR_ID=441147;CLINVAR_DETAILS=not_provided[p]not_provided;NGSD_ID=3864903;NGSD_COUNTS=7010,10;NGSD_GROUP=525,2;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:26:26
+chrMT	302	.	A	AC	277	.	MQM=60;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:18:10
+chrMT	310	.	T	TC	277	.	MQM=60	GT:DP:AO	1/1:18:10
+chrMT	750	.	A	G	1209	.	MQM=59;CLINVAR_ID=441148;CLINVAR_DETAILS=not_provided[p]not_provided;NGSD_ID=3864907;NGSD_COUNTS=7085,7	GT:DP:AO	1/1:38:38
+chrMT	1438	.	A	G	1180	.	MQM=57;CLINVAR_ID=42220;CLINVAR_DETAILS=benign[p]not_specified[c]not_provided;NGSD_ID=3864908;NGSD_COUNTS=6864,10;NGSD_GROUP=516,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:38:37
+chrMT	1721	.	C	T	291	.	MQM=60;NGSD_ID=3864909;NGSD_COUNTS=67,6;NGSD_GROUP=6,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:29:13
+chrMT	2259	.	C	T	161	.	MQM=60;NGSD_ID=3864910;NGSD_COUNTS=83,12	GT:DP:AO	0/1:15:8
+chrMT	2706	.	A	G	98	.	MQM=60;NGSD_ID=3864911;NGSD_COUNTS=4202,180;NGSD_GROUP=293,8	GT:DP:AO	0/1:20:6
+chrMT	2757	.	A	G	95	.	MQM=60;NGSD_ID=3864912;NGSD_COUNTS=40,5;NGSD_GROUP=3,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:18:6
+chrMT	3197	.	T	C	232	.	MQM=60;NGSD_ID=3864913;NGSD_COUNTS=462,29;NGSD_GROUP=37,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:21:10
+chrMT	3212	.	C	T	229	.	MQM=60;NGSD_ID=3864914;NGSD_COUNTS=28,4;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:22:10
+chrMT	4745	.	A	G	168	.	MQM=23;NGSD_ID=3864915;NGSD_COUNTS=56,4;NGSD_GROUP=5,1	GT:DP:AO	1/1:12:11
+chrMT	4769	.	A	G	163	.	MQM=16;CLINVAR_ID=441150;CLINVAR_DETAILS=not_provided[p]not_provided;NGSD_ID=3864916;NGSD_COUNTS=5471,14;NGSD_GROUP=343,2	GT:DP:AO	1/1:13:13
+chrMT	7337	.	G	A	82	.	MQM=44;NGSD_ID=3864917;NGSD_COUNTS=53,5;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:3:3
+chrMT	8860	.	A	G	197	.	MQM=27;NGSD_ID=3864918;NGSD_COUNTS=5514,20;NGSD_GROUP=343,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	1/1:10:10
+chrMT	9477	.	G	A	227	.	MQM=52;NGSD_ID=3864919;NGSD_COUNTS=447,34;NGSD_GROUP=33,2;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:44:13
+chrMT	12372	.	G	A	141	.	MQM=60;NGSD_ID=3864920;NGSD_COUNTS=1323,115;NGSD_GROUP=89,6;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:15:7
+chrMT	13326	.	T	C	1109	.	MQM=60;NGSD_ID=3864921;NGSD_COUNTS=61,5;NGSD_GROUP=6,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:49:41
+chrMT	13617	.	T	C	89	.	MQM=60;NGSD_ID=3864922;NGSD_COUNTS=453,20;NGSD_GROUP=32,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:22:6
+chrMT	13637	.	A	G	56	.	MQM=60;CLINVAR_ID=65511;CLINVAR_DETAILS=pathogenic[p]Leber's_optic_atrophy;NGSD_ID=3864923;NGSD_COUNTS=95,4;NGSD_GROUP=7,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:21:5
+chrMT	13680	.	C	T	456	.	MQM=60;NGSD_ID=3864924;NGSD_COUNTS=61,7	GT:DP:AO	0/1:22:18
+chrMT	14182	.	T	C	69	.	MQM=58;NGSD_ID=3864925;NGSD_COUNTS=176,14;NGSD_GROUP=18,2	GT:DP:AO	0/1:17:5
+chrMT	14766	.	C	T	210	.	MQM=60;CLINVAR_ID=140587;CLINVAR_DETAILS=likely_pathogenic[p]Familial_cancer_of_breast;NGSD_ID=3864926;NGSD_COUNTS=3805,119;NGSD_GROUP=243,7	GT:DP:AO	0/1:15:9
+chrMT	14831	.	G	A	412	.	MQM=60;CLINVAR_ID=65517;CLINVAR_DETAILS=pathogenic[p]Leber's_optic_atrophy;NGSD_ID=3864927;NGSD_COUNTS=38,6;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:27:17
+chrMT	14872	.	C	T	663	.	MQM=60;NGSD_ID=3864928;NGSD_COUNTS=100,23;NGSD_GROUP=5,5;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:38:25
+chrMT	14956	.	T	C	172	.	MQM=60;NGSD_ID=3864929;NGSD_COUNTS=19,5;NGSD_GROUP=2,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:44:11
+chrMT	15326	.	A	G	1495	.	MQM=60;CLINVAR_ID=140592;CLINVAR_DETAILS=likely_pathogenic[p]Familial_cancer_of_breast;NGSD_ID=3864930;NGSD_COUNTS=7052,29;NGSD_GROUP=537,2;NGSD_CLAS=1;NGSD_CLAS_COM="[1]%20harmuth%2009.04.2018";NGSD_COM="most%20likely%20WT%20variant.%20in%2098.6%%20of%20all%20full%20length%20sequences%20(MitoMap).%20FH%2009.04.2018"	GT:DP:AO	1/1:46:46
+chrMT	16023	.	G	A	62	.	MQM=60;NGSD_ID=3864931;NGSD_COUNTS=0,2	GT:DP:AO	0/1:14:5
+chrMT	16189	.	T	C	234	.	MQM=60;NGSD_ID=3864932;NGSD_COUNTS=944,169;NGSD_GROUP=70,5;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:35:11
+chrMT	16192	.	C	T	234	.	MQM=60;NGSD_ID=3864933;NGSD_COUNTS=264,86;NGSD_GROUP=18,5;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:35:11
+chrMT	16270	.	C	T	170	.	MQM=60;NGSD_ID=3864934;NGSD_COUNTS=392,110;NGSD_GROUP=26,12	GT:DP:AO	0/1:55:13
+chrMT	16398	.	G	A	139	.	NGSD_ID=3864935;NGSD_COUNTS=30,7;NGSD_GROUP=2,1;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:33:9
