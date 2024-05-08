@@ -136,7 +136,7 @@ public:
 			int c_low_depth = 0;
 			for(int i = 0; i < prs_variant_list.count(); ++i)
 			{	
-				const VcfLine& prs_variant = prs_variant_list[i];
+				VcfLine& prs_variant = prs_variant_list[i];
 
 				//does not support multi-allelic variants
 				if(prs_variant.isMultiAllelic())
@@ -145,6 +145,8 @@ public:
 				}
 
 				bool prs_var_is_wildtype = ((prs_variant.altString() == ".") || (prs_variant.altString() == prs_variant.ref()));
+				//replace '.' in wildtype var with ref
+				if (prs_var_is_wildtype) prs_variant.setSingleAlt(prs_variant.ref());
 
 				//get all matching variants at this position
 				QByteArrayList matching_lines = sample_vcf.getMatchingLines(prs_variant.chr(), prs_variant.start(), prs_variant.end(), true);
