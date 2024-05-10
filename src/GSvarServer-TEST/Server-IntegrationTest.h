@@ -38,6 +38,7 @@ private slots:
 
 	void test_if_server_is_running()
 	{
+        FileDbManager().reinitializeDb();
         if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");

@@ -5,6 +5,7 @@
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "ServerController.h"
+#include "FileDbManager.h"
 
 int main(int argc, char **argv)
 {
@@ -547,18 +548,6 @@ int main(int argc, char **argv)
 		return app.exec();
 	}
 
-    try
-    {
-        Log::info("Restore previous sessions");
-        SessionManager::restoreFromFile();
-        Log::info("Restore previous URLs");
-        UrlManager::restoreFromFile();
-    }
-    catch (Exception& e)
-    {
-        Log::error("Failed to restore the previous state: " + e.message());
-    }
-
     if (!Settings::boolean("test_mode", true) && !ServerHelper::hasProdSettings())
     {
         Log::error("Server cannot be started: production settings are missing. Exiting...");
@@ -583,5 +572,6 @@ int main(int argc, char **argv)
     }
     Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):\n"+env_var_list);
 
+    FileDbManager().initDbIfEmpty();
 	return app.exec();
 }
