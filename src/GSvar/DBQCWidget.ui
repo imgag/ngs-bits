@@ -59,7 +59,12 @@
        </item>
        <item>
         <property name="text">
-         <string>tumor</string>
+         <string>tumor (no FFPE)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>tumor (FFPE)</string>
         </property>
        </item>
       </widget>
