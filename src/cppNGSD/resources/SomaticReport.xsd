@@ -139,6 +139,7 @@
 									<xs:enumeration value="WGS"/>
 									<xs:enumeration value="WES"/>
 									<xs:enumeration value="Panel"/>
+									<xs:enumeration value="lrGS"/>
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
