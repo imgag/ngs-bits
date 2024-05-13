@@ -227,7 +227,7 @@ public:
 						{
 							allele_count = -1;
 							// No call possible -> use population AF
-							prs += weight * pop_af;
+							prs += weight * pop_af * 2.0;
 							++c_low_depth;
 						}
 						else  //sufficient depth & no call => both alleles wildtype
