@@ -294,6 +294,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString name;
 	QString processing_system;
 	QString processing_system_type;
+	QString sequencer_type;
 	QString quality;
 	QString gender;
 	QString comments;

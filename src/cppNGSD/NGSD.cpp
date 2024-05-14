@@ -717,6 +717,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.project_name = query.value("p_name").toString().trimmed();
 	output.project_type = query.value("p_type").toString().trimmed();
 	output.run_name = query.value("r_name").toString().trimmed();
+	output.sequencer_type = getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name=:0", true, output.run_name).toString();
 	QVariant normal_id = query.value("normal_id");
 	if (!normal_id.isNull())
 	{
