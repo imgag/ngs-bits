@@ -96,7 +96,7 @@
         <item>
          <widget class="QCheckBox" name="cb_filter_res">
           <property name="text">
-           <string>Repeat Expansions</string>
+           <string>Repeat expansions</string>
           </property>
          </widget>
         </item>

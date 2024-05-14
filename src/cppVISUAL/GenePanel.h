@@ -63,7 +63,7 @@ private:
 
 	//Returns the character size.
 	static QSize characterSize(QFont font);
-	//Returs the color to draw the given base.
+	//Returns the color to draw the given base.
 	static QColor baseColor(QChar base);
 	//Returns the colos to draw the given amino acid.
 	static QColor aaColor(int start_index, QChar aa);
