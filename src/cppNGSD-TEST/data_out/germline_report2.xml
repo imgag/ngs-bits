@@ -28,7 +28,7 @@
         <Chromosome chr="chrY" refseq="NC_000024.10"/>
         <Chromosome chr="chrMT" refseq="NC_012920.1"/>
     </ChromosomeAliases>
-    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" comments="comment_ps1" ancestry="EUR">
+    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" sequencer_type="MiSeq" comments="comment_ps1" ancestry="EUR">
         <QcTerm id="QC:2000027" name="target region 20x percentage" def="Percentage of the target region that is covered at..." value="95.96"/>
         <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="103.24"/>
     </Sample>

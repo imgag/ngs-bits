@@ -181,6 +181,11 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
+						<xs:attribute name="sequencer_type" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>sequencer type</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 						<xs:attribute name="comments" type="xs:string">
 							<xs:annotation>
 								<xs:documentation>sample comments</xs:documentation>

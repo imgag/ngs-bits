@@ -19,6 +19,7 @@ protected slots:
 	void openProcessedSampleTab(int row);
 	void openVariantList();
 	void deleteSampleData();
+	void amendSampleComments();
 	void queueAnalysis();
 	void phenotypeSelection();
 
