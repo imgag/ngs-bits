@@ -8,7 +8,7 @@ Q_OBJECT
 private slots:
 	void test_api_info()
     {
-        FileDbManager().reinitializeDb(); // Earase local DB file and crate new empty tables
+        FileDbManager::reinitializeDb();
         HttpRequest request;
 		request.setMethod(RequestMethod::GET);
 		request.setContentType(ContentType::APPLICATION_JSON);

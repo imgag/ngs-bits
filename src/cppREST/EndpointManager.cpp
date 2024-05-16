@@ -84,7 +84,7 @@ QString EndpointManager::getTokenIfAvailable(const HttpRequest& request)
 
 HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 {
-    QString token = getTokenIfAvailable(request);
+    QString token = getTokenIfAvailable(request);    
 
     if (token.isEmpty())
     {

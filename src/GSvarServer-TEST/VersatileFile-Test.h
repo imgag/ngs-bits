@@ -19,6 +19,17 @@ TEST_CLASS(VersatileFile_Test)
 			}
 			const QString bam_file = ClientHelper::serverApiUrl() + "bam/rna.bam";
 
+            QByteArray reply;
+            HttpHeaders add_headers;
+            add_headers.insert("Accept", "text/html");
+            add_headers.insert("Content-Type", "text/html");
+            add_headers.insert("Range", "bytes=-8");
+            int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+            if (code == 0)
+            {
+                SKIP("This test requieres a running server");
+            }
+
 			VersatileFile file_over_https = VersatileFile(bam_file);
 			IS_TRUE(file_over_https.exists());
 			S_EQUAL(file_over_https.fileName(), bam_file)
@@ -38,6 +49,17 @@ TEST_CLASS(VersatileFile_Test)
 			QFile *local_asset_file = new QFile(":/assets/client/info.html");
 			local_asset_file->open(QIODevice::ReadOnly);
 			QByteArray asset_file_content = local_asset_file->readAll();
+
+            QByteArray reply;
+            HttpHeaders add_headers;
+            add_headers.insert("Accept", "text/html");
+            add_headers.insert("Content-Type", "text/html");
+            add_headers.insert("Range", "bytes=-8");
+            int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+            if (code == 0)
+            {
+                SKIP("This test requieres a running server");
+            }
 
 			VersatileFile index_page_file = VersatileFile(html_file);
 			QByteArray index_page_content = index_page_file.readAll();

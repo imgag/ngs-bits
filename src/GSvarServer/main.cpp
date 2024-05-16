@@ -572,6 +572,6 @@ int main(int argc, char **argv)
     }
     Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):\n"+env_var_list);
 
-    FileDbManager().initDbIfEmpty();
+    FileDbManager::initDbIfEmpty();
 	return app.exec();
 }

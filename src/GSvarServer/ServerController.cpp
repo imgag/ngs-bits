@@ -1092,7 +1092,6 @@ HttpResponse ServerController::validateCredentials(const HttpRequest& request)
 
 HttpResponse ServerController::getDbToken(const HttpRequest& request)
 {
-    Log::info("Requesting db token = " + request.getFormUrlEncoded()["token"]);
     Session user_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
 
 	if (user_session.isEmpty())

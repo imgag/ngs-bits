@@ -9,11 +9,11 @@ private slots:
 
 	void test_url_manager()
 	{
-        FileDbManager().reinitializeDb();
+        FileDbManager::initDbIfEmpty();
         QString url_id = ServerHelper::generateUniqueStr();
-		QString file = "file.txt";
+        QString file = "file.txt";
 
-		IS_FALSE(UrlManager::isInStorageAlready(file));
+        IS_FALSE(UrlManager::isInStorageAlready(file));
         UrlEntity cur_url = UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime());
         UrlManager::addNewUrl(cur_url);
 		IS_TRUE(UrlManager::isInStorageAlready(file));

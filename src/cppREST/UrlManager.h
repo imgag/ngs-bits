@@ -10,7 +10,6 @@ class CPPRESTSHARED_EXPORT UrlManager
 {
 public:
     static const qint64 DEFAULT_URL_LIFETIME = 600; // in seconds
-	static void restoreFromFile();
     static void addNewUrl(UrlEntity url_entity);
 	static void removeUrl(const QString& id);
 	static bool isInStorageAlready(const QString& filename_with_path);

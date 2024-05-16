@@ -1,6 +1,7 @@
 #ifndef FILEDBMANAGER_H
 #define FILEDBMANAGER_H
 
+#include "cppREST_global.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
@@ -10,28 +11,32 @@
 #include "UrlEntity.h"
 #include "ClientHelper.h"
 
-class FileDbManager
+class CPPRESTSHARED_EXPORT FileDbManager
 {
 public:
-    FileDbManager(const QString path = "local_store.db");
-    void initDbIfEmpty();
-    void reinitializeDb();
-    bool addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time_, const bool is_for_db_only);
-    bool addSession(const Session new_session);
-    bool removeSession(const QString& string_id);
-    Session getSession(const QString& string_id);
-    QList<Session> getAllSessions();
+    static void initDbIfEmpty();
+    static void reinitializeDb();
+    static bool addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time_, const bool is_for_db_only);
+    static bool addSession(const Session new_session);
+    static bool removeSession(const QString& string_id);
+    static Session getSession(const QString& string_id);
+    static QList<Session> getAllSessions();
 
-    bool addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const QDateTime created);
-    bool addUrl(const UrlEntity new_url);
-    bool removeUrl(const QString& string_id);
-    bool isFileInStoreAlrady(const QString& filename_with_path);
-    UrlEntity getUrl(const QString& string_id);
-    QList<UrlEntity> getAllUrls();
+    static bool addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const QDateTime created);
+    static bool addUrl(const UrlEntity new_url);
+    static bool removeUrl(const QString& string_id);
+    static bool isFileInStoreAlready(const QString& filename_with_path);
+    static UrlEntity getUrl(const QString& string_id);
+    static QList<UrlEntity> getAllUrls();
 
-    ClientInfo getCurrentClientInfo();
+    static ClientInfo getCurrentClientInfo();
+
+protected:
+    FileDbManager();
 
 private:
+    static FileDbManager& instance();
+    static void openConnectionIfClosed();
     QSqlDatabase file_database_;
 };
 
