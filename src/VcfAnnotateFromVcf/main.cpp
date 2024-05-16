@@ -25,6 +25,7 @@ public:
     virtual void setup()
     {
 		setDescription("Annotates a VCF file with data from one or more source VCF files.");
+		setExtendedDescription(QStringList() << "NOTICE: the parameter '-existence_only' cannot be used together with '-config_file', '-info_keys' or '-id_column'.");
 
         //optional
 		addInfile("in", "Input VCF(.GZ) file that is annotated. If unset, reads from STDIN.", true, true);
@@ -35,11 +36,14 @@ public:
 		addString("id_column", "ID column in 'source' (must be 'ID'). If unset, the ID column is not annotated. Alternative output name can be specified by using 'ID=new_name'.", true, "");
 		addString("prefix", "Prefix added to all annotations in the output VCF file.", true, "");
 		addFlag("allow_missing_header", "If set the execution is not aborted if a INFO header is missing in the source file.");
+		addFlag("existence_only", "Only annotate if variant exists in source.");
+		addString("existence_key_name", "Defines the INFO key name.", true, "EXISTS_IN_SOURCE");
 		addInt("threads", "The number of threads used to process VCF lines.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addFlag("debug", "Enables debug output (use only with one thread).");
 
+		changeLog(2024, 5,  6, "Added option to annotate the existence of variants in the source file");
 		changeLog(2022, 7,  8, "Usability: changed parameter names and updated documentation.");
 		changeLog(2022, 2, 24, "Refactoring and change to event-driven implementation (improved scaling with many threads)");
 		changeLog(2021, 9, 20, "Prefetch only part of input file (to save memory).");
@@ -64,6 +68,8 @@ public:
         QByteArray id_column = getString("id_column").toUtf8().trimmed();
 		QByteArray prefix = getString("prefix").toUtf8().trimmed();
 		bool allow_missing_header = getFlag("allow_missing_header");
+		bool existence_only = getFlag("existence_only");
+		QByteArray existence_key_name = getString("existence_key_name").toUtf8().trimmed();
 		params.threads = getInt("threads");
 		params.prefetch = getInt("prefetch");
 		params.block_size = getInt("block_size");
@@ -74,6 +80,8 @@ public:
 		if (params.threads < 1) THROW(ArgumentException, "Parameter 'threads' has to be greater than zero!");
 		if (params.prefetch < params.threads) THROW(ArgumentException, "Parameter 'prefetch' has to be at least number of used threads!");
 		if (params.in!="" && params.in==params.out) THROW(ArgumentException, "Input and output files must be different when streaming!");
+		if (existence_only && (!file_path.isEmpty() || !info_keys.isEmpty() || !id_column.isEmpty())) THROW(ArgumentException, "Parameter 'existence_only' cannot be used together with '-config_file', '-info_keys' or '-id_column'!");
+		if (existence_only && existence_key_name.isEmpty()) THROW(ArgumentException, "Parameter 'existence_key_name' cannot be empty!");
 
 		//get meta data
 		MetaData meta;
@@ -118,6 +126,28 @@ public:
                 {
 					meta.allow_missing_header_list.append(false);
                 }
+
+				// read columns for existence annotation
+				if (columns.size() > 5)
+				{
+					meta.annotate_only_existence.append((columns[5].trimmed().toLower() == "true") || (columns[5].trimmed() == "1"));
+				}
+				else
+				{
+					meta.annotate_only_existence.append(false);
+				}
+
+				if ((columns.size() > 6) && !columns[6].trimmed().isEmpty())
+				{
+					meta.existence_name_list.append(columns[6].trimmed());
+				}
+				else
+				{
+					meta.existence_name_list.append("EXISTS_IN_SOURCE");
+				}
+
+				// check parsing result
+				if (meta.annotate_only_existence.last() && (!out_info_ids.isEmpty() || !out_id_column_name.isEmpty())) THROW(ArgumentException, "'existence_only' annotation cannot be used together with INFO/ID annotation!")
             }
 
 			if (meta.annotation_file_list.size() < 1)
@@ -129,7 +159,7 @@ public:
         {
 			meta.annotation_file_list.append(source.toUtf8());
 
-			if (info_keys.isEmpty() && id_column.isEmpty()) THROW(ArgumentException, "The 'info_keys' parameter or the 'id_column' parameter is required if no config file is provided!");
+			if (info_keys.isEmpty() && id_column.isEmpty() && !existence_only) THROW(ArgumentException, "One of the parameters 'info_keys', 'id_column' or 'existence_only' is required if no config file is provided!");
 			if (source.isEmpty()) THROW(ArgumentException, "The 'source' parameter is required if no config file is provided!");
 
             QByteArrayList info_ids;
@@ -148,6 +178,9 @@ public:
 			meta.out_id_column_name_list.append(out_id_column_name);
 
 			meta.allow_missing_header_list.append(allow_missing_header);
+
+			meta.annotate_only_existence.append(existence_only);
+			meta.existence_name_list.append(existence_key_name);
         }
 
 		//check meta data
@@ -171,16 +204,22 @@ public:
 		for(int i = 0; i < meta.annotation_file_list.size(); i++)
         {
 			out << "Annotation file: " << meta.annotation_file_list[i] << "\n";
-
-			if (meta.id_column_name_list[i] != "")
-            {
-				out << "Id column:\n\t " << meta.id_column_name_list[i].leftJustified(12) << "\t -> \t" << meta.out_id_column_name_list[i] << "\n";
-            }
-            out << "INFO ids:\n";
-			for (int j = 0; j < meta.info_id_list[i].size(); j++)
-            {
-				out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << endl;
-            }
+			if (meta.annotate_only_existence[i])
+			{
+				out << "Existence-only annotation, INFO key name:\t" + meta.existence_name_list[i] + "\n";
+			}
+			else
+			{
+				if (meta.id_column_name_list[i] != "")
+				{
+					out << "Id column:\n\t " << meta.id_column_name_list[i].leftJustified(12) << "\t -> \t" << meta.out_id_column_name_list[i] << "\n";
+				}
+				out << "INFO ids:\n";
+				for (int j = 0; j < meta.info_id_list[i].size(); j++)
+				{
+					out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << endl;
+				}
+			}
 		}
 
 		//create coordinator instance

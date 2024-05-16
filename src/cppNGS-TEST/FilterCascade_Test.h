@@ -1982,7 +1982,8 @@ private slots:
 		FilterResult result(svs.count());
 
 		FilterSvLrAF filter;
-		filter.setDouble("AF", 0.3);
+		filter.setDouble("min_af", 0.2);
+		filter.setDouble("max_af", 0.4);
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 15);
 	}
