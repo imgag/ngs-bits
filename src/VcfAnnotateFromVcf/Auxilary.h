@@ -39,6 +39,8 @@ struct MetaData
 	QByteArrayList out_id_column_name_list;
 	QByteArrayList annotation_file_list;
 	QByteArrayList id_column_name_list;
+	QVector<bool> annotate_only_existence;
+	QByteArrayList existence_name_list;
 	QVector<bool> allow_missing_header_list;
 	QSet<QByteArray> unique_output_ids;
 	QByteArrayList prefix_list;
