@@ -7,6 +7,7 @@
 #include "GUIHelper.h"
 #include <QMessageBox>
 #include <QAction>
+#include <QInputDialog>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	: QWidget(parent)
@@ -23,6 +24,9 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
+	action = new QAction(QIcon(":/Icons/Comment.png"), "Add text to processed sample comment", this);
+	ui_.sample_table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(amendSampleComments()));
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteSampleData()));
@@ -216,6 +220,47 @@ void SampleSearchWidget::deleteSampleData()
 	//dialog
 	ProcessedSampleDataDeletionDialog* dlg = new ProcessedSampleDataDeletionDialog(this, ps_ids);
 	dlg->exec();
+}
+
+void SampleSearchWidget::amendSampleComments()
+{
+	try
+	{
+		QSet<int> rows = ui_.sample_table->selectedRows();
+		if (rows.isEmpty()) return;
+
+		//get text
+		bool ok = true;
+		QByteArray text = QInputDialog::getMultiLineText(this, "Add text to processed sample comment", "Text to add:", "", &ok).toUtf8();
+		if (!ok) return;
+
+		text = text.trimmed();
+		if (text.isEmpty()) return;
+
+		//get processed sample IDs
+		NGSD db;
+		SqlQuery query = db.getQuery();
+		query.prepare("UPDATE processed_sample SET comment=:0 WHERE id=:1");
+		int c_updated = 0;
+		foreach(int row, rows)
+		{
+			QString ps_id = ui_.sample_table->getId(row);
+			QString comment = db.getValue("SELECT comment FROM processed_sample WHERE id=:0", true, ps_id).toString();
+			comment += "\n\n" + text + "\n";
+			query.bindValue(0, comment);
+			query.bindValue(1, ps_id);
+			query.exec();
+			++c_updated;
+		}
+
+
+
+
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showMessage("Add text to processed sample comment", e.message());
+	}
 }
 
 void SampleSearchWidget::queueAnalysis()

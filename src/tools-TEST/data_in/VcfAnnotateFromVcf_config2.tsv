@@ -1,0 +1,3 @@
+../src/tools-TEST/data_in/VcfAnnotateFromVcf_an1_ClinVar.vcf.gz	CLINVAR	DETAILS	ID
+../src/tools-TEST/data_in/VcfAnnotateFromVcf_an2_NGSD.vcf.gz	NGSD	COUNTS,GSC01=GROUP,HAF,CLAS,CLAS_COM,COM	ID
+../src/tools-TEST/data_in/VcfAnnotateFromVcf_an3_ExOnly.vcf.gz					1	IN_SHORTREAD_SAMPLE

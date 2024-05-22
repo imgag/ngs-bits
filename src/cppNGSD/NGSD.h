@@ -294,6 +294,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString name;
 	QString processing_system;
 	QString processing_system_type;
+	QString sequencer_type;
 	QString quality;
 	QString gender;
 	QString comments;
@@ -853,7 +854,7 @@ public:
 
 	///Returns the repeat expansion NGSD ID
 	QString repeatExpansionId(const QString& region, const QString& repeat_unit, bool throw_if_fails=true);
-	///Retunrs the (rich text) comments of the repeat with the given ID
+	///Returns the (rich text) comments of the repeat with the given ID
 	QString repeatExpansionComments(int id);
 
 	///Adds PubMed ID to a variant
