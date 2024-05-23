@@ -1027,7 +1027,6 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
         Log::error(EndpointManager::formatResponseMessage(request, "Database request failed: " + e.message()));
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
-    Log::info("User token = " + secure_token);
 
     Session cur_session = Session(secure_token, user_id, user_login, user_real_name, QDateTime::currentDateTime(), false);
     SessionManager::addNewSession(cur_session);

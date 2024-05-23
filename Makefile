@@ -215,8 +215,8 @@ check_tool_ngsd_dependencies:
 dummy:
 
 download_test_files:
-	wget -O ./src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz --no-check-certificate
-	wget -O ./src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz --no-check-certificate
+	wget -O ./src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
+	wget -O ./src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
 
 #################################### 3rd party  ##################################
 

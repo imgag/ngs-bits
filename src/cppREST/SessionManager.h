@@ -17,7 +17,7 @@ public:
 	static Session getSessionBySecureToken(QString token);
 
     static bool isValidSession(QString token);
-    static int removeExpiredSessions();
+    static void removeExpiredSessions();
 
 	static ClientInfo getCurrentClientInfo();
 	static void setCurrentClientInfo(ClientInfo info);

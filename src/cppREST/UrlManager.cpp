@@ -41,31 +41,23 @@ bool UrlManager::isValidUrl(QString token)
 
     int url_lifetime = ServerHelper::getNumSettingsValue("url_lifetime"); // URL lifetime in seconds
     if (url_lifetime == 0) url_lifetime = DEFAULT_URL_LIFETIME; // default value, if not set in the config
-    if ((QDateTime::currentDateTime().toSecsSinceEpoch() - cur_url.created.toSecsSinceEpoch()) >= url_lifetime)
+    if (cur_url.created.addSecs(url_lifetime).toSecsSinceEpoch() <= QDateTime::currentDateTime().toSecsSinceEpoch())
     {
         return false;
     }
     return true;
 }
 
-int UrlManager::removeExpiredUrls()
+void UrlManager::removeExpiredUrls()
 {
     int url_lifetime = ServerHelper::getNumSettingsValue("url_lifetime"); // URL lifetime in seconds
     if (url_lifetime == 0) url_lifetime = DEFAULT_URL_LIFETIME; // default value, if not set in the config
 
-    int removed_count = 0;
     Log::info("Starting to cleanup URLs");
-    QList<UrlEntity> all_urls = FileDbManager::getAllUrls();
-    for (int i = 0; i < all_urls.size(); i++)
-    {
-        if ((QDateTime::currentDateTime().toSecsSinceEpoch() - all_urls[i].created.toSecsSinceEpoch()) < url_lifetime)
-        {
-            continue;
-        }
-        FileDbManager::removeUrl(all_urls[i].string_id);
-        removed_count++;
-    }
+    int current_count = FileDbManager::getUrlsCount();
+    Log::info("Number of active URLs: " + QString::number(current_count));
+    FileDbManager::removeUrlsOlderThan(QDateTime::currentDateTime().toSecsSinceEpoch()-url_lifetime);
 
-    Log::info("Number of removed URLs: " + QString::number(removed_count));
-    return removed_count;
+    int new_count = FileDbManager::getUrlsCount();
+    Log::info("Number of active URLs after the cleanup: " + QString::number(new_count));
 }

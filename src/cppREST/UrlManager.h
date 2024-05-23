@@ -15,7 +15,7 @@ public:
 	static bool isInStorageAlready(const QString& filename_with_path);
 	static UrlEntity getURLById(const QString& id);
     static bool isValidUrl(QString token);
-    static int removeExpiredUrls();
+    static void removeExpiredUrls();
 
 protected:
 	UrlManager();	

@@ -136,6 +136,19 @@ bool FileDbManager::removeSession(const QString& string_id)
     return success;
 }
 
+bool FileDbManager::removeSessionsOlderThan(qint64 seconds)
+{
+    instance().openConnectionIfClosed();
+    QSqlQuery query = instance().file_database_.exec("DELETE FROM sessions WHERE login_time < " + QString::number(seconds));
+    bool success = query.lastError().text().trimmed().isEmpty();
+
+    if(!success)
+    {
+        Log::error("Failed to remove sessions older than " + QDateTime::fromSecsSinceEpoch(seconds).toString("ddd MMMM d yy") +  ": " + query.lastError().text());
+    }
+    return success;
+}
+
 Session FileDbManager::getSession(const QString& string_id)
 {
     instance().openConnectionIfClosed();
@@ -193,6 +206,17 @@ QList<Session> FileDbManager::getAllSessions()
     return results;
 }
 
+int FileDbManager::getSessionsCount()
+{
+    instance().openConnectionIfClosed();
+    QSqlQuery query = instance().file_database_.exec("SELECT COUNT(*) FROM sessions");
+    if (query.next())
+    {
+        return query.value(0).toInt();
+    }
+    return 0;
+}
+
 bool FileDbManager::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const QDateTime created)
 {
     instance().openConnectionIfClosed();
@@ -223,6 +247,20 @@ bool FileDbManager::removeUrl(const QString& string_id)
     if(!success)
     {
         Log::error("Failed to remove the URL '" + string_id + "': " + query.lastError().text());
+    }
+    return success;
+}
+
+bool FileDbManager::removeUrlsOlderThan(qint64 seconds)
+{
+    instance().openConnectionIfClosed();
+
+    QSqlQuery query = instance().file_database_.exec("DELETE FROM urls WHERE created < " + QString::number(seconds));
+    bool success = query.lastError().text().trimmed().isEmpty();
+
+    if(!success)
+    {
+        Log::error("Failed to remove URLs older than " + QDateTime::fromSecsSinceEpoch(seconds).toString("ddd MMMM d yy") +  ": " + query.lastError().text());
     }
     return success;
 }
@@ -295,4 +333,15 @@ QList<UrlEntity> FileDbManager::getAllUrls()
     }
 
     return results;
+}
+
+int FileDbManager::getUrlsCount()
+{
+    instance().openConnectionIfClosed();
+    QSqlQuery query = instance().file_database_.exec("SELECT COUNT(*) FROM urls");
+    if (query.next())
+    {
+        return query.value(0).toInt();
+    }
+    return 0;
 }

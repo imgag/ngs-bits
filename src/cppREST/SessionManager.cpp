@@ -46,27 +46,18 @@ bool SessionManager::isValidSession(QString token)
     return true;
 }
 
-int SessionManager::removeExpiredSessions()
+void SessionManager::removeExpiredSessions()
 {
     qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
     if (valid_period == 0) valid_period = DEFAULT_VALID_PERIOD; // default value, if not set in the config
 
-    int removed_count = 0;
     Log::info("Starting to cleanup sessions");
-    QList<Session> all_sessions = FileDbManager::getAllSessions();
-    for (int i = 0; i < all_sessions.size(); i++)
-    {
-        if (all_sessions[i].login_time.addSecs(valid_period).toSecsSinceEpoch() < QDateTime::currentDateTime().toSecsSinceEpoch())
-        {
-            continue;
-        }
+    int current_count = FileDbManager::getSessionsCount();
+    Log::info("Number of active sessions: " + QString::number(current_count));
+    FileDbManager::removeSessionsOlderThan(QDateTime::currentDateTime().toSecsSinceEpoch()-valid_period);
 
-        FileDbManager::removeSession(all_sessions[i].string_id);
-        removed_count++;
-    }
-
-    Log::info("Number of removed sessions: " + QString::number(removed_count));
-    return removed_count;
+    int new_count = FileDbManager::getSessionsCount();
+    Log::info("Number of active sessions after the cleanup: " + QString::number(new_count));
 }
 
 ClientInfo SessionManager::getCurrentClientInfo()
