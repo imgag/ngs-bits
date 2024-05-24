@@ -78,21 +78,24 @@ QString EndpointManager::getTokenIfAvailable(const HttpRequest& request)
 	if (!getTokenFromHeader(request).isEmpty())
 	{
 		token = getTokenFromHeader(request);
-	}
+    }
 	return token;
 }
 
 HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 {
-	if (!SessionManager::isTokenReal(getTokenIfAvailable(request)))
-	{
-        Log::warn(EndpointManager::formatResponseMessage(request, "Invalid or empty secure token has been used"));
-		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid user token");
-	}
+    QString token = getTokenIfAvailable(request);    
 
-    if (SessionManager::isSessionExpired(SessionManager::getSessionBySecureToken(getTokenIfAvailable(request))))
+    if (token.isEmpty())
     {
-        return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), EndpointManager::formatResponseMessage(request, "Secure token has expired"));
+        Log::warn(EndpointManager::formatResponseMessage(request, "An empty secure token has been used"));
+        return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You have not provided any user token");
+    }
+
+    if (!SessionManager::isValidSession(token))
+	{
+        Log::warn(EndpointManager::formatResponseMessage(request, "Invalid secure token has been used"));
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid user token");
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
@@ -100,27 +103,22 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 
 HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 {
-	if (!SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]))
-    {
-        return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "You are not authorized with a valid database token"));
-	}
-
-    if (SessionManager::isSessionExpired(SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["dbtoken"])))
-    {
-        return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), EndpointManager::formatResponseMessage(request, "Database token has expired"));
-	}
-
-	if (!request.getHeaderByName("User-Agent").contains("GSvar"))
+    if (!request.getHeaderByName("User-Agent").contains("GSvar"))
     {
         Log::warn(EndpointManager::formatResponseMessage(request, "Unauthorized entity tried to request the database credentials"));
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to request the database credentials. This incident will be reported"));
-	}
+    }
 
-	bool ok = true;
-	if (request.getFormUrlEncoded()["secret"].toULongLong(&ok, 16) != ToolBase::encryptionKey("encryption helper"))
+    bool ok = true;
+    if (request.getFormUrlEncoded()["secret"].toULongLong(&ok, 16) != ToolBase::encryptionKey("encryption helper"))
     {
         Log::warn(EndpointManager::formatResponseMessage(request, "Secret check failed for the database credentials"));
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to request the database credentials. This incident will be reported"));
+    }
+
+    if (!SessionManager::isValidSession(request.getFormUrlEncoded()["dbtoken"]))
+    {
+        return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "You are not authorized with a valid database token"));
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");

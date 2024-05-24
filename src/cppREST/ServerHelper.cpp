@@ -138,49 +138,64 @@ QDateTime ServerHelper::getServerStartDateTime()
 
 QString ServerHelper::getCurrentServerLogFile()
 {
-    Log::info("Checking log files at: " + QCoreApplication::applicationDirPath());
-    QDir directory(QCoreApplication::applicationDirPath());
-    QStringList logs = directory.entryList(QStringList() << "*.log" << "*.LOG", QDir::Files);
-
-    QDateTime last_mod_time;
-    QString last_mod_file;
-    foreach(QString filename, logs)
+    try
     {
-        Log::info("Checking " + filename);
-        if (QFileInfo(filename).lastModified() > last_mod_time)
+        Log::info("Checking log files at: " + QCoreApplication::applicationDirPath());
+        QDir directory(QCoreApplication::applicationDirPath());
+        QStringList logs = directory.entryList(QStringList() << "*.log" << "*.LOG", QDir::Files);
+
+        QDateTime last_mod_time;
+        QString last_mod_file;
+        QString log_folder = directory.canonicalPath();
+        if (!log_folder.endsWith(QDir::separator()))
         {
-            last_mod_time = QFileInfo(filename).lastModified();
-            last_mod_file = filename;
+            log_folder = log_folder + QDir::separator();
         }
-    }
-
-    if (last_mod_file.isEmpty())
-    {
-        QString new_file_name = QCoreApplication::applicationFilePath().replace(".exe", "") + ".log";
-        Log::warn("Could not locate the previous log file. The following file will be used: " + new_file_name);
-        return new_file_name;
-    }
-    if (QFileInfo(last_mod_file).size()>(1024*1024*50))
-    {
-        Log::warn("Log file is too large: " + last_mod_file);
-        QList<QString> name_items = last_mod_file.split(".");
-        if (name_items.size()>1)
+        foreach(QString filename, logs)
         {
-            name_items[name_items.count()-2] = name_items[name_items.count()-2] + "_" + QDateTime().currentDateTime().toString("hh-mm-ss-dd-MM-yyyy");
-            last_mod_file = name_items.join(".");
-            Log::info("Suggested file name for the logs: " + last_mod_file);
+            Log::info("Checking " +  log_folder + filename);
+            if ((QFileInfo(log_folder + filename).lastModified().toSecsSinceEpoch() > last_mod_time.toSecsSinceEpoch()) || last_mod_time.isNull())
+            {
+                last_mod_time = QFileInfo(log_folder + filename).lastModified();
+                last_mod_file = log_folder + filename;
+            }
         }
-    }
 
-    if (!QCoreApplication::applicationDirPath().endsWith(QDir::separator()))
+        if (last_mod_file.isEmpty())
+        {
+            QString new_file_name = QCoreApplication::applicationFilePath().replace(".exe", "") + ".log";
+            Log::warn("Could not locate the previous log file. The following file will be used: " + new_file_name);
+            return new_file_name;
+        }
+        qint64 log_file_size = QFileInfo(last_mod_file).size();
+        Log::info("Log file: " + last_mod_file + " has the size of " + QString::number(static_cast<double>(log_file_size/1024)/1024, 'f', 2) + " MB");
+        // 10 MB is the max size for a log file
+        if (log_file_size>(1024*1024*10))
+        {
+            Log::warn("Log file is too large: " + last_mod_file);
+            QList<QString> name_items = last_mod_file.split(".");
+            if (name_items.size()>1)
+            {
+                name_items[name_items.count()-2] = name_items[name_items.count()-2] + "_" + QDateTime().currentDateTime().toString("hh-mm-ss-dd-MM-yyyy");
+                last_mod_file = name_items.join(".");
+                Log::info("Suggested file name for the logs: " + last_mod_file);
+            }
+        }
+
+        if (!QFile::exists(last_mod_file)) Helper::touchFile(last_mod_file);
+        Log::info("The following file will be used for logs: " + last_mod_file);
+        return last_mod_file;
+    }
+    catch(FileAccessException& e)
     {
-        last_mod_file = QDir::separator() + last_mod_file;
+        Log::error("Failed to check logs: " + e.message());
+        return "default.log";
     }
-
-    last_mod_file = QCoreApplication::applicationDirPath() + last_mod_file;
-    if (!QFile::exists(last_mod_file)) Helper::touchFile(last_mod_file);
-    Log::info("The following file will be used for logs: " + last_mod_file);
-    return last_mod_file;
+    catch(...)
+    {
+        Log::error("Unknown exception while getting the current server log file name");
+        return "default.log";
+    }
 }
 
 ServerHelper& ServerHelper::instance()

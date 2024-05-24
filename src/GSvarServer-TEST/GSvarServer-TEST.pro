@@ -32,8 +32,7 @@ INCLUDEPATH += $$PWD/../cppTFW
 
 HEADERS += \
     Controller-Test.h \
-    Server-IntegrationTest.h \
-    VersatileFile-Test.h
+    Server-IntegrationTest.h
 
 SOURCES += \
         main.cpp
