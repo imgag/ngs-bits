@@ -17,7 +17,10 @@ void FileDbManager::openConnectionIfClosed()
     if (instance().file_database_.databaseName().isEmpty())
     {
         instance().file_database_ = QSqlDatabase::addDatabase("QSQLITE");
-        instance().file_database_.setDatabaseName("local_store.db");
+        QString local_store_location = QCoreApplication::applicationFilePath().replace(".exe", "") + ".db";
+        if (Settings::boolean("is_in_memory_store", true)) local_store_location = ":memory:";
+
+        instance().file_database_.setDatabaseName(local_store_location);
         Log::info("Setting the database name: " + instance().file_database_.databaseName());
     }
 
