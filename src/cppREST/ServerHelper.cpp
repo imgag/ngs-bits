@@ -173,13 +173,8 @@ QString ServerHelper::getCurrentServerLogFile()
         if (log_file_size>(1024*1024*10))
         {
             Log::warn("Log file is too large: " + last_mod_file);
-            QList<QString> name_items = last_mod_file.split(".");
-            if (name_items.size()>1)
-            {
-                name_items[name_items.count()-2] = name_items[name_items.count()-2] + "_" + QDateTime().currentDateTime().toString("hh-mm-ss-dd-MM-yyyy");
-                last_mod_file = name_items.join(".");
-                Log::info("Suggested file name for the logs: " + last_mod_file);
-            }
+            last_mod_file = QCoreApplication::applicationFilePath().replace(".exe", "") + "_" + QDateTime().currentDateTime().toString("hh-mm-ss-dd-MM-yyyy") + ".log";
+            Log::info("Suggested file name for the logs: " + last_mod_file);
         }
 
         if (!QFile::exists(last_mod_file)) Helper::touchFile(last_mod_file);
