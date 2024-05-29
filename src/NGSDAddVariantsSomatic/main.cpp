@@ -254,7 +254,7 @@ public:
 
 	}
 
-	void import_svs(NGSD& db, QTextStream& out, QString t_ps_name, QString n_ps_name, bool debug, bool no_time, bool sv_force, double min_ll)
+	void importSVs(NGSD& db, QTextStream& out, QString t_ps_name, QString n_ps_name, bool debug, bool no_time, bool sv_force)
 	{
 		QString filename = getInfile("sv");
 		if (filename=="") return;
@@ -404,6 +404,7 @@ public:
 		bool no_time = getFlag("no_time");
 		bool var_force = getFlag("var_force");
 		bool cnv_force = getFlag("cnv_force");
+		bool sv_force = getFlag("sv_force");
 
 		//prevent tumor samples from being imported into the germline variant tables
 		SampleData sample_data = db.getSampleData(db.sampleId(t_ps));
@@ -415,6 +416,8 @@ public:
 		importSmallVariants(db, stream, t_ps, n_ps, no_time, var_force);
 
 		importCNVs(db, stream, t_ps, n_ps, debug, no_time, cnv_force, 15.0);
+
+		importSVs(db , stream , t_ps, n_ps, debug, no_time, sv_force);
 	}
 private:
 	int variantQuality(const Variant& variant, int i_qual) const
