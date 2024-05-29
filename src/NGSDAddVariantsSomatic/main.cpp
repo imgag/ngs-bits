@@ -28,6 +28,8 @@ public:
 		addFlag("var_force", "Force import of detected small variants, even if already imported.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
 		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
+		addInfile("sv", "SV list in TSV format (as produced by megSAP).", true, true);
+		addFlag("sv_force", "Force import of SVs, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
@@ -141,6 +143,9 @@ public:
 		QString filename = getInfile("cnv");
 		if(filename == "") return;
 
+		QTime timer;
+		timer.start();
+
 		QString ps_full_name = t_ps_name + "-" + n_ps_name;
 		out << endl;
 		out << "### importing somatic CNVs for " << ps_full_name << " ###" << endl;
@@ -162,9 +167,6 @@ public:
 				return;
 			}
 		}
-
-		QTime timer;
-		timer.start();
 
 		QString last_callset_id = db.getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id).toString();
 
@@ -244,6 +246,143 @@ public:
 
 		out << "Imported somatic cnvs: " << c_imported << endl;
 		out << "Skipped low-quality cnvs: " << c_skipped_low_quality << endl;
+
+		if(!no_time)
+		{
+			out << "Import took: " << Helper::elapsedTime(timer) << endl;
+		}
+
+	}
+
+	void import_svs(NGSD& db, QTextStream& out, QString t_ps_name, QString n_ps_name, bool debug, bool no_time, bool sv_force, double min_ll)
+	{
+		QString filename = getInfile("sv");
+		if (filename=="") return;
+
+		out << endl;
+		out << "### importing SVs for tumor-normal pair " << t_ps_name << "-" << n_ps_name << " ###" << endl;
+		out << "filename: " << filename << endl;
+
+		QTime timer;
+		timer.start();
+
+		// get processed sample id
+		QString ps_full_name = t_ps_name + "-" + n_ps_name;
+		QString t_ps_id = db.processedSampleId(t_ps_name);
+		QString n_ps_id = db.processedSampleId(n_ps_name);
+		if(debug) out << "Processed sample ids. Tumor: " << t_ps_id << " Normal: " << n_ps_id << endl;
+
+		//prevent import if report config contains SVs
+		int report_conf_id = db.somaticReportConfigId(t_ps_id, n_ps_id);
+		if (report_conf_id!=-1)
+		{
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT * FROM somatic_report_configuration_sv WHERE somatic_report_configuration_id=" + QString::number(report_conf_id));
+
+			if(query.size() > 0)
+			{
+				out << "Skipped import of somatic SNVs for sample " << ps_full_name << ": a somatic report configuration with SVs exists for this sample" << endl;
+				return;
+			}
+		}
+
+		// check if processed sample has already been imported
+		QString previous_callset_id = db.getValue("SELECT id FROM somatic_sv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_is=" + n_ps_id, true ).toString();
+		if(previous_callset_id!="" && !sv_force)
+		{
+			out << "NOTE: SVs were already imported for '" << ps_full_name << "' - skipping import" << endl;
+			return;
+		}
+
+		//Delete old SVs if forced
+		if(previous_callset_id!="" && sv_force)
+		{
+			db.getQuery().exec("DELETE FROM somatic_sv_deletion WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_duplication WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_inversion WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_insertion WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_translocation WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_callset WHERE id='" + previous_callset_id + "'");
+
+			out << "Deleted previous SV callset" << endl;
+		}
+
+		// open BEDPE file
+		BedpeFile svs;
+		svs.load(filename);
+
+		// create SV callset for given processed sample
+		QByteArray caller;
+		QByteArray caller_version;
+		QDate date;
+		foreach (const QByteArray &header, svs.headers())
+		{
+			// parse date
+			if (header.startsWith("##fileDate="))
+			{
+				date = QDate::fromString(header.split('=')[1].trimmed(), "yyyyMMdd");
+			}
+
+			// parse caller and caller version
+			// Manta:    ##source=GenerateSVCandidates 1.6.0
+			// DRAGEN:   ##source=DRAGEN 01.011.608.3.9.3
+			// Sniffles: ##source=Sniffles2_2.0.7
+			if (header.startsWith("##source="))
+			{
+				QByteArray application_string = header.split('=')[1].trimmed();
+
+				int sep_idx = application_string.indexOf(" ");
+				if(sep_idx==-1) sep_idx = application_string.indexOf("_"); //fallback: use '_' as version seperator
+				if(sep_idx==-1)  THROW(FileParseException, "Source line does not contain version after first space/underscore: " + header);
+
+				QByteArray tmp = application_string.left(sep_idx).trimmed();
+				if (tmp=="GenerateSVCandidates") caller = "Manta";
+				else if (tmp=="DRAGEN") caller = "DRAGEN";
+				else if (tmp=="Sniffles2") caller = "Sniffles";
+
+				caller_version = application_string.mid(sep_idx+1).trimmed();
+			}
+		}
+
+		// check if all required data is available
+		if (caller == "") THROW(FileParseException, "Caller is missing");
+		if (caller_version == "") THROW(FileParseException, "Version is missing");
+		if (date.isNull()) THROW(FileParseException, "Date is missing");
+
+		// create callset entry
+		SqlQuery insert_callset = db.getQuery();
+		insert_callset.prepare("INSERT INTO `sv_callset` (`ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
+		insert_callset.bindValue(0, t_ps_id);
+		insert_callset.bindValue(0, n_ps_id);
+		insert_callset.bindValue(1, caller);
+		insert_callset.bindValue(2, caller_version);
+		insert_callset.bindValue(3, date);
+		insert_callset.exec();
+		int callset_id = insert_callset.lastInsertId().toInt();
+
+		if(debug) out << "Callset id: " << callset_id << endl;
+
+		// import structural variants
+		int sv_imported = 0;
+		for (int i = 0; i < svs.count(); i++)
+		{
+			// ignore SVs on special chromosomes
+			if (!svs[i].chr1().isNonSpecial() || !svs[i].chr2().isNonSpecial()) continue;
+
+			QString sv_id = db.addSomaticSv(callset_id, svs[i], svs);
+			sv_imported++;
+			if (debug)
+			{
+				QString db_table_name = db.somaticSvTableName(svs[i].type());
+
+				out << "DEBUG: " << svs[i].positionRange() << " sv: " << BedpeFile::typeToString(svs[i].type()) << " quality: "
+					<< db.getValue("SELECT quality_metrics FROM " + db_table_name + " WHERE id=" + sv_id).toString() << endl;
+			}
+		}
+
+		out << "Imported SVs: " << sv_imported << endl;
+		out << "Skipped SVs: " << svs.count() - sv_imported << endl;
+
 
 		if(!no_time)
 		{

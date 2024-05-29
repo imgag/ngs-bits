@@ -2484,7 +2484,7 @@ CopyNumberVariant NGSD::cnv(int cnv_id)
 	return CopyNumberVariant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt());
 }
 
-QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const CnvList &cnv_list, double max_ll)
+QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const CnvList &cnv_list, double min_ll)
 {
 	if(cnv_list.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 	{
@@ -2507,7 +2507,7 @@ QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const 
 		{
 			if(col_name == "loglikelihood")
 			{
-				if (max_ll>0.0 && Helper::toDouble(entry, "log-likelihood")<max_ll)
+				if (min_ll>0.0 && Helper::toDouble(entry, "log-likelihood")<min_ll)
 				{
 					return "";
 				}
@@ -2599,6 +2599,384 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 
 	//return insert ID
 	return query.lastInsertId().toString();
+}
+
+QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
+{
+	// skip SVs on special chr
+	if (!sv.chr1().isNonSpecial() || !sv.chr2().isNonSpecial() )
+	{
+		THROW(ArgumentException, "Structural variants on special chromosomes can not be added to the NGSD!");
+		return "";
+	}
+	// parse qc data
+	QJsonObject quality_metrics;
+	// get quality value
+	quality_metrics.insert("quality", QString(sv.annotations()[svs.annotationIndexByName("QUAL")].trimmed()));
+	// get filter values
+	quality_metrics.insert("filter", QString(sv.annotations()[svs.annotationIndexByName("FILTER")].trimmed()));
+	QJsonDocument json_doc;
+	json_doc.setObject(quality_metrics);
+	QByteArray quality_metrics_string = json_doc.toJson(QJsonDocument::Compact);
+
+	QByteArray table = somaticSvTableName(sv.type()).toLatin1();
+
+	if (sv.type() == StructuralVariantType::DEL || sv.type() == StructuralVariantType::DUP || sv.type() == StructuralVariantType::INV)
+	{
+		// insert SV into the NGSD
+		SqlQuery query = getQuery();
+		query.prepare("INSERT INTO `" + table + "` (`somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) " +
+					  "VALUES (:0, :1,  :2, :3, :4, :5, :6)");
+		query.bindValue(0, callset_id);
+		query.bindValue(1, sv.chr1().strNormalized(true));
+		query.bindValue(2,  sv.start1());
+		query.bindValue(3,  sv.end1());
+		query.bindValue(4,  sv.start2());
+		query.bindValue(5,  sv.end2());
+		query.bindValue(6, quality_metrics_string);
+
+		query.exec();
+
+		//return insert ID
+		return query.lastInsertId().toString();
+
+	}
+	else if (sv.type() == StructuralVariantType::INS)
+	{
+		if (sv.chr1() != sv.chr2()) THROW(ArgumentException, "Invalid insertion position:'" + sv.position1() + ", " + sv.position2() + "'!");
+		// get inserted sequence
+		QByteArray inserted_sequence, known_left, known_right;
+		QByteArray alt_seq = sv.annotations().at(svs.annotationIndexByName("ALT_A"));
+		if (alt_seq != "<INS>")
+		{
+			// complete sequence available
+			inserted_sequence = alt_seq;
+		}
+		else
+		{
+			// only right/left part of insertion available
+			bool left_part_found = false;
+			bool right_part_found = false;
+			QByteArrayList info_a = sv.annotations().at(svs.annotationIndexByName("INFO_A")).split(';');
+			foreach (const QByteArray& kv_pair, info_a)
+			{
+				if (kv_pair.startsWith("LEFT_SVINSSEQ="))
+				{
+					// left part
+					known_left = kv_pair.split('=')[1].trimmed();
+					left_part_found = true;
+				}
+				if (kv_pair.startsWith("RIGHT_SVINSSEQ="))
+				{
+					// right part
+					known_right = kv_pair.split('=')[1].trimmed();
+					right_part_found = true;
+				}
+				if (left_part_found && right_part_found) break;
+			}
+		}
+
+		// determine position and upper CI:
+		int pos = std::min(std::min(sv.start1(), sv.start2()), std::min(sv.end1(), sv.end2()));
+		int ci_upper = std::max(std::max(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2())) - pos;
+		// insert SV into the NGSD
+		SqlQuery query = getQuery();
+		query.prepare(QByteArray() + "INSERT INTO " + table + " (`somatic_sv_callset_id`, `chr`, `pos`, `ci_upper`, `inserted_sequence`, "
+					  + "`known_left`, `known_right`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
+		query.bindValue(0, callset_id);
+		query.bindValue(1, sv.chr1().strNormalized(true));
+		query.bindValue(2, pos);
+		query.bindValue(3, ci_upper);
+		query.bindValue(4, inserted_sequence);
+		query.bindValue(5, known_left);
+		query.bindValue(6, known_right);
+		query.bindValue(7, quality_metrics_string);
+
+		query.exec();
+
+		//return insert ID
+		return query.lastInsertId().toString();
+	}
+	else if (sv.type() == StructuralVariantType::BND)
+	{
+		// insert SV into the NGSD
+		SqlQuery query = getQuery();
+		query.prepare(QByteArray() + "INSERT INTO " + table + " (`somatic_sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `quality_metrics`)"
+					  + " VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
+		query.bindValue(0, callset_id);
+		query.bindValue(1, sv.chr1().strNormalized(true));
+		query.bindValue(2, sv.start1());
+		query.bindValue(3, sv.end1());
+		query.bindValue(4, sv.chr2().strNormalized(true));
+		query.bindValue(5, sv.start2());
+		query.bindValue(6, sv.end2());
+		query.bindValue(7, quality_metrics_string);
+		query.exec();
+
+		//return insert ID
+		return query.lastInsertId().toString();
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid structural variant type!");
+		return "";
+	}
+}
+QString NGSD::somaticSvId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails)
+{
+	QString db_table_name = somaticSvTableName(sv.type());
+	SqlQuery query = getQuery();
+	if (sv.type() == StructuralVariantType::DEL || sv.type() == StructuralVariantType::DUP || sv.type() == StructuralVariantType::INV)
+	{
+		// get SV from NGSD
+		query.exec("SELECT id FROM `" + db_table_name + "` WHERE `somatic_sv_callset_id`=" + QString::number(callset_id)
+				   + " AND `chr`=\"" + sv.chr1().strNormalized(true) + "\""
+				   + " AND `start_min`=" + QString::number(sv.start1())
+				   + " AND `start_max`=" + QString::number(sv.end1())
+				   + " AND `end_min`="+ QString::number(sv.start2())
+				   + " AND `end_max`="+ QString::number(sv.end2()));
+	}
+	else if (sv.type() == StructuralVariantType::INS)
+	{
+		if (sv.chr1() != sv.chr2()) THROW(ArgumentException, "Invalid insertion position:'" + sv.position1() + ", " + sv.position2() + "'!");
+
+		// get inserted sequence
+		QByteArray inserted_sequence, known_left, known_right;
+		QByteArray alt_seq = sv.annotations().at(svs.annotationIndexByName("ALT_A"));
+		if (alt_seq != "<INS>")
+		{
+			// complete sequence available
+			inserted_sequence = alt_seq;
+		}
+		else
+		{
+			// only right/left part of insertion available
+			bool left_part_found = false;
+			bool right_part_found = false;
+			QByteArrayList info_a = sv.annotations().at(svs.annotationIndexByName("INFO_A")).split(';');
+			foreach (const QByteArray& kv_pair, info_a)
+			{
+				if (kv_pair.startsWith("LEFT_SVINSSEQ="))
+				{
+					// left part
+					known_left = kv_pair.split('=')[1].trimmed();
+					left_part_found = true;
+				}
+				if (kv_pair.startsWith("RIGHT_SVINSSEQ="))
+				{
+					// right part
+					known_right = kv_pair.split('=')[1].trimmed();
+					right_part_found = true;
+				}
+				if (left_part_found && right_part_found) break;
+			}
+		}
+
+		// determine filter for sequence
+		QStringList sequence_filter;
+		sequence_filter << ((inserted_sequence == "")? "AND `inserted_sequence` IS NULL": "AND `inserted_sequence`='" + inserted_sequence + "'");
+		sequence_filter << ((known_left == "")? "AND `known_left` IS NULL": "AND `known_left`='" + known_left + "'");
+		sequence_filter << ((known_right == "")? "AND `known_right` IS NULL": "AND `known_right`='" + known_right + "'");
+
+		// determine position and upper CI:
+		int pos = std::min(std::min(sv.start1(), sv.start2()), std::min(sv.end1(), sv.end2()));
+		int ci_upper = std::max(std::max(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2())) - pos;
+
+		// get SV from NGSD
+		query.exec("SELECT id FROM `" + db_table_name + "` WHERE `somatic_sv_callset_id`=" + QString::number(callset_id)
+				   + " AND `chr`=\"" + sv.chr1().strNormalized(true) + "\""
+				   + " AND (`pos` - `ci_lower`) =" + QString::number(pos)
+				   + " AND `ci_upper`=" + QString::number(ci_upper)
+				   + " " + sequence_filter.join(" "));
+	}
+	else if (sv.type() == StructuralVariantType::BND)
+	{
+		// get SV from NGSD
+		query.exec("SELECT id FROM `" + db_table_name + "` WHERE `somatic_sv_callset_id`=" + QString::number(callset_id)
+				   + " AND `chr1`=\"" + sv.chr1().strNormalized(true) + "\""
+				   + " AND `start1`=" + QString::number(sv.start1())
+				   + " AND `end1`=" + QString::number(sv.end1())
+				   + " AND `chr2`=\"" + sv.chr2().strNormalized(true) + "\""
+				   + " AND `start2`=" + QString::number(sv.start2())
+				   + " AND `end2`=" + QString::number(sv.end2()));
+	}
+	else
+	{
+		THROW(FileParseException, "Invalid structural variant type!");
+	}
+
+	// Throw error if multiple matches found
+	if(query.size() > 1)
+	{
+		QStringList ids;
+		while (query.next())
+		{
+			ids << query.value("id").toString();
+		}
+		THROW(DatabaseException, "Multiple matching SVs found in NGSD!\t(" + ids.join(",") + ")");
+	}
+
+	if(query.size() < 1)
+	{
+		if(!throw_if_fails) return "";
+
+		THROW(DatabaseException, "SV " + BedpeFile::typeToString(sv.type()) + " at " + sv.positionRange() + " for callset with id '" + QString::number(callset_id) + "' not found in NGSD!");
+	}
+
+	query.next();
+	return query.value("id").toString();
+}
+
+BedpeLine NGSD::somaticSv(QString sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation, int* callset_id)
+{
+	BedpeLine sv;
+	QList<QByteArray> annotations;
+
+	int qual_idx = -1, filter_idx = -1, alt_a_idx = -1, info_a_idx = -1, format_idx = -1;
+	annotations = QVector<QByteArray>(svs.annotationHeaders().size()).toList();
+	format_idx = svs.annotationIndexByName("FORMAT");
+	if (!no_annotation)
+	{
+		// determine indices for annotations
+		qual_idx = svs.annotationIndexByName("QUAL");
+		filter_idx = svs.annotationIndexByName("FILTER");
+		alt_a_idx = svs.annotationIndexByName("ALT_A");
+		info_a_idx = svs.annotationIndexByName("INFO_A");
+	}
+
+	QString table = somaticSvTableName(type);
+
+	// get DEL, DUP or INV
+	if (type == StructuralVariantType::DEL || type == StructuralVariantType::DUP || type == StructuralVariantType::INV)
+	{
+		// define pos varaibles
+		Chromosome chr1, chr2;
+		int start1, start2, end1, end2;
+
+		// get SV from the NGSD
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM `" + table + "` WHERE id=" + sv_id);
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + sv_id + "' not found in table '" + table + "'!" );
+		query.next();
+		chr1 = Chromosome(query.value("chr").toByteArray());
+		chr2 = Chromosome(query.value("chr").toByteArray());
+		start1 = query.value("start_min").toInt();
+		end1 = query.value("start_max").toInt();
+		start2 = query.value("end_min").toInt();
+		end2 = query.value("end_max").toInt();
+
+		if (!no_annotation)
+		{
+			// parse quality & filter
+			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+		}
+
+		// create SV
+		sv = BedpeLine(chr1, start1, end1, chr2, start2, end2, type, annotations);
+		if (callset_id) *callset_id = query.value("sv_callset_id").toInt();
+	}
+	else if (type == StructuralVariantType::INS)
+	{
+		// get INS from the NGSD
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM " + table +" WHERE id = " + sv_id);
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + sv_id + "' not found in table '" + table + "'!");
+		query.next();
+		Chromosome chr = Chromosome(query.value("chr").toByteArray());
+		int pos = query.value("pos").toInt();
+		int pos_upper = pos + query.value("ci_upper").toInt();
+
+		if (!no_annotation)
+		{
+			// parse quality & filter
+			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+
+			// get inserted sequences:
+			if (!query.value("inserted_sequence").isNull())
+			{
+				annotations[alt_a_idx] = query.value("inserted_sequence").toByteArray();
+			}
+			else
+			{
+				annotations[alt_a_idx] = "<INS>";
+			}
+
+			QByteArrayList partial_sequences;
+			if (!query.value("known_left").isNull())
+			{
+				partial_sequences << "LEFT_SVINSSEQ=" + query.value("known_left").toByteArray();
+			}
+			if (!query.value("known_right").isNull())
+			{
+				partial_sequences << "RIGHT_SVINSSEQ=" + query.value("known_right").toByteArray();
+			}
+			annotations[info_a_idx] = partial_sequences.join(";");
+		}
+
+		// create SV
+		sv = BedpeLine(chr, pos, pos_upper, chr, pos, pos, type, annotations);
+		if (callset_id) *callset_id = query.value("sv_callset_id").toInt();
+	}
+	else if (type == StructuralVariantType::BND)
+	{
+		// define pos varaibles
+		Chromosome chr1, chr2;
+		int start1, start2, end1, end2;
+
+		// get SV from the NGSD
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM " + table + " WHERE id = " + sv_id);
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + sv_id + "' not found in table '" + table + "'!" );
+		query.next();
+		chr1 = Chromosome(query.value("chr1").toByteArray());
+		chr2 = Chromosome(query.value("chr2").toByteArray());
+		start1 = query.value("start1").toInt();
+		end1 = query.value("end1").toInt();
+		start2 = query.value("start2").toInt();
+		end2 = query.value("end2").toInt();
+
+		if (!no_annotation)
+		{
+			// parse quality & filter
+			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+		}
+
+		// create SV
+		sv = BedpeLine(chr1, start1, end1, chr2, start2, end2, type, annotations);
+		if (callset_id) *callset_id = query.value("sv_callset_id").toInt();
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid structural variant type!");
+	}
+
+	return sv;
+}
+
+QString NGSD::somaticSvTableName(StructuralVariantType type)
+{
+	switch (type)
+	{
+		case StructuralVariantType::DEL:
+			return "somatic_sv_deletion";
+		case StructuralVariantType::DUP:
+			return "somatic_sv_duplication";
+		case StructuralVariantType::INS:
+			return "somatic_sv_insertion";
+		case StructuralVariantType::INV:
+			return "somatic_sv_inversion";
+		case StructuralVariantType::BND:
+			return "somatic_sv_translocation";
+		default:
+			THROW(ArgumentException, "Invalid structural variant type!");
+			break;
+	}
 }
 
 int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
