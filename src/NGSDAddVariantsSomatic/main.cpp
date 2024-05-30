@@ -287,7 +287,7 @@ public:
 		}
 
 		// check if processed sample has already been imported
-		QString previous_callset_id = db.getValue("SELECT id FROM somatic_sv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_is=" + n_ps_id, true ).toString();
+		QString previous_callset_id = db.getValue("SELECT id FROM somatic_sv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id, true ).toString();
 		if(previous_callset_id!="" && !sv_force)
 		{
 			out << "NOTE: SVs were already imported for '" << ps_full_name << "' - skipping import" << endl;
@@ -297,12 +297,12 @@ public:
 		//Delete old SVs if forced
 		if(previous_callset_id!="" && sv_force)
 		{
-			db.getQuery().exec("DELETE FROM somatic_sv_deletion WHERE sv_callset_id='" + previous_callset_id + "'");
-			db.getQuery().exec("DELETE FROM somatic_sv_duplication WHERE sv_callset_id='" + previous_callset_id + "'");
-			db.getQuery().exec("DELETE FROM somatic_sv_inversion WHERE sv_callset_id='" + previous_callset_id + "'");
-			db.getQuery().exec("DELETE FROM somatic_sv_insertion WHERE sv_callset_id='" + previous_callset_id + "'");
-			db.getQuery().exec("DELETE FROM somatic_sv_translocation WHERE sv_callset_id='" + previous_callset_id + "'");
-			db.getQuery().exec("DELETE FROM somatic_sv_callset WHERE id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_deletion 	 WHERE somatic_sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_duplication 	 WHERE somatic_sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_inversion 	 WHERE somatic_sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_insertion 	 WHERE somatic_sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_translocation WHERE somatic_sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_sv_callset 		 WHERE id='" + previous_callset_id + "'");
 
 			out << "Deleted previous SV callset" << endl;
 		}
@@ -351,12 +351,12 @@ public:
 
 		// create callset entry
 		SqlQuery insert_callset = db.getQuery();
-		insert_callset.prepare("INSERT INTO `sv_callset` (`ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
+		insert_callset.prepare("INSERT INTO `somatic_sv_callset` (`ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3, :4)");
 		insert_callset.bindValue(0, t_ps_id);
-		insert_callset.bindValue(0, n_ps_id);
-		insert_callset.bindValue(1, caller);
-		insert_callset.bindValue(2, caller_version);
-		insert_callset.bindValue(3, date);
+		insert_callset.bindValue(1, n_ps_id);
+		insert_callset.bindValue(2, caller);
+		insert_callset.bindValue(3, caller_version);
+		insert_callset.bindValue(4, date);
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 
