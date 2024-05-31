@@ -8,7 +8,12 @@ Q_OBJECT
 private slots:
 	void test_api_info()
     {
-        FileDbManager::reinitializeDb();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        ServerDbManager::reinitializeDb();
         HttpRequest request;
 		request.setMethod(RequestMethod::GET);
 		request.setContentType(ContentType::APPLICATION_JSON);
@@ -26,7 +31,12 @@ private slots:
 
 	void test_saving_gsvar_file()
 	{
-		QString url_id = ServerHelper::generateUniqueStr();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString url_id = ServerHelper::generateUniqueStr();
 		QString file = TESTDATA("data/sample.gsvar");
 		QString copy_name = file+"_tmp";
 		QFile::copy(file, copy_name);
@@ -66,7 +76,12 @@ private slots:
 
 	void test_uploading_file()
 	{
-		QString url_id = ServerHelper::generateUniqueStr();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString url_id = ServerHelper::generateUniqueStr();
 		QString file = TESTDATA("data/sample.gsvar");
 		QString copy_name = "uploaded_file.txt";
 		QByteArray upload_file = TESTDATA("data/to_upload.txt");
@@ -103,7 +118,12 @@ private slots:
 
 	void test_session_info()
 	{
-		QDateTime login_time = QDateTime::currentDateTime();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QDateTime login_time = QDateTime::currentDateTime();
         qint64 login_time_as_num = login_time.toSecsSinceEpoch();
         Session cur_session("test_session_info_token", 1, "jsmith", "John Smith", login_time, 0);
         SessionManager::addNewSession(cur_session);
@@ -131,7 +151,12 @@ private slots:
 
 	void test_static_file_random_access()
 	{
-		QString url_id = ServerHelper::generateUniqueStr();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString url_id = ServerHelper::generateUniqueStr();
 		QByteArray file = TESTDATA("data/text.txt");
 		IS_FALSE(UrlManager::isInStorageAlready(file));
 
@@ -170,6 +195,11 @@ private slots:
 
 	void test_head_response_with_empty_body_for_missing_file()
 	{
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
         Session cur_session("head_response_empty_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
         SessionManager::addNewSession(cur_session);
 
@@ -202,7 +232,12 @@ private slots:
 
 	void test_head_response_with_empty_body_for_existing_file()
 	{
-		QString url_id = ServerHelper::generateUniqueStr();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString url_id = ServerHelper::generateUniqueStr();
 		QByteArray file = TESTDATA("data/text.txt");
         UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
 
@@ -238,7 +273,12 @@ private slots:
 
 	void test_current_client_info()
 	{
-		ClientInfo current_info("2023_02-21", "New updates available!");
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        ClientInfo current_info("2023_02-21", "New updates available!");
 		SessionManager::setCurrentClientInfo(current_info);
 
 		HttpRequest request;
@@ -264,7 +304,12 @@ private slots:
 
 	void test_user_notification()
 	{
-		QString notification_message = "Server will be updated!";
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString notification_message = "Server will be updated!";
 		SessionManager::setCurrentNotification(notification_message);
 
 		HttpRequest request;
@@ -290,7 +335,12 @@ private slots:
 
 	void test_file_upload()
 	{
-		QString test_filename = "test_file.txt";
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString test_filename = "test_file.txt";
 		QByteArray test_content = "content";
 
         HttpRequest request;

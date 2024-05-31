@@ -5,7 +5,7 @@
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "ServerController.h"
-#include "FileDbManager.h"
+#include "ServerDbManager.h"
 
 int main(int argc, char **argv)
 {
@@ -572,6 +572,13 @@ int main(int argc, char **argv)
     }
     Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):\n"+env_var_list);
 
-    FileDbManager::initDbIfEmpty();
+    if (!ServerHelper::hasMinimalSettings())
+    {
+        Log::error("Server has not been configured correctly");
+        app.exit(EXIT_FAILURE);
+        return app.exec();
+    }
+
+    ServerDbManager::initDbIfEmpty();
 	return app.exec();
 }

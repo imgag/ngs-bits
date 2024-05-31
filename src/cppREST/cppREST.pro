@@ -47,23 +47,21 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
     EndpointManager.cpp \
-    FileDbManager.cpp \
     HtmlEngine.cpp \
     HttpUtils.cpp \
     HttpRequest.cpp \
     HttpResponse.cpp \
     RequestParser.cpp \
     RequestWorker.cpp \
+    ServerDbManager.cpp \
     ServerHelper.cpp \
     ServerWrapper.cpp \
     SessionManager.cpp \
     SslServer.cpp \
-    UrlBackupWorker.cpp \
     UrlManager.cpp
 
 HEADERS += \
     EndpointManager.h \
-    FileDbManager.h \
     HtmlEngine.h \
     HttpParts.h \
     HttpUtils.h \
@@ -71,12 +69,12 @@ HEADERS += \
     HttpResponse.h \
     RequestParser.h \
     RequestWorker.h \
+    ServerDbManager.h \
     ServerHelper.h \
     ServerWrapper.h \
     Session.h \
     SessionManager.h \
     SslServer.h \
-    UrlBackupWorker.h \
     UrlEntity.h \
     UrlManager.h
 

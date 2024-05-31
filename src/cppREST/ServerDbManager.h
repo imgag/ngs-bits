@@ -1,5 +1,5 @@
-#ifndef FILEDBMANAGER_H
-#define FILEDBMANAGER_H
+#ifndef SERVERDBMANAGER_H
+#define SERVERDBMANAGER_H
 
 #include "cppREST_global.h"
 #include <QSqlDatabase>
@@ -11,12 +11,12 @@
 #include "UrlEntity.h"
 #include "ClientHelper.h"
 
-class CPPRESTSHARED_EXPORT FileDbManager
+class CPPRESTSHARED_EXPORT ServerDbManager
 {
 public:
     static void initDbIfEmpty();
     static void reinitializeDb();
-    static bool addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time_, const bool is_for_db_only);
+    static bool addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time, const bool is_for_db_only);
     static bool addSession(const Session new_session);
     static bool removeSession(const QString& string_id);
     static bool removeSessionsOlderThan(qint64 seconds);
@@ -33,15 +33,16 @@ public:
     static QList<UrlEntity> getAllUrls();
     static int getUrlsCount();
 
-    static ClientInfo getCurrentClientInfo();
-
 protected:
-    FileDbManager();
+    ServerDbManager();
+    ~ServerDbManager();
 
 private:
-    static FileDbManager& instance();
+    static ServerDbManager& instance();
     static void openConnectionIfClosed();
-    QSqlDatabase file_database_;
+    QSqlDatabase server_database_;
 };
 
-#endif // FILEDBMANAGER_H
+
+
+#endif // SERVERDBMANAGER_H

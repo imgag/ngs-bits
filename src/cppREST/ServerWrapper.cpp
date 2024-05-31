@@ -1,5 +1,4 @@
 #include "ServerWrapper.h"
-#include "UrlBackupWorker.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)

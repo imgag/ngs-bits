@@ -76,7 +76,13 @@ bool ServerHelper::hasMinimalSettings()
         !ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
         !ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
         (ServerHelper::getNumSettingsValue("url_lifetime")>0) &&
-        (ServerHelper::getNumSettingsValue("session_duration")>0));
+        (ServerHelper::getNumSettingsValue("session_duration")>0) &&
+        !ServerHelper::getStringSettingsValue("gsvar_server_db_host").isEmpty() &&
+        (ServerHelper::getNumSettingsValue("gsvar_server_db_port")>0) &&
+        !ServerHelper::getStringSettingsValue("gsvar_server_db_name").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("gsvar_server_db_user").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("gsvar_server_db_pass").isEmpty()
+    );
 }
 
 bool ServerHelper::hasProdSettings()

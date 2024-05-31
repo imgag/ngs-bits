@@ -13,27 +13,27 @@ UrlManager& UrlManager::instance()
 
 void UrlManager::addNewUrl(UrlEntity in)
 {
-    FileDbManager::addUrl(in);
+    ServerDbManager::addUrl(in);
 }
 
 void UrlManager::removeUrl(const QString& id)
 {
-    FileDbManager::removeUrl(id);
+    ServerDbManager::removeUrl(id);
 }
 
 bool UrlManager::isInStorageAlready(const QString& filename_with_path)
 {
-    return FileDbManager::isFileInStoreAlready(filename_with_path);
+    return ServerDbManager::isFileInStoreAlready(filename_with_path);
 }
 
 UrlEntity UrlManager::getURLById(const QString& id)
 {
-    return FileDbManager::getUrl(id);
+    return ServerDbManager::getUrl(id);
 }
 
 bool UrlManager::isValidUrl(QString token)
 {
-    UrlEntity cur_url = FileDbManager::getUrl(token);
+    UrlEntity cur_url = ServerDbManager::getUrl(token);
     if (cur_url.isEmpty())
     {
         return false;
@@ -54,10 +54,10 @@ void UrlManager::removeExpiredUrls()
     if (url_lifetime == 0) url_lifetime = DEFAULT_URL_LIFETIME; // default value, if not set in the config
 
     Log::info("Starting to cleanup URLs");
-    int current_count = FileDbManager::getUrlsCount();
+    int current_count = ServerDbManager::getUrlsCount();
     Log::info("Number of active URLs: " + QString::number(current_count));
-    FileDbManager::removeUrlsOlderThan(QDateTime::currentDateTime().toSecsSinceEpoch()-url_lifetime);
+    ServerDbManager::removeUrlsOlderThan(QDateTime::currentDateTime().toSecsSinceEpoch()-url_lifetime);
 
-    int new_count = FileDbManager::getUrlsCount();
+    int new_count = ServerDbManager::getUrlsCount();
     Log::info("Number of active URLs after the cleanup: " + QString::number(new_count));
 }

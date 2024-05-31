@@ -9,7 +9,12 @@ private slots:
 
 	void test_url_manager()
 	{
-        FileDbManager::initDbIfEmpty();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        ServerDbManager::initDbIfEmpty();
         QString url_id = ServerHelper::generateUniqueStr();
         QString file = "file.txt";
 
