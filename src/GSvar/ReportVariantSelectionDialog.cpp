@@ -9,13 +9,14 @@
 #include <NGSD.h>
 #include <QMessageBox>
 
-ReportVariantSelectionDialog::ReportVariantSelectionDialog(QString ps_id, int ignored_rcv_id,  QWidget *parent) :
-	QDialog(parent),
-	ui_(new Ui::ReportVariantSelectionDialog),
-	ps_id_(ps_id),
-	variants_(GlobalServiceProvider::getSmallVariantList()),
-	cnvs_(GlobalServiceProvider::getCnvList()),
-	svs_(GlobalServiceProvider::getSvList())
+ReportVariantSelectionDialog::ReportVariantSelectionDialog(QString ps_id, int ignored_rcv_id,  QWidget* parent)
+	: QDialog(parent)
+	, ui_(new Ui::ReportVariantSelectionDialog)
+	, ps_id_(ps_id)
+	, variants_(GlobalServiceProvider::getSmallVariantList())
+	, cnvs_(GlobalServiceProvider::getCnvList())
+	, svs_(GlobalServiceProvider::getSvList())
+	, res_(GlobalServiceProvider::getReList())
 {
 	if (!LoginManager::active())
 	{
@@ -52,6 +53,11 @@ SelectedReportVariant ReportVariantSelectionDialog::getSelectedReportVariant()
 		report_variant.sv = svs_[selected_report_variant_.variant_index];
 		report_variant.variant_id = db.svId(report_variant.sv, sv_callset_id_, svs_).toInt();
 	}
+	else if (selected_report_variant_.variant_type == VariantType::RES)
+	{
+		report_variant.re = res_[selected_report_variant_.variant_index];
+		report_variant.variant_id = db.repeatExpansionId(report_variant.re.region(), report_variant.re.unit());
+	}
 	else
 	{
 		THROW(ArgumentException, "Invalid variant type")
@@ -70,7 +76,7 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 	NGSD db;
 	int rc_id = db.reportConfigId(ps_id_);
 	QStringList messages;
-	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_);
+	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, res_);
 	cnv_callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", false, ps_id_).toInt();
 	sv_callset_id_ = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", false, ps_id_).toInt();
 

@@ -42,13 +42,15 @@ public:
 	static const VariantList& getSmallVariantList();
 	static const CnvList& getCnvList();
 	static const BedpeFile& getSvList();
-
-	//small variant filters
-	static const PhenotypeList& getPhenotypesFromSmallVariantFilter();
+	static const RepeatLocusList& getReList();
 
 	//general
 	static MainWindow* mainWindow();
+	static FilterWidget* filterWidget();
 	static void startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
+
+	//return gene locus padded by 5000 bases (cached)
+	static const BedFile& geneToRegions(QByteArray gene, NGSD& db);
 
 protected:
 	GlobalServiceProvider();

@@ -181,8 +181,7 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		{
 			foreach(const QString& ps_id, ps_ids_)
 			{
-				//TODO db.deleteVariants(ps_id, VariantType::RES);
-				db.getQuery().exec("DELETE FROM repeat_expansion_genotype WHERE processed_sample_id='" + ps_id + "'");
+				db.deleteVariants(ps_id, VariantType::RES);
 			}
 		}
 

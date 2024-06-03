@@ -9,7 +9,7 @@
 #include <QMessageBox>
 
 
-ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const TargetRegionInfo& roi, QWidget* parent)
+ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res, const TargetRegionInfo& roi, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, ps_(ps)
@@ -17,6 +17,7 @@ ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantLi
 	, variants_(variants)
 	, cnvs_(cnvs)
 	, svs_(svs)
+	, res_(res)
 	, roi_(roi)
 {
 	ui_.setupUi(this);
@@ -37,7 +38,7 @@ void ReportDialog::checkMetaData()
 
 	//check
 	QString ps_id = db_.processedSampleId(ps_);
-	QHash<QString, QStringList> errors = db_.checkMetaData(ps_id, variants_, cnvs_, svs_);
+	QHash<QString, QStringList> errors = db_.checkMetaData(ps_id, variants_, cnvs_, svs_, res_);
 
 	//sort sample names and make current sample the first one
 	QStringList sample_names = errors.keys();
@@ -240,6 +241,36 @@ void ReportDialog::updateVariantTable()
 			addTableItem(row, 2, variantTypeToString(VariantType::SVS));
 			addTableItem(row, 3, sv.toString() + " (" + genotype + ")");
 			addTableItem(row, 4, sv.genes(svs_.annotationHeaders()).join(", "));
+			addTableItem(row, 5, var_conf.classification);
+			++row;
+		}
+	}
+
+
+	//add REs
+	if (res_.isValid())
+	{
+		foreach(int i, settings_.report_config->variantIndices(VariantType::RES, true, type()))
+		{
+			RepeatLocus re = res_[i];
+			const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::RES,i);
+
+			//manual curation
+			if (var_conf.isManuallyCurated()) var_conf.updateRe(re);
+
+			//check if variant is in ROI (if there is a ROI)
+			bool in_roi = true;
+			if (roi_.name!="")
+			{
+				in_roi = roi_.regions.overlapsWith(re.region());
+			}
+
+			ui_.vars->setRowCount(ui_.vars->rowCount()+1);
+			addCheckBox(row, 0, in_roi, !in_roi)->setData(Qt::UserRole, i);
+			addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
+			addTableItem(row, 2, variantTypeToString(VariantType::RES));
+			addTableItem(row, 3, re.toString(true, true));
+			addTableItem(row, 4, re.name());
 			addTableItem(row, 5, var_conf.classification);
 			++row;
 		}

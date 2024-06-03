@@ -21,14 +21,11 @@ public:
 	~GeneSelectionDialog();
 
 	GeneSet geneSet();
-	void setVariantFilterWidget(FilterWidget* variant_filter_widget);
-
 
 protected slots:
 	void phenotypesChanged();
 	void editPhenotypes();
 	void setPhenotypes(const PhenotypeList& phenotypes);
-//	void showPhenotypeContextMenu(QPoint pos);
 	void importHPO();
 	void importROI();
 	void determineGenes();

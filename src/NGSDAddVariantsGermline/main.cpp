@@ -524,20 +524,17 @@ public:
 			out << "REs in NGSD: " << db.getValue("SELECT count(*) FROM repeat_expansion").toString() << endl;
 		}
 
-		//TODO prevent import if report config contains REs
-		/*
-		int report_conf_id = db.reportConfigId(QString::number(ps_id));
+		int report_conf_id = db.reportConfigId(ps_id);
 		if (report_conf_id!=-1)
 		{
 			SqlQuery query = db.getQuery();
-			query.exec("SELECT * FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(report_conf_id));
+			query.exec("SELECT * FROM report_configuration_re WHERE report_configuration_id=" + QString::number(report_conf_id));
 			if (query.size()>0)
 			{
-				out << "Skipped import of SVs for sample " + ps_name + ": a report configuration with SVs exists for this sample!" << endl;
+				out << "Skipped import of REs for sample " + ps_name + ": a report configuration with REs exists for this sample!" << endl;
 				return;
 			}
 		}
-		*/
 
 		// check if processed sample has already been imported
 		int imported_re_genotypes = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE processed_sample_id=:0", true, ps_id).toInt();
@@ -576,12 +573,13 @@ public:
 			const VcfLine& re = repeat_expansions[r];
 
 			//get repeat ID
-			QString region = re.chr().strNormalized(true) + ":" + QString::number(re.start()) + "-" + re.info("END").trimmed();
+			int end = Helper::toInt(re.info("END"), "repeat expansion end position");
+			BedLine region = BedLine(re.chr(), re.start(), end);
 			QString repeat_unit = re.info("RU").trimmed();
-			QString repeat_id = db.repeatExpansionId(region, repeat_unit, false);
-			if (repeat_id.isEmpty())
+			int repeat_id = db.repeatExpansionId(region, repeat_unit, false);
+			if (repeat_id==-1)
 			{
-				if (debug) out << "Skipped repeat '" << region << "/" << repeat_unit << "' because it is not in NGSD!" << endl;
+				if (debug) out << "Skipped repeat '" << region.toString(true) << "/" << repeat_unit << "' because it is not in NGSD!" << endl;
 				continue;
 			}
 

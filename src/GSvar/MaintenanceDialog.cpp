@@ -342,7 +342,8 @@ void MaintenanceDialog::findInconsistenciesForCausalDiagnosticVariants()
 		if (rc_id==-1) THROW(ProgrammingException, "Processes sample '" + ps + "' has no report config!");
 		CnvList cnvs;
 		BedpeFile svs;
-		QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs);
+		RepeatLocusList res;
+		QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs, res);
 		foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
 		{
 			if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS && var_conf.report_type=="diagnostic variant")

@@ -19,6 +19,7 @@
 #include "Log.h"
 #include "ClickableLabel.h"
 #include "ImportDialog.h"
+#include "RepeatLocusList.h"
 
 ///Tab type
 enum class TabType
@@ -87,7 +88,8 @@ public:
 	const VariantList& getSmallVariantList();
 	const CnvList& getCnvList();
 	const BedpeFile& getSvList();
-	const PhenotypeList& getPhenotypesFromSmallVariantFilter();
+	const RepeatLocusList& getReList();
+	FilterWidget* filterWidget();
 
 	/// Checks if there is a new client version available
 	void checkClientUpdates();
@@ -499,12 +501,12 @@ private:
 	QList<VariantListChange> variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
+	RepeatLocusList res_;
 	FilterResult filter_result_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_; //phenotypes used to generate phenotype ROI (needed to check if they changed)
 	PhenotypeSettings last_pheno_settings_; //phenotype settings used to generate phenotype ROI (needed to check if they changed)
 	BedFile phenotype_roi_;
-	QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 	QString germline_report_ps_;
 	SomaticReportSettings somatic_report_settings_;

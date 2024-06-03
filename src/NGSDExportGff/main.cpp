@@ -124,7 +124,8 @@ public:
 
             const BedFile& coding_regions = trans.codingRegions();
 
-            if (!coding_regions.isEmpty()) {
+			if (!coding_regions.isEmpty())
+			{
                 const BedFile& utr3prime = trans.utr3prime();
                 for ( int i=0; i<utr3prime.count(); ++i )
                 {
@@ -137,8 +138,6 @@ public:
                     info = parts.join(";");
 					write_gff_line(outfile, reg.chr().strNormalized(true), "three_prime_UTR", st, ed, strand, info, ".");
                 }
-
-				//TODO: optimize
 
 				int cds_offset = 0;
 				for ( int i=0; i<coding_regions.count(); ++i )
@@ -170,7 +169,9 @@ public:
                     info = parts.join(";");
 					write_gff_line(outfile, reg.chr().strNormalized(true), "five_prime_UTR", st, ed, strand, info, ".");
                 }
-            } else {
+			}
+			else
+			{
                 const BedFile& exons = trans.regions();
                 for ( int i=0; i<exons.count(); ++i )
                 {

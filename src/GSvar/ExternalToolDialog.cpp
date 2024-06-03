@@ -77,8 +77,6 @@ void ExternalToolDialog::browse()
 			//open BAM file
 			BamReader reader(filename);
 			bool is_single_end = reader.is_single_end();
-			//TODO: remove
-			qDebug() << "is_single_end" << is_single_end;
 
 			GenderEstimate estimate;
 			if (mode_=="xy")

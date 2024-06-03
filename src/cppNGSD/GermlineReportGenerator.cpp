@@ -159,14 +159,16 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	selected_small_.clear();
 	selected_cnvs_.clear();
 	selected_svs_.clear();
+	selected_res_.clear();
 	for (auto it = data_.report_settings.selected_variants.cbegin(); it!=data_.report_settings.selected_variants.cend(); ++it)
 	{
 		if (it->first==VariantType::SNVS_INDELS) selected_small_ << it->second;
 		if (it->first==VariantType::CNVS) selected_cnvs_ << it->second;
 		if (it->first==VariantType::SVS) selected_svs_ << it->second;
+		if (it->first==VariantType::RES) selected_res_ << it->second;
 	}
 	stream << "<br />" << trans("Anzahl SNVs/InDels ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small_.count() << endl;
-	stream << "<br />" << trans("Anzahl CNVs/SVs ausgew&auml;hlt f&uuml;r Report") << ": " << (selected_cnvs_.count() + selected_svs_.count()) << endl;
+	stream << "<br />" << trans("Anzahl CNVs/SVs/REs ausgew&auml;hlt f&uuml;r Report") << ": " << (selected_cnvs_.count() + selected_svs_.count() + selected_res_.count()) << endl;
 	stream << "</p>" << endl;
 
 	stream << "<br />" << trans("Sofern vorhanden, werden in den nachfolgenden Tabellen erfasst: pathogene Varianten (Klasse 5)<sup>*</sup> und wahrscheinlich pathogene Varianten (Klasse 4)<sup>*</sup>, bei denen jeweils ein Zusammenhang mit der klinischen Fragestellung anzunehmen ist, sowie Varianten unklarer klinischer Signifikanz (Klasse 3)<sup>*</sup> f&uuml;r welche in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll erscheint.") << endl;
@@ -261,7 +263,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "</table>" << endl;
 
 	//--------------------------------------------------------------------------------------
-	//CNVs + SVs
+	//CNVs + SVs + REs
 	stream << "<br /><b>" << trans("Kopienzahlver&auml;nderungen (CNV) und/oder Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("CNV/SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Kopienzahl/Genotyp") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>RNA</b></td></tr>" << endl;
@@ -364,6 +366,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}	
 	if (selected_cnvs_.count()==0 && selected_svs_.count()==0) stream << "<tr><td colspan=\"" << colspan << "\">" << trans("Keine") << "</td></tr>";
 	stream << "</table>" << endl;
+
+	//TODO Marc
 
 	//-----------------------------------------------------------------------------------
 
@@ -1306,6 +1310,9 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	}
 	w.writeEndElement();
 
+	//REs
+	//TODO Marc
+
 	//PRS scores
 	w.writeStartElement("PrsList");
 	if (data_.prs.rowCount()>0)
@@ -2177,6 +2184,36 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SVS) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRowSv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+
+	//REs
+	stream << "    <p><b>Kausale REs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderSv(stream, true);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::RES) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRowSv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	stream << "    <p><b>Sonstige REs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderSv(stream, false);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::RES) continue;
 		if (!conf.causal)
 		{
 			printVariantSheetRowSv(stream, conf);

@@ -361,7 +361,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 					}
 					else if (sys_type=="lrGS")
 					{
-						//TODO: adjust limits for lrGS
+						//TODO Leon: adjust limits for lrGS
 						if (value<20) color = orange;
 						if (value<15) color = red;
 					}

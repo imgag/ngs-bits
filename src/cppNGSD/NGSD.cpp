@@ -603,6 +603,8 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		QStringList cnv_date;
 		QStringList sv_caller;
 		QStringList sv_date;
+		QStringList re_caller;
+		QStringList re_date;
 
 		for (int r=0; r<output.rowCount(); ++r)
 		{
@@ -615,6 +617,9 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 			sv_caller << (call_info.sv_caller+" "+call_info.sv_caller_version).trimmed();
 			sv_date << call_info.sv_call_date.trimmed();
+
+			re_caller << (call_info.re_caller+" "+call_info.re_caller_version).trimmed();
+			re_date << call_info.re_call_date.trimmed();
 		}
 
 		output.addColumn(small_caller, "small_variants_caller");
@@ -623,6 +628,8 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		output.addColumn(cnv_date, "cnv_call_date");
 		output.addColumn(sv_caller, "sv_caller");
 		output.addColumn(sv_date, "sv_call_date");
+		output.addColumn(re_caller, "re_caller");
+		output.addColumn(re_date, "re_call_date");
 	}
 
 	return output;
@@ -1285,8 +1292,8 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::EXPRESSION_EXON) output += ps_name + "_expr_exon.tsv";
 	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";
 	else if (type==PathType::HLA_GENOTYPER) output += ps_name + "_hla_genotyper.tsv";
+	else if (type==PathType::REPEAT_EXPANSIONS) output += ps_name + "_repeats_expansionhunter.vcf";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
-
 
 	return QFileInfo(output).absoluteFilePath();
 }
@@ -1596,6 +1603,7 @@ void NGSD::deleteVariants(const QString& ps_id)
 	deleteVariants(ps_id, VariantType::SNVS_INDELS);
 	deleteVariants(ps_id, VariantType::CNVS);
 	deleteVariants(ps_id, VariantType::SVS);
+	deleteVariants(ps_id, VariantType::RES);
 }
 
 void NGSD::deleteVariants(const QString& ps_id, VariantType type)
@@ -1627,32 +1635,41 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 			getQuery().exec("DELETE FROM sv_callset WHERE id='" + callset_id + "'");
 		}
 	}
+	else if (type==VariantType::RES)
+	{
+		getQuery().exec("DELETE FROM repeat_expansion_genotype WHERE processed_sample_id=" + ps_id);
+	}
 	else
 	{
 		THROW(NotImplementedException, "Deleting variants of type '" + QString::number((int)type) + "' not implemented!");
 	}
 }
 
-QString NGSD::repeatExpansionId(const QString& region, const QString& repeat_unit, bool throw_if_fails)
+int NGSD::repeatExpansionId(const BedLine& region, const QString& repeat_unit, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
 	query.prepare("SELECT id FROM repeat_expansion WHERE region=:0 and repeat_unit=:1");
-	query.bindValue(0, region);
+	query.bindValue(0, region.toString(true));
 	query.bindValue(1, repeat_unit);
 	query.exec();
 	if (!query.next())
 	{
 		if (throw_if_fails)
 		{
-			THROW(DatabaseException, "Repeat expansion " + region + "/" + repeat_unit + " not found in NGSD!");
+			THROW(DatabaseException, "Repeat expansion " + region.toString(true) + "/" + repeat_unit + " not found in NGSD!");
 		}
 		else
 		{
-			return "";
+			return -1;
 		}
 	}
 
-	return query.value(0).toString();
+	return query.value(0).toInt();
+}
+
+QString NGSD::repeatExpansionName(int id, bool throw_on_error)
+{
+	return getValue("SELECT name FROM repeat_expansion WHERE id="+QString::number(id), !throw_on_error).toString();
 }
 
 QString NGSD::repeatExpansionComments(int id)
@@ -1668,6 +1685,42 @@ QString NGSD::repeatExpansionComments(int id)
 	}
 
 	return output.join("<br>");
+}
+
+int NGSD::repeatExpansionGenotypeId(int repeat_expansion_id, int processed_sample_id, bool throw_if_fails)
+{
+	QVariant id = getValue("SELECT id FROM repeat_expansion_genotype WHERE repeat_expansion_id='" + QString::number(repeat_expansion_id) + "' AND processed_sample_id='" + QString::number(processed_sample_id) + "'", true);
+
+	if (!id.isValid())
+	{
+		if (throw_if_fails)
+		{
+			QString re = repeatExpansionName(repeat_expansion_id);
+			QString ps = processedSampleName(QString::number(processed_sample_id));
+			THROW(DatabaseException, "No repeat expansion genotype data found for repeat expansion '" + re + "' and processed sample '" + ps + "'");
+		}
+		else return -1;
+	}
+
+	return id.toInt();
+}
+
+RepeatLocus NGSD::repeatExpansionGenotype(int id)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT re.region, re.unit, reg.allele1, reg.allele1 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
+	query.bindValue(0, id);
+	query.exec();
+
+	if (!query.next()) THROW(DatabaseException, "Repeat expansion with identifier '" + QString::number(id) + "' does not exist!");
+
+	RepeatLocus re;
+	re.setRegion(BedLine::fromString(query.value(0).toString()));
+	re.setUnit(query.value(1).toByteArray());
+	re.setAllele1(query.value(2).toByteArray());
+	re.setAllele2(query.value(3).toByteArray());
+
+	return re;
 }
 
 void NGSD::addPubmedId(int variant_id, const QString& pubmed_id)
@@ -1766,6 +1819,9 @@ ImportStatusGermline NGSD::importStatus(const QString& ps_id)
 			output.svs += getValue("SELECT count(*) FROM " + table + " WHERE sv_callset_id='" + cs_id+ "'").toInt();
 		}
 	}
+
+	//REs
+	output.res = getValue("SELECT COUNT(*) FROM repeat_expansion_genotype WHERE processed_sample_id='" + ps_id + "'").toInt();
 
 	//QC
 	output.qc_terms = getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'").toInt();
@@ -4812,7 +4868,7 @@ QString NGSD::comment(const Variant& variant)
 	return getValue("SELECT comment FROM variant WHERE id='" + variantId(variant) + "'").toString();
 }
 
-int NGSD::lastAnalysisOf(QString processed_sample_id)
+int NGSD::lastAnalysisOf(const QString& processed_sample_id)
 {
 	SqlQuery query = getQuery();
 	query.exec("SELECT j.id FROM analysis_job j, analysis_job_sample js WHERE js.analysis_job_id=j.id AND js.processed_sample_id=" + processed_sample_id + " AND j.type='single sample' ORDER BY j.id DESC LIMIT 1");
@@ -5125,6 +5181,16 @@ VariantCallingInfo NGSD::variantCallingInfo(QString ps_id)
 		output.sv_caller_version = query.value(1).toString().trimmed();
 		output.sv_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
 	}
+
+	//TODO Marc - add RE callset to NSGD
+	//REs
+	query.exec("SELECT caller, caller_version, call_date FROM sv_callset WHERE processed_sample_id="+ps_id);
+	if (query.next())
+	{
+		output.re_caller = "?";
+		output.re_caller_version = "?";
+		output.re_call_date = "?";
+	}
 	return output;
 }
 
@@ -5215,7 +5281,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 	}
 }
 
-QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
+QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res)
 {
 	QHash<QString, QStringList> output;
 
@@ -5232,7 +5298,7 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	int rc_id = reportConfigId(ps_id);
 	if (rc_id!=-1)
 	{
-		QSharedPointer<ReportConfiguration> report_config = reportConfig(rc_id, variants, cnvs, svs);
+		QSharedPointer<ReportConfiguration> report_config = reportConfig(rc_id, variants, cnvs, svs, res);
 		foreach(const ReportVariantConfiguration& var_conf, report_config->variantConfig())
 		{
 			if (var_conf.causal)
@@ -5254,7 +5320,7 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 							}
 						}
 					}
-					else if (var_conf.variant_type==VariantType::CNVS || var_conf.variant_type==VariantType::SVS)
+					else if (var_conf.variant_type==VariantType::CNVS || var_conf.variant_type==VariantType::SVS || var_conf.variant_type==VariantType::RES)
 					{
 						if (var_conf.classification=="" || var_conf.classification=="n/a")
 						{
@@ -5495,9 +5561,9 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 
 		//check if variants are present
 		ImportStatusGermline import_status = importStatus(ps_id);
-		if (import_status.small_variants>0 || import_status.cnvs>0 || import_status.svs>0)
+		if (import_status.small_variants>0 || import_status.cnvs>0 || import_status.svs>0 || import_status.res>0)
 		{
-			*messages << "Bad sample " << query.value(0).toString() << " has variant data (small variant, CNVs or SVs)!" << endl;
+			*messages << "Bad sample " << query.value(0).toString() << " has variant data (small variant, CNVs, SVs or REss)!" << endl;
 
 			if (fix_errors)
 			{
@@ -5649,12 +5715,12 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 			}
 			else if ((sys_info.umi_type == "IDT-xGen-Prism") || (sys_info.umi_type == "Twist"))
 			{
-				//TODO: implement mapping on NovaSeqX?
+				//TODO Leon: implement mapping on NovaSeqX?
 				qDebug() << "UMI processing will be done in megSAP";
 			}
 			else if (sys_info.umi_type != "n/a")
 			{
-				//TODO: extend
+				//TODO Leon: extend
 				THROW(NotImplementedException, "Unsupported UMI type '" + sys_info.umi_type + "!");
 			}
 			if (index1_read_length - (mid1.length() + umi_length) < 0) THROW(ArgumentException, "Index1 (+ UMI) read longer than seqeuncing length!")
@@ -5716,7 +5782,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("AppVersion," + app_version);
 		sample_sheet.append("KeepFastq,true");
 		sample_sheet.append("MapAlignOutFormat,cram");
-		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO Leon: read from settings/NGSD
 		sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
 		sample_sheet.append("[DragenGermline_Data]");
@@ -5733,10 +5799,10 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("AppVersion," + app_version);
 		sample_sheet.append("KeepFastq,true");
 		sample_sheet.append("MapAlignOutFormat,cram");
-		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
-//		sample_sheet.append("Bedfile,/usr/local/illumina/target_region/" + sys_name + ".bed"); //TODO: read from settings/NGSD
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO Leon: read from settings/NGSD
+//		sample_sheet.append("Bedfile,/usr/local/illumina/target_region/" + sys_name + ".bed"); //TODO Leon: read from settings/NGSD
 		sample_sheet.append("GermlineOrSomatic,germline");
-//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO: get format
+//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO Leon: get format
 //		sample_sheet.append("AuxCnvPanelOfNormalsFile,/usr/local/illumina/cnv/" + sys_name + ".txt");
 		sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
@@ -5755,11 +5821,11 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("AppVersion," + app_version);
 		sample_sheet.append("KeepFastq,true");
 		sample_sheet.append("MapAlignOutFormat,bam");
-		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
-//		sample_sheet.append("RnaGeneAnnotationFile,/usr/local/illumina/genes/GRCh38.gtf"); //TODO: read from settings/NGSD
-		sample_sheet.append("RnaPipelineMode,FullPipeline"); //TODO: read from settings/NGSD
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO Leon: read from settings/NGSD
+//		sample_sheet.append("RnaGeneAnnotationFile,/usr/local/illumina/genes/GRCh38.gtf"); //TODO Leon: read from settings/NGSD
+		sample_sheet.append("RnaPipelineMode,FullPipeline"); //TODO Leon: read from settings/NGSD
 		sample_sheet.append("GermlineOrSomatic,germline");
-//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO: get format
+//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO Leon: get format
 //		sample_sheet.append("AuxCnvPanelOfNormalsFile,/usr/local/illumina/cnv/" + sys_name + ".txt");
 		sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
@@ -7265,7 +7331,7 @@ bool NGSD::reportConfigIsFinalized(int id)
 	return getValue("SELECT id FROM `report_configuration` WHERE `id`=" + QString::number(id) + " AND finalized_by IS NOT NULL").isValid();
 }
 
-QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
+QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res)
 {
 	QSharedPointer<ReportConfiguration> output = QSharedPointer<ReportConfiguration>(new ReportConfiguration());
 
@@ -7375,7 +7441,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 	}
 
 	// Skip report import if empty sv file is provided (Trio)
-	if (svs.count() > 0)
+	if (!svs.isEmpty())
 	{
 		//load SV data
 		query.exec("SELECT * FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(conf_id));
@@ -7468,6 +7534,55 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 
 	}
 
+	// Skip report import if empty sv file is provided (Trio)
+	if (!res.isEmpty())
+	{
+		//load RE data
+		query.exec("SELECT * FROM report_configuration_re WHERE report_configuration_id=" + QString::number(conf_id));
+		while(query.next())
+		{
+			ReportVariantConfiguration var_conf;
+			var_conf.variant_type = VariantType::RES;
+
+			//get CNV id
+			RepeatLocus re = repeatExpansionGenotype(query.value("repeat_expansion_genotype_id").toInt());
+			for (int i=0; i<res.count(); ++i)
+			{
+				if (res[i].sameRegionAndLocus(re))
+				{
+					var_conf.variant_index = i;
+				}
+			}
+
+			//skip variants that are not found, e.g. when trios and single sample analysis are used alternatingly
+			if (var_conf.variant_index==-1) continue;
+
+			var_conf.id = query.value("id").toInt();
+			var_conf.report_type = query.value("type").toString();
+			var_conf.causal = query.value("causal").toBool();
+			var_conf.inheritance = query.value("inheritance").toString();
+			var_conf.de_novo = query.value("de_novo").toBool();
+			var_conf.mosaic = query.value("mosaic").toBool();
+			var_conf.comp_het = query.value("compound_heterozygous").toBool();
+			var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+			var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
+			var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+			var_conf.exclude_other = query.value("exclude_other").toBool();
+			var_conf.comments = query.value("comments").toString();
+			var_conf.comments2 = query.value("comments2").toString();
+			if (query.value("manual_allele1").toInt()>0)
+			{
+				var_conf.manual_allele1 = query.value("manual_allele1").toString();
+			}
+			if (query.value("manual_allele2").toInt()>0)
+			{
+				var_conf.manual_allele2 = query.value("manual_allele2").toString();
+			}
+
+			output->set(var_conf);
+		}
+	}
+
 	//load other causal variant
 	query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_configuration_id=" + QString::number(conf_id));
 	if(query.next())
@@ -7486,7 +7601,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 	return output;
 }
 
-int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
+int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res)
 {
 	int report_config_id = reportConfigId(processed_sample_id);
 	QString report_config_id_str = QString::number(report_config_id);
@@ -7538,6 +7653,10 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		query_new_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_genotype`, `manual_start_bnd`, `manual_end_bnd`, `manual_hgvs_type`, `manual_hgvs_suffix`, `manual_hgvs_type_bnd`, `manual_hgvs_suffix_bnd`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29)");
 		SqlQuery query_update_sv = getQuery();
 		query_update_sv.prepare("UPDATE `report_configuration_sv` SET `report_configuration_id`=:0, `sv_deletion_id`=:1, `sv_duplication_id`=:2, `sv_insertion_id`=:3, `sv_inversion_id`=:4, `sv_translocation_id`=:5, `type`=:6, `causal`=:7, `class`=:8, `inheritance`=:9, `de_novo`=:10, `mosaic`=:11, `compound_heterozygous`=:12, `exclude_artefact`=:13, `exclude_frequency`=:14, `exclude_phenotype`=:15, `exclude_mechanism`=:16, `exclude_other`=:17, `comments`=:18, `comments2`=:19, `rna_info`=:20, `manual_start`=:21, `manual_end`=:22, `manual_genotype`=:23, `manual_start_bnd`=:24, `manual_end_bnd`=:25, `manual_hgvs_type`=:26, `manual_hgvs_suffix`=:27 , `manual_hgvs_type_bnd`=:28, `manual_hgvs_suffix_bnd`=:29 WHERE `id`=:30");
+		SqlQuery query_new_re = getQuery();
+		query_new_re.prepare("INSERT INTO `report_configuration_re`(`report_configuration_id`, `repeat_expansion_genotype_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_phenotype`, `exclude_other`, `comments`, `comments2`, `manual_allele1`, `manual_allele2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
+		SqlQuery query_update_re = getQuery();
+		query_update_re.prepare("UPDATE `report_configuration_re` SET `report_configuration_id`=:0, `repeat_expansion_genotype_id`=:1, `type`=:2, `causal`=:3, `inheritance`=:4, `de_novo`=:5, `mosaic`=:6, `compound_heterozygous`=:7, `exclude_artefact`=:8, `exclude_phenotype`=:9, `exclude_other`=:10, `comments`=:11, `comments2`=:12, `manual_allele1`=:13, `manual_allele1`=:14 WHERE `id`=:15");
 		SqlQuery query = getQuery();
 
 		QList<ReportVariantConfiguration> rvc_to_update;
@@ -7830,6 +7949,73 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				}
 
 			}
+			else if (var_conf.variant_type==VariantType::RES)
+			{
+				//check RE index exists in RE list
+				if (var_conf.variant_index<0 || var_conf.variant_index>=res.count())
+				{
+					THROW(ProgrammingException, "RE list does not contain RE with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
+				}
+
+				//get RE id
+				const RepeatLocus& re = res[var_conf.variant_index];
+				int re_base_id = repeatExpansionId(re.region(), re.unit());
+				int re_id = repeatExpansionGenotypeId(re_base_id, processed_sample_id.toInt());
+
+				//check if update or new import
+				if (var_conf.id < 0)
+				{
+					//check if RE-report config combination is already imported
+					QString var_conf_id_str = getValue("SELECT id FROM `report_configuration_re` WHERE `report_configuration_id`=" + QString::number(report_config_id) + " AND `repeat_expansion_genotype_id`=:0", true, QString::number(re_id)).toString();
+					if (!var_conf_id_str.isEmpty())
+					{
+						// report-RE combination is already imported -> update
+						var_conf.id = var_conf_id_str.toInt();
+						rvc_to_update.append(var_conf);
+						query = query_update_re;
+					}
+					else
+					{
+						//actual new variant
+						query = query_new_re;
+					}
+				}
+				else
+				{
+					//update
+					query = query_update_re;
+				}
+
+				query.bindValue(0, report_config_id);
+				query.bindValue(1, re_id);
+				query.bindValue(2, var_conf.report_type);
+				query.bindValue(3, var_conf.causal);
+				query.bindValue(4, var_conf.inheritance);
+				query.bindValue(5, var_conf.de_novo);
+				query.bindValue(6, var_conf.mosaic);
+				query.bindValue(7, var_conf.comp_het);
+				query.bindValue(8, var_conf.exclude_artefact);
+				query.bindValue(9, var_conf.exclude_phenotype);
+				query.bindValue(10, var_conf.exclude_other);
+				query.bindValue(11, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query.bindValue(12, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query.bindValue(13, var_conf.manual_allele1.isEmpty() ? QVariant(QVariant::Int) : var_conf.manual_allele1.toInt());
+				query.bindValue(14, var_conf.manual_allele2.isEmpty() ? QVariant(QVariant::Int) : var_conf.manual_allele2.toInt());
+
+				if (var_conf.id < 0)
+				{
+					//new variant
+					query.exec();
+					var_conf.id = query.lastInsertId().toInt();
+					rvc_to_update.append(var_conf);
+				}
+				else
+				{
+					//update
+					query.bindValue(15, var_conf.id);
+					query.exec();
+				}
+			}
 			else
 			{
 				THROW(NotImplementedException, "Storing of report config variants with type '" + QString::number((int)var_conf.variant_type) + "' not implemented!");
@@ -7853,6 +8039,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				if (var_conf.variant_type == VariantType::SNVS_INDELS) query.exec("DELETE FROM `report_configuration_variant` WHERE `id`=" + QString::number(var_conf.id));
 				else if (var_conf.variant_type == VariantType::CNVS) query.exec("DELETE FROM `report_configuration_cnv` WHERE `id`=" + QString::number(var_conf.id));
 				else if (var_conf.variant_type == VariantType::SVS) query.exec("DELETE FROM `report_configuration_sv` WHERE `id`=" + QString::number(var_conf.id));
+				else if (var_conf.variant_type == VariantType::RES) query.exec("DELETE FROM `report_configuration_re` WHERE `id`=" + QString::number(var_conf.id));
 				else THROW(NotImplementedException, "Removing of report config variants with type '" + QString::number((int)var_conf.variant_type) + "' not implemented!");
 			}
 			// else -> variant wasn't pushed into the NGSD -> skip deletion
@@ -7936,7 +8123,7 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
 }
 
-ReportVariantConfiguration NGSD::reportVariantConfiguration(int id, VariantType type, QStringList& messages, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
+ReportVariantConfiguration NGSD::reportVariantConfiguration(int id, VariantType type, QStringList& messages, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res)
 {
 	ReportVariantConfiguration var_conf;
 	SqlQuery query = getQuery();
@@ -8112,6 +8299,41 @@ ReportVariantConfiguration NGSD::reportVariantConfiguration(int id, VariantType 
 			var_conf.manual_sv_end_bnd = query.value("manual_end_bnd").toString();
 		}
 
+	}
+	else if (type == VariantType::RES)
+	{
+		query.exec("SELECT * FROM report_configuration_re WHERE id=" + QString::number(id));
+		if (query.size() != 1) THROW(DatabaseException, "Invalid report variant configuration id!");
+		query.next();
+
+		var_conf.variant_index=-1;
+		if (res.count() > 0)
+		{
+			//get variant id
+			RepeatLocus re = repeatExpansionGenotype(query.value("repeat_expansion_genotype_id").toInt());
+			for (int i=0; i<res.count(); ++i)
+			{
+				if (re.sameRegionAndLocus(res[i]))
+				{
+					var_conf.variant_index = i;
+				}
+			}
+			if (var_conf.variant_index==-1) messages << "Could not find repeat locus '" + re.toString(true, false) + "' in given locus list.";
+		}
+		var_conf.variant_type = VariantType::RES;
+		var_conf.report_type = query.value("type").toString();
+		var_conf.causal = query.value("causal").toBool();
+		var_conf.inheritance = query.value("inheritance").toString();
+		var_conf.de_novo = query.value("de_novo").toBool();
+		var_conf.mosaic = query.value("mosaic").toBool();
+		var_conf.comp_het = query.value("compound_heterozygous").toBool();
+		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
+		var_conf.exclude_other = query.value("exclude_other").toBool();
+		var_conf.comments = query.value("comments").toString();
+		var_conf.comments2 = query.value("comments2").toString();
+		var_conf.manual_var = query.value("manual_var").toString();
+		var_conf.manual_genotype = query.value("manual_genotype").toString();
 	}
 	else
 	{

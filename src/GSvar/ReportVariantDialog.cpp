@@ -46,6 +46,10 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	ui_.classification->setVisible(show_classification);
 	ui_.label_classification->setVisible(show_classification);
 
+	//show exclude resons only when needed
+	ui_.exclude_frequency->setVisible(config.variant_type!=VariantType::RES);
+	ui_.exclude_mechanism->setVisible(config.variant_type!=VariantType::RES);
+
 	//show manual variant override options when needed
 	foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*")))
 	{
@@ -85,6 +89,14 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 			ui_.manual_sv_end_bnd->setVisible(false);
 			ui_.manual_sv_hgvs_type_bnd->setVisible(false);
 			ui_.manual_sv_hgvs_suffix_bnd->setVisible(false);
+		}
+	}
+	if (config_.variant_type==VariantType::RES)
+	{
+		ui_.manual_line->setVisible(true);
+		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*re.*")))
+		{
+			widget->setVisible(true);
 		}
 	}
 
@@ -163,6 +175,13 @@ void ReportVariantDialog::updateGUI()
 		ui_.manual_sv_hgvs_type_bnd->setText(config_.manual_sv_hgvs_type_bnd.trimmed());
 		ui_.manual_sv_hgvs_suffix_bnd->setText(config_.manual_sv_hgvs_suffix_bnd.trimmed());
 	}
+
+	//manual curation REs
+	if (config_.variant_type==VariantType::SVS)
+	{
+		ui_.manual_re_allele1->setText(config_.manual_allele1.trimmed());
+		ui_.manual_re_allele2->setText(config_.manual_allele2.trimmed());
+	}
 }
 
 bool ReportVariantDialog::variantReportConfigChanged()
@@ -225,6 +244,13 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 		rvc.manual_sv_hgvs_suffix = ui_.manual_sv_hgvs_suffix->text().trimmed();
 		rvc.manual_sv_hgvs_type_bnd = ui_.manual_sv_hgvs_type_bnd->text().trimmed();
 		rvc.manual_sv_hgvs_suffix_bnd = ui_.manual_sv_hgvs_suffix_bnd->text().trimmed();
+	}
+
+	//manual curation REs
+	if (rvc.variant_type==VariantType::SVS)
+	{
+		rvc.manual_allele1 = ui_.manual_re_allele1->text().trimmed();
+		rvc.manual_allele2 = ui_.manual_re_allele2->text().trimmed();
 	}
 }
 

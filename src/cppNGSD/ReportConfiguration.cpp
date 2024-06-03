@@ -166,6 +166,22 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 		}
 		else errors << "SV end position of 2nd breakpoint is manually set for variant which is not a SV!";
 	}
+	if (!manual_allele1.isEmpty())
+	{
+		if (variant_type==VariantType::RES)
+		{
+			if(!manualAllele1IsValid()) errors << "manual allele 1 is set, but not a valid integer. Value is '" + manual_allele1 + "'";
+		}
+		else errors << "RE allele 1 is manually set for variant which is not a RE!";
+	}
+	if (!manual_allele2.isEmpty())
+	{
+		if (variant_type==VariantType::RES)
+		{
+			if(!manualAllele2IsValid()) errors << "manual allele 2 is set, but not a valid integer. Value is '" + manual_allele2 + "'";
+		}
+		else errors << "RE allele 2 is manually set for variant which is not a RE!";
+	}
 
 	return errors.isEmpty();
 }
@@ -220,6 +236,10 @@ bool ReportVariantConfiguration::isManuallyCurated() const
 	else if (variant_type==VariantType::SVS)
 	{
 		return manualSvStartIsValid() || manualSvEndIsValid() || manualSvGenoIsValid() || manualSvStartBndIsValid() || manualSvEndBndIsValid() || !manual_sv_hgvs_type.isEmpty() || !manual_sv_hgvs_suffix.isEmpty() || !manual_sv_hgvs_type_bnd.isEmpty() || !manual_sv_hgvs_suffix_bnd.isEmpty();
+	}
+	else if (variant_type==VariantType::RES)
+	{
+		return manualAllele1IsValid() || manualAllele2IsValid();
 	}
 
 	THROW(ArgumentException, "ReportVariantConfiguration::isManuallyCurated() called on invalid variant type!");
@@ -407,6 +427,40 @@ void ReportVariantConfiguration::updateSv(BedpeLine& sv, const QByteArrayList& a
 			genes << db.genesOverlapping(reg.chr(), reg.start(), reg.end(), 5000);
 		}
 		sv.setGenes(annotation_headers, genes);
+	}
+}
+
+bool ReportVariantConfiguration::manualAllele1IsValid() const
+{
+	if (manual_allele1.isEmpty()) return false;
+
+	bool ok = false;
+	int value = manual_allele1.toInt(&ok);
+	if (!ok) return false;
+
+	return value>=0;
+}
+
+bool ReportVariantConfiguration::manualAllele2IsValid() const
+{
+	if (manual_allele2.isEmpty()) return false;
+
+	bool ok = false;
+	int value = manual_allele2.toInt(&ok);
+	if (!ok) return false;
+
+	return value>=0;
+}
+
+void ReportVariantConfiguration::updateRe(RepeatLocus& re) const
+{
+	if (manualAllele1IsValid())
+	{
+		re.setAllele1(manual_allele1.toUtf8());
+	}
+	if (manualAllele2IsValid())
+	{
+		re.setAllele2(manual_allele2.toUtf8());
 	}
 }
 
@@ -626,6 +680,8 @@ QString ReportConfiguration::variantSummary() const
 	int c_cnv_causal = 0;
 	int c_sv = 0;
 	int c_sv_causal = 0;
+	int c_re = 0;
+	int c_re_causal = 0;
 	foreach(const ReportVariantConfiguration& entry, variant_config_)
 	{
 		if (entry.variant_type==VariantType::SNVS_INDELS)
@@ -643,6 +699,11 @@ QString ReportConfiguration::variantSummary() const
 			++c_sv;
 			if (entry.causal) ++c_sv_causal;
 		}
+		else if (entry.variant_type==VariantType::RES)
+		{
+			++c_re;
+			if (entry.causal) ++c_re_causal;
+		}
 	}
 
 	QStringList output;
@@ -652,6 +713,8 @@ QString ReportConfiguration::variantSummary() const
 	if (c_cnv_causal>0) output.last().append(" (" + QString::number(c_cnv_causal) + " causal)");
 	output << ("SVs: " + QString::number(c_sv));
 	if (c_sv_causal>0) output.last().append(" (" + QString::number(c_sv_causal) + " causal)");
+	output << ("REs: " + QString::number(c_re));
+	if (c_re_causal>0) output.last().append(" (" + QString::number(c_re_causal) + " causal)");
 	if (other_causal_variant_.isValid())
 	{
 		output << "other causal variant: 1";
