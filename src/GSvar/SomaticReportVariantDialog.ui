@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>483</width>
-    <height>529</height>
+    <width>500</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,24 +32,61 @@
    <property name="verticalSpacing">
     <number>3</number>
    </property>
-   <item row="0" column="0" colspan="2">
-    <widget class="QLabel" name="variant">
+   <item row="18" column="1">
+    <widget class="QLineEdit" name="manual_sv_hgvs_suffix">
+     <property name="placeholderText">
+      <string>HGVS suffix</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="0">
+    <widget class="QLabel" name="manual_sv_end_label">
+     <property name="text">
+      <string>manual end coordinate:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" rowspan="6">
+    <widget class="QLabel" name="label_7">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
+     <property name="toolTip">
+      <string>Reasons why the variant is excluded from the report.</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="text">
-      <string>Somatic variant representation</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;exclude from&lt;br/&gt;report:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
+   </item>
+   <item row="17" column="0">
+    <widget class="QLabel" name="manual_sv_hgvs_type_label">
+     <property name="text">
+      <string>manual HGVS type:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="0">
+    <widget class="QLabel" name="manual_sv_start_bnd_label">
+     <property name="text">
+      <string>manual start coordinate 2:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="1">
+    <widget class="QPlainTextEdit" name="comment"/>
    </item>
    <item row="1" column="0" colspan="2">
     <widget class="Line" name="line_3">
@@ -76,49 +113,31 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0" rowspan="5">
-    <widget class="QLabel" name="label_7">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="toolTip">
-      <string>Reasons why the variant is excluded from the report.</string>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;exclude from&lt;br/&gt;report:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
+   <item row="19" column="1">
+    <widget class="QLineEdit" name="manual_sv_start_bnd">
+     <property name="placeholderText">
+      <string>genomic start position of chrB (BND only)</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
-    <widget class="QCheckBox" name="exclude_artefact">
-     <property name="text">
-      <string>artefact</string>
+   <item row="21" column="1">
+    <widget class="QLineEdit" name="manual_sv_hgvs_type_bnd">
+     <property name="placeholderText">
+      <string>HGVS type (BND only)</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QCheckBox" name="exclude_low_tumor_content">
+   <item row="7" column="1">
+    <widget class="QCheckBox" name="exclude_other">
      <property name="text">
-      <string>low tumor content</string>
+      <string>other (see comment)</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QCheckBox" name="exclude_low_cn">
-     <property name="text">
-      <string>low copy number</string>
+   <item row="13" column="0" colspan="2">
+    <widget class="Line" name="sv_line_1">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -129,14 +148,37 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
-    <widget class="QCheckBox" name="exclude_other">
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="text">
-      <string>other (see comment)</string>
+      <string>include in
+report:</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="7" column="0" colspan="2">
+   <item row="20" column="0">
+    <widget class="QLabel" name="manual_sv_end_bnd_label">
+     <property name="text">
+      <string>manual end coordinate 2:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="2">
     <widget class="Line" name="line">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -161,30 +203,28 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>include in
-report:</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
+   <item row="15" column="1">
+    <widget class="QLineEdit" name="manual_sv_start">
+     <property name="placeholderText">
+      <string>genomic start position of chrA</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="1">
+   <item row="20" column="1">
+    <widget class="QLineEdit" name="manual_sv_end_bnd">
+     <property name="placeholderText">
+      <string>genomic end position of chrB (BND only)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="1">
+    <widget class="QLineEdit" name="manual_sv_hgvs_type">
+     <property name="placeholderText">
+      <string>HGVS type</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
     <widget class="QFrame" name="frame">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -216,14 +256,93 @@ report:</string>
      </layout>
     </widget>
    </item>
-   <item row="9" column="0" colspan="2">
+   <item row="21" column="0">
+    <widget class="QLabel" name="manual_sv_hgvs_type_bnd_label">
+     <property name="text">
+      <string>manual hgvs type 2:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="27" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="22" column="1">
+    <widget class="QLineEdit" name="manual_sv_hgvs_suffix_bnd">
+     <property name="placeholderText">
+      <string>HGVS suffix (BND only)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="22" column="0">
+    <widget class="QLabel" name="manual_sv_hgvs_suffix_bnd_label">
+     <property name="text">
+      <string>manual hgvs suffix 2:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QCheckBox" name="exclude_low_cn">
+     <property name="text">
+      <string>low copy number</string>
+     </property>
+    </widget>
+   </item>
+   <item row="25" column="0" colspan="2">
+    <widget class="Line" name="sv_line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QCheckBox" name="exclude_artefact">
+     <property name="text">
+      <string>artefact</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QCheckBox" name="exclude_low_tumor_content">
+     <property name="text">
+      <string>low tumor content</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0" colspan="2">
     <widget class="Line" name="line_2">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
-   <item row="10" column="0">
+   <item row="6" column="1">
+    <widget class="QCheckBox" name="exclude_unclear_effect">
+     <property name="text">
+      <string>unclear effect</string>
+     </property>
+    </widget>
+   </item>
+   <item row="26" column="1">
+    <widget class="QComboBox" name="rna_info"/>
+   </item>
+   <item row="16" column="1">
+    <widget class="QLineEdit" name="manual_sv_end">
+     <property name="placeholderText">
+      <string>genomic end position of chrA</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0">
     <widget class="QLabel" name="label_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -239,21 +358,58 @@ report:</string>
      </property>
     </widget>
    </item>
-   <item row="10" column="1">
-    <widget class="QPlainTextEdit" name="comment"/>
-   </item>
-   <item row="11" column="0" colspan="2">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   <item row="15" column="0">
+    <widget class="QLabel" name="manual_sv_start_label">
+     <property name="text">
+      <string>manual start coordinate:</string>
      </property>
     </widget>
+   </item>
+   <item row="26" column="0">
+    <widget class="QLabel" name="rna_info_label">
+     <property name="text">
+      <string>RNA information:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="0">
+    <widget class="QLabel" name="manual_sv_hgvs_suffix_label">
+     <property name="text">
+      <string>manual HGVS suffix:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="variant">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Somatic variant representation</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="0">
+    <widget class="QLabel" name="description_sv_label">
+     <property name="text">
+      <string>SV description:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="1">
+    <widget class="QPlainTextEdit" name="description_sv"/>
    </item>
   </layout>
  </widget>
@@ -266,8 +422,8 @@ report:</string>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>251</x>
+     <y>696</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -282,8 +438,8 @@ report:</string>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>319</x>
+     <y>696</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

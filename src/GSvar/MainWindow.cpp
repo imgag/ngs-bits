@@ -784,30 +784,35 @@ void MainWindow::on_actionSV_triggered()
 
 	try
 	{
-		//determine processed sample ID (needed for report config)
-		QString ps_id = "";
-		QSharedPointer<ReportConfiguration> report_config = nullptr;
-		if (germlineReportSupported())
-		{
-			ps_id = NGSD().processedSampleId(germlineReportSample(), false);
-			report_config = report_settings_.report_config;
-		}
-
 		//open SV widget
 		SvWidget* list;
 		if(svs_.isSomatic())
 		{
+			QString ps_id =	"";
+
 			// somatic
-			list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
+			list = new SvWidget(svs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
+			connect(list, SIGNAL(updateSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 		}
 		else
 		{
+			//determine processed sample ID (needed for report config)
+			QString ps_id = "";
+			QSharedPointer<ReportConfiguration> report_config = nullptr;
+			if (germlineReportSupported())
+			{
+				ps_id = NGSD().processedSampleId(germlineReportSample(), false);
+				report_config = report_settings_.report_config;
+			}
+
 			// germline single, trio or multi sample
 			list = new SvWidget(svs_, ps_id, ui_.filters, report_config, het_hit_genes, gene2region_cache_, this);
 		}
 
 		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + variants_.analysisName());
 		addModelessDialog(dlg);
+
+
 	}
 	catch(FileParseException error)
 	{
@@ -3096,7 +3101,7 @@ void MainWindow::loadSomaticReportConfig()
 
 
 	QStringList messages;
-	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, somatic_control_tissue_variants_, messages);
+	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, svs_, somatic_control_tissue_variants_, messages);
 
 
 	if(!messages.isEmpty())
@@ -3124,6 +3129,7 @@ void MainWindow::loadSomaticReportConfig()
 
 void MainWindow::storeSomaticReportConfig()
 {
+	qDebug() << "storeSomaticReortConfig()!!";
 	if(filename_ == "") return;
 	if(!LoginManager::active()) return;
 	if(variants_.type() != SOMATIC_PAIR) return;
@@ -3153,7 +3159,7 @@ void MainWindow::storeSomaticReportConfig()
 	//store
 	try
 	{
-		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
+		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, svs_, somatic_control_tissue_variants_, Helper::userName());
 	}
 	catch (Exception& e)
 	{
@@ -3721,7 +3727,7 @@ void MainWindow::generateReportSomaticRTF()
 	//store somatic report config in NGSD
 	if(!dlg.skipNGSD())
 	{
-		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
+		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, svs_, somatic_control_tissue_variants_, Helper::userName());
 	}
 
 	QString destination_path; //path to rtf file

@@ -1604,7 +1604,6 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration_sv`
   `rna_info` ENUM( 'n/a', 'confirmed', 'not confirmed', 'RNA dataset not usable') NOT NULL DEFAULT 'n/a',
   `manual_start` INT(11) DEFAULT NULL,
   `manual_end` INT(11) DEFAULT NULL,
-  `manual_genotype` ENUM('hom','het') DEFAULT NULL,
   `manual_hgvs_type` text DEFAULT NULL,
   `manual_hgvs_suffix` text DEFAULT NULL,
   `manual_start_bnd` INT(11) DEFAULT NULL,
