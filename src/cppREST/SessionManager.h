@@ -6,7 +6,7 @@
 #include "ClientHelper.h"
 #include "ServerHelper.h"
 #include "Exceptions.h"
-#include "ServerDbManager.h"
+#include "ServerDB.h"
 
 class CPPRESTSHARED_EXPORT SessionManager
 {

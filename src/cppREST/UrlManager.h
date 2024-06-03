@@ -4,7 +4,7 @@
 #include <QDateTime>
 #include "cppREST_global.h"
 #include "ServerHelper.h"
-#include "ServerDbManager.h"
+#include "ServerDB.h"
 
 class CPPRESTSHARED_EXPORT UrlManager
 {

@@ -14,7 +14,7 @@ private slots:
             SKIP("Server has not been configured correctly");
         }
 
-        ServerDbManager::initDbIfEmpty();
+        ServerDB().initDbIfEmpty();
         QString url_id = ServerHelper::generateUniqueStr();
         QString file = "file.txt";
 

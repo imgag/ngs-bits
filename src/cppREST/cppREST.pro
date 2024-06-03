@@ -53,6 +53,7 @@ SOURCES += \
     HttpResponse.cpp \
     RequestParser.cpp \
     RequestWorker.cpp \
+    ServerDB.cpp \
     ServerDbManager.cpp \
     ServerHelper.cpp \
     ServerWrapper.cpp \
@@ -69,6 +70,7 @@ HEADERS += \
     HttpResponse.h \
     RequestParser.h \
     RequestWorker.h \
+    ServerDB.h \
     ServerDbManager.h \
     ServerHelper.h \
     ServerWrapper.h \

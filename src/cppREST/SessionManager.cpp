@@ -15,22 +15,22 @@ SessionManager& SessionManager::instance()
 
 void SessionManager::addNewSession(Session in)
 {
-    ServerDbManager::addSession(in);
+    ServerDB().addSession(in);
 }
 
 void SessionManager::removeSession(QString id)
 {
-    ServerDbManager::removeSession(id);
+    ServerDB().removeSession(id);
 }
 
 Session SessionManager::getSessionBySecureToken(QString token)
 {
-    return ServerDbManager::getSession(token);
+    return ServerDB().getSession(token);
 }
 
 bool SessionManager::isValidSession(QString token)
 {
-    Session cur_session = ServerDbManager::getSession(token);
+    Session cur_session = ServerDB().getSession(token);
     if (cur_session.isEmpty())
     {
         return false;
@@ -52,11 +52,12 @@ void SessionManager::removeExpiredSessions()
     if (valid_period == 0) valid_period = DEFAULT_VALID_PERIOD; // default value, if not set in the config
 
     Log::info("Starting to cleanup sessions");
-    int current_count = ServerDbManager::getSessionsCount();
+    ServerDB server_db;
+    int current_count = server_db.getSessionsCount();
     Log::info("Number of active sessions: " + QString::number(current_count));
-    ServerDbManager::removeSessionsOlderThan(QDateTime::currentDateTime().toSecsSinceEpoch()-valid_period);
+    server_db.removeSessionsOlderThan(QDateTime::currentDateTime().toSecsSinceEpoch()-valid_period);
 
-    int new_count = ServerDbManager::getSessionsCount();
+    int new_count = server_db.getSessionsCount();
     Log::info("Number of active sessions after the cleanup: " + QString::number(new_count));
 }
 
