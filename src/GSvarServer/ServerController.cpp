@@ -1028,8 +1028,8 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-    Session cur_session = Session(user_id, user_login, user_real_name, QDateTime::currentDateTime(), false);
-    SessionManager::addNewSession(secure_token, cur_session);
+    Session cur_session = Session(secure_token, user_id, user_login, user_real_name, QDateTime::currentDateTime(), false);
+    SessionManager::addNewSession(cur_session);
     QByteArray body = secure_token.toUtf8();
 
     BasicResponseData response_data;
@@ -1091,16 +1091,16 @@ HttpResponse ServerController::validateCredentials(const HttpRequest& request)
 
 HttpResponse ServerController::getDbToken(const HttpRequest& request)
 {
-	Session user_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
+    Session user_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
 
 	if (user_session.isEmpty())
     {
         return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), EndpointManager::formatResponseMessage(request, "You need to log in first"));
     }
 
-    Session cur_session = Session(user_session.user_id, user_session.user_login, user_session.user_name, QDateTime::currentDateTime(), true);
-	QString db_token = ServerHelper::generateUniqueStr();
-	SessionManager::addNewSession(db_token, cur_session);
+    QString db_token = ServerHelper::generateUniqueStr();
+    Session cur_session = Session(db_token, user_session.user_id, user_session.user_login, user_session.user_name, QDateTime::currentDateTime(), true);
+    SessionManager::addNewSession(cur_session);
 	QByteArray body = db_token.toUtf8();
 
 	BasicResponseData response_data;
@@ -1157,15 +1157,17 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
     {
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "Secure token has not been provided"));
 	}
-    if (!SessionManager::isTokenReal(request.getFormUrlEncoded()["token"]))
+    QString token = request.getFormUrlEncoded()["token"];
+
+    if (!SessionManager::isValidSession(token))
 	{
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You have provided an invalid token"));
     }
 
-    Session current_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
+    Session current_session = SessionManager::getSessionBySecureToken(token);
     try
     {
-        SessionManager::removeSession(request.getFormUrlEncoded()["token"]);
+        SessionManager::removeSession(token);
     }
     catch (Exception& e)
     {
@@ -1470,11 +1472,11 @@ QString ServerController::createTempUrl(const QString& file, const QString& toke
 
     if (QFileInfo(file).exists())
     {
-        UrlManager::addNewUrl(id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
+        UrlManager::addNewUrl(UrlEntity(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
     }
     else
     {
-        UrlManager::addNewUrl(id, UrlEntity(file, "", file, id, QDateTime::currentDateTime()));
+        UrlManager::addNewUrl(UrlEntity(id, file, "", file, id, QDateTime::currentDateTime()));
     }
 
 	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;

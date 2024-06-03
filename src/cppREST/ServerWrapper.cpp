@@ -1,6 +1,4 @@
 #include "ServerWrapper.h"
-#include "UrlBackupWorker.h"
-#include "SessionBackupWorker.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
@@ -219,36 +217,26 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
 
 void ServerWrapper::cleanupUrls()
 {
-    Log::info("Backup URLs on timer");
+    Log::info("Removing expired URLs on timer");
     try
     {
-        UrlBackupWorker *url_backup_worker = new UrlBackupWorker(UrlManager::removeExpiredUrls());
-        cleanup_pool_.start(url_backup_worker);
-    }
-    catch (FileAccessException& e)
-    {
-        Log::error("Error while accessing a URL backup file: " + e.message());
+        UrlManager::removeExpiredUrls();
     }
     catch (...)
     {
-         Log::error("Unexpected error while trying to backup URLs");
+         Log::error("Unexpected error while trying to remove URLs");
     }
 }
 
 void ServerWrapper::cleanupSessions()
 {
-    Log::info("Backup sessions on timer");
+    Log::info("Removing expired sessions on timer");
     try
     {
-        SessionBackupWorker *session_backup_worker = new SessionBackupWorker(SessionManager::removeExpiredSessions());
-        cleanup_pool_.start(session_backup_worker);
-    }
-    catch (FileAccessException& e)
-    {
-        Log::error("Error while accessing a session backup file: " + e.message());
-    }
+        SessionManager::removeExpiredSessions();     
+    }   
     catch (...)
     {
-        Log::error("Unexpected error while trying to backup sessions");
+        Log::error("Unexpected error while trying to remove sessions");
     }
 }
