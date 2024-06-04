@@ -279,6 +279,33 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 > 30").toInt();
 		I_EQUAL(count, 4);
 	}
+
+	void re_import_lrGS()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_init.sql"));
+
+		//check db is empty
+		int count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
+		I_EQUAL(count, 0);
+
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
+
+		//check db is filled
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
+		I_EQUAL(count, 30);
+
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();
+		I_EQUAL(count, 0);
+
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele1 > 30").toInt();
+		I_EQUAL(count, 27);
+
+	}
 };
 
 

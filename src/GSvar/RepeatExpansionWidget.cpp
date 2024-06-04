@@ -39,11 +39,33 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, QString vcf, QStri
 	if (sys_type=="WGS")
 	{
 		sys_type_cutoff_col_ = "staticial_cutoff_wgs";
+
+		//hide lrGS column:
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
+
+	}
+	else if (sys_type=="lrGS")
+	{
+		is_longread_ = true;
+		//TODO: after import
+		sys_type_cutoff_col_ = "staticial_cutoff_lrgs";
+
+		//for now: remove column
+		int idx = ui_.filter_expanded->findText("statistical outlier");
+		ui_.filter_expanded->removeItem(idx);
+
+		//hide lrGS column:
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads spanning"), true);
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads in repeat"), true);
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads flanking"), true);
 	}
 	else
 	{
 		int idx = ui_.filter_expanded->findText("statistical outlier");
 		ui_.filter_expanded->removeItem(idx);
+
+		//hide lrGS column:
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
 	}
 
 	loadDataFromVCF(vcf);
@@ -70,12 +92,17 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus_base_name);
 	}
 
+	//get histogram
+	FileLocation hist_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionHistogram(locus_base_name);
+
     //create menu
 	QMenu menu(ui_.table);
 	QAction* a_comments = menu.addAction(QIcon(":/Icons/Comment.png"), "Show comments");
 	QAction* a_distribution = menu.addAction(QIcon(":/Icons/AF_histogram.png"), "Show distribution");
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
+	QAction* a_show_hist = menu.addAction("Show histogram of repeats");
+	a_show_hist->setEnabled(hist_loc.exists);
 	menu.addSeparator();
 	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
 	menu.addSeparator();
@@ -87,11 +114,18 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	if (action==a_show_svg)
     {
 		QString filename;
+		QByteArray svg;
 		if (!ClientHelper::isClientServerMode())
 		{
 			filename = QFileInfo(image_loc.filename).absoluteFilePath();
+			VersatileFile file(image_loc.filename);
+			file.open(QIODevice::ReadOnly);
+			svg = file.readAll();
 		}
-		QByteArray svg = VersatileFile(image_loc.filename).readAll();
+		else
+		{
+			svg = VersatileFile(image_loc.filename).readAll();
+		}
 
 		QSvgWidget* widget = new QSvgWidget();
 		widget->load(svg);
@@ -104,6 +138,35 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		scroll_area->setMinimumSize(1200, 800);
 
 		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Image of " + getCell(row, "repeat ID").trimmed());
+		dlg->exec();
+	}
+	else if (action==a_show_hist)
+	{
+		QString filename;
+		QByteArray svg;
+		if (!ClientHelper::isClientServerMode())
+		{
+			filename = QFileInfo(hist_loc.filename).absoluteFilePath();
+			VersatileFile file(hist_loc.filename);
+			file.open(QIODevice::ReadOnly);
+			svg = file.readAll();
+		}
+		else
+		{
+			svg = VersatileFile(hist_loc.filename).readAll();
+		}
+
+		QSvgWidget* widget = new QSvgWidget();
+		widget->load(svg);
+		QRect rect = widget->renderer()->viewBox();
+		widget->setMinimumSize(rect.width(), rect.height());
+
+		QScrollArea* scroll_area = new QScrollArea(this);
+		scroll_area->setFrameStyle(QFrame::NoFrame);
+		scroll_area->setWidget(widget);
+		scroll_area->setMinimumSize(1200, 800);
+
+		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Histogram of " + getCell(row, "repeat ID").trimmed());
 		dlg->exec();
 	}
 	else if (action==a_copy)
@@ -275,46 +338,92 @@ void RepeatExpansionWidget::loadDataFromVCF(QString vcf)
 	{
 		const VcfLine& re = repeat_expansions[row_idx];
 
-		//repeat ID
-		QByteArray repeat_id = re.info("REPID").trimmed();
-		setCell(row_idx, "repeat ID", repeat_id);
+		if(is_longread_)
+		{
+			//repeat ID
+			QByteArray repeat_id = re.info("LOCUS").trimmed();
+			setCell(row_idx, "repeat ID", repeat_id);
 
-		//region
-		QString region = re.chr().strNormalized(true) + ":" + QString::number(re.start()) + "-" + re.info("END").trimmed();
-		setCell(row_idx, "region", region);
+			//region
+			QString region = re.chr().strNormalized(true) + ":" + QString::number(re.start()) + "-" + re.info("END").trimmed();
+			setCell(row_idx, "region", region);
 
-		//repreat unit
-		QByteArray repeat_unit = re.info("RU").trimmed();
-		setCell(row_idx, "repeat unit", repeat_unit);
+			//repreat unit
+			QByteArray repeat_unit = re.info("REF_MOTIF").trimmed();
+			setCell(row_idx, "repeat unit", repeat_unit);
 
-		//filters
-		QString filters = re.filters().join(",");
-		if (filters=="PASS") filters = "";
-		setCell(row_idx, "filters", filters);
+			//filters
+			QString filters = re.filters().join(",");
+			if (filters=="PASS") filters = "";
+			setCell(row_idx, "filters", filters);
 
-		//genotype
-		QString genotype = re.formatValueFromSample("REPCN").trimmed().replace(".", "-");
-		setCell(row_idx, "genotype", genotype);
+			//genotype
+			QString genotype = re.formatValueFromSample("AC").trimmed();
+			setCell(row_idx, "genotype", genotype);
 
-		//genotype CI
-		QByteArray genotype_ci = re.formatValueFromSample("REPCI").trimmed().replace(".", "-");
-		setCell(row_idx, "genotype CI", genotype_ci);
+			//genotype CI
+			QByteArray genotype_ci = re.formatValueFromSample("ACR").trimmed();
+			setCell(row_idx, "genotype CI", genotype_ci);
 
-		//local coverage
-		double coverage = Helper::toDouble(re.formatValueFromSample("LC").trimmed());
-		setCell(row_idx, "locus coverage", QString::number(coverage, 'f', 2));
+			//local coverage
+			double coverage = Helper::toDouble(re.formatValueFromSample("DP").trimmed());
+			setCell(row_idx, "locus coverage", QString::number(coverage, 'f', 2));
 
-		//reads flanking
-		QByteArray reads_flanking = re.formatValueFromSample("ADFL").trimmed().replace(".", "-");
-		setCell(row_idx, "reads flanking", reads_flanking);
+//			//no value in straglr
+//			//reads flanking
+//			setCell(row_idx, "reads flanking", "-");
+//			//reads in repeat
+//			setCell(row_idx, "reads in repeat", "-");
 
-		//reads in repeat
-		QByteArray read_in_repeat = re.formatValueFromSample("ADIR").trimmed().replace(".", "-");
-		setCell(row_idx, "reads in repeat", read_in_repeat);
+			//reads flanking
+			QByteArray reads_supporting = re.formatValueFromSample("AD").trimmed().replace(".", "-");
+			setCell(row_idx, "reads supporting", reads_supporting);
+		}
+		else
+		{
+			//repeat ID
+			QByteArray repeat_id = re.info("REPID").trimmed();
+			setCell(row_idx, "repeat ID", repeat_id);
 
-		//reads flanking
-		QByteArray reads_spanning = re.formatValueFromSample("ADSP").trimmed().replace(".", "-");
-		setCell(row_idx, "reads spanning", reads_spanning);
+			//region
+			QString region = re.chr().strNormalized(true) + ":" + QString::number(re.start()) + "-" + re.info("END").trimmed();
+			setCell(row_idx, "region", region);
+
+			//repreat unit
+			QByteArray repeat_unit = re.info("RU").trimmed();
+			setCell(row_idx, "repeat unit", repeat_unit);
+
+			//filters
+			QString filters = re.filters().join(",");
+			if (filters=="PASS") filters = "";
+			setCell(row_idx, "filters", filters);
+
+			//genotype
+			QString genotype = re.formatValueFromSample("REPCN").trimmed().replace(".", "-");
+			setCell(row_idx, "genotype", genotype);
+
+			//genotype CI
+			QByteArray genotype_ci = re.formatValueFromSample("REPCI").trimmed().replace(".", "-");
+			setCell(row_idx, "genotype CI", genotype_ci);
+
+			//local coverage
+			double coverage = Helper::toDouble(re.formatValueFromSample("LC").trimmed());
+			setCell(row_idx, "locus coverage", QString::number(coverage, 'f', 2));
+
+			//reads flanking
+			QByteArray reads_flanking = re.formatValueFromSample("ADFL").trimmed().replace(".", "-");
+			setCell(row_idx, "reads flanking", reads_flanking);
+
+			//reads in repeat
+			QByteArray read_in_repeat = re.formatValueFromSample("ADIR").trimmed().replace(".", "-");
+			setCell(row_idx, "reads in repeat", read_in_repeat);
+
+			//reads flanking
+			QByteArray reads_spanning = re.formatValueFromSample("ADSP").trimmed().replace(".", "-");
+			setCell(row_idx, "reads spanning", reads_spanning);
+		}
+
+
 	}
 
 	if (ui_.table->rowCount()<40)
