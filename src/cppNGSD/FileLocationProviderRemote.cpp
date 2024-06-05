@@ -41,6 +41,11 @@ FileLocation FileLocationProviderRemote::getRepeatExpansionImage(QString locus) 
 	return getOneFileLocationByType(PathType::REPEAT_EXPANSION_IMAGE, locus);
 }
 
+FileLocation FileLocationProviderRemote::getRepeatExpansionHistogram(QString locus) const
+{
+	return getOneFileLocationByType(PathType::REPEAT_EXPANSION_HISTOGRAM, locus);
+}
+
 FileLocationList FileLocationProviderRemote::getQcFiles() const
 {
 	return getFileLocationsByType(PathType::QC, false);

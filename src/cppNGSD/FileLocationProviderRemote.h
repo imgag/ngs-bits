@@ -23,6 +23,7 @@ public:
 	FileLocation getAnalysisMosaicCnvFile() const override;
 	FileLocation getAnalysisUpdFile() const override;
 	FileLocation getRepeatExpansionImage(QString locus) const override;
+	FileLocation getRepeatExpansionHistogram(QString locus) const override;
 	FileLocationList getQcFiles() const override;
 
 	FileLocationList getBamFiles(bool return_if_missing) const override;

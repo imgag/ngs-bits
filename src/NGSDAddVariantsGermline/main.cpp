@@ -569,6 +569,19 @@ public:
 		SqlQuery q_insert = db.getQuery();
 		q_insert.prepare("INSERT INTO repeat_expansion_genotype (`processed_sample_id`, `repeat_expansion_id`, `allele1`, `allele2`, `filter`) VALUES (:0,:1,:2,:3,:4)");
 
+		//get RE caller
+		QByteArray re_caller;
+		foreach (const VcfHeaderLine& comment_line, repeat_expansions.vcfHeader().comments())
+		{
+			if(comment_line.key.toLower() == "source")
+			{
+				re_caller = comment_line.value;
+				break;
+			}
+		}
+		if (!re_caller.startsWith("ExpansionHunter") && !re_caller.startsWith("Straglr")) THROW(ArgumentException, "Invalid or no repeat expansion caller found! Only ExpansionHunter and Straglr are supported!");
+		bool is_straglr = re_caller.startsWith("Straglr");
+
 		//add repeat expansions
 		int re_imported = 0;
 		for(int r=0; r<repeat_expansions.count(); ++r)
@@ -577,7 +590,7 @@ public:
 
 			//get repeat ID
 			QString region = re.chr().strNormalized(true) + ":" + QString::number(re.start()) + "-" + re.info("END").trimmed();
-			QString repeat_unit = re.info("RU").trimmed();
+			QString repeat_unit = (is_straglr)?re.info("REF_MOTIF").trimmed():re.info("RU").trimmed();
 			QString repeat_id = db.repeatExpansionId(region, repeat_unit, false);
 			if (repeat_id.isEmpty())
 			{
@@ -586,7 +599,7 @@ public:
 			}
 
 			//check genotypes are numeric
-			QByteArray genotype_str = re.formatValueFromSample("REPCN").trimmed();
+			QByteArray genotype_str = (is_straglr)?re.formatValueFromSample("AL").trimmed():re.formatValueFromSample("REPCN").trimmed();
 			if (genotype_str=="./.")
 			{
 				if (debug) out << "Skipped repeat '" << region << "/" << repeat_unit << "' because it has no genotype calls!" << endl;
@@ -595,12 +608,13 @@ public:
 			QByteArrayList genotypes = genotype_str.split('/');
 			if (genotypes.count()!=1 && genotypes.count()!=2) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype: " + genotype_str);
 			bool ok = false;
-			genotypes[0].toInt(&ok);
+			int allele1 = qRound(genotypes[0].toFloat(&ok));
+			int allele2 = -1;
 			if (!ok) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype of allele 1: " + genotype_str);
 			if (genotypes.count()==2)
 			{
-				genotypes[1].toInt(&ok);
-				if (!ok) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype of allele 3: " + genotype_str);
+				allele2 = qRound(genotypes[1].toFloat(&ok));
+				if (!ok) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype of allele 2: " + genotype_str);
 			}
 
 			//insert
@@ -609,8 +623,8 @@ public:
 
 			q_insert.bindValue(0, ps_id);
 			q_insert.bindValue(1, repeat_id);
-			q_insert.bindValue(2, genotypes[0]);
-			q_insert.bindValue(3, genotypes.count()==2 ? genotypes[1] : QVariant());
+			q_insert.bindValue(2, allele1);
+			q_insert.bindValue(3, genotypes.count()==2 ? allele2 : QVariant());
 			q_insert.bindValue(4, !filters.isEmpty() ? filters : QVariant());
 			q_insert.exec();
 
