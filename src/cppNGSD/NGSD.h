@@ -308,6 +308,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString processing_input;
 	QString molarity;
 	QString ancestry;
+	bool scheduled_for_resequencing;
 };
 
 ///Processing system information.
@@ -407,6 +408,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
 	bool include_merged_samples = false;
+	bool include_scheduled_for_resequencing_samples = false;
 	bool only_with_small_variants = false;
 
 	//filters project

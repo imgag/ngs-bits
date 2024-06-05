@@ -101,6 +101,7 @@ void SampleSearchWidget::search()
 		params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
 		params.include_tumor_samples = ui_.s_tumor->isChecked();
 		params.include_ffpe_samples = ui_.s_ffpe->isChecked();
+		params.include_scheduled_for_resequencing_samples = ui_.s_scheduled_for_resequencing->isChecked();
 		params.only_with_small_variants = ui_.s_only_with_variants->isChecked();
 
 		params.p_name = ui_.p_name->text();
