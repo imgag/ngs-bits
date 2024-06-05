@@ -11,25 +11,33 @@ RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket
 
 void RequestWorker::run()
 {
-	QSslSocket *ssl_socket = new QSslSocket();
-	ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+    QSslSocket *ssl_socket = new QSslSocket();
 
-	if (!ssl_socket)
-	{
-		Log::error("Could not create a socket: " + ssl_socket->errorString());
-		return;
-	}
-	ssl_socket->setSslConfiguration(ssl_configuration_);
+    try
+    {
+        ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+        if (!ssl_socket)
+        {
+            Log::error("Could not create a socket: " + ssl_socket->errorString());
+            return;
+        }
+        ssl_socket->setSslConfiguration(ssl_configuration_);
 
-	if (!ssl_socket->setSocketDescriptor(socket_))
-	{
-		Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
-		return;
-	}
+        if (!ssl_socket->setSocketDescriptor(socket_))
+        {
+            Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
+            return;
+        }
+    }
+    catch (...)
+    {
+        Log::error("Could not configure the socket");
+        return;
+    }
 
 	try
 	{
-		ssl_socket->startServerEncryption();
+        ssl_socket->startServerEncryption();
 
 		QByteArray all_request_parts;
 

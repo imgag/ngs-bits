@@ -6,11 +6,19 @@ echo "ngsd_port = 3306" >> ./bin/settings.ini
 echo "ngsd_name = \"test_db\"" >> ./bin/settings.ini
 echo "ngsd_user = \"test_user\"" >> ./bin/settings.ini
 echo "ngsd_pass = \"password\"" >> ./bin/settings.ini
+
+echo "gsvar_server_db_host = \"127.0.0.1\"" >> ./bin/settings.ini
+echo "gsvar_server_db_port = 3306" >> ./bin/settings.ini
+echo "gsvar_server_db_name = \"test_db\"" >> ./bin/settings.ini
+echo "gsvar_server_db_user = \"test_user\"" >> ./bin/settings.ini
+echo "gsvar_server_db_pass = \"password\"" >> ./bin/settings.ini
+
 echo "ngsd_test_host = \"127.0.0.1\"" >> ./bin/settings.ini
 echo "ngsd_test_port = 3306" >> ./bin/settings.ini
 echo "ngsd_test_name = \"test_db\"" >> ./bin/settings.ini
 echo "ngsd_test_user = \"test_user\"" >> ./bin/settings.ini
 echo "ngsd_test_pass = \"password\"" >> ./bin/settings.ini
+
 echo "projects_folder = \"projects_folder\"" >> ./bin/settings.ini
 echo "data_folder = \"\"" >> ./bin/settings.ini
 echo "liftover_hg19_hg38 = ../src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz" >> ./bin/settings.ini

@@ -77,7 +77,19 @@ FileLocation FileLocationProviderLocal::getRepeatExpansionImage(QString locus) c
 {
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = getAnalysisPath() + QDir::separator() + "repeat_expansions" + QDir::separator() + name  + "_repeats_expansionhunter_" + locus + ".svg";
+	if(!QFile::exists(file))
+	{
+		//Fallback to support generic (e.g. straglr) file name:
+		file = getAnalysisPath() + QDir::separator() + "repeat_expansions" + QDir::separator() + name  + "_repeats_" + locus + ".svg";
+	}
 	return FileLocation(name, PathType::REPEAT_EXPANSION_IMAGE, file, QFile::exists(file));
+}
+
+FileLocation FileLocationProviderLocal::getRepeatExpansionHistogram(QString locus) const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = getAnalysisPath() + QDir::separator() + "repeat_expansions" + QDir::separator() + name  + "_repeats_" + locus + "_hist.svg";
+	return FileLocation(name, PathType::REPEAT_EXPANSION_HISTOGRAM, file, QFile::exists(file));
 }
 
 FileLocationList FileLocationProviderLocal::getQcFiles() const
@@ -244,6 +256,7 @@ FileLocationList FileLocationProviderLocal::getRepeatExpansionFiles(bool return_
 	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
 		FileLocation file = FileLocation{loc.key, PathType::REPEAT_EXPANSIONS, loc.value + "_repeats_expansionhunter.vcf", false};
+		if(!QFile::exists(file.filename)) file = FileLocation{loc.key, PathType::REPEAT_EXPANSIONS, loc.value + "_repeats.vcf", false};
 		addToList(file, output, return_if_missing);
 	}
 
