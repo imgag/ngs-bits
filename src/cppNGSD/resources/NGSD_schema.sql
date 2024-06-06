@@ -2526,6 +2526,28 @@ CREATE TABLE IF NOT EXISTS `report_configuration_re`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `re_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `re_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `caller` ENUM('ExpansionHunter', 'Straglr') NOT NULL,
+  `caller_version` varchar(25) NOT NULL,
+  `call_date` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `call_date` (`call_date` ASC),
+  UNIQUE KEY `re_callset_references_processed_sample` (`processed_sample_id`),
+  CONSTRAINT `re_callset_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='SV call set';
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START

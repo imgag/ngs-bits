@@ -153,6 +153,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "PathogenicWtDialog.h"
 #include "Background/NGSDCacheInitializer.h"
 #include "RepeatExpansionWidget.h"
+#include "ReSearchWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -617,6 +618,12 @@ void MainWindow::on_actionSearchSVs_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionSearchREs_triggered()
+{
+	ReSearchWidget* widget = new ReSearchWidget();
+	auto dlg = GUIHelper::createDialog(widget, "RE search");
+	addModelessDialog(dlg);
+}
 void MainWindow::on_actionUploadVariantToClinVar_triggered()
 {
 	QSharedPointer<QDialog> dlg = QSharedPointer<QDialog>(new ClinvarUploadDialog(this));
@@ -6446,7 +6453,7 @@ void MainWindow::addToRecentSamples(QString ps)
 	QStringList recent_samples = Settings::stringList("recent_samples", true);
 	recent_samples.removeAll(ps);
 	recent_samples.prepend(ps);
-	recent_samples = recent_samples.mid(0,10);
+	recent_samples = recent_samples.mid(0, 20);
 
 	Settings::setStringList("recent_samples", recent_samples);
 

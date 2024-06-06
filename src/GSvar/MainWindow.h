@@ -284,6 +284,8 @@ public slots:
 	void on_actionSearchCNVs_triggered();
 	///Open SV search dialog
 	void on_actionSearchSVs_triggered();
+	///Open RE search dialog
+	void on_actionSearchREs_triggered();
 	///Open the manual upload of variants to ClinVar
 	void on_actionUploadVariantToClinVar_triggered();
 	///Shows published variants dialog

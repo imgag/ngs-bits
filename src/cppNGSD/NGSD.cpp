@@ -1637,6 +1637,8 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 	}
 	else if (type==VariantType::RES)
 	{
+		QString callset_id = getValue("SELECT id FROM re_callset WHERE processed_sample_id=" + ps_id).toString();
+		getQuery().exec("DELETE FROM re_callset WHERE id='" + callset_id + "'");
 		getQuery().exec("DELETE FROM repeat_expansion_genotype WHERE processed_sample_id=" + ps_id);
 	}
 	else
@@ -5182,14 +5184,13 @@ VariantCallingInfo NGSD::variantCallingInfo(QString ps_id)
 		output.sv_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
 	}
 
-	//TODO Marc - add RE callset to NSGD
 	//REs
-	query.exec("SELECT caller, caller_version, call_date FROM sv_callset WHERE processed_sample_id="+ps_id);
+	query.exec("SELECT caller, caller_version, call_date FROM re_callset WHERE processed_sample_id="+ps_id);
 	if (query.next())
 	{
-		output.re_caller = "?";
-		output.re_caller_version = "?";
-		output.re_call_date = "?";
+		output.re_caller = query.value(0).toString().trimmed();
+		output.re_caller_version = query.value(1).toString().trimmed();
+		output.re_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
 	}
 	return output;
 }

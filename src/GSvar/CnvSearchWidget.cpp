@@ -62,7 +62,6 @@ void CnvSearchWidget::search()
 							" WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id AND ps.project_id=p.id";
 
 		//(0) parse input and prepare query
-
 		if (ui_.rb_chr_pos->isChecked())
 		{
 			// parse position
@@ -112,7 +111,6 @@ void CnvSearchWidget::search()
 			query_str += " AND (" + query_pos_overlap.join("OR ") + ") ";
 		}
 
-		// parse copy number
 		if (ui_.cn_0->isChecked() || ui_.cn_1->isChecked() || ui_.cn_2->isChecked() || ui_.cn_3->isChecked() || ui_.cn_4_plus->isChecked())
 		{
 			QStringList tmp;
@@ -123,6 +121,7 @@ void CnvSearchWidget::search()
 			if (ui_.cn_4_plus->isChecked()) tmp << "c.cn>=4";
 			query_str += " AND (" + tmp.join(" OR ") + ")";
 		}
+
 		if (ui_.q_ps_good->isChecked() || ui_.q_ps_medium->isChecked() || ui_.q_ps_bad->isChecked() || ui_.q_ps_na->isChecked())
 		{
 			QStringList tmp;

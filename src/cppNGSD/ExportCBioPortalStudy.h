@@ -22,7 +22,7 @@ public:
 
 	void addValue(QString key, QString value, bool throw_if_exists=false)
 	{
-		//TODOAlexander: verify key and value?
+		//TODO Alexander: verify key and value?
 		//key no colon, space, whitespace?
 		//value any requirements
 

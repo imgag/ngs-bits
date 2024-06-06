@@ -24,6 +24,7 @@ SOURCES += main.cpp\
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
     PathogenicWtDialog.cpp \
+    ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
     ReportDialog.cpp \
     Background/ReportWorker.cpp \
@@ -148,6 +149,7 @@ HEADERS += MainWindow.h \
     ImportDialog.h \
     MaintenanceDialog.h \
     PathogenicWtDialog.h \
+    ReSearchWidget.h \
     RepeatExpansionWidget.h \
     ReportDialog.h \
     Background/ReportWorker.h \
@@ -265,6 +267,7 @@ FORMS    += MainWindow.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
     PathogenicWtDialog.ui \
+    ReSearchWidget.ui \
     RepeatExpansionWidget.ui \
     ReportDialog.ui \
     SettingsDialog.ui \

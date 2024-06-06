@@ -610,7 +610,7 @@ void MaintenanceDialog::deleteVariantsOfBadSamples()
 		int c_small = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id='" + id_str + "'").toInt();
 		int c_cnv = db.getValue("SELECT count(*) FROM cnv_callset WHERE processed_sample_id='" + id_str + "'").toInt();
 		int c_sv = db.getValue("SELECT count(*) FROM sv_callset WHERE processed_sample_id='" + id_str + "'").toInt();
-		int c_re = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE processed_sample_id='" + id_str + "'").toInt();
+		int c_re = db.getValue("SELECT count(*) FROM re_callset WHERE processed_sample_id='" + id_str + "'").toInt();
 
 		QStringList vars;
 		if (c_small) vars << "small variants";
