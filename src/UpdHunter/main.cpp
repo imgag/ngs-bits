@@ -27,6 +27,7 @@ public:
 		addString("m", "Header name of mother.", false);
 		addOutfile("out", "Output TSV file containing the detected UPDs.", false, true);
 		//optional
+		addOutfile("out_informative", "Output IGV file containing informative variants.", true, true);
 		addInfile("exclude", "BED file with regions to exclude, e.g. copy-number variant regions.", true);
 		addInt("var_min_dp", "Minimum depth (DP) of a variant (in all three samples).", true, 20);
 		addFloat("var_min_q", "Minimum quality (QUAL) of a variant.", true, 30);
@@ -38,8 +39,9 @@ public:
 		addFloat("reg_min_q", "Mimimum Q-score required for a UPD region.",  true, 20.0);
 		addFlag("debug", "Enable verbose debug output.");
 
-        changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
-		changeLog(2018,  6,  11, "First working version.");
+		changeLog(2024,  6,  6, "Added optional output file containing informative variants.");
+		changeLog(2020,  8,  7, "VCF files only as input format for variant list.");
+		changeLog(2018,  6, 11, "First working version.");
 	}
 
 	enum Genotype
@@ -460,6 +462,48 @@ public:
 		stream << "Written " << c_passing << " ranges that pass the filters" << endl;
 	}
 
+	void writeInformativeVariants(QList<VariantData>& data)
+	{
+		QString out = getOutfile("out_informative");
+		if (out.isEmpty()) return;
+		if (!out.endsWith(".igv")) THROW(ArgumentException, "Output file name for informative variants has to end with '.igv'!");
+
+		QSharedPointer<QFile> output = Helper::openFileForWriting(out);
+		output->write("#track graphtype=heatmap viewLimits=1:4 maxHeightPixels=80:80:80 color=0,0,255 altColor=255,0,0 midRange=2.5:2.5 midColor=255,255,255 windowingFunction=mean");
+		output->write("Chromosome\tStart\tEnd\tFeature\tUPD variants");
+		foreach(const VariantData& var, data)
+		{
+			QByteArray source = "";
+			if (var.source==UpdSource::FATHER)
+			{
+				source = "father";
+			}
+			else if (var.source==UpdSource::MOTHER)
+			{
+				source = "mother";
+			}
+			else continue;
+
+			QByteArray type = "";
+			if (var.type==UpdType::ISO)
+			{
+				type = "iso";
+			}
+			else if (var.type==UpdType::ISO_OR_HET)
+			{
+				type = "het_or_iso";
+			}
+			else continue;
+
+			QByteArray score = "";
+			if (var.source==UpdSource::FATHER && var.type==UpdType::ISO) score = "4";
+			if (var.source==UpdSource::FATHER && var.type==UpdType::ISO_OR_HET) score = "3";
+			if (var.source==UpdSource::MOTHER && var.type==UpdType::ISO_OR_HET) score = "2";
+			if (var.source==UpdSource::MOTHER && var.type==UpdType::ISO) score = "1";
+
+			output->write(var.chr.strNormalized(true) + "\t" + QByteArray::number(var.start) + "\t" + QByteArray::number(var.start+1) + "\t" + source + " - " + type + "\t" + score + "\n");
+		}
+	}
 	virtual void main()
 	{
 		//init
@@ -530,6 +574,9 @@ public:
 
 		//write output
 		writeOutput(ranges, p_biparental, p_upd, stream);
+
+		//write informative variant output
+		writeInformativeVariants(data);
 	}
 };
 
