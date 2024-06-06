@@ -101,6 +101,8 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	//set SV list type
 	is_somatic_ = bedpe_file.isSomatic();
 
+	qDebug() << "SvWidget Constructor: som_report_config contains " << som_report_config_->variantIndices(VariantType::SVS, false) << "SVs";
+
 	initGUI();
 }
 
@@ -152,7 +154,6 @@ void SvWidget::initGUI()
 			ps_names_ = QStringList() << "";
         }
 	}
-
 
 	//Set list of annotations to be showed, by default some annotations are filtered out
 	QByteArrayList annotation_headers = sv_bedpe_file_.annotationHeaders();
@@ -215,7 +216,6 @@ void SvWidget::initGUI()
 		annotation_indices << i;
 	}
 
-
 	//Fill rows
 	ui->svs->setRowCount(sv_bedpe_file_.count());
 
@@ -237,7 +237,7 @@ void SvWidget::initGUI()
 				const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
 				header_item->setIcon(VariantTable::reportIcon(rc.showInReport(), rc.causal));
 			}
-			else
+			else if (som_report_config_ != NULL)
 			{
 				const SomaticReportVariantConfiguration& rc = som_report_config_->get(VariantType::SVS, row);
 				header_item->setIcon(VariantTable::reportIcon(rc.showInReport(), false));

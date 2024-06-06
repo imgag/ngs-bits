@@ -2603,7 +2603,6 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 
 QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 {
-	qDebug() << "entering addSomaticSV:";
 	// skip SVs on special chr
 	if (!sv.chr1().isNonSpecial() || !sv.chr2().isNonSpecial() )
 	{
@@ -8686,17 +8685,8 @@ int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name)
 {
 	int id = somaticReportConfigId(t_ps_id, n_ps_id);
-	qDebug() << "setSomaticReportConfig() <----";
-	foreach(const auto& var_conf, config.variantConfig())
-	{
-		if (var_conf.variant_type == VariantType::SNVS_INDELS) qDebug() << "snv_indel variant";
-		else if (var_conf.variant_type == VariantType::CNVS) qDebug() << "CNV variant";
-		else if (var_conf.variant_type == VariantType::SVS) qDebug() << "SV variant";
-		else qDebug() << "unkown variant";
-
-	}
-
 	QString target_file = "";
+
 	if(!config.targetRegionName().isEmpty())
 	{
 		target_file = QFileInfo(config.targetRegionName()).fileName(); //store filename without path
@@ -8904,12 +8894,13 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 			//get SV id and table (add SV if not in DB)
 			const BedpeLine& sv = svs[var_conf.variant_index];
-			QString sv_id = svId(sv, callset_id.toInt(), svs, false);
+			QString sv_id = somaticSvId(sv, callset_id.toInt(), svs, false);
+			qDebug() << "sv_id 1: " << sv_id;
 			if (sv_id == "")
 			{
 				sv_id = addSomaticSv(callset_id.toInt(), sv, svs);
-				qDebug() << "returned from addSomaticSV:";
 			}
+			qDebug() << "sv_id 2: " << sv_id;
 
 			//define SQL query
 			query_sv.bindValue(0, id);
@@ -9025,6 +9016,7 @@ void NGSD::deleteSomaticReportConfig(int id)
 
 SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages)
 {
+	qDebug() << "getting SomaticReportFunction from NGSD.";
 	SomaticReportConfiguration output;
 
 	int config_id = somaticReportConfigId(t_ps_id, n_ps_id);
@@ -9197,7 +9189,6 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		var_conf.variant_index = svs.findMatch(sv, true, false);
 		if (var_conf.variant_index==-1) continue;
 
-		var_conf.variant_index = query.value("id").toInt();
 		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
 		var_conf.exclude_unclear_effect = query.value("exclude_unclear_effect").toBool();
 		var_conf.exclude_other_reason = query.value("exclude_other").toBool();
@@ -9252,6 +9243,8 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 
 		output.addGermlineVariantConfiguration(var_conf);
 	}
+
+	qDebug() << "SomaticReportConfig contains: " << output.variantIndices(VariantType::SNVS_INDELS, false).count() << " SNVs, " << output.variantIndices(VariantType::CNVS, false).count() << " CNVs, " << output.variantIndices(VariantType::SVS, false).count() << " SVs ";
 
 	return output;
 }

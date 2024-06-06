@@ -4234,6 +4234,33 @@ INSERT INTO `somatic_report_configuration_germl_var` (`id`, `somatic_report_conf
 (1, 52, 2407603, 0.5, 483),
 (2, 52, 2407605, 0.49, 482);
 
+INSERT INTO `somatic_sv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`) VALUES
+(1, 4004, 3999, 'Manta', '1.6.0', '2024-01-01');
+
+INSERT INTO `somatic_sv_deletion` (`id`, `somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(1, 1, 'chr1', 33036849, 33037059, 58631324, 58631627, '{"filter":"MinSomaticScore;off-target","quality":"16"}');
+
+INSERT INTO `somatic_sv_duplication` (`id`, `somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(1, 1, 'chr14', 55063186, 55063187, 55176618, 55176618, ''),
+(2, 1, 'chr22', 37944357, 37944357, 38103385, 38103385, '');
+
+INSERT INTO `somatic_sv_inversion` (`id`, `somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(1, 1, 'chr6', 440279, 440281, 33683482, 33683482, '');
+
+INSERT INTO `somatic_sv_insertion` (`id`, `somatic_sv_callset_id`, `chr`, `pos`, `ci_lower`, `ci_upper`, `inserted_sequence`) VALUES
+(1, 1, 'chr2', 71555977, 0, 9, 'GAGCAGGTCCCCCCTACCTGCAGCCTGCGATGAGCTCATCCGTCAGCTGAGCCACC');
+
+INSERT INTO `somatic_sv_translocation` (`id`, `somatic_sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `quality_metrics`) VALUES
+(1, 1, 'chr10', 87864570, 87864571, 'chr22', 29291555, 29291557, '');
+
+INSERT INTO `somatic_report_configuration_sv` (`id`, `somatic_report_configuration_id`, `somatic_sv_deletion_id`, `somatic_sv_duplication_id`, `somatic_sv_insertion_id`, `somatic_sv_inversion_id`, `somatic_sv_translocation_id`, `exclude_artefact`, `exclude_unclear_effect`, `exclude_other`, `description`, `comment`, `rna_info`, `manual_start`, `manual_end`, `manual_hgvs_type`, `manual_hgvs_suffix`, `manual_start_bnd`, `manual_end_bnd`, `manual_hgvs_type_bnd`, `manual_hgvs_suffix_bnd`) VALUES
+('1', 52, NULL, NULL, '1', NULL, NULL, '0', '0', '0', 'Beschreibung Insertion', '', 'n/a', '123456', '123457', '', '', NULL, NULL, '', ''),
+('2', 52, NULL, '1', NULL, NULL, NULL, '0', '0', '0', 'Beschreibung Duplication', '', 'n/a', NULL, NULL, '', '', NULL, NULL, '', ''),
+('3', 52, NULL, '2', NULL, NULL, NULL, '1', '0', '0', '', '', 'n/a', NULL, NULL, '', '', NULL, NULL, '', ''),
+('4', 52, NULL, NULL, NULL, NULL, '1', '0', '0', '0', 'Beschreibung Breakpoint', '', 'n/a', NULL, NULL, '', '', NULL, NULL, '', ''),
+('5', 52, NULL, NULL, NULL, '1', NULL, '0', '0', '0', 'Beschreibung Inversion', '', 'n/a', NULL, NULL, '', '', NULL, NULL, '', ''),
+('6', 52, '1', NULL, NULL, NULL, NULL, '0', '0', '0', 'Beschreibung Deletion', '', 'n/a', NULL, NULL, '', '', NULL, NULL, '', '');
+
 -- somatic_vicc
 INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
 (1, 210585, true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2020-11-05 13:06:13', 101, '2020-12-07 11:06:10'),

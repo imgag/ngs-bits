@@ -2101,6 +2101,64 @@ private slots:
 		I_EQUAL(res_cnv.end(), 27694430);
 
 
+		//Test methods for somatic SVs in NGSD: TODO
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/somatic_svs_manta.bedpe"));
+
+		S_EQUAL(db.somaticSvId(svs[0], 1, svs), "1");
+		S_EQUAL(db.somaticSvId(svs[1], 1, svs), "3");
+		S_EQUAL(db.somaticSvId(svs[2], 1, svs), "4");
+		S_EQUAL(db.somaticSvId(svs[3], 1, svs), "5");
+		S_EQUAL(db.somaticSvId(svs[4], 1, svs), "2");
+		S_EQUAL(db.somaticSvId(svs[5], 1, svs, false), "");
+
+		BedpeLine var = db.somaticSv("1", StructuralVariantType::DEL, svs);
+		S_EQUAL(var.chr1().strNormalized(true), "chr1");
+		I_EQUAL(var.start1(), 33036849);
+		I_EQUAL(var.end1(), 33037059);
+		S_EQUAL(var.chr2().strNormalized(true), "chr1");
+		I_EQUAL(var.start2(), 58631324);
+		I_EQUAL(var.end2(), 58631627);
+
+		var = db.somaticSv("3", StructuralVariantType::INS, svs);
+		S_EQUAL(var.chr1().strNormalized(true), "chr2");
+		I_EQUAL(var.start1(), 71555977);
+		I_EQUAL(var.end1(), 71555986);
+
+		var = db.somaticSv("4", StructuralVariantType::INV, svs);
+		S_EQUAL(var.chr1().strNormalized(true), "chr6");
+		I_EQUAL(var.start1(), 440279);
+		I_EQUAL(var.end1(), 440281);
+		S_EQUAL(var.chr2().strNormalized(true), "chr6");
+		I_EQUAL(var.start2(), 33683482);
+		I_EQUAL(var.end2(), 33683482);
+
+		var = db.somaticSv("5", StructuralVariantType::BND, svs);
+		S_EQUAL(var.chr1().strNormalized(true), "chr12");
+		I_EQUAL(var.start1(), 50807963);
+		I_EQUAL(var.end1(), 50807965);
+		S_EQUAL(var.chr2().strNormalized(true), "chr22");
+		I_EQUAL(var.start2(), 29291555);
+		I_EQUAL(var.end2(), 29291557);
+
+		var = db.somaticSv("2", StructuralVariantType::DUP, svs);
+		S_EQUAL(var.chr1().strNormalized(true), "chr14");
+		I_EQUAL(var.start1(), 55063186);
+		I_EQUAL(var.end1(), 55063187);
+		S_EQUAL(var.chr2().strNormalized(true), "chr14");
+		I_EQUAL(var.start2(), 55176618);
+		I_EQUAL(var.end2(), 55176618);
+
+		QString sv_id = db.addSomaticSv(1, svs[6], svs); // add last DUP variant
+		S_EQUAL(sv_id, "3");
+		var = db.somaticSv("3", StructuralVariantType::DUP, svs);
+		S_EQUAL(var.chr1().strNormalized(true), "chr22");
+		I_EQUAL(var.start1(), 37944357);
+		I_EQUAL(var.end1(), 37944357);
+		S_EQUAL(var.chr2().strNormalized(true), "chr22");
+		I_EQUAL(var.start2(), 38103385);
+		I_EQUAL(var.end2(), 38103385);
+
 		//Test methods for somatic report configuration
 		VariantList vl;
 		vl.load(TESTDATA("../cppNGSD-TEST/data_in/somatic_report_config.GSvar"));
@@ -2215,7 +2273,7 @@ private slots:
 
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
-		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
+		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
 
 		//test changing existing variant config:
 
@@ -2228,14 +2286,14 @@ private slots:
 
 		som_rep_conf.addSomaticVariantConfiguration(var2_changed);
 
-		config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will still be 52 in test NGSD
+		config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will still be 52 in test NGSD
 
 		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet. Now published in NCBI:XYZ.");
 
 		QStringList messages = {};
 
 		//Test resolving report config
-		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
+		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, svs, vl_germl, messages);
 		IS_TRUE(res_config.includeTumContentByMaxSNV());
 		IS_TRUE(res_config.includeTumContentByClonality());
 		IS_TRUE(res_config.includeTumContentByHistological());
@@ -2342,9 +2400,9 @@ private slots:
 		som_rep_conf.setLimitations("With German umlauts: ???????");
 		som_rep_conf.setFilterName("");
 
-		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahkerra1");
 
-		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
+		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, svs, vl_germl, messages);
 		IS_FALSE(res_config_2.includeTumContentByMaxSNV());
 		IS_FALSE(res_config_2.includeTumContentByClonality());
 		IS_FALSE(res_config_2.includeTumContentByHistological());
@@ -2375,7 +2433,7 @@ private slots:
 
 		//report config in case of no target file
 		som_rep_conf.setTargetRegionName("");
-		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahkerra1");
 
 		SomaticReportConfigurationData config_data_3 = db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_3.target_file, "");
@@ -2679,10 +2737,13 @@ private slots:
 		CnvList cnv_list;
 		cnv_list.load(cnv_loc.filename);
 
+		BedpeFile svs;
+		svs.load(flp->getAnalysisSvFile().filename);
+
 		QStringList messages;
 
 		SomaticReportSettings somatic_report_settings;
-		SomaticReportConfiguration somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, control_tissue_variants, messages);
+		SomaticReportConfiguration somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, svs, control_tissue_variants, messages);
 		somatic_report_settings.report_config = somatic_report_config;
 
 		somatic_report_settings.tumor_ps = "DNA123456_01";
@@ -2697,7 +2758,6 @@ private slots:
 		somatic_report_settings.report_config.setIncludeTumContentByMaxSNV(true);
 		somatic_report_settings.report_config.setIncludeTumContentByEstimated(false);
 		somatic_report_settings.report_config.setMsiStatus(true);
-		somatic_report_settings.report_config.setFusionsDetected(true);
 		somatic_report_settings.report_config.setCnvBurden(true);
 		somatic_report_settings.report_config.setIncludeMutationBurden(true);
 		somatic_report_settings.report_config.setHrdStatement("proof");
@@ -2729,7 +2789,7 @@ private slots:
 		quality.append("heterogeneous sample");
 		somatic_report_settings.report_config.setQuality(quality);
 
-		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings, true);
+		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, svs, control_tissue_variants, somatic_report_settings, true);
 		report.storeRtf("out/somatic_report_tumor_normal_1.rtf");
 
 		COMPARE_FILES("out/somatic_report_tumor_normal_1.rtf", TESTDATA("data_out/somatic_report_tumor_normal_1.rtf"));
@@ -2775,10 +2835,18 @@ private slots:
 		CnvList cnv_list;
 		cnv_list.load(cnv_loc.filename);
 
+		BedpeFile svs;
+		svs.load(flp->getAnalysisSvFile().filename);
+
+		query.prepare("DELETE FROM somatic_report_configuration_sv  WHERE id > 0");
+		query.exec();
+
+		//todo remove sv_variant configs to test no sv marked
+
 		QStringList messages;
 
 		SomaticReportSettings somatic_report_settings;
-		SomaticReportConfiguration somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, control_tissue_variants, messages);
+		SomaticReportConfiguration somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, svs, control_tissue_variants, messages);
 		somatic_report_settings.report_config = somatic_report_config;
 
 		somatic_report_settings.tumor_ps = "DNA123456_01";
@@ -2799,7 +2867,6 @@ private slots:
 		somatic_report_settings.report_config.setIncludeTumContentByEstimated(true);
 		somatic_report_settings.report_config.setTumContentByEstimated(42);
 		somatic_report_settings.report_config.setMsiStatus(false);
-		somatic_report_settings.report_config.setFusionsDetected(false);
 		somatic_report_settings.report_config.setCnvBurden(false);
 		somatic_report_settings.report_config.setIncludeMutationBurden(false);
 		somatic_report_settings.report_config.setHrdStatement("no proof");
@@ -2831,7 +2898,7 @@ private slots:
 		QStringList quality;
 		somatic_report_settings.report_config.setQuality(quality);
 
-		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings, true);
+		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, svs, control_tissue_variants, somatic_report_settings, true);
 		report.storeRtf("out/somatic_report_tumor_normal_2.rtf");
 
 		COMPARE_FILES("out/somatic_report_tumor_normal_2.rtf", TESTDATA("data_out/somatic_report_tumor_normal_2.rtf"));

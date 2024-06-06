@@ -25,25 +25,17 @@ struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 	//exclusions
 	bool exclude_artefact;
 	bool exclude_other_reason;
-
-	QString comment;
-
-	//SNV and CNV values:
 	bool exclude_low_tumor_content;
 	bool exclude_low_copy_number;
 	bool exclude_high_baf_deviation;
+	bool exclude_unclear_effect;
 
+	QString comment;
+	QString description;
 
 	//Include (usually non-protein coding) variants
 	QString include_variant_alteration;
 	QString include_variant_description;
-
-
-	//SV specific values:
-	bool exclude_unclear_effect;
-
-	QString description;
-	QString rna_info;
 
 	//manual curation of SVs
 	QString manual_sv_start;
@@ -54,6 +46,8 @@ struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 	QString manual_sv_end_bnd;
 	QString manual_sv_hgvs_type_bnd;
 	QString manual_sv_hgvs_suffix_bnd;
+
+	QString rna_info;
 
 private:
 	bool StringValidInt(QString string) const;

@@ -8,6 +8,7 @@
 #include "XmlHelper.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticVariantInterpreter.h"
+#include "SomaticReportConfiguration.h"
 #include "LoginManager.h"
 #include "ApiCaller.h"
 #include "ClientHelper.h"
@@ -20,11 +21,12 @@
 #include <QJsonArray>
 
 
-SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings, bool test_db)
+SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const BedpeFile &svs, const VariantList& variants_germline, const SomaticReportSettings& settings, bool test_db)
 	: build_(build)
 	, settings_(settings)
 	, germline_vl_(variants_germline)
 	, cnvs_()
+	, svs_()
 	, validated_viruses_()
 	, db_(test_db)
 {
@@ -46,10 +48,12 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 	}
 
-
+	//Filter SVs according report configuration settings
+	svs_ = SomaticReportSettings::filterSvs(svs, settings);
 
 	//Filter CNVs according report configuration settings
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
+
 
 	//high significance genes: with reported CNV
 	for(int i=0; i<cnvs_.count(); ++i)
@@ -131,7 +135,6 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 
 			}
 		}
-
 	}
 	catch(...) {} //Nothing to do here
 
@@ -1565,7 +1568,6 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 
 void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 {
-
 	/******************************
 	 * GENERAL REPORT INFORMATION *
 	 ******************************/
@@ -1742,8 +1744,8 @@ QString SomaticReportHelper::trans(const QString &text)
 	en2de["ambiguous"] = "unklare Bedeutung";
 	en2de["proof"] = "Hinweise auf eine HRD";
 	en2de["no proof"] = "Keine Hinweise auf eine HRD";
-	en2de["undeterminable"] = "nicht bestimmbar";
-
+	en2de["Breakpoint"] = "Translokation";
+	en2de["Duplication"] = "Duplikation";
 
 	if(!en2de.contains(text)) return text; //return original entry if not found
 
@@ -1827,7 +1829,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	}
 
 	//Fusion status
-	if(settings_.report_config.fusionsDetected())
+	if(svs_.count() > 0)
 	{
 		general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", RtfText("Hinweise auf eine Strukturvariante in XXX").highlight(3).RtfCode()}, {2500,7421}).setBorders(1, "brdrhair", 4));
 	}
@@ -1902,7 +1904,7 @@ RtfSourceCode SomaticReportHelper::partFusions()
 	RtfTable fusion_table;
 	fusion_table.addRow(RtfTableRow("Strukturvarianten",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(4));
 
-	if(! settings_.report_config.fusionsDetected())
+	if(svs_.count() == 0)
 	{
 		fusion_table.addRow(RtfTableRow("Nicht nachgewiesen", doc_.maxWidth()));
 		fusion_table.setUniqueBorder(1,"brdrhair",4);
@@ -1910,8 +1912,23 @@ RtfSourceCode SomaticReportHelper::partFusions()
 	}
 
 	fusion_table.addRow(RtfTableRow({"Variante", "Genomische Bruchpunkte", "Beschreibung"}, {1700, 3000, 5221}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
-	fusion_table.addRow(RtfTableRow({"", "", "", ""}, {1700,1500,1500,5221}, RtfParagraph().setFontSize(16)));
+
+	//annotation done in SomaticReportSettings::filterSvs()
+	int idx_desc = svs_.annotationIndexByName("DESCRIPTION");
+	int idx_genes_A = svs_.annotationIndexByName("GENES_BREAKPOINT_A");
+	int idx_genes_B = svs_.annotationIndexByName("GENES_BREAKPOINT_B");
+	int idx_start = svs_.annotationIndexByName("START_POS_REPORT");
+	int idx_end = svs_.annotationIndexByName("END_POS_REPORT");
+	for(int i=0; i<svs_.count(); ++i)
+	{
+		const BedpeLine& sv = svs_[i];
+		QByteArray genes_A = sv.annotations()[idx_genes_A] != "" ? sv.annotations()[idx_genes_A] : "intergenisch";
+		QByteArray genes_B = sv.annotations()[idx_genes_B] != "" ? sv.annotations()[idx_genes_B] : "intergenisch";
+		fusion_table.addRow(RtfTableRow({trans(BedpeFile::typeToFullString(sv.type())), genes_A + "\n\\line\n" + RtfText(sv.annotations()[idx_start]).setFontSize(12).RtfCode(),  genes_B + "\n\\line\n" + RtfText(sv.annotations()[idx_end]).setFontSize(12).RtfCode(), "Wahrscheinlich onkogen\n\\line\n" + sv.annotations()[idx_desc]}, {1700,1500,1500,5221}, RtfParagraph().setFontSize(16)));
+	}
+
 	fusion_table.setUniqueBorder(1,"brdrhair",4);
+	fusion_table.addRow(RtfTableRow("Die aufgeführte Bruchpunkte stellen aus den NGS Daten abgeleitete Näherungswerte und wenn vorhanden die Gennamen dar.",doc_.maxWidth(), RtfParagraph().setFontSize(14)));
 
 	return fusion_table.RtfCode();
 }
@@ -1962,7 +1979,7 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 		out << RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode();
 	}
 
-	if(settings_.report_config.fusionsDetected())
+	if(svs_.count() > 0)
 	{
 		RtfSourceCode snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte (s. Anlage).";
 		out << RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).setBold(true).highlight(3).RtfCode();

@@ -24,6 +24,28 @@ QString StructuralVariantTypeToString(StructuralVariantType type)
 	return "";
 }
 
+QString StructuralVariantTypeToFullString(StructuralVariantType type)
+{
+	switch (type)
+	{
+		case StructuralVariantType::DEL:
+			return "Deletion";
+		case StructuralVariantType::DUP:
+			return "Duplication";
+		case StructuralVariantType::INS:
+			return "Insertion";
+		case StructuralVariantType::INV:
+			return "Inversion";
+		case StructuralVariantType::BND:
+			return "Translocation";
+		case StructuralVariantType::UNKNOWN:
+			THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructor.");
+		default:
+			THROW(NotImplementedException, "Invalid StructuralVariantType!");
+	}
+	return "";
+}
+
 StructuralVariantType StructuralVariantTypeFromString(QString type_string)
 {
 	if (type_string == "DEL") return StructuralVariantType::DEL;
@@ -481,7 +503,18 @@ QByteArray BedpeFile::typeToString(StructuralVariantType type)
 	if (type==StructuralVariantType::INV) return "INV";
 	if (type==StructuralVariantType::BND) return "BND";
 
-	THROW(ProgrammingException, "Unknown structural variant type '" + typeToString(type) + "'!");
+	THROW(ProgrammingException, "Unknown structural variant type !");
+}
+
+QByteArray BedpeFile::typeToFullString(StructuralVariantType type)
+{
+	if (type==StructuralVariantType::DEL) return "Deletion";
+	if (type==StructuralVariantType::DUP) return "Duplication";
+	if (type==StructuralVariantType::INS) return "Insertion";
+	if (type==StructuralVariantType::INV) return "Inversion";
+	if (type==StructuralVariantType::BND) return "Breakpoint";
+
+	THROW(ProgrammingException, "Unknown structural variant type !");
 }
 
 QList< QMap<QByteArray,QByteArray> > BedpeFile::getInfos(QByteArray name)

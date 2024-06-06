@@ -52,6 +52,15 @@ SomaticReportVariantDialog::SomaticReportVariantDialog(QString variant, SomaticR
 
 	if (var_conf_.variant_type==VariantType::SVS)
 	{
+		//hide parts not relevant to SVs
+		ui_.exclude_high_baf_deviation->setVisible(false);
+		ui_.exclude_low_cn->setVisible(false);
+		ui_.exclude_low_tumor_content->setVisible(false);
+		ui_.frame->setVisible(false);
+		ui_.include_label->setVisible(false);
+		ui_.line->setVisible(false);
+
+		//show parts specifically relevant to SVs
 		ui_.sv_line_1->setVisible(true);
 		ui_.sv_line_2->setVisible(true);
 		ui_.rna_info->setVisible(true);
@@ -59,6 +68,8 @@ SomaticReportVariantDialog::SomaticReportVariantDialog(QString variant, SomaticR
 		ui_.description_sv->setVisible(true);
 		ui_.description_sv_label->setVisible(true);
 		ui_.exclude_unclear_effect->setVisible(true);
+
+
 		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_sv.*")))
 		{
 			widget->setVisible(true);
@@ -84,6 +95,7 @@ SomaticReportVariantDialog::SomaticReportVariantDialog(QString variant, SomaticR
 	}
 
 	updateGUI();
+	activateOkButtonIfValid();
 }
 
 void SomaticReportVariantDialog::updateGUI()
@@ -98,6 +110,8 @@ void SomaticReportVariantDialog::updateGUI()
 	ui_.include_variant_desc->setText(var_conf_.include_variant_description);
 	ui_.comment->setPlainText(var_conf_.comment);
 
+	ui_.description_sv->setPlainText(var_conf_.description);
+
 	ui_.manual_sv_start->setText(var_conf_.manual_sv_start);
 	ui_.manual_sv_end->setText(var_conf_.manual_sv_end);
 	ui_.manual_sv_hgvs_type->setText(var_conf_.manual_sv_hgvs_type);
@@ -107,6 +121,7 @@ void SomaticReportVariantDialog::updateGUI()
 	ui_.manual_sv_end_bnd->setText(var_conf_.manual_sv_end);
 	ui_.manual_sv_hgvs_type_bnd->setText(var_conf_.manual_sv_hgvs_type_bnd);
 	ui_.manual_sv_hgvs_suffix_bnd->setText(var_conf_.manual_sv_hgvs_suffix_bnd);
+
 	ui_.rna_info->addItems(NGSD().getEnum("somatic_report_configuration_sv", "rna_info"));
 	ui_.rna_info->setCurrentText(var_conf_.rna_info.isEmpty() ? "n/a" : var_conf_.rna_info);
 }
