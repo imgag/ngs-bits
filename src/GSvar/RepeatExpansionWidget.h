@@ -54,6 +54,7 @@ private:
 	QColor red_ = QColor(255, 0, 0, 128);
 	QColor orange_ = QColor(255, 135, 60, 128);
 
+	void loadDataFromVCF(QString vcf);
 	void displayRepeats();
 	void loadMetaDataFromNGSD();
 	void colorRepeatCountBasedOnCutoffs();

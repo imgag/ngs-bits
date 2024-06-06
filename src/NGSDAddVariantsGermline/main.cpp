@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "TSVFileStream.h"
 #include "KeyValuePair.h"
+#include "RepeatLocusList.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFileInfo>
@@ -536,6 +537,14 @@ public:
 			}
 		}
 
+		//check if CNV callset already exists > delete old callset
+		QString last_callset_id = db.getValue("SELECT id FROM re_callset WHERE processed_sample_id=:0", true, ps_id).toString();
+		if(last_callset_id!="" && !re_force)
+		{
+			out << "NOTE: REs were already imported for '" << ps_name << "' - skipping import";
+			return;
+		}
+
 		// check if processed sample has already been imported
 		int imported_re_genotypes = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE processed_sample_id=:0", true, ps_id).toInt();
 		if(imported_re_genotypes>0 && !re_force)
@@ -543,80 +552,66 @@ public:
 			out << "NOTE: REs were already imported for '" << ps_name << "' - skipping import" << endl;
 			return;
 		}
+
 		//remove old imports of this processed sample
-		if (imported_re_genotypes>0 && re_force)
+		if ((last_callset_id!="" || imported_re_genotypes>0) && re_force)
 		{
+			db.getQuery().exec("DELETE FROM re_callset WHERE processed_sample_id='" + ps_id + "'");
+
 			QSqlQuery query = db.getQuery();
 			query.exec("DELETE FROM repeat_expansion_genotype WHERE processed_sample_id='" + ps_id + "'");
 			out << "Deleted " << query.numRowsAffected() << " previous repeat expansion calls" << endl;
 		}
 
 		//load VCF file
-		VcfFile repeat_expansions;
-		repeat_expansions.load(filename);
+		RepeatLocusList res;
+		res.load(filename);
 
-		// check that there is exactly one sample
-		const QByteArrayList& samples = repeat_expansions.sampleIDs();
-		if (samples.count()!=1)
-		{
-			THROW(ArgumentException, "Repeat expansion VCF file '" + filename + "' does not contain exactly one sample!");
-		}
+		SqlQuery insert_callset = db.getQuery();
+		insert_callset.prepare("INSERT INTO `re_callset` (`processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
+		insert_callset.bindValue(0, ps_id);
+		insert_callset.bindValue(1, RepeatLocusList::typeToString(res.caller()));
+		insert_callset.bindValue(2, res.callerVersion());
+		insert_callset.bindValue(3, res.callDate());
+		insert_callset.exec();
 
-		//prepeare queries
+		//prepare queries
 		SqlQuery q_insert = db.getQuery();
 		q_insert.prepare("INSERT INTO repeat_expansion_genotype (`processed_sample_id`, `repeat_expansion_id`, `allele1`, `allele2`, `filter`) VALUES (:0,:1,:2,:3,:4)");
 
 		//add repeat expansions
 		int re_imported = 0;
-		for(int r=0; r<repeat_expansions.count(); ++r)
+		for(int r=0; r<res.count(); ++r)
 		{
-			const VcfLine& re = repeat_expansions[r];
+			const RepeatLocus& re = res[r];
 
 			//get repeat ID
-			int end = Helper::toInt(re.info("END"), "repeat expansion end position");
-			BedLine region = BedLine(re.chr(), re.start(), end);
-			QString repeat_unit = re.info("RU").trimmed();
-			int repeat_id = db.repeatExpansionId(region, repeat_unit, false);
+			int repeat_id = db.repeatExpansionId(re.region(), re.unit(), false);
 			if (repeat_id==-1)
 			{
-				if (debug) out << "Skipped repeat '" << region.toString(true) << "/" << repeat_unit << "' because it is not in NGSD!" << endl;
+				if (debug) out << "Skipped repeat '" << re.toString(true, false) << "' because it is not in NGSD!" << endl;
 				continue;
 			}
 
 			//check genotypes are numeric
-			QByteArray genotype_str = re.formatValueFromSample("REPCN").trimmed();
-			if (genotype_str=="./.")
+			if (!re.isValid())
 			{
-				if (debug) out << "Skipped repeat '" << region << "/" << repeat_unit << "' because it has no genotype calls!" << endl;
+				if (debug) out << "Skipped repeat '" << re.toString(true, true) << "' because it is not valid!" << endl;
 				continue;
 			}
-			QByteArrayList genotypes = genotype_str.split('/');
-			if (genotypes.count()!=1 && genotypes.count()!=2) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype: " + genotype_str);
-			bool ok = false;
-			genotypes[0].toInt(&ok);
-			if (!ok) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype of allele 1: " + genotype_str);
-			if (genotypes.count()==2)
-			{
-				genotypes[1].toInt(&ok);
-				if (!ok) THROW(FileParseException, "Repeat expansion " + region + "/" + repeat_unit + " has invalid genotype of allele 3: " + genotype_str);
-			}
-
-			//insert
-			QString filters = re.filters().join(",");
-			if (filters=="PASS" || filters==".") filters = "";
 
 			q_insert.bindValue(0, ps_id);
 			q_insert.bindValue(1, repeat_id);
-			q_insert.bindValue(2, genotypes[0]);
-			q_insert.bindValue(3, genotypes.count()==2 ? genotypes[1] : QVariant());
-			q_insert.bindValue(4, !filters.isEmpty() ? filters : QVariant());
+			q_insert.bindValue(2, re.allele1());
+			q_insert.bindValue(3, re.allele2().isEmpty() ? QVariant() : re.allele2());
+			q_insert.bindValue(4, re.filters().isEmpty() ? QVariant() : re.filters().join(","));
 			q_insert.exec();
 
 			++re_imported;
 		}
 
 		out << "Imported REs: " << re_imported << endl;
-		out << "Skipped REs not found in NGSD: " << repeat_expansions.count() - re_imported << endl;
+		out << "Skipped REs not found in NGSD: " << res.count() - re_imported << endl;
 
 		//output timing
 		if (!no_time)

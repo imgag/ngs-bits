@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "BedFile.h"
+#include <QDateTime>
 
 //Repeat locus
 class CPPNGSSHARED_EXPORT RepeatLocus
@@ -37,6 +38,7 @@ public:
 	const QByteArray& readsFlanking() const { return reads_flanking_; }
 	void setReadsFlanking(const QByteArray& reads_flanking) { reads_flanking_ = reads_flanking.trimmed(); }
 
+	//Note: for Straglr only only supporting reads are returned. They are stored in this variable. Flainking/spanning reads are empty in this case.
 	const QByteArray& readsInRepeat() const { return reads_in_repeat_; }
 	void setReadsInRepeat(const QByteArray& reads_in_repeat) { reads_in_repeat_ = reads_in_repeat.trimmed(); }
 
@@ -67,6 +69,14 @@ protected:
 	QByteArray confidence_intervals_;
 };
 
+///CNV list types
+enum class ReCallerType
+{
+	INVALID,
+	EXPANSIONHUNTER,
+	STRAGLR
+};
+
 //Repeat expansion list
 class CPPNGSSHARED_EXPORT RepeatLocusList
 {
@@ -76,44 +86,59 @@ public:
 	//Load repeat expansions from VCF file.
 	void load(QString filename);
 
-	///Clears content
+	//Returns the caller
+	ReCallerType caller() const;
+
+	//Returns the caller version
+	const QByteArray& callerVersion() const;
+
+	//Returns the calling date
+	const QDateTime& callDate() const;
+
+	//Clears content
 	void clear()
 	{
 		variants_.clear();
 	}
 
-	///Returns if the list is valid
+	//Returns if the list is valid
 	bool isValid() const
 	{
-		return !variants_.isEmpty();
+		return caller_!=ReCallerType::INVALID && !caller_version_.isEmpty() && !call_date_.isValid() && !variants_.isEmpty();
 	}
 
-	///Returns the number of variants
+	//Returns the number of variants
 	int count() const
 	{
 		return variants_.count();
 	}
 
-	///Returns if the list is empty
+	//Returns if the list is empty
 	bool isEmpty() const
 	{
 		return variants_.isEmpty();
 	}
 
-	///Returns a variant by index.
+	//Returns a variant by index.
 	const RepeatLocus& operator[](int index) const
 	{
 		return variants_[index];
 	}
 
-	///Appends copy number variant
+	//Appends copy number variant
 	void append(const RepeatLocus& add)
 	{
 		variants_.append(add);
 	}
 
+	static QByteArray typeToString(ReCallerType type);
+
+
 protected:
 
+	ReCallerType caller_;
+	QByteArray caller_version_;
+	QDateTime call_date_;
 	QList<RepeatLocus> variants_;
 };
 

@@ -37,6 +37,7 @@ enum class PathType
 	CNV_RAW_DATA_CALL_REGIONS,//Copy number raw data for call regions (SEG format)
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
+	REPEAT_EXPANSION_HISTOGRAM, //python plot of the lenth distribution of a locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
 	FUSIONS_BAM, //gene fusion evidence alignments determined from RNA (BAM format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
@@ -163,6 +164,8 @@ struct FileLocation
 				return "STRUCTURAL_VARIANTS";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "REPEAT_EXPANSION_IMAGE";
+			case PathType::REPEAT_EXPANSION_HISTOGRAM:
+				return "REPEAT_EXPANSION_HISTOGRAM";
 			case PathType::FUSIONS:
 				return "FUSIONS";
 			case PathType::FUSIONS_PIC_DIR:
@@ -239,6 +242,7 @@ struct FileLocation
 		if (in_upper == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
+		if (in_upper == "REPEAT_EXPANSION_HISTOGRAM") return PathType::REPEAT_EXPANSION_HISTOGRAM;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
 		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
@@ -312,6 +316,8 @@ struct FileLocation
 				return "uniparental disomy regions";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "repeat expansion visualization";
+			case PathType::REPEAT_EXPANSION_HISTOGRAM:
+				return "repeat expansion length distribution visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
 			case PathType::FUSIONS_PIC_DIR:

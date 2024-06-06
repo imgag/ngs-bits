@@ -1515,7 +1515,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene SNVs/InDels in Zielregion gesamt"] = "Small variants in target region";
 		de2en["Anzahl SNVs/InDels ausgew&auml;hlt f&uuml;r Report"] = "SNVs/InDels selected for report";
-		de2en["Anzahl CNVs/SVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs/SVs selected for report";
+		de2en["Anzahl CNVs/SVs/REs ausgew&auml;hlt f&uuml;r Report"] = "CNVs/SVs/REs selected for report";
 		de2en["Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report"] = "Other variants selected for report";
 		de2en["Einzelbasenver&auml;nderungen (SNVs) und Insertionen/Deletionen (InDels) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized small variants";
 		de2en["Kopienzahlver&auml;nderungen (CNV) und/oder Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized copy-number variants and/or structural variants";

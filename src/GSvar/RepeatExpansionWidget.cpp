@@ -47,11 +47,32 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	if (sys_type=="WGS")
 	{
 		sys_type_cutoff_col_ = "staticial_cutoff_wgs";
+
+		//hide lrGS column:
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
+
+	}
+	else if (sys_type=="lrGS")
+	{
+		//TODO: after import
+		sys_type_cutoff_col_ = "staticial_cutoff_lrgs";
+
+		//for now: remove column
+		int idx = ui_.filter_expanded->findText("statistical outlier");
+		ui_.filter_expanded->removeItem(idx);
+
+		//hide lrGS column:
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads spanning"), true);
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads in repeat"), true);
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads flanking"), true);
 	}
 	else
 	{
 		int idx = ui_.filter_expanded->findText("statistical outlier");
 		ui_.filter_expanded->removeItem(idx);
+
+		//hide lrGS column:
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
 	}
 
 	if (!res_.isEmpty())
@@ -81,6 +102,9 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus_base_name);
 	}
 
+	//get histogram
+	FileLocation hist_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionHistogram(locus_base_name);
+
     //create menu
 	QMenu menu(ui_.table);
 	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
@@ -91,6 +115,8 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	QAction* a_distribution = menu.addAction(QIcon(":/Icons/AF_histogram.png"), "Show distribution");
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
+	QAction* a_show_hist = menu.addAction("Show histogram of repeats");
+	a_show_hist->setEnabled(hist_loc.exists);
 	menu.addSeparator();
 	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
 	menu.addSeparator();
@@ -102,11 +128,18 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	if (action==a_show_svg)
     {
 		QString filename;
+		QByteArray svg;
 		if (!ClientHelper::isClientServerMode())
 		{
 			filename = QFileInfo(image_loc.filename).absoluteFilePath();
+			VersatileFile file(image_loc.filename);
+			file.open(QIODevice::ReadOnly);
+			svg = file.readAll();
 		}
-		QByteArray svg = VersatileFile(image_loc.filename).readAll();
+		else
+		{
+			svg = VersatileFile(image_loc.filename).readAll();
+		}
 
 		QSvgWidget* widget = new QSvgWidget();
 		widget->load(svg);
@@ -119,6 +152,35 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		scroll_area->setMinimumSize(1200, 800);
 
 		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Image of " + getCell(row, "repeat ID").trimmed());
+		dlg->exec();
+	}
+	else if (action==a_show_hist)
+	{
+		QString filename;
+		QByteArray svg;
+		if (!ClientHelper::isClientServerMode())
+		{
+			filename = QFileInfo(hist_loc.filename).absoluteFilePath();
+			VersatileFile file(hist_loc.filename);
+			file.open(QIODevice::ReadOnly);
+			svg = file.readAll();
+		}
+		else
+		{
+			svg = VersatileFile(hist_loc.filename).readAll();
+		}
+
+		QSvgWidget* widget = new QSvgWidget();
+		widget->load(svg);
+		QRect rect = widget->renderer()->viewBox();
+		widget->setMinimumSize(rect.width(), rect.height());
+
+		QScrollArea* scroll_area = new QScrollArea(this);
+		scroll_area->setFrameStyle(QFrame::NoFrame);
+		scroll_area->setWidget(widget);
+		scroll_area->setMinimumSize(1200, 800);
+
+		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Histogram of " + getCell(row, "repeat ID").trimmed());
 		dlg->exec();
 	}
 	else if (action==a_copy)

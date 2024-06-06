@@ -481,7 +481,7 @@ QByteArray BedpeFile::typeToString(StructuralVariantType type)
 	if (type==StructuralVariantType::INV) return "INV";
 	if (type==StructuralVariantType::BND) return "BND";
 
-	THROW(ProgrammingException, "Unknown structural variant type '" + typeToString(type) + "'!");
+	THROW(ProgrammingException, "Unknown structural variant type '" + QString::number((int)type) + "'!");
 }
 
 QList< QMap<QByteArray,QByteArray> > BedpeFile::getInfos(QByteArray name)

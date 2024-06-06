@@ -1292,7 +1292,18 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::EXPRESSION_EXON) output += ps_name + "_expr_exon.tsv";
 	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";
 	else if (type==PathType::HLA_GENOTYPER) output += ps_name + "_hla_genotyper.tsv";
-	else if (type==PathType::REPEAT_EXPANSIONS) output += ps_name + "_repeats_expansionhunter.vcf";
+	else if (type==PathType::REPEAT_EXPANSIONS)
+	{
+		if (QFile::exists(output + ps_name + "_repeats_expansionhunter.vcf"))
+		{
+			output += ps_name + "_repeats_expansionhunter.vcf";
+		}
+		else
+		{
+			//Fallback for general name used e.g. for longreads
+			output += ps_name + "_repeats.vcf";
+		}
+	}
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 	return QFileInfo(output).absoluteFilePath();
@@ -5564,7 +5575,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 		ImportStatusGermline import_status = importStatus(ps_id);
 		if (import_status.small_variants>0 || import_status.cnvs>0 || import_status.svs>0 || import_status.res>0)
 		{
-			*messages << "Bad sample " << query.value(0).toString() << " has variant data (small variant, CNVs, SVs or REss)!" << endl;
+			*messages << "Bad sample " << query.value(0).toString() << " has variant data (small variants, CNVs, SVs or REs)!" << endl;
 
 			if (fix_errors)
 			{

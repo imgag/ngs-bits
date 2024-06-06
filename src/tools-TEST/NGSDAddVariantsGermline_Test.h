@@ -264,21 +264,39 @@ private slots:
 		int count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
 		I_EQUAL(count, 0);
 
+		//check import of ExpansionHunter
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in5.vcf"));
-
-		//check db is filled
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
 		I_EQUAL(count, 84);
-
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();
 		I_EQUAL(count, 11);
-
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele1 > 30").toInt();
 		I_EQUAL(count, 2);
-
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 > 30").toInt();
 		I_EQUAL(count, 4);
+		count = db.getValue("SELECT count(*) FROM re_callset").toInt();
+		I_EQUAL(count, 1);
+		S_EQUAL(db.getValue("SELECT caller FROM re_callset").toString(), "ExpansionHunter");
+		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "v5.0.0");
+		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDateTime().toString(Qt::ISODate), "2024-04-16T00:00:00");
+
+		//check import of Straglr
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -re_force -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
+		I_EQUAL(count, 30);
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();
+		I_EQUAL(count, 0);
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele1 >= 30").toInt();
+		I_EQUAL(count, 3);
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 >= 30").toInt();
+		I_EQUAL(count, 3);
+		count = db.getValue("SELECT count(*) FROM re_callset").toInt();
+		I_EQUAL(count, 1);
+		S_EQUAL(db.getValue("SELECT caller FROM re_callset").toString(), "Straglr");
+		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "V1.5.0");
+		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDateTime().toString(Qt::ISODate), "2024-06-06T00:00:00");
 	}
+
 };
 
 

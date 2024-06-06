@@ -1035,6 +1035,8 @@ private slots:
 		cnvs.load(TESTDATA("data_in/cnvs_clincnv.tsv"));
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/sv_manta.bedpe"));
+		RepeatLocusList res;
+		//TODO Marc
 
 		QSharedPointer<ReportConfiguration> report_conf = QSharedPointer<ReportConfiguration>(new ReportConfiguration);
 		report_conf->setCreatedBy("ahmustm1");
@@ -1063,14 +1065,14 @@ private slots:
 		report_var_conf3.report_type = "diagnostic variant";
 		report_conf->set(report_var_conf3);
 
-		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
+		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
 		IS_TRUE(conf_id!=-1);
 
 		//check data - base config
-		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
@@ -1115,13 +1117,13 @@ private slots:
 
 		//update
 		QThread::sleep(1);
-		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
+		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
 		//check data
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
@@ -1205,8 +1207,8 @@ private slots:
 		var_conf.causal = false;
 		var_conf.exclude_artefact = false;
 		report_conf2->set(var_conf);
-		conf_id2 = db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs);
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		conf_id2 = db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs, res);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		var_conf = report_conf2->variantConfig()[1];
 		I_EQUAL(var_conf.id, 2)
 		I_EQUAL(var_conf.variant_index, 47);
@@ -1227,20 +1229,20 @@ private slots:
 		S_EQUAL(var_conf.manual_genotype, "hom");
 
 		//finalizeReportConfig
-		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
+		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
 		IS_FALSE(db.reportConfigIsFinalized(conf_id));
 		db.finalizeReportConfig(conf_id, db.userId("ahmustm1"));
 		IS_TRUE(db.reportConfigIsFinalized(conf_id));
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		S_EQUAL(report_conf2->finalizedBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->finalizedAt().isValid());
 		//check finalized report config cannot be modified or deleted
-		IS_THROWN(ProgrammingException, db.setReportConfig(ps_id, report_conf, vl, cnvs, svs));
+		IS_THROWN(ProgrammingException, db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res));
 		IS_THROWN(ProgrammingException, db.deleteReportConfig(conf_id));
 
 		//check messages if variant is missing
 		vl.clear();
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		I_EQUAL(report_conf2->variantConfig().count(), 2);
 		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 
