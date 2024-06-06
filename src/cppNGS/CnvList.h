@@ -210,7 +210,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		}
 
 		///Returns if the list is empty
-		int isEmpty() const
+		bool isEmpty() const
 		{
 			return variants_.isEmpty();
 		}

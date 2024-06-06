@@ -672,6 +672,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(ps_id_);
 	w.writeAttribute("processing_system", processed_sample_data.processing_system);
 	w.writeAttribute("processing_system_type", processed_sample_data.processing_system_type);
+	w.writeAttribute("sequencer_type", processed_sample_data.sequencer_type);
 	QString comments = processed_sample_data.comments.trimmed();
 	if (!comments.isEmpty())
 	{

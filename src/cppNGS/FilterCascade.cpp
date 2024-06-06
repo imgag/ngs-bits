@@ -2457,11 +2457,15 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 			}
 			else if ((min_af > 0 || max_af < 1) && part.startsWith("AF="))
 			{
-				double af = part.mid(3).toDouble();
-				if (af < min_af || max_af < af)
+				QByteArrayList afs = part.mid(3).split(',');
+				bool af_in_interval = false;
+				foreach (const QByteArray& entry, afs)
 				{
-					result.flags()[i] = false;
+					double af = entry.toDouble();
+					if (af >= min_af && max_af >= af) af_in_interval = true;
+
 				}
+				if (!af_in_interval) result.flags()[i] = false;
 			}
 		}
 	}
@@ -5781,8 +5785,11 @@ FilterSvLrAF::FilterSvLrAF()
 {
 	name_ = "SV-lr AF";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Show only (lr) SVs with a certain Allele Frequency +/- 10%";
-	params_ << FilterParameter("AF", FilterParameterType::DOUBLE, 0.0, "Allele Frequency +/- 10%");
+	description_ = QStringList() << "Show only (lr) SVs with a allele frequency between the given interval";
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "minimal allele frequency");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "maximal allele frequency");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -5791,7 +5798,7 @@ FilterSvLrAF::FilterSvLrAF()
 
 QString FilterSvLrAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("AF", false), 'f', 2) + " &plusmn; 10%";
+	return name() + " between " + QByteArray::number(getDouble("min_af", false), 'f', 2) + " and "  + QByteArray::number(getDouble("max_af", false), 'f', 2);
 }
 
 void FilterSvLrAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -5805,8 +5812,8 @@ void FilterSvLrAF::apply(const BedpeFile& svs, FilterResult& result) const
 	}
 
 	// get allowed interval
-	double upper_limit = getDouble("AF", false) + 0.1;
-	double lower_limit = getDouble("AF", false) - 0.1;
+	double upper_limit = getDouble("max_af", false);
+	double lower_limit = getDouble("min_af", false);
 
 
 	int col_index = svs.annotationIndexByName("AF");

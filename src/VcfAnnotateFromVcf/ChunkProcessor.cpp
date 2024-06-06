@@ -244,52 +244,61 @@ QByteArray extendVcfDataLine(const QByteArray& vcf_line, const MetaData& meta, c
 			if (!ok) THROW(FileParseException, "Could not convert VCF variant position '" + parts[VcfFile::POS] + "' to integer in annotation file line: " + match);
             if (pos != start) continue;
 
-            // add ID column from annotation file
-            if (id_column_indices[ann_file_idx] > -1)
-            {
-                additional_ids.append(parts[id_column_indices[ann_file_idx]].trimmed());
-            }
+			//TODO: add info key if existence only
+			if (meta.annotate_only_existence[ann_file_idx])
+			{
+				additional_annotation.append(meta.existence_name_list[ann_file_idx]);
+			}
+			else
+			{
+				// add ID column from annotation file
+				if (id_column_indices[ann_file_idx] > -1)
+				{
+					additional_ids.append(parts[id_column_indices[ann_file_idx]].trimmed());
+				}
 
 
-            // parse INFO column
-            QByteArrayList info_column = parts[VcfFile::INFO].split(';');
+				// parse INFO column
+				QByteArrayList info_column = parts[VcfFile::INFO].split(';');
 
-            //get annotation
-			for (int j = 0; j < meta.info_id_list[ann_file_idx].size(); j++)
-            {
-                foreach (QByteArray key_value_pair, info_column)
-                {
-                    QByteArrayList key_value_pair_split = key_value_pair.split('=');
-					if (key_value_pair_split[0].trimmed() == meta.info_id_list[ann_file_idx][j])
-                    {
-                        // handle boolean INFO entries (contain only key):
-                        if (key_value_pair_split.size() == 1)
-                        {
-							additional_annotation.append(meta.out_info_id_list[ann_file_idx][j]);
-                        }
-                        else
-                        {
-							QByteArray annotation_value = key_value_pair.split('=')[1].trimmed();
-
-							// skip empty values
-							if (annotation_value == "") continue;
-
-							int key_idx = additional_keys.indexOf(meta.out_info_id_list[ann_file_idx][j]);
-							if (key_idx == -1)
+				//get annotation
+				for (int j = 0; j < meta.info_id_list[ann_file_idx].size(); j++)
+				{
+					foreach (QByteArray key_value_pair, info_column)
+					{
+						QByteArrayList key_value_pair_split = key_value_pair.split('=');
+						if (key_value_pair_split[0].trimmed() == meta.info_id_list[ann_file_idx][j])
+						{
+							// handle boolean INFO entries (contain only key):
+							if (key_value_pair_split.size() == 1)
 							{
-								additional_keys.append(meta.out_info_id_list[ann_file_idx][j]);
-								additional_values.append(annotation_value);
+								additional_annotation.append(meta.out_info_id_list[ann_file_idx][j]);
 							}
 							else
 							{
-								additional_values[key_idx] += "&" + annotation_value;
+								QByteArray annotation_value = key_value_pair.split('=')[1].trimmed();
+
+								// skip empty values
+								if (annotation_value == "") continue;
+
+								int key_idx = additional_keys.indexOf(meta.out_info_id_list[ann_file_idx][j]);
+								if (key_idx == -1)
+								{
+									additional_keys.append(meta.out_info_id_list[ann_file_idx][j]);
+									additional_values.append(annotation_value);
+								}
+								else
+								{
+									additional_values[key_idx] += "&" + annotation_value;
+								}
 							}
-                        }
-                        break;
-                    }
-                }
-            }
-        }
+							break;
+						}
+					}
+				}
+			}
+
+		}
 
         // transfer the collected values into the INFO column
         if (additional_ids.size() > 0)
@@ -362,6 +371,12 @@ void ChunkProcessor::run()
 			if (header_lines.size() > meta_.info_id_list[i].size() && meta_.prefix_list[i] != "")
 			{
 				header_lines.back().replace("##INFO=<ID=" + meta_.id_column_name_list[i], "##INFO=<ID=" + meta_.prefix_list[i] + "_" + meta_.id_column_name_list[i]);
+			}
+
+			// add header line for existence_only annotation
+			if (meta_.annotate_only_existence[i])
+			{
+				header_lines.append("##INFO=<ID=" + meta_.existence_name_list[i] + ",Number=0,Type=Flag,Description=\"Variant is present in annotation file '" + meta_.annotation_file_list[i] + "'\">\n");
 			}
 
 			// append header lines to global list

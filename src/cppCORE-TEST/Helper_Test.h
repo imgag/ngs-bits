@@ -147,6 +147,44 @@ private slots:
 		S_EQUAL(Helper::FormatLargeNumber(12345678, "thousands_separator"), "12,345,678");
 		S_EQUAL(Helper::FormatLargeNumber(1234567890, "thousands_separator"), "1,234,567,890");
 		S_EQUAL(Helper::FormatLargeNumber(123456789012, "thousands_separator"), "123,456,789,012");
-
 	}
+
+
+	void isNumeric()
+	{
+		//raw counts
+		IS_TRUE(Helper::isNumeric(QString("-10")));
+		IS_TRUE(Helper::isNumeric(QString("0")));
+		IS_TRUE(Helper::isNumeric(QString("9")));
+		IS_TRUE(Helper::isNumeric(QString("1000")));
+		IS_TRUE(Helper::isNumeric(QString("-10.4494")));
+		IS_TRUE(Helper::isNumeric(QString("0.443")));
+		IS_TRUE(Helper::isNumeric(QString("9.146")));
+		IS_TRUE(Helper::isNumeric(QString("1000.414")));
+
+		IS_FALSE(Helper::isNumeric(QString("--10.4494")));
+		IS_FALSE(Helper::isNumeric(QString("0.443s")));
+		IS_FALSE(Helper::isNumeric(QString("abc")));
+		IS_FALSE(Helper::isNumeric(QString("10.00.414")));
+		IS_FALSE(Helper::isNumeric(QString(" 10.0")));
+		IS_FALSE(Helper::isNumeric(QString("10.0 ")));
+
+		IS_TRUE(Helper::isNumeric(QByteArray("-10")));
+		IS_TRUE(Helper::isNumeric(QByteArray("0")));
+		IS_TRUE(Helper::isNumeric(QByteArray("9")));
+		IS_TRUE(Helper::isNumeric(QByteArray("1000")));
+		IS_TRUE(Helper::isNumeric(QByteArray("-10.4494")));
+		IS_TRUE(Helper::isNumeric(QByteArray("0.443")));
+		IS_TRUE(Helper::isNumeric(QByteArray("9.146")));
+		IS_TRUE(Helper::isNumeric(QByteArray("1000.414")));
+
+		IS_FALSE(Helper::isNumeric(QByteArray("--10.4494")));
+		IS_FALSE(Helper::isNumeric(QByteArray("0.443s")));
+		IS_FALSE(Helper::isNumeric(QByteArray("abc")));
+		IS_FALSE(Helper::isNumeric(QByteArray("10.00.414")));
+		IS_FALSE(Helper::isNumeric(QByteArray("")));
+		IS_FALSE(Helper::isNumeric(QByteArray(" 10.0")));
+		IS_FALSE(Helper::isNumeric(QByteArray("10.0 ")));
+	}
+
 };

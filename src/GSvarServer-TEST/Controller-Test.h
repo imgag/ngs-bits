@@ -8,7 +8,13 @@ Q_OBJECT
 private slots:
 	void test_api_info()
     {
-		HttpRequest request;
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        ServerDbManager::reinitializeDb();
+        HttpRequest request;
 		request.setMethod(RequestMethod::GET);
 		request.setContentType(ContentType::APPLICATION_JSON);
 		request.setPrefix("v1");
@@ -25,14 +31,19 @@ private slots:
 
 	void test_saving_gsvar_file()
 	{
-		QString url_id = ServerHelper::generateUniqueStr();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString url_id = ServerHelper::generateUniqueStr();
 		QString file = TESTDATA("data/sample.gsvar");
 		QString copy_name = file+"_tmp";
 		QFile::copy(file, copy_name);
 		QString file_copy = TESTDATA(copy_name.toUtf8());
 
 		IS_FALSE(UrlManager::isInStorageAlready(file_copy));
-		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file_copy).fileName(), QFileInfo(file_copy).absolutePath(), file_copy, url_id, QDateTime::currentDateTime()));
+        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file_copy).fileName(), QFileInfo(file_copy).absolutePath(), file_copy, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file_copy));
 
 		QJsonDocument json_doc = QJsonDocument();
@@ -45,8 +56,8 @@ private slots:
 		json_doc.setArray(json_array);
 
 
-        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
-		SessionManager::addNewSession("token", cur_session);
+        Session cur_session("gsvar_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+        SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::PUT);
@@ -55,7 +66,7 @@ private slots:
 		request.setPath("project_file");
 		request.addUrlParam("ps_url_id", url_id);
 		request.setBody(json_doc.toJson());
-		request.addUrlParam("token", "token");
+        request.addUrlParam("token", "gsvar_token");
 
 		HttpResponse response = ServerController::saveProjectFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
@@ -65,24 +76,29 @@ private slots:
 
 	void test_uploading_file()
 	{
-		QString url_id = ServerHelper::generateUniqueStr();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString url_id = ServerHelper::generateUniqueStr();
 		QString file = TESTDATA("data/sample.gsvar");
 		QString copy_name = "uploaded_file.txt";
 		QByteArray upload_file = TESTDATA("data/to_upload.txt");
 
 		IS_FALSE(UrlManager::isInStorageAlready(upload_file));
-		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(upload_file).fileName(), QFileInfo(upload_file).absolutePath(), upload_file, url_id, QDateTime::currentDateTime()));
+        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(upload_file).fileName(), QFileInfo(upload_file).absolutePath(), upload_file, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(upload_file));
 
-        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
-        SessionManager::addNewSession("token", cur_session);
+        Session cur_session("upload_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+        SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::POST);
 		request.setContentType(ContentType::MULTIPART_FORM_DATA);
 		request.setPrefix("v1");
 		request.setPath("upload");
-		request.addUrlParam("token", "token");
+        request.addUrlParam("token", "upload_token");
 
 		request.setMultipartFileName(copy_name);
 		request.setMultipartFileContent(Helper::loadTextFile(upload_file)[0].toUtf8());
@@ -102,9 +118,15 @@ private slots:
 
 	void test_session_info()
 	{
-		QDateTime login_time = QDateTime::currentDateTime();
-        Session cur_session(1, "jsmith", "John Smith", login_time);
-		SessionManager::addNewSession("token", cur_session);
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QDateTime login_time = QDateTime::currentDateTime();
+        qint64 login_time_as_num = login_time.toSecsSinceEpoch();
+        Session cur_session("test_session_info_token", 1, "jsmith", "John Smith", login_time, 0);
+        SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::GET);
@@ -115,30 +137,34 @@ private slots:
 		HttpResponse response = ServerController::getSessionInfo(request);
 		I_EQUAL(response.getStatusCode(), 403);
 
-		request.addUrlParam("token", "token");
+        request.addUrlParam("token", "test_session_info_token");
 		response = ServerController::getSessionInfo(request);
 		QJsonDocument json_doc = QJsonDocument::fromJson(response.getPayload());
 		QJsonObject  json_object = json_doc.object();
 
+
 		I_EQUAL(response.getStatusCode(), 200);
 		I_EQUAL(json_object.value("user_id").toInt(), 1);
-		I_EQUAL(json_object.value("login_time").toInt(), login_time.toSecsSinceEpoch());
+        I_EQUAL(json_object.value("login_time").toInt(), login_time_as_num);
 		IS_FALSE(json_object.value("is_db_token").toBool());
 	}
 
-
-
 	void test_static_file_random_access()
 	{
-		QString url_id = ServerHelper::generateUniqueStr();
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString url_id = ServerHelper::generateUniqueStr();
 		QByteArray file = TESTDATA("data/text.txt");
 		IS_FALSE(UrlManager::isInStorageAlready(file));
 
-		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
+        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file));
 
-        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
-		SessionManager::addNewSession("token", cur_session);
+        Session cur_session("static_file_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime(), 0);
+        SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::GET);
@@ -152,7 +178,7 @@ private slots:
 		request.setPath("temp");
 		request.addPathItem(url_id);
 		request.addPathItem("text.txt");
-		request.addUrlParam("token", "token");
+        request.addUrlParam("token", "static_file_token");
 
 		HttpResponse response = ServerController::serveStaticFromTempUrl(request);
 
@@ -169,8 +195,13 @@ private slots:
 
 	void test_head_response_with_empty_body_for_missing_file()
 	{
-        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
-		SessionManager::addNewSession("token", cur_session);
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        Session cur_session("head_response_empty_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+        SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::HEAD);
@@ -183,7 +214,7 @@ private slots:
 		request.setPath("temp");
 		request.addPathItem("fake_unique_id");
 		request.addPathItem("file.txt");
-		request.addUrlParam("token", "token");
+        request.addUrlParam("token", "head_response_empty_token");
 
 		HttpResponse response = ServerController::serveStaticFromTempUrl(request);
 
@@ -201,12 +232,17 @@ private slots:
 
 	void test_head_response_with_empty_body_for_existing_file()
 	{
-		QString url_id = ServerHelper::generateUniqueStr();
-		QByteArray file = TESTDATA("data/text.txt");
-		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
 
-        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
-		SessionManager::addNewSession("token", cur_session);
+        QString url_id = ServerHelper::generateUniqueStr();
+		QByteArray file = TESTDATA("data/text.txt");
+        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
+
+        Session cur_session("head_response_exists_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+        SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::HEAD);
@@ -219,7 +255,7 @@ private slots:
 		request.setPath("temp");
 		request.addPathItem(url_id);
 		request.addPathItem("text.txt");
-		request.addUrlParam("token", "token");
+        request.addUrlParam("token", "head_response_exists_token");
 
 		HttpResponse response = ServerController::serveStaticFromTempUrl(request);
 
@@ -237,7 +273,12 @@ private slots:
 
 	void test_current_client_info()
 	{
-		ClientInfo current_info("2023_02-21", "New updates available!");
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        ClientInfo current_info("2023_02-21", "New updates available!");
 		SessionManager::setCurrentClientInfo(current_info);
 
 		HttpRequest request;
@@ -263,7 +304,12 @@ private slots:
 
 	void test_user_notification()
 	{
-		QString notification_message = "Server will be updated!";
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString notification_message = "Server will be updated!";
 		SessionManager::setCurrentNotification(notification_message);
 
 		HttpRequest request;
@@ -289,7 +335,12 @@ private slots:
 
 	void test_file_upload()
 	{
-		QString test_filename = "test_file.txt";
+        if (!ServerHelper::hasMinimalSettings())
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString test_filename = "test_file.txt";
 		QByteArray test_content = "content";
 
         HttpRequest request;

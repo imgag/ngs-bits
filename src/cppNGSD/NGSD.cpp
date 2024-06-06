@@ -717,6 +717,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.project_name = query.value("p_name").toString().trimmed();
 	output.project_type = query.value("p_type").toString().trimmed();
 	output.run_name = query.value("r_name").toString().trimmed();
+	output.sequencer_type = getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name=:0", true, output.run_name).toString();
 	QVariant normal_id = query.value("normal_id");
 	if (!normal_id.isNull())
 	{
@@ -1284,6 +1285,18 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::EXPRESSION_EXON) output += ps_name + "_expr_exon.tsv";
 	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";
 	else if (type==PathType::HLA_GENOTYPER) output += ps_name + "_hla_genotyper.tsv";
+	else if (type==PathType::REPEAT_EXPANSIONS)
+	{
+		if (QFile::exists(output + ps_name + "_repeats_expansionhunter.vcf"))
+		{
+			output += ps_name + "_repeats_expansionhunter.vcf";
+		}
+		else
+		{
+			//Fallback for general name used e.g. for longreads
+			output += ps_name + "_repeats.vcf";
+		}
+	}
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 
@@ -5910,6 +5923,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 
 	QString sw_version = Settings::string("nova_seq_x_sw_version");
 	QString app_version = Settings::string("nova_seq_x_app_version");
+	QString keep_fastq = Settings::boolean("nova_seq_x_keep_fastq")?"true":"false";
 	QString fastq_compression_format = "dragen"; //can be "gzip" or "dragen"
 	int barcode_mismatch_index1 = 1;
 	int barcode_mismatch_index2 = 1;
@@ -5957,6 +5971,8 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	QStringList germline_analysis;
 	QStringList enrichment_analysis;
 	QStringList rna_analysis;
+	bool mid1_chopped = false;
+	bool mid2_chopped = false;
 
 	query.exec("SELECT ps.id, ps.lane, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, s.tumor, s.sample_type, (SELECT sequence FROM mid WHERE id=ps.mid1_i7) as mid1,"
 			   " (SELECT sequence FROM mid WHERE id=ps.mid2_i5) as mid2, (SELECT name_short FROM processing_system WHERE id=ps.processing_system_id) as system_name,"
@@ -5971,7 +5987,18 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		QString sample_type = query.value("sample_type").toString();
 		QByteArray system_type = query.value("system_type").toByteArray();
 		QByteArray system_name = query.value("system_name").toByteArray();
-//		QString project = query.value("project").toString();
+
+		//cut MIDs to fit recipe
+		if (mid1.length() > index1_read_length)
+		{
+			mid1 = mid1.chopped(index1_read_length);
+			mid1_chopped = true;
+		}
+		if (mid2.length() > index2_read_length)
+		{
+			mid2 = mid2.chopped(index2_read_length);
+			mid2_chopped = true;
+		}
 
 		//get adapter sequence
 		ProcessingSystemData sys_info = getProcessingSystemData(processingSystemId(system_name));
@@ -6061,7 +6088,6 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		warnings << "WARNING: The number of lanes covered by samples (" + QString::number(used_lanes.size()) + ") and the number of lanes on the flow cell (2) does not match!";
 	}
 
-
 	//BCLConvert
 	sample_sheet.append("[BCLConvert_Settings]");
 	sample_sheet.append("SoftwareVersion,"  + sw_version);
@@ -6083,6 +6109,10 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	sample_sheet.append(bcl_convert);
 	sample_sheet.append("");
 
+	// add warning if MIDs are chopped
+	if (mid1_chopped) warnings << "WARNING: At least one Sample has a i7 MID which is longer than recipe. It will be shorted according to recipe.";
+	if (mid2_chopped) warnings << "WARNING: At least one Sample has a i5 MID which is longer than recipe. It will be shorted according to recipe.";
+
 
 	//DRAGEN Germline
 	if (germline_analysis.size() > 0)
@@ -6090,7 +6120,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("[DragenGermline_Settings]");
 		sample_sheet.append("SoftwareVersion," + sw_version);
 		sample_sheet.append("AppVersion," + app_version);
-		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("KeepFastq," + keep_fastq);
 		sample_sheet.append("MapAlignOutFormat,cram");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
 		sample_sheet.append("VariantCallingMode,AllVariantCallers");
@@ -6107,7 +6137,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("[DragenEnrichment_Settings]");
 		sample_sheet.append("SoftwareVersion," + sw_version);
 		sample_sheet.append("AppVersion," + app_version);
-		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("KeepFastq," + keep_fastq);
 		sample_sheet.append("MapAlignOutFormat,cram");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
 //		sample_sheet.append("Bedfile,/usr/local/illumina/target_region/" + sys_name + ".bed"); //TODO: read from settings/NGSD
@@ -6129,7 +6159,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("[DragenRNA_Settings]");
 		sample_sheet.append("SoftwareVersion," + sw_version);
 		sample_sheet.append("AppVersion," + app_version);
-		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("KeepFastq," + keep_fastq);
 		sample_sheet.append("MapAlignOutFormat,bam");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
 //		sample_sheet.append("RnaGeneAnnotationFile,/usr/local/illumina/genes/GRCh38.gtf"); //TODO: read from settings/NGSD
