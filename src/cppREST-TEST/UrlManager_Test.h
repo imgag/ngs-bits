@@ -8,13 +8,7 @@ Q_OBJECT
 private slots:
 
 	void test_url_manager()
-	{
-        if (!ServerHelper::hasMinimalSettings())
-        {
-            SKIP("Server has not been configured correctly");
-        }
-
-        ServerDB().initDbIfEmpty();
+	{        
         QString url_id = ServerHelper::generateUniqueStr();
         QString file = "file.txt";
 

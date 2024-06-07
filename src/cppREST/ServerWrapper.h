@@ -30,8 +30,7 @@ public slots:
     void updateClinVarSubmissionStatus();
 	void updateInfoForUsers(QString str);
     void switchLogFile();
-    void cleanupUrls();
-    void cleanupSessions();
+    void cleanupSessionsAndUrls();
 
 private:
 	ClientInfo readClientInfoFromFile();

@@ -7,6 +7,7 @@
 #include "ServerHelper.h"
 #include "Exceptions.h"
 #include "ServerDB.h"
+#include "ThreadSafeHashMap.h"
 
 class CPPRESTSHARED_EXPORT SessionManager
 {
@@ -15,6 +16,7 @@ public:
     static void addNewSession(Session in);
 	static void removeSession(QString id);	
 	static Session getSessionBySecureToken(QString token);
+    static QList<Session> getAllSessions();
 
     static bool isValidSession(QString token);
     static void removeExpiredSessions();
@@ -32,6 +34,7 @@ private:
     static SessionManager& instance();	
 	ClientInfo current_client_info_;
 	UserNotification current_notification_;
+    ThreadSafeHashMap<QString, Session> session_storage_;
 };
 
 #endif // SESSIONMANAGER_H

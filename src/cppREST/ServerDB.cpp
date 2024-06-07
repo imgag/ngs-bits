@@ -122,6 +122,42 @@ bool ServerDB::addSession(const Session new_session)
     return addSession(new_session.string_id, new_session.user_id, new_session.user_login, new_session.user_name, new_session.login_time, new_session.is_for_db_only);
 }
 
+bool ServerDB::addSessions(const QList<Session> all_sessions)
+{
+    Log::info("Writing a new backup for sessions");
+    int batch_size = 1000; //max value for multiple inserts in SQL
+
+    int batch_count = (all_sessions.count() + batch_size - 1)/ batch_size;
+    int processed_items = 0;
+    for (int i=0; i<batch_count; i+=batch_size)
+    {
+        QString query_text = "INSERT INTO sessions (string_id, user_id, user_login, user_name, login_time, is_for_db_only) VALUES";
+        for (int b=processed_items; b<(processed_items+batch_size); b++)
+        {
+            if (b>(all_sessions.count()-1)) break;
+
+            qint64 login_time_as_num = all_sessions[b].login_time.toSecsSinceEpoch();
+            query_text+="\n(\""+all_sessions[b].string_id+"\", " + QString::number(all_sessions[b].user_id) + ", \"" + all_sessions[b].user_login + "\", \"" + all_sessions[b].user_name + "\", " + QString::number(login_time_as_num) + ", " + QString::number(all_sessions[b].is_for_db_only) + ")";
+            if (b<all_sessions.count()-1)
+            {
+                query_text+=",";
+            }
+            processed_items++;
+        }
+        Log::info("Processed session count: " + QString::number(processed_items));
+        QSqlQuery query = db_->exec(query_text);
+        bool success = query.lastError().text().trimmed().isEmpty();
+
+        if(!success)
+        {
+            Log::error("Failed to add new sessions: " + query.lastError().text() + ", " + query.lastQuery());
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool ServerDB::removeSession(const QString& string_id)
 {
     QSqlQuery query = db_->exec("DELETE FROM sessions WHERE string_id = \"" + string_id + "\"");
@@ -130,6 +166,19 @@ bool ServerDB::removeSession(const QString& string_id)
     if(!success)
     {
         Log::error("Failed to remove the session '" + string_id + "': " + query.lastError().text());
+    }
+    return success;
+}
+
+bool ServerDB::wipeSessions()
+{
+    Log::info("Removing current backup for sessions");
+    QSqlQuery query = db_->exec("DELETE FROM sessions");
+    bool success = query.lastError().text().trimmed().isEmpty();
+
+    if(!success)
+    {
+        Log::error("Failed to wipe the sessions: " + query.lastError().text());
     }
     return success;
 }
@@ -176,7 +225,7 @@ QList<Session> ServerDB::getAllSessions()
     QList<Session> results;
 
     QSqlQuery query = db_->exec("SELECT * FROM sessions");
-    if (query.next())
+    while (query.next())
     {
         int index_string_id = query.record().indexOf("string_id");
         int index_user_id = query.record().indexOf("user_id");
@@ -230,6 +279,43 @@ bool ServerDB::addUrl(const UrlEntity new_url)
     return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.created);
 }
 
+bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
+{
+    Log::info("Writing a new backup for URLs");
+    int batch_size = 1000; //max value for multiple inserts in SQL
+
+    int batch_count = (all_urls.count() + batch_size - 1)/ batch_size;
+    Log::info("URL batch count: " + QString::number(batch_count));
+    int processed_items = 0;
+    for (int i=0; i<batch_count; i+=batch_size)
+    {
+        QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, created) VALUES";
+        for (int b=processed_items; b<(processed_items+batch_size); b++)
+        {
+            if (b>(all_urls.count()-1)) break;
+
+            qint64 created_as_num = all_urls[b].created.toSecsSinceEpoch();
+            query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(created_as_num) + ")";
+
+            if (b<all_urls.count()-1)
+            {
+                query_text+=",";
+            }
+            processed_items++;
+        }
+        Log::info("Processed URL count: " + QString::number(processed_items));
+        QSqlQuery query = db_->exec(query_text);
+        bool success = query.lastError().text().trimmed().isEmpty();
+
+        if(!success)
+        {
+            Log::error("Failed to add new URLs: " + query.lastError().text() + ", " + query.lastQuery());
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ServerDB::removeUrl(const QString& string_id)
 {
     QSqlQuery query = db_->exec("DELETE FROM urls WHERE string_id = \"" + string_id + "\"");
@@ -237,6 +323,18 @@ bool ServerDB::removeUrl(const QString& string_id)
     if(!success)
     {
         Log::error("Failed to remove the URL '" + string_id + "': " + query.lastError().text());
+    }
+    return success;
+}
+
+bool ServerDB::wipeUrls()
+{
+    Log::info("Removing current backup for URLs");
+    QSqlQuery query = db_->exec("DELETE FROM urls");
+    bool success = query.lastError().text().trimmed().isEmpty();
+    if(!success)
+    {
+        Log::error("Failed to wipe the URLs : " + query.lastError().text());
     }
     return success;
 }
@@ -294,7 +392,7 @@ QList<UrlEntity> ServerDB::getAllUrls()
     QList<UrlEntity> results;
     QSqlQuery query = db_->exec("SELECT * FROM urls");
 
-    if (query.next())
+    while (query.next())
     {
         int index_string_id = query.record().indexOf("string_id");
         int index_filename = query.record().indexOf("filename");

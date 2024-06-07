@@ -4,6 +4,7 @@
 SessionManager::SessionManager()
     : current_client_info_()
 	, current_notification_()
+    , session_storage_()
 {
 }
 
@@ -15,22 +16,40 @@ SessionManager& SessionManager::instance()
 
 void SessionManager::addNewSession(Session in)
 {
-    ServerDB().addSession(in);
+    instance().session_storage_.insert(in.string_id, in);
 }
 
 void SessionManager::removeSession(QString id)
 {
-    ServerDB().removeSession(id);
+    if (instance().session_storage_.contains(id))
+    {
+        instance().session_storage_.remove(id);
+    }
 }
 
 Session SessionManager::getSessionBySecureToken(QString token)
 {
-    return ServerDB().getSession(token);
+    if (instance().session_storage_.contains(token))
+    {
+        return instance().session_storage_.value(token);
+    }
+    return Session{};
+}
+
+QList<Session> SessionManager::getAllSessions()
+{
+    QList<Session> all_sessions;
+    QList<QString> keys = instance().session_storage_.keys();
+    for (int i = 0; i < keys.count(); i++)
+    {
+        all_sessions.append(instance().session_storage_.value(keys[i]));
+    }
+    return all_sessions;
 }
 
 bool SessionManager::isValidSession(QString token)
 {
-    Session cur_session = ServerDB().getSession(token);
+    Session cur_session = instance().getSessionBySecureToken(token);
     if (cur_session.isEmpty())
     {
         return false;
@@ -51,14 +70,28 @@ void SessionManager::removeExpiredSessions()
     qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
     if (valid_period == 0) valid_period = DEFAULT_VALID_PERIOD; // default value, if not set in the config
 
-    Log::info("Starting to cleanup sessions");
-    ServerDB server_db;
-    int current_count = server_db.getSessionsCount();
-    Log::info("Number of active sessions: " + QString::number(current_count));
-    server_db.removeSessionsOlderThan(QDateTime::currentDateTime().toSecsSinceEpoch()-valid_period);
+    Log::info("Starting to cleanup session");
+    QList<QString> to_be_removed {};
+    QList<Session> to_be_backedup {};
 
-    int new_count = server_db.getSessionsCount();
-    Log::info("Number of active sessions after the cleanup: " + QString::number(new_count));
+    QList<QString> keys = instance().session_storage_.keys();
+    for (int i = 0; i < keys.count(); i++)
+    {
+        if (instance().session_storage_.value(keys[i]).login_time.toSecsSinceEpoch() < (QDateTime::currentDateTime().toSecsSinceEpoch()-valid_period))
+        {
+            to_be_removed.append(keys[i]);
+        }
+        else
+        {
+            to_be_backedup.append(instance().session_storage_.value(keys[i]));
+        }
+    }
+    for (int i = 0; i < to_be_removed.count(); ++i)
+    {
+        instance().session_storage_.remove(to_be_removed[i]);
+    }
+
+    Log::info("Number of removed sessions: " + QString::number(to_be_removed.length()));
 }
 
 ClientInfo SessionManager::getCurrentClientInfo()
