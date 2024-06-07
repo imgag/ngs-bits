@@ -1435,7 +1435,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_callset`
   `call_date` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
-  INDEX `caller` (`call_date` ASC),
+  INDEX `somatic_sv_caller` (`call_date` ASC),
   UNIQUE INDEX `combo_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   UNIQUE KEY `somatic_sv_callset_references_processed_sample` (`ps_tumor_id`),
   CONSTRAINT `som_sv_callset_ps_normal_id`
