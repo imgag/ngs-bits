@@ -101,8 +101,6 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	//set SV list type
 	is_somatic_ = bedpe_file.isSomatic();
 
-	qDebug() << "SvWidget Constructor: som_report_config contains " << som_report_config_->variantIndices(VariantType::SVS, false) << "SVs";
-
 	initGUI();
 }
 

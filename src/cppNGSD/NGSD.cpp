@@ -3059,7 +3059,7 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 
 		// insert SV into the NGSD
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `" + table + "` (`somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `genotype` , `quality_metrics`) " +
+		query.prepare("INSERT INTO `" + table + "` (`sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `genotype` , `quality_metrics`) " +
 					  "VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
 		query.bindValue(0, callset_id);
 		query.bindValue(1, sv.chr1().strNormalized(true));
@@ -8930,12 +8930,10 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 			//get SV id and table (add SV if not in DB)
 			const BedpeLine& sv = svs[var_conf.variant_index];
 			QString sv_id = somaticSvId(sv, callset_id.toInt(), svs, false);
-			qDebug() << "sv_id 1: " << sv_id;
 			if (sv_id == "")
 			{
 				sv_id = addSomaticSv(callset_id.toInt(), sv, svs);
 			}
-			qDebug() << "sv_id 2: " << sv_id;
 
 			//define SQL query
 			query_sv.bindValue(0, id);
@@ -8981,9 +8979,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 					THROW(ArgumentException, "Invalid structural variant type!")
 					break;
 			}
-			qDebug() << "executing sv query in setSomaticReportConfig():";
 			query_sv.exec();
-			qDebug() << "returned from sv query in setSomaticReportConfig():";
 		}
 		else
 		{
@@ -9051,7 +9047,6 @@ void NGSD::deleteSomaticReportConfig(int id)
 
 SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages)
 {
-	qDebug() << "getting SomaticReportFunction from NGSD.";
 	SomaticReportConfiguration output;
 
 	int config_id = somaticReportConfigId(t_ps_id, n_ps_id);
@@ -9278,8 +9273,6 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 
 		output.addGermlineVariantConfiguration(var_conf);
 	}
-
-	qDebug() << "SomaticReportConfig contains: " << output.variantIndices(VariantType::SNVS_INDELS, false).count() << " SNVs, " << output.variantIndices(VariantType::CNVS, false).count() << " CNVs, " << output.variantIndices(VariantType::SVS, false).count() << " SVs ";
 
 	return output;
 }
