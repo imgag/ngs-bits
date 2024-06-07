@@ -2965,6 +2965,12 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 				}
 			}
 		}
+
+		//check if sample is scheduled for resequencing
+		if (db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toBool())
+		{
+			issues << qMakePair(Log::LOG_WARNING, "The processed sample " + ps + " is scheduled for resequencing!");
+		}
 	}
 }
 

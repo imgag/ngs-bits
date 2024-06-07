@@ -176,6 +176,7 @@ void ProcessedSampleWidget::updateGUI()
 	}
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 	ui_->merged->setText(mergedSamples());
+	ui_->sequencing->setText(QString(ps_data.scheduled_for_resequencing ? "<font color=red>yes</font>" : "no"));
 	ui_->lab_operator->setText(ps_data.lab_operator);
 	ui_->processing_modus->setText(ps_data.processing_modus);
 	ui_->batch_number->setText(ps_data.batch_number);
