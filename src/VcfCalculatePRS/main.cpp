@@ -149,7 +149,7 @@ public:
 				// get weight/pop_af from PRS VCF
 				double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
 				double pop_af = Helper::toDouble(prs_variant.info("POP_AF"), "PRS population allele frequency");
-				bool imputed = prs_variant.infoKeys().contains("IMPUTED");
+				bool impute = prs_variant.infoKeys().contains("IMPUTE");
 				QByteArray other_allele = prs_variant.info("OTHER_ALLELE");
 				int var_depth = -1;
 				int allele_count = -1;
@@ -159,7 +159,7 @@ public:
 				//replace '.' in wildtype var with ref
 				if (prs_variant.ref() == ".") prs_variant.setSingleAlt(prs_variant.ref());
 
-				if (imputed)
+				if (impute)
 				{
 					//variant is not reliable -> use POP_AF
 					allele_count = -1;
