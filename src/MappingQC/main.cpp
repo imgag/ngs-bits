@@ -145,7 +145,7 @@ public:
 		if (!getFlag("no_cont") && getEnum("build") != "non_human")
 		{
 			GenomeBuild build = stringToBuild(getEnum("build"));
-			metrics_cont = Statistics::contamination(build, in, ref_file, debug);
+			metrics_cont = Statistics::contamination(build, in, ref_file, debug, 20, 50, long_read);
 			if (debug) debug_stream << "Performing contamination check took: " << Helper::elapsedTime(timer) << endl;
 		}
 

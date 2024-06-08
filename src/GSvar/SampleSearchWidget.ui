@@ -217,7 +217,7 @@
           </property>
          </widget>
         </item>
-        <item row="13" column="0">
+        <item row="14" column="0">
          <widget class="QLabel" name="label_12">
           <property name="toolTip">
            <string>Include only samples with small variants imported in to NGSD.</string>
@@ -227,7 +227,7 @@
           </property>
          </widget>
         </item>
-        <item row="13" column="1">
+        <item row="14" column="1">
          <widget class="QCheckBox" name="s_only_with_variants">
           <property name="text">
            <string/>
@@ -243,6 +243,20 @@
         </item>
         <item row="9" column="1">
          <widget class="QComboBox" name="s_ancestry"/>
+        </item>
+        <item row="13" column="1">
+         <widget class="QCheckBox" name="s_scheduled_for_resequencing">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="label_26">
+          <property name="text">
+           <string>include scheduled for resequencing:</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

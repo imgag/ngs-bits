@@ -28,6 +28,7 @@ protected slots:
 	void updateReadQualityTable();
 	void updateRunSampleTable();
 	void setQuality();
+	void scheduleForResequencing();
 	void showPlot();
 	void edit();
 	void sendStatusEmail();
