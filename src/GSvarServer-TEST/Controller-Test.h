@@ -13,7 +13,7 @@ private slots:
             SKIP("Server has not been configured correctly");
         }
 
-        ServerDbManager::reinitializeDb();
+        ServerDB().reinitializeDb();
         HttpRequest request;
 		request.setMethod(RequestMethod::GET);
 		request.setContentType(ContentType::APPLICATION_JSON);

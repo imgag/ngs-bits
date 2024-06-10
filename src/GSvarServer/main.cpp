@@ -5,7 +5,6 @@
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "ServerController.h"
-#include "ServerDbManager.h"
 
 int main(int argc, char **argv)
 {
@@ -579,6 +578,28 @@ int main(int argc, char **argv)
         return app.exec();
     }
 
-    ServerDbManager::initDbIfEmpty();
+    ServerDB db = ServerDB();
+    db.initDbIfEmpty();
+
+    QList<UrlEntity> restored_urls = db.getAllUrls();
+    for (int u = 0; u < restored_urls.count(); u++)
+    {
+        if (u==0)
+        {
+            Log::info("Url backup found: " + QString::number(restored_urls.count()));
+        }
+        UrlManager::addNewUrl(restored_urls[u]);
+    }
+
+    QList<Session> restored_sessions = db.getAllSessions();
+    for (int s = 0; s < restored_sessions.count(); s++)
+    {
+        if (s==0)
+        {
+            Log::info("Session backup found: " + QString::number(restored_sessions.count()));
+        }
+        SessionManager::addNewSession(restored_sessions[s]);
+    }
+
 	return app.exec();
 }

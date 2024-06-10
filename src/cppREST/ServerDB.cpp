@@ -1,62 +1,43 @@
-#include "ServerDbManager.h"
-#include "Log.h"
+#include "ServerDB.h"
 #include "ServerHelper.h"
-#include <QVariant>
 
-ServerDbManager::ServerDbManager()
+ServerDB::ServerDB()
 {
-}
+    QString db_host = ServerHelper::getStringSettingsValue("gsvar_server_db_host");
+    int db_port = ServerHelper::getNumSettingsValue("gsvar_server_db_port");
+    QString db_name = ServerHelper::getStringSettingsValue("gsvar_server_db_name");
+    QString db_user = ServerHelper::getStringSettingsValue("gsvar_server_db_user");
+    QString db_pass = ServerHelper::getStringSettingsValue("gsvar_server_db_pass");
 
-ServerDbManager::~ServerDbManager()
-{
-    instance().server_database_.close();
-}
-
-ServerDbManager& ServerDbManager::instance()
-{
-    static ServerDbManager server_db_manager;
-    return server_db_manager;
-}
-
-void ServerDbManager::openConnectionIfClosed()
-{
-    if (instance().server_database_.databaseName().isEmpty())
+    if (db_host.isEmpty() || db_port==0 || db_name.isEmpty() || db_user.isEmpty() || db_pass.isEmpty())
     {
-        QString db_host = ServerHelper::getStringSettingsValue("gsvar_server_db_host");
-        int db_port = ServerHelper::getNumSettingsValue("gsvar_server_db_port");
-        QString db_name = ServerHelper::getStringSettingsValue("gsvar_server_db_name");
-        QString db_user = ServerHelper::getStringSettingsValue("gsvar_server_db_user");
-        QString db_pass = ServerHelper::getStringSettingsValue("gsvar_server_db_pass");
-
-        if (db_host.isEmpty() || db_port==0 || db_name.isEmpty() || db_user.isEmpty() || db_pass.isEmpty())
-        {
-            THROW(Exception, "Server database connection parameters have been set incorrectly. The server cannot operate like that");
-        }
-
-        instance().server_database_ = QSqlDatabase::addDatabase("QMYSQL", db_name + "_" + QUuid::createUuid().toString());
-
-        instance().server_database_.setHostName(db_host);
-        instance().server_database_.setPort(db_port);
-        instance().server_database_.setDatabaseName(db_name);
-        instance().server_database_.setUserName(db_user);
-        instance().server_database_.setPassword(db_pass);
+        THROW(Exception, "Server database connection parameters have been set incorrectly. The server cannot operate like that");
     }
 
-    if (instance().server_database_.isOpen()) return;
+    db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", db_name + "_" + QUuid::createUuid().toString())));
 
-    if (!instance().server_database_.open())
+    db_->setHostName(db_host);
+    db_->setPort(db_port);
+    db_->setDatabaseName(db_name);
+    db_->setUserName(db_user);
+    db_->setPassword(db_pass);
+
+    if (!db_->open())
     {
-        Log::error("Database connection has failed");
-    }
-    else
-    {
-        Log::info("Database connection is ok");
+        THROW(DatabaseException, "Could not connect to the server database: " + db_->lastError().text());
     }
 }
 
-void ServerDbManager::initDbIfEmpty()
+ServerDB::~ServerDB()
 {
-    instance().openConnectionIfClosed();
+    //close database and remove it
+    QString connection_name = db_->connectionName();
+    db_.clear();
+    QSqlDatabase::removeDatabase(connection_name);
+}
+
+void ServerDB::initDbIfEmpty()
+{
     Log::info("Creating new tables, if they do not exist");
     QString client_info_table = "CREATE TABLE IF NOT EXISTS client_info ("
                                 "`id` INT(10) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,"
@@ -94,7 +75,7 @@ void ServerDbManager::initDbIfEmpty()
     QList<QString> filedb_tables = QList<QString>() << client_info_table << user_notification << sessions_table << urls_table;
     for(int i = 0; i < filedb_tables.size(); i++)
     {
-        QSqlQuery query = instance().server_database_.exec(filedb_tables[i]);
+        QSqlQuery query = db_->exec(filedb_tables[i]);
         bool success = query.lastError().text().trimmed().isEmpty();
 
         if(!success)
@@ -104,14 +85,13 @@ void ServerDbManager::initDbIfEmpty()
     }
 }
 
-void ServerDbManager::reinitializeDb()
+void ServerDB::reinitializeDb()
 {
-    instance().openConnectionIfClosed();
     Log::info("Erasing existing tables");
     QList<QString> table_name_list = QList<QString>() << "client_info" << "user_notification" << "sessions" << "urls";
     for(int i = 0; i < table_name_list.size(); i++)
     {
-        QSqlQuery query = instance().server_database_.exec("DROP TABLE IF EXISTS " + table_name_list[i]);
+        QSqlQuery query = db_->exec("DROP TABLE IF EXISTS " + table_name_list[i]);
         bool success = query.lastError().text().trimmed().isEmpty();
 
         if(!success)
@@ -122,12 +102,11 @@ void ServerDbManager::reinitializeDb()
     initDbIfEmpty();
 }
 
-bool ServerDbManager::addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time, const bool is_for_db_only)
+bool ServerDB::addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time, const bool is_for_db_only)
 {
-    instance().openConnectionIfClosed();
     qint64 login_time_as_num = login_time.toSecsSinceEpoch();
-    QSqlQuery query = instance().server_database_.exec("INSERT INTO sessions (string_id, user_id, user_login, user_name, login_time, is_for_db_only)"
-                                                     " VALUES (\""+string_id+"\", " + QString::number(user_id) + ", \"" + user_login + "\", \"" + user_name + "\", " + QString::number(login_time_as_num) + ", " + QString::number(is_for_db_only) + ")");
+    QSqlQuery query = db_->exec("INSERT INTO sessions (string_id, user_id, user_login, user_name, login_time, is_for_db_only)"
+                                                       " VALUES (\""+string_id+"\", " + QString::number(user_id) + ", \"" + user_login + "\", \"" + user_name + "\", " + QString::number(login_time_as_num) + ", " + QString::number(is_for_db_only) + ")");
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -138,16 +117,50 @@ bool ServerDbManager::addSession(const QString string_id, const int user_id, con
     return success;
 }
 
-bool ServerDbManager::addSession(const Session new_session)
+bool ServerDB::addSession(const Session new_session)
 {
     return addSession(new_session.string_id, new_session.user_id, new_session.user_login, new_session.user_name, new_session.login_time, new_session.is_for_db_only);
 }
 
-bool ServerDbManager::removeSession(const QString& string_id)
+bool ServerDB::addSessions(const QList<Session> all_sessions)
 {
-    instance().openConnectionIfClosed();
+    Log::info("Writing a new backup for sessions");
+    int batch_size = 1000; //max value for multiple inserts in SQL
 
-    QSqlQuery query = instance().server_database_.exec("DELETE FROM sessions WHERE string_id = \"" + string_id + "\"");
+    int batch_count = (all_sessions.count() + batch_size - 1)/ batch_size;
+    int processed_items = 0;
+    for (int i=0; i<batch_count; i+=batch_size)
+    {
+        QString query_text = "INSERT INTO sessions (string_id, user_id, user_login, user_name, login_time, is_for_db_only) VALUES";
+        for (int b=processed_items; b<(processed_items+batch_size); b++)
+        {
+            if (b>(all_sessions.count()-1)) break;
+
+            qint64 login_time_as_num = all_sessions[b].login_time.toSecsSinceEpoch();
+            query_text+="\n(\""+all_sessions[b].string_id+"\", " + QString::number(all_sessions[b].user_id) + ", \"" + all_sessions[b].user_login + "\", \"" + all_sessions[b].user_name + "\", " + QString::number(login_time_as_num) + ", " + QString::number(all_sessions[b].is_for_db_only) + ")";
+            if (b<all_sessions.count()-1)
+            {
+                query_text+=",";
+            }
+            processed_items++;
+        }
+        Log::info("Processed session count: " + QString::number(processed_items));
+        QSqlQuery query = db_->exec(query_text);
+        bool success = query.lastError().text().trimmed().isEmpty();
+
+        if(!success)
+        {
+            Log::error("Failed to add new sessions: " + query.lastError().text() + ", " + query.lastQuery());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool ServerDB::removeSession(const QString& string_id)
+{
+    QSqlQuery query = db_->exec("DELETE FROM sessions WHERE string_id = \"" + string_id + "\"");
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -157,10 +170,22 @@ bool ServerDbManager::removeSession(const QString& string_id)
     return success;
 }
 
-bool ServerDbManager::removeSessionsOlderThan(qint64 seconds)
+bool ServerDB::wipeSessions()
 {
-    instance().openConnectionIfClosed();
-    QSqlQuery query = instance().server_database_.exec("DELETE FROM sessions WHERE login_time < " + QString::number(seconds));
+    Log::info("Removing current backup for sessions");
+    QSqlQuery query = db_->exec("DELETE FROM sessions");
+    bool success = query.lastError().text().trimmed().isEmpty();
+
+    if(!success)
+    {
+        Log::error("Failed to wipe the sessions: " + query.lastError().text());
+    }
+    return success;
+}
+
+bool ServerDB::removeSessionsOlderThan(qint64 seconds)
+{
+    QSqlQuery query = db_->exec("DELETE FROM sessions WHERE login_time < " + QString::number(seconds));
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -170,11 +195,9 @@ bool ServerDbManager::removeSessionsOlderThan(qint64 seconds)
     return success;
 }
 
-Session ServerDbManager::getSession(const QString& string_id)
+Session ServerDB::getSession(const QString& string_id)
 {
-    instance().openConnectionIfClosed();
-
-    QSqlQuery query = instance().server_database_.exec("SELECT * FROM sessions WHERE string_id = \"" + string_id + "\"");
+    QSqlQuery query = db_->exec("SELECT * FROM sessions WHERE string_id = \"" + string_id + "\"");
 
     if (query.next())
     {
@@ -191,19 +214,18 @@ Session ServerDbManager::getSession(const QString& string_id)
             query.value(index_user_name).toString(),
             QDateTime::fromSecsSinceEpoch(query.value(index_login_time).toLongLong()),
             query.value(index_is_for_db_only).toInt()
-            );
+        );
     }
 
     return Session();
 }
 
-QList<Session> ServerDbManager::getAllSessions()
+QList<Session> ServerDB::getAllSessions()
 {
-    instance().openConnectionIfClosed();
     QList<Session> results;
 
-    QSqlQuery query = instance().server_database_.exec("SELECT * FROM sessions");
-    if (query.next())
+    QSqlQuery query = db_->exec("SELECT * FROM sessions");
+    while (query.next())
     {
         int index_string_id = query.record().indexOf("string_id");
         int index_user_id = query.record().indexOf("user_id");
@@ -220,17 +242,16 @@ QList<Session> ServerDbManager::getAllSessions()
                 query.value(index_user_name).toString(),
                 QDateTime::fromSecsSinceEpoch(query.value(index_login_time).toLongLong()),
                 query.value(index_is_for_db_only).toInt()
-                )
-            );
+            )
+        );
     }
 
     return results;
 }
 
-int ServerDbManager::getSessionsCount()
+int ServerDB::getSessionsCount()
 {
-    instance().openConnectionIfClosed();
-    QSqlQuery query = instance().server_database_.exec("SELECT COUNT(*) FROM sessions");
+    QSqlQuery query = db_->exec("SELECT COUNT(*) FROM sessions");
     if (query.next())
     {
         return query.value(0).toInt();
@@ -238,13 +259,12 @@ int ServerDbManager::getSessionsCount()
     return 0;
 }
 
-bool ServerDbManager::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const QDateTime created)
+bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const QDateTime created)
 {
-    instance().openConnectionIfClosed();
     qint64 created_as_num = created.toSecsSinceEpoch();
 
-    QSqlQuery query = instance().server_database_.exec("INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, created)"
-                                                     " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " + QString::number(created_as_num) + ")");
+    QSqlQuery query = db_->exec("INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, created)"
+                                                       " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " + QString::number(created_as_num) + ")");
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
     {
@@ -254,16 +274,51 @@ bool ServerDbManager::addUrl(const QString string_id, const QString filename, co
     return success;
 }
 
-bool ServerDbManager::addUrl(const UrlEntity new_url)
+bool ServerDB::addUrl(const UrlEntity new_url)
 {
     return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.created);
 }
 
-bool ServerDbManager::removeUrl(const QString& string_id)
+bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
 {
-    instance().openConnectionIfClosed();
+    Log::info("Writing a new backup for URLs");
+    int batch_size = 1000; //max value for multiple inserts in SQL
 
-    QSqlQuery query = instance().server_database_.exec("DELETE FROM urls WHERE string_id = \"" + string_id + "\"");
+    int batch_count = (all_urls.count() + batch_size - 1)/ batch_size;
+    Log::info("URL batch count: " + QString::number(batch_count));
+    int processed_items = 0;
+    for (int i=0; i<batch_count; i+=batch_size)
+    {
+        QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, created) VALUES";
+        for (int b=processed_items; b<(processed_items+batch_size); b++)
+        {
+            if (b>(all_urls.count()-1)) break;
+
+            qint64 created_as_num = all_urls[b].created.toSecsSinceEpoch();
+            query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(created_as_num) + ")";
+
+            if (b<all_urls.count()-1)
+            {
+                query_text+=",";
+            }
+            processed_items++;
+        }
+        Log::info("Processed URL count: " + QString::number(processed_items));
+        QSqlQuery query = db_->exec(query_text);
+        bool success = query.lastError().text().trimmed().isEmpty();
+
+        if(!success)
+        {
+            Log::error("Failed to add new URLs: " + query.lastError().text() + ", " + query.lastQuery());
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ServerDB::removeUrl(const QString& string_id)
+{
+    QSqlQuery query = db_->exec("DELETE FROM urls WHERE string_id = \"" + string_id + "\"");
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
     {
@@ -272,11 +327,21 @@ bool ServerDbManager::removeUrl(const QString& string_id)
     return success;
 }
 
-bool ServerDbManager::removeUrlsOlderThan(qint64 seconds)
+bool ServerDB::wipeUrls()
 {
-    instance().openConnectionIfClosed();
+    Log::info("Removing current backup for URLs");
+    QSqlQuery query = db_->exec("DELETE FROM urls");
+    bool success = query.lastError().text().trimmed().isEmpty();
+    if(!success)
+    {
+        Log::error("Failed to wipe the URLs : " + query.lastError().text());
+    }
+    return success;
+}
 
-    QSqlQuery query = instance().server_database_.exec("DELETE FROM urls WHERE created < " + QString::number(seconds));
+bool ServerDB::removeUrlsOlderThan(qint64 seconds)
+{
+    QSqlQuery query = db_->exec("DELETE FROM urls WHERE created < " + QString::number(seconds));
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -286,11 +351,9 @@ bool ServerDbManager::removeUrlsOlderThan(qint64 seconds)
     return success;
 }
 
-bool ServerDbManager::isFileInStoreAlready(const QString& filename_with_path)
+bool ServerDB::isFileInStoreAlready(const QString& filename_with_path)
 {
-    instance().openConnectionIfClosed();
-
-    QSqlQuery cur_query = instance().server_database_.exec("SELECT * FROM urls WHERE filename_with_path = \"" + filename_with_path + "\"");
+    QSqlQuery cur_query = db_->exec("SELECT * FROM urls WHERE filename_with_path = \"" + filename_with_path + "\"");
     if (cur_query.next())
     {
         return true;
@@ -298,11 +361,9 @@ bool ServerDbManager::isFileInStoreAlready(const QString& filename_with_path)
     return false;
 }
 
-UrlEntity ServerDbManager::getUrl(const QString& string_id)
+UrlEntity ServerDB::getUrl(const QString& string_id)
 {
-    instance().openConnectionIfClosed();
-
-    QSqlQuery query = instance().server_database_.exec("SELECT * FROM urls WHERE string_id = \"" + string_id + "\"");
+    QSqlQuery query = db_->exec("SELECT * FROM urls WHERE string_id = \"" + string_id + "\"");
 
     if (query.next())
     {
@@ -326,13 +387,12 @@ UrlEntity ServerDbManager::getUrl(const QString& string_id)
     return UrlEntity();
 }
 
-QList<UrlEntity> ServerDbManager::getAllUrls()
+QList<UrlEntity> ServerDB::getAllUrls()
 {
-    instance().openConnectionIfClosed();
     QList<UrlEntity> results;
-    QSqlQuery query = instance().server_database_.exec("SELECT * FROM urls");
+    QSqlQuery query = db_->exec("SELECT * FROM urls");
 
-    if (query.next())
+    while (query.next())
     {
         int index_string_id = query.record().indexOf("string_id");
         int index_filename = query.record().indexOf("filename");
@@ -356,15 +416,12 @@ QList<UrlEntity> ServerDbManager::getAllUrls()
     return results;
 }
 
-int ServerDbManager::getUrlsCount()
+int ServerDB::getUrlsCount()
 {
-    instance().openConnectionIfClosed();
-    QSqlQuery query = instance().server_database_.exec("SELECT COUNT(*) FROM urls");
+    QSqlQuery query = db_->exec("SELECT COUNT(*) FROM urls");
     if (query.next())
     {
         return query.value(0).toInt();
     }
     return 0;
 }
-
-
