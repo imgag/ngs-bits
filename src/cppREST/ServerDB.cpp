@@ -128,22 +128,27 @@ bool ServerDB::addSessions(const QList<Session> all_sessions)
     int batch_size = 1000; //max value for multiple inserts in SQL
 
     int batch_count = (all_sessions.count() + batch_size - 1)/ batch_size;
+    if ((all_sessions.count()%batch_size) == 0)
+    {
+        batch_count = all_sessions.count()/batch_size;
+    }
+
+    Log::info("Session batch count: " + QString::number(batch_count));
     int processed_items = 0;
-    for (int i=0; i<batch_count; i+=batch_size)
+    for (int i=0; i<batch_count; i++)
     {
         QString query_text = "INSERT INTO sessions (string_id, user_id, user_login, user_name, login_time, is_for_db_only) VALUES";
-        for (int b=processed_items; b<(processed_items+batch_size); b++)
+        for (int b=i*batch_size; b<((i+1)*batch_size); b++)
         {
             if (b>(all_sessions.count()-1)) break;
 
             qint64 login_time_as_num = all_sessions[b].login_time.toSecsSinceEpoch();
-            query_text+="\n(\""+all_sessions[b].string_id+"\", " + QString::number(all_sessions[b].user_id) + ", \"" + all_sessions[b].user_login + "\", \"" + all_sessions[b].user_name + "\", " + QString::number(login_time_as_num) + ", " + QString::number(all_sessions[b].is_for_db_only) + ")";
-            if (b<all_sessions.count()-1)
-            {
-                query_text+=",";
-            }
+            query_text+="\n(\""+all_sessions[b].string_id+"\", " + QString::number(all_sessions[b].user_id) + ", \"" + all_sessions[b].user_login + "\", \"" + all_sessions[b].user_name + "\", " + QString::number(login_time_as_num) + ", " + QString::number(all_sessions[b].is_for_db_only) + "),";
+
             processed_items++;
         }
+        query_text = query_text.left(query_text.size()-1);
+
         Log::info("Processed session count: " + QString::number(processed_items));
         QSqlQuery query = db_->exec(query_text);
         bool success = query.lastError().text().trimmed().isEmpty();
@@ -285,24 +290,27 @@ bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
     int batch_size = 1000; //max value for multiple inserts in SQL
 
     int batch_count = (all_urls.count() + batch_size - 1)/ batch_size;
+    if ((all_urls.count()%batch_size) == 0)
+    {
+        batch_count = all_urls.count()/batch_size;
+    }
+
     Log::info("URL batch count: " + QString::number(batch_count));
     int processed_items = 0;
-    for (int i=0; i<batch_count; i+=batch_size)
+    for (int i=0; i<batch_count; i++)
     {
         QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, created) VALUES";
-        for (int b=processed_items; b<(processed_items+batch_size); b++)
+        for (int b=i*batch_size; b<((i+1)*batch_size); b++)
         {
             if (b>(all_urls.count()-1)) break;
 
             qint64 created_as_num = all_urls[b].created.toSecsSinceEpoch();
-            query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(created_as_num) + ")";
+            query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(created_as_num) + "),";
 
-            if (b<all_urls.count()-1)
-            {
-                query_text+=",";
-            }
             processed_items++;
         }
+        query_text = query_text.left(query_text.size()-1);
+
         Log::info("Processed URL count: " + QString::number(processed_items));
         QSqlQuery query = db_->exec(query_text);
         bool success = query.lastError().text().trimmed().isEmpty();
