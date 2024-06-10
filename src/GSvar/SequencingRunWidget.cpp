@@ -41,6 +41,11 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
 
+	//schedule re-sequencing
+	action = new QAction("Schedule sample(s) for resequencing", this);
+	ui_->samples->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(scheduleForResequencing()));
+
 	updateGUI();
 }
 
@@ -106,8 +111,9 @@ void SequencingRunWidget::updateRunSampleTable()
 	{
 		headers << "sample comments";
 	}
+	headers << "resequencing";
 	NGSD db;
-	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment " + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment " : "")+
+	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + " ,ps.scheduled_for_resequencing "+
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
 														  " ORDER BY ps.lane ASC, "+ (ui_->sort_by_ps_id->isChecked() ? "ps.id" : "ps.processing_system_id ASC, s.name ASC, ps.process_id"));
 
@@ -117,6 +123,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	//format columns
 	samples.formatBooleanColumn(samples.columnIndex("tumor"));
 	samples.formatBooleanColumn(samples.columnIndex("ffpe"));
+	samples.formatBooleanColumn(samples.columnIndex("scheduled_for_resequencing"));
 
 	// determine QC parameter based on sample types
 	QSet<QString> sample_types = samples.extractColumn(samples.columnIndex("sample_type")).toSet();
@@ -199,6 +206,7 @@ void SequencingRunWidget::updateRunSampleTable()
 		samples.takeColumn(samples.columnIndex("operator"));
 		samples.takeColumn(samples.columnIndex("processing modus"));
 		samples.takeColumn(samples.columnIndex("batch number"));
+		samples.takeColumn(samples.columnIndex("resequencing"));
 	}
 
 	//show table in GUI
@@ -286,6 +294,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	}
 	ui_->samples->setBackgroundColorIfEqual("is_tumor", orange, "yes");
 	ui_->samples->setBackgroundColorIfEqual("is_ffpe", orange, "yes");
+	if (ui_->show_lab_cols->isChecked()) ui_->samples->setBackgroundColorIfEqual("resequencing", red, "yes");
 
 	//#### sample summary ####
 	QStringList imported_qc = db.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT id FROM processed_sample_qc WHERE processed_sample_id=ps.id)");
@@ -306,6 +315,27 @@ void SequencingRunWidget::setQuality()
 	//prepare query
 	SqlQuery query = db.getQuery();
 	query.prepare("UPDATE processed_sample SET quality='" + quality + "' WHERE id=:0");
+
+	int col = ui_->samples->columnIndex("sample");
+	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+	foreach (int row, selected_rows)
+	{
+		QString ps_name = ui_->samples->item(row, col)->text();
+		QString ps_id = db.processedSampleId(ps_name);
+		query.bindValue(0, ps_id);
+		query.exec();
+	}
+
+	updateGUI();
+}
+
+void SequencingRunWidget::scheduleForResequencing()
+{
+	NGSD db;
+
+	//prepare query
+	SqlQuery query = db.getQuery();
+	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=TRUE WHERE id=:0");
 
 	int col = ui_->samples->columnIndex("sample");
 	QList<int> selected_rows = ui_->samples->selectedRows().toList();
