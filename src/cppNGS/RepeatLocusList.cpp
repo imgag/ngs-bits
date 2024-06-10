@@ -30,6 +30,13 @@ void RepeatLocus::setAllele2(const QByteArray& allele2)
 	allele2_ = allele2;
 }
 
+QByteArray RepeatLocus::alleles() const
+{
+	QByteArray output = allele1_;
+	if (!allele2_.isEmpty()) output += "/" + allele2_;
+	return output;
+}
+
 void RepeatLocus::setFilters(const QByteArrayList& filters)
 {
 	QByteArrayList tmp;
@@ -161,7 +168,6 @@ void RepeatLocusList::load(QString filename)
 			//filters
 			rl.setFilters(re.filters());
 
-			//TODO Marc/Leon: handling of allele1/2 in general and on chrX
 			//genotype
 			QByteArrayList genotypes = re.formatValueFromSample("AC").trimmed().split('/');
 			rl.setAllele1(genotypes[0]);
@@ -243,7 +249,7 @@ const QDateTime& RepeatLocusList::callDate() const
 	return call_date_;
 }
 
-QByteArray RepeatLocusList::RepeatLocusList::typeToString(ReCallerType type)
+QByteArray RepeatLocusList::typeToString(ReCallerType type)
 {
 	if (type==ReCallerType::INVALID) return "invalid";
 	if (type==ReCallerType::EXPANSIONHUNTER) return "ExpansionHunter";

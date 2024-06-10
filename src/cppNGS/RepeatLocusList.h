@@ -29,6 +29,9 @@ public:
 	const QByteArray& allele2() const { return allele2_; }
 	void setAllele2(const QByteArray& allele2);
 
+	//Returns the repeat lengths for all alleles. If allele 2 is missing, it is omitted.
+	QByteArray alleles() const;
+
 	const QByteArrayList& filters() const { return filters_; }
 	void setFilters(const QByteArrayList& filters);
 

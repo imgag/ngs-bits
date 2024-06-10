@@ -140,10 +140,17 @@ void AnalysisInformationWidget::updateGUI()
 			ui_.table->setItem(3, 4, GUIHelper::createTableItem(call_info.sv_caller + " " + call_info.sv_caller_version));
 
 			//REs
-			qDebug() << ps_id_;
-			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::REPEAT_EXPANSIONS);
-			ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
-			ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			try
+			{
+				file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::REPEAT_EXPANSIONS);
+				ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
+				ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			}
+			catch (Exception& e) //TODO Marc: remove when GSvar server knows the file type
+			{
+				ui_.table->setItem(4, 0, GUIHelper::createTableItem("???"));
+				ui_.table->setItem(4, 1, GUIHelper::createTableItem("???"));
+			}
 			if (!file.exists) ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
 			ui_.table->setItem(4, 2, GUIHelper::createTableItem(QString::number(import_status.res) + " REs"));
 			ui_.table->setItem(4, 3, GUIHelper::createTableItem(call_info.re_call_date));

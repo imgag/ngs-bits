@@ -406,9 +406,7 @@ void RepeatExpansionWidget::displayRepeats()
 		setCell(row_idx, "filters", re.filters().join(","));
 
 		//genotype
-		QString genotype = re.allele1();
-		if (!re.allele2().isEmpty()) genotype += " / " + re.allele2();
-		setCell(row_idx, "genotype", genotype);
+		setCell(row_idx, "genotype", re.alleles());
 
 		//genotype CI
 		setCell(row_idx, "genotype CI", re.confidenceIntervals());

@@ -1392,6 +1392,157 @@
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="ReList">
+					<xs:annotation>
+						<xs:documentation>Repeat expansions of interest</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Re" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Reprentation of a single repeat expansion</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>name of the RE. use for display purposes only! To dientify a RE, use region and repeat unit</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="chr" use="required">
+										<xs:annotation>
+											<xs:documentation>chromosome</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="chr1"/>
+												<xs:enumeration value="chr2"/>
+												<xs:enumeration value="chr3"/>
+												<xs:enumeration value="chr4"/>
+												<xs:enumeration value="chr5"/>
+												<xs:enumeration value="chr6"/>
+												<xs:enumeration value="chr7"/>
+												<xs:enumeration value="chr8"/>
+												<xs:enumeration value="chr9"/>
+												<xs:enumeration value="chr10"/>
+												<xs:enumeration value="chr11"/>
+												<xs:enumeration value="chr12"/>
+												<xs:enumeration value="chr13"/>
+												<xs:enumeration value="chr14"/>
+												<xs:enumeration value="chr15"/>
+												<xs:enumeration value="chr16"/>
+												<xs:enumeration value="chr17"/>
+												<xs:enumeration value="chr18"/>
+												<xs:enumeration value="chr19"/>
+												<xs:enumeration value="chr20"/>
+												<xs:enumeration value="chr21"/>
+												<xs:enumeration value="chr22"/>
+												<xs:enumeration value="chrX"/>
+												<xs:enumeration value="chrY"/>
+												<xs:enumeration value="chrMT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="start" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="repeat_unit" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>sequence of the repeat unit</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="allele1" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>allele 1 repeat count</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="allele2" type="xs:int">
+										<xs:annotation>
+											<xs:documentation>allele 2 repeat count</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="causal" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>If the variant is causal in the context of the diagnostics phenotype.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="de_novo" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is de-novo</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comp_het" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is compound-heterozygous</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="mosaic" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is a mosaic variant</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="inheritance">
+										<xs:annotation>
+											<xs:documentation>inheritance mode of the variant (i.e. inheritance mode of the gene for this phenotype)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="AR"/>
+												<xs:enumeration value="AD"/>
+												<xs:enumeration value="XLR"/>
+												<xs:enumeration value="XLD"/>
+												<xs:enumeration value="MT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="comments_1st_assessor" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Comments of first assessor</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comments_2nd_assessor" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Comments of second</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="report_type">
+										<xs:annotation>
+											<xs:documentation>report type of the variant. Needed to distinguish different report type variants in case "all"was selected.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="diagnostic variant"/>
+												<xs:enumeration value="candidate variant"/>
+												<xs:enumeration value="incidental finding"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="re_caller" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>RE caller used</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="genome_build" use="required">
+							<xs:annotation>
+								<xs:documentation>genome build that the SV positions refer to e.g. GRCh37</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="GRCh38"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
 				<xs:element name="PrsList">
 					<xs:annotation>
 						<xs:documentation>List of polygenic risk scores that were calculated</xs:documentation>

@@ -1721,7 +1721,7 @@ int NGSD::repeatExpansionGenotypeId(int repeat_expansion_id, int processed_sampl
 RepeatLocus NGSD::repeatExpansionGenotype(int id)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT re.region, re.unit, reg.allele1, reg.allele1 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
+	query.prepare("SELECT re.region, re.repeat_unit, reg.allele1, reg.allele1 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
 	query.bindValue(0, id);
 	query.exec();
 
@@ -7595,17 +7595,16 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 			var_conf.comp_het = query.value("compound_heterozygous").toBool();
 			var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
 			var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
-			var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
 			var_conf.exclude_other = query.value("exclude_other").toBool();
 			var_conf.comments = query.value("comments").toString();
 			var_conf.comments2 = query.value("comments2").toString();
-			if (query.value("manual_allele1").toInt()>0)
+			if (!query.value("manual_allele1").isNull())
 			{
-				var_conf.manual_allele1 = query.value("manual_allele1").toString();
+				var_conf.manual_re_allele1 = query.value("manual_allele1").toString();
 			}
-			if (query.value("manual_allele2").toInt()>0)
+			if (!query.value("manual_allele2").isNull())
 			{
-				var_conf.manual_allele2 = query.value("manual_allele2").toString();
+				var_conf.manual_re_allele2 = query.value("manual_allele2").toString();
 			}
 
 			output->set(var_conf);
@@ -7685,7 +7684,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		SqlQuery query_new_re = getQuery();
 		query_new_re.prepare("INSERT INTO `report_configuration_re`(`report_configuration_id`, `repeat_expansion_genotype_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_phenotype`, `exclude_other`, `comments`, `comments2`, `manual_allele1`, `manual_allele2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
 		SqlQuery query_update_re = getQuery();
-		query_update_re.prepare("UPDATE `report_configuration_re` SET `report_configuration_id`=:0, `repeat_expansion_genotype_id`=:1, `type`=:2, `causal`=:3, `inheritance`=:4, `de_novo`=:5, `mosaic`=:6, `compound_heterozygous`=:7, `exclude_artefact`=:8, `exclude_phenotype`=:9, `exclude_other`=:10, `comments`=:11, `comments2`=:12, `manual_allele1`=:13, `manual_allele1`=:14 WHERE `id`=:15");
+		query_update_re.prepare("UPDATE `report_configuration_re` SET `report_configuration_id`=:0, `repeat_expansion_genotype_id`=:1, `type`=:2, `causal`=:3, `inheritance`=:4, `de_novo`=:5, `mosaic`=:6, `compound_heterozygous`=:7, `exclude_artefact`=:8, `exclude_phenotype`=:9, `exclude_other`=:10, `comments`=:11, `comments2`=:12, `manual_allele1`=:13, `manual_allele2`=:14 WHERE `id`=:15");
 		SqlQuery query = getQuery();
 
 		QList<ReportVariantConfiguration> rvc_to_update;
@@ -8028,8 +8027,8 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query.bindValue(10, var_conf.exclude_other);
 				query.bindValue(11, var_conf.comments.isEmpty() ? "" : var_conf.comments);
 				query.bindValue(12, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-				query.bindValue(13, var_conf.manual_allele1.isEmpty() ? QVariant(QVariant::Int) : var_conf.manual_allele1.toInt());
-				query.bindValue(14, var_conf.manual_allele2.isEmpty() ? QVariant(QVariant::Int) : var_conf.manual_allele2.toInt());
+				query.bindValue(13, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele1.toInt() : QVariant(QVariant::Int));
+				query.bindValue(14, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele2.toInt() : QVariant(QVariant::Int));
 
 				if (var_conf.id < 0)
 				{
@@ -8148,6 +8147,7 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration_cnv` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration_sv` WHERE `report_configuration_id`=" + rc_id);
+	query.exec("DELETE FROM `report_configuration_re` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration_other_causal_variant` WHERE report_configuration_id=" + rc_id);
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
 }

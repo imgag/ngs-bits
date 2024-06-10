@@ -166,19 +166,19 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 		}
 		else errors << "SV end position of 2nd breakpoint is manually set for variant which is not a SV!";
 	}
-	if (!manual_allele1.isEmpty())
+	if (!manual_re_allele1.isEmpty())
 	{
 		if (variant_type==VariantType::RES)
 		{
-			if(!manualAllele1IsValid()) errors << "manual allele 1 is set, but not a valid integer. Value is '" + manual_allele1 + "'";
+			if(!manualReAllele1IsValid()) errors << "manual allele 1 is set, but not a valid integer. Value is '" + manual_re_allele1 + "'";
 		}
 		else errors << "RE allele 1 is manually set for variant which is not a RE!";
 	}
-	if (!manual_allele2.isEmpty())
+	if (!manual_re_allele2.isEmpty())
 	{
 		if (variant_type==VariantType::RES)
 		{
-			if(!manualAllele2IsValid()) errors << "manual allele 2 is set, but not a valid integer. Value is '" + manual_allele2 + "'";
+			if(!manualReAllele2IsValid()) errors << "manual allele 2 is set, but not a valid integer. Value is '" + manual_re_allele2 + "'";
 		}
 		else errors << "RE allele 2 is manually set for variant which is not a RE!";
 	}
@@ -239,7 +239,7 @@ bool ReportVariantConfiguration::isManuallyCurated() const
 	}
 	else if (variant_type==VariantType::RES)
 	{
-		return manualAllele1IsValid() || manualAllele2IsValid();
+		return manualReAllele1IsValid() || manualReAllele2IsValid();
 	}
 
 	THROW(ArgumentException, "ReportVariantConfiguration::isManuallyCurated() called on invalid variant type!");
@@ -430,23 +430,23 @@ void ReportVariantConfiguration::updateSv(BedpeLine& sv, const QByteArrayList& a
 	}
 }
 
-bool ReportVariantConfiguration::manualAllele1IsValid() const
+bool ReportVariantConfiguration::manualReAllele1IsValid() const
 {
-	if (manual_allele1.isEmpty()) return false;
+	if (manual_re_allele1.isEmpty()) return false;
 
 	bool ok = false;
-	int value = manual_allele1.toInt(&ok);
+	int value = manual_re_allele1.toInt(&ok);
 	if (!ok) return false;
 
 	return value>=0;
 }
 
-bool ReportVariantConfiguration::manualAllele2IsValid() const
+bool ReportVariantConfiguration::manualReAllele2IsValid() const
 {
-	if (manual_allele2.isEmpty()) return false;
+	if (manual_re_allele2.isEmpty()) return false;
 
 	bool ok = false;
-	int value = manual_allele2.toInt(&ok);
+	int value = manual_re_allele2.toInt(&ok);
 	if (!ok) return false;
 
 	return value>=0;
@@ -454,13 +454,13 @@ bool ReportVariantConfiguration::manualAllele2IsValid() const
 
 void ReportVariantConfiguration::updateRe(RepeatLocus& re) const
 {
-	if (manualAllele1IsValid())
+	if (manualReAllele1IsValid())
 	{
-		re.setAllele1(manual_allele1.toUtf8());
+		re.setAllele1(manual_re_allele1.toUtf8());
 	}
-	if (manualAllele2IsValid())
+	if (manualReAllele2IsValid())
 	{
-		re.setAllele2(manual_allele2.toUtf8());
+		re.setAllele2(manual_re_allele2.toUtf8());
 	}
 }
 
