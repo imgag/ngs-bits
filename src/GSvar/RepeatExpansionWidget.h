@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTableWidget>
 #include "PhenotypeList.h"
+#include "RepeatLocusList.h"
 #include "ui_RepeatExpansionWidget.h"
 #include "NGSD.h"
 
@@ -13,7 +14,7 @@ class RepeatExpansionWidget
 	Q_OBJECT
 
 public:
-	RepeatExpansionWidget(QWidget* parent, QString vcf, QString sys_type);
+	RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_type);
 
 private slots:
     ///Context menu that shall appear if right click on repeat expansion
@@ -36,17 +37,25 @@ protected:
 	///Sets the cell decoration
 	void setCellDecoration(int row, QString column, QString tooltip, QColor bg_color=QColor());
 
+private slots:
+	void svHeaderDoubleClicked(int row);
+	void svHeaderContextMenu(QPoint pos);
+	void updateReportConfigHeaderIcon(int row);
+	void editReportConfiguration(int row);
+
 private:
 	Ui::RepeatExpansionWidget ui_;
+	const RepeatLocusList& res_;
 	QString sys_type_cutoff_col_;
+	QSharedPointer<ReportConfiguration> report_config_;
+	bool ngsd_enabled_;
+	bool rc_enabled_;
 
 	QColor red_ = QColor(255, 0, 0, 128);
 	QColor orange_ = QColor(255, 135, 60, 128);
 
-	//bool to switch to longread mode:
-	bool is_longread_ = false;
-
 	void loadDataFromVCF(QString vcf);
+	void displayRepeats();
 	void loadMetaDataFromNGSD();
 	void colorRepeatCountBasedOnCutoffs();
 };

@@ -1358,6 +1358,6 @@ private slots:
 		I_EQUAL(hgvs.intron_number, -1);
 	}
 
-	//TODO BUG: Error processing variant chr7:157009949 A>CGCGGCGGCG and transcript ENST00000252971.11: Coding sequence length must be multiple of three. (1 times, e.g. in DNA2206556A1_02)
-
+	//TODO Marc: Error processing variant chr7:157009949 A>CGCGGCGGCG and transcript ENST00000252971.11: Coding sequence length must be multiple of three. (1 times, e.g. in DNA2206556A1_02)
+	//TODO Marc: Error processing variant chr17:31229232 CGTA>TGTC: Coding sequence length must be multiple of three
 };

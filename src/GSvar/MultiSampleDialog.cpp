@@ -122,7 +122,6 @@ void MultiSampleDialog::checkLongread()
 		QSet<bool> is_longread_sample;
 		foreach (const SampleDetails& sample, samples_)
 		{
-			qDebug() << db_.getProcessedSampleData(db_.processedSampleId(sample.name)).processing_system_type;
 			is_longread_sample.insert(db_.getProcessedSampleData(db_.processedSampleId(sample.name)).processing_system_type == "lrGS");
 		}
 		if (is_longread_sample.size() > 1)

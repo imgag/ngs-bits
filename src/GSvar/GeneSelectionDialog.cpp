@@ -34,11 +34,6 @@ GeneSet GeneSelectionDialog::geneSet()
 	return genes;
 }
 
-void GeneSelectionDialog::setVariantFilterWidget(FilterWidget* variant_filter_widget)
-{
-	variant_filter_widget_ = variant_filter_widget;
-}
-
 void GeneSelectionDialog::phenotypesChanged()
 {
 	//update GUI

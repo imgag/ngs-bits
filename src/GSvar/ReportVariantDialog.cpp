@@ -40,11 +40,16 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	ui_.inheritance->addItems(ReportVariantConfiguration::getInheritanceModeOptions());
 	ui_.classification->addItems(ReportVariantConfiguration::getClassificationOptions());
 	ui_.rna_info->addItems(ReportVariantConfiguration::getRnaInfoOptions());
+	ui_.rna_info->setVisible(config.variant_type!=VariantType::RES);
 
 	//show classification when needed
 	bool show_classification = (config.variant_type==VariantType::CNVS || config.variant_type==VariantType::SVS);
 	ui_.classification->setVisible(show_classification);
 	ui_.label_classification->setVisible(show_classification);
+
+	//show exclude resons only when needed
+	ui_.exclude_frequency->setVisible(config.variant_type!=VariantType::RES);
+	ui_.exclude_mechanism->setVisible(config.variant_type!=VariantType::RES);
 
 	//show manual variant override options when needed
 	foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*")))
@@ -85,6 +90,14 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 			ui_.manual_sv_end_bnd->setVisible(false);
 			ui_.manual_sv_hgvs_type_bnd->setVisible(false);
 			ui_.manual_sv_hgvs_suffix_bnd->setVisible(false);
+		}
+	}
+	if (config_.variant_type==VariantType::RES)
+	{
+		ui_.manual_line->setVisible(true);
+		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*re.*")))
+		{
+			widget->setVisible(true);
 		}
 	}
 
@@ -131,7 +144,10 @@ void ReportVariantDialog::updateGUI()
 	ui_.exclude_other->setChecked(config_.exclude_other);
 	ui_.comments->setPlainText(config_.comments);
 	ui_.comments2->setPlainText(config_.comments2);
-	ui_.rna_info->setCurrentText(config_.rna_info);
+	if (config_.variant_type!=VariantType::RES)
+	{
+		ui_.rna_info->setCurrentText(config_.rna_info);
+	}
 
 	//manual curation small variants
 	if (config_.variant_type==VariantType::SNVS_INDELS && !config_.manual_var.trimmed().isEmpty())
@@ -162,6 +178,13 @@ void ReportVariantDialog::updateGUI()
 		ui_.manual_sv_hgvs_suffix->setText(config_.manual_sv_hgvs_suffix.trimmed());
 		ui_.manual_sv_hgvs_type_bnd->setText(config_.manual_sv_hgvs_type_bnd.trimmed());
 		ui_.manual_sv_hgvs_suffix_bnd->setText(config_.manual_sv_hgvs_suffix_bnd.trimmed());
+	}
+
+	//manual curation REs
+	if (config_.variant_type==VariantType::SVS)
+	{
+		ui_.manual_re_allele1->setText(config_.manual_re_allele1.trimmed());
+		ui_.manual_re_allele2->setText(config_.manual_re_allele2.trimmed());
 	}
 }
 
@@ -194,7 +217,10 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 	rvc.exclude_other = ui_.exclude_other->isChecked();
 	rvc.comments = ui_.comments->toPlainText();
 	rvc.comments2 = ui_.comments2->toPlainText();
-	rvc.rna_info = ui_.rna_info->currentText();
+	if (config_.variant_type!=VariantType::RES)
+	{
+		rvc.rna_info = ui_.rna_info->currentText();
+	}
 
 	//manual curation small variants
 	if (rvc.variant_type==VariantType::SNVS_INDELS)
@@ -225,6 +251,13 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 		rvc.manual_sv_hgvs_suffix = ui_.manual_sv_hgvs_suffix->text().trimmed();
 		rvc.manual_sv_hgvs_type_bnd = ui_.manual_sv_hgvs_type_bnd->text().trimmed();
 		rvc.manual_sv_hgvs_suffix_bnd = ui_.manual_sv_hgvs_suffix_bnd->text().trimmed();
+	}
+
+	//manual curation REs
+	if (rvc.variant_type==VariantType::RES)
+	{
+		rvc.manual_re_allele1 = ui_.manual_re_allele1->text().trimmed();
+		rvc.manual_re_allele2 = ui_.manual_re_allele2->text().trimmed();
 	}
 }
 

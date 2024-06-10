@@ -12,7 +12,7 @@
 #include "FileLocationProviderLocal.h"
 #include "VariantHgvsAnnotator.h"
 #include "OntologyTermCollection.h"
-
+#include "RepeatLocusList.h"
 #include <QThread>
 
 TEST_CLASS(NGSD_Test)
@@ -1035,6 +1035,8 @@ private slots:
 		cnvs.load(TESTDATA("data_in/cnvs_clincnv.tsv"));
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/sv_manta.bedpe"));
+		RepeatLocusList res;
+		res.load(TESTDATA("data_in/re_calls.vcf"));
 
 		QSharedPointer<ReportConfiguration> report_conf = QSharedPointer<ReportConfiguration>(new ReportConfiguration);
 		report_conf->setCreatedBy("ahmustm1");
@@ -1062,15 +1064,23 @@ private slots:
 		report_var_conf3.classification = "5";
 		report_var_conf3.report_type = "diagnostic variant";
 		report_conf->set(report_var_conf3);
+		ReportVariantConfiguration report_var_conf4;
+		report_var_conf4.variant_type = VariantType::RES;
+		report_var_conf4.variant_index = 83;
+		report_var_conf4.causal = false;
+		report_var_conf4.report_type = "diagnostic variant";
+		report_var_conf4.comments = "com1_re";
+		report_var_conf4.comments2 = "com2_re";
+		report_conf->set(report_var_conf4);
 
-		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
+		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
 		IS_TRUE(conf_id!=-1);
 
 		//check data - base config
-		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
@@ -1078,6 +1088,7 @@ private slots:
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
 		QDateTime last_update_time_before_update = report_conf2->lastUpdatedAt();
+
 		//check data - manual curation
 		ReportVariantConfiguration var_conf2 = report_conf2->variantConfig()[1]; //small variant - order changed because they are sorted by index
 		I_EQUAL(var_conf2.variant_index, 47);
@@ -1093,6 +1104,9 @@ private slots:
 		S_EQUAL(var_conf2.manual_sv_genotype, "");
 		S_EQUAL(var_conf2.manual_sv_start_bnd, "");
 		S_EQUAL(var_conf2.manual_sv_end_bnd, "");
+		var_conf2 = report_conf2->variantConfig()[3]; //RE
+		S_EQUAL(var_conf2.manual_re_allele1, "");
+		S_EQUAL(var_conf2.manual_re_allele2, "");
 
 		//change manual curation data
 		report_var_conf.manual_var = "chr2:47635523-47635523 ->TT";
@@ -1112,16 +1126,20 @@ private slots:
 		report_var_conf3.manual_sv_hgvs_type = "sv_type";
 		report_var_conf3.manual_sv_hgvs_suffix = "sv_suffix";
 		report_conf->set(report_var_conf3);
+		report_var_conf4.manual_re_allele2 = "47";
+		report_var_conf4.manual_re_allele1 = "11";
+		report_var_conf4.manual_re_allele2 = "47";
+		report_conf->set(report_var_conf4);
 
 		//update
 		QThread::sleep(1);
-		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
+		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
 		//check data
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
@@ -1133,7 +1151,7 @@ private slots:
 
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().date()==QDate::currentDate());
-		I_EQUAL(report_conf2->variantConfig().count(), 3);
+		I_EQUAL(report_conf2->variantConfig().count(), 4);
 		ReportVariantConfiguration var_conf = report_conf2->variantConfig()[1]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.id, 2)
 		I_EQUAL(var_conf.variant_index, 47);
@@ -1152,6 +1170,7 @@ private slots:
 		IS_FALSE(var_conf.exclude_phenotype);
 		S_EQUAL(var_conf.manual_var, "chr2:47635523-47635523 ->TT");
 		S_EQUAL(var_conf.manual_genotype, "hom");
+
 		var_conf = report_conf2->variantConfig()[0]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.id, 2)
 		I_EQUAL(var_conf.variant_index, 4);
@@ -1173,6 +1192,7 @@ private slots:
 		S_EQUAL(var_conf.manual_cnv_cn, "0");
 		S_EQUAL(var_conf.manual_cnv_hgvs_type, "cnv_type");
 		S_EQUAL(var_conf.manual_cnv_hgvs_suffix, "cnv_suffix");
+
 		var_conf = report_conf2->variantConfig()[2];
 		I_EQUAL(var_conf.id, 1)
 		I_EQUAL(var_conf.variant_index, 81);
@@ -1198,6 +1218,26 @@ private slots:
 		S_EQUAL(var_conf.manual_sv_hgvs_type, "sv_type");
 		S_EQUAL(var_conf.manual_sv_hgvs_suffix, "sv_suffix");
 
+		var_conf = report_conf2->variantConfig()[3];
+		I_EQUAL(var_conf.id, 1)
+		I_EQUAL(var_conf.variant_index, 83);
+		IS_FALSE(var_conf.causal);
+		S_EQUAL(var_conf.classification, "n/a");
+		S_EQUAL(var_conf.report_type, report_var_conf4.report_type);
+		IS_FALSE(var_conf.mosaic);
+		IS_FALSE(var_conf.exclude_artefact);
+		S_EQUAL(var_conf.comments, report_var_conf4.comments);
+		S_EQUAL(var_conf.comments2, report_var_conf4.comments2);
+		IS_FALSE(var_conf.de_novo);
+		IS_FALSE(var_conf.comp_het);
+		IS_FALSE(var_conf.exclude_frequency);
+		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_other);
+		IS_FALSE(var_conf.exclude_phenotype);
+		IS_TRUE(var_conf.variant_type == VariantType::RES);
+		S_EQUAL(var_conf.manual_re_allele1, "11");
+		S_EQUAL(var_conf.manual_re_allele2, "47");
+
 		//test modification
 		var_conf = report_conf2->variantConfig()[1];
 		var_conf.comments = "Test comment1";
@@ -1205,8 +1245,8 @@ private slots:
 		var_conf.causal = false;
 		var_conf.exclude_artefact = false;
 		report_conf2->set(var_conf);
-		conf_id2 = db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs);
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		conf_id2 = db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs, res);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		var_conf = report_conf2->variantConfig()[1];
 		I_EQUAL(var_conf.id, 2)
 		I_EQUAL(var_conf.variant_index, 47);
@@ -1227,21 +1267,21 @@ private slots:
 		S_EQUAL(var_conf.manual_genotype, "hom");
 
 		//finalizeReportConfig
-		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
+		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
 		IS_FALSE(db.reportConfigIsFinalized(conf_id));
 		db.finalizeReportConfig(conf_id, db.userId("ahmustm1"));
 		IS_TRUE(db.reportConfigIsFinalized(conf_id));
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		S_EQUAL(report_conf2->finalizedBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->finalizedAt().isValid());
 		//check finalized report config cannot be modified or deleted
-		IS_THROWN(ProgrammingException, db.setReportConfig(ps_id, report_conf, vl, cnvs, svs));
+		IS_THROWN(ProgrammingException, db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res));
 		IS_THROWN(ProgrammingException, db.deleteReportConfig(conf_id));
 
 		//check messages if variant is missing
 		vl.clear();
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
-		I_EQUAL(report_conf2->variantConfig().count(), 2);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
+		I_EQUAL(report_conf2->variantConfig().count(), 3);
 		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 
 		//deleteReportConfig
@@ -1844,6 +1884,8 @@ private slots:
 		cnvs.load(TESTDATA("../cppNGS-TEST/data_in/panel_cnvs_clincnv.tsv"));
 		BedpeFile svs;
 		svs.load(TESTDATA("/data_in/sv_manta.bedpe"));
+		RepeatLocusList res;
+		res.load(TESTDATA("data_in/re_calls.vcf"));
 
 		PrsTable prs;
 		prs.load(TESTDATA("../cppNGS-TEST/data_in/panel_prs.tsv"));
@@ -1863,7 +1905,7 @@ private slots:
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
 		QSharedPointer<StatisticsService> statistics_service = QSharedPointer<StatisticsService>(new StatisticsServiceLocal());
-		GermlineReportGeneratorData data(GenomeBuild::HG38, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts, *(statistics_service));
+		GermlineReportGeneratorData data(GenomeBuild::HG38, "NA12878_03", variants, cnvs, svs, res, prs, report_settings, filters, preferred_transcripts, *(statistics_service));
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
 		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
 		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");
@@ -1972,6 +2014,19 @@ private slots:
 			var_conf.manual_sv_end_bnd = "2301870";
 			var_conf.manual_sv_hgvs_type = "sv_type";
 			var_conf.manual_sv_hgvs_suffix = "sv_suffix";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::RES, 1)); //RE - DAB1
+			var_conf.variant_type = VariantType::RES;
+			var_conf.variant_index = 1;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
+			var_conf.manual_re_allele1 = "15";
+			var_conf.manual_re_allele2 = "30";
 			report_settings.report_config->set(var_conf);
 
 			OtherCausalVariant causal_variant;
@@ -2944,7 +2999,7 @@ private slots:
 		S_EQUAL(gene_ensg_mapping.value("PLEKHN1"), "ENSG00000187583");
 
 		//Test expression data import
-		//TODO rename table
+		//TODO Leon: rename table
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
 		int count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 102);
@@ -2975,7 +3030,7 @@ private slots:
 
 		//check imported values
 		QMap<QByteArray,int> gene2id = db.getGeneExpressionGene2IdMapping();
-		//TODO rename table
+		//TODO Leon: rename table
 		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5001 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000049249")))).toInt(), 20934);
 		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5001 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000215720")))).toFloat(), 116.816, 0.001);
 		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5002 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000229716")))).toInt(), 1371);

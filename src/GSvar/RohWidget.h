@@ -20,7 +20,7 @@ class RohWidget
 	Q_OBJECT
 
 public:
-	explicit RohWidget(QString filename, FilterWidget* filter_widget, QWidget *parent = 0);
+	RohWidget(QWidget* parent, QString filename);
 	~RohWidget();
 
 private slots:
@@ -38,9 +38,9 @@ private:
 	void addInfoLine(QString text);
 	void updateStatus(int shown, double size);
 
-	FilterWidget* var_filters;
-	Ui::RohWidget *ui;
-	RohList rohs;
+	Ui::RohWidget* ui_;
+	RohList rohs_;
+	FilterWidget* var_filters_;
 	QMap<QString, int> annotation_col_indices_;
 };
 

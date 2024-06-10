@@ -115,7 +115,7 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	QByteArray reply = makeGetApiCall("processed_sample_path", params, true);
 	if (reply.length() == 0)
 	{
-		THROW(Exception, "Could not get a GSvar file for the processed sample " + NGSD().processedSampleName(processed_sample_id));
+		THROW(Exception, "Could not get a " + FileLocation::typeToString(type) + " file for the processed sample " + NGSD().processedSampleName(processed_sample_id));
 	}
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);

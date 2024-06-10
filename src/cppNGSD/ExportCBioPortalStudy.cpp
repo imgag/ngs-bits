@@ -76,7 +76,7 @@ void CBioPortalExportSettings::addSample(SomaticReportSettings settings, SampleF
 
 	sample_list.append(name);
 	sample_files.append(files);
-	//TODO check if all necessary infos were entered
+	//TODO Alexander: check if all necessary infos were entered
 	report_settings.append(settings);
 
 	QString ps_id = db_.processedSampleId(name);
@@ -465,7 +465,7 @@ void ExportCBioPortalStudy::exportCaseList(const QString& out_folder)
 	cases_with_svs->write(sample_ids.join("\t") + "\n");
 	cases_with_cnvs->close();
 
-	//TODO other?
+	//TODO Alexander: other?
 }
 
 void ExportCBioPortalStudy::exportPatientData(const QString &out_folder)
@@ -609,7 +609,7 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder, bool debug)
 
 void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx)
 {
-	//TODO add switch for somatic vs Germline?
+	//TODO Alexander: add switch for somatic vs Germline?
 
 	QByteArray build = settings_.getGenomeBuild(sample_idx).toUtf8();
 	QByteArray sample_id = settings_.getSampleId(sample_idx).toUtf8();

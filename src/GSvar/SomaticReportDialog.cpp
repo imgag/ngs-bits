@@ -48,7 +48,7 @@ struct tmbInfo
 	}
 };
 
-SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReportSettings &settings, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
+SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReportSettings &settings, const CnvList& cnvs, const VariantList& germl_variants, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()

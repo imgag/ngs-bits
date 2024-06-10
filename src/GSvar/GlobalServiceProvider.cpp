@@ -134,6 +134,11 @@ const BedpeFile& GlobalServiceProvider::getSvList()
 	return mainWindow()->getSvList();
 }
 
+const RepeatLocusList& GlobalServiceProvider::getReList()
+{
+	return mainWindow()->getReList();
+}
+
 MainWindow* GlobalServiceProvider::mainWindow()
 {
 	foreach(QWidget* widget, QApplication::topLevelWidgets())
@@ -145,12 +150,28 @@ MainWindow* GlobalServiceProvider::mainWindow()
 	THROW(ProgrammingException, "Could not find main window!");
 }
 
+FilterWidget* GlobalServiceProvider::filterWidget()
+{
+	return mainWindow()->filterWidget();
+}
+
 void GlobalServiceProvider::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
 {
 	mainWindow()->startJob(worker, show_busy_dialog);
 }
 
-const PhenotypeList& GlobalServiceProvider::getPhenotypesFromSmallVariantFilter()
+const BedFile& GlobalServiceProvider::geneToRegions(QByteArray gene, NGSD& db)
 {
-	return mainWindow()->getPhenotypesFromSmallVariantFilter();
+	static QHash<QByteArray, BedFile> cache_;
+	gene = gene.trimmed().toUpper();
+	if (!cache_.contains(gene))
+	{
+		BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+		tmp.clearAnnotations();
+		tmp.extend(5000);
+		tmp.merge();
+		cache_[gene] = tmp;
+
+	}
+	return cache_[gene];
 }
