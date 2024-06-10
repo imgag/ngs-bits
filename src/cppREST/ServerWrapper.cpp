@@ -27,13 +27,6 @@ ServerWrapper::ServerWrapper(const quint16& port)
 		Log::warn("SSL key has not been specified in the config. Using a test key: " + ssl_key);
 	}
 
-	QFile keyFile(ssl_key);
-	if (!keyFile.open(QIODevice::ReadOnly))
-	{
-		Log::error("Unable to load SSL key");
-		return;
-	}
-
 	QString ssl_chain = ServerHelper::getStringSettingsValue("ssl_certificate_chain");
 	QList<QSslCertificate> ca_certificates;
 	if (!ssl_chain.isEmpty())
@@ -43,13 +36,19 @@ ServerWrapper::ServerWrapper(const quint16& port)
 	}
 
 	QSslCertificate cert(&certFile);
-	QSslKey key(&keyFile, QSsl::Rsa);
+    QSslKey key = readPrivateKey(ssl_key);
+    if (key.isNull())
+    {
+        Log::error("SSL private key is not set");
+        return;
+    }
 
 	server_ = new SslServer(this);
 
 	QSslConfiguration config = server_->getSslConfiguration();
 	config.setLocalCertificate(cert);
 	config.setPrivateKey(key);
+
 
 	if (ca_certificates.size()>0)
 	{
@@ -183,6 +182,34 @@ ClientInfo ServerWrapper::readClientInfoFromFile()
 	Log::info("Reading the client version information from the settings: " + info.version);
 	if (info.version.isEmpty()) Log::warn("Client version information file is empty");
 	return info;
+}
+
+QSslKey ServerWrapper::readPrivateKey(const QString& filePath, const QByteArray& passPhrase)
+{
+    QFile keyFile(filePath);
+    if (!keyFile.open(QIODevice::ReadOnly)) {
+        Log::error("Unable to open key file: " + filePath);
+        return QSslKey();
+    }
+
+    QByteArray keyData = keyFile.readAll();
+    keyFile.close();
+
+    Log::info(filePath);
+    if (filePath.endsWith(".key", Qt::CaseInsensitive))
+    {
+        Log::info("RSA encryption detected");
+        QSslKey privateKey(keyData, QSsl::Rsa);
+        return privateKey;
+    }
+
+    Log::info("ECDSA encryption detected");
+    QSslKey privateKey(keyData, QSsl::Ec, QSsl::Pem, QSsl::PrivateKey, passPhrase);
+    if (privateKey.isNull()) {
+        Log::error("Failed to parse private key");
+    }
+
+    return privateKey;
 }
 
 QByteArray ServerWrapper::readUserNotificationFromFile()

@@ -297,6 +297,11 @@
      </column>
      <column>
       <property name="text">
+       <string>reads supporting</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>max. normal</string>
       </property>
      </column>

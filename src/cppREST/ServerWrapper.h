@@ -35,6 +35,7 @@ public slots:
 private:
 	ClientInfo readClientInfoFromFile();
 	QByteArray readUserNotificationFromFile();
+    QSslKey readPrivateKey(const QString &filePath, const QByteArray &passPhrase = QByteArray());
 	SslServer *server_;
     bool is_running_;
     QThreadPool cleanup_pool_;

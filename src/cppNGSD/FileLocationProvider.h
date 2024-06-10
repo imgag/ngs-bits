@@ -29,6 +29,8 @@ public:
 	virtual FileLocation getAnalysisUpdFile() const = 0;
 	//Returns the repeat expansion locus image of the current analysis
 	virtual FileLocation getRepeatExpansionImage(QString locus) const = 0;
+	//Returns the repeat expansion locus image of the current analysis
+	virtual FileLocation getRepeatExpansionHistogram(QString locus) const = 0;
 	//Returns sample-specific qcML files.
 	virtual FileLocationList getQcFiles() const = 0;
 

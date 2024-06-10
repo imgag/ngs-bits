@@ -542,6 +542,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `folder_override` TEXT NULL DEFAULT NULL COMMENT 'Override for sample folder',
   `folder_override_client` TEXT NULL DEFAULT NULL COMMENT 'Override for sample folder used in GSvar client',
+  `scheduled_for_resequencing` BOOLEAN NOT NULL DEFAULT FALSE,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `sample_psid_unique` (`sample_id` ASC, `process_id` ASC),
   INDEX `fk_processed_sample_samples1` (`sample_id` ASC),
@@ -2454,6 +2455,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `comments` TEXT DEFAULT NULL,
   `type` ENUM('diagnostic - in-house testing', 'diagnostic - external testing', 'research', 'low evidence') NOT NULL,
   `staticial_cutoff_wgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for short-read WGS (this cutoff can deviate from min_pathogenic when RE length cannot be determined accurately from NGSD)',
+  `staticial_cutoff_lrgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for long-read WGS',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `repeat_id` (`name` ASC),
   UNIQUE INDEX `region_unit` (`region` ASC, `repeat_unit` ASC)
