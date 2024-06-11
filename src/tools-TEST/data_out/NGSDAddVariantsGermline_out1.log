@@ -7,11 +7,11 @@ Imported 46 detected variants
 DEBUG: Skipped 303 high-AF variants!
 
 ### importing CNVs for NA12878_18 ###
-caller: CnvHunter
-caller version: 2019_09-19-g3268388b
-DEBUG: callset quality: {"cnvs":"31 (median: 1)","qc_errors":"","ref_correl":"0.941 (median: 0.960)"}
-DEBUG: chr1:181022444-181023138 cn:3 quality: {"region_zscores":"3.52","regions":"1"}
-DEBUG: chr11:2191793-2193322 cn:1 quality: {"region_zscores":"-4.48,-3.45,-4.27","regions":"3"}
-DEBUG: chrX:70621067-70626716 cn:3 quality: {"region_zscores":"5.37,2.99","regions":"2"}
+caller: ClinCNV
+caller version: v1.16.1
+DEBUG: callset quality: {"fraction of outliers":"0.039","gender of sample":"F","high-quality cnvs":"49","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}
+DEBUG: chr1:248756110-248790449 cn:0 quality: {"loglikelihood":"200","qvalue":"0","regions":"2"}
+DEBUG: chr2:89156855-89160453 cn:1 quality: {"loglikelihood":"98","qvalue":"0","regions":"3"}
+DEBUG: chr2:89160714-89161453 cn:0 quality: {"loglikelihood":"217","qvalue":"0","regions":"3"}
 Imported cnvs: 3
 Skipped low-quality cnvs: 0

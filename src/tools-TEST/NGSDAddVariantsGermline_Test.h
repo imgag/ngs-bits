@@ -7,6 +7,7 @@ TEST_CLASS(NGSDAddVariantsGermline_Test)
 Q_OBJECT
 private slots:
 
+
 	void test_panel()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
@@ -44,6 +45,7 @@ private slots:
 		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "1.0.0");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='3999'").toDate().toString(Qt::ISODate), "2023-11-03");
 	}
+
 
 	void test_wes()
 	{
