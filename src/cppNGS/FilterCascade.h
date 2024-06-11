@@ -806,18 +806,6 @@ class CPPNGSSHARED_EXPORT FilterCnvAlleleFrequency
 		void apply(const CnvList& cnvs, FilterResult& result) const override;
 };
 
-
-//Filter CNV z-score
-class CPPNGSSHARED_EXPORT FilterCnvZscore
-	: public FilterBase
-{
-	public:
-		FilterCnvZscore();
-		QString toText() const override;
-		void apply(const CnvList& cnvs, FilterResult& result) const override;
-};
-
-
 //Filter CNV log-likelihood
 class CPPNGSSHARED_EXPORT FilterCnvLoglikelihood
 	: public FilterBase

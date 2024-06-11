@@ -120,7 +120,6 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 enum class CnvCallerType
 {
 	INVALID,
-	CNVHUNTER,
 	CLINCNV
 };
 
@@ -128,8 +127,6 @@ enum class CnvCallerType
 enum class CnvListType
 {
 	INVALID,
-	CNVHUNTER_GERMLINE_SINGLE, //TODO Marc - remove support for CnvHunter
-	CNVHUNTER_GERMLINE_MULTI,
 	CLINCNV_GERMLINE_SINGLE,
 	CLINCNV_GERMLINE_MULTI,
 	CLINCNV_TUMOR_NORMAL_PAIR,
@@ -240,7 +237,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		long long totalCnvSize() const;
 
 		///Returns call data from original file (e.g. version, caller...), specify ps_name in case of CNVHunter samples
-		static CnvListCallData getCallData(const CnvList& cnvs, QString filename, QString ps_name = "", bool ignore_inval_header_lines = false);
+		static CnvListCallData getCallData(const CnvList& cnvs, QString filename, bool ignore_inval_header_lines = false);
 
 
 		///Returns the reference copy number for a given CNV

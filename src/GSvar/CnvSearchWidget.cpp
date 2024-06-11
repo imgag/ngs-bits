@@ -192,13 +192,6 @@ void CnvSearchWidget::search()
 				values << "correlation to reference samples: " + json.object().value("mean correlation to reference samples").toString();
 				table.setValue(r, col_cs_metrics, values.join(" "));
 			}
-			else if (row.value(col_caller)=="CnvHunter")
-			{
-				QStringList values;
-				values << "cnvs: " + json.object().value("cnvs").toString();
-				values << "correlation to reference samples: " + json.object().value("ref_correl").toString();
-				table.setValue(r, col_cs_metrics, values.join(" "));
-			}
 		}
 
 		//(3) process cnv metrics

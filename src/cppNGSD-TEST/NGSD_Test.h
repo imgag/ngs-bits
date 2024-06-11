@@ -1316,12 +1316,6 @@ private slots:
 		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "0");
 		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"loglikelihood\":\"200\",\"qvalue\":\"0\",\"regions\":\"2\"}");
 
-		cnv_list.load(TESTDATA("data_in/cnvs_cnvhunter.tsv"));
-		cnv_id = db.addCnv(1, cnv_list[1], cnv_list);
-		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "1");
-		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"region_zscores\":\"-4.48,-3.45,-4.27\",\"regions\":\"3\"}");
-		S_EQUAL(cnv_id, "7");
-
 		//cnvCallsetMetrics (of sample)
 		QHash<QString, QString> callset_metrics = db.cnvCallsetMetrics(1);
 		I_EQUAL(callset_metrics.count(), 6);

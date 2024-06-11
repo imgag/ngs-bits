@@ -1295,14 +1295,14 @@ void MainWindow::on_actionRE_triggered()
 	if (variants_.type()!=GERMLINE_SINGLESAMPLE) return;
 
 	//show dialog
-	QString sys_type = "";
+	QString sys_name = "";
 	if (LoginManager::active())
 	{
 		NGSD db;
 		QString ps_id = db.processedSampleId(germline_report_ps_);
-		sys_type = db.getProcessedSampleData(ps_id).processing_system_type;
+		sys_name = db.getProcessedSampleData(ps_id).processing_system;
 	}
-	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, res_, report_settings_.report_config, sys_type);
+	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, res_, report_settings_.report_config, sys_name);
 	auto dlg = GUIHelper::createDialog(widget, "Repeat expansions of " + variants_.analysisName());
 
 	addModelessDialog(dlg, true);

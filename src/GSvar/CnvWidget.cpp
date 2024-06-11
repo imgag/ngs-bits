@@ -197,8 +197,8 @@ void CnvWidget::addInfoLine(QString text)
 			metric = metric.mid(1).trimmed();
 		}
 
-		//special handling for CnvHunter/trio output (metrics are prefixed with processed sample name)
-		if (cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI || cnvs_.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || cnvs_.type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+		//special handling for trio output (metrics are prefixed with processed sample name)
+		if (cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI)
 		{
 			metric = metric.split(" ").mid(1).join(" ");
 		}

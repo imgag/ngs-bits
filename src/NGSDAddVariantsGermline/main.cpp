@@ -281,20 +281,8 @@ public:
 				}
 				else //quality metrics
 				{
-					if (pair.key.startsWith(ps_name + " ")) //remove sample name prefix (CnvHunter only)
-					{
-						pair.key = pair.key.mid(ps_name.length()+1).trimmed();
-					}
-
 					quality_metrics.insert(pair.key, pair.value);
 				}
-			}
-		}
-		if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
-		{
-			if (call_date.isNull()) //fallback for CnvHunter file which does not contain the date!
-			{
-				call_date = QFileInfo(filename).created();
 			}
 		}
 

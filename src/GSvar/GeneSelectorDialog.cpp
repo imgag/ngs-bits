@@ -22,7 +22,7 @@ GeneSelectorDialog::GeneSelectorDialog(QString sample_name, QWidget* parent)
 
 	// create tool tips for details header cells
 	ui->details->horizontalHeaderItem(5)->setToolTip("<html><head/><body><p>Lists number of (high-quality) CNVs of the current sample which overlaps the transcript region of the selected genes.</p></body></html>");
-	ui->details->horizontalHeaderItem(6)->setToolTip("<html><head/><body><p>Lists number of low-quality CNVs (marked as failing by CnvHunter or log-likelihood &le; 20 in case of ClinCNV) of the current sample which overlaps the transcript region of the selected gene as 'bad qc' and the number of transcript regions which are not present in the copy-number seg file as 'not covered' </p></body></html>");
+	ui->details->horizontalHeaderItem(6)->setToolTip("<html><head/><body><p>Lists number of low-quality CNVs (log-likelihood &le; 20) of the current sample which overlaps the transcript region of the selected gene as 'bad qc' and the number of transcript regions which are not present in the copy-number seg file as 'not covered' </p></body></html>");
 
 	connect(ui->update_btn, SIGNAL(pressed()), this, SLOT(updateGeneTable()));
 	connect(ui->details, SIGNAL(cellChanged(int,int)), this, SLOT(geneTableItemChanged(int, int)));
@@ -79,7 +79,6 @@ void GeneSelectorDialog::updateGeneTable()
 			if (parts.count()<5) THROW(FileParseException, "SEG file line invalid - less than 5 few tab-separated parts: " + line);
 
 			//determine if region QC failed
-			//CnvHunter: log2-ratio = "QC failed"
 			//ClinCNV: variance = "LowRawCoverage", "TooShortOrNA", "GCnormFailed", ...
 			bool ok = true;
 			parts[4].toDouble(&ok);

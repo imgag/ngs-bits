@@ -7,7 +7,6 @@ TEST_CLASS(NGSDAddVariantsGermline_Test)
 Q_OBJECT
 private slots:
 
-	//CnvHunter cnvs
 	void test_panel()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
@@ -46,7 +45,6 @@ private slots:
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='3999'").toDate().toString(Qt::ISODate), "2023-11-03");
 	}
 
-	//ClinCNV cnvs
 	void test_wes()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");

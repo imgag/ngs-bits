@@ -2628,14 +2628,7 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 	{
 		const QByteArray& col_name = cnv_list.annotationHeaders()[i];
 		const QByteArray& entry = cnv.annotations()[i];
-		if (caller==CnvCallerType::CNVHUNTER)
-		{
-			if (col_name=="region_zscores")
-			{
-				quality_metrics.insert(QString(col_name), QString(entry));
-			}
-		}
-		else if (caller==CnvCallerType::CLINCNV)
+		if (caller==CnvCallerType::CLINCNV)
 		{
 			if (col_name=="loglikelihood")
 			{
@@ -5236,10 +5229,6 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 		QJsonDocument qc_metrics = QJsonDocument::fromJson(query.value(0).toByteArray());
 		bool ok = false;
 		QString metric_string = qc_metrics.object().take(metric_name).toString();
-		if (metric_string.contains(" (")) //special handling of CnvHunter metrics that contains the median in brackets)
-		{
-			metric_string = metric_string.split(" (").at(0);
-		}
 		double metric_numeric = metric_string.toDouble(&ok);
 		if (ok && BasicStatistics::isValidFloat(metric_numeric)) output << metric_numeric;
 	}
