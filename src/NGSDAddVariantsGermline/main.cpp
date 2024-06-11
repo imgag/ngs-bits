@@ -581,6 +581,9 @@ public:
 
 		//add repeat expansions
 		int re_imported = 0;
+		int skipped_not_ngsd = 0;
+		int skipped_no_gt = 0;
+		int skipped_invalid = 0;
 		for(int r=0; r<res.count(); ++r)
 		{
 			const RepeatLocus& re = res[r];
@@ -590,13 +593,22 @@ public:
 			if (repeat_id==-1)
 			{
 				if (debug) out << "Skipped repeat '" << re.toString(true, false) << "' because it is not in NGSD!" << endl;
+				++skipped_not_ngsd;
 				continue;
 			}
 
-			//check genotypes are numeric
+			//check genotypes data is available
+			if (re.allele1().isEmpty())
+			{
+				if (debug) out << "Skipped repeat '" << re.toString(true, true) << "' because genotype could not be determined." << endl;
+				++skipped_no_gt;
+				continue;
+			}
+
 			if (!re.isValid())
 			{
 				if (debug) out << "Skipped repeat '" << re.toString(true, true) << "' because it is not valid!" << endl;
+				++skipped_invalid;
 				continue;
 			}
 
@@ -611,7 +623,9 @@ public:
 		}
 
 		out << "Imported REs: " << re_imported << endl;
-		out << "Skipped REs not found in NGSD: " << res.count() - re_imported << endl;
+		out << "Skipped REs not found in NGSD: " << skipped_not_ngsd << endl;
+		out << "Skipped REs without genotype: " << skipped_no_gt << endl;
+		out << "Skipped REs not valid: " << skipped_invalid  << " (should not happen)" << endl;
 
 		//output timing
 		if (!no_time)
