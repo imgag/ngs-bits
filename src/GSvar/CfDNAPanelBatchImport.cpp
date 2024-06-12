@@ -61,7 +61,8 @@ void CfDNAPanelBatchImport::fillTable()
 		ui_->tw_import_table->setItem(row_idx, 2, new QTableWidgetItem(QString(input_table_.at(row_idx).vcf_file_path)));
 	}
 
-	GUIHelper::resizeTableCells(ui_->tw_import_table, 300);
+	GUIHelper::resizeTableCellWidths(ui_->tw_import_table, 300);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->tw_import_table);
 }
 
 void CfDNAPanelBatchImport::writeToDbImportLog(const QString& text, bool critical)

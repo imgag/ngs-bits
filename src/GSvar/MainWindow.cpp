@@ -233,7 +233,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("gene: BRCA2", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
 		debug_btn->menu()->addAction("processed sample: NA12878_58", this, SLOT(openDebugTab()));
-		debug_btn->menu()->addAction("processed sample: NA12878_45", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("processed sample: NA12878x3_28", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addAction("processed sample: 23014LRa023L2_01", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}

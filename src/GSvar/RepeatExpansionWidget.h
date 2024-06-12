@@ -14,7 +14,7 @@ class RepeatExpansionWidget
 	Q_OBJECT
 
 public:
-	RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_type);
+	RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_name);
 
 private slots:
     ///Context menu that shall appear if right click on repeat expansion
@@ -46,6 +46,8 @@ private slots:
 private:
 	Ui::RepeatExpansionWidget ui_;
 	const RepeatLocusList& res_;
+	QString sys_name_;
+	QString sys_type_;
 	QString sys_type_cutoff_col_;
 	QSharedPointer<ReportConfiguration> report_config_;
 	bool ngsd_enabled_;

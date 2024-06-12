@@ -584,7 +584,8 @@ void ExpressionGeneWidget::showCohort()
 		{
 			cohort_table_->setItem(r, 0, GUIHelper::createTableItem(cohort_samples.at(r)));
 		}
-		GUIHelper::resizeTableCells(cohort_table_);
+		GUIHelper::resizeTableCellWidths(cohort_table_);
+		GUIHelper::resizeTableCellHeightsToFirst(cohort_table_);
 
 		//add copy button
 		QWidget* h_box = new QWidget();
@@ -982,7 +983,8 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 		ui_->expression_data->sortByColumn(7, Qt::DescendingOrder);
 
 		//optimize table view
-		GUIHelper::resizeTableCells(ui_->expression_data, 200, true, 1000);
+		GUIHelper::resizeTableCellWidths(ui_->expression_data, 200);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_->expression_data);
 
 		//Set number of filtered / total rows
 		if (filter_result_.countPassing() >= max_rows)

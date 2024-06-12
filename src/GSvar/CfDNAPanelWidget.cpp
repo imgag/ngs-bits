@@ -100,7 +100,8 @@ void CfDNAPanelWidget::loadBedFile()
 		ui_->vars->setItem(i, 3, GUIHelper::createTableItem(line.annotations()[0].split(':')[0].replace("_", " ")));
 		ui_->vars->setItem(i, 4, GUIHelper::createTableItem(line.annotations()[0].split(':')[1]));
 	}
-	GUIHelper::resizeTableCells(ui_->vars, 250);
+	GUIHelper::resizeTableCellWidths(ui_->vars, 250);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->vars);
 	ui_->vars->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContentsOnFirstShow);
 
 }

@@ -292,10 +292,9 @@ void ReportDialog::updateVariantTable()
 		++row;
 	}
 
-
-
 	//resize table cells
-	GUIHelper::resizeTableCells(ui_.vars);
+	GUIHelper::resizeTableCellWidths(ui_.vars);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.vars);
 }
 
 void ReportDialog::updateCoverageCheckboxStatus()

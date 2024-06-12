@@ -184,7 +184,8 @@ void GeneSelectorDialog::updateGeneTable()
 	}
 
 	//resize
-	GUIHelper::resizeTableCells(ui->details);
+	GUIHelper::resizeTableCellWidths(ui->details);
+	GUIHelper::resizeTableCellHeightsToFirst(ui->details);
 
 	//reset cursor
 	QApplication::restoreOverrideCursor();

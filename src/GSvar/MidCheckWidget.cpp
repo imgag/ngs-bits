@@ -100,7 +100,8 @@ void MidCheckWidget::updateSampleTable()
 		ui_.samples->setItem(i, 2, GUIHelper::createTableItem(mid.mid1_name + " (" + mid.mid1_seq + ")"));
 		ui_.samples->setItem(i, 3, GUIHelper::createTableItem(mid.mid2_seq.isEmpty() ? "" : mid.mid2_name + " (" + mid.mid2_seq + ")"));
 	}
-	GUIHelper::resizeTableCells(ui_.samples);
+	GUIHelper::resizeTableCellWidths(ui_.samples);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.samples);
 }
 
 void MidCheckWidget::checkMids()

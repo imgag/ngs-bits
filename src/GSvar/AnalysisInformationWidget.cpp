@@ -1,5 +1,4 @@
 #include "AnalysisInformationWidget.h"
-#include "NGSD.h"
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
@@ -10,6 +9,7 @@
 AnalysisInformationWidget::AnalysisInformationWidget(QString ps_id, QWidget* parent)
 	: QWidget(parent)
 	, ui_()
+	, init_timer_(this, true)
 	, ps_id_(ps_id)
 {
 	ui_.setupUi(this);
@@ -17,7 +17,10 @@ AnalysisInformationWidget::AnalysisInformationWidget(QString ps_id, QWidget* par
 	QAction* action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyTableToClipboard()));
+}
 
+void AnalysisInformationWidget::delayedInitialization()
+{
 	updateGUI();
 }
 
@@ -25,9 +28,12 @@ void AnalysisInformationWidget::updateGUI()
 {
 	try
 	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
 		NGSD db;
 		QString ps = db.processedSampleName(ps_id_);
 		QString sample_id = db.sampleId(ps);
+		QString rc_id = QString::number(db.reportConfigId(ps_id_));
 
 		//analysis infos
 		int last_job_id = db.lastAnalysisOf(ps_id_);
@@ -79,6 +85,8 @@ void AnalysisInformationWidget::updateGUI()
 				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+			GUIHelper::resizeTableCellWidths(ui_.table);
+			GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
 
 			//small variants
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);
@@ -95,9 +103,11 @@ void AnalysisInformationWidget::updateGUI()
 					ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
 				}
 			}
-			ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.small_variants) + " small variants"));
+			ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.small_variants) + " small variants" + rcData(db, "report_configuration_variant", rc_id)));
 			ui_.table->setItem(1, 3, GUIHelper::createTableItem(call_info.small_call_date));
 			ui_.table->setItem(1, 4, GUIHelper::createTableItem(call_info.small_caller + " " + call_info.small_caller_version));
+			ui_.table->setItem(1, 4, GUIHelper::createTableItem(call_info.small_caller + " " + call_info.small_caller_version));
+			GUIHelper::resizeTableCellWidths(ui_.table);
 
 			//CNVs
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COPY_NUMBER_CALLS);
@@ -115,9 +125,10 @@ void AnalysisInformationWidget::updateGUI()
 					ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
 				}
 			}
-			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
+			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs" + rcData(db, "report_configuration_cnv", rc_id)));
 			ui_.table->setItem(2, 3, GUIHelper::createTableItem(call_info.cnv_call_date));
 			ui_.table->setItem(2, 4, GUIHelper::createTableItem(call_info.cnv_caller + " " + call_info.cnv_caller_version));
+			GUIHelper::resizeTableCellWidths(ui_.table);
 
 			//SVs
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::STRUCTURAL_VARIANTS);
@@ -135,28 +146,19 @@ void AnalysisInformationWidget::updateGUI()
 					ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
 				}
 			}
-			ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.svs) + " SVs"));
+			ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.svs) + " SVs" + rcData(db, "report_configuration_sv", rc_id)));
 			ui_.table->setItem(3, 3, GUIHelper::createTableItem(call_info.sv_call_date));
 			ui_.table->setItem(3, 4, GUIHelper::createTableItem(call_info.sv_caller + " " + call_info.sv_caller_version));
+			GUIHelper::resizeTableCellWidths(ui_.table);
 
 			//REs
-			try
-			{
-				file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::REPEAT_EXPANSIONS);
-				ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
-				ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			}
-			catch (Exception& e) //TODO Marc: remove when GSvar server knows the file type
-			{
-				ui_.table->setItem(4, 0, GUIHelper::createTableItem("???"));
-				ui_.table->setItem(4, 1, GUIHelper::createTableItem("???"));
-			}
+			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::REPEAT_EXPANSIONS);
+			ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
+			ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
-			ui_.table->setItem(4, 2, GUIHelper::createTableItem(QString::number(import_status.res) + " REs"));
+			ui_.table->setItem(4, 2, GUIHelper::createTableItem(QString::number(import_status.res) + " REs" + rcData(db, "report_configuration_re", rc_id)));
 			ui_.table->setItem(4, 3, GUIHelper::createTableItem(call_info.re_call_date));
 			ui_.table->setItem(4, 4, GUIHelper::createTableItem(call_info.re_caller + " " + call_info.re_caller_version));
-
-			GUIHelper::resizeTableCells(ui_.table);
 		}
 		else if (sample_data.type.startsWith("RNA"))
 		{
@@ -207,8 +209,6 @@ void AnalysisInformationWidget::updateGUI()
 			ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(4,1)->setTextColor(QColor(Qt::red));
-
-			GUIHelper::resizeTableCells(ui_.table);
 		}
 		else if(sample_data.type.startsWith("cfDNA"))
 		{
@@ -251,21 +251,44 @@ void AnalysisInformationWidget::updateGUI()
 				}
 			}
 			ui_.table->setItem(1, 2, GUIHelper::createTableItem(""));
-
-			GUIHelper::resizeTableCells(ui_.table);
 		}
 		else
 		{
 			THROW(ProgrammingException, "Sample type '"+sample_data.type+"' not handled in analysis information widget!");
 		}
+
+		GUIHelper::resizeTableCellWidths(ui_.table);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
+
+		QApplication::restoreOverrideCursor();
 	}
-	catch (Exception e)
+	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "Analysis information", "Error:\n" + e.message());
+		GUIHelper::showException(this, e, "Analysis information");
 	}
 }
 
 void AnalysisInformationWidget::copyTableToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_.table, false);
+}
+
+QString AnalysisInformationWidget::rcData(NGSD& db, QString table, QString rc_id)
+{
+	QStringList infos;
+
+	int c_vars_rc = db.getValue("SELECT count(*) FROM "+table+" WHERE report_configuration_id=" + rc_id).toInt();
+	if (c_vars_rc>0)
+	{
+		infos << "report: " + QString::number(c_vars_rc);
+		int c_vars_causal = db.getValue("SELECT count(*) FROM "+table+" WHERE causal=1 AND report_configuration_id=" + rc_id).toInt();
+		if (c_vars_causal>0) infos << "causal: " + QString::number(c_vars_causal);
+	}
+
+	QString output;
+	if (infos.count()>0)
+	{
+		output = " (" + infos.join(" ") + ")";
+	}
+	return output;
 }

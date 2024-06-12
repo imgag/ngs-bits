@@ -296,7 +296,8 @@ void SvWidget::resizeQTableWidget(QTableWidget *table_widget)
 	{
 		table_widget->setRowHeight(i, height);
 	}
-	GUIHelper::resizeTableCells(table_widget, 200, true, 100);
+	GUIHelper::resizeTableCellWidths(table_widget, 200);
+	GUIHelper::resizeTableCellHeightsToFirst(table_widget);
 }
 
 

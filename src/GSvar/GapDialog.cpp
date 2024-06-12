@@ -307,7 +307,8 @@ void GapDialog::calculteGaps()
 			ui_.gaps->setItem(i, ngsd_col_, item);
 		}
 
-		GUIHelper::resizeTableCells(ui_.gaps);
+		GUIHelper::resizeTableCellWidths(ui_.gaps);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.gaps);
 
 		//update NGSD column
 		updateNGSDColumn();

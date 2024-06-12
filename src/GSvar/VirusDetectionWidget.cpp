@@ -53,7 +53,8 @@ void VirusDetectionWidget::populateTable()
 
 	setHorizontalHeaderLabels(headers_as_strings);
 
-	GUIHelper::resizeTableCells(this, 200);
+	GUIHelper::resizeTableCellWidths(this, 200);
+	GUIHelper::resizeTableCellHeightsToFirst(this);
 }
 
 void VirusDetectionWidget::callViewInIGV(int row, int /*col*/)

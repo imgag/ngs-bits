@@ -697,7 +697,8 @@ void SequencingRunWidget::updateReadQualityTable()
 		table->setItem(row, 7, item);
 	}
 
-	GUIHelper::resizeTableCells(table);
+	GUIHelper::resizeTableCellWidths(table);
+	GUIHelper::resizeTableCellHeightsToFirst(table);
 }
 
 void SequencingRunWidget::openSelectedSampleTabs()

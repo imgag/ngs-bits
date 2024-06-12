@@ -118,7 +118,8 @@ void SmallVariantSearchWidget::updateVariants()
 		ui_.variants->setSortingEnabled(true);
 
 		//resize cols
-		GUIHelper::resizeTableCells(ui_.variants, 600);
+		GUIHelper::resizeTableCellWidths(ui_.variants, 600);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.variants);
 
 		//reset cursor
 		QApplication::restoreOverrideCursor();

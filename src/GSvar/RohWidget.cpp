@@ -160,7 +160,8 @@ void RohWidget::loadROHs(QString filename)
 	}
 
 	//resize columns
-	GUIHelper::resizeTableCells(ui_->rohs, 200);
+	GUIHelper::resizeTableCellWidths(ui_->rohs, 200);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->rohs);
 }
 
 void RohWidget::filtersChanged()

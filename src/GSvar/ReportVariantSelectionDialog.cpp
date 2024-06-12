@@ -163,7 +163,8 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 
 	//resize table
 	ui_->tw_report_variants->setRowCount(row_idx);
-	GUIHelper::resizeTableCells(ui_->tw_report_variants);
+	GUIHelper::resizeTableCellWidths(ui_->tw_report_variants);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->tw_report_variants);
 
 	//sort table
 	ui_->tw_report_variants->setSortingEnabled(true);

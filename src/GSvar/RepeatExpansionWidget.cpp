@@ -20,10 +20,11 @@ QT_CHARTS_USE_NAMESPACE
 #include "Log.h"
 #include "ReportVariantDialog.h"
 
-RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_type)
+RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_name)
 	: QWidget(parent)
 	, ui_()
 	, res_(res)
+	, sys_name_(sys_name)
 	, sys_type_cutoff_col_("")
 	, report_config_(report_config)
 	, ngsd_enabled_(LoginManager::active())
@@ -44,24 +45,21 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	connect(ui_.table->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
 
 	//allow statistical filtering only if there is a cutoff for the system type
-	if (sys_type=="WGS")
+	NGSD db;
+	sys_type_ = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer LIKE '" + sys_name_ + "'").toString();
+	if (sys_type_=="WGS" || sys_type_=="WES")
 	{
 		sys_type_cutoff_col_ = "staticial_cutoff_wgs";
 
-		//hide lrGS column:
+		//hide lrGS column
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
 
 	}
-	else if (sys_type=="lrGS")
+	else if (sys_type_=="lrGS")
 	{
-		//TODO: after import
 		sys_type_cutoff_col_ = "staticial_cutoff_lrgs";
 
-		//for now: remove column
-		int idx = ui_.filter_expanded->findText("statistical outlier");
-		ui_.filter_expanded->removeItem(idx);
-
-		//hide lrGS column:
+		//hide srGS columns
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads spanning"), true);
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads in repeat"), true);
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads flanking"), true);
@@ -71,7 +69,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 		int idx = ui_.filter_expanded->findText("statistical outlier");
 		ui_.filter_expanded->removeItem(idx);
 
-		//hide lrGS column:
+		//hide lrGS column
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
 	}
 
@@ -79,7 +77,8 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	{
 		displayRepeats();
 		loadMetaDataFromNGSD();
-		GUIHelper::resizeTableCells(ui_.table, 200);
+		GUIHelper::resizeTableCellWidths(ui_.table, 200);
+		GUIHelper::resizeTableCellHeightsToMinimum(ui_.table);
 
 		colorRepeatCountBasedOnCutoffs();
 		updateRowVisibility();
@@ -104,6 +103,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 
 	//get histogram
 	FileLocation hist_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionHistogram(locus_base_name);
+	qDebug() << hist_loc.filename << hist_loc.exists;
 
     //create menu
 	QMenu menu(ui_.table);
@@ -112,13 +112,15 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	a_delete->setEnabled(!report_config_->isFinalized() && report_config_->exists(VariantType::RES, row));
 	menu.addSeparator();
 	QAction* a_comments = menu.addAction(QIcon(":/Icons/Comment.png"), "Show comments");
-	QAction* a_distribution = menu.addAction(QIcon(":/Icons/AF_histogram.png"), "Show distribution");
-	QAction* a_show_svg = menu.addAction("Show image of repeat");
+	QAction* a_distribution = menu.addAction(QIcon(":/Icons/AF_histogram.png"), "Show distribution for " + sys_name_);
+	a_distribution->setEnabled(ngsd_enabled_);
+	QAction* a_show_svg = menu.addAction("Show repeat allele(s) image");
 	a_show_svg->setEnabled(image_loc.exists);
-	QAction* a_show_hist = menu.addAction("Show histogram of repeats");
+	QAction* a_show_hist = menu.addAction("Show read lengths histogram");
 	a_show_hist->setEnabled(hist_loc.exists);
 	menu.addSeparator();
-	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page(s)");
+	QAction* a_omim_gene = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM gene page");
+	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM disease page(s)");
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
@@ -191,6 +193,16 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	{
 		GUIHelper::copyToClipboard(ui_.table, true);
 	}
+	else if (action==a_omim_gene)
+	{
+		QString omim_gene = getCell(row, "repeat ID").split("_")[0];
+		NGSD db;
+		QString mim = db.getValue("SELECT mim FROM omim_gene WHERE gene LIKE '" + omim_gene + "'", true).toString();
+		if (!mim.isEmpty())
+		{
+			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + mim));
+		}
+	}
 	else if (action==a_omim)
 	{
 		QStringList omim_ids = getCell(row, "OMIM disease IDs").split(",");
@@ -224,8 +236,9 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 			//get RE lengths
 			NGSD db;
 			QString id = getRepeatId(db, row, false);
-			QVector<double> lengths = db.getValuesDouble("SELECT allele1 FROM repeat_expansion_genotype WHERE repeat_expansion_id=" + id);
-			lengths << db.getValuesDouble("SELECT allele2 FROM repeat_expansion_genotype WHERE repeat_expansion_id=" + id);
+			QString sys_id = db.getValue("SELECT id FROM processing_system WHERE name_manufacturer LIKE '" + sys_name_ + "'").toString();
+			QVector<double> lengths = db.getValuesDouble("SELECT reg.allele1 FROM repeat_expansion_genotype reg, processed_sample ps WHERE ps.id=reg.processed_sample_id AND reg.repeat_expansion_id=" + id + " AND ps.processing_system_id=" + sys_id);
+			lengths << db.getValuesDouble("SELECT reg.allele2 FROM repeat_expansion_genotype reg, processed_sample ps WHERE ps.id=reg.processed_sample_id AND reg.repeat_expansion_id=" + id + " AND ps.processing_system_id=" + sys_id);
 
 			//determine min, max and bin size
 			std::sort(lengths.begin(), lengths.end());
@@ -424,11 +437,6 @@ void RepeatExpansionWidget::displayRepeats()
 		//reads flanking
 		setCell(row_idx, "reads spanning", re.readsFlanking());
 	}
-
-	if (ui_.table->rowCount()<40)
-	{
-		GUIHelper::showMessage("Repeat expansions", "Repeat expansion calls are outdated. Please re-do the repeat expansion calling!");
-	}
 }
 
 void RepeatExpansionWidget::loadMetaDataFromNGSD()
@@ -484,8 +492,15 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		}
 
 		//HPO terms
-		QString hpo_terms = db.getValue("SELECT hpo_terms FROM repeat_expansion WHERE id=" + id).toString().trimmed();
-		setCell(row, "HPO terms", hpo_terms);
+		QStringList hpo_terms = db.getValue("SELECT hpo_terms FROM repeat_expansion WHERE id=" + id).toString().split(",");
+		for(int i=0; i<hpo_terms.count(); ++i)
+		{
+			QString id = hpo_terms[i].trimmed();
+			QString name = db.getValue("SELECT name FROM hpo_term WHERE hpo_id LIKE '" + id + "'", true).toString();
+			if (!name.isEmpty()) id += " - " + name;
+			hpo_terms[i] = id;
+		}
+		setCell(row, "HPO terms", hpo_terms.join("; "));
 
 		//type
 		QString type = db.getValue("SELECT type FROM repeat_expansion WHERE id=" + id).toString().trimmed();
