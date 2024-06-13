@@ -60,8 +60,15 @@ The screenshot below shows a 6Mb heterozygous deletion, indicated by the selecti
 * The middle track (2) shown copy-number information. The red lines indiocate exon deletions.
 * The bottom tack (3) shown  b-allele frequencies. It is easy to see that there are no heterozygous variants in the deletion region.
 
-
 ![alt text](roh_visualization.png)
+
+### UPD calling (trio only)
+
+If the analysis is a trio-analysis, UPDs are called in addition to ROHs using the [UpdHunter tool](https://github.com/imgag/ngs-bits/blob/master/doc/tools/UpdHunter.md).  
+
+In case UPDs are called, a dialog with the UPD type and locus is shown when opening the RE dialog.
+
+
 
 --
 

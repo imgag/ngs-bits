@@ -15,7 +15,7 @@ Germline analysis:
 - [CNV analysis](cnv_analysis.md)
 - [SV analysis](sv_analysis.md)
 - [Repeat expansions analysis](repeat_expansion_view.md)
-- [ROH analysis](roh_analysis.md)
+- [ROH/UPD analysis](roh_analysis.md)
 - [Report generation](report_generation.md)
 
 Other analysis
