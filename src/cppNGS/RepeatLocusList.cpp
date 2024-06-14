@@ -18,14 +18,14 @@ bool RepeatLocus::isValid() const
 
 void RepeatLocus::setAllele1(const QByteArray& allele1)
 {
-	if (allele1==".") return;
+	if (allele1.trimmed()=="." || allele1.trimmed().isEmpty()) return;
 	if (!Helper::isNumeric(allele1)) THROW(ArgumentException, "Cannot set non-numeric allele 1: '" + allele1 + "' for " + toString(true, false));
 	allele1_ = allele1;
 }
 
 void RepeatLocus::setAllele2(const QByteArray& allele2)
 {
-	if (allele2==".") return;
+	if (allele2.trimmed()=="." || allele2.trimmed().isEmpty()) return;
 	if (!Helper::isNumeric(allele2)) THROW(ArgumentException, "Cannot set non-numeric allele 2: " + allele2 + "' for " + toString(true, false));
 	allele2_ = allele2;
 }
