@@ -646,3 +646,76 @@ void MaintenanceDialog::deleteVariantsOfBadSamples()
 	QApplication::restoreOverrideCursor();
 }
 
+QString MaintenanceDialog::compareCount(NGSD& db_p, NGSD& db_t, QString query)
+{
+	QString output;
+
+	bool ok = false;
+	int c_p = db_p.getValue(query).toInt(&ok);
+	if (!ok) return "ERROR: count not convert query result to integer";
+	int c_t = db_t.getValue(query).toInt(&ok);
+	if (!ok) return "ERROR: count not convert query result to integer";
+
+	int diff = c_t-c_p;
+	QString prefix = diff>0 ? "+" : "";
+	output += QString::number(c_p) + " > "  + QString::number(c_t) + " (diff: " + prefix+ QString::number(diff) + ")";
+
+	return output;
+}
+
+void MaintenanceDialog::compareTestAndProduction()
+{
+	NGSD db_p;
+	NGSD db_t(true, Helper::userName()=="ahsturm1" ? "ngsd_test_linux" : "");
+
+	//gene
+	appendOutputLine("genes: " + compareCount(db_p, db_t, "SELECT count(*) FROM gene"));
+	appendOutputLine("genes (protein-coding): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene WHERE type='protein-coding gene'"));
+	appendOutputLine("genes (pseudogene): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene WHERE type='pseudogene'"));
+	appendOutputLine("genes (non-coding RNA): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene WHERE type='non-coding RNA'"));
+	appendOutputLine("genes (other): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene WHERE type='other'"));
+
+	//alias
+	appendOutputLine("");
+	appendOutputLine("genes alias (synonymous): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_alias WHERE type='synonym'"));
+	appendOutputLine("genes alias (previous): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_alias WHERE type='previous'"));
+
+	//transcript
+	appendOutputLine("");
+	appendOutputLine("transcripts: " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript"));
+	appendOutputLine("transcripts (Ensembl): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE source='Ensembl'"));
+	appendOutputLine("transcripts (CCDS): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE source='CCDS'"));
+	appendOutputLine("transcripts (GenCode basic): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_gencode_basic='1'"));
+	appendOutputLine("transcripts (MANE select): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_mane_select='1'"));
+	appendOutputLine("transcripts (MANE plus clinical): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_mane_plus_clinical='1'"));
+
+	//exon
+	appendOutputLine("");
+	appendOutputLine("exon: " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_exon"));
+
+	//pseudogene
+	appendOutputLine("");
+	appendOutputLine("pseudogene (in NGSD): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_pseudogene_relation WHERE pseudogene_gene_id IS NOT NULL"));
+	appendOutputLine("pseudogene (not in NGSD): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_pseudogene_relation WHERE gene_name IS NOT NULL"));
+
+	//geneinfo
+	appendOutputLine("");
+	appendOutputLine("geneinfo (germline): " + compareCount(db_p, db_t, "SELECT count(*) FROM geneinfo_germline"));
+
+	//HPO
+	appendOutputLine("");
+	appendOutputLine("HPO terms: " + compareCount(db_p, db_t, "SELECT count(*) FROM hpo_term"));
+	appendOutputLine("HPO terms (obsolete): " + compareCount(db_p, db_t, "SELECT count(*) FROM hpo_obsolete"));
+	appendOutputLine("HPO term-gene releations: " + compareCount(db_p, db_t, "SELECT count(*) FROM hpo_genes"));
+
+	//OMIM
+	appendOutputLine("");
+	appendOutputLine("OMIM genes: " + compareCount(db_p, db_t, "SELECT count(*) FROM omim_gene"));
+	appendOutputLine("OMIM phenotype: " + compareCount(db_p, db_t, "SELECT count(*) FROM omim_phenotype"));
+
+	//disease
+	appendOutputLine("");
+	appendOutputLine("disease gene: " + compareCount(db_p, db_t, "SELECT count(*) FROM disease_gene"));
+	appendOutputLine("disease term (ORPHA): " + compareCount(db_p, db_t, "SELECT count(*) FROM disease_term"));
+}
+

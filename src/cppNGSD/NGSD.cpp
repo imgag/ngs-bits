@@ -27,7 +27,7 @@
 #include "ClientHelper.h"
 
 
-NGSD::NGSD(bool test_db, QString name_suffix)
+NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
 {
 	QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
@@ -48,7 +48,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 	{
 		QString prefix = "ngsd";
 		if (test_db_) prefix += "_test";
-		if (!name_suffix.isEmpty()) prefix += name_suffix;
+		if (test_db_ && !test_name_override.isEmpty()) prefix = test_name_override;
 		db_->setHostName(Settings::string(prefix + "_host"));
 		db_->setPort(Settings::integer(prefix + "_port"));
 		db_->setDatabaseName(Settings::string(prefix + "_name"));

@@ -4,17 +4,17 @@
 	Imports HPO terms and gene-phenotype relations into the NGSD.
 	
 	Mandatory parameters:
-	  -obo <file>      HPO ontology file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/hp.obo'.
-	  -anno <file>     HPO annotations file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/phenotype_to_genes.txt'
+	  -obo <file>      HPO ontology file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-04-26/hp.obo'.
+	  -anno <file>     HPO annotations file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-04-26/phenotype_to_genes.txt'
 	
 	Optional parameters:
 	  -omim <file>     OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.
 	                   Default value: ''
-	  -clinvar <file>  ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20231121.vcf.gz'.
+	  -clinvar <file>  ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2024/clinvar_clinvar_20240603.vcf.gz'.
 	                   Default value: ''
-	  -hgmd <file>     HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2023.3.dump').
+	  -hgmd <file>     HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2024.1.dump').
 	                   Default value: ''
-	  -hpophen <file>  HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from wget https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/phenotype.hpoa
+	  -hpophen <file>  HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from wget https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-04-26/phenotype.hpoa
 	                   Default value: ''
 	  -gencc <file>    gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. Download from https://search.thegencc.org/download
 	                   Default value: ''
