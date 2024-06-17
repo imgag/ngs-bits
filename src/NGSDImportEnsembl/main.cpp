@@ -294,7 +294,7 @@ public:
 		}
 		out << "  - without transcripts: " << no_chr_genes.count() << " (" << no_chr_genes.join(", ") << ")" << endl;
 		out << "  - with transcripts on several chromosomes: " << multi_chr_genes.count() << " (" << multi_chr_genes.join(", ") << ")" << endl;
-		out << "  - with transcripts from severl ENSGs: " << duplicate_ensg.count() << " (" << duplicate_ensg.join(", ") << ")" << endl;
+		out << "  - with transcripts from several ENSGs: " << duplicate_ensg.count() << " (" << duplicate_ensg.join(", ") << ")" << endl;
 	}
 
 	virtual void main()

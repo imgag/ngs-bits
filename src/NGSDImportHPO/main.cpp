@@ -409,7 +409,7 @@ public:
 		if (getInfile("decipher") == "") return;
 		bool debug = getFlag("debug");
 		QTextStream out(stdout);
-		if (debug) out << "Parsing Decipher...\n";
+		if (debug) out << "Parsing Decipher..." << endl;
 		int countT2D = 0;
 		int countD2G = 0;
 		int countT2G = 0;
@@ -430,8 +430,7 @@ public:
 			line = fp->readLine().trimmed();
 			QByteArrayList parts = line.split(',');
 
-			// merge parts of strings that contained commas:
-
+			// merge parts of strings that contained commas
 			parts = reconstructStrings(parts);
 
 			QByteArray gene = parts[0].trimmed();
@@ -443,7 +442,6 @@ public:
 
 			//verify information
 			int gene_db_id = db.geneId(gene);
-
 			if (gene_db_id == -1)
 			{
 				non_hgc_genes.append(gene);
@@ -594,16 +592,19 @@ public:
 
 			for (int i=0; i<parts.length(); i++)
 			{
-				if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
+				if (parts[i].startsWith('"') && !parts[i].endsWith('"')) // starts with " but doesn't end with "
 				{
 					QByteArray combined_part = parts[i];
 					do
 					{
 						i++;
-						combined_part.append(parts[i]);
+						if (i<parts.count())
+						{
+							combined_part.append(parts[i]);
+						}
 
 					}
-					while (! parts[i].endsWith('"'));
+					while (i<parts.count() && !parts[i].endsWith('"'));
 
 					cleaned_parts.append(combined_part);
 				}
@@ -905,7 +906,7 @@ public:
 		{
 			int lineCount = 0;
 			int count = 0;
-			if (debug) out << "Parsing OMIM file...\n";
+			if (debug) out << "Parsing OMIM file..." << endl;
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			QSharedPointer<QFile> fp = Helper::openFileForReading(omim_file);
@@ -1061,7 +1062,7 @@ public:
 		if(hgmd_file != "")
 		{
 			int added_t2g = 0;
-			if (debug) out << "Parsing HGMD Phenobase dump file...\n" << endl;
+			if (debug) out << "Parsing HGMD Phenobase dump file..." << endl;
 			// define look-up tables
 			QMultiMap<int, QByteArray> phenid2gene_mapping = QMap<int, QByteArray>();
 			QMultiMap<QByteArray,int> cui2phenid_mapping = QMap<QByteArray,int>();
