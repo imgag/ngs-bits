@@ -38,6 +38,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui_.filter_expanded, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_hpo, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
+	connect(ui_.filter_rc, SIGNAL(stateChanged(int)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_id, SIGNAL(textEdited(QString)), this, SLOT(updateRowVisibility()));
 	connect(ui_.filter_show, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRowVisibility()));	
 	ui_.table->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -82,6 +83,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 
 		colorRepeatCountBasedOnCutoffs();
 		updateRowVisibility();
+		setReportConfigHeaderIcons();
 	}
 }
 
@@ -103,13 +105,13 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 
 	//get histogram
 	FileLocation hist_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionHistogram(locus_base_name);
-	qDebug() << hist_loc.filename << hist_loc.exists;
 
     //create menu
 	QMenu menu(ui_.table);
 	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	a_edit->setEnabled(rc_enabled_);
 	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	a_delete->setEnabled(!report_config_->isFinalized() && report_config_->exists(VariantType::RES, row));
+	a_delete->setEnabled(rc_enabled_ && report_config_->exists(VariantType::RES, row));
 	menu.addSeparator();
 	QAction* a_comments = menu.addAction(QIcon(":/Icons/Comment.png"), "Show comments");
 	QAction* a_distribution = menu.addAction(QIcon(":/Icons/AF_histogram.png"), "Show distribution for " + sys_name_);
@@ -363,7 +365,7 @@ void RepeatExpansionWidget::updateReportConfigHeaderIcon(int row)
 	QIcon report_icon;
 	if (report_config_->exists(VariantType::RES, row))
 	{
-		const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
+		const ReportVariantConfiguration& rc = report_config_->get(VariantType::RES, row);
 		report_icon = VariantTable::reportIcon(rc.showInReport(), rc.causal);
 	}
 	ui_.table->verticalHeaderItem(row)->setIcon(report_icon);
@@ -546,6 +548,23 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 	}
 }
 
+void RepeatExpansionWidget::setReportConfigHeaderIcons()
+{
+	if(report_config_==NULL) return;
+
+	QSet<int> report_variant_indices = report_config_->variantIndices(VariantType::RES, false).toSet();
+	for(int r=0; r<res_.count(); ++r)
+	{
+		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
+		if (report_variant_indices.contains(r))
+		{
+			const ReportVariantConfiguration& rc = report_config_->get(VariantType::RES, r);
+			header_item->setIcon(VariantTable::reportIcon(rc.showInReport(), rc.causal));
+		}
+		ui_.table->setVerticalHeaderItem(r, header_item);
+	}
+}
+
 void RepeatExpansionWidget::updateRowVisibility()
 {
 	QBitArray hidden(ui_.table->rowCount(), false);
@@ -664,6 +683,16 @@ void RepeatExpansionWidget::updateRowVisibility()
 		}
 	}
 
+	//RC filter
+	if (ui_.filter_rc->isChecked() && report_config_!=NULL)
+	{
+		QSet<int> report_variant_indices = report_config_->variantIndices(VariantType::RES, false).toSet();
+		for (int row=0; row<ui_.table->rowCount(); ++row)
+		{
+			if (!report_variant_indices.contains(row)) hidden[row] = true;
+		}
+	}
+
 	//repeat ID text search
 	QString id_search_str = ui_.filter_id->text().trimmed();
 	if (!id_search_str.isEmpty())
@@ -693,7 +722,7 @@ void RepeatExpansionWidget::svHeaderDoubleClicked(int row)
 
 void RepeatExpansionWidget::svHeaderContextMenu(QPoint pos)
 {
-	if (!ngsd_enabled_ || (report_config_ == nullptr)) return;
+	if (!rc_enabled_) return;
 
 	//get variant index
 	int row = ui_.table->verticalHeader()->visualIndexAt(pos.ry());
@@ -701,8 +730,9 @@ void RepeatExpansionWidget::svHeaderContextMenu(QPoint pos)
 	//set up menu
 	QMenu menu(ui_.table->verticalHeader());
 	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	a_edit->setEnabled(rc_enabled_);
 	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	a_delete->setEnabled(!report_config_->isFinalized() && report_config_->exists(VariantType::RES, row));
+	a_delete->setEnabled(rc_enabled_ && report_config_->exists(VariantType::RES, row));
 
 	//exec menu
 	pos = ui_.table->verticalHeader()->viewport()->mapToGlobal(pos);

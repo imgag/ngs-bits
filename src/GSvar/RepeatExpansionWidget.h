@@ -60,6 +60,7 @@ private:
 	void displayRepeats();
 	void loadMetaDataFromNGSD();
 	void colorRepeatCountBasedOnCutoffs();
+	void setReportConfigHeaderIcons();
 };
 
 #endif // REPEATEXPANSIONWIDGET_H

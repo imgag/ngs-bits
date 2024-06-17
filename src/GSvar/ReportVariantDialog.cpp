@@ -181,7 +181,7 @@ void ReportVariantDialog::updateGUI()
 	}
 
 	//manual curation REs
-	if (config_.variant_type==VariantType::SVS)
+	if (config_.variant_type==VariantType::RES)
 	{
 		ui_.manual_re_allele1->setText(config_.manual_re_allele1.trimmed());
 		ui_.manual_re_allele2->setText(config_.manual_re_allele2.trimmed());

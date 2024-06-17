@@ -220,7 +220,9 @@ bool ReportVariantConfiguration::operator==(const ReportVariantConfiguration& rh
 			manual_sv_start_bnd == rhs.manual_sv_start_bnd &&
 			manual_sv_end_bnd == rhs.manual_sv_end_bnd &&
 			manual_sv_hgvs_type_bnd == rhs.manual_sv_hgvs_type_bnd &&
-			manual_sv_hgvs_suffix_bnd == rhs.manual_sv_hgvs_suffix_bnd;
+			manual_sv_hgvs_suffix_bnd == rhs.manual_sv_hgvs_suffix_bnd &&
+			manual_re_allele1 == rhs.manual_re_allele1 &&
+			manual_re_allele2 == rhs.manual_re_allele2;
 }
 
 bool ReportVariantConfiguration::isManuallyCurated() const

@@ -107,7 +107,7 @@ public:
 	//Returns if the list is valid
 	bool isValid() const
 	{
-		return caller_!=ReCallerType::INVALID && !caller_version_.isEmpty() && !call_date_.isValid() && !variants_.isEmpty();
+		return caller_!=ReCallerType::INVALID && !caller_version_.isEmpty() && call_date_.isValid() && !variants_.isEmpty();
 	}
 
 	//Returns the number of variants

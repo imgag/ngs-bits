@@ -161,7 +161,17 @@ private slots:
 		rvc.manual_sv_hgvs_suffix_bnd = "(bla2|bluff2)";
 		IS_TRUE(rvc.isManuallyCurated());
 
+		//RE allele 1
+		rvc.variant_type = VariantType::RES;
 		rvc.manual_sv_hgvs_suffix_bnd = "";
+		rvc.manual_re_allele1 = "11";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		rvc.manual_re_allele1 = "";
+		rvc.manual_re_allele2 = "21";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		rvc.manual_re_allele2 = "";
 		IS_FALSE(rvc.isManuallyCurated());
 	}
 

@@ -965,6 +965,10 @@ public:
 			if (debug) out << "Prasing ClinVar..." << endl;
 			int added_t2g = 0;
 			int added_d2g = 0;
+
+			//check file is not zipped
+			if (clinvar_file.endsWith(".vcf.gz")) THROW(CommandLineParsingException, "ClinVar must not be gzipped!");
+
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			QSharedPointer<QFile> fp = Helper::openFileForReading(clinvar_file);
