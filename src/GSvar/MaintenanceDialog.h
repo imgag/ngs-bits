@@ -24,12 +24,14 @@ private slots:
 	void importPatientIDs();
 	void linkSamplesFromSamePatient();
 	void deleteVariantsOfBadSamples();
+	void compareTestAndProduction();
 
 private:
 	Ui::MaintenanceDialog ui_;
 
 	void appendOutputLine(QString line);
 	QSet<QString> tablesReferencing(NGSD& db, QString referenced_table);
+	QString compareCount(NGSD& db_p, NGSD& db_t, QString query);
 };
 
 #endif // MAINTENANCEDIALOG_H
