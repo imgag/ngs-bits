@@ -96,6 +96,7 @@ void CohortExpressionDataWidget::loadExpressionData()
 	ui_->tw_cohort_data->setSortingEnabled(true);
 
 	//optimize table view
-	GUIHelper::resizeTableCells(ui_->tw_cohort_data, 200, true, 1000);
+	GUIHelper::resizeTableCellWidths(ui_->tw_cohort_data, 200);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->tw_cohort_data);
 
 }

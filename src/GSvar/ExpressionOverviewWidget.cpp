@@ -336,7 +336,8 @@ void ExpressionOverviewWidget::showExpressionData()
 		//enable sorting
 		ui_->tw_expression->setSortingEnabled(true);
 
-		GUIHelper::resizeTableCells(ui_->tw_expression);
+		GUIHelper::resizeTableCellWidths(ui_->tw_expression);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_->tw_expression);
 
 		QApplication::restoreOverrideCursor();
 	}

@@ -11,6 +11,7 @@ enum class VariantType
 	SNVS_INDELS, //Small variants - germline (SNVs and small InDels)
 	CNVS, //CNVs - germline
 	SVS, //Structural variants
+	RES, //Repeat expansion
 	INVALID
 };
 

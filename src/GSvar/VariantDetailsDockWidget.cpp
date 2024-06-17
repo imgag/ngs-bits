@@ -1035,7 +1035,8 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 	//show table
 	auto dlg = GUIHelper::createDialog(table, title);
 	dlg->setMinimumSize(1200, 800);
-	GUIHelper::resizeTableCells(table);
+	GUIHelper::resizeTableCellWidths(table);
+	GUIHelper::resizeTableCellHeightsToFirst(table);
 	dlg->exec();
 
 	//delete

@@ -116,11 +116,9 @@ void SplicingWidget::loadSplicingFile(const QString& file_path)
 	}
 	ui_->gb_motif->setLayout(vbox);
 
-
 	//optimize table view
-	GUIHelper::resizeTableCells(ui_->tw_splicing, 500, true, 1000);
-
-
+	GUIHelper::resizeTableCellWidths(ui_->tw_splicing, 500);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->tw_splicing);
 }
 
 void SplicingWidget::applyFilter()

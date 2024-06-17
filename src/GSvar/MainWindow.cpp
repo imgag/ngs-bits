@@ -100,7 +100,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "CircosPlotWidget.h"
 #include "SomaticReportSettings.h"
 #include "CytobandToRegionsDialog.h"
-#include "RepeatExpansionWidget.h"
+#include "RepeatLocusList.h"
 #include "SomaticDataTransferWidget.h"
 #include "PRSWidget.h"
 #include "EvaluationSheetEditDialog.h"
@@ -152,6 +152,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "ImportDialog.h"
 #include "PathogenicWtDialog.h"
 #include "Background/NGSDCacheInitializer.h"
+#include "RepeatExpansionWidget.h"
+#include "ReSearchWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -231,7 +233,8 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("gene: BRCA2", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addSeparator();
 		debug_btn->menu()->addAction("processed sample: NA12878_58", this, SLOT(openDebugTab()));
-		debug_btn->menu()->addAction("processed sample: NA12878_45", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("processed sample: NA12878x3_28", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("processed sample: 23014LRa023L2_01", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
 	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
@@ -616,6 +619,12 @@ void MainWindow::on_actionSearchSVs_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionSearchREs_triggered()
+{
+	ReSearchWidget* widget = new ReSearchWidget();
+	auto dlg = GUIHelper::createDialog(widget, "RE search");
+	addModelessDialog(dlg);
+}
 void MainWindow::on_actionUploadVariantToClinVar_triggered()
 {
 	QSharedPointer<QDialog> dlg = QSharedPointer<QDialog>(new ClinvarUploadDialog(this));
@@ -793,20 +802,9 @@ void MainWindow::on_actionSV_triggered()
 			report_config = report_settings_.report_config;
 		}
 
-		//open SV widget
-		SvWidget* list;
-		if(svs_.isSomatic())
-		{
-			// somatic
-			list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
-		}
-		else
-		{
-			// germline single, trio or multi sample
-			list = new SvWidget(svs_, ps_id, ui_.filters, report_config, het_hit_genes, gene2region_cache_, this);
-		}
-
-		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + variants_.analysisName());
+		//open SV widgetr
+		SvWidget* sv_widget = new SvWidget(this, svs_, ps_id, svs_.isSomatic() ? nullptr : report_config, het_hit_genes);
+		auto dlg = GUIHelper::createDialog(sv_widget, "Structural variants of " + variants_.analysisName());
 		addModelessDialog(dlg);
 	}
 	catch(FileParseException error)
@@ -874,18 +872,20 @@ void MainWindow::on_actionCNV_triggered()
 		ps_id = NGSD().processedSampleId(germlineReportSample(), false);
 	}
 
-	CnvWidget* list;
+	QSharedPointer<ReportConfiguration> rc_germline;
+	SomaticReportConfiguration* rc_somatic = nullptr; //TODO Alexander: use shared pointer like in germline
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
 	{
-		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
-		connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
+		rc_somatic = &(somatic_report_settings_.report_config);
 	}
 	else
 	{
-		list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
+		rc_germline = report_settings_.report_config;
 	}
+	CnvWidget* cnv_widget = new CnvWidget(this, cnvs_, ps_id, rc_germline, rc_somatic, het_hit_genes);
+	connect(cnv_widget, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 
-	auto dlg = GUIHelper::createDialog(list, "Copy number variants of " + variants_.analysisName());
+	auto dlg = GUIHelper::createDialog(cnv_widget, "Copy number variants of " + variants_.analysisName());
 	addModelessDialog(dlg);
 
 	//mosaic CNVs
@@ -966,7 +966,7 @@ void MainWindow::on_actionROH_triggered()
 		return;
 	}
 
-	RohWidget* list = new RohWidget(roh_files[0], ui_.filters);
+	RohWidget* list = new RohWidget(this, roh_files[0]);
 	auto dlg = GUIHelper::createDialog(list, "Runs of homozygosity of " + variants_.analysisName());
 	addModelessDialog(dlg);
 }
@@ -1294,20 +1294,16 @@ void MainWindow::on_actionRE_triggered()
 	if (filename_=="") return;
 	if (variants_.type()!=GERMLINE_SINGLESAMPLE) return;
 
-	// determine repeat expansion file name
-	FileLocationList re_files = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false);
-	if (re_files.isEmpty()) return; //this should not happen because the button is not enabled then...
-
 	//show dialog
-	QString sys_type = "";
+	QString sys_name = "";
 	if (LoginManager::active())
 	{
 		NGSD db;
 		QString ps_id = db.processedSampleId(germline_report_ps_);
-		sys_type = db.getProcessedSampleData(ps_id).processing_system_type;
+		sys_name = db.getProcessedSampleData(ps_id).processing_system;
 	}
-	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, re_files[0].filename, sys_type);
-	auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + variants_.analysisName());
+	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, res_, report_settings_.report_config, sys_name);
+	auto dlg = GUIHelper::createDialog(widget, "Repeat expansions of " + variants_.analysisName());
 
 	addModelessDialog(dlg, true);
 }
@@ -2570,6 +2566,10 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 				cnvs_.clear();
 			}
 		}
+		else
+		{
+			cnvs_.clear();
+		}
 		Log::perf("Loading CNV list took ", timer);
 
 		//load SVs
@@ -2587,7 +2587,33 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 				svs_.clear();
 			}
 		}
+		else
+		{
+			svs_.clear();
+		}
 		Log::perf("Loading SV list took ", timer);
+
+
+		//load REs
+		FileLocationList re_locs = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false);
+		if (variants_.type()==GERMLINE_SINGLESAMPLE && re_locs.count()>0 && re_locs[0].exists)
+		{
+			timer.restart();
+			try
+			{
+				res_.load(re_locs[0].filename);
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::warning(this, "Error loading REs", e.message());
+				res_.clear();
+			}
+			Log::perf("Loading RE list took ", timer);
+		}
+		else
+		{
+			res_.clear();
+		}
 
 		//determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
 		QStringList valid_filter_entries = variants_.filters().keys();
@@ -2668,7 +2694,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		ui_.actionCircos->setEnabled(false);
 	}
 
-	//activate Repeat Expansion menu item if RE calls are available
+	//activate repeat expansion menu item if RE calls are available
 	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty())
 	{
 		ui_.actionRE->setEnabled(true);
@@ -3053,7 +3079,7 @@ void MainWindow::loadReportConfig()
 	if (rc_id==-1) return;
 
 	//load
-	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_);
+	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, res_);
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 
 
@@ -3185,7 +3211,7 @@ void MainWindow::storeReportConfig()
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
 	{
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, res_);
 		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
 		{
 			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
@@ -3199,7 +3225,7 @@ void MainWindow::storeReportConfig()
 	try
 	{
 		report_settings_.report_config.data()->blockSignals(true); //block signals - otherwise the variantsChanged signal is emitted and storeReportConfig is called again, which leads to hanging of the application because of database locks
-		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, svs_);
+		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, svs_, res_);
 		report_settings_.report_config.data()->blockSignals(false);
 	}
 	catch (Exception& e)
@@ -3259,7 +3285,7 @@ void MainWindow::generateEvaluationSheet()
 
 	//write sheet
 	PrsTable prs_table; //not needed
-	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
 	GermlineReportGenerator generator(generator_data);
 	generator.writeEvaluationSheet(filename, evaluation_sheet_data);
 
@@ -3315,7 +3341,7 @@ void MainWindow::showReportConfigInfo()
 		}
 
 
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, res_);
 
 		QMessageBox::information(this, title, report_config->history() + "\n\n" + report_config->variantSummary());
 	}
@@ -3428,7 +3454,7 @@ void MainWindow::finalizeReportConfig()
 		db.finalizeReportConfig(conf_id, LoginManager::userId());
 
 		//update report settings data structure
-		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
+		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, res_);
 		connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 	}
 	catch(Exception e)
@@ -3966,7 +3992,7 @@ void MainWindow::generateReportGermline()
 	}
 
 	//show report dialog
-	ReportDialog dialog(ps_name, report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(), this);
+	ReportDialog dialog(ps_name, report_settings_, variants_, cnvs_, svs_, res_, ui_.filters->targetRegion(), this);
 	if (!dialog.exec()) return;
 
 	//set report type
@@ -3991,7 +4017,7 @@ void MainWindow::generateReportGermline()
 	FileLocationList prs_files = GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).filterById(ps_name);
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
-	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
 	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name), false);
 	data.ps_bam = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::BAM).filename;
 	data.ps_lowcov = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::LOWCOV_BED).filename;
@@ -4103,24 +4129,29 @@ const TargetRegionInfo& MainWindow::targetRegion()
 	return ui_.filters->targetRegion();
 }
 
-const VariantList&MainWindow::getSmallVariantList()
+const VariantList& MainWindow::getSmallVariantList()
 {
 	return variants_;
 }
 
-const CnvList&MainWindow::getCnvList()
+const CnvList& MainWindow::getCnvList()
 {
 	return cnvs_;
 }
 
-const BedpeFile&MainWindow::getSvList()
+const BedpeFile& MainWindow::getSvList()
 {
 	return svs_;
 }
 
-const PhenotypeList& MainWindow::getPhenotypesFromSmallVariantFilter()
+const RepeatLocusList& MainWindow::getReList()
 {
-	return ui_.filters->phenotypes();
+	return res_;
+}
+
+FilterWidget* MainWindow::filterWidget()
+{
+	return ui_.filters;
 }
 
 void MainWindow::on_actionOpenGeneTabByName_triggered()
@@ -5285,7 +5316,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	//unload the data
 	loadFile();
 
-    //TODO: turn it on back again after fixing token update in IGV
+	//TODO Alexandr: turn it on back again after fixing token update in IGV
     //close user session on the server
     //if (ClientHelper::isClientServerMode()) performLogout();
 
@@ -5600,7 +5631,7 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 
 void MainWindow::closeAndLogout()
 {
-    //TODO: turn it on back again after fixing token update in IGV
+	//TODO Alexandr: turn it on back again after fixing token update in IGV
     //if (ClientHelper::isClientServerMode()) performLogout();
 	close();
 }
@@ -6178,14 +6209,7 @@ void MainWindow::variantRanking()
 			BedFile roi;
 			foreach(const QByteArray& gene, genes)
 			{
-				if (!gene2region_cache_.contains(gene))
-				{
-					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
-					tmp.clearAnnotations();
-					tmp.merge();
-					gene2region_cache_[gene] = tmp;
-				}
-				roi.add(gene2region_cache_[gene]);
+				roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
 			roi.merge();
 
@@ -6353,15 +6377,7 @@ void MainWindow::applyFilters(bool debug_time)
 			phenotype_roi_.clear();
 			foreach(const QByteArray& gene, pheno_genes)
 			{
-				if (!gene2region_cache_.contains(gene))
-				{
-					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
-					tmp.clearAnnotations();
-					tmp.extend(5000);
-					tmp.merge();
-					gene2region_cache_[gene] = tmp;
-				}
-				phenotype_roi_.add(gene2region_cache_[gene]);
+				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
 			phenotype_roi_.merge();
 
@@ -6444,7 +6460,7 @@ void MainWindow::addToRecentSamples(QString ps)
 	QStringList recent_samples = Settings::stringList("recent_samples", true);
 	recent_samples.removeAll(ps);
 	recent_samples.prepend(ps);
-	recent_samples = recent_samples.mid(0,10);
+	recent_samples = recent_samples.mid(0, 20);
 
 	Settings::setStringList("recent_samples", recent_samples);
 

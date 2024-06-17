@@ -35,6 +35,13 @@ These are the most important config parameters:
 * `session_duration` - valid period (seconds) of a user session
 * `threads` - number of threads used for parallel calculations
 
+These parameters are needed for the server database (stores information about user sessions, temporary URLs, etc.), it is a separate instance of MySQL/MariaDB (not NGSD database)
+* gsvar_server_db_host - database host name
+* gsvar_server_db_port - database port number
+* gsvar_server_db_name - database name
+* gsvar_server_db_user - database user name
+* gsvar_server_db_pass - database password
+
 ## Local development environment
 You are going to need a SSL certificate and a key for the server to support HTTPS protocol. For the development purposes self-signed ones will be sufficient:
 > openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout ~/test-key.key -out ~/test-cert.crt

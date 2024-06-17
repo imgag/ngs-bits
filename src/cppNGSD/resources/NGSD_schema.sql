@@ -1544,7 +1544,7 @@ CREATE  TABLE IF NOT EXISTS `cnv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `caller` ENUM('CnvHunter', 'ClinCNV') NOT NULL,
+  `caller` ENUM('ClinCNV') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATETIME DEFAULT NULL,
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
@@ -2468,13 +2468,15 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `repeat_expansion_genotype`
 (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `repeat_expansion_id` INT(11) NOT NULL,
   `allele1` INT(11) NOT NULL,
   `allele2` INT(11) DEFAULT NULL COMMENT 'Can be NULL on chrX/chrY for males, or if there is a deletion of the second allele.',
   `filter` VARCHAR(100) DEFAULT NULL COMMENT 'NULL if no filter entry present, or PASS.',
-  PRIMARY KEY (`processed_sample_id`, `repeat_expansion_id`),
+  PRIMARY KEY (`id`),
   INDEX `fk_repeat_expansion` (`repeat_expansion_id` ASC),
+  UNIQUE INDEX (`processed_sample_id`, `repeat_expansion_id`),
   CONSTRAINT `fk_repeat_expansion_genotype_has_processed_sample`
     FOREIGN KEY (`processed_sample_id`)
     REFERENCES `processed_sample` (`id`)
@@ -2489,6 +2491,65 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion_genotype`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `report_configuration_re`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_re`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `report_configuration_id` INT(11) NOT NULL,
+  `repeat_expansion_genotype_id` INT(11),
+  `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
+  `causal` BOOLEAN NOT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
+  `de_novo` BOOLEAN NOT NULL,
+  `mosaic` BOOLEAN NOT NULL,
+  `compound_heterozygous` BOOLEAN NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_phenotype` BOOLEAN NOT NULL,
+  `exclude_other` BOOLEAN NOT NULL,
+  `comments` text NOT NULL,
+  `comments2` text NOT NULL,
+  `manual_allele1` INT(11) DEFAULT NULL,
+  `manual_allele2` INT(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_report_configuration4`
+    FOREIGN KEY (`report_configuration_id` )
+    REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_re_has_re`
+    FOREIGN KEY (`repeat_expansion_genotype_id`)
+    REFERENCES `repeat_expansion_genotype` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE INDEX `config_variant_combo_uniq` (`report_configuration_id` ASC, `repeat_expansion_genotype_id` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `re_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `re_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `caller` ENUM('ExpansionHunter', 'Straglr') NOT NULL,
+  `caller_version` varchar(25) NOT NULL,
+  `call_date` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `call_date` (`call_date` ASC),
+  UNIQUE KEY `re_callset_references_processed_sample` (`processed_sample_id`),
+  CONSTRAINT `re_callset_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='SV call set';
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START

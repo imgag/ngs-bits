@@ -9,12 +9,13 @@
 #include <QFileInfo>
 #include <QXmlStreamWriter>
 
-GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_)
+GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_)
 	: build(build_)
 	, ps(ps_)
 	, variants(variants_)
 	, cnvs(cnvs_)
 	, svs(svs_)
+	, res(res_)
 	, prs(prs_)
 	, report_settings(report_settings_)
 	, filters(filters_)
@@ -159,14 +160,16 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	selected_small_.clear();
 	selected_cnvs_.clear();
 	selected_svs_.clear();
+	selected_res_.clear();
 	for (auto it = data_.report_settings.selected_variants.cbegin(); it!=data_.report_settings.selected_variants.cend(); ++it)
 	{
 		if (it->first==VariantType::SNVS_INDELS) selected_small_ << it->second;
 		if (it->first==VariantType::CNVS) selected_cnvs_ << it->second;
 		if (it->first==VariantType::SVS) selected_svs_ << it->second;
+		if (it->first==VariantType::RES) selected_res_ << it->second;
 	}
 	stream << "<br />" << trans("Anzahl SNVs/InDels ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small_.count() << endl;
-	stream << "<br />" << trans("Anzahl CNVs/SVs ausgew&auml;hlt f&uuml;r Report") << ": " << (selected_cnvs_.count() + selected_svs_.count()) << endl;
+	stream << "<br />" << trans("Anzahl CNVs/SVs/REs ausgew&auml;hlt f&uuml;r Report") << ": " << (selected_cnvs_.count() + selected_svs_.count() + selected_res_.count()) << endl;
 	stream << "</p>" << endl;
 
 	stream << "<br />" << trans("Sofern vorhanden, werden in den nachfolgenden Tabellen erfasst: pathogene Varianten (Klasse 5)<sup>*</sup> und wahrscheinlich pathogene Varianten (Klasse 4)<sup>*</sup>, bei denen jeweils ein Zusammenhang mit der klinischen Fragestellung anzunehmen ist, sowie Varianten unklarer klinischer Signifikanz (Klasse 3)<sup>*</sup> f&uuml;r welche in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll erscheint.") << endl;
@@ -197,7 +200,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		stream << "<tr>" << endl;
 		stream << "<td>" << endl;
-		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
+		stream  << variant.chr().strNormalized(true) << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
 		QString geno = formatGenotype(data_.build, processed_sample_data.gender.toUtf8(), variant.annotations().at(i_genotype), variant);
 		if (var_conf.de_novo) geno += " (de-novo)";
 		if (var_conf.mosaic) geno += " (mosaic)";
@@ -261,10 +264,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "</table>" << endl;
 
 	//--------------------------------------------------------------------------------------
-	//CNVs + SVs
+	//CNVs + SVs + REs
 	stream << "<br /><b>" << trans("Kopienzahlver&auml;nderungen (CNV) und/oder Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("CNV/SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Kopienzahl/Genotyp") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>RNA</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("CNV/SV/RE") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Kopienzahl/Genotyp") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 	colspan = 8;
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -361,8 +364,31 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		//RNA info
 		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
-	}	
-	if (selected_cnvs_.count()==0 && selected_svs_.count()==0) stream << "<tr><td colspan=\"" << colspan << "\">" << trans("Keine") << "</td></tr>";
+	}
+	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (var_conf.variant_type!=VariantType::RES) continue;
+		if (!selected_res_.contains(var_conf.variant_index)) continue;
+
+		RepeatLocus re = data_.res[var_conf.variant_index];
+		if (var_conf.isManuallyCurated()) var_conf.updateRe(re);
+
+		stream << "<tr>" << endl;
+		stream << "<td>" << trans("Repeat-Expansion") << "</td>" << endl;
+		stream << "<td>" << re.toString(true, false) << "</td>" << endl;
+		stream << "<td></td>" << endl;
+		QString geno = re.alleles();
+		if (var_conf.de_novo) geno += " (de-novo)";
+		if (var_conf.mosaic) geno += " (mosaic)";
+		if (var_conf.comp_het) geno += " (comp-het)";
+		stream << "<td>" << geno << "</td>" << endl;
+		stream << "<td></td>" << endl;
+		stream << "<td></td>" << endl;
+		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
+		stream << "<td></td>" << endl;
+		stream << "</tr>" << endl;
+	}
+	if (selected_cnvs_.count()==0 && selected_svs_.count()==0 && selected_res_.count()==0) stream << "<tr><td colspan=\"" << colspan << "\">" << trans("Keine") << "</td></tr>";
 	stream << "</table>" << endl;
 
 	//-----------------------------------------------------------------------------------
@@ -785,7 +811,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			{
 				const BedLine& line = gaps[i];
 				w.writeStartElement("Gap");
-				w.writeAttribute("chr", line.chr().str());
+				w.writeAttribute("chr", line.chr().strNormalized(true));
 				w.writeAttribute("start", QString::number(line.start()));
 				w.writeAttribute("end", QString::number(line.end()));
 				w.writeEndElement();
@@ -819,7 +845,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (var_conf.isManuallyCurated()) var_conf.updateVariant(variant, genome_idx_, geno_idx);
 
 		w.writeStartElement("Variant");
-		w.writeAttribute("chr", variant.chr().str());
+		w.writeAttribute("chr", variant.chr().strNormalized(true));
 		w.writeAttribute("start", QString::number(variant.start()));
 		w.writeAttribute("end", QString::number(variant.end()));
 		w.writeAttribute("ref", variant.ref());
@@ -1088,7 +1114,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 		//element Cnv
 		w.writeStartElement("Cnv");
-		w.writeAttribute("chr", cnv.chr().str());
+		w.writeAttribute("chr", cnv.chr().strNormalized(true));
 		w.writeAttribute("start", QString::number(cnv.start()));
 		w.writeAttribute("end", QString::number(cnv.end()));
 		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.start()));
@@ -1306,6 +1332,56 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	}
 	w.writeEndElement();
 
+	//RE List
+	w.writeStartElement("ReList");
+	w.writeAttribute("re_caller", RepeatLocusList::typeToString(data_.res.caller()));
+	w.writeAttribute("genome_build", buildToString(data_.build, true));
+
+	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.variant_type!=VariantType::RES) continue;
+		if (!selected_res_.contains(var_conf.variant_index)) continue;
+		if (data_.report_settings.report_type!="all" && var_conf.report_type!=data_.report_settings.report_type) continue;
+
+
+		RepeatLocus re = data_.res[var_conf.variant_index];
+
+		//manual curation
+		if (var_conf.isManuallyCurated()) var_conf.updateRe(re);
+
+		w.writeStartElement("Re");
+		w.writeAttribute("name", re.name());
+		w.writeAttribute("chr", re.region().chr().strNormalized(true));
+		w.writeAttribute("start", QString::number(re.region().start()));
+		w.writeAttribute("end", QString::number(re.region().end()));
+		w.writeAttribute("repeat_unit", re.unit());
+		w.writeAttribute("allele1", re.allele1());
+		if (!re.allele2().isEmpty()) w.writeAttribute("allele2", re.allele2());
+
+		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
+		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
+		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
+		w.writeAttribute("mosaic", var_conf.mosaic ? "true" : "false");
+
+		if (var_conf.inheritance!="n/a")
+		{
+			w.writeAttribute("inheritance", var_conf.inheritance);
+		}
+		if (!var_conf.comments.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_1st_assessor", var_conf.comments.trimmed());
+		}
+		if (!var_conf.comments2.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
+		}
+		w.writeAttribute("report_type", var_conf.report_type);
+
+		w.writeEndElement();
+	}
+	w.writeEndElement();
+
 	//PRS scores
 	w.writeStartElement("PrsList");
 	if (data_.prs.rowCount()>0)
@@ -1508,7 +1584,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene SNVs/InDels in Zielregion gesamt"] = "Small variants in target region";
 		de2en["Anzahl SNVs/InDels ausgew&auml;hlt f&uuml;r Report"] = "SNVs/InDels selected for report";
-		de2en["Anzahl CNVs/SVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs/SVs selected for report";
+		de2en["Anzahl CNVs/SVs/REs ausgew&auml;hlt f&uuml;r Report"] = "CNVs/SVs/REs selected for report";
 		de2en["Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report"] = "Other variants selected for report";
 		de2en["Einzelbasenver&auml;nderungen (SNVs) und Insertionen/Deletionen (InDels) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized small variants";
 		de2en["Kopienzahlver&auml;nderungen (CNV) und/oder Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized copy-number variants and/or structural variants";
@@ -1570,7 +1646,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Mutter"] = "mother";
 		de2en["Regionen"] = "regions";
 		de2en["Gene"] = "genes";
-		de2en["CNV/SV"] = "CNV/SV";
+		de2en["CNV/SV/RE"] = "CNV/SV/RE";
 		de2en["Kopienzahl/Genotyp"] = "copy-number/genotype";
 		de2en["n/a"] = "n/a";
 		de2en["Position"] = "Position";
@@ -2185,6 +2261,36 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
+
+	//REs
+	stream << "    <p><b>Kausale REs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderRe(stream, true);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::RES) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRowRe(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	stream << "    <p><b>Sonstige REs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderRe(stream, false);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::RES) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRowRe(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
 	OtherCausalVariant other_causal_var = data_.report_settings.report_config->otherCausalVariant();
 	if (other_causal_var.isValid())
 	{
@@ -2417,6 +2523,51 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
 	stream << "       <td>" << trans(conf.rna_info) << "</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowHeaderRe(QTextStream& stream, bool causal)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>RE</th>" << endl;
+	stream << "       <th>Genotyp</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	if (causal)
+	{
+		stream << "       <th>Infos</th>" << endl;
+	}
+	else
+	{
+		stream << "       <th>Ausschlussgrund</th>" << endl;
+	}
+	stream << "       <th style='white-space: nowrap'>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowRe(QTextStream& stream, const ReportVariantConfiguration& conf)
+{
+	RepeatLocus re = data_.res[conf.variant_index];
+
+	//manual curation
+	if (conf.isManuallyCurated()) conf.updateRe(re);
+
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << re.toString(true, false) << "</td>" << endl;
+	stream << "       <td>" << re.alleles() << "</td>" << endl;
+	stream << "       <td>" << conf.inheritance << "</td>" << endl;
+	if (conf.causal)
+	{
+		stream << "       <td></td>" << endl;
+	}
+	else
+	{
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
+	}
+	stream << "       <td>" << conf.comments << "</td>" << endl;
+	stream << "       <td>" << conf.comments2 << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 

@@ -53,12 +53,4 @@ private slots:
 		COMPARE_FILES("out/CnvList_ClinCNV_somatic.tsv", TESTDATA("data_out/CnvList_ClinCNV_somatic.tsv"));
 	}
 
-	void import_export_CnvHunter_germline()
-	{
-		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
-		cnvs.store("out/CnvList_CnvHunter_germline.tsv");
-		COMPARE_FILES("out/CnvList_CnvHunter_germline.tsv", TESTDATA("data_out/CnvList_CnvHunter_germline.tsv"));
-	}
-
 };

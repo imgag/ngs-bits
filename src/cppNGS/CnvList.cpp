@@ -56,26 +56,6 @@ int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool
 		{
 			return annotations_[i].toInt();
 		}
-		else if (annotation_headers[i]=="region_copy_numbers") //CnvHunter
-		{
-			QByteArrayList parts = annotations_[i].split(',');
-
-			int max = 0;
-			QByteArray max_cn;
-			QHash<QByteArray, int> cn_counts;
-			foreach(const QByteArray& cn, parts)
-			{
-				int count_new = cn_counts[cn] + 1;
-				if (count_new>max)
-				{
-					max = count_new;
-					max_cn = cn;
-				}
-				cn_counts[cn] = count_new;
-			}
-
-			return Helper::toInt(max_cn, "copy-number");
-		}
 	}
 
 	if (throw_if_not_found)
@@ -148,9 +128,7 @@ void CnvList::loadInternal(QString filename, bool header_only)
 		if (line.startsWith(type_prefix)) //analysis type
 		{
 			QByteArray type = line.mid(type_prefix.length()).trimmed();
-			if (type=="CNVHUNTER_GERMLINE_SINGLE") type_ = CnvListType::CNVHUNTER_GERMLINE_SINGLE;
-			else if (type=="CNVHUNTER_GERMLINE_MULTI") type_ = CnvListType::CNVHUNTER_GERMLINE_MULTI;
-			else if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CnvListType::CLINCNV_GERMLINE_SINGLE;
+			if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CnvListType::CLINCNV_GERMLINE_SINGLE;
 			else if (type=="CLINCNV_GERMLINE_MULTI") type_ = CnvListType::CLINCNV_GERMLINE_MULTI;
 			else if (type=="CLINCNV_TUMOR_NORMAL_PAIR") type_ = CnvListType::CLINCNV_TUMOR_NORMAL_PAIR;
 			else if (type=="CLINCNV_TUMOR_ONLY") type_ = CnvListType::CLINCNV_TUMOR_ONLY;
@@ -186,29 +164,7 @@ void CnvList::loadInternal(QString filename, bool header_only)
 	annotation_indices.removeAll(i_genes);
 	int i_region_count = -1;
 
-	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
-	{
-		//mandatory columns
-		i_region_count = file.colIndex("region_count", false);
-		annotation_indices.removeAll(i_region_count);
-		//remove columns
-		int i_sample = file.colIndex("sample", true);
-		annotation_indices.removeAll(i_sample);
-		int i_size = file.colIndex("size", true);
-		annotation_indices.removeAll(i_size);
-	}
-	else if (type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
-	{
-		//mandatory columns
-		i_region_count = file.colIndex("region_count", false);
-		annotation_indices.removeAll(i_region_count);
-		//remove columns
-		int i_sample = file.colIndex("sample", true);
-		annotation_indices.removeAll(i_sample);
-		int i_size = file.colIndex("size", true);
-		annotation_indices.removeAll(i_size);
-	}
-	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
+	if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
 	{
 		//mandatory columns
 		i_region_count = file.colIndex("no_of_regions", false);
@@ -343,14 +299,6 @@ void CnvList::store(QString filename)
 		header_line.insert(1, "size");
 		header_line.insert(9, "genes");
 	}
-	else if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
-	{
-		// assemble header line
-		header_line.insert(0, "sample");
-		header_line.insert(1, "size");
-		header_line.insert(2, "region_count");
-		header_line.insert(8, "genes");
-	}
 	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 	{
 		// assemble header line
@@ -394,14 +342,6 @@ void CnvList::store(QString filename)
 			cnv_annotations.insert(1, QByteArray::number(variant.size() - 1));
 			cnv_annotations.insert(9, variant.genes().toStringList().join(", ").toUtf8());
 		}
-		else if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
-		{
-			// assemble CNV line
-			cnv_annotations.insert(0, "");
-			cnv_annotations.insert(1, QByteArray::number(variant.size()));
-			cnv_annotations.insert(2, QByteArray::number(variant.regions()));
-			cnv_annotations.insert(8, variant.genes().toStringList().join(",").toUtf8());
-		}
 		else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 		{
 			// assemble header line
@@ -426,9 +366,7 @@ void CnvList::store(QString filename)
 
 QString CnvList::typeAsString() const
 {
-	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE) return "CNVHUNTER_GERMLINE_SINGLE";
-	else if (type()==CnvListType::CNVHUNTER_GERMLINE_MULTI) return "CNVHUNTER_GERMLINE_MULTI";
-	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) return "CLINCNV_GERMLINE_SINGLE";
+	if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) return "CLINCNV_GERMLINE_SINGLE";
 	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI) return "CLINCNV_GERMLINE_MULTI";
 	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) return "CLINCNV_TUMOR_NORMAL_PAIR";
 	else if (type()==CnvListType::CLINCNV_TUMOR_ONLY) return "CLINCNV_TUMOR_ONLY";
@@ -443,10 +381,6 @@ CnvCallerType CnvList::caller() const
 	if (list_type==CnvListType::INVALID)
 	{
 		return CnvCallerType::INVALID;
-	}
-	else if (list_type==CnvListType::CNVHUNTER_GERMLINE_SINGLE || list_type==CnvListType::CNVHUNTER_GERMLINE_MULTI)
-	{
-		return CnvCallerType::CNVHUNTER;
 	}
 	else if (list_type==CnvListType::CLINCNV_GERMLINE_SINGLE || list_type==CnvListType::CLINCNV_GERMLINE_MULTI || list_type==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || list_type==CnvListType::CLINCNV_TUMOR_ONLY)
 	{
@@ -464,10 +398,6 @@ QString CnvList::callerAsString() const
 	if (caller_type==CnvCallerType::CLINCNV)
 	{
 		return "ClinCNV";
-	}
-	else if (caller_type==CnvCallerType::CNVHUNTER)
-	{
-		return "CnvHunter";
 	}
 	else
 	{
@@ -508,7 +438,7 @@ QByteArray CnvList::qcMetric(QString name, bool throw_if_missing) const
 				value = comment.mid(sep_pos+1).trimmed();
 			}
 
-			//special handling for CnvHunter/trio output (metrics are prefixed with processed sample name)
+			//special handling for trio output (metrics are prefixed with processed sample name)
 			key = key.split(' ').mid(1).join(' ');
 			if (key==name)
 			{
@@ -599,7 +529,7 @@ KeyValuePair CnvList::split(const QByteArray& string, char sep)
 	return KeyValuePair(key, value);
 }
 
-CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QString ps_name, bool ignore_inval_header_lines)
+CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, bool ignore_inval_header_lines)
 {
 	//parse file header
 	CnvListCallData out;
@@ -622,11 +552,6 @@ CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QStr
 			}
 			else //quality metrics
 			{
-				if (pair.key.startsWith(ps_name + " ")) //remove sample name prefix (CnvHunter only)
-				{
-					pair.key = pair.key.mid(ps_name.length()+1).trimmed();
-				}
-
 				out.quality_metrics.insert(pair.key, pair.value);
 			}
 		}
@@ -636,11 +561,7 @@ CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QStr
 		}
 	}
 
-	if (out.call_date.isNull()) //fallback if CNV file does not contain any dates
-	{
-		if(filename != "") out.call_date = QFileInfo(filename).created();
-		else THROW(ArgumentException, "Cannot determine date of CnvHunter file, not given in header and there is no filename given.");
-	}
+	if (out.call_date.isNull()) THROW(ArgumentException, "Cannot determine date of CNV calling!");
 
 	return out;
 

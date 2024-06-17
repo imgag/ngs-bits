@@ -143,5 +143,6 @@ void BackgroundJobDialog::updateTable(int id)
 		ui_.jobs->setItem(r, 4, GUIHelper::createTableItem(job_info.messages));
 	}
 
-	GUIHelper::resizeTableCells(ui_.jobs, 400, false);
+	GUIHelper::resizeTableCellWidths(ui_.jobs, 400);
+	ui_.jobs->resizeRowsToContents();
 }

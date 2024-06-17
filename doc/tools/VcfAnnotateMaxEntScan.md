@@ -1,10 +1,10 @@
 ### VcfAnnotateMaxEntScan tool help
-	VcfAnnotateMaxEntScan (2023_06-98-g044e3ed3)
+	VcfAnnotateMaxEntScan (2023_11-42-ga9d1687d)
 	
 	Annotates a VCF file with MaxEntScan scores.
 	
 	Mandatory parameters:
-	  -gff <file>        Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.gff3.gz.
+	  -gff <file>        Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz.
 	
 	Optional parameters:
 	  -out <file>        Output VCF file containing the MaxEntScan scores in the INFO column. If unset, writes to STDOUT.
@@ -41,6 +41,6 @@
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfAnnotateMaxEntScan changelog
-	VcfAnnotateMaxEntScan 2023_06-98-g044e3ed3
+	VcfAnnotateMaxEntScan 2023_11-42-ga9d1687d
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -10,6 +10,8 @@ QString variantTypeToString(VariantType type)
 			return "CNV";
 		case VariantType::SVS:
 			return "SV";
+		case VariantType::RES:
+			return "RE";
 		default:
 			THROW(ProgrammingException, "Unhandled variant type!");
 	}

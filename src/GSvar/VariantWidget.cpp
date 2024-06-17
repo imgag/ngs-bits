@@ -119,7 +119,8 @@ void VariantWidget::updateGUI()
 		ui_.transcripts->setItem(i, 4, GUIHelper::createTableItem(consequence.typesToString(", ")));
 		ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(trans.flags(false).join(", ")));
 	}
-	GUIHelper::resizeTableCells(ui_.transcripts, 450);
+	GUIHelper::resizeTableCellWidths(ui_.transcripts, 450);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.transcripts);
 
 
 	//classification
@@ -236,7 +237,8 @@ void VariantWidget::updateGUI()
 		ui_.table->sortByColumn(0);
 
 		//resize table cols
-		GUIHelper::resizeTableCells(ui_.table, 200);
+		GUIHelper::resizeTableCellWidths(ui_.table, 200);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
 
 		QApplication::restoreOverrideCursor();
 	}

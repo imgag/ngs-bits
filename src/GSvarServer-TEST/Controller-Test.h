@@ -13,7 +13,7 @@ private slots:
             SKIP("Server has not been configured correctly");
         }
 
-        ServerDbManager::reinitializeDb();
+        ServerDB().reinitializeDb();
         HttpRequest request;
 		request.setMethod(RequestMethod::GET);
 		request.setContentType(ContentType::APPLICATION_JSON);
@@ -362,4 +362,45 @@ private slots:
 		QSharedPointer<QFile> outfile = Helper::openFileForReading(upload_response.getPayload());
 		S_EQUAL(outfile.data()->readAll(), test_content);
 	}
+
+    void test_locate_file_by_type()
+    {
+        QString url_id = ServerHelper::generateUniqueStr();
+        QString file = TESTDATA("data/sample.gsvar");
+
+        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
+
+        Session cur_session("gsvar_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+        SessionManager::addNewSession(cur_session);
+
+        HttpRequest request;
+
+        QMap<QString, QString> url_params;
+        url_params.insert("ps_url_id", url_id);
+        url_params.insert("type", "GSVAR1");
+        url_params.insert("path", "");
+        url_params.insert("locus", "");
+        url_params.insert("multiple_files", 0);
+        url_params.insert("return_if_missing", 0);
+        url_params.insert("token", "gsvar_token");
+
+        request.setMethod(RequestMethod::GET);
+        request.setContentType(ContentType::APPLICATION_JSON);
+        request.setPrefix("v1");
+        request.setPath("file_location");
+        request.setUrlParams(url_params);
+        IS_THROWN(Exception, ServerController::locateFileByType(request));
+
+        url_params.insert("type", "GSVAR");
+        request.setUrlParams(url_params);
+        HttpResponse response = ServerController::locateFileByType(request);
+        IS_TRUE(response.getStatusLine().contains("200"));
+
+        QJsonDocument json_result = QJsonDocument::fromJson(response.getPayload());
+        IS_TRUE(json_result.isArray());
+
+        // This test is intended to be changed when PathType changes, OTHER is always the last element,
+        // it will always change when items are added or deleted
+        I_EQUAL(static_cast<int>(PathType::OTHER), 45);
+    }
 };

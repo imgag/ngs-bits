@@ -17,8 +17,6 @@ class FilterWidgetSV
 public:
 	////Default constructor
 	FilterWidgetSV(QWidget* parent = 0);
-	////Sets the small variant filter widget (needed to import data from it)
-	void setVariantFilterWidget(FilterWidget* filter_widget);
 
 	/// Set entries of the 'filter' column valid in the open file
 	void setValidFilterEntries(const QStringList& filter_entries);
@@ -93,7 +91,6 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	FilterWidget* filter_widget_;
 };
 
 #endif // FILTERWIDGETSV_H

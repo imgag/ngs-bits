@@ -41,6 +41,7 @@
     <VariantList overall_number="319" genome_build="GRCh38"/>
     <CnvList cnv_caller="ClinCNV" overall_number="2" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996"/>
     <SvList sv_caller="Manta" overall_number="87" genome_build="GRCh38"/>
+    <ReList re_caller="ExpansionHunter" genome_build="GRCh38"/>
     <PrsList>
         <Prs id="PGS000004" trait="Breast Cancer" citation="Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002" score="-0.2773" percentile="53"/>
     </PrsList>

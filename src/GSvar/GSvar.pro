@@ -24,6 +24,8 @@ SOURCES += main.cpp\
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
     PathogenicWtDialog.cpp \
+    ReSearchWidget.cpp \
+    RepeatExpansionWidget.cpp \
     ReportDialog.cpp \
     Background/ReportWorker.cpp \
     SettingsDialog.cpp \
@@ -93,7 +95,6 @@ SOURCES += main.cpp\
     EmailDialog.cpp \
     CytobandToRegionsDialog.cpp\
     SvSearchWidget.cpp \
-    RepeatExpansionWidget.cpp \
     PRSWidget.cpp \
     SomaticDataTransferWidget.cpp \
     EvaluationSheetEditDialog.cpp \
@@ -148,6 +149,8 @@ HEADERS += MainWindow.h \
     ImportDialog.h \
     MaintenanceDialog.h \
     PathogenicWtDialog.h \
+    ReSearchWidget.h \
+    RepeatExpansionWidget.h \
     ReportDialog.h \
     Background/ReportWorker.h \
     SettingsDialog.h \
@@ -217,7 +220,6 @@ HEADERS += MainWindow.h \
     EmailDialog.h \
     CytobandToRegionsDialog.h\
     SvSearchWidget.h \
-    RepeatExpansionWidget.h \
     PRSWidget.h \
     SomaticDataTransferWidget.h \
     EvaluationSheetEditDialog.h \
@@ -265,6 +267,8 @@ FORMS    += MainWindow.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
     PathogenicWtDialog.ui \
+    ReSearchWidget.ui \
+    RepeatExpansionWidget.ui \
     ReportDialog.ui \
     SettingsDialog.ui \
     TrioDialog.ui \
@@ -325,7 +329,6 @@ FORMS    += MainWindow.ui \
     EmailDialog.ui \
     CytobandToRegionsDialog.ui \
     SvSearchWidget.ui \
-    RepeatExpansionWidget.ui \
     PRSWidget.ui \
     SomaticDataTransferWidget.ui \
     EvaluationSheetEditDialog.ui \

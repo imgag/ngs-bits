@@ -86,6 +86,9 @@
             <Gene name="SLC35E2B" identifier="n/a"/>
         </Sv>
     </SvList>
+    <ReList re_caller="ExpansionHunter" genome_build="GRCh38">
+        <Re name="DAB1" chr="chr1" start="57367043" end="57367118" repeat_unit="RAAAT" allele1="15" allele2="30" causal="false" de_novo="false" comp_het="false" mosaic="false" report_type="diagnostic variant"/>
+    </ReList>
     <PrsList>
         <Prs id="PGS000004" trait="Breast Cancer" citation="Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002" score="-0.2773" percentile="53"/>
     </PrsList>

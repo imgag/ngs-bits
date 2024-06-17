@@ -14,8 +14,11 @@ class CircosPlotWidget
 	Q_OBJECT
 
 public:
-	explicit CircosPlotWidget(QString filename, QWidget *parent = 0);
+	CircosPlotWidget(QString filename, QWidget *parent = 0);
 	~CircosPlotWidget();
+
+protected slots:
+	void showContextMenu(QPoint);
 
 protected:
 	void resizeEvent(QResizeEvent*);

@@ -68,7 +68,8 @@ TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorO
 
 
 	}
-	GUIHelper::resizeTableCells(ui->snvs);
+	GUIHelper::resizeTableCellWidths(ui->snvs);
+	GUIHelper::resizeTableCellHeightsToFirst(ui->snvs);
 }
 
 TumorOnlyReportDialog::~TumorOnlyReportDialog()

@@ -6,6 +6,7 @@
 #include "VariantList.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
+#include "RepeatLocusList.h"
 
 class NGSD;
 
@@ -81,6 +82,13 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool manualSvStartBndIsValid() const;
 	bool manualSvEndBndIsValid() const;
 	void updateSv(BedpeLine& sv, const QByteArrayList& annotation_headers, NGSD& db) const;
+
+	//manual curation of REs
+	QString manual_re_allele1;
+	QString manual_re_allele2;
+	bool manualReAllele1IsValid() const;
+	bool manualReAllele2IsValid() const;
+	void updateRe(RepeatLocus& re) const;
 
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();

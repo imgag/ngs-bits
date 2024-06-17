@@ -45,7 +45,8 @@ void PathogenicWtDialog::delayedInitialization()
 		ui_.variants->setItem(row, 4, item);
 	}
 
-	GUIHelper::resizeTableCells(ui_.variants);
+	GUIHelper::resizeTableCellWidths(ui_.variants);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.variants);
 }
 
 void PathogenicWtDialog::variantsContextMenu(QPoint pos)

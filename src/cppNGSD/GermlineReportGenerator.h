@@ -12,7 +12,7 @@
 struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 {
 	//constructor
-	GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_);
+	GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_);
 
 	//genome build
 	GenomeBuild build;
@@ -23,6 +23,7 @@ struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 	const VariantList& variants;
 	const CnvList& cnvs;
 	const BedpeFile& svs;
+	const RepeatLocusList& res;
 	PrsTable prs;
 
 	//files needed e.g. for coverage statics
@@ -84,6 +85,7 @@ private:
 	QSet<int> selected_small_;
 	QSet<int> selected_cnvs_;
 	QSet<int> selected_svs_;
+	QSet<int> selected_res_;
 	bool selected_other_causal_variant_;
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
@@ -105,6 +107,8 @@ private:
 	void printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf);
 	static void printVariantSheetRowHeaderSv(QTextStream& stream, bool causal);
 	void printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf);
+	static void printVariantSheetRowHeaderRe(QTextStream& stream, bool causal);
+	void printVariantSheetRowRe(QTextStream& stream, const ReportVariantConfiguration& conf);
 	static void printVariantSheetRowHeaderOtherVariant(QTextStream& stream);
 	void printVariantSheetRowOtherVariant(QTextStream& stream, OtherCausalVariant variant);
 	static QString exclusionCriteria(const ReportVariantConfiguration& conf);

@@ -73,7 +73,8 @@ void SampleDiseaseInfoWidget::updateDiseaseInfoTable()
 		ui_->disease_info->setItem(i, 3, new QTableWidgetItem(entry.date.toString(Qt::ISODate).replace("T", " ")));
 	}
 
-	GUIHelper::resizeTableCells(ui_->disease_info);
+	GUIHelper::resizeTableCellWidths(ui_->disease_info);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->disease_info);
 }
 
 void SampleDiseaseInfoWidget::addDiseaseInfo()

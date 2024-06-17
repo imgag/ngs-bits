@@ -540,7 +540,8 @@ void BurdenTestWidget::validateInputData()
 				tw_warnings_->setItem(row, col, GUIHelper::createTableItem(warning_table.at(row).at(col)));
 			}
 		}
-		GUIHelper::resizeTableCells(tw_warnings_);
+		GUIHelper::resizeTableCellWidths(tw_warnings_);
+		GUIHelper::resizeTableCellHeightsToFirst(tw_warnings_);
 
 		//create table view with copy option
 		QWidget* view = new QWidget();
@@ -1166,7 +1167,8 @@ void BurdenTestWidget::performBurdenTest()
 		ui_->tw_gene_table->setColumnHidden(8, true);
 		ui_->tw_gene_table->setColumnHidden(9, true);
 	}
-	GUIHelper::resizeTableCells(ui_->tw_gene_table, 200);
+	GUIHelper::resizeTableCellWidths(ui_->tw_gene_table, 200);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->tw_gene_table);
 	ui_->tw_gene_table->setSortingEnabled(true);
 	ui_->tw_gene_table->sortByColumn(1, Qt::AscendingOrder);
 

@@ -1,5 +1,5 @@
 ### UpdHunter tool help
-	UpdHunter (2020_03-260-ge35d12de)
+	UpdHunter (2023_11-42-ga9d1687d)
 	
 	UPD detection from trio variant data.
 	
@@ -11,6 +11,8 @@
 	  -out <file>              Output TSV file containing the detected UPDs.
 	
 	Optional parameters:
+	  -out_informative <file>  Output IGV file containing informative variants.
+	                           Default value: ''
 	  -exclude <file>          BED file with regions to exclude, e.g. copy-number variant regions.
 	                           Default value: ''
 	  -var_min_dp <int>        Minimum depth (DP) of a variant (in all three samples).
@@ -39,8 +41,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### UpdHunter changelog
-	UpdHunter 2020_03-260-ge35d12de
+	UpdHunter 2023_11-42-ga9d1687d
 	
+	2024-06-06 Added optional output file containing informative variants.
 	2020-08-07 VCF files only as input format for variant list.
 	2018-06-11 First working version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
