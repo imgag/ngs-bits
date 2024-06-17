@@ -21,7 +21,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports Ensembl/CCDS transcript information into NGSD.");
-		addInfile("in", "Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-110/gff3/homo_sapiens/Homo_sapiens.GRCh38.110.gff3.gz).", false);
+		addInfile("in", "Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz).", false);
 		//optional
 		addInfileList("pseudogenes", "Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt and http://pseudogene.org/psicube/data/gencode.v10.pgene.parents.txt).", true);
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts that do not have at least one of the flags 'GENCODE basic', 'Ensembl canonical', 'MANE select' or 'MANE plus clinical').");

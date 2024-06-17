@@ -11,11 +11,11 @@
 Germline analysis:  
 
 - [Sample quality control](sample_quality_control.md)
-- [Small variant analysis](variant_filtering.md)
-- [CNV analysis](cnv_analysis.md)
-- [SV analysis](sv_analysis.md)
-- [Repeat expansions analysis](repeat_expansion_view.md)
-- [ROH/UPD analysis](roh_analysis.md)
+- [Small variant analysis (SNVs/InDels)](variant_filtering.md)
+- [copy number analysis (CNVs)](cnv_analysis.md)
+- [structural variant analysis (SVs)](sv_analysis.md)
+- [Repeat expansions analysis (REs)](repeat_expansion_view.md)
+- [Runs-of-homozygosity analysis (ROHs/UPDs)](roh_analysis.md)
 - [Report generation](report_generation.md)
 
 Other analysis
