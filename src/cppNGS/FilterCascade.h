@@ -763,6 +763,16 @@ class CPPNGSSHARED_EXPORT FilterVariantRNAExpressionZScore
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter by overlap with srWGS
+class CPPNGSSHARED_EXPORT FilterVariantLrSrOverlap
+	: public FilterBase
+{
+	public:
+		FilterVariantLrSrOverlap();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
 
 /*************************************************** filters for CNVs ***************************************************/
 

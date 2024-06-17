@@ -1140,6 +1140,20 @@ private slots:
 		I_EQUAL(result.countPassing(), 18);
 	}
 
+	void FilterVariantLrSrOverlap_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantLrSrOverlap filter;
+		filter.setBool("invert", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 42);
+	}
+
 
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 

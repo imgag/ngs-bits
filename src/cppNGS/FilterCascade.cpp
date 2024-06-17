@@ -984,6 +984,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["RNA gene expression"] = &createInstance<FilterVariantRNAGeneExpression>;
 		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
 		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
+		output["lr short-read overlap"] = &createInstance<FilterVariantLrSrOverlap>;
 		//SV lrGS
 		output["SV-lr AF"] = &createInstance<FilterSvLrAF>;
 		output["SV-lr support reads"] = &createInstance<FilterSvLrSupportReads>;
@@ -4276,7 +4277,7 @@ FilterSvGeneOverlap::FilterSvGeneOverlap()
 
 	params_ << FilterParameter("complete", FilterParameterType::BOOL, true , "Overlaps the complete gene.");
 	params_ << FilterParameter("exonic/splicing", FilterParameterType::BOOL, true , "Overlaps the coding or splicing region of the gene.");
-	params_ << FilterParameter("intronic/intergenic", FilterParameterType::BOOL, false , "Overlaps the intronic/intergenic region of the gene only.");
+	params_ << FilterParameter("intronic/near gene", FilterParameterType::BOOL, false , "Overlaps the intronic region or less than 5kb up/down stream of the gene .");
 
 	checkIsRegistered();
 }
@@ -4334,7 +4335,7 @@ QByteArrayList FilterSvGeneOverlap::selectedOptions() const
 	QByteArrayList output;
 	if (getBool("complete")) output << "complete";
 	if (getBool("exonic/splicing")) output << "exonic/splicing";
-	if (getBool("intronic/intergenic")) output << "intronic/intergenic";
+	if (getBool("intronic/near gene")) output << "intronic/intergenic";
 
 	return output;
 }
@@ -5643,6 +5644,44 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 }
 
 
+FilterVariantLrSrOverlap::FilterVariantLrSrOverlap()
+{
+	name_ = "lr short-read overlap";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter that preserves variants if they were called in short-read WGS sample only.";
+	params_ << FilterParameter("invert", FilterParameterType::BOOL, false, "If set, removes all variants if they were called in short-read WGS sample.");
+
+}
+
+QString FilterVariantLrSrOverlap::toText() const
+{
+	return name() + (getBool("invert") ? " (invert)" : "");
+}
+
+void FilterVariantLrSrOverlap::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	bool invert = getBool("invert");
+	int idx_in_shortread = variants.annotationIndexByName("in_short-read");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (invert)
+		{
+			result.flags()[i] = (variants[i].annotations().at(idx_in_shortread).trimmed() == "");
+		}
+		else
+		{
+			result.flags()[i] = !(variants[i].annotations().at(idx_in_shortread).trimmed() == "");
+		}
+	}
+}
+
+
+
 FilterSvCnvOverlap::FilterSvCnvOverlap()
 {
 	name_ = "SV CNV overlap";
@@ -5780,3 +5819,4 @@ void FilterSvLrSupportReads::apply(const BedpeFile& svs, FilterResult& result) c
 		if(sup_reads < min_support) result.flags()[i] = false;
 	}
 }
+
