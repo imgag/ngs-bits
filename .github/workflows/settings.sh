@@ -18,6 +18,7 @@ echo "ngsd_test_port = 3306" >> ./bin/settings.ini
 echo "ngsd_test_name = \"test_db\"" >> ./bin/settings.ini
 echo "ngsd_test_user = \"test_user\"" >> ./bin/settings.ini
 echo "ngsd_test_pass = \"password\"" >> ./bin/settings.ini
+echo "megsap_root = \"$HOME\"" >> ./bin/settings.ini
 
 echo "projects_folder = \"projects_folder\"" >> ./bin/settings.ini
 echo "data_folder = \"\"" >> ./bin/settings.ini
