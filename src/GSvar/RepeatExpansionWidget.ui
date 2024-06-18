@@ -267,6 +267,11 @@
      </column>
      <column>
       <property name="text">
+       <string>comments</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>filters</string>
       </property>
       <property name="toolTip">
@@ -338,6 +343,14 @@
      </column>
      <column>
       <property name="text">
+       <string>statistical cutoff</string>
+      </property>
+      <property name="toolTip">
+       <string>statistical cutoff of the repeat length for outlier detection based on the repeat length distribution in NSGD</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>diseases</string>
       </property>
       <property name="toolTip">
@@ -360,11 +373,6 @@
      <column>
       <property name="text">
        <string>location</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>comments</string>
       </property>
      </column>
      <column>

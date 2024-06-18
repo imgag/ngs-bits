@@ -5326,12 +5326,16 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 							}
 						}
 					}
-					else if (var_conf.variant_type==VariantType::CNVS || var_conf.variant_type==VariantType::SVS || var_conf.variant_type==VariantType::RES)
+					else if (var_conf.variant_type==VariantType::CNVS || var_conf.variant_type==VariantType::SVS)
 					{
 						if (var_conf.classification=="" || var_conf.classification=="n/a")
 						{
 							output[s_name] << "causal diagnostic " + variantTypeToString(var_conf.variant_type) + " has no classification!";
 						}
+					}
+					else if (var_conf.variant_type==VariantType::RES)
+					{
+						//nothing to check
 					}
 					else
 					{

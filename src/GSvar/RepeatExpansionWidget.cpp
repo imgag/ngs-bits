@@ -73,14 +73,17 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 		//hide lrGS column
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
 	}
+	if (sys_type_cutoff_col_.isEmpty())
+	{
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "statistical cutoff"), true);
+	}
 
 	if (!res_.isEmpty())
 	{
 		displayRepeats();
 		loadMetaDataFromNGSD();
-		GUIHelper::resizeTableCellWidths(ui_.table, 200);
+		GUIHelper::resizeTableCellWidths(ui_.table, 300);
 		GUIHelper::resizeTableCellHeightsToMinimum(ui_.table);
-
 		colorRepeatCountBasedOnCutoffs();
 		updateRowVisibility();
 		setReportConfigHeaderIcons();
@@ -126,37 +129,24 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
+	menu.addSeparator();
+	QAction* a_google = menu.addAction(QIcon("://Icons/Google.png"), "Google");
+	QAction* a_pubmed = menu.addAction(QIcon("://Icons/PubMed.png"), "PubMed");
+	foreach(const GeneDB& db, GeneInfoDBs::all())
+	{
+		menu.addAction(db.icon, db.name);
+	}
 
     //execute menu
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
+	if (action==nullptr) return;
+
 	if (action==a_show_svg)
-    {
-		QString filename;
-		QByteArray svg;
-		if (!ClientHelper::isClientServerMode())
-		{
-			filename = QFileInfo(image_loc.filename).absoluteFilePath();
-			VersatileFile file(image_loc.filename);
-			file.open(QIODevice::ReadOnly);
-			svg = file.readAll();
-		}
-		else
-		{
-			svg = VersatileFile(image_loc.filename).readAll();
-		}
+	{
+		QString filename = image_loc.filename;
+		if (!ClientHelper::isClientServerMode()) filename = QFileInfo(image_loc.filename).absoluteFilePath();
 
-		QSvgWidget* widget = new QSvgWidget();
-		widget->load(svg);
-		QRect rect = widget->renderer()->viewBox();
-		widget->setMinimumSize(rect.width(), rect.height());
-
-		QScrollArea* scroll_area = new QScrollArea(this);
-		scroll_area->setFrameStyle(QFrame::NoFrame);
-		scroll_area->setWidget(widget);
-		scroll_area->setMinimumSize(1200, 800);
-
-		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Image of " + getCell(row, "repeat ID").trimmed());
-		dlg->exec();
+		QDesktopServices::openUrl(QUrl(filename));
 	}
 	else if (action==a_show_hist)
 	{
@@ -197,9 +187,9 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_omim_gene)
 	{
-		QString omim_gene = getCell(row, "repeat ID").split("_")[0];
+		QString gene_symbol = res_[row].geneSymbol();
 		NGSD db;
-		QString mim = db.getValue("SELECT mim FROM omim_gene WHERE gene LIKE '" + omim_gene + "'", true).toString();
+		QString mim = db.getValue("SELECT mim FROM omim_gene WHERE gene LIKE '" + gene_symbol + "'", true).toString();
 		if (!mim.isEmpty())
 		{
 			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + mim));
@@ -207,10 +197,13 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_omim)
 	{
-		QStringList omim_ids = getCell(row, "OMIM disease IDs").split(",");
-		foreach(QString omim_id, omim_ids)
+		QRegExp mim_exp("([0-9]{6})");
+		QString text = getCell(row, "OMIM disease IDs");
+		int pos = 0;
+		while (mim_exp.indexIn(text, pos)!=-1)
 		{
-			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + omim_id.trimmed()));
+			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + mim_exp.cap(1)));
+			pos = mim_exp.pos() + 6;
 		}
 	}
 	else if (action==a_comments)
@@ -274,6 +267,19 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	{
 		report_config_->remove(VariantType::RES, row);
 		updateReportConfigHeaderIcon(row);
+	}
+	else if (action==a_google)
+	{
+		QDesktopServices::openUrl(QUrl("https://www.google.com/search?q="+res_[row].geneSymbol()+"+repeat"));
+	}
+	else if (action==a_pubmed)
+	{
+		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + res_[row].geneSymbol()+"+repeat"));
+	}
+	else //fallback to gene databases
+	{
+		QString gene_symbol = res_[row].geneSymbol();
+		GeneInfoDBs::openUrl(action->text(), gene_symbol);
 	}
 }
 
@@ -436,8 +442,21 @@ void RepeatExpansionWidget::displayRepeats()
 		//reads in repeat
 		setCell(row_idx, "reads in repeat", re.readsInRepeat());
 
-		//reads flanking
-		setCell(row_idx, "reads spanning", re.readsFlanking());
+		//reads spanning
+		setCell(row_idx, "reads spanning", re.readsSpanning());
+		int min_spanning = 999;
+		foreach(QString spanning_count, re.readsSpanning().split('/'))
+		{
+			spanning_count = spanning_count.trimmed();
+			if (Helper::isNumeric(spanning_count))
+			{
+				min_spanning = std::min(spanning_count.toInt(), min_spanning);
+			}
+		}
+		if (min_spanning<3)
+		{
+			setCellDecoration(row_idx, "reads spanning", "Less than 3 spanning reads", yellow_);
+		}
 	}
 }
 
@@ -481,8 +500,29 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		setCell(row, "diseases", disease_names);
 
 		//OMIM IDs
-		QString disease_ids_omim = db.getValue("SELECT disease_ids_omim FROM repeat_expansion WHERE id=" + id).toString().trimmed();
-		setCell(row, "OMIM disease IDs", disease_ids_omim);
+		QStringList disease_ids_omim = db.getValue("SELECT disease_ids_omim FROM repeat_expansion WHERE id=" + id).toString().split(",");
+		for(int i=0; i<disease_ids_omim.count(); ++i)
+		{
+			QString id = disease_ids_omim[i].trimmed();
+			if (id.isEmpty()) continue;
+			QStringList names;
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT phenotype FROM omim_phenotype WHERE phenotype LIKE '%" + id + "%'");
+			while (query.next())
+			{
+				QString name = query.value(0).toString();
+				name.replace(id, "");
+				name.replace("(3)", "");
+				name = name.trimmed();
+				while(name.endsWith(',') || name.endsWith(' ')) name.chop(1);
+				if (!name.isEmpty()) names << name;
+			}
+			if (!names.isEmpty())
+			{
+				disease_ids_omim[i] =  id + " - " + names.join("/");
+			}
+		}
+		setCell(row, "OMIM disease IDs", disease_ids_omim.join("; "));
 
 		//comments
 		QString comments = db.repeatExpansionComments(id.toInt());
@@ -507,6 +547,13 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		//type
 		QString type = db.getValue("SELECT type FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "type", type);
+
+		//statistical cutoff
+		if (!sys_type_cutoff_col_.isEmpty())
+		{
+			QString cutoff = db.getValue("SELECT "+sys_type_cutoff_col_+" FROM repeat_expansion WHERE id=" + id).toString().trimmed();
+			setCell(row, "statistical cutoff", cutoff);
+		}
 	}
 }
 
@@ -569,7 +616,6 @@ void RepeatExpansionWidget::updateRowVisibility()
 {
 	QBitArray hidden(ui_.table->rowCount(), false);
 
-
 	//show
 	QString show = ui_.filter_show->currentText();
 	if (show=="diagnostic")
@@ -628,7 +674,6 @@ void RepeatExpansionWidget::updateRowVisibility()
 	}
 	if (ui_.filter_expanded->currentText()=="statistical outlier")
 	{
-
 		NGSD db;
 		int col_geno = GUIHelper::columnIndex(ui_.table, "genotype");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
@@ -699,9 +744,10 @@ void RepeatExpansionWidget::updateRowVisibility()
 	{
 		int col_repeat_id = GUIHelper::columnIndex(ui_.table, "repeat ID");
 		int col_diseases = GUIHelper::columnIndex(ui_.table, "diseases");
+		int col_omim = GUIHelper::columnIndex(ui_.table, "OMIM disease IDs");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			if (!ui_.table->item(row, col_repeat_id)->text().contains(id_search_str, Qt::CaseInsensitive) && !ui_.table->item(row, col_diseases)->text().contains(id_search_str, Qt::CaseInsensitive))
+			if (!ui_.table->item(row, col_repeat_id)->text().contains(id_search_str, Qt::CaseInsensitive) && !ui_.table->item(row, col_diseases)->text().contains(id_search_str, Qt::CaseInsensitive) && !ui_.table->item(row, col_omim)->text().contains(id_search_str, Qt::CaseInsensitive))
 			{
 				hidden[row] = true;
 			}
