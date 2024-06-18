@@ -157,7 +157,13 @@ public:
 				QByteArrayList comment;
 				bool prs_var_is_wildtype = ((prs_variant.altString() == ".") || (prs_variant.altString() == prs_variant.ref()) || prs_variant.infoKeys().contains("REF_IS_EFFECT_ALLELE"));
 				//replace '.' in wildtype var with ref
-				if (prs_variant.ref() == ".") prs_variant.setSingleAlt(prs_variant.ref());
+				if (prs_variant.altString() == ".") prs_variant.setSingleAlt(prs_variant.ref());
+
+				//extract other allele for ref-flagged vars
+				if (prs_variant.infoKeys().contains("REF_IS_EFFECT_ALLELE") && (prs_variant.altString() != ".") && (prs_variant.altString() != prs_variant.ref()))
+				{
+					other_allele = prs_variant.altString();
+				}
 
 				if (impute)
 				{
@@ -250,6 +256,7 @@ public:
 							{
 								//sufficient depth (checked previously) & no call => both alleles wildtype
 								allele_count = 2;
+								prs += allele_count * weight;
 								++c_found;
 
 								//both allele are ref
