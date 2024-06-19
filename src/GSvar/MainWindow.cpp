@@ -168,7 +168,28 @@ MainWindow::MainWindow(QWidget *parent)
 	, init_timer_(this, true)
 	, server_version_()
 {
-	//setup GUI
+    QString settings_template_file = QCoreApplication::applicationDirPath() + QDir::separator() + "cloud_settings_template.ini";
+    if (QFile::exists(settings_template_file) && !QFile::exists(QCoreApplication::applicationDirPath() + QDir::separator() + "settings.ini"))
+    {
+        int res = QMessageBox::question(this, "Configuration check", "GSvar is not configured correctly.\n Do you want to start automatic configuration?");
+        if (res==QMessageBox::Yes)
+        {
+            QSettings* settings_generated = new QSettings(QCoreApplication::applicationDirPath() + QDir::separator() + "settings.ini", QSettings::IniFormat);
+            QSettings* settings_template = new QSettings(settings_template_file, QSettings::IniFormat);
+            if (settings_template != nullptr)
+            {
+                Log::info("Generating a new settings file from a template");
+                QStringList template_keys = settings_template->allKeys();
+                for (int i = 0; i< template_keys.count(); i++)
+                {
+                    settings_generated->setValue(template_keys[i], GSvarHelper::appPathForTemplate(settings_template->value(template_keys[i]).toString()));
+                }
+            }
+            settings_generated->sync();
+        }
+    }
+
+    //setup GUI
 	ui_.setupUi(this);
 	setWindowTitle(appName());
 	GUIHelper::styleSplitter(ui_.splitter);
