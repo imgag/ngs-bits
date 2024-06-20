@@ -262,12 +262,12 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 	{
 		if (value<1) color = &red;
 	}
-	else if (accession=="QC:2000024") //duplicates
+	else if (accession=="QC:2000024") //duplicate %
 	{
 		if (value>25) color = &orange;
 		if (value>35) color = &red;
 	}
-	else if (accession=="QC:2000021") //on target
+	else if (accession=="QC:2000021") //on target %
 	{
 		if (value<50) color = &orange;
 		if (value<25) color = &red;

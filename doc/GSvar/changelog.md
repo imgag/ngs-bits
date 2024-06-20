@@ -1,12 +1,20 @@
 # GSvar change log
 
+## 2024_02-116 (20.06.24)
+
+- RE dialog: Added REs to report config
+- RE dialog: Implemented filtering methods
+- RE dialog: Added support for lrGS
+- processed sample: added flag to indicate that the sample is re-sequenced to increase depth/coverage
+- sample search: Added option to search for samples with variants in NGSD only
+- analysis status dialog: now shows variant caller, calling date and report config information
+
 ## 2024_02-51 (23.04.24)
 
 - sample search: Added option to search for samples with variants in NGSD only
 - analysis status: Showing variant caller information in analysis status dialog now
 - report: added sequencing platform and read length to technical report
 - REs: added length distribution plots
-- 
 
 ## 2024_02-38 (15.04.24)
 
