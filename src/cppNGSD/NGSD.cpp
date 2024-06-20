@@ -5739,12 +5739,10 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 			}
 			else if ((sys_info.umi_type == "IDT-xGen-Prism") || (sys_info.umi_type == "Twist"))
 			{
-				//TODO Leon: implement mapping on NovaSeqX?
 				qDebug() << "UMI processing will be done in megSAP";
 			}
 			else if (sys_info.umi_type != "n/a")
 			{
-				//TODO Leon: extend
 				THROW(NotImplementedException, "Unsupported UMI type '" + sys_info.umi_type + "!");
 			}
 			if (index1_read_length - (mid1.length() + umi_length) < 0) THROW(ArgumentException, "Index1 (+ UMI) read longer than seqeuncing length!")
@@ -5809,7 +5807,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("AppVersion," + app_version);
 		sample_sheet.append("KeepFastq," + keep_fastq);
 		sample_sheet.append("MapAlignOutFormat,cram");
-		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO Leon: read from settings/NGSD
+		sample_sheet.append("ReferenceGenomeDir,GRCh38");
 		sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
 		sample_sheet.append("[DragenGermline_Data]");
@@ -5826,11 +5824,8 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("AppVersion," + app_version);
 		sample_sheet.append("KeepFastq," + keep_fastq);
 		sample_sheet.append("MapAlignOutFormat,cram");
-		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO Leon: read from settings/NGSD
-//		sample_sheet.append("Bedfile,/usr/local/illumina/target_region/" + sys_name + ".bed"); //TODO Leon: read from settings/NGSD
+		sample_sheet.append("ReferenceGenomeDir,GRCh38");
 		sample_sheet.append("GermlineOrSomatic,germline");
-//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO Leon: get format
-//		sample_sheet.append("AuxCnvPanelOfNormalsFile,/usr/local/illumina/cnv/" + sys_name + ".txt");
 		sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
 		sample_sheet.append("[DragenEnrichment_Data]");
@@ -5848,12 +5843,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		sample_sheet.append("AppVersion," + app_version);
 		sample_sheet.append("KeepFastq," + keep_fastq);
 		sample_sheet.append("MapAlignOutFormat,bam");
-		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO Leon: read from settings/NGSD
-//		sample_sheet.append("RnaGeneAnnotationFile,/usr/local/illumina/genes/GRCh38.gtf"); //TODO Leon: read from settings/NGSD
-		sample_sheet.append("RnaPipelineMode,FullPipeline"); //TODO Leon: read from settings/NGSD
 		sample_sheet.append("GermlineOrSomatic,germline");
-//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO Leon: get format
-//		sample_sheet.append("AuxCnvPanelOfNormalsFile,/usr/local/illumina/cnv/" + sys_name + ".txt");
 		sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
 		sample_sheet.append("[DragenRNA_Data]");

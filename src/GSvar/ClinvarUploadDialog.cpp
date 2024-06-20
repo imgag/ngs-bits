@@ -1691,7 +1691,6 @@ QJsonObject ClinvarUploadDialog::createJson()
 								variant_type = "Inversion";
 								break;
 							case StructuralVariantType::BND:
-								//TODO: implement for BND
 								THROW(NotImplementedException, "Currently not implemented for translocations!");
 								variant_type = "Translocation";
 								break;
@@ -1840,7 +1839,6 @@ QJsonObject ClinvarUploadDialog::createJson()
 									variant_type = "Inversion";
 									break;
 								case StructuralVariantType::BND:
-									//TODO: implement for BND
 									THROW(NotImplementedException, "Currently not implemented for translocations!");
 									variant_type = "Translocation";
 									break;

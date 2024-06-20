@@ -2993,7 +2993,6 @@ private slots:
 		S_EQUAL(gene_ensg_mapping.value("PLEKHN1"), "ENSG00000187583");
 
 		//Test expression data import
-		//TODO Leon: rename table
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
 		int count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 102);
@@ -3024,7 +3023,6 @@ private slots:
 
 		//check imported values
 		QMap<QByteArray,int> gene2id = db.getGeneExpressionGene2IdMapping();
-		//TODO Leon: rename table
 		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5001 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000049249")))).toInt(), 20934);
 		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5001 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000215720")))).toFloat(), 116.816, 0.001);
 		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5002 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000229716")))).toInt(), 1371);

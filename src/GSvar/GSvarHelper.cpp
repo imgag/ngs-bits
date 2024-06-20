@@ -217,9 +217,8 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 		}
 		else if (sys_type=="lrGS")
 		{
-			//TODO Leon: adjust limits for lrGS
-			if (value<20) color = &orange;
-			if (value<15) color = &red;
+			if (value<30) color = &orange;
+			if (value<20) color = &red;
 		}
 		else
 		{
