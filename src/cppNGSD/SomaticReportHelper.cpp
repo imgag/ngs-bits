@@ -1831,7 +1831,40 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	//Fusion status
 	if(svs_.count() > 0)
 	{
-		general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", RtfText("Hinweise auf eine Strukturvariante in XXX").highlight(3).RtfCode()}, {2500,7421}).setBorders(1, "brdrhair", 4));
+		QByteArray sv_text;
+		int idx_genes_A = svs_.annotationIndexByName("GENES_BREAKPOINT_A");
+		int idx_genes_B = svs_.annotationIndexByName("GENES_BREAKPOINT_B");
+		for(int i=0; i<svs_.count(); ++i)
+		{
+			const BedpeLine& sv = svs_[i];
+			QByteArray genes_A = sv.annotations()[idx_genes_A];
+			QByteArray genes_B = sv.annotations()[idx_genes_B];
+
+			if (sv_text != "")
+			{
+				sv_text += "\n\\line\n";
+			}
+
+			genes_A = genes_A == "" ? "XXX" : genes_A;
+			genes_B = genes_B == "" ? "XXX" : genes_B;
+
+			if (genes_A == genes_B)
+			{
+				sv_text += "Hinweise auf eine Strukturvariante in " + genes_A;
+			}
+			else
+			{
+				if (genes_A.contains(",") || genes_B.contains(","))
+				{
+					sv_text += "Hinweise auf eine Sturkturvariante zwischen " + genes_A.split(',').join(" und") + ", und " + genes_B.split(',').join(" und");
+				}
+				else
+				{
+					sv_text += "Hinweise auf eine Sturkturvariante zwischen " + genes_A + " und " + genes_B;
+				}
+			}
+		}
+		general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", RtfText(sv_text).highlight(3).RtfCode()}, {2500,7421}).setBorders(1, "brdrhair", 4));
 	}
 	else
 	{
@@ -1981,8 +2014,22 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 
 	if(svs_.count() > 0)
 	{
-		RtfSourceCode snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte (s. Anlage).";
-		out << RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).setBold(true).highlight(3).RtfCode();
+		RtfSourceCode sv_expl;
+		int idx_desc = svs_.annotationIndexByName("DESCRIPTION");
+		if (svs_.count() == 1)
+		{
+			sv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, sie führt " + svs_[0].annotations()[idx_desc] + " (s. Anlage).";
+		}
+		else
+		{
+			sv_expl = "Es gibt Hinweise auf eine XXX und eine XXX / mehrere Deletionen/Fusionen/Translokationen/Strukturvarianten. (s. Anlage).";
+			for(int i=0; i< svs_.count(); i++)
+			{
+				sv_expl += "\n\\line\nDie " +QByteArray::number(i+1) + ". Strukturvariante führt " + svs_[i].annotations()[idx_desc];
+			}
+		}
+
+		out << RtfParagraph(sv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).setBold(true).highlight(3).RtfCode();
 		out << RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode();
 	}
 	RtfSourceCode snv_expl = "";
@@ -2023,6 +2070,9 @@ RtfSourceCode SomaticReportHelper::partPathways()
 	int germline_index_coding_splicing = germline_vl_.annotationIndexByName("coding_and_splicing");
 	int germline_index_class = germline_vl_.annotationIndexByName("classification");
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
+
+	int idx_genes_A = svs_.annotationIndexByName("GENES_BREAKPOINT_A");
+	int idx_genes_B = svs_.annotationIndexByName("GENES_BREAKPOINT_B");
 
 	for (int i=0; i<pathways.count(); i+=4)
 	{
@@ -2095,11 +2145,11 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				}
 
 				//determine entries for CNVs (del/dup, amp, ...)
-				for(int i=0;i<cnvs_.count();++i)
+				for(int k=0;k<cnvs_.count();++k)
 				{
-					if (!cnv_high_impact_indices_.contains(i)) continue;
+					if (!cnv_high_impact_indices_.contains(k)) continue;
 
-					const CopyNumberVariant& cnv = cnvs_[i];
+					const CopyNumberVariant& cnv = cnvs_[k];
 
 					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
@@ -2107,7 +2157,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					foreach(const QByteArray& gene, genes_cnv)
 					{
 						if (!genes_pathway.contains(gene)) continue;
-						if (!cnv_high_impact_indices_[i].contains(gene)) continue;
+						if (!cnv_high_impact_indices_[k].contains(gene)) continue;
 
 						PathwaysEntry entry;
 						entry.gene = gene;
@@ -2117,12 +2167,70 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					}
 				}
 
+				//somatic SV variants:
+				for (int l=0; l< svs_.count(); l++)
+				{
+					QByteArray genes_a = svs_[l].annotations()[idx_genes_A];
+					QByteArray genes_b = svs_[l].annotations()[idx_genes_B];
+
+					QByteArrayList genes = genes_a.split(',');
+					genes.append(genes_b.split(','));
+
+					foreach(QByteArray gene, genes)
+					{
+						if (!genes_pathway.contains(gene.trimmed())) continue;
+
+						QByteArray gene_str;
+						if (genes_a == "" && genes_b == "")
+						{
+							gene_str = "intergenisch";
+						}
+						else if (genes_a == "" && ! genes_b.contains(","))
+						{
+							gene_str = genes_b;
+						}
+						else if (! genes_a.contains(",") && genes_b == "")
+						{
+							gene_str = genes_a;
+						}
+						else if (! genes_a.contains(",") && ! genes_b.contains(","))
+						{
+							gene_str = genes_a + "-" + genes_b;
+						}
+						else if (genes_a.contains(",") && ! genes_b.contains(","))
+						{
+							gene_str = "[" + genes_a + "]-" + genes_b;
+						}
+						else if (! genes_a.contains(",") && genes_b.contains(","))
+						{
+							gene_str = genes_a + "-[" + genes_b + "]";
+						}
+						else
+						{
+							gene_str = "[" + genes_a + "]-[" + genes_b + "]";
+						}
+
+
+						PathwaysEntry entry;
+						entry.gene = gene_str;
+						entry.alteration = "SV";
+						entry.highlight = true;
+						entries.append(entry);
+					}
+
+				}
+
 				//add entries to content table cell
 				QByteArrayList rtf_text;
 				foreach(const PathwaysEntry& entry, entries)
 				{
 					QByteArray text = RtfText(entry.gene).setFontSize(18).RtfCode() + " " + RtfText(entry.alteration).setFontSize(16).RtfCode();
 					if (!entry.highlight) text = RtfText("[ ").setFontSize(18).RtfCode() + text + RtfText(" ]").setFontSize(18).RtfCode();
+					//highlight SV for manual correction if more than a single gene is annotated at a breakpoint
+					if (entry.alteration == "SV" && entry.gene.contains("["))
+					{
+						text = RtfText(entry.gene).setFontSize(18).highlight(3).RtfCode() + " " + RtfText(entry.alteration).setFontSize(16).RtfCode();
+					}
 					rtf_text << text;
 				}
 				contents << rtf_text.join("\\line\n");
