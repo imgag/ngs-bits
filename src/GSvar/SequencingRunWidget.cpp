@@ -113,13 +113,9 @@ void SequencingRunWidget::updateRunSampleTable()
 	}
 	headers << "resequencing";
 	NGSD db;
-	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + " ,ps.scheduled_for_resequencing "+
-														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
+	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.gender, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + " ,ps.scheduled_for_resequencing "+
+														  " FROM processed_sample ps, sample s, processing_system sys, species sp WHERE sp.id=s.species_id AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
 														  " ORDER BY ps.lane ASC, "+ (ui_->sort_by_ps_id->isChecked() ? "ps.id" : "ps.processing_system_id ASC, s.name ASC, ps.process_id"));
-
-	int count_not_wgs = db.getValue("SELECT count(ps.id) FROM processed_sample ps, processing_system sys WHERE sys.id=ps.processing_system_id AND ps.sequencing_run_id='"+run_id_+"' AND sys.type!='WGS'").toInt();
-	bool is_wgs_run = count_not_wgs==0;
-
 	//format columns
 	samples.formatBooleanColumn(samples.columnIndex("tumor"));
 	samples.formatBooleanColumn(samples.columnIndex("ffpe"));
@@ -138,21 +134,25 @@ void SequencingRunWidget::updateRunSampleTable()
 		ui_->plot_btn->menu()->addAction(name, this, SLOT(showPlot()))->setData(accession);
 	}
 
+	//remove columns not show but needed for QC
+	QStringList genders = samples.takeColumn(samples.columnIndex("gender"));
+	QStringList sys_types = samples.takeColumn(samples.columnIndex("sys_type"));
+
 	//add QC data
-	const QStringList& accessions = qc_metric_accessions_;
+	QHash<QString, QString> metric2header;
 	if (ui_->show_qc_cols->isChecked())
 	{
 		//create column data
 		QList<QStringList> cols;
-		while(cols.count()< accessions.count()) cols << QStringList();
+		while(cols.count()< qc_metric_accessions_.count()) cols << QStringList();
 		for (int r=0; r<samples.rowCount(); ++r)
 		{
 			QCCollection qc_data = db.getQCData(samples.row(r).id());
-			for(int i=0; i<accessions.count(); ++i)
+			for(int i=0; i<qc_metric_accessions_.count(); ++i)
 			{
 				try
 				{
-					QString value = qc_data.value(accessions[i], true).toString();
+					QString value = qc_data.value(qc_metric_accessions_[i], true).toString();
 					cols[i] << value;
 				}
 				catch(...)
@@ -162,15 +162,16 @@ void SequencingRunWidget::updateRunSampleTable()
 			}
 		}
 		//add columns
-		for(int i=0; i<accessions.count(); ++i)
+		for(int i=0; i<qc_metric_accessions_.count(); ++i)
 		{
-			QString header = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accessions[i]).toString();
+			QString header = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, qc_metric_accessions_[i]).toString();
 			header.replace("percentage", "%");
 			samples.addColumn(cols[i], header);
 			headers << header;
+			metric2header.insert(qc_metric_accessions_[i], header);
 
 			//add 'read %' column
-			if (accessions[i]=="QC:2000005")
+			if (qc_metric_accessions_[i]=="QC:2000005")
 			{
 				double sum = 0;
 				foreach(const QString& count, cols[i])
@@ -220,75 +221,13 @@ void SequencingRunWidget::updateRunSampleTable()
 	QColor red = QColor(255,0,0,125);
 	if (ui_->show_qc_cols->isChecked())
 	{
-		for(int i=0; i<accessions.count(); ++i)
+		foreach(const QString& accession, qc_metric_accessions_)
 		{
-			QString accession = accessions[i];
-			QString header = headers[headers.count()-accessions.count()+i];
+			int c = ui_->samples->columnIndex(metric2header[accession]);
 
-			if (accession=="QC:2000014") //known variants %
+			for (int r=0; r<ui_->samples->rowCount(); ++r)
 			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 95);
-				ui_->samples->setBackgroundColorIfLt(header, red, 90);
-			}
-			if (accession=="QC:2000023") //insert size
-			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 190);
-				ui_->samples->setBackgroundColorIfLt(header, red, 150);
-			}
-			if (accession=="QC:2000025") //avg depth
-			{
-				if (is_wgs_run)
-				{
-					ui_->samples->setBackgroundColorIfLt(header, orange, 35);
-					ui_->samples->setBackgroundColorIfLt(header, red, 30);
-				}
-				else
-				{
-					ui_->samples->setBackgroundColorIfLt(header, orange, 80);
-					ui_->samples->setBackgroundColorIfLt(header, red, 30);
-				}
-			}
-			if (accession=="QC:2000113") //CNV count
-			{
-				ui_->samples->setBackgroundColorIfLt(header, red, 1);
-			}
-			if (accession=="QC:2000027") //cov 20x
-			{
-				if (is_wgs_run)
-				{
-					ui_->samples->setBackgroundColorIfLt(header, orange, 99);
-					ui_->samples->setBackgroundColorIfLt(header, red, 95);
-				}
-				else
-				{
-					ui_->samples->setBackgroundColorIfLt(header, orange, 95);
-					ui_->samples->setBackgroundColorIfLt(header, red, 90);
-				}
-			}
-			if (accession=="QC:2000024") //duplicates
-			{
-				ui_->samples->setBackgroundColorIfGt(header, orange, 25);
-				ui_->samples->setBackgroundColorIfGt(header, red, 35);
-			}
-			if (accession=="QC:2000051") //AF deviation
-			{
-				ui_->samples->setBackgroundColorIfGt(header, orange, 3);
-				ui_->samples->setBackgroundColorIfGt(header, red, 6);
-			}
-			if (accession=="QC:2000021") //on target
-			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 50);
-				ui_->samples->setBackgroundColorIfLt(header, red, 25);
-			}
-			if (accession=="QC:2000071") //target region read depth 2-fold duplication
-			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 1000);
-				ui_->samples->setBackgroundColorIfLt(header, red, 500);
-			}
-			if (accession=="QC:2000083") //cfDNA-tumor correlation
-			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 0.9);
-				ui_->samples->setBackgroundColorIfLt(header, red, 0.75);
+				GSvarHelper::colorQcItem(ui_->samples->item(r,c), accession, sys_types[r], genders[r]);
 			}
 		}
 	}

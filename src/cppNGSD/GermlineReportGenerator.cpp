@@ -375,14 +375,14 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		stream << "<tr>" << endl;
 		stream << "<td>" << trans("Repeat-Expansion") << "</td>" << endl;
-		stream << "<td>" << re.toString(true, false) << "</td>" << endl;
+		stream << "<td>" << re.region().toString(true) << "</td>" << endl;
 		stream << "<td></td>" << endl;
 		QString geno = re.alleles();
 		if (var_conf.de_novo) geno += " (de-novo)";
 		if (var_conf.mosaic) geno += " (mosaic)";
 		if (var_conf.comp_het) geno += " (comp-het)";
 		stream << "<td>" << geno << "</td>" << endl;
-		stream << "<td></td>" << endl;
+		stream << "<td>" << re.geneSymbol() << "/" << re.unit() << "</td>" << endl;
 		stream << "<td></td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		stream << "<td></td>" << endl;

@@ -16,6 +16,11 @@ bool RepeatLocus::isValid() const
 	return true;
 }
 
+QByteArray RepeatLocus::geneSymbol() const
+{
+	return name_.split('_')[0];
+}
+
 void RepeatLocus::setAllele1(const QByteArray& allele1)
 {
 	if (allele1.trimmed()=="." || allele1.trimmed().isEmpty()) return;

@@ -16,6 +16,8 @@ public:
 
 	const QByteArray& name() const { return name_; }
 	void setName(const QByteArray& name) { name_ = name.trimmed(); }
+	//extracts the gene symbol from the locus name
+	QByteArray geneSymbol() const;
 
 	const BedLine& region() const { return region_; }
 	void setRegion(const BedLine& region) { region_ = region; }

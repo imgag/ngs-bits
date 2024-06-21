@@ -787,7 +787,7 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 				parts_match << part;
 			}
 
-			//TODO: filter by live-calculated impact
+			//TODO: filter by live-calculated impact?
 		}
 
 		if (parts_match.count()==0)
@@ -958,7 +958,6 @@ void BurdenTestWidget::performBurdenTest()
 	BedFile cnv_polymorphism_region;
 	if (include_cnvs)
 	{
-		//TODO: filter by ref correlation
 		//get callset ids for each processed sample
 		SqlQuery cnv_callset_query = db_.getQuery();
 		cnv_callset_query.prepare("SELECT id, quality_metrics FROM cnv_callset WHERE processed_sample_id=:0");
@@ -976,7 +975,6 @@ void BurdenTestWidget::performBurdenTest()
 				double ref_correlation = quality_metrics.value("mean correlation to reference samples").toDouble();
 				qDebug() << quality_metrics;
 				qDebug() << ref_correlation;
-				//TODO adapt
 				if (ref_correlation >= min_correlation) callset_ids_cases << callset_id;
 			}
 			qDebug() << "callset ids cases:" << callset_ids_cases.size();

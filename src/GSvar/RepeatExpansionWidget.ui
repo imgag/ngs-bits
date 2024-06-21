@@ -158,7 +158,7 @@
       <item>
        <widget class="QCheckBox" name="filter_rc">
         <property name="toolTip">
-         <string>Filter for repeat expansions that have at least one phenotype matching the phenotypes given in the small variants filter.</string>
+         <string>Show repeat expansions with report config only.</string>
         </property>
         <property name="text">
          <string>only with report config</string>
@@ -194,7 +194,7 @@
          </size>
         </property>
         <property name="currentText">
-         <string>diagnostic</string>
+         <string>all</string>
         </property>
         <item>
          <property name="text">
@@ -263,6 +263,11 @@
       </property>
       <property name="toolTip">
        <string>Repeat unit sequence in reference genome orientation (plus strand)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>comments</string>
       </property>
      </column>
      <column>
@@ -338,6 +343,14 @@
      </column>
      <column>
       <property name="text">
+       <string>statistical cutoff</string>
+      </property>
+      <property name="toolTip">
+       <string>statistical cutoff of the repeat length for outlier detection based on the repeat length distribution in NSGD</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>diseases</string>
       </property>
       <property name="toolTip">
@@ -360,11 +373,6 @@
      <column>
       <property name="text">
        <string>location</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>comments</string>
       </property>
      </column>
      <column>
