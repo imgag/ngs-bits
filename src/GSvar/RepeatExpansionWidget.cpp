@@ -710,13 +710,13 @@ void RepeatExpansionWidget::updateRowVisibility()
 		int col = GUIHelper::columnIndex(ui_.table, "HPO terms");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-
 			bool hpo_match = false;
 			QTableWidgetItem* item = ui_.table->item(row, col);
 			if (item!=nullptr)
 			{
-				foreach(QByteArray hpo_acc, item->text().toUtf8().split(','))
+				foreach(QByteArray hpo_info, item->text().toUtf8().split(';'))
 				{
+					QByteArray hpo_acc = hpo_info.split('-').at(0).trimmed();
 					if (pheno_subtrees.containsAccession(hpo_acc))
 					{
 						hpo_match = true;
