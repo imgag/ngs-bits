@@ -758,14 +758,14 @@ QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant
 
 QString GSvarHelper::appPathForTemplate(QString path)
 {
-    QString app_path_auto_template = "\[APP_PATH_AUTO\]";
-    QString app_path_windows_template = "\[APP_PATH_WINDOWS\]";
-    QString app_path_unix_template = "\[APP_PATH_UNIX\]";
+    QString app_path_auto_template = "[APP_PATH_AUTO]";
+    QString app_path_windows_template = "[APP_PATH_WINDOWS]";
+    QString app_path_unix_template = "[APP_PATH_UNIX]";
 
     QString windows_sep = "\\";
     QString unix_sep = "/";
 
-    QString win_app_path = QCoreApplication::applicationDirPath().replace(QDir::separator(), windows_sep);
+    QString win_app_path = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
     QString unix_app_path = QCoreApplication::applicationDirPath();
 
     if (!win_app_path.endsWith(windows_sep)) win_app_path = win_app_path + windows_sep;

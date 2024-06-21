@@ -168,6 +168,9 @@ MainWindow::MainWindow(QWidget *parent)
 	, init_timer_(this, true)
 	, server_version_()
 {
+    // Automatic configuration will be triggered, if a template file is detected and no settings files are present.
+    // A new settings.ini file is created with parameters based on the current application path value. If there is no
+    // template and/or settings exist, the contructor will skip the automatic configuration step
     QString settings_template_file = QCoreApplication::applicationDirPath() + QDir::separator() + "cloud_settings_template.ini";
     if (QFile::exists(settings_template_file) && !QFile::exists(QCoreApplication::applicationDirPath() + QDir::separator() + "settings.ini"))
     {
