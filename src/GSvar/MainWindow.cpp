@@ -814,7 +814,7 @@ void MainWindow::on_actionSV_triggered()
 				report_config = report_settings_.report_config;
 			}
 
-			//open SV widgetr
+			//open SV widget
 			sv_widget = new SvWidget(this, svs_, ps_id, svs_.isSomatic() ? nullptr : report_config, het_hit_genes);
 		}
 

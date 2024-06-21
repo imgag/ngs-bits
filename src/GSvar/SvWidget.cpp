@@ -37,7 +37,7 @@ SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, 
 	, var_het_genes_(het_hit_genes)
 	, report_config_(rep_conf)
 	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_ && (report_config_!=nullptr && !report_config_->isFinalized()))
+	, rc_enabled_(ngsd_enabled_ && report_config_!=nullptr && !report_config_->isFinalized())
 	, roi_gene_index_(roi_genes_)
 	, is_somatic_(sv_bedpe_file_.isSomatic())
 	, is_multisample_(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
@@ -82,7 +82,7 @@ SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, 
 	, var_het_genes_(het_hit_genes)
 	, som_report_config_(&som_rep_conf)
 	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_)
+	, rc_enabled_(ngsd_enabled_ && som_report_config_ != nullptr)
 	, roi_gene_index_(roi_genes_)
 	, is_somatic_(sv_bedpe_file_.isSomatic())
 	, is_multisample_(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
@@ -242,7 +242,6 @@ void SvWidget::initGUI()
 	if((report_config_ != NULL) && !is_somatic_) report_variant_indices = report_config_->variantIndices(VariantType::SVS, false).toSet();
 	if((som_report_config_ != NULL) && is_somatic_) report_variant_indices = som_report_config_->variantIndices(VariantType::SVS, false).toSet();
 
-	//TODO move to a "germlineOverviewTables()" function
 	//Fill table widget with data from bedpe file
 	for(int row=0; row<sv_bedpe_file_.count(); ++row)
 	{
@@ -292,7 +291,6 @@ void SvWidget::initGUI()
 		}
 	}
 
-	// TODO move to multisample function:
 	if (is_multisample_)
 	{
 		ui->sv_details->setColumnCount(2 + ps_names_.size());
@@ -1054,9 +1052,7 @@ void SvWidget::svHeaderDoubleClicked(int row)
 
 void SvWidget::svHeaderContextMenu(QPoint pos)
 {
-	if (!ngsd_enabled_ || (report_config_ == nullptr && som_report_config_ == nullptr)) return;
 	if (!rc_enabled_) return;
-
 
 	//get variant index
 	int row = ui->svs->verticalHeader()->visualIndexAt(pos.ry());
@@ -1356,7 +1352,7 @@ void SvWidget::showContextMenu(QPoint pos)
 
 
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	a_rep_edit->setEnabled(rc_enabled_ || (som_report_config_ != nullptr && ngsd_enabled_));
+	a_rep_edit->setEnabled(rc_enabled_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	a_rep_del->setEnabled(false);
 
