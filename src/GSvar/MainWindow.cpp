@@ -3135,7 +3135,6 @@ void MainWindow::loadSomaticReportConfig()
 
 void MainWindow::storeSomaticReportConfig()
 {
-	qDebug() << "storeSomaticReortConfig()!!";
 	if(filename_ == "") return;
 	if(!LoginManager::active()) return;
 	if(variants_.type() != SOMATIC_PAIR) return;

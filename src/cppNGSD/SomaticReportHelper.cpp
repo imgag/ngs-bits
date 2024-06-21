@@ -1832,39 +1832,16 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	if(svs_.count() > 0)
 	{
 		QByteArray sv_text;
-		int idx_genes_A = svs_.annotationIndexByName("GENES_BREAKPOINT_A");
-		int idx_genes_B = svs_.annotationIndexByName("GENES_BREAKPOINT_B");
-		for(int i=0; i<svs_.count(); ++i)
+		if (svs_.count() == 1)
 		{
-			const BedpeLine& sv = svs_[i];
-			QByteArray genes_A = sv.annotations()[idx_genes_A];
-			QByteArray genes_B = sv.annotations()[idx_genes_B];
-
-			if (sv_text != "")
-			{
-				sv_text += "\n\\line\n";
-			}
-
-			genes_A = genes_A == "" ? "XXX" : genes_A;
-			genes_B = genes_B == "" ? "XXX" : genes_B;
-
-			if (genes_A == genes_B)
-			{
-				sv_text += "Hinweise auf eine Strukturvariante in " + genes_A;
-			}
-			else
-			{
-				if (genes_A.contains(",") || genes_B.contains(","))
-				{
-					sv_text += "Hinweise auf eine Sturkturvariante zwischen " + genes_A.split(',').join(" und") + ", und " + genes_B.split(',').join(" und");
-				}
-				else
-				{
-					sv_text += "Hinweise auf eine Sturkturvariante zwischen " + genes_A + " und " + genes_B;
-				}
-			}
+			sv_text += "Hinweise auf eine wahrscheinlich onkogene Strukturvariante";
 		}
-		general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", RtfText(sv_text).highlight(3).RtfCode()}, {2500,7421}).setBorders(1, "brdrhair", 4));
+		else
+		{
+			sv_text += "Hinweise auf wahrscheinlich onkogene Strukturvarianten";
+		}
+
+		general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", RtfText(sv_text).RtfCode()}, {2500,7421}).setBorders(1, "brdrhair", 4));
 	}
 	else
 	{
@@ -2018,33 +1995,53 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 		int idx_desc = svs_.annotationIndexByName("DESCRIPTION");
 		if (svs_.count() == 1)
 		{
-			sv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, sie führt " + svs_[0].annotations()[idx_desc] + " (s. Anlage).";
+			sv_expl = RtfText("Es gibt Hinweise auf eine wahrscheinlich onkogene Strukturvariante (s. Anlage):").setBold(true).RtfCode();
 		}
 		else
 		{
-			sv_expl = "Es gibt Hinweise auf eine XXX und eine XXX / mehrere Deletionen/Fusionen/Translokationen/Strukturvarianten. (s. Anlage).";
+			sv_expl = RtfText("Es gibt Hinweise auf wahrscheinlich onkogene Strukturvarianten (s. Anlage):").setBold(true).RtfCode();
 			for(int i=0; i< svs_.count(); i++)
 			{
-				sv_expl += "\n\\line\nDie " +QByteArray::number(i+1) + ". Strukturvariante führt " + svs_[i].annotations()[idx_desc];
+				sv_expl += "\n\\line\n" + svs_[i].annotations()[idx_desc];
 			}
 		}
 
-		out << RtfParagraph(sv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).setBold(true).highlight(3).RtfCode();
+		out << RtfParagraph(sv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode();
 		out << RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode();
 	}
-	RtfSourceCode snv_expl = "";
 
-	//support for limitation text
-	snv_expl = RtfText("Limitationen: ").setBold(true).setFontSize(18).RtfCode();
-	if(settings_.report_config.limitations().isEmpty())
+
+	//HLA note:
+	SomaticHlaInfo tumor_hla = SomaticHlaInfo(getHlaFilepath(settings_.tumor_ps));
+	SomaticHlaInfo normal_hla = SomaticHlaInfo(getHlaFilepath(settings_.normal_ps));
+
+	QByteArray normal_hla_allel1 = normal_hla.isValid() ? normal_hla.getGeneAllele("HLA-A", true)  : "nicht bestimmbar";
+	QByteArray normal_hla_allel2 = normal_hla.isValid() ? normal_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
+	QByteArray tumor_hla_allel1 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
+	QByteArray tumor_hla_allel2 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
+	if (normal_hla_allel1 == "HLA-A*02:01" || normal_hla_allel2 == "HLA-A*02:01" || tumor_hla_allel1 == "HLA-A*02:01" || tumor_hla_allel2 == "HLA-A*02:01" ) // CHECK HLA
 	{
-		snv_expl += "Die Probenqualität zeigt keine Auffälligkeiten. Methodisch bedingte Limitationen sind im Anhang erläutert.";
+		out << RtfParagraph("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in Tumor und Normalgewebe hin (s. Anlage).").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode();
 	}
 	else
 	{
-		snv_expl += settings_.report_config.limitations().replace("\n","\n\\line\n");
+		out << RtfParagraph("Unsere Daten weisen "+ RtfText("nicht").setBold(true).RtfCode() + " auf das Vorliegen des Haplotyps HLA-A*02:01 in Tumor und Normalgewebe hin (s. Anlage).").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode();
 	}
-	out << RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setHorizontalAlignment("j").RtfCode();
+
+	out << RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode();
+
+	RtfSourceCode limitations_expl = "";
+	//support for limitation text
+	limitations_expl = RtfText("Limitationen: ").setBold(true).setFontSize(18).RtfCode();
+	if(settings_.report_config.limitations().isEmpty())
+	{
+		limitations_expl += "Die Probenqualität zeigt keine Auffälligkeiten. Methodisch bedingte Limitationen sind im Anhang erläutert.";
+	}
+	else
+	{
+		limitations_expl += settings_.report_config.limitations().replace("\n","\n\\line\n");
+	}
+	out << RtfParagraph(limitations_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setHorizontalAlignment("j").RtfCode();
 
 	return out.join("\n");
 }
