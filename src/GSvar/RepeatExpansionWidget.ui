@@ -158,7 +158,7 @@
       <item>
        <widget class="QCheckBox" name="filter_rc">
         <property name="toolTip">
-         <string>Filter for repeat expansions that have at least one phenotype matching the phenotypes given in the small variants filter.</string>
+         <string>Show repeat expansions with report config only.</string>
         </property>
         <property name="text">
          <string>only with report config</string>
@@ -194,7 +194,7 @@
          </size>
         </property>
         <property name="currentText">
-         <string>diagnostic</string>
+         <string>all</string>
         </property>
         <item>
          <property name="text">
