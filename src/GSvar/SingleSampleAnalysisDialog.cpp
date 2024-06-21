@@ -202,7 +202,8 @@ void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& s
 		samples_table->setItem(i, 6, new QTableWidgetItem(samples[i].disease_status));
 	}
 
-	GUIHelper::resizeTableCells(samples_table);
+	GUIHelper::resizeTableCellWidths(samples_table);
+	GUIHelper::resizeTableCellHeightsToFirst(samples_table);
 }
 
 QList<AnalysisJobSample> SingleSampleAnalysisDialog::samples(const QList<SampleDetails>& samples)

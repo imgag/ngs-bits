@@ -443,7 +443,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 			}
 
 			// optimize cell sizes
-			GUIHelper::resizeTableCells(ui_->genes, 150);
+			GUIHelper::resizeTableCellWidths(ui_->genes, 150);
+			GUIHelper::resizeTableCellHeightsToFirst(ui_->genes);
 
 			missing_prev_vars.append(vcf_string);
 			row_idx++;
@@ -508,7 +509,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 			}
 
 			// optimize cell sizes
-			GUIHelper::resizeTableCells(ui_->genes, 150);
+			GUIHelper::resizeTableCellWidths(ui_->genes, 150);
+			GUIHelper::resizeTableCellHeightsToFirst(ui_->genes);
 			missing_candidates_vars.append(vcf_string);
 			row_idx++;
 		}
@@ -522,7 +524,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 	}
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->vars, 150);
+	GUIHelper::resizeTableCellWidths(ui_->vars, 150);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->vars);
 
 	// connect checkBoxes to update method
 	connect(ui_->vars, SIGNAL(cellChanged(int,int)), this, SLOT(updateSelectedVariantCount()));
@@ -607,7 +610,8 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 	}
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->hotspot_regions, 250);
+	GUIHelper::resizeTableCellWidths(ui_->hotspot_regions, 250);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->hotspot_regions);
 
 	// connect checkBoxes to update method
 	connect(ui_->hotspot_regions, SIGNAL(cellChanged(int,int)), this, SLOT(updateSelectedHotspotCount()));
@@ -840,7 +844,8 @@ void CfDNAPanelDesignDialog::loadGenes()
 	}
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->genes, 150);
+	GUIHelper::resizeTableCellWidths(ui_->genes, 150);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->genes);
 }
 
 void CfDNAPanelDesignDialog::selectAllVariants(bool deselect)
@@ -1047,10 +1052,9 @@ void CfDNAPanelDesignDialog::addVariant()
 
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 
-
 		// optimize cell sizes
-		GUIHelper::resizeTableCells(ui_->genes, 150);
-
+		GUIHelper::resizeTableCellWidths(ui_->genes, 150);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_->genes);
 
 		//re-enable sorting
 		ui_->vars->setSortingEnabled(true);

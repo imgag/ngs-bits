@@ -837,8 +837,8 @@ void ExpressionExonWidget::updateTable()
 		ui_->l_filtered_rows->setText(QByteArray::number(filter_result_.flags().count(true)) + " / " + QByteArray::number(expression_data_.rowCount()));
 
 		//optimize table view
-		GUIHelper::resizeTableCells(ui_->tw_expression_table, 350, true, 1000);
-
+		GUIHelper::resizeTableCellWidths(ui_->tw_expression_table, 350);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_->tw_expression_table);
 
 		QApplication::restoreOverrideCursor();
 	}

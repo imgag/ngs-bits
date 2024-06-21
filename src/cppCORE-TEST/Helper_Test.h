@@ -129,24 +129,24 @@ private slots:
 	void FormatLargeNumber()
 	{
 		//raw counts
-		S_EQUAL(Helper::FormatLargeNumber(123, "raw_counts"), "123");
-		S_EQUAL(Helper::FormatLargeNumber(12345, "raw_counts"), "12345");
-		S_EQUAL(Helper::FormatLargeNumber(12345678, "raw_counts"), "12345678");
-		S_EQUAL(Helper::FormatLargeNumber(1234567890, "raw_counts"), "1234567890");
+		S_EQUAL(Helper::formatLargeNumber(123, "raw_counts"), "123");
+		S_EQUAL(Helper::formatLargeNumber(12345, "raw_counts"), "12345");
+		S_EQUAL(Helper::formatLargeNumber(12345678, "raw_counts"), "12345678");
+		S_EQUAL(Helper::formatLargeNumber(1234567890, "raw_counts"), "1234567890");
 
 		//modifier
-		S_EQUAL(Helper::FormatLargeNumber(123, "modifier"), "123");
-		S_EQUAL(Helper::FormatLargeNumber(12345, "modifier"), "12.35 k");
-		S_EQUAL(Helper::FormatLargeNumber(12345678, "modifier"), "12.35 M");
-		S_EQUAL(Helper::FormatLargeNumber(123456789012, "modifier"), "123.46 G");
-		S_EQUAL(Helper::FormatLargeNumber(12345678901234, "modifier"), "12.35 T");
+		S_EQUAL(Helper::formatLargeNumber(123, "modifier"), "123");
+		S_EQUAL(Helper::formatLargeNumber(12345, "modifier"), "12.35 k");
+		S_EQUAL(Helper::formatLargeNumber(12345678, "modifier"), "12.35 M");
+		S_EQUAL(Helper::formatLargeNumber(123456789012, "modifier"), "123.46 G");
+		S_EQUAL(Helper::formatLargeNumber(12345678901234, "modifier"), "12.35 T");
 
 		//thousands separator
-		S_EQUAL(Helper::FormatLargeNumber(123, "thousands_separator"), "123");
-		S_EQUAL(Helper::FormatLargeNumber(12345, "thousands_separator"), "12,345");
-		S_EQUAL(Helper::FormatLargeNumber(12345678, "thousands_separator"), "12,345,678");
-		S_EQUAL(Helper::FormatLargeNumber(1234567890, "thousands_separator"), "1,234,567,890");
-		S_EQUAL(Helper::FormatLargeNumber(123456789012, "thousands_separator"), "123,456,789,012");
+		S_EQUAL(Helper::formatLargeNumber(123, "thousands_separator"), "123");
+		S_EQUAL(Helper::formatLargeNumber(12345, "thousands_separator"), "12,345");
+		S_EQUAL(Helper::formatLargeNumber(12345678, "thousands_separator"), "12,345,678");
+		S_EQUAL(Helper::formatLargeNumber(1234567890, "thousands_separator"), "1,234,567,890");
+		S_EQUAL(Helper::formatLargeNumber(123456789012, "thousands_separator"), "123,456,789,012");
 	}
 
 

@@ -86,5 +86,6 @@ void PRSWidget::initGui()
 		}
 	}
 
-	GUIHelper::resizeTableCells(ui_.prs);
+	GUIHelper::resizeTableCellWidths(ui_.prs);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.prs);
 }

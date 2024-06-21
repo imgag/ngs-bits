@@ -194,7 +194,7 @@ public:
 			THROW(ArgumentException, "CNV file is not a tumor normal sample. Use NGSDAddVariantsGermline for germline CNVs.");
 		}
 
-		CnvListCallData call_data = CnvList::getCallData(cnvs, filename, "", true);
+		CnvListCallData call_data = CnvList::getCallData(cnvs, filename, true);
 
 		QJsonDocument json_doc;
 		json_doc.setObject(call_data.quality_metrics);

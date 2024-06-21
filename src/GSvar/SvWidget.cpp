@@ -28,29 +28,25 @@
 #include "ClinvarUploadDialog.h"
 #include "GSvarHelper.h"
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
+SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, sv_bedpe_file_(bedpe_file)
 	, ps_ids_(QStringList())
 	, ps_id_(ps_id)
-	, variant_filter_widget_(filter_widget)
 	, var_het_genes_(het_hit_genes)
-	, gene2region_cache_(cache)
+	, report_config_(rep_conf)
 	, ngsd_enabled_(LoginManager::active())
-	, report_config_(nullptr)
+	, rc_enabled_(ngsd_enabled_ && (report_config_!=nullptr && !report_config_->isFinalized()))
 	, roi_gene_index_(roi_genes_)
+	, is_somatic_(sv_bedpe_file_.isSomatic())
+	, is_multisample_(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
 {
-
 	ui->setupUi(this);
-	ui->svs->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	GUIHelper::styleSplitter(ui->splitter);
 	ui->splitter->setStretchFactor(0, 10);
 	ui->splitter->setStretchFactor(1, 1);
-
-	//link variant filter widget to FilterWidgetSV
-	ui->filter_widget->setVariantFilterWidget(filter_widget);
 
 	//Setup signals and slots
 	connect(ui->copy_to_clipboard,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
@@ -69,52 +65,76 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	//clear GUI
 	clearGUI();
 
-	//init GUI
-	if (ini_gui) initGUI();
-}
-
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
-    : SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent, false)
-{
-	if((bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)||(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO))
-	{
-		is_multisample_ = true;
-		is_trio_ = bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO;
-	}
-	else if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
-	{
-		THROW(ProgrammingException, "Constructor in SvWidget has to be used using germline SV data.");
-	}
-	report_config_ = rep_conf;
 	initGUI();
 }
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
-	: SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent, false)
+SvWidget::~SvWidget()
+{
+	delete ui;
+}
+
+SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes)
+	: QWidget(parent)
+	, ui(new Ui::SvWidget)
+	, sv_bedpe_file_(bedpe_file)
+	, ps_ids_(QStringList())
+	, ps_id_(ps_id)
+	, var_het_genes_(het_hit_genes)
+	, som_report_config_(&som_rep_conf)
+	, ngsd_enabled_(LoginManager::active())
+	, rc_enabled_(ngsd_enabled_)
+	, roi_gene_index_(roi_genes_)
+	, is_somatic_(sv_bedpe_file_.isSomatic())
+	, is_multisample_(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
 {
 	if(! bedpe_file.isSomatic())
 	{
 		THROW(ProgrammingException, "SvWidget constructor for somatic Analysis was used with a BEDPE file that is not from a somatic analysis.");
 	}
-	som_report_config_ = &som_rep_conf;
 
-	//set SV list type
-	is_somatic_ = bedpe_file.isSomatic();
+	ui->setupUi(this);
+
+	GUIHelper::styleSplitter(ui->splitter);
+	ui->splitter->setStretchFactor(0, 10);
+	ui->splitter->setStretchFactor(1, 1);
+
+	//Setup signals and slots
+	connect(ui->copy_to_clipboard,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
+	connect(ui->svs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(SvDoubleClicked(QTableWidgetItem*)));
+	connect(ui->svs,SIGNAL(itemSelectionChanged()),this,SLOT(SvSelectionChanged()));
+	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
+	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
+	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(annotateTargetRegionGeneOverlap()));
+	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
+	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui->svs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
+	connect(ui->resize_btn, SIGNAL(clicked(bool)), this, SLOT(adaptColumnWidthsCustom()));
+
+
+	//clear GUI
+	clearGUI();
+
+	//Disable filters that cannot apply for tumor normal pairs (data is expanded already)
+	if(sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		ui->info_a->setEnabled(false);
+		ui->info_b->setEnabled(false);
+		ui->sv_details->setEnabled(false);
+	}
 
 	initGUI();
 }
 
 void SvWidget::initGUI()
 {
-	loading_svs_ = true;
-
 	//clear GUI
 	clearGUI();
 
 	if(sv_bedpe_file_.count() == 0)
 	{
 		disableGUI("There are no SVs in the data file");
-		loading_svs_ = false;
 		return;
 	}
 
@@ -174,13 +194,13 @@ void SvWidget::initGUI()
 		{
 			QTableWidgetItem* item;
 			item = new QTableWidgetItem(QString(ps_names_.at(idx_sample)));
-			if (is_trio_)
+			if (sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO)
 			{
 				item->setToolTip((QStringList() << "child" << "father" << "mother").at(idx_sample));
 			}
 			else
 			{
-				item->setToolTip((sv_bedpe_file_.sampleHeaderInfo().at(idx_sample).isAffected())?"affected":"control");
+				item->setToolTip(sv_bedpe_file_.sampleHeaderInfo().at(idx_sample).isAffected() ? "affected" : "control");
 			}
 			if (sv_bedpe_file_.sampleHeaderInfo().at(idx_sample).isAffected()) item->setForeground(QBrush(Qt::darkRed));
 
@@ -299,8 +319,6 @@ void SvWidget::initGUI()
 	ui->svs->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	resizeQTableWidget(ui->svs);
 
-	loading_svs_ = false;
-
 	//filter rows according default filter values
 	applyFilters();
 }
@@ -334,14 +352,14 @@ void SvWidget::resizeQTableWidget(QTableWidget *table_widget)
 	{
 		table_widget->setRowHeight(i, height);
 	}
-	GUIHelper::resizeTableCells(table_widget, 200, true, 100);
+	GUIHelper::resizeTableCellWidths(table_widget, 200);
+	GUIHelper::resizeTableCellHeightsToFirst(table_widget);
 }
 
 
 void SvWidget::applyFilters(bool debug_time)
 {
 	//skip if not necessary
-	if (loading_svs_) return;
 	int row_count = ui->svs->rowCount();
 	if (row_count==0) return;
 
@@ -462,15 +480,7 @@ void SvWidget::applyFilters(bool debug_time)
 			BedFile pheno_roi;
 			foreach(const QByteArray& gene, pheno_genes)
 			{
-				if (!gene2region_cache_.contains(gene))
-				{
-					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
-					tmp.clearAnnotations();
-					tmp.extend(5000);
-					tmp.merge();
-					gene2region_cache_[gene] = tmp;
-				}
-				pheno_roi.add(gene2region_cache_[gene]);
+				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
 			pheno_roi.merge();
 
@@ -765,7 +775,7 @@ void SvWidget::editSomaticReportConfiguration(int row)
 
 void SvWidget::uploadToClinvar(int index1, int index2)
 {
-	if (!LoginManager::active()) return;
+	if (!ngsd_enabled_) return;
 	try
 	{
 		//abort if 1st index is missing
@@ -1038,13 +1048,15 @@ void SvWidget::importPhenotypesFromNGSD()
 
 void SvWidget::svHeaderDoubleClicked(int row)
 {
-	if (!ngsd_enabled_) return;
+	if (!rc_enabled_) return;
 	editReportConfiguration(row);
 }
 
 void SvWidget::svHeaderContextMenu(QPoint pos)
 {
 	if (!ngsd_enabled_ || (report_config_ == nullptr && som_report_config_ == nullptr)) return;
+	if (!rc_enabled_) return;
+
 
 	//get variant index
 	int row = ui->svs->verticalHeader()->visualIndexAt(pos.ry());
@@ -1067,7 +1079,6 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 	QAction* action = menu.exec(pos);
 	if (action==nullptr) return;
 
-	if(!LoginManager::active()) return; //do nothing if no access to NGSD
 
 	//actions
 	if (action==a_edit)
@@ -1332,7 +1343,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	{
 		//ClinVar publication
 		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
-		a_clinvar_pub->setEnabled(LoginManager::active() && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+		a_clinvar_pub->setEnabled(ngsd_enabled_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 		//execute menu
 		QAction* action = menu.exec(ui->svs->viewport()->mapToGlobal(pos));
@@ -1345,17 +1356,19 @@ void SvWidget::showContextMenu(QPoint pos)
 
 
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	a_rep_edit->setEnabled((report_config_ != nullptr || som_report_config_ != nullptr) && ngsd_enabled_);
+	a_rep_edit->setEnabled(rc_enabled_ || (som_report_config_ != nullptr && ngsd_enabled_));
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	a_rep_del->setEnabled(false);
+
 	if (is_somatic_)
 	{
 		a_rep_del->setEnabled((som_report_config_ != nullptr) && ngsd_enabled_ && som_report_config_->exists(VariantType::SVS, row));
 	}
 	else
 	{
-		a_rep_del->setEnabled((report_config_ != nullptr) && ngsd_enabled_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
+		a_rep_del->setEnabled(rc_enabled_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
 	}
+
 	menu.addSeparator();
 	QAction* a_sv_val = menu.addAction("Perform structural variant validation");
 	a_sv_val->setEnabled(ngsd_enabled_);
@@ -1400,7 +1413,7 @@ void SvWidget::showContextMenu(QPoint pos)
 				if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
 
 				QMenu* sub_menu = menu.addMenu(gene);
-				sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(LoginManager::active());
+				sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_enabled_);
 				sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
 				foreach(const GeneDB& db, GeneInfoDBs::all())
 				{

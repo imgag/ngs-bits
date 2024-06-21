@@ -184,7 +184,8 @@ void DiseaseCourseWidget::createTableView()
 
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->vars, 250);
+	GUIHelper::resizeTableCellWidths(ui_->vars, 250);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->vars);
 
 	// set row height to fixed value
 	for (int i=0; i<ui_->vars->rowCount(); ++i) ui_->vars->setRowHeight(i, 25);
@@ -226,6 +227,6 @@ void DiseaseCourseWidget::createTableView()
 	}
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->mrd, 250);
-
+	GUIHelper::resizeTableCellWidths(ui_->mrd, 250);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_->mrd);
 }

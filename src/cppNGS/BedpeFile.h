@@ -207,6 +207,10 @@ public:
 		lines_.clear();
 	}
 
+	bool isEmpty() const
+	{
+		return lines_.isEmpty();
+	}
 	int count() const
 	{
 		return lines_.count();

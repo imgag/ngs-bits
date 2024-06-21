@@ -33,6 +33,9 @@ public:
 
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
+	//colors QC metric item background. Returns if the item was assigned a background color.
+	static bool colorQcItem(QTableWidgetItem* item, const QString& accession, const QString& sys_type, const QString& gender);
+
 	//limit QLabel to certain number of lines
 	static void limitLines(QLabel* label, QString text, int max_lines=15);
 
@@ -62,7 +65,6 @@ public:
 
 	//Returns the coding and splicing entry (and genes through GeneSet reference) for a given variant
 	static QList<QStringList> annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags=true, int offset=5000);
-
 
 protected:
 	GSvarHelper() = delete;

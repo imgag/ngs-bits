@@ -120,7 +120,8 @@ void VariantValidationWidget::updateTable()
 	table.filterRowsByColumn(table.columnIndex("variant type"), ui_.cb_var_type->currentText());
 
 	ui_.table->setData(table);
-	GUIHelper::resizeTableCells(ui_.table, 400, false);
+	GUIHelper::resizeTableCellWidths(ui_.table, 400);
+	ui_.table->resizeRowsToContents();
 
 	QApplication::restoreOverrideCursor();
 }

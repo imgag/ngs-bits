@@ -43,7 +43,7 @@ private slots:
 		{
 			SKIP("Server has not been configured correctly");
 		}
-        ServerDbManager::reinitializeDb();
+        ServerDB().reinitializeDb();
 
 		QByteArray reply;
 		HttpHeaders add_headers;

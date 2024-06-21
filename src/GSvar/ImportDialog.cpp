@@ -140,7 +140,8 @@ void ImportDialog::pasteTable()
 
 		++row_index;
 	}
-	GUIHelper::resizeTableCells(ui_.table, 500, false);
+	GUIHelper::resizeTableCellWidths(ui_.table, 500);
+	ui_.table->resizeRowsToContents();
 
 	//enable import button if there are no errors
 	ui_.import_btn->setEnabled(ui_.warnings->toPlainText().trimmed().isEmpty());

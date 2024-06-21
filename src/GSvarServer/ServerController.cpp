@@ -314,6 +314,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				file_list << file_locator->getRepeatExpansionImage(request.getUrlParams()["locus"]);
 				break;
 			case PathType::BAM:
+            case PathType::CRAM:
 				file_list = file_locator->getBamFiles(return_if_missing);
 				break;
 			case PathType::VIRAL_BAM:
@@ -339,6 +340,13 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 			case PathType::REPEAT_EXPANSIONS:
 				file_list = file_locator->getRepeatExpansionFiles(return_if_missing);
 				break;
+            case PathType::REPEAT_EXPANSION_HISTOGRAM:
+                if (!request.getUrlParams().contains("locus"))
+                {
+                    return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
+                }
+                file_list << file_locator->getRepeatExpansionHistogram(request.getUrlParams()["locus"]);
+                break;
 			case PathType::PRS:
 				file_list = file_locator->getPrsFiles(return_if_missing);
 				break;
@@ -382,15 +390,28 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
                 break;
             case PathType::CFDNA_CANDIDATES:
                 file_list << file_locator->getSomaticCfdnaCandidateFile();
+                break;            
+            case PathType::GSVAR:
+                file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);
                 break;
-			default:
-				FileLocation gsvar_file(
-					url_entity.file_id,
-					PathType::GSVAR,
-					found_file,
-					true
-				);
-				file_list.append(gsvar_file);
+            case PathType::SAMPLE_FOLDER:
+            case PathType::FUSIONS_PIC_DIR:
+            case PathType::FUSIONS:
+            case PathType::FUSIONS_BAM:
+            case PathType::MANTA_FUSIONS:
+            case PathType::COUNTS:
+            case PathType::EXPRESSION_COHORT:
+            case PathType::EXPRESSION_STATS:
+            case PathType::EXPRESSION_CORR:
+            case PathType::EXPRESSION_EXON:
+            case PathType::SPLICING_BED:
+            case PathType::SPLICING_ANN:
+            case PathType::VIRAL:
+            case PathType::VCF_CF_DNA:
+            case PathType::MRD_CF_DNA:
+            case PathType::HLA_GENOTYPER:
+            case PathType::OTHER:
+                return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "The type '" + request.getUrlParams()["type"].toUpper().trimmed() + "' cannot be handled by this endpoint"));
 		}
 	}
 
@@ -408,7 +429,6 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		{
 			try
 			{
-
 				cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"]));
             }
 			catch (Exception& e)

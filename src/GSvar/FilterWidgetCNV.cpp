@@ -7,6 +7,7 @@
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
+#include "GlobalServiceProvider.h"
 #include <QFileInfo>
 #include <QCompleter>
 #include <QMenu>
@@ -17,7 +18,6 @@
 FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
-	, filter_widget_(nullptr)
 {
 	ui_.setupUi(this);
 	ui_.cascade_widget->setSubject(VariantType::CNVS);
@@ -51,11 +51,6 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	FilterWidget::loadTargetRegions(ui_.roi);
 	loadFilters();
 	reset(true);
-}
-
-void FilterWidgetCNV::setVariantFilterWidget(FilterWidget* filter_widget)
-{
-	filter_widget_ = filter_widget;
 }
 
 void FilterWidgetCNV::resetSignalsUnblocked(bool clear_roi)
@@ -294,31 +289,31 @@ void FilterWidgetCNV::showPhenotypeContextMenu(QPoint pos)
 
 void FilterWidgetCNV::importHPO()
 {
-	setPhenotypes(filter_widget_->phenotypes());
+	setPhenotypes(GlobalServiceProvider::filterWidget()->phenotypes());
 	phenotypesChanged();
 }
 
 void FilterWidgetCNV::importROI()
 {
-	ui_.roi->setCurrentText(filter_widget_->targetRegionDisplayName());
+	ui_.roi->setCurrentText(GlobalServiceProvider::filterWidget()->targetRegionDisplayName());
 	emit filtersChanged();
 }
 
 void FilterWidgetCNV::importRegion()
 {
-	ui_.region->setText(filter_widget_->region());
+	ui_.region->setText(GlobalServiceProvider::filterWidget()->region());
 	emit filtersChanged();
 }
 
 void FilterWidgetCNV::importGene()
 {
-	ui_.gene->setText(filter_widget_->genes().join(", "));
+	ui_.gene->setText(GlobalServiceProvider::filterWidget()->genes().join(", "));
 	emit filtersChanged();
 }
 
 void FilterWidgetCNV::importText()
 {
-	ui_.text->setText(filter_widget_->text());
+	ui_.text->setText(GlobalServiceProvider::filterWidget()->text());
 	emit filtersChanged();
 }
 

@@ -330,75 +330,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 		}
 		qc_table.addColumn(sources, "source");
 
-		//init GUI table (descriptions as tooltip)
-		QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
-		ui_->qc_table->setData(qc_table);
-		ui_->qc_table->setColumnTooltips("name", descriptions);
-
-		//colors
-		QString sys_type = db.getValue("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.id='"+ps_id_+"'").toString();
-		QColor orange = QColor(255,150,0,125);
-		QColor red = QColor(255,0,0,125);
-		QList<QColor> colors;
-		for (int r=0; r<qc_table.rowCount(); ++r)
-		{
-			QColor color;
-			bool ok;
-			double value = qc_table.row(r).value(2).toDouble(&ok);
-			if (ok)
-			{
-				QString accession = qc_table.row(r).value(0);
-				if (accession=="QC:2000014") //known variants %
-				{
-					if (value<95) color = orange;
-					if (value<90) color = red;
-				}
-				else if (accession=="QC:2000025") //avg depth
-				{
-					if (sys_type=="WGS")
-					{
-						if (value<35) color = orange;
-						if (value<30) color = red;
-					}
-					else if (sys_type=="lrGS")
-					{
-						//TODO: adjust limits for lrGS
-						if (value<20) color = orange;
-						if (value<15) color = red;
-					}
-					else
-					{
-						if (value<80) color = orange;
-						if (value<50) color = red;
-					}
-
-				}
-				else if (accession=="QC:2000027") //cov 20x
-				{
-					if (value<95) color = orange;
-					if (value<90) color = red;
-				}
-				else if (accession=="QC:2000051") //AF deviation
-				{
-					if (value>3) color = orange;
-					if (value>6) color = red;
-				}
-				else if(accession=="QC:2000045") //known somatic variants percentage
-				{
-					if (value>4) color = orange;
-					if (value>5) color = red;
-				}
-				else if(accession=="QC:2000139") //chrY/chrX read ratio
-				{
-					if (sample_data.gender=="female" && value>0.02) color = orange;
-				}
-			}
-
-			colors << color;
-		}
-		ui_->qc_table->setColumnColors("value", colors);
-
-		//Format large numbers
+		//format large numbers
 		QString large_number_adjustment = Settings::string("view_adjust_large_numbers", true);
 		if (!large_number_adjustment.isEmpty() && large_number_adjustment != "raw_counts")
 		{
@@ -407,7 +339,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 				QString accession = qc_table.row(r).value(0);
 				if (accession == "QC:2000005")
 				{
-					qc_table.setValue(r, 2, Helper::FormatLargeNumber(qc_table.row(r).value(2).toLongLong(), large_number_adjustment));
+					qc_table.setValue(r, 2, Helper::formatLargeNumber(qc_table.row(r).value(2).toLongLong(), large_number_adjustment));
 				}
 				if (accession == "QC:2000006")
 				{
@@ -416,23 +348,34 @@ void ProcessedSampleWidget::updateQCMetrics()
 					if (value.contains('-'))
 					{
 						QStringList values = value.split('-');
-						qc_table.setValue(r, 2, Helper::FormatLargeNumber(values.at(0).toInt(), large_number_adjustment) + "-"
-										  + Helper::FormatLargeNumber(values.at(1).toInt(), large_number_adjustment));
+						qc_table.setValue(r, 2, Helper::formatLargeNumber(values.at(0).toInt(), large_number_adjustment) + "-" + Helper::formatLargeNumber(values.at(1).toInt(), large_number_adjustment));
 					}
 					else
 					{
 						QStringList values = value.split(", ");
 						for (int i = 0; i < values.size(); ++i)
 						{
-							values[i] = Helper::FormatLargeNumber(values[i].toInt(), large_number_adjustment);
+							values[i] = Helper::formatLargeNumber(values[i].toInt(), large_number_adjustment);
 						}
 						qc_table.setValue(r, 2, values.join(", "));
 					}
 				}
 			}
-			ui_->qc_table->setData(qc_table);
 		}
 
+		//init GUI table (descriptions as tooltip)
+		QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
+		ui_->qc_table->setData(qc_table);
+		ui_->qc_table->setColumnTooltips("qcml_id", descriptions);
+		ui_->qc_table->setColumnTooltips("name", descriptions);
+
+		//colors
+		QString sys_type = db.getValue("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.id='"+ps_id_+"'").toString();
+		int c = qc_table.columnIndex("value");
+		for (int r=0; r<qc_table.rowCount(); ++r)
+		{
+			GSvarHelper::colorQcItem(ui_->qc_table->item(r,c), qc_table.row(r).value(0), sys_type, sample_data.gender);
+		}
 	}
 	catch (Exception& e)
 	{

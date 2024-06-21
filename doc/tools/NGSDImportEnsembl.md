@@ -4,7 +4,7 @@
 	Imports Ensembl/CCDS transcript information into NGSD.
 	
 	Mandatory parameters:
-	  -in <file>              Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-110/gff3/homo_sapiens/Homo_sapiens.GRCh38.110.gff3.gz).
+	  -in <file>              Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz).
 	
 	Optional parameters:
 	  -pseudogenes <filelist> Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt and http://pseudogene.org/psicube/data/gencode.v10.pgene.parents.txt).

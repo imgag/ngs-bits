@@ -687,6 +687,13 @@ INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`,
 (2, 1, 'chr1', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
 (3, 1, 'chr1', 9100005, 9100050, 'chr5', 4112000, 4113000, '');
 
+-- repeat expansions
+INSERT INTO `re_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
+(1, 3999, 'ExpansionHunter', '5.0.0', '2024-06-10');
+
+INSERT INTO `repeat_expansion_genotype`(`id`, `processed_sample_id`, `repeat_expansion_id`, `allele1`, `allele2`, `filter`) VALUES 
+(1, 3999, 84, 8, NULL, NULL);
+
 -- study
 INSERT INTO `study`(`id`, `name`, `description`) VALUES
 (1, "SomeStudy",""),

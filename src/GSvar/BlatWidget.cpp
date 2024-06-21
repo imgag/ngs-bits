@@ -63,7 +63,8 @@ void BlatWidget::performSearch()
 			ui_.table->setItem(i, 2, GUIHelper::createTableItem(values[8].toString()));
 			ui_.table->setItem(i, 3, GUIHelper::createTableItem(values[13].toString()+":"+QString::number(values[15].toInt()+1)+"-"+QString::number(values[16].toInt())));
 		}
-		GUIHelper::resizeTableCells(ui_.table);
+		GUIHelper::resizeTableCellWidths(ui_.table);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
 	}
 	catch (Exception& e)
 	{

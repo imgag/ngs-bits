@@ -17,8 +17,6 @@ class FilterWidgetCNV
 public:
 	//Default constructor
 	FilterWidgetCNV(QWidget* parent = 0);
-	//Sets the small variant filter widget (needed to import data from it)
-	void setVariantFilterWidget(FilterWidget* filter_widget);
 
 	//Resets to initial state (uncheck boxes, no ROI)
 	void reset(bool clear_roi);
@@ -90,7 +88,6 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	FilterWidget* filter_widget_;
 };
 
 #endif // FILTERWIDGETCNV_H

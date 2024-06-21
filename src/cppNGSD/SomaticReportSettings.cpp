@@ -99,18 +99,15 @@ VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &ger
 
 CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticReportSettings &sett)
 {
-	QSet<int> cnv_indices = sett.report_config.variantIndices(VariantType::CNVS, false).toSet();
-
-	CnvList result;
-	result.copyMetaData(cnvs);
-
 	QBitArray cnv_flags(cnvs.count(), true);
-
-	foreach(int index, cnv_indices)
+	QSet<int> cnv_indices = sett.report_config.variantIndices(VariantType::CNVS, false).toSet();
+	for(int index : cnv_indices)
 	{
 		cnv_flags[index] = sett.report_config.variantConfig(index, VariantType::CNVS).showInReport();
 	}
 
+	CnvList result;
+	result.copyMetaData(cnvs);
 	for(int i=0; i<cnvs.count(); ++i)
 	{
 		if(!cnv_flags[i]) continue;

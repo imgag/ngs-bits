@@ -18,6 +18,7 @@ struct SelectedReportVariant
 	ReportVariantConfiguration report_variant_configuration;
 	Variant small_variant;
 	CopyNumberVariant cnv;
+	RepeatLocus re;
 	int cn = -1;
 	int ref_cn = 2;
 	BedpeLine sv;
@@ -38,6 +39,7 @@ private:
 	const VariantList& variants_;
 	const CnvList& cnvs_;
 	const BedpeFile& svs_;
+	const RepeatLocusList& res_;
 	int cnv_callset_id_ = -1;
 	int sv_callset_id_ = -1;
 	ReportVariantConfiguration selected_report_variant_;

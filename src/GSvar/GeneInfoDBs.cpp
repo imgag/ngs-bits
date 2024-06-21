@@ -77,6 +77,7 @@ QList<GeneDB>& GeneInfoDBs::all()
 		dbs_ << GeneDB{"SysID", "https://sysid.cmbi.umcn.nl/search?search=[gene]", QIcon("://Icons/SysID.png"), false};
 		dbs_ << GeneDB{"cBioPortal", "https://www.cbioportal.org/ln?q=[gene]:MUT", QIcon("://Icons/cbioportal.png"), true};
 		dbs_ << GeneDB{"CKB", "https://ckb.jax.org/gene/show?geneId=[gene_id_ncbi]", QIcon("://Icons/ckb.png"), true};
+		dbs_ << GeneDB{"GeneReviews", "https://www.ncbi.nlm.nih.gov/books/NBK1116/?term=[gene]", QIcon("://Icons/GeneReviews.png"), true};
 	}
 
 	return dbs_;

@@ -106,8 +106,8 @@ void GenLabImportDialog::initTable()
 			addItem("study", study_ngsd, study);
 		}
 
-		GUIHelper::resizeTableCells(ui_.table, 400);
-
+		GUIHelper::resizeTableCellWidths(ui_.table, 400);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
 		ui_.buttonBox->setEnabled(true);
 
 		QApplication::restoreOverrideCursor();

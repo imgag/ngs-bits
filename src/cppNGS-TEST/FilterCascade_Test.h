@@ -1140,6 +1140,20 @@ private slots:
 		I_EQUAL(result.countPassing(), 18);
 	}
 
+	void FilterVariantLrSrOverlap_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantLrSrOverlap filter;
+		filter.setBool("invert", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 42);
+	}
+
 
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 
@@ -1229,20 +1243,6 @@ private slots:
 		I_EQUAL(result.countPassing(), 37);
 	}
 
-	void FilterCnvCopyNumber_apply_CnvHunter_germline()
-	{
-		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
-
-		FilterResult result(cnvs.count());
-
-		//default
-		FilterCnvCopyNumber filter;
-		filter.setStringList("cn", QStringList() << "4" << "5+");
-		filter.apply(cnvs, result);
-		I_EQUAL(result.countPassing(), 1);
-	}
-
 	void FilterCnvAlleleFrequency_apply_ClinCNV_germline()
 	{
 		CnvList cnvs;
@@ -1256,35 +1256,6 @@ private slots:
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 6);
 	}
-
-	void FilterCnvAlleleFrequency_apply_CnvHunter_germline()
-	{
-		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
-
-		FilterResult result(cnvs.count());
-
-		//default
-		FilterCnvAlleleFrequency filter;
-		filter.setDouble("max_af", 0.02);
-		filter.apply(cnvs, result);
-		I_EQUAL(result.countPassing(), 7);
-	}
-
-	void FilterCnvZscore_apply()
-	{
-		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
-
-		FilterResult result(cnvs.count());
-
-		//default
-		FilterCnvZscore filter;
-		filter.setDouble("min_z", 5.5);
-		filter.apply(cnvs, result);
-		I_EQUAL(result.countPassing(), 7);
-	}
-
 
 	void FilterCnvLoglikelihood_apply()
 	{
@@ -1373,20 +1344,6 @@ private slots:
 		I_EQUAL(result.countPassing(), 20);
 	}
 
-	void FilterCnvCompHet_apply_cnv_cnv()
-	{
-		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
-
-		FilterResult result(cnvs.count());
-
-		//default
-		FilterCnvCompHet filter;
-		filter.setString("mode", "CNV-CNV");
-		filter.apply(cnvs, result);
-		I_EQUAL(result.countPassing(), 19);
-	}
-
 	void FilterCnvCompHet_apply_cnv_snvindel()
 	{
 		CnvList cnvs;
@@ -1471,26 +1428,6 @@ private slots:
 		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (ClinCNV)");
 		FilterResult result = filters.apply(cnvs, false);
 		I_EQUAL(result.countPassing(), 31);
-	}
-
-	void default_filters_CnvHunter_germline_single()
-	{
-		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
-
-		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (CnvHunter)");
-		FilterResult result = filters.apply(cnvs, true);
-		I_EQUAL(result.countPassing(), 28);
-	}
-
-	void default_filters_CnvHunter_germline_multi()
-	{
-		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline_multi.tsv"));
-
-		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (CnvHunter)");
-		FilterResult result = filters.apply(cnvs, true);
-		I_EQUAL(result.countPassing(), 28);
 	}
 
 
