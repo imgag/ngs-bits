@@ -886,6 +886,11 @@ public:
 	///Returns the CNV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	CopyNumberVariant cnv(int cnv_id);
 
+	///Adds a somatic CNV to the NGSD. Returns the somatic CNV ID.
+	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
+	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
+	CopyNumberVariant somaticCnv(int cnv_id);
+
 	///Adds a SV to the NGSD. Returns the SV ID.
 	int addSv(int callset_id, const BedpeLine& structuralVariant, const BedpeFile& svs);
 	///Returns the NGSD ID for a SV. Returns '' or throws an exception if the ID cannot be determined.
@@ -896,11 +901,11 @@ public:
 	///Returns the SQL table name for a given StructuralVariantType
 	static QString svTableName(StructuralVariantType type);
 
-
-	///Adds a somatic CNV to the NGSD. Returns the somatic CNV ID.
-	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
-	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
-	CopyNumberVariant somaticCnv(int cnv_id);
+	///Adds somatic SV to the NGSD. Returns the SV ID.
+	QString addSomaticSv(int callset_id, const BedpeLine& structuralVariant, const BedpeFile& svs);
+	QString somaticSvId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
+	BedpeLine somaticSv(QString sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false, int* callset_id = 0);
+	static QString somaticSvTableName(StructuralVariantType type);
 
 	///Returns the germline import status.
 	ImportStatusGermline importStatus(const QString& ps_id);
@@ -1139,11 +1144,11 @@ public:
 	///Returns database ID of somatic report configuration, -1 if not present
 	int somaticReportConfigId(QString t_ps_id, QString n_ps_id);
 	///Sets/overwrites somatic report configuration for tumor-normal processed sample pair
-	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const VariantList& germl_snvs, QString user_name);
+	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name);
 	///Removes a somatic report configuration from NGSD, including its variant and cnv configurations
 	void deleteSomaticReportConfig(int id);
 	///Retrieve somatic report configuration using tumor and normal processed sample ids
-	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const VariantList& germline_snvs, QStringList& messages);
+	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
 

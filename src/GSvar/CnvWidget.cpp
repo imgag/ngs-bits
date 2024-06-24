@@ -1063,7 +1063,6 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 	}
 
 	SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(cnvs_[row].toStringWithMetaData(), var_config, this);
-	dlg->disableIncludeForm();
 	if(dlg->exec()!=QDialog::Accepted) return;
 
 	somatic_report_config_->addSomaticVariantConfiguration(var_config);
@@ -1139,7 +1138,6 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 	generic_var_config.variant_type = VariantType::CNVS;
 
 	SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(QString::number(rows.count()) +" selected cnvs", generic_var_config, this);
-	dlg->disableIncludeForm();
 	if(dlg->exec() != QDialog::Accepted) return;
 
 	//Accepted was pressed -> see slot writeBackSettings()

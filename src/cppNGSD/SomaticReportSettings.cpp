@@ -43,7 +43,7 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 
 
 	//Adapt filter results to results from report settings
-	for(int index : variant_indices)
+	foreach(int index, variant_indices)
 	{
 		filter_res.flags()[index] = sett.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 	}
@@ -114,5 +114,37 @@ CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticRepo
 
 		result.append(cnvs[i]);
 	}
+	return result;
+}
+
+BedpeFile SomaticReportSettings::filterSvs(const BedpeFile& svs, const SomaticReportSettings& sett)
+{
+	BedpeFile result;
+	result.setAnnotationHeaders(svs.annotationHeaders());
+	result.addAnnotationHeader("DESCRIPTION");
+	result.addAnnotationHeader("GENES_BREAKPOINT_A");
+	result.addAnnotationHeader("GENES_BREAKPOINT_B");
+	result.addAnnotationHeader("START_POS_REPORT");
+	result.addAnnotationHeader("END_POS_REPORT");
+
+	QSet<int> sv_indicies = sett.report_config.variantIndices(VariantType::SVS, true).toSet();
+
+	if (sv_indicies.count() == 0) return result;
+
+	foreach(int idx, sv_indicies)
+	{
+		BedpeLine sv = svs[idx];
+		GeneSet genes_A = NGSD().genesOverlapping(sv.chr1(), sv.start1(), sv.end1(), 5000);
+		GeneSet genes_B = NGSD().genesOverlapping(sv.chr2(), sv.start2(), sv.end2(), 5000);
+		const auto& var_config = sett.report_config.variantConfig(idx, VariantType::SVS);
+		sv.appendAnnotation(var_config.description.toUtf8());
+		sv.appendAnnotation(genes_A.toStringList().join(", ").toUtf8());
+		sv.appendAnnotation(genes_B.toStringList().join(", ").toUtf8());
+		sv.appendAnnotation(var_config.manual_sv_start != "" ? sv.chr1().strNormalized(true) + ": " + var_config.manual_sv_start.toUtf8() : sv.chr1().strNormalized(true) + ": " +QByteArray::number(sv.start1()));
+		sv.appendAnnotation(var_config.manual_sv_end != ""   ? sv.chr2().strNormalized(true) + ": " + var_config.manual_sv_end.toUtf8()   : sv.chr2().strNormalized(true) + ": " +QByteArray::number(sv.start2()));
+
+		result.append(sv);
+	}
+	result.sort();
 	return result;
 }
