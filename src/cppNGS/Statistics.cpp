@@ -1314,6 +1314,7 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString target, QString 
 		if(vcf_file[i].filters().contains("lt-3-reads")) continue;
 		if(vcf_file[i].filters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
 		if(vcf_file[i].filters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
+		if(vcf_file[i].filters().contains("weak-evidence")) continue; //Skip dragen low quality variants
 
 		const Chromosome chr = vcf_file[i].chr();
 		int start = vcf_file[i].start();
@@ -1387,6 +1388,7 @@ QCValue Statistics::mutationBurdenNormalized(QString somatic_vcf, QString exons,
 		if(vcf_file[i].filters().contains("lt-3-reads")) continue;
 		if(vcf_file[i].filters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
 		if(vcf_file[i].filters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
+		if(vcf_file[i].filters().contains("weak-evidence")) continue; //Skip dragen low quality variants
 
 		const Chromosome chr = vcf_file[i].chr();
 		int start = vcf_file[i].start();
