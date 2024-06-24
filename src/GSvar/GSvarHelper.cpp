@@ -190,6 +190,108 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
+bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, const QString& sys_type, const QString& gender)
+{
+	//init
+	static QColor orange = QColor(255,150,0,125);
+	static QColor red = QColor(255,0,0,125);
+
+	//check that value is numeric
+	bool ok = false;
+	double value = item->text().toDouble(&ok);
+	if (!ok) return false;
+
+	//determine color
+	QColor* color = nullptr;
+	if (accession=="QC:2000014") //known variants %
+	{
+		if (value<95) color = &orange;
+		if (value<90) color = &red;
+	}
+	else if (accession=="QC:2000025") //avg depth
+	{
+		if (sys_type=="WGS")
+		{
+			if (value<35) color = &orange;
+			if (value<30) color = &red;
+		}
+		else if (sys_type=="lrGS")
+		{
+			if (value<30) color = &orange;
+			if (value<20) color = &red;
+		}
+		else
+		{
+			if (value<80) color = &orange;
+			if (value<50) color = &red;
+		}
+	}
+	else if (accession=="QC:2000027") //cov 20x
+	{
+		if (sys_type=="WGS")
+		{
+			if (value<99) color = &orange;
+			if (value<95) color = &red;
+		}
+		else
+		{
+			if (value<95) color = &orange;
+			if (value<90) color = &red;
+		}
+	}
+	else if (accession=="QC:2000051") //AF deviation
+	{
+		if (value>3) color = &orange;
+		if (value>6) color = &red;
+	}
+	else if(accession=="QC:2000045") //known somatic variants percentage
+	{
+		if (value>4) color = &orange;
+		if (value>5) color = &red;
+	}
+	else if(accession=="QC:2000139") //chrY/chrX read ratio
+	{
+		if (gender=="female" && value>0.02) color = &orange;
+	}
+	else if (accession=="QC:2000023") //insert size
+	{
+		if (value<190) color = &orange;
+		if (value<150) color = &red;
+	}
+	else if (accession=="QC:2000113") //CNV count
+	{
+		if (value<1) color = &red;
+	}
+	else if (accession=="QC:2000024") //duplicate %
+	{
+		if (value>25) color = &orange;
+		if (value>35) color = &red;
+	}
+	else if (accession=="QC:2000021") //on target %
+	{
+		if (value<50) color = &orange;
+		if (value<25) color = &red;
+	}
+	else if (accession=="QC:2000071") //target region read depth 2-fold duplication
+	{
+		if (value<1000) color = &orange;
+		if (value<500) color = &red;
+	}
+	else if (accession=="QC:2000083") //cfDNA-tumor correlation
+	{
+		if (value<0.9) color = &orange;
+		if (value<0.75) color = &red;
+	}
+
+	//set color
+	if (color!=nullptr)
+	{
+		item->setBackgroundColor(*color);
+	}
+
+	return color!=nullptr;
+}
+
 void GSvarHelper::limitLines(QLabel* label, QString text, int max_lines)
 {
 	QStringList lines = text.split("\n");

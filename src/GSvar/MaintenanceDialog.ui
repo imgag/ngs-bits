@@ -96,6 +96,11 @@
        </item>
        <item>
         <property name="text">
+         <string>Compare test and production</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>[GenLab]</string>
         </property>
        </item>

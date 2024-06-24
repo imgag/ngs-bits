@@ -134,7 +134,11 @@
          </widget>
         </item>
         <item row="5" column="1">
-         <widget class="QComboBox" name="s_type"/>
+         <widget class="QComboBox" name="s_type">
+          <property name="maxVisibleItems">
+           <number>20</number>
+          </property>
+         </widget>
         </item>
         <item row="6" column="0">
          <widget class="QLabel" name="label_17">
@@ -164,7 +168,11 @@
          </widget>
         </item>
         <item row="8" column="1">
-         <widget class="QComboBox" name="s_tissue"/>
+         <widget class="QComboBox" name="s_tissue">
+          <property name="maxVisibleItems">
+           <number>20</number>
+          </property>
+         </widget>
         </item>
         <item row="10" column="0">
          <widget class="QLabel" name="label_5">
@@ -217,7 +225,7 @@
           </property>
          </widget>
         </item>
-        <item row="13" column="0">
+        <item row="14" column="0">
          <widget class="QLabel" name="label_12">
           <property name="toolTip">
            <string>Include only samples with small variants imported in to NGSD.</string>
@@ -227,7 +235,7 @@
           </property>
          </widget>
         </item>
-        <item row="13" column="1">
+        <item row="14" column="1">
          <widget class="QCheckBox" name="s_only_with_variants">
           <property name="text">
            <string/>
@@ -242,7 +250,25 @@
          </widget>
         </item>
         <item row="9" column="1">
-         <widget class="QComboBox" name="s_ancestry"/>
+         <widget class="QComboBox" name="s_ancestry">
+          <property name="maxVisibleItems">
+           <number>20</number>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="1">
+         <widget class="QCheckBox" name="s_scheduled_for_resequencing">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="label_26">
+          <property name="text">
+           <string>include scheduled for resequencing:</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -295,6 +321,9 @@
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="sys_type">
+            <property name="maxVisibleItems">
+             <number>20</number>
+            </property>
             <property name="sizeAdjustPolicy">
              <enum>QComboBox::AdjustToContents</enum>
             </property>
@@ -332,7 +361,11 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="s_disease_group"/>
+           <widget class="QComboBox" name="s_disease_group">
+            <property name="maxVisibleItems">
+             <number>20</number>
+            </property>
+           </widget>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_15">
@@ -342,7 +375,11 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QComboBox" name="s_disease_status"/>
+           <widget class="QComboBox" name="s_disease_status">
+            <property name="maxVisibleItems">
+             <number>20</number>
+            </property>
+           </widget>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_24">
@@ -416,7 +453,11 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QComboBox" name="p_type"/>
+           <widget class="QComboBox" name="p_type">
+            <property name="maxVisibleItems">
+             <number>20</number>
+            </property>
+           </widget>
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_33">

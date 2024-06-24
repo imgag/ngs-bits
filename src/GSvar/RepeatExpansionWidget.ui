@@ -140,6 +140,32 @@
        </widget>
       </item>
       <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="filter_rc">
+        <property name="toolTip">
+         <string>Show repeat expansions with report config only.</string>
+        </property>
+        <property name="text">
+         <string>only with report config</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -168,7 +194,7 @@
          </size>
         </property>
         <property name="currentText">
-         <string>diagnostic</string>
+         <string>all</string>
         </property>
         <item>
          <property name="text">
@@ -237,6 +263,11 @@
       </property>
       <property name="toolTip">
        <string>Repeat unit sequence in reference genome orientation (plus strand)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>comments</string>
       </property>
      </column>
      <column>
@@ -312,6 +343,14 @@
      </column>
      <column>
       <property name="text">
+       <string>statistical cutoff</string>
+      </property>
+      <property name="toolTip">
+       <string>statistical cutoff of the repeat length for outlier detection based on the repeat length distribution in NSGD</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>diseases</string>
       </property>
       <property name="toolTip">
@@ -334,11 +373,6 @@
      <column>
       <property name="text">
        <string>location</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>comments</string>
       </property>
      </column>
      <column>

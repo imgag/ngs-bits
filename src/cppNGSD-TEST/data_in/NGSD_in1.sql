@@ -591,6 +591,20 @@ INSERT INTO `somatic_cnv` (`id`, `somatic_cnv_callset_id`, `chr`, `start`, `end`
 (1, 1, 'chr4', 18000, 200000, 2.54, 3, 0.75),
 (4, 5, 'chr7', 87000, 350000, 3.14, 4, 0.8);
 
+-- somatic SVs:
+INSERT INTO `somatic_sv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`) VALUES
+(1, 4000, 3999, 'Manta', '1.6.0', '2023-08-18 00:00:00');
+INSERT INTO `somatic_sv_deletion` (`id`, `somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(1, 1, 'chr1', 33036849, 33037059, 58631324, 58631627, '{"filter":"MinSomaticScore;off-target","quality":"16"}');
+INSERT INTO `somatic_sv_duplication` (`id`, `somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(2, 1, 'chr14', 55063186, 55063187, 55176618, 55176618, '{"filter":"PASS","quality":"90"}');
+INSERT INTO `somatic_sv_insertion` (`id`, `somatic_sv_callset_id`, `chr`, `pos`, `ci_lower`, `ci_upper`, `inserted_sequence`, `known_left`, `known_right`, `quality_metrics`) VALUES
+(3, 1, 'chr2', 71555977, 0, 9, 'GAGCAGGTCCCCCCTACCTGCAGCCTGCGATGAGCTCATCCGTCAGCTGAGCCACC', NULL, NULL, '{"filter":"PASS","quality":"35"}');
+INSERT INTO `somatic_sv_inversion` (`id`, `somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(4, 1, 'chr6', 440279, 440281, 33683482, 33683482, '{"filter":"off-target","quality":"57"}');
+INSERT INTO `somatic_sv_translocation` (`id`, `somatic_sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `quality_metrics`) VALUES
+(5, 1, 'chr12', 50807963, 50807965, 'chr22', 29291555, 29291557, '{"filter":"AMBIGUOUS","quality":"123"}');
+
 -- somatic_report_configuration
 INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `mtb_xml_upload_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter_base_name`) VALUES 
 (3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10', '2020-07-29 09:06:10', NULL, false, false, false, false, false, 0, NULL, 'tumor cell content too low', 'somatic'),
@@ -672,6 +686,13 @@ INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`,
 (1, 1, 'chr1', 9101000, 9101020, 'chr5', 4112000, 4113000, ''),
 (2, 1, 'chr1', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
 (3, 1, 'chr1', 9100005, 9100050, 'chr5', 4112000, 4113000, '');
+
+-- repeat expansions
+INSERT INTO `re_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
+(1, 3999, 'ExpansionHunter', '5.0.0', '2024-06-10');
+
+INSERT INTO `repeat_expansion_genotype`(`id`, `processed_sample_id`, `repeat_expansion_id`, `allele1`, `allele2`, `filter`) VALUES 
+(1, 3999, 84, 8, NULL, NULL);
 
 -- study
 INSERT INTO `study`(`id`, `name`, `description`) VALUES

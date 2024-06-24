@@ -1,5 +1,5 @@
 ### CnvFilterAnnotations tool help
-	CnvFilterAnnotations (2021_12-170-g1acf8802)
+	CnvFilterAnnotations (2023_11-42-ga9d1687d)
 	
 	Filter a copy-number variant list in TSV format based on variant annotations.
 	
@@ -77,16 +77,10 @@
 	                           Parameters:
 	                             min_tumor_cn - Minimum tumor copy number of the CNV [default=0]
 	                             max_tumor_cn - Maximum tumor copy number of the CNV. [default=10]
-	CNV z-score                Filter for CNV z-score.
-	                           The z-score determines to what degee that the region was a statistical outlier when compared to the reference samples.
-	                           Note: for deletions z-scores lower than the negative cutoff pass.
-	                           Note: this filter works for CnvHunter CNV lists only!
-	                           Parameters:
-	                             min_z - Minimum z-score [default=4] [min=0.0] [max=10.0]
 	
 	Mandatory parameters:
-	  -in <file>      Input structural variant list in BEDPE format.
-	  -out <file>     Output structural variant list in BEDPE format.
+	  -in <file>      Input CNV list in TSV format.
+	  -out <file>     Output CNV list in TSV format.
 	  -filters <file> Filter definition file.
 	
 	Special parameters:
@@ -96,7 +90,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvFilterAnnotations changelog
-	CnvFilterAnnotations 2021_12-170-g1acf8802
+	CnvFilterAnnotations 2023_11-42-ga9d1687d
 	
 	2020-05-25 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

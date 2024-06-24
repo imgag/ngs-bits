@@ -509,7 +509,8 @@ void ClinvarUploadDialog::upload()
             {
                 condition << ui_.tw_disease_info->item(row_idx, 0)->text() + "|" + ui_.tw_disease_info->item(row_idx, 1)->text();
             }
-			GUIHelper::resizeTableCells(ui_.tw_disease_info);
+			GUIHelper::resizeTableCellWidths(ui_.tw_disease_info);
+			GUIHelper::resizeTableCellHeightsToFirst(ui_.tw_disease_info);
             details << "condition=" + condition.join(',');
 			if (manual_upload_)
 			{
@@ -1374,7 +1375,8 @@ void ClinvarUploadDialog::addDiseaseInfo()
 	ui_.tw_disease_info->setItem(row_idx, 0, GUIHelper::createTableItem(type));
 	ui_.tw_disease_info->setItem(row_idx, 1, GUIHelper::createTableItem(text));
 
-	GUIHelper::resizeTableCells(ui_.tw_disease_info);
+	GUIHelper::resizeTableCellWidths(ui_.tw_disease_info);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.tw_disease_info);
 }
 
 void ClinvarUploadDialog::removeDiseaseInfo()
@@ -1689,7 +1691,6 @@ QJsonObject ClinvarUploadDialog::createJson()
 								variant_type = "Inversion";
 								break;
 							case StructuralVariantType::BND:
-								//TODO: implement for BND
 								THROW(NotImplementedException, "Currently not implemented for translocations!");
 								variant_type = "Translocation";
 								break;
@@ -1838,7 +1839,6 @@ QJsonObject ClinvarUploadDialog::createJson()
 									variant_type = "Inversion";
 									break;
 								case StructuralVariantType::BND:
-									//TODO: implement for BND
 									THROW(NotImplementedException, "Currently not implemented for translocations!");
 									variant_type = "Translocation";
 									break;

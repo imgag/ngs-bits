@@ -30,12 +30,12 @@ public slots:
     void updateClinVarSubmissionStatus();
 	void updateInfoForUsers(QString str);
     void switchLogFile();
-    void cleanupUrls();
-    void cleanupSessions();
+    void cleanupSessionsAndUrls();
 
 private:
 	ClientInfo readClientInfoFromFile();
 	QByteArray readUserNotificationFromFile();
+    QSslKey readPrivateKey(const QString &filePath, const QByteArray &passPhrase = QByteArray());
 	SslServer *server_;
     bool is_running_;
     QThreadPool cleanup_pool_;

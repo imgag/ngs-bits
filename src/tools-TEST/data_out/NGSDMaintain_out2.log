@@ -2,5 +2,5 @@ Tumor sample imported into germline variant table: TUMOR_01
 Outdated gene name in 'geneinfo_germline': A1BG-AS
 Outdated gene name in 'hpo_genes': A1BG-AS
 Outdated gene name in 'omim_gene': A1BG-AS
-Bad sample BADQUAL_01 has variant data (small variant, CNVs or SVs)!
+Bad sample BADQUAL_01 has variant data (small variants, CNVs, SVs or REs)!
 Invalid/obsolete HPO identifier 'HP:0001272' in table 'sample_disease_info'!

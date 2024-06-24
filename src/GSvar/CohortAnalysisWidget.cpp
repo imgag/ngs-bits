@@ -160,7 +160,8 @@ void CohortAnalysisWidget::updateOutputTable()
 		}
 		ui_.output->setSortingEnabled(true);
 		ui_.output->sortByColumn(1);
-		GUIHelper::resizeTableCells(ui_.output, 400);
+		GUIHelper::resizeTableCellWidths(ui_.output, 400);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.output);
 
 		QApplication::restoreOverrideCursor();
 	}

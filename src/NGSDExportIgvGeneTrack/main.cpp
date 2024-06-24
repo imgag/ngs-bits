@@ -19,7 +19,7 @@ public:
 	{
 		setDescription("Writes all transcripts and exons of all genes to a IGV-readable text file.");
 		addOutfile("out", "The output text file.", false);
-		addOutfile("out_mane", "The optional output text file containing only MANE + clinical transcripts.", true);
+		addOutfile("out_mane", "The optional output text file containing only MANE transcripts.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 

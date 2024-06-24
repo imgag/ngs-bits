@@ -1,10 +1,11 @@
 #include "ServerWrapper.h"
+#include "SessionAndUrlBackupWorker.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
     , cleanup_pool_()
 {
-    cleanup_pool_.setMaxThreadCount(2);
+    cleanup_pool_.setMaxThreadCount(1);
     QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
 	if (ssl_certificate.isEmpty())
 	{
@@ -26,13 +27,6 @@ ServerWrapper::ServerWrapper(const quint16& port)
 		Log::warn("SSL key has not been specified in the config. Using a test key: " + ssl_key);
 	}
 
-	QFile keyFile(ssl_key);
-	if (!keyFile.open(QIODevice::ReadOnly))
-	{
-		Log::error("Unable to load SSL key");
-		return;
-	}
-
 	QString ssl_chain = ServerHelper::getStringSettingsValue("ssl_certificate_chain");
 	QList<QSslCertificate> ca_certificates;
 	if (!ssl_chain.isEmpty())
@@ -42,13 +36,19 @@ ServerWrapper::ServerWrapper(const quint16& port)
 	}
 
 	QSslCertificate cert(&certFile);
-	QSslKey key(&keyFile, QSsl::Rsa);
+    QSslKey key = readPrivateKey(ssl_key);
+    if (key.isNull())
+    {
+        Log::error("SSL private key is not set");
+        return;
+    }
 
 	server_ = new SslServer(this);
 
 	QSslConfiguration config = server_->getSslConfiguration();
 	config.setLocalCertificate(cert);
 	config.setPrivateKey(key);
+
 
 	if (ca_certificates.size()>0)
 	{
@@ -64,15 +64,10 @@ ServerWrapper::ServerWrapper(const quint16& port)
             is_running_ = true;
             Log::info("GSvar server is running on port #" + QString::number(port));
 
-            // Remove expired URLs on schedule
-            QTimer *url_timer = new QTimer(this);
-            connect(url_timer, SIGNAL(timeout()), this, SLOT(cleanupUrls()));
-            url_timer->start(60 * 5 * 1000); // every 5 minutes
-
-            // Remove expired sessions (invalidate tokens) on schedule
+            // Remove expired sessions and URLs on schedule
             QTimer *session_timer = new QTimer(this);
-            connect(session_timer, SIGNAL(timeout()), this, SLOT(cleanupSessions()));
-            session_timer->start(60 * 10 * 1000); // every 10 minutes
+            connect(session_timer, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));
+            session_timer->start(60 * 5 * 1000); // every 5 minutes
 
             // ClinVar submission status automatic update on schedule
             QTimer *clinvar_timer = new QTimer(this);
@@ -189,6 +184,34 @@ ClientInfo ServerWrapper::readClientInfoFromFile()
 	return info;
 }
 
+QSslKey ServerWrapper::readPrivateKey(const QString& filePath, const QByteArray& passPhrase)
+{
+    QFile keyFile(filePath);
+    if (!keyFile.open(QIODevice::ReadOnly)) {
+        Log::error("Unable to open key file: " + filePath);
+        return QSslKey();
+    }
+
+    QByteArray keyData = keyFile.readAll();
+    keyFile.close();
+
+    Log::info(filePath);
+    if (filePath.endsWith(".key", Qt::CaseInsensitive))
+    {
+        Log::info("RSA encryption detected");
+        QSslKey privateKey(keyData, QSsl::Rsa);
+        return privateKey;
+    }
+
+    Log::info("ECDSA encryption detected");
+    QSslKey privateKey(keyData, QSsl::Ec, QSsl::Pem, QSsl::PrivateKey, passPhrase);
+    if (privateKey.isNull()) {
+        Log::error("Failed to parse private key");
+    }
+
+    return privateKey;
+}
+
 QByteArray ServerWrapper::readUserNotificationFromFile()
 {
 	if (!QFile(QCoreApplication::applicationDirPath() + QDir::separator() + NOTIFICATION_FILE).exists())
@@ -215,28 +238,23 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
     return content;
 }
 
-void ServerWrapper::cleanupUrls()
-{
-    Log::info("Removing expired URLs on timer");
-    try
-    {
-        UrlManager::removeExpiredUrls();
-    }
-    catch (...)
-    {
-         Log::error("Unexpected error while trying to remove URLs");
-    }
-}
-
-void ServerWrapper::cleanupSessions()
+void ServerWrapper::cleanupSessionsAndUrls()
 {
     Log::info("Removing expired sessions on timer");
     try
     {
-        SessionManager::removeExpiredSessions();     
-    }   
+        SessionManager::removeExpiredSessions();
+        UrlManager::removeExpiredUrls();
+
+        SessionAndUrlBackupWorker *backup_worker = new SessionAndUrlBackupWorker(SessionManager::getAllSessions(), UrlManager::getAllUrls());
+        cleanup_pool_.start(backup_worker);
+    }
+    catch(DatabaseException& e)
+    {
+        Log::error("Database error: " + e.message());
+    }
     catch (...)
     {
-        Log::error("Unexpected error while trying to remove sessions");
+        Log::error("Unexpected error while trying to cleanup and backup sessions and URLs");
     }
 }

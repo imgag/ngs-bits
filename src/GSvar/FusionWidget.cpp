@@ -95,12 +95,6 @@ void FusionWidget::loadFusionData()
 	ui_->fusions->setSortingEnabled(true);
 
 	//optimize table view
-	GUIHelper::resizeTableCells(ui_->fusions, 200, false, 1000);
-
-	//set height
-	for (int row_idx = 0; row_idx < ui_->fusions->rowCount(); ++row_idx)
-	{
-		ui_->fusions->setRowHeight(row_idx, 25);
-	}
-
+	GUIHelper::resizeTableCellWidths(ui_->fusions, 200);
+	ui_->fusions->resizeRowsToContents();
 }

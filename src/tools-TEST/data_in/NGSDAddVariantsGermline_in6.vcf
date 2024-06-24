@@ -1,5 +1,6 @@
 ##fileformat=VCFv4.2
 ##source=StraglrV1.5.0
+##fileDate=20240606
 ##contig=<ID=chr2,length=242193529>
 ##contig=<ID=chr3,length=198295559>
 ##contig=<ID=chr4,length=190214555>

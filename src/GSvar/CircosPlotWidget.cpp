@@ -2,12 +2,15 @@
 #include "ui_CircosPlotWidget.h"
 #include "VersatileFile.h"
 #include <QMessageBox>
+#include <QMenu>
+#include <QClipboard>
 
 CircosPlotWidget::CircosPlotWidget(QString filename, QWidget *parent)
 	: QWidget(parent)
 	, ui_(new Ui::CircosPlotWidget)
 {
 	ui_->setupUi(this);
+	connect(ui_->imageLabel, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 
 	loadCircosPlot(filename);
 }
@@ -15,6 +18,20 @@ CircosPlotWidget::CircosPlotWidget(QString filename, QWidget *parent)
 CircosPlotWidget::~CircosPlotWidget()
 {
 	delete ui_;
+}
+
+void CircosPlotWidget::showContextMenu(QPoint pos)
+{
+	QMenu menu;
+	QAction* a_copy = menu.addAction(QIcon(":/Icons/Clipboard.png"), "copy to clipboard");
+
+	QAction* action = menu.exec(ui_->imageLabel->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action==a_copy)
+	{
+		QApplication::clipboard()->setPixmap(image_);
+	}
 }
 
 void CircosPlotWidget::resizeEvent(QResizeEvent*)

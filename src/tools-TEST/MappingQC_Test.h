@@ -116,5 +116,18 @@ private slots:
 		COMPARE_FILES("out/MappingQC_test09_out.qcML", TESTDATA("data_out/MappingQC_test09_out.qcML"));
 	}
 
+	void lrgs_with_raw_read_qc()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		EXECUTE("MappingQC", "-long_read -in " + TESTDATA("data_in/MappingQC_in6.bam") + " -wgs -build hg38" + " -out out/MappingQC_test12_out.qcML -read_qc out/MappingQC_test13_out.qcML -ref " + ref_file);
+		REMOVE_LINES("out/MappingQC_test12_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test12_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test12_out.qcML", TESTDATA("data_out/MappingQC_test12_out.qcML"));
+		REMOVE_LINES("out/MappingQC_test13_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test13_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test13_out.qcML", TESTDATA("data_out/MappingQC_test13_out.qcML"));
+	}
+
 
 };

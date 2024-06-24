@@ -81,7 +81,8 @@ bool ServerHelper::hasMinimalSettings()
         (ServerHelper::getNumSettingsValue("gsvar_server_db_port")>0) &&
         !ServerHelper::getStringSettingsValue("gsvar_server_db_name").isEmpty() &&
         !ServerHelper::getStringSettingsValue("gsvar_server_db_user").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("gsvar_server_db_pass").isEmpty()
+        !ServerHelper::getStringSettingsValue("gsvar_server_db_pass").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("megsap_root").isEmpty()
     );
 }
 

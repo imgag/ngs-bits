@@ -2177,7 +2177,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	return output;
 }
 
-QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
+QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps, bool longread)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -2189,7 +2189,7 @@ QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QSt
 	VcfFile snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
-		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start());
+		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start(), -1, 1, longread);
 		int depth = pileup.depth(false);
 		if (depth<min_cov) continue;
 

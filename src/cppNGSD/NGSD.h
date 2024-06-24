@@ -308,6 +308,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString processing_input;
 	QString molarity;
 	QString ancestry;
+	bool scheduled_for_resequencing;
 };
 
 ///Processing system information.
@@ -407,6 +408,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
 	bool include_merged_samples = false;
+	bool include_scheduled_for_resequencing_samples = false;
 	bool only_with_small_variants = false;
 
 	//filters project
@@ -536,6 +538,7 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 	int small_variants = 0;
 	int cnvs = 0;
 	int svs = 0;
+	int res = 0;
 	//QC data
 	int qc_terms = 0;
 };
@@ -651,6 +654,10 @@ struct CPPNGSDSHARED_EXPORT VariantCallingInfo
 	QString sv_caller;
 	QString sv_caller_version;
 	QString sv_call_date; //ISO format
+
+	QString re_caller;
+	QString re_caller_version;
+	QString re_call_date; //ISO format
 };
 
 ///NGSD access
@@ -661,7 +668,7 @@ Q_OBJECT
 
 public:
 	///Default constructor that connects to the DB
-	NGSD(bool test_db=false, QString name_suffix="");
+	NGSD(bool test_db=false, QString test_name_override="");
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -852,10 +859,17 @@ public:
 	///Deletes the variants of a processed sample (a specific type)
 	void deleteVariants(const QString& ps_id, VariantType type);
 
-	///Returns the repeat expansion NGSD ID
-	QString repeatExpansionId(const QString& region, const QString& repeat_unit, bool throw_if_fails=true);
+	///Returns the repeat expansion NGSD ID. Throws an error or returns -1 if it does not exist.
+	int repeatExpansionId(const BedLine& region, const QString& repeat_unit, bool throw_if_fails=true);
+	///Returns the repeat expansion name. Throws an error or returns an empty string if no entry with the given ID exists.
+	QString repeatExpansionName(int id, bool throw_on_error=true);
 	///Returns the (rich text) comments of the repeat with the given ID
 	QString repeatExpansionComments(int id);
+
+	///Returns the repeat expansion genotype NGSD ID. Throws an error or returns -1 if it does not exist.
+	int repeatExpansionGenotypeId(int repeat_expansion_id, int processed_sample_id, bool throw_if_fails=true);
+	///Returns the repeat expansion genotype data
+	RepeatLocus repeatExpansionGenotype(int id);
 
 	///Adds PubMed ID to a variant
 	void addPubmedId(int variant_id, const QString& pubmed_id);
@@ -872,6 +886,11 @@ public:
 	///Returns the CNV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	CopyNumberVariant cnv(int cnv_id);
 
+	///Adds a somatic CNV to the NGSD. Returns the somatic CNV ID.
+	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
+	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
+	CopyNumberVariant somaticCnv(int cnv_id);
+
 	///Adds a SV to the NGSD. Returns the SV ID.
 	int addSv(int callset_id, const BedpeLine& structuralVariant, const BedpeFile& svs);
 	///Returns the NGSD ID for a SV. Returns '' or throws an exception if the ID cannot be determined.
@@ -882,11 +901,11 @@ public:
 	///Returns the SQL table name for a given StructuralVariantType
 	static QString svTableName(StructuralVariantType type);
 
-
-	///Adds a somatic CNV to the NGSD. Returns the somatic CNV ID.
-	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
-	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
-	CopyNumberVariant somaticCnv(int cnv_id);
+	///Adds somatic SV to the NGSD. Returns the SV ID.
+	QString addSomaticSv(int callset_id, const BedpeLine& structuralVariant, const BedpeFile& svs);
+	QString somaticSvId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
+	BedpeLine somaticSv(QString sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false, int* callset_id = 0);
+	static QString somaticSvTableName(StructuralVariantType type);
 
 	///Returns the germline import status.
 	ImportStatusGermline importStatus(const QString& ps_id);
@@ -1104,15 +1123,15 @@ public:
 	///Returns if the report configuration is finalized.
 	bool reportConfigIsFinalized(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
-	QSharedPointer<ReportConfiguration> reportConfig(int id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
+	QSharedPointer<ReportConfiguration> reportConfig(int id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key. The variant list is needed to determine the annotation column indices.
-	int setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
+	int setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res);
 	///Finalizes the report configuration. It cannot be modified afterwards!
 	void finalizeReportConfig(int id, int user_id);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
 	///Returns the report variant configuration variant for a given id
-	ReportVariantConfiguration reportVariantConfiguration(int id, VariantType type, QStringList& messages, const VariantList& variants=VariantList(), const CnvList& cnvs=CnvList(), const BedpeFile& svs=BedpeFile());
+	ReportVariantConfiguration reportVariantConfiguration(int id, VariantType type, QStringList& messages, const VariantList& variants=VariantList(), const CnvList& cnvs=CnvList(), const BedpeFile& svs=BedpeFile(), const RepeatLocusList& res=RepeatLocusList());
 
 	///Returns the varint evaluation sheet data for a given processed sample id
 	EvaluationSheetData evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails = true);
@@ -1125,11 +1144,11 @@ public:
 	///Returns database ID of somatic report configuration, -1 if not present
 	int somaticReportConfigId(QString t_ps_id, QString n_ps_id);
 	///Sets/overwrites somatic report configuration for tumor-normal processed sample pair
-	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const VariantList& germl_snvs, QString user_name);
+	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name);
 	///Removes a somatic report configuration from NGSD, including its variant and cnv configurations
 	void deleteSomaticReportConfig(int id);
 	///Retrieve somatic report configuration using tumor and normal processed sample ids
-	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const VariantList& germline_snvs, QStringList& messages);
+	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
 
@@ -1142,7 +1161,7 @@ public:
 	void setGeneInfo(GeneInfo info);
 
 	///Returns the job id of the last single sample analysis or -1 if no analysis was performed.
-	int lastAnalysisOf(QString processed_sample_id);
+	int lastAnalysisOf(const QString& processed_sample_id);
 	///Returns information about an analysis job
 	AnalysisJob analysisInfo(int job_id, bool throw_if_fails = true);
 	///Queues an analysis.
@@ -1178,7 +1197,7 @@ public:
 	void updateQC(QString obo_file, bool debug=false);
 
 	///Checks for missing or inconsistent meta data of a sample.
-	QHash<QString, QStringList> checkMetaData(const QString& ps_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
+	QHash<QString, QStringList> checkMetaData(const QString& ps_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res);
 
 	///Checks for errors/inconsistencies and fixes them if @p fix_errors is set.
 	void maintain(QTextStream* messages, bool fix_errors);

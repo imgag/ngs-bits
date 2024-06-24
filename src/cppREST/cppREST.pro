@@ -53,9 +53,10 @@ SOURCES += \
     HttpResponse.cpp \
     RequestParser.cpp \
     RequestWorker.cpp \
-    ServerDbManager.cpp \
+    ServerDB.cpp \
     ServerHelper.cpp \
     ServerWrapper.cpp \
+    SessionAndUrlBackupWorker.cpp \
     SessionManager.cpp \
     SslServer.cpp \
     UrlManager.cpp
@@ -69,12 +70,14 @@ HEADERS += \
     HttpResponse.h \
     RequestParser.h \
     RequestWorker.h \
-    ServerDbManager.h \
+    ServerDB.h \
     ServerHelper.h \
     ServerWrapper.h \
     Session.h \
+    SessionAndUrlBackupWorker.h \
     SessionManager.h \
     SslServer.h \
+    ThreadSafeHashMap.h \
     UrlEntity.h \
     UrlManager.h
 

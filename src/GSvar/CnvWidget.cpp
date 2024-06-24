@@ -30,44 +30,19 @@
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
 
-CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache,
-					 QWidget* parent)
-	: CnvWidget(cnvs, ps_id, filter_widget, het_hit_genes, cache, parent)
-{
-	if(cnvs.type()!=CnvListType::CLINCNV_GERMLINE_MULTI && cnvs.type()!=CnvListType::CLINCNV_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_SINGLE
-	   && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_MULTI)
-	{
-		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using germline CNV data.");
-	}
-	report_config_ = rep_conf;
-	initGUI();
-}
-
-CnvWidget::CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_widget, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache,
-					 QWidget* parent)
-	: CnvWidget(cnvs, t_ps_id, filter_widget, het_hit_genes, cache, parent)
-{
-	if(cnvs.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR && cnvs.type() != CnvListType::CLINCNV_TUMOR_ONLY)
-	{
-		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using tumor-normal pair or tumor-only data.");
-	}
-	somatic_report_config_ = &som_rep_conf;
-	is_somatic_ = true;
-	initGUI();
-}
-
-CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, SomaticReportConfiguration* rep_conf_somatic, const GeneSet& het_hit_genes)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
 	, ps_id_(ps_id)
 	, callset_id_("")
 	, cnvs_(cnvs)
 	, special_cols_()
-	, report_config_(nullptr)
-	, somatic_report_config_(nullptr)
+	, report_config_(rep_conf)
+	, somatic_report_config_(rep_conf_somatic)
 	, var_het_genes_(het_hit_genes)
-	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
+	, rc_enabled_(ngsd_enabled_ && report_config_!=nullptr && !report_config_->isFinalized())
+	, is_somatic_(somatic_report_config_!=nullptr)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
@@ -89,15 +64,12 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	ui->splitter->setStretchFactor(1, 1);
 
 	//determine callset ID
-	if (ps_id!="")
+	if (ngsd_enabled_ && ps_id!="")
 	{
 		NGSD db;
 		callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_).toString();
 	}
 	ui->quality->setEnabled(callset_id_!="");
-
-	//set small variant filters
-	ui->filter_widget->setVariantFilterWidget(filter_widget);
 
 	//set up NGSD menu (before loading CNV - QC actions are inserted then)
 	ui->ngsd_btn->setMenu(new QMenu());
@@ -105,6 +77,8 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	ui->ngsd_btn->menu()->addSeparator();
 
 	ui->cnvs->setSelectionMode(QAbstractItemView::ExtendedSelection);
+
+	initGUI();
 }
 
 void CnvWidget::initGUI()
@@ -223,8 +197,8 @@ void CnvWidget::addInfoLine(QString text)
 			metric = metric.mid(1).trimmed();
 		}
 
-		//special handling for CnvHunter/trio output (metrics are prefixed with processed sample name)
-		if (cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI || cnvs_.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || cnvs_.type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+		//special handling for trio output (metrics are prefixed with processed sample name)
+		if (cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI)
 		{
 			metric = metric.split(" ").mid(1).join(" ");
 		}
@@ -352,7 +326,8 @@ void CnvWidget::updateGUI()
 	}
 
 	//resize columns
-	GUIHelper::resizeTableCells(ui->cnvs, 200, true, 100);
+	GUIHelper::resizeTableCellWidths(ui->cnvs, 200);
+	GUIHelper::resizeTableCellHeightsToFirst(ui->cnvs);
 
 	//update quality from NGSD
 	updateQuality();
@@ -506,17 +481,10 @@ void CnvWidget::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			BedFile pheno_roi;
+			timer.start();
 			foreach(const QByteArray& gene, pheno_genes)
 			{
-				if (!gene2region_cache_.contains(gene))
-				{
-					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
-					tmp.clearAnnotations();
-					tmp.extend(5000);
-					tmp.merge();
-					gene2region_cache_[gene] = tmp;
-				}
-				pheno_roi.add(gene2region_cache_[gene]);
+				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
 			pheno_roi.merge();
 
@@ -583,9 +551,8 @@ void CnvWidget::showContextMenu(QPoint p)
 	if (selected_rows.count() == 2)
 	{
 		//ClinVar publication
-		bool ngsd_user_logged_in = LoginManager::active();
 		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
-		a_clinvar_pub->setEnabled(ngsd_user_logged_in && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+		a_clinvar_pub->setEnabled(ngsd_enabled_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 		//execute menu
 		QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
@@ -602,9 +569,9 @@ void CnvWidget::showContextMenu(QPoint p)
 
 	//create menu
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	a_rep_edit->setEnabled(ngsd_enabled_);
+	a_rep_edit->setEnabled(rc_enabled_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	if(!is_somatic_) a_rep_del->setEnabled(ngsd_enabled_ && report_config_->exists(VariantType::CNVS, row) && !report_config_->isFinalized());
+	if(!is_somatic_) a_rep_del->setEnabled(rc_enabled_ && report_config_->exists(VariantType::CNVS, row));
 	else a_rep_del->setEnabled(ngsd_enabled_ && somatic_report_config_->exists(VariantType::CNVS, row));
 	menu.addSeparator();
 	QAction* a_cnv_val = menu.addAction("Perform copy-number variant validation");
@@ -884,14 +851,14 @@ void CnvWidget::updateReportConfigHeaderIcon(int row)
 
 void CnvWidget::cnvHeaderDoubleClicked(int row)
 {
-	if (!ngsd_enabled_) return;
+	if (!rc_enabled_) return;
 
 	editReportConfiguration(row);
 }
 
 void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 {
-	if (!ngsd_enabled_) return;
+	if (!rc_enabled_) return;
 
 	//get variant index
 	int row = ui->cnvs->verticalHeader()->visualIndexAt(pos.ry());
@@ -907,8 +874,6 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	pos = ui->cnvs->verticalHeader()->viewport()->mapToGlobal(pos);
 	QAction* action = menu.exec(pos);
 	if (action==nullptr) return;
-
-	if(!LoginManager::active()) return; //do nothing if no access to NGSD
 
 	//actions
 	if (action==a_edit)
@@ -1098,7 +1063,6 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 	}
 
 	SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(cnvs_[row].toStringWithMetaData(), var_config, this);
-	dlg->disableIncludeForm();
 	if(dlg->exec()!=QDialog::Accepted) return;
 
 	somatic_report_config_->addSomaticVariantConfiguration(var_config);
@@ -1174,7 +1138,6 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 	generic_var_config.variant_type = VariantType::CNVS;
 
 	SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(QString::number(rows.count()) +" selected cnvs", generic_var_config, this);
-	dlg->disableIncludeForm();
 	if(dlg->exec() != QDialog::Accepted) return;
 
 	//Accepted was pressed -> see slot writeBackSettings()
@@ -1192,7 +1155,7 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 
 void CnvWidget::uploadToClinvar(int index1, int index2)
 {
-	if (!LoginManager::active()) return;
+	if (!ngsd_enabled_) return;
 	try
 	{
 		if(index1 <0)

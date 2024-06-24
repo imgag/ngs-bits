@@ -207,6 +207,10 @@ public:
 		lines_.clear();
 	}
 
+	bool isEmpty() const
+	{
+		return lines_.isEmpty();
+	}
 	int count() const
 	{
 		return lines_.count();
@@ -256,6 +260,12 @@ public:
 		annotation_headers_ = annotation_headers;
 	}
 
+	///Adds annotationheader to the list
+	void addAnnotationHeader(QByteArray header)
+	{
+		annotation_headers_.append(header);
+	}
+
     ///returns the sample header info of multisample BEDPE files
     const SampleHeaderInfo sampleHeaderInfo() const
     {
@@ -282,6 +292,7 @@ public:
 	///Converts type string to enum
 	static StructuralVariantType stringToType(const QByteArray& str);
 	static QByteArray typeToString(StructuralVariantType type);
+	static QByteArray typeToFullString(StructuralVariantType type);
 
 	///Returns the estimated SV size (absolut) for a given SV (index)
 	///		If SVLEN in INFO_A is given, this length is returned.

@@ -21,11 +21,14 @@ class SvWidget
 	Q_OBJECT
 
 public:
-    //default constructor without report config for single sample
-	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0, bool init_gui=true);
+	SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes);
+	~SvWidget();
 
-	//constructor with report config for germline single and multi/trio samples
-    SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+	//constructor with somatic report config
+	SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes);
+
+signals:
+	void updateSomaticReportConfiguration();
 
 protected slots:
 	///copy filtered SV table to clipboard
@@ -73,8 +76,11 @@ private:
 
 	void disableGUI(const QString& message);
 
-	///File widgets with data from INFO_A and INFO_B column
+	///Fill widgets with data from INFO_A and INFO_B column
 	void setInfoWidgets(const QByteArray& name, int row, QTableWidget* widget);
+
+	///Fill widgets with somatic infos for better overview
+	void setSomaticInfos(int row);
 
 	///resets all filters in widget
 	void clearGUI();
@@ -92,6 +98,7 @@ private:
 	void editSvValidation(int row);
 
 	void editGermlineReportConfiguration(int row);
+	void editSomaticReportConfiguration(int row);
 
 	///Upload structural variant to ClinVar
 	void uploadToClinvar(int index1, int index2=-1);
@@ -100,13 +107,14 @@ private:
 	BedpeFile sv_bedpe_file_;
 	QStringList ps_ids_; //processed sample database IDs (only trio/multi). '' if unknown or NGSD is disabled.
 	QString ps_id_; // processed sample id for the report config
-    QStringList ps_names_; // processed sample names
-	FilterWidget* variant_filter_widget_; // Pointer to the FilterWidget of the variant view (used for import settings to SV view)
+	QStringList ps_names_; // processed sample names
 	GeneSet var_het_genes_;
-	QHash<QByteArray, BedFile>& gene2region_cache_;
-	bool ngsd_enabled_;
 
 	QSharedPointer<ReportConfiguration> report_config_;
+	SomaticReportConfiguration* som_report_config_;
+
+	bool ngsd_enabled_;
+	bool rc_enabled_;
 
 	///List of annotations which are shown in the widget
 	QByteArrayList annotations_to_show_;
@@ -114,12 +122,10 @@ private:
 	BedFile roi_;
 	BedFile roi_genes_;
 	ChromosomalIndex<BedFile> roi_gene_index_;
-	bool is_somatic_;
-	bool loading_svs_ = false;
 
 	//multisample
-	bool is_multisample_= false;
-	bool is_trio_ = false;
+	bool is_somatic_;
+	bool is_multisample_;
 };
 
 #endif // SVWIDGET_H

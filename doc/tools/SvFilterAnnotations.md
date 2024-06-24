@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2024_02-42-g36bb2635)
+	SvFilterAnnotations (2023_11-42-ga9d1687d)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -97,9 +97,10 @@
 	SV type                     Filter based on SV types.
 	                            Parameters:
 	                              Structural variant type - Structural variant type [valid=DEL,DUP,INS,INV,BND] [non-empty]
-	SV-lr AF                    Show only (lr) SVs with a certain Allele Frequency +/- 10%
+	SV-lr AF                    Show only (lr) SVs with a allele frequency between the given interval
 	                            Parameters:
-	                              AF - Allele Frequency +/- 10% [default=0] [min=0.0] [max=1.0]
+	                              min_af - minimal allele frequency [default=0] [min=0.0] [max=1.0]
+	                              max_af - maximal allele frequency [default=1] [min=0.0] [max=1.0]
 	SV-lr support reads         Show only (lr) SVs with a minimum number of supporting reads
 	                            Parameters:
 	                              min_support - Minimum support read count [default=5] [min=0] [max=10000]
@@ -116,7 +117,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2024_02-42-g36bb2635
+	SvFilterAnnotations 2023_11-42-ga9d1687d
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -229,7 +229,8 @@ void AnalysisStatusWidget::refreshStatus()
 		QMessageBox::warning(this, "Update failed", "Could not update data:\n" + e.message());
 	}
 
-	GUIHelper::resizeTableCells(ui_.analyses, 400);
+	GUIHelper::resizeTableCellWidths(ui_.analyses, 400);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.analyses);
 
 	QApplication::restoreOverrideCursor();
 }
@@ -558,7 +559,8 @@ void AnalysisStatusWidget::updateDetails()
 	addItem(ui_.properties, 3, 1, job.sge_queue);
 	addItem(ui_.properties, 4, 0, "run time");
 	addItem(ui_.properties, 4, 1, job.runTimeAsString());
-	GUIHelper::resizeTableCells(ui_.properties);
+	GUIHelper::resizeTableCellWidths(ui_.properties);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.properties);
 
 	//samples
 	ui_.samples->setRowCount(job.samples.count());
@@ -569,7 +571,8 @@ void AnalysisStatusWidget::updateDetails()
 		addItem(ui_.samples, r, 1, sample.info);
 		++r;
 	}
-	GUIHelper::resizeTableCells(ui_.samples);
+	GUIHelper::resizeTableCellWidths(ui_.samples);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.samples);
 
 	//history
 	ui_.history->setRowCount(job.history.count());
@@ -588,7 +591,8 @@ void AnalysisStatusWidget::updateDetails()
 		addItem(ui_.history, r, 3, output);
 		++r;
 	}
-	GUIHelper::resizeTableCells(ui_.history);
+	GUIHelper::resizeTableCellWidths(ui_.history);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.history);
 
 	//output
 	ui_.output->setText(job.history.last().output.join("\n"));
@@ -650,7 +654,8 @@ void AnalysisStatusWidget::applyFilters()
 	}
 
 	//update column widths
-	GUIHelper::resizeTableCells(ui_.analyses, 350);
+	GUIHelper::resizeTableCellWidths(ui_.analyses, 350);
+	GUIHelper::resizeTableCellHeightsToFirst(ui_.analyses);
 }
 
 void AnalysisStatusWidget::openProcessedSampleTab(int row, int /*col*/)

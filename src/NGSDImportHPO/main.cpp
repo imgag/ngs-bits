@@ -18,16 +18,16 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
-		addInfile("obo", "HPO ontology file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/hp.obo'.", false);
-		addInfile("anno", "HPO annotations file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/phenotype_to_genes.txt'", false);
+		addInfile("obo", "HPO ontology file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-04-26/hp.obo'.", false);
+		addInfile("anno", "HPO annotations file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-04-26/phenotype_to_genes.txt'", false);
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20231121.vcf.gz'.", true);
-		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2023.3.dump').", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2024/clinvar_clinvar_20240603.vcf.gz'.", true);
+		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2024.1.dump').", true);
 
 		// optional (for evidence information):
-		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from wget https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2023-10-09/phenotype.hpoa", true);
+		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from wget https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-04-26/phenotype.hpoa", true);
 		addInfile("gencc", "gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. Download from https://search.thegencc.org/download", true);
 		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information. Download from https://www.deciphergenomics.org/about/downloads/data", true);
 
@@ -409,7 +409,7 @@ public:
 		if (getInfile("decipher") == "") return;
 		bool debug = getFlag("debug");
 		QTextStream out(stdout);
-		if (debug) out << "Parsing Decipher...\n";
+		if (debug) out << "Parsing Decipher..." << endl;
 		int countT2D = 0;
 		int countD2G = 0;
 		int countT2G = 0;
@@ -430,8 +430,7 @@ public:
 			line = fp->readLine().trimmed();
 			QByteArrayList parts = line.split(',');
 
-			// merge parts of strings that contained commas:
-
+			// merge parts of strings that contained commas
 			parts = reconstructStrings(parts);
 
 			QByteArray gene = parts[0].trimmed();
@@ -443,7 +442,6 @@ public:
 
 			//verify information
 			int gene_db_id = db.geneId(gene);
-
 			if (gene_db_id == -1)
 			{
 				non_hgc_genes.append(gene);
@@ -594,16 +592,19 @@ public:
 
 			for (int i=0; i<parts.length(); i++)
 			{
-				if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
+				if (parts[i].startsWith('"') && !parts[i].endsWith('"')) // starts with " but doesn't end with "
 				{
 					QByteArray combined_part = parts[i];
 					do
 					{
 						i++;
-						combined_part.append(parts[i]);
+						if (i<parts.count())
+						{
+							combined_part.append(parts[i]);
+						}
 
 					}
-					while (! parts[i].endsWith('"'));
+					while (i<parts.count() && !parts[i].endsWith('"'));
 
 					cleaned_parts.append(combined_part);
 				}
@@ -905,7 +906,7 @@ public:
 		{
 			int lineCount = 0;
 			int count = 0;
-			if (debug) out << "Parsing OMIM file...\n";
+			if (debug) out << "Parsing OMIM file..." << endl;
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			QSharedPointer<QFile> fp = Helper::openFileForReading(omim_file);
@@ -964,6 +965,10 @@ public:
 			if (debug) out << "Prasing ClinVar..." << endl;
 			int added_t2g = 0;
 			int added_d2g = 0;
+
+			//check file is not zipped
+			if (clinvar_file.endsWith(".vcf.gz")) THROW(CommandLineParsingException, "ClinVar must not be gzipped!");
+
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			QSharedPointer<QFile> fp = Helper::openFileForReading(clinvar_file);
@@ -1061,7 +1066,7 @@ public:
 		if(hgmd_file != "")
 		{
 			int added_t2g = 0;
-			if (debug) out << "Parsing HGMD Phenobase dump file...\n" << endl;
+			if (debug) out << "Parsing HGMD Phenobase dump file..." << endl;
 			// define look-up tables
 			QMultiMap<int, QByteArray> phenid2gene_mapping = QMap<int, QByteArray>();
 			QMultiMap<QByteArray,int> cui2phenid_mapping = QMap<QByteArray,int>();
