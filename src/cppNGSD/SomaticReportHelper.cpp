@@ -888,7 +888,26 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	{
 	}
 
-	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , "", "ICD10:", settings_.icd10.toUtf8()}, {2000,1480,1480,1480,3481}) );
+	QList<SampleDiseaseInfo> sample_disease_infos = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps), "Oncotree code");
+	QByteArrayList oncotree_codes;
+
+	foreach(SampleDiseaseInfo sdi, sample_disease_infos)
+	{
+		oncotree_codes.append(sdi.disease_info.toUtf8());
+	}
+
+	QByteArray icd10_label = "ICD10:";
+	QByteArray icd10 = settings_.icd10.toUtf8();
+
+	if (oncotree_codes.count() > 0)
+	{
+		icd10_label = "ICD10, Oncotree:";
+		icd10 = settings_.icd10.toUtf8() + ", " + oncotree_codes.join(", ");
+	}
+
+
+
+	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , "",icd10_label, icd10}, {2000,1480,1480,1480,3481}) );
 
 
 	RtfSourceCode nor_panel_cov_20x = "n/a";
