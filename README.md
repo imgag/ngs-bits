@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2024_02
+	> git checkout 2024_06
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -77,6 +77,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 * [BamClipOverlap](doc/tools/BamClipOverlap.md) - (Soft-)Clips paired-end reads that overlap.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
+* [BamExtract](doc/tools/BamExtract.md) - Extract reads from BAM/CRAM by read name.
 * [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
 * [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a coordinate-sorted BAM file to FASTQ files.
@@ -133,12 +134,15 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
+* [VcfMerge](doc/tools/VcfMerge.md) - Merges several VCF files into one VCF.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
+* [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
 * [VcfSubstract](doc/tools/VcfSubstract.md) - Substracts the variants in a VCF from a second VCF.
 * [VcfToBed](doc/tools/VcfToBedpe.md) - Converts a VCF file to a BED file.
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
+
 
 ### BEDPE tools (structural variants)
 
@@ -172,16 +176,22 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ## ChangeLog
 
-Changes in release 2024_02:
+Changes in release 2024_06:
 
-* new tools: NGSDExportIgvGeneTrack, VcfMerge, VcfSplit, BamExtract
-* removed tools: CnvHunter
-* NGSDSameSample: Added option '-include_merged'
-* VcfFilter: Added options '-remove_non_ref' and '-no_special_chr'
-* VcfCheck: Added check for main header line
-* VariantRanking: using NGSD annotations by default now, skipping mosaic variants now
-* SampleSimilarity: added parameter 'roi_hg38_wes_wgs'
-* VcfLeftNormalize: now skips invalid variants
+* new tools: NGSDExportIgvGeneTrack
+* removed tools: TODO
+* BamFilter: added parameter for maximum insert size
+* NGSDAddVariantsGermline: now imports REs as well
+* NGSDExportSamples: new paramters `-only_with_small_variants` and `-add_lab_columns`. 
+* SampleGender: new parameter `-include_single_end_reads` for long-read data.
+* SampleSimilarity: new parameter `-include_single_end_reads` for long-read data.
+* SampleSimilarity: new parameter `-roi_hg38_wes_wgs` to make WES, WGS and lrGS results more comparable.
+* UpdHunter: new parameter `-out_informative` to write out a IGV track with informative variants.
+* VcfCalculatePRS: new parameter `-min_depth` and support for variants that are to be imputed independent of the sample genotype.
+* NGSD:
+	* added tables for somatic SVs: somatic_somatic_sv_callset, somatic_sv_deletion, somatic_sv_duplication, somatic_sv_insertion, somatic_sv_inversion, somatic_sv_translocation, somatic_report_configuration_sv
+	* added tables for repeat expansions: repeat_expansion, repeat_expansion_genotype, re_callset, report_configuration_re
+	* processed_sample table: added boolean `scheduled_for_resequencing` to flag samples for resequencing to increase depth/coverage
 
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2024_02-42-g36bb2635)
+	VariantFilterAnnotations (2024_02-126-g4f44d5e5)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -146,8 +146,8 @@
 	                                     build - Genome build used for pseudoautosomal region coordinates [default=hg38] [valid=hg19,hg38]
 	Tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.
 	                                   Parameters:
-	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
-	                                     hom_af_range - Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
+	                                     het_af_range - Consider allele frequencies of 50% Â± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
+	                                     hom_af_range - Consider allele frequencies of 100% Â± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
 	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
@@ -165,6 +165,9 @@
 	                                     MODERATE - Moderate impact variant types [default=inframe_deletion,inframe_insertion,missense_variant] [valid=inframe_deletion,inframe_insertion,missense_variant]
 	                                     LOW - Low impact variant types [default=splice_region_variant] [valid=splice_region_variant,stop_retained_variant,synonymous_variant]
 	                                     MODIFIER - Lowest impact variant types [valid=3_prime_UTR_variant,5_prime_UTR_variant,NMD_transcript_variant,downstream_gene_variant,intergenic_variant,intron_variant,mature_miRNA_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant,upstream_gene_variant]
+	lr short-read overlap              Filter that preserves variants if they were called in short-read WGS sample only.
+	                                   Parameters:
+	                                     invert - If set, removes all variants if they were called in short-read WGS sample. [default=false]
 	
 	Mandatory parameters:
 	  -in <file>      Input variant list in GSvar format.
@@ -178,7 +181,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2024_02-42-g36bb2635
+	VariantFilterAnnotations 2024_02-126-g4f44d5e5
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

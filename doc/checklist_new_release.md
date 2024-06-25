@@ -2,7 +2,7 @@
 
 1. Update documentation: `make build_release_noclean doc_update`
 1. Update check documentation: `make doc_check_urls`
-1. Check for tools not added to the main page: `makedoc_find_missing_tools`
+1. Check for tools not added to the main page: `make doc_find_missing_tools`
 1. Update the changelog in `ngs-bits/README.md`.
 
 	> git diff -w [last-tag] master src/cppNGSD/resources/NGSD_schema.sql  
