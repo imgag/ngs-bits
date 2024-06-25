@@ -41,7 +41,7 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	, somatic_report_config_(rep_conf_somatic)
 	, var_het_genes_(het_hit_genes)
 	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_ && report_config_!=nullptr && !report_config_->isFinalized())
+	, rc_enabled_(ngsd_enabled_ && ((report_config_!=nullptr && !report_config_->isFinalized()) || somatic_report_config_ != nullptr))
 	, is_somatic_(somatic_report_config_!=nullptr)
 {
 	ui->setupUi(this);

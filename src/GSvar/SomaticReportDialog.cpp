@@ -169,7 +169,6 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 
 	//load control tissue snps (NGSD class 4/5 only) into widget
-	int i_class = germl_variants.annotationIndexByName("classification", true, false);
 	int i_co_sp = germl_variants.annotationIndexByName("coding_and_splicing", true, false);
 
 	BamReader bam_reader(GlobalServiceProvider::database().processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::BAM).filename);
@@ -177,23 +176,17 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	QList<int> germl_indices_in_report = settings_.report_config.variantIndicesGermline();
 
-	if(i_class != -1 && i_co_sp != -1)
+	if(i_co_sp != -1)
 	{
+		QMap<QString, ClassificationInfo> class_map = db_.getAllClassifications();
+
 		for(int i=0; i<germl_variants_.count(); ++i)
 		{
-			bool ok = true;
-			if(germl_variants[i].annotations()[i_class].trimmed().isEmpty() || germl_variants[i].annotations()[i_class].toInt(&ok) < 4)
-			{
-				continue;
-			}
-
-			if(!ok)
-			{
-				QMessageBox::warning(this, "Error processing control tissue variants", "Could not parse control tissue variant classification " + germl_variants[i].toString() +". Aborting control tissue variants.");
-				break;
-			}
 			const Variant& snv = germl_variants_[i];
 
+			QString key = snv.chr().strNormalized(true) + ":" + QString::number(snv.start()) + "-" + QString::number(snv.end()) + " " + snv.ref() + ">" + snv.obs();
+
+			if (! class_map.contains(key) || (class_map[key].classification != "4" && class_map[key].classification != "5")) continue;
 
 			//determine frequency of variant in tumor bam
 			VariantDetails variant_details = bam_reader.getVariantDetails(fasta_idx, snv);
@@ -221,7 +214,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 			ui_.germline_variants->setItem( row, 6, new QTableWidgetItem( QString::number(freq_in_tum, 'f', 2) ) );
 			ui_.germline_variants->setItem( row, 7, new QTableWidgetItem( QString::number(depth_in_tum) ) );
 
-			ui_.germline_variants->setItem( row, 8, new QTableWidgetItem( QString(snv.annotations()[i_class])) );
+			ui_.germline_variants->setItem( row, 8, new QTableWidgetItem( class_map[key].classification ) );
 			ui_.germline_variants->item( row, 8)->setBackground(Qt::red);
 
 			ui_.germline_variants->setItem( row, 9, new QTableWidgetItem( QString(snv.annotations()[i_co_sp])) );

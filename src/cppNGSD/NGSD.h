@@ -1058,6 +1058,7 @@ public:
 
 	///Returns classification information
 	ClassificationInfo getClassification(const Variant& variant);
+	QMap<QString, ClassificationInfo> getAllClassifications();
 	///Sets the classification of a variant in the NGSD.
 	void setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info);
 	///Returns somatic classification information

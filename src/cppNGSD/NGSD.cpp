@@ -4541,6 +4541,28 @@ ClassificationInfo NGSD::getClassification(const Variant& variant)
 	return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
 }
 
+QMap<QString, ClassificationInfo> NGSD::getAllClassifications()
+{
+	QMap<QString, ClassificationInfo> results;
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT v.chr, v.start, v.end, v.ref, v.obs, vc.class, vc.comment FROM variant_classification as vc LEFT JOIN variant as v ON v.id=vc.variant_id");
+
+	if (query.size() == 0) return results;
+
+	while(query.next())
+	{
+		QString key = query.value(0).toString() + ":" + query.value(1).toString() + "-" + query.value(2).toString() + " " + query.value(3).toString() + ">" + query.value(4).toString();
+		ClassificationInfo classification;
+		classification.classification = query.value(5).toString();
+		classification.comments = query.value(6).toString();
+		results.insert(key, classification);
+	}
+
+	return results;
+}
+
+
 ClassificationInfo NGSD::getSomaticClassification(const Variant& variant)
 {
 	//variant not in NGSD
