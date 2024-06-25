@@ -179,7 +179,6 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 Changes in release 2024_06:
 
 * new tools: NGSDExportIgvGeneTrack
-* removed tools: TODO
 * BamFilter: added parameter for maximum insert size
 * NGSDAddVariantsGermline: now imports REs as well
 * NGSDExportSamples: new paramters `-only_with_small_variants` and `-add_lab_columns`. 

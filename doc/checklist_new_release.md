@@ -20,10 +20,10 @@
 
 1. Add the tarball to the GitHub release:
 
-	> hub release edit --draft=false --attach ngs-bits-[tag].tgz [tag]
+	> hub release edit --draft=false --attach=ngs-bits-[tag].tgz [tag]
 
 1. Create a [new bioconda release](https://bioconda.github.io/contributor/workflow.html#create-a-pull-request) based on the release tarball.
-	* Sync our fork via <https://github.com/imgag/bioconda-recipes/tree/master>
+	* Sync our fork and delete old branches via <https://github.com/imgag/bioconda-recipes/tree/master>
 	* Create a new branch
 			
 			> git checkout master
