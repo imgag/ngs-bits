@@ -117,7 +117,7 @@ CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticRepo
 	return result;
 }
 
-BedpeFile SomaticReportSettings::filterSvs(const BedpeFile& svs, const SomaticReportSettings& sett)
+BedpeFile SomaticReportSettings::filterSvs(NGSD& db, const BedpeFile& svs, const SomaticReportSettings& sett)
 {
 	BedpeFile result;
 	result.setAnnotationHeaders(svs.annotationHeaders());
@@ -134,8 +134,8 @@ BedpeFile SomaticReportSettings::filterSvs(const BedpeFile& svs, const SomaticRe
 	foreach(int idx, sv_indicies)
 	{
 		BedpeLine sv = svs[idx];
-		GeneSet genes_A = NGSD().genesOverlapping(sv.chr1(), sv.start1(), sv.end1(), 5000);
-		GeneSet genes_B = NGSD().genesOverlapping(sv.chr2(), sv.start2(), sv.end2(), 5000);
+		GeneSet genes_A = db.genesOverlapping(sv.chr1(), sv.start1(), sv.end1(), 5000);
+		GeneSet genes_B = db.genesOverlapping(sv.chr2(), sv.start2(), sv.end2(), 5000);
 		const auto& var_config = sett.report_config.variantConfig(idx, VariantType::SVS);
 		sv.appendAnnotation(var_config.description.toUtf8());
 		sv.appendAnnotation(genes_A.toStringList().join(", ").toUtf8());

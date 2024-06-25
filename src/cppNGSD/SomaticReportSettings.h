@@ -52,7 +52,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	///returns cnv list according excluded cnvs from somatic report_config settings
 	static CnvList filterCnvs(const CnvList& cnvs, const SomaticReportSettings& sett);
 	///returns list of SVs that should be shown in report, also adding necessary annotation from the variant configuration
-	static BedpeFile filterSvs(const BedpeFile& svs, const SomaticReportSettings& sett);
+	static BedpeFile filterSvs(NGSD& db, const BedpeFile& svs, const SomaticReportSettings& sett);
 	///returns list containing germline variants.
 	static VariantList filterGermlineVariants(const VariantList& germl_snvs, const SomaticReportSettings& sett);
 };

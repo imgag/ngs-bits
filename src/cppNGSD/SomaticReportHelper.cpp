@@ -49,7 +49,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	}
 
 	//Filter SVs according report configuration settings
-	svs_ = SomaticReportSettings::filterSvs(svs, settings);
+	svs_ = SomaticReportSettings::filterSvs(db_, svs, settings);
 
 	//Filter CNVs according report configuration settings
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
