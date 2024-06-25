@@ -21,7 +21,7 @@
 #include <QInputDialog>
 
 
-const bool test_run = false;
+const bool test_run = true;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
@@ -291,6 +291,9 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 
 void ClinvarUploadDialog::initGui()
 {
+	//set title for test run
+	if (test_run) this->setWindowTitle(this->windowTitle() + " (TEST_MODE!)");
+
     // set combobox entries
     ui_.cb_clin_sig_desc->addItems(CLINICAL_SIGNIFICANCE_DESCRIPTION);
     ui_.cb_inheritance->addItems(MODE_OF_INHERITANCE);
@@ -610,7 +613,9 @@ void ClinvarUploadDialog::upload()
 				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
-			if (!test_run)
+			//TODO: change
+//			if (!test_run)
+			if (true)
 			{
 				// log publication in NGSD
 				if (manual_upload_)
@@ -716,7 +721,8 @@ void ClinvarUploadDialog::upload()
 
             ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
 
-			if (!test_run)
+			//TODO: re-activate
+//			if (!test_run)
 			{
 				//write report file to transfer folder
 				QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
