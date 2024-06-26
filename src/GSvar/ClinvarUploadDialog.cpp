@@ -412,7 +412,7 @@ void ClinvarUploadDialog::upload()
 	{
 		//get json file for debug
 		QJsonDocument json_doc = QJsonDocument(clinvar_submission);
-		QSharedPointer<QFile> json_file = Helper::openFileForWriting(clinvar_upload_data_.processed_sample + "_" + Helper::dateTime("yyyyMMdd_hhmmss") + ".json");
+		QSharedPointer<QFile> json_file = Helper::openFileForWriting("T:/users/ahschul1/backup/projects/2024_06_ClinVar-Update/+data_nb/" + clinvar_upload_data_.processed_sample + "_" + Helper::dateTime("yyyyMMdd_hhmmss") + ".json");
 		json_file->write(json_doc.toJson());
 		json_file->close();
 	}
@@ -1031,7 +1031,7 @@ bool ClinvarUploadDialog::checkGuiData()
 
 			// check copy number
 			int_value = ui_.le_cn_cnv2->text().toInt(&ok);
-			if ( !ok || (int_value < 1))
+			if ( !ok || (int_value < 0))
 			{
 				errors << "Invalid CNV copy number '" + ui_.le_cn_cnv2->text() + "' for CNV 2!";
 			}
