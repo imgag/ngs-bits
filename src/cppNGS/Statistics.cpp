@@ -2549,16 +2549,83 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 	return lowOrHighCoverage(bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false);
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file, bool random_access, bool debug)
 {
+	//check BED is sorted for WGS mode
+	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
+
 	//create analysis chunks
+	QTime timer;
+	timer.start();
 	QList<WorkerAverageCoverage::Chunk> chunks;
-	const int chunk_size = 200;
-	for (int start=0; start<bed_file.count(); start += chunk_size)
+	if (!random_access)
 	{
-		int end = start+chunk_size-1;
-		if (end>=bed_file.count()) end = bed_file.count() -1;
-		chunks << WorkerAverageCoverage::Chunk{bed_file, start, end, ""};
+		//determine chr chunks
+		QList<QPair<long, WorkerAverageCoverage::Chunk>> chunks_with_size;
+		foreach(const Chromosome& chr, bed_file.chromosomes())
+		{
+			//determine start index
+			int start = -1;
+			for (int i=0; i<bed_file.count(); ++i)
+			{
+				if (bed_file[i].chr()==chr)
+				{
+					start = i;
+					break;
+				}
+			}
+
+			//determine end index
+			int end = -1;
+			for (int i=bed_file.count()-1; i>=0; --i)
+			{
+				if (bed_file[i].chr()==chr)
+				{
+					end = i;
+					break;
+				}
+			}
+
+			//deterine base count of chunks
+			long bases = 0;
+			for (int i=start; i<=end; ++i)
+			{
+				bases += bed_file[i].length();
+			}
+			chunks_with_size << qMakePair(bases,  WorkerAverageCoverage::Chunk{bed_file, start, end, ""});
+		}
+
+		//sort chunks by size
+		std::sort(chunks_with_size.begin(), chunks_with_size.end(),
+			[](const QPair<long, WorkerAverageCoverage::Chunk>& a, const QPair<long, WorkerAverageCoverage::Chunk>& b)
+			{
+				return a.first > b.first;
+			}
+		);
+
+		//add chunks by size
+		foreach(const auto& entry, chunks_with_size)
+		{
+			chunks << entry.second;
+		}
+	}
+	else
+	{
+		const int chunk_size = 200;
+		for (int start=0; start<bed_file.count(); start += chunk_size)
+		{
+			int end = start+chunk_size-1;
+			if (end>=bed_file.count()) end = bed_file.count() -1;
+			chunks << WorkerAverageCoverage::Chunk{bed_file, start, end, ""};
+		}
+	}
+
+	//debug output
+	if (debug)
+	{
+		QTextStream out(stdout);
+		out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << endl;
+		out << "Creating " << chunks.count() << " chunks took " << Helper::elapsedTime(timer) << endl;
 	}
 
 	//create thread pool
@@ -2568,8 +2635,16 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	//start analysis chunks
 	for (int i=0; i<chunks.count(); ++i)
 	{
-		WorkerAverageCoverage* worker = new WorkerAverageCoverage(chunks[i], bam_file, min_mapq, decimals, ref_file);
-		thread_pool.start(worker);
+		if (!random_access)
+		{
+			WorkerAverageCoverageChr* worker = new WorkerAverageCoverageChr(chunks[i], bam_file, min_mapq, decimals, ref_file, debug);
+			thread_pool.start(worker);
+		}
+		else
+		{
+			WorkerAverageCoverage* worker = new WorkerAverageCoverage(chunks[i], bam_file, min_mapq, decimals, ref_file, debug);
+			thread_pool.start(worker);
+		}
 	}
 
 	//wait until finished
