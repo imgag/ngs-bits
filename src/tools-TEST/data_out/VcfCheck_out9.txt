@@ -20,5 +20,5 @@ ERROR: Reference base(s) not correct. Is 'C', should be 'T'! - in line 89:
 chr1	94112992	99053	C	.	.	.	AB=0.99;ABP=3.4435	GT:GL:DP:RO:QR:AO:UNDEFINED_FORMAT	1/1:-129.809,-11.1381,0:37:0:0:37:1438
 WARNING: Missing value '.' used as alternative allele! - in line 89:
 chr1	94112992	99053	C	.	.	.	AB=0.99;ABP=3.4435	GT:GL:DP:RO:QR:AO:UNDEFINED_FORMAT	1/1:-129.809,-11.1381,0:37:0:0:37:1438
-ERROR: First base of insertion/deletion not matching - ref: 'CTAGGGAAAAACATATACCCAT' alt: 'T'! - in line 90:
+WARNING: First base of insertion/deletion not matching - ref: 'CTAGGGAAAAACATATACCCAT' alt: 'T'! - in line 90:
 chr8	100717889	2193785	CTAGGGAAAAACATATACCCAT	T	.	.	AB=0.99;ABP=3.4435	GT:GL:DP:RO:QR:AO:UNDEFINED_FORMAT	1/1:-129.809,-11.1381,0:37:0:0:37:1438
