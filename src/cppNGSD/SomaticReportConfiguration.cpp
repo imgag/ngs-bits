@@ -7,13 +7,24 @@ SomaticReportVariantConfiguration::SomaticReportVariantConfiguration()
 	: variant_type(VariantType::SNVS_INDELS)
 	, variant_index(-1)
 	, exclude_artefact(false)
+	, exclude_other_reason(false)
 	, exclude_low_tumor_content(false)
 	, exclude_low_copy_number(false)
 	, exclude_high_baf_deviation(false)
-	, exclude_other_reason(false)
+	, exclude_unclear_effect(false)
+	, comment()
+	, description()
 	, include_variant_alteration()
 	, include_variant_description()
-	, comment()
+	, manual_sv_start()
+	, manual_sv_end()
+	, manual_sv_hgvs_type()
+	, manual_sv_hgvs_suffix()
+	, manual_sv_start_bnd()
+	, manual_sv_end_bnd()
+	, manual_sv_hgvs_type_bnd()
+	, manual_sv_hgvs_suffix_bnd()
+	, rna_info()
 {
 }
 
@@ -25,8 +36,45 @@ SomaticReportGermlineVariantConfiguration::SomaticReportGermlineVariantConfigura
 
 bool SomaticReportVariantConfiguration::showInReport() const
 {
-	return !(exclude_artefact || exclude_low_tumor_content || exclude_low_copy_number || exclude_high_baf_deviation || exclude_other_reason);
+	return !(exclude_artefact || exclude_low_tumor_content || exclude_low_copy_number || exclude_high_baf_deviation || exclude_other_reason || exclude_unclear_effect);
 }
+
+
+bool SomaticReportVariantConfiguration::StringValidInt(QString string) const
+{
+	if (string.isEmpty()) return false;
+
+	bool ok = false;
+	int value = string.toInt(&ok);
+	if (!ok) return false;
+
+	return value>0;
+}
+
+bool SomaticReportVariantConfiguration::manualSvStartValid() const
+{
+	return StringValidInt(manual_sv_start);
+}
+
+bool SomaticReportVariantConfiguration::manualSvEndValid() const
+{
+	return StringValidInt(manual_sv_end);
+}
+
+bool SomaticReportVariantConfiguration::manualSvStartBndValid() const
+{
+	return StringValidInt(manual_sv_start_bnd);
+}
+
+bool SomaticReportVariantConfiguration::manualSvEndBndValid() const
+{
+	return StringValidInt(manual_sv_end_bnd);
+}
+
+
+
+
+
 
 SomaticReportConfiguration::SomaticReportConfiguration()
 	: variant_config_()

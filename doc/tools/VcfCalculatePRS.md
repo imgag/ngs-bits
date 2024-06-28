@@ -1,5 +1,5 @@
 ### VcfCalculatePRS tool help
-	VcfCalculatePRS (2024_02-42-g36bb2635)
+	VcfCalculatePRS (2024_02-126-g4f44d5e5)
 	
 	Calculates the Polgenic Risk Score(s) for a sample.
 	
@@ -14,6 +14,8 @@
 	  -out <file>      Output TSV file containing Scores and PRS details
 	
 	Optional parameters:
+	  -details <file>  Output TSV containing each variant with weight, allele count and population AF.
+	                   Default value: ''
 	  -ref <file>      Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.
 	                   Default value: ''
 	  -min_depth <int> Depth cutoff below which uncalled SNPs are considered not callable and POP_AF is used instead of genotype.
@@ -26,8 +28,10 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfCalculatePRS changelog
-	VcfCalculatePRS 2024_02-42-g36bb2635
+	VcfCalculatePRS 2024_02-126-g4f44d5e5
 	
+	2024-06-05 Added support for imputed variants.
+	2024-04-22 Added output of factors and support for wt variants.
 	2022-12-15 Added BAM depth check and population AF.
 	2020-07-22 Initial version of this tool.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

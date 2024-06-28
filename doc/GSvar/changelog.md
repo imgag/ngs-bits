@@ -1,5 +1,10 @@
 # GSvar change log
 
+
+## 2024_02-122 (24.06.24)
+
+- added SVs to the somatic report configuration
+
 ## 2024_02-116 (20.06.24)
 
 - RE dialog: Added REs to report config

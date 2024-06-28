@@ -299,6 +299,8 @@ RtfTableRow::RtfTableRow(const QByteArrayList& cell_contents, const QList<int>& 
 {
 	if(cell_contents.count() != cell_widths.count()) //Throw if number does not match
 	{
+		qDebug() << "Cell contents: " << cell_contents.join(", ");
+		qDebug() << "Cell widths: " << cell_widths;
 		THROW(ArgumentException, "Cell_contents and cell_widths don't have the same length");
 	}
 

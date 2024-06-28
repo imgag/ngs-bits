@@ -1,5 +1,5 @@
 ### NGSDAddVariantsSomatic tool help
-	NGSDAddVariantsSomatic (2019_09-51-g84b6c695)
+	NGSDAddVariantsSomatic (2024_02-126-g4f44d5e5)
 	
 	Imports variants of a tumor-normal processed sample into the NGSD.
 	
@@ -15,6 +15,10 @@
 	  -cnv <file>    CNV list in TSV format (as produced by megSAP).
 	                 Default value: ''
 	  -cnv_force     Force import of CNVs, even if already imported.
+	                 Default value: 'false'
+	  -sv <file>     SV list in TSV format (as produced by megSAP).
+	                 Default value: ''
+	  -sv_force      Force import of SVs, even if already imported.
 	                 Default value: 'false'
 	  -out <file>    Output file. If unset, writes to STDOUT.
 	                 Default value: ''
@@ -32,6 +36,6 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAddVariantsSomatic changelog
-	NGSDAddVariantsSomatic 2019_09-51-g84b6c695
+	NGSDAddVariantsSomatic 2024_02-126-g4f44d5e5
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

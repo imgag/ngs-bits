@@ -24,6 +24,12 @@ public:
 	SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes);
 	~SvWidget();
 
+	//constructor with somatic report config
+	SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes);
+
+signals:
+	void updateSomaticReportConfiguration();
+
 protected slots:
 	///copy filtered SV table to clipboard
 	void copyToClipboard();
@@ -70,8 +76,11 @@ private:
 
 	void disableGUI(const QString& message);
 
-	///File widgets with data from INFO_A and INFO_B column
+	///Fill widgets with data from INFO_A and INFO_B column
 	void setInfoWidgets(const QByteArray& name, int row, QTableWidget* widget);
+
+	///Fill widgets with somatic infos for better overview
+	void setSomaticInfos(int row);
 
 	///resets all filters in widget
 	void clearGUI();
@@ -89,6 +98,7 @@ private:
 	void editSvValidation(int row);
 
 	void editGermlineReportConfiguration(int row);
+	void editSomaticReportConfiguration(int row);
 
 	///Upload structural variant to ClinVar
 	void uploadToClinvar(int index1, int index2=-1);
@@ -101,6 +111,8 @@ private:
 	GeneSet var_het_genes_;
 
 	QSharedPointer<ReportConfiguration> report_config_;
+	SomaticReportConfiguration* som_report_config_;
+
 	bool ngsd_enabled_;
 	bool rc_enabled_;
 

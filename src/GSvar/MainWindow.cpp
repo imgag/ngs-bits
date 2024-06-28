@@ -817,19 +817,35 @@ void MainWindow::on_actionSV_triggered()
 
 	try
 	{
-		//determine processed sample ID (needed for report config)
-		QString ps_id = "";
-		QSharedPointer<ReportConfiguration> report_config = nullptr;
-		if (germlineReportSupported())
+		//open SV widget
+		SvWidget* sv_widget;
+		if(svs_.isSomatic())
 		{
-			ps_id = NGSD().processedSampleId(germlineReportSample(), false);
-			report_config = report_settings_.report_config;
+			QString ps_id =	"";
+
+			// somatic
+			sv_widget = new SvWidget(this, svs_, ps_id, somatic_report_settings_.report_config, het_hit_genes);
+			connect(sv_widget, SIGNAL(updateSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
+		}
+		else
+		{
+			//determine processed sample ID (needed for report config)
+			QString ps_id = "";
+			QSharedPointer<ReportConfiguration> report_config = nullptr;
+			if (germlineReportSupported())
+			{
+				ps_id = NGSD().processedSampleId(germlineReportSample(), false);
+				report_config = report_settings_.report_config;
+			}
+
+			//open SV widget
+			sv_widget = new SvWidget(this, svs_, ps_id, svs_.isSomatic() ? nullptr : report_config, het_hit_genes);
 		}
 
-		//open SV widgetr
-		SvWidget* sv_widget = new SvWidget(this, svs_, ps_id, svs_.isSomatic() ? nullptr : report_config, het_hit_genes);
 		auto dlg = GUIHelper::createDialog(sv_widget, "Structural variants of " + variants_.analysisName());
 		addModelessDialog(dlg);
+
+
 	}
 	catch(FileParseException error)
 	{
@@ -3152,7 +3168,7 @@ void MainWindow::loadSomaticReportConfig()
 
 
 	QStringList messages;
-	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, somatic_control_tissue_variants_, messages);
+	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, svs_, somatic_control_tissue_variants_, messages);
 
 
 	if(!messages.isEmpty())
@@ -3209,7 +3225,7 @@ void MainWindow::storeSomaticReportConfig()
 	//store
 	try
 	{
-		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
+		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, svs_, somatic_control_tissue_variants_, Helper::userName());
 	}
 	catch (Exception& e)
 	{
@@ -3777,7 +3793,7 @@ void MainWindow::generateReportSomaticRTF()
 	//store somatic report config in NGSD
 	if(!dlg.skipNGSD())
 	{
-		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
+		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, svs_, somatic_control_tissue_variants_, Helper::userName());
 	}
 
 	QString destination_path; //path to rtf file
@@ -3813,7 +3829,7 @@ void MainWindow::generateReportSomaticRTF()
 				return;
 			}
 
-			SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
+			SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, svs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
 			QTime timer;
@@ -4789,50 +4805,50 @@ void MainWindow::on_actionCohortAnalysis_triggered()
 
 void MainWindow::on_actionGenderXY_triggered()
 {
-	ExternalToolDialog dialog("Determine gender", "xy", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Determine gender", "xy", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenderHet_triggered()
 {
-	ExternalToolDialog dialog("Determine gender", "hetx", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Determine gender", "hetx", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenderSRY_triggered()
 {
-	ExternalToolDialog dialog("Determine gender", "sry", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Determine gender", "sry", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionStatisticsBED_triggered()
 {
-	ExternalToolDialog dialog("BED file information", "", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("BED file information", "", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleSimilarityGSvar_triggered()
 {
-	ExternalToolDialog dialog("Sample similarity", "gsvar", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Sample similarity", "gsvar", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleSimilarityVCF_triggered()
 {
-	ExternalToolDialog dialog("Sample similarity", "vcf", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Sample similarity", "vcf", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleSimilarityBAM_triggered()
 {
-	ExternalToolDialog dialog("Sample similarity", "bam", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Sample similarity", "bam", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleAncestry_triggered()
 {
-	ExternalToolDialog dialog("Sample ancestry", "", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Sample ancestry", "", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionAnalysisStatus_triggered()

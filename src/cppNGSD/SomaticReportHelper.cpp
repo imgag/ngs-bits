@@ -8,6 +8,7 @@
 #include "XmlHelper.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticVariantInterpreter.h"
+#include "SomaticReportConfiguration.h"
 #include "LoginManager.h"
 #include "ApiCaller.h"
 #include "ClientHelper.h"
@@ -20,11 +21,12 @@
 #include <QJsonArray>
 
 
-SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings, bool test_db)
+SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const BedpeFile &svs, const VariantList& variants_germline, const SomaticReportSettings& settings, bool test_db)
 	: build_(build)
 	, settings_(settings)
 	, germline_vl_(variants_germline)
 	, cnvs_()
+	, svs_()
 	, validated_viruses_()
 	, db_(test_db)
 {
@@ -46,10 +48,12 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 	}
 
-
+	//Filter SVs according report configuration settings
+	svs_ = SomaticReportSettings::filterSvs(db_, svs, settings);
 
 	//Filter CNVs according report configuration settings
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
+
 
 	//high significance genes: with reported CNV
 	for(int i=0; i<cnvs_.count(); ++i)
@@ -131,7 +135,6 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 
 			}
 		}
-
 	}
 	catch(...) {} //Nothing to do here
 
@@ -885,7 +888,26 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	{
 	}
 
-	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , "", "ICD10:", settings_.icd10.toUtf8()}, {2000,1480,1480,1480,3481}) );
+	QList<SampleDiseaseInfo> sample_disease_infos = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps), "Oncotree code");
+	QByteArrayList oncotree_codes;
+
+	foreach(SampleDiseaseInfo sdi, sample_disease_infos)
+	{
+		oncotree_codes.append(sdi.disease_info.toUtf8());
+	}
+
+	QByteArray icd10_label = "ICD10:";
+	QByteArray icd10 = settings_.icd10.toUtf8();
+
+	if (oncotree_codes.count() > 0)
+	{
+		icd10_label = "ICD10, Oncotree:";
+		icd10 = settings_.icd10.toUtf8() + ", " + oncotree_codes.join(", ");
+	}
+
+
+
+	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , "",icd10_label, icd10}, {2000,1480,1480,1480,3481}) );
 
 
 	RtfSourceCode nor_panel_cov_20x = "n/a";
@@ -1565,7 +1587,6 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 
 void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 {
-
 	/******************************
 	 * GENERAL REPORT INFORMATION *
 	 ******************************/
@@ -1742,8 +1763,8 @@ QString SomaticReportHelper::trans(const QString &text)
 	en2de["ambiguous"] = "unklare Bedeutung";
 	en2de["proof"] = "Hinweise auf eine HRD";
 	en2de["no proof"] = "Keine Hinweise auf eine HRD";
-	en2de["undeterminable"] = "nicht bestimmbar";
-
+	en2de["Breakpoint"] = "Translokation";
+	en2de["Duplication"] = "Duplikation";
 
 	if(!en2de.contains(text)) return text; //return original entry if not found
 
@@ -1827,9 +1848,19 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	}
 
 	//Fusion status
-	if(settings_.report_config.fusionsDetected())
+	if(svs_.count() > 0)
 	{
-		general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", RtfText("Hinweise auf eine Strukturvariante in XXX").highlight(3).RtfCode()}, {2500,7421}).setBorders(1, "brdrhair", 4));
+		QByteArray sv_text;
+		if (svs_.count() == 1)
+		{
+			sv_text += "Hinweise auf eine wahrscheinlich onkogene Strukturvariante";
+		}
+		else
+		{
+			sv_text += "Hinweise auf wahrscheinlich onkogene Strukturvarianten";
+		}
+
+		general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", RtfText(sv_text).RtfCode()}, {2500,7421}).setBorders(1, "brdrhair", 4));
 	}
 	else
 	{
@@ -1902,7 +1933,7 @@ RtfSourceCode SomaticReportHelper::partFusions()
 	RtfTable fusion_table;
 	fusion_table.addRow(RtfTableRow("Strukturvarianten",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(4));
 
-	if(! settings_.report_config.fusionsDetected())
+	if(svs_.count() == 0)
 	{
 		fusion_table.addRow(RtfTableRow("Nicht nachgewiesen", doc_.maxWidth()));
 		fusion_table.setUniqueBorder(1,"brdrhair",4);
@@ -1910,8 +1941,23 @@ RtfSourceCode SomaticReportHelper::partFusions()
 	}
 
 	fusion_table.addRow(RtfTableRow({"Variante", "Genomische Bruchpunkte", "Beschreibung"}, {1700, 3000, 5221}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
-	fusion_table.addRow(RtfTableRow({"", "", "", ""}, {1700,1500,1500,5221}, RtfParagraph().setFontSize(16)));
+
+	//annotation done in SomaticReportSettings::filterSvs()
+	int idx_desc = svs_.annotationIndexByName("DESCRIPTION");
+	int idx_genes_A = svs_.annotationIndexByName("GENES_BREAKPOINT_A");
+	int idx_genes_B = svs_.annotationIndexByName("GENES_BREAKPOINT_B");
+	int idx_start = svs_.annotationIndexByName("START_POS_REPORT");
+	int idx_end = svs_.annotationIndexByName("END_POS_REPORT");
+	for(int i=0; i<svs_.count(); ++i)
+	{
+		const BedpeLine& sv = svs_[i];
+		QByteArray genes_A = sv.annotations()[idx_genes_A] != "" ? sv.annotations()[idx_genes_A] : "intergenisch";
+		QByteArray genes_B = sv.annotations()[idx_genes_B] != "" ? sv.annotations()[idx_genes_B] : "intergenisch";
+		fusion_table.addRow(RtfTableRow({trans(BedpeFile::typeToFullString(sv.type())), genes_A + "\n\\line\n" + RtfText(sv.annotations()[idx_start]).setFontSize(12).RtfCode(),  genes_B + "\n\\line\n" + RtfText(sv.annotations()[idx_end]).setFontSize(12).RtfCode(), "Wahrscheinlich onkogen\n\\line\n" + sv.annotations()[idx_desc]}, {1700,1500,1500,5221}, RtfParagraph().setFontSize(16)));
+	}
+
 	fusion_table.setUniqueBorder(1,"brdrhair",4);
+	fusion_table.addRow(RtfTableRow("Die aufgeführte Bruchpunkte stellen aus den NGS Daten abgeleitete Näherungswerte und wenn vorhanden die Gennamen dar.",doc_.maxWidth(), RtfParagraph().setFontSize(14)));
 
 	return fusion_table.RtfCode();
 }
@@ -1962,25 +2008,59 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 		out << RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode();
 	}
 
-	if(settings_.report_config.fusionsDetected())
+	if(svs_.count() > 0)
 	{
-		RtfSourceCode snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte (s. Anlage).";
-		out << RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).setBold(true).highlight(3).RtfCode();
+		RtfSourceCode sv_expl;
+		int idx_desc = svs_.annotationIndexByName("DESCRIPTION");
+		if (svs_.count() == 1)
+		{
+			sv_expl = RtfText("Es gibt Hinweise auf eine wahrscheinlich onkogene Strukturvariante (s. Anlage):").setBold(true).RtfCode();
+		}
+		else
+		{
+			sv_expl = RtfText("Es gibt Hinweise auf wahrscheinlich onkogene Strukturvarianten (s. Anlage):").setBold(true).RtfCode();
+			for(int i=0; i< svs_.count(); i++)
+			{
+				sv_expl += "\n\\line\n" + svs_[i].annotations()[idx_desc];
+			}
+		}
+
+		out << RtfParagraph(sv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode();
 		out << RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode();
 	}
-	RtfSourceCode snv_expl = "";
 
-	//support for limitation text
-	snv_expl = RtfText("Limitationen: ").setBold(true).setFontSize(18).RtfCode();
-	if(settings_.report_config.limitations().isEmpty())
+
+	//HLA note:
+	SomaticHlaInfo tumor_hla = SomaticHlaInfo(getHlaFilepath(settings_.tumor_ps));
+	SomaticHlaInfo normal_hla = SomaticHlaInfo(getHlaFilepath(settings_.normal_ps));
+
+	QByteArray normal_hla_allel1 = normal_hla.isValid() ? normal_hla.getGeneAllele("HLA-A", true)  : "nicht bestimmbar";
+	QByteArray normal_hla_allel2 = normal_hla.isValid() ? normal_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
+	QByteArray tumor_hla_allel1 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
+	QByteArray tumor_hla_allel2 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
+	if (normal_hla_allel1 == "HLA-A*02:01" || normal_hla_allel2 == "HLA-A*02:01" || tumor_hla_allel1 == "HLA-A*02:01" || tumor_hla_allel2 == "HLA-A*02:01" ) // CHECK HLA
 	{
-		snv_expl += "Die Probenqualität zeigt keine Auffälligkeiten. Methodisch bedingte Limitationen sind im Anhang erläutert.";
+		out << RtfParagraph("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in Tumor und Normalgewebe hin (s. Anlage).").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode();
 	}
 	else
 	{
-		snv_expl += settings_.report_config.limitations().replace("\n","\n\\line\n");
+		out << RtfParagraph("Unsere Daten weisen "+ RtfText("nicht").setBold(true).RtfCode() + " auf das Vorliegen des Haplotyps HLA-A*02:01 in Tumor und Normalgewebe hin (s. Anlage).").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode();
 	}
-	out << RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setHorizontalAlignment("j").RtfCode();
+
+	out << RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode();
+
+	RtfSourceCode limitations_expl = "";
+	//support for limitation text
+	limitations_expl = RtfText("Limitationen: ").setBold(true).setFontSize(18).RtfCode();
+	if(settings_.report_config.limitations().isEmpty())
+	{
+		limitations_expl += "Die Probenqualität zeigt keine Auffälligkeiten. Methodisch bedingte Limitationen sind im Anhang erläutert.";
+	}
+	else
+	{
+		limitations_expl += settings_.report_config.limitations().replace("\n","\n\\line\n");
+	}
+	out << RtfParagraph(limitations_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setHorizontalAlignment("j").RtfCode();
 
 	return out.join("\n");
 }
@@ -2006,6 +2086,9 @@ RtfSourceCode SomaticReportHelper::partPathways()
 	int germline_index_coding_splicing = germline_vl_.annotationIndexByName("coding_and_splicing");
 	int germline_index_class = germline_vl_.annotationIndexByName("classification");
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
+
+	int idx_genes_A = svs_.annotationIndexByName("GENES_BREAKPOINT_A");
+	int idx_genes_B = svs_.annotationIndexByName("GENES_BREAKPOINT_B");
 
 	for (int i=0; i<pathways.count(); i+=4)
 	{
@@ -2078,11 +2161,11 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				}
 
 				//determine entries for CNVs (del/dup, amp, ...)
-				for(int i=0;i<cnvs_.count();++i)
+				for(int k=0;k<cnvs_.count();++k)
 				{
-					if (!cnv_high_impact_indices_.contains(i)) continue;
+					if (!cnv_high_impact_indices_.contains(k)) continue;
 
-					const CopyNumberVariant& cnv = cnvs_[i];
+					const CopyNumberVariant& cnv = cnvs_[k];
 
 					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
@@ -2090,7 +2173,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					foreach(const QByteArray& gene, genes_cnv)
 					{
 						if (!genes_pathway.contains(gene)) continue;
-						if (!cnv_high_impact_indices_[i].contains(gene)) continue;
+						if (!cnv_high_impact_indices_[k].contains(gene)) continue;
 
 						PathwaysEntry entry;
 						entry.gene = gene;
@@ -2100,12 +2183,70 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					}
 				}
 
+				//somatic SV variants:
+				for (int l=0; l< svs_.count(); l++)
+				{
+					QByteArray genes_a = svs_[l].annotations()[idx_genes_A];
+					QByteArray genes_b = svs_[l].annotations()[idx_genes_B];
+
+					QByteArrayList genes = genes_a.split(',');
+					genes.append(genes_b.split(','));
+
+					foreach(QByteArray gene, genes)
+					{
+						if (!genes_pathway.contains(gene.trimmed())) continue;
+
+						QByteArray gene_str;
+						if (genes_a == "" && genes_b == "")
+						{
+							gene_str = "intergenisch";
+						}
+						else if (genes_a == "" && ! genes_b.contains(","))
+						{
+							gene_str = genes_b;
+						}
+						else if (! genes_a.contains(",") && genes_b == "")
+						{
+							gene_str = genes_a;
+						}
+						else if (! genes_a.contains(",") && ! genes_b.contains(","))
+						{
+							gene_str = genes_a + "-" + genes_b;
+						}
+						else if (genes_a.contains(",") && ! genes_b.contains(","))
+						{
+							gene_str = "[" + genes_a + "]-" + genes_b;
+						}
+						else if (! genes_a.contains(",") && genes_b.contains(","))
+						{
+							gene_str = genes_a + "-[" + genes_b + "]";
+						}
+						else
+						{
+							gene_str = "[" + genes_a + "]-[" + genes_b + "]";
+						}
+
+
+						PathwaysEntry entry;
+						entry.gene = gene_str;
+						entry.alteration = "SV";
+						entry.highlight = true;
+						entries.append(entry);
+					}
+
+				}
+
 				//add entries to content table cell
 				QByteArrayList rtf_text;
 				foreach(const PathwaysEntry& entry, entries)
 				{
 					QByteArray text = RtfText(entry.gene).setFontSize(18).RtfCode() + " " + RtfText(entry.alteration).setFontSize(16).RtfCode();
 					if (!entry.highlight) text = RtfText("[ ").setFontSize(18).RtfCode() + text + RtfText(" ]").setFontSize(18).RtfCode();
+					//highlight SV for manual correction if more than a single gene is annotated at a breakpoint
+					if (entry.alteration == "SV" && entry.gene.contains("["))
+					{
+						text = RtfText(entry.gene).setFontSize(18).highlight(3).RtfCode() + " " + RtfText(entry.alteration).setFontSize(16).RtfCode();
+					}
 					rtf_text << text;
 				}
 				contents << rtf_text.join("\\line\n");

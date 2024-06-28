@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2023_11-42-ga9d1687d)
+	SvFilterAnnotations (2024_02-126-g4f44d5e5)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -60,7 +60,7 @@
 	                            Parameters:
 	                              complete - Overlaps the complete gene. [default=true]
 	                              exonic/splicing - Overlaps the coding or splicing region of the gene. [default=true]
-	                              intronic/intergenic - Overlaps the intronic/intergenic region of the gene only. [default=false]
+	                              intronic/near gene - Overlaps the intronic region or less than 5kb up/down stream of the gene . [default=false]
 	SV genotype affected        Filter structural variants (of affected samples) based on their genotype.
 	                            Parameters:
 	                              genotypes - Structural variant genotype(s) [valid=wt,het,hom,n/a] [non-empty]
@@ -117,7 +117,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2023_11-42-ga9d1687d
+	SvFilterAnnotations 2024_02-126-g4f44d5e5
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -142,7 +142,7 @@ class CPPNGSDSHARED_EXPORT SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
-	SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings, bool test_db=false);
+	SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const BedpeFile &svs, const VariantList& germline_variants, const SomaticReportSettings& settings, bool test_db=false);
 
 	///write Rtf File
 	void storeRtf(const QByteArray& out_file);
@@ -275,6 +275,9 @@ private:
 	//CNVList for somatic (filtered) copy-number altered variants
 	CnvList cnvs_;
 	QHash<int, GeneSet> cnv_high_impact_indices_; //CNVs with high impact (i.e. they are added to the pathway list): CNV index => gene list
+
+	//SVs:
+	BedpeFile svs_;
 
 	//Somatic viruses (original file usually in tumor dir)
 	QList<SomaticVirusInfo> validated_viruses_;
