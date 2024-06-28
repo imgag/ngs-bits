@@ -194,7 +194,7 @@
          </size>
         </property>
         <property name="currentText">
-         <string>all</string>
+         <string>diagnostic</string>
         </property>
         <item>
          <property name="text">

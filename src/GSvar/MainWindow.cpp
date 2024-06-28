@@ -4781,50 +4781,50 @@ void MainWindow::on_actionCohortAnalysis_triggered()
 
 void MainWindow::on_actionGenderXY_triggered()
 {
-	ExternalToolDialog dialog("Determine gender", "xy", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Determine gender", "xy", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenderHet_triggered()
 {
-	ExternalToolDialog dialog("Determine gender", "hetx", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Determine gender", "hetx", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenderSRY_triggered()
 {
-	ExternalToolDialog dialog("Determine gender", "sry", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Determine gender", "sry", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionStatisticsBED_triggered()
 {
-	ExternalToolDialog dialog("BED file information", "", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("BED file information", "", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleSimilarityGSvar_triggered()
 {
-	ExternalToolDialog dialog("Sample similarity", "gsvar", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Sample similarity", "gsvar", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleSimilarityVCF_triggered()
 {
-	ExternalToolDialog dialog("Sample similarity", "vcf", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Sample similarity", "vcf", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleSimilarityBAM_triggered()
 {
-	ExternalToolDialog dialog("Sample similarity", "bam", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Sample similarity", "bam", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleAncestry_triggered()
 {
-	ExternalToolDialog dialog("Sample ancestry", "", this);
-	dialog.exec();
+	QSharedPointer<ExternalToolDialog> dlg(new ExternalToolDialog("Sample ancestry", "", this));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionAnalysisStatus_triggered()
