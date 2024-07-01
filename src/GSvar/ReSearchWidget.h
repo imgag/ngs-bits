@@ -16,6 +16,7 @@ public:
 
 protected slots:
 	void search();
+	void showRepeatImage();
 
 private:
 	Ui::ReSearchWidget ui_;

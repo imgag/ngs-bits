@@ -1,6 +1,11 @@
 #include "ReSearchWidget.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
+#include "FileLocationProviderRemote.h"
+#include "ClientHelper.h"
+#include "GlobalServiceProvider.h"
+#include <QDesktopServices>
+#include <QAction>
 
 ReSearchWidget::ReSearchWidget(QWidget* parent)
 	: QWidget(parent)
@@ -9,6 +14,11 @@ ReSearchWidget::ReSearchWidget(QWidget* parent)
 	ui_.setupUi(this);
 	connect(ui_.search_btn, SIGNAL(clicked()), this, SLOT(search()));
 	ui_.re->fill(db_.createTable("repeat_expansion", "SELECT id, CONCAT(name, ' - ', region, ' ', repeat_unit) FROM repeat_expansion ORDER BY name ASC"), true);
+
+	QAction* action = new QAction("Show repeat allele(s) image", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(showRepeatImage()));
+	action->setEnabled(ClientHelper::isClientServerMode());
 }
 
 void ReSearchWidget::search()
@@ -38,7 +48,7 @@ void ReSearchWidget::search()
 		int cutoff = ui_.re_min_count->value();
 		if (cutoff>0)
 		{
-			query_str += " AND (reg.allele1>="+QString::number(cutoff)+" OR reg.allele2>="+QString::number(cutoff)+")";
+			query_str += " AND (reg.allele1>=" + QString::number(cutoff) + " " + (ui_.re_recessive->isChecked() ? "AND" : "OR") + " reg.allele2>=" + QString::number(cutoff)+")";
 		}
 
 		//restrict samples
@@ -84,5 +94,37 @@ void ReSearchWidget::search()
 	catch(Exception& e)
 	{
 		GUIHelper::showException(this, e, "RE search could not be performed");
+	}
+}
+
+void ReSearchWidget::showRepeatImage()
+{
+	//determine repeat
+	QString reg_id = ui_.re->getCurrentId();
+	NGSD db;
+	QString name = db.getValue("SELECT name FROM repeat_expansion WHERE id=:0", false, reg_id).toString();
+
+	QList<int> rows = GUIHelper::selectedTableRows(ui_.table);
+	foreach(int row, rows)
+	{
+		//determine processes sample
+		QString ps = ui_.table->item(row, 0)->text();
+		QString ps_id = db.processedSampleId(ps);
+
+		//find image
+		FileLocation gsvar_loc = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR); //TODO Marc+Alexandr: use end-point to determine PS hash, not the GSvar URL string!
+		FileLocationProviderRemote flpr(gsvar_loc.filename);
+		FileLocation image_loc = flpr.getRepeatExpansionImage(name);
+		if (!image_loc.exists) //support repeats with underscore in name
+		{
+			name = name.split('_').at(0);
+			image_loc = flpr.getRepeatExpansionImage(name);
+		}
+
+		//open
+		if (image_loc.exists)
+		{
+			QDesktopServices::openUrl(QUrl(image_loc.filename));
+		}
 	}
 }
