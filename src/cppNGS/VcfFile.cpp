@@ -1195,8 +1195,15 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					Sequence ref_exp = reference.seq(chr, pos, ref.length());
 					if (ref!=ref_exp)
 					{
-						printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
-						error_found = true;
+						if (ref!="N" && ref_exp!="N")
+						{
+							printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+							error_found = true;
+						}
+						else
+						{
+							printWarning(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+						}
 					}
 				}
 			}
@@ -1233,7 +1240,6 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					if (alt[0]!=ref[0])
 					{
 						printWarning(out_stream, "First base of insertion/deletion not matching - ref: '" + ref + "' alt: '" + alt + "'!", l, line);
-						error_found = false;
 					}
 				}
 			}
