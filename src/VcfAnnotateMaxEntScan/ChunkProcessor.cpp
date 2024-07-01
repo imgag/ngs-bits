@@ -21,7 +21,6 @@ ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, const Par
 	, meta_(meta)
 	, params_(params)
 	, reference_(meta.reference)
-	, acgt_regexp_("[ACGT]+")
 {
 	if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << endl;
 }
@@ -65,7 +64,7 @@ int ChunkProcessor::base_to_int(char base)
 void ChunkProcessor::get_seqs(const Variant& variant, int slice_start, int slice_end, int length, const Transcript& transcript, Sequence& ref_seq, Sequence& alt_seq)
 {
 	ref_seq = reference_.seq(variant.chr(), slice_start, length + variant.end() - variant.start());
-	if (!acgt_regexp_.exactMatch(ref_seq))
+	if (!ref_seq.onlyACGT())
 	{
 		ref_seq.clear();
 		alt_seq.clear();
@@ -371,9 +370,8 @@ void ChunkProcessor::run()
 
 				variant = Variant(chr, start, end, ref, alt);
 
-
 				//write out multi-allelic, variants with non-standard bases and structural variants without annotation
-				if(!acgt_regexp_.exactMatch(ref) || !acgt_regexp_.exactMatch(alt) || !variant.isValid())
+				if(!ref.onlyACGT() || !alt.onlyACGT() || !variant.isValid())
 				{
 					lines_new << parts.join('\t') + '\n';
             	    continue;
