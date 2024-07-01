@@ -575,7 +575,7 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		foreach(QString geno, genotypes)
 		{
 			bool ok = false;
-			int repeat_count = geno.trimmed().toInt(&ok);
+			int repeat_count = std::round(geno.trimmed().toFloat(&ok));
 			if (ok)
 			{
 				max = std::max(max, repeat_count);
