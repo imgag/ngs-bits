@@ -110,13 +110,36 @@ public:
 				entry_count++;
 			}
 
-			if (entry_count != 2) THROW(ArgumentException, "Invalid entry count " + QByteArray::number(entry_count) + " (should be 2)! " + matches.join("\n"));
+			if (entry_count == 2)
+			{
+				// add info to output file
+				bed_line.annotations().append(QByteArray::number(fraction_modified));
+				bed_line.annotations().append(QByteArray::number(n_valid_cov));
+				bed_line.annotations().append(QByteArray::number(n_mod));
+				output.append(bed_line);
+			}
+			else if (entry_count == 1)
+			{
+				qDebug() << "WARNING: Position " + bed_line.toString(true) + " only covered once in methylation file!";
+				bed_line.annotations().append(QByteArray::number(fraction_modified));
+				bed_line.annotations().append(QByteArray::number(n_valid_cov));
+				bed_line.annotations().append(QByteArray::number(n_mod));
+				output.append(bed_line);
+			}
+			else if (entry_count == 0)
+			{
+				qDebug() << "WARNING: Position " + bed_line.toString(true) + " not covered in methylation file!";
+				bed_line.annotations().append("");
+				bed_line.annotations().append("");
+				bed_line.annotations().append("");
+				output.append(bed_line);
+			}
+			else
+			{
+				THROW(ArgumentException, "Invalid entry count " + QByteArray::number(entry_count) + " (should be 2)! " + matches.join("\n"));
+			}
 
-			// add info to output file
-			bed_line.annotations().append(QByteArray::number(fraction_modified));
-			bed_line.annotations().append(QByteArray::number(n_valid_cov));
-			bed_line.annotations().append(QByteArray::number(n_mod));
-			output.append(bed_line);
+
 		}
 
 		//write output
