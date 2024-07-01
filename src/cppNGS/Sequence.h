@@ -44,6 +44,9 @@ public:
 
 	///Adds random noise to the sequence. Returns how many errors have been added.
 	int addNoise(double error_probability, std::mt19937& gen);
+
+	//Returns if the sequence consists only of A,C,G and T bases.
+	bool onlyACGT() const;
 };
 
 #endif // SEQUENCE_H

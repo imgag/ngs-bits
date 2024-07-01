@@ -80,7 +80,25 @@ private slots:
 
 		IS_TRUE(original!=seq);
 		I_EQUAL(errors, errors_found);
+	}
 
+
+	void onlyACGT()
+	{
+		Sequence seq = "ACGTACGTACGTACGT";
+		IS_TRUE(seq.onlyACGT());
+		seq = "A";
+		IS_TRUE(seq.onlyACGT());
+
+		seq = "ACGTN";
+		IS_FALSE(seq.onlyACGT());
+		seq = "N";
+		IS_FALSE(seq.onlyACGT());
+
+		seq = "ACGTB";
+		IS_FALSE(seq.onlyACGT());
+		seq = "B";
+		IS_FALSE(seq.onlyACGT());
 	}
 };
 

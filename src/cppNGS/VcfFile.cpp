@@ -1182,7 +1182,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			}
 
 			//reference base
-			QByteArray ref = parts[REF].toUpper();
+			Sequence ref = parts[REF].toUpper();
 			if (pos_is_valid)
 			{
 				if (ref.isEmpty())
@@ -1195,7 +1195,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					Sequence ref_exp = reference.seq(chr, pos, ref.length());
 					if (ref!=ref_exp)
 					{
-						if (ref!="N" && ref_exp!="N")
+						if (ref.onlyACGT() && ref_exp.onlyACGT())
 						{
 							printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
 							error_found = true;
