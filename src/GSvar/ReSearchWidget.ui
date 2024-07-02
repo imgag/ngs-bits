@@ -83,6 +83,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="re_recessive">
+          <property name="toolTip">
+           <string>Show only samples where both alleles are above cutoff.</string>
+          </property>
+          <property name="text">
+           <string>recessive</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -324,6 +334,9 @@
    </item>
    <item>
     <widget class="DBTableWidget" name="table">
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
      <property name="sortingEnabled">
       <bool>true</bool>
      </property>
