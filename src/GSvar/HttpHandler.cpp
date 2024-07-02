@@ -30,7 +30,7 @@ HttpHandler::HttpHandler(bool internal, QObject* parent)
 	setHeader("User-Agent", "GSvar");
 	setHeader("X-Custom-User-Agent", "GSvar");
 
-	if(internal_)
+    if(internal_ && !Settings::boolean("use_proxy_for_gsvar_server", true))
 	{
 		//do not use proxy for internal requests
 		proxy_ = QNetworkProxy(QNetworkProxy::NoProxy);

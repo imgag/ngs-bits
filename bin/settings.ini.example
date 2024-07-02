@@ -53,3 +53,7 @@ sample_sheet_path =
 nova_seq_x_sw_version = "4.1.23"
 nova_seq_x_app_version = "1.2.1"
 nova_seq_x_keep_fastq = 1
+
+# For accessing an external GSvar server through a proxy,
+# while using inside the internal network should be set to False
+use_proxy_for_gsvar_server = false
