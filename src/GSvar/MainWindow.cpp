@@ -154,6 +154,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "Background/NGSDCacheInitializer.h"
 #include "RepeatExpansionWidget.h"
 #include "ReSearchWidget.h"
+#include "CustomProxyService.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -190,6 +191,18 @@ MainWindow::MainWindow(QWidget *parent)
             }
             settings_generated->sync();
         }
+    }
+
+    // Use a proxy server for all connections to the GSvar server
+    if (Settings::boolean("use_proxy_for_gsvar_server", true))
+    {
+        QNetworkProxy proxy;
+        proxy.setType(QNetworkProxy::HttpProxy);
+        proxy.setHostName(Settings::string("proxy_host"));
+        proxy.setPort(Settings::integer("proxy_port"));
+        proxy.setUser(Settings::string("proxy_user"));
+        proxy.setPassword(Settings::string("proxy_password"));
+        CustomProxyService::setProxy(proxy);
     }
 
     //setup GUI
