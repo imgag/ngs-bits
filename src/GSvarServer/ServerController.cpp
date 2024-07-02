@@ -456,35 +456,35 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 
 HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request)
 {
-	PathType type = PathType::GSVAR;
-	if (request.getUrlParams().contains("type"))
-	{
-		type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
-	}
+    PathType type;
+    try
+    {
+        type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
+    }
+    catch (Exception& e)
+    {
+        return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+    }
 
-	QString ps_name;
-	QString found_file_path;
-	try
-	{
-		int id = request.getUrlParams()["ps_id"].toInt();
-		ps_name = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
-		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
+    int id = request.getUrlParams()["ps_id"].toInt();
 
-		//access restricted only for user role 'user_restricted'
-        QString role = NGSD().getUserRole(current_session.user_id);
-        if (role=="user_restricted" && !NGSD().userCanAccess(current_session.user_id, id))
-		{
-            return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "You do not have permissions to open this sample"));
-        }
-        found_file_path = NGSD().processedSamplePath(QString::number(id), type);
-	}
-	catch (Exception& e)
-	{
-        Log::error("Error opening processed sample from NGSD:" + e.message());
+    QString ps_name;
+    QString found_file_path;
+    try
+    {
+        ps_name = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
+        found_file_path = getProcessedSampleFile(id, type, EndpointManager::getTokenIfAvailable(request));
+    }
+    catch (HttpException& e)
+    {
+        return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+    }
+    catch (Exception& e)
+    {
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
-	}
+    }
 
-	FileLocation project_file = FileLocation(ps_name, type, createTempUrl(found_file_path, request.getUrlParams()["token"]), QFile::exists(found_file_path));
+    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(found_file_path, request.getUrlParams()["token"]), QFile::exists(found_file_path));
 
 	QJsonDocument json_doc_output;
 	QJsonArray file_location_as_json_list;
@@ -503,6 +503,32 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	response_data.is_downloadable = false;
 
 	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::getProcessedSampleHash(const HttpRequest& request)
+{
+    QString found_file_path;
+    try
+    {
+        PathType type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
+        found_file_path = getProcessedSampleFile(request.getUrlParams()["ps_id"].toInt(), type, EndpointManager::getTokenIfAvailable(request));
+    }
+    catch (HttpException& e)
+    {
+        return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+    }
+    catch (Exception& e)
+    {
+        return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+    }
+
+    QString url_hash = addFileToTempStorage(found_file_path);
+    BasicResponseData response_data;
+    response_data.length = url_hash.toUtf8().length();
+    response_data.content_type = request.getContentType();
+    response_data.is_downloadable = false;
+
+    return HttpResponse(response_data, url_hash.toUtf8());
 }
 
 HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
@@ -1486,9 +1512,9 @@ bool ServerController::hasOverlappingRanges(const QList<ByteRange>& ranges)
 	return false;
 }
 
-QString ServerController::createTempUrl(const QString& file, const QString& token)
+QString ServerController::addFileToTempStorage(const QString& file)
 {
-	QString id = ServerHelper::generateUniqueStr();
+    QString id = ServerHelper::generateUniqueStr();
 
     if (QFileInfo(file).exists())
     {
@@ -1498,7 +1524,35 @@ QString ServerController::createTempUrl(const QString& file, const QString& toke
     {
         UrlManager::addNewUrl(UrlEntity(id, file, "", file, id, QDateTime::currentDateTime()));
     }
+    return id;
+}
 
+QString ServerController::getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token)
+{
+    QString found_file_path;
+    try
+    {
+        Session current_session = SessionManager::getSessionBySecureToken(token);
+
+        // access is restricted only for the user role 'user_restricted'
+        QString role = NGSD().getUserRole(current_session.user_id);
+        if (role=="user_restricted" && !NGSD().userCanAccess(current_session.user_id, ps_id))
+        {
+            THROW_HTTP(HttpException, "You do not have permissions to the sample with id '" + QString::number(ps_id) + "'", 401,  {}, {});
+        }
+        found_file_path = NGSD().processedSamplePath(QString::number(ps_id), type);
+    }
+    catch (Exception& e)
+    {
+        Log::error("Error opening processed sample from NGSD:" + e.message());
+        THROW_HTTP(HttpException, e.message(), 500,  {}, {});
+    }
+    return found_file_path;
+}
+
+QString ServerController::createTempUrl(const QString& file, const QString& token)
+{
+    QString id = addFileToTempStorage(file);
 	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
 }
 

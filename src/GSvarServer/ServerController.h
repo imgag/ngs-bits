@@ -48,7 +48,9 @@ public:
 	/// Returns a location object for a file based on its type
 	static HttpResponse locateFileByType(const HttpRequest& request);
 	/// Returns the location of the processed sample
-	static HttpResponse getProcessedSamplePath(const HttpRequest& request);
+    static HttpResponse getProcessedSamplePath(const HttpRequest& request);
+    /// Returns the location id (hash) of the processed sample
+    static HttpResponse getProcessedSampleHash(const HttpRequest& request);
 	/// Locates a GSvar file related to the specified job
 	static HttpResponse getAnalysisJobGSvarFile(const HttpRequest& request);
 	/// Date and time of the last modification of a log file for a specific job
@@ -111,7 +113,11 @@ private:
 	/// Check if byte-range request contains overlapping ranges, they are
 	/// not allowed, according to the HTTP specification
     static bool hasOverlappingRanges(const QList<ByteRange>& ranges);
-	/// Creates a temporary URL for a file (includes a file name and its full path)
+    /// Creates a temporary URL hash for a file (used to get a file name and its full path)
+    static QString addFileToTempStorage(const QString& file);
+    /// Finds filename with full path for a given processed sample
+    static QString getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token);
+    /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, bool is_downloadable);
