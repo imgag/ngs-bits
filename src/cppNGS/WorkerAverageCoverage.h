@@ -3,6 +3,7 @@
 
 #include <QRunnable>
 #include "BedFile.h"
+#include "Exceptions.h"
 
 //Coverage calculation worker using random-access
 class WorkerAverageCoverage
@@ -19,6 +20,10 @@ public:
 
 		void operator=(const Chunk& rhs)
 		{
+			if (&data != &rhs.data)
+			{
+				THROW(NotImplementedException, "Chunk 'data' cannot be reassigned");
+			}
 			data = rhs.data;
 			start = rhs.start;
 			end = rhs.end;

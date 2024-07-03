@@ -23,13 +23,15 @@ public:
 		addInt("cutoff", "Minimum depth to consider a base 'high coverage'.", false);
 		//optional
 		addInfile("in", "Input BED file containing the regions of interest. If unset, reads from STDIN.", true);
-		addFlag("wgs", "WGS mode without target region. Genome information is taken from the BAM/CRAM file.");
+		addFlag("random_access", "Use random access via index to get reads from BAM/CRAM instead of chromosome-wise sweep. Random access is quite slow, so use it only if a small subset of the file needs to be accessed.");
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addInt("threads", "Number of threads used.", true, 1);
+		addFlag("debug", "Enable debug output.");
 
+		changeLog(2024,  7,  3, "Added 'random_access' and 'debug' parameters and removed 'wgs' parameter.");
 		changeLog(2022,  9, 19, "Added 'threads' parameter.");
 		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2020,  5,  26, "Added parameter 'min_baseq'.");
@@ -41,34 +43,17 @@ public:
         //init
         QString in = getInfile("in");
 		QString bam = getInfile("bam");
-        bool wgs = getFlag("wgs");
-
-        //check that either IN or WGS is given
-        if (in=="" && !wgs)
-        {
-            THROW(CommandLineParsingException, "You have to provide the parameter 'in' or 'wgs'!");
-        }
 
 		//get low-cov regions and store them
-		BedFile output;
-        if (wgs) //WGS
-        {
-			output = Statistics::lowCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"));
+		BedFile file;
+		file.load(in);
+		file.merge(true, true);
+		BedFile output = Statistics::lowCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"), getFlag("random_access"), getFlag("debug"));
 
-			output.appendHeader("#BAM: " + QFileInfo(bam).baseName().toUtf8());
-        }
-        else //ROI
-        {
-            BedFile file;
-            file.load(in);
-			file.merge(true, true);
-			output = Statistics::lowCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"));
-
-			output.appendHeader("#BAM: " + QFileInfo(bam).fileName().toUtf8());
-			output.appendHeader("#ROI: " + QFileInfo(in).fileName().toUtf8());
-			output.appendHeader("#ROI regions: " + QByteArray::number(file.count()));
-			output.appendHeader("#ROI bases: " + QByteArray::number(file.baseCount()));
-        }
+		output.appendHeader("#BAM: " + QFileInfo(bam).fileName().toUtf8());
+		output.appendHeader("#ROI: " + QFileInfo(in).fileName().toUtf8());
+		output.appendHeader("#ROI regions: " + QByteArray::number(file.count()));
+		output.appendHeader("#ROI bases: " + QByteArray::number(file.baseCount()));
 
         output.store(getOutfile("out"));
 	}
