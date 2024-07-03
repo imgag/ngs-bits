@@ -140,3 +140,8 @@ int Sequence::addNoise(double error_probability, std::mt19937& gen)
 
 	return ec;
 }
+
+bool Sequence::onlyACGT() const
+{
+	return QRegExp("^[ACGT]+$").exactMatch(*this);
+}

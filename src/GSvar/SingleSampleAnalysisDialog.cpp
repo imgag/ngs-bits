@@ -335,7 +335,7 @@ void SingleSampleAnalysisDialog::annotate_only_state_changed()
 		foreach (QCheckBox* step, step_boxes)
 		{
 			// deactivate mapping/db import  check box
-			if ((step->objectName() == "step_ma") || (step->objectName() == "step_db"))
+			if (step->objectName()=="step_ma" || step->objectName()=="step_re" || step->objectName()=="step_db")
 			{
 				step->setChecked(false);
 			}
@@ -347,7 +347,6 @@ void SingleSampleAnalysisDialog::annotate_only_state_changed()
 			}
 		}
 	}
-
 }
 
 void SingleSampleAnalysisDialog::addSample(QString status, QString sample)

@@ -41,7 +41,7 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	, somatic_report_config_(rep_conf_somatic)
 	, var_het_genes_(het_hit_genes)
 	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_ && report_config_!=nullptr && !report_config_->isFinalized())
+	, rc_enabled_(ngsd_enabled_ && ((report_config_!=nullptr && !report_config_->isFinalized()) || somatic_report_config_ != nullptr))
 	, is_somatic_(somatic_report_config_!=nullptr)
 {
 	ui->setupUi(this);
@@ -1063,7 +1063,6 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 	}
 
 	SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(cnvs_[row].toStringWithMetaData(), var_config, this);
-	dlg->disableIncludeForm();
 	if(dlg->exec()!=QDialog::Accepted) return;
 
 	somatic_report_config_->addSomaticVariantConfiguration(var_config);
@@ -1139,7 +1138,6 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 	generic_var_config.variant_type = VariantType::CNVS;
 
 	SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(QString::number(rows.count()) +" selected cnvs", generic_var_config, this);
-	dlg->disableIncludeForm();
 	if(dlg->exec() != QDialog::Accepted) return;
 
 	//Accepted was pressed -> see slot writeBackSettings()

@@ -50,7 +50,7 @@ void IGVCommandWorker::run()
 				emit commandFailed(launch_command_id, "Could not start IGV: IGV application '" + igv_data_.executable + "' started on port '" + QString::number(igv_data_.port) + "', but does not respond!", (double)(timer.elapsed())/1000.0);
 			}
 
-			//wait 5s until the genome is loaded //TODO Alexandr: remove as soon as there is IGV release with a function to check if the genome is loaded
+            //wait 5s until the genome is loaded (currently loaded genome is not detected correctly and consistently, possible concurrency issue in IGV)
 			QThread::msleep(5000);
 
 			emit commandFinished(launch_command_id, answer_, (double)(timer.elapsed())/1000.0);

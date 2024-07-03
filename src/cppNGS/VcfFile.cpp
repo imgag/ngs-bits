@@ -1182,7 +1182,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			}
 
 			//reference base
-			QByteArray ref = parts[REF].toUpper();
+			Sequence ref = parts[REF].toUpper();
 			if (pos_is_valid)
 			{
 				if (ref.isEmpty())
@@ -1195,8 +1195,15 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					Sequence ref_exp = reference.seq(chr, pos, ref.length());
 					if (ref!=ref_exp)
 					{
-						printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
-						error_found = true;
+						if (ref.onlyACGT() && ref_exp.onlyACGT())
+						{
+							printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+							error_found = true;
+						}
+						else
+						{
+							printWarning(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+						}
 					}
 				}
 			}
@@ -1222,6 +1229,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			}
 
 			//check that the first base is the same for insertions, deletions and complex insertions/deletions
+			//according to the htslib develpers this is valid, so we print a warning only: https://github.com/samtools/hts-specs/issues/774#issuecomment-2195960823
 			foreach(const QByteArray& alt, alts)
 			{
 				if (alt.startsWith('<') && alt.endsWith('>')) continue; //special case for structural variant
@@ -1231,8 +1239,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 				{
 					if (alt[0]!=ref[0])
 					{
-						printError(out_stream, "First base of insertion/deletion not matching - ref: '" + ref + "' alt: '" + alt + "'!", l, line);
-						error_found = true;
+						printWarning(out_stream, "First base of insertion/deletion not matching - ref: '" + ref + "' alt: '" + alt + "'!", l, line);
 					}
 				}
 			}

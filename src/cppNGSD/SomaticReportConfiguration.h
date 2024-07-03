@@ -14,22 +14,46 @@ struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 	SomaticReportVariantConfiguration();
 	bool showInReport() const;
 
+	bool manualSvStartValid() const;
+	bool manualSvEndValid() const;
+	bool manualSvStartBndValid() const;
+	bool manualSvEndBndValid() const;
+
 	VariantType variant_type = VariantType::INVALID;
 	int variant_index = -1;
 
 	//exclusions
 	bool exclude_artefact;
+	bool exclude_other_reason;
 	bool exclude_low_tumor_content;
 	bool exclude_low_copy_number;
 	bool exclude_high_baf_deviation;
-	bool exclude_other_reason;
+	bool exclude_unclear_effect;
+
+	QString comment;
+	QString description;
 
 	//Include (usually non-protein coding) variants
 	QString include_variant_alteration;
 	QString include_variant_description;
 
-	QString comment;
+	//manual curation of SVs
+	QString manual_sv_start;
+	QString manual_sv_end;
+	QString manual_sv_hgvs_type;
+	QString manual_sv_hgvs_suffix;
+	QString manual_sv_start_bnd;
+	QString manual_sv_end_bnd;
+	QString manual_sv_hgvs_type_bnd;
+	QString manual_sv_hgvs_suffix_bnd;
+
+	QString rna_info;
+
+private:
+	bool StringValidInt(QString string) const;
 };
+
+
 
 struct CPPNGSDSHARED_EXPORT SomaticReportGermlineVariantConfiguration
 {

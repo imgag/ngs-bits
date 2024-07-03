@@ -1,5 +1,5 @@
 ### NGSDExportIgvGeneTrack tool help
-	NGSDExportIgvGeneTrack (2023_11-133-g87eceb58)
+	NGSDExportIgvGeneTrack (2024_02-126-g4f44d5e5)
 	
 	Writes all transcripts and exons of all genes to a IGV-readable text file.
 	
@@ -7,7 +7,7 @@
 	  -out <file>      The output text file.
 	
 	Optional parameters:
-	  -out_mane <file> The optional output text file containing only MANE + clinical transcripts.
+	  -out_mane <file> The optional output text file containing only MANE transcripts.
 	                   Default value: ''
 	  -test            Uses the test database instead of on the production database.
 	                   Default value: 'false'
@@ -19,6 +19,6 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportIgvGeneTrack changelog
-	NGSDExportIgvGeneTrack 2023_11-133-g87eceb58
+	NGSDExportIgvGeneTrack 2024_02-126-g4f44d5e5
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

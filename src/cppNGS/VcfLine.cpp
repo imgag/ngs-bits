@@ -404,14 +404,13 @@ bool VcfLine::isValid() const
 
 	//check ref
 	if (ref_.isEmpty()) return false;
-	QRegExp valid_seq_regexp("^[ACGT]+$");
-	if (!valid_seq_regexp.exactMatch(ref_)) return false;
+	if (!ref_.onlyACGT()) return false;
 
 	//check alt(s)
 	if (alt_.isEmpty()) return false;
 	foreach(const Sequence& alt, alt_)
 	{
-		if (!valid_seq_regexp.exactMatch(alt) && (alt != "<NON_REF>")) return false;
+		if (!alt.onlyACGT() && alt!="<NON_REF>") return false;
 	}
 
 	return true;

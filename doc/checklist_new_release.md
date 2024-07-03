@@ -2,7 +2,7 @@
 
 1. Update documentation: `make build_release_noclean doc_update`
 1. Update check documentation: `make doc_check_urls`
-1. Check for tools not added to the main page: `makedoc_find_missing_tools`
+1. Check for tools not added to the main page: `make doc_find_missing_tools`
 1. Update the changelog in `ngs-bits/README.md`.
 
 	> git diff -w [last-tag] master src/cppNGSD/resources/NGSD_schema.sql  
@@ -20,10 +20,10 @@
 
 1. Add the tarball to the GitHub release:
 
-	> hub release edit --draft=false --attach ngs-bits-[tag].tgz [tag]
+	> hub release edit --draft=false --attach=ngs-bits-[tag].tgz [tag]
 
 1. Create a [new bioconda release](https://bioconda.github.io/contributor/workflow.html#create-a-pull-request) based on the release tarball.
-	* Sync our fork via <https://github.com/imgag/bioconda-recipes/tree/master>
+	* Sync our fork and delete old branches via <https://github.com/imgag/bioconda-recipes/tree/master>
 	* Create a new branch
 			
 			> git checkout master

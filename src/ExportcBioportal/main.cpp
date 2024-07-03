@@ -139,6 +139,12 @@ public:
 					cnvs.load(files.clincnv_file);
 				}
 
+				BedpeFile svs;
+				if(VersatileFile(files.sv_file).exists())
+				{
+					svs.load(files.sv_file);
+				}
+
 				QStringList messages;
 				SomaticReportSettings report_settings;
 				report_settings.normal_ps = normal_ps;
@@ -146,7 +152,7 @@ public:
 				report_settings.msi_file = fileprovider.getSomaticMsiFile().filename;
 				report_settings.viral_file = db.processedSamplePath(tumor_id, PathType::VIRAL);
 
-				report_settings.report_config = db.somaticReportConfig(tumor_id, normal_id, somatic_vl, cnvs, germline_vl, messages);
+				report_settings.report_config = db.somaticReportConfig(tumor_id, normal_id, somatic_vl, cnvs, svs, germline_vl, messages);
 
 				export_settings.addSample(report_settings, files, mtb_data);
 			}
