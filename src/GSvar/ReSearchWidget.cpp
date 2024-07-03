@@ -101,6 +101,8 @@ void ReSearchWidget::showRepeatImage()
 {
 	//determine repeat
 	QString reg_id = ui_.re->getCurrentId();
+	if (reg_id.isEmpty()) return;
+
 	NGSD db;
 	QString name = db.getValue("SELECT name FROM repeat_expansion WHERE id=:0", false, reg_id).toString();
 
@@ -112,7 +114,7 @@ void ReSearchWidget::showRepeatImage()
 		QString ps_id = db.processedSampleId(ps);
 
 		//find image
-		FileLocation gsvar_loc = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR); //TODO Marc+Alexandr: use end-point to determine PS hash, not the GSvar URL string!
+		FileLocation gsvar_loc = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR);
 		FileLocationProviderRemote flpr(gsvar_loc.filename);
 		FileLocation image_loc = flpr.getRepeatExpansionImage(name);
 		if (!image_loc.exists) //support repeats with underscore in name

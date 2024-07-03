@@ -2370,78 +2370,82 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	return output;
 }
 
-void Statistics::countCoverageWithoutBaseQuality(
-		QVector<int>& roi_cov,
-		int ol_start,
-		int ol_end)
+BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool is_high, bool random_access, bool debug)
 {
-	for (int p=ol_start; p<=ol_end; ++p)
-	{
-		++roi_cov[p];
-	}
-}
+	//check BED is sorted for WGS mode
+	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
 
-void Statistics::countCoverageWithBaseQuality(
-		int min_baseq,
-		QVector<int>& roi_cov,
-		int start,
-		int ol_start,
-		int ol_end,
-		QBitArray& base_qualities,
-		const BamAlignment& al)
-{
-	int quality_pos = std::max(start, al.start()) - al.start();
-	al.qualities(base_qualities, min_baseq, al.end() - al.start() + 1);
-	for (int p=ol_start; p<=ol_end; ++p)
-	{
-		if(base_qualities.testBit(quality_pos))
-		{
-			++roi_cov[p];
-		}
-		++quality_pos;
-	}
-}
-
-void Statistics::countCoverageWGSWithoutBaseQuality(
-		int start,
-		int end,
-		QVector<unsigned char>& cov)
-{
-	for (int p=start; p<end; ++p)
-	{
-		if (cov[p]<254) ++cov[p];
-	}
-}
-
-void Statistics::countCoverageWGSWithBaseQuality(
-		int min_baseq,
-		QVector<unsigned char>& cov,
-		int start,
-		int end,
-		QBitArray& base_qualities,
-		const BamAlignment& al)
-{
-	al.qualities(base_qualities, min_baseq, end - start);
-	int quality_pos = 0;
-	for (int p=start; p<end; ++p)
-	{
-		if(base_qualities.testBit(quality_pos))
-		{
-			if (cov[p]<254) ++cov[p];
-		}
-		++quality_pos;
-	}
-}
-
-BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, const bool is_high)
-{
 	//create analysis chunks (200 lines)
-	QList<WorkerLowOrHighCoverageBed::BedChunk> bed_chunks;
-	for (int start=0; start<bed_file.count(); start += 200)
+	QTime timer;
+	timer.start();
+	QList<WorkerLowOrHighCoverage::Chunk> bed_chunks;
+	if (!random_access)
 	{
-		int end = start+199;
-		if (end>=bed_file.count()) end = bed_file.count() -1;
-		bed_chunks << WorkerLowOrHighCoverageBed::BedChunk{bed_file, start, end, QString(), BedFile{}};
+		//determine chr chunks
+		QList<QPair<long, WorkerLowOrHighCoverage::Chunk>> chunks_with_size;
+		foreach(const Chromosome& chr, bed_file.chromosomes())
+		{
+			//determine start index
+			int start = -1;
+			for (int i=0; i<bed_file.count(); ++i)
+			{
+				if (bed_file[i].chr()==chr)
+				{
+					start = i;
+					break;
+				}
+			}
+
+			//determine end index
+			int end = -1;
+			for (int i=bed_file.count()-1; i>=0; --i)
+			{
+				if (bed_file[i].chr()==chr)
+				{
+					end = i;
+					break;
+				}
+			}
+
+			//deterine base count of chunks
+			long bases = 0;
+			for (int i=start; i<=end; ++i)
+			{
+				bases += bed_file[i].length();
+			}
+			chunks_with_size << qMakePair(bases,  WorkerLowOrHighCoverage::Chunk{bed_file, start, end, "", BedFile()});
+		}
+
+		//sort chunks by size
+		std::sort(chunks_with_size.begin(), chunks_with_size.end(),
+			[](const QPair<long, WorkerLowOrHighCoverage::Chunk>& a, const QPair<long, WorkerLowOrHighCoverage::Chunk>& b)
+			{
+				return a.first > b.first;
+			}
+		);
+
+		//add chunks ordered by size
+		foreach(const auto& entry, chunks_with_size)
+		{
+			bed_chunks << entry.second;
+		}
+	}
+	else
+	{
+		for (int start=0; start<bed_file.count(); start += 200)
+		{
+			int end = start+199;
+			if (end>=bed_file.count()) end = bed_file.count() -1;
+			bed_chunks << WorkerLowOrHighCoverage::Chunk{bed_file, start, end, QString(), BedFile{}};
+		}
+	}
+
+	//debug output
+	if (debug)
+	{
+		QTextStream out(stdout);
+		out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << endl;
+		out << "Creating " << bed_chunks.count() << " chunks took " << Helper::elapsedTime(timer) << endl;
 	}
 
 	//create thread pool
@@ -2451,16 +2455,29 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	//start analysis chunks (of 200 lines)
 	for (int i=0; i<bed_chunks.count(); ++i)
 	{
-		WorkerLowOrHighCoverageBed* worker = new WorkerLowOrHighCoverageBed(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high);
-		thread_pool.start(worker);
+
+		if (!random_access)
+		{
+			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
+			thread_pool.start(worker);
+		}
+		else
+		{
+
+			WorkerLowOrHighCoverage* worker = new WorkerLowOrHighCoverage(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
+			thread_pool.start(worker);
+		}
 	}
 
 	//wait until finished
 	thread_pool.waitForDone();
 	BedFile output;
 
+	//debug output
+	if (debug) QTextStream(stdout) << "Writing output" << endl;
+
 	//check for errors and merge results
-	foreach(const WorkerLowOrHighCoverageBed::BedChunk& bed_chunk, bed_chunks)
+	foreach(const WorkerLowOrHighCoverage::Chunk& bed_chunk, bed_chunks)
 	{
 		if (!bed_chunk.error.isEmpty()) THROW(Exception, bed_chunk.error);
 
@@ -2471,45 +2488,6 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	}
 
 	output.merge(true, true, true);
-	return output;
-}
-
-BedFile Statistics::lowOrHighCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, const bool is_high)
-{
-	//create analysis chunks (one chunk per chromosome)
-	QList<WorkerLowOrHighCoverageChr::ChrChunk> chr_chunks;
-	BamReader reader(bam_file, ref_file);
-	foreach(const Chromosome& chr, reader.chromosomes())
-	{
-		if (!chr.isNonSpecial()) continue;
-		chr_chunks << WorkerLowOrHighCoverageChr::ChrChunk{chr, 0, reader.chromosomeSize(chr), QString(), BedFile{}};
-	}
-
-	//create thread pool
-	QThreadPool thread_pool;
-	thread_pool.setMaxThreadCount(threads);
-
-	//start analysis: one worker per chromosome
-	for (int i=0; i<chr_chunks.count(); ++i)
-	{
-		WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(chr_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high);
-		thread_pool.start(worker);
-	}
-
-	//wait until finished
-	thread_pool.waitForDone();
-	BedFile output;
-	//check for errors and merge results
-	foreach(const WorkerLowOrHighCoverageChr::ChrChunk& chr_chunk, chr_chunks)
-	{
-		if (!chr_chunk.error.isEmpty()) THROW(Exception, chr_chunk.error);
-		for (int l=0; l<chr_chunk.output.count(); ++l)
-		{
-			output.append(chr_chunk.output[l]);
-		}
-	}
-
-	output.merge();
 	return output;
 }
 
@@ -2539,19 +2517,14 @@ double Statistics::yxRatio(BamReader& reader)
 	return reads_y / reads_x;
 }
 
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool random_access, bool debug)
 {
-	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false);
-}
-
-BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
-{
-	return lowOrHighCoverage(bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false);
+	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false, random_access, debug);
 }
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file, bool random_access, bool debug)
 {
-	//check BED is sorted for WGS mode
+	//check BED is sorted for chromosomal sweep algorithm
 	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
 
 	//create analysis chunks
@@ -2603,7 +2576,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			}
 		);
 
-		//add chunks by size
+		//add chunks ordered by size
 		foreach(const auto& entry, chunks_with_size)
 		{
 			chunks << entry.second;
@@ -2657,14 +2630,9 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 }
 
-BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool random_access, bool debug)
 {
-	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true);
-}
-
-BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
-{
-	return lowOrHighCoverage(bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true);
+	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true, random_access, debug);
 }
 
 GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file, bool include_single_end_reads)
