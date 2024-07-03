@@ -604,21 +604,25 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << endl;
 		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b></p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>PRS</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << endl;
+		int id_idx = data_.prs.columnIndex("pgs_id");
 		int trait_idx = data_.prs.columnIndex("trait");
 		int score_idx = data_.prs.columnIndex("score");
 		int citation_idx = data_.prs.columnIndex("citation");
 		for (int r=0; r<data_.prs.rowCount(); ++r)
 		{
 			const QStringList& row = data_.prs.row(r);
+			QString id = row[id_idx];
 			QString trait = row[trait_idx];
 			QString score = row[score_idx];
 			QString zscore = "n/a";
 			QString population = NGSHelper::populationCodeToHumanReadable(processed_sample_data.ancestry);
-			if (trait=="Breast Cancer") // mean and standard deviation for BCAC313 taken from https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS
+
+			//calcualte z-score - mean and standard deviation are taken from https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS
+			if (id=="BRIDGES_306")
 			{
-				double mean = -0.424;
-				double stdev = 0.611;
+				double mean = -0.422;
+				double stdev = 0.608;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
 				zscore = QString::number(zscore_num, 'f', 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
@@ -630,8 +634,19 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					zscore = "(" + zscore + ")";
 				}
 			}
+			if (id=="OCAC_36")
+			{
+				double mean = -0.259;
+				double stdev = 0.315;
+				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
+				zscore = QString::number(zscore_num, 'f', 3);
+				if (population!=NGSHelper::populationCodeToHumanReadable("EUR") || processed_sample_data.gender=="male")
+				{
+					zscore = "(" + zscore + ")";
+				}
+			}
 
-			stream << "<tr><td>" << trait << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
+			stream << "<tr><td>" << trait << "</td><td>" << id << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
 
 		}
 		stream << "</table>" << endl;
