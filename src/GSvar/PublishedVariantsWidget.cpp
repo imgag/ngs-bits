@@ -14,7 +14,7 @@
 #include "LoginManager.h"
 
 //TODO: change back
-const bool test_run = true;
+const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
@@ -302,7 +302,14 @@ void PublishedVariantsWidget::updateTable()
 
 	//set tool tips
 	ui_->table->showTextAsTooltip("errors");
-	ui_->table->showTextAsTooltip("details");
+
+	//set custom tooltip for details
+	int details_idx = ui_->table->columnIndex("details");
+	for (int row_idx=0; row_idx < ui_->table->rowCount(); row_idx++)
+	{
+		QString tool_tip = ui_->table->item(row_idx, details_idx)->text().replace(";", "\n").replace("=", ":\t");
+		ui_->table->item(row_idx, details_idx)->setToolTip(tool_tip);
+	}
 
 	QApplication::restoreOverrideCursor();
 }

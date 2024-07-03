@@ -21,7 +21,7 @@
 #include <QInputDialog>
 
 
-const bool test_run = true;
+const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
@@ -412,7 +412,7 @@ void ClinvarUploadDialog::upload()
 	{
 		//get json file for debug
 		QJsonDocument json_doc = QJsonDocument(clinvar_submission);
-		QSharedPointer<QFile> json_file = Helper::openFileForWriting("T:/users/ahschul1/backup/projects/2024_06_ClinVar-Update/+data_nb/" + clinvar_upload_data_.processed_sample + "_" + Helper::dateTime("yyyyMMdd_hhmmss") + ".json");
+		QSharedPointer<QFile> json_file = Helper::openFileForWriting(clinvar_upload_data_.processed_sample + "_" + Helper::dateTime("yyyyMMdd_hhmmss") + ".json");
 		json_file->write(json_doc.toJson());
 		json_file->close();
 	}
@@ -613,9 +613,7 @@ void ClinvarUploadDialog::upload()
 				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
-			//TODO: change
-//			if (!test_run)
-			if (true)
+			if (!test_run)
 			{
 				// log publication in NGSD
 				if (manual_upload_)
@@ -721,8 +719,7 @@ void ClinvarUploadDialog::upload()
 
             ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
 
-			//TODO: re-activate
-//			if (!test_run)
+			if (!test_run)
 			{
 				//write report file to transfer folder
 				QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
@@ -1163,6 +1160,15 @@ bool ClinvarUploadDialog::checkGuiData()
 							   + ((clinvar_upload_data_.stable_id.isEmpty())?"":"The variant will be replaced on ClinVar. ")
 							   + "</font><br>"
 							   + upload_details_var2.replace("\n", "<br>").replace("%20", " ");
+	}
+
+	//TODO: remove if fixed by ClinVar
+	if (clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous
+		&& (clinvar_upload_data_.variant_type1 == VariantType::CNVS || clinvar_upload_data_.variant_type2 == VariantType::CNVS
+			|| clinvar_upload_data_.variant_type1 == VariantType::SVS || clinvar_upload_data_.variant_type2 == VariantType::SVS))
+	{
+		upload_comment_text << QString("<font color='red'>WARNING: Your compund heterozygous variant pair contains a CNV/SV.")
+							   + " There is currently a problem with the ClinVar API that some of these variants fail to upload or process. We don't know when it will be fixed.</font><br>";
 	}
 
     //show error or enable upload button
