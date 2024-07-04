@@ -291,6 +291,9 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 
 void ClinvarUploadDialog::initGui()
 {
+	//set title for test run
+	if (test_run) this->setWindowTitle(this->windowTitle() + " (TEST_MODE!)");
+
     // set combobox entries
     ui_.cb_clin_sig_desc->addItems(CLINICAL_SIGNIFICANCE_DESCRIPTION);
     ui_.cb_inheritance->addItems(MODE_OF_INHERITANCE);
@@ -1025,7 +1028,7 @@ bool ClinvarUploadDialog::checkGuiData()
 
 			// check copy number
 			int_value = ui_.le_cn_cnv2->text().toInt(&ok);
-			if ( !ok || (int_value < 1))
+			if ( !ok || (int_value < 0))
 			{
 				errors << "Invalid CNV copy number '" + ui_.le_cn_cnv2->text() + "' for CNV 2!";
 			}
@@ -1157,6 +1160,15 @@ bool ClinvarUploadDialog::checkGuiData()
 							   + ((clinvar_upload_data_.stable_id.isEmpty())?"":"The variant will be replaced on ClinVar. ")
 							   + "</font><br>"
 							   + upload_details_var2.replace("\n", "<br>").replace("%20", " ");
+	}
+
+	//TODO: remove if fixed by ClinVar
+	if (clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous
+		&& (clinvar_upload_data_.variant_type1 == VariantType::CNVS || clinvar_upload_data_.variant_type2 == VariantType::CNVS
+			|| clinvar_upload_data_.variant_type1 == VariantType::SVS || clinvar_upload_data_.variant_type2 == VariantType::SVS))
+	{
+		upload_comment_text << QString("<font color='red'>WARNING: Your compund heterozygous variant pair contains a CNV/SV.")
+							   + " There is currently a problem with the ClinVar API that some of these variants fail to upload or process. We don't know when it will be fixed.</font><br>";
 	}
 
     //show error or enable upload button
@@ -1454,35 +1466,35 @@ QJsonObject ClinvarUploadDialog::createJson()
 	//json.insert("clinvarDeletion", "");
 
     //required
-    QJsonObject clinvar_submission;
+	QJsonObject germline_submission;
     {
         //required
-        QJsonObject clinical_significance;
+		QJsonObject germline_classification;
         {
             //required
-            clinical_significance.insert("clinicalSignificanceDescription", ui_.cb_clin_sig_desc->currentText());
+			germline_classification.insert("germlineClassificationDescription", ui_.cb_clin_sig_desc->currentText());
 
             //optional
             if (!ui_.le_clin_sig_desc_comment->text().trimmed().isEmpty())
             {
-                clinical_significance.insert("comment", ui_.le_clin_sig_desc_comment->text());
+				germline_classification.insert("comment", ui_.le_clin_sig_desc_comment->text());
             }
 
             //optional
-            clinical_significance.insert("dateLastEvaluated", ui_.de_last_eval->date().toString("yyyy-MM-dd"));
+			germline_classification.insert("dateLastEvaluated", ui_.de_last_eval->date().toString("yyyy-MM-dd"));
 
             //optional
             if (!ui_.cb_inheritance->currentText().trimmed().isEmpty())
             {
-                clinical_significance.insert("modeOfInheritance", ui_.cb_inheritance->currentText());
+				germline_classification.insert("modeOfInheritance", ui_.cb_inheritance->currentText());
             }
         }
-        clinvar_submission.insert("clinicalSignificance", clinical_significance);
+		germline_submission.insert("germlineClassification", germline_classification);
 
         //optional
 		if (!clinvar_upload_data_.stable_id.isEmpty())
 		{
-			clinvar_submission.insert("clinvarAccession", clinvar_upload_data_.stable_id);
+			germline_submission.insert("clinvarAccession", clinvar_upload_data_.stable_id);
 		}
 
         //required
@@ -1528,15 +1540,15 @@ QJsonObject ClinvarUploadDialog::createJson()
             }
             condition_set.insert("condition", condition);
         }
-        clinvar_submission.insert("conditionSet", condition_set);
+		germline_submission.insert("conditionSet", condition_set);
 
 		// only for upload from NGSD variants:
 		if (!manual_upload_)
 		{
 			//optional
-			clinvar_submission.insert("localID", QString::number(clinvar_upload_data_.variant_id1));
+			germline_submission.insert("localID", QString::number(clinvar_upload_data_.variant_id1));
 			//optional
-			clinvar_submission.insert("localKey", getDbTableName(false) + ":" + QString::number(clinvar_upload_data_.report_variant_config_id1));
+			germline_submission.insert("localKey", getDbTableName(false) + ":" + QString::number(clinvar_upload_data_.report_variant_config_id1));
 		}
 
         //required
@@ -1579,10 +1591,10 @@ QJsonObject ClinvarUploadDialog::createJson()
             //observed_in.insert("structVarMethodType", ui_.cb_method_type->currentText());
 
         }
-        clinvar_submission.insert("observedIn", QJsonArray() << observed_in);
+		germline_submission.insert("observedIn", QJsonArray() << observed_in);
 
         //required
-		clinvar_submission.insert("recordStatus", (clinvar_upload_data_.stable_id.isEmpty())?"novel":"update");
+		germline_submission.insert("recordStatus", (clinvar_upload_data_.stable_id.isEmpty())?"novel":"update");
 
         //required
 		QJsonObject variant_set1;
@@ -1891,16 +1903,16 @@ QJsonObject ClinvarUploadDialog::createJson()
 			var_set_item2.insert("variantSet", variant_set2);
 			variant_sets.append(var_set_item2);
 			compound_heterozygote_set.insert("variantSets", variant_sets);
-			clinvar_submission.insert("compoundHeterozygoteSet", compound_heterozygote_set);
+			germline_submission.insert("compoundHeterozygoteSet", compound_heterozygote_set);
 		}
 		else
 		{
 			//single variant case
-			clinvar_submission.insert("variantSet", variant_set1);
+			germline_submission.insert("variantSet", variant_set1);
 		}
 
     }
-    json.insert("clinvarSubmission", QJsonArray() << clinvar_submission);
+	json.insert("germlineSubmission", QJsonArray() << germline_submission);
 
     //optional
     //json.insert("submissionName", "");
@@ -1928,24 +1940,24 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 {
     bool is_valid = true;
     // check clinvarSubmission
-    if (!json.contains("clinvarSubmission"))
+	if (!json.contains("germlineSubmission"))
     {
-        errors << "Required JSON object 'clinvarSubmission' missing!";
+		errors << "Required JSON object 'germlineSubmission' missing!";
         return false;
     }
 
-    QJsonArray clinvar_submission_array = json.value("clinvarSubmission").toArray();
-    if (clinvar_submission_array.size() < 1)
+	QJsonArray germline_submission_array = json.value("germlineSubmission").toArray();
+	if (germline_submission_array.size() < 1)
     {
-        errors << "No entry in 'clinvarSubmission'!";
+		errors << "No entry in 'germlineSubmission'!";
         return false;
     }
-    else if (clinvar_submission_array.size() > 1)
+	else if (germline_submission_array.size() > 1)
     {
-        errors << "Multiple entries in 'clinvarSubmission'!";
+		errors << "Multiple entries in 'germlineSubmission'!";
         return false;
     }
-    QJsonObject clinvar_submission = clinvar_submission_array[0].toObject();
+	QJsonObject clinvar_submission = germline_submission_array[0].toObject();
 
     // check required entries
     if (clinvar_submission.contains("recordStatus"))
@@ -1963,28 +1975,28 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
         is_valid = false;
     }
 
-    if (clinvar_submission.contains("clinicalSignificance"))
+	if (clinvar_submission.contains("germlineClassification"))
     {
-        //parse clinicalSignificance
-        QJsonObject clinical_significance = clinvar_submission.value("clinicalSignificance").toObject();
-        if (clinical_significance.contains("clinicalSignificanceDescription"))
+		//parse germlineClassification
+		QJsonObject germline_classification = clinvar_submission.value("germlineClassification").toObject();
+		if (germline_classification.contains("germlineClassificationDescription"))
         {
-            if (!CLINICAL_SIGNIFICANCE_DESCRIPTION.contains(clinical_significance.value("clinicalSignificanceDescription").toString()))
+			if (!CLINICAL_SIGNIFICANCE_DESCRIPTION.contains(germline_classification.value("germlineClassificationDescription").toString()))
             {
-                errors << "Invalid entry '" + clinical_significance.value("clinicalSignificanceDescription").toString() + "' in 'clinicalSignificanceDescription'!";
+				errors << "Invalid entry '" + germline_classification.value("germlineClassificationDescription").toString() + "' in 'germlineClassificationDescription'!";
                 is_valid = false;
             }
         }
         else
         {
-            errors << "Required string 'clinicalSignificanceDescription' in 'clinicalSignificance' missing!";
+			errors << "Required string 'germlineClassificationDescription' in 'germlineClassification' missing!";
             is_valid = false;
         }
 
     }
     else
     {
-        errors << "Required string 'clinicalSignificance' in 'clinvarSubmission' missing!";
+		errors << "Required string 'germlineClassification' in 'clinvarSubmission' missing!";
         is_valid = false;
     }
 

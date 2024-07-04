@@ -6068,8 +6068,8 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	{
 		QStringList lanes = query.value("lane").toString().split(",");
 		QString ps_name = query.value("ps_name").toString();
-		Sequence mid1 = Sequence(query.value("mid1").toByteArray());
-		Sequence mid2 = Sequence(query.value("mid2").toByteArray());
+		Sequence mid1 = Sequence(query.value("mid1").toByteArray()).trimmed();
+		Sequence mid2 = Sequence(query.value("mid2").toByteArray()).trimmed();
 		QString sample_type = query.value("sample_type").toString();
 		QByteArray system_type = query.value("system_type").toByteArray();
 		QByteArray system_name = query.value("system_name").toByteArray();
