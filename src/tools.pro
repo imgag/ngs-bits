@@ -583,3 +583,8 @@ VcfMerge.depends = cppNGS
 SUBDIRS += NGSDExportIgvGeneTrack
 tools-TEST.depends += NGSDExportIgvGeneTrack
 NGSDExportIgvGeneTrack.depends = cppNGSD
+
+SUBDIRS += ExtractMethylationData
+tools-TEST.depends += ExtractMethylationData
+ExtractMethylationData.depends = cppNGS
+
