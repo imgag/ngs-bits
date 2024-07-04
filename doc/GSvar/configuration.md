@@ -19,6 +19,7 @@ The settings are:
 - *genlab\_...*: Database credentials for the GenLab (if available)
 - *projects\_folder\_...*: Prject data folders for different project types (diagnostic, research, test, external)
 - *data\_folder*: megSAP data folder used to find target region BED files of processing systems
+- *use_proxy_for_gsvar_server*: for using an external GSvar server should be set to True (if your network is behind a HTTP proxy server)
 
 ### GSvar.ini
 

@@ -755,3 +755,38 @@ QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant
 
 	return annotations;
 }
+
+QString GSvarHelper::appPathForTemplate(QString path)
+{
+    QString app_path_auto_template = "[APP_PATH_AUTO]";
+    QString app_path_windows_template = "[APP_PATH_WINDOWS]";
+    QString app_path_unix_template = "[APP_PATH_UNIX]";
+
+    QString windows_sep = "\\";
+    QString unix_sep = "/";
+
+    QString win_app_path = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
+    QString unix_app_path = QCoreApplication::applicationDirPath();
+
+    if (!win_app_path.endsWith(windows_sep)) win_app_path = win_app_path + windows_sep;
+    if (!unix_app_path.endsWith(unix_sep)) unix_app_path = unix_app_path + unix_sep;
+
+    path = path.replace(app_path_windows_template, win_app_path);
+    path = path.replace(app_path_unix_template, unix_app_path);
+
+    if (path.contains(app_path_auto_template))
+    {
+        if (Helper::isWindows())
+        {
+            path = path.replace(unix_sep, windows_sep);
+            path = path.replace(app_path_auto_template, win_app_path);
+        }
+        else
+        {
+            path = path.replace(windows_sep, unix_sep);
+            path = path.replace(app_path_auto_template, unix_app_path);
+        }
+    }
+
+    return path;
+}
