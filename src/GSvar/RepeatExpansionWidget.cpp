@@ -50,7 +50,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	sys_type_ = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer LIKE '" + sys_name_ + "'").toString();
 	if (sys_type_=="WGS" || sys_type_=="WES")
 	{
-		sys_type_cutoff_col_ = "staticial_cutoff_wgs";
+		sys_type_cutoff_col_ = "statisticial_cutoff_wgs";
 
 		//hide lrGS column
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
@@ -58,7 +58,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	}
 	else if (sys_type_=="lrGS")
 	{
-		sys_type_cutoff_col_ = "staticial_cutoff_lrgs";
+		sys_type_cutoff_col_ = "statisticial_cutoff_lrgs";
 
 		//hide srGS columns
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads spanning"), true);
