@@ -140,6 +140,11 @@ void DBEditor::createGUI()
 			DBTable entries = db_.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value");
 			selector->fill(entries, field_info.is_nullable);
 
+			//adjusting the size hint to the content can be slow, thus we use the fixed size.
+			//the size hint is not used anyway because the layout determines the size.
+			selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+			selector->setMinimumWidth(400);
+
 			//Handle rare case that mandatory FK points to empty table.
 			if (entries.rowCount()==0 && !field_info.is_nullable)
 			{

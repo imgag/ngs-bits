@@ -272,6 +272,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("processed sample: NA12878_58", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addAction("processed sample: NA12878x3_28", this, SLOT(openDebugTab()));
 		debug_btn->menu()->addAction("processed sample: 23014LRa023L2_01", this, SLOT(openDebugTab()));
+		debug_btn->menu()->addAction("processed sample: DNA2405534A1_01", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
 	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
