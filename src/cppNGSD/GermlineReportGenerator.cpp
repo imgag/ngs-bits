@@ -645,6 +645,21 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					zscore = "(" + zscore + ")";
 				}
 			}
+			if (id=="PGS000004") //Mavaddat BCAC 313 - replaced by BRIDGES_306 - code present for legacy data only
+			{
+				double mean = -0.424;
+				double stdev = 0.611;
+				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
+				zscore = QString::number(zscore_num, 'f', 3);
+				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
+				{
+					zscore = "<b>" + zscore + "</b>";
+				}
+				if (population!=NGSHelper::populationCodeToHumanReadable("EUR") || processed_sample_data.gender=="male")
+				{
+					zscore = "(" + zscore + ")";
+				}
+			}
 
 			stream << "<tr><td>" << trait << "</td><td>" << id << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
 
