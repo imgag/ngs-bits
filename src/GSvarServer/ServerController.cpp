@@ -505,32 +505,6 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse ServerController::getProcessedSampleHash(const HttpRequest& request)
-{
-    QString found_file_path;
-    try
-    {
-        PathType type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
-        found_file_path = getProcessedSampleFile(request.getUrlParams()["ps_id"].toInt(), type, EndpointManager::getTokenIfAvailable(request));
-    }
-    catch (HttpException& e)
-    {
-        return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
-    }
-    catch (Exception& e)
-    {
-        return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
-    }
-
-    QString url_hash = addFileToTempStorage(found_file_path);
-    BasicResponseData response_data;
-    response_data.length = url_hash.toUtf8().length();
-    response_data.content_type = request.getContentType();
-    response_data.is_downloadable = false;
-
-    return HttpResponse(response_data, url_hash.toUtf8());
-}
-
 HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
 {
 	QString ps_name;

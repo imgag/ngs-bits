@@ -208,20 +208,6 @@ int main(int argc, char **argv)
                         &ServerController::getProcessedSamplePath
 					});
 
-    EndpointManager::appendEndpoint(Endpoint{
-                        "processed_sample_hash",
-                        QMap<QString, ParamProps> {
-                            {"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}},
-                            {"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "File type"}},
-                            {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
-                        },
-                        RequestMethod::GET,
-                        ContentType::TEXT_PLAIN,
-                        AuthType::USER_TOKEN,
-                        "Temporary URL id (hash) for a specific processed sample",
-                        &ServerController::getProcessedSampleHash
-                });
-
 	EndpointManager::appendEndpoint(Endpoint{
 						"analysis_job_gsvar_file",
 						QMap<QString, ParamProps> {
