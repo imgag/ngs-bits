@@ -1,11 +1,15 @@
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
+#include "SgeStatusUpdateWorker.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
     , cleanup_pool_()
+    , sge_status_pool_()
 {
     cleanup_pool_.setMaxThreadCount(1);
+    sge_status_pool_.setMaxThreadCount(1);
+
     QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
 	if (ssl_certificate.isEmpty())
 	{
@@ -68,6 +72,11 @@ ServerWrapper::ServerWrapper(const quint16& port)
             QTimer *session_timer = new QTimer(this);
             connect(session_timer, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));
             session_timer->start(60 * 5 * 1000); // every 5 minutes
+
+            // Update SGE status every minute
+            QTimer *sge_status_update_timer = new QTimer(this);
+            connect(sge_status_update_timer, SIGNAL(timeout()), this, SLOT(updateSgeStatus()));
+            sge_status_update_timer->start(60 * 1 * 1000); // every 1 minute
 
             // ClinVar submission status automatic update on schedule
             QTimer *clinvar_timer = new QTimer(this);
@@ -256,5 +265,24 @@ void ServerWrapper::cleanupSessionsAndUrls()
     catch (...)
     {
         Log::error("Unexpected error while trying to cleanup and backup sessions and URLs");
+    }
+}
+
+void ServerWrapper::updateSgeStatus()
+{
+    try
+    {
+        if (sge_status_pool_.activeThreadCount() > 0) return;
+        Log::info("Updating SGE on timer");
+        SgeStatusUpdateWorker *sge_worker = new SgeStatusUpdateWorker();
+        sge_status_pool_.start(sge_worker);
+    }
+    catch(Exception& e)
+    {
+        Log::error("An error has happend while updating SGE: " + e.message());
+    }
+    catch (...)
+    {
+        Log::error("Unexpected error while trying to update SGE");
     }
 }

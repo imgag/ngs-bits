@@ -1,7 +1,6 @@
 #ifndef SERVERWRAPPER_H
 #define SERVERWRAPPER_H
 
-#include "cppREST_global.h"
 #include <QObject>
 #include <QFile>
 #include <QSslCertificate>
@@ -31,6 +30,7 @@ public slots:
 	void updateInfoForUsers(QString str);
     void switchLogFile();
     void cleanupSessionsAndUrls();
+    void updateSgeStatus();
 
 private:
 	ClientInfo readClientInfoFromFile();
@@ -39,6 +39,7 @@ private:
 	SslServer *server_;
     bool is_running_;
     QThreadPool cleanup_pool_;
+    QThreadPool sge_status_pool_;
 };
 
 #endif // SERVERWRAPPER_H

@@ -21,5 +21,4 @@ private:
 
 };
 
-
 #endif // SESSIONANDURLBACKUPwORKER_H
