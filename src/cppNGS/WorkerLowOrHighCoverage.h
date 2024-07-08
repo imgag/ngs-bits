@@ -4,6 +4,7 @@
 #include <QRunnable>
 #include "BedFile.h"
 #include "BamReader.h"
+#include "ChromosomalIndex.h"
 
 class WorkerLowOrHighCoverage : public QRunnable
 {
@@ -48,11 +49,12 @@ class WorkerLowOrHighCoverageChr : public QRunnable
 {
 public:
 
-	WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::Chunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug);
+	WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::Chunk& bed_chunk, const ChromosomalIndex<BedFile>& bed_index, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug);
 	virtual void run() override;
 
 private:
 	WorkerLowOrHighCoverage::Chunk& chunk_;
+	const ChromosomalIndex<BedFile>& bed_index_;
 	QString bam_file_;
 	int cutoff_;
 	int min_mapq_;

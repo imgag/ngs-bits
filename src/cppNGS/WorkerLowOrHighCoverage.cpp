@@ -120,9 +120,10 @@ void WorkerLowOrHighCoverage::run()
 	}
 }
 
-WorkerLowOrHighCoverageChr::WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::Chunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug)
+WorkerLowOrHighCoverageChr::WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::Chunk& bed_chunk, const ChromosomalIndex<BedFile>& bed_index, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug)
 	: QRunnable()
 	, chunk_(bed_chunk)
+	, bed_index_(bed_index)
 	, bam_file_(bam_file)
 	, cutoff_(cutoff)
 	, min_mapq_(min_mapq)
@@ -137,27 +138,34 @@ void WorkerLowOrHighCoverageChr::run()
 {
 	try
 	{
-		QTime timer;
-		timer.start();
+		//sanity checks
+		if (chunk_.start<0) THROW(ArgumentException, "Chunk start index is less than zero!");
+		if (chunk_.start>chunk_.end) THROW(ArgumentException, "Chunk start index is after chunk end index!");
+		if (chunk_.end>=chunk_.data.count()) THROW(ArgumentException, "Chunk end index is behind data end!");
 		if (cutoff_>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
+		//init
+		Chromosome chr = chunk_.data[chunk_.start].chr();
+		if (debug_) QTextStream(stdout) << "Sarting processing chromosome " << chr.str() << endl;
+		QTime timer;
+		timer.start();
+
 		//open BAM file
+		if (debug_) QTextStream(stdout) << "Opening BAM reader for " << chr.str() << endl;
 		BamReader reader(bam_file_, ref_file_);
-		ChromosomalIndex<BedFile> bed_index(chunk_.data);
 
 		//fill coverage array
-		Chromosome chr = chunk_.data[chunk_.start].chr();
+		if (debug_) QTextStream(stdout) << "Determining chromosome size for " << chr.str() << endl;
 		int max_pos = reader.chromosomeSize(chr);
-		if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " - max position=" << max_pos << " start index=" << chunk_.start << " end index=" << chunk_.end << endl;
+		if (debug_) QTextStream(stdout) << "creating coverage array for " << chr.str() << endl;
 		QVector<unsigned char> cov;
 		cov.fill(0, max_pos+1);
 
-		//jump to chromosome
-		reader.setRegion(chr, 0, max_pos);
-
 		//iterate through all alignments
+		if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " - max position=" << max_pos << " start index=" << chunk_.start << " end index=" << chunk_.end << endl;
 		BamAlignment al;
 		QBitArray base_qualities;
+		reader.setRegion(chr, 0, max_pos);
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
@@ -167,7 +175,7 @@ void WorkerLowOrHighCoverageChr::run()
 			//check if read overlaps with BED file
 			int start = al.start();
 			int end = al.end();
-			if (bed_index.matchingIndex(chr, start, end)==-1) continue;
+			if (bed_index_.matchingIndex(chr, start, end)==-1) continue;
 
 			if (min_baseq_>0)
 			{

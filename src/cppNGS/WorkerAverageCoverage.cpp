@@ -80,6 +80,7 @@ void WorkerAverageCoverageChr::run()
 {
 	try
 	{
+
 		//init
 		QTime timer;
 		timer.start();

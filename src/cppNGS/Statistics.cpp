@@ -2446,37 +2446,45 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 		QTextStream out(stdout);
 		out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << endl;
 		out << "Creating " << bed_chunks.count() << " chunks took " << Helper::elapsedTime(timer) << endl;
+		out << "Starting processing chunks with " << threads << " threads" << endl;
 	}
 
 	//create thread pool
 	QThreadPool thread_pool;
 	thread_pool.setMaxThreadCount(threads);
 
-	//start analysis chunks (of 200 lines)
+	//start analysis chunks
 	for (int i=0; i<bed_chunks.count(); ++i)
 	{
-
 		if (!random_access)
 		{
-			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
+			if (debug) QTextStream(stdout) << "Creating BED index" << endl;
+			ChromosomalIndex<BedFile> bed_index(bed_file);
+
+			if (debug) QTextStream(stdout) << "Starting worker " << i << endl;
+			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bed_index, bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
 			thread_pool.start(worker);
+
+			//wait until finished
+			if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << endl;
+			thread_pool.waitForDone();
 		}
 		else
 		{
-
 			WorkerLowOrHighCoverage* worker = new WorkerLowOrHighCoverage(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
 			thread_pool.start(worker);
+
+			//wait until finished
+			if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << endl;
+			thread_pool.waitForDone();
 		}
 	}
-
-	//wait until finished
-	thread_pool.waitForDone();
-	BedFile output;
 
 	//debug output
 	if (debug) QTextStream(stdout) << "Writing output" << endl;
 
 	//check for errors and merge results
+	BedFile output;
 	foreach(const WorkerLowOrHighCoverage::Chunk& bed_chunk, bed_chunks)
 	{
 		if (!bed_chunk.error.isEmpty()) THROW(Exception, bed_chunk.error);
