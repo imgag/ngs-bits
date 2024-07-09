@@ -13,6 +13,8 @@ ngs-bits depends on the following software to be installed
 For example, the installation of the dependencies using Ubuntu 20.04 looks like that:
 
         > sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5sql5-odbc libqt5charts5-dev libqt5svg5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
+
+For Ubuntu 22.04 use the `qtbase5-dev` package instead of `qt5-default`.
     
 ### Resolving proxy issues with git
 
