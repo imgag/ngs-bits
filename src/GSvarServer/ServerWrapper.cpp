@@ -270,6 +270,8 @@ void ServerWrapper::cleanupSessionsAndUrls()
 
 void ServerWrapper::updateSgeStatus()
 {
+    if (!Settings::boolean("queue_update_enabled", true)) return;
+
     try
     {
         if (sge_status_pool_.activeThreadCount() > 0) return;

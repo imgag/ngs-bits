@@ -57,3 +57,7 @@ thread_count = 8
 socket_read_timeout = 10
 socket_write_timeout = 10
 socket_encryption_timeout = 5
+
+#SGE
+queue_update_enabled = false
+megsap_settings_ini = "megsap_settings.ini"
