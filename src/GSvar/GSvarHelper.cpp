@@ -467,6 +467,10 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
 		{
+			//TODO: remove
+			qDebug() << "HighPriority:" << dlg.highPriority() << "Args:" << dlg.arguments();
+			foreach(auto sample, dlg.samples()) qDebug() << "Sample: " << sample.name;
+
 			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
 			return true;
 		}

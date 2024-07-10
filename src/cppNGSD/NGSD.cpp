@@ -1214,6 +1214,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	//create query
 	QString query_str ="SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short, ";
 	bool is_client = ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer();
+//	is_client = (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer()) || !ClientHelper::isClientServerMode(); //activate for debug
 	query_str += is_client ? "ps.folder_override_client, p.folder_override_client" : "ps.folder_override, p.folder_override";
 	query_str += " FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0";
 
@@ -1325,18 +1326,23 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 	{
 		QString file = output[i];
 
-		foreach(QString project_type, project_types)
-		{
-			QStringList parts = file.split("/" + project_type + "/");
-			if (parts.count()==2)
-			{
-				file = projectFolder(project_type) + parts[1];
-				break;
-			}
-		}
+		//get folder of secondary analysis
+		QString gsvar_file = QFileInfo(file).fileName();
+		QString secondary_folder_name = QFileInfo(file).dir().dirName();
+
+		//get first sample (determines path)
+		QStringList parts = secondary_folder_name.split("_");
+		QString first_sample = parts[1] + "_" + parts[2];
+		QDir sample_folder = QFileInfo(processedSamplePath(processedSampleId(first_sample), PathType::SAMPLE_FOLDER)).dir();
+		QString project_folder = QFileInfo(sample_folder.absolutePath()).absolutePath();
+
+		//concat path
+		file = project_folder + QDir::separator() + secondary_folder_name + QDir::separator() + gsvar_file;
 
 		//convert to canonical path
 		file = QFileInfo(file).absoluteFilePath();
+
+		qDebug() << "final path: " << file;
 
 		output[i] = file;
 	}

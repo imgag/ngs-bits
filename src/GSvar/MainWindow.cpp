@@ -509,22 +509,9 @@ void MainWindow::userSpecificDebugFunction()
 	}
 	else if (user=="ahschul1")
 	{
-		//Extract MANE transcript names
-		const TranscriptList transcripts = NGSD().transcripts();
-		const auto matches = NGSHelper::transcriptMatches(GenomeBuild::HG38);
-
-
-		foreach(const Transcript& trans, transcripts)
-		{
-			if (!trans.isManeSelectTranscript()) continue;
-			QByteArray enst = trans.name();
-			QByteArrayList nm;
-			foreach (const QByteArray& match, matches[enst])
-			{
-				if (match.startsWith("NM_")) nm << match;
-			}
-			if (!nm.isEmpty()) qDebug() << enst << nm.join(",");
-		}
+		qDebug() << NGSD().secondaryAnalyses("21073LRa154_01", "trio");
+//		qDebug() << NGSD().secondaryAnalyses("21073LRa033_01", "trio");
+//		qDebug() << NGSD().secondaryAnalyses("21073LRa036_01", "trio");
 
 	}
 	else if (user=="ahott1a1")
