@@ -15,7 +15,7 @@
 #include "SslServer.h"
 #include "UrlManager.h"
 
-class CPPRESTSHARED_EXPORT ServerWrapper : public QObject
+class ServerWrapper : public QObject
 {
     Q_OBJECT
 

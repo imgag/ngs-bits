@@ -192,7 +192,7 @@ class CPPNGSDSHARED_EXPORT TableInfo
 		QList<TableFieldInfo> field_infos_;
 };
 
-///Analysis job sample.
+///Analysis job sample
 struct CPPNGSDSHARED_EXPORT AnalysisJobSample
 {
 	QString name;
@@ -204,7 +204,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobSample
 	}
 };
 
-///Analysis job sample.
+///Analysis job history
 struct CPPNGSDSHARED_EXPORT AnalysisJobHistoryEntry
 {
 	QDateTime time;
@@ -231,7 +231,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJob
 	QList<AnalysisJobHistoryEntry> history;
 
 	//Returns the last status
-	QString finalStatus()
+	QString lastStatus()
 	{
 		return history.count()==0 ? "n/a" : history.last().status;
 	}
@@ -239,11 +239,14 @@ struct CPPNGSDSHARED_EXPORT AnalysisJob
 	//Returns if the job is still running
 	bool isRunning()
 	{
-		return finalStatus()=="queued" || finalStatus()=="started";
+		return lastStatus()=="queued" || lastStatus()=="started";
 	}
 
-	//Returns the run time in human-readable format (so far if still running)
+	//Returns the run time in human-readable format (if still running)
 	QString runTimeAsString() const;
+
+	//checks if the analysis job is valid. Throws an exception if not.
+	void checkValid(int ngsd_id);
 };
 
 ///Sample group information
@@ -1050,7 +1053,7 @@ public:
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
-	///Returns KASP data. Thows a DatabaseException if no valid KASP was performed for the sample.
+	///Returns KASP data. Throws a DatabaseException if no valid KASP was performed for the sample.
 	KaspData kaspData(const QString& processed_sample_id);
 
 	///Returns the next processing ID for the given sample.
@@ -1175,8 +1178,10 @@ public:
 	QString analysisJobFolder(int job_id);
 	///Return metdata for the logs of an analysis job by its id
 	FileInfo analysisJobLatestLogInfo(int job_id);
-	///Returns the GSVar file of an analysis job.
+	///Returns the GSvar file of an analysis job.
 	QString analysisJobGSvarFile(int job_id);
+	///Added a analysis history entry for a analysis job. The output in joined with newlines and truncated to 65535 characters if longer.
+	void addAnalysisHistoryEntry(int job_id, QString status, QByteArrayList output);
 
 	///Adds a gap for a sample and returns the gap ID.
 	int addGap(int ps_id, const Chromosome& chr, int start, int end, const QString& status);

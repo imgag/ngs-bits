@@ -79,7 +79,8 @@ SOURCES += BedFile.cpp \
     BigWigReader.cpp \
     VariantHgvsAnnotator.cpp \
     WorkerAverageCoverage.cpp \
-    WorkerLowOrHighCoverage.cpp
+    WorkerLowOrHighCoverage.cpp \
+    PipelineSettings.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -131,7 +132,8 @@ HEADERS += BedFile.h \
     BigWigReader.h \
     VariantHgvsAnnotator.h \
     WorkerAverageCoverage.h \
-    WorkerLowOrHighCoverage.h
+    WorkerLowOrHighCoverage.h \
+    PipelineSettings.h
 
 RESOURCES += \
     cppNGS.qrc

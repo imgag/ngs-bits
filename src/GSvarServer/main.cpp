@@ -547,13 +547,6 @@ int main(int argc, char **argv)
 		return app.exec();
 	}
 
-    if (!Settings::boolean("test_mode", true) && !ServerHelper::hasProdSettings())
-    {
-        Log::error("Server cannot be started: production settings are missing. Exiting...");
-        app.exit(EXIT_FAILURE);
-        return app.exec();
-    }
-
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
@@ -571,12 +564,16 @@ int main(int argc, char **argv)
     }
     Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):\n"+env_var_list);
 
-    if (!ServerHelper::hasMinimalSettings())
-    {
-        Log::error("Server has not been configured correctly");
-        app.exit(EXIT_FAILURE);
-        return app.exec();
-    }
+	try
+	{
+		ServerHelper::settingsValid(Settings::boolean("test_mode", true), true);
+	}
+	catch (Exception& e)
+	{
+		Log::error("Server has not been configured correctly: " + e.message());
+		app.exit(EXIT_FAILURE);
+		return app.exec();
+	}
 
     ServerDB db = ServerDB();
     db.initDbIfEmpty();

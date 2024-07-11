@@ -294,7 +294,7 @@ public:
 
 			//split and trim
 			QByteArrayList parts = line.split('\t');
-			std::for_each(parts.begin(), parts.end(), [](QByteArray& line){ line = line.trimmed(); });
+			Helper::trim(parts);
 
 			//handle header columns
 			if (line.startsWith('#'))

@@ -29,7 +29,6 @@
 #include <QChartView>
 #include <GenLabDB.h>
 #include <QToolTip>
-#include <QProcess>
 #include <QImage>
 #include <QBuffer>
 QT_CHARTS_USE_NAMESPACE

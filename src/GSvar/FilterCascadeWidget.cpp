@@ -295,7 +295,7 @@ QString FilterCascadeWidget::filtersPath(VariantType type)
 		THROW(ProgrammingException, "Unhandled variant type in FilterCascadeWidget::filtersPath()!");
 	}
 
-	if(!QFile::exists(path) && !QDir().mkpath(path))
+	if(Helper::mkdir(path)==-1)
 	{
 		THROW(ProgrammingException, "Could not create application filter path '" + path + "'!");
 	}

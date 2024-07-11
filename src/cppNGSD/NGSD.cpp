@@ -25,6 +25,7 @@
 #include "cmath"
 #include "QUuid"
 #include "ClientHelper.h"
+#include "PipelineSettings.h"
 
 
 NGSD::NGSD(bool test_db, QString test_name_override)
@@ -5494,6 +5495,27 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	return output;
 }
 
+void NGSD::addAnalysisHistoryEntry(int job_id, QString status, QByteArrayList output)
+{
+	//check status
+	QStringList status_valid = getEnum("analysis_job_history", "status");
+	if (!status_valid.contains(status)) THROW(ProgrammingException, "Invalid analysis job history status '" + status + "!");
+
+	//add status
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO analysis_job_history (analysis_job_id, status, output) VALUES (:0, :1, :2)");
+	query.bindValue(0, job_id);
+	query.bindValue(1, status);
+	QString output_str = output.join("\n");
+	if (output_str.length()>65535)
+	{
+		output_str.truncate(65535);
+		output_str.append("... (truncated)");
+	}
+	query.bindValue(2, output_str);
+	query.exec();
+}
+
 int NGSD::addGap(int ps_id, const Chromosome& chr, int start, int end, const QString& status)
 {
 	SqlQuery query = getQuery();
@@ -5643,7 +5665,7 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 
 QString NGSD::getTargetFilePath()
 {
-	return Settings::path("data_folder", false) + QDir::separator() + "enrichment" + QDir::separator();
+	return PipelineSettings::dataFolder() + QDir::separator() + "enrichment" + QDir::separator();
 }
 
 void NGSD::updateQC(QString obo_file, bool debug)
@@ -6675,7 +6697,7 @@ PhenotypeList NGSD::phenotypes(const QByteArray& symbol)
 PhenotypeList NGSD::phenotypes(QStringList search_terms)
 {
 	//trim terms and remove empty terms
-	std::for_each(search_terms.begin(), search_terms.end(), [](QString& term){ term = term.trimmed(); });
+	Helper::trim(search_terms);
 	search_terms.removeAll("");
 
 	PhenotypeList list;
@@ -9636,6 +9658,50 @@ QString AnalysisJob::runTimeAsString() const
 	parts << QString::number(s, 'f', 0) + "s";
 
 	return parts.join(" ");
+}
+
+void AnalysisJob::checkValid(int ngsd_id)
+{
+	//general checks
+	if (samples.isEmpty()) THROW(ArgumentException, "Job with NGSD id  '" + QString::number(ngsd_id) + " contains no sample!");
+
+	//get infos
+	QSet<QString> infos;
+	foreach(const AnalysisJobSample& s, samples)
+	{
+		infos << s.info;
+	}
+
+	//trio checks
+	if (type=="trio")
+	{
+		if (samples.count()!=3) THROW(ArgumentException, "Trio job with NGSD id '" + QString::number(ngsd_id) + " does not contains 3 sample!");
+
+		if (!infos.contains("child")) THROW(ArgumentException, "Trio job with NGSD id '" + QString::number(ngsd_id) + " does not contain 'child' sample!");
+		if (!infos.contains("father")) THROW(ArgumentException, "Trio job with NGSD id '" + QString::number(ngsd_id) + " does not contain 'father' sample!");
+		if (!infos.contains("mother")) THROW(ArgumentException, "Trio job with NGSD id '" + QString::number(ngsd_id) + " does not contain 'mother' sample!");
+	}
+
+	//multi-sample checks
+	if (type=="multi sample")
+	{
+		if (samples.count()<2) THROW(ArgumentException, "Trio job with NGSD id '" + QString::number(ngsd_id) + " does not contains 3 sample!");
+	}
+
+	//somatic checks
+	if (type=="somatic")
+	{
+		if (samples.count()>3) THROW(ArgumentException, "Somatic job with NGSD id '" + QString::number(ngsd_id) + " contains more than 3 samples!");
+		if (!infos.contains("tumor")) THROW(ArgumentException, "Somatic job with NGSD id '" + QString::number(ngsd_id) + " does not contain 'tumor' sample!");
+		if (samples.count()>=2)
+		{
+			if (!infos.contains("normal")) THROW(ArgumentException, "Somatic job with NGSD id '" + QString::number(ngsd_id) + " does not contain 'tumor' sample!");
+		}
+		else if (samples.count()>=3)
+		{
+			if (!infos.contains("tumor_rna")) THROW(ArgumentException, "Somatic job with NGSD id '" + QString::number(ngsd_id) + " does not contain 'tumor_rna' sample!");
+		}
+	}
 }
 
 QString SomaticReportConfigurationData::history() const

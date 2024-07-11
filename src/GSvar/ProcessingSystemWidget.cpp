@@ -7,7 +7,6 @@
 #include "IgvSessionManager.h"
 #include <QDir>
 #include <QDesktopServices>
-#include <QProcess>
 #include <QDialog>
 #include <QMessageBox>
 

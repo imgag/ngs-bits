@@ -22,11 +22,6 @@ allow_folder_listing = false
 
 #Data folders
 qbic_data_path = ""
-projects_folder_diagnostic = ""
-projects_folder_research = ""
-projects_folder_test = ""
-projects_folder_external =""
-data_folder = ""
 
 #NGSD settings
 ngsd_enabled = true

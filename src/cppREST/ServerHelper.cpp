@@ -1,5 +1,6 @@
 #include "ServerHelper.h"
 #include "Helper.h"
+#include "PipelineSettings.h"
 #include <QStandardPaths>
 #include <QDir>
 
@@ -69,42 +70,57 @@ QString ServerHelper::getUrlWithoutParams(const QString& url)
 	return url_parts[0];
 }
 
-bool ServerHelper::hasMinimalSettings()
+bool ServerHelper::settingsValid(bool test_mode, bool throw_exception_if_invalid)
 {
-    return (!ServerHelper::getStringSettingsValue("server_port").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("server_host").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
-        (ServerHelper::getNumSettingsValue("url_lifetime")>0) &&
-        (ServerHelper::getNumSettingsValue("session_duration")>0) &&
-        !ServerHelper::getStringSettingsValue("gsvar_server_db_host").isEmpty() &&
-        (ServerHelper::getNumSettingsValue("gsvar_server_db_port")>0) &&
-        !ServerHelper::getStringSettingsValue("gsvar_server_db_name").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("gsvar_server_db_user").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("gsvar_server_db_pass").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("megsap_root").isEmpty()
-    );
-}
+	try
+	{
+		//string settings
+		QStringList str_settings;
+		str_settings << "server_port" << "server_host" << "ssl_certificate" << "ssl_key" << "gsvar_server_db_host" << "gsvar_server_db_name" << "gsvar_server_db_user" << "gsvar_server_db_pass";
+		if (!test_mode) str_settings << "reference_genome" << "ngsd_host" << "ngsd_name" << "ngsd_user" << "ngsd_pass";
+		foreach (QString entry,  str_settings)
+		{
+			if (ServerHelper::getStringSettingsValue(entry).isEmpty()) THROW(Exception, "String settings entry '"+entry+"' missing or empty!");
+		}
 
-bool ServerHelper::hasProdSettings()
-{
-    if (!hasMinimalSettings()) return false;
+		//int settings
+		QStringList int_settings;
+		int_settings << "url_lifetime" << "session_duration" << "gsvar_server_db_port";
+		if (!test_mode) int_settings << "ngsd_port";
+		foreach (QString entry,  int_settings)
+		{
+			if (ServerHelper::getNumSettingsValue(entry)<=0) THROW(Exception, "Integer settings entry '"+entry+"' missing or below 1!");
+		}
 
-    return
-    (
-        !ServerHelper::getStringSettingsValue("reference_genome").isEmpty() &&
+		//load megSAP settings
+		if (!test_mode)
+		{
+			QString megsap_settings_ini = Settings::string("megsap_settings_ini", true);
+			if (megsap_settings_ini.isEmpty()) THROW(Exception, "Settings entry '"+megsap_settings_ini+"' missing or empty!");
+			PipelineSettings::loadSettings(megsap_settings_ini);
 
-        !ServerHelper::getStringSettingsValue("ngsd_host").isEmpty() &&
-        (ServerHelper::getNumSettingsValue("ngsd_port")>0) &&
-        !ServerHelper::getStringSettingsValue("ngsd_name").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("ngsd_user").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("ngsd_pass").isEmpty() &&
+			if (PipelineSettings::rootDir().isEmpty()) THROW(Exception, "megSAP settings entry 'rootDir' is empty!");
+			if (PipelineSettings::dataFolder().isEmpty()) THROW(Exception, "megSAP settings entry 'dataFolder' is empty!");
+			if (PipelineSettings::projectFolder("diagnostic").isEmpty()) THROW(Exception, "megSAP settings entry 'projectFolder[diagnostic]' is empty!");
+			if (PipelineSettings::projectFolder("research").isEmpty()) THROW(Exception, "megSAP settings entry 'projectFolder[research]' is empty!");
+			if (PipelineSettings::projectFolder("test").isEmpty()) THROW(Exception, "megSAP settings entry 'projectFolder[test]' is empty!");
+			if (PipelineSettings::projectFolder("external").isEmpty()) THROW(Exception, "megSAP settings entry 'projectFolder[external]' is empty!");
 
-        !ServerHelper::getStringSettingsValue("projects_folder_diagnostic").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("projects_folder_research").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("projects_folder_test").isEmpty() &&
-        !ServerHelper::getStringSettingsValue("projects_folder_external").isEmpty()
-    );
+			if (Settings::boolean("queue_update_enabled", true))
+			{
+				if (PipelineSettings::queueEmail().isEmpty()) THROW(Exception, "megSAP settings entry 'queueEmail' is empty!");
+				if (PipelineSettings::queuesDefault().isEmpty()) THROW(Exception, "megSAP settings entry 'queuesDefault' is empty!");
+				if (PipelineSettings::queuesHighMemory().isEmpty()) THROW(Exception, "megSAP settings entry 'queuesHighMemory' is empty!");
+			}
+		}
+	}
+	catch (Exception& e)
+	{
+		if (throw_exception_if_invalid) throw;
+		else return false;
+	}
+
+	return true;
 }
 
 QString ServerHelper::getSessionBackupFileName()

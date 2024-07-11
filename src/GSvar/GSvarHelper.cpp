@@ -419,7 +419,7 @@ QString GSvarHelper::localRoiFolder()
 	}
 
 	QString local_roi_folder = default_paths[0] + QDir::separator() + "target_regions" + QDir::separator();
-	if(!QFile::exists(local_roi_folder) && !QDir().mkpath(local_roi_folder))
+	if(Helper::mkdir(local_roi_folder)==-1)
 	{
 		THROW(ProgrammingException, "Could not create application target region folder '" + local_roi_folder + "'!");
 	}

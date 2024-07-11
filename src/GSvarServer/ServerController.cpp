@@ -1,4 +1,5 @@
 #include "ServerController.h"
+#include "PipelineSettings.h"
 #include <QUrl>
 #include <QProcess>
 #include <QTemporaryFile>
@@ -41,7 +42,7 @@ HttpResponse ServerController::serveStaticFromServerRoot(const HttpRequest& requ
 
 HttpResponse ServerController::serveStaticServerGenomes(const HttpRequest& request)
 {
-	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), ServerHelper::getStringSettingsValue("data_folder") + "genomes/"), request);
+	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), PipelineSettings::dataFolder() + "/genomes/"), request);
 }
 
 HttpResponse ServerController::serveStaticFromTempUrl(const HttpRequest& request)
@@ -745,7 +746,7 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 {
 	QString qbic_data_path = Settings::string("qbic_data_path");
-    if (!QDir(qbic_data_path).exists()) QDir(qbic_data_path).mkpath(".");
+	Helper::mkdir(qbic_data_path);
 	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path + QDir::separator();
 
 	QString filename = request.getUrlParams()["filename"];
@@ -762,7 +763,7 @@ HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 	folder_name = folder_name.replace(QDir::separator(), "");
 	folder_name = qbic_data_path + folder_name;
 
-    if (!QDir(folder_name).exists()) QDir(folder_name).mkpath(".");
+	Helper::mkdir(folder_name);
 
 	if (!folder_name.endsWith(QDir::separator())) folder_name = folder_name + QDir::separator();
 

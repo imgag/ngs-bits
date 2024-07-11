@@ -41,22 +41,22 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 HEADERS += \
-        Chromosome_Test.h \
-        BedLine_Test.h \
-        BedFile_Test.h \
-        VariantList_Test.h \
-        FilterCascade_Test.h \
-        ChromosomalIndex_Test.h \
-        Statistics_Test.h \
-        Variant_Test.h \
-        NGSHelper_Test.h \
-        FastqFileStream_Test.h \
-        FastaFileIndex_Test.h \
-        QCCollection_Test.h \
-        StatisticsReads_Test.h \
-        GeneSet_Test.h \
-        OntologyTermCollection_Test.h \
-        BamReader_Test.h \
+    Chromosome_Test.h \
+    BedLine_Test.h \
+    BedFile_Test.h \
+    VariantList_Test.h \
+    FilterCascade_Test.h \
+    ChromosomalIndex_Test.h \
+    Statistics_Test.h \
+    Variant_Test.h \
+    NGSHelper_Test.h \
+    FastqFileStream_Test.h \
+    FastaFileIndex_Test.h \
+    QCCollection_Test.h \
+    StatisticsReads_Test.h \
+    GeneSet_Test.h \
+    OntologyTermCollection_Test.h \
+    BamReader_Test.h \
     CnvList_Test.h \
     StructuralVariantType_Test.h \
     Transcript_Test.h \
@@ -72,7 +72,8 @@ HEADERS += \
     ChainFileReader_Test.h \
     BigWigReader_Test.h \
     VariantHgvsAnnotator_Test.h \
-    TabIndexedFile_Test.h
+    TabIndexedFile_Test.h \
+    PipelineSettings_Test.h
 
 SOURCES += \
         main.cpp

@@ -192,7 +192,7 @@ void AnalysisStatusWidget::refreshStatus()
 			addItem(ui_.analyses, row, 6, parts.count()==1 ? parts[0] : "");
 
 			//status
-			QString status = job.finalStatus();
+			QString status = job.lastStatus();
 			QColor bg = statusToColor(status);
 			if (job.sge_queue!="")
 			{

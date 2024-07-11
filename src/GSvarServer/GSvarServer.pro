@@ -24,7 +24,6 @@ SVN_VER= \\\"$$system(cd .. && git describe --tags)\\\"
 DEFINES += "SERVER_VERSION=$$SVN_VER"
 
 SOURCES += \
-        PipelineSettings.cpp \
         ServerController.cpp \
         ServerWrapper.cpp \
         SgeStatusUpdateWorker.cpp \
@@ -36,7 +35,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    PipelineSettings.h \
     ServerController.h \
     ServerWrapper.h \
     SgeStatusUpdateWorker.h

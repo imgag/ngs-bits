@@ -187,4 +187,53 @@ private slots:
 		IS_FALSE(Helper::isNumeric(QByteArray("10.0 ")));
 	}
 
+	void mkdir()
+	{
+		QString base_path = QFileInfo(Helper::tempFileName(".tmp")).path() + QDir::separator();
+		QString name;
+		while(name.isEmpty() || QFile::exists(base_path+name))
+		{
+			name = Helper::randomString(20);
+		}
+
+		Helper::mkdir(base_path+name);
+
+		IS_TRUE(QFile::exists(base_path+name));
+
+		QDir(base_path).rmdir(name);
+	}
+
+
+	void set777()
+	{
+		QString base_path = QFileInfo(Helper::tempFileName(".tmp")).path() + QDir::separator();
+		QString name;
+		while(name.isEmpty() || QFile::exists(base_path+name))
+		{
+			name = Helper::randomString(20);
+		}
+
+		Helper::mkdir(base_path+name);
+		bool ok = Helper::set777(base_path+name);
+		IS_TRUE(ok);
+
+		QDir(base_path).rmdir(name);
+	}
+
+	void executeCommand()
+	{
+		QString command = "/bin/sh";
+		QStringList args =  QStringList() << "-c" << "'echo ok'";
+		if (Helper::isWindows())
+		{
+			command = "cmd.exe";
+			args = QStringList() << "/c" << "echo" << "ok";
+		}
+
+		QByteArrayList output;
+		int exit_code = Helper::executeCommand(command, args, &output);
+
+		I_EQUAL(exit_code, 0);
+		S_EQUAL(output.join("").trimmed(), "ok");
+	}
 };

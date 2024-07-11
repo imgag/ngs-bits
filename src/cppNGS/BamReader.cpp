@@ -521,8 +521,7 @@ QByteArrayList BamReader::headerLines() const
 {
 	QByteArrayList output = QByteArray(header_->text).split('\n');
 
-	//trim
-	std::for_each(output.begin(), output.end(), [](QByteArray& line){ line = line.trimmed(); });
+	Helper::trim(output);
 
 	return output;
 }

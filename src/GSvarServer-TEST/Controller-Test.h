@@ -8,7 +8,7 @@ Q_OBJECT
 private slots:
 	void test_api_info()
     {
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -31,7 +31,7 @@ private slots:
 
 	void test_saving_gsvar_file()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -76,7 +76,7 @@ private slots:
 
 	void test_uploading_file()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -118,7 +118,7 @@ private slots:
 
 	void test_session_info()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -151,7 +151,7 @@ private slots:
 
 	void test_static_file_random_access()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -195,7 +195,7 @@ private slots:
 
 	void test_head_response_with_empty_body_for_missing_file()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -232,7 +232,7 @@ private slots:
 
 	void test_head_response_with_empty_body_for_existing_file()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -273,7 +273,7 @@ private slots:
 
 	void test_current_client_info()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -304,7 +304,7 @@ private slots:
 
 	void test_user_notification()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
@@ -335,7 +335,7 @@ private slots:
 
 	void test_file_upload()
 	{
-        if (!ServerHelper::hasMinimalSettings())
+		if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }

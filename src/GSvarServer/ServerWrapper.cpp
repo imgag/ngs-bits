@@ -76,7 +76,7 @@ ServerWrapper::ServerWrapper(const quint16& port)
             // Update SGE status every minute
             QTimer *sge_status_update_timer = new QTimer(this);
             connect(sge_status_update_timer, SIGNAL(timeout()), this, SLOT(updateSgeStatus()));
-            sge_status_update_timer->start(60 * 1 * 1000); // every 1 minute
+			sge_status_update_timer->start(30 * 1000); // every 30 sec
 
             // ClinVar submission status automatic update on schedule
             QTimer *clinvar_timer = new QTimer(this);
@@ -270,21 +270,9 @@ void ServerWrapper::cleanupSessionsAndUrls()
 
 void ServerWrapper::updateSgeStatus()
 {
-    if (!Settings::boolean("queue_update_enabled", true)) return;
+	if (!Settings::boolean("queue_update_enabled", true)) return;
 
-    try
-    {
-        if (sge_status_pool_.activeThreadCount() > 0) return;
-        Log::info("Updating SGE on timer");
-        SgeStatusUpdateWorker *sge_worker = new SgeStatusUpdateWorker();
-        sge_status_pool_.start(sge_worker);
-    }
-    catch(Exception& e)
-    {
-        Log::error("An error has happend while updating SGE: " + e.message());
-    }
-    catch (...)
-    {
-        Log::error("Unexpected error while trying to update SGE");
-    }
+	if (sge_status_pool_.activeThreadCount() > 0) return;
+
+	sge_status_pool_.start(new SgeStatusUpdateWorker());
 }
