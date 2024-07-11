@@ -223,7 +223,7 @@ private slots:
 	void executeCommand()
 	{
 		QString command = "/bin/sh";
-		QStringList args =  QStringList() << "-c" << "'echo ok'";
+		QStringList args =  QStringList() << "-c" << "echo ok";
 		if (Helper::isWindows())
 		{
 			command = "cmd.exe";
