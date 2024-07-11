@@ -130,13 +130,14 @@ public:
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 
 		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
-		addFlag("remove_invalid", "Removes invalid variant, i.e. invalid position of ref/alt.");
+		addFlag("remove_invalid", "Removes invalid variants, i.e. invalid position of ref/alt.");
 		addFlag("remove_non_ref", "Remove '<NON_REF>' entries (used in gVCF files).");
 		addString("variant_type", "Filters by variant type. Possible types are: '" + variant_types.join("','") + "'.", true);
 		addString("id", "Filter by ID column (regular expression).", true);
 		addFloat("qual", "Filter by QUAL column (minimum).", true, 0.0);
 		addString("filter", "Filter by FILTER column - keep matches (regular expression).", true);
 		addString("filter_exclude", "Filter by FILTER column - exclude matches (regular expression).", true);
+		addFlag("filter_clear", "Remove filter entries of all variants, i.e. sets filter to PASS.");
 		addFlag("filter_empty", "Removes entries with non-empty FILTER column.");
 		addString("info", "Filter by INFO column entries - use ';' as separator for several filters, e.g. 'DP > 5;AO > 2' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addString("sample", "Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
@@ -144,6 +145,7 @@ public:
 		addFlag("no_special_chr", "Removes variants that are on special chromosomes, i.e. not on autosomes, not on gonosomes and not on chrMT.");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
+		changeLog(2024,  7, 11, "Added flag 'filter_clear'.");
 		changeLog(2023, 11, 21, "Added flag 'no_special_chr'.");
 		changeLog(2018, 10, 31, "Initial implementation.");
 	}
@@ -198,6 +200,7 @@ public:
 		bool sample_one_match = getFlag("sample_one_match");
 		bool no_special_chr = getFlag("no_special_chr");
 		bool remove_non_ref = getFlag("remove_non_ref");
+		bool filter_clear = getFlag("filter_clear");
 		QString filter = getString("filter");
 		QString filter_exclude = getString("filter_exclude");
 		QString id = getString("id");
@@ -303,6 +306,8 @@ public:
 				{
 					column_count = parts.count();
 				}
+
+				if (filter_clear && line.startsWith("##FILTER=")) continue;
 
 				out_p->write(line);
 				continue;
@@ -508,6 +513,14 @@ public:
 				}
 
 				if ((sample_one_match && samples_passing==0) || (!sample_one_match && samples_failing!=0)) continue;
+			}
+
+			//clear filter entries
+			if (filter_clear)
+			{
+				parts[VcfFile::FILTER] = "PASS";
+				line = parts.join('\t');
+				line.append('\n');
 			}
 
 			out_p->write(line);

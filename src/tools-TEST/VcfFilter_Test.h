@@ -156,6 +156,16 @@ private slots:
 		VCF_IS_VALID_HG19("out/VcfFilter_out15.vcf");
 	}
 
+	void filter_clear()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in03.vcf") + " -out out/VcfFilter_out16.vcf" + " -remove_non_ref -filter_clear");
+		COMPARE_FILES("out/VcfFilter_out16.vcf", TESTDATA("data_out/VcfFilter_out16.vcf"));
+		VCF_IS_VALID_HG19("out/VcfFilter_out16.vcf");
+	}
+
 /************************************ BUGS ************************************/
 
 	void bugfix_tab_before_column_returned()
