@@ -56,3 +56,10 @@ socket_encryption_timeout = 5
 #SGE
 queue_update_enabled = false
 megsap_settings_ini = "megsap_settings.ini"
+
+#Server database to store sessions and URLs
+gsvar_server_db_host = "127.0.0.1"
+gsvar_server_db_port = 3306
+gsvar_server_db_name = "server_db"
+gsvar_server_db_user = "user"
+gsvar_server_db_pass = "password"
