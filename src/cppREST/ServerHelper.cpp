@@ -99,18 +99,18 @@ bool ServerHelper::settingsValid(bool test_mode, bool throw_exception_if_invalid
 			if (megsap_settings_ini.isEmpty()) THROW(Exception, "Settings entry '"+megsap_settings_ini+"' missing or empty!");
 			PipelineSettings::loadSettings(megsap_settings_ini);
 
-			if (PipelineSettings::rootDir().isEmpty()) THROW(Exception, "megSAP settings entry 'rootDir' is empty!");
-			if (PipelineSettings::dataFolder().isEmpty()) THROW(Exception, "megSAP settings entry 'dataFolder' is empty!");
-			if (PipelineSettings::projectFolder("diagnostic").isEmpty()) THROW(Exception, "megSAP settings entry 'projectFolder[diagnostic]' is empty!");
-			if (PipelineSettings::projectFolder("research").isEmpty()) THROW(Exception, "megSAP settings entry 'projectFolder[research]' is empty!");
-			if (PipelineSettings::projectFolder("test").isEmpty()) THROW(Exception, "megSAP settings entry 'projectFolder[test]' is empty!");
-			if (PipelineSettings::projectFolder("external").isEmpty()) THROW(Exception, "megSAP settings entry 'projectFolder[external]' is empty!");
+            if (PipelineSettings::rootDir().isEmpty()) THROW(Exception, "megSAP settings entry 'rootDir' is empty!");
+            if (PipelineSettings::dataFolder().isEmpty()) THROW(Exception, "megSAP settings entry 'data_folder' is empty!");
+            if (PipelineSettings::projectFolder("diagnostic").isEmpty()) THROW(Exception, "megSAP settings entry 'project_folder[diagnostic]' is empty!");
+            if (PipelineSettings::projectFolder("research").isEmpty()) THROW(Exception, "megSAP settings entry 'project_folder[research]' is empty!");
+            if (PipelineSettings::projectFolder("test").isEmpty()) THROW(Exception, "megSAP settings entry 'project_folder[test]' is empty!");
+            if (PipelineSettings::projectFolder("external").isEmpty()) THROW(Exception, "megSAP settings entry 'project_folder[external]' is empty!");
 
 			if (Settings::boolean("queue_update_enabled", true))
 			{
-				if (PipelineSettings::queueEmail().isEmpty()) THROW(Exception, "megSAP settings entry 'queueEmail' is empty!");
-				if (PipelineSettings::queuesDefault().isEmpty()) THROW(Exception, "megSAP settings entry 'queuesDefault' is empty!");
-				if (PipelineSettings::queuesHighMemory().isEmpty()) THROW(Exception, "megSAP settings entry 'queuesHighMemory' is empty!");
+                if (PipelineSettings::queueEmail().isEmpty()) THROW(Exception, "megSAP settings entry 'queue_email' is empty!");
+                if (PipelineSettings::queuesDefault().isEmpty()) THROW(Exception, "megSAP settings entry 'queues_default' is empty!");
+                if (PipelineSettings::queuesHighMemory().isEmpty()) THROW(Exception, "megSAP settings entry 'queues_high_mem' is empty!");
 			}
 		}
 	}
