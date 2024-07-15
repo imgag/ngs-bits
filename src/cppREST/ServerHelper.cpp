@@ -99,7 +99,7 @@ bool ServerHelper::settingsValid(bool test_mode, bool throw_exception_if_invalid
 			if (megsap_settings_ini.isEmpty()) THROW(Exception, "Settings entry '"+megsap_settings_ini+"' missing or empty!");
 			PipelineSettings::loadSettings(megsap_settings_ini);
 
-            if (PipelineSettings::rootDir().isEmpty()) THROW(Exception, "megSAP settings entry 'rootDir' is empty!");
+			if (PipelineSettings::rootDir().isEmpty()) THROW(Exception, "megSAP root dir not available. Settings entry 'megsap_settings_ini' is probably missing!");
             if (PipelineSettings::dataFolder().isEmpty()) THROW(Exception, "megSAP settings entry 'data_folder' is empty!");
             if (PipelineSettings::projectFolder("diagnostic").isEmpty()) THROW(Exception, "megSAP settings entry 'project_folder[diagnostic]' is empty!");
             if (PipelineSettings::projectFolder("research").isEmpty()) THROW(Exception, "megSAP settings entry 'project_folder[research]' is empty!");

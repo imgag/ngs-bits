@@ -804,14 +804,11 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Invalid input VCF data: " + validation_result));
     }
 
-    QString megsap_root = Settings::path("megsap_root", true);
-    if (megsap_root.isEmpty()) return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "megSAP root path is not set"));
-
     QProcess process;
     process.setProcessChannelMode(QProcess::MergedChannels);
     QString an_vep_out = Helper::tempFileName(".vcf");
     Log::info("Running megSAP >> an_vep.php: " + an_vep_out);
-    process.start("php", QStringList() << megsap_root + "/src/NGS/an_vep.php" << "-in" << input_vcf << "-out" << an_vep_out);
+	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/NGS/an_vep.php" << "-in" << input_vcf << "-out" << an_vep_out);
     bool success = process.waitForFinished(-1);
     Log::error("Exit code = " + QString::number(process.exitCode()));
     if (!success || process.exitCode()>0)
@@ -822,7 +819,7 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
 
     QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
     Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
-    process.start("php", QStringList() << megsap_root + "/src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
+	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
     success = process.waitForFinished(-1);
     if (!success || process.exitCode()>0)
     {

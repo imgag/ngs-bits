@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 	QCoreApplication::setApplicationVersion(SERVER_VERSION);
 
 	QCommandLineParser parser;
-	parser.setApplicationDescription("GSvar file server");
+	parser.setApplicationDescription("GSvar server - documentation at https://github.com/imgag/ngs-bits/blob/master/doc/GSvarServer/index.md");
     parser.addHelpOption();
     parser.addVersionOption();
 	QCommandLineOption httpsServerPortOption(QStringList() << "p" << "port",
@@ -543,17 +543,15 @@ int main(int argc, char **argv)
 	if (server_port == 0)
 	{
         Log::error("HTTPS port number is missing or invalid");
-		app.exit(EXIT_FAILURE);
-		return app.exec();
+		return EXIT_FAILURE;
 	}
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
 	{
-        Log::error("Could not start HTTPS server. Exiting...");
-		app.exit(EXIT_FAILURE);
-		return app.exec();
+		Log::error("Could not start HTTPS server. Exiting...");
+		return EXIT_FAILURE;
 	}
 
 	ServerHelper::setServerStartDateTime(QDateTime::currentDateTime());
@@ -571,8 +569,7 @@ int main(int argc, char **argv)
 	catch (Exception& e)
 	{
 		Log::error("Server has not been configured correctly: " + e.message());
-		app.exit(EXIT_FAILURE);
-		return app.exec();
+		return EXIT_FAILURE;
 	}
 
     ServerDB db = ServerDB();

@@ -73,7 +73,7 @@ ServerWrapper::ServerWrapper(const quint16& port)
             connect(session_timer, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));
             session_timer->start(60 * 5 * 1000); // every 5 minutes
 
-            // Update SGE status every minute
+			// Update SGE status
             QTimer *sge_status_update_timer = new QTimer(this);
             connect(sge_status_update_timer, SIGNAL(timeout()), this, SLOT(updateSgeStatus()));
 			sge_status_update_timer->start(30 * 1000); // every 30 sec

@@ -6,6 +6,8 @@ The main configuration of `GSvar` is done via INI files located in the same fold
 
 Since these files can contain sensitive information like passwords, it is possible to [encrypt information in the settings file](encrypt_settings.md).
 
+GSvar is usually running in client-server mode. Thus, you need to [configure the server](../GSvarServer/index.md) as well.
+
 ### settings.ini
 
 This file contains basic settings that are used for all `ngs-bits` applications. If it is missing, copy the example file:

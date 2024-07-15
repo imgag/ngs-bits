@@ -1,65 +1,64 @@
 #General server settings
 server_host = localhost
 server_port = 8443
-#Run both HTTP and HTTP servers on corresponding ports
 reference_genome = ""
 
+#megSAP ini file used as source for additional settings
+megsap_settings_ini = ""
+
 #SSL certificate-key pair needed for HTTPS
-ssl_certificate = "cert.crt"
-ssl_key = "key.key"
+ssl_certificate = "certificate.crt"
+ssl_certificate_chain = ""
+ssl_key = "certificate.key"
 
-#Number of seconds after which a temporary URL will expire
-url_lifetime = 3600
-#Number of seconds after which a user session will expire
-session_duration = 3600
-#Number of threads for parallel calculations 
-threads = 8
+#number of threads for parallel calculations, e.g. for coverage statistics
+threads = 4
 
-#Default static content location
-server_root = ""
-#Enables viewing the list of folder items
-allow_folder_listing = false
-
-#Data folders
-qbic_data_path = ""
-
-#NGSD settings
-ngsd_enabled = true
+#NGSD database credentials
 ngsd_host = ""
-ngsd_port = 0
+ngsd_port = 3306
 ngsd_name = ""
 ngsd_user = ""
 ngsd_pass = ""
 
-#Genlab settings
-genlab_mssql = true
-genlab_host = ""
-genlab_name = ""
-genlab_user = ""
-genlab_pass = ""
+#GSvarServer database credentials (the database is used to store temporary data like tokens)
+gsvar_server_db_host = "127.0.0.1"
+gsvar_server_db_port = 3306
+gsvar_server_db_name = "server_db"
+gsvar_server_db_user = "server_user"
+gsvar_server_db_pass = "server_password"
 
-#proxy settings
+#number of seconds after which a temporary URL will expire
+url_lifetime = 36000
+#number of seconds after which a user session will expire
+session_duration = 36000
+
+#proxy settings - set if proxy is needed to access files on the internet
 proxy_host = ""
 proxy_port = 
 proxy_user = ""
 proxy_password = ""
 
-# thread pool settings (time is seconds)
-thread_timeout = 10
-thread_count = 8
+#ClinVar API key for updating the status of subissions automatically every hour
+clinvar_api_key=""
 
-# request worker settings (time in seconds)
+#request worker settings (time in seconds)
+thread_timeout = 20
+thread_count = 60
 socket_read_timeout = 10
 socket_write_timeout = 10
-socket_encryption_timeout = 5
+socket_encryption_timeout = 10
 
-#SGE
+###################### settings for testing/debugging purposes ######################
+allow_folder_listing = false
+server_root = ""
+show_raw_request = false
+
+###################### settings specific for running the server at IMGAG in Tuebingen ######################
+qbic_data_path = ""
+genlab_mssql = true
+genlab_host = ""
+genlab_name = ""
+genlab_user = ""
+genlab_pass = ""
 queue_update_enabled = false
-megsap_settings_ini = "megsap_settings.ini"
-
-#Server database to store sessions and URLs
-gsvar_server_db_host = "127.0.0.1"
-gsvar_server_db_port = 3306
-gsvar_server_db_name = "server_db"
-gsvar_server_db_user = "user"
-gsvar_server_db_pass = "password"

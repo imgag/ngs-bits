@@ -17,10 +17,10 @@ You can force the server to ignore the port provided in the config file by using
 > ./bin/GSvarServer -p=8443
 
 GSvar server is intended to be used by the GSvar client app. However, you can also access its Web UI through any browser at:
-> https://[DOMAIN_NAME]:[PORT_NUMBER]
+> https://[HOST_NAME]:[PORT_NUMBER]
 
 It is actually a good way to check, if the server is running. Web UI also provides an extensive help page describing all its endpoints:
-> https://[DOMAIN_NAME]:[PORT_NUMBER]/help
+> https://[HOST_NAME]:[PORT_NUMBER]/help
 
 ## Configuration
 The server is configurable via the GSVarServer.ini file located at the `./bin` folder together with all the rest config files.
@@ -29,7 +29,6 @@ These are the most important config parameters:
 * `ssl_key` - location of your private key
 * `server_port` - port used by the server
 * `server_host` - domain name used be the server
-* `server_root` - folder to be served as static content (any possible file formats)
 * `url_lifetime` - lifespan (seconds) of a temporary URL genereated by the server
 * `session_duration` - valid period (seconds) of a user session
 * `threads` - number of threads used for parallel calculations
@@ -47,7 +46,7 @@ These are the most important config parameters:
 * `ngsd_user` - NGSD database user name
 * `ngsd_pass` - NGSD user password
 * `queue_update_enabled` - turns on SGE update worker (true/false)
-* `megsap_settings_ini` - path to the MegSAP settings file
+* `megsap_settings_ini` - path to the megSAP settings file
 
 These parameters are needed for the server database (stores information about user sessions, temporary URLs, etc.), it is a separate instance of MySQL/MariaDB (not NGSD database)
 * `gsvar_server_db_host` - database host name
