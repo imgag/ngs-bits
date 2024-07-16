@@ -96,7 +96,7 @@ bool ServerHelper::settingsValid(bool test_mode, bool throw_exception_if_invalid
 		if (!test_mode)
 		{
 			QString megsap_settings_ini = Settings::string("megsap_settings_ini", true);
-			if (megsap_settings_ini.isEmpty()) THROW(Exception, "Settings entry '"+megsap_settings_ini+"' missing or empty!");
+			if (megsap_settings_ini.isEmpty()) THROW(Exception, "Settings entry 'megsap_settings_ini' missing or empty!");
 			PipelineSettings::loadSettings(megsap_settings_ini);
 
 			if (PipelineSettings::rootDir().isEmpty()) THROW(Exception, "megSAP root dir not available. Settings entry 'megsap_settings_ini' is probably missing!");
