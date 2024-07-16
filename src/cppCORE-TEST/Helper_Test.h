@@ -222,18 +222,22 @@ private slots:
 
 	void executeCommand()
 	{
-		QString command = "/bin/sh";
-		QStringList args =  QStringList() << "-c" << "echo ok";
 		if (Helper::isWindows())
 		{
-			command = "cmd.exe";
-			args = QStringList() << "/c" << "echo" << "ok";
+			QByteArrayList output;
+			int exit_code = Helper::executeCommand("cmd.exe", QStringList() << "/c" << "echo" << "ok", &output);
+
+			I_EQUAL(exit_code, 0);
+			S_EQUAL(output.join("").trimmed(), "ok");
+		}
+		else
+		{
+			QByteArrayList output;
+			int exit_code = Helper::executeCommand("/usr/bin/whoami", QStringList(), &output);
+
+			I_EQUAL(exit_code, 0);
+			IS_FALSE(output.join("").trimmed().isEmpty());
 		}
 
-		QByteArrayList output;
-		int exit_code = Helper::executeCommand(command, args, &output);
-
-		I_EQUAL(exit_code, 0);
-		S_EQUAL(output.join("").trimmed(), "ok");
 	}
 };

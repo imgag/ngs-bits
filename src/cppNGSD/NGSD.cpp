@@ -5507,10 +5507,9 @@ void NGSD::addAnalysisHistoryEntry(int job_id, QString status, QByteArrayList ou
 	query.bindValue(0, job_id);
 	query.bindValue(1, status);
 	QString output_str = output.join("\n");
-	if (output_str.length()>65535)
+	if (output_str.length()>65000)
 	{
-		output_str.truncate(65535);
-		output_str.append("... (truncated)");
+		output_str = (output_str.left(32500) + "\n\n ... (truncated) ...\n\n" + output_str.right(32500));
 	}
 	query.bindValue(2, output_str);
 	query.exec();

@@ -76,7 +76,7 @@ ServerWrapper::ServerWrapper(const quint16& port)
 			// Update SGE status
             QTimer *sge_status_update_timer = new QTimer(this);
             connect(sge_status_update_timer, SIGNAL(timeout()), this, SLOT(updateSgeStatus()));
-			sge_status_update_timer->start(30 * 1000); // every 30 sec
+			sge_status_update_timer->start(15 * 1000); // every 15 sec
 
             // ClinVar submission status automatic update on schedule
             QTimer *clinvar_timer = new QTimer(this);
