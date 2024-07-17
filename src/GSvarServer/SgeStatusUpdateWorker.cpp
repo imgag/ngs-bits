@@ -110,7 +110,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	QStringList queues = PipelineSettings::queuesDefault();
 	if(job.high_priority)
 	{
-		QStringList queues = PipelineSettings::queuesHighPriority();
+		queues = PipelineSettings::queuesHighPriority();
 	}
 
 	QString script;
