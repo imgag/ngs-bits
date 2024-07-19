@@ -87,6 +87,8 @@ void PipelineSettings::loadSettings(QString ini_file)
 			{
 				if (key=="project_folder")
 				{
+					value = value.trimmed();
+					if (!value.endsWith("/")) value += "/";
 					instance().projects_folder_[array_key] = value;
 				}
             }

@@ -155,7 +155,7 @@ void AnalysisInformationWidget::updateGUI()
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::REPEAT_EXPANSIONS);
 			ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
+			if (!file.exists) ui_.table->item(4,1)->setTextColor(QColor(Qt::red));
 			ui_.table->setItem(4, 2, GUIHelper::createTableItem(QString::number(import_status.res) + " REs" + rcData(db, "report_configuration_re", rc_id)));
 			ui_.table->setItem(4, 3, GUIHelper::createTableItem(call_info.re_call_date));
 			ui_.table->setItem(4, 4, GUIHelper::createTableItem(call_info.re_caller + " " + call_info.re_caller_version));

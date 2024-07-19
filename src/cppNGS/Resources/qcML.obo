@@ -1590,3 +1590,11 @@ def: "Percentage of microsatelite regions that are unstable" [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: ott
+
+[Term]
+id: QC:2000142
+name: mosaic variant count
+def: "Number of variants that are flagged as mosaic variants (in filter column)." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: sturm
