@@ -1195,11 +1195,11 @@ void NGSD::removeInitData()
 
 QString NGSD::projectFolder(QString type)
 {
-	//current type-specific project folder settings
-	if (Settings::contains("projects_folder_"+type))
-	{
-		return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
-	}
+    //GSvar server: use megSAP settings
+    if (ClientHelper::isRunningOnServer())
+    {
+        return PipelineSettings::projectFolder(type);
+    }
 
 	//fallback to legacy project folder settings
 	if (Settings::contains("projects_folder"))
