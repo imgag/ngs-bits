@@ -168,8 +168,11 @@ deploy_server_nobuild:
 	cp /mnt/storage2/megSAP/tools/ngs-bits-settings/GSvarServer.ini $(SERVER_DEP_PATH)GSvarServer.ini
 	@echo ""
 	@echo "#Update permissions"
-	chmod -R 775 $(SERVER_DEP_PATH)	
-	
+	chmod -R 775 $(SERVER_DEP_PATH)
+	@echo ""
+	@echo "#Update the user group"
+	chgrp -R f_ad_bi_l_medgen_access_storages $(SERVER_DEP_PATH)
+
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
 test_release:
