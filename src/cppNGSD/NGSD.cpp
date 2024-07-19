@@ -1201,6 +1201,12 @@ QString NGSD::projectFolder(QString type)
         return PipelineSettings::projectFolder(type);
     }
 
+	//current type-specific project folder settings
+	if (Settings::contains("projects_folder_"+type))
+	{
+		   return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
+	}
+
 	//fallback to legacy project folder settings
 	if (Settings::contains("projects_folder"))
 	{
