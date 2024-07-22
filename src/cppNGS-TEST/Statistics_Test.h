@@ -104,7 +104,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[1].name(), QString("known variants percentage"));
 		S_EQUAL(stats[1].accession(), QString("QC:2000014"));
 		S_EQUAL(stats[1].toString(), QString("100.00"));
-		I_EQUAL(stats.count(), 6);
+		I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -135,7 +135,9 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[4].toString(), QString("13.80"));
 		S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
 		S_EQUAL(stats[5].toString(), QString("2.16"));
-		I_EQUAL(stats.count(), 6);
+		S_EQUAL(stats[6].name(), QString("mosaic variant count"));
+		S_EQUAL(stats[6].toString(), QString("0"));
+		I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -162,7 +164,9 @@ TEST_CLASS(Statistics_Test)
 		IS_TRUE(stats[4].toString().startsWith("n/a "));
 		S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
 		IS_TRUE(stats[5].toString().startsWith("n/a "));
-		I_EQUAL(stats.count(), 6);
+		S_EQUAL(stats[6].name(), QString("mosaic variant count"));
+		S_EQUAL(stats[6].toString(), QString("0"));
+		I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)

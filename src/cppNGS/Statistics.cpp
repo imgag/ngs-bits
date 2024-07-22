@@ -93,7 +93,7 @@ private:
 
 
 
-QCCollection Statistics::variantList(VcfFile variants, bool filter)
+QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 {
 	//support only single sample vcf files
 	if(variants.sampleIDs().count() > 1)
@@ -104,19 +104,19 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	QCCollection output;
 
 	//filter variants
+	FilterResult filter_result(variants.count());
 	if (filter)
 	{
-		FilterResult filter_result(variants.count());
 		FilterFilterColumnEmpty filter;
 		filter.apply(variants, filter_result);
-		filter_result.removeFlagged(variants);
 	}
+	int vars_passing_filter = filter_result.countPassing();
 
 	//var_total
-	addQcValue(output, "QC:2000013", "variant count", variants.count());
+	addQcValue(output, "QC:2000013", "variant count", vars_passing_filter);
 
 	//var_perc_dbsnp and high-impact variants
-	if (variants.count()==0)
+	if (vars_passing_filter==0)
 	{
 		addQcValue(output, "QC:2000014", "known variants percentage", "n/a (no variants)");
 		addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (no variants)");
@@ -136,6 +136,8 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 			double high_impact_count = 0;
 			for(int i=0; i<variants.count(); ++i)
 			{
+				if (!filter_result.passing(i)) continue;
+
 				if (variants[i].info("CSQ").contains("|rs") ) //works without splitting by transcript
 				{
 					++dbsnp_count;
@@ -150,25 +152,27 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 				}
 
 			}
-			addQcValue(output, "QC:2000014", "known variants percentage", 100.0*dbsnp_count/variants.count());
-			addQcValue(output, "QC:2000015", "high-impact variants percentage", 100.0*high_impact_count/variants.count());
+			addQcValue(output, "QC:2000014", "known variants percentage", 100.0*dbsnp_count/vars_passing_filter);
+			addQcValue(output, "QC:2000015", "high-impact variants percentage", 100.0*high_impact_count/vars_passing_filter);
 		}
 	}
 
 	//homozygous variants
 	bool gt_entry_exists = variants.vcfHeader().formatIdDefined("GT");
-	if (variants.count()!=0 && gt_entry_exists)
+	if (vars_passing_filter!=0 && gt_entry_exists)
 	{
 		double hom_count = 0;
 		for(int i=0; i<variants.count(); ++i)
 		{
+			if (!filter_result.passing(i)) continue;
+
 			QByteArray geno = variants[i].formatValueFromSample("GT");
 			if (geno=="1/1" || geno=="1|1")
 			{
 				++hom_count;
 			}
 		}
-		addQcValue(output, "QC:2000016", "homozygous variants percentage", 100.0*hom_count/variants.count());
+		addQcValue(output, "QC:2000016", "homozygous variants percentage", 100.0*hom_count/vars_passing_filter);
 	}
 	else
 	{
@@ -181,6 +185,8 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	double tv_count = 0;
 	for(int i=0; i<variants.count(); ++i)
 	{
+		if (!filter_result.passing(i)) continue;
+
 		//only first variant is analyzed
 		const  VcfLine& var = variants[i];
 		if (var.isIns() || var.isDel())
@@ -197,9 +203,9 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 		}
 	}
 
-	if (variants.count()!=0)
+	if (vars_passing_filter!=0)
 	{
-		addQcValue(output, "QC:2000017", "indel variants percentage", 100.0*indel_count/variants.count());
+		addQcValue(output, "QC:2000017", "indel variants percentage", 100.0*indel_count/vars_passing_filter);
 	}
 	else
 	{
@@ -215,10 +221,21 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 		addQcValue(output, "QC:2000018", "transition/transversion ratio", "n/a (no variants or tansversions)");
 	}
 
+	//count mosaic variants
+	int mosaic_var_count = 0;
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (filter_result.passing(i)) continue;
+
+		const  VcfLine& var = variants[i];
+		if (var.filters().contains("mosaic")) ++mosaic_var_count;
+	}
+	addQcValue(output, "QC:2000142", "mosaic variant count", mosaic_var_count);
+
 	return output;
 }
 
-QCCollection Statistics::phasing(VcfFile variants, bool filter, BedFile& phasing_blocks)
+QCCollection Statistics::phasing(const VcfFile& variants, bool filter, BedFile& phasing_blocks)
 {
 	//support only single sample vcf files
 	if(variants.sampleIDs().count() > 1)
@@ -229,12 +246,11 @@ QCCollection Statistics::phasing(VcfFile variants, bool filter, BedFile& phasing
 	QCCollection output;
 
 	//filter variants
+	FilterResult filter_result(variants.count());
 	if (filter)
 	{
-		FilterResult filter_result(variants.count());
 		FilterFilterColumnEmpty filter;
 		filter.apply(variants, filter_result);
-		filter_result.removeFlagged(variants);
 	}
 
 	//iterate over all variants and extract phasing information
@@ -243,6 +259,8 @@ QCCollection Statistics::phasing(VcfFile variants, bool filter, BedFile& phasing
 	int n_het_vars = 0;
 	for(int i=0; i<variants.count(); ++i)
 	{
+		if (!filter_result.passing(i)) continue;
+
 		//count hom variants (no phasing possible => has to be ignored)
 		QByteArray genotype = variants[i].formatValueFromSample("GT");
 		if (genotype=="0/1" || genotype=="1/0" || genotype=="0|1" || genotype=="1|0") n_het_vars++;

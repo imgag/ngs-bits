@@ -13,6 +13,7 @@
     <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="38.51" cvRef="QC" accession="QC:2000016"/>
     <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="4.73" cvRef="QC" accession="QC:2000017"/>
     <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of single nucleotide variants." value="3.41" cvRef="QC" accession="QC:2000018"/>
+    <qualityParameter ID="qp0007" name="mosaic variant count" description="Number of variants that are flagged as mosaic variants (in filter column)." value="3" cvRef="QC" accession="QC:2000142"/>
   </runQuality>
   <cvList>
     <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>

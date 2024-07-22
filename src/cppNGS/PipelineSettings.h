@@ -4,7 +4,7 @@
 #include <QVariant>
 #include "cppNGS_global.h"
 
-///Parses megSAP pipeline settings file and
+///Parses megSAP pipeline settings file (used for GSvar server only)
 class CPPNGSSHARED_EXPORT PipelineSettings
 {
 public:
