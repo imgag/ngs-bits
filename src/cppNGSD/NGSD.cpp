@@ -4529,6 +4529,10 @@ KaspData NGSD::kaspData(const QString& processed_sample_id)
 	output.random_error_prob = random_error_prob;
 	output.snps_evaluated = query.value("snps_evaluated").toInt();
 	output.snps_match = query.value("snps_match").toInt();
+	QVariant tmp = query.value("calculated_date");
+	output.calculated_date = tmp.isNull() ? "" : tmp.toDateTime().toString(Qt::ISODate).replace("T", " ");
+	tmp = query.value("calculated_by");
+	output.calculated_by = tmp.isNull() ? "" : getValue("SELECT name FROM user WHERE id=" + tmp.toString()).toString();
 
 	return output;
 }

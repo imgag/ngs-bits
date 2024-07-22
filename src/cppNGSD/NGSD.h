@@ -52,6 +52,8 @@ struct CPPNGSDSHARED_EXPORT KaspData
 	int snps_evaluated;
 	int snps_match;
 	double random_error_prob;
+	QString calculated_date;
+	QString calculated_by;
 };
 
 ///Type constraints class for database fields
