@@ -988,10 +988,17 @@ CREATE  TABLE IF NOT EXISTS `kasp_status`
   `random_error_prob` FLOAT UNSIGNED NOT NULL,
   `snps_evaluated` INT(10) UNSIGNED NOT NULL,
   `snps_match` INT(10) UNSIGNED NOT NULL,
+  `calculated_date` DATETIME DEFAULT NULL,
+  `calculated_by` INT(11) DEFAULT NULL,
   PRIMARY KEY (`processed_sample_id`),
   CONSTRAINT `processed_sample0`
     FOREIGN KEY (`processed_sample_id`)
     REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `kasp_calculated_by_user`
+    FOREIGN KEY (`calculated_by`)
+    REFERENCES `user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
