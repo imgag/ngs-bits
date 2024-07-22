@@ -136,15 +136,9 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 	}
 
-	//load MSI Mantis data
-	if(!settings.report_config.msiStatus()) //if not to be shown in report
-	{
-		msi_unstable_percent_ = std::numeric_limits<double>::quiet_NaN();
-	}
-	else
-	{
-		msi_unstable_percent_ = tumor_qcml_data_.value("QC:2000141", true).asDouble();
-	}
+	//load msi QC value - MSIsensor Pro
+
+	msi_unstable_percent_ = settings_.get_msi_value(db_);
 
 	//Load virus data if available
 	try

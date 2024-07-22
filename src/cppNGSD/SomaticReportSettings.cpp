@@ -8,20 +8,18 @@ SomaticReportSettings::SomaticReportSettings()
 {
 }
 
-double SomaticReportSettings::get_msi_value()
+double SomaticReportSettings::get_msi_value(NGSD &db) const
 {
-	//load MSI Mantis data
-	try
+	//load MSI QC value ()
+	QCCollection tumor_qcml_data = db.getQCData(db.processedSampleId(tumor_ps));
+
+	if (tumor_qcml_data.contains("QC:2000141", true))
 	{
-		TSVFileStream msi_filestream(msi_file);
-		//Use step wise difference (-> stored in the first line of MSI status file) for MSI status
-		QByteArrayList data = msi_filestream.readLine();
-		if(data.count() > 0) return data[1].toDouble();
-		else return std::numeric_limits<double>::quiet_NaN();
+		return tumor_qcml_data.value("QC:2000141", true).asDouble();
 	}
-	catch(...)
+	else
 	{
-		 return std::numeric_limits<double>::quiet_NaN();
+		return std::numeric_limits<double>::quiet_NaN();
 	}
 }
 
