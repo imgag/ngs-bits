@@ -2539,7 +2539,7 @@ private slots:
 
 		IS_THROWN(ArgumentException, xml_data.check());
 
-		xml_data.mantis_msi = 0.74;
+		xml_data.msi_unstable_percent = 12.74;
 		xml_data.tumor_content_histology = 0.6;
 		xml_data.tumor_mutation_burden = 17.3;
 		xml_data.tumor_content_clonality = 0.8;
@@ -2844,13 +2844,9 @@ private slots:
 		COMPARE_FILES("out/somatic_report_tumor_normal_1.rtf", TESTDATA("data_out/somatic_report_tumor_normal_1.rtf"));
 
 		// test xml generation is legal:
-
-		VariantList som_vars_in_germline = SomaticReportSettings::filterGermlineVariants(control_tissue_variants, somatic_report_settings);
-		SomaticXmlReportGeneratorData xml_data = report.getXmlData(som_vars_in_germline);
-
 		SomaticXmlReportGenerator xml_report;
 		QSharedPointer<QFile> out_xml = Helper::openFileForWriting("out/somatic_report_tumor_normal_1.xml");
-		xml_report.generateXML(xml_data, out_xml, db, true);
+		xml_report.generateXML(report.getXmlData(), out_xml, db, true);
 
 		COMPARE_FILES("out/somatic_report_tumor_normal_1.xml", TESTDATA("data_out/somatic_report_tumor_normal_1.xml"));
 
@@ -2889,8 +2885,6 @@ private slots:
 
 		query.prepare("DELETE FROM somatic_report_configuration_sv  WHERE id > 0");
 		query.exec();
-
-		//todo remove sv_variant configs to test no sv marked
 
 		QStringList messages;
 
@@ -2949,15 +2943,11 @@ private slots:
 
 		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, svs, control_tissue_variants, somatic_report_settings, true);
 		report.storeRtf("out/somatic_report_tumor_normal_2.rtf");
-
 		COMPARE_FILES("out/somatic_report_tumor_normal_2.rtf", TESTDATA("data_out/somatic_report_tumor_normal_2.rtf"));
-
-		VariantList som_vars_in_germline = SomaticReportSettings::filterGermlineVariants(control_tissue_variants, somatic_report_settings);
-		SomaticXmlReportGeneratorData xml_data = report.getXmlData(som_vars_in_germline);
 
 		SomaticXmlReportGenerator xml_report;
 		QSharedPointer<QFile> out_xml = Helper::openFileForWriting("out/somatic_report_tumor_normal_2.xml");
-		xml_report.generateXML(xml_data, out_xml, db, true);
+		xml_report.generateXML(report.getXmlData(), out_xml, db, true);
 
 		COMPARE_FILES("out/somatic_report_tumor_normal_2.xml", TESTDATA("data_out/somatic_report_tumor_normal_2.xml"));
 	}

@@ -196,13 +196,16 @@ public:
 
 	double getMsiValue()
 	{
-		return mantis_msi_swd_value_;
+		return msi_unstable_percent_;
 	}
 
-	SomaticXmlReportGeneratorData getXmlData(const VariantList& som_var_in_normal);
+	SomaticXmlReportGeneratorData getXmlData();
 
 
 private:
+	///sort variants into which table they will go in the report: high impact, low/unclear impact, low AMP (cn=3) CNV,
+	void sortVariants();
+
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
 	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
 
@@ -261,16 +264,15 @@ private:
 	QSet<int> somatic_vl_high_impact_indices_; //small variants with high impact i.e. they are added to the pathway list in bold
 	QSet<int> somatic_vl_low_impact_indices_; //small variants with low impact i.e. they are added to the pathway list, but not bold
 
-	QSet<int> low_impact_indices_converted_to_high_; // small variants with low impact, in the same gene as a high impact variant. (variants that were moved to the high impact table).
-
 	GenomeBuild build_;
 
 	const SomaticReportSettings& settings_;
 	//VariantList for relevant germline SNVs
 	const VariantList& germline_vl_;
+	VariantList filtered_germline_vl_;
 
-	//Microsatellite instability MANTIS step-wise-difference metric
-	double mantis_msi_swd_value_;
+	//Microsatellite instability MSIsensor - percentage of unstable sites
+	double msi_unstable_percent_;
 
 	//CNVList for somatic (filtered) copy-number altered variants
 	CnvList cnvs_;

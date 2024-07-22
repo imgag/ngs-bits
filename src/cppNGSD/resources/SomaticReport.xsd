@@ -214,12 +214,12 @@
 						</xs:attribute>
 						<xs:attribute name="microsatellite_instability">
 							<xs:annotation>
-								<xs:documentation>Microsatellite instability score</xs:documentation>
+                                                            <xs:documentation>Microsatellite instability: unstable sites in percent</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:float">
 									<xs:minInclusive value="0"/>
-									<xs:maxInclusive value="2"/>
+                                                                        <xs:maxInclusive value="100"/>
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>

@@ -4114,7 +4114,8 @@ INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete
 (50, "QC:2000125", "HRD: homologous recombination deficiency", "Sum of TAI, LST and LOH events.", 'int', 0),
 (51, "QC:2000062", "somatic LOH events", "Count of large somatic LOHs events (that do not touch centromeres).", 'int', 0),
 (52, "QC:2000063", "telomer allelic imbalance", "Count of somatic telomer allelic imbalance (TAI) events.", 'int', 0),
-(53, "QC:2000064", "long state transition", "Count of somatic long state transition (LST) events.", 'int', 0);
+(53, "QC:2000064", "long state transition", "Count of somatic long state transition (LST) events.", 'int', 0),
+(54, "QC:2000141", "MSI percentage unstable regions", "Percentage of microsatelite regions that are unstable", 'float', 0);
 
 
 INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `value`) VALUES
@@ -4129,7 +4130,8 @@ INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `v
 (11, 4004, 50, "48"),
 (12, 4004, 51, "10"),
 (13, 4004, 52, "23"),
-(14, 4004, 53, "9");
+(14, 4004, 53, "9"),
+(15, 4004, 54, "5.75");
 
 INSERT INTO `analysis_job`(`type`, `high_priority`, `args`, `sge_id`, `sge_queue`) VALUES
 ('single sample',0,'','4711','default_srv018'),

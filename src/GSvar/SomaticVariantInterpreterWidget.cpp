@@ -22,9 +22,7 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(int variant_ind
 		connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(predict()));
 	}
 
-
-	QString variant_description = vl[variant_index].toString(true);
-
+	QString variant_description = vl[variant_index].toString(QChar(), -1, true);
 
 	int i_co_sp = vl.annotationIndexByName("coding_and_splicing", true, false);
 	if(i_co_sp != -1)
@@ -34,7 +32,7 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(int variant_ind
 		variant_description +=  " <b>" + trans.gene + "</b>:" +trans.hgvs_c + " <b>" + trans.gene + "</b>:" + trans.hgvs_p;
 	}
 
-	ui_->label_variant->setText(variant_description);
+	ui_->label_variant->setText(variant_description.toUtf8());
 
 
 	//connect buttons
