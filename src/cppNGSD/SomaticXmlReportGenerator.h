@@ -28,7 +28,7 @@ struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
 	double tumor_content_estimated;
 
 	double tumor_mutation_burden;
-	double mantis_msi;
+	double msi_unstable_percent;
 
 	RtfSourceCode rtf_part_header;
 	RtfSourceCode rtf_part_footer;

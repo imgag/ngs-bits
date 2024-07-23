@@ -228,17 +228,27 @@ void ProcessedSampleWidget::updateGUI()
 	try
 	{
 		KaspData kasp_data = db.kaspData(ps_id_);
+		QString tooltip;
+		if (!kasp_data.calculated_date.isEmpty() && !kasp_data.calculated_by.isEmpty())
+		{
+			tooltip += "calcualted by " + kasp_data.calculated_by + " on " + kasp_data.calculated_date;
+		}
+
 		ui_->kasp_snps->setText(QString::number(kasp_data.snps_match) + "/" + QString::number(kasp_data.snps_evaluated));
+		ui_->kasp_snps->setToolTip(tooltip);
 
 		double swap_perc = 100.0 * kasp_data.random_error_prob;
 		QString value = QString::number(swap_perc, 'f', 4) + "%";
 		if (swap_perc>1.1) value = "<font color=red>"+value+"</font>";
 		ui_->kasp_swap->setText(value);
+		ui_->kasp_swap->setToolTip(tooltip);
 	}
 	catch(DatabaseException /*e*/)
 	{
 		ui_->kasp_snps->setText("n/a");
+		ui_->kasp_snps->setToolTip("");
 		ui_->kasp_swap->setText("n/a");
+		ui_->kasp_swap->setToolTip("");
 	}
 
 	//#### disease details ####

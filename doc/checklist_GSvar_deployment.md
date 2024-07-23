@@ -1,15 +1,18 @@
 # Checklist for a new ngs-bits release
 
 ## 1. Deploy server
+
 - Notify the users about a potential downtime (optional): Edit `/mnt/storage2/GSvarServer/GSvarServer-current/GSvarServer_notification.json`. The text in this file will be shown to the users of GSvar desktop application. If the file is changed, another (updated) notification will be sent to the users.
 - SSH to SRV011
-- Check out the latest version from the repository
-- Run `make build_3rdparty build_libs_release build_server_release` to build the server
+- Pull the latest version from the repository
+- Run `make build_3rdparty build_libs_release build_server_release` to build the server (do not forget to set the encryption key at `./src/cppCORE/CRYPT_KEY.txt`)
 - Stop the currently running (if there is one) server `sudo /usr/sbin/service gsvar stop`. You can always check the status of the server by executing `sudo /usr/sbin/service gsvar status`
 - Run the deployment process `make deploy_server_nobuild`
 - Start the new server `sudo /usr/sbin/service gsvar start`
+- Check the log records: `sudo journalctl -u gsvar.service -n 100`
 
 ## 2. Deploy new version of client
+
 - Build GSvar for Windows:
   - GIT Sync (main repo and sub-modules)
   - clear cppCORE build

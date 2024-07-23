@@ -23,7 +23,7 @@ SomaticXmlReportGeneratorData::SomaticXmlReportGeneratorData(GenomeBuild genome_
 	, tumor_content_clonality(std::numeric_limits<double>::quiet_NaN())
 	, tumor_content_estimated(std::numeric_limits<double>::quiet_NaN())
 	, tumor_mutation_burden(std::numeric_limits<double>::quiet_NaN())
-	, mantis_msi(std::numeric_limits<double>::quiet_NaN())
+	, msi_unstable_percent(std::numeric_limits<double>::quiet_NaN())
 {
 }
 
@@ -55,7 +55,7 @@ void SomaticXmlReportGeneratorData::check() const
 	{
 		messages << "Tumor mutation burden is not a valid float";
 	}
-	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(mantis_msi))
+	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(msi_unstable_percent))
 	{
 		messages << "MSI status selected but value is not valid float";
 	}
@@ -185,7 +185,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	{
 		w.writeAttribute( "mutation_burden", QString::number(data.tumor_mutation_burden,'f', 2) );
 	}
-	if( data.settings.report_config.msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.mantis_msi, 'f', 2) );
+	if( data.settings.report_config.msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.msi_unstable_percent, 'f', 2) );
 	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config.cnvLohCount() + data.settings.report_config.cnvTaiCount() + data.settings.report_config.cnvLstCount()));
 
 	//QC data

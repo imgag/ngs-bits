@@ -1195,10 +1195,16 @@ void NGSD::removeInitData()
 
 QString NGSD::projectFolder(QString type)
 {
+    //GSvar server: use megSAP settings
+    if (ClientHelper::isRunningOnServer())
+    {
+        return PipelineSettings::projectFolder(type);
+    }
+
 	//current type-specific project folder settings
 	if (Settings::contains("projects_folder_"+type))
 	{
-		return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
+		   return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
 	}
 
 	//fallback to legacy project folder settings
@@ -4523,6 +4529,10 @@ KaspData NGSD::kaspData(const QString& processed_sample_id)
 	output.random_error_prob = random_error_prob;
 	output.snps_evaluated = query.value("snps_evaluated").toInt();
 	output.snps_match = query.value("snps_match").toInt();
+	QVariant tmp = query.value("calculated_date");
+	output.calculated_date = tmp.isNull() ? "" : tmp.toDateTime().toString(Qt::ISODate).replace("T", " ");
+	tmp = query.value("calculated_by");
+	output.calculated_by = tmp.isNull() ? "" : getValue("SELECT name FROM user WHERE id=" + tmp.toString()).toString();
 
 	return output;
 }
