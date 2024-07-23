@@ -27,9 +27,11 @@ public:
 		//optional
 		addOutfile("out", "Output BED file containing combined methylation info of provided loci. If unset, writes to STDOUT.", true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addFlag("add_methylation_types", "Also report 5mC (m) and 5hmC (h) entries as separate columns");
 
 		//changelog
 		changeLog(2024,  6, 26, "Initial commit.");
+		changeLog(2024,  7, 18, "Added option to add separate columns for 5mC/5hmC.");
 	}
 
 	virtual void main()
@@ -39,6 +41,7 @@ public:
 		QString loci_file_path = getInfile("loci").toUtf8();
 		QString output_file_path = getOutfile("out").toUtf8();
 		QString ref_file = getInfile("ref");
+		bool add_methylation_types = getFlag("add_methylation_types");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
@@ -58,6 +61,15 @@ public:
 		output_header.append("fraction_modified");
 		output_header.append("N_valid_cov");
 		output_header.append("N_mod");
+		if (add_methylation_types)
+		{
+			output_header.append("fraction_modified_5mC");
+			output_header.append("N_valid_cov_5mC");
+			output_header.append("N_mod_5mC");
+			output_header.append("fraction_modified_5hmC");
+			output_header.append("N_valid_cov_5hmC");
+			output_header.append("N_mod_5hmC");
+		}
 		output.appendHeader(output_header.join("\t"));
 
 		for (int i = 0; i < loci.count(); ++i)
@@ -83,6 +95,15 @@ public:
 			int n_mod = 0;
 			int entry_count = 0; //should be excatly 2 (h + m)
 
+			//vars for seperate columns
+			float fraction_modified_5mC = 0.0f;
+			int n_valid_cov_5mC = 0;
+			int n_mod_5mC = 0;
+			float fraction_modified_5hmC = 0.0f;
+			int n_valid_cov_5hmC = 0;
+			int n_mod_5hmC = 0;
+
+
 			foreach (const QByteArray& match, matches)
 			{
 				QByteArrayList parts = match.split('\t');
@@ -107,6 +128,25 @@ public:
 				int cur_n_mod = Helper::toInt(mod_parts.at(2), "N_mod", match);
 				n_mod += cur_n_mod;
 
+				//update individual columns
+				if (add_methylation_types)
+				{
+					if (parts.at(3) == "m")
+					{
+						if (fraction_modified_5mC != 0.0f) THROW(ArgumentException, "Methylation for line '" + parts.join(" ") + "' occures twice in the file!");
+						fraction_modified_5mC = cur_fraction_modified;
+						n_valid_cov_5mC = cur_cov;
+						n_mod_5mC = cur_n_mod;
+					}
+					else // mod base == "h"
+					{
+						if (fraction_modified_5hmC != 0.0f) THROW(ArgumentException, "Methylation for line '" + parts.join(" ") + "' occures twice in the file!");
+						fraction_modified_5hmC = cur_fraction_modified;
+						n_valid_cov_5hmC = cur_cov;
+						n_mod_5hmC = cur_n_mod;
+					}
+				}
+
 				entry_count++;
 			}
 
@@ -116,7 +156,6 @@ public:
 				bed_line.annotations().append(QByteArray::number(fraction_modified));
 				bed_line.annotations().append(QByteArray::number(n_valid_cov));
 				bed_line.annotations().append(QByteArray::number(n_mod));
-				output.append(bed_line);
 			}
 			else if (entry_count == 1)
 			{
@@ -124,7 +163,6 @@ public:
 				bed_line.annotations().append(QByteArray::number(fraction_modified));
 				bed_line.annotations().append(QByteArray::number(n_valid_cov));
 				bed_line.annotations().append(QByteArray::number(n_mod));
-				output.append(bed_line);
 			}
 			else if (entry_count == 0)
 			{
@@ -132,12 +170,24 @@ public:
 				bed_line.annotations().append("");
 				bed_line.annotations().append("");
 				bed_line.annotations().append("");
-				output.append(bed_line);
+
 			}
 			else
 			{
 				THROW(ArgumentException, "Invalid entry count " + QByteArray::number(entry_count) + " (should be 2)! " + matches.join("\n"));
 			}
+
+			//append individual columns
+			if (add_methylation_types)
+			{
+				bed_line.annotations().append(QByteArray::number(fraction_modified_5mC));
+				bed_line.annotations().append(QByteArray::number(n_valid_cov_5mC));
+				bed_line.annotations().append(QByteArray::number(n_mod_5mC));
+				bed_line.annotations().append(QByteArray::number(fraction_modified_5hmC));
+				bed_line.annotations().append(QByteArray::number(n_valid_cov_5hmC));
+				bed_line.annotations().append(QByteArray::number(n_mod_5hmC));
+			}
+			output.append(bed_line);
 
 
 		}
