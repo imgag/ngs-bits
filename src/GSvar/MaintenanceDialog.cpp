@@ -527,7 +527,7 @@ void MaintenanceDialog::linkSamplesFromSamePatient()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	NGSD db;
-	QString user_id = db.getValue("SELECT id FROM user WHERE user_id='genlab_import'").toString();
+	int user_id = db.userId("genlab_import");
 
 	//get sample names for each patient identifier
 	QHash<QString, QStringList> pat2samples;
@@ -566,12 +566,7 @@ void MaintenanceDialog::linkSamplesFromSamePatient()
 				{
 					++c_relation_missing;
 
-					SqlQuery query = db.getQuery();
-					query.prepare("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (:0, 'same patient', :1, "+user_id+")");
-					query.bindValue(0, s1_id);
-					query.bindValue(1, s2_id);
-					query.exec();
-
+					db.addSampleRelation(SampleRelation{s1.toUtf8(), "same patient", s2.toUtf8()}, user_id);
 					appendOutputLine("Added 'same sample' relation for " + s1 + " and " + s2);
 				}
 				else

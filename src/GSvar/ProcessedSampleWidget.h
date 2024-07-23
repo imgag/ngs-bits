@@ -68,6 +68,8 @@ protected slots:
 	void editDiseaseDetails();
 	///Opent a dialog to import data from GenLab
 	void genLabImportDialog();
+	///Adds missing 'same patient' relations
+	void addMissingRelations(NGSD& db, QString s_id);
 
 private:
 	Ui::ProcessedSampleWidget* ui_;

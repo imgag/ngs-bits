@@ -984,15 +984,14 @@ public:
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
 
-	///Returns the corresponding sample id(s) with relation 'same sample' (mode:SAME_SAMPLE) or 'same patient' and 'same patient' (mode: SAME_PATIENT). Uses the cache to avoid database queries.
-	/// (Does not contain the provided sample itself)
+	///Returns the corresponding sample id(s) with relation 'same sample' (mode:SAME_SAMPLE) or 'same patient' and 'same patient' (mode: SAME_PATIENT). Uses a cache to minimize the number of database queries. Does not contain the provided sample itself.
 	const QSet<int>& sameSamples(int sample_id, SameSampleMode mode);
-	///Returns related sample id(s). Uses the cache to avoid database queries.
+	///Returns related sample id(s). Uses a cache to minimize the number of database queries.
 	const QSet<int>& relatedSamples(int sample_id);
-	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	///Return a list of sample ids which have a specific relation to the given sample id and optionally a given samples type.
 	QSet<int> relatedSamples(int sample_id, const QString& relation, QString sample_type="");
-	///Adds a new sample relation to the database;
-	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
+	///Adds a new sample relation to the database. If the user ID is not set, it is taken from LoginManager.
+	void addSampleRelation(const SampleRelation& rel, int user_id=-1);
 
 	///Returns sample disease details from the database.
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");

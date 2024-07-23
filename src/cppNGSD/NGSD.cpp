@@ -823,8 +823,7 @@ const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
 
 	//prepare iterative query
 	SqlQuery query_iterative = getQuery();
-	query_iterative.prepare(QString("SELECT sample1_id, sample2_id FROM sample_relations WHERE (relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient')": ")")
-					 + " AND (sample1_id=:0 OR sample2_id=:0)");
+	query_iterative.prepare(QString("SELECT sample1_id, sample2_id FROM sample_relations WHERE (relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient')": ")") + " AND (sample1_id=:0 OR sample2_id=:0)");
 
 	//init if empty
 	if (same_samples.isEmpty())
@@ -8936,16 +8935,15 @@ QSet<int> NGSD::relatedSamples(int sample_id, const QString& relation, QString s
 	return output;
 }
 
-void NGSD::addSampleRelation(const SampleRelation& rel, bool error_if_already_present)
+void NGSD::addSampleRelation(const SampleRelation& rel, int user_id)
 {
-	QString query_ext = error_if_already_present ? "" : " ON DUPLICATE KEY UPDATE relation=VALUES(relation)";
-	//skip samples that already have a relation in NGSD
-
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (:0, :1, :2, "+QString::number(LoginManager::userId())+")" + query_ext);
+	query.prepare("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (:0, :1, :2, :3)");
 	query.bindValue(0, sampleId(rel.sample1));
 	query.bindValue(1, rel.relation);
 	query.bindValue(2, sampleId(rel.sample2));
+	if (user_id==-1) user_id = LoginManager::userId();
+	query.bindValue(3, user_id);
 	query.exec();
 }
 

@@ -429,7 +429,7 @@ void ImportDialog::import()
 				{
 					THROW(DatabaseException, "Sample " + tumor_sample + " is not a tumor! Can't import relation.");
 				}
-				db_.addSampleRelation(SampleRelation{tumor_sample, "tumor-cfDNA", cfdna_sample}, true);
+				db_.addSampleRelation(SampleRelation{tumor_sample, "tumor-cfDNA", cfdna_sample});
 			}
 
 			db_.commit();
