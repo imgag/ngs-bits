@@ -1,12 +1,8 @@
-#include "BedFile.h"
 #include "ToolBase.h"
 #include "Statistics.h"
 #include "BasicStatistics.h"
-#include "TSVFileStream.h"
 #include <zlib.h>
-#include <QTextStream>
 #include <QFileInfo>
-#include <QMultiMap>
 #include <QVector>
 #include <QElapsedTimer>
 
@@ -200,7 +196,7 @@ public:
 		}
 
 		//load coverage profile for main_file
-		QMultiMap<QString, double> cov1;
+		QHash<QString, QVector<double>> cov1; //TODO QHash instead of QMultiMap
 
 		for (int i=0; i<correct_indices.count() ; ++i)
 		{
@@ -229,29 +225,31 @@ public:
 				else
 				{
 					cov_score = line[3].toDouble();
-					cov1.insert(temp_chr, cov_score);
+					cov1[temp_chr].append(cov_score);
 				}
 			}
 		}
 
 		//load other samples and calculate correlation
 		QMap<double, QString> file2corr;
+		QHash<QString, QList<QByteArrayList>> all_ref_files;
 		foreach(QString ref_file, in_refs)
 		{
 			QList<QByteArrayList> file;
 			file = parseGzFile(ref_file);
+			all_ref_files[ref_file].append(file);
 
 			if (!(file.count()==main_file.count()))
 			{
 				THROW(ArgumentException, ref_file + " contains a different amount of lines than other reference samples.")
 			}
 
-			QMultiMap<QString, double> cov2;	//TODO Qhash
+			QHash<QString, QVector<double>> cov2;
 
 			//load coverage profile for ref_file
 			for (int i=0; i<correct_indices.count() ; ++i)
 			{
-				QString cov_score;
+				double cov_score;
 				if (!correct_indices[i])
 				{
 					continue;
@@ -276,30 +274,23 @@ public:
 					}
 					else
 					{
-						cov_score = line[3];
-						cov2.insert(temp_chr, cov_score.toDouble());
+						cov_score = line[3].toDouble();
+						cov2[temp_chr].append(cov_score);
 					}
 				}
 			}
 
-
 			//calculate correlation between main_sample and current ref_file
-			QList<QString> keys = cov1.uniqueKeys();
 			QVector<double> corr;
-
-			for (int i=0; i < keys.size(); ++i)
+			QHash<QString, QVector<double>>::const_iterator it = cov1.constBegin();
+			while (it != cov1.constEnd())
 			{
-				const QString& key = keys.at(i);
-				QList<double> valuesList_cov1 = cov1.values(key);
-				QVector<double> valuesVector_cov1 = QVector<double>::fromList(valuesList_cov1);
-				QList<double> valuesList_cov2 = cov2.values(key);
-				QVector<double> valuesVector_cov2 = QVector<double>::fromList(valuesList_cov2);
-
-				corr.append(BasicStatistics::correlation(valuesVector_cov1, valuesVector_cov2));
+				const QString& key = it.key();
+				corr.append(BasicStatistics::correlation(it.value(), cov2.value(key)));
+				++it;
 			}
-
+			std::sort(corr.begin(), corr.end());
 			file2corr.insert(BasicStatistics::median(corr), ref_file);
-
 			if (file2corr.size() >= max_ref_samples) break;
 
 		}
@@ -340,19 +331,21 @@ public:
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
 
 		QList<QByteArrayList> tsv_file_list;
-		tsv_file_list = parseGzFile(best_ref_files[0]);
-		cols.append(sampleName(best_ref_files[0]));
-
-		for (int i=1; i<best_ref_files.count(); ++i)
+		bool first_file = true;
+		foreach(QString ref_file, best_ref_files)
 		{
-			QList<QByteArrayList> temp_file;
-			temp_file = parseGzFile(best_ref_files[i]);
-
-			for (int j=0; j<temp_file.count(); ++j)
+			cols.append(sampleName(ref_file));
+			if (first_file)
 			{
-				tsv_file_list[j].append(temp_file[j][3]);
+				tsv_file_list = all_ref_files[ref_file];
+				first_file = false;
 			}
-			cols.append(sampleName(best_ref_files[i]));
+			else
+			{
+				for (int i=0; i<all_ref_files[ref_file].count(); ++i) {
+					tsv_file_list[i].append(all_ref_files[ref_file][i][3]);
+				}
+			}
 		}
 
 		outstream->write('#' + cols.join('\t') + '\n');
