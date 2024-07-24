@@ -132,6 +132,7 @@ public:
 		//init
 		QElapsedTimer corr_timer;
 		QElapsedTimer tsvmerge_timer;
+		QTextStream out(stdout);
 		QString in = getInfile("in");
 		QStringList exclude_files = getInfileList("exclude");
 		QStringList in_refs = getInfileList("in_ref");
@@ -295,7 +296,7 @@ public:
 
 		}
 		//write number of compared coverage files to stdout
-		qDebug() << "compared number of coverage files:" << file2corr.size();
+		out << "compared number of coverage files: " << file2corr.size() << endl;
 
 
 		//select best n reference files by correlation
@@ -319,9 +320,12 @@ public:
 		//compute mean correlation and info output to stdout
 		mean_correaltion = mean_correaltion/best_ref_files.count();
 		double elapsed_time = corr_timer.elapsed() * 0.00001667;
-		qDebug() << "Time to compute correlation:" << elapsed_time << "minutes";
-		qDebug() << "Mean correlation to reference sample is:" << mean_correaltion;
-		qDebug() << "Selected the following files as reference samples based on correlation:" << best_ref_files;
+		out << "Time to compute correlation: " << elapsed_time << " minutes" << endl;
+		out << "Mean correlation to reference sample is: " << mean_correaltion << endl;
+		out << "Selected the following files as reference samples based on correlation: " << endl;
+		foreach(QString entry, best_ref_files) {
+			out << entry << endl;
+		};
 
 
 		//Merge coverage profiles and store them in a tsv file
@@ -355,7 +359,7 @@ public:
 		}
 
 		elapsed_time = tsvmerge_timer.elapsed() * 0.00001667;
-		qDebug() << "Time to merge tsv files:" << elapsed_time << "minutes";
+		out << "Time to merge tsv files: " << elapsed_time << " minutes" << endl;
 
 	}
 };
