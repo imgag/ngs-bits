@@ -101,8 +101,8 @@ public:
         GffSettings gff_settings;
 		gff_settings.print_to_stdout = true;
 		gff_settings.skip_not_gencode_basic = !all;
+		gff_settings.skip_not_hgnc = false;
 		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
-		out << "Parsed " << QString::number(gff_file.transcripts.count()) << " transcripts from input GFF file." << endl;
 		out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
         gff_file.transcripts.sortByPosition();
 

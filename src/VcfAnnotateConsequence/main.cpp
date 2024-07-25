@@ -37,14 +37,17 @@ public:
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 		addInt("prefetch", "Maximum number of blocks that may be pre-fetched into memory.", true, 64);
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).");
+		addFlag("skip_not_hgnc", "Skip genes that do not have a HGNC identifier.");
 		addString("tag", "Tag that is used for the consequence annotation.", true, "CSQ");
 		addInt("max_dist_to_trans", "Maximum distance between variant and transcript.", true, 5000);
 		addInt("splice_region_ex", "Number of bases at exon boundaries that are considered to be part of the splice region.", true, 3);
 		addInt("splice_region_in5", "Number of bases at intron boundaries (5') that are considered to be part of the splice region.", true, 20);
 		addInt("splice_region_in3", "Number of bases at intron boundaries (3') that are considered to be part of the splice region.", true, 20);
+		addEnum("source", "GFF source.", true, QStringList() << "ensembl" << "refseq", "ensembl");
 		addFlag("debug", "Enable debug output");
 
-		changeLog(2022, 7, 7, "Change to event-driven multithreaded implementation.");
+		changeLog(2024, 7, 25, "Added support for RefSeq GFF format (source parameter).");
+		changeLog(2022, 7,  7, "Change to event-driven multithreaded implementation.");
 	}
 
 	QStringList extendedDescription()
@@ -68,6 +71,7 @@ public:
 		QString gff_file = getInfile("gff");
 		QString out_file = getOutfile("out");
 		bool all = getFlag("all");
+		bool skip_not_hgnc = getFlag("skip_not_hgnc");
 
 		int max_dist_to_trans = getInt("max_dist_to_trans");
 		int splice_region_ex = getInt("splice_region_ex");
@@ -107,10 +111,11 @@ public:
 		timer.start();
 
 		GffSettings gff_settings;
+		gff_settings.source = getEnum("source");
 		gff_settings.print_to_stdout = true;
 		gff_settings.skip_not_gencode_basic = !all;
+		gff_settings.skip_not_hgnc = skip_not_hgnc;
 		GffData data = NGSHelper::loadGffFile(gff_file, gff_settings);
-		stream << "Parsed " << QString::number(data.transcripts.count()) << " transcripts from input GFF file." << endl;
 		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
 
 		//ceate transcript index

@@ -41,8 +41,10 @@ struct TargetRegionInfo
 //Settings for Gff parser
 struct GffSettings
 {
-	bool skip_not_gencode_basic = true; //skip transcripts that are not flagged as "GENCODE basic"
-	bool print_to_stdout = true; //print summary to stdout
+	QString source = "ensembl"; //source of the GFF file (Ensembl or RefSeq)
+	bool skip_not_gencode_basic = true; //skip transcripts that are not flagged as "GENCODE basic" in Ensembl
+	bool skip_not_hgnc = false; //skip transcripts without HGNC ID
+	bool print_to_stdout = true; //print infos to stdout
 };
 
 //Output of Ensembl GFF file parser
@@ -125,9 +127,16 @@ public:
 	///Returns the maximum SpliceAI score based on the annotation. Returns -1 if no score was calculated. If tooltip is set, detail for showing in a GUI (gene, score, position offset) are written into the variable.
 	static double maxSpliceAiScore(QString annotation_string, QString* tooltip = nullptr);
 
+	///Returns a mapping from chromosome names to RefSeq NC identifiers including version number
+	static QHash<Chromosome, QString> chromosomeMapping(GenomeBuild build);
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;
+
+	static void loadGffEnsembl(QString filename, GffData& data, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_not_gencode_basic, int& c_skipped_not_hgnc);
+	static void loadGffRefseq(QString filename, GffData& data, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_not_gencode_basic, int& c_skipped_not_hgnc);
+
 };
 
 #endif // NGSHELPER_H

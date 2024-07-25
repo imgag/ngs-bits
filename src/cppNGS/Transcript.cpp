@@ -327,6 +327,24 @@ Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
 	else if (biotype=="ARTIFACT") return ARTIFACT;
 	else if (biotype=="PROTEIN_CODING_CDS_NOT_DEFINED") return PROTEIN_CODING_CDS_NOT_DEFINED;
 
+	//RefSeq mapping
+	else if (biotype=="TRANSCRIBED_PSEUDOGENE") return TRANSCRIBED_UNPROCESSED_PSEUDOGENE;
+	else if (biotype=="C_REGION") return IG_C_GENE;
+	else if (biotype=="D_SEGMENT") return IG_D_GENE;
+	else if (biotype=="J_SEGMENT") return IG_J_GENE;
+	else if (biotype=="J_SEGMENT_PSEUDOGENE") return IG_J_PSEUDOGENE;
+	else if (biotype=="V_SEGMENT") return IG_V_GENE;
+	else if (biotype=="V_SEGMENT_PSEUDOGENE") return IG_V_PSEUDOGENE;
+	else if (biotype=="RNASE_MRP_RNA") return RIBOZYME;
+	else if (biotype=="RNASE_P_RNA") return RIBOZYME;
+	else if (biotype=="Y_RNA") return MISC_RNA;
+	else if (biotype=="ANTISENSE_RNA") return LNCRNA;
+	else if (biotype=="NCRNA") return LNCRNA;
+	else if (biotype=="NCRNA_PSEUDOGENE") return LNCRNA;
+	else if (biotype=="TELOMERASE_RNA") return LNCRNA;
+	else if (biotype=="TRNA") return MT_TRNA; //???
+	else if (biotype=="OTHER") return PROTEIN_CODING; //???
+
 	THROW(ProgrammingException, "Unknown transcript biotype string '" + biotype_orig + "'!");
 }
 
@@ -959,6 +977,16 @@ Transcript TranscriptList::getTranscript(const QByteArray& name)
 	}
 
 	return Transcript();
+}
+
+int TranscriptList::geneCount() const
+{
+	QSet<QByteArray> gene_symbols;
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		gene_symbols << it->gene();
+	}
+	return gene_symbols.count();
 }
 
 void TranscriptList::sortByBases()
