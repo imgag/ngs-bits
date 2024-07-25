@@ -110,7 +110,7 @@ public:
 		addInfileList("in_ref", "Reference coverage profiles of other sample in BED/COV format (GZ file supported).", false);
 		addOutfile("out", "TSV file with coverage profiles of reference samples.", false);
 		//optional
-		addInfileList("exclude", "Regions in the given BED file(s) are excluded from the coverage calcualtion (GZ file supported).", true);
+		addInfileList("exclude", "Regions in the given BED file(s) are excluded from the coverage calcualtion.", true);
 		addInt("max_ref_samples", "Maximum number of reference coverage files to compare during similarity calculation", true, 600);
 		addInt("cov_max", "Best n reference coverage files to include in 'out' based on correlation.", true, 150);
 		addString("cols", "Comma-separated list of column names used as key for TSV merging", true, "chr,start,end");
@@ -133,14 +133,19 @@ public:
 		corr_timer.start();
 
 		//merge exclude files
-		QList<QByteArrayList> merged_excludes;
+		BedFile merged_excludes;
 		foreach(QString exclude_file, exclude_files)
 		{
-			QList<QByteArrayList> temp = parseGzFile(exclude_file);
-			merged_excludes.append(temp);
+			BedFile temp;
+			temp.load(exclude_file);
+			merged_excludes.add(temp);
 		}
+		merged_excludes.merge();
+
+		qDebug() << "exclude_files merged";
 
 		//determine indices to use
+		ChromosomalIndex<BedFile> exclude_idx(merged_excludes);
 		QList<QByteArrayList> main_file = parseGzFile(in);
 
 		QByteArray correct_indices;
@@ -151,7 +156,7 @@ public:
 			bool is_valid = true;
 
 			if (line.isEmpty() || line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser ") ||
-				line[3].toDouble() == 0.0 || merged_excludes.contains(line))
+				line[3].toDouble() == 0.0 || !(exclude_idx.matchingIndex(line[0], line[1].toInt(), line[2].toInt())==-1))
 			{
 				is_valid = false;
 			}
@@ -170,6 +175,9 @@ public:
 			correct_indices.append(is_valid);
 		}
 
+		qDebug() << "correct indices calculated";
+		qDebug() << correct_indices;
+
 		//load coverage profile for main_file
 		QHash<QString, QVector<double>> cov1;
 
@@ -182,6 +190,8 @@ public:
 			double cov_score = line[3].toDouble();
 			cov1[chr].append(cov_score);
 		}
+
+		qDebug() << "main file loaded";
 
 		//load other samples and calculate correlation
 		QMap<double, QString> file2corr;
@@ -218,16 +228,16 @@ public:
 
 			std::sort(corr.begin(), corr.end());
 			file2corr.insert(BasicStatistics::median(corr), ref_file);
+			qDebug() << "reference file " << ref_file << " loaded and correlation computed";
 			if (file2corr.size() >= max_ref_samples) break;
 		}
-
-		//qDebug() << all_ref_files["BedReferenceCohort_in_ref2.cov.gz"];
 
 		//write number of compared coverage files to stdout
 		out << "compared number of coverage files: " << file2corr.size() << endl;
 
 
 		//select best n reference files by correlation
+		out << "Selected the following files as reference samples based on correlation: " << endl;
 		QStringList best_ref_files;
 		QMapIterator<double, QString> it(file2corr);
 		double mean_correaltion = 0.0;
@@ -240,23 +250,21 @@ public:
 			best_ref_files.append(it.value());
 			mean_correaltion += it.key();
 			++check_max;
+			out << it.value() << " : " << it.key() << endl;
 			if (check_max == cov_max) break;
 		}
 
 		best_ref_files.sort();
 
+		qDebug() << "best ref_files selected";
+
 		//compute mean correlation and info output to stdout
 		mean_correaltion /= best_ref_files.size();
 		double elapsed_time = corr_timer.elapsed() * 0.00001667;
 		out << "Time to compute correlation: " << elapsed_time << " minutes" << endl;
-		out << "Mean correlation to reference sample is: " << mean_correaltion << endl;
-		out << "Selected the following files as reference samples based on correlation: " << endl;
-		foreach(QString entry, best_ref_files) {
-			out << entry << endl;
-		};
+		out << "Mean correlation to reference samples is: " << mean_correaltion << endl;
 
-
-		//Merge coverage profiles and store them in a tsv file
+		//merge coverage profiles and store them in a tsv file
 		tsvmerge_timer.start();
 
 		QByteArrayList cols = getString("cols").toUtf8().split(',');
@@ -274,7 +282,6 @@ public:
 			cols.append(sampleName(ref_file));
 			if (first_file)
 			{
-				//TODO parse chr start end
 				for (int i=0; i<main_file.size(); ++i)
 				{
 					tsv_line_list[i].append(main_file[i][0]);
