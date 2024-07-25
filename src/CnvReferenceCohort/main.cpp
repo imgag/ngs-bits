@@ -142,8 +142,6 @@ public:
 		}
 		merged_excludes.merge();
 
-		out << "exclude_files merged";
-
 		//determine indices to use
 		ChromosomalIndex<BedFile> exclude_idx(merged_excludes);
 		QList<QByteArrayList> main_file = parseGzFile(in);
@@ -175,8 +173,6 @@ public:
 			correct_indices.append(is_valid);
 		}
 
-		out << "correct indices calculated";
-
 		//load coverage profile for main_file
 		QHash<QString, QVector<double>> cov1;
 
@@ -189,8 +185,6 @@ public:
 			double cov_score = line[3].toDouble();
 			cov1[chr].append(cov_score);
 		}
-
-		out << "main file loaded";
 
 		//load other samples and calculate correlation
 		QMap<double, QString> file2corr;
@@ -227,7 +221,6 @@ public:
 
 			std::sort(corr.begin(), corr.end());
 			file2corr.insert(BasicStatistics::median(corr), ref_file);
-			out << "reference file " << ref_file << " loaded and correlation computed";
 			if (file2corr.size() >= max_ref_samples) break;
 		}
 
@@ -254,8 +247,6 @@ public:
 		}
 
 		best_ref_files.sort();
-
-		out << "best ref_files selected";
 
 		//compute mean correlation and info output to stdout
 		mean_correaltion /= best_ref_files.size();
