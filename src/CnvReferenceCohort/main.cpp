@@ -185,11 +185,10 @@ public:
 
 		//load other samples and calculate correlation
 		QMap<double, QString> file2corr;
-		QHash<QString, QList<QByteArrayList>> all_ref_files;
+		QHash<QString, QVector<QByteArray>> all_ref_files;
 		foreach (QString ref_file, in_refs)
 		{
 			QList<QByteArrayList> file = parseGzFile(ref_file);
-			all_ref_files[ref_file]=file;
 
 			if (file.size() != main_file.size())
 			{
@@ -200,6 +199,7 @@ public:
 			QHash<QString, QVector<double>> cov2;
 			for (int i = 0; i < correct_indices.size(); ++i)
 			{
+				all_ref_files[ref_file].append(file[i][3]);
 				if (!correct_indices[i]) continue;
 
 				const auto& line = file[i];
@@ -220,6 +220,8 @@ public:
 			file2corr.insert(BasicStatistics::median(corr), ref_file);
 			if (file2corr.size() >= max_ref_samples) break;
 		}
+
+		//qDebug() << all_ref_files["BedReferenceCohort_in_ref2.cov.gz"];
 
 		//write number of compared coverage files to stdout
 		out << "compared number of coverage files: " << file2corr.size() << endl;
@@ -260,7 +262,11 @@ public:
 		QByteArrayList cols = getString("cols").toUtf8().split(',');
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
 
-		QList<QByteArrayList> tsv_file_list;
+		QList<QByteArrayList> tsv_line_list;
+		tsv_line_list.reserve(main_file.size());
+		for (int i = 0; i < main_file.size(); ++i) {
+			tsv_line_list.append(QByteArrayList());
+		}
 		bool first_file = true;
 
 		foreach(QString ref_file, best_ref_files)
@@ -268,19 +274,25 @@ public:
 			cols.append(sampleName(ref_file));
 			if (first_file)
 			{
-				tsv_file_list = all_ref_files[ref_file];
+				//TODO parse chr start end
+				for (int i=0; i<main_file.size(); ++i)
+				{
+					tsv_line_list[i].append(main_file[i][0]);
+					tsv_line_list[i].append(main_file[i][1]);
+					tsv_line_list[i].append(main_file[i][2]);
+				}
+
 				first_file = false;
 			}
-			else
+
+			for (int i=0; i<all_ref_files[ref_file].size(); ++i)
 			{
-				for (int i=0; i<all_ref_files[ref_file].size(); ++i) {
-					tsv_file_list[i].append(all_ref_files[ref_file][i][3]);
-				}
+				tsv_line_list[i].append(all_ref_files[ref_file][i]);
 			}
 		}
 
 		outstream->write('#' + cols.join('\t') + '\n');
-		foreach(const QByteArrayList &line, tsv_file_list)
+		foreach(const QByteArrayList &line, tsv_line_list)
 		{
 			outstream->write(line.join('\t') + '\n');
 		}
