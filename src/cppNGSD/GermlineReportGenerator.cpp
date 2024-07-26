@@ -710,8 +710,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element ChromosomeAliases
 	w.writeStartElement("ChromosomeAliases");
-	QMap<Chromosome, QString> table = getChromosomeTable(data_.build);
-	foreach (Chromosome key, table.keys())
+	QHash<Chromosome, QString> table = NGSHelper::chromosomeMapping(data_.build);
+	QList<Chromosome> chr_list = table.keys();
+	std::sort(chr_list.begin(), chr_list.end());
+	foreach (const Chromosome& key, chr_list)
 	{
 		w.writeStartElement("Chromosome");
 		w.writeAttribute("chr", key.str());
@@ -2014,52 +2016,6 @@ QString GermlineReportGenerator::convertOtherVariantType(const QString& type, bo
 	if(type == "uncalled CNV") return (xml)? "uncalled_cnv": "nicht-detektierte CNV";
 	if(type == "uncalled SV") return (xml)? "uncalled_sv": "nicht-detektierte Strukturvariante";
 	THROW(ArgumentException, "Invalid variant type '" + type + "'!");
-}
-
-QMap<Chromosome, QString> GermlineReportGenerator::getChromosomeTable(GenomeBuild build)
-{
-	QStringList refseq;
-	if (build == GenomeBuild::HG38)
-	{
-		// chromosomes 1-22:
-		refseq << "NC_000001.11" << "NC_000002.12" << "NC_000003.12" << "NC_000004.12" << "NC_000005.10";
-		refseq << "NC_000006.12" << "NC_000007.14" << "NC_000008.11" << "NC_000009.12" << "NC_000010.11";
-		refseq << "NC_000011.10" << "NC_000012.12" << "NC_000013.11" << "NC_000014.9"  << "NC_000015.10";
-		refseq << "NC_000016.10" << "NC_000017.11" << "NC_000018.10" << "NC_000019.10" << "NC_000020.11";
-		refseq << "NC_000021.9"  << "NC_000022.11";
-		// chromosomes y + x
-		refseq << "NC_000024.10" << "NC_000023.11";
-		// chrMT
-		refseq << "NC_012920.1";
-	}
-	else if (build == GenomeBuild::HG19)
-	{
-		// chromosomes 1-22:
-		refseq << "NC_000001.10" << "NC_000002.11" << "NC_000003.11" << "NC_000004.11" << "NC_000005.9";
-		refseq << "NC_000006.11" << "NC_000007.13" << "NC_000008.10" << "NC_000009.11" << "NC_000010.10";
-		refseq << "NC_000011.9"  << "NC_000012.11" << "NC_000013.10" << "NC_000014.8"  << "NC_000015.9";
-		refseq << "NC_000016.9"  << "NC_000017.10" << "NC_000018.9"  << "NC_000019.9"  << "NC_000020.10";
-		refseq << "NC_000021.8"  << "NC_000022.10";
-		// chromosomes y + x
-		refseq << "NC_000024.9" << "NC_000023.10";
-		// chrMT
-		refseq << "NC_012920.1";
-	}
-	//Order: chr1-22, chrY, chrX, chrMT
-	QStringList chromosomes = db_.getEnum("variant", "chr");
-
-	if (refseq.size() != chromosomes.size())
-	{
-		THROW(ProgrammingException, "Chromosomes and refseq don't have the same length.")
-	}
-
-	QMap<Chromosome, QString> map;
-	for (int i=0; i < chromosomes.size(); i++)
-	{
-		map.insert(Chromosome(chromosomes[i]), refseq[i]);
-	}
-
-	return map;
 }
 
 void GermlineReportGenerator::writeEvaluationSheet(QString filename, const EvaluationSheetData& evaluation_sheet_data)
