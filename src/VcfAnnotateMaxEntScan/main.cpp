@@ -100,7 +100,7 @@ public:
         bool all = getFlag("all");
         GffSettings gff_settings;
 		gff_settings.print_to_stdout = true;
-		gff_settings.skip_not_gencode_basic = !all;
+		gff_settings.include_all = all;
 		gff_settings.skip_not_hgnc = false;
 		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
 		out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;

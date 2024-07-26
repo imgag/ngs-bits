@@ -1112,7 +1112,7 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 }
 
 
-void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_not_gencode_basic, int& c_skipped_not_hgnc)
+void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc)
 {
 	output.transcripts.reserve(100000);
 
@@ -1261,9 +1261,9 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			QByteArrayList tags = data.value("tag").split(',');
 			bool is_gencode_basic = tags.contains("basic");
 
-			if (settings.skip_not_gencode_basic && !is_gencode_basic)
+			if (!settings.include_all && !is_gencode_basic)
 			{
-				++c_skipped_not_gencode_basic;
+				++c_skipped_low_evidence;
 				continue;
 			}
 
@@ -1333,7 +1333,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 }
 
 
-void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& /*c_skipped_not_gencode_basic*/, int& c_skipped_not_hgnc)
+void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc)
 {
 	//init
 	QHash<QByteArray, Chromosome> id2chr; //refseq chromosome ID to normal chromosome name
@@ -1391,6 +1391,13 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 		QByteArray chr_string = line.left(seps[0]);
 		Chromosome chr = id2chr[chr_string];
 		QByteArray details = line.mid(seps[7]+1, line.length()-seps[7]);
+
+		QByteArray source = line.mid(seps[0]+1, seps[1]-seps[0]-1);
+		if (!settings.include_all && !source.contains("RefSeq"))
+		{
+			++c_skipped_low_evidence;
+			continue;
+		}
 
 		//gene line
 		if (details.startsWith("ID=gene-"))

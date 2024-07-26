@@ -42,7 +42,7 @@ struct TargetRegionInfo
 struct GffSettings
 {
 	QString source = "ensembl"; //source of the GFF file (Ensembl or RefSeq)
-	bool skip_not_gencode_basic = true; //skip transcripts that are not flagged as "GENCODE basic" in Ensembl
+	bool include_all = false; //if set to false, skips transcripts that are not flagged as "GENCODE basic" (Ensembl) or are not from origin RefSeq/BestRefSeq (RefSeq)
 	bool skip_not_hgnc = false; //skip transcripts without HGNC ID
 	bool print_to_stdout = true; //print infos to stdout
 };
@@ -134,8 +134,8 @@ private:
 	///Constructor declared away
 	NGSHelper() = delete;
 
-	static void loadGffEnsembl(QString filename, GffData& data, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_not_gencode_basic, int& c_skipped_not_hgnc);
-	static void loadGffRefseq(QString filename, GffData& data, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_not_gencode_basic, int& c_skipped_not_hgnc);
+	static void loadGffEnsembl(QString filename, GffData& data, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc);
+	static void loadGffRefseq(QString filename, GffData& data, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc);
 
 };
 

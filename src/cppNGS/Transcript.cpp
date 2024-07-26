@@ -989,6 +989,16 @@ int TranscriptList::geneCount() const
 	return gene_symbols.count();
 }
 
+int TranscriptList::transcriptCount(const QByteArray& gene) const
+{
+	int output = 0;
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if(it->gene()==gene) ++output;
+	}
+	return output;
+}
+
 void TranscriptList::sortByBases()
 {
 	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
