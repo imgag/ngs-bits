@@ -1075,13 +1075,13 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 	int c_skipped_special_chr = 0;
 	QSet<QByteArray> special_chrs;
 	int c_skipped_no_name_and_hgnc = 0;
-	int c_skipped_not_gencode_basic = 0;
+	int c_skipped_low_evidence = 0;
 	int c_skipped_not_hgnc = 0;
 
 	//load data
 	GffData data;
-	if (settings.source=="ensembl") loadGffEnsembl(filename, data, settings, c_skipped_special_chr, special_chrs, c_skipped_no_name_and_hgnc, c_skipped_not_gencode_basic, c_skipped_not_hgnc);
-	else if (settings.source=="refseq") loadGffRefseq(filename, data, settings, c_skipped_special_chr, special_chrs, c_skipped_no_name_and_hgnc, c_skipped_not_gencode_basic, c_skipped_not_hgnc);
+	if (settings.source=="ensembl") loadGffEnsembl(filename, data, settings, c_skipped_special_chr, special_chrs, c_skipped_no_name_and_hgnc, c_skipped_low_evidence, c_skipped_not_hgnc);
+	else if (settings.source=="refseq") loadGffRefseq(filename, data, settings, c_skipped_special_chr, special_chrs, c_skipped_no_name_and_hgnc, c_skipped_low_evidence, c_skipped_not_hgnc);
 	else THROW(ArgumentException, "Invalid GFF source '" + settings.source + "'!");
 
 	//text output
@@ -1102,9 +1102,10 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 		{
 			out << "Notice: " << QByteArray::number(c_skipped_not_hgnc) << " genes without a HGNC identifier skipped." << endl;
 		}
-		if (c_skipped_not_gencode_basic>0)
+		if (c_skipped_low_evidence>0)
 		{
-			out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not flagged as 'GENCODE basic' skipped." << endl;
+
+			out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << endl;
 		}
 	}
 
@@ -1189,16 +1190,9 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
         //skip header lines
 		if (line.startsWith("#")) continue;
 
-		int from = 0;
-		QVector<int> seps;
-		int sep;
-		while((sep=line.indexOf('\t', from))!=-1)
-		{
-			seps << sep;
-			from = sep+1;
-		}
-		Chromosome chr = line.left(seps[0]);
-		QByteArray details = line.mid(seps[7]+1, line.length()-seps[7]);
+		QByteArrayList parts = line.split('\t');
+		Chromosome chr = parts[0];
+		const QByteArray& details = parts[8];
 
         //gene line
 		if (details.startsWith("ID=gene:"))
@@ -1280,7 +1274,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			tmp.gene_id = parent_id;
 			tmp.hgnc_id = gene_to_hgnc[parent_id];
 			tmp.chr = chr;
-			tmp.strand = line.mid(seps[5]+1, seps[6]-seps[5]-1);
+			tmp.strand = parts[6];
 			tmp.biotype = data["biotype"];
 			tmp.is_gencode_basic = is_gencode_basic;
 			tmp.is_ensembl_canonical = tags.contains("Ensembl_canonical");
@@ -1292,7 +1286,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
         //exon lines
 		else
 		{
-			QByteArray type = line.mid(seps[1]+1, seps[2]-seps[1]-1);
+			QByteArray type = parts[2];
 			if (type=="CDS" || type=="exon" || type=="three_prime_UTR" || type=="five_prime_UTR" )
 			{
 				int enst_start = details.indexOf("Parent=")+7;
@@ -1312,8 +1306,8 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 				}
 
 				//update coding start/end
-				int start = Helper::toInt(line.mid(seps[2]+1, seps[3]-seps[2]-1), "start position");
-				int end = Helper::toInt(line.mid(seps[3]+1, seps[4]-seps[3]-1), "end position");
+				int start = Helper::toInt(parts[3], "start position");
+				int end = Helper::toInt(parts[4], "end position");
 
 				if (type=="CDS")
 				{
@@ -1380,24 +1374,18 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 		//skip header lines
 		if (line.startsWith("#")) continue;
 
-		int from = 0;
-		QVector<int> seps;
-		int sep;
-		while((sep=line.indexOf('\t', from))!=-1)
-		{
-			seps << sep;
-			from = sep+1;
-		}
-		QByteArray chr_string = line.left(seps[0]);
-		Chromosome chr = id2chr[chr_string];
-		QByteArray details = line.mid(seps[7]+1, line.length()-seps[7]);
+		QByteArrayList parts = line.split('\t');
 
-		QByteArray source = line.mid(seps[0]+1, seps[1]-seps[0]-1);
+		QByteArray source = parts[1];
 		if (!settings.include_all && !source.contains("RefSeq"))
 		{
 			++c_skipped_low_evidence;
 			continue;
 		}
+
+		const QByteArray& chr_string = parts[0];
+		Chromosome chr = id2chr[chr_string];
+		const QByteArray& details = parts[8];
 
 		//gene line
 		if (details.startsWith("ID=gene-"))
@@ -1466,8 +1454,7 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 			tmp.gene_symbol = gene_data.symbol;
 			tmp.hgnc_id = gene_data.hgnc;
 			tmp.chr = chr;
-			QByteArray strand = line.mid(seps[5]+1, seps[6]-seps[5]-1);
-			tmp.strand = strand;
+			tmp.strand = parts[6];
 			tmp.biotype = gene_data.biotype;
 			tmp.is_gencode_basic = false;
 			tmp.is_ensembl_canonical = false;
@@ -1479,7 +1466,7 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 		//exon lines
 		else
 		{
-			QByteArray type = line.mid(seps[1]+1, seps[2]-seps[1]-1);
+			QByteArray type = parts[2];
 			if (type=="CDS" || type=="exon" || type=="miRNA")
 			{
 				QHash<QByteArray, QByteArray> data = parseGffAttributes(details);
@@ -1497,8 +1484,8 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 				}
 
 				//update coding start/end
-				int start = Helper::toInt(line.mid(seps[2]+1, seps[3]-seps[2]-1), "start position");
-				int end = Helper::toInt(line.mid(seps[3]+1, seps[4]-seps[3]-1), "end position");
+				int start = Helper::toInt(parts[3], "start position");
+				int end = Helper::toInt(parts[4], "end position");
 
 				if (type=="CDS")
 				{
