@@ -34,13 +34,7 @@ public:
 		QByteArray cov_score;
 	};
 
-	struct CoverageProfileRepresentation
-	{
-		QByteArray chr;
-		QByteArray cov_score;
-	};
-
-
+	//Function to load a coverage file (.cov, .bed and gzipped possible)
 	QList<BedLineRepresentation> parseGzFileBedFile(const QString& filename)
 	{
 		const int buffer_size = 1024; //1048576;
@@ -118,11 +112,12 @@ public:
 		return lines;
 	}
 
-	QList<CoverageProfileRepresentation> parseGzFileCovProfile(const QString& filename)
+	//Function to load the coverage profile of a given file (QByteArray determining which lines to include must be provided, as well as the number of lines of the main file)
+	QHash<QString, QVector<double>> parseGzFileCovProfile(const QString& filename, QByteArray rows_to_use, int main_file_size)
 	{
 		const int buffer_size = 1024; //1048576;
 		std::vector<char> buffer(buffer_size);
-		QList<CoverageProfileRepresentation> cov_profile;
+		QHash<QString, QVector<double>> cov_profile;
 
 		//open stream
 		FILE* instream = fopen(filename.toUtf8().data(), "rb");
@@ -139,6 +134,7 @@ public:
 			return cov_profile;
 		}
 
+		int row_count = 0;
 		while(!gzeof(file))
 		{
 			char* char_array = gzgets(file, buffer.data(), buffer_size);
@@ -178,15 +174,18 @@ public:
 			fields[3].toDouble(&ok);
 			if (!ok) THROW(FileParseException, "COV file line with invalid coverage score found: '" + line + "'");
 
-			CoverageProfileRepresentation cov_line;
-			cov_line.chr = fields[0];
-			cov_line.cov_score = fields[3];
-
-			cov_profile.append(cov_line);
+			if (rows_to_use[row_count])
+			{
+				cov_profile[fields[0]].append(fields[3].toDouble());
+			}
+			++row_count;
 
 		}
 		gzclose(file);
-		//fclose(instream);
+		if (!(row_count == main_file_size))
+		{
+			THROW(FileParseException, "Reference sample contains a different number of lines than main sample: '" + filename + "'");
+		}
 		return cov_profile;
 	}
 
@@ -302,35 +301,16 @@ public:
 
 		//Load other samples and calculate correlation
 		QList<QPair<QString, double>> file2corr;
-		QHash<QString, QVector<QByteArray>> all_ref_files;
 		QHash<QString, QVector<double>> cov2;
 
 
 		//iterate over each reference file
 		foreach (const QString& ref_file, in_refs)
 		{
-			//load the reference files chromosome/coverage score pairs to memory
-			QList<CoverageProfileRepresentation> file = parseGzFileCovProfile(ref_file);
-
-			if (file.size() != main_file.size())
-			{
-				THROW(ArgumentException, ref_file + " contains a different amount of lines than other reference samples.")
-			}
 
 			//load coverage profile for ref_file
 			cov2.clear();
-			for (int i = 0; i < correct_indices.size(); ++i)
-			{
-				//save each lines coverage values to all_ref_files to construct the output tsv later
-				all_ref_files[ref_file].append(file[i].cov_score);
-
-				if (!correct_indices[i]) continue;
-
-				const auto& line = file[i];
-				QString chr = line.chr;
-				double cov_score = line.cov_score.toDouble();
-				cov2[chr].append(cov_score);
-			}
+			cov2 = parseGzFileCovProfile(ref_file, correct_indices, main_file.size());
 
 			//calculate correlation between main_sample and current ref_file
 			QVector<double> corr;
@@ -410,11 +390,35 @@ public:
 				first_file = false;
 			}
 
-			//add the coverage score of the current ref_file to the corresponding line
-			for (int i=0; i<all_ref_files[ref_file].size(); ++i)
+			//load the ref_file and append each output line with the coverage score
+			const int buffer_size = 1024; //1048576;
+			std::vector<char> buffer(buffer_size);
+
+			//open stream
+			FILE* instream = fopen(ref_file.toUtf8().data(), "rb");
+			gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
+
+			//iterate over each line
+			int line_count = 0;
+			while(!gzeof(file))
 			{
-				tsv_line_list[i].append(all_ref_files[ref_file][i]);
+				char* char_array = gzgets(file, buffer.data(), buffer_size);
+
+				QByteArray line(char_array);
+				line = line.trimmed();
+
+				//skip empty lines
+				if(line.isEmpty()) continue;
+
+				//skip headers
+				if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser ")) continue;
+
+				//append the current line with the coverage score
+				QByteArrayList fields = line.split('\t');
+				tsv_line_list[line_count].append(fields[3]);
+				++line_count;
 			}
+			gzclose(file);
 		}
 
 		//write the header
@@ -426,7 +430,7 @@ public:
 		}
 
 		timer_out = timer.restart();
-		out << "merge tsv: " << (timer_out * 0.00001667) << " min" << endl;
+		out << "merge tsv: " << (timer_out * 0.00001667) << " min" << endl;	//TODO tool not finished after time output, why?
 	}
 };
 
