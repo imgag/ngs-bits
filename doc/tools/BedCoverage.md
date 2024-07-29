@@ -1,5 +1,5 @@
 ### BedCoverage tool help
-	BedCoverage (2022_07-183-g2dc8c6f8)
+	BedCoverage (2024_06-58-g80c33029)
 	
 	Annotates a BED file with the average coverage of the regions from one or several BAM/CRAM file(s).
 	
@@ -21,6 +21,10 @@
 	                  Default value: 'false'
 	  -threads <int>  Number of threads used.
 	                  Default value: '1'
+	  -random_access  Use random access via index to get reads from BAM/CRAM instead of chromosome-wise sweep. Random access is quite slow, so use it only if a small subset of the file needs to be accessed.
+	                  Default value: 'false'
+	  -debug          Enable debug output.
+	                  Default value: 'false'
 	
 	Special parameters:
 	  --help          Shows this help and exits.
@@ -29,8 +33,9 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedCoverage changelog
-	BedCoverage 2022_07-183-g2dc8c6f8
+	BedCoverage 2024_06-58-g80c33029
 	
+	2024-06-26 Added 'random_access' parameter.
 	2022-09-16 Added 'threads' parameter and removed 'dup' parameter.
 	2022-08-12 Added parameter to clear previous annotation columns.
 	2022-08-09 Removed mode parameter (panel mode is always used now).
