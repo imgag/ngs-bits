@@ -699,7 +699,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 	if (ui_.filter_hpo->isChecked())
 	{
 		//determine hpo subtree of patient
-		PhenotypeList pheno_subtrees;
+		PhenotypeList pheno_subtrees = GlobalServiceProvider::filterWidget()->phenotypes();
 		NGSD db;
 		foreach(const Phenotype& pheno, GlobalServiceProvider::filterWidget()->phenotypes())
 		{
