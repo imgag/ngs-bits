@@ -37,7 +37,7 @@ public:
 	//Function to load a coverage file (.cov, .bed and gzipped possible)
 	QList<BedLineRepresentation> parseGzFileBedFile(const QString& filename)
 	{
-		const int buffer_size = 1024; //1048576;
+		const int buffer_size = 1048576;
 		std::vector<char> buffer(buffer_size);
 		QList<BedLineRepresentation> lines;
 
@@ -116,8 +116,12 @@ public:
 	QHash<QString, QVector<double>> parseGzFileCovProfile(const QString& filename, QByteArray rows_to_use, int main_file_size)
 	{
 		const int buffer_size = 1048576;
+		int hash_size = 22;
+		int vector_size = 240000;
 		std::vector<char> buffer(buffer_size);
 		QHash<QString, QVector<double>> cov_profile;
+		cov_profile.reserve(hash_size);
+
 
 		//open stream
 		FILE* instream = fopen(filename.toUtf8().data(), "rb");
@@ -135,9 +139,11 @@ public:
 		}
 
 		int row_count = 0;
+		QByteArrayList fields;
 		while(!gzeof(file))
 		{
 			char* char_array = gzgets(file, buffer.data(), buffer_size);
+			fields.clear();
 			//handle errors like truncated GZ file
 			if (!char_array)
 			{
@@ -163,7 +169,7 @@ public:
 			}
 
 			//error when less than 4 fields
-			QByteArrayList fields = line.split('\t');
+			fields = line.split('\t');
 			if (fields.count()<4)
 			{
 				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
@@ -176,13 +182,18 @@ public:
 
 			if (rows_to_use[row_count])
 			{
+				if (!cov_profile.contains(fields[0]))
+				{
+					QVector<double> vector;
+					vector.reserve(vector_size);
+					cov_profile.insert(fields[0], vector);
+				}
 				cov_profile[fields[0]].append(cov_score);
 			}
 			++row_count;
 
 		}
 		gzclose(file);
-		fclose(instream);
 
 		if (!(row_count == main_file_size))
 		{
