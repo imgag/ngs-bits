@@ -46,13 +46,14 @@ public:
 		if (!instream)
 		{
 			qCritical() << "Could not open file:" << filename << "for reading!";
+			fclose(instream);
 			return lines;
 		}
 		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
 		if (!file)
 		{
 			qCritical() << "Could not open file:" << filename << "for reading!";
-			fclose(instream);
+			gzclose(file);
 			return lines;
 		}
 		while(!gzeof(file))
@@ -108,14 +109,13 @@ public:
 
 		}
 		gzclose(file);
-		//fclose(instream);
 		return lines;
 	}
 
-	//Function to load the coverage profile of a given file (QByteArray determining which lines to include must be provided, as well as the number of lines of the main file)
+	//Function to load the coverage profile of a given file (QByteArray determining which lines to include must be provided as well as the number of lines of the main file)
 	QHash<QString, QVector<double>> parseGzFileCovProfile(const QString& filename, QByteArray rows_to_use, int main_file_size)
 	{
-		const int buffer_size = 1024; //1048576;
+		const int buffer_size = 1048576;
 		std::vector<char> buffer(buffer_size);
 		QHash<QString, QVector<double>> cov_profile;
 
@@ -171,17 +171,19 @@ public:
 
 			//check coverage score is a double
 			bool ok = true;
-			fields[3].toDouble(&ok);
+			double cov_score = fields[3].toDouble(&ok);
 			if (!ok) THROW(FileParseException, "COV file line with invalid coverage score found: '" + line + "'");
 
 			if (rows_to_use[row_count])
 			{
-				cov_profile[fields[0]].append(fields[3].toDouble());
+				cov_profile[fields[0]].append(cov_score);
 			}
 			++row_count;
 
 		}
 		gzclose(file);
+		fclose(instream);
+
 		if (!(row_count == main_file_size))
 		{
 			THROW(FileParseException, "Reference sample contains a different number of lines than main sample: '" + filename + "'");
@@ -225,6 +227,10 @@ public:
 		int cov_max = getInt("cov_max");
 		timer.start();
 
+		//TEST ZONE
+
+		//TEST ZONE END
+
 		//Merge exclude files
 		BedFile merged_excludes;
 		foreach(QString exclude_file, exclude_files)
@@ -255,7 +261,7 @@ public:
 			BedLineRepresentation line = main_file[i];
 			bool is_valid = true;
 
-			//exclude empty lines, header lines and lines where the coverage is 0
+			//exclude empty lines and lines where the coverage is 0
 			if (line.chr.isEmpty() || line.cov_score.toDouble() == 0.0)
 			{
 				is_valid = false;
@@ -303,7 +309,7 @@ public:
 		QList<QPair<QString, double>> file2corr;
 		QHash<QString, QVector<double>> cov2;
 
-
+		bool test_time = true;
 		//iterate over each reference file
 		foreach (const QString& ref_file, in_refs)
 		{
@@ -311,6 +317,12 @@ public:
 			//load coverage profile for ref_file
 			cov2.clear();
 			cov2 = parseGzFileCovProfile(ref_file, correct_indices, main_file.size());
+
+			if (test_time)
+			{
+				timer_out = timer.restart();
+				out << "create coverage profile first ref sample: " << timer_out << "ms" << endl;
+			}
 
 			//calculate correlation between main_sample and current ref_file
 			QVector<double> corr;
@@ -324,6 +336,13 @@ public:
 			std::sort(corr.begin(), corr.end());
 			file2corr.append(qMakePair(ref_file, BasicStatistics::median(corr)));
 			if (file2corr.size() >= max_ref_samples) break;
+
+			if (test_time)
+			{
+				timer_out = timer.restart();
+				out << "correlation computation first ref sample: " << timer_out << "ms" << endl;
+				test_time = false;
+			}
 		}
 
 		//sort all reference files by descending correlation coefficent
@@ -429,8 +448,10 @@ public:
 			outstream->write(line.join('\t') + '\n');
 		}
 
+		outstream->close();
+
 		timer_out = timer.restart();
-		out << "merge tsv: " << (timer_out * 0.00001667) << " min" << endl;	//TODO tool not finished after time output, why?
+		out << "merge tsv: " << (timer_out * 0.00001667) << " min" << endl;	//TODO tool not finished after timer output, why?
 	}
 };
 
