@@ -140,6 +140,8 @@ public:
 
 		int row_count = 0;
 		QByteArrayList fields;
+		QVector<double> vector;
+		vector.reserve(vector_size);
 		while(!gzeof(file))
 		{
 			char* char_array = gzgets(file, buffer.data(), buffer_size);
@@ -184,8 +186,6 @@ public:
 			{
 				if (!cov_profile.contains(fields[0]))
 				{
-					QVector<double> vector;
-					vector.reserve(vector_size);
 					cov_profile.insert(fields[0], vector);
 				}
 				cov_profile[fields[0]].append(cov_score);
