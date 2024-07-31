@@ -222,7 +222,6 @@ public:
 		QElapsedTimer timer;
 		QTextStream out(stdout);
 		QString in = getInfile("in");
-		QString output_buffer;
 		QStringList exclude_files = getInfileList("exclude");
 		QStringList in_refs = getInfileList("in_ref");
 		int max_ref_samples = getInt("max_ref_samples");
@@ -341,10 +340,10 @@ public:
 		});
 
 		//write number of compared coverage files to stdout
-		output_buffer += "compared number of coverage files: " + QString::number(file2corr.size()) + "\n";
+		out << "compared number of coverage files: " << file2corr.size() << endl;
 
 		//select best n reference files by correlation
-		output_buffer += "Selected the following files as reference samples based on correlation: \n";
+		out << "Selected the following files as reference samples based on correlation: " << endl;
 		QStringList best_ref_files;
 		double mean_correaltion = 0.0;
 		int check_max = 0;
@@ -355,7 +354,7 @@ public:
 			best_ref_files.append(file2corr[i].first);
 			mean_correaltion += file2corr[i].second;
 			++check_max;
-			output_buffer += file2corr[i].first + " : " + QString::number(file2corr[i].second) +"\n";
+			out << file2corr[i].first << " : " << file2corr[i].second << endl;
 			if (check_max == cov_max) break;
 		}
 
@@ -363,8 +362,8 @@ public:
 
 		//compute mean correlation and info output to stdout
 		mean_correaltion /= best_ref_files.size();
-		output_buffer += "Files selected: " + QString::number(check_max) + "\n";
-		output_buffer += "Mean correlation to reference samples is: " + QString::number(mean_correaltion) + "\n";
+		out << "Files selected: " << check_max << endl;
+		out << "Mean correlation to reference samples is: " << mean_correaltion << endl;
 
 		out << "correlation computation: " << (first_ref_time + timer.restart()) * 0.00001667 << " min"  << endl;
 
@@ -440,9 +439,7 @@ public:
 
 		outstream->close();
 
-		out << "merge tsv: " << (timer.restart() * 0.00001667) << " min" << endl << endl;
-
-		out << output_buffer;
+		out << "merge tsv: " << (timer.restart() * 0.00001667) << " min" << endl;
 	}
 };
 
