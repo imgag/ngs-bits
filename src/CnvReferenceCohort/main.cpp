@@ -46,7 +46,6 @@ public:
 		if (!instream)
 		{
 			qCritical() << "Could not open file:" << filename << "for reading!";
-			fclose(instream);
 			return lines;
 		}
 		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
@@ -135,11 +134,9 @@ public:
 		}
 
 		int row_count = 0;
-		QByteArrayList fields;
 		while(!gzeof(file))
 		{
 			char* char_array = gzgets(file, buffer.data(), buffer_size);
-			fields.clear();
 			//handle errors like truncated GZ file
 			if (!char_array)
 			{
@@ -165,7 +162,7 @@ public:
 			}
 
 			//error when less than 4 fields
-			fields = line.split('\t');
+			QByteArrayList fields = line.split('\t');
 			if (fields.count()<4)
 			{
 				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
@@ -220,6 +217,7 @@ public:
 
 		//init
 		QElapsedTimer timer;
+		int timer_out;
 		QTextStream out(stdout);
 		QString in = getInfile("in");
 		QStringList exclude_files = getInfileList("exclude");
@@ -239,12 +237,14 @@ public:
 
 		merged_excludes.merge();
 
-		out << "merge excludes: " << timer.restart() << "ms" << endl;
+		timer_out = timer.restart();
+		out << "merge excludes: " << timer_out << "ms" << endl;
 
 		//Determine indices to use
 		//load main sample
 		QList<BedLineRepresentation> main_file = parseGzFileBedFile(in);
-		out << "load main sample: " << timer.restart() << "ms" << endl;
+		timer_out = timer.restart();
+		out << "load main sample: " << timer_out << "ms" << endl;
 
 		//compute ChromosomalIndex from merged excludes
 		ChromosomalIndex<BedFile> exclude_idx(merged_excludes);
@@ -282,7 +282,8 @@ public:
 			correct_indices.append(is_valid);
 		}
 
-		out << "compute indices: " << timer.restart() << "ms" << endl;
+		timer_out = timer.restart();
+		out << "compute indices: " << timer_out << "ms" << endl;
 
 		//Create coverage profile for main_file
 		QHash<QString, QVector<double>> cov1;
@@ -296,14 +297,14 @@ public:
 			cov1[chr].append(cov_score);
 		}
 
-		out << "create coverage profile main: " << timer.restart() << "ms" << endl;
+		timer_out = timer.restart();
+		out << "create coverage profile main: " << timer_out << "ms" << endl;
 
 		//Load other samples and calculate correlation
 		QList<QPair<QString, double>> file2corr;
 		QHash<QString, QVector<double>> cov2;
 
 		bool test_time = true;
-		int first_ref_time = 0;
 		//iterate over each reference file
 		foreach (const QString& ref_file, in_refs)
 		{
@@ -327,8 +328,8 @@ public:
 
 			if (test_time)
 			{
-				first_ref_time = timer.restart();
-				out << "load coverage profile first ref sample: " << first_ref_time << "ms" << endl;
+				timer_out = timer.restart();
+				out << "load coverage profile first ref sample: " << timer_out << "ms" << endl;
 				test_time = false;
 			}
 		}
@@ -365,7 +366,8 @@ public:
 		out << "Files selected: " << check_max << endl;
 		out << "Mean correlation to reference samples is: " << mean_correaltion << endl;
 
-		out << "correlation computation: " << (first_ref_time + timer.restart()) * 0.00001667 << " min"  << endl;
+		timer_out = timer.restart();
+		out << "correlation computation: " << timer_out * 0.00001667 << " min"  << endl;
 
 		//Merge coverage profiles and store them in a tsv file
 		QByteArrayList header = getString("cols").toUtf8().split(',');
@@ -439,7 +441,8 @@ public:
 
 		outstream->close();
 
-		out << "merge tsv: " << (timer.restart() * 0.00001667) << " min" << endl;
+		timer_out = timer.restart();
+		out << "merge tsv: " << timer_out * 0.00001667 << " min" << endl;
 	}
 };
 
