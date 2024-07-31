@@ -176,6 +176,7 @@ public:
 			double cov_score = fields[3].toDouble(&ok);
 			if (!ok) THROW(FileParseException, "COV file line with invalid coverage score found: '" + line + "'");
 
+			//create coverage profile
 			if (rows_to_use[row_count])
 			{
 				cov_profile[fields[0]].append(cov_score);
@@ -219,18 +220,14 @@ public:
 
 		//init
 		QElapsedTimer timer;
-		int timer_out;
 		QTextStream out(stdout);
 		QString in = getInfile("in");
+		QString output_buffer;
 		QStringList exclude_files = getInfileList("exclude");
 		QStringList in_refs = getInfileList("in_ref");
 		int max_ref_samples = getInt("max_ref_samples");
 		int cov_max = getInt("cov_max");
 		timer.start();
-
-		//TEST ZONE
-
-		//TEST ZONE END
 
 		//Merge exclude files
 		BedFile merged_excludes;
@@ -243,14 +240,12 @@ public:
 
 		merged_excludes.merge();
 
-		timer_out = timer.restart();
-		out << "merge excludes: " << timer_out << "ms" << endl;
+		out << "merge excludes: " << timer.restart() << "ms" << endl;
 
 		//Determine indices to use
 		//load main sample
 		QList<BedLineRepresentation> main_file = parseGzFileBedFile(in);
-		timer_out = timer.restart();
-		out << "load main sample: " << timer_out << "ms" << endl;
+		out << "load main sample: " << timer.restart() << "ms" << endl;
 
 		//compute ChromosomalIndex from merged excludes
 		ChromosomalIndex<BedFile> exclude_idx(merged_excludes);
@@ -288,8 +283,7 @@ public:
 			correct_indices.append(is_valid);
 		}
 
-		timer_out = timer.restart();
-		out << "compute indices: " << timer_out << "ms" << endl;
+		out << "compute indices: " << timer.restart() << "ms" << endl;
 
 		//Create coverage profile for main_file
 		QHash<QString, QVector<double>> cov1;
@@ -303,14 +297,14 @@ public:
 			cov1[chr].append(cov_score);
 		}
 
-		timer_out = timer.restart();
-		out << "create coverage profile main: " << timer_out << "ms" << endl;
+		out << "create coverage profile main: " << timer.restart() << "ms" << endl;
 
 		//Load other samples and calculate correlation
 		QList<QPair<QString, double>> file2corr;
 		QHash<QString, QVector<double>> cov2;
 
 		bool test_time = true;
+		int first_ref_time = 0;
 		//iterate over each reference file
 		foreach (const QString& ref_file, in_refs)
 		{
@@ -318,12 +312,6 @@ public:
 			//load coverage profile for ref_file
 			cov2.clear();
 			cov2 = parseGzFileCovProfile(ref_file, correct_indices, main_file.size());
-
-			if (test_time)
-			{
-				timer_out = timer.restart();
-				out << "create coverage profile first ref sample: " << timer_out << "ms" << endl;
-			}
 
 			//calculate correlation between main_sample and current ref_file
 			QVector<double> corr;
@@ -340,8 +328,8 @@ public:
 
 			if (test_time)
 			{
-				timer_out = timer.restart();
-				out << "correlation computation first ref sample: " << timer_out << "ms" << endl;
+				first_ref_time = timer.restart();
+				out << "load coverage profile first ref sample: " << first_ref_time << "ms" << endl;
 				test_time = false;
 			}
 		}
@@ -353,10 +341,10 @@ public:
 		});
 
 		//write number of compared coverage files to stdout
-		out << "compared number of coverage files: " << file2corr.size() << endl;
+		output_buffer += "compared number of coverage files: " + QString::number(file2corr.size()) + "\n";
 
 		//select best n reference files by correlation
-		out << "Selected the following files as reference samples based on correlation: " << endl;
+		output_buffer += "Selected the following files as reference samples based on correlation: \n";
 		QStringList best_ref_files;
 		double mean_correaltion = 0.0;
 		int check_max = 0;
@@ -367,7 +355,7 @@ public:
 			best_ref_files.append(file2corr[i].first);
 			mean_correaltion += file2corr[i].second;
 			++check_max;
-			out << file2corr[i].first << " : " << file2corr[i].second << endl;
+			output_buffer += file2corr[i].first + " : " + QString::number(file2corr[i].second) +"\n";
 			if (check_max == cov_max) break;
 		}
 
@@ -375,11 +363,10 @@ public:
 
 		//compute mean correlation and info output to stdout
 		mean_correaltion /= best_ref_files.size();
-		out << "Files selected: " << check_max << endl;
-		out << "Mean correlation to reference samples is: " << mean_correaltion << endl;
+		output_buffer += "Files selected: " + QString::number(check_max) + "\n";
+		output_buffer += "Mean correlation to reference samples is: " + QString::number(mean_correaltion) + "\n";
 
-		timer_out = timer.restart();
-		out << "correlation computation: " << timer_out * 0.00001667 << " min"  << endl;
+		out << "correlation computation: " << (first_ref_time + timer.restart()) * 0.00001667 << " min"  << endl;
 
 		//Merge coverage profiles and store them in a tsv file
 		QByteArrayList header = getString("cols").toUtf8().split(',');
@@ -445,7 +432,7 @@ public:
 
 		//write the header
 		outstream->write('#' + header.join('\t') + '\n');
-		//write each ouput line
+		//write each output line
 		foreach(const QByteArrayList &line, tsv_line_list)
 		{
 			outstream->write(line.join('\t') + '\n');
@@ -453,8 +440,9 @@ public:
 
 		outstream->close();
 
-		timer_out = timer.restart();
-		out << "merge tsv: " << (timer_out * 0.00001667) << " min" << endl;	//TODO tool not finished after timer output, why?
+		out << "merge tsv: " << (timer.restart() * 0.00001667) << " min" << endl << endl;
+
+		out << output_buffer;
 	}
 };
 
