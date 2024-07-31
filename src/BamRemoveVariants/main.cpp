@@ -21,7 +21,6 @@ public:
 		addInfile("vcf", "Input indexed VCF.GZ file.", false);
 
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
-//		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		changeLog(2024, 7, 24, "Inital commit.");
 	}
@@ -53,7 +52,7 @@ public:
 
 				if (read_base == var.obs()) return false;
 				//special handling of undefined ID observed base:
-				if ((var.obs() == "N") && (read_base != var.ref())) return false;
+				if ((var.obs() == "<NON_REF>") && (read_base != var.ref())) return false;
 			}
 			else //InDel
 			{
