@@ -4486,6 +4486,7 @@ void MainWindow::on_actionExportTestData_triggered()
 		"processing_system",
 		"project",
 		"qc_terms",
+        "repeat_expansion",
 		"sender",
 		"sequencing_run",
 		"somatic_pathway",
@@ -4493,7 +4494,7 @@ void MainWindow::on_actionExportTestData_triggered()
 		"somatic_gene_role",
 		"runqc_read",
 		"runqc_lane",
-		"species"
+        "species"
 	};
 
 	try
@@ -4546,6 +4547,7 @@ void MainWindow::on_actionExportTestData_triggered()
 			db.exportTable("sample_disease_info", output_stream, "sample_id='"+s_id+"'", &sql_history);
 			db.exportTable("processed_sample", output_stream, "id='"+ps_id+"'", &sql_history);
 			db.exportTable("processed_sample_qc", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
+            db.exportTable("repeat_expansion_genotype", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
 
 			QStringList variant_id_list = db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id='"+ps_id+"'");
 			db.exportTable("variant", output_stream, "id IN ("+variant_id_list.join(", ")+")", &sql_history);
