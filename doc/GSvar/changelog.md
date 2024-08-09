@@ -1,6 +1,10 @@
 # GSvar change log
 
-## 2024_06-58 (24.76.24)
+## 2024_07-01 (29.07.24)
+
+- RE dialog: fixed bug in HPO matching
+
+## 2024_06-58 (24.07.24)
 
 - processed sample tab: KASP user and date are now show in tooltip of KASP results
 - processed sample tab: added QC metric `mosaic variant count`
