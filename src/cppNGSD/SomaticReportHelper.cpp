@@ -956,7 +956,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	catch(Exception)
 	{} //nothing to do here
 
-	metadata.addRow(RtfTableRow({"Coverage 20x:", "" , nor_cov_20x, "MSI-Status:", (!BasicStatistics::isValidFloat(msi_unstable_percent_) || !settings_.report_config.msiStatus() ? "n/a" : QByteArray::number(msi_unstable_percent_,'f',2))}, {2000,1480,1480,1480,3481}));
+	metadata.addRow(RtfTableRow({"Coverage 20x:", "" , nor_cov_20x, "MSI-Status:", (!BasicStatistics::isValidFloat(msi_unstable_percent_) || !settings_.report_config.msiStatus() ? "n/a" : QByteArray::number(msi_unstable_percent_,'f',2) + "%")}, {2000,1480,1480,1480,3481}));
 	metadata.addRow(RtfTableRow({"Coverage Genpanel 20x:", "" , nor_panel_cov_20x, "Tumor-Ploidie:", (settings_.report_config.ploidy() == 0 ? "n/a" : QByteArray::number(settings_.report_config.ploidy(),'f',3))}, {2000,1480,1480,1480,3481}));
 
 	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
