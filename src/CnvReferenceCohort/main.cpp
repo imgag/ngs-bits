@@ -34,7 +34,7 @@ public:
 		QByteArray cov_score;
 	};
 
-	//Function to load a coverage file (.cov, .bed and gzipped possible)
+	//Function to load a BED file with coverage data (.cov, .bed and gzipped possible)
 	QList<BedLineRepresentation> parseGzFileBedFile(const QString& filename)
 	{
 		const int buffer_size = 1048576;
