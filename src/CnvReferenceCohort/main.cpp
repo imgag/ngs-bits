@@ -160,23 +160,25 @@ public:
 			}
 
 			QByteArrayList fields;
-			QByteArray currentField;
+			int tab_count = 0;
+			int last_field_pos = 0;
 
 			for (int i = 0; i < line.size(); ++i)
 			{
 				if (line[i] == '\t')
 				{
-					fields.append(currentField);
-					currentField.clear();
+					++tab_count;
+					fields.append(line.mid(last_field_pos, i - last_field_pos));
+					last_field_pos = i + 1;
 				}
-				else
+				else if (tab_count == 3)
 				{
-					currentField.append(line[i]);
+					fields.append(line.mid(i));
+					break;
 				}
 			}
 
-			// Append the last field (after the last tab character)
-			fields.append(currentField);
+			qDebug() << fields;
 
 			//error when less than 4 fields
 			//QByteArrayList fields = line.split('\t');
