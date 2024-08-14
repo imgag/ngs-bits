@@ -78,7 +78,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 
 	genes_of_interest = db_.genesToApproved(genes_of_interest);
 
-	for( QString pathway : db_.getValues("SELECT CONCAT(spg.symbol, '\t', sp.name) FROM somatic_pathway_gene as spg, somatic_pathway as sp WHERE sp.id = spg.pathway_id") )
+	for( QString& pathway : db_.getValues("SELECT CONCAT(spg.symbol, '\t', sp.name) FROM somatic_pathway_gene as spg, somatic_pathway as sp WHERE sp.id = spg.pathway_id") )
 	{
 		QByteArrayList parts = pathway.toUtf8().split('\t');
 		ExpressionData tmp_data;
@@ -87,9 +87,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 
 		tmp_data.role = db_.getSomaticGeneRole(parts[0]);
 
-
 		if(!genes_of_interest.contains(tmp_data.symbol)) continue;
-
 
 		pathways_ << tmp_data;
 		if( !pathway_genes.contains(parts[0]) ) pathway_genes << parts[0];
@@ -109,7 +107,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
-		for(const auto& gene : genes)
+		foreach(const auto& gene, genes)
 		{
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
 			if (!role.isValid()) continue;
@@ -126,7 +124,9 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 
 	int i_gene = in_file.colIndex( "gene_name", true );
 	int i_tpm = in_file.colIndex( "tpm", true );
-	int i_hpa = in_file.colIndex( "hpa_tissue_tpm", true);
+
+	int i_hpa = -1;
+	if (in_file.header().contains("hpa_tissue_tpm")) i_hpa = in_file.colIndex( "hpa_tissue_tpm", true);
 
 	int i_cohort_mean = in_file.colIndex( "cohort_mean", true);
 	int i_log2fc = in_file.colIndex("log2fc", true);
@@ -150,7 +150,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 			{
 				if(data.symbol != parts[i_gene]) continue;
 				data.tumor_tpm = toDouble(parts[i_tpm]);
-				data.hpa_ref_tpm = toDouble(parts[i_hpa]);
+				if (i_hpa != -1) data.hpa_ref_tpm = toDouble(parts[i_hpa]);
 				data.cohort_mean_tpm = toDouble(parts[i_cohort_mean]);
 				data.log2fc = toDouble(parts[i_log2fc]);
 				data.pvalue = toDouble(parts[i_pvalue]);
@@ -162,7 +162,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 			ExpressionData data;
 			data.symbol = parts[i_gene];
 			data.tumor_tpm = toDouble(parts[i_tpm]);
-			data.hpa_ref_tpm = toDouble(parts[i_hpa]);
+			if (i_hpa != -1) data.hpa_ref_tpm = toDouble(parts[i_hpa]);
 			data.cohort_mean_tpm = toDouble(parts[i_cohort_mean]);
 			data.log2fc = toDouble(parts[i_log2fc]);
 			data.pvalue = toDouble(parts[i_pvalue]);
@@ -177,7 +177,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 			data.symbol = parts[i_gene];
 			data.role = db_.getSomaticGeneRole(parts[i_gene]);
 			data.tumor_tpm = toDouble(parts[i_tpm]);
-			data.hpa_ref_tpm = toDouble(parts[i_hpa]);
+			if (i_hpa != -1) data.hpa_ref_tpm = toDouble(parts[i_hpa]);
 			data.cohort_mean_tpm = toDouble(parts[i_cohort_mean]);
 			data.log2fc = toDouble(parts[i_log2fc]);
 			data.pvalue = toDouble(parts[i_pvalue]);
@@ -204,7 +204,7 @@ bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 {
 	//neccessary DNA annotations (exact match)
 	const QByteArrayList an_names_dna = {"coding_and_splicing", "tumor_af"};
-	for(QByteArray an : an_names_dna)
+	foreach(const QByteArray& an, an_names_dna)
 	{
 		if(variants.annotationIndexByName(an, true, false) == -1) return false;
 	}
@@ -214,7 +214,7 @@ bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 {
 	QByteArrayList an_names_dna = {"cnv_type"};
-	for(QByteArray an : an_names_dna)
+	foreach(const QByteArray& an, an_names_dna)
 	{
 		if(cnvs.annotationIndexByName(an, false) < 0) return false;
 	}
@@ -247,7 +247,7 @@ RtfTable SomaticRnaReport::partFusions()
 
 	fusion_table.addRow(RtfTableRow({"Strukturvariante", "Transkript links", "Bruchpunkt Gen 1", "Transkript rechts", "Bruchpunkt Gen 2", "Typ", "Leseraster"},{1600,1400,1400,1400,1400,1700, 1021}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
-	for(const auto& sv : svs_)
+	foreach(const auto& sv, svs_)
 	{
 		RtfTableRow temp;
 
@@ -291,7 +291,7 @@ RtfSourceCode SomaticRnaReport::partExpressionPics()
 
 	RtfSourceCode desc = "Die Abbildung zeigt die jeweilige Genexpression als logarithmierten TPM in der Patientenprobe (";
 	desc += RtfText("\\'d7").setFontSize(16).setFontColor(5).RtfCode();
-	desc += "), in der Vergleichskohorte gleicher Tumorentität (Boxplot mit Quartil, SD und individuelle Expressionswerte) und als Mittelwert von Normalgewebe in der Literatur (" + RtfText("□").setFontSize(16).setBold(true).RtfCode() + ", Human Protein Altas). ";
+	desc += "), in der Vergleichskohorte gleicher Tumorentität (Boxplot mit Quartil, SD und individuelle Expressionswerte) und als Mittelwert von Normalgewebe in der Literatur (" + RtfText("□").setFontSize(16).setBold(true).RtfCode() + ", Human Protein Altas) falls vorhanden. ";
 	desc += "Die angegebenen Expressionswerte hängen unter anderem vom Tumorgehalt ab und sind daher nur mit Vorbehalt mit anderen Proben vergleichbar. ";
 	desc += "Dargestellt sind die in Hinblick auf eine Therapie wichtigsten Signalkaskaden. Weitere Daten können auf Anfrage zur Verfügung gestellt werden.";
 	desc += "\n\\line\n";
@@ -316,7 +316,7 @@ RtfTable SomaticRnaReport::partSVs()
 
 	fusion_table.addRow(RtfTableRow({"Gen", "Transkript", "Bruchpunkt 1", "Bruchpunkt 2", "Beschreibung"},{1600,1800,1400,1800,3321}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
-	for(const auto& sv : svs_)
+	foreach(const auto& sv, svs_)
 	{
 		if ( ! (sv.type.contains("duplication") && sv.gene_left == sv.gene_right) && !sv.type.contains("deletion")) continue;
 
@@ -389,7 +389,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 		}
 
 		row.addCell( 1200, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1200, formatDigits(data.hpa_ref_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1200, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 		row.addCell( 1000, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
 		row.addCell( 1121, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
@@ -426,7 +426,7 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
 
-		for(const auto& gene : genes)
+		foreach(const auto& gene, genes)
 		{
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
 			if (!role.isValid()) continue;
@@ -443,15 +443,13 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 			int tumor_cn = cnv.copyNumber(dna_cnvs_.annotationHeaders());
 			temp.addCell(1300, SomaticReportHelper::CnvTypeDescription(tumor_cn, true), RtfParagraph().setFontSize(16));
-
 			temp.addCell(700, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
-
 			temp.addCell(1100, formatDigits( expr_data.tumor_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(1000, BasicStatistics::isValidFloat(expr_data.hpa_ref_tpm) ? formatDigits(expr_data.hpa_ref_tpm) : "-", RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell( 1000 , QByteArray::number( rank( expr_data.tumor_tpm , expr_data.hpa_ref_tpm, role.role ) ) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			temp.addCell(1000, formatDigits( expr_data.hpa_ref_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 			//Determine oncogenetic rank of expression change
-			temp.addCell( 1000 , QByteArray::number( rank( expr_data.tumor_tpm , expr_data.hpa_ref_tpm, role.role ) ) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 			temp.addCell(1000, formatDigits( expr_data.cohort_mean_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 			if ((expr_data.tumor_tpm > 10 && expr_data.cohort_mean_tpm > 10))
 			{
@@ -508,8 +506,15 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	out += bold("Anteil:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden CNV in der untersuchten Probe; ";
 	out += bold("CN:") + " Copy Number, ";
 	out += bold("TPM:") + " Normalisierte Expression des Gens als Transkriptanzahl pro Kilobase und pro Million Reads. ";
-	out += bold("Normalprobe TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue, 16)) + " (The Human Protein Atlas). ";
-	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden. ";
+	if (data_.rna_hpa_ref_tissue == "")
+	{
+		out += bold("Normalprobe TPM: ") + "Daten für eine geeignete Referenzprobe waren nicht verfügbar.";
+	}
+	else
+	{
+		out += bold("Normalprobe TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue, 16)) + " (The Human Protein Atlas). ";
+	}
+
 	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zu Normalprobe TPM. ";
 	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
 	out += bold("(3):") + " Eine differenzielle Expression kann nicht bewertet werden. ";
@@ -534,7 +539,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 		return a.symbol < b.symbol;
 	});
 
-	for(const auto& data : pathways_)
+	foreach(const auto& data, pathways_)
 	{
 		RtfTableRow row;
 		row.addCell(1237, data.symbol );
@@ -546,11 +551,10 @@ RtfTable SomaticRnaReport::partGeneExpression()
 		row.addCell(1237, pathogenicity  );
 		row.addCell(1958, data.pathway );
 		row.addCell(1137, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
-		row.addCell(1137, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
-
+		row.addCell(1137, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setHorizontalAlignment("c"));
 		row.addCell(937, QByteArray::number(rank(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
-		row.addCell(1137, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 
+		row.addCell(1137, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 		if (data.tumor_tpm > 10 && data.cohort_mean_tpm > 10)
 		{
 			row.addCell(1141, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c"));
@@ -584,8 +588,14 @@ RtfParagraph SomaticRnaReport::partGeneExprExplanation()
 	out += bold("Pathogenität:");
 	out += " DEL (Verlust) oder AMP (Zugewinn) der Funktion oder reduzierte bzw. erhöhte Expression ist Pathomechanismus, ";
 	out += bold("TPM:") + " Normierte Expression des Gens als Transkripte pro Kilobase pro Million Reads. ";
-	out += bold("Normalprobe TPM:") + " Expression des Gens als Mittelwert TPM in Vergleichsproben von Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue, 16)) + " (The Human Protein Atlas). ";
-	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden ist. ";
+	if (data_.rna_hpa_ref_tissue == "")
+	{
+		out += bold("Normalprobe TPM: ") + "Daten für eine geeignete Referenzkontrolle waren nicht verfügbar.";
+	}
+	else
+	{
+		out += bold("Normalprobe TPM:") + " Expression des Gens als Mittelwert TPM in Vergleichsproben von Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue, 16)) + " (The Human Protein Atlas). ";
+	}
 	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zur Normalprobe. ";
 	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
 	out += bold("(3):") + " Eine differenzielle Expression kann nicht bewertet werden. ";
@@ -603,7 +613,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	QList<ExpressionData> activating_genes;
 	QList<ExpressionData> lof_genes;
 
-	for(const auto& data : high_confidence_expression_)
+	foreach(const auto& data, high_confidence_expression_)
 	{
 		if(data.role.role == SomaticGeneRole::Role::ACTIVATING		 && data.tumor_tpm >= 10 && data.cohort_mean_tpm > 10) activating_genes << data;
 		if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION && data.tumor_tpm >= 10 && data.cohort_mean_tpm > 10) lof_genes << data;
@@ -625,7 +635,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	for(int i=2; i<table.last().count(); ++i) table.last()[i].setBackgroundColor(4);
 
 
-	for(const auto& data : genes_to_be_reported)
+	foreach(const auto& data, genes_to_be_reported)
 	{
 		RtfTableRow row;
 
@@ -638,7 +648,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 
 		row.addCell( 1388, formatDigits(data.tumor_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-		row.addCell( 1388, formatDigits(data.hpa_ref_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+		row.addCell( 1388, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 		row.addCell( 1188 , QByteArray::number( rank( data.tumor_tpm , data.hpa_ref_tpm, data.role.role ) ), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
@@ -663,7 +673,13 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	};
 
 	RtfSourceCode expl = bold("TPM:") + " Normierte Expression des Gens als Transkripte pro Kilobase pro Million Reads. ";
-	expl += bold("Normalprobe TPM:") + " Expression des Gens als Mittelwert TPM in Vergleichsproben von Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue, 16)) + " (The Human Protein Atlas). ";
+	if (data_.rna_hpa_ref_tissue == "")
+	{
+		expl += bold("Normalprobe TPM: ") + "Daten für eine geeignete Referenzprobe waren nicht verfügbar.";
+	} else
+	{
+		expl += bold("Normalprobe TPM:") + " Expression des Gens als Mittelwert TPM in Vergleichsproben von Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue, 16)) + " (The Human Protein Atlas). ";
+	}
 	expl += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zu Normalprobe TPM. ";
 	expl += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
 	expl += bold("(3):") + " Eine differenzielle Expression kann nicht bewertet werden. ";
@@ -699,7 +715,7 @@ double SomaticRnaReport::getRnaData(QByteArray gene, QString field, QString key)
 	QStringList entries = field.split(',');
 
 	//Extract data from rna_data column. Data is organized as GENE_SYMBOL (KEY1=VALUE1 KEY2=VALUE2 ...)
-	for(QString entry : entries)
+	foreach(QString entry, entries)
 	{
 		QList<QString> parts = entry.append(' ').split(' ');
 		if(parts[0].toUtf8() == gene)
@@ -707,7 +723,7 @@ double SomaticRnaReport::getRnaData(QByteArray gene, QString field, QString key)
 			int start = entry.indexOf('(');
 			int end = entry.indexOf(')');
 			QStringList data_entries = entry.mid(start+1, end-start-1).split(' '); //data from gene between brackets (...)
-			for(QString data_entry : data_entries)
+			foreach(QString data_entry, data_entries)
 			{
 				QStringList res = data_entry.append('=').split('=');
 				if(res[0] == key)
@@ -775,7 +791,7 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 		}
 
 		row.addCell( 1200, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1200, formatDigits(data.hpa_ref_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1200, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 		row.addCell( 1000, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
 		row.addCell( 1121, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
