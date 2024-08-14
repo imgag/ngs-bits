@@ -149,32 +149,32 @@ public:
 				continue;
 			}
 
-//			//error when less than 4 fields
-//			QByteArrayList fields = line.split('\t');
-//			if (fields.count()<4)
-//			{
-//				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
-//			}
+			//error when less than 4 fields
+			QByteArrayList fields = line.split('\t');
+			if (fields.count()<4)
+			{
+				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
+			}
 
-//			//check that chr/start/end match the main file
-//			if (fields[0]!=main_file[row_count].chr || fields[1]!=main_file[row_count].start || fields[2]!=main_file[row_count].end)
-//			{
-//				THROW(FileParseException, "Chromosome or positional information does not match the main file: '" + line + "'");
-//			}
+			//check that chr/start/end match the main file
+			if (fields[0]!=main_file[row_count].chr || fields[1]!=main_file[row_count].start || fields[2]!=main_file[row_count].end)
+			{
+				THROW(FileParseException, "Chromosome or positional information does not match the main file: '" + line + "'");
+			}
 
-//			//create coverage profile
-//			if (rows_to_use[row_count])
-//			{
-//				cov_profile[fields[0]] << Helper::toDouble(fields[3], "coverage value", line);
-//			}
-//			++row_count;
+			//create coverage profile
+			if (rows_to_use[row_count])
+			{
+				cov_profile[fields[0]] << Helper::toDouble(fields[3], "coverage value", line);
+			}
+			++row_count;
 		}
 		gzclose(file);
 
-//		if (!(row_count == main_file_size))
-//		{
-//			THROW(FileParseException, "Reference sample contains a different number of lines than main sample: '" + filename + "'");
-//		}
+		if (!(row_count == main_file_size))
+		{
+			THROW(FileParseException, "Reference sample contains a different number of lines than main sample: '" + filename + "'");
+		}
 	}
 
 
@@ -285,103 +285,103 @@ public:
 			parseGzFileCovProfile(cov2, ref_file, correct_indices, main_file.size(), main_file);
 			if (debug) out << "loading coverage profile for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
 
-//			//calculate correlation between main_sample and current ref_file
-//			QVector<double> corr;
-//			for (auto it = cov1.cbegin(); it != cov1.cend(); ++it)
-//			{
-//				corr.append(BasicStatistics::correlation(it.value(), cov2.value(it.key())));
-//			}
+			//calculate correlation between main_sample and current ref_file
+			QVector<double> corr;
+			for (auto it = cov1.cbegin(); it != cov1.cend(); ++it)
+			{
+				corr.append(BasicStatistics::correlation(it.value(), cov2.value(it.key())));
+			}
 
-//			//sort correlation coefficents for the current ref_file and safe the median
-//			std::sort(corr.begin(), corr.end());
-//			file2corr.append(qMakePair(ref_file, BasicStatistics::median(corr)));
-//			if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
+			//sort correlation coefficents for the current ref_file and safe the median
+			std::sort(corr.begin(), corr.end());
+			file2corr.append(qMakePair(ref_file, BasicStatistics::median(corr)));
+			if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
 		}
 
-//		//sort all reference files by descending correlation coefficent
-//		std::sort(file2corr.begin(), file2corr.end(), [](const QPair<QString, double> &a, const QPair<QString,double> &b)
-//		{
-//			return a.second > b.second;
-//		});
+		//sort all reference files by descending correlation coefficent
+		std::sort(file2corr.begin(), file2corr.end(), [](const QPair<QString, double> &a, const QPair<QString,double> &b)
+		{
+			return a.second > b.second;
+		});
 
-//		if (debug) out << "loading all coverage profiles and compute correlation: " << Helper::elapsedTime(corr_timer.restart()) << endl;
+		if (debug) out << "loading all coverage profiles and compute correlation: " << Helper::elapsedTime(corr_timer.restart()) << endl;
 
-//		//write number of compared coverage files to stdout
-//		out << "compared number of coverage files: " << file2corr.size() << endl;
+		//write number of compared coverage files to stdout
+		out << "compared number of coverage files: " << file2corr.size() << endl;
 
-//		//select best n reference files by correlation
-//		out << "Selected the following files as reference samples based on correlation: " << endl;
-//		QStringList best_ref_files;
-//		double mean_correaltion = 0.0;
-//		for (int i = 0; i<file2corr.size(); ++i)
-//		{
-//			best_ref_files << file2corr[i].first;
-//			mean_correaltion += file2corr[i].second;
-//			out << QFileInfo(file2corr[i].first).fileName() << " : " << file2corr[i].second << endl;
-//			if (i+1 == cov_max) break;
-//		}
+		//select best n reference files by correlation
+		out << "Selected the following files as reference samples based on correlation: " << endl;
+		QStringList best_ref_files;
+		double mean_correaltion = 0.0;
+		for (int i = 0; i<file2corr.size(); ++i)
+		{
+			best_ref_files << file2corr[i].first;
+			mean_correaltion += file2corr[i].second;
+			out << QFileInfo(file2corr[i].first).fileName() << " : " << file2corr[i].second << endl;
+			if (i+1 == cov_max) break;
+		}
 
-//		best_ref_files.sort();
+		best_ref_files.sort();
 
-//		//compute mean correlation and info output to stdout
-//		mean_correaltion /= best_ref_files.size();
-//		out << "Mean correlation to reference samples is: " << mean_correaltion << endl;
+		//compute mean correlation and info output to stdout
+		mean_correaltion /= best_ref_files.size();
+		out << "Mean correlation to reference samples is: " << mean_correaltion << endl;
 
-//		if (debug) out << "determining best reference samples and calculating mean correlation: " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "determining best reference samples and calculating mean correlation: " << Helper::elapsedTime(timer.restart()) << endl;
 
-//		//Merge coverage profiles and store them in a tsv file
-//		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
-//		QVector<gzFile> files;
+		//Merge coverage profiles and store them in a tsv file
+		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
+		QVector<gzFile> files;
 
-//		foreach(QString ref_file, best_ref_files)
-//		{
-//			gzFile file = gzopen(ref_file.toUtf8().constData(), "rb");
-//			if (file)
-//			{
-//				files << file;
-//			}
-//			else
-//			{
-//				THROW(FileAccessException, "Could not open file for reading: '" + ref_file + "'!")
-//			}
-//		}
+		foreach(QString ref_file, best_ref_files)
+		{
+			gzFile file = gzopen(ref_file.toUtf8().constData(), "rb");
+			if (file)
+			{
+				files << file;
+			}
+			else
+			{
+				THROW(FileAccessException, "Could not open file for reading: '" + ref_file + "'!")
+			}
+		}
 
-//		const int buffer_size = 1048576;
-//		std::vector<char> buffer(buffer_size);
+		const int buffer_size = 1048576;
+		std::vector<char> buffer(buffer_size);
 
-//		bool done = false;
-//		while (!done)
-//		{
-//			done = true;
-//			for (int i = 0; i < files.size(); ++i)
-//			{
-//				if (gzgets(files[i], buffer.data(), buffer_size) != Z_NULL)
-//				{
-//					QByteArray line(buffer.data());
-//					line = line.trimmed();
-//					QByteArrayList fields;
-//					fields = line.split('\t');
-//					if (i == 0)
-//					{
-//						outstream->write(fields[0] + '\t' + fields[1] + '\t' + fields[2]);
-//					}
+		bool done = false;
+		while (!done)
+		{
+			done = true;
+			for (int i = 0; i < files.size(); ++i)
+			{
+				if (gzgets(files[i], buffer.data(), buffer_size) != Z_NULL)
+				{
+					QByteArray line(buffer.data());
+					line = line.trimmed();
+					QByteArrayList fields;
+					fields = line.split('\t');
+					if (i == 0)
+					{
+						outstream->write(fields[0] + '\t' + fields[1] + '\t' + fields[2]);
+					}
 
-//					outstream->write('\t' + fields[3]);
-//					 // If a line was read, we're not done yet
-//					done = false;
+					outstream->write('\t' + fields[3]);
+					 // If a line was read, we're not done yet
+					done = false;
 
-//					if (i == files.size()-1) outstream->write("\n");
-//				}
-//			}
-//		}
+					if (i == files.size()-1) outstream->write("\n");
+				}
+			}
+		}
 
-//		foreach (gzFile file, files)
-//		{
-//			gzclose(file);
-//		}
-//		outstream -> close();
+		foreach (gzFile file, files)
+		{
+			gzclose(file);
+		}
+		outstream -> close();
 
-//		if (debug) out << "writing output: " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "writing output: " << Helper::elapsedTime(timer.restart()) << endl;
 	}
 };
 
