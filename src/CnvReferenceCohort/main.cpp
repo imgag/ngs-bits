@@ -149,12 +149,12 @@ public:
 				continue;
 			}
 
-			//error when less than 4 fields
-			QByteArrayList fields = line.split('\t');
-			if (fields.count()<4)
-			{
-				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
-			}
+//			//error when less than 4 fields
+//			QByteArrayList fields = line.split('\t');
+//			if (fields.count()<4)
+//			{
+//				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
+//			}
 
 //			//check that chr/start/end match the main file
 //			if (fields[0]!=main_file[row_count].chr || fields[1]!=main_file[row_count].start || fields[2]!=main_file[row_count].end)
