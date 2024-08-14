@@ -1,4 +1,4 @@
-#chr	start	end	CnvReferenceCohort_in_ref1	CnvReferenceCohort_in_ref2	CnvReferenceCohort_in_ref4
+#chr	start	end	in_ref_01	in_ref_02	in_ref_04
 chr1	17018855	17018983	1274.9531	1353.6250	1059.1953
 chr1	17022582	17022755	1915.3988	2380.7283	1889.7688
 chr1	17023947	17024099	1579.1908	1879.2171	1507.6053

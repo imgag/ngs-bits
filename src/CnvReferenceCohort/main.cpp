@@ -100,7 +100,7 @@ public:
 	}
 
 	//Function to load the coverage profile of a given file (QByteArray determining which lines to include must be provided as well as the number of lines of the main file)
-	void parseGzFileCovProfile(QHash<QByteArray, QVector<double>>& cov_profile, const QString& filename, const QBitArray& rows_to_use, int main_file_size)
+	void parseGzFileCovProfile(QHash<QByteArray, QVector<double>>& cov_profile, const QString& filename, const QBitArray& rows_to_use, int main_file_size, const QList<BedLineRepresentation>& main_file)
 	{
 		//clear depth profiles - keeps the capacity!!
 		foreach(const QByteArray& chr, cov_profile.keys())
@@ -149,13 +149,17 @@ public:
 				continue;
 			}
 
-			//TODO Kilian check that chr/start/end match the main file!
-
 			//error when less than 4 fields
 			QByteArrayList fields = line.split('\t');
 			if (fields.count()<4)
 			{
 				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
+			}
+
+			//check that chr/start/end match the main file
+			if (fields[0]!=main_file[row_count].chr || fields[1]!=main_file[row_count].start || fields[2]!=main_file[row_count].end)
+			{
+				THROW(FileParseException, "Chromosome or positional information does not match the main file: '" + line + "'");
 			}
 
 			//create coverage profile
@@ -216,12 +220,12 @@ public:
 		merged_excludes.merge();
 
 		timer.restart();
-		out << "merge excludes: " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "merge excludes: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Determine indices to use
 		//load main sample
 		QList<BedLineRepresentation> main_file = parseGzFileBedFile(in);
-		out << "load main sample: " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "load main sample: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//compute ChromosomalIndex from merged excludes
 		ChromosomalIndex<BedFile> exclude_idx(merged_excludes);
@@ -252,8 +256,7 @@ public:
 			correct_indices.setBit(i, is_valid);
 		}
 
-		out << "compute used indices: " << Helper::elapsedTime(timer.restart()) << endl;
-		out << "number of used indices: " << correct_indices.count(true) << " of " << correct_indices.count() << endl;
+		if (debug) out << "compute used indices: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Create coverage profile for main_file
 		QHash<QByteArray, QVector<double>> cov1;
@@ -265,19 +268,21 @@ public:
 			cov1[line.chr] << line.depth.toDouble();
 		}
 
-		out << "create coverage profile main: " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "create coverage profile main: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Load other samples and calculate correlation
+		QTime corr_timer;
 		QList<QPair<QString, double>> file2corr;
 		QHash<QByteArray, QVector<double>> cov2;
 
 		//iterate over each reference file
+		corr_timer.start();
 		foreach (const QString& ref_file, in_refs)
 		{
 			timer.restart();
 
 			//load coverage profile for ref_file
-			parseGzFileCovProfile(cov2, ref_file, correct_indices, main_file.size());
+			parseGzFileCovProfile(cov2, ref_file, correct_indices, main_file.size(), main_file);
 			if (debug) out << "loading coverage profile for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
 
 			//calculate correlation between main_sample and current ref_file
@@ -298,6 +303,8 @@ public:
 		{
 			return a.second > b.second;
 		});
+
+		if (debug) out << "loading all coverage profiles and compute correlation: " << Helper::elapsedTime(corr_timer.restart()) << endl;
 
 		//write number of compared coverage files to stdout
 		out << "compared number of coverage files: " << file2corr.size() << endl;
@@ -323,80 +330,56 @@ public:
 		if (debug) out << "determining best reference samples and calculating mean correlation: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Merge coverage profiles and store them in a tsv file
-		QByteArrayList header;
-		header << "chr" << "start" << "end";
-
-		//TODO Kilian try writing without reading data to RAM first
-
-		//init
-		QList<QByteArrayList> tsv_line_list;
-		tsv_line_list.reserve(main_file.size());
-		for (int i = 0; i < main_file.size(); ++i)
-		{
-			tsv_line_list.append(QByteArrayList());
-		}
-		bool first_file = true;
+		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
+		QVector<gzFile> files;
 
 		foreach(QString ref_file, best_ref_files)
 		{
-			//add the reference sample name to the header
-			header.append(sampleName(ref_file));
-			//for the first file the chr, start and end for each region is added to each tsv line
-			if (first_file)
+			gzFile file = gzopen(ref_file.toUtf8().constData(), "rb");
+			if (file)
 			{
-				for (int i=0; i<main_file.size(); ++i)
+				files << file;
+			}
+			else
+			{
+				THROW(FileAccessException, "Could not open file for reading: '" + ref_file + "'!")
+			}
+		}
+
+		const int buffer_size = 1048576;
+		std::vector<char> buffer(buffer_size);
+
+		bool done = false;
+		while (!done)
+		{
+			done = true;
+			for (int i = 0; i < files.size(); ++i)
+			{
+				if (gzgets(files[i], buffer.data(), buffer_size) != Z_NULL)
 				{
-					tsv_line_list[i].append(main_file[i].chr);
-					tsv_line_list[i].append(main_file[i].start);
-					tsv_line_list[i].append(main_file[i].end);
+					QByteArray line(buffer.data());
+					line = line.trimmed();
+					QByteArrayList fields;
+					fields = line.split('\t');
+					if (i == 0)
+					{
+						outstream->write(fields[0] + '\t' + fields[1] + '\t' + fields[2]);
+					}
+
+					outstream->write('\t' + fields[3]);
+					 // If a line was read, we're not done yet
+					done = false;
+
+					if (i == files.size()-1) outstream->write("\n");
 				}
-
-				first_file = false;
 			}
+		}
 
-			//load the ref_file and append each output line with the coverage score
-			const int buffer_size = 1048576;
-			std::vector<char> buffer(buffer_size);
-			QByteArrayList fields;
-
-			//open stream
-			FILE* instream = fopen(ref_file.toUtf8().data(), "rb");
-			gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-
-			//iterate over each line
-			int line_count = 0;
-			while(!gzeof(file))
-			{
-				char* char_array = gzgets(file, buffer.data(), buffer_size);
-				fields.clear();
-
-				QByteArray line(char_array);
-				line = line.trimmed();
-
-				//skip empty lines
-				if(line.isEmpty()) continue;
-
-				//skip headers
-				if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser ")) continue;
-
-				//append the current line with the coverage score
-				fields = line.split('\t');
-				tsv_line_list[line_count].append(fields[3]);
-				++line_count;
-			}
+		foreach (gzFile file, files)
+		{
 			gzclose(file);
 		}
-
-		//write the header
-		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
-		outstream->write('#' + header.join('\t') + '\n');
-		//write each output line
-		foreach(const QByteArrayList &line, tsv_line_list)
-		{
-			outstream->write(line.join('\t') + '\n');
-		}
-
-		outstream->close();
+		outstream -> close();
 
 		if (debug) out << "writing output: " << Helper::elapsedTime(timer.restart()) << endl;
 	}
