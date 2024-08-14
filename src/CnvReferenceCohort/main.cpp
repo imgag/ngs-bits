@@ -109,7 +109,7 @@ public:
 		}
 
 		const int buffer_size = 1048576;
-		std::vector<char> buffer(buffer_size);
+		char* buffer = new char[buffer_size];
 
 		//open stream
 		FILE* instream = fopen(filename.toUtf8().data(), "rb");
@@ -126,10 +126,10 @@ public:
 		int row_count = 0;
 		while(!gzeof(file))
 		{
-			char* char_array = gzgets(file, buffer.data(), buffer_size);
+			char* char_array = gzgets(file, buffer, buffer_size);
 
 			//handle errors like truncated GZ file
-			if (!char_array)
+			if (char_array==nullptr)
 			{
 				int error_no = Z_OK;
 				QByteArray error_message = gzerror(file, &error_no);
@@ -137,11 +137,21 @@ public:
 				{
 					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
 				}
+				continue;
 			}
 
-			QByteArray line(char_array);
-			line = line.trimmed();
-			if(line.isEmpty()) continue;
+			//determine end of read line
+			int i=0;
+			while(i<buffer_size && char_array[i]!='\0' && char_array[i]!='\n' && char_array[i]!='\r')
+			{
+				++i;
+			}
+
+			const QByteArray& line = QByteArray::fromRawData(char_array, i);
+
+//			QByteArray line(char_array);
+//			line = line.trimmed();
+			if(line.trimmed().isEmpty()) continue;
 
 			//skip headers
 			if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser "))
@@ -149,8 +159,27 @@ public:
 				continue;
 			}
 
+			QByteArrayList fields;
+			QByteArray currentField;
+
+			for (int i = 0; i < line.size(); ++i)
+			{
+				if (line[i] == '\t')
+				{
+					fields.append(currentField);
+					currentField.clear();
+				}
+				else
+				{
+					currentField.append(line[i]);
+				}
+			}
+
+			// Append the last field (after the last tab character)
+			fields.append(currentField);
+
 			//error when less than 4 fields
-			QByteArrayList fields = line.split('\t');
+			//QByteArrayList fields = line.split('\t');
 			if (fields.count()<4)
 			{
 				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
