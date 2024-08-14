@@ -128,20 +128,20 @@ public:
 		{
 			char* char_array = gzgets(file, buffer.data(), buffer_size);
 
-//			//handle errors like truncated GZ file
-//			if (!char_array)
-//			{
-//				int error_no = Z_OK;
-//				QByteArray error_message = gzerror(file, &error_no);
-//				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-//				{
-//					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-//				}
-//			}
+			//handle errors like truncated GZ file
+			if (!char_array)
+			{
+				int error_no = Z_OK;
+				QByteArray error_message = gzerror(file, &error_no);
+				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+				{
+					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
+				}
+			}
 
-//			QByteArray line(char_array);
-//			line = line.trimmed();
-//			if(line.isEmpty()) continue;
+			QByteArray line(char_array);
+			line = line.trimmed();
+			if(line.isEmpty()) continue;
 
 //			//skip headers
 //			if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser "))
