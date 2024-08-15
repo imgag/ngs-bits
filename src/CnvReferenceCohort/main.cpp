@@ -93,7 +93,7 @@ public:
 			if (!ok) THROW(FileParseException, "COV file line with invalid coverage score found: '" + line + "'");
 
 			//append line
-			lines.append(BedLineRepresentation{fields[0], fields[1], fields[2], fields[3]});
+			lines << BedLineRepresentation{fields[0], fields[1], fields[2], fields[3]};
 		}
 		gzclose(file);
 		return lines;
@@ -149,8 +149,6 @@ public:
 
 			const QByteArray& line = QByteArray::fromRawData(char_array, i);
 
-//			QByteArray line(char_array);
-//			line = line.trimmed();
 			if(line.trimmed().isEmpty()) continue;
 
 			//skip headers
@@ -168,20 +166,17 @@ public:
 				if (line[i] == '\t')
 				{
 					++tab_count;
-					fields.append(line.mid(last_field_pos, i - last_field_pos));
+					fields << line.mid(last_field_pos, i - last_field_pos);
 					last_field_pos = i + 1;
 				}
 				else if (tab_count == 3)
 				{
-					fields.append(line.mid(i));
+					fields << line.mid(i);
 					break;
 				}
 			}
 
-			qDebug() << fields;
-
 			//error when less than 4 fields
-			//QByteArrayList fields = line.split('\t');
 			if (fields.count()<4)
 			{
 				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
@@ -320,12 +315,12 @@ public:
 			QVector<double> corr;
 			for (auto it = cov1.cbegin(); it != cov1.cend(); ++it)
 			{
-				corr.append(BasicStatistics::correlation(it.value(), cov2.value(it.key())));
+				corr << BasicStatistics::correlation(it.value(), cov2.value(it.key()));
 			}
 
 			//sort correlation coefficents for the current ref_file and safe the median
 			std::sort(corr.begin(), corr.end());
-			file2corr.append(qMakePair(ref_file, BasicStatistics::median(corr)));
+			file2corr << qMakePair(ref_file, BasicStatistics::median(corr));
 			if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
 		}
 
