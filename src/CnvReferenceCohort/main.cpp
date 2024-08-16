@@ -17,6 +17,33 @@ public:
 	{
 	}
 
+
+
+	struct BedLineRepresentation
+	{
+		Chromosome chr;
+		int start;
+		int end;
+		double depth;
+		QByteArray chr_start_end;
+	};
+
+	struct TabIndices
+	{
+		int tab1;
+		int tab2;
+		int tab3;
+		int tab4;
+	};
+
+	struct MinMaxIndex
+	{
+		int min;
+		int max;
+	};
+
+	typedef QVector<double> CoverageProfile;
+
 	QByteArray sampleName(QString filename)
 	{
 		QString output = QFileInfo(filename).fileName();
@@ -26,15 +53,31 @@ public:
 		return output.toUtf8();
 	}
 
-	struct BedLineRepresentation
+	TabIndices getTabPosition(const QByteArray& line)
 	{
-		QByteArray chr;
-		QByteArray start;
-		QByteArray end;
-		QByteArray depth;
-	};
+		TabIndices tab_indices;
 
-	typedef QVector<double> CoverageProfile;
+		tab_indices.tab1 = -1;
+		tab_indices.tab2 = -1;
+		tab_indices.tab3 = -1;
+		tab_indices.tab4 = -1;
+		int tab_num = 0;
+		for (int i = 0; i < line.size(); ++i)
+		{
+			if (line[i] == '\t')
+			{
+				++tab_num;
+				if (tab_num==1) tab_indices.tab1 = i;
+				else if (tab_num==2) tab_indices.tab2 = i;
+				else if (tab_num==3) tab_indices.tab3 = i;
+				else if (tab_num==4) tab_indices.tab4 = i;
+			}
+		}
+
+		if (tab_indices.tab4==-1) tab_indices.tab4 = line.size()-1;
+
+		return tab_indices;
+	}
 
 	//Function to load a BED file with coverage data (.cov, .bed and gzipped possible)
 	QList<BedLineRepresentation> parseGzFileBedFile(const QString& filename)
@@ -54,6 +97,7 @@ public:
 		{
 			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
 		}
+
 		while(!gzeof(file))
 		{
 			char* char_array = gzgets(file, buffer.data(), buffer_size);
@@ -78,8 +122,9 @@ public:
 				continue;
 			}
 
-			//error when less than 4 fields
 			QByteArrayList fields = line.split('\t');
+
+			//error when less then 4 fields
 			if (fields.count()<4)
 			{
 				THROW(FileParseException, "COV file line with less than three fields found: '" + line + "'");
@@ -87,15 +132,15 @@ public:
 
 			//check that start/end is number
 			bool ok = true;
-			fields[1].toInt(&ok);
+			int start = fields[1].toInt(&ok);
 			if (!ok) THROW(FileParseException, "COV file line with invalid starts position found: '" + line + "'");
-			fields[2].toInt(&ok);
+			int end = fields[2].toInt(&ok);
 			if (!ok) THROW(FileParseException, "COV file line with invalid end position found: '" + line + "'");
-			fields[3].toDouble(&ok);
+			double depth = fields[3].toDouble(&ok);
 			if (!ok) THROW(FileParseException, "COV file line with invalid coverage score found: '" + line + "'");
 
 			//append line
-			lines << BedLineRepresentation{fields[0], fields[1], fields[2], fields[3]};
+			lines << BedLineRepresentation{fields[0], start, end, depth, fields[0] + "\t" + fields[1] + "\t" + fields[2]};
 		}
 		gzclose(file);
 		return lines;
@@ -119,7 +164,9 @@ public:
 			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
 		}
 
-		int row_count = -1;
+		int line_index = -1;
+		int row_count = 0;
+
 		while(!gzeof(file))
 		{
 			char* char_array = gzgets(file, buffer, buffer_size);
@@ -145,64 +192,40 @@ public:
 			}
 
 			//skip lines overlapping with excludes
-			++row_count;
-			if (!rows_to_use[row_count]) continue;
+			++line_index;
+			if (!rows_to_use[line_index]) continue;
 
-			QByteArray temp_chr;
-			int tab_count = 0;
-			int last_field_pos = 0;
-
-			for (int i = 0; i < line.size(); ++i)
-			{
-				if (line[i] == '\t' || i == line.size() - 1)
-				{
-					if (tab_count == 0)
-					{
-						temp_chr = line.left(i);
-						if (temp_chr != main_file[row_count].chr)
-						{
-							THROW(FileParseException, "Chromosome does not match the main file: '" + line + "'");
-						}
-					}
-					else if (tab_count == 1)
-					{
-						if (line.mid(last_field_pos, i - last_field_pos) != main_file[row_count].start)
-						{
-							THROW(FileParseException, "Start position does not match the main file: '" + line + "'")
-						}
-					}
-					else if (tab_count == 2)
-					{
-						if (line.mid(last_field_pos, i - last_field_pos) != main_file[row_count].end)
-						{
-							THROW(FileParseException, "End position does not match the main file: '" + line + "'")
-						}
-					}
-					else if (tab_count == 3)
-					{
-						bool ok = false;
-						cov_profile[row_count] = line.mid(last_field_pos, i - last_field_pos).toDouble(&ok);
-						if (!ok) THROW(ArgumentException, "Could not convert depth value " + line.mid(last_field_pos, i - last_field_pos) + " to double in line: " + line);
-						break;
-					}
-					last_field_pos = i + 1;
-
-					++tab_count;
-				}
-			}
+			//determine tab indices
+			TabIndices tab_indices = getTabPosition(line);
+			
 
 			//error when less than 4 fields
-			if (tab_count < 3)
+			if (tab_indices.tab3==-1)
 			{
 				THROW(FileParseException, "COV file line with less than four fields found: '" + line + "'");
 			}
+
+			//check chromosomal position is the same
+			for (int i=0; i<tab_indices.tab3; ++i)
+			{
+				if (main_file[line_index].chr_start_end[i]!=line[i])
+				{
+					THROW(FileParseException, "Chromosomal position '" + line.left(tab_indices.tab3) + "' does not match the main file: '" + main_file[line_index].chr_start_end + "'");
+				}
+			}
+
+			//set value
+			bool ok = false;
+			cov_profile[row_count] = line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1).toDouble(&ok);
+			++row_count;
+			if (!ok) THROW(ArgumentException, "Could not convert depth value " + line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1) + " to double in line: " + line);
 		}
 		gzclose(file);
 
-		++row_count;
-		if (row_count != main_file_size)
+		++line_index;
+		if (line_index != main_file_size)
 		{
-			THROW(FileParseException, "Reference sample " + filename + " contains a different number of lines (" + QString::number(row_count) +") than main sample (" + QString::number(main_file_size) +")");
+			THROW(FileParseException, "Reference sample " + filename + " contains a different number of lines (" + QString::number(line_index) +") than main sample (" + QString::number(main_file_size) +")");
 		}
 	}
 
@@ -252,7 +275,7 @@ public:
 		if (debug) out << "merge excludes: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Determine indices to use
-		//load main sample
+		//load main sample and determine row indices for correlation computation
 		QList<BedLineRepresentation> main_file = parseGzFileBedFile(in);
 		if (debug) out << "load main sample: " << Helper::elapsedTime(timer.restart()) << endl;
 
@@ -261,18 +284,21 @@ public:
 
 		//iterate over main sample and determine indices to use
 		QBitArray correct_indices(main_file.size(), false);
+
+
 		for (int i=0; i<main_file.size(); ++i)
 		{
 			const BedLineRepresentation& line = main_file[i];
+
 			bool is_valid = true;
 
 			//exclude empty lines and lines where the coverage is 0
-			if (line.depth.toDouble() == 0.0)
+			if (line.depth == 0.0)
 			{
 				is_valid = false;
 			}
 			//exclude lines overlapping with any exclude region
-			else if(exclude_idx.matchingIndex(line.chr, line.start.toInt(), line.end.toInt())!=-1)
+			else if(exclude_idx.matchingIndex(line.chr, line.start, line.end)!=-1)
 			{
 				is_valid = false;
 			}
@@ -284,8 +310,28 @@ public:
 			//include the rest
 			correct_indices.setBit(i, is_valid);
 		}
+		if (debug) out << "compute used indices: : " << Helper::elapsedTime(timer.restart()) << endl;
 
-		if (debug) out << "compute used indices: " << Helper::elapsedTime(timer.restart()) << endl;
+		QMap<QByteArray, MinMaxIndex> chr_indices;
+		int row_count = 0;
+		for (int i=0; i < correct_indices.size(); ++i)
+		{
+			const BedLineRepresentation& line = main_file[i];
+			if (correct_indices[i])
+			{
+				if (chr_indices.contains(line.chr.str()))
+				{
+					chr_indices[line.chr.str()].max = row_count;
+				}
+				else
+				{
+					chr_indices[line.chr.str()].min = row_count;
+				}
+				++row_count;
+			}
+		}
+
+		if (debug) out << "calculate min max indices of chromosomes:" << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Create coverage profile for main_file
 		CoverageProfile cov1;
@@ -294,7 +340,7 @@ public:
 			if (!correct_indices[i]) continue;
 
 			const BedLineRepresentation& line = main_file[i];
-			cov1 << line.depth.toDouble();
+			cov1 << line.depth;
 		}
 
 		if (debug) out << "create coverage profile main: " << Helper::elapsedTime(timer.restart()) << endl;
@@ -316,9 +362,9 @@ public:
 
 			//calculate correlation between main_sample and current ref_file
 			QVector<double> corr;
-			for (auto it = cov1.cbegin(); it != cov1.cend(); ++it)
+			for (auto it = chr_indices.cbegin(); it != chr_indices.cend(); ++it)
 			{
-				corr << 0.0; //TODO BasicStatistics::correlation(it.value(), cov2.value(it.key()));
+				corr << BasicStatistics::correlation(cov1, cov2, it.value().min, it.value().max);
 			}
 
 			//sort correlation coefficents for the current ref_file and safe the median
@@ -387,15 +433,15 @@ public:
 				if (gzgets(files[i], buffer.data(), buffer_size) != Z_NULL)
 				{
 					QByteArray line(buffer.data());
-					line = line.trimmed();
-					QByteArrayList fields;
-					fields = line.split('\t');
+
+					TabIndices tab_indices = getTabPosition(line);
+
 					if (i == 0)
 					{
-						outstream->write(fields[0] + '\t' + fields[1] + '\t' + fields[2]);
+						outstream->write(line.left(tab_indices.tab1) + '\t' + line.mid(tab_indices.tab1+1, tab_indices.tab2 - tab_indices.tab1-1) + '\t' + line.mid(tab_indices.tab2+1, tab_indices.tab3 - tab_indices.tab2-1));
 					}
 
-					outstream->write('\t' + fields[3]);
+					outstream->write('\t' + line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1));
 					 // If a line was read, we're not done yet
 					done = false;
 
