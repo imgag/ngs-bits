@@ -103,6 +103,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BedSort](doc/tools/BedSort.md) - Sorts the regions in a BED file
 * [BedSubtract](doc/tools/BedSubtract.md) - Subracts one BED file from another BED file.
 * [BedToFasta](doc/tools/BedToFasta.md) - Converts BED file to a FASTA file (based on the reference genome).
+* [CnvReferenceCohort](doc/tools/CnvReferenceCohort.md) - Create a reference cohort for CNV calling from a list of coverage profiles.
 
 ### FASTQ tools
 
