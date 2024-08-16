@@ -97,9 +97,6 @@ private:
 	QString formatCodingSplicing(const Variant& v);
 	static QString convertOtherVariantType(const QString& type, bool xml=false);
 
-	//Helper for the chromosome alias table
-	QMap<Chromosome, QString> getChromosomeTable(GenomeBuild build);
-
 	///Helper functions for writeEvaluationSheet()
 	static void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);

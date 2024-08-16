@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2024_06
+	> git checkout 2024_07
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -177,21 +177,17 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ## ChangeLog
 
-Changes in release 2024_06:
+Changes in release 2024_07:
 
-* new tools: NGSDExportIgvGeneTrack
-* BamFilter: added parameter for maximum insert size
-* NGSDAddVariantsGermline: now imports REs as well
-* NGSDExportSamples: new paramters `-only_with_small_variants` and `-add_lab_columns`. 
-* SampleGender: new parameter `-include_single_end_reads` for long-read data.
-* SampleSimilarity: new parameter `-include_single_end_reads` for long-read data.
-* SampleSimilarity: new parameter `-roi_hg38_wes_wgs` to make WES, WGS and lrGS results more comparable.
-* UpdHunter: new parameter `-out_informative` to write out a IGV track with informative variants.
-* VcfCalculatePRS: new parameter `-min_depth` and support for variants that are to be imputed independent of the sample genotype.
+* new tools: 
+* BedCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
+* BedHighCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
+* BedLowCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
+* VcfAnnotateConsequence: added support for RefSeq GFF file
+* VcfFilter: added parameter `-filter_clear`
 * NGSD:
-	* added tables for somatic SVs: somatic_somatic_sv_callset, somatic_sv_deletion, somatic_sv_duplication, somatic_sv_insertion, somatic_sv_inversion, somatic_sv_translocation, somatic_report_configuration_sv
-	* added tables for repeat expansions: repeat_expansion, repeat_expansion_genotype, re_callset, report_configuration_re
-	* processed_sample table: added boolean `scheduled_for_resequencing` to flag samples for resequencing to increase depth/coverage
+	* kasp_status: added fields `calculated_date` and `calculated_by`.
+
 
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

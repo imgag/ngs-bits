@@ -73,6 +73,17 @@ private slots:
         COMPARE_FILES("out/VcfAnnotateConsequence_out6.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out6.vcf"));
     }
 
+	//RefSeq source
+	void refseq()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts_refseq.gff3.gz") + " -out out/VcfAnnotateConsequence_out7.vcf" + " -source refseq");
+
+		COMPARE_FILES("out/VcfAnnotateConsequence_out7.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out7.vcf"));
+	}
+
 	void multithreaded()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
@@ -85,4 +96,5 @@ private slots:
 			COMPARE_FILES(out_file, TESTDATA("data_out/VcfAnnotateConsequence_out1.vcf"));
 		}
 	}
+
 };

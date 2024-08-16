@@ -219,7 +219,7 @@ public:
 		foreach (const SampleData& data, related_sample_data)
 		{
 			if (data.is_tumor != current_sample_data.is_tumor) continue;
-			if (!data.type.startsWith("DNA")) continue;
+			if ( ! data.type.startsWith("DNA")) continue;
 
 			//get processed samples
 			foreach (const QString& ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id = '" + db.sampleId(data.name) + "'"))
@@ -421,16 +421,19 @@ public:
 
 	bool isSampleNewer(const QString& current_sample, const QString& other_sample)
 	{
-		QRegularExpression rx("\\d+_\\d+");
-		QStringList current_sample_numbers = rx.match(current_sample).captured(0).split("_");
-		QStringList other_sample_numbers = rx.match(other_sample).captured(0).split("_");
+		QRegularExpression number("\\d+");
+		QString current_sample_base = number.match(current_sample).captured(0);
+		QString other_sample_base = number.match(other_sample).captured(0);
 
-		if (current_sample_numbers[0] == other_sample_numbers[0])
+		QString current_sample_ps_id = current_sample.split("_")[1];
+		QString other_sample_ps_id = other_sample.split("_")[1];
+
+		if (current_sample_base == other_sample_base)
 		{
-			return current_sample_numbers[1].toInt() < other_sample_numbers[1].toInt();
+			return current_sample_ps_id.toInt() < other_sample_ps_id.toInt();
 		}
 
-		return current_sample_numbers[0].toInt() < other_sample_numbers[0].toInt();
+		return current_sample_base.toInt() < other_sample_base.toInt();
 	}
 };
 

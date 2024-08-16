@@ -1685,8 +1685,6 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 
 	//estimate tumor content
 	int min_depth = 30;
-	double max_somatic = 0.01;
-	int n = 10;
 	//process variants
 	QVector<double> freqs;
 	BamReader reader_tumor(tumor_bam, ref_fasta);
@@ -1705,7 +1703,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		if (pileup_no.depth(true) < min_depth) continue;
 
 		double no_freq = pileup_no.frequency(v.ref()[0], v.alt(0)[0]);
-		if (!BasicStatistics::isValidFloat(no_freq) || no_freq >= max_somatic) continue;
+		if (!BasicStatistics::isValidFloat(no_freq) || no_freq >= 0.01) continue;
 
 		double tu_freq = pileup_tu.frequency(v.ref()[0], v.alt(0)[0]);
 		if (!BasicStatistics::isValidFloat(tu_freq) || tu_freq > 0.6) continue;
@@ -1717,11 +1715,14 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	std::sort(freqs.begin(), freqs.end());
 
 	//print tumor content estimate
+	int n = 10;
 	QString value = "";
 	if (freqs.count()>=n)
 	{
 		freqs = freqs.mid(freqs.count()-n);
-		value = QString::number(BasicStatistics::median(freqs, false)*200, 'f', 2);
+		double tmp = BasicStatistics::median(freqs, false)*200;
+		tmp = std::min(tmp, 100.0);
+		value = QString::number(tmp, 'f', 2);
 	}
 	else
 	{

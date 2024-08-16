@@ -363,6 +363,9 @@ void SequencingRunWidget::sendStatusEmail()
 
 	if (status=="analysis_finished")
 	{
+		//update table info to be sure it is the current info.
+		updateRunSampleTable();
+
 		to << Settings::string("email_run_analyzed").split(";");
 
 		subject = "[NGSD] Lauf " + run_name + " analysiert";
@@ -370,6 +373,44 @@ void SequencingRunWidget::sendStatusEmail()
 		body << "Hallo zusammen,";
 		body << "";
 		body << "der Lauf " + run_name + " ist fertig analysiert:";
+
+		body << "";
+
+		int idx_sample = ui_->samples->columnIndex("sample");
+		int idx_comment = ui_->samples->columnIndex("comments");
+		int idx_project = ui_->samples->columnIndex("project");
+		int idx_is_tumor = ui_->samples->columnIndex("is_tumor");
+		int idx_is_ffpe = ui_->samples->columnIndex("is_ffpe");
+
+		QStringList diagnostic_table;
+		body << "Die folgenden germline Proben des Laufs haben schlechte Qualität:";
+		diagnostic_table << "Probe\tProjekt\tKommentar";
+		for (int i=0; i < ui_->samples->rowCount(); i++)
+		{
+			if (ui_->samples->item(i, idx_is_tumor)->text() == "yes") continue;
+
+			QString ps_id = db.processedSampleId(ui_->samples->item(i, idx_sample)->text());
+			QByteArray quality = db.getValue("SELECT quality FROM processed_sample WHERE id = '" + ps_id + "'").toByteArray();
+			if (quality == "bad")
+			{
+				QString ffpe_text = ui_->samples->item(i, idx_is_ffpe)->text() == "yes" ? " [ffpe]" : "";
+
+				diagnostic_table << ui_->samples->item(i, idx_sample)->text() + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
+			}
+		}
+
+		if (diagnostic_table.count() > 1)
+		{
+			foreach(QString line, diagnostic_table)
+			{
+				body << line;
+			}
+		}
+		else
+		{
+			body << "Keine Proben mit schlechter Qualität.";
+		}
+
 
 		SqlQuery query = db.getQuery();
 		query.exec("SELECT DISTINCT p.id, p.name, p.email_notification, p.internal_coordinator_id, p.analysis FROM project p, processed_sample ps WHERE ps.project_id=p.id AND ps.sequencing_run_id=" + run_id_ + " ORDER BY p.name ASC");

@@ -1518,8 +1518,7 @@ private slots:
 
 		//addSampleRelation
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});
-		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}); //ignored
-		IS_THROWN(DatabaseException, db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}, true));
+		IS_THROWN(DatabaseException, db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}));
 
 		//sameSample
 		I_EQUAL(db.sameSamples(99, SameSampleMode::SAME_PATIENT).count(), 0);

@@ -231,7 +231,7 @@ private slots:
 		settings.print_to_stdout = false;
 
 		//do not skip GENCODE basic
-		settings.skip_not_gencode_basic = false;
+		settings.include_all = true;
 		GffData gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 21);
@@ -271,7 +271,7 @@ private slots:
 		IS_TRUE(gff.transcripts[2].isManePlusClinicalTranscript());
 
 		//skip GENCODE basic
-		settings.skip_not_gencode_basic = true;
+		settings.include_all = false;
 		gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 11);
@@ -287,12 +287,76 @@ private slots:
 		settings.print_to_stdout = false;
 
 		//do not skip GENCODE basic
-		settings.skip_not_gencode_basic = false;
+		settings.include_all = true;
 		GffData gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in2.gff3.gz"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 21);
 		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
 		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
+	}
+
+	void loadGffFile_refseq()
+	{
+		GffSettings settings;
+		settings.source = "refseq";
+		settings.print_to_stdout = false;
+		settings.include_all = false;
+		GffData gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in3.gff3.gz"), settings);
+
+		I_EQUAL(gff.transcripts.count(), 10);
+		I_EQUAL(gff.transcripts.geneCount(), 2);
+		I_EQUAL(gff.transcripts.transcriptCount("BRCA2"), 6);
+		I_EQUAL(gff.transcripts.transcriptCount("RFC1"), 4);
+		IS_TRUE(gff.transcripts.contains("NM_001204747"));
+		IS_FALSE(gff.transcripts.contains("XR_007057951")); //predicted by Gnomon
+
+		Transcript trans = gff.transcripts.getTranscript("NM_001204747");
+		IS_TRUE(trans.isValid());
+		S_EQUAL(trans.gene(), "RFC1");
+		S_EQUAL(trans.name(), "NM_001204747");
+		I_EQUAL(trans.version(), 2);
+		S_EQUAL(trans.geneId(), "gene-RFC1");
+		S_EQUAL(trans.hgncId(), "HGNC:9969");
+		S_EQUAL(trans.nameCcds(), "");
+		I_EQUAL(trans.source(), Transcript::ENSEMBL);
+		I_EQUAL(trans.strand(), Transcript::MINUS);
+		I_EQUAL(trans.biotype(), Transcript::PROTEIN_CODING);
+		S_EQUAL(trans.chr().str(), "chr4");
+		I_EQUAL(trans.start(), 39287456);
+		I_EQUAL(trans.end(), 39366362);
+		IS_FALSE(trans.isPreferredTranscript());
+		IS_FALSE(trans.isGencodeBasicTranscript());
+		IS_FALSE(trans.isEnsemblCanonicalTranscript());
+		IS_FALSE(trans.isManeSelectTranscript());
+		IS_FALSE(trans.isManePlusClinicalTranscript());
+		IS_TRUE(trans.isCoding());
+		I_EQUAL(trans.regions().count(), 25);
+		I_EQUAL(trans.regions().baseCount(), 4873);
+		I_EQUAL(trans.codingRegions().count(), 25);
+		I_EQUAL(trans.codingRegions().baseCount(), 3447);
+		I_EQUAL(trans.codingStart(), 39366241);
+		I_EQUAL(trans.codingEnd(), 39288761);
+		I_EQUAL(trans.utr3prime().count(), 1);
+		I_EQUAL(trans.utr3prime().baseCount(), 1305);
+		I_EQUAL(trans.utr5prime().count(), 1);
+		I_EQUAL(trans.utr5prime().baseCount(), 121);
+	}
+
+	void loadGffFile_refseq_all()
+	{
+		GffSettings settings;
+		settings.source = "refseq";
+		settings.print_to_stdout = false;
+		settings.include_all = true;
+		GffData gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in3.gff3.gz"), settings);
+
+		I_EQUAL(gff.transcripts.count(), 13);
+		I_EQUAL(gff.transcripts.geneCount(), 2);
+		I_EQUAL(gff.transcripts.transcriptCount("BRCA2"), 6);
+		I_EQUAL(gff.transcripts.transcriptCount("RFC1"), 7);
+
+		IS_TRUE(gff.transcripts.contains("NM_001204747"));
+		IS_TRUE(gff.transcripts.contains("XR_007057951")); //predicted by Gnomon
 	}
 
 	void maxEntScanImpact()
