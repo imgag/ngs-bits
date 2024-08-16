@@ -1,5 +1,5 @@
 ### BedLowCoverage tool help
-	BedLowCoverage (2022_07-183-g2dc8c6f8)
+	BedLowCoverage (2024_06-82-g4e214586)
 	
 	Detects low-coverage regions from a BAM/CRAM file.
 	
@@ -12,7 +12,7 @@
 	Optional parameters:
 	  -in <file>       Input BED file containing the regions of interest. If unset, reads from STDIN.
 	                   Default value: ''
-	  -wgs             WGS mode without target region. Genome information is taken from the BAM/CRAM file.
+	  -random_access   Use random access via index to get reads from BAM/CRAM instead of chromosome-wise sweep. Random access is quite slow, so use it only if a small subset of the file needs to be accessed.
 	                   Default value: 'false'
 	  -out <file>      Output BED file. If unset, writes to STDOUT.
 	                   Default value: ''
@@ -24,6 +24,8 @@
 	                   Default value: ''
 	  -threads <int>   Number of threads used.
 	                   Default value: '1'
+	  -debug           Enable debug output.
+	                   Default value: 'false'
 	
 	Special parameters:
 	  --help           Shows this help and exits.
@@ -32,8 +34,9 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedLowCoverage changelog
-	BedLowCoverage 2022_07-183-g2dc8c6f8
+	BedLowCoverage 2024_06-82-g4e214586
 	
+	2024-07-03 Added 'random_access' and 'debug' parameters and removed 'wgs' parameter.
 	2022-09-19 Added 'threads' parameter.
 	2020-11-27 Added CRAM support.
 	2020-05-26 Added parameter 'min_baseq'.
