@@ -2342,7 +2342,6 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	int i_gnomad = data_.variants.annotationIndexByName("gnomAD", true, true);
 	int i_ngsd_hom = data_.variants.annotationIndexByName("NGSD_hom", true, true);
 	int i_ngsd_het = data_.variants.annotationIndexByName("NGSD_het", true, true);
-	int i_filter = data_.variants.annotationIndexByName("filter", true, true);
 
 	//manual curation
 	if (conf.isManuallyCurated()) conf.updateVariant(v, genome_idx_, i_genotype);
@@ -2385,9 +2384,11 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << genes.join(", ") << "</td>" << endl;
 	stream << "       <td>" << types.join(", ") << "</td>" << endl;
-	QString genotype = v.annotations()[i_genotype];
-	if (v.annotations()[i_filter].contains("mosaic")) genotype += " (mosaic)";
-	stream << "       <td>" << genotype << "</td>" << endl;
+	QString geno = v.annotations()[i_genotype];
+	if (conf.de_novo) geno += " (de-novo)";
+	if (conf.mosaic) geno += " (mosaic)";
+	if (conf.comp_het) geno += " (comp-het)";
+	stream << "       <td>" << geno << "</td>" << endl;
 	stream << "       <td style='white-space: nowrap'>" << v.toString(QChar(), 20) << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
@@ -2438,7 +2439,11 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
 
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << cnv.toString() << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
-	stream << "       <td>" << cnv.copyNumber(data_.cnvs.annotationHeaders()) << "</td>" << endl;
+	QString geno = QString::number(cnv.copyNumber(data_.cnvs.annotationHeaders()));
+	if (conf.de_novo) geno += " (de-novo)";
+	if (conf.mosaic) geno += " (mosaic)";
+	if (conf.comp_het) geno += " (comp-het)";
+	stream << "       <td>" << geno  << "</td>" << endl;
 	stream << "       <td>" << cnv.genes().join(", ") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	if (conf.causal)
@@ -2493,7 +2498,11 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
 	if (sv.type() == StructuralVariantType::BND) stream << " &lt;-&gt; " << affected_region[1].toString(true);
 	if (conf.isManuallyCurated()) stream << " (manually curated)";
 	stream << "</td>" << endl;
-	stream << "       <td>" << BedpeFile::typeToString(sv.type()) << "</td>" << endl;
+	QString geno = BedpeFile::typeToString(sv.type());
+	if (conf.de_novo) geno += " (de-novo)";
+	if (conf.mosaic) geno += " (mosaic)";
+	if (conf.comp_het) geno += " (comp-het)";
+	stream << "       <td>" << geno << "</td>" << endl;
 	stream << "       <td>" << sv.genes(data_.svs.annotationHeaders()).join(", ") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	if (conf.causal)
@@ -2541,7 +2550,11 @@ void GermlineReportGenerator::printVariantSheetRowRe(QTextStream& stream, const 
 
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << re.toString(true, false) << "</td>" << endl;
-	stream << "       <td>" << re.alleles() << "</td>" << endl;
+	QString geno = re.alleles();
+	if (conf.de_novo) geno += " (de-novo)";
+	if (conf.mosaic) geno += " (mosaic)";
+	if (conf.comp_het) geno += " (comp-het)";
+	stream << "       <td>" << geno  << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	if (conf.causal)
 	{

@@ -244,7 +244,7 @@ public:
 		addInt("cov_max", "Best n reference coverage files to include in 'out' based on correlation.", true, 150);
 		addFlag("debug", "Enable debug output.");
 
-		changeLog(2024,  8, 15, "Initial version."); //TODO Kilian
+		changeLog(2024,  8, 16, "Initial version.");
 	}
 
 	virtual void main()

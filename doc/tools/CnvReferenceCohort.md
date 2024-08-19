@@ -1,5 +1,5 @@
 ### CnvReferenceCohort tool help
-	CnvReferenceCohort (2024_06-82-g4e214586)
+	CnvReferenceCohort (2024_06-33-g1f38e35e)
 	
 	Create a reference cohort for CNV calling from a list of coverage profiles.
 	
@@ -27,7 +27,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvReferenceCohort changelog
-	CnvReferenceCohort 2024_06-82-g4e214586
+	CnvReferenceCohort 2024_06-33-g1f38e35e
 	
-	2024-08-15 Initial version.
+	2024-08-16 Initial version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
