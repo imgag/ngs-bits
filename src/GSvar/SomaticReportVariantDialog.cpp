@@ -132,7 +132,7 @@ void SomaticReportVariantDialog::activateOkButtonIfValid()
 
 	//include entry and exclude checkboxes cannot be set at the same time
 	bool exclude_is_checked = ui_.exclude_artefact->isChecked() || ui_.exclude_high_baf_deviation->isChecked() || ui_.exclude_low_cn->isChecked() || ui_.exclude_low_tumor_content->isChecked() || ui_.exclude_other->isChecked() || ui_.exclude_unclear_effect->isChecked();
-	bool entry_included = !ui_.include_variant_alt->text().trimmed().isEmpty() || !ui_.include_variant_desc->text().trimmed().isEmpty();
+	bool entry_included = !ui_.include_variant_alt->text().trimmed().isEmpty() || !ui_.include_variant_desc->text().trimmed().isEmpty() || !ui_.comment->toPlainText().trimmed().isEmpty();
 	bool entry_sv_included = !ui_.description_sv->toPlainText().trimmed().isEmpty() || !ui_.manual_sv_start->text().trimmed().isEmpty() || !ui_.manual_sv_end->text().trimmed().isEmpty() || !ui_.manual_sv_hgvs_type->text().trimmed().isEmpty() || !ui_.manual_sv_hgvs_suffix->text().trimmed().isEmpty();
 	bool entry_sv_bnd_included = !ui_.manual_sv_start_bnd->text().trimmed().isEmpty() || !ui_.manual_sv_end_bnd->text().trimmed().isEmpty() || !ui_.manual_sv_hgvs_type_bnd->text().trimmed().isEmpty() || !ui_.manual_sv_hgvs_suffix_bnd->text().trimmed().isEmpty();
 	if(exclude_is_checked && (entry_included || entry_sv_included || entry_sv_bnd_included)) return;
