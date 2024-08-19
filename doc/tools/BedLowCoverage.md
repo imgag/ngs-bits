@@ -1,5 +1,5 @@
 ### BedLowCoverage tool help
-	BedLowCoverage (2024_06-58-g80c33029)
+	BedLowCoverage (2024_06-82-g4e214586)
 	
 	Detects low-coverage regions from a BAM/CRAM file.
 	
@@ -34,7 +34,7 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedLowCoverage changelog
-	BedLowCoverage 2024_06-58-g80c33029
+	BedLowCoverage 2024_06-82-g4e214586
 	
 	2024-07-03 Added 'random_access' and 'debug' parameters and removed 'wgs' parameter.
 	2022-09-19 Added 'threads' parameter.

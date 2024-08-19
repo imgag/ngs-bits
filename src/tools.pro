@@ -588,3 +588,6 @@ SUBDIRS += ExtractMethylationData
 tools-TEST.depends += ExtractMethylationData
 ExtractMethylationData.depends = cppNGS
 
+SUBDIRS += CnvReferenceCohort
+tools-TEST.depends += CnvReferenceCohort
+CnvReferenceCohort.depends = cppNGS
