@@ -32,7 +32,7 @@ SvSearchWidget::SvSearchWidget(QWidget* parent)
 void SvSearchWidget::setVariant(const BedpeLine& sv)
 {
 	//type
-	ui_.svType->setCurrentText(BedpeFile::typeToString(sv.type()));
+	ui_.type->setCurrentText(BedpeFile::typeToString(sv.type()));
 
 	//coordinates
 	ui_.coordinates1->setText(sv.chr1().strNormalized(true) + ":" + QString::number(sv.start1()) + "-" + QString::number(sv.end1()));
@@ -63,7 +63,7 @@ void SvSearchWidget::search()
 		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
 
 		// SV type/table
-		StructuralVariantType type = BedpeFile::stringToType(ui_.svType->currentText().toUtf8());
+		StructuralVariantType type = BedpeFile::stringToType(ui_.type->currentText().toUtf8());
 		QString sv_table = db_.svTableName(type);
 
 		// define table columns
@@ -226,9 +226,6 @@ void SvSearchWidget::search()
 		QStringList conditions;
 		conditions << query_same_position;
 
-
-		//(3) define SQL queries for filters
-
 		// filter by processing system
 		// get processing system id
 		if (ps_id_ != "" && ui_.same_processing_system_only->isChecked())
@@ -260,7 +257,7 @@ void SvSearchWidget::search()
 			conditions << "p.type IN (" + project_types.join(", ") + ") ";
 		}
 
-		//(4) create SQL table
+		//create SQL table
 		QString query_join = "SELECT " + selected_columns.join(", ") + " FROM " + sv_table + " as sv "
 				+ "INNER JOIN sv_callset sc ON sv.sv_callset_id = sc.id "
 				+ "INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
@@ -274,7 +271,22 @@ void SvSearchWidget::search()
 
 		DBTable table = db_.createTable("sv", query_join);
 
-		//(5) determine HPO terms
+		//add size
+		if (type==StructuralVariantType::DEL || type==StructuralVariantType::DUP || type==StructuralVariantType::INV)
+		{
+			int c_start = table.columnIndex("start_min");
+			int c_end = table.columnIndex("end_max");
+
+			QStringList sizes;
+			for (int r=0; r<table.rowCount(); ++r)
+			{
+				double size_kb = (table.row(r).value(c_end).toDouble() - table.row(r).value(c_start).toDouble()) / 1000.0;
+				sizes << QString::number(size_kb, 'f', 3);
+			}
+			table.insertColumn(table.columnIndex("end_max")+1, sizes, "size (kb)");
+		}
+
+		//determine HPO terms
 		int hpo_col_index = table.columnIndex("HPO terms");
 		QStringList sample_ids = table.extractColumn(hpo_col_index);
 		QStringList hpo_terms;
@@ -284,7 +296,7 @@ void SvSearchWidget::search()
 		}
 		table.setColumn(hpo_col_index, hpo_terms);
 
-		//(6) Add validation information
+		//add validation information
 		QStringList validation_data;
 		for (int r=0; r<table.rowCount(); ++r)
 		{
@@ -295,8 +307,49 @@ void SvSearchWidget::search()
 		}
 		table.addColumn(validation_data, "validation_information");
 
+		//filter by size
+		if (ui_.type->currentText()=="DEL" || ui_.type->currentText()=="DUP" || ui_.type->currentText()=="INV")
+		{
+			int c_size = table.columnIndex("size (kb)");
 
-		//(7) show samples with SVs in table
+			QString min_kb_str = ui_.size_min_kb->text().trimmed();
+			if (!min_kb_str.isEmpty())
+			{
+				double min_kb = min_kb_str.isEmpty() ? -1 : Helper::toDouble(min_kb_str, "minimum size");
+				for (int r=table.rowCount()-1; r>=0; --r)
+				{
+					const QString& size_str = table.row(r).value(c_size);
+					if (!size_str.isEmpty())
+					{
+						double size_kb = Helper::toDouble(size_str, "size");
+						if (size_kb < min_kb)
+						{
+							table.removeRow(r);
+						}
+					}
+				}
+			}
+
+			QString max_kb_str = ui_.size_max_kb->text().trimmed();
+			if (!max_kb_str.isEmpty())
+			{
+				double max_kb = max_kb_str.isEmpty() ? -1 : Helper::toDouble(max_kb_str, "maximum size");
+				for (int r=table.rowCount()-1; r>=0; --r)
+				{
+					const QString& size_str = table.row(r).value(c_size);
+					if (!size_str.isEmpty())
+					{
+						double size_kb = Helper::toDouble(size_str, "minimum size");
+						if (size_kb > max_kb)
+						{
+							table.removeRow(r);
+						}
+					}
+				}
+			}
+		}
+
+		//show samples with SVs in table
 		ui_.table->setData(table);
 		ui_.table->showTextAsTooltip("report_config_comments");
 		ui_.message->setText("Found " + QString::number(ui_.table->rowCount()) + " matching SVs in NGSD.");
