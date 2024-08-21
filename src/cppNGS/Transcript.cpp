@@ -999,6 +999,18 @@ int TranscriptList::transcriptCount(const QByteArray& gene) const
 	return output;
 }
 
+QByteArrayList TranscriptList::transcripts(const QByteArray& gene, bool with_version) const
+{
+	QByteArrayList output;
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if (it->gene()!=gene) continue;
+		output << (with_version ? it->nameWithVersion() : it->name());
+	}
+
+	return output;
+}
+
 void TranscriptList::sortByBases()
 {
 	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });

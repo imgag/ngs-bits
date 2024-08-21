@@ -154,6 +154,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "RepeatExpansionWidget.h"
 #include "ReSearchWidget.h"
 #include "CustomProxyService.h"
+#include "GeneInterpretabilityDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1653,26 +1654,7 @@ void MainWindow::delayedInitialization()
 	{
 		QString arg = QApplication::arguments().at(i);
 
-		if (i==1) //first argument: sample
-		{
-			if (QFile::exists(arg)) //file path
-			{
-				loadFile(arg);
-			}
-			else if (LoginManager::active()) //processed sample name (via NGSD)
-			{
-				NGSD db;
-				if (db.processedSampleId(arg, false)!="")
-				{
-					openProcessedSampleFromNGSD(arg, false);
-				}
-				else if (db.sampleId(arg, false)!="")
-				{
-					openSampleFromNGSD(arg);
-				}
-			}
-		}
-		else if (arg.startsWith("filter:")) //filter (by name)
+		if (arg.startsWith("filter:")) //filter (by name)
 		{
 			int sep_pos = arg.indexOf(':');
 			QString filter_name = arg.mid(sep_pos+1).trimmed();
@@ -1690,6 +1672,25 @@ void MainWindow::delayedInitialization()
 			if (!ui_.filters->setTargetRegionByDisplayName(roi_name))
 			{
 				qDebug() << "Target region name " << roi_name << " not found. Ignoring it!";
+			}
+		}
+		else if (i==1) //first argument: sample to open
+		{
+			if (QFile::exists(arg)) //file path
+			{
+				loadFile(arg);
+			}
+			else if (LoginManager::active()) //processed sample name (via NGSD)
+			{
+				NGSD db;
+				if (db.processedSampleId(arg, false)!="")
+				{
+					openProcessedSampleFromNGSD(arg, false);
+				}
+				else if (db.sampleId(arg, false)!="")
+				{
+					openSampleFromNGSD(arg);
+				}
 			}
 		}
 		else
@@ -5143,6 +5144,34 @@ void MainWindow::on_actionGenesToRegions_triggered()
 {
 	GenesToRegionsDialog dlg(this);
 	dlg.exec();
+}
+
+void MainWindow::on_actionGeneInterpretability_triggered()
+{
+	QString title = "Gene interpretability";
+	try
+	{
+		QStringList interpretability_regions = Settings::stringList("interpretability_regions");
+		if (interpretability_regions.isEmpty()) INFO(Exception, "GSvar settings entry 'interpretability_regions' is empty!");
+
+		QList<GeneInterpretabilityRegion> regions;
+		foreach(QString entry, interpretability_regions)
+		{
+			QStringList parts = entry.split('\t');
+			if (parts.count()!=2) THROW(Exception, "GSvar settings entry 'interpretability_regions' has invalid entry: " + entry);
+
+			if (!QFile::exists(parts[1])) THROW(Exception, "GSvar settings entry 'interpretability_regions' has entry with non-existing BED file: " + parts[1]);
+			regions << GeneInterpretabilityRegion{parts[0], parts[1]};
+		}
+
+		GeneInterpretabilityDialog dlg(this, regions);
+		dlg.setWindowTitle(title);
+		dlg.exec();
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, title);
+	}
 }
 
 void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)

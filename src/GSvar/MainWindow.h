@@ -212,6 +212,8 @@ public slots:
 	void on_actionPhenoToGenes_triggered();
 	///Genes to regions conversion dialog
 	void on_actionGenesToRegions_triggered();
+	///Dialog for gene interpretabilty
+	void on_actionGeneInterpretability_triggered();
 	///Subpanel archive dialog
 	void on_actionManageSubpanels_triggered();
 	///Close current variant list

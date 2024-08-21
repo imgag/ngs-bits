@@ -14,6 +14,7 @@ SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
+    GeneInterpretabilityDialog.cpp \
     GlobalServiceProvider.cpp \
     IGVCommandWorker.cpp \
     IGVSession.cpp \
@@ -141,6 +142,7 @@ HEADERS += MainWindow.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GHGAUploadDialog.h \
+    GeneInterpretabilityDialog.h \
     GlobalServiceProvider.h \
     IGVCommandWorker.h \
     IGVSession.h \
@@ -263,6 +265,7 @@ FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
+    GeneInterpretabilityDialog.ui \
     IgvLogWidget.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \

@@ -999,7 +999,6 @@ void BurdenTestWidget::performBurdenTest()
 
 		//read polymorphism region
 		QStringList igv_tracks = Settings::stringList("igv_menu"); //TODO seperate entry?
-		QString cnv_file_path;
 		foreach (const QString& track, igv_tracks)
 		{
 			QStringList columns = track.split('\t');

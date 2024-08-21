@@ -473,6 +473,7 @@
      <addaction name="actionGeneOmimInfo"/>
      <addaction name="actionConvertHgnc"/>
      <addaction name="actionGenesToRegions"/>
+     <addaction name="actionGeneInterpretability"/>
      <addaction name="separator"/>
      <addaction name="actionPreferredTranscripts"/>
      <addaction name="actionEditSomaticGeneRoles"/>
@@ -1493,6 +1494,11 @@
   <action name="actionSearchREs">
    <property name="text">
     <string>Search REs</string>
+   </property>
+  </action>
+  <action name="actionGeneInterpretability">
+   <property name="text">
+    <string>Gene interpretability</string>
    </property>
   </action>
  </widget>

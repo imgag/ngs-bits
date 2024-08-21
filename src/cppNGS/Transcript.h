@@ -365,6 +365,8 @@ public:
 	int geneCount() const;
 	///Returns the number of transcripts of the given gene
 	int transcriptCount(const QByteArray& gene) const;
+	///Returns the transcripts names of the given gene
+	QByteArrayList transcripts(const QByteArray& gene, bool with_version) const;
 
 	//sorts transcripts by relevance (gene, coding size, non-coding size, ...). Mainly used when displaying transcripts of a gene or variant.
 	void sortByRelevance();
