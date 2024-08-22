@@ -447,6 +447,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_dates = false;
 	bool add_call_details = false;
 	bool add_lab_columns = false;
+	bool add_study_column = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)
@@ -1211,6 +1212,9 @@ public:
 
 	///Returns the content of a NovaSeqX Plus SampleSheet for a given run
 	QString createSampleSheet(int run_id, QStringList& warnings);
+
+	///Returns the (sorted) list of studies of a processed sample
+	QStringList studies(const QString& processed_sample_id);
 
 signals:
 	void initProgress(QString text, bool percentage);

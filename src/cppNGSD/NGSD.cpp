@@ -450,16 +450,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		fields << "s.quality as sample_quality"
 			   << "ps.quality as processed_sample_quality";
 	}
-
-	if (p.add_lab_columns)
-	{
-		fields << "u.name as operator"
-			   << "ps.processing_input as 'processing input [ng]'"
-			   << "ps.molarity as 'molarity [nM]'"
-			   << "ps.processing_modus"
-			   << "ps.batch_number";
-	}
-
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY r.name ASC, s.name ASC, ps.process_id ASC");
 
 	//remove duplicates
@@ -636,6 +626,19 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		output.addColumn(re_caller, "re_caller");
 		output.addColumn(re_date, "re_call_date");
 	}
+
+	qDebug() << __LINE__ << QDateTime::currentDateTime();
+	if (p.add_study_column)
+	{
+		QStringList new_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			const QString& ps_id = output.row(r).id();
+			new_col << studies(ps_id).join(", ");
+		}
+		output.addColumn(new_col, "studies");
+	}
+	qDebug() << __LINE__ << QDateTime::currentDateTime();
 
 	return output;
 }
@@ -6289,6 +6292,15 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 */
 
 	return sample_sheet.join("\n");
+}
+
+QStringList NGSD::studies(const QString& processed_sample_id)
+{
+	QStringList output = getValues("SELECT s.name FROM study s, study_sample ss WHERE s.id=ss.study_id AND ss.processed_sample_id=" + processed_sample_id);
+
+	output.sort();
+
+	return output;
 }
 
 void NGSD::setComment(const Variant& variant, const QString& text)
