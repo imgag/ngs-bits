@@ -1,8 +1,8 @@
 #processed_sample	sample_type	processing_system_type	processing_system_name	processing_system_name_short	run_id	run_date
-NA12878_01	DNA	hpSYSv1	Panel	HaloPlex System	run1	01.01.2021
-NA12878_02	DNA	ssHAEv5	WES	SureSelect Human All Exon v5	run2	01.01.2023
-NA12880_02	DNA	ssHAEv5	WES	SureSelect Human All Exon v5	run2	01.01.2023
-NA12881_45	DNA	TruSeq	WGS	TruSeq DNA PCR-free	run1	01.01.2021
-NA12881_46	DNA	TruSeq	WGS	TruSeq DNA PCR-free	run1	01.01.2021
-lrGS12882_23	DNA	SQK-114	lrGS	Nanopore v14	run2	01.01.2023
-lrGS12882_28	DNA	SQK-114	lrGS	Nanopore v14	run2	01.01.2023
+NA12878_01	DNA	Panel	hpSYSv1	HaloPlex System	run1	01.01.2021
+NA12878_02	DNA	WES	ssHAEv5	SureSelect Human All Exon v5	run2	01.01.2023
+NA12880_02	DNA	WES	ssHAEv5	SureSelect Human All Exon v5	run2	01.01.2023
+NA12881_45	DNA	WGS	TruSeq	TruSeq DNA PCR-free	run1	01.01.2021
+NA12881_46	DNA	WGS	TruSeq	TruSeq DNA PCR-free	run1	01.01.2021
+lrGS12882_23	DNA	lrGS	SQK-114	Nanopore v14	run2	01.01.2023
+lrGS12882_28	DNA	lrGS	SQK-114	Nanopore v14	run2	01.01.2023

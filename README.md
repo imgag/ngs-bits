@@ -179,7 +179,6 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes in release 2024_07:
 
-* new tools: 
 * BedCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
 * BedHighCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
 * BedLowCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
