@@ -146,7 +146,9 @@ struct VcfToBedpe::bedpe_line
 		else
 		{
 			//for BNDs: determine position from ALT column (e.g. sniffles, cuteSV or dipdiff)
-			if ((info.value("SVTYPE", "") == "BND") && (line_in.alt.startsWith("]") || line_in.alt.startsWith("[")|| line_in.alt.startsWith("N[") || line_in.alt.startsWith("N]")))
+			if ((info.value("SVTYPE", "") == "BND") && (line_in.alt.startsWith("]") || line_in.alt.startsWith("[")|| line_in.alt.startsWith("N[") || line_in.alt.startsWith("N]")
+														|| line_in.alt.startsWith("A[") || line_in.alt.startsWith("A]") || line_in.alt.startsWith("C[") || line_in.alt.startsWith("C]")
+														|| line_in.alt.startsWith("G[") || line_in.alt.startsWith("G]") || line_in.alt.startsWith("T[") || line_in.alt.startsWith("T]")))
 			{
 				//parse 2nd breakpoint
 				QByteArrayList pos_b;
@@ -166,7 +168,7 @@ struct VcfToBedpe::bedpe_line
 			}
 			else
 			{
-				THROW(FileParseException,"No entry \"END\" found in INFO field, but neccessary for simple breakpoints");
+				THROW(FileParseException,"Neither entry \"END\" found in INFO field (neccessary for simple breakpoints), nor proper genomic coordinate in \"ALT\" column (neccessary for normal breakpoints)!");
 			}
 
 		}
