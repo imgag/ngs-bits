@@ -898,7 +898,7 @@ QString VariantDetailsDockWidget::nobr()
 void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 {
 	Variant v = Variant::fromString(variant_string);
-	QString link = GSvarHelper::gnomADLink(v, false);
+	QString link = GSvarHelper::gnomADLink(v);
 	QDesktopServices::openUrl(QUrl(link));
 }
 
@@ -1046,15 +1046,15 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 {
 	QMenu menu;
-	QAction* a_v4 = menu.addAction("Open in gnomAD 4.0");
+	QAction* a_v3 = menu.addAction("Open in gnomAD 3.1.2");
 	QAction* a_aoa = menu.addAction("Open in All of Us");
 
 	QAction* action = menu.exec(ui->gnomad->mapToGlobal(pos));
 
-	if (action==a_v4)
+	if (action==a_v3)
 	{
 		Variant v = Variant::fromString(variant_str);
-		QString link = GSvarHelper::gnomADLink(v, true);
+		QString link = GSvarHelper::gnomADLink(v, false);
 		QDesktopServices::openUrl(QUrl(link));
 	}
 	if (action==a_aoa)
