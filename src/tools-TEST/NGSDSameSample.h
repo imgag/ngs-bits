@@ -36,7 +36,7 @@ private slots:
 		COMPARE_FILES("out/NGSDSameSample_out2.tsv", TESTDATA("data_out/NGSDSameSample_out2.tsv"));
 	}
 
-	void dna_only()
+	void dna_only_with_bad()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
@@ -46,7 +46,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDSameSample_init.sql"));
 
 		//test
-		EXECUTE("NGSDSameSample", "-test -sample_type DNA -ps NA12880_01 -out out/NGSDSameSample_out3.tsv");
+		EXECUTE("NGSDSameSample", "-test -sample_type DNA -ps NA12880_01 -out out/NGSDSameSample_out3.tsv -include_bad");
 		COMPARE_FILES("out/NGSDSameSample_out3.tsv", TESTDATA("data_out/NGSDSameSample_out3.tsv"));
 	}
 
