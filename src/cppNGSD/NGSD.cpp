@@ -627,7 +627,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		output.addColumn(re_date, "re_call_date");
 	}
 
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
 	if (p.add_study_column)
 	{
 		QStringList new_col;
@@ -638,7 +637,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		}
 		output.addColumn(new_col, "studies");
 	}
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
 
 	return output;
 }
