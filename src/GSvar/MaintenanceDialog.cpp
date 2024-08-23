@@ -4,13 +4,17 @@
 #include "GenLabDB.h"
 #include <QTime>
 #include <QMetaMethod>
+#include <QScrollBar>
 
 MaintenanceDialog::MaintenanceDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 {
 	ui_.setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
 	connect(ui_.exec_btn, SIGNAL(clicked()), this, SLOT(executeAction()));
+	connect(ui_.action, SIGNAL(currentTextChanged(QString)), this, SLOT(updateDescription(QString)));
 }
 
 void MaintenanceDialog::executeAction()
@@ -236,10 +240,10 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 		}
 		else if (hpo_terms_obsolete.contains(hpo_id)) //try to replace
 		{
-			QString replace_term_id = db.getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + hpo_id + "'", false).toString().trimmed();
-			if(!replace_term_id.isEmpty()) //replacement term available => replace
+			QVariant replace_term_id = db.getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + hpo_id + "'", false);
+			if(!replace_term_id.isNull()) //replacement term available => replace
 			{
-				QString replace_term = db.getValue("SELECT hpo_id FROM hpo_term WHERE id='" + replace_term_id + "'", false).toString().trimmed();
+				QString replace_term = db.getValue("SELECT hpo_id FROM hpo_term WHERE id='" + replace_term_id.toString() + "'", false).toString().trimmed();
 				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + replace_term + "' WHERE id=" + query.value("id").toByteArray());
 				++c_replaced;
 			}
@@ -264,13 +268,29 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 	appendOutputLine("Found " + QString::number(c_not_replaced) + " obsolete HPO terms that could not be replaced.");
 }
 
+void MaintenanceDialog::replaceObsolteGeneSymbols()
+{
+	NGSD db;
+	fixGeneNames(db, "geneinfo_germline", "symbol");
+	fixGeneNames(db, "somatic_gene_role", "symbol");
+	fixGeneNames(db, "somatic_pathway_gene", "symbol");
+	//TODO Marc/Leon: fixGeneNames(db, "expression_gene", "symbol");
+	fixGeneNames(db, "hpo_genes", "gene");
+	fixGeneNames(db, "omim_gene", "gene");
+	fixGeneNames(db, "omim_preferred_phenotype", "gene");
+	fixGeneNames(db, "disease_gene", "gene");
+	fixGeneNames(db, "report_configuration_other_causal_variant", "gene");
+}
+
 void MaintenanceDialog::appendOutputLine(QString line)
 {
-	line = line.trimmed();
+	while(line.endsWith(' ') || line.endsWith('\t') || line.endsWith('\r') || line.endsWith('\n')) line.chop(1);
 
 	if (!line.isEmpty()) line = QDateTime::currentDateTime().toString(Qt::ISODate).replace("T", " ") + "\t" + line;
 
 	ui_.output->append(line);
+
+	ui_.output->verticalScrollBar()->setValue(ui_.output->verticalScrollBar()->maximum());
 
 	QApplication::processEvents();
 }
@@ -592,53 +612,166 @@ void MaintenanceDialog::deleteVariantsOfBadSamples()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	NGSD db;
+	clearUnusedReportConfigs(db); //we use report config below, so we have to clear them up first
 
-	int c_variants = 0;
+	QSet<int> ps_with_vars = psWithVariants(db);
+	appendOutputLine("Found " + QString::number(ps_with_vars.count()) + " processed samples with germine variants (small variants, CNVs, SVs or REs).");
+
 	int c_deleted = 0;
 	int c_failed = 0;
-
-	//determine bad processed samples with variants
-	QList<int> ids = db.getValuesInt("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.quality='bad' AND (s.tumor=0 AND s.ffpe=0)");
-	foreach(int id, ids)
+	QStringList ps_skipped_lrgs;
+	QStringList ps_skipped_rc_exists;
+	QList<int> ps_bad = db.getValuesInt("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.quality='bad' AND s.tumor=0 AND s.ffpe=0");
+	QList<int> ps_lr = db.getValuesInt("SELECT ps.id FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND sys.type='lrGS'");
+	appendOutputLine("Found " + QString::number(ps_bad.count()) + " non-tumor processed samples with 'bad' quality.");
+	foreach(int ps_id, ps_bad)
 	{
-		QString id_str =  QString::number(id);
-		int c_small = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id='" + id_str + "'").toInt();
-		int c_cnv = db.getValue("SELECT count(*) FROM cnv_callset WHERE processed_sample_id='" + id_str + "'").toInt();
-		int c_sv = db.getValue("SELECT count(*) FROM sv_callset WHERE processed_sample_id='" + id_str + "'").toInt();
-		int c_re = db.getValue("SELECT count(*) FROM re_callset WHERE processed_sample_id='" + id_str + "'").toInt();
-
-		QStringList vars;
-		if (c_small) vars << "small variants";
-		if (c_cnv) vars << "CNVs";
-		if (c_sv) vars << "SVs";
-		if (c_re) vars << "REs";
-		if (vars.isEmpty()) continue;
-		++c_variants;
-
-		QString ps = db.processedSampleName(id_str);
-		QString project = db.getValue("SELECT p.name FROM project p, processed_sample ps WHERE ps.project_id=p.id and ps.id='" + id_str + "'").toString();
-		try
+		if (ps_with_vars.contains(ps_id))
 		{
-			appendOutputLine("Deleting variants of " + ps + " (" + project + ")");
+			//skip lrGS
+			if (ps_lr.contains(ps_id))
+			{
+				ps_skipped_lrgs << db.processedSampleName(QString::number(ps_id));
+				continue;
+			}
 
-			db.deleteVariants(id_str);
-			++c_deleted;
-		}
-		catch (Exception& e)
-		{
-			++c_failed;
-			appendOutputLine("  Deleting variants failed: " + e.message());
+			//skip if report config exists
+			if (db.reportConfigId(QString::number(ps_id))!=-1)
+			{
+				ps_skipped_rc_exists << db.processedSampleName(QString::number(ps_id));
+				continue;
+			}
+
+			deleteVariants(db, ps_id, c_deleted, c_failed);
 		}
 	}
-
-	appendOutputLine("Processed samples: " + db.getValue("SELECT count(*) FROM processed_sample").toString());
-	appendOutputLine("Processed samples with bad quality: " + db.getValue("SELECT count(*) FROM processed_sample WHERE quality='bad'").toString());
-	appendOutputLine("Processed samples with bad quality (not tumor/FFPE): " + QString::number(ids.count()));
-	appendOutputLine("Processed samples with variants: " + QString::number(c_variants));
 	appendOutputLine("Processed samples with variants (deleted): " + QString::number(c_deleted));
 	appendOutputLine("Processed samples with variants (deletion failed): " + QString::number(c_failed));
+	appendOutputLine("Skipped " + QString::number(ps_skipped_lrgs.count()) + " bad samples with variants (is lrGS): " + ps_skipped_lrgs.join(", "));
+	appendOutputLine("Skipped " + QString::number(ps_skipped_rc_exists.count()) + " bad samples with variants (report configuration exists): " + ps_skipped_rc_exists.join(", "));
 
 	QApplication::restoreOverrideCursor();
+}
+
+void MaintenanceDialog::deleteDataOfMergedSamples()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+
+	QList<int> ps_merged = db.getValuesInt("SELECT processed_sample_id FROM merged_processed_samples");
+	appendOutputLine("Found " + QString::number(ps_merged.count()) + " processed samples marked as merged");
+
+	//delete variantssed samples marked as merged into other sample.");
+	QSet<int> ps_with_vars = psWithVariants(db);
+	appendOutputLine("Found " + QString::number(ps_with_vars.count()) + " processed samples with germine variants (small variants, CNVs, SVs or REs).");
+	int c_deleted = 0;
+	int c_failed = 0;
+	foreach(int ps_id, ps_merged)
+	{
+		if (ps_with_vars.contains(ps_id))
+		{
+			deleteVariants(db, ps_id, c_deleted, c_failed);
+		}
+	}
+	appendOutputLine("Deleted variants of merged processed samples: " + QString::number(c_deleted));
+	appendOutputLine("Deleted variants of merged processed samples failed: " + QString::number(c_failed));
+
+	//delete QC metrics (except for read count)
+	QString qc_id_read_count = db.getValue("SELECT id FROM qc_terms WHERE qcml_id='QC:2000005'").toString();
+	c_deleted = 0;
+	QSet<int> ps_with_qc = db.getValuesInt("SELECT processed_sample_id FROM processed_sample_qc").toSet();
+	appendOutputLine("Found " + QString::number(ps_with_qc.count()) + " processed samples with QC data.");
+	foreach(int ps_id, ps_merged)
+	{
+		if (ps_with_qc.contains(ps_id))
+		{
+			int qc_term_count = db.getValue("SELECT count(*) FROM processed_sample_qc WHERE processed_sample_id="+QString::number(ps_id) + " AND qc_terms_id!="+qc_id_read_count).toInt();
+			if (qc_term_count>0)
+			{
+				db.getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id="+QString::number(ps_id) + " AND qc_terms_id!="+qc_id_read_count);
+				++c_deleted;
+			}
+		}
+	}
+	appendOutputLine("Deleted QC data of merged processed samples: " + QString::number(c_deleted));
+
+	//delete KASP data
+	c_deleted = 0;
+	QSet<int> ps_with_kasp = db.getValuesInt("SELECT processed_sample_id FROM kasp_status").toSet();
+	appendOutputLine("Found " + QString::number(ps_with_kasp.count()) + " processed samples with KASP data.");
+	foreach(int ps_id, ps_merged)
+	{
+		if (ps_with_kasp.contains(ps_id))
+		{
+			db.getQuery().exec("DELETE FROM kasp_status WHERE processed_sample_id="+QString::number(ps_id));
+			++c_deleted;
+		}
+	}
+	appendOutputLine("Deleted KASP data of merged processed samples: " + QString::number(c_deleted));
+
+	QApplication::restoreOverrideCursor();
+}
+
+void MaintenanceDialog::compareStructureOfTestAndProduction()
+{
+	NGSD db_p;
+	NGSD db_t(true);
+
+	//check for missing tables
+	QStringList tables_p = db_p.tables();
+	QStringList tables_t = db_t.tables();
+	QSet<QString> tables_both = tables_p.toSet().intersect(tables_t.toSet());
+	foreach(QString table_p, tables_p)
+	{
+		if (!tables_both.contains(table_p)) appendOutputLine("Missing table in test database: " + table_p);
+	}
+	foreach(QString table_t, tables_t)
+	{
+		if (!tables_both.contains(table_t)) appendOutputLine("Missing table in production database: " + table_t);
+	}
+
+	//check for differing columns
+	foreach(QString table, tables_both)
+	{
+		TableInfo info_p = db_p.tableInfo(table, false); //no cache, because the cache is shared between instances
+		TableInfo info_t = db_t.tableInfo(table, false); //no cache, because the cache is shared between instances
+
+		//missing/extra columns
+		QStringList fields_p = info_p.fieldNames();
+		QStringList fields_t = info_t.fieldNames();
+		QSet<QString> fields_both = fields_p.toSet().intersect(fields_t.toSet());
+		foreach(QString field_p, fields_p)
+		{
+			if (!fields_both.contains(field_p)) appendOutputLine("Missing field in test database: " + table+"/"+field_p);
+		}
+		foreach(QString field_t, fields_t)
+		{
+			if (!fields_both.contains(field_t)) appendOutputLine("Missing field in production database: " + table+"/"+field_t);
+		}
+
+		//differing type/keys
+		foreach(QString field, fields_both)
+		{
+			if (info_p.fieldInfo(field).toString()!=info_t.fieldInfo(field).toString())
+			{
+				appendOutputLine("differing type/key in "+table+"/"+field+" for production/test:");
+				appendOutputLine("  "+info_p.fieldInfo(field).toString());
+				appendOutputLine("  "+info_t.fieldInfo(field).toString());
+			}
+		}
+
+		//differing comment
+		foreach(QString field, fields_both)
+		{
+			if (info_p.fieldInfo(field).tooltip!=info_t.fieldInfo(field).tooltip)
+			{
+				appendOutputLine("differing comment in "+table+"/"+field+" for production/test:");
+				appendOutputLine("  "+info_p.fieldInfo(field).tooltip);
+				appendOutputLine("  "+info_t.fieldInfo(field).tooltip);
+			}
+		}
+	}
 }
 
 QString MaintenanceDialog::compareCount(NGSD& db_p, NGSD& db_t, QString query)
@@ -658,10 +791,141 @@ QString MaintenanceDialog::compareCount(NGSD& db_p, NGSD& db_t, QString query)
 	return output;
 }
 
-void MaintenanceDialog::compareTestAndProduction()
+void MaintenanceDialog::deleteVariants(NGSD& db, int ps_id, int c_deleted, int c_failed)
+{
+	QString ps = db.processedSampleName(QString::number(ps_id));
+	QString project = db.getValue("SELECT p.name FROM project p, processed_sample ps WHERE ps.project_id=p.id and ps.id='" + QString::number(ps_id) + "'").toString();
+	try
+	{
+		appendOutputLine("Deleting variants of " + ps + " (" + project + ")");
+
+		db.deleteVariants(QString::number(ps_id));
+		++c_deleted;
+	}
+	catch (Exception& e)
+	{
+		++c_failed;
+		appendOutputLine("Deleting variants  of " + ps + " failed: " + e.message());
+	}
+}
+
+QSet<int> MaintenanceDialog::psWithVariants(NGSD& db)
+{
+	QSet<int> ps_with_vars;
+
+	ps_with_vars += db.getValuesInt("SELECT DISTINCT processed_sample_id FROM detected_variant").toSet();
+	ps_with_vars += db.getValuesInt("SELECT processed_sample_id FROM cnv_callset").toSet();
+	ps_with_vars += db.getValuesInt("SELECT processed_sample_id FROM sv_callset").toSet();
+	ps_with_vars += db.getValuesInt("SELECT processed_sample_id FROM re_callset").toSet();
+
+	return ps_with_vars;
+}
+
+void MaintenanceDialog::clearUnusedReportConfigs(NGSD& db)
+{
+	//determine used report configs
+	QSet<int> used_rc_ids;
+	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_variant").toSet();
+	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv").toSet();
+	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_sv").toSet();
+	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_re").toSet();
+	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_other_causal_variant").toSet();
+
+	//delete unused report configs
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT id FROM report_configuration");
+	while(query.next())
+	{
+		int rc_id = query.value(0).toInt();
+		if (!used_rc_ids.contains(rc_id))
+		{
+			db.getQuery().exec("DELETE FROM report_configuration WHERE id=" + QString::number(rc_id));
+		}
+	}
+}
+
+void MaintenanceDialog::fixGeneNames(NGSD& db, QString table, QString column)
+{
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT DISTINCT " + column + " FROM " + table + " tmp WHERE NOT EXISTS(SELECT * FROM gene WHERE symbol=tmp." + column + ")");
+	while(query.next())
+	{
+		QString gene = query.value(0).toString().trimmed();
+		if (gene=="") continue;
+
+		appendOutputLine("Outdated gene name in table '" + table + "': " + gene);
+		auto approved_data = db.geneToApprovedWithMessage(gene);
+		if (approved_data.second.startsWith("ERROR"))
+		{
+			appendOutputLine("  FAIL: Cannot correct '" + gene + "' because: " + approved_data.second);
+		}
+		else
+		{
+			try
+			{
+				db.getQuery().exec("UPDATE " + table + " SET " + column + "='" + approved_data.first + "' WHERE " + column + "='" + gene +"'");
+			}
+			catch (Exception& e)
+			{
+				appendOutputLine("  FAIL: Error correcting '" + gene + "': " + e.message());
+			}
+		}
+	}
+}
+
+void MaintenanceDialog::deleteVariant(NGSD& db, QString var_id, QString reason)
+{
+	QString message = "Deleting invalid variant "+db.variant(var_id).toString()+" with ID "+var_id;
+	if (!reason.isEmpty()) message += ": " + reason;
+	appendOutputLine(message);
+
+	//delete detected_variant entries
+	QStringList dv_ps_ids = db.getValues("SELECT processed_sample_id FROM detected_variant WHERE variant_id="+var_id);
+	if (dv_ps_ids.count()>0)
+	{
+		db.getQuery().exec("DELETE FROM detected_variant WHERE variant_id="+var_id);
+	}
+
+	QStringList dsv_ps_ids = db.getValues("SELECT processed_sample_id_tumor FROM detected_somatic_variant WHERE variant_id="+var_id);
+	if (dsv_ps_ids.count()>0)
+	{
+		appendOutputLine("  cannot delete variant because it is referenced by 'detected_somatic_variant' from "+ QString::number(dsv_ps_ids.count()) + " samples");
+		foreach(QString ps_id, dsv_ps_ids)
+		{
+			static QSet<QString> done;
+			QString ps = db.processedSampleName(ps_id);
+			if (!done.contains(ps))
+			{
+				qDebug() << ps;
+				done << ps;
+			}
+		}
+		return;
+	}
+
+	QStringList rc_ps_ids = db.getValues("SELECT rc.processed_sample_id FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rcv.variant_id="+var_id);
+	if (rc_ps_ids.count()>0)
+	{
+		appendOutputLine("  cannot delete variant because it is referenced by 'report_configuration_variant' from "+ QString::number(rc_ps_ids.count()) + " samples");
+		return;
+	}
+
+	try
+	{
+		SqlQuery query2 = db.getQuery();
+		query2.exec("DELETE FROM variant WHERE id="+var_id);
+	}
+	catch (Exception& e)
+	{
+		appendOutputLine("  error while deleting variant: " + e.message());
+	}
+
+}
+
+void MaintenanceDialog::compareBaseDataOfTestAndProduction()
 {
 	NGSD db_p;
-	NGSD db_t(true, Helper::userName()=="ahsturm1" ? "ngsd_test_linux" : "");
+	NGSD db_t(true);
 
 	//gene
 	appendOutputLine("genes: " + compareCount(db_p, db_t, "SELECT count(*) FROM gene"));
@@ -714,3 +978,125 @@ void MaintenanceDialog::compareTestAndProduction()
 	appendOutputLine("disease term (ORPHA): " + compareCount(db_p, db_t, "SELECT count(*) FROM disease_term"));
 }
 
+void MaintenanceDialog::findTumorSamplesWithGermlineVariants()
+{
+	NGSD db;
+
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.id FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND s.tumor='1' AND EXISTS(SELECT * FROM detected_variant WHERE processed_sample_id=ps.id)");
+	while(query.next())
+	{
+		appendOutputLine("tumor sample with germline variants: " + query.value(0).toString());
+	}
+}
+
+void MaintenanceDialog::deleteInvalidVariants()
+{
+	FastaFileIndex reference(Settings::string("reference_genome", true));
+
+	NGSD db;
+	SqlQuery query = db.getQuery();
+	foreach(QString chr, db.getEnum("variant", "chr"))
+	{
+		appendOutputLine("Retrieving variants for " + chr);
+		query.exec("SELECT id, start, end, ref, obs FROM variant WHERE chr='"+chr+"' ORDER BY start ASC");
+		appendOutputLine("Processing " + chr + " (" + QString::number(query.size()) + " variants)");
+		while(query.next())
+		{
+			//ref contains N
+			Sequence ref = query.value(3).toByteArray();
+			if (ref.contains("N"))
+			{
+				deleteVariant(db, query.value(0).toString(), "Reference sequence contains 'N'");
+				continue;
+			}
+
+			//alt contains N
+			Sequence alt = query.value(4).toByteArray();
+			if (alt.contains("N"))
+			{
+				deleteVariant(db, query.value(0).toString(), "Alternative sequence contains 'N'");
+				continue;
+			}
+
+			//check reference sequence
+			if (ref!="-")
+			{
+				int start = query.value(1).toInt();
+				int end = query.value(2).toInt();
+				Sequence ref_expected = reference.seq(chr, start, end-start+1);
+				if (ref!=ref_expected)
+				{
+					deleteVariant(db, query.value(0).toString(), "Expected reference sequence '"+ref_expected + "'");
+				}
+			}
+		}
+	}
+}
+
+void MaintenanceDialog::updateDescription(QString text)
+{
+	ui_.description->clear();
+
+	QString action = text.trimmed().toLower().replace(" ", "");
+	if (action=="deleteunusedsamples")
+	{
+		ui_.description->setText("Deletes samples without processed sample.");
+	}
+	else if (action=="deleteunusedvariants")
+	{
+		ui_.description->setText("Deletes variants that are referenced form any other table.");
+	}
+	else if (action=="importstudysamples")
+	{
+		ui_.description->setText("Batch import of studies for all samples from GenLab.");
+	}
+	else if (action=="replaceobsoltehpoterms")
+	{
+		ui_.description->setText("Replaces obsolete HPO terms of samples with their replacement term as specified in the HPO OBO file.");
+	}
+	else if (action=="findinconsistenciesforcausaldiagnosticvariants")
+	{
+		ui_.description->setText("Find causal variants with missing/inconsistent meta data:\n - outcome is not 'significant findings'\n- disease status is not 'Affected'\n- no HPO terms set\n- no inheritance mode in report configuration set\n- variant not classified as class 3/4/5");
+	}
+	else if (action=="importyearofbirth")
+	{
+		ui_.description->setText("Batch import of year-of-birth for all samples from GenLab.");
+	}
+	else if (action=="importtissue")
+	{
+		ui_.description->setText("Batch import of tissue for all samples from GenLab.");
+	}
+	else if (action=="importpatientids")
+	{
+		ui_.description->setText("Batch import of patient identifiers for all samples from GenLab.");
+	}
+	else if (action=="linksamplesfromsamepatient")
+	{
+		ui_.description->setText("Add same-sample relation to samples that have the same patient identifier.");
+	}
+	else if (action=="deletevariantsofbadsamples")
+	{
+		ui_.description->setText("Deletes germline variants of non-tumor samples that have 'bad' processed sample quality.");
+	}
+	else if (action=="deletedataofmergedsamples")
+	{
+		ui_.description->setText("Deletes germline variants, QC data and KASP data of samples that are marked as 'merged'.");
+	}
+	else if (action=="comparebasedataoftestandproduction")
+	{
+		ui_.description->setText("Compares base data counts (genes, transcripts, pseudogenes, HPO, OMIM, Orpha) of NGSD production and test instance.");
+	}
+	else if (action=="comparestructureoftestandproduction")
+	{
+		ui_.description->setText("Compares table structure of NGSD production and test instance.");
+	}
+	else if (action=="deleteinvalidvariants")
+	{
+		ui_.description->setText("Deletes variants with invalid base(s):\n-ref containing N\n-alt containing N\n-ref not matching genome sequence");
+	}
+	else if (action=="replaceobsoltegenesymbols")
+	{
+		ui_.description->setText("Replaces outdated gene symbols with current approved symbol if possible.");
+	}
+}

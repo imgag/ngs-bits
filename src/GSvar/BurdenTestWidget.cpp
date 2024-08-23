@@ -998,7 +998,7 @@ void BurdenTestWidget::performBurdenTest()
 		}
 
 		//read polymorphism region
-		QStringList igv_tracks = Settings::stringList("igv_menu"); //TODO seperate entry?
+		QStringList igv_tracks = Settings::stringList("igv_menu"); //TODO Leon: seperate entry!
 		foreach (const QString& track, igv_tracks)
 		{
 			QStringList columns = track.split('\t');

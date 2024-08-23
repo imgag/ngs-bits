@@ -244,7 +244,7 @@ QByteArray extendVcfDataLine(const QByteArray& vcf_line, const MetaData& meta, c
 			if (!ok) THROW(FileParseException, "Could not convert VCF variant position '" + parts[VcfFile::POS] + "' to integer in annotation file line: " + match);
             if (pos != start) continue;
 
-			//TODO: add info key if existence only
+			// add info key if existence only
 			if (meta.annotate_only_existence[ann_file_idx])
 			{
 				additional_annotation.append(meta.existence_name_list[ann_file_idx]);

@@ -1867,7 +1867,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 		}
 		else
 		{
-			//TODO tmp border: find better border as soon as WGS a cohort is available
+			//TODO Alexander: find better tmp border as soon as WGS a cohort is available
 			general_info_table.addRow(RtfTableRow({"Mikrosatelliten", ( msi_unstable_percent_ <= 10 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI" ) },{2500,7421}).setBorders(1,"brdrhair",4));
 		}
 	}

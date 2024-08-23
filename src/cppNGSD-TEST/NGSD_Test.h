@@ -1290,8 +1290,6 @@ private slots:
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
 
-		//TODO: test db.reportVariantConfiguration()
-
 		//cnvId
 		CopyNumberVariant cnv = CopyNumberVariant("chr1", 1000, 2000, 1, GeneSet(), QByteArrayList());
 		QString cnv_id = db.cnvId(cnv, 4711, false); //callset 4711 does not exist

@@ -283,7 +283,7 @@ public:
 
 		//update gene symbols in geneinfo_germline and somatic_gene_role table
 		updateTable(db, "geneinfo_germline");
-		//TODO: delete all deprecated entries?
+		//TODO Leon: delete all deprecated entries?
 		//updateTable(db, "expression");
 		updateTable(db, "somatic_gene_role");
 		updateTable(db, "somatic_pathway_gene");

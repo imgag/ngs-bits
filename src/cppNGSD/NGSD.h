@@ -1223,7 +1223,6 @@ signals:
 protected:
 	///Copy constructor "declared away".
 	NGSD(const NGSD&) = delete;
-	void fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column);
 	static QString escapeForSql(const QString& text);
 
 	///Returns the maxiumn allele frequency of a variant.
