@@ -517,7 +517,6 @@
      <addaction name="actionExportTestData"/>
      <addaction name="actionImportTestData"/>
      <addaction name="separator"/>
-     <addaction name="actionReplicateNGSD"/>
      <addaction name="actionPrepareGhgaUpload"/>
      <addaction name="separator"/>
      <addaction name="actionMaintenance"/>
@@ -1293,11 +1292,6 @@
    </property>
    <property name="toolTip">
     <string>Show RNA Fusions</string>
-   </property>
-  </action>
-  <action name="actionReplicateNGSD">
-   <property name="text">
-    <string>Replicate NGSD (hg19 to hg38)</string>
    </property>
   </action>
   <action name="actionCohortAnalysis">

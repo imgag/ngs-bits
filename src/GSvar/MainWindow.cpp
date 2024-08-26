@@ -120,7 +120,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
-#include "NGSDReplicationWidget.h"
 #include "CohortAnalysisWidget.h"
 #include "cfDNARemovedRegions.h"
 #include "CfDNAPanelBatchImport.h"
@@ -4721,23 +4720,6 @@ void MainWindow::on_actionGaps_triggered()
 {
 	GapClosingDialog dlg(this);
 	dlg.exec();
-}
-
-void MainWindow::on_actionReplicateNGSD_triggered()
-{
-	try
-	{
-		LoginManager::checkRoleIn(QStringList{"admin"});
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, "Permissions error", e.message());
-		return;
-	}
-
-	NGSDReplicationWidget* widget = new NGSDReplicationWidget(this);
-	auto dlg = GUIHelper::createDialog(widget, "Replicate NGSD (hg19 to hg38)");
-	dlg->exec();
 }
 
 void MainWindow::on_actionPrepareGhgaUpload_triggered()

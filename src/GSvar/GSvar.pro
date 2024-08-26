@@ -109,7 +109,6 @@ SOURCES += main.cpp\
     AlleleBalanceCalculator.cpp \
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
-    NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
     VirusDetectionWidget.cpp \
     cfDNARemovedRegions.cpp \
@@ -236,7 +235,6 @@ HEADERS += MainWindow.h \
     GapClosingDialog.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
-    NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
     VirusDetectionWidget.h \
     cfDNARemovedRegions.h \
@@ -344,7 +342,6 @@ FORMS    += MainWindow.ui \
     SomaticVariantInterpreterWidget.ui \
     AlleleBalanceCalculator.ui \
     GapClosingDialog.ui \
-    NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui \
     ClinvarUploadDialog.ui \

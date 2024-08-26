@@ -164,7 +164,6 @@ public slots:
 	void on_actionChangePassword_triggered();
 	void on_actionStudy_triggered();
 	void on_actionGaps_triggered();
-	void on_actionReplicateNGSD_triggered();
 	void on_actionPrepareGhgaUpload_triggered();
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
