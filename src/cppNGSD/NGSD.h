@@ -29,6 +29,8 @@
 #include "TsvFile.h"
 #include "HttpRequestHandler.h"
 
+const int MAX_VARIANT_SIZE = 500;
+
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
 {

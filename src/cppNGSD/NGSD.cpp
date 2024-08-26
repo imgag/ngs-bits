@@ -1426,7 +1426,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 		const Variant& variant = variant_list[i];
 
 		//skip variants over 500 bases length - the unique index of the variant table does not work for those
-		if (variant.ref().count()>500 || variant.obs().count()>500)
+		if (variant.ref().count()>MAX_VARIANT_SIZE || variant.obs().count()>MAX_VARIANT_SIZE)
 		{
 			output << -1;
 			continue;

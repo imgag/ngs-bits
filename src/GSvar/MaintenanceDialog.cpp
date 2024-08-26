@@ -889,18 +889,7 @@ void MaintenanceDialog::deleteVariant(NGSD& db, QString var_id, QString reason)
 	QStringList dsv_ps_ids = db.getValues("SELECT processed_sample_id_tumor FROM detected_somatic_variant WHERE variant_id="+var_id);
 	if (dsv_ps_ids.count()>0)
 	{
-		appendOutputLine("  cannot delete variant because it is referenced by 'detected_somatic_variant' from "+ QString::number(dsv_ps_ids.count()) + " samples");
-		foreach(QString ps_id, dsv_ps_ids)
-		{
-			static QSet<QString> done;
-			QString ps = db.processedSampleName(ps_id);
-			if (!done.contains(ps))
-			{
-				qDebug() << ps;
-				done << ps;
-			}
-		}
-		return;
+		db.getQuery().exec("DELETE FROM detected_somatic_variant WHERE variant_id="+var_id);
 	}
 
 	QStringList rc_ps_ids = db.getValues("SELECT rc.processed_sample_id FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rcv.variant_id="+var_id);
@@ -1003,7 +992,7 @@ void MaintenanceDialog::deleteInvalidVariants()
 		appendOutputLine("Processing " + chr + " (" + QString::number(query.size()) + " variants)");
 		while(query.next())
 		{
-			//ref contains N
+			//ref/alt contains N
 			Sequence ref = query.value(3).toByteArray();
 			if (ref.contains("N"))
 			{
@@ -1011,7 +1000,6 @@ void MaintenanceDialog::deleteInvalidVariants()
 				continue;
 			}
 
-			//alt contains N
 			Sequence alt = query.value(4).toByteArray();
 			if (alt.contains("N"))
 			{
@@ -1019,11 +1007,28 @@ void MaintenanceDialog::deleteInvalidVariants()
 				continue;
 			}
 
-			//check reference sequence
+			//too large
+			if (ref.size()>MAX_VARIANT_SIZE)
+			{
+				deleteVariant(db, query.value(0).toString(), "Reference sequence larger than "+QString::number(MAX_VARIANT_SIZE));
+				continue;
+			}
+			if (alt.size()>MAX_VARIANT_SIZE)
+			{
+				deleteVariant(db, query.value(0).toString(), "Alternative sequence larger than "+QString::number(MAX_VARIANT_SIZE));
+				continue;
+			}
+			int start = query.value(1).toInt();
+			int end = query.value(2).toInt();
+			if (end-start+1>MAX_VARIANT_SIZE)
+			{
+				deleteVariant(db, query.value(0).toString(), "Start/end range larger than "+QString::number(MAX_VARIANT_SIZE));
+				continue;
+			}
+
+			//check reference sequence matches genome
 			if (ref!="-")
 			{
-				int start = query.value(1).toInt();
-				int end = query.value(2).toInt();
 				Sequence ref_expected = reference.seq(chr, start, end-start+1);
 				if (ref!=ref_expected)
 				{
@@ -1093,7 +1098,7 @@ void MaintenanceDialog::updateDescription(QString text)
 	}
 	else if (action=="deleteinvalidvariants")
 	{
-		ui_.description->setText("Deletes variants with invalid base(s):\n-ref containing N\n-alt containing N\n-ref not matching genome sequence");
+		ui_.description->setText("Deletes variants with invalid base(s):\n-ref containing N\n-alt containing N\n-ref not matching genome sequence\n-size larger than maximum variant size (" + QString::number(MAX_VARIANT_SIZE) +")");
 	}
 	else if (action=="replaceobsoltegenesymbols")
 	{
