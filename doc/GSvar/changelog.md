@@ -1,5 +1,14 @@
 # GSvar change log
 
+## 2024_07-33 (26.08.24)
+
+- multi-sample analysis report: can now contain additional samples (configured in report dialog)
+- sample search: add optional study output column
+- SV search: added min/max size filter to restrict the search to variants of similar size when using `overlap` mode
+- general: changed gnomAD links from v3.1.2 to v4.1
+- general: added gene interpretability dialog (NGSD > genes > Gene interpretability)
+- variant sheet: now contains genotype details from report configuration (de-novo, mosaic, comp-het)
+
 ## 2024_07-01 (29.07.24)
 
 - RE dialog: fixed bug in HPO matching
