@@ -48,7 +48,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	//allow statistical filtering only if there is a cutoff for the system type
 	NGSD db;
 	sys_type_ = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer LIKE '" + sys_name_ + "'").toString();
-	if (sys_type_=="WGS" || sys_type_=="WES")
+	if (sys_type_=="WGS")
 	{
 		sys_type_cutoff_col_ = "statisticial_cutoff_wgs";
 
