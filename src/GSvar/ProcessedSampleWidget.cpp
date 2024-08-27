@@ -620,12 +620,15 @@ void ProcessedSampleWidget::addStudy()
 	DBComboBox* widget = new DBComboBox(this);
 	widget->fill(db.createTable("study", "SELECT id, name FROM study ORDER BY name ASC"), false);
 	auto dlg = GUIHelper::createDialog(widget, "Study", "select study:", true);
-	dlg->exec();
+	if (dlg->exec()==QDialog::Rejected) return;
+
 	QString study_id = widget->getCurrentId();
 	if (study_id.isEmpty()) return;
 
 	//set study sample identifier
-	QString sample_identifier = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):");
+	bool ok = false;
+	QString sample_identifier = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):", QLineEdit::Normal, "", &ok);
+	if (!ok) return;
 
 	//add study
 	SqlQuery query = db.getQuery();

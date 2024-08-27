@@ -188,8 +188,6 @@ Changes in release 2024_08:
 ## Citing
 
 There is no paper for ngs-bit yet.  
-Please cite the GitHub repository.
-
-
+Please cite the GitHub repository for now.
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
