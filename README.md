@@ -185,6 +185,11 @@ Changes in release 2024_08:
 * NGSDSameSample: added option `-include_bad`
 * NGSD: added new table `runqc_ont`
 
+## Citing
+
+There is no paper for ngs-bit yet.  
+Please cite the GitHub repository.
+
 
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
