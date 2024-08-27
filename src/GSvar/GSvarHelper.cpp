@@ -413,10 +413,7 @@ QString GSvarHelper::clinVarSearchLink(const Variant& v, GenomeBuild build)
 QString GSvarHelper::localRoiFolder()
 {
 	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
-	if(default_paths.isEmpty())
-	{
-		THROW(Exception, "No local application data path was found!");
-	}
+	if(default_paths.isEmpty()) THROW(Exception, "No local application data path was found!");
 
 	QString local_roi_folder = default_paths[0] + QDir::separator() + "target_regions" + QDir::separator();
 	if(Helper::mkdir(local_roi_folder)==-1)
@@ -425,6 +422,20 @@ QString GSvarHelper::localRoiFolder()
 	}
 
 	return local_roi_folder;
+}
+
+QString GSvarHelper::localLogFolder()
+{
+	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+	if(default_paths.isEmpty()) THROW(Exception, "No local application data path was found!");
+
+	QString local_log_folder = default_paths[0] + QDir::separator() + "log_files" + QDir::separator();
+	if(Helper::mkdir(local_log_folder)==-1)
+	{
+		THROW(ProgrammingException, "Could not create application log folder '" + local_log_folder + "'!");
+	}
+
+	return local_log_folder;
 }
 
 bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget *parent)

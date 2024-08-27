@@ -47,6 +47,8 @@ The most important settings are:
 - *interpretability\_regions*: A comma separated list of low interpretability regions. Each region consists of these tab-separated parts:
 	- region name
 	- path to BED file
+- *text\_editor*: Path of the preferred text editor. It is e.g. used to open log files.
+
 ## Filters
 
 Default filters can be defined using these files, located in the same folder as the `GSvar` executable.

@@ -53,6 +53,8 @@ public:
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();
+	///Returns a the local log folder where tempory log files can be stored for opening in a text editor.
+	static QString localLogFolder();
 
 	//Queue the analysis of samples
 	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
