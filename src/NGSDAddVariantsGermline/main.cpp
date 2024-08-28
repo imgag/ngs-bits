@@ -25,20 +25,18 @@ public:
 		addString("ps", "Processed sample name", false);
 		//optional
 		addInfile("var", "Small variant list in GSvar format (as produced by megSAP).", true, true);
-		addFlag("var_force", "Force import of small variants, even if already imported.");
 		addFlag("var_update", "Import missing small variants - doesn't change others.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
-		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
 		addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
-		addFlag("sv_force", "Force import of SVs, even if already imported.");
 		addInfile("re", "RE list in VCF format (as produced by megSAP).", true, true);
-		addFlag("re_force", "Force import of REs, even if already imported.");
+		addFlag("force", "Force import of variants, even if they are already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFloat("max_af", "Maximum allele frequency of small variants to import (gnomAD).", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
 		addFlag("no_time", "Disable timing output.");
 
+		changeLog(2024,  8, 28, "Merged all force parameters into one. Implmented skipping of small variants import if the same callset was already imported.");
 		changeLog(2021,  7, 19, "Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.");
 	}
 
@@ -53,7 +51,7 @@ public:
 		return KeyValuePair(key, value);
 	}
 
-	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool var_force, bool var_update)
+	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool force, bool var_update)
 	{
 		QString filename = getInfile("var");
 		if (filename=="") return;
@@ -61,6 +59,9 @@ public:
 		out << endl;
 		out << "### importing small variants for " << ps_name << " ###" << endl;
 		out << "filename: " << filename << endl;
+
+		//check arguments
+		if (force && var_update) THROW(ArgumentException, "Flags -force and -var_update cannot be used at the same time! Use -force to delete old variants and reimport, and -var_update to only import missing variants.")
 
 		QTime timer;
 		timer.start();
@@ -71,46 +72,52 @@ public:
 		QString ps_id = db.processedSampleId(ps_name);
 		int count_old = db.importStatus(ps_id).small_variants;
 		out << "Found " << count_old  << " variants already imported into NGSD!" << endl;
-		if(count_old>0 && !var_force && !var_update)
+		if(count_old>0 && !force && !var_update)
 		{
-			THROW(ArgumentException, "Variants were already imported for '" + ps_name + "'. Use the flag '-var_force' to overwrite them.");
-		}
-		if (var_force && var_update)
-		{
-			THROW(ArgumentException, "Flags -var_force and -var_update cannot be used at the same time! Use -var_force to delete old variants and reimport, and -var_update to only import missing variants.")
+			out << "Skipped import because variants were already imported for '" + ps_name + "'. Use the flag '-force' to overwrite them." << endl;
+			return;
 		}
 
-		//remove old variants (and store class4/5 variants for check)
-		QSet<int> var_ids_class_4_or_5;
-		if (count_old>0 && var_force)
-		{
-			sub_timer.start();
+		//load variant list
+		VariantList variants;
+		variants.load(filename);
 
-			//get class4/5 variant ids
-			QStringList tmp = db.getValues("SELECT vc.variant_id FROM detected_variant dv, variant_classification vc WHERE dv.processed_sample_id=:0 AND dv.variant_id=vc.variant_id AND (vc.class='4' OR vc.class='5')", ps_id);
-			foreach(const QString& id, tmp)
+		//add missing variants and update variant meta data
+		sub_timer.start();
+		int c_add, c_update;
+		double max_af = getFloat("max_af");
+		QList<int> variant_ids = db.addVariants(variants, max_af, c_add, c_update);
+		out << "Imported variants (added:" << c_add << " updated:" << c_update << ")" << endl;
+		sub_times << ("adding variants took: " + Helper::elapsedTime(sub_timer));
+
+		//skip import of detected variants if same callset was already imported
+		VariantCaller caller = variants.getCaller();
+		QDate calling_date = variants.getCallingDate();
+		if (!caller.name.isEmpty() && calling_date.isValid())
+		{
+			VariantCallingInfo calling_info_ngsd = db.variantCallingInfo(ps_id);
+			if (calling_info_ngsd.small_caller==caller.name && calling_info_ngsd.small_caller_version==caller.version && calling_info_ngsd.small_call_date==calling_date.toString(Qt::ISODate))
 			{
-				var_ids_class_4_or_5 << id.toInt();
-			}
-			out << "Found " << var_ids_class_4_or_5.size()  << " class 4/5 variants for the sample!" << endl;
-			sub_times << ("getting class 4/5 variants took: " + Helper::elapsedTime(sub_timer));
+				out << "Skipped import because variants were already imported with the same caller, caller version and calling date!" << endl;
+				if (!no_time)
+				{
+					out << "Import took: " << Helper::elapsedTime(timer) << endl;
+				}
 
-			//remove old variants
+				return;
+			}
+		}
+
+		//remove old variants
+		if (count_old>0 && force)
+		{
 			sub_timer.start();
 			db.deleteVariants(ps_id, VariantType::SNVS_INDELS);
 			out << "Deleted previous variants" << endl;
 			sub_times << ("deleted previous detected variants took: " + Helper::elapsedTime(sub_timer));
 		}
-		if (debug)
-		{
-			out << "DEBUG: Found " << var_ids_class_4_or_5.count() << " class 4/5 variants" << endl;
-		}
 
 		//add callset (if caller info in header)
-		VariantList variants;
-		variants.load(filename);
-		VariantCaller caller = variants.getCaller();
-		QDate calling_date = variants.getCallingDate();
 		if (caller.name!="" && caller.version!="")
 		{
 			SqlQuery q_set = db.getQuery();
@@ -129,15 +136,6 @@ public:
 			out << "No variants imported (empty GSvar file)." << endl;
 			return;
 		}
-
-		//add missing variants
-		sub_timer.start();
-		int c_add, c_update;
-		double max_af = getFloat("max_af");
-		QList<int> variant_ids = db.addVariants(variants, max_af, c_add, c_update);
-		out << "Imported variants (added:" << c_add << " updated:" << c_update << ")" << endl;
-		sub_times << ("adding variants took: " + Helper::elapsedTime(sub_timer));
-
 
 		//update: add the missing variants to the processed sample while keeping the others the same.
 		if (var_update)
@@ -175,9 +173,6 @@ public:
 			int variant_id = variant_ids[i];
 			if (variant_id==-1) continue;
 
-			//remove class 4/5 variant from list (see check below)
-			var_ids_class_4_or_5.remove(variant_id);
-
 			//bind
 			q_insert.bindValue(0, variant_id);
 			q_insert.bindValue(1, variants[i].annotations()[i_geno]);
@@ -186,13 +181,6 @@ public:
 		}
 		db.commit();
 		sub_times << ("adding detected variants took: " + Helper::elapsedTime(sub_timer));
-
-		//check that all important variant are still there (we unset all re-imported variants above)
-		foreach(int id, var_ids_class_4_or_5)
-		{
-			THROW(ArgumentException, "Variant (" + db.variant(QString::number(id)).toString(QChar(), 20) + ") with classification 4/5 is no longer in variant list!");
-		}
-
 
 		//output
 		int c_skipped = variant_ids.count(-1);
@@ -213,7 +201,7 @@ public:
 		}
 	}
 
-	void importCNVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool cnv_force)
+	void importCNVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool force)
 	{
 		QString filename = getInfile("cnv");
 		if (filename=="") return;
@@ -242,14 +230,14 @@ public:
 
 		//check if CNV callset already exists > delete old callset
 		QString last_callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
-		if(last_callset_id!="" && !cnv_force)
+		if(last_callset_id!="" && !force)
 		{
 			out << "NOTE: CNVs were already imported for '" << ps_name << "' - skipping import";
 			return;
 		}
 
 		//check if variants were already imported for this PID
-		if (last_callset_id!="" && cnv_force)
+		if (last_callset_id!="" && force)
 		{
 			db.getQuery().exec("DELETE FROM cnv WHERE cnv_callset_id='" + last_callset_id + "'");
 			db.getQuery().exec("DELETE FROM cnv_callset WHERE id='" + last_callset_id + "'");
@@ -340,7 +328,7 @@ public:
 		}
 	}
 
-	void importSVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool sv_force)
+	void importSVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool force)
 	{
 		QString filename = getInfile("sv");
 		if (filename=="") return;
@@ -371,13 +359,13 @@ public:
 
 		// check if processed sample has already been imported
 		QString previous_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, QString::number(ps_id)).toString();
-		if(previous_callset_id!="" && !sv_force)
+		if(previous_callset_id!="" && !force)
 		{
 			out << "NOTE: SVs were already imported for '" << ps_name << "' - skipping import" << endl;
 			return;
 		}
 		//remove old imports of this processed sample
-		if (previous_callset_id!="" && sv_force)
+		if (previous_callset_id!="" && force)
 		{
 			db.getQuery().exec("DELETE FROM sv_deletion WHERE sv_callset_id='" + previous_callset_id + "'");
 			db.getQuery().exec("DELETE FROM sv_duplication WHERE sv_callset_id='" + previous_callset_id + "'");
@@ -493,7 +481,7 @@ public:
 		}
 	}
 
-	void importREs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool re_force)
+	void importREs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool force)
 	{
 		QString filename = getInfile("re");
 		if (filename=="") return;
@@ -527,7 +515,7 @@ public:
 
 		//check if CNV callset already exists > delete old callset
 		QString last_callset_id = db.getValue("SELECT id FROM re_callset WHERE processed_sample_id=:0", true, ps_id).toString();
-		if(last_callset_id!="" && !re_force)
+		if(last_callset_id!="" && !force)
 		{
 			out << "NOTE: REs were already imported for '" << ps_name << "' - skipping import";
 			return;
@@ -535,14 +523,14 @@ public:
 
 		// check if processed sample has already been imported
 		int imported_re_genotypes = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE processed_sample_id=:0", true, ps_id).toInt();
-		if(imported_re_genotypes>0 && !re_force)
+		if(imported_re_genotypes>0 && !force)
 		{
 			out << "NOTE: REs were already imported for '" << ps_name << "' - skipping import" << endl;
 			return;
 		}
 
 		//remove old imports of this processed sample
-		if ((last_callset_id!="" || imported_re_genotypes>0) && re_force)
+		if ((last_callset_id!="" || imported_re_genotypes>0) && force)
 		{
 			db.getQuery().exec("DELETE FROM re_callset WHERE processed_sample_id='" + ps_id + "'");
 
@@ -631,11 +619,8 @@ public:
 		QString ps_name = getString("ps");
 		bool debug = getFlag("debug");
 		bool no_time = getFlag("no_time");
-		bool var_force = getFlag("var_force");
+		bool force = getFlag("force");
 		bool var_update = getFlag("var_update");
-		bool cnv_force = getFlag("cnv_force");
-		bool sv_force = getFlag("sv_force");
-		bool re_force = getFlag("re_force");
 
 		//prevent tumor samples from being imported into the germline variant tables
 		QString s_id = db.sampleId(ps_name);
@@ -646,10 +631,10 @@ public:
 		}
 
 		//import
-		importSmallVariants(db, stream, ps_name, debug, no_time, var_force, var_update);
-		importCNVs(db, stream, ps_name, debug, no_time, cnv_force);
-		importSVs(db, stream, ps_name, debug, no_time, sv_force);
-		importREs(db, stream, ps_name, debug, no_time, re_force);
+		importSmallVariants(db, stream, ps_name, debug, no_time, force, var_update);
+		importCNVs(db, stream, ps_name, debug, no_time, force);
+		importSVs(db, stream, ps_name, debug, no_time, force);
+		importREs(db, stream, ps_name, debug, no_time, force);
 	}
 };
 
