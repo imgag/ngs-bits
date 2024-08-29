@@ -2060,6 +2060,7 @@ void MainWindow::on_actionEncrypt_triggered()
 void MainWindow::on_actionSettings_triggered()
 {
 	SettingsDialog dlg(this);
+	dlg.setWindowFlags(Qt::Window);
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
