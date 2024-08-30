@@ -150,7 +150,11 @@ void ColumnConfigWidget::sizeChanged(int row, int col)
 
 void ColumnConfigWidget::store()
 {
+	QStringList
+	for (int row=0; row<ui_.table->rowCount(); ++row)
+	{
 
+	}
 }
 
 void ColumnConfigWidget::swapRows(int from, int to)
