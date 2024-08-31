@@ -383,6 +383,10 @@ public slots:
 	void on_actionSampleSearch_triggered();
 	///Show run overview
 	void on_actionRunOverview_triggered();
+	///Open column settings dialog
+	void openColumnSettings();
+	///Open settings dialog on a specific page
+	void openSettingsDialog(QString page_name="general");
 
 	///Subpanel design dialog
 	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());

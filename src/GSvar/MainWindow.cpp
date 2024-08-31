@@ -293,7 +293,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
-	connect(ui_.vars_resize_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(adaptColumnWidthsCustom()));
 	ui_.vars_export_btn->setMenu(new QMenu());
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
@@ -319,6 +318,9 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_af_hist->menu()->addSeparator();
 	ui_.vars_af_hist->menu()->addAction("Show CN histogram (in given region)", this, SLOT(showCnHistogram()));
 	ui_.vars_af_hist->menu()->addAction("Show BAF histogram (in given region)", this, SLOT(showBafHistogram()));
+	ui_.vars_resize_btn->setMenu(new QMenu());
+	ui_.vars_resize_btn->menu()->addAction("Open column settings", this, SLOT(openColumnSettings()));
+	ui_.vars_resize_btn->menu()->addAction("Apply column width settings", ui_.vars, SLOT(adaptColumnWidths()));
 
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentAnalysis()));
 
@@ -2059,8 +2061,14 @@ void MainWindow::on_actionEncrypt_triggered()
 
 void MainWindow::on_actionSettings_triggered()
 {
+	openSettingsDialog();
+}
+
+void MainWindow::openSettingsDialog(QString page_name)
+{
 	SettingsDialog dlg(this);
 	dlg.setWindowFlags(Qt::Window);
+	dlg.gotoPage(page_name);
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
@@ -2085,6 +2093,11 @@ void MainWindow::on_actionRunOverview_triggered()
 
 	SequencingRunOverview* widget = new SequencingRunOverview(this);
 	openTab(QIcon(":/Icons/NGSD_run_overview.png"), name, type, widget);
+}
+
+void MainWindow::openColumnSettings()
+{
+	openSettingsDialog("columns");
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)

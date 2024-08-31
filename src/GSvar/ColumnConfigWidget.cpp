@@ -11,6 +11,8 @@ ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_()
 	, title_("Column settings")
+	, current_type_()
+	, configs_()
 {
 	ui_.setupUi(this);
 	connect(ui_.import_btn, SIGNAL(clicked(bool)), this, SLOT(importColumns()));
@@ -20,12 +22,26 @@ ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 
 	connect(ui_.table, SIGNAL(cellChanged(int,int)), this, SLOT(sizeChanged(int,int)));
 
-	//add types
+	//add types and load configs
 	for (int i=0; i<(int)VariantType::INVALID; ++i)
 	{
-		ui_.type->addItem(variantTypeToString((VariantType)i));
+		QString name = variantTypeToString((VariantType)i);
+		ui_.type->addItem(name);
+
+		QString key = variantTypeToKey(name);
+		if(Settings::contains(key))
+		{
+			configs_.insert(name, ColumnConfig::fromString(Settings::string(key)));
+		}
+		else
+		{
+			configs_.insert(name, ColumnConfig());
+		}
 	}
-	ui_.type->setCurrentIndex(0);
+
+	//load small variant config and connect signal afterwards
+	loadConfig("small variant");
+	connect(ui_.type, SIGNAL(currentTextChanged(QString)), this, SLOT(typeChanged(QString)));
 
 	ui_.table->setColumnWidth(0, 200);
 }
@@ -46,7 +62,7 @@ void ColumnConfigWidget::importColumns()
 	{
 		//make sure we do not add genotype columns
 		const VariantList& vars = GlobalServiceProvider::getSmallVariantList();
-		foreach(SampleInfo info, vars.getSampleHeader())
+		foreach(SampleInfo info, vars.getSampleHeader(false))
 		{
 			current_names<< info.name;
 		}
@@ -86,23 +102,28 @@ void ColumnConfigWidget::clearColumns()
 	}
 }
 
-void ColumnConfigWidget::addColumn(QString name)
+void ColumnConfigWidget::addColumn(const QString& name)
+{
+	addColumn(name, ColumnInfo());
+}
+
+void ColumnConfigWidget::addColumn(const QString& name, const ColumnInfo& info)
 {
 	int row = ui_.table->rowCount();
 	ui_.table->setRowCount(row+1);
 
 	ui_.table->setItem(row, 0, GUIHelper::createTableItem(name));
 
-	QTableWidgetItem* min_w = GUIHelper::createTableItem("");
+	QTableWidgetItem* min_w = GUIHelper::createTableItem(info.min_width<=0 ? "" : QString::number(info.min_width));
 	min_w->setFlags(min_w->flags() | Qt::ItemIsEditable);
 	ui_.table->setItem(row, 1, min_w);
 
-	QTableWidgetItem* max_w = GUIHelper::createTableItem("");
+	QTableWidgetItem* max_w = GUIHelper::createTableItem(info.max_width<=0 ? "" : QString::number(info.max_width));
 	max_w->setFlags(max_w->flags() | Qt::ItemIsEditable);
 	ui_.table->setItem(row, 2, max_w);
 
 	QTableWidgetItem* hidden = GUIHelper::createTableItem("");
-	hidden->setCheckState(Qt::Unchecked);
+	hidden->setCheckState(info.hidden ? Qt::Checked : Qt::Unchecked);
 	ui_.table->setItem(row, 3, hidden);
 }
 
@@ -148,12 +169,29 @@ void ColumnConfigWidget::sizeChanged(int row, int col)
 	}
 }
 
+void ColumnConfigWidget::typeChanged(QString new_type)
+{
+	if (new_type==current_type_) return;
+
+	//store old config
+	writeBackCurrentConfig();
+
+	//load new config
+	loadConfig(new_type);
+	current_type_ = new_type;
+}
+
 void ColumnConfigWidget::store()
 {
-	QStringList
-	for (int row=0; row<ui_.table->rowCount(); ++row)
-	{
+	//make sure to write back the latest changes before storing
+	writeBackCurrentConfig();
 
+	//store condig of all variant types to settings
+	for(int i=0; i<ui_.type->count(); ++i)
+	{
+		QString name = ui_.type->itemText(i);
+		QString key = variantTypeToKey(name);
+		Settings::setString(key, configs_[name].toString());
 	}
 }
 
@@ -176,5 +214,63 @@ void ColumnConfigWidget::swapRows(int from, int to)
 	ui_.table->item(from, 3)->setCheckState(tmp2);
 }
 
+void ColumnConfigWidget::writeBackCurrentConfig()
+{
+	qDebug() << __LINE__ << current_type_;
+	if (current_type_.isEmpty()) return;
+
+	//create config
+	ColumnConfig config;
+
+	for (int row=0; row<ui_.table->rowCount(); ++row)
+	{
+		qDebug() << __LINE__ << row;
+		QString name = ui_.table->item(row, 0)->text();
+		qDebug() << __LINE__ << name;
+		ColumnInfo info;
+
+		QString tmp = ui_.table->item(row, 1)->text();
+		if (Helper::isNumeric(tmp))
+		{
+			info.min_width = tmp.toInt();
+		}
+
+		tmp = ui_.table->item(row, 2)->text();
+		if (Helper::isNumeric(tmp))
+		{
+			info.max_width = tmp.toInt();
+		}
+
+		info.hidden = ui_.table->item(row, 3)->checkState()==Qt::Checked;
+
+		config.append(name, info);
+	}
+
+	configs_[current_type_] = config;
+}
+
+void ColumnConfigWidget::loadConfig(QString type)
+{
+	qDebug() << __LINE__ << type;
+
+	//clear
+	ui_.table->setRowCount(0);
+
+	//add new items
+	ColumnConfig config = configs_[type];
+	foreach (const QString& name, config.columns())
+	{
+		addColumn(name, config.info(name));
+	}
+
+	//set new type
+	current_type_ = type;
+}
+
+QString ColumnConfigWidget::variantTypeToKey(QString type)
+{
+	return "column_config_"+type.replace(" ", "_").toLower();
+}
+
 //TODO:
-//- load/store when type changes or dialog is closed
+//- context menu to delete single column

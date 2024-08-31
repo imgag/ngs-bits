@@ -7,7 +7,7 @@
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
 #include "GenomeVisualizationWidget.h"
-
+#include "ColumnConfig.h"
 #include <QBitArray>
 #include <QApplication>
 #include <QClipboard>
@@ -765,16 +765,39 @@ void VariantTable::clearContents()
 
 void VariantTable::adaptColumnWidths()
 {
+	QTime timer;
+	timer.start();
+
+	const int max_col_width_fallback = 200;
+
 	//resize columns width
-	resizeColumnsToContents();
+	GUIHelper::resizeTableCellWidths(this);
+	GUIHelper::resizeTableCellHeightsToMinimum(this);
 
 	//restrict width
-	int max_col_width = 200;
+	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_small_variant", true));
 	for (int i=0; i<columnCount(); ++i)
 	{
-		if (columnWidth(i)>max_col_width)
+		int width = columnWidth(i);
+		QString col_name = horizontalHeaderItem(i)->text();
+		if (config.contains(col_name))
 		{
-			setColumnWidth(i, max_col_width);
+			ColumnInfo info = config.info(col_name);
+			if (width<info.min_width)
+			{
+				setColumnWidth(i, info.min_width);
+			}
+			if (info.max_width>0 && width>info.max_width)
+			{
+				setColumnWidth(i, info.max_width);
+			}
+		}
+		else
+		{
+			if (width>max_col_width_fallback)
+			{
+				setColumnWidth(i, max_col_width_fallback);
+			}
 		}
 	}
 
@@ -800,70 +823,8 @@ void VariantTable::adaptColumnWidths()
 			setColumnWidth(i, 80);
 		}
 	}
-}
 
-void VariantTable::adaptColumnWidthsCustom()
-{
-	//resize columns width
-	resizeColumnsToContents();
-
-	//restrict width
-	int max_col_width = 50;
-	for (int i=0; i<columnCount(); ++i)
-	{
-		if (columnWidth(i)>max_col_width)
-		{
-			setColumnWidth(i, max_col_width);
-		}
-	}
-
-	//set mimumn width of chr, start, end
-	if (columnWidth(0)<42)
-	{
-		setColumnWidth(0, 42);
-	}
-	if (columnWidth(1)<62)
-	{
-		setColumnWidth(1, 62);
-	}
-	if (columnWidth(2)<62)
-	{
-		setColumnWidth(2, 62);
-	}
-
-	//big
-	int size_big = 400;
-	int index = GUIHelper:: GUIHelper::columnIndex(this, "OMIM", false);
-	if (index!=-1) setColumnWidth(index, size_big);
-
-	//medium
-	int size_med = 100;
-	SampleHeaderInfo header_info;
-	foreach(const SampleInfo& info, header_info)
-	{
-		index =  GUIHelper::columnIndex(this, info.name, false);
-		if (index!=-1) setColumnWidth(index, size_med);
-	}
-	index =  GUIHelper::columnIndex(this, "gene", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "variant_type", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "filter", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "ClinVar", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "HGMD", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "NGSD_hom", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "NGSD_het", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "NGSD_group", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "classification", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "gene_info", false);
-	if (index!=-1) setColumnWidth(index, size_med);
+	Log::perf("adapting column widths", timer);
 }
 
 void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_row)

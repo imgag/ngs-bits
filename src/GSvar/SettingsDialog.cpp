@@ -1,5 +1,6 @@
 #include "SettingsDialog.h"
 #include "Settings.h"
+#include "Log.h"
 #include <QDebug>
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
@@ -21,18 +22,33 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	loadSettings();
 }
 
-void SettingsDialog::changePage()
+void SettingsDialog::gotoPage(QString page_name)
 {
-	ui_.title->setText(qobject_cast<QPushButton*>(sender())->text());
+	//empty page name > nothing to do
+	page_name = page_name.remove("page_");
+	page_name=page_name.trimmed();
+	if (page_name.isEmpty()) return;
 
-	QString page_name = sender()->objectName().replace("btn_", "page_");
+	//update title
+	QPushButton* button = findChild<QPushButton*>("btn_"+page_name);
+	ui_.title->setText(button->text());
+
+	//update page
 	for (int i=0; i<ui_.stack->count(); ++i)
 	{
-		if (ui_.stack->widget(i)->objectName()==page_name)
+		if (ui_.stack->widget(i)->objectName()=="page_"+page_name)
 		{
 			ui_.stack->setCurrentIndex(i);
+			return;
 		}
 	}
+	Log::info("Settings page '" + page_name + "' not found!");
+}
+
+void SettingsDialog::changePage()
+{
+	QString page_name = sender()->objectName().replace("btn_", "");
+	gotoPage(page_name);
 }
 
 void SettingsDialog::loadSettings()
@@ -52,6 +68,9 @@ void SettingsDialog::loadSettings()
 	if (Settings::string("view_adjust_large_numbers", true) == "raw_counts") ui_.view_adjust_large_numbers->setCurrentText( "raw counts");
 	if (Settings::string("view_adjust_large_numbers", true) == "modifier") ui_.view_adjust_large_numbers->setCurrentText("T, G, M, k modifier");
 	if (Settings::string("view_adjust_large_numbers", true) == "thousands_separator") ui_.view_adjust_large_numbers->setCurrentText( "use ',' as thousands separator");
+
+	//Columns
+
 }
 
 void SettingsDialog::storeSettings()
@@ -71,4 +90,9 @@ void SettingsDialog::storeSettings()
 	if (ui_.view_adjust_large_numbers->currentText() == "raw counts") Settings::setString("view_adjust_large_numbers", "raw_counts");
 	if (ui_.view_adjust_large_numbers->currentText() == "T, G, M, k modifier") Settings::setString("view_adjust_large_numbers", "modifier");
 	if (ui_.view_adjust_large_numbers->currentText() == "use ',' as thousands separator") Settings::setString("view_adjust_large_numbers", "thousands_separator");
+
+	//columns
+	ui_.column_config->store();
 }
+
+//TODO Marc: ask the user if he's sure when closing the dialog via the window X

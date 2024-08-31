@@ -456,7 +456,7 @@
            <number>3</number>
           </property>
           <item>
-           <widget class="ColumnConfigWidget" name="widget" native="true"/>
+           <widget class="ColumnConfigWidget" name="column_config" native="true"/>
           </item>
          </layout>
         </widget>

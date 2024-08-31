@@ -11,6 +11,8 @@ class SettingsDialog
 
 public:
 	SettingsDialog(QWidget* parent = nullptr);
+	//Opens the spcified page. Does nothing if the page does not exist.
+	void gotoPage(QString page_name);
 	void storeSettings();
 
 private slots:
