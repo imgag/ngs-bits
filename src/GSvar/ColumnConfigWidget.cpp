@@ -19,8 +19,12 @@ ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 	connect(ui_.clear_btn, SIGNAL(clicked(bool)), this, SLOT(clearColumns()));
 	connect(ui_.up_btn, SIGNAL(clicked(bool)), this, SLOT(moveRowUp()));
 	connect(ui_.down_btn, SIGNAL(clicked(bool)), this, SLOT(moveRowDown()));
-
 	connect(ui_.table, SIGNAL(cellChanged(int,int)), this, SLOT(sizeChanged(int,int)));
+	ui_.load_store_btn->setMenu(new QMenu());
+	ui_.load_store_btn->menu()->addAction("Export column settings", this, SLOT(exportCurrent()));
+	ui_.load_store_btn->menu()->addAction("Export column settings of all types", this, SLOT(exportAll()));
+	ui_.load_store_btn->menu()->addSeparator();
+	ui_.load_store_btn->menu()->addAction("Imoport column settings", this, SLOT(import()));
 
 	//add types and load configs
 	for (int i=0; i<(int)VariantType::INVALID; ++i)
@@ -179,6 +183,21 @@ void ColumnConfigWidget::typeChanged(QString new_type)
 	//load new config
 	loadConfig(new_type);
 	current_type_ = new_type;
+}
+
+void ColumnConfigWidget::exportCurrent()
+{
+
+}
+
+void ColumnConfigWidget::exportAll()
+{
+
+}
+
+void ColumnConfigWidget::import()
+{
+
 }
 
 void ColumnConfigWidget::store()

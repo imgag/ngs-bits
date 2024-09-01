@@ -29,6 +29,10 @@ private slots:
 	void sizeChanged(int row, int col);
 	void typeChanged(QString new_type);
 
+	void exportCurrent();
+	void exportAll();
+	void import();
+
 private:
 	Ui::ColumnConfigWidget ui_;
 	QString title_;

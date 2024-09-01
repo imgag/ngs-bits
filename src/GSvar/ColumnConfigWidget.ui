@@ -144,6 +144,20 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QToolButton" name="load_store_btn">
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/settings.png</normaloff>:/Icons/settings.png</iconset>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
