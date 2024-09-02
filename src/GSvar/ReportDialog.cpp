@@ -134,6 +134,27 @@ void ReportDialog::initGUI()
 		ui_.omim_table_one_only->setEnabled(false);
 	}
 
+	//multi-sample: additional samples
+	if (variants_.type()==AnalysisType::GERMLINE_MULTISAMPLE)
+	{
+		QStringList ps_list = variants_.getSampleHeader().sampleNames().toList();
+		ps_list.sort();
+		foreach(QString ps, ps_list)
+		{
+			if (ps_==ps) continue;
+
+			QCheckBox* checkbox = new QCheckBox(ps);
+			checkbox->setChecked(false);
+			checkbox->setObjectName("add_sample_"+ps);
+			ui_.group_add_samples->layout()->addWidget(checkbox);
+		}
+	}
+	else
+	{
+		ui_.group_add_samples->setVisible(false);
+	}
+
+
 	//check box status
 	updateCoverageCheckboxStatus();
 
@@ -533,6 +554,13 @@ void ReportDialog::writeBackSettings()
 	settings_.show_class_details = ui_.class_info->isChecked();
 	settings_.language = ui_.language->currentText();
 	settings_.show_refseq_transcripts = ui_.refseq_trans_names->isChecked();
+
+	QList<QCheckBox*> checkboxes = findChildren<QCheckBox*>();
+	foreach(QCheckBox* checkbox, checkboxes)
+	{
+		if (!checkbox->objectName().startsWith("add_sample_")) continue;
+		settings_.ps_additional << checkbox->objectName().split("add_sample_")[1];
+	}
 }
 
 void ReportDialog::activateOkButtonIfValid()

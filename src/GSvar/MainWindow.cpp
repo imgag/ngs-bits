@@ -120,7 +120,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
-#include "NGSDReplicationWidget.h"
 #include "CohortAnalysisWidget.h"
 #include "cfDNARemovedRegions.h"
 #include "CfDNAPanelBatchImport.h"
@@ -154,6 +153,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "RepeatExpansionWidget.h"
 #include "ReSearchWidget.h"
 #include "CustomProxyService.h"
+#include "GeneInterpretabilityDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1653,26 +1653,7 @@ void MainWindow::delayedInitialization()
 	{
 		QString arg = QApplication::arguments().at(i);
 
-		if (i==1) //first argument: sample
-		{
-			if (QFile::exists(arg)) //file path
-			{
-				loadFile(arg);
-			}
-			else if (LoginManager::active()) //processed sample name (via NGSD)
-			{
-				NGSD db;
-				if (db.processedSampleId(arg, false)!="")
-				{
-					openProcessedSampleFromNGSD(arg, false);
-				}
-				else if (db.sampleId(arg, false)!="")
-				{
-					openSampleFromNGSD(arg);
-				}
-			}
-		}
-		else if (arg.startsWith("filter:")) //filter (by name)
+		if (arg.startsWith("filter:")) //filter (by name)
 		{
 			int sep_pos = arg.indexOf(':');
 			QString filter_name = arg.mid(sep_pos+1).trimmed();
@@ -1690,6 +1671,25 @@ void MainWindow::delayedInitialization()
 			if (!ui_.filters->setTargetRegionByDisplayName(roi_name))
 			{
 				qDebug() << "Target region name " << roi_name << " not found. Ignoring it!";
+			}
+		}
+		else if (i==1) //first argument: sample to open
+		{
+			if (QFile::exists(arg)) //file path
+			{
+				loadFile(arg);
+			}
+			else if (LoginManager::active()) //processed sample name (via NGSD)
+			{
+				NGSD db;
+				if (db.processedSampleId(arg, false)!="")
+				{
+					openProcessedSampleFromNGSD(arg, false);
+				}
+				else if (db.sampleId(arg, false)!="")
+				{
+					openSampleFromNGSD(arg);
+				}
 			}
 		}
 		else
@@ -3884,7 +3884,7 @@ void MainWindow::generateReportSomaticRTF()
 		}
 
 		//reminder of MTB upload
-		QStringList studies = db.getValues("SELECT s.name FROM study s, study_sample ss WHERE s.id=ss.study_id AND ss.processed_sample_id=" + ps_tumor_id);
+		QStringList studies = db.studies(ps_tumor_id);
 		if (studies.contains("MTB"))
 		{
 			if (QMessageBox::question(this, "DNA report", "This sample is part of the study 'MTB'.\nDo you want to upload the data to MTB now?")==QMessageBox::Yes)
@@ -4486,6 +4486,7 @@ void MainWindow::on_actionExportTestData_triggered()
 		"processing_system",
 		"project",
 		"qc_terms",
+        "repeat_expansion",
 		"sender",
 		"sequencing_run",
 		"somatic_pathway",
@@ -4493,7 +4494,7 @@ void MainWindow::on_actionExportTestData_triggered()
 		"somatic_gene_role",
 		"runqc_read",
 		"runqc_lane",
-		"species"
+        "species"
 	};
 
 	try
@@ -4546,6 +4547,7 @@ void MainWindow::on_actionExportTestData_triggered()
 			db.exportTable("sample_disease_info", output_stream, "sample_id='"+s_id+"'", &sql_history);
 			db.exportTable("processed_sample", output_stream, "id='"+ps_id+"'", &sql_history);
 			db.exportTable("processed_sample_qc", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
+            db.exportTable("repeat_expansion_genotype", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
 
 			QStringList variant_id_list = db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id='"+ps_id+"'");
 			db.exportTable("variant", output_stream, "id IN ("+variant_id_list.join(", ")+")", &sql_history);
@@ -4718,23 +4720,6 @@ void MainWindow::on_actionGaps_triggered()
 {
 	GapClosingDialog dlg(this);
 	dlg.exec();
-}
-
-void MainWindow::on_actionReplicateNGSD_triggered()
-{
-	try
-	{
-		LoginManager::checkRoleIn(QStringList{"admin"});
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, "Permissions error", e.message());
-		return;
-	}
-
-	NGSDReplicationWidget* widget = new NGSDReplicationWidget(this);
-	auto dlg = GUIHelper::createDialog(widget, "Replicate NGSD (hg19 to hg38)");
-	dlg->exec();
 }
 
 void MainWindow::on_actionPrepareGhgaUpload_triggered()
@@ -5141,6 +5126,34 @@ void MainWindow::on_actionGenesToRegions_triggered()
 {
 	GenesToRegionsDialog dlg(this);
 	dlg.exec();
+}
+
+void MainWindow::on_actionGeneInterpretability_triggered()
+{
+	QString title = "Gene interpretability";
+	try
+	{
+		QStringList interpretability_regions = Settings::stringList("interpretability_regions");
+		if (interpretability_regions.isEmpty()) INFO(Exception, "GSvar settings entry 'interpretability_regions' is empty!");
+
+		QList<GeneInterpretabilityRegion> regions;
+		foreach(QString entry, interpretability_regions)
+		{
+			QStringList parts = entry.split('\t');
+			if (parts.count()!=2) THROW(Exception, "GSvar settings entry 'interpretability_regions' has invalid entry: " + entry);
+
+			if (!QFile::exists(parts[1])) THROW(Exception, "GSvar settings entry 'interpretability_regions' has entry with non-existing BED file: " + parts[1]);
+			regions << GeneInterpretabilityRegion{parts[0], parts[1]};
+		}
+
+		GeneInterpretabilityDialog dlg(this, regions);
+		dlg.setWindowTitle(title);
+		dlg.exec();
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, title);
+	}
 }
 
 void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)

@@ -29,7 +29,10 @@ public:
 
 	bool show_class_details; //show classification information
 	bool show_refseq_transcripts; //add matching RefSeq transcript names after Ensembl transcript names
+
 	QString language;
+
+	QStringList ps_additional; //List of processed samples for which the genotype is shown in the report. The samples have to be in the variant list, so this is possible for multi-sample GSvar files only
 };
 
 

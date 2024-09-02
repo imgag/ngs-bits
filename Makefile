@@ -70,18 +70,25 @@ build_gui_release:
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
-build_release_noclean:
+build_libs_release_noclean:
+	mkdir -p build-libs-Linux-Release;
 	cd build-libs-Linux-Release; \
 		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
-	cd ..
+
+build_tools_release_noclean:
+	mkdir -p build-tools-Linux-Release;
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
-	cd ..
+
+build_gui_release_noclean:
+	mkdir -p build-tools_gui-Linux-Release;
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
+
+build_release_noclean: build_libs_release_noclean  build_tools_release_noclean build_gui_release_noclean
 
 build_server_release:
 	rm -rf build-GSvarServer-Linux-Release;

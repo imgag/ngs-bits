@@ -48,7 +48,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	//allow statistical filtering only if there is a cutoff for the system type
 	NGSD db;
 	sys_type_ = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer LIKE '" + sys_name_ + "'").toString();
-	if (sys_type_=="WGS" || sys_type_=="WES")
+	if (sys_type_=="WGS")
 	{
 		sys_type_cutoff_col_ = "statisticial_cutoff_wgs";
 
@@ -565,9 +565,10 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 
 		//determine cutoffs
 		int max_normal = getCell(row, "max. normal").toInt(&ok);
-		if(!ok) continue;
+		if(!ok) max_normal = -1;
 		int min_pathogenic = getCell(row, "min. pathogenic").toInt(&ok);
-		if(!ok) continue;
+		if(!ok) min_pathogenic = -1;
+		if (max_normal==-1 && min_pathogenic==-1) continue;
 
 		//determine maximum
 		QStringList genotypes = getCell(row, "genotype").split("/");
@@ -584,11 +585,11 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		if (max==-1) continue;
 
 		//color
-		if (max>=min_pathogenic)
+		if (min_pathogenic!=-1 && max>=min_pathogenic)
 		{
 			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
 		}
-		else if (max>max_normal)
+		else if (max_normal!=-1 && max>max_normal)
 		{
 			setCellDecoration(row, "genotype", "Above max. normal cutoff!", orange_);
 		}
@@ -699,7 +700,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 	if (ui_.filter_hpo->isChecked())
 	{
 		//determine hpo subtree of patient
-		PhenotypeList pheno_subtrees;
+		PhenotypeList pheno_subtrees = GlobalServiceProvider::filterWidget()->phenotypes();
 		NGSD db;
 		foreach(const Phenotype& pheno, GlobalServiceProvider::filterWidget()->phenotypes())
 		{

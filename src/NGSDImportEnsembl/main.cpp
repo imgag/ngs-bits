@@ -343,7 +343,8 @@ public:
 		//parse input - format description at https://www.gencodegenes.org/data_format.html and http://www.ensembl.org/info/website/upload/gff3.html
 		GffSettings gff_settings;
 		gff_settings.print_to_stdout = true;
-		gff_settings.skip_not_gencode_basic = false;
+		gff_settings.include_all = true;
+		gff_settings.skip_not_hgnc = false;
 		GffData data = NGSHelper::loadGffFile(getInfile("in"), gff_settings);
         QSet<QByteArray> ccds_transcripts_added;
 		QHash<int, QSet<QByteArray>> gene2ensg;

@@ -47,7 +47,8 @@ Variant VariantOpenDialog::variant()
 	Variant output;
 	QString error;
 	parseVariant(selectedFormat(ui_.format_layout), ui_.variant->text(), ref_genome_idx_, output, error);
-	if (!output.isValid()) THROW(Exception, error);
+	if (!error.isEmpty()) THROW(Exception, error);
+	output.checkValid(ref_genome_idx_);
 	return output;
 }
 

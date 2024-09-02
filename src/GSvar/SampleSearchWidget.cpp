@@ -148,6 +148,7 @@ void SampleSearchWidget::search()
 		params.add_dates = ui_.add_dates->isChecked();
 		params.add_call_details = ui_.add_call_details->isChecked();
 		params.add_lab_columns = ui_.add_lab_columns->isChecked();
+		params.add_study_column = ui_.add_study_column->isChecked();
 
 		if (db_.getUserRole(LoginManager::userId())=="user_restricted")
 		{

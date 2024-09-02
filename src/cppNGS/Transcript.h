@@ -252,12 +252,12 @@ public:
 	{
 		return coding_start_;
 	}
-	//Returns the end of the coding region (0 for non-coding transcripts). Note: for minus-strand transcipts codingStart() is bigger than codingEnd()
+	//Returns the end of the coding region (0 for non-coding transcripts). Note: for minus-strand transcipts codingStart() is bigger than codingEnd(). This coordinate includes the STOP codon!
 	int codingEnd() const
 	{
 		return coding_end_;
 	}
-	//Returns the coding regions (empty for non-coding transcripts)
+	//Returns the coding regions (empty for non-coding transcripts). Note: This region includes the STOP codon!
 	const BedFile& codingRegions() const
 	{
 		return coding_regions_;
@@ -353,14 +353,20 @@ class CPPNGSSHARED_EXPORT TranscriptList
 	: public QList<Transcript>
 {
 public:
-
 	///Returns if a transcript with the name (without version) is contained
 	bool contains(const Transcript& transcript) const;
 	///Returns if a transcript with the name (without version) is contained
 	bool contains(const QByteArray& name) const;
 
-	///Returns the transcript with the given id if contained else an invalid transcript
+	///Returns the transcript with the given id if contained. If not contained, an invalid transcript is returned.
 	Transcript getTranscript(const QByteArray& name);
+
+	///Returns the number of distinct gene names
+	int geneCount() const;
+	///Returns the number of transcripts of the given gene
+	int transcriptCount(const QByteArray& gene) const;
+	///Returns the transcripts names of the given gene
+	QByteArrayList transcripts(const QByteArray& gene, bool with_version) const;
 
 	//sorts transcripts by relevance (gene, coding size, non-coding size, ...). Mainly used when displaying transcripts of a gene or variant.
 	void sortByRelevance();

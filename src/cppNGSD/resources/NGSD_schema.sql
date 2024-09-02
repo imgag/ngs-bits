@@ -295,6 +295,36 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
+-- Table `runqc_ont`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `runqc_ont`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `sequencing_run_id` INT(11) NOT NULL,
+  `read_num` INT NOT NULL,
+  `yield` FLOAT NOT NULL,
+  `passing_filter_perc` FLOAT NOT NULL,
+  `fraction_skipped` FLOAT NOT NULL,
+  `q30_perc` FLOAT NOT NULL,
+  `q20_perc` FLOAT NOT NULL,
+  `n50` INT NOT NULL,
+  `protocol_id`  VARCHAR(128) NOT NULL,
+  `software_args` TEXT NOT NULL,
+  `device_firmware_versions` VARCHAR(128) NOT NULL,
+  `minknow_version` VARCHAR(16) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `fk_sequencing_run_id_ont` (`sequencing_run_id` ASC),
+  CONSTRAINT `fk_sequencing_run_id_ont`
+    FOREIGN KEY (`sequencing_run_id`)
+    REFERENCES `sequencing_run` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
 -- Table `species`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `species`

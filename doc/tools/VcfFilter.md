@@ -1,5 +1,5 @@
 ### VcfFilter tool help
-	VcfFilter (2023_11-133-g87eceb58)
+	VcfFilter (2024_06-82-g4e214586)
 	
 	Filters a VCF based on the given criteria.
 	
@@ -13,7 +13,7 @@
 	                           Default value: ''
 	  -reg <string>            Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.
 	                           Default value: ''
-	  -remove_invalid          Removes invalid variant, i.e. invalid position of ref/alt.
+	  -remove_invalid          Removes invalid variants, i.e. invalid position of ref/alt.
 	                           Default value: 'false'
 	  -remove_non_ref          Remove '<NON_REF>' entries (used in gVCF files).
 	                           Default value: 'false'
@@ -27,6 +27,8 @@
 	                           Default value: ''
 	  -filter_exclude <string> Filter by FILTER column - exclude matches (regular expression).
 	                           Default value: ''
+	  -filter_clear            Remove filter entries of all variants, i.e. sets filter to PASS.
+	                           Default value: 'false'
 	  -filter_empty            Removes entries with non-empty FILTER column.
 	                           Default value: 'false'
 	  -info <string>           Filter by INFO column entries - use ';' as separator for several filters, e.g. 'DP > 5;AO > 2' (spaces are important).
@@ -49,8 +51,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfFilter changelog
-	VcfFilter 2023_11-133-g87eceb58
+	VcfFilter 2024_06-82-g4e214586
 	
+	2024-07-11 Added flag 'filter_clear'.
 	2023-11-21 Added flag 'no_special_chr'.
 	2018-10-31 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

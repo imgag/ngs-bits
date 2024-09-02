@@ -28,8 +28,8 @@ private slots:
 		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "v1.3.3");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='3999'").toDate().toString(Qt::ISODate), "2022-04-25");
 
-		//2. import - to check that reimporting works
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -var_force -cnv_force");
+		//2. import - skipped because the same callset was already imported
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -force");
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegExp("^WARNING: transactions"));
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegExp("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line32.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
@@ -161,7 +161,7 @@ private slots:
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
 
 		//re-import SVs for same sample with "-force" (overwrite)
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv_force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in_empty.bedpe"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in_empty.bedpe"));
 
 		//check db content
 		int count = db.getValue("SELECT count(*) FROM sv_deletion").toInt();
@@ -195,8 +195,8 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_report_config.sql"));
 
 		//try to import variants
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -cnv_force -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv_force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
 
 		//check db content
 		int count = db.getValue("SELECT count(*) FROM variant").toInt();
@@ -281,7 +281,7 @@ private slots:
 		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDateTime().toString(Qt::ISODate), "2024-04-16T00:00:00");
 
 		//check import of Straglr
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -re_force -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
 		I_EQUAL(count, 30);
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();

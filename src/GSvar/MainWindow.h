@@ -164,7 +164,6 @@ public slots:
 	void on_actionChangePassword_triggered();
 	void on_actionStudy_triggered();
 	void on_actionGaps_triggered();
-	void on_actionReplicateNGSD_triggered();
 	void on_actionPrepareGhgaUpload_triggered();
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
@@ -212,6 +211,8 @@ public slots:
 	void on_actionPhenoToGenes_triggered();
 	///Genes to regions conversion dialog
 	void on_actionGenesToRegions_triggered();
+	///Dialog for gene interpretabilty
+	void on_actionGeneInterpretability_triggered();
 	///Subpanel archive dialog
 	void on_actionManageSubpanels_triggered();
 	///Close current variant list

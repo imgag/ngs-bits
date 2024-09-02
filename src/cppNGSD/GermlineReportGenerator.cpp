@@ -42,13 +42,23 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 	//get trio data
 	bool is_trio = data_.variants.type() == GERMLINE_TRIO;
-	SampleInfo info_father;
-	SampleInfo info_mother;
+	QList<SampleInfo> info_additional;
 	if (is_trio)
 	{
-		info_father = data_.variants.getSampleHeader().infoByStatus(false, "male");
-		info_mother = data_.variants.getSampleHeader().infoByStatus(false, "female");
+		info_additional << data_.variants.getSampleHeader().infoByStatus(false, "male");
+		info_additional << data_.variants.getSampleHeader().infoByStatus(false, "female");
 	}
+
+	//get multi data
+	bool is_multi_with_extra_genotypes = data_.variants.type()==GERMLINE_MULTISAMPLE && !data_.report_settings.ps_additional.isEmpty();
+	if (is_multi_with_extra_genotypes)
+	{
+		foreach(QString ps, data_.report_settings.ps_additional)
+		{
+			info_additional <<  data_.variants.getSampleHeader().infoByID(ps);
+		}
+	}
+
 
 	//get data from database
 	QString sample_id = db_.sampleId(data_.ps);
@@ -64,8 +74,16 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (is_trio)
 	{
 		stream << "<br />" << endl;
-		stream << "<br />" << trans("Vater") << ": "  << info_father.name << endl;
-		stream << "<br />" << trans("Mutter") << ": "  << info_mother.name << endl;
+		stream << "<br />" << trans("Vater") << ": "  << info_additional[0].name << endl;
+		stream << "<br />" << trans("Mutter") << ": "  << info_additional[1].name << endl;
+	}
+	if (is_multi_with_extra_genotypes)
+	{
+		stream << "<br />" << endl;
+		foreach(const SampleInfo& info, info_additional)
+		{
+			stream << "<br />" << trans("Zusatzprobe") << ": "  << info.name << endl;
+		}
 	}
 	stream << "<br />" << endl;
 	stream << "<br />" << trans("Geschlecht") << ": " << trans(processed_sample_data.gender) << endl;
@@ -189,6 +207,14 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td><b>" << trans("Mutter") << "</b></td>";
 		colspan = 10;
 	}
+	if (is_multi_with_extra_genotypes)
+	{
+		foreach(const SampleInfo& info, info_additional)
+		{
+			stream << "<td><b>" << info.name << "</b></td>";
+		}
+		colspan += info_additional.count();
+	}
 	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>" << trans("gnomAD Allelfrequenz") << "<br />(" << trans("Kontrollkohorte") << ")</b></td><td><b>RNA</b></td></tr>" << endl;
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -208,8 +234,15 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << geno << "</td>" << endl;
 		if (is_trio)
 		{
-			stream << "<td>" << formatGenotype(data_.build, "male", variant.annotations().at(info_father.column_index), variant) << "</td>";
-			stream << "<td>" << formatGenotype(data_.build, "female", variant.annotations().at(info_mother.column_index), variant) << "</td>";
+			stream << "<td>" << formatGenotype(data_.build, "male", variant.annotations().at(info_additional[0].column_index), variant) << "</td>";
+			stream << "<td>" << formatGenotype(data_.build, "female", variant.annotations().at(info_additional[1].column_index), variant) << "</td>";
+		}
+		if (is_multi_with_extra_genotypes)
+		{
+			foreach(const SampleInfo& info, info_additional)
+			{
+				stream << "<td>" << formatGenotype(data_.build, info.gender(), variant.annotations().at(info.column_index), variant) << "</td>";
+			}
 		}
 
 		stream << "<td>";
@@ -710,8 +743,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element ChromosomeAliases
 	w.writeStartElement("ChromosomeAliases");
-	QMap<Chromosome, QString> table = getChromosomeTable(data_.build);
-	foreach (Chromosome key, table.keys())
+	QHash<Chromosome, QString> table = NGSHelper::chromosomeMapping(data_.build);
+	QList<Chromosome> chr_list = table.keys();
+	std::sort(chr_list.begin(), chr_list.end());
+	foreach (const Chromosome& key, chr_list)
 	{
 		w.writeStartElement("Chromosome");
 		w.writeAttribute("chr", key.str());
@@ -928,7 +963,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 		w.writeAttribute("allele_frequency", QString::number(allele_frequency, 'f', 2));
 		w.writeAttribute("depth", QString::number(depth));
-		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender.toUtf8(), variant.annotations()[geno_idx], variant));
+		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender, variant.annotations()[geno_idx], variant));
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
@@ -1291,7 +1326,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, sv.chr2(), sv.end2()));
 
 		QByteArray sv_gt = sv.genotypeHumanReadable(data_.svs.annotationHeaders(), false);
-		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender.toUtf8(), sv_gt, v));
+		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender, sv_gt, v));
 
 		if (sv.type() == StructuralVariantType::INS)
 		{
@@ -1674,6 +1709,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Geschlecht"] = "sample sex";
 		de2en["Vater"] = "father";
 		de2en["Mutter"] = "mother";
+		de2en["Zusatzprobe"] = "additional sample";
 		de2en["Regionen"] = "regions";
 		de2en["Gene"] = "genes";
 		de2en["CNV/SV/RE"] = "CNV/SV/RE";
@@ -1953,7 +1989,7 @@ void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)
 
 }
 
-QByteArray GermlineReportGenerator::formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant)
+QString GermlineReportGenerator::formatGenotype(GenomeBuild build, const QString& gender, const QString& genotype, const Variant& variant)
 {
 	//correct only hom variants on gonosomes outside the PAR for males
 	if (gender!="male") return genotype;
@@ -2014,52 +2050,6 @@ QString GermlineReportGenerator::convertOtherVariantType(const QString& type, bo
 	if(type == "uncalled CNV") return (xml)? "uncalled_cnv": "nicht-detektierte CNV";
 	if(type == "uncalled SV") return (xml)? "uncalled_sv": "nicht-detektierte Strukturvariante";
 	THROW(ArgumentException, "Invalid variant type '" + type + "'!");
-}
-
-QMap<Chromosome, QString> GermlineReportGenerator::getChromosomeTable(GenomeBuild build)
-{
-	QStringList refseq;
-	if (build == GenomeBuild::HG38)
-	{
-		// chromosomes 1-22:
-		refseq << "NC_000001.11" << "NC_000002.12" << "NC_000003.12" << "NC_000004.12" << "NC_000005.10";
-		refseq << "NC_000006.12" << "NC_000007.14" << "NC_000008.11" << "NC_000009.12" << "NC_000010.11";
-		refseq << "NC_000011.10" << "NC_000012.12" << "NC_000013.11" << "NC_000014.9"  << "NC_000015.10";
-		refseq << "NC_000016.10" << "NC_000017.11" << "NC_000018.10" << "NC_000019.10" << "NC_000020.11";
-		refseq << "NC_000021.9"  << "NC_000022.11";
-		// chromosomes y + x
-		refseq << "NC_000024.10" << "NC_000023.11";
-		// chrMT
-		refseq << "NC_012920.1";
-	}
-	else if (build == GenomeBuild::HG19)
-	{
-		// chromosomes 1-22:
-		refseq << "NC_000001.10" << "NC_000002.11" << "NC_000003.11" << "NC_000004.11" << "NC_000005.9";
-		refseq << "NC_000006.11" << "NC_000007.13" << "NC_000008.10" << "NC_000009.11" << "NC_000010.10";
-		refseq << "NC_000011.9"  << "NC_000012.11" << "NC_000013.10" << "NC_000014.8"  << "NC_000015.9";
-		refseq << "NC_000016.9"  << "NC_000017.10" << "NC_000018.9"  << "NC_000019.9"  << "NC_000020.10";
-		refseq << "NC_000021.8"  << "NC_000022.10";
-		// chromosomes y + x
-		refseq << "NC_000024.9" << "NC_000023.10";
-		// chrMT
-		refseq << "NC_012920.1";
-	}
-	//Order: chr1-22, chrY, chrX, chrMT
-	QStringList chromosomes = db_.getEnum("variant", "chr");
-
-	if (refseq.size() != chromosomes.size())
-	{
-		THROW(ProgrammingException, "Chromosomes and refseq don't have the same length.")
-	}
-
-	QMap<Chromosome, QString> map;
-	for (int i=0; i < chromosomes.size(); i++)
-	{
-		map.insert(Chromosome(chromosomes[i]), refseq[i]);
-	}
-
-	return map;
 }
 
 void GermlineReportGenerator::writeEvaluationSheet(QString filename, const EvaluationSheetData& evaluation_sheet_data)
@@ -2386,7 +2376,6 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	int i_gnomad = data_.variants.annotationIndexByName("gnomAD", true, true);
 	int i_ngsd_hom = data_.variants.annotationIndexByName("NGSD_hom", true, true);
 	int i_ngsd_het = data_.variants.annotationIndexByName("NGSD_het", true, true);
-	int i_filter = data_.variants.annotationIndexByName("filter", true, true);
 
 	//manual curation
 	if (conf.isManuallyCurated()) conf.updateVariant(v, genome_idx_, i_genotype);
@@ -2429,9 +2418,11 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << genes.join(", ") << "</td>" << endl;
 	stream << "       <td>" << types.join(", ") << "</td>" << endl;
-	QString genotype = v.annotations()[i_genotype];
-	if (v.annotations()[i_filter].contains("mosaic")) genotype += " (mosaic)";
-	stream << "       <td>" << genotype << "</td>" << endl;
+	QString geno = v.annotations()[i_genotype];
+	if (conf.de_novo) geno += " (de-novo)";
+	if (conf.mosaic) geno += " (mosaic)";
+	if (conf.comp_het) geno += " (comp-het)";
+	stream << "       <td>" << geno << "</td>" << endl;
 	stream << "       <td style='white-space: nowrap'>" << v.toString(QChar(), 20) << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
@@ -2482,7 +2473,11 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
 
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << cnv.toString() << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
-	stream << "       <td>" << cnv.copyNumber(data_.cnvs.annotationHeaders()) << "</td>" << endl;
+	QString geno = QString::number(cnv.copyNumber(data_.cnvs.annotationHeaders()));
+	if (conf.de_novo) geno += " (de-novo)";
+	if (conf.mosaic) geno += " (mosaic)";
+	if (conf.comp_het) geno += " (comp-het)";
+	stream << "       <td>" << geno  << "</td>" << endl;
 	stream << "       <td>" << cnv.genes().join(", ") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	if (conf.causal)
@@ -2537,7 +2532,11 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
 	if (sv.type() == StructuralVariantType::BND) stream << " &lt;-&gt; " << affected_region[1].toString(true);
 	if (conf.isManuallyCurated()) stream << " (manually curated)";
 	stream << "</td>" << endl;
-	stream << "       <td>" << BedpeFile::typeToString(sv.type()) << "</td>" << endl;
+	QString geno = BedpeFile::typeToString(sv.type());
+	if (conf.de_novo) geno += " (de-novo)";
+	if (conf.mosaic) geno += " (mosaic)";
+	if (conf.comp_het) geno += " (comp-het)";
+	stream << "       <td>" << geno << "</td>" << endl;
 	stream << "       <td>" << sv.genes(data_.svs.annotationHeaders()).join(", ") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	if (conf.causal)
@@ -2585,7 +2584,11 @@ void GermlineReportGenerator::printVariantSheetRowRe(QTextStream& stream, const 
 
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << re.toString(true, false) << "</td>" << endl;
-	stream << "       <td>" << re.alleles() << "</td>" << endl;
+	QString geno = re.alleles();
+	if (conf.de_novo) geno += " (de-novo)";
+	if (conf.mosaic) geno += " (mosaic)";
+	if (conf.comp_het) geno += " (comp-het)";
+	stream << "       <td>" << geno  << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	if (conf.causal)
 	{

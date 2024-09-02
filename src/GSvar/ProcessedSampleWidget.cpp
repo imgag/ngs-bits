@@ -276,6 +276,7 @@ void ProcessedSampleWidget::updateGUI()
 	GUIHelper::resizeTableHeight(ui_->disease_details);
 
 	//#### sample relations ####
+	addMissingRelations(db, s_id);
 	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), (SELECT gender FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT gender  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
 	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "gender 1" << "relation" << "sample 2" << "type 2" << "gender 2" << "added_by" << "added_date");
 	ui_->sample_relations->setData(rel_table);
@@ -619,12 +620,15 @@ void ProcessedSampleWidget::addStudy()
 	DBComboBox* widget = new DBComboBox(this);
 	widget->fill(db.createTable("study", "SELECT id, name FROM study ORDER BY name ASC"), false);
 	auto dlg = GUIHelper::createDialog(widget, "Study", "select study:", true);
-	dlg->exec();
+	if (dlg->exec()==QDialog::Rejected) return;
+
 	QString study_id = widget->getCurrentId();
 	if (study_id.isEmpty()) return;
 
 	//set study sample identifier
-	QString sample_identifier = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):");
+	bool ok = false;
+	QString sample_identifier = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):", QLineEdit::Normal, "", &ok);
+	if (!ok) return;
 
 	//add study
 	SqlQuery query = db.getQuery();
@@ -964,4 +968,33 @@ void ProcessedSampleWidget::showAnalysisInfo()
 	AnalysisInformationWidget* widget = new AnalysisInformationWidget(ps_id_, this);
 	auto dlg = GUIHelper::createDialog(widget, "Analysis information of " + processedSampleName());
 	dlg->exec();
+}
+
+void ProcessedSampleWidget::addMissingRelations(NGSD& db, QString s_id)
+{
+	int user_id = db.userId("genlab_import");
+
+	//check if sample has patient ID
+	QString patient_id = db.getValue("SELECT patient_identifier FROM sample WHERE id=" + s_id).toString().trimmed();
+	if (patient_id.isEmpty()) return;
+
+	//check if there are more samples with the same patient ID
+	QStringList sample_ids = db.getValues("SELECT id FROM sample WHERE patient_identifier=:0", patient_id);
+	if (sample_ids.count()<=1) return;
+
+	//process all samples with the same patient ID
+	QByteArray s_name = db.sampleName(s_id).toUtf8();
+	foreach(const QString& s2_id, sample_ids)
+	{
+		//skip same sample
+		if (s2_id==s_id) continue;
+
+		//skip if relation is already in NGSD
+		QList<int> rel = db.getValuesInt("SELECT id FROM sample_relations WHERE sample1_id="+s_id+" AND sample2_id="+s2_id);
+		if (!rel.isEmpty()) continue;
+		rel = db.getValuesInt("SELECT id FROM sample_relations WHERE sample1_id="+s2_id+" AND sample2_id="+s_id);
+		if (!rel.isEmpty()) continue;
+
+		db.addSampleRelation(SampleRelation{s_name, "same patient", db.sampleName(s2_id).toUtf8()}, user_id);
+	}
 }

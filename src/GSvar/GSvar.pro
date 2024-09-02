@@ -14,6 +14,7 @@ SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
+    GeneInterpretabilityDialog.cpp \
     GlobalServiceProvider.cpp \
     IGVCommandWorker.cpp \
     IGVSession.cpp \
@@ -108,7 +109,6 @@ SOURCES += main.cpp\
     AlleleBalanceCalculator.cpp \
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
-    NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
     VirusDetectionWidget.cpp \
     cfDNARemovedRegions.cpp \
@@ -141,6 +141,7 @@ HEADERS += MainWindow.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GHGAUploadDialog.h \
+    GeneInterpretabilityDialog.h \
     GlobalServiceProvider.h \
     IGVCommandWorker.h \
     IGVSession.h \
@@ -234,7 +235,6 @@ HEADERS += MainWindow.h \
     GapClosingDialog.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
-    NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
     VirusDetectionWidget.h \
     cfDNARemovedRegions.h \
@@ -263,6 +263,7 @@ FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
+    GeneInterpretabilityDialog.ui \
     IgvLogWidget.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
@@ -341,7 +342,6 @@ FORMS    += MainWindow.ui \
     SomaticVariantInterpreterWidget.ui \
     AlleleBalanceCalculator.ui \
     GapClosingDialog.ui \
-    NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui \
     ClinvarUploadDialog.ui \

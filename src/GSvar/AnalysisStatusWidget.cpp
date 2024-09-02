@@ -17,6 +17,7 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QMetaMethod>
+#include <QProcess>
 
 AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	: QWidget(parent)
@@ -448,7 +449,26 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			if (last_edit.isEmpty() || !last_edit.contains("(")) continue;
 
 			FileLocation log_location = GlobalServiceProvider::database().analysisJobLogFile(jobs_[row].ngsd_id);
-			if (!QDesktopServices::openUrl(log_location.filename))
+
+			//start in default text editor
+			QString text_editor = Settings::string("text_editor").trimmed();
+			if (!text_editor.isEmpty())
+			{
+				//create a local copy of the log file
+				QString tmp_filename = GSvarHelper::localLogFolder() + log_location.fileName();
+				QSharedPointer<QFile> tmp_file = Helper::openFileForWriting(tmp_filename);
+				tmp_file->write(VersatileFile(log_location.filename).readAll());
+				tmp_file->close();
+
+				//open local file in text editor
+				QProcess process;
+				process.setProcessChannelMode(QProcess::MergedChannels);
+				if (!process.startDetached(text_editor, QStringList() << tmp_filename))
+				{
+					QMessageBox::warning(this, "Error opening log file", "Log file could not be opened in editor "+text_editor+":\n" + log_location.fileName());
+				}
+			}
+			else if (!QDesktopServices::openUrl(log_location.filename)) //start in brwoser
 			{
 				QMessageBox::warning(this, "Error opening log file", "Log file could not be opened:\n" + log_location.fileName());
 			}

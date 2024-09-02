@@ -45,7 +45,7 @@ public:
 	static Variant liftOverVariant(const Variant& v, bool hg19_to_hg38);
 
 	//Returns gnomAD link for a variant
-	static QString gnomADLink(const Variant& v, bool open_in_v4);
+	static QString gnomADLink(const Variant& v, bool open_in_v4=true);
 	//Returns All of Us link for a variant
 	static QString allOfUsLink(const Variant& v);
 	//Returns ClinVar search link for a variant
@@ -53,6 +53,8 @@ public:
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();
+	///Returns a the local log folder where tempory log files can be stored for opening in a text editor.
+	static QString localLogFolder();
 
 	//Queue the analysis of samples
 	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);

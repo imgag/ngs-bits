@@ -450,16 +450,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		fields << "s.quality as sample_quality"
 			   << "ps.quality as processed_sample_quality";
 	}
-
-	if (p.add_lab_columns)
-	{
-		fields << "u.name as operator"
-			   << "ps.processing_input as 'processing input [ng]'"
-			   << "ps.molarity as 'molarity [nM]'"
-			   << "ps.processing_modus"
-			   << "ps.batch_number";
-	}
-
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY r.name ASC, s.name ASC, ps.process_id ASC");
 
 	//remove duplicates
@@ -635,6 +625,17 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		output.addColumn(sv_date, "sv_call_date");
 		output.addColumn(re_caller, "re_caller");
 		output.addColumn(re_date, "re_call_date");
+	}
+
+	if (p.add_study_column)
+	{
+		QStringList new_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			const QString& ps_id = output.row(r).id();
+			new_col << studies(ps_id).join(", ");
+		}
+		output.addColumn(new_col, "studies");
 	}
 
 	return output;
@@ -823,8 +824,7 @@ const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
 
 	//prepare iterative query
 	SqlQuery query_iterative = getQuery();
-	query_iterative.prepare(QString("SELECT sample1_id, sample2_id FROM sample_relations WHERE (relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient')": ")")
-					 + " AND (sample1_id=:0 OR sample2_id=:0)");
+	query_iterative.prepare(QString("SELECT sample1_id, sample2_id FROM sample_relations WHERE (relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient')": ")") + " AND (sample1_id=:0 OR sample2_id=:0)");
 
 	//init if empty
 	if (same_samples.isEmpty())
@@ -1426,7 +1426,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 		const Variant& variant = variant_list[i];
 
 		//skip variants over 500 bases length - the unique index of the variant table does not work for those
-		if (variant.ref().count()>500 || variant.obs().count()>500)
+		if (variant.ref().count()>MAX_VARIANT_SIZE || variant.obs().count()>MAX_VARIANT_SIZE)
 		{
 			output << -1;
 			continue;
@@ -5861,29 +5861,6 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	return output;
 }
 
-void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column)
-{
-	SqlQuery query = getQuery();
-	query.exec("SELECT DISTINCT " + column + " FROM " + table + " tmp WHERE NOT EXISTS(SELECT * FROM gene WHERE symbol=tmp." + column + ")");
-	while(query.next())
-	{
-		*messages << "Outdated gene name in '" << table << "': " << query.value(0).toString() << endl;
-		if (fix_errors)
-		{
-			QString gene = query.value(0).toString();
-			auto approved_data = geneToApprovedWithMessage(gene);
-			if (approved_data.second.startsWith("ERROR"))
-			{
-				*messages << "  FAIL: Cannot fix error in '" << gene << "' because: " << approved_data.second << endl;
-			}
-			else
-			{
-				getQuery().exec("UPDATE " + table + " SET " + column + "='" + approved_data.first + "' WHERE " + column + "='" + gene +"'");
-			}
-		}
-	}
-}
-
 QString NGSD::escapeForSql(const QString& text)
 {
 	return text.trimmed().replace("\"", "").replace("'", "''").replace(";", "").replace("\n", "");
@@ -5907,139 +5884,6 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 	return output;
 }
 
-void NGSD::maintain(QTextStream* messages, bool fix_errors)
-{
-	SqlQuery query = getQuery();
-
-	// (1) tumor samples variants that have been imported into 'detected_variant' table
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.id FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND s.tumor='1' AND EXISTS(SELECT * FROM detected_variant WHERE processed_sample_id=ps.id)");
-	while(query.next())
-	{
-		*messages << "Tumor sample imported into germline variant table: " << query.value(0).toString() << endl;
-
-		if (fix_errors)
-		{
-			deleteVariants(query.value(1).toString());
-		}
-	}
-
-	// (2) outdated gene names
-	fixGeneNames(messages, fix_errors, "geneinfo_germline", "symbol");
-	fixGeneNames(messages, fix_errors, "hpo_genes", "gene");
-	fixGeneNames(messages, fix_errors, "omim_gene", "gene");
-	fixGeneNames(messages, fix_errors, "disease_gene", "gene");
-
-	// (3) variants/qc-data/KASP present for merged processed samples
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, s.id, ps.id FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id");
-	while(query.next())
-	{
-		QString ps_name = query.value(0).toString();
-		QString p_type = query.value(1).toString();
-
-		QString folder = projectFolder(p_type) + query.value(2).toString() + QDir::separator() + "Sample_" + ps_name + QDir::separator();
-		if (!QFile::exists(folder))
-		{
-			QString ps_id = query.value(4).toString();
-
-			//check if merged
-			bool merged = false;
-			SqlQuery query2 = getQuery();
-			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND s.id='" + query.value(3).toString()+"' AND ps.id!='" + ps_id + "'");
-			while(query2.next())
-			{
-				QString folder2 = projectFolder(query2.value(1).toString()) + query2.value(2).toString() + QDir::separator() + "Sample_" + query2.value(0).toString() + QDir::separator();
-				if (QFile::exists(folder2))
-				{
-					QStringList files = Helper::findFiles(folder2, ps_name + "*.fastq.gz", false);
-					if (files.count()>0)
-					{
-						//qDebug() << "Sample " << ps_name << " merged into sample folder " << folder2 << "!" << endl;
-						merged = true;
-					}
-				}
-			}
-
-			//check status
-			if (merged)
-			{
-				//check if variants are present
-				ImportStatusGermline import_status = importStatus(ps_id);
-				if (import_status.small_variants>0 || import_status.cnvs>0 || import_status.svs>0)
-				{
-					*messages << "Merged sample " << ps_name << " has variant data (small variant, CNVs or SVs)!" << endl;
-
-					if (fix_errors)
-					{
-						deleteVariants(ps_id);
-					}
-				}
-				if (import_status.qc_terms>0)
-				{
-					*messages << "Merged sample " << ps_name << " has QC data!" << endl;
-
-					if (fix_errors)
-					{
-						getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'");
-					}
-				}
-				if (p_type=="diagnostic")
-				{
-					QVariant kasp = getValue("SELECT random_error_prob FROM kasp_status WHERE processed_sample_id='" + ps_id + "'");
-					if (kasp.isNull())
-					{
-						*messages << "Merged sample " << ps_name << " has KASP result!" << endl;
-
-						if (fix_errors)
-						{
-							getQuery().exec("INSERT INTO `kasp_status`(`processed_sample_id`, `random_error_prob`, `snps_evaluated`, `snps_match`) VALUES ('" + ps_id + "',999,0,0)");
-						}
-					}
-				}
-			}
-		}
-	}
-
-	//(4) variants for bad processed samples
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.id FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.quality='bad'");
-	while(query.next())
-	{
-		QString ps_id = query.value(1).toString();
-
-		//check if variants are present
-		ImportStatusGermline import_status = importStatus(ps_id);
-		if (import_status.small_variants>0 || import_status.cnvs>0 || import_status.svs>0 || import_status.res>0)
-		{
-			*messages << "Bad sample " << query.value(0).toString() << " has variant data (small variants, CNVs, SVs or REs)!" << endl;
-
-			if (fix_errors)
-			{
-				deleteVariants(ps_id);
-			}
-		}
-	}
-
-	//(5) invalid HPO entries in sample_disease_info
-	int hpo_terms_imported = getValue("SELECT COUNT(*) FROM hpo_term").toInt();
-	if (hpo_terms_imported>0)
-	{
-		query.exec("SELECT DISTINCT id, disease_info FROM sample_disease_info WHERE type='HPO term id' AND disease_info NOT IN (SELECT hpo_id FROM hpo_term)");
-		while(query.next())
-		{
-			QString hpo_id = query.value(1).toString();
-			*messages << "Invalid/obsolete HPO identifier '" << hpo_id << "' in table 'sample_disease_info'!" << endl;
-
-			if (fix_errors)
-			{
-				getQuery().exec("DELETE FROM sample_disease_info WHERE id='" + query.value(0).toString() + "'");
-			}
-		}
-	}
-	else
-	{
-		*messages << "Warning: Cannot perform check for invalid HPO identifierts because not HPO terms were imported into the NGSD!" << endl;
-	}
-}
-
 QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 {
 	QStringList sample_sheet;
@@ -6050,7 +5894,6 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	QString fastq_compression_format = "dragen"; //can be "gzip" or "dragen"
 	int barcode_mismatch_index1 = 1;
 	int barcode_mismatch_index2 = 1;
-
 
 	//get info from db
 	SqlQuery query = getQuery();
@@ -6290,6 +6133,15 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 */
 
 	return sample_sheet.join("\n");
+}
+
+QStringList NGSD::studies(const QString& processed_sample_id)
+{
+	QStringList output = getValues("SELECT s.name FROM study s, study_sample ss WHERE s.id=ss.study_id AND ss.processed_sample_id=" + processed_sample_id);
+
+	output.sort();
+
+	return output;
 }
 
 void NGSD::setComment(const Variant& variant, const QString& text)
@@ -8936,16 +8788,15 @@ QSet<int> NGSD::relatedSamples(int sample_id, const QString& relation, QString s
 	return output;
 }
 
-void NGSD::addSampleRelation(const SampleRelation& rel, bool error_if_already_present)
+void NGSD::addSampleRelation(const SampleRelation& rel, int user_id)
 {
-	QString query_ext = error_if_already_present ? "" : " ON DUPLICATE KEY UPDATE relation=VALUES(relation)";
-	//skip samples that already have a relation in NGSD
-
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (:0, :1, :2, "+QString::number(LoginManager::userId())+")" + query_ext);
+	query.prepare("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (:0, :1, :2, :3)");
 	query.bindValue(0, sampleId(rel.sample1));
 	query.bindValue(1, rel.relation);
 	query.bindValue(2, sampleId(rel.sample2));
+	if (user_id==-1) user_id = LoginManager::userId();
+	query.bindValue(3, user_id);
 	query.exec();
 }
 
@@ -9751,6 +9602,9 @@ QString TableFieldInfo::typeToString(TableFieldInfo::Type type)
 			break;
 		case ENUM:
 			return"ENUM";
+			break;
+		case SET:
+			return"SET";
 			break;
 		case DATE:
 			return "DATE";

@@ -67,8 +67,12 @@ public:
 		addFlag("add_dates", "Adds four columns with year of birth, order date, sampling date and sample receipt date.");
 		addFlag("add_call_details", "Adds variant caller and version and variant calling date columns for small variants, CNVs and SVs.");
 		addFlag("add_lab_columns", "Adds columns input, molarity, operator, processing method and batch number.");
+		addFlag("add_study_column", "Add a column with studies of the sample.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2024,  8, 21, "Added 'add_study_column' flag.");
+		changeLog(2024,  4, 24, "Added 'only_with_small_variants' flag.");
+		changeLog(2024,  3,  4, "Added 'add_lab_columns' flag.");
 		changeLog(2023, 11, 16, "Added 'add_call_details' flag.");
 		changeLog(2023,  7, 13, "Added 'add_dates' flag.");
 		changeLog(2022, 11, 11, "Added 'ancestry' and 'phenotypes' filter options.");
@@ -150,6 +154,7 @@ public:
 		params.add_dates = getFlag("add_dates");
 		params.add_call_details = getFlag("add_call_details");
 		params.add_lab_columns = getFlag("add_lab_columns");
+		params.add_study_column = getFlag("add_study_column");
 
 
 		//check parameters

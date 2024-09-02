@@ -1,5 +1,5 @@
 ### VcfAnnotateConsequence tool help
-	VcfAnnotateConsequence (2023_11-42-ga9d1687d)
+	VcfAnnotateConsequence (2024_06-58-g80c33029)
 	
 	Adds transcript-specific consequence predictions to a VCF file.
 	
@@ -20,7 +20,9 @@
 	                           Default value: '5000'
 	  -prefetch <int>          Maximum number of blocks that may be pre-fetched into memory.
 	                           Default value: '64'
-	  -all                     If set, all transcripts are imported (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).
+	  -all                     If set, all transcripts are imported. The default is to skip transcripts not labeled as 'GENCODE basic' for Ensembl and not with RefSeq/BestRefSeq origin for Refseq.
+	                           Default value: 'false'
+	  -skip_not_hgnc           Skip genes that do not have a HGNC identifier.
 	                           Default value: 'false'
 	  -tag <string>            Tag that is used for the consequence annotation.
 	                           Default value: 'CSQ'
@@ -32,6 +34,9 @@
 	                           Default value: '20'
 	  -splice_region_in3 <int> Number of bases at intron boundaries (3') that are considered to be part of the splice region.
 	                           Default value: '20'
+	  -source <enum>           GFF source.
+	                           Default value: 'ensembl'
+	                           Valid: 'ensembl,refseq'
 	  -debug                   Enable debug output
 	                           Default value: 'false'
 	
@@ -42,7 +47,8 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfAnnotateConsequence changelog
-	VcfAnnotateConsequence 2023_11-42-ga9d1687d
+	VcfAnnotateConsequence 2024_06-58-g80c33029
 	
+	2024-07-26 Added support for RefSeq GFF format (source parameter).
 	2022-07-07 Change to event-driven multithreaded implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

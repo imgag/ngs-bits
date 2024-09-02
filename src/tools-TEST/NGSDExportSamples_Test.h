@@ -32,7 +32,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportSamples_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportSamples", "-test -add_disease_details -add_outcome -add_qc -add_report_config -add_comments -add_normal_sample -add_dates -out out/NGSDExportSamples_out2.tsv");
+		EXECUTE("NGSDExportSamples", "-test -add_disease_details -add_outcome -add_qc -add_report_config -add_comments -add_normal_sample -add_dates -add_call_details -add_lab_columns -add_study_column -out out/NGSDExportSamples_out2.tsv");
 		COMPARE_FILES("out/NGSDExportSamples_out2.tsv", TESTDATA("data_out/NGSDExportSamples_out2.tsv"));
 	}
 

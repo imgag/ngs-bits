@@ -29,105 +29,169 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <item row="3" column="0">
-    <widget class="QPushButton" name="exec_btn">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
      <property name="text">
-      <string>execute</string>
+      <string>Action:</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+   <item row="0" column="1">
+    <widget class="QComboBox" name="action">
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maxVisibleItems">
+      <number>30</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>[NGSD]</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Compare structure of test and production</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Compare base data of test and production</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Delete unused samples</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Delete unused variants</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Replace obsolte HPO terms</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Replace obsolte gene symbols</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Find inconsistencies for causal diagnostic variants</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Link samples from same patient</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Delete variants of bad samples</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Delete data of merged samples</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Find tumor samples with germline variants</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Delete invalid variants</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>[GenLab]</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Import study samples</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Import year of birth</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Import tissue</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Import patient IDs</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>1181</width>
+       <height>17</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Description:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="2">
+    <widget class="QLabel" name="description">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="3">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
       <number>3</number>
      </property>
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QPushButton" name="exec_btn">
        <property name="text">
-        <string>Action:</string>
+        <string>execute</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="action">
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maxVisibleItems">
-        <number>30</number>
-       </property>
-       <item>
-        <property name="text">
-         <string>[NGSD]</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Delete unused samples</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Delete unused variants</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Replace obsolte HPO terms</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Find inconsistencies for causal diagnostic variants</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Link samples from same patient</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Delete variants of bad samples</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Compare test and production</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>[GenLab]</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Import study samples</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Import year of birth</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Import tissue</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Import patient IDs</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -141,7 +205,7 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="0" colspan="2">
+   <item row="3" column="0" colspan="3">
     <widget class="QTextEdit" name="output">
      <property name="readOnly">
       <bool>true</bool>
@@ -150,19 +214,6 @@
       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
      </property>
     </widget>
-   </item>
-   <item row="3" column="1">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

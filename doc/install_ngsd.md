@@ -84,7 +84,7 @@ The initial import of database content using ngs-bits.
 ## Update of gene, transcript and diesease data
 
 To keep gene, transcript and diesease data in NGSD up-to-date, you need to perform regular updates.  
-To do that, update ngs-bits and re-run these import eools:
+To do that, update ngs-bits and re-run these import tools:
 
 		> ngs-bits/bin/NGSDImportHGNC --help
 		> ngs-bits/bin/NGSDImportEnsembl --help
@@ -92,6 +92,15 @@ To do that, update ngs-bits and re-run these import eools:
 		> ngs-bits/bin/NGSDImportGeneInfo --help
 		> ngs-bits/bin/NGSDImportOMIM --help
 		> ngs-bits/bin/NGSDImportORPHA --help
+
+After the update of gene and HPO data, you should run the maintenance tasks `Replace obsolete gene symbols` and `Replace obsolete HPO terms` in GSvar (NGSD > Admin > Maintenance).
+
+*Note:  
+Make sure to run the tools with the `-force` parameter to override the existing data!*
+
+*Note:  
+You should perform a import into a test database first, to make sure the import works.   
+After the test import, you can check the NGSD data using GSvar (NGSD > Admin > Maintenance > Compare base data of test and production).*
 
 *Note:  
 The data links in these tools are updated roughly every 3 months.  

@@ -29,6 +29,8 @@
 #include "TsvFile.h"
 #include "HttpRequestHandler.h"
 
+const int MAX_VARIANT_SIZE = 500;
+
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
 {
@@ -447,6 +449,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_dates = false;
 	bool add_call_details = false;
 	bool add_lab_columns = false;
+	bool add_study_column = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)
@@ -984,15 +987,14 @@ public:
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
 
-	///Returns the corresponding sample id(s) with relation 'same sample' (mode:SAME_SAMPLE) or 'same patient' and 'same patient' (mode: SAME_PATIENT). Uses the cache to avoid database queries.
-	/// (Does not contain the provided sample itself)
+	///Returns the corresponding sample id(s) with relation 'same sample' (mode:SAME_SAMPLE) or 'same patient' and 'same patient' (mode: SAME_PATIENT). Uses a cache to minimize the number of database queries. Does not contain the provided sample itself.
 	const QSet<int>& sameSamples(int sample_id, SameSampleMode mode);
-	///Returns related sample id(s). Uses the cache to avoid database queries.
+	///Returns related sample id(s). Uses a cache to minimize the number of database queries.
 	const QSet<int>& relatedSamples(int sample_id);
-	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	///Return a list of sample ids which have a specific relation to the given sample id and optionally a given samples type.
 	QSet<int> relatedSamples(int sample_id, const QString& relation, QString sample_type="");
-	///Adds a new sample relation to the database;
-	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
+	///Adds a new sample relation to the database. If the user ID is not set, it is taken from LoginManager.
+	void addSampleRelation(const SampleRelation& rel, int user_id=-1);
 
 	///Returns sample disease details from the database.
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
@@ -1213,6 +1215,9 @@ public:
 	///Returns the content of a NovaSeqX Plus SampleSheet for a given run
 	QString createSampleSheet(int run_id, QStringList& warnings);
 
+	///Returns the (sorted) list of studies of a processed sample
+	QStringList studies(const QString& processed_sample_id);
+
 signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
@@ -1220,7 +1225,6 @@ signals:
 protected:
 	///Copy constructor "declared away".
 	NGSD(const NGSD&) = delete;
-	void fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column);
 	static QString escapeForSql(const QString& text);
 
 	///Returns the maxiumn allele frequency of a variant.

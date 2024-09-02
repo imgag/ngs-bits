@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2024_06
+	> git checkout 2024_08
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -103,6 +103,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BedSort](doc/tools/BedSort.md) - Sorts the regions in a BED file
 * [BedSubtract](doc/tools/BedSubtract.md) - Subracts one BED file from another BED file.
 * [BedToFasta](doc/tools/BedToFasta.md) - Converts BED file to a FASTA file (based on the reference genome).
+* [CnvReferenceCohort](doc/tools/CnvReferenceCohort.md) - Create a reference cohort for CNV calling from a list of coverage profiles.
 
 ### FASTQ tools
 
@@ -176,21 +177,17 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ## ChangeLog
 
-Changes in release 2024_06:
+Changes in release 2024_08:
 
-* new tools: NGSDExportIgvGeneTrack
-* BamFilter: added parameter for maximum insert size
-* NGSDAddVariantsGermline: now imports REs as well
-* NGSDExportSamples: new paramters `-only_with_small_variants` and `-add_lab_columns`. 
-* SampleGender: new parameter `-include_single_end_reads` for long-read data.
-* SampleSimilarity: new parameter `-include_single_end_reads` for long-read data.
-* SampleSimilarity: new parameter `-roi_hg38_wes_wgs` to make WES, WGS and lrGS results more comparable.
-* UpdHunter: new parameter `-out_informative` to write out a IGV track with informative variants.
-* VcfCalculatePRS: new parameter `-min_depth` and support for variants that are to be imputed independent of the sample genotype.
-* NGSD:
-	* added tables for somatic SVs: somatic_somatic_sv_callset, somatic_sv_deletion, somatic_sv_duplication, somatic_sv_insertion, somatic_sv_inversion, somatic_sv_translocation, somatic_report_configuration_sv
-	* added tables for repeat expansions: repeat_expansion, repeat_expansion_genotype, re_callset, report_configuration_re
-	* processed_sample table: added boolean `scheduled_for_resequencing` to flag samples for resequencing to increase depth/coverage
+* added tool: CnvReferenceCohort
+* removed tool: NGSDMaintain (functionality now in GSvar NGSD maintainance dialog)
+* NGSDExportSamples: added option `-add_study_column`
+* NGSDSameSample: added option `-include_bad`
+* NGSD: added new table `runqc_ont`
 
+## Citing
+
+There is no paper for ngs-bit yet.  
+Please cite the GitHub repository for now.
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

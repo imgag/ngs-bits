@@ -273,10 +273,6 @@ SUBDIRS += VcfAnnotateFromBed
 tools-TEST.depends += VcfAnnotateFromBed
 VcfAnnotateFromBed.depends = cppNGS
 
-SUBDIRS += NGSDMaintain
-tools-TEST.depends += NGSDMaintain
-NGSDMaintain.depends = cppNGSD
-
 SUBDIRS += TsvMerge
 tools-TEST.depends += TsvMerge
 TsvMerge.depends = cppNGS
@@ -591,3 +587,6 @@ ExtractMethylationData.depends = cppNGS
 SUBDIRS += BamRemoveVariants
 tools-TEST.depends += BamRemoveVariants
 BamRemoveVariants.depends = cppNGS
+SUBDIRS += CnvReferenceCohort
+tools-TEST.depends += CnvReferenceCohort
+CnvReferenceCohort.depends = cppNGS

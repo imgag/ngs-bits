@@ -608,13 +608,13 @@
       <property name="spacing">
        <number>3</number>
       </property>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="add_comments">
-        <property name="text">
-         <string>add comments</string>
+      <item row="0" column="9">
+       <widget class="QCheckBox" name="add_call_details">
+        <property name="toolTip">
+         <string>Added variant caller, variant caller version and variant calling date for small variants, CNVs and SVs.</string>
         </property>
-        <property name="checked">
-         <bool>false</bool>
+        <property name="text">
+         <string>add calling details</string>
         </property>
        </widget>
       </item>
@@ -628,16 +628,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="6">
-       <widget class="QCheckBox" name="add_normal_sample">
-        <property name="toolTip">
-         <string>Normal germline sample associated to a tumor sample.</string>
-        </property>
-        <property name="text">
-         <string>add normal sample</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="2">
        <widget class="QCheckBox" name="add_outcome">
         <property name="text">
@@ -648,13 +638,43 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="9">
-       <widget class="QCheckBox" name="add_call_details">
+      <item row="0" column="6">
+       <widget class="QCheckBox" name="add_normal_sample">
         <property name="toolTip">
-         <string>Added variant caller, variant caller version and variant calling date for small variants, CNVs and SVs.</string>
+         <string>Normal germline sample associated to a tumor sample.</string>
         </property>
         <property name="text">
-         <string>add calling details</string>
+         <string>add normal sample</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="10">
+       <widget class="QCheckBox" name="add_lab_columns">
+        <property name="toolTip">
+         <string>Adds columns input, molarity, operator, processing method and batch number.</string>
+        </property>
+        <property name="text">
+         <string>add lab columns</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="add_disease_details">
+        <property name="text">
+         <string>add disease details</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="add_comments">
+        <property name="text">
+         <string>add comments</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -675,23 +695,10 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="add_disease_details">
+      <item row="0" column="11">
+       <widget class="QCheckBox" name="add_study_column">
         <property name="text">
-         <string>add disease details</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="10">
-       <widget class="QCheckBox" name="add_lab_columns">
-        <property name="toolTip">
-         <string>Adds columns input, molarity, operator, processing method and batch number.</string>
-        </property>
-        <property name="text">
-         <string>add lab columns</string>
+         <string>add study column</string>
         </property>
        </widget>
       </item>
@@ -743,6 +750,11 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>ClickableLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>ClickableLineEdit.h</header>
+  </customwidget>
+  <customwidget>
    <class>DBTableWidget</class>
    <extends>QTableWidget</extends>
    <header>DBTableWidget.h</header>
@@ -751,11 +763,6 @@
    <class>DBSelector</class>
    <extends>QLineEdit</extends>
    <header location="global">DBSelector.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ClickableLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>ClickableLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
