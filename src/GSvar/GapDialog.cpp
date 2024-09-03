@@ -138,6 +138,25 @@ void GapDialog::calculteGaps()
 				BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 
 				low_cov = GermlineReportGenerator::precalculatedGaps(gaps, roi, cutoff, sys_roi);
+
+				//calculate mito coverage if necessary (mito is not part of the target region of processing sytems)
+				BedFile mito_roi;
+				for (int i=0; i<roi_.count(); ++i)
+				{
+					if (roi_[i].chr().isM())
+					{
+						mito_roi.append(roi_[i]);
+						qDebug() << roi_[i].toString(true);
+					}
+				}
+				if(!mito_roi.isEmpty())
+				{
+					output << "Low-coverage statistics for chrMT had to be calculated on the fly!";
+					low_cov.subtract(mito_roi);
+
+					BedFile mito_gaps = GlobalServiceProvider::statistics().lowCoverage(mito_roi, bam_, cutoff);
+					low_cov.add(mito_gaps);
+				}
 			}
             catch(Exception& e)
 			{
