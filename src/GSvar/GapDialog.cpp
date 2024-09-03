@@ -143,15 +143,10 @@ void GapDialog::calculteGaps()
 				BedFile mito_roi;
 				for (int i=0; i<roi_.count(); ++i)
 				{
-					if (roi_[i].chr().isM())
-					{
-						mito_roi.append(roi_[i]);
-						qDebug() << roi_[i].toString(true);
-					}
+					if (roi_[i].chr().isM()) mito_roi.append(roi_[i]);
 				}
 				if(!mito_roi.isEmpty())
 				{
-					output << "Low-coverage statistics for chrMT had to be calculated on the fly!";
 					low_cov.subtract(mito_roi);
 
 					BedFile mito_gaps = GlobalServiceProvider::statistics().lowCoverage(mito_roi, bam_, cutoff);
