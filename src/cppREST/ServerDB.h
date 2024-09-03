@@ -8,6 +8,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlRecord>
+#include <QJsonDocument>
 
 class CPPRESTSHARED_EXPORT ServerDB
 {
@@ -28,7 +29,7 @@ public:
     QList<Session> getAllSessions();
     int getSessionsCount();
 
-    bool addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const QDateTime created);
+    bool addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created);
     bool addUrl(const UrlEntity new_url);
     bool addUrls(const QList<UrlEntity> all_urls);
     bool removeUrl(const QString& string_id);
@@ -38,6 +39,15 @@ public:
     UrlEntity getUrl(const QString& string_id);
     QList<UrlEntity> getAllUrls();
     int getUrlsCount();
+
+    bool addFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing, QString json_content, const QDateTime requested);
+    bool removeFileLocation(const QString& string_id);
+    bool wipeFileLocations();
+    bool removeFileLocationsOlderThan(qint64 seconds);
+    QJsonDocument getFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing);
+    bool hasFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing);
+    void updateFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing);
+    int getFileLocationsCount();
 
 protected:
     QSharedPointer<QSqlDatabase> db_;

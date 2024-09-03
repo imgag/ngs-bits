@@ -69,10 +69,23 @@ void ServerDB::initDbIfEmpty()
                          "`path` TEXT NOT NULL,"
                          "`filename_with_path` TEXT NOT NULL,"
                          "`file_id` TEXT NOT NULL,"
+                         "`size` BIGINT NOT NULL,"
+                         "`file_exists` INTEGER(1),"
                          "`created` BIGINT NOT NULL"
                          ");";
 
-    QList<QString> filedb_tables = QList<QString>() << client_info_table << user_notification << sessions_table << urls_table;
+    QString file_locations_table = "CREATE TABLE IF NOT EXISTS file_locations ("
+                             "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
+                             "`filename_with_path` TEXT NOT NULL,"
+                             "`type` VARCHAR(40) NOT NULL,"
+                             "`locus` VARCHAR(40) NOT NULL,"
+                             "`multiple_files` INTEGER(1),"
+                             "`return_if_missing` INTEGER(1),"
+                             "`json_content` TEXT NOT NULL,"
+                             "`requested` BIGINT NOT NULL"
+                             ");";
+
+    QList<QString> filedb_tables = QList<QString>() << client_info_table << user_notification << sessions_table << urls_table << file_locations_table;
     for(int i = 0; i < filedb_tables.size(); i++)
     {
         QSqlQuery query = db_->exec(filedb_tables[i]);
@@ -88,7 +101,7 @@ void ServerDB::initDbIfEmpty()
 void ServerDB::reinitializeDb()
 {
     Log::info("Erasing existing tables");
-    QList<QString> table_name_list = QList<QString>() << "client_info" << "user_notification" << "sessions" << "urls";
+    QList<QString> table_name_list = QList<QString>() << "client_info" << "user_notification" << "sessions" << "urls" << "file_locations";
     for(int i = 0; i < table_name_list.size(); i++)
     {
         QSqlQuery query = db_->exec("DROP TABLE IF EXISTS " + table_name_list[i]);
@@ -264,12 +277,12 @@ int ServerDB::getSessionsCount()
     return 0;
 }
 
-bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const QDateTime created)
+bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created)
 {
     qint64 created_as_num = created.toSecsSinceEpoch();
-
-    QSqlQuery query = db_->exec("INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, created)"
-                                                       " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " + QString::number(created_as_num) + ")");
+    QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created)"
+                         " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " +  QString::number(size) + ", " + QString::number(static_cast<int>(file_exists)) + ", " + QString::number(created_as_num) + ")";
+    QSqlQuery query = db_->exec(query_text);
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
     {
@@ -281,7 +294,7 @@ bool ServerDB::addUrl(const QString string_id, const QString filename, const QSt
 
 bool ServerDB::addUrl(const UrlEntity new_url)
 {
-    return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.created);
+    return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.size, new_url.file_exists, new_url.created);
 }
 
 bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
@@ -299,13 +312,13 @@ bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
     int processed_items = 0;
     for (int i=0; i<batch_count; i++)
     {
-        QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, created) VALUES";
+        QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created) VALUES";
         for (int b=i*batch_size; b<((i+1)*batch_size); b++)
         {
             if (b>(all_urls.count()-1)) break;
 
             qint64 created_as_num = all_urls[b].created.toSecsSinceEpoch();
-            query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(created_as_num) + "),";
+            query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(all_urls[b].size) + ", " + QString::number(static_cast<int>(all_urls[b].file_exists)) + ", " + QString::number(created_as_num) + "),";
 
             processed_items++;
         }
@@ -380,6 +393,8 @@ UrlEntity ServerDB::getUrl(const QString& string_id)
         int index_path = query.record().indexOf("path");
         int index_filename_with_path = query.record().indexOf("filename_with_path");
         int index_file_id = query.record().indexOf("file_id");
+        int index_size = query.record().indexOf("size");
+        int index_file_exists = query.record().indexOf("file_exists");
         int index_created = query.record().indexOf("created");
 
         return UrlEntity(
@@ -388,6 +403,8 @@ UrlEntity ServerDB::getUrl(const QString& string_id)
             query.value(index_path).toString(),
             query.value(index_filename_with_path).toString(),
             query.value(index_file_id).toString(),
+            query.value(index_size).toLongLong(),
+            query.value(index_file_exists).toBool(),
             QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong())
             );
     }
@@ -407,6 +424,8 @@ QList<UrlEntity> ServerDB::getAllUrls()
         int index_path = query.record().indexOf("path");
         int index_filename_with_path = query.record().indexOf("filename_with_path");
         int index_file_id = query.record().indexOf("file_id");
+        int index_size = query.record().indexOf("size");
+        int index_file_exists = query.record().indexOf("file_exists");
         int index_created = query.record().indexOf("created");
 
         results.append(
@@ -416,6 +435,8 @@ QList<UrlEntity> ServerDB::getAllUrls()
                 query.value(index_path).toString(),
                 query.value(index_filename_with_path).toString(),
                 query.value(index_file_id).toString(),
+                query.value(index_size).toLongLong(),
+                query.value(index_file_exists).toBool(),
                 QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong())
                 )
             );
@@ -427,6 +448,95 @@ QList<UrlEntity> ServerDB::getAllUrls()
 int ServerDB::getUrlsCount()
 {
     QSqlQuery query = db_->exec("SELECT COUNT(*) FROM urls");
+    if (query.next())
+    {
+        return query.value(0).toInt();
+    }
+    return 0;
+}
+
+bool ServerDB::addFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing, QString json_content, const QDateTime requested)
+{
+    qint64 requested_as_num = requested.toSecsSinceEpoch();
+    QString json_string = json_content.replace("'", "''");
+    // json_string = json_string.replace("\\", "\\\\");
+    json_string = json_string.replace("\"", "\\\"");
+    QSqlQuery query = db_->exec("INSERT INTO file_locations (filename_with_path, type, locus, multiple_files, return_if_missing, json_content, requested)"
+                                " VALUES (\"" + filename_with_path + "\", \"" + type + "\", \"" + locus + "\", " + QString::number(static_cast<int>(multiple_files)) + ", " + QString::number(static_cast<int>(return_if_missing)) + ", \"" + json_string + "\", " + QString::number(requested_as_num) + ")");
+    bool success = query.lastError().text().trimmed().isEmpty();
+    if(!success)
+    {
+        Log::error("Failed to add a new FileLocation: " + query.lastError().text() + ", " + query.lastQuery());
+    }
+
+    return success;
+}
+
+bool ServerDB::removeFileLocation(const QString& id)
+{
+    QSqlQuery query = db_->exec("DELETE FROM file_locations WHERE id = \"" + id + "\"");
+    bool success = query.lastError().text().trimmed().isEmpty();
+    if(!success)
+    {
+        Log::error("Failed to remove the FileLocation '" + id + "': " + query.lastError().text());
+    }
+    return success;
+}
+
+bool ServerDB::wipeFileLocations()
+{
+    Log::info("Removing current backup for FileLocations");
+    QSqlQuery query = db_->exec("DELETE FROM file_locations");
+    bool success = query.lastError().text().trimmed().isEmpty();
+    if(!success)
+    {
+        Log::error("Failed to wipe the FileLocations : " + query.lastError().text());
+    }
+    return success;
+}
+
+bool ServerDB::removeFileLocationsOlderThan(qint64 seconds)
+{
+    QSqlQuery query = db_->exec("DELETE FROM file_locations WHERE requested < " + QString::number(seconds));
+    bool success = query.lastError().text().trimmed().isEmpty();
+
+    if(!success)
+    {
+        Log::error("Failed to remove FileLocations older than " + QDateTime::fromSecsSinceEpoch(seconds).toString("ddd MMMM d yy") +  ": " + query.lastError().text());
+    }
+    return success;
+}
+
+QJsonDocument ServerDB::getFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing)
+{    
+    QSqlQuery query = db_->exec("SELECT * FROM file_locations WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
+    if (query.next())
+    {
+        int index_json_content = query.record().indexOf("json_content");        
+        return QJsonDocument::fromJson(query.value(index_json_content).toString().toLocal8Bit());
+    }
+    return QJsonDocument();
+}
+
+bool ServerDB::hasFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing)
+{
+    QSqlQuery query = db_->exec("SELECT * FROM file_locations WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
+    if (query.next())
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void ServerDB::updateFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing)
+{
+    db_->exec("UPDATE file_locations SET requested="+QString::number(QDateTime::currentDateTime().toSecsSinceEpoch())+" WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
+}
+
+int ServerDB::getFileLocationsCount()
+{
+    QSqlQuery query = db_->exec("SELECT COUNT(*) FROM file_locations");
     if (query.next())
     {
         return query.value(0).toInt();
