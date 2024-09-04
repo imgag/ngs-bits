@@ -1802,7 +1802,7 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 
 		low_cov = GermlineReportGenerator::precalculatedGaps(gaps, roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
 
-		//calculate mito coverage if necessary (mito is not part of the target region)
+		//calculate mito coverage if necessary (mito is not part of the target region of processing sytems)
 		BedFile mito_roi;
 		for (int i=0; i<roi.regions.count(); ++i)
 		{

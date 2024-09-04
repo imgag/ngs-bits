@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2024_08-6 (03.09.24)
+
+- gap dialog: fixed chrMT regions wrongly shown as gaps 
+- RE dialog: fixed bug preventing coloring expanded repeats when no `max. normal` is known
+
 ## 2024_07-33 (26.08.24)
 
 - multi-sample analysis report: can now contain additional samples (configured in report dialog)
