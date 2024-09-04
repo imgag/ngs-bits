@@ -2,6 +2,7 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include <QCloseEvent>
 #include "ui_SettingsDialog.h"
 
 class SettingsDialog
