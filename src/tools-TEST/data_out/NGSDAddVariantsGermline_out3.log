@@ -1,9 +1,7 @@
 
-### importing small variants for NA12878_18 ###
-Found 46 variants already imported into NGSD!
-DEBUG: Found 0 class 4/5 variants
-Imported variants (added:3 updated:0)
-Ignored 46 already imported variants
-Imported 3 detected variants
-DEBUG: Skipped 303 high-AF variants!
-
+### importing small variants for NA12878_18 ###
+Found 46 variants already imported into NGSD!
+Imported variants (added:3 updated:0)
+Ignored 46 already imported variants
+Imported 3 detected variants
+DEBUG: Skipped 303 high-AF variants!

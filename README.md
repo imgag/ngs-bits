@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2024_07
+	> git checkout 2024_08
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -177,16 +177,17 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ## ChangeLog
 
-Changes in release 2024_07:
+Changes in release 2024_08:
 
-* BedCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
-* BedHighCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
-* BedLowCoverage: improved runtime by using chromosomal sweep instead of random access (added parameter `-random_access`)
-* VcfAnnotateConsequence: added support for RefSeq GFF file
-* VcfFilter: added parameter `-filter_clear`
-* NGSD:
-	* kasp_status: added fields `calculated_date` and `calculated_by`.
+* added tool: CnvReferenceCohort
+* removed tool: NGSDMaintain (functionality now in GSvar NGSD maintainance dialog)
+* NGSDExportSamples: added option `-add_study_column`
+* NGSDSameSample: added option `-include_bad`
+* NGSD: added new table `runqc_ont`
 
+## Citing
 
+There is no paper for ngs-bit yet.  
+Please cite the GitHub repository for now.
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

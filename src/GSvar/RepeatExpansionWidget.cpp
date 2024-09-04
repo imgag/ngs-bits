@@ -565,9 +565,10 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 
 		//determine cutoffs
 		int max_normal = getCell(row, "max. normal").toInt(&ok);
-		if(!ok) continue;
+		if(!ok) max_normal = -1;
 		int min_pathogenic = getCell(row, "min. pathogenic").toInt(&ok);
-		if(!ok) continue;
+		if(!ok) min_pathogenic = -1;
+		if (max_normal==-1 && min_pathogenic==-1) continue;
 
 		//determine maximum
 		QStringList genotypes = getCell(row, "genotype").split("/");
@@ -584,11 +585,11 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		if (max==-1) continue;
 
 		//color
-		if (max>=min_pathogenic)
+		if (min_pathogenic!=-1 && max>=min_pathogenic)
 		{
 			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
 		}
-		else if (max>max_normal)
+		else if (max_normal!=-1 && max>max_normal)
 		{
 			setCellDecoration(row, "genotype", "Above max. normal cutoff!", orange_);
 		}

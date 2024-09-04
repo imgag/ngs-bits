@@ -74,7 +74,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\plugins\</td>
-		<td>platforms, sqldrivers, printsupport, imageformats</td>
+		<td>platforms, sqldrivers, printsupport, imageformats, bearer, iconengines, styles</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\Tools\mingw730_64\opt\bin\</td>

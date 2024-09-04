@@ -331,8 +331,15 @@ void BedFile::extend(int n)
 	for (int i=0; i<lines_.count(); ++i)
 	{
 		BedLine& line = lines_[i];
-		line.setStart(std::max(1, line.start() - n));
-		line.setEnd(line.end() + n);
+
+		//start
+		int start = std::max(1, line.start() - n);
+		line.setStart(start);
+
+		//end
+		int end = line.end() + n;
+		if (line.chr().isM() && end>16569) end = 16569;
+		line.setEnd(end);
 	}
 }
 
