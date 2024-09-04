@@ -19,13 +19,12 @@ public slots:
 	void store();
 
 private slots:
-	void importColumns();
+	void addColumnsFromSample();
 	void clearColumns();
 
-	void addColumn(const QString& name);
-	void addColumn(const QString& name, const ColumnInfo& info);
 	void moveRowUp();
 	void moveRowDown();
+	void deleteSelectedColumn();
 	void sizeChanged(int row, int col);
 	void typeChanged(QString new_type);
 
@@ -45,6 +44,8 @@ private:
 	void loadConfig(QString type);
 
 	void swapRows(int from, int to);
+	void addColumn(const QString& name);
+	void addColumn(const QString& name, const ColumnInfo& info);
 
 	static QString variantTypeToKey(QString type);
 };

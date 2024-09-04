@@ -4,6 +4,7 @@
 #include "GUIHelper.h"
 
 #include <QCheckBox>
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QToolTip>
 
@@ -15,16 +16,18 @@ ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 	, configs_()
 {
 	ui_.setupUi(this);
-	connect(ui_.import_btn, SIGNAL(clicked(bool)), this, SLOT(importColumns()));
-	connect(ui_.clear_btn, SIGNAL(clicked(bool)), this, SLOT(clearColumns()));
 	connect(ui_.up_btn, SIGNAL(clicked(bool)), this, SLOT(moveRowUp()));
 	connect(ui_.down_btn, SIGNAL(clicked(bool)), this, SLOT(moveRowDown()));
+	connect(ui_.delete_selected_btn, SIGNAL(clicked(bool)), this, SLOT(deleteSelectedColumn()));
 	connect(ui_.table, SIGNAL(cellChanged(int,int)), this, SLOT(sizeChanged(int,int)));
 	ui_.load_store_btn->setMenu(new QMenu());
-	ui_.load_store_btn->menu()->addAction("Export column settings", this, SLOT(exportCurrent()));
-	ui_.load_store_btn->menu()->addAction("Export column settings of all types", this, SLOT(exportAll()));
+	ui_.load_store_btn->menu()->addAction(QIcon(":/Icons/Add_batch.png"), "Import missing columns from current sample", this, SLOT(addColumnsFromSample()));
 	ui_.load_store_btn->menu()->addSeparator();
-	ui_.load_store_btn->menu()->addAction("Imoport column settings", this, SLOT(import()));
+	ui_.load_store_btn->menu()->addAction(QIcon(":/Icons/Export.png"), "Export column settings of current type", this, SLOT(exportCurrent()));
+	ui_.load_store_btn->menu()->addAction(QIcon(":/Icons/Export.png"), "Export column settings of all types", this, SLOT(exportAll()));
+	ui_.load_store_btn->menu()->addAction(QIcon(":/Icons/Import.png"), "Import column settings", this, SLOT(import()));
+	ui_.load_store_btn->menu()->addSeparator();
+	ui_.load_store_btn->menu()->addAction(QIcon(":/Icons/Remove.png"), "Clear columns", this, SLOT(clearColumns()));
 
 	//add types and load configs
 	for (int i=0; i<(int)VariantType::INVALID; ++i)
@@ -50,7 +53,7 @@ ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 	ui_.table->setColumnWidth(0, 200);
 }
 
-void ColumnConfigWidget::importColumns()
+void ColumnConfigWidget::addColumnsFromSample()
 {
 	//determine current columns names
 	QSet<QString> current_names;
@@ -159,6 +162,16 @@ void ColumnConfigWidget::moveRowDown()
 	ui_.table->setCurrentItem(ui_.table->item(row+1, 0));
 }
 
+void ColumnConfigWidget::deleteSelectedColumn()
+{
+	//no selection > abort
+	QList<int> seleted_rows = GUIHelper::selectedTableRows(ui_.table);
+	if (seleted_rows.isEmpty()) return;
+
+	//delete
+	ui_.table->removeRow(seleted_rows[0]);
+}
+
 void ColumnConfigWidget::sizeChanged(int row, int col)
 {
 	//only for size column
@@ -187,17 +200,92 @@ void ColumnConfigWidget::typeChanged(QString new_type)
 
 void ColumnConfigWidget::exportCurrent()
 {
+	QString title = title_ + " - export";
+	try
+	{
+		//create output
+		QStringList lines;
+		QString name = ui_.type->currentText();
+		QString key = variantTypeToKey(name);
+		lines << key + " = " + configs_[name].toString();
 
+		//get filename
+		QString filename = QFileDialog::getSaveFileName(this, title, QDir::homePath() + QDir::separator() + key + ".txt", tr("TXT (*.txt);;All Files (*)"));
+		if (filename.isEmpty()) return;
+
+		//store
+		QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+		Helper::storeTextFile(file, lines);
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, title);
+	}
 }
 
 void ColumnConfigWidget::exportAll()
 {
+	QString title = title_ + " - export";
+	try
+	{
+		//create output
+		QStringList lines;
+		for(int i=0; i<ui_.type->count(); ++i)
+		{
+			QString name = ui_.type->itemText(i);
+			QString key = variantTypeToKey(name);
+			lines << key + " = " + configs_[name].toString();
+		}
 
+		//get filename
+		QString filename = QFileDialog::getSaveFileName(this, title, QDir::homePath() + QDir::separator() + "column_config_all.txt", tr("TXT (*.txt);;All Files (*)"));
+		if (filename.isEmpty()) return;
+
+		//store
+		QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+		Helper::storeTextFile(file, lines);
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, title);
+	}
 }
 
 void ColumnConfigWidget::import()
 {
+	QString title = title_ + " - export";
+	try
+	{
+		qDebug() << configs_.keys();
 
+		//get filename
+		QString filename = QFileDialog::getOpenFileName(this, title, QDir::homePath() + QDir::separator() + ".txt", tr("TXT (*.txt);;All Files (*)"));
+		if (filename.isEmpty()) return;
+
+		//import column configs
+		QStringList lines = Helper::loadTextFile(filename);
+		foreach(QString line, lines)
+		{
+			line = line.replace("column_config_", "").trimmed();
+			if (line.isEmpty()) continue;
+
+			int sep = line.indexOf('=');
+			if (sep!=-1)
+			{
+				QString type = line.left(sep).replace("_", " ").trimmed();
+				qDebug() << type;
+				if (!configs_.contains(type)) THROW(FileParseException, "Cannot import invalid variant type '" + type + "'!");
+				configs_[type] = ColumnConfig::fromString(line.mid(sep+1).trimmed());
+			}
+		}
+
+		//update GUI
+		loadConfig(ui_.type->currentText());
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, title);
+	}
 }
 
 void ColumnConfigWidget::store()
@@ -235,7 +323,6 @@ void ColumnConfigWidget::swapRows(int from, int to)
 
 void ColumnConfigWidget::writeBackCurrentConfig()
 {
-	qDebug() << __LINE__ << current_type_;
 	if (current_type_.isEmpty()) return;
 
 	//create config
@@ -243,9 +330,7 @@ void ColumnConfigWidget::writeBackCurrentConfig()
 
 	for (int row=0; row<ui_.table->rowCount(); ++row)
 	{
-		qDebug() << __LINE__ << row;
 		QString name = ui_.table->item(row, 0)->text();
-		qDebug() << __LINE__ << name;
 		ColumnInfo info;
 
 		QString tmp = ui_.table->item(row, 1)->text();
@@ -270,8 +355,6 @@ void ColumnConfigWidget::writeBackCurrentConfig()
 
 void ColumnConfigWidget::loadConfig(QString type)
 {
-	qDebug() << __LINE__ << type;
-
 	//clear
 	ui_.table->setRowCount(0);
 
@@ -288,8 +371,5 @@ void ColumnConfigWidget::loadConfig(QString type)
 
 QString ColumnConfigWidget::variantTypeToKey(QString type)
 {
-	return "column_config_"+type.replace(" ", "_").toLower();
+	return "column_config_"+type.replace(" ", "_");
 }
-
-//TODO:
-//- context menu to delete single column

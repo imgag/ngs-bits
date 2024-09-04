@@ -54,50 +54,6 @@
       </spacer>
      </item>
      <item>
-      <widget class="QToolButton" name="import_btn">
-       <property name="toolTip">
-        <string>Add column names for current sample</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="clear_btn">
-       <property name="toolTip">
-        <string>Clear column settings</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>10</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
       <widget class="QPushButton" name="up_btn">
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
@@ -128,6 +84,36 @@
        </property>
        <property name="shortcut">
         <string>Alt+Down</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>10</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="delete_selected_btn">
+       <property name="toolTip">
+        <string>Delete selected column</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
        </property>
       </widget>
      </item>

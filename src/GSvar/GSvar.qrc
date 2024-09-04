@@ -128,5 +128,6 @@
         <file>Icons/multithreading.png</file>
         <file>Icons/wt_pathogenic.png</file>
         <file>Icons/GeneReviews.png</file>
+        <file>Icons/Export.png</file>
     </qresource>
 </RCC>

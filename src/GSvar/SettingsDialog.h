@@ -21,6 +21,8 @@ private slots:
 
 private:
 	Ui::SettingsDialog ui_;
+
+	virtual void closeEvent(QCloseEvent *e) override;
 };
 
 #endif // SETTINGSDIALOG_H

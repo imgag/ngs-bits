@@ -2,6 +2,7 @@
 #include "Settings.h"
 #include "Log.h"
 #include <QDebug>
+#include <QMessageBox>
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
 	QDialog(parent),
@@ -51,6 +52,15 @@ void SettingsDialog::changePage()
 	gotoPage(page_name);
 }
 
+void SettingsDialog::closeEvent(QCloseEvent* e)
+{
+	e->ignore();
+	if (QMessageBox::Yes == QMessageBox::question(this, windowTitle(), "Do you want to exit without storing the changes?", QMessageBox::Yes | QMessageBox::No))
+	{
+		e->accept();
+	}
+}
+
 void SettingsDialog::loadSettings()
 {
 	//general
@@ -94,5 +104,3 @@ void SettingsDialog::storeSettings()
 	//columns
 	ui_.column_config->store();
 }
-
-//TODO Marc: ask the user if he's sure when closing the dialog via the window X

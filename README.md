@@ -132,7 +132,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCalculatePRS](doc/tools/VcfCalculatePRS.md) - Calculates the Polgenic Risk Score(s) for a sample.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
-* [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file.
+* [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfMerge](doc/tools/VcfMerge.md) - Merges several VCF files into one VCF.
