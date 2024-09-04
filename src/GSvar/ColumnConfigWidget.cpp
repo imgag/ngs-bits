@@ -256,8 +256,6 @@ void ColumnConfigWidget::import()
 	QString title = title_ + " - export";
 	try
 	{
-		qDebug() << configs_.keys();
-
 		//get filename
 		QString filename = QFileDialog::getOpenFileName(this, title, QDir::homePath() + QDir::separator() + ".txt", tr("TXT (*.txt);;All Files (*)"));
 		if (filename.isEmpty()) return;
@@ -273,7 +271,6 @@ void ColumnConfigWidget::import()
 			if (sep!=-1)
 			{
 				QString type = line.left(sep).replace("_", " ").trimmed();
-				qDebug() << type;
 				if (!configs_.contains(type)) THROW(FileParseException, "Cannot import invalid variant type '" + type + "'!");
 				configs_[type] = ColumnConfig::fromString(line.mid(sep+1).trimmed());
 			}

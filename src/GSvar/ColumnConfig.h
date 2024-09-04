@@ -2,7 +2,7 @@
 #define COLUMNCONFIG_H
 
 #include <QString>
-#include <QList>
+#include <QHash>
 
 struct ColumnInfo
 {
