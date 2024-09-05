@@ -1598,3 +1598,28 @@ def: "Number of variants that are flagged as mosaic variants (in filter column).
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: sturm
+
+[Term]
+id: QC:2000143
+name: Q score histogram
+def: "Histogram of base Q scores." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000144
+name: median base Q score
+def: "Median Q score of all bases of the sample." [PXS:QC]
+is_a: QC:2000004 ! NGS aquisition parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000145
+name: mode base Q score
+def: "Most frequent Q score of all bases of the sample." [PXS:QC]
+is_a: QC:2000004 ! NGS aquisition parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
