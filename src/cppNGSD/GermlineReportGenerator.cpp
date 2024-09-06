@@ -1421,8 +1421,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("start", QString::number(re.region().start()));
 		w.writeAttribute("end", QString::number(re.region().end()));
 		w.writeAttribute("repeat_unit", re.unit());
-		w.writeAttribute("allele1", re.allele1());
-		if (!re.allele2().isEmpty()) w.writeAttribute("allele2", re.allele2());
+		w.writeAttribute("allele1", QByteArray::number(re.allele1asInt()));
+		if (!re.allele2().isEmpty()) w.writeAttribute("allele2", QByteArray::number(re.allele2asInt()));
 
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
