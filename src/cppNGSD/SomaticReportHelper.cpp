@@ -2046,11 +2046,7 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 	{
 		RtfSourceCode sv_expl;
 		int idx_desc = svs_.annotationIndexByName("DESCRIPTION");
-		if (svs_.count() == 1)
-		{
-			sv_expl = RtfText("Es gibt Hinweise auf eine wahrscheinlich onkogene Strukturvariante (s. Anlage):").setBold(true).RtfCode();
-		}
-		else
+		if (svs_.count() >= 1)
 		{
 			sv_expl = RtfText("Es gibt Hinweise auf wahrscheinlich onkogene Strukturvarianten (s. Anlage):").setBold(true).RtfCode();
 			for(int i=0; i< svs_.count(); i++)
