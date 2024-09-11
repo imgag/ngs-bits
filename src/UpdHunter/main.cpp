@@ -469,8 +469,8 @@ public:
 		if (!out.endsWith(".igv")) THROW(ArgumentException, "Output file name for informative variants has to end with '.igv'!");
 
 		QSharedPointer<QFile> output = Helper::openFileForWriting(out);
-		output->write("#track graphtype=heatmap viewLimits=1:4 maxHeightPixels=80:80:80 color=0,0,255 altColor=255,0,0 midRange=2.5:2.5 midColor=255,255,255 windowingFunction=mean");
-		output->write("Chromosome\tStart\tEnd\tFeature\tUPD variants");
+		output->write("#track graphtype=heatmap viewLimits=1:4 maxHeightPixels=80:80:80 color=0,0,255 altColor=255,0,0 midRange=2.5:2.5 midColor=255,255,255 windowingFunction=mean\n");
+		output->write("Chromosome\tStart\tEnd\tFeature\tUPD variants\n");
 		foreach(const VariantData& var, data)
 		{
 			QByteArray source = "";
