@@ -1,5 +1,6 @@
 #include "FileLocationProviderRemote.h"
 #include "ApiCaller.h"
+#include "Log.h"
 
 FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id)
 	: sample_id_(sample_id)
@@ -56,7 +57,10 @@ FileLocationList FileLocationProviderRemote::getQcFiles() const
 
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
 {
-	FileLocationList output;
+    QTime timer;
+    timer.start();
+
+    FileLocationList output;
 	if (sample_id_.isEmpty())
 	{
 		THROW(ArgumentException, "File name has not been specified")
@@ -82,12 +86,16 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	QJsonArray file_list = json_doc.array();
 
 	output = mapJsonArrayToFileLocationList(file_list, return_if_missing);
+    Log::perf("Getting file type " + FileLocation::typeToString(type) + " took ", timer);
 	return output;
 }
 
 FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type, QString locus) const
 {
-	FileLocation output;
+    QTime timer;
+    timer.start();
+
+    FileLocation output;
 	if (sample_id_.isEmpty())
 	{
 		THROW(ArgumentException, "File name has not been specified")
@@ -120,6 +128,7 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	}
 
 	output = mapJsonObjectToFileLocation(file_object);
+    Log::perf("Getting file type " + FileLocation::typeToString(type) + " took ", timer);
 	return output;
 }
 

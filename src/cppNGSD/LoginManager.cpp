@@ -75,6 +75,7 @@ void LoginManager::setAllTokens(const QString& user, const QString& password)
         QByteArray ngsd_credentials = sendPostApiRequest("ngsd_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
         QJsonDocument ngsd_json = QJsonDocument::fromJson(ngsd_credentials);
 
+        Log::info("manager.user_token_ = " + manager.user_token_);
         if (ngsd_json.isObject())
         {
             manager.ngsd_host_name_ = ngsd_json.object().value("ngsd_host").toString();
