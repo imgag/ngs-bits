@@ -1,0 +1,549 @@
+{
+    "analyses": [
+        {
+            "alias": "ANA_Pseudonym01",
+            "analysis_method": "ANAM_Pseudonym01",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "research_data_files": [
+                "FASTQ_R1_Pseudonym01",
+                "FASTQ_R2_Pseudonym01"
+            ],
+            "title": "ANA_Pseudonym01",
+            "type": "custom analysis"
+        },
+        {
+            "alias": "ANA_Pseudonym02",
+            "analysis_method": "ANAM_Pseudonym02",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "research_data_files": [
+                "FASTQ_R1_Pseudonym02",
+                "FASTQ_R2_Pseudonym02"
+            ],
+            "title": "ANA_Pseudonym02",
+            "type": "custom analysis"
+        },
+        {
+            "alias": "ANA_Pseudonym03",
+            "analysis_method": "ANAM_Pseudonym03",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "research_data_files": [
+                "FASTQ_R1_Pseudonym03",
+                "FASTQ_R2_Pseudonym03"
+            ],
+            "title": "ANA_Pseudonym03",
+            "type": "custom analysis"
+        },
+        {
+            "alias": "ANA_Pseudonym04",
+            "analysis_method": "ANAM_Pseudonym04",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "research_data_files": [
+                "FASTQ_R1_Pseudonym04",
+                "FASTQ_R2_Pseudonym04"
+            ],
+            "title": "ANA_Pseudonym04",
+            "type": "custom analysis"
+        },
+        {
+            "alias": "ANA_Pseudonym05",
+            "analysis_method": "ANAM_Pseudonym05",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "research_data_files": [
+                "FASTQ_R1_Pseudonym05",
+                "FASTQ_R2_Pseudonym05"
+            ],
+            "title": "ANA_Pseudonym05",
+            "type": "custom analysis"
+        }
+    ],
+    "analysis_method_supporting_files": [
+    ],
+    "analysis_methods": [
+        {
+            "alias": "ANAM_Pseudonym01",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "name": "ANAM_Pseudonym01",
+            "type": "custom analysis",
+            "workflow_doi": "megSAP_doi",
+            "workflow_name": "megSAP",
+            "workflow_repository": "https://github.com/imgag/megSAP",
+            "workflow_version": "2000_01-123-g123456789"
+        },
+        {
+            "alias": "ANAM_Pseudonym02",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "name": "ANAM_Pseudonym02",
+            "type": "custom analysis",
+            "workflow_doi": "megSAP_doi",
+            "workflow_name": "megSAP",
+            "workflow_repository": "https://github.com/imgag/megSAP",
+            "workflow_version": "2000_01-123-g123456789"
+        },
+        {
+            "alias": "ANAM_Pseudonym03",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "name": "ANAM_Pseudonym03",
+            "type": "custom analysis",
+            "workflow_doi": "megSAP_doi",
+            "workflow_name": "megSAP",
+            "workflow_repository": "https://github.com/imgag/megSAP",
+            "workflow_version": "2000_01-123-g123456789"
+        },
+        {
+            "alias": "ANAM_Pseudonym04",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "name": "ANAM_Pseudonym04",
+            "type": "custom analysis",
+            "workflow_doi": "megSAP_doi",
+            "workflow_name": "megSAP",
+            "workflow_repository": "https://github.com/imgag/megSAP",
+            "workflow_version": "2000_01-123-g123456789"
+        },
+        {
+            "alias": "ANAM_Pseudonym05",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "name": "ANAM_Pseudonym05",
+            "type": "custom analysis",
+            "workflow_doi": "megSAP_doi",
+            "workflow_name": "megSAP",
+            "workflow_repository": "https://github.com/imgag/megSAP",
+            "workflow_version": "2000_01-123-g123456789"
+        }
+    ],
+    "data_access_committees": [
+        {
+            "alias": "norply@med.uni-tuebingen.de",
+            "email": "norply@med.uni-tuebingen.de",
+            "institute": "UKT, Tübingen, Germany"
+        }
+    ],
+    "data_access_policies": [
+        {
+            "alias": "DAP_Study4711",
+            "data_access_committee": "norply@med.uni-tuebingen.de",
+            "data_use_modifier_ids": [
+                "DUO:0000025",
+                "DUO:0000036"
+            ],
+            "data_use_modifier_terms": [
+                "TIME_LIMIT_ON_USE",
+                "COLLABORATION_REQUIRED"
+            ],
+            "data_use_permission_id": "DUO:0000001",
+            "data_use_permission_term": "GENERAL_RESEARCH_USE",
+            "description": "Data access policy for study Study4711",
+            "name": "Data access policy for study Study4711",
+            "policy_text": "Textual description of the DAP",
+            "policy_url": "http:://url.describing.the.dap.de"
+        }
+    ],
+    "datasets": [
+        {
+            "alias": "DS_Study4711",
+            "data_access_policy": "DAP_Study4711",
+            "description": "Dataset for study Study4711",
+            "study": "Study4711",
+            "title": "Dataset for study Study4711",
+            "types": [
+                "Sequencing data"
+            ]
+        }
+    ],
+    "experiment_method_supporting_files": [
+    ],
+    "experiment_methods": [
+        {
+            "alias": "EXPM_Pseudonym01",
+            "description": "IDT xGen Human ID + IDT xGen Prism DNA",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "OTHER",
+            "name": "EXPM_Pseudonym01",
+            "sequencing_layout": "PE",
+            "type": "IDT xGen Human ID + IDT xGen Prism DNA"
+        },
+        {
+            "alias": "EXPM_Pseudonym02",
+            "description": "IDT xGen Human ID + IDT xGen Prism DNA",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "OTHER",
+            "name": "EXPM_Pseudonym02",
+            "sequencing_layout": "PE",
+            "type": "IDT xGen Human ID + IDT xGen Prism DNA"
+        },
+        {
+            "alias": "EXPM_Pseudonym03",
+            "description": "IDT xGen Human ID + IDT xGen Prism DNA",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "OTHER",
+            "name": "EXPM_Pseudonym03",
+            "sequencing_layout": "PE",
+            "type": "IDT xGen Human ID + IDT xGen Prism DNA"
+        },
+        {
+            "alias": "EXPM_Pseudonym04",
+            "description": "IDT xGen Human ID + IDT xGen Prism DNA",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "OTHER",
+            "name": "EXPM_Pseudonym04",
+            "sequencing_layout": "PE",
+            "type": "IDT xGen Human ID + IDT xGen Prism DNA"
+        },
+        {
+            "alias": "EXPM_Pseudonym05",
+            "description": "IDT xGen Human ID + IDT xGen Prism DNA",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "OTHER",
+            "name": "EXPM_Pseudonym05",
+            "sequencing_layout": "PE",
+            "type": "IDT xGen Human ID + IDT xGen Prism DNA"
+        }
+    ],
+    "experiments": [
+        {
+            "alias": "EXP_Pseudonym01",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym01",
+            "sample": "SAM_Pseudonym01",
+            "title": "EXP_Pseudonym01",
+            "type": "cfDNA"
+        },
+        {
+            "alias": "EXP_Pseudonym02",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym02",
+            "sample": "SAM_Pseudonym02",
+            "title": "EXP_Pseudonym02",
+            "type": "cfDNA"
+        },
+        {
+            "alias": "EXP_Pseudonym03",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym03",
+            "sample": "SAM_Pseudonym03",
+            "title": "EXP_Pseudonym03",
+            "type": "cfDNA"
+        },
+        {
+            "alias": "EXP_Pseudonym04",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym04",
+            "sample": "SAM_Pseudonym04",
+            "title": "EXP_Pseudonym04",
+            "type": "cfDNA"
+        },
+        {
+            "alias": "EXP_Pseudonym05",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym05",
+            "sample": "SAM_Pseudonym05",
+            "title": "EXP_Pseudonym05",
+            "type": "cfDNA"
+        }
+    ],
+    "individual_supporting_files": [
+    ],
+    "individuals": [
+        {
+            "alias": "PAT1",
+            "sex": "FEMALE"
+        },
+        {
+            "alias": "PAT2",
+            "sex": "FEMALE"
+        }
+    ],
+    "process_data_files": [
+        {
+            "alias": "BAM_Pseudonym01",
+            "analysis": "ANA_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "format": "BAM",
+            "included_in_submission": true,
+            "name": "Pseudonym01.bam"
+        },
+        {
+            "alias": "VCF_Pseudonym01",
+            "analysis": "ANA_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "Pseudonym01.vcf"
+        },
+        {
+            "alias": "BAM_Pseudonym02",
+            "analysis": "ANA_Pseudonym02",
+            "dataset": "DS_Study4711",
+            "format": "BAM",
+            "included_in_submission": true,
+            "name": "Pseudonym02.bam"
+        },
+        {
+            "alias": "VCF_Pseudonym02",
+            "analysis": "ANA_Pseudonym02",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "Pseudonym02.vcf"
+        },
+        {
+            "alias": "BAM_Pseudonym03",
+            "analysis": "ANA_Pseudonym03",
+            "dataset": "DS_Study4711",
+            "format": "BAM",
+            "included_in_submission": true,
+            "name": "Pseudonym03.bam"
+        },
+        {
+            "alias": "VCF_Pseudonym03",
+            "analysis": "ANA_Pseudonym03",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "Pseudonym03.vcf"
+        },
+        {
+            "alias": "BAM_Pseudonym04",
+            "analysis": "ANA_Pseudonym04",
+            "dataset": "DS_Study4711",
+            "format": "BAM",
+            "included_in_submission": true,
+            "name": "Pseudonym04.bam"
+        },
+        {
+            "alias": "VCF_Pseudonym04",
+            "analysis": "ANA_Pseudonym04",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "Pseudonym04.vcf"
+        },
+        {
+            "alias": "BAM_Pseudonym05",
+            "analysis": "ANA_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "format": "BAM",
+            "included_in_submission": true,
+            "name": "Pseudonym05.bam"
+        },
+        {
+            "alias": "VCF_Pseudonym05",
+            "analysis": "ANA_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "Pseudonym05.vcf"
+        }
+    ],
+    "publications": [
+        {
+            "alias": "PUB_Study4711",
+            "doi": "",
+            "study": "Study4711",
+            "title": ""
+        }
+    ],
+    "research_data_files": [
+        {
+            "alias": "FASTQ_R1_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym01"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym01_R1.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym01"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym01_R2.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_Pseudonym02",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym02"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym02_R1.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_Pseudonym02",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym02"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym02_R2.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_Pseudonym03",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym03"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym03_R1.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_Pseudonym03",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym03"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym03_R2.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_Pseudonym04",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym04"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym04_R1.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_Pseudonym04",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym04"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym04_R2.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym05"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym05_R1.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym05"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "Pseudonym05_R2.fastq.gz",
+            "technical_replicate": 1
+        }
+    ],
+    "samples": [
+        {
+            "alias": "SAM_Pseudonym01",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "case_control_status": "UNKNOWN",
+            "description": "sample that was sequenced",
+            "individual": "PAT1",
+            "name": "SAM_Pseudonym01",
+            "type": "CF_DNA"
+        },
+        {
+            "alias": "SAM_Pseudonym02",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "case_control_status": "UNKNOWN",
+            "description": "sample that was sequenced",
+            "individual": "PAT1",
+            "name": "SAM_Pseudonym02",
+            "type": "CF_DNA"
+        },
+        {
+            "alias": "SAM_Pseudonym03",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "case_control_status": "UNKNOWN",
+            "description": "sample that was sequenced",
+            "individual": "PAT1",
+            "name": "SAM_Pseudonym03",
+            "type": "CF_DNA"
+        },
+        {
+            "alias": "SAM_Pseudonym04",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "case_control_status": "UNKNOWN",
+            "description": "sample that was sequenced",
+            "individual": "PAT2",
+            "name": "SAM_Pseudonym04",
+            "type": "CF_DNA"
+        },
+        {
+            "alias": "SAM_Pseudonym05",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "case_control_status": "UNKNOWN",
+            "description": "sample that was sequenced",
+            "individual": "PAT2",
+            "name": "SAM_Pseudonym05",
+            "type": "CF_DNA"
+        }
+    ],
+    "studies": [
+        {
+            "affiliations": [
+                "Affiliation 1",
+                "Affiliation 2"
+            ],
+            "alias": "Study4711",
+            "description": "Descripion of the study",
+            "title": "Study4711",
+            "types": [
+                "OTHER",
+                "EXOME_SEQUENCING"
+            ]
+        }
+    ]
+}

@@ -1,397 +1,260 @@
 {
-    "has_analysis": [
+    "analyses": [
         {
-            "alias": "ANA000111",
-            "description": "short-read data analysis using megSAP: https://github.com/imgag/megSAP",
-            "has_input": [
-                "BAM000111"
+            "alias": "ANA_000111",
+            "analysis_method": "ANAM_000111",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "research_data_files": [
+                "FASTQ_R1_000111",
+                "FASTQ_R2_000111"
             ],
-            "has_output": [
-                "VCF000111"
-            ],
-            "has_study": "Study4711",
-            "reference_chromosome": "unspecified",
-            "reference_genome": "GRCh38",
-            "schema_type": "CreateAnalysis",
-            "schema_version": "0.9.0",
-            "type": "BAM"
+            "title": "ANA_000111",
+            "type": "custom analysis"
         },
         {
-            "alias": "ANA000222",
-            "description": "short-read data analysis using megSAP: https://github.com/imgag/megSAP",
-            "has_input": [
-                "BAM000222"
+            "alias": "ANA_000222",
+            "analysis_method": "ANAM_000222",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "research_data_files": [
+                "FASTQ_R1_000222",
+                "FASTQ_R2_000222"
             ],
-            "has_output": [
-                "VCF000222"
-            ],
-            "has_study": "Study4711",
-            "reference_chromosome": "unspecified",
-            "reference_genome": "GRCh38",
-            "schema_type": "CreateAnalysis",
-            "schema_version": "0.9.0",
-            "type": "BAM"
+            "title": "ANA_000222",
+            "type": "custom analysis"
         }
     ],
-    "has_biospecimen": [
+    "analysis_method_supporting_files": [
     ],
-    "has_data_access_committee": [
+    "analysis_methods": [
         {
-            "alias": "Study4711 DAC",
-            "has_member": [
-                "norply@med.uni-tuebingen.de"
-            ],
-            "main_contact": "norply@med.uni-tuebingen.de",
-            "schema_type": "CreateDataAccessCommittee",
-            "schema_version": "0.9.0"
-        }
-    ],
-    "has_data_access_policy": [
-        {
-            "alias": "DAP_Study4711",
-            "description": "Data access policy for study Study4711",
-            "has_data_access_committee": "Study4711 DAC",
-            "has_data_use_modifier": [
-                "Modifier 1",
-                "Modifier 2"
-            ],
-            "has_data_use_permisson": "Use Condition",
-            "name": "Data access policy for study Study4711",
-            "policy_text": "Textual description of the DAP",
-            "policy_url": "http:://url.describing.the.dap.de",
-            "schema_type": "CreateDataAccessPolicy",
-            "schema_version": "0.9.0"
-        }
-    ],
-    "has_dataset": [
-        {
-            "alias": "Study4711 dataset",
-            "description": "Dataset of the study Study4711",
-            "has_analysis": [
-                "ANA000111",
-                "ANA000222"
-            ],
-            "has_data_access_policy": "DAP_Study4711",
-            "has_experiment": [
-                "EXP000111",
-                "EXP000222"
-            ],
-            "has_file": [
-                "BAM000111",
-                "VCF000111",
-                "BAM000222",
-                "VCF000222"
-            ],
-            "has_sample": [
-                "SAM000111",
-                "SAM000222"
-            ],
-            "has_study": [
-                "Study4711"
-            ],
-            "schema_type": "CreateDataset",
-            "schema_version": "0.9.0",
-            "title": "Dataset of the study Study4711",
-            "type": [
-                "Whole genome sequencing",
-                "Transcriptome profiling by high-throughput sequencing"
-            ]
-        }
-    ],
-    "has_experiment": [
-        {
-            "alias": "EXP000111",
-            "biological_replicates": "1",
-            "description": "short-read sequencing",
-            "has_file": [
-                "BAM000111",
-                "VCF000111"
-            ],
-            "has_protocol": [
-                "LIB000111",
-                "SEQ000111"
-            ],
-            "has_sample": [
-                "SAM000111"
-            ],
-            "has_study": "Study4711",
-            "schema_type": "CreateExperiment",
-            "schema_version": "0.9.0",
-            "technical_replicates": "1",
-            "title": null,
-            "type": "WGS"
+            "alias": "ANAM_000111",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "name": "ANAM_000111",
+            "type": "custom analysis",
+            "workflow_doi": "megSAP_doi",
+            "workflow_name": "megSAP",
+            "workflow_repository": "https://github.com/imgag/megSAP",
+            "workflow_version": "2000_01-123-g123456789"
         },
         {
-            "alias": "EXP000222",
-            "biological_replicates": "1",
-            "description": "short-read sequencing",
-            "has_file": [
-                "BAM000222",
-                "VCF000222"
-            ],
-            "has_protocol": [
-                "LIB000222",
-                "SEQ000222"
-            ],
-            "has_sample": [
-                "SAM000222"
-            ],
-            "has_study": "Study4711",
-            "schema_type": "CreateExperiment",
-            "schema_version": "0.9.0",
-            "technical_replicates": "1",
-            "title": null,
-            "type": "Total RNA"
+            "alias": "ANAM_000222",
+            "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+            "name": "ANAM_000222",
+            "type": "custom analysis",
+            "workflow_doi": "megSAP_doi",
+            "workflow_name": "megSAP",
+            "workflow_repository": "https://github.com/imgag/megSAP",
+            "workflow_version": "2000_01-123-g123456789"
         }
     ],
-    "has_file": [
-        {
-            "alias": "BAM000111",
-            "checksum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "checksum_type": "MD5",
-            "format": "BAM",
-            "name": "BAM000111.bam",
-            "schema_type": "CreateFile",
-            "schema_version": "0.9.0",
-            "size": "6000000"
-        },
-        {
-            "alias": "VCF000111",
-            "checksum": "123456789ABCDEFGHIJKLMNO",
-            "checksum_type": "MD5",
-            "format": "VCF",
-            "name": "VCF000111.vcf.gz",
-            "schema_type": "CreateFile",
-            "schema_version": "0.9.0",
-            "size": "7000000"
-        },
-        {
-            "alias": "BAM000222",
-            "checksum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "checksum_type": "MD5",
-            "format": "BAM",
-            "name": "BAM000222.bam",
-            "schema_type": "CreateFile",
-            "schema_version": "0.9.0",
-            "size": "6000000"
-        },
-        {
-            "alias": "VCF000222",
-            "checksum": "123456789ABCDEFGHIJKLMNO",
-            "checksum_type": "MD5",
-            "format": "VCF",
-            "name": "VCF000222.vcf.gz",
-            "schema_type": "CreateFile",
-            "schema_version": "0.9.0",
-            "size": "7000000"
-        }
-    ],
-    "has_individual": [
-        {
-            "age": "unknown",
-            "alias": "IND000111",
-            "geographical_region": "unknown",
-            "has_ancestry": [
-                {
-                    "concept_name": "European",
-                    "schema_type": "CreateAncestry",
-                    "schema_version": "0.9.0"
-                }
-            ],
-            "has_phenotypic_feature": [
-                {
-                    "concept_name": "HP:0033006",
-                    "schema_type": "CreatePhenotypicFeature",
-                    "schema_version": "0.9.0"
-                },
-                {
-                    "concept_name": "HP:0040049",
-                    "schema_type": "CreatePhenotypicFeature",
-                    "schema_version": "0.9.0"
-                }
-            ],
-            "karyotype": "unknown",
-            "schema_type": "CreateIndividual",
-            "schema_version": "0.9.0",
-            "sex": "female",
-            "vital_status": "unknown"
-        },
-        {
-            "age": "unknown",
-            "alias": "IND000222",
-            "geographical_region": "unknown",
-            "has_ancestry": [
-            ],
-            "has_phenotypic_feature": [
-            ],
-            "karyotype": "unknown",
-            "schema_type": "CreateIndividual",
-            "schema_version": "0.9.0",
-            "sex": "male",
-            "vital_status": "unknown"
-        }
-    ],
-    "has_member": [
+    "data_access_committees": [
         {
             "alias": "norply@med.uni-tuebingen.de",
             "email": "norply@med.uni-tuebingen.de",
-            "organization": "UKT, Tübingen, Germany",
-            "schema_type": "CreateMember",
-            "schema_version": "0.9.0"
+            "institute": "UKT, Tübingen, Germany"
         }
     ],
-    "has_project": null,
-    "has_protocol": [
+    "data_access_policies": [
         {
-            "alias": "LIB000111",
+            "alias": "DAP_Study4711",
+            "data_access_committee": "norply@med.uni-tuebingen.de",
+            "data_use_modifier_ids": [
+                "DUO:0000025",
+                "DUO:0000036"
+            ],
+            "data_use_modifier_terms": [
+                "TIME_LIMIT_ON_USE",
+                "COLLABORATION_REQUIRED"
+            ],
+            "data_use_permission_id": "DUO:0000001",
+            "data_use_permission_term": "GENERAL_RESEARCH_USE",
+            "description": "Data access policy for study Study4711",
+            "name": "Data access policy for study Study4711",
+            "policy_text": "Textual description of the DAP",
+            "policy_url": "http:://url.describing.the.dap.de"
+        }
+    ],
+    "datasets": [
+        {
+            "alias": "DS_Study4711",
+            "data_access_policy": "DAP_Study4711",
+            "description": "Dataset for study Study4711",
+            "study": "Study4711",
+            "title": "Dataset for study Study4711",
+            "types": [
+                "Sequencing data"
+            ]
+        }
+    ],
+    "experiment_method_supporting_files": [
+    ],
+    "experiment_methods": [
+        {
+            "alias": "EXPM_000111",
             "description": "Illumina TruSeq DNA PCR-Free",
-            "end_bias": null,
-            "has_attribute": null,
-            "library_layout": "PE",
-            "library_name": "processed_sample.id:111",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
             "library_preparation": "unspecified",
-            "library_preparation_kit_manufacturer": null,
-            "library_preparation_kit_retail_name": "Illumina TruSeq DNA PCR-Free",
-            "library_selection": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
             "library_type": "WGS",
-            "primer": null,
-            "rnaseq_strandedness": null,
-            "schema_type": "CreateLibraryPreparationProtocol",
-            "schema_version": "0.9.0",
-            "target_regions": [
-                "unspecified"
-            ]
+            "name": "EXPM_000111",
+            "sequencing_layout": "PE",
+            "type": "Illumina TruSeq DNA PCR-Free"
         },
         {
-            "alias": "SEQ000111",
-            "cell_barcode_offset": null,
-            "cell_barcode_read": null,
-            "cell_barcode_size": null,
-            "description": "short-read sequencing",
-            "flow_cell_id": "ABC",
-            "flow_cell_type": "Illumina NovaSeq S4",
-            "has_attribute": null,
-            "instrument_model": "Illumina NovaSeq 6000",
-            "sample_barcode_read": null,
-            "schema_type": "CreateSequencingProtocol",
-            "schema_version": "0.9.0",
-            "seq_forward_or_reverse": null,
-            "sequencing_center": null,
-            "sequencing_read_length": null,
-            "target_coverage": null,
-            "type": null,
-            "umi_barcode_offset": null,
-            "umi_barcode_read": null,
-            "umi_barcode_size": null
-        },
-        {
-            "alias": "LIB000222",
+            "alias": "EXPM_000222",
             "description": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI",
-            "end_bias": null,
-            "has_attribute": null,
-            "library_layout": "PE",
-            "library_name": "processed_sample.id:222",
-            "library_preparation": "unspecified",
-            "library_preparation_kit_manufacturer": null,
-            "library_preparation_kit_retail_name": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI",
-            "library_selection": "unspecified",
-            "library_type": "Total RNA",
-            "primer": null,
-            "rnaseq_strandedness": null,
-            "schema_type": "CreateLibraryPreparationProtocol",
-            "schema_version": "0.9.0",
-            "target_regions": [
-                "unspecified"
-            ]
-        },
-        {
-            "alias": "SEQ000222",
-            "cell_barcode_offset": null,
-            "cell_barcode_read": null,
-            "cell_barcode_size": null,
-            "description": "short-read sequencing",
             "flow_cell_id": "ABC",
-            "flow_cell_type": "Illumina NovaSeq S4",
-            "has_attribute": null,
-            "instrument_model": "Illumina NovaSeq 6000",
-            "sample_barcode_read": null,
-            "schema_type": "CreateSequencingProtocol",
-            "schema_version": "0.9.0",
-            "seq_forward_or_reverse": null,
-            "sequencing_center": null,
-            "sequencing_read_length": null,
-            "target_coverage": null,
-            "type": null,
-            "umi_barcode_offset": null,
-            "umi_barcode_read": null,
-            "umi_barcode_size": null
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "Total RNA",
+            "name": "EXPM_000222",
+            "sequencing_layout": "PE",
+            "type": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI"
         }
     ],
-    "has_publication": [
-    ],
-    "has_sample": [
+    "experiments": [
         {
-            "alias": "SAM000111",
-            "case_control_status": null,
-            "description": "sample that was sequenced",
-            "has_anatomical_entity": [
-                {
-                    "concept_name": "blood",
-                    "schema_type": "CreateAnatomicalEntity",
-                    "schema_version": "0.9.0"
-                }
-            ],
-            "has_attribute": null,
-            "has_biospecimen": null,
-            "has_individual": "IND000111",
-            "isolation": null,
-            "name": "SAM000111",
-            "schema_type": "CreateSample",
-            "schema_version": "0.9.0",
-            "storage": null,
-            "type": "genomic DNA",
-            "vital_status_at_sampling": null,
-            "xref": null
+            "alias": "EXP_000111",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_000111",
+            "sample": "SAM_000111",
+            "title": "EXP_000111",
+            "type": "WGS"
         },
         {
-            "alias": "SAM000222",
-            "case_control_status": null,
-            "description": "sample that was sequenced",
-            "has_anatomical_entity": [
-                {
-                    "concept_name": "skin",
-                    "schema_type": "CreateAnatomicalEntity",
-                    "schema_version": "0.9.0"
-                }
-            ],
-            "has_attribute": null,
-            "has_biospecimen": null,
-            "has_individual": "IND000222",
-            "isolation": null,
-            "name": "SAM000222",
-            "schema_type": "CreateSample",
-            "schema_version": "0.9.0",
-            "storage": null,
-            "type": "total RNA",
-            "vital_status_at_sampling": null,
-            "xref": null
+            "alias": "EXP_000222",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_000222",
+            "sample": "SAM_000222",
+            "title": "EXP_000222",
+            "type": "Total RNA"
         }
     ],
-    "has_study": {
-        "affiliation": [
-            "Affiliation 1",
-            "Affiliation 2"
-        ],
-        "alias": "Study4711",
-        "description": "Descripion of the study",
-        "has_attribute": null,
-        "has_project": null,
-        "has_publication": null,
-        "schema_type": "CreateStudy",
-        "schema_version": "0.9.0",
-        "title": "Study4711",
-        "type": "resequencing"
-    },
-    "schema_type": "CreateSubmission",
-    "schema_version": "0.9.0"
+    "individual_supporting_files": [
+    ],
+    "individuals": [
+        {
+            "alias": "000111",
+            "sex": "FEMALE"
+        },
+        {
+            "alias": "000222",
+            "sex": "MALE"
+        }
+    ],
+    "process_data_files": [
+        {
+            "alias": "BAM_000111",
+            "analysis": "ANA_000111",
+            "dataset": "DS_Study4711",
+            "format": "BAM",
+            "included_in_submission": true,
+            "name": "000111.bam"
+        },
+        {
+            "alias": "BAM_000222",
+            "analysis": "ANA_000222",
+            "dataset": "DS_Study4711",
+            "format": "BAM",
+            "included_in_submission": true,
+            "name": "000222.bam"
+        }
+    ],
+    "publications": [
+        {
+            "alias": "PUB_Study4711",
+            "doi": "",
+            "study": "Study4711",
+            "title": ""
+        }
+    ],
+    "research_data_files": [
+        {
+            "alias": "FASTQ_R1_000111",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_000111"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "000111_R1.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_000111",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_000111"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "000111_R2.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_000222",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_000222"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "000222_R1.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_000222",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_000222"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "000222_R2.fastq.gz",
+            "technical_replicate": 1
+        }
+    ],
+    "samples": [
+        {
+            "alias": "SAM_000111",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "case_control_status": "UNKNOWN",
+            "description": "sample that was sequenced",
+            "individual": "000111",
+            "name": "SAM_000111",
+            "type": "genomic DNA"
+        },
+        {
+            "alias": "SAM_000222",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "case_control_status": "UNKNOWN",
+            "description": "sample that was sequenced",
+            "individual": "000222",
+            "name": "SAM_000222",
+            "type": "total RNA"
+        }
+    ],
+    "studies": [
+        {
+            "affiliations": [
+                "Affiliation 1",
+                "Affiliation 2"
+            ],
+            "alias": "Study4711",
+            "description": "Descripion of the study",
+            "title": "Study4711",
+            "types": [
+                "OTHER",
+                "EXOME_SEQUENCING"
+            ]
+        }
+    ]
 }

@@ -24,7 +24,7 @@ public:
 		addOutfile("out", "Output JSON file.", false, false);
 
 		//optional
-		addFlag("test", "Test mode: uses the test NGSD, does not calculate size/checksum of BAMs, ...");
+		addFlag("test", "Test mode: uses the test NGSD");
 
 		changeLog(2024,  9, 11, "Updated schema to version 2.0.0.");
 		changeLog(2023,  1, 31, "Initial implementation (version 0.9.0 of schema).");
@@ -393,7 +393,7 @@ public:
 		parent.insert("experiment_methods", experiment_methods);
 	}
 
-	void addExperimentMethodSupportingFiles(QJsonObject& parent, const CommonData& data, NGSD& db)
+	void addExperimentMethodSupportingFiles(QJsonObject& parent) //, const CommonData& data, NGSD& db)
 	{
 		QJsonArray experiment_method_supporting_files;
 
@@ -432,7 +432,7 @@ public:
 		parent.insert("individuals", array);
 	}
 
-	void addIndividualSupportingFiles(QJsonObject& parent, const CommonData& data, NGSD& db)
+	void addIndividualSupportingFiles(QJsonObject& parent) //, const CommonData& data, NGSD& db)
 	{
 		QJsonArray array;
 
@@ -466,7 +466,7 @@ public:
 			{
 				QJsonObject obj;
 				obj.insert("format", "VCF");
-				obj.insert("analysis", "ANA" + ps_data.pseudonym);
+				obj.insert("analysis", "ANA_" + ps_data.pseudonym);
 				obj.insert("name", ps_data.pseudonym + ".vcf");
 				obj.insert("dataset", "DS_" + data.study_name);
 				//optional
@@ -552,7 +552,7 @@ public:
 
 			obj.insert("individual", ps_data.patient_id);
 			obj.insert("name", "SAM_" + ps_data.pseudonym);
-			obj.insert("type", sampleTypeToSampleType(ps_data.ps_info.processing_system_type, ps_data.s_info.is_ffpe));
+			obj.insert("type", sampleTypeToSampleType(ps_data.s_info.type, ps_data.s_info.is_ffpe));
 			//optional:
 			//obj.insert("biological_replicate", QJsonValue()); //TODO
 			obj.insert("description", "sample that was sequenced"); //TODO
@@ -673,9 +673,9 @@ public:
 		addDatasets(root, data);
 		addExperiments(root, data);
 		addExperimentMethods(root, data, db);
-		addExperimentMethodSupportingFiles(root, data,db);
+		addExperimentMethodSupportingFiles(root);
 		addIndividuals(root, data);
-		addIndividualSupportingFiles(root, data, db);
+		addIndividualSupportingFiles(root);
 		addProcessDataFiles(root, data);
 		addPublications(root, data);
 		addResearchDataFiles(root, data);
