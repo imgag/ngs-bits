@@ -2066,7 +2066,7 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 
 	QByteArray normal_hla_allel1 = normal_hla.isValid() ? normal_hla.getGeneAllele("HLA-A", true)  : "nicht bestimmbar";
 	QByteArray normal_hla_allel2 = normal_hla.isValid() ? normal_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
-	QByteArray tumor_hla_allel1 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
+	QByteArray tumor_hla_allel1 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", true) : "nicht bestimmbar";
 	QByteArray tumor_hla_allel2 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
 	if (normal_hla_allel1 == "HLA-A*02:01" || normal_hla_allel2 == "HLA-A*02:01" || tumor_hla_allel1 == "HLA-A*02:01" || tumor_hla_allel2 == "HLA-A*02:01" ) // CHECK HLA
 	{
