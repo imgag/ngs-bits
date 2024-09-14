@@ -28,11 +28,27 @@ void RepeatLocus::setAllele1(const QByteArray& allele1)
 	allele1_ = allele1;
 }
 
+int RepeatLocus::allele1asInt()
+{
+	QByteArray tmp = allele1_.trimmed();
+	if (tmp.contains('.')) tmp = tmp.left(tmp.indexOf('.'));
+
+	return Helper::toInt(tmp, "RE allele 1");
+}
+
 void RepeatLocus::setAllele2(const QByteArray& allele2)
 {
 	if (allele2.trimmed()=="." || allele2.trimmed().isEmpty()) return;
 	if (!Helper::isNumeric(allele2)) THROW(ArgumentException, "Cannot set non-numeric allele 2: " + allele2 + "' for " + toString(true, false));
 	allele2_ = allele2;
+}
+
+int RepeatLocus::allele2asInt()
+{
+	QByteArray tmp = allele2_.trimmed();
+	if (tmp.contains('.')) tmp = tmp.left(tmp.indexOf('.'));
+
+	return Helper::toInt(tmp, "RE allele 2");
 }
 
 QByteArray RepeatLocus::alleles() const

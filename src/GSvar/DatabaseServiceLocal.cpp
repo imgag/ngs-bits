@@ -25,13 +25,6 @@ BedFile DatabaseServiceLocal::processingSystemRegions(int sys_id, bool ignore_if
 	return NGSD().processingSystemRegions(sys_id, ignore_if_missing);
 }
 
-BedFile DatabaseServiceLocal::processingSystemAmplicons(int sys_id, bool ignore_if_missing) const
-{
-	checkEnabled(__PRETTY_FUNCTION__);
-
-	return NGSD().processingSystemAmplicons(sys_id, ignore_if_missing);
-}
-
 GeneSet DatabaseServiceLocal::processingSystemGenes(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);

@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2024_08-18 (06.09.24)
+
+- germline report: fixed XML validation error when generating report with RE report config for LR-sample
+
 ## 2024_08-6 (03.09.24)
 
 - gap dialog: fixed chrMT regions wrongly shown as gaps 

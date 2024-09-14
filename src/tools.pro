@@ -584,6 +584,9 @@ SUBDIRS += ExtractMethylationData
 tools-TEST.depends += ExtractMethylationData
 ExtractMethylationData.depends = cppNGS
 
+SUBDIRS += BamRemoveVariants
+tools-TEST.depends += BamRemoveVariants
+BamRemoveVariants.depends = cppNGS
 SUBDIRS += CnvReferenceCohort
 tools-TEST.depends += CnvReferenceCohort
 CnvReferenceCohort.depends = cppNGS
