@@ -237,7 +237,7 @@ public:
 											 << "The coverage profiles of the samples that correlate best with the main sample are saved in the output TSV file."
 											 << "The TSV file contains the chromosome, start, and end positions in the first three columns, with subsequent columns showing the coverage for each selected reference file.");
 		addInfile("in", "Coverage profile of main sample in BED format.", false);
-		addInfileList("in_ref", "Reference coverage profiles of other sample in BED format (GZ file supported).", false);
+		addInfileList("in_ref", "Reference coverage profiles of other sample in BED format (GZ files supported).", false);
 		addOutfile("out", "Output TSV file with coverage profiles of selected reference samples.", false);
 		//optional
 		addInfileList("exclude", "Regions in the given BED file(s) are excluded from the coverage calcualtion, e.g. copy-number polymorphic regions.", true);
@@ -297,7 +297,7 @@ public:
 			{
 				is_valid = false;
 			}
-			//exclude sex chromosomes
+			//exclude all but autosomes
 			else if (!Chromosome(line.chr).isAutosome())
 			{
 				is_valid = false;

@@ -194,7 +194,7 @@ void ImportDialog::pasteRow(int row_index, QString line)
 					int sample_id = ui_.table->item(row_index, 0)->data(Qt::UserRole).toInt();
 					if (db_.relatedSamples(sample_id, "tumor-cfDNA").isEmpty())
 					{
-						THROW(Exception, "No tumor sample spefified for cfDNA (patient-specific) sample!");
+						THROW(Exception, "No tumor sample specified for cfDNA (patient-specific) sample!");
 					}
 				}
 
