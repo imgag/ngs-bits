@@ -249,6 +249,9 @@ public:
 	///Returns if one of the given chromosomal regions overlaps with the BED file regions. Note that is method is slow when too many lines are present. Use ChromosomalIndex<BedFile> in this case!
 	bool overlapsWith(const BedFile& file) const;
 
+	///Returns the last line.
+	const BedLine& last() const { return  *(lines_.end()-1); }
+
 	///Creates a BED file from a string
 	static BedFile fromText(const QByteArray& string);
 
