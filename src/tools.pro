@@ -85,6 +85,10 @@ SUBDIRS += FastaInfo
 tools-TEST.depends += FastaInfo
 FastaInfo.depends = cppNGS
 
+SUBDIRS += FastaMask
+tools-TEST.depends += FastaMask
+FastaMask.depends = cppNGS
+
 SUBDIRS += SampleSimilarity
 tools-TEST.depends += SampleSimilarity
 SampleSimilarity.depends = cppNGS

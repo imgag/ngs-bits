@@ -97,6 +97,11 @@ public:
     {
 		return BasicStatistics::rangeOverlaps(start_, end_, start, end);
     }
+	///Overlap check for position only.
+	bool overlapsWith(int pos) const
+	{
+		return pos>=start_ && pos<=end_;
+	}
     ///Adjacent check - with no gap in between - for chromosome and position range.
 	bool adjacentTo(const Chromosome& chr, int start, int end) const
     {

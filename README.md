@@ -172,7 +172,8 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 ### Misc tools
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
-* [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+* [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
+* [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
 
 ## ChangeLog
