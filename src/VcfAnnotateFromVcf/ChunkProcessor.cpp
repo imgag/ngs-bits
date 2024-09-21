@@ -376,7 +376,8 @@ void ChunkProcessor::run()
 			// add header line for existence_only annotation
 			if (meta_.annotate_only_existence[i])
 			{
-				header_lines.append("##INFO=<ID=" + meta_.existence_name_list[i] + ",Number=0,Type=Flag,Description=\"Variant is present in annotation file '" + meta_.annotation_file_list[i] + "'\">\n");
+				QByteArray filename = QFileInfo(meta_.annotation_file_list[i]).fileName().toLatin1();
+				header_lines.append("##INFO=<ID=" + meta_.existence_name_list[i] + ",Number=0,Type=Flag,Description=\"Variant is present in annotation file '" + filename + "'\">\n");
 			}
 
 			// append header lines to global list
