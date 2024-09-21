@@ -1,0 +1,5 @@
+#Ensembl ID	RefSeq ID	gene	type	overlap	overlap_cds	overlap_utr	match details
+ENST00000641515	NM_001005484	OR4F5	coding	100.00	100.00	100.00	perfect match
+ENST00000433179	NM_001394713	PERM1	coding	100.00	100.00	100.00	perfect match
+ENST00000341290	NM_001291367	PERM1	coding	99.80	100.00	99.41	perfect CDS match, but UTR differences
+ENST00000694917	NM_001291366	PERM1	coding	72.80	100.00	9.60	perfect CDS match, but UTR differences
