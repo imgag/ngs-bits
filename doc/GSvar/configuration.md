@@ -49,6 +49,13 @@ The most important settings are:
 	- path to BED file
 - *text\_editor*: Path of the preferred text editor. It is e.g. used to open log files.
 
+If you want to run GSvar with a GSvar server, you need to provide these settings as well:
+
+* `server_host` - Server name.
+* `server_port` - Server port.
+* `curl_ca_bundle` - Path to certificate CRT file used by the server. If not proviced, the client and/or IGV cannot access BAM files over HTTPS.
+* `display_user_notifications` - Enable/Disable showing user notifications from the server in the client.
+
 ## Filters
 
 Default filters can be defined using these files, located in the same folder as the `GSvar` executable.
