@@ -1231,28 +1231,6 @@ HttpResponse ServerController::getProcessingSystemRegions(const HttpRequest& req
 	return createStaticStreamResponse(filename, false);
 }
 
-HttpResponse ServerController::getProcessingSystemAmplicons(const HttpRequest& request)
-{
-	QString sys_id = request.getUrlParams()["sys_id"];
-	QString filename;
-
-	try
-	{
-		filename = NGSD().processingSystemAmpliconsFilePath(sys_id.toInt());
-	}
-	catch(Exception& e)
-    {
-        Log::error(EndpointManager::formatResponseMessage(request, "Error while getting the processing system amplicons file path:" + e.message()));
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
-	}
-
-	if (filename.isEmpty())
-    {
-        return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processing system amplicons file has not been found"));
-	}
-	return createStaticStreamResponse(filename, false);
-}
-
 HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& request)
 {
 	QString sys_id = request.getUrlParams()["sys_id"];

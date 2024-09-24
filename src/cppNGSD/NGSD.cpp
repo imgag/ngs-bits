@@ -1053,33 +1053,6 @@ BedFile NGSD::processingSystemRegions(int sys_id, bool ignore_if_missing)
 	return output;
 }
 
-QString NGSD::processingSystemAmpliconsFilePath(int sys_id)
-{
-	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
-	if (!rel_path.isEmpty())
-	{
-		return getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
-	}
-	return "";
-}
-
-BedFile NGSD::processingSystemAmplicons(int sys_id, bool ignore_if_missing)
-{
-	BedFile output;
-
-	QString amplicon_file = processingSystemAmpliconsFilePath(sys_id);
-	if (amplicon_file.isEmpty())
-	{
-		if (!ignore_if_missing) THROW(FileAccessException, "Amplicon BED file of processing system '" + getProcessingSystemData(sys_id).name + "' requested but not set in NGSD!");
-	}
-	else
-	{
-		output.load(amplicon_file);
-	}
-
-	return output;
-}
-
 QString NGSD::processingSystemGenesFilePath(int sys_id)
 {
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
@@ -5674,7 +5647,12 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 
 QString NGSD::getTargetFilePath()
 {
-	return PipelineSettings::dataFolder() + QDir::separator() + "enrichment" + QDir::separator();
+	if (ClientHelper::isRunningOnServer())
+	{
+		return PipelineSettings::dataFolder() + QDir::separator() + "enrichment" + QDir::separator();
+	}
+
+	return Settings::string("data_folder") + QDir::separator() + "enrichment" + QDir::separator();
 }
 
 void NGSD::updateQC(QString obo_file, bool debug)

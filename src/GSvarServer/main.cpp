@@ -274,19 +274,6 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
-						"ps_amplicons",
-						QMap<QString, ParamProps> {
-						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
-						},
-						RequestMethod::GET,
-						ContentType::TEXT_PLAIN,
-						AuthType::USER_TOKEN,
-						"Processing system amplicons",
-						&ServerController::getProcessingSystemAmplicons
-					});
-
-	EndpointManager::appendEndpoint(Endpoint{
 						"ps_genes",
 						QMap<QString, ParamProps> {
 						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}},
