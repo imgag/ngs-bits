@@ -9931,7 +9931,18 @@ void NGSD::exportTable(const QString& table, QTextStream& out, QString where_cla
 			for (int i=0; i<field_count; i++)
 			{
 				QString field_value = query.value(field_names[i]).toString();
-				if (((field_value.isEmpty()) || (field_value=="0")) && (table_info.fieldInfo()[i].is_nullable)) field_value = "NULL";                
+
+				//handle nullable fields
+				if ((field_value.isEmpty() || field_value=="0") && table_info.fieldInfo()[i].is_nullable)
+				{
+					field_value = "NULL";
+				}
+
+				//prevent ';\n' because that is interpreted as end of query in import
+				if (table_info.fieldInfo()[i].type==TableFieldInfo::TEXT || table_info.fieldInfo()[i].type==TableFieldInfo::VARCHAR)
+				{
+					field_value.replace(";\n",",\n");
+				}
                 values.append(escapeText(field_value));
 			}
 

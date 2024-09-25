@@ -4601,7 +4601,7 @@ void MainWindow::on_actionImportTestData_triggered()
 		//prevent overriding the production database
 		if (db.isProductionDb())
 		{
-			THROW(DatabaseException, "Cannot import test data into a production database!");
+			THROW(DatabaseException, "Cannot import test data into a production database (see db_info table)!");
 		}
 
 		//get input file
