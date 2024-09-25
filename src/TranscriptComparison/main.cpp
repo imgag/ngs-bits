@@ -1,6 +1,7 @@
 #include "ToolBase.h"
 #include "NGSHelper.h"
 #include "TSVFileStream.h"
+#include "NGSD.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -15,22 +16,23 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Compares transcripts from RefSeq and Ensembl.");
+		setDescription("Compares transcripts from Ensembl and RefSeq/CCDS.");
 		addInfile("ensembl", "Ensembl GFF file.", false);
 		addInfile("refseq", "RefSeq GFF file.", false);
 
 		//optional
 		addOutfile("out", "Output TSV file with matches.", true);
 		addFloat("min_ol", "Minum overall/CDS overlap percentage for printing out a relation if there is no perfect match (disabled by default).", true, 100.0);
+		addFlag("test", "Uses the test database instead of on the production database.");
 
 		//changelog
-		changeLog(2024,  9, 20, "First version.");
+		changeLog(2024,  9, 26, "First version.");
 	}
 
 	struct MatchData
 	{
 		QByteArray ensembl;
-		QByteArray refseq;
+		QByteArray refseq_ccds;
 
 		QByteArray gene;
 		bool is_coding;
@@ -45,7 +47,7 @@ public:
 			QByteArray ol_cds_str = ol_cds==-1 ? "n/a" : QByteArray::number(ol_cds, 'f', 2);
 			QByteArray ol_utr_str = ol_utr==-1 ? "n/a" : QByteArray::number(ol_utr, 'f', 2);
 			QByteArray coding = is_coding ? "coding" : "non-coding";
-			file->write(ensembl + "\t" + refseq + "\t" + gene + "\t" + coding + "\t" + QByteArray::number(ol, 'f', 2) + "\t" + ol_cds_str + "\t" + ol_utr_str + "\t" + comment+ "\n");
+			file->write(ensembl + "\t" + refseq_ccds + "\t" + gene + "\t" + coding + "\t" + QByteArray::number(ol, 'f', 2) + "\t" + ol_cds_str + "\t" + ol_utr_str + "\t" + comment+ "\n");
 			file->flush();
 		}
 	};
@@ -132,25 +134,31 @@ public:
 		double min_ol = getFloat("min_ol");
 
 		//load GFFs
-		stream << "### loading Ensembl GFF ###" << endl;
+		stream << "### loading Ensembl transcripts from GFF ###" << endl;
 		GffSettings s_e;
 		TranscriptList trans_e = NGSHelper::loadGffFile(getInfile("ensembl"), s_e).transcripts;
+		trans_e.sortByPosition();
 		stream << "took " << Helper::elapsedTime(timer.restart(), true) << endl;
 		stream << endl;
 
-		stream << "### loading RefSeq GFF ###" << endl;
+		stream << "### loading RefSeq transcripts from GFF ###" << endl;
 		GffSettings s_r;
 		s_r.source = "refseq";
 		TranscriptList trans_r = NGSHelper::loadGffFile(getInfile("refseq"), s_r).transcripts;
+		trans_r.sortByPosition();
+		ChromosomalIndex<TranscriptList> idx_r(trans_r);
 		stream << "took " << Helper::elapsedTime(timer.restart(), true) << endl;
 		stream << endl;
 
-		//sort GFFs and create index
-		trans_e.sortByPosition();
-		trans_r.sortByPosition();
-		ChromosomalIndex<TranscriptList> idx_r(trans_r);
+		stream << "### loading CCDS transcripts from NGSD ###" << endl;
+		NGSD db(getFlag("test"));
+		TranscriptList trans_c = db.transcripts();
+		trans_c.sortByPosition();
+		ChromosomalIndex<TranscriptList> idx_c(trans_c);
+		stream << "took " << Helper::elapsedTime(timer.restart(), true) << endl;
+		stream << endl;
 
-		stream << "### comparint transcripts ###" << endl;
+		stream << "### comparing transcripts ###" << endl;
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		out->write("##Ensembl file: "+getInfile("ensembl").toLatin1()+"\n");
 		out->write("##RefSeq file: "+getInfile("refseq").toLatin1()+"\n");
@@ -163,8 +171,9 @@ public:
 		QSet<QByteArray> genes_matched;
 		foreach (const Transcript& t_e, trans_e)
 		{
-			QList<MatchData> matches;
+			//### Ensembl<>RefSeq ###
 
+			QList<MatchData> matches;
 			QVector<int> indices = idx_r.matchingIndices(t_e.chr(), t_e.start(), t_e.end());
 			foreach(int index, indices)
 			{
@@ -182,7 +191,7 @@ public:
 				//prepare match data
 				MatchData data;
 				data.ensembl = t_e.name();
-				data.refseq = t_r.name();
+				data.refseq_ccds = t_r.name();
 				data.gene = t_e.gene();
 				data.is_coding = t_e.isCoding();
 
@@ -229,6 +238,41 @@ public:
 			{
 				transcripts_matched << t_e.name();
 				genes_matched << t_e.gene();
+			}
+
+			//### Ensembl<>CCDS ###
+
+			//not coding > skip
+			if (!t_e.isCoding()) continue;
+
+			indices = idx_c.matchingIndices(t_e.chr(), t_e.start(), t_e.end());
+			foreach(int index, indices)
+			{
+				const Transcript& t_c = trans_r[index];
+				if(t_c.source()!=Transcript::CCDS) continue;
+
+				//not on the same strand > skip
+				if	(t_e.strand()!=t_c.strand()) continue;
+
+				//calculate overall overlap
+				BedFile region = t_e.codingRegions();
+				double bases_ens = region.baseCount();
+				region.intersect(t_c.codingRegions());
+				double bases_ref = t_c.codingRegions().baseCount();
+				double ol = 100.0 * region.baseCount() / std::max(bases_ens, bases_ref);
+
+				//write match
+				if (ol>=100.0)
+				{
+					MatchData data;
+					data.ensembl = t_e.name();
+					data.refseq_ccds = t_c.name();
+					data.gene = t_e.gene();
+					data.is_coding = true;
+					data.ol = ol;
+					data.ol_cds = ol;
+					data.write(out, "perfect CDS match");
+				}
 			}
 		}
 
