@@ -490,7 +490,9 @@ void SequencingRunWidget::exportSampleSheet()
 	NGSD db;
 	try
 	{
-		QString output_path = Settings::string("sample_sheet_path") + "/" + ui_->name->text().remove(0, 1) + ".csv";
+		QString name = ui_->name->text();
+		if (name.startsWith("#")) name.remove(0,1);
+		QString output_path = Settings::string("sample_sheet_path") + "/" + name + ".csv";
 		QStringList warnings;
 		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_id_, "Sequencing run id"), warnings);
 

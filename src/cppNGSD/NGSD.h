@@ -1019,11 +1019,6 @@ public:
 	///Returns the processing system target region file.
 	BedFile processingSystemRegions(int sys_id, bool ignore_if_missing);
 
-	///Returns a path (including filename) for the processing system amplicon region file.  Returns an empty string if unset.
-	QString processingSystemAmpliconsFilePath(int sys_id);
-	///Returns the processing system amplicon region file.
-	BedFile processingSystemAmplicons(int sys_id, bool ignore_if_missing);
-
 	///Returns a path (including filename) for the processing system genes. Returns an empty string if unset.
 	QString processingSystemGenesFilePath(int sys_id);
 	///Returns the processing system genes.
