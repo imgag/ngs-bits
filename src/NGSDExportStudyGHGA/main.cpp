@@ -310,8 +310,8 @@ public:
 		QJsonArray array;
 
 		QJsonObject obj;
-		obj.insert("title", "Dataset for study " + data.study_name);
-		obj.insert("description", "Dataset for study " + data.study_name);
+		obj.insert("title", "Dataset for " + data.study_name);
+		obj.insert("description", "Dataset for " + data.study_name);
 		obj.insert("types", QJsonArray() << "Sequencing data");
 		//optional
 		//obj.insert("ega_accession", QJsonObject());

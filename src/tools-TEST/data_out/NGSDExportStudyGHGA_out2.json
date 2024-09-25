@@ -141,9 +141,9 @@
         {
             "alias": "DS_Study4711",
             "data_access_policy": "DAP_Study4711",
-            "description": "Dataset for study Study4711",
+            "description": "Dataset for Study4711",
             "study": "Study4711",
-            "title": "Dataset for study Study4711",
+            "title": "Dataset for Study4711",
             "types": [
                 "Sequencing data"
             ]
