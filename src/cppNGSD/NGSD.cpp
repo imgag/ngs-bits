@@ -5893,7 +5893,8 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	//create header
 	sample_sheet.append("[Header],");
 	sample_sheet.append("FileFormatVersion,2");
-	sample_sheet.append("RunName," + run_name.remove(0, 1));
+	if (run_name.startsWith("#")) run_name.remove(0,1);
+	sample_sheet.append("RunName," + run_name);
 	sample_sheet.append("InstrumentPlatform,NovaSeqXSeries");
 	sample_sheet.append("InstrumentType," + query.value("d_type").toString());
 	sample_sheet.append("IndexOrientation,Forward");
