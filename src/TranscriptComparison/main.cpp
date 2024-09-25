@@ -152,9 +152,14 @@ public:
 
 		stream << "### loading CCDS transcripts from NGSD ###" << endl;
 		NGSD db(getFlag("test"));
-		TranscriptList trans_c = db.transcripts();
+		TranscriptList trans_c;
+		foreach(const Transcript& t, db.transcripts())
+		{
+			if (t.source()==Transcript::CCDS) trans_c.append(t);
+		}
 		trans_c.sortByPosition();
 		ChromosomalIndex<TranscriptList> idx_c(trans_c);
+		stream << "loaded CCDS transcripts: " << trans_c.count() << endl;
 		stream << "took " << Helper::elapsedTime(timer.restart(), true) << endl;
 		stream << endl;
 
@@ -169,6 +174,7 @@ public:
 		QSet<QByteArray> transcripts_matched;
 		QSet<QByteArray> genes;
 		QSet<QByteArray> genes_matched;
+		int matched_ccds = 0;
 		foreach (const Transcript& t_e, trans_e)
 		{
 			//### Ensembl<>RefSeq ###
@@ -248,13 +254,12 @@ public:
 			indices = idx_c.matchingIndices(t_e.chr(), t_e.start(), t_e.end());
 			foreach(int index, indices)
 			{
-				const Transcript& t_c = trans_r[index];
-				if(t_c.source()!=Transcript::CCDS) continue;
+				const Transcript& t_c = trans_c[index];
 
 				//not on the same strand > skip
 				if	(t_e.strand()!=t_c.strand()) continue;
 
-				//calculate overall overlap
+				//calculate CDS overlap (CCDS transcripts do not contain UTR data)
 				BedFile region = t_e.codingRegions();
 				double bases_ens = region.baseCount();
 				region.intersect(t_c.codingRegions());
@@ -272,15 +277,19 @@ public:
 					data.ol = ol;
 					data.ol_cds = ol;
 					data.write(out, "perfect CDS match");
+
+					++matched_ccds;
 				}
 			}
 		}
 
-		stream << "Overall transcript matches written: " << written_overall << endl;
-		stream << "Transcripts with match: " << transcripts_matched.count() << endl;
-		stream << "Transcripts without match: " << (trans_e.count()-transcripts_matched.count()) << endl;
-		stream << "Genes with match: " << genes_matched.count() << endl;
-		stream << "Genes without match: " << (genes.count()-genes_matched.count()) << endl;
+		stream << "Overall Ensembl-RefSeq transcript matches written: " << written_overall << endl;
+		stream << "Ensembl transcripts with RefSeq match: " << transcripts_matched.count() << endl;
+		stream << "Ensembl transcripts without RefSeq match: " << (trans_e.count()-transcripts_matched.count()) << endl;
+		stream << "Ensembl genes with RefSeq match: " << genes_matched.count() << endl;
+		stream << "Ensembl genes without RefSeq match: " << (genes.count()-genes_matched.count()) << endl;
+
+		stream << "Overall Ensembl-CCDS transcript matches written: " << matched_ccds << endl;
 	}
 };
 

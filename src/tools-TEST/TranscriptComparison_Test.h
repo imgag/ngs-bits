@@ -12,9 +12,9 @@ private slots:
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
-		//NGSD db(true);
-		//db.init();
-		//db.executeQueriesFromFile(TESTDATA("data_in/TranscriptComparisonl_init.sql"));
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/TranscriptComparison_init.sql"));
 
 		EXECUTE("TranscriptComparison", "-ensembl " + TESTDATA("data_in/TranscriptComparison_ensembl.gff3") + " -refseq " + TESTDATA("data_in/TranscriptComparison_refseq.gff3") + " -out out/TranscriptComparison_out1.tsv");
 		REMOVE_LINES("out/TranscriptComparison_out1.tsv", QRegExp("##.*file:"));

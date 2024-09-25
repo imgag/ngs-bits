@@ -77,7 +77,7 @@ void GeneInterpretabilityDialog::calculate()
 			//get relevant transcripts
 			QByteArray gene_approved = db.geneToApproved(gene);
 			int gene_id = db.geneId(gene_approved);
-			TranscriptList transcripts = db.releventTranscripts(gene_id);
+			TranscriptList transcripts = db.relevantTranscripts(gene_id);
 
 			//get target region
 			QString mode = ui_.reg_exon_splice->isChecked() ? "exon" : "gene";
