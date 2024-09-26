@@ -221,8 +221,8 @@ private slots:
 		I_EQUAL(matches["ENST00000644374"].count(), 2);
 		IS_TRUE(matches["ENST00000644374"].contains("NM_004447"));
 		IS_TRUE(matches["ENST00000644374"].contains("CCDS31753"));
-		IS_TRUE(matches["NM_004447"].contains("ENST00000644374"));
 		IS_TRUE(matches["CCDS31753"].contains("ENST00000644374"));
+		IS_TRUE(matches["NM_004447"].contains("ENST00000644374"));
 	}
 
 	void loadGffFile_unzipped()

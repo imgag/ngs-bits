@@ -81,6 +81,25 @@ private slots:
 		COMPARE_FILES("out/HgvsToVcf_out4.vcf", TESTDATA("data_out/HgvsToVcf_out4.vcf"));
 		VCF_IS_VALID("out/HgvsToVcf_out4.vcf");
 	}
+
+	void ccds_transcripts()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/HgvsToVcf_init.sql"));
+
+		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in5.tsv") + " -out out/HgvsToVcf_out5.vcf -test" + " -ref " + ref_file);
+		REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegExp("^##fileDate="));
+		REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegExp("^##reference="));
+		REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegExp("^##INFO=<ID=count,Number"));
+		COMPARE_FILES("out/HgvsToVcf_out5.vcf", TESTDATA("data_out/HgvsToVcf_out5.vcf"));
+		VCF_IS_VALID("out/HgvsToVcf_out5.vcf");
+	}
 };
 
 

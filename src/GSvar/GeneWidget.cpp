@@ -339,7 +339,14 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		foreach(QByteArray match, matches.value(transcript.name()))
 		{
 			match = match.trimmed();
-			refseq << "<a href='https://www.ncbi.nlm.nih.gov/nuccore/" + match + "'>" + match + "</a>";
+			if (match.startsWith("CCDS"))
+			{
+				ccds << "<a href='https://www.ncbi.nlm.nih.gov/CCDS/CcdsBrowse.cgi?REQUEST=CCDS&DATA=" + match + "'>" + match + "</a>";
+			}
+			else if (match.startsWith("NM_"))
+			{
+				refseq << "<a href='https://www.ncbi.nlm.nih.gov/nuccore/" + match + "'>" + match + "</a>";
+			}
 		}
 
 		ui_.transcripts->setCellWidget(row, 6, GUIHelper::createLinkLabel(ccds.join(", ")));

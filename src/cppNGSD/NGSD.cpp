@@ -6312,8 +6312,7 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 	QByteArray name_nover = name;
 	if (name_nover.contains('.')) name_nover = name_nover.left(name_nover.indexOf('.'));
 	const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(build);
-	QByteArrayList tmp = matches.value(name_nover);
-	foreach(QByteArray match, tmp)
+	foreach(QByteArray match, matches.value(name_nover))
 	{
 		match = match.trimmed();
 		if (match.startsWith("ENST"))

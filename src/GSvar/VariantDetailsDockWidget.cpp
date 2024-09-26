@@ -797,6 +797,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	QStringList refseq_links;
 	foreach(QByteArray transcript_match, transcript_matches[trans.idWithoutVersion()])
 	{
+		if (transcript_match.startsWith("CCDS")) continue;
 		refseq_links << formatLink(transcript_match, "https://www.ncbi.nlm.nih.gov/nuccore/" + transcript_match);
 	}
 	ui->trans_refseq->setText(refseq_links.join(", "));
