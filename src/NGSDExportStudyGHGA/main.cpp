@@ -261,7 +261,7 @@ public:
 		parent.insert("analysis_methods", array);
 	}
 
-	void addAnalysesMethodSupportingFiles(QJsonObject& parent, const CommonData& data)
+	void addAnalysesMethodSupportingFiles(QJsonObject& parent, const CommonData& data) //TODO Leon: fix warning about unused parameter 'data'
 	{
 		QJsonArray array;
 

@@ -1164,6 +1164,8 @@ void NGSD::removeInitData()
 
 	getQuery().exec("DELETE FROM genome WHERE build='GRCh37'");
 	getQuery().exec("DELETE FROM genome WHERE build='GRCh38'");
+
+	getQuery().exec("DELETE FROM repeat_expansion WHERE 1");
 }
 
 QString NGSD::projectFolder(QString type)
@@ -3646,12 +3648,6 @@ void NGSD::executeQueriesFromFile(QString filename)
 			getQuery().exec(query);
 			query.clear();
 		}
-	}
-	if (query.endsWith(';'))
-	{
-		//qDebug() << query;
-		getQuery().exec(query);
-		query.clear();
 	}
 }
 
@@ -6317,8 +6313,7 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 	QByteArray name_nover = name;
 	if (name_nover.contains('.')) name_nover = name_nover.left(name_nover.indexOf('.'));
 	const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(build);
-	QByteArrayList tmp = matches.value(name_nover);
-	foreach(QByteArray match, tmp)
+	foreach(QByteArray match, matches.value(name_nover))
 	{
 		match = match.trimmed();
 		if (match.startsWith("ENST"))
@@ -7320,7 +7315,7 @@ Transcript NGSD::highestImpactTranscript(TranscriptList transcripts, const QList
 	}
 }
 
-TranscriptList NGSD::releventTranscripts(int gene_id)
+TranscriptList NGSD::relevantTranscripts(int gene_id)
 {
 	TranscriptList output;
 
@@ -9943,6 +9938,8 @@ void NGSD::exportTable(const QString& table, QTextStream& out, QString where_cla
 				if (table_info.fieldInfo()[i].type==TableFieldInfo::TEXT || table_info.fieldInfo()[i].type==TableFieldInfo::VARCHAR)
 				{
 					field_value.replace(";\n",",\n");
+					field_value.replace("; \n",",\n");
+					field_value.replace(";  \n",",\n");
 				}
                 values.append(escapeText(field_value));
 			}

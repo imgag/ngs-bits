@@ -527,16 +527,16 @@ private slots:
 		S_EQUAL(transcript.name(), "MT-CO2_TR3");
 
 
-		//releventTranscripts
-		transcripts = db.releventTranscripts(3); //NIPA1 (only best)
+		//relevantTranscripts
+		transcripts = db.relevantTranscripts(3); //NIPA1 (only best)
 		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
-		transcripts = db.releventTranscripts(652410); //SPG7 (best plus MANE select)
+		transcripts = db.relevantTranscripts(652410); //SPG7 (best plus MANE select)
 		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "ENST00000341316");
 		S_EQUAL(transcripts[1].name(), "ENST00000268704");
-		transcripts = db.releventTranscripts(1); //BRCA1 (only CCDS transcript)
+		transcripts = db.relevantTranscripts(1); //BRCA1 (only CCDS transcript)
 		I_EQUAL(transcripts.count(), 0);
 
 		//geneIdOfTranscript
@@ -1390,8 +1390,10 @@ private slots:
 		I_EQUAL(omim_info[0].phenotypes.count(), 5);
 		S_EQUAL(omim_info[0].phenotypes[0].accession(), "208900");
 		S_EQUAL(omim_info[0].phenotypes[0].name(), "Ataxia-telangiectasia, 208900 (3)");
-		S_EQUAL(omim_info[0].phenotypes[1].accession(), "");
-		S_EQUAL(omim_info[0].phenotypes[1].name(), "Lymphoma, B-cell non-Hodgkin, somatic (3)");
+		S_EQUAL(omim_info[0].phenotypes[1].accession(), "114480");
+		S_EQUAL(omim_info[0].phenotypes[1].name(), "Breast cancer, susceptibility to, 114480 (3)");
+		S_EQUAL(omim_info[0].phenotypes[2].accession(), "");
+		S_EQUAL(omim_info[0].phenotypes[2].name(), "Lymphoma, B-cell non-Hodgkin, somatic (3)");
 
 		omim_info = db.omimInfo("SHOX");
 		I_EQUAL(omim_info.count(), 2);
@@ -3274,13 +3276,17 @@ private slots:
 	void VariantHgvsAnnotator_comparison_vep()
 	{
 		if (!NGSD::isAvailable()) SKIP("Test needs access to the NGSD production database!");
+		NGSD db;
+		int gene_count = db.getValue("SELECT count(*) FROM gene").toInt();
+		if (gene_count<15000) SKIP("Too little genes in production database!");
+		int tans_count = db.getValue("SELECT count(*) FROM gene_transcript").toInt();
+		if (tans_count<40000) SKIP("Too transcripts genes in production database!");
 
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator annotator(reference);
-		NGSD db;
 		QTextStream out(stdout);
 
 		int c_pass = 0;

@@ -41,7 +41,7 @@ public:
         foreach(const Transcript& trans, transcripts)
         {
 			QByteArray name = trans.name();
-			if (matches[name].size() > 0) name += ", " + matches[name].join(", ");
+			if (matches.contains(name)) name += ", " + matches[name].join(", ");
 
 			const QByteArray strand = trans.strandToString(trans.strand());
 			int phase = -1;

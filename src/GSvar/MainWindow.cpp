@@ -4612,6 +4612,7 @@ void MainWindow::on_actionImportTestData_triggered()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		db.removeInitData();
 
+		QString query;
 		QSharedPointer<QFile> file = Helper::openFileForReading(file_name, false);
 		while(!file->atEnd())
 		{
@@ -4630,8 +4631,16 @@ void MainWindow::on_actionImportTestData_triggered()
 				continue;
 			}
 
-			//import line
-			db.getQuery().exec(line);
+			//add line to query
+			query.append(' ');
+			query.append(line);
+
+			//execute if query finished
+			if (query.endsWith(';'))
+			{
+				db.getQuery().exec(query);
+				query.clear();
+			}
 		}
 
 		QApplication::restoreOverrideCursor();
