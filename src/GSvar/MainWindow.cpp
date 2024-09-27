@@ -4521,6 +4521,8 @@ void MainWindow::on_actionExportTestData_triggered()
 		QString ps_text = QInputDialog::getMultiLineText(this, "Test data export", "List the processed samples (one per line):");
 		foreach(const QString& ps, ps_text.split("\n"))
 		{
+			if (ps.trimmed().isEmpty()) continue;
+
 			QString ps_id = db.processedSampleId(ps);
 			QString project_type = db.getProcessedSampleData(ps_id).project_type;
 			if (project_type!="test")
