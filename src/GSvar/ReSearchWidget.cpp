@@ -14,7 +14,8 @@ ReSearchWidget::ReSearchWidget(QWidget* parent)
 	ui_.setupUi(this);
 	connect(ui_.search_btn, SIGNAL(clicked()), this, SLOT(search()));
 	ui_.re->fill(db_.createTable("repeat_expansion", "SELECT id, CONCAT(name, ' - ', region, ' ', repeat_unit) FROM repeat_expansion ORDER BY name ASC"), true);
-
+	ui_.sys_type->addItem("");
+	ui_.sys_type->addItems(db_.getEnum("processing_system", "type"));
 	QAction* action = new QAction("Show repeat allele(s) image", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(showRepeatImage()));
@@ -42,7 +43,7 @@ void ReSearchWidget::search()
 		//prepared SQL query
 		QString query_str = "SELECT reg.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, reg.filter, reg.allele1, reg.allele2, rc.causal, CONCAT(rc.comments, ' // ', rc.comments2) as report_config_comments"
 							" FROM repeat_expansion_genotype reg LEFT JOIN report_configuration_re rc ON rc.repeat_expansion_genotype_id=reg.id, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, project p"
-							" WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND reg.processed_sample_id=ps.id AND ps.project_id=p.id AND reg.repeat_expansion_id=" + reg_id;
+							" WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND reg.processed_sample_id=ps.id AND ps.project_id=p.id AND reg.repeat_expansion_id=" + reg_id + " AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 
 		//RE size cutoff
 		int cutoff = ui_.re_min_count->value();
@@ -70,6 +71,11 @@ void ReSearchWidget::search()
 			if (ui_.p_test->isChecked()) tmp << "p.type='test'";
 			query_str += " AND (" + tmp.join(" OR ") + ")";
 		}
+		QString sys_type = ui_.sys_type->currentText().trimmed();
+		if (!sys_type.isEmpty())
+		{
+			query_str += " AND sys.type='" + sys_type + "'";
+		}
 
 		//execute
 		DBTable table = db_.createTable("repeat_expansion_genotype", query_str);
@@ -83,6 +89,9 @@ void ReSearchWidget::search()
 			hpo_terms << db_.samplePhenotypes(sample_id).toString();
 		}
 		table.setColumn(hpo_col_index, hpo_terms);
+
+		//format 'causal' column
+		table.formatBooleanColumn(table.columnIndex("causal"));
 
 		//show data
 		ui_.table->setData(table);
