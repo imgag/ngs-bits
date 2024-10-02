@@ -35,6 +35,11 @@ SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 	action = new QAction(QIcon(":/Icons/Exchange.png"), "Move processed samples to other run");
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(moveSamples()));
+
+	//batch view for lrGS samples
+	action = new QAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab (batch view)");
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openRunBatchTab()));
 }
 
 void SequencingRunOverview::delayedInitialization()
@@ -113,6 +118,22 @@ void SequencingRunOverview::openRunTab()
 		QString name = ui_.table->item(row, col)->text();
 		GlobalServiceProvider::openRunTab(name);
 	}
+}
+
+void SequencingRunOverview::openRunBatchTab()
+{
+	//determine name column
+	int col = ui_.table->columnIndex("name");
+
+	//open a batch view with all runs
+	QSet<int> rows = ui_.table->selectedRows();
+	QStringList run_names;
+	foreach (int row, rows)
+	{
+		run_names << ui_.table->item(row, col)->text();
+	}
+
+	GlobalServiceProvider::openRunBatchTab(run_names);
 }
 
 void SequencingRunOverview::openRunTab(int row)

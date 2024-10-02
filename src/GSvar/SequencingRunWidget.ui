@@ -194,7 +194,7 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QGroupBox" name="groupBox_3">
+        <widget class="QGroupBox" name="gb_sequencing_run">
          <property name="title">
           <string>Sequencing run</string>
          </property>
@@ -294,6 +294,23 @@
           </item>
           <item row="3" column="1">
            <widget class="QLabel" name="device">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>side:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="side">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -421,23 +438,6 @@
            <widget class="QLabel" name="backup">
             <property name="text">
              <string>TextLabel</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>side:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="side">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
             </property>
            </widget>
           </item>

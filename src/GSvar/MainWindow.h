@@ -408,6 +408,8 @@ public slots:
 	void openProcessedSampleTab(QString ps_name);
 	///Open run tab
 	void openRunTab(QString run_name);
+	///Open run batch tab
+	void openRunBatchTab(const QStringList& run_names);
     ///Open gene tab
 	void openGeneTab(QString symbol);
 	///Open variant tab

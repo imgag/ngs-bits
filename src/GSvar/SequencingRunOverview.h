@@ -17,6 +17,7 @@ protected slots:
 	void delayedInitialization();
 	void updateTable();
 	void openRunTab();
+	void openRunBatchTab();
 	void openRunTab(int row);
 	void editRun();
 	void moveSamples();
