@@ -795,7 +795,7 @@ public:
 	//Return the transcript with the highest impact given the variant transcript impacts
 	Transcript highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene (best transcript, prefered transcripts, MANE select transcript, MANE plus clinical transcript)
-	TranscriptList releventTranscripts(int gene_id);
+	TranscriptList relevantTranscripts(int gene_id);
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names

@@ -1164,6 +1164,8 @@ void NGSD::removeInitData()
 
 	getQuery().exec("DELETE FROM genome WHERE build='GRCh37'");
 	getQuery().exec("DELETE FROM genome WHERE build='GRCh38'");
+
+	getQuery().exec("DELETE FROM repeat_expansion WHERE 1");
 }
 
 QString NGSD::projectFolder(QString type)
@@ -3647,12 +3649,6 @@ void NGSD::executeQueriesFromFile(QString filename)
 			query.clear();
 		}
 	}
-	if (query.endsWith(';'))
-	{
-		//qDebug() << query;
-		getQuery().exec(query);
-		query.clear();
-	}
 }
 
 NGSD::~NGSD()
@@ -5893,7 +5889,8 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	//create header
 	sample_sheet.append("[Header],");
 	sample_sheet.append("FileFormatVersion,2");
-	sample_sheet.append("RunName," + run_name.remove(0, 1));
+	if (run_name.startsWith("#")) run_name.remove(0,1);
+	sample_sheet.append("RunName," + run_name);
 	sample_sheet.append("InstrumentPlatform,NovaSeqXSeries");
 	sample_sheet.append("InstrumentType," + query.value("d_type").toString());
 	sample_sheet.append("IndexOrientation,Forward");
@@ -6316,8 +6313,7 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 	QByteArray name_nover = name;
 	if (name_nover.contains('.')) name_nover = name_nover.left(name_nover.indexOf('.'));
 	const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(build);
-	QByteArrayList tmp = matches.value(name_nover);
-	foreach(QByteArray match, tmp)
+	foreach(QByteArray match, matches.value(name_nover))
 	{
 		match = match.trimmed();
 		if (match.startsWith("ENST"))
@@ -7319,7 +7315,7 @@ Transcript NGSD::highestImpactTranscript(TranscriptList transcripts, const QList
 	}
 }
 
-TranscriptList NGSD::releventTranscripts(int gene_id)
+TranscriptList NGSD::relevantTranscripts(int gene_id)
 {
 	TranscriptList output;
 
@@ -9942,6 +9938,8 @@ void NGSD::exportTable(const QString& table, QTextStream& out, QString where_cla
 				if (table_info.fieldInfo()[i].type==TableFieldInfo::TEXT || table_info.fieldInfo()[i].type==TableFieldInfo::VARCHAR)
 				{
 					field_value.replace(";\n",",\n");
+					field_value.replace("; \n",",\n");
+					field_value.replace(";  \n",",\n");
 				}
                 values.append(escapeText(field_value));
 			}

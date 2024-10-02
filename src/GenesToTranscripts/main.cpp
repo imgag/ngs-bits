@@ -69,7 +69,7 @@ public:
 			}
 			else if (mode=="relevant")
 			{
-				transcripts = db.releventTranscripts(gene_id);
+				transcripts = db.relevantTranscripts(gene_id);
 			}
 			else //all
 			{

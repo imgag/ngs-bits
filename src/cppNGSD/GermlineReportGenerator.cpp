@@ -531,7 +531,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					continue;
 				}
 
-				TranscriptList transcripts = db_.releventTranscripts(gene_id);
+				TranscriptList transcripts = db_.relevantTranscripts(gene_id);
 				if (transcripts.isEmpty())
 				{
 					genes_without_roi << gene;
@@ -1055,7 +1055,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			bool is_main_transcript = false;
 			if (gene_id!=-1)
 			{
-				TranscriptList relevant_transcripts = db_.releventTranscripts(gene_id);
+				TranscriptList relevant_transcripts = db_.relevantTranscripts(gene_id);
 				if (relevant_transcripts.contains(trans.idWithoutVersion()))
 				{
 					is_main_transcript = true;
@@ -2010,7 +2010,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 	foreach(const QByteArray& gene, genes)
 	{
 		int gene_id = db_.geneId(gene);
-		foreach(const Transcript& trans, db_.releventTranscripts(gene_id))
+		foreach(const Transcript& trans, db_.relevantTranscripts(gene_id))
 		{
 			try
 			{

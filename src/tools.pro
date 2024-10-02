@@ -532,6 +532,10 @@ SUBDIRS += TranscriptsToBed
 tools-TEST.depends += TranscriptsToBed
 TranscriptsToBed.depends = cppNGSD
 
+SUBDIRS += TranscriptComparison
+tools-TEST.depends += TranscriptComparison
+TranscriptComparison.depends = cppNGSD
+
 SUBDIRS += GenesToTranscripts
 tools-TEST.depends += GenesToTranscripts
 GenesToTranscripts.depends = cppNGSD
