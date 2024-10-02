@@ -172,19 +172,19 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 ### Misc tools
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
+* [FastqFromBam](doc/tools/FastqFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
 
 ## ChangeLog
 
-Changes in release 2024_08:
+Changes since last release:
 
-* added tool: CnvReferenceCohort
-* removed tool: NGSDMaintain (functionality now in GSvar NGSD maintainance dialog)
-* NGSDExportSamples: added option `-add_study_column`
-* NGSDSameSample: added option `-include_bad`
-* NGSD: added new table `runqc_ont`
+* added tools: FastqFromBam, FastaMask, FastqFromBam
+* removed tools: 
+* NGSD:
+  * table 'repeat_expansion': added 'inhouse_testing' column, changed 'type' column
 
 ## Citing
 
