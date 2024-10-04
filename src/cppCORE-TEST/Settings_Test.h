@@ -107,5 +107,29 @@ private slots:
 		Settings::clear();
 		IS_TRUE(Settings::allKeys().count() <= keys.count()); //not 0 because clear() only deletes user-specific settings
 	}
+
+	void setSettingsOverride()
+	{
+		Settings::setSettingsOverride(TESTDATA("data_in/settings_override.ini"));
+
+		//files
+		QStringList files = Settings::files();
+		I_EQUAL(files.count(), 1);
+		IS_TRUE(files[0].endsWith("settings_override.ini"));
+
+		//contains
+		IS_FALSE(Settings::contains("liftover_hg19_hg38"));
+		IS_FALSE(Settings::contains("liftover_hg38_hg19"));
+		IS_TRUE(Settings::contains("reference_genome"));
+
+		//allKeys
+		QStringList allkeys = Settings::allKeys();
+		IS_TRUE(allkeys.count()==1);
+		IS_TRUE(allkeys.contains("reference_genome"));
+
+		//getValue
+		S_EQUAL(Settings::string("reference_genome"), "GRCh38_override.fa");
+	}
+
 };
 
