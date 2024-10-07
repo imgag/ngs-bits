@@ -410,12 +410,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << trans("Repeat-Expansion") << "</td>" << endl;
 		stream << "<td>" << re.region().toString(true) << "</td>" << endl;
 		stream << "<td></td>" << endl;
-		QString geno = re.alleles();
+		QString geno = trans("expandiert");
 		if (var_conf.de_novo) geno += " (de-novo)";
 		if (var_conf.mosaic) geno += " (mosaic)";
 		if (var_conf.comp_het) geno += " (comp-het)";
 		stream << "<td>" << geno << "</td>" << endl;
-		stream << "<td>" << re.geneSymbol() << "/" << re.unit() << "</td>" << endl;
+		stream << "<td>" << re.name() << "</td>" << endl;
 		stream << "<td></td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		stream << "<td></td>" << endl;
@@ -1762,6 +1762,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["<sup>*</sup> F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen."] = "<sup>*</sup> For information on the classification of variants, see the general information.";
 		de2en["kein &Uuml;berlappung mit Gen"] = "no gene overlap";
 		de2en["Konnte nicht erstellt werden, weil keine Gene der Zielregion definiert wurden."] = "Could not be performed because no target region genes are definded.";
+		de2en["expandiert"] = "expanded";
 	}
 
 	//translate

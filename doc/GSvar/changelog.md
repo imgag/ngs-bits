@@ -1,5 +1,12 @@
 # GSvar change log
 
+## 2024_08-36 (02.10.24)
+
+- improved RE search
+- removed support for amplicon files of processing systems (not used anymore)
+- fixed bugs in NSX+ sample sheet export
+- somatic report: Add SV description at the start of the report.
+
 ## 2024_08-18 (06.09.24)
 
 - germline report: fixed XML validation error when generating report with RE report config for LR-sample
