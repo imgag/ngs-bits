@@ -19,10 +19,6 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	, ui_(new Ui::SequencingRunWidget)
 	, run_ids_(run_ids)
 {
-	//TODO: remove
-	qDebug() << "start constructor";
-	qDebug() << run_ids_;
-
 	if (run_ids_.size() < 1) THROW(ArgumentException, "At least one run_id has to be provided!");
 	is_batch_view_ = run_ids.size() > 1;
 	ui_->setupUi(this);

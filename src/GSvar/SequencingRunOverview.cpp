@@ -37,7 +37,7 @@ SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(moveSamples()));
 
 	//batch view for lrGS samples
-	action = new QAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab (batch view)");
+	action = new QAction(QIcon(":/Icons/NGSD_run_overview.png"), "Open sequencing run batch");
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openRunBatchTab()));
 }
@@ -123,14 +123,23 @@ void SequencingRunOverview::openRunTab()
 void SequencingRunOverview::openRunBatchTab()
 {
 	//determine name column
-	int col = ui_.table->columnIndex("name");
+	int idx_name = ui_.table->columnIndex("name");
+	int idx_device = ui_.table->columnIndex("device");
 
 	//open a batch view with all runs
 	QSet<int> rows = ui_.table->selectedRows();
 	QStringList run_names;
+	QSet<QString> device_types;
 	foreach (int row, rows)
 	{
-		run_names << ui_.table->item(row, col)->text();
+		run_names << ui_.table->item(row, idx_name)->text();
+		//extract device type
+		device_types << ui_.table->item(row, idx_device)->text().split("(").at(1).split(")").at(0);
+	}
+	if (device_types.size() > 1)
+	{
+		QMessageBox::critical(this, "Batch run view", "Batch view is only supported for runs from the same sequencer type!");
+		return;
 	}
 
 	GlobalServiceProvider::openRunBatchTab(run_names);
