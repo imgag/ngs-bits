@@ -218,11 +218,10 @@ public:
 			obj.insert("analysis_method", "ANAM_" + ps_data.pseudonym);
 			obj.insert("title", "ANA_" + ps_data.pseudonym);
 			obj.insert("description", data.analysis_description);
-			obj.insert("type", data.analysis_type); //"cfDNA"
+			obj.insert("type", data.analysis_type); //e.g. "cfDNA"
 			//optional
 			//obj.insert("ega_accession", QJsonValue());
 
-			//TODO: read from folder
 			QStringList input_files;
 			input_files << "FASTQ_R1_" + ps_data.pseudonym;
 			input_files << "FASTQ_R2_" + ps_data.pseudonym;
@@ -243,12 +242,12 @@ public:
 		{
 			QJsonObject obj;
 			obj.insert("name", "ANAM_" + ps_data.pseudonym);
-			obj.insert("description", data.analysis_description); //TODO
-			obj.insert("type", data.analysis_type); //TODO
-			obj.insert("workflow_name", "megSAP"); //TODO
+			obj.insert("description", data.analysis_description);
+			obj.insert("type", data.analysis_type);
+			obj.insert("workflow_name", "megSAP");
 			obj.insert("workflow_version", data.workflow_version);
-			obj.insert("workflow_repository", "https://github.com/imgag/megSAP"); //TODO
-			obj.insert("workflow_doi", "megSAP_doi"); //TODO
+			obj.insert("workflow_repository", "https://github.com/imgag/megSAP");
+			obj.insert("workflow_doi", "megSAP_doi");
 			//optional:
 			//obj.insert("workflow_tasks", "Pipeline?");
 			//obj.insert("parameters", QJsonArray());
@@ -261,7 +260,7 @@ public:
 		parent.insert("analysis_methods", array);
 	}
 
-	void addAnalysesMethodSupportingFiles(QJsonObject& parent, const CommonData& data) //TODO Leon: fix warning about unused parameter 'data'
+	void addAnalysesMethodSupportingFiles(QJsonObject& parent)
 	{
 		QJsonArray array;
 
@@ -273,7 +272,7 @@ public:
 	{
 		QJsonObject obj;
 		obj.insert("email", data.dac_email);
-		obj.insert("institute", data.dac_organization); //TODO
+		obj.insert("institute", data.dac_organization);
 		//optional:
 		//obj.insert("ega_accession", QJsonObject());
 		obj.insert("alias", data.dac_email);
@@ -374,7 +373,7 @@ public:
 			//optional:
 			//obj.insert("sequencing_center", QJsonValue());
 			//obj.insert("sequencing_read_length", QJsonValue());
-			obj.insert("sequencing_layout", "PE"); //TODO
+			obj.insert("sequencing_layout", "PE");
 			//optional:
 			//obj.insert("target_coverage", QJsonValue());
 			QString fc_id = db.getValue("SELECT fcid FROM sequencing_run WHERE name='" + ps_data.ps_info.run_name + "'").toString();
@@ -492,7 +491,7 @@ public:
 		//obj.insert("author", QJsonObject());
 		//obj.insert("year", QJsonObject());
 		//obj.insert("journal", QJsonObject());
-		obj.insert("doi", data.publication_doi); //TODO
+		obj.insert("doi", data.publication_doi);
 		//optional
 		//obj.insert("xref", QJsonObject());
 		obj.insert("alias", "PUB_" + data.study_name);
@@ -554,13 +553,13 @@ public:
 			obj.insert("name", "SAM_" + ps_data.pseudonym);
 			obj.insert("type", sampleTypeToSampleType(ps_data.s_info.type, ps_data.s_info.is_ffpe));
 			//optional:
-			//obj.insert("biological_replicate", QJsonValue()); //TODO
-			obj.insert("description", "sample that was sequenced"); //TODO
+			//obj.insert("biological_replicate", QJsonValue());
+			obj.insert("description", "sample that was sequenced");
 			//optional:
 			//obj.insert("storage", QJsonValue());
-			//obj.insert("disease_or_healthy", QJsonValue()); //TODO
-			obj.insert("case_control_status", "UNKNOWN"); //TODO
-			//obj.insert("ega_accession", QJsonValue()); //TODO
+			//obj.insert("disease_or_healthy", QJsonValue());
+			obj.insert("case_control_status", "UNKNOWN");
+			//obj.insert("ega_accession", QJsonValue());
 			//obj.insert("xref", QJsonValue());
 			//obj.insert("biospecimen_name", QJsonValue());
 			//obj.insert("biospecimen_type", QJsonValue());
@@ -584,9 +583,9 @@ public:
 		QJsonObject obj;
 		obj.insert("title", data.study_name);
 		obj.insert("description", data.study_description);
-		obj.insert("types", QJsonArray::fromStringList(data.study_types)); //TODO
+		obj.insert("types", QJsonArray::fromStringList(data.study_types));
 		//optional:
-		//obj.insert("ega_accession", QJsonValue());//TODO
+		//obj.insert("ega_accession", QJsonValue());
 		obj.insert("affiliations", QJsonArray::fromStringList(data.study_affilitions));
 		//optional:
 		//obj.insert("attributes", QJsonArray());
@@ -667,7 +666,7 @@ public:
 		QJsonObject root;
 		addAnalyses(root, data);
 		addAnalysesMethods(root, data);
-		addAnalysesMethodSupportingFiles(root, data);
+		addAnalysesMethodSupportingFiles(root);
 		addDataAccessCommittee(root, data);
 		addDataAccessPolicy(root, data);
 		addDatasets(root, data);
