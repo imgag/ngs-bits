@@ -57,3 +57,6 @@ nova_seq_x_keep_fastq = 1
 # For accessing an external GSvar server through a proxy,
 # while using inside the internal network should be set to False
 use_proxy_for_gsvar_server = false
+
+#location, used to enable user-specific adaptations
+location = ""

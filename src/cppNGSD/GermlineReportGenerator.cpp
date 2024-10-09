@@ -137,7 +137,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (!data_.roi.genes.isEmpty())
 		{
 			stream << "<br />" << trans("Ausgewertete Gene") << ": ";
-			if (data_.report_settings.show_coverage_details)
+			if (data_.report_settings.show_coverage_details && Settings::string("location", true)!="MHH")
 			{
 				stream << QString::number(data_.roi.genes.count()) << " (" << trans("siehe Abdeckungsstatistik") << ")" << endl;
 			}
