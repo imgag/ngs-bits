@@ -211,7 +211,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	{
 		foreach(const SampleInfo& info, info_additional)
 		{
-			stream << "<td><b>" << info.name << "</b></td>";
+			stream << "<td><b>" << trans("Genotyp") << " " << info.name << "</b></td>";
 		}
 		colspan += info_additional.count();
 	}
@@ -442,6 +442,56 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << causal_variant.inheritance << "</td>" << endl;
 		stream << "<td>" << causal_variant.comment << "</td>" << endl;
 		stream << "</tr>" << endl;
+		stream << "</table>" << endl;
+	}
+	//--------------------------------------------------------------------------------------
+
+
+	//polymorphisms
+	if (data_.report_settings.polymorphisms.count()>0)
+	{
+		stream << "<br /><b>" << trans("Polymorphismen") << "</b>" << endl;
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>" << trans("dbSNP") << "</b></td><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td></tr>" << endl;
+
+		foreach(const ReportPolymorphism& poly, data_.report_settings.polymorphisms)
+		{
+			const Variant& var = poly.v;
+			stream << "<tr>" << endl;
+			stream << "<td>" << poly.rs_number << endl;
+			stream << "<td>" << poly.gene_symbol << "</td>" << endl;
+			stream << "<td>" << var.toString() << "</td>" << endl;
+			QString genotype = "n/a (indels not supported)";
+			if (var.isSNV())
+			{
+				BamReader reader(data_.ps_bam);
+				Pileup pileup = reader.getPileup(var.chr(), var.start());
+				if (pileup.depth(false)<15)
+				{
+					genotype = "n/a (depth below 15)";
+				}
+				else
+				{
+					QChar ref = var.ref()[0];
+					QChar alt = var.obs()[0];
+					double af = pileup.frequency(ref, alt);
+					if (af<0.05)
+					{
+						genotype = ref+QString("/")+ref;
+					}
+					else if (af>0.95)
+					{
+						genotype = alt+QString("/")+alt;
+					}
+					else
+					{
+						genotype = ref+QString("/")+alt;
+					}
+				}
+			}
+			stream << "<td>" << genotype << "</td>" << endl;
+			stream << "</tr>" << endl;
+		}
 		stream << "</table>" << endl;
 	}
 	//--------------------------------------------------------------------------------------

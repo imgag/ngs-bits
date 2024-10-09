@@ -272,6 +272,7 @@ void MaintenanceDialog::replaceObsolteGeneSymbols()
 {
 	NGSD db;
 	fixGeneNames(db, "geneinfo_germline", "symbol");
+	fixGeneNames(db, "report_polymorphisms", "symbol");
 	fixGeneNames(db, "somatic_gene_role", "symbol");
 	fixGeneNames(db, "somatic_pathway_gene", "symbol");
 	//TODO Marc/Leon: fixGeneNames(db, "expression_gene", "symbol");
