@@ -7424,7 +7424,7 @@ int NGSD::reportConfigId(const QString& processed_sample_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
+QString NGSD::reportConfigSummaryText(const QString& processed_sample_id, bool add_users)
 {
 	QString output;
 
@@ -7600,6 +7600,25 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 			output += ", causal " + query.value("type").toString() + ": " + query.value("coordinates").toString() + " (genes: " + query.value("gene").toString() + ")";
 		}
 
+		//users
+		if (add_users)
+		{
+			QStringList user_output;
+			QString user = getValue("SELECT u.name FROM user u, report_configuration rc WHERE rc.created_by=u.id AND rc.id="+QString::number(rc_id), true).toString();
+			if (!user.isEmpty())
+			{
+				user_output << ("created by: " + user);
+			}
+			QString user2 = getValue("SELECT u.name FROM user u, report_configuration rc WHERE rc.last_edit_by=u.id AND rc.id="+QString::number(rc_id), true).toString();
+			if (!user2.isEmpty() && user!=user2)
+			{
+				user_output << ("last edited by: " + user2);
+			}
+			if (!user_output.isEmpty())
+			{
+				output += " (" + user_output.join(", ") + ")";
+			}
+		}
 	}
 
 	return output;
