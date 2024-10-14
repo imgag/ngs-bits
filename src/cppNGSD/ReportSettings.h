@@ -6,7 +6,15 @@
 #include "ReportConfiguration.h"
 #include <QStringList>
 
-///Report meta data.
+///Data about polymorphism listed in report
+struct ReportPolymorphism
+{
+	Variant v;
+	QByteArray gene_symbol;
+	QByteArray rs_number;
+};
+
+///Report meta data
 class CPPNGSDSHARED_EXPORT ReportSettings
 {
 public:
@@ -33,6 +41,8 @@ public:
 	QString language;
 
 	QStringList ps_additional; //List of processed samples for which the genotype is shown in the report. The samples have to be in the variant list, so this is possible for multi-sample GSvar files only
+
+	QList<ReportPolymorphism> polymorphisms;
 };
 
 

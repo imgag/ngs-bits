@@ -2811,7 +2811,27 @@ CREATE  TABLE IF NOT EXISTS `re_callset`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
-COMMENT='SV call set';
+COMMENT='RE call set';
+
+-- -----------------------------------------------------
+-- Table `report_polymorphisms`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `report_polymorphisms`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `variant` VARCHAR(255) NOT NULL COMMENT 'Variant in VCF style (space-separated fields: chr pos ref alt)',
+  `rs_number` VARCHAR(20) NOT NULL,
+  `symbol` VARCHAR(40) NOT NULL,
+  `consequence` VARCHAR(255) NOT NULL,
+  `indication` VARCHAR(255) NOT NULL,
+  `comments` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `variant` (`variant` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='Variants that can be optionally added to a report';
+
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START

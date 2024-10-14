@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1400</width>
     <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1200</width>
+    <width>1400</width>
     <height>800</height>
    </size>
   </property>
@@ -23,7 +23,7 @@
    <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,0,0">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -185,111 +185,197 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="title">
-      <string>Selected variants</string>
+    <widget class="QTabWidget" name="tab_widget">
+     <property name="currentIndex">
+      <number>1</number>
      </property>
-     <property name="flat">
-      <bool>true</bool>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="spacing">
-       <number>3</number>
-      </property>
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
-       <number>3</number>
-      </property>
-      <item>
-       <widget class="QTableWidget" name="vars">
-        <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="selectionBehavior">
-         <enum>QAbstractItemView::SelectRows</enum>
-        </property>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <column>
-         <property name="text">
-          <string/>
+     <widget class="QWidget" name="tab_vars">
+      <attribute name="title">
+       <string>Variants (report configuration)</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QTableWidget" name="vars">
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
          </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>report info</string>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
          </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>variant_type</string>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
          </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>variant</string>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
          </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>gene</string>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <column>
+          <property name="text">
+           <string/>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>report info</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>variant_type</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>variant</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>gene</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>classification</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>comment</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_add_vars">
+      <attribute name="title">
+       <string>Polymorphisms</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Select polymorphisms to be added to the report</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QTableWidget" name="add_vars">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
          </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>classification</string>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
          </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>comment</string>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <column>
+          <property name="text">
+           <string>variant</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>dbSNP</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>gene symbol</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>consequence</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>indication</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>comments</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_add_samples">
+      <attribute name="title">
+       <string>Additional samples</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>For multi-sample analyses, the genotype of additional samples can be added</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QTableWidget" name="add_samples">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
          </property>
-        </column>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="group_add_samples">
-     <property name="toolTip">
-      <string>Select samples for which the genotype should be shown in the report.</string>
-     </property>
-     <property name="title">
-      <string>Additional samples</string>
-     </property>
-     <property name="flat">
-      <bool>true</bool>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <property name="spacing">
-       <number>3</number>
-      </property>
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
-       <number>3</number>
-      </property>
-     </layout>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <column>
+          <property name="text">
+           <string>sample</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
