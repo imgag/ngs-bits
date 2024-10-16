@@ -359,12 +359,18 @@ public:
 			QVector<double> corr;
 			for (auto it = chr_indices.cbegin(); it != chr_indices.cend(); ++it)
 			{
-				corr << BasicStatistics::correlation(cov1, cov2, it.value().min, it.value().max);
+				double correlation = BasicStatistics::correlation(cov1, cov2, it.value().min, it.value().max);
+				if (BasicStatistics::isValidFloat(correlation))
+				{
+					corr << correlation;
+				}
 			}
 
 			//sort correlation coefficents for the current ref_file and safe the median
 			std::sort(corr.begin(), corr.end());
-			file2corr << qMakePair(ref_file, BasicStatistics::median(corr));
+			double median_correlation = 0.0;
+			if (corr.count()>0) median_correlation = BasicStatistics::median(corr);
+			file2corr << qMakePair(ref_file, median_correlation);
 			if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
 		}
 
