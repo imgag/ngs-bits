@@ -452,7 +452,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	{
 		stream << "<br /><b>" << trans("Polymorphismen") << "</b>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("dbSNP") << "</b></td><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("dbSNP") << "</b></td><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Getestete Variante") << "</b></td><td><b>" << trans("Beobachtete Allele") << "</b></td><td><b>" << trans("Details") << "</b></td></tr>" << endl;
 
 		foreach(const ReportPolymorphism& poly, data_.report_settings.polymorphisms)
 		{
@@ -461,25 +461,28 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			stream << "<td>" << poly.rs_number << endl;
 			stream << "<td>" << poly.gene_symbol << "</td>" << endl;
 			stream << "<td>" << var.toString() << "</td>" << endl;
-			QString genotype = "n/a (indels not supported)";
+			QStringList details;
+			QString genotype = "";
 			if (var.isSNV())
 			{
 				BamReader reader(data_.ps_bam);
 				Pileup pileup = reader.getPileup(var.chr(), var.start());
-				if (pileup.depth(false)<15)
+				details << (trans("Tiefe")+"="+QString::number(pileup.depth(false)));
+				if (pileup.depth(false)<20)
 				{
-					genotype = "n/a (depth below 15)";
+					details << trans("keine Genotypisierung weil Tiefe unter 20");
 				}
 				else
 				{
 					QChar ref = var.ref()[0];
 					QChar alt = var.obs()[0];
 					double af = pileup.frequency(ref, alt);
-					if (af<0.05)
+					details << ("AF="+QString::number(af, 'g', 3));
+					if (af<0.15)
 					{
 						genotype = ref+QString("/")+ref;
 					}
-					else if (af>0.95)
+					else if (af>0.85)
 					{
 						genotype = alt+QString("/")+alt;
 					}
@@ -489,7 +492,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					}
 				}
 			}
+			else
+			{
+				THROW(ArgumentException, "InDels are not supported as report polymorphisms!");
+			}
 			stream << "<td>" << genotype << "</td>" << endl;
+			stream << "<td>" << details.join(", ") << "</td>" << endl;
 			stream << "</tr>" << endl;
 		}
 		stream << "</table>" << endl;
@@ -1813,6 +1821,10 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["kein &Uuml;berlappung mit Gen"] = "no gene overlap";
 		de2en["Konnte nicht erstellt werden, weil keine Gene der Zielregion definiert wurden."] = "Could not be performed because no target region genes are definded.";
 		de2en["expandiert"] = "expanded";
+		de2en["Getestete Variante"] = "Tested variant";
+		de2en["Beobachtete Allele"] = "Observed alleles";
+		de2en["keine Genotypisierung weil Tiefe unter 20"] = "no genotyping as depth is below 20";
+		de2en["Tiefe"] = "depth";
 	}
 
 	//translate
