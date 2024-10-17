@@ -450,9 +450,9 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	//polymorphisms
 	if (data_.report_settings.polymorphisms.count()>0)
 	{
-		stream << "<br /><b>" << trans("Polymorphismen") << "</b>" << endl;
+		stream << "<br /><b>" << trans("Indikationsbezogene Polymorphismen") << "</b>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("dbSNP") << "</b></td><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Getestete Variante") << "</b></td><td><b>" << trans("Beobachtete Allele") << "</b></td><td><b>" << trans("Details") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("dbSNP") << "</b></td><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("&Uuml;berpr&uuml;fte Variante") << "</b></td><td><b>" << trans("Nachgewiesener Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td></tr>" << endl;
 
 		foreach(const ReportPolymorphism& poly, data_.report_settings.polymorphisms)
 		{
@@ -1821,10 +1821,11 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["kein &Uuml;berlappung mit Gen"] = "no gene overlap";
 		de2en["Konnte nicht erstellt werden, weil keine Gene der Zielregion definiert wurden."] = "Could not be performed because no target region genes are definded.";
 		de2en["expandiert"] = "expanded";
-		de2en["Getestete Variante"] = "Tested variant";
-		de2en["Beobachtete Allele"] = "Observed alleles";
+		de2en["&Uuml;berpr&uuml;fte Variante"] = "Tested variant";
+		de2en["Nachgewiesener Genotyp"] = "Detected alleles";
 		de2en["keine Genotypisierung weil Tiefe unter 20"] = "no genotyping as depth is below 20";
 		de2en["Tiefe"] = "depth";
+		de2en["Indikationsbezogene Polymorphismen"] = "Polymorphisms relevant for the patient's phenotype";
 	}
 
 	//translate
