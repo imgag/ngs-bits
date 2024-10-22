@@ -2072,7 +2072,21 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 	{
 		RtfSourceCode desc;
 
-		desc += RtfText("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in Tumor- und Normalprobe hin (s. Anlage).").RtfCode();
+		bool in_normal = normal_hla_allel1 == "HLA-A*02:01" || normal_hla_allel2 == "HLA-A*02:01";
+		bool in_tumor = tumor_hla_allel1 == "HLA-A*02:01" || tumor_hla_allel2 == "HLA-A*02:01";
+
+		if (in_normal && in_tumor)
+		{
+			desc += RtfText("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in Tumor- und Normalprobe hin (s. Anlage).").RtfCode();
+		}
+		else if (in_normal)
+		{
+			desc += RtfText("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in der Normalprobe hin, jedoch ist er in der Tumorprobe deletiert (s. Anlage).").RtfCode();
+		}
+		else if (in_tumor)
+		{
+			desc += RtfText("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in der Tumorprobe, jedoch nicht in der Normalprobe, hin (s. Anlage).").RtfCode();
+		}
 
 		//check for CNVs in the HLA gene if the allele is HLA-A*02:01
 		if (tumor_hla.isValid() && (tumor_hla.getGeneAllele("HLA-A", true) == "HLA-A*02:01" || tumor_hla.getGeneAllele("HLA-A", false) == "HLA-A*02:01"))
