@@ -485,7 +485,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_classification && (anno=="3" || anno=="M"))
+			else if (j==i_classification && (anno=="3" || anno=="M" || anno=="R*"))
 			{
 				item->setBackgroundColor(QColor(255, 135, 60)); //orange
 				is_notice_line = true;
