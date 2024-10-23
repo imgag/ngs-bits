@@ -647,7 +647,7 @@ INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
 (199989, 'Lymphoma, B-cell non-Hodgkin, somatic (3)'),
 (199989, 'Lymphoma, mantle cell, somatic (3)'),
 (199989, 'T-cell prolymphocytic leukemia, somatic (3)'),
-(199989, '{Breast cancer, susceptibility to}, 114480 (3)'),
+(199989, 'Breast cancer, susceptibility to, 114480 (3)'),
 (193906, 'Langer mesomelic dysplasia, 249700 (3)'),
 (193906, 'Leri-Weill dyschondrosteosis, 127300 (3)'),
 (193906, 'Short stature, idiopathic familial, 300582 (3)'),

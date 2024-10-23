@@ -282,22 +282,6 @@ QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
         dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi_file, true}, true);
     }
 
-    //amplicon file (of processing system)
-    try
-    {
-        NGSD db;
-		int sys_id = db.processingSystemIdFromProcessedSample(main_window->germlineReportSample());
-        BedFile ampilicons = GlobalServiceProvider::database().processingSystemAmplicons(sys_id, true);
-        if (!ampilicons.isEmpty())
-        {
-            QString amp_file = GSvarHelper::localRoiFolder() + db.getProcessingSystemData(sys_id).name_short + "_amplicons.bed";
-            ampilicons.store(amp_file);
-
-            dlg.addFile(FileLocation{"amplicons track (of processing system)", PathType::OTHER, amp_file, true}, true);
-        }
-    }
-    catch(...) {} //Nothing to do here
-
     //sample low-coverage
 	bool igv_default_lowcov = Settings::boolean("igv_default_lowcov", true);
 	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)

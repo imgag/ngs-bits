@@ -148,7 +148,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>630</width>
+           <width>720</width>
            <height>16777215</height>
           </size>
          </property>
@@ -183,7 +183,7 @@
              </size>
             </property>
             <attribute name="horizontalHeaderVisible">
-             <bool>true</bool>
+             <bool>false</bool>
             </attribute>
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>

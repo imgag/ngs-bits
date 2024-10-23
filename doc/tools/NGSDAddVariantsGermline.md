@@ -1,5 +1,5 @@
 ### NGSDAddVariantsGermline tool help
-	NGSDAddVariantsGermline (2024_02-42-g36bb2635)
+	NGSDAddVariantsGermline (2024_08-36-g4fed1f49)
 	
 	Imports variants of a processed sample into the NGSD.
 	
@@ -9,21 +9,15 @@
 	Optional parameters:
 	  -var <file>     Small variant list in GSvar format (as produced by megSAP).
 	                  Default value: ''
-	  -var_force      Force import of small variants, even if already imported.
-	                  Default value: 'false'
 	  -var_update     Import missing small variants - doesn't change others.
 	                  Default value: 'false'
 	  -cnv <file>     CNV list in TSV format (as produced by megSAP).
 	                  Default value: ''
-	  -cnv_force      Force import of CNVs, even if already imported.
-	                  Default value: 'false'
 	  -sv <file>      SV list in BEDPE format (as produced by megSAP).
 	                  Default value: ''
-	  -sv_force       Force import of SVs, even if already imported.
-	                  Default value: 'false'
 	  -re <file>      RE list in VCF format (as produced by megSAP).
 	                  Default value: ''
-	  -re_force       Force import of REs, even if already imported.
+	  -force          Force import of variants, even if they are already imported.
 	                  Default value: 'false'
 	  -out <file>     Output file. If unset, writes to STDOUT.
 	                  Default value: ''
@@ -43,7 +37,8 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAddVariantsGermline changelog
-	NGSDAddVariantsGermline 2024_02-42-g36bb2635
+	NGSDAddVariantsGermline 2024_08-36-g4fed1f49
 	
+	2024-08-28 Merged all force parameters into one. Implmented skipping of small variants import if the same callset was already imported.
 	2021-07-19 Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -795,7 +795,7 @@ public:
 	//Return the transcript with the highest impact given the variant transcript impacts
 	Transcript highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene (best transcript, prefered transcripts, MANE select transcript, MANE plus clinical transcript)
-	TranscriptList releventTranscripts(int gene_id);
+	TranscriptList relevantTranscripts(int gene_id);
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names
@@ -1019,11 +1019,6 @@ public:
 	///Returns the processing system target region file.
 	BedFile processingSystemRegions(int sys_id, bool ignore_if_missing);
 
-	///Returns a path (including filename) for the processing system amplicon region file.  Returns an empty string if unset.
-	QString processingSystemAmpliconsFilePath(int sys_id);
-	///Returns the processing system amplicon region file.
-	BedFile processingSystemAmplicons(int sys_id, bool ignore_if_missing);
-
 	///Returns a path (including filename) for the processing system genes. Returns an empty string if unset.
 	QString processingSystemGenesFilePath(int sys_id);
 	///Returns the processing system genes.
@@ -1127,7 +1122,7 @@ public:
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
 	///Returns if the report configuration text summary.
-	QString reportConfigSummaryText(const QString& processed_sample_id);
+	QString reportConfigSummaryText(const QString& processed_sample_id, bool add_users=false);
 	///Returns if the report configuration is finalized.
 	bool reportConfigIsFinalized(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.

@@ -135,6 +135,26 @@ struct CPPNGSDSHARED_EXPORT SomaticHlaInfo
 		THROW(ArgumentException, "Given Gene not found in HLA lines: " + gene);
 	}
 
+	int getGeneAlleleDepth(QString gene, bool allele1)
+	{
+		foreach(HlaLine line, this->lines)
+		{
+			if (line.gene == gene)
+			{
+				if (allele1)
+				{
+					return line.depth_allele1;
+				}
+				else
+				{
+					return line.depth_allele2;
+				}
+			}
+		}
+		THROW(ArgumentException, "Given Gene not found in HLA lines: " + gene);
+
+	}
+
 };
 
 ///creates a somatic RTF report

@@ -5,3 +5,5 @@ Q20 read percentage: 99.32
 Q30 base percentage: 96.52
 no base call percentage: 0.00
 gc content percentage: 46.22
+median base Q score: 39
+mode base Q score: 39

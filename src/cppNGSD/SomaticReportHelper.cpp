@@ -1493,8 +1493,8 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_tumor, QString ps_normal)
 
 		table.addDataRow({gene, normal_hla_allel1, normal_hla_allel2, tumor_hla_allel1, tumor_hla_allel2}, {1522, 2100, 2100, 2100, 2100});
 	}
-
 	table.setUniqueBorder(1,"brdrhair",4);
+
 	return table;
 }
 
@@ -2046,11 +2046,7 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 	{
 		RtfSourceCode sv_expl;
 		int idx_desc = svs_.annotationIndexByName("DESCRIPTION");
-		if (svs_.count() == 1)
-		{
-			sv_expl = RtfText("Es gibt Hinweise auf eine wahrscheinlich onkogene Strukturvariante (s. Anlage):").setBold(true).RtfCode();
-		}
-		else
+		if (svs_.count() >= 1)
 		{
 			sv_expl = RtfText("Es gibt Hinweise auf wahrscheinlich onkogene Strukturvarianten (s. Anlage):").setBold(true).RtfCode();
 			for(int i=0; i< svs_.count(); i++)
@@ -2070,11 +2066,64 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 
 	QByteArray normal_hla_allel1 = normal_hla.isValid() ? normal_hla.getGeneAllele("HLA-A", true)  : "nicht bestimmbar";
 	QByteArray normal_hla_allel2 = normal_hla.isValid() ? normal_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
-	QByteArray tumor_hla_allel1 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
+	QByteArray tumor_hla_allel1 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", true) : "nicht bestimmbar";
 	QByteArray tumor_hla_allel2 = tumor_hla.isValid() ? tumor_hla.getGeneAllele("HLA-A", false) : "nicht bestimmbar";
 	if (normal_hla_allel1 == "HLA-A*02:01" || normal_hla_allel2 == "HLA-A*02:01" || tumor_hla_allel1 == "HLA-A*02:01" || tumor_hla_allel2 == "HLA-A*02:01" ) // CHECK HLA
 	{
-		out << RtfParagraph("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in Tumor und Normalgewebe hin (s. Anlage).").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode();
+		RtfSourceCode desc;
+
+		bool in_normal = normal_hla_allel1 == "HLA-A*02:01" || normal_hla_allel2 == "HLA-A*02:01";
+		bool in_tumor = tumor_hla_allel1 == "HLA-A*02:01" || tumor_hla_allel2 == "HLA-A*02:01";
+
+		if (in_normal && in_tumor)
+		{
+			desc += RtfText("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in Tumor- und Normalprobe hin (s. Anlage).").RtfCode();
+		}
+		else if (in_normal)
+		{
+			desc += RtfText("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in der Normalprobe hin, jedoch ist er in der Tumorprobe deletiert (s. Anlage).").RtfCode();
+		}
+		else if (in_tumor)
+		{
+			desc += RtfText("Unsere Daten weisen auf das Vorliegen des Haplotyps HLA-A*02:01 in der Tumorprobe, jedoch nicht in der Normalprobe, hin (s. Anlage).").RtfCode();
+		}
+
+		//check for CNVs in the HLA gene if the allele is HLA-A*02:01
+		if (tumor_hla.isValid() && (tumor_hla.getGeneAllele("HLA-A", true) == "HLA-A*02:01" || tumor_hla.getGeneAllele("HLA-A", false) == "HLA-A*02:01"))
+		{
+			QByteArray cnv_type = "";
+			for(int i=0;i<cnvs_.count();++i)
+			{
+				CopyNumberVariant cnv = cnvs_[i];
+				GeneSet genes = cnv.genes();
+
+				if (genes.contains("HLA-A"))
+				{
+					cnv_type = CnvTypeDescription(cnv.copyNumber(cnvs_.annotationHeaders()), true).replace('(', "").replace(')', "");
+					break;
+				}
+
+			}
+
+			if (cnv_type != "")
+			{
+				double depth_allel1 = tumor_hla.getGeneAlleleDepth("HLA-A", true);
+				double depth_allel2 = tumor_hla.getGeneAlleleDepth("HLA-A", false);
+
+
+				double rel_depth1 = depth_allel1 / (depth_allel1 + depth_allel2);
+				double rel_depth2 = depth_allel2 / (depth_allel1 + depth_allel2);
+
+
+
+				desc += RtfText(" Es liegt eine Kopienzahlveränderung (" + cnv_type + ") im HLA-A Genlokus der Tumorprobe vor. ").RtfCode();
+				desc += RtfText("Das Allel A*02:01 ist im Tumorgewebe " + RtfText("deletiert amplifiziert").highlight(3).RtfCode()+ ". " + RtfText("("+ tumor_hla_allel1 + " Freq " + QByteArray::number(rel_depth1, 'f', 2) + " | " + tumor_hla_allel2 + " Freq " + QByteArray::number(rel_depth2, 'f', 2) + ") ").highlight(4).RtfCode()).RtfCode();
+				desc += RtfText("Ein Verlust des Allels A*02:01 im Tumorgewebe ist nicht beurteilbar.").highlight(3).RtfCode();
+
+			}
+		}
+
+		out << RtfParagraph(desc).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode();
 	}
 	else
 	{

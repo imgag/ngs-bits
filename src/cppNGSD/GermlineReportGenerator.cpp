@@ -137,7 +137,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (!data_.roi.genes.isEmpty())
 		{
 			stream << "<br />" << trans("Ausgewertete Gene") << ": ";
-			if (data_.report_settings.show_coverage_details)
+			if (data_.report_settings.show_coverage_details && Settings::string("location", true)!="MHH")
 			{
 				stream << QString::number(data_.roi.genes.count()) << " (" << trans("siehe Abdeckungsstatistik") << ")" << endl;
 			}
@@ -211,7 +211,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	{
 		foreach(const SampleInfo& info, info_additional)
 		{
-			stream << "<td><b>" << info.name << "</b></td>";
+			stream << "<td><b>" << trans("Genotyp") << " " << info.name << "</b></td>";
 		}
 		colspan += info_additional.count();
 	}
@@ -410,12 +410,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << trans("Repeat-Expansion") << "</td>" << endl;
 		stream << "<td>" << re.region().toString(true) << "</td>" << endl;
 		stream << "<td></td>" << endl;
-		QString geno = re.alleles();
+		QString geno = trans("expandiert");
 		if (var_conf.de_novo) geno += " (de-novo)";
 		if (var_conf.mosaic) geno += " (mosaic)";
 		if (var_conf.comp_het) geno += " (comp-het)";
 		stream << "<td>" << geno << "</td>" << endl;
-		stream << "<td>" << re.geneSymbol() << "/" << re.unit() << "</td>" << endl;
+		stream << "<td>" << re.name() << "</td>" << endl;
 		stream << "<td></td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		stream << "<td></td>" << endl;
@@ -442,6 +442,64 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << causal_variant.inheritance << "</td>" << endl;
 		stream << "<td>" << causal_variant.comment << "</td>" << endl;
 		stream << "</tr>" << endl;
+		stream << "</table>" << endl;
+	}
+	//--------------------------------------------------------------------------------------
+
+
+	//polymorphisms
+	if (data_.report_settings.polymorphisms.count()>0)
+	{
+		stream << "<br /><b>" << trans("Indikationsbezogene Polymorphismen") << "</b>" << endl;
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>" << trans("dbSNP") << "</b></td><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("&Uuml;berpr&uuml;fte Variante") << "</b></td><td><b>" << trans("Nachgewiesener Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td></tr>" << endl;
+
+		foreach(const ReportPolymorphism& poly, data_.report_settings.polymorphisms)
+		{
+			const Variant& var = poly.v;
+			stream << "<tr>" << endl;
+			stream << "<td>" << poly.rs_number << endl;
+			stream << "<td>" << poly.gene_symbol << "</td>" << endl;
+			stream << "<td>" << var.toString() << "</td>" << endl;
+			QStringList details;
+			QString genotype = "";
+			if (var.isSNV())
+			{
+				BamReader reader(data_.ps_bam);
+				Pileup pileup = reader.getPileup(var.chr(), var.start());
+				details << (trans("Tiefe")+"="+QString::number(pileup.depth(false)));
+				if (pileup.depth(false)<20)
+				{
+					details << trans("keine Genotypisierung weil Tiefe unter 20");
+				}
+				else
+				{
+					QChar ref = var.ref()[0];
+					QChar alt = var.obs()[0];
+					double af = pileup.frequency(ref, alt);
+					details << ("AF="+QString::number(af, 'g', 3));
+					if (af<0.15)
+					{
+						genotype = ref+QString("/")+ref;
+					}
+					else if (af>0.85)
+					{
+						genotype = alt+QString("/")+alt;
+					}
+					else
+					{
+						genotype = ref+QString("/")+alt;
+					}
+				}
+			}
+			else
+			{
+				THROW(ArgumentException, "InDels are not supported as report polymorphisms!");
+			}
+			stream << "<td>" << genotype << "</td>" << endl;
+			stream << "<td>" << details.join(", ") << "</td>" << endl;
+			stream << "</tr>" << endl;
+		}
 		stream << "</table>" << endl;
 	}
 	//--------------------------------------------------------------------------------------
@@ -531,7 +589,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					continue;
 				}
 
-				TranscriptList transcripts = db_.releventTranscripts(gene_id);
+				TranscriptList transcripts = db_.relevantTranscripts(gene_id);
 				if (transcripts.isEmpty())
 				{
 					genes_without_roi << gene;
@@ -1055,7 +1113,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			bool is_main_transcript = false;
 			if (gene_id!=-1)
 			{
-				TranscriptList relevant_transcripts = db_.releventTranscripts(gene_id);
+				TranscriptList relevant_transcripts = db_.relevantTranscripts(gene_id);
 				if (relevant_transcripts.contains(trans.idWithoutVersion()))
 				{
 					is_main_transcript = true;
@@ -1421,8 +1479,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("start", QString::number(re.region().start()));
 		w.writeAttribute("end", QString::number(re.region().end()));
 		w.writeAttribute("repeat_unit", re.unit());
-		w.writeAttribute("allele1", re.allele1());
-		if (!re.allele2().isEmpty()) w.writeAttribute("allele2", re.allele2());
+		w.writeAttribute("allele1", QByteArray::number(re.allele1asInt()));
+		if (!re.allele2().isEmpty()) w.writeAttribute("allele2", QByteArray::number(re.allele2asInt()));
 
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
@@ -1762,6 +1820,12 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["<sup>*</sup> F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen."] = "<sup>*</sup> For information on the classification of variants, see the general information.";
 		de2en["kein &Uuml;berlappung mit Gen"] = "no gene overlap";
 		de2en["Konnte nicht erstellt werden, weil keine Gene der Zielregion definiert wurden."] = "Could not be performed because no target region genes are definded.";
+		de2en["expandiert"] = "expanded";
+		de2en["&Uuml;berpr&uuml;fte Variante"] = "Tested variant";
+		de2en["Nachgewiesener Genotyp"] = "Detected alleles";
+		de2en["keine Genotypisierung weil Tiefe unter 20"] = "no genotyping as depth is below 20";
+		de2en["Tiefe"] = "depth";
+		de2en["Indikationsbezogene Polymorphismen"] = "Polymorphisms relevant for the patient's phenotype";
 	}
 
 	//translate
@@ -2010,7 +2074,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 	foreach(const QByteArray& gene, genes)
 	{
 		int gene_id = db_.geneId(gene);
-		foreach(const Transcript& trans, db_.releventTranscripts(gene_id))
+		foreach(const Transcript& trans, db_.relevantTranscripts(gene_id))
 		{
 			try
 			{

@@ -490,7 +490,9 @@ void SequencingRunWidget::exportSampleSheet()
 	NGSD db;
 	try
 	{
-		QString output_path = Settings::string("sample_sheet_path") + "/" + ui_->name->text().remove(0, 1) + ".csv";
+		QString name = ui_->name->text();
+		if (name.startsWith("#")) name.remove(0,1);
+		QString output_path = Settings::string("sample_sheet_path") + "/" + name + ".csv";
 		QStringList warnings;
 		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_id_, "Sequencing run id"), warnings);
 
@@ -585,96 +587,144 @@ void SequencingRunWidget::updateReadQualityTable()
 	//clear everything
 	table->clearContents();
 	table->setRowCount(0);
+	table->verticalHeader()->setVisible(false);
 
-	//set header
-	QStringList headers;
-	headers << "read" << "lane" << "Q30 [%]" << "error rate [%]" << "occupied [%]" << "clusters [K/mm2]" << "clusters PF [%]" << "yield [GB]";
-
-	table->setColumnCount(headers.count());
-	for(int c=0; c<headers.count(); ++c)
-	{
-		table->setHorizontalHeaderItem(c, GUIHelper::createTableItem(headers[c], Qt::AlignCenter));
-	}
-
-	//add QC of reads/lanes
+	//use different layout depending on sequencer
 	NGSD db;
-	SqlQuery q_reads = db.getQuery();
-	q_reads.exec("SELECT * FROM runqc_read WHERE sequencing_run_id=" + run_id_ + " ORDER BY read_num ASC");
-	QHash<QString, QVector<double>> type2values;
-	while(q_reads.next())
+	QString device_type = db.getValue("SELECT d.type FROM sequencing_run r, device d WHERE r.device_id=d.id AND r.id=:0", false, run_id_).toString();
+	if (device_type == "PromethION")
 	{
-		//all lanes summary line
-		int row = table->rowCount();
-		table->setRowCount(row + 1);
+		//set headers
 
-		QString text = "R" + q_reads.value("read_num").toString() + " (" + q_reads.value("cycles").toString() + "cycles";
-		bool is_index = q_reads.value("is_index").toBool();
-		if (is_index) text += ", index";
-		text += ")";
-		QTableWidgetItem* item = GUIHelper::createTableItem(text);
-		highlightItem(item);
-		table->setItem(row, 0, item);
+		//set horizontal header
+		table->setColumnCount(1);
+		table->horizontalHeader()->setVisible(true);
+		table->setHorizontalHeaderItem(0, GUIHelper::createTableItem(db.getValue("SELECT name FROM sequencing_run WHERE id=:0", false, run_id_).toString(), Qt::AlignCenter));
 
-		item = GUIHelper::createTableItem(QString("all"));
-		highlightItem(item);
-		table->setItem(row, 1, item);
 
-		item = GUIHelper::createTableItem(q_reads.value("q30_perc").toString());
-		highlightItem(item);
-		table->setItem(row, 2, item);
-
-		item = GUIHelper::createTableItem(q_reads.value("error_rate").toString());
-		highlightItem(item);
-		table->setItem(row, 3, item);
-
-		//inidividual lanes
-		SqlQuery q_lanes = db.getQuery();
-		q_lanes.exec("SELECT * FROM runqc_lane WHERE runqc_read_id=" + q_reads.value("id").toString() + " ORDER BY lane_num ASC");
-		while(q_lanes.next())
+		//set vertical header
+		QStringList v_headers;
+		v_headers << "read number" << "yield [GB]" << "passing filters [%]" << "basecall skipped [%]" << "Q20 [%]" << "Q30 [%]" << "N50";
+		table->setRowCount(v_headers.size());
+		table->verticalHeader()->setVisible(true);
+		for(int r=0; r<v_headers.count(); ++r)
 		{
+			table->setVerticalHeaderItem(r, GUIHelper::createTableItem(v_headers[r], Qt::AlignLeft));
+		}
 
-			row = table->rowCount();
+		//get ONT QC
+		SqlQuery qc_query = db.getQuery();
+		qc_query.exec("SELECT * FROM runqc_ont WHERE sequencing_run_id=" + run_id_);
+
+		if (qc_query.size() > 1)
+		{
+			THROW(ProgrammingException, "Multiple QC entries found. This should not happen!");
+		}
+		else if (qc_query.size() == 1)
+		{
+			qc_query.next();
+			int r = 0;
+			table->setItem(r++, 0, GUIHelper::createTableItem(qc_query.value("read_num").toInt()));
+			table->setItem(r++, 0, GUIHelper::createTableItem(qc_query.value("yield").toDouble() / 1e9, 2));
+			table->setItem(r++, 0, GUIHelper::createTableItem(qc_query.value("passing_filter_perc").toDouble(), 2));
+			table->setItem(r++, 0, GUIHelper::createTableItem(qc_query.value("fraction_skipped").toDouble() * 100.0, 2));
+			table->setItem(r++, 0, GUIHelper::createTableItem(qc_query.value("q20_perc").toDouble(), 2));
+			table->setItem(r++, 0, GUIHelper::createTableItem(qc_query.value("q30_perc").toDouble(), 2));
+			table->setItem(r++, 0, GUIHelper::createTableItem(qc_query.value("n50").toInt()));
+		}
+
+	}
+	else
+	{
+		//set header
+		QStringList headers;
+		headers << "read" << "lane" << "Q30 [%]" << "error rate [%]" << "occupied [%]" << "clusters [K/mm2]" << "clusters PF [%]" << "yield [GB]";
+
+		table->setColumnCount(headers.count());
+		for(int c=0; c<headers.count(); ++c)
+		{
+			table->setHorizontalHeaderItem(c, GUIHelper::createTableItem(headers[c], Qt::AlignCenter));
+		}
+
+		//add QC of reads/lanes
+		SqlQuery q_reads = db.getQuery();
+		q_reads.exec("SELECT * FROM runqc_read WHERE sequencing_run_id=" + run_id_ + " ORDER BY read_num ASC");
+		QHash<QString, QVector<double>> type2values;
+		while(q_reads.next())
+		{
+			//all lanes summary line
+			int row = table->rowCount();
 			table->setRowCount(row + 1);
 
-			table->setItem(row, 0, GUIHelper::createTableItem(QString()));
-			table->setItem(row, 1, GUIHelper::createTableItem(q_lanes.value("lane_num").toString()));
-			double q30 = q_lanes.value("q30_perc").toDouble();
-			table->setItem(row, 2, GUIHelper::createTableItem(QString::number(q30, 'f', 2)));
-			if (!is_index)type2values["q30"] << q30;
-			double error_rate = q_lanes.value("error_rate").toDouble();
-			table->setItem(row, 3, GUIHelper::createTableItem(QString::number(error_rate, 'f', 2)));
-			if (!is_index) type2values["error_rate"] << error_rate;
-			table->setItem(row, 4, GUIHelper::createTableItem(QString::number(q_lanes.value("occupied_perc").toDouble(), 'f', 2)));
-			double density = q_lanes.value("cluster_density").toDouble();
-			table->setItem(row, 5, GUIHelper::createTableItem(QString::number(density/1000.0, 'f', 2)));
-			table->setItem(row, 6, GUIHelper::createTableItem(QString::number(q_lanes.value("cluster_density_pf").toDouble()/density*100.0, 'f', 2)));
-			double yield_gb = q_lanes.value("yield").toDouble()/1000000000.0;
-			table->setItem(row, 7, GUIHelper::createTableItem(QString::number(yield_gb, 'f', 2)));
-			type2values["yield"] << yield_gb;
+			QString text = "R" + q_reads.value("read_num").toString() + " (" + q_reads.value("cycles").toString() + "cycles";
+			bool is_index = q_reads.value("is_index").toBool();
+			if (is_index) text += ", index";
+			text += ")";
+			QTableWidgetItem* item = GUIHelper::createTableItem(text);
+			highlightItem(item);
+			table->setItem(row, 0, item);
+
+			item = GUIHelper::createTableItem(QString("all"));
+			highlightItem(item);
+			table->setItem(row, 1, item);
+
+			item = GUIHelper::createTableItem(q_reads.value("q30_perc").toString());
+			highlightItem(item);
+			table->setItem(row, 2, item);
+
+			item = GUIHelper::createTableItem(q_reads.value("error_rate").toString());
+			highlightItem(item);
+			table->setItem(row, 3, item);
+
+			//inidividual lanes
+			SqlQuery q_lanes = db.getQuery();
+			q_lanes.exec("SELECT * FROM runqc_lane WHERE runqc_read_id=" + q_reads.value("id").toString() + " ORDER BY lane_num ASC");
+			while(q_lanes.next())
+			{
+
+				row = table->rowCount();
+				table->setRowCount(row + 1);
+
+				table->setItem(row, 0, GUIHelper::createTableItem(QString()));
+				table->setItem(row, 1, GUIHelper::createTableItem(q_lanes.value("lane_num").toString()));
+				double q30 = q_lanes.value("q30_perc").toDouble();
+				table->setItem(row, 2, GUIHelper::createTableItem(QString::number(q30, 'f', 2)));
+				if (!is_index)type2values["q30"] << q30;
+				double error_rate = q_lanes.value("error_rate").toDouble();
+				table->setItem(row, 3, GUIHelper::createTableItem(QString::number(error_rate, 'f', 2)));
+				if (!is_index) type2values["error_rate"] << error_rate;
+				table->setItem(row, 4, GUIHelper::createTableItem(QString::number(q_lanes.value("occupied_perc").toDouble(), 'f', 2)));
+				double density = q_lanes.value("cluster_density").toDouble();
+				table->setItem(row, 5, GUIHelper::createTableItem(QString::number(density/1000.0, 'f', 2)));
+				table->setItem(row, 6, GUIHelper::createTableItem(QString::number(q_lanes.value("cluster_density_pf").toDouble()/density*100.0, 'f', 2)));
+				double yield_gb = q_lanes.value("yield").toDouble()/1000000000.0;
+				table->setItem(row, 7, GUIHelper::createTableItem(QString::number(yield_gb, 'f', 2)));
+				type2values["yield"] << yield_gb;
+			}
 		}
-	}
 
-	//add QC summary
-	if (!type2values.isEmpty())
-	{
-		int row = table->rowCount();
-		table->setRowCount(row + 1);
+		//add QC summary
+		if (!type2values.isEmpty())
+		{
+			int row = table->rowCount();
+			table->setRowCount(row + 1);
 
-		QTableWidgetItem* item = GUIHelper::createTableItem("overall");
-		highlightItem(item);
-		table->setItem(row, 0, item);
+			QTableWidgetItem* item = GUIHelper::createTableItem("overall");
+			highlightItem(item);
+			table->setItem(row, 0, item);
 
-		item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["q30"]), 'f', 2));
-		highlightItem(item);
-		table->setItem(row, 2, item);
+			item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["q30"]), 'f', 2));
+			highlightItem(item);
+			table->setItem(row, 2, item);
 
-		item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["error_rate"]), 'f', 2));
-		highlightItem(item);
-		table->setItem(row, 3, item);
+			item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["error_rate"]), 'f', 2));
+			highlightItem(item);
+			table->setItem(row, 3, item);
 
-		item = GUIHelper::createTableItem(QString::number(std::accumulate(type2values["yield"].begin(), type2values["yield"].end(), 0.0), 'f', 2));
-		highlightItem(item);
-		table->setItem(row, 7, item);
+			item = GUIHelper::createTableItem(QString::number(std::accumulate(type2values["yield"].begin(), type2values["yield"].end(), 0.0), 'f', 2));
+			highlightItem(item);
+			table->setItem(row, 7, item);
+		}
 	}
 
 	GUIHelper::resizeTableCellWidths(table);
