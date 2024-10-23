@@ -90,8 +90,6 @@ public:
 	static HttpResponse performLogout(const HttpRequest& request);
 	/// Streams processing system regions file
 	static HttpResponse getProcessingSystemRegions(const HttpRequest& request);
-	/// Streams processing system amplicons file
-	static HttpResponse getProcessingSystemAmplicons(const HttpRequest& request);
 	/// Streams processing system genes file
 	static HttpResponse getProcessingSystemGenes(const HttpRequest& request);
 	/// Retrieves a list of secondary analyses

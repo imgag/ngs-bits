@@ -336,8 +336,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 
 		QStringList ccds;
 		QStringList refseq;
-		QByteArrayList tmp = matches.value(transcript.name());
-		foreach(QByteArray match, tmp)
+		foreach(QByteArray match, matches.value(transcript.name()))
 		{
 			match = match.trimmed();
 			if (match.startsWith("CCDS"))

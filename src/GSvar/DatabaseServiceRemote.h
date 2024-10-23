@@ -19,7 +19,6 @@ public:
 	virtual QString checkPassword(const QString user_name, const QString password) const override;
 
 	virtual BedFile processingSystemRegions(int sys_id, bool ignore_if_missing) const override;
-	virtual BedFile processingSystemAmplicons(int sys_id, bool ignore_if_missing) const override;
 	virtual GeneSet processingSystemGenes(int sys_id, bool ignore_if_missing) const override;
 	virtual QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type) const override;
 

@@ -47,7 +47,7 @@ public:
 	}
 
 	//Checks if the given phenotype accession is in the list.
-	bool containsAccession(const QByteArray& accession)
+	bool containsAccession(const QByteArray& accession) const
 	{
 		return accessions_.contains(accession.trimmed());
 	}

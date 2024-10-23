@@ -199,7 +199,7 @@ void DBTable::formatBooleanColumn(int c)
 		{
 			rows_[r].setValue(c, s_no);
 		}
-		else
+		else if (!value.isEmpty())
 		{
 			THROW(ProgrammingException, "Unhandled value '" + value + "' in DBTable::formatBooleanColumn!");
 		}

@@ -451,7 +451,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			FileLocation log_location = GlobalServiceProvider::database().analysisJobLogFile(jobs_[row].ngsd_id);
 
 			//start in default text editor
-			QString text_editor = Settings::string("text_editor").trimmed();
+			QString text_editor = Settings::string("text_editor", true).trimmed();
 			if (!text_editor.isEmpty())
 			{
 				//create a local copy of the log file

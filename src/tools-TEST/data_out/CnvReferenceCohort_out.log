@@ -1,6 +1,6 @@
 compared number of coverage files: 5
 Selected the following files as reference samples based on correlation: 
-CnvReferenceCohort_in_ref2.cov : 0.949609
-CnvReferenceCohort_in_ref4.cov.gz : 0.93516
-CnvReferenceCohort_in_ref1.cov : 0.929074
+CnvReferenceCohort_in_ref2.cov: 0.949609
+CnvReferenceCohort_in_ref4.cov.gz: 0.93516
+CnvReferenceCohort_in_ref1.cov: 0.929074
 Mean correlation to reference samples is: 0.937948

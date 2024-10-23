@@ -1,11 +1,19 @@
 {
 	"study" : "Study4711",
 	"study_description" : "Descripion of the study",
+	"study_types" : ["OTHER", "EXOME_SEQUENCING"],
 	"study_affiliations" : ["Affiliation 1", "Affiliation 2"],
+	"analysis_type": "custom analysis",
+	"analysis_description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
+	"workflow_name": "custom pipeline",
+	"workflow_version": "2000_01-123-g123456789",
+	"workflow_doi": "doi.123",
 	"data_access_committee_email" : "norply@med.uni-tuebingen.de",
 	"data_access_committee_organization" : "UKT, Tübingen, Germany",
 	"data_access_policy_text" : "Textual description of the DAP",
 	"data_access_policy_url" : "http:://url.describing.the.dap.de",
-	"data_access_policy_use_condition" : "Use Condition",
-	"data_access_policy_use_modifiers" : ["Modifier 1", "Modifier 2"]
+	"data_use_permission_term" : "GENERAL_RESEARCH_USE",
+	"data_use_permission_id" : "DUO:0000001",
+	"data_use_modifier_terms": ["TIME_LIMIT_ON_USE", "COLLABORATION_REQUIRED"],
+	"data_use_modifier_ids" : ["DUO:0000025", "DUO:0000036"]
 }

@@ -15,12 +15,18 @@ INSERT INTO sequencing_run (id, name, fcid, flowcell_type, device_id, recipe, qu
 -- processing_system
 INSERT INTO processing_system (id, name_short, name_manufacturer, type, shotgun, genome_id) VALUES
 (1, 'TruSeqPCRfree', 'Illumina TruSeq DNA PCR-Free', 'WGS', '1', 1),
-(2, 'nebRNAU2_qiaRRNA_umi', 'NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI', 'RNA', '1', 1);
+(2, 'nebRNAU2_qiaRRNA_umi', 'NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI', 'RNA', '1', 1),
+(3, 'IDT_xGenPrism', 'IDT xGen Human ID + IDT xGen Prism DNA', 'cfDNA (patient-specific)', '1', 1);
 
 -- sample
 INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status, tissue) VALUES
 (11, 'SAMPLE1', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected', 'blood'),
-(22, 'SAMPLE2', 'RNA', 1, 'male', '0', '0', 1, 'good', 'Neoplasms', 'Affected', 'skin');
+(22, 'SAMPLE2', 'RNA', 1, 'male', '0', '0', 1, 'good', 'Neoplasms', 'Affected', 'skin'),
+(33, 'CFDNA1', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood'),
+(44, 'CFDNA2', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood'),
+(55, 'CFDNA3', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood'),
+(66, 'CFDNA4', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood'),
+(77, 'CFDNA5', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood');
 
 -- sample_disease_info
 INSERT INTO sample_disease_info(id, sample_id, disease_info, type, user_id, date) VALUES
@@ -39,7 +45,12 @@ INSERT INTO project (id, name, type, internal_coordinator_id, analysis, archived
 -- processed_sample
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, quality) VALUES
 (111, 11, 2, 1, 1, 2, 1, 1, 'good'),
-(222, 22, 1, 1, 1, 2, 2, 1, 'good');
+(222, 22, 1, 1, 1, 2, 2, 1, 'good'),
+(333, 33, 3, 1, 2, 2, 3, 1, 'good'),
+(444, 44, 3, 1, 2, 2, 3, 1, 'good'),
+(555, 55, 3, 1, 2, 2, 3, 1, 'good'),
+(666, 66, 3, 1, 2, 2, 3, 1, 'good'),
+(777, 77, 3, 1, 2, 2, 3, 1, 'good');
 
 -- processed_sample_ancestry
 INSERT INTO processed_sample_ancestry(processed_sample_id, num_snps, score_afr, score_eur, score_sas, score_eas, population) VALUES

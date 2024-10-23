@@ -401,7 +401,7 @@ QString GSvarHelper::gnomADLink(const Variant& v, bool open_in_v4)
 QString GSvarHelper::allOfUsLink(const Variant& v)
 {
 	FastaFileIndex idx(Settings::string("reference_genome"));
-	return "https://databrowser.researchallofus.org/variants/" + v.toGnomAD(idx);
+	return "https://databrowser.researchallofus.org/snvindel-variants/" + v.toGnomAD(idx);
 }
 
 

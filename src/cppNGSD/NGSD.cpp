@@ -1053,33 +1053,6 @@ BedFile NGSD::processingSystemRegions(int sys_id, bool ignore_if_missing)
 	return output;
 }
 
-QString NGSD::processingSystemAmpliconsFilePath(int sys_id)
-{
-	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
-	if (!rel_path.isEmpty())
-	{
-		return getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
-	}
-	return "";
-}
-
-BedFile NGSD::processingSystemAmplicons(int sys_id, bool ignore_if_missing)
-{
-	BedFile output;
-
-	QString amplicon_file = processingSystemAmpliconsFilePath(sys_id);
-	if (amplicon_file.isEmpty())
-	{
-		if (!ignore_if_missing) THROW(FileAccessException, "Amplicon BED file of processing system '" + getProcessingSystemData(sys_id).name + "' requested but not set in NGSD!");
-	}
-	else
-	{
-		output.load(amplicon_file);
-	}
-
-	return output;
-}
-
 QString NGSD::processingSystemGenesFilePath(int sys_id)
 {
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
@@ -1191,6 +1164,8 @@ void NGSD::removeInitData()
 
 	getQuery().exec("DELETE FROM genome WHERE build='GRCh37'");
 	getQuery().exec("DELETE FROM genome WHERE build='GRCh38'");
+
+	getQuery().exec("DELETE FROM repeat_expansion WHERE 1");
 }
 
 QString NGSD::projectFolder(QString type)
@@ -3674,12 +3649,6 @@ void NGSD::executeQueriesFromFile(QString filename)
 			query.clear();
 		}
 	}
-	if (query.endsWith(';'))
-	{
-		//qDebug() << query;
-		getQuery().exec(query);
-		query.clear();
-	}
 }
 
 NGSD::~NGSD()
@@ -5674,7 +5643,12 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 
 QString NGSD::getTargetFilePath()
 {
-	return PipelineSettings::dataFolder() + QDir::separator() + "enrichment" + QDir::separator();
+	if (ClientHelper::isRunningOnServer())
+	{
+		return PipelineSettings::dataFolder() + QDir::separator() + "enrichment" + QDir::separator();
+	}
+
+	return Settings::string("data_folder") + QDir::separator() + "enrichment" + QDir::separator();
 }
 
 void NGSD::updateQC(QString obo_file, bool debug)
@@ -5915,7 +5889,8 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	//create header
 	sample_sheet.append("[Header],");
 	sample_sheet.append("FileFormatVersion,2");
-	sample_sheet.append("RunName," + run_name.remove(0, 1));
+	if (run_name.startsWith("#")) run_name.remove(0,1);
+	sample_sheet.append("RunName," + run_name);
 	sample_sheet.append("InstrumentPlatform,NovaSeqXSeries");
 	sample_sheet.append("InstrumentType," + query.value("d_type").toString());
 	sample_sheet.append("IndexOrientation,Forward");
@@ -6338,8 +6313,7 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 	QByteArray name_nover = name;
 	if (name_nover.contains('.')) name_nover = name_nover.left(name_nover.indexOf('.'));
 	const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(build);
-	QByteArrayList tmp = matches.value(name_nover);
-	foreach(QByteArray match, tmp)
+	foreach(QByteArray match, matches.value(name_nover))
 	{
 		match = match.trimmed();
 		if (match.startsWith("ENST"))
@@ -7341,7 +7315,7 @@ Transcript NGSD::highestImpactTranscript(TranscriptList transcripts, const QList
 	}
 }
 
-TranscriptList NGSD::releventTranscripts(int gene_id)
+TranscriptList NGSD::relevantTranscripts(int gene_id)
 {
 	TranscriptList output;
 
@@ -7450,7 +7424,7 @@ int NGSD::reportConfigId(const QString& processed_sample_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
+QString NGSD::reportConfigSummaryText(const QString& processed_sample_id, bool add_users)
 {
 	QString output;
 
@@ -7626,6 +7600,25 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 			output += ", causal " + query.value("type").toString() + ": " + query.value("coordinates").toString() + " (genes: " + query.value("gene").toString() + ")";
 		}
 
+		//users
+		if (add_users)
+		{
+			QStringList user_output;
+			QString user = getValue("SELECT u.name FROM user u, report_configuration rc WHERE rc.created_by=u.id AND rc.id="+QString::number(rc_id), true).toString();
+			if (!user.isEmpty())
+			{
+				user_output << ("created by: " + user);
+			}
+			QString user2 = getValue("SELECT u.name FROM user u, report_configuration rc WHERE rc.last_edit_by=u.id AND rc.id="+QString::number(rc_id), true).toString();
+			if (!user2.isEmpty() && user!=user2)
+			{
+				user_output << ("last edited by: " + user2);
+			}
+			if (!user_output.isEmpty())
+			{
+				output += " (" + user_output.join(", ") + ")";
+			}
+		}
 	}
 
 	return output;
@@ -9953,7 +9946,20 @@ void NGSD::exportTable(const QString& table, QTextStream& out, QString where_cla
 			for (int i=0; i<field_count; i++)
 			{
 				QString field_value = query.value(field_names[i]).toString();
-				if (((field_value.isEmpty()) || (field_value=="0")) && (table_info.fieldInfo()[i].is_nullable)) field_value = "NULL";                
+
+				//handle nullable fields
+				if ((field_value.isEmpty() || field_value=="0") && table_info.fieldInfo()[i].is_nullable)
+				{
+					field_value = "NULL";
+				}
+
+				//prevent ';\n' because that is interpreted as end of query in import
+				if (table_info.fieldInfo()[i].type==TableFieldInfo::TEXT || table_info.fieldInfo()[i].type==TableFieldInfo::VARCHAR)
+				{
+					field_value.replace(";\n",",\n");
+					field_value.replace("; \n",",\n");
+					field_value.replace(";  \n",",\n");
+				}
                 values.append(escapeText(field_value));
 			}
 

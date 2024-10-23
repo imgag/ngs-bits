@@ -43,7 +43,13 @@ private slots:
 		IS_TRUE(result[7].type()==QCValueType::IMAGE);
         S_EQUAL(result[8].name(), QString("Q score plot"));
 		IS_TRUE(result[8].type()==QCValueType::IMAGE);
-        I_EQUAL(result.count(), 9);
+		S_EQUAL(result[9].name(), QString("Q score histogram"));
+		IS_TRUE(result[9].type()==QCValueType::IMAGE);
+		S_EQUAL(result[10].name(), QString("median base Q score"));
+		I_EQUAL(result[10].asInt(), 39);
+		S_EQUAL(result[11].name(), QString("mode base Q score"));
+		I_EQUAL(result[11].asInt(), 39);
+		I_EQUAL(result.count(), 12);
 
 		//check that there is a description for each term
 		for (int i=0; i<result.count(); ++i)

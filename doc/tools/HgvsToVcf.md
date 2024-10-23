@@ -1,5 +1,5 @@
 ### HgvsToVcf tool help
-	HgvsToVcf (2022_07-37-g22d4e20c)
+	HgvsToVcf (2024_08-36-g4fed1f49)
 	
 	Transforms a TSV file with transcript ID and HGVS.c change into a VCF file.
 	
@@ -25,7 +25,7 @@
 	  -build <enum>              Genome build
 	                             Default value: 'hg38'
 	                             Valid: 'hg19,hg38'
-	  -max_seq <int>             If set, skips variants with ref/alt sequence longer than the five value.
+	  -max_seq <int>             If set, skips variants with ref/alt sequence longer than this cutoff.
 	                             Default value: '-1'
 	
 	Special parameters:
@@ -35,7 +35,7 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### HgvsToVcf changelog
-	HgvsToVcf 2022_07-37-g22d4e20c
+	HgvsToVcf 2024_08-36-g4fed1f49
 	
 	2022-07-25 Added parameter 'max_seq'.
 	2022-05-12 Initial version

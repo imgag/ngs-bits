@@ -17,6 +17,7 @@ StatisticsReads::StatisticsReads(bool long_read)
 	, qscore_dist_r1(0, 60, 1)
 	, qscore_dist_r2(0, 60, 1)
 	, long_read_(long_read)
+	, base_qualities_(100)
 
 {
 }
@@ -54,6 +55,8 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 		int q = entry.quality(i);
 		q_sum += q;
 		if (q>=30.0) ++c_base_q30_;
+		if (q >= base_qualities_.size()) THROW(ArgumentException, "Base quality > " + QByteArray::number(base_qualities_.size()) + " (" + QByteArray::number(q) + "). This should not happen!");
+		base_qualities_[q]++;
 		if (direction==FORWARD)
 		{
 			qualities1_[i] += q;
@@ -312,6 +315,46 @@ QCCollection StatisticsReads::getResult()
 	}
 
 
+	//create QScore histogram
+	//prepare data
+	QList<QString> labels;
+	QList<double> values;
+	double max_count = 0;
+	int mode_q_score = 0;
+	int median_q_score = 0;
+	bool median_found = false;
+	long long bases_checked = 0;
+	for (int i = 0; i < base_qualities_.size(); ++i)
+	{
+		labels << QString::number(i);
+		values << base_qualities_[i];
+
+		if (base_qualities_[i] >= max_count)
+		{
+			max_count = base_qualities_[i];
+			mode_q_score = i;
+		}
+
+		// get median q score
+		bases_checked += base_qualities_[i];
+		if (!median_found && (bases_checked >= (bases_sequenced_ / 2)))
+		{
+			median_q_score = i;
+			median_found = true;
+		}
+	}
+	BarPlot plot4;
+	plot4.setXLabel("Q score");
+	plot4.setYLabel("base counts");
+	plot4.setYRange(0, (int) ((max_count + 1) * 1.1));
+	plot4.setXRange(0, 100);
+	plot4.setValues(values, labels);
+	QString plotname4 = Helper::tempFileName(".png");
+	plot4.store(plotname4);
+	output.insert(QCValue::ImageFromFile("Q score histogram", plotname4, "Histogram of base Q scores.", "QC:2000143"));
+	QFile::remove(plotname4);
+	output.insert(QCValue("median base Q score", median_q_score, "Median Q score of all bases of the sample.", "QC:2000144"));
+	output.insert(QCValue("mode base Q score", mode_q_score, "Most frequent Q score of all bases of the sample.", "QC:2000145"));
 
 
 	return output;

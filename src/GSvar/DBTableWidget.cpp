@@ -28,7 +28,7 @@ DBTableWidget::DBTableWidget(QWidget* parent)
 	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copyTableToClipboard()));
 }
 
-void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QString> numeric_cols)
+void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QString> cols_double, QSet<QString> cols_int)
 {
 	QStringList headers = table.headers();
 
@@ -47,11 +47,19 @@ void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QStrin
 	}
 
 	//determine numberic columns to allow correct alignment, sorting, etc.
-	QVector<int> col_is_numeric;
+	QVector<int> col_type;
 	for(int c=0; c<table.columnCount(); ++c)
 	{
-
-		col_is_numeric << (numeric_cols.contains(table.headers()[c]));
+		QString col = table.headers()[c];
+		if (cols_double.contains(col))
+		{
+			col_type << QVariant::Double;
+		}
+		else if (cols_int.contains(col))
+		{
+			col_type << QVariant::Int;
+		}
+		else col_type << QVariant::String;
 	}
 
 	//content
@@ -62,13 +70,22 @@ void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QStrin
 		ids_ << row.id();
 		for(int c=0; c<headers.count(); ++c)
 		{
-			if (col_is_numeric[c])
+			const QString& value = row.value(c);
+			if (value.isEmpty())
+			{
+				setItem(r, c, GUIHelper::createTableItem(""));
+			}
+			else if (col_type[c]==QVariant::Double)
 			{
 				setItem(r, c, GUIHelper::createTableItem(row.value(c).toDouble()));
 			}
+			else if (col_type[c]==QVariant::Int)
+			{
+				setItem(r, c, GUIHelper::createTableItem(row.value(c).toInt()));
+			}
 			else
 			{
-				setItem(r, c, GUIHelper::createTableItem(row.value(c)));
+				setItem(r, c, GUIHelper::createTableItem(value));
 			}
 		}
 	}

@@ -3046,14 +3046,10 @@ QString ClinvarUploadDialog::convertClassification(QString classification, bool 
 		{
 			return "1";
 		}
-//		if (classification=="Established risk allele")
-//		{
-//			return "M";
-//		}
-//		if (classification=="not provided")
-//		{
-//			return "n/a";
-//		}
+		if (classification=="Established risk allele")
+		{
+			return "R*";
+		}
 	}
 	else
 	{
@@ -3077,7 +3073,7 @@ QString ClinvarUploadDialog::convertClassification(QString classification, bool 
 		{
 			return "Benign";
 		}
-		if (classification=="M")
+		if (classification=="R*")
 		{
 			return "Established risk allele";
 		}

@@ -237,7 +237,7 @@ public:
 											 << "The coverage profiles of the samples that correlate best with the main sample are saved in the output TSV file."
 											 << "The TSV file contains the chromosome, start, and end positions in the first three columns, with subsequent columns showing the coverage for each selected reference file.");
 		addInfile("in", "Coverage profile of main sample in BED format.", false);
-		addInfileList("in_ref", "Reference coverage profiles of other sample in BED format (GZ file supported).", false);
+		addInfileList("in_ref", "Reference coverage profiles of other sample in BED format (GZ files supported).", false);
 		addOutfile("out", "Output TSV file with coverage profiles of selected reference samples.", false);
 		//optional
 		addInfileList("exclude", "Regions in the given BED file(s) are excluded from the coverage calcualtion, e.g. copy-number polymorphic regions.", true);
@@ -249,7 +249,6 @@ public:
 
 	virtual void main()
 	{
-
 		//init
 		QTime timer;
 		QTextStream out(stdout);
@@ -257,10 +256,10 @@ public:
 		QStringList exclude_files = getInfileList("exclude");
 		QStringList in_refs = getInfileList("in_ref");
 		int cov_max = getInt("cov_max");
-		timer.start();
 		bool debug = getFlag("debug");
 
 		//Merge exclude files
+		timer.start();
 		BedFile merged_excludes;
 		foreach(QString exclude_file, exclude_files)
 		{
@@ -268,24 +267,20 @@ public:
 			temp.load(exclude_file);
 			merged_excludes.add(temp);
 		}
-
 		merged_excludes.merge();
-
 		timer.restart();
-		if (debug) out << "merge excludes: " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "merging excludes: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Determine indices to use
 		//load main sample and determine row indices for correlation computation
 		QList<BedLineRepresentation> main_file = parseGzFileBedFile(in);
-		if (debug) out << "load main sample: " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "loading main sample: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//compute ChromosomalIndex from merged excludes
 		ChromosomalIndex<BedFile> exclude_idx(merged_excludes);
 
 		//iterate over main sample and determine indices to use
 		QBitArray correct_indices(main_file.size(), false);
-
-
 		for (int i=0; i<main_file.size(); ++i)
 		{
 			const BedLineRepresentation& line = main_file[i];
@@ -302,7 +297,7 @@ public:
 			{
 				is_valid = false;
 			}
-			//exclude sex chromosomes
+			//exclude all but autosomes
 			else if (!Chromosome(line.chr).isAutosome())
 			{
 				is_valid = false;
@@ -310,7 +305,7 @@ public:
 			//include the rest
 			correct_indices.setBit(i, is_valid);
 		}
-		if (debug) out << "compute used indices: : " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "computing used indices: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		QMap<QByteArray, MinMaxIndex> chr_indices;
 		int row_count = 0;
@@ -331,7 +326,7 @@ public:
 			}
 		}
 
-		if (debug) out << "calculate min max indices of chromosomes:" << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "calculating min/max indices of chromosomes: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Create coverage profile for main_file
 		CoverageProfile cov1;
@@ -343,7 +338,7 @@ public:
 			cov1 << line.depth;
 		}
 
-		if (debug) out << "create coverage profile main: " << Helper::elapsedTime(timer.restart()) << endl;
+		if (debug) out << "creating coverage profile of main sample: " << Helper::elapsedTime(timer.restart()) << endl;
 
 		//Load other samples and calculate correlation
 		QTime corr_timer;
@@ -364,12 +359,18 @@ public:
 			QVector<double> corr;
 			for (auto it = chr_indices.cbegin(); it != chr_indices.cend(); ++it)
 			{
-				corr << BasicStatistics::correlation(cov1, cov2, it.value().min, it.value().max);
+				double correlation = BasicStatistics::correlation(cov1, cov2, it.value().min, it.value().max);
+				if (BasicStatistics::isValidFloat(correlation))
+				{
+					corr << correlation;
+				}
 			}
 
 			//sort correlation coefficents for the current ref_file and safe the median
 			std::sort(corr.begin(), corr.end());
-			file2corr << qMakePair(ref_file, BasicStatistics::median(corr));
+			double median_correlation = 0.0;
+			if (corr.count()>0) median_correlation = BasicStatistics::median(corr);
+			file2corr << qMakePair(ref_file, median_correlation);
 			if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
 		}
 
@@ -384,7 +385,7 @@ public:
 		//write number of compared coverage files to stdout
 		out << "compared number of coverage files: " << file2corr.size() << endl;
 
-		//select best n reference files by correlation
+		//select best n reference files by correlation + compute mean correlation
 		out << "Selected the following files as reference samples based on correlation: " << endl;
 		QStringList best_ref_files;
 		double mean_correaltion = 0.0;
@@ -392,13 +393,10 @@ public:
 		{
 			best_ref_files << file2corr[i].first;
 			mean_correaltion += file2corr[i].second;
-			out << QFileInfo(file2corr[i].first).fileName() << " : " << file2corr[i].second << endl;
-			if (i+1 == cov_max) break;
+			out << QFileInfo(file2corr[i].first).fileName() << ": " << file2corr[i].second << endl;
+			if (best_ref_files.count()>= cov_max) break;
 		}
-
 		best_ref_files.sort();
-
-		//compute mean correlation and info output to stdout
 		mean_correaltion /= best_ref_files.size();
 		out << "Mean correlation to reference samples is: " << mean_correaltion << endl;
 
@@ -407,7 +405,7 @@ public:
 		//Merge coverage profiles and store them in a tsv file
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
 		QVector<gzFile> files;
-
+		files << gzopen(in.toUtf8().constData(), "rb");
 		foreach(QString ref_file, best_ref_files)
 		{
 			gzFile file = gzopen(ref_file.toUtf8().constData(), "rb");

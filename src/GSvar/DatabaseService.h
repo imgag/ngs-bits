@@ -21,8 +21,6 @@ public:
 	//############################## processing system files ##############################
 	//Returns the processing system target region file.
 	virtual BedFile processingSystemRegions(int sys_id, bool ignore_if_missing) const = 0;
-	//Returns the processing system amplicon region file.
-	virtual BedFile processingSystemAmplicons(int sys_id, bool ignore_if_missing) const = 0;
 	//Returns the processing system genes.
 	virtual GeneSet processingSystemGenes(int sys_id, bool ignore_if_missing) const = 0;
 	//Returns secondary analysis locations for a sample.

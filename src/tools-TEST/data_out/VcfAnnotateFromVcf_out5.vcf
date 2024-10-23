@@ -158,7 +158,7 @@
 ##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
 ##INFO=<ID=NGSD_ID,Number=.,Type=String,Description="ID column (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
-##INFO=<ID=IN_SHORTREAD_SAMPLE,Number=0,Type=Flag,Description="Variant is present in annotation file '../src/tools-TEST/data_in/VcfAnnotateFromVcf_an3_ExOnly.vcf.gz'">
+##INFO=<ID=IN_SHORTREAD_SAMPLE,Number=0,Type=Flag,Description="Variant is present in annotation file 'VcfAnnotateFromVcf_an3_ExOnly.vcf.gz'">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_38
 chr1	13656	.	CAG	C	426	.	MQM=18	GT:DP:AO	1/1:37:37
 chr1	17385	.	G	A	292	.	MQM=33;IN_SHORTREAD_SAMPLE	GT:DP:AO	0/1:56:21

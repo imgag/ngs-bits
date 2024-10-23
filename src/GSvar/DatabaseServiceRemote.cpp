@@ -40,25 +40,6 @@ BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_i
 	return output;
 }
 
-BedFile DatabaseServiceRemote::processingSystemAmplicons(int sys_id, bool ignore_if_missing) const
-{
-	checkEnabled(__PRETTY_FUNCTION__);
-
-	BedFile output;
-	RequestUrlParams params;
-	params.insert("sys_id", QString::number(sys_id).toUtf8());
-	QByteArray reply = makeGetApiCall("ps_amplicons", params, ignore_if_missing);
-
-	if ((reply.length() == 0) && (!ignore_if_missing))
-	{
-		THROW(Exception, "Could not get the processing system amplicons for " + QString::number(sys_id));
-	}
-
-	output = output.fromText(reply);
-
-	return output;
-}
-
 GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);

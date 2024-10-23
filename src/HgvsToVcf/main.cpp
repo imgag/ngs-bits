@@ -36,7 +36,7 @@ public:
 		QStringList builds;
 		builds << "hg19" << "hg38";
 		addEnum("build", "Genome build", true, builds, "hg38");
-		addInt("max_seq", "If set, skips variants with ref/alt sequence longer than the five value.", true, -1);
+		addInt("max_seq", "If set, skips variants with ref/alt sequence longer than this cutoff.", true, -1);
 
 		changeLog(2022,  7, 25, "Added parameter 'max_seq'.");
 		changeLog(2022,  5, 12, "Initial version");

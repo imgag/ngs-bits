@@ -98,17 +98,12 @@
         </item>
         <item>
          <property name="text">
-          <string>larger than normal</string>
+          <string>possibly expanded</string>
          </property>
         </item>
         <item>
          <property name="text">
           <string>pathogenic</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>statistical outlier</string>
          </property>
         </item>
        </widget>
@@ -204,11 +199,6 @@
         <item>
          <property name="text">
           <string>diagnostic</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>research</string>
          </property>
         </item>
         <item>
@@ -386,6 +376,11 @@
      <column>
       <property name="text">
        <string>type</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>in-house testing</string>
       </property>
      </column>
     </widget>

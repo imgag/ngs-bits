@@ -55,8 +55,8 @@ INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
 
 INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
 (239462, 'Fanconi anemia, complementation group S, 617883 (3)'),
-(239462, '{Breast-ovarian cancer, familial, 1}, 604370 (3)'),
-(239462, '{Pancreatic cancer, susceptibility to, 4}, 614320 (3)');
+(239462, 'Breast-ovarian cancer, familial, 1, 604370 (3)'),
+(239462, 'Pancreatic cancer, susceptibility to, 4, 614320 (3)');
 
 INSERT INTO `disease_term` (`id`, `source`, `identifier`, `name`, `synonyms`) VALUES
 (127612, 'OrphaNet', 'ORPHA:168829', 'Primary peritoneal carcinoma', 'EOPPC\nExtra-ovarian primary peritoneal carcinoma\nPPC\nPrimary peritoneal serous carcinoma\nSerous surface papillary carcinoma'),

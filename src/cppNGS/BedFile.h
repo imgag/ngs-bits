@@ -97,6 +97,11 @@ public:
     {
 		return BasicStatistics::rangeOverlaps(start_, end_, start, end);
     }
+	///Overlap check for position only.
+	bool overlapsWith(int pos) const
+	{
+		return pos>=start_ && pos<=end_;
+	}
     ///Adjacent check - with no gap in between - for chromosome and position range.
 	bool adjacentTo(const Chromosome& chr, int start, int end) const
     {
@@ -248,6 +253,9 @@ public:
 	bool overlapsWith(const BedLine& line) const;
 	///Returns if one of the given chromosomal regions overlaps with the BED file regions. Note that is method is slow when too many lines are present. Use ChromosomalIndex<BedFile> in this case!
 	bool overlapsWith(const BedFile& file) const;
+
+	///Returns the last line.
+	const BedLine& last() const { return  *(lines_.end()-1); }
 
 	///Creates a BED file from a string
 	static BedFile fromText(const QByteArray& string);

@@ -46,6 +46,7 @@ private:
 	Histogram qscore_dist_r1;
 	Histogram qscore_dist_r2;
 	bool long_read_;
+	QVector<long long> base_qualities_;
 };
 
 #endif // STATISTICSREADS_H

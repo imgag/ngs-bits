@@ -24,7 +24,7 @@
         <Region chr="chr3" start="69964847" end="69965248"/>
         <Gene name="MITF" id="HGNC:7105" bases="4680">
             <Omim gene="156845" phenotype="COMMAD syndrome, 617306 (3)" phenotype_number="617306"/>
-            <Omim gene="156845" phenotype="{Melanoma, cutaneous malignant, susceptibility to, 8}, 614456 (3)" phenotype_number="614456"/>
+            <Omim gene="156845" phenotype="Melanoma, cutaneous malignant, susceptibility to, 8, 614456 (3)" phenotype_number="614456"/>
             <Gap chr="chr3" start="69937822" end="69938049"/>
             <Gap chr="chr3" start="69964847" end="69965248"/>
         </Gene>

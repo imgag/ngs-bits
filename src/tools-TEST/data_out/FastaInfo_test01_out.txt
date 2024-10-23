@@ -1,8 +1,8 @@
 == general info ==
 sequences : 3
-characters: 17
+characters: 21
 
 == characters per sequence ==
-chr1: 1
-chr10: 10
-chr6: 6
+chr1: 1 (ACGT:1 N:0 other:0)
+chr10: 10 (ACGT:10 N:0 other:0)
+chr6: 10 (ACGT:6 N:2 other:2)

@@ -126,6 +126,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* a_omim_gene = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM gene page");
 	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM disease page(s)");
+	QAction* a_stripy = menu.addAction("Open STRipy locus information");
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
@@ -205,6 +206,11 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + mim_exp.cap(1)));
 			pos = mim_exp.pos() + 6;
 		}
+	}
+	else if (action==a_stripy)
+	{
+		QString name = getCell(row, "repeat ID");
+		QDesktopServices::openUrl(QUrl("https://stripy.org/database/" + name));
 	}
 	else if (action==a_comments)
 	{
@@ -548,6 +554,10 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
 		QString type = db.getValue("SELECT type FROM repeat_expansion WHERE id=" + id).toString().trimmed();
 		setCell(row, "type", type);
 
+		//type
+		bool inhouse_testing = db.getValue("SELECT inhouse_testing FROM repeat_expansion WHERE id=" + id).toBool();
+		setCell(row, "in-house testing", inhouse_testing ? "yes" : "no");
+
 		//statistical cutoff
 		if (!sys_type_cutoff_col_.isEmpty())
 		{
@@ -562,15 +572,21 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 	for (int row=0; row<ui_.table->rowCount(); ++row)
 	{
 		bool ok = false;
+		int tmp = -1;
 
 		//determine cutoffs
-		int max_normal = getCell(row, "max. normal").toInt(&ok);
-		if(!ok) max_normal = -1;
-		int min_pathogenic = getCell(row, "min. pathogenic").toInt(&ok);
-		if(!ok) min_pathogenic = -1;
-		if (max_normal==-1 && min_pathogenic==-1) continue;
+		int max_normal = -1;
+		tmp = getCell(row, "max. normal").toInt(&ok);
+		if(ok) max_normal = tmp;
+		int min_pathogenic = -1;
+		tmp = getCell(row, "min. pathogenic").toInt(&ok);
+		if(ok) min_pathogenic = tmp;
+		double statistical_cutoff = -1.0;
+		double tmp2 = getCell(row, "statistical cutoff").toDouble(&ok);
+		if(ok) statistical_cutoff = tmp2;
+		if (max_normal==-1 && min_pathogenic==-1 && statistical_cutoff==-1) continue;
 
-		//determine maximum
+		//determine maximum repeat count of alleles
 		QStringList genotypes = getCell(row, "genotype").split("/");
 		int max = -1;
 		foreach(QString geno, genotypes)
@@ -592,6 +608,10 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		else if (max_normal!=-1 && max>max_normal)
 		{
 			setCellDecoration(row, "genotype", "Above max. normal cutoff!", orange_);
+		}
+		else if (statistical_cutoff!=-1.0 && max>=statistical_cutoff)
+		{
+			setCellDecoration(row, "genotype", "Above statistical cutoff!", yellow_);
 		}
 	}
 }
@@ -657,12 +677,13 @@ void RepeatExpansionWidget::updateRowVisibility()
 	}
 
 	//expansion status
-	if (ui_.filter_expanded->currentText()=="larger than normal")
+	if (ui_.filter_expanded->currentText()=="possibly expanded")
 	{
 		int col = GUIHelper::columnIndex(ui_.table, "genotype");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			if (ui_.table->item(row, col)->backgroundColor()!=orange_) hidden[row] = true;
+			QColor color = ui_.table->item(row, col)->backgroundColor();
+			if (color!=red_ && color!=orange_ && color!=yellow_) hidden[row] = true;
 		}
 	}
 	if (ui_.filter_expanded->currentText()=="pathogenic")
@@ -671,28 +692,6 @@ void RepeatExpansionWidget::updateRowVisibility()
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			if (ui_.table->item(row, col)->backgroundColor()!=red_) hidden[row] = true;
-		}
-	}
-	if (ui_.filter_expanded->currentText()=="statistical outlier")
-	{
-		NGSD db;
-		int col_geno = GUIHelper::columnIndex(ui_.table, "genotype");
-		for (int row=0; row<ui_.table->rowCount(); ++row)
-		{
-			QString id = getRepeatId(db, row, false);
-			QVariant cutoff = db.getValue("SELECT " + sys_type_cutoff_col_ + " FROM repeat_expansion WHERE id=:0", true, id);
-			if (!cutoff.isValid()) continue;
-
-			bool above_cutoff = false;
-			foreach(QString geno, ui_.table->item(row, col_geno)->text().split("/"))
-			{
-				geno = geno.trimmed();
-				if (geno.isEmpty()) continue;
-
-				double value = geno.toInt();
-				if(value>cutoff.toDouble()) above_cutoff = true;
-			}
-			if (!above_cutoff) hidden[row] = true;
 		}
 	}
 

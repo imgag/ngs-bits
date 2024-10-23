@@ -1,0 +1,55 @@
+1	ensembl_havana	gene	65419	71585	.	+	.	ID=gene:ENSG00000186092;Name=OR4F5;biotype=protein_coding;description=olfactory receptor family 4 subfamily F member 5 [Source:HGNC Symbol%3BAcc:HGNC:14825];gene_id=ENSG00000186092;logic_name=ensembl_havana_gene_homo_sapiens;version=7
+1	havana	mRNA	65419	71585	.	+	.	ID=transcript:ENST00000641515;Parent=gene:ENSG00000186092;Name=OR4F5-201;biotype=protein_coding;ccdsid=CCDS30547.2;tag=basic,Ensembl_canonical,MANE_Select,GENCODE Primary;transcript_id=ENST00000641515;version=2
+1	havana	exon	65419	65433	.	+	.	Parent=transcript:ENST00000641515;Name=ENSE00003812156;constitutive=1;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003812156;rank=1;version=1
+1	havana	five_prime_UTR	65419	65433	.	+	.	Parent=transcript:ENST00000641515
+1	havana	five_prime_UTR	65520	65564	.	+	.	Parent=transcript:ENST00000641515
+1	havana	exon	65520	65573	.	+	.	Parent=transcript:ENST00000641515;Name=ENSE00003813641;constitutive=1;ensembl_end_phase=0;ensembl_phase=-1;exon_id=ENSE00003813641;rank=2;version=1
+1	havana	CDS	65565	65573	.	+	0	ID=CDS:ENSP00000493376;Parent=transcript:ENST00000641515;protein_id=ENSP00000493376
+1	havana	CDS	69037	70008	.	+	0	ID=CDS:ENSP00000493376;Parent=transcript:ENST00000641515;protein_id=ENSP00000493376
+1	havana	exon	69037	71585	.	+	.	Parent=transcript:ENST00000641515;Name=ENSE00003813949;constitutive=1;ensembl_end_phase=-1;ensembl_phase=0;exon_id=ENSE00003813949;rank=3;version=1
+1	havana	three_prime_UTR	70009	71585	.	+	.	Parent=transcript:ENST00000641515
+###
+1	.	biological_region	966516	966810	1	-	.	external_name=rank %3D 1;logic_name=firstef
+1	.	biological_region	966701	966803	1	+	.	external_name=rank %3D 1;logic_name=firstef
+1	.	biological_region	970595	970674	0.755	-	.	external_name=rank %3D 1;logic_name=firstef
+1	.	biological_region	970889	971006	0.966	+	.	external_name=rank %3D 1;logic_name=firstef
+1	ensembl_havana	gene	975198	982117	.	-	.	ID=gene:ENSG00000187642;Name=PERM1;biotype=protein_coding;description=PPARGC1 and ESRR induced regulator%2C muscle 1 [Source:HGNC Symbol%3BAcc:HGNC:28208];gene_id=ENSG00000187642;logic_name=ensembl_havana_gene_homo_sapiens;version=10
+1	ensembl_havana	mRNA	975198	982093	.	-	.	ID=transcript:ENST00000433179;Parent=gene:ENSG00000187642;Name=PERM1-202;biotype=protein_coding;ccdsid=CCDS76083.1;tag=basic,Ensembl_canonical,MANE_Select,GENCODE Primary;transcript_id=ENST00000433179;transcript_support_level=5 (assigned to previous version 3);version=4
+1	ensembl_havana	three_prime_UTR	975198	976171	.	-	.	Parent=transcript:ENST00000433179
+1	ensembl_havana	exon	975198	976269	.	-	.	Parent=transcript:ENST00000433179;Name=ENSE00003963238;constitutive=0;ensembl_end_phase=-1;ensembl_phase=1;exon_id=ENSE00003963238;rank=4;version=1
+1	ensembl_havana	CDS	976172	976269	.	-	2	ID=CDS:ENSP00000414022;Parent=transcript:ENST00000433179;protein_id=ENSP00000414022
+1	ensembl_havana	exon	976499	976624	.	-	.	Parent=transcript:ENST00000433179;Name=ENSE00002263633;constitutive=0;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSE00002263633;rank=3;version=3
+1	ensembl_havana	CDS	976499	976624	.	-	2	ID=CDS:ENSP00000414022;Parent=transcript:ENST00000433179;protein_id=ENSP00000414022
+1	ensembl_havana	CDS	978881	981029	.	-	0	ID=CDS:ENSP00000414022;Parent=transcript:ENST00000433179;protein_id=ENSP00000414022
+1	ensembl_havana	exon	978881	981173	.	-	.	Parent=transcript:ENST00000433179;Name=ENSE00001389758;constitutive=0;ensembl_end_phase=1;ensembl_phase=-1;exon_id=ENSE00001389758;rank=2;version=2
+1	ensembl_havana	five_prime_UTR	981030	981173	.	-	.	Parent=transcript:ENST00000433179
+1	ensembl_havana	exon	982065	982093	.	-	.	Parent=transcript:ENST00000433179;Name=ENSE00003728856;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003728856;rank=1;version=2
+1	ensembl_havana	five_prime_UTR	982065	982093	.	-	.	Parent=transcript:ENST00000433179
+1	havana	mRNA	975204	982093	.	-	.	ID=transcript:ENST00000341290;Parent=gene:ENSG00000187642;Name=PERM1-201;biotype=protein_coding;ccdsid=CCDS90836.1;tag=basic,GENCODE Primary;transcript_id=ENST00000341290;transcript_support_level=2;version=6
+1	havana	three_prime_UTR	975204	976171	.	-	.	Parent=transcript:ENST00000341290
+1	havana	exon	975204	976269	.	-	.	Parent=transcript:ENST00000341290;Name=ENSE00001366612;constitutive=0;ensembl_end_phase=-1;ensembl_phase=1;exon_id=ENSE00001366612;rank=5;version=1
+1	havana	CDS	976172	976269	.	-	2	ID=CDS:ENSP00000343864;Parent=transcript:ENST00000341290;protein_id=ENSP00000343864
+1	havana	exon	976499	976624	.	-	.	Parent=transcript:ENST00000341290;Name=ENSE00002263633;constitutive=0;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSE00002263633;rank=4;version=3
+1	havana	CDS	976499	976624	.	-	2	ID=CDS:ENSP00000343864;Parent=transcript:ENST00000341290;protein_id=ENSP00000343864
+1	havana	exon	978881	980657	.	-	.	Parent=transcript:ENST00000341290;Name=ENSE00001365716;constitutive=0;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSE00001365716;rank=3;version=1
+1	havana	CDS	978881	980657	.	-	0	ID=CDS:ENSP00000343864;Parent=transcript:ENST00000341290;protein_id=ENSP00000343864
+1	havana	CDS	981137	981166	.	-	0	ID=CDS:ENSP00000343864;Parent=transcript:ENST00000341290;protein_id=ENSP00000343864
+1	havana	exon	981137	981173	.	-	.	Parent=transcript:ENST00000341290;Name=ENSE00003620136;constitutive=0;ensembl_end_phase=0;ensembl_phase=-1;exon_id=ENSE00003620136;rank=2;version=1
+1	havana	five_prime_UTR	981167	981173	.	-	.	Parent=transcript:ENST00000341290
+1	havana	exon	982065	982093	.	-	.	Parent=transcript:ENST00000341290;Name=ENSE00003728856;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003728856;rank=1;version=2
+1	havana	five_prime_UTR	982065	982093	.	-	.	Parent=transcript:ENST00000341290
+1	havana	lnc_RNA	975205	976641	.	-	.	ID=transcript:ENST00000479361;Parent=gene:ENSG00000187642;Name=PERM1-203;biotype=retained_intron;transcript_id=ENST00000479361;transcript_support_level=1;version=1
+1	havana	exon	975205	976269	.	-	.	Parent=transcript:ENST00000479361;Name=ENSE00001827921;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001827921;rank=2;version=1
+1	havana	exon	976499	976641	.	-	.	Parent=transcript:ENST00000479361;Name=ENSE00001902329;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001902329;rank=1;version=1
+1	havana	mRNA	976121	982117	.	-	.	ID=transcript:ENST00000694917;Parent=gene:ENSG00000187642;Name=PERM1-204;biotype=protein_coding;ccdsid=CCDS76083.1;tag=basic,GENCODE Primary;transcript_id=ENST00000694917;version=1
+1	havana	three_prime_UTR	976121	976171	.	-	.	Parent=transcript:ENST00000694917
+1	havana	exon	976121	976269	.	-	.	Parent=transcript:ENST00000694917;Name=ENSE00003961240;constitutive=0;ensembl_end_phase=-1;ensembl_phase=1;exon_id=ENSE00003961240;rank=4;version=1
+1	havana	CDS	976172	976269	.	-	2	ID=CDS:ENSP00000511592;Parent=transcript:ENST00000694917;protein_id=ENSP00000511592
+1	havana	exon	976499	976624	.	-	.	Parent=transcript:ENST00000694917;Name=ENSE00002263633;constitutive=0;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSE00002263633;rank=3;version=3
+1	havana	CDS	976499	976624	.	-	2	ID=CDS:ENSP00000511592;Parent=transcript:ENST00000694917;protein_id=ENSP00000511592
+1	havana	CDS	978881	981029	.	-	0	ID=CDS:ENSP00000511592;Parent=transcript:ENST00000694917;protein_id=ENSP00000511592
+1	havana	exon	978881	981047	.	-	.	Parent=transcript:ENST00000694917;Name=ENSE00003961238;constitutive=0;ensembl_end_phase=1;ensembl_phase=-1;exon_id=ENSE00003961238;rank=2;version=1
+1	havana	five_prime_UTR	981030	981047	.	-	.	Parent=transcript:ENST00000694917
+1	havana	exon	982065	982117	.	-	.	Parent=transcript:ENST00000694917;Name=ENSE00003961241;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003961241;rank=1;version=1
+1	havana	five_prime_UTR	982065	982117	.	-	.	Parent=transcript:ENST00000694917
+###

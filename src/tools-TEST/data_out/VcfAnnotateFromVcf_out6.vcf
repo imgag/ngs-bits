@@ -149,7 +149,7 @@
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.1-1150-g9c8dd4c
 ##SAMPLE=<ID=NA12878_38,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
-##INFO=<ID=EXISTS_IN_SOURCE,Number=0,Type=Flag,Description="Variant is present in annotation file '../src/tools-TEST/data_in/VcfAnnotateFromVcf_an3_ExOnly.vcf.gz'">
+##INFO=<ID=EXISTS_IN_SOURCE,Number=0,Type=Flag,Description="Variant is present in annotation file 'VcfAnnotateFromVcf_an3_ExOnly.vcf.gz'">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_38
 chr1	13656	.	CAG	C	426	.	MQM=18	GT:DP:AO	1/1:37:37
 chr1	17385	.	G	A	292	.	MQM=33;EXISTS_IN_SOURCE	GT:DP:AO	0/1:56:21

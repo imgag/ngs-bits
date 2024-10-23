@@ -93,6 +93,9 @@ void ReportDialog::checkMetaData()
 
 void ReportDialog::initGUI()
 {
+	//activate first tab
+	ui_.tab_widget->setCurrentIndex(0);
+
 	//report types
 	ui_.report_type->addItems(ReportVariantConfiguration::getTypeOptions());
 	if (Settings::boolean("allow_report_with_all_types", true)) ui_.report_type->addItem("all");
@@ -139,21 +142,57 @@ void ReportDialog::initGUI()
 	{
 		QStringList ps_list = variants_.getSampleHeader().sampleNames().toList();
 		ps_list.sort();
-		foreach(QString ps, ps_list)
+		ps_list.removeAll("");
+		ps_list.removeAll(ps_);
+		ui_.add_samples->setRowCount(ps_list.count());
+		for (int row=0; row<ps_list.count(); ++row)
 		{
-			if (ps_==ps) continue;
-
-			QCheckBox* checkbox = new QCheckBox(ps);
-			checkbox->setChecked(false);
-			checkbox->setObjectName("add_sample_"+ps);
-			ui_.group_add_samples->layout()->addWidget(checkbox);
+			QTableWidgetItem* item = GUIHelper::createTableItem(ps_list[row]);
+			item->setCheckState(Qt::Unchecked);
+			ui_.add_samples->setItem(row, 0, item);
 		}
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.add_samples);
 	}
 	else
 	{
-		ui_.group_add_samples->setVisible(false);
+		int tab_index = ui_.tab_widget->indexOf(ui_.tab_add_samples);
+		ui_.tab_widget->setTabEnabled(tab_index, false);
 	}
 
+	//additional variants
+	SqlQuery query = db_.getQuery();
+	query.exec("SELECT * FROM report_polymorphisms");
+	ui_.add_vars->setRowCount(query.size());
+	int row = 0;
+	while(query.next())
+	{
+		//variant
+		QByteArrayList parts = query.value("variant").toByteArray().split(' ');
+		VcfLine vcf_line = VcfLine(Chromosome(parts[0]), Helper::toInt(parts[1], "VCF position"), Sequence(parts[2]), QList<Sequence>() << Sequence(parts[3]));
+		Variant v(vcf_line);
+		QTableWidgetItem* item = GUIHelper::createTableItem(v.toString());
+		item->setCheckState(Qt::Unchecked);
+		ui_.add_vars->setItem(row, 0, item);
+
+		item = GUIHelper::createTableItem(query.value("rs_number").toString());
+		ui_.add_vars->setItem(row, 1, item);
+
+		item = GUIHelper::createTableItem(query.value("symbol").toString());
+		ui_.add_vars->setItem(row, 2, item);
+
+		item = GUIHelper::createTableItem(query.value("consequence").toString());
+		ui_.add_vars->setItem(row, 3, item);
+
+		item = GUIHelper::createTableItem(query.value("indication").toString());
+		ui_.add_vars->setItem(row, 4, item);
+
+		item = GUIHelper::createTableItem(query.value("comments").toString());
+		ui_.add_vars->setItem(row, 5, item);
+
+		++row;
+	}
+	GUIHelper::resizeTableCellWidths(ui_.add_vars, 400);
+	ui_.add_vars->resizeRowsToContents();
 
 	//check box status
 	updateCoverageCheckboxStatus();
@@ -555,11 +594,24 @@ void ReportDialog::writeBackSettings()
 	settings_.language = ui_.language->currentText();
 	settings_.show_refseq_transcripts = ui_.refseq_trans_names->isChecked();
 
-	QList<QCheckBox*> checkboxes = findChildren<QCheckBox*>();
-	foreach(QCheckBox* checkbox, checkboxes)
+	for (int row=0; row<ui_.add_samples->rowCount(); ++row)
 	{
-		if (!checkbox->objectName().startsWith("add_sample_")) continue;
-		settings_.ps_additional << checkbox->objectName().split("add_sample_")[1];
+		const QTableWidgetItem* item = ui_.add_samples->item(row, 0);
+		if (item->checkState()==Qt::Checked) settings_.ps_additional << item->text();
+	}
+
+
+	for (int row=0; row<ui_.add_vars->rowCount(); ++row)
+	{
+		const QTableWidgetItem* item = ui_.add_vars->item(row, 0);
+		if (item->checkState()==Qt::Checked)
+		{
+			ReportPolymorphism var;
+			var.v = Variant::fromString(item->text());
+			var.rs_number = ui_.add_vars->item(row, 1)->text().toUtf8();
+			var.gene_symbol = ui_.add_vars->item(row, 2)->text().toUtf8();
+			settings_.polymorphisms << var;
+		}
 	}
 }
 

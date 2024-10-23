@@ -28,10 +28,12 @@ public:
 		addOutfile("out", "Output BED file containing combined methylation info of provided loci. If unset, writes to STDOUT.", true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("add_methylation_types", "Also report 5mC (m) and 5hmC (h) entries as separate columns");
+		addFlag("skip_invalid_sites", "Skip invalid CpG sites instead of aborting.");
 
 		//changelog
 		changeLog(2024,  6, 26, "Initial commit.");
 		changeLog(2024,  7, 18, "Added option to add separate columns for 5mC/5hmC.");
+		changeLog(2024,  9, 27, "Added option to ignore invalid CpG sites.");
 	}
 
 	virtual void main()
@@ -42,6 +44,7 @@ public:
 		QString output_file_path = getOutfile("out").toUtf8();
 		QString ref_file = getInfile("ref");
 		bool add_methylation_types = getFlag("add_methylation_types");
+		bool skip_invalid_sites = getFlag("skip_invalid_sites");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
@@ -77,7 +80,15 @@ public:
 			BedLine bed_line = loci[i];
 
 			//validate length (CpG only):
-			if (bed_line.length() != 2) THROW(ArgumentException, "A CpG site has to be 2 bp long! " + bed_line.toString(true));
+			if (bed_line.length() != 2)
+			{
+				if (skip_invalid_sites)
+				{
+					qDebug() << "A CpG site has to be 2 bp long! " + bed_line.toString(true);
+					continue;
+				}
+				else THROW(ArgumentException, "A CpG site has to be 2 bp long! " + bed_line.toString(true));
+			}
 			QByteArray strand = bed_line.annotations().at(0).trimmed();
 			if (!((strand == "+") || (strand == "-"))) THROW(ArgumentException, "Strand has to be '+' or '-'! " + bed_line.toString(true));
 
@@ -85,7 +96,31 @@ public:
 			int pos = ((strand == "+")?bed_line.start():bed_line.end());
 			QByteArray mod_base = ((strand == "+")?"C":"G");
 			//validate C position
-			if (ref_idx.seq(bed_line.chr(), pos, 1, true) != mod_base) THROW(ArgumentException, "Invalid " + mod_base + " position (is actually " + ref_idx.seq(bed_line.chr(), pos, pos, true) + ") (" + QByteArray::number(pos) + " for CpG site)! " + bed_line.toString(true));
+			try
+			{
+				if (ref_idx.seq(bed_line.chr(), pos, 1, true) != mod_base)
+				{
+					if (skip_invalid_sites)
+					{
+						qDebug() << "Invalid " + mod_base + " position (is actually " + ref_idx.seq(bed_line.chr(), pos, 1, true) + " for CpG site)! " + bed_line.toString(true);
+						continue;
+					}
+					else THROW(ArgumentException, "Invalid " + mod_base + " position (is actually " + ref_idx.seq(bed_line.chr(), pos, 1, true) + " for CpG site)! " + bed_line.toString(true));
+				}
+
+			}
+			catch (Exception& e)
+			{
+				if (skip_invalid_sites)
+				{
+					QTextStream(stderr) << e.message();
+					continue;
+				}
+				else
+				{
+					THROW(ArgumentException, e.message());
+				}
+			}
 
 			//get entries from methylation file:
 			QByteArrayList matches = methylation_idx.getMatchingLines(bed_line.chr(), pos, pos, false);
