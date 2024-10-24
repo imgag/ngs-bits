@@ -112,6 +112,11 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 		{
 			ps_name = dlg.processedSampleName();
 		}
+		else
+		{
+			//If caneceled return empty
+			return "";
+		}
 	}
 	if (ps_name.isEmpty()) return "";
 
