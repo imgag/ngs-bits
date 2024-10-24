@@ -23,6 +23,7 @@ The server is configurable via the GSVarServer.ini file located at the `./bin` f
 These are the most important config parameters:
 
 * `ssl_certificate` - location of your SSL certificate
+* `ssl_certificate_chain` - If the certificate itself does not contain all information for validation of the certificate, you can provide this optional chertificate chain file. It is used e.g. for Let's encrypt certificates.
 * `ssl_key` - location of your private key
 * `server_port` - port used by the server
 * `server_host` - domain name used be the server
