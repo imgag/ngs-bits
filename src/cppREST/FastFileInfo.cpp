@@ -5,7 +5,7 @@ FastFileInfo::FastFileInfo(QString absolute_file_path)
 {
     if (FileMetaCache::isInStorageAlready(absolute_file_path_))
     {
-        FileMetadata meta_cache = FileMetaCache::getMetadata(filename_);
+        FileMetadata meta_cache = FileMetaCache::getMetadata(absolute_file_path_);
         absolute_path_ = meta_cache.absolute_path;
         filename_ = meta_cache.filename;
         size_ = meta_cache.size;
@@ -18,7 +18,10 @@ FastFileInfo::FastFileInfo(QString absolute_file_path)
         filename_ = info.fileName();
         size_ = 0;
         exists_ = false;
-        FileMetaCache::addMetadata(FileMetadata(filename_, absolute_path_, filename_, false, size_, false, exists_, QDateTime::currentDateTime()));
+        if (Settings::boolean("enable_file_metadata_caching", true))
+        {
+            FileMetaCache::addMetadata(FileMetadata(absolute_file_path_, absolute_path_, filename_, false, size_, false, exists_, QDateTime::currentDateTime()));
+        }
     }
 }
 
@@ -34,7 +37,10 @@ qint64 FastFileInfo::size()
     cached_info.size = file_info.size();
     cached_info.has_size_info = true;
 
-    FileMetaCache::addMetadata(cached_info);
+    if (Settings::boolean("enable_file_metadata_caching", true))
+    {
+        FileMetaCache::addMetadata(cached_info);
+    }
     return  cached_info.size;
 }
 
@@ -50,7 +56,10 @@ bool FastFileInfo::exists()
     cached_info.file_exists = file_info.exists();
     cached_info.has_existence_info = true;
 
-    FileMetaCache::addMetadata(cached_info);
+    if (Settings::boolean("enable_file_metadata_caching", true))
+    {
+        FileMetaCache::addMetadata(cached_info);
+    }
     return  cached_info.file_exists;
 }
 
