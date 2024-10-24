@@ -14,6 +14,7 @@ FileMetaCache& FileMetaCache::instance()
 
 void FileMetaCache::addMetadata(FileMetadata entity)
 {
+    Log::info("Adding to cache: " + entity.absolute_file_path);
     instance().metadata_storage_.insert(entity.absolute_file_path, entity);
 }
 

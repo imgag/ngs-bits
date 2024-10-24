@@ -42,7 +42,7 @@ private slots:
 		QFile::copy(file, copy_name);
 		QString file_copy = TESTDATA(copy_name.toUtf8());
 
-		IS_FALSE(UrlManager::isInStorageAlready(file_copy));
+        IS_FALSE(UrlManager::isInStorageAlready(file_copy));
         QFileInfo info = QFileInfo(file_copy);
         UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), file_copy, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file_copy));
@@ -87,7 +87,7 @@ private slots:
 		QString copy_name = "uploaded_file.txt";
 		QByteArray upload_file = TESTDATA("data/to_upload.txt");
 
-		IS_FALSE(UrlManager::isInStorageAlready(upload_file));
+        IS_FALSE(UrlManager::isInStorageAlready(upload_file));
         QFileInfo info = QFileInfo(upload_file);
         UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), upload_file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(upload_file));

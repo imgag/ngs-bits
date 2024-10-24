@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include "Exceptions.h"
 #include "FileMetaCache.h"
+#include "Settings.h"
 
 class CPPRESTSHARED_EXPORT FastFileInfo : public QObject
 {
