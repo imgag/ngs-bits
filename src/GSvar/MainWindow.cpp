@@ -274,7 +274,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("processed sample: DNA2405534A1_01", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
-	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
+	ui_.actionEncrypt->setEnabled(Settings::boolean("debug_mode_enabled", true));
 
 	//signals and slots
     connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));

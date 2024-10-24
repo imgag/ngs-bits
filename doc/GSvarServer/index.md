@@ -1,4 +1,5 @@
 # GSvarServer
+
 The server handles the interaction between GSvar desktop app and the sample data storage. Having GSvarServer been deployed, we extend the functionality of GSvar: it can now work not only with local data but also with any remote location via HTTPS protocol. The server mimics Apache server's behavour to certain extent. Static content can be served, access can be restricted, connection can be encrypted (SSL certificates), or not (but it is not recommended). However, we have implemented only a small subset of the HTTP specification. The functionality has been reduced exclusively to the needs of GSvar on purpose.
 
 ## Dependencies
@@ -14,10 +15,13 @@ To build the server, the following steps have to be executed
 > make build_libs_release
 > build_server_release
 
+*Attention: Make sure to compile the [CRYPT_KEY](../GSvar/encrypt_settings.md) into the GSvarServer binary, as it is used for a handshake between client and server.*
+
 ## Configuration
 The server is configurable via the GSVarServer.ini file located at the `./bin` folder together with all the rest config files.
 
 These are the most important config parameters:
+
 * `ssl_certificate` - location of your SSL certificate
 * `ssl_key` - location of your private key
 * `server_port` - port used by the server
@@ -41,6 +45,7 @@ These are the most important config parameters:
 * `megsap_settings_ini` - path to the megSAP settings file (additional settings are extracted from this file)
 
 These parameters are needed for the server database (stores information about user sessions, temporary URLs, etc.), it is a separate instance of MySQL/MariaDB (not NGSD database)
+
 * `gsvar_server_db_host` - database host name
 * `gsvar_server_db_port` - database port number
 * `gsvar_server_db_name` - database name
