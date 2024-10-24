@@ -8,7 +8,6 @@ megsap_settings_ini = ""
 
 #SSL certificate-key pair needed for HTTPS
 ssl_certificate = "certificate.crt"
-ssl_certificate_chain = ""
 ssl_key = "certificate.key"
 
 #number of threads for parallel calculations, e.g. for coverage statistics

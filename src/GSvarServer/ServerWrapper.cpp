@@ -24,19 +24,17 @@ ServerWrapper::ServerWrapper(const quint16& port)
 		return;
 	}
 
+    QList<QSslCertificate> ca_certificates = QSslCertificate::fromPath(ssl_certificate, QSsl::Pem);
+    if (ca_certificates.isEmpty())
+    {
+        Log::info("SSL certificate chain not found. Continue with the available key");
+    }
+
 	QString ssl_key = ServerHelper::getStringSettingsValue("ssl_key");
 	if (ssl_key.isEmpty())
 	{
 		ssl_key = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-key.key";
 		Log::warn("SSL key has not been specified in the config. Using a test key: " + ssl_key);
-	}
-
-	QString ssl_chain = ServerHelper::getStringSettingsValue("ssl_certificate_chain");
-	QList<QSslCertificate> ca_certificates;
-	if (!ssl_chain.isEmpty())
-	{
-		Log::info("Reading SSL certificate chain file");
-		ca_certificates = QSslCertificate::fromPath(ssl_chain, QSsl::Pem);
 	}
 
 	QSslCertificate cert(&certFile);
@@ -52,7 +50,6 @@ ServerWrapper::ServerWrapper(const quint16& port)
 	QSslConfiguration config = server_->getSslConfiguration();
 	config.setLocalCertificate(cert);
 	config.setPrivateKey(key);
-
 
 	if (ca_certificates.size()>0)
 	{
