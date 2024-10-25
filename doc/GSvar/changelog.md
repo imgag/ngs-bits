@@ -1,11 +1,20 @@
 # GSvar change log
 
+## 2024_08-68 (25.10.24)
+
+- general: added HerediVar support (variant search and classification import)
+- general: updated 'All of us' variant search URL
+- variant classification: Added R* classification (risk allele)
+- gene interpretabilty dialog: added number of coding bases
+- germline report: added polamorphisms table
+- processed sample tab: added user names to report config summary
+
 ## 2024_08-36 (02.10.24)
 
 - improved RE search
 - removed support for amplicon files of processing systems (not used anymore)
 - fixed bugs in NSX+ sample sheet export
-- somatic report: Add SV description at the start of the report.
+- somatic report: Add SV description at the start of the report
 
 ## 2024_08-18 (06.09.24)
 
