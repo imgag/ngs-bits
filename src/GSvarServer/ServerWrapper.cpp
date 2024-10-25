@@ -10,7 +10,7 @@ ServerWrapper::ServerWrapper(const quint16& port)
     cleanup_pool_.setMaxThreadCount(1);
     sge_status_pool_.setMaxThreadCount(1);
 
-    QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
+    QString ssl_certificate = Settings::string("ssl_certificate", true);
 	if (ssl_certificate.isEmpty())
 	{
 		ssl_certificate = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-cert.crt";
@@ -24,14 +24,14 @@ ServerWrapper::ServerWrapper(const quint16& port)
 		return;
 	}
 
-	QString ssl_key = ServerHelper::getStringSettingsValue("ssl_key");
+    QString ssl_key = Settings::string("ssl_key", true);
 	if (ssl_key.isEmpty())
 	{
 		ssl_key = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-key.key";
 		Log::warn("SSL key has not been specified in the config. Using a test key: " + ssl_key);
 	}
 
-	QString ssl_chain = ServerHelper::getStringSettingsValue("ssl_certificate_chain");
+    QString ssl_chain = Settings::string("ssl_certificate_chain", true);
 	QList<QSslCertificate> ca_certificates;
 	if (!ssl_chain.isEmpty())
 	{
