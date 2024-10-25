@@ -135,6 +135,8 @@ public slots:
 	void on_actionOpenProcessingSystemTab_triggered();
 	///Open project tab by search
 	void on_actionOpenProjectTab_triggered();
+	///Import HerediVar classification
+	void on_actionImportHerediVar_triggered();
 
 	///NGSD menu
 	void on_actionStatistics_triggered();

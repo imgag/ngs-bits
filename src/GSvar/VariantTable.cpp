@@ -187,6 +187,10 @@ void VariantTable::customContextMenu(QPoint pos)
 		}
 	}
 
+	QAction* a_heredivar = menu.addAction(QIcon("://Icons/HerediVar.png"), "HerediVar");
+	QString heredivar_url = Settings::string("HerediVar", true).trimmed();
+	a_heredivar->setEnabled(!heredivar_url.isEmpty());
+
 	//add gene databases
 	if (!genes.isEmpty())
 	{
@@ -319,6 +323,12 @@ void VariantTable::customContextMenu(QPoint pos)
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{
 		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + text));
+	}
+	else if (action == a_heredivar)
+	{
+		FastaFileIndex genome_idx(Settings::string("reference_genome", false));
+		VcfLine vcf = variant.toVCF(genome_idx);
+		QDesktopServices::openUrl(QUrl(heredivar_url + "/display/chr=" + vcf.chr().str() + "&pos=" + QString::number(vcf.start()) + "&ref=" + vcf.ref() + "&alt=" + vcf.altString()));
 	}
 	else if (parent_menu && genes.contains(parent_menu->title().toUtf8())) //gene menus
 	{

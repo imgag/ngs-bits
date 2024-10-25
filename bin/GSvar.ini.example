@@ -30,6 +30,7 @@ PrimerDesign = ""
 alamut_host = ""
 alamut_institution = ""
 alamut_apikey = ""
+HerediVar = ""
 
 #proxy settings for GSvar
 proxy_host = ""

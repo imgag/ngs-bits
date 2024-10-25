@@ -154,6 +154,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ReSearchWidget.h"
 #include "CustomProxyService.h"
 #include "GeneInterpretabilityDialog.h"
+#include "HerediVarImportDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -4280,6 +4281,12 @@ void MainWindow::on_actionOpenProjectTab_triggered()
 	openProjectTab(selector->text());
 }
 
+void MainWindow::on_actionImportHerediVar_triggered()
+{
+	HerediVarImportDialog dlg(this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionStatistics_triggered()
 {
 	try
@@ -6630,6 +6637,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionRegionToGenes->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
+	ui_.actionImportHerediVar->setEnabled(ngsd_user_logged_in && Settings::string("HerediVar", true).trimmed()!="");
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);

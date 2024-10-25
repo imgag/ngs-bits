@@ -552,6 +552,8 @@
      <addaction name="separator"/>
      <addaction name="actionUploadVariantToClinVar"/>
      <addaction name="actionShowPublishedVariants"/>
+     <addaction name="separator"/>
+     <addaction name="actionImportHerediVar"/>
     </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
@@ -1493,6 +1495,15 @@
   <action name="actionGeneInterpretability">
    <property name="text">
     <string>Gene interpretability</string>
+   </property>
+  </action>
+  <action name="actionImportHerediVar">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/HerediVar.png</normaloff>:/Icons/HerediVar.png</iconset>
+   </property>
+   <property name="text">
+    <string>Import HerediVar classifications</string>
    </property>
   </action>
  </widget>
