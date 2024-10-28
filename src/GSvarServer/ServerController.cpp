@@ -1,5 +1,6 @@
 #include "ServerController.h"
 #include "PipelineSettings.h"
+#include "FileMetaCache.h"
 #include <QUrl>
 #include <QProcess>
 #include <QTemporaryFile>
@@ -58,11 +59,13 @@ HttpResponse ServerController::createStaticFileRangeResponse(const QString& file
 		total_length = total_length + byte_ranges[i].length;
 	}
 
+    FastFileInfo *info = new FastFileInfo(filename);
+
 	BasicResponseData response_data;
 	response_data.filename = filename;
 	response_data.length = total_length;
 	response_data.byte_ranges = byte_ranges;
-	response_data.file_size = QFile(filename).size();
+    response_data.file_size = info->size();
 	response_data.is_stream = true;
 	response_data.content_type = type;
 	response_data.status = ResponseStatus::PARTIAL_CONTENT;
@@ -73,8 +76,10 @@ HttpResponse ServerController::createStaticFileRangeResponse(const QString& file
 
 HttpResponse ServerController::createStaticStreamResponse(const QString& filename, bool is_downloadable)
 {
-	BasicResponseData response_data;
-	response_data.length = QFile(filename).size();
+    FastFileInfo *info = new FastFileInfo(filename);
+
+    BasicResponseData response_data;
+    response_data.length = info->size();
 	response_data.filename = filename;
 	response_data.file_size = response_data.length;
 	response_data.is_stream = true;
@@ -86,7 +91,8 @@ HttpResponse ServerController::createStaticStreamResponse(const QString& filenam
 
 HttpResponse ServerController::createStaticFileResponse(const QString& filename, const HttpRequest& request)
 {
-	if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!QFile::exists(filename))))
+    FastFileInfo *info = new FastFileInfo(filename);
+    if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!info->exists())))
     {
         Log::error(EndpointManager::formatResponseMessage(request, "Requested file does not exist: " + filename));
 		// Special case, when sending HEAD request for a file that does not exist
@@ -98,7 +104,7 @@ HttpResponse ServerController::createStaticFileResponse(const QString& filename,
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "Requested file could not be found"));
 	}
 
-	quint64 file_size = QFile(filename).size();
+    quint64 file_size = info->size();
 	// Client wants to see only the size of the requested file (not its content)
 	if (request.getMethod() == RequestMethod::HEAD)
 	{
@@ -234,41 +240,93 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 
 HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 {
-	if (!request.getUrlParams().contains("ps_url_id"))
+    // Check all parameters
+    if (!request.getUrlParams().contains("ps_url_id"))
     {
         return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Sample id has not been provided"));
 	}
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
+    bool return_if_missing = true;
+    if (request.getUrlParams().contains("return_if_missing"))
+    {
+        if (request.getUrlParams()["return_if_missing"] == "0")
+        {
+            return_if_missing = false;
+        }
+    }
 
-	UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());	
-	QString found_file = url_entity.filename_with_path;
-	if (!QFile::exists(found_file))
+    bool multiple_files = true;
+    if (request.getUrlParams().contains("multiple_files"))
+    {
+        if (request.getUrlParams()["multiple_files"].trimmed() == "0")
+        {
+            multiple_files = false;
+        }
+    }
+
+    FileLocationList file_list;
+    QJsonDocument json_doc_output;
+    QJsonDocument json_doc_without_tokens;
+    QJsonArray json_list_output;
+    QJsonArray json_list_without_tokens;
+    PathType requested_type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
+
+    QString locus;
+    if (request.getUrlParams().contains("locus"))
+    {
+        locus = request.getUrlParams()["locus"];
+    }
+
+    // Start looking for FileLocations
+    UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());
+    QString found_file = url_entity.filename_with_path;
+    if (!url_entity.file_exists)
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processed sample file does not exist"));
-	}
+    }
 
-	bool return_if_missing = true;
-	if (request.getUrlParams().contains("return_if_missing"))
-	{
-		if (request.getUrlParams()["return_if_missing"] == "0")
-		{
-			return_if_missing = false;
-		}
-	}
+    // Check the cache first
+    ServerDB db = ServerDB();
+    if (db.hasFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing))
+    {
+        QJsonDocument updated_cached_doc;
+        QJsonArray updated_cached_array;
 
-	bool multiple_files = true;
-	if (request.getUrlParams().contains("multiple_files"))
-	{
-		if (request.getUrlParams()["multiple_files"].trimmed() == "0")
-		{
-			multiple_files = false;
-		}
-	}
+        QJsonDocument cache_doc = db.getFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
+        db.updateFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
 
-	FileLocationList file_list {};
-	QJsonDocument json_doc_output {};
-	QJsonArray json_list_output {};
-	PathType requested_type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
+        QJsonArray cached_array = cache_doc.array();
+        for (int index = 0; index < cached_array.size(); index++)
+        {
+            if (cached_array.at(index).isObject())
+            {
+                QJsonObject cached_object = cached_array.takeAt(index).toObject();
+                QString cached_filename = cached_object["filename"].toString();
+
+                if (!cached_filename.isEmpty())
+                {                    
+                    cached_object.insert("filename", createTempUrl(cached_filename, request.getUrlParams()["token"]));
+                    updated_cached_array.append(cached_object);
+                }
+                else
+                {
+                    continue;
+                }
+            }
+        }
+
+        // Ignore the cache entry, if no URLs were genereated
+        if (updated_cached_array.size()>0)
+        {
+            updated_cached_doc.setArray(updated_cached_array);
+
+            BasicResponseData response_data;
+            response_data.length = updated_cached_doc.toJson().length();
+            response_data.content_type = request.getContentType();
+            response_data.is_downloadable = false;
+            return HttpResponse(response_data, updated_cached_doc.toJson());
+        }
+    }
 
 	if (found_file.isEmpty())
 	{
@@ -308,11 +366,11 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				file_list << file_locator->getAnalysisUpdFile();
 				break;
 			case PathType::REPEAT_EXPANSION_IMAGE:
-				if (!request.getUrlParams().contains("locus"))
+                if (locus.isEmpty())
                 {
                     return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
 				}
-				file_list << file_locator->getRepeatExpansionImage(request.getUrlParams()["locus"]);
+                file_list << file_locator->getRepeatExpansionImage(locus);
 				break;
 			case PathType::BAM:
             case PathType::CRAM:
@@ -342,11 +400,11 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				file_list = file_locator->getRepeatExpansionFiles(return_if_missing);
 				break;
             case PathType::REPEAT_EXPANSION_HISTOGRAM:
-                if (!request.getUrlParams().contains("locus"))
+                if (locus.isEmpty())
                 {
                     return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
                 }
-                file_list << file_locator->getRepeatExpansionHistogram(request.getUrlParams()["locus"]);
+                file_list << file_locator->getRepeatExpansionHistogram(locus);
                 break;
 			case PathType::PRS:
 				file_list = file_locator->getPrsFiles(return_if_missing);
@@ -418,9 +476,14 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 
 	for (int i = 0; i < file_list.count(); ++i)
 	{
-		QJsonObject cur_json_item {};
+        QJsonObject cur_json_item;
+        QJsonObject cur_json_item_without_token;
 		cur_json_item.insert("id", file_list[i].id);
 		cur_json_item.insert("type", FileLocation::typeToString(file_list[i].type));
+        cur_json_item.insert("exists", file_list[i].exists);
+
+        cur_json_item_without_token = cur_json_item;
+
 		bool needs_url = true;
 		if (request.getUrlParams().contains("path"))
 		{
@@ -429,8 +492,8 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
         if (needs_url)
 		{
 			try
-			{
-				cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"]));
+            {
+                cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"]));
             }
 			catch (Exception& e)
             {
@@ -439,14 +502,18 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		}
 		else
 		{
-			cur_json_item.insert("filename", file_list[i].filename);
+			cur_json_item.insert("filename", file_list[i].filename);            
 		}
-		cur_json_item.insert("exists", QFile::exists(file_list[i].filename));
 
+        cur_json_item_without_token.insert("filename", file_list[i].filename);
 		json_list_output.append(cur_json_item);
+        json_list_without_tokens.append(cur_json_item_without_token);
 	}
 
 	json_doc_output.setArray(json_list_output);
+    json_doc_without_tokens.setArray(json_list_without_tokens);
+
+    db.addFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, static_cast<int>(multiple_files), static_cast<int>(return_if_missing), json_doc_without_tokens.toJson(QJsonDocument::Compact), QDateTime::currentDateTime());
 
 	BasicResponseData response_data;
 	response_data.length = json_doc_output.toJson().length();
@@ -485,7 +552,8 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(found_file_path, request.getUrlParams()["token"]), QFile::exists(found_file_path));
+    FastFileInfo *info = new FastFileInfo(found_file_path);
+    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(found_file_path, request.getUrlParams()["token"]), info->exists());
 
 	QJsonDocument json_doc_output;
 	QJsonArray file_location_as_json_list;
@@ -525,7 +593,8 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
 	}
 
-	FileLocation analysis_job_gsvar_file = FileLocation(ps_name, PathType::GSVAR, createTempUrl(found_file_path, request.getUrlParams()["token"]), QFile::exists(found_file_path));
+    FastFileInfo *info = new FastFileInfo(found_file_path);
+    FileLocation analysis_job_gsvar_file = FileLocation(ps_name, PathType::GSVAR, createTempUrl(found_file_path, request.getUrlParams()["token"]), info->exists());
 	QJsonDocument json_doc_output;
 	QJsonObject file_location_as_json_object;
 
@@ -589,7 +658,8 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
         QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
         QString log = db.analysisJobLatestLogInfo(job_id).file_name_with_path;
 
-		analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(log, request.getUrlParams()["token"]), QFile::exists(log));
+        FastFileInfo *info = new FastFileInfo(log);
+        analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(log, request.getUrlParams()["token"]), info->exists());
 	}
 	catch (Exception& e)
     {
@@ -844,7 +914,8 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    if (!QFile(bam_file_name).exists())
+    FastFileInfo *info = new FastFileInfo(bam_file_name);
+    if (!info->exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
     }
@@ -880,7 +951,8 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    if (!QFile(bam_file_name).exists())
+    FastFileInfo *info = new FastFileInfo(bam_file_name);
+    if (!info->exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
     }
@@ -911,7 +983,8 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    if (!QFile(bam_file_name).exists())
+    FastFileInfo *info = new FastFileInfo(bam_file_name);
+    if (!info->exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
     }
@@ -1263,7 +1336,8 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 		QStringList analyses = NGSD().secondaryAnalyses(processed_sample_name, type);
 		foreach(QString file, analyses)
 		{
-			if (QFile::exists(file))
+            FastFileInfo *info = new FastFileInfo(file);
+            if (info->exists())
 			{
 				secondary_analyses << file;
 			}
@@ -1418,7 +1492,9 @@ QString ServerController::findPathForTempUrl(QList<QString> path_parts)
 		if (!url_entity.filename_with_path.isEmpty())
 		{
 			path_parts.removeAt(0);
-			return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
+            QString path = url_entity.path;
+            if (!url_entity.path.endsWith(QDir::separator())) path += QDir::separator();
+            return path + path_parts.join(QDir::separator());
 		}
 	}
 
@@ -1466,13 +1542,14 @@ QString ServerController::addFileToTempStorage(const QString& file)
 {
     QString id = ServerHelper::generateUniqueStr();
 
-    if (QFileInfo(file).exists())
+    FastFileInfo *info = new FastFileInfo(file);
+    if (info->exists())
     {
-        UrlManager::addNewUrl(UrlEntity(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
+        UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
     }
     else
     {
-        UrlManager::addNewUrl(UrlEntity(id, file, "", file, id, QDateTime::currentDateTime()));
+        THROW_HTTP(HttpException, "Cannot create a URL, since the file does not exist: '" + file + "'", 404,  {}, {});
     }
     return id;
 }
@@ -1503,7 +1580,21 @@ QString ServerController::getProcessedSampleFile(const int& ps_id, const PathTyp
 QString ServerController::createTempUrl(const QString& file, const QString& token)
 {
     QString id = addFileToTempStorage(file);
-	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
+    FastFileInfo *info = new FastFileInfo(file);
+    return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
+}
+
+QString ServerController::stripParamsFromTempUrl(const QString& url)
+{
+    QString output = url;
+    int param_start_pos = url.indexOf("?");
+
+    if (param_start_pos != -1)
+    {
+        output = url.left(param_start_pos);
+    }
+
+    return output;
 }
 
 HttpResponse ServerController::createStaticFolderResponse(const QString path, const HttpRequest& request)

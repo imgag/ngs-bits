@@ -47,6 +47,8 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
     EndpointManager.cpp \
+    FastFileInfo.cpp \
+    FileMetaCache.cpp \
     HtmlEngine.cpp \
     HttpUtils.cpp \
     HttpRequest.cpp \
@@ -62,6 +64,8 @@ SOURCES += \
 
 HEADERS += \
     EndpointManager.h \
+    FastFileInfo.h \
+    FileMetaCache.h \
     HtmlEngine.h \
     HttpParts.h \
     HttpUtils.h \

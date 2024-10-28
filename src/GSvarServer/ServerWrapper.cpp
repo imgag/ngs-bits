@@ -249,11 +249,12 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
 
 void ServerWrapper::cleanupSessionsAndUrls()
 {
-    Log::info("Removing expired sessions on timer");
+    Log::info("Removing expired sessions, URLs, and cache on timer");
     try
     {
         SessionManager::removeExpiredSessions();
         UrlManager::removeExpiredUrls();
+        FileMetaCache::removeExpiredMetadata();
 
         SessionAndUrlBackupWorker *backup_worker = new SessionAndUrlBackupWorker(SessionManager::getAllSessions(), UrlManager::getAllUrls());
         cleanup_pool_.start(backup_worker);
