@@ -535,121 +535,138 @@ void SequencingRunWidget::edit(int run_id)
 
 void SequencingRunWidget::sendStatusEmail()
 {
+	NGSD db;
+
+	//create email
+	QStringList to, body;
+	QString subject;
+	QString status;
+	QString run_name;
+
 	if (is_batch_view_)
 	{
-		//TODO: implement
+		// get run status of all runs
+		QSet<QString> run_statuses = db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");").toSet();
+		run_statuses.remove("analysis_finished");
+		run_statuses.remove("run_finished");
+
+		if(run_statuses.size() > 0 )
+		{
+			QMessageBox::information(this, "Run status email", "Run status emails can only be generated if all runs have status 'analysis_finished' or 'run_finished'!");
+			return;
+		}
+
+		QStringList run_names = db.getValues("SELECT name FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");");
+		std::sort(run_names.begin(), run_names.end());
+		run_name = run_names.first() + " - " + run_names.last();
+
 	}
 	else
 	{
-		QString status = ui_->status->text();
+		status = ui_->status->text();
 		if (status!="analysis_finished" && status!="run_finished")
 		{
 			QMessageBox::information(this, "Run status email", "Run status emails can only be generated for runs with status 'analysis_finished' or 'run_finished'!");
 			return;
 		}
 
-		NGSD db;
-		QString run_name = ui_->name->text();
+		run_name = ui_->name->text();
+	}
 
-		//create email
-		QStringList to, body;
-		QString subject;
+	if (is_batch_view_ || status=="analysis_finished")
+	{
+		//update table info to be sure it is the current info.
+		updateRunSampleTable();
 
-		if (status=="analysis_finished")
-		{
-			//update table info to be sure it is the current info.
-			updateRunSampleTable();
+		to << Settings::string("email_run_analyzed").split(";");
 
-			to << Settings::string("email_run_analyzed").split(";");
+		subject = (is_batch_view_)?"[NGSD] Läufe " + run_name + " analysiert": "[NGSD] Lauf " + run_name + " analysiert";
 
-			subject = "[NGSD] Lauf " + run_name + " analysiert";
-
-			body << "Hallo zusammen,";
-			body << "";
-			body << "der Lauf " + run_name + " ist fertig analysiert:";
-
-			body << "";
-
-			int idx_sample = ui_->samples->columnIndex("sample");
-			int idx_comment = ui_->samples->columnIndex("comments");
-			int idx_project = ui_->samples->columnIndex("project");
-			int idx_is_tumor = ui_->samples->columnIndex("is_tumor");
-			int idx_is_ffpe = ui_->samples->columnIndex("is_ffpe");
-
-			QStringList diagnostic_table;
-			body << "Die folgenden germline Proben des Laufs haben schlechte Qualität:";
-			diagnostic_table << "Probe\tProjekt\tKommentar";
-			for (int i=0; i < ui_->samples->rowCount(); i++)
-			{
-				if (ui_->samples->item(i, idx_is_tumor)->text() == "yes") continue;
-
-				QString ps_id = db.processedSampleId(ui_->samples->item(i, idx_sample)->text());
-				QByteArray quality = db.getValue("SELECT quality FROM processed_sample WHERE id = '" + ps_id + "'").toByteArray();
-				if (quality == "bad")
-				{
-					QString ffpe_text = ui_->samples->item(i, idx_is_ffpe)->text() == "yes" ? " [ffpe]" : "";
-
-					diagnostic_table << ui_->samples->item(i, idx_sample)->text() + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
-				}
-			}
-
-			if (diagnostic_table.count() > 1)
-			{
-				foreach(QString line, diagnostic_table)
-				{
-					body << line;
-				}
-			}
-			else
-			{
-				body << "Keine Proben mit schlechter Qualität.";
-			}
-
-
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT DISTINCT p.id, p.name, p.email_notification, p.internal_coordinator_id, p.analysis FROM project p, processed_sample ps WHERE ps.project_id=p.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') ORDER BY p.name ASC");
-			while(query.next())
-			{
-				int coordinator_id = query.value("internal_coordinator_id").toInt();
-				to << query.value("email_notification").toString().split(";");
-				to << db.userEmail(coordinator_id);
-
-				body << "";
-				body << "Projekt: " + query.value("name").toString();
-				body << "  Koordinator: " + db.userName(coordinator_id);
-
-				int ps_count = db.getValue("SELECT count(id) FROM processed_sample WHERE sequencing_run_id IN ('" + run_ids_.join("', '") + "') AND project_id='" + query.value("id").toString() +"'").toInt();
-				body << "  Proben: " + QString::number(ps_count);
-				body << "  Analyse: " + query.value("analysis").toString();
-
-				QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id IN ('" + run_ids_.join("', '") + "') AND project_id='" + query.value("id").toString() + "' AND operator_id IS NOT NULL");
-				operator_ids.removeDuplicates();
-				operator_ids.removeAll("");
-				foreach(QString operator_id, operator_ids)
-				{
-					to << db.userEmail(operator_id.toInt());
-				}
-			}
-		}
-		else if (status=="run_finished")
-		{
-			to << Settings::string("email_run_finished").split(";");
-
-			subject = "[NGSD] Lauf " + run_name + " ist sequenziert";
-
-			body << "Hallo zusammen,";
-			body << "";
-			body << "der Lauf " + run_name + " ist fertig sequenziert.";
-		}
+		body << "Hallo zusammen,";
+		body << "";
+		body << ((is_batch_view_)?"die Läufe " + run_name + " sind fertig analysiert:": "der Lauf " + run_name + " ist fertig analysiert:");
 
 		body << "";
-		body << "Viele Gruesse, ";
-		body << "  " + LoginManager::userName();
 
-		//send
-		EmailDialog dlg(this, to, subject, body);
-		dlg.exec();
+		int idx_sample = ui_->samples->columnIndex("sample");
+		int idx_comment = ui_->samples->columnIndex("comments");
+		int idx_project = ui_->samples->columnIndex("project");
+		int idx_is_tumor = ui_->samples->columnIndex("is_tumor");
+		int idx_is_ffpe = ui_->samples->columnIndex("is_ffpe");
+
+		QStringList diagnostic_table;
+		body << "Die folgenden germline Proben des Laufs haben schlechte Qualität:";
+		diagnostic_table << "Probe\tProjekt\tKommentar";
+		for (int i=0; i < ui_->samples->rowCount(); i++)
+		{
+			if (ui_->samples->item(i, idx_is_tumor)->text() == "yes") continue;
+
+			QString ps_id = db.processedSampleId(ui_->samples->item(i, idx_sample)->text());
+			QByteArray quality = db.getValue("SELECT quality FROM processed_sample WHERE id = '" + ps_id + "'").toByteArray();
+			if (quality == "bad")
+			{
+				QString ffpe_text = ui_->samples->item(i, idx_is_ffpe)->text() == "yes" ? " [ffpe]" : "";
+
+				diagnostic_table << ui_->samples->item(i, idx_sample)->text() + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
+			}
+		}
+
+		if (diagnostic_table.count() > 1)
+		{
+			foreach(QString line, diagnostic_table)
+			{
+				body << line;
+			}
+		}
+		else
+		{
+			body << "Keine Proben mit schlechter Qualität.";
+		}
+
+
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT DISTINCT p.id, p.name, p.email_notification, p.internal_coordinator_id, p.analysis FROM project p, processed_sample ps WHERE ps.project_id=p.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') ORDER BY p.name ASC");
+		while(query.next())
+		{
+			int coordinator_id = query.value("internal_coordinator_id").toInt();
+			to << query.value("email_notification").toString().split(";");
+			to << db.userEmail(coordinator_id);
+
+			body << "";
+			body << "Projekt: " + query.value("name").toString();
+			body << "  Koordinator: " + db.userName(coordinator_id);
+
+			int ps_count = db.getValue("SELECT count(id) FROM processed_sample WHERE sequencing_run_id IN ('" + run_ids_.join("', '") + "') AND project_id='" + query.value("id").toString() +"'").toInt();
+			body << "  Proben: " + QString::number(ps_count);
+			body << "  Analyse: " + query.value("analysis").toString();
+
+			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id IN ('" + run_ids_.join("', '") + "') AND project_id='" + query.value("id").toString() + "' AND operator_id IS NOT NULL");
+			operator_ids.removeDuplicates();
+			operator_ids.removeAll("");
+			foreach(QString operator_id, operator_ids)
+			{
+				to << db.userEmail(operator_id.toInt());
+			}
+		}
 	}
+	else if (status=="run_finished")
+	{
+		to << Settings::string("email_run_finished").split(";");
+
+		subject = "[NGSD] Lauf " + run_name + " ist sequenziert";
+
+		body << "Hallo zusammen,";
+		body << "";
+		body << "der Lauf " + run_name + " ist fertig sequenziert.";
+	}
+
+	body << "";
+	body << "Viele Gruesse, ";
+	body << "  " + LoginManager::userName();
+
+	//send
+	EmailDialog dlg(this, to, subject, body);
+	dlg.exec();
 
 }
 
