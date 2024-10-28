@@ -60,6 +60,7 @@ void HerediVarImportDialog::import()
 			QByteArray classification = line.info("classification", false).trimmed();
 			classification.replace("%2B", "+");
 			if (classification=="3-" || classification=="3+") classification = "3";
+			if (classification=="4M") classification = "R+";
 			if (!valid_classes.contains(classification))
 			{
 				++c_skipped_invalid;

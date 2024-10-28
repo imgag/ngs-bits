@@ -504,6 +504,7 @@
      <addaction name="actionProcessingSystem"/>
      <addaction name="actionProject"/>
      <addaction name="actionRepeatExpansion"/>
+     <addaction name="actionReportPolymorphisms"/>
      <addaction name="actionSample"/>
      <addaction name="actionSampleGroup"/>
      <addaction name="actionSender"/>
@@ -1504,6 +1505,11 @@
    </property>
    <property name="text">
     <string>Import HerediVar classifications</string>
+   </property>
+  </action>
+  <action name="actionReportPolymorphisms">
+   <property name="text">
+    <string>Report polymorphisms</string>
    </property>
   </action>
  </widget>

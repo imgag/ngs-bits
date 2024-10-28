@@ -162,7 +162,7 @@ QStringList VariantScores::prefilters(const Parameters& parameters)
 			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	splice_site_only=false	action=KEEP"
 			<< "Count NGSD	max_count=100	ignore_genotype=false	mosaic_as_het=false" //make sure too common variants and artefacts with splicing effect prediction are not kept
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD"+QString(parameters.use_clinvar ? ",ClinVar" : "")+"	also_likely_pathogenic=false"
-			<< "Allele frequency	max_af=1.0" //make sure too common variants with pathigenic annotation are not kept
+			<< "Allele frequency	max_af=1.0" //make sure too common variants with pathogenic annotation are not kept
 			<< "Filter columns	entries=mosaic	action=REMOVE";
 	if (parameters.use_ngsd_classifications)
 	{

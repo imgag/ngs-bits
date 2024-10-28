@@ -4434,6 +4434,13 @@ void MainWindow::on_actionRepeatExpansion_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionReportPolymorphisms_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("report_polymorphisms");
+	auto dlg = GUIHelper::createDialog(widget, "Report polymorphisms administration");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionSample_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("sample");
