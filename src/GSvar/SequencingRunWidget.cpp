@@ -195,6 +195,8 @@ void SequencingRunWidget::updateGUI()
 				((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget())->setText((query.value("backup_done").toString()=="1" ? "yes" : "no"));
 
 			}
+			//#### deactivate SampleSheet ####
+			ui_->novaseqx_samplesheet_btn->setEnabled(false);
 
 		}
 		else
