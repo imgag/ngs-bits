@@ -218,59 +218,13 @@ QColor IGVSession::statusToColor(IGVStatus status)
 
 QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
 {
-	MainWindow* main_window = GlobalServiceProvider::mainWindow();
-
     IgvDialog dlg(parent_);
-	AnalysisType analysis_type = main_window->getCurrentAnalysisType();
+    MainWindow* main_window = GlobalServiceProvider::mainWindow();
+    main_window->waitForIGVLazyLoad(); // wait if the caching is still in progress
 
-    //sample BAM file(s)
-    FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(true);
-    foreach(const FileLocation& file, bams)
+    for (int i=0; i< IGVInitCache::size(); i++)
     {
-        dlg.addFile(file, true);
-    }
-
-    //sample BAF file(s)
-    FileLocationList bafs = GlobalServiceProvider::fileLocationProvider().getBafFiles(true);
-    foreach(const FileLocation& file, bafs)
-    {
-        if(analysis_type == SOMATIC_PAIR && !file.id.contains("somatic")) continue;
-        dlg.addFile(file, true);
-    }
-
-    //analysis VCF
-	FileLocation vcf = GlobalServiceProvider::fileLocationProvider().getAnalysisVcf();
-	bool igv_default_small = Settings::boolean("igv_default_small", true);
-	dlg.addFile(vcf, igv_default_small);
-
-    //analysis SV file
-	FileLocation bedpe = GlobalServiceProvider::fileLocationProvider().getAnalysisSvFile();
-	bool igv_default_sv = Settings::boolean("igv_default_sv", true);
-	dlg.addFile(bedpe, igv_default_sv);
-
-    //CNV files
-    if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
-    {
-        FileLocation file = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCoverageFile();
-        dlg.addFile(file, true);
-
-        FileLocation file2 = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCallFile();
-        dlg.addFile(file2, true);
-    }
-    else
-    {
-        FileLocationList segs = GlobalServiceProvider::fileLocationProvider().getCnvCoverageFiles(true);
-        foreach(const FileLocation& file, segs)
-        {
-            dlg.addFile(file, true);
-        }
-    }
-
-    //Manta evidence file(s)
-    FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
-    foreach(const FileLocation& file, evidence_files)
-    {
-        dlg.addFile(file, false);
+        dlg.addFile(IGVInitCache::get(i).location, IGVInitCache::get(i).checked);
     }
 
     //target region
@@ -280,32 +234,6 @@ QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
 		main_window->targetRegion().regions.store(roi_file);
 
         dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi_file, true}, true);
-    }
-
-    //sample low-coverage
-	bool igv_default_lowcov = Settings::boolean("igv_default_lowcov", true);
-	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
-    {
-        FileLocationList som_low_cov_files = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
-        foreach(const FileLocation& loc, som_low_cov_files)
-        {
-            if(loc.filename.contains("somatic_custom_panel_stat"))
-            {
-				dlg.addFile(FileLocation{loc.id + " (somatic custom panel)", PathType::LOWCOV_BED, loc.filename, QFile::exists(loc.filename)}, igv_default_lowcov);
-            }
-            else
-            {
-				dlg.addFile(loc, igv_default_lowcov);
-            }
-        }
-    }
-    else
-    {
-        FileLocationList low_cov_files = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(true);
-        foreach(const FileLocation& file, low_cov_files)
-        {
-			dlg.addFile(file, igv_default_lowcov);
-        }
     }
 
 	//custom tracks
@@ -320,35 +248,6 @@ QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
 		QString filename = parts[2];
 		dlg.addFile(FileLocation{name, PathType::OTHER, filename, QFile::exists(filename)}, checked_by_default);
 	}
-
-    //related RNA tracks
-    if (LoginManager::active())
-    {
-        NGSD db;
-
-		QString sample_id = db.sampleId(main_window->getCurrentFileName(), false);
-        if (sample_id!="")
-        {
-            foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
-            {
-                // iterate over all processed RNA samples
-                foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
-                {
-                    //add RNA BAM
-                    FileLocation rna_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::BAM);
-                    if (rna_bam_file.exists) dlg.addFile(rna_bam_file, false);
-
-                    //add fusions BAM
-                    FileLocation rna_fusions_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS_BAM);
-                    if (rna_fusions_bam_file.exists) dlg.addFile(rna_fusions_bam_file, false);
-
-                    //add splicing BED
-                    FileLocation rna_splicing_bed_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_BED);
-                    if (rna_splicing_bed_file.exists) dlg.addFile(rna_splicing_bed_file, false);
-                }
-            }
-        }
-    }
 
 	// switch to MainWindow to prevent dialog to appear behind other widgets
 	parent_->raise();

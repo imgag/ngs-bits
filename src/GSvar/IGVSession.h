@@ -3,9 +3,9 @@
 
 #include <QThreadPool>
 #include <QMutex>
-
 #include "IgvDialog.h"
 #include "MainWindow.h"
+#include "IGVInitCache.h"
 
 //Status of a IGV command
 enum IGVStatus

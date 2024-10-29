@@ -50,6 +50,12 @@ public:
 	/// Gets server API information to make sure ther the server is currently running
 	bool isServerRunning();
 
+    /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
+    void lazyLoadIGVfiles();
+
+    /// Wait if there are active worker threads loading IGV file info
+    void waitForIGVLazyLoad();
+
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
@@ -544,6 +550,7 @@ private:
 
     //current server version (if in client-server mode)
     QString server_version_;
+    QThreadPool igv_init_thread_pool_;
 
 };
 

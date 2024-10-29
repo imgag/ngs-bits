@@ -18,6 +18,9 @@ SOURCES += main.cpp\
     GlobalServiceProvider.cpp \
     HerediVarImportDialog.cpp \
     IGVCommandWorker.cpp \
+    IGVInitCache.cpp \
+    IGVInitCachePhaseOneWorker.cpp \
+    IGVInitCachePhaseTwoWorker.cpp \
     IGVSession.cpp \
     IgvLogWidget.cpp \
     IgvSessionManager.cpp \
@@ -145,7 +148,11 @@ HEADERS += MainWindow.h \
     GeneInterpretabilityDialog.h \
     GlobalServiceProvider.h \
     HerediVarImportDialog.h \
+    IGVCacheList.h \
     IGVCommandWorker.h \
+    IGVInitCache.h \
+    IGVInitCachePhaseOneWorker.h \
+    IGVInitCachePhaseTwoWorker.h \
     IGVSession.h \
     IgvLogWidget.h \
     IgvSessionManager.h \

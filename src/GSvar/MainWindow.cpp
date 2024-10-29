@@ -155,6 +155,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "CustomProxyService.h"
 #include "GeneInterpretabilityDialog.h"
 #include "HerediVarImportDialog.h"
+#include "IGVInitCachePhaseOneWorker.h"
+#include "IGVInitCachePhaseTwoWorker.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -168,6 +170,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, last_report_path_(QDir::homePath())
 	, init_timer_(this, true)
 	, server_version_()
+    , igv_init_thread_pool_()
 {
     // Automatic configuration will be triggered, if a template file is detected and no settings files are present.
     // A new settings.ini file is created with parameters based on the current application path value. If there is no
@@ -403,6 +406,9 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
+
+    // pool of threads to speed up IGV initialization
+    igv_init_thread_pool_.setMaxThreadCount(2);
 }
 
 QString MainWindow::appName() const
@@ -445,6 +451,26 @@ bool MainWindow::isServerRunning()
 	}
 
     return true;
+}
+
+void MainWindow::lazyLoadIGVfiles()
+{
+    IGVInitCache::clear();
+    Log::info("Started loading file location information needed for the IGV initialization");
+
+    IGVInitCachePhaseOneWorker *igv_init_cache_pahse_one_worker = new IGVInitCachePhaseOneWorker(variants_.type());
+    igv_init_thread_pool_.start(igv_init_cache_pahse_one_worker);
+
+    IGVInitCachePhaseTwoWorker *igv_init_cache_pahse_two_worker = new IGVInitCachePhaseTwoWorker(filename_);
+    igv_init_thread_pool_.start(igv_init_cache_pahse_two_worker);
+}
+
+void MainWindow::waitForIGVLazyLoad()
+{
+    if (igv_init_thread_pool_.activeThreadCount()>0)
+    {
+        igv_init_thread_pool_.waitForDone();
+    }
 }
 
 void MainWindow::checkServerAvailability()
@@ -1691,7 +1717,7 @@ void MainWindow::delayedInitialization()
 				{
 					openSampleFromNGSD(arg);
 				}
-			}
+            }
 		}
 		else
 		{
@@ -2241,7 +2267,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 			file = analysis_info_list[index].analysis_file;
 		}
 
-		loadFile(file);
+        loadFile(file);
 	}
 	catch (Exception& e)
 	{
@@ -2271,7 +2297,7 @@ void MainWindow::openSampleFromNGSD(QString sample_name)
 			if (!ok) return;
 
 			openProcessedSampleFromNGSD(ps, false);
-		}
+        }
 	}
 	catch (Exception& e)
 	{
@@ -2576,6 +2602,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(filename, variants_.getSampleHeader(), variants_.type())));
 			mode_title = " (local mode)";
 		}
+        lazyLoadIGVfiles();
 
 		//load CNVs
 		timer.restart();

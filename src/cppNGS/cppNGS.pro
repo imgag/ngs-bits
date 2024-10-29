@@ -87,7 +87,7 @@ HEADERS += BedFile.h \
     ClientHelper.h \
     FileInfo.h \
     RefGenomeService.h \
-    RepeatLocusList.h \
+    RepeatLocusList.h \    
     VariantImpact.h \
     VariantList.h \
     ChromosomalIndex.h \
