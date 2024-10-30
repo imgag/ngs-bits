@@ -57,6 +57,7 @@ INSERT INTO `repeat_expansion` (name, region, repeat_unit, max_normal, min_patho
 ('ABCD3', 'chr1:94418421-94418442', 'GCC', '44', '119', 'AD', 'OPDM', '', 'HP:0000508, HP:0000544, HP:0001324', '5\' UTR', 'diagnostic', '0'),
 ('ARX_1', 'chrX:25013649-25013697', 'NGC', '16', '19', 'XLR', 'DEE1, MRXARX', '308350, 300419', 'HP:0100543, HP:0011463', 'Coding', 'diagnostic', '0'),
 ('ARX_2', 'chrX:25013529-25013565', 'NGC', '12', '20', 'XLR', 'DEE1, PRTS, MRXARX', '308350, 300419', 'HP:0100543, HP:0011463', 'Coding', 'diagnostic', '0'),
+('ARX_2_SGC', 'chrX:25013529-25013565', 'SGC', '12', '20', 'XLR', 'DEE1, PRTS, MRXARX', '308350, 300419', 'HP:0100543, HP:0011463', 'Coding', 'diagnostic', '0'),
 ('DAB1', 'chr1:57367043-57367118', 'RAAAT', '0', '31', 'AD', 'SCA37', '615945', 'HP:0001251, HP:0001260', 'Intronic', 'diagnostic', '0'),
 ('GIPC1', 'chr19:14496041-14496074', 'CCG', '32', '73', 'AD', 'OPDM2', '618940', 'HP:0000508, HP:0001283, HP:0002460, HP:0030319, HP:0100297, HP:0003805, HP:0003458, HP:0003557', '5\' UTR', 'diagnostic', '0'),
 ('GLS', 'chr2:190880872-190880920', 'GCA', '29', '450', 'AR', 'GDPAG', '618412', 'HP:0011463, HP:0000007, HP:0000750, HP:0002373, HP:0001272, HP:0001263, HP:0002194, HP:0002073, HP:0003217', '5\' UTR', 'diagnostic', '0'),
