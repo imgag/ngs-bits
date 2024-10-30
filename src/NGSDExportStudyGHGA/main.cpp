@@ -122,13 +122,13 @@ public:
 
 	QString sampleTypeToSampleType(QString sample_type, bool is_ffpe)
 	{
-		if (!is_ffpe && (sample_type=="DNA" || sample_type=="DNA (amplicon)" || sample_type=="DNA (native)")) return "genomic DNA";
-		if (!is_ffpe && sample_type=="RNA") return "total RNA";
+		if (!is_ffpe && (sample_type=="DNA" || sample_type=="DNA (amplicon)" || sample_type=="DNA (native)")) return "GENOMIC_DNA";
+		if (!is_ffpe && sample_type=="RNA") return "TOTAL_RNA";
 		if (!is_ffpe && sample_type=="cfDNA") return "CF_DNA";
 		if (!is_ffpe && sample_type=="cfDNA (patient-specific)") return "CF_DNA";
 
-		if (is_ffpe && (sample_type=="DNA" || sample_type=="DNA (amplicon)" || sample_type=="DNA (native)")) return "FFPE DNA";
-		if (is_ffpe && sample_type=="RNA") return "FFPE total RNA";
+		if (is_ffpe && (sample_type=="DNA" || sample_type=="DNA (amplicon)" || sample_type=="DNA (native)")) return "FFPE_DNA";
+		if (is_ffpe && sample_type=="RNA") return "FFPE_TOTAL_RNA";
 
 		THROW(NotImplementedException, "Unhandled sample type '" + sample_type + "' " + (is_ffpe ? "(FFPE)" : "") + " in CV conversion!");
 	}
@@ -566,8 +566,8 @@ public:
 			//obj.insert("biospecimen_description", QJsonValue());
 			obj.insert("biospecimen_age_at_sampling", "UNKNOWN");
 			//obj.insert("biospecimen_vital_status_at_sampling", QJsonValue());
-			//obj.insert("biospecimen_tissue_term", QJsonValue());
-			//obj.insert("biospecimen_tissue_id", QJsonValue());
+			obj.insert("biospecimen_tissue_term", "UNKNOWN");
+			obj.insert("biospecimen_tissue_id", "UNKNOWN");
 			//obj.insert("biospecimen_isolation", QJsonValue());
 			//obj.insert("biospecimen_storage", QJsonValue());
 			//obj.insert("attributes", QJsonArray());

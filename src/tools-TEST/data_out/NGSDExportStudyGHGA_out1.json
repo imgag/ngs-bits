@@ -226,20 +226,24 @@
         {
             "alias": "SAM_000111",
             "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "UNKNOWN",
             "description": "sample that was sequenced",
             "individual": "000111",
             "name": "SAM_000111",
-            "type": "genomic DNA"
+            "type": "GENOMIC_DNA"
         },
         {
             "alias": "SAM_000222",
             "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "UNKNOWN",
             "description": "sample that was sequenced",
             "individual": "000222",
             "name": "SAM_000222",
-            "type": "total RNA"
+            "type": "TOTAL_RNA"
         }
     ],
     "studies": [
