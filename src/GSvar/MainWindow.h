@@ -68,8 +68,8 @@ public:
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
 
-	///Returns if germline report is supported for current variant list.
-	bool germlineReportSupported(bool require_ngsd = true);
+	///Returns if germline report is supported for current variant list. If error is given, it is filled with the error message, if false is returned.
+	bool germlineReportSupported(bool require_ngsd = true, QString* error=nullptr);
 	///Returns the processed sample name for which report configuration is set and the report is generated.
 	QString germlineReportSample();
 	///Returns if somatic tumor-normal report is supported for current variant list.
@@ -135,6 +135,8 @@ public slots:
 	void on_actionOpenProcessingSystemTab_triggered();
 	///Open project tab by search
 	void on_actionOpenProjectTab_triggered();
+	///Import HerediVar classification
+	void on_actionImportHerediVar_triggered();
 
 	///NGSD menu
 	void on_actionStatistics_triggered();
@@ -144,6 +146,7 @@ public slots:
 	void on_actionProcessingSystem_triggered();
 	void on_actionProject_triggered();
 	void on_actionRepeatExpansion_triggered();
+	void on_actionReportPolymorphisms_triggered();
 	void on_actionSample_triggered();
 	void on_actionSampleGroup_triggered();
 	void on_actionSender_triggered();

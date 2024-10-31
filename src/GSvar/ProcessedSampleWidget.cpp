@@ -222,7 +222,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
 	ui_->outcome->setText(diag.outcome);
 	GSvarHelper::limitLines(ui_->comments_diag, diag.comments);
-	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_));
+	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_, true));
 
 	//#### kasp status ####
 	try

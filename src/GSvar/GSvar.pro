@@ -18,6 +18,7 @@ SOURCES += main.cpp\
     GHGAUploadDialog.cpp \
     GeneInterpretabilityDialog.cpp \
     GlobalServiceProvider.cpp \
+    HerediVarImportDialog.cpp \
     IGVCommandWorker.cpp \
     IGVSession.cpp \
     IgvLogWidget.cpp \
@@ -147,6 +148,7 @@ HEADERS += MainWindow.h \
     GHGAUploadDialog.h \
     GeneInterpretabilityDialog.h \
     GlobalServiceProvider.h \
+    HerediVarImportDialog.h \
     IGVCommandWorker.h \
     IGVSession.h \
     IgvLogWidget.h \
@@ -269,6 +271,7 @@ FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
     GeneInterpretabilityDialog.ui \
+    HerediVarImportDialog.ui \
     IgvLogWidget.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \

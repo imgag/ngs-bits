@@ -697,7 +697,7 @@ CREATE  TABLE IF NOT EXISTS `variant_classification`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `variant_id` INT(11) NOT NULL,
-  `class` ENUM('n/a','1','2','3','4','5','M') NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M','R*') NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
 UNIQUE KEY `fk_variant_classification_has_variant` (`variant_id`),
@@ -1862,7 +1862,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
   `cnv_id` INT(11) UNSIGNED NOT NULL,
   `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
   `causal` BOOLEAN NOT NULL,
-  `class` ENUM('n/a','1','2','3','4','5','M') NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M','R*') NOT NULL,
   `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
   `de_novo` BOOLEAN NOT NULL,
   `mosaic` BOOLEAN NOT NULL,
@@ -2069,7 +2069,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
   `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
   `causal` BOOLEAN NOT NULL,
-  `class` ENUM('n/a','1','2','3','4','5','M') NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M','R*') NOT NULL,
   `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
   `de_novo` BOOLEAN NOT NULL,
   `mosaic` BOOLEAN NOT NULL,
@@ -2522,7 +2522,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_other_causal_variant`
   `report_configuration_id` INT(11) NOT NULL,
   `coordinates` TEXT NOT NULL,
   `gene` TEXT NOT NULL,
-  `type` ENUM('RE', 'UPD', 'mosaic CNV', 'uncalled small variant', 'uncalled CNV', 'uncalled SV') NOT NULL,
+  `type` ENUM('UPD', 'mosaic CNV', 'uncalled small variant', 'uncalled CNV', 'uncalled SV') NOT NULL,
   `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
   `comment` TEXT NOT NULL,
   `comment_reviewer1` TEXT NOT NULL,
@@ -2714,7 +2714,8 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `hpo_terms` TEXT COMMENT 'Comma-separated list of HPO identifiers without name',
   `location` TEXT DEFAULT NULL COMMENT 'Location of repeat',
   `comments` TEXT DEFAULT NULL,
-  `type` ENUM('diagnostic - in-house testing', 'diagnostic - external testing', 'research', 'low evidence') NOT NULL,
+  `type` ENUM('diagnostic', 'low evidence') NOT NULL,
+  `inhouse_testing` BOOLEAN NOT NULL,
   `statisticial_cutoff_wgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for short-read WGS (this cutoff can deviate from min_pathogenic when RE length cannot be determined accurately from NGSD)',
   `statisticial_cutoff_lrgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for long-read WGS',
   PRIMARY KEY (`id`),
@@ -2810,7 +2811,27 @@ CREATE  TABLE IF NOT EXISTS `re_callset`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
-COMMENT='SV call set';
+COMMENT='RE call set';
+
+-- -----------------------------------------------------
+-- Table `report_polymorphisms`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `report_polymorphisms`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `variant` VARCHAR(255) NOT NULL COMMENT 'Variant in VCF style (space-separated fields: chr pos ref alt)',
+  `rs_number` VARCHAR(20) NOT NULL,
+  `symbol` VARCHAR(40) NOT NULL,
+  `consequence` VARCHAR(255) NOT NULL,
+  `indication` VARCHAR(255) NOT NULL,
+  `comments` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `variant` (`variant` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='Variants that can be optionally added to a report';
+
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START

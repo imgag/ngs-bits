@@ -81,7 +81,7 @@ void GapDialog::calculteGaps()
 				continue;
 			}
 
-			TranscriptList transcripts = db_.releventTranscripts(gene_id);
+			TranscriptList transcripts = db_.relevantTranscripts(gene_id);
 			if (transcripts.count()==0)
 			{
 				genes_no_transcript << gene;
@@ -189,7 +189,7 @@ void GapDialog::calculteGaps()
 			{
 				int gene_id = db_.geneId(gene);
 				if (gene_id==-1) continue;
-				TranscriptList transcripts = db_.releventTranscripts(gene_id);
+				TranscriptList transcripts = db_.relevantTranscripts(gene_id);
 				foreach(const Transcript& transcript, transcripts)
 				{
 					coding_overlap.add(transcript.isCoding() ? transcript.codingRegions() : transcript.regions());

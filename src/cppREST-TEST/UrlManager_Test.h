@@ -13,7 +13,8 @@ private slots:
         QString file = "file.txt";
 
         IS_FALSE(UrlManager::isInStorageAlready(file));
-        UrlEntity cur_url = UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime());
+        QFileInfo info = QFileInfo(file);
+        UrlEntity cur_url = UrlEntity(url_id, info.fileName(), info.absolutePath(), file, url_id, info.size(), info.exists(), QDateTime::currentDateTime());
         UrlManager::addNewUrl(cur_url);
 		IS_TRUE(UrlManager::isInStorageAlready(file));
 

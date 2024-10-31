@@ -49,6 +49,7 @@ We can now build ngs-bits:
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`. Make sure to build in release mode!  
 * Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`. Make sure to build in release mode!  
 
+*Attention: Make sure to compile the [CRYPT_KEY](../GSvar/encrypt_settings.md) into the GSvar binary when using it in client-server mode. The CRYPT_KEY is used for a handshake between client and server.*
 
 Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.  
 To use GSvar, it needs to be [configured](GSvar/configuration.md) first.
@@ -70,7 +71,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\bin\</td>
-		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Svg.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\plugins\</td>

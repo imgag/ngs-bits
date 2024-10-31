@@ -1,6 +1,8 @@
 #include "DBEditor.h"
 #include "DBComboBox.h"
 #include "GUIHelper.h"
+#include "ProcessedSampleSelector.h"
+#include "ClickableLineEdit.h"
 
 #include <QFormLayout>
 #include <QLabel>
@@ -67,6 +69,7 @@ void DBEditor::createGUI()
 		//create widget
 		QWidget* widget = nullptr;
 		QWidget* add_widget = nullptr;
+
 		if (field_info.type==TableFieldInfo::BOOL)
 		{
 			QCheckBox* box = new QCheckBox(this);
@@ -133,28 +136,39 @@ void DBEditor::createGUI()
 		}
 		else if (field_info.type==TableFieldInfo::FK)
 		{
-			DBComboBox* selector = new DBComboBox(this);
-
 			if (field_info.fk_name_sql=="") THROW(ProgrammingException, "Foreign key name SQL not set for table/field: " + table_ + "/" + field_info.name);
 
-			DBTable entries = db_.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value");
-			selector->fill(entries, field_info.is_nullable);
-
-			//adjusting the size hint to the content can be slow, thus we use the fixed size.
-			//the size hint is not used anyway because the layout determines the size.
-			selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-			selector->setMinimumWidth(400);
-
-			//Handle rare case that mandatory FK points to empty table.
-			if (entries.rowCount()==0 && !field_info.is_nullable)
+			if (field_info.fk_table == "processed_sample")
 			{
-				QString error = "Missing entries in table '" + field_info.fk_table + "' - please fill this table first!";
-				errors_[field] = QStringList() << error;
-				selector->setToolTip(error);
-				selector->setStyleSheet("QComboBox {border: 2px solid red;}");
-			}
+				QLineEdit* edit = new ClickableLineEdit(this);
+				edit->setReadOnly(true);
+				connect(edit, SIGNAL(clicked(QPoint)), this, SLOT(editProcessedSample()));
 
-			widget = selector;
+				widget = edit;
+			}
+			else
+			{
+				DBComboBox* selector = new DBComboBox(this);
+
+				DBTable entries = db_.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value");
+				selector->fill(entries, field_info.is_nullable);
+
+				//adjusting the size hint to the content can be slow, thus we use the fixed size.
+				//the size hint is not used anyway because the layout determines the size.
+				selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+				selector->setMinimumWidth(400);
+
+				//Handle rare case that mandatory FK points to empty table.
+				if (entries.rowCount()==0 && !field_info.is_nullable)
+				{
+					QString error = "Missing entries in table '" + field_info.fk_table + "' - please fill this table first!";
+					errors_[field] = QStringList() << error;
+					selector->setToolTip(error);
+					selector->setStyleSheet("QComboBox {border: 2px solid red;}");
+				}
+
+				widget = selector;
+			}
 		}
 		else
 		{
@@ -264,8 +278,16 @@ void DBEditor::fillFormWithDefaultData()
 		}
 		else if (field_info.type==TableFieldInfo::FK)
 		{
-			DBComboBox* edit = getEditWidget<DBComboBox*>(field);
-			edit->setCurrentId(field_info.default_value);
+			if (field_info.fk_table == "processed_sample")
+			{
+				QLineEdit* edit = getEditWidget<ClickableLineEdit*>(field);
+				edit->setText(db_.processedSampleName(field_info.default_value));
+			}
+			else
+			{
+				DBComboBox* edit = getEditWidget<DBComboBox*>(field);
+				edit->setCurrentId(field_info.default_value);
+			}
 		}
 		else
 		{
@@ -335,11 +357,22 @@ void DBEditor::fillFormWithItemData()
 		}
 		else if (field_info.type==TableFieldInfo::FK)
 		{
-			DBComboBox* edit = getEditWidget<DBComboBox*>(field);
-
-			if (!is_null)
+			if (field_info.fk_table == "processed_sample")
 			{
-				edit->setCurrentId(value.toString());
+				QLineEdit* edit = getEditWidget<ClickableLineEdit*>(field);
+				if (!is_null)
+				{
+					edit->setText(db_.processedSampleName(value.toString()));
+				}
+			}
+			else
+			{
+				DBComboBox* edit = getEditWidget<DBComboBox*>(field);
+
+				if (!is_null)
+				{
+					edit->setCurrentId(value.toString());
+				}
 			}
 		}
 		else
@@ -467,6 +500,22 @@ void DBEditor::editDate()
 	}
 }
 
+void DBEditor::editProcessedSample()
+{
+	QString field = sender()->objectName().replace("editor_", "");
+
+	QLineEdit* edit = getEditWidget<ClickableLineEdit*>(field);
+	QString value = edit->text().trimmed();
+
+	ProcessedSampleSelector dlg(GUIHelper::mainWindow(), false);
+	dlg.setLabel("Processed sample:");
+	dlg.setSelection(value);
+	if (dlg.exec())
+	{
+		edit->setText(dlg.processedSampleName());
+	}
+}
+
 void DBEditor::showEvent(QShowEvent* event)
 {
 	QWidget::showEvent(event);
@@ -581,9 +630,18 @@ void DBEditor::store()
 		}
 		else if (field_info.type==TableFieldInfo::FK)
 		{
-			DBComboBox* editor = getEditWidget<DBComboBox*>(field);
-			QString value = editor->getCurrentId();
-			values << (value.isEmpty() && field_info.is_nullable ? "NULL" : value);
+			if (field_info.fk_table == "processed_sample")
+			{
+				QLineEdit* edit = getEditWidget<ClickableLineEdit*>(field);
+				QString value = edit->text();
+				values << (value.isEmpty() && field_info.is_nullable ? "NULL" : db_.processedSampleId(value));
+			}
+			else
+			{
+				DBComboBox* editor = getEditWidget<DBComboBox*>(field);
+				QString value = editor->getCurrentId();
+				values << (value.isEmpty() && field_info.is_nullable ? "NULL" : value);
+			}
 		}
 		else
 		{

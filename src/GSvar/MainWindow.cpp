@@ -154,6 +154,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ReSearchWidget.h"
 #include "CustomProxyService.h"
 #include "GeneInterpretabilityDialog.h"
+#include "HerediVarImportDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -274,7 +275,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("processed sample: DNA2405534A1_01", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
-	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
+	ui_.actionEncrypt->setEnabled(Settings::boolean("debug_mode_enabled", true));
 
 	//signals and slots
     connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
@@ -3521,23 +3522,38 @@ void MainWindow::generateReport()
 {
 	if (filename_=="") return;
 
-	//check if this is a germline or somatic
-	if (somaticReportSupported())
+	QString error;
+
+	AnalysisType type = variants_.type();
+	QString type_str = analysisTypeToString(type);
+	if (type==AnalysisType::SOMATIC_PAIR)
 	{
-		generateReportSomaticRTF();
+		if (somaticReportSupported())
+		{
+			generateReportSomaticRTF();
+		}
+		else error = "Analysis type " + type_str + ", but somatic report not supported!";
 	}
-	else if (tumoronlyReportSupported())
+	else if (type==AnalysisType::SOMATIC_SINGLESAMPLE)
 	{
-		generateReportTumorOnly();
+		if (tumoronlyReportSupported())
+		{
+			generateReportTumorOnly();
+		}
+		else error = "Analysis type " + type_str + ", but tumor-only report not supported!";
 	}
-	else if (germlineReportSupported())
+	else if (type==AnalysisType::GERMLINE_SINGLESAMPLE || type==AnalysisType::GERMLINE_TRIO || type==AnalysisType::GERMLINE_MULTISAMPLE)
 	{
-		generateReportGermline();
+		QString error_reason;
+		if (germlineReportSupported(true, &error_reason))
+		{
+			generateReportGermline();
+		}
+		else error = "Analysis type " + type_str + ", but germline report not supported: " + error_reason;
 	}
-	else
-	{
-		QMessageBox::information(this, "Report error", "Report not supported for this type of analysis!");
-	}
+	else error = "Report not supported for analysis type '" + type_str + "'!";
+
+	if (!error.isEmpty()) QMessageBox::information(this, "Report error", error);
 }
 
 
@@ -4279,6 +4295,12 @@ void MainWindow::on_actionOpenProjectTab_triggered()
 	openProjectTab(selector->text());
 }
 
+void MainWindow::on_actionImportHerediVar_triggered()
+{
+	HerediVarImportDialog dlg(this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionStatistics_triggered()
 {
 	try
@@ -4426,6 +4448,13 @@ void MainWindow::on_actionRepeatExpansion_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionReportPolymorphisms_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("report_polymorphisms");
+	auto dlg = GUIHelper::createDialog(widget, "Report polymorphisms administration");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionSample_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("sample");
@@ -4520,6 +4549,8 @@ void MainWindow::on_actionExportTestData_triggered()
 		QString ps_text = QInputDialog::getMultiLineText(this, "Test data export", "List the processed samples (one per line):");
 		foreach(const QString& ps, ps_text.split("\n"))
 		{
+			if (ps.trimmed().isEmpty()) continue;
+
 			QString ps_id = db.processedSampleId(ps);
 			QString project_type = db.getProcessedSampleData(ps_id).project_type;
 			if (project_type!="test")
@@ -4615,7 +4646,7 @@ void MainWindow::on_actionImportTestData_triggered()
 		//prevent overriding the production database
 		if (db.isProductionDb())
 		{
-			THROW(DatabaseException, "Cannot import test data into a production database!");
+			THROW(DatabaseException, "Cannot import test data into a production database (see db_info table)!");
 		}
 
 		//get input file
@@ -4626,6 +4657,7 @@ void MainWindow::on_actionImportTestData_triggered()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		db.removeInitData();
 
+		QString query;
 		QSharedPointer<QFile> file = Helper::openFileForReading(file_name, false);
 		while(!file->atEnd())
 		{
@@ -4644,8 +4676,16 @@ void MainWindow::on_actionImportTestData_triggered()
 				continue;
 			}
 
-			//import line
-			db.getQuery().exec(line);
+			//add line to query
+			query.append(' ');
+			query.append(line);
+
+			//execute if query finished
+			if (query.endsWith(';'))
+			{
+				db.getQuery().exec(query);
+				query.clear();
+			}
 		}
 
 		QApplication::restoreOverrideCursor();
@@ -5916,20 +5956,38 @@ void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 	refreshVariantTable();
 }
 
-bool MainWindow::germlineReportSupported(bool require_ngsd)
+bool MainWindow::germlineReportSupported(bool require_ngsd, QString* error)
 {
+	if (error!=nullptr) error->clear();
+
 	//no file loaded
-	if (filename_.isEmpty()) return false;
+	if (filename_.isEmpty())
+	{
+		if (error!=nullptr) error->operator=("No file loaded!");
+		return false;
+	}
 
 	//user has to be logged in
-	if (require_ngsd && !LoginManager::active()) return false;
+	if (require_ngsd && !LoginManager::active())
+	{
+		if (error!=nullptr) error->operator=("No user logged in!");
+		return false;
+	}
 
 	//single, trio or multi only
 	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return false;
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE)
+	{
+		if (error!=nullptr) error->operator=("Invalid analysis type!");
+		return false;
+	}
 
 	//multi-sample only with at least one affected
-	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()<1) return false;
+	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()<1)
+	{
+		if (error!=nullptr) error->operator=("No affected sample found in multi-sample analysis!");
+		return false;
+	}
 
 	//affected samples are in NGSD
 	if (require_ngsd)
@@ -5939,7 +5997,12 @@ bool MainWindow::germlineReportSupported(bool require_ngsd)
 		{
 			if(info.isAffected())
 			{
-				if (db.processedSampleId(info.name.trimmed(), false)=="") return false;
+				QString ps = info.name.trimmed();
+				if (db.processedSampleId(ps, false)=="")
+				{
+					if (error!=nullptr) error->operator=("Processed sample '" + ps + " not found in NGSD!");
+					return false;
+				}
 			}
 		}
 	}
@@ -6595,6 +6658,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionRegionToGenes->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
+	ui_.actionImportHerediVar->setEnabled(ngsd_user_logged_in && Settings::string("HerediVar", true).trimmed()!="");
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);

@@ -129,5 +129,6 @@
         <file>Icons/wt_pathogenic.png</file>
         <file>Icons/GeneReviews.png</file>
         <file>Icons/Export.png</file>
+        <file>Icons/HerediVar.png</file>
     </qresource>
 </RCC>

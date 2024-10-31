@@ -21,7 +21,6 @@ The settings are:
 - *genlab\_...*: Database credentials for the GenLab (if available)
 - *projects\_folder\_...*: Prject data folders for different project types (diagnostic, research, test, external)
 - *data\_folder*: megSAP data folder used to find target region BED files of processing systems
-- *use_proxy_for_gsvar_server*: for using an external GSvar server should be set to True (if your network is behind a HTTP proxy server)
 
 ### GSvar.ini
 
@@ -48,6 +47,11 @@ The most important settings are:
 	- region name
 	- path to BED file
 - *text\_editor*: Path of the preferred text editor. It is e.g. used to open log files.
+- *server\_host*: The host the GSvar server is running on.
+- *server\_port*: The port the GSvar server is running on.
+- *display_user_notifications*: Flag to indicate if user notifications from the server should be shown (default is  true).
+- *curl_ca_bundle*: SSL certificate needed to access BAM/CRAM files on the server (handed to libcurl).
+- *use_proxy_for_gsvar_server*: for using an external GSvar server should be set to True (if your network is behind a HTTP proxy server)-.
 
 If you want to run GSvar with a GSvar server, you need to provide these settings as well:
 

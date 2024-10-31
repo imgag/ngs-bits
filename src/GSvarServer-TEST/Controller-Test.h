@@ -42,8 +42,9 @@ private slots:
 		QFile::copy(file, copy_name);
 		QString file_copy = TESTDATA(copy_name.toUtf8());
 
-		IS_FALSE(UrlManager::isInStorageAlready(file_copy));
-        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file_copy).fileName(), QFileInfo(file_copy).absolutePath(), file_copy, url_id, QDateTime::currentDateTime()));
+        IS_FALSE(UrlManager::isInStorageAlready(file_copy));
+        QFileInfo info = QFileInfo(file_copy);
+        UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), file_copy, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file_copy));
 
 		QJsonDocument json_doc = QJsonDocument();
@@ -86,8 +87,9 @@ private slots:
 		QString copy_name = "uploaded_file.txt";
 		QByteArray upload_file = TESTDATA("data/to_upload.txt");
 
-		IS_FALSE(UrlManager::isInStorageAlready(upload_file));
-        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(upload_file).fileName(), QFileInfo(upload_file).absolutePath(), upload_file, url_id, QDateTime::currentDateTime()));
+        IS_FALSE(UrlManager::isInStorageAlready(upload_file));
+        QFileInfo info = QFileInfo(upload_file);
+        UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), upload_file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(upload_file));
 
         Session cur_session("upload_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
@@ -159,8 +161,8 @@ private slots:
         QString url_id = ServerHelper::generateUniqueStr();
 		QByteArray file = TESTDATA("data/text.txt");
 		IS_FALSE(UrlManager::isInStorageAlready(file));
-
-        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
+        QFileInfo info = QFileInfo(file);
+        UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file));
 
         Session cur_session("static_file_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime(), 0);
@@ -239,7 +241,8 @@ private slots:
 
         QString url_id = ServerHelper::generateUniqueStr();
 		QByteArray file = TESTDATA("data/text.txt");
-        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
+        QFileInfo info = QFileInfo(file);
+        UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 
         Session cur_session("head_response_exists_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
         SessionManager::addNewSession(cur_session);
@@ -365,10 +368,16 @@ private slots:
 
     void test_locate_file_by_type()
     {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
         QString url_id = ServerHelper::generateUniqueStr();
         QString file = TESTDATA("data/sample.gsvar");
 
-        UrlManager::addNewUrl(UrlEntity(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
+        QFileInfo info = QFileInfo(file);
+        UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 
         Session cur_session("gsvar_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
         SessionManager::addNewSession(cur_session);

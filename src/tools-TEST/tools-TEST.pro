@@ -54,6 +54,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BedShrink_Test.h \
     SampleGender_Test.h \
     FastaInfo_Test.h \
+    FastaMask_Test.h \
     BedIntersect_Test.h \
     SampleSimilarity_Test.h \
     SampleDiff_Test.h \
@@ -158,6 +159,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     VcfSubstract_Test.h \
     TranscriptsToBed_Test.h \
     GenesToTranscripts_Test.h \
+    TranscriptComparison_Test.h \
     NGSDImportSampleQC_Test.h \
     SamplePath_Test.h \
     BamExtract_Test.h \

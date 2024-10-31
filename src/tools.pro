@@ -85,6 +85,14 @@ SUBDIRS += FastaInfo
 tools-TEST.depends += FastaInfo
 FastaInfo.depends = cppNGS
 
+SUBDIRS += FastaMask
+tools-TEST.depends += FastaMask
+FastaMask.depends = cppNGS
+
+SUBDIRS += FastaFromBam
+tools-TEST.depends += FastaFromBam
+FastaFromBam.depends = cppNGS
+
 SUBDIRS += SampleSimilarity
 tools-TEST.depends += SampleSimilarity
 SampleSimilarity.depends = cppNGS
@@ -523,6 +531,10 @@ VcfSubstract.depends = cppNGS
 SUBDIRS += TranscriptsToBed
 tools-TEST.depends += TranscriptsToBed
 TranscriptsToBed.depends = cppNGSD
+
+SUBDIRS += TranscriptComparison
+tools-TEST.depends += TranscriptComparison
+TranscriptComparison.depends = cppNGSD
 
 SUBDIRS += GenesToTranscripts
 tools-TEST.depends += GenesToTranscripts

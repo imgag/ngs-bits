@@ -18,6 +18,7 @@
 #include "Statistics.h"
 #include "EndpointManager.h"
 #include "UrlManager.h"
+#include "FastFileInfo.h"
 
 
 struct SampleMetadata
@@ -89,8 +90,6 @@ public:
 	static HttpResponse performLogout(const HttpRequest& request);
 	/// Streams processing system regions file
 	static HttpResponse getProcessingSystemRegions(const HttpRequest& request);
-	/// Streams processing system amplicons file
-	static HttpResponse getProcessingSystemAmplicons(const HttpRequest& request);
 	/// Streams processing system genes file
 	static HttpResponse getProcessingSystemGenes(const HttpRequest& request);
 	/// Retrieves a list of secondary analyses
@@ -119,6 +118,10 @@ private:
     static QString getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
+
+    /// Returns a temporary URL wihtout a parameters (e.g. ?token=123)
+    static QString stripParamsFromTempUrl(const QString& url);
+
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, bool is_downloadable);
 	/// Serves a stream, used to transfer large files without opening multiple connections
