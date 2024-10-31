@@ -2065,11 +2065,11 @@ void MainWindow::on_actionSettings_triggered()
 	openSettingsDialog();
 }
 
-void MainWindow::openSettingsDialog(QString page_name)
+void MainWindow::openSettingsDialog(QString page_name, QString section)
 {
 	SettingsDialog dlg(this);
 	dlg.setWindowFlags(Qt::Window);
-	dlg.gotoPage(page_name);
+	dlg.gotoPage(page_name, section);
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
@@ -2098,7 +2098,7 @@ void MainWindow::on_actionRunOverview_triggered()
 
 void MainWindow::openColumnSettings()
 {
-	openSettingsDialog("columns");
+	openSettingsDialog("columns", variantTypeToString(VariantType::SNVS_INDELS));
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)

@@ -178,8 +178,8 @@ void SvWidget::initGUI()
 
 	for(int i=0;i<annotation_headers.count();++i)
 	{
-		if(annotation_headers[i].contains("STRAND_")) continue;
-		if(annotation_headers[i].contains("NAME_")) continue;
+		if(annotation_headers[i].startsWith("STRAND_")) continue;
+		if(annotation_headers[i].startsWith("NAME_")) continue;
 		if(annotation_headers[i] == "ID") continue;
 		annotations_to_show_ << annotation_headers[i];
 	}

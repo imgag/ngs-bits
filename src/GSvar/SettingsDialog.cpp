@@ -23,7 +23,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	loadSettings();
 }
 
-void SettingsDialog::gotoPage(QString page_name)
+void SettingsDialog::gotoPage(QString page_name, QString section)
 {
 	//empty page name > nothing to do
 	page_name = page_name.remove("page_");
@@ -40,6 +40,11 @@ void SettingsDialog::gotoPage(QString page_name)
 		if (ui_.stack->widget(i)->objectName()=="page_"+page_name)
 		{
 			ui_.stack->setCurrentIndex(i);
+
+			if (page_name=="columns" && section!="")
+			{
+				ui_.column_config->switchToType(section);
+			}
 			return;
 		}
 	}

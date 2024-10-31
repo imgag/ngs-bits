@@ -17,6 +17,7 @@ public:
 public slots:
 	//stores the column configurations into the settings
 	void store();
+	void switchToType(QString new_type);
 
 private slots:
 	void addColumnsFromSample();
@@ -26,7 +27,6 @@ private slots:
 	void moveRowDown();
 	void deleteSelectedColumn();
 	void sizeChanged(int row, int col);
-	void typeChanged(QString new_type);
 
 	void exportCurrent();
 	void exportAll();

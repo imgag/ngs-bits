@@ -32,6 +32,8 @@ ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 	//add types and load configs
 	for (int i=0; i<(int)VariantType::INVALID; ++i)
 	{
+		if (i==(int)VariantType::RES) continue;
+
 		QString name = variantTypeToString((VariantType)i);
 		ui_.type->addItem(name);
 
@@ -48,7 +50,7 @@ ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 
 	//load small variant config and connect signal afterwards
 	loadConfig("small variant");
-	connect(ui_.type, SIGNAL(currentTextChanged(QString)), this, SLOT(typeChanged(QString)));
+	connect(ui_.type, SIGNAL(currentTextChanged(QString)), this, SLOT(switchToType(QString)));
 
 	ui_.table->setColumnWidth(0, 200);
 }
@@ -85,9 +87,39 @@ void ColumnConfigWidget::addColumnsFromSample()
 			}
 		}
 	}
+	else if (type==VariantType::CNVS)
+	{
+		//add missing columns
+		const CnvList& vars = GlobalServiceProvider::getCnvList();
+		foreach(const QByteArray& name, vars.annotationHeaders())
+		{
+			if (!current_names.contains(name))
+			{
+				++c_added;
+				addColumn(name);
+			}
+		}
+	}
+	else if (type==VariantType::SVS)
+	{
+		//add missing columns
+		const BedpeFile& vars = GlobalServiceProvider::getSvList();
+		foreach(const QByteArray& name, vars.annotationHeaders())
+		{
+			if(name.startsWith("STRAND_")) continue;
+			if(name.startsWith("NAME_")) continue;
+			if(name == "ID") continue;
+
+			if (!current_names.contains(name))
+			{
+				++c_added;
+				addColumn(name);
+			}
+		}
+	}
 	else
 	{
-		//TODO Marc: other types
+		THROW(Exception, "Unhandled variant type in ColumnConfigWidget: "+variantTypeToString(type)+"!");
 	}
 
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
@@ -186,9 +218,12 @@ void ColumnConfigWidget::sizeChanged(int row, int col)
 	}
 }
 
-void ColumnConfigWidget::typeChanged(QString new_type)
+void ColumnConfigWidget::switchToType(QString new_type)
 {
 	if (new_type==current_type_) return;
+
+	//check type is valid
+	if (ui_.type->findText(new_type)==-1) THROW(ArgumentException, "Invalid variant type string '" + new_type + "' in ColumnConfigWidget::switchToType!");
 
 	//store old config
 	writeBackCurrentConfig();
@@ -200,6 +235,9 @@ void ColumnConfigWidget::typeChanged(QString new_type)
 
 void ColumnConfigWidget::exportCurrent()
 {
+	//write back current column settings
+	writeBackCurrentConfig();
+
 	QString title = title_ + " - export";
 	try
 	{
@@ -225,6 +263,9 @@ void ColumnConfigWidget::exportCurrent()
 
 void ColumnConfigWidget::exportAll()
 {
+	//write back current column settings
+	writeBackCurrentConfig();
+
 	QString title = title_ + " - export";
 	try
 	{
