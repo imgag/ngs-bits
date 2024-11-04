@@ -5805,6 +5805,7 @@ QString FilterSvLrSupportReads::toText() const
 
 void FilterSvLrSupportReads::apply(const BedpeFile& svs, FilterResult& result) const
 {
+	if (!enabled_) return;
 	int col_index = svs.annotationIndexByName("SUPPORT");
 	int min_support = getInt("min_support", true);
 	// iterate over all SVs
