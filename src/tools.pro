@@ -599,6 +599,16 @@ ExtractMethylationData.depends = cppNGS
 SUBDIRS += BamRemoveVariants
 tools-TEST.depends += BamRemoveVariants
 BamRemoveVariants.depends = cppNGS
+
 SUBDIRS += CnvReferenceCohort
 tools-TEST.depends += CnvReferenceCohort
 CnvReferenceCohort.depends = cppNGS
+
+SUBDIRS += MantaVcfFix
+tools-TEST.depends += MantaVcfFix
+MantaVcfFix.depends = cppNGS
+
+SUBDIRS += MantaFindDuplicates
+tools-TEST.depends += MantaFindDuplicates
+MantaFindDuplicates.depends = cppNGS
+
