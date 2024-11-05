@@ -5,7 +5,6 @@
 #include <QMutex>
 #include "IgvDialog.h"
 #include "MainWindow.h"
-#include "IGVInitCache.h"
 
 //Status of a IGV command
 enum IGVStatus
@@ -35,6 +34,26 @@ struct IGVData
 	QString host;
 	int port;
 	QString genome_file;
+};
+
+//Data structure that contains information about FileLocation and if this particular file has
+//been selected in a checkbox inside the IGV dialog window that pops up in GSvar
+struct IGVInitWindowItem
+{
+    FileLocation location;
+    bool checked;
+
+    IGVInitWindowItem()
+        : location()
+        , checked(true)
+    {
+    }
+
+    IGVInitWindowItem(const FileLocation& location_, bool checked_)
+        : location(location_)
+        , checked(checked_)
+    {
+    }
 };
 
 //Keeps information about an individual instance of IGV, allows to run commands, and gives info about their status
@@ -74,6 +93,23 @@ public:
 	//Clears the session (unloads tracks, resets init status, clears history);
 	void clear();
 
+    //Adds a FileLocation object to a cache, it can be checked or unchecked
+    //(every file name has checkbox next to it) inside the IGV dialog window
+    void addLocationToCache(FileLocation location, bool checked);
+
+    //Removes all elements from the IGV initialization cache
+    void removeCache();
+
+    //Returns the number of elements in the IGV initialization cache
+    int getCacheSize() const;
+
+    //Returns an element from the IGV initialization cache by its index
+    IGVInitWindowItem getCachedItem(int i) const;
+
+    //Starts a worker that requests FileLocaton information needed to
+    //initialize regular instance of IGV
+    void startCachingForRegularIGV(const AnalysisType analysis_type, const QString current_filename);
+
 	static QString statusToString(IGVStatus status);
 	static QColor statusToColor(IGVStatus status);
 
@@ -105,6 +141,8 @@ private:
 
 	int next_id_ = 1; //ID of next command (used to identify commands, e.g. for the history)
 	QList<IGVCommand> command_history_;
+    QList<IGVInitWindowItem> location_storage_;
+    int background_job_id_;
 	mutable QMutex command_history_mutex_;
 };
 

@@ -5,12 +5,15 @@
 #include "GSvarHelper.h"
 #include "Settings.h"
 #include "GlobalServiceProvider.h"
+#include "Background/IGVInitCacheWorker.h"
 #include <QMessageBox>
 
 IGVSession::IGVSession(QWidget* parent, QString igv_name, QString igv_app, QString igv_host, int igv_port, QString genome)
 	: parent_(parent)
 	, igv_data_()
-	, is_initialized_(false)
+    , is_initialized_(false)
+    , location_storage_()
+    , background_job_id_(-1)
 {
 	igv_data_.name = igv_name;
 	igv_data_.executable = igv_app;
@@ -176,6 +179,35 @@ void IGVSession::clear()
 	execute(QStringList() << "new", false);
 }
 
+void IGVSession::addLocationToCache(FileLocation location, bool checked)
+{
+    location_storage_.append(IGVInitWindowItem(location, checked));
+}
+
+void IGVSession::removeCache()
+{
+    location_storage_.clear();
+}
+
+int IGVSession::getCacheSize() const
+{
+    return location_storage_.size();
+}
+
+IGVInitWindowItem IGVSession::getCachedItem(int i) const
+{
+    return location_storage_[i];
+}
+
+void IGVSession::startCachingForRegularIGV(const AnalysisType analysis_type, const QString current_filename)
+{
+    removeCache();
+    Log::info("Started loading file location information needed for the IGV initialization");
+    MainWindow* main_window = GlobalServiceProvider::mainWindow();
+    IGVInitCacheWorker* igv_init_cache_worker = new IGVInitCacheWorker(analysis_type, current_filename);
+    background_job_id_ = main_window->startJob(igv_init_cache_worker, false);
+}
+
 QString IGVSession::statusToString(IGVStatus status)
 {
 	switch(status)
@@ -220,11 +252,23 @@ QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
 {
     IgvDialog dlg(parent_);
     MainWindow* main_window = GlobalServiceProvider::mainWindow();
-    main_window->waitForIGVLazyLoad(); // wait if the caching is still in progress
+    JobInfo info = main_window->getJobInfo(background_job_id_);
 
-    for (int i=0; i< IGVInitCache::size(); i++)
+    while(info.status != "failed" && info.status != "finished")
     {
-        dlg.addFile(IGVInitCache::get(i).location, IGVInitCache::get(i).checked);
+        QThread::usleep(1000);
+        info = main_window->getJobInfo(background_job_id_);
+    }
+
+    if (info.status == "failed")
+    {
+        QMessageBox::warning(parent_, "IGV initialization error", info.messages);
+        return QStringList();
+    }
+
+    for (int i=0; i< getCacheSize(); i++)
+    {
+        dlg.addFile(getCachedItem(i).location, getCachedItem(i).checked);
     }
 
     //target region

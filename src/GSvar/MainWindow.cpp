@@ -155,8 +155,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "CustomProxyService.h"
 #include "GeneInterpretabilityDialog.h"
 #include "HerediVarImportDialog.h"
-#include "IGVInitCachePhaseOneWorker.h"
-#include "IGVInitCachePhaseTwoWorker.h"
+#include "Background/IGVInitCacheWorker.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -169,8 +169,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
 	, init_timer_(this, true)
-	, server_version_()
-    , igv_init_thread_pool_()
+	, server_version_()   
 {
     // Automatic configuration will be triggered, if a template file is detected and no settings files are present.
     // A new settings.ini file is created with parameters based on the current application path value. If there is no
@@ -405,10 +404,7 @@ MainWindow::MainWindow(QWidget *parent)
 		{
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
-	}
-
-    // pool of threads to speed up IGV initialization
-    igv_init_thread_pool_.setMaxThreadCount(2);
+	}   
 }
 
 QString MainWindow::appName() const
@@ -455,22 +451,9 @@ bool MainWindow::isServerRunning()
 
 void MainWindow::lazyLoadIGVfiles()
 {
-    IGVInitCache::clear();
+    IgvSessionManager::get(0).removeCache();
     Log::info("Started loading file location information needed for the IGV initialization");
-
-    IGVInitCachePhaseOneWorker *igv_init_cache_pahse_one_worker = new IGVInitCachePhaseOneWorker(variants_.type());
-    igv_init_thread_pool_.start(igv_init_cache_pahse_one_worker);
-
-    IGVInitCachePhaseTwoWorker *igv_init_cache_pahse_two_worker = new IGVInitCachePhaseTwoWorker(filename_);
-    igv_init_thread_pool_.start(igv_init_cache_pahse_two_worker);
-}
-
-void MainWindow::waitForIGVLazyLoad()
-{
-    if (igv_init_thread_pool_.activeThreadCount()>0)
-    {
-        igv_init_thread_pool_.waitForDone();
-    }
+    IgvSessionManager::get(0).startCachingForRegularIGV(variants_.type(), filename_);
 }
 
 void MainWindow::checkServerAvailability()
@@ -770,7 +753,7 @@ void MainWindow::on_actionImportVariants_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	IgvSessionManager::get(0).clear();
+    IgvSessionManager::get(0).clear();
 }
 
 void MainWindow::on_actionIgvDocumentation_triggered()
@@ -5786,9 +5769,14 @@ void MainWindow::showBackgroundJobDialog()
 	bg_job_dialog_->show();
 }
 
-void MainWindow::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
+int MainWindow::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
 {
-	bg_job_dialog_->start(worker, show_busy_dialog);
+    return bg_job_dialog_->start(worker, show_busy_dialog);
+}
+
+JobInfo MainWindow::getJobInfo(int id)
+{
+    return bg_job_dialog_->getJobInfo(id);
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
@@ -5887,7 +5875,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			if(!clinvar_class.isEmpty() && clinvar_class!=new_class)
 			{
 				//update on ClinVar
-				int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
+                int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
 				if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
 			}
 		}

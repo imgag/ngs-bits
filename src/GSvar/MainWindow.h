@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "Background/BackgroundJobDialog.h"
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "BedFile.h"
@@ -20,6 +19,7 @@
 #include "ClickableLabel.h"
 #include "ImportDialog.h"
 #include "RepeatLocusList.h"
+#include "Background/BackgroundJobDialog.h"
 
 ///Tab type
 enum class TabType
@@ -52,9 +52,6 @@ public:
 
     /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
     void lazyLoadIGVfiles();
-
-    /// Wait if there are active worker threads loading IGV file info
-    void waitForIGVLazyLoad();
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
@@ -472,8 +469,10 @@ public slots:
     void changeIgvIconToNormal();
 	//Open background jobs dialog
 	void showBackgroundJobDialog();
-	//Starts a background job
-	void startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
+    //Starts a background job and returns its id
+    int startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
+    //Returns information about a background job by its id
+    JobInfo getJobInfo(int id);
 
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
@@ -549,9 +548,7 @@ private:
 	QString displayed_maintenance_message_id_;
 
     //current server version (if in client-server mode)
-    QString server_version_;
-    QThreadPool igv_init_thread_pool_;
-
+    QString server_version_; 
 };
 
 #endif // MAINWINDOW_H

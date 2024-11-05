@@ -11,6 +11,7 @@ SOURCES += main.cpp\
     Background/BackgroundWorkerBase.cpp \
     Background/NGSDCacheInitializer.cpp \
     Background/VariantAnnotator.cpp \
+    Background/IGVInitCacheWorker.cpp \
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
@@ -18,9 +19,6 @@ SOURCES += main.cpp\
     GlobalServiceProvider.cpp \
     HerediVarImportDialog.cpp \
     IGVCommandWorker.cpp \
-    IGVInitCache.cpp \
-    IGVInitCachePhaseOneWorker.cpp \
-    IGVInitCachePhaseTwoWorker.cpp \
     IGVSession.cpp \
     IgvLogWidget.cpp \
     IgvSessionManager.cpp \
@@ -141,6 +139,7 @@ HEADERS += MainWindow.h \
     Background/BackgroundWorkerBase.h \
     Background/NGSDCacheInitializer.h \
     Background/VariantAnnotator.h \
+    Background/IGVInitCacheWorker.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
@@ -148,11 +147,7 @@ HEADERS += MainWindow.h \
     GeneInterpretabilityDialog.h \
     GlobalServiceProvider.h \
     HerediVarImportDialog.h \
-    IGVCacheList.h \
     IGVCommandWorker.h \
-    IGVInitCache.h \
-    IGVInitCachePhaseOneWorker.h \
-    IGVInitCachePhaseTwoWorker.h \
     IGVSession.h \
     IgvLogWidget.h \
     IgvSessionManager.h \
