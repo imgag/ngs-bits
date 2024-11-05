@@ -54,6 +54,8 @@ These parameters are needed for the server database (stores information about us
 * `gsvar_server_db_pass` - database password
 * `show_raw_request` - flag used for debugging, allows to print out entire HTTP requests in log files(true/false), may significantly increase log sizes, should not be used in production
 
+*Note: The server settings are loaded on startup and used from memory (also `megsap_settings_ini`). If you change the settings, you have to restart the server.*
+
 ## Running
 
 The following command starts the server (if you are located at the root of the repository):
