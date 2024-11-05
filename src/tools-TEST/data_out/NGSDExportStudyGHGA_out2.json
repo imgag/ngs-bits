@@ -488,6 +488,8 @@
         {
             "alias": "SAM_Pseudonym01",
             "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "UNKNOWN",
             "description": "sample that was sequenced",
             "individual": "PAT1",
@@ -497,6 +499,8 @@
         {
             "alias": "SAM_Pseudonym02",
             "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "UNKNOWN",
             "description": "sample that was sequenced",
             "individual": "PAT1",
@@ -506,6 +510,8 @@
         {
             "alias": "SAM_Pseudonym03",
             "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "UNKNOWN",
             "description": "sample that was sequenced",
             "individual": "PAT1",
@@ -515,6 +521,8 @@
         {
             "alias": "SAM_Pseudonym04",
             "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "UNKNOWN",
             "description": "sample that was sequenced",
             "individual": "PAT2",
@@ -524,6 +532,8 @@
         {
             "alias": "SAM_Pseudonym05",
             "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "UNKNOWN",
             "description": "sample that was sequenced",
             "individual": "PAT2",

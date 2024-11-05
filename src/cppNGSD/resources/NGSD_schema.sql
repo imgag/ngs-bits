@@ -2522,7 +2522,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_other_causal_variant`
   `report_configuration_id` INT(11) NOT NULL,
   `coordinates` TEXT NOT NULL,
   `gene` TEXT NOT NULL,
-  `type` ENUM('RE', 'UPD', 'mosaic CNV', 'uncalled small variant', 'uncalled CNV', 'uncalled SV') NOT NULL,
+  `type` ENUM('UPD', 'mosaic CNV', 'uncalled small variant', 'uncalled CNV', 'uncalled SV') NOT NULL,
   `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
   `comment` TEXT NOT NULL,
   `comment_reviewer1` TEXT NOT NULL,
