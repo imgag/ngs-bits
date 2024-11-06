@@ -155,6 +155,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "CustomProxyService.h"
 #include "GeneInterpretabilityDialog.h"
 #include "HerediVarImportDialog.h"
+#include "Background/IGVInitCacheWorker.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -167,7 +169,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
 	, init_timer_(this, true)
-	, server_version_()
+	, server_version_()   
 {
     // Automatic configuration will be triggered, if a template file is detected and no settings files are present.
     // A new settings.ini file is created with parameters based on the current application path value. If there is no
@@ -405,7 +407,7 @@ MainWindow::MainWindow(QWidget *parent)
 		{
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
-	}
+	}   
 }
 
 QString MainWindow::appName() const
@@ -448,6 +450,13 @@ bool MainWindow::isServerRunning()
 	}
 
     return true;
+}
+
+void MainWindow::lazyLoadIGVfiles()
+{
+    IgvSessionManager::get(0).removeCache();
+    Log::info("Started loading file location information needed for the IGV initialization");
+    IgvSessionManager::get(0).startCachingForRegularIGV(variants_.type(), filename_);
 }
 
 void MainWindow::checkServerAvailability()
@@ -747,7 +756,7 @@ void MainWindow::on_actionImportVariants_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	IgvSessionManager::get(0).clear();
+    IgvSessionManager::get(0).clear();
 }
 
 void MainWindow::on_actionIgvDocumentation_triggered()
@@ -1694,7 +1703,7 @@ void MainWindow::delayedInitialization()
 				{
 					openSampleFromNGSD(arg);
 				}
-			}
+            }
 		}
 		else
 		{
@@ -2256,7 +2265,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 			file = analysis_info_list[index].analysis_file;
 		}
 
-		loadFile(file);
+        loadFile(file);
 	}
 	catch (Exception& e)
 	{
@@ -2286,7 +2295,7 @@ void MainWindow::openSampleFromNGSD(QString sample_name)
 			if (!ok) return;
 
 			openProcessedSampleFromNGSD(ps, false);
-		}
+        }
 	}
 	catch (Exception& e)
 	{
@@ -2591,6 +2600,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(filename, variants_.getSampleHeader(), variants_.type())));
 			mode_title = " (local mode)";
 		}
+        lazyLoadIGVfiles();
 
 		//load CNVs
 		timer.restart();
@@ -5774,9 +5784,19 @@ void MainWindow::showBackgroundJobDialog()
 	bg_job_dialog_->show();
 }
 
-void MainWindow::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
+int MainWindow::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
 {
-	bg_job_dialog_->start(worker, show_busy_dialog);
+    return bg_job_dialog_->start(worker, show_busy_dialog);
+}
+
+QString MainWindow::getJobStatus(int id)
+{
+    return bg_job_dialog_->getJobStatus(id);
+}
+
+QString MainWindow::getJobMessages(int id)
+{
+    return bg_job_dialog_->getJobMessages(id);
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
@@ -5875,7 +5895,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			if(!clinvar_class.isEmpty() && clinvar_class!=new_class)
 			{
 				//update on ClinVar
-				int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
+                int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
 				if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
 			}
 		}

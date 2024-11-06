@@ -55,9 +55,9 @@ public:
 	FileLocation getSignatureCnvFile() const override;
 
 private:
-	FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
-	FileLocation getOneFileLocationByType(PathType type, QString locus) const;
-	FileLocation mapJsonObjectToFileLocation(QJsonObject obj) const;
+    FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
+    FileLocation getOneFileLocationByType(PathType type, QString locus) const;
+    FileLocation mapJsonObjectToFileLocation(QJsonObject obj) const;
 	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array, bool return_if_missing) const;
 
 protected:

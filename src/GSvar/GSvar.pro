@@ -11,6 +11,7 @@ SOURCES += main.cpp\
     Background/BackgroundWorkerBase.cpp \
     Background/NGSDCacheInitializer.cpp \
     Background/VariantAnnotator.cpp \
+    Background/IGVInitCacheWorker.cpp \
     CfDNAPanelBatchImport.cpp \
     ColumnConfig.cpp \
     ColumnConfigWidget.cpp \
@@ -140,6 +141,7 @@ HEADERS += MainWindow.h \
     Background/BackgroundWorkerBase.h \
     Background/NGSDCacheInitializer.h \
     Background/VariantAnnotator.h \
+    Background/IGVInitCacheWorker.h \
     CfDNAPanelBatchImport.h \
     ColumnConfig.h \
     ColumnConfigWidget.h \
