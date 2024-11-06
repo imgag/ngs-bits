@@ -93,6 +93,9 @@ public:
 		}
 
 
+	}
+		/*
+
 
 
 
@@ -500,7 +503,7 @@ public:
 		//close streams
 		in_p->close();
 		out_p->close();
-	}
+		*/
 };
 
 #include "main.moc"
