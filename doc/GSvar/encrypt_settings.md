@@ -5,7 +5,7 @@ How sensitive information in the settings files can be encrypted is described in
 
 ## Re-compile GSvar
   
-To encrypt data in the settings file, we need to compile-in an encryption key into the application binary:
+To encrypt data in the settings file, we need to compile an encryption key into the application binary:
 
 1. Create the file `src/cppCORE/CRYPT_KEY.txt`.
 2. Insert the encryption key into the file.  The encryption key has to be a hex-encoded integer, e.g. `0x0c2ad4a4acb9f023`. 
@@ -13,7 +13,7 @@ To encrypt data in the settings file, we need to compile-in an encryption key in
 
 ## Encoding strings
 
-Now *GSvar* can be used to encrypt any string with the encryption key using the dialog at `Help > Encrypt`.  
+Now *GSvar* can be used to encrypt any string with the encryption key using the dialog at `Help > Encrypt` (this menu entry is available only if `debug_mode_enabled=true` is set in the `GSvar.ini` file).  
 The encrypted string can then be used in the settings file with the prefix `encrypted:`.
 
 ## Example

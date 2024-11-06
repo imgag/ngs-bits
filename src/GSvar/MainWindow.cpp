@@ -154,6 +154,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ReSearchWidget.h"
 #include "CustomProxyService.h"
 #include "GeneInterpretabilityDialog.h"
+#include "HerediVarImportDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -274,7 +275,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("processed sample: DNA2405534A1_01", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
-	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
+	ui_.actionEncrypt->setEnabled(Settings::boolean("debug_mode_enabled", true));
 
 	//signals and slots
     connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
@@ -4309,6 +4310,12 @@ void MainWindow::on_actionOpenProjectTab_triggered()
 	openProjectTab(selector->text());
 }
 
+void MainWindow::on_actionImportHerediVar_triggered()
+{
+	HerediVarImportDialog dlg(this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionStatistics_triggered()
 {
 	try
@@ -4453,6 +4460,13 @@ void MainWindow::on_actionRepeatExpansion_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("repeat_expansion");
 	auto dlg = GUIHelper::createDialog(widget, "Repeat expansion administration");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionReportPolymorphisms_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("report_polymorphisms");
+	auto dlg = GUIHelper::createDialog(widget, "Report polymorphisms administration");
 	addModelessDialog(dlg);
 }
 
@@ -6659,6 +6673,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionRegionToGenes->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
+	ui_.actionImportHerediVar->setEnabled(ngsd_user_logged_in && Settings::string("HerediVar", true).trimmed()!="");
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);

@@ -31,6 +31,7 @@ INCLUDEPATH += $$PWD/../GSvarServer
 INCLUDEPATH += $$PWD/../cppTFW
 
 HEADERS += \
+    FileMetaCache_Test.h \
     HtmlEngine_Test.h \
     HttpProcessor_Test.h \
     RequestParser_Test.h \

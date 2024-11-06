@@ -135,6 +135,8 @@ public slots:
 	void on_actionOpenProcessingSystemTab_triggered();
 	///Open project tab by search
 	void on_actionOpenProjectTab_triggered();
+	///Import HerediVar classification
+	void on_actionImportHerediVar_triggered();
 
 	///NGSD menu
 	void on_actionStatistics_triggered();
@@ -144,6 +146,7 @@ public slots:
 	void on_actionProcessingSystem_triggered();
 	void on_actionProject_triggered();
 	void on_actionRepeatExpansion_triggered();
+	void on_actionReportPolymorphisms_triggered();
 	void on_actionSample_triggered();
 	void on_actionSampleGroup_triggered();
 	void on_actionSender_triggered();

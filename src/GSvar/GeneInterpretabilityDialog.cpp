@@ -81,14 +81,23 @@ void GeneInterpretabilityDialog::calculate()
 
 			//get target region
 			QString mode = ui_.reg_exon_splice->isChecked() ? "exon" : "gene";
-			BedFile roi = db.geneToRegions(gene_approved, Transcript::ENSEMBL, mode, true);
-			if (mode=="exon") roi.extend(20);
+			bool exon_mode = mode=="exon";
+			BedFile roi;
+			foreach(const Transcript& t, transcripts)
+			{
+				roi.add(db.transcriptToRegions(t.name(), mode));
+			}
+			roi.merge();
+			int bases_coding = exon_mode ? roi.baseCount() : -1;
+			if (exon_mode) roi.extend(20);
 			roi.merge();
 
 			//gene base data
 			int col = 1;
 			ui_.table->setItem(row, col++, GUIHelper::createTableItem(transcripts.transcripts(gene_approved, true).join(", ")));
-			ui_.table->setItem(row, col++, GUIHelper::createTableItem(QString::number(roi.baseCount())));
+			QString base_count = QString::number(roi.baseCount());
+			if (exon_mode) base_count += " (coding: "+QString::number(bases_coding)+")";
+			ui_.table->setItem(row, col++, GUIHelper::createTableItem(base_count));
 
 			//calcaulte intersect
 			for (int i=0; i<regions_.count(); ++i)

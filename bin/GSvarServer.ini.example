@@ -8,8 +8,8 @@ megsap_settings_ini = ""
 
 #SSL certificate-key pair needed for HTTPS
 ssl_certificate = "certificate.crt"
-ssl_certificate_chain = ""
 ssl_key = "certificate.key"
+ssl_certificate_chain = ""
 
 #number of threads for parallel calculations, e.g. for coverage statistics
 threads = 4
@@ -32,6 +32,8 @@ gsvar_server_db_pass = "server_password"
 url_lifetime = 36000
 #number of seconds after which a user session will expire
 session_duration = 36000
+#use in-memory structure to keep file metadata information(name, absolute path, size, etc.), reduces the number of calls to the file system
+enable_file_metadata_caching = false
 
 #proxy settings - set if proxy is needed to access files on the internet
 proxy_host = ""

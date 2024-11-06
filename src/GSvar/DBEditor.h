@@ -33,6 +33,8 @@ protected slots:
 	void checkAllFields();
 	//edit date of QLineEdit corresponding to the sender button
 	void editDate();
+	//edit processed sample of QLineEdit of corresponding sender button
+	void editProcessedSample();
 
 protected:
 	//reimplemented show event to update parent dialog button box

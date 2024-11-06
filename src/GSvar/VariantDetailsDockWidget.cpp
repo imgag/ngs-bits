@@ -471,6 +471,10 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				text = formatText("modifier (M)", ORANGE);
 			}
+			else if (anno=="R*")
+			{
+				text = formatText("established risk allele (R*)", ORANGE);
+			}
 			else if (anno!="" && anno!="n/a")
 			{
 				QMessageBox::critical(this, "Variant details error", "Unknown variant classification '" + anno + "'.\nPlease update the NGSD annotations!");

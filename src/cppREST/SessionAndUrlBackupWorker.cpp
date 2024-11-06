@@ -17,4 +17,16 @@ void SessionAndUrlBackupWorker::run()
     db.addSessions(all_sessions_);
     Log::info("Backup temporary URLs");
     db.addUrls(all_urls_);
+
+    Log::info("Removing old cache entries");
+    qint64 five_minutes_ago = QDateTime::currentDateTime().toSecsSinceEpoch() - (5*60);
+
+    if (db.removeFileLocationsOlderThan(five_minutes_ago))
+    {
+        Log::info("Old cache removed");
+    }
+    else
+    {
+        Log::error("Could not cleanup the cache");
+    }
 }

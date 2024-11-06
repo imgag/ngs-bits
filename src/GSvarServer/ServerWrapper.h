@@ -14,6 +14,7 @@
 #include "Log.h"
 #include "SslServer.h"
 #include "UrlManager.h"
+#include "FileMetaCache.h"
 
 class ServerWrapper : public QObject
 {
