@@ -62,8 +62,83 @@ void ColumnConfig::getOrder(const VariantList& variants, QStringList& col_order,
 	}
 
 	//error checks
-	if (col_order.count()!=variants.annotations().count()) THROW(ProgrammingException, "Number of columns before/after reordering does not match (ColumnConfig::getOrder)");
-	if (anno_index_order.count()!=variants.annotations().count()) THROW(ProgrammingException, "Number of columns in name and index arraydoes not match (ColumnConfig::getOrder)");
+	if (col_order.count()!=variants.annotations().count()) THROW(ProgrammingException, "Number of columns before/after reordering does not match in ColumnConfig::getOrder(VariantList)");
+	if (anno_index_order.count()!=variants.annotations().count()) THROW(ProgrammingException, "Number of columns in name and index arraydoes not match in ColumnConfig::getOrder(VariantList)");
+}
+
+void ColumnConfig::getOrder(const CnvList& cnvs, QStringList& col_order, QList<int>& anno_index_order)
+{
+	//check if columns are contained in this config
+	QHash<QString, int> col2index;
+	QSet<QString> contained;
+	QStringList not_contained;
+	for (int i=0; i<cnvs.annotationHeaders().count(); ++i)
+	{
+		QString col = cnvs.annotationHeaders()[i];
+		col2index[col] = i;
+
+		if (!infos_.contains(col)) not_contained << col;
+		else contained << col;
+	}
+
+	//determine column order
+	col_order.clear();
+	foreach(const QString& col, columns_)
+	{
+		if (contained.contains(col)) col_order << col;
+	}
+	col_order.append(not_contained);
+
+	//determine index order
+	anno_index_order.clear();
+	foreach(const QString& col, col_order)
+	{
+		if (col2index.contains(col)) anno_index_order << col2index[col];;
+	}
+
+	//error checks
+	if (col_order.count()!=cnvs.annotationHeaders().count()) THROW(ProgrammingException, "Number of columns before/after reordering does not match in ColumnConfig::getOrder(CNV)");
+	if (anno_index_order.count()!=cnvs.annotationHeaders().count()) THROW(ProgrammingException, "Number of columns in name and index arraydoes not match in ColumnConfig::getOrder(CNV)");
+}
+
+void ColumnConfig::applyColumnWidths(QTableWidget* table, int max_width_for_not_contained)
+{
+	for (int i=0; i<table->columnCount(); ++i)
+	{
+		int width = table->columnWidth(i);
+		QString col = table->horizontalHeaderItem(i)->text();
+		if (contains(col))
+		{
+			ColumnInfo info = this->info(col);
+			if (width<info.min_width)
+			{
+				table->setColumnWidth(i, info.min_width);
+			}
+			if (info.max_width>0 && width>info.max_width)
+			{
+				table->setColumnWidth(i, info.max_width);
+			}
+		}
+		else
+		{
+			if (width>max_width_for_not_contained)
+			{
+				table->setColumnWidth(i, max_width_for_not_contained);
+			}
+		}
+	}
+}
+
+void ColumnConfig::applyHidden(QTableWidget* table)
+{
+	for (int c=0; c<table->columnCount(); ++c)
+	{
+		QString col = table->horizontalHeaderItem(c)->text();
+		if (contains(col) && infos_[col].hidden)
+		{
+			table->setColumnHidden(c, true);
+		}
+	}
 }
 
 

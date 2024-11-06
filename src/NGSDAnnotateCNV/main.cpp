@@ -44,7 +44,7 @@ public:
 
 		// prepare SQL query
 		SqlQuery sql_query = db.getQuery();
-		sql_query.prepare("SELECT rcc.class, cnv.start, cnv.end FROM cnv INNER JOIN report_configuration_cnv rcc ON cnv.id = rcc.cnv_id WHERE rcc.class IN ('4', '5') AND cnv.chr = :0 AND cnv.start <= :1 AND :2 <= cnv.end ");
+		sql_query.prepare("SELECT rcc.class, cnv.start, cnv.end FROM cnv INNER JOIN report_configuration_cnv rcc ON cnv.id = rcc.cnv_id WHERE rcc.class IN ('4', '5') AND cnv.chr = :0 AND cnv.start <= :1 AND :2 <= cnv.end "); //TODO Marc: is this correct?
 
 
 
@@ -86,7 +86,6 @@ public:
 			sql_query.bindValue(1, end);
 			sql_query.bindValue(2, start);
 			sql_query.exec();
-
 			while(sql_query.next())
 			{
 				int p_class = sql_query.value(0).toInt();
@@ -96,7 +95,7 @@ public:
 				// compute overlap
 				int p_cnv_length = p_end - p_start;
 				int intersection = std::min(p_end, end) - std::max(p_start, start);
-				double overlap = (double) intersection / p_cnv_length;
+				double overlap = (double) intersection / p_cnv_length; //TODO Marc: use current CNV size as base and restrict to overlap of at least 10%
 
 				// store tuple
 				pathogenic_cnvs.append(QPair<int, double>(p_class, overlap));

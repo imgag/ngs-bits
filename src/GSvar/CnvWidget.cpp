@@ -29,6 +29,8 @@
 #include <QInputDialog>
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
+#include "ColumnConfig.h"
+#include "SettingsDialog.h"
 
 CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, SomaticReportConfiguration* rep_conf_somatic, const GeneSet& het_hit_genes)
 	: QWidget(parent)
@@ -57,7 +59,11 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
-	connect(ui->resize_btn, SIGNAL(clicked(bool)), this, SLOT(adaptColumnWidthsCustom()));
+
+	ui->resize_btn->setMenu(new QMenu());
+	ui->resize_btn->menu()->addAction("Open column settings", this, SLOT(openColumnSettings()));
+	ui->resize_btn->menu()->addAction("Apply column width settings", this, SLOT(adaptColumnWidthsAndHeights()));
+	ui->resize_btn->menu()->addAction("Show all columns", this, SLOT(showAllColumns()));
 
 	GUIHelper::styleSplitter(ui->splitter);
 	ui->splitter->setStretchFactor(0, 10);
@@ -125,7 +131,9 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	QString col_name = item->tableWidget()->horizontalHeaderItem(col)->text();
 	if (special_cols_.contains(col_name))
 	{
-		QString text = cnvs_[row].annotations()[col-4].trimmed();
+		int col_index = cnvs_.annotationIndexByName(col_name.toUtf8(), false);
+		if (col_index==-1) return;
+		QString text = cnvs_[row].annotations()[col_index].trimmed();
 		if (text.isEmpty()) return;
 		QString title = col_name + " of CNV " + cnvs_[row].toString();
 
@@ -237,9 +245,12 @@ void CnvWidget::updateGUI()
 		addInfoLine(comment);
 	}
 
-	//add generic annotations
-	QVector<int> annotation_indices;
-	for(int i=0; i<cnvs_.annotationHeaders().count(); ++i)
+	//determine colum order of annotations
+	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_cnv", true));
+	QStringList col_order;
+	QList<int> anno_index_order;
+	config.getOrder(cnvs_, col_order, anno_index_order);
+	foreach(int i, anno_index_order)
 	{
 		QByteArray header = cnvs_.annotationHeaders()[i];
 
@@ -264,8 +275,6 @@ void CnvWidget::updateGUI()
 
 		//set header
 		ui->cnvs->setHorizontalHeaderItem(ui->cnvs->columnCount() -1, item);
-
-		annotation_indices.append(i);
 	}
 
 	//get report variant indices
@@ -278,7 +287,6 @@ void CnvWidget::updateGUI()
 	ui->cnvs->setRowCount(cnvs_.count());
 	for (int r=0; r<cnvs_.count(); ++r)
 	{
-
 		//vertical headers
 		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
 		if (report_variant_indices.contains(r))
@@ -312,7 +320,7 @@ void CnvWidget::updateGUI()
 		ui->cnvs->setItem(r, 3, item);
 
 		int c = 4;
-		foreach(int index, annotation_indices)
+		foreach(int index, anno_index_order)
 		{
 			QTableWidgetItem* item = GUIHelper::createTableItem(cnvs_[r].annotations()[index]);
 			//special handling for OMIM
@@ -325,9 +333,11 @@ void CnvWidget::updateGUI()
 		}
 	}
 
-	//resize columns
-	GUIHelper::resizeTableCellWidths(ui->cnvs, 200);
-	GUIHelper::resizeTableCellHeightsToFirst(ui->cnvs);
+	//resize columns/rows
+	adaptColumnWidthsAndHeights();
+
+	//hide columns
+	config.applyHidden(ui->cnvs);
 
 	//update quality from NGSD
 	updateQuality();
@@ -989,13 +999,12 @@ void CnvWidget::annotateTargetRegionGeneOverlap()
 void CnvWidget::clearTooltips()
 {
 	int gene_idx = GUIHelper::columnIndex(ui->cnvs, "genes", false);
-	if (gene_idx!=-1)
+	if (gene_idx==-1) return;
+
+	for (int r=0; r<ui->cnvs->rowCount(); ++r)
 	{
-		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
-		{
-			// remove tool tip
-			ui->cnvs->item(row_idx, gene_idx)->setToolTip("");
-		}
+		// remove tool tip
+		ui->cnvs->item(r, gene_idx)->setToolTip("");
 	}
 }
 
@@ -1285,9 +1294,6 @@ void CnvWidget::uploadToClinvar(int index1, int index2)
 		ClinvarUploadDialog dlg(this);
 		dlg.setData(data);
 		dlg.exec();
-
-
-
 	}
 	catch(Exception& e)
 	{
@@ -1345,39 +1351,32 @@ void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
 	emit storeSomaticReportConfiguration();
 }
 
-void CnvWidget::adaptColumnWidthsCustom()
+void CnvWidget::openColumnSettings()
 {
-	try
+	SettingsDialog dlg(this);
+	dlg.setWindowFlags(Qt::Window);
+	dlg.gotoPage("columns", variantTypeToString(VariantType::CNVS));
+	if (dlg.exec()==QDialog::Accepted)
 	{
-		int idx = GUIHelper::columnIndex(ui->cnvs, "loglikelihood");
-		ui->cnvs->setColumnWidth(idx, 55);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "potential_AF");
-		ui->cnvs->setColumnWidth(idx, 55);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "qvalue");
-		ui->cnvs->setColumnWidth(idx, 50);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "overlap af_genomes_imgag");
-		ui->cnvs->setColumnWidth(idx, 75);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "cn_pathogenic");
-		ui->cnvs->setColumnWidth(idx, 65);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "dosage_sensitive_disease_genes_GRCh38");
-		ui->cnvs->setColumnWidth(idx, 70);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "clinvar_cnvs");
-		ui->cnvs->setColumnWidth(idx, 60);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "hgmd_cnvs");
-		ui->cnvs->setColumnWidth(idx, 70);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "omim");
-		ui->cnvs->setColumnWidth(idx, 815);
+		dlg.storeSettings();
 	}
-	catch(Exception& e)
+}
+
+void CnvWidget::adaptColumnWidthsAndHeights()
+{
+	//general resize
+	GUIHelper::resizeTableCellWidths(ui->cnvs);
+	GUIHelper::resizeTableCellHeightsToMinimum(ui->cnvs);
+
+	//restrict width
+	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_cnv", true));
+	config.applyColumnWidths(ui->cnvs);
+}
+
+void CnvWidget::showAllColumns()
+{
+	for (int i=0; i<ui->cnvs->colorCount(); ++i)
 	{
-		QMessageBox::warning(this, "Column adjustment error", "Error while adjusting column widths:\n" + e.message());
+		ui->cnvs->setColumnHidden(i, false);
 	}
 }

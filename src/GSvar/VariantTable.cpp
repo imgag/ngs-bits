@@ -619,14 +619,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	}
 
 	//hide columns if requested
-	foreach(QString col, col_order)
-	{
-		if (config.info(col).hidden)
-		{
-			int anno_index = variants.annotationIndexByName(col);
-			setColumnHidden(5+anno_index, true);
-		}
-	}
+	config.applyHidden(this);
 }
 
 void VariantTable::update(VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
@@ -794,38 +787,13 @@ void VariantTable::adaptColumnWidths()
 	QTime timer;
 	timer.start();
 
-	const int max_col_width_fallback = 200;
-
 	//resize columns width
 	GUIHelper::resizeTableCellWidths(this);
 	GUIHelper::resizeTableCellHeightsToMinimum(this);
 
 	//restrict width
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_small_variant", true));
-	for (int i=0; i<columnCount(); ++i)
-	{
-		int width = columnWidth(i);
-		QString col_name = horizontalHeaderItem(i)->text();
-		if (config.contains(col_name))
-		{
-			ColumnInfo info = config.info(col_name);
-			if (width<info.min_width)
-			{
-				setColumnWidth(i, info.min_width);
-			}
-			if (info.max_width>0 && width>info.max_width)
-			{
-				setColumnWidth(i, info.max_width);
-			}
-		}
-		else
-		{
-			if (width>max_col_width_fallback)
-			{
-				setColumnWidth(i, max_col_width_fallback);
-			}
-		}
-	}
+	config.applyColumnWidths(this);
 
 	//set mimumn width of chr, start, end
 	if (columnWidth(0)<42)
@@ -857,7 +825,10 @@ void VariantTable::showAllColumns()
 {
 	for (int c=0; c<columnCount(); ++c)
 	{
-		if(isColumnHidden(c)) setColumnHidden(c, false);
+		if(isColumnHidden(c))
+		{
+			setColumnHidden(c, false);
+		}
 	}
 }
 

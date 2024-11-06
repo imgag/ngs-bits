@@ -227,7 +227,15 @@ void ColumnConfigWidget::switchToType(QString new_type)
 
 	//load new config
 	loadConfig(new_type);
+
+	//set current type
 	current_type_ = new_type;
+
+	//update combobox if necessary
+	if (ui_.type->currentText()!=new_type)
+	{
+		ui_.type->setCurrentText(new_type);
+	}
 }
 
 void ColumnConfigWidget::exportCurrent()
