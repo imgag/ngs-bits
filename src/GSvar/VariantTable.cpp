@@ -407,9 +407,15 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	horizontalHeaderItem(3)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
 	setHorizontalHeaderItem(4, createTableItem("obs"));
 	horizontalHeaderItem(4)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
-	for (int i=0; i<variants.annotations().count(); ++i)
+
+	//add columns
+	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_small_variant", true));
+	QStringList col_order;
+	QList<int> anno_index_order;
+	config.getOrder(variants, col_order, anno_index_order);
+	for (int i=0; i<col_order.count(); ++i)
 	{
-		QString anno = variants.annotations()[i].name();
+		QString anno = col_order[i];
 		QTableWidgetItem* header = new QTableWidgetItem(anno);
 
 		//additional descriptions for filter column
@@ -486,7 +492,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 		bool is_ngsd_benign = false;
 		for (int j=0; j<variant.annotations().count(); ++j)
 		{
-			const QByteArray& anno = variant.annotations().at(j);
+			const QByteArray& anno = variant.annotations().at(anno_index_order[j]);
 			QTableWidgetItem* item = createTableItem(anno);
 
 			//warning
@@ -605,11 +611,21 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				item->setFont(font);
 			}
 		}
-		if (index_show_report_icon.keys().contains(i))
+		if (index_show_report_icon.contains(i))
 		{
 			item->setIcon(reportIcon(index_show_report_icon.value(i), index_causal.contains(i)));
 		}
 		setVerticalHeaderItem(r, item);
+	}
+
+	//hide columns if requested
+	foreach(QString col, col_order)
+	{
+		if (config.info(col).hidden)
+		{
+			int anno_index = variants.annotationIndexByName(col);
+			setColumnHidden(5+anno_index, true);
+		}
 	}
 }
 
@@ -835,6 +851,14 @@ void VariantTable::adaptColumnWidths()
 	}
 
 	Log::perf("adapting column widths", timer);
+}
+
+void VariantTable::showAllColumns()
+{
+	for (int c=0; c<columnCount(); ++c)
+	{
+		if(isColumnHidden(c)) setColumnHidden(c, false);
+	}
 }
 
 void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_row)

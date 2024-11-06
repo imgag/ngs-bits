@@ -73,7 +73,7 @@ void ColumnConfigWidget::addColumnsFromSample()
 		const VariantList& vars = GlobalServiceProvider::getSmallVariantList();
 		foreach(SampleInfo info, vars.getSampleHeader(false))
 		{
-			current_names<< info.name;
+			current_names << info.name;
 		}
 
 		//add missing columns
@@ -125,10 +125,7 @@ void ColumnConfigWidget::addColumnsFromSample()
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
 
 	//inform user
-	if (c_added>0)
-	{
-		QMessageBox::information(this, title_, "Appended "+QString::number(c_added)+" column names to the end of the list!");
-	}
+	QMessageBox::information(this, title_, "Appended "+QString::number(c_added)+" column names to the end of the list!");
 }
 
 void ColumnConfigWidget::clearColumns()

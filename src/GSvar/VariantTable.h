@@ -71,6 +71,8 @@ public slots:
 
 	///Resize table cells for better readability.
 	void adaptColumnWidths();
+	///Show all columns.
+	void showAllColumns();
 
 	///Copy table to clipboard
 	void copyToClipboard(bool split_quality=false, bool include_header_one_row=false);

@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QHash>
+#include "VariantList.h"
 
 struct ColumnInfo
 {
@@ -21,15 +22,19 @@ public:
 	//Returns if the given column is contained
 	bool contains(const QString& name) const { return infos_.contains(name); };
 	//Appends a column
-	void append(const QString& name, const ColumnInfo& info);
-
+	void append(QString name, const ColumnInfo& info);
+	//Returns column infos of given column (default constructed info if not contained)
 	ColumnInfo info(const QString& name) const { return infos_.value(name); };
+	//Returns the column order for the variant list.
+	void getOrder(const VariantList& vars, QStringList& col_order, QList<int>& anno_index_order);
 
-	//returns a tab-separated list of column configs. The fields of the inividual columns are separated by |. Used for storing the config in the settings INI.
+
+	//Returns a tab-separated list of column configs. The fields of the inividual columns are separated by |. Used for storing the config in the settings INI.
 	QString toString() const;
-
+	//Helper function for parsing from text/file.
 	static ColumnConfig fromString(const QString& text);
 
+protected:
 	QStringList columns_;
 	QHash<QString, ColumnInfo> infos_;
 };

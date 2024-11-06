@@ -7,18 +7,65 @@ ColumnConfig::ColumnConfig()
 {
 }
 
-void ColumnConfig::append(const QString& name, const ColumnInfo& info)
+void ColumnConfig::append(QString name, const ColumnInfo& info)
 {
+	name = name.trimmed();
 	//check
-	if (name.trimmed().isEmpty()) THROW(ArgumentException, "Column '" + name + "' is not valid in column config!");
+	if (name.isEmpty()) THROW(ArgumentException, "Column '" + name + "' is not valid in column config!");
 	if (contains(name)) THROW(ArgumentException, "Column '" + name + "' already contained in column config!");
 	if (info.min_width<0) THROW(ArgumentException, "Minimum width for '" + name + "' is invalid: " + QString::number(info.min_width));
-	if (info.max_width<0) THROW(ArgumentException, "Minimum width for '" + name + "' is invalid: " + QString::number(info.max_width));
+	if (info.max_width<0) THROW(ArgumentException, "Maximum width for '" + name + "' is invalid: " + QString::number(info.max_width));
 
 	//add
 	columns_ << name;
 	infos_.insert(name, info);
 }
+
+void ColumnConfig::getOrder(const VariantList& variants, QStringList& col_order, QList<int>& anno_index_order)
+{
+	QStringList cols_gt;
+	foreach(SampleInfo info, variants.getSampleHeader(false))
+	{
+		cols_gt << info.name;
+	}
+
+	//check if columns are contained in this config
+	QHash<QString, int> col2index;
+	QSet<QString> contained;
+	QStringList not_contained;
+	for (int i=0; i<variants.annotations().count(); ++i)
+	{
+		QString col = variants.annotations()[i].name();
+		col2index[col] = i;
+
+		//skip genotype cols
+		if (cols_gt.contains(col)) continue;
+
+		if (!infos_.contains(col)) not_contained << col;
+		else contained << col;
+	}
+
+	//determine column order
+	col_order.clear();
+	col_order.append(cols_gt);
+	foreach(const QString& col, columns_)
+	{
+		if (contained.contains(col)) col_order << col;
+	}
+	col_order.append(not_contained);
+
+	//determine index order
+	anno_index_order.clear();
+	foreach(const QString& col, col_order)
+	{
+		if (col2index.contains(col)) anno_index_order << col2index[col];;
+	}
+
+	//error checks
+	if (col_order.count()!=variants.annotations().count()) THROW(ProgrammingException, "Number of columns before/after reordering does not match (ColumnConfig::getOrder)");
+	if (anno_index_order.count()!=variants.annotations().count()) THROW(ProgrammingException, "Number of columns in name and index arraydoes not match (ColumnConfig::getOrder)");
+}
+
 
 QString ColumnConfig::toString() const
 {

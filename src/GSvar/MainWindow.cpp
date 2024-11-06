@@ -322,6 +322,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_resize_btn->setMenu(new QMenu());
 	ui_.vars_resize_btn->menu()->addAction("Open column settings", this, SLOT(openColumnSettings()));
 	ui_.vars_resize_btn->menu()->addAction("Apply column width settings", ui_.vars, SLOT(adaptColumnWidths()));
+	ui_.vars_resize_btn->menu()->addAction("Show all columns", ui_.vars, SLOT(showAllColumns()));
 
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentAnalysis()));
 
@@ -794,7 +795,7 @@ void MainWindow::on_actionSV_triggered()
 		int passing_vars = filter_result_.countPassing();
 		if (passing_vars>3000)
 		{
-			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " small variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
 		}
 		for (int i=0; i<variants_.count(); ++i)
@@ -884,7 +885,7 @@ void MainWindow::on_actionCNV_triggered()
 		int passing_vars = filter_result_.countPassing();
 		if (passing_vars>3000)
 		{
-			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " small variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
 		}
 		for (int i=0; i<variants_.count(); ++i)
