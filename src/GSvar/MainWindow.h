@@ -471,8 +471,10 @@ public slots:
 	void showBackgroundJobDialog();
     //Starts a background job and returns its id
     int startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
-    //Returns information about a background job by its id
-    JobInfo getJobInfo(int id);
+    //Returns information about a background job status by its id
+    QString getJobStatus(int id);
+    //Returns error messages for a background job by its id (if it failed)
+    QString getJobMessages(int id);
 
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();

@@ -5774,9 +5774,14 @@ int MainWindow::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
     return bg_job_dialog_->start(worker, show_busy_dialog);
 }
 
-JobInfo MainWindow::getJobInfo(int id)
+QString MainWindow::getJobStatus(int id)
 {
-    return bg_job_dialog_->getJobInfo(id);
+    return bg_job_dialog_->getJobStatus(id);
+}
+
+QString MainWindow::getJobMessages(int id)
+{
+    return bg_job_dialog_->getJobMessages(id);
 }
 
 void MainWindow::on_actionVirusDetection_triggered()

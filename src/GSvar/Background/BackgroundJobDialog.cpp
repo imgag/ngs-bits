@@ -45,16 +45,28 @@ int BackgroundJobDialog::start(BackgroundWorkerBase* job, bool show_busy_dialog)
     return job_info.id;
 }
 
-JobInfo BackgroundJobDialog::getJobInfo(int job_id)
+QString BackgroundJobDialog::getJobStatus(int job_id)
 {
     for (int i=0; i<jobs_.count(); ++i)
     {
         if (jobs_[i].id==job_id)
         {
-            return jobs_[i];
+            return jobs_[i].status;
         }
     }
-    return JobInfo();
+    return "";
+}
+
+QString BackgroundJobDialog::getJobMessages(int job_id)
+{
+    for (int i=0; i<jobs_.count(); ++i)
+    {
+        if (jobs_[i].id==job_id)
+        {
+            return jobs_[i].messages;
+        }
+    }
+    return "";
 }
 
 void BackgroundJobDialog::started()

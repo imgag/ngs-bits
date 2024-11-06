@@ -252,17 +252,17 @@ QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
 {
     IgvDialog dlg(parent_);
     MainWindow* main_window = GlobalServiceProvider::mainWindow();
-    JobInfo info = main_window->getJobInfo(background_job_id_);
+    QString job_status = main_window->getJobStatus(background_job_id_);
 
-    while(info.status != "failed" && info.status != "finished")
+    while(job_status != "failed" && job_status != "finished")
     {
         QThread::usleep(1000);
-        info = main_window->getJobInfo(background_job_id_);
+        job_status = main_window->getJobStatus(background_job_id_);
     }
 
-    if (info.status == "failed")
+    if (job_status == "failed")
     {
-        QMessageBox::warning(parent_, "IGV initialization error", info.messages);
+        QMessageBox::warning(parent_, "IGV initialization error", main_window->getJobMessages(background_job_id_));
         return QStringList();
     }
 
