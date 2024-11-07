@@ -218,8 +218,8 @@ public:
 							if (sample_values[j].contains(',') || sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + " (expected 1): " + line);
 
 							//check for phased GT
-							bool phased = false;
-							if (sample_values[j].contains('|')) phased = true;
+							bool phased = sample_values[j].contains('|');
+
 							for (int a = 0; a < alt.length(); ++a)
 							{
 								int allele_count = sample_values[j].count(QByteArray::number(a+1));
