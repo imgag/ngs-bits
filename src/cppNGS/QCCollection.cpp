@@ -9,6 +9,7 @@
 #include <QList>
 #include <QFile>
 #include "OntologyTermCollection.h"
+#include <cmath>
 
 QCValue::QCValue()
 	: name_("")
@@ -440,7 +441,7 @@ QCCollection QCCollection::fromQCML(QString filename, QString obo, QStringList& 
 			{
 				bool ok = false;
 				double num_value = value.toDouble(&ok);
-				if (!ok)
+				if (!ok || std::isnan(num_value))
 				{
 					errors << "Skipped metric with invalid float value '" + value + "' (accession=" + accession + "/" + name + ")";
 					continue;
