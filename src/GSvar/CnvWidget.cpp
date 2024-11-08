@@ -1364,11 +1364,6 @@ void CnvWidget::openColumnSettings()
 
 void CnvWidget::adaptColumnWidthsAndHeights()
 {
-	//general resize
-	GUIHelper::resizeTableCellWidths(ui->cnvs);
-	GUIHelper::resizeTableCellHeightsToMinimum(ui->cnvs);
-
-	//restrict width
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_cnv", true));
 	config.applyColumnWidths(ui->cnvs);
 }

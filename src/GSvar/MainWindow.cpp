@@ -836,11 +836,10 @@ void MainWindow::on_actionSV_triggered()
 		{
 			QString ps_id =	"";
 
-			// somatic
-			sv_widget = new SvWidget(this, svs_, ps_id, somatic_report_settings_.report_config, het_hit_genes);
+			sv_widget = new SvWidget(this, svs_, somatic_report_settings_.report_config, het_hit_genes);
 			connect(sv_widget, SIGNAL(updateSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 		}
-		else
+		else //germline
 		{
 			//determine processed sample ID (needed for report config)
 			QString ps_id = "";
@@ -852,7 +851,7 @@ void MainWindow::on_actionSV_triggered()
 			}
 
 			//open SV widget
-			sv_widget = new SvWidget(this, svs_, ps_id, svs_.isSomatic() ? nullptr : report_config, het_hit_genes);
+			sv_widget = new SvWidget(this, svs_, ps_id, report_config, het_hit_genes);
 		}
 
 		auto dlg = GUIHelper::createDialog(sv_widget, "Structural variants of " + variants_.analysisName());

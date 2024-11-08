@@ -538,7 +538,14 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				foreach(const QByteArray& entry, anno.split(','))
 				{
 					QByteArray anno_with_percentages;
-					impacts << NGSHelper::maxEntScanImpact(entry.split('/'), anno_with_percentages, false);
+					try
+					{
+						impacts << NGSHelper::maxEntScanImpact(entry.split('/'), anno_with_percentages, false);
+					}
+					catch (Exception& e) //catch error of outdated MaxEntScan annotation
+					{
+						qDebug() << e.message();
+					}
 				}
 
 				//output: max import
@@ -786,10 +793,6 @@ void VariantTable::adaptColumnWidths()
 {
 	QTime timer;
 	timer.start();
-
-	//resize columns width
-	GUIHelper::resizeTableCellWidths(this);
-	GUIHelper::resizeTableCellHeightsToMinimum(this);
 
 	//restrict width
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_small_variant", true));

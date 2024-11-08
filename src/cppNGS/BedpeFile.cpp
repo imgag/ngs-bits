@@ -295,6 +295,38 @@ QByteArray BedpeLine::genotypeHumanReadable(const QList<QByteArray>& annotation_
 	else THROW(ArgumentException, "Unhandled SV genotype '" + gt + "'!");
 }
 
+QMap<QByteArray, QByteArray> BedpeLine::getSampleFormatData(int anno_idx_format, int anno_idx_sample)
+{
+	if (anno_idx_format>=annotations().count()) THROW(ArgumentException, "Format index out of bounds in BedpeLine::getSampleFormatData");
+	if (anno_idx_sample>=annotations().count()) THROW(ArgumentException, "Sample index out of bounds in BedpeLine::getSampleFormatData");
+
+	QByteArrayList desc = annotations()[anno_idx_format].split(':');
+	QByteArrayList data = annotations()[anno_idx_sample].split(':');
+	if (desc.count()!=data.count()) THROW(ArgumentException, "Lenth of format and sample array not matching in BedpeLine::getSampleFormatData");
+
+	QMap<QByteArray, QByteArray> output;
+	for (int i=0; i<desc.count(); ++i)
+	{
+		output.insert(desc[i], data[i]);
+	}
+	return output;
+}
+
+QByteArray BedpeLine::getSampleFormatData(int anno_idx_format, int anno_idx_sample, QByteArray key)
+{
+	if (anno_idx_format>=annotations().count()) THROW(ArgumentException, "Format index out of bounds in BedpeLine::getSampleFormatData");
+	if (anno_idx_sample>=annotations().count()) THROW(ArgumentException, "Sample index out of bounds in BedpeLine::getSampleFormatData");
+
+	QByteArrayList desc = annotations()[anno_idx_format].split(':');
+	QByteArrayList data = annotations()[anno_idx_sample].split(':');
+	if (desc.count()!=data.count()) THROW(ArgumentException, "Lenth of format and sample array not matching in BedpeLine::getSampleFormatData");
+
+	int index = desc.indexOf(key);
+	if (index==-1) THROW(ArgumentException, "Key '" + key + "' not found in BedpeLine::getSampleFormatData. Valid keys are: " + desc.join(", "));
+
+	return data[index];
+}
+
 GeneSet BedpeLine::genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch) const
 {
 	int gene_idx = annotation_headers.indexOf("GENES");
@@ -344,8 +376,11 @@ void BedpeFile::parseHeader(const TSVFileStream& file)
 
 	// parse sample info of multi sample BEDPE files
 	sample_header_info_.clear();
-	if ((format() == BEDPE_GERMLINE_MULTI) || (format() == BEDPE_GERMLINE_TRIO)) parseSampleHeaderInfo();
-
+	BedpeFileFormat file_format = format();
+	if (file_format==BEDPE_GERMLINE_SINGLE || file_format==BEDPE_GERMLINE_MULTI || file_format==BEDPE_GERMLINE_TRIO)
+	{
+		parseSampleHeaderInfo();
+	}
 }
 
 void BedpeFile::load(const QString& file_name)
@@ -727,7 +762,7 @@ int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_
 
 void BedpeFile::parseSampleHeaderInfo()
 {
-    sample_header_info_.clear();
+	//determine from SAMPLE comment lines
 	foreach(QByteArray line, headers_)
     {
         line = line.trimmed();
@@ -763,11 +798,23 @@ void BedpeFile::parseSampleHeaderInfo()
                 }
             }
         }
-    }
+	}
 
-    //determine column index
-    for (int i=0; i<sample_header_info_.count(); ++i)
-    {
+	//no SAMPLE line, i.e. single sample > fallback to column after FORMAT
+	if (sample_header_info_.isEmpty())
+	{
+		int i_format = annotationIndexByName("FORMAT");
+		if (i_format>=0 && i_format+1<annotationHeaders().count())
+		{
+			SampleInfo tmp;
+			tmp.name = annotationHeaders()[i_format+1];
+			sample_header_info_ << tmp;
+		}
+	}
+
+	//determine column index
+	for (int i=0; i<sample_header_info_.count(); ++i)
+	{
 		sample_header_info_[i].column_index = annotationIndexByName(sample_header_info_[i].name.toUtf8());
-    }
+	}
 }

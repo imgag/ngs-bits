@@ -1,5 +1,6 @@
 #include "ColumnConfig.h"
 #include "Exceptions.h"
+#include "GUIHelper.h"
 
 ColumnConfig::ColumnConfig()
 	: columns_()
@@ -60,10 +61,6 @@ void ColumnConfig::getOrder(const VariantList& variants, QStringList& col_order,
 	{
 		if (col2index.contains(col)) anno_index_order << col2index[col];;
 	}
-
-	//error checks
-	if (col_order.count()!=variants.annotations().count()) THROW(ProgrammingException, "Number of columns before/after reordering does not match in ColumnConfig::getOrder(VariantList)");
-	if (anno_index_order.count()!=variants.annotations().count()) THROW(ProgrammingException, "Number of columns in name and index arraydoes not match in ColumnConfig::getOrder(VariantList)");
 }
 
 void ColumnConfig::getOrder(const CnvList& cnvs, QStringList& col_order, QList<int>& anno_index_order)
@@ -95,14 +92,57 @@ void ColumnConfig::getOrder(const CnvList& cnvs, QStringList& col_order, QList<i
 	{
 		if (col2index.contains(col)) anno_index_order << col2index[col];;
 	}
+}
 
-	//error checks
-	if (col_order.count()!=cnvs.annotationHeaders().count()) THROW(ProgrammingException, "Number of columns before/after reordering does not match in ColumnConfig::getOrder(CNV)");
-	if (anno_index_order.count()!=cnvs.annotationHeaders().count()) THROW(ProgrammingException, "Number of columns in name and index arraydoes not match in ColumnConfig::getOrder(CNV)");
+void ColumnConfig::getOrder(const BedpeFile& svs, QStringList& col_order, QList<int>& anno_index_order)
+{
+	QStringList cols_gt;
+	foreach(const SampleInfo& info, svs.sampleHeaderInfo())
+	{
+		cols_gt << info.name;
+	}
+
+	//check if columns are contained in this config
+	QHash<QString, int> col2index;
+	QSet<QString> contained;
+	QStringList not_contained;
+	for (int i=0; i<svs.annotationHeaders().count(); ++i)
+	{
+		QString col = svs.annotationHeaders()[i];
+		if(col.startsWith("STRAND_") || col.startsWith("NAME_") || col=="ID" || col=="FORMAT" || col=="INFO_A" || col=="INFO_B") continue;
+
+		//skip genotype cols
+		if (cols_gt.contains(col)) continue;
+
+		col2index[col] = i;
+
+		if (!infos_.contains(col)) not_contained << col;
+		else contained << col;
+	}
+
+	//determine column order
+	col_order.clear();
+	foreach(const QString& col, columns_)
+	{
+		if (contained.contains(col)) col_order << col;
+	}
+	col_order.append(not_contained);
+
+	//determine index order
+	anno_index_order.clear();
+	foreach(const QString& col, col_order)
+	{
+		if (col2index.contains(col)) anno_index_order << col2index[col];;
+	}
 }
 
 void ColumnConfig::applyColumnWidths(QTableWidget* table, int max_width_for_not_contained)
 {
+	//general resize
+	GUIHelper::resizeTableCellWidths(table);
+	GUIHelper::resizeTableCellHeightsToMinimum(table);
+
+	//apply column settings
 	for (int i=0; i<table->columnCount(); ++i)
 	{
 		int width = table->columnWidth(i);

@@ -102,13 +102,17 @@ void ColumnConfigWidget::addColumnsFromSample()
 	}
 	else if (type==VariantType::SVS)
 	{
-		//add missing columns
+		//make sure we do not add genotype columns
 		const BedpeFile& vars = GlobalServiceProvider::getSvList();
+		foreach(QString sample_name, vars.sampleHeaderInfo().sampleNames())
+		{
+			current_names << sample_name;
+		}
+
+		//add missing columns
 		foreach(const QByteArray& name, vars.annotationHeaders())
 		{
-			if(name.startsWith("STRAND_")) continue;
-			if(name.startsWith("NAME_")) continue;
-			if(name == "ID") continue;
+			if(name.startsWith("STRAND_") || name.startsWith("NAME_") || name=="ID" || name=="FORMAT" || name=="INFO_A" || name=="INFO_B") continue;
 
 			if (!current_names.contains(name))
 			{

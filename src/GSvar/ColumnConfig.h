@@ -6,6 +6,7 @@
 #include <QTableWidget>
 #include "VariantList.h"
 #include "CnvList.h"
+#include "BedpeFile.h"
 
 struct ColumnInfo
 {
@@ -32,6 +33,8 @@ public:
 	void getOrder(const VariantList& vars, QStringList& col_order, QList<int>& anno_index_order);
 	//Returns the column order for the given CNV variant list
 	void getOrder(const CnvList& cnvs, QStringList& col_order, QList<int>& anno_index_order);
+	//Returns the column order for the given SV variant list
+	void getOrder(const BedpeFile& svs, QStringList& col_order, QList<int>& anno_index_order);
 	//Apply column width settings to table
 	void applyColumnWidths(QTableWidget* table, int max_width_for_not_contained=200);
 	//Apply column hidden settings to table
