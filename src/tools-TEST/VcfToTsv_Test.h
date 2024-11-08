@@ -13,7 +13,7 @@ private slots:
 
     void multi_allelic_multi_sample()
     {
-        EXECUTE("VcfToTsv", "-in " + TESTDATA("data_in/VcfBreakMulti_in2.vcf") + " -out out/VcfToTsv_out2.tsv");
+		EXECUTE("VcfToTsv", "-in " + TESTDATA("data_in/VcfToTsv_in2.vcf") + " -out out/VcfToTsv_out2.tsv");
         COMPARE_FILES("out/VcfToTsv_out2.tsv", TESTDATA("data_out/VcfToTsv_out2.tsv"));
     }
 };

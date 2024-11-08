@@ -217,6 +217,9 @@ public:
 						{
 							if (sample_values[j].contains(',') || sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + " (expected 1): " + line);
 
+							//check for phased GT
+							bool phased = sample_values[j].contains('|');
+
 							for (int a = 0; a < alt.length(); ++a)
 							{
 								int allele_count = sample_values[j].count(QByteArray::number(a+1));
@@ -227,7 +230,12 @@ public:
 								}
 								else if (allele_count==0 && wt_count==1)
 								{
-									new_samples_per_allele[a][i] = "./0";
+									if (phased)
+									{
+										if (sample_values[j].startsWith('0')) new_samples_per_allele[a][i] = "0|.";
+										else new_samples_per_allele[a][i] = ".|0";
+									}
+									else new_samples_per_allele[a][i] = "./0";
 								}
 								else if (allele_count==0 && wt_count==0)
 								{
@@ -235,11 +243,21 @@ public:
 								}
 								else if (allele_count==1 && wt_count==1)
 								{
-									new_samples_per_allele[a][i] = "0/1";
+									if (phased)
+									{
+										if (sample_values[j].startsWith('0')) new_samples_per_allele[a][i] = "0|1";
+										else new_samples_per_allele[a][i] = "1|0";
+									}
+									else new_samples_per_allele[a][i] = "0/1";
 								}
 								else if (allele_count==1 && wt_count==0)
 								{
-									new_samples_per_allele[a][i] = "./1";
+									if (phased)
+									{
+										if (sample_values[j].startsWith(QByteArray::number(a+1))) new_samples_per_allele[a][i] = "1|.";
+										else new_samples_per_allele[a][i] = ".|1";
+									}
+									else new_samples_per_allele[a][i] = "./1";
 								}
 								else //allele_count==2 && wt_count==0
 								{
