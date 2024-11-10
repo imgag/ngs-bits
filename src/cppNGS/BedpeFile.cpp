@@ -803,7 +803,7 @@ void BedpeFile::parseSampleHeaderInfo()
 	//no SAMPLE line, i.e. single sample > fallback to column after FORMAT
 	if (sample_header_info_.isEmpty())
 	{
-		int i_format = annotationIndexByName("FORMAT");
+		int i_format = annotationIndexByName("FORMAT", false);
 		if (i_format>=0 && i_format+1<annotationHeaders().count())
 		{
 			SampleInfo tmp;
