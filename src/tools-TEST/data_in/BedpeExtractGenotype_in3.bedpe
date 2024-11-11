@@ -1,4 +1,4 @@
-##fileformat=BEDPE
+##fileformat=BEDPE_GERMLINE_TRIO
 ##source=Sniffles2_2.0.7
 ##command="/mnt/storage2/megSAP/tools/Python-3.10.9/bin/sniffles --input /tmp/megSAP_user_ahschul1/sniffles21bgI2.snf /tmp/megSAP_user_ahschul1/snifflesJAt9X0.snf /tmp/megSAP_user_ahschul1/sniffles0Xo0d3.snf --vcf /tmp/megSAP_user_ahschul1/snifflesaLtjB0.vcf --threads 2 --reference /tmp/local_ngs_data_GRCh38//GRCh38.fa --allow-overwrite"
 ##fileDate=20240117
