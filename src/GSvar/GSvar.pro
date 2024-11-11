@@ -13,6 +13,8 @@ SOURCES += main.cpp\
     Background/VariantAnnotator.cpp \
     Background/IGVInitCacheWorker.cpp \
     CfDNAPanelBatchImport.cpp \
+    ColumnConfig.cpp \
+    ColumnConfigWidget.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
     GeneInterpretabilityDialog.cpp \
@@ -141,6 +143,8 @@ HEADERS += MainWindow.h \
     Background/VariantAnnotator.h \
     Background/IGVInitCacheWorker.h \
     CfDNAPanelBatchImport.h \
+    ColumnConfig.h \
+    ColumnConfigWidget.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GHGAUploadDialog.h \
@@ -265,6 +269,7 @@ HEADERS += MainWindow.h \
 FORMS    += MainWindow.ui \
     Background/BackgroundJobDialog.ui \
     CfDNAPanelBatchImport.ui \
+    ColumnConfigWidget.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
     GeneInterpretabilityDialog.ui \

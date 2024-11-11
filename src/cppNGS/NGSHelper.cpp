@@ -804,7 +804,7 @@ const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild
 MaxEntScanImpact NGSHelper::maxEntScanImpact(const QByteArrayList& score_pairs, QByteArray& score_pairs_with_impact, bool splice_site_only)
 {
 	if (score_pairs.count()<1) THROW(ArgumentException, "MaxEntScan annotation contains less than one score pair");
-	if (score_pairs.count()>3) THROW(ArgumentException, "MaxEntScan annotation contains more than three score pair");
+	if (score_pairs.count()>3) THROW(ArgumentException, "MaxEntScan annotation contains more than three score pairs");
 
 	QList<MaxEntScanImpact> impacts;
 	QByteArrayList score_pairs_new;
