@@ -1560,7 +1560,7 @@ created_by: schuetz
 
 [Term]
 id: QC:2000138
-name: Q score distribution
+name: read Q score distribution
 def: "Distrubition of the mean forward/reverse Q score for each read." [PXS:QC]
 is_a: QC:2000002 ! NGS aquisition parameter
 is_a: QC:0000050 ! image plot
@@ -1601,7 +1601,7 @@ created_by: sturm
 
 [Term]
 id: QC:2000143
-name: Q score histogram
+name: base Q score histogram
 def: "Histogram of base Q scores." [PXS:QC]
 is_a: QC:2000002 ! NGS aquisition parameter
 is_a: QC:0000050 ! image plot
@@ -1622,4 +1622,28 @@ name: mode base Q score
 def: "Most frequent Q score of all bases of the sample." [PXS:QC]
 is_a: QC:2000004 ! NGS aquisition parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000146
+name: median read Q score
+def: "Median Q score of all reads of the sample." [PXS:QC]
+is_a: QC:2000004 ! NGS aquisition parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000147
+name: mode read Q score
+def: "Most frequent Q score of all reads of the sample." [PXS:QC]
+is_a: QC:2000004 ! NGS aquisition parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000148
+name: Q20 base percentage
+def: "The percentage of bases with a minimum quality score of Q20." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schuetz

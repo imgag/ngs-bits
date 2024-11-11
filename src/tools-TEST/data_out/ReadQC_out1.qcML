@@ -15,13 +15,11 @@
     <qualityParameter ID="qp0005" name="Q30 base percentage" description="The percentage of bases with a minimum quality score of Q30." value="96.52" cvRef="QC" accession="QC:2000008"/>
     <qualityParameter ID="qp0006" name="no base call percentage" description="The percentage of bases without base call (N)." value="0.00" cvRef="QC" accession="QC:2000009"/>
     <qualityParameter ID="qp0007" name="gc content percentage" description="The percentage of bases that are called to be G or C." value="46.22" cvRef="QC" accession="QC:2000010"/>
-    <qualityParameter ID="qp0011" name="median base Q score" description="Median Q score of all bases of the sample." value="39" cvRef="QC" accession="QC:2000144"/>
-    <qualityParameter ID="qp0012" name="mode base Q score" description="Most frequent Q score of all bases of the sample." value="39" cvRef="QC" accession="QC:2000145"/>
     <attachment ID="qp0008" name="base distribution plot" description="Base distribution plot per cycle." cvRef="QC" accession="QC:2000011">
     </attachment>
     <attachment ID="qp0009" name="Q score plot" description="Mean Q score per cycle for forward/reverse reads." cvRef="QC" accession="QC:2000012">
     </attachment>
-    <attachment ID="qp0010" name="Q score histogram" description="Histogram of base Q scores." cvRef="QC" accession="QC:2000143">
+    <attachment ID="qp0010" name="read Q score distribution" description="Distrubition of the mean forward/reverse Q score for each read." cvRef="QC" accession="QC:2000138">
     </attachment>
   </runQuality>
   <cvList>
