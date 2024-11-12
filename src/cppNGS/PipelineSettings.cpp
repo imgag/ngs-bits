@@ -54,10 +54,6 @@ void PipelineSettings::loadSettings(QString ini_file)
 				{
 					instance().data_folder_ = value;
 				}
-				if (key=="queue_email")
-				{
-					instance().queue_email_ = value;
-				}
 				if (key=="queues_default")
 				{
 					QStringList tmp = value.split(',');
@@ -119,12 +115,6 @@ QString PipelineSettings::dataFolder()
 {
 	checkInitialized();
 	return instance().data_folder_;
-}
-
-QString PipelineSettings::queueEmail()
-{
-	checkInitialized();
-	return instance().queue_email_;
 }
 
 QStringList PipelineSettings::queuesDefault()

@@ -834,8 +834,6 @@ void MainWindow::on_actionSV_triggered()
 		SvWidget* sv_widget;
 		if(svs_.isSomatic())
 		{
-			QString ps_id =	"";
-
 			sv_widget = new SvWidget(this, svs_, somatic_report_settings_.report_config, het_hit_genes);
 			connect(sv_widget, SIGNAL(updateSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 		}
