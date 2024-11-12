@@ -854,8 +854,6 @@ void MainWindow::on_actionSV_triggered()
 
 		auto dlg = GUIHelper::createDialog(sv_widget, "Structural variants of " + variants_.analysisName());
 		addModelessDialog(dlg);
-
-
 	}
 	catch(FileParseException error)
 	{
