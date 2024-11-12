@@ -22,15 +22,13 @@ Other analysis
 
 - [RNA analysis](rna_analysis.md)
 
-## Auxilary functionality
+## Misc
 
 - [IGV integration](igv_integration.md)
 - [Preferred transcripts](preferred_transcripts.md)
 - [Variant publication](variant_publication.md)
 - [Burden test](burden_test.md)
-
-## Misc
-
-- [Configuration](configuration.md)
+- [Settings](settings.md)
+- [Configuration (for admins)](configuration.md)
 - [ChangeLog](changelog.md)
 - [FAQ](faq.md)
