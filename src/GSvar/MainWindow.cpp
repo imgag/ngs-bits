@@ -2505,20 +2505,32 @@ int MainWindow::openTab(QIcon icon, QString name, TabType type, QWidget* widget)
 
 void MainWindow::closeTab(int index)
 {
+	//main variant list
 	if (index==0)
 	{
-		int res = QMessageBox::question(this, "Close file?", "Do you want to close the current sample?", QMessageBox::Yes, QMessageBox::No);
-		if (res==QMessageBox::Yes)
+		if (filename_!="")
 		{
-			loadFile();
+			int res = QMessageBox::question(this, "Close file?", "Do you want to close the current sample?", QMessageBox::Yes, QMessageBox::No);
+			if (res==QMessageBox::Yes)
+			{
+				loadFile();
+			}
 		}
+		return;
 	}
-	else
+
+	//for analysis status widget and refresh is done > abort
+	QWidget* widget = ui_.tabs->widget(index);
+	AnalysisStatusWidget* analysis_status_widget = widget->findChild<AnalysisStatusWidget*>();
+	while (analysis_status_widget!=nullptr && analysis_status_widget->updateIsRunning())
 	{
-		QWidget* widget = ui_.tabs->widget(index);
-		ui_.tabs->removeTab(index);
-		widget->deleteLater();
+		QMessageBox::information(this, "Analysis status tab", "Please wait until table update is done before closing the analysis status tab!");
+		return;
 	}
+
+	//remove tab and delete tab widget
+	ui_.tabs->removeTab(index);
+	widget->deleteLater();
 }
 
 bool MainWindow::focusTab(TabType type, QString name)
