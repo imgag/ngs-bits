@@ -815,9 +815,9 @@ void VariantTable::adaptColumnWidths()
 	//restrict REF/ALT column width
 	for (int i=3; i<=4; ++i)
 	{
-		if (columnWidth(i)>80)
+		if (columnWidth(i)>50)
 		{
-			setColumnWidth(i, 80);
+			setColumnWidth(i, 50);
 		}
 	}
 

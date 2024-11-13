@@ -994,6 +994,16 @@ void SvWidget::adaptColumnWidthsAndHeights()
 {
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_sv", true));
 	config.applyColumnWidths(ui->svs);
+
+	//chrA/chrB
+	if (ui->svs->columnWidth(0)>50)
+	{
+		ui->svs->setColumnWidth(0, 50);
+	}
+	if (ui->svs->columnWidth(3)>50)
+	{
+		ui->svs->setColumnWidth(3, 50);
+	}
 }
 
 void SvWidget::showAllColumns()
