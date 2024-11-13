@@ -48,7 +48,19 @@ void ColumnConfig::getOrder(const VariantList& variants, QStringList& col_order,
 
 	//determine column order
 	col_order.clear();
-	col_order.append(cols_gt);
+	AnalysisType type = variants.type();
+	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+	{
+		col_order.append(cols_gt);
+	}
+	else if (type==SOMATIC_PAIR)
+	{
+		col_order << "tumor_af" << "tumor_dp" << "normal_af" << "normal_dp";
+	}
+	else if (type==SOMATIC_SINGLESAMPLE || type==CFDNA)
+	{
+		col_order << "tumor_af" << "tumor_dp";
+	}
 	foreach(const QString& col, columns_)
 	{
 		if (contained.contains(col)) col_order << col;

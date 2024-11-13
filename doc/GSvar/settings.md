@@ -23,6 +23,10 @@ Open a sample and add the missing column names like that:
 Then you can set the column with and visibilty in the table.  
 You can change the column order using the array buttons above the column table.
 
+*Note:  
+Column order settings changes take effect for small variants when re-loading the sample.  
+For CNVs and SVs they take effect when re-opening the respective dialog.*
+
 --
 
 [back to main page](index.md)
