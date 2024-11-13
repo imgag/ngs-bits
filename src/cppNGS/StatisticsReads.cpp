@@ -10,8 +10,8 @@ StatisticsReads::StatisticsReads(bool long_read)
 	, read_lengths_()
     , bases_sequenced_(0)
 	, c_read_q20_(0.0)
-	, c_base_q30_(0.0)
 	, c_base_q20_(0.0)
+	, c_base_q30_(0.0)
 	, pileups_()
 	, qualities1_()
 	, qualities2_()
@@ -56,8 +56,8 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 	{
 		int q = entry.quality(i);
 		q_sum += q;
-		if (q>=30.0) ++c_base_q30_;
 		if (q>=20.0) ++c_base_q20_;
+		if (q>=30.0) ++c_base_q30_;
 		if (q >= base_qualities_.size()) THROW(ArgumentException, "Base quality > " + QByteArray::number(base_qualities_.size()) + " (" + QByteArray::number(q) + "). This should not happen!");
 		base_qualities_[q]++;
 		if (direction==FORWARD)
@@ -134,8 +134,8 @@ void StatisticsReads::update(const BamAlignment& al)
 	{
 		int q = al.quality(i);
 		q_sum += q;
-		if (q>=30.0) ++c_base_q30_;
 		if (q>=20.0) ++c_base_q20_;
+		if (q>=30.0) ++c_base_q30_;
 		if (q >= base_qualities_.size()) THROW(ArgumentException, "Base quality > " + QByteArray::number(base_qualities_.size()) + " (" + QByteArray::number(q) + "). This should not happen!");
 		base_qualities_[q]++;
 		if (is_forward)
