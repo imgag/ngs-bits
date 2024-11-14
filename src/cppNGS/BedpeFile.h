@@ -145,6 +145,11 @@ public:
 	///Returns the genotype in human readable format (hom, het, wt or n/a);
 	QByteArray genotypeHumanReadable(const QList<QByteArray>& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;
 
+	///Returns a dictionary for the FORMAT data of a sample
+	QMap<QByteArray, QByteArray> getSampleFormatData(int anno_idx_format, int anno_idx_sample);
+	///Returns a single value from the FORMAT data of a sample
+	QByteArray getSampleFormatData(int anno_idx_format, int anno_idx_sample, QByteArray key);
+
 	///Returns the genes.
 	GeneSet genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true) const;
 	///Sets the genes.
@@ -180,7 +185,7 @@ enum BedpeFileFormat
 	BEDPE_SOMATIC_TUMOR_NORMAL,
     BEDPE_GERMLINE_MULTI,
     BEDPE_GERMLINE_TRIO,
-	BEDPE_RNA,
+	BEDPE_RNA
 };
 
 class CPPNGSSHARED_EXPORT BedpeFile
@@ -250,7 +255,7 @@ public:
 	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true) const;
 
 	///returns annotation headers
-	const QList<QByteArray> annotationHeaders() const
+	const QList<QByteArray>& annotationHeaders() const
 	{
 		return annotation_headers_;
 	}
@@ -267,7 +272,7 @@ public:
 	}
 
     ///returns the sample header info of multisample BEDPE files
-    const SampleHeaderInfo sampleHeaderInfo() const
+	const SampleHeaderInfo& sampleHeaderInfo() const
     {
         return sample_header_info_;
     }

@@ -108,7 +108,6 @@ bool ServerHelper::settingsValid(bool test_mode, bool throw_exception_if_invalid
 
 			if (Settings::boolean("queue_update_enabled", true))
 			{
-                if (PipelineSettings::queueEmail().isEmpty()) THROW(Exception, "megSAP settings entry 'queue_email' is empty!");
                 if (PipelineSettings::queuesDefault().isEmpty()) THROW(Exception, "megSAP settings entry 'queues_default' is empty!");
                 if (PipelineSettings::queuesHighMemory().isEmpty()) THROW(Exception, "megSAP settings entry 'queues_high_mem' is empty!");
 			}

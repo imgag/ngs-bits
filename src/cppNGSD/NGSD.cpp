@@ -7592,6 +7592,28 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id, bool a
 			}
 		}
 
+		//find causal REs
+		{
+			SqlQuery query = getQuery();
+			query.exec("SELECT re.name, reg.allele1, reg.allele2, rcr.manual_allele1, rcr.manual_allele2 FROM report_configuration_re rcr, repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=rcr.repeat_expansion_genotype_id AND rcr.causal='1' AND rcr.report_configuration_id=" + QString::number(rc_id));
+			while(query.next())
+			{
+				//gene lengths
+				QString a1 = query.value("allele1").toString();
+				QString a2 = query.value("allele2").toString();
+
+				//manual curation
+				QVariant a1_manual = query.value("manual_allele1");
+				if (!a1_manual.isNull()) a1 = a1_manual.toString();
+				QVariant a2_manual = query.value("manual_allele2");
+				if (!a2_manual.isNull()) a2 = a2_manual.toString();
+
+				output += ", causal RE: " + query.value("name").toString() + " (length:" + a1;
+				if (!a2.isEmpty()) output += "/" + a2;
+				output += ")";
+			}
+		}
+
 		//find other causal variants
 		SqlQuery query = getQuery();
 		query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_configuration_id=" + QString::number(rc_id));
@@ -7616,7 +7638,7 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id, bool a
 			}
 			if (!user_output.isEmpty())
 			{
-				output += " (" + user_output.join(", ") + ")";
+				output += " [" + user_output.join(", ") + "]";
 			}
 		}
 	}

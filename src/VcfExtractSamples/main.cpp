@@ -17,7 +17,7 @@ public:
 
     virtual void setup()
     {
-		setDescription("Extract one or several samples from a VCF file.");
+		setDescription("Extract one or several samples from a VCF file. Can also be used to re-order sample columns.");
 
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);

@@ -53,6 +53,13 @@ The most important settings are:
 - *curl_ca_bundle*: SSL certificate needed to access BAM/CRAM files on the server (handed to libcurl).
 - *use_proxy_for_gsvar_server*: for using an external GSvar server should be set to True (if your network is behind a HTTP proxy server)-.
 
+If you want to run GSvar with a GSvar server, you need to provide these settings as well:
+
+* `server_host` - Server name.
+* `server_port` - Server port.
+* `curl_ca_bundle` - Path to certificate CRT file used by the server. If not proviced, the client and/or IGV cannot access BAM files over HTTPS.
+* `display_user_notifications` - Enable/Disable showing user notifications from the server in the client.
+
 ## Filters
 
 Default filters can be defined using these files, located in the same folder as the `GSvar` executable.
