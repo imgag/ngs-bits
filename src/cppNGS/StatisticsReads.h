@@ -39,6 +39,7 @@ private:
 	QMap<int,long long> read_lengths_;
     long long bases_sequenced_;
 	long long c_read_q20_;
+	long long c_base_q20_;
 	long long c_base_q30_;
 	QVector<Pileup> pileups_;
 	QVector<double> qualities1_;
@@ -47,6 +48,7 @@ private:
 	Histogram qscore_dist_r2;
 	bool long_read_;
 	QVector<long long> base_qualities_;
+	QVector<long long> read_qualities_;
 };
 
 #endif // STATISTICSREADS_H

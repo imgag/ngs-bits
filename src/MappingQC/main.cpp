@@ -90,7 +90,6 @@ public:
 			{
 				stats.update(al);
 			}
-
 			QCCollection metrics_raw_data = stats.getResult();
 			metrics_raw_data.storeToQCML(read_qc, QStringList() << in, "");
 			if (debug) debug_stream << "Performing raw read QC took: " << Helper::elapsedTime(timer) << endl;
