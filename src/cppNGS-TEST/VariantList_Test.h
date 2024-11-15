@@ -433,4 +433,24 @@ private slots:
 		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
 		IS_FALSE(vl.getCallingDate().isValid());
 	}
+
+
+	void constructorFromVCF()
+	{
+		//SNP
+		Variant v(VcfLine("chr13", 32332271, "G", QList<Sequence>() << "A"));
+		S_EQUAL(v.chr().str(), "chr13");
+		I_EQUAL(v.start(), 32332271);
+		I_EQUAL(v.end(), 32332271);
+		S_EQUAL(v.ref(), "G");
+		S_EQUAL(v.obs(), "A");
+
+		//DEL
+		v = Variant(VcfLine("chr22", 28734461, "CTCCTCAGGTTCTTGG", QList<Sequence>() << "C"));
+		S_EQUAL(v.chr().str(), "chr22");
+		I_EQUAL(v.start(), 28734462);
+		I_EQUAL(v.end(), 28734476);
+		S_EQUAL(v.ref(), "TCCTCAGGTTCTTGG");
+		S_EQUAL(v.obs(), "-");
+	}
 };
