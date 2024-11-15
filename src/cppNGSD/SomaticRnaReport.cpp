@@ -11,14 +11,15 @@ SomaticRnaReportData::SomaticRnaReportData(const SomaticReportSettings& other)
 {
 }
 
-SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const SomaticRnaReportData& data)
+SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const BedpeFile &dna_svs, const VariantList& germline_variants, const SomaticRnaReportData& data)
 	: db_()
 	, data_(data)
 {
 	//filter DNA variants according somatic report configuration
 	dna_snvs_ = SomaticRnaReportData::filterVariants(snv_list, data);
-	//filter CNVs
 	dna_cnvs_ = SomaticRnaReportData::filterCnvs(cnv_list, data);
+	dna_svs_ = SomaticRnaReportData::filterSvs(db_, dna_svs, data);
+	germline_vl_ = SomaticRnaReportData::filterGermlineVariants(germline_variants, data_);
 
 
 	if(!VersatileFile(data.rna_fusion_file).exists())
@@ -93,12 +94,12 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		if( !pathway_genes.contains(parts[0]) ) pathway_genes << parts[0];
 	}
 
-	//genes that have SNV/Indel/CNVs
+	//genes that have SNV/Indel/CNVs/SVs/Germline Vars
 	QByteArrayList genes_with_var;
 	int i_co_sp = dna_snvs_.annotationIndexByName("coding_and_splicing");
 	for(int i=0;i<dna_snvs_.count(); ++i)
 	{
-		QByteArray gene = SomaticReportHelper::selectSomaticTranscript(db_, dna_snvs_[i], i_co_sp).gene;
+		QByteArray gene = data_.selectSomaticTranscript(db_, dna_snvs_[i], i_co_sp).gene;
 		if(!genes_with_var.contains(gene))
 		{
 			genes_with_var << gene;
@@ -116,6 +117,26 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 			if( !role.high_evidence) continue;
 
 			if( !genes_with_var.contains(gene) ) genes_with_var << gene;
+		}
+	}
+	for (int i=0;i<svs_.count();++i ) // only breakpoint genes currently
+	{
+		arriba_sv sv = svs_[i];
+		GeneSet genes;
+		genes.insert(sv.gene_left);
+		genes.insert(sv.gene_right);
+		foreach(const auto& gene, genes)
+		{
+			if( !genes_with_var.contains(gene) ) genes_with_var << gene;
+		}
+	}
+	int i_germ_co_sp = germline_vl_.annotationIndexByName("coding_and_splicing");
+	for (int i=0;i<germline_vl_.count(); ++i )
+	{
+		QByteArray gene = data_.selectGermlineTranscript(germline_vl_[i], i_germ_co_sp).gene;
+		if(!genes_with_var.contains(gene))
+		{
+			genes_with_var << gene;
 		}
 	}
 
@@ -337,6 +358,64 @@ RtfTable SomaticRnaReport::partSVs()
 	return fusion_table;
 }
 
+RtfTableRow SomaticRnaReport::createSnvTableRow(const Variant& var, int i_co_sp, int i_tum_af, BamReader& bam_file, bool germline)
+{
+	VariantTranscript trans;
+	if (germline)
+	{
+		trans = data_.selectGermlineTranscript(var, i_co_sp);
+		QList<VariantTranscript> transcripts = var.transcriptAnnotations(i_co_sp);
+	}
+	else
+	{
+		trans = data_.selectSomaticTranscript(db_, var, i_co_sp);
+	}
+	ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
+	VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var);
+
+	RtfTableRow row;
+	//DNA data
+	row.addCell(800, germline ? trans.gene + "\\super#" : trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
+	if (trans.hgvs_c.length() == 0 && trans.hgvs_p.length() == 0)
+	{
+		row.addCell(1900, QByteArrayList() << RtfText("???").setFontSize(16).highlight(3).RtfCode() << RtfText(trans.id).setFontSize(14).RtfCode());
+	}
+	else
+	{
+		row.addCell(1900, QByteArrayList() << RtfText(trans.hgvs_c + ", " + trans.hgvs_p).setFontSize(16).RtfCode() << RtfText(trans.id).setFontSize(14).RtfCode());
+	}
+
+	row.addCell(1300, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
+	row.addCell(700, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
+
+	if (germline)
+	{
+		qDebug() << "rna Germline depth: " << var_details.depth;
+		qDebug() << "rna Germline freq : " << var_details.frequency;
+
+	}
+
+	//RNA data
+	if (var_details.depth > 4)
+	{
+		row.addCell( 700, formatDigits(var_details.frequency, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+	}
+	else
+	{
+		row.addCell( 700, "n/a", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+	}
+
+	row.addCell( 1200, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+	row.addCell( 1200, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+	row.addCell( 1000, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+
+	row.addCell( 1121, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+
+	for(int i=4; i<row.count(); ++i) row[i].setBackgroundColor(4);
+
+	return row;
+}
+
 
 RtfTable SomaticRnaReport::partSnvTable()
 {
@@ -344,6 +423,9 @@ RtfTable SomaticRnaReport::partSnvTable()
 
 	int i_co_sp = dna_snvs_.annotationIndexByName("coding_and_splicing");
 	int i_tum_af = dna_snvs_.annotationIndexByName("tumor_af");
+
+	int i_germline_co_sp = germline_vl_.annotationIndexByName("coding_and_splicing");
+	int i_germl_freq_in_tum = germline_vl_.annotationIndexByName("freq_in_tum");
 
 	BamReader bam_file(data_.rna_bam_file, data_.ref_genome_fasta_file);
 
@@ -356,48 +438,17 @@ RtfTable SomaticRnaReport::partSnvTable()
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::ONCOGENIC && vicc_result != SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) continue;
 
-		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(db_, var, i_co_sp);
-
-		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
-
-		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var );
-
-		RtfTableRow row;
-
-		//DNA data
-		row.addCell(800, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
-		if (trans.hgvs_c.length() == 0 && trans.hgvs_p.length() == 0)
-		{
-			row.addCell(1900, QByteArrayList() << RtfText("???").setFontSize(16).highlight(3).RtfCode() << RtfText(trans.id).setFontSize(14).RtfCode());
-		}
-		else
-		{
-			row.addCell(1900, QByteArrayList() << RtfText(trans.hgvs_c + ", " + trans.hgvs_p).setFontSize(16).RtfCode() << RtfText(trans.id).setFontSize(14).RtfCode());
-		}
-
-		row.addCell(1300, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
-		row.addCell(700, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
-
-		//RNA data
-		if (var_details.depth > 4)
-		{
-			row.addCell( 700, formatDigits(var_details.frequency, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		}
-		else
-		{
-			row.addCell( 700, "n/a", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		}
-
-		row.addCell( 1200, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1200, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1000, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-
-		row.addCell( 1121, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-
-		for(int i=4; i<row.count(); ++i) row[i].setBackgroundColor(4);
+		RtfTableRow row = createSnvTableRow(var, i_co_sp, i_tum_af, bam_file);
 		table.addRow(row);
 	}
 	table.sortByCol(0);
+
+	for (int i=0; i<germline_vl_.count(); ++i) {
+		const Variant& germ_var = germline_vl_[i];
+
+		RtfTableRow row = createSnvTableRow(germ_var, i_germline_co_sp, i_germl_freq_in_tum, bam_file, true);
+		table.prependRow(row); // add row at the top
+	}
 
 	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"},{800,1900,1300,700,700,1200,1200, 1000, 1121}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
 	for(int i=4; i<header.count(); ++i) header[i].setBackgroundColor(4);
@@ -521,6 +572,7 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger als fünf Tumorproben gleicher Entität ist kein Vergleich sinnvoll (n/a). ";
 	out += bold("Veränderung (x-fach):") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. " + bold("-:") + " Die Anzahl der Proben in der Tumorkohorte erlaubt keine statistische Bewertung oder die Expression ist niedrig. ";
 	out += bold("*: p<0.05:") + " Signifikanztest nach Fisher. " + bold("n/a:") + " nicht anwendbar. ";
+	out += bold("{\\super#}:") +" auch in der Normalprobe nachgewiesen.";
 
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
 }
@@ -758,45 +810,9 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE) continue;
 
-		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(db_, var, i_co_sp);
+		RtfTableRow row = createSnvTableRow(var, i_co_sp, i_tum_af, bam_file);
 
-		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
 
-		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var );
-
-		RtfTableRow row;
-
-		//DNA data
-		row.addCell(800, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
-		if (trans.hgvs_c.length() == 0 && trans.hgvs_p.length() == 0)
-		{
-			row.addCell(1900, QByteArrayList() << RtfText("???").setFontSize(16).highlight(3).RtfCode() << RtfText(trans.id).setFontSize(14).RtfCode());
-		}
-		else
-		{
-			row.addCell(1900, QByteArrayList() << RtfText(trans.hgvs_c + ", " + trans.hgvs_p).setFontSize(16).RtfCode() << RtfText(trans.id).setFontSize(14).RtfCode());
-		}
-
-		row.addCell(1300, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
-		row.addCell(700, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
-
-		//RNA data
-		if (var_details.depth > 4)
-		{
-			row.addCell( 700, formatDigits(var_details.frequency, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		}
-		else
-		{
-			row.addCell( 700, "n/a", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		}
-
-		row.addCell( 1200, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1200, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1000, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-
-		row.addCell( 1121, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-
-		for(int i=4; i<row.count(); ++i) row[i].setBackgroundColor(4);
 		table.addRow(row);
 	}
 	table.sortByCol(0);

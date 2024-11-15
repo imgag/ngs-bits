@@ -360,7 +360,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				}
 
 				//Elements transcript information
-				VariantTranscript selected_transcript = SomaticReportHelper::selectSomaticTranscript(db, snv, i_co_sp);
+				VariantTranscript selected_transcript = data.settings.selectSomaticTranscript(db, snv, i_co_sp);
 				foreach(const auto& trans, snv.transcriptAnnotations(i_co_sp) )
 				{
 					w.writeStartElement("TranscriptInformation");

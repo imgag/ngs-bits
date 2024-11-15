@@ -23,6 +23,66 @@ double SomaticReportSettings::get_msi_value(NGSD &db) const
 	}
 }
 
+VariantTranscript SomaticReportSettings::selectGermlineTranscript(const Variant& var, int i_germl_co_sp) const
+{
+	//Select germline transcript
+	QList<VariantTranscript> transcripts = var.transcriptAnnotations(i_germl_co_sp);
+	VariantTranscript transcript;
+	if(!transcripts.isEmpty())
+	{
+		transcript = transcripts[0];
+		for(int j=0; j<transcripts.count(); ++j)
+		{
+			if(preferred_transcripts.value( transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
+			{
+				transcript = transcripts[j];
+				break;
+			}
+		}
+	}
+
+	return transcript;
+}
+
+VariantTranscript SomaticReportSettings::selectSomaticTranscript(NGSD& db, const Variant& variant, int index_co_sp) const
+{
+	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(index_co_sp);
+	if (transcripts.count() == 0) return VariantTranscript();
+
+	//best
+	int current_best_quality = -1;
+	VariantTranscript best_transcript;
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		int quality;
+		int gene_id = db.geneId(trans.gene);
+		if (gene_id == -1) continue;
+		Transcript best = db.bestTranscript(db.geneId(trans.gene), transcripts, &quality);
+
+		foreach(const VariantTranscript& t, transcripts) // if "best transcript" is annotated take that (logic that is also used in GSvar)
+		{
+			if (t.idWithoutVersion() == best.name() && current_best_quality < quality)
+			{
+				current_best_quality = quality;
+				best_transcript = t;
+			}
+		}
+	}
+
+	if (current_best_quality != -1)
+	{
+		return best_transcript;
+	}
+
+	//first transcript
+	if(transcripts.count()>0)
+	{
+		return transcripts[0];
+	}
+
+	return VariantTranscript();
+}
+
 VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const SomaticReportSettings& sett, bool throw_errors)
 {
 	QSet<int> variant_indices = sett.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();

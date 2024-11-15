@@ -46,7 +46,7 @@ struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
 class CPPNGSDSHARED_EXPORT SomaticRnaReport
 {
 public:
-	SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const SomaticRnaReportData& data);
+	SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const BedpeFile &dna_svs, const VariantList& germline_variants, const SomaticRnaReportData& data);
 
 	///write RTF to file
 	void writeRtf(QByteArray out_file);
@@ -84,6 +84,10 @@ private:
 	VariantList dna_snvs_;
 	//Somatic DNA CNVs
 	CnvList dna_cnvs_;
+	//Somatic DNA SVs
+	BedpeFile dna_svs_;
+	//DNA germline SNVs
+	VariantList germline_vl_;
 	//Somatic RNA fusions
 	QList<arriba_sv> svs_;
 
@@ -121,6 +125,8 @@ private:
 	//expression data for genes with a pvalue < 0.05
 	QList<ExpressionData> high_confidence_expression_;
 
+	//create Table row for SNV tables:
+	RtfTableRow createSnvTableRow(const Variant& var, int i_co_sp, int i_tum_af, BamReader& bam_file, bool germline=false);
 
 	///Creates table that containts fusions from RNA data
 	RtfTable partFusions();

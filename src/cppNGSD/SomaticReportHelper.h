@@ -196,9 +196,6 @@ public:
 		return trans( QString(text) ).toUtf8();
 	}
 
-	///returns best matching transcript - or an empty transcript
-	static VariantTranscript selectSomaticTranscript(NGSD& db, const Variant& variant, int index_co_sp);
-
 	///adds necessary colors to the to the RTF document
 	static void addColors(RtfDocument& doc);
 

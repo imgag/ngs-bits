@@ -44,6 +44,12 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 
 	TargetRegionInfo target_region_filter;
 
+
+	//select transcripts
+	VariantTranscript selectGermlineTranscript(const Variant& var, int i_germl_co_sp) const;
+	///returns best matching transcript - or an empty transcript
+	VariantTranscript selectSomaticTranscript(NGSD& db, const Variant& variant, int index_co_sp) const;
+
 	//parse msi-file and return the stepwise difference value
 	double get_msi_value(NGSD& db) const;
 
@@ -55,6 +61,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	static BedpeFile filterSvs(NGSD& db, const BedpeFile& svs, const SomaticReportSettings& sett);
 	///returns list containing germline variants.
 	static VariantList filterGermlineVariants(const VariantList& germl_snvs, const SomaticReportSettings& sett);
+
 };
 
 #endif // SOMATICREPORTSETTINGS_H

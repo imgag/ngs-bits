@@ -4001,7 +4001,7 @@ void MainWindow::generateReportSomaticRTF()
 			tmp_rna_ref_tissue.removeDuplicates();
 			rna_report_data.rna_hpa_ref_tissue = tmp_rna_ref_tissue.join(", ");
 
-			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
+			SomaticRnaReport rna_report(variants_, cnvs_, svs_, somatic_control_tissue_variants_,  rna_report_data);
 
 			rna_report.writeRtf(temp_filename);
 			Helper::moveFile(temp_filename, file_rep);
