@@ -226,7 +226,11 @@ public:
 								int wt_count = sample_values[j].count('0');
 								if (allele_count==0 && wt_count==2)
 								{
-									new_samples_per_allele[a][i] = "0/0";
+									if (phased)
+									{
+										new_samples_per_allele[a][i] = "0|0";
+									}
+									else new_samples_per_allele[a][i] = "0/0";
 								}
 								else if (allele_count==0 && wt_count==1)
 								{
@@ -239,7 +243,11 @@ public:
 								}
 								else if (allele_count==0 && wt_count==0)
 								{
-									new_samples_per_allele[a][i] = "./.";
+									if (phased)
+									{
+										new_samples_per_allele[a][i] = ".|.";
+									}
+									else new_samples_per_allele[a][i] = "./.";
 								}
 								else if (allele_count==1 && wt_count==1)
 								{
@@ -261,7 +269,11 @@ public:
 								}
 								else //allele_count==2 && wt_count==0
 								{
-									new_samples_per_allele[a][i] = "1/1";
+									if (phased)
+									{
+										new_samples_per_allele[a][i] = "1|1";
+									}
+									else new_samples_per_allele[a][i] = "1/1";
 								}
 							}
 						}
