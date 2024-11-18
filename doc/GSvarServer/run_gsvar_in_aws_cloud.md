@@ -1,6 +1,7 @@
-# Running GSvar with the server in AWS (Amazon Web Services)
+# Running GSvar and GSvarServer on AWS
 
-GSvar is a desktop client application (whcih can be built for Windows, Mac, and Linux). It constantly communicates with a HTTP server. The server applicatrion can be deployed (among other places) inside the Amazon Cloud.
+GSvar is a desktop client application (which can be built for Windows, Mac, and Linux). It communicates with the GSvarServer over HTTPS.  
+The GSvarServer application can be deployed (among other places) on the Amazon Cloud.
 
 ## AWS deployment steps
 
@@ -41,3 +42,7 @@ server_port = 8443
 threads = 6
 ```
 `GSvar` app will need to have an access to the [trusted CA](https://en.wikipedia.org/wiki/Certificate_authority). Usually it is a `*.crt` file (see `curl_ca_bundle` in the example above). `libcurl` is responsible for establishing a HTTPS connection.
+
+--
+
+[back to main page](index.md)

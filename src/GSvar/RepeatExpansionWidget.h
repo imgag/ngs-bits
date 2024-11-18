@@ -61,6 +61,7 @@ private:
 	void displayRepeats();
 	void loadMetaDataFromNGSD();
 	void colorRepeatCountBasedOnCutoffs();
+	void colorRepeatCountConfidenceInterval();
 	void setReportConfigHeaderIcons();
 };
 

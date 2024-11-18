@@ -85,6 +85,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 		GUIHelper::resizeTableCellWidths(ui_.table, 300);
 		GUIHelper::resizeTableCellHeightsToMinimum(ui_.table);
 		colorRepeatCountBasedOnCutoffs();
+		colorRepeatCountConfidenceInterval();
 		updateRowVisibility();
 		setReportConfigHeaderIcons();
 	}
@@ -612,6 +613,36 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		else if (statistical_cutoff!=-1.0 && max>=statistical_cutoff)
 		{
 			setCellDecoration(row, "genotype", "Above statistical cutoff!", yellow_);
+		}
+	}
+}
+
+void RepeatExpansionWidget::colorRepeatCountConfidenceInterval()
+{
+	for (int row=0; row<ui_.table->rowCount(); ++row)
+	{
+		//determine cutoff
+		bool ok = false;
+		int min_pathogenic = getCell(row, "min. pathogenic").toInt(&ok);
+		if (!ok) continue;
+
+		//determine max CI
+		int max_ci = -1;
+		QStringList ci_values = getCell(row, "genotype CI").replace("-", " ").replace("/", " ").split(" ");
+		foreach(QString ci_value, ci_values)
+		{
+			bool ok = false;
+			int value = ci_value.toInt(&ok);
+			if (ok && value>=0)
+			{
+				max_ci = value;
+			}
+		}
+
+		//color max CI
+		if (max_ci>min_pathogenic)
+		{
+			setCellDecoration(row, "genotype CI", "Above min. pathogenic cutoff!", yellow_);
 		}
 	}
 }

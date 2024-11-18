@@ -296,7 +296,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
-	connect(ui_.vars_resize_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(adaptColumnWidthsCustom()));
 	ui_.vars_export_btn->setMenu(new QMenu());
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
@@ -322,6 +321,10 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_af_hist->menu()->addSeparator();
 	ui_.vars_af_hist->menu()->addAction("Show CN histogram (in given region)", this, SLOT(showCnHistogram()));
 	ui_.vars_af_hist->menu()->addAction("Show BAF histogram (in given region)", this, SLOT(showBafHistogram()));
+	ui_.vars_resize_btn->setMenu(new QMenu());
+	ui_.vars_resize_btn->menu()->addAction("Open column settings", this, SLOT(openColumnSettings()));
+	ui_.vars_resize_btn->menu()->addAction("Apply column width settings", ui_.vars, SLOT(adaptColumnWidths()));
+	ui_.vars_resize_btn->menu()->addAction("Show all columns", ui_.vars, SLOT(showAllColumns()));
 
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentAnalysis()));
 
@@ -801,7 +804,7 @@ void MainWindow::on_actionSV_triggered()
 		int passing_vars = filter_result_.countPassing();
 		if (passing_vars>3000)
 		{
-			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " small variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
 		}
 		for (int i=0; i<variants_.count(); ++i)
@@ -831,13 +834,10 @@ void MainWindow::on_actionSV_triggered()
 		SvWidget* sv_widget;
 		if(svs_.isSomatic())
 		{
-			QString ps_id =	"";
-
-			// somatic
-			sv_widget = new SvWidget(this, svs_, ps_id, somatic_report_settings_.report_config, het_hit_genes);
+			sv_widget = new SvWidget(this, svs_, somatic_report_settings_.report_config, het_hit_genes);
 			connect(sv_widget, SIGNAL(updateSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 		}
-		else
+		else //germline
 		{
 			//determine processed sample ID (needed for report config)
 			QString ps_id = "";
@@ -849,13 +849,11 @@ void MainWindow::on_actionSV_triggered()
 			}
 
 			//open SV widget
-			sv_widget = new SvWidget(this, svs_, ps_id, svs_.isSomatic() ? nullptr : report_config, het_hit_genes);
+			sv_widget = new SvWidget(this, svs_, ps_id, report_config, het_hit_genes);
 		}
 
 		auto dlg = GUIHelper::createDialog(sv_widget, "Structural variants of " + variants_.analysisName());
 		addModelessDialog(dlg);
-
-
 	}
 	catch(FileParseException error)
 	{
@@ -891,7 +889,7 @@ void MainWindow::on_actionCNV_triggered()
 		int passing_vars = filter_result_.countPassing();
 		if (passing_vars>3000)
 		{
-			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " small variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
 		}
 		for (int i=0; i<variants_.count(); ++i)
@@ -2069,7 +2067,14 @@ void MainWindow::on_actionEncrypt_triggered()
 
 void MainWindow::on_actionSettings_triggered()
 {
+	openSettingsDialog();
+}
+
+void MainWindow::openSettingsDialog(QString page_name, QString section)
+{
 	SettingsDialog dlg(this);
+	dlg.setWindowFlags(Qt::Window);
+	dlg.gotoPage(page_name, section);
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
@@ -2094,6 +2099,11 @@ void MainWindow::on_actionRunOverview_triggered()
 
 	SequencingRunOverview* widget = new SequencingRunOverview(this);
 	openTab(QIcon(":/Icons/NGSD_run_overview.png"), name, type, widget);
+}
+
+void MainWindow::openColumnSettings()
+{
+	openSettingsDialog("columns", variantTypeToString(VariantType::SNVS_INDELS));
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
@@ -2495,20 +2505,32 @@ int MainWindow::openTab(QIcon icon, QString name, TabType type, QWidget* widget)
 
 void MainWindow::closeTab(int index)
 {
+	//main variant list
 	if (index==0)
 	{
-		int res = QMessageBox::question(this, "Close file?", "Do you want to close the current sample?", QMessageBox::Yes, QMessageBox::No);
-		if (res==QMessageBox::Yes)
+		if (filename_!="")
 		{
-			loadFile();
+			int res = QMessageBox::question(this, "Close file?", "Do you want to close the current sample?", QMessageBox::Yes, QMessageBox::No);
+			if (res==QMessageBox::Yes)
+			{
+				loadFile();
+			}
 		}
+		return;
 	}
-	else
+
+	//for analysis status widget and refresh is done > abort
+	QWidget* widget = ui_.tabs->widget(index);
+	AnalysisStatusWidget* analysis_status_widget = widget->findChild<AnalysisStatusWidget*>();
+	while (analysis_status_widget!=nullptr && analysis_status_widget->updateIsRunning())
 	{
-		QWidget* widget = ui_.tabs->widget(index);
-		ui_.tabs->removeTab(index);
-		widget->deleteLater();
+		QMessageBox::information(this, "Analysis status tab", "Please wait until table update is done before closing the analysis status tab!");
+		return;
 	}
+
+	//remove tab and delete tab widget
+	ui_.tabs->removeTab(index);
+	widget->deleteLater();
 }
 
 bool MainWindow::focusTab(TabType type, QString name)

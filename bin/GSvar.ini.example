@@ -66,9 +66,10 @@ gsvar_file_outdated_before = 2021-12-01
 interpretability_regions = 
 text_editor = 
 
-#GSvar server
+
+#GSVar server settings
 server_host = ""
-server_port = 
+server_port = 8443
 curl_ca_bundle = ""
 display_user_notifications = true
 use_proxy_for_gsvar_server = false
