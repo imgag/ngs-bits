@@ -175,7 +175,6 @@ QString ServerHelper::getCurrentServerLogFile()
         }
         foreach(QString filename, logs)
         {
-            Log::info("Checking " +  log_folder + filename);
             if ((QFileInfo(log_folder + filename).lastModified().toSecsSinceEpoch() > last_mod_time.toSecsSinceEpoch()) || last_mod_time.isNull())
             {
                 last_mod_time = QFileInfo(log_folder + filename).lastModified();
