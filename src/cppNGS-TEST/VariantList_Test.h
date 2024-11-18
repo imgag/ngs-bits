@@ -452,5 +452,22 @@ private slots:
 		I_EQUAL(v.end(), 28734476);
 		S_EQUAL(v.ref(), "TCCTCAGGTTCTTGG");
 		S_EQUAL(v.obs(), "-");
+
+		//COMPLEX INDEL (no prefix base)
+		v = Variant(VcfLine("chr13", 32339964, "TC", QList<Sequence>() << "AG"));
+		S_EQUAL(v.chr().str(), "chr13");
+		I_EQUAL(v.start(), 32339964);
+		I_EQUAL(v.end(), 32339965);
+		S_EQUAL(v.ref(), "TC");
+		S_EQUAL(v.obs(), "AG");
+
+
+		//COMPLEX INDEL (with prefix base)
+		v = Variant(VcfLine("chr13", 32339963, "TTC", QList<Sequence>() << "TAG"));
+		S_EQUAL(v.chr().str(), "chr13");
+		I_EQUAL(v.start(), 32339964);
+		I_EQUAL(v.end(), 32339965);
+		S_EQUAL(v.ref(), "TC");
+		S_EQUAL(v.obs(), "AG");
 	}
 };
