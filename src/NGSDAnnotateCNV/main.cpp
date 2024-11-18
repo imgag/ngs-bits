@@ -46,8 +46,6 @@ public:
 		SqlQuery sql_query = db.getQuery();
 		sql_query.prepare("SELECT rcc.class, cnv.start, cnv.end FROM cnv INNER JOIN report_configuration_cnv rcc ON cnv.id = rcc.cnv_id WHERE rcc.class IN ('4', '5') AND cnv.chr = :0 AND cnv.start <= :1 AND :2 <= cnv.end ");
 
-
-
 		out << "annotate TSV file..." << endl;
 
 		// copy comments
@@ -110,7 +108,10 @@ public:
 			QPair<int,double> p_cnv;
 			foreach(p_cnv, pathogenic_cnvs)
 			{
-				pathogenic_cnv_entries.append(QByteArray::number(p_cnv.first) + "/" + QByteArray::number(std::max(p_cnv.second, 0.0001), 'f', 4));
+				if (p_cnv.second >= 0.1)
+				{
+					pathogenic_cnv_entries.append(QByteArray::number(p_cnv.first) + "/" + QByteArray::number(p_cnv.second, 'f', 4));
+				}
 			}
 
 
