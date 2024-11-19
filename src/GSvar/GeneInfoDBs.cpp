@@ -41,7 +41,31 @@ void GeneInfoDBs::openUrl(QString db_name, QString gene_symbol)
 					return;
 				}
 			}
-			else
+			if (url.contains("[gene_id_ensembl]"))
+			{
+				static HttpHandler http_handler(false); //static to allow caching of credentials
+				try
+				{
+					HttpHeaders add_headers;
+					add_headers.insert("Accept", "application/json");
+
+					QByteArray reply = http_handler.get("https://rest.genenames.org/fetch/symbol/"+gene_symbol, add_headers);
+					QJsonDocument json = QJsonDocument::fromJson(reply);
+					QJsonArray docs = json.object().value("response").toObject().value("docs").toArray();
+					if (docs.count()!=1)
+					{
+						THROW(Exception, "Could not convert gene symbol to Ensembl identifier: HGNC REST API returned " + QString::number(docs.count()) + " entries!");
+					}
+					QString ensembl_id = docs.at(0).toObject().value("ensembl_gene_id").toString();
+					url.replace("[gene_id_ensembl]", ensembl_id);
+				}
+				catch(Exception& e)
+				{
+					QMessageBox::warning(GUIHelper::mainWindow(), "Could not get Ensembl gene identifier for gene " + gene_symbol, e.message());
+					return;
+				}
+			}
+			if (url.contains("[gene]"))
 			{
 				url.replace("[gene]", gene_symbol);
 			}
@@ -64,7 +88,6 @@ QList<GeneDB>& GeneInfoDBs::all()
 		dbs_ << GeneDB{"GeneCards", "https://www.genecards.org/cgi-bin/carddisp.pl?gene=[gene]", QIcon("://Icons/GeneCards.png"), false};
 		dbs_ << GeneDB{"GTEx", "https://www.gtexportal.org/home/gene/[gene]", QIcon("://Icons/GTEx.png"), false};
 		dbs_ << GeneDB{"gnomAD", "https://gnomad.broadinstitute.org/gene/[gene]?dataset=gnomad_r4", QIcon("://Icons/gnomAD.png"), false};
-
 		if (Settings::boolean("use_free_hgmd_version"))
 		{
 			dbs_ << GeneDB{"HGMD", "http://www.hgmd.cf.ac.uk/ac/gene.php?gene=[gene]", QIcon("://Icons/HGMD.png"), false}; //no HTTPS
@@ -78,6 +101,7 @@ QList<GeneDB>& GeneInfoDBs::all()
 		dbs_ << GeneDB{"cBioPortal", "https://www.cbioportal.org/ln?q=[gene]:MUT", QIcon("://Icons/cbioportal.png"), true};
 		dbs_ << GeneDB{"CKB", "https://ckb.jax.org/gene/show?geneId=[gene_id_ncbi]", QIcon("://Icons/ckb.png"), true};
 		dbs_ << GeneDB{"GeneReviews", "https://www.ncbi.nlm.nih.gov/books/NBK1116/?term=[gene]", QIcon("://Icons/GeneReviews.png"), true};
+		dbs_ << GeneDB{"ProteinAtlas", "https://www.proteinatlas.org/[gene_id_ensembl]-[gene]", QIcon("://Icons/ProteinAtlas.png"), true};
 	}
 
 	return dbs_;

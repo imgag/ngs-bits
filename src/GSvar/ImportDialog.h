@@ -33,6 +33,7 @@ public:
 private slots:
 	void pasteTable();
 	void import();
+	void variantImportFailed();
 
 private:
 	Ui::ImportDialog ui_;
