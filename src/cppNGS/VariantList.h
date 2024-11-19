@@ -78,7 +78,7 @@ public:
     Variant();
     ///Convenience constructor.
     Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations = QList<QByteArray>(), int filter_index = -1);
-	///Constructor from VCF variant (throws an exception if multi-allelic).
+	///Constructor from VCF variant. The variant is normalized to GSvar format with '-' for indels, but no left-aligned automatically. Throws an exception if input is invalid or multi-allelic.
 	Variant(const VcfLine& vcf);
 
 	///Returns if the variant is valid

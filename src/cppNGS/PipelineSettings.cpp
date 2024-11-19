@@ -10,7 +10,7 @@ void PipelineSettings::loadSettings(QString ini_file)
 {
 	QSharedPointer<QFile> file = Helper::openFileForReading(ini_file);
 
-	instance().root_dir_ = QFileInfo(ini_file).canonicalPath();
+	instance().root_dir_ = QFileInfo(ini_file).canonicalPath() + "/";
 	while (!file->atEnd())
 	{
 		QString line = file->readLine().trimmed();
@@ -33,6 +33,10 @@ void PipelineSettings::loadSettings(QString ini_file)
 			{
 				value = value.mid(1, value.count()-2).trimmed();
 			}
+			if (value.startsWith("[path]"))
+			{
+				value.replace("[path]", instance().root_dir_);
+			}
 
 			//handle PHP-style arrays in keys
 			QString array_key;
@@ -53,10 +57,6 @@ void PipelineSettings::loadSettings(QString ini_file)
 				if (key=="data_folder")
 				{
 					instance().data_folder_ = value;
-				}
-				if (key=="queue_email")
-				{
-					instance().queue_email_ = value;
 				}
 				if (key=="queues_default")
 				{
@@ -119,12 +119,6 @@ QString PipelineSettings::dataFolder()
 {
 	checkInitialized();
 	return instance().data_folder_;
-}
-
-QString PipelineSettings::queueEmail()
-{
-	checkInitialized();
-	return instance().queue_email_;
 }
 
 QStringList PipelineSettings::queuesDefault()

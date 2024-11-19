@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2024_08-102 (14.11.24)
+
+- small variants/CNVs/SVs: added functionality for custom column order/width/visibilty (see [docu](https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/configuration.md)).
+- processed sample tab/sample search: added REs to report configuration summary
+- IGV: speed-up of IGV init dialog by querying GSvar server in background
+
 ## 2024_08-68 (25.10.24)
 
 - general: added HerediVar support (variant search and classification import)

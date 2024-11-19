@@ -14,7 +14,7 @@ BackgroundJobDialog::BackgroundJobDialog(QWidget* parent)
 	pool_.setMaxThreadCount(1);
 }
 
-void BackgroundJobDialog::start(BackgroundWorkerBase* job, bool show_busy_dialog)
+int BackgroundJobDialog::start(BackgroundWorkerBase* job, bool show_busy_dialog)
 {
 	//set ID
 	job->setId(next_id_);
@@ -42,6 +42,31 @@ void BackgroundJobDialog::start(BackgroundWorkerBase* job, bool show_busy_dialog
 
 	//start
 	pool_.start(job);
+    return job_info.id;
+}
+
+QString BackgroundJobDialog::getJobStatus(int job_id)
+{
+    for (int i=0; i<jobs_.count(); ++i)
+    {
+        if (jobs_[i].id==job_id)
+        {
+            return jobs_[i].status;
+        }
+    }
+    return "";
+}
+
+QString BackgroundJobDialog::getJobMessages(int job_id)
+{
+    for (int i=0; i<jobs_.count(); ++i)
+    {
+        if (jobs_[i].id==job_id)
+        {
+            return jobs_[i].messages;
+        }
+    }
+    return "";
 }
 
 void BackgroundJobDialog::started()

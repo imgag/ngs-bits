@@ -22,7 +22,6 @@ private slots:
 		S_EQUAL(PipelineSettings::projectFolder("external"), "/mnt/storage4/projects/external/");
 
 		S_EQUAL(PipelineSettings::dataFolder(), "/mnt/storage4/megSAP/data/");
-		S_EQUAL(PipelineSettings::queueEmail(), "some.email@med.uni-tuebingen.de");
 		IS_TRUE(PipelineSettings::queuesDefault().contains("default_srv010"));
 		IS_TRUE(PipelineSettings::queuesResearch().contains("research_srv011"));
 		IS_TRUE(PipelineSettings::queuesHighPriority().contains("priority_srv010"));

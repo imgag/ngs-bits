@@ -36,9 +36,13 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(const HttpRequest& request)
 	{
 		message = NGSD().checkPassword(username, password);
 	}
+    catch (DatabaseException& e)
+    {
+        return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Database error: " + e.message());
+    }
 	catch (Exception& e)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Database error: " + e.message());
+        return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Error: " + e.message());
 	}
 
 	if (!message.isEmpty())

@@ -184,7 +184,7 @@
                 <item>
                  <widget class="QToolButton" name="vars_resize_btn">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resize columns to content (custom).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Column order and size settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>...</string>
@@ -192,6 +192,9 @@
                   <property name="icon">
                    <iconset resource="GSvar.qrc">
                     <normaloff>:/Icons/Resize_colums.png</normaloff>:/Icons/Resize_colums.png</iconset>
+                  </property>
+                  <property name="popupMode">
+                   <enum>QToolButton::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
@@ -363,7 +366,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

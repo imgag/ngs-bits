@@ -86,7 +86,6 @@ public:
 			sql_query.bindValue(1, end);
 			sql_query.bindValue(2, start);
 			sql_query.exec();
-
 			while(sql_query.next())
 			{
 				int p_class = sql_query.value(0).toInt();

@@ -62,6 +62,9 @@ Variant::Variant(const VcfLine& vcf)
 	//check input
 	if (!vcf.isValid()) THROW(Exception, "Cannot convert invalid VCF variant to GSvar variant: " + vcf.toString());
 	if(vcf.isMultiAllelic()) THROW(Exception, "Cannot convert multi-allelic VCF variant to GSvar variant: " +vcf.toString());
+
+	//normalize to GSvar format
+	normalize("-", true);
 }
 
 QByteArrayList Variant::vepAnnotations(int csq_index, int field_index) const

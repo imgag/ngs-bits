@@ -58,7 +58,7 @@ public:
 			{
 				// check if annotation already exisits:
 				i_annotations.append(bedpe_file.annotationIndexByName(sample_info.name.toUtf8() + "_GENOTYPE", false));
-				// modify header if gene columns not already present
+				// modify header if genotype columns not already present
 				if (i_annotations.last() < 0) updated_header.append(sample_info.name.toUtf8() + "_GENOTYPE");
 			}
 		}
@@ -68,7 +68,7 @@ public:
 			i_annotations.append(bedpe_file.annotationIndexByName("GENOTYPE", false));
 			// get header
 			updated_header = bedpe_file.annotationHeaders();
-			// modify header if gene columns not already present
+			// modify header if genotype columns not already present
 			if (i_annotations[0] < 0) updated_header.append("GENOTYPE");
 		}
 

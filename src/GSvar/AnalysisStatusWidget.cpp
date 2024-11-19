@@ -40,6 +40,11 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	connect(ui_.f_mine, SIGNAL(stateChanged(int)), this, SLOT(applyFilters()));
 }
 
+bool AnalysisStatusWidget::updateIsRunning() const
+{
+	return update_running_;
+}
+
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
 {
 	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, samples, this))
@@ -75,6 +80,8 @@ void AnalysisStatusWidget::analyzeSomatic(QList<AnalysisJobSample> samples)
 void AnalysisStatusWidget::refreshStatus()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	update_running_ = true;
 
 	try
 	{
@@ -232,6 +239,8 @@ void AnalysisStatusWidget::refreshStatus()
 
 	GUIHelper::resizeTableCellWidths(ui_.analyses, 400);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.analyses);
+
+	update_running_ = false;
 
 	QApplication::restoreOverrideCursor();
 }

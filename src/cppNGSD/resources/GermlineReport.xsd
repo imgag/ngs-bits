@@ -759,6 +759,7 @@
 												<xs:enumeration value="4"/>
 												<xs:enumeration value="5"/>
 												<xs:enumeration value="M"/>
+												<xs:enumeration value="R*"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
@@ -1017,6 +1018,7 @@
 												<xs:enumeration value="4"/>
 												<xs:enumeration value="5"/>
 												<xs:enumeration value="M"/>
+												<xs:enumeration value="R*"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
@@ -1305,6 +1307,7 @@
 												<xs:enumeration value="4"/>
 												<xs:enumeration value="5"/>
 												<xs:enumeration value="M"/>
+												<xs:enumeration value="R*"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
