@@ -832,6 +832,12 @@ void VariantTable::showAllColumns()
 		if(isColumnHidden(c))
 		{
 			setColumnHidden(c, false);
+
+			//make sure hidden columns have a non-zero width
+			if (c>5 && columnWidth(c)==0)
+			{
+				setColumnWidth(c, 200);
+			}
 		}
 	}
 }
