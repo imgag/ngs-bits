@@ -21,6 +21,8 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 {
 	if (run_ids_.size() < 1) THROW(ArgumentException, "At least one run_id has to be provided!");
 	is_batch_view_ = run_ids.size() > 1;
+
+	run_ids_.sort();
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
 	ui_->splitter->setSizes(QList<int>() << 200 << 800);
