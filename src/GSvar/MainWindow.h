@@ -353,7 +353,7 @@ public slots:
 	///Updated the variant context menu
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
-	void refreshVariantTable(bool keep_widths = true);
+	void refreshVariantTable(bool keep_widths = true, bool keep_heights = false);
 	///Opens the recent processed sample defined by the sender action text
 	void openRecentSample();
 	///Loads the command line input file.
