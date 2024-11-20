@@ -1787,7 +1787,7 @@ void MainWindow::editVariantValidation(int index)
 
 			//update details widget and filtering
 			ui_.variant_details->updateVariant(variants_, index);
-			refreshVariantTable();
+			refreshVariantTable(true, true);
 
 			//mark variant list as changed
 			markVariantListChanged(variant, "validation", status);
@@ -2704,7 +2704,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
 		refreshVariantTable(false);
-		ui_.vars->adaptColumnWidths();
 
 		QApplication::restoreOverrideCursor();
 	}
@@ -3155,7 +3154,6 @@ void MainWindow::loadReportConfig()
 	//load
 	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, res_);
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
-
 
 	//updateGUI
 	refreshVariantTable();
@@ -5448,7 +5446,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	event->accept();
 }
 
-void MainWindow::refreshVariantTable(bool keep_widths)
+void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -5488,7 +5486,13 @@ void MainWindow::refreshVariantTable(bool keep_widths)
 		THROW(ProgrammingException, "Unsupported analysis type in refreshVariantTable!");
 	}
 
-	ui_.vars->adaptRowHeights();
+	//height
+	if (!keep_heights)
+	{
+		ui_.vars->adaptRowHeights();
+	}
+
+	//widths
 	if (keep_widths)
 	{
 		ui_.vars->setColumnWidths(col_widths);
@@ -5910,8 +5914,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 
 		//update details widget and filtering
 		ui_.variant_details->updateVariant(variants, index);
-		refreshVariantTable();
-
+		refreshVariantTable(true, true);
 	}
 	catch (DatabaseException& e)
 	{

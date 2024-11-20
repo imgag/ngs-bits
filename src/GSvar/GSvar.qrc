@@ -130,5 +130,6 @@
         <file>Icons/GeneReviews.png</file>
         <file>Icons/Export.png</file>
         <file>Icons/HerediVar.png</file>
+        <file>Icons/ProteinAtlas.png</file>
     </qresource>
 </RCC>

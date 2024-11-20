@@ -29,6 +29,11 @@ void ColumnConfig::getOrder(const VariantList& variants, QStringList& col_order,
 	{
 		cols_gt << info.name;
 	}
+	AnalysisType type = variants.type();
+	if (type==SOMATIC_PAIR || type==SOMATIC_SINGLESAMPLE || type==CFDNA)
+	{
+		cols_gt << "tumor_af" << "tumor_dp" << "normal_af" << "normal_dp";
+	}
 
 	//check if columns are contained in this config
 	QHash<QString, int> col2index;
@@ -48,7 +53,6 @@ void ColumnConfig::getOrder(const VariantList& variants, QStringList& col_order,
 
 	//determine column order
 	col_order.clear();
-	AnalysisType type = variants.type();
 	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 	{
 		col_order.append(cols_gt);
@@ -151,7 +155,7 @@ void ColumnConfig::getOrder(const BedpeFile& svs, QStringList& col_order, QList<
 void ColumnConfig::applyColumnWidths(QTableWidget* table, int max_width_for_not_contained)
 {
 	//general resize
-	GUIHelper::resizeTableCellWidths(table);
+	GUIHelper::resizeTableCellWidths(table, -1, 1000);
 	GUIHelper::resizeTableCellHeightsToMinimum(table);
 
 	//apply column settings

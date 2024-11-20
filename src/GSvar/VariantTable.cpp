@@ -773,11 +773,18 @@ void VariantTable::setColumnWidths(const QList<int>& widths)
 
 void VariantTable::adaptRowHeights()
 {
-	if (rowCount()<1) return;
+	if (rowCount()==0) return;
 
+	//determine minimum height of first 10 rows
 	resizeRowToContents(0);
 	int height = rowHeight(0);
+	for (int i=1; i<std::min(10, rowCount()); ++i)
+	{
+		resizeRowToContents(i);
+		if (rowHeight(i)<height) height = rowHeight(i);
+	}
 
+	//set height for all columns
 	for (int i=0; i<rowCount(); ++i)
 	{
 		setRowHeight(i, height);
@@ -832,6 +839,12 @@ void VariantTable::showAllColumns()
 		if(isColumnHidden(c))
 		{
 			setColumnHidden(c, false);
+
+			//make sure hidden columns have a non-zero width
+			if (c>5 && columnWidth(c)==0)
+			{
+				setColumnWidth(c, 200);
+			}
 		}
 	}
 }
