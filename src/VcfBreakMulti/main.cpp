@@ -277,6 +277,15 @@ public:
 								}
 							}
 						}
+						else if (sample_values[j] == ".")
+						{
+							for (int a = 0; a < alt.length(); ++a)
+							{
+								if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+								new_samples_per_allele[a][i] += sample_values[j];
+							}
+						}
+
 						else if (format_types.at(j) == R || format_types.at(j) == A) //special handling A/R entries
 						{
 							QByteArrayList sample_value_parts = sample_values[j].split(',');
