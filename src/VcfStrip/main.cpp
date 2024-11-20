@@ -18,16 +18,15 @@ public:
     virtual void setup()
     {
 		setDescription("Removes unwanted format- and info-fields from VCF file only keeping specified fields.");
-		addString("format", "Comma-separated list of formats to keep", false);
 
 		//optional
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF file. If unset, writes to STDOUT.", true, true);
-		addString("info", "Comma-separated list of infos to keep. When not providing an info list, no infos are kept.", true, "none");
+		addString("info", "Comma-separated list of infos to keep. When not providing an info list, all infos are kept.", true);
+		addString("format", "Comma-separated list of formats to keep. When not providing a format list, all formats are kept", true);
+		addFlag("clear_info", "remove all info fields");
 
-
-
-		changeLog(2018, 10, 18, "Initial implementation.");
+		changeLog(2024, 11, 20, "Initial implementation.");
     }
 
 	///Return ID from FORMAT/INFO line
@@ -43,7 +42,7 @@ public:
         //open input/output streams
         QString in = getInfile("in");
         QString out = getOutfile("out");
-		QTextStream out_stream(stdout);
+		bool clear_info = getFlag("clear_info");
 
         if(in!="" && in==out)
         {
@@ -54,45 +53,47 @@ public:
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
 		//get list of formats and infos to keep
-		QStringList formats_keep = getString("format").split(',');
-		QStringList infos_keep = getString("info").split(',');
-
-		//create regex from format and info list
-		QRegularExpression formats_regex("ID=(" + formats_keep.join('|') + "),");
-		QRegularExpression infos_regex("ID=(" + infos_keep.join('|') + "),");
-
+		QSet<QByteArray> formats_keep = getString("format").toUtf8().split(',').toSet().subtract(QSet<QByteArray>{""});
+		QSet<QByteArray> infos_keep = getString("info").toUtf8().split(',').toSet().subtract(QSet<QByteArray>{""});
 
         while(!in_p->atEnd())
         {
             QByteArray line = in_p->readLine();
+			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
             //skip empty lines
-            if (line.trimmed().isEmpty()) continue;
-
-			//convert line to QString for regex matching
-			QString line_str = QString::fromUtf8(line);
+			if (line.isEmpty()) continue;
 
 			//remove unwanted header
             if (line.startsWith('#'))
 			{
-				if (line.startsWith("##INFO") && (!line_str.contains(infos_regex)))
+				QByteArray line_id = getId(line);
+				if (line.startsWith("##INFO"))
+				{
+					if (!infos_keep.isEmpty())
+					{
+						if (!infos_keep.contains(line_id)) continue;
+					}
+					else if (clear_info) continue;
+					else
+					{
+						out_p->write(line.append(('\n')));
+						continue;
+					}
+                }
+				else if (line.startsWith("##FORMAT") && (!formats_keep.contains(line_id) && !formats_keep.isEmpty()))
 				{
 					continue;
                 }
-				else if (line.startsWith("##FORMAT") && (!line_str.contains(formats_regex)))
-				{
-					continue;
-                }
-				out_p->write(line);
+				out_p->write(line.append('\n'));
                 continue;
             }
 
 
-			//split line and extract info, format field and sample count
-			QByteArrayList parts = line.trimmed().split('\t');
+			//split line and extract format field and sample count
+			QByteArrayList parts = line.split('\t');
 			if (parts.length() < VcfFile::MIN_COLS) THROW(FileParseException, "VCF with too few columns: " + line);
 
-			QByteArrayList info = parts[VcfFile::INFO].split(';');
 			QByteArrayList format;
 			int samples_count = 0;
 
@@ -103,46 +104,48 @@ public:
 			}
 
 			//construct a new info block
-			QByteArray new_infos;
-			if (infos_keep[0]!="none")
+			if (!infos_keep.isEmpty())
 			{
+				QByteArray new_infos;
+				QByteArrayList info = parts[VcfFile::INFO].split(';');
 				for (int i = 0; i < info.length(); ++i)
 				{
-					for (int j = 0; j < infos_keep.length(); ++j)
+					//determine info ID
+					QByteArray info_id;
+					if (info[i].contains("="))
 					{
-						if (info[i].startsWith(infos_keep[j].toUtf8() + "="))
-						{
-							if (!new_infos.isEmpty()) new_infos += ";";
-							new_infos += info[i];
-						}
+						int id_len = info[i].indexOf("=");
+						info_id = info[i].mid(0, id_len);
+					}
+					else info_id = info[i];
+
+					//check whether to keep or discard the info
+					if (infos_keep.contains(info_id))
+					{
+						if (!new_infos.isEmpty()) new_infos += ";";
+						new_infos += info[i];
 					}
 				}
+				if (new_infos.isEmpty()) new_infos = ".";
+				//exchange info field
+				parts[VcfFile::INFO] = new_infos;
 			}
-			else new_infos = ".";
-			if (new_infos.isEmpty()) new_infos = ".";
-
-			//exchange info field
-			parts[VcfFile::INFO] = new_infos;
+			else if (clear_info) parts[VcfFile::INFO] = ".";
 
 			//construct new format block and save indices of entries to keep (to construct sample blocks later)
 			QByteArray new_formats;
 			QList<int> format_indices;
-			if (samples_count!=0)
+			if (samples_count!=0 && (!formats_keep.isEmpty()))
 			{
 				for (int i = 0; i < format.length(); ++i)
 				{
-					for (int j = 0; j < formats_keep.length(); ++j)
+					if (formats_keep.contains(format[i]))
 					{
-						if (format[i] == formats_keep[j])
-						{
-							if (!new_formats.isEmpty()) new_formats += ":";
-							new_formats += format[i];
-							format_indices.append(i);
-							break;
-						}
+						if (!new_formats.isEmpty()) new_formats += ":";
+						new_formats += format[i];
+						format_indices.append(i);
 					}
 				}
-
 				if (new_formats.isEmpty()) new_formats = ".";
 
 				//exchange format field
@@ -167,7 +170,6 @@ public:
 					if (new_samples.isEmpty()) new_samples = ".";
 					parts[sample_column] = new_samples;
 				}
-
 			}
 
 			//write output line

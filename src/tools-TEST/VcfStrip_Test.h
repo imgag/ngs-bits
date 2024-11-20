@@ -15,8 +15,15 @@ private slots:
 
 	void no_info_test()
 	{
-		EXECUTE("VcfStrip", "-in " + TESTDATA("data_in/VcfStrip_in1.vcf") + " -out out/VcfStrip_out2.vcf -format GT,DP,AO");
+		EXECUTE("VcfStrip", "-in " + TESTDATA("data_in/VcfStrip_in1.vcf") + " -out out/VcfStrip_out2.vcf -format GT,DP,AO -clear_info");
 		COMPARE_FILES("out/VcfStrip_out2.vcf", TESTDATA("data_out/VcfStrip_out2.vcf"));
 		VCF_IS_VALID_HG19("out/VcfStrip_out2.vcf")
+	}
+
+	void no_stripping_test()
+	{
+		EXECUTE("VcfStrip", "-in " + TESTDATA("data_in/VcfStrip_in1.vcf") + " -out out/VcfStrip_out3.vcf");
+		COMPARE_FILES("out/VcfStrip_out3.vcf", TESTDATA("data_out/VcfStrip_out3.vcf"));
+		VCF_IS_VALID_HG19("out/VcfStrip_out3.vcf")
 	}
 };
