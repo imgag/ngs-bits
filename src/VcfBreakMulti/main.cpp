@@ -80,6 +80,7 @@ public:
 		enum AnnotationType {R, A, OTHER};
 		QHash<QByteArray, AnnotationType> info2type;
 		QHash<QByteArray, AnnotationType> format2type;
+		QHash<QByteArray, int> ignored_fields;
 		QTextStream out_stream(stderr);
 
         while(!in_p->atEnd())
@@ -124,8 +125,6 @@ public:
 
 			// For each allele construct a separate info block
 			QVector<QByteArray> new_infos_per_allele(alt.length());
-			QByteArray ignored_infos;
-			QByteArray ignored_formats;
 			for (int i = 0; i < info.length(); ++i)
 			{
 				QByteArrayList info_parts = info[i].split('='); // split HEADER=VALUE
@@ -149,8 +148,14 @@ public:
 							}
 							if (verbose)
 							{
-								if (!ignored_infos.isEmpty()) ignored_infos += ",";
-								ignored_infos += info_name;
+								if (ignored_fields.keys().contains(info_name))
+								{
+									ignored_fields[info_name] += 1;
+								}
+								else
+								{
+									ignored_fields[info_name] = 1;
+								}
 							}
 						}
 						else
@@ -308,10 +313,16 @@ public:
 										if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
 										new_samples_per_allele[a][i] += sample_values[j];
 									}
-									if (!ignored_formats.contains(format[j]) && verbose)
+									if (verbose)
 									{
-										if (!ignored_formats.isEmpty()) ignored_formats += ",";
-										ignored_formats += format[j];
+										if (ignored_fields.keys().contains(format[j]))
+										{
+											ignored_fields[format[j]] += 1;
+										}
+										else
+										{
+											ignored_fields[format[j]] = 1;
+										}
 									}
 								}
 								else
@@ -367,15 +378,17 @@ public:
 				}
 				out_p->write(parts.join('\t').append('\n'));
 			}
+		}
 
-			if (no_errors && (!ignored_infos.isEmpty() || !ignored_formats.isEmpty()) && verbose)
+		//Output number of not splitted format and/or info fields to stderr
+		if (no_errors && verbose)
+		{
+			out_stream << "The following number of info and/or format fields were not splitted due to unexpected value counts: " << endl;
+			foreach (const QByteArray& key, ignored_fields.keys())
 			{
-				out_stream << "For the following line info and/or format fields were not splitted due to unexpected value counts: " << endl;
-				out_stream << "Line: " << line;
-				out_stream << "Info fields not splitted: " << ignored_infos << endl;
-				out_stream << "Format fields splitted: " << ignored_formats << endl << endl;
-
+				out_stream << key << ": " << ignored_fields[key] << endl;
 			}
+
 		}
 	}
 };
