@@ -26,4 +26,11 @@ private slots:
 		COMPARE_FILES("out/VcfStrip_out3.vcf", TESTDATA("data_out/VcfStrip_out3.vcf"));
 		VCF_IS_VALID_HG19("out/VcfStrip_out3.vcf")
 	}
+
+	void key_only_info_test()
+	{
+		EXECUTE("VcfStrip", "-in " + TESTDATA("data_in/VcfStrip_in1.vcf") + " -out out/VcfStrip_out4.vcf -info DP,LEN,SOME_FLAG -format GT,DP,QA");
+		COMPARE_FILES("out/VcfStrip_out4.vcf", TESTDATA("data_out/VcfStrip_out4.vcf"));
+		VCF_IS_VALID_HG19("out/VcfStrip_out4.vcf")
+	}
 };

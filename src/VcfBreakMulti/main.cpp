@@ -21,6 +21,7 @@ public:
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addFlag("no_errors", "Ignore VCF format errors if possible.");
+		addFlag("verbose", "Writes ignored VCF format errors to stderr.");
 
 		changeLog(2018, 10, 18, "Initial implementation.");
     }
@@ -69,6 +70,7 @@ public:
         QString in = getInfile("in");
         QString out = getOutfile("out");
 		bool no_errors = getFlag("no_errors");
+		bool verbose = getFlag("verbose");
         if(in!="" && in==out)
         {
             THROW(ArgumentException, "Input and output files must be different when streaming!");
@@ -78,6 +80,7 @@ public:
 		enum AnnotationType {R, A, OTHER};
 		QHash<QByteArray, AnnotationType> info2type;
 		QHash<QByteArray, AnnotationType> format2type;
+		QTextStream out_stream(stderr);
 
         while(!in_p->atEnd())
         {
@@ -121,6 +124,8 @@ public:
 
 			// For each allele construct a separate info block
 			QVector<QByteArray> new_infos_per_allele(alt.length());
+			QByteArray ignored_infos;
+			QByteArray ignored_formats;
 			for (int i = 0; i < info.length(); ++i)
 			{
 				QByteArrayList info_parts = info[i].split('='); // split HEADER=VALUE
@@ -140,9 +145,13 @@ public:
 							for (int j = 0; j < new_infos_per_allele.size(); ++j)
 							{
 								if (!new_infos_per_allele[j].isEmpty()) new_infos_per_allele[j] += ";";
-								new_infos_per_allele[j] += info_parts[1];
+								new_infos_per_allele[j] += info[i];
 							}
-
+							if (verbose)
+							{
+								if (!ignored_infos.isEmpty()) ignored_infos += ",";
+								ignored_infos += info_name;
+							}
 						}
 						else
 						{
@@ -210,7 +219,6 @@ public:
                     }
 
 					QByteArrayList sample_values = parts[sample_column].split(':');
-
 					for (int j = 0; j < sample_values.length(); ++j)
 					{
 						if (j==0 && format[j]=="GT") //special handling GT entry (must be first entry if present!)
@@ -300,6 +308,11 @@ public:
 										if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
 										new_samples_per_allele[a][i] += sample_values[j];
 									}
+									if (!ignored_formats.contains(format[j]) && verbose)
+									{
+										if (!ignored_formats.isEmpty()) ignored_formats += ",";
+										ignored_formats += format[j];
+									}
 								}
 								else
 								{
@@ -354,8 +367,17 @@ public:
 				}
 				out_p->write(parts.join('\t').append('\n'));
 			}
+
+			if (no_errors && (!ignored_infos.isEmpty() || !ignored_formats.isEmpty()) && verbose)
+			{
+				out_stream << "For the following line info and/or format fields were not splitted due to unexpected value counts: " << endl;
+				out_stream << "Line: " << line;
+				out_stream << "Info fields not splitted: " << ignored_infos << endl;
+				out_stream << "Format fields splitted: " << ignored_formats << endl << endl;
+
+			}
 		}
-    }
+	}
 };
 
 #include "main.moc"
