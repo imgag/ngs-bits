@@ -1,5 +1,5 @@
 ### FastqConvert tool help
-	FastqConvert (2020_03-159-g5c8b2e82)
+	FastqConvert (2024_08-110-g317f43b9)
 	
 	Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset.
 	
@@ -16,9 +16,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### FastqConvert changelog
-	FastqConvert 2020_03-159-g5c8b2e82
+	FastqConvert 2024_08-110-g317f43b9
 	
 	2020-07-15 Added 'compression_level' parameter.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

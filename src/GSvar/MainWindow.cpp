@@ -5847,8 +5847,12 @@ void MainWindow::on_actionClearLogFile_triggered()
 	{
 		QFile::remove(filename);
 	}
- }
+}
 
+void MainWindow::on_actionOpenGSvarDataFolder_triggered()
+{
+	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
+}
 
 void MainWindow::editVariantClassification(VariantList& variants, int index, bool is_somatic)
 {

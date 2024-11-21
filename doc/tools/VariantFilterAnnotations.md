@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2024_08-36-g4fed1f49)
+	VariantFilterAnnotations (2024_08-113-g94a3b440)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -170,18 +170,19 @@
 	                                     invert - If set, removes all variants if they were called in short-read WGS sample. [default=false]
 	
 	Mandatory parameters:
-	  -in <file>      Input variant list in GSvar format.
-	  -out <file>     Output variant list in GSvar format.
-	  -filters <file> Filter definition file.
+	  -in <file>        Input variant list in GSvar format.
+	  -out <file>       Output variant list in GSvar format.
+	  -filters <file>   Filter definition file.
 	
 	Special parameters:
-	  --help          Shows this help and exits.
-	  --version       Prints version and exits.
-	  --changelog     Prints changeloge and exits.
-	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help            Shows this help and exits.
+	  --version         Prints version and exits.
+	  --changelog       Prints changeloge and exits.
+	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2024_08-36-g4fed1f49
+	VariantFilterAnnotations 2024_08-113-g94a3b440
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

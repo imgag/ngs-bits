@@ -1,5 +1,5 @@
 ### BamToFastq tool help
-	BamToFastq (2023_03-63-gec44de43)
+	BamToFastq (2024_08-110-g317f43b9)
 	
 	Converts a coordinate-sorted BAM file to FASTQ files.
 	
@@ -29,9 +29,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### BamToFastq changelog
-	BamToFastq 2023_03-63-gec44de43
+	BamToFastq 2024_08-110-g317f43b9
 	
 	2023-03-22 Added mode for single-end samples (long reads).
 	2020-11-27 Added CRAM support.

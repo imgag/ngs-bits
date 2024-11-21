@@ -40,7 +40,7 @@ public:
 	 * \param seperator - the seperator to look for: usually ,
 	 * \param colum - the column to look in e.g start looking for in the 4th colum
 	 */
-	bool includesSeperator(const QByteArray& text, const char& seperator, int column)
+	bool includesSeperator(const QByteArray& text, char seperator, int column)
 	{
 		int current_col = 0;
 		for (int i = 0; i < text.length(); ++i)
@@ -80,7 +80,8 @@ public:
 		enum AnnotationType {R, A, OTHER};
 		QHash<QByteArray, AnnotationType> info2type;
 		QHash<QByteArray, AnnotationType> format2type;
-		QHash<QByteArray, int> ignored_fields;
+		QHash<QByteArray, int> ignored_info_field_errors;
+		QHash<QByteArray, int> ignored_format_field_errors;
 		QTextStream out_stream(stderr);
 
         while(!in_p->atEnd())
@@ -148,14 +149,7 @@ public:
 							}
 							if (verbose)
 							{
-								if (ignored_fields.keys().contains(info_name))
-								{
-									ignored_fields[info_name] += 1;
-								}
-								else
-								{
-									ignored_fields[info_name] = 1;
-								}
+								ignored_info_field_errors[info_name] += 1;
 							}
 						}
 						else
@@ -315,14 +309,7 @@ public:
 									}
 									if (verbose)
 									{
-										if (ignored_fields.keys().contains(format[j]))
-										{
-											ignored_fields[format[j]] += 1;
-										}
-										else
-										{
-											ignored_fields[format[j]] = 1;
-										}
+										ignored_format_field_errors[format[j]] += 1;
 									}
 								}
 								else
@@ -380,15 +367,17 @@ public:
 			}
 		}
 
-		//Output number of not splitted format and/or info fields to stderr
+		//Output ignored errors
 		if (no_errors && verbose)
 		{
-			out_stream << "The following number of info and/or format fields were not splitted due to unexpected value counts: " << endl;
-			foreach (const QByteArray& key, ignored_fields.keys())
+			for (auto it=ignored_info_field_errors.begin(); it!=ignored_info_field_errors.end(); ++it)
 			{
-				out_stream << key << ": " << ignored_fields[key] << endl;
+				out_stream << "Ignored invalid value count of INFO field '" << it.key() << "' " << QString::number(it.value()) << " times" << endl;
 			}
-
+			for (auto it=ignored_format_field_errors.begin(); it!=ignored_format_field_errors.end(); ++it)
+			{
+				out_stream << "Ignored invalid value count of FORMAT field '" << it.key() << "' " << QString::number(it.value()) << " times" << endl;
+			}
 		}
 	}
 };

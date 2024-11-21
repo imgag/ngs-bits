@@ -17,14 +17,14 @@ public:
 
     virtual void setup()
     {
-		setDescription("Removes unwanted format- and info-fields from VCF file only keeping specified fields.");
+		setDescription("Removes unwanted information from a VCF file.");
 
 		//optional
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF file. If unset, writes to STDOUT.", true, true);
-		addString("info", "Comma-separated list of infos to keep. When not providing an info list, all infos are kept.", true);
-		addString("format", "Comma-separated list of formats to keep. When not providing a format list, all formats are kept", true);
-		addFlag("clear_info", "remove all info fields");
+		addString("info", "Comma-separated list of INFO entries to keep. If unset, all INFO entries are kept.", true);
+		addString("format", "Comma-separated list of FORMAT entries to keep. If unset, all FORMAT entries are kept", true);
+		addFlag("clear_info", "Remove all INFO fields");
 
 		changeLog(2024, 11, 20, "Initial implementation.");
     }

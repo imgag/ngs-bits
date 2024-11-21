@@ -1,5 +1,5 @@
 ### HgvsToVcf tool help
-	HgvsToVcf (2024_08-36-g4fed1f49)
+	HgvsToVcf (2024_08-110-g317f43b9)
 	
 	Transforms a TSV file with transcript ID and HGVS.c change into a VCF file.
 	
@@ -33,9 +33,10 @@
 	  --version                  Prints version and exits.
 	  --changelog                Prints changeloge and exits.
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### HgvsToVcf changelog
-	HgvsToVcf 2024_08-36-g4fed1f49
+	HgvsToVcf 2024_08-110-g317f43b9
 	
 	2022-07-25 Added parameter 'max_seq'.
 	2022-05-12 Initial version

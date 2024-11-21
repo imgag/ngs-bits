@@ -1,5 +1,5 @@
 ### TrioMaternalContamination tool help
-	TrioMaternalContamination (2021_12-80-g5ff26d8f)
+	TrioMaternalContamination (2024_08-110-g317f43b9)
 	
 	Detects maternal contamination of a child using SNPs from parents.
 	
@@ -29,9 +29,10 @@
 	  --version            Prints version and exits.
 	  --changelog          Prints changeloge and exits.
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]    Settings override file (no other settings files are used).
 	
 ### TrioMaternalContamination changelog
-	TrioMaternalContamination 2021_12-80-g5ff26d8f
+	TrioMaternalContamination 2024_08-110-g317f43b9
 	
 	2020-11-27 Added CRAM support.
 	2020-06-18 Initial version of the tool.

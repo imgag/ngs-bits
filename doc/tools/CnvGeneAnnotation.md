@@ -1,5 +1,5 @@
 ### CnvGeneAnnotation tool help
-	CnvGeneAnnotation (2019_11-153-ge9f0496d)
+	CnvGeneAnnotation (2024_08-110-g317f43b9)
 	
 	Annotates TSV file containing CNVs with gene information from NGSD.
 	
@@ -18,9 +18,10 @@
 	  --version               Prints version and exits.
 	  --changelog             Prints changeloge and exits.
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]       Settings override file (no other settings files are used).
 	
 ### CnvGeneAnnotation changelog
-	CnvGeneAnnotation 2019_11-153-ge9f0496d
+	CnvGeneAnnotation 2024_08-110-g317f43b9
 	
 	2019-11-11 Initial version of this tool.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

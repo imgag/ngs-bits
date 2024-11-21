@@ -1,5 +1,5 @@
 ### GenesToApproved tool help
-	GenesToApproved (2019_08-14-g8b6a17a)
+	GenesToApproved (2024_08-110-g317f43b9)
 	
 	Replaces gene symbols by approved symbols using the HGNC database.
 	
@@ -18,8 +18,9 @@
 	  --version          Prints version and exits.
 	  --changelog        Prints changeloge and exits.
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]  Settings override file (no other settings files are used).
 	
 ### GenesToApproved changelog
-	GenesToApproved 2019_08-14-g8b6a17a
+	GenesToApproved 2024_08-110-g317f43b9
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

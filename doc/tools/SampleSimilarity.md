@@ -1,5 +1,5 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2024_02-42-g36bb2635)
+	SampleSimilarity (2024_08-110-g317f43b9)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM/CRAM files.
 	
@@ -43,9 +43,10 @@
 	  --version                  Prints version and exits.
 	  --changelog                Prints changeloge and exits.
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2024_02-42-g36bb2635
+	SampleSimilarity 2024_08-110-g317f43b9
 	
 	2023-12-22 Added 'roi_hg38_wes_wgs' flag.
 	2022-07-07 Changed BAM mode: max_snps is now 5000 by default because this results in a better separation of related and unrelated samples.

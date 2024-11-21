@@ -313,6 +313,8 @@ public slots:
 	void on_actionOpenLogFile_triggered();
 	///Clears the log file
 	void on_actionClearLogFile_triggered();
+	///Opens AppData folder of GSvar
+	void on_actionOpenGSvarDataFolder_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

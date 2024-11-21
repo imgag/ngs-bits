@@ -1,5 +1,5 @@
 ### VcfAnnotateFromVcf tool help
-	VcfAnnotateFromVcf (2023_11-42-ga9d1687d)
+	VcfAnnotateFromVcf (2024_08-110-g317f43b9)
 	
 	Annotates a VCF file with data from one or more source VCF files.
 	
@@ -40,9 +40,10 @@
 	  --version                    Prints version and exits.
 	  --changelog                  Prints changeloge and exits.
 	  --tdx                        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]            Settings override file (no other settings files are used).
 	
 ### VcfAnnotateFromVcf changelog
-	VcfAnnotateFromVcf 2023_11-42-ga9d1687d
+	VcfAnnotateFromVcf 2024_08-110-g317f43b9
 	
 	2024-05-06 Added option to annotate the existence of variants in the source file
 	2022-07-08 Usability: changed parameter names and updated documentation.

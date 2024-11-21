@@ -366,7 +366,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -392,10 +392,11 @@
     <addaction name="actionChangeLog"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
-    <addaction name="actionEncrypt"/>
-    <addaction name="separator"/>
     <addaction name="actionOpenLogFile"/>
     <addaction name="actionClearLogFile"/>
+    <addaction name="actionOpenGSvarDataFolder"/>
+    <addaction name="separator"/>
+    <addaction name="actionEncrypt"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -1513,6 +1514,11 @@
   <action name="actionReportPolymorphisms">
    <property name="text">
     <string>Report polymorphisms</string>
+   </property>
+  </action>
+  <action name="actionOpenGSvarDataFolder">
+   <property name="text">
+    <string>Open GSvar data folder</string>
    </property>
   </action>
  </widget>

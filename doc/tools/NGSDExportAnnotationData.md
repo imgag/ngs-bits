@@ -1,5 +1,5 @@
 ### NGSDExportAnnotationData tool help
-	NGSDExportAnnotationData (2023_03-107-g2a1d2478)
+	NGSDExportAnnotationData (2024_08-110-g317f43b9)
 	
 	Export information aboug germline variants, somatic variants and genes form NGSD for use as annotation source, e.g. in megSAP.
 	
@@ -32,9 +32,10 @@
 	  --version             Prints version and exits.
 	  --changelog           Prints changeloge and exits.
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]     Settings override file (no other settings files are used).
 	
 ### NGSDExportAnnotationData changelog
-	NGSDExportAnnotationData 2023_03-107-g2a1d2478
+	NGSDExportAnnotationData 2024_08-110-g317f43b9
 	
 	2023-06-18 Refactoring of command line parameters and parallelization of somatic export.
 	2023-06-16 Added support for 'germline_mosaic' column in 'variant' table and added parallelization.

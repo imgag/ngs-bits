@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2024_07-35-gb854a4ba)
+	NGSDExportSamples (2024_08-110-g317f43b9)
 	
 	Lists processed samples from the NGSD.
 	
@@ -91,9 +91,10 @@
 	  --version                  Prints version and exits.
 	  --changelog                Prints changeloge and exits.
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2024_07-35-gb854a4ba
+	NGSDExportSamples 2024_08-110-g317f43b9
 	
 	2024-08-21 Added 'add_study_column' flag.
 	2024-04-24 Added 'only_with_small_variants' flag.
