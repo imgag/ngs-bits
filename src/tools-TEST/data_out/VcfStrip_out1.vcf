@@ -1,0 +1,19 @@
+##fileformat=VCFv4.2
+##fileDate=20181010
+##INFO=<ID=AF,Number=A,Type=Float,Description="Estimated allele frequency in the range (0,1]">
+##INFO=<ID=PQR,Number=1,Type=Float,Description="Reference allele quality sum in phred for partial observations">
+##INFO=<ID=PQA,Number=R,Type=Float,Description="Alternate allele quality sum in phred for partial observations">
+##INFO=<ID=SRR,Number=1,Type=Integer,Description="Number of reference observations on the reverse strand">
+##INFO=<ID=AB,Number=A,Type=Float,Description="Allele balance at heterozygous sites: a number between 0 and 1 representing the ratio of reads showing the reference allele to all reads, considering only reads from individuals called as heterozygous">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Number of observation for each allele">
+##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03
+chr1	27687466	.	G	T	9750.95	.	AB=0.51626;AF=0.5;PQA=0,1;PQR=0;SRR=170	GT:AD:QR:QA	0/1:357,381:13079:13778	./1:2,274:74:9691	./1:2,285:74:10200
+chr1	45797505	.	C	G	3124.17	.	AB=0.515021;AF=0.5;PQA=0,1;PQR=0;SRR=58	GT:AD:QR:QA	0/1:113,120:4287:4436	./1:2,285:74:10200	./1:2,61:75:2299
+chr1	62713224	.	C	G	1165.02	.	AB=0;AF=1;PQA=0,1;PQR=0;SRR=0	GT:AD:QR:QA	1/1:0,37:0:1438	0/1:357,381:13079:13778	./1:2,285:74:10200
+chr2	215632255	.	CA	TG	3055.53	.	AB=0.554545;AF=0.5;PQA=0,1;PQR=0;SRR=1	GT:AD:QR:QA	./1:2,61:75:2299	./1:2,46:75:1724	./1:2,274:74:9691
+chr2	215632255	.	CA	CG	3055.53	.	AB=0.418182;AF=0.5;PQA=0,2;PQR=0;SRR=1	GT:AD:QR:QA	./1:2,46:75:1724	./1:2,285:74:10200	./1:2,285:74:10200
+chr4	41015823	.	G	A	16030.5	.	AB=0.508021;AF=0.5;PQA=0,1;PQR=0;SRR=0	GT:AD:QR:QA	./1:2,285:74:10200	1/1:0,37:0:1438	./1:2,61:75:2299
+chr4	41015823	.	G	T	16030.5	.	AB=0.488414;AF=0.5;PQA=0,2;PQR=0;SRR=0	GT:AD:QR:QA	./1:2,274:74:9691	./1:2,61:75:2299	./1:2,285:74:10200

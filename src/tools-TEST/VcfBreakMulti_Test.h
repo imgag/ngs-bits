@@ -26,4 +26,10 @@ private slots:
 		COMPARE_FILES("out/VcfBreakMulti_out3.vcf", TESTDATA("data_out/VcfBreakMulti_out3.vcf"));
 		VCF_IS_VALID("out/VcfBreakMulti_out3.vcf")
 	}
+
+	void no_errors()
+	{
+		EXECUTE("VcfBreakMulti", "-in " + TESTDATA("data_in/VcfBreakMulti_in4.vcf") + " -out out/VcfBreakMulti_out4.vcf -no_errors -verbose");
+		COMPARE_FILES("out/VcfBreakMulti_out4.vcf", TESTDATA("data_out/VcfBreakMulti_out4.vcf"));
+	}
 };

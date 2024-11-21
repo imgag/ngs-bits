@@ -21,6 +21,7 @@ public:
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addFlag("no_errors", "Ignore VCF format errors if possible.");
+		addFlag("verbose", "Writes ignored VCF format errors to stderr.");
 
 		changeLog(2018, 10, 18, "Initial implementation.");
     }
@@ -69,6 +70,7 @@ public:
         QString in = getInfile("in");
         QString out = getOutfile("out");
 		bool no_errors = getFlag("no_errors");
+		bool verbose = getFlag("verbose");
         if(in!="" && in==out)
         {
             THROW(ArgumentException, "Input and output files must be different when streaming!");
@@ -78,6 +80,8 @@ public:
 		enum AnnotationType {R, A, OTHER};
 		QHash<QByteArray, AnnotationType> info2type;
 		QHash<QByteArray, AnnotationType> format2type;
+		QHash<QByteArray, int> ignored_fields;
+		QTextStream out_stream(stderr);
 
         while(!in_p->atEnd())
         {
@@ -140,9 +144,19 @@ public:
 							for (int j = 0; j < new_infos_per_allele.size(); ++j)
 							{
 								if (!new_infos_per_allele[j].isEmpty()) new_infos_per_allele[j] += ";";
-								new_infos_per_allele[j] += info_parts[1];
+								new_infos_per_allele[j] += info[i];
 							}
-
+							if (verbose)
+							{
+								if (ignored_fields.keys().contains(info_name))
+								{
+									ignored_fields[info_name] += 1;
+								}
+								else
+								{
+									ignored_fields[info_name] = 1;
+								}
+							}
 						}
 						else
 						{
@@ -210,7 +224,6 @@ public:
                     }
 
 					QByteArrayList sample_values = parts[sample_column].split(':');
-
 					for (int j = 0; j < sample_values.length(); ++j)
 					{
 						if (j==0 && format[j]=="GT") //special handling GT entry (must be first entry if present!)
@@ -277,6 +290,15 @@ public:
 								}
 							}
 						}
+						else if (sample_values[j] == ".")
+						{
+							for (int a = 0; a < alt.length(); ++a)
+							{
+								if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+								new_samples_per_allele[a][i] += sample_values[j];
+							}
+						}
+
 						else if (format_types.at(j) == R || format_types.at(j) == A) //special handling A/R entries
 						{
 							QByteArrayList sample_value_parts = sample_values[j].split(',');
@@ -290,6 +312,17 @@ public:
 									{
 										if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
 										new_samples_per_allele[a][i] += sample_values[j];
+									}
+									if (verbose)
+									{
+										if (ignored_fields.keys().contains(format[j]))
+										{
+											ignored_fields[format[j]] += 1;
+										}
+										else
+										{
+											ignored_fields[format[j]] = 1;
+										}
 									}
 								}
 								else
@@ -346,7 +379,18 @@ public:
 				out_p->write(parts.join('\t').append('\n'));
 			}
 		}
-    }
+
+		//Output number of not splitted format and/or info fields to stderr
+		if (no_errors && verbose)
+		{
+			out_stream << "The following number of info and/or format fields were not splitted due to unexpected value counts: " << endl;
+			foreach (const QByteArray& key, ignored_fields.keys())
+			{
+				out_stream << key << ": " << ignored_fields[key] << endl;
+			}
+
+		}
+	}
 };
 
 #include "main.moc"
