@@ -452,11 +452,10 @@ bool MainWindow::isServerRunning()
     return true;
 }
 
-void MainWindow::lazyLoadIGVfiles()
+void MainWindow::lazyLoadIGVfiles(QString current_file)
 {
     IgvSessionManager::get(0).removeCache();
-    Log::info("Started loading file location information needed for the IGV initialization");
-    IgvSessionManager::get(0).startCachingForRegularIGV(variants_.type(), filename_);
+    IgvSessionManager::get(0).startCachingForRegularIGV(variants_.type(), current_file);
 }
 
 void MainWindow::checkServerAvailability()
@@ -2608,7 +2607,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(filename, variants_.getSampleHeader(), variants_.type())));
 			mode_title = " (local mode)";
 		}
-        lazyLoadIGVfiles();
+        lazyLoadIGVfiles(filename);
 
 		//load CNVs
 		timer.restart();

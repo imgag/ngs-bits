@@ -51,7 +51,7 @@ public:
 	bool isServerRunning();
 
     /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
-    void lazyLoadIGVfiles();
+    void lazyLoadIGVfiles(QString current_file);
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
