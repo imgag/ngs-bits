@@ -4560,9 +4560,13 @@ void MainWindow::on_actionExportTestData_triggered()
 	{
 		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 
-		//get and check processed sample list
+		//get samples from user
+		bool ok = false;
+		QString ps_text = QInputDialog::getMultiLineText(this, "Test data export", "List the processed samples (one per line):", "", &ok);
+		if (!ok) return;
+
+		//check processed sample list
 		QStringList ps_list;
-		QString ps_text = QInputDialog::getMultiLineText(this, "Test data export", "List the processed samples (one per line):");
 		foreach(const QString& ps, ps_text.split("\n"))
 		{
 			if (ps.trimmed().isEmpty()) continue;
@@ -4575,7 +4579,6 @@ void MainWindow::on_actionExportTestData_triggered()
 			}
 			ps_list << ps;
 		}
-		if (ps_list.count() == 0) return;
 
 		//get and open output file
 		QString file_name = QFileDialog::getSaveFileName(this, "Export database tables", QDir::homePath()+QDir::separator()+"db_data_"+QDateTime::currentDateTime().toString("dd_MM_yyyy")+".sql", "SQL (*.sql);;All files (*.*)");
