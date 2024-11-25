@@ -315,7 +315,7 @@ VcfBreakMulti.depends = cppNGS
 
 SUBDIRS += VcfStrip
 tools-TEST.depends += VcfStrip
-VcfBreakMulti.depends = cppNGS
+VcfStrip.depends = cppNGS
 
 SUBDIRS += VcfFilter
 tools-TEST.depends += VcfFilter
@@ -603,6 +603,7 @@ ExtractMethylationData.depends = cppNGS
 SUBDIRS += BamRemoveVariants
 tools-TEST.depends += BamRemoveVariants
 BamRemoveVariants.depends = cppNGS
+
 SUBDIRS += CnvReferenceCohort
 tools-TEST.depends += CnvReferenceCohort
 CnvReferenceCohort.depends = cppNGS
