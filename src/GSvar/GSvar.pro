@@ -28,6 +28,7 @@ SOURCES += main.cpp\
     MainWindow.cpp \
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
+    MethylationWidget.cpp \
     PathogenicWtDialog.cpp \
     ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
@@ -157,6 +158,7 @@ HEADERS += MainWindow.h \
     IgvSessionManager.h \
     ImportDialog.h \
     MaintenanceDialog.h \
+    MethylationWidget.h \
     PathogenicWtDialog.h \
     ReSearchWidget.h \
     RepeatExpansionWidget.h \
@@ -277,6 +279,7 @@ FORMS    += MainWindow.ui \
     IgvLogWidget.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
+    MethylationWidget.ui \
     PathogenicWtDialog.ui \
     ReSearchWidget.ui \
     RepeatExpansionWidget.ui \

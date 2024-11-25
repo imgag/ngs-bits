@@ -156,6 +156,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneInterpretabilityDialog.h"
 #include "HerediVarImportDialog.h"
 #include "Background/IGVInitCacheWorker.h"
+#include "MethylationWidget.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -1335,6 +1336,24 @@ void MainWindow::on_actionShowProcessingSystemCoverage_triggered()
 
 	auto dlg = GUIHelper::createDialog(expression_level_widget, "Expression of processing systems");
 	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionMethylation_triggered()
+{
+	if (filename_=="") return;
+	if (variants_.type()!=GERMLINE_SINGLESAMPLE) return;
+	FileLocation methylation_file = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
+	if (!methylation_file.exists)
+	{
+		//this should not happen because the button is not enabled then...
+		QMessageBox::warning(this, "Methylation file access", "Methylation file does not exist or the URL has expired");
+		return;
+	}
+
+	MethylationWidget* widget = new MethylationWidget(methylation_file.filename, this);
+	auto dlg = GUIHelper::createDialog(widget, "Methylation of " + variants_.analysisName());
+
+	addModelessDialog(dlg, true);
 }
 
 void MainWindow::on_actionRE_triggered()
@@ -4880,6 +4899,7 @@ void MainWindow::on_actionNotifyUsers_triggered()
 	EmailDialog dlg(this, to, subject, body);
 	dlg.exec();
 }
+
 
 void MainWindow::on_actionCohortAnalysis_triggered()
 {
