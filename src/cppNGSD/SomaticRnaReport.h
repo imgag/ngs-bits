@@ -8,6 +8,7 @@
 #include "VariantList.h"
 #include "SomaticCnvInterpreter.h"
 #include "SomaticReportSettings.h"
+#include "ArribaFile.h"
 
 
 struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
@@ -51,22 +52,6 @@ public:
 	///write RTF to file
 	void writeRtf(QByteArray out_file);
 
-	//struct holding data from arriba fusion input file
-	struct arriba_sv
-	{
-		QByteArray gene_left;
-		QByteArray gene_right;
-
-		QByteArray transcipt_left;
-		QByteArray transcipt_right;
-
-		QByteArray breakpoint_left;
-		QByteArray breakpoint_right;
-
-		QByteArray type;
-		QByteArray reading_frame;
-	};
-
 	///Checks whether all annotations neccessary for creating an RNA report are available
 	static bool checkRequiredSNVAnnotations(const VariantList& variants);
 	///Checks whether all annotations neccessary for creating RNA CNV table are available
@@ -89,7 +74,7 @@ private:
 	//DNA germline SNVs
 	VariantList germline_vl_;
 	//Somatic RNA fusions
-	QList<arriba_sv> svs_;
+	ArribaFile svs_;
 
 	struct ExpressionData
 	{

@@ -272,6 +272,82 @@ void Variant::leftAlign(const FastaFileIndex& reference)
 	end_ = start_ + ref_.length() - 1;
 }
 
+void Variant::rightAlign(const FastaFileIndex& reference)
+{
+	//skip SNVs
+	if (isSNV()) return;
+
+	//skip complex variants
+	if (obs_.length()>1 && ref_.length()>1) return;
+
+	ref_ = ref_.toUpper();
+	obs_ = obs_.toUpper();
+
+	//INSERTION
+	if (ref_=="-")
+	{
+		ref_.clear();
+
+		//block shift insertion
+		Sequence block = Variant::minBlock(obs_);
+		start_ += 1; //+1 because: GSvar insertions are inserted after the position
+		while(reference.seq(chr_, start_, block.length())==block)
+		{
+			start_ += block.length();
+		}
+		start_ -= 1 ; //1 because: see above
+		ref_ = reference.seq(chr_, start_+1, 1);
+		obs_ = obs_ + ref_;
+
+		//shift insertion to the right (because e.g. multiples of AGA could be multiples of AAG)
+		while(obs_.left(1) == ref_)
+		{
+			start_ += 1;
+			ref_ = reference.seq(chr_, start_+1, 1);
+			obs_ = obs_.right(obs_.length()-1) + ref_;
+		}
+
+		ref_ = "-";
+		obs_ = obs_.left(obs_.length()-1);
+	}
+	//DELETION (everything as a above, except ref and alt exchanged)
+	else if (obs_=="-")
+	{
+		obs_.clear();
+		qDebug() << "at start:" << start_ << "-" << end_ << " " << ref_ << ">" << obs_;
+
+		//block shift deletion
+		Sequence block = Variant::minBlock(ref_);
+		while(reference.seq(chr_, start_, block.length())==block)
+		{
+			start_ += block.length();
+			qDebug() << "\tin block while:" << start_ << "-" << end_ << " " << ref_ << ">" << obs_;
+		}
+		start_ -= block.length();
+		qDebug() << "after block while:" << start_ << "-" << end_ << " " << ref_ << ">" << obs_;
+
+		//prepend ref base:
+		start_ -= 1 ; //1 because: see above
+		obs_ = reference.seq(chr_, start_, 1);
+		ref_ = obs_ + ref_;
+
+		//single-base shift deletion
+		while(ref_.left(1) == reference.seq(chr_, start_ + ref_.length(), 1))
+		{
+			start_ += 1;
+			obs_ = reference.seq(chr_, start_, 1);
+			ref_ = ref_.left(ref_.length()-1) + obs_;
+			qDebug() << "\tin shift while:" << start_ << "-" << end_ << " " << ref_ << ">" << obs_;
+		}
+
+		obs_ = "-";
+		ref_ = ref_.right(ref_.length()-1);
+		start_ += 1;
+	}
+
+	end_ = start_ + ref_.length() - 1;
+}
+
 void Variant::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 {
 	Variant::normalize(start_, ref_, obs_);

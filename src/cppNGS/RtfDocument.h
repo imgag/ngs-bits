@@ -318,6 +318,12 @@ public:
 	///Returns RTF footer
 	RtfSourceCode footer() const;
 
+
+
+	static const int CHECKMARK = 252;
+
+	static QByteArray getSymbol(int wingdings_number);
+
 private:
 	//page dimensions
 	int width_;

@@ -944,27 +944,27 @@ private slots:
 		//processedSampleSearch
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.rowCount(), 10);
 		I_EQUAL(ps_table.columnCount(), 20);
 		//add path
 		params.add_path = "SAMPLE_FOLDER";
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.rowCount(), 10);
 		I_EQUAL(ps_table.columnCount(), 21);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.rowCount(), 10);
 		I_EQUAL(ps_table.columnCount(), 23);
 		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.rowCount(), 10);
 		I_EQUAL(ps_table.columnCount(), 33);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.rowCount(), 10);
 		I_EQUAL(ps_table.columnCount(), 74);
 		S_EQUAL(ps_table.headers().at(33), "sample_quality");
 		S_EQUAL(ps_table.headers().at(34), "processed_sample_quality");
@@ -973,14 +973,14 @@ private slots:
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.rowCount(), 10);
 		I_EQUAL(ps_table.columnCount(), 75);
 		S_EQUAL(ps_table.row(0).value(74), "");
 		S_EQUAL(ps_table.row(4).value(74), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4), causal uncalled CNV: chr2:123456-789012 (genes: EPRS)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.rowCount(), 10);
 		I_EQUAL(ps_table.columnCount(), 77);
 		S_EQUAL(ps_table.headers().at(20), "comment_sample");
 		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
@@ -989,7 +989,7 @@ private slots:
 		//add normal sample
 		params.add_normal_sample = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.rowCount(), 10);
 		I_EQUAL(ps_table.columnCount(), 78);
 		I_EQUAL(ps_table.headers().count(), 78);
 		I_EQUAL(ps_table.columnIndex("normal_sample"), 77);
@@ -1024,7 +1024,7 @@ private slots:
 		params = ProcessedSampleSearchParameters();
 		params.restricted_user = "ahkerra1";
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 4);
+		I_EQUAL(ps_table.rowCount(), 5);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");
@@ -2149,7 +2149,7 @@ private slots:
 		I_EQUAL(res_cnv.end(), 27694430);
 
 
-		//Test methods for somatic SVs in NGSD: TODO
+		//Test methods for somatic SVs in NGSD:
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/somatic_svs_manta.bedpe"));
 
@@ -2949,6 +2949,48 @@ private slots:
 		xml_report.generateXML(report.getXmlData(), out_xml, db, true);
 
 		COMPARE_FILES("out/somatic_report_tumor_normal_2.xml", TESTDATA("data_out/somatic_report_tumor_normal_2.xml"));
+	}
+
+	void test_rna_report_functions()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
+		//log in user
+		LoginManager::login("ahmustm1", "", true);
+
+		//Test methods for RNA fusions in NGSD
+		S_EQUAL(db.rnaFusion(1).toString(), "NAPG chr18:10530837::SRPK2(1688),PUS7(38665) chr7:105400996");
+		//Test get Fusion ID
+		Fusion fu1(GenomePosition("chr18:10530837"), GenomePosition("chr7:105400996"), "NAPG", "ENST00000322897", "SRPK2(1688),PUS7(38665)", ".", "transclocation", "out-of-frame");
+		Fusion fu2(GenomePosition("chr20:53256444"), GenomePosition("chr20:53487144"), "TSHZ2-1", "ENSG00000182463", "TSHZ2-2", "ENSG00000182463", "deletion/read-through", "out-of-frame");
+		S_EQUAL(db.rnaFusionId(fu1, 1, false), "1");
+		S_EQUAL(db.rnaFusionId(fu1, 2, false), ""); //Fusion on callset 2 does not exist
+		S_EQUAL(db.rnaFusionId(fu2, 1, false), ""); //Fusion does not exist
+
+		IS_THROWN(DatabaseException, db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350000), 1));
+
+		int fu_id =  db.addRnaFusion(1, fu2).toInt();
+		Fusion res_fu = db.rnaFusion(fu_id);
+		S_EQUAL(res_fu.breakpoint1().chr().strNormalized(true), "chr20");
+		S_EQUAL(res_fu.breakpoint1().pos(), 53256444);
+		S_EQUAL(res_fu.breakpoint2().chr().strNormalized(true), "chr20");
+		S_EQUAL(res_fu.breakpoint2().pos(), 53487144);
+		S_EQUAL(res_fu.symbol1(), "TSHZ2-1");
+		S_EQUAL(res_fu.symbol2(), "TSHZ2-2");
+		S_EQUAL(res_fu.transcript1(), "ENSG00000182463");
+		S_EQUAL(res_fu.transcript2(), "ENSG00000182463");
+		S_EQUAL(res_fu.type(), "deletion/read-through");
+		S_EQUAL(res_fu.reading_frame(), "out-of-frame");
+	}
+
+	void test_rna_report_rtf()
+	{
+		S_EQUAL("TODO", "finished");
 	}
 
 

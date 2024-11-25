@@ -28,6 +28,7 @@ VariantTranscript SomaticReportSettings::selectGermlineTranscript(const Variant&
 	//Select germline transcript
 	QList<VariantTranscript> transcripts = var.transcriptAnnotations(i_germl_co_sp);
 	VariantTranscript transcript;
+
 	if(!transcripts.isEmpty())
 	{
 		transcript = transcripts[0];

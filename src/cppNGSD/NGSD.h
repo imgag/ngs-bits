@@ -21,6 +21,7 @@
 #include "SomaticReportConfiguration.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
+#include "ArribaFile.h"
 #include "SomaticVariantInterpreter.h"
 #include "SomaticCnvInterpreter.h"
 #include "NGSHelper.h"
@@ -915,6 +916,11 @@ public:
 	BedpeLine somaticSv(QString sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false, int* callset_id = 0);
 	static QString somaticSvTableName(StructuralVariantType type);
 
+	///Adds rna fusion to the NGSD. Returns the fusion ID
+	QString addRnaFusion(int callset_id, const Fusion& fusion);
+	QString rnaFusionId(const Fusion& fusion, int callset_id, bool throw_if_fails = true);
+	Fusion rnaFusion(int fusion_id);
+
 	///Returns the germline import status.
 	ImportStatusGermline importStatus(const QString& ps_id);
 
@@ -1148,12 +1154,19 @@ public:
 	int somaticReportConfigId(QString t_ps_id, QString n_ps_id);
 	///Sets/overwrites somatic report configuration for tumor-normal processed sample pair
 	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name);
-	///Removes a somatic report configuration from NGSD, including its variant and cnv configurations
+	///Removes a somatic report configuration from NGSD, including its variant configurations
 	void deleteSomaticReportConfig(int id);
 	///Retrieve somatic report configuration using tumor and normal processed sample ids
 	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
+
+	//Return database ID of rna report configuration, -1 if not present
+	int rnaReportConfigId(QString ps_id);
+	///Sets/overwrites rna report configuration for processed sample
+	int setRnaReportConfig(QString ps_id, const SomaticReportConfiguration& config, /* TODO add arriba variants */ QString user_name);
+	///Removes a rna report configuration from NGSD, including its variant configurations
+	void deleteRnaReportConfig(int id);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

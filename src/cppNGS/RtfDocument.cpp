@@ -195,6 +195,11 @@ void RtfDocument::save(const QByteArray &file_name)
 	outfile->close();
 }
 
+QByteArray RtfDocument::getSymbol(int wingdings_number)
+{
+	return "{\\field{\\*\\fldinst SYMBOL " + QByteArray::number(wingdings_number) + "\\\\f \"Wingdings\"}}";
+}
+
 RtfTableCell::RtfTableCell(int width, const RtfParagraph& text_format)
 {
 	paragraph_ = text_format;

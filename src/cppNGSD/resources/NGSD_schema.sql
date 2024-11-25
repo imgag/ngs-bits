@@ -2833,6 +2833,123 @@ DEFAULT CHARACTER SET = utf8
 COMMENT='Variants that can be optionally added to a report';
 
 
+-- -----------------------------------------------------
+-- Table `rna_fusion_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `rna_fusion_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `caller` ENUM('Arriba') NOT NULL,
+  `caller_version` varchar(25) NOT NULL,
+  `call_date` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `call_date` (`call_date` ASC),
+  UNIQUE KEY `rna_fusion_callset_references_processed_sample` (`processed_sample_id`),
+  CONSTRAINT `rna_fusion_callset_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='RE call set';
+
+
+-- -----------------------------------------------------
+-- Table `rna_fusion`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `rna_fusion`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `rna_fusion_callset_id` INT(11) UNSIGNED NOT NULL,
+  `symbol1` varchar(40) NOT NULL COMMENT 'Contains the gene which makes up the 5` end of the transcript.',
+  `chr1` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL COMMENT 'chromosome of breakpoint 1',
+  `pos1` INT(11) NOT NULL COMMENT 'position of breakpoint 1',
+  `transcript1` varchar(40) NOT NULL COMMENT 'Contains the transcript of the gene which makes up the 5` end of the transcript.',
+  `symbol2` varchar(40) NOT NULL COMMENT 'Contains the gene which makes up the 3` end of the transcript.',
+  `chr2` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL COMMENT 'chromosome of breakpoint 2',
+  `pos2` INT(11) NOT NULL COMMENT 'position of breakpoint 2',
+  `transcript2` varchar(40) NOT NULL COMMENT 'Contains the transcript of the gene which makes up the 3` end of the transcript.',
+  `type` varchar(40) NOT NULL COMMENT 'Fusion type',
+  `reading_frame` varchar(40) NOT NULL COMMENT 'Fusion type',
+  PRIMARY KEY (`id`),
+  CONSTRAINT rna_fusion_unique_constraint UNIQUE (`rna_fusion_callset_id`, `symbol1`, `chr1`, `pos1`, `symbol2`, `chr2`, `pos2`),
+  CONSTRAINT `fk_rna_fusion_has_callset`
+    FOREIGN KEY (`rna_fusion_callset_id`)
+    REFERENCES `rna_fusion_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  INDEX `rna_fusion_gene1` (`symbol1` ASC),
+  INDEX `rna_fusion_gene2` (`symbol2` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `rna_report_configuration`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `rna_report_configuration`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `created_date` DATETIME NOT NULL,
+  `last_edit_by` int(11) DEFAULT NULL,
+  `last_edit_date` TIMESTAMP NULL DEFAULT NULL,
+  `mtb_xml_upload_date` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `processed_sample_id_unique` (`processed_sample_id`),
+  CONSTRAINT `fk_rna_report_processed_sample_id`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `rna_report_configuration_created_by`
+    FOREIGN KEY (`created_by`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `rna_report_configuration_last_edit_by`
+    FOREIGN KEY (`last_edit_by`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `rna_report_configuration_fusion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `rna_report_configuration_fusion`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `rna_report_configuration_id` int(11) NOT NULL,
+  `rna_fusion_id` int(11) NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_low_tumor_content` BOOLEAN NOT NULL,
+  `exclude_low_evidence` BOOLEAN NOT NULL,
+  `exclude_other_reason` BOOLEAN NOT NULL,
+  `comment` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `rna_report_conf_fusion_has_rna_rep_conf_id`
+    FOREIGN KEY (`rna_report_configuration_id`)
+    REFERENCES `rna_report_configuration` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `rna_report_conf_fusion_has_rna_fusion_id`
+    FOREIGN KEY (`rna_fusion_id`)
+    REFERENCES `rna_fusion` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+    UNIQUE INDEX `rna_report_conf_fusion_combo_uniq_index` (`rna_report_configuration_id` ASC, `rna_fusion_id` ASC)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
+
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START
 -- ----------------------------------------------------------------------------------------------------------

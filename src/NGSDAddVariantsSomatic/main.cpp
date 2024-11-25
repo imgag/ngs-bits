@@ -163,7 +163,7 @@ public:
 
 			if(query.size() > 0)
 			{
-				out << "Skipped import of somatic SNVs for sample " << ps_full_name << ": a somatic report configuration with CNVs exists for this sample" << endl;
+				out << "Skipped import of somatic CNVs for sample " << ps_full_name << ": a somatic report configuration with CNVs exists for this sample" << endl;
 				return;
 			}
 		}
@@ -172,7 +172,7 @@ public:
 
 		if(last_callset_id!="" && !cnv_force)
 		{
-			out << "Skipped import of CNVs for sample " << ps_full_name << ": a report configuration with somatic CNVs exists for this sample!" << endl;
+			out << "Skipped import of CNVs for sample " << ps_full_name << ": a callset for somatic CNVs exists for this sample!" << endl;
 			return;
 		}
 
@@ -281,7 +281,7 @@ public:
 
 			if(query.size() > 0)
 			{
-				out << "Skipped import of somatic SNVs for sample " << ps_full_name << ": a somatic report configuration with SVs exists for this sample" << endl;
+				out << "Skipped import of somatic SVs for sample " << ps_full_name << ": a somatic report configuration with SVs exists for this sample" << endl;
 				return;
 			}
 		}

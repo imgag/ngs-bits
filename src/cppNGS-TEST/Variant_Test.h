@@ -517,4 +517,52 @@ private slots:
 		S_EQUAL(v.ref(), "AGTGACAGCAGCAATAGC");
 		S_EQUAL(v.obs(), "-");
 	}
+
+	void rightAlign()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		Variant v;
+
+		//SNP > no change
+		v = Variant("chr17", 43094517, 43094517, "T", "A");
+		v.rightAlign(ref_file);
+		I_EQUAL(v.start(), 43094517);
+		I_EQUAL(v.end(), 43094517);
+		S_EQUAL(v.ref(), "T");
+		S_EQUAL(v.obs(), "A");
+
+		//INS (base block shift)
+		v = Variant("chr17", 43094514, 43094514, "-", "T");
+		v.rightAlign(ref_file);
+		I_EQUAL(v.start(), 43094521);
+		I_EQUAL(v.end(), 43094521);
+		S_EQUAL(v.ref(), "-");
+		S_EQUAL(v.obs(), "T");
+
+		//INS (no block shift)
+		v = Variant("chr3", 195580369, 195580369, "-", "TTC");
+		v.rightAlign(ref_file);
+		I_EQUAL(v.start(), 195580371);
+		I_EQUAL(v.end(), 195580371);
+		S_EQUAL(v.ref(), "-");
+		S_EQUAL(v.obs(), "CTT");
+
+		//DEL (base block shifts)
+		v = Variant("chr3", 196229856, 196229857, "AG", "-");
+		v.rightAlign(ref_file);
+		I_EQUAL(v.start(), 196229876);
+		I_EQUAL(v.end(), 196229877);
+		S_EQUAL(v.ref(), "AG");
+		S_EQUAL(v.obs(), "-");
+
+		//DEL (no block shift, but part of sequence before and after match)
+		v = Variant("chr4", 87615717, 87615734, "AGTGACAGCAGCAATAGC", "-");
+		v.rightAlign(ref_file);
+		I_EQUAL(v.start(), 87615731);
+		I_EQUAL(v.end(), 87615748);
+		S_EQUAL(v.ref(), "TAGCAGTGACAGCAGCAA");
+		S_EQUAL(v.obs(), "-");
+	}
 };

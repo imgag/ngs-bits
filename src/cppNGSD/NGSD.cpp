@@ -27,7 +27,6 @@
 #include "ClientHelper.h"
 #include "PipelineSettings.h"
 
-
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
 {
@@ -3518,6 +3517,68 @@ QString NGSD::svTableName(StructuralVariantType type)
 			break;
 	}
 }
+
+QString NGSD::addRnaFusion(int callset_id, const Fusion& fusion)
+{
+	//Insert data
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `rna_fusion` (`rna_fusion_callset_id`, `symbol1`, `chr1`, `pos1`, `transcript1`, `symbol2`, `chr2`, `pos2`, `transcript2`, `type`, `reading_frame`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10)");
+
+	query.bindValue(0, callset_id);
+	query.bindValue(1, fusion.symbol1());
+	query.bindValue(2, fusion.breakpoint1().chr().strNormalized(true));
+	query.bindValue(3, fusion.breakpoint1().pos());
+	query.bindValue(4, fusion.transcript1());
+	query.bindValue(5, fusion.symbol2());
+	query.bindValue(6, fusion.breakpoint2().chr().strNormalized(true));
+	query.bindValue(7, fusion.breakpoint2().pos());
+	query.bindValue(8, fusion.transcript2());
+	query.bindValue(9, fusion.type());
+	query.bindValue(10, fusion.reading_frame());
+	query.exec();
+
+	//return ID of inserted somatic CNV
+	return query.lastInsertId().toString();
+}
+
+QString NGSD::rnaFusionId(const Fusion& fusion, int callset_id, bool throw_if_fails)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT id FROM rna_fusion WHERE rna_fusion_callset_id=:0 AND chr1=:1 AND pos1=:2 AND chr2=:3 AND pos2=:4 AND symbol1=:5 AND symbol2=:6");
+	query.bindValue(0, callset_id);
+	query.bindValue(1, fusion.breakpoint1().chr().strNormalized(true));
+	query.bindValue(2, fusion.breakpoint1().pos());
+	query.bindValue(3, fusion.breakpoint2().chr().strNormalized(true));
+	query.bindValue(4, fusion.breakpoint2().pos());
+	query.bindValue(5, fusion.symbol1());
+	query.bindValue(6, fusion.symbol2());
+
+	query.exec();
+	if(!query.next())
+	{
+		if(throw_if_fails)
+		{
+			THROW(DatabaseException, "RNA fusion " + fusion.toString() + " with rna fusion callset id '" + QString::number(callset_id) + "' not found in NGSD!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+	return query.value(0).toString();
+}
+
+Fusion NGSD::rnaFusion(int fusion_id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM rna_fusion WHERE id='" + QString::number(fusion_id) + "'");
+	if (!query.next()) THROW(DatabaseException, "Fusion with identifier '" + QString::number(fusion_id) + "' does not exist!");
+
+	GenomePosition break1(Chromosome(query.value("chr1").toByteArray()), query.value("pos1").toInt());
+	GenomePosition break2(Chromosome(query.value("chr2").toByteArray()), query.value("pos2").toInt());
+	return Fusion(break1, break2, query.value("symbol1").toString(), query.value("transcript1").toString(), query.value("symbol2").toString(), query.value("transcript2").toString(), query.value("type").toString(), query.value("reading_frame").toString(), QStringList());
+}
+
 
 QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_value) const
 {
@@ -8843,6 +8904,13 @@ int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 {
 	//Identify report configuration using tumor and normal processed sample ids (and rna ps if available)
 	QString query = "SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='" +t_ps_id + "' AND ps_normal_id='" + n_ps_id + "'";
+	QVariant id = getValue(query, true);
+	return id.isValid() ? id.toInt() : -1;
+}
+
+int NGSD::rnaReportConfigId(QString ps_id)
+{
+	QString query = "SELECT id FROM rna_report_configuration WHERE processed_sample_id='" + ps_id + "'";
 	QVariant id = getValue(query, true);
 	return id.isValid() ? id.toInt() : -1;
 }

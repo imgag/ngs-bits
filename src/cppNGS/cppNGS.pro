@@ -37,6 +37,7 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += BedFile.cpp \
+    ArribaFile.cpp \
     Chromosome.cpp \
     ClientHelper.cpp \
     RefGenomeService.cpp \
@@ -83,6 +84,7 @@ SOURCES += BedFile.cpp \
     PipelineSettings.cpp
 
 HEADERS += BedFile.h \
+    ArribaFile.h \
     Chromosome.h \
     ClientHelper.h \
     FileInfo.h \

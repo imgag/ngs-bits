@@ -27,13 +27,15 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 (5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected', 'buccal mucosa', NULL, NULL),
 (6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected', 'skin', NULL, NULL),
 (7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2', NULL),
-(8, 'NA12123repeat3', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s8', 'Neoplasms', 'Affected', 'n/a', 'pat2', NULL);
+(8, 'NA12123repeat3', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s8', 'Neoplasms', 'Affected', 'n/a', 'pat2', NULL),
+(9, 'RNA184894', 'ex5-RNA', 'RNA', 1, 'female', 'good', 1 ,1, 1, 'comment_s5_RNA', 'Neoplasms', 'Affected', 'n/a', NULL, NULL);
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
 (2, 'hpHBOCv6', 'HaloPlex HBOC v6', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv6.bed', 1),
 (3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1),
-(4, 'IDT_xGenPrism', 'IDT xGen Human ID + IDT xGen Prism DNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'cfDNA (patient-specific)', 1, 'idt_HumanID.bed', 1);
+(4, 'IDT_xGenPrism', 'IDT xGen Human ID + IDT xGen Prism DNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'cfDNA (patient-specific)', 1, 'idt_HumanID.bed', 1),
+(5, 'nebRNAU2_qiaRRNA_umi', 'NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTG', 'RNA', 1, 'nebRNAU2_qiaRRNA_2021_12_13.bed', 1);
 
 INSERT INTO `processed_sample` (`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`, `processing_modus`, `batch_number`) VALUES
 (3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null, 'manual', 'batch 17'),
@@ -44,7 +46,8 @@ INSERT INTO `processed_sample` (`id`, `sample_id`, `process_id`, `sequencing_run
 (5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null, 'n/a', null),
 (6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null, 'n/a', null),
 (7, 6, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps7', null, 'n/a', null),
-(8, 5, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps8', 7, 'n/a', null);
+(8, 5, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps8', 7, 'n/a', null),
+(9, 9, 1, '1', '1,2,3,4', 5, 2, 'good', 'comment_ps9', null, 'n/a', null);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
@@ -555,20 +558,16 @@ INSERT INTO `sample_disease_info`(`id`, `sample_id`, `disease_info`, `type`, `us
 (2, 5, 'C17.2', 'ICD10 code', 99),
 (3, 5, 'C20.21', 'ICD10 code', 99);
 
-
--- cnv_callset
 INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
 (1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good'),
 (2, 4003, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good');
 
--- cnv
 INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 (1, 1, 'chr1', 1000, 2000, 1),
 (2, 1, 'chr1', 3000, 4000, 1),
 (3, 1, 'chr2', 10000, 40000, 1),
 (4, 2, 'chr1', 3000, 4000, 1);
 
--- report config
 INSERT INTO `report_configuration` (`id`, `processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
 (1, 4003, 99, '2018-02-12T10:20:45', 99, '2018-07-12T10:20:43');
 
@@ -581,17 +580,14 @@ INSERT INTO `report_configuration_cnv` (`report_configuration_id`, `cnv_id`, `ty
 INSERT INTO `report_configuration_other_causal_variant` (`id`, `report_configuration_id`, `coordinates`, `gene`, `type`, `inheritance`, `comment`, `comment_reviewer1`, `comment_reviewer2`) VALUES
 (1, 1, 'chr2:123456-789012', 'EPRS', 'uncalled CNV', 'AR', 'This is a comment!', 'Reviewer1: \n This is a comment!\n', 'Reviewer2: \n This is not a comment!\n');
 
--- somatic_cnv_callset_id`
 INSERT INTO `somatic_cnv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
 (1, 4000, 3999, 'ClinCNV', 'v 1.16', '2020-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'good'),
 (5, 4002, 4001, 'ClinCNV', 'v 1.16', '2019-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'bad');
 
--- somatic cnv_callset
 INSERT INTO `somatic_cnv` (`id`, `somatic_cnv_callset_id`, `chr`, `start`, `end`, `cn`, `tumor_cn`, `tumor_clonality`) VALUES
 (1, 1, 'chr4', 18000, 200000, 2.54, 3, 0.75),
 (4, 5, 'chr7', 87000, 350000, 3.14, 4, 0.8);
 
--- somatic SVs:
 INSERT INTO `somatic_sv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`) VALUES
 (1, 4000, 3999, 'Manta', '1.6.0', '2023-08-18 00:00:00');
 INSERT INTO `somatic_sv_deletion` (`id`, `somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
@@ -605,30 +601,31 @@ INSERT INTO `somatic_sv_inversion` (`id`, `somatic_sv_callset_id`, `chr`, `start
 INSERT INTO `somatic_sv_translocation` (`id`, `somatic_sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `quality_metrics`) VALUES
 (5, 1, 'chr12', 50807963, 50807965, 'chr22', 29291555, 29291557, '{"filter":"AMBIGUOUS","quality":"123"}');
 
--- somatic_report_configuration
 INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `mtb_xml_upload_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter_base_name`) VALUES 
 (3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10', '2020-07-29 09:06:10', NULL, false, false, false, false, false, 0, NULL, 'tumor cell content too low', 'somatic'),
 (51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10', '2020-07-27 09:20:10', 'nowhere.bed' , true, true, true, true, true, 1, "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp", NULL, NULL);
 
--- somatic_report_configuration_cnv
 INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id`, `somatic_cnv_id`, `exclude_artefact`, `exclude_low_tumor_content` , `exclude_low_copy_number`,
 `exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES
 (3, 4, true, false, false, false, false, "");
 
--- somatic_vicc
+INSERT INTO `rna_fusion_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
+(1, 9, 'arriba', 'v2.4.0', '2024-11-11 11:11:11');
+
+INSERT INTO `rna_fusion` (`id`, `rna_fusion_callset_id`, `symbol1`, `chr1`, `pos1`, `transcript1`, `symbol2`, `chr2`, `pos2`, `transcript2`, `type`, `reading_frame`) VALUES
+('1', '1', 'NAPG', 'chr18', '10530837', 'ENST00000322897', 'SRPK2(1688),PUS7(38665)', 'chr7', '105400996', '.', 'translocation', 'out-of-frame');
+
 INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `classification`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
 (1, 210585, true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'ONCOGENIC', 'this variant was evaluated as an oncogenic variant', 99, '2020-11-05 13:06:13', 101, '2020-12-07 11:06:10'),
 (2, 213346, false, true, false, true, true, null, true, false, null, false, true, true, true, true, true, true, 'UNCERTAIN_SIGNIFICANCE', 'this variant was evaluated as variant of unclear significance', 99, '2020-12-05 12:07:11', 101, '2020-12-08 13:45:11'),
 (3, 2407600,  true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'ONCOGENIC', 'this variant was evaluated as an oncogenic variant', 99, '2021-01-05 13:06:13', 101, '2021-02-07 11:06:10'),
 (4, 2407601,  false, false, false, false, true, null, true, false, null, false, true, true, true, false, false, null, 'BENIGN', 'this variant was evaluated as an benign variant', 99, '2021-02-06 11:06:14', 101, '2021-02-08 13:06:10');
 
--- somatic_pathway
 INSERT INTO `somatic_pathway` (`id`, `name`) VALUES
 (1, 'DNA damage repair'),
 (2, 'chromatin remodeling'),
 (3, 'Hedgehog');
 
--- somatic_pathway_gene
 INSERT INTO `somatic_pathway_gene` (`id`, `symbol`, `pathway_id`) VALUES
 (1, 'SMARCA1', 1),
 (2, 'SMARCA1', 2),
@@ -636,7 +633,6 @@ INSERT INTO `somatic_pathway_gene` (`id`, `symbol`, `pathway_id`) VALUES
 (4, 'BRCA1', 1),
 (5, 'BRCA2', 1);
 
--- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
 (199989, 'ATM', '607585'),
 (193906, 'SHOX', '312865'),
@@ -658,7 +654,6 @@ INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
 INSERT INTO `omim_preferred_phenotype`(`gene`, `disease_group`, `phenotype_accession`) VALUES
 ('ATM', 'Neoplasms', '114480');
 
--- structural variants
 INSERT INTO `sv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
 (1, 3999, 'Manta', '1.6.0', '2020-01-01');
 

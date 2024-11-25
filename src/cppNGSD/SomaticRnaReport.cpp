@@ -14,6 +14,7 @@ SomaticRnaReportData::SomaticRnaReportData(const SomaticReportSettings& other)
 SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const BedpeFile &dna_svs, const VariantList& germline_variants, const SomaticRnaReportData& data)
 	: db_()
 	, data_(data)
+	, svs_()
 {
 	//filter DNA variants according somatic report configuration
 	dna_snvs_ = SomaticRnaReportData::filterVariants(snv_list, data);
@@ -44,21 +45,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	//Load fusions
 	try
 	{
-		TSVFileStream in_file(data.rna_fusion_file);
-		int i_gene_left = in_file.colIndex("gene1", true);
-		int i_gene_right = in_file.colIndex("gene2", true);
-		int i_transcript_left = in_file.colIndex("transcript_id1", true);
-		int i_transcript_right = in_file.colIndex("transcript_id2", true);
-		int i_breakpoint_left = in_file.colIndex("breakpoint1", true);
-		int i_breakpoint_right = in_file.colIndex("breakpoint2", true);
-		int i_type = in_file.colIndex("type", true);
-		int i_reading_frame = in_file.colIndex("reading_frame", true);
-		while(!in_file.atEnd())
-		{
-			QByteArrayList parts = in_file.readLine();
-			arriba_sv temp{parts[i_gene_left], parts[i_gene_right], parts[i_transcript_left], parts[i_transcript_right], parts[i_breakpoint_left], parts[i_breakpoint_right], parts[i_type], parts[i_reading_frame]};
-			svs_.append(temp);
-		}
+		svs_.load(data.rna_fusion_file);
 	}
 	catch(Exception&)
 	{
@@ -119,12 +106,13 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 			if( !genes_with_var.contains(gene) ) genes_with_var << gene;
 		}
 	}
+
 	for (int i=0;i<svs_.count();++i ) // only breakpoint genes currently
 	{
-		arriba_sv sv = svs_[i];
+		Fusion sv = svs_.getFusion(i);
 		GeneSet genes;
-		genes.insert(sv.gene_left);
-		genes.insert(sv.gene_right);
+		genes.insert(sv.symbol1().toUtf8());
+		genes.insert(sv.symbol2().toUtf8());
 		foreach(const auto& gene, genes)
 		{
 			if( !genes_with_var.contains(gene) ) genes_with_var << gene;
@@ -265,25 +253,22 @@ RtfTable SomaticRnaReport::partFusions()
 {
 	RtfTable fusion_table;
 	fusion_table.addRow(RtfTableRow("Fusionen", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
-
 	fusion_table.addRow(RtfTableRow({"Strukturvariante", "Transkript links", "Bruchpunkt Gen 1", "Transkript rechts", "Bruchpunkt Gen 2", "Typ", "Leseraster"},{1600,1400,1400,1400,1400,1700, 1021}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
-	foreach(const auto& sv, svs_)
+	for(int i=0; i<svs_.count(); ++i)
 	{
+		const Fusion& sv = svs_.getFusion(i);
 		RtfTableRow temp;
 
-		temp.addCell( 1600, sv.gene_left + "::" + sv.gene_right, RtfParagraph().setItalic(true).setFontSize(16) );
-		temp.addCell( 1400, sv.transcipt_left, RtfParagraph().setFontSize(16) );
-		temp.addCell( 1400, sv.breakpoint_left , RtfParagraph().setFontSize(16) );
-		temp.addCell( 1400, sv.transcipt_right, RtfParagraph().setFontSize(16) );
-		temp.addCell( 1400, sv.breakpoint_right, RtfParagraph().setFontSize(16) );
-		temp.addCell( 1700, trans(sv.type), RtfParagraph().setFontSize(16) );
-		temp.addCell( 1021, sv.reading_frame, RtfParagraph().setFontSize(16) );
+		temp.addCell( 1600, sv.symbol1().toUtf8() + "::" + sv.symbol2().toUtf8(), RtfParagraph().setItalic(true).setFontSize(16) );
+		temp.addCell( 1400, sv.transcript1().toUtf8(), RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.breakpoint1().toByteArray() , RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.transcript2().toUtf8(), RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.breakpoint2().toByteArray(), RtfParagraph().setFontSize(16) );
+		temp.addCell( 1700, trans(sv.type()), RtfParagraph().setFontSize(16) );
+		temp.addCell( 1021, sv.reading_frame().toUtf8(), RtfParagraph().setFontSize(16) );
 		fusion_table.addRow( temp );
 	}
-
-
-
 	fusion_table.setUniqueBorder(1,"brdrhair",2);
 
 	return fusion_table;
@@ -334,20 +319,24 @@ RtfTable SomaticRnaReport::partSVs()
 {
 	RtfTable fusion_table;
 	fusion_table.addRow(RtfTableRow("Strukturvarianten", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
-
 	fusion_table.addRow(RtfTableRow({"Gen", "Transkript", "Bruchpunkt 1", "Bruchpunkt 2", "Beschreibung"},{1600,1800,1400,1800,3321}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
-	foreach(const auto& sv, svs_)
+	for(int i=0; i<svs_.count(); ++i)
 	{
-		if ( ! (sv.type.contains("duplication") && sv.gene_left == sv.gene_right) && !sv.type.contains("deletion")) continue;
+		const Fusion& sv = svs_.getFusion(i);
+		QByteArray gene1 = sv.symbol1().toUtf8();
+		QByteArray gene2 = sv.symbol2().toUtf8();
+		QByteArray type = sv.type().toUtf8();
+
+		if ( ! (type.contains("duplication") && gene1 == gene2) && type.contains("deletion")) continue;
 
 		RtfTableRow temp;
 
-		temp.addCell( 1600, sv.gene_right, RtfParagraph().setItalic(true).setFontSize(16) );
-		temp.addCell( 1800, sv.transcipt_right, RtfParagraph().setFontSize(16) );
-		temp.addCell( 1400, sv.breakpoint_left , RtfParagraph().setFontSize(16) );
-		temp.addCell( 1800, sv.breakpoint_right, RtfParagraph().setFontSize(16) );
-		temp.addCell( 3321, trans(sv.type), RtfParagraph().setFontSize(16));
+		temp.addCell( 1600, gene2, RtfParagraph().setItalic(true).setFontSize(16) );
+		temp.addCell( 1800, sv.transcript2().toUtf8(), RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.breakpoint1().toByteArray(), RtfParagraph().setFontSize(16) );
+		temp.addCell( 1800, sv.breakpoint2().toByteArray(), RtfParagraph().setFontSize(16) );
+		temp.addCell( 3321, trans(type), RtfParagraph().setFontSize(16));
 
 		fusion_table.addRow( temp );
 	}
@@ -364,13 +353,15 @@ RtfTableRow SomaticRnaReport::createSnvTableRow(const Variant& var, int i_co_sp,
 	if (germline)
 	{
 		trans = data_.selectGermlineTranscript(var, i_co_sp);
-		QList<VariantTranscript> transcripts = var.transcriptAnnotations(i_co_sp);
 	}
 	else
 	{
 		trans = data_.selectSomaticTranscript(db_, var, i_co_sp);
 	}
 	ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
+
+	//rna is mapped with the reads being RIGHT aligned!
+
 	VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var);
 
 	RtfTableRow row;
@@ -388,26 +379,20 @@ RtfTableRow SomaticRnaReport::createSnvTableRow(const Variant& var, int i_co_sp,
 	row.addCell(1300, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
 	row.addCell(700, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-	if (germline)
-	{
-		qDebug() << "rna Germline depth: " << var_details.depth;
-		qDebug() << "rna Germline freq : " << var_details.frequency;
-
-	}
-
 	//RNA data
+	QByteArray read_depth = "(" + QByteArray::number(var_details.obs) + "/" + QByteArray::number(var_details.depth) + ")";
 	if (var_details.depth > 4)
 	{
-		row.addCell( 700, formatDigits(var_details.frequency, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1000, formatDigits(var_details.frequency, 2) + "\n\\line\n" + read_depth, RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 	}
 	else
 	{
-		row.addCell( 700, "n/a", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1000, "n/a\n\\line\n" + read_depth, RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 	}
 
-	row.addCell( 1200, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-	row.addCell( 1200, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-	row.addCell( 1000, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+	row.addCell( 1100, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+	row.addCell( 1100, BasicStatistics::isValidFloat(data.hpa_ref_tpm) ? formatDigits(data.hpa_ref_tpm) : "-", RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+	row.addCell( 900, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
 	row.addCell( 1121, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
@@ -450,7 +435,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 		table.prependRow(row); // add row at the top
 	}
 
-	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"},{800,1900,1300,700,700,1200,1200, 1000, 1121}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
+	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil\n\\line\n(read/total)", "Tumorprobe TPM", "Normalprobe TPM", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"}, {800, 1900, 1300, 700, 1000, 1100, 1100, 900, 1121}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
 	for(int i=4; i<header.count(); ++i) header[i].setBackgroundColor(4);
 	table.prependRow( header );
 	RtfTableRow sub_header = RtfTableRow({"DNA", "RNA"}, {4700, 5221}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2);

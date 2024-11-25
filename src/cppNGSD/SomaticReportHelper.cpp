@@ -2064,8 +2064,6 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 				double rel_depth1 = depth_allel1 / (depth_allel1 + depth_allel2);
 				double rel_depth2 = depth_allel2 / (depth_allel1 + depth_allel2);
 
-
-
 				desc += RtfText(" Es liegt eine Kopienzahlveränderung (" + cnv_type + ") im HLA-A Genlokus der Tumorprobe vor. ").RtfCode();
 				desc += RtfText("Das Allel A*02:01 ist im Tumorgewebe " + RtfText("deletiert amplifiziert").highlight(3).RtfCode()+ ". " + RtfText("("+ tumor_hla_allel1 + " Freq " + QByteArray::number(rel_depth1, 'f', 2) + " | " + tumor_hla_allel2 + " Freq " + QByteArray::number(rel_depth2, 'f', 2) + ") ").highlight(4).RtfCode()).RtfCode();
 				desc += RtfText("Ein Verlust des Allels A*02:01 im Tumorgewebe ist nicht beurteilbar.").highlight(3).RtfCode();

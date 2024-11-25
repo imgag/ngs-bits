@@ -205,6 +205,8 @@ public:
 
 	/// Left-align indels in repeat regions. Works for GSvar files only - assumes the variants are normalized.
 	void leftAlign(const FastaFileIndex& reference);
+	/// Right-align indels in repeat regions. Works for GSvar files only - assumes the variants are normalized.
+	void rightAlign(const FastaFileIndex& reference);
     /// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
 	/// Returns the HGVS.g notation of the variant.
