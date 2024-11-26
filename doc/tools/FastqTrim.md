@@ -1,5 +1,5 @@
 ### FastqTrim tool help
-	FastqTrim (2023_03-107-g2a1d2478)
+	FastqTrim (2024_08-110-g317f43b9)
 	
 	Trims start/end bases from all reads in a FASTQ file.
 	
@@ -24,9 +24,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### FastqTrim changelog
-	FastqTrim 2023_03-107-g2a1d2478
+	FastqTrim 2024_08-110-g317f43b9
 	
 	2023-06-15 Added support for long reads.
 	2020-07-15 Added 'compression_level' parameter.

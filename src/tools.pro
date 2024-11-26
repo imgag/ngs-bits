@@ -313,6 +313,10 @@ SUBDIRS += VcfBreakMulti
 tools-TEST.depends += VcfBreakMulti
 VcfBreakMulti.depends = cppNGS
 
+SUBDIRS += VcfStrip
+tools-TEST.depends += VcfStrip
+VcfBreakMulti.depends = cppNGS
+
 SUBDIRS += VcfFilter
 tools-TEST.depends += VcfFilter
 VcfFilter.depends = cppNGS

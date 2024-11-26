@@ -1,5 +1,5 @@
 ### VcfLeftNormalize tool help
-	VcfLeftNormalize (2023_11-133-g87eceb58)
+	VcfLeftNormalize (2024_08-110-g317f43b9)
 	
 	Normalizes all variants and shifts indels to the left in a VCF file.
 	
@@ -24,9 +24,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### VcfLeftNormalize changelog
-	VcfLeftNormalize 2023_11-133-g87eceb58
+	VcfLeftNormalize 2024_08-110-g317f43b9
 	
 	2020-08-12 Added parameter '-compression_level' for compression level of output VCF files.
 	2016-06-24 Initial implementation.

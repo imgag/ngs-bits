@@ -453,11 +453,10 @@ bool MainWindow::isServerRunning()
     return true;
 }
 
-void MainWindow::lazyLoadIGVfiles()
+void MainWindow::lazyLoadIGVfiles(QString current_file)
 {
     IgvSessionManager::get(0).removeCache();
-    Log::info("Started loading file location information needed for the IGV initialization");
-    IgvSessionManager::get(0).startCachingForRegularIGV(variants_.type(), filename_);
+    IgvSessionManager::get(0).startCachingForRegularIGV(variants_.type(), current_file);
 }
 
 void MainWindow::checkServerAvailability()
@@ -1806,7 +1805,7 @@ void MainWindow::editVariantValidation(int index)
 
 			//update details widget and filtering
 			ui_.variant_details->updateVariant(variants_, index);
-			refreshVariantTable();
+			refreshVariantTable(true, true);
 
 			//mark variant list as changed
 			markVariantListChanged(variant, "validation", status);
@@ -2656,7 +2655,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(filename, variants_.getSampleHeader(), variants_.type())));
 			mode_title = " (local mode)";
 		}
-        lazyLoadIGVfiles();
+        lazyLoadIGVfiles(filename);
 
 		//load CNVs
 		timer.restart();
@@ -2752,7 +2751,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
 		refreshVariantTable(false);
-		ui_.vars->adaptColumnWidths();
 
 		QApplication::restoreOverrideCursor();
 	}
@@ -3203,7 +3201,6 @@ void MainWindow::loadReportConfig()
 	//load
 	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, res_);
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
-
 
 	//updateGUI
 	refreshVariantTable();
@@ -4611,9 +4608,13 @@ void MainWindow::on_actionExportTestData_triggered()
 	{
 		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 
-		//get and check processed sample list
+		//get samples from user
+		bool ok = false;
+		QString ps_text = QInputDialog::getMultiLineText(this, "Test data export", "List the processed samples (one per line):", "", &ok);
+		if (!ok) return;
+
+		//check processed sample list
 		QStringList ps_list;
-		QString ps_text = QInputDialog::getMultiLineText(this, "Test data export", "List the processed samples (one per line):");
 		foreach(const QString& ps, ps_text.split("\n"))
 		{
 			if (ps.trimmed().isEmpty()) continue;
@@ -4626,7 +4627,6 @@ void MainWindow::on_actionExportTestData_triggered()
 			}
 			ps_list << ps;
 		}
-		if (ps_list.count() == 0) return;
 
 		//get and open output file
 		QString file_name = QFileDialog::getSaveFileName(this, "Export database tables", QDir::homePath()+QDir::separator()+"db_data_"+QDateTime::currentDateTime().toString("dd_MM_yyyy")+".sql", "SQL (*.sql);;All files (*.*)");
@@ -5497,7 +5497,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	event->accept();
 }
 
-void MainWindow::refreshVariantTable(bool keep_widths)
+void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -5537,7 +5537,13 @@ void MainWindow::refreshVariantTable(bool keep_widths)
 		THROW(ProgrammingException, "Unsupported analysis type in refreshVariantTable!");
 	}
 
-	ui_.vars->adaptRowHeights();
+	//height
+	if (!keep_heights)
+	{
+		ui_.vars->adaptRowHeights();
+	}
+
+	//widths
 	if (keep_widths)
 	{
 		ui_.vars->setColumnWidths(col_widths);
@@ -5893,8 +5899,12 @@ void MainWindow::on_actionClearLogFile_triggered()
 	{
 		QFile::remove(filename);
 	}
- }
+}
 
+void MainWindow::on_actionOpenGSvarDataFolder_triggered()
+{
+	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
+}
 
 void MainWindow::editVariantClassification(VariantList& variants, int index, bool is_somatic)
 {
@@ -5959,8 +5969,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 
 		//update details widget and filtering
 		ui_.variant_details->updateVariant(variants, index);
-		refreshVariantTable();
-
+		refreshVariantTable(true, true);
 	}
 	catch (DatabaseException& e)
 	{

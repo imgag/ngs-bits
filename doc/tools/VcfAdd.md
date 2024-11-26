@@ -1,5 +1,5 @@
 ### VcfAdd tool help
-	VcfAdd (2022_11-75-gf99b2041)
+	VcfAdd (2024_08-110-g317f43b9)
 	
 	Appends variants from a VCF file to another VCF file.
 	
@@ -25,9 +25,10 @@
 	  --version             Prints version and exits.
 	  --changelog           Prints changeloge and exits.
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]     Settings override file (no other settings files are used).
 	
 ### VcfAdd changelog
-	VcfAdd 2022_11-75-gf99b2041
+	VcfAdd 2024_08-110-g317f43b9
 	
 	2022-12-08 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

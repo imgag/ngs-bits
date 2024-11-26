@@ -1,5 +1,5 @@
 ### NGSDAnnotateSV tool help
-	NGSDAnnotateSV (2020_03-184-g27235379)
+	NGSDAnnotateSV (2024_08-110-g317f43b9)
 	
 	Annotates the structural variants of a given BEDPE file by the NGSD counts.
 	
@@ -25,9 +25,10 @@
 	  --version                  Prints version and exits.
 	  --changelog                Prints changeloge and exits.
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### NGSDAnnotateSV changelog
-	NGSDAnnotateSV 2020_03-184-g27235379
+	NGSDAnnotateSV 2024_08-110-g317f43b9
 	
 	2020-03-12 Bugfix in match computation for INS and BND
 	2020-03-11 Updated match computation for INS and BND

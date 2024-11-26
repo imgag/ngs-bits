@@ -1,5 +1,5 @@
 ### VariantFilterRegions tool help
-	VariantFilterRegions (2024_02-42-g36bb2635)
+	VariantFilterRegions (2024_08-110-g317f43b9)
 	
 	Filter a variant list based on a target region.
 	
@@ -28,9 +28,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### VariantFilterRegions changelog
-	VariantFilterRegions 2024_02-42-g36bb2635
+	VariantFilterRegions 2024_08-110-g317f43b9
 	
 	2020-08-12 Added parameter '-compression_level' for compression level of output vcf files.
 	2018-01-23 Added parameter '-inv' and made parameter '-mark' a string parameter to allow custom annotations names.

@@ -1,39 +1,40 @@
 ### BedCoverage tool help
-	BedCoverage (2024_06-82-g4e214586)
+	BedCoverage (2024_08-113-g94a3b440)
 	
 	Annotates a BED file with the average coverage of the regions from one or several BAM/CRAM file(s).
 	
 	Mandatory parameters:
-	  -bam <filelist> Input BAM/CRAM file(s).
+	  -bam <filelist>   Input BAM/CRAM file(s).
 	
 	Optional parameters:
-	  -min_mapq <int> Minimum mapping quality.
-	                  Default value: '1'
-	  -in <file>      Input BED file. If unset, reads from STDIN.
-	                  Default value: ''
-	  -decimals <int> Number of decimals used in output.
-	                  Default value: '2'
-	  -out <file>     Output BED file. If unset, writes to STDOUT.
-	                  Default value: ''
-	  -ref <file>     Reference genome for CRAM support (mandatory if CRAM is used).
-	                  Default value: ''
-	  -clear          Clear previous annotation columns before annotating (starting from 4th column).
-	                  Default value: 'false'
-	  -threads <int>  Number of threads used.
-	                  Default value: '1'
-	  -random_access  Use random access via index to get reads from BAM/CRAM instead of chromosome-wise sweep. Random access is quite slow, so use it only if a small subset of the file needs to be accessed.
-	                  Default value: 'false'
-	  -debug          Enable debug output.
-	                  Default value: 'false'
+	  -min_mapq <int>   Minimum mapping quality.
+	                    Default value: '1'
+	  -in <file>        Input BED file. If unset, reads from STDIN.
+	                    Default value: ''
+	  -decimals <int>   Number of decimals used in output.
+	                    Default value: '2'
+	  -out <file>       Output BED file. If unset, writes to STDOUT.
+	                    Default value: ''
+	  -ref <file>       Reference genome for CRAM support (mandatory if CRAM is used).
+	                    Default value: ''
+	  -clear            Clear previous annotation columns before annotating (starting from 4th column).
+	                    Default value: 'false'
+	  -threads <int>    Number of threads used.
+	                    Default value: '1'
+	  -random_access    Use random access via index to get reads from BAM/CRAM instead of chromosome-wise sweep. Random access is quite slow, so use it only if a small subset of the file needs to be accessed.
+	                    Default value: 'false'
+	  -debug            Enable debug output.
+	                    Default value: 'false'
 	
 	Special parameters:
-	  --help          Shows this help and exits.
-	  --version       Prints version and exits.
-	  --changelog     Prints changeloge and exits.
-	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help            Shows this help and exits.
+	  --version         Prints version and exits.
+	  --changelog       Prints changeloge and exits.
+	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### BedCoverage changelog
-	BedCoverage 2024_06-82-g4e214586
+	BedCoverage 2024_08-113-g94a3b440
 	
 	2024-06-26 Added 'random_access' parameter.
 	2022-09-16 Added 'threads' parameter and removed 'dup' parameter.

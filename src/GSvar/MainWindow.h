@@ -51,7 +51,7 @@ public:
 	bool isServerRunning();
 
     /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
-    void lazyLoadIGVfiles();
+    void lazyLoadIGVfiles(QString current_file);
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
@@ -316,6 +316,8 @@ public slots:
 	void on_actionOpenLogFile_triggered();
 	///Clears the log file
 	void on_actionClearLogFile_triggered();
+	///Opens AppData folder of GSvar
+	void on_actionOpenGSvarDataFolder_triggered();
 
 	///Load report configuration
 	void loadReportConfig();
@@ -356,7 +358,7 @@ public slots:
 	///Updated the variant context menu
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
-	void refreshVariantTable(bool keep_widths = true);
+	void refreshVariantTable(bool keep_widths = true, bool keep_heights = false);
 	///Opens the recent processed sample defined by the sender action text
 	void openRecentSample();
 	///Loads the command line input file.

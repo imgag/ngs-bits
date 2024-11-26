@@ -1,0 +1,13 @@
+##fileformat=VCFv4.2
+##fileDate=20181010
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03
+chr1	27687466	.	G	T	9750.95	.	.	GT:DP:AO	0/1:738:381	./1:561:274	./1:561:285
+chr1	45797505	.	C	G	3124.17	.	.	GT:DP:AO	0/1:233:120	./1:561:285	./1:110:61
+chr1	62713224	.	C	G	1165.02	.	.	GT:DP:AO	1/1:37:37	0/1:738:381	./1:561:285
+chr2	215632255	.	CA	TG	3055.53	.	.	GT:DP:AO	./1:110:61	./1:110:46	./1:561:274
+chr2	215632255	.	CA	CG	3055.53	.	.	GT:DP:AO	./1:110:46	./1:561:285	./1:561:285
+chr4	41015823	.	G	A	16030.5	.	.	GT:DP:AO	./1:561:285	1/1:37:37	./1:110:61
+chr4	41015823	.	G	T	16030.5	.	.	GT:DP:AO	./1:561:274	./1:110:61	./1:561:285
