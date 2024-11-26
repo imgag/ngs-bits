@@ -186,10 +186,12 @@ Changes since last release:
 * added tools: 
 * removed tools: 
 * NGSD:
+	
+For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
 
 ## Citing
 
-There is no paper for ngs-bit yet.  
-Please cite the GitHub repository for now.
-	
-For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
+You can cite ngs-bits in using Zenodo DOIs:
+
+* 2024_11: [![DOI](https://zenodo.org/badge/38034492.svg)](https://doi.org/10.5281/zenodo.14216718)
+
