@@ -21,7 +21,6 @@
 
 HttpHandler::HttpHandler(bool internal, QObject* parent)
 	: QObject(parent)
-	, nmgr_()
 	, internal_(internal)
 	, proxy_()
 	, headers_()

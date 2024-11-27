@@ -41,7 +41,6 @@ public slots:
 
 
 private:
-	QNetworkAccessManager nmgr_;
 	bool internal_;
 	QNetworkProxy proxy_;
 	HttpHeaders headers_;
