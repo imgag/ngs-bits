@@ -236,8 +236,9 @@ void GeneWidget::showGeneVariationDialog()
 {
 	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
 	widget->setGene(symbol_);
-	QSharedPointer<QDialog> dlg = GUIHelper::createDialog(widget, "Small variants for " + symbol_);
-	dlg->exec();
+
+	auto dlg = GUIHelper::createDialog(widget, "Small variants search");
+	GlobalServiceProvider::addModelessDialog(dlg);
 }
 
 void GeneWidget::openGeneDatabase()
