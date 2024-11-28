@@ -9,9 +9,9 @@ Or you can use the following 1-liner to get a free port from the kernel:
 
 Additionally you have to provide a certificate. If you do not have a valid certificate for your machine you can create a self-signed one:
 
-> openssl genrsa -out GSvarServer.key 2048
-> openssl req -new -key GSvarServer.key -out GSvarServer.csr
-> openssl x509 -signkey GSvarServer.key -in GSvarServer.csr -req -days 365 -out GSvarServer.crt
+> openssl genrsa -out GSvarServer.key 2048   
+> openssl req -new -key GSvarServer.key -out GSvarServer.csr   
+> openssl x509 -signkey GSvarServer.key -in GSvarServer.csr -req -days 365 -out GSvarServer.crt   
 
 If you use self-signed certificates IGV and libcurl will not work.(See possible fix [below](#trust-self-signed-certificates-on-ubuntu))
 
