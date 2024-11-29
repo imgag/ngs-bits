@@ -1604,16 +1604,8 @@ bool ServerController::hasOverlappingRanges(const QList<ByteRange>& ranges)
 QString ServerController::addFileToTempStorage(const QString& file)
 {
     QString id = ServerHelper::generateUniqueStr();
-
     FastFileInfo *info = new FastFileInfo(file);
-    if (info->exists())
-    {
-        UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
-    }
-    else
-    {
-        THROW_HTTP(HttpException, "Cannot create a URL, since the file does not exist: '" + file + "'", 404,  {}, {});
-    }
+    UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
     return id;
 }
 
