@@ -426,7 +426,7 @@ void SgeStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJob& job, i
 
 	//cancel job
 	QByteArrayList output;
-	if (job.sge_id.isEmpty()) // not started yet => nothing to cancel
+	if (!job.sge_id.isEmpty()) // not started yet => nothing to cancel
 	{
 		Helper::executeCommand("qdel", QStringList() << job.sge_id, &output);
 	}

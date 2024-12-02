@@ -277,7 +277,26 @@ void CnvSearchWidget::search()
 		}
 		table.addColumn(validation_data, "validation_information");
 
-		//(6) show samples with CNVs in table
+		//(6) Add exon overlap
+		QStringList exon_overlap;
+		int i_chr = table.columnIndex("chr");
+		int i_start = table.columnIndex("start");
+		int i_end = table.columnIndex("end");
+		for (int r=0; r<table.rowCount(); ++r)
+		{
+			const DBRow& row = table.row(r);
+			Chromosome chr = row.value(i_chr);
+			int start = row.value(i_start).toInt();
+			int end = row.value(i_end).toInt();
+
+			QString overlap;
+			if (db_.genesOverlappingByExon(chr, start, end, 1).count()>0) overlap = "exonic/splicing";
+
+			exon_overlap << overlap;
+		}
+		table.addColumn(exon_overlap, "exon_overlap");
+
+		//(7) show samples with CNVs in table
 		ui_.table->setData(table, 200, QSet<QString>() << "size_kb");
 		ui_.table->showTextAsTooltip("report_config_comments");
 

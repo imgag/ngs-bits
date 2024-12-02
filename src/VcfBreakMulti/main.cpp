@@ -222,7 +222,10 @@ public:
 					{
 						if (j==0 && format[j]=="GT") //special handling GT entry (must be first entry if present!)
 						{
-							if (sample_values[j].contains(',') || sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + " (expected 1): " + line);
+							//comma is not valid
+							if (sample_values[j].contains(',')) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
+							//only one allele (chrX/Y for males) or two alleles is valid, e.g. 0, 1, 0/1, 0|1, ...
+							if (sample_values[j].count()!=1 && sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
 
 							//check for phased GT
 							bool phased = sample_values[j].contains('|');

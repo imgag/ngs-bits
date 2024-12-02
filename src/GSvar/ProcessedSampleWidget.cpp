@@ -681,9 +681,16 @@ void ProcessedSampleWidget::loadVariantList()
 
 void ProcessedSampleWidget::addIgvMenuEntry(QMenu* menu, PathType file_type)
 {
-	QAction* action = menu->addAction(FileLocation::typeToHumanReadableString(file_type), this, SLOT(openIgvTrack()));
-	action->setData((int)file_type);
-	action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, file_type).exists);
+    QAction* action = menu->addAction(FileLocation::typeToHumanReadableString(file_type), this, SLOT(openIgvTrack()));
+    action->setData((int)file_type);
+    try
+    {
+        action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, file_type).exists);
+    }
+    catch(Exception& e)
+    {        
+        action->setEnabled(false);
+    }
 }
 
 void ProcessedSampleWidget::openIgvTrack()

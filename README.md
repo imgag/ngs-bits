@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2024_08
+	> git checkout 2024_11
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -81,6 +81,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
 * [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a coordinate-sorted BAM file to FASTQ files.
+* [FastaFromBam](doc/tools/FastaFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 
 ### BED tools
 
@@ -138,6 +139,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfMerge](doc/tools/VcfMerge.md) - Merges several VCF files into one VCF.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
+* [VcfStrip](doc/tools/VcfStrip.md) - Removes unwanted information from a VCF file
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
 * [VcfSubstract](doc/tools/VcfSubstract.md) - Substracts the variants in a VCF from a second VCF.
 * [VcfToBed](doc/tools/VcfToBedpe.md) - Converts a VCF file to a BED file.
@@ -181,14 +183,15 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes since last release:
 
-* added tools: FastqFromBam, FastaMask, FastqFromBam
+* added tools: 
 * removed tools: 
 * NGSD:
-  * table 'repeat_expansion': added 'inhouse_testing' column, changed 'type' column
+	
+For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
 
 ## Citing
 
-There is no paper for ngs-bit yet.  
-Please cite the GitHub repository for now.
-	
-For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
+You can cite ngs-bits in using Zenodo DOIs:
+
+* 2024_11: [![DOI](https://zenodo.org/badge/38034492.svg)](https://doi.org/10.5281/zenodo.14216718)
+
