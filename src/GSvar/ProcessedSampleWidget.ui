@@ -244,7 +244,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string/>
                 </property>
                 <property name="textInteractionFlags">
                  <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -254,7 +254,7 @@
               <item>
                <widget class="QLabel" name="name">
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string/>
                 </property>
                 <property name="textInteractionFlags">
                  <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -279,7 +279,7 @@
             <item row="1" column="1">
              <widget class="QLabel" name="system">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -296,7 +296,7 @@
             <item row="2" column="1">
              <widget class="QLabel" name="processing_input">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -313,7 +313,7 @@
             <item row="3" column="1">
              <widget class="QLabel" name="molarity">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -338,14 +338,14 @@
               <item>
                <widget class="QLabel" name="r_quality">
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string/>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="run">
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string/>
                 </property>
                 <property name="textInteractionFlags">
                  <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -364,7 +364,7 @@
             <item row="5" column="1">
              <widget class="QLabel" name="project">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -374,7 +374,7 @@
             <item row="6" column="1">
              <widget class="QLabel" name="lab_operator">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -394,7 +394,7 @@
             <item row="9" column="1">
              <widget class="QLabel" name="merged">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -414,7 +414,7 @@
             <item row="11" column="1">
              <widget class="QLabel" name="normal_sample">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -434,7 +434,7 @@
             <item row="12" column="1">
              <widget class="QLabel" name="ancestry">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -457,7 +457,7 @@
                </size>
               </property>
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="wordWrap">
                <bool>true</bool>
@@ -491,14 +491,14 @@
             <item row="7" column="1">
              <widget class="QLabel" name="processing_modus">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
             <item row="8" column="1">
              <widget class="QLabel" name="batch_number">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -515,7 +515,7 @@
             <item row="10" column="1">
              <widget class="QLabel" name="sequencing">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -654,7 +654,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string/>
                 </property>
                 <property name="textInteractionFlags">
                  <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -664,7 +664,7 @@
               <item>
                <widget class="QLabel" name="s_name">
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string/>
                 </property>
                 <property name="textInteractionFlags">
                  <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -683,7 +683,7 @@
             <item row="1" column="1">
              <widget class="QLabel" name="name_external">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -703,7 +703,7 @@
             <item row="6" column="1">
              <widget class="QLabel" name="sender">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -720,7 +720,7 @@
             <item row="7" column="1">
              <widget class="QLabel" name="species_type">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -737,7 +737,7 @@
             <item row="8" column="1">
              <widget class="QLabel" name="tumor_ffpe">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -754,7 +754,7 @@
             <item row="9" column="1">
              <widget class="QLabel" name="gender">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -774,7 +774,7 @@
             <item row="10" column="1">
              <widget class="QLabel" name="disease_group_status">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -791,7 +791,7 @@
             <item row="11" column="1">
              <widget class="QLabel" name="sample_groups">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -808,7 +808,7 @@
             <item row="13" column="1">
              <widget class="QLabel" name="comments_sample">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -818,7 +818,7 @@
             <item row="12" column="1">
              <widget class="QLabel" name="tissue">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -839,7 +839,7 @@
             <item row="2" column="1">
              <widget class="QLabel" name="patient_identifier">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -856,7 +856,7 @@
             <item row="3" column="1">
              <widget class="QLabel" name="year_ob_birth">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -870,7 +870,7 @@
             <item row="4" column="1">
              <widget class="QLabel" name="sampling_date">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -884,7 +884,7 @@
             <item row="5" column="1">
              <widget class="QLabel" name="order_date">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -984,7 +984,7 @@
             <item row="0" column="1">
              <widget class="QLabel" name="status">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -1001,7 +1001,7 @@
             <item row="1" column="1">
              <widget class="QLabel" name="outcome">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -1021,7 +1021,7 @@
             <item row="3" column="1">
              <widget class="QLabel" name="comments_diag">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="wordWrap">
                <bool>true</bool>
@@ -1041,7 +1041,7 @@
             <item row="2" column="1">
              <widget class="QLabel" name="report_config">
               <property name="text">
-               <string>TextLabel</string>
+               <string/>
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -1139,7 +1139,7 @@
           <item row="0" column="1">
            <widget class="QLabel" name="kasp_snps">
             <property name="text">
-             <string>TextLabel</string>
+             <string/>
             </property>
            </widget>
           </item>
@@ -1156,7 +1156,7 @@
           <item row="1" column="1">
            <widget class="QLabel" name="kasp_swap">
             <property name="text">
-             <string>TextLabel</string>
+             <string/>
             </property>
            </widget>
           </item>

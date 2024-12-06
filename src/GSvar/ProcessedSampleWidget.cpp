@@ -25,6 +25,7 @@
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
 	, ui_(new Ui::ProcessedSampleWidget)
+    , init_timer_(this, true)
 	, ps_id_(ps_id)
 {
 	ui_->setupUi(this);
@@ -60,7 +61,6 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 		INFO(AccessDeniedException, "You do not have permissions to open sample '" + db.processedSampleName(ps_id)+ "'!");
 	}
 
-
 	//QC value > plot
 	QAction* action = new QAction(QIcon(":/Icons/chart.png"), "Plot", this);
 	ui_->qc_table->addAction(action);
@@ -74,59 +74,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	//sample details > open external data sources
 	action = new QAction(QIcon(":/Icons/Link.png"), "Open external database (if available)", this);
 	ui_->disease_details->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
-
-	// determine sample type
-	QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
-
-	QMenu* menu = new QMenu();
-	addIgvMenuEntry(menu, PathType::BAM);
-
-	if(sample_type == "cfDNA")
-	{
-		menu->addSeparator();
-		addIgvMenuEntry(menu, PathType::VCF_CF_DNA);
-	}
-	else if(sample_type == "RNA")
-	{
-		menu->addSeparator();
-		addIgvMenuEntry(menu, PathType::FUSIONS_BAM);
-		addIgvMenuEntry(menu, PathType::SPLICING_BED);
-	}
-	else if(sample_type.startsWith("DNA"))
-	{
-		addIgvMenuEntry(menu, PathType::LOWCOV_BED);
-		addIgvMenuEntry(menu, PathType::BAF);
-		menu->addSeparator();
-		addIgvMenuEntry(menu, PathType::VCF);
-		addIgvMenuEntry(menu, PathType::COPY_NUMBER_RAW_DATA);
-		addIgvMenuEntry(menu, PathType::STRUCTURAL_VARIANTS);
-		menu->addSeparator();
-		addIgvMenuEntry(menu, PathType::MANTA_EVIDENCE);
-	}
-
-	ui_->igv_btn->setMenu(menu);
-
-	//init RNA menu
-	ui_->rna_btn->setEnabled(false);
-	if(sample_type == "RNA")
-	{
-		QMenu* rna_menu = new QMenu();
-
-		QAction* expr_action = rna_menu->addAction("open RNA expression data dialog", this, SLOT(openGeneExpressionWidget()));
-		expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION).exists);
-		QAction* exon_expr_action = rna_menu->addAction("open RNA exon expression data dialog", this, SLOT(openExonExpressionWidget()));
-		exon_expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION_EXON).exists);
-		QAction* splicing_action = rna_menu->addAction("open RNA splicing data dialog", this, SLOT(openSplicingWidget()));
-		splicing_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SPLICING_ANN).exists);
-		QAction* fusion_action = rna_menu->addAction("open RNA fusion dialog", this, SLOT(openFusionWidget()));
-		fusion_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS).exists);
-
-		ui_->rna_btn->setMenu(rna_menu);
-		ui_->rna_btn->setEnabled(true);
-	}
-
-	updateGUI();
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));	
 }
 
 ProcessedSampleWidget::~ProcessedSampleWidget()
@@ -150,6 +98,62 @@ void ProcessedSampleWidget::styleQualityLabel(QLabel* label, const QString& qual
 
 	//tooltip
 	label->setToolTip(quality);
+}
+
+void ProcessedSampleWidget::delayedInitialization()
+{
+    NGSD db;
+    // determine sample type
+    QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
+
+    QMenu* menu = new QMenu();
+    addIgvMenuEntry(menu, PathType::BAM);
+
+    if(sample_type == "cfDNA")
+    {
+        menu->addSeparator();
+        addIgvMenuEntry(menu, PathType::VCF_CF_DNA);
+    }
+    else if(sample_type == "RNA")
+    {
+        menu->addSeparator();
+        addIgvMenuEntry(menu, PathType::FUSIONS_BAM);
+        addIgvMenuEntry(menu, PathType::SPLICING_BED);
+    }
+    else if(sample_type.startsWith("DNA"))
+    {
+        addIgvMenuEntry(menu, PathType::LOWCOV_BED);
+        addIgvMenuEntry(menu, PathType::BAF);
+        menu->addSeparator();
+        addIgvMenuEntry(menu, PathType::VCF);
+        addIgvMenuEntry(menu, PathType::COPY_NUMBER_RAW_DATA);
+        addIgvMenuEntry(menu, PathType::STRUCTURAL_VARIANTS);
+        menu->addSeparator();
+        addIgvMenuEntry(menu, PathType::MANTA_EVIDENCE);
+    }
+
+    ui_->igv_btn->setMenu(menu);
+
+    //init RNA menu
+    ui_->rna_btn->setEnabled(false);
+    if(sample_type == "RNA")
+    {
+        QMenu* rna_menu = new QMenu();
+
+        QAction* expr_action = rna_menu->addAction("open RNA expression data dialog", this, SLOT(openGeneExpressionWidget()));
+        expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION).exists);
+        QAction* exon_expr_action = rna_menu->addAction("open RNA exon expression data dialog", this, SLOT(openExonExpressionWidget()));
+        exon_expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION_EXON).exists);
+        QAction* splicing_action = rna_menu->addAction("open RNA splicing data dialog", this, SLOT(openSplicingWidget()));
+        splicing_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SPLICING_ANN).exists);
+        QAction* fusion_action = rna_menu->addAction("open RNA fusion dialog", this, SLOT(openFusionWidget()));
+        fusion_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS).exists);
+
+        ui_->rna_btn->setMenu(rna_menu);
+        ui_->rna_btn->setEnabled(true);
+    }
+
+    updateGUI();
 }
 
 void ProcessedSampleWidget::updateGUI()
