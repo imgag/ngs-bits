@@ -292,7 +292,7 @@ private:
 	ChromosomeHeader chr_header;
 	IndexRTree index_tree_;
 	QHash<QByteArray, ChromosomeItem> chromosomes_;
-	VersatileFile fp_;
+    QSharedPointer<VersatileFile> fp_;
 	QDataStream::ByteOrder byte_order_;
 	IntervalBuffer buffer_;
 
