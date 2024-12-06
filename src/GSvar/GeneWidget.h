@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "ui_GeneWidget.h"
 #include "NGSD.h"
+#include "DelayedInitializationTimer.h"
 
 class GeneWidget
     : public QWidget
@@ -12,6 +13,10 @@ class GeneWidget
 
 public:
     GeneWidget(QWidget* parent, QByteArray symbol);
+
+public slots:
+    ///Loads information needed for the GUI
+    void delayedInitialization();
 
 private slots:
     void updateGUI();
@@ -25,6 +30,7 @@ private slots:
 
 private:
     Ui::GeneWidget ui_;
+    DelayedInitializationTimer init_timer_;
     QByteArray symbol_;
 	QStringList omim_lines;
 	QStringList orpha_lines;
