@@ -559,27 +559,34 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-    ServerDB db = ServerDB();
-    db.initDbIfEmpty();
-
-    QList<UrlEntity> restored_urls = db.getAllUrls();
-    for (int u = 0; u < restored_urls.count(); u++)
+    try
     {
-        if (u==0)
+        ServerDB db = ServerDB();
+        db.initDbIfEmpty();
+
+        QList<UrlEntity> restored_urls = db.getAllUrls();
+        for (int u = 0; u < restored_urls.count(); u++)
         {
-            Log::info("Url backup found: " + QString::number(restored_urls.count()));
+            if (u==0)
+            {
+                Log::info("Url backup found: " + QString::number(restored_urls.count()));
+            }
+            UrlManager::addNewUrl(restored_urls[u]);
         }
-        UrlManager::addNewUrl(restored_urls[u]);
+
+        QList<Session> restored_sessions = db.getAllSessions();
+        for (int s = 0; s < restored_sessions.count(); s++)
+        {
+            if (s==0)
+            {
+                Log::info("Session backup found: " + QString::number(restored_sessions.count()));
+            }
+            SessionManager::addNewSession(restored_sessions[s]);
+        }
     }
-
-    QList<Session> restored_sessions = db.getAllSessions();
-    for (int s = 0; s < restored_sessions.count(); s++)
+    catch (DatabaseException& e)
     {
-        if (s==0)
-        {
-            Log::info("Session backup found: " + QString::number(restored_sessions.count()));
-        }
-        SessionManager::addNewSession(restored_sessions[s]);
+        Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
     }
 
 	return app.exec();

@@ -9,24 +9,35 @@ SessionAndUrlBackupWorker::SessionAndUrlBackupWorker(QList<Session> all_sessions
 
 void SessionAndUrlBackupWorker::run()
 {
-    ServerDB db = ServerDB();
-    Log::info("Remove current backups");
-    db.wipeSessions();
-    db.wipeUrls();
-    Log::info("Backup user sessions");
-    db.addSessions(all_sessions_);
-    Log::info("Backup temporary URLs");
-    db.addUrls(all_urls_);
-
-    Log::info("Removing old cache entries");
-    qint64 five_minutes_ago = QDateTime::currentDateTime().toSecsSinceEpoch() - (5*60);
-
-    if (db.removeFileLocationsOlderThan(five_minutes_ago))
+    try
     {
-        Log::info("Old cache removed");
+        ServerDB db = ServerDB();
+        Log::info("Remove current backups");
+        db.wipeSessions();
+        db.wipeUrls();
+        Log::info("Backup user sessions");
+        db.addSessions(all_sessions_);
+        Log::info("Backup temporary URLs");
+        db.addUrls(all_urls_);
+
+        Log::info("Removing old cache entries");
+        qint64 five_minutes_ago = QDateTime::currentDateTime().toSecsSinceEpoch() - (5*60);
+
+        if (db.removeFileLocationsOlderThan(five_minutes_ago))
+        {
+            Log::info("Old cache removed");
+        }
+        else
+        {
+            Log::error("Could not cleanup the cache");
+        }
     }
-    else
+    catch (DatabaseException& e)
     {
-        Log::error("Could not cleanup the cache");
+        Log::error("A database error has been detected while backing up sessions and URLs: " + e.message());
+    }
+    catch (Exception& e)
+    {
+        Log::error("An error has been detected while backing up sessions and URLs: " + e.message());
     }
 }
