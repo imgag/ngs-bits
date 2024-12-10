@@ -112,8 +112,6 @@ private:
 	/// Check if byte-range request contains overlapping ranges, they are
 	/// not allowed, according to the HTTP specification
     static bool hasOverlappingRanges(const QList<ByteRange>& ranges);
-    /// Creates a temporary URL hash for a file (used to get a file name and its full path)
-    static QString addFileToTempStorage(const QString& file);
     /// Finds filename with full path for a given processed sample
     static QString getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file

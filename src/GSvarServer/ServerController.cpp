@@ -1601,14 +1601,6 @@ bool ServerController::hasOverlappingRanges(const QList<ByteRange>& ranges)
 	return false;
 }
 
-QString ServerController::addFileToTempStorage(const QString& file)
-{
-    QString id = ServerHelper::generateUniqueStr();
-    FastFileInfo *info = new FastFileInfo(file);
-    UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
-    return id;
-}
-
 QString ServerController::getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token)
 {
     QString found_file_path;
@@ -1640,8 +1632,9 @@ QString ServerController::getProcessedSampleFile(const int& ps_id, const PathTyp
 
 QString ServerController::createTempUrl(const QString& file, const QString& token)
 {
-    QString id = addFileToTempStorage(file);
+    QString id = ServerHelper::generateUniqueStr();
     FastFileInfo *info = new FastFileInfo(file);
+    UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
     return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
 }
 
