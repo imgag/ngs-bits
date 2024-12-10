@@ -982,6 +982,11 @@ public:
 	DBTable processedSampleSearch(const ProcessedSampleSearchParameters& params);
 	///Returns sample data from the database.
 	SampleData getSampleData(const QString& sample_id);
+    ///Returns sample data from the database by filename of the sample.
+    SampleData getSampleDataByFilename(const QString& filename);
+    ///Returns sample data from the database by processed sample name.
+    SampleData getSampleDataByProcessedSampleName(const QString& ps_id);
+
 	///Returns processed sample data from the database.
 	ProcessedSampleData getProcessedSampleData(const QString& processed_sample_id);
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
@@ -1261,6 +1266,8 @@ protected:
 	void clearCache();
 	void initTranscriptCache();
 	void initGeneExpressionCache();
+
+    SampleData mapQueryResultsToSampleData(SqlQuery query);
 };
 
 #endif // NGSD_H

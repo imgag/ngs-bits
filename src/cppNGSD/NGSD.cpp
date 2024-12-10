@@ -645,68 +645,46 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date FROM sample s WHERE id=" + sample_id);
+    query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date, s.id FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
 	}
 	query.next();
 
-	//create output
-	SampleData output;
-	output.name = query.value(0).toString().trimmed();
-	output.name_external = query.value(1).toString().trimmed();
-	output.gender = query.value(2).toString();
-	output.quality = query.value(3).toString();
-	output.comments = query.value(4).toString().trimmed();
-	output.disease_group = query.value(5).toString().trimmed();
-	output.disease_status = query.value(6).toString().trimmed();
-	output.phenotypes = samplePhenotypes(sample_id);
-	output.is_tumor = query.value(7).toString()=="1";
-	output.is_ffpe = query.value(8).toString()=="1";
-	output.type = query.value(9).toString();
-	output.sender = getValue("SELECT name FROM sender WHERE id=:0", false, query.value(10).toString()).toString();
-	output.species = getValue("SELECT name FROM species WHERE id=:0", false, query.value(11).toString()).toString();
-	QVariant received_date = query.value(12);
-	if (!received_date.isNull())
-	{
-		output.received = received_date.toDate().toString("dd.MM.yyyy");
-	}
-	QVariant receiver_id = query.value(13);
-	if (!receiver_id.isNull())
-	{
-		output.received_by = userName(receiver_id.toInt());
-	}
+    return mapQueryResultsToSampleData(query);
+}
 
-	output.tissue = query.value(14).toString();
-	output.patient_identifier = query.value(15).toString();
-	QVariant year_of_birth = query.value(16);
-	if (!year_of_birth.isNull())
-	{
-		output.year_of_birth = year_of_birth.toString();
-	}
+SampleData NGSD::getSampleDataByFilename(const QString& filename)
+{
+    QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
 
-	QVariant order_date = query.value(17);
-	if (!order_date.isNull())
-	{
-		output.order_date = order_date.toDate().toString("dd.MM.yyyy");
-	}
+    SqlQuery query = getQuery();
+    query.prepare("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date, s.id FROM sample s WHERE id=(SELECT id FROM sample WHERE name=:0)");
+    query.bindValue(0, parts[0]);
+    query.exec();
+    if (query.size()==0)
+    {
+        THROW(ProgrammingException, "Invalid 'id' for table 'sample' read from: '" + filename + "'");
+    }
+    query.next();
 
-	QVariant sampling_date = query.value(18);
-	if (!sampling_date.isNull())
-	{
-		output.sampling_date = sampling_date.toDate().toString("dd.MM.yyyy");
-	}
+    return mapQueryResultsToSampleData(query);
+}
 
-	//sample groups
-	SqlQuery group_query = getQuery();
-	group_query.exec("SELECT sg.name, sg.comment FROM sample_group sg, nm_sample_sample_group nm WHERE sg.id=nm.sample_group_id AND nm.sample_id=" + sample_id);
-	while(group_query.next())
-	{
-		output.sample_groups << SampleGroup{ group_query.value(0).toString(), group_query.value(0).toString() };
-	}
+SampleData NGSD::getSampleDataByProcessedSampleName(const QString& ps_id)
+{
+    SqlQuery query = getQuery();
+    query.prepare("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date, s.id FROM sample s WHERE id=(SELECT id FROM sample WHERE name=(SELECT s.name FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id=:0))");
+    query.bindValue(0, ps_id);
+    query.exec();
+    if (query.size()==0)
+    {
+        THROW(ProgrammingException, "Invalid 'id' for table 'sample' retrieved from processed sample: '" + ps_id + "'");
+    }
+    query.next();
 
-	return output;
+    return mapQueryResultsToSampleData(query);
 }
 
 ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample_id)
@@ -10168,4 +10146,64 @@ void NGSD::initGeneExpressionCache()
 	}
 
 	initializing = false;
+}
+
+SampleData NGSD::mapQueryResultsToSampleData(SqlQuery query)
+{
+    //create output
+    SampleData output;
+    output.name = query.value(0).toString().trimmed();
+    output.name_external = query.value(1).toString().trimmed();
+    output.gender = query.value(2).toString();
+    output.quality = query.value(3).toString();
+    output.comments = query.value(4).toString().trimmed();
+    output.disease_group = query.value(5).toString().trimmed();
+    output.disease_status = query.value(6).toString().trimmed();
+    QString sample_id = query.value(19).toString();
+    output.phenotypes = samplePhenotypes(sample_id);
+    output.is_tumor = query.value(7).toString()=="1";
+    output.is_ffpe = query.value(8).toString()=="1";
+    output.type = query.value(9).toString();
+    output.sender = getValue("SELECT name FROM sender WHERE id=:0", false, query.value(10).toString()).toString();
+    output.species = getValue("SELECT name FROM species WHERE id=:0", false, query.value(11).toString()).toString();
+    QVariant received_date = query.value(12);
+    if (!received_date.isNull())
+    {
+        output.received = received_date.toDate().toString("dd.MM.yyyy");
+    }
+    QVariant receiver_id = query.value(13);
+    if (!receiver_id.isNull())
+    {
+        output.received_by = userName(receiver_id.toInt());
+    }
+
+    output.tissue = query.value(14).toString();
+    output.patient_identifier = query.value(15).toString();
+    QVariant year_of_birth = query.value(16);
+    if (!year_of_birth.isNull())
+    {
+        output.year_of_birth = year_of_birth.toString();
+    }
+
+    QVariant order_date = query.value(17);
+    if (!order_date.isNull())
+    {
+        output.order_date = order_date.toDate().toString("dd.MM.yyyy");
+    }
+
+    QVariant sampling_date = query.value(18);
+    if (!sampling_date.isNull())
+    {
+        output.sampling_date = sampling_date.toDate().toString("dd.MM.yyyy");
+    }
+
+    //sample groups
+    SqlQuery group_query = getQuery();
+    group_query.exec("SELECT sg.name, sg.comment FROM sample_group sg, nm_sample_sample_group nm WHERE sg.id=nm.sample_group_id AND nm.sample_id=" + sample_id);
+    while(group_query.next())
+    {
+        output.sample_groups << SampleGroup{ group_query.value(0).toString(), group_query.value(0).toString() };
+    }
+
+    return output;
 }

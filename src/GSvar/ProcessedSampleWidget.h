@@ -73,12 +73,14 @@ protected slots:
 	///Opent a dialog to import data from GenLab
 	void genLabImportDialog();
 	///Adds missing 'same patient' relations
-	void addMissingRelations(NGSD& db, QString s_id);
+    void addMissingRelations(QString s_id);
 
 private:
 	Ui::ProcessedSampleWidget* ui_;
     DelayedInitializationTimer init_timer_;
+    NGSD db_;
 	QString ps_id_;
+    ProcessedSampleData processed_sample_data_;
 
 	QString sampleName() const;
 	QString processedSampleName() const;
