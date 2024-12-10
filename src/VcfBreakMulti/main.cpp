@@ -24,6 +24,7 @@ public:
 		addFlag("verbose", "Writes ignored VCF format errors to stderr.");
 
 		changeLog(2018, 10, 18, "Initial implementation.");
+		changeLog(2024, 11, 21, "Implemented handling of phased GT");
     }
 
 	///Return ID from FORMAT/INFO line
