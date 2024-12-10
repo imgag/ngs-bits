@@ -556,8 +556,8 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-    FastFileInfo *info = new FastFileInfo(found_file_path);
-    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(found_file_path, request.getUrlParams()["token"]), info->exists());
+    FastFileInfo file_info(found_file_path);
+    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.exists());
 
 	QJsonDocument json_doc_output;
 	QJsonArray file_location_as_json_list;
@@ -602,8 +602,8 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
 	}
 
-    FastFileInfo *info = new FastFileInfo(found_file_path);
-    FileLocation analysis_job_gsvar_file = FileLocation(ps_name, PathType::GSVAR, createTempUrl(found_file_path, request.getUrlParams()["token"]), info->exists());
+    FastFileInfo file_info(found_file_path);
+    FileLocation analysis_job_gsvar_file = FileLocation(ps_name, PathType::GSVAR, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.exists());
 	QJsonDocument json_doc_output;
 	QJsonObject file_location_as_json_object;
 
@@ -671,8 +671,8 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
         QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
         QString log = db.analysisJobLatestLogInfo(job_id).file_name_with_path;
 
-        FastFileInfo *info = new FastFileInfo(log);
-        analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(log, request.getUrlParams()["token"]), info->exists());
+        FastFileInfo file_info(log);
+        analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.exists());
 	}
     catch (DatabaseException& e)
     {
@@ -1636,6 +1636,13 @@ QString ServerController::createTempUrl(const QString& file, const QString& toke
     FastFileInfo *info = new FastFileInfo(file);
     UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
     return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
+}
+
+QString ServerController::createTempUrl(FastFileInfo& file_info, const QString& token)
+{
+    QString id = ServerHelper::generateUniqueStr();
+    UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime()));
+    return ClientHelper::serverApiUrl() + "temp/" + id + "/" + file_info.fileName() + "?token=" + token;
 }
 
 QString ServerController::stripParamsFromTempUrl(const QString& url)

@@ -116,7 +116,7 @@ private:
     static QString getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
-
+    static QString createTempUrl(FastFileInfo& file_info, const QString& token);
     /// Returns a temporary URL wihtout a parameters (e.g. ?token=123)
     static QString stripParamsFromTempUrl(const QString& url);
 
