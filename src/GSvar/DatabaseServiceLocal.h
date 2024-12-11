@@ -8,9 +8,8 @@ class DatabaseServiceLocal
 {
 public:
 	DatabaseServiceLocal();
-	virtual ~DatabaseServiceLocal() {}
+    virtual ~DatabaseServiceLocal() {}
 
-	virtual bool enabled() const override;
 	virtual QString checkPassword(const QString user_name, const QString password) const override;
 
 	virtual BedFile processingSystemRegions(int sys_id, bool /*ignore_if_missing*/) const override;
@@ -25,18 +24,6 @@ public:
 
 	virtual QStringList getRnaFusionPics(const QString& rna_id) const override;
 	virtual QStringList getRnaExpressionPlots(const QString& rna_id) const override;
-
-protected:
-	//Throws an error if NGSD is not enabled
-	void checkEnabled(QString function) const
-	{
-		if (!enabled_)
-		{
-			THROW(ProgrammingException, "NGSD is not enabled, but instance requested in '" + function + "'");
-		}
-	}
-
-	bool enabled_;
 };
 
 #endif // DATABASESERVICE_H
