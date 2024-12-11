@@ -3,10 +3,14 @@
 #include "Exceptions.h"
 #include "Settings.h"
 #include "XmlHelper.h"
+#include "NGSD.h"
+#include "GUIHelper.h"
+#include "GenLabDB.h"
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
+	, delayed_init_(this, true)
 {
 	ui_.setupUi(this);
 	setWindowTitle(QCoreApplication::applicationName());
@@ -14,6 +18,61 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.api_consent, SIGNAL(clicked()), this, SLOT(test_apiConsent()));
 	connect(ui_.api_pseudo, SIGNAL(clicked()), this, SLOT(test_apiPseudo()));
 	connect(ui_.api_redcap_case, SIGNAL(clicked()), this, SLOT(test_apiReCapCaseManagement()));
+}
+
+void MVHub::delayedInitialization()
+{
+	loadSamplesFromNGSD();
+}
+
+void MVHub::loadSamplesFromNGSD()
+{
+	NGSD db;
+	GenLabDB genlab;
+	ProcessedSampleSearchParameters params;
+	params.s_study = "Modellvorhaben_2024";
+	params.include_archived_projects = false;
+	params.run_finished = true;
+	DBTable res = db.processedSampleSearch(params);
+	int i_ps = res.columnIndex("name");
+	int i_sys_type = res.columnIndex("system_type");
+	int i_project_name = res.columnIndex("project_name");
+	int i_is_tumor = res.columnIndex("is_tumor");
+	for(int i=0; i<res.rowCount(); ++i)
+	{
+		QString ps_id = res.row(i).id();
+		QString ps = res.row(i).value(i_ps);
+		QString project = res.row(i).value(i_project_name);
+		bool is_somatic = project=="SomaticAndTreatment";
+		QString is_tumor = res.row(i).value(i_is_tumor);
+		QString sys_type = res.row(i).value(i_sys_type);
+		if (is_somatic && (sys_type=="RNA" || is_tumor=="no")) continue; //for Onko, only tumor DNA samples are main samples
+
+		int r = ui_.table->rowCount();
+		ui_.table->setRowCount(r+1);
+		ui_.table->setItem(r, 0, GUIHelper::createTableItem(ps));
+		if (is_somatic)
+		{
+			QString ps_normal = db.normalSample(ps_id);
+			ui_.table->setItem(r, 1, GUIHelper::createTableItem("somatic - normal:"+ps_normal));
+		}
+		else
+		{
+			ui_.table->setItem(r, 1, GUIHelper::createTableItem("germline"));
+		}
+		//TODO auch RNA für somatic und eltern für Trio?
+
+		//SAP ID
+		QString sap_id = genlab.sapID(ps);
+		ui_.table->setItem(r, 2, GUIHelper::createTableItem(sap_id));
+
+		//Case management information
+		//TODO
+	}
+
+	GUIHelper::resizeTableCellWidths(ui_.table, 400, 20);
+	GUIHelper::resizeTableCellHeightsToMinimum(ui_.table, 20);
+
 }
 
 void MVHub::clearOutput(QObject* sender)

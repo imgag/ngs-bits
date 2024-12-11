@@ -24,43 +24,23 @@
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0">
+   <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
-     <number>3</number>
+     <number>6</number>
     </property>
     <property name="topMargin">
-     <number>3</number>
+     <number>6</number>
     </property>
     <property name="rightMargin">
-     <number>3</number>
+     <number>6</number>
     </property>
     <property name="bottomMargin">
-     <number>3</number>
+     <number>6</number>
     </property>
-    <property name="spacing">
-     <number>3</number>
-    </property>
-    <item row="4" column="0" colspan="5">
-     <widget class="QPlainTextEdit" name="output"/>
-    </item>
     <item row="0" column="0">
      <widget class="QPushButton" name="api_consent">
       <property name="text">
        <string>API Consent</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QPushButton" name="api_pseudo">
-      <property name="text">
-       <string>API Pseudonymisierung</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="api_redcap_case">
-      <property name="text">
-       <string>RedCap (Case Management)</string>
       </property>
      </widget>
     </item>
@@ -71,14 +51,21 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="2">
-     <widget class="QPushButton" name="api_redcap_se_upload">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="api_redcap_case">
       <property name="text">
-       <string>RedCap (SE) Upload</string>
+       <string>RedCap (Case Management)</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="3" colspan="2">
+    <item row="1" column="0">
+     <widget class="QPushButton" name="api_pseudo">
+      <property name="text">
+       <string>API Pseudonymisierung</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3" rowspan="2">
      <spacer name="horizontalSpacer">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -90,6 +77,48 @@
        </size>
       </property>
      </spacer>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="api_redcap_se_upload">
+      <property name="text">
+       <string>RedCap (SE) Upload</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="4">
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QTableWidget" name="table">
+       <column>
+        <property name="text">
+         <string>PS</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>type</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>SAP ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>CM ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Netzwerk</string>
+        </property>
+       </column>
+      </widget>
+      <widget class="QPlainTextEdit" name="output"/>
+     </widget>
     </item>
    </layout>
   </widget>

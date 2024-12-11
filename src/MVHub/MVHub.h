@@ -2,6 +2,7 @@
 #define MVHUB_H
 
 #include <QMainWindow>
+#include "DelayedInitializationTimer.h"
 #include "ui_MVHub.h"
 
 ///Main window class
@@ -15,13 +16,18 @@ public:
 	MVHub(QWidget* parent = 0);
 
 public slots:
+	void delayedInitialization();
+
 	void test_apiConsent();
 	void test_apiPseudo();
 	void test_apiReCapCaseManagement();
 
 private:
 	Ui::MVHub ui_;
+	DelayedInitializationTimer delayed_init_;
+
 	void clearOutput(QObject* sender);
+	void loadSamplesFromNGSD();
 };
 
 #endif // MVHUB_H
