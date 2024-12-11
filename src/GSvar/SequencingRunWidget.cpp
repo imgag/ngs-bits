@@ -53,6 +53,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	if (is_batch_view_) initBatchView();
 
 	updateGUI();
+	ui_->gb_sequencing_run->setStyleSheet("QGroupBox {background-color: white;}");
 }
 
 SequencingRunWidget::~SequencingRunWidget()
@@ -92,7 +93,7 @@ void SequencingRunWidget::initBatchView()
 		seq_run_table->addWidget(new QLabel("end date:"), r++, 0, Qt::AlignLeft);
 		seq_run_table->addWidget(new QLabel("pool molarity:"), r++, 0, Qt::AlignLeft);
 		seq_run_table->addWidget(new QLabel("status:"), r++, 0, Qt::AlignLeft);
-		seq_run_table->addWidget(new QLabel("comments:"), r++, 0, Qt::AlignLeft);
+		seq_run_table->addWidget(new QLabel("comments:"), r++, 0, Qt::AlignLeft|Qt::AlignTop);
 		seq_run_table->addWidget(new QLabel("backup done:"), r++, 0, Qt::AlignLeft);
 		seq_run_table->addItem(new QSpacerItem(10, 20, QSizePolicy::Minimum, QSizePolicy::Expanding), r++, 0);
 
@@ -137,13 +138,19 @@ void SequencingRunWidget::initBatchView()
 			seq_run_table->addWidget(new QLabel("status"), r++, c, Qt::AlignLeft);
 			QLabel* comments = new QLabel("comments");
 			comments->setAlignment(Qt::AlignLeft|Qt::AlignTop);
+			comments->setMaximumWidth(200);
 			seq_run_table->addWidget(comments, r++, c, Qt::AlignLeft|Qt::AlignTop);
 			seq_run_table->addWidget(new QLabel("backup_done"), r++, c, Qt::AlignLeft);
+			seq_run_table->setColumnMinimumWidth(c, 150);
 
 		}
 		seq_run_table->addItem(new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Minimum), 0, run_ids_.size()+1);
 
+
 		ui_->gb_sequencing_run->setLayout(seq_run_table);
+		ui_->gb_sequencing_run->setStyleSheet("QGroupBox {background-color: white;}");
+		ui_->gb_sequencing_run->setMinimumHeight(280);
+
 
 
 		//disable edit/MID buttons in batch view
@@ -192,11 +199,13 @@ void SequencingRunWidget::updateGUI()
 				((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget())->setText(query.value("end_date").toString());
 				QVariant molarity = query.value("pool_molarity");
 				((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget())->setText((molarity.isNull())?(molarity.toString() + " (" + query.value("pool_quantification_method").toString() + ")"):(""));
-				((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget())->setText(query.value("status").toString());
+				if (query.value("status").toString()=="analysis_finished")((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget())->setText(query.value("status").toString());
+				else ((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget())->setText("<font color=orange>" + query.value("status").toString() + "</font>");
 				GSvarHelper::limitLines((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget(), query.value("comment").toString());
-				((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget())->setText((query.value("backup_done").toString()=="1" ? "yes" : "no"));
+				((QLabel*) seq_run_table->itemAtPosition(r++, c)->widget())->setText((query.value("backup_done").toString()=="1" ? "yes" : "<font color=red>no</font>"));
 
 			}
+
 			//#### deactivate SampleSheet ####
 			ui_->novaseqx_samplesheet_btn->setEnabled(false);
 
@@ -288,7 +297,8 @@ void SequencingRunWidget::updateRunSampleTable()
 
 	// determine QC parameter based on sample types
 	QSet<QString> sample_types = samples.extractColumn(samples.columnIndex("sample_type")).toSet();
-	setQCMetricAccessions(sample_types);
+	QSet<QString> system_types = samples.extractColumn(samples.columnIndex("sys_type")).toSet();
+	setQCMetricAccessions(sample_types, system_types);
 
 	// update QC plot button
 	ui_->plot_btn->setMenu(new QMenu());
@@ -746,7 +756,7 @@ void SequencingRunWidget::exportSampleSheet()
 	}
 }
 
-void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_types)
+void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_types, const QSet<QString>& system_types)
 {
 	// determine QC parameter based on sample types
 	qc_metric_accessions_.clear();
@@ -758,6 +768,10 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	if (sample_types.contains("DNA") || sample_types.contains("RNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
 	{
 		qc_metric_accessions_ << "QC:2000027"; // target region 20x percentage
+	}
+	if (system_types.contains("lrGS"))
+	{
+		qc_metric_accessions_ << "QC:2000131"; // N50 value
 	}
 	if (sample_types.contains("cfDNA"))
 	{

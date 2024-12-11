@@ -35,11 +35,6 @@ SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 	action = new QAction(QIcon(":/Icons/Exchange.png"), "Move processed samples to other run");
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(moveSamples()));
-
-	//batch view for lrGS samples
-	action = new QAction(QIcon(":/Icons/NGSD_run_overview.png"), "Open sequencing run batch");
-	ui_.table->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(openRunBatchTab()));
 }
 
 void SequencingRunOverview::delayedInitialization()
@@ -109,41 +104,44 @@ void SequencingRunOverview::updateTable()
 void SequencingRunOverview::openRunTab()
 {
 	//determine name column
-	int col = ui_.table->columnIndex("name");
-
-	//open tabs
-	QSet<int> rows = ui_.table->selectedRows();
-	foreach (int row, rows)
-	{
-		QString name = ui_.table->item(row, col)->text();
-		GlobalServiceProvider::openRunTab(name);
-	}
-}
-
-void SequencingRunOverview::openRunBatchTab()
-{
-	//determine name column
 	int idx_name = ui_.table->columnIndex("name");
 	int idx_device = ui_.table->columnIndex("device");
 
-	//open a batch view with all runs
 	QSet<int> rows = ui_.table->selectedRows();
 	QStringList run_names;
 	QSet<QString> device_types;
-	foreach (int row, rows)
+
+	//single run:
+	if (rows.size() == 1)
 	{
-		run_names << ui_.table->item(row, idx_name)->text();
-		//extract device type
-		device_types << ui_.table->item(row, idx_device)->text().split("(").at(1).split(")").at(0);
+		QString name = ui_.table->item(0, idx_name)->text();
+		GlobalServiceProvider::openRunTab(name);
 	}
-	if (device_types.size() > 1)
+	else //multiple runs
 	{
-		QMessageBox::critical(this, "Batch run view", "Batch view is only supported for runs from the same sequencer type!");
-		return;
+		foreach (int row, rows)
+		{
+			run_names << ui_.table->item(row, idx_name)->text();
+			//extract device type
+			device_types << ui_.table->item(row, idx_device)->text().split("(").at(1).split(")").at(0);
+		}
+		if ((device_types.size() > 1) || *device_types.begin() != "PromethION")
+		{
+			//open each run in a separate view
+			foreach (const QString& run, run_names)
+			{
+				GlobalServiceProvider::openRunTab(run);
+			}
+		}
+		else
+		{
+			//open batch view
+			GlobalServiceProvider::openRunBatchTab(run_names);
+		}
 	}
 
-	GlobalServiceProvider::openRunBatchTab(run_names);
 }
+
 
 void SequencingRunOverview::openRunTab(int row)
 {

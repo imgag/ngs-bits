@@ -218,7 +218,7 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 		else if (sys_type=="lrGS")
 		{
 			if (value<30) color = &orange;
-			if (value<20) color = &red;
+			if (value<25) color = &red;
 		}
 		else
 		{
@@ -232,6 +232,11 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 		{
 			if (value<99) color = &orange;
 			if (value<95) color = &red;
+		}
+		else if (sys_type=="lrGS")
+		{
+			if (value<95) color = &orange;
+			if (value<85) color = &red;
 		}
 		else
 		{
@@ -260,6 +265,11 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 	}
 	else if (accession=="QC:2000113") //CNV count
 	{
+		if (sys_type=="WGS")
+		{
+			if (value>2500 || value<500) color = &orange;
+			if (value>8000) color = &red;
+		}
 		if (value<1) color = &red;
 	}
 	else if (accession=="QC:2000024") //duplicate %
@@ -281,6 +291,13 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 	{
 		if (value<0.9) color = &orange;
 		if (value<0.75) color = &red;
+	}
+	else if (accession=="QC:2000131")// N50 value
+	{
+		if (sys_type=="lrGS")
+		{
+			if (value<10000) color = &orange;
+		}
 	}
 
 	//set color

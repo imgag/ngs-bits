@@ -43,7 +43,7 @@ private:
 	QStringList run_ids_;
 	bool is_batch_view_;
 	QStringList qc_metric_accessions_;
-	void setQCMetricAccessions(const QSet<QString>& sample_types);
+	void setQCMetricAccessions(const QSet<QString>& sample_types, const QSet<QString>& system_types);
 
 	static void highlightItem(QTableWidgetItem* item);
 };
