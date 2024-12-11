@@ -5,26 +5,17 @@
 #include "ApiCaller.h"
 #include "GUIHelper.h"
 
-DatabaseServiceRemote::DatabaseServiceRemote()
-	: enabled_(true)
+DatabaseServiceRemote::DatabaseServiceRemote()	
 {
-}
-
-bool DatabaseServiceRemote::enabled() const
-{
-	return enabled_;
 }
 
 QString DatabaseServiceRemote::checkPassword(const QString user_name, const QString password) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
 	return makePostApiCall("validate_credentials", RequestUrlParams(), QString("name="+user_name+"&password="+password).toUtf8(), false);
 }
 
 BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_if_missing) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
-
 	BedFile output;
 	RequestUrlParams params;
 	params.insert("sys_id", QString::number(sys_id).toUtf8());
@@ -42,8 +33,6 @@ BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_i
 
 GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id, bool ignore_if_missing) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
-
 	GeneSet output;
 	RequestUrlParams params;
 	params.insert("sys_id", QString::number(sys_id).toUtf8());
@@ -61,8 +50,6 @@ GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id, bool ignore_if_
 
 QStringList DatabaseServiceRemote::secondaryAnalyses(QString processed_sample_name, QString analysis_type) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
-
 	QStringList list;
 	RequestUrlParams params;
 	params.insert("ps_name", processed_sample_name.toUtf8());
@@ -87,8 +74,6 @@ QStringList DatabaseServiceRemote::secondaryAnalyses(QString processed_sample_na
 
 FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed_sample_id, PathType type) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
-
 	FileLocation output;
 	RequestUrlParams params;
 	params.insert("ps_id", processed_sample_id.toUtf8());
@@ -116,8 +101,6 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 
 FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
-
 	RequestUrlParams params;
 	params.insert("job_id", QString::number(job_id).toUtf8());
 	QByteArray reply = makeGetApiCall("analysis_job_last_update", params, true);
@@ -140,8 +123,6 @@ FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) cons
 
 FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
-
 	RequestUrlParams params;
 	params.insert("job_id", QString::number(job_id).toUtf8());
 	QByteArray reply = makeGetApiCall("analysis_job_gsvar_file", params, true);
@@ -163,8 +144,6 @@ FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) cons
 
 FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
-
 	RequestUrlParams params;
 	params.insert("job_id", QString::number(job_id).toUtf8());
 	QByteArray reply = makeGetApiCall("analysis_job_log", params, true);
@@ -186,8 +165,6 @@ FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
 
 QList<MultiSampleAnalysisInfo> DatabaseServiceRemote::getMultiSampleAnalysisInfo(QStringList& analyses) const
 {
-	checkEnabled(__PRETTY_FUNCTION__);
-
 	QList<MultiSampleAnalysisInfo> result;
 	QJsonArray json_in_array = QJsonArray::fromStringList(analyses);
 	QJsonDocument json_in_doc(json_in_array);

@@ -11,9 +11,6 @@
 class DatabaseService
 {
 public:
-	//Returns if the database is enabled.
-	virtual bool enabled() const = 0;
-
 	//Returns an error message, if the user name and/or password are/is incorrect.
 	//An empty string is returned otherwise.
 	virtual QString checkPassword(const QString user_name, const QString password) const = 0;

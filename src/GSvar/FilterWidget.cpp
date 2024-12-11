@@ -101,30 +101,26 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	box->addItem("none", "");
 	box->insertSeparator(box->count());
 
-	if (GlobalServiceProvider::database().enabled())
-	{
-		NGSD db;
+    NGSD db;
+    //load ROIs of NGSD processing systems
+    SqlQuery query = db.getQuery();
+    query.exec("SELECT name_manufacturer, target_file FROM processing_system ORDER by name_manufacturer ASC");
+    while(query.next())
+    {
+        QString name = query.value(0).toString();
+        QString roi = query.value(1).toString().trimmed();
+        if (roi.isEmpty()) continue;
 
-		//load ROIs of NGSD processing systems
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT name_manufacturer, target_file FROM processing_system ORDER by name_manufacturer ASC");
-		while(query.next())
-		{
-			QString name = query.value(0).toString();
-			QString roi = query.value(1).toString().trimmed();
-			if (roi.isEmpty()) continue;
+        box->addItem("Processing system: " + name, "Processing system: " + name);
+    }
+    box->insertSeparator(box->count());
 
-			box->addItem("Processing system: " + name, "Processing system: " + name);
-		}
-		box->insertSeparator(box->count());
-
-		//load ROIs of NGSD sub-panels
-		foreach(const QString& subpanel, db.subPanelList(false))
-		{
-			box->addItem("Sub-panel: " + subpanel, "Sub-panel: " + subpanel);
-		}
-		box->insertSeparator(box->count());
-	}
+    //load ROIs of NGSD sub-panels
+    foreach(const QString& subpanel, db.subPanelList(false))
+    {
+        box->addItem("Sub-panel: " + subpanel, "Sub-panel: " + subpanel);
+    }
+    box->insertSeparator(box->count());
 
 	//load additional ROIs from settings
 	QStringList rois = Settings::stringList("target_regions", true);
@@ -186,8 +182,6 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 
 void FilterWidget::checkGeneNames(const GeneSet& genes, QLineEdit* widget)
 {
-	if (!GlobalServiceProvider::database().enabled()) return;
-
 	QStringList errors;
 	NGSD db;
 	foreach(const QByteArray& gene, genes)
