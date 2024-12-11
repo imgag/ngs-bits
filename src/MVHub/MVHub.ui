@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>MVHub</class>
+ <widget class="QMainWindow" name="MVHub">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -17,7 +17,7 @@
    <bool>true</bool>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>MVHub</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">

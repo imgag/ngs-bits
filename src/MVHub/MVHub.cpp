@@ -1,10 +1,10 @@
-#include "MainWindow.h"
+#include "MVHub.h"
 #include "HttpHandler.h"
 #include "Exceptions.h"
 #include "Settings.h"
 #include "XmlHelper.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
 {
@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.api_redcap_case, SIGNAL(clicked()), this, SLOT(test_apiReCapCaseManagement()));
 }
 
-void MainWindow::clearOutput(QObject* sender)
+void MVHub::clearOutput(QObject* sender)
 {
 	ui_.output->clear();
 
@@ -28,7 +28,7 @@ void MainWindow::clearOutput(QObject* sender)
 	}
 }
 
-void MainWindow::test_apiConsent()
+void MVHub::test_apiConsent()
 {
 	try
 	{
@@ -74,7 +74,7 @@ void MainWindow::test_apiConsent()
 	}
 }
 
-void MainWindow::test_apiPseudo()
+void MVHub::test_apiPseudo()
 {
 	try
 	{
@@ -106,7 +106,7 @@ void MainWindow::test_apiPseudo()
 	}
 }
 
-void MainWindow::test_apiReCapCaseManagement()
+void MVHub::test_apiReCapCaseManagement()
 {
 	try
 	{

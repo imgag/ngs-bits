@@ -1,18 +1,18 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MVHUB_H
+#define MVHUB_H
 
 #include <QMainWindow>
-#include "ui_MainWindow.h"
+#include "ui_MVHub.h"
 
 ///Main window class
-class MainWindow
+class MVHub
 		: public QMainWindow
 {
 	Q_OBJECT
 	
 public:
 	///Constructor
-	MainWindow(QWidget* parent = 0);
+	MVHub(QWidget* parent = 0);
 
 public slots:
 	void test_apiConsent();
@@ -20,8 +20,8 @@ public slots:
 	void test_apiReCapCaseManagement();
 
 private:
-	Ui::MainWindow ui_;
+	Ui::MVHub ui_;
 	void clearOutput(QObject* sender);
 };
 
-#endif // MAINWINDOW_H
+#endif // MVHUB_H

@@ -6,13 +6,13 @@ TARGET = MVHub
 TEMPLATE = app
 
 SOURCES += main.cpp \
-	HttpHandler.cpp \
-    MainWindow.cpp
+    HttpHandler.cpp \
+    MVHub.cpp
 
-HEADERS += MainWindow.h \
+HEADERS += MVHub.h \
 	HttpHandler.h
 
-FORMS    += MainWindow.ui
+FORMS    += MVHub.ui
 
 include("../app_gui.pri")
 
