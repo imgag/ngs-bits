@@ -27,11 +27,11 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	, sys_name_(sys_name)
 	, sys_type_cutoff_col_("")
 	, report_config_(report_config)
-	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_ && report_config_!=nullptr && !report_config_->isFinalized())
+    , ngsd_user_logged_in_(LoginManager::active())
+    , rc_enabled_(ngsd_user_logged_in_ && report_config_!=nullptr && !report_config_->isFinalized())
 {
 	ui_.setupUi(this);
-	ui_.filter_hpo->setEnabled(ngsd_enabled_);
+    ui_.filter_hpo->setEnabled(ngsd_user_logged_in_);
 	ui_.filter_hpo->setEnabled(!GlobalServiceProvider::filterWidget()->phenotypes().isEmpty());
 
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(cellDoubleClicked(int, int)));
@@ -119,7 +119,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* a_comments = menu.addAction(QIcon(":/Icons/Comment.png"), "Show comments");
 	QAction* a_distribution = menu.addAction(QIcon(":/Icons/AF_histogram.png"), "Show distribution for " + sys_name_);
-	a_distribution->setEnabled(ngsd_enabled_);
+    a_distribution->setEnabled(ngsd_user_logged_in_);
 	QAction* a_show_svg = menu.addAction("Show repeat allele(s) image");
 	a_show_svg->setEnabled(image_loc.exists);
 	QAction* a_show_hist = menu.addAction("Show read lengths histogram");
@@ -469,7 +469,7 @@ void RepeatExpansionWidget::displayRepeats()
 
 void RepeatExpansionWidget::loadMetaDataFromNGSD()
 {
-	if (!ngsd_enabled_) return;
+    if (!ngsd_user_logged_in_) return;
 
 	NGSD db;
 
@@ -793,7 +793,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 }
 void RepeatExpansionWidget::svHeaderDoubleClicked(int row)
 {
-	if (!ngsd_enabled_) return;
+    if (!ngsd_user_logged_in_) return;
 	editReportConfiguration(row);
 }
 
@@ -816,7 +816,7 @@ void RepeatExpansionWidget::svHeaderContextMenu(QPoint pos)
 	QAction* action = menu.exec(pos);
 	if (action==nullptr) return;
 
-	if(!ngsd_enabled_) return; //do nothing if no access to NGSD
+    if(!ngsd_user_logged_in_) return; //do nothing if no access to NGSD
 
 	//actions
 	if (action==a_edit)

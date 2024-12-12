@@ -50,7 +50,7 @@ private:
 	QString sys_type_;
 	QString sys_type_cutoff_col_;
 	QSharedPointer<ReportConfiguration> report_config_;
-	bool ngsd_enabled_;
+    bool ngsd_user_logged_in_;
 	bool rc_enabled_;
 
 	QColor red_ = QColor(255, 0, 0, 128);
