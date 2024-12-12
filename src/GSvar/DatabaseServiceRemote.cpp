@@ -5,8 +5,14 @@
 #include "ApiCaller.h"
 #include "GUIHelper.h"
 
-DatabaseServiceRemote::DatabaseServiceRemote()	
+DatabaseServiceRemote::DatabaseServiceRemote()
+    : enabled_(true)
 {
+}
+
+bool DatabaseServiceRemote::enabled() const
+{
+    return enabled_;
 }
 
 QString DatabaseServiceRemote::checkPassword(const QString user_name, const QString password) const

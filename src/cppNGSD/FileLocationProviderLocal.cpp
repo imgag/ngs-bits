@@ -463,6 +463,7 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 
         foreach(const SampleInfo& info, header_info_)
         {
+            if (!NGSD::isAvailable()) break;
             try
             {
                 NGSD db;

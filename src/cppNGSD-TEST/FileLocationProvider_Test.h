@@ -1,6 +1,7 @@
 #include "TestFramework.h"
 #include "FileLocationProvider.h"
 #include "FileLocationProviderLocal.h"
+#include "NGSD.h"
 
 TEST_CLASS(FileLocationProvider_Test)
 {
@@ -8,7 +9,9 @@ Q_OBJECT
 private slots:
 	void get_files()
 	{
-		// Single
+        if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+        // Single
 		QString filename = "data_in/VariantFilter_in.GSvar";
 
 		VariantList vl;
