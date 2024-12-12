@@ -160,7 +160,8 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 
 	//UCSC
-	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "UCSC Genome Browser");
+	QAction* a_ucsc_enigma = menu.addAction(QIcon("://Icons/UCSC.png"), "UCSC Genome Browser (ENIGMA tracks)");
 
 	//LOVD
 	QAction* a_lovd = menu.addAction(QIcon("://Icons/LOVD.png"), "Find in LOVD");
@@ -294,6 +295,10 @@ void VariantTable::customContextMenu(QPoint pos)
 	else if (action == a_ucsc)
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+	}
+	else if (action == a_ucsc_enigma)
+	{
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/s/abenet/BRCA1_BRCA2_ENIGMA_hg38?position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
 	}
 	else if (action == a_lovd)
 	{
