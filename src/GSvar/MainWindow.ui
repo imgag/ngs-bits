@@ -571,6 +571,7 @@
     <addaction name="actionVariantValidation"/>
     <addaction name="actionGaps"/>
     <addaction name="separator"/>
+    <addaction name="actionSampleCounts"/>
     <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuFile"/>
@@ -1525,7 +1526,13 @@
    <property name="text">
     <string>Open methylation calls</string>
    </property>
-  </action> </widget>
+  </action> 
+  <action name="actionSampleCounts">
+   <property name="text">
+    <string>Sample counts</string>
+   </property>
+  </action>
+ </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>

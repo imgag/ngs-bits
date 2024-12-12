@@ -169,6 +169,7 @@ public slots:
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
 	void on_actionStudy_triggered();
+	void on_actionSampleCounts_triggered();
 	void on_actionGaps_triggered();
 	void on_actionPrepareGhgaUpload_triggered();
 	void on_actionCohortAnalysis_triggered();

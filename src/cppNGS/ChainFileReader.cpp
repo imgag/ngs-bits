@@ -2,10 +2,10 @@
 #include "Exceptions.h"
 #include "zlib.h"
 
-ChainFileReader::ChainFileReader(QString filepath, double percent_deletion):
-	filepath_(filepath)
-  , file_(filepath)
-  , percent_deletion_(percent_deletion)
+ChainFileReader::ChainFileReader(QString filepath, double percent_deletion)
+    : filepath_(filepath)
+    , file_(new VersatileFile(filepath))
+    , percent_deletion_(percent_deletion)
 {
 	load();
 }
@@ -72,21 +72,21 @@ void ChainFileReader::load()
 
 QList<QByteArray> ChainFileReader::getLines()
 {
-	file_ = VersatileFile(filepath_);
+    file_ = QSharedPointer<VersatileFile>(new VersatileFile(filepath_));
 
-	if (! file_.open(QFile::ReadOnly))
+    if (! file_->open(QFile::ReadOnly))
 	{
 		THROW(FileAccessException, "Could not open chain-file for reading: '" + filepath_ + "'!");
 	}
 
 	if (filepath_.endsWith(".chain"))
 	{
-		return file_.readAll().split('\n');
+        return file_->readAll().split('\n');
 	}
 	else if (filepath_.endsWith(".gz"))
 	{
 
-		QByteArray compressed = file_.readAll();
+        QByteArray compressed = file_->readAll();
 		if (compressed.length() == 0)
 		{
 			THROW(ProgrammingException, "Reading file gave no compressed data.");

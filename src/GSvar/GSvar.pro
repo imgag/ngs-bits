@@ -34,6 +34,7 @@ SOURCES += main.cpp\
     RepeatExpansionWidget.cpp \
     ReportDialog.cpp \
     Background/ReportWorker.cpp \
+    SampleCountWidget.cpp \
     SettingsDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
@@ -164,6 +165,7 @@ HEADERS += MainWindow.h \
     RepeatExpansionWidget.h \
     ReportDialog.h \
     Background/ReportWorker.h \
+    SampleCountWidget.h \
     SettingsDialog.h \
     TrioDialog.h \
     HttpHandler.h \
@@ -284,6 +286,7 @@ FORMS    += MainWindow.ui \
     ReSearchWidget.ui \
     RepeatExpansionWidget.ui \
     ReportDialog.ui \
+    SampleCountWidget.ui \
     SettingsDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \

@@ -156,8 +156,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneInterpretabilityDialog.h"
 #include "HerediVarImportDialog.h"
 #include "Background/IGVInitCacheWorker.h"
+#include "SampleCountWidget.h"
 #include "MethylationWidget.h"
-
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -4834,6 +4834,15 @@ void MainWindow::on_actionStudy_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("study");
 	auto dlg = GUIHelper::createDialog(widget, "Study administration");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionSampleCounts_triggered()
+{
+	if (!LoginManager::active()) return;
+
+	SampleCountWidget* widget = new SampleCountWidget();
+	auto dlg = GUIHelper::createDialog(widget, "Sample counts");
 	addModelessDialog(dlg);
 }
 
