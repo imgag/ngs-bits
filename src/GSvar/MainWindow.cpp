@@ -1606,25 +1606,28 @@ void MainWindow::delayedInitialization()
 		}
 	}
 
-	//user login for database	
-    LoginDialog dlg(this);
-    dlg.exec();
-
-    if (LoginManager::active())
+    if (NGSD::isAvailable())
     {
-        try
-        {
-            ui_.filters->loadTargetRegions();
-        }
-        catch(Exception& e)
-        {
-            Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
-        }
-    }
+        //user login for database
+        LoginDialog dlg(this);
+        dlg.exec();
 
-    //start initialization of NGSD gene/transcript cache
-    NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
-    startJob(ngsd_initializer, false);
+        if (LoginManager::active())
+        {
+            try
+            {
+                ui_.filters->loadTargetRegions();
+            }
+            catch(Exception& e)
+            {
+                Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
+            }
+        }
+
+        //start initialization of NGSD gene/transcript cache
+        NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
+        startJob(ngsd_initializer, false);
+    }
 
 	//create default IGV session (variants)
 	IGVSession* igv_default = IgvSessionManager::create(this, "Default IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));

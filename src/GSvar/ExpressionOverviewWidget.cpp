@@ -71,26 +71,29 @@ void ExpressionOverviewWidget::initTargetRegions()
 	ui_->cb_target_region->addItem("none", "");
 	ui_->cb_target_region->insertSeparator(ui_->cb_target_region->count());
 
-    NGSD db;
-    //load ROIs of NGSD processing systems
-    SqlQuery query = db.getQuery();
-    query.exec("SELECT name_manufacturer, target_file FROM processing_system ORDER by name_manufacturer ASC");
-    while(query.next())
+    if (LoginManager::active())
     {
-        QString name = query.value(0).toString();
-        QString roi = query.value(1).toString().trimmed();
-        if (roi.isEmpty()) continue;
+        NGSD db;
+        //load ROIs of NGSD processing systems
+        SqlQuery query = db.getQuery();
+        query.exec("SELECT name_manufacturer, target_file FROM processing_system ORDER by name_manufacturer ASC");
+        while(query.next())
+        {
+            QString name = query.value(0).toString();
+            QString roi = query.value(1).toString().trimmed();
+            if (roi.isEmpty()) continue;
 
-        ui_->cb_target_region->addItem("Processing system: " + name, "Processing system: " + name);
-    }
-    ui_->cb_target_region->insertSeparator(ui_->cb_target_region->count());
+            ui_->cb_target_region->addItem("Processing system: " + name, "Processing system: " + name);
+        }
+        ui_->cb_target_region->insertSeparator(ui_->cb_target_region->count());
 
-    //load ROIs of NGSD sub-panels
-    foreach(const QString& subpanel, db.subPanelList(false))
-    {
-        ui_->cb_target_region->addItem("Sub-panel: " + subpanel, "Sub-panel: " + subpanel);
+        //load ROIs of NGSD sub-panels
+        foreach(const QString& subpanel, db.subPanelList(false))
+        {
+            ui_->cb_target_region->addItem("Sub-panel: " + subpanel, "Sub-panel: " + subpanel);
+        }
+        ui_->cb_target_region->insertSeparator(ui_->cb_target_region->count());
     }
-    ui_->cb_target_region->insertSeparator(ui_->cb_target_region->count());
 
 	//load additional ROIs from settings
 	QStringList rois = Settings::stringList("target_regions", true);
