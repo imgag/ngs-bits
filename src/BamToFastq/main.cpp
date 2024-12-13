@@ -63,6 +63,22 @@ public:
 		}
 	}
 
+	struct ReadWritten
+	{
+		bool read1 = false;
+		bool read2 = false;
+
+		bool done(bool first_read) const
+		{
+			return first_read ? read1 : read2;
+		}
+		void setDone(bool first_read)
+		{
+			if(first_read) read1 = true;
+			else read2 = true;
+		}
+	};
+
 	virtual void main()
 	{
 		//init
@@ -111,10 +127,9 @@ public:
 		long long c_single_end = 0;
 		long long c_fixed = 0;
 		int max_cached = 0;
-
 		//iterate through reads
 		QHash<QByteArray, QSharedPointer<BamAlignment>> al_cache;
-		QSet<QByteArray> reads_processed;
+		QHash<QByteArray, ReadWritten> reads_processed;
 		QSharedPointer<BamAlignment> al = QSharedPointer<BamAlignment>(new BamAlignment());
 		while (reader.getNextAlignment(*al))
 		{
@@ -133,13 +148,13 @@ public:
 			//remove reads with same name (but handle read pairing properly)
 			if (fix)
 			{
-				QByteArray name = al->name() + (al->isRead1() ? "/1" : "/2");
-				if (reads_processed.contains(name))
+				ReadWritten& written = reads_processed[al->name()];
+				if (written.done(al->isRead1()))
 				{
 					++c_fixed;
 					continue;
 				}
-				reads_processed << name;
+				written.setDone(al->isRead1());
 			}
 
 			if(is_pe)
