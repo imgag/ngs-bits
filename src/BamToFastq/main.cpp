@@ -24,14 +24,15 @@ public:
 
 		//optional
 		addOutfile("out2", "Read 2 output FASTQ.GZ file (required for pair-end samples).", true);
-		addEnum("mode", "Determine if BAM/CRAM contains paired-end or single-end reads (default: paired-end)", true, QStringList() << "paired-end" << "single-end", "paired-end");
 		addString("reg", "Export only reads in the given region. Format: chr:start-end.", true);
-		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
+		addFlag("remove_duplicates", "Does not export reads marked as duplicates in SAM flags into the FASTQ file.");
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
 		addInt("write_buffer_size", "Output write buffer size (number of FASTQ entry pairs).", true, 100);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addInt("extend", "Extend all reads to the given length. Base 'N' and base qualiy '2' are used for extension.", true, 0);
+		addFlag("fix", "Keep only one read pair if several have the same name (note: needs much memory as read names are kept in memory).");
 
+		changeLog(2024, 12, 13, "Added 'fix' parameter.");
 		changeLog(2024, 12,  9, "Added 'extend' parameter.");
 		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");
@@ -69,14 +70,9 @@ public:
 		timer.start();
 		QTextStream out(stdout);
 		BamReader reader(getInfile("in"), getInfile("ref"));
-
 		QString out1 = getOutfile("out1");
 		QString out2 = getOutfile("out2");
-		QString mode = getEnum("mode");
-
-		if (mode == "paired-end" && out2.trimmed().isEmpty()) THROW(ArgumentException, "'out2' has to be provided for paired-end reads!");
-		if (mode == "single-end" && out2.trimmed() != "") THROW(ArgumentException, "'out2' cannot be set for single-end reads!");
-
+		bool fix = getFlag("fix");
 		QString reg = getString("reg");
 		if (reg!="")
 		{
@@ -98,17 +94,14 @@ public:
 		QThreadPool analysis_pool;
 		analysis_pool.setMaxThreadCount(1);
 		OutputWorker* output_worker;
-		if (mode == "paired-end")
+		const bool is_pe = !out2.trimmed().isEmpty();
+		if (is_pe)
 		{
 			output_worker = new OutputWorker(pair_pool, out1, out2, compression_level);
 		}
-		else if (mode == "single-end")
+		else //single-end
 		{
 			output_worker = new OutputWorker(pair_pool, out1, compression_level);
-		}
-		else
-		{
-			THROW(ArgumentException, "Invalid mode '" + mode + "' provided!")
 		}
 		analysis_pool.start(output_worker);
 
@@ -116,15 +109,15 @@ public:
 		long long c_paired = 0;
 		long long c_duplicates = 0;
 		long long c_single_end = 0;
+		long long c_fixed = 0;
 		int max_cached = 0;
 
 		//iterate through reads
 		QHash<QByteArray, QSharedPointer<BamAlignment>> al_cache;
+		QSet<QByteArray> reads_processed;
 		QSharedPointer<BamAlignment> al = QSharedPointer<BamAlignment>(new BamAlignment());
-		while (true)
+		while (reader.getNextAlignment(*al))
 		{
-			bool ok = reader.getNextAlignment(*al);
-			if (!ok) break;
 			//out << al.name() << " PAIRED=" << al.isPaired() << " SEC=" << al.isSecondaryAlignment() << " PROP=" << al.isProperPair() << endl;
 			
 			//skip secondary alinments
@@ -137,7 +130,19 @@ public:
 				continue;
 			}
 
-			if(mode == "paired-end")
+			//remove reads with same name (but handle read pairing properly)
+			if (fix)
+			{
+				QByteArray name = al->name() + (al->isRead1() ? "/1" : "/2");
+				if (reads_processed.contains(name))
+				{
+					++c_fixed;
+					continue;
+				}
+				reads_processed << name;
+			}
+
+			if(is_pe)
 			{
 				//skip unpaired
 				if(!al->isPaired())
@@ -167,8 +172,7 @@ public:
 					pair.status = ReadPair::TO_BE_WRITTEN;
 					++c_paired;
 				}
-				//cache read for later retrieval
-				else
+				else //cache read for later retrieval
 				{
 					al_cache.insert(name, al);
 					al = QSharedPointer<BamAlignment>(new BamAlignment());
@@ -176,21 +180,17 @@ public:
 
 				max_cached = std::max(max_cached, al_cache.size());
 			}
-			else if (mode == "single-end")
+			else //single-end
 			{
 				ReadPair& pair = pair_pool.nextFreePair();
 				alignmentToFastq(al, pair.e1, extend);
 				pair.status = ReadPair::TO_BE_WRITTEN;
 				++c_single_end;
 			}
-			else
-			{
-				THROW(ArgumentException, "Invalid mode '" + mode + "' provided!")
-			}
 		}
 
 		//write debug output
-		if(mode == "paired-end")
+		if(is_pe)
 		{
 			out << "Pair reads (written)            : " << c_paired << endl;
 			out << "Unpaired reads (skipped)        : " << c_unpaired << endl;
@@ -200,10 +200,13 @@ public:
 		{
 			out << "Reads (written)                 : " << c_single_end << endl;
 		}
-
 		if (remove_duplicates)
 		{
-			out << "Duplicate reads (skipped)       : " << c_duplicates << endl;
+			out << "Duplicate tagged reads (skipped): " << c_duplicates << endl;
+		}
+		if (fix)
+		{
+			out << "Duplicate name reads (skipped)  : " << c_fixed << endl;
 		}
 		out << endl;
 		out << "Maximum cached reads            : " << max_cached << endl;
