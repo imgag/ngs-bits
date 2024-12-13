@@ -1465,7 +1465,6 @@ private slots:
 		IS_TRUE(esd_test_input.filtered_by_trio_stringent == esd_db_export.filtered_by_trio_stringent);
 		IS_TRUE(esd_test_input.filtered_by_trio_relaxed == esd_db_export.filtered_by_trio_relaxed);
 
-
 		//change input
 		esd_test_input.dna_rna = "DNA_67890";
 
@@ -2951,7 +2950,6 @@ private slots:
 		COMPARE_FILES("out/somatic_report_tumor_normal_2.xml", TESTDATA("data_out/somatic_report_tumor_normal_2.xml"));
 	}
 
-
 	//Test tumor only RTF report generation
 	void report_tumor_only()
 	{
@@ -3446,4 +3444,5 @@ private slots:
 		COMPARE_FILES("out/NovaSeqX_samplesheet2.csv",  TESTDATA("data_out/NovaSeqX_samplesheet2.csv") );
 
 	}
+
 };
