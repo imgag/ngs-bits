@@ -366,7 +366,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1522,11 +1522,16 @@
    <property name="text">
     <string>Open GSvar data folder</string>
    </property>
-  </action>  <action name="actionMethylation">
+  </action>
+  <action name="actionMethylation">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Methylation.png</normaloff>:/Icons/Methylation.png</iconset>
+   </property>
    <property name="text">
     <string>Open methylation calls</string>
    </property>
-  </action> 
+  </action>
   <action name="actionSampleCounts">
    <property name="text">
     <string>Sample counts</string>
