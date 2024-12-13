@@ -2,6 +2,7 @@
 #define ARRIBAFILE_H
 
 #include <TsvFile.h>
+#include <BedFile.h>
 #include "Chromosome.h"
 #include "Exceptions.h"
 
@@ -53,6 +54,11 @@ public:
 		return pos_;
 	}
 
+	bool operator==(const GenomePosition& rhs) const
+	{
+		return chr_ == rhs.chr_ && pos_ == rhs.pos_;
+	}
+
 private:
 	Chromosome chr_;
 	int pos_;
@@ -70,6 +76,9 @@ public:
 	QString getAnnotation(int column_idx) const;
 	QString toString() const;
 
+	bool breakpointsOverlapRegion(const BedLine& region) const;
+	bool breakpointsOverlapRegion(const BedFile& region) const;
+
 	GenomePosition breakpoint1() const;
 	GenomePosition breakpoint2() const;
 	QString symbol1() const;
@@ -82,6 +91,14 @@ public:
 	QStringList annotations();
 
 	bool fully_initialized() const;
+	bool operator==(const Fusion& rhs) const
+	{
+		bool pos_equal = breakpoint1_ == rhs.breakpoint1_ && breakpoint2_ == rhs.breakpoint2_;
+		bool genes_equal = symbol1_ == rhs.symbol1_ && symbol2_ == rhs.symbol2_;
+		bool trans_equal = transcript1_ == rhs.transcript1_ && transcript2_ == rhs.transcript2_;
+		bool other_equal = type_ == rhs.type_ && reading_frame_ == rhs.reading_frame_;
+		return pos_equal && genes_equal && trans_equal && other_equal;
+	}
 
 private:
 	GenomePosition breakpoint1_;

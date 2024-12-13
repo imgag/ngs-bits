@@ -12,6 +12,7 @@ enum class VariantType
 	CNVS, //CNVs - germline
 	SVS, //Structural variants
 	RES, //Repeat expansion
+	FUSIONS,
 	INVALID
 };
 

@@ -351,7 +351,7 @@
           <bool>false</bool>
          </property>
          <attribute name="verticalHeaderVisible">
-          <bool>true</bool>
+          <bool>false</bool>
          </attribute>
          <column>
           <property name="text">

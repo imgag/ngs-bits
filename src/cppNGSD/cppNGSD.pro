@@ -59,7 +59,8 @@ SOURCES += \
     TumorOnlyReportWorker.cpp \
     SomaticReportHelper.cpp \
     SomaticRnaReport.cpp \
-    SomaticcfDNAReport.cpp
+    SomaticcfDNAReport.cpp \
+    RnaReportConfiguration.cpp
 
 HEADERS += \
     ApiCaller.h \
@@ -87,7 +88,8 @@ HEADERS += \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
     SomaticcfDNAReport.h \
-    UserPermissionList.h
+    UserPermissionList.h \
+    RnaReportConfiguration.h
 
 RESOURCES += \
     cppNGSD.qrc

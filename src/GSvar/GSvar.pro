@@ -134,7 +134,9 @@ SOURCES += main.cpp\
     ExpressionGeneWidget.cpp \
     ReportVariantSelectionDialog.cpp \
     BurdenTestWidget.cpp \
-    OncoTreeSelector.cpp
+    OncoTreeSelector.cpp \
+    FilterWidgetFusion.cpp \
+    RnaReportFusionDialog.cpp
 
 HEADERS += MainWindow.h \
     Background/BackgroundJobDialog.h \
@@ -264,7 +266,9 @@ HEADERS += MainWindow.h \
     ExpressionGeneWidget.h \
     ReportVariantSelectionDialog.h \
     BurdenTestWidget.h \
-    OncoTreeSelector.h
+    OncoTreeSelector.h \
+    FilterWidgetFusion.h \
+    RnaReportFusionDialog.h
 
 FORMS    += MainWindow.ui \
     Background/BackgroundJobDialog.ui \
@@ -372,7 +376,9 @@ FORMS    += MainWindow.ui \
     ExpressionGeneWidget.ui \
     ReportVariantSelectionDialog.ui \
     BurdenTestWidget.ui \
-    OncoTreeSelector.ui
+    OncoTreeSelector.ui \
+    FilterWidgetFusion.ui \
+    RnaReportFusionDialog.ui
 
 include("../app_gui.pri")
 

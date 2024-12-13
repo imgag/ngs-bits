@@ -12,6 +12,8 @@ QString variantTypeToString(VariantType type)
 			return "SV";
 		case VariantType::RES:
 			return "RE";
+		case VariantType::FUSIONS:
+			return "Fusion";
 		default:
 			THROW(ProgrammingException, "Unhandled variant type!");
 	}
@@ -23,5 +25,6 @@ VariantType stringToVariantType(QString str)
 	if (str=="CNV") return VariantType::CNVS;
 	if (str=="SV") return VariantType::SVS;
 	if (str=="RE") return VariantType::RES;
+	if (str=="Fusion") return VariantType::FUSIONS;
 	THROW(ProgrammingException, "Unhandled variant type string '" + str + "'!");
 }

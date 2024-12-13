@@ -6,21 +6,26 @@
 #include "TSVFileStream.h"
 
 
-SomaticRnaReportData::SomaticRnaReportData(const SomaticReportSettings& other)
+SomaticRnaReportSettings::SomaticRnaReportSettings(const SomaticReportSettings& other)
 	: SomaticReportSettings(other)
 {
 }
 
-SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const BedpeFile &dna_svs, const VariantList& germline_variants, const SomaticRnaReportData& data)
+void SomaticRnaReportSettings::setRnaReportconfiguration(const RnaReportConfiguration& set_rna_config)
+{
+	rna_config = set_rna_config;
+}
+
+SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const BedpeFile &dna_svs, const VariantList& germline_variants, const SomaticRnaReportSettings& data)
 	: db_()
 	, data_(data)
 	, svs_()
 {
 	//filter DNA variants according somatic report configuration
-	dna_snvs_ = SomaticRnaReportData::filterVariants(snv_list, data);
-	dna_cnvs_ = SomaticRnaReportData::filterCnvs(cnv_list, data);
-	dna_svs_ = SomaticRnaReportData::filterSvs(db_, dna_svs, data);
-	germline_vl_ = SomaticRnaReportData::filterGermlineVariants(germline_variants, data_);
+	dna_snvs_ = SomaticRnaReportSettings::filterVariants(snv_list, data);
+	dna_cnvs_ = SomaticRnaReportSettings::filterCnvs(cnv_list, data);
+	dna_svs_ = SomaticRnaReportSettings::filterSvs(db_, dna_svs, data);
+	germline_vl_ = SomaticRnaReportSettings::filterGermlineVariants(germline_variants, data_);
 
 
 	if(!VersatileFile(data.rna_fusion_file).exists())

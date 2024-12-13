@@ -389,6 +389,11 @@ void FilterBase::apply(const BedpeFile& /*sv_list*/, FilterResult& /*result*/) c
 	THROW(NotImplementedException, "Method apply on BedpeFile not implemented for filter '" + name() + "'!");
 }
 
+void FilterBase::apply(const ArribaFile& /*fusion_list*/, FilterResult& /*result*/) const
+{
+	THROW(NotImplementedException, "Method apply on ArribaFile not implemented for filter '" + name() + "'!");
+}
+
 void FilterBase::setInteger(const QString& name, int value)
 {
 	checkParameterType(name, FilterParameterType::INT);
@@ -726,6 +731,51 @@ FilterResult FilterCascade::apply(const BedpeFile& svs, bool throw_errors, bool 
 	return result;
 }
 
+FilterResult FilterCascade::apply(const ArribaFile& fusions, bool throw_errors, bool debug_time) const
+{
+	QTime timer;
+	timer.start();
+
+	FilterResult result(fusions.count());
+
+	//reset errors
+	errors_.fill(QStringList(), filters_.count());
+
+	if (debug_time)
+	{
+		Log::perf("FilterCascade: Initializing took ", timer);
+		timer.start();
+	}
+
+	for(int i=0; i<filters_.count(); ++i)
+	{
+		QSharedPointer<FilterBase> filter = filters_[i];
+		try
+		{
+			//check type
+			if (filter->type()!=VariantType::FUSIONS) THROW(ArgumentException, "Filter '" + filter->name() + "' cannot be applied to fusions!");
+
+			//apply
+			filter->apply(fusions, result);
+
+			if (debug_time)
+			{
+				Log::perf("FilterCascade: Filter " + filter->name() + " took ", timer);
+				timer.start();
+			}
+		}
+		catch(const Exception& e)
+		{
+			errors_[i].append(e.message());
+			if (throw_errors)
+			{
+				throw e;
+			}
+		}
+	}
+
+	return result;
+}
 
 QStringList FilterCascade::errors(int index) const
 {
@@ -899,6 +949,7 @@ QStringList FilterFactory::filterNames(VariantType subject)
 		QSharedPointer<FilterBase> filter = QSharedPointer<FilterBase>(registry[name]());
 		if (filter->type()!=subject)
 		{
+			qDebug() << "removed filter: " << name;
 			names.removeAll(name);
 		}
 	}
@@ -988,6 +1039,10 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		//SV lrGS
 		output["SV-lr AF"] = &createInstance<FilterSvLrAF>;
 		output["SV-lr support reads"] = &createInstance<FilterSvLrSupportReads>;
+		//Fusions
+		output["Fusion confidence"] = &createInstance<FilterFusionConfidence>;
+		output["Fusion read support"] = &createInstance<FilterFusionReadSupport>;
+		output["Fusion reading frame"] = &createInstance<FilterFusionReadingFrame>;
 	}
 
 	return output;
@@ -5820,4 +5875,151 @@ void FilterSvLrSupportReads::apply(const BedpeFile& svs, FilterResult& result) c
 		if(sup_reads < min_support) result.flags()[i] = false;
 	}
 }
+
+/*************************************************** concrete filters for FUSIONs ***************************************************/
+
+
+FilterFusionReadSupport::FilterFusionReadSupport()
+{
+	name_ = "Fusion read support";
+	type_ = VariantType::FUSIONS;
+	description_ = QStringList() << "Show only fusions with a minimum number of supporting reads";
+	params_ << FilterParameter("split_reads1", FilterParameterType::INT, 5, "Minimum split reads on breakpoint 1");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("split_reads2", FilterParameterType::INT, 5, "Minimum split reads on breakpoint 2");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("discordant_mates", FilterParameterType::INT, 5, "Minimum discordant mates supporting the fusion");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("coverage1", FilterParameterType::INT, 5, "Minimum coverage at breakpoint 1");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("coverage2", FilterParameterType::INT, 5, "Minimum coverage at breakpoint 2");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterFusionReadSupport::toText() const
+{
+	QString to_str = name() + " split_reads1 &ge; " + QString::number(getInt("split_reads1", false));
+	to_str += " and split_reads2 &ge; " + QString::number(getInt("split_reads2", false));
+	to_str += " and discordant_mates &ge; " + QString::number(getInt("discordant_mates", false));
+	to_str += " and coverage1 &ge; " + QString::number(getInt("coverage1", false));
+	to_str += " and coverage2 &ge; " + QString::number(getInt("coverage2", false));
+	return to_str;
+}
+
+void FilterFusionReadSupport::apply(const ArribaFile& fusions, FilterResult& result) const
+{
+	if (!enabled_) return;
+	int idx_split1 = fusions.columnIndex("split_reads1");
+	int idx_split2 = fusions.columnIndex("split_reads2");
+	int idx_discordant = fusions.columnIndex("discordant_mates");
+	int idx_cov1 = fusions.columnIndex("coverage1");
+	int idx_cov2 = fusions.columnIndex("coverage2");
+
+	for(int i=0; i<fusions.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		bool res = true;
+		if (Helper::toInt(fusions.getFusion(i).annotations()[idx_split1]) < getInt("split_reads1")) res = false;
+		if (Helper::toInt(fusions.getFusion(i).annotations()[idx_split2]) < getInt("split_reads2")) res = false;
+		if (Helper::toInt(fusions.getFusion(i).annotations()[idx_discordant]) < getInt("discordant_mates")) res = false;
+		if (Helper::toInt(fusions.getFusion(i).annotations()[idx_cov1]) < getInt("coverage1")) res = false;
+		if (Helper::toInt(fusions.getFusion(i).annotations()[idx_cov2]) < getInt("coverage2")) res = false;
+
+		result.flags()[i] = res;
+	}
+}
+
+
+FilterFusionReadingFrame::FilterFusionReadingFrame()
+{
+	name_ = "Fusion reading frame";
+	type_ = VariantType::FUSIONS;
+	description_ = QStringList() << "Show only fusions with the given reading frame";
+	params_ << FilterParameter("reading_frame", FilterParameterType::STRINGLIST, QStringList() << "stop-codon" << "out-of-frame" << "in-frame" << "empty", "reading frame types");
+	params_.last().constraints["valid"] = "stop-codon,out-of-frame,in-frame,empty";
+
+	checkIsRegistered();
+}
+
+QString FilterFusionReadingFrame::toText() const
+{
+	return name() + " " + getStringList("reading_frame", false).join(",");
+}
+
+void FilterFusionReadingFrame::apply(const ArribaFile& fusions, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	QStringList allowed = getStringList("reading_frame", true);
+
+	//if 'empty' is allowed append '.' as that is written by arriba in the file/annotation
+	if (allowed.contains("empty"))
+	{
+		allowed.append(".");
+	}
+
+	for(int i=0; i<fusions.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = allowed.contains(fusions.getFusion(i).reading_frame());
+	}
+}
+
+FilterFusionConfidence::FilterFusionConfidence()
+{
+	name_ = "Fusion confidence";
+	type_ = VariantType::FUSIONS;
+	description_ = QStringList() << "Show only fusions with the given confidence";
+	params_ << FilterParameter("confidence", FilterParameterType::STRINGLIST, QStringList() << "high" << "medium" << "low", "");
+	params_.last().constraints["valid"] = "high,medium,low,empty";
+
+	checkIsRegistered();
+}
+
+QString FilterFusionConfidence::toText() const
+{
+	return name() + " " + getStringList("confidence", false).join(",");
+}
+
+void FilterFusionConfidence::apply(const ArribaFile& fusions, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	QStringList allowed = getStringList("confidence", true);
+	int idx_confidence = fusions.columnIndex("confidence");
+
+	for(int i=0; i<fusions.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = allowed.contains(fusions.getFusion(i).annotations()[idx_confidence]);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

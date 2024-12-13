@@ -3544,7 +3544,7 @@ QString NGSD::addRnaFusion(int callset_id, const Fusion& fusion)
 QString NGSD::rnaFusionId(const Fusion& fusion, int callset_id, bool throw_if_fails)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT id FROM rna_fusion WHERE rna_fusion_callset_id=:0 AND chr1=:1 AND pos1=:2 AND chr2=:3 AND pos2=:4 AND symbol1=:5 AND symbol2=:6");
+	query.prepare("SELECT id FROM rna_fusion WHERE rna_fusion_callset_id=:0 AND chr1=:1 AND pos1=:2 AND chr2=:3 AND pos2=:4 AND symbol1=:5 AND symbol2=:6 AND transcript1=:7 AND transcript2=:8");
 	query.bindValue(0, callset_id);
 	query.bindValue(1, fusion.breakpoint1().chr().strNormalized(true));
 	query.bindValue(2, fusion.breakpoint1().pos());
@@ -3552,6 +3552,8 @@ QString NGSD::rnaFusionId(const Fusion& fusion, int callset_id, bool throw_if_fa
 	query.bindValue(4, fusion.breakpoint2().pos());
 	query.bindValue(5, fusion.symbol1());
 	query.bindValue(6, fusion.symbol2());
+	query.bindValue(7, fusion.transcript1());
+	query.bindValue(8, fusion.transcript2());
 
 	query.exec();
 	if(!query.next())
@@ -8913,6 +8915,128 @@ int NGSD::rnaReportConfigId(QString ps_id)
 	QString query = "SELECT id FROM rna_report_configuration WHERE processed_sample_id='" + ps_id + "'";
 	QVariant id = getValue(query, true);
 	return id.isValid() ? id.toInt() : -1;
+}
+
+
+RnaReportConfiguration NGSD::rnaReportConfig(QString rna_ps_id, const ArribaFile& fusions, QStringList& messages)
+{
+	RnaReportConfiguration output;
+	int rna_config_id = rnaReportConfigId(rna_ps_id);
+
+	if(rna_config_id == -1)
+	{
+		QString message = "RNA report for the processed sample with the database ids " + rna_ps_id + " does not exist!";
+		THROW(DatabaseException, message);
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT u.name, r.* FROM rna_report_configuration r, user u WHERE r.id=" + QByteArray::number(rna_config_id) + " AND u.id = r.created_by");
+	query.next();
+
+	output.setCreatedBy(query.value("name").toString());
+	output.setCreatedAt(query.value("created_date").toDateTime());
+
+	//Load fusions
+	query.exec("SELECT * FROM rna_report_configuration_fusion WHERE rna_report_configuration_id=" + QString::number(rna_config_id));
+	while(query.next())
+	{
+		RnaReportFusionConfiguration fusion_conf;
+
+		Fusion fusion = rnaFusion(query.value("rna_fusion_id").toInt());
+		for(int i=0; i< fusions.count(); ++i)
+		{
+			if(fusions.getFusion(i) == fusion)
+			{
+				fusion_conf.variant_index = i;
+			}
+		}
+		if(fusion_conf.variant_index == -1)
+		{
+			messages << "Could not find fusion '" + fusion.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
+			continue;
+		}
+
+		fusion_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+		fusion_conf.exclude_low_tumor_content = query.value("exclude_low_tumor_content").toBool();
+		fusion_conf.exclude_low_evidence = query.value("exclude_low_evidence").toBool();
+		fusion_conf.exclude_other_reason = query.value("exclude_other_reason").toBool();
+		fusion_conf.comment = query.value("comment").toString();
+
+		output.addRnaFusionConfiguration(fusion_conf);
+	}
+
+	return output;
+}
+
+int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& config, const ArribaFile& fusions, QString user_name)
+{
+	int id = rnaReportConfigId(rna_ps_id);
+
+	if(id != -1) //delete old report if id exists
+	{
+		//Delete somatic report configuration variants that are assigned to report
+		SqlQuery query = getQuery();
+		query.exec("DELETE FROM `rna_report_configuration_fusion` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
+
+		//Update somatic report configuration: last_edit_by, last_edit_user and target_file
+		query.prepare("UPDATE `rna_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP  WHERE id=:1");
+		query.bindValue(0, userId(user_name));
+		query.bindValue(1, id);
+		query.exec();
+	}
+	else
+	{
+		SqlQuery query = getQuery();
+		query.prepare("INSERT INTO `somatic_report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
+
+		query.bindValue(0, rna_ps_id);
+		query.bindValue(1, userId(config.createdBy()));
+		query.bindValue(2, config.createdAt());
+		query.bindValue(3, userId(user_name));
+		query.exec();
+		id = query.lastInsertId().toInt();
+	}
+
+	//store variants in NGSD:
+
+	SqlQuery query_fu = getQuery();
+	query_fu.prepare("INSERT INTO `rna_report_configuration_fusion` (`rna_report_configuration_id`, `fusion_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_evidence`, `exclude_other_reason`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6)");
+
+	foreach(const auto& fu_conf, config.fusionConfig())
+	{
+		//check whether indices exist in variant list
+		if(fu_conf.variant_index<0 || fu_conf.variant_index >= fusions.count())
+		{
+			THROW(ProgrammingException, "Variant list does not contain variant with index '" + QByteArray::number(fu_conf.variant_index) + "' in NGSD::setRnaReportConfig!");
+		}
+
+		const Fusion& fusion = fusions.getFusion(fu_conf.variant_index);
+
+		//check that report SV callset exists
+		QVariant callset_id = getValue("SELECT id FROM rna_fusion_callset WHERE processed_sample_id='" + rna_ps_id, true);
+		if (!callset_id.isValid())
+		{
+			THROW(ProgrammingException, "No fusion callset defined for rna processed sample id " + rna_ps_id + "in NGSD::setRnaReportConfig!");
+		}
+
+		QString fusion_id = rnaFusionId(fusion, callset_id.toInt());
+		if(fusion_id=="")
+		{
+			fusion_id = addRnaFusion(callset_id.toInt(), fusion);
+		}
+
+		query_fu.bindValue(0, id);
+		query_fu.bindValue(1, fusion_id);
+		query_fu.bindValue(2, fu_conf.exclude_artefact);
+		query_fu.bindValue(3, fu_conf.exclude_low_tumor_content);
+		query_fu.bindValue(4, fu_conf.exclude_low_evidence);
+		query_fu.bindValue(6, fu_conf.exclude_other_reason);
+		query_fu.bindValue(9, fu_conf.comment.trimmed().isEmpty() ? "" : fu_conf.comment);
+
+		query_fu.exec();
+	}
+
+	return id;
 }
 
 int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name)

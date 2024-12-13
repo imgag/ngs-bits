@@ -72,10 +72,6 @@ bool SomaticReportVariantConfiguration::manualSvEndBndValid() const
 }
 
 
-
-
-
-
 SomaticReportConfiguration::SomaticReportConfiguration()
 	: variant_config_()
 	, germ_variant_config_()

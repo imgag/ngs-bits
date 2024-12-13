@@ -1289,6 +1289,7 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 
 	//get all available files
 	QStringList arriba_fusion_files;
+	QStringList rna_ps_ids;
 	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
 	{
 		// check for required files
@@ -1296,7 +1297,11 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 		{
 			// search for fusion file
 			FileLocation fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
-			if (fusion_file.exists) arriba_fusion_files << fusion_file.filename;
+			if (fusion_file.exists)
+			{
+				arriba_fusion_files << fusion_file.filename;
+				rna_ps_ids << rna_ps_id;
+			}
 		}
 	}
 
@@ -1308,20 +1313,25 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 
 	//select file to open
 	QString fusion_filepath;
+	QString rna_ps_id;
 	if (arriba_fusion_files.size()==1)
 	{
 		fusion_filepath = arriba_fusion_files.at(0);
+		rna_ps_id = rna_ps_ids.at(0);
 	}
 	else
 	{
 		bool ok;
 		fusion_filepath = getFileSelectionItem("Multiple files found", "Multiple RNA fusion files found.\nPlease select a file:", arriba_fusion_files, &ok);
 		if (!ok) return;
+
+		rna_ps_id = rna_ps_ids[arriba_fusion_files.indexOf(fusion_filepath)];
 	}
 
-	FusionWidget* fusion_widget = new FusionWidget(fusion_filepath, this);
+	FusionWidget* fusion_widget = new FusionWidget(fusion_filepath, db.processedSampleName(rna_ps_id), db, this);
 
 	auto dlg = GUIHelper::createDialog(fusion_widget, "Fusions of " + variants_.analysisName() + " (arriba)");
+	dlg->resize(1280, 800);
 	addModelessDialog(dlg);
 }
 
@@ -3948,7 +3958,7 @@ void MainWindow::generateReportSomaticRTF()
 		{
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 
-			SomaticRnaReportData rna_report_data = somatic_report_settings_;
+			SomaticRnaReportSettings rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
 			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
 			rna_report_data.rna_expression_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION).filename;

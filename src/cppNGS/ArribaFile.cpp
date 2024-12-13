@@ -38,6 +38,24 @@ QString Fusion::toString() const
 	return symbol1_ + " " + breakpoint1_.toByteArray() + "::" + symbol2_ + " " + breakpoint2_.toByteArray();
 }
 
+bool Fusion::breakpointsOverlapRegion(const BedLine &region) const
+{
+	bool overlaps_break1 = region.overlapsWith(breakpoint1().chr(), breakpoint1().pos(), breakpoint1().pos());
+	bool overlaps_break2 = region.overlapsWith(breakpoint2().chr(), breakpoint2().pos(), breakpoint2().pos());
+
+	return overlaps_break1 || overlaps_break2;
+}
+
+bool Fusion::breakpointsOverlapRegion(const BedFile &regions) const
+{
+	for(int i=0; i<regions.count(); i++)
+	{
+		if (breakpointsOverlapRegion(regions[i])) return true;
+	}
+
+	return false;
+}
+
 
 GenomePosition Fusion::breakpoint1() const
 {

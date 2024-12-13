@@ -154,6 +154,8 @@ void FilterCascadeWidget::updateButtons()
 
 void FilterCascadeWidget::addFilter()
 {
+	qDebug() << "FilterCascade: add Filters";
+	qDebug() << variantTypeToString(subject_);
 	//show filter menu
 	QMenu menu;
 	foreach(QString filter_name, FilterFactory::filterNames(subject_))
@@ -290,7 +292,10 @@ QString FilterCascadeWidget::filtersPath(VariantType type)
 	{
 		path += "SVS";
 	}
-	else
+	else if (type==VariantType::FUSIONS)
+	{
+		path += "FUSIONS";
+	}
 	{
 		THROW(ProgrammingException, "Unhandled variant type in FilterCascadeWidget::filtersPath()!");
 	}

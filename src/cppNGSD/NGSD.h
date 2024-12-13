@@ -19,6 +19,7 @@
 #include "DBTable.h"
 #include "ReportConfiguration.h"
 #include "SomaticReportConfiguration.h"
+#include "RnaReportConfiguration.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
 #include "ArribaFile.h"
@@ -1163,8 +1164,10 @@ public:
 
 	//Return database ID of rna report configuration, -1 if not present
 	int rnaReportConfigId(QString ps_id);
+	//Retrieve rna report configuration from the NGSD
+	RnaReportConfiguration rnaReportConfig(QString rna_ps_id, const ArribaFile& fusions, QStringList& messages);
 	///Sets/overwrites rna report configuration for processed sample
-	int setRnaReportConfig(QString ps_id, const SomaticReportConfiguration& config, /* TODO add arriba variants */ QString user_name);
+	int setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& config, const ArribaFile& fusions, QString user_name); // TODO add implementation Alexander
 	///Removes a rna report configuration from NGSD, including its variant configurations
 	void deleteRnaReportConfig(int id);
 

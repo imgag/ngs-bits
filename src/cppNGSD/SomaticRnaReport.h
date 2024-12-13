@@ -9,12 +9,18 @@
 #include "SomaticCnvInterpreter.h"
 #include "SomaticReportSettings.h"
 #include "ArribaFile.h"
+#include "RnaReportConfiguration.h"
 
 
-struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
+struct CPPNGSDSHARED_EXPORT SomaticRnaReportSettings : public SomaticReportSettings
 {
 	//copy constructor that initializes base members from SomaticReportSettings
-	SomaticRnaReportData(const SomaticReportSettings& other);
+	SomaticRnaReportSettings(const SomaticReportSettings& other);
+
+	void setRnaReportconfiguration(const RnaReportConfiguration& rna_config);
+
+
+	RnaReportConfiguration rna_config;
 
 	QString rna_ps_name;
 	QString rna_fusion_file;
@@ -47,7 +53,7 @@ struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
 class CPPNGSDSHARED_EXPORT SomaticRnaReport
 {
 public:
-	SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const BedpeFile &dna_svs, const VariantList& germline_variants, const SomaticRnaReportData& data);
+	SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const BedpeFile &dna_svs, const VariantList& germline_variants, const SomaticRnaReportSettings& data);
 
 	///write RTF to file
 	void writeRtf(QByteArray out_file);
@@ -63,7 +69,7 @@ public:
 private:
 	NGSD db_;
 
-	const SomaticRnaReportData& data_;
+	const SomaticRnaReportSettings& data_;
 
 	//Somatic DNA SNVs
 	VariantList dna_snvs_;

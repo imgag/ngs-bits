@@ -4,6 +4,7 @@
 #include "BedpeFile.h"
 #include "NGSHelper.h"
 #include "CnvList.h"
+#include "ArribaFile.h"
 #include "VariantType.h"
 
 #include <QRegularExpression>
@@ -174,6 +175,8 @@ class CPPNGSSHARED_EXPORT FilterBase
 		virtual void apply(const CnvList& variant_list, FilterResult& result) const;
 		//Applies the filter to a SV list
 		virtual void apply(const BedpeFile& variant_list, FilterResult& result) const;
+		//Applies the filter to a SV list
+		virtual void apply(const ArribaFile& variant_list, FilterResult& result) const;
 
 	protected:
 		FilterBase(const FilterBase& rhs) = delete;
@@ -265,6 +268,9 @@ class CPPNGSSHARED_EXPORT FilterCascade
 
 		//Applies the filter cascade to a SV list (BEDPE file).
 		FilterResult apply(const BedpeFile& svs, bool throw_errors = true, bool debug_time = false) const;
+
+		//Applies the filter cascade to a Fusion list
+		FilterResult apply(const ArribaFile& fusions, bool throw_errors = true, bool debug_time = false) const;
 
 		//Returns errors occured during filter application.
 		QStringList errors(int index) const;
@@ -1189,5 +1195,36 @@ class CPPNGSSHARED_EXPORT FilterSvLrSupportReads
 		QString toText() const override;
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
+
+/*************************************************** filters for FUSIONSs ***************************************************/
+
+class CPPNGSSHARED_EXPORT FilterFusionReadSupport
+	: public FilterBase
+{
+	public:
+		FilterFusionReadSupport();
+		QString toText() const override;
+		void apply(const ArribaFile& svs, FilterResult& result) const override;
+};
+
+class CPPNGSSHARED_EXPORT FilterFusionReadingFrame
+	: public FilterBase
+{
+	public:
+		FilterFusionReadingFrame();
+		QString toText() const override;
+		void apply(const ArribaFile& svs, FilterResult& result) const override;
+};
+
+class CPPNGSSHARED_EXPORT FilterFusionConfidence
+	: public FilterBase
+{
+	public:
+		FilterFusionConfidence();
+		QString toText() const override;
+		void apply(const ArribaFile& svs, FilterResult& result) const override;
+};
+
+
 
 #endif // FILTERCASCADE_H
