@@ -463,20 +463,18 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 
         foreach(const SampleInfo& info, header_info_)
         {
-            if (Settings::boolean("NGSD_enabled", true))
+            if (!NGSD::isAvailable()) break;
+            try
             {
-                try
-                {
-                    QString id = NGSD().processedSampleId(info.name, false);
-                    QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
-                    output << KeyValuePair(info.name, sample_path + info.name);
-                    continue;
-                }
-                catch (...)
-                {
-                    // We fall back to the standard behaviour, if the sample cannot be found
-                }
-
+                NGSD db;
+                QString id = db.processedSampleId(info.name, false);
+                QString sample_path = db.processedSamplePath(id, PathType::SAMPLE_FOLDER);
+                output << KeyValuePair(info.name, sample_path + info.name);
+                continue;
+            }
+            catch (...)
+            {
+                // We fall back to the standard behaviour, if the sample cannot be found
             }
 
             output << KeyValuePair(info.name, project_folder + "/Sample_" + info.name + "/" + info.name);

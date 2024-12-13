@@ -156,7 +156,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneInterpretabilityDialog.h"
 #include "HerediVarImportDialog.h"
 #include "Background/IGVInitCacheWorker.h"
-
+#include "SampleCountWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1606,28 +1606,28 @@ void MainWindow::delayedInitialization()
 		}
 	}
 
-	//user login for database
-	if (GlobalServiceProvider::database().enabled())
-	{
-		LoginDialog dlg(this);
-		dlg.exec();
+    if (NGSD::isAvailable())
+    {
+        //user login for database
+        LoginDialog dlg(this);
+        dlg.exec();
 
-		if (LoginManager::active())
-		{
-			try
-			{
-				ui_.filters->loadTargetRegions();
-			}
-			catch(Exception& e)
-			{
-				Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
-			}
-		}
+        if (LoginManager::active())
+        {
+            try
+            {
+                ui_.filters->loadTargetRegions();
+            }
+            catch(Exception& e)
+            {
+                Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
+            }
+        }
 
-		//start initialization of NGSD gene/transcript cache
-		NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
-		startJob(ngsd_initializer, false);
-	}
+        //start initialization of NGSD gene/transcript cache
+        NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
+        startJob(ngsd_initializer, false);
+    }
 
 	//create default IGV session (variants)
 	IGVSession* igv_default = IgvSessionManager::create(this, "Default IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
@@ -4786,6 +4786,15 @@ void MainWindow::on_actionStudy_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("study");
 	auto dlg = GUIHelper::createDialog(widget, "Study administration");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionSampleCounts_triggered()
+{
+	if (!LoginManager::active()) return;
+
+	SampleCountWidget* widget = new SampleCountWidget();
+	auto dlg = GUIHelper::createDialog(widget, "Sample counts");
 	addModelessDialog(dlg);
 }
 

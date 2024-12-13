@@ -30,14 +30,16 @@ public:
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
 		addInt("write_buffer_size", "Output write buffer size (number of FASTQ entry pairs).", true, 100);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInt("extend", "Extend all reads to the given length. Base 'N' and base qualiy '2' are used for extension.", true, 0);
 
+		changeLog(2024, 12,  9, "Added 'extend' parameter.");
 		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");
 		changeLog(2020,  3, 21, "Added 'reg' parameter.");
 		changeLog(2023,  3, 22, "Added mode for single-end samples (long reads).");
 	}
 
-	static void alignmentToFastq(const QSharedPointer<BamAlignment>& al, FastqEntry& e)
+	static void alignmentToFastq(const QSharedPointer<BamAlignment>& al, FastqEntry& e, int extend)
 	{
 		e.header = "@" + al->name();
 		e.bases = al->bases();
@@ -48,6 +50,15 @@ public:
 		{
 			e.bases.reverseComplement();
 			std::reverse(e.qualities.begin(), e.qualities.end());
+		}
+
+		if (extend>0)
+		{
+			while (e.bases.count()<extend)
+			{
+				e.bases.append('N');
+				e.qualities.append(35); //33+2
+			}
 		}
 	}
 
@@ -80,11 +91,7 @@ public:
 		int write_buffer_size = getInt("write_buffer_size");
 
 		int compression_level = getInt("compression_level");
-
-
-
-
-
+		int extend = getInt("extend");
 
 		//create background FASTQ writer
 		ReadPairPool pair_pool(write_buffer_size);
@@ -149,13 +156,13 @@ public:
 					ReadPair& pair = pair_pool.nextFreePair();
 					if (al->isRead1())
 					{
-						alignmentToFastq(al, pair.e1);
-						alignmentToFastq(mate, pair.e2);
+						alignmentToFastq(al, pair.e1, extend);
+						alignmentToFastq(mate, pair.e2, extend);
 					}
 					else
 					{
-						alignmentToFastq(mate, pair.e1);
-						alignmentToFastq(al, pair.e2);
+						alignmentToFastq(mate, pair.e1, extend);
+						alignmentToFastq(al, pair.e2, extend);
 					}
 					pair.status = ReadPair::TO_BE_WRITTEN;
 					++c_paired;
@@ -172,7 +179,7 @@ public:
 			else if (mode == "single-end")
 			{
 				ReadPair& pair = pair_pool.nextFreePair();
-				alignmentToFastq(al, pair.e1);
+				alignmentToFastq(al, pair.e1, extend);
 				pair.status = ReadPair::TO_BE_WRITTEN;
 				++c_single_end;
 			}

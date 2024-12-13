@@ -86,7 +86,7 @@ private:
 
 	GeneSet var_het_genes_;
 	QSet<QString> metrics_done_;
-	bool ngsd_enabled_;
+    bool ngsd_user_logged_in_;
 	bool rc_enabled_;
 	bool is_somatic_ = false;
 };
