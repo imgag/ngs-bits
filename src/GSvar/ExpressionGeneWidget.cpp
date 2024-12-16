@@ -126,7 +126,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 	if (filtering_in_progress_) return;
 	filtering_in_progress_ = true;
 	//skip if not necessary
-	int row_count = expression_data_.rowCount();
+	int row_count = expression_data_.count();
 	if (row_count == 0) return;
 
 	try
@@ -183,7 +183,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			{
 				if (!filter_result_.flags()[row_idx]) continue;
 
-				filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed());
+				filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed());
 			}
 
 			qDebug() << filter_result_.countPassing();
@@ -204,7 +204,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 					if (!filter_result_.flags()[row_idx]) continue;
 
 					// generate GeneSet from column text
-					GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed(), ',');
+					GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed(), ',');
 
 					bool match_found = false;
 					foreach(const QByteArray& sv_gene, sv_genes)
@@ -225,7 +225,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 					if (!filter_result_.flags()[row_idx]) continue;
 
 					// generate GeneSet from column text
-					GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed(), ',');
+					GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed(), ',');
 
 					filter_result_.flags()[row_idx] = sv_genes.intersectsWith(gene_whitelist);
 				}
@@ -245,7 +245,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 				//skip already filtered
 				if (!filter_result_.flags()[row_idx]) continue;
 
-				QString value = expression_data_.row(row_idx).at(tpm_idx).trimmed();
+				QString value = expression_data_[row_idx].at(tpm_idx).trimmed();
 				if (value.isEmpty() || value == "n/a")
 				{
 					filter_result_.flags()[row_idx] = false;
@@ -281,7 +281,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			//skip already filtered
 			if (!filter_result_.flags()[row_idx]) continue;
 
-			QString biotype = expression_data_.row(row_idx).at(idx_biotype).trimmed().replace("_", " ");
+			QString biotype = expression_data_[row_idx].at(idx_biotype).trimmed().replace("_", " ");
 			filter_result_.flags()[row_idx] = selected_biotypes.contains(biotype);
 		}
 
@@ -298,7 +298,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 				//skip already filtered
 				if (!filter_result_.flags()[row_idx]) continue;
 
-				QString value_sample = expression_data_.row(row_idx).at(tpm_idx);
+				QString value_sample = expression_data_[row_idx].at(tpm_idx);
 				if (value_sample.isEmpty() || value_sample == "n/a")
 				{
 					filter_result_.flags()[row_idx] = false;
@@ -340,7 +340,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 
 			//get gene and tpm value
 			bool in_db = false;
-			QByteArray ensg_number = expression_data_.row(row_idx).at(gene_id_idx).toUtf8().trimmed();
+			QByteArray ensg_number = expression_data_[row_idx].at(gene_id_idx).toUtf8().trimmed();
 			QByteArray gene_symbol;
 
 			if(ensg_mapping_.contains(ensg_number))
@@ -353,7 +353,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 				continue;
 			}
 			double tpm = 0.0;
-			QString value = expression_data_.row(row_idx).at(tpm_idx).toUtf8().trimmed();
+			QString value = expression_data_[row_idx].at(tpm_idx).toUtf8().trimmed();
 			if (!(value.isEmpty() || value == "n/a"))
 			{
 				tpm = Helper::toDouble(value);
@@ -777,7 +777,7 @@ void ExpressionGeneWidget::loadExpressionData()
 
 
 		//init filter mask
-		filter_result_ = FilterResult(expression_data_.rowCount());
+		filter_result_ = FilterResult(expression_data_.count());
 
 		QApplication::restoreOverrideCursor();
 	}
@@ -885,12 +885,12 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 		}
 
 
-		for(int file_row_idx=0; file_row_idx<expression_data_.rowCount(); ++file_row_idx)
+		for(int file_row_idx=0; file_row_idx<expression_data_.count(); ++file_row_idx)
 		{
 			//skip rows which are filtered out
 			if(!filter_result_.flags()[file_row_idx]) continue;
 
-			QStringList row = expression_data_.row(file_row_idx);
+			const QStringList& row = expression_data_[file_row_idx];
 			QByteArray ensg_number = row.at(gene_id_idx).toUtf8();
 			QByteArray gene;
 			if (ensg_mapping_.contains(ensg_number)) gene = ensg_mapping_.value(ensg_number);
@@ -989,11 +989,11 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 		//Set number of filtered / total rows
 		if (filter_result_.countPassing() >= max_rows)
 		{
-			ui_->filtered_rows->setText(QByteArray::number(max_rows) + "+ / " + QByteArray::number(expression_data_.rowCount()) + " (showing only first " + QByteArray::number(max_rows) + ")");
+			ui_->filtered_rows->setText(QByteArray::number(max_rows) + "+ / " + QByteArray::number(expression_data_.count()) + " (showing only first " + QByteArray::number(max_rows) + ")");
 		}
 		else
 		{
-			ui_->filtered_rows->setText(QByteArray::number(ui_->expression_data->rowCount()) + " / " + QByteArray::number(expression_data_.rowCount()));
+			ui_->filtered_rows->setText(QByteArray::number(ui_->expression_data->rowCount()) + " / " + QByteArray::number(expression_data_.count()));
 		}
 
 

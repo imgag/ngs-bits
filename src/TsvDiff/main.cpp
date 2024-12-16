@@ -3,6 +3,23 @@
 #include "Exceptions.h"
 #include "Helper.h"
 
+
+template<typename T>
+QString stringRepresentation(const T& /*element*/)
+{
+	return "[not implemented]";
+}
+template<>
+QString stringRepresentation(const QString& element)
+{
+	return element;
+}
+template<>
+QString stringRepresentation(const QStringList& element)
+{
+	return element.join("\t");
+}
+
 class ConcreteTool
 		: public ToolBase
 {
@@ -25,7 +42,7 @@ public:
 		//optional
 		addOutfile("out", "Output file with differences. If unset, writes to stdout.", true);
 		addFlag("skip_comments", "Do not compare comment lines starting with '##'.");
-		addString("skip_comments_matching", "Comma-separated list of sub-strings for skipping comment lines (case-sensitive comparison).", true);
+		addString("skip_comments_matching", "Comma-separated list of sub-strings for skipping comment lines (case-sensitive matching).", true);
 		addString("skip_cols", "Comma-separated list of colums to skip.", true);
 		addFlag("no_error", "Do not exit with error state if differences are detected");
 	}
@@ -62,7 +79,7 @@ public:
 			: n_(n)
 			, m_(m)
 		{
-			QVector<char> tmp(m+1, 9);
+			QVector<char> tmp(m+1, -1);
 			tmp[0] = 0;
 
 			data_.reserve(n+1);
@@ -106,7 +123,9 @@ public:
 				for (int i=0; i<element.count(); ++i)
 				{
 					if (i>0) ostream << " ";
-					ostream << (int)(element[i]);
+					QString value = QString::number(element[i]);
+					value = value.rightJustified(4, ' ');
+					ostream << value;
 				}
 				ostream << endl;
 			}
@@ -144,11 +163,12 @@ public:
 	};
 
 	//build matrix for dynamic programming
-	char buildMatrix(const QStringList& s1, const QStringList& s2, int i, int j, Matrix& m)
+	template<typename T>
+	char buildMatrix(const T& s1, const T& s2, int i, int j, Matrix& m)
 	{
 		//already calculated > return value
 		char v = m.value(i,j);
-		if (v!=9) return v;
+		if (v!=-1) return v;
 
 		if (s1[i-1]==s2[j-1])
 		{
@@ -163,7 +183,8 @@ public:
 		return v;
 	}
 
-	void compare(const QStringList& lines1, const QStringList& lines2, QTextStream& ostream, DiffSummary& summary)
+	template<typename T>
+	void compare(const T& lines1, const T& lines2, QTextStream& ostream, DiffSummary& summary)
 	{
 		int n = lines1.count();
 		int m = lines2.count();
@@ -171,17 +192,19 @@ public:
 		//determine LCS
 		Matrix matrix(n, m);
 		buildMatrix(lines1, lines2, n, m, matrix);
+		//matrix.print(ostream);
 		QList<QPair<int, int>> matches = matrix.findMatchIndices();
+		//foreach(auto m, matches) ostream << m.first << "/" << m.second << endl;
 
 		//before first match
 		for (int i=0; i<matches[0].first; ++i)
 		{
-			ostream << "-" << lines1[i] << endl;
+			ostream << "-" << stringRepresentation(lines1[i]) << endl;
 			summary.removed += 1;
 		}
 		for (int i=0; i<matches[0].second; ++i)
 		{
-			ostream << "+" << lines2[i] << endl;
+			ostream << "+" << stringRepresentation(lines2[i]) << endl;
 			summary.added += 1;
 		}
 
@@ -190,12 +213,12 @@ public:
 		{
 			for (int i=matches[m-1].first+1; i<matches[m].first; ++i)
 			{
-				ostream << "-" << lines1[i] << endl;
+				ostream << "-" << stringRepresentation(lines1[i]) << endl;
 				summary.removed += 1;
 			}
 			for (int i=matches[m-1].second+1; i<matches[m].second; ++i)
 			{
-				ostream << "+" << lines2[i] << endl;
+				ostream << "+" << stringRepresentation(lines2[i]) << endl;
 				summary.added += 1;
 			}
 		}
@@ -203,12 +226,12 @@ public:
 		//after matches
 		for (int i=matches.last().first+1; i<n; ++i)
 		{
-			ostream << "-" << lines1[i] << endl;
+			ostream << "-" << stringRepresentation(lines1[i]) << endl;
 			summary.removed += 1;
 		}
 		for (int i=matches.last().second+1; i<m; ++i)
 		{
-			ostream << "+" << lines2[i] << endl;
+			ostream << "+" << stringRepresentation(lines2[i]) << endl;
 			summary.added += 1;
 		}
 	}
@@ -236,11 +259,8 @@ public:
 		//compare comments
 		if (!skip_comments)
 		{
-			if (!skip_comments_matching.isEmpty())
-			{
-				removeComments(in1, skip_comments_matching);
-				removeComments(in2, skip_comments_matching);
-			}
+			removeComments(in1, skip_comments_matching);
+			removeComments(in2, skip_comments_matching);
 
 			compare(in1.comments(), in2.comments(), ostream, summary_comments);
 		}
@@ -262,7 +282,7 @@ public:
 		}
 
 		//compare content lines
-		//TODO
+		compare(in1, in2, ostream, summary_content);
 
 		//output
 		bool has_differences = summary_comments.hasDifferences() || summary_content.hasDifferences();

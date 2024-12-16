@@ -63,9 +63,9 @@ public:
 		int idx_icd10_catalog = samples.columnIndex("icd10_catalog");
 		int idx_oncotree_code = samples.columnIndex("oncotree_code");
 
-		for (int i=0; i< samples.rowCount(); i++)
+		for (int i=0; i< samples.count(); i++)
 		{
-			QStringList row = samples.row(i);
+			const QStringList& row = samples[i];
 			QString sample_id = db.sampleId(row[idx_tumor_name], true);
 
 			SampleMTBmetadata mtb_data;
@@ -177,9 +177,9 @@ public:
 		int idx_datatype = getIndex(headers, "datatype");
 		int idx_prio = getIndex(headers, "priority");
 
-		for (int i=0; i<attr_data.rowCount(); i++)
+		for (int i=0; i<attr_data.count(); i++)
 		{
-			QStringList row = attr_data.row(i);
+			const QStringList& row = attr_data[i];
 
 			SampleAttribute attr;
 			attr.name = row[idx_attr_name];
