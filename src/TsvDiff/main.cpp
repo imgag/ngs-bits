@@ -34,10 +34,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Compares TSV files.");
-		setExtendedDescription(QStringList () << "A simple pairwise alignment algorithm is used, which is slow for a large number of lines");
-
-		addInfile("in1", "Input TSV file. If unset, reads from STDIN.", false);
-		addInfile("in2", "Input TSV file. If unset, reads from STDIN.", false);
+		addInfile("in1", "First input TSV file.", false);
+		addInfile("in2", "Second input TSV file.", false);
 
 		//optional
 		addOutfile("out", "Output file with differences. If unset, writes to stdout.", true);
