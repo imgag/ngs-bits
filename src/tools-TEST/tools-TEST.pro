@@ -166,7 +166,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BamExtract_Test.h \
     VcfSplit_Test.h \
     VcfMerge_Test.h \
-    ExtractMethylationData_Test.h
+    ExtractMethylationData_Test.h \
+    TsvDiff_Test.h
 
 SOURCES += \
     main.cpp

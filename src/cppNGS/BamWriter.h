@@ -15,6 +15,8 @@ class CPPNGSSHARED_EXPORT BamWriter
 		BamWriter(const QString& bam_file, const QString& ref_file = QString());
 		//Destructor
 		~BamWriter();
+		//close file (not necessary in most cases, as the file is closed in the constructor anyway)
+		void close();
 
 		//Write a BAM header from another BAM file
 		void writeHeader(const BamReader& reader)
@@ -39,6 +41,7 @@ class CPPNGSSHARED_EXPORT BamWriter
 		QString bam_file_;
 		samFile* fp_ = nullptr;
 		sam_hdr_t* header_ = nullptr;
+		bool fp_closed_ = false;
 
 		//"declared away" methods
 		BamWriter(const BamWriter&) = delete;
