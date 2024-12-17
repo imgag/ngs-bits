@@ -3296,9 +3296,9 @@ private slots:
 		QMap<QByteArray, QByteArray> best;
 		TsvFile tmp;
 		tmp.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep_best_transcripts.tsv"));
-		for (int i=0; i<tmp.rowCount(); ++i)
+		for (int i=0; i<tmp.count(); ++i)
 		{
-			const QStringList& row = tmp.row(i);
+			const QStringList& row = tmp[i];
 			best[row[0].toUtf8()] = row[1].toUtf8();
 		}
 

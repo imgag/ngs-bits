@@ -690,7 +690,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}
 
 	//PRS table
-	if (data_.prs.rowCount()>0)
+	if (data_.prs.count()>0)
 	{
 		stream << endl;
 		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b></p>" << endl;
@@ -700,9 +700,9 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		int trait_idx = data_.prs.columnIndex("trait");
 		int score_idx = data_.prs.columnIndex("score");
 		int citation_idx = data_.prs.columnIndex("citation");
-		for (int r=0; r<data_.prs.rowCount(); ++r)
+		for (int r=0; r<data_.prs.count(); ++r)
 		{
-			const QStringList& row = data_.prs.row(r);
+			const QStringList& row = data_.prs[r];
 			QString id = row[id_idx];
 			QString trait = row[trait_idx];
 			QString score = row[score_idx];
@@ -1507,16 +1507,16 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//PRS scores
 	w.writeStartElement("PrsList");
-	if (data_.prs.rowCount()>0)
+	if (data_.prs.count()>0)
 	{
 		int i_id = data_.prs.columnIndex("pgs_id");
 		int i_trait = data_.prs.columnIndex("trait");
 		int i_citation = data_.prs.columnIndex("citation");
 		int i_score = data_.prs.columnIndex("score");
 		int i_percentile = data_.prs.columnIndex("percentile");
-		for (int r=0; r<data_.prs.rowCount(); ++r)
+		for (int r=0; r<data_.prs.count(); ++r)
 		{
-			const QStringList& row = data_.prs.row(r);
+			const QStringList& row = data_.prs[r];
 			w.writeStartElement("Prs");
 			w.writeAttribute("id", row[i_id].trimmed());
 			w.writeAttribute("trait", row[i_trait].trimmed());

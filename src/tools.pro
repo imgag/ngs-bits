@@ -607,3 +607,7 @@ BamRemoveVariants.depends = cppNGS
 SUBDIRS += CnvReferenceCohort
 tools-TEST.depends += CnvReferenceCohort
 CnvReferenceCohort.depends = cppNGS
+
+SUBDIRS += TsvDiff
+tools-TEST.depends += TsvDiff
+TsvDiff.depends = cppNGS

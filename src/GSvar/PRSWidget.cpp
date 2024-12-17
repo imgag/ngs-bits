@@ -77,12 +77,12 @@ void PRSWidget::initGui()
 	}
 
 	//add contents
-	ui_.prs->setRowCount(prs_table_.rowCount());
-	for (int r=0; r<prs_table_.rowCount(); ++r)
+	ui_.prs->setRowCount(prs_table_.count());
+	for (int r=0; r<prs_table_.count(); ++r)
 	{
 		for (int c=0; c<headers.count(); ++c)
 		{
-			ui_.prs->setItem(r , c, GUIHelper::createTableItem(prs_table_.row(r)[c].trimmed()));
+			ui_.prs->setItem(r , c, GUIHelper::createTableItem(prs_table_[r][c].trimmed()));
 		}
 	}
 
