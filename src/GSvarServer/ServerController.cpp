@@ -289,28 +289,20 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
     ServerDB db = ServerDB();
     if (db.hasFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing))
     {
-        QJsonDocument updated_cached_doc;
         QJsonArray updated_cached_array;
-
         QJsonDocument cache_doc = db.getFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
         db.updateFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
-
         QJsonArray cached_array = cache_doc.array();
-        for (int index = 0; index < cached_array.size(); index++)
+        for (const QJsonValue &value : cached_array)
         {
-            if (cached_array.at(index).isObject())
+            if (value.isObject())
             {
-                QJsonObject cached_object = cached_array.takeAt(index).toObject();
-                QString cached_filename = cached_object["filename"].toString();
-
+                QJsonObject cached_object = value.toObject();
+                QString cached_filename = cached_object.value("filename").toString();
                 if (!cached_filename.isEmpty())
-                {                    
+                {
                     cached_object.insert("filename", createTempUrl(cached_filename, request.getUrlParams()["token"]));
                     updated_cached_array.append(cached_object);
-                }
-                else
-                {
-                    continue;
                 }
             }
         }
@@ -318,6 +310,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
         // Ignore the cache entry, if no URLs were genereated
         if (updated_cached_array.size()>0)
         {
+            QJsonDocument updated_cached_doc;
             updated_cached_doc.setArray(updated_cached_array);
 
             BasicResponseData response_data;
