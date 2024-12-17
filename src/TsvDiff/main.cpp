@@ -63,7 +63,8 @@ public:
 		QStringList tmp = file.comments();
 		foreach(const QString& str, strings)
 		{
-			std::remove_if(tmp.begin(), tmp.end(), [str](const QString& line){ return line.contains(str);});
+			auto it = std::remove_if(tmp.begin(), tmp.end(), [str](const QString& line){ return line.contains(str);});
+			tmp.erase(it, tmp.end());
 		}
 		file.setComments(tmp);
 
