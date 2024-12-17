@@ -43,6 +43,7 @@ public:
 		addString("skip_comments_matching", "Comma-separated list of sub-strings for skipping comment lines (case-sensitive matching).", true);
 		addString("skip_cols", "Comma-separated list of colums to skip.", true);
 		addFlag("no_error", "Do not exit with error state if differences are detected");
+		addFlag("debug", "Print debug output to stderr");
 	}
 
 	struct DiffSummary
@@ -78,7 +79,7 @@ public:
 			: n_(n)
 			, m_(m)
 		{
-			QVector<char> tmp(m+1, -1);
+			QVector<long> tmp(m+1, -1);
 			tmp[0] = 0;
 
 			data_.reserve(n+1);
@@ -86,7 +87,7 @@ public:
 			{
 				if (i==0)
 				{
-					data_.append(QVector<char>(m+1, 0));
+					data_.append(QVector<long>(m+1, 0));
 				}
 				else
 				{
@@ -98,7 +99,7 @@ public:
 		int n() const { return n_; };
 		int m() const { return m_; };
 
-		char value(int n, int m) const
+		long value(int n, int m) const
 		{
 			if (n>n_) THROW(Exception, "Matrix:value() Invalid matrix position 'n': Is " + QString::number(n) + " but max is " + QString::number(n_));
 			if (m>m_) THROW(Exception, "Matrix:value() Invalid matrix position 'm': Is " + QString::number(m) + " but max is " + QString::number(m_));
@@ -106,7 +107,7 @@ public:
 			return data_[n][m];
 		}
 
-		void setValue(int n, int m, char v)
+		void setValue(int n, int m, long v)
 		{
 			if (n>n_) THROW(Exception, "Matrix:value() Invalid matrix position 'n': Is " + QString::number(n) + " but max is " + QString::number(n_));
 			if (m>m_) THROW(Exception, "Matrix:value() Invalid matrix position 'm': Is " + QString::number(m) + " but max is " + QString::number(m_));
@@ -117,7 +118,7 @@ public:
 		void print(QTextStream& ostream) const
 		{
 			ostream << "Matrix: " << endl;
-			foreach(const QVector<char>& element, data_)
+			foreach(const QVector<long>& element, data_)
 			{
 				for (int i=0; i<element.count(); ++i)
 				{
@@ -156,17 +157,17 @@ public:
 		}
 
 	private:
-		QVector<QVector<char>> data_;
+		QVector<QVector<long>> data_;
 		int n_;
 		int m_;
 	};
 
 	//build matrix for dynamic programming
 	template<typename T>
-	char buildMatrix(const T& s1, const T& s2, int i, int j, Matrix& m)
+	long buildMatrix(const T& s1, const T& s2, int i, int j, Matrix& m)
 	{
 		//already calculated > return value
-		char v = m.value(i,j);
+		long v = m.value(i,j);
 		if (v!=-1) return v;
 
 		if (s1[i-1]==s2[j-1])
@@ -183,17 +184,44 @@ public:
 	}
 
 	template<typename T>
-	void compare(const T& lines1, const T& lines2, QTextStream& ostream, DiffSummary& summary)
+	void compare(const T& lines1, const T& lines2, QTextStream& ostream, DiffSummary& summary, bool debug)
 	{
+		QTextStream estream(stderr);
 		int n = lines1.count();
 		int m = lines2.count();
+		if (n==0 && m==0) return;
+
+		//special case that one one has length zero
+		if (n>0 && m==0)
+		{
+			for (int i=0; i<n; ++i)
+			{
+				ostream << "-" << stringRepresentation(lines1[i]) << endl;
+			}
+			return;
+		}
+		if (n==0 && m>0)
+		{
+			for (int i=0; i<m; ++i)
+			{
+				ostream << "+" << stringRepresentation(lines2[i]) << endl;
+			}
+			return;
+		}
 
 		//determine LCS
 		Matrix matrix(n, m);
 		buildMatrix(lines1, lines2, n, m, matrix);
-		//matrix.print(ostream);
+		if (debug)
+		{
+			matrix.print(estream);
+		}
 		QList<QPair<int, int>> matches = matrix.findMatchIndices();
-		//foreach(auto m, matches) ostream << m.first << "/" << m.second << endl;
+		if (debug)
+		{
+			estream << "Line index matches:" << endl;
+			foreach(auto m, matches) estream << m.first << "/" << m.second << endl;
+		}
 
 		//before first match
 		for (int i=0; i<matches[0].first; ++i)
@@ -248,10 +276,14 @@ public:
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream ostream(out.data());
 		bool no_error = getFlag("no_error");
+		bool debug = getFlag("debug");
+		QTextStream estream(stderr);
 
 		//load files
+		if (debug) estream << "Loading file 1.." << endl;
 		TsvFile in1;
 		in1.load(getInfile("in1"));
+		if (debug) estream << "Loading file 2.." << endl;
 		TsvFile in2;
 		in2.load(getInfile("in2"));
 
@@ -261,17 +293,22 @@ public:
 			removeComments(in1, skip_comments_matching);
 			removeComments(in2, skip_comments_matching);
 
-			compare(in1.comments(), in2.comments(), ostream, summary_comments);
+			if (debug) estream << "Comparing comment lines.." << endl;
+			compare(in1.comments(), in2.comments(), ostream, summary_comments, debug);
 		}
 
 		//remove skipped columns
-		foreach(const QString& col, skip_cols)
+		if (!skip_cols.isEmpty())
 		{
-			int idx = in1.columnIndex(col, false);
-			if (idx!=-1) in1.removeColumn(idx);
+			if (debug) estream << "Removing skipped columns.." << endl;
+			foreach(const QString& col, skip_cols)
+			{
+				int idx = in1.columnIndex(col, false);
+				if (idx!=-1) in1.removeColumn(idx);
 
-			idx = in2.columnIndex(col, false);
-			if (idx!=-1) in2.removeColumn(idx);
+				idx = in2.columnIndex(col, false);
+				if (idx!=-1) in2.removeColumn(idx);
+			}
 		}
 
 		//compare headers
@@ -281,7 +318,8 @@ public:
 		}
 
 		//compare content lines
-		compare(in1, in2, ostream, summary_content);
+		if (debug) estream << "Comparing content lines.." << endl;
+		compare(in1, in2, ostream, summary_content, debug);
 
 		//output
 		bool has_differences = summary_comments.hasDifferences() || summary_content.hasDifferences();
