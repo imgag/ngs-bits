@@ -17,14 +17,12 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates the structural variants of a given BEDPE file by the NGSD counts.");
+		setDescription("Annotates the structural variants in a given BEDPE file with the count of pathogenic SVs of classes 4 and 5 found in the NGSD.");
 		addInfile("in", "BEDPE file containing structural variants.", false);
 		addOutfile("out", "Output BEDPE file containing annotated structural variants.", false);
 
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
-
-		setExtendedDescription(QStringList() << "NOTICE: the parameter '-ignore_processing_system' will also use SVs from low quality samples (bad samples).");
 
 		changeLog(2020, 2, 21, "Initial version.");
 		changeLog(2020, 2, 27, "Added temporary db table with same processing system.");
