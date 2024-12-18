@@ -21,9 +21,20 @@ void SessionAndUrlBackupWorker::run()
         db.addUrls(all_urls_);
 
         Log::info("Removing old cache entries");
-        qint64 five_minutes_ago = QDateTime::currentDateTime().toSecsSinceEpoch() - (5*60);
+        int file_location_cache_lifespan = 0;
+        try
+        {
+            file_location_cache_lifespan = Settings::integer("file_location_cache_lifespan");
+        }
+        catch (ProgrammingException& e)
+        {
+            file_location_cache_lifespan = 5*60; // lifespan of the cached FileLocation objects (default value)
+            Log::warn(e.message() + " Use the default value: " + QString::number(file_location_cache_lifespan));
+        }
 
-        if (db.removeFileLocationsOlderThan(five_minutes_ago))
+        qint64 maximum_allowed_age = QDateTime::currentDateTime().toSecsSinceEpoch() - file_location_cache_lifespan;
+
+        if (db.removeFileLocationsOlderThan(maximum_allowed_age))
         {
             Log::info("Old cache removed");
         }

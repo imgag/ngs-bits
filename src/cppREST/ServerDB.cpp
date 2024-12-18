@@ -3,11 +3,11 @@
 
 ServerDB::ServerDB()
 {
-    QString db_host = ServerHelper::getStringSettingsValue("gsvar_server_db_host");
-    int db_port = ServerHelper::getNumSettingsValue("gsvar_server_db_port");
-    QString db_name = ServerHelper::getStringSettingsValue("gsvar_server_db_name");
-    QString db_user = ServerHelper::getStringSettingsValue("gsvar_server_db_user");
-    QString db_pass = ServerHelper::getStringSettingsValue("gsvar_server_db_pass");
+    QString db_host = Settings::string("gsvar_server_db_host");
+    int db_port = Settings::integer("gsvar_server_db_port");
+    QString db_name = Settings::string("gsvar_server_db_name");
+    QString db_user = Settings::string("gsvar_server_db_user");
+    QString db_pass = Settings::string("gsvar_server_db_pass");
 
     if (db_host.isEmpty() || db_port==0 || db_name.isEmpty() || db_user.isEmpty() || db_pass.isEmpty())
     {

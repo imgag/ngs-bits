@@ -38,7 +38,7 @@ HttpResponse ServerController::serveEndpointHelp(const HttpRequest& request)
 
 HttpResponse ServerController::serveStaticFromServerRoot(const HttpRequest& request)
 {
-	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), ServerHelper::getStringSettingsValue("server_root")), request);
+    return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), Settings::string("server_root", true)), request);
 }
 
 HttpResponse ServerController::serveStaticServerGenomes(const HttpRequest& request)
@@ -1170,8 +1170,17 @@ HttpResponse ServerController::getSessionInfo(const HttpRequest& request)
     QJsonDocument json_doc;
     QJsonObject json_object;
 
-    qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
-    if (valid_period == 0) valid_period = SessionManager::DEFAULT_VALID_PERIOD;
+    qint64 valid_period = 0;
+    try
+    {
+        valid_period = Settings::integer("session_duration");
+    }
+    catch(ProgrammingException& e)
+    {
+        valid_period = SessionManager::DEFAULT_VALID_PERIOD;
+        Log::warn(e.message() + " Using the default value: " + QString::number(valid_period));
+    }
+
     json_object.insert("user_id", current_session.user_id);
     json_object.insert("login_time", current_session.login_time.toSecsSinceEpoch());
     json_object.insert("is_db_token", current_session.is_for_db_only);

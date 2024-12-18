@@ -55,8 +55,17 @@ bool SessionManager::isValidSession(QString token)
         return false;
     }
 
-    qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
-    if (valid_period == 0) valid_period = DEFAULT_VALID_PERIOD; // default value, if not set in the config
+    qint64 valid_period = 0;
+    try
+    {
+        valid_period = Settings::integer("session_duration");
+    }
+    catch(ProgrammingException& e)
+    {
+        valid_period = SessionManager::DEFAULT_VALID_PERIOD;
+        Log::warn(e.message() + " Using the default value: " + QString::number(valid_period));
+    }
+
     if (cur_session.login_time.addSecs(valid_period).toSecsSinceEpoch() < QDateTime::currentDateTime().toSecsSinceEpoch())
     {
         return false;
@@ -67,8 +76,16 @@ bool SessionManager::isValidSession(QString token)
 
 void SessionManager::removeExpiredSessions()
 {
-    qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
-    if (valid_period == 0) valid_period = DEFAULT_VALID_PERIOD; // default value, if not set in the config
+    qint64 valid_period = 0;
+    try
+    {
+        valid_period = Settings::integer("session_duration");
+    }
+    catch(ProgrammingException& e)
+    {
+        valid_period = DEFAULT_VALID_PERIOD;
+        Log::warn(e.message() + " Using the default value: " + QString::number(valid_period));
+    }
 
     Log::info("Starting to cleanup session");
     QList<QString> to_be_removed {};

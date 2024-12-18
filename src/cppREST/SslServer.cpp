@@ -5,14 +5,14 @@ SslServer::SslServer(QObject *parent)
     , thread_pool_()
 {
 	current_ssl_configuration_ = QSslConfiguration::defaultConfiguration();
-    int thread_timeout = ServerHelper::getNumSettingsValue("thread_timeout")*1000;
+    int thread_timeout = Settings::integer("thread_timeout")*1000;
     if (thread_timeout == 0)
     {
         Log::error("Thread timeout is not set or equals to zero");
         exit(1);
     }
     thread_pool_.setExpiryTimeout(thread_timeout);
-    int thread_count = ServerHelper::getNumSettingsValue("thread_count");
+    int thread_count = Settings::integer("thread_count");
     if (thread_timeout == 0)
     {
         Log::error("Max number of threads is not set or equals to zero");
@@ -20,19 +20,19 @@ SslServer::SslServer(QObject *parent)
     }
     thread_pool_.setMaxThreadCount(thread_count);
 
-    worker_params_.socket_read_timeout = ServerHelper::getNumSettingsValue("socket_read_timeout")*1000;
+    worker_params_.socket_read_timeout = Settings::integer("socket_read_timeout")*1000;
     if (worker_params_.socket_read_timeout == 0)
     {
         Log::error("Socket reading timeout is not set or equals to zero");
         exit(1);
     }
-    worker_params_.socket_write_timeout = ServerHelper::getNumSettingsValue("socket_write_timeout")*1000;
+    worker_params_.socket_write_timeout = Settings::integer("socket_write_timeout")*1000;
     if (worker_params_.socket_write_timeout == 0)
     {
         Log::error("Socket writing timeout is not set or equals to zero");
         exit(1);
     }
-    worker_params_.socket_encryption_timeout = ServerHelper::getNumSettingsValue("socket_encryption_timeout")*1000;
+    worker_params_.socket_encryption_timeout = Settings::integer("socket_encryption_timeout")*1000;
     if (worker_params_.socket_encryption_timeout == 0)
     {
         Log::error("Socket encryption timeout is not set or equals to zero");

@@ -66,8 +66,17 @@ bool UrlManager::isValidUrl(QString token)
         return false;
     }
 
-    int url_lifetime = ServerHelper::getNumSettingsValue("url_lifetime"); // URL lifetime in seconds
-    if (url_lifetime == 0) url_lifetime = DEFAULT_URL_LIFETIME; // default value, if not set in the config
+    int url_lifetime = 0;
+    try
+    {
+        url_lifetime = Settings::integer("url_lifetime");
+    }
+    catch(ProgrammingException& e)
+    {
+        url_lifetime = DEFAULT_URL_LIFETIME;
+        Log::warn(e.message() + " Using the default value: " + QString::number(url_lifetime));
+    }
+
     if (cur_url.created.addSecs(url_lifetime).toSecsSinceEpoch() <= QDateTime::currentDateTime().toSecsSinceEpoch())
     {
         return false;
@@ -77,8 +86,16 @@ bool UrlManager::isValidUrl(QString token)
 
 void UrlManager::removeExpiredUrls()
 {
-    int url_lifetime = ServerHelper::getNumSettingsValue("url_lifetime"); // URL lifetime in seconds
-    if (url_lifetime == 0) url_lifetime = DEFAULT_URL_LIFETIME; // default value, if not set in the config
+    int url_lifetime = 0;
+    try
+    {
+        url_lifetime = Settings::integer("url_lifetime");
+    }
+    catch(ProgrammingException& e)
+    {
+        url_lifetime = DEFAULT_URL_LIFETIME;
+        Log::warn(e.message() + " Using the default value: " + QString::number(url_lifetime));
+    }
 
     Log::info("Starting to cleanup URLs");
     QList<QString> to_be_removed {};

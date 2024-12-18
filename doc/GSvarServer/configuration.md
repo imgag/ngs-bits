@@ -28,6 +28,8 @@ These are the most important config parameters:
 * `queue_update_enabled` - turns on SGE update worker (true/false)
 * `megsap_settings_ini` - path to the megSAP settings file (additional settings are extracted from this file)
 * `show_raw_request` - flag used for debugging, allows to print out entire HTTP requests in log files(true/false), may significantly increase log sizes, should not be used in productio
+* `enable_file_metadata_caching` - turns on/off (true/false) file metadata caching, the cache is needed to reduce the number of calls to a file system (e.g. file size, check if file exists, etc.)
+* `file_location_cache_lifespan` - lifespan (seconds) of a cached FileLocation object. When a cached object is accessed, its creation time is reset to the current time.
 
 GSvarServer needs its own database for transient information (sessions, temporary URLs, etc.).  
 The database should be a separate instance of MySQL/MariaDB (not NGSD database).

@@ -520,13 +520,13 @@ int main(int argc, char **argv)
 						&ServerController::performLogout
 					});
 
-	int server_port = ServerHelper::getNumSettingsValue("server_port");
-
+    int server_port = 0;
 	if (!server_port_cli.isEmpty())
 	{
 		Log::info("HTTPS server port has been provided through the command line arguments:" + server_port_cli);
 		server_port = server_port_cli.toInt();
 	}
+    server_port = Settings::integer("server_port");
 	if (server_port == 0)
 	{
         Log::error("HTTPS port number is missing or invalid");
