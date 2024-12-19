@@ -30,7 +30,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
     , ngsd_user_logged_in_(LoginManager::active())
     , rc_enabled_(ngsd_user_logged_in_ && report_config_!=nullptr && !report_config_->isFinalized())
 {
-	ui_.setupUi(this);
+    ui_.setupUi(this);
     ui_.filter_hpo->setEnabled(ngsd_user_logged_in_);
 	ui_.filter_hpo->setEnabled(!GlobalServiceProvider::filterWidget()->phenotypes().isEmpty());
 
@@ -78,17 +78,17 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "statistical cutoff"), true);
 	}
 
-	if (!res_.isEmpty())
-	{
-		displayRepeats();
-		loadMetaDataFromNGSD();
-		GUIHelper::resizeTableCellWidths(ui_.table, 300);
-		GUIHelper::resizeTableCellHeightsToMinimum(ui_.table);
-		colorRepeatCountBasedOnCutoffs();
-		colorRepeatCountConfidenceInterval();
-		updateRowVisibility();
-		setReportConfigHeaderIcons();
-	}
+    if (!res_.isEmpty())
+    {
+        displayRepeats();
+        loadMetaDataFromNGSD();
+        GUIHelper::resizeTableCellWidths(ui_.table, 300);
+        GUIHelper::resizeTableCellHeightsToMinimum(ui_.table);
+        colorRepeatCountBasedOnCutoffs();
+        colorRepeatCountConfidenceInterval();
+        updateRowVisibility();
+        setReportConfigHeaderIcons();
+    }
 }
 
 void RepeatExpansionWidget::showContextMenu(QPoint pos)
@@ -417,7 +417,7 @@ void RepeatExpansionWidget::displayRepeats()
 {
 	// fill table widget with variants/repeat expansions
 	ui_.table->setRowCount(res_.count());
-	for(int row_idx=0; row_idx<res_.count(); ++row_idx)
+    for(int row_idx=0; row_idx<res_.count(); ++row_idx)
 	{
 		const RepeatLocus& re = res_[row_idx];
 
@@ -470,102 +470,180 @@ void RepeatExpansionWidget::displayRepeats()
 void RepeatExpansionWidget::loadMetaDataFromNGSD()
 {
     if (!ngsd_user_logged_in_) return;
-
 	NGSD db;
 
 	//get infos from NGSD
+    QList<BedLine> region_list;
+    QStringList repeat_unit_list;
+    for (int row=0; row<ui_.table->rowCount(); ++row)
+    {
+        region_list << BedLine::fromString(getCell(row, "region"));
+        repeat_unit_list << getCell(row, "repeat unit");
+    }
+
+    QStringList id_list;
+    QStringList selected_regions;
+    QStringList selected_units;
+
+    // Getting a list of repeat expansion IDs matching regions and repeat units
+    SqlQuery re_id_query = db.getQuery(); //use binding user input (safety)
+    QString bindings = "";
+    for (int i = 0; i < region_list.count(); i+=2)
+    {
+        if (!bindings.isEmpty()) bindings += " OR ";
+        bindings += "(region=:" + QString::number(i) + " AND repeat_unit=:" + QString::number(i+1) + ")";
+        bindings += " OR (region=:" + QString::number(region_list.count()+i) + " AND repeat_unit=:" + QString::number(region_list.count()+i+1) + ")";
+    }
+
+    re_id_query.prepare("SELECT id, region, repeat_unit FROM repeat_expansion WHERE " + bindings);
+    for (int i = 0; i < region_list.count(); i+=2)
+    {
+        re_id_query.bindValue(i, region_list[i].toString(true));
+        re_id_query.bindValue(i+1, repeat_unit_list[i]);
+
+        re_id_query.bindValue(region_list.count()+i, region_list[i+1].toString(true));
+        re_id_query.bindValue(region_list.count()+i+1, repeat_unit_list[i+1]);
+
+    }
+    re_id_query.exec();
+
+    while(re_id_query.next())
+    {
+        id_list << re_id_query.value(0).toString().trimmed();
+        selected_regions << re_id_query.value(1).toString().trimmed();
+        selected_units << re_id_query.value(2).toString().trimmed();
+    }
+
+    // Mark rows for which IDs were not found
+    QStringList row_regions;
 	for (int row=0; row<ui_.table->rowCount(); ++row)
 	{
-		//check if repeat is in NGSD
-		QString id = getRepeatId(db, row, false);
-		if (id.isEmpty())
-		{
-			setCellDecoration(row, "repeat ID", "Repeat not found in NGSD", orange_);
-			continue;
-		}
+        //check if repeat is in NGSD
+        QString region = getCell(row, "region");
+        QString repeat_unit = getCell(row, "repeat unit");
 
-		//max_normal
-		QVariant tmp = db.getValue("SELECT max_normal FROM repeat_expansion WHERE id=" + id);
-		QString max_normal = tmp.isNull() ? "" : tmp.toString().trimmed();
-		setCell(row, "max. normal", max_normal);
+        int region_index = selected_regions.indexOf(region.trimmed());
+        int repeat_unit_index = selected_units.indexOf(repeat_unit.trimmed());
+        if (region_index == -1 && repeat_unit_index == -1)
+        {
+            setCellDecoration(row, "repeat ID", "Repeat not found in NGSD", orange_);
+        }
 
-		//min_pathogenic
-		tmp = db.getValue("SELECT min_pathogenic FROM repeat_expansion WHERE id=" + id);
-		QString min_pathogenic = tmp.isNull() ? "" : tmp.toString().trimmed();
-		setCell(row, "min. pathogenic", min_pathogenic);
-
-		//inheritance
-		QString inheritance = db.getValue("SELECT inheritance FROM repeat_expansion WHERE id=" + id).toString().trimmed();
-		setCell(row, "inheritance", inheritance);
-
-		//location
-		QString location = db.getValue("SELECT location FROM repeat_expansion WHERE id=" + id).toString().trimmed();
-		setCell(row, "location", location);
-
-		//diseases
-		QString disease_names = db.getValue("SELECT disease_names FROM repeat_expansion WHERE id=" + id).toString().trimmed();
-		setCell(row, "diseases", disease_names);
-
-		//OMIM IDs
-		QStringList disease_ids_omim = db.getValue("SELECT disease_ids_omim FROM repeat_expansion WHERE id=" + id).toString().split(",");
-		for(int i=0; i<disease_ids_omim.count(); ++i)
-		{
-			QString id = disease_ids_omim[i].trimmed();
-			if (id.isEmpty()) continue;
-			QStringList names;
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT phenotype FROM omim_phenotype WHERE phenotype LIKE '%" + id + "%'");
-			while (query.next())
-			{
-				QString name = query.value(0).toString();
-				name.replace(id, "");
-				name.replace("(3)", "");
-				name = name.trimmed();
-				while(name.endsWith(',') || name.endsWith(' ')) name.chop(1);
-				if (!name.isEmpty()) names << name;
-			}
-			if (!names.isEmpty())
-			{
-				disease_ids_omim[i] =  id + " - " + names.join("/");
-			}
-		}
-		setCell(row, "OMIM disease IDs", disease_ids_omim.join("; "));
-
-		//comments
-		QString comments = db.repeatExpansionComments(id.toInt());
-		QTableWidgetItem* item = setCell(row, "comments", "");
-		if (!comments.isEmpty())
-		{
-			setCellDecoration(row, "comments", comments);
-			item->setIcon(QIcon(":/Icons/Info.png"));
-		}
-
-		//HPO terms
-		QStringList hpo_terms = db.getValue("SELECT hpo_terms FROM repeat_expansion WHERE id=" + id).toString().split(",");
-		for(int i=0; i<hpo_terms.count(); ++i)
-		{
-			QString id = hpo_terms[i].trimmed();
-			QString name = db.getValue("SELECT name FROM hpo_term WHERE hpo_id LIKE '" + id + "'", true).toString();
-			if (!name.isEmpty()) id += " - " + name;
-			hpo_terms[i] = id;
-		}
-		setCell(row, "HPO terms", hpo_terms.join("; "));
-
-		//type
-		QString type = db.getValue("SELECT type FROM repeat_expansion WHERE id=" + id).toString().trimmed();
-		setCell(row, "type", type);
-
-		//type
-		bool inhouse_testing = db.getValue("SELECT inhouse_testing FROM repeat_expansion WHERE id=" + id).toBool();
-		setCell(row, "in-house testing", inhouse_testing ? "yes" : "no");
-
-		//statistical cutoff
-		if (!sys_type_cutoff_col_.isEmpty())
-		{
-			QString cutoff = db.getValue("SELECT "+sys_type_cutoff_col_+" FROM repeat_expansion WHERE id=" + id).toString().trimmed();
-			setCell(row, "statistical cutoff", cutoff);
-		}
+        row_regions.append(getCell(row, "region"));
 	}
+
+    QSqlQuery re_query = db.getQuery();
+    re_query.exec("SELECT max_normal, min_pathogenic, inheritance, location, disease_names, disease_ids_omim, hpo_terms, type, inhouse_testing, " + sys_type_cutoff_col_ + ", region, comments FROM repeat_expansion WHERE id IN (" + id_list.join(", ") + ")");
+    while(re_query.next())
+    {
+        QString region = re_query.value(10).toString().trimmed();
+        int row_index = row_regions.indexOf(region);
+        if (row_index<0) continue;
+
+        QString max_normal = re_query.value(0).isNull() ? "" : re_query.value(0).toString().trimmed();
+        setCell(row_index, "max. normal", max_normal);
+        QString min_pathogenic = re_query.value(1).isNull() ? "" : re_query.value(1).toString().trimmed();
+        setCell(row_index, "min. pathogenic", min_pathogenic);
+        setCell(row_index, "inheritance", re_query.value(2).toString().trimmed());
+        setCell(row_index, "location", re_query.value(3).toString().trimmed());
+        setCell(row_index, "diseases", re_query.value(4).toString().trimmed());
+
+        // OMIM disease IDs
+        QStringList disease_ids_omim = re_query.value(5).toString().split(",");
+        QString omim_like_clause = "";
+        QString omim_when_clause = "";
+        for (const QString &id : disease_ids_omim)
+        {
+            QString disease_id = id.trimmed();
+            if (disease_id.isEmpty()) continue;
+            if (!omim_like_clause.isEmpty())
+            {
+                omim_like_clause += " OR ";
+                omim_when_clause += " ";
+            }
+            omim_like_clause += "phenotype LIKE '%" + disease_id + "%'";
+            omim_when_clause += "WHEN phenotype LIKE '%" + disease_id + "%' THEN '" + disease_id + "'";
+        }
+        if (!omim_when_clause.isEmpty()) omim_when_clause = ", CASE " + omim_when_clause + " ELSE NULL END AS matched_disease_id";
+
+        QStringList names;
+        if (!omim_when_clause.isEmpty() && !omim_like_clause.isEmpty())
+        {
+            SqlQuery omim_query = db.getQuery();
+            omim_query.exec("SELECT phenotype" + omim_when_clause + " FROM omim_phenotype WHERE " + omim_like_clause);
+            while (omim_query.next())
+            {
+                QString disease_id = omim_query.value(1).toString().trimmed();
+                QString name = omim_query.value(0).toString().trimmed();
+                name.replace(disease_id, "");
+                name.replace("(3)", "");
+                name = name.trimmed();
+                while(name.endsWith(',') || name.endsWith(' ')) name.chop(1);
+                if (!name.isEmpty()) names <<  disease_id + " - " + name;
+            }
+        }
+        setCell(row_index, "OMIM disease IDs", names.join("; "));
+
+        // Comments
+        QStringList comment_list = re_query.value(11).toString().replace("<br>", "\n").trimmed().split("\n");
+        for (int i=0; i<comment_list.count(); ++i)
+        {
+            QString line = comment_list[i].trimmed();
+            if (line.startsWith('#') && line.endsWith('#'))
+            {
+                comment_list[i] = "<b>" + line.mid(1, line.length()-2) + "</b>";
+            }
+        }
+        QString comments = comment_list.join("<br>");
+        QTableWidgetItem* item = setCell(row_index, "comments", "");
+        if (!comments.isEmpty())
+        {
+            setCellDecoration(row_index, "comments", comments);
+            item->setIcon(QIcon(":/Icons/Info.png"));
+        }
+
+        // HPO terms
+        QStringList hpo_terms = re_query.value(6).toString().split(",");
+        QString hpo_like_clause = "";
+        for (const QString &term : hpo_terms)
+        {
+            if (!hpo_like_clause.isEmpty()) hpo_like_clause += " OR ";
+            hpo_like_clause += "hpo_id LIKE '" + term.trimmed() + "'";
+        }
+        if (!hpo_like_clause.isEmpty())
+        {
+            QSqlQuery hpo_query = db.getQuery();
+            hpo_query.exec("SELECT hpo_id, name FROM hpo_term WHERE " + hpo_like_clause);
+
+            int hpo_terms_counter = -1;
+            while(hpo_query.next())
+            {
+                hpo_terms_counter++;
+                QString name = hpo_query.value(1).toString();
+                if (!name.isEmpty())
+                {
+                    hpo_terms[hpo_terms_counter] = hpo_query.value(0).toString().trimmed() + " - " + name;
+                }
+                else
+                {
+                    hpo_terms[hpo_terms_counter] = hpo_query.value(0).toString().trimmed();
+                }
+            }
+        }
+        setCell(row_index, "HPO terms", hpo_terms.join("; "));
+
+        QString type = re_query.value(7).toString().trimmed();
+        setCell(row_index, "type", type);
+
+        bool inhouse_testing = re_query.value(8).toBool();
+        setCell(row_index, "in-house testing", inhouse_testing ? "yes" : "no");
+
+        if (!sys_type_cutoff_col_.isEmpty())
+        {
+            QString cutoff = re_query.value(9).toString();
+            setCell(row_index, "statistical cutoff", cutoff);
+        }
+    }
 }
 
 void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
