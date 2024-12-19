@@ -1169,11 +1169,11 @@ void NGSD::removeInitData()
 
 QString NGSD::projectFolder(QString type)
 {
-    //GSvar server: use megSAP settings
-    if (ClientHelper::isRunningOnServer())
-    {
-        return PipelineSettings::projectFolder(type);
-    }
+	//GSvar server: use megSAP settings
+	if (ClientHelper::isRunningOnServer())
+	{
+		return PipelineSettings::projectFolder(type);
+	}
 
 	//current type-specific project folder settings
 	if (Settings::contains("projects_folder_"+type))
@@ -5275,7 +5275,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		add_headers.insert("SP-API-KEY", api_key);
 
 		//get request
-        QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers).body;
+		QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers).body;
 		qDebug() << api_url + submission_id.toUpper() + "/actions/";
 		// parse response
 		QJsonObject response = QJsonDocument::fromJson(reply).object();
@@ -5288,7 +5288,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		{
 			//get summary file and extract stable id or error message
 			QString report_summary_file = actions.at(0).toObject().value("responses").toArray().at(0).toObject().value("files").toArray().at(0).toObject().value("url").toString();
-            QByteArray summary_reply = request_handler.get(report_summary_file).body;
+			QByteArray summary_reply = request_handler.get(report_summary_file).body;
 			QJsonDocument summary_response = QJsonDocument::fromJson(summary_reply);
 
 			if (submission_status.status == "processed")
@@ -8987,7 +8987,7 @@ int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& co
 	else
 	{
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `somatic_report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
+		query.prepare("INSERT INTO `rna_report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
 
 		query.bindValue(0, rna_ps_id);
 		query.bindValue(1, userId(config.createdBy()));
@@ -9000,20 +9000,20 @@ int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& co
 	//store variants in NGSD:
 
 	SqlQuery query_fu = getQuery();
-	query_fu.prepare("INSERT INTO `rna_report_configuration_fusion` (`rna_report_configuration_id`, `fusion_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_evidence`, `exclude_other_reason`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6)");
+	query_fu.prepare("INSERT INTO `rna_report_configuration_fusion` (`rna_report_configuration_id`, `rna_fusion_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_evidence`, `exclude_other_reason`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6)");
 
 	foreach(const auto& fu_conf, config.fusionConfig())
 	{
 		//check whether indices exist in variant list
 		if(fu_conf.variant_index<0 || fu_conf.variant_index >= fusions.count())
 		{
-			THROW(ProgrammingException, "Variant list does not contain variant with index '" + QByteArray::number(fu_conf.variant_index) + "' in NGSD::setRnaReportConfig!");
+			THROW(ProgrammingException, "Arriba file does not contain variant with index '" + QByteArray::number(fu_conf.variant_index) + "' in NGSD::setRnaReportConfig!");
 		}
 
 		const Fusion& fusion = fusions.getFusion(fu_conf.variant_index);
 
 		//check that report SV callset exists
-		QVariant callset_id = getValue("SELECT id FROM rna_fusion_callset WHERE processed_sample_id='" + rna_ps_id, true);
+		QVariant callset_id = getValue("SELECT id FROM rna_fusion_callset WHERE processed_sample_id=" + rna_ps_id, true);
 		if (!callset_id.isValid())
 		{
 			THROW(ProgrammingException, "No fusion callset defined for rna processed sample id " + rna_ps_id + "in NGSD::setRnaReportConfig!");
@@ -9030,8 +9030,8 @@ int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& co
 		query_fu.bindValue(2, fu_conf.exclude_artefact);
 		query_fu.bindValue(3, fu_conf.exclude_low_tumor_content);
 		query_fu.bindValue(4, fu_conf.exclude_low_evidence);
-		query_fu.bindValue(6, fu_conf.exclude_other_reason);
-		query_fu.bindValue(9, fu_conf.comment.trimmed().isEmpty() ? "" : fu_conf.comment);
+		query_fu.bindValue(5, fu_conf.exclude_other_reason);
+		query_fu.bindValue(6, fu_conf.comment.trimmed().isEmpty() ? "" : fu_conf.comment);
 
 		query_fu.exec();
 	}
@@ -10174,11 +10174,11 @@ void NGSD::exportTable(const QString& table, QTextStream& out, QString where_cla
 					field_value.replace("; \n",",\n");
 					field_value.replace(";  \n",",\n");
 				}
-                values.append(escapeText(field_value));
+				values.append(escapeText(field_value));
 			}
 
-            QString insert_query =  "(" + values.join(", ") + ")";
-            insert_query = insert_query.replace("'NULL'", "NULL");
+			QString insert_query =  "(" + values.join(", ") + ")";
+			insert_query = insert_query.replace("'NULL'", "NULL");
 			out << insert_query;
 
 			if (row_count>=1000)

@@ -43,11 +43,11 @@ public:
 
 	/// clears the current list of fusion configurations.
 	void clearRnaFusionConfigurations();
-	/// adds somatic variant configuration to list if variant is already contained it updates the config.
+	/// adds rna fusion variant configuration to list if variant is already contained it updates the config.
 	void addRnaFusionConfiguration(const RnaReportFusionConfiguration& config);
 
-	///Somatic variant report configuration according type and index in file
-	const RnaReportFusionConfiguration& get(int index) const;
+	///rna fusion report configuration index in file
+	const RnaReportFusionConfiguration& get(int var_index) const;
 
 	bool remove(int index);
 

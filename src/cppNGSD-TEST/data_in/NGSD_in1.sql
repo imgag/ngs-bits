@@ -47,7 +47,8 @@ INSERT INTO `processed_sample` (`id`, `sample_id`, `process_id`, `sequencing_run
 (6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null, 'n/a', null),
 (7, 6, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps7', null, 'n/a', null),
 (8, 5, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps8', 7, 'n/a', null),
-(9, 9, 1, '1', '1,2,3,4', 5, 2, 'good', 'comment_ps9', null, 'n/a', null);
+(9, 9, 1, '1', '1,2,3,4', 5, 2, 'good', 'comment_ps9', null, 'n/a', null),
+(10, 9, 2, '1', '1,2,3,4', 5, 2, 'good', 'comment_ps10', null, 'n/a', null);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
@@ -610,10 +611,14 @@ INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id
 (3, 4, true, false, false, false, false, "");
 
 INSERT INTO `rna_fusion_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
-(1, 9, 'arriba', 'v2.4.0', '2024-11-11 11:11:11');
+(1, 9, 'arriba', 'v2.4.0', '2024-11-11 11:11:11'),
+(2, 10, 'arriba', 'v2.4.0', '2024-12-12 12:12:12');
 
 INSERT INTO `rna_fusion` (`id`, `rna_fusion_callset_id`, `symbol1`, `chr1`, `pos1`, `transcript1`, `symbol2`, `chr2`, `pos2`, `transcript2`, `type`, `reading_frame`) VALUES
-('1', '1', 'NAPG', 'chr18', '10530837', 'ENST00000322897', 'SRPK2(1688),PUS7(38665)', 'chr7', '105400996', '.', 'translocation', 'out-of-frame');
+('1', '1', 'DIAPH2', 'chrX', '96763120', 'ENST00000324765', 'DIAPH2', 'chrX', '96881579', 'ENST00000324765', 'deletion/read-through', 'in-frame'),
+('2', '1', 'FRS2', 'chr12', '69500323', '.', 'HNRNPU', 'chr1', '244856550', 'ENST00000640306', 'translocation', '.'),
+('3', '1', 'PIK3C3', 'chr18', '41987898', 'ENST00000262039', 'PRORP', 'chr14', '35180670', 'ENST00000534898', 'translocation', 'in-frame'),
+('4', '1', 'NAPG', 'chr18', '10530837', 'ENST00000322897', 'SRPK2(1688),PUS7(38665)', 'chr7', '105400996', '.', 'translocation', 'out-of-frame');
 
 INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `classification`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
 (1, 210585, true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'ONCOGENIC', 'this variant was evaluated as an oncogenic variant', 99, '2020-11-05 13:06:13', 101, '2020-12-07 11:06:10'),

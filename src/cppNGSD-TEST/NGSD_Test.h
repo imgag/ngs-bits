@@ -3311,6 +3311,81 @@ private slots:
 
 	}
 
+	void report_rna()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
+		//log in user
+		LoginManager::login("ahmustm1", "", true);
+
+		//import of RNA fusions
+
+		S_EQUAL(db.rnaFusion(1).toString(), "DIAPH2 chrX:96763120::DIAPH2 chrX:96881579");
+		S_EQUAL(db.rnaFusion(2).toString(), "FRS2 chr12:69500323::HNRNPU chr1:244856550");
+		S_EQUAL(db.rnaFusion(3).toString(), "PIK3C3 chr18:41987898::PRORP chr14:35180670");
+
+		Fusion fusion1(GenomePosition("chrX", 96763120), GenomePosition("chrX", 96881579), "DIAPH2", "ENST00000324765", "DIAPH2", "ENST00000324765", "deletion/read-through", "in-frame");
+		S_EQUAL(db.rnaFusionId(fusion1, 1), "1");
+		Fusion fusion2(GenomePosition("chrX", 96763120), GenomePosition("chrX", 96881579), "DIAPH2", "ENST00000324765", "DIAPH2", "ENST00000324765", "", ""); // type and reading frame are not necessary to find fusion
+		S_EQUAL(db.rnaFusionId(fusion2, 1), "1");
+		Fusion fusion3(GenomePosition("chr1", 12345), GenomePosition("chr1", 23456), "FRS2", ".", "HNRNPU", ".", "", "");
+		S_EQUAL(db.rnaFusionId(fusion3, 1, false), "");
+		IS_THROWN(DatabaseException, db.rnaFusionId(fusion3, 0))
+
+		ArribaFile fusions;
+		fusions.load(TESTDATA("data_in/rna_fusions_arriba.tsv"));
+		QString fusion_id = "";
+		fusion_id = db.addRnaFusion(2, fusions.getFusion(0));
+		S_EQUAL(fusion_id, "5");
+		S_EQUAL(db.rnaFusion(5).toString(), "NAPG chr18:10530837::SRPK2(1688),PUS7(38665) chr7:105400996");
+		fusion_id = db.addRnaFusion(2, fusions.getFusion(1));
+		S_EQUAL(fusion_id, "6");
+		S_EQUAL(db.rnaFusion(6).toString(), "TSHZ2 chr20:53256444::TSHZ2 chr20:53487144");
+		fusion_id = db.addRnaFusion(2, fusions.getFusion(2));
+		S_EQUAL(fusion_id, "7");
+		S_EQUAL(db.rnaFusion(7).toString(), "LRBA chr4:150599059::LRBA chr4:150342832");
+		//already imported fusion
+		IS_THROWN(DatabaseException, db.addRnaFusion(2, fusions.getFusion(2)));
+
+
+		//report config of RNA fusions:
+		RnaReportConfiguration rna_config;
+		rna_config.setCreatedAt(QDateTime(QDate(2000,1,1), QTime(11,11)));
+		rna_config.setCreatedBy("ahmustm1");
+
+		RnaReportFusionConfiguration fusion_config1;
+		fusion_config1.exclude_artefact = true;
+		fusion_config1.variant_index = 2;
+		fusion_config1.comment = "is an artifact";
+		rna_config.addRnaFusionConfiguration(fusion_config1);
+
+		RnaReportFusionConfiguration fusion_config2;
+		fusion_config2.variant_index = 0;
+		fusion_config2.comment = "is real and should be in the report";
+
+		rna_config.addRnaFusionConfiguration(fusion_config2); // add to report
+
+		db.setRnaReportConfig("10", rna_config, fusions, "ahmustm1");
+
+		QStringList messages;
+		RnaReportConfiguration loaded =  db.rnaReportConfig("10", fusions, messages);
+
+		I_EQUAL(loaded.count(), 2);
+		RnaReportFusionConfiguration conf1 = loaded.get(0);
+		IS_FALSE(conf1.exclude_artefact);
+		S_EQUAL(conf1.comment, "is real and should be in the report");
+		RnaReportFusionConfiguration conf2 = loaded.get(2);
+		IS_TRUE(conf2.exclude_artefact);
+		S_EQUAL(conf2.comment, "is an artifact");
+		IS_THROWN(ArgumentException, loaded.get(1));
+
+	}
+
 	//This test should be in VariantHgvsAnnotator_Test.h, but it requires the production NGSD. Thus it is here.
 	//Test data exported from NGSD via GSvar (debug section of ahsturm1) on Nov 1th 2022.
 	//Annotation done with VEP 107 (/mnt/users/ahsturm1/Sandbox/2022_11_04_compare_annotations_with_VEP/).
