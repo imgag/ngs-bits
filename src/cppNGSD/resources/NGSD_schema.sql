@@ -2864,11 +2864,11 @@ CREATE  TABLE IF NOT EXISTS `rna_fusion`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `rna_fusion_callset_id` INT(11) UNSIGNED NOT NULL,
-  `symbol1` varchar(40) NOT NULL COMMENT 'Contains the gene which makes up the 5` end of the transcript.',
+  `symbol1` varchar(80) NOT NULL COMMENT 'Contains the gene which makes up the 5` end of the transcript.',
   `chr1` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL COMMENT 'chromosome of breakpoint 1',
   `pos1` INT(11) NOT NULL COMMENT 'position of breakpoint 1',
   `transcript1` varchar(40) NOT NULL COMMENT 'Contains the transcript of the gene which makes up the 5` end of the transcript.',
-  `symbol2` varchar(40) NOT NULL COMMENT 'Contains the gene which makes up the 3` end of the transcript.',
+  `symbol2` varchar(80) NOT NULL COMMENT 'Contains the gene which makes up the 3` end of the transcript.',
   `chr2` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL COMMENT 'chromosome of breakpoint 2',
   `pos2` INT(11) NOT NULL COMMENT 'position of breakpoint 2',
   `transcript2` varchar(40) NOT NULL COMMENT 'Contains the transcript of the gene which makes up the 3` end of the transcript.',
