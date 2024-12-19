@@ -62,7 +62,7 @@ bool SessionManager::isValidSession(QString token)
     }
     catch(ProgrammingException& e)
     {
-        valid_period = SessionManager::DEFAULT_VALID_PERIOD;
+        valid_period = DEFAULT_VALID_PERIOD;
         Log::warn(e.message() + " Using the default value: " + QString::number(valid_period));
     }
 
