@@ -1,5 +1,5 @@
 ### VcfBreakMulti tool help
-	VcfBreakMulti (2024_08-113-g94a3b440)
+	VcfBreakMulti (2024_11-41-g79ac725e)
 	
 	Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 	
@@ -21,7 +21,8 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfBreakMulti changelog
-	VcfBreakMulti 2024_08-113-g94a3b440
+	VcfBreakMulti 2024_11-41-g79ac725e
 	
+	2024-11-21 Implemented handling of phased GT
 	2018-10-18 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
