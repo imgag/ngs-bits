@@ -74,7 +74,7 @@ void SvSearchWidget::search()
 
 		// define type specific table columns
 		if(type==StructuralVariantType::BND) selected_columns << "sv.chr1" << "sv.start1" << "sv.end1" << "sv.chr2" << "sv.start2" << "sv.end2";
-		else if(type==StructuralVariantType::INS) selected_columns << "sv.chr" << "sv.pos AS start" << "(sv.pos + sv.ci_upper) AS end";
+		else if(type==StructuralVariantType::INS) selected_columns << "sv.chr" << "sv.pos AS start" << "(sv.pos + sv.ci_upper) AS end" << "LENGTH(sv.inserted_sequence) AS size";
 		else selected_columns << "sv.chr" << "sv.start_min" << "sv.start_max" << "sv.end_min" << "sv.end_max";
 		selected_columns << "rcs.class" << "CONCAT(rcs.comments, ' // ', rcs.comments2) as report_config_comments";
 
@@ -374,7 +374,7 @@ void SvSearchWidget::changeSearchType()
 void SvSearchWidget::openSelectedSampleTabs()
 {
 	int col = ui_.table->columnIndex("sample");
-	foreach (int row, ui_.table->selectedRows().toList())
+	foreach (int row, ui_.table->selectedRows())
 	{
 		QString ps = ui_.table->item(row, col)->text();
 		GlobalServiceProvider::openProcessedSampleTab(ps);
