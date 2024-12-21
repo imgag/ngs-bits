@@ -50,12 +50,17 @@ void ProcessingSystemWidget::updateGUI()
 	//###target region infos###
 	try
 	{
-		BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, false);
+        BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, true);
 		if (!roi.isEmpty())
 		{
 			ui_.roi_bases->setText(QString::number(roi.baseCount(), 'f', 0));
 			ui_.roi_regions->setText(QString::number(roi.count(), 'f', 0));
 		}
+        else
+        {
+            ui_.roi_bases->setText("n/a");
+            ui_.roi_regions->setText("n/a");
+        }
 	}
 	catch (Exception& e)
 	{
