@@ -3,14 +3,8 @@
 #include "Exceptions.h"
 #include "Helper.h"
 
-
 template<typename T>
-QString stringRepresentation(const T& /*element*/)
-{
-	return "[not implemented]";
-}
-template<>
-QString stringRepresentation(const QString& element)
+QString stringRepresentation(const T& element)
 {
 	return element;
 }
@@ -18,6 +12,28 @@ template<>
 QString stringRepresentation(const QStringList& element)
 {
 	return element.join("\t");
+}
+
+struct CompSettings
+{
+	QList<int> comp_indices;
+};
+
+template<typename T>
+bool is_equal(const T& a, const T& b, const CompSettings& /*comp_settings*/)
+{
+	return a==b;
+}
+template<>
+bool is_equal(const QStringList& a, const QStringList& b, const CompSettings& comp_settings)
+{
+	if (comp_settings.comp_indices.isEmpty())	return a==b;
+
+	foreach(int i, comp_settings.comp_indices)
+	{
+		if (a[i]!=b[i]) return false;
+	}
+	return true;
 }
 
 class ConcreteTool
@@ -41,8 +57,9 @@ public:
 		addOutfile("out", "Output file with differences. If unset, writes to stdout.", true);
 		addFlag("skip_comments", "Do not compare comment lines starting with '##'.");
 		addString("skip_comments_matching", "Comma-separated list of sub-strings for skipping comment lines (case-sensitive matching).", true);
-		addString("skip_cols", "Comma-separated list of colums to skip.", true);
-		addFlag("no_error", "Do not exit with error state if differences are detected");
+		addString("skip_cols", "Comma-separated list of colums to skip during line comparison.", true);
+		addString("comp", "Comma-separated list of columns to use for comparison (all other columns are ignored).", true);
+		addFlag("no_error", "Do not exit with error state if differences are detected.");
 		addFlag("debug", "Print debug output to stderr");
 	}
 
@@ -165,19 +182,19 @@ public:
 	//TODO Marc: use non-recursive function to allow more than 40000 lines
 	//build matrix for dynamic programming
 	template<typename T>
-	long buildMatrix(const T& s1, const T& s2, int i, int j, Matrix& m)
+	long buildMatrix(const T& s1, const T& s2, int i, int j, Matrix& m, const CompSettings& comp_settings)
 	{
 		//already calculated > return value
 		long v = m.value(i,j);
 		if (v!=-1) return v;
 
-		if (s1[i-1]==s2[j-1])
+		if (is_equal(s1[i-1], s2[j-1], comp_settings))
 		{
-			v = 1 + buildMatrix(s1, s2, i-1, j-1, m);
+			v = 1 + buildMatrix(s1, s2, i-1, j-1, m, comp_settings);
 		}
 		else
 		{
-			v = std::max(buildMatrix(s1, s2, i-1, j, m), buildMatrix(s1, s2, i, j-1, m));
+			v = std::max(buildMatrix(s1, s2, i-1, j, m, comp_settings), buildMatrix(s1, s2, i, j-1, m, comp_settings));
 		}
 
 		m.setValue(i, j, v);
@@ -185,7 +202,7 @@ public:
 	}
 
 	template<typename T>
-	void compare(const T& lines1, const T& lines2, QTextStream& ostream, DiffSummary& summary, bool debug)
+	void compare(const T& lines1, const T& lines2, QTextStream& ostream, DiffSummary& summary, const CompSettings& comp_settings, bool debug)
 	{
 		QTextStream estream(stderr);
 		int n = lines1.count();
@@ -212,7 +229,7 @@ public:
 
 		//determine LCS
 		Matrix matrix(n, m);
-		buildMatrix(lines1, lines2, n, m, matrix);
+		buildMatrix(lines1, lines2, n, m, matrix, comp_settings);
 		if (debug)
 		{
 			matrix.print(estream);
@@ -272,12 +289,12 @@ public:
 		skip_comments_matching.removeAll("");
 		QStringList skip_cols = getString("skip_cols").split(",");
 		skip_cols.removeAll("");
-		DiffSummary summary_comments;
-		DiffSummary summary_content;
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream ostream(out.data());
 		bool no_error = getFlag("no_error");
 		bool debug = getFlag("debug");
+		DiffSummary summary_comments;
+		DiffSummary summary_content;
 		QTextStream estream(stderr);
 
 		//load files
@@ -287,16 +304,6 @@ public:
 		if (debug) estream << "Loading file 2.." << endl;
 		TsvFile in2;
 		in2.load(getInfile("in2"));
-
-		//compare comments
-		if (!skip_comments)
-		{
-			removeComments(in1, skip_comments_matching);
-			removeComments(in2, skip_comments_matching);
-
-			if (debug) estream << "Comparing comment lines.." << endl;
-			compare(in1.comments(), in2.comments(), ostream, summary_comments, debug);
-		}
 
 		//remove skipped columns
 		if (!skip_cols.isEmpty())
@@ -312,6 +319,25 @@ public:
 			}
 		}
 
+		//set up comparison settings
+		CompSettings comp_settings;
+		QStringList comp_cols = getString("comp").split(",");
+		comp_cols.removeAll("");
+		foreach(QString col, comp_cols)
+		{
+			comp_settings.comp_indices << in1.columnIndex(col);
+		}
+
+		//compare comments
+		if (!skip_comments)
+		{
+			removeComments(in1, skip_comments_matching);
+			removeComments(in2, skip_comments_matching);
+
+			if (debug) estream << "Comparing comment lines.." << endl;
+			compare(in1.comments(), in2.comments(), ostream, summary_comments, comp_settings, debug);
+		}
+
 		//compare headers
 		if(in1.headers()!=in2.headers())
 		{
@@ -320,7 +346,7 @@ public:
 
 		//compare content lines
 		if (debug) estream << "Comparing content lines.." << endl;
-		compare(in1, in2, ostream, summary_content, debug);
+		compare(in1, in2, ostream, summary_content, comp_settings, debug);
 
 		//output
 		bool has_differences = summary_comments.hasDifferences() || summary_content.hasDifferences();

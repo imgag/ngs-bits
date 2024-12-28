@@ -11,7 +11,7 @@ private slots:
 		COMPARE_FILES("out/TsvDiff_out1.txt", TESTDATA("data_out/TsvDiff_out1.txt"));
 	}
 
-	void differences()
+	void differences_in_header_and_content_lines()
 	{
 		EXECUTE("TsvDiff", "-in1 " + TESTDATA("data_in/TsvDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/TsvDiff_in2.tsv") + " -out out/TsvDiff_out2.txt -no_error");
 		COMPARE_FILES("out/TsvDiff_out2.txt", TESTDATA("data_out/TsvDiff_out2.txt"));
@@ -22,6 +22,13 @@ private slots:
 		EXECUTE("TsvDiff", "-in1 " + TESTDATA("data_in/TsvDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/TsvDiff_in2.tsv") + " -out out/TsvDiff_out3.txt -skip_comments_matching insert1,bla -no_error");
 		COMPARE_FILES("out/TsvDiff_out3.txt", TESTDATA("data_out/TsvDiff_out3.txt"));
 	}
+
+	void comp()
+	{
+		EXECUTE("TsvDiff", "-in1 " + TESTDATA("data_in/TsvDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/TsvDiff_in2.tsv") + " -out out/TsvDiff_out4.txt -comp chr,start,end,ref,obs -no_error");
+		COMPARE_FILES("out/TsvDiff_out4.txt", TESTDATA("data_out/TsvDiff_out4.txt"));
+	}
+
 };
 
 
