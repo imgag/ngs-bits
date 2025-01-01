@@ -29,6 +29,12 @@ private slots:
 		COMPARE_FILES("out/TsvDiff_out4.txt", TESTDATA("data_out/TsvDiff_out4.txt"));
 	}
 
+	void skip_cols()
+	{
+		EXECUTE("TsvDiff", "-in1 " + TESTDATA("data_in/TsvDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/TsvDiff_in3.tsv") + " -out out/TsvDiff_out5.txt -skip_cols snp_q,depth -no_error");
+		COMPARE_FILES("out/TsvDiff_out5.txt", TESTDATA("data_out/TsvDiff_out5.txt"));
+	}
+
 };
 
 

@@ -16,7 +16,7 @@ QString stringRepresentation(const QStringList& element)
 
 struct CompSettings
 {
-	QList<int> comp_indices;
+	QList<QPair<int,int>> comp_indices;
 };
 
 template<typename T>
@@ -27,11 +27,9 @@ bool is_equal(const T& a, const T& b, const CompSettings& /*comp_settings*/)
 template<>
 bool is_equal(const QStringList& a, const QStringList& b, const CompSettings& comp_settings)
 {
-	if (comp_settings.comp_indices.isEmpty())	return a==b;
-
-	foreach(int i, comp_settings.comp_indices)
+	foreach(const auto& indices, comp_settings.comp_indices)
 	{
-		if (a[i]!=b[i]) return false;
+		if (a[indices.first]!=b[indices.second]) return false;
 	}
 	return true;
 }
@@ -287,8 +285,8 @@ public:
 		bool skip_comments = getFlag("skip_comments");
 		QStringList skip_comments_matching = getString("skip_comments_matching").split(",");
 		skip_comments_matching.removeAll("");
-		QStringList skip_cols = getString("skip_cols").split(",");
-		skip_cols.removeAll("");
+		QSet<QString> skip_cols = getString("skip_cols").split(",").toSet();
+		skip_cols.remove("");
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream ostream(out.data());
 		bool no_error = getFlag("no_error");
@@ -305,27 +303,30 @@ public:
 		TsvFile in2;
 		in2.load(getInfile("in2"));
 
-		//remove skipped columns
-		if (!skip_cols.isEmpty())
-		{
-			if (debug) estream << "Removing skipped columns.." << endl;
-			foreach(const QString& col, skip_cols)
-			{
-				int idx = in1.columnIndex(col, false);
-				if (idx!=-1) in1.removeColumn(idx);
-
-				idx = in2.columnIndex(col, false);
-				if (idx!=-1) in2.removeColumn(idx);
-			}
-		}
-
-		//set up comparison settings
+		//deterine columns used for comparison
 		CompSettings comp_settings;
 		QStringList comp_cols = getString("comp").split(",");
 		comp_cols.removeAll("");
+		if (comp_cols.isEmpty()) //no comparison columns given > use all
+		{
+			foreach(const QString& col, in1.headers())
+			{
+				if (skip_cols.contains(col)) continue;
+				comp_cols << col;
+			}
+			foreach(const QString& col, in2.headers())
+			{
+				if (skip_cols.contains(col)) continue;
+				if (!comp_cols.contains(col)) comp_cols << col;
+			}
+		}
 		foreach(QString col, comp_cols)
 		{
-			comp_settings.comp_indices << in1.columnIndex(col);
+			int i1 = in1.columnIndex(col, false);
+			if (i1==-1) THROW(Exception, "Could not find column '" + col + "' in 'in1'!");
+			int i2 = in2.columnIndex(col, false);
+			if (i2==-1) THROW(Exception, "Could not find column '" + col + "' in 'in2'!");
+			comp_settings.comp_indices << qMakePair(i1, i2);
 		}
 
 		//compare comments
@@ -336,12 +337,6 @@ public:
 
 			if (debug) estream << "Comparing comment lines.." << endl;
 			compare(in1.comments(), in2.comments(), ostream, summary_comments, comp_settings, debug);
-		}
-
-		//compare headers
-		if(in1.headers()!=in2.headers())
-		{
-			THROW(Exception, "Cannot compare files with differing column headers:\nin1:"+in1.headers().join("\t")+"\nin2:"+in2.headers().join("\t"));
 		}
 
 		//compare content lines
