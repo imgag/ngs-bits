@@ -14,9 +14,17 @@ QString stringRepresentation(const QStringList& element)
 	return element.join("\t");
 }
 
+struct IndexPair
+{
+	QString col;
+	int i1;
+	int i2;
+};
+
 struct CompSettings
 {
-	QList<QPair<int,int>> comp_indices;
+	QList<IndexPair> comp_indices;
+	QHash<QString, double> diff_abs;
 };
 
 template<typename T>
@@ -27,9 +35,24 @@ bool is_equal(const T& a, const T& b, const CompSettings& /*comp_settings*/)
 template<>
 bool is_equal(const QStringList& a, const QStringList& b, const CompSettings& comp_settings)
 {
-	foreach(const auto& indices, comp_settings.comp_indices)
+	foreach(const IndexPair& indices, comp_settings.comp_indices)
 	{
-		if (a[indices.first]!=b[indices.second]) return false;
+		const QString& str1 = a[indices.i1];
+		const QString& str2 = b[indices.i2];
+		if (str1!=str2)
+		{
+			bool num_equal = false;
+			if (Helper::isNumeric(str1) && Helper::isNumeric(str2))
+			{
+				double diff = abs(str1.toDouble()-str2.toDouble());
+				if (comp_settings.diff_abs.contains(indices.col))
+				{
+					double max_diff  = comp_settings.diff_abs[indices.col];
+					if (diff<=max_diff) num_equal = true;
+				}
+			}
+			if (!num_equal) return false;
+		}
 	}
 	return true;
 }
@@ -57,6 +80,7 @@ public:
 		addString("skip_comments_matching", "Comma-separated list of sub-strings for skipping comment lines (case-sensitive matching).", true);
 		addString("skip_cols", "Comma-separated list of colums to skip during line comparison.", true);
 		addString("comp", "Comma-separated list of columns to use for comparison (all other columns are ignored).", true);
+		addString("diff_abs", "Comma-separated list of column=difference tuples for defining maximum allowed numeric difference of columns.", true);
 		addFlag("no_error", "Do not exit with error state if differences are detected.");
 		addFlag("debug", "Print debug output to stderr");
 	}
@@ -326,7 +350,17 @@ public:
 			if (i1==-1) THROW(Exception, "Could not find column '" + col + "' in 'in1'!");
 			int i2 = in2.columnIndex(col, false);
 			if (i2==-1) THROW(Exception, "Could not find column '" + col + "' in 'in2'!");
-			comp_settings.comp_indices << qMakePair(i1, i2);
+			comp_settings.comp_indices << IndexPair{col, i1, i2};
+		}
+
+		//parse numeric difference
+		QStringList diff_abs = getString("diff_abs").split(",");
+		diff_abs.removeAll("");
+		foreach(QString entry, diff_abs)
+		{
+			QStringList parts = entry.split('=');
+			if (parts.count()!=2 || !Helper::isNumeric(parts[1])) THROW(Exception, "Absolute column difference entry '" + entry + "' not valid!");
+			comp_settings.diff_abs[parts[0]] = parts[1].toDouble();
 		}
 
 		//compare comments
