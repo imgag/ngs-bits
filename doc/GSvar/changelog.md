@@ -1,5 +1,13 @@
 # GSvar change log
 
+## 2024_11-50 (07.01.25)
+
+- general: added sample counts dialog (NGSD > Sample counts)
+- variant context menu: added ProteinAtlas link for genes
+- variant context menu: added UCSC Genome Browser link with ENIGMA tracks
+- CNV search: added exon/splicing region overlap
+- SV search: added size column for inversions
+
 ## 2024_08-102 (14.11.24)
 
 - small variants/CNVs/SVs: added functionality for custom column order/width/visibilty (see [docu](https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/configuration.md)).
