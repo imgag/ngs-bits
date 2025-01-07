@@ -262,7 +262,23 @@ public:
 			estream << "Line index matches:" << endl;
 			foreach(auto m, matches) estream << m.first << "/" << m.second << endl;
 		}
-
+		
+		//special handling when there are no matches
+		if (matches.isEmpty())
+		{
+			for (int i=0; i<n; ++i)
+			{
+				ostream << "-" << stringRepresentation(lines1[i]) << endl;
+				summary.removed += 1;
+			}
+			for (int i=0; i<m; ++i)
+			{
+				ostream << "+" << stringRepresentation(lines2[i]) << endl;
+				summary.added += 1;
+			}
+			return;
+		}
+		
 		//before first match
 		for (int i=0; i<matches[0].first; ++i)
 		{

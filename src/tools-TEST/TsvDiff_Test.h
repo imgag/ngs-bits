@@ -41,6 +41,11 @@ private slots:
 		COMPARE_FILES("out/TsvDiff_out6.txt", TESTDATA("data_out/TsvDiff_out6.txt"));
 	}
 
+	void special_case_no_matches()
+	{
+		EXECUTE("TsvDiff", "-in1 " + TESTDATA("data_in/TsvDiff_in4.tsv") + " -in2 " + TESTDATA("data_in/TsvDiff_in5.tsv") + " -out out/TsvDiff_out7.txt -no_error");
+		COMPARE_FILES("out/TsvDiff_out7.txt", TESTDATA("data_out/TsvDiff_out7.txt"));
+	}
 };
 
 
