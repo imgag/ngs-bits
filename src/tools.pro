@@ -97,10 +97,6 @@ SUBDIRS += SampleSimilarity
 tools-TEST.depends += SampleSimilarity
 SampleSimilarity.depends = cppNGS
 
-SUBDIRS += SampleDiff
-tools-TEST.depends += SampleDiff
-SampleDiff.depends = cppNGS
-
 SUBDIRS += SampleGender
 tools-TEST.depends += SampleGender
 SampleGender.depends = cppNGS
@@ -168,10 +164,6 @@ FastqTrim.depends = cppNGS
 SUBDIRS += FastqConvert
 tools-TEST.depends += FastqConvert
 FastqConvert.depends = cppNGS
-
-SUBDIRS += SampleOverview
-tools-TEST.depends += SampleOverview
-SampleOverview.depends = cppNGS
 
 SUBDIRS += BedGeneOverlap
 tools-TEST.depends += BedGeneOverlap
