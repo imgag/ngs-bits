@@ -249,10 +249,6 @@ SUBDIRS += FastqExtractBarcode
 tools-TEST.depends += FastqExtractBarcode
 FastqExtractBarcode.depends = cppNGS
 
-SUBDIRS += PERsim
-tools-TEST.depends += PERsim
-PERsim.depends = cppNGS
-
 SUBDIRS += VariantFilterAnnotations
 tools-TEST.depends += VariantFilterAnnotations
 VariantFilterAnnotations.depends = cppNGS
