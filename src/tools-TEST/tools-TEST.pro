@@ -155,7 +155,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     VcfAdd_Test.h \
     NGSDImportGenlab_Test.h \
     NGSDExportStudyGHGA_Test.h \
-    VcfSubstract_Test.h \
+    VcfSubtract_Test.h \
     TranscriptsToBed_Test.h \
     GenesToTranscripts_Test.h \
     TranscriptComparison_Test.h \

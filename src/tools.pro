@@ -520,9 +520,9 @@ SUBDIRS += NGSDExportStudyGHGA
 tools-TEST.depends += NGSDExportStudyGHGA
 NGSDExportStudyGHGA.depends = cppNGSD
 
-SUBDIRS += VcfSubstract
-tools-TEST.depends += VcfSubstract
-VcfSubstract.depends = cppNGS
+SUBDIRS += VcfSubtract
+tools-TEST.depends += VcfSubtract
+VcfSubtract.depends = cppNGS
 
 SUBDIRS += TranscriptsToBed
 tools-TEST.depends += TranscriptsToBed

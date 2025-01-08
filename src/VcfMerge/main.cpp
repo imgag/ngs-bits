@@ -14,7 +14,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Merges several VCF files into one VCF");
+		setDescription("Merges several VCF files into one VCF by appending one to the other.");
 		addInfileList("in", "Input VCF files that are merged. The VCF header is taken from the first file.", false, true);
 		//optional
 		addOutfile("out", "Output VCF. If unset, writes to STDOUT.", true, true);
