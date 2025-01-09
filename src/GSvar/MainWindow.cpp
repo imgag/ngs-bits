@@ -1529,7 +1529,13 @@ void MainWindow::openVariantListQcFiles()
 		}
 		else
 		{
-			QDesktopServices::openUrl(file.filename);
+			//create a local copy of the qcML file
+			QString tmp_filename = GSvarHelper::localQcFolder() + file.fileName();
+			QSharedPointer<QFile> tmp_file = Helper::openFileForWriting(tmp_filename);
+			tmp_file->write(VersatileFile(file.filename).readAll());
+			tmp_file->close();
+
+			QDesktopServices::openUrl(QUrl::fromLocalFile(tmp_filename));
 		}
 	}
 }
