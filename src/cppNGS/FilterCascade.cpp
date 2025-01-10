@@ -1754,6 +1754,7 @@ FilterGenotypeAffected::FilterGenotypeAffected()
 	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
 	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)";
 	params_.last().constraints["not_empty"] = "";
+	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
 
 	checkIsRegistered();
 }
@@ -1793,14 +1794,30 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 	//filter
 	if (!(genotypes.contains("comp-het") || genotypes.contains("comp-het (phased)") || genotypes.contains("comp-het (unphased)")))
 	{
+		bool same_genotype = getBool("same_genotype");
 		for(int i=0; i<variants.count(); ++i)
 		{
 			if (!result.flags()[i]) continue;
 
-			QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
-			if (geno_all.isEmpty() || !genotypes.contains(geno_all))
+			if (same_genotype)
 			{
-				result.flags()[i] = false;
+				QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
+				if (geno_all.isEmpty() || !genotypes.contains(geno_all))
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else
+			{
+				foreach(int index, geno_indices)
+				{
+					QString geno = variants[i].annotations()[index];
+					if (!genotypes.contains(geno))
+					{
+						result.flags()[i] = false;
+						break;
+					}
+				}
 			}
 		}
 	}
