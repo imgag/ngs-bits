@@ -1,5 +1,5 @@
 ### TsvDiff tool help
-	TsvDiff (2024_11-41-g79ac725e)
+	TsvDiff (2024_11-59-ge0a7288e)
 	
 	Compares TSV files.
 	
@@ -14,9 +14,13 @@
 	                                   Default value: 'false'
 	  -skip_comments_matching <string> Comma-separated list of sub-strings for skipping comment lines (case-sensitive matching).
 	                                   Default value: ''
-	  -skip_cols <string>              Comma-separated list of colums to skip.
+	  -skip_cols <string>              Comma-separated list of colums to skip during line comparison.
 	                                   Default value: ''
-	  -no_error                        Do not exit with error state if differences are detected
+	  -comp <string>                   Comma-separated list of columns to use for comparison (all other columns are ignored).
+	                                   Default value: ''
+	  -diff_abs <string>               Comma-separated list of column=difference tuples for defining maximum allowed numeric difference of columns.
+	                                   Default value: ''
+	  -no_error                        Do not exit with error state if differences are detected.
 	                                   Default value: 'false'
 	  -debug                           Print debug output to stderr
 	                                   Default value: 'false'
@@ -29,6 +33,6 @@
 	  --settings [file]                Settings override file (no other settings files are used).
 	
 ### TsvDiff changelog
-	TsvDiff 2024_11-41-g79ac725e
+	TsvDiff 2024_11-59-ge0a7288e
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

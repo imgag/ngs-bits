@@ -72,6 +72,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
 * [RnaQC](doc/tools/RnaQC.md) - Calculates QC metrics for RNA samples.
+* [QcToTsv](doc/tools/QcToTsv.md) - Converts qcML files to a TSV file.
 
 ### BAM tools
 
@@ -141,7 +142,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
 * [VcfStrip](doc/tools/VcfStrip.md) - Removes unwanted information from a VCF file
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
-* [VcfSubstract](doc/tools/VcfSubstract.md) - Substracts the variants in a VCF from a second VCF.
+* [VcfSubtract](doc/tools/VcfSubtract.md) - Substracts the variants in a VCF from a second VCF.
 * [VcfToBed](doc/tools/VcfToBedpe.md) - Converts a VCF file to a BED file.
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
@@ -173,7 +174,6 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### Misc tools
 
-* [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastqFromBam](doc/tools/FastqFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.

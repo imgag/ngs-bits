@@ -91,6 +91,12 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QTableWidget" name="table">
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
        <column>
         <property name="text">
          <string>PS</string>
@@ -99,6 +105,11 @@
        <column>
         <property name="text">
          <string>type</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>additional samples</string>
         </property>
        </column>
        <column>

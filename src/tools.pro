@@ -599,3 +599,7 @@ CnvReferenceCohort.depends = cppNGS
 SUBDIRS += TsvDiff
 tools-TEST.depends += TsvDiff
 TsvDiff.depends = cppNGS
+
+SUBDIRS += QcToTsv
+tools-TEST.depends += QcToTsv
+QcToTsv.depends = cppNGS

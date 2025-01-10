@@ -1,13 +1,15 @@
-### VcfMerge tool help
-	VcfMerge (2024_11-59-ge0a7288e)
+### VcfSubtract tool help
+	VcfSubtract (2024_11-59-ge0a7288e)
 	
-	Merges several VCF files into one VCF by appending one to the other.
+	Substracts the variants in a VCF from a second VCF.
 	
 	Mandatory parameters:
-	  -in <filelist>    Input VCF files that are merged. The VCF header is taken from the first file.
+	  -in2 <file>       Variants in VCF format that are remove from 'in'
 	
 	Optional parameters:
-	  -out <file>       Output VCF. If unset, writes to STDOUT.
+	  -in <file>        Input VCF file from which the variants of 'in2' are substracted.
+	                    Default value: ''
+	  -out <file>       Output VCF file with variants from 'in2' removed from 'in'.
 	                    Default value: ''
 	
 	Special parameters:
@@ -17,9 +19,8 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	  --settings [file] Settings override file (no other settings files are used).
 	
-### VcfMerge changelog
-	VcfMerge 2024_11-59-ge0a7288e
+### VcfSubtract changelog
+	VcfSubtract 2024_11-59-ge0a7288e
 	
-	2023-12-14 Added support for gzipped input.
-	2023-12-12 Initial implementation.
+	2023-02-06 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
