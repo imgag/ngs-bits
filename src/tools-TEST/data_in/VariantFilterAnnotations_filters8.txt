@@ -1,2 +1,2 @@
-Genotype affected	genotypes=het,hom
+Genotype affected	genotypes=het,hom	same_genotype=true
 Genotype control	genotypes=het,hom

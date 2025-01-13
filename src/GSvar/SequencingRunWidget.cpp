@@ -609,7 +609,7 @@ void SequencingRunWidget::sendStatusEmail()
 		int idx_is_ffpe = ui_->samples->columnIndex("is_ffpe");
 
 		QStringList diagnostic_table;
-		body << "Die folgenden germline Proben des Laufs haben schlechte Qualität:";
+		body << "Die folgenden Keibahn DNA-Proben des Laufs haben schlechte Qualität:";
 		diagnostic_table << "Probe\tProjekt\tKommentar";
 		for (int i=0; i < ui_->samples->rowCount(); i++)
 		{

@@ -1,0 +1,3 @@
+#chr	start	end	ref	obs	tumor_af	tumor_dp
+chr1	114713909	114713909	G	T	0.0107	3165
+chr1	114713915	114713915	C	T	0.0081	3342

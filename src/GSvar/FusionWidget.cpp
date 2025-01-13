@@ -61,10 +61,10 @@ void FusionWidget::loadFusionData()
 	}
 
 	//fill table widget with expression data
-	ui_->fusions->setRowCount(fusion_data.rowCount());
-	for(int row_idx=0; row_idx<fusion_data.rowCount(); ++row_idx)
+	ui_->fusions->setRowCount(fusion_data.count());
+	for(int row_idx=0; row_idx<fusion_data.count(); ++row_idx)
 	{
-		QStringList row = fusion_data.row(row_idx);
+		const QStringList& row = fusion_data[row_idx];
 		for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
 		{
 			if(numeric_columns_.at(col_idx))

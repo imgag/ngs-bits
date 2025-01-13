@@ -97,10 +97,6 @@ SUBDIRS += SampleSimilarity
 tools-TEST.depends += SampleSimilarity
 SampleSimilarity.depends = cppNGS
 
-SUBDIRS += SampleDiff
-tools-TEST.depends += SampleDiff
-SampleDiff.depends = cppNGS
-
 SUBDIRS += SampleGender
 tools-TEST.depends += SampleGender
 SampleGender.depends = cppNGS
@@ -168,10 +164,6 @@ FastqTrim.depends = cppNGS
 SUBDIRS += FastqConvert
 tools-TEST.depends += FastqConvert
 FastqConvert.depends = cppNGS
-
-SUBDIRS += SampleOverview
-tools-TEST.depends += SampleOverview
-SampleOverview.depends = cppNGS
 
 SUBDIRS += BedGeneOverlap
 tools-TEST.depends += BedGeneOverlap
@@ -256,10 +248,6 @@ NGSDImportORPHA.depends = cppNGSD
 SUBDIRS += FastqExtractBarcode
 tools-TEST.depends += FastqExtractBarcode
 FastqExtractBarcode.depends = cppNGS
-
-SUBDIRS += PERsim
-tools-TEST.depends += PERsim
-PERsim.depends = cppNGS
 
 SUBDIRS += VariantFilterAnnotations
 tools-TEST.depends += VariantFilterAnnotations
@@ -528,9 +516,9 @@ SUBDIRS += NGSDExportStudyGHGA
 tools-TEST.depends += NGSDExportStudyGHGA
 NGSDExportStudyGHGA.depends = cppNGSD
 
-SUBDIRS += VcfSubstract
-tools-TEST.depends += VcfSubstract
-VcfSubstract.depends = cppNGS
+SUBDIRS += VcfSubtract
+tools-TEST.depends += VcfSubtract
+VcfSubtract.depends = cppNGS
 
 SUBDIRS += TranscriptsToBed
 tools-TEST.depends += TranscriptsToBed
@@ -607,3 +595,11 @@ BamRemoveVariants.depends = cppNGS
 SUBDIRS += CnvReferenceCohort
 tools-TEST.depends += CnvReferenceCohort
 CnvReferenceCohort.depends = cppNGS
+
+SUBDIRS += TsvDiff
+tools-TEST.depends += TsvDiff
+TsvDiff.depends = cppNGS
+
+SUBDIRS += QcToTsv
+tools-TEST.depends += QcToTsv
+QcToTsv.depends = cppNGS

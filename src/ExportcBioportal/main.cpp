@@ -63,9 +63,9 @@ public:
 		int idx_icd10_catalog = samples.columnIndex("icd10_catalog");
 		int idx_oncotree_code = samples.columnIndex("oncotree_code");
 
-		for (int i=0; i< samples.rowCount(); i++)
+		for (int i=0; i< samples.count(); i++)
 		{
-			QStringList row = samples.row(i);
+			const QStringList& row = samples[i];
 			QString sample_id = db.sampleId(row[idx_tumor_name], true);
 
 			SampleMTBmetadata mtb_data;
@@ -92,7 +92,7 @@ public:
 				if (normal_ps == "") THROW(ArgumentException, "No normal sample set for tumor: " + tumor_ps);
 				if (normal_ps != row[idx_normal_name]) THROW(ArgumentException, "The set normal sample in NGSD is a different one compared to the given normale sample. Given: " + row[idx_normal_name] + ", in NGSD set: " + normal_ps);
 
-				QString rna_ps = getRnaSample(db, tumor_ps);
+				QString rna_ps = db.rna(tumor_ps);
 
 				qDebug() << "\trna: " << rna_ps;
 
@@ -162,51 +162,6 @@ public:
 		exportStudy.exportStudy(getString("out") + "/" + study.identifier + "/", getFlag("debug"));
 	}
 
-	QString getRnaSample(NGSD& db, QString tumor)
-	{
-		QString tumor_sample_id = db.sampleId(tumor);
-		QSet<int> rna_sample_ids = db.relatedSamples(tumor_sample_id.toInt(), "same sample", "RNA"); // TODO bug here!
-
-//		qDebug() << "POTENTIAL RNA IDS: " << rna_sample_ids;
-
-		if (rna_sample_ids.count() == 0)
-		{
-			return "";
-		}
-		else
-		{
-			QStringList rna_processed_samples;
-			foreach (int rna_id, rna_sample_ids)
-			{
-				rna_processed_samples.append(db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name FROM processed_sample as ps LEFT JOIN sample as s ON s.id = ps.sample_id WHERE s.id = :1 ORDER BY name DESC", QString::number(rna_id)));
-			}
-
-			if (rna_processed_samples.count() == 0) return "";
-
-
-			QString newest = "2000-01-01";
-			QString newest_rna = "";
-
-			foreach (QString rna_ps, rna_processed_samples)
-			{
-
-				QString seq_id = db.getValue("SELECT sequencing_run_id FROM processed_sample WHERE id=:1", false, db.processedSampleId(rna_ps)).toString();
-				QString seq_date = db.getValue("SELECT start_date FROM sequencing_run WHERE id=:1", false, seq_id).toString();
-
-				if (newest < seq_date)
-				{
-					newest = seq_date;
-					newest_rna = rna_ps;
-				}
-			}
-
-			if (newest_rna == "") THROW(ArgumentException, "Expected to find rna processed sample for the tumor but couldn't. Tumor sample id:" + tumor_sample_id);
-
-			return newest_rna;
-		}
-
-	}
-
 	QList<SampleAttribute> parseAttributeData(QString file)
 	{
 		QList<SampleAttribute> attributes;
@@ -222,9 +177,9 @@ public:
 		int idx_datatype = getIndex(headers, "datatype");
 		int idx_prio = getIndex(headers, "priority");
 
-		for (int i=0; i<attr_data.rowCount(); i++)
+		for (int i=0; i<attr_data.count(); i++)
 		{
-			QStringList row = attr_data.row(i);
+			const QStringList& row = attr_data[i];
 
 			SampleAttribute attr;
 			attr.name = row[idx_attr_name];

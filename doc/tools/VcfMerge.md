@@ -1,7 +1,7 @@
 ### VcfMerge tool help
-	VcfMerge (2024_08-113-g94a3b440)
+	VcfMerge (2024_11-59-ge0a7288e)
 	
-	Merges several VCF files into one VCF
+	Merges several VCF files into one VCF by appending one to the other.
 	
 	Mandatory parameters:
 	  -in <filelist>    Input VCF files that are merged. The VCF header is taken from the first file.
@@ -18,7 +18,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfMerge changelog
-	VcfMerge 2024_08-113-g94a3b440
+	VcfMerge 2024_11-59-ge0a7288e
 	
 	2023-12-14 Added support for gzipped input.
 	2023-12-12 Initial implementation.

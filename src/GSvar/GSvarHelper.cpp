@@ -455,6 +455,20 @@ QString GSvarHelper::localLogFolder()
 	return local_log_folder;
 }
 
+QString GSvarHelper::localQcFolder()
+{
+	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+	if(default_paths.isEmpty()) THROW(Exception, "No local application data path was found!");
+
+	QString local_log_folder = default_paths[0] + QDir::separator() + "qcml" + QDir::separator();
+	if(Helper::mkdir(local_log_folder)==-1)
+	{
+		THROW(ProgrammingException, "Could not create application qcML folder '" + local_log_folder + "'!");
+	}
+
+	return local_log_folder;
+}
+
 bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget *parent)
 {
 	if (!LoginManager::active())

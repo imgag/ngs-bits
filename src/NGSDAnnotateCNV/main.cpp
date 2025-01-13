@@ -39,6 +39,7 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2020, 2, 21, "Initial version.");
+		changeLog(2024, 11, 28, "Imporved annotation of overlapping pathogenic CNVs.");
 	}
 
 	virtual void main()

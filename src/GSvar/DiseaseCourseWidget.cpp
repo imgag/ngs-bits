@@ -217,9 +217,9 @@ void DiseaseCourseWidget::createTableView()
 	{
 		for (int col_idx = 0; col_idx < table_data_.cfdna_samples.length(); ++col_idx)
 		{
-			if(table_data_.mrd_tables.at(col_idx).rowCount() > 0)
+			if(table_data_.mrd_tables.at(col_idx).count() > 0)
 			{
-				ui_->mrd->setItem(row_idx, col_idx, GUIHelper::createTableItem(table_data_.mrd_tables.at(col_idx).row(0).at(row_idx), Qt::AlignRight));
+				ui_->mrd->setItem(row_idx, col_idx, GUIHelper::createTableItem(table_data_.mrd_tables.at(col_idx)[0].at(row_idx), Qt::AlignRight));
 				continue;
 			}
 			ui_->mrd->setItem(row_idx, col_idx, GUIHelper::createTableItem(""));

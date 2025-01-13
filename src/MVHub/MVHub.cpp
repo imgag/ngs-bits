@@ -33,11 +33,13 @@ void MVHub::loadSamplesFromNGSD()
 	params.s_study = "Modellvorhaben_2024";
 	params.include_archived_projects = false;
 	params.run_finished = true;
+	params.include_bad_quality_samples = false;
 	DBTable res = db.processedSampleSearch(params);
 	int i_ps = res.columnIndex("name");
 	int i_sys_type = res.columnIndex("system_type");
 	int i_project_name = res.columnIndex("project_name");
 	int i_is_tumor = res.columnIndex("is_tumor");
+	int i_disease_status = res.columnIndex("disease_status");
 	for(int i=0; i<res.rowCount(); ++i)
 	{
 		QString ps_id = res.row(i).id();
@@ -46,25 +48,42 @@ void MVHub::loadSamplesFromNGSD()
 		bool is_somatic = project=="SomaticAndTreatment";
 		QString is_tumor = res.row(i).value(i_is_tumor);
 		QString sys_type = res.row(i).value(i_sys_type);
-		if (is_somatic && (sys_type=="RNA" || is_tumor=="no")) continue; //for Onko, only tumor DNA samples are main samples
+		QString disease_status = res.row(i).value(i_disease_status);
+		if (is_somatic && (sys_type=="RNA" || is_tumor=="no")) continue; //for onko: only tumor DNA samples
+		if (!is_somatic && disease_status!="Affected") continue; //for gemline: only affected
 
 		int r = ui_.table->rowCount();
 		ui_.table->setRowCount(r+1);
+
+		//PS name
 		ui_.table->setItem(r, 0, GUIHelper::createTableItem(ps));
+
+		//type and additional samples
+		QString type;
+		QStringList add_samples;
 		if (is_somatic)
 		{
-			QString ps_normal = db.normalSample(ps_id);
-			ui_.table->setItem(r, 1, GUIHelper::createTableItem("somatic - normal:"+ps_normal));
+			type = "T/N";
+
+			add_samples << "normal:"+db.normalSample(ps_id);
+			QString rna = db.rna(ps_id, false);
+			if (rna!="") add_samples << "rna:"+rna;
 		}
 		else
 		{
-			ui_.table->setItem(r, 1, GUIHelper::createTableItem("germline"));
-		}
-		//TODO auch RNA für somatic und eltern für Trio?
+			type = "germline";
 
-		//SAP ID
+			QString f = db.father(ps_id, false);
+			if (f!="") add_samples << "father:"+f;
+			QString m = db.mother(ps_id, false);
+			if (m!="") add_samples << "mother:"+m;
+		}
+		ui_.table->setItem(r, 1, GUIHelper::createTableItem(type));
+		ui_.table->setItem(r, 2, GUIHelper::createTableItem(add_samples.join(", ")));
+
+		//SAP IDs
 		QString sap_id = genlab.sapID(ps);
-		ui_.table->setItem(r, 2, GUIHelper::createTableItem(sap_id));
+		ui_.table->setItem(r, 3, GUIHelper::createTableItem(sap_id));
 
 		//Case management information
 		//TODO

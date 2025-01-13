@@ -457,24 +457,28 @@ private slots:
 		//hom
 		FilterGenotypeAffected filter;
 		filter.setStringList("genotypes", QStringList() << "hom");
+		filter.setBool("same_genotype", true);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 65);
 
 		//het
 		result.reset();
 		filter.setStringList("genotypes", QStringList() << "het");
+		filter.setBool("same_genotype", true);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 95);
 
 		//het
 		result.reset();
 		filter.setStringList("genotypes", QStringList() << "wt");
+		filter.setBool("same_genotype", true);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 14);
 
 		//wt/het (not hom)
 		result.reset();
 		filter.setStringList("genotypes", QStringList() << "wt" << "het");
+		filter.setBool("same_genotype", true);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 109);
 	}

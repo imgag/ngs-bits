@@ -730,7 +730,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.project_name = query.value("p_name").toString().trimmed();
 	output.project_type = query.value("p_type").toString().trimmed();
 	output.run_name = query.value("r_name").toString().trimmed();
-	output.sequencer_type = getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name=:0", true, output.run_name).toString();
+	output.sequencer_type = output.run_name.isEmpty() ? "" : getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name=:0", true, output.run_name).toString();
 	QVariant normal_id = query.value("normal_id");
 	if (!normal_id.isNull())
 	{
@@ -809,12 +809,84 @@ void NGSD::addSampleDiseaseInfo(const QString& sample_id, const SampleDiseaseInf
 	query_insert.exec();
 }
 
-QString NGSD::normalSample(const QString& processed_sample_id)
+QString NGSD::normalSample(const QString& ps_id)
 {
-	QVariant value = getValue("SELECT normal_id FROM processed_sample WHERE id=" + processed_sample_id, true);
+	QVariant value = getValue("SELECT normal_id FROM processed_sample WHERE id=" + ps_id, true);
 	if (value.isNull()) return "";
 
 	return processedSampleName(value.toString());
+}
+
+QString NGSD::father(const QString& ps_id, bool throw_on_error)
+{
+	QString s_id = getValue("SELECT sample_id FROM processed_sample WHERE id="+ ps_id).toString();
+	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ ps_id).toString();
+	QStringList ps_ids = getValues("SELECT ps.id FROM processed_sample ps, sample s, sample_relations sr WHERE ps.sample_id=s.id AND s.id=sr.sample1_id AND sr.relation='parent-child' AND s.gender='male' AND ps.processing_system_id='" + sys_id + "' AND sr.sample2_id='" + s_id + "' AND ps.quality!='bad'");
+	if (ps_ids.count()==1)
+	{
+		return processedSampleName(ps_ids[0]);
+	}
+
+	if (throw_on_error)
+	{
+		THROW(DatabaseException, "Could not find father of "+processedSampleName(ps_id)+": Found " + QString::number(ps_ids.count()) +" matching samples");
+	}
+
+	return "";
+}
+
+QString NGSD::mother(const QString& ps_id, bool throw_on_error)
+{
+	QString s_id = getValue("SELECT sample_id FROM processed_sample WHERE id="+ ps_id).toString();
+	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ ps_id).toString();
+	QStringList ps_ids = getValues("SELECT ps.id FROM processed_sample ps, sample s, sample_relations sr WHERE ps.sample_id=s.id AND s.id=sr.sample1_id AND sr.relation='parent-child' AND s.gender='female' AND ps.processing_system_id='" + sys_id + "' AND sr.sample2_id='" + s_id + "' AND ps.quality!='bad'");
+	if (ps_ids.count()==1)
+	{
+		return processedSampleName(ps_ids[0]);
+	}
+
+	if (throw_on_error)
+	{
+		THROW(DatabaseException, "Could not find mother of "+processedSampleName(ps_id)+": Found " + QString::number(ps_ids.count()) +" matching samples");
+	}
+
+	return "";
+}
+
+QString NGSD::rna(const QString& ps_id, bool throw_on_error)
+{
+	//get releated RNA samples
+	QSet<int> rna_sample_ids = relatedSamples(ps_id.toInt(), "same sample", "RNA");
+
+	//determine RNA procssed sample IDs
+	QList<int> rna_ps_ids;
+	foreach(int rna_s_id, rna_sample_ids)
+	{
+		rna_ps_ids << getValuesInt("SELECT ps.id FROM processed_sample ps WHERE sample_id="+QString::number(rna_s_id));
+	}
+
+	//determine which is the latest processed sample
+	QDate newest(2000,1,1);
+	int newest_rna_ps_id = -1;
+	foreach (int rna_ps_id, rna_ps_ids)
+	{
+		QDate date = getValue("SELECT r.start_date FROM processed_sample ps, sequencing_run r WHERE r.id=ps.sequencing_run_id AND ps.id="+QString::number(rna_ps_id)).toDate();
+		if (newest < date)
+		{
+			newest = date;
+			newest_rna_ps_id = rna_ps_id;
+		}
+	}
+
+	//found a sample > return name
+	if (newest_rna_ps_id!=-1) return processedSampleName(QString::number(newest_rna_ps_id));
+
+	if (throw_on_error)
+	{
+		THROW(DatabaseException, "Could not find RNA sample of "+processedSampleName(ps_id)+"!");
+	}
+
+	return "";
 }
 
 const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
