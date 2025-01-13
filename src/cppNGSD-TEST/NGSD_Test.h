@@ -2898,7 +2898,7 @@ private slots:
 
 		somatic_report_settings.sbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_SBS96.csv");
 		somatic_report_settings.dbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_DBS78.csv");
-		somatic_report_settings.id_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_ID83.csv");
+		somatic_report_settings.id_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_ID83.tsv");
 		somatic_report_settings.cnv_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/cnv_signatures/De_Novo_map_to_COSMIC_CNV48.csv");
 
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");

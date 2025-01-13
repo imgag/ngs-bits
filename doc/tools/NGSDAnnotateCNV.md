@@ -1,5 +1,5 @@
 ### NGSDAnnotateCNV tool help
-	NGSDAnnotateCNV (2024_08-113-g94a3b440)
+	NGSDAnnotateCNV (2024_11-59-ge0a7288e)
 	
 	Annotates a CNV file with overlaping pathogenic CNVs from NGSD.
 	
@@ -19,7 +19,8 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDAnnotateCNV changelog
-	NGSDAnnotateCNV 2024_08-113-g94a3b440
+	NGSDAnnotateCNV 2024_11-59-ge0a7288e
 	
+	2024-11-28 Imporved annotation of overlapping pathogenic CNVs.
 	2020-02-21 Initial version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

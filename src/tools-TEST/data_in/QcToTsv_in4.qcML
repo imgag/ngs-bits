@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
+<qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
+  <runQuality ID="rq0001">
+    <metaDataParameter ID="md0001" name="creation software" value="TsvToQC 2024_08-49-ge3e4d6d4" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2025-01-10T09:25:26" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="NA12878_58_cnvs_clincnv.tsv" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0005" name="source file" value="NA12878_58_manta_var_structural.bedpe" cvRef="QC" accession="QC:1000005"/>
+    <qualityParameter ID="qp0001" name="coverage profile correlation" description="Mean correlation between the sample coverage profile and the coverage profiles of the reference cohort samples." value="0.961" cvRef="QC" accession="QC:2000114"/>
+    <qualityParameter ID="qp0002" name="number of iterations" description="Number of iterations done by ClinCNV when calling CNVs. CNV calling is repeated with increased log-likelihood threshold as long as too many CNVs are detected. Normally only one iteration is done." value="1" cvRef="QC" accession="QC:2000115"/>
+    <qualityParameter ID="qp0003" name="CNV count" description="Number of high-quality CNVs called by ClinCNV. High-quality means that log-likelihood is bigger or equal to 20." value="102" cvRef="QC" accession="QC:2000113"/>
+    <qualityParameter ID="qp0004" name="percentage losses" description="Percentage of copy-number losses based on high-quality calls on autosomes. High-quality means that log-likelihood is bigger or equal to 20." value="76.00" cvRef="QC" accession="QC:2000118"/>
+    <qualityParameter ID="qp0005" name="percentage gains" description="Percentage of copy-number gains based on high-quality calls on autosomes. High-quality means that log-likelihood is bigger or equal to 20." value="24.00" cvRef="QC" accession="QC:2000119"/>
+    <qualityParameter ID="qp0006" name="SV count" description="Number of structural variants called that PASS filters." value="82" cvRef="QC" accession="QC:2000117"/>
+    <qualityParameter ID="qp0007" name="percentage deletions" description="Percentage of structural variants that PASS filters and are deletions." value="57.32" cvRef="QC" accession="QC:2000120"/>
+    <qualityParameter ID="qp0008" name="percentage duplications" description="Percentage of structural variants that PASS filters and are duplications." value="23.17" cvRef="QC" accession="QC:2000121"/>
+    <qualityParameter ID="qp0009" name="percentage insertions" description="Percentage of structural variants that PASS filters and are insertions." value="8.54" cvRef="QC" accession="QC:2000122"/>
+    <qualityParameter ID="qp0010" name="percentage inversions" description="Percentage of structural variants that PASS filters and are inversions." value="9.76" cvRef="QC" accession="QC:2000123"/>
+    <qualityParameter ID="qp0011" name="percentage breakends" description="Percentage of structural variants that PASS filters and are breakends." value="1.22" cvRef="QC" accession="QC:2000124"/>
+  </runQuality>
+  <cvList>
+    <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
+  </cvList>
+  <xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="http://www.prime-xs.eu/ms/qcml" xmlns="">
+      <xsl:template match="/">
+          <html>
+            <style type="text/css">
+            table {border: 1px solid #bbb; border-collapse: collapse; }
+            td {border: 1px solid #bbb; padding: 1px 2px 1px 2px; vertical-align: top; }
+            th {border: 1px solid #bbb; padding: 1px 2px 1px 2px; text-align: left; background-color: #eee; }
+            </style>
+              <body>
+                  <h2>Meta data:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:metaDataParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td>
+                            <xsl:choose>
+                              <xsl:when test="@accession = 'QC:1000006'"><a href="{@uri}" title="{@uri}" target="blank"><xsl:value-of select="@value"/></a></xsl:when>
+                              <xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
+                            </xsl:choose>
+                          </td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+                  <h2>Quality parameters:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:qualityParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td><xsl:value-of select="@value"/></td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:attachment">
+                          <xsl:choose>
+                              <xsl:when test="ns:binary">
+                                <tr>
+                                  <td><xsl:value-of select="@accession"/></td>
+                                  <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                                  <td>
+                                    <img>
+                                      <xsl:attribute name="src">
+                                        data:image/png;base64,<xsl:value-of select="ns:binary"/>
+                                      </xsl:attribute>
+                                    </img>
+                                  </td>
+                                </tr>
+                              </xsl:when>
+                          </xsl:choose>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+              </body>
+          </html>
+      </xsl:template>
+  </xsl:stylesheet>
+</qcML>

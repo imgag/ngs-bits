@@ -27,6 +27,7 @@ public:
 		addString("filter_desc", "Description used in the filter header - use underscore instead of spaces.", true);
 		addFlag("skip_duplicates", "Skip variants from  'in2' which are also contained in 'in'.");
 
+		//TODO Marc: add gzip support, allow several files in in2, allow removing duplicate variants in 'in' > remove VcfMerge in ngs-bits and megSAP
 		changeLog(2022, 12,  8, "Initial implementation.");
 	}
 
