@@ -34,6 +34,7 @@ public:
 		changeLog(2022, 2, 18, "Implemented tool.");
 		changeLog(2022, 2, 24, "Changed SV break point output format.");
 		changeLog(2024, 2,  7, "Added output of processing specific breakpoint density.");
+		changeLog(2025, 1, 13, "Added DISEASE_GROUP column to BEDPE files");
 	}
 
 	void collapseSvDensity(QString output_folder, QHash<Chromosome, QMap<int,int>> sv_density, const QStringList& chromosomes, const QByteArray& sys="")
@@ -124,11 +125,12 @@ public:
 
 		//create BEDPE columns for output file
 		BedpeFile bedpe_structure;
-		bedpe_structure.setAnnotationHeaders(QList<QByteArray>() << "TYPE" << "PROCESSING_SYSTEM" << "ID" << "FORMAT" << "FORMAT_VALUES");
+		bedpe_structure.setAnnotationHeaders(QList<QByteArray>() << "TYPE" << "PROCESSING_SYSTEM" << "ID" << "FORMAT" << "FORMAT_VALUES" << "DISEASE_GROUP");
 		int idx_type = bedpe_structure.annotationIndexByName("TYPE");
 		int idx_processing_system = bedpe_structure.annotationIndexByName("PROCESSING_SYSTEM");
 		int idx_sv_id = bedpe_structure.annotationIndexByName("ID");
 		int idx_format = bedpe_structure.annotationIndexByName("FORMAT");
+		int idx_disease_group = bedpe_structure.annotationIndexByName("DISEASE_GROUP");
 
 		QList<StructuralVariantType> sv_types = QList<StructuralVariantType>() << StructuralVariantType::DEL << StructuralVariantType::DUP << StructuralVariantType::INS
 																			   << StructuralVariantType::INV << StructuralVariantType::BND;
@@ -285,12 +287,19 @@ public:
 					}
 					debug_time_get_sys += timer_get_sys.elapsed()/1000.0;
 
+					//get disease group
+					QByteArray disease_group;
+					disease_group = db.getValue("SELECT s.disease_group FROM `sv_callset` sc " + QByteArray() +
+												+ "INNER JOIN `processed_sample` ps ON sc.processed_sample_id = ps.id "
+												+ "INNER JOIN `sample` s ON ps.sample_id = s.id WHERE sc.id = :0", false, QString::number(cs_id)).toByteArray();
+
 					//write to file
 					timer_write_file.restart();
 					//update annotation
 					QList<QByteArray> sv_annotation = sv.annotations();
 					sv_annotation[idx_type] = StructuralVariantTypeToString(sv_type).toUtf8();
 					sv_annotation[idx_processing_system] = processing_system;
+					sv_annotation[idx_disease_group] = disease_group;
 					if (sv_type == StructuralVariantType::BND)
 					{
 						//special handling: store both directions and add SV id

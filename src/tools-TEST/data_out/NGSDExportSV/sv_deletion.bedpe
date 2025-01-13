@@ -1,9 +1,9 @@
 ##fileformat=BEDPE
 ##sample_count=(hpHBOCv5, 4)
-#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	TYPE	PROCESSING_SYSTEM	ID	FORMAT	FORMAT_VALUES
-chr1	5	50	chr1	12000	13000	DEL	hpHBOCv5		GT	./.
-chr1	5	50	chr1	12000	13000	DEL	hpHBOCv5		GT	./.
-chr1	1000	1020	chr1	12000	13000	DEL	hpHBOCv5		GT	./.
-chr1	1000	1020	chr1	12000	13000	DEL	hpHBOCv5		GT	./.
-chr1	1000	1020	chr1	20000	20000	DEL	hpHBOCv5		GT	./.
-chr1	1000	1020	chr1	20000	20000	DEL	hpHBOCv5		GT	./.
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	TYPE	PROCESSING_SYSTEM	ID	FORMAT	FORMAT_VALUES	DISEASE_GROUP
+chr1	5	50	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
+chr1	5	50	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	Neoplasms
+chr1	1000	1020	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
+chr1	1000	1020	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
+chr1	1000	1020	chr1	20000	20000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
+chr1	1000	1020	chr1	20000	20000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs

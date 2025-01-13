@@ -32,6 +32,7 @@ public:
 		addString("processing_system", "Processing system short name of the processed sample", false);
 
 		changeLog(2022, 2, 11, "Initial commit.");
+		changeLog(2025, 1, 13, "Added annotation of counts and AF grouped by disease group");
 	}
 
 	virtual void main()
