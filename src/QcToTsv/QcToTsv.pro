@@ -1,11 +1,10 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2013-08-02T13:54:23
+# Project created by QtCreator 2013-10-08T13:40:57
 #
 #-------------------------------------------------
 
 TEMPLATE = app
-
 QT       -= gui
 CONFIG   += console
 CONFIG   -= app_bundle

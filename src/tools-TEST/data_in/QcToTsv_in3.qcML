@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
+<qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
+  <runQuality ID="rq0001">
+    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2024_08-49-ge3e4d6d4" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2025-01-10T08:58:02" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="annotate_MZr7uB.vcf" cvRef="QC" accession="QC:1000005"/>
+    <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="38344" cvRef="QC" accession="QC:2000013"/>
+    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="99.93" cvRef="QC" accession="QC:2000014"/>
+    <qualityParameter ID="qp0003" name="high-impact variants percentage" description="Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." value="1.04" cvRef="QC" accession="QC:2000015"/>
+    <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="36.93" cvRef="QC" accession="QC:2000016"/>
+    <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="4.58" cvRef="QC" accession="QC:2000017"/>
+    <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of single nucleotide variants." value="2.75" cvRef="QC" accession="QC:2000018"/>
+    <qualityParameter ID="qp0007" name="mosaic variant count" description="Number of variants that are flagged as mosaic variants (in filter column)." value="526" cvRef="QC" accession="QC:2000142"/>
+  </runQuality>
+  <cvList>
+    <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
+  </cvList>
+  <xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="http://www.prime-xs.eu/ms/qcml" xmlns="">
+      <xsl:template match="/">
+          <html>
+            <style type="text/css">
+            table {border: 1px solid #bbb; border-collapse: collapse; }
+            td {border: 1px solid #bbb; padding: 1px 2px 1px 2px; vertical-align: top; }
+            th {border: 1px solid #bbb; padding: 1px 2px 1px 2px; text-align: left; background-color: #eee; }
+            </style>
+              <body>
+                  <h2>Meta data:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:metaDataParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td>
+                            <xsl:choose>
+                              <xsl:when test="@accession = 'QC:1000006'"><a href="{@uri}" title="{@uri}" target="blank"><xsl:value-of select="@value"/></a></xsl:when>
+                              <xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
+                            </xsl:choose>
+                          </td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+                  <h2>Quality parameters:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:qualityParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td><xsl:value-of select="@value"/></td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:attachment">
+                          <xsl:choose>
+                              <xsl:when test="ns:binary">
+                                <tr>
+                                  <td><xsl:value-of select="@accession"/></td>
+                                  <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                                  <td>
+                                    <img>
+                                      <xsl:attribute name="src">
+                                        data:image/png;base64,<xsl:value-of select="ns:binary"/>
+                                      </xsl:attribute>
+                                    </img>
+                                  </td>
+                                </tr>
+                              </xsl:when>
+                          </xsl:choose>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+              </body>
+          </html>
+      </xsl:template>
+  </xsl:stylesheet>
+</qcML>
