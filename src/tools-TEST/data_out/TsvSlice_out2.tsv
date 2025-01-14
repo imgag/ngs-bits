@@ -1,0 +1,104 @@
+##bli
+##bla
+##bluff
+#chr	start	end	ref	obs	genotype	depth	map_q	variant	region	gene	variant_details	coding	snp_1000g2011may_all	snp_snp132	phylop	repeatmasker	omim_ids	quality_filter	sample
+chr5	33733959	33733959	A	G	hom	20	15	SNV	intronic	ADAMTS12	.	.	.	.	.	417	606184	passed	GS120297G5_annotated.tsv
+chr15	29524330	29524330	G	A	hom	12	10	SNV	intronic	FAM189A1	.	.	.	.	.	2476		passed	GS120297C11_annotated.tsv
+chr16	25560026	25560026	T	G	hom	10	21	SNV	intergenic	ZKSCAN2(dist=291171),HS3ST4(dist=143321)	.	.	.	.	.	2211		passed	GS120297C11_annotated.tsv
+chr11	92335303	92335303	A	G	hom	82	21	SNV	intronic	FAT3	.	.	.	.	.	2179	612483	passed	GS120297C11_annotated.tsv
+chr3	60459604	60459604	T	C	hom	26	21	SNV	intronic	FHIT	.	.	.	.	.	2166	601153	passed	GS120297C11_annotated.tsv
+chr11	43532248	43532248	C	T	hom	14	15	SNV	intergenic	TTC17(dist=15765),MIR670(dist=48958)	.	.	.	.	.	2211		passed	GS120297C11_annotated.tsv
+chr9	132586914	132586914	-	TAA	het	33	46	INDEL	upstream	TOR1A	.	.	.	.	.	261		passed	GS120297E7_annotated.tsv
+chr20	3249206	3249206	T	C	hom	38	13	SNV	intronic	C20orf194	.	.	.	.	.	2259	614146	passed	GS120297C11_annotated.tsv
+chr19	42488503	42488503	G	A	hom	8	28	SNV	intronic	ATP1A3	.	.	.	.	.	2117	182350	failed	GS120297C11_annotated.tsv
+chr4	127567790	127567790	T	C	hom	64	34	SNV	intergenic	MIR2054(dist=1139328),INTU(dist=986297)	.	.	.	.	.	2703		passed	GS120297C11_annotated.tsv
+chr9	130941236	130941236	C	A	het	2710	46	SNV	exonic	CIZ1	nonsynonymous SNV	CIZ1:NM_012127:exon8:c.G1250T:p.R417M,CIZ1:NM_001131016:exon8:c.G1250T:p.R417M,	.	.	-1.12	.		passed	GS120297B6_annotated.tsv
+chr1	242168219	242168219	C	T	hom	4	10	SNV	intergenic	MAP1LC3C(dist=5834),PLD5(dist=83470)	.	.	0.0016	.	.	889		failed	GS120297C11_annotated.tsv
+chr18	20795787	20795787	G	C	hom	16	32	SNV	intronic	CABLES1	.	.	.	.	.	2491		passed	GS120297C11_annotated.tsv
+chr9	132322378	132322378	T	C	hom	21	13	SNV	intergenic	LOC100506190(dist=46413),C9orf50(dist=52126)	.	.	.	.	.	2095		passed	GS120297C11_annotated.tsv
+chr15	64322763	64322763	A	C	hom	11	19	SNV	intronic	DAPK2	.	.	.	.	.	.		failed	GS120298D7_annotated.tsv
+chr19	46947768	46947768	C	T	hom	13	11	SNV	intergenic	CCDC8(dist=30849),PNMAL1(dist=21980)	.	.	.	.	.	1758		failed	GS120297C11_annotated.tsv
+chr2	10350931	10350931	C	T	het	15	41	SNV	UTR3	C2orf48	.	.	.	.	.	1573		passed	GS120297G10_annotated.tsv
+chr1	176877345	176877345	-	CTCC	hom	58	48	INDEL	intronic	ASTN1	.	.	.	.	.	.	600904	passed	GS120297E3_annotated.tsv
+chr3	86925756	86925756	-	T	hom	3	45	INDEL	intergenic	CADM2(dist=802177),VGLL3(dist=61367)	.	.	.	.	.	22004		failed	GS120297A6_annotated.tsv
+chr13	70338821	70338821	A	C	het	11	57	SNV	intronic	KLHL1	.	.	.	.	.	546	605332	passed	GS120297E3_annotated.tsv
+chr5	95802169	95802169	C	T	hom	9	41	SNV	intergenic	PCSK1(dist=33184),CAST(dist=195572)	.	.	0.13569	rs79360888	.	4019		failed	GS120298G2_annotated.tsv
+chr11	132616377	132616377	-	AACCACAACTG	hom	4	45	INDEL	intronic	OPCML	.	.	.	.	.	228	600632	failed	GS120297A8_annotated.tsv
+chr7	101783192	101783193	TC	-	hom	4	31	INDEL	intronic	CUX1	.	.	.	.	.	1571		failed	GS120297F1_annotated.tsv
+chr9	130941121	130941121	T	C	het	2083	46	SNV	exonic	CIZ1	synonymous SNV	CIZ1:NM_012127:exon8:c.A1365G:p.V455V,CIZ1:NM_001131017:exon9:c.A1182G:p.V394V,CIZ1:NM_001131015:exon9:c.A1197G:p.V399V,CIZ1:NM_001131018:exon8:c.A1125G:p.V375V,CIZ1:NM_001131016:exon8:c.A1365G:p.V455V,	0.0131	rs11549263	.	.		passed	GS120298F5_annotated.tsv
+chr11	25824572	25824572	C	T	hom	4	35	SNV	intergenic	LUZP2(dist=720386),ANO3(dist=529106)	.	.	.	.	.	2297		failed	GS120297C11_annotated.tsv
+chr12	54014430	54014430	C	T	hom	6	15	SNV	intronic	ATF7	.	.	.	.	.	2100	606371	failed	GS120297C11_annotated.tsv
+chr12	16079575	16079575	C	A	het	31	27	SNV	intronic	DERA	.	.	.	.	.	2747		failed	GS120297C11_annotated.tsv
+chr5	133414489	133414489	C	A	hom	12	13	SNV	intergenic	VDAC1(dist=73665),TCF7(dist=35913)	.	.	.	.	.	2345		passed	GS120297C11_annotated.tsv
+chr12	16079541	16079541	G	A	het	86	26	SNV	intronic	DERA	.	.	.	.	.	2747		passed	GS120297C11_annotated.tsv
+chr8	142743147	142743147	-	GTGACTGCA	hom	8	60	INDEL	intergenic	FLJ43860(dist=225817),MIR4472-1(dist=514553)	.	.	.	.	.	.		failed	GS120298C6_annotated.tsv
+chr4	39430486	39430486	A	C	hom	7	15	SNV	intronic	KLB	.	.	.	.	.	2240	611135	failed	GS120297C11_annotated.tsv
+chr2	236036140	236036140	A	G	hom	68	24	SNV	intergenic	SH3BP4(dist=71782),AGAP1(dist=366593)	.	.	.	.	.	1625		passed	GS120297C11_annotated.tsv
+chr6	123526336	123526336	T	A	hom	23	16	SNV	intergenic	CLVS2(dist=141273),TRDN(dist=11148)	.	.	.	.	.	2199		passed	GS120297C11_annotated.tsv
+chr17	72196887	72196887	G	C	hom	77	40	SNV	intergenic	LINC00469(dist=372211),RPL38(dist=2908)	.	.	.	.	.	.		passed	GS120297A1_annotated.tsv
+chr7	14790577	14790577	C	G	hom	205	25	SNV	intronic	DGKB	.	.	.	.	.	2132	604070	failed	GS120297C11_annotated.tsv
+chr11	123091586	123091586	C	T	hom	4	32	SNV	intergenic	CLMP(dist=25579),MIR4493(dist=160562)	.	.	.	.	.	2511		failed	GS120297C11_annotated.tsv
+chr17	21824661	21824661	G	A	hom	19	38	SNV	upstream	FAM27L	.	.	.	.	.	.		passed	GS120297B8_annotated.tsv
+chr17	19378197	19378197	T	G	hom	8	15	SNV	intergenic	RNF112(dist=57608),SLC47A1(dist=58970)	.	.	.	.	.	2526		failed	GS120297C11_annotated.tsv
+chr11	66160118	66160118	T	C	hom	14	21	SNV	intergenic	SLC29A2(dist=20827),NPAS4(dist=28357)	.	.	.	.	.	2304		passed	GS120297C11_annotated.tsv
+chr19	46747638	46747638	G	A	hom	8	24	SNV	intergenic	IGFL1(dist=13138),HIF3A(dist=52665)	.	.	.	.	.	862		failed	GS120297C11_annotated.tsv
+chr11	73301940	73301940	C	G	het	38	18	SNV	intronic	FAM168A	.	.	.	.	.	2140		passed	GS120297C11_annotated.tsv
+chr5	33733959	33733959	A	G	hom	4	15	SNV	intronic	ADAMTS12	.	.	.	.	.	417	606184	failed	GS120297G8_annotated.tsv
+chr7	148279290	148279290	T	G	hom	36	31	SNV	intergenic	CNTNAP2(dist=161202),C7orf33(dist=8367)	.	.	.	.	.	2227		failed	GS120297C11_annotated.tsv
+chr12	55389177	55389177	C	T	hom	4	14	SNV	intergenic	KIAA0748(dist=10721),NEUROD4(dist=24552)	.	.	.	.	.	2425		failed	GS120297C11_annotated.tsv
+chr6	148903981	148903981	G	A	hom	6	34	SNV	intergenic	SASH1(dist=30797),UST(dist=164290)	.	.	.	.	.	2394		failed	GS120297C11_annotated.tsv
+chr9	87105100	87105100	A	G	het	6	27	SNV	intergenic	SLC28A3(dist=121687),NTRK2(dist=178366)	.	.	.	.	.	2239		failed	GS120297C11_annotated.tsv
+chr4	110369857	110369857	G	A	hom	65	26	SNV	intronic	SEC24B	.	.	.	.	.	1632		passed	GS120297C11_annotated.tsv
+chr15	99937578	99937578	T	A	hom	8	24	SNV	intergenic	LRRC28(dist=11080),MEF2A(dist=168555)	.	.	.	.	.	1907		failed	GS120297C11_annotated.tsv
+chr15	55938654	55938654	A	G	hom	23	20	SNV	intronic	PRTG	.	.	0.0190	rs62017991	.	2557	613261	passed	GS120297C11_annotated.tsv
+chr9	71730178	71730178	C	T	hom	43	25	SNV	intergenic	FXN(dist=15084),TJP2(dist=6002)	.	.	.	.	.	2501		passed	GS120297C11_annotated.tsv
+chr9	101750954	101750954	C	T	hom	5	20	SNV	intronic	COL15A1	.	.	.	.	.	2339	120325	failed	GS120297C11_annotated.tsv
+chr3	99969008	99969008	T	C	hom	4	20	SNV	intergenic	TMEM30C(dist=55978),TBC1D23(dist=10678)	.	.	.	.	.	2325		failed	GS120297C11_annotated.tsv
+chr9	130932398	130932399	CA	-	het	1918	49	INDEL	intronic	CIZ1	.	.	.	rs59232258	.	.		passed	GS120297F8_annotated.tsv
+chr2	133012716	133012716	A	G	hom	14	23	SNV	ncRNA_intronic	ANKRD30BL	.	.	.	rs5002053	.	14662		passed	GS120297C11_annotated.tsv
+chr19	35597152	35597152	G	C	hom	6	10	SNV	ncRNA_exonic	LOC100128675	.	.	.	.	.	.		failed	GS120298E8_annotated.tsv
+chr6	13651789	13651789	G	A	hom	8	12	SNV	intronic	RANBP9	.	.	.	.	.	2544	603854	failed	GS120297C11_annotated.tsv
+chrY	8979472	8979472	T	G	hom	20	28	SNV	intergenic	TTTY11(dist=294049),RBMY1A3P(dist=175198)	.	.	.	.	.	846		failed	GS120297G10_annotated.tsv
+chr5	79947134	79947134	T	C	hom	156	27	SNV	intronic	DHFR	.	.	.	.	.	.	126060	failed	GS120297G10_annotated.tsv
+chr5	95228102	95228102	T	C	hom	4	15	SNV	intronic	ELL2	.	.	.	.	.	2375	601874	failed	GS120297C11_annotated.tsv
+chr8	71382092	71382092	T	C	hom	5	15	SNV	intergenic	NCOA2(dist=66072),TRAM1(dist=103361)	.	.	.	.	.	2376		failed	GS120297C11_annotated.tsv
+chr3	49401748	49401748	G	A	hom	4	13	SNV	intronic	RHOA	.	.	.	.	.	2342		failed	GS120297C11_annotated.tsv
+chr8	124974386	124974386	T	C	hom	3	27	SNV	intronic	FER1L6	.	.	.	.	.	2238		failed	GS120297C11_annotated.tsv
+chrX	96694399	96694399	A	T	hom	6	23	SNV	intronic	DIAPH2	.	.	.	.	.	2529	300108	failed	GS120297C11_annotated.tsv
+chr17	55548777	55548777	G	A	hom	3	28	SNV	intronic	MSI2	.	.	.	.	.	1790		failed	GS120297C11_annotated.tsv
+chr10	72584846	72584846	A	T	het	12	20	SNV	intronic	SGPL1	.	.	.	.	.	1221	603729	failed	GS120297C11_annotated.tsv
+chr19	13571311	13571311	C	A	hom	5	45	SNV	intronic	CACNA1A	.	.	0.4436	rs10422148	.	.	601011	failed	GS120297C11_annotated.tsv
+chr14	20444588	20444588	T	C	het	6118	40	SNV	exonic	OR4K15	nonsynonymous SNV	OR4K15:NM_001005486:exon1:c.T911C:p.L304P,	0.5184	rs2153466	1.03	.		passed	GS120297C11_annotated.tsv
+chr1	182178672	182178672	T	G	hom	14	37	SNV	intergenic	ZNF648(dist=147825),GLUL(dist=172167)	.	.	.	.	.	.		passed	GS120297E2_annotated.tsv
+chr15	41670820	41670820	T	C	hom	33	24	SNV	intronic	NUSAP1	.	.	.	.	.	2104	612818	passed	GS120297C11_annotated.tsv
+chr5	99382244	99382244	G	A	hom	1055	39	SNV	intergenic	LOC100289230(dist=1115531),LOC100133050(dist=332965)	.	.	0.0084	rs77299228	.	.		passed	GS120297G10_annotated.tsv
+chrX	96694445	96694445	G	A	hom	11	22	SNV	intronic	DIAPH2	.	.	.	.	.	2529	300108	passed	GS120297C11_annotated.tsv
+chr17	72196892	72196892	-	GTC	hom	41	45	INDEL	intergenic	LINC00469(dist=372216),RPL38(dist=2903)	.	.	.	.	.	.		failed	GS120297A4_annotated.tsv
+chr11	14144010	14144010	T	C	hom	14	18	SNV	intronic	SPON1	.	.	.	.	.	2447	604989	passed	GS120297C11_annotated.tsv
+chr2	123976454	123976454	C	T	het	9	46	SNV	intergenic	TSN(dist=1451026),CNTNAP5(dist=806410)	.	.	.	.	.	17496		failed	GS120297F3_annotated.tsv
+chr19	14466501	14466501	-	GTCAAAGTTC	het	77	49	INDEL	intergenic	LPHN1(dist=149504),CD97(dist=25455)	.	.	.	.	.	1521		passed	GS120297B5_annotated.tsv
+chr1	157696563	157696563	C	T	hom	6	21	SNV	intergenic	FCRL3(dist=25916),FCRL2(dist=18960)	.	.	.	.	.	1900		failed	GS120297C11_annotated.tsv
+chr3	52596133	52596133	T	C	hom	5	18	SNV	intronic	PBRM1	.	.	.	.	.	2486	606083	failed	GS120297C11_annotated.tsv
+chr14	59921750	59921750	G	A	het	17	21	SNV	intergenic	DAAM1(dist=85279),GPR135(dist=8490)	.	.	.	.	.	2460		failed	GS120297C11_annotated.tsv
+chrX	153580214	153580214	G	T	hom	502	44	SNV	intronic	FLNA	.	.	.	.	.	.	300017	passed	GS120297G10_annotated.tsv
+chr17	72196817	72196817	-	A	hom	118	39	INDEL	intergenic	LINC00469(dist=372141),RPL38(dist=2978)	.	.	.	.	.	.		passed	GS120298E8_annotated.tsv
+chr19	12541229	12541229	T	A	hom	215	30	SNV	exonic	ZNF443	nonsynonymous SNV	ZNF443:NM_005815:exon4:c.A1757T:p.K586I,	.	.	-0.43	.		passed	GS120297G10_annotated.tsv
+chr1	120270301	120270301	A	C	hom	12	13	SNV	intronic	PHGDH	.	.	.	.	.	2461	606879	failed	GS120297C11_annotated.tsv
+chr17	29754040	29754040	A	C	hom	19	29	SNV	intronic	RAB11FIP4	.	.	.	.	.	2306	611999	passed	GS120297C11_annotated.tsv
+chr4	114612679	114612679	T	C	hom	4	18	SNV	intronic	CAMK2D	.	.	.	.	.	2220	607708	failed	GS120297C11_annotated.tsv
+chr2	27435800	27435800	G	T	het	924	47	SNV	intronic	C2orf28	.	.	.	.	.	.		passed	GS120297G10_annotated.tsv
+chr5	33733959	33733959	A	G	hom	4	15	SNV	intronic	ADAMTS12	.	.	.	.	.	417	606184	failed	GS120297D10_annotated.tsv
+chr12	77084097	77084097	G	A	hom	65	31	SNV	intergenic	OSBPL8(dist=130508),ZDHHC17(dist=73757)	.	.	.	.	.	2130		passed	GS120297C11_annotated.tsv
+chr2	96888657	96888657	-	GCCTTGTA	hom	16	42	INDEL	intergenic	STARD7(dist=14084),LOC285033(dist=17320)	.	.	.	.	.	3558		passed	GS120297G12_annotated.tsv
+chr6	14890845	14890845	A	C	hom	9	10	SNV	intergenic	CD83(dist=753697),JARID2(dist=355682)	.	.	.	.	.	2040		failed	GS120297C11_annotated.tsv
+chr21	40456589	40456589	C	T	hom	45	40	SNV	intergenic	ETS2(dist=259711),PSMG1(dist=90795)	.	.	.	.	.	2466		passed	GS120297C11_annotated.tsv
+chr10	76604746	76604746	G	A	hom	8	24	SNV	intronic	KAT6B	.	.	.	.	.	1912	605880	failed	GS120297C11_annotated.tsv
+chr7	151234386	151234386	C	T	hom	19	19	SNV	intergenic	RHEB(dist=17376),PRKAG2(dist=18815)	.	.	.	.	.	1839		passed	GS120297C11_annotated.tsv
+chr2	233152351	233152351	T	C	hom	6	53	SNV	intronic	DIS3L2	.	.	.	.	.	1689	614184	failed	GS120297H12_annotated.tsv
+chr15	48512198	48512198	C	T	hom	17	22	SNV	intronic	SLC12A1	.	.	.	.	.	1907	600839	passed	GS120297C11_annotated.tsv
+chr2	233152135	233152135	-	ACCCCTT	hom	4	47	INDEL	intronic	DIS3L2	.	.	.	.	.	1689	614184	failed	GS120297E7_annotated.tsv
+chr17	27258725	27258725	G	T	hom	4	31	SNV	intronic	PHF12	.	.	.	.	.	2283		failed	GS120297C11_annotated.tsv
+chr20	47953366	47953366	T	A	hom	53	14	SNV	intergenic	ZNFX1-AS1(dist=47571),KCNB1(dist=35139)	.	.	.	.	.	2107		passed	GS120297C11_annotated.tsv
+chr3	180390245	180390245	-	TCCTCAA	hom	4	32	INDEL	intronic	CCDC39	.	.	.	.	.	2111	613798	failed	GS120297E2_annotated.tsv
+chr1	176877440	176877440	C	T	hom	37	38	SNV	intronic	ASTN1	.	.	.	.	.	.	600904	passed	GS120298E5_annotated.tsv
+chr13	114579076	114579076	G	T	hom	8	10	SNV	intergenic	LOC100506394(dist=9271),FLJ44054(dist=7534)	.	.	.	rs72670634	.	.		failed	GS120297A8_annotated.tsv
