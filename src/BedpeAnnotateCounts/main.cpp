@@ -23,6 +23,12 @@ public:
 	{
 	}
 
+	struct GroupCount
+	{
+		int hom_count = 0;
+		int het_count = 0;
+	};
+
 	virtual void setup()
 	{
 		setDescription("Annotates a BEDPE file with NGSD count information of zipped BEDPE flat files.");
@@ -71,6 +77,7 @@ public:
 		int i_ngsd_hom = bedpe_input_file.annotationIndexByName("NGSD_HOM", false);
 		int i_ngsd_het = bedpe_input_file.annotationIndexByName("NGSD_HET", false);
 		int i_ngsd_af = bedpe_input_file.annotationIndexByName("NGSD_AF", false);
+		int i_disease_group = bedpe_input_file.annotationIndexByName("DISEASE_GROUP", false);
 
 		// create text buffer for output file
 		QByteArrayList output_buffer;
@@ -98,6 +105,12 @@ public:
 			i_ngsd_af = header.size();
 			additional_columns.append("");
 			header.append("NGSD_AF");
+		}
+		if (i_disease_group < 0)
+		{
+			i_disease_group = header.size();
+			additional_columns.append("");
+			header.append("DISEASE_GROUP");
 		}
 		output_buffer << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + header.join("\t") + "\n";
 
@@ -131,6 +144,7 @@ public:
 				int ngsd_count_hom = 0;
 				int ngsd_count_het = 0;
 				QByteArrayList matches = count_indices[sv.type()].getMatchingLines(sv_region.chr(), sv_region.start(), sv_region.end(), true);
+				QHash<QByteArray, GroupCount> count_per_group;
 
 				// check resulting lines for exact matches
 				foreach (const QByteArray& match, matches)
@@ -151,10 +165,21 @@ public:
 							if (columns[idx_format_ + 1].split(':').at(0).trimmed() == "1/1")
 							{
 								ngsd_count_hom++;
+
+								//count by disease group
+								if (!columns[idx_format_ + 2].isEmpty())
+								{
+									count_per_group[columns[idx_format_ + 2]].hom_count += 1;
+								}
 							}
 							else
 							{
 								ngsd_count_het++;
+								//count by disease group
+								if (!columns[idx_format_ + 2].isEmpty())
+								{
+									count_per_group[columns[idx_format_ + 2]].het_count += 1;
+								}
 							}
 						}
 					}
@@ -172,10 +197,22 @@ public:
 							if (columns[idx_format_ + 1].split(':').at(0).trimmed() == "1/1")
 							{
 								ngsd_count_hom++;
+
+								//count by disease group
+								if (!columns[idx_format_ + 2].isEmpty())
+								{
+									count_per_group[columns[idx_format_ + 2]].hom_count += 1;
+								}
 							}
 							else
 							{
 								ngsd_count_het++;
+
+								//count by disease group
+								if (!columns[idx_format_ + 2].isEmpty())
+								{
+									count_per_group[columns[idx_format_ + 2]].het_count += 1;
+								}
 							}
 							bnd_ids.insert(bnd_id);
 						}
@@ -193,10 +230,22 @@ public:
 							if (columns[idx_format_ + 1].split(':').at(0).trimmed() == "1/1")
 							{
 								ngsd_count_hom++;
+
+								//count by disease group
+								if (!columns[idx_format_ + 2].isEmpty())
+								{
+									count_per_group[columns[idx_format_ + 2]].hom_count += 1;
+								}
 							}
 							else
 							{
 								ngsd_count_het++;
+
+								//count by disease group
+								if (!columns[idx_format_ + 2].isEmpty())
+								{
+									count_per_group[columns[idx_format_ + 2]].het_count += 1;
+								}
 							}
 						}
 					}
@@ -209,6 +258,19 @@ public:
 				{
 					double ngsd_af = std::min(1.0, (double) (2.0 * ngsd_count_hom + ngsd_count_het) / (double) (sample_count_ * 2.0));
 					sv_annotations[i_ngsd_af] = QByteArray::number(ngsd_af, 'f', 4);
+				}
+
+				// annotate counts per disease group
+				foreach (const QByteArray& group, count_per_group.keys())
+				{
+					if (count_per_group[group].hom_count > 0 || count_per_group[group].het_count > 0)
+					{
+						sv_annotations[i_disease_group] = group
+								+ "="
+								+ QByteArray::number(count_per_group[group].hom_count, 0)
+								+ ","
+								+ QByteArray::number(count_per_group[group].het_count, 0);
+					}
 				}
 			}
 

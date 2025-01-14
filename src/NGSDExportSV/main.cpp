@@ -229,6 +229,13 @@ public:
 				out << "##sample_count=(" + key + ", " + QString::number(sample_counts.value(key)) + ")\n";
 			}
 
+			//store disease_groups
+			QStringList disease_groups = db.getEnum("sample", "disease_group");
+			for(int i = 0; i < disease_groups.size(); i++)
+			{
+				out << "##INFO=<ID=GSC" << QByteArray::number(i + 1).rightJustified(2, '0') << ",Number=2,Type=Integer,Description=\"" << "Homozygous/Heterozygous variant counts in NGSD for " << disease_groups[i].toLower() << ".\">\n";
+			}
+
 			//write header
 			out << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + bedpe_structure.annotationHeaders().join('\t') + "\n";
 
@@ -299,7 +306,7 @@ public:
 					QList<QByteArray> sv_annotation = sv.annotations();
 					sv_annotation[idx_type] = StructuralVariantTypeToString(sv_type).toUtf8();
 					sv_annotation[idx_processing_system] = processing_system;
-					sv_annotation[idx_disease_group] = disease_group;
+					sv_annotation[idx_disease_group] = "GSC" + QByteArray::number(disease_groups.indexOf(disease_group) + 1).rightJustified(2, '0');
 					if (sv_type == StructuralVariantType::BND)
 					{
 						//special handling: store both directions and add SV id
