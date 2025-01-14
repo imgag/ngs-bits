@@ -1364,6 +1364,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 			output += ps_name + "_repeats.vcf";
 		}
 	}
+	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 	return QFileInfo(output).absoluteFilePath();

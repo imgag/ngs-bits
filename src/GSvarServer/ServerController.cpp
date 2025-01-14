@@ -446,6 +446,16 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
             case PathType::GSVAR:
                 file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);
                 break;
+			case PathType::METHYLATION:
+				file_list << FileLocation(url_entity.file_id, PathType::METHYLATION, found_file, true);
+				break;
+			case PathType::METHYLATION_IMAGE:
+				if (locus.isEmpty())
+				{
+					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
+				}
+				file_list << file_locator->getMethylationImage(locus);
+				break;
             case PathType::SAMPLE_FOLDER:
             case PathType::FUSIONS_PIC_DIR:
             case PathType::FUSIONS:
