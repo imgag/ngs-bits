@@ -443,11 +443,8 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
             case PathType::CFDNA_CANDIDATES:
                 file_list << file_locator->getSomaticCfdnaCandidateFile();
                 break;            
-            case PathType::GSVAR:
-                file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);
-                break;
 			case PathType::METHYLATION:
-				file_list << FileLocation(url_entity.file_id, PathType::METHYLATION, found_file, true);
+				file_list << file_locator->getMethylationFile();
 				break;
 			case PathType::METHYLATION_IMAGE:
 				if (locus.isEmpty())
@@ -455,6 +452,9 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
 				}
 				file_list << file_locator->getMethylationImage(locus);
+				break;
+			case PathType::GSVAR:
+				file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);
 				break;
             case PathType::SAMPLE_FOLDER:
             case PathType::FUSIONS_PIC_DIR:
@@ -476,6 +476,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
                 return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "The type '" + request.getUrlParams()["type"].toUpper().trimmed() + "' cannot be handled by this endpoint"));
 		}
 	}
+
 
 	for (int i = 0; i < file_list.count(); ++i)
 	{
