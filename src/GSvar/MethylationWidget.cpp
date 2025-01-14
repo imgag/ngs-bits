@@ -48,10 +48,10 @@ void MethylationWidget::loadFile()
 	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("coverage unphased"));
 
 	//fill rows
-	ui_->tw_methylation->setRowCount(data_.rowCount());
-	for (int row_idx = 0; row_idx < data_.rowCount(); ++row_idx)
+	ui_->tw_methylation->setRowCount(data_.count());
+	for (int row_idx = 0; row_idx < data_.count(); ++row_idx)
 	{
-		QStringList line = data_.row(row_idx);
+		const QStringList& line = data_[row_idx];
 		col_idx = 0;
 
 		//store identifier in header item
