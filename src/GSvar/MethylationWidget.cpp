@@ -4,6 +4,7 @@
 #include <FileLocation.h>
 #include <GUIHelper.h>
 #include <Helper.h>
+#include <QMessageBox>
 #include "GlobalServiceProvider.h"
 
 MethylationWidget::MethylationWidget(QString filename, QWidget *parent) :
@@ -82,15 +83,14 @@ void MethylationWidget::openMethylationPlot(int row_idx, int col_idx)
 
 	FileLocation methylation_plot = GlobalServiceProvider::fileLocationProvider().getMethylationImage(locus);
 
-	qDebug() << methylation_plot.filename;
-
-	if (!methylation_plot.exists)
+	VersatileFile file(methylation_plot.filename);
+	if (!file.open(QIODevice::ReadOnly))
 	{
-		GUIHelper::showMessage("File not found!", "Methylation plot for '" + locus + "' not found!");
+		QMessageBox::warning(this, "Read error", "Could not open a methylation plot image file: '" + methylation_plot.filename);
 		return;
 	}
-
-	QPixmap plot_data(methylation_plot.filename);
+	QPixmap plot_data;
+	plot_data.loadFromData(file.readAll());
 
 	QLabel* image_label = new QLabel();
 	image_label->setPixmap(plot_data);

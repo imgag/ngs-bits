@@ -480,6 +480,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 
 	for (int i = 0; i < file_list.count(); ++i)
 	{
+		Log::info("file path: " + file_list.at(i).filename);
         QJsonObject cur_json_item;
         QJsonObject cur_json_item_without_token;
 		cur_json_item.insert("id", file_list[i].id);
