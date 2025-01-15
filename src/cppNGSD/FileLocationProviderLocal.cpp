@@ -108,6 +108,22 @@ FileLocationList FileLocationProviderLocal::getQcFiles() const
 	return output;
 }
 
+FileLocation FileLocationProviderLocal::getMethylationFile() const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_var_methylation.tsv";
+
+	return FileLocation{name, PathType::METHYLATION, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getMethylationImage(QString locus) const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = getAnalysisPath() + QDir::separator() + "methylartist" + QDir::separator() + name  + "_" + locus + ".png";
+
+	return FileLocation(name, PathType::METHYLATION_IMAGE, file, QFile::exists(file));
+}
+
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
 {
 	bool exists = QFile::exists(loc.filename);

@@ -17,6 +17,7 @@ enum class PathType
 	BAM, //BAM file
 	VIRAL_BAM, //BAM file for a virus
     CRAM, //compressed version of BAM
+
 	//variant data
 	VCF, //small variants (VCF.GZ format)
 	GSVAR, //small variants (GSvar format)
@@ -60,6 +61,8 @@ enum class PathType
 	SIGNATURE_ID,	// Somatic: resut part from SigProfileExtractor for SNVs (CSV format)
 	SIGNATURE_DBS,	// Somatic: resut part from SigProfileExtractor for SNVs (CSV format)
 	SIGNATURE_CNV,	// Somatic: resut from SigProfileExtractor for CNVs (CSV format)
+	METHYLATION, // Methylation calls (TSV format)
+	METHYLATION_IMAGE, // image of a given methylation locus (PNG format)
 	OTHER // everything else
 };
 
@@ -212,6 +215,10 @@ struct FileLocation
 				return "SIGNATURE_DBS";
 			case PathType::SIGNATURE_CNV:
 				return "SIGNATURE_CNV";
+			case PathType::METHYLATION:
+				return "METHYLATION";
+			case PathType::METHYLATION_IMAGE:
+				return "METHYLATION_IMAGE";
 
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
@@ -267,6 +274,8 @@ struct FileLocation
 		if (in_upper == "SIGNATURE_ID") return PathType::SIGNATURE_ID;
 		if (in_upper == "SIGNATURE_DBS") return PathType::SIGNATURE_DBS;
 		if (in_upper == "SIGNATURE_CNV") return PathType::SIGNATURE_CNV;
+		if (in_upper == "METHYLATION") return PathType::METHYLATION;
+		if (in_upper == "METHYLATION_IMAGE") return PathType::METHYLATION_IMAGE;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -366,6 +375,10 @@ struct FileLocation
 				return "DBS signature";
 			case PathType::SIGNATURE_CNV:
 				return "CNV signature";
+			case PathType::METHYLATION:
+				return "methylation calls";
+			case PathType::METHYLATION_IMAGE:
+				return "image of a given methylation locus";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
