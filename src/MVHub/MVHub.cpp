@@ -7,6 +7,9 @@
 #include "GUIHelper.h"
 #include "GenLabDB.h"
 
+#include <QJsonArray>
+#include <QJsonDocument>
+
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -94,6 +97,57 @@ void MVHub::loadSamplesFromNGSD()
 
 }
 
+QByteArray MVHub::jsonDataPseudo(QByteArray str)
+{
+	return	QByteArray( "{ \"resourceType\": \"Bundle\", ")+
+						"  \"entry\": ["+
+						"	{"+
+						"		\"resource\": {"+
+						"			\"resourceType\": \"Encounter\","+
+						"			\"identifier\": ["+
+						"				{"+
+						"					\"use\": \"official\","+
+						"					\"system\": \"FallID\","+
+						"					\"value\": \"" + str + "\""+
+						"				}"+
+						"			]"+
+						"		}"+
+						"	}"+
+						"]"+
+			"}";
+}
+
+QByteArray MVHub::parseJsonDataPseudo(QByteArray reply)
+{
+	QJsonDocument doc = QJsonDocument::fromJson(reply);
+	QJsonArray entries = doc.object()["entry"].toArray();
+	for (int i=0; i<entries.count(); ++i)
+	{
+		QJsonObject object = entries[i].toObject();
+		if (!object.contains("resource")) continue;
+
+		object = object["resource"].toObject();
+		if (!object.contains("resourceType")) continue;
+		if (object["resourceType"].toString()!="Encounter") continue;
+
+		QByteArray encrypted = QByteArray::fromBase64(object["identifier"].toArray()[0].toObject()["value"].toString().toLatin1());
+
+
+		/*
+		with open(private_key_file, "rb") as f:
+			   rsa_private_key = RSA.importKey(f.read())
+			   rsa_private_key = PKCS1_v1_5.new(rsa_private_key)
+			   sentinel = get_random_bytes(16)
+			   return rsa_private_key.decrypt(base64.b64decode(enc_msg), sentinel).decode('utf-8')
+		*/
+
+
+		return encrypted;
+	}
+
+	THROW(ArgumentException, "Could not parse JSON for pseudonymization: " + reply);
+}
+
 void MVHub::clearOutput(QObject* sender)
 {
 	ui_.output->clear();
@@ -111,8 +165,14 @@ void MVHub::test_apiConsent()
 	try
 	{
 		clearOutput(sender());
-		bool test_server = false;
-		if (test_server) ui_.output->appendPlainText("NOTE: using test server!");
+
+		//test or production
+		bool test_server = true;
+		if (test_server)
+		{
+			ui_.output->appendPlainText("ATTENTION: using test server!");
+			ui_.output->appendPlainText("");
+		}
 
 		//get token
 		ui_.output->appendPlainText("Getting token...");
@@ -120,30 +180,31 @@ void MVHub::test_apiConsent()
 		headers.insert("Content-Type", "application/x-www-form-urlencoded");
 		headers.insert("Prefer", "handling=strict");
 		QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("consent_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("consent_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
-		HttpHandler handler(true);
 		QString url = test_server ? "https://tc-t.med.uni-tuebingen.de/auth/realms/consent-test/protocol/openid-connect/token" : "https://tc-p.med.uni-tuebingen.de/auth/realms/consent/protocol/openid-connect/token";
+		ui_.output->appendPlainText("URL: "+url);
+		ui_.output->appendPlainText("data: " + data);
+		HttpHandler handler(true);
 		QByteArray reply = handler.post(url, data, headers);
 		QByteArrayList parts = reply.split('"');
 		if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
 		QByteArray token = parts[3];
-		ui_.output->appendPlainText("Token:");
-		ui_.output->appendPlainText(token);
+		ui_.output->appendPlainText("Token: "+ token);
 
 		//get consent
 		ui_.output->appendPlainText("Getting consent...");
-		QString ps = "DX2103725_02";
-		QString sap_id = "6068866";
+		QString ps = "DNA2411657A1_01";
+		GenLabDB genlab;
+		QString sap_id = genlab.sapID(ps);
 		HttpHeaders headers2;
 		headers2.insert("Authorization", "Bearer "+token);
 		QString url2 = test_server ? "https://tc-t.med.uni-tuebingen.de:8443/fhir/Consent" : "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent";
 		reply = handler.get(url2+"?patient.identifier="+sap_id, headers2);
 
-		ui_.output->appendPlainText("ID: " + ps);
-		ui_.output->appendPlainText("SAP:" + sap_id);
+		ui_.output->appendPlainText("IMGAG ID: " + ps);
+		ui_.output->appendPlainText("SAP ID:" + sap_id);
 		ui_.output->appendPlainText("Consent:");
 		ui_.output->appendPlainText(reply);
-
 	}
 	catch (Exception& e)
 	{
@@ -158,22 +219,57 @@ void MVHub::test_apiPseudo()
 	{
 		clearOutput(sender());
 
+		//test or production
+		bool test_server = true;
+		if (test_server)
+		{
+			ui_.output->appendPlainText("ATTENTION: using test server!");
+			ui_.output->appendPlainText("");
+		}
+
 		//get token
-		ui_.output->appendPlainText("Getting token...");
-		HttpHeaders headers;
-		headers.insert("Content-Type", "application/x-www-form-urlencoded");
-		headers.insert("Prefer", "handling=strict");
-		QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("pseudo_client_id").toLatin1()+"&client_secret="+Settings::string("pseudo_client_secret").toLatin1();
-		HttpHandler handler(true);
-		QByteArray reply = handler.post("https://tc-t.med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token", data, headers);
-		QByteArrayList parts = reply.split('"');
-		if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
+		QByteArray token = "";
+		{
+			ui_.output->appendPlainText("Getting token...");
 
-		QByteArray token = parts[3];
-		ui_.output->appendPlainText("Token:");
-		ui_.output->appendPlainText(token);
+			HttpHeaders headers;
+			headers.insert("Content-Type", "application/x-www-form-urlencoded");
+			headers.insert("Prefer", "handling=strict");
 
-		//get pseudonyms
+			QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("pseudo_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("pseudo_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
+			QString url = test_server ? "https://tc-t.med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token" : "https://tc-p.med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token";
+			ui_.output->appendPlainText("URL: "+url);
+			ui_.output->appendPlainText("data: " + data);
+
+			HttpHandler handler(true);
+			QByteArray reply = handler.post(url, data, headers);
+			QByteArrayList parts = reply.split('"');
+			if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
+
+			token = parts[3];
+			ui_.output->appendPlainText("Token: " + token);
+		}
+
+		//get first pseudonyms
+		QByteArray str = "ABCDE";
+		ui_.output->appendPlainText("");
+		ui_.output->appendPlainText("String to encode: " + str);
+		QByteArray pseudo1 = "";
+		{
+			QString url = "https://tc.medic-tuebingen.de/v1/process?targetSystem=MVH_T_F";
+
+			HttpHeaders headers;
+			headers.insert("Content-Type", "application/json");
+			headers.insert("Authorization", "Bearer "+token);
+
+			HttpHandler handler(false);
+			QByteArray data =  jsonDataPseudo(str);
+			QByteArray reply = handler.post(url, data, headers);
+			pseudo1 = parseJsonDataPseudo(reply);
+		}
+		ui_.output->appendPlainText("Pseudonym 1: " + pseudo1);
+
+		//get second pseudonyms
 		//TODO
 
 	}
@@ -183,6 +279,8 @@ void MVHub::test_apiPseudo()
 		ui_.output->appendPlainText(e.message());
 	}
 }
+
+
 
 void MVHub::test_apiReCapCaseManagement()
 {

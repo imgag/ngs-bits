@@ -28,6 +28,11 @@ private:
 
 	void clearOutput(QObject* sender);
 	void loadSamplesFromNGSD();
+
+	//creates JSON input for pseudonymization
+	static QByteArray jsonDataPseudo(QByteArray str);
+	//parses JSON output of pseudonymization
+	static QByteArray parseJsonDataPseudo(QByteArray reply);
 };
 
 #endif // MVHUB_H
