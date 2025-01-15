@@ -2609,6 +2609,24 @@
 ##INFO=<ID=JUNCTION_QUAL,Number=1,Type=Integer,Description="If the SV junction is part of an EVENT (ie. a multi-adjacency variant), this field provides the QUAL value for the adjacency in question only">
 ##INFO=<ID=INV3,Number=0,Type=Flag,Description="Inversion breakends open 3' of reported location">
 ##INFO=<ID=INV5,Number=0,Type=Flag,Description="Inversion breakends open 5' of reported location">
+##INFO=<ID=GSC01,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for n/a.">
+##INFO=<ID=GSC02,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for neoplasms.">
+##INFO=<ID=GSC03,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the blood or blood-forming organs.">
+##INFO=<ID=GSC04,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the immune system.">
+##INFO=<ID=GSC05,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for endocrine, nutritional or metabolic diseases.">
+##INFO=<ID=GSC06,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for mental, behavioural or neurodevelopmental disorders.">
+##INFO=<ID=GSC07,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for sleep-wake disorders.">
+##INFO=<ID=GSC08,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the nervous system.">
+##INFO=<ID=GSC09,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the visual system.">
+##INFO=<ID=GSC10,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the ear or mastoid process.">
+##INFO=<ID=GSC11,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the circulatory system.">
+##INFO=<ID=GSC12,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the respiratory system.">
+##INFO=<ID=GSC13,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the digestive system.">
+##INFO=<ID=GSC14,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the skin.">
+##INFO=<ID=GSC15,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the musculoskeletal system or connective tissue.">
+##INFO=<ID=GSC16,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the genitourinary system.">
+##INFO=<ID=GSC17,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for developmental anomalies.">
+##INFO=<ID=GSC18,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for other diseases.">
 ##FILTER=<ID=Ploidy,Description="For DEL & DUP variants, the genotypes of overlapping variants (with similar size) are inconsistent with diploid expectation">
 ##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases), the fraction of reads in all samples with MAPQ0 around either breakend exceeds 0.4">
 ##FILTER=<ID=NoPairSupport,Description="For variants significantly larger than the paired read fragment size, no paired reads support the alternate allele in any sample.">
@@ -2623,34 +2641,34 @@
 ##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
 ##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
 ##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
-#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	NGSD_HOM	NGSD_HET	NGSD_AF
-chr1	1968935	1968935	chr1	1969006	1969006	MantaDEL:16:0:1:0:0:0	278	.	.	DEL	0	0	
-chr1	2859237	2859242	chr1	2859315	2859315	MantaDEL:15:0:0:0:1:0	172	.	.	DEL	0	0	
-chr1	7829912	7829992	chr1	7829966	7829966	MantaDEL:35:0:1:0:0:0	842	.	.	DEL	0	0	
-chr1	9061390	9061394	chr14	93246136	93246140	MantaBND:40:0:1:0:0:0:0	79	.	.	BND	0	0	
-chr1	26345031	26345031	chr1	26345084	26345084	MantaDEL:112:0:0:0:0:0	999	.	.	DEL	0	0	
-chr1	29394196	29394326	chr1	30405719	30405849	MantaDUP:TANDEM:115:0:1:0:0:0	87	.	.	DUP	0	0	
-chr1	30405557	30405684	chr1	30405863	30405990	MantaINV:116:0:1:0:0:0	32	.	.	INV	0	0	
-chr1	54458803	54458803	chr1	54458873	54458873	MantaINS:184:0:0:0:3:0	304	.	.	INS	0	0	
-chr1	92796716	92796716	chr1	92796799	92796799	MantaINV:227:0:0:0:1:0	145	.	.	INV	0	0	
-chr1	109108013	109108013	chr22	29767384	29767384	MantaBND:260:0:1:0:0:0:0	999	.	.	BND	0	0	
-chr1	201209484	201209601	chr1	201209784	201209894	MantaDUP:TANDEM:422:0:1:0:0:0	28	.	.	DUP	0	0	
-chr1	241674876	241674876	chr1	241675027	241675027	MantaDEL:487:0:0:0:0:0	246	.	.	DEL	0	0	
-chr1	246700009	246700015	chr18	76649051	76649057	MantaBND:499:0:1:0:0:0:0	13	.	.	BND	0	0	
-chr4	127124	127126	chr4	133266	133266	MantaDEL:1262:0:1:0:0:0	220	.	.	DEL	0	0	
-chr4	1394935	1394935	chr4	1395186	1395186	MantaDEL:1288:0:0:0:0:0	999	.	.	DEL	0	0	
-chr4	71876411	71876411	chr4	71876558	71876558	MantaDEL:1406:0:0:0:1:0	47	.	.	DEL	0	0	
-chr4	87615925	87615925	chr4	87616061	87616061	MantaDEL:1429:0:0:0:1:0	484	.	.	DEL	0	0	
-chr4	143880329	143880439	chr4	144120435	144120571	MantaDUP:TANDEM:1482:0:1:0:0:0	72	.	.	DUP	0	0	
-chr4	151280054	151280056	chr4	151280110	151280110	MantaDUP:TANDEM:1496:0:1:0:1:0	387	.	.	DUP	0	0	
-chr15	23440006	23440012	chr15	23440317	23440317	MantaDEL:4249:0:0:0:0:1	850	.	.	DEL	0	0	
-chr15	23440063	23440063	chr15	23440317	23440317	MantaDEL:4254:0:1:0:0:0	849	.	.	DEL	0	0	
-chr15	27770728	27770735	chr15	27770788	27770788	MantaDEL:4258:0:0:0:1:0	31	.	.	DEL	0	0	
-chr15	54147706	54147706	chr12	46135758	46135758	MantaBND:3724:0:1:0:1:0:0	71	.	.	BND	0	0	
-chr15	92972557	92972568	chr15	92972870	92972870	MantaDEL:4398:0:0:0:0:0	546	.	.	DEL	0	0	
-chr15	99799846	99799855	chr15	99800002	99800002	MantaDEL:4407:0:0:4:0:0	999	.	.	DEL	0	0	
-chr15	99800143	99800143	chr15	99800148	99800148	MantaINS:4407:0:0:4:0:1	666	.	.	INS	0	0	
-chr15	101752523	101752531	chr15	101764528	101764528	MantaDUP:TANDEM:4407:2:5:0:2:0	999	.	.	DUP	0	0	
-chr15	101761846	101761910	chr15	101762415	101762480	MantaDUP:TANDEM:4422:0:1:0:0:0	11	.	.	DUP	0	0	
-chr15	101762270	101762324	chr15	101762660	101762718	MantaDUP:TANDEM:4423:0:2:0:0:0	33	.	.	DUP	0	0	
-chr15	101764389	101764389	chr15	101764738	101764738	MantaDEL:4407:2:2:2:0:0	999	.	.	DEL	0	0	
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	NGSD_HOM	NGSD_HET	NGSD_AF	DISEASE_GROUP
+chr1	1968935	1968935	chr1	1969006	1969006	MantaDEL:16:0:1:0:0:0	278	.	.	DEL	0	0		.
+chr1	2859237	2859242	chr1	2859315	2859315	MantaDEL:15:0:0:0:1:0	172	.	.	DEL	0	0		.
+chr1	7829912	7829992	chr1	7829966	7829966	MantaDEL:35:0:1:0:0:0	842	.	.	DEL	0	0		.
+chr1	9061390	9061394	chr14	93246136	93246140	MantaBND:40:0:1:0:0:0:0	79	.	.	BND	0	0		.
+chr1	26345031	26345031	chr1	26345084	26345084	MantaDEL:112:0:0:0:0:0	999	.	.	DEL	0	0		.
+chr1	29394196	29394326	chr1	30405719	30405849	MantaDUP:TANDEM:115:0:1:0:0:0	87	.	.	DUP	0	0		.
+chr1	30405557	30405684	chr1	30405863	30405990	MantaINV:116:0:1:0:0:0	32	.	.	INV	0	0		.
+chr1	54458803	54458803	chr1	54458873	54458873	MantaINS:184:0:0:0:3:0	304	.	.	INS	0	0		.
+chr1	92796716	92796716	chr1	92796799	92796799	MantaINV:227:0:0:0:1:0	145	.	.	INV	0	0		.
+chr1	109108013	109108013	chr22	29767384	29767384	MantaBND:260:0:1:0:0:0:0	999	.	.	BND	0	0		.
+chr1	201209484	201209601	chr1	201209784	201209894	MantaDUP:TANDEM:422:0:1:0:0:0	28	.	.	DUP	0	0		.
+chr1	241674876	241674876	chr1	241675027	241675027	MantaDEL:487:0:0:0:0:0	246	.	.	DEL	0	0		.
+chr1	246700009	246700015	chr18	76649051	76649057	MantaBND:499:0:1:0:0:0:0	13	.	.	BND	0	0		.
+chr4	127124	127126	chr4	133266	133266	MantaDEL:1262:0:1:0:0:0	220	.	.	DEL	0	0		.
+chr4	1394935	1394935	chr4	1395186	1395186	MantaDEL:1288:0:0:0:0:0	999	.	.	DEL	0	0		.
+chr4	71876411	71876411	chr4	71876558	71876558	MantaDEL:1406:0:0:0:1:0	47	.	.	DEL	0	0		.
+chr4	87615925	87615925	chr4	87616061	87616061	MantaDEL:1429:0:0:0:1:0	484	.	.	DEL	0	0		.
+chr4	143880329	143880439	chr4	144120435	144120571	MantaDUP:TANDEM:1482:0:1:0:0:0	72	.	.	DUP	0	0		.
+chr4	151280054	151280056	chr4	151280110	151280110	MantaDUP:TANDEM:1496:0:1:0:1:0	387	.	.	DUP	0	0		.
+chr15	23440006	23440012	chr15	23440317	23440317	MantaDEL:4249:0:0:0:0:1	850	.	.	DEL	0	0		.
+chr15	23440063	23440063	chr15	23440317	23440317	MantaDEL:4254:0:1:0:0:0	849	.	.	DEL	0	0		.
+chr15	27770728	27770735	chr15	27770788	27770788	MantaDEL:4258:0:0:0:1:0	31	.	.	DEL	0	0		.
+chr15	54147706	54147706	chr12	46135758	46135758	MantaBND:3724:0:1:0:1:0:0	71	.	.	BND	0	0		.
+chr15	92972557	92972568	chr15	92972870	92972870	MantaDEL:4398:0:0:0:0:0	546	.	.	DEL	0	0		.
+chr15	99799846	99799855	chr15	99800002	99800002	MantaDEL:4407:0:0:4:0:0	999	.	.	DEL	0	0		.
+chr15	99800143	99800143	chr15	99800148	99800148	MantaINS:4407:0:0:4:0:1	666	.	.	INS	0	0		.
+chr15	101752523	101752531	chr15	101764528	101764528	MantaDUP:TANDEM:4407:2:5:0:2:0	999	.	.	DUP	0	0		.
+chr15	101761846	101761910	chr15	101762415	101762480	MantaDUP:TANDEM:4422:0:1:0:0:0	11	.	.	DUP	0	0		.
+chr15	101762270	101762324	chr15	101762660	101762718	MantaDUP:TANDEM:4423:0:2:0:0:0	33	.	.	DUP	0	0		.
+chr15	101764389	101764389	chr15	101764738	101764738	MantaDEL:4407:2:2:2:0:0	999	.	.	DEL	0	0		.

@@ -83,59 +83,59 @@ public:
 		QByteArrayList output_buffer;
 
 		// create annotation header
-		QList<QString> headerCategories = { "##INFO", "##FILTER", "##FORMAT" };
+		QList<QString> header_categories = { "##INFO", "##FILTER", "##FORMAT" };
 
 		// combine headers into a single QString
-		QString combinedHeaders = bedpe_input_file.headers().join("\n") + "\n" + disease_group_header_.join("\n");
+		QString combined_headers = bedpe_input_file.headers().join("\n") + "\n" + disease_group_header_.join("\n");
 
 		// split the combined headers into lines
-		QStringList headerLines = combinedHeaders.split("\n");
+		QStringList header_lines = combined_headers.split("\n");
 
 		// remove empty lines
-		QStringList nonEmptyHeaderLines;
-		for (const QString &line : headerLines)
+		QStringList non_empty_header_lines;
+		for (const QString &line : header_lines)
 		{
 			if (!line.trimmed().isEmpty())
 			{
-				nonEmptyHeaderLines.append(line);
+				non_empty_header_lines.append(line);
 			}
 		}
 
 		// separate headers into categories
-		QMap<QString, QStringList> categorizedHeaders;
-		QStringList otherHeaders;
+		QMap<QString, QStringList> categorized_headers;
+		QStringList other_headers;
 
-		for (const QString &line : nonEmptyHeaderLines)
+		for (const QString &line : non_empty_header_lines)
 		{
 			bool categorized = false;
-			for (const QString &category : headerCategories)
+			for (const QString &category : header_categories)
 			{
 				if (line.startsWith(category))
 				{
-					categorizedHeaders[category].append(line);
+					categorized_headers[category].append(line);
 					categorized = true;
 					break;
 				}
 			}
 			if (!categorized)
 			{
-				otherHeaders.append(line);
+				other_headers.append(line);
 			}
 		}
 
 		// sort and reorder headers
-		QStringList sortedHeaders = otherHeaders;
-		for (const QString &category : headerCategories)
+		QStringList sorted_headers = other_headers;
+		for (const QString &category : header_categories)
 		{
-			if (categorizedHeaders.contains(category))
+			if (categorized_headers.contains(category))
 			{
-				sortedHeaders.append(categorizedHeaders[category]);
+				sorted_headers.append(categorized_headers[category]);
 			}
 		}
 
 		// convert sorted headers back to a single QByteArray
-		QByteArray sortedHeaderOutput = sortedHeaders.join("\n").toUtf8();
-		output_buffer.append(sortedHeaderOutput + "\n");
+		QByteArray sorted_header_output = sorted_headers.join("\n").toUtf8();
+		output_buffer.append(sorted_header_output + "\n");
 
 		// modify header
 		QList<QByteArray> header = bedpe_input_file.annotationHeaders();
@@ -312,17 +312,20 @@ public:
 					sv_annotations[i_ngsd_af] = QByteArray::number(ngsd_af, 'f', 4);
 				}
 
+				QList<QByteArray> sorted_keys = count_per_group.keys();
+				std::sort(sorted_keys.begin(), sorted_keys.end());
+
 				// annotate counts per disease group
-				foreach (const QByteArray& group, count_per_group.keys())
+				foreach (const QByteArray& key, sorted_keys)
 				{
-					if (count_per_group[group].hom_count > 0 || count_per_group[group].het_count > 0)
+					if (count_per_group[key].hom_count > 0 || count_per_group[key].het_count > 0)
 					{
 						if (!sv_annotations[i_disease_group].isEmpty()) sv_annotations[i_disease_group].append(";");
-						sv_annotations[i_disease_group].append(group
+						sv_annotations[i_disease_group].append(key
 								+ "="
-								+ QByteArray::number(count_per_group[group].hom_count)
+								+ QByteArray::number(count_per_group[key].hom_count)
 								+ ","
-								+ QByteArray::number(count_per_group[group].het_count));
+								+ QByteArray::number(count_per_group[key].het_count));
 					}
 				}
 				if (sv_annotations[i_disease_group].isEmpty()) sv_annotations[i_disease_group].append(".");
