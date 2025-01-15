@@ -1,9 +1,27 @@
 ##fileformat=BEDPE
 ##sample_count=(hpHBOCv5, 4)
+##INFO=<ID=GSC01,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for n/a.">
+##INFO=<ID=GSC02,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for neoplasms.">
+##INFO=<ID=GSC03,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the blood or blood-forming organs.">
+##INFO=<ID=GSC04,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the immune system.">
+##INFO=<ID=GSC05,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for endocrine, nutritional or metabolic diseases.">
+##INFO=<ID=GSC06,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for mental, behavioural or neurodevelopmental disorders.">
+##INFO=<ID=GSC07,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for sleep-wake disorders.">
+##INFO=<ID=GSC08,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the nervous system.">
+##INFO=<ID=GSC09,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the visual system.">
+##INFO=<ID=GSC10,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the ear or mastoid process.">
+##INFO=<ID=GSC11,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the circulatory system.">
+##INFO=<ID=GSC12,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the respiratory system.">
+##INFO=<ID=GSC13,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the digestive system.">
+##INFO=<ID=GSC14,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the skin.">
+##INFO=<ID=GSC15,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the musculoskeletal system or connective tissue.">
+##INFO=<ID=GSC16,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the genitourinary system.">
+##INFO=<ID=GSC17,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for developmental anomalies.">
+##INFO=<ID=GSC18,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for other diseases.">
 #CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	TYPE	PROCESSING_SYSTEM	ID	FORMAT	FORMAT_VALUES	DISEASE_GROUP
-chr1	5	50	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
-chr1	5	50	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	Neoplasms
-chr1	1000	1020	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
-chr1	1000	1020	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
-chr1	1000	1020	chr1	20000	20000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
-chr1	1000	1020	chr1	20000	20000	DEL	hpHBOCv5		GT	./.	Diseases of the blood or blood-forming organs
+chr1	5	50	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	GSC03
+chr1	5	50	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	GSC02
+chr1	1000	1020	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	GSC03
+chr1	1000	1020	chr1	12000	13000	DEL	hpHBOCv5		GT	./.	GSC03
+chr1	1000	1020	chr1	20000	20000	DEL	hpHBOCv5		GT	./.	GSC03
+chr1	1000	1020	chr1	20000	20000	DEL	hpHBOCv5		GT	./.	GSC03

@@ -82,8 +82,60 @@ public:
 		// create text buffer for output file
 		QByteArrayList output_buffer;
 
-		// copy comments
-		output_buffer.append(bedpe_input_file.headers().join('\n') + "\n");
+		// create annotation header
+		QList<QString> headerCategories = { "##INFO", "##FILTER", "##FORMAT" };
+
+		// combine headers into a single QString
+		QString combinedHeaders = bedpe_input_file.headers().join("\n") + "\n" + disease_group_header_.join("\n");
+
+		// split the combined headers into lines
+		QStringList headerLines = combinedHeaders.split("\n");
+
+		// remove empty lines
+		QStringList nonEmptyHeaderLines;
+		for (const QString &line : headerLines)
+		{
+			if (!line.trimmed().isEmpty())
+			{
+				nonEmptyHeaderLines.append(line);
+			}
+		}
+
+		// separate headers into categories
+		QMap<QString, QStringList> categorizedHeaders;
+		QStringList otherHeaders;
+
+		for (const QString &line : nonEmptyHeaderLines)
+		{
+			bool categorized = false;
+			for (const QString &category : headerCategories)
+			{
+				if (line.startsWith(category))
+				{
+					categorizedHeaders[category].append(line);
+					categorized = true;
+					break;
+				}
+			}
+			if (!categorized)
+			{
+				otherHeaders.append(line);
+			}
+		}
+
+		// sort and reorder headers
+		QStringList sortedHeaders = otherHeaders;
+		for (const QString &category : headerCategories)
+		{
+			if (categorizedHeaders.contains(category))
+			{
+				sortedHeaders.append(categorizedHeaders[category]);
+			}
+		}
+
+		// convert sorted headers back to a single QByteArray
+		QByteArray sortedHeaderOutput = sortedHeaders.join("\n").toUtf8();
+		output_buffer.append(sortedHeaderOutput + "\n");
 
 		// modify header
 		QList<QByteArray> header = bedpe_input_file.annotationHeaders();
@@ -167,18 +219,18 @@ public:
 								ngsd_count_hom++;
 
 								//count by disease group
-								if (!columns[idx_format_ + 2].isEmpty())
+								if (!columns[idx_disease_group_].isEmpty())
 								{
-									count_per_group[columns[idx_format_ + 2]].hom_count += 1;
+									count_per_group[columns[idx_disease_group_]].hom_count += 1;
 								}
 							}
 							else
 							{
 								ngsd_count_het++;
 								//count by disease group
-								if (!columns[idx_format_ + 2].isEmpty())
+								if (!columns[idx_disease_group_].isEmpty())
 								{
-									count_per_group[columns[idx_format_ + 2]].het_count += 1;
+									count_per_group[columns[idx_disease_group_]].het_count += 1;
 								}
 							}
 						}
@@ -199,9 +251,9 @@ public:
 								ngsd_count_hom++;
 
 								//count by disease group
-								if (!columns[idx_format_ + 2].isEmpty())
+								if (!columns[idx_disease_group_].isEmpty())
 								{
-									count_per_group[columns[idx_format_ + 2]].hom_count += 1;
+									count_per_group[columns[idx_disease_group_]].hom_count += 1;
 								}
 							}
 							else
@@ -209,9 +261,9 @@ public:
 								ngsd_count_het++;
 
 								//count by disease group
-								if (!columns[idx_format_ + 2].isEmpty())
+								if (!columns[idx_disease_group_].isEmpty())
 								{
-									count_per_group[columns[idx_format_ + 2]].het_count += 1;
+									count_per_group[columns[idx_disease_group_]].het_count += 1;
 								}
 							}
 							bnd_ids.insert(bnd_id);
@@ -232,9 +284,9 @@ public:
 								ngsd_count_hom++;
 
 								//count by disease group
-								if (!columns[idx_format_ + 2].isEmpty())
+								if (!columns[idx_disease_group_].isEmpty())
 								{
-									count_per_group[columns[idx_format_ + 2]].hom_count += 1;
+									count_per_group[columns[idx_disease_group_]].hom_count += 1;
 								}
 							}
 							else
@@ -242,9 +294,9 @@ public:
 								ngsd_count_het++;
 
 								//count by disease group
-								if (!columns[idx_format_ + 2].isEmpty())
+								if (!columns[idx_disease_group_].isEmpty())
 								{
-									count_per_group[columns[idx_format_ + 2]].het_count += 1;
+									count_per_group[columns[idx_disease_group_]].het_count += 1;
 								}
 							}
 						}
@@ -265,13 +317,15 @@ public:
 				{
 					if (count_per_group[group].hom_count > 0 || count_per_group[group].het_count > 0)
 					{
-						sv_annotations[i_disease_group] = group
+						if (!sv_annotations[i_disease_group].isEmpty()) sv_annotations[i_disease_group].append(";");
+						sv_annotations[i_disease_group].append(group
 								+ "="
-								+ QByteArray::number(count_per_group[group].hom_count, 0)
+								+ QByteArray::number(count_per_group[group].hom_count)
 								+ ","
-								+ QByteArray::number(count_per_group[group].het_count, 0);
+								+ QByteArray::number(count_per_group[group].het_count));
 					}
 				}
+				if (sv_annotations[i_disease_group].isEmpty()) sv_annotations[i_disease_group].append(".");
 			}
 
 			//write annotation back to BedpeLine
@@ -305,6 +359,8 @@ private:
 	int idx_processing_system_ = -1;
 	int idx_sv_id_ = -1;
 	int idx_format_ = -1;
+	int idx_disease_group_ = -1;
+	QByteArrayList disease_group_header_;
 
 	void parseBedpeGzHead(QString file_path, QByteArray processing_system)
 	{
@@ -362,8 +418,14 @@ private:
 					{
 						idx_format_ = i;
 					}
+					else if (header.at(i) == "DISEASE_GROUP")
+					{
+						idx_disease_group_ = i;
+					}
 				}
 			}
+
+			if(line.startsWith("##INFO=<ID=GSC")) disease_group_header_.append(line);
 		}
 
 		//close file
