@@ -120,7 +120,8 @@ FileLocation FileLocationProviderLocal::getMethylationImage(QString locus) const
 {
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = getAnalysisPath() + QDir::separator() + "methylartist" + QDir::separator() + name  + "_" + locus + ".png";
-	return FileLocation(name, PathType::REPEAT_EXPANSION_HISTOGRAM, file, QFile::exists(file));
+
+	return FileLocation(name, PathType::METHYLATION_IMAGE, file, QFile::exists(file));
 }
 
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
