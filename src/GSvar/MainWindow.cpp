@@ -2223,7 +2223,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 			analyses << GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic");
 		}
 		//check for germline trio/multi analyses
-		else if (search_multi)
+		if (search_multi)
 		{
 			analyses << GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name, "trio");
 			analyses << GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name, "multi sample");
