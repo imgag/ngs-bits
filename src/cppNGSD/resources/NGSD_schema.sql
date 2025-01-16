@@ -199,7 +199,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
