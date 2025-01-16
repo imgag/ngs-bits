@@ -18,14 +18,45 @@ MVHub::MVHub(QWidget *parent)
 	ui_.setupUi(this);
 	setWindowTitle(QCoreApplication::applicationName());
 
-	connect(ui_.api_consent, SIGNAL(clicked()), this, SLOT(test_apiConsent()));
+	connect(ui_.update_consent, SIGNAL(clicked()), this, SLOT(updateConsentData()));
 	connect(ui_.api_pseudo, SIGNAL(clicked()), this, SLOT(test_apiPseudo()));
 	connect(ui_.api_redcap_case, SIGNAL(clicked()), this, SLOT(test_apiReCapCaseManagement()));
+	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 }
 
 void MVHub::delayedInitialization()
 {
 	loadSamplesFromNGSD();
+}
+
+void MVHub::tableContextMenu(QPoint pos)
+{
+	//execute menu
+	QMenu menu;
+	QAction* a_copy = menu.addAction("Copy all");
+	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if  (action==a_copy)
+	{
+		GUIHelper::copyToClipboard(ui_.table);
+	}
+}
+
+void MVHub::updateConsentData()
+{
+	clearOutput(sender());
+
+	int c_consent = GUIHelper::columnIndex(ui_.table, "Consent");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		QString ps = ui_.table->item(r,0)->text();
+		QString consent = getConsent(ps, false);
+
+		QTableWidgetItem* item = GUIHelper::createTableItem(consent);
+		ui_.table->setItem(r, c_consent, item);
+	}
 }
 
 void MVHub::loadSamplesFromNGSD()
@@ -97,6 +128,21 @@ void MVHub::loadSamplesFromNGSD()
 
 }
 
+QString MVHub::getSAP(QString ps)
+{
+	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		if (ui_.table->item(r,0)->text()==ps)
+		{
+			return ui_.table->item(r,c_sap)->text();
+		}
+	}
+
+	return "";
+}
+
 QByteArray MVHub::jsonDataPseudo(QByteArray str)
 {
 	return	QByteArray( "{ \"resourceType\": \"Bundle\", ")+
@@ -160,57 +206,65 @@ void MVHub::clearOutput(QObject* sender)
 	}
 }
 
-void MVHub::test_apiConsent()
+QString MVHub::getConsent(QString ps, bool debug)
 {
 	try
 	{
-		clearOutput(sender());
-
 		//test or production
-		bool test_server = true;
+		bool test_server = false;
 		if (test_server)
 		{
-			ui_.output->appendPlainText("ATTENTION: using test server!");
+			ui_.output->appendPlainText("ATTENTION: using test servers for getConsent");
 			ui_.output->appendPlainText("");
 		}
 
-		//get token
-		ui_.output->appendPlainText("Getting token...");
-		HttpHeaders headers;
-		headers.insert("Content-Type", "application/x-www-form-urlencoded");
-		headers.insert("Prefer", "handling=strict");
-		QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("consent_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("consent_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
-		QString url = test_server ? "https://tc-t.med.uni-tuebingen.de/auth/realms/consent-test/protocol/openid-connect/token" : "https://tc-p.med.uni-tuebingen.de/auth/realms/consent/protocol/openid-connect/token";
-		ui_.output->appendPlainText("URL: "+url);
-		ui_.output->appendPlainText("data: " + data);
-		HttpHandler handler(true);
-		QByteArray reply = handler.post(url, data, headers);
-		QByteArrayList parts = reply.split('"');
-		if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
+		//get token if missing
+		static QByteArray token = "";
+		if (token.isEmpty())
+		{
+			ui_.output->appendPlainText("");
+			ui_.output->appendPlainText("Getting consent token...");
+			HttpHeaders headers;
+			headers.insert("Content-Type", "application/x-www-form-urlencoded");
+			headers.insert("Prefer", "handling=strict");
+			QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("consent_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("consent_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
+			QString url = test_server ? "https://tc-t.med.uni-tuebingen.de/auth/realms/consent-test/protocol/openid-connect/token" : "https://tc-p.med.uni-tuebingen.de/auth/realms/consent/protocol/openid-connect/token";
+			if (debug) ui_.output->appendPlainText("URL: "+url);
+			if (debug) ui_.output->appendPlainText("data: " + data);
+			HttpHandler handler(true);
+			QByteArray reply = handler.post(url, data, headers);
+			QByteArrayList parts = reply.split('"');
+			if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
-		QByteArray token = parts[3];
-		ui_.output->appendPlainText("Token: "+ token);
+			token = parts[3];
+			ui_.output->appendPlainText("Token: "+ token);
+		}
 
 		//get consent
-		ui_.output->appendPlainText("Getting consent...");
-		QString ps = "DNA2411657A1_01";
-		GenLabDB genlab;
-		QString sap_id = genlab.sapID(ps);
+		ui_.output->appendPlainText("Getting consent for "+ps+"...");
+		QString sap_id = getSAP(ps);
 		HttpHeaders headers2;
 		headers2.insert("Authorization", "Bearer "+token);
-		QString url2 = test_server ? "https://tc-t.med.uni-tuebingen.de:8443/fhir/Consent" : "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent";
-		reply = handler.get(url2+"?patient.identifier="+sap_id, headers2);
+		QString url = test_server ? "https://tc-t.med.uni-tuebingen.de:8443/fhir/Consent" : "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent";
+		HttpHandler handler(true);
+		QByteArray reply = handler.get(url+"?patient.identifier="+sap_id, headers2);
+		if (debug)
+		{
+			ui_.output->appendPlainText("SAP ID:" + sap_id);
+			ui_.output->appendPlainText("Consent:" + reply);
+		}
 
-		ui_.output->appendPlainText("IMGAG ID: " + ps);
-		ui_.output->appendPlainText("SAP ID:" + sap_id);
-		ui_.output->appendPlainText("Consent:");
-		ui_.output->appendPlainText(reply);
+		//TODO parse for research use: MDAT_wissenschaftlich_nutzen_EU_DSGVO_NIVEAU
+
+		return reply;
 	}
 	catch (Exception& e)
 	{
 		ui_.output->appendPlainText("ERROR:");
 		ui_.output->appendPlainText(e.message());
 	}
+
+	return "";
 }
 
 void MVHub::test_apiPseudo()

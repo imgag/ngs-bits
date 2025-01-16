@@ -17,8 +17,9 @@ public:
 
 public slots:
 	void delayedInitialization();
+	void tableContextMenu(QPoint pos);
 
-	void test_apiConsent();
+	void updateConsentData();
 	void test_apiPseudo();
 	void test_apiReCapCaseManagement();
 
@@ -26,8 +27,18 @@ private:
 	Ui::MVHub ui_;
 	DelayedInitializationTimer delayed_init_;
 
+	//clear output panel on bottom
 	void clearOutput(QObject* sender);
+	//load samples in Modellvorhaben from NGSD
 	void loadSamplesFromNGSD();
+	//annotate consent data of sample
+
+	//get SAP patient ID for processed sample. Empty string if not available.
+	QString getSAP(QString ps);
+
+	//get consent status of patient. Empty string if not available.
+	QString getConsent(QString ps, bool debug);
+
 
 	//creates JSON input for pseudonymization
 	static QByteArray jsonDataPseudo(QByteArray str);
