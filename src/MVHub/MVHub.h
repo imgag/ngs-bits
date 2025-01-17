@@ -34,10 +34,11 @@ private:
 	//annotate consent data of sample
 
 	//get SAP patient ID for processed sample. Empty string if not available.
-	QString getSAP(QString ps);
+	QString getSAP(QString ps, bool padded);
 
 	//get consent status of patient. Empty string if not available.
 	QString getConsent(QString ps, bool debug);
+	static QByteArray parseConsentJson(QByteArray json_text);
 
 
 	//creates JSON input for pseudonymization

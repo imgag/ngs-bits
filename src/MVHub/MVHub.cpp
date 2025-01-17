@@ -57,6 +57,9 @@ void MVHub::updateConsentData()
 		QTableWidgetItem* item = GUIHelper::createTableItem(consent);
 		ui_.table->setItem(r, c_consent, item);
 	}
+
+	ui_.table->resizeColumnToContents(c_consent);
+	ui_.table->resizeRowsToContents();
 }
 
 void MVHub::loadSamplesFromNGSD()
@@ -128,7 +131,7 @@ void MVHub::loadSamplesFromNGSD()
 
 }
 
-QString MVHub::getSAP(QString ps)
+QString MVHub::getSAP(QString ps, bool padded)
 {
 	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
 
@@ -136,7 +139,9 @@ QString MVHub::getSAP(QString ps)
 	{
 		if (ui_.table->item(r,0)->text()==ps)
 		{
-			return ui_.table->item(r,c_sap)->text();
+			QString id = ui_.table->item(r,c_sap)->text();
+			while (padded && id.size()<10) id.prepend('0');
+			return id;
 		}
 	}
 
@@ -237,26 +242,26 @@ QString MVHub::getConsent(QString ps, bool debug)
 			if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
 			token = parts[3];
-			ui_.output->appendPlainText("Token: "+ token);
+			if (debug) ui_.output->appendPlainText("Token: "+ token);
 		}
 
 		//get consent
 		ui_.output->appendPlainText("Getting consent for "+ps+"...");
-		QString sap_id = getSAP(ps);
+		QString sap_id = getSAP(ps, true);
 		HttpHeaders headers2;
 		headers2.insert("Authorization", "Bearer "+token);
 		QString url = test_server ? "https://tc-t.med.uni-tuebingen.de:8443/fhir/Consent" : "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent";
+		url += "?patient.identifier="+sap_id;
 		HttpHandler handler(true);
-		QByteArray reply = handler.get(url+"?patient.identifier="+sap_id, headers2);
+		QByteArray reply = handler.get(url, headers2);
 		if (debug)
 		{
+			ui_.output->appendPlainText("URL:" + url);
 			ui_.output->appendPlainText("SAP ID:" + sap_id);
 			ui_.output->appendPlainText("Consent:" + reply);
 		}
 
-		//TODO parse for research use: MDAT_wissenschaftlich_nutzen_EU_DSGVO_NIVEAU
-
-		return reply;
+		return parseConsentJson(reply);
 	}
 	catch (Exception& e)
 	{
@@ -265,6 +270,46 @@ QString MVHub::getConsent(QString ps, bool debug)
 	}
 
 	return "";
+}
+
+QByteArray MVHub::parseConsentJson(QByteArray json_text)
+{
+	QByteArrayList output;
+
+	QJsonDocument doc = QJsonDocument::fromJson(json_text);
+	QJsonArray entries = doc.object()["entry"].toArray();
+	for (int i=0; i<entries.count(); ++i)
+	{
+		QJsonObject object = entries[i].toObject();
+		if (!object.contains("resource")) continue;
+
+		object = object["resource"].toObject();
+		if (!object.contains("resourceType")) continue;
+		if (object["resourceType"].toString()!="Consent") continue;
+
+		QByteArray status = object["status"].toString().toLatin1();
+		QByteArray date = object["dateTime"].toString().left(10).toLatin1();
+		QByteArrayList allowed;
+		QJsonArray provisions = object["provision"].toObject()["provision"].toArray();
+		for (int i=0; i<provisions.count(); ++i)
+		{
+			QJsonObject object = provisions[i].toObject();
+
+			if (!object.contains("type")) continue;
+			if (object["type"].toString()!="permit") continue;
+
+			foreach(QJsonValue v, object["code"].toArray())
+			{
+				foreach(QJsonValue v2, v.toObject()["coding"].toArray())
+				{
+					allowed << v2.toObject()["display"].toString().toLatin1();
+				}
+			}
+		}
+
+		output << (date+"/"+status+": "+allowed.join(", "));
+	}
+	return output.join("\n");
 }
 
 void MVHub::test_apiPseudo()
