@@ -124,7 +124,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### VCF tools (small variants)
 
-* [VcfAdd](doc/tools/VcfAdd.md) - Appends variants from a VCF file to another VCF file.
+* [VcfAdd](doc/tools/VcfAdd.md) - Merges several VCF files into one VCF by appending one to the other.
 * [VcfAnnotateConsequence](doc/tools/VcfAnnotateConsequence.md) - Adds transcript-specific consequence predictions to a VCF file (similar to Ensembl VEP).
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
@@ -137,7 +137,6 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
-* [VcfMerge](doc/tools/VcfMerge.md) - Merges several VCF files into one VCF.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
 * [VcfStrip](doc/tools/VcfStrip.md) - Removes unwanted information from a VCF file
