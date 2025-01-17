@@ -178,16 +178,19 @@ public:
 		out_p->close();
 		delete[] buffer;
 
-		//Statistics output
-		QTextStream stream(stdout);
-		stream << "Variants written: " << c_written << endl;
-		if (skip_duplicates)
+		//statistics output (only if VCF output does not go to stdout)
+		if (out!="")
 		{
-			stream << "Duplicate variants skipped: " << c_dup  << endl;
-		}
-		if (filter_used)
-		{
-			stream << "Filter entries added to variants: " << c_filter << endl;
+			QTextStream stream(stdout);
+			stream << "Variants written: " << c_written << endl;
+			if (skip_duplicates)
+			{
+				stream << "Duplicate variants skipped: " << c_dup  << endl;
+			}
+			if (filter_used)
+			{
+				stream << "Filter entries added to variants: " << c_filter << endl;
+			}
 		}
 	}
 };
