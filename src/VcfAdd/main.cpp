@@ -18,7 +18,7 @@ public:
 	{
 		setDescription("Merges several VCF files into one VCF by appending one to the other.");
 		setExtendedDescription(QStringList() << "Variant lines from all other input files are appended to the first input file." << "VCF header lines are taken from the first input file only.");
-		addInfileList("in", "Input VCF files to merge.", false);
+		addInfileList("in", "Input VCF ro VCG.GZ files to merge.", false);
 
 		//optional
 		addOutfile("out", "Output VCF file with all variants.", true);
@@ -26,7 +26,7 @@ public:
 		addString("filter_desc", "Description used in the filter header - use underscore instead of spaces.", true);
 		addFlag("skip_duplicates", "Skip variants if they occur more than once.");
 
-		//TODO Marc: add gzip support > remove VcfMerge in ngs-bits and megSAP
+		changeLog(2025,  1, 17, "Added support for gzipped VCFs and removing duplicates if there is only one input file.");
 		changeLog(2022, 12,  8, "Initial implementation.");
 	}
 
@@ -48,10 +48,13 @@ public:
 		bool filter_used = !filter.isEmpty();
 		bool skip_duplicates = getFlag("skip_duplicates");
 
-		//variables to store infos from 'in'
+		//variables to store infos
 		int column_count = -1;
 		QSet<QByteArray> filters_defined;
 		QSet<QByteArray> vars;
+		bool is_first = true;
+		const int buffer_size = 1048576; //1MB buffer
+		char* buffer = new char[buffer_size];
 		
 		//counts
 		int c_written = 0;
@@ -59,19 +62,45 @@ public:
 		int c_filter = 0;
 
 		//copy in to out
-		for (int i=0; i<in_files.count();++i)
+		foreach(QString in, in_files)
 		{
-			QSharedPointer<QFile> in_p = Helper::openFileForReading(in_files[i], true);
-			while (!in_p->atEnd())
+			FILE* instream = fopen(in.toUtf8().data(), "rb");
+			if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
+			gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
+			if (file==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
+
+			while(!gzeof(file))
 			{
-				bool is_first = (i==0);
-				QByteArray line = in_p->readLine();
+				char* char_array = gzgets(file, buffer, buffer_size);
+				//handle errors like truncated GZ file
+				if (char_array==nullptr)
+				{
+					int error_no = Z_OK;
+					QByteArray error_message = gzerror(file, &error_no);
+					if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+					{
+						THROW(FileParseException, "Error while reading file '" + in + "': " + error_message);
+					}
+
+					continue;
+				}
+
+				//determine end of read line
+				int i=0;
+				while(i<buffer_size && char_array[i]!='\0' && char_array[i]!='\n' && char_array[i]!='\r')
+				{
+					++i;
+				}
+
+				QByteArray line = QByteArray::fromRawData(char_array, i);
 				while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
 				//skip empty lines
 				if (line.isEmpty()) continue;
 
-				QByteArrayList parts = line.split('\t');
+				//split line to tab-separated parts if we need it
+				QByteArrayList parts;
+				if(skip_duplicates || filter_used || (line[0]=='#' && !line.startsWith("##"))) parts = line.split('\t');
 
 				//header lines
 				if (line[0]=='#')
@@ -88,7 +117,7 @@ public:
 						if (!line.startsWith("##"))
 						{
 							//store column count
-							column_count = line.split('\t').count();
+							column_count = parts.count();
 
 							//add filter header if missing
 							if (filter_used && !filters_defined.contains(filter))
@@ -99,19 +128,15 @@ public:
 						out_p->write(line);
 						out_p->write("\n");
 					}
-					else
+					else if (!line.startsWith("##")) //check number of columns matches in all other files
 					{
-						if (!line.startsWith("##"))
-						{
-							if (parts.count()!=column_count) THROW(ArgumentException, "VCF files with differing column count cannot be combined! First file has " + QString::number(column_count) + " columns, but second as " + QString::number(parts.count()) + " columns!");
-						}
-						continue;
+						if (parts.count()!=column_count) THROW(ArgumentException, "VCF files with differing column count cannot be combined! First file has " + QString::number(column_count) + " columns, but second as " + QString::number(parts.count()) + " columns!");
 					}
 
 					continue;
 				}
 
-				//content lines
+				//skip duplicate variants
 				if (skip_duplicates)
 				{
 					QByteArray tag = parts[VcfFile::CHROM] + '\t' + parts[VcfFile::POS] + '\t' + parts[VcfFile::REF] + '\t' + parts[VcfFile::ALT];
@@ -144,19 +169,25 @@ public:
 				out_p->write(line);
 				out_p->write("\n");
 			}
-			in_p->close();
+			gzclose(file);
+
+			is_first = false;
 		}
+
+		//clean up
+		out_p->close();
+		delete[] buffer;
 
 		//Statistics output
 		QTextStream stream(stdout);
 		stream << "Variants written: " << c_written << endl;
-		if (filter_used)
-		{
-			stream << "Filter entries added to variants: " << c_filter << endl;
-		}
 		if (skip_duplicates)
 		{
 			stream << "Duplicate variants skipped: " << c_dup  << endl;
+		}
+		if (filter_used)
+		{
+			stream << "Filter entries added to variants: " << c_filter << endl;
 		}
 	}
 };
