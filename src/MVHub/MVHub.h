@@ -44,7 +44,7 @@ private:
 	//creates JSON input for pseudonymization
 	static QByteArray jsonDataPseudo(QByteArray str);
 	//parses JSON output of pseudonymization
-	static QByteArray parseJsonDataPseudo(QByteArray reply);
+	QByteArray parseJsonDataPseudo(QByteArray reply, QByteArray context);
 };
 
 #endif // MVHUB_H

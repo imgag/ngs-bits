@@ -168,7 +168,7 @@ QByteArray MVHub::jsonDataPseudo(QByteArray str)
 			"}";
 }
 
-QByteArray MVHub::parseJsonDataPseudo(QByteArray reply)
+QByteArray MVHub::parseJsonDataPseudo(QByteArray reply, QByteArray context)
 {
 	QJsonDocument doc = QJsonDocument::fromJson(reply);
 	QJsonArray entries = doc.object()["entry"].toArray();
@@ -181,19 +181,36 @@ QByteArray MVHub::parseJsonDataPseudo(QByteArray reply)
 		if (!object.contains("resourceType")) continue;
 		if (object["resourceType"].toString()!="Encounter") continue;
 
-		QByteArray encrypted = QByteArray::fromBase64(object["identifier"].toArray()[0].toObject()["value"].toString().toLatin1());
-
+		//get base64-encoded string from results
+		QByteArray str_base64 = object["identifier"].toArray()[0].toObject()["value"].toString().toLatin1().trimmed();
+		ui_.output->appendPlainText("base64-encoded reply: " + str_base64);
 
 		/*
-		with open(private_key_file, "rb") as f:
-			   rsa_private_key = RSA.importKey(f.read())
-			   rsa_private_key = PKCS1_v1_5.new(rsa_private_key)
-			   sentinel = get_random_bytes(16)
-			   return rsa_private_key.decrypt(base64.b64decode(enc_msg), sentinel).decode('utf-8')
+		QFile file2("T:\\users\\ahsturm1\\scripts\\2024_05_06_MVH\\encrypted_base64.txt");
+		file2.open(QIODevice::WriteOnly);
+		file2.write(str_base64);
+		file2.close();
+
+		QByteArray encrypted = QByteArray::fromBase64(str_base64);
+		QFile file3("T:\\users\\ahsturm1\\scripts\\2024_05_06_MVH\\encrypted.txt");
+		file3.open(QIODevice::WriteOnly);
+		file3.write(encrypted);
+		file3.close();
 		*/
 
+		//use webserice to decrypt (not easy in C++)
+		QString url = Settings::string("pseudo_decrypt_webservice");
 
-		return encrypted;
+		QFile file(Settings::string("pseudo_key_"+context));
+		file.open(QIODevice::ReadOnly);
+		QByteArray data = file.readAll();
+		file.close();
+
+		ui_.output->appendPlainText("base64-encoded key: " +data.toBase64());
+		HttpHandler handler(true);
+		QByteArray reply = handler.post(url, "input="+str_base64+"&key="+data.toBase64());
+
+		return reply;
 	}
 
 	THROW(ArgumentException, "Could not parse JSON for pseudonymization: " + reply);
@@ -364,7 +381,7 @@ void MVHub::test_apiPseudo()
 			HttpHandler handler(false);
 			QByteArray data =  jsonDataPseudo(str);
 			QByteArray reply = handler.post(url, data, headers);
-			pseudo1 = parseJsonDataPseudo(reply);
+			pseudo1 = parseJsonDataPseudo(reply, "T_F");
 		}
 		ui_.output->appendPlainText("Pseudonym 1: " + pseudo1);
 
