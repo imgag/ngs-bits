@@ -42,6 +42,9 @@
     </property>
     <item>
      <widget class="QTabWidget" name="tabs">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>

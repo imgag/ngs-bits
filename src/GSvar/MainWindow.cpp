@@ -217,6 +217,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(0, 10);
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+	connect(ui_.tabs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tabContextMenu(QPoint)));
 
 	// add rna menu
 	rna_menu_btn_ = new QToolButton();
@@ -2368,10 +2369,7 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 		connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
 		connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 		int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, type, widget);
-		if (Settings::boolean("debug_mode_enabled"))
-		{
-			ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
-		}
+		ui_.tabs->tabBar()->setTabData(index, ps_id);
 	}
 	catch (Exception& e)
 	{
@@ -2398,10 +2396,7 @@ void MainWindow::openRunTab(QString run_name)
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
 	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, type, widget);
-	if (Settings::boolean("debug_mode_enabled"))
-	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + run_id);
-	}
+	ui_.tabs->tabBar()->setTabData(index, run_id);
 }
 
 void MainWindow::openGeneTab(QString symbol)
@@ -2418,10 +2413,7 @@ void MainWindow::openGeneTab(QString symbol)
 
 	GeneWidget* widget = new GeneWidget(this, symbol.toUtf8());
 	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, type, widget);
-	if (Settings::boolean("debug_mode_enabled"))
-	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneId(symbol.toUtf8())));
-	}
+	ui_.tabs->tabBar()->setTabData(index, QString::number(NGSD().geneId(symbol.toUtf8())));
 }
 
 void MainWindow::openVariantTab(Variant variant)
@@ -2439,12 +2431,7 @@ void MainWindow::openVariantTab(Variant variant)
 		//open tab
 		VariantWidget* widget = new VariantWidget(variant, this);
 		int index = openTab(QIcon(":/Icons/NGSD_variant.png"), name, type, widget);
-
-		//add database id
-		if (Settings::boolean("debug_mode_enabled"))
-		{
-			ui_.tabs->setTabToolTip(index, "NGSD ID: " + v_id);
-		}
+		ui_.tabs->tabBar()->setTabData(index, v_id);
 	}
 	catch(Exception& e)
 	{
@@ -2468,10 +2455,7 @@ void MainWindow::openProcessingSystemTab(QString system_name)
 
 	ProcessingSystemWidget* widget = new ProcessingSystemWidget(this, sys_id);
 	int index = openTab(QIcon(":/Icons/NGSD_processing_system.png"), name, type, widget);
-	if (Settings::boolean("debug_mode_enabled"))
-	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(sys_id));
-	}
+	ui_.tabs->tabBar()->setTabData(index, QString::number(sys_id));
 }
 
 void MainWindow::openProjectTab(QString name)
@@ -2481,10 +2465,7 @@ void MainWindow::openProjectTab(QString name)
 
 	ProjectWidget* widget = new ProjectWidget(this, name);
 	int index = openTab(QIcon(":/Icons/NGSD_project.png"), name, type, widget);
-	if (Settings::boolean("debug_mode_enabled"))
-	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + NGSD().getValue("SELECT id FROM project WHERE name=:0", true, name).toString());
-	}
+	ui_.tabs->tabBar()->setTabData(index, NGSD().getValue("SELECT id FROM project WHERE name=:0", true, name).toString());
 }
 
 int MainWindow::openTab(QIcon icon, QString name, TabType type, QWidget* widget)
@@ -2550,6 +2531,37 @@ bool MainWindow::focusTab(TabType type, QString name)
 	}
 
 	return false;
+}
+
+void MainWindow::tabContextMenu(QPoint pos)
+{
+	int index = ui_.tabs->tabBar()->tabAt(pos);
+	QString data = ui_.tabs->tabBar()->tabData(index).toString();
+
+	// create menu
+	QMenu menu(ui_.tabs);
+	QAction* a_copy_text = menu.addAction("Copy text");
+	a_copy_text->setEnabled(index!=-1);
+	QAction* a_copy_id = menu.addAction("Copy NGSD id");
+	a_copy_id->setEnabled(index!=-1 && !data.isEmpty());
+
+	// execute menu
+	QAction* action = menu.exec(ui_.tabs->mapToGlobal(pos));
+	if (action == nullptr) return;
+
+	// execute
+	if (action==a_copy_text)
+	{
+		QApplication::clipboard()->setText(ui_.tabs->tabText(index));
+	}
+	else if (action==a_copy_id)
+	{
+		QApplication::clipboard()->setText(data);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
+	}
 }
 
 void MainWindow::on_actionChangeLog_triggered()
