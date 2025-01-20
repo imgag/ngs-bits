@@ -1,5 +1,12 @@
 # GSvar change log
 
+## 2024_11-86 (20.01.25)
+
+- general: renamed class 'R*' to 'R' (changed in HerediCare and HerediVar)
+- general: improved opening QC files from GSvarServer
+- variant details: updated allOfUs variant URL
+- NGSD: Added device type 'Revio'
+
 ## 2024_11-50 (07.01.25)
 
 - general: added sample counts dialog (NGSD > Sample counts)
