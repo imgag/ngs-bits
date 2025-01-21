@@ -314,6 +314,12 @@ void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& va
 
 QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 {
+	int actual_pos = 0;
+	return extractBaseByCIGAR(pos, actual_pos);
+}
+
+QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int& actual_pos)
+{
 	int read_pos = 0;
 	int genome_pos = start()-1;
 
@@ -366,7 +372,7 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 
 		if (genome_pos>=pos)
 		{
-			int actual_pos = read_pos - (genome_pos + 1 - pos);
+			actual_pos = read_pos - (genome_pos + 1 - pos);
 			return qMakePair(base(actual_pos), quality(actual_pos));
 		}
 	}
@@ -394,7 +400,7 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 	foreach(const CigarOp& op, cigar_data)
 	{
 		//update positions
-		if (op.Type==BAM_CMATCH) //match or mismatch
+		if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF) //match or mismatch
 		{
 			genome_pos += op.Length;
 			read_pos += op.Length;
@@ -801,7 +807,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 		foreach(const CigarOp& op, cigar_data2)
 		{
 			//update positions
-			if (op.Type==BAM_CMATCH)
+			if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF)
 			{
 				genome_pos += op.Length;
 				read_pos += op.Length;
