@@ -199,7 +199,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -697,7 +697,7 @@ CREATE  TABLE IF NOT EXISTS `variant_classification`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `variant_id` INT(11) NOT NULL,
-  `class` ENUM('n/a','1','2','3','4','5','M','R*') NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M','R') NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
 UNIQUE KEY `fk_variant_classification_has_variant` (`variant_id`),
@@ -1862,7 +1862,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
   `cnv_id` INT(11) UNSIGNED NOT NULL,
   `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
   `causal` BOOLEAN NOT NULL,
-  `class` ENUM('n/a','1','2','3','4','5','M','R*') NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M','R') NOT NULL,
   `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
   `de_novo` BOOLEAN NOT NULL,
   `mosaic` BOOLEAN NOT NULL,
@@ -2069,7 +2069,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
   `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
   `causal` BOOLEAN NOT NULL,
-  `class` ENUM('n/a','1','2','3','4','5','M','R*') NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M','R') NOT NULL,
   `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
   `de_novo` BOOLEAN NOT NULL,
   `mosaic` BOOLEAN NOT NULL,

@@ -38,9 +38,9 @@
      <number>6</number>
     </property>
     <item row="0" column="0">
-     <widget class="QPushButton" name="api_consent">
+     <widget class="QPushButton" name="update_consent">
       <property name="text">
-       <string>API Consent</string>
+       <string>update consent data</string>
       </property>
      </widget>
     </item>
@@ -91,6 +91,9 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QTableWidget" name="table">
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="selectionMode">
         <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
@@ -125,6 +128,11 @@
        <column>
         <property name="text">
          <string>Netzwerk</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Consent</string>
         </property>
        </column>
       </widget>

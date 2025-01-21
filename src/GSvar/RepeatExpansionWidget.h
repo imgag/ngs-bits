@@ -33,6 +33,8 @@ protected:
 	///Returns the text value of a cell.
 	QString getCell(int row, QString column);
 	QString getRepeatId(NGSD& db, int row, bool throw_if_fails=true);
+    //Returns a value from RE table by ID
+    QString getRepeatExpansionFieldById(DBTable& table_data, QString field, QString& id);
 
 	///Sets the cell decoration
 	void setCellDecoration(int row, QString column, QString tooltip, QColor bg_color=QColor());

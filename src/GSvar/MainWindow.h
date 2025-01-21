@@ -440,6 +440,8 @@ public slots:
 	void closeTab(int index);
 	///Focus tab based on type and name. Returns if a tab was found and focused.
 	bool focusTab(TabType type, QString name);
+	///Show context menu of tab
+	void tabContextMenu(QPoint pos);
 
 	///Edits the variant configuration for the variant with the given index
 	void editVariantReportConfiguration(int index);
