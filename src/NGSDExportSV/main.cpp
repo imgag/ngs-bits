@@ -233,7 +233,7 @@ public:
 			QStringList disease_groups = db.getEnum("sample", "disease_group");
 			for(int i = 0; i < disease_groups.size(); i++)
 			{
-				out << "##INFO=<ID=GSC" << QByteArray::number(i + 1).rightJustified(2, '0') << ",Number=2,Type=Integer,Description=\"" << "Homozygous/Heterozygous variant counts in NGSD for " << disease_groups[i].toLower() << ".\">\n";
+				out << "##INFO=<ID=GSC" << QByteArray::number(i + 1).rightJustified(2, '0') << ",Number=1,Type=String,Description=\"" << "Disease group: " << disease_groups[i].toLower() << ".\">\n";
 			}
 
 			//write header
