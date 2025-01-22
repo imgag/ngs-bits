@@ -1485,7 +1485,7 @@ FilterClassificationNGSD::FilterClassificationNGSD()
 	description_ = QStringList() << "Filter for variant classification from NGSD.";
 
 	params_ << FilterParameter("classes", FilterParameterType::STRINGLIST, QStringList() << "4" << "5", "NGSD classes");
-	params_.last().constraints["valid"] = "1,2,3,4,5,M,R*";
+	params_.last().constraints["valid"] = "1,2,3,4,5,M,R";
 	params_.last().constraints["not_empty"] = "";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER,REMOVE";

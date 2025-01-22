@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2024_11-59-ge0a7288e)
+	VariantFilterAnnotations (2024_11-86-g94c45dea)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -27,7 +27,7 @@
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER]
 	Classification NGSD                Filter for variant classification from NGSD.
 	                                   Parameters:
-	                                     classes - NGSD classes [default=4,5] [valid=1,2,3,4,5,M,R*] [non-empty]
+	                                     classes - NGSD classes [default=4,5] [valid=1,2,3,4,5,M,R] [non-empty]
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER,REMOVE]
 	Column match                       Filter that matches the content of a column against a perl-compatible regular expression.
 	                                   For details about regular expressions, see http://perldoc.perl.org/perlretut.html
@@ -183,7 +183,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2024_11-59-ge0a7288e
+	VariantFilterAnnotations 2024_11-86-g94c45dea
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

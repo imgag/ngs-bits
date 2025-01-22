@@ -509,7 +509,7 @@ void MaintenanceDialog::importPatientIDs()
 	while(query.next())
 	{
 		QString ps = query.value("ps").toString();
-		if (i%500==0) appendOutputLine("progressed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
+		if (i%500==0) appendOutputLine("processed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
 		++i;
 
 		QString patient_id = genlab.patientIdentifier(ps).trimmed();
@@ -566,7 +566,7 @@ void MaintenanceDialog::importOrderAndSamplingDate()
 		QString order_date = query.value("order_date").toDate().toString(Qt::ISODate);
 		QString sampling_date = query.value("sampling_date").toDate().toString(Qt::ISODate);
 
-		if (i%500==0) appendOutputLine("progressed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
+		if (i%500==0) appendOutputLine("processed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
 		++i;
 
 		if (!order_date.isEmpty() || !sampling_date.isEmpty())
@@ -607,6 +607,73 @@ void MaintenanceDialog::importOrderAndSamplingDate()
 	appendOutputLine("Skipped because at least one of the dates is already in NGSD: " + QString::number(c_already_in_ngsd));
 	appendOutputLine("Skipped because sample was not found in GenLab: " + QString::number(c_not_in_genlab));
 	appendOutputLine("Imported one/two dates for samples: " + QString::number(c_imported));
+}
+
+void MaintenanceDialog::importSampleRelations()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	GenLabDB genlab;
+
+	int c_already_in_ngsd = 0;
+	int c_not_in_genlab = 0;
+	int c_imported = 0;
+
+	//import
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.id as sample_id, s.order_date, s.sampling_date FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
+
+	int i = 0;
+	while(query.next())
+	{
+		QString ps = query.value("ps").toString();
+		QString s_id = query.value("sample_id").toString();
+
+		if (i%500==0) appendOutputLine("processed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples - added: " + QString::number(c_imported) + " - skipped because already present: " + QString::number(c_already_in_ngsd));
+		++i;
+
+		QString patient_id = genlab.patientIdentifier(ps).trimmed();
+		if (patient_id.isEmpty())
+		{
+			++c_not_in_genlab;
+			continue;
+		}
+
+		//relatives patient relations (parents, siblings)
+		foreach (const SampleRelation& genlab_relation, genlab.relatives(ps))
+		{
+			QSet<int> sample_ids_ngsd = db.relatedSamples(s_id.toInt(), genlab_relation.relation);
+			int sample2_id = db.sampleId(genlab_relation.sample1).toInt();
+
+			if (!sample_ids_ngsd.contains(sample2_id))
+			{
+
+				appendOutputLine(ps + ": adding relation: " + genlab_relation.sample1 + " - " + genlab_relation.relation + " - " + genlab_relation.sample2);
+
+				SqlQuery insert = db.getQuery();
+				insert.prepare("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0, :1, :2)");
+				insert.bindValue(0, db.sampleId(genlab_relation.sample1));
+				insert.bindValue(1, genlab_relation.relation);
+				insert.bindValue(2, db.sampleId(genlab_relation.sample2));
+				insert.exec();
+
+				++c_imported;
+			}
+			else
+			{
+				++c_already_in_ngsd;
+			}
+		}
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//output
+	appendOutputLine("");
+	appendOutputLine("Skipped because sample was not found in GenLab: " + QString::number(c_not_in_genlab));
+	appendOutputLine("Skipped because relation is already in NGSD: " + QString::number(c_already_in_ngsd));
+	appendOutputLine("Imported relations: " + QString::number(c_imported));
 }
 
 void MaintenanceDialog::linkSamplesFromSamePatient()
