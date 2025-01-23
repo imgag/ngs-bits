@@ -92,7 +92,7 @@ public:
 				if (normal_ps == "") THROW(ArgumentException, "No normal sample set for tumor: " + tumor_ps);
 				if (normal_ps != row[idx_normal_name]) THROW(ArgumentException, "The set normal sample in NGSD is a different one compared to the given normale sample. Given: " + row[idx_normal_name] + ", in NGSD set: " + normal_ps);
 
-				QString rna_ps = db.rna(tumor_ps);
+				QString rna_ps = db.rna(tumor_id, false);
 
 				qDebug() << "\trna: " << rna_ps;
 
