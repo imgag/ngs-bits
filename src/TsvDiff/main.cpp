@@ -201,7 +201,7 @@ public:
 		int m_;
 	};
 
-	//TODO Marc: use non-recursive function to allow more than 40000 lines
+	//TODO Marc: use non-recursive function to allow more than 40000 lines: https://www.geeksforgeeks.org/longest-common-subsequence-dp-4/
 	//build matrix for dynamic programming
 	template<typename T>
 	long buildMatrix(const T& s1, const T& s2, int i, int j, Matrix& m, const CompSettings& comp_settings)
