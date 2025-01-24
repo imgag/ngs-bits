@@ -3,6 +3,8 @@
 #include "Exceptions.h"
 #include "Helper.h"
 
+//TODO Marc: speed-up comparisons (remove columns not compared and use ==//use hash of strings to compare pointers only); implement space-optimized version as in https://www.geeksforgeeks.org/space-optimized-solution-lcs/
+
 template<typename T>
 QString stringRepresentation(const T& element)
 {
@@ -39,20 +41,16 @@ bool is_equal(const QStringList& a, const QStringList& b, const CompSettings& co
 	{
 		const QString& str1 = a[indices.i1];
 		const QString& str2 = b[indices.i2];
-		if (str1!=str2)
+		if (str1==str2) continue;
+
+		if (comp_settings.diff_abs.contains(indices.col))
 		{
-			bool num_equal = false;
-			if (Helper::isNumeric(str1) && Helper::isNumeric(str2))
-			{
-				double diff = abs(str1.toDouble()-str2.toDouble());
-				if (comp_settings.diff_abs.contains(indices.col))
-				{
-					double max_diff  = comp_settings.diff_abs[indices.col];
-					if (diff<=max_diff) num_equal = true;
-				}
-			}
-			if (!num_equal) return false;
+			bool ok1 = false;
+			bool ok2 = false;
+			double diff = abs(str1.toDouble(&ok1)-str2.toDouble(&ok2));
+			if (!ok1 || !ok2 || diff>comp_settings.diff_abs[indices.col]) return false;
 		}
+		else return false;
 	}
 	return true;
 }
@@ -118,20 +116,10 @@ public:
 			: n_(n)
 			, m_(m)
 		{
-			QVector<long> tmp(m+1, -1);
-			tmp[0] = 0;
-
 			data_.reserve(n+1);
 			for(int i=0; i<=n; ++i)
 			{
-				if (i==0)
-				{
-					data_.append(QVector<long>(m+1, 0));
-				}
-				else
-				{
-					data_.append(tmp);
-				}
+				data_.append(QVector<long>(m+1, 0));
 			}
 		}
 
@@ -201,26 +189,25 @@ public:
 		int m_;
 	};
 
-	//TODO Marc: use non-recursive function to allow more than 40000 lines: https://www.geeksforgeeks.org/longest-common-subsequence-dp-4/
-	//build matrix for dynamic programming
+	//fill matrix with values
 	template<typename T>
-	long buildMatrix(const T& s1, const T& s2, int i, int j, Matrix& m, const CompSettings& comp_settings)
+	void fillMatrix(const T& s1, const T& s2, Matrix& matrix, const CompSettings& comp_settings)
 	{
-		//already calculated > return value
-		long v = m.value(i,j);
-		if (v!=-1) return v;
-
-		if (is_equal(s1[i-1], s2[j-1], comp_settings))
+		for (int i = 1; i <= matrix.n(); ++i)
 		{
-			v = 1 + buildMatrix(s1, s2, i-1, j-1, m, comp_settings);
+			//if (i%10000==0) QTextStream(stderr) << QDateTime::currentDateTime().toString(Qt::ISODate) << " " << i << endl;
+			for (int j = 1; j <= matrix.m(); ++j)
+			{
+				if (is_equal(s1[i-1], s2[j-1], comp_settings))
+				{
+					matrix.setValue(i, j, matrix.value(i-1, j-1) + 1);
+				}
+				else
+				{
+					matrix.setValue(i, j, std::max(matrix.value(i-1, j), matrix.value(i, j-1)));
+				}
+			}
 		}
-		else
-		{
-			v = std::max(buildMatrix(s1, s2, i-1, j, m, comp_settings), buildMatrix(s1, s2, i, j-1, m, comp_settings));
-		}
-
-		m.setValue(i, j, v);
-		return v;
 	}
 
 	template<typename T>
@@ -250,12 +237,15 @@ public:
 		}
 
 		//determine LCS
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " building matrix..." << endl;
 		Matrix matrix(n, m);
-		buildMatrix(lines1, lines2, n, m, matrix, comp_settings);
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " filling matrix..." << endl;
+		fillMatrix(lines1, lines2, matrix, comp_settings);
 		if (debug)
 		{
 			matrix.print(estream);
 		}
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " determining matching pairs..." << endl;
 		QList<QPair<int, int>> matches = matrix.findMatchIndices();
 		if (debug)
 		{
@@ -336,10 +326,10 @@ public:
 		QTextStream estream(stderr);
 
 		//load files
-		if (debug) estream << "Loading file 1.." << endl;
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " Loading file 1.." << endl;
 		TsvFile in1;
 		in1.load(getInfile("in1"));
-		if (debug) estream << "Loading file 2.." << endl;
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " Loading file 2.." << endl;
 		TsvFile in2;
 		in2.load(getInfile("in2"));
 
@@ -385,12 +375,12 @@ public:
 			removeComments(in1, skip_comments_matching);
 			removeComments(in2, skip_comments_matching);
 
-			if (debug) estream << "Comparing comment lines.." << endl;
+			if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " Comparing comment lines.." << endl;
 			compare(in1.comments(), in2.comments(), ostream, summary_comments, comp_settings, debug);
 		}
 
 		//compare content lines
-		if (debug) estream << "Comparing content lines.." << endl;
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " Comparing content lines.." << endl;
 		compare(in1, in2, ostream, summary_content, comp_settings, debug);
 
 		//output
