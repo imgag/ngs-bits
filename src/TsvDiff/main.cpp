@@ -2,8 +2,9 @@
 #include "TsvFile.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "BasicStatistics.h"
 
-//TODO Marc: speed-up comparisons (remove columns not compared and use ==//use hash of strings to compare pointers only); implement space-optimized version as in https://www.geeksforgeeks.org/space-optimized-solution-lcs/
+//TODO Marc: implement space-optimized version as in https://asawicki.info/news_1416_my_implementation_of_diff_algorithm
 
 template<typename T>
 QString stringRepresentation(const T& element)
@@ -25,8 +26,7 @@ struct IndexPair
 
 struct CompSettings
 {
-	QList<IndexPair> comp_indices;
-	QHash<QString, double> diff_abs;
+	QHash<int, double> diff_abs;
 };
 
 template<typename T>
@@ -37,18 +37,16 @@ bool is_equal(const T& a, const T& b, const CompSettings& /*comp_settings*/)
 template<>
 bool is_equal(const QStringList& a, const QStringList& b, const CompSettings& comp_settings)
 {
-	foreach(const IndexPair& indices, comp_settings.comp_indices)
+	for(int i=0; i<a.count(); ++i)
 	{
-		const QString& str1 = a[indices.i1];
-		const QString& str2 = b[indices.i2];
-		if (str1==str2) continue;
+		if (a[i]==b[i]) continue;
 
-		if (comp_settings.diff_abs.contains(indices.col))
+		if (comp_settings.diff_abs.contains(i))
 		{
 			bool ok1 = false;
 			bool ok2 = false;
-			double diff = abs(str1.toDouble(&ok1)-str2.toDouble(&ok2));
-			if (!ok1 || !ok2 || diff>comp_settings.diff_abs[indices.col]) return false;
+			double diff = abs( a[i].toDouble(&ok1)-b[i].toDouble(&ok2));
+			if (!ok1 || !ok2 || diff>comp_settings.diff_abs[i]) return false;
 		}
 		else return false;
 	}
@@ -80,7 +78,7 @@ public:
 		addString("comp", "Comma-separated list of columns to use for comparison (all other columns are ignored).", true);
 		addString("diff_abs", "Comma-separated list of column=difference tuples for defining maximum allowed numeric difference of columns.", true);
 		addFlag("no_error", "Do not exit with error state if differences are detected.");
-		addFlag("debug", "Print debug output to stderr");
+		addInt("debug", "Debug level (0=none, 1=basic, 2=extended", true, 0);
 	}
 
 	struct DiffSummary
@@ -195,7 +193,7 @@ public:
 	{
 		for (int i = 1; i <= matrix.n(); ++i)
 		{
-			//if (i%10000==0) QTextStream(stderr) << QDateTime::currentDateTime().toString(Qt::ISODate) << " " << i << endl;
+			if (i%10000==0) QTextStream(stderr) << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " " << i << endl;
 			for (int j = 1; j <= matrix.m(); ++j)
 			{
 				if (is_equal(s1[i-1], s2[j-1], comp_settings))
@@ -211,7 +209,7 @@ public:
 	}
 
 	template<typename T>
-	void compare(const T& lines1, const T& lines2, QTextStream& ostream, DiffSummary& summary, const CompSettings& comp_settings, bool debug)
+	void compare(const T& lines1, const T& lines2, QTextStream& ostream, DiffSummary& summary, const CompSettings& comp_settings, int debug)
 	{
 		QTextStream estream(stderr);
 		int n = lines1.count();
@@ -237,21 +235,22 @@ public:
 		}
 
 		//determine LCS
-		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " building matrix..." << endl;
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " building matrix..." << endl;
 		Matrix matrix(n, m);
-		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " filling matrix..." << endl;
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " filling matrix..." << endl;
 		fillMatrix(lines1, lines2, matrix, comp_settings);
-		if (debug)
+		if (debug==2)
 		{
 			matrix.print(estream);
 		}
-		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " determining matching pairs..." << endl;
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " determining matching pairs..." << endl;
 		QList<QPair<int, int>> matches = matrix.findMatchIndices();
-		if (debug)
+		if (debug==2)
 		{
 			estream << "Line index matches:" << endl;
 			foreach(auto m, matches) estream << m.first << "/" << m.second << endl;
 		}
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " printing output..." << endl;
 		
 		//special handling when there are no matches
 		if (matches.isEmpty())
@@ -320,53 +319,63 @@ public:
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream ostream(out.data());
 		bool no_error = getFlag("no_error");
-		bool debug = getFlag("debug");
+		int debug = BasicStatistics::bound(getInt("debug"), 0, 2);
 		DiffSummary summary_comments;
 		DiffSummary summary_content;
 		QTextStream estream(stderr);
+		QTime timer;
+		timer.start();
 
 		//load files
-		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " Loading file 1.." << endl;
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Loading file 1..." << endl;
 		TsvFile in1;
-		in1.load(getInfile("in1"));
-		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " Loading file 2.." << endl;
+		in1.load(getInfile("in1"), true);
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Loading file 2..." << endl;
 		TsvFile in2;
-		in2.load(getInfile("in2"));
+		in2.load(getInfile("in2"), true);
 
-		//deterine columns used for comparison
-		CompSettings comp_settings;
-		QStringList comp_cols = getString("comp").split(",");
-		comp_cols.removeAll("");
-		if (comp_cols.isEmpty()) //no comparison columns given > use all
+		//determine columns used for comperison
+		QSet<QString> comp_cols = getString("comp").split(",").toSet();
+		comp_cols.remove("");
+		if (comp_cols.isEmpty()) // "comp" not set => use all columns
 		{
-			foreach(const QString& col, in1.headers())
+			comp_cols = in1.headers().toSet() + in2.headers().toSet();
+		}
+		foreach(QString col, skip_cols)
+		{
+			comp_cols.remove(col);
+		}
+		if (!comp_cols.isEmpty())
+		{
+			if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Removing unused columns..." << endl;
+			for(int i=in1.columnCount()-1; i>=0; --i)
 			{
-				if (skip_cols.contains(col)) continue;
-				comp_cols << col;
+				if (!comp_cols.contains(in1.headers()[i]))
+				{
+					in1.removeColumn(i);
+				}
 			}
-			foreach(const QString& col, in2.headers())
+			for(int i=in2.columnCount()-1; i>=0; --i)
 			{
-				if (skip_cols.contains(col)) continue;
-				if (!comp_cols.contains(col)) comp_cols << col;
+				if (!comp_cols.contains(in2.headers()[i]))
+				{
+					in2.removeColumn(i);
+				}
 			}
 		}
-		foreach(QString col, comp_cols)
-		{
-			int i1 = in1.columnIndex(col, false);
-			if (i1==-1) THROW(Exception, "Could not find column '" + col + "' in 'in1'!");
-			int i2 = in2.columnIndex(col, false);
-			if (i2==-1) THROW(Exception, "Could not find column '" + col + "' in 'in2'!");
-			comp_settings.comp_indices << IndexPair{col, i1, i2};
-		}
+
+		//compare headers
+		if  (in1.headers()!=in2.headers()) THROW(Exception, "Cannot compare files with differing columns!\nin1: "+in1.headers().join(", ")+"\nin2: "+in2.headers().join(", ")+"");
 
 		//parse numeric difference
+		CompSettings comp_settings;
 		QStringList diff_abs = getString("diff_abs").split(",");
 		diff_abs.removeAll("");
 		foreach(QString entry, diff_abs)
 		{
 			QStringList parts = entry.split('=');
 			if (parts.count()!=2 || !Helper::isNumeric(parts[1])) THROW(Exception, "Absolute column difference entry '" + entry + "' not valid!");
-			comp_settings.diff_abs[parts[0]] = parts[1].toDouble();
+			comp_settings.diff_abs[in1.columnIndex(parts[0])] = parts[1].toDouble();
 		}
 
 		//compare comments
@@ -375,12 +384,12 @@ public:
 			removeComments(in1, skip_comments_matching);
 			removeComments(in2, skip_comments_matching);
 
-			if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " Comparing comment lines.." << endl;
+			if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Comparing comment lines..." << endl;
 			compare(in1.comments(), in2.comments(), ostream, summary_comments, comp_settings, debug);
 		}
 
 		//compare content lines
-		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODate) << " Comparing content lines.." << endl;
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Comparing content lines..." << endl;
 		compare(in1, in2, ostream, summary_content, comp_settings, debug);
 
 		//output
@@ -393,6 +402,8 @@ public:
 			if (summary_content.added) ostream << "content lines added: "  << summary_content.added << endl;
 			if (summary_content.removed) ostream << "content lines removed: "  << summary_content.removed << endl;
 		}
+
+		if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Overall runtime: " << Helper::elapsedTime(timer) << endl;
 
 		//set exit code
 		if (has_differences && !no_error)

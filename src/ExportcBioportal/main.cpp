@@ -169,13 +169,11 @@ public:
 		TsvFile attr_data;
 		attr_data.load(file);
 
-		QStringList headers = attr_data.headers();
-
-		int idx_attr_name = getIndex(headers, "name");
-		int idx_attr_db_name = getIndex(headers, "db_name");
-		int idx_desc = getIndex(headers, "description");
-		int idx_datatype = getIndex(headers, "datatype");
-		int idx_prio = getIndex(headers, "priority");
+		int idx_attr_name = attr_data.columnIndex("name");
+		int idx_attr_db_name = attr_data.columnIndex("db_name");
+		int idx_desc = attr_data.columnIndex("description");
+		int idx_datatype = attr_data.columnIndex("datatype");
+		int idx_prio = attr_data.columnIndex("priority");
 
 		for (int i=0; i<attr_data.count(); i++)
 		{
