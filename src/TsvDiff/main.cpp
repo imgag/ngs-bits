@@ -3,8 +3,9 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "BasicStatistics.h"
+#include <QBitArray>
 
-//TODO Marc: implement space-optimized version as in https://asawicki.info/news_1416_my_implementation_of_diff_algorithm
+//TODO Marc: optimize time and space further by only using two QBitArrays instead of n+1
 
 template<typename T>
 QString stringRepresentation(const T& element)
@@ -16,13 +17,6 @@ QString stringRepresentation(const QStringList& element)
 {
 	return element.join("\t");
 }
-
-struct IndexPair
-{
-	QString col;
-	int i1;
-	int i2;
-};
 
 struct CompSettings
 {
@@ -52,6 +46,61 @@ bool is_equal(const QStringList& a, const QStringList& b, const CompSettings& co
 	}
 	return true;
 }
+
+enum class Direction
+{
+	DIAGONAL,
+	LEFT,
+	TOP,
+	LEFT_OR_TOP
+};
+
+class DirectionVector
+{
+public:
+	DirectionVector()
+	{
+	}
+	DirectionVector(int size)
+		: left_(size)
+		, top_(size)
+	{
+	}
+
+	void set(int i, Direction d)
+	{
+		if (d==Direction::TOP)
+		{
+			top_.setBit(i, true);
+		}
+		if (d==Direction::LEFT)
+		{
+			left_.setBit(i, true);
+		}
+		if (d==Direction::LEFT_OR_TOP)
+		{
+			left_.setBit(i, true);
+			top_.setBit(i, true);
+		}
+	}
+
+	Direction get(int i) const
+	{
+		if (top_.at(i)) return Direction::TOP;
+		if (left_.at(i)) return Direction::LEFT;
+		if (top_.at(i) && left_.at(i)) return Direction::LEFT_OR_TOP;
+		return Direction::DIAGONAL;
+	}
+
+	int count() const
+	{
+		return left_.count();
+	}
+
+protected:
+	QBitArray left_;
+	QBitArray top_;
+};
 
 class ConcreteTool
 		: public ToolBase
@@ -106,7 +155,7 @@ public:
 
 	}
 
-	//matrix for dynamic programming
+	//matrix with directions (storing only the possible direction for trace-back instead of the score saves a lot of space - 2 bits instead of 4 bytes)
 	class Matrix
 	{
 	public:
@@ -117,40 +166,42 @@ public:
 			data_.reserve(n+1);
 			for(int i=0; i<=n; ++i)
 			{
-				data_.append(QVector<long>(m+1, 0));
+				data_.append(DirectionVector(m+1));
 			}
 		}
 
 		int n() const { return n_; };
 		int m() const { return m_; };
 
-		long value(int n, int m) const
+		Direction value(int n, int m) const
 		{
 			if (n>n_) THROW(Exception, "Matrix:value() Invalid matrix position 'n': Is " + QString::number(n) + " but max is " + QString::number(n_));
 			if (m>m_) THROW(Exception, "Matrix:value() Invalid matrix position 'm': Is " + QString::number(m) + " but max is " + QString::number(m_));
 
-			return data_[n][m];
+			return data_[n].get(m);
 		}
 
-		void setValue(int n, int m, long v)
+		void setValue(int n, int m, Direction d)
 		{
 			if (n>n_) THROW(Exception, "Matrix:value() Invalid matrix position 'n': Is " + QString::number(n) + " but max is " + QString::number(n_));
 			if (m>m_) THROW(Exception, "Matrix:value() Invalid matrix position 'm': Is " + QString::number(m) + " but max is " + QString::number(m_));
 
-			data_[n][m] = v;
+			data_[n].set(m, d);
 		}
 
 		void print(QTextStream& ostream) const
 		{
 			ostream << "Matrix: " << endl;
-			foreach(const QVector<long>& element, data_)
+			foreach(const DirectionVector& element, data_)
 			{
 				for (int i=0; i<element.count(); ++i)
 				{
 					if (i>0) ostream << " ";
-					QString value = QString::number(element[i]);
-					value = value.rightJustified(4, ' ');
-					ostream << value;
+					Direction d = element.get(i);
+					if (d==Direction::DIAGONAL) ostream << 'd';
+					if (d==Direction::TOP) ostream << 't';
+					if (d==Direction::LEFT) ostream << 'l';
+					if (d==Direction::LEFT_OR_TOP) ostream << 'x';
 				}
 				ostream << endl;
 			}
@@ -161,50 +212,70 @@ public:
 		{
 			QList<QPair<int, int>> output;
 
-			int i =n_;
-			for (int j=m_; j>0; --j)
+			int i = n_;
+			for (int j=m_; j>0 && i>0; --j)
 			{
-				if (value(i,j)==value(i,j-1)) continue;
-				if (value(i,j)==value(i-1,j))
+				Direction d = value(i,j);
+				if (d==Direction::LEFT || d==Direction::LEFT_OR_TOP) continue;
+				if (d==Direction::TOP)
 				{
 					--i;
 					++j;
 					continue;
 				}
 
-				output << qMakePair(i-1, j-1);
+				output.prepend(qMakePair(i-1, j-1));
 				--i;
 			}
-
-			std::reverse(output.begin(), output.end());
 
 			return output;
 		}
 
 	private:
-		QVector<QVector<long>> data_;
+		QVector<DirectionVector> data_;
 		int n_;
 		int m_;
 	};
 
-	//fill matrix with values
+	//fill direction matrix (optimization: we have only two lines of the score matrix in memory)
 	template<typename T>
 	void fillMatrix(const T& s1, const T& s2, Matrix& matrix, const CompSettings& comp_settings)
 	{
+		QVector<int> before = QVector<int>(matrix.m()+1, 0);
+		QVector<int> current = QVector<int>(matrix.m()+1, 0);
 		for (int i = 1; i <= matrix.n(); ++i)
 		{
 			if (i%10000==0) QTextStream(stderr) << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " " << i << endl;
 			for (int j = 1; j <= matrix.m(); ++j)
 			{
+
 				if (is_equal(s1[i-1], s2[j-1], comp_settings))
 				{
-					matrix.setValue(i, j, matrix.value(i-1, j-1) + 1);
+					current[j] = before[j-1] + 1;
+					matrix.setValue(i, j, Direction::DIAGONAL);
 				}
 				else
 				{
-					matrix.setValue(i, j, std::max(matrix.value(i-1, j), matrix.value(i, j-1)));
+					int left = current[j-1];
+					int top = before[j];
+					if (left==top)
+					{
+						current[j] = left;
+						matrix.setValue(i, j, Direction::LEFT_OR_TOP);
+					}
+					else if (left>top)
+					{
+						current[j] = left;
+						matrix.setValue(i, j, Direction::LEFT);
+					}
+					else
+					{
+						current[j] = top;
+						matrix.setValue(i, j, Direction::TOP);
+					}
 				}
 			}
+			before.swap(current);
 		}
 	}
 
