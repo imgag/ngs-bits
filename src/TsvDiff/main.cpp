@@ -5,8 +5,6 @@
 #include "BasicStatistics.h"
 #include <QBitArray>
 
-//TODO Marc: optimize time and space further by only using two QBitArrays instead of n+1
-
 template<typename T>
 QString stringRepresentation(const T& element)
 {
@@ -237,7 +235,7 @@ public:
 		int m_;
 	};
 
-	//fill direction matrix (optimization: we have only two lines of the score matrix in memory)
+	//fill direction matrix (optimization: we store only the last two lines of the score matrix in memory)
 	template<typename T>
 	void fillMatrix(const T& s1, const T& s2, Matrix& matrix, const CompSettings& comp_settings)
 	{
@@ -248,7 +246,6 @@ public:
 			if (i%10000==0) QTextStream(stderr) << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " " << i << endl;
 			for (int j = 1; j <= matrix.m(); ++j)
 			{
-
 				if (is_equal(s1[i-1], s2[j-1], comp_settings))
 				{
 					current[j] = before[j-1] + 1;
