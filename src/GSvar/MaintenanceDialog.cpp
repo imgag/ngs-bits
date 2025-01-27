@@ -523,8 +523,7 @@ void MaintenanceDialog::importPatientIDs()
 		QString patient_id_ngsd = query.value("patient_identifier").toString().trimmed();
 		if (patient_id_ngsd!="" && patient_id!=patient_id_ngsd)
 		{
-			appendOutputLine(ps  + " skipped: NGSD contains " + patient_id_ngsd + ", but GenLab contains " + patient_id);
-			continue;
+			appendOutputLine(ps  + " note: NGSD contains " + patient_id_ngsd + ", but GenLab contains " + patient_id + " > updating ID");
 		}
 
 		//check if already set

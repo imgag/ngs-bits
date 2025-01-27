@@ -4420,7 +4420,7 @@ void MainWindow::on_actionStatistics_triggered()
 	QDate end = start.addMonths(1);
 	while(start.year()>=2015)
 	{
-		QVector<int> counts(table.headers().count(), 0);
+		QVector<int> counts(table.columnCount(), 0);
 
 		//select runs of current month
 		SqlQuery q_run_ids = db.getQuery();
@@ -4448,7 +4448,7 @@ void MainWindow::on_actionStatistics_triggered()
 					continue;
 				}
 
-				int index = table.headers().indexOf(sys_type + " " + pro_type);
+				int index = table.columnIndex(sys_type + " " + pro_type, false);
 				++counts[index];
 			}
 		}

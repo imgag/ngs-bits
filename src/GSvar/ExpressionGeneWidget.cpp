@@ -809,8 +809,7 @@ void ExpressionGeneWidget::initTable()
 	precision_ << 2 << 2 << 3 << 3;
 
 	//add hpa columns if available
-	QStringList headers = expression_data_.headers();
-	if (headers.contains("hpa_tissue_tpm"))
+	if (expression_data_.headers().contains("hpa_tissue_tpm"))
 	{
 		column_names_ << "hpa_tissue_tpm" << "hpa_tissue_log2tpm" << "hpa_sample_log2tpm" << "hpa_log2fc";
 		numeric_columns_  << true << true << true << true;

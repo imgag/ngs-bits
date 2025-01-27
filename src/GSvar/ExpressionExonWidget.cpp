@@ -224,7 +224,7 @@ void ExpressionExonWidget::applyFilters()
 		// Filter by parameters stored in file
 
 		// get column index of 'GENES' column
-		int gene_idx = expression_data_.headers().indexOf("gene_name");
+		int gene_idx = expression_data_.columnIndex("gene_name", false);
 
 		if (gene_idx < 0)
 		{
@@ -310,7 +310,7 @@ void ExpressionExonWidget::applyFilters()
 		if (!ui_->sb_min_rpb->text().isEmpty())
 		{
 			qDebug() << "filter by rpb";
-			int idx = expression_data_.headers().indexOf("rpb");
+			int idx = expression_data_.columnIndex("rpb", false);
 
 			if (idx == -1)
 			{
@@ -406,7 +406,7 @@ void ExpressionExonWidget::applyFilters()
 		}
 
 		//filter data
-		int idx_biotype = expression_data_.headers().indexOf("gene_biotype");
+		int idx_biotype = expression_data_.columnIndex("gene_biotype", false);
 		if (idx_biotype < 0)
 		{
 			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_biotype' column! \nFiltering based on biotype is not possible. Please reannotate the RNA sample.");
@@ -434,8 +434,8 @@ void ExpressionExonWidget::applyFilters()
 		if (ui_->sb_low_expression->value() != 0)
 		{
 			qDebug() << "filter by low expression";
-			int idx_cohort_mean = expression_data_.headers().indexOf("cohort_mean");
-			int idx_srpb = expression_data_.headers().indexOf("srpb");
+			int idx_cohort_mean = expression_data_.columnIndex("cohort_mean", false);
+			int idx_srpb = expression_data_.columnIndex("srpb", false);
 
 
 			if (idx_cohort_mean == -1)
@@ -487,7 +487,7 @@ void ExpressionExonWidget::applyFilters()
 		if (ui_->sb_min_srpb_cohort->value() != 0.0)
 		{
 			qDebug() << "filter by cohort mean";
-			int idx = expression_data_.headers().indexOf("cohort_mean");
+			int idx = expression_data_.columnIndex("cohort_mean", false);
 
 			if (idx == -1)
 			{
@@ -530,7 +530,7 @@ void ExpressionExonWidget::applyFilters()
 		if (ui_->sb_min_logfc->value() != 0.0)
 		{
 			qDebug() << "filter by log fc";
-			int idx = expression_data_.headers().indexOf("log2fc");
+			int idx = expression_data_.columnIndex("log2fc", false);
 
 			if (idx == -1)
 			{
@@ -573,7 +573,7 @@ void ExpressionExonWidget::applyFilters()
 		if (ui_->sb_min_zscore->value() != 0.0)
 		{
 			qDebug() << "filter by zscore";
-			int idx = expression_data_.headers().indexOf("zscore");
+			int idx = expression_data_.columnIndex("zscore", false);
 
 			if (idx == -1)
 			{
