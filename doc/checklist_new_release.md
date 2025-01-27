@@ -45,7 +45,7 @@ To create a [new bioconda release](https://bioconda.github.io/contributor/workfl
 # megSAP update
 
 1. Update and rename `megSAP/data/tools/container_recipes/ngs-bits_[tag].sif`
-1. Update versions in `megSAP/Makefile` and execute target `build_ngsbits_container_release T=[tag]`.
+1. Build container using `build_ngsbits_container_release T=[tag]`.
 1. Use WinSCP to copy container from `/mnt/storage2/megSAP/tools/apptainer_container/` to `megsap.de/download/container/`
 1. Update ngs-bits version in `megSAP/settings.ini.default` and `megSAP/settings_nightly.ini`.
 
