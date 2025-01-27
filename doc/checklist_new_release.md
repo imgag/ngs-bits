@@ -3,14 +3,13 @@
 1. Update documentation: `make build_release_noclean doc_update`
 1. Update check documentation: `make doc_check_urls`
 1. Check for tools not added to the main page: `make doc_find_missing_tools`
-1. Update the changelog in `ngs-bits/README.md`.
+1. Clear the changelog and update the download versio in `ngs-bits/README.md`.
+1. Commit and push the changes.
+1. Compile changelog for the new release:
 
 	> git diff -w [last-tag] master src/cppNGSD/resources/NGSD_schema.sql  
 	> git diff -w [last-tag] master doc/tools/
  
-
-1. Update the download version in `ngs-bits/README.md`.
-1. Commit and push the changes.
 1. Create a new release on GitHub.
 1. Create a release tarball
 

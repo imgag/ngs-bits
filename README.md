@@ -193,5 +193,6 @@ For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
 
 You can cite ngs-bits in using Zenodo DOIs:
 
+* 2025_01: [![DOI](https://zenodo.org/badge/38034492.svg)](https://doi.org/10.5281/zenodo.14747530)
 * 2024_11: [![DOI](https://zenodo.org/badge/38034492.svg)](https://doi.org/10.5281/zenodo.14216718)
 
