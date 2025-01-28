@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2024_11
+	> git checkout 2025_01
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -182,15 +182,17 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes since last release:
 
-* added tools: 
-* removed tools: 
+* added tools:
+* removed tools:
 * NGSD:
-	
+
+
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
 
 ## Citing
 
 You can cite ngs-bits in using Zenodo DOIs:
 
+* 2025_01: [![DOI](https://zenodo.org/badge/38034492.svg)](https://doi.org/10.5281/zenodo.14747530)
 * 2024_11: [![DOI](https://zenodo.org/badge/38034492.svg)](https://doi.org/10.5281/zenodo.14216718)
 

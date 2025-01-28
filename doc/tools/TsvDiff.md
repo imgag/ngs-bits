@@ -1,5 +1,5 @@
 ### TsvDiff tool help
-	TsvDiff (2024_11-59-ge0a7288e)
+	TsvDiff (2024_11-94-gfaf1e0ad)
 	
 	Compares TSV files.
 	
@@ -22,8 +22,8 @@
 	                                   Default value: ''
 	  -no_error                        Do not exit with error state if differences are detected.
 	                                   Default value: 'false'
-	  -debug                           Print debug output to stderr
-	                                   Default value: 'false'
+	  -debug <int>                     Debug level (0=none, 1=basic, 2=extended
+	                                   Default value: '0'
 	
 	Special parameters:
 	  --help                           Shows this help and exits.
@@ -33,6 +33,6 @@
 	  --settings [file]                Settings override file (no other settings files are used).
 	
 ### TsvDiff changelog
-	TsvDiff 2024_11-59-ge0a7288e
+	TsvDiff 2024_11-94-gfaf1e0ad
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

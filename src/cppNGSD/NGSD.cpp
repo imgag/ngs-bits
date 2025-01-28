@@ -264,7 +264,11 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	if (p.s_name.trimmed()!="")
 	{
 		QStringList name_conditions;
-		name_conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
+		QString name_pattern = escapeForSql(p.s_name);
+		if (name_pattern.startsWith('*')) name_pattern[0] = '%';
+		if (name_pattern.endsWith('*')) name_pattern[name_pattern.length()-1] = '%';
+		if (!name_pattern.startsWith('%') && !name_pattern.endsWith('%')) name_pattern = '%' + name_pattern + '%';
+		name_conditions << "s.name LIKE '" + name_pattern + "'";
 		if (p.s_name_ext)
 		{
 			name_conditions << "s.name_external LIKE '%" + escapeForSql(p.s_name) + "%'";
