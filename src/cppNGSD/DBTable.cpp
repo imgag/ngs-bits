@@ -176,7 +176,7 @@ bool DBTable::columnIsNumeric(int c) const
 	return true;
 }
 
-void DBTable::formatBooleanColumn(int c)
+void DBTable::formatBooleanColumn(int c, bool empty_if_no)
 {
 	//init
 	static QString s_yes = "yes";
@@ -197,7 +197,7 @@ void DBTable::formatBooleanColumn(int c)
 		}
 		else if (value=="0")
 		{
-			rows_[r].setValue(c, s_no);
+			rows_[r].setValue(c, empty_if_no ? "" : s_no);
 		}
 		else if (!value.isEmpty())
 		{
