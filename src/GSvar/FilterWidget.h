@@ -84,6 +84,7 @@ public:
 	bool setFilter(QString name);
 	///Sets filterCascade
 	void setFilterCascade(const FilterCascade& filter_cascade);
+	void editColumnFilter(QString col);
 
 	///Returns current filter name
 	QString filterName() const;

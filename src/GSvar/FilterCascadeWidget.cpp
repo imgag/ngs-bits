@@ -60,6 +60,51 @@ void FilterCascadeWidget::markFailedFilters()
 	}
 }
 
+void FilterCascadeWidget::editColumnFilter(QString column)
+{
+	//check if column filter is already present
+	int index = -1;
+	for (int i=0; i<filters_.count(); ++i)
+	{
+		if (filters_[i]->name()!="Column match") continue;
+
+		foreach(const FilterParameter& param, filters_[i]->parameters())
+		{
+			if (param.name!="column") continue;
+			if (param.value.toString()!=column) continue;
+
+			index = i;
+		}
+	}
+
+	//edit filter that is present
+	if (index!=-1)
+	{
+		FilterEditDialog dlg(filters_[index], this);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			updateGUI();
+			focusFilter(index);
+			emit filterCascadeChanged();
+		}
+	}
+	else //add filter
+	{
+		QSharedPointer<FilterBase> filter(new FilterColumnMatchRegexp());
+		filter->setString("column", column);
+		filter->setString("action", "FILTER");
+
+		FilterEditDialog dlg(filter, this);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			filters_.add(filter);
+			updateGUI();
+			focusFilter(filters_.count()-1);
+			emit filterCascadeChanged();
+		}
+	}
+}
+
 void FilterCascadeWidget::clear()
 {
 	filters_.clear();

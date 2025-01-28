@@ -353,6 +353,8 @@ public slots:
 
 	///Shows the variant header context menu
 	void varHeaderContextMenu(QPoint pos);
+	///Shows the colum context menu
+	void columnContextMenu(QPoint pos);
 	///Updated the variant context menu
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
