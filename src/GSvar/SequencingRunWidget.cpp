@@ -382,9 +382,10 @@ void SequencingRunWidget::sendStatusEmail()
 		int idx_project = ui_->samples->columnIndex("project");
 		int idx_is_tumor = ui_->samples->columnIndex("is_tumor");
 		int idx_is_ffpe = ui_->samples->columnIndex("is_ffpe");
+		int idx_urgent = ui_->samples->columnIndex("urgent");
 
 		QStringList diagnostic_table;
-		body << "Die folgenden Keibahn DNA-Proben des Laufs haben schlechte Qualität:";
+		body << "Die folgenden Keimbahn DNA-Proben des Laufs haben schlechte Qualität:";
 		diagnostic_table << "Probe\tProjekt\tKommentar";
 		for (int i=0; i < ui_->samples->rowCount(); i++)
 		{
@@ -395,11 +396,10 @@ void SequencingRunWidget::sendStatusEmail()
 			if (quality == "bad")
 			{
 				QString ffpe_text = ui_->samples->item(i, idx_is_ffpe)->text() == "yes" ? " [ffpe]" : "";
-
-				diagnostic_table << ui_->samples->item(i, idx_sample)->text() + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
+				QString urgent = ui_->samples->item(i, idx_urgent)->text() == "yes" ? "[eilig] " : "";
+				diagnostic_table << ui_->samples->item(i, idx_sample)->text() + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + urgent + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
 			}
 		}
-
 		if (diagnostic_table.count() > 1)
 		{
 			foreach(QString line, diagnostic_table)
