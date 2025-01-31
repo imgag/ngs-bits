@@ -24,7 +24,8 @@ private:
 	void loadFile();
 
 private slots:
-	void openMethylationPlot(int row_idx, int col_idx);
+	void openMethylationPlot(int row_idx, int);
+	void updateTable();
 
 };
 
