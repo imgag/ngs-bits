@@ -390,3 +390,6 @@ LIBS += -L$$PWD/../bin -lcppVISUAL
 RESOURCES += \
     GSvar.qrc
 
+mac {
+    ICON = Icons/Icon.icns
+}
