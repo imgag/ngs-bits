@@ -326,10 +326,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderCascadingSectionResizes">
                 <bool>false</bool>
@@ -1527,6 +1527,9 @@
    </property>
   </action>
   <action name="actionMethylation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/Methylation.png</normaloff>:/Icons/Methylation.png</iconset>

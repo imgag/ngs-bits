@@ -2945,6 +2945,16 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			}
 		}
 	}
+
+	//activate Methylation menu
+	if (type==GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getMethylationFile().exists)
+	{
+		ui_.actionMethylation->setEnabled(true);
+	}
+	else
+	{
+		ui_.actionMethylation->setEnabled(false);
+	}
 }
 
 void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
