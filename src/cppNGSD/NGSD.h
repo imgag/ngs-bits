@@ -316,6 +316,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString molarity;
 	QString ancestry;
 	bool scheduled_for_resequencing;
+	bool urgent;
 };
 
 ///Processing system information.

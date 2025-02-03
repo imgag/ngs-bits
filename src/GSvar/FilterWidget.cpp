@@ -262,6 +262,11 @@ void FilterWidget::setFilterCascade(const FilterCascade& filter_cascade)
 	ui_.cascade_widget->setFilters(filter_cascade);
 }
 
+void FilterWidget::editColumnFilter(QString col)
+{
+	ui_.cascade_widget->editColumnFilter(col);
+}
+
 QString FilterWidget::filterName() const
 {
 	return ui_.filters->currentText();

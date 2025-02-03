@@ -1,5 +1,12 @@
 # GSvar change log
 
+## 2025_01-9 (29.01.25)
+
+- general: added 'urgent' flag to processed samples (run tab, processed sample tab, batch import)
+- general: added context menu to tab bar
+- small variants: added column context menu to allow faster column-specific filtering
+- sample search: sample name now supports asterisk at the start/end
+
 ## 2024_11-86 (20.01.25)
 
 - general: renamed class 'R*' to 'R' (changed in HerediCare and HerediVar)

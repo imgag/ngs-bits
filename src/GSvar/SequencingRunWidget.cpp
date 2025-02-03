@@ -266,6 +266,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	{
 		headers << "sample comments";
 	}
+	headers << "urgent";
 	headers << "resequencing";
 	NGSD db;
 	DBTable samples;
@@ -277,7 +278,7 @@ void SequencingRunWidget::updateRunSampleTable()
 														+ "(SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), "
 														+ "sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), "
 														+ "ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "")
-														+ " ,ps.scheduled_for_resequencing FROM processed_sample ps, sample s, processing_system sys, species sp "
+														+ ",ps.urgent ,ps.scheduled_for_resequencing FROM processed_sample ps, sample s, processing_system sys, species sp "
 														+ "WHERE sp.id=s.species_id AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') "
 														+ "ORDER BY ps.lane ASC, "+ (ui_->sort_by_ps_id->isChecked() ? "ps.id" : "ps.sequencing_run_id ASC, ps.processing_system_id ASC, s.name ASC, ps.process_id"));
 	}
@@ -285,15 +286,14 @@ void SequencingRunWidget::updateRunSampleTable()
 	{
 		samples = db.createTable("processed_sample", QString("SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.gender, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') ")
 													+ "FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') "
-													+ "FROM mid WHERE id=ps.mid2_i5), sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + " ,ps.scheduled_for_resequencing "
+													+ "FROM mid WHERE id=ps.mid2_i5), sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + ", ps.urgent, ps.scheduled_for_resequencing "
 													+ "FROM processed_sample ps, sample s, processing_system sys, species sp WHERE sp.id=s.species_id AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') "
 													+ "ORDER BY ps.lane ASC, "+ (ui_->sort_by_ps_id->isChecked() ? "ps.id" : "ps.processing_system_id ASC, s.name ASC, ps.process_id"));
-	}
-
-	//format columns
+	}	//format columns
 	samples.formatBooleanColumn(samples.columnIndex("tumor"));
 	samples.formatBooleanColumn(samples.columnIndex("ffpe"));
-	samples.formatBooleanColumn(samples.columnIndex("scheduled_for_resequencing"));
+	samples.formatBooleanColumn(samples.columnIndex("urgent"), true);
+	samples.formatBooleanColumn(samples.columnIndex("scheduled_for_resequencing"), true);
 
 	// determine QC parameter based on sample types
 	QSet<QString> sample_types = samples.extractColumn(samples.columnIndex("sample_type")).toSet();
@@ -389,7 +389,6 @@ void SequencingRunWidget::updateRunSampleTable()
 	QStringList quality_values = samples.takeColumn(samples.columnIndex("quality"));
 	ui_->samples->setData(samples);
 	ui_->samples->setQualityIcons("sample", quality_values);
-	ui_->samples->setColumnWidth(ui_->samples->columnIndex("comments"), 350);
 
 	//colors
 	QColor orange = QColor(255,150,0,125);
@@ -607,9 +606,10 @@ void SequencingRunWidget::sendStatusEmail()
 		int idx_project = ui_->samples->columnIndex("project");
 		int idx_is_tumor = ui_->samples->columnIndex("is_tumor");
 		int idx_is_ffpe = ui_->samples->columnIndex("is_ffpe");
+		int idx_urgent = ui_->samples->columnIndex("urgent");
 
 		QStringList diagnostic_table;
-		body << "Die folgenden Keibahn DNA-Proben des Laufs haben schlechte Qualität:";
+		body << "Die folgenden Keimbahn DNA-Proben des Laufs haben schlechte Qualität:";
 		diagnostic_table << "Probe\tProjekt\tKommentar";
 		for (int i=0; i < ui_->samples->rowCount(); i++)
 		{
@@ -620,11 +620,10 @@ void SequencingRunWidget::sendStatusEmail()
 			if (quality == "bad")
 			{
 				QString ffpe_text = ui_->samples->item(i, idx_is_ffpe)->text() == "yes" ? " [ffpe]" : "";
-
-				diagnostic_table << ui_->samples->item(i, idx_sample)->text() + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
+				QString urgent = ui_->samples->item(i, idx_urgent)->text() == "yes" ? "[eilig] " : "";
+				diagnostic_table << ui_->samples->item(i, idx_sample)->text() + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + urgent + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
 			}
 		}
-
 		if (diagnostic_table.count() > 1)
 		{
 			foreach(QString line, diagnostic_table)
