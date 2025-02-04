@@ -87,3 +87,6 @@ GSvar can be build from inside Qt Creator by using its standard mechanisms:
 
 _Note:_ The above mentioned processes have been tested on Intel-based Macs. It remains unknown if GSvar can be compiled natively for M1 CPUs (Qt 5 does not officially/completly support M1 chips yet). However, they claim it works through the Rosetta translation layer, native arm64 support seems to be under development. Qt 6 should officially support Apple Silicon.
 
+## Integration with IGV
+
+For all the questions related to IGV, please address the [`IGV help page`](install_igv.md).
