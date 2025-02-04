@@ -182,6 +182,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	foreach(const QByteArray& g, genes)
 	{
 		sub_menu->addAction(g + " AND \"mutation\"");
+		sub_menu->addAction(g + " AND \"variant\"");
 		foreach(const Phenotype& p, active_phenotypes_)
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
