@@ -1301,7 +1301,7 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 	foreach(int ps_id, ps_ids)
 	{
 		//check for variant in gene
-		if(!detected_variants.keys().contains(ps_id)) continue;
+		if(!detected_variants.contains(ps_id)) continue;
 		QSet<int> intersection = variant_ids;
 		intersection = intersection.intersect(detected_variants.value(ps_id));
 

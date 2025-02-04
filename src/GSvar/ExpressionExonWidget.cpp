@@ -117,7 +117,7 @@ void ExpressionExonWidget::loadExpressionFile()
 		qDebug() << "TSV parsed";
 
 		//init filter data
-		filter_result_ = FilterResult(expression_data_.rowCount());
+		filter_result_ = FilterResult(expression_data_.count());
 
 		QApplication::restoreOverrideCursor();
 	}
@@ -215,7 +215,7 @@ void ExpressionExonWidget::applyFilters()
 		ui_->tw_expression_table->setEnabled(false);
 
 		filter_result_.reset(true);
-		int filtered_lines = expression_data_.rowCount();
+		int filtered_lines = expression_data_.count();
 
 		QTime timer;
 		timer.start();
@@ -224,7 +224,7 @@ void ExpressionExonWidget::applyFilters()
 		// Filter by parameters stored in file
 
 		// get column index of 'GENES' column
-		int gene_idx = expression_data_.headers().indexOf("gene_name");
+		int gene_idx = expression_data_.columnIndex("gene_name", false);
 
 		if (gene_idx < 0)
 		{
@@ -239,11 +239,11 @@ void ExpressionExonWidget::applyFilters()
 
 				if (gene_idx != -1)
 				{
-					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+					for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 					{
 						if (!filter_result_.flags()[row_idx]) continue;
 
-						filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed());
+						filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed());
 					}
 				}
 
@@ -265,12 +265,12 @@ void ExpressionExonWidget::applyFilters()
 					if (genes_joined.contains("*")) //with wildcards
 					{
 						QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
-						for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+						for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 						{
 							if (!filter_result_.flags()[row_idx]) continue;
 
 							// generate GeneSet from column text
-							GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8(), ',');
+							GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8(), ',');
 
 							bool match_found = false;
 							foreach(const QByteArray& sv_gene, sv_genes)
@@ -286,12 +286,12 @@ void ExpressionExonWidget::applyFilters()
 					}
 					else //without wildcards
 					{
-						for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+						for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 						{
 							if (!filter_result_.flags()[row_idx]) continue;
 
 							// generate GeneSet from column text
-							GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8(), ',');
+							GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8(), ',');
 
 							filter_result_.flags()[row_idx] = sv_genes.intersectsWith(gene_whitelist);
 						}
@@ -310,7 +310,7 @@ void ExpressionExonWidget::applyFilters()
 		if (!ui_->sb_min_rpb->text().isEmpty())
 		{
 			qDebug() << "filter by rpb";
-			int idx = expression_data_.headers().indexOf("rpb");
+			int idx = expression_data_.columnIndex("rpb", false);
 
 			if (idx == -1)
 			{
@@ -321,12 +321,12 @@ void ExpressionExonWidget::applyFilters()
 				try
 				{
 					double min_rpb_value = ui_->sb_min_rpb->value();
-					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+					for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 					{
 						//skip already filtered
 						if (!filter_result_.flags()[row_idx]) continue;
 
-						QString value = expression_data_.row(row_idx).at(idx).toUtf8();
+						QString value = expression_data_[row_idx].at(idx).toUtf8();
 						if (value.isEmpty() || value == "n/a")
 						{
 							filter_result_.flags()[row_idx] = false;
@@ -364,12 +364,12 @@ void ExpressionExonWidget::applyFilters()
 				try
 				{
 					double min_srpb_value = ui_->sb_min_srpb_sample->value();
-					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+					for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 					{
 						//skip already filtered
 						if (!filter_result_.flags()[row_idx]) continue;
 
-						QString value = expression_data_.row(row_idx).at(idx).toUtf8();
+						QString value = expression_data_[row_idx].at(idx).toUtf8();
 						if (value.isEmpty() || value == "n/a")
 						{
 							filter_result_.flags()[row_idx] = false;
@@ -406,19 +406,19 @@ void ExpressionExonWidget::applyFilters()
 		}
 
 		//filter data
-		int idx_biotype = expression_data_.headers().indexOf("gene_biotype");
+		int idx_biotype = expression_data_.columnIndex("gene_biotype", false);
 		if (idx_biotype < 0)
 		{
 			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_biotype' column! \nFiltering based on biotype is not possible. Please reannotate the RNA sample.");
 		}
 		else
 		{
-			for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+			for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 			{
 				//skip already filtered
 				if (!filter_result_.flags()[row_idx]) continue;
 
-				QString biotype = expression_data_.row(row_idx).at(idx_biotype);
+				QString biotype = expression_data_[row_idx].at(idx_biotype);
 				filter_result_.flags()[row_idx] = selected_biotypes.contains(biotype.replace("_", " "));
 			}
 		}
@@ -434,8 +434,8 @@ void ExpressionExonWidget::applyFilters()
 		if (ui_->sb_low_expression->value() != 0)
 		{
 			qDebug() << "filter by low expression";
-			int idx_cohort_mean = expression_data_.headers().indexOf("cohort_mean");
-			int idx_srpb = expression_data_.headers().indexOf("srpb");
+			int idx_cohort_mean = expression_data_.columnIndex("cohort_mean", false);
+			int idx_srpb = expression_data_.columnIndex("srpb", false);
 
 
 			if (idx_cohort_mean == -1)
@@ -454,13 +454,13 @@ void ExpressionExonWidget::applyFilters()
 					{
 						double min_expr_value = ui_->sb_low_expression->value();
 
-						for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+						for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 						{
 							//skip already filtered
 							if (!filter_result_.flags()[row_idx]) continue;
 
-							QString value_sample = expression_data_.row(row_idx).at(idx_srpb).toUtf8();
-							QString value_mean_cohort = expression_data_.row(row_idx).at(idx_cohort_mean).toUtf8();
+							QString value_sample = expression_data_[row_idx].at(idx_srpb).toUtf8();
+							QString value_mean_cohort = expression_data_[row_idx].at(idx_cohort_mean).toUtf8();
 							if (value_sample.isEmpty() || value_sample == "n/a" || value_mean_cohort.isEmpty() || value_mean_cohort == "n/a")
 							{
 								filter_result_.flags()[row_idx] = false;
@@ -487,7 +487,7 @@ void ExpressionExonWidget::applyFilters()
 		if (ui_->sb_min_srpb_cohort->value() != 0.0)
 		{
 			qDebug() << "filter by cohort mean";
-			int idx = expression_data_.headers().indexOf("cohort_mean");
+			int idx = expression_data_.columnIndex("cohort_mean", false);
 
 			if (idx == -1)
 			{
@@ -498,12 +498,12 @@ void ExpressionExonWidget::applyFilters()
 				try
 				{
 					double min_cohort_mean = ui_->sb_min_srpb_cohort->value();
-					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+					for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 					{
 						//skip already filtered
 						if (!filter_result_.flags()[row_idx]) continue;
 
-						QString value = expression_data_.row(row_idx).at(idx).toUtf8();
+						QString value = expression_data_[row_idx].at(idx).toUtf8();
 						if (value.isEmpty() || value == "n/a")
 						{
 							filter_result_.flags()[row_idx] = false;
@@ -530,7 +530,7 @@ void ExpressionExonWidget::applyFilters()
 		if (ui_->sb_min_logfc->value() != 0.0)
 		{
 			qDebug() << "filter by log fc";
-			int idx = expression_data_.headers().indexOf("log2fc");
+			int idx = expression_data_.columnIndex("log2fc", false);
 
 			if (idx == -1)
 			{
@@ -541,12 +541,12 @@ void ExpressionExonWidget::applyFilters()
 				try
 				{
 					double min_logfc = ui_->sb_min_logfc->value();
-					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+					for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 					{
 						//skip already filtered
 						if (!filter_result_.flags()[row_idx]) continue;
 
-						QString value = expression_data_.row(row_idx).at(idx).toUtf8();
+						QString value = expression_data_[row_idx].at(idx).toUtf8();
 						if (value.isEmpty() || value == "n/a")
 						{
 							filter_result_.flags()[row_idx] = false;
@@ -573,7 +573,7 @@ void ExpressionExonWidget::applyFilters()
 		if (ui_->sb_min_zscore->value() != 0.0)
 		{
 			qDebug() << "filter by zscore";
-			int idx = expression_data_.headers().indexOf("zscore");
+			int idx = expression_data_.columnIndex("zscore", false);
 
 			if (idx == -1)
 			{
@@ -584,12 +584,12 @@ void ExpressionExonWidget::applyFilters()
 				try
 				{
 					double min_zscore = ui_->sb_min_zscore->value();
-					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+					for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 					{
 						//skip already filtered
 						if (!filter_result_.flags()[row_idx]) continue;
 
-						QString value = expression_data_.row(row_idx).at(idx).toUtf8();
+						QString value = expression_data_[row_idx].at(idx).toUtf8();
 						if (value.isEmpty() || value == "n/a")
 						{
 							filter_result_.flags()[row_idx] = false;
@@ -780,12 +780,12 @@ void ExpressionExonWidget::updateTable()
 
 		// fill table
 		int table_row_idx = 0;
-		for(int file_line_idx=0; file_line_idx<expression_data_.rowCount(); ++file_line_idx)
+		for(int file_line_idx=0; file_line_idx<expression_data_.count(); ++file_line_idx)
 		{
 			if (!filter_result_.passing(file_line_idx)) continue;
 
 
-			QStringList row = expression_data_.row(file_line_idx);
+			const QStringList& row = expression_data_[file_line_idx];
 
 			//iterate over columns
 			for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
@@ -834,7 +834,7 @@ void ExpressionExonWidget::updateTable()
 		ui_->tw_expression_table->sortByColumn(9, Qt::DescendingOrder);
 
 		//set number of filtered / total rows
-		ui_->l_filtered_rows->setText(QByteArray::number(filter_result_.flags().count(true)) + " / " + QByteArray::number(expression_data_.rowCount()));
+		ui_->l_filtered_rows->setText(QByteArray::number(filter_result_.flags().count(true)) + " / " + QByteArray::number(expression_data_.count()));
 
 		//optimize table view
 		GUIHelper::resizeTableCellWidths(ui_->tw_expression_table, 350);

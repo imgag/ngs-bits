@@ -1,5 +1,5 @@
 ### SomaticQC tool help
-	SomaticQC (2021_12-170-g1acf8802)
+	SomaticQC (2024_08-110-g317f43b9)
 	
 	Calculates QC metrics based on tumor-normal pairs.
 	
@@ -37,9 +37,10 @@
 	  --version            Prints version and exits.
 	  --changelog          Prints changeloge and exits.
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]    Settings override file (no other settings files are used).
 	
 ### SomaticQC changelog
-	SomaticQC 2021_12-170-g1acf8802
+	SomaticQC 2024_08-110-g317f43b9
 	
 	2020-11-27 Added CRAM support.
 	2018-07-11 Added build switch for hg38 support.

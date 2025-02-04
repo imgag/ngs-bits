@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (2023_09-93-gad5c47c9)
+	MappingQC (2024_08-110-g317f43b9)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -42,9 +42,10 @@
 	  --version                  Prints version and exits.
 	  --changelog                Prints changeloge and exits.
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### MappingQC changelog
-	MappingQC 2023_09-93-gad5c47c9
+	MappingQC 2024_08-110-g317f43b9
 	
 	2023-11-08 Added long_read support.
 	2023-05-12 Added 'read_qc' parameter.

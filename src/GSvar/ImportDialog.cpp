@@ -62,9 +62,9 @@ void ImportDialog::setupGUI()
 	{
 		setWindowTitle("Import processed samples");
 		ui_.label->setText("Batch import of processed samples (paste tab-separated data to table)");
-		labels << "sample" << "project" << "run name" << "lane" << "mid1 name" << "mid2 name" << "operator" << "processing system" << "processing input [ng]" << "molarity [nM]" << "comment" << "normal processed sample" << "processing modus" << "batch number";
+		labels << "sample" << "project" << "run name" << "lane" << "mid1 name" << "mid2 name" << "operator" << "processing system" << "processing input [ng]" << "molarity [nM]" << "comment" << "normal processed sample" << "processing modus" << "batch number" << "urgent";
 		db_table_ = "processed_sample";
-		db_fields_ << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id" << "processing_modus" << "batch_number";
+		db_fields_ << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id" << "processing_modus" << "batch_number" << "urgent";
 		db_extra_fields_ << "process_id";
 	}
 	else if (type_==MIDS)
@@ -379,6 +379,7 @@ void ImportDialog::import()
 			}
 
 			VariantAnnotator* worker = new VariantAnnotator(variants);
+			connect(worker, SIGNAL(failed()), this, SLOT(variantImportFailed()));
 			GlobalServiceProvider::startJob(worker, true);
 		}
 		else if (type_==MIDS || type_==STUDY_SAMPLE || type_==RUNS || type_==PROCESSED_SAMPLES || type_==SAMPLE_RELATIONS || type_==SAMPLE_HPOS)
@@ -451,6 +452,12 @@ void ImportDialog::import()
 		ui_.warnings->appendPlainText("Import failed:");
 		ui_.warnings->appendPlainText("row " + QString::number(row_num) + ": " + e.message().trimmed());
 	}
+}
+
+
+void ImportDialog::variantImportFailed()
+{
+	QMessageBox::warning(this, "Variant import", "Variant import failed!\nCheck background job history in the lower right corner of the GSvar main window for details!");
 }
 
 

@@ -7,7 +7,7 @@
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
 #include "GenomeVisualizationWidget.h"
-
+#include "ColumnConfig.h"
 #include <QBitArray>
 #include <QApplication>
 #include <QClipboard>
@@ -160,7 +160,8 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 
 	//UCSC
-	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "UCSC Genome Browser");
+	QAction* a_ucsc_enigma = menu.addAction(QIcon("://Icons/UCSC.png"), "UCSC Genome Browser (ENIGMA tracks)");
 
 	//LOVD
 	QAction* a_lovd = menu.addAction(QIcon("://Icons/LOVD.png"), "Find in LOVD");
@@ -295,6 +296,10 @@ void VariantTable::customContextMenu(QPoint pos)
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
 	}
+	else if (action == a_ucsc_enigma)
+	{
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/s/abenet/BRCA1_BRCA2_ENIGMA_hg38?position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+	}
 	else if (action == a_lovd)
 	{
 		int pos = variant.start();
@@ -407,9 +412,15 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	horizontalHeaderItem(3)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
 	setHorizontalHeaderItem(4, createTableItem("obs"));
 	horizontalHeaderItem(4)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
-	for (int i=0; i<variants.annotations().count(); ++i)
+
+	//add columns
+	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_small_variant", true));
+	QStringList col_order;
+	QList<int> anno_index_order;
+	config.getOrder(variants, col_order, anno_index_order);
+	for (int i=0; i<col_order.count(); ++i)
 	{
-		QString anno = variants.annotations()[i].name();
+		QString anno = col_order[i];
 		QTableWidgetItem* header = new QTableWidgetItem(anno);
 
 		//additional descriptions for filter column
@@ -486,53 +497,61 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 		bool is_ngsd_benign = false;
 		for (int j=0; j<variant.annotations().count(); ++j)
 		{
-			const QByteArray& anno = variant.annotations().at(j);
+			int anno_index = anno_index_order[j];
+			const QByteArray& anno = variant.annotations().at(anno_index);
 			QTableWidgetItem* item = createTableItem(anno);
 
 			//warning
-			if (j==i_co_sp && anno.contains(":HIGH:"))
+			if (anno_index==i_co_sp && anno.contains(":HIGH:"))
 			{
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_classification && (anno=="3" || anno=="M" || anno=="R*"))
+			else if (anno_index==i_classification && (anno=="3" || anno=="M" || anno=="R"))
 			{
 				item->setBackgroundColor(QColor(255, 135, 60)); //orange
 				is_notice_line = true;
 			}
-			else if (j==i_classification && (anno=="4" || anno=="5"))
+			else if (anno_index==i_classification && (anno=="4" || anno=="5"))
 			{
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_clinvar && anno.contains("pathogenic") && !anno.contains("conflicting interpretations of pathogenicity")) //matches "pathogenic" and "likely pathogenic"
+			else if (anno_index==i_clinvar && anno.contains("pathogenic") && !anno.contains("conflicting interpretations of pathogenicity")) //matches "pathogenic" and "likely pathogenic"
 			{
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_hgmd && anno.contains("CLASS=DM")) //matches both "DM" and "DM?"
+			else if (anno_index==i_hgmd && anno.contains("CLASS=DM")) //matches both "DM" and "DM?"
 			{
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.8)
+			else if (anno_index==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.8)
 			{
 				item->setBackgroundColor(Qt::red);
 				is_notice_line = true;
 			}
-			else if (j==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.5)
+			else if (anno_index==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.5)
 			{
 				item->setBackgroundColor(QColor(255, 135, 60)); //orange
 				is_notice_line = true;
 			}
-			else if (j==i_maxentscan && !anno.isEmpty())
+			else if (anno_index==i_maxentscan && !anno.isEmpty())
 			{
 				//iterate over predictions per transcript
 				QList<MaxEntScanImpact> impacts;
 				foreach(const QByteArray& entry, anno.split(','))
 				{
 					QByteArray anno_with_percentages;
-					impacts << NGSHelper::maxEntScanImpact(entry.split('/'), anno_with_percentages, false);
+					try
+					{
+						impacts << NGSHelper::maxEntScanImpact(entry.split('/'), anno_with_percentages, false);
+					}
+					catch (Exception& e) //catch error of outdated MaxEntScan annotation
+					{
+						qDebug() << e.message();
+					}
 				}
 
 				//output: max import
@@ -549,34 +568,34 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 			}
 
 			//non-pathogenic
-			if (j==i_classification && (anno=="1" || anno=="2"))
+			if (anno_index==i_classification && (anno=="1" || anno=="2"))
 			{
 				item->setBackgroundColor(Qt::green);
 				is_ngsd_benign = true;
 			}
 
 			//highlighed
-			if (j==i_validation && anno.contains("TP"))
+			if (anno_index==i_validation && anno.contains("TP"))
 			{
 				item->setBackgroundColor(Qt::yellow);
 			}
-			else if (j==i_comment && anno!="")
+			else if (anno_index==i_comment && anno!="")
 			{
 				item->setBackgroundColor(Qt::yellow);
 			}
-			else if (j==i_ihdb_hom && anno=="0")
+			else if (anno_index==i_ihdb_hom && anno=="0")
 			{
 				item->setBackgroundColor(Qt::yellow);
 			}
-			else if (j==i_ihdb_het && anno=="0")
+			else if (anno_index==i_ihdb_het && anno=="0")
 			{
 				item->setBackgroundColor(Qt::yellow);
 			}
-			else if (j==i_clinvar && anno.contains("(confirmed)"))
+			else if (anno_index==i_clinvar && anno.contains("(confirmed)"))
 			{
 				item->setBackgroundColor(Qt::yellow);
 			}
-			else if (j==i_genes)
+			else if (anno_index==i_genes)
 			{
 				GeneSet anno_genes = GeneSet::createFromText(anno, ',');
 				GSvarHelper::colorGeneItem(item, anno_genes);
@@ -605,12 +624,15 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				item->setFont(font);
 			}
 		}
-		if (index_show_report_icon.keys().contains(i))
+		if (index_show_report_icon.contains(i))
 		{
 			item->setIcon(reportIcon(index_show_report_icon.value(i), index_causal.contains(i)));
 		}
 		setVerticalHeaderItem(r, item);
 	}
+
+	//hide columns if requested
+	config.applyHidden(this);
 }
 
 void VariantTable::update(VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
@@ -756,11 +778,18 @@ void VariantTable::setColumnWidths(const QList<int>& widths)
 
 void VariantTable::adaptRowHeights()
 {
-	if (rowCount()<1) return;
+	if (rowCount()==0) return;
 
+	//determine minimum height of first 10 rows
 	resizeRowToContents(0);
 	int height = rowHeight(0);
+	for (int i=1; i<std::min(10, rowCount()); ++i)
+	{
+		resizeRowToContents(i);
+		if (rowHeight(i)<height) height = rowHeight(i);
+	}
 
+	//set height for all columns
 	for (int i=0; i<rowCount(); ++i)
 	{
 		setRowHeight(i, height);
@@ -775,18 +804,12 @@ void VariantTable::clearContents()
 
 void VariantTable::adaptColumnWidths()
 {
-	//resize columns width
-	resizeColumnsToContents();
+	QTime timer;
+	timer.start();
 
 	//restrict width
-	int max_col_width = 200;
-	for (int i=0; i<columnCount(); ++i)
-	{
-		if (columnWidth(i)>max_col_width)
-		{
-			setColumnWidth(i, max_col_width);
-		}
-	}
+	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_small_variant", true));
+	config.applyColumnWidths(this);
 
 	//set mimumn width of chr, start, end
 	if (columnWidth(0)<42)
@@ -805,75 +828,30 @@ void VariantTable::adaptColumnWidths()
 	//restrict REF/ALT column width
 	for (int i=3; i<=4; ++i)
 	{
-		if (columnWidth(i)>80)
+		if (columnWidth(i)>50)
 		{
-			setColumnWidth(i, 80);
+			setColumnWidth(i, 50);
 		}
 	}
+
+	Log::perf("adapting column widths", timer);
 }
 
-void VariantTable::adaptColumnWidthsCustom()
+void VariantTable::showAllColumns()
 {
-	//resize columns width
-	resizeColumnsToContents();
-
-	//restrict width
-	int max_col_width = 50;
-	for (int i=0; i<columnCount(); ++i)
+	for (int c=0; c<columnCount(); ++c)
 	{
-		if (columnWidth(i)>max_col_width)
+		if(isColumnHidden(c))
 		{
-			setColumnWidth(i, max_col_width);
+			setColumnHidden(c, false);
+
+			//make sure hidden columns have a non-zero width
+			if (c>5 && columnWidth(c)==0)
+			{
+				setColumnWidth(c, 200);
+			}
 		}
 	}
-
-	//set mimumn width of chr, start, end
-	if (columnWidth(0)<42)
-	{
-		setColumnWidth(0, 42);
-	}
-	if (columnWidth(1)<62)
-	{
-		setColumnWidth(1, 62);
-	}
-	if (columnWidth(2)<62)
-	{
-		setColumnWidth(2, 62);
-	}
-
-	//big
-	int size_big = 400;
-	int index = GUIHelper:: GUIHelper::columnIndex(this, "OMIM", false);
-	if (index!=-1) setColumnWidth(index, size_big);
-
-	//medium
-	int size_med = 100;
-	SampleHeaderInfo header_info;
-	foreach(const SampleInfo& info, header_info)
-	{
-		index =  GUIHelper::columnIndex(this, info.name, false);
-		if (index!=-1) setColumnWidth(index, size_med);
-	}
-	index =  GUIHelper::columnIndex(this, "gene", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "variant_type", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "filter", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "ClinVar", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "HGMD", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "NGSD_hom", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "NGSD_het", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "NGSD_group", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "classification", false);
-	if (index!=-1) setColumnWidth(index, size_med);
-	index =  GUIHelper::columnIndex(this, "gene_info", false);
-	if (index!=-1) setColumnWidth(index, size_med);
 }
 
 void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_row)

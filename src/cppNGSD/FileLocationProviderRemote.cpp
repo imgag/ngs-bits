@@ -52,14 +52,18 @@ FileLocationList FileLocationProviderRemote::getQcFiles() const
 	return getFileLocationsByType(PathType::QC, false);
 }
 
+FileLocation FileLocationProviderRemote::getMethylationFile() const
+{
+	return getOneFileLocationByType(PathType::METHYLATION, "");
+}
 
-
+FileLocation FileLocationProviderRemote::getMethylationImage(QString locus) const
+{
+	return getOneFileLocationByType(PathType::METHYLATION_IMAGE, locus);
+}
 
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
 {
-    QTime timer;
-    timer.start();
-
     FileLocationList output;
 	if (sample_id_.isEmpty())
 	{
@@ -86,15 +90,11 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	QJsonArray file_list = json_doc.array();
 
 	output = mapJsonArrayToFileLocationList(file_list, return_if_missing);
-    Log::perf("Getting file type " + FileLocation::typeToString(type) + " took ", timer);
 	return output;
 }
 
 FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type, QString locus) const
 {
-    QTime timer;
-    timer.start();
-
     FileLocation output;
 	if (sample_id_.isEmpty())
 	{
@@ -128,7 +128,6 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	}
 
 	output = mapJsonObjectToFileLocation(file_object);
-    Log::perf("Getting file type " + FileLocation::typeToString(type) + " took ", timer);
 	return output;
 }
 

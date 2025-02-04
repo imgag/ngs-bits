@@ -316,6 +316,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString molarity;
 	QString ancestry;
 	bool scheduled_for_resequencing;
+	bool urgent;
 };
 
 ///Processing system information.
@@ -985,7 +986,13 @@ public:
 	///Returns processed sample data from the database.
 	ProcessedSampleData getProcessedSampleData(const QString& processed_sample_id);
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
-	QString normalSample(const QString& processed_sample_id);
+	QString normalSample(const QString& ps_id);
+	///Returns the processed sample name of the father of a given processed sample (parent releation, male, not bad quality, same system). Throws an error or returns an empty string if no sample could be found.
+	QString father(const QString& ps_id, bool throw_on_error=true);
+	///Returns the processed sample name of the mother of a given processed sample (parent releation, male, not bad quality, same system). Throws an error or returns an empty string if no sample could be found.
+	QString mother(const QString& ps_id, bool throw_on_error=true);
+	///Returns the processed sample name of the latest RNA sample of the given processed sample. Throws an error or returns an empty string if no sample could be found.
+	QString rna(const QString& ps_id, bool throw_on_error=true);
 
 	///Returns the corresponding sample id(s) with relation 'same sample' (mode:SAME_SAMPLE) or 'same patient' and 'same patient' (mode: SAME_PATIENT). Uses a cache to minimize the number of database queries. Does not contain the provided sample itself.
 	const QSet<int>& sameSamples(int sample_id, SameSampleMode mode);

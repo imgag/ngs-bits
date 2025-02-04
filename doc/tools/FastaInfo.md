@@ -1,5 +1,5 @@
 ### FastaInfo tool help
-	FastaInfo (2024_08-36-g4fed1f49)
+	FastaInfo (2024_08-110-g317f43b9)
 	
 	Basic info on a FASTA file containing DNA sequences.
 	
@@ -18,9 +18,10 @@
 	  --version           Prints version and exits.
 	  --changelog         Prints changeloge and exits.
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]   Settings override file (no other settings files are used).
 	
 ### FastaInfo changelog
-	FastaInfo 2024_08-36-g4fed1f49
+	FastaInfo 2024_08-110-g317f43b9
 	
 	2024-08-16 Added optional parameters 'write_n' and 'write_other'.
 	2015-06-25 initial version

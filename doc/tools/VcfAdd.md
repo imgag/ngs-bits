@@ -1,23 +1,22 @@
 ### VcfAdd tool help
-	VcfAdd (2022_11-75-gf99b2041)
+	VcfAdd (2024_11-86-g94c45dea)
 	
-	Appends variants from a VCF file to another VCF file.
+	Merges several VCF files into one VCF by appending one to the other.
 	
-	VCF header lines are taken from 'in' only.
+	Variant lines from all other input files are appended to the first input file.
+	VCF header lines are taken from the first input file only.
 	
 	Mandatory parameters:
-	  -in2 <file>           Input VCF file that is added to 'in'.
+	  -in <filelist>        Input VCF ro VCG.GZ files to merge.
 	
 	Optional parameters:
-	  -in <file>            Input VCF file to add 'in2' to.
+	  -out <file>           Output VCF file with all variants.
 	                        Default value: ''
-	  -out <file>           Output VCF file with variants from 'in' and 'in2'.
-	                        Default value: ''
-	  -filter <string>      Tag variants from 'in2' with this filter entry.
+	  -filter <string>      Tag variants from all but the first input file with this filter entry.
 	                        Default value: ''
 	  -filter_desc <string> Description used in the filter header - use underscore instead of spaces.
 	                        Default value: ''
-	  -skip_duplicates      Skip variants from  'in2' which are also contained in 'in'.
+	  -skip_duplicates      Skip variants if they occur more than once.
 	                        Default value: 'false'
 	
 	Special parameters:
@@ -25,9 +24,11 @@
 	  --version             Prints version and exits.
 	  --changelog           Prints changeloge and exits.
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]     Settings override file (no other settings files are used).
 	
 ### VcfAdd changelog
-	VcfAdd 2022_11-75-gf99b2041
+	VcfAdd 2024_11-86-g94c45dea
 	
+	2025-01-17 Added support for gzipped VCFs and removing duplicates if there is only one input file.
 	2022-12-08 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

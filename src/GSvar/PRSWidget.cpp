@@ -69,20 +69,19 @@ void PRSWidget::showContextMenu(QPoint pos)
 void PRSWidget::initGui()
 {
 	//set header
-	const QStringList& headers = prs_table_.headers();
-	ui_.prs->setColumnCount(headers.count());
-	for (int c=0; c<headers.count(); ++c)
+	ui_.prs->setColumnCount(prs_table_.columnCount());
+	for (int c=0; c<prs_table_.columnCount(); ++c)
 	{
-		ui_.prs->setHorizontalHeaderItem(c, GUIHelper::createTableItem(headers[c].trimmed()));
+		ui_.prs->setHorizontalHeaderItem(c, GUIHelper::createTableItem(prs_table_.headers()[c].trimmed()));
 	}
 
 	//add contents
-	ui_.prs->setRowCount(prs_table_.rowCount());
-	for (int r=0; r<prs_table_.rowCount(); ++r)
+	ui_.prs->setRowCount(prs_table_.count());
+	for (int r=0; r<prs_table_.count(); ++r)
 	{
-		for (int c=0; c<headers.count(); ++c)
+		for (int c=0; c<prs_table_.columnCount(); ++c)
 		{
-			ui_.prs->setItem(r , c, GUIHelper::createTableItem(prs_table_.row(r)[c].trimmed()));
+			ui_.prs->setItem(r , c, GUIHelper::createTableItem(prs_table_[r][c].trimmed()));
 		}
 	}
 

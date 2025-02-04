@@ -17,7 +17,6 @@ public:
 	static QString rootDir();
 	static QString projectFolder(QString type);
 	static QString dataFolder();
-	static QString queueEmail();
 	static QStringList queuesDefault();
 	static QStringList queuesResearch();
 	static QStringList queuesHighPriority();
@@ -31,7 +30,6 @@ private:
 	QString root_dir_;
 	QString data_folder_;
 	QMap<QString, QString>  projects_folder_;
-	QString queue_email_;
 	QStringList queues_default_;
 	QStringList queues_research_;
 	QStringList queues_high_priority_;

@@ -24,11 +24,12 @@
 ##contig=<ID=chrY,length=57227415>
 ##contig=<ID=chrX,length=156040895>
 ##contig=<ID=chrMT,length=16569>
-##INFO=<ID=SOM_C,Number=1,Type=Integer,Description="Somatic variant count in the NGSD.">
-##INFO=<ID=SOM_P,Number=.,Type=String,Description="Project names of project containing this somatic variant in the NGSD.">
+##INFO=<ID=SOM_C,Number=1,Type=Integer,Description="Somatic variant count (tumor-normal) in the NGSD.">
+##INFO=<ID=SOM_TO_C,Number=1,Type=Integer,Description="Somatic variant count (tumor-only) in the NGSD.">
+##INFO=<ID=SOM_P,Number=.,Type=String,Description="Project names of project containing this somatic variant (tumor-normal) in the NGSD.">
 ##INFO=<ID=SOM_VICC,Number=1,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD.">
 ##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,Description="Somatic VICC interpretation comment in the NGSD.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 chr1	62263112	1	A	G	.	.	SOM_C=1;SOM_P=First%20project
-chr2	47805601	3	A	AT	.	.	SOM_C=1;SOM_P=Second%20project;SOM_VICC=ONCOGENIC;SOM_VICC_COMMENT=test%20VICC%20comment
+chr2	47805601	3	A	AT	.	.	SOM_C=1;SOM_P=Second%20project;SOM_TO_C=2;SOM_VICC=ONCOGENIC;SOM_VICC_COMMENT=test%20VICC%20comment
 chr3	142558733	2	A	T	.	.	SOM_C=2;SOM_P=First%20project,Second%20project

@@ -264,7 +264,11 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	if (p.s_name.trimmed()!="")
 	{
 		QStringList name_conditions;
-		name_conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
+		QString name_pattern = escapeForSql(p.s_name);
+		if (name_pattern.startsWith('*')) name_pattern[0] = '%';
+		if (name_pattern.endsWith('*')) name_pattern[name_pattern.length()-1] = '%';
+		if (!name_pattern.startsWith('%') && !name_pattern.endsWith('%')) name_pattern = '%' + name_pattern + '%';
+		name_conditions << "s.name LIKE '" + name_pattern + "'";
 		if (p.s_name_ext)
 		{
 			name_conditions << "s.name_external LIKE '%" + escapeForSql(p.s_name) + "%'";
@@ -713,7 +717,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number, ps.scheduled_for_resequencing FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number, ps.scheduled_for_resequencing, ps.urgent FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -730,7 +734,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.project_name = query.value("p_name").toString().trimmed();
 	output.project_type = query.value("p_type").toString().trimmed();
 	output.run_name = query.value("r_name").toString().trimmed();
-	output.sequencer_type = getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name=:0", true, output.run_name).toString();
+	output.sequencer_type = output.run_name.isEmpty() ? "" : getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name=:0", true, output.run_name).toString();
 	QVariant normal_id = query.value("normal_id");
 	if (!normal_id.isNull())
 	{
@@ -748,6 +752,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.molarity = query.value("molarity").toString().trimmed();
 	output.ancestry = getValue("SELECT `population` FROM `processed_sample_ancestry` WHERE `processed_sample_id`=:0", true, processed_sample_id).toString();
 	output.scheduled_for_resequencing = query.value("scheduled_for_resequencing").toBool();
+	output.urgent = query.value("urgent").toBool();
 
 	return output;
 
@@ -809,12 +814,84 @@ void NGSD::addSampleDiseaseInfo(const QString& sample_id, const SampleDiseaseInf
 	query_insert.exec();
 }
 
-QString NGSD::normalSample(const QString& processed_sample_id)
+QString NGSD::normalSample(const QString& ps_id)
 {
-	QVariant value = getValue("SELECT normal_id FROM processed_sample WHERE id=" + processed_sample_id, true);
+	QVariant value = getValue("SELECT normal_id FROM processed_sample WHERE id=" + ps_id, true);
 	if (value.isNull()) return "";
 
 	return processedSampleName(value.toString());
+}
+
+QString NGSD::father(const QString& ps_id, bool throw_on_error)
+{
+	QString s_id = getValue("SELECT sample_id FROM processed_sample WHERE id="+ ps_id).toString();
+	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ ps_id).toString();
+	QStringList ps_ids = getValues("SELECT ps.id FROM processed_sample ps, sample s, sample_relations sr WHERE ps.sample_id=s.id AND s.id=sr.sample1_id AND sr.relation='parent-child' AND s.gender='male' AND ps.processing_system_id='" + sys_id + "' AND sr.sample2_id='" + s_id + "' AND ps.quality!='bad'");
+	if (ps_ids.count()==1)
+	{
+		return processedSampleName(ps_ids[0]);
+	}
+
+	if (throw_on_error)
+	{
+		THROW(DatabaseException, "Could not find father of "+processedSampleName(ps_id)+": Found " + QString::number(ps_ids.count()) +" matching samples");
+	}
+
+	return "";
+}
+
+QString NGSD::mother(const QString& ps_id, bool throw_on_error)
+{
+	QString s_id = getValue("SELECT sample_id FROM processed_sample WHERE id="+ ps_id).toString();
+	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ ps_id).toString();
+	QStringList ps_ids = getValues("SELECT ps.id FROM processed_sample ps, sample s, sample_relations sr WHERE ps.sample_id=s.id AND s.id=sr.sample1_id AND sr.relation='parent-child' AND s.gender='female' AND ps.processing_system_id='" + sys_id + "' AND sr.sample2_id='" + s_id + "' AND ps.quality!='bad'");
+	if (ps_ids.count()==1)
+	{
+		return processedSampleName(ps_ids[0]);
+	}
+
+	if (throw_on_error)
+	{
+		THROW(DatabaseException, "Could not find mother of "+processedSampleName(ps_id)+": Found " + QString::number(ps_ids.count()) +" matching samples");
+	}
+
+	return "";
+}
+
+QString NGSD::rna(const QString& ps_id, bool throw_on_error)
+{
+	//get releated RNA samples
+	QSet<int> rna_sample_ids = relatedSamples(ps_id.toInt(), "same sample", "RNA");
+
+	//determine RNA procssed sample IDs
+	QList<int> rna_ps_ids;
+	foreach(int rna_s_id, rna_sample_ids)
+	{
+		rna_ps_ids << getValuesInt("SELECT ps.id FROM processed_sample ps WHERE sample_id="+QString::number(rna_s_id));
+	}
+
+	//determine which is the latest processed sample
+	QDate newest(2000,1,1);
+	int newest_rna_ps_id = -1;
+	foreach (int rna_ps_id, rna_ps_ids)
+	{
+		QDate date = getValue("SELECT r.start_date FROM processed_sample ps, sequencing_run r WHERE r.id=ps.sequencing_run_id AND ps.id="+QString::number(rna_ps_id)).toDate();
+		if (newest < date)
+		{
+			newest = date;
+			newest_rna_ps_id = rna_ps_id;
+		}
+	}
+
+	//found a sample > return name
+	if (newest_rna_ps_id!=-1) return processedSampleName(QString::number(newest_rna_ps_id));
+
+	if (throw_on_error)
+	{
+		THROW(DatabaseException, "Could not find RNA sample of "+processedSampleName(ps_id)+"!");
+	}
+
+	return "";
 }
 
 const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
@@ -1292,6 +1369,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 			output += ps_name + "_repeats.vcf";
 		}
 	}
+	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 	return QFileInfo(output).absoluteFilePath();
@@ -3769,7 +3847,7 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 				if (table=="processing_system" && info.name=="adapter2_p7") info.type_constraints.regexp = QRegularExpression("^[ACGTN]*$");
 				if (table=="processed_sample" && info.name=="lane") info.type_constraints.regexp = QRegularExpression("^[1-8](,[1-8])*$");
 				if (table=="user" && info.name=="user_id") info.type_constraints.regexp = QRegularExpression("^[A-Za-z0-9_]+$");
-				if (table=="study" && info.name=="name") info.type_constraints.regexp = QRegularExpression("^[A-Za-z0-9_ -]+$");
+				if (table=="study" && info.name=="name") info.type_constraints.regexp = QRegularExpression("^[A-Za-z0-9_ -\\.]+$");
 			}
 			else
 			{
@@ -7592,6 +7670,28 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id, bool a
 			}
 		}
 
+		//find causal REs
+		{
+			SqlQuery query = getQuery();
+			query.exec("SELECT re.name, reg.allele1, reg.allele2, rcr.manual_allele1, rcr.manual_allele2 FROM report_configuration_re rcr, repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=rcr.repeat_expansion_genotype_id AND rcr.causal='1' AND rcr.report_configuration_id=" + QString::number(rc_id));
+			while(query.next())
+			{
+				//gene lengths
+				QString a1 = query.value("allele1").toString();
+				QString a2 = query.value("allele2").toString();
+
+				//manual curation
+				QVariant a1_manual = query.value("manual_allele1");
+				if (!a1_manual.isNull()) a1 = a1_manual.toString();
+				QVariant a2_manual = query.value("manual_allele2");
+				if (!a2_manual.isNull()) a2 = a2_manual.toString();
+
+				output += ", causal RE: " + query.value("name").toString() + " (length:" + a1;
+				if (!a2.isEmpty()) output += "/" + a2;
+				output += ")";
+			}
+		}
+
 		//find other causal variants
 		SqlQuery query = getQuery();
 		query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_configuration_id=" + QString::number(rc_id));
@@ -7616,7 +7716,7 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id, bool a
 			}
 			if (!user_output.isEmpty())
 			{
-				output += " (" + user_output.join(", ") + ")";
+				output += " [" + user_output.join(", ") + "]";
 			}
 		}
 	}

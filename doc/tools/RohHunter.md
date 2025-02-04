@@ -1,5 +1,5 @@
 ### RohHunter tool help
-	RohHunter (2020_03-260-ge35d12de)
+	RohHunter (2024_08-110-g317f43b9)
 	
 	ROH detection based on a variant list.
 	
@@ -38,9 +38,10 @@
 	  --version                 Prints version and exits.
 	  --changelog               Prints changeloge and exits.
 	  --tdx                     Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]         Settings override file (no other settings files are used).
 	
 ### RohHunter changelog
-	RohHunter 2020_03-260-ge35d12de
+	RohHunter 2024_08-110-g317f43b9
 	
 	2020-08-07 VCF files only as input format for variant list.
 	2019-11-21 Added support for parsing AF data from any VCF info field (removed 'af_source' parameter).

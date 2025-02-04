@@ -290,7 +290,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	qsub_args << "-pe" << "smp" << QString::number(threads);
 	qsub_args << "-b" << "y";
 	qsub_args << "-wd" << project_folder;
-	qsub_args << "-m" << "n" << "-M" << PipelineSettings::queueEmail();
+	qsub_args << "-m" << "n";
 	qsub_args << "-e" << (sge_out_base + ".err");
 	qsub_args << "-o" << (sge_out_base + ".out");
 	qsub_args << "-q" << queues.join(",");
@@ -426,7 +426,7 @@ void SgeStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJob& job, i
 
 	//cancel job
 	QByteArrayList output;
-	if (job.sge_id.isEmpty()) // not started yet => nothing to cancel
+	if (!job.sge_id.isEmpty()) // not started yet => nothing to cancel
 	{
 		Helper::executeCommand("qdel", QStringList() << job.sge_id, &output);
 	}

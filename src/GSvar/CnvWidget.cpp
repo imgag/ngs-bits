@@ -29,6 +29,8 @@
 #include <QInputDialog>
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
+#include "ColumnConfig.h"
+#include "SettingsDialog.h"
 
 CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, SomaticReportConfiguration* rep_conf_somatic, const GeneSet& het_hit_genes)
 	: QWidget(parent)
@@ -40,8 +42,8 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	, report_config_(rep_conf)
 	, somatic_report_config_(rep_conf_somatic)
 	, var_het_genes_(het_hit_genes)
-	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_ && ((report_config_!=nullptr && !report_config_->isFinalized()) || somatic_report_config_ != nullptr))
+    , ngsd_user_logged_in_(LoginManager::active())
+    , rc_enabled_(ngsd_user_logged_in_ && ((report_config_!=nullptr && !report_config_->isFinalized()) || somatic_report_config_ != nullptr))
 	, is_somatic_(somatic_report_config_!=nullptr)
 {
 	ui->setupUi(this);
@@ -57,14 +59,18 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
-	connect(ui->resize_btn, SIGNAL(clicked(bool)), this, SLOT(adaptColumnWidthsCustom()));
+
+	ui->resize_btn->setMenu(new QMenu());
+	ui->resize_btn->menu()->addAction("Open column settings", this, SLOT(openColumnSettings()));
+	ui->resize_btn->menu()->addAction("Apply column width settings", this, SLOT(adaptColumnWidthsAndHeights()));
+	ui->resize_btn->menu()->addAction("Show all columns", this, SLOT(showAllColumns()));
 
 	GUIHelper::styleSplitter(ui->splitter);
 	ui->splitter->setStretchFactor(0, 10);
 	ui->splitter->setStretchFactor(1, 1);
 
 	//determine callset ID
-	if (ngsd_enabled_ && ps_id!="")
+    if (ngsd_user_logged_in_ && ps_id!="")
 	{
 		NGSD db;
 		callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_).toString();
@@ -125,7 +131,9 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	QString col_name = item->tableWidget()->horizontalHeaderItem(col)->text();
 	if (special_cols_.contains(col_name))
 	{
-		QString text = cnvs_[row].annotations()[col-4].trimmed();
+		int col_index = cnvs_.annotationIndexByName(col_name.toUtf8(), false);
+		if (col_index==-1) return;
+		QString text = cnvs_[row].annotations()[col_index].trimmed();
 		if (text.isEmpty()) return;
 		QString title = col_name + " of CNV " + cnvs_[row].toString();
 
@@ -206,7 +214,7 @@ void CnvWidget::addInfoLine(QString text)
 		//add distribution menu entry (only once for each metric)
 		if (!metrics_done_.contains(metric))
 		{
-			ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()))->setEnabled(ngsd_enabled_ && ps_id_!="");
+            ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()))->setEnabled(ngsd_user_logged_in_ && ps_id_!="");
 			metrics_done_ << metric;
 		}
 	}
@@ -237,9 +245,12 @@ void CnvWidget::updateGUI()
 		addInfoLine(comment);
 	}
 
-	//add generic annotations
-	QVector<int> annotation_indices;
-	for(int i=0; i<cnvs_.annotationHeaders().count(); ++i)
+	//determine colum order of annotations
+	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_cnv", true));
+	QStringList col_order;
+	QList<int> anno_index_order;
+	config.getOrder(cnvs_, col_order, anno_index_order);
+	foreach(int i, anno_index_order)
 	{
 		QByteArray header = cnvs_.annotationHeaders()[i];
 
@@ -264,8 +275,6 @@ void CnvWidget::updateGUI()
 
 		//set header
 		ui->cnvs->setHorizontalHeaderItem(ui->cnvs->columnCount() -1, item);
-
-		annotation_indices.append(i);
 	}
 
 	//get report variant indices
@@ -278,7 +287,6 @@ void CnvWidget::updateGUI()
 	ui->cnvs->setRowCount(cnvs_.count());
 	for (int r=0; r<cnvs_.count(); ++r)
 	{
-
 		//vertical headers
 		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
 		if (report_variant_indices.contains(r))
@@ -312,7 +320,7 @@ void CnvWidget::updateGUI()
 		ui->cnvs->setItem(r, 3, item);
 
 		int c = 4;
-		foreach(int index, annotation_indices)
+		foreach(int index, anno_index_order)
 		{
 			QTableWidgetItem* item = GUIHelper::createTableItem(cnvs_[r].annotations()[index]);
 			//special handling for OMIM
@@ -325,9 +333,11 @@ void CnvWidget::updateGUI()
 		}
 	}
 
-	//resize columns
-	GUIHelper::resizeTableCellWidths(ui->cnvs, 200);
-	GUIHelper::resizeTableCellHeightsToFirst(ui->cnvs);
+	//resize columns/rows
+	adaptColumnWidthsAndHeights();
+
+	//hide columns
+	config.applyHidden(ui->cnvs);
 
 	//update quality from NGSD
 	updateQuality();
@@ -552,7 +562,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	{
 		//ClinVar publication
 		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
-		a_clinvar_pub->setEnabled(ngsd_enabled_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+        a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 		//execute menu
 		QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
@@ -572,13 +582,13 @@ void CnvWidget::showContextMenu(QPoint p)
 	a_rep_edit->setEnabled(rc_enabled_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	if(!is_somatic_) a_rep_del->setEnabled(rc_enabled_ && report_config_->exists(VariantType::CNVS, row));
-	else a_rep_del->setEnabled(ngsd_enabled_ && somatic_report_config_->exists(VariantType::CNVS, row));
+    else a_rep_del->setEnabled(ngsd_user_logged_in_ && somatic_report_config_->exists(VariantType::CNVS, row));
 	menu.addSeparator();
 	QAction* a_cnv_val = menu.addAction("Perform copy-number variant validation");
-	a_cnv_val->setEnabled(ngsd_enabled_);
+    a_cnv_val->setEnabled(ngsd_user_logged_in_);
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching CNVs in NGSD");
-	a_ngsd_search->setEnabled(ngsd_enabled_);
+    a_ngsd_search->setEnabled(ngsd_user_logged_in_);
 	menu.addSeparator();
 	QAction* a_deciphter = menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
 	QAction* a_dgv = menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
@@ -589,7 +599,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	QMenu*sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-	a_clinvar_pub->setEnabled(ngsd_enabled_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+    a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 	//gene sub-menus
 	if (!cnvs_[row].genes().isEmpty())
@@ -603,7 +613,7 @@ void CnvWidget::showContextMenu(QPoint p)
 			if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
 
 			QMenu* sub_menu = menu.addMenu(gene);
-			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_enabled_);
+            sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in_);
 			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
 			foreach(const GeneDB& db, GeneInfoDBs::all())
 			{
@@ -989,13 +999,12 @@ void CnvWidget::annotateTargetRegionGeneOverlap()
 void CnvWidget::clearTooltips()
 {
 	int gene_idx = GUIHelper::columnIndex(ui->cnvs, "genes", false);
-	if (gene_idx!=-1)
+	if (gene_idx==-1) return;
+
+	for (int r=0; r<ui->cnvs->rowCount(); ++r)
 	{
-		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
-		{
-			// remove tool tip
-			ui->cnvs->item(row_idx, gene_idx)->setToolTip("");
-		}
+		// remove tool tip
+		ui->cnvs->item(r, gene_idx)->setToolTip("");
 	}
 }
 
@@ -1155,7 +1164,7 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 
 void CnvWidget::uploadToClinvar(int index1, int index2)
 {
-	if (!ngsd_enabled_) return;
+    if (!ngsd_user_logged_in_) return;
 	try
 	{
 		if(index1 <0)
@@ -1285,9 +1294,6 @@ void CnvWidget::uploadToClinvar(int index1, int index2)
 		ClinvarUploadDialog dlg(this);
 		dlg.setData(data);
 		dlg.exec();
-
-
-
 	}
 	catch(Exception& e)
 	{
@@ -1345,39 +1351,27 @@ void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
 	emit storeSomaticReportConfiguration();
 }
 
-void CnvWidget::adaptColumnWidthsCustom()
+void CnvWidget::openColumnSettings()
 {
-	try
+	SettingsDialog dlg(this);
+	dlg.setWindowFlags(Qt::Window);
+	dlg.gotoPage("columns", variantTypeToString(VariantType::CNVS));
+	if (dlg.exec()==QDialog::Accepted)
 	{
-		int idx = GUIHelper::columnIndex(ui->cnvs, "loglikelihood");
-		ui->cnvs->setColumnWidth(idx, 55);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "potential_AF");
-		ui->cnvs->setColumnWidth(idx, 55);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "qvalue");
-		ui->cnvs->setColumnWidth(idx, 50);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "overlap af_genomes_imgag");
-		ui->cnvs->setColumnWidth(idx, 75);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "cn_pathogenic");
-		ui->cnvs->setColumnWidth(idx, 65);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "dosage_sensitive_disease_genes_GRCh38");
-		ui->cnvs->setColumnWidth(idx, 70);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "clinvar_cnvs");
-		ui->cnvs->setColumnWidth(idx, 60);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "hgmd_cnvs");
-		ui->cnvs->setColumnWidth(idx, 70);
-
-		idx = GUIHelper::columnIndex(ui->cnvs, "omim");
-		ui->cnvs->setColumnWidth(idx, 815);
+		dlg.storeSettings();
 	}
-	catch(Exception& e)
+}
+
+void CnvWidget::adaptColumnWidthsAndHeights()
+{
+	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_cnv", true));
+	config.applyColumnWidths(ui->cnvs);
+}
+
+void CnvWidget::showAllColumns()
+{
+	for (int i=0; i<ui->cnvs->colorCount(); ++i)
 	{
-		QMessageBox::warning(this, "Column adjustment error", "Error while adjusting column widths:\n" + e.message());
+		ui->cnvs->setColumnHidden(i, false);
 	}
 }

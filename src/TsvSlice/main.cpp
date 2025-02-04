@@ -24,6 +24,7 @@ public:
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFlag("numeric", "If set, column names are interpreted as 1-based column numbers.");
+		addFlag("rm", "If set, the columns given in 'cols' are removed instead of extracted.");
 	}
 
 	virtual void main()
@@ -39,6 +40,17 @@ public:
 
 		//check columns
 		QVector<int> cols = instream.checkColumns(getString("cols").toUtf8().split(','), getFlag("numeric"));
+
+		//remove instead of extract > invert column selection
+		if (getFlag("rm"))
+		{
+			QSet<int> old = cols.toList().toSet();
+			cols.clear();
+			for (int c=0; c<instream.columns(); ++c)
+			{
+				if (!old.contains(c)) cols << c;
+			}
+		}
 
 		//write comments
 		foreach (QByteArray comment, instream.comments())

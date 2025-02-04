@@ -33,6 +33,8 @@ protected:
 	///Returns the text value of a cell.
 	QString getCell(int row, QString column);
 	QString getRepeatId(NGSD& db, int row, bool throw_if_fails=true);
+    //Returns a value from RE table by ID
+    QString getRepeatExpansionFieldById(DBTable& table_data, QString field, QString& id);
 
 	///Sets the cell decoration
 	void setCellDecoration(int row, QString column, QString tooltip, QColor bg_color=QColor());
@@ -50,7 +52,7 @@ private:
 	QString sys_type_;
 	QString sys_type_cutoff_col_;
 	QSharedPointer<ReportConfiguration> report_config_;
-	bool ngsd_enabled_;
+    bool ngsd_user_logged_in_;
 	bool rc_enabled_;
 
 	QColor red_ = QColor(255, 0, 0, 128);
@@ -61,6 +63,7 @@ private:
 	void displayRepeats();
 	void loadMetaDataFromNGSD();
 	void colorRepeatCountBasedOnCutoffs();
+	void colorRepeatCountConfidenceInterval();
 	void setReportConfigHeaderIcons();
 };
 

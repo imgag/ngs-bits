@@ -39,6 +39,7 @@ void HerediVarImportDialog::import()
 		//import
 		int c_not_in_ngsd = 0;
 		int c_in_ngsd = 0;
+		int c_skipped_sv = 0;
 		int c_skipped_invalid = 0;
 		int c_class_added = 0;
 		int c_class_updated = 0;
@@ -48,6 +49,14 @@ void HerediVarImportDialog::import()
 		{
 			const VcfLine& line = vcf[i];
 
+			//skip structural variants
+			QByteArray sv_type = line.info("SVTYPE", false).trimmed();
+			if (sv_type!="")
+			{
+				++c_skipped_sv;
+				continue;
+			}
+
 			//invalid variant
 			if (!line.isValid(genome_idx))
 			{
@@ -56,11 +65,30 @@ void HerediVarImportDialog::import()
 				continue;
 			}
 
-			//invalid classes
+			//map classifications from HerediVar to ACMG classes
 			QByteArray classification = line.info("classification", false).trimmed();
+			QByteArray classification_comment = "";
 			classification.replace("%2B", "+");
-			if (classification=="3-" || classification=="3+") classification = "3";
-			if (classification=="4M") classification = "R+";
+			if (classification=="3+")
+			{
+				classification_comment = "; was classification '" + classification + "' in HerediVar";
+				classification = "3";
+			}
+			if (classification=="3-")
+			{
+				classification_comment = "; was classification '" + classification + "' in HerediVar";
+				classification = "3";
+			}
+			if (classification=="4M")
+			{
+				classification_comment = "; was classification '" + classification + "' in HerediVar";
+				classification = "4";
+			}
+			if (classification=="5M")
+			{
+				classification_comment = "; was classification '" + classification + "' in HerediVar";
+				classification = "5";
+			}
 			if (!valid_classes.contains(classification))
 			{
 				++c_skipped_invalid;
@@ -87,7 +115,7 @@ void HerediVarImportDialog::import()
 				SqlQuery query = db.getQuery();
 				query.prepare("INSERT INTO variant_classification (variant_id, class, comment) VALUES (" + v_id + ",:0,:1) ON DUPLICATE KEY UPDATE class=VALUES(class), comment=VALUES(comment)");
 				query.bindValue(0, classification);
-				query.bindValue(1, "[" + classification + "] Imported from HerediVar on " + date);
+				query.bindValue(1, "[" + classification + "] Imported from HerediVar on " + date + classification_comment);
 				query.exec();
 			}
 			else if (class_ngsd!=classification) //update
@@ -95,7 +123,7 @@ void HerediVarImportDialog::import()
 				++c_class_updated;
 
 				QString class_comment = db.getValue("SELECT comment FROM variant_classification WHERE variant_id=:0", true, v_id).toString();
-				class_comment.prepend("[" + classification + "] Imported from HerediVar on " + date + "\n");
+				class_comment.prepend("[" + classification + "] Imported from HerediVar on " + date + classification_comment + "\n");
 
 				SqlQuery query = db.getQuery();
 				query.prepare("UPDATE variant_classification SET class=:0, comment=:1 WHERE variant_id=:2");
@@ -112,6 +140,7 @@ void HerediVarImportDialog::import()
 		ui_.output->appendPlainText("Variants not found in NGSD: " + QString::number(c_not_in_ngsd));
 		ui_.output->appendPlainText("Variants found in NGSD: " + QString::number(c_in_ngsd));
 		ui_.output->appendPlainText("Skipped invalid variants: " + QString::number(c_skipped_invalid));
+		ui_.output->appendPlainText("Skipped structural variants: " + QString::number(c_skipped_sv));
 		ui_.output->appendPlainText("");
 
 		ui_.output->appendPlainText("Added new classifications: " + QString::number(c_class_added));

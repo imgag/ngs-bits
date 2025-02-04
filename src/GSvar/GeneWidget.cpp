@@ -14,9 +14,10 @@
 GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     : QWidget(parent)
     , ui_()
+    , init_timer_(this, true)
     , symbol_(symbol)
 {
-	//init dialog
+    //init dialog
     ui_.setupUi(this);
 	ui_.notice->setVisible(false);
     connect(ui_.refesh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
@@ -30,17 +31,20 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     menu->addAction("Edit inheritance", this, SLOT(editInheritance()));
     menu->addAction("Edit comment", this, SLOT(editComment()));
     ui_.edit_btn->setMenu(menu);
+}
 
-	//gene database buttons
-	QHBoxLayout* layout = ui_.gene_button_layout;
-	foreach(const GeneDB& db, GeneInfoDBs::all())
-	{
-		QToolButton* btn = new QToolButton();
-		btn->setToolTip(db.name);
-		btn->setIcon(db.icon);
-		layout->addWidget(btn);
-		connect(btn, SIGNAL(clicked(bool)), this, SLOT(openGeneDatabase()));
-	}
+void GeneWidget::delayedInitialization()
+{
+    //gene database buttons
+    QHBoxLayout* layout = ui_.gene_button_layout;
+    foreach(const GeneDB& db, GeneInfoDBs::all())
+    {
+        QToolButton* btn = new QToolButton();
+        btn->setToolTip(db.name);
+        btn->setIcon(db.icon);
+        layout->addWidget(btn);
+        connect(btn, SIGNAL(clicked(bool)), this, SLOT(openGeneDatabase()));
+    }
 
     updateGUI();
 }
@@ -236,8 +240,9 @@ void GeneWidget::showGeneVariationDialog()
 {
 	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
 	widget->setGene(symbol_);
-	QSharedPointer<QDialog> dlg = GUIHelper::createDialog(widget, "Small variants for " + symbol_);
-	dlg->exec();
+
+	auto dlg = GUIHelper::createDialog(widget, "Small variants search");
+	GlobalServiceProvider::addModelessDialog(dlg);
 }
 
 void GeneWidget::openGeneDatabase()

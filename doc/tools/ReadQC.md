@@ -1,5 +1,5 @@
 ### ReadQC tool help
-	ReadQC (2023_03-63-gec44de43)
+	ReadQC (2024_08-110-g317f43b9)
 	
 	Calculates QC metrics on unprocessed NGS reads.
 	
@@ -27,9 +27,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### ReadQC changelog
-	ReadQC 2023_03-63-gec44de43
+	ReadQC 2024_08-110-g317f43b9
 	
 	2023-04-18 Added support for LongRead
 	2021-02-03 Added option to write out merged input FASTQs (out1/out2).

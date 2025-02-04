@@ -42,6 +42,9 @@
     </property>
     <item>
      <widget class="QTabWidget" name="tabs">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -184,7 +187,7 @@
                 <item>
                  <widget class="QToolButton" name="vars_resize_btn">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resize columns to content (custom).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Column order and size settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>...</string>
@@ -192,6 +195,9 @@
                   <property name="icon">
                    <iconset resource="GSvar.qrc">
                     <normaloff>:/Icons/Resize_colums.png</normaloff>:/Icons/Resize_colums.png</iconset>
+                  </property>
+                  <property name="popupMode">
+                   <enum>QToolButton::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
@@ -389,10 +395,11 @@
     <addaction name="actionChangeLog"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
-    <addaction name="actionEncrypt"/>
-    <addaction name="separator"/>
     <addaction name="actionOpenLogFile"/>
     <addaction name="actionClearLogFile"/>
+    <addaction name="actionOpenGSvarDataFolder"/>
+    <addaction name="separator"/>
+    <addaction name="actionEncrypt"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -567,6 +574,7 @@
     <addaction name="actionVariantValidation"/>
     <addaction name="actionGaps"/>
     <addaction name="separator"/>
+    <addaction name="actionSampleCounts"/>
     <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuFile"/>
@@ -1510,6 +1518,16 @@
   <action name="actionReportPolymorphisms">
    <property name="text">
     <string>Report polymorphisms</string>
+   </property>
+  </action>
+  <action name="actionOpenGSvarDataFolder">
+   <property name="text">
+    <string>Open GSvar data folder</string>
+   </property>
+  </action>
+  <action name="actionSampleCounts">
+   <property name="text">
+    <string>Sample counts</string>
    </property>
   </action>
  </widget>

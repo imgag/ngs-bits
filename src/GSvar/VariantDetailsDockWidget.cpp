@@ -471,9 +471,9 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				text = formatText("modifier (M)", ORANGE);
 			}
-			else if (anno=="R*")
+			else if (anno=="R")
 			{
-				text = formatText("established risk allele (R*)", ORANGE);
+				text = formatText("established risk allele (R)", ORANGE);
 			}
 			else if (anno!="" && anno!="n/a")
 			{
@@ -603,9 +603,16 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				QList<MaxEntScanImpact> impacts;
 				foreach(const QString& anno, anno.split(','))
 				{
-					QByteArray score_pairs_with_impact;
-					impacts << NGSHelper::maxEntScanImpact(anno.toUtf8().split('/'), score_pairs_with_impact, false);
-					tooltip += nobr() + score_pairs_with_impact;
+					try
+					{
+						QByteArray score_pairs_with_impact;
+						impacts << NGSHelper::maxEntScanImpact(anno.toUtf8().split('/'), score_pairs_with_impact, false);
+						tooltip += nobr() + score_pairs_with_impact;
+					}
+					catch (Exception& e) //catch error of outdated MaxEntScan annotation
+					{
+						qDebug() << e.message();
+					}
 				}
 
 				//output: max import

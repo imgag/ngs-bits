@@ -137,6 +137,16 @@
        <string>Import patient IDs</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>Import order and sampling date</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Import sample relations</string>
+      </property>
+     </item>
     </widget>
    </item>
    <item row="0" column="2">

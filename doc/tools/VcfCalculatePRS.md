@@ -1,5 +1,5 @@
 ### VcfCalculatePRS tool help
-	VcfCalculatePRS (2024_02-126-g4f44d5e5)
+	VcfCalculatePRS (2024_08-113-g94a3b440)
 	
 	Calculates the Polgenic Risk Score(s) for a sample.
 	
@@ -8,27 +8,28 @@
 	An example VCF file can be found at https://github.com/imgag/ngs-bits/blob/master/src/tools-TEST/data_in/VcfCalculatePRS_prs2.vcf
 	
 	Mandatory parameters:
-	  -in <file>       Tabix indexed VCF.GZ file of a sample.
-	  -prs <filelist>  List of PRS VCFs.
-	  -bam <file>      BAM file corresponding to the VCF.
-	  -out <file>      Output TSV file containing Scores and PRS details
+	  -in <file>        Tabix indexed VCF.GZ file of a sample.
+	  -prs <filelist>   List of PRS VCFs.
+	  -bam <file>       BAM file corresponding to the VCF.
+	  -out <file>       Output TSV file containing Scores and PRS details
 	
 	Optional parameters:
-	  -details <file>  Output TSV containing each variant with weight, allele count and population AF.
-	                   Default value: ''
-	  -ref <file>      Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.
-	                   Default value: ''
-	  -min_depth <int> Depth cutoff below which uncalled SNPs are considered not callable and POP_AF is used instead of genotype.
-	                   Default value: '10'
+	  -details <file>   Output TSV containing each variant with weight, allele count and population AF.
+	                    Default value: ''
+	  -ref <file>       Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.
+	                    Default value: ''
+	  -min_depth <int>  Depth cutoff below which uncalled SNPs are considered not callable and POP_AF is used instead of genotype.
+	                    Default value: '10'
 	
 	Special parameters:
-	  --help           Shows this help and exits.
-	  --version        Prints version and exits.
-	  --changelog      Prints changeloge and exits.
-	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help            Shows this help and exits.
+	  --version         Prints version and exits.
+	  --changelog       Prints changeloge and exits.
+	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfCalculatePRS changelog
-	VcfCalculatePRS 2024_02-126-g4f44d5e5
+	VcfCalculatePRS 2024_08-113-g94a3b440
 	
 	2024-06-05 Added support for imputed variants.
 	2024-04-22 Added output of factors and support for wt variants.

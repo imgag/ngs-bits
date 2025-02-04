@@ -40,6 +40,11 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	connect(ui_.f_mine, SIGNAL(stateChanged(int)), this, SLOT(applyFilters()));
 }
 
+bool AnalysisStatusWidget::updateIsRunning() const
+{
+	return update_running_;
+}
+
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
 {
 	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, samples, this))
@@ -75,6 +80,8 @@ void AnalysisStatusWidget::analyzeSomatic(QList<AnalysisJobSample> samples)
 void AnalysisStatusWidget::refreshStatus()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	update_running_ = true;
 
 	try
 	{
@@ -233,6 +240,8 @@ void AnalysisStatusWidget::refreshStatus()
 	GUIHelper::resizeTableCellWidths(ui_.analyses, 400);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.analyses);
 
+	update_running_ = false;
+
 	QApplication::restoreOverrideCursor();
 }
 
@@ -390,16 +399,17 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open analysis folder(s)")
 	{
-		if (ClientHelper::isClientServerMode())
-		{
-			QMessageBox::warning(this, "No access", "Analysis folder browsing is not available in client-server mode");
-			return;
-		}
-
 		NGSD db;
 		foreach(int row, rows)
 		{
 			QString folder = db.analysisJobFolder(jobs_[row].ngsd_id);
+
+			if (!QFile::exists(folder))
+			{
+				QMessageBox::warning(this, "Folder not found", "Analysis folder does not exist: " + folder);
+				return;
+			}
+
 			if (!QDesktopServices::openUrl(folder))
 			{
 				QMessageBox::warning(this, "Error opening folder", "Folder could not be opened - it probably does not exist (yet):\n" + folder);

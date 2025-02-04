@@ -40,7 +40,6 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     UpdHunter_Test.h \
     NGSDImportQC_Test.h \
     NGSDExportGenes_Test.h \
-    SampleOverview_Test.h \
     BedAnnotateGenes_Test.h \
     BedAnnotateGC_Test.h \
     BedCoverage_Test.h \
@@ -57,7 +56,6 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     FastaMask_Test.h \
     BedIntersect_Test.h \
     SampleSimilarity_Test.h \
-    SampleDiff_Test.h \
     GenesToApproved_Test.h \
     BedAnnotateFreq_Test.h \
     GenesToBed_Test.h \
@@ -75,6 +73,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     FastqConvert_Test.h \
     BedGeneOverlap_Test.h \
     SeqPurge_Test.h \
+    VcfStrip_Test.h \
     VcfToTsv_Test.h \
     BedChunk_Test.h \
     VcfSort_Test.h \
@@ -156,7 +155,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     VcfAdd_Test.h \
     NGSDImportGenlab_Test.h \
     NGSDExportStudyGHGA_Test.h \
-    VcfSubstract_Test.h \
+    VcfSubtract_Test.h \
     TranscriptsToBed_Test.h \
     GenesToTranscripts_Test.h \
     TranscriptComparison_Test.h \
@@ -164,8 +163,9 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     SamplePath_Test.h \
     BamExtract_Test.h \
     VcfSplit_Test.h \
-    VcfMerge_Test.h \
-    ExtractMethylationData_Test.h
+    ExtractMethylationData_Test.h \
+    TsvDiff_Test.h \
+	QcToTsv_Test.h
 
 SOURCES += \
     main.cpp

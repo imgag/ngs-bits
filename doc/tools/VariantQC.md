@@ -1,5 +1,5 @@
 ### VariantQC tool help
-	VariantQC (2023_09-93-gad5c47c9)
+	VariantQC (2024_08-110-g317f43b9)
 	
 	Calculates QC metrics on variant lists.
 	
@@ -23,9 +23,10 @@
 	  --version           Prints version and exits.
 	  --changelog         Prints changeloge and exits.
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]   Settings override file (no other settings files are used).
 	
 ### VariantQC changelog
-	VariantQC 2023_09-93-gad5c47c9
+	VariantQC 2024_08-110-g317f43b9
 	
 	2023-09-21 Added parameter 'longread' to add longread specific QC values.
 	2020-08-07 VCF files only as input format for variant list.

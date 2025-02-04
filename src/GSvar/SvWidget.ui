@@ -79,6 +79,9 @@
             <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/Resize_colums.png</normaloff>:/Icons/Resize_colums.png</iconset>
            </property>
+           <property name="popupMode">
+            <enum>QToolButton::InstantPopup</enum>
+           </property>
           </widget>
          </item>
          <item>
@@ -126,7 +129,7 @@
           <bool>true</bool>
          </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
+          <enum>QAbstractItemView::ExtendedSelection</enum>
          </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectRows</enum>
@@ -214,17 +217,17 @@
            </attribute>
            <column>
             <property name="text">
-             <string>FORMAT</string>
+             <string>Name</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>DESCRIPTION</string>
+             <string>Description</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>DATA</string>
+             <string>Value</string>
             </property>
            </column>
           </widget>
@@ -254,17 +257,17 @@
            </attribute>
            <column>
             <property name="text">
-             <string>FORMAT</string>
+             <string>Name</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>DESCRIPTION</string>
+             <string>Description</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>DATA</string>
+             <string>Value</string>
             </property>
            </column>
           </widget>
@@ -324,17 +327,17 @@
            </attribute>
            <column>
             <property name="text">
-             <string>FORMAT</string>
+             <string>Name</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>DESCRIPTION</string>
+             <string>Description</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>DATA</string>
+             <string>Value</string>
             </property>
            </column>
           </widget>

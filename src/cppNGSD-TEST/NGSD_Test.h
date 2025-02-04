@@ -2898,7 +2898,7 @@ private slots:
 
 		somatic_report_settings.sbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_SBS96.csv");
 		somatic_report_settings.dbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_DBS78.csv");
-		somatic_report_settings.id_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_ID83.csv");
+		somatic_report_settings.id_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_ID83.tsv");
 		somatic_report_settings.cnv_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/cnv_signatures/De_Novo_map_to_COSMIC_CNV48.csv");
 
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
@@ -3296,9 +3296,9 @@ private slots:
 		QMap<QByteArray, QByteArray> best;
 		TsvFile tmp;
 		tmp.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep_best_transcripts.tsv"));
-		for (int i=0; i<tmp.rowCount(); ++i)
+		for (int i=0; i<tmp.count(); ++i)
 		{
-			const QStringList& row = tmp.row(i);
+			const QStringList& row = tmp[i];
 			best[row[0].toUtf8()] = row[1].toUtf8();
 		}
 

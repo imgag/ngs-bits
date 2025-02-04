@@ -21,8 +21,10 @@ public:
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addFlag("no_errors", "Ignore VCF format errors if possible.");
+		addFlag("verbose", "Writes ignored VCF format errors to stderr.");
 
 		changeLog(2018, 10, 18, "Initial implementation.");
+		changeLog(2024, 11, 21, "Implemented handling of phased GT");
     }
 
 	///Return ID from FORMAT/INFO line
@@ -39,7 +41,7 @@ public:
 	 * \param seperator - the seperator to look for: usually ,
 	 * \param colum - the column to look in e.g start looking for in the 4th colum
 	 */
-	bool includesSeperator(const QByteArray& text, const char& seperator, int column)
+	bool includesSeperator(const QByteArray& text, char seperator, int column)
 	{
 		int current_col = 0;
 		for (int i = 0; i < text.length(); ++i)
@@ -69,6 +71,7 @@ public:
         QString in = getInfile("in");
         QString out = getOutfile("out");
 		bool no_errors = getFlag("no_errors");
+		bool verbose = getFlag("verbose");
         if(in!="" && in==out)
         {
             THROW(ArgumentException, "Input and output files must be different when streaming!");
@@ -78,6 +81,9 @@ public:
 		enum AnnotationType {R, A, OTHER};
 		QHash<QByteArray, AnnotationType> info2type;
 		QHash<QByteArray, AnnotationType> format2type;
+		QHash<QByteArray, int> ignored_info_field_errors;
+		QHash<QByteArray, int> ignored_format_field_errors;
+		QTextStream out_stream(stderr);
 
         while(!in_p->atEnd())
         {
@@ -140,9 +146,12 @@ public:
 							for (int j = 0; j < new_infos_per_allele.size(); ++j)
 							{
 								if (!new_infos_per_allele[j].isEmpty()) new_infos_per_allele[j] += ";";
-								new_infos_per_allele[j] += info_parts[1];
+								new_infos_per_allele[j] += info[i];
 							}
-
+							if (verbose)
+							{
+								ignored_info_field_errors[info_name] += 1;
+							}
 						}
 						else
 						{
@@ -210,12 +219,17 @@ public:
                     }
 
 					QByteArrayList sample_values = parts[sample_column].split(':');
-
 					for (int j = 0; j < sample_values.length(); ++j)
 					{
 						if (j==0 && format[j]=="GT") //special handling GT entry (must be first entry if present!)
 						{
-							if (sample_values[j].contains(',') || sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + " (expected 1): " + line);
+							//comma is not valid
+							if (sample_values[j].contains(',')) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
+							//only one allele (chrX/Y for males) or two alleles is valid, e.g. 0, 1, 0/1, 0|1, ...
+							if (sample_values[j].count()!=1 && sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
+
+							//check for phased GT
+							bool phased = sample_values[j].contains('|');
 
 							for (int a = 0; a < alt.length(); ++a)
 							{
@@ -223,30 +237,66 @@ public:
 								int wt_count = sample_values[j].count('0');
 								if (allele_count==0 && wt_count==2)
 								{
-									new_samples_per_allele[a][i] = "0/0";
+									if (phased)
+									{
+										new_samples_per_allele[a][i] = "0|0";
+									}
+									else new_samples_per_allele[a][i] = "0/0";
 								}
 								else if (allele_count==0 && wt_count==1)
 								{
-									new_samples_per_allele[a][i] = "./0";
+									if (phased)
+									{
+										if (sample_values[j].startsWith('0')) new_samples_per_allele[a][i] = "0|.";
+										else new_samples_per_allele[a][i] = ".|0";
+									}
+									else new_samples_per_allele[a][i] = "./0";
 								}
 								else if (allele_count==0 && wt_count==0)
 								{
-									new_samples_per_allele[a][i] = "./.";
+									if (phased)
+									{
+										new_samples_per_allele[a][i] = ".|.";
+									}
+									else new_samples_per_allele[a][i] = "./.";
 								}
 								else if (allele_count==1 && wt_count==1)
 								{
-									new_samples_per_allele[a][i] = "0/1";
+									if (phased)
+									{
+										if (sample_values[j].startsWith('0')) new_samples_per_allele[a][i] = "0|1";
+										else new_samples_per_allele[a][i] = "1|0";
+									}
+									else new_samples_per_allele[a][i] = "0/1";
 								}
 								else if (allele_count==1 && wt_count==0)
 								{
-									new_samples_per_allele[a][i] = "./1";
+									if (phased)
+									{
+										if (sample_values[j].startsWith(QByteArray::number(a+1))) new_samples_per_allele[a][i] = "1|.";
+										else new_samples_per_allele[a][i] = ".|1";
+									}
+									else new_samples_per_allele[a][i] = "./1";
 								}
 								else //allele_count==2 && wt_count==0
 								{
-									new_samples_per_allele[a][i] = "1/1";
+									if (phased)
+									{
+										new_samples_per_allele[a][i] = "1|1";
+									}
+									else new_samples_per_allele[a][i] = "1/1";
 								}
 							}
 						}
+						else if (sample_values[j] == ".")
+						{
+							for (int a = 0; a < alt.length(); ++a)
+							{
+								if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+								new_samples_per_allele[a][i] += sample_values[j];
+							}
+						}
+
 						else if (format_types.at(j) == R || format_types.at(j) == A) //special handling A/R entries
 						{
 							QByteArrayList sample_value_parts = sample_values[j].split(',');
@@ -260,6 +310,10 @@ public:
 									{
 										if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
 										new_samples_per_allele[a][i] += sample_values[j];
+									}
+									if (verbose)
+									{
+										ignored_format_field_errors[format[j]] += 1;
 									}
 								}
 								else
@@ -316,7 +370,20 @@ public:
 				out_p->write(parts.join('\t').append('\n'));
 			}
 		}
-    }
+
+		//Output ignored errors
+		if (no_errors && verbose)
+		{
+			for (auto it=ignored_info_field_errors.begin(); it!=ignored_info_field_errors.end(); ++it)
+			{
+				out_stream << "Ignored invalid value count of INFO field '" << it.key() << "' " << QString::number(it.value()) << " times" << endl;
+			}
+			for (auto it=ignored_format_field_errors.begin(); it!=ignored_format_field_errors.end(); ++it)
+			{
+				out_stream << "Ignored invalid value count of FORMAT field '" << it.key() << "' " << QString::number(it.value()) << " times" << endl;
+			}
+		}
+	}
 };
 
 #include "main.moc"

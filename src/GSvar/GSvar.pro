@@ -11,7 +11,10 @@ SOURCES += main.cpp\
     Background/BackgroundWorkerBase.cpp \
     Background/NGSDCacheInitializer.cpp \
     Background/VariantAnnotator.cpp \
+    Background/IGVInitCacheWorker.cpp \
     CfDNAPanelBatchImport.cpp \
+    ColumnConfig.cpp \
+    ColumnConfigWidget.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
     GeneInterpretabilityDialog.cpp \
@@ -30,6 +33,7 @@ SOURCES += main.cpp\
     RepeatExpansionWidget.cpp \
     ReportDialog.cpp \
     Background/ReportWorker.cpp \
+    SampleCountWidget.cpp \
     SettingsDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
@@ -138,7 +142,10 @@ HEADERS += MainWindow.h \
     Background/BackgroundWorkerBase.h \
     Background/NGSDCacheInitializer.h \
     Background/VariantAnnotator.h \
+    Background/IGVInitCacheWorker.h \
     CfDNAPanelBatchImport.h \
+    ColumnConfig.h \
+    ColumnConfigWidget.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GHGAUploadDialog.h \
@@ -156,6 +163,7 @@ HEADERS += MainWindow.h \
     RepeatExpansionWidget.h \
     ReportDialog.h \
     Background/ReportWorker.h \
+    SampleCountWidget.h \
     SettingsDialog.h \
     TrioDialog.h \
     HttpHandler.h \
@@ -263,6 +271,7 @@ HEADERS += MainWindow.h \
 FORMS    += MainWindow.ui \
     Background/BackgroundJobDialog.ui \
     CfDNAPanelBatchImport.ui \
+    ColumnConfigWidget.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
     GeneInterpretabilityDialog.ui \
@@ -274,6 +283,7 @@ FORMS    += MainWindow.ui \
     ReSearchWidget.ui \
     RepeatExpansionWidget.ui \
     ReportDialog.ui \
+    SampleCountWidget.ui \
     SettingsDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
@@ -380,3 +390,6 @@ LIBS += -L$$PWD/../bin -lcppVISUAL
 RESOURCES += \
     GSvar.qrc
 
+mac {
+    ICON = Icons/Icon.icns
+}

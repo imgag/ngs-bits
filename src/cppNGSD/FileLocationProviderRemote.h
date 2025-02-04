@@ -25,6 +25,8 @@ public:
 	FileLocation getRepeatExpansionImage(QString locus) const override;
 	FileLocation getRepeatExpansionHistogram(QString locus) const override;
 	FileLocationList getQcFiles() const override;
+	FileLocation getMethylationFile() const override;
+	FileLocation getMethylationImage(QString locus) const override;
 
 	FileLocationList getBamFiles(bool return_if_missing) const override;
 	FileLocationList getViralBamFiles(bool return_if_missing) const override;
@@ -55,9 +57,9 @@ public:
 	FileLocation getSignatureCnvFile() const override;
 
 private:
-	FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
-	FileLocation getOneFileLocationByType(PathType type, QString locus) const;
-	FileLocation mapJsonObjectToFileLocation(QJsonObject obj) const;
+    FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
+    FileLocation getOneFileLocationByType(PathType type, QString locus) const;
+    FileLocation mapJsonObjectToFileLocation(QJsonObject obj) const;
 	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array, bool return_if_missing) const;
 
 protected:

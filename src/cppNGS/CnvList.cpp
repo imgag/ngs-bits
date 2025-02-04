@@ -211,7 +211,6 @@ void CnvList::loadInternal(QString filename, bool header_only)
 
 	//check mandatory columns were found
 	if (i_region_count==-1) THROW(FileParseException, "No column with region/exon count found!");
-	if (i_genes==-1) THROW(FileParseException, "No column with genes found!");
 
 	//parse annotation headers
 	foreach(int index, annotation_indices)
@@ -237,7 +236,8 @@ void CnvList::loadInternal(QString filename, bool header_only)
 			}
 
 			//genes
-			GeneSet genes = GeneSet::createFromText(parts[i_genes], ',');
+			GeneSet genes;
+			if (i_genes!=-1) genes = GeneSet::createFromText(parts[i_genes], ',');
 
 			//parse annotation headers
 			QByteArrayList annos;

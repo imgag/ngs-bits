@@ -1,5 +1,5 @@
 ### FastqExtract tool help
-	FastqExtract (2023_03-63-gec44de43)
+	FastqExtract (2024_08-110-g317f43b9)
 	
 	Extracts reads from a FASTQ file according to an ID list. Trims the reads if lengths are given.
 	
@@ -21,9 +21,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### FastqExtract changelog
-	FastqExtract 2023_03-63-gec44de43
+	FastqExtract 2024_08-110-g317f43b9
 	
 	2023-04-18 Added support for long reads.
 	2020-07-15 Added 'compression_level' parameter.

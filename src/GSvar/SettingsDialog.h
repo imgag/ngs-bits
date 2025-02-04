@@ -2,6 +2,7 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include <QCloseEvent>
 #include "ui_SettingsDialog.h"
 
 class SettingsDialog
@@ -11,6 +12,8 @@ class SettingsDialog
 
 public:
 	SettingsDialog(QWidget* parent = nullptr);
+	//Opens the spcified page. Does nothing if the page does not exist.
+	void gotoPage(QString page_name, QString section="");
 	void storeSettings();
 
 private slots:
@@ -19,6 +22,8 @@ private slots:
 
 private:
 	Ui::SettingsDialog ui_;
+
+	virtual void closeEvent(QCloseEvent *e) override;
 };
 
 #endif // SETTINGSDIALOG_H

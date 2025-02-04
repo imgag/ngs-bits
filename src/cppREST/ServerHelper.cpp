@@ -108,7 +108,6 @@ bool ServerHelper::settingsValid(bool test_mode, bool throw_exception_if_invalid
 
 			if (Settings::boolean("queue_update_enabled", true))
 			{
-                if (PipelineSettings::queueEmail().isEmpty()) THROW(Exception, "megSAP settings entry 'queue_email' is empty!");
                 if (PipelineSettings::queuesDefault().isEmpty()) THROW(Exception, "megSAP settings entry 'queues_default' is empty!");
                 if (PipelineSettings::queuesHighMemory().isEmpty()) THROW(Exception, "megSAP settings entry 'queues_high_mem' is empty!");
 			}
@@ -176,7 +175,6 @@ QString ServerHelper::getCurrentServerLogFile()
         }
         foreach(QString filename, logs)
         {
-            Log::info("Checking " +  log_folder + filename);
             if ((QFileInfo(log_folder + filename).lastModified().toSecsSinceEpoch() > last_mod_time.toSecsSinceEpoch()) || last_mod_time.isNull())
             {
                 last_mod_time = QFileInfo(log_folder + filename).lastModified();

@@ -23,6 +23,8 @@ private slots:
 	void importYearOfBirth();
 	void importTissue();
 	void importPatientIDs();
+	void importOrderAndSamplingDate();
+	void importSampleRelations();
 	void linkSamplesFromSamePatient();
 	void deleteVariantsOfBadSamples();
 	void deleteDataOfMergedSamples();

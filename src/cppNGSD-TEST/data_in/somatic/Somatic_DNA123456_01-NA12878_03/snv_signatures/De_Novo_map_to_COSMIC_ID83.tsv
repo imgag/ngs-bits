@@ -1,0 +1,10 @@
+##L1 Error %: 64.56
+##L2 Error %: 24.87
+##KL Divergence: 0.947
+##Cosine Similarity: 0.97
+##Correlation: 0.97
+#type	signature	value
+De novo extracted	Signature 83-A	
+Global NMF Signatures	Signature ID1	15.04
+Global NMF Signatures	Signature ID2	47.28
+Global NMF Signatures	Signature ID12	37.68

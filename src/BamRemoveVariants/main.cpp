@@ -32,17 +32,11 @@ public:
 
 		if (matches.count() == 0) return true; //no overlapping variants
 
-		VariantList matching_variants;
 		foreach (const QByteArray& match, matches)
 		{
 			QByteArrayList columns = match.split('\t');
 			VcfLine vcf_line(Chromosome(columns.at(0)), columns.at(1).toInt(), columns.at(3), QList<Sequence>() << columns.at(4));
-			matching_variants.append(Variant(vcf_line));
-		}
-
-		for (int i = 0; i < matching_variants.count(); ++i)
-		{
-			const Variant& var = matching_variants[i];
+			Variant var(vcf_line);
 
 			if (var.isSNV())
 			{

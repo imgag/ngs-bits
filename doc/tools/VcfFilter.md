@@ -1,5 +1,5 @@
 ### VcfFilter tool help
-	VcfFilter (2024_06-82-g4e214586)
+	VcfFilter (2024_08-110-g317f43b9)
 	
 	Filters a VCF based on the given criteria.
 	
@@ -49,9 +49,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### VcfFilter changelog
-	VcfFilter 2024_06-82-g4e214586
+	VcfFilter 2024_08-110-g317f43b9
 	
 	2024-07-11 Added flag 'filter_clear'.
 	2023-11-21 Added flag 'no_special_chr'.

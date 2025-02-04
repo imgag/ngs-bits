@@ -1,5 +1,5 @@
 ### UpdHunter tool help
-	UpdHunter (2023_11-42-ga9d1687d)
+	UpdHunter (2024_08-110-g317f43b9)
 	
 	UPD detection from trio variant data.
 	
@@ -39,9 +39,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### UpdHunter changelog
-	UpdHunter 2023_11-42-ga9d1687d
+	UpdHunter 2024_08-110-g317f43b9
 	
 	2024-06-06 Added optional output file containing informative variants.
 	2020-08-07 VCF files only as input format for variant list.

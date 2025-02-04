@@ -1,5 +1,5 @@
 ### RnaQC tool help
-	RnaQC (2023_02-56-g0fe5818f)
+	RnaQC (2024_08-110-g317f43b9)
 	
 	Calculates QC metrics for RNA samples.
 	
@@ -29,9 +29,10 @@
 	  --version                  Prints version and exits.
 	  --changelog                Prints changeloge and exits.
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### RnaQC changelog
-	RnaQC 2023_02-56-g0fe5818f
+	RnaQC 2024_08-110-g317f43b9
 	
 	2023-03-22 Added optional target region.
 	2022-07-12 Made housekeeping genes optional.

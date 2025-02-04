@@ -1,5 +1,5 @@
 ### NGSDAnnotateGeneExpression tool help
-	NGSDAnnotateGeneExpression (2022_07-37-g22d4e20c)
+	NGSDAnnotateGeneExpression (2024_08-110-g317f43b9)
 	
 	Annotates a GSvar file with RNA expression data.
 	
@@ -20,9 +20,10 @@
 	  --version               Prints version and exits.
 	  --changelog             Prints changeloge and exits.
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]       Settings override file (no other settings files are used).
 	
 ### NGSDAnnotateGeneExpression changelog
-	NGSDAnnotateGeneExpression 2022_07-37-g22d4e20c
+	NGSDAnnotateGeneExpression 2024_08-110-g317f43b9
 	
 	2022-06-14 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

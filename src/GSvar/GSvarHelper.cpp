@@ -401,7 +401,7 @@ QString GSvarHelper::gnomADLink(const Variant& v, bool open_in_v4)
 QString GSvarHelper::allOfUsLink(const Variant& v)
 {
 	FastaFileIndex idx(Settings::string("reference_genome"));
-	return "https://databrowser.researchallofus.org/snvindel-variants/" + v.toGnomAD(idx);
+	return "https://databrowser.researchallofus.org/snvsindels/" + v.toGnomAD(idx);
 }
 
 
@@ -433,6 +433,20 @@ QString GSvarHelper::localLogFolder()
 	if(Helper::mkdir(local_log_folder)==-1)
 	{
 		THROW(ProgrammingException, "Could not create application log folder '" + local_log_folder + "'!");
+	}
+
+	return local_log_folder;
+}
+
+QString GSvarHelper::localQcFolder()
+{
+	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+	if(default_paths.isEmpty()) THROW(Exception, "No local application data path was found!");
+
+	QString local_log_folder = default_paths[0] + QDir::separator() + "qcml" + QDir::separator();
+	if(Helper::mkdir(local_log_folder)==-1)
+	{
+		THROW(ProgrammingException, "Could not create application qcML folder '" + local_log_folder + "'!");
 	}
 
 	return local_log_folder;

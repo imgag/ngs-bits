@@ -116,7 +116,7 @@ class CPPNGSDSHARED_EXPORT DBTable
 		bool columnIsNumeric(int c) const;
 
 		///Replace 0/1 in boolean column by yes/no
-		void formatBooleanColumn(int c);
+		void formatBooleanColumn(int c, bool empty_if_no = false);
 
 		///Removes rows that don't contain the given text.
 		void filterRows(QString text, Qt::CaseSensitivity cs = Qt::CaseInsensitive);

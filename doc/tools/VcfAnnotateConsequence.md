@@ -1,5 +1,5 @@
 ### VcfAnnotateConsequence tool help
-	VcfAnnotateConsequence (2024_06-58-g80c33029)
+	VcfAnnotateConsequence (2024_08-110-g317f43b9)
 	
 	Adds transcript-specific consequence predictions to a VCF file.
 	
@@ -45,9 +45,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### VcfAnnotateConsequence changelog
-	VcfAnnotateConsequence 2024_06-58-g80c33029
+	VcfAnnotateConsequence 2024_08-110-g317f43b9
 	
 	2024-07-26 Added support for RefSeq GFF format (source parameter).
 	2022-07-07 Change to event-driven multithreaded implementation.
