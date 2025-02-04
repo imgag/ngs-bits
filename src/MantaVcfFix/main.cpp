@@ -23,16 +23,17 @@ public:
 	{
 		setDescription("Fixes issues in VCF of Manta SV calls.");
 		setExtendedDescription(QStringList() << "Removes invalid VCF lines containing empty REF entries."
-											 << "Combines 2 het SV at the same position into 1 hom SV."
+											 << "Removes duplicate SV calls from Manta VCFs."
 							   );
 		addInfile("in", "Input VCF file.", false, true);
-		addOutfile("out", "Output VCF list.", false, true);
+		addOutfile("out", "Output VCF file.", false, true);
 
 		//optional:
-		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, BGZF_NO_COMPRESSION);
+		addFlag("debug", "Print verbose output to STDERR.");
 
 
 		changeLog(2024,  10, 31, "initial commit.");
+		changeLog(2025,   2,  4, "added filtering.");
 	}
 
 	virtual void main()
@@ -43,6 +44,7 @@ public:
 
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
+		bool debug = getFlag("debug");
 
 		//open output stream
 		QSharedPointer<QFile> out_stream = Helper::openFileForWriting(out, true);
@@ -52,6 +54,9 @@ public:
 		if (file==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
 		gzFile in_stream = gzdopen(fileno(file), "rb"); //always open in binary mode because windows and mac open in text mode
 		if (in_stream==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
+
+		//cache to store read SVs
+		QMap<QByteArray,QByteArrayList> cache;
 
 		//read lines
 		while(!gzeof(in_stream))
@@ -85,13 +90,45 @@ public:
 			Helper::trim(parts);
 
 			//remove variants with empty REF entry
+			if (parts.at(VcfFile::REF).isEmpty())
+			{
+				if (debug) qDebug() << "Removed SV with empty REF column at " + parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS);
+				continue;
+			}
 
+			//remove duplicate SVs (INS) from the manta calls
 
+			//get prefix of MantaID
+			QList<QByteArray> manta_id = parts.at(VcfFile::ID).split(':');
+			if (manta_id.at(0).startsWith("Manta"))
+			{
+				manta_id[4] = "X";
+			}
+			else //DRAGEN VCF
+			{
+				manta_id[5] = "X";
+			}
 
+			QByteArray manta_id_prefix = parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS) + "_" + manta_id.join(':');
 
+			if(cache.contains(manta_id_prefix))
+			{
+				if (debug) qDebug() << "Skip duplicate variant at " + parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS);
+				//skip SV
+				continue;
+			}
+			else
+			{
+				cache.insert(manta_id_prefix, parts);
+			}
+
+			//write line
+			out_stream->write(parts.join("\t") + "\n");
 
 		}
 
+		out_stream->flush();
+		out_stream->close();
 
 	}
 		/*
