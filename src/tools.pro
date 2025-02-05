@@ -607,3 +607,4 @@ MantaVcfFix.depends = cppNGS
 SUBDIRS += MantaFindDuplicates
 tools-TEST.depends += MantaFindDuplicates
 MantaFindDuplicates.depends = cppNGSD
+
