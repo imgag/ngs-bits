@@ -1309,6 +1309,8 @@ void BurdenTestWidget::updateCNVCheckbox()
 
 int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int>>& detected_variants, Inheritance inheritance, QMap<QString,QString>& ps_names)
 {
+	// load reference
+	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
 	int n_hits = 0;
 	foreach(int ps_id, ps_ids)
 	{
@@ -1377,7 +1379,7 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 		QStringList variants_per_sample;
 		foreach (int var_id, intersection)
 		{
-			variants_per_sample << db_.variant(QString::number(var_id)).toString();
+			variants_per_sample << db_.variant(QString::number(var_id)).toVCF(genome_reference).toString();
 		}
 		ps_names[ps_name] = variants_per_sample.join(';');
 	}
