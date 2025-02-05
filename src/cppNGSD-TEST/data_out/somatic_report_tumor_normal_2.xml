@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SomaticNgsReport version="5" genome_build="GRCh38">
+<SomaticNgsReport version="6" genome_build="GRCh38">
     <ReportGeneration date="2000-01-01" user_name="ahmustm1" software="cppNGSD-TEST 0.1-cppNGSD-TEST-Version"/>
     <PatientInfo sap_patient_identifier="SAP_TEST_IDENTIFIER"/>
     <TumorSample name="DNA123456_01" processing_system="HaloPlex HBOC v5" processing_system_type="Panel" sequencer="MiSeq" average_depth="131.24" type="DNA" is_ffpe="false" tumor_content_histology="0.700" hrd_score_chromo="3">

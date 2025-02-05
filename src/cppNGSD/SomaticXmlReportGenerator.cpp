@@ -94,6 +94,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	QString tumor_ps_id = db.processedSampleId(data.settings.tumor_ps);
 	QString tumor_s_id = db.sampleId(data.settings.tumor_ps);
 	QString normal_ps_id = db.processedSampleId(data.settings.normal_ps);
+	QString normal_s_id = db.sampleId(data.settings.normal_ps);
 
 	QXmlStreamWriter w(out_file.data());
 
@@ -103,7 +104,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	//Element SomaticNgsReport
 	w.writeStartElement("SomaticNgsReport");
-	w.writeAttribute("version", "5");
+	w.writeAttribute("version", "6");
 	w.writeAttribute("genome_build", buildToString(data.build, true));
 
 	//Element ReportGeneration
@@ -116,27 +117,53 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element PatientInfo
 	w.writeStartElement("PatientInfo");
 
-		if(test)
-		{
-			w.writeAttribute("sap_patient_identifier", "SAP_TEST_IDENTIFIER");
-		}
-		else
-		{
-			GenLabDB genlab;
-			w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) );
-		}
+	if(test)
+	{
+		w.writeAttribute("sap_patient_identifier", "SAP_TEST_IDENTIFIER");
+	}
+	else
+	{
+		GenLabDB genlab;
+		w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) );
+	}
 
-		QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(tumor_s_id, "ICD10 code");
-		if(!disease_infos.empty())
+	QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(tumor_s_id);
+	if(!disease_infos.empty())
+	{
+		foreach(const auto& disease_info, disease_infos)
 		{
-			foreach(const auto& disease_info, disease_infos)
-			{
-				w.writeStartElement("DiseaseInfo");
-				w.writeAttribute("type", "ICD10");
-				w.writeAttribute("identifier", disease_info.disease_info);
-				w.writeEndElement();
-			}
+			QString type = disease_info.type;
+			if (type=="HPO term id") type = "HPO";
+			else if (type=="ICD10 code") type = "ICD10";
+			else if (type=="Orpha number") type = "ORPHA";
+			else if (type=="Oncotree code") type = "ONCOTREE";
+			else continue;
+
+			w.writeStartElement("DiseaseInfo");
+			w.writeAttribute("type", type);
+			w.writeAttribute("identifier", disease_info.disease_info);
+			w.writeEndElement();
 		}
+	}
+
+	disease_infos = db.getSampleDiseaseInfo(normal_s_id);
+	if(!disease_infos.empty())
+	{
+		foreach(const auto& disease_info, disease_infos)
+		{
+			QString type = disease_info.type;
+			if (type=="HPO term id") type = "HPO";
+			else if (type=="ICD10 code") type = "ICD10";
+			else if (type=="Orpha number") type = "ORPHA";
+			else continue;
+
+			w.writeStartElement("DiseaseInfoGermline");
+			w.writeAttribute("type", type);
+			w.writeAttribute("identifier", disease_info.disease_info);
+			w.writeEndElement();
+		}
+	}
+
 
 	w.writeEndElement();
 
