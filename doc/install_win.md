@@ -89,6 +89,6 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 
 ## Integration with IGV
 
-For all the questions related to IGV, please address the [`IGV help page`](install_igv.md).
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
 
 

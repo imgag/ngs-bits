@@ -89,4 +89,4 @@ _Note:_ The above mentioned processes have been tested on Intel-based Macs. It r
 
 ## Integration with IGV
 
-For all the questions related to IGV, please address the [`IGV help page`](install_igv.md).
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
