@@ -5936,7 +5936,7 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 	return output;
 }
 
-QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
+QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnalysisSettings& settings)
 {
 	QStringList sample_sheet;
 
@@ -6024,25 +6024,28 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		if (!sys_info.adapter1_p5.trimmed().isEmpty()) adapter_sequences_read1.insert(sys_info.adapter1_p5);
 		if (!sys_info.adapter2_p7.trimmed().isEmpty()) adapter_sequences_read2.insert(sys_info.adapter2_p7);
 
-
-		if (sample_type == "DNA" || sample_type == "cfDNA")
+		//generate analysis
+		if (settings.dragen_analysis)
 		{
-			if (system_type == "WGS")
+			if (sample_type == "DNA" || sample_type == "cfDNA")
 			{
-				germline_analysis.append(ps_name);
+				if (system_type == "WGS")
+				{
+					germline_analysis.append(ps_name);
+				}
+				else if (system_type == "WES")
+				{
+					enrichment_analysis.append(ps_name + "," + system_name + ".bed");
+				}
 			}
-			else if (system_type == "WES")
+			else if (sample_type == "RNA")
 			{
-				enrichment_analysis.append(ps_name + "," + system_name + ".bed");
+				rna_analysis.append(ps_name);
 			}
-		}
-		else if (sample_type == "RNA")
-		{
-			rna_analysis.append(ps_name);
-		}
-		else
-		{
-			THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+			else
+			{
+				THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+			}
 		}
 
 		//create line for BCLConvert
@@ -6110,14 +6113,22 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	sample_sheet.append("SoftwareVersion,"  + sw_version);
 
 	//sort adapter to make it testable
-	QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
-	adapter_sequences_read1_list.sort();
-	if (adapter_sequences_read1_list.length() > 0) sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
-	else warnings << "WARNING: No adapter for read 1 provided! Adapter trimming will not work.";
-	QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
-	adapter_sequences_read2_list.sort();
-	if (adapter_sequences_read2_list.length() > 0) sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
-	else warnings << "WARNING: No adapter for read 2 provided! Adapter trimming will not work.";
+	if (settings.adapter_trimming)
+	{
+		QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
+		adapter_sequences_read1_list.sort();
+		if (adapter_sequences_read1_list.length() > 0) sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
+		else warnings << "WARNING: No adapter for read 1 provided! Adapter trimming will not work.";
+		QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
+		adapter_sequences_read2_list.sort();
+		if (adapter_sequences_read2_list.length() > 0) sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
+		else warnings << "WARNING: No adapter for read 2 provided! Adapter trimming will not work.";
+	}
+	else
+	{
+		sample_sheet.append("AdapterRead1,na");
+		sample_sheet.append("AdapterRead2,na");
+	}
 
 	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
 	sample_sheet.append("");

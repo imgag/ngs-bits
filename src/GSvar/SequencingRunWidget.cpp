@@ -12,6 +12,7 @@
 #include "GlobalServiceProvider.h"
 #include "BasicStatistics.h"
 #include "GSvarHelper.h"
+#include "NsxSettingsDialog.h"
 #include <numeric>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
@@ -491,12 +492,21 @@ void SequencingRunWidget::exportSampleSheet()
 	NGSD db;
 	try
 	{
+		//name
 		QString name = ui_->name->text();
 		if (name.startsWith("#")) name.remove(0,1);
+
+		//get settings from user
+		NsxSettingsDialog dlg(this);
+		if (dlg.exec()==QDialog::Rejected) return;
+		NsxAnalysisSettings settings = dlg.getSettings();
+
+		//create sample sheet
 		QString output_path = Settings::string("sample_sheet_path") + "/" + name + ".csv";
 		QStringList warnings;
-		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_id_, "Sequencing run id"), warnings);
+		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_id_, "Sequencing run id"), warnings, settings);
 
+		//show warnings
 		if (warnings.size() > 0)
 		{
 			QMessageBox::StandardButton reply;
@@ -507,12 +517,11 @@ void SequencingRunWidget::exportSampleSheet()
 			if (reply== QMessageBox::No) return;
 		}
 
+		//store file
 		QSharedPointer<QFile> output_file = Helper::openFileForWriting(output_path);
 		output_file->write(sample_sheet.toLatin1());
-		output_file->flush();
-		output_file->close();
 
-		QMessageBox::information(this, "SampleSheet exported", "SampleSheet for NovaSeq X Plus exported!");
+		QMessageBox::information(this, "SampleSheet exported", "SampleSheet for NovaSeq X Plus written to:\n" +output_path);
 	}
 	catch (Exception& e)
 	{
