@@ -29,6 +29,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BamRemoveVariants_Test.h \
     CnvReferenceCohort_Test.h \
     BedpeAnnotateBreakpointDensity_Test.h \
+    MantaVcfFix_Test.h \
     NGSDExportGff_Test.h \
     FastqCheckUMI.h \
     BedpeExtractGenotype_Test.h \
@@ -165,7 +166,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     VcfSplit_Test.h \
     ExtractMethylationData_Test.h \
     TsvDiff_Test.h \
-	QcToTsv_Test.h
+    QcToTsv_Test.h \
+    MantaVcfFix_Test.h
 
 SOURCES += \
     main.cpp
