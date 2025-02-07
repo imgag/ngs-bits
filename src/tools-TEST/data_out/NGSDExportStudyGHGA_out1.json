@@ -31,7 +31,7 @@
             "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
             "name": "ANAM_000111",
             "type": "custom analysis",
-            "workflow_doi": "megSAP_doi",
+            "workflow_doi": "doi.123",
             "workflow_name": "megSAP",
             "workflow_repository": "https://github.com/imgag/megSAP",
             "workflow_version": "2000_01-123-g123456789"
@@ -41,7 +41,7 @@
             "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
             "name": "ANAM_000222",
             "type": "custom analysis",
-            "workflow_doi": "megSAP_doi",
+            "workflow_doi": "doi.123",
             "workflow_name": "megSAP",
             "workflow_repository": "https://github.com/imgag/megSAP",
             "workflow_version": "2000_01-123-g123456789"
