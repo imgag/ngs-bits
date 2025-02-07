@@ -523,7 +523,7 @@ public:
 			//tabular output line
 			QByteArrayList out_line = QByteArrayList() <<
 				QByteArray(chr.str()) << QByteArray::number(intron_start) << QByteArray::number(intron_end) << strand <<
-				QByteArray::number(unique) << motif << genes.toList().join(",") << event << info;
+                QByteArray::number(unique) << motif << genes.values().join(",") << event << info;
 			if (report != "") tsv_f->write(out_line.join("\t") + "\n");
 
 			//BED output line
@@ -564,7 +564,7 @@ public:
 		QMap<QByteArray, int>::const_iterator i = stats.constBegin();
 		while (i != stats.constEnd())
 		{
-			out << i.key() << "\t" << i.value() << "\t" << QByteArray::number(1. * i.value() / stats["all"], 'f', 4) << endl;
+            out << i.key() << "\t" << i.value() << "\t" << QByteArray::number(1. * i.value() / stats["all"], 'f', 4) << QT_ENDL;
 			++i;
 		}
 

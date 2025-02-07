@@ -72,12 +72,11 @@ ThreadCoordinator::~ThreadCoordinator()
 
 void ThreadCoordinator::log(QString chr, QString message)
 {
-	out_ << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << "\t" << chr << "\t" << message << endl;
+    out_ << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << "\t" << chr << "\t" << message << QT_ENDL;
 }
 
 void ThreadCoordinator::error(QString chr, QString message)
 {
-	//QTextStream(stdout) << "ThreadCoordinator::error " << i << " " << message << endl;
 	THROW(Exception, "Exception in worker for " + chr + ": " + message);
 }
 

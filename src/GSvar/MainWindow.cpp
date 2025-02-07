@@ -513,7 +513,7 @@ AnalysisType MainWindow::getCurrentAnalysisType()
 
 void MainWindow::userSpecificDebugFunction()
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	QString user = Helper::userName();
@@ -2582,7 +2582,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		}
 	}
 
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	//mark IGV as not initialized
@@ -3897,7 +3897,7 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, svs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
-			QTime timer;
+            QElapsedTimer timer;
 
 			try
 			{
@@ -4540,7 +4540,7 @@ void MainWindow::on_actionExportTestData_triggered()
 {
 	NGSD db;
 	QMap<QString, QSet<int>> sql_history;
-	QTime timer;
+    QElapsedTimer timer;
 	QStringList base_tables = {
 		"user",
 		"device",
@@ -5480,7 +5480,7 @@ void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	//apply filters
@@ -6392,7 +6392,7 @@ void MainWindow::showNotification(QString text)
 	text = text.trimmed();
 
 	//update tooltip
-	QStringList tooltips = notification_label_->toolTip().split("\n", QString::SkipEmptyParts);
+    QStringList tooltips = notification_label_->toolTip().split("\n", QT_SKIP_EMPTY_PARTS);
 	if (!tooltips.contains(text)) tooltips.prepend(text);
 	notification_label_->setToolTip(tooltips.join("<br>"));
 
@@ -6479,7 +6479,7 @@ void MainWindow::applyFilters(bool debug_time)
 	try
 	{
 		//apply main filter
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		const FilterCascade& filter_cascade = ui_.filters->filters();
@@ -6625,7 +6625,7 @@ void MainWindow::applyFilters(bool debug_time)
 		ReportConfigFilter rc_filter = ui_.filters->reportConfigurationFilter();
 		if (germlineReportSupported() && rc_filter!=ReportConfigFilter::NONE)
 		{
-			QSet<int> report_variant_indices = report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false).toSet();
+            QSet<int> report_variant_indices = LIST_TO_SET(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!filter_result_.flags()[i]) continue;
@@ -6642,7 +6642,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 		else if( somaticReportSupported() && rc_filter != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
 		{
-			QSet<int> report_variant_indices = somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+            QSet<int> report_variant_indices = LIST_TO_SET(somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if ( !filter_result_.flags()[i] ) continue;

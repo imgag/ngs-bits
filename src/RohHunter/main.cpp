@@ -193,7 +193,7 @@ public:
 	virtual void main()
 	{
 		//init
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 		QTextStream out(stdout);
 		bool inc_chrx = getFlag("inc_chrx");
@@ -208,8 +208,8 @@ public:
             THROW(FileParseException, "Multi sample is not supported.");
         }
 
-		out << "=== Loading input data ===" << endl;
-		out << "Variants in VCF: " << vl.count() << endl;
+        out << "=== Loading input data ===" << QT_ENDL;
+        out << "Variants in VCF: " << vl.count() << QT_ENDL;
 
 		//determine quality indices
 		if (!vl.vcfHeader().formatIdDefined("DP")) THROW(ArgumentException, "Could not find 'DP' annotation in vcf header!");
@@ -285,24 +285,24 @@ public:
 
 			var_info.append(VariantInfo{v.chr(), v.start(), geno_hom, af});
 		}
-		out << "Variants passing QC filters: " << var_info.count() << endl;
+        out << "Variants passing QC filters: " << var_info.count() << QT_ENDL;
 		double hom_perc = 100.0*vars_hom/var_info.count();
-		out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << endl;
-		out << "Variants with AF annotation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
-		out << endl;
+        out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << QT_ENDL;
+        out << "Variants with AF annotation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << QT_ENDL;
+        out << QT_ENDL;
 
 		//detect raw ROHs
-		out << "=== Detecting ROHs ===" << endl;
+        out << "=== Detecting ROHs ===" << QT_ENDL;
 		float roh_min_q = getFloat("roh_min_q");
 		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q);
-		out << "Raw ROH count: " << regions.count() << endl;
+        out << "Raw ROH count: " << regions.count() << QT_ENDL;
 
 		//merge raw ROHs
 		double ext_marker_perc = getFloat("ext_marker_perc");
 		double ext_size_perc = getFloat("ext_size_perc");
 		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc);
-		out << "Merged ROH count: " << regions.count() << endl;
-		out << endl;
+        out << "Merged ROH count: " << regions.count() << QT_ENDL;
+        out << QT_ENDL;
 
 		//filter regions
 		int roh_min_markers = getInt("roh_min_markers");
@@ -335,7 +335,7 @@ public:
 						annos.insert(anno_file[index].annotations()[0]);
 					}
 				}
-				QStringList annos_sorted = annos.toList();
+                QStringList annos_sorted = annos.values();
 				std::sort(annos_sorted.begin(), annos_sorted.end());
 				regions[i].annotations << annos_sorted.join(',');
 			}
@@ -367,8 +367,8 @@ public:
 		}
 
 		//statistics output
-		out << "=== Statistics output ===" << endl;
-		out << "Overall ROH count: " << regions.count() << endl;
+        out << "=== Statistics output ===" << QT_ENDL;
+        out << "Overall ROH count: " << regions.count() << QT_ENDL;
 		int count_a = 0;
 		double sum_a = 0.0;
 		int count_b = 0;
@@ -394,22 +394,22 @@ public:
 				sum_c += bases;
 			}
 		}
-		out << "Overall ROH size sum: " << QString::number((sum_a+sum_b+sum_c)/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << "Class A: <0.5 Mb" << endl;
-		out << "Class A ROH count: " << count_a << endl;
-		out << "Class A ROH size sum: " << QString::number(sum_a/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << "Class B: >=0.5 Mb and <1.5 Mb" << endl;
-		out << "Class B ROH count: " << count_b << endl;
-		out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << "Class C: >=1.5 Mb" << endl;
-		out << "Class C ROH count: " << count_c << endl;
-		out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << endl;
+        out << "Overall ROH size sum: " << QString::number((sum_a+sum_b+sum_c)/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
+        out << "Class A: <0.5 Mb" << QT_ENDL;
+        out << "Class A ROH count: " << count_a << QT_ENDL;
+        out << "Class A ROH size sum: " << QString::number(sum_a/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
+        out << "Class B: >=0.5 Mb and <1.5 Mb" << QT_ENDL;
+        out << "Class B ROH count: " << count_b << QT_ENDL;
+        out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
+        out << "Class C: >=1.5 Mb" << QT_ENDL;
+        out << "Class C ROH count: " << count_c << QT_ENDL;
+        out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
+        out << QT_ENDL;
 
 
 		//debug output
-		out << "=== Debug output ===" << endl;
-		out << "Time: " << Helper::elapsedTime(timer) << endl;
+        out << "=== Debug output ===" << QT_ENDL;
+        out << "Time: " << Helper::elapsedTime(timer) << QT_ENDL;
 	}
 };
 

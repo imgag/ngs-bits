@@ -287,7 +287,7 @@ public:
 
 			id2ngsd.insert(term.id(), qi_term.lastInsertId().toInt());
 		}
-		out << "Imported " << id2ngsd.count() << " non-obsolete HPO terms." << endl;
+        out << "Imported " << id2ngsd.count() << " non-obsolete HPO terms." << QT_ENDL;
 
 		//insert parent-child relations between (valid) terms
 		int c_ins_parent = 0;
@@ -304,7 +304,7 @@ public:
 				int p_db = id2ngsd.value(p_id, -1);
 				if (p_db==-1)
 				{
-					out << "Notice: Parent term '" << p_id << "' is not a valid term!" << endl;
+                    out << "Notice: Parent term '" << p_id << "' is not a valid term!" << QT_ENDL;
 					continue;
 				}
 
@@ -315,7 +315,7 @@ public:
 				++c_ins_parent;
 			}
 		}
-		out << "Imported " << c_ins_parent << " parent-child relations between terms from HPO." << endl;
+        out << "Imported " << c_ins_parent << " parent-child relations between terms from HPO." << QT_ENDL;
 
 		//import obsolete terms and link to replacement terms
 		int c_ins_obs = 0;
@@ -332,7 +332,7 @@ public:
 				int ngsd_id = id2ngsd.value(replace_id, -1);
 				if (ngsd_id==-1)
 				{
-					out << "Notice: Replacement term '" << replace_id << "' is not a valid term!" << endl;
+                    out << "Notice: Replacement term '" << replace_id << "' is not a valid term!" << QT_ENDL;
 					continue;
 				}
 				else
@@ -350,7 +350,7 @@ public:
 			++c_ins_obs;
 			if (!replace_id_db.isNull()) ++c_ins_obs_with_replace;
 		}
-		out << "Imported " << c_ins_obs << " obsolete HPO terms (" << c_ins_obs_with_replace << " with replacement)." << endl;
+        out << "Imported " << c_ins_obs << " obsolete HPO terms (" << c_ins_obs_with_replace << " with replacement)." << QT_ENDL;
 
 		return id2ngsd;
 	}
@@ -409,7 +409,7 @@ public:
 		if (getInfile("decipher") == "") return;
 		bool debug = getFlag("debug");
 		QTextStream out(stdout);
-		if (debug) out << "Parsing Decipher..." << endl;
+        if (debug) out << "Parsing Decipher..." << QT_ENDL;
 		int countT2D = 0;
 		int countD2G = 0;
 		int countT2G = 0;
@@ -545,7 +545,6 @@ public:
 			QByteArray disease = parts[5].trimmed().toLatin1(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
 			if (!disease.startsWith("OMIM:"))
 			{
-				//out << "OMIM:" << disease << endl;
 				++c_not_omim;
 				continue;
 			}
@@ -555,7 +554,6 @@ public:
 			int gene_db_id = db.geneId(gene_symbol);
 			if (gene_db_id == -1)
 			{
-				//out << "GENE:" << gene_symbol << endl;
 				++c_invalid_gene;
 				continue;
 			}
@@ -565,7 +563,6 @@ public:
 			PhenotypeEvidenceLevel evidence = translateGenccEvidence(gencc_evi, line);
 			if (evidence == PhenotypeEvidenceLevel::NA || evidence == PhenotypeEvidenceLevel::AGAINST)
 			{
-				//out << "EVIDENCE:" << gencc_evi << endl;
 				++c_no_evidence;
 				continue;
 			}
@@ -577,10 +574,10 @@ public:
 		}
 		fp->close();
 
-		out << "Imported " << c_imported << " disease-gene relations from GenCC" << endl;
-		out << "  Skipped " << c_not_omim << " lines without OMIM term." << endl;
-		out << "  Skipped " << c_invalid_gene << " lines without valid gene." << endl;
-		out << "  Skipped " << c_no_evidence << " lines without evidence." << endl;
+        out << "Imported " << c_imported << " disease-gene relations from GenCC" << QT_ENDL;
+        out << "  Skipped " << c_not_omim << " lines without OMIM term." << QT_ENDL;
+        out << "  Skipped " << c_invalid_gene << " lines without valid gene." << QT_ENDL;
+        out << "  Skipped " << c_no_evidence << " lines without evidence." << QT_ENDL;
 	}
 
 	QByteArrayList reconstructStrings(const QByteArrayList& parts, int expected_size=-1)
@@ -896,7 +893,7 @@ public:
 			out << "Imported " << added_d2g << " disease-gene relations, " << added_t2d << " term-disease relations, " << added_t2g << " term-gene relations from HPO (anno).\n";
 			foreach(const QByteArray& gene, non_hgnc_genes)
 			{
-				out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+                out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << QT_ENDL;
 			}
 		}
 
@@ -906,7 +903,7 @@ public:
 		{
 			int lineCount = 0;
 			int count = 0;
-			if (debug) out << "Parsing OMIM file..." << endl;
+            if (debug) out << "Parsing OMIM file..." << QT_ENDL;
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			QSharedPointer<QFile> fp = Helper::openFileForReading(omim_file);
@@ -962,7 +959,7 @@ public:
 		QString clinvar_file = getInfile("clinvar");
 		if (clinvar_file!="")
 		{
-			if (debug) out << "Prasing ClinVar..." << endl;
+            if (debug) out << "Prasing ClinVar..." << QT_ENDL;
 			int added_t2g = 0;
 			int added_d2g = 0;
 
@@ -1027,7 +1024,7 @@ public:
 					int approved_id = db.geneId(gene);
 					if (approved_id==-1)
 					{
-						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+                        if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << QT_ENDL;
 						++c_skipped_invalid_gene;
 						continue;
 					}
@@ -1066,7 +1063,7 @@ public:
 		if(hgmd_file != "")
 		{
 			int added_t2g = 0;
-			if (debug) out << "Parsing HGMD Phenobase dump file..." << endl;
+            if (debug) out << "Parsing HGMD Phenobase dump file..." << QT_ENDL;
 			// define look-up tables
 			QMultiMap<int, QByteArray> phenid2gene_mapping = QMap<int, QByteArray>();
 			QMultiMap<QByteArray,int> cui2phenid_mapping = QMap<QByteArray,int>();
@@ -1078,7 +1075,7 @@ public:
 			{
 				line_number++;
 				// show progress
-				if(debug && line_number%100 == 0) out << "\tparsed " << line_number << " lines..." << endl;
+                if(debug && line_number%100 == 0) out << "\tparsed " << line_number << " lines..." << QT_ENDL;
 				QByteArray line = fp->readLine().trimmed();
 				if (line.isEmpty()) continue;
 
@@ -1179,7 +1176,7 @@ public:
 
 
 			// create hpo-gene relation
-			if (debug) out << "Creating HPO-gene relation from HGMD file..." << endl;
+            if (debug) out << "Creating HPO-gene relation from HGMD file..." << QT_ENDL;
 
 			int i = 0;
 			foreach (const QByteArray& hpo, hpo2cui_mapping.keys())
@@ -1192,7 +1189,7 @@ public:
 					// get all phenotype ids for given cui
 					if(!cui2phenid_mapping.contains(cui))
 					{
-					   if (debug) out << "No phenotype id found for CUI '" << cui << "' (HGMD file)!" << endl;
+                       if (debug) out << "No phenotype id found for CUI '" << cui << "' (HGMD file)!" << QT_ENDL;
 					   continue;
 					}
 
@@ -1201,7 +1198,7 @@ public:
 						// get all genes for a given phenotype id
 						if(!phenid2gene_mapping.contains(phen_id))
 						{
-							if (debug) out << "No gene found for phenotype id " << QByteArray::number(phen_id) << " (HGMD file)!" << endl;
+                            if (debug) out << "No gene found for phenotype id " << QByteArray::number(phen_id) << " (HGMD file)!" << QT_ENDL;
 							continue;
 						}
 
@@ -1211,13 +1208,13 @@ public:
 							int approved_id = db.geneId(gene);
 							if (approved_id==-1)
 							{
-								if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol (HGMD file)!" << endl;
+                                if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol (HGMD file)!" << QT_ENDL;
 								continue;
 							}
 							QByteArray gene_approved = db.geneSymbol(approved_id);
 
 							// add gene to hpo list:
-							if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << " (cui=" << cui << " phenid=" << phen_id << ")" << endl;
+                            if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << " (cui=" << cui << " phenid=" << phen_id << ")" << QT_ENDL;
 							int term_db_id = id2ngsd.value(hpo, -1);
 							if (term_db_id != -1)
 							{
@@ -1241,7 +1238,7 @@ public:
 		}
 
 		// import gathered data:
-		out << "Gathering all term2gene relations" << endl;
+        out << "Gathering all term2gene relations" << QT_ENDL;
 
 		foreach (int term_id, term2diseases.keys())
 		{
@@ -1275,7 +1272,7 @@ public:
 			}
 		}
 
-		out << "Starting import into NGSD" << endl;
+        out << "Starting import into NGSD" << QT_ENDL;
 		// build insert statements with 10000 tuples each (big insertions are way faster than single element insert statements)
 		QStringList tuples;
 		foreach (int term_id, term2genes.keys())
@@ -1294,7 +1291,7 @@ public:
 		{
 			db.getQuery().exec("INSERT INTO hpo_genes (hpo_term_id, gene, details, evidence) VALUES " + tuples.mid(i, 10000).join(", ") +";");
 		}
-		out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
+        out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << QT_ENDL;
 
 		out << "Optimizing term-gene relations (removing genes which are present in all leaf nodes from the parent node)...\n";
 
@@ -1331,7 +1328,7 @@ public:
 			out << " " << subtree_roots[i].name() << ":\t" << subtree_counts.at(i) << "\n";
 		}
 
-		out << removed_genes << " duplicate genes removed during optimization" << endl;
+        out << removed_genes << " duplicate genes removed during optimization" << QT_ENDL;
 	}
 
 	void optimizeHpoGeneTable(const Phenotype& root, NGSD& db, const QHash<QByteArray, int>& pt2id, int& removed_genes)

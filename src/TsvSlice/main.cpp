@@ -44,7 +44,7 @@ public:
 		//remove instead of extract > invert column selection
 		if (getFlag("rm"))
 		{
-			QSet<int> old = cols.toList().toSet();
+            QSet<int> old = cols.toList().toSet();
 			cols.clear();
 			for (int c=0; c<instream.columns(); ++c)
 			{

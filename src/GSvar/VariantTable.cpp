@@ -486,7 +486,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 		setItem(r, 0, createTableItem(variant.chr().str()));
 		if (!variant.chr().isAutosome())
 		{
-			item(r,0)->setBackgroundColor(Qt::yellow);
+            item(r,0)->setBackground(QBrush(QColor(Qt::yellow)));
 			item(r,0)->setToolTip("Not autosome");
 		}
 		setItem(r, 1, createTableItem(QByteArray::number(variant.start())));
@@ -505,37 +505,37 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 			//warning
 			if (anno_index==i_co_sp && anno.contains(":HIGH:"))
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_classification && (anno=="3" || anno=="M" || anno=="R"))
 			{
-				item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 				is_notice_line = true;
 			}
 			else if (anno_index==i_classification && (anno=="4" || anno=="5"))
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_clinvar && anno.contains("pathogenic") && !anno.contains("conflicting interpretations of pathogenicity")) //matches "pathogenic" and "likely pathogenic"
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_hgmd && anno.contains("CLASS=DM")) //matches both "DM" and "DM?"
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.8)
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_notice_line = true;
 			}
 			else if (anno_index==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.5)
 			{
-				item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 				is_notice_line = true;
 			}
 			else if (anno_index==i_maxentscan && !anno.isEmpty())
@@ -558,12 +558,12 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				//output: max import
 				if (impacts.contains(MaxEntScanImpact::HIGH))
 				{
-					item->setBackgroundColor(Qt::red); //orange
+                    item->setBackground(QBrush(QColor(Qt::red))); //orange
 					is_notice_line = true;
 				}
 				else if (impacts.contains(MaxEntScanImpact::MODERATE))
 				{
-					item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                    item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 					is_notice_line = true;
 				}
 			}
@@ -571,30 +571,30 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 			//non-pathogenic
 			if (anno_index==i_classification && (anno=="1" || anno=="2"))
 			{
-				item->setBackgroundColor(Qt::green);
+                item->setBackground(QBrush(QColor(Qt::green)));
 				is_ngsd_benign = true;
 			}
 
 			//highlighed
 			if (anno_index==i_validation && anno.contains("TP"))
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_comment && anno!="")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_ihdb_hom && anno=="0")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_ihdb_het && anno=="0")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_clinvar && anno.contains("(confirmed)"))
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_genes)
 			{
@@ -805,7 +805,7 @@ void VariantTable::clearContents()
 
 void VariantTable::adaptColumnWidths()
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	//restrict width

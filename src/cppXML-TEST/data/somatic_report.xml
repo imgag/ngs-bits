@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SomaticNgsReport version="5" genome_build="GRCh37">
+    <ReportGeneration date="2000-01-01" user_name="ahmustm1" software="cppNGSD-TEST 0.1-cppNGSD-TEST-Version"/>
+    <PatientInfo sap_patient_identifier="SAP_TEST_IDENTIFIER">
+        <DiseaseInfo type="ICD10" identifier="C17.2"/>
+        <DiseaseInfo type="ICD10" identifier="C20.21"/>
+    </PatientInfo>
+    <TumorSample name="DX184894_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="457.34" type="DNA" is_ffpe="true" tissue="buccal mucosa" tumor_content_histology="0.600" tumor_content_bioinformatic="0.800" mutation_burden="17.30" microsatellite_instability="12.74" hrd_score_chromo="58">
+        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="457.34"/>
+    </TumorSample>
+    <NormalSample name="DX184263_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="251.78">
+        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="251.78"/>
+    </NormalSample>
+    <AnalysisPipeline name="megSAP" version="0.1-835-g57035c2" url="https://github.com/imgag/megSAP" comment="Mapping: bwa mem, Indel Realignment: Abra2, Variant Caller: Strelka2, CNV Caller: ClinCNV"/>
+    <TargetRegion name="SureSelect Somatic vTEST">
+        <Region chr="chr1" start="11854395" end="11854615"/>
+        <Region chr="chr1" start="11854766" end="11854940"/>
+        <Region chr="chr1" start="11855135" end="11855425"/>
+        <Region chr="chr1" start="11856243" end="11856476"/>
+        <Region chr="chr1" start="14192647" end="14192697"/>
+        <Region chr="chr1" start="16242603" end="16242794"/>
+        <Region chr="chr2" start="157183210" end="157183452"/>
+        <Region chr="chr2" start="157184343" end="157184546"/>
+        <Region chr="chr2" start="157184896" end="157185065"/>
+        <Region chr="chr2" start="159560023" end="159560073"/>
+        <Region chr="chr2" start="164133543" end="164133593"/>
+        <Region chr="chr3" start="71064680" end="71064824"/>
+        <Region chr="chrX" start="451117" end="451167"/>
+        <Region chr="chrX" start="8703386" end="8703436"/>
+        <Region chr="chrX" start="8763307" end="8763360"/>
+        <Region chr="chrX" start="8764320" end="8764327"/>
+        <Region chr="chrY" start="25286748" end="25286869"/>
+        <Region chr="chrY" start="25289133" end="25289254"/>
+        <Gene name="DAZ1" id="HGNC:2682"/>
+        <Gene name="FAM9A" id="HGNC:18403"/>
+        <Gene name="FOXP1" id="HGNC:3823"/>
+        <Gene name="MTHFR" id="HGNC:7436"/>
+        <Gene name="NR4A2" id="HGNC:7981"/>
+        <Gene name="SPEN" id="HGNC:17575"/>
+    </TargetRegion>
+    <VariantList>
+        <Variant chr="chr16" start="56870524" end="56870524" ref="A" obs="C" af_tumor="0.1254" depth_tumor="639" af_normal="0.0000" depth_normal="736">
+            <Gene name="NUP93" id="HGNC:28958"/>
+            <TranscriptInformation transcript_id="ENST00000308159" gene="NUP93" type="synonymous_variant" hgvs_c="c.1794A&gt;C" hgvs_p="p.Ile598=" exon="exon17/22" variant_type="synonymous_variant" main_transcript="true"/>
+            <TranscriptInformation transcript_id="ENST00000542526" gene="NUP93" type="synonymous_variant" hgvs_c="c.1425A&gt;C" hgvs_p="p.Ile475=" exon="exon15/20" variant_type="synonymous_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000564887" gene="NUP93" type="synonymous_variant" hgvs_c="c.1425A&gt;C" hgvs_p="p.Ile475=" exon="exon15/20" variant_type="synonymous_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000569842" gene="NUP93" type="synonymous_variant" hgvs_c="c.1794A&gt;C" hgvs_p="p.Ile598=" exon="exon17/23" variant_type="synonymous_variant" main_transcript="false"/>
+        </Variant>
+        <Variant chr="chr6" start="26093141" end="26093141" ref="G" obs="A" af_tumor="0.7" depth_tumor="1210" af_normal="0.5" effect="oncogenic">
+            <TranscriptInformation transcript_id="ENST00000309234" gene="HFE" type="missense_variant" hgvs_c="c.845G&gt;A" hgvs_p="p.Cys282Tyr" exon="exon4/6" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000317896" gene="HFE" type="missense_variant" hgvs_c="c.569G&gt;A" hgvs_p="p.Cys190Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000336625" gene="HFE" type="missense_variant" hgvs_c="c.527G&gt;A" hgvs_p="p.Cys176Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000349999" gene="HFE" type="missense_variant" hgvs_c="c.581G&gt;A" hgvs_p="p.Cys194Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000352392" gene="HFE" type="intron_variant" hgvs_c="c.77-206G&gt;A" hgvs_p="" exon="exon1/2" variant_type="intron_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000353147" gene="HFE" type="missense_variant" hgvs_c="c.305G&gt;A" hgvs_p="p.Cys102Tyr" exon="exon2/4" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000357618" gene="HFE" type="missense_variant" hgvs_c="c.845G&gt;A" hgvs_p="p.Cys282Tyr" exon="exon4/6" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000397022" gene="HFE" type="missense_variant" hgvs_c="c.776G&gt;A" hgvs_p="p.Cys259Tyr" exon="exon4/6" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000461397" gene="HFE" type="missense_variant" hgvs_c="c.803G&gt;A" hgvs_p="p.Cys268Tyr" exon="exon4/6" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000470149" gene="HFE" type="missense_variant" hgvs_c="c.836G&gt;A" hgvs_p="p.Cys279Tyr" exon="exon5/7" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000488199" gene="HFE" type="missense_variant" hgvs_c="c.539G&gt;A" hgvs_p="p.Cys180Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
+        </Variant>
+        <Variant chr="chr12" start="56078988" end="56078988" ref="G" obs="A" af_tumor="0.68" depth_tumor="1022" af_normal="0.5">
+            <TranscriptInformation transcript_id="ENST00000257879" gene="ITGA7" type="stop_gained" hgvs_c="c.3268C&gt;T" hgvs_p="p.Gln1090Ter" exon="exon25/25" variant_type="stop_gained" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000257880" gene="ITGA7" type="3_prime_UTR_variant" hgvs_c="c.*24C&gt;T" hgvs_p="" exon="exon27/27" variant_type="3_prime_UTR_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000347027" gene="ITGA7" type="stop_gained" hgvs_c="c.3250C&gt;T" hgvs_p="p.Gln1084Ter" exon="exon25/25" variant_type="stop_gained" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000394229" gene="ITGA7" type="3_prime_UTR_variant" hgvs_c="c.*24C&gt;T" hgvs_p="" exon="exon26/26" variant_type="3_prime_UTR_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000394230" gene="ITGA7" type="3_prime_UTR_variant" hgvs_c="c.*24C&gt;T" hgvs_p="" exon="exon26/26" variant_type="3_prime_UTR_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000452168" gene="ITGA7" type="stop_gained" hgvs_c="c.2989C&gt;T" hgvs_p="p.Gln997Ter" exon="exon25/25" variant_type="stop_gained" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000553804" gene="ITGA7" type="stop_gained" hgvs_c="c.3280C&gt;T" hgvs_p="p.Gln1094Ter" exon="exon25/25" variant_type="stop_gained" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000555728" gene="ITGA7" type="stop_gained" hgvs_c="c.3400C&gt;T" hgvs_p="p.Gln1134Ter" exon="exon26/26" variant_type="stop_gained" main_transcript="false"/>
+        </Variant>
+    </VariantList>
+    <CnvList>
+        <Cnv chr="chr1" start="32097627" end="32860246" start_band="p35.1" end_band="p35.2" af="0.775" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2"/>
+        <Cnv chr="chr8" start="3489730" end="4474360" start_band="p23.2" end_band="p23.2" af="0.775" alteration="DEL" type="focal" cn="1" cn_a="0" cn_b="1"/>
+        <Cnv chr="chr11" start="26582421" end="27694430" start_band="p14.1" end_band="p14.2" af="0.775" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2">
+            <Gene name="MTHFR" id="HGNC:7436"/>
+            <Gene name="SPEN" id="HGNC:17575"/>
+        </Cnv>
+    </CnvList>
+    <ReportDocument format="RTF"/>
+    <ReportDocumentParts name="summary" format="RTF">SSBhbSB0aGUgc3VtbWFyeSBwYXJ0IG9mIHRoZSBSVEYgcmVwb3J0</ReportDocumentParts>
+    <ReportDocumentParts name="relevant_variants" format="RTF">cmVsZXZhbnQgU05WcyBhbmQgSU5ERUxz</ReportDocumentParts>
+    <ReportDocumentParts name="unclear_variants" format="RTF">dW5jbGVhciBTTlZz</ReportDocumentParts>
+    <ReportDocumentParts name="cnvs" format="RTF">Y2hyb21vc29tYWwgYWJlcnJhdGlvbnM=</ReportDocumentParts>
+    <ReportDocumentParts name="svs" format="RTF">RnVzaW9ucw==</ReportDocumentParts>
+    <ReportDocumentParts name="pharmaco_genetics" format="RTF">UlRGIHBoYXJtYWNvZ2Vub21pY3MgdGFibGU=</ReportDocumentParts>
+    <ReportDocumentParts name="general_info" format="RTF">Z2VuZXJhbCBtZXRhIGRhdGE=</ReportDocumentParts>
+    <ReportDocumentParts name="igv_screenshot" format="RTF">ODk1MDRFNDcwRDBBMUEwQTAwMDAwMDBENDk0ODQ0NTIwMDAwMDAwMjAwMDAwMDAyMDgwMjAwMDAwMEZERDQ5QTczMDAwMDAwMDk3MDQ4NTk3MzAwMDAyRTIzMDAwMDJFMjMwMTc4QTUzRjc2MDAwMDAwMTY0OTQ0NDE1NDA4RDc2MzYwNjA2MDY4NkU2RTY2RjhGRkZGRkY3RjA2MDYwMDFGQ0QwNTg2Q0MzNzdERUMwMDAwMDAwMDQ5NDU0RTQ0QUU0MjYwODI=</ReportDocumentParts>
+    <ReportDocumentParts name="mtb_summary" format="RTF">TVRCIHN1bW1hcnk=</ReportDocumentParts>
+    <ReportDocumentParts name="hla_summary" format="RTF">SExBIHN1bW1hcnk=</ReportDocumentParts>
+</SomaticNgsReport>

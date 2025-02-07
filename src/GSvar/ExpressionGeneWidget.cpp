@@ -132,7 +132,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//update filter strategy
@@ -718,7 +718,7 @@ void ExpressionGeneWidget::loadExpressionData()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//skip without database
@@ -803,7 +803,7 @@ void ExpressionGeneWidget::initTable()
 	}
 
 	//init db ensg gene mapping
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	ensg_mapping_ = db_.getEnsemblGeneMapping();
 	id2gene_ = db_.getGeneExpressionId2GeneMapping();
@@ -830,7 +830,7 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//disable sorting

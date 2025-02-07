@@ -111,10 +111,10 @@ clean:
 	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
-	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
+	cd bin && ./cppCORE-TEST && ./cppXML-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
 
 test_lib_windows:
-	cd bin && ./cppCORE-TEST.exe && ./cppNGS-TEST.exe && ./cppNGSD-TEST.exe && ./cppREST-TEST.exe
+	cd bin && ./cppCORE-TEST.exe && ./cppXML-TEST.exe && ./cppNGS-TEST.exe && ./cppNGSD-TEST.exe && ./cppREST-TEST.exe
 
 test_server:
 	cd bin && ./GSvarServer-TEST

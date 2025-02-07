@@ -118,8 +118,8 @@ public:
 
 		}
 
-		out << "pairs passed: " << count_pass << endl;
-		out << "pairs dropped: " << count_fail << endl;
+        out << "pairs passed: " << count_pass << QT_ENDL;
+        out << "pairs dropped: " << count_fail << QT_ENDL;
 	}
 
 private:

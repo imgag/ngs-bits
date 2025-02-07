@@ -160,7 +160,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		foreach(const QByteArray& info, line_parts[INFO].split(';'))
 		{
 			int sep_index = info.indexOf('=');
-			const QByteArray& key = strCache(sep_index==-1 ? info : info.left(sep_index));
+            const QByteArray key = strCache(sep_index==-1 ? info : info.left(sep_index));
 
 			//check if the info is known in header
 			if(!info_ids.contains(key))
@@ -195,7 +195,6 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		//parse format entries
 		bool is_first = true;
 		QByteArrayList format_list = line_parts[FORMAT].split(':');
-		//QTextStream(stdout) << __FILE__ << " " << __LINE__ << " " << format_list.count() << " " << endl;
 		foreach(const QByteArray& format, format_list)
 		{
 			//first entry must be GT if GT is present
@@ -256,7 +255,6 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 					sample_entries[i] = strCache(sample_entries[i]);
 				}
 				vcf_line.addFormatValues(strArrayCache(sample_entries));
-				//QTextStream(stdout) << __FILE__ << " " << __LINE__ << " " << sample_entries.count() << " " << endl;
 			}
 		}
 		else
@@ -592,7 +590,7 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 	for (int i=0; i<vcf_lines_.count()-1; ++i)
 	{
 		int j = i+1;
-		if (vcf_lines_[i].chr() != vcf_lines_[j].chr() || vcf_lines_[i].start() != vcf_lines_[j].start() || vcf_lines_[i].ref() !=vcf_lines_[j].ref() || !qEqual(vcf_lines_[i].alt().begin(),  vcf_lines_[i].alt().end(), vcf_lines_[j].alt().begin()))
+        if (vcf_lines_[i].chr() != vcf_lines_[j].chr() || vcf_lines_[i].start() != vcf_lines_[j].start() || vcf_lines_[i].ref() !=vcf_lines_[j].ref() || !std::equal(vcf_lines_[i].alt().begin(),  vcf_lines_[i].alt().end(), vcf_lines_[j].alt().begin()))
 		{
 			output.append(vcf_lines_.at(i));
 		}

@@ -275,7 +275,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 			QStringList parts2 = part.split(":");
 			types.insert(parts2[2]);
 		}
-		QString type = types.toList().join(", ");
+        QString type = types.values().join(", ");
 		QString coding = parts_match.join(", ");
 
 		//add sample info

@@ -92,7 +92,7 @@ public:
 		}
 
 		//create a sorted and unique list of values in the map
-		QList<int> values = QList<int>::fromSet(counts.values().toSet());
+        QList<int> values = QList<int>::fromSet(counts.values().toSet());
 		std::sort(values.begin(), values.end(), std::greater<int>());
 
 		//print list ordered by counts
@@ -106,7 +106,7 @@ public:
 			{
 				if (sheet.count()==0)
 				{
-					out << key << "\t" << value << endl;
+                    out << key << "\t" << value << QT_ENDL;
 				}
 				else
 				{
@@ -127,7 +127,7 @@ public:
 						}
 					}
 
-					out << key << "\t" << value << "\t(nearest=" << min_dist_entry.mid << " name=" << min_dist_entry.name << " dist=" << min_dist_diff.count() << " diff_indices=" << min_dist_diff.join(',') << ")" << endl;
+                    out << key << "\t" << value << "\t(nearest=" << min_dist_entry.mid << " name=" << min_dist_entry.name << " dist=" << min_dist_diff.count() << " diff_indices=" << min_dist_diff.join(',') << ")" << QT_ENDL;
 				}
 
 				//abort when the maximum number of MIDs is reached

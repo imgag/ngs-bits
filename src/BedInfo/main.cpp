@@ -46,22 +46,22 @@ public:
 		//output
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
-		out << filename << "Regions    : " << stats.value("roi_fragments").toString() << endl;
-		out << filename << "Bases      : " << stats.value("roi_bases").toString(0) << endl;
-		out << filename << "Chromosomes: " << stats.value("roi_chromosomes").toString() << endl;
-		out << filename << endl;
-		out << filename << "Is sorted  : " << stats.value("roi_is_sorted").toString() << endl;
-		out << filename << "Is merged  : " << stats.value("roi_is_merged").toString() << endl;
-		out << filename << endl;
-		out << filename << "Fragment size (min)  : " << stats.value("roi_fragment_min").toString() << endl;
-		out << filename << "Fragment size (max)  : " << stats.value("roi_fragment_max").toString() << endl;
-		out << filename << "Fragment size (mean) : " << stats.value("roi_fragment_mean").toString() << endl;
-		out << filename << "Fragment size (stdev): " << stats.value("roi_fragment_stdev").toString() << endl;
+        out << filename << "Regions    : " << stats.value("roi_fragments").toString() << QT_ENDL;
+        out << filename << "Bases      : " << stats.value("roi_bases").toString(0) << QT_ENDL;
+        out << filename << "Chromosomes: " << stats.value("roi_chromosomes").toString() << QT_ENDL;
+        out << filename << QT_ENDL;
+        out << filename << "Is sorted  : " << stats.value("roi_is_sorted").toString() << QT_ENDL;
+        out << filename << "Is merged  : " << stats.value("roi_is_merged").toString() << QT_ENDL;
+        out << filename << QT_ENDL;
+        out << filename << "Fragment size (min)  : " << stats.value("roi_fragment_min").toString() << QT_ENDL;
+        out << filename << "Fragment size (max)  : " << stats.value("roi_fragment_max").toString() << QT_ENDL;
+        out << filename << "Fragment size (mean) : " << stats.value("roi_fragment_mean").toString() << QT_ENDL;
+        out << filename << "Fragment size (stdev): " << stats.value("roi_fragment_stdev").toString() << QT_ENDL;
 
 		//optional: check position bounds
 		if (getInfile("fai")!="")
 		{
-			out << filename << endl;
+            out << filename << QT_ENDL;
 
 			//load maxima
 			QMap<int, int> max;
@@ -86,7 +86,7 @@ public:
 				}
 				if (line.end()>max[line.chr().num()])
 				{
-					out << filename << "Warning: maximum position " << max[line.chr().num()] << " exceeded for region " << line.chr().str() << ":" << line.start() << "-" << line.end() << endl;
+                    out << filename << "Warning: maximum position " << max[line.chr().num()] << " exceeded for region " << line.chr().str() << ":" << line.start() << "-" << line.end() << QT_ENDL;
 				}
 			}
 		}

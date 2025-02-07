@@ -158,10 +158,10 @@ void PreferredTranscriptsWidget::check()
 	{
 		int gene_id = it.key();
 
-		QSet<QString> mane = db.getValues("SELECT name FROM gene_transcript WHERE source='Ensembl' AND gene_id=" + QString::number(gene_id) + " AND is_mane_select=1").toSet();
+        QSet<QString> mane = LIST_TO_SET(db.getValues("SELECT name FROM gene_transcript WHERE source='Ensembl' AND gene_id=" + QString::number(gene_id) + " AND is_mane_select=1"));
 		if (mane.isEmpty()) continue;
 
-		QSet<QString> mane_not_pt = mane.subtract(it.value().toSet());
+        QSet<QString> mane_not_pt = mane.subtract(LIST_TO_SET(it.value()));
 		foreach(QString t, mane_not_pt)
 		{
 			invalid << t + " (" + db.geneSymbol(gene_id) + ")";

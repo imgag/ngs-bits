@@ -9,12 +9,10 @@ InputWorker::InputWorker(AnalysisJob& job, gzFile& in_stream, Parameters& params
 	, in_stream_(in_stream)
 	, params_(params)
 {
-//	if (params_.debug) QTextStream(stdout) << "InputWorker(): " << job_.index << endl;
 }
 
 InputWorker::~InputWorker()
 {
-//	if (params_.debug) QTextStream(stdout) << "~InputWorker(): " << job_.index << endl;
 }
 
 void InputWorker::run()
@@ -61,7 +59,7 @@ void InputWorker::run()
 
 			job_.lines.append(QByteArray(char_array));
 		}
-		if (params_.debug) QTextStream(stdout) << "InputWorker(): " << job_.index << " job done!" << endl;
+        if (params_.debug) QTextStream(stdout) << "InputWorker(): " << job_.index << " job done!" << QT_ENDL;
 		emit done(job_.index);
 	}
 	catch(Exception& e)

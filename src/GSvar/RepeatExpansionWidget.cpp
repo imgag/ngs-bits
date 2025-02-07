@@ -382,7 +382,7 @@ void RepeatExpansionWidget::setCellDecoration(int row, QString column, QString t
 	//set background color
 	if (bg_color.isValid())
 	{
-		item->setBackgroundColor(bg_color);
+        item->setBackground(QBrush(QColor(bg_color)));
 	}
 }
 
@@ -718,10 +718,10 @@ void RepeatExpansionWidget::setReportConfigHeaderIcons()
 {
 	if(report_config_==NULL) return;
 
-	QSet<int> report_variant_indices = report_config_->variantIndices(VariantType::RES, false).toSet();
+    QSet<int> report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::RES, false));
 	for(int r=0; r<res_.count(); ++r)
 	{
-		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
+        QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
 		if (report_variant_indices.contains(r))
 		{
 			const ReportVariantConfiguration& rc = report_config_->get(VariantType::RES, r);
@@ -780,7 +780,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 		int col = GUIHelper::columnIndex(ui_.table, "genotype");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			QColor color = ui_.table->item(row, col)->backgroundColor();
+            QColor color = ui_.table->item(row, col)->background().color();
 			if (color!=red_ && color!=orange_ && color!=yellow_) hidden[row] = true;
 		}
 	}
@@ -789,7 +789,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 		int col = GUIHelper::columnIndex(ui_.table, "genotype");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			if (ui_.table->item(row, col)->backgroundColor()!=red_) hidden[row] = true;
+            if (ui_.table->item(row, col)->background().color()!=red_) hidden[row] = true;
 		}
 	}
 
@@ -829,7 +829,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 	//RC filter
 	if (ui_.filter_rc->isChecked() && report_config_!=NULL)
 	{
-		QSet<int> report_variant_indices = report_config_->variantIndices(VariantType::RES, false).toSet();
+        QSet<int> report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::RES, false));
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			if (!report_variant_indices.contains(row)) hidden[row] = true;

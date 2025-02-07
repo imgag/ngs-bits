@@ -77,7 +77,7 @@ public:
 		}
 
 		//FASTQ QC
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 		QString read_qc = getOutfile("read_qc").trimmed();
 		if (!read_qc.isEmpty())
@@ -92,7 +92,7 @@ public:
 			}
 			QCCollection metrics_raw_data = stats.getResult();
 			metrics_raw_data.storeToQCML(read_qc, QStringList() << in, "");
-			if (debug) debug_stream << "Performing raw read QC took: " << Helper::elapsedTime(timer) << endl;
+            if (debug) debug_stream << "Performing raw read QC took: " << Helper::elapsedTime(timer) << QT_ENDL;
 		}
 
 		//perform main QC
@@ -136,7 +136,7 @@ public:
 			parameters << "-roi" << QFileInfo(roi_file).fileName();
 			if (cfdna) parameters << "-cfdna";
 		}
-		if (debug) debug_stream << "Performing main QC took: " << Helper::elapsedTime(timer) << endl;
+        if (debug) debug_stream << "Performing main QC took: " << Helper::elapsedTime(timer) << QT_ENDL;
 
 		//sample contamination
 		timer.restart();
@@ -145,7 +145,7 @@ public:
 		{
 			GenomeBuild build = stringToBuild(getEnum("build"));
 			metrics_cont = Statistics::contamination(build, in, ref_file, debug, 20, 50, long_read);
-			if (debug) debug_stream << "Performing contamination check took: " << Helper::elapsedTime(timer) << endl;
+            if (debug) debug_stream << "Performing contamination check took: " << Helper::elapsedTime(timer) << QT_ENDL;
 		}
 
 		//somatic
@@ -159,7 +159,7 @@ public:
 			QCCollection custom_depths = Statistics::somaticCustomDepth(custom_bed, in, ref_file, min_mapq);
 			metrics.insert(custom_depths);
 			parameters << "-somatic_custom_bed " + somatic_custom_roi_file;
-			if (debug) debug_stream << "Performing somatic special QC took: " << Helper::elapsedTime(timer) << endl;
+            if (debug) debug_stream << "Performing somatic special QC took: " << Helper::elapsedTime(timer) << QT_ENDL;
 		}
 
 		//post-processing long_read

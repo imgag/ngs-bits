@@ -53,7 +53,7 @@ public:
 			int gene_id = db.geneId(gene);
 			if (gene_id==-1)
 			{
-				error_stream << "Gene symbol " + gene + " not found in NGSD!" << endl;
+                error_stream << "Gene symbol " + gene + " not found in NGSD!" << QT_ENDL;
 				continue;
 			}
 
@@ -83,7 +83,7 @@ public:
 			}
 			if (transcripts.isEmpty())
 			{
-				error_stream << "No transcript found for gene " + gene + "!" << endl;
+                error_stream << "No transcript found for gene " + gene + "!" << QT_ENDL;
 			}
 		}
 	}

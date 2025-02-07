@@ -84,7 +84,7 @@ public:
 
 		//Statistics output
 		QTextStream stream(stdout);
-		stream << "Variants from in removed: " << removed_count << endl;
+        stream << "Variants from in removed: " << removed_count << QT_ENDL;
 	}
 
 private:

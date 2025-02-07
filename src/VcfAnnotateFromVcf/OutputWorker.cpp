@@ -8,12 +8,12 @@ OutputWorker::OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream, P
 	, out_stream_(out_stream)
 	, params_(params)
 {
-	if (params_.debug) QTextStream(stdout) << "OutputWorker(): " << job_.index << endl;
+    if (params_.debug) QTextStream(stdout) << "OutputWorker(): " << job_.index << QT_ENDL;
 }
 
 OutputWorker::~OutputWorker()
 {
-	if (params_.debug) QTextStream(stdout) << "~OutputWorker(): " << job_.index << endl;
+    if (params_.debug) QTextStream(stdout) << "~OutputWorker(): " << job_.index << QT_ENDL;
 }
 
 

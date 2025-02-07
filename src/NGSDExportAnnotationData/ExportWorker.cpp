@@ -9,7 +9,7 @@ ExportWorker::ExportWorker(QString chr, const ExportParameters& params, const Sh
 	, params_(params)
 	, shared_data_(shared_data)
 {
-	if (params_.verbose) QTextStream(stdout) << "ExportWorker" << endl;
+    if (params_.verbose) QTextStream(stdout) << "ExportWorker" << QT_ENDL;
 }
 
 ExportWorker::~ExportWorker()
@@ -318,7 +318,7 @@ void ExportWorker::run()
 					int current_sample = ngsd_count_query.value(0).toInt();
 
 					bool is_tumor_normal = !ngsd_count_query.value(3).isNull();
-					QTextStream(stderr) << variant.toString() << " " << is_tumor_normal << " " << current_sample << endl;
+                    QTextStream(stderr) << variant.toString() << " " << is_tumor_normal << " " << current_sample << QT_ENDL;
 					if (is_tumor_normal)
 					{
 						//skip already seen samples for general statistics (there could be several processings of the same sample because of different processing systems or because of experment repeats due to quality issues)
@@ -337,7 +337,7 @@ void ExportWorker::run()
 						s_ids_to_done.insert(current_sample);
 
 						++somatic_count_to;
-						QTextStream(stderr) << somatic_count_to << endl;
+                        QTextStream(stderr) << somatic_count_to << QT_ENDL;
 					}
 				}
 
@@ -473,8 +473,7 @@ void ExportWorker::run()
 		emit done(chr_);
 	}
 	catch(Exception& e)
-	{
-		//QTextStream(stdout) << "ExportWorker:error " << chr_ << " message:" << e.message() << endl;
+	{		
 		emit error(chr_, e.message());
 	}
 

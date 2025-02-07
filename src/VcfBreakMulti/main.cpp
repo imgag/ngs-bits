@@ -376,11 +376,11 @@ public:
 		{
 			for (auto it=ignored_info_field_errors.begin(); it!=ignored_info_field_errors.end(); ++it)
 			{
-				out_stream << "Ignored invalid value count of INFO field '" << it.key() << "' " << QString::number(it.value()) << " times" << endl;
+                out_stream << "Ignored invalid value count of INFO field '" << it.key() << "' " << QString::number(it.value()) << " times" << QT_ENDL;
 			}
 			for (auto it=ignored_format_field_errors.begin(); it!=ignored_format_field_errors.end(); ++it)
 			{
-				out_stream << "Ignored invalid value count of FORMAT field '" << it.key() << "' " << QString::number(it.value()) << " times" << endl;
+                out_stream << "Ignored invalid value count of FORMAT field '" << it.key() << "' " << QString::number(it.value()) << " times" << QT_ENDL;
 			}
 		}
 	}

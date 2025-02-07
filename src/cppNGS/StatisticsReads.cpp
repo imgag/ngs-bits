@@ -353,7 +353,7 @@ QCCollection StatisticsReads::getResult()
 				bins << "";
 			}
 		}
-		plot3.setValues(read_length_hist.yCoords().toList(), bins);
+        plot3.setValues(read_length_hist.yCoords().toList(), bins);
 		QString plotname3 = Helper::tempFileName(".png");
 		plot3.store(plotname3);
 		output.insert(QCValue::ImageFromFile("Read length histogram", plotname3, "Histogram of read lengths", "QC:2000132"));

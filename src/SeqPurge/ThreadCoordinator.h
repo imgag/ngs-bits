@@ -49,7 +49,7 @@ private:
 	TrimmingStatistics stats_;
 	ErrorCorrectionStatistics ec_stats_;
 
-	QTime timer_overall_;
+    QElapsedTimer timer_overall_;
 	QTimer timer_progress_;
 	QTimer timer_done_;
 };

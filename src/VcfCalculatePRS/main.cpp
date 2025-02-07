@@ -393,7 +393,7 @@ public:
 
 			//print final PRS
 			out << column_entries["pgs_id"] << ": variants_found=" << c_found << " prs=" << prs << " percentile=" << percentile_string << " low_depth_variants=" << c_low_depth
-				<< " variants_imputed=" << c_imputed << endl;
+                << " variants_imputed=" << c_imputed << QT_ENDL;
 		}
 
 		output_tsv->flush();

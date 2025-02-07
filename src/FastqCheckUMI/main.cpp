@@ -73,12 +73,12 @@ public:
 
 		}
 
-		if(barcode_info.size() > 1) THROW(FileParseException, "ERROR: FastQ reads contain multiple UMI types!\n\t" + barcode_info.toList().join("\n\t"));
+        if(barcode_info.size() > 1) THROW(FileParseException, "ERROR: FastQ reads contain multiple UMI types!\n\t" + barcode_info.values().join("\n\t"));
 
 		//output
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
-		out << barcode_info.toList().first() << endl;
+        out << barcode_info.values().first() << QT_ENDL;
 	}
 
 	bool isValidSequence(QByteArray barcode, int& length)
