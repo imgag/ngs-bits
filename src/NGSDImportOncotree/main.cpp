@@ -182,9 +182,9 @@ public:
 				}
 			}
 		}
-		out << "Imported " << codes.count() << "  Oncotree terms." << endl;
-		out << "Imported " << count_parent_relations << "  Oncotree parent-child relations." << endl;
-		out << "Imported " << count_obsolete << " obsolete Oncotree terms." << endl;
+        out << "Imported " << codes.count() << "  Oncotree terms." << Qt::endl;
+        out << "Imported " << count_parent_relations << "  Oncotree parent-child relations." << Qt::endl;
+        out << "Imported " << count_obsolete << " obsolete Oncotree terms." << Qt::endl;
 	}
 
 	QList<OncotreeCode> parsingTree(QJsonObject root)

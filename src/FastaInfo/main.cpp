@@ -115,22 +115,22 @@ public:
 		//output summary
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream stream(outfile.data());
-		stream << "== general info ==" << endl;
-		stream << "sequences : " << counts.count() << endl;
+        stream << "== general info ==" << Qt::endl;
+        stream << "sequences : " << counts.count() << Qt::endl;
 		long long sum = 0;
 		foreach(const Counts& counts, counts)
 		{
 			sum += counts.all();
 		}
-		stream << "characters: " << sum << endl;
-		stream << endl;
+        stream << "characters: " << sum << Qt::endl;
+        stream << Qt::endl;
 
 		//output details
-		stream << "== characters per sequence ==" << endl;
+        stream << "== characters per sequence ==" << Qt::endl;
 		foreach(const QByteArray& sequence, order)
 		{
 			const Counts& c = counts[sequence];
-			stream << sequence << ": " << c.all() << " (ACGT:" << c.acgt << " N:" << c.n << " other:" << c.other << ")" << endl;
+            stream << sequence << ": " << c.all() << " (ACGT:" << c.acgt << " N:" << c.n << " other:" << c.other << ")" << Qt::endl;
 		}
 
 		//write BED files

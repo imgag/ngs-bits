@@ -360,7 +360,7 @@ RtfTable SomaticcfDnaReport::partGeneralInfo()
 
 	table.addRow( RtfTableRow( {"Tumor-ID: ", data_.table.tumor_sample.name.toUtf8()}, {2000,7921}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Plasma-ID(s): ", ids.join(", ")}, {2000,7921}, RtfParagraph().setFontSize(14)) );
-	table.addRow( RtfTableRow( {"Prozessierungssystem:", "Patientenspezifisches Panel " + sys.toList().join(", ").toUtf8()}, {2000,7921}, RtfParagraph().setFontSize(14)) );
+    table.addRow( RtfTableRow( {"Prozessierungssystem:", "Patientenspezifisches Panel " + sys.values().join(", ").toUtf8()}, {2000,7921}, RtfParagraph().setFontSize(14)) );
 
 	return table;
 }

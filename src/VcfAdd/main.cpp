@@ -182,14 +182,14 @@ public:
 		if (out!="")
 		{
 			QTextStream stream(stdout);
-			stream << "Variants written: " << c_written << endl;
+            stream << "Variants written: " << c_written << Qt::endl;
 			if (skip_duplicates)
 			{
-				stream << "Duplicate variants skipped: " << c_dup  << endl;
+                stream << "Duplicate variants skipped: " << c_dup  << Qt::endl;
 			}
 			if (filter_used)
 			{
-				stream << "Filter entries added to variants: " << c_filter << endl;
+                stream << "Filter entries added to variants: " << c_filter << Qt::endl;
 			}
 		}
 	}

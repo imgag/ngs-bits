@@ -217,13 +217,13 @@ public:
 				out << "INFO ids:\n";
 				for (int j = 0; j < meta.info_id_list[i].size(); j++)
 				{
-					out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << endl;
+                    out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << Qt::endl;
 				}
 			}
 		}
 
 		//create coordinator instance
-		out << "Performing annotation" << endl;
+        out << "Performing annotation" << Qt::endl;
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }

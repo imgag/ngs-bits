@@ -123,8 +123,8 @@ public:
 
 		}
 
-		out << "pairs passed: " << count_pass << endl;
-		out << "pairs dropped: " << count_fail << endl;
+        out << "pairs passed: " << count_pass << Qt::endl;
+        out << "pairs dropped: " << count_fail << Qt::endl;
 	}
 
 private:

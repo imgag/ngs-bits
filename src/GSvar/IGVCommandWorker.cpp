@@ -19,7 +19,7 @@ void IGVCommandWorker::run()
 	int launch_command_id = -1;
 	if (!commands_.isEmpty() && commands_.at(0).text=="launch IGV")
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		launch_command_id = commands_.at(0).id;
@@ -88,7 +88,7 @@ void IGVCommandWorker::run()
 				continue;
 			}
 
-			QTime timer;
+            QElapsedTimer timer;
 			timer.start();
 
 			emit commandStarted(command.id);

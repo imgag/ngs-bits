@@ -46,7 +46,7 @@ void SingleSampleAnalysisDialog::setAnalysisSteps()
 
 			if(sys_types.contains("lrGS"))
 			{
-				if(sys_types.size() > 1) THROW(ArgumentException, "Error: Multiple processing types selected (" + sys_types.toList().join(", ") + "). Cannot start analysis!");
+                if(sys_types.size() > 1) THROW(ArgumentException, "Error: Multiple processing types selected (" + sys_types.values().join(", ") + "). Cannot start analysis!");
 				steps_ = loadSteps("analysis_steps_single_sample_lr");
 				ui_.annotate_only->setEnabled(false);
 				ui_.l_annotation_only->setEnabled(false);
@@ -272,7 +272,7 @@ QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 	if (anno_only!=nullptr && anno_only->isChecked()) output << "-annotation_only";
 
 	QStringList steps;
-	QList<QCheckBox*> step_boxes = widget->findChildren<QCheckBox*>(QRegExp("^step_"));
+    QList<QCheckBox*> step_boxes = widget->findChildren<QCheckBox*>(QRegularExpression("^step_"));
 	if (step_boxes.count()>0)
 	{
 		foreach(QCheckBox* box, step_boxes)
@@ -333,7 +333,7 @@ void SingleSampleAnalysisDialog::updateStartButton()
 void SingleSampleAnalysisDialog::annotate_only_state_changed()
 {
 	// get all step check boxes
-	QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegExp("^step_"));
+    QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegularExpression("^step_"));
 
 	if(ui_.annotate_only->isChecked())
 	{

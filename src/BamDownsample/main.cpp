@@ -63,7 +63,7 @@ public:
 				{
 					++c_se_pass;
 					writer.writeAlignment(al);
-					if (test) out << "KEPT SE: " << al.name() << endl;
+                    if (test) out << "KEPT SE: " << al.name() << Qt::endl;
 				}
 			}
 			else //paired-end reads
@@ -81,7 +81,7 @@ public:
 						++c_pe_pass;
 						writer.writeAlignment(al_cache.take(name));
 						writer.writeAlignment(al);
-						if (test) out << "KEPT PE: " << name << endl;
+                        if (test) out << "KEPT PE: " << name << Qt::endl;
 					}
 					else
 					{
@@ -92,11 +92,11 @@ public:
 		}
 
 		//write debug output
-		out << "SE reads                    : " << c_se << endl;
-		out << "SE reads (written)          : " << c_se_pass << endl;
-		out << "PE reads                    : " << c_pe << endl;
-		out << "PE reads (written)          : " << c_pe_pass << endl;
-		out << "PE reads unmatched (skipped): " << al_cache.size() << endl;
+        out << "SE reads                    : " << c_se << Qt::endl;
+        out << "SE reads (written)          : " << c_se_pass << Qt::endl;
+        out << "PE reads                    : " << c_pe << Qt::endl;
+        out << "PE reads (written)          : " << c_pe_pass << Qt::endl;
+        out << "PE reads unmatched (skipped): " << al_cache.size() << Qt::endl;
 	}
 };
 

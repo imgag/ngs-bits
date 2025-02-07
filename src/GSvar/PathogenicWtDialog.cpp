@@ -41,7 +41,7 @@ void PathogenicWtDialog::delayedInitialization()
 		ui_.variants->setItem(row, 3, GUIHelper::createTableItem(QString::number(depth), Qt::AlignLeft|Qt::AlignVCenter));
 
 		auto item = GUIHelper::createTableItem(geno, Qt::AlignLeft|Qt::AlignVCenter);
-		if (geno.startsWith("WT")) item->setBackgroundColor(QColor(255,0, 0, 128));
+        if (geno.startsWith("WT")) item->setBackground(QBrush(QColor(QColor(255,0, 0, 128))));
 		ui_.variants->setItem(row, 4, item);
 	}
 

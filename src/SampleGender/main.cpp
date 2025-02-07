@@ -79,7 +79,7 @@ public:
 				{
 					stream << "\t" << info.key;
 				}
-				stream << endl;
+                stream << Qt::endl;
 				print_header = false;
 			}
 
@@ -89,7 +89,7 @@ public:
 			{
 				stream << "\t" << info.value;
 			}
-			stream << endl;
+            stream << Qt::endl;
 		}
 	}
 };

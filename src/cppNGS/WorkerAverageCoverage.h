@@ -18,6 +18,8 @@ public:
 		int end;
 		QString error; //In case of error
 
+        Chunk(const Chunk& bed_chunk) = default;
+
 		void operator=(const Chunk& rhs)
 		{
 			if (&data != &rhs.data)

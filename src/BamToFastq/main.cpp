@@ -82,7 +82,7 @@ public:
 	virtual void main()
 	{
 		//init
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 		QTextStream out(stdout);
 		BamReader reader(getInfile("in"), getInfile("ref"));
@@ -133,8 +133,6 @@ public:
 		QSharedPointer<BamAlignment> al = QSharedPointer<BamAlignment>(new BamAlignment());
 		while (reader.getNextAlignment(*al))
 		{
-			//out << al.name() << " PAIRED=" << al.isPaired() << " SEC=" << al.isSecondaryAlignment() << " PROP=" << al.isProperPair() << endl;
-			
 			//skip secondary alinments
 			if(al->isSecondaryAlignment() || al->isSupplementaryAlignment()) continue;
 
@@ -170,9 +168,7 @@ public:
 				QByteArray name = al->name();
 				if (al_cache.contains(name))
 				{
-					QSharedPointer<BamAlignment> mate = al_cache.take(name);
-					//out << name << " [AL] First: " << al.isRead1() << " Reverse: " << al.isReverseStrand() << " Seq: " << al.QueryBases.data() << endl;
-					//out << name << " [MA] First: " << mate.isRead1() << " Reverse: " << mate.isReverseStrand() << " Seq: " << mate.QueryBases.data() << endl;
+					QSharedPointer<BamAlignment> mate = al_cache.take(name);					
 					ReadPair& pair = pair_pool.nextFreePair();
 					if (al->isRead1())
 					{
@@ -207,25 +203,25 @@ public:
 		//write debug output
 		if(is_pe)
 		{
-			out << "Pair reads (written)            : " << c_paired << endl;
-			out << "Unpaired reads (skipped)        : " << c_unpaired << endl;
-			out << "Unmatched paired reads (skipped): " << al_cache.size() << endl;
+            out << "Pair reads (written)            : " << c_paired << Qt::endl;
+            out << "Unpaired reads (skipped)        : " << c_unpaired << Qt::endl;
+            out << "Unmatched paired reads (skipped): " << al_cache.size() << Qt::endl;
 		}
 		else //single-end
 		{
-			out << "Reads (written)                 : " << c_single_end << endl;
+            out << "Reads (written)                 : " << c_single_end << Qt::endl;
 		}
 		if (remove_duplicates)
 		{
-			out << "Duplicate tagged reads (skipped): " << c_duplicates << endl;
+            out << "Duplicate tagged reads (skipped): " << c_duplicates << Qt::endl;
 		}
 		if (fix)
 		{
-			out << "Duplicate name reads (skipped)  : " << c_fixed << endl;
+            out << "Duplicate name reads (skipped)  : " << c_fixed << Qt::endl;
 		}
-		out << endl;
-		out << "Maximum cached reads            : " << max_cached << endl;
-		out << "Time elapsed                    : " << Helper::elapsedTime(timer, true) << endl;
+        out << Qt::endl;
+        out << "Maximum cached reads            : " << max_cached << Qt::endl;
+        out << "Time elapsed                    : " << Helper::elapsedTime(timer, true) << Qt::endl;
 
 		//terminate FASTQ writer after all reads are written
 		pair_pool.waitAllWritten();

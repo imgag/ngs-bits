@@ -55,7 +55,7 @@ void FilterCascadeWidget::markFailedFilters()
 		else
 		{
 			item->setToolTip(filters_[i]->description().join("\n") + "\n\nErrors:\n" + errors.join("\n"));
-			item->setBackgroundColor(QColor(255,160,110));
+            item->setBackground(QBrush(QColor(255,160,110)));
 		}
 	}
 }

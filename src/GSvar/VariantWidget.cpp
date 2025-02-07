@@ -286,7 +286,7 @@ void VariantWidget::calculateSimilarity()
 		ps_names << ps;
 
 		QString ps_id = db.processedSampleId(ps);
-		ps_vars << db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0").toSet();
+        ps_vars << NGSHelper::listToSet(db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0"));
 	}
 
 	//calculate and show overlap
@@ -337,7 +337,7 @@ QList<int> VariantWidget::selectedRows() const
 		set << item->row();
 	}
 
-	return set.toList();
+    return set.values();
 }
 
 void VariantWidget::openProcessedSampleTabs()

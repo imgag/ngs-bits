@@ -217,7 +217,7 @@ void ExpressionOverviewWidget::showExpressionData()
 		NGSD db;
 
 		// debug
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//get GeneSet

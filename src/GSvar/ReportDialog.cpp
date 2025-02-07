@@ -140,7 +140,7 @@ void ReportDialog::initGUI()
 	//multi-sample: additional samples
 	if (variants_.type()==AnalysisType::GERMLINE_MULTISAMPLE)
 	{
-		QStringList ps_list = variants_.getSampleHeader().sampleNames().toList();
+        QStringList ps_list = variants_.getSampleHeader().sampleNames().values();
 		ps_list.sort();
 		ps_list.removeAll("");
 		ps_list.removeAll(ps_);

@@ -203,30 +203,33 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	QTextStream stream(file.data());
 
 	//write header
-	stream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
-	stream << "<?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?>" << endl;
-	stream << "<!DOCTYPE catelog [" << endl;
-	stream << "  <!ATTLIST xsl:stylesheet" << endl;
-	stream << "  id  ID  #REQUIRED>" << endl;
-	stream << "  ]>" << endl;
+    stream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << Qt::endl;
+    stream << "<?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?>" << Qt::endl;
+    stream << "<!DOCTYPE catelog [" << Qt::endl;
+    stream << "  <!ATTLIST xsl:stylesheet" << Qt::endl;
+    stream << "  id  ID  #REQUIRED>" << Qt::endl;
+    stream << "  ]>" << Qt::endl;
 	stream << "<qcML version=\"0.0.8\" xmlns=\"http://www.prime-xs.eu/ms/qcml\" ";
-	stream << ">" << endl;
-	stream << "  <runQuality ID=\"rq0001\">" << endl;
+    stream << ">" << Qt::endl;
+    stream << "  <runQuality ID=\"rq0001\">" << Qt::endl;
 
 	//write meta data
-	stream << "    <metaDataParameter ID=\"md0001\" name=\"creation software\" value=\"" << QCoreApplication::applicationName() <<" " << QCoreApplication::applicationVersion() << "\" cvRef=\"QC\" accession=\"QC:1000002\"/>" << endl;
-	stream << "    <metaDataParameter ID=\"md0002\" name=\"creation software parameters\" value=\"" << parameters.toHtmlEscaped() << "\" cvRef=\"QC\" accession=\"QC:1000003\"/>" << endl;
-	stream << "    <metaDataParameter ID=\"md0003\" name=\"creation date\" value=\"" << Helper::dateTime("") << "\" cvRef=\"QC\" accession=\"QC:1000004\"/>" << endl;
+    stream << "    <metaDataParameter ID=\"md0001\" name=\"creation software\" value=\"" << QCoreApplication::applicationName() <<" " << QCoreApplication::applicationVersion() << "\" cvRef=\"QC\" accession=\"QC:1000002\"/>" << Qt::endl;
+    stream << "    <metaDataParameter ID=\"md0002\" name=\"creation software parameters\" value=\"" << parameters.toHtmlEscaped() << "\" cvRef=\"QC\" accession=\"QC:1000003\"/>" << Qt::endl;
+    stream << "    <metaDataParameter ID=\"md0003\" name=\"creation date\" value=\"" << Helper::dateTime("") << "\" cvRef=\"QC\" accession=\"QC:1000004\"/>" << Qt::endl;
 	int idx = 4;
 	foreach(const QString& sf, source_files)
 	{
-		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"source file\" value=\"" << QFileInfo(sf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000005\"/>" << endl;
+        stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"source file\" value=\"" << QFileInfo(sf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000005\"/>" << Qt::endl;
 		++idx;
 	}
 	foreach(const QCValue& md, metadata)
 	{
-		if(md.accession()=="QC:1000006")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << QFileInfo(md.asString()).fileName() << "\" uri=\"" << md.asString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\" />" << endl;
-		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << md.toString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\"/>" << endl;
+        if(md.accession()=="QC:1000006")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << QFileInfo(md.asString()).fileName() << "\" uri=\"" << md.asString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\" />" << Qt::endl;
+        else
+        {
+            stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << md.toString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\"/>" << Qt::endl;
+        }
 		++idx;
 	}
 
@@ -242,94 +245,94 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 			value = values_[i].toString(precision_overwrite[name]);
 		}
 
-		stream << "    <qualityParameter ID=\"qp" << QString::number(i+1).rightJustified(4, '0') << "\" name=\"" << name << "\" description=\"" << values_[i].description().toHtmlEscaped() << "\" value=\"" << value << "\" cvRef=\"QC\" accession=\"" << values_[i].accession() << "\"/>" << endl;
+        stream << "    <qualityParameter ID=\"qp" << QString::number(i+1).rightJustified(4, '0') << "\" name=\"" << name << "\" description=\"" << values_[i].description().toHtmlEscaped() << "\" value=\"" << value << "\" cvRef=\"QC\" accession=\"" << values_[i].accession() << "\"/>" << Qt::endl;
 	}
 	for (int i=0; i<count(); ++i)
 	{
 		if (values_[i].type()!=QCValueType::IMAGE) continue;
-		stream << "    <attachment ID=\"qp" << QString::number(i+1).rightJustified(4, '0') << "\" name=\"" << values_[i].name() << "\" description=\"" << values_[i].description().toHtmlEscaped() << "\" cvRef=\"QC\" accession=\"" << values_[i].accession() << "\">" << endl;
-		stream << "      <binary>" << values_[i].asImage() << "</binary>" << endl;
-		stream << "    </attachment>" << endl;
+        stream << "    <attachment ID=\"qp" << QString::number(i+1).rightJustified(4, '0') << "\" name=\"" << values_[i].name() << "\" description=\"" << values_[i].description().toHtmlEscaped() << "\" cvRef=\"QC\" accession=\"" << values_[i].accession() << "\">" << Qt::endl;
+        stream << "      <binary>" << values_[i].asImage() << "</binary>" << Qt::endl;
+        stream << "    </attachment>" << Qt::endl;
 	}
-	stream << "  </runQuality>" << endl;
+    stream << "  </runQuality>" << Qt::endl;
 
 	//write CV list
-	stream << "  <cvList>" << endl;
-	stream << "    <cv uri=\"https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo\" ID=\"QC\" fullName=\"QC\" version=\"0.1\"/>" << endl;
-	stream << "  </cvList>" << endl;
+    stream << "  <cvList>" << Qt::endl;
+    stream << "    <cv uri=\"https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo\" ID=\"QC\" fullName=\"QC\" version=\"0.1\"/>" << Qt::endl;
+    stream << "  </cvList>" << Qt::endl;
 
 	//write stylesheet
 	stream << "  <xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:ns=\"http://www.prime-xs.eu/ms/qcml\" xmlns=\"\"";
-	stream << ">" << endl;
-	stream << "      <xsl:template match=\"/\">" << endl;
-	stream << "          <html>" << endl;
-	stream << "            <style type=\"text/css\">" << endl;
-	stream << "            table {border: 1px solid #bbb; border-collapse: collapse; }" << endl;
-	stream << "            td {border: 1px solid #bbb; padding: 1px 2px 1px 2px; vertical-align: top; }" << endl;
-	stream << "            th {border: 1px solid #bbb; padding: 1px 2px 1px 2px; text-align: left; background-color: #eee; }" << endl;
-	stream << "            </style>" << endl;
-	stream << "              <body>" << endl;
-	stream << "                  <h2>Meta data:</h2>" << endl;
-	stream << "                  <table>" << endl;
-	stream << "                    <tr>" << endl;
-	stream << "                      <th>Accession</th><th>Name</th><th>Value</th>" << endl;
-	stream << "                    </tr>" << endl;
-	stream << "                    <xsl:for-each select=\"ns:qcML/ns:runQuality\">" << endl;
-	stream << "                      <xsl:for-each select=\"ns:metaDataParameter\">" << endl;
-	stream << "                        <tr>" << endl;
-	stream << "                          <td><xsl:value-of select=\"@accession\"/></td>" << endl;
-	stream << "                          <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << endl;
-	stream << "                          <td>" << endl;
-	stream << "                            <xsl:choose>" << endl;
-	stream << "                              <xsl:when test=\"@accession = 'QC:1000006'\"><a href=\"{@uri}\" title=\"{@uri}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:when>" << endl;
-	stream << "                              <xsl:otherwise><xsl:value-of select=\"@value\"/></xsl:otherwise>" << endl;
-	stream << "                            </xsl:choose>" << endl;
-	stream << "                          </td>" << endl;
-	stream << "                        </tr>" << endl;
-	stream << "                      </xsl:for-each>" << endl;
-	stream << "                    </xsl:for-each>" << endl;
-	stream << "                  </table>" << endl;
-	stream << "                  <h2>Quality parameters:</h2>" << endl;
-	stream << "                  <table>" << endl;
-	stream << "                    <tr>" << endl;
-	stream << "                      <th>Accession</th><th>Name</th><th>Value</th>" << endl;
-	stream << "                    </tr>" << endl;
-	stream << "                    <xsl:for-each select=\"ns:qcML/ns:runQuality\">" << endl;
-	stream << "                      <xsl:for-each select=\"ns:qualityParameter\">" << endl;
-	stream << "                        <tr>" << endl;
-	stream << "                          <td><xsl:value-of select=\"@accession\"/></td>" << endl;
-	stream << "                          <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << endl;
-	stream << "                          <td><xsl:value-of select=\"@value\"/></td>" << endl;
-	stream << "                        </tr>" << endl;
-	stream << "                      </xsl:for-each>" << endl;
-	stream << "                    </xsl:for-each>" << endl;
-	stream << "                    <xsl:for-each select=\"ns:qcML/ns:runQuality\">" << endl;
-	stream << "                      <xsl:for-each select=\"ns:attachment\">" << endl;
-	stream << "                          <xsl:choose>" << endl;
-	stream << "                              <xsl:when test=\"ns:binary\">" << endl;
-	stream << "                                <tr>" << endl;
-	stream << "                                  <td><xsl:value-of select=\"@accession\"/></td>" << endl;
-	stream << "                                  <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << endl;
-	stream << "                                  <td>" << endl;
-	stream << "                                    <img>" << endl;
-	stream << "                                      <xsl:attribute name=\"src\">" << endl;
-	stream << "                                        data:image/png;base64,<xsl:value-of select=\"ns:binary\"/>" << endl;
-	stream << "                                      </xsl:attribute>" << endl;
-	stream << "                                    </img>" << endl;
-	stream << "                                  </td>" << endl;
-	stream << "                                </tr>" << endl;
-	stream << "                              </xsl:when>" << endl;
-	stream << "                          </xsl:choose>" << endl;
-	stream << "                      </xsl:for-each>" << endl;
-	stream << "                    </xsl:for-each>" << endl;
-	stream << "                  </table>" << endl;
-	stream << "              </body>" << endl;
-	stream << "          </html>" << endl;
-	stream << "      </xsl:template>" << endl;
-	stream << "  </xsl:stylesheet>" << endl;
+    stream << ">" << Qt::endl;
+    stream << "      <xsl:template match=\"/\">" << Qt::endl;
+    stream << "          <html>" << Qt::endl;
+    stream << "            <style type=\"text/css\">" << Qt::endl;
+    stream << "            table {border: 1px solid #bbb; border-collapse: collapse; }" << Qt::endl;
+    stream << "            td {border: 1px solid #bbb; padding: 1px 2px 1px 2px; vertical-align: top; }" << Qt::endl;
+    stream << "            th {border: 1px solid #bbb; padding: 1px 2px 1px 2px; text-align: left; background-color: #eee; }" << Qt::endl;
+    stream << "            </style>" << Qt::endl;
+    stream << "              <body>" << Qt::endl;
+    stream << "                  <h2>Meta data:</h2>" << Qt::endl;
+    stream << "                  <table>" << Qt::endl;
+    stream << "                    <tr>" << Qt::endl;
+    stream << "                      <th>Accession</th><th>Name</th><th>Value</th>" << Qt::endl;
+    stream << "                    </tr>" << Qt::endl;
+    stream << "                    <xsl:for-each select=\"ns:qcML/ns:runQuality\">" << Qt::endl;
+    stream << "                      <xsl:for-each select=\"ns:metaDataParameter\">" << Qt::endl;
+    stream << "                        <tr>" << Qt::endl;
+    stream << "                          <td><xsl:value-of select=\"@accession\"/></td>" << Qt::endl;
+    stream << "                          <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << Qt::endl;
+    stream << "                          <td>" << Qt::endl;
+    stream << "                            <xsl:choose>" << Qt::endl;
+    stream << "                              <xsl:when test=\"@accession = 'QC:1000006'\"><a href=\"{@uri}\" title=\"{@uri}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:when>" << Qt::endl;
+    stream << "                              <xsl:otherwise><xsl:value-of select=\"@value\"/></xsl:otherwise>" << Qt::endl;
+    stream << "                            </xsl:choose>" << Qt::endl;
+    stream << "                          </td>" << Qt::endl;
+    stream << "                        </tr>" << Qt::endl;
+    stream << "                      </xsl:for-each>" << Qt::endl;
+    stream << "                    </xsl:for-each>" << Qt::endl;
+    stream << "                  </table>" << Qt::endl;
+    stream << "                  <h2>Quality parameters:</h2>" << Qt::endl;
+    stream << "                  <table>" << Qt::endl;
+    stream << "                    <tr>" << Qt::endl;
+    stream << "                      <th>Accession</th><th>Name</th><th>Value</th>" << Qt::endl;
+    stream << "                    </tr>" << Qt::endl;
+    stream << "                    <xsl:for-each select=\"ns:qcML/ns:runQuality\">" << Qt::endl;
+    stream << "                      <xsl:for-each select=\"ns:qualityParameter\">" << Qt::endl;
+    stream << "                        <tr>" << Qt::endl;
+    stream << "                          <td><xsl:value-of select=\"@accession\"/></td>" << Qt::endl;
+    stream << "                          <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << Qt::endl;
+    stream << "                          <td><xsl:value-of select=\"@value\"/></td>" << Qt::endl;
+    stream << "                        </tr>" << Qt::endl;
+    stream << "                      </xsl:for-each>" << Qt::endl;
+    stream << "                    </xsl:for-each>" << Qt::endl;
+    stream << "                    <xsl:for-each select=\"ns:qcML/ns:runQuality\">" << Qt::endl;
+    stream << "                      <xsl:for-each select=\"ns:attachment\">" << Qt::endl;
+    stream << "                          <xsl:choose>" << Qt::endl;
+    stream << "                              <xsl:when test=\"ns:binary\">" << Qt::endl;
+    stream << "                                <tr>" << Qt::endl;
+    stream << "                                  <td><xsl:value-of select=\"@accession\"/></td>" << Qt::endl;
+    stream << "                                  <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << Qt::endl;
+    stream << "                                  <td>" << Qt::endl;
+    stream << "                                    <img>" << Qt::endl;
+    stream << "                                      <xsl:attribute name=\"src\">" << Qt::endl;
+    stream << "                                        data:image/png;base64,<xsl:value-of select=\"ns:binary\"/>" << Qt::endl;
+    stream << "                                      </xsl:attribute>" << Qt::endl;
+    stream << "                                    </img>" << Qt::endl;
+    stream << "                                  </td>" << Qt::endl;
+    stream << "                                </tr>" << Qt::endl;
+    stream << "                              </xsl:when>" << Qt::endl;
+    stream << "                          </xsl:choose>" << Qt::endl;
+    stream << "                      </xsl:for-each>" << Qt::endl;
+    stream << "                    </xsl:for-each>" << Qt::endl;
+    stream << "                  </table>" << Qt::endl;
+    stream << "              </body>" << Qt::endl;
+    stream << "          </html>" << Qt::endl;
+    stream << "      </xsl:template>" << Qt::endl;
+    stream << "  </xsl:stylesheet>" << Qt::endl;
 
 	//finalize file
-	stream << "</qcML>" << endl;
+    stream << "</qcML>" << Qt::endl;
 	file->close();
 
 	//validate output

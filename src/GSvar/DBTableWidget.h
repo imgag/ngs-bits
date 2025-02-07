@@ -48,7 +48,7 @@ public:
 
 			if (predicate(table_item->text()))
 			{
-				table_item->setBackgroundColor(color);
+                table_item->setBackground(QBrush(QColor(color)));
 			}
 		}
 	}

@@ -9,17 +9,14 @@ FastqWriter::FastqWriter(const AnalysisJob& job, OutputStreams& streams, const T
 	, params_(params)
 	, r1_(r1)
 {
-	//QTextStream(stdout) << "FastqWriter" << endl;
 }
 
 FastqWriter::~FastqWriter()
 {
-	//QTextStream(stdout) << "~FastqWriter" << endl;
 }
 
 void FastqWriter::run()
 {
-	//QTextStream(stdout) << "FastqWriter:run " << job_.index << " thread: " << QThread::currentThreadId() << endl;
 	try
 	{
 		for (int r=0; r<job_.read_count; ++r)
@@ -33,7 +30,6 @@ void FastqWriter::run()
 	}
 	catch(Exception& e)
 	{
-		//QTextStream(stdout) << "FastqWriter:error " << job_.index << " thread:" << QThread::currentThreadId() << " message:" << e.message() << endl;
 		if (r1_) streams_.ostream1_error = e.message();
 		else streams_.ostream2_error = e.message();
 	}

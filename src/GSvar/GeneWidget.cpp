@@ -170,7 +170,7 @@ void GeneWidget::updateGUI()
 			}
 
 		}
-		hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.toList().join(", ") + ")";
+        hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.values().join(", ") + ")";
 	}
 	ui_.hpo->setText(hpo_lines.join("<br>"));
 

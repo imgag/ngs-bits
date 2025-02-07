@@ -130,6 +130,13 @@ public:
 	///Returns a mapping from chromosome names to RefSeq NC identifiers including version number
 	static QHash<Chromosome, QString> chromosomeMapping(GenomeBuild build);
 
+    ///Converts QList<T> to QSet<T>
+    template <typename T>
+    static QSet<T> listToSet(const QList<T>& list)
+    {
+        return QSet<T>(list.begin(), list.end());
+    }
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;

@@ -65,7 +65,7 @@ void ExpressionExonWidget::loadExpressionFile()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//load TSV file
@@ -142,7 +142,7 @@ void ExpressionExonWidget::initTable()
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		ui_->tw_expression_table->setEnabled(false);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		column_names_.clear();
@@ -195,9 +195,11 @@ void ExpressionExonWidget::applyFilters()
 		ui_->tw_expression_table->setEnabled(false);
 
 		filter_result_.reset(true);
-		int filtered_lines = expression_data_.count();
 
-		QTime timer;
+        //debug:
+        //int filtered_lines = expression_data_.count();
+
+        QElapsedTimer timer;
 		timer.start();
 
 
@@ -227,7 +229,7 @@ void ExpressionExonWidget::applyFilters()
 
 				//debug:
 				//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-				filtered_lines = filter_result_.countPassing();
+                //filtered_lines = filter_result_.countPassing();
 			}
 
 			//filter by genes
@@ -277,7 +279,7 @@ void ExpressionExonWidget::applyFilters()
 
 				//debug:
 				//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-				filtered_lines = filter_result_.countPassing();
+                //filtered_lines = filter_result_.countPassing();
 			}
 		}
 
@@ -322,7 +324,7 @@ void ExpressionExonWidget::applyFilters()
 
 			//debug:
 			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
+            //filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by srpb value
@@ -364,7 +366,7 @@ void ExpressionExonWidget::applyFilters()
 
 			//debug:
 			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
+            //filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by biotype
@@ -400,7 +402,7 @@ void ExpressionExonWidget::applyFilters()
 
 		//debug:
 		///qDebug() << "\t removed (file based): " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-		filtered_lines = filter_result_.countPassing();
+        //filtered_lines = filter_result_.countPassing();
 
 		//filter by statistical data
 
@@ -495,7 +497,7 @@ void ExpressionExonWidget::applyFilters()
 
 			//debug:
 			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
+            //filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by log2fc
@@ -537,7 +539,7 @@ void ExpressionExonWidget::applyFilters()
 
 			//debug:
 			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
+            //filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by zscore
@@ -579,7 +581,7 @@ void ExpressionExonWidget::applyFilters()
 
 			//debug:
 			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
+            //filtered_lines = filter_result_.countPassing();
 		}
 
 
@@ -704,7 +706,7 @@ void ExpressionExonWidget::updateTable()
 	{
 		//fill table widget with expression data
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//disable sorting

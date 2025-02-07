@@ -8,18 +8,14 @@ InputWorker::InputWorker(AnalysisJob& job, InputStreams& streams, const Trimming
 	, streams_(streams)
 	, params_(params)
 {
-	//QTextStream(stdout) << "InputWorker" << endl;
 }
 
 InputWorker::~InputWorker()
 {
-	//QTextStream(stdout) << "~InputWorker" << endl;
 }
 
 void InputWorker::run()
 {
-	//QTextStream(stdout) << "InputWorker:run " << job_.index << " thread: " << QThread::currentThreadId() << endl;
-
 	try
 	{
 		job_.clear();
@@ -36,8 +32,7 @@ void InputWorker::run()
 					end_of_data_reached = true;
 				}
 				else
-				{
-					//QTextStream(stdout) << "InputWorker::run new file pair with index " << streams_.current_index << endl;
+				{					
 					streams_.istream1.reset(new FastqFileStream(params_.files_in1[streams_.current_index], false));
 					streams_.istream2.reset(new FastqFileStream(params_.files_in2[streams_.current_index], false));
 				}
@@ -77,8 +72,7 @@ void InputWorker::run()
 		}
 	}
 	catch(Exception& e)
-	{
-		//QTextStream(stdout) << "InputWorker:error " << job_.index << " thread:" << QThread::currentThreadId() << " message:" << e.message() << endl;
+	{		
 		emit error(job_.index, e.message());
 	}
 }

@@ -3382,10 +3382,10 @@ private slots:
 					else
 					{
 						++c_fail;
-						out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << endl;
+                        out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << Qt::endl;
 						foreach(QByteArray difference, differences)
 						{
-							out << "  " << difference << endl;
+                            out << "  " << difference << Qt::endl;
 						}
 					}
 				}

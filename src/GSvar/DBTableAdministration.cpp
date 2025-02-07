@@ -126,7 +126,7 @@ void DBTableAdministration::edit()
 	}
 
 
-	edit(rows.toList().first());
+    edit(rows.values().first());
 }
 
 void DBTableAdministration::edit(int row)
@@ -246,7 +246,7 @@ void DBTableAdministration::resetUserPassword()
 	}
 
 	//set password
-	int user_id = ui_.table->getId(rows.toList().first()).toInt();
+    int user_id = ui_.table->getId(rows.values().first()).toInt();
 	QString password = Helper::randomString(15) + Helper::randomString(1, "0123456789");
 	NGSD db;
 	db.setPassword(user_id, password);
@@ -284,7 +284,7 @@ void DBTableAdministration::importStudySamples()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//get study ID and name
-	int study_id = ui_.table->getId(rows.toList().first()).toInt();
+    int study_id = ui_.table->getId(rows.values().first()).toInt();
 	NGSD db;
 	QString study = db.getValue("SELECT name FROM study WHERE id='"+QString::number(study_id)+"'", false).toString();
 
