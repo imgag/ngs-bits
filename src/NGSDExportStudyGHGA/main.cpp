@@ -53,7 +53,7 @@ public:
 		return output;
 	}
 
-	//returns an array from the input JSON
+	//returns a string from the input JSON
 	QString getString(const QJsonObject& data, QString key)
 	{
 		if (!data.contains(key)) THROW(FileParseException, "JSON input file does not contain key '" + key + "'!");
@@ -62,6 +62,17 @@ public:
 		if (!value.isString()) THROW(FileParseException, "JSON input file does contain key '" + key + "' with invalid type (not string)!");
 
 		return value.toString();
+	}
+
+	//returns a string from the input JSON
+	int getInteger(const QJsonObject& data, QString key)
+	{
+		if (!data.contains(key)) THROW(FileParseException, "JSON input file does not contain key '" + key + "'!");
+
+		QJsonValue value = data.value(key);
+		if (!value.isDouble()) THROW(FileParseException, "JSON input file does contain key '" + key + "' with invalid type (not integer)!");
+
+		return value.toInt();
 	}
 
 	QString systemTypeToExperimentDescription(QString sys_type)
@@ -140,6 +151,16 @@ public:
 		if (is_ffpe && sample_type=="RNA") return "FFPE_TOTAL_RNA";
 
 		THROW(NotImplementedException, "Unhandled sample type '" + sample_type + "' " + (is_ffpe ? "(FFPE)" : "") + " in CV conversion!");
+	}
+
+	QString diseaseStatusToCaseControl(QString disease_status)
+	{
+		if (disease_status == "Affected") return "CASE";
+		if (disease_status == "Unaffected") return "CONTROL";
+		if (disease_status == "Unclear") return "OTHER";
+		if (disease_status == "n/a") return "UNKNOWN";
+
+		THROW(NotImplementedException, "Unhandled disease status '" + disease_status + "' in CV conversion!");
 	}
 
 	QString sampleGenderToSex(QString gender)
@@ -236,6 +257,10 @@ public:
 
 		//publication
 		QString publication_title;
+		QString publication_abstract;
+		QString publication_author;
+		int publication_year = -1;
+		QString publication_journal;
 		QString publication_doi;
 
 		//processed samples
@@ -246,62 +271,65 @@ public:
 	void addAnalyses(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
-
-		if(data.group_analyses) //combined analysis
+		if (data.include_bam || data.include_vcf) //only neccesary if processed sample files are included
 		{
-			//combine research files
-			QMap<QString,QStringList> research_files;
-			foreach(const PSData& ps_data, data.ps_list)
+
+			if(data.group_analyses) //combined analysis
 			{
-				if (research_files.contains(ps_data.patient_id))
+				//combine research files
+				QMap<QString,QStringList> research_files;
+				foreach(const PSData& ps_data, data.ps_list)
 				{
-					QStringList files = research_files.value(ps_data.patient_id) + ps_data.research_data_files;
-					research_files.insert(ps_data.patient_id, files);
+					if (research_files.contains(ps_data.patient_id))
+					{
+						QStringList files = research_files.value(ps_data.patient_id) + ps_data.research_data_files;
+						research_files.insert(ps_data.patient_id, files);
+					}
+					else
+					{
+						research_files.insert(ps_data.patient_id, ps_data.research_data_files);
+					}
+
 				}
-				else
+
+				//create analyses
+				foreach(const QString& patient_id, research_files.keys())
 				{
-					research_files.insert(ps_data.patient_id, ps_data.research_data_files);
+					QJsonObject obj;
+
+					obj.insert("analysis_method", "ANAM_" + patient_id);
+					obj.insert("title", "ANA_" + patient_id);
+					obj.insert("description", data.analysis_description);
+					obj.insert("type", data.analysis_type); //e.g. "cfDNA"
+					//optional
+					//obj.insert("ega_accession", QJsonValue());
+					obj.insert("research_data_files", QJsonArray::fromStringList(research_files.value(patient_id)));
+					obj.insert("alias", "ANA_" + patient_id);
+					array.append(obj);
 				}
+
+
 
 			}
-
-			//create analyses
-			foreach(const QString& patient_id, research_files.keys())
+			else //single sample analysis
 			{
-				QJsonObject obj;
+				foreach(const PSData& ps_data, data.ps_list)
+				{
+					QJsonObject obj;
 
-				obj.insert("analysis_method", "ANAM_" + patient_id);
-				obj.insert("title", "ANA_" + patient_id);
-				obj.insert("description", data.analysis_description);
-				obj.insert("type", data.analysis_type); //e.g. "cfDNA"
-				//optional
-				//obj.insert("ega_accession", QJsonValue());
-				obj.insert("research_data_files", QJsonArray::fromStringList(research_files.value(patient_id)));
-				obj.insert("alias", "ANA_" + patient_id);
-				array.append(obj);
+					obj.insert("analysis_method", "ANAM_" + ps_data.pseudonym);
+					obj.insert("title", "ANA_" + ps_data.pseudonym);
+					obj.insert("description", data.analysis_description);
+					obj.insert("type", data.analysis_type); //e.g. "cfDNA"
+					//optional
+					//obj.insert("ega_accession", QJsonValue());
+					obj.insert("research_data_files", QJsonArray::fromStringList(ps_data.research_data_files));
+					obj.insert("alias", "ANA_" + ps_data.pseudonym);
+					array.append(obj);
+				}
 			}
-
-
 
 		}
-		else //single sample analysis
-		{
-			foreach(const PSData& ps_data, data.ps_list)
-			{
-				QJsonObject obj;
-
-				obj.insert("analysis_method", "ANAM_" + ps_data.pseudonym);
-				obj.insert("title", "ANA_" + ps_data.pseudonym);
-				obj.insert("description", data.analysis_description);
-				obj.insert("type", data.analysis_type); //e.g. "cfDNA"
-				//optional
-				//obj.insert("ega_accession", QJsonValue());
-				obj.insert("research_data_files", QJsonArray::fromStringList(ps_data.research_data_files));
-				obj.insert("alias", "ANA_" + ps_data.pseudonym);
-				array.append(obj);
-			}
-		}
-
 
 
 		parent.insert("analyses", array);
@@ -312,34 +340,36 @@ public:
 		QJsonArray array;
 		QSet<QString> processed_patient_ids;
 
-
-		foreach(const PSData& ps_data, data.ps_list)
+		if (data.include_bam || data.include_vcf) //only neccesary if processed sample files are included
 		{
-			QJsonObject obj;
-			QString method_name = ps_data.pseudonym;
-			if (data.group_analyses)
+
+			foreach(const PSData& ps_data, data.ps_list)
 			{
-				method_name = ps_data.patient_id;
-				if (processed_patient_ids.contains(method_name)) continue; //already processed
-				processed_patient_ids.insert(method_name);
+				QJsonObject obj;
+				QString method_name = ps_data.pseudonym;
+				if (data.group_analyses)
+				{
+					method_name = ps_data.patient_id;
+					if (processed_patient_ids.contains(method_name)) continue; //already processed
+					processed_patient_ids.insert(method_name);
+				}
+
+				obj.insert("name", "ANAM_" + method_name);
+				obj.insert("description", data.analysis_description);
+				obj.insert("type", data.analysis_type);
+				obj.insert("workflow_name", "megSAP");
+				obj.insert("workflow_version", data.workflow_version);
+				obj.insert("workflow_repository", "https://github.com/imgag/megSAP");
+				obj.insert("workflow_doi", data.workflow_doi);
+				//optional:
+				//obj.insert("workflow_tasks", "Pipeline?");
+				//obj.insert("parameters", QJsonArray());
+				//obj.insert("software_versions", QJsonArray());
+				obj.insert("alias", "ANAM_" + method_name);
+
+				array.append(obj);
 			}
-
-			obj.insert("name", "ANAM_" + method_name);
-			obj.insert("description", data.analysis_description);
-			obj.insert("type", data.analysis_type);
-			obj.insert("workflow_name", "megSAP");
-			obj.insert("workflow_version", data.workflow_version);
-			obj.insert("workflow_repository", "https://github.com/imgag/megSAP");
-			obj.insert("workflow_doi", data.workflow_doi);
-			//optional:
-			//obj.insert("workflow_tasks", "Pipeline?");
-			//obj.insert("parameters", QJsonArray());
-			//obj.insert("software_versions", QJsonArray());
-			obj.insert("alias", "ANAM_" + method_name);
-
-			array.append(obj);
 		}
-
 		parent.insert("analysis_methods", array);
 	}
 
@@ -587,19 +617,28 @@ public:
 	{
 		QJsonObject obj;
 
-		obj.insert("study", data.study_name);
-		obj.insert("title", data.publication_title);
-		//TODO: optional
-		//obj.insert("abstract", QJsonObject());
-		//obj.insert("author", QJsonObject());
-		//obj.insert("year", QJsonObject());
-		//obj.insert("journal", QJsonObject());
-		obj.insert("doi", data.publication_doi);
-		//optional
-		//obj.insert("xref", QJsonObject());
-		obj.insert("alias", "PUB_" + data.study_name);
+		if (!data.publication_title.trimmed().isEmpty())
+		{
+			obj.insert("study", data.study_name);
+			obj.insert("title", data.publication_title);
 
-		parent.insert("publications", QJsonArray() << obj);
+			//optional
+			if (!data.publication_abstract.trimmed().isEmpty()) obj.insert("abstract", data.publication_abstract);
+			if (!data.publication_author.trimmed().isEmpty()) obj.insert("author", data.publication_author);
+			if (data.publication_year != -1) obj.insert("year", data.publication_year);
+			if (!data.publication_journal.trimmed().isEmpty()) obj.insert("journal", data.publication_journal);
+
+			obj.insert("doi", data.publication_doi);
+			//optional
+			//obj.insert("xref", QJsonObject());
+			obj.insert("alias", "PUB_" + data.study_name);
+			parent.insert("publications", QJsonArray() << obj);
+		}
+		else
+		{
+			parent.insert("publications", QJsonArray());
+		}
+
 	}
 
 	void addResearchDataFiles(QJsonObject& parent, CommonData& data)
@@ -686,11 +725,11 @@ public:
 			obj.insert("type", sampleTypeToSampleType(ps_data.s_info.type, ps_data.s_info.is_ffpe));
 			//optional:
 			//obj.insert("biological_replicate", QJsonValue());
-			obj.insert("description", "sample that was sequenced");
+			obj.insert("description", (ps_data.s_info.is_tumor)?("Tumor sample of "+ps_data.patient_id):("Germline sample of "+ps_data.patient_id));
 			//optional:
 			//obj.insert("storage", QJsonValue());
 			//obj.insert("disease_or_healthy", QJsonValue());
-			obj.insert("case_control_status", "UNKNOWN");
+			obj.insert("case_control_status", diseaseStatusToCaseControl(ps_data.s_info.disease_status));
 			//obj.insert("ega_accession", QJsonValue());
 			//obj.insert("xref", QJsonValue());
 			//obj.insert("biospecimen_name", QJsonValue());
@@ -764,6 +803,14 @@ public:
 		data.dap_id = getString(data_obj, "data_use_permission_id");
 		data.dap_modifier_terms = getArray(data_obj, "data_use_modifier_terms");
 		data.dap_modifier_ids = getArray(data_obj, "data_use_modifier_ids");
+
+		data.publication_title = getString(data_obj, "publication_title");
+		data.publication_abstract = getString(data_obj, "publication_abstract");
+		data.publication_author = getString(data_obj, "publication_author");
+		data.publication_year = getInteger(data_obj, "publication_year");
+		data.publication_journal = getString(data_obj, "publication_journal");
+		data.publication_doi = getString(data_obj, "publication_doi");
+
 
 		NGSD db(data.test_mode);
 

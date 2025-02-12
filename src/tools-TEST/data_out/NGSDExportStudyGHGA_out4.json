@@ -211,13 +211,49 @@
         }
     ],
     "process_data_files": [
+        {
+            "alias": "VCF_Pseudonym01",
+            "analysis": "ANA_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "VCF_FROM_FOLDER.vcf"
+        },
+        {
+            "alias": "VCF_Pseudonym05",
+            "analysis": "ANA_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "VCF_FROM_FOLDER.vcf"
+        },
+        {
+            "alias": "VCF_Pseudonym011",
+            "analysis": "ANA_Pseudonym011",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "VCF_FROM_FOLDER.vcf"
+        },
+        {
+            "alias": "VCF_Pseudonym051",
+            "analysis": "ANA_Pseudonym051",
+            "dataset": "DS_Study4711",
+            "format": "VCF",
+            "included_in_submission": true,
+            "name": "VCF_FROM_FOLDER.vcf"
+        }
     ],
     "publications": [
         {
+            "abstract": "Some abstract",
             "alias": "PUB_Study4711",
-            "doi": "",
+            "author": "Max Mustermann et al.",
+            "doi": "https://doi.org/12.234546",
+            "journal": "high impact journal",
             "study": "Study4711",
-            "title": ""
+            "title": "Some interesting title",
+            "year": 2025
         }
     ],
     "research_data_files": [
@@ -426,8 +462,8 @@
             "biospecimen_age_at_sampling": "UNKNOWN",
             "biospecimen_tissue_id": "UNKNOWN",
             "biospecimen_tissue_term": "UNKNOWN",
-            "case_control_status": "UNKNOWN",
-            "description": "sample that was sequenced",
+            "case_control_status": "CASE",
+            "description": "Germline sample of PAT1",
             "individual": "PAT1",
             "name": "SAM_Pseudonym01",
             "type": "CF_DNA"
@@ -437,8 +473,8 @@
             "biospecimen_age_at_sampling": "UNKNOWN",
             "biospecimen_tissue_id": "UNKNOWN",
             "biospecimen_tissue_term": "UNKNOWN",
-            "case_control_status": "UNKNOWN",
-            "description": "sample that was sequenced",
+            "case_control_status": "CASE",
+            "description": "Germline sample of PAT2",
             "individual": "PAT2",
             "name": "SAM_Pseudonym05",
             "type": "CF_DNA"
@@ -448,8 +484,8 @@
             "biospecimen_age_at_sampling": "UNKNOWN",
             "biospecimen_tissue_id": "UNKNOWN",
             "biospecimen_tissue_term": "UNKNOWN",
-            "case_control_status": "UNKNOWN",
-            "description": "sample that was sequenced",
+            "case_control_status": "CASE",
+            "description": "Germline sample of PAT1",
             "individual": "PAT1",
             "name": "SAM_Pseudonym011",
             "type": "GENOMIC_DNA"
@@ -459,8 +495,8 @@
             "biospecimen_age_at_sampling": "UNKNOWN",
             "biospecimen_tissue_id": "UNKNOWN",
             "biospecimen_tissue_term": "UNKNOWN",
-            "case_control_status": "UNKNOWN",
-            "description": "sample that was sequenced",
+            "case_control_status": "CASE",
+            "description": "Germline sample of PAT2",
             "individual": "PAT2",
             "name": "SAM_Pseudonym051",
             "type": "TOTAL_RNA"

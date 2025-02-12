@@ -61,8 +61,23 @@ private slots:
 
 		//test
 		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test "
-				+ "-use_sample_folder -group_analyses -out out/NGSDExportStudyGHGA_out4.json");
+				+ "-use_sample_folder -group_analyses -include_vcf -out out/NGSDExportStudyGHGA_out4.json");
 		COMPARE_FILES("out/NGSDExportStudyGHGA_out4.json", TESTDATA("data_out/NGSDExportStudyGHGA_out4.json"));
+	}
+
+	void test_fastq_only()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportStudyGHGA_init.sql"));
+
+		//test
+		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test "
+				+ "-use_sample_folder -out out/NGSDExportStudyGHGA_out5.json");
+		COMPARE_FILES("out/NGSDExportStudyGHGA_out5.json", TESTDATA("data_out/NGSDExportStudyGHGA_out5.json"));
 	}
 
 };

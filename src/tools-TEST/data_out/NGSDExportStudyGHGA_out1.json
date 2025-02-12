@@ -170,10 +170,14 @@
     ],
     "publications": [
         {
+            "abstract": "Some abstract",
             "alias": "PUB_Study4711",
-            "doi": "",
+            "author": "Max Mustermann et al.",
+            "doi": "https://doi.org/12.234546",
+            "journal": "high impact journal",
             "study": "Study4711",
-            "title": ""
+            "title": "Some interesting title",
+            "year": 2025
         }
     ],
     "research_data_files": [
@@ -228,8 +232,8 @@
             "biospecimen_age_at_sampling": "UNKNOWN",
             "biospecimen_tissue_id": "UNKNOWN",
             "biospecimen_tissue_term": "UNKNOWN",
-            "case_control_status": "UNKNOWN",
-            "description": "sample that was sequenced",
+            "case_control_status": "CASE",
+            "description": "Germline sample of 000111",
             "individual": "000111",
             "name": "SAM_000111",
             "type": "GENOMIC_DNA"
@@ -239,8 +243,8 @@
             "biospecimen_age_at_sampling": "UNKNOWN",
             "biospecimen_tissue_id": "UNKNOWN",
             "biospecimen_tissue_term": "UNKNOWN",
-            "case_control_status": "UNKNOWN",
-            "description": "sample that was sequenced",
+            "case_control_status": "CASE",
+            "description": "Germline sample of 000222",
             "individual": "000222",
             "name": "SAM_000222",
             "type": "TOTAL_RNA"

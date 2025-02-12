@@ -15,5 +15,11 @@
 	"data_use_permission_term" : "GENERAL_RESEARCH_USE",
 	"data_use_permission_id" : "DUO:0000001",
 	"data_use_modifier_terms": ["TIME_LIMIT_ON_USE", "COLLABORATION_REQUIRED"],
-	"data_use_modifier_ids" : ["DUO:0000025", "DUO:0000036"]
+	"data_use_modifier_ids" : ["DUO:0000025", "DUO:0000036"],
+	"publication_title" : "Some interesting title",
+	"publication_abstract" : "Some abstract",
+	"publication_author" : "Max Mustermann et al.",
+	"publication_year" : 2025,
+	"publication_journal" : "high impact journal",
+	"publication_doi" : "https://doi.org/12.234546"
 }
