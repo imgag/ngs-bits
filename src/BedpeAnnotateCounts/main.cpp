@@ -418,7 +418,7 @@ private:
 			}
 		}
 
-		if (disease_group_id_.isEmpty()) THROW(FileParseException, "Annotation file doesn't contain info about disease group IDs");
+		if (disease_group_id_.isEmpty()) THROW(FileParseException, "Annotation file doesn't contain info about disease group ID for given disease group: '" + disease_group + "'");
 
 		//close file
 		gzclose(file);
