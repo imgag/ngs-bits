@@ -1,0 +1,41 @@
+#include "TestFramework.h"
+#include "XmlHelper.h"
+
+
+TEST_CLASS(XmlValidation_Test)
+{
+Q_OBJECT
+private slots:
+    void test_xml_validation()
+    {
+        QString xml_error = XmlHelper::isValidXml(":data/germline_report2.xml");
+        if(xml_error!= "")
+        {
+            THROW(ProgrammingException, "Invalid XML file:\n" + xml_error);
+        }
+        IS_TRUE(xml_error.isEmpty());
+
+        xml_error = XmlHelper::isValidXml(":data/tumor_only_report_broken_xml.xml");
+        IS_FALSE(xml_error.isEmpty());
+    }
+
+    void test_xml_validation_against_schema()
+	{
+        QString xml_error = XmlHelper::isValidXml(":data/somatic_report.xml", ":/data/SomaticReport.xsd");
+        if(xml_error!= "")
+        {
+            THROW(ProgrammingException, "Invalid somatic report XML file:\n" + xml_error);
+        }
+        IS_TRUE(xml_error.isEmpty());
+
+        xml_error = XmlHelper::isValidXml(":data/germline_report1.xml", ":/data/GermlineReport.xsd");
+        if(xml_error!= "")
+        {
+            THROW(ProgrammingException, "Invalid germline report XML file:\n" + xml_error);
+        }
+        IS_TRUE(xml_error.isEmpty());
+
+        xml_error = XmlHelper::isValidXml(":data/tumor_only_report_broken_schema.xml", ":/data/TumorOnlyNGSReport_v1.xsd");
+        IS_FALSE(xml_error.isEmpty());
+	}
+};
