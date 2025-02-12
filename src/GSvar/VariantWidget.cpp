@@ -234,7 +234,7 @@ void VariantWidget::updateGUI()
 		}
 
 		//sort by processed sample name
-		ui_.table->sortByColumn(0);
+        ui_.table->sortByColumn(0, ui_.table->horizontalHeader()->sortIndicatorOrder());
 
 		//resize table cols
 		GUIHelper::resizeTableCellWidths(ui_.table, 200);

@@ -27,7 +27,7 @@ void IGVCommandWorker::run()
 		emit commandStarted(launch_command_id);
 
 		//start IGV
-		bool started = QProcess::startDetached(igv_data_.executable + " --port " + QString::number(igv_data_.port));
+        bool started = QProcess::startDetached(igv_data_.executable, QStringList() << "--port" << QString::number(igv_data_.port));
 		if (!started)
 		{
 			emit commandFailed(launch_command_id, "Could not start IGV: IGV application '" + igv_data_.executable + "' did not start!", (double)(timer.elapsed())/1000.0);

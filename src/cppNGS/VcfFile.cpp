@@ -160,7 +160,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		foreach(const QByteArray& info, line_parts[INFO].split(';'))
 		{
 			int sep_index = info.indexOf('=');
-			const QByteArray& key = strCache(sep_index==-1 ? info : info.left(sep_index));
+            const QByteArray key = strCache(sep_index==-1 ? info : info.left(sep_index));
 
 			//check if the info is known in header
 			if(!info_ids.contains(key))
