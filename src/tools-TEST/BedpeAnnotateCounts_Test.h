@@ -20,7 +20,7 @@ private slots:
 		EXECUTE("BedpeAnnotateCounts", "-in " + TESTDATA("data_in/BedpeAnnotateCounts_in1.bedpe") + " -ann_folder " + TESTDATA("data_in/BedpeAnnotateCounts/")
 				+ " -ps_name NA12878_3 -test -out out/BedpeAnnotateCounts_out1.bedpe");
 
-//		COMPARE_FILES("out/BedpeAnnotateCounts_out1.bedpe", TESTDATA("data_out/BedpeAnnotateCounts_out1.bedpe"));
+		COMPARE_FILES("out/BedpeAnnotateCounts_out1.bedpe", TESTDATA("data_out/BedpeAnnotateCounts_out1.bedpe"));
 	}
 
 //	void no_sample_count()
