@@ -290,7 +290,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(variantHeaderDoubleClicked(int)));
 	ui_.vars->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_.vars->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varHeaderContextMenu(QPoint)));
-
+	ui_.vars->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui_.vars->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(columnContextMenu(QPoint)));
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
@@ -4372,7 +4373,7 @@ void MainWindow::on_actionStatistics_triggered()
 	QDate end = start.addMonths(1);
 	while(start.year()>=2015)
 	{
-		QVector<int> counts(table.headers().count(), 0);
+		QVector<int> counts(table.columnCount(), 0);
 
 		//select runs of current month
 		SqlQuery q_run_ids = db.getQuery();
@@ -4400,7 +4401,7 @@ void MainWindow::on_actionStatistics_triggered()
 					continue;
 				}
 
-				int index = table.headers().indexOf(sys_type + " " + pro_type);
+				int index = table.columnIndex(sys_type + " " + pro_type, false);
 				++counts[index];
 			}
 		}
@@ -5583,6 +5584,32 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 			somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 		}
 		updateReportConfigHeaderIcon(index);
+	}
+}
+
+void MainWindow::columnContextMenu(QPoint pos)
+{
+	int col_index = ui_.vars->indexAt(pos).column();
+	if (col_index==-1) return;
+
+	QString col = ui_.vars->horizontalHeaderItem(col_index)->text();
+	bool col_is_annotation = variants_.annotationIndexByName(col, true, false)!=-1;
+
+	//set up menu
+	QMenu menu(ui_.vars->horizontalHeader());
+
+	QAction* a_filter = menu.addAction(QIcon(":/Icons/Filter.png"), "Add/edit column filter");
+	a_filter->setEnabled(col_is_annotation);
+
+	//exec menu
+	pos = ui_.vars->horizontalHeader()->viewport()->mapToGlobal(pos);
+	QAction* action = menu.exec(pos);
+	if (action==nullptr) return;
+
+	//actions
+	if (action==a_filter)
+	{
+		ui_.filters->editColumnFilter(col);
 	}
 }
 

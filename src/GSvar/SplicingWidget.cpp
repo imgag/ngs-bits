@@ -128,13 +128,9 @@ void SplicingWidget::applyFilter()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		QTime timer;
 		timer.start();
-		qDebug() << "applying filter...";
 
 		int row_count = ui_->tw_splicing->rowCount();
 		FilterResult filter_result(row_count);
-
-		//debug
-		int filtered_lines = row_count;
 
 		//determine indices
 		int gene_idx = column_indices_.value("genes");
@@ -143,7 +139,6 @@ void SplicingWidget::applyFilter()
 		GeneSet gene_whitelist = GeneSet::createFromText(ui_->le_genes->text().toUtf8(), ',');
 		if (!gene_whitelist.isEmpty())
 		{
-			qDebug() << "filter by gene filter";
 			QByteArray genes_joined = gene_whitelist.join('|');
 
 			// get column index of 'GENES' column
@@ -184,15 +179,10 @@ void SplicingWidget::applyFilter()
 					}
 				}
 			}
-
-			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result.countPassing();
 		}
 
 
 		//filter by min read count
-		qDebug() << "filter by min read count";
 		if (ui_->sb_min_reads->value() > 0)
 		{
 			int read_threshold = ui_->sb_min_reads->value();
@@ -205,14 +195,9 @@ void SplicingWidget::applyFilter()
 
 				filter_result.flags()[row_idx] = read_count >= read_threshold;
 			}
-
-			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result.countPassing();
 		}
 
 		//filter by event
-		qDebug() << "filter by event";
 		QSet<QByteArray> selected_events;
 		foreach (QCheckBox* cb_event, ui_->gb_events->findChildren<QCheckBox*>())
 		{
@@ -228,13 +213,8 @@ void SplicingWidget::applyFilter()
 			QByteArray event = ui_->tw_splicing->item(row_idx, event_idx)->text().toUtf8().trimmed();
 			filter_result.flags()[row_idx] = selected_events.contains(event);
 		}
-		//debug:
-		qDebug() << "\t removed: " << (filtered_lines - filter_result.countPassing()) << Helper::elapsedTime(timer);
-		filtered_lines = filter_result.countPassing();
-
 
 		//filter by motif
-		qDebug() << "filter by motif";
 		QSet<QByteArray> selected_motifs;
 		foreach (QCheckBox* cb_motif, ui_->gb_motif->findChildren<QCheckBox*>())
 		{
@@ -250,9 +230,6 @@ void SplicingWidget::applyFilter()
 			QByteArray event = ui_->tw_splicing->item(row_idx, motif_idx)->text().toUtf8().trimmed();
 			filter_result.flags()[row_idx] = selected_motifs.contains(event);
 		}
-		//debug:
-		qDebug() << "\t removed: " << (filtered_lines - filter_result.countPassing()) << Helper::elapsedTime(timer);
-		filtered_lines = filter_result.countPassing();
 
 		//apply to table
 		for(int row_idx=0; row_idx<row_count; ++row_idx)
@@ -263,8 +240,7 @@ void SplicingWidget::applyFilter()
 		//Set number of filtered / total SVs
 		ui_->l_passFilter->setText(QByteArray::number(filter_result.countPassing()) + "/" + QByteArray::number(row_count));
 
-
-		qDebug() << "done (runtime: " << Helper::elapsedTime(timer) << ")";
+		//qDebug() << "done (runtime: " << Helper::elapsedTime(timer) << ")";
 		QApplication::restoreOverrideCursor();
 	}
 	catch (Exception& e)

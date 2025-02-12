@@ -28,9 +28,6 @@ ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QSt
 	ps_id_(ps_id),
 	cohort_type_(cohort_type)
 {
-	//debug:
-	qDebug() << "filename: " << tsv_filename_;
-
 	// skip if no NGSD is available
 	if (!LoginManager::active())
 	{
@@ -70,7 +67,6 @@ void ExpressionExonWidget::loadExpressionFile()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		QTime timer;
 		timer.start();
-		qDebug() << "load expression file...";
 
 		//load TSV file
 		expression_data_ = TsvFile();
@@ -114,8 +110,6 @@ void ExpressionExonWidget::loadExpressionFile()
 			}
 		}
 
-		qDebug() << "TSV parsed";
-
 		//init filter data
 		filter_result_ = FilterResult(expression_data_.count());
 
@@ -129,8 +123,6 @@ void ExpressionExonWidget::loadExpressionFile()
 
 void ExpressionExonWidget::initFilter()
 {
-	qDebug() << "Init filter";
-
 	//set default values for filter
 	ui_->sb_low_expression->setValue(0.1);
 	ui_->sb_min_zscore->setValue(2.0);
@@ -142,8 +134,6 @@ void ExpressionExonWidget::initFilter()
 	}
 
 	initBiotypeList();
-
-	qDebug() << "filter initialized";
 }
 
 void ExpressionExonWidget::initTable()
@@ -154,19 +144,13 @@ void ExpressionExonWidget::initTable()
 		ui_->tw_expression_table->setEnabled(false);
 		QTime timer;
 		timer.start();
-		qDebug() << "init expression table...";
-
-
 
 		column_names_.clear();
 		numeric_columns_.clear();
 		precision_.clear();
 
-		qDebug() << "columns cleared";
-
 		//disable sorting
 		ui_->tw_expression_table->setSortingEnabled(false);
-		qDebug() << "sorting disabled";
 
 		//default columns
 		column_names_ << "gene_id" << "exon" << "raw" << "rpb" << "srpb" << "gene_name";
@@ -192,10 +176,6 @@ void ExpressionExonWidget::initTable()
 		{
 			ui_->tw_expression_table->setHorizontalHeaderItem(col_idx, new QTableWidgetItem(column_names_.at(col_idx)));
 		}
-
-		qDebug() << "header created";
-
-		qDebug() << QString() + "... done(" + Helper::elapsedTime(timer) + ")";
 
 		ui_->tw_expression_table->setEnabled(true);
 		QApplication::restoreOverrideCursor();
@@ -224,7 +204,7 @@ void ExpressionExonWidget::applyFilters()
 		// Filter by parameters stored in file
 
 		// get column index of 'GENES' column
-		int gene_idx = expression_data_.headers().indexOf("gene_name");
+		int gene_idx = expression_data_.columnIndex("gene_name", false);
 
 		if (gene_idx < 0)
 		{
@@ -235,8 +215,6 @@ void ExpressionExonWidget::applyFilters()
 			//filter by variant list gene filter
 			if (!variant_gene_set_.isEmpty() && (ui_->cb_filter_by_var_list->checkState() == Qt::Checked))
 			{
-				qDebug() << "filter by variant gene filter";
-
 				if (gene_idx != -1)
 				{
 					for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
@@ -248,7 +226,7 @@ void ExpressionExonWidget::applyFilters()
 				}
 
 				//debug:
-				qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+				//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
 				filtered_lines = filter_result_.countPassing();
 			}
 
@@ -256,7 +234,6 @@ void ExpressionExonWidget::applyFilters()
 			GeneSet gene_whitelist = GeneSet::createFromText(ui_->le_gene_filter->text().toUtf8(), ',');
 			if (!gene_whitelist.isEmpty())
 			{
-				qDebug() << "filter by gene filter";
 				QByteArray genes_joined = gene_whitelist.join('|');
 
 				// get column index of 'GENES' column
@@ -299,7 +276,7 @@ void ExpressionExonWidget::applyFilters()
 				}
 
 				//debug:
-				qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+				//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
 				filtered_lines = filter_result_.countPassing();
 			}
 		}
@@ -309,8 +286,7 @@ void ExpressionExonWidget::applyFilters()
 		//filter by rpb value
 		if (!ui_->sb_min_rpb->text().isEmpty())
 		{
-			qDebug() << "filter by rpb";
-			int idx = expression_data_.headers().indexOf("rpb");
+			int idx = expression_data_.columnIndex("rpb", false);
 
 			if (idx == -1)
 			{
@@ -345,14 +321,13 @@ void ExpressionExonWidget::applyFilters()
 			}
 
 			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
 			filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by srpb value
 		if (ui_->sb_min_srpb_sample->value() != 0.0)
 		{
-			qDebug() << "filter by srpb";
 			int idx = column_names_.indexOf("srpb");
 
 			if (idx == -1)
@@ -388,13 +363,12 @@ void ExpressionExonWidget::applyFilters()
 			}
 
 			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
 			filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by biotype
 		QSet<QString> selected_biotypes;
-		qDebug() << "filter by biotype";
 
 		//get selected biotypes
 		foreach (QCheckBox* cb_biotype, ui_->sawc_biotype->findChildren<QCheckBox*>())
@@ -406,7 +380,7 @@ void ExpressionExonWidget::applyFilters()
 		}
 
 		//filter data
-		int idx_biotype = expression_data_.headers().indexOf("gene_biotype");
+		int idx_biotype = expression_data_.columnIndex("gene_biotype", false);
 		if (idx_biotype < 0)
 		{
 			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_biotype' column! \nFiltering based on biotype is not possible. Please reannotate the RNA sample.");
@@ -425,7 +399,7 @@ void ExpressionExonWidget::applyFilters()
 
 
 		//debug:
-		qDebug() << "\t removed (file based): " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+		///qDebug() << "\t removed (file based): " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
 		filtered_lines = filter_result_.countPassing();
 
 		//filter by statistical data
@@ -433,9 +407,8 @@ void ExpressionExonWidget::applyFilters()
 		//filter by low expression srpb value
 		if (ui_->sb_low_expression->value() != 0)
 		{
-			qDebug() << "filter by low expression";
-			int idx_cohort_mean = expression_data_.headers().indexOf("cohort_mean");
-			int idx_srpb = expression_data_.headers().indexOf("srpb");
+			int idx_cohort_mean = expression_data_.columnIndex("cohort_mean", false);
+			int idx_srpb = expression_data_.columnIndex("srpb", false);
 
 
 			if (idx_cohort_mean == -1)
@@ -486,8 +459,7 @@ void ExpressionExonWidget::applyFilters()
 		//filter by cohort mean
 		if (ui_->sb_min_srpb_cohort->value() != 0.0)
 		{
-			qDebug() << "filter by cohort mean";
-			int idx = expression_data_.headers().indexOf("cohort_mean");
+			int idx = expression_data_.columnIndex("cohort_mean", false);
 
 			if (idx == -1)
 			{
@@ -522,15 +494,14 @@ void ExpressionExonWidget::applyFilters()
 			}
 
 			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
 			filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by log2fc
 		if (ui_->sb_min_logfc->value() != 0.0)
 		{
-			qDebug() << "filter by log fc";
-			int idx = expression_data_.headers().indexOf("log2fc");
+			int idx = expression_data_.columnIndex("log2fc", false);
 
 			if (idx == -1)
 			{
@@ -565,15 +536,14 @@ void ExpressionExonWidget::applyFilters()
 			}
 
 			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
 			filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by zscore
 		if (ui_->sb_min_zscore->value() != 0.0)
 		{
-			qDebug() << "filter by zscore";
-			int idx = expression_data_.headers().indexOf("zscore");
+			int idx = expression_data_.columnIndex("zscore", false);
 
 			if (idx == -1)
 			{
@@ -608,7 +578,7 @@ void ExpressionExonWidget::applyFilters()
 			}
 
 			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
 			filtered_lines = filter_result_.countPassing();
 		}
 
@@ -669,7 +639,6 @@ void ExpressionExonWidget::selectAllBiotypes(bool deselect)
 void ExpressionExonWidget::showHistogram(const BedLine& exon, double srpb)
 {
 	NGSD db;
-	qDebug() << exon.toString(true);
 	QSet<int> cohort = db.getRNACohort(sys_id_, tissue_, project_, ps_id_, cohort_type_, "exons");
 	QVector<double> expr_values = db.getExonExpressionValues(exon, cohort, false);
 
@@ -708,7 +677,6 @@ void ExpressionExonWidget::showExpressionTableContextMenu(QPoint pos)
 	// react
 	if (action == a_show_histogram)
 	{
-		qDebug() << row_idx;
 		showHistogram(exon, srpb);
 	}
 	else
@@ -719,7 +687,6 @@ void ExpressionExonWidget::showExpressionTableContextMenu(QPoint pos)
 
 void ExpressionExonWidget::OpenInIGV(QTableWidgetItem* item)
 {
-	qDebug() << "ExpressionDoubleClicked";
 	if (item==nullptr) return;
 
 	int gene_col_idx = column_names_.indexOf("exon");
@@ -743,13 +710,8 @@ void ExpressionExonWidget::updateTable()
 		//disable sorting
 		ui_->tw_expression_table->setSortingEnabled(false);
 
-		qDebug() << "update expression table...";
-
-
 		//update dimensions
-		qDebug() << "passing count: " << filter_result_.countPassing();
 		ui_->tw_expression_table->setRowCount(filter_result_.countPassing());
-		qDebug() << "row count: " << ui_->tw_expression_table->rowCount();
 
 
 		//determine col indices for table columns in tsv file
@@ -775,8 +737,6 @@ void ExpressionExonWidget::updateTable()
 				column_indices << expression_data_.columnIndex(col_name);
 			}
 		}
-		qDebug() << "header indices parsed";
-
 
 		// fill table
 		int table_row_idx = 0;
@@ -850,7 +810,6 @@ void ExpressionExonWidget::updateTable()
 
 void ExpressionExonWidget::initBiotypeList()
 {
-	qDebug()<< "init biotype list";
 	//biotypes
 	QStringList sorted_biotypes = NGSD().getEnum("gene_transcript", "biotype");
 	std::sort(sorted_biotypes.begin(), sorted_biotypes.end());

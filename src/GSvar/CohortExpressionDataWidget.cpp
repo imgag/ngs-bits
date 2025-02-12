@@ -59,20 +59,19 @@ void CohortExpressionDataWidget::loadExpressionData()
 
 	//set dimensions
 	ui_->tw_cohort_data->setRowCount(cohort_expression_data.count());
-	ui_->tw_cohort_data->setColumnCount(cohort_expression_data.headers().size());
+	ui_->tw_cohort_data->setColumnCount(cohort_expression_data.columnCount());
 
 	// create header
-	QStringList tsv_header = cohort_expression_data.headers();
-	for (int col_idx = 0; col_idx < tsv_header.size(); ++col_idx)
+	for (int col_idx = 0; col_idx < cohort_expression_data.columnCount(); ++col_idx)
 	{
-		ui_->tw_cohort_data->setHorizontalHeaderItem(col_idx, new QTableWidgetItem(tsv_header.at(col_idx)));
+		ui_->tw_cohort_data->setHorizontalHeaderItem(col_idx, new QTableWidgetItem(cohort_expression_data.headers().at(col_idx)));
 	}
 
 	//fill table
 	for(int row_idx=0; row_idx<cohort_expression_data.count(); ++row_idx)
 	{
 		const QStringList& row = cohort_expression_data[row_idx];
-		for (int col_idx = 0; col_idx < tsv_header.size(); ++col_idx)
+		for (int col_idx = 0; col_idx < cohort_expression_data.columnCount(); ++col_idx)
 		{
 			if(col_idx > 0)
 			{

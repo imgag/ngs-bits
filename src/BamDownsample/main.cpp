@@ -44,10 +44,10 @@ public:
 		writer.writeHeader(reader);
 
 		//process alignments
-		int c_se = 0;
-		int c_se_pass = 0;
-		int c_pe = 0;
-		int c_pe_pass = 0;
+		unsigned long long c_se = 0;
+		unsigned long long c_se_pass = 0;
+		unsigned long long c_pe = 0;
+		unsigned long long c_pe_pass = 0;
 
 		BamAlignment al;
 		QHash<QByteArray, BamAlignment> al_cache;

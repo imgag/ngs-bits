@@ -316,6 +316,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString molarity;
 	QString ancestry;
 	bool scheduled_for_resequencing;
+	bool urgent;
 };
 
 ///Processing system information.
@@ -666,6 +667,14 @@ struct CPPNGSDSHARED_EXPORT VariantCallingInfo
 	QString re_caller;
 	QString re_caller_version;
 	QString re_call_date; //ISO format
+};
+
+struct  NsxAnalysisSettings
+{
+	//adapter trimming during demultiplexing
+	bool adapter_trimming = true;
+	//perform DRAGEN analysis
+	bool dragen_analysis = true;
 };
 
 ///NGSD access
@@ -1214,7 +1223,7 @@ public:
 	void maintain(QTextStream* messages, bool fix_errors);
 
 	///Returns the content of a NovaSeqX Plus SampleSheet for a given run
-	QString createSampleSheet(int run_id, QStringList& warnings);
+	QString createSampleSheet(int run_id, QStringList& warnings, const NsxAnalysisSettings& settings);
 
 	///Returns the (sorted) list of studies of a processed sample
 	QStringList studies(const QString& processed_sample_id);

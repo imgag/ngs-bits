@@ -573,6 +573,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `folder_override` TEXT NULL DEFAULT NULL COMMENT 'Override for sample folder',
   `folder_override_client` TEXT NULL DEFAULT NULL COMMENT 'Override for sample folder used in GSvar client',
   `scheduled_for_resequencing` BOOLEAN NOT NULL DEFAULT FALSE,
+  `urgent` BOOLEAN NOT NULL DEFAULT FALSE,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `sample_psid_unique` (`sample_id` ASC, `process_id` ASC),
   INDEX `fk_processed_sample_samples1` (`sample_id` ASC),

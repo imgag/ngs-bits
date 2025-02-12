@@ -264,7 +264,11 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	if (p.s_name.trimmed()!="")
 	{
 		QStringList name_conditions;
-		name_conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
+		QString name_pattern = escapeForSql(p.s_name);
+		if (name_pattern.startsWith('*')) name_pattern[0] = '%';
+		if (name_pattern.endsWith('*')) name_pattern[name_pattern.length()-1] = '%';
+		if (!name_pattern.startsWith('%') && !name_pattern.endsWith('%')) name_pattern = '%' + name_pattern + '%';
+		name_conditions << "s.name LIKE '" + name_pattern + "'";
 		if (p.s_name_ext)
 		{
 			name_conditions << "s.name_external LIKE '%" + escapeForSql(p.s_name) + "%'";
@@ -713,7 +717,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number, ps.scheduled_for_resequencing FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number, ps.scheduled_for_resequencing, ps.urgent FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -748,6 +752,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.molarity = query.value("molarity").toString().trimmed();
 	output.ancestry = getValue("SELECT `population` FROM `processed_sample_ancestry` WHERE `processed_sample_id`=:0", true, processed_sample_id).toString();
 	output.scheduled_for_resequencing = query.value("scheduled_for_resequencing").toBool();
+	output.urgent = query.value("urgent").toBool();
 
 	return output;
 
@@ -5931,7 +5936,7 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 	return output;
 }
 
-QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
+QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnalysisSettings& settings)
 {
 	QStringList sample_sheet;
 
@@ -6019,25 +6024,28 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		if (!sys_info.adapter1_p5.trimmed().isEmpty()) adapter_sequences_read1.insert(sys_info.adapter1_p5);
 		if (!sys_info.adapter2_p7.trimmed().isEmpty()) adapter_sequences_read2.insert(sys_info.adapter2_p7);
 
-
-		if (sample_type == "DNA" || sample_type == "cfDNA")
+		//generate analysis
+		if (settings.dragen_analysis)
 		{
-			if (system_type == "WGS")
+			if (sample_type == "DNA" || sample_type == "cfDNA")
 			{
-				germline_analysis.append(ps_name);
+				if (system_type == "WGS")
+				{
+					germline_analysis.append(ps_name);
+				}
+				else if (system_type == "WES")
+				{
+					enrichment_analysis.append(ps_name + "," + system_name + ".bed");
+				}
 			}
-			else if (system_type == "WES")
+			else if (sample_type == "RNA")
 			{
-				enrichment_analysis.append(ps_name + "," + system_name + ".bed");
+				rna_analysis.append(ps_name);
 			}
-		}
-		else if (sample_type == "RNA")
-		{
-			rna_analysis.append(ps_name);
-		}
-		else
-		{
-			THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+			else
+			{
+				THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+			}
 		}
 
 		//create line for BCLConvert
@@ -6105,14 +6113,22 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	sample_sheet.append("SoftwareVersion,"  + sw_version);
 
 	//sort adapter to make it testable
-	QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
-	adapter_sequences_read1_list.sort();
-	if (adapter_sequences_read1_list.length() > 0) sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
-	else warnings << "WARNING: No adapter for read 1 provided! Adapter trimming will not work.";
-	QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
-	adapter_sequences_read2_list.sort();
-	if (adapter_sequences_read2_list.length() > 0) sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
-	else warnings << "WARNING: No adapter for read 2 provided! Adapter trimming will not work.";
+	if (settings.adapter_trimming)
+	{
+		QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
+		adapter_sequences_read1_list.sort();
+		if (adapter_sequences_read1_list.length() > 0) sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
+		else warnings << "WARNING: No adapter for read 1 provided! Adapter trimming will not work.";
+		QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
+		adapter_sequences_read2_list.sort();
+		if (adapter_sequences_read2_list.length() > 0) sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
+		else warnings << "WARNING: No adapter for read 2 provided! Adapter trimming will not work.";
+	}
+	else
+	{
+		sample_sheet.append("AdapterRead1,na");
+		sample_sheet.append("AdapterRead2,na");
+	}
 
 	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
 	sample_sheet.append("");

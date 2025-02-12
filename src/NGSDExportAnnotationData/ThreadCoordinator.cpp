@@ -166,8 +166,9 @@ void ThreadCoordinator::writeSomaticVcf()
 	}
 
 	// write info column descriptions
-	vcf_stream << "##INFO=<ID=SOM_C,Number=1,Type=Integer,Description=\"Somatic variant count in the NGSD.\">\n";
-	vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,Description=\"Project names of project containing this somatic variant in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_C,Number=1,Type=Integer,Description=\"Somatic variant count (tumor-normal) in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_TO_C,Number=1,Type=Integer,Description=\"Somatic variant count (tumor-only) in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,Description=\"Project names of project containing this somatic variant (tumor-normal) in the NGSD.\">\n";
 	vcf_stream << "##INFO=<ID=SOM_VICC,Number=1,Type=String,Description=\"Somatic variant interpretation according VICC standard in the NGSD.\">\n";
 	vcf_stream << "##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,Description=\"Somatic VICC interpretation comment in the NGSD.\">\n";
 	if(params_.vicc_config_details)

@@ -22,14 +22,12 @@ public:
 	{
 		setDescription("Imports variants of a tumor-normal processed sample into the NGSD.");
 		addString("t_ps", "Tumor processed sample name", false);
-		addString("n_ps", "Normal processed sample name", false);
 		//optional
+		addString("n_ps", "Normal processed sample name", true);
 		addInfile("var", "Small variant list (i.e. SNVs and small INDELs) in GSvar format (as produced by megSAP).", true, true);
-		addFlag("var_force", "Force import of detected small variants, even if already imported.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
-		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
 		addInfile("sv", "SV list in TSV format (as produced by megSAP).", true, true);
-		addFlag("sv_force", "Force import of SVs, even if already imported.");
+		addFlag("force", "Force import of variants, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
@@ -42,26 +40,30 @@ public:
 		QString filename = getInfile("var");
 		if(filename=="") return;
 
-		QString ps_full_name = t_ps_name + "-" + n_ps_name;
+		bool is_tumor_only = n_ps_name.isEmpty();
+		QString analysis_name = t_ps_name + (is_tumor_only ? "" : "-" + n_ps_name);
 
 		out << endl;
-		out << "### importing small variants for " << ps_full_name << " ###" << endl;
+		out << "### importing small variants for " << analysis_name << " ###" << endl;
 		out << "filename: " << filename << endl;
 
 		QString t_ps_id = db.processedSampleId(t_ps_name);
-		QString n_ps_id = db.processedSampleId(n_ps_name);
+		QString n_ps_id = is_tumor_only ? "" : db.processedSampleId(n_ps_name);
+		QString dv_where = "processed_sample_id_tumor=" + t_ps_id + " AND processed_sample_id_normal"+(is_tumor_only ? " IS NULL" : "=" + n_ps_id);
 
-		int report_conf_id = db.somaticReportConfigId(t_ps_id, n_ps_id);
-
-		//DO NOT IMPORT Anything if a report config exists and contains small variants
-		if(report_conf_id != -1)
+		//do not anything if a report config exists and contains small variants
+		if (!is_tumor_only)
 		{
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT * FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=" + QString::number(report_conf_id));
-			if(query.size()>0)
+			int report_conf_id = db.somaticReportConfigId(t_ps_id, n_ps_id);
+			if(report_conf_id != -1)
 			{
-				out << "Skipped import of small variants for sample " << ps_full_name << ": a somatic report configuration with small variants exists for this sample!" << endl;
-				return;
+				SqlQuery query = db.getQuery();
+				query.exec("SELECT * FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=" + QString::number(report_conf_id));
+				if(query.size()>0)
+				{
+					out << "Skipped import of small variants for sample " << analysis_name << ": a somatic report configuration with small variants exists for this sample!" << endl;
+					return;
+				}
 			}
 		}
 
@@ -70,11 +72,11 @@ public:
 		QTime sub_timer;
 		QStringList sub_times;
 
-		int count_old = db.getValue("SELECT count(*) FROM detected_somatic_variant WHERE processed_sample_id_tumor=" + t_ps_id + " AND processed_sample_id_normal=" + n_ps_id).toInt();
+		int count_old = db.getValue("SELECT count(*) FROM detected_somatic_variant WHERE "+dv_where).toInt();
 		out << "Found " << count_old << " variants already imported into NGSD!" << endl;
 		if(count_old>0 && !var_force)
 		{
-			THROW(ArgumentException, "Variants were already imported for '" + ps_full_name + "'. Use the flag '-var_force' to overwrite them.");
+			THROW(ArgumentException, "Variants were already imported for '" + analysis_name + "'. Use the flag '-force' to overwrite them.");
 		}
 
 		//Remove old variants
@@ -84,7 +86,7 @@ public:
 			sub_timer.start();
 
 			SqlQuery query = db.getQuery();
-			query.exec("DELETE FROM detected_somatic_variant WHERE processed_sample_id_tumor=" + t_ps_id +" AND processed_sample_id_normal=" + n_ps_id);
+			query.exec("DELETE FROM detected_somatic_variant WHERE "+dv_where);
 			out << "Deleted previous somatic variants." << endl;
 			sub_times << ("Deleted previous detected somatic variants took: " + Helper::elapsedTime(sub_timer));
 		}
@@ -114,7 +116,7 @@ public:
 		int i_qual = variants.annotationIndexByName("quality");
 
 		SqlQuery q_insert = db.getQuery();
-		q_insert.prepare("INSERT INTO detected_somatic_variant (processed_sample_id_tumor, processed_sample_id_normal, variant_id, variant_frequency, depth, quality_snp) VALUES (" + t_ps_id +", "+ n_ps_id +", :0, :1, :2, :3)");
+		q_insert.prepare("INSERT INTO detected_somatic_variant (processed_sample_id_tumor, processed_sample_id_normal, variant_id, variant_frequency, depth, quality_snp) VALUES (" + t_ps_id +", " + (is_tumor_only ? "NULL" : n_ps_id) + ", :0, :1, :2, :3)");
 
 		db.transaction();
 		for(int i=0; i<variants.count(); ++i)
@@ -388,7 +390,6 @@ public:
 		{
 			out << "Import took: " << Helper::elapsedTime(timer) << endl;
 		}
-
 	}
 
 	virtual void main()
@@ -402,22 +403,20 @@ public:
 		QString n_ps = getString("n_ps");
 		bool debug = getFlag("debug");
 		bool no_time = getFlag("no_time");
-		bool var_force = getFlag("var_force");
-		bool cnv_force = getFlag("cnv_force");
-		bool sv_force = getFlag("sv_force");
+		bool force = getFlag("force");
 
-		//prevent tumor samples from being imported into the germline variant tables
+		//prevent import of sample is not flagged as tumor
 		SampleData sample_data = db.getSampleData(db.sampleId(t_ps));
-		if (!sample_data.is_tumor)
+		if (!sample_data.is_tumor) THROW(ArgumentException, "Cannot import variant data for sample " + t_ps +"-" + n_ps + ": the sample is not a somatic sample according to NGSD!");
+
+		importSmallVariants(db, stream, t_ps, n_ps, no_time, force);
+
+		if (!n_ps.isEmpty()) //tumor-normal pair
 		{
-			THROW(ArgumentException, "Cannot import variant data for sample " + t_ps +"-" + n_ps + ": the sample is not a somatic sample according to NGSD!");
+			importCNVs(db, stream, t_ps, n_ps, debug, no_time, force, 15.0);
+
+			importSVs(db , stream , t_ps, n_ps, debug, no_time, force);
 		}
-
-		importSmallVariants(db, stream, t_ps, n_ps, no_time, var_force);
-
-		importCNVs(db, stream, t_ps, n_ps, debug, no_time, cnv_force, 15.0);
-
-		importSVs(db , stream , t_ps, n_ps, debug, no_time, sv_force);
 	}
 private:
 	int variantQuality(const Variant& variant, int i_qual) const

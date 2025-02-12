@@ -28,6 +28,7 @@ SOURCES += main.cpp\
     MainWindow.cpp \
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
+    NsxSettingsDialog.cpp \
     PathogenicWtDialog.cpp \
     ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
@@ -158,6 +159,7 @@ HEADERS += MainWindow.h \
     IgvSessionManager.h \
     ImportDialog.h \
     MaintenanceDialog.h \
+    NsxSettingsDialog.h \
     PathogenicWtDialog.h \
     ReSearchWidget.h \
     RepeatExpansionWidget.h \
@@ -279,6 +281,7 @@ FORMS    += MainWindow.ui \
     IgvLogWidget.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
+    NsxSettingsDialog.ui \
     PathogenicWtDialog.ui \
     ReSearchWidget.ui \
     RepeatExpansionWidget.ui \
@@ -390,3 +393,6 @@ LIBS += -L$$PWD/../bin -lcppVISUAL
 RESOURCES += \
     GSvar.qrc
 
+mac {
+    ICON = Icons/Icon.icns
+}
