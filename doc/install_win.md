@@ -87,9 +87,8 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 </table>
 
-## Building a custom genome for IGV
+## Integration with IGV
 
-To generate a custom genome for IGV with all Ensembl transcripts use the megSAP script [`create_igv_genome.php`](https://github.com/imgag/megSAP/blob/master/src/Auxilary/create_igv_genome.php).  
-The created JSON genome file must only be set as `igv_genome` in the `GSvar.ini` and then will always be loaded when you use IGV through GSvar.
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
 
 
