@@ -26,6 +26,13 @@ private slots:
 	void no_sample_count()
 	{
 		//test
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/BedpeAnnotateCounts_init1.sql"));
+
 		EXECUTE("BedpeAnnotateCounts", "-in " + TESTDATA("data_in/BedpeAnnotateCounts_in1.bedpe") + " -ann_folder " + TESTDATA("data_in/BedpeAnnotateCounts/")
 				+ " -ps_name NA12878_3 -test -processing_system invalid -out out/BedpeAnnotateCounts_out2.bedpe");
 
