@@ -242,6 +242,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		  @note If the base is deleted, '-' with quality 255 is returned. If the base is skipped/soft-clipped, '~' with quality -1 is returned.
 		*/
 		QPair<char, int> extractBaseByCIGAR(int pos);
+		QPair<char, int> extractBaseByCIGAR(int pos, int& actual_pos);
 
 		/**
 		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.

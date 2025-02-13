@@ -26,6 +26,7 @@ public:
 	//NGSD tab functionality
 	static void openProcessedSampleTab(QString processed_sample_name);
 	static void openRunTab(QString run_name);
+	static void openRunBatchTab(QStringList run_names);
 	static void openGeneTab(QString symbol);
 	static void openVariantTab(Variant variant);
 	static void openProjectTab(QString project_name);
