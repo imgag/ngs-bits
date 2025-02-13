@@ -132,5 +132,6 @@
         <file>Icons/HerediVar.png</file>
         <file>Icons/ProteinAtlas.png</file>
         <file>Icons/Icon.icns</file>
+        <file>Icons/Methylation.png</file>
     </qresource>
 </RCC>
