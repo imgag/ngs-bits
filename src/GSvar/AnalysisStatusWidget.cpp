@@ -399,16 +399,17 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open analysis folder(s)")
 	{
-		if (ClientHelper::isClientServerMode())
-		{
-			QMessageBox::warning(this, "No access", "Analysis folder browsing is not available in client-server mode");
-			return;
-		}
-
 		NGSD db;
 		foreach(int row, rows)
 		{
 			QString folder = db.analysisJobFolder(jobs_[row].ngsd_id);
+
+			if (!QFile::exists(folder))
+			{
+				QMessageBox::warning(this, "Folder not found", "Analysis folder does not exist: " + folder);
+				return;
+			}
+
 			if (!QDesktopServices::openUrl(folder))
 			{
 				QMessageBox::warning(this, "Error opening folder", "Folder could not be opened - it probably does not exist (yet):\n" + folder);

@@ -75,3 +75,7 @@ To build GSvar, execute the following command:
 Now you need to [configure GSVar](GSvar/configuration.md).
 
 GSvar is usually running in client-server mode. Thus, you need to [setup the GSvar server](GSvarServer/index.md) as well.
+
+## Integration with IGV
+
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).

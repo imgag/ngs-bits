@@ -3417,7 +3417,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
 
 		QStringList warnings;
-		QString sample_sheet = db.createSampleSheet(1, warnings);
+		QString sample_sheet = db.createSampleSheet(1, warnings, NsxAnalysisSettings());
 		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (5) and the number of lanes on the flow cell (8) does not match!");
 
 		//write to file
@@ -3430,7 +3430,7 @@ private slots:
 
 		//second run without adapter sequence
 		warnings.clear();
-		sample_sheet = db.createSampleSheet(2, warnings);
+		sample_sheet = db.createSampleSheet(2, warnings, NsxAnalysisSettings());
 		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (3) and the number of lanes on the flow cell (2) does not match!");
 		S_EQUAL(warnings.at(1), "WARNING: No adapter for read 1 provided! Adapter trimming will not work.");
 		S_EQUAL(warnings.at(2), "WARNING: No adapter for read 2 provided! Adapter trimming will not work.");

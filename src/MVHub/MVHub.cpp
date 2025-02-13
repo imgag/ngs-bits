@@ -183,19 +183,13 @@ QByteArray MVHub::parseJsonDataPseudo(QByteArray reply, QByteArray context)
 
 		//get base64-encoded string from results
 		QByteArray str_base64 = object["identifier"].toArray()[0].toObject()["value"].toString().toLatin1().trimmed();
-		ui_.output->appendPlainText("base64-encoded reply: " + str_base64);
+		//ui_.output->appendPlainText("base64-encoded reply: " + str_base64);
 
 		/*
-		QFile file2("T:\\users\\ahsturm1\\scripts\\2024_05_06_MVH\\encrypted_base64.txt");
-		file2.open(QIODevice::WriteOnly);
-		file2.write(str_base64);
-		file2.close();
-
-		QByteArray encrypted = QByteArray::fromBase64(str_base64);
-		QFile file3("T:\\users\\ahsturm1\\scripts\\2024_05_06_MVH\\encrypted.txt");
-		file3.open(QIODevice::WriteOnly);
-		file3.write(encrypted);
-		file3.close();
+			QFile file2("T:\\users\\ahsturm1\\scripts\\2024_05_06_MVH\\encrypted_base64.txt");
+			file2.open(QIODevice::WriteOnly);
+			file2.write(str_base64);
+			file2.close();
 		*/
 
 		//use webserice to decrypt (not easy in C++)
@@ -206,7 +200,7 @@ QByteArray MVHub::parseJsonDataPseudo(QByteArray reply, QByteArray context)
 		QByteArray data = file.readAll();
 		file.close();
 
-		ui_.output->appendPlainText("base64-encoded key: " +data.toBase64());
+		//ui_.output->appendPlainText("base64-encoded key: " +data.toBase64());
 		HttpHandler handler(true);
 		QByteArray reply = handler.post(url, "input="+str_base64+"&key="+data.toBase64());
 
@@ -353,9 +347,9 @@ void MVHub::test_apiPseudo()
 			headers.insert("Prefer", "handling=strict");
 
 			QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("pseudo_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("pseudo_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
-			QString url = test_server ? "https://tc-t.med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token" : "https://tc-p.med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token";
+			QString url = "https://" + QString(test_server ? "tc-t" : "tc-p") + ".med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token";
 			ui_.output->appendPlainText("URL: "+url);
-			ui_.output->appendPlainText("data: " + data);
+			//ui_.output->appendPlainText("data: " + data);
 
 			HttpHandler handler(true);
 			QByteArray reply = handler.post(url, data, headers);
@@ -372,13 +366,14 @@ void MVHub::test_apiPseudo()
 		ui_.output->appendPlainText("String to encode: " + str);
 		QByteArray pseudo1 = "";
 		{
-			QString url = "https://tc.medic-tuebingen.de/v1/process?targetSystem=MVH_T_F";
+			QString url = "https://" + QString(test_server ? "tc-t.med.uni-tuebingen.de" : "tc.medic-tuebingen.de") + "/v1/process?targetSystem=MVH_T_F";
+			ui_.output->appendPlainText("URL: "+url);
 
 			HttpHeaders headers;
 			headers.insert("Content-Type", "application/json");
 			headers.insert("Authorization", "Bearer "+token);
 
-			HttpHandler handler(false);
+			HttpHandler handler(test_server);
 			QByteArray data =  jsonDataPseudo(str);
 			QByteArray reply = handler.post(url, data, headers);
 			pseudo1 = parseJsonDataPseudo(reply, "T_F");
@@ -386,7 +381,21 @@ void MVHub::test_apiPseudo()
 		ui_.output->appendPlainText("Pseudonym 1: " + pseudo1);
 
 		//get second pseudonyms
-		//TODO
+		QByteArray pseudo2 = "";
+		{
+			QString url = "https://" + QString(test_server ? "tc-t.med.uni-tuebingen.de" : "tc.medic-tuebingen.de") + "/v1/process?targetSystem=MVH_T_SE";
+			ui_.output->appendPlainText("URL: "+url);
+
+			HttpHeaders headers;
+			headers.insert("Content-Type", "application/json");
+			headers.insert("Authorization", "Bearer "+token);
+
+			HttpHandler handler(test_server);
+			QByteArray data =  jsonDataPseudo(pseudo1);
+			QByteArray reply = handler.post(url, data, headers);
+			pseudo2 = parseJsonDataPseudo(reply, "T_SE");
+		}
+		ui_.output->appendPlainText("Pseudonym 2: " + pseudo2);
 
 	}
 	catch (Exception& e)

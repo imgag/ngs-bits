@@ -29,6 +29,7 @@ SOURCES += main.cpp\
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
     MethylationWidget.cpp \
+    NsxSettingsDialog.cpp \
     PathogenicWtDialog.cpp \
     ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
@@ -160,6 +161,7 @@ HEADERS += MainWindow.h \
     ImportDialog.h \
     MaintenanceDialog.h \
     MethylationWidget.h \
+    NsxSettingsDialog.h \
     PathogenicWtDialog.h \
     ReSearchWidget.h \
     RepeatExpansionWidget.h \
@@ -282,6 +284,7 @@ FORMS    += MainWindow.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
     MethylationWidget.ui \
+    NsxSettingsDialog.ui \
     PathogenicWtDialog.ui \
     ReSearchWidget.ui \
     RepeatExpansionWidget.ui \
