@@ -739,7 +739,7 @@ void SequencingRunWidget::exportSampleSheet()
 		//create sample sheet
 		QString output_path = Settings::string("sample_sheet_path") + "/" + name + ".csv";
 		QStringList warnings;
-		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_ids_.at(0), "Sequencing run id"), warnings);
+		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_ids_.at(0), "Sequencing run id"), warnings, settings);
 
 		//show warnings
 		if (warnings.size() > 0)
