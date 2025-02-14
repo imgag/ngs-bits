@@ -92,16 +92,14 @@ public:
 			// get disease group
 			if (disease_group.isEmpty())
 			{
-				disease_group = db.getValue("SELECT s.disease_group FROM `processed_sample` ps " + QByteArray() +
-											+ "INNER JOIN `sample` s ON ps.sample_id = s.id WHERE ps.id = :0", false, p_sample_id).toByteArray().toLower();
+				disease_group = db.getValue("SELECT disease_group FROM sample WHERE id = (SELECT sample_id FROM processed_sample WHERE id = :0)", false, p_sample_id).toByteArray().toLower();
 				dg_parameter_given = false;
 			}
 
 			// get processing system
 			if (processing_system.isEmpty())
 			{
-				processing_system = db.getValue("SELECT psy.name_short FROM `processed_sample` ps " + QByteArray() +
-											+ "INNER JOIN `processing_system` psy ON ps.processing_system_id = psy.id WHERE ps.id = :0", false, p_sample_id).toByteArray();
+				processing_system = db.getValue("SELECT name_short FROM processing_system WHERE id = (SELECT processing_system_id FROM processed_sample WHERE id = :0)", false, p_sample_id).toByteArray();
 			}
 		}
 
