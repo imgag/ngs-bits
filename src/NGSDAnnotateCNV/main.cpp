@@ -112,13 +112,13 @@ public:
 				{
 					p_cnv_stats.annotate = true;
 				}
-				/// at least 10% of the pathogenic CNV overlaps with at least 10% of the current CNV
-				else if (p_cnv_stats.p_cnv_overlap >= 0.1 && p_cnv_stats.cnv_overlap >= 0.1)
+				/// at least 30% of the pathogenic CNV overlaps with at least 30% of the current CNV
+				else if (p_cnv_stats.p_cnv_overlap >= 0.3 && p_cnv_stats.cnv_overlap >= 0.3)
 				{
 					p_cnv_stats.annotate = true;
 				}
-				/// current CNV is fully contained within the pathogenic CNV and represents at least 10% of the pathogenic CNV
-				else if ((start >= p_start && end <= p_end) && p_cnv_stats.p_cnv_overlap >= 0.1)
+				/// current CNV is fully contained within the pathogenic CNV and represents at least 30% of the pathogenic CNV
+				else if ((start >= p_start && end <= p_end) && p_cnv_stats.p_cnv_overlap >= 0.3)
 				{
 					p_cnv_stats.annotate = true;
 				}
