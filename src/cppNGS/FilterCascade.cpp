@@ -1079,7 +1079,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 	}
 	else //filter (regexp)
 	{
-		QRegExp reg(genes.join('|').replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+        QRegularExpression reg(genes.join('|').replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 		for(int i=0; i<variants.count(); ++i)
 		{
 			if (!result.flags()[i]) continue;
@@ -1088,7 +1088,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 			bool match_found = false;
 			foreach(const QByteArray& var_gene, var_genes)
 			{
-				if (reg.exactMatch(var_gene))
+                if (reg.match(var_gene).hasMatch())
 				{
 					match_found = true;
 					break;
@@ -1869,7 +1869,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 						{
 							QByteArray phased_genotype = phasing_entry.at(0).toUtf8();
 							QString pb_raw = phasing_entry.at(1);
-							int phasing_block = Helper::toInt(pb_raw.remove(QRegExp("[()]")), "Phasing block", QString::number(i));
+                            int phasing_block = Helper::toInt(pb_raw.remove(QRegularExpression("[()]")), "Phasing block", QString::number(i));
 
 							if (phased_genotype == "1|0") gene_to_het_phase1[gene.trimmed()] += 1;
 							else gene_to_het_phase2[gene.trimmed()] += 1;

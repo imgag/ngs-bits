@@ -3,8 +3,12 @@
 #include "DBSelector.h"
 #include "GUIHelper.h"
 #include "ProcessedSampleSelector.h"
-
+#include <QMenu>
 #include <QDebug>
+#include <QMessageBox>
+#include <QDateTimeAxis>
+#include <QValueAxis>
+#include <QClipboard>
 
 DBQCWidget::DBQCWidget(QWidget *parent)
 	: QWidget(parent)

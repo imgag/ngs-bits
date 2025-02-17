@@ -8,6 +8,7 @@
 #include "BasicStatistics.h"
 #include "algorithm"
 #include "cmath"
+#include <QRegularExpression>
 
 BedLine::BedLine()
 	: chr_()
@@ -36,7 +37,7 @@ BedLine BedLine::fromString(QString str)
 {
 	//normalize
 	str = str.replace(':', '\t').replace('-', '\t'); //also accept "[c]:[s]-[e]"
-	str = str.replace(QRegExp("[ ]+"), "\t"); //also accept "[c] [s] [e]" (with any number of spaces)
+    str = str.replace(QRegularExpression("[ ]+"), "\t"); //also accept "[c] [s] [e]" (with any number of spaces)
 
 	//split
 	QStringList parts = str.split('\t');

@@ -261,7 +261,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		{
 			QByteArray protein_change = hgvs_p.mid(2).trimmed();
 			query += " OR \"" + protein_change + "\"";
-			if (QRegExp("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").exactMatch(protein_change) && !protein_change.endsWith("del"))
+            if (QRegularExpression("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").match(protein_change).hasMatch() && !protein_change.endsWith("del"))
 			{
 				QByteArray aa1 = protein_change.left(3);
 				QByteArray aa2 = protein_change.right(3);
@@ -770,7 +770,7 @@ QList<int> VariantTable::columnWidths() const
 
 void VariantTable::setColumnWidths(const QList<int>& widths)
 {
-	int col_count = std::min(widths.count(), columnCount());
+    int col_count = std::min(static_cast<int>(widths.count()), columnCount());
 	for (int c=0; c<col_count; ++c)
 	{
 		setColumnWidth(c, widths[c]);

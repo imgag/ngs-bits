@@ -27,8 +27,8 @@
 #include <QUrl>
 #include <QDir>
 #include <QInputDialog>
-#include <QChartView>
-QT_CHARTS_USE_NAMESPACE
+#include <QtCharts/QChartView>
+// QT_CHARTS_USE_NAMESPACE
 #include "ColumnConfig.h"
 #include "SettingsDialog.h"
 
@@ -415,7 +415,7 @@ void CnvWidget::applyFilters(bool debug_time)
 
 			if (genes_joined.contains("*")) //with wildcards
 			{
-				QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 				for(int r=0; r<rows; ++r)
 				{
 					if (!filter_result.flags()[r]) continue;
@@ -423,7 +423,7 @@ void CnvWidget::applyFilters(bool debug_time)
 					bool match_found = false;
 					foreach(const QByteArray& cnv_gene, cnvs_[r].genes())
 					{
-						if (reg.exactMatch(cnv_gene))
+                        if (reg.match(cnv_gene).hasMatch())
 						{
 							match_found = true;
 							break;

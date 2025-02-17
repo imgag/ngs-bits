@@ -46,7 +46,7 @@ private slots:
 		col.insert(QCValue("Q20 read percentage", 47.11, "description3", "QC:2000007"));
 		col.insert(QCValue::ImageFromFile("base distribution plot", TESTDATA("data_in/QCCollection_01.png"), "some plot", "QC:2000011"));
 		col.storeToQCML("out/QCCollection_qcML_out01.qcML", QStringList() << "bli" << "bla" << "bluff", "some\"nasty parameters");
-		REMOVE_LINES("out/QCCollection_qcML_out01.qcML", QRegExp("creation "));
+        REMOVE_LINES("out/QCCollection_qcML_out01.qcML", QRegularExpression("creation "));
 		COMPARE_FILES("out/QCCollection_qcML_out01.qcML", TESTDATA("data_out/QCCollection_qcML_out01.qcML"));
 	}
 

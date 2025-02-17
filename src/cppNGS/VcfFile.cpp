@@ -2,6 +2,7 @@
 #include "Helper.h"
 #include <QFileInfo>
 #include <zlib.h>
+#include <QRegularExpression>
 
 VcfFile::VcfFile()
 	: vcf_lines_()
@@ -73,7 +74,7 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		}
 
 		//determine column and sample names
-		int header_count = allow_multi_sample ? header_fields.count() : std::min(10, header_fields.count());
+        int header_count = allow_multi_sample ? header_fields.count() : std::min(10, static_cast<int>(header_fields.count()));
 		for(int i = 9; i < header_count; ++i)
 		{
 			sample_names_ << header_fields.at(i);
@@ -984,7 +985,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo", true);
 
 	//ALT allele regexp
-	QRegExp alt_regexp("[ACGTN]+");
+    QRegularExpression alt_regexp("[ACGTN]+");
 
 	//create list of all invalid chars in INFO column values
 	QList<char> invalid_chars;
@@ -1218,7 +1219,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 				{
 					if (alt.startsWith('<') && alt.endsWith('>')) continue; //special case for structural variant
 					if (alt=="*") continue; //special case for missing allele due to downstream deletion
-					if (alt.isEmpty() || !alt_regexp.exactMatch(alt))
+                    if (alt.isEmpty() || !alt_regexp.match(alt).hasMatch())
 					{
 						printError(out_stream, "Invalid alternative allele '" + alt + "'!", l, line);
 						error_found = true;

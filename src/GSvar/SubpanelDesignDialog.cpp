@@ -49,7 +49,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
 	//name check name
 	QString name = getName(true);
-	if (name.isEmpty() || !QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(name))
+    if (name.isEmpty() || !QRegularExpression("[0-9a-zA-Z_\\.]+").match(name).hasMatch())
 	{
 		addMessage("Name '" + name + "' is empty or contains invalid characters!", true, true);
 		return;

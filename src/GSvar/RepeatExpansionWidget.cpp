@@ -6,9 +6,14 @@
 #include <QDesktopServices>
 #include <QMenu>
 #include <QChartView>
-QT_CHARTS_USE_NAMESPACE
-#include <QSvgWidget>
-#include <QSvgRenderer>
+// QT_CHARTS_USE_NAMESPACE
+// #include <QSvgWidget>
+// #include <QSvgRenderer>
+
+#include <QtSvg/QSvgRenderer>
+#include <QPainter>
+
+
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "TsvFile.h"
@@ -166,10 +171,39 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 			svg = VersatileFile(hist_loc.filename).readAll();
 		}
 
-		QSvgWidget* widget = new QSvgWidget();
-		widget->load(svg);
-		QRect rect = widget->renderer()->viewBox();
-		widget->setMinimumSize(rect.width(), rect.height());
+
+
+
+        QWidget *widget = new QWidget();  // Or any existing QWidget
+        // widget->resize(400, 400); // Resize widget if needed
+
+        // Load the SVG using QSvgRenderer
+        QSvgRenderer *svgRenderer = new QSvgRenderer(widget);
+
+        // Get the viewBox size of the SVG
+        QRect rect = svgRenderer->viewBox();
+
+        // Set the widget's minimum size based on the SVG's viewBox size
+        widget->setMinimumSize(rect.width(), rect.height());
+
+        // Override paintEvent to render the SVG
+        widget->setAttribute(Qt::WA_OpaquePaintEvent);
+        // widget->paintEvent = svgRenderer, widget](QPaintEvent *event) {
+        //     QPainter painter(widget);
+        //     svgRenderer->render(&painter); // Render the SVG
+        // };
+
+
+
+
+
+
+
+
+        // QSvgWidget* widget = new QSvgWidget();
+        // widget->load(svg);
+        // QRect rect = widget->renderer()->viewBox();
+        // widget->setMinimumSize(rect.width(), rect.height());
 
 		QScrollArea* scroll_area = new QScrollArea(this);
 		scroll_area->setFrameStyle(QFrame::NoFrame);
@@ -199,14 +233,26 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_omim)
 	{
-		QRegExp mim_exp("([0-9]{6})");
+        QRegularExpression mim_exp("([0-9]{6})");
 		QString text = getCell(row, "OMIM disease IDs");
 		int pos = 0;
-		while (mim_exp.indexIn(text, pos)!=-1)
-		{
-			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + mim_exp.cap(1)));
-			pos = mim_exp.pos() + 6;
-		}
+        // while (mim_exp.indexIn(text, pos)!=-1)
+        // {
+        // 	QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + mim_exp.cap(1)));
+        // 	pos = mim_exp.pos() + 6;
+        // }
+
+        while (true) {
+            QRegularExpressionMatch match = mim_exp.match(text, pos);
+            if (!match.hasMatch())
+                break;
+
+            // Open the OMIM URL with the matched disease ID
+            QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + match.captured(1)));
+
+            // Move position to after the matched ID
+            pos = match.capturedEnd(1);
+        }
 	}
 	else if (action==a_stripy)
 	{

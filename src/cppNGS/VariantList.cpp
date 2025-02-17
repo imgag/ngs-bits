@@ -9,7 +9,7 @@
 
 #include <QFile>
 #include <QTextStream>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QBitArray>
 #include <QUrl>
 
@@ -163,12 +163,12 @@ void Variant::checkValid() const
 		THROW(ArgumentException, "Invalid variant position range in variant '" + toString() + "'");
 	}
 
-	if (ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(ref()))
+    if (ref()!="-" && !QRegularExpression("[ACGTN]+").match(ref()).hasMatch())
 	{
 		THROW(ArgumentException, "Invalid variant reference sequence in variant '" + toString() + "'");
 	}
 
-	if (obs()!="-" && obs()!="." && !QRegExp("[ACGTN,]+").exactMatch(obs()))
+    if (obs()!="-" && obs()!="." && !QRegularExpression("[ACGTN,]+").match(obs()).hasMatch())
 	{
 		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString() + "'");
 	}
@@ -385,7 +385,7 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 		return prefix + QString::number(start) + '_' + QString::number(start + ref_len - 1) + "delins" + obs;
 	}
 
-	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
+    THROW(ProgrammingException, "Could not convert variant  to string! This should not happen!");
 }
 
 VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
@@ -1401,12 +1401,12 @@ Variant Variant::fromString(const QString& text_orig)
 	text.replace("\t", " ");
 	text.replace(":", " ");
 	text.replace(">", " ");
-	text.replace(QRegExp("-([0-9])"), " \\1"); //replace '-' between start/end but preserve '-' in ref/obs of indels
-	text.replace(QRegExp("([0-9]+)"), "\\1 "); //special handling if space after end position is missing
+    text.replace(QRegularExpression("-([0-9])"), " \\1"); //replace '-' between start/end but preserve '-' in ref/obs of indels
+    text.replace(QRegularExpression("([0-9]+)"), "\\1 "); //special handling if space after end position is missing
 	text = text.simplified();
 
 	//split
-	QStringList parts = text.split(QRegExp("\\s+"));
+    QStringList parts = text.split(QRegularExpression("\\s+"));
 	if (parts.count()!=5) THROW(ArgumentException, "Input text has " + QString::number(parts.count()) + " part(s), but must consist of 5 parts (chr, start, end, ref, obs)!");
 
 	return Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toUtf8(), parts[4].toUtf8());

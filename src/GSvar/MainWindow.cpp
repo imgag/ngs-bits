@@ -26,12 +26,12 @@
 #include <QToolButton>
 #include <QMimeData>
 #include <QSqlError>
-#include <QChartView>
+#include <QtCharts/QChartView>
 #include <GenLabDB.h>
 #include <QToolTip>
 #include <QImage>
 #include <QBuffer>
-QT_CHARTS_USE_NAMESPACE
+//QT_CHARTS_USE_NAMESPACE
 #include "Background/ReportWorker.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
@@ -157,6 +157,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "HerediVarImportDialog.h"
 #include "Background/IGVInitCacheWorker.h"
 #include "SampleCountWidget.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -2426,7 +2427,7 @@ void MainWindow::openVariantTab(Variant variant)
 		QString v_id = db.variantId(variant);
 
 		TabType type = TabType::VARIANT;
-		QString name = variant.toString(false, -1, true);
+        QString name = variant.toString(' ', -1, true);
 		if (focusTab(type, name)) return;
 
 		//open tab
@@ -4110,7 +4111,7 @@ void MainWindow::generateReportGermline()
 	QString roi_name = ui_.filters->targetRegion().name;
 	if (roi_name!="") //remove date and prefix with '_'
 	{
-		roi_name.remove(QRegExp("_[0-9]{4}_[0-9]{2}_[0-9]{2}"));
+        roi_name.remove(QRegularExpression("_[0-9]{4}_[0-9]{2}_[0-9]{2}"));
 		roi_name = "_" + roi_name;
 	}
 	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + ps_name + roi_name + "_report_" + trio_suffix + type_suffix + "_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
@@ -4605,7 +4606,14 @@ void MainWindow::on_actionExportTestData_triggered()
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
 		QTextStream output_stream(file.data());
-		output_stream.setCodec("UTF-8");
+
+        // QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+
+
+           // QTextStream stream(&file);
+           // stream.setCodec(codec);
+
+        output_stream.setEncoding(QStringConverter::Encoding::Utf8); // .setCodec(codec);
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -6212,7 +6220,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-		ReportVariantDialog dlg(variant.toString(false), inheritance_by_gene, var_config, this);
+        ReportVariantDialog dlg(variant.toString(' '), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
 

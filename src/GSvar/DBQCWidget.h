@@ -6,6 +6,7 @@
 
 #include <QWidget>
 #include <QChart>
+#include <QScatterSeries>
 
 ///Quality statistics widget.
 class DBQCWidget

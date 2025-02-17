@@ -63,7 +63,7 @@ HEADERS += \
     BedpeLine_Test.h \
     BedpeFile_Test.h \
     Sequence_Test.h \
-    VCFLine_Test.h \
+    VcfLine_Test.h \
     VcfFile_Test.h \
     VariantScores_Test.h \
     BamWriter_Test.h \
