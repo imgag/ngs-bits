@@ -442,7 +442,7 @@ NGSDExportSV.depends = cppNGSD
 
 SUBDIRS += BedpeAnnotateCounts
 tools-TEST.depends += BedpeAnnotateCounts
-BedpeAnnotateCounts.depends = cppNGS
+BedpeAnnotateCounts.depends = cppNGSD
 
 SUBDIRS += BedpeSort
 tools-TEST.depends += BedpeSort
@@ -595,10 +595,6 @@ CnvReferenceCohort.depends = cppNGS
 SUBDIRS += TsvDiff
 tools-TEST.depends += TsvDiff
 TsvDiff.depends = cppNGS
-
-SUBDIRS += QcToTsv
-tools-TEST.depends += QcToTsv
-QcToTsv.depends = cppNGS
 
 SUBDIRS += QcToTsv
 tools-TEST.depends += QcToTsv

@@ -1,6 +1,24 @@
 ##fileformat=BEDPE
 ##sample_count=(hpHBOCv5, 4)
-#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	TYPE	PROCESSING_SYSTEM	ID	FORMAT	FORMAT_VALUES
-chr1	100005	100050	chr1	112000	113000	DUP	hpHBOCv5		GT	./.
-chr1	101000	101020	chr1	112000	113000	DUP	hpHBOCv5		GT	./.
-chr1	101000	101020	chr1	120000	120000	DUP	hpHBOCv5		GT	./.
+##INFO=<ID=GSC01,Number=1,Type=String,Description="Disease group: n/a.">
+##INFO=<ID=GSC02,Number=1,Type=String,Description="Disease group: neoplasms.">
+##INFO=<ID=GSC03,Number=1,Type=String,Description="Disease group: diseases of the blood or blood-forming organs.">
+##INFO=<ID=GSC04,Number=1,Type=String,Description="Disease group: diseases of the immune system.">
+##INFO=<ID=GSC05,Number=1,Type=String,Description="Disease group: endocrine, nutritional or metabolic diseases.">
+##INFO=<ID=GSC06,Number=1,Type=String,Description="Disease group: mental, behavioural or neurodevelopmental disorders.">
+##INFO=<ID=GSC07,Number=1,Type=String,Description="Disease group: sleep-wake disorders.">
+##INFO=<ID=GSC08,Number=1,Type=String,Description="Disease group: diseases of the nervous system.">
+##INFO=<ID=GSC09,Number=1,Type=String,Description="Disease group: diseases of the visual system.">
+##INFO=<ID=GSC10,Number=1,Type=String,Description="Disease group: diseases of the ear or mastoid process.">
+##INFO=<ID=GSC11,Number=1,Type=String,Description="Disease group: diseases of the circulatory system.">
+##INFO=<ID=GSC12,Number=1,Type=String,Description="Disease group: diseases of the respiratory system.">
+##INFO=<ID=GSC13,Number=1,Type=String,Description="Disease group: diseases of the digestive system.">
+##INFO=<ID=GSC14,Number=1,Type=String,Description="Disease group: diseases of the skin.">
+##INFO=<ID=GSC15,Number=1,Type=String,Description="Disease group: diseases of the musculoskeletal system or connective tissue.">
+##INFO=<ID=GSC16,Number=1,Type=String,Description="Disease group: diseases of the genitourinary system.">
+##INFO=<ID=GSC17,Number=1,Type=String,Description="Disease group: developmental anomalies.">
+##INFO=<ID=GSC18,Number=1,Type=String,Description="Disease group: other diseases.">
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	TYPE	PROCESSING_SYSTEM	ID	FORMAT	FORMAT_VALUES	DISEASE_GROUP
+chr1	100005	100050	chr1	112000	113000	DUP	hpHBOCv5		GT	./.	GSC03
+chr1	101000	101020	chr1	112000	113000	DUP	hpHBOCv5		GT	./.	GSC03
+chr1	101000	101020	chr1	120000	120000	DUP	hpHBOCv5		GT	./.	GSC03

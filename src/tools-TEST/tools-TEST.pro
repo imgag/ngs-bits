@@ -36,6 +36,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     NGSDExportIgvGeneTrack_Test.h \
     NGSDSameSample.h \
     SampleAncestry_Test.h \
+    SnifflesVcfFix.h \
     SvFilterAnnotations_Test.h \
     UpdHunter_Test.h \
     NGSDImportQC_Test.h \

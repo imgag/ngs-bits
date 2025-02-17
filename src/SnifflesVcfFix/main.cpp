@@ -78,6 +78,22 @@ public:
 			//get genotype
 			QByteArrayList format_headers = parts.at(VcfFile::FORMAT).split(':');
 			QByteArrayList format_values = parts.at(VcfFile::FORMAT + 1).split(':');
+			if (format_headers.contains("GT"))
+			{
+				QString gt = format_values.at(format_headers.indexOf("GT"));
+				if (gt == "0/0")
+				{
+					format_values[format_headers.indexOf("GT")] = "0/1";
+					parts[VcfFile::FORMAT + 1] = format_values.join(":");
+
+					// set filter column
+					if (parts[VcfFile::FILTER] == "PASS") parts[VcfFile::FILTER] = "LOW_EVIDENCE";
+					else	parts[VcfFile::FILTER].append(";LOW_EVIDENCE");
+
+					out_p->write(parts.join("\t")+"\n");
+					continue;
+				}
+			}
 
 			out_p->write(line);
 
