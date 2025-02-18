@@ -520,9 +520,9 @@ SUBDIRS += VcfSubtract
 tools-TEST.depends += VcfSubtract
 VcfSubtract.depends = cppNGS
 
-SUBDIRS += SnifflesVcfFix
-tools-TEST.depends += SnifflesVcfFix
-SnifflesVcfFix.depends = cppNGSD
+SUBDIRS += TranscriptsToBed
+tools-TEST.depends += TranscriptsToBed
+TranscriptsToBed.depends = cppNGSD
 
 SUBDIRS += TranscriptComparison
 tools-TEST.depends += TranscriptComparison
@@ -599,3 +599,7 @@ TsvDiff.depends = cppNGS
 SUBDIRS += QcToTsv
 tools-TEST.depends += QcToTsv
 QcToTsv.depends = cppNGS
+
+SUBDIRS += SnifflesVcfFix
+tools-TEST.depends += SnifflesVcfFix
+SnifflesVcfFix.depends = cppNGSD
