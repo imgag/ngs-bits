@@ -15,14 +15,14 @@ public:
 	virtual void setup()
 	{
 		setDescription("Determines mendelian error rate from a trio VCF.");
-		addInfile("vcf", "Multi-sample VCF file.", false);
+		addInfile("vcf", "Multi-sample VCF or VCF.GZ file.", false);
 		addString("c", "Sample name of child in VCF.", false);
 		addString("f", "Sample name of father in VCF.", false);
 		addString("m", "Sample name of mother in VCF.", false);
 
 		//optional
 		addOutfile("out", "Output text file. If unset, writes to STDOUT.", true);
-		addInt("min_dp", "Minimum depth of each sample", true, 0);
+		addInt("min_dp", "Minimum depth in each sample.", true, 0);
 
 		//changelog
 		changeLog(2025,  2, 18, "Initial version of the tool.");
