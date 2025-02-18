@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   gcc-build-and-test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     services:
       mysql:
@@ -27,7 +27,7 @@ jobs:
     - name: Update OS repositories
       run: sudo apt-get update
     - name: Setup test environment
-      run: sudo apt-get -y install make g++ git python3 python3-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev libqt5svg5-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates sqlite3 libqt5sql5-sqlite
+      run: sudo apt-get -y install make g++ git python3 python3-matplotlib qtbase5-dev qt5-qmake libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev libqt5svg5-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates sqlite3 libqt5sql5-sqlite
     - name: Create symlink for python
       run: sudo ln -fs /bin/python3 /bin/python
     - name: Update submodules

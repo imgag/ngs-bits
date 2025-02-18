@@ -1,0 +1,5 @@
+#pseudonym	sap_id	ps_id	pat_id	sample_folder
+Pseudonym01	SAP01	CFDNA1_03	PAT1	../src/tools-TEST/data_in/NGSDExportStudyGHGA_sample_data/CFDNA1_03
+Pseudonym05	SAP05	CFDNA5_03	PAT2	../src/tools-TEST/data_in/NGSDExportStudyGHGA_sample_data/CFDNA5_03
+Pseudonym011	SAP1	SAMPLE1_02	PAT1	../src/tools-TEST/data_in/NGSDExportStudyGHGA_sample_data/SAMPLE1_02
+Pseudonym051	SAP2	SAMPLE2_01	PAT2	../src/tools-TEST/data_in/NGSDExportStudyGHGA_sample_data/SAMPLE2_01

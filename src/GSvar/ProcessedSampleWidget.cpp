@@ -931,6 +931,7 @@ QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type
 		parameter_list << "QC:2000113"; // CNV count
 		parameter_list << "QC:2000114"; // coverage profile correlation
 		parameter_list << "QC:2000117"; // SV count
+		parameter_list << "QC:2000131"; // N50 value
 	}
 	else if(sample_type == "cfDNA")
 	{

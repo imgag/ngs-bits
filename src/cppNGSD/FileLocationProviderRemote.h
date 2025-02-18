@@ -45,6 +45,7 @@ public:
 	FileLocationList getExonExpressionFiles(bool return_if_missing) const override;
 	FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const override;
 
+
 	FileLocation getSomaticCnvCoverageFile() const override;
 	FileLocation getSomaticCnvCallFile() const override;
 	FileLocation getSomaticLowCoverageFile() const override;

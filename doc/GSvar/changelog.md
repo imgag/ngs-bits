@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2025_01-22 (06.02.25)
+
+- sequencing run tab: added settings dialog for NovaSeqX sample sheet creation
+- variant context menu: added new PubMed search string
+
 ## 2025_01-9 (29.01.25)
 
 - general: added 'urgent' flag to processed samples (run tab, processed sample tab, batch import)

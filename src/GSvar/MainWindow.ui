@@ -326,10 +326,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderCascadingSectionResizes">
                 <bool>false</bool>
@@ -369,7 +369,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -624,6 +624,7 @@
    <addaction name="actionPRS"/>
    <addaction name="actionPathogenicWT"/>
    <addaction name="actionCircos"/>
+   <addaction name="actionMethylation"/>
    <addaction name="separator"/>
    <addaction name="actionVirusDetection"/>
   </widget>
@@ -1523,6 +1524,18 @@
   <action name="actionOpenGSvarDataFolder">
    <property name="text">
     <string>Open GSvar data folder</string>
+   </property>
+  </action>
+  <action name="actionMethylation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Methylation.png</normaloff>:/Icons/Methylation.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open methylation calls</string>
    </property>
   </action>
   <action name="actionSampleCounts">

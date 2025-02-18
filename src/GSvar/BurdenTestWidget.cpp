@@ -900,20 +900,24 @@ void BurdenTestWidget::performBurdenTest()
 	//delete old table and disable sorting
 	ui_->tw_gene_table->setRowCount(0);
 	ui_->tw_gene_table->setSortingEnabled(false);
-	ui_->tw_gene_table->setColumnCount(6);
+	ui_->tw_gene_table->setColumnCount(8);
 	ui_->tw_gene_table->setHorizontalHeaderItem(0, GUIHelper::createTableItem("gene"));
 	ui_->tw_gene_table->setHorizontalHeaderItem(1, GUIHelper::createTableItem("p-value"));
 	ui_->tw_gene_table->setHorizontalHeaderItem(2, GUIHelper::createTableItem("counts cases"));
 	ui_->tw_gene_table->setHorizontalHeaderItem(3, GUIHelper::createTableItem("counts controls"));
 	ui_->tw_gene_table->setHorizontalHeaderItem(4, GUIHelper::createTableItem("samples cases"));
 	ui_->tw_gene_table->setHorizontalHeaderItem(5, GUIHelper::createTableItem("samples controls"));
+	ui_->tw_gene_table->setHorizontalHeaderItem(6, GUIHelper::createTableItem("variants cases"));
+	ui_->tw_gene_table->setHorizontalHeaderItem(7, GUIHelper::createTableItem("variants controls"));
 	if(include_cnvs)
 	{
-		ui_->tw_gene_table->setColumnCount(10);
-		ui_->tw_gene_table->setHorizontalHeaderItem(6, GUIHelper::createTableItem("counts cases (CNVs)"));
-		ui_->tw_gene_table->setHorizontalHeaderItem(7, GUIHelper::createTableItem("counts controls (CNVs)"));
-		ui_->tw_gene_table->setHorizontalHeaderItem(8, GUIHelper::createTableItem("samples cases (CNVs)"));
-		ui_->tw_gene_table->setHorizontalHeaderItem(9, GUIHelper::createTableItem("samples controls (CNVs)"));
+		ui_->tw_gene_table->setColumnCount(14);
+		ui_->tw_gene_table->setHorizontalHeaderItem(8, GUIHelper::createTableItem("counts cases (CNVs)"));
+		ui_->tw_gene_table->setHorizontalHeaderItem(9, GUIHelper::createTableItem("counts controls (CNVs)"));
+		ui_->tw_gene_table->setHorizontalHeaderItem(10, GUIHelper::createTableItem("samples cases (CNVs)"));
+		ui_->tw_gene_table->setHorizontalHeaderItem(11, GUIHelper::createTableItem("samples controls (CNVs)"));
+		ui_->tw_gene_table->setHorizontalHeaderItem(12, GUIHelper::createTableItem("CNVs cases"));
+		ui_->tw_gene_table->setHorizontalHeaderItem(13, GUIHelper::createTableItem("CNVs controls"));
 	}
 
 	//parse options
@@ -1080,34 +1084,34 @@ void BurdenTestWidget::performBurdenTest()
 
 
 
-		QStringList ps_names_cases;
-		QStringList ps_names_controls;
+		QMap<QString,QString> ps_names_cases;
+		QMap<QString,QString> ps_names_controls;
 
 		int n_cases = countOccurences(variant_ids, case_samples_, detected_variants, inheritance, ps_names_cases);
 		int n_controls = countOccurences(variant_ids, control_samples_, detected_variants, inheritance, ps_names_controls);
 
 		//sort processed samples
-		std::sort(ps_names_cases.begin(), ps_names_cases.end());
-		std::sort(ps_names_controls.begin(), ps_names_controls.end());
+//		std::sort(ps_names_cases.begin(), ps_names_cases.end());
+//		std::sort(ps_names_controls.begin(), ps_names_controls.end());
 
 		//init optional values
 		double p_value;
 		int n_cases_cnv = 0;
 		int n_controls_cnv = 0;
-		QStringList ps_names_cases_cnv;
-		QStringList ps_names_controls_cnv;
+		QMap<QString,QString> ps_names_cases_cnv;
+		QMap<QString,QString> ps_names_controls_cnv;
 		if (include_cnvs)
 		{
 			//get cnv counts
 			if (callset_ids_cases.size() > 0 ) n_cases_cnv = countOccurencesCNV(callset_ids_cases, gene_regions, cnv_polymorphism_region, cnv_polymorphism_region_index, ps_names_cases_cnv);
 			if (callset_ids_controls.size() > 0 ) n_controls_cnv = countOccurencesCNV(callset_ids_controls, gene_regions, cnv_polymorphism_region, cnv_polymorphism_region_index, ps_names_controls_cnv);
 			//sort processed samples
-			std::sort(ps_names_cases_cnv.begin(), ps_names_cases_cnv.end());
-			std::sort(ps_names_controls_cnv.begin(), ps_names_controls_cnv.end());
+//			std::sort(ps_names_cases_cnv.begin(), ps_names_cases_cnv.end());
+//			std::sort(ps_names_controls_cnv.begin(), ps_names_controls_cnv.end());
 
 			//get combined counts
-			int n_cases_combined = (ps_names_cases.toSet() + ps_names_cases_cnv.toSet()).size();
-			int n_controls_combined = (ps_names_controls.toSet() + ps_names_controls_cnv.toSet()).size();
+			int n_cases_combined = (ps_names_cases.keys().toSet() + ps_names_cases_cnv.keys().toSet()).size();
+			int n_controls_combined = (ps_names_controls.keys().toSet() + ps_names_controls_cnv.keys().toSet()).size();
 
 			//calculate p-value (fisher) (SNPs only)
 			p_value = BasicStatistics::fishersExactTest(n_cases_combined, n_controls_combined, case_samples_.size(), control_samples_.size(), "greater");
@@ -1133,24 +1137,28 @@ void BurdenTestWidget::performBurdenTest()
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(p_value, -1));
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_cases));
-		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases.join(", "));
+		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases.keys().join(", "));
 		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_controls));
-		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_controls.join(", "));
+		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_controls.keys().join(", "));
 
 		// add infos for hidden columns (ps names)
-		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases.join(", ")));
-		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls.join(", ")));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases.keys().join(", ")));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls.keys().join(", ")));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases.values().join(", ")));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls.values().join(", ")));
 
 		if (include_cnvs)
 		{
 			ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_cases_cnv));
-			ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases_cnv.join(", "));
+			ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases_cnv.keys().join(", "));
 			ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_controls_cnv));
-			ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_controls_cnv.join(", "));
+			ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_controls_cnv.keys().join(", "));
 
 			// add infos for hidden columns (ps names)
-			ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases_cnv.join(", ")));
-			ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls_cnv.join(", ")));
+			ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases_cnv.keys().join(", ")));
+			ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls_cnv.keys().join(", ")));
+			ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases_cnv.values().join(", ")));
+			ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls_cnv.values().join(", ")));
 		}
 
 	}
@@ -1159,10 +1167,14 @@ void BurdenTestWidget::performBurdenTest()
 	ui_->tw_gene_table->verticalHeader()->hide();
 	ui_->tw_gene_table->setColumnHidden(4, true);
 	ui_->tw_gene_table->setColumnHidden(5, true);
+	ui_->tw_gene_table->setColumnHidden(6, true);
+	ui_->tw_gene_table->setColumnHidden(7, true);
 	if (include_cnvs)
 	{
-		ui_->tw_gene_table->setColumnHidden(8, true);
-		ui_->tw_gene_table->setColumnHidden(9, true);
+		ui_->tw_gene_table->setColumnHidden(10, true);
+		ui_->tw_gene_table->setColumnHidden(11, true);
+		ui_->tw_gene_table->setColumnHidden(12, true);
+		ui_->tw_gene_table->setColumnHidden(13, true);
 	}
 	GUIHelper::resizeTableCellWidths(ui_->tw_gene_table, 200);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_->tw_gene_table);
@@ -1210,7 +1222,7 @@ void BurdenTestWidget::copyToClipboard()
 	if(ui_->cb_only_ccr->isChecked()) comments << "region_limited_to_CCR80=true";
 
 	//filter parameter
-	comments << "max_gnomad_af=" + QString::number(ui_->sb_max_gnomad_af->value(), 'f', 2);
+	comments << "max_gnomad_af=" + QString::number(ui_->sb_max_gnomad_af->value(), 'f', 2) + "%";
 	comments << "max_ngsd_count=" + QString::number(ui_->sb_max_ngsd_count->value());
 	QStringList impacts;
 	if(ui_->cb_high->isChecked()) impacts << "HIGH";
@@ -1295,8 +1307,10 @@ void BurdenTestWidget::updateCNVCheckbox()
 }
 
 
-int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int>>& detected_variants, Inheritance inheritance, QStringList& ps_names)
+int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int>>& detected_variants, Inheritance inheritance, QMap<QString,QString>& ps_names)
 {
+	// load reference
+	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
 	int n_hits = 0;
 	foreach(int ps_id, ps_ids)
 	{
@@ -1358,14 +1372,23 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 		}
 		//else: at least two hits or non-ressesive:
 		n_hits++;
-		ps_names << db_.processedSampleName(QString::number(ps_id));
+
+		//log sample name and variants
+		QString ps_name = db_.processedSampleName(QString::number(ps_id));
+
+		QStringList variants_per_sample;
+		foreach (int var_id, intersection)
+		{
+			variants_per_sample << db_.variant(QString::number(var_id)).toVCF(genome_reference).toString();
+		}
+		ps_names[ps_name] = variants_per_sample.join(';');
 	}
 
 	return n_hits;
 }
 
 int BurdenTestWidget::
-countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const BedFile& cnv_polymorphism_region, const ChromosomalIndex<BedFile>& cnv_polymorphism_region_index, QStringList& ps_names)
+countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const BedFile& cnv_polymorphism_region, const ChromosomalIndex<BedFile>& cnv_polymorphism_region_index, QMap<QString, QString>& ps_names)
 {
 	ps_names.clear();
 
@@ -1437,11 +1460,19 @@ countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const B
 		}
 
 		int ps_id = db_.getValue("SELECT cc.processed_sample_id FROM cnv c INNER JOIN cnv_callset cc ON cc.id=c.cnv_callset_id WHERE c.id=:0", false, QString::number(cnv_id)).toInt();
-		ps_names.append(db_.processedSampleName(QString::number(ps_id)));
+
+		//log sample name and CNV
+		QString ps_name = db_.processedSampleName(QString::number(ps_id));
+		if (ps_names.contains(ps_name))
+		{
+			ps_names[ps_name] += ";" + cnv.toString();
+		}
+		else
+		{
+			ps_names[ps_name] = cnv.toString();
+		}
 	}
 
-
 	//report results
-	ps_names.removeDuplicates();
 	return ps_names.size();
 }

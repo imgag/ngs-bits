@@ -85,6 +85,11 @@ void GlobalServiceProvider::openRunTab(QString run_name)
 	mainWindow()->openRunTab(run_name);
 }
 
+void GlobalServiceProvider::openRunBatchTab(QStringList run_names)
+{
+	mainWindow()->openRunBatchTab(run_names);
+}
+
 void GlobalServiceProvider::openGeneTab(QString symbol)
 {
 	mainWindow()->openGeneTab(symbol);
