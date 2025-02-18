@@ -165,7 +165,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     VcfSplit_Test.h \
     ExtractMethylationData_Test.h \
     TsvDiff_Test.h \
-	QcToTsv_Test.h
+	QcToTsv_Test.h \
+    TrioMendelianErrors_Test.h
 
 SOURCES += \
     main.cpp

@@ -245,7 +245,7 @@ void CnvWidget::updateGUI()
 		addInfoLine(comment);
 	}
 
-	//determine colum order of annotations
+	//determine column order of annotations
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_cnv", true));
 	QStringList col_order;
 	QList<int> anno_index_order;

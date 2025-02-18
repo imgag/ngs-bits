@@ -599,3 +599,7 @@ TsvDiff.depends = cppNGS
 SUBDIRS += QcToTsv
 tools-TEST.depends += QcToTsv
 QcToTsv.depends = cppNGS
+
+SUBDIRS += TrioMendelianErrors
+tools-TEST.depends += TrioMendelianErrors
+TrioMendelianErrors.depends = cppNGS
