@@ -157,6 +157,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "HerediVarImportDialog.h"
 #include "Background/IGVInitCacheWorker.h"
 #include "SampleCountWidget.h"
+#include "MethylationWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1338,6 +1339,24 @@ void MainWindow::on_actionShowProcessingSystemCoverage_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionMethylation_triggered()
+{
+	if (filename_=="") return;
+	if (variants_.type()!=GERMLINE_SINGLESAMPLE) return;
+	FileLocation methylation_file = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
+	if (!methylation_file.exists)
+	{
+		//this should not happen because the button is not enabled then...
+		QMessageBox::warning(this, "Methylation file access", "Methylation file does not exist or the URL has expired");
+		return;
+	}
+
+	MethylationWidget* widget = new MethylationWidget(methylation_file.filename, this);
+	auto dlg = GUIHelper::createDialog(widget, "Methylation of " + variants_.analysisName());
+
+	addModelessDialog(dlg, true);
+}
+
 void MainWindow::on_actionRE_triggered()
 {
 	if (filename_=="") return;
@@ -2394,10 +2413,39 @@ void MainWindow::openRunTab(QString run_name)
 		return;
 	}
 
-	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
+	SequencingRunWidget* widget = new SequencingRunWidget(this, QStringList() << run_id);
 	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, type, widget);
 	ui_.tabs->tabBar()->setTabData(index, run_id);
+}
+
+void MainWindow::openRunBatchTab(const QStringList& run_names)
+{
+	TabType type = TabType::RUN;
+	if (focusTab(type, run_names.join(", "))) return;
+
+	QStringList run_ids;
+	foreach (const QString& run_name, run_names)
+	{
+		try
+		{
+			run_ids << NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
+		}
+		catch (DatabaseException e)
+		{
+			GUIHelper::showMessage("NGSD error", "The run database ID could not be determined for '"  + run_name + "'!\nError message: " + e.message());
+			return;
+		}
+
+	}
+
+	SequencingRunWidget* widget = new SequencingRunWidget(this, run_ids);
+	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
+	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_names.join(", "), type, widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + run_ids.join(", "));
+	}
 }
 
 void MainWindow::openGeneTab(QString symbol)
@@ -2896,6 +2944,14 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 				}
 			}
 		}
+	}
+
+	//activate Methylation menu
+	if (type==GERMLINE_SINGLESAMPLE)
+	{
+		FileLocation met_loc = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
+		ui_.actionMethylation->setEnabled(met_loc.exists);
+
 	}
 }
 
@@ -4879,6 +4935,7 @@ void MainWindow::on_actionNotifyUsers_triggered()
 	EmailDialog dlg(this, to, subject, body);
 	dlg.exec();
 }
+
 
 void MainWindow::on_actionCohortAnalysis_triggered()
 {

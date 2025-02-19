@@ -442,7 +442,7 @@ NGSDExportSV.depends = cppNGSD
 
 SUBDIRS += BedpeAnnotateCounts
 tools-TEST.depends += BedpeAnnotateCounts
-BedpeAnnotateCounts.depends = cppNGS
+BedpeAnnotateCounts.depends = cppNGSD
 
 SUBDIRS += BedpeSort
 tools-TEST.depends += BedpeSort
@@ -607,4 +607,3 @@ MantaVcfFix.depends = cppNGS
 SUBDIRS += MantaFindDuplicates
 tools-TEST.depends += MantaFindDuplicates
 MantaFindDuplicates.depends = cppNGSD
-

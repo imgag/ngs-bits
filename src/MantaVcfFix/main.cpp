@@ -56,7 +56,9 @@ public:
 		if (in_stream==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
 
 		//cache to store read SVs
-		QMap<QByteArray,QByteArrayList> cache;
+		QMap<QByteArray,int> id_buffer_mapping;
+		QByteArrayList output_buffer;
+		int buffer_idx = 0;
 
 		//read lines
 		while(!gzeof(in_stream))
@@ -109,26 +111,62 @@ public:
 				manta_id[5] = "X";
 			}
 
-			QByteArray manta_id_prefix = parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS) + "_" + manta_id.join(':');
-
-			if(cache.contains(manta_id_prefix))
+			//get SV length (except for INS)
+			QByteArray sv_length;
+			if (!parts.at(VcfFile::INFO).contains("SVTYPE=INS"))
 			{
-				if (debug) qDebug() << "Skip duplicate variant at " + parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS);
-				//skip SV
-				continue;
-			}
-			else
-			{
-				cache.insert(manta_id_prefix, parts);
+				foreach (const QByteArray& info_kv, parts.at(VcfFile::INFO).split(';'))
+				{
+					if (info_kv.startsWith("SVLEN="))
+					{
+						sv_length = info_kv.split('=').at(1).trimmed();
+						break;
+					}
+
+				}
 			}
 
-			//write line
-			out_stream->write(parts.join("\t") + "\n");
+			QByteArray manta_id_prefix = parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS) + "_" + manta_id.join(':') + ((sv_length.isEmpty())?"":"_SVLEN=" + sv_length);
+
+			if(id_buffer_mapping.contains(manta_id_prefix))
+			{
+				//get cached line
+				int buffer_pos = id_buffer_mapping.value(manta_id_prefix);
+				QByteArrayList cached_parts = output_buffer.at(buffer_pos).split('\t');
+				Helper::trim(cached_parts);
+				// Keep variant with higher quality
+				int qual_current = Helper::toInt(parts.at(VcfFile::QUAL), "VCF quality value (current varinat)", line);
+				int qual_cache =  Helper::toInt(cached_parts.at(VcfFile::QUAL), "VCF quality value (cached variant)", line);
+
+				if (qual_current > qual_cache)
+				{
+					//replace variant
+					output_buffer[buffer_pos] = parts.join("\t") + "\n";
+					if (debug) qDebug() << "Replaced duplicate variant at " + parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS);
+				}
+				else
+				{
+					//skip variant
+					if (debug) qDebug() << "Skip duplicate variant at " + parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS);
+				}
+
+			}
+			else //write variant to file
+			{
+				id_buffer_mapping.insert(manta_id_prefix, buffer_idx);
+				//write line to buffer
+				output_buffer.append(parts.join("\t") + "\n");
+				buffer_idx++;
+			}
+
 
 		}
 
-		out_stream->flush();
-		out_stream->close();
+		//write variants from buffer to file
+		foreach (const QByteArray& line, output_buffer)
+		{
+			out_stream->write(line);
+		}
 
 	}
 };

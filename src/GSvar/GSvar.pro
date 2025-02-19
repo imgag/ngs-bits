@@ -28,6 +28,7 @@ SOURCES += main.cpp\
     MainWindow.cpp \
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
+    MethylationWidget.cpp \
     NsxSettingsDialog.cpp \
     PathogenicWtDialog.cpp \
     ReSearchWidget.cpp \
@@ -159,6 +160,7 @@ HEADERS += MainWindow.h \
     IgvSessionManager.h \
     ImportDialog.h \
     MaintenanceDialog.h \
+    MethylationWidget.h \
     NsxSettingsDialog.h \
     PathogenicWtDialog.h \
     ReSearchWidget.h \
@@ -281,6 +283,7 @@ FORMS    += MainWindow.ui \
     IgvLogWidget.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
+    MethylationWidget.ui \
     NsxSettingsDialog.ui \
     PathogenicWtDialog.ui \
     ReSearchWidget.ui \

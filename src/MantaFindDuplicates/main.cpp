@@ -119,8 +119,31 @@ public:
 			//get prefix of MantaID
 			QList<QByteArray> manta_id = parts.at(VcfFile::ID).split(':');
 //			QByteArray manta_id_prefix = parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS) + "_" + manta_id.mid(0, 4).join(':');
-			manta_id[4] = "X";
-			QByteArray manta_id_prefix = parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS) + "_" + manta_id.join(':');
+			if (manta_id.at(0).startsWith("Manta"))
+			{
+				manta_id[4] = "X";
+			}
+			else //DRAGEN VCF
+			{
+				manta_id[5] = "X";
+			}
+
+			//get SV length (except for INS)
+			QByteArray sv_length;
+			if (!parts.at(VcfFile::INFO).contains("SVTYPE=INS"))
+			{
+				foreach (const QByteArray& info_kv, parts.at(VcfFile::INFO).split(';'))
+				{
+					if (info_kv.startsWith("SVLEN="))
+					{
+						sv_length = info_kv.split('=').at(1).trimmed();
+						break;
+					}
+
+				}
+			}
+
+			QByteArray manta_id_prefix = parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS) + "_" + manta_id.join(':') + ((sv_length.isEmpty())?"":"_SVLEN=" + sv_length);
 
 			if(cache.contains(manta_id_prefix))
 			{

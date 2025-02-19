@@ -176,6 +176,7 @@ public slots:
 	void on_actionMaintenance_triggered();
 	void on_actionNotifyUsers_triggered();
 
+
     ///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -268,6 +269,8 @@ public slots:
 	void on_actionShowRnaFusions_triggered();
 	///Open expression stats of processing systems
 	void on_actionShowProcessingSystemCoverage_triggered();
+	///Open methylation dialog
+	void on_actionMethylation_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
@@ -423,6 +426,8 @@ public slots:
 	void openProcessedSampleTab(QString ps_name);
 	///Open run tab
 	void openRunTab(QString run_name);
+	///Open run batch tab
+	void openRunBatchTab(const QStringList& run_names);
     ///Open gene tab
 	void openGeneTab(QString symbol);
 	///Open variant tab
