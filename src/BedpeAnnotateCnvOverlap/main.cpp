@@ -39,7 +39,7 @@ public:
 		BedpeFile svs;
 		svs.load(getInfile("in"));
 
-		// get colum index and update header
+		// get column index and update header
 		int overlap_idx = svs.annotationIndexByName("CNV_OVERLAP", false);
 
 		if(overlap_idx < 0)

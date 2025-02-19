@@ -600,6 +600,10 @@ SUBDIRS += QcToTsv
 tools-TEST.depends += QcToTsv
 QcToTsv.depends = cppNGS
 
+SUBDIRS += TrioMendelianErrors
+tools-TEST.depends += TrioMendelianErrors
+TrioMendelianErrors.depends = cppNGS
+
 SUBDIRS += MantaVcfFix
 tools-TEST.depends += MantaVcfFix
 MantaVcfFix.depends = cppNGS
@@ -607,6 +611,7 @@ MantaVcfFix.depends = cppNGS
 SUBDIRS += MantaFindDuplicates
 tools-TEST.depends += MantaFindDuplicates
 MantaFindDuplicates.depends = cppNGSD
+
 SUBDIRS += SnifflesVcfFix
 tools-TEST.depends += SnifflesVcfFix
 SnifflesVcfFix.depends = cppNGSD
