@@ -23,6 +23,7 @@ public:
 		//optional
 		addOutfile("out", "Output text file. If unset, writes to STDOUT.", true);
 		addInt("min_dp", "Minimum depth in each sample.", true, 0);
+		addFlag("debug", "Enable debug output");
 
 		//changelog
 		changeLog(2025,  2, 18, "Initial version of the tool.");
@@ -69,11 +70,12 @@ public:
 	virtual void main()
     {
 		//init
-		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"));
+		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		QByteArray c = getString("c").toUtf8();
 		QByteArray f = getString("f").toUtf8();
 		QByteArray m = getString("m").toUtf8();
 		int min_dp = getInt("min_dp");
+		bool debug = getFlag("debug");
 
 		//column indices
 		int i_format = VcfFile::FORMAT;
@@ -169,11 +171,12 @@ public:
 				//check if depth is valid
 				if (dp_c==-1 || dp_f==-1 || dp_m==-1)
 				{
+					if (debug) out->write("DEBUG - invalid DP: " + line + "\n");
 					++c_skip_invalid_depth;
 					continue;
 				}
 
-				//cehck depth if high enouth
+				//check depth if high enough
 				if (dp_c<min_dp || dp_f<min_dp || dp_m<min_dp)
 				{
 					++c_skip_low_depth;
