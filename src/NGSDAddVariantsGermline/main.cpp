@@ -146,7 +146,7 @@ public:
 			QList<int> variant_ids_new;
 			VariantList variants_new;
 			variants_new.copyMetaData(variants);
-			QSet<int> existing_var_ids = db.getValuesInt("SELECT variant_id FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toSet();
+            QSet<int> existing_var_ids = LIST_TO_SET(db.getValuesInt("SELECT variant_id FROM detected_variant WHERE processed_sample_id='" + ps_id + "'"));
 			for (int i=0; i<variant_ids.count(); ++i)
 			{
 				int variant_id = variant_ids[i];

@@ -91,7 +91,7 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 		}
 		else
 		{
-            output.append(QString::number(bam_cigar_oplen(cigar[i])).toLocal8Bit());
+            output.append(QString::number(bam_cigar_oplen(cigar[i])).toUtf8());
 			output.append(bam_cigar_opchr(cigar[i]));
 		}
 	}

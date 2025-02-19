@@ -105,7 +105,7 @@ public:
 		int current_chunk = 0;
 
 		//debug
-		QTime timer;
+        QElapsedTimer timer;
 		QTextStream outstream(stdout);
 		if (debug>0) timer.start();
 

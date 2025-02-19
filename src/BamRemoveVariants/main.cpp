@@ -271,10 +271,10 @@ public:
 
 		}
 
-		out << "pairs passed: " << count_pass << endl;
-		out << "pairs dropped: " << count_fail << endl;
-		out << "reads modified: " << count_modified << endl;
-		out << "skipped reads: " << count_skipped << endl;
+        out << "pairs passed: " << count_pass << QT_ENDL;
+        out << "pairs dropped: " << count_fail << QT_ENDL;
+        out << "reads modified: " << count_modified << QT_ENDL;
+        out << "skipped reads: " << count_skipped << QT_ENDL;
 	}
 
 private:

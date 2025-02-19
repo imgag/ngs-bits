@@ -55,7 +55,7 @@ public:
 		QTextStream out(stdout);
 
 		// start timer
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//load annotation files
@@ -68,10 +68,10 @@ public:
 		count_indices[StructuralVariantType::INV].load(QDir(ann_folder).filePath("sv_inversion.bedpe.gz").toUtf8());
 		count_indices[StructuralVariantType::BND].load(QDir(ann_folder).filePath("sv_translocation.bedpe.gz").toUtf8());
 
-		out << " done. " << Helper::elapsedTime(timer) << endl;
+        out << " done. " << Helper::elapsedTime(timer) << QT_ENDL;
 
 		//load input file
-		out << "Start BEDPE annotation..." << endl;
+        out << "Start BEDPE annotation..." << QT_ENDL;
 		BedpeFile bedpe_input_file;
 		bedpe_input_file.load(input_filepath);
 
@@ -316,7 +316,7 @@ public:
 			output_buffer << sv.toTsv() << "\n";
 		}
 
-		out << "BEDPE annotation done. " << Helper::elapsedTime(timer) << endl;
+        out << "BEDPE annotation done. " << Helper::elapsedTime(timer) << QT_ENDL;
 
 		//write buffer to file
 		out << "write BEDPE output file..." ;
@@ -329,7 +329,7 @@ public:
 			output_file->write(line);
 		}
 
-		out << " done. " << Helper::elapsedTime(timer) << endl;
+        out << " done. " << Helper::elapsedTime(timer) << QT_ENDL;
 
 
 	}

@@ -41,7 +41,7 @@ public:
 	{
 
 		QTextStream std_out(stdout);
-		QTime timer_collapse_density;
+        QElapsedTimer timer_collapse_density;
 		double debug_time_collapse_density = 0;
 		timer_collapse_density.start();
 		BedFile sv_density_file;
@@ -113,10 +113,10 @@ public:
 		QTextStream std_out(stdout);
 
 		//debug
-		QTime timer_get_var;
-		QTime timer_get_sys;
-		QTime timer_write_file;
-		QTime timer_extract_density;
+        QElapsedTimer timer_get_var;
+        QElapsedTimer timer_get_sys;
+        QElapsedTimer timer_write_file;
+        QElapsedTimer timer_extract_density;
 		double debug_time_get_var = 0;
 		double debug_time_get_sys = 0;
 		double debug_time_write_file = 0;
@@ -171,9 +171,9 @@ public:
 		//get all valid callset ids (are not bad quality and not merged)
         std_out << "Get all valid callset ids..." << QT_ENDL;
 
-		QSet<int> valid_cs_ids = db.getValuesInt(QByteArray() + "SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
+        QSet<int> valid_cs_ids = LIST_TO_SET(db.getValuesInt(QByteArray() + "SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
 													+ "WHERE ps.quality != 'bad' AND NOT EXISTS "
-													+ "(SELECT 1 FROM merged_processed_samples mps WHERE mps.processed_sample_id = sc.processed_sample_id)").toSet();
+                                                    + "(SELECT 1 FROM merged_processed_samples mps WHERE mps.processed_sample_id = sc.processed_sample_id)"));
 
         std_out << " done. " << Helper::elapsedTime(timer) << QT_ENDL;
 

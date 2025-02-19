@@ -297,8 +297,8 @@ void SequencingRunWidget::updateRunSampleTable()
 	samples.formatBooleanColumn(samples.columnIndex("scheduled_for_resequencing"), true);
 
 	// determine QC parameter based on sample types
-	QSet<QString> sample_types = samples.extractColumn(samples.columnIndex("sample_type")).toSet();
-	QSet<QString> system_types = samples.extractColumn(samples.columnIndex("sys_type")).toSet();
+    QSet<QString> sample_types = LIST_TO_SET(samples.extractColumn(samples.columnIndex("sample_type")));
+    QSet<QString> system_types = LIST_TO_SET(samples.extractColumn(samples.columnIndex("sys_type")));
 	setQCMetricAccessions(sample_types, system_types);
 
 	// update QC plot button
@@ -432,7 +432,7 @@ void SequencingRunWidget::setQuality()
 	query.prepare("UPDATE processed_sample SET quality='" + quality + "' WHERE id=:0");
 
 	int col = ui_->samples->columnIndex("sample");
-	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+    QList<int> selected_rows = ui_->samples->selectedRows().values();
 	foreach (int row, selected_rows)
 	{
 		QString ps_name = ui_->samples->item(row, col)->text();
@@ -453,7 +453,7 @@ void SequencingRunWidget::scheduleForResequencing()
 	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=TRUE WHERE id=:0");
 
 	int col = ui_->samples->columnIndex("sample");
-	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+    QList<int> selected_rows = ui_->samples->selectedRows().values();
 	foreach (int row, selected_rows)
 	{
 		QString ps_name = ui_->samples->item(row, col)->text();
@@ -472,7 +472,7 @@ void SequencingRunWidget::showPlot()
 
 	//determine selected processed sample IDs
 	QStringList selected_ps_ids;
-	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+    QList<int> selected_rows = ui_->samples->selectedRows().values();
 	foreach(int row, selected_rows)
 	{
 		selected_ps_ids << ui_->samples->getId(row);
@@ -560,7 +560,7 @@ void SequencingRunWidget::sendStatusEmail()
 	if (is_batch_view_)
 	{
 		// get run status of all runs
-		QSet<QString> run_statuses = db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");").toSet();
+        QSet<QString> run_statuses = LIST_TO_SET(db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");"));
 		run_statuses.remove("analysis_finished");
 		run_statuses.remove("run_finished");
 
@@ -994,7 +994,7 @@ void SequencingRunWidget::updateReadQualityTable()
 void SequencingRunWidget::openSelectedSampleTabs()
 {
 	int col = ui_->samples->columnIndex("sample");
-	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+    QList<int> selected_rows = ui_->samples->selectedRows().values();
 	foreach (int row, selected_rows)
 	{
 		QString ps = ui_->samples->item(row, col)->text();

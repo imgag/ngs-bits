@@ -212,7 +212,7 @@ private slots:
 	//multi-thread test
 	void test_multithread()
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		for (int i=1; i<=8; ++i)
 		{
 			QString suffix = QString::number(i) + "threads";

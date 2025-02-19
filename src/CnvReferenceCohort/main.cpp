@@ -341,7 +341,7 @@ public:
         if (debug) out << "creating coverage profile of main sample: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 
 		//Load other samples and calculate correlation
-		QTime corr_timer;
+        QElapsedTimer corr_timer;
 		QList<QPair<QString, double>> file2corr;
 		CoverageProfile cov2(cov1.size());
 

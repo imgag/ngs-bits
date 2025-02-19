@@ -92,7 +92,7 @@ public:
 		}
 
 		//create a sorted and unique list of values in the map
-        QList<int> values = QList<int>::fromSet(counts.values().toSet());
+        QList<int> values = SET_TO_LIST(LIST_TO_SET(counts.values()));
 		std::sort(values.begin(), values.end(), std::greater<int>());
 
 		//print list ordered by counts

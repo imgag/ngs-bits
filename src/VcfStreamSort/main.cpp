@@ -138,7 +138,7 @@ public:
 			}
 
 			//insert line
-			lines.insertMulti(VcfCoords{pos, parts[3], parts[4], parts[7]}, line);
+            lines.insert(VcfCoords{pos, parts[3], parts[4], parts[7]}, line);
 
 			//write overflow lines
 			if (lines.count()>n)

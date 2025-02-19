@@ -125,7 +125,7 @@ public:
 
         while(!in.atEnd())
         {
-            QStringList line = in.readLine().split("\t", QString::SkipEmptyParts);
+            QStringList line = in.readLine().split("\t", QT_SKIP_EMPTY_PARTS);
             if(line.size() == 2)
             {
                 NodeContent node_content_1{};
@@ -153,7 +153,7 @@ public:
         // read file line by line, changing node content of the disease genes
         while(!in.atEnd())
         {
-            QStringList line = in.readLine().split("\t", QString::SkipEmptyParts);
+            QStringList line = in.readLine().split("\t", QT_SKIP_EMPTY_PARTS);
 
             if(graph.hasNode(line.at(0)))
             {

@@ -189,7 +189,7 @@ public:
 		{
 			tmp.append(ids);
 		}
-		QSet<QByteArray> unique_output_ids = QSet<QByteArray>::fromList(tmp);
+        QSet<QByteArray> unique_output_ids = LIST_TO_SET(tmp);
 		if (unique_output_ids.size() < tmp.size())
 		{
 			THROW(FileParseException, "The given output INFO ids contain duplicates!")

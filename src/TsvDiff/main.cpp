@@ -382,7 +382,7 @@ public:
 		bool skip_comments = getFlag("skip_comments");
 		QStringList skip_comments_matching = getString("skip_comments_matching").split(",");
 		skip_comments_matching.removeAll("");
-		QSet<QString> skip_cols = getString("skip_cols").split(",").toSet();
+        QSet<QString> skip_cols = LIST_TO_SET(getString("skip_cols").split(","));
 		skip_cols.remove("");
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream ostream(out.data());
@@ -403,11 +403,11 @@ public:
 		in2.load(getInfile("in2"), true);
 
 		//determine columns used for comperison
-		QSet<QString> comp_cols = getString("comp").split(",").toSet();
+        QSet<QString> comp_cols = LIST_TO_SET(getString("comp").split(","));
 		comp_cols.remove("");
 		if (comp_cols.isEmpty()) // "comp" not set => use all columns
 		{
-			comp_cols = in1.headers().toSet() + in2.headers().toSet();
+            comp_cols = LIST_TO_SET(in1.headers()) + LIST_TO_SET(in2.headers());
 		}
 		foreach(QString col, skip_cols)
 		{

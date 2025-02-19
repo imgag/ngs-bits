@@ -28,7 +28,7 @@ public:
 		QByteArray mapping_string;
 		foreach (KeyValuePair replacement, VcfFile::INFO_URL_MAPPING)
 		{
-			mapping_string += replacement.key + " -> " + replacement.value + "; ";
+            mapping_string += replacement.key.toUtf8() + " -> " + replacement.value.toUtf8() + "; ";
 		}
 		setExtendedDescription(QStringList()	<< "Characters which are not allowed in the INFO column based on the VCF 4.2 definition are URL encoded."
 												<< "The following characters are replaced:" << mapping_string);
@@ -115,7 +115,7 @@ public:
 		int current_chunk = 0;
 
 		//debug
-		QTime timer;
+        QElapsedTimer timer;
 		QTextStream outstream(stdout);
 		if (debug>0) timer.start();
 

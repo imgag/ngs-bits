@@ -6522,7 +6522,7 @@ QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 		while(q_syn.next())
 		{
 			if (!genes.isEmpty()) genes.append(", ");
-            genes.append(q_syn.value(0).toString().toLocal8Bit());
+            genes.append(q_syn.value(0).toString().toUtf8());
 		}
 		return qMakePair(gene, "ERROR: " + gene + " is a synonymous symbol of the genes " + genes);
 	}
