@@ -23,6 +23,7 @@ public:
 		//optional
 		addOutfile("out", "Output text file. If unset, writes to STDOUT.", true);
 		addInt("min_dp", "Minimum depth in each sample.", true, 0);
+		addFloat("min_qual", "Minimum QUAL of variants.", true, 0.0);
 		addFlag("debug", "Enable debug output");
 
 		//changelog
@@ -75,6 +76,7 @@ public:
 		QByteArray f = getString("f").toUtf8();
 		QByteArray m = getString("m").toUtf8();
 		int min_dp = getInt("min_dp");
+		double min_qual = getFloat("min_qual");
 		bool debug = getFlag("debug");
 
 		//column indices
@@ -88,8 +90,10 @@ public:
 		int c_vars_mer = 0;
 		int c_skip_not_autosome = 0;
 		int c_skip_multiallelic = 0;
-		int c_skip_low_depth = 0;
-		int c_skip_invalid_depth = 0;
+		int c_skip_depth_low = 0;
+		int c_skip_depth_invalid = 0;
+		int c_skip_qual_low = 0;
+		int c_skip_qual_invalid = 0;
 		int c_skip_genotype_unknown = 0;
 		int c_skip_genotype_invalid = 0;
 
@@ -161,6 +165,25 @@ public:
 			}
 
 			//filter for depth
+			if (min_qual>0)
+			{
+				QString qual = parts[VcfFile::QUAL];
+				if (qual!=".")
+				{
+					if (!Helper::isNumeric(qual))
+					{
+						++c_skip_qual_invalid;
+						continue;
+					}
+					else if (qual.toDouble()<min_qual)
+					{
+						++c_skip_qual_low;
+						continue;
+					}
+				}
+			}
+
+			//filter for depth
 			if (min_dp>0)
 			{
 				int i_dp = parts[i_format].split(':').indexOf("DP");
@@ -172,14 +195,14 @@ public:
 				if (dp_c==-1 || dp_f==-1 || dp_m==-1)
 				{
 					if (debug) out->write("DEBUG - invalid DP: " + line + "\n");
-					++c_skip_invalid_depth;
+					++c_skip_depth_invalid;
 					continue;
 				}
 
 				//check depth if high enough
 				if (dp_c<min_dp || dp_f<min_dp || dp_m<min_dp)
 				{
-					++c_skip_low_depth;
+					++c_skip_depth_low;
 					continue;
 				}
 			}
@@ -215,8 +238,16 @@ public:
 		//output
 		out->write("Skipped variants not on autosomes: " + QByteArray::number(c_skip_not_autosome) + "\n");
 		out->write("Skipped variants with multi-allelic alt: " + QByteArray::number(c_skip_multiallelic) + "\n");
-		out->write("Skipped variants with low depth: " + QByteArray::number(c_skip_low_depth) + "\n");
-		out->write("Skipped variants for which no depth could be determined: " + QByteArray::number(c_skip_invalid_depth) + "\n");
+		if (min_dp>0)
+		{
+			out->write("Skipped variants with low depth: " + QByteArray::number(c_skip_depth_low) + "\n");
+			out->write("Skipped variants for which no depth could be determined: " + QByteArray::number(c_skip_depth_invalid) + "\n");
+		}
+		if (min_qual>0)
+		{
+			out->write("Skipped variants with low quality: " + QByteArray::number(c_skip_qual_low) + "\n");
+			out->write("Skipped variants for which no quality could be determined: " + QByteArray::number(c_skip_qual_invalid) + "\n");
+		}
 		out->write("Skipped variants with (partially) unknown genotype: " + QByteArray::number(c_skip_genotype_unknown) + "\n");
 		out->write("Skipped variants with invalid genotype: " + QByteArray::number(c_skip_genotype_invalid) + "\n");
 		out->write("\n");
