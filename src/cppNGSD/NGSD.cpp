@@ -7322,7 +7322,7 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 	//MANE select
 	foreach(const Transcript& t, list)
 	{
-		if (t.isManeSelectTranscript()) list_lvl.append(t);
+		if (t.isManeSelectTranscript() || t.isManePlusClinicalTranscript()) list_lvl.append(t);
 	}
 
 	if (list_lvl.count() > 0)

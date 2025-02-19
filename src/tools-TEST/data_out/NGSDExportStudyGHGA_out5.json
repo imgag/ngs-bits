@@ -1,0 +1,432 @@
+{
+    "analyses": [
+    ],
+    "analysis_method_supporting_files": [
+    ],
+    "analysis_methods": [
+    ],
+    "data_access_committees": [
+        {
+            "alias": "norply@med.uni-tuebingen.de",
+            "email": "norply@med.uni-tuebingen.de",
+            "institute": "UKT, Tübingen, Germany"
+        }
+    ],
+    "data_access_policies": [
+        {
+            "alias": "DAP_Study4711",
+            "data_access_committee": "norply@med.uni-tuebingen.de",
+            "data_use_modifier_ids": [
+                "DUO:0000025",
+                "DUO:0000036"
+            ],
+            "data_use_modifier_terms": [
+                "TIME_LIMIT_ON_USE",
+                "COLLABORATION_REQUIRED"
+            ],
+            "data_use_permission_id": "DUO:0000001",
+            "data_use_permission_term": "GENERAL_RESEARCH_USE",
+            "description": "Data access policy for study Study4711",
+            "name": "Data access policy for study Study4711",
+            "policy_text": "Textual description of the DAP",
+            "policy_url": "http:://url.describing.the.dap.de"
+        }
+    ],
+    "datasets": [
+        {
+            "alias": "DS_Study4711",
+            "data_access_policy": "DAP_Study4711",
+            "description": "Dataset for Study4711",
+            "study": "Study4711",
+            "title": "Dataset for Study4711",
+            "types": [
+                "Sequencing data"
+            ]
+        }
+    ],
+    "experiment_method_supporting_files": [
+    ],
+    "experiment_methods": [
+        {
+            "alias": "EXPM_Pseudonym01",
+            "description": "IDT xGen Human ID + IDT xGen Prism DNA",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "OTHER",
+            "name": "EXPM_Pseudonym01",
+            "sequencing_layout": "PE",
+            "type": "IDT xGen Human ID + IDT xGen Prism DNA"
+        },
+        {
+            "alias": "EXPM_Pseudonym05",
+            "description": "IDT xGen Human ID + IDT xGen Prism DNA",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "OTHER",
+            "name": "EXPM_Pseudonym05",
+            "sequencing_layout": "PE",
+            "type": "IDT xGen Human ID + IDT xGen Prism DNA"
+        },
+        {
+            "alias": "EXPM_Pseudonym011",
+            "description": "Illumina TruSeq DNA PCR-Free",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "WGS",
+            "name": "EXPM_Pseudonym011",
+            "sequencing_layout": "PE",
+            "type": "Illumina TruSeq DNA PCR-Free"
+        },
+        {
+            "alias": "EXPM_Pseudonym051",
+            "description": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI",
+            "flow_cell_id": "ABC",
+            "flow_cell_type": "ILLUMINA_NOVA_SEQ_S4",
+            "instrument_model": "ILLUMINA_NOVASEQ_6000",
+            "library_preparation": "unspecified",
+            "library_selection_methods": [
+                "OTHER"
+            ],
+            "library_type": "Total RNA",
+            "name": "EXPM_Pseudonym051",
+            "sequencing_layout": "PE",
+            "type": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI"
+        }
+    ],
+    "experiments": [
+        {
+            "alias": "EXP_Pseudonym01",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym01",
+            "sample": "SAM_Pseudonym01",
+            "title": "EXP_Pseudonym01",
+            "type": "cfDNA"
+        },
+        {
+            "alias": "EXP_Pseudonym05",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym05",
+            "sample": "SAM_Pseudonym05",
+            "title": "EXP_Pseudonym05",
+            "type": "cfDNA"
+        },
+        {
+            "alias": "EXP_Pseudonym011",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym011",
+            "sample": "SAM_Pseudonym011",
+            "title": "EXP_Pseudonym011",
+            "type": "WGS"
+        },
+        {
+            "alias": "EXP_Pseudonym051",
+            "description": "short-read sequencing",
+            "experiment_method": "EXPM_Pseudonym051",
+            "sample": "SAM_Pseudonym051",
+            "title": "EXP_Pseudonym051",
+            "type": "Total RNA"
+        }
+    ],
+    "individual_supporting_files": [
+    ],
+    "individuals": [
+        {
+            "alias": "PAT1",
+            "sex": "FEMALE"
+        },
+        {
+            "alias": "PAT2",
+            "sex": "FEMALE"
+        }
+    ],
+    "process_data_files": [
+    ],
+    "publications": [
+        {
+            "abstract": "Some abstract",
+            "alias": "PUB_Study4711",
+            "author": "Max Mustermann et al.",
+            "doi": "https://doi.org/12.234546",
+            "journal": "high impact journal",
+            "study": "Study4711",
+            "title": "Some interesting title",
+            "year": 2025
+        }
+    ],
+    "research_data_files": [
+        {
+            "alias": "FASTQ_R1_001_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym01"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_001.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_002_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym01"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_002.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_003_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym01"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_003.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_001_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym01"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_001.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_002_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym01"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_002.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_003_Pseudonym01",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym01"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_003.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_001_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym05"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_001.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_002_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym05"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_002.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_003_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym05"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_003.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_001_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym05"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_001.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_002_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym05"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_002.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_003_Pseudonym05",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym05"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_003.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_001_Pseudonym011",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym011"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_001.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_002_Pseudonym011",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym011"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_002.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_001_Pseudonym011",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym011"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_001.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_002_Pseudonym011",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym011"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_002.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R1_001_Pseudonym051",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym051"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R1_001.fastq.gz",
+            "technical_replicate": 1
+        },
+        {
+            "alias": "FASTQ_R2_001_Pseudonym051",
+            "dataset": "DS_Study4711",
+            "experiments": [
+                "EXP_Pseudonym051"
+            ],
+            "format": "FASTQ",
+            "included_in_submission": true,
+            "name": "FASTQ_FROM_FOLDER_R2_001.fastq.gz",
+            "technical_replicate": 1
+        }
+    ],
+    "samples": [
+        {
+            "alias": "SAM_Pseudonym01",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
+            "case_control_status": "CASE",
+            "description": "Germline sample of PAT1",
+            "individual": "PAT1",
+            "name": "SAM_Pseudonym01",
+            "type": "CF_DNA"
+        },
+        {
+            "alias": "SAM_Pseudonym05",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
+            "case_control_status": "CASE",
+            "description": "Germline sample of PAT2",
+            "individual": "PAT2",
+            "name": "SAM_Pseudonym05",
+            "type": "CF_DNA"
+        },
+        {
+            "alias": "SAM_Pseudonym011",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
+            "case_control_status": "CASE",
+            "description": "Germline sample of PAT1",
+            "individual": "PAT1",
+            "name": "SAM_Pseudonym011",
+            "type": "GENOMIC_DNA"
+        },
+        {
+            "alias": "SAM_Pseudonym051",
+            "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_tissue_id": "UNKNOWN",
+            "biospecimen_tissue_term": "UNKNOWN",
+            "case_control_status": "CASE",
+            "description": "Germline sample of PAT2",
+            "individual": "PAT2",
+            "name": "SAM_Pseudonym051",
+            "type": "TOTAL_RNA"
+        }
+    ],
+    "studies": [
+        {
+            "affiliations": [
+                "Affiliation 1",
+                "Affiliation 2"
+            ],
+            "alias": "Study4711",
+            "description": "Descripion of the study",
+            "title": "Study4711",
+            "types": [
+                "OTHER",
+                "EXOME_SEQUENCING"
+            ]
+        }
+    ]
+}

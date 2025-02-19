@@ -221,7 +221,7 @@ QByteArray BedpeLine::genotype(const QList<QByteArray>& annotation_headers, bool
 		return "";
 	}
 
-	//check sample colum exists
+	//check sample column exists
 	if (sample_idx < 0) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " must not be less than 0!");
 	sample_idx = format_idx + 1 + sample_idx;
 	if (sample_idx >= annotations_.count()) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " points to a annotation column that does not exist!");
@@ -254,7 +254,7 @@ void BedpeLine::setGenotype(const QList<QByteArray>& annotation_headers, QByteAr
 		THROW(ArgumentException, "Column \"FORMAT\" not found in annotation header!");
 	}
 
-	//check sample colum exists
+	//check sample column exists
 	if (sample_idx < 0) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " must not be less than 0!");
 	sample_idx = format_idx + 1 + sample_idx;
 	if (sample_idx >= annotations_.count()) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " points to a annotation column that does not exist!");

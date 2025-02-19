@@ -53,11 +53,11 @@ int DBTable::columnIndex(const QString& name) const
 
 	if (output.count()==0)
 	{
-		THROW(ArgumentException, "Colum with name '" + name + "' not found in DB table '" + table_name_ + "'. Valid names are: " + headers_.join(", "));
+		THROW(ArgumentException, "Column with name '" + name + "' not found in DB table '" + table_name_ + "'. Valid names are: " + headers_.join(", "));
 	}
 	if (output.count()>1)
 	{
-		THROW(ArgumentException, "Colum with name '" + name + "' found several times in DB table '" + table_name_ + "'!");
+		THROW(ArgumentException, "Column with name '" + name + "' found several times in DB table '" + table_name_ + "'!");
 	}
 
 	return output[0];

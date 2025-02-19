@@ -36,6 +36,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     NGSDExportIgvGeneTrack_Test.h \
     NGSDSameSample.h \
     SampleAncestry_Test.h \
+    SnifflesVcfFix.h \
     SvFilterAnnotations_Test.h \
     UpdHunter_Test.h \
     NGSDImportQC_Test.h \
@@ -165,7 +166,10 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     VcfSplit_Test.h \
     ExtractMethylationData_Test.h \
     TsvDiff_Test.h \
-	QcToTsv_Test.h
+	  QcToTsv_Test.h \
+    QcToTsv_Test.h \
+    TrioMendelianErrors_Test.h \
+    MantaVcfFix_Test.h
 
 SOURCES += \
     main.cpp

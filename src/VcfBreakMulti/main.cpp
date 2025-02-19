@@ -39,7 +39,7 @@ public:
 	 * \brief Searches a string for seperator before column n
 	 * \param text - the text to search for
 	 * \param seperator - the seperator to look for: usually ,
-	 * \param colum - the column to look in e.g start looking for in the 4th colum
+	 * \param column - the column to look in e.g start looking for in the 4th colum
 	 */
 	bool includesSeperator(const QByteArray& text, char seperator, int column)
 	{

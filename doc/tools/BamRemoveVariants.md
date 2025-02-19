@@ -1,5 +1,5 @@
 ### BamRemoveVariants tool help
-	BamRemoveVariants (2024_08-113-g94a3b440)
+	BamRemoveVariants (2025_01-25-g1d2b52ea)
 	
 	Removes reads which contain the provided variants
 	
@@ -11,6 +11,12 @@
 	Optional parameters:
 	  -ref <file>       Reference genome for CRAM support (mandatory if CRAM is used).
 	                    Default value: ''
+	  -mask             Replace variant bases with reference instead of removing the read (SNV only)
+	                    Default value: 'false'
+	  -single_end       Input file is from single-end sequencing (e.g. lrGS).
+	                    Default value: 'false'
+	  -keep_indels      Do not remove InDels in mask mode.
+	                    Default value: 'false'
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -20,7 +26,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### BamRemoveVariants changelog
-	BamRemoveVariants 2024_08-113-g94a3b440
+	BamRemoveVariants 2025_01-25-g1d2b52ea
 	
+	2025-01-20 Added single-end mode.
+	2025-01-17 Added mask option.
 	2024-07-24 Inital commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

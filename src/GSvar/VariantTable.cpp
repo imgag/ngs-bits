@@ -299,7 +299,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 	else if (action == a_ucsc_enigma)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/s/abenet/BRCA1_BRCA2_ENIGMA_hg38?position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)+"&hgsid=2395490845_kJTSEC0eF5uwLq9urfDpQRoxIEPY"));
 	}
 	else if (action == a_lovd)
 	{

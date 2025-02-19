@@ -104,16 +104,44 @@ void SequencingRunOverview::updateTable()
 void SequencingRunOverview::openRunTab()
 {
 	//determine name column
-	int col = ui_.table->columnIndex("name");
+	int idx_name = ui_.table->columnIndex("name");
+	int idx_device = ui_.table->columnIndex("device");
 
-	//open tabs
 	QSet<int> rows = ui_.table->selectedRows();
-	foreach (int row, rows)
+	QStringList run_names;
+	QSet<QString> device_types;
+
+	//single run:
+	if (rows.size() == 1)
 	{
-		QString name = ui_.table->item(row, col)->text();
+		QString name = ui_.table->item(0, idx_name)->text();
 		GlobalServiceProvider::openRunTab(name);
 	}
+	else //multiple runs
+	{
+		foreach (int row, rows)
+		{
+			run_names << ui_.table->item(row, idx_name)->text();
+			//extract device type
+			device_types << ui_.table->item(row, idx_device)->text().split("(").at(1).split(")").at(0);
+		}
+		if ((device_types.size() > 1) || *device_types.begin() != "PromethION")
+		{
+			//open each run in a separate view
+			foreach (const QString& run, run_names)
+			{
+				GlobalServiceProvider::openRunTab(run);
+			}
+		}
+		else
+		{
+			//open batch view
+			GlobalServiceProvider::openRunBatchTab(run_names);
+		}
+	}
+
 }
+
 
 void SequencingRunOverview::openRunTab(int row)
 {

@@ -3,6 +3,7 @@
 #include "Helper.h"
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QDir>
 
 class ConcreteTool
 		: public ToolBase
@@ -18,14 +19,20 @@ public:
 	virtual void setup()
 	{
 		setDescription("Exports meta data of a study from NGSD to a JSON format for import into GHGA.");
-		addInfile("samples", "TSV file with pseudonym, SAP ID and processed sample ID", false);
+		addInfile("samples", "TSV file with pseudonym, SAP ID and processed sample ID (and optional sample folder)", false);
 		addInfile("data", "JSON file with data that is not contained in NGSD.", false);
+		addFlag("include_bam", "Add BAM files to output.");
 		addFlag("include_vcf", "Add VCF files to output.");
+		addFlag("use_sample_folder", "Use file names from sample folder provided in '-samples'.");
+		addFlag("group_analyses", "Combine all samples from one patient into a combined analysis (e. g. for tumor-normal).");
+
 		addOutfile("out", "Output JSON file.", false, false);
 
 		//optional
 		addFlag("test", "Test mode: uses the test NGSD");
 
+		changeLog(2025,  2, 7, "Added option to combine analyses.");
+		changeLog(2025,  2, 5, "Added option to read files from sample folder.");
 		changeLog(2024,  9, 11, "Updated schema to version 2.0.0.");
 		changeLog(2023,  1, 31, "Initial implementation (version 0.9.0 of schema).");
 	}
@@ -46,7 +53,7 @@ public:
 		return output;
 	}
 
-	//returns an array from the input JSON
+	//returns a string from the input JSON
 	QString getString(const QJsonObject& data, QString key)
 	{
 		if (!data.contains(key)) THROW(FileParseException, "JSON input file does not contain key '" + key + "'!");
@@ -55,6 +62,17 @@ public:
 		if (!value.isString()) THROW(FileParseException, "JSON input file does contain key '" + key + "' with invalid type (not string)!");
 
 		return value.toString();
+	}
+
+	//returns a string from the input JSON
+	int getInteger(const QJsonObject& data, QString key)
+	{
+		if (!data.contains(key)) THROW(FileParseException, "JSON input file does not contain key '" + key + "'!");
+
+		QJsonValue value = data.value(key);
+		if (!value.isDouble()) THROW(FileParseException, "JSON input file does contain key '" + key + "' with invalid type (not integer)!");
+
+		return value.toInt();
 	}
 
 	QString systemTypeToExperimentDescription(QString sys_type)
@@ -106,6 +124,7 @@ public:
 		if (device_type=="NextSeq500") return "NEXTSEQ_500";
 		if (device_type=="NovaSeq6000") return "ILLUMINA_NOVASEQ_6000";
 		if (device_type=="NovaSeqXPlus") return "ILLUMINA_NOVASEQ_X";
+		if (device_type=="MGI-2000") return "MGISEQ-2000RS";
 
 		THROW(NotImplementedException, "Unhandled device type '" + device_type + "' in CV conversion!");
 	}
@@ -116,6 +135,7 @@ public:
 		if (flowcell_type=="Illumina NovaSeq S4") return "ILLUMINA_NOVA_SEQ_S4";
 		if (flowcell_type=="Illumina NovaSeq S1") return "OTHER";
 		if (flowcell_type=="Illumina NovaSeq SP") return "OTHER";
+		if (flowcell_type=="n/a") return "OTHER";
 
 		THROW(NotImplementedException, "Unhandled flowcell type '" + flowcell_type + "' in CV conversion!");
 	}
@@ -131,6 +151,16 @@ public:
 		if (is_ffpe && sample_type=="RNA") return "FFPE_TOTAL_RNA";
 
 		THROW(NotImplementedException, "Unhandled sample type '" + sample_type + "' " + (is_ffpe ? "(FFPE)" : "") + " in CV conversion!");
+	}
+
+	QString diseaseStatusToCaseControl(QString disease_status)
+	{
+		if (disease_status == "Affected") return "CASE";
+		if (disease_status == "Unaffected") return "CONTROL";
+		if (disease_status == "Unclear") return "OTHER";
+		if (disease_status == "n/a") return "UNKNOWN";
+
+		THROW(NotImplementedException, "Unhandled disease status '" + disease_status + "' in CV conversion!");
 	}
 
 	QString sampleGenderToSex(QString gender)
@@ -154,6 +184,27 @@ public:
 		THROW(NotImplementedException, "Unhandled ancestry '" + ancestry + "' in CV conversion!");
 	}
 
+	QStringList getFilesFromFolder(const QString& folder, QString file_extension, bool allow_multiple=true, QString substring_filter = "")
+	{
+		QStringList files = QDir(folder).entryList(QStringList() << "*." + file_extension, QDir::Files);
+
+		// filter by substring
+		if (substring_filter != "")
+		{
+			QStringList filtered_files;
+			foreach (const QString& file, files)
+			{
+				if (file.contains(substring_filter)) filtered_files << file;
+			}
+			files = filtered_files;
+		}
+
+		if (files.isEmpty()) THROW(ArgumentException, "No matching file in folder '" + folder + "' found for extension '" + file_extension + "'!");
+		if (!allow_multiple && files.size() > 1) THROW(ArgumentException, "Multiple matching file in folder '" + folder + "' found for extension '" + file_extension + "'!");
+
+		return files;
+	}
+
 	//Processed sample helper struct
 	struct PSData
 	{
@@ -164,6 +215,9 @@ public:
 		ProcessedSampleData ps_info;
 		PhenotypeList phenotypes;
 		QString patient_id;
+		QString ps_folder;
+		QStringList research_data_files;
+		QStringList processed_data_files;
 	};
 
 	//Common data helper struct
@@ -173,6 +227,9 @@ public:
 		QString version;
 		bool test_mode;
 		bool include_vcf;
+		bool include_bam;
+		bool use_sample_folder;
+		bool group_analyses;
 
 		//study
 		QString study_name;
@@ -200,6 +257,10 @@ public:
 
 		//publication
 		QString publication_title;
+		QString publication_abstract;
+		QString publication_author;
+		int publication_year = -1;
+		QString publication_journal;
 		QString publication_doi;
 
 		//processed samples
@@ -210,26 +271,66 @@ public:
 	void addAnalyses(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
-
-		foreach(const PSData& ps_data, data.ps_list)
+		if (data.include_bam || data.include_vcf) //only neccesary if processed sample files are included
 		{
-			QJsonObject obj;
 
-			obj.insert("analysis_method", "ANAM_" + ps_data.pseudonym);
-			obj.insert("title", "ANA_" + ps_data.pseudonym);
-			obj.insert("description", data.analysis_description);
-			obj.insert("type", data.analysis_type); //e.g. "cfDNA"
-			//optional
-			//obj.insert("ega_accession", QJsonValue());
+			if(data.group_analyses) //combined analysis
+			{
+				//combine research files
+				QMap<QString,QStringList> research_files;
+				foreach(const PSData& ps_data, data.ps_list)
+				{
+					if (research_files.contains(ps_data.patient_id))
+					{
+						QStringList files = research_files.value(ps_data.patient_id) + ps_data.research_data_files;
+						research_files.insert(ps_data.patient_id, files);
+					}
+					else
+					{
+						research_files.insert(ps_data.patient_id, ps_data.research_data_files);
+					}
 
-			QStringList input_files;
-			input_files << "FASTQ_R1_" + ps_data.pseudonym;
-			input_files << "FASTQ_R2_" + ps_data.pseudonym;
-			obj.insert("research_data_files", QJsonArray::fromStringList(input_files));
-			obj.insert("alias", "ANA_" + ps_data.pseudonym);
+				}
 
-			array.append(obj);
+				//create analyses
+				foreach(const QString& patient_id, research_files.keys())
+				{
+					QJsonObject obj;
+
+					obj.insert("analysis_method", "ANAM_" + patient_id);
+					obj.insert("title", "ANA_" + patient_id);
+					obj.insert("description", data.analysis_description);
+					obj.insert("type", data.analysis_type); //e.g. "cfDNA"
+					//optional
+					//obj.insert("ega_accession", QJsonValue());
+					obj.insert("research_data_files", QJsonArray::fromStringList(research_files.value(patient_id)));
+					obj.insert("alias", "ANA_" + patient_id);
+					array.append(obj);
+				}
+
+
+
+			}
+			else //single sample analysis
+			{
+				foreach(const PSData& ps_data, data.ps_list)
+				{
+					QJsonObject obj;
+
+					obj.insert("analysis_method", "ANAM_" + ps_data.pseudonym);
+					obj.insert("title", "ANA_" + ps_data.pseudonym);
+					obj.insert("description", data.analysis_description);
+					obj.insert("type", data.analysis_type); //e.g. "cfDNA"
+					//optional
+					//obj.insert("ega_accession", QJsonValue());
+					obj.insert("research_data_files", QJsonArray::fromStringList(ps_data.research_data_files));
+					obj.insert("alias", "ANA_" + ps_data.pseudonym);
+					array.append(obj);
+				}
+			}
+
 		}
+
 
 		parent.insert("analyses", array);
 	}
@@ -237,26 +338,38 @@ public:
 	void addAnalysesMethods(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
+		QSet<QString> processed_patient_ids;
 
-		foreach(const PSData& ps_data, data.ps_list)
+		if (data.include_bam || data.include_vcf) //only neccesary if processed sample files are included
 		{
-			QJsonObject obj;
-			obj.insert("name", "ANAM_" + ps_data.pseudonym);
-			obj.insert("description", data.analysis_description);
-			obj.insert("type", data.analysis_type);
-			obj.insert("workflow_name", "megSAP");
-			obj.insert("workflow_version", data.workflow_version);
-			obj.insert("workflow_repository", "https://github.com/imgag/megSAP");
-			obj.insert("workflow_doi", "megSAP_doi");
-			//optional:
-			//obj.insert("workflow_tasks", "Pipeline?");
-			//obj.insert("parameters", QJsonArray());
-			//obj.insert("software_versions", QJsonArray());
-			obj.insert("alias", "ANAM_" + ps_data.pseudonym);
 
-			array.append(obj);
+			foreach(const PSData& ps_data, data.ps_list)
+			{
+				QJsonObject obj;
+				QString method_name = ps_data.pseudonym;
+				if (data.group_analyses)
+				{
+					method_name = ps_data.patient_id;
+					if (processed_patient_ids.contains(method_name)) continue; //already processed
+					processed_patient_ids.insert(method_name);
+				}
+
+				obj.insert("name", "ANAM_" + method_name);
+				obj.insert("description", data.analysis_description);
+				obj.insert("type", data.analysis_type);
+				obj.insert("workflow_name", "megSAP");
+				obj.insert("workflow_version", data.workflow_version);
+				obj.insert("workflow_repository", "https://github.com/imgag/megSAP");
+				obj.insert("workflow_doi", data.workflow_doi);
+				//optional:
+				//obj.insert("workflow_tasks", "Pipeline?");
+				//obj.insert("parameters", QJsonArray());
+				//obj.insert("software_versions", QJsonArray());
+				obj.insert("alias", "ANAM_" + method_name);
+
+				array.append(obj);
+			}
 		}
-
 		parent.insert("analysis_methods", array);
 	}
 
@@ -400,7 +513,6 @@ public:
 		parent.insert("experiment_method_supporting_files", experiment_method_supporting_files);
 	}
 
-
 	void addIndividuals(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
@@ -439,39 +551,60 @@ public:
 		parent.insert("individual_supporting_files", array);
 	}
 
-	void addProcessDataFiles(QJsonObject& parent, const CommonData& data)
+	void addProcessDataFiles(QJsonObject& parent, CommonData& data)
 	{
 		QJsonArray array;
 
-		foreach(const PSData& ps_data, data.ps_list)
+		for (int i = 0; i < data.ps_list.size(); ++i)
 		{
-			//add BAM (required)
+			PSData& ps_data = data.ps_list[i];
+			//add BAM (if required)
+			if (data.include_bam)
 			{
 				QJsonObject obj;
 				obj.insert("format", "BAM");
 				obj.insert("analysis", "ANA_" + ps_data.pseudonym);
-				obj.insert("name", ps_data.pseudonym + ".bam");
+				if (data.use_sample_folder)
+				{
+					QString bam_file_name = getFilesFromFolder(ps_data.ps_folder, "bam", false, "").at(0);
+					obj.insert("name", bam_file_name);
+				}
+				else
+				{
+					obj.insert("name", ps_data.pseudonym + ".bam");
+				}
 				obj.insert("dataset", "DS_" + data.study_name);
 				//optional:
 				//obj.insert("ega_accession", QJsonValue());
 				obj.insert("included_in_submission", true);
 				obj.insert("alias", "BAM_" + ps_data.pseudonym);
+				ps_data.processed_data_files.append("BAM_" + ps_data.pseudonym);
 
 				array.append(obj);
 			}
 
-			//add VCF (if available)
+			//add VCF (if required)
 			if (data.include_vcf)
 			{
 				QJsonObject obj;
 				obj.insert("format", "VCF");
 				obj.insert("analysis", "ANA_" + ps_data.pseudonym);
-				obj.insert("name", ps_data.pseudonym + ".vcf");
+
+				if (data.use_sample_folder)
+				{
+					QString vcf_file_name = getFilesFromFolder(ps_data.ps_folder, "vcf", false, "").at(0);
+					obj.insert("name", vcf_file_name);
+				}
+				else
+				{
+					obj.insert("name", ps_data.pseudonym + ".vcf");
+				}
 				obj.insert("dataset", "DS_" + data.study_name);
 				//optional
 				//obj.insert("ega_accession", QJsonValue());
 				obj.insert("included_in_submission", true);
 				obj.insert("alias", "VCF_" + ps_data.pseudonym);
+				ps_data.processed_data_files.append("VCF_" + ps_data.pseudonym);
 
 				array.append(obj);
 			}
@@ -484,55 +617,93 @@ public:
 	{
 		QJsonObject obj;
 
-		obj.insert("study", data.study_name);
-		obj.insert("title", data.publication_title);
-		//TODO: optional
-		//obj.insert("abstract", QJsonObject());
-		//obj.insert("author", QJsonObject());
-		//obj.insert("year", QJsonObject());
-		//obj.insert("journal", QJsonObject());
-		obj.insert("doi", data.publication_doi);
-		//optional
-		//obj.insert("xref", QJsonObject());
-		obj.insert("alias", "PUB_" + data.study_name);
+		if (!data.publication_title.trimmed().isEmpty())
+		{
+			obj.insert("study", data.study_name);
+			obj.insert("title", data.publication_title);
 
-		parent.insert("publications", QJsonArray() << obj);
+			//optional
+			if (!data.publication_abstract.trimmed().isEmpty()) obj.insert("abstract", data.publication_abstract);
+			if (!data.publication_author.trimmed().isEmpty()) obj.insert("author", data.publication_author);
+			if (data.publication_year != -1) obj.insert("year", data.publication_year);
+			if (!data.publication_journal.trimmed().isEmpty()) obj.insert("journal", data.publication_journal);
+
+			obj.insert("doi", data.publication_doi);
+			//optional
+			//obj.insert("xref", QJsonObject());
+			obj.insert("alias", "PUB_" + data.study_name);
+			parent.insert("publications", QJsonArray() << obj);
+		}
+		else
+		{
+			parent.insert("publications", QJsonArray());
+		}
+
 	}
 
-	void addResearchDataFiles(QJsonObject& parent, const CommonData& data)
+	void addResearchDataFiles(QJsonObject& parent, CommonData& data)
 	{
 		QJsonArray array;
 
-		foreach(const PSData& ps_data, data.ps_list)
+		for (int i = 0; i < data.ps_list.size(); ++i)
 		{
-			//add FASTQ
-			{
-				QJsonObject obj;
-				obj.insert("format", "FASTQ");
-				obj.insert("technical_replicate", 1);
-				//optional:
-				//obj.insert("sequencing_lane_id",   QJsonValue());
-				obj.insert("experiments",  QJsonArray() << "EXP_" + ps_data.pseudonym);
-				obj.insert("name", ps_data.pseudonym + "_R1.fastq.gz");
-				obj.insert("dataset", "DS_" + data.study_name);
-				//optional:
-				//obj.insert("ega_accession", QJsonValue());
-				obj.insert("included_in_submission", true);
-				obj.insert("alias", "FASTQ_R1_" + ps_data.pseudonym);
-				array.append(obj);
+			PSData& ps_data = data.ps_list[i];
+			QJsonObject fastq_template;
+			fastq_template.insert("format", "FASTQ");
+			fastq_template.insert("technical_replicate", 1);
+			//optional:
+			//fastq_template.insert("sequencing_lane_id",   QJsonValue());
+			fastq_template.insert("experiments",  QJsonArray() << "EXP_" + ps_data.pseudonym);
+			fastq_template.insert("dataset", "DS_" + data.study_name);
+			//optional:
+			//obj.insert("ega_accession", QJsonValue());
+			fastq_template.insert("included_in_submission", true);
 
-				obj = QJsonObject();
-				obj.insert("format", "FASTQ");
-				obj.insert("technical_replicate", 1);
-				//optional:
-				//obj.insert("sequencing_lane_id",   QJsonValue());
-				obj.insert("experiments",  QJsonArray() << "EXP_" + ps_data.pseudonym);
+			//add FASTQ
+			if (data.use_sample_folder)
+			{
+				//get R1 & R2 files
+				QStringList fastq_files_r1 = getFilesFromFolder(ps_data.ps_folder, "fastq.gz", true, "R1");
+				QStringList fastq_files_r2 = getFilesFromFolder(ps_data.ps_folder, "fastq.gz", true, "R2");
+
+				//R1
+				int iterator = 1;
+				foreach (const QString& fastq_file, fastq_files_r1)
+				{
+					QJsonObject obj = fastq_template;
+					obj.insert("name", fastq_file);
+					obj.insert("alias", "FASTQ_R1_" + QString::number(iterator).rightJustified(3, '0') + "_" + ps_data.pseudonym);
+					ps_data.research_data_files.append("FASTQ_R1_" + QString::number(iterator).rightJustified(3, '0') + "_" + ps_data.pseudonym);
+					array.append(obj);
+					iterator++;
+				}
+
+				//R2
+				iterator=1;
+				foreach (const QString& fastq_file, fastq_files_r2)
+				{
+					QJsonObject obj = fastq_template;
+					obj.insert("name", fastq_file);
+					obj.insert("alias", "FASTQ_R2_" + QString::number(iterator).rightJustified(3, '0') + "_" + ps_data.pseudonym);
+					ps_data.research_data_files.append("FASTQ_R2_" + QString::number(iterator).rightJustified(3, '0') + "_" + ps_data.pseudonym);
+					array.append(obj);
+					iterator++;
+				}
+
+			}
+			else
+			{
+				//R1
+				QJsonObject obj = fastq_template;
+				obj.insert("name", ps_data.pseudonym + "_R1.fastq.gz");
+				obj.insert("alias", "FASTQ_R1_" + ps_data.pseudonym);
+				ps_data.research_data_files.append("FASTQ_R1_" + ps_data.pseudonym);
+				array.append(obj);
+				//R2
+				obj = fastq_template;
 				obj.insert("name", ps_data.pseudonym + "_R2.fastq.gz");
-				obj.insert("dataset", "DS_" + data.study_name);
-				//optional:
-				//obj.insert("ega_accession", QJsonValue());
-				obj.insert("included_in_submission", true);
 				obj.insert("alias", "FASTQ_R2_" + ps_data.pseudonym);
+				ps_data.research_data_files.append("FASTQ_R2_" + ps_data.pseudonym);
 				array.append(obj);
 			}
 		}
@@ -554,11 +725,11 @@ public:
 			obj.insert("type", sampleTypeToSampleType(ps_data.s_info.type, ps_data.s_info.is_ffpe));
 			//optional:
 			//obj.insert("biological_replicate", QJsonValue());
-			obj.insert("description", "sample that was sequenced");
+			obj.insert("description", (ps_data.s_info.is_tumor)?("Tumor sample of "+ps_data.patient_id):("Germline sample of "+ps_data.patient_id));
 			//optional:
 			//obj.insert("storage", QJsonValue());
 			//obj.insert("disease_or_healthy", QJsonValue());
-			obj.insert("case_control_status", "UNKNOWN");
+			obj.insert("case_control_status", diseaseStatusToCaseControl(ps_data.s_info.disease_status));
 			//obj.insert("ega_accession", QJsonValue());
 			//obj.insert("xref", QJsonValue());
 			//obj.insert("biospecimen_name", QJsonValue());
@@ -608,6 +779,9 @@ public:
 		data.version = "2.0.0";
 		data.test_mode = getFlag("test");
 		data.include_vcf = getFlag("include_vcf");
+		data.include_bam = getFlag("include_bam");
+		data.use_sample_folder = getFlag("use_sample_folder");
+		data.group_analyses = getFlag("group_analyses");
 
 		data.study_name = getString(data_obj, "study");
 		data.study_description = getString(data_obj, "study_description");
@@ -630,6 +804,14 @@ public:
 		data.dap_modifier_terms = getArray(data_obj, "data_use_modifier_terms");
 		data.dap_modifier_ids = getArray(data_obj, "data_use_modifier_ids");
 
+		data.publication_title = getString(data_obj, "publication_title");
+		data.publication_abstract = getString(data_obj, "publication_abstract");
+		data.publication_author = getString(data_obj, "publication_author");
+		data.publication_year = getInteger(data_obj, "publication_year");
+		data.publication_journal = getString(data_obj, "publication_journal");
+		data.publication_doi = getString(data_obj, "publication_doi");
+
+
 		NGSD db(data.test_mode);
 
 		//load processed samples to export
@@ -641,9 +823,18 @@ public:
 			if (line.isEmpty() || line[0]=='#') continue;
 
 			QByteArrayList parts = line.split('\t');
-			//allow only 3/4 columns
-			if (parts.count()<3) THROW(FileParseException, "Invalid sample line: " + line);
-			if (parts.count()>4) THROW(FileParseException, "Invalid sample line: " + line);
+			if (data.use_sample_folder)
+			{
+				//allow only 5 columns
+				if (parts.count()!=5) THROW(FileParseException, "Invalid sample line: " + line);
+			}
+			else
+			{
+				//allow only 3/4 columns
+				if (parts.count()<3) THROW(FileParseException, "Invalid sample line: " + line);
+				if (parts.count()>4) THROW(FileParseException, "Invalid sample line: " + line);
+			}
+
 
 			QString pseudonym = parts[0];
 
@@ -658,12 +849,24 @@ public:
 
 			QString s_id = db.sampleId(ps);
 
-			data.ps_list << PSData{ps_id, ps, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id), patient_id};
+			QString ps_folder;
+			if (data.use_sample_folder)
+			{
+				ps_folder = parts[4].trimmed();
+				if (ps_folder.isEmpty()) THROW(FileParseException, "No sample folder set in line: " + line);
+			}
+
+			data.ps_list << PSData{ps_id, ps, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id), patient_id, ps_folder, QStringList(), QStringList()};
 		}
         stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Writing JSON for " << data.ps_list.count() << " samples..." << QT_ENDL;
 
 		//create JSON
 		QJsonObject root;
+
+		//get files
+		addProcessDataFiles(root, data); //may change data, so have to be run first
+		addResearchDataFiles(root, data); //may change data, so have to be run first
+
 		addAnalyses(root, data);
 		addAnalysesMethods(root, data);
 		addAnalysesMethodSupportingFiles(root);
@@ -675,9 +878,7 @@ public:
 		addExperimentMethodSupportingFiles(root);
 		addIndividuals(root, data);
 		addIndividualSupportingFiles(root);
-		addProcessDataFiles(root, data);
 		addPublications(root, data);
-		addResearchDataFiles(root, data);
 		addSamples(root, data);
 		addStudy(root, data);
 

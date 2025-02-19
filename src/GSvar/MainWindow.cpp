@@ -157,6 +157,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "HerediVarImportDialog.h"
 #include "Background/IGVInitCacheWorker.h"
 #include "SampleCountWidget.h"
+#include "MethylationWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1338,6 +1339,24 @@ void MainWindow::on_actionShowProcessingSystemCoverage_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionMethylation_triggered()
+{
+	if (filename_=="") return;
+	if (variants_.type()!=GERMLINE_SINGLESAMPLE) return;
+	FileLocation methylation_file = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
+	if (!methylation_file.exists)
+	{
+		//this should not happen because the button is not enabled then...
+		QMessageBox::warning(this, "Methylation file access", "Methylation file does not exist or the URL has expired");
+		return;
+	}
+
+	MethylationWidget* widget = new MethylationWidget(methylation_file.filename, this);
+	auto dlg = GUIHelper::createDialog(widget, "Methylation of " + variants_.analysisName());
+
+	addModelessDialog(dlg, true);
+}
+
 void MainWindow::on_actionRE_triggered()
 {
 	if (filename_=="") return;
@@ -2305,50 +2324,70 @@ void MainWindow::openSampleFromNGSD(QString sample_name)
 	}
 }
 
-void MainWindow::checkMendelianErrorRate(double cutoff_perc)
+void MainWindow::checkMendelianErrorRate()
 {
 	QString output = "";
 	try
 	{
 		SampleHeaderInfo infos = variants_.getSampleHeader();
-		int col_c = infos.infoByStatus(true).column_index;
+		int i_c = infos.infoByStatus(true).column_index;
+		int i_f = infos.infoByStatus(false, "male").column_index;
+		int i_m = infos.infoByStatus(false, "female").column_index;
 
-		bool above_cutoff = false;
-		QStringList mers;
-		foreach(const SampleInfo& info, infos)
+		int i_qual = variants_.annotationIndexByName("quality");
+
+		int errors = 0;
+		int used = 0;
+		for (int i=0; i<variants_.count(); ++i)
 		{
-			if (info.isAffected()) continue;
+			const Variant& v = variants_[i];
+			if (!v.chr().isAutosome()) continue;
 
-			int errors = 0;
-			int autosomal = 0;
+			//remove no genotyping
+			QString geno_c = v.annotations()[i_c];
+			QString geno_f = v.annotations()[i_f];
+			QString geno_m = v.annotations()[i_m];
+			if (geno_c=="n/a" || geno_f=="n/a" || geno_m=="n/a") continue;
 
-			int col_p = info.column_index;
+			//remove filter entry
+			if (!v.filters().isEmpty()) continue;
 
-			for (int i=0; i<variants_.count(); ++i)
+			//remove low depth
+			bool low_depth = false;
+			QByteArrayList entries = v.annotations()[i_qual].split(';');
+			foreach(const QByteArray& entry, entries)
 			{
-				const Variant& v = variants_[i];
-				if (!v.chr().isAutosome()) continue;
-				++autosomal;
-
-				QString geno_c = v.annotations()[col_c];
-				QString geno_p = v.annotations()[col_p];
-
-				if ((geno_p=="hom" && geno_c=="wt") || (geno_p=="wt" && geno_c=="hom")) ++errors;
+				if (!entry.startsWith("DP=")) continue;
+				foreach(const QByteArray& value, entry.mid(3).split(','))
+				{
+					if (value.toInt()<20) low_depth = true;
+				}
 			}
+			if (low_depth) continue;
 
-			double percentage = 100.0 * errors / autosomal;
-			if (percentage>cutoff_perc) above_cutoff = true;
-			mers << infos.infoByStatus(true).name + " - " + info.name + ": " + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
+			++used;
+
+			if ((geno_c=="wt" && (geno_f=="hom" || geno_m=="hom")) ||
+				(geno_c=="hom" && (geno_f=="wt" || geno_m=="wt")) ||
+				(geno_c!="hom" && (geno_f=="hom" && geno_m=="hom")) ||
+				(geno_c!="wt" && (geno_f=="wt" && geno_m=="wt")))
+			{
+				++errors;
+				//qDebug() << v.toString() << geno_c << geno_f << geno_m << entries.join(" ");
+			}
 		}
 
-		if (above_cutoff)
+		double percentage = 100.0 * errors / used;
+
+		qDebug() << used << errors << percentage;
+		if (percentage>10)
 		{
-			output = "Mendelian error rate too high:\n" + mers.join("\n");
+			output = "Mendelian error rate too high:\n" + QString::number(errors) + "/" + QString::number(used) + " ~ " + QString::number(percentage, 'f', 2) + "%";
 		}
 	}
 	catch (Exception& e)
 	{
-		output = "Mendelian error rate calulation not possible:\n" + e.message();
+		output = "Mendelian error rate calulation failed:\n" + e.message();
 	}
 
 	if (!output.isEmpty())
@@ -2394,10 +2433,39 @@ void MainWindow::openRunTab(QString run_name)
 		return;
 	}
 
-	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
+	SequencingRunWidget* widget = new SequencingRunWidget(this, QStringList() << run_id);
 	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, type, widget);
 	ui_.tabs->tabBar()->setTabData(index, run_id);
+}
+
+void MainWindow::openRunBatchTab(const QStringList& run_names)
+{
+	TabType type = TabType::RUN;
+	if (focusTab(type, run_names.join(", "))) return;
+
+	QStringList run_ids;
+	foreach (const QString& run_name, run_names)
+	{
+		try
+		{
+			run_ids << NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
+		}
+		catch (DatabaseException e)
+		{
+			GUIHelper::showMessage("NGSD error", "The run database ID could not be determined for '"  + run_name + "'!\nError message: " + e.message());
+			return;
+		}
+
+	}
+
+	SequencingRunWidget* widget = new SequencingRunWidget(this, run_ids);
+	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
+	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_names.join(", "), type, widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + run_ids.join(", "));
+	}
 }
 
 void MainWindow::openGeneTab(QString symbol)
@@ -2896,6 +2964,14 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 				}
 			}
 		}
+	}
+
+	//activate Methylation menu
+	if (type==GERMLINE_SINGLESAMPLE)
+	{
+		FileLocation met_loc = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
+		ui_.actionMethylation->setEnabled(met_loc.exists);
+
 	}
 }
 
@@ -4879,6 +4955,7 @@ void MainWindow::on_actionNotifyUsers_triggered()
 	EmailDialog dlg(this, to, subject, body);
 	dlg.exec();
 }
+
 
 void MainWindow::on_actionCohortAnalysis_triggered()
 {
