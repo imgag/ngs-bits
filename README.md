@@ -71,6 +71,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
+* [TrioMendelianErrors](doc/tools/TrioMendelianErrors.md) - Determines mendelian error rate form a trio VCF file.
 * [RnaQC](doc/tools/RnaQC.md) - Calculates QC metrics for RNA samples.
 * [QcToTsv](doc/tools/QcToTsv.md) - Converts qcML files to a TSV file.
 

@@ -420,7 +420,7 @@ public slots:
 	void openSampleFromNGSD(QString sample_name);
 
 	///Check mendelian error rate of trio.
-	void checkMendelianErrorRate(double cutoff_perc=5.0);
+	void checkMendelianErrorRate();
 
 	///Open processed sample tab
 	void openProcessedSampleTab(QString ps_name);
