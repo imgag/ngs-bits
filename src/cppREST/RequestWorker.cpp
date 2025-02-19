@@ -13,6 +13,7 @@ void RequestWorker::run()
 {
     QSslSocket *ssl_socket = new QSslSocket();
 
+
     try
     {
         ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
@@ -120,7 +121,9 @@ void RequestWorker::run()
 			return;
 		}
 
-		try
+        Log::info("Peer IP address: " + ssl_socket->peerAddress().toString());
+
+        try
 		{
 			EndpointManager::validateInputData(&current_endpoint, parsed_request);
 		}
