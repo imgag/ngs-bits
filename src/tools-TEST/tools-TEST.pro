@@ -29,7 +29,6 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BamRemoveVariants_Test.h \
     CnvReferenceCohort_Test.h \
     BedpeAnnotateBreakpointDensity_Test.h \
-    MantaVcfFix_Test.h \
     NGSDExportGff_Test.h \
     FastqCheckUMI.h \
     BedpeExtractGenotype_Test.h \
