@@ -19,6 +19,19 @@ private slots:
         IS_FALSE(xml_error.isEmpty());
     }
 
+    void test_html_as_xml_validation()
+    {
+        QString html_as_xml_error = XmlHelper::isValidXml(":data/germline_sheet1.html");
+        if(html_as_xml_error!= "")
+        {
+            THROW(ProgrammingException, "Invalid HTML file:\n" + html_as_xml_error);
+        }
+        IS_TRUE(html_as_xml_error.isEmpty());
+
+        html_as_xml_error = XmlHelper::isValidXml(":data/germline_sheet1_broken.html");
+        IS_FALSE(html_as_xml_error.isEmpty());
+    }
+
     void test_xml_validation_against_schema()
 	{
         QString xml_error = XmlHelper::isValidXml(":data/somatic_report.xml", ":/data/SomaticReport.xsd");
