@@ -195,7 +195,6 @@ void ExpressionExonWidget::applyFilters()
 		ui_->tw_expression_table->setEnabled(false);
 
 		filter_result_.reset(true);
-		int filtered_lines = expression_data_.count();
 
 		QTime timer;
 		timer.start();
@@ -224,10 +223,6 @@ void ExpressionExonWidget::applyFilters()
 						filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed());
 					}
 				}
-
-				//debug:
-				//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-				filtered_lines = filter_result_.countPassing();
 			}
 
 			//filter by genes
@@ -274,10 +269,6 @@ void ExpressionExonWidget::applyFilters()
 						}
 					}
 				}
-
-				//debug:
-				//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-				filtered_lines = filter_result_.countPassing();
 			}
 		}
 
@@ -319,10 +310,6 @@ void ExpressionExonWidget::applyFilters()
 					QMessageBox::warning(this, "Invalid rpb value", "Couldn't convert given rpb value to number!\n" + e.message());
 				}
 			}
-
-			//debug:
-			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by srpb value
@@ -361,10 +348,6 @@ void ExpressionExonWidget::applyFilters()
 					QMessageBox::warning(this, "Invalid srpb value", "Couldn't convert given srpb value to number!\n" + e.message());
 				}
 			}
-
-			//debug:
-			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by biotype
@@ -396,11 +379,6 @@ void ExpressionExonWidget::applyFilters()
 				filter_result_.flags()[row_idx] = selected_biotypes.contains(biotype.replace("_", " "));
 			}
 		}
-
-
-		//debug:
-		///qDebug() << "\t removed (file based): " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-		filtered_lines = filter_result_.countPassing();
 
 		//filter by statistical data
 
@@ -492,10 +470,6 @@ void ExpressionExonWidget::applyFilters()
 					QMessageBox::warning(this, "Invalid cohort mean value", "Couldn't convert given cohort mean value to number!\n" + e.message());
 				}
 			}
-
-			//debug:
-			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by log2fc
@@ -534,10 +508,6 @@ void ExpressionExonWidget::applyFilters()
 					QMessageBox::warning(this, "Invalid log2fc value", "Couldn't convert given log2fc value to number!\n" + e.message());
 				}
 			}
-
-			//debug:
-			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
 		}
 
 		//filter by zscore
@@ -576,10 +546,6 @@ void ExpressionExonWidget::applyFilters()
 					QMessageBox::warning(this, "Invalid zscore value", "Couldn't convert given zscore value to number!\n" + e.message());
 				}
 			}
-
-			//debug:
-			//qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
 		}
 
 
