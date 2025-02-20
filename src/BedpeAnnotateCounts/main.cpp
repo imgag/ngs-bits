@@ -51,7 +51,6 @@ public:
 		bool test = getFlag("test");
 		QByteArray processing_system = getString("processing_system").toUtf8();
 		QByteArray disease_group = getString("disease_group").toUtf8().toLower();
-		NGSD db(test);
 		QTextStream out(stdout);
 
 		// start timer
@@ -80,49 +79,56 @@ public:
 		int i_ngsd_het = bedpe_input_file.annotationIndexByName("NGSD_HET", false);
 		int i_ngsd_af = bedpe_input_file.annotationIndexByName("NGSD_AF", false);
 		int i_disease_group = bedpe_input_file.annotationIndexByName("NGSD_group", false);
-		bool dg_parameter_given = true;
 
-		// get disease group of input sample
-		if (disease_group.isEmpty() || processing_system.isEmpty())
+		if (ps_name!="")
 		{
-			QString p_sample_id;
-			if (ps_name.isEmpty()) p_sample_id = db.processedSampleId(input_filepath);
-			else p_sample_id = db.processedSampleId(ps_name);
+			bool dg_parameter_given = true;
 
-			// get disease group
-			if (disease_group.isEmpty())
+			// get disease group of input sample
+			NGSD db(test);
+			QString p_sample_id = db.processedSampleId(ps_name);
+			if (disease_group.isEmpty() || processing_system.isEmpty())
 			{
-				disease_group = db.getValue("SELECT disease_group FROM sample WHERE id = (SELECT sample_id FROM processed_sample WHERE id = :0)", false, p_sample_id).toByteArray().toLower();
-				dg_parameter_given = false;
+				// get disease group
+				if (disease_group.isEmpty())
+				{
+					disease_group = db.getValue("SELECT disease_group FROM sample WHERE id = (SELECT sample_id FROM processed_sample WHERE id = :0)", false, p_sample_id).toByteArray().toLower();
+					dg_parameter_given = false;
+				}
+
+				// get processing system
+				if (processing_system.isEmpty())
+				{
+					processing_system = db.getValue("SELECT name_short FROM processing_system WHERE id = (SELECT processing_system_id FROM processed_sample WHERE id = :0)", false, p_sample_id).toByteArray();
+				}
 			}
 
-			// get processing system
-			if (processing_system.isEmpty())
+			// get column indices, sample count and disease group ID from one of the annotation files
+			parseBedpeGzHead(QDir(ann_folder).filePath("sv_translocation.bedpe.gz").toUtf8(), processing_system, disease_group);
+
+			// check correct disease group mapping and valid input disease group
+			QStringList disease_groups = db.getEnum("sample", "disease_group");
+
+			if (dg_parameter_given && !disease_groups.contains(disease_group)) THROW(ArgumentException, "Given disease_group parameter: `" + disease_group + "` is not valid!");
+
+			QMap<QString, QString> disease_group_mapping;
+			for(int i = 0; i < disease_groups.size(); i++)
 			{
-				processing_system = db.getValue("SELECT name_short FROM processing_system WHERE id = (SELECT processing_system_id FROM processed_sample WHERE id = :0)", false, p_sample_id).toByteArray();
+				disease_group_mapping["GSC" + QByteArray::number(i + 1).rightJustified(2, '0')] = disease_groups[i].toLower();
 			}
+
+			if (disease_group_mapping[disease_group_id_] != disease_group)
+			{
+				THROW(FileParseException, "Disease Group ID mapping incorrect in annotation file: " + QDir(ann_folder).filePath("sv_translocation.bedpe.gz").toUtf8() + "!");
+			}
+
+			disease_group = disease_group_id_.toUtf8();
 		}
-
-		// get column indices, sample count and disease group ID from one of the annotation files
-		parseBedpeGzHead(QDir(ann_folder).filePath("sv_translocation.bedpe.gz").toUtf8(), processing_system, disease_group);
-
-		// check correct disease group mapping and valid input disease group
-		QStringList disease_groups = db.getEnum("sample", "disease_group");
-
-		if (dg_parameter_given && !disease_groups.contains(disease_group)) THROW(ArgumentException, "Given disease_group parameter: `" + disease_group + "` is not valid!");
-
-		QMap<QString, QString> disease_group_mapping;
-		for(int i = 0; i < disease_groups.size(); i++)
+		else
 		{
-			disease_group_mapping["GSC" + QByteArray::number(i + 1).rightJustified(2, '0')] = disease_groups[i].toLower();
+			// get column indices, sample count and disease group ID from one of the annotation files
+			parseBedpeGzHead(QDir(ann_folder).filePath("sv_translocation.bedpe.gz").toUtf8(), processing_system, disease_group);
 		}
-
-		if (disease_group_mapping[disease_group_id_] != disease_group)
-		{
-			THROW(FileParseException, "Disease Group ID mapping incorrect in annotation file: " + QDir(ann_folder).filePath("sv_translocation.bedpe.gz").toUtf8() + "!");
-		}
-
-		disease_group = disease_group_id_.toUtf8();
 
 		// create text buffer for output file
 		QByteArrayList output_buffer;
@@ -151,7 +157,7 @@ public:
 			additional_columns.append("");
 			header.append("NGSD_AF");
 		}
-		if (i_disease_group < 0)
+		if (i_disease_group < 0 && ps_name!="")
 		{
 			i_disease_group = header.size();
 			additional_columns.append("");
@@ -212,19 +218,26 @@ public:
 							{
 								ngsd_count_hom++;
 
-								//count by disease group
-								if (columns[idx_disease_group_] == disease_group)
+								if (ps_name!="")
 								{
-									ngsd_disease_count_hom++ ;
+									//count by disease group
+									if (columns[idx_disease_group_] == disease_group)
+									{
+										ngsd_disease_count_hom++ ;
+									}
 								}
 							}
 							else
 							{
 								ngsd_count_het++;
-								//count by disease group
-								if (columns[idx_disease_group_] == disease_group)
+
+								if (ps_name!="")
 								{
-									ngsd_disease_count_het++ ;
+									//count by disease group
+									if (columns[idx_disease_group_] == disease_group)
+									{
+										ngsd_disease_count_het++ ;
+									}
 								}
 							}
 						}
@@ -244,20 +257,26 @@ public:
 							{
 								ngsd_count_hom++;
 
-								//count by disease group
-								if (columns[idx_disease_group_] == disease_group)
+								if (ps_name!="")
 								{
-									ngsd_disease_count_hom++ ;
+									//count by disease group
+									if (columns[idx_disease_group_] == disease_group)
+									{
+										ngsd_disease_count_hom++ ;
+									}
 								}
 							}
 							else
 							{
 								ngsd_count_het++;
 
-								//count by disease group
-								if (columns[idx_disease_group_] == disease_group)
+								if (ps_name!="")
 								{
-									ngsd_disease_count_het++ ;
+									//count by disease group
+									if (columns[idx_disease_group_] == disease_group)
+									{
+										ngsd_disease_count_het++ ;
+									}
 								}
 							}
 							bnd_ids.insert(bnd_id);
@@ -277,20 +296,26 @@ public:
 							{
 								ngsd_count_hom++;
 
-								//count by disease group
-								if (columns[idx_disease_group_] == disease_group)
+								if (ps_name!="")
 								{
-									ngsd_disease_count_hom++ ;
+									//count by disease group
+									if (columns[idx_disease_group_] == disease_group)
+									{
+										ngsd_disease_count_hom++ ;
+									}
 								}
 							}
 							else
 							{
 								ngsd_count_het++;
 
-								//count by disease group
-								if (columns[idx_disease_group_] == disease_group)
+								if (ps_name!="")
 								{
-									ngsd_disease_count_het++ ;
+									//count by disease group
+									if (columns[idx_disease_group_] == disease_group)
+									{
+										ngsd_disease_count_het++ ;
+									}
 								}
 							}
 						}
@@ -306,7 +331,10 @@ public:
 					sv_annotations[i_ngsd_af] = QByteArray::number(ngsd_af, 'f', 4);
 				}
 
-				sv_annotations[i_disease_group] = QByteArray::number(ngsd_disease_count_hom) + " / " + QByteArray::number(ngsd_disease_count_het);
+				if (ps_name!="")
+				{
+					sv_annotations[i_disease_group] = QByteArray::number(ngsd_disease_count_hom) + " / " + QByteArray::number(ngsd_disease_count_het);
+				}
 			}
 
 			//write annotation back to BedpeLine
@@ -330,8 +358,6 @@ public:
 		}
 
         out << " done. " << Helper::elapsedTime(timer) << QT_ENDL;
-
-
 	}
 
 private:
@@ -410,13 +436,13 @@ private:
 			}
 
 			//get disease group ID
-			if(line.contains(disease_group))
+			if(disease_group!="" && line.contains(disease_group))
 			{
 				disease_group_id_ = regex.match(line).captured(1);
 			}
 		}
 
-		if (disease_group_id_.isEmpty()) THROW(FileParseException, "Annotation file doesn't contain info about disease group ID for given disease group: '" + disease_group + "'");
+		if (disease_group_id_.isEmpty() && disease_group!="") THROW(FileParseException, "Annotation file doesn't contain info about disease group ID for given disease group: '" + disease_group + "'");
 
 		//close file
 		gzclose(file);
@@ -428,6 +454,7 @@ private:
 		if (idx_processing_system_ == -1) THROW(FileParseException, "Annotation file doesn't contain processing system column!");
 		if (idx_sv_id_ == -1) THROW(FileParseException, "Annotation file doesn't contain SV id column!");
 		if (idx_format_ == -1) THROW(FileParseException, "Annotation file doesn't contain format column!");
+		if (idx_disease_group_ == -1) THROW(FileParseException, "Annotation file doesn't contain disease group column!");
 	}
 
 };

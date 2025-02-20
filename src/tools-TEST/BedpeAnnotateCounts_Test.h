@@ -39,4 +39,12 @@ private slots:
 		COMPARE_FILES("out/BedpeAnnotateCounts_out2.bedpe", TESTDATA("data_out/BedpeAnnotateCounts_out2.bedpe"));
 	}
 
+	void no_ps_name_no_ngsd()
+	{
+		EXECUTE("BedpeAnnotateCounts", "-in " + TESTDATA("data_in/BedpeAnnotateCounts_in1.bedpe") + " -ann_folder " + TESTDATA("data_in/BedpeAnnotateCounts/")
+				+ " -processing_system hpHBOCv5 -out out/BedpeAnnotateCounts_out3.bedpe");
+
+		COMPARE_FILES("out/BedpeAnnotateCounts_out3.bedpe", TESTDATA("data_out/BedpeAnnotateCounts_out3.bedpe"));
+	}
+
 };
