@@ -65,7 +65,7 @@ void ExpressionExonWidget::loadExpressionFile()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//load TSV file
@@ -142,7 +142,7 @@ void ExpressionExonWidget::initTable()
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		ui_->tw_expression_table->setEnabled(false);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		column_names_.clear();
@@ -196,7 +196,7 @@ void ExpressionExonWidget::applyFilters()
 
 		filter_result_.reset(true);
 
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 
@@ -670,7 +670,7 @@ void ExpressionExonWidget::updateTable()
 	{
 		//fill table widget with expression data
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//disable sorting
