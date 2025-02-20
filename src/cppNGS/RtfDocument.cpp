@@ -188,7 +188,7 @@ void RtfDocument::save(const QByteArray &file_name)
 
 	foreach(const RtfSourceCode& part, body_parts_)
 	{
-		stream << part << endl;
+        stream << part << QT_ENDL;
 	}
 
 	stream << footer();
@@ -267,7 +267,7 @@ RtfTableRow& RtfTableRow::setBackgroundColor(int color)
 {
 	for(RtfTableCell& cell : cells_)
 	{
-		cell.setBackgroundColor(color);
+        cell.setBackgroundColor(color);
 	}
 	return *this;
 }
@@ -442,5 +442,5 @@ void RtfTable::sortbyCols(const QList<int> &indices)
 
 void RtfTable::swapRows(int i_row_a, int i_row_b)
 {
-	rows_.swap(i_row_a, i_row_b);
+    QLIST_SWAP_ITEMS_AT(rows_, i_row_a, i_row_b);
 }

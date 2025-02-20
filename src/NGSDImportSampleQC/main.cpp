@@ -34,7 +34,7 @@ public:
 
 		// check if QC parameters were already imported for this pid
 		int count_old =  db.getValue("SELECT count(id) FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'").toInt();
-		stream << "Found " << count_old << " QC metrics of processed sample '" << ps <<"' already in NGSD." << endl;
+        stream << "Found " << count_old << " QC metrics of processed sample '" << ps <<"' already in NGSD." << QT_ENDL;
 
 		if(count_old!=0)
 		{
@@ -45,7 +45,7 @@ public:
 			else
 			{
 				db.getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'");
-				stream << "Deleted existing QC metrics of '" << ps <<"' because the flag '-force' was used." << endl;
+                stream << "Deleted existing QC metrics of '" << ps <<"' because the flag '-force' was used." << QT_ENDL;
 			}
 		}
 
@@ -74,7 +74,7 @@ public:
 			//output
 			foreach(const QString& error, errors)
 			{
-				stream << "File " + file + " contains error: " + error << endl;
+                stream << "File " + file + " contains error: " + error << QT_ENDL;
 			}
 		}
 
@@ -109,7 +109,7 @@ public:
 				query.exec();
 			}
 			db.commit();
-			stream << "Imported " << metrics.count() << " QC metrics for processed sample " + ps << endl;
+            stream << "Imported " << metrics.count() << " QC metrics for processed sample " + ps << QT_ENDL;
 		}
 		catch (Exception& e)
 		{

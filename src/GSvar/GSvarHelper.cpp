@@ -185,7 +185,7 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	if (!messages.isEmpty())
 	{
 		messages.sort();
-		item->setBackgroundColor(Qt::yellow);
+        item->setBackground(QBrush(QColor(Qt::yellow)));
 		item->setToolTip(messages.join('\n'));
 	}
 }
@@ -303,7 +303,7 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 	//set color
 	if (color!=nullptr)
 	{
-		item->setBackgroundColor(*color);
+        item->setBackground(QBrush(QColor(*color)));
 	}
 
 	return color!=nullptr;
@@ -588,7 +588,7 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 	{
 		THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
 	}
-	QString system_name = processing_systems.toList().at(0);
+    QString system_name = processing_systems.values().at(0);
 
 
 	// load cfDNA panel

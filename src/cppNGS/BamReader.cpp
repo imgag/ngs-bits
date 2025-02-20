@@ -91,7 +91,7 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 		}
 		else
 		{
-			output.append(QString::number(bam_cigar_oplen(cigar[i])));
+            output.append(QString::number(bam_cigar_oplen(cigar[i])).toUtf8());
 			output.append(bam_cigar_opchr(cigar[i]));
 		}
 	}
@@ -176,22 +176,15 @@ void BamAlignment::setBases(const Sequence& bases)
 			THROW(ProgrammingException, QByteArray("Cannot store character '") + bases[i] + "' in BAM/CRAM file. Only A,C,G,T,N are allowed!");
 		}
 
-		//std::cout << "  base=" << bases[i] << " base_index=" << "(" << std::bitset<8>(base_index)  << ")" << std::endl;
 		const int index = (i>>1); //two bases are stored on one byte => divide index by two via shifting
 		uint8_t two_bases = s[index]; //two bases (lower~even index on the left)
 		if (i % 2 == 0) //even index
 		{
-			//std::cout << "    index=" << i << " (even ~ left)" << std::endl;
-			//std::cout << "    old=" << two_bases << "(" << std::bitset<8>(two_bases)  << ")" << std::endl;
 			two_bases = (two_bases & 0xf) | (base_index << 4);
-			//std::cout << "    new=" << two_bases << "(" << std::bitset<8>(two_bases)  << ")" << std::endl;
 		}
 		else //odd index
 		{
-			//std::cout << "    index=" << i << " (odd ~ right)" << std::endl;
-			//std::cout << "    old=" << two_bases << "(" << std::bitset<8>(two_bases)  << ")" << std::endl;
 			two_bases = (two_bases & 0xf0) | base_index;
-			//std::cout << "    new=" << two_bases << "(" << std::bitset<8>(two_bases)  << ")" << std::endl;
 		}
 		s[index] = two_bases;
 	}

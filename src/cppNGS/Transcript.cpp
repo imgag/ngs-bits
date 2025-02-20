@@ -477,8 +477,8 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		end = start;
 
 		//set sequence
-		ref.append(hgvs_c[length-3].toUpper());
-		obs.append(hgvs_c[length-1].toUpper());
+        ref.append(hgvs_c[length-3].toUpper().toLatin1());
+        obs.append(hgvs_c[length-1].toUpper().toLatin1());
 
 		//convert reference to correct strand
 		if(strand_==Transcript::MINUS)
@@ -630,7 +630,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 
 		//sequence
 		ref.append('-');
-		obs.append(hgvs_c.mid(ins_pos+3));
+        obs.append(hgvs_c.mid(ins_pos+3).toUtf8());
 
 		//convert reference to correct strand
 		if(strand_==Transcript::MINUS)

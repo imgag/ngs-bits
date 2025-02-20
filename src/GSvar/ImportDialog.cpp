@@ -289,7 +289,7 @@ bool ImportDialog::addItem(int r, int c, const QString& value, const QString& ac
 	//color item if not valid
 	if(validation_error!="")
 	{
-		item->setBackgroundColor("#FF9600");
+        item->setBackground(QBrush(QColor("#FF9600")));
 		item->setToolTip(validation_error);
 		return false;
 	}
@@ -297,7 +297,7 @@ bool ImportDialog::addItem(int r, int c, const QString& value, const QString& ac
 	//color item if not valid
 	if(!notice.trimmed().isEmpty())
 	{
-		item->setBackgroundColor("#BCBCBC");
+        item->setBackground(QBrush(QColor("#BCBCBC")));
 		item->setToolTip(notice);
 	}
 

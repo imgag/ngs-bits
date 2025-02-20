@@ -279,8 +279,8 @@ void CnvWidget::updateGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-	if(!is_somatic_) report_variant_indices = report_config_->variantIndices(VariantType::CNVS, false).toSet();
-	else report_variant_indices = somatic_report_config_->variantIndices(VariantType::CNVS, false).toSet();
+    if(!is_somatic_) report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::CNVS, false));
+    else report_variant_indices = LIST_TO_SET(somatic_report_config_->variantIndices(VariantType::CNVS, false));
 
 
 	//show variants
@@ -351,7 +351,7 @@ void CnvWidget::applyFilters(bool debug_time)
 
 	try
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//apply main filter

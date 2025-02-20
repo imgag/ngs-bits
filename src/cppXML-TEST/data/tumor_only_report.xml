@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiagnosticNgsReport version="1" genome_build="GRCh37">
+    <ReportGeneration date="2022-01-30" user_name="ahtest1" software="cppNGSD-TEST-CASE"/>
+    <Sample name="DX000001_01" processing_system="tumor only test panel" processing_system_type="Panel" comments="MHH_STUFF_IN_COMMENT">
+        <QcTerm id="QC:2000030" name="target region 100x percentage" def="Percentage of the target region that is covered at least 100-fold." value="94.70"/>
+        <QcTerm id="QC:2000032" name="target region 500x percentage" def="Percentage of the target region that is covered at least 500-fold." value="89.87"/>
+        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="210.30"/>
+    </Sample>
+    <AnalysisPipeline name="megSAP" version="0.2-413-gaf6ed63"/>
+    <TargetRegion name="tum_only_target_filter">
+        <Region chr="chr3" start="63611701" end="63611806"/>
+        <Region chr="chr3" start="69739598" end="69739701"/>
+        <Region chr="chr3" start="69763842" end="69763942"/>
+        <Region chr="chr3" start="69866291" end="69866346"/>
+        <Region chr="chr3" start="69879105" end="69879383"/>
+        <Region chr="chr3" start="69936723" end="69936755"/>
+        <Region chr="chr3" start="69937822" end="69938049"/>
+        <Region chr="chr3" start="69939098" end="69939181"/>
+        <Region chr="chr3" start="69941236" end="69941331"/>
+        <Region chr="chr3" start="69949051" end="69949168"/>
+        <Region chr="chr3" start="69951812" end="69951886"/>
+        <Region chr="chr3" start="69956455" end="69956530"/>
+        <Region chr="chr3" start="69959273" end="69959420"/>
+        <Region chr="chr3" start="69964847" end="69965248"/>
+        <Gene name="MITF" id="HGNC:7105" bases="4680">
+            <Omim gene="156845" phenotype="COMMAD syndrome, 617306 (3)" phenotype_number="617306"/>
+            <Omim gene="156845" phenotype="Melanoma, cutaneous malignant, susceptibility to, 8, 614456 (3)" phenotype_number="614456"/>
+            <Gap chr="chr3" start="69937822" end="69938049"/>
+            <Gap chr="chr3" start="69964847" end="69965248"/>
+        </Gene>
+    </TargetRegion>
+    <VariantList>
+        <Variant chr="chr3" start="63611706" end="63611706" ref="G" obs="A" allele_frequency="0.4063" depth="694">
+            <TranscriptInformation transcript_id="ENST00000295894" gene="SYNPR" type="intron_variant" hgvs_c="c.540+2390G&gt;A" hgvs_p="" exon="intron4/4" variant_type="intron_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000460711" gene="SYNPR" type="intron_variant" hgvs_c="c.573+2390G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000465156" gene="SYNPR" type="intron_variant" hgvs_c="c.349-3518G&gt;A" hgvs_p="" exon="intron3/3" variant_type="intron_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000478300" gene="SYNPR" type="intron_variant" hgvs_c="c.600+2390G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000479198" gene="SYNPR" type="intron_variant" hgvs_c="c.*11+1153G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>
+        </Variant>
+        <Variant chr="chr3" start="69964940" end="69964940" ref="G" obs="A" allele_frequency="0.4763" depth="1390" germline_class="4" somatic_class="activating">
+            <Gene name="MITF" id="HGNC:7105">
+                <IsOncoGene source="Network of Cancer Genes" source_version="6.0"/>
+            </Gene>
+            <TranscriptInformation transcript_id="ENST00000314557" gene="MITF" type="missense_variant" hgvs_c="c.934G&gt;A" hgvs_p="p.Glu312Lys" exon="exon9/9" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000314589" gene="MITF" type="missense_variant" hgvs_c="c.1207G&gt;A" hgvs_p="p.Glu403Lys" exon="exon10/10" variant_type="missense_variant" main_transcript="true"/>
+            <TranscriptInformation transcript_id="ENST00000328528" gene="MITF" type="missense_variant" hgvs_c="c.1252G&gt;A" hgvs_p="p.Glu418Lys" exon="exon10/10" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000352241" gene="MITF" type="missense_variant" hgvs_c="c.1255G&gt;A" hgvs_p="p.Glu419Lys" exon="exon10/10" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000394351" gene="MITF" type="missense_variant" hgvs_c="c.952G&gt;A" hgvs_p="p.Glu318Lys" exon="exon9/9" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000394355" gene="MITF" type="missense_variant" hgvs_c="c.1180G&gt;A" hgvs_p="p.Glu394Lys" exon="exon9/9" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000448226" gene="MITF" type="missense_variant" hgvs_c="c.1273G&gt;A" hgvs_p="p.Glu425Lys" exon="exon10/10" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000472437" gene="MITF" type="missense_variant" hgvs_c="c.1099G&gt;A" hgvs_p="p.Glu367Lys" exon="exon10/10" variant_type="missense_variant" main_transcript="false"/>
+            <TranscriptInformation transcript_id="ENST00000531774" gene="MITF" type="missense_variant" hgvs_c="c.766G&gt;A" hgvs_p="p.Glu256Lys" exon="exon9/9" variant_type="missense_variant" main_transcript="false"/>
+        </Variant>
+    </VariantList>
+    <ReportDocument format="RTF"/>
+</DiagnosticNgsReport>
+

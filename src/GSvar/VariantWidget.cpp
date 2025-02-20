@@ -234,7 +234,7 @@ void VariantWidget::updateGUI()
 		}
 
 		//sort by processed sample name
-		ui_.table->sortByColumn(0);
+        ui_.table->sortByColumn(0, ui_.table->horizontalHeader()->sortIndicatorOrder());
 
 		//resize table cols
 		GUIHelper::resizeTableCellWidths(ui_.table, 200);
@@ -286,7 +286,7 @@ void VariantWidget::calculateSimilarity()
 		ps_names << ps;
 
 		QString ps_id = db.processedSampleId(ps);
-		ps_vars << db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0").toSet();
+        ps_vars << LIST_TO_SET(db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0"));
 	}
 
 	//calculate and show overlap
@@ -337,7 +337,7 @@ QList<int> VariantWidget::selectedRows() const
 		set << item->row();
 	}
 
-	return set.toList();
+    return set.values();
 }
 
 void VariantWidget::openProcessedSampleTabs()

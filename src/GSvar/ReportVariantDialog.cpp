@@ -52,14 +52,14 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	ui_.exclude_mechanism->setVisible(config.variant_type!=VariantType::RES);
 
 	//show manual variant override options when needed
-	foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*")))
+    foreach(QWidget* widget, findChildren<QWidget*>(QRegularExpression("manual_.*")))
 	{
 		widget->setVisible(false);
 	}
 	if (config_.variant_type==VariantType::SNVS_INDELS)
 	{
 		ui_.manual_line->setVisible(true);
-		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*small.*")))
+        foreach(QWidget* widget, findChildren<QWidget*>(QRegularExpression("manual_.*small.*")))
 		{
 			widget->setVisible(true);
 		}
@@ -67,7 +67,7 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	if (config_.variant_type==VariantType::CNVS)
 	{
 		ui_.manual_line->setVisible(true);
-		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*cnv.*")))
+        foreach(QWidget* widget, findChildren<QWidget*>(QRegularExpression("manual_.*cnv.*")))
 		{
 			widget->setVisible(true);
 		}
@@ -75,7 +75,7 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	if (config_.variant_type==VariantType::SVS)
 	{
 		ui_.manual_line->setVisible(true);
-		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*sv.*")))
+        foreach(QWidget* widget, findChildren<QWidget*>(QRegularExpression("manual_.*sv.*")))
 		{
 			widget->setVisible(true);
 		}
@@ -95,7 +95,7 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	if (config_.variant_type==VariantType::RES)
 	{
 		ui_.manual_line->setVisible(true);
-		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*re.*")))
+        foreach(QWidget* widget, findChildren<QWidget*>(QRegularExpression("manual_.*re.*")))
 		{
 			widget->setVisible(true);
 		}

@@ -126,7 +126,7 @@ void SplicingWidget::applyFilter()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		int row_count = ui_->tw_splicing->rowCount();

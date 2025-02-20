@@ -127,7 +127,7 @@ public:
 
 
 			//print final PRS
-			out << column_entries["pgs_id"] << ":\t" << prs << endl;
+            out << column_entries["pgs_id"] << ":\t" << prs << QT_ENDL;
 		}
 
 

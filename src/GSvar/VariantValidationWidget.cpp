@@ -136,7 +136,7 @@ void VariantValidationWidget::edit()
 		return;
 	}
 
-	edit(rows.toList().first());
+    edit(rows.values().first());
 }
 
 void VariantValidationWidget::edit(int row)

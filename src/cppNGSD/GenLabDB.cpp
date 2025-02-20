@@ -374,7 +374,7 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, ProcessedSampleSearchPara
 		}
 	}
 
-	return output.toList();
+    return output.values();
 }
 
 QList<SampleRelation> GenLabDB::relatives(QString ps_name)
@@ -528,7 +528,7 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 			}
 			else
 			{
-				output.unite(ps_ids.toSet());
+                output.unite(LIST_TO_SET(ps_ids));
 			}
 		}
 
@@ -547,7 +547,7 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 		}
 	}
 
-	return output.toList();
+    return output.values();
 }
 
 QStringList GenLabDB::patientSamples(QString ps_name)

@@ -107,7 +107,7 @@ public:
 
 		//parse GFF file
 		QTextStream stream(stdout);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		GffSettings gff_settings;
@@ -116,7 +116,7 @@ public:
 		gff_settings.include_all = all;
 		gff_settings.skip_not_hgnc = skip_not_hgnc;
 		GffData data = NGSHelper::loadGffFile(gff_file, gff_settings);
-		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
+        stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << QT_ENDL;
 
 		//ceate transcript index
 		data.transcripts.sortByPosition();

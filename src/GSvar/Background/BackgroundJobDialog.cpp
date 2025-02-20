@@ -156,10 +156,10 @@ void BackgroundJobDialog::updateTable(int id)
 		ui_.jobs->setItem(r, 1, GUIHelper::createTableItem(job_info.started.toString(Qt::ISODate).replace('T', ' ')));
 
 		QTableWidgetItem* item = GUIHelper::createTableItem(job_info.status);
-		if (job_info.status=="queued") item->setBackgroundColor(Qt::lightGray);
-		else if (job_info.status=="started") item->setBackgroundColor("#90EE90");
-		else if (job_info.status=="finished") item->setBackgroundColor("#44BB44");
-		else if (job_info.status=="failed") item->setBackgroundColor("#FF0000");
+        if (job_info.status=="queued") item->setBackground(QBrush(QColor(Qt::lightGray)));
+        else if (job_info.status=="started") item->setBackground(QBrush(QColor("#90EE90")));
+        else if (job_info.status=="finished") item->setBackground(QBrush(QColor("#44BB44")));
+        else if (job_info.status=="failed") item->setBackground(QBrush(QColor("#FF0000")));
 		ui_.jobs->setItem(r, 2, item);
 
 

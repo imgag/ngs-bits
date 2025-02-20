@@ -56,7 +56,7 @@ public:
 		qi_pheno.prepare("INSERT INTO omim_phenotype (omim_gene_id, phenotype) VALUES (:0, :1);");
 
 		//import genes
-		out << "Importing OMIM genes..." << endl;
+        out << "Importing OMIM genes..." << QT_ENDL;
 		QMap<QByteArray, QByteArray> mim2gene_id;
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("gene"));
 		while(!fp->atEnd())
@@ -79,7 +79,7 @@ public:
 			QByteArray gene_approved = db.geneToApproved(gene);
 			if (gene_approved.isEmpty())
 			{
-				out << "Gene '" << gene << "' could not be converted to approved symbol! Using it anyway." << endl;
+                out << "Gene '" << gene << "' could not be converted to approved symbol! Using it anyway." << QT_ENDL;
 				gene_approved = gene;
 			}
 
@@ -97,11 +97,11 @@ public:
 		//output
 		int c_genes = db.getValues("SELECT gene FROM omim_gene").count();
 		int c_genes_distinct = db.getValues("SELECT DISTINCT gene FROM omim_gene").count();
-		out << "Imported " << c_genes << " genes (" << (c_genes-c_genes_distinct) << " duplicate genes)" << endl;
+        out << "Imported " << c_genes << " genes (" << (c_genes-c_genes_distinct) << " duplicate genes)" << QT_ENDL;
 
 		//import gene-phenotype relations
-		out << endl;
-		out << "Importing OMIM gene-phenotype relations..." << endl;
+        out << QT_ENDL;
+        out << "Importing OMIM gene-phenotype relations..." << QT_ENDL;
 		fp = Helper::openFileForReading(getInfile("morbid"));
 		while(!fp->atEnd())
 		{
@@ -129,9 +129,9 @@ public:
 
 
 		//output
-		out << "Imported " << db.getValue("SELECT COUNT(*) FROM omim_phenotype").toInt() << " phenotypes" << endl;
+        out << "Imported " << db.getValue("SELECT COUNT(*) FROM omim_phenotype").toInt() << " phenotypes" << QT_ENDL;
 		int c_genes_pheno = db.getValues("SELECT DISTINCT omim_gene_id FROM omim_phenotype").count();
-		out << c_genes_pheno << " out of the " << c_genes << " genes have phenotype information" << endl;
+        out << c_genes_pheno << " out of the " << c_genes << " genes have phenotype information" << QT_ENDL;
 	}
 };
 

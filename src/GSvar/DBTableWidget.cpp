@@ -1,6 +1,7 @@
 #include "DBTableWidget.h"
 #include "Exceptions.h"
 #include "GUIHelper.h"
+#include "NGSHelper.h"
 
 #include <QHeaderView>
 #include <QAction>
@@ -164,7 +165,7 @@ void DBTableWidget::setColumnColors(const QString& column_header, const QList<QC
 		QTableWidgetItem* table_item = item(r, c);
 		if (table_item==nullptr) continue;
 
-		table_item->setBackgroundColor(color);
+        table_item->setBackground(QBrush(QColor(color)));
 	}
 }
 
@@ -202,12 +203,12 @@ void DBTableWidget::showTextAsTooltip(const QString& column_header)
 
 QSet<int> DBTableWidget::selectedRows() const
 {
-	return GUIHelper::selectedTableRows(this).toSet();
+    return LIST_TO_SET(GUIHelper::selectedTableRows(this));
 }
 
 QSet<int> DBTableWidget::selectedColumns() const
 {
-	return GUIHelper::selectedTableColumns(this).toSet();
+    return LIST_TO_SET(GUIHelper::selectedTableColumns(this));
 }
 
 const QString& DBTableWidget::getId(int r) const

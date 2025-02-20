@@ -64,7 +64,6 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, TrimmingParameters params)
 
 ThreadCoordinator::~ThreadCoordinator()
 {
-	//QTextStream(stdout) << "~ThreadCoordinator" << endl;
 }
 
 void ThreadCoordinator::printStatus()
@@ -78,12 +77,11 @@ void ThreadCoordinator::printStatus()
 		if (job_pool_[i].status==TO_BE_ANALYZED) ++to_be_analyzed;
 		if (job_pool_[i].status==TO_BE_WRITTEN) ++to_be_written;
 	}
-	(*streams_out_.summary_stream)<< Helper::dateTime() << " progress - to_be_loaded:" << to_be_loaded << " to_be_analyzed:" << to_be_analyzed << " to_be_written:" << to_be_written << " processed_reads:" << stats_.read_num << endl;
+    (*streams_out_.summary_stream)<< Helper::dateTime() << " progress - to_be_loaded:" << to_be_loaded << " to_be_analyzed:" << to_be_analyzed << " to_be_written:" << to_be_written << " processed_reads:" << stats_.read_num << QT_ENDL;
 }
 
 void ThreadCoordinator::load(int i)
 {
-	//QTextStream(stdout) << "ThreadCoordinator::load " << i << endl;
 	InputWorker* worker = new InputWorker(job_pool_[i], streams_in_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	connect(worker, SIGNAL(done(int)), this, SLOT(analyze(int)));
@@ -101,7 +99,6 @@ void ThreadCoordinator::analyze(int i)
 
 void ThreadCoordinator::write(int i)
 {
-	//QTextStream(stdout) << "ThreadCoordinator::write " << i << endl;
 	OutputWorker* worker = new OutputWorker(job_pool_[i], streams_out_, params_, stats_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	connect(worker, SIGNAL(done(int)), this, SLOT(load(int)));
@@ -110,13 +107,11 @@ void ThreadCoordinator::write(int i)
 
 void ThreadCoordinator::error(int /*i*/, QString message)
 {
-	//QTextStream(stdout) << "ThreadCoordinator::error " << i << " " << message << endl;
 	THROW(Exception, message);
 }
 
 void ThreadCoordinator::inputDone(int /*i*/)
 {
-	//QTextStream(stdout) << "ThreadCoordinator::inputDone" << endl;
 	//timer already running > nothing to do
 	if (timer_done_.isActive()) return;
 
@@ -126,8 +121,6 @@ void ThreadCoordinator::inputDone(int /*i*/)
 
 void ThreadCoordinator::checkDone()
 {
-	//QTextStream(stdout) << Helper::dateTime() << " ThreadCoordinator::checkDone" << endl;
-
 	//check if all jobs are done
 	for (int i=0; i<job_pool_.count(); ++i)
 	{
@@ -138,7 +131,7 @@ void ThreadCoordinator::checkDone()
 	timer_done_.stop();
 
 	//print trimming statistics
-	(*streams_out_.summary_stream) << Helper::dateTime() << " writing statistics summary" << endl;
+    (*streams_out_.summary_stream) << Helper::dateTime() << " writing statistics summary" << QT_ENDL;
 	stats_.writeStatistics((*streams_out_.summary_stream), params_);
 
 	//write qc output file
@@ -150,11 +143,11 @@ void ThreadCoordinator::checkDone()
 	//print error correction statistics
 	if (params_.ec)
 	{
-		if (params_.progress>0) (*streams_out_.summary_stream) << Helper::dateTime() << " writing error corrections summary" << endl;
+        if (params_.progress>0) (*streams_out_.summary_stream) << Helper::dateTime() << " writing error corrections summary" << QT_ENDL;
 		ec_stats_.writeStatistics((*streams_out_.summary_stream));
 	}
 
-	(*streams_out_.summary_stream) << Helper::dateTime() << " overall runtime: " << Helper::elapsedTime(timer_overall_) << endl;
+    (*streams_out_.summary_stream) << Helper::dateTime() << " overall runtime: " << Helper::elapsedTime(timer_overall_) << QT_ENDL;
 
 	emit finished();
 }

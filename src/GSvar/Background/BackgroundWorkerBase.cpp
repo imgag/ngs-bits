@@ -1,6 +1,6 @@
 #include "BackgroundWorkerBase.h"
 #include "Exceptions.h"
-#include <QTime>
+#include <QElapsedTimer>
 
 BackgroundWorkerBase::BackgroundWorkerBase(QString name)
 	: QObject()
@@ -38,7 +38,7 @@ const QString& BackgroundWorkerBase::error() const
 
 void BackgroundWorkerBase::run()
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	try
