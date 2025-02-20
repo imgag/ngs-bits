@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2025_01-41 (20.02.25)
+
+- trio: adapted mendelian error rate calculation to Dragen 4.3 output
+
 ## 2025_01-22 (06.02.25)
 
 - sequencing run tab: added settings dialog for NovaSeqX sample sheet creation
