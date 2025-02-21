@@ -223,7 +223,7 @@ private slots:
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("404"));
 		IS_TRUE(response.getPayload().isNull());
 
-		QRegExp rx("(length:)(?:\\s*)(\\d+)");
+        QRegularExpression rx("(length:)(?:\\s*)(\\d+)");
 		rx.setCaseSensitivity(Qt::CaseInsensitive);
 		int pos = rx.indexIn(response.getHeaders());
 
@@ -265,7 +265,7 @@ private slots:
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("200"));
 		IS_TRUE(response.getPayload().isNull());
 
-		QRegExp rx("(length:)(?:\\s*)(\\d+)");
+        QRegularExpression rx("(length:)(?:\\s*)(\\d+)");
 		rx.setCaseSensitivity(Qt::CaseInsensitive);
 		int pos = rx.indexIn(response.getHeaders());
 

@@ -199,7 +199,6 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_omim)
     {
-        Log::info("RE!!!!!");
         QRegularExpression mim_exp("([0-9]{6})");
         QString text = getCell(row, "OMIM disease IDs");
 
@@ -208,7 +207,6 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
         {
             QRegularExpressionMatch match = it.next();
             QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + match.captured(1)));
-            Log::info(match.captured(1));
         }
 	}
 	else if (action==a_stripy)

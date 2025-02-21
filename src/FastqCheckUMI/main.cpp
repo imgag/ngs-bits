@@ -84,11 +84,11 @@ public:
 
 	bool isValidSequence(QByteArray barcode, int& length)
 	{
-        QRegularExpression seq("[ATCGN]*");
-		barcode = barcode.trimmed().toUpper();
-		length = barcode.length();
+        QRegularExpression seq(QRegularExpression::anchoredPattern("[ATCGN]*"));
+        barcode = barcode.trimmed().toUpper();
+        length = barcode.length();
         if(seq.match(barcode).hasMatch()) return true;
-		return false;
+        return false;
 	}
 };
 
