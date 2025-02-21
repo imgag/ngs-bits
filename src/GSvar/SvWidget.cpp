@@ -431,7 +431,7 @@ void SvWidget::applyFilters(bool debug_time)
 			{
 				if (genes_joined.contains("*")) //with wildcards
 				{
-					QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                    QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 					for(int row=0; row<row_count; ++row)
 					{
 						if (!filter_result.flags()[row]) continue;
@@ -442,7 +442,7 @@ void SvWidget::applyFilters(bool debug_time)
 						bool match_found = false;
 						foreach(const QByteArray& sv_gene, sv_genes)
 						{
-							if (reg.exactMatch(sv_gene))
+                            if (reg.match(sv_gene).hasMatch())
 							{
 								match_found = true;
 								break;

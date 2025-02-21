@@ -163,12 +163,12 @@ void Variant::checkValid() const
 		THROW(ArgumentException, "Invalid variant position range in variant '" + toString() + "'");
 	}
 
-	if (ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(ref()))
+    if (ref()!="-" && !QRegularExpression("[ACGTN]+").match(ref()).hasMatch())
 	{
 		THROW(ArgumentException, "Invalid variant reference sequence in variant '" + toString() + "'");
 	}
 
-	if (obs()!="-" && obs()!="." && !QRegExp("[ACGTN,]+").exactMatch(obs()))
+    if (obs()!="-" && obs()!="." && !QRegularExpression("[ACGTN,]+").match(obs()).hasMatch())
 	{
 		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString() + "'");
 	}

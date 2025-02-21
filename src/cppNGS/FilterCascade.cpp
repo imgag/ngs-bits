@@ -1079,7 +1079,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 	}
 	else //filter (regexp)
 	{
-		QRegExp reg(genes.join('|').replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+        QRegularExpression reg(genes.join('|').replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 		for(int i=0; i<variants.count(); ++i)
 		{
 			if (!result.flags()[i]) continue;
@@ -1088,7 +1088,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 			bool match_found = false;
 			foreach(const QByteArray& var_gene, var_genes)
 			{
-				if (reg.exactMatch(var_gene))
+                if (reg.match(var_gene).hasMatch())
 				{
 					match_found = true;
 					break;

@@ -236,7 +236,7 @@ void ExpressionExonWidget::applyFilters()
 				{
 					if (genes_joined.contains("*")) //with wildcards
 					{
-						QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                        QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 						for(int row_idx=0; row_idx<expression_data_.count(); ++row_idx)
 						{
 							if (!filter_result_.flags()[row_idx]) continue;
@@ -247,7 +247,7 @@ void ExpressionExonWidget::applyFilters()
 							bool match_found = false;
 							foreach(const QByteArray& sv_gene, sv_genes)
 							{
-								if (reg.exactMatch(sv_gene))
+                                if (reg.match(sv_gene).hasMatch())
 								{
 									match_found = true;
 									break;

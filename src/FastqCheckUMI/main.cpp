@@ -2,6 +2,7 @@
 #include "Helper.h"
 #include "FastqFileStream.h"
 #include "Log.h"
+#include <QRegularExpression>
 
 class ConcreteTool
 		: public ToolBase
@@ -83,10 +84,10 @@ public:
 
 	bool isValidSequence(QByteArray barcode, int& length)
 	{
-		QRegExp seq("[ATCGN]*");
+        QRegularExpression seq("[ATCGN]*");
 		barcode = barcode.trimmed().toUpper();
 		length = barcode.length();
-		if(seq.exactMatch(barcode)) return true;
+        if(seq.match(barcode).hasMatch()) return true;
 		return false;
 	}
 };

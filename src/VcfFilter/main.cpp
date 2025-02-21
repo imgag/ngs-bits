@@ -245,14 +245,14 @@ public:
 		}
 
 		//parse INFO filters
-		QRegExp operator_regex("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+        QRegularExpression operator_regex("(\\S+)\\s+(\\S+)\\s+(\\S+)");
 		QList<FilterDefinition> info_filters;
 		foreach(QString info_filter, info.split(';'))
 		{
 			info_filter = info_filter.trimmed();
 			if (info_filter.isEmpty()) continue;
 
-			if (operator_regex.exactMatch(info_filter))
+            if (operator_regex.match(info_filter).hasMatch())
 			{
 				QStringList matches = operator_regex.capturedTexts();
 				FilterDefinition filter(matches[1], matches[2], matches[3]);
@@ -272,7 +272,7 @@ public:
 			sample_filter = sample_filter.trimmed();
 			if (sample_filter.isEmpty()) continue;
 
-			if (operator_regex.exactMatch(sample_filter))
+            if (operator_regex.match(sample_filter).hasMatch())
 			{
 				QStringList matches = operator_regex.capturedTexts();
 				FilterDefinition filter(matches[1], matches[2], matches[3]);
