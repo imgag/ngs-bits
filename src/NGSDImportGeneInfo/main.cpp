@@ -160,7 +160,7 @@ public:
 				//convert HPO terms to values compatible with 'geneinfo_germline' (also corrects for impossible chr-inheritance combos)
 				QStringList inh_hpo_list;
 				QStringList hpo_modes = db.getValues("SELECT ht.name FROM hpo_term ht, hpo_genes hg WHERE hg.hpo_term_id=ht.id AND hg.gene=:0 AND ht.name LIKE '%inheritance%' ORDER BY ht.name DESC", gene);
-				QRegExp digits("\\d");
+                QRegularExpression digits("\\d");
 				foreach(QString mode, hpo_modes)
 				{
 					if (mode=="X-linked recessive inheritance")
@@ -198,7 +198,7 @@ public:
 					}
 					if (mode=="Autosomal recessive inheritance")
 					{
-						if (digits.indexIn(chr)!=-1)
+                        if (digits.match(chr).hasMatch())
 						{
 							inh_hpo_list << "AR";
 						}
@@ -209,7 +209,7 @@ public:
 					}
 					if (mode=="Autosomal dominant inheritance")
 					{
-						if (digits.indexIn(chr)!=-1)
+                        if (digits.match(chr).hasMatch())
 						{
 							inh_hpo_list << "AD";
 						}

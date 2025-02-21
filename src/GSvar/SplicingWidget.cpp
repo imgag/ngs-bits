@@ -146,7 +146,7 @@ void SplicingWidget::applyFilter()
 			{
 				if (genes_joined.contains("*")) //with wildcards
 				{
-					QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                    QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 					for(int row_idx=0; row_idx<row_count; ++row_idx)
 					{
 						if (!filter_result.flags()[row_idx]) continue;
@@ -157,7 +157,7 @@ void SplicingWidget::applyFilter()
 						bool match_found = false;
 						foreach(const QByteArray& gene, genes)
 						{
-							if (reg.exactMatch(gene))
+                            if (reg.match(gene).hasMatch())
 							{
 								match_found = true;
 								break;

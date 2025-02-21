@@ -6871,16 +6871,17 @@ QList<OmimInfo> NGSD::omimInfo(const QByteArray& symbol)
 		info.mim = getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
 		info.gene_symbol = getValue("SELECT gene FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
 
-		QRegExp mim_exp("[^0-9]([0-9]{6})[^0-9]");
+        QRegularExpression mim_exp("[^0-9]([0-9]{6})[^0-9]");
 		QStringList phenos = getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + omim_gene_id + " ORDER BY phenotype ASC");
 		foreach(const QString& pheno, phenos)
 		{
 			Phenotype tmp;
 
 			tmp.setName(pheno.toUtf8());
-			if (mim_exp.indexIn(pheno)!=-1)
+            QRegularExpressionMatch mim_exp_match = mim_exp.match(pheno);
+            if (mim_exp_match.hasMatch())
 			{
-				tmp.setAccession(mim_exp.cap(1).toUtf8());
+                tmp.setAccession(mim_exp_match.captured(1).toUtf8());
 			}
 
 			info.phenotypes << tmp;

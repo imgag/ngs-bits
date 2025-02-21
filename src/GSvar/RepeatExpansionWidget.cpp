@@ -198,15 +198,16 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		}
 	}
 	else if (action==a_omim)
-	{
-		QRegExp mim_exp("([0-9]{6})");
-		QString text = getCell(row, "OMIM disease IDs");
-		int pos = 0;
-		while (mim_exp.indexIn(text, pos)!=-1)
-		{
-			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + mim_exp.cap(1)));
-			pos = mim_exp.pos() + 6;
-		}
+    {
+        QRegularExpression mim_exp("([0-9]{6})");
+        QString text = getCell(row, "OMIM disease IDs");
+
+        QRegularExpressionMatchIterator it = mim_exp.globalMatch(text);
+        while (it.hasNext())
+        {
+            QRegularExpressionMatch match = it.next();
+            QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + match.captured(1)));
+        }
 	}
 	else if (action==a_stripy)
 	{

@@ -76,7 +76,7 @@ void VariantOpenDialog::parseVariant(QString format, QString text, const FastaFi
 			//1	55056267	.	CGGGCTTCTTGTGGCACGT	C	.	.
 			text = text.replace("\t", " ");
 
-			QStringList parts = text.split(QRegExp("\\s+"));
+            QStringList parts = text.split(QRegularExpression("\\s+"));
 			if (parts.count()<5) THROW(ArgumentException, "Invalid VCF variant '" + text + "': less than 5 parts found!");
 
 			//parse parts

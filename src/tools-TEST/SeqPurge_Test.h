@@ -108,9 +108,9 @@ private slots:
 		COMPARE_GZ_FILES("out/SeqPurge_out2.fastq.gz", TESTDATA("data_out/SeqPurge_out2.fastq.gz"));
 
 		//qc comparison
-		REMOVE_LINES("out/SeqPurge_out1.qcML", QRegExp("creation "));
-		REMOVE_LINES("out/SeqPurge_out1.qcML", QRegExp("source file"));
-		REMOVE_LINES("out/SeqPurge_out1.qcML", QRegExp("<binary>"));
+        REMOVE_LINES("out/SeqPurge_out1.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/SeqPurge_out1.qcML", QRegularExpression("source file"));
+        REMOVE_LINES("out/SeqPurge_out1.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/SeqPurge_out1.qcML", TESTDATA("data_out/SeqPurge_out1.qcML"));
 	}
 	
@@ -233,9 +233,9 @@ private slots:
 			S_EQUAL(fastqCheckPair(out1, out2), "");
 
 			//qc comparison
-			REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegExp("creation "));
-			REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegExp("source file"));
-			REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegExp("<binary>"));
+            REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegularExpression("creation "));
+            REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegularExpression("source file"));
+            REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegularExpression("<binary>"));
 			COMPARE_FILES("out/SeqPurge_"+suffix+".qcML", "out/SeqPurge_1threads.qcML");
 		}
 	}

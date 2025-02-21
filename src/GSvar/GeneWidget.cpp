@@ -62,7 +62,7 @@ void GeneWidget::updateGUI()
 	ui_.type->setText(info.locus_group);
 	ui_.inheritance->setText(info.inheritance);
     QString html = info.comments;
-    html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
+    html.replace(QRegularExpression("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
 	GSvarHelper::limitLines(ui_.comments, html);
 
 	//ids

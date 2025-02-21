@@ -40,7 +40,7 @@ private:
 	const MetaData& meta_;
 	const Parameters& params_;
 	FastaFileIndex reference_;
-	QRegExp acgt_regexp_;
+    QRegularExpression acgt_regexp_;
 
 	//constants
 	QHash<char,float> bgd_ = {

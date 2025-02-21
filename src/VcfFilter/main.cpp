@@ -245,16 +245,17 @@ public:
 		}
 
 		//parse INFO filters
-		QRegExp operator_regex("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+        QRegularExpression operator_regex("(\\S+)\\s+(\\S+)\\s+(\\S+)");
 		QList<FilterDefinition> info_filters;
 		foreach(QString info_filter, info.split(';'))
 		{
 			info_filter = info_filter.trimmed();
 			if (info_filter.isEmpty()) continue;
 
-			if (operator_regex.exactMatch(info_filter))
+            QRegularExpressionMatch operator_regex_match = operator_regex.match(info_filter);
+            if (operator_regex_match.hasMatch())
 			{
-				QStringList matches = operator_regex.capturedTexts();
+                QStringList matches = operator_regex_match.capturedTexts();
 				FilterDefinition filter(matches[1], matches[2], matches[3]);
 				if (!filter.isValid(op_numeric, op_string)) THROW(ArgumentException, "Invalid filter definition '" + info_filter + "'.");
 				info_filters << filter;
@@ -272,9 +273,10 @@ public:
 			sample_filter = sample_filter.trimmed();
 			if (sample_filter.isEmpty()) continue;
 
-			if (operator_regex.exactMatch(sample_filter))
+            QRegularExpressionMatch operator_regex_match = operator_regex.match(sample_filter);
+            if (operator_regex_match.hasMatch())
 			{
-				QStringList matches = operator_regex.capturedTexts();
+                QStringList matches = operator_regex_match.capturedTexts();
 				FilterDefinition filter(matches[1], matches[2], matches[3]);
 				if (!filter.isValid(op_numeric, op_string)) THROW(ArgumentException, "Invalid filter definition '" + sample_filter + "'.");
 				sample_filters << filter;

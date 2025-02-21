@@ -984,7 +984,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo", true);
 
 	//ALT allele regexp
-	QRegExp alt_regexp("[ACGTN]+");
+    QRegularExpression alt_regexp(QRegularExpression::anchoredPattern("[ACGTN]+"));
 
 	//create list of all invalid chars in INFO column values
 	QList<char> invalid_chars;
@@ -1218,7 +1218,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 				{
 					if (alt.startsWith('<') && alt.endsWith('>')) continue; //special case for structural variant
 					if (alt=="*") continue; //special case for missing allele due to downstream deletion
-					if (alt.isEmpty() || !alt_regexp.exactMatch(alt))
+                    if (alt.isEmpty() || !alt_regexp.match(alt).hasMatch())
 					{
 						printError(out_stream, "Invalid alternative allele '" + alt + "'!", l, line);
 						error_found = true;

@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QStringList>
 #include <QTextStream>
+#include <QRegularExpression>
 #include "BasicStatistics.h"
 #include "algorithm"
 #include "cmath"
@@ -36,7 +37,7 @@ BedLine BedLine::fromString(QString str)
 {
 	//normalize
 	str = str.replace(':', '\t').replace('-', '\t'); //also accept "[c]:[s]-[e]"
-	str = str.replace(QRegExp("[ ]+"), "\t"); //also accept "[c] [s] [e]" (with any number of spaces)
+    str = str.replace(QRegularExpression("[ ]+"), "\t"); //also accept "[c] [s] [e]" (with any number of spaces)
 
 	//split
 	QStringList parts = str.split('\t');

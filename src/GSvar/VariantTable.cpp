@@ -261,7 +261,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		{
 			QByteArray protein_change = hgvs_p.mid(2).trimmed();
 			query += " OR \"" + protein_change + "\"";
-			if (QRegExp("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").exactMatch(protein_change) && !protein_change.endsWith("del"))
+            if (QRegularExpression("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").match(protein_change).hasMatch() && !protein_change.endsWith("del"))
 			{
 				QByteArray aa1 = protein_change.left(3);
 				QByteArray aa2 = protein_change.right(3);
