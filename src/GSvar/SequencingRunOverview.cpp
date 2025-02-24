@@ -114,7 +114,7 @@ void SequencingRunOverview::openRunTab()
 	//single run:
 	if (rows.size() == 1)
 	{
-		QString name = ui_.table->item(0, idx_name)->text();
+		QString name = ui_.table->item(SET_TO_LIST(rows).at(0), idx_name)->text();
 		GlobalServiceProvider::openRunTab(name);
 	}
 	else //multiple runs
