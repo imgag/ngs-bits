@@ -136,7 +136,7 @@ public:
 				++end;
 
 				//do not extend over exclude regions
-				if (end>1 && exclude_index.matchingIndex(var_info[end].chr, var_info[end-1].pos, var_info[end].pos)!=-1)
+				if (end>1 && exclude_index.matchingIndex(var_info[end-1].chr, var_info[end-2].pos, var_info[end-1].pos)!=-1)
 				{
 					//qDebug() << __LINE__ << var_info[end].chr.str() << var_info[end].pos << "no_extend";
 					break;
