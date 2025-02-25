@@ -6,16 +6,6 @@
 #include <QFileInfo>
 #include <cmath>
 
-/*
-Possible improvements:
-	- exclude CNP regions?
-	- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
-	- test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
-	- test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
-	- test if sub-population AF improves result
-	- benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
-*/
-
 class ConcreteTool
         : public ToolBase
 {
@@ -36,6 +26,7 @@ public:
 		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as column name and 4th column of the BED file is used as annotation value.", true);
+		addInfile("exclude", "BED files with regions to exclude from ROH analysis (centromer, telomer, N base regione, ...).", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
 		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 30);
 		addString("var_af_keys", "Comma-separated allele frequency info field names in 'in'.", true, "");
@@ -46,7 +37,9 @@ public:
 		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
+		addFlag("debug", "Enable debug output");
 
+		changeLog(2025,  2, 25, "Added 'exclude' and 'debug' argument.");
         changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2019, 11, 21, "Added support for parsing AF data from any VCF info field (removed 'af_source' parameter).");
 		changeLog(2019,  3, 12, "Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.");
@@ -122,13 +115,14 @@ public:
 	};
 
 	//raw ROH detection
-	static QList<RohRegion> calculateRawRohs(const QList<VariantInfo>& var_info, double roh_min_q)
+	static QList<RohRegion> calculateRawRohs(const QList<VariantInfo>& var_info, double roh_min_q, const ChromosomalIndex<BedFile>& exclude_index, bool debug, QTextStream& out)
 	{
 		QList<RohRegion> output;
 		const int count = var_info.count();
 		int last_end = -1;
 		while(true)
 		{
+			//find start of ROH region
 			int start=last_end+1;
 			while (start<count && !var_info[start].geno_hom)
 			{
@@ -136,10 +130,19 @@ public:
 			}
 			if (start>=count) break;
 
+			//determine end of ROH region
 			int end=start;
 			while(end<count && var_info[end].geno_hom && var_info[end].chr==var_info[start].chr)
 			{
 				++end;
+
+				//do not extend over exclude regions
+				if (end>1 && start<end-1 && exclude_index.matchingIndex(var_info[end-1].chr, var_info[end-2].pos, var_info[end-1].pos)!=-1)
+				{
+					if (debug) out << "DEBUG - not extended: " << var_info[end-1].chr.str() << "\t" << var_info[end-2].pos << "\t" << var_info[end-1].pos << QT_ENDL;
+					--end;
+					break;
+				}
 			}
 			--end;
 
@@ -149,6 +152,7 @@ public:
 			if (region.qScore(var_info)>=roh_min_q)
 			{
 				output << region;
+				if (debug) out << "DEBUG - raw ROH: " << region.chr.str() << "\t" << region.start_pos << "\t" << region.end_pos << "\t" << region.sizeBases() << QT_ENDL;
 			}
 		}
 
@@ -156,7 +160,7 @@ public:
 	}
 
 	//ROH merging
-	void mergeRohs(QList<RohRegion>& raw, const QList<VariantInfo>& var_info, double ext_marker_perc, double ext_size_perc)
+	void mergeRohs(QList<RohRegion>& raw, const QList<VariantInfo>& var_info, double ext_marker_perc, double ext_size_perc, const ChromosomalIndex<BedFile>& exclude_index)
 	{
 		bool merged = true;
 		while(merged)
@@ -178,6 +182,13 @@ public:
 				//not too far apart (bases)
 				if (raw[i+1].start_pos - raw[i].end_pos > ext_size_perc / 100.0 * (raw[i].sizeBases() + raw[i+1].sizeBases())) continue;
 
+				//no merge if exclude region in between
+				if (exclude_index.matchingIndex(raw[i].chr, raw[i].end_pos, raw[i+1].start_pos)!=-1)
+				{
+					//qDebug() << __LINE__ << raw[i].chr.str() << raw[i].end_pos << raw[i+1].start_pos << "no_merge";
+					continue;
+				}
+
 				//merge
 				raw[i].end_index = raw[i+1].end_index;
 				raw[i].end_pos = raw[i+1].end_pos;
@@ -197,6 +208,7 @@ public:
 		timer.start();
 		QTextStream out(stdout);
 		bool inc_chrx = getFlag("inc_chrx");
+		bool debug = getFlag("debug");
 
 		//load variant list
 		 VcfFile vl;
@@ -207,6 +219,12 @@ public:
         {
             THROW(FileParseException, "Multi sample is not supported.");
         }
+
+		//load exclude regions
+		BedFile exclude;
+		QString exclude_file = getInfile("exclude");
+		if (!exclude_file.isEmpty()) exclude.load(exclude_file);
+		ChromosomalIndex<BedFile> exclude_index(exclude);
 
         out << "=== Loading input data ===" << QT_ENDL;
         out << "Variants in VCF: " << vl.count() << QT_ENDL;
@@ -248,6 +266,13 @@ public:
 			if (dp_value < var_min_dp) continue;
 			int qual_value = v.qual();
 			if (qual_value < var_min_q) continue;
+
+			//skip variants in exclude regions
+			if (exclude_index.matchingIndex(v.chr(), v.start(), v.end())!=-1)
+			{
+				if (debug) out << "DEBUG - skipped variant in exclude region: " << v.toString() << QT_ENDL;
+				continue;
+			}
 
 			//determine if homozygous
 			QByteArray genotype = v.formatValueFromSample("GT");
@@ -294,13 +319,13 @@ public:
 		//detect raw ROHs
         out << "=== Detecting ROHs ===" << QT_ENDL;
 		float roh_min_q = getFloat("roh_min_q");
-		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q);
+		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q, exclude_index, debug, out);
         out << "Raw ROH count: " << regions.count() << QT_ENDL;
 
 		//merge raw ROHs
 		double ext_marker_perc = getFloat("ext_marker_perc");
 		double ext_size_perc = getFloat("ext_size_perc");
-		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc);
+		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc, exclude_index);
         out << "Merged ROH count: " << regions.count() << QT_ENDL;
         out << QT_ENDL;
 

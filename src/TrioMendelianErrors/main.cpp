@@ -97,6 +97,7 @@ public:
 		int c_skip_genotype_unknown = 0;
 		int c_skip_genotype_invalid = 0;
 
+		//TODO Marc: implement a file stream (gzipped or normal) that returns lines (full or split by separator) and replace all uses of zlib with this class
 		//open stream
 		QByteArray vcf = getInfile("vcf").toUtf8();
 		FILE* instream = fopen(vcf.data(), "rb");
