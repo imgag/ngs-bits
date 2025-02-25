@@ -37,8 +37,9 @@ public:
 		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
+		addFlag("debug", "Enable debug output");
 
-		changeLog(2025,  2, 25, "Added 'exclude' argument.");
+		changeLog(2025,  2, 25, "Added 'exclude' and 'debug' argument.");
         changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2019, 11, 21, "Added support for parsing AF data from any VCF info field (removed 'af_source' parameter).");
 		changeLog(2019,  3, 12, "Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.");
@@ -114,7 +115,7 @@ public:
 	};
 
 	//raw ROH detection
-	static QList<RohRegion> calculateRawRohs(const QList<VariantInfo>& var_info, double roh_min_q, const ChromosomalIndex<BedFile>& exclude_index)
+	static QList<RohRegion> calculateRawRohs(const QList<VariantInfo>& var_info, double roh_min_q, const ChromosomalIndex<BedFile>& exclude_index, bool debug, QTextStream& out)
 	{
 		QList<RohRegion> output;
 		const int count = var_info.count();
@@ -136,9 +137,10 @@ public:
 				++end;
 
 				//do not extend over exclude regions
-				if (end>1 && exclude_index.matchingIndex(var_info[end-1].chr, var_info[end-2].pos, var_info[end-1].pos)!=-1)
+				if (end>1 && start<end-1 && exclude_index.matchingIndex(var_info[end-1].chr, var_info[end-2].pos, var_info[end-1].pos)!=-1)
 				{
-					//qDebug() << __LINE__ << var_info[end].chr.str() << var_info[end].pos << "no_extend";
+					if (debug) out << "DEBUG - not extended: " << var_info[end-1].chr.str() << "\t" << var_info[end-2].pos << "\t" << var_info[end-1].pos << QT_ENDL;
+					--end;
 					break;
 				}
 			}
@@ -150,6 +152,7 @@ public:
 			if (region.qScore(var_info)>=roh_min_q)
 			{
 				output << region;
+				if (debug) out << "DEBUG - raw ROH: " << region.chr.str() << "\t" << region.start_pos << "\t" << region.end_pos << "\t" << region.sizeBases() << QT_ENDL;
 			}
 		}
 
@@ -205,6 +208,7 @@ public:
 		timer.start();
 		QTextStream out(stdout);
 		bool inc_chrx = getFlag("inc_chrx");
+		bool debug = getFlag("debug");
 
 		//load variant list
 		 VcfFile vl;
@@ -266,7 +270,7 @@ public:
 			//skip variants in exclude regions
 			if (exclude_index.matchingIndex(v.chr(), v.start(), v.end())!=-1)
 			{
-				//qDebug() << __LINE__ << v.toString() << "skip";
+				if (debug) out << "DEBUG - skipped variant in exclude region: " << v.toString() << QT_ENDL;
 				continue;
 			}
 
@@ -315,7 +319,7 @@ public:
 		//detect raw ROHs
         out << "=== Detecting ROHs ===" << QT_ENDL;
 		float roh_min_q = getFloat("roh_min_q");
-		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q, exclude_index);
+		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q, exclude_index, debug, out);
         out << "Raw ROH count: " << regions.count() << QT_ENDL;
 
 		//merge raw ROHs
