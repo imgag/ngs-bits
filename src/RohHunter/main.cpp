@@ -26,7 +26,7 @@ public:
 		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as column name and 4th column of the BED file is used as annotation value.", true);
-		addInfile("exclude", "BED files with regions to exclude from ROH analysis (centromer, telomer, N base regione, ...).", true);
+		addInfile("exclude", "BED files with regions to exclude from ROH analysis. Regions where variant callins is not possible should be removed (centromers, MQ=0 regions and large stretches of N bases).", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
 		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 30);
 		addString("var_af_keys", "Comma-separated allele frequency info field names in 'in'.", true, "");
@@ -34,12 +34,13 @@ public:
 		addFloat("roh_min_q", "Minimum Q score of output ROH regions.", true, 30.0);
 		addInt("roh_min_markers", "Minimum marker count of output ROH regions.", true, 20);
 		addFloat("roh_min_size", "Minimum size in Kb of output ROH regions.", true, 20.0);
-		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
+		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions.", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
+		addFloat("ext_max_het_perc", "Maximum percentage of heterozygous markers in ROH regions.", true, 5.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
 		addFlag("debug", "Enable debug output");
 
-		changeLog(2025,  2, 25, "Added 'exclude' and 'debug' argument.");
+		changeLog(2025,  2, 25, "Added new parameters 'exclude', 'ext_max_het_perc' and 'debug'.");
         changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2019, 11, 21, "Added support for parsing AF data from any VCF info field (removed 'af_source' parameter).");
 		changeLog(2019,  3, 12, "Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.");
@@ -160,7 +161,7 @@ public:
 	}
 
 	//ROH merging
-	void mergeRohs(QList<RohRegion>& raw, const QList<VariantInfo>& var_info, double ext_marker_perc, double ext_size_perc, const ChromosomalIndex<BedFile>& exclude_index)
+	void mergeRohs(QList<RohRegion>& raw, const QList<VariantInfo>& var_info, double ext_marker_perc, double ext_size_perc, double ext_max_het_perc, const ChromosomalIndex<BedFile>& exclude_index)
 	{
 		bool merged = true;
 		while(merged)
@@ -172,12 +173,20 @@ public:
 				if (raw[i].chr!=raw[i+1].chr) continue;
 
 				//not too far apart (markers)
-				int het_count = 0;
+				int het_count_gap = 0;
 				for (int j=raw[i].end_index+1; j<raw[i+1].start_index; ++j)
 				{
-					het_count += !var_info[j].geno_hom;
+					het_count_gap += !var_info[j].geno_hom;
 				}
-				if (het_count>1 && het_count > ext_marker_perc / 100.0 * (raw[i].sizeMarkers() + raw[i+1].sizeMarkers())) continue;
+				if (het_count_gap>1 && het_count_gap > ext_marker_perc / 100.0 * (raw[i].sizeMarkers() + raw[i+1].sizeMarkers())) continue;
+
+				//not exceeding the heterozygous marker threshold
+				int het_count_after_merge = 0;
+				for (int j=raw[i].start_index; j<=raw[i+1].end_index; ++j)
+				{
+					het_count_after_merge += !var_info[j].geno_hom;
+				}
+				if (het_count_after_merge>1 && 1.0*het_count_after_merge/(raw[i+1].end_index - raw[i].start_index)> ext_max_het_perc / 100.0) continue;
 
 				//not too far apart (bases)
 				if (raw[i+1].start_pos - raw[i].end_pos > ext_size_perc / 100.0 * (raw[i].sizeBases() + raw[i+1].sizeBases())) continue;
@@ -192,7 +201,7 @@ public:
 				//merge
 				raw[i].end_index = raw[i+1].end_index;
 				raw[i].end_pos = raw[i+1].end_pos;
-				raw[i].het_count += raw[i+1].het_count + het_count;
+				raw[i].het_count += raw[i+1].het_count + het_count_gap;
 
 				raw.removeAt(i+1);
 				i-=1;
@@ -325,7 +334,8 @@ public:
 		//merge raw ROHs
 		double ext_marker_perc = getFloat("ext_marker_perc");
 		double ext_size_perc = getFloat("ext_size_perc");
-		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc, exclude_index);
+		double ext_max_het_perc = getFloat("ext_max_het_perc");
+		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc, ext_max_het_perc, exclude_index);
         out << "Merged ROH count: " << regions.count() << QT_ENDL;
         out << QT_ENDL;
 
