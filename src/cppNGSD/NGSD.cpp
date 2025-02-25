@@ -6035,7 +6035,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 				}
 				else if (system_type == "WES")
 				{
-					enrichment_analysis.append(ps_name + "," + system_name + ".bed");
+					enrichment_analysis.append(ps_name + ",DragenEnrichment/" + system_name + ".bed");
 				}
 			}
 			else if (sample_type == "RNA")
