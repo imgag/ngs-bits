@@ -423,7 +423,7 @@ public:
 		QSet<QByteArray> bad_hpo_terms;
 		QByteArray source = "Decipher";
 		int lineCount = 0;
-		QRegExp mim_exp("([0-9]{6})");
+        QRegularExpression mim_exp("([0-9]{6})");
 		while(! fp->atEnd())
 		{
 			lineCount++;
@@ -449,7 +449,7 @@ public:
 				foreach (const QByteArray& term, hpo_terms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
-					if (term_db_id != -1 && mim_exp.indexIn(disease_num) != -1)
+                    if (term_db_id != -1 && mim_exp.match(disease_num).hasMatch())
 					{
 						ExactSources e_src = ExactSources();
 						e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
@@ -478,7 +478,7 @@ public:
 						countT2G++;
 						if (debug) out << "Deciper\tTERM2GENE\tTERM,DISEASE,GENE\t" << term << "\t''\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
 
-						if (mim_exp.indexIn(disease_num) != -1)
+                        if (mim_exp.match(disease_num).hasMatch())
 						{
 							e_src = ExactSources();
 							e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
@@ -493,7 +493,7 @@ public:
 						bad_hpo_terms.insert(term);
 					}
 				}
-				if (mim_exp.indexIn(disease_num) != -1)
+                if (mim_exp.match(disease_num).hasMatch())
 				{
 					ExactSources e_src = ExactSources();
 					e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
@@ -907,8 +907,8 @@ public:
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			QSharedPointer<QFile> fp = Helper::openFileForReading(omim_file);
-			QRegExp mim_exp("([0-9]{6})");
-			QRegExp evi_exp("(\\([1-4]{1}\\))");
+            QRegularExpression mim_exp("([0-9]{6})");
+            QRegularExpression evi_exp("(\\([1-4]{1}\\))");
 
 			while(!fp->atEnd())
 			{
@@ -921,14 +921,15 @@ public:
 				QByteArray mim_number = parts[2].trimmed(); // mim number for gene
 				QByteArray omim_evi = "";
 
-				if (mim_exp.indexIn(pheno)!=-1)
+                QRegularExpressionMatch mim_exp_match = mim_exp.match(pheno);
+                if (mim_exp_match.hasMatch())
 				{
-					mim_number = mim_exp.cap().toUtf8(); // mim number for phenotype
+                    mim_number = mim_exp_match.captured(1).toUtf8(); // mim number for phenotype
 				}
-
-				if (evi_exp.indexIn(pheno) != -1)
+                QRegularExpressionMatch evi_exp_match = evi_exp.match(pheno);
+                if (evi_exp_match.hasMatch())
 				{
-					omim_evi = evi_exp.cap().toUtf8(); // evidence for relation
+                    omim_evi = evi_exp_match.captured(1).toUtf8(); // evidence for relation
 				}
 
 				foreach(QByteArray gene, genes)

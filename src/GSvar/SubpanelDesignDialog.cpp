@@ -3,6 +3,8 @@
 #include "GSvarHelper.h"
 #include <GUIHelper.h>
 #include <QMessageBox>
+#include <QSortFilterProxyModel>
+#include <QStringListModel>
 
 SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	: QDialog(parent)
@@ -34,9 +36,14 @@ QString SubpanelDesignDialog::lastCreatedSubPanel()
 
 void SubpanelDesignDialog::createSubpanelCompleter()
 {
-	completer_ = new QCompleter(subpanel_names_);
-	completer_->setCaseSensitivity(Qt::CaseInsensitive);
-	ui_.name->setCompleter(completer_);
+    // completer_ = new QCompleter(subpanel_names_);
+    // completer_->setCaseSensitivity(Qt::CaseInsensitive);
+    // ui_.name->setCompleter(completer_);
+    QStringListModel *model = new QStringListModel(subpanel_names_);
+    QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel();
+    proxy_model->setSourceModel(model);
+    proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    completer_ = new QCompleter(proxy_model);
 }
 
 void SubpanelDesignDialog::checkAndCreatePanel()
@@ -49,7 +56,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
 	//name check name
 	QString name = getName(true);
-	if (name.isEmpty() || !QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(name))
+    if (name.isEmpty() || !QRegularExpression("[0-9a-zA-Z_\\.]+").match(name).hasMatch())
 	{
 		addMessage("Name '" + name + "' is empty or contains invalid characters!", true, true);
 		return;

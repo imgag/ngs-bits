@@ -20,9 +20,9 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/HgvsToVcf_init.sql"));
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in1.tsv") + " -out out/HgvsToVcf_out1.vcf -test" + " -ref " + ref_file);
-		REMOVE_LINES("out/HgvsToVcf_out1.vcf", QRegExp("^##fileDate="));
-		REMOVE_LINES("out/HgvsToVcf_out1.vcf", QRegExp("^##reference="));
-		REMOVE_LINES("out/HgvsToVcf_out1.vcf", QRegExp("^##INFO=<ID=count,Number"));
+        REMOVE_LINES("out/HgvsToVcf_out1.vcf", QRegularExpression("^##fileDate="));
+        REMOVE_LINES("out/HgvsToVcf_out1.vcf", QRegularExpression("^##reference="));
+        REMOVE_LINES("out/HgvsToVcf_out1.vcf", QRegularExpression("^##INFO=<ID=count,Number"));
 		COMPARE_FILES("out/HgvsToVcf_out1.vcf", TESTDATA("data_out/HgvsToVcf_out1.vcf"));
 		VCF_IS_VALID("out/HgvsToVcf_out1.vcf");
 	}
@@ -39,8 +39,8 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/HgvsToVcf_init.sql"));
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in2.tsv") + " -out out/HgvsToVcf_out2.vcf -test" + " -ref " + ref_file);
-		REMOVE_LINES("out/HgvsToVcf_out2.vcf", QRegExp("^##fileDate="));
-		REMOVE_LINES("out/HgvsToVcf_out2.vcf", QRegExp("^##reference="));
+        REMOVE_LINES("out/HgvsToVcf_out2.vcf", QRegularExpression("^##fileDate="));
+        REMOVE_LINES("out/HgvsToVcf_out2.vcf", QRegularExpression("^##reference="));
 		COMPARE_FILES("out/HgvsToVcf_out2.vcf", TESTDATA("data_out/HgvsToVcf_out2.vcf"));
 		VCF_IS_VALID("out/HgvsToVcf_out2.vcf");
 	}
@@ -57,8 +57,8 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/HgvsToVcf_init.sql"));
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in2.tsv") + " -out out/HgvsToVcf_out3.vcf -test" + " -input_info_field test_name -ref " + ref_file);
-		REMOVE_LINES("out/HgvsToVcf_out3.vcf", QRegExp("^##fileDate="));
-		REMOVE_LINES("out/HgvsToVcf_out3.vcf", QRegExp("^##reference="));
+        REMOVE_LINES("out/HgvsToVcf_out3.vcf", QRegularExpression("^##fileDate="));
+        REMOVE_LINES("out/HgvsToVcf_out3.vcf", QRegularExpression("^##reference="));
 		COMPARE_FILES("out/HgvsToVcf_out3.vcf", TESTDATA("data_out/HgvsToVcf_out3.vcf"));
 		VCF_IS_VALID("out/HgvsToVcf_out3.vcf");
 	}
@@ -75,9 +75,9 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/HgvsToVcf_init.sql"));
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in4.tsv") + " -out out/HgvsToVcf_out4.vcf -test" + " -ref " + ref_file);
-		REMOVE_LINES("out/HgvsToVcf_out4.vcf", QRegExp("^##fileDate="));
-		REMOVE_LINES("out/HgvsToVcf_out4.vcf", QRegExp("^##reference="));
-		REMOVE_LINES("out/HgvsToVcf_out4.vcf", QRegExp("^##INFO=<ID=count,Number"));
+        REMOVE_LINES("out/HgvsToVcf_out4.vcf", QRegularExpression("^##fileDate="));
+        REMOVE_LINES("out/HgvsToVcf_out4.vcf", QRegularExpression("^##reference="));
+        REMOVE_LINES("out/HgvsToVcf_out4.vcf", QRegularExpression("^##INFO=<ID=count,Number"));
 		COMPARE_FILES("out/HgvsToVcf_out4.vcf", TESTDATA("data_out/HgvsToVcf_out4.vcf"));
 		VCF_IS_VALID("out/HgvsToVcf_out4.vcf");
 	}
@@ -94,9 +94,9 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/HgvsToVcf_init.sql"));
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in5.tsv") + " -out out/HgvsToVcf_out5.vcf -test" + " -ref " + ref_file);
-		REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegExp("^##fileDate="));
-		REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegExp("^##reference="));
-		REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegExp("^##INFO=<ID=count,Number"));
+        REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegularExpression("^##fileDate="));
+        REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegularExpression("^##reference="));
+        REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegularExpression("^##INFO=<ID=count,Number"));
 		COMPARE_FILES("out/HgvsToVcf_out5.vcf", TESTDATA("data_out/HgvsToVcf_out5.vcf"));
 		VCF_IS_VALID("out/HgvsToVcf_out5.vcf");
 	}

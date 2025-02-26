@@ -3007,8 +3007,8 @@ private slots:
 		report_worker.checkAnnotation(vl);
 		report_worker.writeRtf("out/tumor_only_report.rtf");
 
-		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
-		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QCoreApplication::applicationName().toUtf8())); //application name and version
+        REMOVE_LINES("out/tumor_only_report.rtf", QRegularExpression(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
+        REMOVE_LINES("out/tumor_only_report.rtf", QRegularExpression(QCoreApplication::applicationName().toUtf8())); //application name and version
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 
 
