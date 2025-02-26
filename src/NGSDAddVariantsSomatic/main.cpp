@@ -29,13 +29,14 @@ public:
 		addInfile("sv", "SV list in TSV format (as produced by megSAP).", true, true);
 		addFlag("force", "Force import of variants, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
+		addFloat("max_af", "Maximum allele frequency of small variants to import (gnomAD) for import of tumor-only.", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
 		addFlag("no_time", "Disable timing output.");
 	}
 
 	//import SNVs/INDELs from tumor-normal GSVar file
-	void importSmallVariants(NGSD& db, QTextStream& out, QString t_ps_name, QString n_ps_name, bool no_time, bool var_force)
+	void importSmallVariants(NGSD& db, QTextStream& out, QString t_ps_name, QString n_ps_name, bool debug, bool no_time, bool var_force)
 	{
 		QString filename = getInfile("var");
 		if(filename=="") return;
@@ -104,7 +105,8 @@ public:
 
 
 		int c_add, c_update;
-		QList<int> variant_ids = db.addVariants(variants, 1.0, c_add, c_update);
+		double max_af = is_tumor_only ? getFloat("max_af") : 1.0;
+		QList<int> variant_ids = db.addVariants(variants,  max_af, c_add, c_update);
         out << "Imported variants (added:" << c_add << " updated:" << c_update << ")" << QT_ENDL;
 		sub_times << ("adding variants took: " + Helper::elapsedTime(sub_timer));
 
@@ -121,7 +123,11 @@ public:
 		db.transaction();
 		for(int i=0; i<variants.count(); ++i)
 		{
-			q_insert.bindValue(0, variant_ids[i]);
+			//skip high-AF variants or too long variants
+			int variant_id = variant_ids[i];
+			if (variant_id==-1) continue;
+
+			q_insert.bindValue(0, variant_id);
 			q_insert.bindValue(1, variants[i].annotations()[i_frq]);
 			q_insert.bindValue(2, variants[i].annotations()[i_depth]);
 			q_insert.bindValue(3, variantQuality(variants[i], i_qual));
@@ -129,6 +135,14 @@ public:
 		}
 		db.commit();
 		sub_times << ("Adding detected somatic variants took: " + Helper::elapsedTime(sub_timer));
+
+		//output
+		int c_skipped = variant_ids.count(-1);
+		out << "Imported " << (variant_ids.count()-c_skipped) << " detected variants" << QT_ENDL;
+		if (debug)
+		{
+			out << "DEBUG: Skipped " << c_skipped << " high-AF variants!" << QT_ENDL;
+		}
 
 		if(!no_time)
 		{
@@ -409,7 +423,7 @@ public:
 		SampleData sample_data = db.getSampleData(db.sampleId(t_ps));
 		if (!sample_data.is_tumor) THROW(ArgumentException, "Cannot import variant data for sample " + t_ps +"-" + n_ps + ": the sample is not a somatic sample according to NGSD!");
 
-		importSmallVariants(db, stream, t_ps, n_ps, no_time, force);
+		importSmallVariants(db, stream, t_ps, n_ps, debug, no_time, force);
 
 		if (!n_ps.isEmpty()) //tumor-normal pair
 		{

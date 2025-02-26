@@ -187,7 +187,7 @@ public:
         out << "Imported " << (variant_ids.count()-c_skipped) << " detected variants" << QT_ENDL;
 		if (debug)
 		{
-            out << "DEBUG: Skipped " << variant_ids.count(-1) << " high-AF variants!" << QT_ENDL;
+			out << "DEBUG: Skipped " << c_skipped << " high-AF variants!" << QT_ENDL;
 		}
 
 		//output timing

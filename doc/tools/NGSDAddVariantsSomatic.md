@@ -1,5 +1,5 @@
 ### NGSDAddVariantsSomatic tool help
-	NGSDAddVariantsSomatic (2025_01-25-g1d2b52ea)
+	NGSDAddVariantsSomatic (2025_01-55-gd44a7c92)
 	
 	Imports variants of a tumor-normal processed sample into the NGSD.
 	
@@ -19,6 +19,8 @@
 	                    Default value: 'false'
 	  -out <file>       Output file. If unset, writes to STDOUT.
 	                    Default value: ''
+	  -max_af <float>   Maximum allele frequency of small variants to import (gnomAD) for import of tumor-only.
+	                    Default value: '0.05'
 	  -test             Uses the test database instead of on the production database.
 	                    Default value: 'false'
 	  -debug            Enable verbose debug output.
@@ -34,6 +36,6 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDAddVariantsSomatic changelog
-	NGSDAddVariantsSomatic 2025_01-25-g1d2b52ea
+	NGSDAddVariantsSomatic 2025_01-55-gd44a7c92
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
