@@ -66,6 +66,32 @@ If you need to build a different version of htslib, please follow [these instruc
 
 ## Deployment
 
+Qt comes with a deployment tool for Mac computers. This tool helps finding and copying dependencies of an app. However, it does not work correctly. Some manual work and twicking are necessary afterwards (possibly works better in Qt 6, which runs natively on Apple Silicon nachines). Following these steps to create a Mac bundle: 
+   
+    > /opt/homebrew/Cellar/qt@5/5.15.16/bin/macdeployqt GSvar.app -dmg -verbose=2 GSvar.app -libpath=/Users/megalex/github/ngs-bits/bin
+    > xattr -cr GSvar.app
+    > install_name_tool -change /opt/homebrew/opt/mysql/lib/libmysqlclient.24.dylib @executable_path/../Frameworks/libmysqlclient.24.dylib GSvar.app/Contents/PlugIns/sqldrivers/libqsqlmysql.dylib
+	> cp -r genomes/ GSvar.app/Contents/MacOS
+    > cp GSvar_filters.ini GSvar.app/Contents/MacOS
+    > cp GSvar_filters_cnv.ini GSvar.app/Contents/MacOS
+    > cp GSvar_filters_sv.ini GSvar.app/Contents/MacOS
+    > cp GSvar_special_regions.tsv GSvar.app/Contents/MacOS
+    > cp cloud_settings_template.ini GSvar.app/Contents/MacOS
+    > codesign --deep --force --options runtime --sign "Apple Development: FIRST_NAME LAST_NAME (XXXXXXXX)" GSvar.app
+The last step sings the app with a digital signature. It is recommended to have a devepers account, which allows distributing your app easier (and even publishing it in the App Store)
+
+## Server update (for cloud instances)
+
+Steps to update an existing cloud instance of GSvar server
+	
+	> git pull
+	> git status
+    > git submodule update --recursive --init
+	> sudo systemctl stop gsvar.service
+    > make build_libs_release build_server_release
+    > sudo systemctl start gsvar.service
+
+
 For yet unknown reasons, GSvar could not detect *.dylib files located at the same folder on testing machines. It searches for the libraries at /usr/local/lib instead.
 
 Currently used temporary fix looks like that:
