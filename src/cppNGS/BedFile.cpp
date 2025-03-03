@@ -89,7 +89,7 @@ void BedFile::append(const BedLine& line)
 	}
 	if (line.start()<1 || line.end()<1 || line.start()>line.end())
 	{
-		THROW(ArgumentException, "Invalid BED line range '" + QString::number(line.start()) + "' to '" + QString::number(line.end()) + "'!");
+		THROW(ArgumentException, "Invalid BED line range '" + QString::number(line.start()) + "' to '" + QString::number(line.end()) + "'! (line: " + line.toStringWithAnnotations() + ")");
 	}
 
 	lines_.append(line);

@@ -135,8 +135,10 @@ public:
 				QByteArrayList cached_parts = output_buffer.at(buffer_pos).split('\t');
 				Helper::trim(cached_parts);
 				// Keep variant with higher quality
-				int qual_current = Helper::toInt(parts.at(VcfFile::QUAL), "VCF quality value (current varinat)", line);
-				int qual_cache =  Helper::toInt(cached_parts.at(VcfFile::QUAL), "VCF quality value (cached variant)", line);
+				int qual_current = -1;
+				int qual_cache = -1;
+				if (parts.at(VcfFile::QUAL) != ".") qual_current = Helper::toInt(parts.at(VcfFile::QUAL), "VCF quality value (current varinat)", line);
+				if (cached_parts.at(VcfFile::QUAL) != ".") qual_cache =  Helper::toInt(cached_parts.at(VcfFile::QUAL), "VCF quality value (cached variant)", line);
 
 				if (qual_current > qual_cache)
 				{
@@ -153,7 +155,9 @@ public:
 			}
 			else //write variant to file
 			{
-				id_buffer_mapping.insert(manta_id_prefix, buffer_idx);
+				//Don't modify BNDs
+
+				if (!parts.at(VcfFile::INFO).contains("SVTYPE=BND")) id_buffer_mapping.insert(manta_id_prefix, buffer_idx);
 				//write line to buffer
 				output_buffer.append(parts.join("\t") + "\n");
 				buffer_idx++;

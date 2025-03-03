@@ -226,7 +226,8 @@ public:
 							//comma is not valid
 							if (sample_values[j].contains(',')) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
 							//only one allele (chrX/Y for males) or two alleles is valid, e.g. 0, 1, 0/1, 0|1, ...
-							if (sample_values[j].count()!=1 && sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
+							int n_genotypes = QString(sample_values.at(j)).replace("|", "/").split('/').count();
+							if (n_genotypes!=1 && n_genotypes!=2) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
 
 							//check for phased GT
 							bool phased = sample_values[j].contains('|');
