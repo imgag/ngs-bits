@@ -34,21 +34,21 @@ private slots:
 
     void test_xml_validation_against_schema()
 	{
-        QString xml_error = XmlHelper::isValidXml(":data/somatic_report.xml", ":/data/SomaticReport.xsd");
+        QString xml_error = XmlHelper::isValidXml(TESTDATA("data/somatic_report.xml"), TESTDATA("data/SomaticReport.xsd"));
         if(xml_error!= "")
         {
             THROW(ProgrammingException, "Invalid somatic report XML file:\n" + xml_error);
         }
         IS_TRUE(xml_error.isEmpty());
 
-        xml_error = XmlHelper::isValidXml(":data/germline_report1.xml", ":/data/GermlineReport.xsd");
+        xml_error = XmlHelper::isValidXml(TESTDATA("data/germline_report1.xml"), TESTDATA("data/GermlineReport.xsd"));
         if(xml_error!= "")
         {
             THROW(ProgrammingException, "Invalid germline report XML file:\n" + xml_error);
         }
         IS_TRUE(xml_error.isEmpty());
 
-        xml_error = XmlHelper::isValidXml(":data/tumor_only_report_broken_schema.xml", ":/data/TumorOnlyNGSReport_v1.xsd");
+        xml_error = XmlHelper::isValidXml(TESTDATA("data/tumor_only_report_broken_schema.xml"), TESTDATA("/data/TumorOnlyNGSReport_v1.xsd"));
         IS_FALSE(xml_error.isEmpty());
 	}
 };
