@@ -1,5 +1,5 @@
 
-QT       += gui widgets network sql xml xmlpatterns printsupport charts svg
+QT       += gui widgets network sql xml printsupport charts svg
 QTPLUGIN += QSQLMYSQL
 
 TARGET = MVHub

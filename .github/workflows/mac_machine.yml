@@ -19,7 +19,7 @@ jobs:
     - name: Install Python 3
       run: brew install python@3.10
     - name: Setup other dependencies
-      run: brew install lzlib
+      run: brew install lzlib pkg-config libxml2
     - name: Install Qt 5
       run: brew install qt@5
     - name: Link Qt installation      

@@ -58,6 +58,7 @@ Just import your database dump and you are ready to go.
 
 Just execute the following make commands:
 
+    > brew install lzlib pkg-config libxml2
     > make build_3rdparty
 	> make build_libs_release
 	> make build_tools_release
