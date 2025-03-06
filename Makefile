@@ -245,11 +245,9 @@ build_libxml2:
 	cd libxml2 && ./autogen.sh --with-schemas --with-schematron --with-minimum
 	cd libxml2 && make
 	cd libxml2 && make install
-	cd libxml2 && make clean
 	cp libxml2/.libs/libxml* bin/
 
-clean_libxml2:
-	cd libxml2 && make clean
+clean_libxml2:	
 	rm -rf libxml2/.libs bin/libxml*
 
 clean_3rdparty: clean_htslib clean_libxml2
