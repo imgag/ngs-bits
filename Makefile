@@ -240,7 +240,18 @@ build_htslib:
 clean_htslib:
 	cd htslib && make clean
 	rm -rf htslib/share htslib/lib htslib/include htslib/bin bin/libhts*
+	
+build_libxml2:
+	cd libxml2 && ./autogen.sh --with-schemas --with-schematron --with-minimum
+	cd libxml2 && make
+	cd libxml2 && make install
+	cd libxml2 && make clean
+	cp libxml2/.libs/libxml* bin/
 
-clean_3rdparty: clean_htslib
+clean_libxml2:
+	cd libxml2 && make clean
+	rm -rf libxml2/.libs bin/libxml*
 
-build_3rdparty: clean_3rdparty build_htslib
+clean_3rdparty: clean_htslib clean_libxml2
+
+build_3rdparty: clean_3rdparty build_htslib build_libxml2
