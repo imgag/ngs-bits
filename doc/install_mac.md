@@ -118,10 +118,10 @@ _Note:_ The above mentioned processes have been tested on Intel-based Macs. It r
 At the moment GSvar is distributed as an individual DMG file (not through the official App Store). It may cause some inconveniencies due to the Mac OS privacy and security settings. GSvar needs to be added as an exception, since Mac OS cannot establish or verify where the app comes from. Follow these steps to launch GSvar:
 
 - Download DMG file
-- Double click the file, you well see the app container (this may take several minutes, since the operating system will be performing some checks)
-- Copy-paste or drag and drag-and-drop GSvar into your `Applications` folder
+- Double click on the file, you will see the app container (this may take several minutes, since the operating system will be performing some checks)
+- Copy-paste or drag-and-drop GSvar into your `Applications` folder
 - Launch GSvar from `Applications` folder or using `Spotlight`. Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the drop-down list next to the `Allow applications from`. If choosing the `App Store & Known Developers` option does not solve the problem, you will need to disable `Gatekeeper` by executing `sudo spctl --master-disable` in the terminal. After that `Anywhere` option will become available
-- During the launch GSvar will ask to perform its automatic configuration, press `Yes`. It will generate `settings.ini` file containing settings tuned to your setup
+- During the launch GSvar will ask to perform its automatic configuration, press `Yes`. It will generate `settings.ini` file containing settings tuned to your system
 
 ## IGV installation
 - Download IGV from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/). Choose the `Command line IGV and igvtools for all platforms` version
