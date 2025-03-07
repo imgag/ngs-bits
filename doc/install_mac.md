@@ -113,6 +113,20 @@ GSvar can be build from inside Qt Creator by using its standard mechanisms:
 
 _Note:_ The above mentioned processes have been tested on Intel-based Macs. It remains unknown if GSvar can be compiled natively for M1 CPUs (Qt 5 does not officially/completly support M1 chips yet). However, they claim it works through the Rosetta translation layer, native arm64 support seems to be under development. Qt 6 should officially support Apple Silicon.
 
+## Running GSvar client app
+
+At the moment GSvar is distributed as an individual DMG file (not through the official App Store). It may cause some inconveniencies due to the Mac OS privacy and security settings. GSvar needs to be added as an exception, since Mac OS cannot establish or verify where the app comes from. Follow these steps to launch GSvar:
+
+- Download DMG file
+- Double click the file, you well see the app container (this may take several minutes, since the operating system will be performing some checks)
+- Copy-paste or drag and drag-and-drop GSvar into your `Applications` folder
+- Laucnh GSvar from `Applications` folder or using `Spotlight`. Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the dropdown list next to the `Allow applications from`
+- During the launch GSvar will ask to perform its automatic configuraton, press `Yes`. It will generate `settings.ini` file containing settings tuned to your setup
+
+## IGV installation
+- run `brew install openjdk`, since IGV requires Java
+- To use IGV, you will have to install and configure it manually
+
 ## Integration with IGV
 
 For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
