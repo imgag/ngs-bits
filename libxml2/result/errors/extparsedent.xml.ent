@@ -1,3 +1,0 @@
-./test/errors/extparsedent.xml:5: I/O warning : failed to load "/etc/doesnotexist": No such file or directory
-<root>&c;</root>
-         ^
