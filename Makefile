@@ -250,6 +250,6 @@ build_libxml2:
 clean_libxml2:	
 	rm -rf libxml2/.libs bin/libxml*
 
-clean_3rdparty: clean_htslib clean_libxml2
+clean_3rdparty: clean_htslib
 
-build_3rdparty: clean_3rdparty build_htslib build_libxml2
+build_3rdparty: clean_3rdparty build_htslib
