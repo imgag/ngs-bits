@@ -440,7 +440,11 @@ void SgeStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJob& job, i
 	QByteArrayList output;
 	if (!job.sge_id.isEmpty()) // not started yet => nothing to cancel
 	{
-		Helper::executeCommand("qdel", QStringList() << job.sge_id, &output);
+		int exit_code = Helper::executeCommand("qdel", QStringList() << job.sge_id, &output);
+		if (exit_code!=0)
+		{
+			Log::warn("qdel " + job.sge_id + "' failed with exit code " + QString::number(exit_code));
+		}
 	}
 
 	//update NGSD
