@@ -4,8 +4,8 @@ CONFIG += c++11
 #base settings
 QT += core
 QT -= gui
-QT += xmlpatterns
 QT += xml
+QT += network
 
 CONFIG   += console
 CONFIG   -= app_bundle

@@ -4,7 +4,8 @@ CONFIG += c++11
 #base settings
 QT       -= gui
 QT       += sql
-QT       += xml xmlpatterns
+QT       += xml
+QT       += network
 QTPLUGIN += QSQLMYSQL
 TEMPLATE = lib
 TARGET = cppREST

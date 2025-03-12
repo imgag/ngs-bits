@@ -20,6 +20,9 @@ We have pre-built `htslib 1.16.1` for Windows and it can be found inside the rep
 
 If you want to use a different version, e.g. when testing the latest version of htslib, there is a [manual on how to build htslib](build_htslib.md#windows) available.
 
+### libxml2
+[libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2_win_64.zip` into `ngs-bits\`. Qt Creator will detect the library files and headers while compiling GSvar.
+
 
 ### MySQL driver
 

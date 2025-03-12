@@ -10,11 +10,9 @@ ngs-bits depends on the following software to be installed
 * _git_ (to extract the version hash)
 * __optional:__ python and matplotlib (for plot generation in QC tools)
 
-For example, the installation of the dependencies using Ubuntu 20.04 looks like that:
+For example, the installation of the dependencies using Ubuntu 22.04 looks like that:
 
-        > sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5sql5-odbc libqt5charts5-dev libqt5svg5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
-
-For Ubuntu 22.04 or 22.04 use the `qtbase5-dev` package instead of `qt5-default`.
+        > sudo apt-get install git make g++ qtbase5-dev libqt5sql5-mysql libqt5sql5-odbc libqt5charts5-dev libqt5svg5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev pkg-config libxml2 libxml2-dev
     
 ### Resolving proxy issues with git
 

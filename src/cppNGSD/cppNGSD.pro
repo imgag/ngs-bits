@@ -3,7 +3,7 @@ CONFIG += c++11
 
 #base settings
 QT       -= gui
-QT       += sql xml xmlpatterns
+QT       += sql xml network
 QTPLUGIN += QSQLMYSQL
 TEMPLATE = lib
 TARGET = cppNGSD
