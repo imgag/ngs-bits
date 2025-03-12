@@ -119,7 +119,7 @@ public:
 						{
 							if (parts[c]!=content_cols[i])
 							{
-								THROW(FileParseException, "Mismatch of colum '" + cols[i] + "' in file '" + in[s] + "'. Expected '" + content_cols[i] + "', but found '" + parts[c] + "'!");
+								THROW(FileParseException, "Mismatch of column '" + cols[i] + "' in file '" + in[s] + "'. Expected '" + content_cols[i] + "', but found '" + parts[c] + "'!");
 							}
 							++i;
 						}

@@ -1,5 +1,5 @@
 ### TsvSlice tool help
-	TsvSlice (2024_08-113-g94a3b440)
+	TsvSlice (2024_11-86-g94c45dea)
 	
 	Extracts/reorders columns of a TSV file.
 	
@@ -13,6 +13,8 @@
 	                    Default value: ''
 	  -numeric          If set, column names are interpreted as 1-based column numbers.
 	                    Default value: 'false'
+	  -rm               If set, the columns given in 'cols' are removed instead of extracted.
+	                    Default value: 'false'
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -22,6 +24,6 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### TsvSlice changelog
-	TsvSlice 2024_08-113-g94a3b440
+	TsvSlice 2024_11-86-g94c45dea
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

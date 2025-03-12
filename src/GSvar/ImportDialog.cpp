@@ -62,9 +62,9 @@ void ImportDialog::setupGUI()
 	{
 		setWindowTitle("Import processed samples");
 		ui_.label->setText("Batch import of processed samples (paste tab-separated data to table)");
-		labels << "sample" << "project" << "run name" << "lane" << "mid1 name" << "mid2 name" << "operator" << "processing system" << "processing input [ng]" << "molarity [nM]" << "comment" << "normal processed sample" << "processing modus" << "batch number";
+		labels << "sample" << "project" << "run name" << "lane" << "mid1 name" << "mid2 name" << "operator" << "processing system" << "processing input [ng]" << "molarity [nM]" << "comment" << "normal processed sample" << "processing modus" << "batch number" << "urgent";
 		db_table_ = "processed_sample";
-		db_fields_ << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id" << "processing_modus" << "batch_number";
+		db_fields_ << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id" << "processing_modus" << "batch_number" << "urgent";
 		db_extra_fields_ << "process_id";
 	}
 	else if (type_==MIDS)
@@ -289,7 +289,7 @@ bool ImportDialog::addItem(int r, int c, const QString& value, const QString& ac
 	//color item if not valid
 	if(validation_error!="")
 	{
-		item->setBackgroundColor("#FF9600");
+        item->setBackground(QBrush(QColor("#FF9600")));
 		item->setToolTip(validation_error);
 		return false;
 	}
@@ -297,7 +297,7 @@ bool ImportDialog::addItem(int r, int c, const QString& value, const QString& ac
 	//color item if not valid
 	if(!notice.trimmed().isEmpty())
 	{
-		item->setBackgroundColor("#BCBCBC");
+        item->setBackground(QBrush(QColor("#BCBCBC")));
 		item->setToolTip(notice);
 	}
 

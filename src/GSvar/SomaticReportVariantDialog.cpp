@@ -37,7 +37,7 @@ SomaticReportVariantDialog::SomaticReportVariantDialog(QString variant, SomaticR
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
 
 	//hide sv override options
-	foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_sv.*")))
+    foreach(QWidget* widget, findChildren<QWidget*>(QRegularExpression("manual_sv.*")))
 	{
 		widget->setVisible(false);
 	}
@@ -70,7 +70,7 @@ SomaticReportVariantDialog::SomaticReportVariantDialog(QString variant, SomaticR
 		ui_.exclude_unclear_effect->setVisible(true);
 
 
-		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_sv.*")))
+        foreach(QWidget* widget, findChildren<QWidget*>(QRegularExpression("manual_sv.*")))
 		{
 			widget->setVisible(true);
 		}

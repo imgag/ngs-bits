@@ -390,7 +390,7 @@ void SomaticReportHelper::germlineSnvForQbic(QString path_target_folder)
 	stream << "chr" << "\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t" << "genotype" << "\t";
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t" << "transcript" << "\t";
 	stream << "functional_class" << "\t" << "effect";
-	stream << endl;
+    stream << QT_ENDL;
 
 	saveReportData("QBIC_germline_snv.tsv", path_target_folder, content);
 }
@@ -405,7 +405,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 	stream << "chr" <<"\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t";
 	stream <<"allele_frequency_tumor" << "\t" << "coverage" << "\t";
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t";
-	stream << "transcript" << "\t" << "functional_class" << "\t" << "effect" << endl;
+    stream << "transcript" << "\t" << "functional_class" << "\t" << "effect" << QT_ENDL;
 
 	int i_tumor_af = somatic_vl_.annotationIndexByName("tumor_af",true,true);
 	int i_tumor_depth = somatic_vl_.annotationIndexByName("tumor_dp",true,true);
@@ -464,7 +464,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 
 		stream << effect;
 
-		stream << endl;
+        stream << QT_ENDL;
 	}
 	saveReportData("QBIC_somatic_snv.tsv", path_target_folder, content);
 }
@@ -476,7 +476,7 @@ void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t" << "transcript" << "\t";
 	stream << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect";
-	stream << endl;
+    stream << QT_ENDL;
 
 	saveReportData("QBIC_germline_cnv.tsv", path_target_folder, content);
 }
@@ -488,7 +488,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 	QTextStream stream(&content);
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t";
-	stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << endl;
+    stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << QT_ENDL;
 
 	for(int i=0; i < cnvs_.count(); ++i)
 	{
@@ -575,7 +575,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		}
 		stream << (gene_effects.empty() ? "NA" : gene_effects.join(";") );
 
-		stream << endl;
+        stream << QT_ENDL;
 	}
 	saveReportData("QBIC_somatic_cnv.tsv", path_target_folder, content);
 }
@@ -585,7 +585,7 @@ void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
 	QByteArray content;
 	QTextStream stream(&content);
 
-	stream << "type" << "\t" << "gene" << "\t" << "effect" << "\t" << "left_bp" << "\t" << "right_bp" << endl;
+    stream << "type" << "\t" << "gene" << "\t" << "effect" << "\t" << "left_bp" << "\t" << "right_bp" << QT_ENDL;
 
 	saveReportData("QBIC_somatic_sv.tsv", path_target_folder, content);
 }
@@ -596,7 +596,7 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	QTextStream stream(&content);
 
 	stream << "diagnosis" << "\t" << "tumor_content" << "\t" << "pathogenic_germline" << "\t" << "mutational_load" << "\t" << "chromosomal_instability" << "\t" << "quality_flags" << "\t" << "reference_genome";
-	stream << endl;
+    stream << QT_ENDL;
 
 	stream << settings_.icd10 << "\t" << (BasicStatistics::isValidFloat(histol_tumor_fraction_) ? QString::number(histol_tumor_fraction_, 'f', 4) : "NA") << "\t";
 
@@ -620,7 +620,7 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	stream << "\t";
 
 	stream << db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps)).genome;
-	stream << endl;
+    stream << QT_ENDL;
 
 	saveReportData("QBIC_metadata.tsv", path_target_folder, content);
 }
@@ -1198,7 +1198,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			ebm_genes_ << transcript.gene;
 
 			//find somatic SNVs in the same gene: (to keep them at the start)
-			QList<int> indices_sorted = indices.toList();
+            QList<int> indices_sorted = indices.values();
 			std::sort(indices_sorted.begin(), indices_sorted.end());
 			foreach(int i, indices_sorted)
 			{
@@ -1235,7 +1235,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 	//somatic SNVs
 	int i_tum_af = somatic_vl_.annotationIndexByName("tumor_af");
-	QList<int> indices_sorted = indices.toList();
+    QList<int> indices_sorted = indices.values();
 	std::sort(indices_sorted.begin(), indices_sorted.end());
 	foreach(int i, indices_sorted)
 	{
@@ -1556,55 +1556,90 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 {
 	VersatileFile stream(file);
 
-	if (file != "" && stream.exists() && stream.open(QIODevice::ReadOnly))
+	try
 	{
+		//file not present or cannot be opened
+		if (file=="" || !stream.exists() || !stream.open(QIODevice::ReadOnly)) THROW(Exception, "could not open file "+file);
+
+		//init
 		QList<int> cell_widths = {1500, 1500, 1500, 2000, 3422};
+		QByteArray cos_similarity;
+		QByteArray correlation;
+		QList<KeyValuePair> signatures;
 
-		QByteArray content = stream.readAll();
-		QByteArrayList lines = content.split('\n');
-		if (lines.count() < 2) return;
-
-//		QByteArray header = lines[0];
-		QByteArray values = lines[1];
-
-		QByteArrayList parts = values.split(',');
-
-		QByteArray cos_similarity = parts[5];
-		QByteArray correlation = parts[6];
-
-		//if there is only a single resulting signature it has no percentage after it.
-		if (parts[0].trimmed() == parts[1].trimmed())
+		//parse content
+		QByteArrayList lines = stream.readAll().split('\n');
+		if (lines[0].startsWith("##")) //TSV format
 		{
-			RtfTableRow row;
-			row.addCell(doc_.maxWidth(), "Für die Mutationssignaturen des Typs " + type + " konnten keine COSMIC Signaturen identifieziert werden.");
-			table.addRow(row);
-			return;
+			foreach(QByteArray line, lines)
+			{
+				line = line.trimmed();
+				if (line.isEmpty()) continue;
+
+				//header
+				if (line.startsWith("##Cosine Similarity:")) cos_similarity = line.mid(21).trimmed();
+				if (line.startsWith("##Correlation:")) correlation = line.mid(15).trimmed();
+				if (line.startsWith("#")) continue;
+
+				//content
+				QByteArrayList parts = line.split('\t');
+				if (parts.count()!=3) continue;
+
+				QByteArray sig_name = parts[1].replace("Signature ", "");
+				QByteArray sig_perc = parts[2];
+				signatures.append(KeyValuePair(sig_name, sig_perc));
+
+			}
+		}
+		else //CSV format
+		{
+			if (lines.count() < 2) THROW(Exception, "CNV format: not two lines");
+			QByteArrayList parts = lines[1].split(',');
+
+			cos_similarity = parts[5];
+			correlation = parts[6];
+
+			//if there is only a single resulting signature it has no percentage after it.
+			if (parts[0].trimmed() != parts[1].trimmed())
+			{
+				foreach(QByteArray entry, parts[1].split('&'))
+				{
+					entry = entry.replace("Signature ", "").trimmed();
+					if (entry.isEmpty() || !entry.contains(' ')) continue;
+
+					QByteArray sig_name = entry.split(' ')[0];
+					QByteArray sig_perc = entry.split(' ')[1];
+					sig_perc.replace("(", "");
+					sig_perc.replace("%)", "");
+
+					signatures.append(KeyValuePair(sig_name, sig_perc));
+				}
+			}
 		}
 
-		QByteArrayList signatures = (parts[1] + "&").split('&');
-
-		foreach (auto sig, signatures)
+		//create output table
+		if (signatures.isEmpty())
 		{
-			sig = sig.trimmed();
-			if (sig == "") continue;
-			sig.replace("Signature ", "");
-
-			QByteArray sig_name = sig.split(' ')[0];
-			QByteArray sig_perc = sig.split(' ')[1];
-			sig_perc.replace("(", "");
-			sig_perc.replace("%)", "");
-
 			RtfTableRow row;
-			row.addCell(cell_widths[0], sig_name);
-			row.addCell(cell_widths[1], sig_perc.replace(".", ",").trimmed());
-			row.addCell(cell_widths[2], correlation.replace(".", ",").trimmed());
-			row.addCell(cell_widths[3], cos_similarity.replace(".", ",").trimmed());
-			row.addCell(cell_widths[4], descriptions[sig_name]);
-
+			row.addCell(doc_.maxWidth(), "Für die Mutationssignaturen des Typs " + type + " konnten keine COSMIC Signaturen identifiziert werden.");
 			table.addRow(row);
+		}
+		else
+		{
+			foreach (auto sig, signatures)
+			{
+				RtfTableRow row;
+				row.addCell(cell_widths[0], sig.key.toLatin1());
+				row.addCell(cell_widths[1], sig.value.toLatin1().replace(".", ",").trimmed());
+				row.addCell(cell_widths[2], correlation.replace(".", ",").trimmed());
+				row.addCell(cell_widths[3], cos_similarity.replace(".", ",").trimmed());
+				row.addCell(cell_widths[4], descriptions[sig.key.toLatin1()]);
+
+				table.addRow(row);
+			}
 		}
 	}
-	else
+	catch (Exception& /*e*/)
 	{
 		RtfTableRow row;
 		row.addCell(doc_.maxWidth(), "Die Mutationssignaturen des Typs " + type + " konnten nicht berechnet werden.");
@@ -2141,7 +2176,7 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 	}
 	else
 	{
-		limitations_expl += settings_.report_config.limitations().replace("\n","\n\\line\n");
+        limitations_expl += settings_.report_config.limitations().replace("\n","\n\\line\n").toUtf8();
 	}
 	out << RtfParagraph(limitations_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setHorizontalAlignment("j").RtfCode();
 

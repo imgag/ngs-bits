@@ -221,7 +221,7 @@ QByteArray BedpeLine::genotype(const QList<QByteArray>& annotation_headers, bool
 		return "";
 	}
 
-	//check sample colum exists
+	//check sample column exists
 	if (sample_idx < 0) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " must not be less than 0!");
 	sample_idx = format_idx + 1 + sample_idx;
 	if (sample_idx >= annotations_.count()) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " points to a annotation column that does not exist!");
@@ -254,7 +254,7 @@ void BedpeLine::setGenotype(const QList<QByteArray>& annotation_headers, QByteAr
 		THROW(ArgumentException, "Column \"FORMAT\" not found in annotation header!");
 	}
 
-	//check sample colum exists
+	//check sample column exists
 	if (sample_idx < 0) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " must not be less than 0!");
 	sample_idx = format_idx + 1 + sample_idx;
 	if (sample_idx >= annotations_.count()) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " points to a annotation column that does not exist!");
@@ -474,7 +474,7 @@ int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_misma
 QMap <QByteArray,QByteArray> BedpeFile::parseInfoField(QByteArray unparsed_fields)
 {
 	QMap<QByteArray,QByteArray> map = {};
-	QStringList tmp_list = QString(unparsed_fields).replace(">","").replace("<","").replace("##","").simplified().split("\"",QString::SkipEmptyParts);
+    QStringList tmp_list = QString(unparsed_fields).replace(">", "").replace("<", "").replace("##", "").simplified().split("\"", QT_SKIP_EMPTY_PARTS);
 	bool in_quotes = unparsed_fields.at(0) == '\"';
 
 	QStringList parts;
@@ -488,7 +488,7 @@ QMap <QByteArray,QByteArray> BedpeFile::parseInfoField(QByteArray unparsed_field
 		}
 		else //split by , if outside ""
 		{
-			parts.append(tmp.split(',',QString::SkipEmptyParts));
+            parts.append(tmp.split(',', QT_SKIP_EMPTY_PARTS));
 		}
 		in_quotes = !in_quotes;
 	}

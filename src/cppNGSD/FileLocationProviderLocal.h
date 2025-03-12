@@ -22,6 +22,8 @@ public:
 	FileLocation getRepeatExpansionImage(QString locus) const override;
 	FileLocation getRepeatExpansionHistogram(QString locus) const override;
 	FileLocationList getQcFiles() const override;
+	FileLocation getMethylationFile() const override;
+	FileLocation getMethylationImage(QString locus) const override;
 
 	FileLocationList getVcfFiles(bool return_if_missing) const override;
 	FileLocationList getBamFiles(bool return_if_missing) const override;
@@ -38,6 +40,7 @@ public:
 	FileLocationList getExpressionFiles(bool return_if_missing) const override;
 	FileLocationList getExonExpressionFiles(bool return_if_missing) const override;
 	FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const override;
+
 
 	FileLocation getSomaticCnvCoverageFile() const override;
 	FileLocation getSomaticCnvCallFile() const override;

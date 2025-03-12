@@ -443,9 +443,19 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
             case PathType::CFDNA_CANDIDATES:
                 file_list << file_locator->getSomaticCfdnaCandidateFile();
                 break;            
-            case PathType::GSVAR:
-                file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);
-                break;
+			case PathType::METHYLATION:
+				file_list << file_locator->getMethylationFile();
+				break;
+			case PathType::METHYLATION_IMAGE:
+				if (locus.isEmpty())
+				{
+					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
+				}
+				file_list << file_locator->getMethylationImage(locus);
+				break;
+			case PathType::GSVAR:
+				file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);
+				break;
             case PathType::SAMPLE_FOLDER:
             case PathType::FUSIONS_PIC_DIR:
             case PathType::FUSIONS:
@@ -467,8 +477,10 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		}
 	}
 
+
 	for (int i = 0; i < file_list.count(); ++i)
 	{
+		Log::info("file path: " + file_list.at(i).filename);
         QJsonObject cur_json_item;
         QJsonObject cur_json_item_without_token;
 		cur_json_item.insert("id", file_list[i].id);
@@ -889,7 +901,7 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
     process.setProcessChannelMode(QProcess::MergedChannels);
     QString an_vep_out = Helper::tempFileName(".vcf");
     Log::info("Running megSAP >> an_vep.php: " + an_vep_out);
-	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/NGS/an_vep.php" << "-in" << input_vcf << "-out" << an_vep_out);
+	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/an_vep.php" << "-in" << input_vcf << "-out" << an_vep_out);
     bool success = process.waitForFinished(-1);
     Log::error("Exit code = " + QString::number(process.exitCode()));
     if (!success || process.exitCode()>0)
@@ -900,7 +912,7 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
 
     QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
     Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
-	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
+	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
     success = process.waitForFinished(-1);
     if (!success || process.exitCode()>0)
     {

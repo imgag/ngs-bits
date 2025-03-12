@@ -87,7 +87,7 @@ void StringDbParser<NodeType, EdgeType>::parseAliasFile()
     while(!in.atEnd())
     {
 
-        QStringList line = in.readLine().split("\t", QString::SkipEmptyParts);
+        QStringList line = in.readLine().split("\t", QT_SKIP_EMPTY_PARTS);
 
         if(line.size() == 3)
         {
@@ -120,7 +120,7 @@ void StringDbParser<NodeType, EdgeType>::parseStringDbFile()
     // read file line by line, adding all proteins with a HGNC alias and their interactions to the graph
     while(!in.atEnd())
     {
-        QStringList line = in.readLine().split(" ", QString::SkipEmptyParts);
+        QStringList line = in.readLine().split(" ", QT_SKIP_EMPTY_PARTS);
 
         if(line.size() == 3)
         {

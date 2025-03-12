@@ -47,14 +47,14 @@ public:
 		//init
 		NGSD db(getFlag("test"));
 		QTextStream out(stdout);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		// prepare SQL query
 		SqlQuery sql_query = db.getQuery();
 		sql_query.prepare("SELECT rcc.class, cnv.start, cnv.end FROM cnv INNER JOIN report_configuration_cnv rcc ON cnv.id = rcc.cnv_id WHERE rcc.class IN ('4', '5') AND cnv.chr = :0 AND cnv.start <= :1 AND :2 <= cnv.end ");
 
-		out << "annotate TSV file..." << endl;
+        out << "annotate TSV file..." << QT_ENDL;
 
 		// copy comments
 		TSVFileStream cnv_input_file(getInfile("in"));
@@ -112,13 +112,13 @@ public:
 				{
 					p_cnv_stats.annotate = true;
 				}
-				/// at least 10% of the pathogenic CNV overlaps with at least 10% of the current CNV
-				else if (p_cnv_stats.p_cnv_overlap >= 0.1 && p_cnv_stats.cnv_overlap >= 0.1)
+				/// at least 30% of the pathogenic CNV overlaps with at least 30% of the current CNV
+				else if (p_cnv_stats.p_cnv_overlap >= 0.3 && p_cnv_stats.cnv_overlap >= 0.3)
 				{
 					p_cnv_stats.annotate = true;
 				}
-				/// current CNV is fully contained within the pathogenic CNV and represents at least 10% of the pathogenic CNV
-				else if ((start >= p_start && end <= p_end) && p_cnv_stats.p_cnv_overlap >= 0.1)
+				/// current CNV is fully contained within the pathogenic CNV and represents at least 30% of the pathogenic CNV
+				else if ((start >= p_start && end <= p_end) && p_cnv_stats.p_cnv_overlap >= 0.3)
 				{
 					p_cnv_stats.annotate = true;
 				}
@@ -151,7 +151,7 @@ public:
 			output_buffer << tsv_line.join("\t");
 		}
 
-		out << "Writing output file..." << endl;
+        out << "Writing output file..." << QT_ENDL;
 		// open output file and write annotated CNVs to file
 		QSharedPointer<QFile> cnv_output_file = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream output_stream(cnv_output_file.data());
@@ -164,7 +164,7 @@ public:
 		cnv_output_file->close();
 
 
-		out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << endl;
+        out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << QT_ENDL;
 
 	}
 };

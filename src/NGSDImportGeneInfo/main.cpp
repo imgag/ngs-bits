@@ -32,7 +32,7 @@ public:
 		db.tableExists("geneinfo_germline");
 
 		//update gene names to approved symbols
-		out << "Updating gene names..." << endl;
+        out << "Updating gene names..." << QT_ENDL;
 		{
 			SqlQuery query = db.getQuery();
 			query.exec("SELECT symbol FROM geneinfo_germline WHERE symbol NOT IN (SELECT symbol FROM gene)");
@@ -42,14 +42,14 @@ public:
 				auto approved = db.geneToApprovedWithMessage(symbol);
 				if (!approved.second.startsWith("KEPT:"))
 				{
-					out << "  skipped " << symbol << ": " << approved.second << endl;
+                    out << "  skipped " << symbol << ": " << approved.second << QT_ENDL;
 				}
 			}
-			out << endl;
+            out << QT_ENDL;
 		}
 
 		//import gnomAD o/e scores
-		out << "Importing gnomAD constraints..." << endl;
+        out << "Importing gnomAD constraints..." << QT_ENDL;
 		{
 			int c_inserted = 0;
 
@@ -94,7 +94,7 @@ public:
 				auto approved = db.geneToApprovedWithMessage(gene);
 				if (approved.second.startsWith("ERROR:"))
 				{
-					out << "  skipped " << gene << ": " << approved.second << endl;
+                    out << "  skipped " << gene << ": " << approved.second << QT_ENDL;
 					continue;
 				}
 				gene = approved.first;
@@ -132,13 +132,13 @@ public:
 				++c_inserted;
 			}
 
-			out << "  imported constraint info for " << c_inserted << " genes" << endl;
-			out << endl;
+            out << "  imported constraint info for " << c_inserted << " genes" << QT_ENDL;
+            out << QT_ENDL;
 		}
 
 		//gene inheritance from HPO info
-		out << endl;
-		out << "Setting gene inheritance based on info from HPO..." << endl;
+        out << QT_ENDL;
+        out << "Setting gene inheritance based on info from HPO..." << QT_ENDL;
 		{
 
 			SqlQuery update_query = db.getQuery();
@@ -160,7 +160,7 @@ public:
 				//convert HPO terms to values compatible with 'geneinfo_germline' (also corrects for impossible chr-inheritance combos)
 				QStringList inh_hpo_list;
 				QStringList hpo_modes = db.getValues("SELECT ht.name FROM hpo_term ht, hpo_genes hg WHERE hg.hpo_term_id=ht.id AND hg.gene=:0 AND ht.name LIKE '%inheritance%' ORDER BY ht.name DESC", gene);
-				QRegExp digits("\\d");
+                QRegularExpression digits("\\d");
 				foreach(QString mode, hpo_modes)
 				{
 					if (mode=="X-linked recessive inheritance")
@@ -171,7 +171,7 @@ public:
 						}
 						else
 						{
-							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
 						}
 					}
 					if (mode=="X-linked dominant inheritance")
@@ -182,7 +182,7 @@ public:
 						}
 						else
 						{
-							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
 						}
 					}
 					if (mode=="Mitochondrial inheritance")
@@ -193,29 +193,29 @@ public:
 						}
 						else
 						{
-							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
 						}
 					}
 					if (mode=="Autosomal recessive inheritance")
 					{
-						if (digits.indexIn(chr)!=-1)
+                        if (digits.match(chr).hasMatch())
 						{
 							inh_hpo_list << "AR";
 						}
 						else
 						{
-							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
 						}
 					}
 					if (mode=="Autosomal dominant inheritance")
 					{
-						if (digits.indexIn(chr)!=-1)
+                        if (digits.match(chr).hasMatch())
 						{
 							inh_hpo_list << "AD";
 						}
 						else
 						{
-							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
 						}
 					}
 				}
@@ -243,15 +243,15 @@ public:
 				}
 				else
 				{
-					out << "  check inheritance manually: gene=" << gene << " chr=" << chr << " old=" << inh_old << " new=" << inh_new << endl;
+                    out << "  check inheritance manually: gene=" << gene << " chr=" << chr << " old=" << inh_old << " new=" << inh_new << QT_ENDL;
 					++c_check;
 				}
 
 			}
-			out << "  genes without inheritance info: " << c_noinfo << endl;
-			out << "  genes with unchanged inheritance: " << c_unchanged << endl;
-			out << "  genes with updated inheritance: " << c_update << endl;
-			out << "  genes that require manual check: " << c_check << endl;
+            out << "  genes without inheritance info: " << c_noinfo << QT_ENDL;
+            out << "  genes with unchanged inheritance: " << c_unchanged << QT_ENDL;
+            out << "  genes with updated inheritance: " << c_update << QT_ENDL;
+            out << "  genes that require manual check: " << c_check << QT_ENDL;
 		}
 	}
 };

@@ -15,7 +15,7 @@
 #include "Helper.h"
 #include "SampleSimilarity.h"
 #include <QFileInfo>
-#include <QPair>
+#include <utility>
 #include <QThreadPool>
 #include "Histogram.h"
 #include "FilterCascade.h"
@@ -1274,7 +1274,7 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
 	double length_stdev = std::sqrt(sq_sum / lengths.size() - length_mean * length_mean);
 
 	//chromosome list string
-	QList<Chromosome> chr_list = chromosomes.toList();
+    QList<Chromosome> chr_list = chromosomes.values();
 	std::sort(chr_list.begin(), chr_list.end());
 	QString chr_list_str = "";
 	foreach(Chromosome chr, chr_list)
@@ -1857,8 +1857,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	plot1.setYLabel("normal allele frequency");
 	plot1.setXRange(-0.015,1.015);
 	plot1.setYRange(-0.015,1.015);
-	QList< QPair<double,double> > points_black;
-	QList< QPair<double,double> > points_green;
+    QList< std::pair<double,double> > points_black;
+    QList< std::pair<double,double> > points_green;
 	for(int i=0; i<variants.count(); ++i)
 	{
 		double af_tumor = -1;
@@ -1938,14 +1938,14 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields
-		QPair<double,double> point;
+        std::pair<double,double> point;
 		point.first = af_tumor;
 		point.second = af_normal;
 		if (!variants[i].filtersPassed())	points_black.append(point);
 		else points_green.append(point);
 	}
 
-	QList< QPair<double,double> > points;
+    QList< std::pair<double,double> > points;
 	points  << points_black << points_green;
 
 	QString g = "k";
@@ -2152,7 +2152,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			plot3.addVLine(chrom_starts_norm[c]);
 		}
 		//(2) calculate distance for each chromosome and convert it to x-coordinates
-		QList< QPair<double,double> > points3;
+        QList< std::pair<double,double> > points3;
 		QString tmp_chr = "";
 		int tmp_pos = 0;
 		double tmp_offset = 0;
@@ -2165,7 +2165,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			if(tmp_chr == variants[i].chr().str())	//same chromosome
 			{
 				//convert distance to x-Axis position
-				QPair<double,double> point;
+                std::pair<double,double> point;
 				point.first = tmp_offset + double(variants[i].start())/double(genome_size);
 				point.second = variants[i].start() - tmp_pos;
 				if(max < point.second)	max = point.second;
@@ -2395,13 +2395,13 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
 
 	//create analysis chunks (200 lines)
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	QList<WorkerLowOrHighCoverage::Chunk> bed_chunks;
 	if (!random_access)
 	{
 		//determine chr chunks
-		QList<QPair<long, WorkerLowOrHighCoverage::Chunk>> chunks_with_size;
+        QList<std::pair<long, WorkerLowOrHighCoverage::Chunk>> chunks_with_size;
 		foreach(const Chromosome& chr, bed_file.chromosomes())
 		{
 			//determine start index
@@ -2432,12 +2432,12 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 			{
 				bases += bed_file[i].length();
 			}
-			chunks_with_size << qMakePair(bases,  WorkerLowOrHighCoverage::Chunk{bed_file, start, end, "", BedFile()});
+            chunks_with_size << std::make_pair(bases,  WorkerLowOrHighCoverage::Chunk{bed_file, start, end, "", BedFile()});
 		}
 
 		//sort chunks by size
 		std::sort(chunks_with_size.begin(), chunks_with_size.end(),
-			[](const QPair<long, WorkerLowOrHighCoverage::Chunk>& a, const QPair<long, WorkerLowOrHighCoverage::Chunk>& b)
+            [](const std::pair<long, WorkerLowOrHighCoverage::Chunk>& a, const std::pair<long, WorkerLowOrHighCoverage::Chunk>& b)
 			{
 				return a.first > b.first;
 			}
@@ -2446,7 +2446,7 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 		//add chunks ordered by size
 		foreach(const auto& entry, chunks_with_size)
 		{
-			bed_chunks << entry.second;
+            bed_chunks.append(entry.second);
 		}
 	}
 	else
@@ -2463,9 +2463,9 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	if (debug)
 	{
 		QTextStream out(stdout);
-		out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << endl;
-		out << "Creating " << bed_chunks.count() << " chunks took " << Helper::elapsedTime(timer) << endl;
-		out << "Starting processing chunks with " << threads << " threads" << endl;
+        out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << QT_ENDL;
+        out << "Creating " << bed_chunks.count() << " chunks took " << Helper::elapsedTime(timer) << QT_ENDL;
+        out << "Starting processing chunks with " << threads << " threads" << QT_ENDL;
 	}
 
 	//create thread pool
@@ -2477,15 +2477,15 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	{
 		if (!random_access)
 		{
-			if (debug) QTextStream(stdout) << "Creating BED index" << endl;
+            if (debug) QTextStream(stdout) << "Creating BED index" << QT_ENDL;
 			ChromosomalIndex<BedFile> bed_index(bed_file);
 
-			if (debug) QTextStream(stdout) << "Starting worker " << i << endl;
+            if (debug) QTextStream(stdout) << "Starting worker " << i << QT_ENDL;
 			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bed_index, bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
 			thread_pool.start(worker);
 
 			//wait until finished
-			if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << endl;
+            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << QT_ENDL;
 			thread_pool.waitForDone();
 		}
 		else
@@ -2494,13 +2494,13 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 			thread_pool.start(worker);
 
 			//wait until finished
-			if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << endl;
+            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << QT_ENDL;
 			thread_pool.waitForDone();
 		}
 	}
 
 	//debug output
-	if (debug) QTextStream(stdout) << "Writing output" << endl;
+    if (debug) QTextStream(stdout) << "Writing output" << QT_ENDL;
 
 	//check for errors and merge results
 	BedFile output;
@@ -2555,13 +2555,13 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
 
 	//create analysis chunks
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	QList<WorkerAverageCoverage::Chunk> chunks;
 	if (!random_access)
 	{
 		//determine chr chunks
-		QList<QPair<long, WorkerAverageCoverage::Chunk>> chunks_with_size;
+        QList<std::pair<long, WorkerAverageCoverage::Chunk>> chunks_with_size;
 		foreach(const Chromosome& chr, bed_file.chromosomes())
 		{
 			//determine start index
@@ -2592,12 +2592,12 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			{
 				bases += bed_file[i].length();
 			}
-			chunks_with_size << qMakePair(bases,  WorkerAverageCoverage::Chunk{bed_file, start, end, ""});
+            chunks_with_size << std::make_pair(bases,  WorkerAverageCoverage::Chunk{bed_file, start, end, ""});
 		}
 
 		//sort chunks by size
 		std::sort(chunks_with_size.begin(), chunks_with_size.end(),
-			[](const QPair<long, WorkerAverageCoverage::Chunk>& a, const QPair<long, WorkerAverageCoverage::Chunk>& b)
+            [](const std::pair<long, WorkerAverageCoverage::Chunk>& a, const std::pair<long, WorkerAverageCoverage::Chunk>& b)
 			{
 				return a.first > b.first;
 			}
@@ -2606,7 +2606,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		//add chunks ordered by size
 		foreach(const auto& entry, chunks_with_size)
 		{
-			chunks << entry.second;
+            chunks.append(entry.second);
 		}
 	}
 	else
@@ -2624,8 +2624,8 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	if (debug)
 	{
 		QTextStream out(stdout);
-		out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << endl;
-		out << "Creating " << chunks.count() << " chunks took " << Helper::elapsedTime(timer) << endl;
+        out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << QT_ENDL;
+        out << "Creating " << chunks.count() << " chunks took " << Helper::elapsedTime(timer) << QT_ENDL;
 	}
 
 	//create thread pool

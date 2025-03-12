@@ -245,7 +245,7 @@ void CnvWidget::updateGUI()
 		addInfoLine(comment);
 	}
 
-	//determine colum order of annotations
+	//determine column order of annotations
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_cnv", true));
 	QStringList col_order;
 	QList<int> anno_index_order;
@@ -279,8 +279,8 @@ void CnvWidget::updateGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-	if(!is_somatic_) report_variant_indices = report_config_->variantIndices(VariantType::CNVS, false).toSet();
-	else report_variant_indices = somatic_report_config_->variantIndices(VariantType::CNVS, false).toSet();
+    if(!is_somatic_) report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::CNVS, false));
+    else report_variant_indices = LIST_TO_SET(somatic_report_config_->variantIndices(VariantType::CNVS, false));
 
 
 	//show variants
@@ -351,7 +351,7 @@ void CnvWidget::applyFilters(bool debug_time)
 
 	try
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//apply main filter
@@ -415,7 +415,7 @@ void CnvWidget::applyFilters(bool debug_time)
 
 			if (genes_joined.contains("*")) //with wildcards
 			{
-				QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 				for(int r=0; r<rows; ++r)
 				{
 					if (!filter_result.flags()[r]) continue;
@@ -423,7 +423,7 @@ void CnvWidget::applyFilters(bool debug_time)
 					bool match_found = false;
 					foreach(const QByteArray& cnv_gene, cnvs_[r].genes())
 					{
-						if (reg.exactMatch(cnv_gene))
+                        if (reg.match(cnv_gene).hasMatch())
 						{
 							match_found = true;
 							break;

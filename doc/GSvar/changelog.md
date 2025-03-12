@@ -1,5 +1,36 @@
 # GSvar change log
 
+## 2025_01-41 (20.02.25)
+
+- trio: adapted mendelian error rate calculation to Dragen 4.3 output
+
+## 2025_01-22 (06.02.25)
+
+- sequencing run tab: added settings dialog for NovaSeqX sample sheet creation
+- variant context menu: added new PubMed search string
+
+## 2025_01-9 (29.01.25)
+
+- general: added 'urgent' flag to processed samples (run tab, processed sample tab, batch import)
+- general: added context menu to tab bar
+- small variants: added column context menu to allow faster column-specific filtering
+- sample search: sample name now supports asterisk at the start/end
+
+## 2024_11-86 (20.01.25)
+
+- general: renamed class 'R*' to 'R' (changed in HerediCare and HerediVar)
+- general: improved opening QC files from GSvarServer
+- variant details: updated allOfUs variant URL
+- NGSD: Added device type 'Revio'
+
+## 2024_11-50 (07.01.25)
+
+- general: added sample counts dialog (NGSD > Sample counts)
+- variant context menu: added ProteinAtlas link for genes
+- variant context menu: added UCSC Genome Browser link with ENIGMA tracks
+- CNV search: added exon/splicing region overlap
+- SV search: added size column for inversions
+
 ## 2024_08-102 (14.11.24)
 
 - small variants/CNVs/SVs: added functionality for custom column order/width/visibilty (see [docu](https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/configuration.md)).

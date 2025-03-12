@@ -2,7 +2,7 @@
 CONFIG += c++11 
 
 #base settings
-QT       += gui widgets xml xmlpatterns network
+QT       += gui widgets xml network
 TEMPLATE = lib
 TARGET = cppVISUAL
 DEFINES += CPPVISUAL_LIBRARY

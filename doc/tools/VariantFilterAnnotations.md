@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2024_08-114-gef8b0523)
+	VariantFilterAnnotations (2024_11-86-g94c45dea)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -27,7 +27,7 @@
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER]
 	Classification NGSD                Filter for variant classification from NGSD.
 	                                   Parameters:
-	                                     classes - NGSD classes [default=4,5] [valid=1,2,3,4,5,M,R*] [non-empty]
+	                                     classes - NGSD classes [default=4,5] [valid=1,2,3,4,5,M,R] [non-empty]
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER,REMOVE]
 	Column match                       Filter that matches the content of a column against a perl-compatible regular expression.
 	                                   For details about regular expressions, see http://perldoc.perl.org/perlretut.html
@@ -72,6 +72,7 @@
 	                                   You can only select one of the three above at a time.
 	                                   Parameters:
 	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)] [non-empty]
+	                                     same_genotype - Also check that all 'control' samples have the same genotype. [default=false]
 	Genotype control                   Filter for genotype of the 'control' sample(s).
 	                                   Parameters:
 	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a] [non-empty]
@@ -146,8 +147,8 @@
 	                                     build - Genome build used for pseudoautosomal region coordinates [default=hg38] [valid=hg19,hg38]
 	Tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.
 	                                   Parameters:
-	                                     het_af_range - Consider allele frequencies of 50% Â± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
-	                                     hom_af_range - Consider allele frequencies of 100% Â± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
+	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
+	                                     hom_af_range - Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
 	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
@@ -182,7 +183,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2024_08-114-gef8b0523
+	VariantFilterAnnotations 2024_11-86-g94c45dea
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

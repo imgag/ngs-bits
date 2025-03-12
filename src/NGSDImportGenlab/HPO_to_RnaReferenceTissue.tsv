@@ -30,7 +30,7 @@ HP:0030360	lung
 HP:0100634	lung
 HP:0005506	lymph node
 HP:0012191	lymph node
-HP:0002885	medulla oblongata
+HP:0002885	cerebral cortex
 HP:0025318	ovary
 HP:0002894	pancreas
 HP:0012142	pancreas
@@ -59,7 +59,7 @@ HP:0033681	spinal cord
 HP:0100697	spinal cord
 HP:0012126	stomach
 HP:0010788	testis
-HP:0010799	thalamus
+HP:0010799	hypothalamus
 HP:0100521	thymus
 HP:0002890	thyroid gland
 HP:0100648	tongue

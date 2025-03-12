@@ -7,7 +7,7 @@ TEST_CLASS(NGSDAddVariantsSomatic_Test)
 {
 Q_OBJECT
 private slots:
-	void test_addSmallVariants()
+	void test_small_variants()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
@@ -28,12 +28,36 @@ private slots:
 		S_EQUAL(table.row(2).asString(';'), "3;8;7;3;0.1254;639;330");
 
 		//force variant import
-		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -var_force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
-		//should fail because variants already exist an var_force is unset
+		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
+		//should fail because variants already exist an force is unset
 		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
 	}
 
-	void test_addCNvs()
+	void test_small_variants_tumor_only()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsSomatic_init.sql"));
+		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.GSvar"));
+
+		S_EQUAL(db.variant("1").toString(), "chr2:178096717-178096717 T>C");
+		S_EQUAL(db.variant("2").toString(), "chr16:56870524-56870524 A>C");
+
+		//Check variant entries in detected_somatic_variants
+		DBTable table = db.createTable("test", "SELECT * FROM detected_somatic_variant");
+		I_EQUAL(table.rowCount(), 2);
+		S_EQUAL(table.row(0).asString(';'), "1;8;;1;0.1057;389;229");
+		S_EQUAL(table.row(1).asString(';'), "2;8;;2;0.1254;639;330");
+
+		//force variant import
+		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.GSvar"));
+		//should fail because variants already exist an force is unset
+		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.GSvar"));
+	}
+
+	void test_cnvs()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
@@ -52,8 +76,11 @@ private slots:
 		//Cnvs already imported
 		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
 		//Cnvs already imported force
-		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -cnv_force -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
+		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -force -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
 	}
 
-
+	void test_svs()
+	{
+		//TODO Alexander
+	}
 };

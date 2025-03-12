@@ -39,7 +39,7 @@ public:
 	 * \brief Searches a string for seperator before column n
 	 * \param text - the text to search for
 	 * \param seperator - the seperator to look for: usually ,
-	 * \param colum - the column to look in e.g start looking for in the 4th colum
+	 * \param column - the column to look in e.g start looking for in the 4th colum
 	 */
 	bool includesSeperator(const QByteArray& text, char seperator, int column)
 	{
@@ -226,7 +226,8 @@ public:
 							//comma is not valid
 							if (sample_values[j].contains(',')) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
 							//only one allele (chrX/Y for males) or two alleles is valid, e.g. 0, 1, 0/1, 0|1, ...
-							if (sample_values[j].count()!=1 && sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
+							int n_genotypes = QString(sample_values.at(j)).replace("|", "/").split('/').count();
+							if (n_genotypes!=1 && n_genotypes!=2) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + ": " + line);
 
 							//check for phased GT
 							bool phased = sample_values[j].contains('|');
@@ -376,11 +377,11 @@ public:
 		{
 			for (auto it=ignored_info_field_errors.begin(); it!=ignored_info_field_errors.end(); ++it)
 			{
-				out_stream << "Ignored invalid value count of INFO field '" << it.key() << "' " << QString::number(it.value()) << " times" << endl;
+                out_stream << "Ignored invalid value count of INFO field '" << it.key() << "' " << QString::number(it.value()) << " times" << QT_ENDL;
 			}
 			for (auto it=ignored_format_field_errors.begin(); it!=ignored_format_field_errors.end(); ++it)
 			{
-				out_stream << "Ignored invalid value count of FORMAT field '" << it.key() << "' " << QString::number(it.value()) << " times" << endl;
+                out_stream << "Ignored invalid value count of FORMAT field '" << it.key() << "' " << QString::number(it.value()) << " times" << QT_ENDL;
 			}
 		}
 	}

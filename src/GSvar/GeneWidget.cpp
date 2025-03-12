@@ -62,7 +62,7 @@ void GeneWidget::updateGUI()
 	ui_.type->setText(info.locus_group);
 	ui_.inheritance->setText(info.inheritance);
     QString html = info.comments;
-    html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
+    html.replace(QRegularExpression("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
 	GSvarHelper::limitLines(ui_.comments, html);
 
 	//ids
@@ -170,7 +170,7 @@ void GeneWidget::updateGUI()
 			}
 
 		}
-		hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.toList().join(", ") + ")";
+        hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.values().join(", ") + ")";
 	}
 	ui_.hpo->setText(hpo_lines.join("<br>"));
 

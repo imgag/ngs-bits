@@ -51,7 +51,7 @@ TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorO
 
 
 		QTableWidgetItem* checkbox = new QTableWidgetItem("");
-		checkbox->setCheckState(Qt::Checked);
+		checkbox->setCheckState(Qt::Unchecked);
 		checkbox->setFlags(checkbox->flags() & (~Qt::ItemIsEditable) );
 
 		ui->snvs->setItem(i, 0, checkbox);

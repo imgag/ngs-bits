@@ -176,6 +176,7 @@ public slots:
 	void on_actionMaintenance_triggered();
 	void on_actionNotifyUsers_triggered();
 
+
     ///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -268,6 +269,8 @@ public slots:
 	void on_actionShowRnaFusions_triggered();
 	///Open expression stats of processing systems
 	void on_actionShowProcessingSystemCoverage_triggered();
+	///Open methylation dialog
+	void on_actionMethylation_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
@@ -353,6 +356,8 @@ public slots:
 
 	///Shows the variant header context menu
 	void varHeaderContextMenu(QPoint pos);
+	///Shows the column context menu
+	void columnContextMenu(QPoint pos);
 	///Updated the variant context menu
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
@@ -415,12 +420,14 @@ public slots:
 	void openSampleFromNGSD(QString sample_name);
 
 	///Check mendelian error rate of trio.
-	void checkMendelianErrorRate(double cutoff_perc=5.0);
+	void checkMendelianErrorRate();
 
 	///Open processed sample tab
 	void openProcessedSampleTab(QString ps_name);
 	///Open run tab
 	void openRunTab(QString run_name);
+	///Open run batch tab
+	void openRunBatchTab(const QStringList& run_names);
     ///Open gene tab
 	void openGeneTab(QString symbol);
 	///Open variant tab
@@ -435,6 +442,8 @@ public slots:
 	void closeTab(int index);
 	///Focus tab based on type and name. Returns if a tab was found and focused.
 	bool focusTab(TabType type, QString name);
+	///Show context menu of tab
+	void tabContextMenu(QPoint pos);
 
 	///Edits the variant configuration for the variant with the given index
 	void editVariantReportConfiguration(int index);

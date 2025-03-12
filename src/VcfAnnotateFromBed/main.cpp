@@ -28,7 +28,7 @@ public:
 		QByteArray mapping_string;
 		foreach (KeyValuePair replacement, VcfFile::INFO_URL_MAPPING)
 		{
-			mapping_string += replacement.key + " -> " + replacement.value + "; ";
+            mapping_string += replacement.key.toUtf8() + " -> " + replacement.value.toUtf8() + "; ";
 		}
 		setExtendedDescription(QStringList()	<< "Characters which are not allowed in the INFO column based on the VCF 4.2 definition are URL encoded."
 												<< "The following characters are replaced:" << mapping_string);
@@ -115,7 +115,7 @@ public:
 		int current_chunk = 0;
 
 		//debug
-		QTime timer;
+        QElapsedTimer timer;
 		QTextStream outstream(stdout);
 		if (debug>0) timer.start();
 
@@ -188,7 +188,7 @@ public:
 				//debug output
 				if (debug>0 && timer.elapsed()>debug)
 				{
-					outstream << Helper::dateTime() << " debug - to_be_processed: " << to_be_processed << " to_be_written: " << to_be_written << " done: " << done << endl;
+                    outstream << Helper::dateTime() << " debug - to_be_processed: " << to_be_processed << " to_be_written: " << to_be_written << " done: " << done << QT_ENDL;
 					timer.restart();
 				}
 			}
@@ -198,7 +198,7 @@ public:
 
 
 			//wait for all jobs to finish
-			if (debug>0) outstream << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
+            if (debug>0) outstream << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << QT_ENDL;
 			int done = 0;
 			int to_be_written, to_be_processed;
 			while(done < job_pool.count())
@@ -254,13 +254,13 @@ public:
 				//debug output
 				if (debug>0 && timer.elapsed()>debug)
 				{
-					outstream << Helper::dateTime() << " debug - to_be_analyzed: " << to_be_processed << " to_be_written: " << to_be_written << " done: " << done << endl;
+                    outstream << Helper::dateTime() << " debug - to_be_analyzed: " << to_be_processed << " to_be_written: " << to_be_written << " done: " << done << QT_ENDL;
 					timer.restart();
 				}
 			}
 
 			output_worker->terminate();
-			if (debug>0) outstream << Helper::dateTime() << " analysis finished" << endl;
+            if (debug>0) outstream << Helper::dateTime() << " analysis finished" << QT_ENDL;
 
 
 		}

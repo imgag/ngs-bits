@@ -3,7 +3,7 @@ CONFIG += c++11
 
 #base settings
 QT       -= gui
-QT       += xml xmlpatterns network
+QT       += xml network
 TEMPLATE = lib
 TARGET = cppNGS
 DEFINES += CPPNGS_LIBRARY

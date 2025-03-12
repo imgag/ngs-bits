@@ -165,17 +165,17 @@ struct TrimmingStatistics
 
 	void writeStatistics(QTextStream& out, const TrimmingParameters& params_)
 	{
-		out << "Reads (forward + reverse): " << read_num << endl;
-		out << endl;
-		out << "Reads trimmed by insert match: " << (long)reads_trimmed_insert << endl;
-		out << "Reads trimmed by adapter match: " << (long)reads_trimmed_adapter << endl;
-		out << "Reads trimmed by quality: " << (long)reads_trimmed_q << endl;
-		out << "Reads trimmed by N stretches: " << (long)reads_trimmed_n << endl;
+        out << "Reads (forward + reverse): " << read_num << QT_ENDL;
+        out << QT_ENDL;
+        out << "Reads trimmed by insert match: " << (long)reads_trimmed_insert << QT_ENDL;
+        out << "Reads trimmed by adapter match: " << (long)reads_trimmed_adapter << QT_ENDL;
+        out << "Reads trimmed by quality: " << (long)reads_trimmed_q << QT_ENDL;
+        out << "Reads trimmed by N stretches: " << (long)reads_trimmed_n << QT_ENDL;
 		double reads_trimmed = reads_trimmed_insert + reads_trimmed_adapter;
-		out << "Trimmed reads: " << (long)reads_trimmed << " of " << read_num << " (" << QString::number(100.0*reads_trimmed/read_num, 'f', 2) << "%)" << endl;
-		out << "Removed reads: " << (long)reads_removed << " of " << read_num << " (" << QString::number(100.0*reads_removed/read_num, 'f', 2) << "%)" << endl;
-		out << "Removed bases: " << QString::number(100.0*bases_perc_trim_sum/read_num, 'f', 2) << "%" << endl;
-		out << endl;
+        out << "Trimmed reads: " << (long)reads_trimmed << " of " << read_num << " (" << QString::number(100.0*reads_trimmed/read_num, 'f', 2) << "%)" << QT_ENDL;
+        out << "Removed reads: " << (long)reads_removed << " of " << read_num << " (" << QString::number(100.0*reads_removed/read_num, 'f', 2) << "%)" << QT_ENDL;
+        out << "Removed bases: " << QString::number(100.0*bases_perc_trim_sum/read_num, 'f', 2) << "%" << QT_ENDL;
+        out << QT_ENDL;
 
 		//print consensus adapter sequence
 		QByteArray acons1_seq;
@@ -191,8 +191,8 @@ struct TrimmingStatistics
 			else if (acons1[i].t()==max) acons1_seq.append('T');
 			if (i==39) break;
 		}
-		out << "Forward adapter sequence (given)    : " << params_.a1 << endl;
-		out << "Forward adapter sequence (consensus): " << acons1_seq << endl;
+        out << "Forward adapter sequence (given)    : " << params_.a1 << QT_ENDL;
+        out << "Forward adapter sequence (consensus): " << acons1_seq << QT_ENDL;
 		QByteArray acons2_seq;
 		for (int i=0; i<acons2.count(); ++i)
 		{
@@ -206,17 +206,17 @@ struct TrimmingStatistics
 			else if (acons2[i].t()==max) acons2_seq.append('T');
 			if (i==39) break;
 		}
-		out << "Reverse adapter sequence (given)    : " << params_.a2 << endl;
-		out << "Reverse adapter sequence (consensus): " << acons2_seq << endl;
-		out << endl;
+        out << "Reverse adapter sequence (given)    : " << params_.a2 << QT_ENDL;
+        out << "Reverse adapter sequence (consensus): " << acons2_seq << QT_ENDL;
+        out << QT_ENDL;
 
 		//print length distribution after trimming
-		out << "Read length distribution after trimming:" << endl;
+        out << "Read length distribution after trimming:" << QT_ENDL;
 		int max = bases_remaining.count()-1;
 		while(bases_remaining[max]==0) max -= 1;
 		for (int i=0; i<=max; ++i)
 		{
-			out << QString::number(i).rightJustified(4, ' ') << ": " << (long)(bases_remaining[i]) << endl;
+            out << QString::number(i).rightJustified(4, ' ') << ": " << (long)(bases_remaining[i]) << QT_ENDL;
 		}
 	}
 };
@@ -238,33 +238,33 @@ struct ErrorCorrectionStatistics
 	void writeStatistics(QTextStream& out)
 	{
 		//print read error per cycle (read 1)
-		out << endl;
-		out << "Read error per cycle (read 1):" << endl;
+        out << QT_ENDL;
+        out << "Read error per cycle (read 1):" << QT_ENDL;
 		int max = mismatch_r1.count()-1;
 		while(mismatch_r1[max]==0) max -= 1;
 		for (int i=1; i<=max; ++i)
 		{
-			out << QString::number(i).rightJustified(4, ' ') << ": " << mismatch_r1[i] << endl;
+            out << QString::number(i).rightJustified(4, ' ') << ": " << mismatch_r1[i] << QT_ENDL;
 		}
 
 		//print read error per cycle (read 2)
-		out << endl;
-		out << "Read error per cycle (read 2):" << endl;
+        out << QT_ENDL;
+        out << "Read error per cycle (read 2):" << QT_ENDL;
 		max = mismatch_r2.count()-1;
 		while(mismatch_r2[max]==0) max -= 1;
 		for (int i=1; i<=max; ++i)
 		{
-			out << QString::number(i).rightJustified(4, ' ') << ": " << mismatch_r2[i] << endl;
+            out << QString::number(i).rightJustified(4, ' ') << ": " << mismatch_r2[i] << QT_ENDL;
 		}
 
 		//print error count distribution
-		out << endl;
-		out << "Read error count distribution:" << endl;
+        out << QT_ENDL;
+        out << "Read error count distribution:" << QT_ENDL;
 		max = errors_per_read.count()-1;
 		while(errors_per_read[max]==0) max -= 1;
 		for (int i=1; i<=max; ++i)
 		{
-			out << QString::number(i).rightJustified(4, ' ') << ": " << errors_per_read[i] << endl;
+            out << QString::number(i).rightJustified(4, ' ') << ": " << errors_per_read[i] << QT_ENDL;
 		}
 	}
 

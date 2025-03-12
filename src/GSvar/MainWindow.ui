@@ -42,6 +42,9 @@
     </property>
     <item>
      <widget class="QTabWidget" name="tabs">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -621,6 +624,7 @@
    <addaction name="actionPRS"/>
    <addaction name="actionPathogenicWT"/>
    <addaction name="actionCircos"/>
+   <addaction name="actionMethylation"/>
    <addaction name="separator"/>
    <addaction name="actionVirusDetection"/>
   </widget>
@@ -1520,6 +1524,18 @@
   <action name="actionOpenGSvarDataFolder">
    <property name="text">
     <string>Open GSvar data folder</string>
+   </property>
+  </action>
+  <action name="actionMethylation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Methylation.png</normaloff>:/Icons/Methylation.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open methylation calls</string>
    </property>
   </action>
   <action name="actionSampleCounts">

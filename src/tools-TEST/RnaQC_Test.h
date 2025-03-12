@@ -13,8 +13,8 @@ private slots:
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -housekeeping_genes " + TESTDATA("data_in/RnaQC_in1_housekeeping_genes.bed")
 				+ " -out out/RnaQC_out1.qcML");
-		REMOVE_LINES("out/RnaQC_out1.qcML", QRegExp("creation "));
-		REMOVE_LINES("out/RnaQC_out1.qcML", QRegExp("<binary>"));
+        REMOVE_LINES("out/RnaQC_out1.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/RnaQC_out1.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/RnaQC_out1.qcML", TESTDATA("data_out/RnaQC_out1.qcML"));
 	}
 
@@ -28,8 +28,8 @@ private slots:
 				+ " -splicing " + TESTDATA("data_in/RnaQC_in1_splicing_gene.tsv")
 				+ " -expression " + TESTDATA("data_in/RnaQC_in1_expr.tsv")
 				+ " -out out/RnaQC_out2.qcML");
-		REMOVE_LINES("out/RnaQC_out2.qcML", QRegExp("creation "));
-		REMOVE_LINES("out/RnaQC_out2.qcML", QRegExp("<binary>"));
+        REMOVE_LINES("out/RnaQC_out2.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/RnaQC_out2.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/RnaQC_out2.qcML", TESTDATA("data_out/RnaQC_out2.qcML"));
 	}
 
@@ -42,8 +42,8 @@ private slots:
 				+ " -splicing " + TESTDATA("data_in/RnaQC_in1_splicing_gene.tsv")
 				+ " -expression " + TESTDATA("data_in/RnaQC_in1_expr.tsv")
 				+ " -out out/RnaQC_out3.qcML");
-		REMOVE_LINES("out/RnaQC_out3.qcML", QRegExp("creation "));
-		REMOVE_LINES("out/RnaQC_out3.qcML", QRegExp("<binary>"));
+        REMOVE_LINES("out/RnaQC_out3.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/RnaQC_out3.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/RnaQC_out3.qcML", TESTDATA("data_out/RnaQC_out3.qcML"));
 	}
 
@@ -58,8 +58,8 @@ private slots:
 				+ " -splicing " + TESTDATA("data_in/RnaQC_in1_splicing_gene.tsv")
 				+ " -expression " + TESTDATA("data_in/RnaQC_in1_expr.tsv")
 				+ " -out out/RnaQC_out4.qcML");
-		REMOVE_LINES("out/RnaQC_out4.qcML", QRegExp("creation "));
-		REMOVE_LINES("out/RnaQC_out4.qcML", QRegExp("<binary>"));
+        REMOVE_LINES("out/RnaQC_out4.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/RnaQC_out4.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/RnaQC_out4.qcML", TESTDATA("data_out/RnaQC_out4.qcML"));
 	}
 
@@ -74,8 +74,8 @@ private slots:
 				+ " -splicing " + TESTDATA("data_in/RnaQC_in1_splicing_gene.tsv")
 				+ " -expression " + TESTDATA("data_in/RnaQC_in1_expr.tsv")
 				+ " -out out/RnaQC_out5.qcML");
-		REMOVE_LINES("out/RnaQC_out5.qcML", QRegExp("creation "));
-		REMOVE_LINES("out/RnaQC_out5.qcML", QRegExp("<binary>"));
+        REMOVE_LINES("out/RnaQC_out5.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/RnaQC_out5.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/RnaQC_out5.qcML", TESTDATA("data_out/RnaQC_out5.qcML"));
 	}
 
@@ -89,8 +89,8 @@ private slots:
 				+ " -splicing " + TESTDATA("data_in/RnaQC_in1_splicing_gene.tsv")
 				+ " -expression " + TESTDATA("data_in/RnaQC_in1_expr.tsv")
 				+ " -txt -out out/RnaQC_out2.txt");
-		REMOVE_LINES("out/RnaQC_out2.txt", QRegExp("creation "));
-		REMOVE_LINES("out/RnaQC_out2.txt", QRegExp("<binary>"));
+        REMOVE_LINES("out/RnaQC_out2.txt", QRegularExpression("creation "));
+        REMOVE_LINES("out/RnaQC_out2.txt", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/RnaQC_out2.txt", TESTDATA("data_out/RnaQC_out2.txt"));
 	}
 

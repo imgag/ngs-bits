@@ -182,6 +182,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	foreach(const QByteArray& g, genes)
 	{
 		sub_menu->addAction(g + " AND \"mutation\"");
+		sub_menu->addAction(g + " AND \"variant\"");
 		foreach(const Phenotype& p, active_phenotypes_)
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
@@ -260,7 +261,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		{
 			QByteArray protein_change = hgvs_p.mid(2).trimmed();
 			query += " OR \"" + protein_change + "\"";
-			if (QRegExp("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").exactMatch(protein_change) && !protein_change.endsWith("del"))
+            if (QRegularExpression("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").match(protein_change).hasMatch() && !protein_change.endsWith("del"))
 			{
 				QByteArray aa1 = protein_change.left(3);
 				QByteArray aa2 = protein_change.right(3);
@@ -298,7 +299,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 	else if (action == a_ucsc_enigma)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/s/abenet/BRCA1_BRCA2_ENIGMA_hg38?position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)+"&hgsid=2395490845_kJTSEC0eF5uwLq9urfDpQRoxIEPY"));
 	}
 	else if (action == a_lovd)
 	{
@@ -485,7 +486,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 		setItem(r, 0, createTableItem(variant.chr().str()));
 		if (!variant.chr().isAutosome())
 		{
-			item(r,0)->setBackgroundColor(Qt::yellow);
+            item(r,0)->setBackground(QBrush(QColor(Qt::yellow)));
 			item(r,0)->setToolTip("Not autosome");
 		}
 		setItem(r, 1, createTableItem(QByteArray::number(variant.start())));
@@ -504,37 +505,37 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 			//warning
 			if (anno_index==i_co_sp && anno.contains(":HIGH:"))
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
-			else if (anno_index==i_classification && (anno=="3" || anno=="M" || anno=="R*"))
+			else if (anno_index==i_classification && (anno=="3" || anno=="M" || anno=="R"))
 			{
-				item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 				is_notice_line = true;
 			}
 			else if (anno_index==i_classification && (anno=="4" || anno=="5"))
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_clinvar && anno.contains("pathogenic") && !anno.contains("conflicting interpretations of pathogenicity")) //matches "pathogenic" and "likely pathogenic"
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_hgmd && anno.contains("CLASS=DM")) //matches both "DM" and "DM?"
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.8)
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_notice_line = true;
 			}
 			else if (anno_index==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.5)
 			{
-				item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 				is_notice_line = true;
 			}
 			else if (anno_index==i_maxentscan && !anno.isEmpty())
@@ -557,12 +558,12 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				//output: max import
 				if (impacts.contains(MaxEntScanImpact::HIGH))
 				{
-					item->setBackgroundColor(Qt::red); //orange
+                    item->setBackground(QBrush(QColor(Qt::red))); //orange
 					is_notice_line = true;
 				}
 				else if (impacts.contains(MaxEntScanImpact::MODERATE))
 				{
-					item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                    item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 					is_notice_line = true;
 				}
 			}
@@ -570,30 +571,30 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 			//non-pathogenic
 			if (anno_index==i_classification && (anno=="1" || anno=="2"))
 			{
-				item->setBackgroundColor(Qt::green);
+                item->setBackground(QBrush(QColor(Qt::green)));
 				is_ngsd_benign = true;
 			}
 
 			//highlighed
 			if (anno_index==i_validation && anno.contains("TP"))
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_comment && anno!="")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_ihdb_hom && anno=="0")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_ihdb_het && anno=="0")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_clinvar && anno.contains("(confirmed)"))
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_genes)
 			{
@@ -804,7 +805,7 @@ void VariantTable::clearContents()
 
 void VariantTable::adaptColumnWidths()
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	//restrict width

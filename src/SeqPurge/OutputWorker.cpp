@@ -11,17 +11,14 @@ OutputWorker::OutputWorker(AnalysisJob& job, OutputStreams& streams, const Trimm
 	, params_(params)
 	, stats_(stats)
 {
-	//QTextStream(stdout) << "OutputWorker" << endl;
 }
 
 OutputWorker::~OutputWorker()
 {
-	//QTextStream(stdout) << "~OutputWorker" << endl;
 }
 
 void OutputWorker::run()
 {
-	//QTextStream(stdout) << "OutputWorker:run " << job_.index << " thread: " << QThread::currentThreadId() << endl;
 	try
 	{
 		//write paired reads in separate threads
@@ -99,12 +96,9 @@ void OutputWorker::run()
 		//mark job as done
 		job_.status = DONE;
 		emit done(job_.index);
-
-		//QTextStream(stdout) << "OutputWorker: index:" << job_.index << " elapsed:" << timer.elapsed() << endl;
 	}
 	catch(Exception& e)
 	{
-		//QTextStream(stdout) << "OutputWorker:error " << job_.index << " thread:" << QThread::currentThreadId() << " message:" << e.message() << endl;
 		emit error(job_.index, e.message());
 	}
 }

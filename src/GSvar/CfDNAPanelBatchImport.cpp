@@ -98,12 +98,12 @@ void CfDNAPanelBatchImport::validateTable()
 		{
 			valid = false;
 			db_entries_valid = false;
-			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_red);
+            ui_->tw_import_table->item(row_idx, 0)->setBackground(QBrush(QColor(bg_red)));
 			ui_->tw_import_table->item(row_idx, 0)->setToolTip("Processed sample not found in NGSD!");
 		}
 		else
 		{
-			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_white);
+            ui_->tw_import_table->item(row_idx, 0)->setBackground(QBrush(QColor(bg_white)));
 			ui_->tw_import_table->item(row_idx, 0)->setToolTip("");
 		}
 
@@ -112,12 +112,12 @@ void CfDNAPanelBatchImport::validateTable()
 		{
 			valid = false;
 			db_entries_valid = false;
-			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_red);
+            ui_->tw_import_table->item(row_idx, 0)->setBackground(QBrush(QColor(bg_red)));
 			ui_->tw_import_table->item(row_idx, 0)->setToolTip("Processed sample '" + ps_name + "' is not a tumor sample!");
 		}
 		else
 		{
-			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_white);
+            ui_->tw_import_table->item(row_idx, 0)->setBackground(QBrush(QColor(bg_white)));
 			ui_->tw_import_table->item(row_idx, 0)->setToolTip("");
 		}
 
@@ -127,12 +127,12 @@ void CfDNAPanelBatchImport::validateTable()
 		{
 			valid = false;
 			db_entries_valid = false;
-			ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(bg_red);
+            ui_->tw_import_table->item(row_idx, 1)->setBackground(QBrush(QColor(bg_red)));
 			ui_->tw_import_table->item(row_idx, 1)->setToolTip("Processing system not found in NGSD!");
 		}
 		else
 		{
-			ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(bg_white);
+            ui_->tw_import_table->item(row_idx, 1)->setBackground(QBrush(QColor(bg_white)));
 			ui_->tw_import_table->item(row_idx, 1)->setToolTip("");
 		}
 
@@ -140,13 +140,13 @@ void CfDNAPanelBatchImport::validateTable()
 		if (!QFile::exists(ui_->tw_import_table->item(row_idx, 2)->text()))
 		{
 			valid = false;
-			ui_->tw_import_table->item(row_idx, 2)->setBackgroundColor(bg_red);
+            ui_->tw_import_table->item(row_idx, 2)->setBackground(QBrush(QColor(bg_red)));
 			ui_->tw_import_table->item(row_idx, 2)->setToolTip("File does not exist!");
 		}
 		else
 		{
 			ui_->tw_import_table->item(row_idx, 2)->setToolTip(ui_->tw_import_table->item(row_idx, 2)->text());
-			ui_->tw_import_table->item(row_idx, 2)->setBackgroundColor(bg_white);
+            ui_->tw_import_table->item(row_idx, 2)->setBackground(QBrush(QColor(bg_white)));
 		}
 
 		//check for already existing panels
@@ -155,9 +155,9 @@ void CfDNAPanelBatchImport::validateTable()
 			QList<CfdnaPanelInfo> existing_panel = db_.cfdnaPanelInfo(ps_id, sys_id);
 			if (existing_panel.size() > 0)
 			{
-				ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_orange);
+                ui_->tw_import_table->item(row_idx, 0)->setBackground(QBrush(QColor(bg_orange)));
 				ui_->tw_import_table->item(row_idx, 0)->setToolTip("A cfDNA panel with this sample - processing system combination already exists!");
-				ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(bg_orange);
+                ui_->tw_import_table->item(row_idx, 1)->setBackground(QBrush(QColor(bg_orange)));
 				ui_->tw_import_table->item(row_idx, 1)->setToolTip("A cfDNA panel with this sample - processing system combination already exists!");
 
 				// invalid if overwrite is not checked
@@ -165,9 +165,9 @@ void CfDNAPanelBatchImport::validateTable()
 			}
 			else
 			{
-				ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_white);
+                ui_->tw_import_table->item(row_idx, 0)->setBackground(QBrush(QColor(bg_white)));
 				ui_->tw_import_table->item(row_idx, 0)->setToolTip("");
-				ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(bg_white);
+                ui_->tw_import_table->item(row_idx, 1)->setBackground(QBrush(QColor(bg_white)));
 				ui_->tw_import_table->item(row_idx, 1)->setToolTip("");
 			}
 		}

@@ -48,14 +48,14 @@ public:
 		TabixIndexedFile sample_vcf;
 		sample_vcf.load(getInfile("in").toUtf8());
 
-		//open BAM file
-		BamReader bam_file(getInfile("bam"));
-
 		//open refererence genome file
 		QString ref_file = getInfile("ref");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		FastaFileIndex reference(ref_file);
+
+		//open BAM file
+		BamReader bam_file(getInfile("bam"), ref_file);
 
 		//open output file and write header
 		QSharedPointer<QFile> output_tsv = Helper::openFileForWriting(getOutfile("out"), true);
@@ -393,7 +393,7 @@ public:
 
 			//print final PRS
 			out << column_entries["pgs_id"] << ": variants_found=" << c_found << " prs=" << prs << " percentile=" << percentile_string << " low_depth_variants=" << c_low_depth
-				<< " variants_imputed=" << c_imputed << endl;
+                << " variants_imputed=" << c_imputed << QT_ENDL;
 		}
 
 		output_tsv->flush();

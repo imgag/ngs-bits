@@ -55,6 +55,8 @@ public:
 	static QString localRoiFolder();
 	///Returns a the local log folder where tempory log files can be stored for opening in a text editor.
 	static QString localLogFolder();
+	///Returns a the local log folder where tempory qcML files can be stored for opening in the browser.
+	static QString localQcFolder();
 
 	//Queue the analysis of samples
 	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);

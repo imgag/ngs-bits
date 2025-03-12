@@ -216,8 +216,6 @@ public:
 			int i_end = -1;
 			while (nextOverlappingRange(cnvs, i_start, i_end))
 			{
-				//stream2 << "overlap range - index: " << i_start << "-" << i_end << " - size: " << (i_end - i_start + 1) << " - pos: " << cnvs[i_start].start << "-" << cnvs[i_end].end << endl;
-
 				//determine all sub-regions of the overlapping range
 				QList<int> positions;
 				for (int i=i_start; i<=i_end; ++i)

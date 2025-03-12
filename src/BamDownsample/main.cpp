@@ -44,10 +44,10 @@ public:
 		writer.writeHeader(reader);
 
 		//process alignments
-		int c_se = 0;
-		int c_se_pass = 0;
-		int c_pe = 0;
-		int c_pe_pass = 0;
+		unsigned long long c_se = 0;
+		unsigned long long c_se_pass = 0;
+		unsigned long long c_pe = 0;
+		unsigned long long c_pe_pass = 0;
 
 		BamAlignment al;
 		QHash<QByteArray, BamAlignment> al_cache;
@@ -63,7 +63,7 @@ public:
 				{
 					++c_se_pass;
 					writer.writeAlignment(al);
-					if (test) out << "KEPT SE: " << al.name() << endl;
+                    if (test) out << "KEPT SE: " << al.name() << QT_ENDL;
 				}
 			}
 			else //paired-end reads
@@ -81,7 +81,7 @@ public:
 						++c_pe_pass;
 						writer.writeAlignment(al_cache.take(name));
 						writer.writeAlignment(al);
-						if (test) out << "KEPT PE: " << name << endl;
+                        if (test) out << "KEPT PE: " << name << QT_ENDL;
 					}
 					else
 					{
@@ -92,11 +92,11 @@ public:
 		}
 
 		//write debug output
-		out << "SE reads                    : " << c_se << endl;
-		out << "SE reads (written)          : " << c_se_pass << endl;
-		out << "PE reads                    : " << c_pe << endl;
-		out << "PE reads (written)          : " << c_pe_pass << endl;
-		out << "PE reads unmatched (skipped): " << al_cache.size() << endl;
+        out << "SE reads                    : " << c_se << QT_ENDL;
+        out << "SE reads (written)          : " << c_se_pass << QT_ENDL;
+        out << "PE reads                    : " << c_pe << QT_ENDL;
+        out << "PE reads (written)          : " << c_pe_pass << QT_ENDL;
+        out << "PE reads unmatched (skipped): " << al_cache.size() << QT_ENDL;
 	}
 };
 

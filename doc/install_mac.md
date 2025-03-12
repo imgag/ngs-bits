@@ -58,6 +58,7 @@ Just import your database dump and you are ready to go.
 
 Just execute the following make commands:
 
+    > brew install lzlib pkg-config libxml2
     > make build_3rdparty
 	> make build_libs_release
 	> make build_tools_release
@@ -65,6 +66,32 @@ Just execute the following make commands:
 If you need to build a different version of htslib, please follow [these instructions](build_htslib.md#linux_mac)
 
 ## Deployment
+
+Qt comes with a deployment tool for Mac computers. This tool helps finding and copying dependencies of an app. However, it does not work correctly. Some manual work and twicking are necessary afterwards (possibly works better in Qt 6, which runs natively on Apple Silicon nachines). Following these steps to create a Mac bundle: 
+   
+    > /opt/homebrew/Cellar/qt@5/5.15.16/bin/macdeployqt GSvar.app -dmg -verbose=2 GSvar.app -libpath=/Users/megalex/github/ngs-bits/bin
+    > xattr -cr GSvar.app
+    > install_name_tool -change /opt/homebrew/opt/mysql/lib/libmysqlclient.24.dylib @executable_path/../Frameworks/libmysqlclient.24.dylib GSvar.app/Contents/PlugIns/sqldrivers/libqsqlmysql.dylib
+	> cp -r genomes/ GSvar.app/Contents/MacOS
+    > cp GSvar_filters.ini GSvar.app/Contents/MacOS
+    > cp GSvar_filters_cnv.ini GSvar.app/Contents/MacOS
+    > cp GSvar_filters_sv.ini GSvar.app/Contents/MacOS
+    > cp GSvar_special_regions.tsv GSvar.app/Contents/MacOS
+    > cp cloud_settings_template.ini GSvar.app/Contents/MacOS
+    > codesign --deep --force --options runtime --sign "Apple Development: FIRST_NAME LAST_NAME (XXXXXXXX)" GSvar.app
+The last step sings the app with a digital signature. It is recommended to have a devepers account, which allows distributing your app easier (and even publishing it in the App Store)
+
+## Server update (for cloud instances)
+
+Steps to update an existing cloud instance of GSvar server
+	
+	> git pull
+	> git status
+    > git submodule update --recursive --init
+	> sudo systemctl stop gsvar.service
+    > make build_libs_release build_server_release
+    > sudo systemctl start gsvar.service
+
 
 For yet unknown reasons, GSvar could not detect *.dylib files located at the same folder on testing machines. It searches for the libraries at /usr/local/lib instead.
 
@@ -87,3 +114,21 @@ GSvar can be build from inside Qt Creator by using its standard mechanisms:
 
 _Note:_ The above mentioned processes have been tested on Intel-based Macs. It remains unknown if GSvar can be compiled natively for M1 CPUs (Qt 5 does not officially/completly support M1 chips yet). However, they claim it works through the Rosetta translation layer, native arm64 support seems to be under development. Qt 6 should officially support Apple Silicon.
 
+## Running GSvar client app
+
+At the moment GSvar is distributed as an individual DMG file (not through the official App Store). It may cause some inconveniencies due to the Mac OS privacy and security settings. GSvar needs to be added as an exception, since Mac OS cannot establish or verify where the app comes from. Follow these steps to launch GSvar:
+
+- Download DMG file
+- Double click on the file, you will see the app container (this may take several minutes, since the operating system will be performing some checks)
+- Copy-paste or drag-and-drop GSvar into your `Applications` folder
+- Launch GSvar from `Applications` folder or using `Spotlight`. Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the drop-down list next to the `Allow applications from`. If choosing the `App Store & Known Developers` option does not solve the problem, you will need to disable `Gatekeeper` by executing `sudo spctl --master-disable` in the terminal. After that `Anywhere` option will become available
+- During the launch GSvar will ask to perform its automatic configuration, press `Yes`. It will generate `settings.ini` file containing settings tuned to your system
+
+## IGV installation
+- Download IGV from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/). Choose the `Command line IGV and igvtools for all platforms` version
+- If you do not have Java 21 or greater installed, run `brew install openjdk`, and follow the instructions (pay attention to the $PATH variable). If Java is installed correctly, you should be able to run `java -version` in your terminal
+- IGV has to be started, before you launch GSvar. In the terminal run `[FULL_PATH]/igv.sh --port 61152` script from the IGV folder. IGV will be listening to commands from GSvar. If there are problems with IGV, you should be able to see them in the terminal. 
+
+## Integration with IGV
+
+For more details related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).

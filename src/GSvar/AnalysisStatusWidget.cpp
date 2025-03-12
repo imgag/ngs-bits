@@ -85,7 +85,7 @@ void AnalysisStatusWidget::refreshStatus()
 
 	try
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//query job IDs
@@ -126,7 +126,7 @@ void AnalysisStatusWidget::refreshStatus()
 			if (repeated && !ui_.f_repeated->isChecked()) continue;
 
 			//filter date
-			QDateTime f_date = QDateTime(ui_.f_date->date());
+            QDateTime f_date = QDateTime(ui_.f_date->date(), QTime(0, 0, 0));
 			if (job.history.count()==0)
 			{
 				qDebug() << "No history for job " << job_id;
@@ -399,16 +399,17 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open analysis folder(s)")
 	{
-		if (ClientHelper::isClientServerMode())
-		{
-			QMessageBox::warning(this, "No access", "Analysis folder browsing is not available in client-server mode");
-			return;
-		}
-
 		NGSD db;
 		foreach(int row, rows)
 		{
 			QString folder = db.analysisJobFolder(jobs_[row].ngsd_id);
+
+			if (!QFile::exists(folder))
+			{
+				QMessageBox::warning(this, "Folder not found", "Analysis folder does not exist: " + folder);
+				return;
+			}
+
 			if (!QDesktopServices::openUrl(folder))
 			{
 				QMessageBox::warning(this, "Error opening folder", "Folder could not be opened - it probably does not exist (yet):\n" + folder);
@@ -701,7 +702,7 @@ QTableWidgetItem* AnalysisStatusWidget::addItem(QTableWidget* table, int row, in
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 
 	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-	item->setBackgroundColor(bg_color);
+    item->setBackground(QBrush(QColor(bg_color)));
 	table->setItem(row, col, item);
 
 	return item;

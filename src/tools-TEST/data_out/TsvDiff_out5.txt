@@ -1,0 +1,4 @@
+-chr1	120270301	120270301	A	C	hom
+-chrY	8979472	8979472	T	G	hom
+Difference summary:
+content lines removed: 2

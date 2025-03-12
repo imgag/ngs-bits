@@ -108,6 +108,22 @@ FileLocationList FileLocationProviderLocal::getQcFiles() const
 	return output;
 }
 
+FileLocation FileLocationProviderLocal::getMethylationFile() const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_var_methylation.tsv";
+
+	return FileLocation{name, PathType::METHYLATION, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getMethylationImage(QString locus) const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = getAnalysisPath() + QDir::separator() + "methylartist" + QDir::separator() + name  + "_" + locus + ".png";
+
+	return FileLocation(name, PathType::METHYLATION_IMAGE, file, QFile::exists(file));
+}
+
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
 {
 	bool exists = QFile::exists(loc.filename);
@@ -403,6 +419,7 @@ FileLocation FileLocationProviderLocal::getSignatureSbsFile() const
 	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "snv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_SBS96.csv";
+	if (!QFile::exists(file)) file = file.left(file.length()-4) + ".tsv"; //fallback to new TSV format
 
 	return FileLocation{name, PathType::SIGNATURE_SBS, file, QFile::exists(file)};
 }
@@ -412,6 +429,7 @@ FileLocation FileLocationProviderLocal::getSignatureIdFile() const
 	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "snv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_ID83.csv";
+	if (!QFile::exists(file)) file = file.left(file.length()-4) + ".tsv"; //fallback to new TSV format
 
 	return FileLocation{name, PathType::SIGNATURE_ID, file, QFile::exists(file)};
 }
@@ -421,6 +439,7 @@ FileLocation FileLocationProviderLocal::getSignatureDbsFile() const
 	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "snv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_DBS78.csv";
+	if (!QFile::exists(file)) file = file.left(file.length()-4) + ".tsv"; //fallback to new TSV format
 
 	return FileLocation{name, PathType::SIGNATURE_DBS, file, QFile::exists(file)};
 }
@@ -430,11 +449,10 @@ FileLocation FileLocationProviderLocal::getSignatureCnvFile() const
 	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "cnv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_CNV48.csv";
+	if (!QFile::exists(file)) file = file.left(file.length()-4) + ".tsv"; //fallback to new TSV format
 
 	return FileLocation{name, PathType::CFDNA_CANDIDATES, file, QFile::exists(file)};
 }
-
-
 
 QString FileLocationProviderLocal::getAnalysisPath() const
 {
@@ -463,21 +481,28 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 
         foreach(const SampleInfo& info, header_info_)
         {
-            if (!NGSD::isAvailable()) break;
-            try
-            {
-                NGSD db;
-                QString id = db.processedSampleId(info.name, false);
-                QString sample_path = db.processedSamplePath(id, PathType::SAMPLE_FOLDER);
-                output << KeyValuePair(info.name, sample_path + info.name);
-                continue;
-            }
-            catch (...)
-            {
-                // We fall back to the standard behaviour, if the sample cannot be found
-            }
+			if (NGSD::isAvailable())
+			{
+				try
+				{
+					NGSD db;
+					QString id = db.processedSampleId(info.name, false);
+					QString sample_path = db.processedSamplePath(id, PathType::SAMPLE_FOLDER);
+					output << KeyValuePair(info.name, sample_path + info.name);
+					continue;
+				}
+				catch (...)
+				{
+					// We fall back to the standard behaviour, if the sample cannot be found
+				}
+				output << KeyValuePair(info.name, project_folder + "/Sample_" + info.name + "/" + info.name);
+			}
+			else
+			{
+				output << KeyValuePair(info.name, project_folder + "/Sample_" + info.name + "/" + info.name);
+			}
 
-            output << KeyValuePair(info.name, project_folder + "/Sample_" + info.name + "/" + info.name);
+
         }
     }
     else

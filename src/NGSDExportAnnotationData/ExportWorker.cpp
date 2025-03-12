@@ -9,7 +9,7 @@ ExportWorker::ExportWorker(QString chr, const ExportParameters& params, const Sh
 	, params_(params)
 	, shared_data_(shared_data)
 {
-	if (params_.verbose) QTextStream(stdout) << "ExportWorker" << endl;
+    if (params_.verbose) QTextStream(stdout) << "ExportWorker" << QT_ENDL;
 }
 
 ExportWorker::~ExportWorker()
@@ -259,6 +259,7 @@ void ExportWorker::run()
 			emit log(chr_, "Time for for database update (variant counts): " + getTimeString(ngsd_count_update));
 		}
 
+		//export somatic (tumor-normal and tumor-only)
 		if (!params_.somatic.isEmpty())
 		{
 			QString tmp_vcf = params_.tempVcf(chr_, "somatic");
@@ -274,7 +275,7 @@ void ExportWorker::run()
 
 			// define query to get the NGSD counts for each variant
 			SqlQuery ngsd_count_query = db.getQuery();
-			ngsd_count_query.prepare("SELECT s.id, dsv.processed_sample_id_tumor, p.name FROM detected_somatic_variant as dsv, processed_sample ps, sample as s, project as p WHERE ps.project_id=p.id AND ps.quality!='bad' AND dsv.processed_sample_id_tumor=ps.id AND ps.sample_id=s.id AND s.tumor='1' AND dsv.variant_id=:0");
+			ngsd_count_query.prepare("SELECT s.id, dsv.processed_sample_id_tumor, p.name, dsv.processed_sample_id_normal FROM detected_somatic_variant as dsv, processed_sample ps, sample as s, project as p WHERE ps.project_id=p.id AND ps.quality!='bad' AND dsv.processed_sample_id_tumor=ps.id AND ps.sample_id=s.id AND s.tumor='1' AND dsv.variant_id=:0");
 
 			//open output stream
 			QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(tmp_vcf, true);
@@ -308,31 +309,36 @@ void ExportWorker::run()
 
 				//process variants
 				tmp_timer.start();
+				int somatic_count_to = 0;
+				QSet<int> s_ids_to_done;
 				QMap<QByteArray, int> project_map;
-				QSet<QByteArray> processed_ps_ids;
-				QSet<QByteArray> processed_s_ids;
+				QSet<int> s_ids_done;
 				while(ngsd_count_query.next())
 				{
-					QByteArray current_sample = ngsd_count_query.value(0).toByteArray();
-					QByteArray current_ps_id = ngsd_count_query.value(1).toByteArray();
-					QByteArray current_project = ngsd_count_query.value(2).toByteArray();
+					int current_sample = ngsd_count_query.value(0).toInt();
 
-					//skip already seen processed samples
-					// (there could be several variants because of indel window,
-					//   but we want to process only one)
-					if (processed_ps_ids.contains(current_ps_id)) continue;
-					processed_ps_ids.insert(current_ps_id);
+					bool is_tumor_normal = !ngsd_count_query.value(3).isNull();
+                    QTextStream(stderr) << variant.toString() << " " << is_tumor_normal << " " << current_sample << QT_ENDL;
+					if (is_tumor_normal)
+					{
+						//skip already seen samples for general statistics (there could be several processings of the same sample because of different processing systems or because of experment repeats due to quality issues)
+						if (s_ids_done.contains(current_sample)) continue;
+						s_ids_done.insert(current_sample);
 
-					//skip already seen samples for general statistics
-					// (there could be several processings of the same sample because of
-					//   different processing systems or because of experment repeats due to
-					//   quality issues)
-					if (processed_s_ids.contains(current_sample)) continue;
-					processed_s_ids.insert(current_sample);
+						// count
+						QByteArray current_project = ngsd_count_query.value(2).toByteArray();
+						if(!project_map.contains(current_project)) project_map.insert(current_project,0);
+						++project_map[current_project];
+					}
+					else
+					{
+						//skip already seen samples for general statistics (there could be several processings of the same sample because of different processing systems or because of experment repeats due to quality issues)
+						if (s_ids_to_done.contains(current_sample)) continue;
+						s_ids_to_done.insert(current_sample);
 
-					// count
-					if(!project_map.contains(current_project)) project_map.insert(current_project,0);
-					++project_map[current_project];
+						++somatic_count_to;
+                        QTextStream(stderr) << somatic_count_to << QT_ENDL;
+					}
 				}
 
 				// calculate somatic count
@@ -357,9 +363,11 @@ void ExportWorker::run()
 					{
 						info_column.append("SOM_P=.");
 					}
-
 				}
-
+				if (somatic_count_to > 0)
+				{
+					info_column.append("SOM_TO_C=" + QByteArray::number(somatic_count_to));
+				}
 
 				//Add somatic VICC interpretation
 				if(db.getSomaticViccId(variant) != -1)
@@ -465,10 +473,11 @@ void ExportWorker::run()
 		emit done(chr_);
 	}
 	catch(Exception& e)
-	{
-		//QTextStream(stdout) << "ExportWorker:error " << chr_ << " message:" << e.message() << endl;
+	{		
 		emit error(chr_, e.message());
 	}
+
+
 }
 
 

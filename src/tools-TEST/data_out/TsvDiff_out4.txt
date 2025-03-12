@@ -1,0 +1,11 @@
++##insert1
+-##bla
++##bla (changed)
++##insert2
++##insert3
+-chr1	120270301	120270301	A	C
+-chrY	8979472	8979472	T	G
+Difference summary:
+comment lines added: 4
+comment lines removed: 1
+content lines removed: 2

@@ -1,5 +1,5 @@
 ### RohHunter tool help
-	RohHunter (2024_08-110-g317f43b9)
+	RohHunter (2025_01-55-gd44a7c92)
 	
 	ROH detection based on a variant list.
 	
@@ -10,7 +10,9 @@
 	  -out <file>               Output TSV file with ROH regions.
 	
 	Optional parameters:
-	  -annotate <filelist>      List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.
+	  -annotate <filelist>      List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as column name and 4th column of the BED file is used as annotation value.
+	                            Default value: ''
+	  -exclude <file>           BED files with regions to exclude from ROH analysis. Regions where variant callins is not possible should be removed (centromers, MQ=0 regions and large stretches of N bases).
 	                            Default value: ''
 	  -var_min_dp <int>         Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.
 	                            Default value: '20'
@@ -26,11 +28,15 @@
 	                            Default value: '20'
 	  -roh_min_size <float>     Minimum size in Kb of output ROH regions.
 	                            Default value: '20'
-	  -ext_marker_perc <float>  Percentage of ROH markers that can be spanned when merging ROH regions .
+	  -ext_marker_perc <float>  Percentage of ROH markers that can be spanned when merging ROH regions.
 	                            Default value: '1'
 	  -ext_size_perc <float>    Percentage of ROH size that can be spanned when merging ROH regions.
 	                            Default value: '50'
+	  -ext_max_het_perc <float> Maximum percentage of heterozygous markers in ROH regions.
+	                            Default value: '5'
 	  -inc_chrx                 Include chrX into the analysis. Excluded by default.
+	                            Default value: 'false'
+	  -debug                    Enable debug output
 	                            Default value: 'false'
 	
 	Special parameters:
@@ -41,8 +47,9 @@
 	  --settings [file]         Settings override file (no other settings files are used).
 	
 ### RohHunter changelog
-	RohHunter 2024_08-110-g317f43b9
+	RohHunter 2025_01-55-gd44a7c92
 	
+	2025-02-25 Added new parameters 'exclude', 'ext_max_het_perc' and 'debug'.
 	2020-08-07 VCF files only as input format for variant list.
 	2019-11-21 Added support for parsing AF data from any VCF info field (removed 'af_source' parameter).
 	2019-03-12 Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.

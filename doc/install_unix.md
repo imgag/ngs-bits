@@ -10,11 +10,9 @@ ngs-bits depends on the following software to be installed
 * _git_ (to extract the version hash)
 * __optional:__ python and matplotlib (for plot generation in QC tools)
 
-For example, the installation of the dependencies using Ubuntu 20.04 looks like that:
+For example, the installation of the dependencies using Ubuntu 22.04 looks like that:
 
-        > sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5sql5-odbc libqt5charts5-dev libqt5svg5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
-
-For Ubuntu 22.04 use the `qtbase5-dev` package instead of `qt5-default`.
+        > sudo apt-get install git make g++ qtbase5-dev libqt5sql5-mysql libqt5sql5-odbc libqt5charts5-dev libqt5svg5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev pkg-config libxml2 libxml2-dev
     
 ### Resolving proxy issues with git
 
@@ -75,3 +73,7 @@ To build GSvar, execute the following command:
 Now you need to [configure GSVar](GSvar/configuration.md).
 
 GSvar is usually running in client-server mode. Thus, you need to [setup the GSvar server](GSvarServer/index.md) as well.
+
+## Integration with IGV
+
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).

@@ -9,7 +9,7 @@ Q_OBJECT
 private slots:
 	void get_files()
 	{
-        if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+        if (!NGSD::isAvailable()) SKIP("Test needs access to the NGSD production database!");
 
         // Single
 		QString filename = "data_in/VariantFilter_in.GSvar";

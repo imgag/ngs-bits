@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/somatic_report_tumor_normal_1.xml</file>
+        <file>data/somatic_report_tumor_normal_2.xml</file>
+        <file>data/GermlineReport.xsd</file>
+        <file>data/SomaticReport.xsd</file>
+        <file>data/TumorOnlyNGSReport_v1.xsd</file>
+        <file>data/somatic_report.xml</file>
+        <file>data/germline_report2.xml</file>
+        <file>data/germline_report4.xml</file>
+        <file>data/tumor_only_report.xml</file>
+        <file>data/germline_report1.xml</file>
+        <file>data/tumor_only_report_broken_xml.xml</file>
+        <file>data/tumor_only_report_broken_schema.xml</file>
+        <file>data/germline_sheet1.html</file>
+        <file>data/germline_sheet1_broken.html</file>
+    </qresource>
+</RCC>

@@ -5,7 +5,7 @@
 +##insert3
 -chr1	120270301	120270301	A	C	hom	11.1	12
 -chr21	40456589	40456589	C	T	hom	111	45
-+chr21	40456589	40456589	C	T	het	111	45
++chr21	40456589	40456589	C	T	hom	108	46
 -chrY	8979472	8979472	T	G	hom	15.6	20
 Difference summary:
 comment lines added: 4
