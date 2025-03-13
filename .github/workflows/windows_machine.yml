@@ -24,7 +24,7 @@ jobs:
       - name: Copy htslib to bin folder
         run: (cp htslib/lib/hts.dll.a bin/) && (cp htslib/lib/hts-3.dll bin/) && (cp htslib/lib/libhts.a bin/)
       - name: Unpack libxml2
-        working-directory: ./
+        working-directory: ./libxml2
         run: unzip -o libxml2_win_64.zip
       - name: Copy libxml2 to bin folder
         run: cp libxml2/.libs/* bin/
