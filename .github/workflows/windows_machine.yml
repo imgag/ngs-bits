@@ -27,7 +27,7 @@ jobs:
         working-directory: ./libxml2
         run: unzip -o libxml2_win_64.zip
       - name: Copy libxml2 to bin folder
-        run: cp libxml2/.libs/* bin/
+        run: cp libxml2/libs/* bin/
       - name: Download test files
         run: make download_test_files
       - name: Build other dependencies
