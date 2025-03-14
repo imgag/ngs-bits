@@ -29,8 +29,10 @@ public:
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		addInt("min_baseq", "Minimum base quality.", true, 25);
+		addFlag("include_single_end_reads", "In bam mode: include reads which are not (properly) paired. Required e.g. for long-read input data.");
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
+		changeLog(2025,  3, 14, "Added support for single-end data (lrGS).");
 	}
 
 	virtual void main()
@@ -39,6 +41,7 @@ public:
 		QStringList bams = getInfileList("bam");
 		int min_mapq = getInt("min_mapq");
 		int min_baseq = getInt("min_baseq");
+		bool include_single_end_reads = getFlag("include_single_end_reads");
 
 		//open output stream
 		QString out = getOutfile("out");
@@ -66,7 +69,7 @@ public:
 
 			for(int j=0; j<bams.count(); ++j)
 			{
-				Pileup pileup = bams_open[j]->getPileup(file[i].chr(), file[i].end(), -1, min_mapq, false, min_baseq);
+				Pileup pileup = bams_open[j]->getPileup(file[i].chr(), file[i].end(), -1, min_mapq, include_single_end_reads, min_baseq);
 				outstream << file[i].toString(false)+"\t"+QFileInfo(bams[j]).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false)) + "\n";
 			}
 		}
