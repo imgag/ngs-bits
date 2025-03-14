@@ -38,8 +38,9 @@ For some tools the documentation pages contain only the command-line help, for o
 
 ## License
 
-*ngs-bits* is provided under the [MIT license](LICENSE) and is based on other open source software:
+*ngs-bits* is provided under the [MIT license](LICENSE), but is is based on other software components with different lincenses:
 
+* [Qt](https://www.qt.io/) is our base framwork for the graphical user interface, platform abstraction, data structures and much more.
 * [htslib](https://github.com/samtools/htslib) for HTS data format support (BAM, VCF, ...)
 * [SimpleCrypt](https://wiki.qt.io/Simple_encryption_with_SimpleCrypt) for weak encryption
 * [QR-Code-generator](https://github.com/nayuki/QR-Code-generator) for QR code generation

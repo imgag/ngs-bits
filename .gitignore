@@ -5,3 +5,5 @@ t.log
 *.crt
 *.key
 *.txt
+libxml2/include
+libxml2/libs
