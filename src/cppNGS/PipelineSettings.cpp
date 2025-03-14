@@ -31,7 +31,7 @@ void PipelineSettings::loadSettings(QString ini_file)
 			//handle double quotes around values
 			if(value.startsWith('"') && value.endsWith('"'))
 			{
-				value = value.mid(1, value.count()-2).trimmed();
+                value = value.mid(1, value.size()-2).trimmed();
 			}
 			if (value.startsWith("[path]"))
 			{

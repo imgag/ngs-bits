@@ -12,12 +12,17 @@
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include <QChartView>
 #include <QDialogButtonBox>
 #include <QSignalMapper>
 #include <QTextEdit>
-QT_CHARTS_USE_NAMESPACE
 
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QtCharts/QChartView>
+#else
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
+#endif
 
 
 ExpressionGeneWidget::ExpressionGeneWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
@@ -201,7 +206,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 					GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed(), ',');
 
 					bool match_found = false;
-					foreach(const QByteArray& sv_gene, sv_genes)
+                    for (const QByteArray& sv_gene : sv_genes)
 					{
                         if (reg.match(sv_gene).hasMatch())
 						{
@@ -543,7 +548,7 @@ void ExpressionGeneWidget::showCohort()
 		cohort_dialog.setWindowFlags(Qt::Window);
 		cohort_dialog.setWindowTitle("Cohort of Sample " + db.processedSampleName(ps_id_));
 		cohort_dialog.setLayout(new QBoxLayout(QBoxLayout::TopToBottom));
-		cohort_dialog.layout()->setMargin(3);
+        cohort_dialog.layout()->setContentsMargins(3, 3, 3, 3);
 
 		//add description:
 		QLabel* description = new QLabel("The cohort contains the following samples:");
@@ -578,7 +583,7 @@ void ExpressionGeneWidget::showCohort()
 		h_layout->addItem(h_spacer);
 		h_layout->addWidget(copy_button);
 		h_box->setLayout(h_layout);
-		cohort_dialog.layout()->setMargin(0);
+        cohort_dialog.layout()->setContentsMargins(0, 0, 0, 0);
 		cohort_dialog.layout()->addWidget(h_box);
 
 
@@ -619,7 +624,7 @@ void ExpressionGeneWidget::showCustomCohortDialog()
 		custom_cohort_dialog.setWindowFlags(Qt::Window);
 		custom_cohort_dialog.setWindowTitle("Set custom cohort of Sample " + db.processedSampleName(ps_id_));
 		custom_cohort_dialog.setLayout(new QBoxLayout(QBoxLayout::TopToBottom));
-		custom_cohort_dialog.layout()->setMargin(3);
+        custom_cohort_dialog.layout()->setContentsMargins(3, 3, 3, 3);
 
 		//add description:
 		QLabel* description = new QLabel("Define the custom cohort by adding all processed sample which should be part of the cohort (separated by new lines):");

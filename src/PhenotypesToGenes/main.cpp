@@ -81,7 +81,7 @@ public:
 			}
 
 			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(id, sources, evidences, true, ignore_non_phenotype);
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				genes2phenotypes[gene] << db.phenotype(id);
 			}
@@ -92,7 +92,7 @@ public:
 		for (auto it=genes2phenotypes.begin(); it!=genes2phenotypes.end(); ++it)
 		{
 			QByteArrayList tmp;
-			foreach(const Phenotype& pheno, it.value())
+            for (const Phenotype& pheno : it.value())
 			{
 				tmp << pheno.accession();
 			}

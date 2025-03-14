@@ -58,8 +58,8 @@ void BlatWidget::performSearch()
 			ui_.table->setRowCount(ui_.table->rowCount()+1);
 
 			QJsonArray values = blat_matches[i].toArray();
-			ui_.table->setItem(i, 0, GUIHelper::createTableItem(QString::number(values[0].toInt())+"/"+QString::number(sequence.count())));
-			ui_.table->setItem(i, 1, GUIHelper::createTableItem(QString::number(values[2].toInt())+"/"+QString::number(sequence.count())));
+            ui_.table->setItem(i, 0, GUIHelper::createTableItem(QString::number(values[0].toInt())+"/"+QString::number(sequence.size())));
+            ui_.table->setItem(i, 1, GUIHelper::createTableItem(QString::number(values[2].toInt())+"/"+QString::number(sequence.size())));
 			ui_.table->setItem(i, 2, GUIHelper::createTableItem(values[8].toString()));
 			ui_.table->setItem(i, 3, GUIHelper::createTableItem(values[13].toString()+":"+QString::number(values[15].toInt()+1)+"-"+QString::number(values[16].toInt())));
 		}

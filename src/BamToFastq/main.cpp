@@ -55,7 +55,7 @@ public:
 
 		if (extend>0)
 		{
-			while (e.bases.count()<extend)
+            while (e.bases.size()<extend)
 			{
 				e.bases.append('N');
 				e.qualities.append(35); //33+2
@@ -189,7 +189,7 @@ public:
 					al = QSharedPointer<BamAlignment>(new BamAlignment());
 				}
 
-				max_cached = std::max(max_cached, al_cache.size());
+                max_cached = std::max(SIZE_TO_INT(max_cached), SIZE_TO_INT(al_cache.size()));
 			}
 			else //single-end
 			{

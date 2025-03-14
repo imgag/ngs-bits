@@ -49,7 +49,7 @@ public:
 		GeneSet gene_names = db.approvedGeneNames();
         out << "Getting gene regions from NGSD for " << gene_names.count() << " genes ..." << QT_ENDL;
 		BedFile gene_regions;
-		foreach (const QByteArray& gene_name, gene_names)
+        for (const QByteArray& gene_name : gene_names)
 		{
 			gene_regions.add(getGeneRegion(gene_name, db, "gene"));
 		}

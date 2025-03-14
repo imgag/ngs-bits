@@ -607,13 +607,13 @@ void AnalysisStatusWidget::updateDetails()
 	//history
 	ui_.history->setRowCount(job.history.count());
 	r = 0;
-	foreach(const AnalysisJobHistoryEntry& entry, job.history)
+    for (const AnalysisJobHistoryEntry& entry : job.history)
 	{
 		addItem(ui_.history, r, 0, entry.timeAsString());
 		addItem(ui_.history, r, 1, entry.user);
 		addItem(ui_.history, r, 2, entry.status, statusToColor(entry.status));
 		QString output = entry.output.join("\n").trimmed();
-		if (output.count()>50)
+        if (output.size()>50)
 		{
 			output.resize(50);
 			output += "...";

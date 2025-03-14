@@ -7,11 +7,6 @@ SqlQuery::SqlQuery(QSqlDatabase db)
 {
 }
 
-SqlQuery::SqlQuery(const SqlQuery& query)
-	: QSqlQuery(query)
-{
-}
-
 void SqlQuery::exec(const QString& query)
 {
 	bool success = QSqlQuery::exec(query);

@@ -164,19 +164,19 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	QStringList messages;
 
 	GeneSet intersect = genes.intersect(imprinting_genes);
-	foreach(const QByteArray& gene, intersect)
+    for (const QByteArray& gene : intersect)
 	{
 		messages << (gene + ": Imprinting gene");
 	}
 
 	intersect = genes.intersect(hi0_genes);
-	foreach(const QByteArray& gene, intersect)
+    for (const QByteArray& gene : intersect)
 	{
 		messages << (gene + ": No evidence for haploinsufficiency");
 	}
 
 	intersect = genes.intersect(pseudogene_genes);
-	foreach(const QByteArray& gene, intersect)
+    for (const QByteArray& gene : intersect)
 	{
 		messages << (gene + ": Has pseudogene(s)");
 	}

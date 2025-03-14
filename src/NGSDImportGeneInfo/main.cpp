@@ -103,7 +103,11 @@ public:
 				//gnomAD o/e
 				if (parts[i_syn]=="NA" || parts[i_syn]=="NaN")
 				{
-					update_query.bindValue(1,  QVariant(QVariant::Double));
+                    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                    update_query.bindValue(1,  QVariant(QMetaType(QMetaType::Double)));
+                    #else
+                    update_query.bindValue(1,  QVariant(QVariant::Double));
+                    #endif
 				}
 				else
 				{
@@ -112,7 +116,11 @@ public:
 
 				if (parts[i_mis]=="NA" || parts[i_mis]=="NaN")
 				{
-					update_query.bindValue(2,  QVariant(QVariant::Double));
+                    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                    update_query.bindValue(2,  QVariant(QMetaType(QMetaType::Double)));
+                    #else
+                    update_query.bindValue(2,  QVariant(QVariant::Double));
+                    #endif
 				}
 				else
 				{
@@ -121,7 +129,12 @@ public:
 
 				if (parts[i_lof]=="NA" || parts[i_lof]=="NaN")
 				{
-					update_query.bindValue(3,  QVariant(QVariant::Double));
+                    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                    update_query.bindValue(3,  QVariant(QMetaType(QMetaType::Double)));
+                    #else
+                    update_query.bindValue(3,  QVariant(QVariant::Double));
+                    #endif
+
 				}
 				else
 				{

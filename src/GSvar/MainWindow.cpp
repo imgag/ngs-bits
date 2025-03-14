@@ -26,12 +26,10 @@
 #include <QToolButton>
 #include <QMimeData>
 #include <QSqlError>
-#include <QChartView>
 #include <GenLabDB.h>
 #include <QToolTip>
 #include <QImage>
 #include <QBuffer>
-QT_CHARTS_USE_NAMESPACE
 #include "Background/ReportWorker.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
@@ -158,6 +156,13 @@ QT_CHARTS_USE_NAMESPACE
 #include "Background/IGVInitCacheWorker.h"
 #include "SampleCountWidget.h"
 #include "MethylationWidget.h"
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QtCharts/QChartView>
+#else
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -619,7 +624,7 @@ void MainWindow::on_actionRegionToGenes_triggered()
 		dlg.setReadOnly(true);
 		dlg.setWordWrapMode(QTextOption::NoWrap);
 		dlg.appendLine("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
-		foreach (const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			QList<OmimInfo> omim_genes = db.omimInfo(gene);
 			foreach (const OmimInfo& omim_gene, omim_genes)
@@ -1120,7 +1125,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	GeneSet variant_target_region;
 	if(ui_.filters->phenotypes().count() > 0)
 	{
-		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+		for (const Phenotype& phenotype : ui_.filters->phenotypes())
 		{
 			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
 		}
@@ -1211,7 +1216,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	GeneSet variant_target_region;
 	if(ui_.filters->phenotypes().count() > 0)
 	{
-		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+        for (const Phenotype& phenotype : ui_.filters->phenotypes())
 		{
 			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
 		}
@@ -2183,7 +2188,7 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 	NGSD db;
 	GeneSet genes;
-	foreach(const Phenotype& pheno, ui_.filters->phenotypes())
+    for (const Phenotype& pheno : ui_.filters->phenotypes())
 	{
 		genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 	}
@@ -2494,7 +2499,7 @@ void MainWindow::openVariantTab(Variant variant)
 		QString v_id = db.variantId(variant);
 
 		TabType type = TabType::VARIANT;
-		QString name = variant.toString(false, -1, true);
+        QString name = variant.toString(QChar(), -1, true);
 		if (focusTab(type, name)) return;
 
 		//open tab
@@ -4680,8 +4685,12 @@ void MainWindow::on_actionExportTestData_triggered()
 		if (file_name.isEmpty()) return;
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
-		QTextStream output_stream(file.data());
-		output_stream.setCodec("UTF-8");
+        QTextStream output_stream(file.data());
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        output_stream.setEncoding(QStringConverter::Utf8);
+        #else
+        output_stream.setCodec("UTF-8");
+        #endif
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -6281,7 +6290,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		if (i_genes!=-1)
 		{
 			GeneSet genes = GeneSet::createFromText(variant.annotations()[i_genes], ',');
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 				inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
@@ -6289,7 +6298,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-		ReportVariantDialog dlg(variant.toString(false), inheritance_by_gene, var_config, this);
+        ReportVariantDialog dlg(variant.toString(QChar()), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
 
@@ -6436,7 +6445,7 @@ void MainWindow::storeCurrentVariantList()
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "application/json");
 			add_headers.insert("Content-Type", "application/json");
-			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
+            add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().size()));
 
 			QString reply = HttpHandler(true).put(
 						ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
@@ -6498,14 +6507,14 @@ void MainWindow::variantRanking()
 		{
 			phenotypes = db.getSampleData(sample_id).phenotypes;
 		}
-		foreach(const Phenotype& pheno, phenotypes)
+        for (const Phenotype& pheno : phenotypes)
 		{
 			//pheno > genes
 			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 
 			//genes > roi
 			BedFile roi;
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -6656,7 +6665,7 @@ void MainWindow::applyFilters(bool debug_time)
 			NGSD db;
 			GeneSet pheno_genes;
 			int i = 0;
-			foreach(const Phenotype& pheno, phenos)
+            for (const Phenotype& pheno : phenos)
 			{
 				GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), pheno_settings.sources, pheno_settings.evidence_levels, true, false);
 
@@ -6673,7 +6682,7 @@ void MainWindow::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
-			foreach(const QByteArray& gene, pheno_genes)
+            for (const QByteArray& gene : pheno_genes)
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <zlib.h>
 #include <Log.h>
+#include <QRegularExpression>
 #include "Chromosome.h"
 
 
@@ -494,8 +495,10 @@ void BigWigReader::parseChromLeaf(quint16 num_items, quint32 key_size)
 	{
 		ChromosomeItem chr;
         QByteArray bytes = fp_->read(key_size + 8);
-		QString k =bytes.mid(0, key_size); // shorter than max length keys end with zero bytes that don't get trimmed normally
-		chr.key = Chromosome(k.toUtf8().trimmed()).strNormalized(true);
+        QString k =bytes.mid(0, key_size); // shorter than max length keys end with zero bytes that don't get trimmed normally
+
+        trimNonNumericFromEnd(k);
+        chr.key = Chromosome(k.toUtf8().trimmed()).strNormalized(true);
 
 		QDataStream ds(bytes.mid(key_size, bytes.length()));
 		ds.setByteOrder(byte_order_);
@@ -721,4 +724,16 @@ void BigWigReader::printIndexTreeNode(const BigWigReader::IndexRTreeNode& node, 
 			//printIndexTreeNode(node.children[i], level+1);
 		}
 	}
+}
+
+void BigWigReader::trimNonNumericFromEnd(QString& data)
+{
+    QRegularExpression regex("[^0-9]+$");
+    QRegularExpressionMatch match = regex.match(data);
+
+    if (match.hasMatch()) {
+        int start = match.capturedStart();
+        int length = match.capturedLength();
+        data.remove(start, length);
+    }
 }

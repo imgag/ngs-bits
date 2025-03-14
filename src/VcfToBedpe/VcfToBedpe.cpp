@@ -312,7 +312,7 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertSingleLine(const VcfToBedpe::vcf_line 
 	QChar orientation1 = '.';
 	QChar orientation2 = '.';
 
-	if(info.contains("STRANDS") && info.value("STRANDS").count() == 2)
+    if(info.contains("STRANDS") && info.value("STRANDS").size() == 2)
 	{
 		orientation1 = info.value("STRANDS").at(0);
 		orientation2 = info.value("STRANDS").at(1);

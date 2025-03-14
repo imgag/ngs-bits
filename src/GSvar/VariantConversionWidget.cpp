@@ -90,7 +90,7 @@ void VariantConversionWidget::convert()
 			foreach(QString line, lines)
 			{
 				line = line.trimmed();
-				if (line=="" || line[0]=="#")
+                if (line=="" || line[0]==QString("#"))
 				{
 					output << "";
 					continue;
@@ -119,7 +119,7 @@ void VariantConversionWidget::convert()
 			foreach(QString line, lines)
 			{
 				line = line.trimmed();
-				if (line=="" || line[0]=="#")
+                if (line=="" || line[0]==QString("#"))
 				{
 					output << "";
 					continue;
@@ -164,7 +164,7 @@ void VariantConversionWidget::convert()
 			foreach(QString line, lines)
 			{
 				line = line.trimmed();
-				if (line=="" || line[0]=="#")
+                if (line=="" || line[0]==QString("#"))
 				{
 					output << "";
 					continue;

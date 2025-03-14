@@ -330,7 +330,7 @@ public:
 		importDiseaseDetails(db, s_id, genlab.tumorFraction(ps_name), "tumor fraction", dry_run);
 		PhenotypeList phenotypes = genlab.phenotypes(ps_name);
 		QStringList hpo_accessions;
-		foreach (const Phenotype& genlab_v, phenotypes)
+        for (const Phenotype& genlab_v : phenotypes)
 		{
 			hpo_accessions << genlab_v.accession();
 		}
