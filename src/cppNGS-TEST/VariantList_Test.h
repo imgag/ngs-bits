@@ -59,8 +59,8 @@ private slots:
 		I_EQUAL(vl.count(),vl2.count());
 		for (int i=0; i<vl2.count(); ++i)
 		{
-			S_EQUAL(vl[i].start(),vl2[i].start());
-			S_EQUAL(vl[i].obs() ,vl2[i].obs());
+            I_EQUAL(vl[i].start(), vl2[i].start());
+            S_EQUAL(vl[i].obs(), vl2[i].obs());
 		}
 	}
 

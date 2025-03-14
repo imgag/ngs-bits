@@ -73,7 +73,7 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		}
 
 		//determine column and sample names
-		int header_count = allow_multi_sample ? header_fields.count() : std::min(10, header_fields.count());
+        int header_count = allow_multi_sample ? header_fields.count() : std::min(SIZE_TO_INT(10), SIZE_TO_INT(header_fields.count()));
 		for(int i = 9; i < header_count; ++i)
 		{
 			sample_names_ << header_fields.at(i);
