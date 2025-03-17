@@ -29,7 +29,7 @@ jobs:
     - name: Setup test environment
       run: sudo apt-get -y install make g++ git python3 python3-matplotlib qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev
     - name: Create symlink for qmake6
-      run: sudo ln -fs qmake6 qmake
+      run: sudo ln -fs /usr/bin/qmake6 /usr/bin/qmake
     - name: Create symlink for python
       run: sudo ln -fs /bin/python3 /bin/python
     - name: Update submodules
