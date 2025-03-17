@@ -1066,9 +1066,9 @@ public:
 			int added_t2g = 0;
             if (debug) out << "Parsing HGMD Phenobase dump file..." << QT_ENDL;
 			// define look-up tables
-			QMultiMap<int, QByteArray> phenid2gene_mapping = QMap<int, QByteArray>();
-			QMultiMap<QByteArray,int> cui2phenid_mapping = QMap<QByteArray,int>();
-			QMultiMap<QByteArray,QByteArray> hpo2cui_mapping = QMap<QByteArray,QByteArray>();
+            QMultiMap<int, QByteArray> phenid2gene_mapping = QMultiMap<int, QByteArray>();
+            QMultiMap<QByteArray,int> cui2phenid_mapping = QMultiMap<QByteArray,int>();
+            QMultiMap<QByteArray,QByteArray> hpo2cui_mapping = QMultiMap<QByteArray,QByteArray>();
 
 			QSharedPointer<QFile> fp = Helper::openFileForReading(hgmd_file);
 			int line_number = 0;

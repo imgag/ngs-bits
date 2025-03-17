@@ -52,7 +52,7 @@ public:
 		int max_len = 0;
 		foreach (QString name, filter_names)
 		{
-			max_len = std::max(max_len, name.length());
+            max_len = std::max(SIZE_TO_INT(max_len), SIZE_TO_INT(name.length()));
 		}
 		//add filters
 		foreach (QString name, filter_names)
