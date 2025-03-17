@@ -189,7 +189,7 @@ public:
 					al = QSharedPointer<BamAlignment>(new BamAlignment());
 				}
 
-				max_cached = std::max(max_cached, al_cache.size());
+                max_cached = std::max(SIZE_TO_INT(max_cached), SIZE_TO_INT(al_cache.size()));
 			}
 			else //single-end
 			{

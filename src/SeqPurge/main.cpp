@@ -72,7 +72,7 @@ public:
 		if (params.a1.count()<15) THROW(CommandLineParsingException, "Forward adapter " + params.a1 + " too short!");
 		params.a2 = getString("a2").trimmed().toUtf8();
 		if (params.a2.count()<15) THROW(CommandLineParsingException, "Reverse adapter " + params.a2 + " too short!");
-		params.a_size = std::min(20, std::min(params.a1.count(), params.a2.count()));
+        params.a_size = std::min(SIZE_TO_INT(20), std::min(SIZE_TO_INT(params.a1.count()), SIZE_TO_INT(params.a2.count())));
 
 		params.match_perc = getFloat("match_perc");
 		params.mep = getFloat("mep");

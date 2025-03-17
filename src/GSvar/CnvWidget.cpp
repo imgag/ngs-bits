@@ -30,7 +30,7 @@
 #include "ColumnConfig.h"
 #include "SettingsDialog.h"
 
-#if QT_VERSION > QT_VERSION_CHECK(5, 15, 15)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
 #else
 #include <QChartView>

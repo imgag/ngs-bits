@@ -157,7 +157,7 @@
 #include "SampleCountWidget.h"
 #include "MethylationWidget.h"
 
-#if QT_VERSION > QT_VERSION_CHECK(5, 15, 15)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
 #else
 #include <QChartView>
@@ -4686,7 +4686,7 @@ void MainWindow::on_actionExportTestData_triggered()
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
         QTextStream output_stream(file.data());
-        #if QT_VERSION > QT_VERSION_CHECK(5, 15, 15)
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         output_stream.setEncoding(QStringConverter::Utf8);
         #else
         output_stream.setCodec("UTF-8");
