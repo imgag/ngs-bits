@@ -206,7 +206,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 
         QScrollArea* scroll_area = new QScrollArea(this);
         scroll_area->setFrameStyle(QFrame::NoFrame);
-        scroll_area->setWidget(label);
+        scroll_area->setWidget(widget);
         scroll_area->setMinimumSize(1200, 800);
         #endif
 

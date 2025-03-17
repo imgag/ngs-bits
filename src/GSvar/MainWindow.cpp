@@ -4685,9 +4685,12 @@ void MainWindow::on_actionExportTestData_triggered()
 		if (file_name.isEmpty()) return;
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
-		QTextStream output_stream(file.data());
-        // output_stream.setCodec("UTF-8");
+        QTextStream output_stream(file.data());
+        #if QT_VERSION > QT_VERSION_CHECK(5, 15, 15)
         output_stream.setEncoding(QStringConverter::Utf8);
+        #else
+        output_stream.setCodec("UTF-8");
+        #endif
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
