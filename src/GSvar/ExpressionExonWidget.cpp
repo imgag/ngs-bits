@@ -8,12 +8,16 @@
 #include "BedFile.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-
-#include <QChartView>
 #include <QMenu>
 #include <QMessageBox>
 #include <QTime>
+
+#if QT_VERSION > QT_VERSION_CHECK(5, 15, 15)
+#include <QtCharts/QChartView>
+#else
+#include <QChartView>
 QT_CHARTS_USE_NAMESPACE
+#endif
 
 ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
 										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QWidget* parent):

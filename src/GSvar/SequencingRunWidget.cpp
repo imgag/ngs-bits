@@ -14,6 +14,9 @@
 #include "GSvarHelper.h"
 #include "NsxSettingsDialog.h"
 #include <numeric>
+#include <QSignalMapper>
+#include <QInputDialog>
+#include <QMessageBox>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run_ids)
 	: QWidget(parent)

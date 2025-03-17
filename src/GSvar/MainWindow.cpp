@@ -26,12 +26,10 @@
 #include <QToolButton>
 #include <QMimeData>
 #include <QSqlError>
-#include <QChartView>
 #include <GenLabDB.h>
 #include <QToolTip>
 #include <QImage>
 #include <QBuffer>
-QT_CHARTS_USE_NAMESPACE
 #include "Background/ReportWorker.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
@@ -158,6 +156,13 @@ QT_CHARTS_USE_NAMESPACE
 #include "Background/IGVInitCacheWorker.h"
 #include "SampleCountWidget.h"
 #include "MethylationWidget.h"
+
+#if QT_VERSION > QT_VERSION_CHECK(5, 15, 15)
+#include <QtCharts/QChartView>
+#else
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -2494,7 +2499,7 @@ void MainWindow::openVariantTab(Variant variant)
 		QString v_id = db.variantId(variant);
 
 		TabType type = TabType::VARIANT;
-		QString name = variant.toString(false, -1, true);
+        QString name = variant.toString(QChar(), -1, true);
 		if (focusTab(type, name)) return;
 
 		//open tab
@@ -4681,7 +4686,8 @@ void MainWindow::on_actionExportTestData_triggered()
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
 		QTextStream output_stream(file.data());
-		output_stream.setCodec("UTF-8");
+        // output_stream.setCodec("UTF-8");
+        output_stream.setEncoding(QStringConverter::Utf8);
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -6289,7 +6295,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-		ReportVariantDialog dlg(variant.toString(false), inheritance_by_gene, var_config, this);
+        ReportVariantDialog dlg(variant.toString(QChar()), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
 

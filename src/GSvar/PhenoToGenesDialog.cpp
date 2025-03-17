@@ -83,7 +83,7 @@ void PhenoToGenesDialog::tabChanged(int num)
 			foreach(QByteArray gene, genes)
 			{
 				gene2pheno[gene].append(phenos[i].name());
-				max_phenotypes = std::max(max_phenotypes, gene2pheno[gene].count());
+                max_phenotypes = std::max(SIZE_TO_INT(max_phenotypes), SIZE_TO_INT(gene2pheno[gene].count()));
 			}
 		}
 

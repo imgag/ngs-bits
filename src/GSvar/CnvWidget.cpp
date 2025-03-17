@@ -27,10 +27,15 @@
 #include <QUrl>
 #include <QDir>
 #include <QInputDialog>
-#include <QChartView>
-QT_CHARTS_USE_NAMESPACE
 #include "ColumnConfig.h"
 #include "SettingsDialog.h"
+
+#if QT_VERSION > QT_VERSION_CHECK(5, 15, 15)
+#include <QtCharts/QChartView>
+#else
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
+#endif
 
 CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, SomaticReportConfiguration* rep_conf_somatic, const GeneSet& het_hit_genes)
 	: QWidget(parent)

@@ -548,7 +548,7 @@ void BurdenTestWidget::validateInputData()
 		QVBoxLayout* v_layout = new QVBoxLayout(view);
 		v_layout->addWidget(new QLabel(warnings.join("<br>")));
 		v_layout->setSpacing(3);
-		v_layout->setMargin(0);
+        v_layout->setContentsMargins(0, 0, 0, 0);
 		if(warning_table.size() > 0)
 		{
 			QPushButton* bt_copy_table = new QPushButton(QIcon(":/Icons/CopyClipboard.png"), "");
@@ -558,7 +558,7 @@ void BurdenTestWidget::validateInputData()
 			QVBoxLayout* h_layout = new QVBoxLayout(h_view);
 			h_layout->addWidget(bt_copy_table);
 			h_layout->addSpacerItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Fixed));
-			h_layout->setMargin(0);
+            h_layout->setContentsMargins(0, 0, 0, 0);
 			v_layout->addWidget(tw_warnings_);
 			v_layout->addWidget(h_view);
 		}

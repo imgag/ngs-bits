@@ -58,7 +58,7 @@ void VariantWidget::updateGUI()
 	QString variant_id = db.variantId(variant_);
 
 	//variant base info
-	ui_.variant->setText(variant_.toString(false, -1, true));
+    ui_.variant->setText(variant_.toString(QChar(), -1, true));
 
 	SqlQuery query1 = db.getQuery();
 	query1.exec("SELECT * FROM variant WHERE id=" + variant_id);
