@@ -29,10 +29,8 @@ public:
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		addInt("min_baseq", "Minimum base quality.", true, 25);
-
 		addFlag("long_read", "Support long reads (> 1kb).");
 
-		changeLog(2020,  11, 27, "Added CRAM support.");
 		//changelog
 		changeLog(2025,  3, 18, "Added long_read support.");
 		changeLog(2020, 11, 27, "Added CRAM support.");
@@ -45,7 +43,6 @@ public:
 		QStringList bams = getInfileList("bam");
 		int min_mapq = getInt("min_mapq");
 		int min_baseq = getInt("min_baseq");
-
 		bool long_read = getFlag("long_read");
 
 		//open output stream
@@ -74,7 +71,6 @@ public:
 
 			for(int j=0; j<bams.count(); ++j)
 			{
-				Pileup pileup = bams_open[j]->getPileup(file[i].chr(), file[i].end(), -1, min_mapq, false, min_baseq);
 				Pileup pileup = bams_open[j]->getPileup(file[i].chr(), file[i].end(), -1, min_mapq, long_read, min_baseq);
 				outstream << file[i].toString(false)+"\t"+QFileInfo(bams[j]).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false)) + "\n";
 			}
