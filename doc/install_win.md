@@ -69,12 +69,18 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	<tr>
 		<td>ngs-bits\htslib\lib\</td>
 		<td>
+		libxml2-16.dll
+		</td>
+	</tr>
+	<tr>
+		<td>ngs-bits\libxml2\libs\</td>
+		<td>
 		*.*
 		</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\bin\</td>
-		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Svg.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Svg.dll, Qt5Widgets.dll, Qt5Xml.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\plugins\</td>
