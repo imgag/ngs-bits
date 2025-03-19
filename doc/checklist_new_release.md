@@ -3,7 +3,7 @@
 1. Update documentation: `make build_release_noclean doc_update`
 1. Update check documentation: `make doc_check_urls`
 1. Check for tools not added to the main page: `make doc_find_missing_tools`
-1. Clear the changelog and update the download versio in `ngs-bits/README.md`.
+1. Update the download version in `ngs-bits/README.md`.
 1. Commit and push the changes.
 1. Compile changelog for the new release:
 
@@ -20,6 +20,8 @@
 1. Add the tarball to the GitHub release:
 
 	> hub release edit --draft=false --attach=ngs-bits-[tag].tgz [tag]
+
+1. Add the Zenodo DOI of the new release to `ngs-bits/README.md`.
 
 # Bioconda release
 
