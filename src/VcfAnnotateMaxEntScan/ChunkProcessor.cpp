@@ -61,26 +61,27 @@ int ChunkProcessor::base_to_int(char base)
 }
 
 
-void ChunkProcessor::get_seqs(const Variant& variant, int slice_start, int slice_end, int length, const Transcript& transcript, Sequence& ref_seq, Sequence& alt_seq)
+bool ChunkProcessor::get_seqs(const Variant& variant, int slice_start, int length, bool is_minus_strand, Sequence& ref_seq, Sequence& alt_seq)
 {
-	ref_seq = reference_.seq(variant.chr(), slice_start, length + variant.end() - variant.start());
-	if (!ref_seq.onlyACGT())
+	//get ref sequence
+	ref_seq = reference_.seq(variant.chr(), slice_start, length + variant.ref().count() - 1);
+
+	//check that ref sequence contains only valid bases
+	if (!ref_seq.onlyACGT()) return false;
+
+	//get alt sequence
+    int variant_position_in_slice = variant.start() - slice_start;
+	alt_seq = ref_seq;
+	alt_seq.replace(variant_position_in_slice, variant.ref().length(), variant.obs());
+
+	//in case of minus strand, reverse-complement sequences
+	if (is_minus_strand)
 	{
-		ref_seq.clear();
-		alt_seq.clear();
-		return;
+		ref_seq.reverseComplement();
+		alt_seq.reverseComplement();
 	}
 
-	Sequence alt_base = variant.obs();
-    int variant_position_in_slice = variant.start() - slice_start;
-	if (transcript.isMinusStrand())
-	{
-        ref_seq.reverseComplement();
-        alt_base.reverseComplement();
-		variant_position_in_slice = slice_end - slice_start - variant_position_in_slice;
-    }
-	alt_seq = ref_seq;
-    alt_seq = alt_seq.replace(variant_position_in_slice, variant.ref().length(), alt_base);
+	return true;
 }
 
 float ChunkProcessor::score5_consensus(const Sequence& sequence)
@@ -179,9 +180,7 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
             bool overlaps_three_prime = false;
             bool overlaps_five_prime = false;
 			int slice_start_three = 0;
-			int slice_end_three = 0;
 			int slice_start_five = 0;
-			int slice_end_five = 0;
 
             // EEEEEEEEEEEEGUXXXIIIIIIIIIIIIIIAPPPXXAGEEEEEEEEEEEE
             // -----Exon---5'ss-----Intron------3'ss------Exon----
@@ -191,30 +190,26 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
                 // check 5 prime ss if it is not the first exon (bc. there is no 5' ss)
 				if (i != 0)
 				{
-                    slice_start_three = coding_region.start() - 20;
-                    slice_end_three = coding_region.start() + 2;
-                    overlaps_three_prime = variant.overlapsWith(slice_start_three, slice_end_three);
+					slice_start_three = coding_region.start() - 20;
+					overlaps_three_prime = variant.overlapsWith(slice_start_three, coding_region.start() + 2);
                 }
 				if (i != coding_regions.count() - 1)
 				{
-                    slice_start_five = coding_region.end() - 2;
-                    slice_end_five = coding_region.end() + 6;
-                    overlaps_five_prime = variant.overlapsWith(slice_start_five, slice_end_five);
+					slice_start_five = coding_region.end() - 2;
+					overlaps_five_prime = variant.overlapsWith(slice_start_five, coding_region.end() + 6);
                 }
 			}
 			else
 			{
 				if (i != coding_regions.count() - 1)
 				{
-                    slice_start_three = coding_region.end() - 2;
-                    slice_end_three = coding_region.end() + 20;
-                    overlaps_three_prime = variant.overlapsWith(slice_start_three, slice_end_three);
+					slice_start_three = coding_region.end() - 2;
+					overlaps_three_prime = variant.overlapsWith(slice_start_three, coding_region.end() + 20);
                 }
 				if (i != 0)
 				{
-                    slice_start_five = coding_region.start() - 6;
-                    slice_end_five = coding_region.start() + 2;
-                    overlaps_five_prime = variant.overlapsWith(slice_start_five, slice_end_five);
+					slice_start_five = coding_region.start() - 6;
+					overlaps_five_prime = variant.overlapsWith(slice_start_five, coding_region.start() + 2);
                 }
             }
 
@@ -223,8 +218,8 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
                 // get sequences
 				Sequence ref_seq;
 				Sequence alt_seq;
-				get_seqs(variant, slice_start_three, slice_end_three, 23, current_transcript, ref_seq, alt_seq);
-				if (!ref_seq.isEmpty())
+				bool ok = get_seqs(variant, slice_start_three, 23, current_transcript.isMinusStrand(), ref_seq, alt_seq);
+				if (ok)
 				{
                     // get scores
                     float maxentscan_ref = score_maxent(ref_seq, &ChunkProcessor::score3);
@@ -238,8 +233,8 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
 				// get sequences
 				Sequence ref_seq;
 				Sequence alt_seq;
-				get_seqs(variant, slice_start_five, slice_end_five, 9, current_transcript,  ref_seq, alt_seq);
-				if (!ref_seq.isEmpty())
+				bool ok = get_seqs(variant, slice_start_five, 9, current_transcript.isMinusStrand(),  ref_seq, alt_seq);
+				if (ok)
 				{
                     float maxentscan_ref = score_maxent(ref_seq, &ChunkProcessor::score5);
                     float maxentscan_alt = score_maxent(alt_seq, &ChunkProcessor::score5);
@@ -265,12 +260,13 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
         // 5 prime ss / donor ss
 		Sequence ref_context;
 		Sequence alt_context;
-		get_seqs(variant, variant.start()-8, variant.end()+8, 17, current_transcript, ref_context, alt_context);
+		bool ok = get_seqs(variant, variant.start()-8, 17, current_transcript.isMinusStrand(), ref_context, alt_context);
+
 		//qDebug() << donor_seqs;
         QByteArray ref_donor = "";
         QByteArray alt_donor = "";
         QByteArray comp_donor = "";
-		if (!ref_context.isEmpty())
+		if (ok)
 		{
 			QPair<float, int> max_ref_donor = get_max_score(ref_context, 9, &ChunkProcessor::score5);
 			QPair<float, int> max_alt_donor = get_max_score(alt_context, 9, &ChunkProcessor::score5);
@@ -278,8 +274,7 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
             float donor_comp;
 			if (variant.ref().length() == variant.obs().length())
 			{
-				int donor_alt_frame = static_cast<int>(max_alt_donor.second);
-                Sequence donor_comp_seq = ref_context.mid(donor_alt_frame, 9);
+				Sequence donor_comp_seq = ref_context.mid(max_alt_donor.second, 9);
                 donor_comp = score_maxent(donor_comp_seq, &ChunkProcessor::score5);
 			}
 			else // take the max ref score
@@ -288,16 +283,16 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
             }
 			ref_donor = format_score(max_ref_donor.first);
 			alt_donor = format_score(max_alt_donor.first);
-			comp_donor = QByteArray::number(donor_comp, 'f', params_.decimals);
+			comp_donor = format_score(donor_comp);
         }
             
 		// 3 prime ss / acceptor ss
-		get_seqs(variant, variant.start()-22, variant.end()+22, 45, current_transcript, ref_context, alt_context);
+		ok = get_seqs(variant, variant.start()-22, 45, current_transcript.isMinusStrand(), ref_context, alt_context);
 		//qDebug() << acceptor_seqs;
         QByteArray ref_acceptor = "";
         QByteArray alt_acceptor = "";
         QByteArray comp_acceptor = "";
-		if (!ref_context.isEmpty())
+		if (ok)
 		{
 			QPair<float, int> max_ref_acceptor = get_max_score(ref_context, 23, &ChunkProcessor::score3);
 			QPair<float, int> max_alt_acceptor = get_max_score(alt_context, 23, &ChunkProcessor::score3);
@@ -305,8 +300,7 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
             float acceptor_comp;
 			if (variant.ref().length() == variant.obs().length())
 			{
-				int acceptor_alt_frame = static_cast<int>(max_alt_acceptor.second);
-                Sequence acceptor_comp_seq = ref_context.mid(acceptor_alt_frame, 23);
+				Sequence acceptor_comp_seq = ref_context.mid(max_alt_acceptor.second, 23);
                 acceptor_comp = score_maxent(acceptor_comp_seq, &ChunkProcessor::score3);
 			}
 			else // take the max ref score
@@ -315,7 +309,7 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
             }
 			ref_acceptor = format_score(max_ref_acceptor.first);
 			alt_acceptor = format_score(max_alt_acceptor.first);
-			comp_acceptor = QByteArray::number(acceptor_comp, 'f', params_.decimals);
+			comp_acceptor = format_score(acceptor_comp);
 		}
 
 		all_mes_swa_strings.append(ref_donor+'&'+alt_donor+'&'+comp_donor+'&'+ref_acceptor+'&'+alt_acceptor+'&'+comp_acceptor+'&'+current_transcript.name());
