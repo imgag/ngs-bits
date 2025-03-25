@@ -29,8 +29,9 @@ public:
 		addInfile("in", "Input BEDPE file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BEDPE file. If unset, writes to STDOUT.", true);
 
+        changeLog(2025, 3, 25, "Fixed crashes in std::max_element when QVector is empty.");
 		changeLog(2024, 2, 26, "Added system-specific density.");
-		changeLog(2022, 2, 23, "Initial commit.");
+        changeLog(2022, 2, 23, "Initial commit.");
 	}
 
 	virtual void main()
@@ -95,8 +96,8 @@ public:
 			foreach(int index, indices)
 			{
 				density_bp1 << Helper::toInt(density_file[index].annotations()[idx_density_column], "SV break point density (BP1)", QByteArray::number(i));
-			}
-            density_annotation << QByteArray::number(std::max_element(density_bp1.begin(), density_bp1.end()));
+            }
+            density_annotation << QByteArray::number(density_bp1.isEmpty() ? 0 : *std::max_element(density_bp1.begin(), density_bp1.end()));
 
 			//determine density for second break point
 			//(insertions only have 1 breakpoint)
@@ -109,7 +110,7 @@ public:
 				{
 					density_bp2 << Helper::toInt(density_file[index].annotations()[idx_density_column], "SV break point density (BP2)", QByteArray::number(i));
 				}
-                density_annotation << QByteArray::number((std::max_element(density_bp2.begin(), density_bp2.end())));
+                density_annotation << QByteArray::number(density_bp2.isEmpty() ? 0 : *std::max_element(density_bp2.begin(), density_bp2.end()));
 			}
 
 			if (optional_sys_file)
@@ -122,7 +123,7 @@ public:
 				{
 					density_bp1 << Helper::toInt(sys_density_file[index].annotations()[idx_density_column], "SV break point density (BP1, sys_specific)", QByteArray::number(i));
 				}
-                density_annotation_sys << QByteArray::number(std::max_element(density_bp1.begin(), density_bp1.end()));
+                density_annotation_sys << QByteArray::number(density_bp1.isEmpty() ? 0 : *std::max_element(density_bp1.begin(), density_bp1.end()));
 
 				//determine density for second break point
 				//(insertions only have 1 breakpoint)
@@ -135,7 +136,7 @@ public:
 					{
 						density_bp2 << Helper::toInt(sys_density_file[index].annotations()[idx_density_column], "SV break point density (BP2, sys_specific)", QByteArray::number(i));
 					}
-                    density_annotation_sys << QByteArray::number(std::max_element(density_bp2.begin(), density_bp2.end()));
+                    density_annotation_sys << QByteArray::number(density_bp2.isEmpty() ? 0 : *std::max_element(density_bp2.begin(), density_bp2.end()));
 				}
 			}
 
