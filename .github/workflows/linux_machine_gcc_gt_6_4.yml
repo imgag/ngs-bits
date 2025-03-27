@@ -1,4 +1,4 @@
-name: Linux build (Qt 6 on Ubuntu 24.04)
+name: Qt 6.4 on Ubuntu 24.04 - Linux
 
 on: [push, pull_request]
 
