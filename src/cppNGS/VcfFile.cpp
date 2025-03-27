@@ -1629,7 +1629,7 @@ const QByteArray& VcfFile::strCache(const QByteArray& str)
 	return *it;
 }
 
-const QByteArrayList& VcfFile::strArrayCache(const QByteArrayList& str)
+const QByteArrayList VcfFile::strArrayCache(const QByteArrayList& str)
 {
 	static QSet<QByteArrayList> cache;
 
@@ -1637,9 +1637,8 @@ const QByteArrayList& VcfFile::strArrayCache(const QByteArrayList& str)
 	if (it==cache.end())
 	{
 		it = cache.insert(str);
-	}
-
-	return *it;
+    }
+    return *it;
 }
 
 //Define URL encoding

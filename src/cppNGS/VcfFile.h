@@ -226,5 +226,5 @@ private:
 
 	//storing all QByteArrays in a list of unique QByteArrays
 	static const QByteArray& strCache(const QByteArray& str);
-	static const QByteArrayList& strArrayCache(const QByteArrayList& str);
+    static const QByteArrayList strArrayCache(const QByteArrayList& str);
 };
