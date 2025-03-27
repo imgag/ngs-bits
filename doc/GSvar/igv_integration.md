@@ -34,11 +34,9 @@ When IGV initialization was perfomed or when was skipped for the session, the in
 
 **Note:** Custom tracks can be added by your administrator through the GSvar INI file (see [configuration](configuration.md)).
 
-### IGV gene track/genome
+### Settings for long-read data
 
-To generate a custom genome for IGV with all Ensembl transcripts use the megSAP script [`create_igv_genome.php`](https://github.com/imgag/megSAP/blob/master/src/Auxilary/create_igv_genome.php).  
-The created JSON genome file must only be set as `igv_genome` in the `GSvar.ini` and then will always be loaded when you use IGV through GSvar.
-
+IGV settings for long-read data are described [here](igv_settings_lr.md)
 
 ## FAQ
 
@@ -90,11 +88,15 @@ Please do the following:
 - Set the proxy data as described in *IGV cannot load genomes*.
 
 
-
 ### BLAT search of other does not work.
 
 BLAT search tries to access a UCSC webservice over `https`.  
 If you are behind a authenticating proxy that uses `basic authentication`, you have to disable `jdk.http.auth.tunneling.disabledSchemes=Basic` in `net.properties` of JDK.
+
+### IGV gene track/genome
+
+To generate a custom genome for IGV with all Ensembl transcripts use the megSAP script [`create_igv_genome.php`](https://github.com/imgag/megSAP/blob/master/src/Auxilary/create_igv_genome.php).  
+The created JSON genome file must only be set as `igv_genome` in the `GSvar.ini` and then will always be loaded when you use IGV through GSvar.
 
 --
 

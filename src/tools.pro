@@ -478,7 +478,7 @@ VcfAnnotateHexplorer.depends = cppNGS
 
 SUBDIRS += NGSDExportGff
 tools-TEST.depends += NGSDExportGff
-NGSDExportGff.depends = cppNGS
+NGSDExportGff.depends = cppNGSD
 
 SUBDIRS += NGSDAnnotateRNA
 tools-TEST.depends += NGSDAnnotateRNA

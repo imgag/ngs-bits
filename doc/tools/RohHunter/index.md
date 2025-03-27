@@ -67,6 +67,10 @@ This plot shows the ROH size sum of ROHs larger than 500kb for **WGS** (Illumina
 This plot shows the ROH size sum of ROHs larger than 500kb for **WES** (Agilent SureSelect Human All Exon V7):
 ![rohs_wes](roh_sum_wes.png) 
 
+This plot shows the ROH size sum of ROHs larger than 500kb for **long-read WGS** (Oxford Nanopore Tech. Ligation Sequencing Kit V14).
+Note that the a mapping quality cutoff of 15 and a depth cuttoff of 15 are used for ONT lrGS and that the average ROH size sum is slightly higher than for WES/WGS.
+![roh_sum_lrGS](roh_sum_lrGS.png) 
+
 This plot shows  the ROH size sum of ROHs larger than 500kb for patients with different degrees of consanguinity:
 
 ![roh_sum_consanguinity](roh_sum_consanguinity.png) 

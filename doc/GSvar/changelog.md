@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2025_03-4 (19.03.25)
+
+- germline report: added sequencing run date
+
 ## 2025_01-41 (20.02.25)
 
 - trio: adapted mendelian error rate calculation to Dragen 4.3 output
