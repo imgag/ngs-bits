@@ -1291,7 +1291,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			{
 				int enst_start = details.indexOf("Parent=")+7;
 				int enst_end = details.indexOf(";", enst_start);
-				if (enst_end==-1) enst_end=details.count();
+                if (enst_end==-1) enst_end=details.size();
 				QByteArray parent_id = details.mid(enst_start, enst_end-enst_start);
 
 				//skip exons of skipped genes

@@ -18,7 +18,7 @@ void MetaFile::store(const QString& out)
 {
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out);
 
-	foreach(const QString& key, values_.keys())
+    for (const QString& key : values_.keys())
 	{
 		out_file->write(key.toUtf8() + ": " + values_[key].toUtf8() + "\n");
 	}
@@ -106,7 +106,7 @@ float CBioPortalExportSettings::getPloidy(int sample_idx)
 	{
 		QStringList cnv_data = Helper::loadTextFile(sample_files[sample_idx].clincnv_file, true, QChar::Null, true);
 
-		foreach(const QString& line, cnv_data)
+        for (const QString& line : cnv_data)
 		{
 			if (line.startsWith("##ploidy:"))
 			{
@@ -189,7 +189,7 @@ QStringList CBioPortalExportSettings::getIcd10(int sample_idx)
 {
 	QStringList icd10;
 	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(db_.sampleId(sample_list[sample_idx]), "ICD10 code");
-	foreach (const auto& dd, disease_details)
+    for (const auto& dd : disease_details)
 	{
 		icd10.append(dd.disease_info);
 	}
@@ -200,7 +200,7 @@ QStringList CBioPortalExportSettings::getHpoTerms(int sample_idx)
 {
 	QStringList hpo;
 	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(db_.sampleId(sample_list[sample_idx]), "HPO term id");
-	foreach (const auto& dd, disease_details)
+    for (const auto& dd : disease_details)
 	{
 		hpo.append(dd.disease_info);
 	}
@@ -211,7 +211,7 @@ QString CBioPortalExportSettings::getClinicalPhenotype(int sample_idx)
 {
 	QStringList clin_phenotype;
 	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(db_.sampleId(sample_list[sample_idx]), "clinical phenotype (free text)");
-	foreach (const auto& dd, disease_details)
+    for (const auto& dd : disease_details)
 	{
 		clin_phenotype.append(dd.disease_info);
 	}
@@ -523,7 +523,7 @@ void ExportCBioPortalStudy::exportSampleData(const QString &out_folder)
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_clinical_samples.txt");
 	//data file headers:
 	QVector<QStringList> header_lines_samples(5);
-	foreach (const SampleAttribute& attribute, settings_.sample_attributes) {
+    for (const SampleAttribute& attribute : settings_.sample_attributes) {
 		header_lines_samples[0] << attribute.name;
 		header_lines_samples[1] << attribute.description;
 		header_lines_samples[2] << attribute.datatype;
@@ -541,7 +541,7 @@ void ExportCBioPortalStudy::exportSampleData(const QString &out_folder)
 	for (int idx=0; idx < settings_.sample_list.count(); idx++)
 	{
 		QStringList line;
-		foreach (const SampleAttribute& attribute, settings_.sample_attributes)
+        for (const SampleAttribute& attribute : settings_.sample_attributes)
 		{
 			line << settings_.getFormatedAttribute(attribute.attribute, idx);
 		}
@@ -636,7 +636,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 
 		//remove transcripts of close genes
 		TranscriptList remove;
-		foreach(auto trans, transcripts)
+        for (auto trans : transcripts)
 		{
 			if (! genes.contains(trans.gene()))
 			{
@@ -644,7 +644,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 			}
 		}
 
-		foreach(auto trans, remove)
+        for (auto trans : remove)
 		{
 			transcripts.removeAll(trans);
 		}
@@ -653,7 +653,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 		Transcript transcript;
 		VariantConsequence consequence;
 		//find prefered transcript and annotate:
-		foreach(const Transcript& trans, transcripts)
+        for (const Transcript& trans : transcripts)
 		{
 			if (trans.isPreferredTranscript())
 			{
@@ -761,7 +761,7 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder, bool debug)
 
 			all_genes.insert(cnv.genes());
 
-			foreach (QByteArray gene, cnv.genes())
+            for (QByteArray gene : cnv.genes())
 			{
 
 				if (cnv.copyNumber(cnvs.annotationHeaders()) == 0)
@@ -795,7 +795,7 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder, bool debug)
 
 	out_file->write(columns.join("\t") + "\n");
 
-	foreach (QByteArray gene, all_genes)
+    for (QByteArray gene : all_genes)
 	{
 		QByteArrayList line_parts;
 		line_parts << gene;
@@ -1110,7 +1110,7 @@ QByteArray ExportCBioPortalStudy::formatVariantClassification(const Transcript& 
 {
 	QByteArrayList annotated = (coding_splicing + ",").split(',');
 
-	foreach (QByteArray trans_anno, annotated)
+    for (QByteArray trans_anno : annotated)
 	{
 		if (trans_anno.isEmpty()) continue;
 

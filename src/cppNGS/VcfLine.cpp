@@ -147,7 +147,7 @@ QByteArrayList VcfLine::vepAnnotations(int field_index) const
 
 	QByteArray csq = info("CSQ").trimmed();
 
-	if (csq.count()>0)
+    if (csq.size()>0)
 	{
 		QByteArrayList transcripts = csq.split(',');
 
@@ -520,7 +520,7 @@ VcfLine::ShiftResult VcfLine::normalize(ShiftDirection shift_dir, const FastaFil
             setSingleAlt(ref_ + alt(0));
 
             //shift single-base to the left
-            while(ref_[0]==alt(0)[alt(0).count()-1])
+            while(ref_[0]==alt(0)[alt(0).size()-1])
             {
                 pos_ -= 1;
                 ref_ = reference.seq(chr_, pos_, 1);
@@ -544,7 +544,7 @@ VcfLine::ShiftResult VcfLine::normalize(ShiftDirection shift_dir, const FastaFil
             ref_ = alt(0) + ref_;
 
             //shift single-base to the left
-            while(ref_[ref_.count()-1]==alt(0)[0])
+            while(ref_[ref_.size()-1]==alt(0)[0])
             {
                 pos_ -= 1;
                 setSingleAlt(reference.seq(chr_, pos_, 1));

@@ -142,7 +142,7 @@ QVector<int> BamAlignment::baseIntegers() const
 void BamAlignment::setBases(const Sequence& bases)
 {
 	//check that length stays the same
-	if (aln_->core.l_qseq!=bases.count())
+    if (aln_->core.l_qseq!=bases.size())
 	{
 		THROW(NotImplementedException, "BamAlignment::setBases: Setting bases with different length is not implemented!");
 	}
@@ -167,7 +167,7 @@ void BamAlignment::setBases(const Sequence& bases)
 
 	//process bases
 	uint8_t* s = bam_get_seq(aln_);
-	for(int i=0; i<bases.count(); ++i)
+    for(int i=0; i<bases.size(); ++i)
 	{
 		//determine base index
 		int base_index = char_to_base_index[(int)(bases[i])];
@@ -262,13 +262,13 @@ void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
 void BamAlignment::setQualities(const QByteArray& qualities)
 {
 	//check that length stays the same
-	if (aln_->core.l_qseq!=qualities.count())
+    if (aln_->core.l_qseq!=qualities.size())
 	{
 		THROW(NotImplementedException, "BamAlignment::setQualities: Setting qualities with different length is not implemented!");
 	}
 
 	uint8_t* q = bam_get_qual(aln_);
-	for(int i=0; i<qualities.count(); ++i)
+    for(int i=0; i<qualities.size(); ++i)
 	{
 		q[i] = qualities[i]-33;
 	}

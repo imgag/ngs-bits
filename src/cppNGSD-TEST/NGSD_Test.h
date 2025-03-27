@@ -3309,7 +3309,7 @@ private slots:
 
 			//process overlapping genes
 			GeneSet genes = db.genesOverlapping(v.chr(), v.start(), v.end());
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				//process best transcript for gene
 				if (!best.contains(gene)) continue;

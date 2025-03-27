@@ -71,7 +71,7 @@ QByteArrayList Variant::vepAnnotations(int csq_index, int field_index) const
 	QByteArrayList output;
 
 	QByteArray csq = annotations()[csq_index].trimmed();
-	if (csq.count()>0)
+    if (csq.size()>0)
 	{
 		QByteArrayList transcripts = csq.split(',');
 
