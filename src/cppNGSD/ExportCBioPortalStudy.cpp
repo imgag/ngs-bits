@@ -88,15 +88,13 @@ void CBioPortalExportSettings::addSample(SomaticReportSettings settings, SampleF
 
 double CBioPortalExportSettings::getMsiStatus(int sample_idx)
 {
+	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
 	double msi = std::numeric_limits<double>::quiet_NaN();
-	if (VersatileFile(sample_files[sample_idx].msi_file).exists())
+	if (ps_qc.contains("QC:2000141", true))
 	{
-		TSVFileStream msi_file(sample_files[sample_idx].msi_file);
-		//Use step wise difference (-> stored in the first line of MSI status file) for MSI status
-		QByteArrayList data = msi_file.readLine();
-		qDebug() << "MSI string:" << data;
-		if(data.count() > 0) msi = data[1].toDouble();
+		msi = ps_qc.value("QC:2000141", true).asDouble();
 	}
+
 	return msi;
 }
 
@@ -267,14 +265,10 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::MSI_STATUS:
 		{
 			double msi_value = getMsiStatus(sample_idx);
-			if(ps_data[sample_idx].processing_system_type == "WES")
-			{
-				return msi_value <= 0.4 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI";
-			}
-			else
-			{
-				return msi_value <= 0.16 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI";
-			}
+			
+			if (std::isnan(msi_value)) return "MSI Status unbekannt";
+			
+			return msi_value <= 10 ? "kein Hinweis auf MSI" : "Hinweise auf MSI";
 		}
 		case Attribute::PLOIDY:
 			return QString::number(getPloidy(sample_idx), 'f', 2);
