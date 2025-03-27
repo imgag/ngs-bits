@@ -1,5 +1,5 @@
 ### NGSDExportSV tool help
-	NGSDExportSV (2024_02-42-g36bb2635)
+	NGSDExportSV (2025_01-25-g1d2b52ea)
 	
 	Exports all SVs from the NGSD into BEDPE files.
 	
@@ -17,10 +17,12 @@
 	  --version                   Prints version and exits.
 	  --changelog                 Prints changeloge and exits.
 	  --tdx                       Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]           Settings override file (no other settings files are used).
 	
 ### NGSDExportSV changelog
-	NGSDExportSV 2024_02-42-g36bb2635
+	NGSDExportSV 2025_01-25-g1d2b52ea
 	
+	2025-01-13 Added DISEASE_GROUP column to BEDPE files
 	2024-02-07 Added output of processing specific breakpoint density.
 	2022-02-24 Changed SV break point output format.
 	2022-02-18 Implemented tool.

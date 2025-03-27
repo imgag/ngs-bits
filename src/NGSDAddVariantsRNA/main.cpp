@@ -58,7 +58,7 @@ public:
 			}
 		}
 
-		QTime timer;
+		QElapsedTimer timer;
 		timer.start();
 
 		QString last_callset_id = db.getValue("SELECT id FROM rna_fusion_callset WHERE processed_sample_id=" + ps_id).toString();

@@ -36,8 +36,8 @@ SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, 
 	, ps_id_(ps_id)
 	, var_het_genes_(het_hit_genes)
 	, report_config_(rep_conf)
-	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_ && report_config_!=nullptr && !report_config_->isFinalized())
+    , ngsd_user_logged_in_(LoginManager::active())
+    , rc_enabled_(ngsd_user_logged_in_ && report_config_!=nullptr && !report_config_->isFinalized())
 	, is_somatic_(false)
 	, is_multisample_(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
 {
@@ -53,8 +53,8 @@ SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, SomaticReportCo
 	, ps_id_()
 	, var_het_genes_(het_hit_genes)
 	, som_report_config_(&som_rep_conf)
-	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_ && som_report_config_!=nullptr)
+    , ngsd_user_logged_in_(LoginManager::active())
+    , rc_enabled_(ngsd_user_logged_in_ && som_report_config_!=nullptr)
 	, is_somatic_(true)
 	, is_multisample_(false)
 {
@@ -175,8 +175,8 @@ void SvWidget::initGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-	if((report_config_ != NULL) && !is_somatic_) report_variant_indices = report_config_->variantIndices(VariantType::SVS, false).toSet();
-	if((som_report_config_ != NULL) && is_somatic_) report_variant_indices = som_report_config_->variantIndices(VariantType::SVS, false).toSet();
+    if((report_config_ != NULL) && !is_somatic_) report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::SVS, false));
+    if((som_report_config_ != NULL) && is_somatic_) report_variant_indices = LIST_TO_SET(som_report_config_->variantIndices(VariantType::SVS, false));
 
 	//fill table widget with data from bedpe file
 	for(int row=0; row<svs_.count(); ++row)
@@ -292,7 +292,7 @@ void SvWidget::applyFilters(bool debug_time)
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		// filter by FilterCascade
@@ -431,7 +431,7 @@ void SvWidget::applyFilters(bool debug_time)
 			{
 				if (genes_joined.contains("*")) //with wildcards
 				{
-					QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                    QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 					for(int row=0; row<row_count; ++row)
 					{
 						if (!filter_result.flags()[row]) continue;
@@ -442,7 +442,7 @@ void SvWidget::applyFilters(bool debug_time)
 						bool match_found = false;
 						foreach(const QByteArray& sv_gene, sv_genes)
 						{
-							if (reg.exactMatch(sv_gene))
+                            if (reg.match(sv_gene).hasMatch())
 							{
 								match_found = true;
 								break;
@@ -674,7 +674,7 @@ void SvWidget::editSomaticReportConfiguration(int row)
 
 void SvWidget::uploadToClinvar(int index1, int index2)
 {
-	if (!ngsd_enabled_) return;
+    if (!ngsd_user_logged_in_) return;
 
 	try
 	{
@@ -1240,7 +1240,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	{
 		//ClinVar publication
 		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
-		a_clinvar_pub->setEnabled(ngsd_enabled_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+        a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 		//execute menu
 		QAction* action = menu.exec(ui->svs->viewport()->mapToGlobal(pos));
@@ -1259,7 +1259,7 @@ void SvWidget::showContextMenu(QPoint pos)
 
 	if (is_somatic_)
 	{
-		a_rep_del->setEnabled((som_report_config_ != nullptr) && ngsd_enabled_ && som_report_config_->exists(VariantType::SVS, row));
+        a_rep_del->setEnabled((som_report_config_ != nullptr) && ngsd_user_logged_in_ && som_report_config_->exists(VariantType::SVS, row));
 	}
 	else
 	{
@@ -1268,10 +1268,10 @@ void SvWidget::showContextMenu(QPoint pos)
 
 	menu.addSeparator();
 	QAction* a_sv_val = menu.addAction("Perform structural variant validation");
-	a_sv_val->setEnabled(ngsd_enabled_);
+    a_sv_val->setEnabled(ngsd_user_logged_in_);
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching SVs in NGSD");
-	a_ngsd_search->setEnabled(ngsd_enabled_);
+    a_ngsd_search->setEnabled(ngsd_user_logged_in_);
 	menu.addSeparator();
 
 	QAction* igv_pos1 = menu.addAction("Open position A in IGV");
@@ -1285,7 +1285,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-	a_clinvar_pub->setEnabled(ngsd_enabled_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+    a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 	//gene sub-menus
 	int i_genes = svs_.annotationIndexByName("GENES", false);
 	if (i_genes!=-1)
@@ -1310,7 +1310,7 @@ void SvWidget::showContextMenu(QPoint pos)
 				if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
 
 				QMenu* sub_menu = menu.addMenu(gene);
-				sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_enabled_);
+                sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in_);
 				sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
 				foreach(const GeneDB& db, GeneInfoDBs::all())
 				{

@@ -1,5 +1,5 @@
 ### SampleGender tool help
-	SampleGender (2024_02-42-g36bb2635)
+	SampleGender (2024_08-110-g317f43b9)
 	
 	Determines the gender of a sample from the BAM/CRAM file.
 	
@@ -34,9 +34,10 @@
 	  --version                  Prints version and exits.
 	  --changelog                Prints changeloge and exits.
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### SampleGender changelog
-	SampleGender 2024_02-42-g36bb2635
+	SampleGender 2024_08-110-g317f43b9
 	
 	2024-02-29 Added parameter to include single-end reads (long-read).
 	2022-08-05 Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.

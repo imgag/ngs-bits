@@ -76,7 +76,7 @@ public:
 														}
 														else
 														{
-															out << "Warning: Skipping non-approved gene name '" << gene << "' for term '" << number << "'!" << endl;
+                                                            out << "Warning: Skipping non-approved gene name '" << gene << "' for term '" << number << "'!" << QT_ENDL;
 														}
 													}
 													else xml.skipCurrentElement();
@@ -130,7 +130,7 @@ public:
 		}
 
 		//parse disease-gene relation
-		out << "Parsing gene-disease relations..." << endl;
+        out << "Parsing gene-disease relations..." << QT_ENDL;
 		QHash<QString, GeneSet> disease_genes = parseDiseaseGeneRelations(db, out);
 
 		//prepare SQL queries
@@ -140,7 +140,7 @@ public:
 		qi_gene.prepare("INSERT INTO disease_gene (disease_term_id, gene) VALUES (:0, :1)");
 
 		//import disease terms and genes
-		out << "Importing ORPHA information..." << endl;
+        out << "Importing ORPHA information..." << QT_ENDL;
 		{
 			QString terms = getInfile("terms");
 			QSharedPointer<QFile> fp = Helper::openFileForReading(terms);
@@ -253,9 +253,9 @@ public:
 
 		//output
 		int c_disease = db.getValue("SELECT COUNT(*) FROM disease_term").toInt();
-		out << "Imported " << c_disease << " diseases" << endl;
+        out << "Imported " << c_disease << " diseases" << QT_ENDL;
 		int c_disease_gene = db.getValue("SELECT COUNT(*) FROM disease_gene").toInt();
-		out << "Imported " << c_disease_gene << " disease-gene relations" << endl;
+        out << "Imported " << c_disease_gene << " disease-gene relations" << QT_ENDL;
 	}
 };
 

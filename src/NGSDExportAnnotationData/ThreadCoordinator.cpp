@@ -72,12 +72,11 @@ ThreadCoordinator::~ThreadCoordinator()
 
 void ThreadCoordinator::log(QString chr, QString message)
 {
-	out_ << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << "\t" << chr << "\t" << message << endl;
+    out_ << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << "\t" << chr << "\t" << message << QT_ENDL;
 }
 
 void ThreadCoordinator::error(QString chr, QString message)
 {
-	//QTextStream(stdout) << "ThreadCoordinator::error " << i << " " << message << endl;
 	THROW(Exception, "Exception in worker for " + chr + ": " + message);
 }
 
@@ -166,8 +165,9 @@ void ThreadCoordinator::writeSomaticVcf()
 	}
 
 	// write info column descriptions
-	vcf_stream << "##INFO=<ID=SOM_C,Number=1,Type=Integer,Description=\"Somatic variant count in the NGSD.\">\n";
-	vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,Description=\"Project names of project containing this somatic variant in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_C,Number=1,Type=Integer,Description=\"Somatic variant count (tumor-normal) in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,Description=\"Project names containing the somatic variant (tumor-normal) in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_TO_C,Number=1,Type=Integer,Description=\"Somatic variant count (tumor-only) in the NGSD.\">\n";
 	vcf_stream << "##INFO=<ID=SOM_VICC,Number=1,Type=String,Description=\"Somatic variant interpretation according VICC standard in the NGSD.\">\n";
 	vcf_stream << "##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,Description=\"Somatic VICC interpretation comment in the NGSD.\">\n";
 	if(params_.vicc_config_details)

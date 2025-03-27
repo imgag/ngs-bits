@@ -1,5 +1,5 @@
 ### PhenotypesToGenes tool help
-	PhenotypesToGenes (2022_04-62-gc5232248)
+	PhenotypesToGenes (2024_08-110-g317f43b9)
 	
 	Converts a phenotype list to a list of matching genes.
 	
@@ -26,9 +26,10 @@
 	  --version              Prints version and exits.
 	  --changelog            Prints changeloge and exits.
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]      Settings override file (no other settings files are used).
 	
 ### PhenotypesToGenes changelog
-	PhenotypesToGenes 2022_04-62-gc5232248
+	PhenotypesToGenes 2024_08-110-g317f43b9
 	
 	2020-11-23 Added parameter 'ignore_invalid'.
 	2020-05-24 First version.

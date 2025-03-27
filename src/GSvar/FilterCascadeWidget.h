@@ -28,6 +28,8 @@ public:
 
 	///Visually marks filters that failed (call this after applying the filters).
 	void markFailedFilters();
+	///Adds/edits column filter
+	void editColumnFilter(QString column);
 
 signals:
 	///Signal that is emitted when the filter cascade has changed.

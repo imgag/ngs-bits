@@ -1,5 +1,5 @@
 ### CnvFilterAnnotations tool help
-	CnvFilterAnnotations (2023_11-42-ga9d1687d)
+	CnvFilterAnnotations (2024_08-113-g94a3b440)
 	
 	Filter a copy-number variant list in TSV format based on variant annotations.
 	
@@ -79,18 +79,19 @@
 	                             max_tumor_cn - Maximum tumor copy number of the CNV. [default=10]
 	
 	Mandatory parameters:
-	  -in <file>      Input CNV list in TSV format.
-	  -out <file>     Output CNV list in TSV format.
-	  -filters <file> Filter definition file.
+	  -in <file>        Input CNV list in TSV format.
+	  -out <file>       Output CNV list in TSV format.
+	  -filters <file>   Filter definition file.
 	
 	Special parameters:
-	  --help          Shows this help and exits.
-	  --version       Prints version and exits.
-	  --changelog     Prints changeloge and exits.
-	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help            Shows this help and exits.
+	  --version         Prints version and exits.
+	  --changelog       Prints changeloge and exits.
+	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### CnvFilterAnnotations changelog
-	CnvFilterAnnotations 2023_11-42-ga9d1687d
+	CnvFilterAnnotations 2024_08-113-g94a3b440
 	
 	2020-05-25 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

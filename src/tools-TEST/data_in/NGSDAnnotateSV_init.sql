@@ -29,6 +29,9 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (4007, 1, 47, 1, '1,2,3,4', 165, 1, 'bad'),
 (4008, 1, 48, 1, '1,2,3,4', 165, 1, 'good');
 
+INSERT INTO `report_configuration` (`id`, `processed_sample_id`, `created_by`, `created_date`) VALUES
+(1, 4001, 99, '2020-01-01');
+
 INSERT INTO `sv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
 (1, 4001, 'Manta', '1.6.0', '2020-01-01'),
 (2, 4000, 'Manta', '1.5.0', '2019-08-13'),
@@ -119,5 +122,28 @@ INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`,
 (5, 3, 'chr1', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
 (6, 3, 'chr1', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
 (7, 1, 'chr3', 9101000, 9101020, 'chr5', 4112000, 4113000, ''),
-(8, 1, 'chr4', 9101000, 9101020, 'chr5', 4120000, 4120000, '');
+(8, 1, 'chr4', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
+(11, 1, 'chr1', 9100990, 9101010, 'chr5', 4112999, 4114000, '');
 
+INSERT INTO `report_configuration_sv` (`id`, `report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
+(1, 1, NULL, NULL, NULL, NULL, 1, 'diagnostic variant', false, '5', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(2, 1, NULL, NULL, NULL, 4, NULL, 'diagnostic variant', false, '4', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(3, 1, NULL, NULL, 7, NULL, NULL, 'diagnostic variant', false, '5', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(4, 1, NULL, 41, NULL, NULL, NULL, 'diagnostic variant', false, '4', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(5, 1, 11, NULL, NULL, NULL, NULL, 'diagnostic variant', false, '5', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(6, 1, NULL, NULL, NULL, NULL, 3, 'diagnostic variant', false, '3', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(7, 1, NULL, NULL, NULL, 2, NULL, 'diagnostic variant', false, '4', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(8, 1, NULL, NULL, 1, NULL, NULL, 'diagnostic variant', false, '3', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(11, 1, NULL, 25, NULL, NULL, NULL, 'diagnostic variant', false, '4', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(21, 1, 2, NULL, NULL, NULL, NULL, 'diagnostic variant', false, '5', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(31, 1, NULL, NULL, NULL, NULL, 4, 'diagnostic variant', false, '3', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(41, 1, NULL, NULL, NULL, 1, NULL, 'diagnostic variant', false, '3', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(51, 1, NULL, NULL, 2, NULL, NULL, 'diagnostic variant', false, '5', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(61, 1, NULL, 7, NULL, NULL, NULL, 'diagnostic variant', false, '5', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(71, 1, 81, NULL, NULL, NULL, NULL, 'diagnostic variant', false, '5', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(81, 1, NULL, NULL, NULL, NULL, 7, 'diagnostic variant', false, '4', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(15, 1, NULL, NULL, NULL, 8, NULL, 'diagnostic variant', false, '4', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(25, 1, NULL, NULL, 3, NULL, NULL, 'diagnostic variant', false, '3', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(35, 1, NULL, 75, NULL, NULL, NULL, 'diagnostic variant', false, '4', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(45, 1, 15, NULL, NULL, NULL, NULL, 'diagnostic variant', false, '2', 'n/a', false, false, false, false, false, false, false, false, false, false),
+(55, 1, NULL, NULL, NULL, NULL, 11, 'diagnostic variant', false, '5', 'n/a', false, false, false, false, false, false, false, false, false, false);

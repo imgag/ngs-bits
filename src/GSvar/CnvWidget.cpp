@@ -42,8 +42,8 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	, report_config_(rep_conf)
 	, somatic_report_config_(rep_conf_somatic)
 	, var_het_genes_(het_hit_genes)
-	, ngsd_enabled_(LoginManager::active())
-	, rc_enabled_(ngsd_enabled_ && ((report_config_!=nullptr && !report_config_->isFinalized()) || somatic_report_config_ != nullptr))
+    , ngsd_user_logged_in_(LoginManager::active())
+    , rc_enabled_(ngsd_user_logged_in_ && ((report_config_!=nullptr && !report_config_->isFinalized()) || somatic_report_config_ != nullptr))
 	, is_somatic_(somatic_report_config_!=nullptr)
 {
 	ui->setupUi(this);
@@ -70,7 +70,7 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	ui->splitter->setStretchFactor(1, 1);
 
 	//determine callset ID
-	if (ngsd_enabled_ && ps_id!="")
+    if (ngsd_user_logged_in_ && ps_id!="")
 	{
 		NGSD db;
 		callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_).toString();
@@ -214,7 +214,7 @@ void CnvWidget::addInfoLine(QString text)
 		//add distribution menu entry (only once for each metric)
 		if (!metrics_done_.contains(metric))
 		{
-			ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()))->setEnabled(ngsd_enabled_ && ps_id_!="");
+            ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()))->setEnabled(ngsd_user_logged_in_ && ps_id_!="");
 			metrics_done_ << metric;
 		}
 	}
@@ -245,7 +245,7 @@ void CnvWidget::updateGUI()
 		addInfoLine(comment);
 	}
 
-	//determine colum order of annotations
+	//determine column order of annotations
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_cnv", true));
 	QStringList col_order;
 	QList<int> anno_index_order;
@@ -279,8 +279,8 @@ void CnvWidget::updateGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-	if(!is_somatic_) report_variant_indices = report_config_->variantIndices(VariantType::CNVS, false).toSet();
-	else report_variant_indices = somatic_report_config_->variantIndices(VariantType::CNVS, false).toSet();
+    if(!is_somatic_) report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::CNVS, false));
+    else report_variant_indices = LIST_TO_SET(somatic_report_config_->variantIndices(VariantType::CNVS, false));
 
 
 	//show variants
@@ -351,7 +351,7 @@ void CnvWidget::applyFilters(bool debug_time)
 
 	try
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//apply main filter
@@ -415,7 +415,7 @@ void CnvWidget::applyFilters(bool debug_time)
 
 			if (genes_joined.contains("*")) //with wildcards
 			{
-				QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 				for(int r=0; r<rows; ++r)
 				{
 					if (!filter_result.flags()[r]) continue;
@@ -423,7 +423,7 @@ void CnvWidget::applyFilters(bool debug_time)
 					bool match_found = false;
 					foreach(const QByteArray& cnv_gene, cnvs_[r].genes())
 					{
-						if (reg.exactMatch(cnv_gene))
+                        if (reg.match(cnv_gene).hasMatch())
 						{
 							match_found = true;
 							break;
@@ -562,7 +562,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	{
 		//ClinVar publication
 		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
-		a_clinvar_pub->setEnabled(ngsd_enabled_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+        a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 		//execute menu
 		QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
@@ -582,13 +582,13 @@ void CnvWidget::showContextMenu(QPoint p)
 	a_rep_edit->setEnabled(rc_enabled_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	if(!is_somatic_) a_rep_del->setEnabled(rc_enabled_ && report_config_->exists(VariantType::CNVS, row));
-	else a_rep_del->setEnabled(ngsd_enabled_ && somatic_report_config_->exists(VariantType::CNVS, row));
+    else a_rep_del->setEnabled(ngsd_user_logged_in_ && somatic_report_config_->exists(VariantType::CNVS, row));
 	menu.addSeparator();
 	QAction* a_cnv_val = menu.addAction("Perform copy-number variant validation");
-	a_cnv_val->setEnabled(ngsd_enabled_);
+    a_cnv_val->setEnabled(ngsd_user_logged_in_);
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching CNVs in NGSD");
-	a_ngsd_search->setEnabled(ngsd_enabled_);
+    a_ngsd_search->setEnabled(ngsd_user_logged_in_);
 	menu.addSeparator();
 	QAction* a_deciphter = menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
 	QAction* a_dgv = menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
@@ -599,7 +599,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	QMenu*sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-	a_clinvar_pub->setEnabled(ngsd_enabled_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+    a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 	//gene sub-menus
 	if (!cnvs_[row].genes().isEmpty())
@@ -613,7 +613,7 @@ void CnvWidget::showContextMenu(QPoint p)
 			if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
 
 			QMenu* sub_menu = menu.addMenu(gene);
-			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_enabled_);
+            sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in_);
 			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
 			foreach(const GeneDB& db, GeneInfoDBs::all())
 			{
@@ -1164,7 +1164,7 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 
 void CnvWidget::uploadToClinvar(int index1, int index2)
 {
-	if (!ngsd_enabled_) return;
+    if (!ngsd_user_logged_in_) return;
 	try
 	{
 		if(index1 <0)

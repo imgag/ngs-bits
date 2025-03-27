@@ -84,7 +84,7 @@ void CnvSearchWidget::search()
 		{
 			// parse genes
 			GeneSet genes;
-			foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QString::SkipEmptyParts))
+            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS))
 			{
 				QByteArray approved_gene_name = db_.geneToApproved(gene.toUtf8());
 				if (approved_gene_name == "") THROW(ArgumentException, "Invalid gene name '" + gene + "' given!");
@@ -277,7 +277,26 @@ void CnvSearchWidget::search()
 		}
 		table.addColumn(validation_data, "validation_information");
 
-		//(6) show samples with CNVs in table
+		//(6) Add exon overlap
+		QStringList exon_overlap;
+		int i_chr = table.columnIndex("chr");
+		int i_start = table.columnIndex("start");
+		int i_end = table.columnIndex("end");
+		for (int r=0; r<table.rowCount(); ++r)
+		{
+			const DBRow& row = table.row(r);
+			Chromosome chr = row.value(i_chr);
+			int start = row.value(i_start).toInt();
+			int end = row.value(i_end).toInt();
+
+			QString overlap;
+			if (db_.genesOverlappingByExon(chr, start, end, 1).count()>0) overlap = "exonic/splicing";
+
+			exon_overlap << overlap;
+		}
+		table.addColumn(exon_overlap, "exon_overlap");
+
+		//(7) show samples with CNVs in table
 		ui_.table->setData(table, 200, QSet<QString>() << "size_kb");
 		ui_.table->showTextAsTooltip("report_config_comments");
 
@@ -316,7 +335,7 @@ void CnvSearchWidget::changeSearchType()
 void CnvSearchWidget::openSelectedSampleTabs()
 {
 	int col = ui_.table->columnIndex("sample");
-	foreach (int row, ui_.table->selectedRows().toList())
+    foreach (int row, ui_.table->selectedRows().values())
 	{
 		QString ps = ui_.table->item(row, col)->text();
 		GlobalServiceProvider::openProcessedSampleTab(ps);

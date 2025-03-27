@@ -34,13 +34,14 @@ public:
 		changeLog(2022, 2, 18, "Implemented tool.");
 		changeLog(2022, 2, 24, "Changed SV break point output format.");
 		changeLog(2024, 2,  7, "Added output of processing specific breakpoint density.");
+		changeLog(2025, 1, 13, "Added DISEASE_GROUP column to BEDPE files");
 	}
 
 	void collapseSvDensity(QString output_folder, QHash<Chromosome, QMap<int,int>> sv_density, const QStringList& chromosomes, const QByteArray& sys="")
 	{
 
 		QTextStream std_out(stdout);
-		QTime timer_collapse_density;
+        QElapsedTimer timer_collapse_density;
 		double debug_time_collapse_density = 0;
 		timer_collapse_density.start();
 		BedFile sv_density_file;
@@ -97,7 +98,7 @@ public:
 		}
 
 
-		std_out << "Collapsing SV density took " << QByteArray::number(debug_time_collapse_density/1000.0) << "s" << endl;
+        std_out << "Collapsing SV density took " << QByteArray::number(debug_time_collapse_density/1000.0) << "s" << QT_ENDL;
 	}
 
 	virtual void main()
@@ -107,15 +108,15 @@ public:
 		bool test = getFlag("test");
 		int common_sys_threshold = getInt("common_sys_threshold");
 		NGSD db(test);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 		QTextStream std_out(stdout);
 
 		//debug
-		QTime timer_get_var;
-		QTime timer_get_sys;
-		QTime timer_write_file;
-		QTime timer_extract_density;
+        QElapsedTimer timer_get_var;
+        QElapsedTimer timer_get_sys;
+        QElapsedTimer timer_write_file;
+        QElapsedTimer timer_extract_density;
 		double debug_time_get_var = 0;
 		double debug_time_get_sys = 0;
 		double debug_time_write_file = 0;
@@ -124,11 +125,12 @@ public:
 
 		//create BEDPE columns for output file
 		BedpeFile bedpe_structure;
-		bedpe_structure.setAnnotationHeaders(QList<QByteArray>() << "TYPE" << "PROCESSING_SYSTEM" << "ID" << "FORMAT" << "FORMAT_VALUES");
+		bedpe_structure.setAnnotationHeaders(QList<QByteArray>() << "TYPE" << "PROCESSING_SYSTEM" << "ID" << "FORMAT" << "FORMAT_VALUES" << "DISEASE_GROUP");
 		int idx_type = bedpe_structure.annotationIndexByName("TYPE");
 		int idx_processing_system = bedpe_structure.annotationIndexByName("PROCESSING_SYSTEM");
 		int idx_sv_id = bedpe_structure.annotationIndexByName("ID");
 		int idx_format = bedpe_structure.annotationIndexByName("FORMAT");
+		int idx_disease_group = bedpe_structure.annotationIndexByName("DISEASE_GROUP");
 
 		QList<StructuralVariantType> sv_types = QList<StructuralVariantType>() << StructuralVariantType::DEL << StructuralVariantType::DUP << StructuralVariantType::INS
 																			   << StructuralVariantType::INV << StructuralVariantType::BND;
@@ -146,7 +148,7 @@ public:
 
 
 		//get sample counts
-		std_out << "Get sample counts per processing system..." << endl;
+        std_out << "Get sample counts per processing system..." << QT_ENDL;
 		SqlQuery q_sample_counts = db.getQuery();
 		q_sample_counts.exec(QByteArray() + "SELECT ps.processing_system_id, COUNT(sc.id) FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
 							 + "WHERE ps.quality != 'bad' AND NOT EXISTS "
@@ -156,7 +158,7 @@ public:
 		{
 			sample_counts.insert(db.getProcessingSystemData(q_sample_counts.value(0).toInt()).name_short, q_sample_counts.value(1).toInt());
 		}
-		std_out << " done. " << Helper::elapsedTime(timer) << endl;
+        std_out << " done. " << Helper::elapsedTime(timer) << QT_ENDL;
 
 
 		//get all common processing systems (will be written in seperate files)
@@ -167,15 +169,15 @@ public:
 
 
 		//get all valid callset ids (are not bad quality and not merged)
-		std_out << "Get all valid callset ids..." << endl;
+        std_out << "Get all valid callset ids..." << QT_ENDL;
 
-		QSet<int> valid_cs_ids = db.getValuesInt(QByteArray() + "SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
+        QSet<int> valid_cs_ids = LIST_TO_SET(db.getValuesInt(QByteArray() + "SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
 													+ "WHERE ps.quality != 'bad' AND NOT EXISTS "
-													+ "(SELECT 1 FROM merged_processed_samples mps WHERE mps.processed_sample_id = sc.processed_sample_id)").toSet();
+                                                    + "(SELECT 1 FROM merged_processed_samples mps WHERE mps.processed_sample_id = sc.processed_sample_id)"));
 
-		std_out << " done. " << Helper::elapsedTime(timer) << endl;
+        std_out << " done. " << Helper::elapsedTime(timer) << QT_ENDL;
 
-		std_out << "NGSD preperation done. " << Helper::elapsedTime(timer) << endl;
+        std_out << "NGSD preperation done. " << Helper::elapsedTime(timer) << QT_ENDL;
 
 
 		foreach (StructuralVariantType sv_type, sv_types)
@@ -209,7 +211,7 @@ public:
 					THROW(ArgumentException, "Invalid SV type!");
 					break;
 			}
-			std_out << "Extract " << StructuralVariantTypeToString(sv_type) << "..." << endl;
+            std_out << "Extract " << StructuralVariantTypeToString(sv_type) << "..." << QT_ENDL;
 
 			//init output file
 			QString file_path = QDir(output_folder).filePath(table_name + ".bedpe");
@@ -227,6 +229,13 @@ public:
 				out << "##sample_count=(" + key + ", " + QString::number(sample_counts.value(key)) + ")\n";
 			}
 
+			//store disease_groups
+			QStringList disease_groups = db.getEnum("sample", "disease_group");
+			for(int i = 0; i < disease_groups.size(); i++)
+			{
+				out << "##INFO=<ID=GSC" << QByteArray::number(i + 1).rightJustified(2, '0') << ",Number=1,Type=String,Description=\"" << "Disease group: " << disease_groups[i].toLower() << ".\">\n";
+			}
+
 			//write header
 			out << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + bedpe_structure.annotationHeaders().join('\t') + "\n";
 
@@ -236,7 +245,7 @@ public:
 			foreach (const QString& chr, chromosomes)
 			{
 				QList<int> ids = db.getValuesInt("SELECT `id` FROM `" + table_name + "`" + filter, chr);
-				std_out << QByteArray::number(ids.size()) << " " << StructuralVariantTypeToString(sv_type) << " for " + chr + " to export... " << Helper::elapsedTime(timer) << endl;
+                std_out << QByteArray::number(ids.size()) << " " << StructuralVariantTypeToString(sv_type) << " for " + chr + " to export... " << Helper::elapsedTime(timer) << QT_ENDL;
 				SqlQuery q_callset_id = db.getQuery();
 				q_callset_id.prepare("SELECT `sv_callset_id` FROM `" + table_name + "` WHERE id=:0");
 
@@ -285,12 +294,19 @@ public:
 					}
 					debug_time_get_sys += timer_get_sys.elapsed()/1000.0;
 
+					//get disease group
+					QByteArray disease_group;
+					disease_group = db.getValue("SELECT s.disease_group FROM `sv_callset` sc " + QByteArray() +
+												+ "INNER JOIN `processed_sample` ps ON sc.processed_sample_id = ps.id "
+												+ "INNER JOIN `sample` s ON ps.sample_id = s.id WHERE sc.id = :0", false, QString::number(cs_id)).toByteArray();
+
 					//write to file
 					timer_write_file.restart();
 					//update annotation
 					QList<QByteArray> sv_annotation = sv.annotations();
 					sv_annotation[idx_type] = StructuralVariantTypeToString(sv_type).toUtf8();
 					sv_annotation[idx_processing_system] = processing_system;
+					sv_annotation[idx_disease_group] = "GSC" + QByteArray::number(disease_groups.indexOf(disease_group) + 1).rightJustified(2, '0');
 					if (sv_type == StructuralVariantType::BND)
 					{
 						//special handling: store both directions and add SV id
@@ -391,7 +407,7 @@ public:
 						std_out << "\t getting processing system took " << QByteArray::number(debug_time_get_sys) << "s \n";
 						std_out << "\t write file took " << QByteArray::number(debug_time_write_file) << "s \n";
 						std_out << "\t extracting SV density took " << QByteArray::number(debug_time_extract_density) << "s \n";
-						std_out << endl;
+                        std_out << QT_ENDL;
 					}
 				}
 

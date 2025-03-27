@@ -42,6 +42,9 @@
     </property>
     <item>
      <widget class="QTabWidget" name="tabs">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -366,7 +369,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -392,10 +395,11 @@
     <addaction name="actionChangeLog"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
-    <addaction name="actionEncrypt"/>
-    <addaction name="separator"/>
     <addaction name="actionOpenLogFile"/>
     <addaction name="actionClearLogFile"/>
+    <addaction name="actionOpenGSvarDataFolder"/>
+    <addaction name="separator"/>
+    <addaction name="actionEncrypt"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -570,6 +574,7 @@
     <addaction name="actionVariantValidation"/>
     <addaction name="actionGaps"/>
     <addaction name="separator"/>
+    <addaction name="actionSampleCounts"/>
     <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuFile"/>
@@ -619,6 +624,7 @@
    <addaction name="actionPRS"/>
    <addaction name="actionPathogenicWT"/>
    <addaction name="actionCircos"/>
+   <addaction name="actionMethylation"/>
    <addaction name="separator"/>
    <addaction name="actionVirusDetection"/>
   </widget>
@@ -1513,6 +1519,28 @@
   <action name="actionReportPolymorphisms">
    <property name="text">
     <string>Report polymorphisms</string>
+   </property>
+  </action>
+  <action name="actionOpenGSvarDataFolder">
+   <property name="text">
+    <string>Open GSvar data folder</string>
+   </property>
+  </action>
+  <action name="actionMethylation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Methylation.png</normaloff>:/Icons/Methylation.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open methylation calls</string>
+   </property>
+  </action>
+  <action name="actionSampleCounts">
+   <property name="text">
+    <string>Sample counts</string>
    </property>
   </action>
  </widget>

@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2024_08-36-g4fed1f49)
+	VariantFilterAnnotations (2024_11-86-g94c45dea)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -27,7 +27,7 @@
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER]
 	Classification NGSD                Filter for variant classification from NGSD.
 	                                   Parameters:
-	                                     classes - NGSD classes [default=4,5] [valid=1,2,3,4,5,M] [non-empty]
+	                                     classes - NGSD classes [default=4,5] [valid=1,2,3,4,5,M,R] [non-empty]
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER,REMOVE]
 	Column match                       Filter that matches the content of a column against a perl-compatible regular expression.
 	                                   For details about regular expressions, see http://perldoc.perl.org/perlretut.html
@@ -72,6 +72,7 @@
 	                                   You can only select one of the three above at a time.
 	                                   Parameters:
 	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)] [non-empty]
+	                                     same_genotype - Also check that all 'control' samples have the same genotype. [default=false]
 	Genotype control                   Filter for genotype of the 'control' sample(s).
 	                                   Parameters:
 	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a] [non-empty]
@@ -170,18 +171,19 @@
 	                                     invert - If set, removes all variants if they were called in short-read WGS sample. [default=false]
 	
 	Mandatory parameters:
-	  -in <file>      Input variant list in GSvar format.
-	  -out <file>     Output variant list in GSvar format.
-	  -filters <file> Filter definition file.
+	  -in <file>        Input variant list in GSvar format.
+	  -out <file>       Output variant list in GSvar format.
+	  -filters <file>   Filter definition file.
 	
 	Special parameters:
-	  --help          Shows this help and exits.
-	  --version       Prints version and exits.
-	  --changelog     Prints changeloge and exits.
-	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help            Shows this help and exits.
+	  --version         Prints version and exits.
+	  --changelog       Prints changeloge and exits.
+	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2024_08-36-g4fed1f49
+	VariantFilterAnnotations 2024_11-86-g94c45dea
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

@@ -34,36 +34,6 @@ QString ServerHelper::generateUniqueStr()
 	return QUuid::createUuid().toString().replace("{", "").replace("}", "");
 }
 
-int ServerHelper::getNumSettingsValue(const QString& key)
-{
-	int num_value = 0;
-	try
-	{
-		 num_value = Settings::integer(key);
-	}
-	catch (Exception& e)
-	{
-        Log::warn("Numerical setting value unavailable: " + e.message());
-	}
-
-	return num_value;
-}
-
-QString ServerHelper::getStringSettingsValue(const QString& key)
-{
-	QString string_value = "";
-	try
-	{
-		 string_value = Settings::string(key);
-	}
-	catch (Exception& e)
-	{
-        Log::warn("String setting value unavailable: " + e.message());
-	}
-
-	return string_value;
-}
-
 QString ServerHelper::getUrlWithoutParams(const QString& url)
 {
 	QList<QString> url_parts = url.split('?');
@@ -79,8 +49,8 @@ bool ServerHelper::settingsValid(bool test_mode, bool throw_exception_if_invalid
 		str_settings << "server_port" << "server_host" << "ssl_certificate" << "ssl_key" << "gsvar_server_db_host" << "gsvar_server_db_name" << "gsvar_server_db_user" << "gsvar_server_db_pass";
 		if (!test_mode) str_settings << "reference_genome" << "ngsd_host" << "ngsd_name" << "ngsd_user" << "ngsd_pass";
 		foreach (QString entry,  str_settings)
-		{
-			if (ServerHelper::getStringSettingsValue(entry).isEmpty()) THROW(Exception, "String settings entry '"+entry+"' missing or empty!");
+        {
+            if (Settings::string(entry).isEmpty()) THROW(Exception, "String settings entry '"+entry+"' missing or empty!");
 		}
 
 		//int settings
@@ -88,8 +58,8 @@ bool ServerHelper::settingsValid(bool test_mode, bool throw_exception_if_invalid
 		int_settings << "url_lifetime" << "session_duration" << "gsvar_server_db_port";
 		if (!test_mode) int_settings << "ngsd_port";
 		foreach (QString entry,  int_settings)
-		{
-			if (ServerHelper::getNumSettingsValue(entry)<=0) THROW(Exception, "Integer settings entry '"+entry+"' missing or below 1!");
+        {
+            if (Settings::integer(entry)<=0) THROW(Exception, "Integer settings entry '"+entry+"' missing or below 1!");
 		}
 
 		//load megSAP settings
@@ -175,7 +145,6 @@ QString ServerHelper::getCurrentServerLogFile()
         }
         foreach(QString filename, logs)
         {
-            Log::info("Checking " +  log_folder + filename);
             if ((QFileInfo(log_folder + filename).lastModified().toSecsSinceEpoch() > last_mod_time.toSecsSinceEpoch()) || last_mod_time.isNull())
             {
                 last_mod_time = QFileInfo(log_folder + filename).lastModified();

@@ -983,7 +983,7 @@ void ExportCBioPortalStudy::exportFusions(const QString& out_folder, bool /*debu
 //		int idx_transcript1_id = fusions.columnIndex("transcript_id1");
 //		int idx_transcript2_id = fusions.columnIndex("transcript_id2");
 
-		for(int idx_var=0; idx_var<fusions.rowCount(); idx_var++)
+		for(int idx_var=0; idx_var<fusions.count(); idx_var++)
 		{
 			QByteArrayList line_parts;
 			// << "Sample_Id" << "SV_Status"
@@ -993,7 +993,7 @@ void ExportCBioPortalStudy::exportFusions(const QString& out_folder, bool /*debu
 			line_parts << "Event info";
 
 
-			QStringList var_parts = fusions.row(idx_var);
+			const QStringList& var_parts = fusions[idx_var];
 
 			//<< "Site1_Hugo_Symbol" << "Site1_Ensembl_Transcript_Id"  << "Site1_Exon" << "Site1_Region_Number" << "Site1_Region" << "Site1_Chromosome" << "Site1_Position"
 

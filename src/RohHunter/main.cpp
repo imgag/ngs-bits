@@ -6,16 +6,6 @@
 #include <QFileInfo>
 #include <cmath>
 
-/*
-Possible improvements:
-	- exclude CNP regions?
-	- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
-	- test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
-	- test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
-	- test if sub-population AF improves result
-	- benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
-*/
-
 class ConcreteTool
         : public ToolBase
 {
@@ -35,7 +25,8 @@ public:
 		addInfile("in", "Input variant list in VCF format.", false);
 		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
-		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
+		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as column name and 4th column of the BED file is used as annotation value.", true);
+		addInfile("exclude", "BED files with regions to exclude from ROH analysis. Regions where variant callins is not possible should be removed (centromers, MQ=0 regions and large stretches of N bases).", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
 		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 30);
 		addString("var_af_keys", "Comma-separated allele frequency info field names in 'in'.", true, "");
@@ -43,10 +34,13 @@ public:
 		addFloat("roh_min_q", "Minimum Q score of output ROH regions.", true, 30.0);
 		addInt("roh_min_markers", "Minimum marker count of output ROH regions.", true, 20);
 		addFloat("roh_min_size", "Minimum size in Kb of output ROH regions.", true, 20.0);
-		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
+		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions.", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
+		addFloat("ext_max_het_perc", "Maximum percentage of heterozygous markers in ROH regions.", true, 5.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
+		addFlag("debug", "Enable debug output");
 
+		changeLog(2025,  2, 25, "Added new parameters 'exclude', 'ext_max_het_perc' and 'debug'.");
         changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2019, 11, 21, "Added support for parsing AF data from any VCF info field (removed 'af_source' parameter).");
 		changeLog(2019,  3, 12, "Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.");
@@ -122,13 +116,14 @@ public:
 	};
 
 	//raw ROH detection
-	static QList<RohRegion> calculateRawRohs(const QList<VariantInfo>& var_info, double roh_min_q)
+	static QList<RohRegion> calculateRawRohs(const QList<VariantInfo>& var_info, double roh_min_q, const ChromosomalIndex<BedFile>& exclude_index, bool debug, QTextStream& out)
 	{
 		QList<RohRegion> output;
 		const int count = var_info.count();
 		int last_end = -1;
 		while(true)
 		{
+			//find start of ROH region
 			int start=last_end+1;
 			while (start<count && !var_info[start].geno_hom)
 			{
@@ -136,10 +131,19 @@ public:
 			}
 			if (start>=count) break;
 
+			//determine end of ROH region
 			int end=start;
 			while(end<count && var_info[end].geno_hom && var_info[end].chr==var_info[start].chr)
 			{
 				++end;
+
+				//do not extend over exclude regions
+				if (end>1 && start<end-1 && exclude_index.matchingIndex(var_info[end-1].chr, var_info[end-2].pos, var_info[end-1].pos)!=-1)
+				{
+					if (debug) out << "DEBUG - not extended: " << var_info[end-1].chr.str() << "\t" << var_info[end-2].pos << "\t" << var_info[end-1].pos << QT_ENDL;
+					--end;
+					break;
+				}
 			}
 			--end;
 
@@ -149,6 +153,7 @@ public:
 			if (region.qScore(var_info)>=roh_min_q)
 			{
 				output << region;
+				if (debug) out << "DEBUG - raw ROH: " << region.chr.str() << "\t" << region.start_pos << "\t" << region.end_pos << "\t" << region.sizeBases() << QT_ENDL;
 			}
 		}
 
@@ -156,7 +161,7 @@ public:
 	}
 
 	//ROH merging
-	void mergeRohs(QList<RohRegion>& raw, const QList<VariantInfo>& var_info, double ext_marker_perc, double ext_size_perc)
+	void mergeRohs(QList<RohRegion>& raw, const QList<VariantInfo>& var_info, double ext_marker_perc, double ext_size_perc, double ext_max_het_perc, const ChromosomalIndex<BedFile>& exclude_index)
 	{
 		bool merged = true;
 		while(merged)
@@ -168,20 +173,35 @@ public:
 				if (raw[i].chr!=raw[i+1].chr) continue;
 
 				//not too far apart (markers)
-				int het_count = 0;
+				int het_count_gap = 0;
 				for (int j=raw[i].end_index+1; j<raw[i+1].start_index; ++j)
 				{
-					het_count += !var_info[j].geno_hom;
+					het_count_gap += !var_info[j].geno_hom;
 				}
-				if (het_count>1 && het_count > ext_marker_perc / 100.0 * (raw[i].sizeMarkers() + raw[i+1].sizeMarkers())) continue;
+				if (het_count_gap>1 && het_count_gap > ext_marker_perc / 100.0 * (raw[i].sizeMarkers() + raw[i+1].sizeMarkers())) continue;
+
+				//not exceeding the heterozygous marker threshold
+				int het_count_after_merge = 0;
+				for (int j=raw[i].start_index; j<=raw[i+1].end_index; ++j)
+				{
+					het_count_after_merge += !var_info[j].geno_hom;
+				}
+				if (het_count_after_merge>1 && 1.0*het_count_after_merge/(raw[i+1].end_index - raw[i].start_index)> ext_max_het_perc / 100.0) continue;
 
 				//not too far apart (bases)
 				if (raw[i+1].start_pos - raw[i].end_pos > ext_size_perc / 100.0 * (raw[i].sizeBases() + raw[i+1].sizeBases())) continue;
 
+				//no merge if exclude region in between
+				if (exclude_index.matchingIndex(raw[i].chr, raw[i].end_pos, raw[i+1].start_pos)!=-1)
+				{
+					//qDebug() << __LINE__ << raw[i].chr.str() << raw[i].end_pos << raw[i+1].start_pos << "no_merge";
+					continue;
+				}
+
 				//merge
 				raw[i].end_index = raw[i+1].end_index;
 				raw[i].end_pos = raw[i+1].end_pos;
-				raw[i].het_count += raw[i+1].het_count + het_count;
+				raw[i].het_count += raw[i+1].het_count + het_count_gap;
 
 				raw.removeAt(i+1);
 				i-=1;
@@ -193,10 +213,11 @@ public:
 	virtual void main()
 	{
 		//init
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 		QTextStream out(stdout);
 		bool inc_chrx = getFlag("inc_chrx");
+		bool debug = getFlag("debug");
 
 		//load variant list
 		 VcfFile vl;
@@ -208,8 +229,14 @@ public:
             THROW(FileParseException, "Multi sample is not supported.");
         }
 
-		out << "=== Loading input data ===" << endl;
-		out << "Variants in VCF: " << vl.count() << endl;
+		//load exclude regions
+		BedFile exclude;
+		QString exclude_file = getInfile("exclude");
+		if (!exclude_file.isEmpty()) exclude.load(exclude_file);
+		ChromosomalIndex<BedFile> exclude_index(exclude);
+
+        out << "=== Loading input data ===" << QT_ENDL;
+        out << "Variants in VCF: " << vl.count() << QT_ENDL;
 
 		//determine quality indices
 		if (!vl.vcfHeader().formatIdDefined("DP")) THROW(ArgumentException, "Could not find 'DP' annotation in vcf header!");
@@ -249,6 +276,13 @@ public:
 			int qual_value = v.qual();
 			if (qual_value < var_min_q) continue;
 
+			//skip variants in exclude regions
+			if (exclude_index.matchingIndex(v.chr(), v.start(), v.end())!=-1)
+			{
+				if (debug) out << "DEBUG - skipped variant in exclude region: " << v.toString() << QT_ENDL;
+				continue;
+			}
+
 			//determine if homozygous
 			QByteArray genotype = v.formatValueFromSample("GT");
 			bool geno_hom = (genotype=="1/1" || genotype=="1|1");
@@ -285,24 +319,25 @@ public:
 
 			var_info.append(VariantInfo{v.chr(), v.start(), geno_hom, af});
 		}
-		out << "Variants passing QC filters: " << var_info.count() << endl;
+        out << "Variants passing QC filters: " << var_info.count() << QT_ENDL;
 		double hom_perc = 100.0*vars_hom/var_info.count();
-		out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << endl;
-		out << "Variants with AF annotation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
-		out << endl;
+        out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << QT_ENDL;
+        out << "Variants with AF annotation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << QT_ENDL;
+        out << QT_ENDL;
 
 		//detect raw ROHs
-		out << "=== Detecting ROHs ===" << endl;
+        out << "=== Detecting ROHs ===" << QT_ENDL;
 		float roh_min_q = getFloat("roh_min_q");
-		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q);
-		out << "Raw ROH count: " << regions.count() << endl;
+		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q, exclude_index, debug, out);
+        out << "Raw ROH count: " << regions.count() << QT_ENDL;
 
 		//merge raw ROHs
 		double ext_marker_perc = getFloat("ext_marker_perc");
 		double ext_size_perc = getFloat("ext_size_perc");
-		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc);
-		out << "Merged ROH count: " << regions.count() << endl;
-		out << endl;
+		double ext_max_het_perc = getFloat("ext_max_het_perc");
+		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc, ext_max_het_perc, exclude_index);
+        out << "Merged ROH count: " << regions.count() << QT_ENDL;
+        out << QT_ENDL;
 
 		//filter regions
 		int roh_min_markers = getInt("roh_min_markers");
@@ -335,7 +370,7 @@ public:
 						annos.insert(anno_file[index].annotations()[0]);
 					}
 				}
-				QStringList annos_sorted = annos.toList();
+                QStringList annos_sorted = annos.values();
 				std::sort(annos_sorted.begin(), annos_sorted.end());
 				regions[i].annotations << annos_sorted.join(',');
 			}
@@ -367,8 +402,8 @@ public:
 		}
 
 		//statistics output
-		out << "=== Statistics output ===" << endl;
-		out << "Overall ROH count: " << regions.count() << endl;
+        out << "=== Statistics output ===" << QT_ENDL;
+        out << "Overall ROH count: " << regions.count() << QT_ENDL;
 		int count_a = 0;
 		double sum_a = 0.0;
 		int count_b = 0;
@@ -394,22 +429,22 @@ public:
 				sum_c += bases;
 			}
 		}
-		out << "Overall ROH size sum: " << QString::number((sum_a+sum_b+sum_c)/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << "Class A: <0.5 Mb" << endl;
-		out << "Class A ROH count: " << count_a << endl;
-		out << "Class A ROH size sum: " << QString::number(sum_a/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << "Class B: >=0.5 Mb and <1.5 Mb" << endl;
-		out << "Class B ROH count: " << count_b << endl;
-		out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << "Class C: >=1.5 Mb" << endl;
-		out << "Class C ROH count: " << count_c << endl;
-		out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << endl;
+        out << "Overall ROH size sum: " << QString::number((sum_a+sum_b+sum_c)/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
+        out << "Class A: <0.5 Mb" << QT_ENDL;
+        out << "Class A ROH count: " << count_a << QT_ENDL;
+        out << "Class A ROH size sum: " << QString::number(sum_a/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
+        out << "Class B: >=0.5 Mb and <1.5 Mb" << QT_ENDL;
+        out << "Class B ROH count: " << count_b << QT_ENDL;
+        out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
+        out << "Class C: >=1.5 Mb" << QT_ENDL;
+        out << "Class C ROH count: " << count_c << QT_ENDL;
+        out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
+        out << QT_ENDL;
 
 
 		//debug output
-		out << "=== Debug output ===" << endl;
-		out << "Time: " << Helper::elapsedTime(timer) << endl;
+        out << "=== Debug output ===" << QT_ENDL;
+        out << "Time: " << Helper::elapsedTime(timer) << QT_ENDL;
 	}
 };
 

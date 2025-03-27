@@ -799,12 +799,12 @@ bool ClinvarUploadDialog::checkGuiData()
 		}
 
 		// check sequences
-		QRegExp re("[-]|[ACGTU]*");
-		if (!re.exactMatch(ui_.le_ref_snv1->text()))
+        QRegularExpression re("[-]|[ACGTU]*");
+        if (!re.match(ui_.le_ref_snv1->text()).hasMatch())
 		{
 			errors << "invalid reference sequence '" + ui_.le_ref_snv1->text() + "'!";
 		}
-		if (!re.exactMatch(ui_.le_obs_snv1->text()))
+        if (!re.match(ui_.le_obs_snv1->text()).hasMatch())
 		{
 			errors << "invalid observed sequence '" + ui_.le_obs_snv1->text() + "'!";
 		}
@@ -986,12 +986,12 @@ bool ClinvarUploadDialog::checkGuiData()
 			}
 
 			// check sequences
-			QRegExp re("[-]|[ACGTU]*");
-			if (!re.exactMatch(ui_.le_ref_snv2->text()))
+            QRegularExpression re("[-]|[ACGTU]*");
+            if (!re.match(ui_.le_ref_snv2->text()).hasMatch())
 			{
 				errors << "invalid reference sequence '" + ui_.le_ref_snv2->text() + "'!";
 			}
-			if (!re.exactMatch(ui_.le_obs_snv2->text()))
+            if (!re.match(ui_.le_obs_snv2->text()).hasMatch())
 			{
 				errors << "invalid observed sequence '" + ui_.le_obs_snv2->text() + "'!";
 			}
@@ -1371,12 +1371,12 @@ void ClinvarUploadDialog::addDiseaseInfo()
 	if (text.isEmpty()) return;
 
 	//check if valid
-	if (type=="OMIM disease/phenotype identifier" && !QRegExp("#\\d*").exactMatch(text))
+    if (type=="OMIM disease/phenotype identifier" && !QRegularExpression("#\\d*").match(text).hasMatch())
 	{
 		QMessageBox::critical(this, "Invalid OMIM identifier", "OMIM disease/phenotype identifier invaid!\nA valid identifier is for example '#164400'.");
 		return;
 	}
-	if (type=="Orpha number" && !QRegExp("ORPHA:\\d*").exactMatch(text))
+    if (type=="Orpha number" && !QRegularExpression("ORPHA:\\d*").match(text).hasMatch())
 	{
 		QMessageBox::critical(this, "Invalid Orpha number", "Orpha number invaid!\nA valid number is for example 'ORPHA:1172'.");
 		return;
@@ -2173,8 +2173,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 							if (chromosome_coordinates.contains("referenceAllele"))
 							{
 								QString ref = chromosome_coordinates.value("referenceAllele").toString().trimmed();
-								QRegExp re("[-]|[ACGTUacgtu]+");
-								if (!re.exactMatch(ref))
+                                QRegularExpression re("[-]|[ACGTUacgtu]+");
+                                if (!re.match(ref).hasMatch())
 								{
 									errors << "Invalid entry '" + ref + "' in 'referenceAllele'!";
 									is_valid = false;
@@ -2189,8 +2189,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 							if (chromosome_coordinates.contains("alternateAllele"))
 							{
 								QString alt = chromosome_coordinates.value("alternateAllele").toString().trimmed();
-								QRegExp re("[-]|[ACGTUacgtu]+");
-								if (alt != "-" && !alt.isEmpty() && !re.exactMatch(alt))
+                                QRegularExpression re("[-]|[ACGTUacgtu]+");
+                                if (alt != "-" && !alt.isEmpty() && !re.match(alt).hasMatch())
 								{
 									errors << "Invalid entry '" + alt + "' in 'alternateAllele'!";
 									is_valid = false;
@@ -2512,8 +2512,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 											if (chromosome_coordinates.contains("referenceAllele"))
 											{
 												QString ref = chromosome_coordinates.value("referenceAllele").toString().trimmed();
-												QRegExp re("[-]|[ACGTUacgtu]+");
-												if (!re.exactMatch(ref))
+                                                QRegularExpression re("[-]|[ACGTUacgtu]+");
+                                                if (!re.match(ref).hasMatch())
 												{
 													errors << "Invalid entry '" + ref + "' in 'referenceAllele'!";
 													is_valid = false;
@@ -2528,8 +2528,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 											if (chromosome_coordinates.contains("alternateAllele"))
 											{
 												QString alt = chromosome_coordinates.value("alternateAllele").toString().trimmed();
-												QRegExp re("[-]|[ACGTUacgtu]+");
-												if (alt != "-" && !alt.isEmpty() && !re.exactMatch(alt))
+                                                QRegularExpression re("[-]|[ACGTUacgtu]+");
+                                                if (alt != "-" && !alt.isEmpty() && !re.match(alt).hasMatch())
 												{
 													errors << "Invalid entry '" + alt + "' in 'alternateAllele'!";
 													is_valid = false;
@@ -3048,7 +3048,7 @@ QString ClinvarUploadDialog::convertClassification(QString classification, bool 
 		}
 		if (classification=="Established risk allele")
 		{
-			return "R*";
+			return "R";
 		}
 	}
 	else
@@ -3073,7 +3073,7 @@ QString ClinvarUploadDialog::convertClassification(QString classification, bool 
 		{
 			return "Benign";
 		}
-		if (classification=="R*")
+		if (classification=="R")
 		{
 			return "Established risk allele";
 		}

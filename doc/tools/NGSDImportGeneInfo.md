@@ -1,5 +1,5 @@
 ### NGSDImportGeneInfo tool help
-	NGSDImportGeneInfo (2022_10-83-g62451d12)
+	NGSDImportGeneInfo (2024_08-110-g317f43b9)
 	
 	Imports gene-specific information into NGSD.
 	
@@ -17,8 +17,9 @@
 	  --version          Prints version and exits.
 	  --changelog        Prints changeloge and exits.
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]  Settings override file (no other settings files are used).
 	
 ### NGSDImportGeneInfo changelog
-	NGSDImportGeneInfo 2022_10-83-g62451d12
+	NGSDImportGeneInfo 2024_08-110-g317f43b9
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

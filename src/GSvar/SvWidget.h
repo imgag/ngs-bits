@@ -109,7 +109,7 @@ private:
 	QSharedPointer<ReportConfiguration> report_config_;
 	SomaticReportConfiguration* som_report_config_;
 
-	bool ngsd_enabled_;
+    bool ngsd_user_logged_in_;
 	bool rc_enabled_;
 
 	bool is_somatic_;

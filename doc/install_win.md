@@ -20,6 +20,9 @@ We have pre-built `htslib 1.16.1` for Windows and it can be found inside the rep
 
 If you want to use a different version, e.g. when testing the latest version of htslib, there is a [manual on how to build htslib](build_htslib.md#windows) available.
 
+### libxml2
+[libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2_win_64.zip` into `ngs-bits\`. Qt Creator will detect the library files and headers while compiling GSvar.
+
 
 ### MySQL driver
 
@@ -87,9 +90,8 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 </table>
 
-## Building a custom genome for IGV
+## Integration with IGV
 
-To generate a custom genome for IGV with all Ensembl transcripts use the megSAP script [`create_igv_genome.php`](https://github.com/imgag/megSAP/blob/master/src/Tools/create_igv_genome.php).  
-The created JSON genome file must only be set as `igv_genome` in the `GSvar.ini` and then will always be loaded when you use IGV through GSvar.
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
 
 

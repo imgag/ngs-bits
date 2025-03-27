@@ -118,12 +118,12 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 		if (text.isEmpty()) return;
 
 		//check if valid
-		if (type=="OMIM disease/phenotype identifier" && !QRegExp("#\\d*").exactMatch(text))
+        if (type=="OMIM disease/phenotype identifier" && !QRegularExpression("#\\d*").match(text).hasMatch())
 		{
 			QMessageBox::critical(this, "Invalid OMIM identifier", "OMIM disease/phenotype identifier invaid!\nA valid identifier is for example '#164400'.");
 			return;
 		}
-		if (type=="Orpha number" && !QRegExp("ORPHA:\\d*").exactMatch(text))
+        if (type=="Orpha number" && !QRegularExpression("ORPHA:\\d*").match(text).hasMatch())
 		{
 			QMessageBox::critical(this, "Invalid Orpha number", "Orpha number invaid!\nA valid number is for example 'ORPHA:1172'.");
 			return;

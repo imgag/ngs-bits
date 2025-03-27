@@ -324,7 +324,7 @@ void FilterBase::setGeneric(const QString& name, const QString& value)
 	}
 	else if (type==FilterParameterType::STRINGLIST)
 	{
-		setStringList(name, value.split(',', QString::SkipEmptyParts));
+        setStringList(name, value.split(',', QT_SKIP_EMPTY_PARTS));
 	}
 	else
 	{
@@ -595,7 +595,7 @@ void FilterCascade::moveDown(int index)
 
 FilterResult FilterCascade::apply(const VariantList& variants, bool throw_errors, bool debug_time) const
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	FilterResult result(variants.count());
@@ -641,7 +641,7 @@ FilterResult FilterCascade::apply(const VariantList& variants, bool throw_errors
 
 FilterResult FilterCascade::apply(const CnvList& cnvs, bool throw_errors, bool debug_time) const
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	FilterResult result(cnvs.count());
@@ -687,7 +687,7 @@ FilterResult FilterCascade::apply(const CnvList& cnvs, bool throw_errors, bool d
 
 FilterResult FilterCascade::apply(const BedpeFile& svs, bool throw_errors, bool debug_time) const
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	FilterResult result(svs.count());
@@ -733,7 +733,7 @@ FilterResult FilterCascade::apply(const BedpeFile& svs, bool throw_errors, bool 
 
 FilterResult FilterCascade::apply(const ArribaFile& fusions, bool throw_errors, bool debug_time) const
 {
-	QTime timer;
+	QElapsedTimer timer;
 	timer.start();
 
 	FilterResult result(fusions.count());
@@ -1134,7 +1134,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 	}
 	else //filter (regexp)
 	{
-		QRegExp reg(genes.join('|').replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+        QRegularExpression reg(genes.join('|').replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 		for(int i=0; i<variants.count(); ++i)
 		{
 			if (!result.flags()[i]) continue;
@@ -1143,7 +1143,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 			bool match_found = false;
 			foreach(const QByteArray& var_gene, var_genes)
 			{
-				if (reg.exactMatch(var_gene))
+                if (reg.match(var_gene).hasMatch())
 				{
 					match_found = true;
 					break;
@@ -1540,7 +1540,7 @@ FilterClassificationNGSD::FilterClassificationNGSD()
 	description_ = QStringList() << "Filter for variant classification from NGSD.";
 
 	params_ << FilterParameter("classes", FilterParameterType::STRINGLIST, QStringList() << "4" << "5", "NGSD classes");
-	params_.last().constraints["valid"] = "1,2,3,4,5,M";
+	params_.last().constraints["valid"] = "1,2,3,4,5,M,R";
 	params_.last().constraints["not_empty"] = "";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER,REMOVE";
@@ -1809,6 +1809,7 @@ FilterGenotypeAffected::FilterGenotypeAffected()
 	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
 	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)";
 	params_.last().constraints["not_empty"] = "";
+	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
 
 	checkIsRegistered();
 }
@@ -1848,14 +1849,30 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 	//filter
 	if (!(genotypes.contains("comp-het") || genotypes.contains("comp-het (phased)") || genotypes.contains("comp-het (unphased)")))
 	{
+		bool same_genotype = getBool("same_genotype");
 		for(int i=0; i<variants.count(); ++i)
 		{
 			if (!result.flags()[i]) continue;
 
-			QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
-			if (geno_all.isEmpty() || !genotypes.contains(geno_all))
+			if (same_genotype)
 			{
-				result.flags()[i] = false;
+				QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
+				if (geno_all.isEmpty() || !genotypes.contains(geno_all))
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else
+			{
+				foreach(int index, geno_indices)
+				{
+					QString geno = variants[i].annotations()[index];
+					if (!genotypes.contains(geno))
+					{
+						result.flags()[i] = false;
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -1907,7 +1924,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 						{
 							QByteArray phased_genotype = phasing_entry.at(0).toUtf8();
 							QString pb_raw = phasing_entry.at(1);
-							int phasing_block = Helper::toInt(pb_raw.remove(QRegExp("[()]")), "Phasing block", QString::number(i));
+                            int phasing_block = Helper::toInt(pb_raw.remove(QRegularExpression("[()]")), "Phasing block", QString::number(i));
 
 							if (phased_genotype == "1|0") gene_to_het_phase1[gene.trimmed()] += 1;
 							else gene_to_het_phase2[gene.trimmed()] += 1;
@@ -2584,7 +2601,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
 	//pre-calculate genes with heterozygous variants
-	QSet<QString> types = getStringList("types").toSet();
+    QSet<QString> types = LIST_TO_SET(getStringList("types"));
 	GeneSet genes_comphet;
 	if (types.contains("comp-het"))
 	{
@@ -3908,7 +3925,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 {
 	if (!enabled_) return;
 
-	QSet<QString> filter_entries = getStringList("entries").toSet();
+    QSet<QString> filter_entries = LIST_TO_SET(getStringList("entries"));
 	QString action = getString("action");
 	int filter_col_index = svs.annotationIndexByName("FILTER");
 
@@ -3918,7 +3935,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		{
 			if (!result.flags()[i]) continue;
 
-			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
+            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3931,7 +3948,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		{
 			if (!result.flags()[i]) continue;
 
-			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
+            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3942,7 +3959,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 	{
 		for(int i=0; i<svs.count(); ++i)
 		{
-			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
+            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = true;
@@ -4858,7 +4875,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
     //pre-calculate genes with heterozygous variants
-    QSet<QString> types = getStringList("types").toSet();
+    QSet<QString> types = LIST_TO_SET(getStringList("types"));
     GeneSet genes_comphet;
     if (types.contains("comp-het"))
     {

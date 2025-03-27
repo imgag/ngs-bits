@@ -26,7 +26,7 @@ void MaintenanceDialog::executeAction()
 	appendOutputLine("");
 
 	//perform action
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	try
@@ -107,7 +107,7 @@ void MaintenanceDialog::deleteUnusedVariants()
 	NGSD db;
 	QSet<QString> ref_tables = tablesReferencing(db, "variant");
 
-	QSet<int> var_ids_pub = db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'").toSet();
+    QSet<int> var_ids_pub = LIST_TO_SET(db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'"));
 
 	foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 	{
@@ -182,7 +182,7 @@ void MaintenanceDialog::importStudySamples()
 
 		//determine processed sample in study
 		QStringList errors;
-		QSet<int> genlab_ps_ids = genlab.studySamples(study, errors).toSet();
+        QSet<int> genlab_ps_ids = LIST_TO_SET(genlab.studySamples(study, errors));
 		appendOutputLine("  Processed samples in study according to GenLab: " + QString::number(genlab_ps_ids.count()));
 
 		//add missing processed samples
@@ -201,7 +201,7 @@ void MaintenanceDialog::importStudySamples()
 		appendOutputLine("  Added processed sample to NGSD: " + QString::number(c_added));
 
 		//show samples that are only in study according to NGSD
-		QSet<int> extra_ids = db.getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id='" + study_id + "'").toSet();
+        QSet<int> extra_ids = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id='" + study_id + "'"));
 		extra_ids.subtract(genlab_ps_ids);
 		if (extra_ids.count()>0)
 		{
@@ -219,8 +219,8 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 {
 	//init
 	NGSD db;
-	QSet<QString> hpo_terms_valid = db.getValues("SELECT hpo_id FROM hpo_term").toSet();
-	QSet<QString> hpo_terms_obsolete = db.getValues("SELECT hpo_id FROM hpo_obsolete").toSet();
+    QSet<QString> hpo_terms_valid = LIST_TO_SET(db.getValues("SELECT hpo_id FROM hpo_term"));
+    QSet<QString> hpo_terms_obsolete = LIST_TO_SET(db.getValues("SELECT hpo_id FROM hpo_obsolete"));
 
 	//process disease info
 	int c_valid = 0;
@@ -415,7 +415,7 @@ void MaintenanceDialog::importYearOfBirth()
 	int c_not_in_genlab = 0;
 
 	//import study samples from GenLab
-	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic'");
+	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 	foreach(const QString& ps, ps_list)
 	{
 		QString yob = genlab.yearOfBirth(ps).trimmed();
@@ -458,7 +458,7 @@ void MaintenanceDialog::importTissue()
 	int c_not_in_genlab = 0;
 
 	//import study samples from GenLab
-	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic'");
+	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 	for(int i=0; i<ps_list.count(); ++i)
 	{
 		QString ps = ps_list[i];
@@ -503,13 +503,13 @@ void MaintenanceDialog::importPatientIDs()
 
 	//import study samples from GenLab
 	SqlQuery query = db.getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.patient_identifier, s.id as sample_id FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' ORDER BY ps.id ASC");
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.patient_identifier, s.id as sample_id FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 
 	int i = 0;
 	while(query.next())
 	{
 		QString ps = query.value("ps").toString();
-		if (i%500==0) appendOutputLine("progressed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
+		if (i%500==0) appendOutputLine("processed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
 		++i;
 
 		QString patient_id = genlab.patientIdentifier(ps).trimmed();
@@ -523,8 +523,7 @@ void MaintenanceDialog::importPatientIDs()
 		QString patient_id_ngsd = query.value("patient_identifier").toString().trimmed();
 		if (patient_id_ngsd!="" && patient_id!=patient_id_ngsd)
 		{
-			appendOutputLine(ps  + " skipped: NGSD contains " + patient_id_ngsd + ", but GenLab contains " + patient_id);
-			continue;
+			appendOutputLine(ps  + " note: NGSD contains " + patient_id_ngsd + ", but GenLab contains " + patient_id + " > updating ID");
 		}
 
 		//check if already set
@@ -541,6 +540,139 @@ void MaintenanceDialog::importPatientIDs()
 	appendOutputLine("");
 	appendOutputLine("Skipped because no patient ID available in GenLab: " + QString::number(c_not_in_genlab));
 	appendOutputLine("Imported patient IDs: " + QString::number(c_imported));
+}
+
+void MaintenanceDialog::importOrderAndSamplingDate()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	GenLabDB genlab;
+
+	int c_already_in_ngsd = 0;
+	int c_not_in_genlab = 0;
+	int c_imported = 0;
+
+	//import study samples from GenLab
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.id as sample_id, s.order_date, s.sampling_date FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
+
+	int i = 0;
+	while(query.next())
+	{
+		QString ps = query.value("ps").toString();
+		QString sample_id = query.value("sample_id").toString();
+		QString order_date = query.value("order_date").toDate().toString(Qt::ISODate);
+		QString sampling_date = query.value("sampling_date").toDate().toString(Qt::ISODate);
+
+		if (i%500==0) appendOutputLine("processed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples");
+		++i;
+
+		if (!order_date.isEmpty() || !sampling_date.isEmpty())
+		{
+			++c_already_in_ngsd;
+			continue;
+		}
+
+		QString patient_id = genlab.patientIdentifier(ps).trimmed();
+		if (patient_id.isEmpty())
+		{
+			++c_not_in_genlab;
+			continue;
+		}
+
+		bool imported = false;
+		QString gl_order_date = genlab.orderEntryDate(ps);
+		if (!gl_order_date.isEmpty())
+		{
+			db.getQuery().exec("UPDATE sample SET order_date='" + gl_order_date +"' WHERE id='" + sample_id + "'");
+			imported = true;
+		}
+
+		QString gl_sampling_date = genlab.samplingDate(ps);
+		if (!gl_sampling_date.isEmpty())
+		{
+			db.getQuery().exec("UPDATE sample SET sampling_date='" + gl_sampling_date +"' WHERE id='" + sample_id + "'");
+			imported = true;
+		}
+
+		if (imported) ++c_imported;
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//output
+	appendOutputLine("");
+	appendOutputLine("Skipped because at least one of the dates is already in NGSD: " + QString::number(c_already_in_ngsd));
+	appendOutputLine("Skipped because sample was not found in GenLab: " + QString::number(c_not_in_genlab));
+	appendOutputLine("Imported one/two dates for samples: " + QString::number(c_imported));
+}
+
+void MaintenanceDialog::importSampleRelations()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	GenLabDB genlab;
+
+	int c_already_in_ngsd = 0;
+	int c_not_in_genlab = 0;
+	int c_imported = 0;
+
+	//import
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.id as sample_id, s.order_date, s.sampling_date FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
+
+	int i = 0;
+	while(query.next())
+	{
+		QString ps = query.value("ps").toString();
+		QString s_id = query.value("sample_id").toString();
+
+		if (i%500==0) appendOutputLine("processed " + QString::number(i) + " of " + QString::number(query.size()) + " processed samples - added: " + QString::number(c_imported) + " - skipped because already present: " + QString::number(c_already_in_ngsd));
+		++i;
+
+		QString patient_id = genlab.patientIdentifier(ps).trimmed();
+		if (patient_id.isEmpty())
+		{
+			++c_not_in_genlab;
+			continue;
+		}
+
+		//relatives patient relations (parents, siblings)
+		foreach (const SampleRelation& genlab_relation, genlab.relatives(ps))
+		{
+			QSet<int> sample_ids_ngsd = db.relatedSamples(s_id.toInt(), genlab_relation.relation);
+			int sample2_id = db.sampleId(genlab_relation.sample1).toInt();
+
+			if (!sample_ids_ngsd.contains(sample2_id))
+			{
+
+				appendOutputLine(ps + ": adding relation: " + genlab_relation.sample1 + " - " + genlab_relation.relation + " - " + genlab_relation.sample2);
+
+				SqlQuery insert = db.getQuery();
+				insert.prepare("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0, :1, :2)");
+				insert.bindValue(0, db.sampleId(genlab_relation.sample1));
+				insert.bindValue(1, genlab_relation.relation);
+				insert.bindValue(2, db.sampleId(genlab_relation.sample2));
+				insert.exec();
+
+				++c_imported;
+			}
+			else
+			{
+				++c_already_in_ngsd;
+			}
+		}
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//output
+	appendOutputLine("");
+	appendOutputLine("Skipped because sample was not found in GenLab: " + QString::number(c_not_in_genlab));
+	appendOutputLine("Skipped because relation is already in NGSD: " + QString::number(c_already_in_ngsd));
+	appendOutputLine("Imported relations: " + QString::number(c_imported));
 }
 
 void MaintenanceDialog::linkSamplesFromSamePatient()
@@ -681,7 +813,7 @@ void MaintenanceDialog::deleteDataOfMergedSamples()
 	//delete QC metrics (except for read count)
 	QString qc_id_read_count = db.getValue("SELECT id FROM qc_terms WHERE qcml_id='QC:2000005'").toString();
 	c_deleted = 0;
-	QSet<int> ps_with_qc = db.getValuesInt("SELECT processed_sample_id FROM processed_sample_qc").toSet();
+    QSet<int> ps_with_qc = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM processed_sample_qc"));
 	appendOutputLine("Found " + QString::number(ps_with_qc.count()) + " processed samples with QC data.");
 	foreach(int ps_id, ps_merged)
 	{
@@ -699,7 +831,7 @@ void MaintenanceDialog::deleteDataOfMergedSamples()
 
 	//delete KASP data
 	c_deleted = 0;
-	QSet<int> ps_with_kasp = db.getValuesInt("SELECT processed_sample_id FROM kasp_status").toSet();
+    QSet<int> ps_with_kasp = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM kasp_status"));
 	appendOutputLine("Found " + QString::number(ps_with_kasp.count()) + " processed samples with KASP data.");
 	foreach(int ps_id, ps_merged)
 	{
@@ -722,7 +854,7 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 	//check for missing tables
 	QStringList tables_p = db_p.tables();
 	QStringList tables_t = db_t.tables();
-	QSet<QString> tables_both = tables_p.toSet().intersect(tables_t.toSet());
+    QSet<QString> tables_both = LIST_TO_SET(tables_p).intersect(LIST_TO_SET(tables_t));
 	foreach(QString table_p, tables_p)
 	{
 		if (!tables_both.contains(table_p)) appendOutputLine("Missing table in test database: " + table_p);
@@ -741,7 +873,7 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 		//missing/extra columns
 		QStringList fields_p = info_p.fieldNames();
 		QStringList fields_t = info_t.fieldNames();
-		QSet<QString> fields_both = fields_p.toSet().intersect(fields_t.toSet());
+        QSet<QString> fields_both = LIST_TO_SET(fields_p).intersect(LIST_TO_SET(fields_t));
 		foreach(QString field_p, fields_p)
 		{
 			if (!fields_both.contains(field_p)) appendOutputLine("Missing field in test database: " + table+"/"+field_p);
@@ -814,10 +946,10 @@ QSet<int> MaintenanceDialog::psWithVariants(NGSD& db)
 {
 	QSet<int> ps_with_vars;
 
-	ps_with_vars += db.getValuesInt("SELECT DISTINCT processed_sample_id FROM detected_variant").toSet();
-	ps_with_vars += db.getValuesInt("SELECT processed_sample_id FROM cnv_callset").toSet();
-	ps_with_vars += db.getValuesInt("SELECT processed_sample_id FROM sv_callset").toSet();
-	ps_with_vars += db.getValuesInt("SELECT processed_sample_id FROM re_callset").toSet();
+    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT processed_sample_id FROM detected_variant"));
+    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM cnv_callset"));
+    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM sv_callset"));
+    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM re_callset"));
 
 	return ps_with_vars;
 }
@@ -826,11 +958,11 @@ void MaintenanceDialog::clearUnusedReportConfigs(NGSD& db)
 {
 	//determine used report configs
 	QSet<int> used_rc_ids;
-	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_variant").toSet();
-	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv").toSet();
-	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_sv").toSet();
-	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_re").toSet();
-	used_rc_ids += db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_other_causal_variant").toSet();
+    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_variant"));
+    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv"));
+    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_sv"));
+    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_re"));
+    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_other_causal_variant"));
 
 	//delete unused report configs
 	SqlQuery query = db.getQuery();

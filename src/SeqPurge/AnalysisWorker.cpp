@@ -11,12 +11,10 @@ AnalysisWorker::AnalysisWorker(AnalysisJob& job, TrimmingParameters& params, Tri
 	, stats_(stats)
 	, ecstats_(ecstats)
 {
-	//QTextStream(stdout) << "AnalysisWorker" << endl;
 }
 
 AnalysisWorker::~AnalysisWorker()
 {
-	//QTextStream(stdout) << "~AnalysisWorker" << endl;
 }
 
 void AnalysisWorker::correctErrors(int r, QTextStream& debug_out)
@@ -39,12 +37,12 @@ void AnalysisWorker::correctErrors(int r, QTextStream& debug_out)
 			{
 				if (mm_count!=0)
 				{
-					debug_out << "R1: " << job_.r1[r].bases << endl;
-					debug_out << "Q1: "<< job_.r1[r].qualities << endl;
-					debug_out << "R2: "<< job_.r2[r].bases << endl;
-					debug_out << "Q2: "<< job_.r2[r].qualities << endl;
+                    debug_out << "R1: " << job_.r1[r].bases << QT_ENDL;
+                    debug_out << "Q1: "<< job_.r1[r].qualities << QT_ENDL;
+                    debug_out << "R2: "<< job_.r2[r].bases << QT_ENDL;
+                    debug_out << "Q2: "<< job_.r2[r].qualities << QT_ENDL;
 				}
-				debug_out << "  MISMATCH index=" << i << " R1=" << job_.r1[r].bases[i] << "/" << q1 << " R2=" << job_.r2[r].bases[i2]<< "/" << q2 << endl;
+                debug_out << "  MISMATCH index=" << i << " R1=" << job_.r1[r].bases[i] << "/" << q1 << " R2=" << job_.r2[r].bases[i2]<< "/" << q2 << QT_ENDL;
 			}
 
 			//correct error
@@ -53,7 +51,7 @@ void AnalysisWorker::correctErrors(int r, QTextStream& debug_out)
 				char replacement = Sequence::complement(job_.r1[r].bases[i]);
 				if (params_.debug)
 				{
-					debug_out << "    CORRECTED R2: " << job_.r2[r].bases[i2] << " => " << replacement << endl;
+                    debug_out << "    CORRECTED R2: " << job_.r2[r].bases[i2] << " => " << replacement << QT_ENDL;
 				}
 				job_.r2[r].bases[i2] = replacement;
 				job_.r2[r].qualities[i2] = job_.r1[r].qualities[i];
@@ -64,7 +62,7 @@ void AnalysisWorker::correctErrors(int r, QTextStream& debug_out)
 				char replacement = Sequence::complement(job_.r2[r].bases[i2]);
 				if (params_.debug)
 				{
-					debug_out << "    CORRECTED R1: " << job_.r1[r].bases[i] << " => " << replacement << endl;
+                    debug_out << "    CORRECTED R1: " << job_.r1[r].bases[i] << " => " << replacement << QT_ENDL;
 				}
 				job_.r1[r].bases[i] = replacement;
 				job_.r1[r].qualities[i] = job_.r2[r].qualities[i2];
@@ -81,7 +79,6 @@ void AnalysisWorker::correctErrors(int r, QTextStream& debug_out)
 
 void AnalysisWorker::run()
 {
-	//QTextStream(stdout) << "AnalysisWorker:run " << job_.index << " thread: " << QThread::currentThreadId() << endl;
 	try
 	{
 		QTextStream debug_out(stdout);
@@ -102,12 +99,12 @@ void AnalysisWorker::run()
 		{
 			if (params_.debug)
 			{
-				debug_out << "#############################################################################" << endl;
-				debug_out << "Header:     " << job_.r1[r].header << endl;
-				debug_out << "Read 1 in:  " << job_.r1[r].bases << endl;
-				debug_out << "Read 2 in:  " << job_.r2[r].bases << endl;
-				debug_out << "Quality 1:  " << job_.r1[r].qualities << endl;
-				debug_out << "Quality 2:  " << job_.r2[r].qualities << endl;
+                debug_out << "#############################################################################" << QT_ENDL;
+                debug_out << "Header:     " << job_.r1[r].header << QT_ENDL;
+                debug_out << "Read 1 in:  " << job_.r1[r].bases << QT_ENDL;
+                debug_out << "Read 2 in:  " << job_.r2[r].bases << QT_ENDL;
+                debug_out << "Quality 1:  " << job_.r1[r].qualities << QT_ENDL;
+                debug_out << "Quality 2:  " << job_.r2[r].qualities << QT_ENDL;
 			}
 
 			//check that headers match
@@ -169,20 +166,19 @@ void AnalysisWorker::run()
 						++mismatches;
 						if (mismatches>max_mismatches) break;
 					}
-				}
-				//debug_out << offset << matches << mismatches << (100.0*matches/(matches + mismatches)) << endl;
+				}				
 
 				if ((matches + mismatches)==0 || 100.0*matches/(matches + mismatches) < params_.match_perc) continue;
 				if (params_.debug)
 				{
-					debug_out << "  offset: " << offset << endl;
-					debug_out << "  match_perc: " << (100.0*matches/(matches + mismatches)) << "%" << endl;
+                    debug_out << "  offset: " << offset << QT_ENDL;
+                    debug_out << "  match_perc: " << (100.0*matches/(matches + mismatches)) << "%" << QT_ENDL;
 				}
 
 				//calculate the probability of seeing n or more matches at random
 				double p = BasicStatistics::matchProbability(0.25, matches, matches+mismatches);
 				if (p>params_.mep) continue;
-				if (params_.debug) debug_out << "  mep: " << p << endl;
+                if (params_.debug) debug_out << "  mep: " << p << QT_ENDL;
 
 				//check that at least on one side the adapter is present - if not continue
 				QByteArray adapter1 = seq1.mid(job_.length_r2_orig[r]-offset, params_.adapter_overlap);
@@ -240,11 +236,11 @@ void AnalysisWorker::run()
 					if (offset<3) max_mm = 0;
 					if (a1_mismatches<=max_mm || a2_mismatches<=max_mm)
 					{
-						if (params_.debug) debug_out << "  adapter overlap passed! mismatches1:" << a1_mismatches << " mismatches2:" << a2_mismatches << endl;
+                        if (params_.debug) debug_out << "  adapter overlap passed! mismatches1:" << a1_mismatches << " mismatches2:" << a2_mismatches << QT_ENDL;
 					}
 					else
 					{
-						if (params_.debug) debug_out << "  adapter overlap failed! mismatches1:" << a1_mismatches << " mismatches2:" << a2_mismatches << endl;
+                        if (params_.debug) debug_out << "  adapter overlap failed! mismatches1:" << a1_mismatches << " mismatches2:" << a2_mismatches << QT_ENDL;
 						continue;
 					}
 				}
@@ -254,12 +250,12 @@ void AnalysisWorker::run()
 					double p2 = BasicStatistics::matchProbability(0.25, a2_matches, a2_matches+a2_mismatches);
 					if (p1*p2>params_.mep)
 					{
-						if (params_.debug) debug_out << "  adapter overlap failed! mep1:" << p1 << " mep2:" << p2 << endl;
+                        if (params_.debug) debug_out << "  adapter overlap failed! mep1:" << p1 << " mep2:" << p2 << QT_ENDL;
 						continue;
 					}
 					else
 					{
-						if (params_.debug) debug_out << "  adapter overlap passed! mep1:" << p1 << " mep2:" << p2 << endl;
+                        if (params_.debug) debug_out << "  adapter overlap passed! mep1:" << p1 << " mep2:" << p2 << QT_ENDL;
 					}
 				}
 
@@ -299,7 +295,7 @@ void AnalysisWorker::run()
 
 				if (params_.debug)
 				{
-					debug_out << "###Insert sequence hit - offset=" << best_offset << " prob=" << best_p << " adapter1=" << adapter1 << " adapter2=" << adapter2 << endl;
+                    debug_out << "###Insert sequence hit - offset=" << best_offset << " prob=" << best_p << " adapter1=" << adapter1 << " adapter2=" << adapter2 << QT_ENDL;
 				}
 
 				//error correction
@@ -346,7 +342,7 @@ void AnalysisWorker::run()
 					{
 						QByteArray adapter = job_.r1[r].bases.right(job_.length_r1_orig[r]-offset);
 						adapter.truncate(20);
-						debug_out << "###Adapter 1 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
+                        debug_out << "###Adapter 1 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << QT_ENDL;
 					}
 
 					//trim read
@@ -398,7 +394,7 @@ void AnalysisWorker::run()
 					{
 						QByteArray adapter = job_.r2[r].bases.right(job_.length_r2_orig[r]-offset);
 						adapter.truncate(20);
-						debug_out << "###Adapter 2 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
+                        debug_out << "###Adapter 2 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << QT_ENDL;
 					}
 
 					//trim read
@@ -447,19 +443,16 @@ void AnalysisWorker::run()
 
 			if (params_.debug)
 			{
-				debug_out << "Read 1 out: " << job_.r1[r].bases << endl;
-				debug_out << "Read 2 out: " << job_.r2[r].bases << endl;
+                debug_out << "Read 1 out: " << job_.r1[r].bases << QT_ENDL;
+                debug_out << "Read 2 out: " << job_.r2[r].bases << QT_ENDL;
 			}
 		}
 
 		job_.status = TO_BE_WRITTEN;
 		emit done(job_.index);
-
-		//QTextStream(stdout) << "AnalysisWorker: index:" << job_.index << " elapsed:" << timer.elapsed() << endl;
 	}
 	catch(Exception& e)
 	{
-		//QTextStream(stdout) << "AnalysisWorker:error " << job_.index << " thread:" << QThread::currentThreadId() << " message:" << e.message() << endl;
 		emit error(job_.index, e.message());
 	}
 }

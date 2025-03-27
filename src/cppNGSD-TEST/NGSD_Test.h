@@ -1465,7 +1465,6 @@ private slots:
 		IS_TRUE(esd_test_input.filtered_by_trio_stringent == esd_db_export.filtered_by_trio_stringent);
 		IS_TRUE(esd_test_input.filtered_by_trio_relaxed == esd_db_export.filtered_by_trio_relaxed);
 
-
 		//change input
 		esd_test_input.dna_rna = "DNA_67890";
 
@@ -2898,7 +2897,7 @@ private slots:
 
 		somatic_report_settings.sbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_SBS96.csv");
 		somatic_report_settings.dbs_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_DBS78.csv");
-		somatic_report_settings.id_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_ID83.csv");
+		somatic_report_settings.id_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/snv_signatures/De_Novo_map_to_COSMIC_ID83.tsv");
 		somatic_report_settings.cnv_signature = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/cnv_signatures/De_Novo_map_to_COSMIC_CNV48.csv");
 
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
@@ -2993,7 +2992,6 @@ private slots:
 		S_EQUAL("TODO", "finished");
 	}
 
-
 	//Test tumor only RTF report generation
 	void report_tumor_only()
 	{
@@ -3051,8 +3049,8 @@ private slots:
 		report_worker.checkAnnotation(vl);
 		report_worker.writeRtf("out/tumor_only_report.rtf");
 
-		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
-		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QCoreApplication::applicationName().toUtf8())); //application name and version
+        REMOVE_LINES("out/tumor_only_report.rtf", QRegularExpression(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
+        REMOVE_LINES("out/tumor_only_report.rtf", QRegularExpression(QCoreApplication::applicationName().toUtf8())); //application name and version
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 
 
@@ -3413,9 +3411,9 @@ private slots:
 		QMap<QByteArray, QByteArray> best;
 		TsvFile tmp;
 		tmp.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep_best_transcripts.tsv"));
-		for (int i=0; i<tmp.rowCount(); ++i)
+		for (int i=0; i<tmp.count(); ++i)
 		{
-			const QStringList& row = tmp.row(i);
+			const QStringList& row = tmp[i];
 			best[row[0].toUtf8()] = row[1].toUtf8();
 		}
 
@@ -3499,10 +3497,10 @@ private slots:
 					else
 					{
 						++c_fail;
-						out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << endl;
+                        out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << QT_ENDL;
 						foreach(QByteArray difference, differences)
 						{
-							out << "  " << difference << endl;
+                            out << "  " << difference << QT_ENDL;
 						}
 					}
 				}
@@ -3536,7 +3534,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
 
 		QStringList warnings;
-		QString sample_sheet = db.createSampleSheet(1, warnings);
+		QString sample_sheet = db.createSampleSheet(1, warnings, NsxAnalysisSettings());
 		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (5) and the number of lanes on the flow cell (8) does not match!");
 
 		//write to file
@@ -3549,7 +3547,7 @@ private slots:
 
 		//second run without adapter sequence
 		warnings.clear();
-		sample_sheet = db.createSampleSheet(2, warnings);
+		sample_sheet = db.createSampleSheet(2, warnings, NsxAnalysisSettings());
 		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (3) and the number of lanes on the flow cell (2) does not match!");
 		S_EQUAL(warnings.at(1), "WARNING: No adapter for read 1 provided! Adapter trimming will not work.");
 		S_EQUAL(warnings.at(2), "WARNING: No adapter for read 2 provided! Adapter trimming will not work.");
@@ -3563,4 +3561,5 @@ private slots:
 		COMPARE_FILES("out/NovaSeqX_samplesheet2.csv",  TESTDATA("data_out/NovaSeqX_samplesheet2.csv") );
 
 	}
+
 };

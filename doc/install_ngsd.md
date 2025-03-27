@@ -1,34 +1,36 @@
 # Installation of the NGSD
 
-NGSD is an acronym for the *next gen sequencing database*.  
-The NGSD manages samples, runs, variants, QC data and genes data for NGS sequencing.
+NGSD is an acronym for the *next generation sequencing database*.  
+The NGSD manages samples, runs, variants, QC data as well as basic data data like genes and transcripts .
 
 This document describes the installation of the NGSD database.
-The installation instructions are based on Ubuntu 18.04 LTS, but should work similarly on other Linux distributions.
+The installation instructions are based on Ubuntu 20.04 LTS, but should work similarly on other Linux distributions.
 
 These instructions assume that the installation is performed as root. If that is not the case, you have to prepend `sudo ` to all commands that need root privileges. 
 
-## MySQL database setup
+## SQL database setup
 
-The database backend of the NGSD is a MySQL database. To set it up, follow these instructions:
+The database backend of the NGSD is a MariaDB database. To set it up, follow these instructions:
 
-* If not available, install the MySQL package:
+* If not available, install the SQL server:
 
-		> sudo apt-get install mysql-server
+		> sudo apt-get install mariadb-server
 
 * Log into the server, e.g. with:
 
 		> sudo mysql -u root
 
-* Create the NGSD database:
+* Create the NGSD production and test instance:
 
 		mysql> create database ngsd;
-		mysql> grant all on ngsd.* to 'ngsduser'@'%' identified by '[mysql-password]';
+		mysql> grant all on ngsd.* to 'ngsduser'@'%' identified by '[password]';
+		mysql> create database ngsd_test;
+		mysql> grant all on ngsd_test.* to 'ngsdtestuser'@'%' identified by '[password]';
 		mysql> exit
 
-## MySQL database optimization
+## database optimization
 
-In order to optimize the performance of MySQL for the NGSD, you can adapt/add the following settings in the `/etc/mysql/my.cnf` file:
+In order to optimize the performance of the SQL server for the NGSD, you can adapt/add the following settings in the `/etc/mysql/my.cnf` file:
 
 		[mysqld]
 		innodb_buffer_pool_instances = 2
@@ -59,15 +61,15 @@ The initial import of database content using ngs-bits.
 		> cp ngs-bits/bin/settings.ini.example ngs-bits/bin/settings.ini
 
 * Fill in the following NGSD credentials:
-	* ngsd_host = `???`
-	* ngsd_port = `???`
+	* ngsd_host = `[host]`
+	* ngsd_port = 3306
 	* ngsd_name = ngsd
 	* ngsd_user = ngsduser
-	* ngsd_pass = `[mysql-password]`
+	* ngsd_pass = `[password]`
 
 * To set up the NGSD tables, use command:
 
-		> ngs-bits/bin/NGSDInit -force [mysql-password]
+		> ngs-bits/bin/NGSDInit
 
 * Finally, QC terms and gene information from several databases must be imported.  
   Proceed accoding to the instructions of the following tools in the listed order:

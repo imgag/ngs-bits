@@ -69,7 +69,7 @@ void AnalysisInformationWidget::updateGUI()
 			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
 			ui_.table->setItem(0, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(0, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
 				BamReader reader(file.filename);
@@ -79,7 +79,7 @@ void AnalysisInformationWidget::updateGUI()
 					if (build!=GSvarHelper::build())
 					{
 						ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + buildToString(build) + ")");
-						ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+                        ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 					}
 				}
 				catch(...) {} //do nothing (genome build could not be determined)
@@ -92,7 +92,7 @@ void AnalysisInformationWidget::updateGUI()
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);
 			ui_.table->setItem(1, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(1, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
 				VariantList vl;
@@ -100,7 +100,7 @@ void AnalysisInformationWidget::updateGUI()
 				if (vl.build()!=GSvarHelper::build())
 				{
 					ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + buildToString(vl.build()) + ")");
-					ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+                    ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
 				}
 			}
 			ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.small_variants) + " small variants" + rcData(db, "report_configuration_variant", rc_id)));
@@ -113,7 +113,7 @@ void AnalysisInformationWidget::updateGUI()
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COPY_NUMBER_CALLS);
 			ui_.table->setItem(2, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(2, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(2,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(2,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
 				CnvList cnvs;
@@ -122,7 +122,7 @@ void AnalysisInformationWidget::updateGUI()
 				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
 				{
 					ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + genome + ")");
-					ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+                    ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
 				}
 			}
 			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs" + rcData(db, "report_configuration_cnv", rc_id)));
@@ -134,7 +134,7 @@ void AnalysisInformationWidget::updateGUI()
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::STRUCTURAL_VARIANTS);
 			ui_.table->setItem(3, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(3, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(3,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
 				BedpeFile bedpe;
@@ -143,7 +143,7 @@ void AnalysisInformationWidget::updateGUI()
 				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
 				{
 					ui_.table->item(3,1)->setText(ui_.table->item(3,1)->text() + " (" + genome + ")");
-					ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
+                    ui_.table->item(3,1)->setForeground(QBrush(QColor(Qt::red)));
 				}
 			}
 			ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.svs) + " SVs" + rcData(db, "report_configuration_sv", rc_id)));
@@ -155,7 +155,7 @@ void AnalysisInformationWidget::updateGUI()
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::REPEAT_EXPANSIONS);
 			ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(4,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(4,1)->setForeground(QBrush(QColor(Qt::red)));
 			ui_.table->setItem(4, 2, GUIHelper::createTableItem(QString::number(import_status.res) + " REs" + rcData(db, "report_configuration_re", rc_id)));
 			ui_.table->setItem(4, 3, GUIHelper::createTableItem(call_info.re_call_date));
 			ui_.table->setItem(4, 4, GUIHelper::createTableItem(call_info.re_caller + " " + call_info.re_caller_version));
@@ -169,7 +169,7 @@ void AnalysisInformationWidget::updateGUI()
 			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
 			ui_.table->setItem(0, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(0, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
 				BamReader reader(file.filename);
@@ -179,7 +179,7 @@ void AnalysisInformationWidget::updateGUI()
 					if (build!=GSvarHelper::build())
 					{
 						ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + buildToString(build) + ")");
-						ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+                        ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 					}
 				}
 				catch(...) {} //do nothing (genome build could not be determined)
@@ -190,25 +190,25 @@ void AnalysisInformationWidget::updateGUI()
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COUNTS);
 			ui_.table->setItem(1, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(1, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
 
 			//expression
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION);
 			ui_.table->setItem(2, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(2, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(2,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(2,1)->setForeground(QBrush(QColor(Qt::red)));
 
 			//fusions
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS);
 			ui_.table->setItem(3, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(3, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(3,1)->setForeground(QBrush(QColor(Qt::red)));
 
 			//splicing info
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SPLICING_BED);
 			ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(4,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(4,1)->setForeground(QBrush(QColor(Qt::red)));
 		}
 		else if(sample_data.type.startsWith("cfDNA"))
 		{
@@ -218,7 +218,7 @@ void AnalysisInformationWidget::updateGUI()
 			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
 			ui_.table->setItem(0, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(0, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
 				BamReader reader(file.filename);
@@ -228,7 +228,7 @@ void AnalysisInformationWidget::updateGUI()
 					if (build!=GSvarHelper::build())
 					{
 						ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + buildToString(build) + ")");
-						ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+                        ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 					}
 				}
 				catch(...) {} //do nothing (genome build could not be determined)
@@ -239,7 +239,7 @@ void AnalysisInformationWidget::updateGUI()
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);
 			ui_.table->setItem(1, 0,GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(1, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
-			if (!file.exists) ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+            if (!file.exists) ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
 				VariantList vl;
@@ -247,7 +247,7 @@ void AnalysisInformationWidget::updateGUI()
 				if (vl.build()!=GSvarHelper::build())
 				{
 					ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + buildToString(vl.build()) + ")");
-					ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+                    ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
 				}
 			}
 			ui_.table->setItem(1, 2, GUIHelper::createTableItem(""));

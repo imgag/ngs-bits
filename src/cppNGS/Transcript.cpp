@@ -457,10 +457,10 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	}
 
 	//fix unneeded suffixes at the end of 'dup' and 'del' entries
-	hgvs_c.replace(QRegExp("dup[ACGTN]+"), "dup");
-	hgvs_c.replace(QRegExp("del[ACGTN]+"), "del");
-	hgvs_c.replace(QRegExp("dup[0-9]+"), "dup");
-	hgvs_c.replace(QRegExp("del[0-9]+"), "del");
+    hgvs_c.replace(QRegularExpression("dup[ACGTN]+"), "dup");
+    hgvs_c.replace(QRegularExpression("del[ACGTN]+"), "del");
+    hgvs_c.replace(QRegularExpression("dup[0-9]+"), "dup");
+    hgvs_c.replace(QRegularExpression("del[0-9]+"), "del");
 
 	int length = hgvs_c.length();
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
@@ -477,8 +477,8 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		end = start;
 
 		//set sequence
-		ref.append(hgvs_c[length-3].toUpper());
-		obs.append(hgvs_c[length-1].toUpper());
+        ref.append(hgvs_c[length-3].toUpper().toLatin1());
+        obs.append(hgvs_c[length-1].toUpper().toLatin1());
 
 		//convert reference to correct strand
 		if(strand_==Transcript::MINUS)
@@ -630,7 +630,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 
 		//sequence
 		ref.append('-');
-		obs.append(hgvs_c.mid(ins_pos+3));
+        obs.append(hgvs_c.mid(ins_pos+3).toUtf8());
 
 		//convert reference to correct strand
 		if(strand_==Transcript::MINUS)
@@ -697,13 +697,13 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 		{
 			if (non_coding)
 			{
-				pos = nDnaToGenomic(position.left(s_pos).toInt());
+				pos = nDnaToGenomic(position.leftRef(s_pos).toInt());
 			}
 			else
 			{
-				pos = cDnaToGenomic(position.left(s_pos).toInt());
+				pos = cDnaToGenomic(position.leftRef(s_pos).toInt());
 			}
-			offset = position.mid(s_pos+1).toInt();
+			offset = position.midRef(s_pos+1).toInt();
 			return;
 		}
 		else if (s_char=='-' && s_pos==0) //e.g. "-49" (before the first base)
@@ -716,7 +716,7 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			{
 				pos = utr5primeEnd();
 			}
-			offset = -1 * position.mid(s_pos+1).toInt();
+			offset = -1 * position.midRef(s_pos+1).toInt();
 
 			//fix offset if UTR is split in several regions
 			if (!non_coding) correct5PrimeUtrOffset(offset);
@@ -726,13 +726,13 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 		{
 			if (non_coding)
 			{
-				pos = nDnaToGenomic(position.left(s_pos).toInt());
+				pos = nDnaToGenomic(position.leftRef(s_pos).toInt());
 			}
 			else
 			{
-				pos = cDnaToGenomic(position.left(s_pos).toInt());
+				pos = cDnaToGenomic(position.leftRef(s_pos).toInt());
 			}
-			offset = -1 * position.mid(s_pos+1).toInt();
+			offset = -1 * position.midRef(s_pos+1).toInt();
 			return;
 		}
 		else if (s_char=='*') //e.g. "*49" (after the last base)
@@ -745,7 +745,7 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			{
 				pos = utr3primeStart();
 			}
-			offset = position.mid(s_pos+1).toInt();
+			offset = position.midRef(s_pos+1).toInt();
 			correct3PrimeUtrOffset(offset);
 			return;
 		}
@@ -767,9 +767,9 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			{
 				pos = utr5primeEnd();
 			}
-			offset = -1 * position.mid(1, s_pos2-1).toInt() ;
+			offset = -1 * position.midRef(1, s_pos2-1).toInt() ;
 			if (!non_coding) correct5PrimeUtrOffset(offset);
-			offset -=  position.mid(s_pos2+1).toInt();
+			offset -=  position.midRef(s_pos2+1).toInt();
 			return;
 		}
 		else if (s_pos1==0 && s_char1=='-' && s_char2=='+') //e.g. "-15+59"
@@ -782,9 +782,9 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			{
 				pos = utr5primeEnd();
 			}
-			offset = -1 * position.mid(1, s_pos2-1).toInt();
+			offset = -1 * position.midRef(1, s_pos2-1).toInt();
 			if (!non_coding) correct5PrimeUtrOffset(offset);
-			offset += position.mid(s_pos2+1).toInt();
+			offset += position.midRef(s_pos2+1).toInt();
 			return;
 		}
 		else if (s_char1=='*' && s_char2=='+') // e.g. "*700+581"
@@ -797,9 +797,9 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			{
 				pos = utr3primeStart();
 			}
-			offset = position.mid(1, s_pos2-1).toInt();
+			offset = position.midRef(1, s_pos2-1).toInt();
 			correct3PrimeUtrOffset(offset);
-			offset += position.mid(s_pos2+1).toInt();
+			offset += position.midRef(s_pos2+1).toInt();
 			return;
 		}
 		else if (s_char1=='*' && s_char2=='-') //e.g. "*9-74"
@@ -812,9 +812,9 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			{
 				pos = utr3primeStart();
 			}
-			offset = position.mid(1, s_pos2-1).toInt();
+			offset = position.midRef(1, s_pos2-1).toInt();
 			correct3PrimeUtrOffset(offset);
-			offset -= position.mid(s_pos2+1).toInt();
+			offset -= position.midRef(s_pos2+1).toInt();
 			return;
 		}
 	}

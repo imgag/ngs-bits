@@ -34,6 +34,7 @@ url_lifetime = 36000
 session_duration = 36000
 #use in-memory structure to keep file metadata information(name, absolute path, size, etc.), reduces the number of calls to the file system
 enable_file_metadata_caching = false
+file_location_cache_lifespan = 300
 
 #proxy settings - set if proxy is needed to access files on the internet
 proxy_host = ""

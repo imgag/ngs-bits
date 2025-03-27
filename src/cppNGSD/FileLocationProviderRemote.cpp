@@ -52,6 +52,16 @@ FileLocationList FileLocationProviderRemote::getQcFiles() const
 	return getFileLocationsByType(PathType::QC, false);
 }
 
+FileLocation FileLocationProviderRemote::getMethylationFile() const
+{
+	return getOneFileLocationByType(PathType::METHYLATION, "");
+}
+
+FileLocation FileLocationProviderRemote::getMethylationImage(QString locus) const
+{
+	return getOneFileLocationByType(PathType::METHYLATION_IMAGE, locus);
+}
+
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
 {
     FileLocationList output;

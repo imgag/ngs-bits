@@ -12,7 +12,7 @@ Index1Cycles,19
 Index2Cycles,10
 
 [BCLConvert_Settings]
-SoftwareVersion,4.1.23
+SoftwareVersion,4.3.16
 AdapterRead1,AGATCGGAAGAGCACACGTCTGAACTCCAGTCA+AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
 AdapterRead2,AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTG+AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
 FastqCompressionFormat,dragen
@@ -28,8 +28,8 @@ Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismat
 5,RX123456_01,ATATATAT,CGCGCGCG,Y151;I8U11;N2I8;Y151,1,1
 
 [DragenGermline_Settings]
-SoftwareVersion,4.1.23
-AppVersion,1.2.1
+SoftwareVersion,4.3.16
+AppVersion,1.3.13
 KeepFastq,true
 MapAlignOutFormat,cram
 ReferenceGenomeDir,GRCh38
@@ -40,8 +40,8 @@ Sample_ID
 NA12878_45
 
 [DragenEnrichment_Settings]
-SoftwareVersion,4.1.23
-AppVersion,1.2.1
+SoftwareVersion,4.3.16
+AppVersion,1.3.13
 KeepFastq,true
 MapAlignOutFormat,cram
 ReferenceGenomeDir,GRCh38
@@ -50,7 +50,7 @@ VariantCallingMode,AllVariantCallers
 
 [DragenEnrichment_Data]
 Sample_ID,BedFile
-NA12878_58,twistCustomExomeV2.bed
-NA12878_59,twistCustomExomeV2.bed
-DX000002_01,twistCustomExomeV2.bed
-DX000001_01,twistCustomExomeV2.bed
+NA12878_58,DragenEnrichment/twistCustomExomeV2.bed
+NA12878_59,DragenEnrichment/twistCustomExomeV2.bed
+DX000002_01,DragenEnrichment/twistCustomExomeV2.bed
+DX000001_01,DragenEnrichment/twistCustomExomeV2.bed

@@ -3,7 +3,7 @@ CONFIG += c++11
 
 #base settings
 QT       -= gui
-QT       += sql xml xmlpatterns
+QT       += sql xml network
 QTPLUGIN += QSQLMYSQL
 TEMPLATE = lib
 TARGET = cppNGSD
@@ -33,6 +33,12 @@ LIBS += -L$$PWD/../../bin -lcppXML
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
+
+win32: INCLUDEPATH += $$PWD/../../libxml2/include/
+win32: LIBS += -L$$PWD/../../libxml2/libs/ -lxml2
+
+unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
+unix: LIBS += -lxml2
 
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"

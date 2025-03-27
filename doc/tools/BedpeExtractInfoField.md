@@ -1,5 +1,5 @@
 ### BedpeExtractInfoField tool help
-	BedpeExtractInfoField (2023_11-133-g87eceb58)
+	BedpeExtractInfoField (2024_08-110-g317f43b9)
 	
 	Extract a given INFO field key and annotates it as a separate column.
 	
@@ -19,9 +19,10 @@
 	  --version             Prints version and exits.
 	  --changelog           Prints changeloge and exits.
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]     Settings override file (no other settings files are used).
 	
 ### BedpeExtractInfoField changelog
-	BedpeExtractInfoField 2023_11-133-g87eceb58
+	BedpeExtractInfoField 2024_08-110-g317f43b9
 	
 	2024-01-18 Removed single sample restriction
 	2023-10-04 Initial commit.

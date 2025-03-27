@@ -1,0 +1,16 @@
+##fileformat=VCFv4.2
+##fileDate=20181010
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth at the locus">
+##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
+##INFO=<ID=SOME_FLAG,Number=0,Type=Flag,Description="Just testing flags...">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03
+chr1	27687466	.	G	T	9750.95	.	DP=738;LEN=1	GT:DP:QA	0/1:738:13778	./1:561:9691	./1:561:10200
+chr1	45797505	.	C	G	3124.17	.	DP=233;LEN=1	GT:DP:QA	0/1:233:4436	./1:561:10200	./1:110:2299
+chr1	62713224	.	C	G	1165.02	.	DP=37;LEN=1	GT:DP:QA	1/1:37:1438	0/1:738:13778	./1:561:10200
+chr2	215632255	.	CA	TG	3055.53	.	SOME_FLAG;DP=110;LEN=2	GT:DP:QA	./1:110:2299	./1:110:1724	./1:561:9691
+chr2	215632255	.	CA	CG	3055.53	.	SOME_FLAG;DP=110;LEN=1	GT:DP:QA	./1:110:1724	./1:561:10200	./1:561:10200
+chr4	41015823	.	G	A	16030.5	.	DP=561;LEN=1	GT:DP:QA	./1:561:10200	1/1:37:1438	./1:110:2299
+chr4	41015823	.	G	T	16030.5	.	DP=561;LEN=1	GT:DP:QA	./1:561:9691	./1:110:2299	./1:561:10200

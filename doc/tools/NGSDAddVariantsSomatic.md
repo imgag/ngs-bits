@@ -1,41 +1,41 @@
 ### NGSDAddVariantsSomatic tool help
-	NGSDAddVariantsSomatic (2024_02-126-g4f44d5e5)
+	NGSDAddVariantsSomatic (2025_01-55-gd44a7c92)
 	
 	Imports variants of a tumor-normal processed sample into the NGSD.
 	
 	Mandatory parameters:
-	  -t_ps <string> Tumor processed sample name
-	  -n_ps <string> Normal processed sample name
+	  -t_ps <string>    Tumor processed sample name
 	
 	Optional parameters:
-	  -var <file>    Small variant list (i.e. SNVs and small INDELs) in GSvar format (as produced by megSAP).
-	                 Default value: ''
-	  -var_force     Force import of detected small variants, even if already imported.
-	                 Default value: 'false'
-	  -cnv <file>    CNV list in TSV format (as produced by megSAP).
-	                 Default value: ''
-	  -cnv_force     Force import of CNVs, even if already imported.
-	                 Default value: 'false'
-	  -sv <file>     SV list in TSV format (as produced by megSAP).
-	                 Default value: ''
-	  -sv_force      Force import of SVs, even if already imported.
-	                 Default value: 'false'
-	  -out <file>    Output file. If unset, writes to STDOUT.
-	                 Default value: ''
-	  -test          Uses the test database instead of on the production database.
-	                 Default value: 'false'
-	  -debug         Enable verbose debug output.
-	                 Default value: 'false'
-	  -no_time       Disable timing output.
-	                 Default value: 'false'
+	  -n_ps <string>    Normal processed sample name
+	                    Default value: ''
+	  -var <file>       Small variant list (i.e. SNVs and small INDELs) in GSvar format (as produced by megSAP).
+	                    Default value: ''
+	  -cnv <file>       CNV list in TSV format (as produced by megSAP).
+	                    Default value: ''
+	  -sv <file>        SV list in TSV format (as produced by megSAP).
+	                    Default value: ''
+	  -force            Force import of variants, even if already imported.
+	                    Default value: 'false'
+	  -out <file>       Output file. If unset, writes to STDOUT.
+	                    Default value: ''
+	  -max_af <float>   Maximum allele frequency of small variants to import (gnomAD) for import of tumor-only.
+	                    Default value: '0.05'
+	  -test             Uses the test database instead of on the production database.
+	                    Default value: 'false'
+	  -debug            Enable verbose debug output.
+	                    Default value: 'false'
+	  -no_time          Disable timing output.
+	                    Default value: 'false'
 	
 	Special parameters:
-	  --help         Shows this help and exits.
-	  --version      Prints version and exits.
-	  --changelog    Prints changeloge and exits.
-	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help            Shows this help and exits.
+	  --version         Prints version and exits.
+	  --changelog       Prints changeloge and exits.
+	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDAddVariantsSomatic changelog
-	NGSDAddVariantsSomatic 2024_02-126-g4f44d5e5
+	NGSDAddVariantsSomatic 2025_01-55-gd44a7c92
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

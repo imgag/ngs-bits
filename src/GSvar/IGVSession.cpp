@@ -202,10 +202,10 @@ IGVInitWindowItem IGVSession::getCachedItem(int i) const
 void IGVSession::startCachingForRegularIGV(const AnalysisType analysis_type, const QString current_filename)
 {
     removeCache();
-    Log::info("Started loading file location information needed for the IGV initialization");
     MainWindow* main_window = GlobalServiceProvider::mainWindow();
     IGVInitCacheWorker* igv_init_cache_worker = new IGVInitCacheWorker(analysis_type, current_filename);
     background_job_id_ = main_window->startJob(igv_init_cache_worker, false);
+    Log::info("Started loading file location information needed for the IGV initialization");
 }
 
 QString IGVSession::statusToString(IGVStatus status)

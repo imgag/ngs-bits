@@ -44,7 +44,7 @@ public:
 	void updateTable(NGSD& db, QString table_name)
 	{
 		QTextStream out(stdout);
-		out << "Updating entries in " + table_name + " table..." << endl;
+        out << "Updating entries in " + table_name + " table..." << QT_ENDL;
 		//get all gene names
 		SqlQuery query = db.getQuery();
 		query.exec("SELECT symbol FROM " + table_name);
@@ -80,8 +80,8 @@ public:
 				}
 			}
 		}
-		out << "  updated  " << c_upd << " entries" << endl;
-		out << "  deleted  " << c_del << " entries" << endl;
+        out << "  updated  " << c_upd << " entries" << QT_ENDL;
+        out << "  deleted  " << c_del << " entries" << QT_ENDL;
 	}
 
 
@@ -171,7 +171,7 @@ public:
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("in"));
 
 		//get duplicate ENSG ids
-		out << "Extract duplicate ENSG ids..." << endl;
+        out << "Extract duplicate ENSG ids..." << QT_ENDL;
 		while (!fp->atEnd())
 		{
 			QByteArray line = fp->readLine().trimmed();
@@ -193,16 +193,16 @@ public:
 				ensg_ids.insert(ensg_id);
 			}
 		}
-		out << "ENSG IDs used for more than one gene (" << QByteArray::number(duplicate_ensg_ids.size()) << "): " << duplicate_ensg_ids.toList().join(", ") << endl;
+        out << "ENSG IDs used for more than one gene (" << QByteArray::number(duplicate_ensg_ids.size()) << "): " << duplicate_ensg_ids.values().join(", ") << QT_ENDL;
 
 
 		//get ENSG->HGNC mapping from ensembl file
-		out << "Get ENSG -> HGNC mapping from ensembl file..." << endl;
+        out << "Get ENSG -> HGNC mapping from ensembl file..." << QT_ENDL;
 		QMap<QByteArray,QByteArray> ensg_hgnc_mapping;
 		if (duplicate_ensg_ids.size() > 0) ensg_hgnc_mapping = getEnsemblHGNCMapping(duplicate_ensg_ids, getInfile("ensembl"));
 
 		//final parse for import
-		out << "Parse HGNC file and import genes into the NGSD..." << endl;
+        out << "Parse HGNC file and import genes into the NGSD..." << QT_ENDL;
 		fp->seek(0);
 		int n_imported = 0;
 
@@ -274,12 +274,12 @@ public:
 			addAliases(alias_query, gene_id, parts[8], "synonym");
 		}
 
-		out << "  " << db.getValue("SELECT count(*) FROM gene").toInt() << " gene symbols imported into the NGSD:" << endl;
+        out << "  " << db.getValue("SELECT count(*) FROM gene").toInt() << " gene symbols imported into the NGSD:" << QT_ENDL;
 		foreach(QString type, valid_types)
 		{
-			out << "    " << db.getValue("SELECT count(*) FROM gene WHERE type='" + type + "'").toInt() << " genes of type '" << type + "'" << endl;
+            out << "    " << db.getValue("SELECT count(*) FROM gene WHERE type='" + type + "'").toInt() << " genes of type '" << type + "'" << QT_ENDL;
 		}
-		out << "    " << db.getValue("SELECT count(*) FROM gene WHERE ensembl_id IS NULL ").toInt() << " genes without Ensembl ID" << endl;
+        out << "    " << db.getValue("SELECT count(*) FROM gene WHERE ensembl_id IS NULL ").toInt() << " genes without Ensembl ID" << QT_ENDL;
 
 		//update gene symbols in geneinfo_germline and somatic_gene_role table
 		updateTable(db, "geneinfo_germline");

@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2024_08
+	> git checkout 2025_01
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -38,8 +38,9 @@ For some tools the documentation pages contain only the command-line help, for o
 
 ## License
 
-*ngs-bits* is provided under the [MIT license](LICENSE) and is based on other open source software:
+*ngs-bits* is provided under the [MIT license](LICENSE), but is is based on other software components with different lincenses:
 
+* [Qt](https://www.qt.io/) is our base framwork for the graphical user interface, platform abstraction, data structures and much more.
 * [htslib](https://github.com/samtools/htslib) for HTS data format support (BAM, VCF, ...)
 * [SimpleCrypt](https://wiki.qt.io/Simple_encryption_with_SimpleCrypt) for weak encryption
 * [QR-Code-generator](https://github.com/nayuki/QR-Code-generator) for QR code generation
@@ -71,7 +72,9 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
+* [TrioMendelianErrors](doc/tools/TrioMendelianErrors.md) - Determines mendelian error rate form a trio VCF file.
 * [RnaQC](doc/tools/RnaQC.md) - Calculates QC metrics for RNA samples.
+* [QcToTsv](doc/tools/QcToTsv.md) - Converts qcML files to a TSV file.
 
 ### BAM tools
 
@@ -81,6 +84,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
 * [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a coordinate-sorted BAM file to FASTQ files.
+* [FastaFromBam](doc/tools/FastaFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 
 ### BED tools
 
@@ -122,7 +126,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### VCF tools (small variants)
 
-* [VcfAdd](doc/tools/VcfAdd.md) - Appends variants from a VCF file to another VCF file.
+* [VcfAdd](doc/tools/VcfAdd.md) - Merges several VCF files into one VCF by appending one to the other.
 * [VcfAnnotateConsequence](doc/tools/VcfAnnotateConsequence.md) - Adds transcript-specific consequence predictions to a VCF file (similar to Ensembl VEP).
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
@@ -135,11 +139,11 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
-* [VcfMerge](doc/tools/VcfMerge.md) - Merges several VCF files into one VCF.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
+* [VcfStrip](doc/tools/VcfStrip.md) - Removes unwanted information from a VCF file
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
-* [VcfSubstract](doc/tools/VcfSubstract.md) - Substracts the variants in a VCF from a second VCF.
+* [VcfSubtract](doc/tools/VcfSubtract.md) - Substracts the variants in a VCF from a second VCF.
 * [VcfToBed](doc/tools/VcfToBedpe.md) - Converts a VCF file to a BED file.
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
@@ -171,7 +175,6 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### Misc tools
 
-* [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastqFromBam](doc/tools/FastqFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
@@ -181,14 +184,17 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes since last release:
 
-* added tools: FastqFromBam, FastaMask, FastqFromBam
-* removed tools: 
+* added tools:
+* removed tools:
 * NGSD:
-  * table 'repeat_expansion': added 'inhouse_testing' column, changed 'type' column
+
+
+For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
 
 ## Citing
 
-There is no paper for ngs-bit yet.  
-Please cite the GitHub repository for now.
-	
-For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
+You can cite ngs-bits in using Zenodo DOIs:
+
+* 2025_01: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14747530.svg)](https://doi.org/10.5281/zenodo.14747530)
+* 2024_11: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14216792.svg)](https://doi.org/10.5281/zenodo.14216792)
+

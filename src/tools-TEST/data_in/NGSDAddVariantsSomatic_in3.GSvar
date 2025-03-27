@@ -1,0 +1,65 @@
+##ANALYSISTYPE=SOMATIC_PAIR
+##PIPELINE=megSAP 0.1-835-g57035c2
+##SAMPLE=<ID=DX184894_01,Gender=female,ExternalSampleName=DNA-184894 A1,IsTumor=yes,IsFFPE=yes,DiseaseGroup=n/a,DiseaseStatus=n/a>
+##SAMPLE=<ID=DX184263_01,Gender=female,ExternalSampleName=DNA-184263 A1,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=n/a>
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=ESP_sub=Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (difference in percent/reference bases score/alternate bases score).
+##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).
+##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample DX184894_01).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample DX184894_01).
+##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample DX184263_01).
+##DESCRIPTION=normal_dp=Normal depth (Sample DX184263_01).
+##DESCRIPTION=NGSD_som_c=Somatic variant count in the NGSD.
+##DESCRIPTION=NGSD_som_p=Project names of project containing this somatic variant in the NGSD.
+##DESCRIPTION=NGSD_hom=Homozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=NGSD_het=Heterozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, ExAC pLI score).
+##FILTER=LowDepth=Tumor or normal sample read depth at this locus is below 2
+##FILTER=LowEVS=Somatic Empirical Variant Score (SomaticEVS) is below threshold
+##FILTER=all-unknown=Allele unknown
+##FILTER=depth-nor=Sequencing depth in normal is too low (< 20)
+##FILTER=depth-tum=Sequencing depth in tumor is too low (< 20)
+##FILTER=freq-nor=Allele frequency in normal > 0.17 * allele frequency in tumor
+##FILTER=freq-tum=Allele frequency in tumor < 0.05
+##FILTER=lt-3-reads=Less than 3 supporting tumor reads
+##FILTER=off-target=Variant marked as 'off-target'.
+##FILTER=special-chromosome=Special chromosome
+##CGI_CANCER_TYPE=CH
+##DESCRIPTION=CGI_id=Identifier for CGI statements
+##DESCRIPTION=CGI_driver_statement=CancerGenomeInterpreter.org oncogenic classification
+##DESCRIPTION=CGI_gene_role=CancerGenomeInterpreter.org gene role. LoF: Loss of Function, Act: Activating
+##DESCRIPTION=CGI_transcript=CancerGenomeInterpreter.org CGI Ensembl transcript ID
+##DESCRIPTION=CGI_gene=Gene symbol returned by CancerGenomeInterpreter.org
+##DESCRIPTION=CGI_consequence=Consequence of the mutation assessed by CancerGenomeInterpreter.org
+##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	quality	gene	variant_type	coding_and_splicing	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_som_c	NGSD_som_p	NGSD_hom	NGSD_het	classification	classification_comment	validation	comment	gene_info	CGI_id	CGI_driver_statement	CGI_gene_role	CGI_transcript	CGI_gene	CGI_consequence	ncg_oncogene	ncg_tsg	SpliceAI	PubMed
+chr2	178096717	178096717	T	C	0.1057	389		QUAL=229	NFE2L2	missense	NFE2L2:ENST00000397062:missense_variant:MODERATE:exon5/5:c.614A>G:p.Asp205Gly:,NFE2L2:ENST00000397063:missense_variant:MODERATE:exon5/5:c.566A>G:p.Asp189Gly:,NFE2L2:ENST00000446151:missense_variant:MODERATE:exon5/5:c.545A>G:p.Asp182Gly:,NFE2L2:ENST00000464747:missense_variant:MODERATE:exon8/8:c.566A>G:p.Asp189Gly:	600492 [NFE2L2 Immunodeficiency,developmental delay,and hypohomocysteinemia,617744];										5.3220	D,D,D,D	B,B,B,B	0.96,0.97	3.29	0.06					0		0	0					NFE2L2 (inh=AD pLI=0.61)	chr2_178096717_T_C	predicted passenger	Act	ENST00000397062	NFE2L2	Missense	0	0		
+chr3	138456487	138456488	AT	-	0.1304	26	off-target	QUAL=22	PIK3CB	intron	PIK3CB:ENST00000289153:intron_variant:MODIFIER:exon4/21:c.801+61_801+62del::,PIK3CB:ENST00000477593:intron_variant:MODIFIER:exon5/22:c.801+61_801+62del::				(AT)n	rs375733254		0.0832	0,			0.4070				-0.29						1	SomaticAndTreatment	8	6					PIK3CB (inh=n/a pLI=1.00)	chr3_138456486_AAT_A	not protein-affecting	Act	ENST00000477593	PIK3CB	IntronicDeletion	1	0	0.94	
+chr16	56870524	56870524	A	C	0.1254	639		QUAL=330	NUP93	synonymous	NUP93:ENST00000308159:synonymous_variant:LOW:exon17/22:c.1794A>C:p.Ile598=:PF04097,NUP93:ENST00000542526:synonymous_variant:LOW:exon15/20:c.1425A>C:p.Ile475=:PF04097,NUP93:ENST00000564887:synonymous_variant:LOW:exon15/20:c.1425A>C:p.Ile475=:PF04097,NUP93:ENST00000569842:synonymous_variant:LOW:exon17/23:c.1794A>C:p.Ile598=:PF04097	614351 [NUP93 Nephrotic syndrome,type 12,616892];										1.5880			0.80,0.91	1.07						0		0	0					NUP93 (inh=AR pLI=0.04)	chr16_56870524_A_C	not protein-affecting	LoF	ENST00000308159	NUP93	Synonymous	na	na	0.13	1234578

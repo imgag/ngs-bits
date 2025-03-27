@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2024_02-126-g4f44d5e5)
+	SvFilterAnnotations (2024_08-113-g94a3b440)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -106,18 +106,19 @@
 	                              min_support - Minimum support read count [default=5] [min=0] [max=10000]
 	
 	Mandatory parameters:
-	  -in <file>      Input structural variant list in BEDPE format.
-	  -out <file>     Output structural variant list in BEDPE format.
-	  -filters <file> Filter definition file.
+	  -in <file>        Input structural variant list in BEDPE format.
+	  -out <file>       Output structural variant list in BEDPE format.
+	  -filters <file>   Filter definition file.
 	
 	Special parameters:
-	  --help          Shows this help and exits.
-	  --version       Prints version and exits.
-	  --changelog     Prints changeloge and exits.
-	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help            Shows this help and exits.
+	  --version         Prints version and exits.
+	  --changelog       Prints changeloge and exits.
+	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2024_02-126-g4f44d5e5
+	SvFilterAnnotations 2024_08-113-g94a3b440
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

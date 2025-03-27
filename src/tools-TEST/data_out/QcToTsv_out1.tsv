@@ -1,0 +1,51 @@
+#accession	name	value
+QC:2000005	read count	136810754
+QC:2000006	read length	101
+QC:2000049	bases sequenced (MB)	13817.89
+QC:2000007	Q20 read percentage	99.97
+QC:2000008	Q30 base percentage	91.69
+QC:2000009	no base call percentage	0.01
+QC:2000010	gc content percentage	52.11
+QC:2000144	median base Q score	37.00
+QC:2000145	mode base Q score	37
+QC:2000019	trimmed base percentage	0.10
+QC:2000052	clipped base percentage	0.36
+QC:2000020	mapped read percentage	99.42
+QC:2000021	on-target read percentage	78.95
+QC:2000057	near-target read percentage	88.07
+QC:2000022	properly-paired read percentage	98.62
+QC:2000023	insert size	200.39
+QC:2000024	duplicate read percentage	16.14
+QC:2000050	bases usable (MB)	7005.77
+QC:2000025	target region read depth	142.22
+QC:2000026	target region 10x percentage	96.77
+QC:2000027	target region 20x percentage	95.17
+QC:2000028	target region 30x percentage	92.99
+QC:2000029	target region 50x percentage	87.26
+QC:2000099	target region 60x percentage	83.51
+QC:2000030	target region 100x percentage	64.20
+QC:2000031	target region 200x percentage	22.39
+QC:2000032	target region 500x percentage	0.38
+QC:2000058	target region half depth percentage	78.74
+QC:2000059	AT dropout	12.16
+QC:2000060	GC dropout	0.51
+QC:2000139	chrY/chrX read ratio	0.00
+QC:2000051	SNV allele frequency deviation	1.27
+QC:2000013	variant count	38344
+QC:2000014	known variants percentage	99.93
+QC:2000015	high-impact variants percentage	1.04
+QC:2000016	homozygous variants percentage	36.93
+QC:2000017	indel variants percentage	4.58
+QC:2000018	transition/transversion ratio	2.75
+QC:2000142	mosaic variant count	526
+QC:2000114	coverage profile correlation	0.96
+QC:2000115	number of iterations	1
+QC:2000113	CNV count	102
+QC:2000118	percentage losses	76.00
+QC:2000119	percentage gains	24.00
+QC:2000117	SV count	82
+QC:2000120	percentage deletions	57.32
+QC:2000121	percentage duplications	23.17
+QC:2000122	percentage insertions	8.54
+QC:2000123	percentage inversions	9.76
+QC:2000124	percentage breakends	1.22

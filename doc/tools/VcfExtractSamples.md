@@ -1,7 +1,7 @@
 ### VcfExtractSamples tool help
-	VcfExtractSamples (2018_11-7-g60f117b)
+	VcfExtractSamples (2024_08-110-g317f43b9)
 	
-	Extract one or several samples from a VCF file.
+	Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 	
 	Mandatory parameters:
 	  -samples <string> Comma-separated list of samples to extract (in the given order).
@@ -17,9 +17,10 @@
 	  --version         Prints version and exits.
 	  --changelog       Prints changeloge and exits.
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfExtractSamples changelog
-	VcfExtractSamples 2018_11-7-g60f117b
+	VcfExtractSamples 2024_08-110-g317f43b9
 	
 	2018-11-27 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

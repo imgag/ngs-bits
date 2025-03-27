@@ -126,15 +126,14 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 	if (filtering_in_progress_) return;
 	filtering_in_progress_ = true;
 	//skip if not necessary
-	int row_count = expression_data_.rowCount();
+	int row_count = expression_data_.count();
 	if (row_count == 0) return;
 
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
-		qDebug() << "applying filter...";
 
 		//update filter strategy
 		RnaCohortDeterminationStategy cohort_type;
@@ -177,39 +176,34 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 		//filter by variant list gene filter
 		if (!variant_gene_set_.isEmpty() && (ui_->cb_filter_by_var_list->checkState() == Qt::Checked))
 		{
-			qDebug() << "filter by variant gene filter";
-
 			for(int row_idx=0; row_idx<row_count; ++row_idx)
 			{
 				if (!filter_result_.flags()[row_idx]) continue;
 
-				filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed());
+				filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed());
 			}
-
-			qDebug() << filter_result_.countPassing();
 		}
 
 		//filter by genes
 		GeneSet gene_whitelist = GeneSet::createFromText(ui_->gene_filter->text().toUtf8(), ',');
 		if (!gene_whitelist.isEmpty())
 		{
-			qDebug() << "filter by gene filter";
 			QByteArray genes_joined = gene_whitelist.join('|');
 
 			if (genes_joined.contains("*")) //with wildcards
 			{
-				QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 				for(int row_idx=0; row_idx<row_count; ++row_idx)
 				{
 					if (!filter_result_.flags()[row_idx]) continue;
 
 					// generate GeneSet from column text
-					GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed(), ',');
+					GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed(), ',');
 
 					bool match_found = false;
 					foreach(const QByteArray& sv_gene, sv_genes)
 					{
-						if (reg.exactMatch(sv_gene))
+                        if (reg.match(sv_gene).hasMatch())
 						{
 							match_found = true;
 							break;
@@ -225,18 +219,16 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 					if (!filter_result_.flags()[row_idx]) continue;
 
 					// generate GeneSet from column text
-					GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed(), ',');
+					GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed(), ',');
 
 					filter_result_.flags()[row_idx] = sv_genes.intersectsWith(gene_whitelist);
 				}
 			}
-			qDebug() << filter_result_.countPassing();
 		}
 
 		//filter by tpm value
 		if (ui_->tpm_value->value() != 0.0)
 		{
-			qDebug() << "filter by tpm";
 			int tpm_idx = expression_data_.columnIndex("tpm");
 
 			double min_tpm_value = ui_->tpm_value->value();
@@ -245,7 +237,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 				//skip already filtered
 				if (!filter_result_.flags()[row_idx]) continue;
 
-				QString value = expression_data_.row(row_idx).at(tpm_idx).trimmed();
+				QString value = expression_data_[row_idx].at(tpm_idx).trimmed();
 				if (value.isEmpty() || value == "n/a")
 				{
 					filter_result_.flags()[row_idx] = false;
@@ -256,12 +248,10 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 					filter_result_.flags()[row_idx] = tpm_value >= min_tpm_value;
 				}
 			}
-			qDebug() << filter_result_.countPassing();
 		}
 
 		//filter by biotype
 		QSet<QString> selected_biotypes;
-		qDebug() << "filter by biotype";
 
 		//get selected biotypes
 		foreach (QCheckBox* cb_biotype, ui_->sawc_biotype->findChildren<QCheckBox*>())
@@ -281,15 +271,13 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			//skip already filtered
 			if (!filter_result_.flags()[row_idx]) continue;
 
-			QString biotype = expression_data_.row(row_idx).at(idx_biotype).trimmed().replace("_", " ");
+			QString biotype = expression_data_[row_idx].at(idx_biotype).trimmed().replace("_", " ");
 			filter_result_.flags()[row_idx] = selected_biotypes.contains(biotype);
 		}
 
 		//filter based on low expression tpm value (1st part (file-based)
 		if (ui_->low_expr_tpm->value() != 0.0)
 		{
-			qDebug() << "filter by low expression (1st part)";
-
 			double low_expr_tpm = ui_->low_expr_tpm->value();
 			int tpm_idx = expression_data_.columnIndex("tpm");
 
@@ -298,7 +286,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 				//skip already filtered
 				if (!filter_result_.flags()[row_idx]) continue;
 
-				QString value_sample = expression_data_.row(row_idx).at(tpm_idx);
+				QString value_sample = expression_data_[row_idx].at(tpm_idx);
 				if (value_sample.isEmpty() || value_sample == "n/a")
 				{
 					filter_result_.flags()[row_idx] = false;
@@ -311,15 +299,11 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			}
 		}
 
-		qDebug() << filter_result_.countPassing();
-
-
 		//filter based on NGSD information
 
 		// check for valid cohort
 		if(cohort_.size() == 0) THROW(ArgumentException, "Selected cohort does not contain any samples! Cannot filter based on NGSD cohort data.");
 
-		qDebug() << "Filter by NGSD columns";
 		int gene_id_idx = expression_data_.columnIndex("gene_id");
 		int tpm_idx = expression_data_.columnIndex("tpm");
 
@@ -340,7 +324,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 
 			//get gene and tpm value
 			bool in_db = false;
-			QByteArray ensg_number = expression_data_.row(row_idx).at(gene_id_idx).toUtf8().trimmed();
+			QByteArray ensg_number = expression_data_[row_idx].at(gene_id_idx).toUtf8().trimmed();
 			QByteArray gene_symbol;
 
 			if(ensg_mapping_.contains(ensg_number))
@@ -353,7 +337,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 				continue;
 			}
 			double tpm = 0.0;
-			QString value = expression_data_.row(row_idx).at(tpm_idx).toUtf8().trimmed();
+			QString value = expression_data_[row_idx].at(tpm_idx).toUtf8().trimmed();
 			if (!(value.isEmpty() || value == "n/a"))
 			{
 				tpm = Helper::toDouble(value);
@@ -372,7 +356,6 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			//filter by log fold change
 			if (logfc_cutoff != 0.0)
 			{
-//					qDebug() << "filter by log fc";
 				if (!in_db)
 				{
 					filter_result_.flags()[row_idx] = false;
@@ -390,7 +373,6 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			//filter by cohort z-score
 			if (zscore_cutoff != 0.0)
 			{
-//					qDebug() << "filter by zscore";
 				if (!in_db)
 				{
 					filter_result_.flags()[row_idx] = false;
@@ -407,7 +389,6 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			//filter by cohort tpm value
 			if (min_cohort_tpm_value != 0.0)
 			{
-//					qDebug() << "filter by cohort mean";
 				if (!in_db)
 				{
 					filter_result_.flags()[row_idx] = false;
@@ -424,7 +405,6 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			//filter by low expression tpm value (2nd part (db-based))
 			if (low_expr_tpm != 0.0)
 			{
-//					qDebug() << "filter by low expression";
 				if (!in_db)
 				{
 					filter_result_.flags()[row_idx] = false;
@@ -446,9 +426,10 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 			if(n_kept_rows > max_rows) break;
 		}
 
-		qDebug() << "Filtering took " << Helper::elapsedTime(timer);
-		qDebug() << "Remaining rows: " << filter_result_.countPassing();
-		qDebug() << "Gene cache size: " << ngsd_expression.size();
+		//debug:
+		//qDebug() << "Filtering took " << Helper::elapsedTime(timer);
+		//qDebug() << "Remaining rows: " << filter_result_.countPassing();
+		//qDebug() << "Gene cache size: " << ngsd_expression.size();
 
 		//update table
 		updateTable(max_rows);
@@ -634,7 +615,6 @@ void ExpressionGeneWidget::showCustomCohortDialog()
 	NGSD db;
 	try
 	{
-		qDebug() << "create CustomCohortDialog";
 		QDialog custom_cohort_dialog(this);
 		custom_cohort_dialog.setWindowFlags(Qt::Window);
 		custom_cohort_dialog.setWindowTitle("Set custom cohort of Sample " + db.processedSampleName(ps_id_));
@@ -738,9 +718,8 @@ void ExpressionGeneWidget::loadExpressionData()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
-		qDebug() << "load expression file...";
 
 		//skip without database
 		if (!LoginManager::active()) return;
@@ -777,7 +756,7 @@ void ExpressionGeneWidget::loadExpressionData()
 
 
 		//init filter mask
-		filter_result_ = FilterResult(expression_data_.rowCount());
+		filter_result_ = FilterResult(expression_data_.count());
 
 		QApplication::restoreOverrideCursor();
 	}
@@ -809,8 +788,7 @@ void ExpressionGeneWidget::initTable()
 	precision_ << 2 << 2 << 3 << 3;
 
 	//add hpa columns if available
-	QStringList headers = expression_data_.headers();
-	if (headers.contains("hpa_tissue_tpm"))
+	if (expression_data_.headers().contains("hpa_tissue_tpm"))
 	{
 		column_names_ << "hpa_tissue_tpm" << "hpa_tissue_log2tpm" << "hpa_sample_log2tpm" << "hpa_log2fc";
 		numeric_columns_  << true << true << true << true;
@@ -825,13 +803,13 @@ void ExpressionGeneWidget::initTable()
 	}
 
 	//init db ensg gene mapping
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	ensg_mapping_ = db_.getEnsemblGeneMapping();
 	id2gene_ = db_.getGeneExpressionId2GeneMapping();
 	gene2id_ = db_.getGeneExpressionGene2IdMapping();
-	qDebug() << "init mapping took:" << Helper::elapsedTime(timer);
 
+	//qDebug() << "init mapping took:" << Helper::elapsedTime(timer);
 }
 
 void ExpressionGeneWidget::updateQuery()
@@ -842,7 +820,6 @@ void ExpressionGeneWidget::updateQuery()
 	{
 		cohort_id_list << QByteArray::number(id);
 	}
-	qDebug() << "cohort size:" << cohort_id_list.size();
 	query_gene_stats_.prepare(QString() + "SELECT AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
 							  + "WHERE e.processed_sample_id IN (" + cohort_id_list.join(", ") + ") AND e.symbol_id=:0;");
 }
@@ -853,9 +830,8 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
-		qDebug() << "update table...";
 
 		//disable sorting
 		ui_->expression_data->setSortingEnabled(false);
@@ -885,12 +861,12 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 		}
 
 
-		for(int file_row_idx=0; file_row_idx<expression_data_.rowCount(); ++file_row_idx)
+		for(int file_row_idx=0; file_row_idx<expression_data_.count(); ++file_row_idx)
 		{
 			//skip rows which are filtered out
 			if(!filter_result_.flags()[file_row_idx]) continue;
 
-			QStringList row = expression_data_.row(file_row_idx);
+			const QStringList& row = expression_data_[file_row_idx];
 			QByteArray ensg_number = row.at(gene_id_idx).toUtf8();
 			QByteArray gene;
 			if (ensg_mapping_.contains(ensg_number)) gene = ensg_mapping_.value(ensg_number);
@@ -989,11 +965,11 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 		//Set number of filtered / total rows
 		if (filter_result_.countPassing() >= max_rows)
 		{
-			ui_->filtered_rows->setText(QByteArray::number(max_rows) + "+ / " + QByteArray::number(expression_data_.rowCount()) + " (showing only first " + QByteArray::number(max_rows) + ")");
+			ui_->filtered_rows->setText(QByteArray::number(max_rows) + "+ / " + QByteArray::number(expression_data_.count()) + " (showing only first " + QByteArray::number(max_rows) + ")");
 		}
 		else
 		{
-			ui_->filtered_rows->setText(QByteArray::number(ui_->expression_data->rowCount()) + " / " + QByteArray::number(expression_data_.rowCount()));
+			ui_->filtered_rows->setText(QByteArray::number(ui_->expression_data->rowCount()) + " / " + QByteArray::number(expression_data_.count()));
 		}
 
 
@@ -1001,7 +977,7 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 		ui_->l_cohort_size->setText("Cohort size: \t " + QString::number(cohort_.size()));
 
 
-		qDebug() << QString() + "... done(" + Helper::elapsedTime(timer) + ")";
+		//qDebug() << QString() + "... done(" + Helper::elapsedTime(timer) + ")";
 
 		QApplication::restoreOverrideCursor();
 

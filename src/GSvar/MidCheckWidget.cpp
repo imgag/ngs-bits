@@ -121,8 +121,8 @@ void MidCheckWidget::checkMids()
 	{
 		for (int c=0; c<ui_.samples->columnCount(); ++c)
 		{
-			ui_.samples->item(clash.s1_index, c)->setBackgroundColor(Qt::yellow);
-			ui_.samples->item(clash.s2_index, c)->setBackgroundColor(Qt::yellow);
+            ui_.samples->item(clash.s1_index, c)->setBackground(QBrush(QColor(Qt::yellow)));
+            ui_.samples->item(clash.s2_index, c)->setBackground(QBrush(QColor(Qt::yellow)));
 		}
 	}
 }

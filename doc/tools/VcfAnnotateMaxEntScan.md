@@ -1,5 +1,5 @@
 ### VcfAnnotateMaxEntScan tool help
-	VcfAnnotateMaxEntScan (2023_11-42-ga9d1687d)
+	VcfAnnotateMaxEntScan (2024_08-110-g317f43b9)
 	
 	Annotates a VCF file with MaxEntScan scores.
 	
@@ -39,8 +39,9 @@
 	  --version          Prints version and exits.
 	  --changelog        Prints changeloge and exits.
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]  Settings override file (no other settings files are used).
 	
 ### VcfAnnotateMaxEntScan changelog
-	VcfAnnotateMaxEntScan 2023_11-42-ga9d1687d
+	VcfAnnotateMaxEntScan 2024_08-110-g317f43b9
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -80,19 +80,19 @@ public:
 		if (params.in!="" && params.in==params.out) THROW(ArgumentException, "Input and output files must be different when streaming!");
 
         // read in reference genome
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
         QString ref_file = getInfile("ref");
         if (ref_file=="") ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
         FastaFileIndex reference(ref_file);
-		out << "Reading reference took: " << Helper::elapsedTime(timer) << endl;
+        out << "Reading reference took: " << Helper::elapsedTime(timer) << QT_ENDL;
 
         // read in matrices
 		timer.start();
 		QHash<QByteArray,float> score5_rest_ = read_matrix_5prime(":/resources/score5_matrix.tsv");
         QHash<int,QHash<int,float>> score3_rest_ = read_matrix_3prime(":/resources/score3_matrix.tsv");
-		out << "Parsing matrices from resources took: " << Helper::elapsedTime(timer) << endl;
+        out << "Parsing matrices from resources took: " << Helper::elapsedTime(timer) << QT_ENDL;
 
 		// parse GFF file
 		timer.start();
@@ -103,7 +103,7 @@ public:
 		gff_settings.include_all = all;
 		gff_settings.skip_not_hgnc = false;
 		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
-		out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
+        out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << QT_ENDL;
         gff_file.transcripts.sortByPosition();
 
 		QByteArrayList annotation_header_lines;
@@ -122,7 +122,7 @@ public:
 		out << "Block (Chunk) size: \t" << params.block_size << "\n";
 
 		//create coordinator instance
-		out << "Performing annotation..." << endl;
+        out << "Performing annotation..." << QT_ENDL;
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }

@@ -22,11 +22,11 @@ private slots:
 
 		//test
 		EXECUTE("NGSDExportSV", "-test -out_folder out/NGSDExportSV");
-		REMOVE_LINES("out/NGSDExportSV/sv_deletion.bedpe", QRegExp("##fileDate="));
-		REMOVE_LINES("out/NGSDExportSV/sv_duplication.bedpe", QRegExp("##fileDate="));
-		REMOVE_LINES("out/NGSDExportSV/sv_insertion.bedpe", QRegExp("##fileDate="));
-		REMOVE_LINES("out/NGSDExportSV/sv_inversion.bedpe", QRegExp("##fileDate="));
-		REMOVE_LINES("out/NGSDExportSV/sv_translocation.bedpe", QRegExp("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV/sv_deletion.bedpe", QRegularExpression("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV/sv_duplication.bedpe", QRegularExpression("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV/sv_insertion.bedpe", QRegularExpression("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV/sv_inversion.bedpe", QRegularExpression("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV/sv_translocation.bedpe", QRegularExpression("##fileDate="));
 		COMPARE_FILES("out/NGSDExportSV/sv_deletion.bedpe", TESTDATA("data_out/NGSDExportSV/sv_deletion.bedpe"));
 		COMPARE_FILES("out/NGSDExportSV/sv_duplication.bedpe", TESTDATA("data_out/NGSDExportSV/sv_duplication.bedpe"));
 		COMPARE_FILES("out/NGSDExportSV/sv_insertion.bedpe", TESTDATA("data_out/NGSDExportSV/sv_insertion.bedpe"));
@@ -52,11 +52,11 @@ private slots:
 
 		//test
 		EXECUTE("NGSDExportSV", "-test -out_folder out/NGSDExportSV2 -common_sys_threshold 3");
-		REMOVE_LINES("out/NGSDExportSV2/sv_deletion.bedpe", QRegExp("##fileDate="));
-		REMOVE_LINES("out/NGSDExportSV2/sv_duplication.bedpe", QRegExp("##fileDate="));
-		REMOVE_LINES("out/NGSDExportSV2/sv_insertion.bedpe", QRegExp("##fileDate="));
-		REMOVE_LINES("out/NGSDExportSV2/sv_inversion.bedpe", QRegExp("##fileDate="));
-		REMOVE_LINES("out/NGSDExportSV2/sv_translocation.bedpe", QRegExp("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV2/sv_deletion.bedpe", QRegularExpression("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV2/sv_duplication.bedpe", QRegularExpression("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV2/sv_insertion.bedpe", QRegularExpression("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV2/sv_inversion.bedpe", QRegularExpression("##fileDate="));
+        REMOVE_LINES("out/NGSDExportSV2/sv_translocation.bedpe", QRegularExpression("##fileDate="));
 		COMPARE_FILES("out/NGSDExportSV2/sv_deletion.bedpe", TESTDATA("data_out/NGSDExportSV/sv_deletion.bedpe"));
 		COMPARE_FILES("out/NGSDExportSV2/sv_duplication.bedpe", TESTDATA("data_out/NGSDExportSV/sv_duplication.bedpe"));
 		COMPARE_FILES("out/NGSDExportSV2/sv_insertion.bedpe", TESTDATA("data_out/NGSDExportSV/sv_insertion.bedpe"));

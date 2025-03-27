@@ -125,7 +125,7 @@ public:
 
         while(!in.atEnd())
         {
-            QStringList line = in.readLine().split("\t", QString::SkipEmptyParts);
+            QStringList line = in.readLine().split("\t", QT_SKIP_EMPTY_PARTS);
             if(line.size() == 2)
             {
                 NodeContent node_content_1{};
@@ -153,7 +153,7 @@ public:
         // read file line by line, changing node content of the disease genes
         while(!in.atEnd())
         {
-            QStringList line = in.readLine().split("\t", QString::SkipEmptyParts);
+            QStringList line = in.readLine().split("\t", QT_SKIP_EMPTY_PARTS);
 
             if(graph.hasNode(line.at(0)))
             {
@@ -178,7 +178,7 @@ public:
             writer = Helper::openFileForWriting(debug_file);
             stream.setDevice(writer.data());
 
-            stream << "iteration\taverage_rank_change\tstart_at_top" << endl;
+            stream << "iteration\taverage_rank_change\tstart_at_top" << QT_ENDL;
 
             QList<Graph<NodeContent, EdgeContent>::NodePointer> node_list = graph.adjacencyList().keys();
             sortGenesByScore(node_list);
@@ -187,7 +187,7 @@ public:
                 previous_ranks.insert(node_list.at(i).data()->nodeName(), i+1);
             }
 
-            stream << 0 << "\tNaN\t" << getStartGenesAtTop(node_list) << endl;
+            stream << 0 << "\tNaN\t" << getStartGenesAtTop(node_list) << QT_ENDL;
         }
 
         // perform flooding algorithm
@@ -244,7 +244,7 @@ public:
                 }
 
                 stream << i+1 << "\t" << getAverageRankDifference(current_ranks, previous_ranks) \
-                       << "\t" << getStartGenesAtTop(node_list) << endl;
+                       << "\t" << getStartGenesAtTop(node_list) << QT_ENDL;
                 previous_ranks = current_ranks;
             }
         }
@@ -276,8 +276,8 @@ public:
             writer = Helper::openFileForWriting(debug_file);
             stream.setDevice(writer.data());
 
-            stream << "step\tprobability_diff_norm" << endl;
-            stream << steps << "\tNaN" << endl;
+            stream << "step\tprobability_diff_norm" << QT_ENDL;
+            stream << steps << "\tNaN" << QT_ENDL;
         }
 
         QTextStream out(stdout);
@@ -317,8 +317,8 @@ public:
 
                 if(debug)
                 {
-                    stream << steps << "\t" << vector_diff << endl;
-                    out << steps << "\t" << vector_diff << endl;
+                    stream << steps << "\t" << vector_diff << QT_ENDL;
+                    out << steps << "\t" << vector_diff << QT_ENDL;
                 }
             }
 
@@ -339,7 +339,7 @@ public:
         QSharedPointer<QFile> writer = Helper::openFileForWriting(out_file);
         QTextStream stream(writer.data());
 
-        stream << "node\tscore\tstarting_node\tdegree" << endl;
+        stream << "node\tscore\tstarting_node\tdegree" << QT_ENDL;
 
         QList<Graph<NodeContent, EdgeContent>::NodePointer> node_list = graph.adjacencyList().keys();
         sortGenesByScore(node_list);
@@ -349,7 +349,7 @@ public:
         {
             stream << node.data()->nodeName() << "\t" << node.data()->nodeContent().score\
                    << "\t" << starting_nodes_.contains(node.data()->nodeName()) \
-                   << "\t" << graph.getDegree(node.data()->nodeName()) << endl;
+                   << "\t" << graph.getDegree(node.data()->nodeName()) << QT_ENDL;
         }
     }
 

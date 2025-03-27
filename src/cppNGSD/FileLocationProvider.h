@@ -33,6 +33,10 @@ public:
 	virtual FileLocation getRepeatExpansionHistogram(QString locus) const = 0;
 	//Returns sample-specific qcML files.
 	virtual FileLocationList getQcFiles() const = 0;
+	//Returns the methylation TSV file of the current analysis
+	virtual FileLocation getMethylationFile() const = 0;
+	//Returns the methylation image of a given locus
+	virtual FileLocation getMethylationImage(QString locus) const = 0;
 
 	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files

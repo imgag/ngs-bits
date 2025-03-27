@@ -3,11 +3,11 @@
 
 ServerDB::ServerDB()
 {
-    QString db_host = ServerHelper::getStringSettingsValue("gsvar_server_db_host");
-    int db_port = ServerHelper::getNumSettingsValue("gsvar_server_db_port");
-    QString db_name = ServerHelper::getStringSettingsValue("gsvar_server_db_name");
-    QString db_user = ServerHelper::getStringSettingsValue("gsvar_server_db_user");
-    QString db_pass = ServerHelper::getStringSettingsValue("gsvar_server_db_pass");
+    QString db_host = Settings::string("gsvar_server_db_host");
+    int db_port = Settings::integer("gsvar_server_db_port");
+    QString db_name = Settings::string("gsvar_server_db_name");
+    QString db_user = Settings::string("gsvar_server_db_user");
+    QString db_pass = Settings::string("gsvar_server_db_pass");
 
     if (db_host.isEmpty() || db_port==0 || db_name.isEmpty() || db_user.isEmpty() || db_pass.isEmpty())
     {
@@ -459,7 +459,6 @@ bool ServerDB::addFileLocation(const QString filename_with_path, const QString t
 {
     qint64 requested_as_num = requested.toSecsSinceEpoch();
     QString json_string = json_content.replace("'", "''");
-    // json_string = json_string.replace("\\", "\\\\");
     json_string = json_string.replace("\"", "\\\"");
     QSqlQuery query = db_->exec("INSERT INTO file_locations (filename_with_path, type, locus, multiple_files, return_if_missing, json_content, requested)"
                                 " VALUES (\"" + filename_with_path + "\", \"" + type + "\", \"" + locus + "\", " + QString::number(static_cast<int>(multiple_files)) + ", " + QString::number(static_cast<int>(return_if_missing)) + ", \"" + json_string + "\", " + QString::number(requested_as_num) + ")");
@@ -512,8 +511,8 @@ QJsonDocument ServerDB::getFileLocation(const QString filename_with_path, const 
     QSqlQuery query = db_->exec("SELECT * FROM file_locations WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
     if (query.next())
     {
-        int index_json_content = query.record().indexOf("json_content");        
-        return QJsonDocument::fromJson(query.value(index_json_content).toString().toLocal8Bit());
+        int index_json_content = query.record().indexOf("json_content");      
+        return QJsonDocument::fromJson(query.value(index_json_content).toString().toUtf8());
     }
     return QJsonDocument();
 }

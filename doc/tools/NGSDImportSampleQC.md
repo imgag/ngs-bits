@@ -1,5 +1,5 @@
 ### NGSDImportSampleQC tool help
-	NGSDImportSampleQC (2023_03-107-g2a1d2478)
+	NGSDImportSampleQC (2024_08-110-g317f43b9)
 	
 	Imports QC metrics of a sample into NGSD.
 	
@@ -18,8 +18,9 @@
 	  --version         Prints version and exits.
 	  --changelog       Prints changeloge and exits.
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDImportSampleQC changelog
-	NGSDImportSampleQC 2023_03-107-g2a1d2478
+	NGSDImportSampleQC 2024_08-110-g317f43b9
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

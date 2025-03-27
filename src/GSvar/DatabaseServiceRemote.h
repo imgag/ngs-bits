@@ -15,7 +15,7 @@ public:
 	DatabaseServiceRemote();
 	virtual ~DatabaseServiceRemote() {}
 
-	virtual bool enabled() const override;
+    virtual bool enabled() const override;
 	virtual QString checkPassword(const QString user_name, const QString password) const override;
 
 	virtual BedFile processingSystemRegions(int sys_id, bool ignore_if_missing) const override;
@@ -35,16 +35,7 @@ protected:
 	QByteArray makeGetApiCall(QString api_path, RequestUrlParams params, bool ignore_if_missing) const;
 	QByteArray makePostApiCall(QString api_path, RequestUrlParams params, QByteArray content, bool ignore_if_missing) const;
 
-	//Throws an error if NGSD is not enabled
-	void checkEnabled(QString function) const
-	{
-		if (!enabled_)
-		{
-			THROW(ProgrammingException, "NGSD is not enabled, but instance requested in '" + function + "'");
-		}
-	}
-
-	bool enabled_;
+    bool enabled_;
 };
 
 #endif // DATABASESERVICEREMOTE_H

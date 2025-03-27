@@ -11,10 +11,10 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath)
 	: file_path_(bigWigFilepath)
 	, default_value_(0)
 	, default_value_is_set_(false)
-	, fp_(bigWigFilepath)
+    , fp_(new VersatileFile(bigWigFilepath))
 {
 	//init
-	if (!fp_.open(QFile::ReadOnly))
+    if (!fp_->open(QFile::ReadOnly))
 	{
 		THROW(FileAccessException, "Could not open file for reading: '" + bigWigFilepath + "'!");
 	}
@@ -293,8 +293,8 @@ QList<BigWigReader::OverlappingInterval> BigWigReader::extractOverlappingInterva
 		decompressed_block = "";
 		if (decompress_buffer_size > 0) // if data is compressed -> decompress it
 		{
-			fp_.seek(b.offset);
-			QByteArray compressed_block = fp_.read(b.size);
+            fp_->seek(b.offset);
+            QByteArray compressed_block = fp_->read(b.size);
 
 			//set zlib vars
 			z_stream infstream;
@@ -320,8 +320,8 @@ QList<BigWigReader::OverlappingInterval> BigWigReader::extractOverlappingInterva
 		}
 		else // data is not compressed -> just read it
 		{
-			fp_.seek(b.offset);
-			decompressed_block = fp_.read(b.size);
+            fp_->seek(b.offset);
+            decompressed_block = fp_->read(b.size);
 		}
 
 		// parse decompressed block
@@ -380,7 +380,7 @@ QList<BigWigReader::OverlappingInterval> BigWigReader::extractOverlappingInterva
 void BigWigReader::parseInfo()
 {
 	//Header
-	QByteArray header_bytes = fp_.read(64);
+    QByteArray header_bytes = fp_->read(64);
 	QDataStream header_stream(header_bytes);
 	quint32 magic;
 	header_stream >> magic;
@@ -416,7 +416,7 @@ void BigWigReader::parseInfo()
 	zoom_levels_.clear();
 	for (auto i=0; i<header_.zoom_levels; i++)
 	{
-		QByteArray zoom_header_bytes = fp_.read(24);
+        QByteArray zoom_header_bytes = fp_->read(24);
 		QDataStream zoom_level_stream(zoom_header_bytes);
 		zoom_level_stream.setByteOrder(byte_order_);
 
@@ -430,8 +430,8 @@ void BigWigReader::parseInfo()
 	}
 
 	//Summary:
-	fp_.seek(header_.total_summary_offset);
-	QByteArray summary_bytes = fp_.read(40);
+    fp_->seek(header_.total_summary_offset);
+    QByteArray summary_bytes = fp_->read(40);
 	QDataStream summary_stream(summary_bytes);
 	summary_stream.setByteOrder(byte_order_);
 
@@ -445,8 +445,8 @@ void BigWigReader::parseInfo()
 
 void BigWigReader::parseChrom()
 {
-	fp_.seek(header_.chromosome_tree_offset);
-	QByteArray chr_tree_header_bytes = fp_.read(32);
+    fp_->seek(header_.chromosome_tree_offset);
+    QByteArray chr_tree_header_bytes = fp_->read(32);
 	QDataStream ds(chr_tree_header_bytes);
 	ds.setByteOrder(byte_order_);
 
@@ -463,7 +463,7 @@ void BigWigReader::parseChrom()
 
 void BigWigReader::parseChromBlock(quint32 key_size)
 {
-	QByteArray block_bytes = fp_.read(4);
+    QByteArray block_bytes = fp_->read(4);
 	QDataStream ds(block_bytes);
 	ds.setByteOrder(byte_order_);
 
@@ -493,7 +493,7 @@ void BigWigReader::parseChromLeaf(quint16 num_items, quint32 key_size)
 	for (int i=0; i<num_items; i++)
 	{
 		ChromosomeItem chr;
-		QByteArray bytes = fp_.read(key_size + 8);
+        QByteArray bytes = fp_->read(key_size + 8);
 		QString k =bytes.mid(0, key_size); // shorter than max length keys end with zero bytes that don't get trimmed normally
 		chr.key = Chromosome(k.toUtf8().trimmed()).strNormalized(true);
 
@@ -512,18 +512,18 @@ void BigWigReader::parseChromNonLeaf(quint16 num_items, quint32 key_size)
 	// key, key_size, bytes
 	// childOffset, 8, uint
 
-	quint64 currentOffset = fp_.pos()+key_size;
+    quint64 currentOffset = fp_->pos()+key_size;
 	for (int i=0; i<num_items; i++)
 	{
-		fp_.seek(currentOffset);
-		QByteArray bytes = fp_.read(8);
+        fp_->seek(currentOffset);
+        QByteArray bytes = fp_->read(8);
 		QDataStream ds(bytes);
 		ds.setByteOrder(byte_order_);
 
 		quint64 offset;
 		ds >> offset;
 
-		fp_.seek(offset);
+        fp_->seek(offset);
 		parseChromBlock(key_size);
 		currentOffset += key_size + 8;
 	}
@@ -531,8 +531,8 @@ void BigWigReader::parseChromNonLeaf(quint16 num_items, quint32 key_size)
 
 void BigWigReader::parseIndexTree()
 {
-	fp_.seek(header_.full_index_offset);
-	QByteArray index_header_bytes = fp_.read(48);
+    fp_->seek(header_.full_index_offset);
+    QByteArray index_header_bytes = fp_->read(48);
 	QDataStream index_header_stream(index_header_bytes);
 	index_header_stream.setByteOrder(byte_order_);
 
@@ -561,8 +561,8 @@ void BigWigReader::parseIndexTree()
 
 BigWigReader::IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
 {
-	fp_.seek(offset);
-	QByteArray node_header_bytes = fp_.read(4);
+    fp_->seek(offset);
+    QByteArray node_header_bytes = fp_->read(4);
 	QDataStream node_header_stream(node_header_bytes);
 	node_header_stream.setByteOrder(byte_order_);
 
@@ -581,7 +581,7 @@ BigWigReader::IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
 	if (node.isLeaf)
 	{
 		node.size = QVector<quint64>(node.count);
-		QByteArray leaf_items_bytes = fp_.read(node.count * 48);
+        QByteArray leaf_items_bytes = fp_->read(node.count * 48);
 		QDataStream leaf_items_stream(leaf_items_bytes);
 		leaf_items_stream.setByteOrder(byte_order_);
 
@@ -602,7 +602,7 @@ BigWigReader::IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
 	else
 	{
 		node.children = QVector<IndexRTreeNode>(node.count);
-		QByteArray twig_items_bytes = fp_.read(node.count * 40);
+        QByteArray twig_items_bytes = fp_->read(node.count * 40);
 		QDataStream twig_items_stream(twig_items_bytes);
 		twig_items_stream.setByteOrder(byte_order_);
 

@@ -1,11 +1,11 @@
 #ifndef PROCESSEDSAMPLEWIDGET_H
 #define PROCESSEDSAMPLEWIDGET_H
 
-#include "NGSD.h"
-
 #include <QWidget>
 #include <QLabel>
 #include <QMenu>
+#include "NGSD.h"
+#include "DelayedInitializationTimer.h"
 
 namespace Ui {
 class ProcessedSampleWidget;
@@ -22,6 +22,10 @@ public:
 	~ProcessedSampleWidget();
 
 	static void styleQualityLabel(QLabel* label, const QString& quality);
+
+public slots:
+    ///Loads information needed for the GUI
+    void delayedInitialization();
 
 signals:
 	void clearMainTableSomReport(QString ps_name);
@@ -73,6 +77,7 @@ protected slots:
 
 private:
 	Ui::ProcessedSampleWidget* ui_;
+    DelayedInitializationTimer init_timer_;
 	QString ps_id_;
 
 	QString sampleName() const;

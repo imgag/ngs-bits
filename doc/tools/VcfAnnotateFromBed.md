@@ -1,5 +1,5 @@
 ### VcfAnnotateFromBed tool help
-	VcfAnnotateFromBed (2021_06-89-gbbd16264)
+	VcfAnnotateFromBed (2024_08-110-g317f43b9)
 	
 	Annotates the INFO column of a VCF with data from a BED file.
 	
@@ -33,9 +33,10 @@
 	  --version         Prints version and exits.
 	  --changelog       Prints changeloge and exits.
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfAnnotateFromBed changelog
-	VcfAnnotateFromBed 2021_06-89-gbbd16264
+	VcfAnnotateFromBed 2024_08-110-g317f43b9
 	
 	2021-09-18 Prefetch only part of input file (to save memory).
 	2021-08-24 Added multithread support.

@@ -55,7 +55,52 @@ void FilterCascadeWidget::markFailedFilters()
 		else
 		{
 			item->setToolTip(filters_[i]->description().join("\n") + "\n\nErrors:\n" + errors.join("\n"));
-			item->setBackgroundColor(QColor(255,160,110));
+            item->setBackground(QBrush(QColor(255,160,110)));
+		}
+	}
+}
+
+void FilterCascadeWidget::editColumnFilter(QString column)
+{
+	//check if column filter is already present
+	int index = -1;
+	for (int i=0; i<filters_.count(); ++i)
+	{
+		if (filters_[i]->name()!="Column match") continue;
+
+		foreach(const FilterParameter& param, filters_[i]->parameters())
+		{
+			if (param.name!="column") continue;
+			if (param.value.toString()!=column) continue;
+
+			index = i;
+		}
+	}
+
+	//edit filter that is present
+	if (index!=-1)
+	{
+		FilterEditDialog dlg(filters_[index], this);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			updateGUI();
+			focusFilter(index);
+			emit filterCascadeChanged();
+		}
+	}
+	else //add filter
+	{
+		QSharedPointer<FilterBase> filter(new FilterColumnMatchRegexp());
+		filter->setString("column", column);
+		filter->setString("action", "FILTER");
+
+		FilterEditDialog dlg(filter, this);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			filters_.add(filter);
+			updateGUI();
+			focusFilter(filters_.count()-1);
+			emit filterCascadeChanged();
 		}
 	}
 }

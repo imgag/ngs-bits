@@ -52,7 +52,7 @@ private:
 
 	bool input_done_ = false;
 	QTimer timer_done_;
-	QTime timer_annotation_;
+    QElapsedTimer timer_annotation_;
 };
 
 #endif // THREADCOORDINATOR_H

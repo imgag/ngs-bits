@@ -10,7 +10,7 @@ void PipelineSettings::loadSettings(QString ini_file)
 {
 	QSharedPointer<QFile> file = Helper::openFileForReading(ini_file);
 
-	instance().root_dir_ = QFileInfo(ini_file).canonicalPath();
+	instance().root_dir_ = QFileInfo(ini_file).canonicalPath() + "/";
 	while (!file->atEnd())
 	{
 		QString line = file->readLine().trimmed();
@@ -22,7 +22,7 @@ void PipelineSettings::loadSettings(QString ini_file)
         }
 
         // Key-value pair
-		QStringList parts = line.split("=", QString::SkipEmptyParts);
+        QStringList parts = line.split("=", QT_SKIP_EMPTY_PARTS);
 		if (parts.size() == 2)
         {
 			QString key = parts.at(0).trimmed();
@@ -32,6 +32,10 @@ void PipelineSettings::loadSettings(QString ini_file)
 			if(value.startsWith('"') && value.endsWith('"'))
 			{
 				value = value.mid(1, value.count()-2).trimmed();
+			}
+			if (value.startsWith("[path]"))
+			{
+				value.replace("[path]", instance().root_dir_);
 			}
 
 			//handle PHP-style arrays in keys

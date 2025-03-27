@@ -113,7 +113,7 @@ void ArribaFile::load(QString filename)
 
 Fusion ArribaFile::getFusion(int idx) const
 {
-	QStringList annotations = this->row(idx);
+	QStringList annotations = this->operator[](idx);
 
 	int idx_breakpoint1 = this->columnIndex("breakpoint1");
 	int idx_breakpoint2 = this->columnIndex("breakpoint2");
@@ -132,7 +132,7 @@ Fusion ArribaFile::getFusion(int idx) const
 
 int ArribaFile::count() const
 {
-	return TsvFile::rowCount();
+	return TsvFile::count();
 }
 
 QByteArray ArribaFile::getCallerVersion() const

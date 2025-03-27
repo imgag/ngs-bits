@@ -39,5 +39,11 @@ BamWriter::BamWriter(const QString& bam_file, const QString& ref_file)
 
 BamWriter::~BamWriter()
 {
-	sam_close(fp_);
+	close();
+}
+
+void BamWriter::close()
+{
+	if (!fp_closed_) sam_close(fp_);
+	fp_closed_ = true;
 }

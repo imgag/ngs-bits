@@ -46,7 +46,7 @@ public:
 		QTextStream out(stdout);
 
 		// start timer
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//generate BED files for whole gene loci
@@ -59,7 +59,7 @@ public:
 		}
 		gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
-		out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+        out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << QT_ENDL;
 		timer.restart();
 
 		//cache gnomAD o/e LOF values
@@ -76,7 +76,7 @@ public:
 				gene_oe_lof[gene_name] = "n/a";
 			}
 		}
-		out << "caching gnomAD o/e finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+        out << "caching gnomAD o/e finished (runtime: " << Helper::elapsedTime(timer) << ")" << QT_ENDL;
 		timer.restart();
 
 		// open input file
@@ -235,7 +235,7 @@ public:
 		sv_output_file->close();
 
 
-		out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << endl;
+        out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << QT_ENDL;
 
 	}
 };

@@ -86,7 +86,7 @@ VariantTranscript SomaticReportSettings::selectSomaticTranscript(NGSD& db, const
 
 VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const SomaticReportSettings& sett, bool throw_errors)
 {
-	QSet<int> variant_indices = sett.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+    QSet<int> variant_indices = LIST_TO_SET(sett.report_config.variantIndices(VariantType::SNVS_INDELS, false));
 
 	VariantList result;
 
@@ -134,7 +134,7 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 
 VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &germl_snvs, const SomaticReportSettings &sett)
 {
-	QSet<int> variant_indices = sett.report_config.variantIndicesGermline().toSet();
+    QSet<int> variant_indices = LIST_TO_SET(sett.report_config.variantIndicesGermline());
 
 	VariantList result;
 
@@ -159,7 +159,7 @@ VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &ger
 CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticReportSettings &sett)
 {
 	QBitArray cnv_flags(cnvs.count(), true);
-	QSet<int> cnv_indices = sett.report_config.variantIndices(VariantType::CNVS, false).toSet();
+    QSet<int> cnv_indices = LIST_TO_SET(sett.report_config.variantIndices(VariantType::CNVS, false));
 	for(int index : cnv_indices)
 	{
 		cnv_flags[index] = sett.report_config.variantConfig(index, VariantType::CNVS).showInReport();
@@ -186,7 +186,7 @@ BedpeFile SomaticReportSettings::filterSvs(NGSD& db, const BedpeFile& svs, const
 	result.addAnnotationHeader("START_POS_REPORT");
 	result.addAnnotationHeader("END_POS_REPORT");
 
-	QSet<int> sv_indicies = sett.report_config.variantIndices(VariantType::SVS, true).toSet();
+    QSet<int> sv_indicies = LIST_TO_SET(sett.report_config.variantIndices(VariantType::SVS, true));
 
 	if (sv_indicies.count() == 0) return result;
 

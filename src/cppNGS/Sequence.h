@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QByteArray>
+#include <QRegularExpression>
 #include <random>
 
 ///DNA sequence class

@@ -1,5 +1,5 @@
 ### NGSDImportEnsembl tool help
-	NGSDImportEnsembl (2023_11-42-ga9d1687d)
+	NGSDImportEnsembl (2024_08-110-g317f43b9)
 	
 	Imports Ensembl/CCDS transcript information into NGSD.
 	
@@ -21,9 +21,10 @@
 	  --version               Prints version and exits.
 	  --changelog             Prints changeloge and exits.
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]       Settings override file (no other settings files are used).
 	
 ### NGSDImportEnsembl changelog
-	NGSDImportEnsembl 2023_11-42-ga9d1687d
+	NGSDImportEnsembl 2024_08-110-g317f43b9
 	
 	2023-03-22 Removed parameters 'ensembl_canonical' and 'mane' as the information is now contained in the Ensembl GFF3 file.
 	2022-10-17 Added transcript versions.

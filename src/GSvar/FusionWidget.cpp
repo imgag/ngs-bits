@@ -78,8 +78,9 @@ void FusionWidget::updateGUI()
 	ui_->fusions->setRowCount(fusions_.count());
 	for(int row_idx=0; row_idx<fusions_.count(); ++row_idx)
 	{
-		QStringList row = fusions_.row(row_idx);
+		const QStringList& row = fusions_[row_idx];
 		for (int col_idx = 0; col_idx < column_names.size(); ++col_idx)
+
 		{
 			if(numeric_columns.contains(column_names[col_idx]))
 			{
@@ -176,7 +177,7 @@ void FusionWidget::applyFilters(bool debug_time)
 
 	try
 	{
-		QTime timer;
+		QElapsedTimer timer;
 		timer.start();
 
 		//apply main filter

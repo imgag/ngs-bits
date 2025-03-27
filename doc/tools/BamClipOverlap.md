@@ -1,5 +1,5 @@
 ### BamClipOverlap tool help
-	BamClipOverlap (2023_11-42-ga9d1687d)
+	BamClipOverlap (2024_08-110-g317f43b9)
 	
 	Softclipping of overlapping reads.
 	
@@ -30,9 +30,10 @@
 	  --version                 Prints version and exits.
 	  --changelog               Prints changeloge and exits.
 	  --tdx                     Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]         Settings override file (no other settings files are used).
 	
 ### BamClipOverlap changelog
-	BamClipOverlap 2023_11-42-ga9d1687d
+	BamClipOverlap 2024_08-110-g317f43b9
 	
 	2020-11-27 Added CRAM support.
 	2018-01-11 Updated base quality handling within overlap.

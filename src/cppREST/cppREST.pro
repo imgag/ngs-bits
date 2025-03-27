@@ -4,7 +4,8 @@ CONFIG += c++11
 #base settings
 QT       -= gui
 QT       += sql
-QT       += xml xmlpatterns
+QT       += xml
+QT       += network
 QTPLUGIN += QSQLMYSQL
 TEMPLATE = lib
 TARGET = cppREST
@@ -38,6 +39,12 @@ LIBS += -L$$PWD/../../bin -lcppXML
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
+
+win32: INCLUDEPATH += $$PWD/../../libxml2/include/
+win32: LIBS += -L$$PWD/../../libxml2/libs/ -lxml2
+
+unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
+unix: LIBS += -lxml2
 
 #include zlib library
 LIBS += -lz

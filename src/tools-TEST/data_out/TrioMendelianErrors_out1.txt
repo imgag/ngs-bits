@@ -1,0 +1,7 @@
+Skipped variants not on autosomes: 10
+Skipped variants with multi-allelic alt: 529
+Skipped variants with (partially) unknown genotype: 3524
+Skipped variants with invalid genotype: 0
+
+Variants checked: 43796
+Mendelian error rate: 4.02%

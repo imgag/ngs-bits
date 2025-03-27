@@ -14,6 +14,7 @@
 #include <QDialog>
 #include <QDir>
 #include <QMessageBox>
+#include <QSortFilterProxyModel>
 
 FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	: QWidget(parent)
@@ -172,12 +173,15 @@ void FilterWidgetSV::roiSelectionChanged(int index)
 	{
 		ui_.roi->setEditable(true);
 
-		QCompleter* completer = new QCompleter(ui_.roi->model(), ui_.roi);
-		completer->setCompletionMode(QCompleter::PopupCompletion);
-		completer->setCaseSensitivity(Qt::CaseInsensitive);
-		completer->setFilterMode(Qt::MatchContains);
-		completer->setCompletionRole(Qt::DisplayRole);
-		ui_.roi->setCompleter(completer);
+        QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel(ui_.roi);
+        proxy_model->setSourceModel(ui_.roi->model());
+        proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
+
+        QCompleter *completer = new QCompleter(proxy_model, ui_.roi);
+        completer->setCompletionMode(QCompleter::PopupCompletion);
+        completer->setFilterMode(Qt::MatchContains);
+        completer->setCompletionRole(Qt::DisplayRole);
+        ui_.roi->setCompleter(completer);
 	}
 	else
 	{

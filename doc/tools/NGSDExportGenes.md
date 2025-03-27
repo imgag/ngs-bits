@@ -1,5 +1,5 @@
 ### NGSDExportGenes tool help
-	NGSDExportGenes (2021_03-16-ge75f73c2)
+	NGSDExportGenes (2024_08-110-g317f43b9)
 	
 	Lists genes from NGSD.
 	
@@ -16,9 +16,10 @@
 	  --version          Prints version and exits.
 	  --changelog        Prints changeloge and exits.
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]  Settings override file (no other settings files are used).
 	
 ### NGSDExportGenes changelog
-	NGSDExportGenes 2021_03-16-ge75f73c2
+	NGSDExportGenes 2024_08-110-g317f43b9
 	
 	2021-04-13 Added more information (imprinting, pseudogenes, OrphaNet, OMIM).
 	2019-09-20 Added several columns with gene details.

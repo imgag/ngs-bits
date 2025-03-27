@@ -1,5 +1,5 @@
 ### VariantRanking tool help
-	VariantRanking (2023_11-133-g87eceb58)
+	VariantRanking (2024_08-110-g317f43b9)
 	
 	Annotatates variants in GSvar format with a score/rank.
 	
@@ -26,9 +26,10 @@
 	  --version                   Prints version and exits.
 	  --changelog                 Prints changeloge and exits.
 	  --tdx                       Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]           Settings override file (no other settings files are used).
 	
 ### VariantRanking changelog
-	VariantRanking 2023_11-133-g87eceb58
+	VariantRanking 2024_08-110-g317f43b9
 	
 	2020-11-20 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

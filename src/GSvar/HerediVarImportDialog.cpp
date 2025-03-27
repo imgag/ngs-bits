@@ -71,22 +71,22 @@ void HerediVarImportDialog::import()
 			classification.replace("%2B", "+");
 			if (classification=="3+")
 			{
-				classification_comment = "; was classificaiton '" + classification + "' in HerediVar";
+				classification_comment = "; was classification '" + classification + "' in HerediVar";
 				classification = "3";
 			}
 			if (classification=="3-")
 			{
-				classification_comment = "; was classificaiton '" + classification + "' in HerediVar";
+				classification_comment = "; was classification '" + classification + "' in HerediVar";
 				classification = "3";
 			}
 			if (classification=="4M")
 			{
-				classification_comment = "; was classificaiton '" + classification + "' in HerediVar";
+				classification_comment = "; was classification '" + classification + "' in HerediVar";
 				classification = "4";
 			}
 			if (classification=="5M")
 			{
-				classification_comment = "; was classificaiton '" + classification + "' in HerediVar";
+				classification_comment = "; was classification '" + classification + "' in HerediVar";
 				classification = "5";
 			}
 			if (!valid_classes.contains(classification))

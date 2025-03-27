@@ -75,6 +75,7 @@ void ColumnConfigWidget::addColumnsFromSample()
 		{
 			current_names << info.name;
 		}
+		current_names << "tumor_af" << "tumor_dp" << "normal_af" << "normal_dp"; //special columns for somatic/cfDNA
 
 		//add missing columns
 		foreach(const VariantAnnotationHeader& header, vars.annotations())

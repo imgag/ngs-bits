@@ -19,8 +19,8 @@ private slots:
 
 		//1. import
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line21.log", QRegExp("^WARNING: transactions"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line21.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line21.log", QRegularExpression("^WARNING: transactions"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line21.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line21.log", TESTDATA("data_out/NGSDAddVariantsGermline_out1.log"));
 
 		//check callset (freebayes)
@@ -30,14 +30,14 @@ private slots:
 
 		//2. import - skipped because the same callset was already imported
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -force");
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegExp("^WARNING: transactions"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegularExpression("^WARNING: transactions"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line32.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
 
 		//3. import - test that updating of small variants works
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.1.GSvar") + " -var_update");
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line38.log", QRegExp("^WARNING: transactions"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line38.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line38.log", QRegularExpression("^WARNING: transactions"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line38.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line38.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
 
 		//check callset (Clair3)
@@ -58,8 +58,8 @@ private slots:
 
 		//import
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_38 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.tsv"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line60.log", QRegExp("^WARNING: transactions"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line60.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line60.log", QRegularExpression("^WARNING: transactions"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line60.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line60.log", TESTDATA("data_out/NGSDAddVariantsGermline_out4.log"));
 
 		//check callset (DRAGEN)
@@ -108,7 +108,7 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line94.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line94.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line94.log", TESTDATA("data_out/NGSDAddVariantsGermline_out5.log"));
 	}
 
@@ -142,9 +142,9 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line125.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line125.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line125.log", TESTDATA("data_out/NGSDAddVariantsGermline_out6.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line128.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line128.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line128.log", TESTDATA("data_out/NGSDAddVariantsGermline_out7.log"));
 	}
 
@@ -178,9 +178,9 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line161.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line161.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line161.log", TESTDATA("data_out/NGSDAddVariantsGermline_out8.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line164.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line164.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line164.log", TESTDATA("data_out/NGSDAddVariantsGermline_out9.log"));
 	}
 
@@ -215,9 +215,9 @@ private slots:
 		I_EQUAL(count, 0);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line198.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line198.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line198.log", TESTDATA("data_out/NGSDAddVariantsGermline_out10.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line199.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line199.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line199.log", TESTDATA("data_out/NGSDAddVariantsGermline_out11.log"));
 	}
 
@@ -247,7 +247,7 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line233.log", QRegExp("^filename:"));
+        REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line233.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line233.log", TESTDATA("data_out/NGSDAddVariantsGermline_Test_line233.log"));
 	}
 

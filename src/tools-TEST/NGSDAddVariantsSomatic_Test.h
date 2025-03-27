@@ -24,7 +24,7 @@ bool checkLogFile(QString logfile, QByteArray searchterm)
 
 
 private slots:
-	void test_addSmallVariants()
+	void test_small_variants()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
@@ -45,14 +45,39 @@ private slots:
 		S_EQUAL(table.row(2).asString(';'), "3;8;7;3;0.1254;639;330");
 
 		//force variant import
-		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -var_force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
-		//import should fail because variants already exist and var_force is unset
+		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
+
+		//should fail because variants already exist and force is unset
 		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
-		IS_TRUE(checkLogFile("out/NGSDAddVariantsSomatic_Test_line50.log", "Variants were already imported for 'DX184894_01-DX184263_01'. Use the flag '-var_force' to overwrite them."));
+		IS_TRUE(checkLogFile("out/NGSDAddVariantsSomatic_Test_line51.log", "Variants were already imported for 'DX184894_01-DX184263_01'. Use the flag '-force' to overwrite them."));
 
 	}
 
-	void test_addCNvs()
+	void test_small_variants_tumor_only()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsSomatic_init.sql"));
+		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.GSvar"));
+
+		S_EQUAL(db.variant("1").toString(), "chr2:178096717-178096717 T>C");
+		S_EQUAL(db.variant("2").toString(), "chr16:56870524-56870524 A>C");
+
+		//Check variant entries in detected_somatic_variants
+		DBTable table = db.createTable("test", "SELECT * FROM detected_somatic_variant");
+		I_EQUAL(table.rowCount(), 2);
+		S_EQUAL(table.row(0).asString(';'), "1;8;;1;0.1057;389;229");
+		S_EQUAL(table.row(1).asString(';'), "2;8;;2;0.1254;639;330");
+
+		//force variant import
+		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.GSvar"));
+		//should fail because variants already exist an force is unset
+		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.GSvar"));
+	}
+
+	void test_cnvs()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
@@ -73,7 +98,7 @@ private slots:
 		IS_TRUE(checkLogFile("out/NGSDAddVariantsSomatic_Test_line72.log", "Skipped import of CNVs for sample DX184894_01-DX184263_01: a callset for somatic CNVs exists for this sample!"));
 
 		//Cnvs already imported force
-		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -cnv_force -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
+		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -force -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
 	}
 
 	void test_addSvs()
@@ -103,8 +128,7 @@ private slots:
 		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -n_ps DX184263_01 -sv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.bedpe"));
 		IS_TRUE(checkLogFile("out/NGSDAddVariantsSomatic_Test_line103.log", "NOTE: SVs were already imported for 'DX184894_01-DX184263_01' - skipping import"));
 
-		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -n_ps DX184263_01 -sv_force -sv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.bedpe"));
+		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -n_ps DX184263_01 -force -sv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.bedpe"));
 	}
-
 
 };

@@ -123,7 +123,7 @@ public:
 		}
 
 		out << "Stats:\n";
-		out << "Multiple matches: " << QString::number(n_multiple_matches) << endl;
+        out << "Multiple matches: " << QString::number(n_multiple_matches) << QT_ENDL;
 
 	}
 };

@@ -1,5 +1,5 @@
 ### BedpeAnnotateFromBed tool help
-	BedpeAnnotateFromBed (2021_12-170-g1acf8802)
+	BedpeAnnotateFromBed (2024_08-110-g317f43b9)
 	
 	Annotates a BEDPE file with information from a BED file.
 	
@@ -31,9 +31,10 @@
 	  --version            Prints version and exits.
 	  --changelog          Prints changeloge and exits.
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]    Settings override file (no other settings files are used).
 	
 ### BedpeAnnotateFromBed changelog
-	BedpeAnnotateFromBed 2021_12-170-g1acf8802
+	BedpeAnnotateFromBed 2024_08-110-g317f43b9
 	
 	2022-02-17 Added 'max_value' parameter.
 	2020-01-27 Initial commit.

@@ -1,5 +1,5 @@
 ### BedLiftOver tool help
-	BedLiftOver (2021_12-126-g84edc586)
+	BedLiftOver (2024_08-110-g317f43b9)
 	
 	Lift-over of regions in a BED file to a different genome build.
 	
@@ -24,9 +24,10 @@
 	  --version            Prints version and exits.
 	  --changelog          Prints changeloge and exits.
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]    Settings override file (no other settings files are used).
 	
 ### BedLiftOver changelog
-	BedLiftOver 2021_12-126-g84edc586
+	BedLiftOver 2024_08-110-g317f43b9
 	
 	2022-02-14 First implementation
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -1,5 +1,5 @@
 ### FastqExtractBarcode tool help
-	FastqExtractBarcode (2020_03-159-g5c8b2e82)
+	FastqExtractBarcode (2024_08-110-g317f43b9)
 	
 	Cuts bases from the beginning of reads and stores them in an additional fastq.
 	
@@ -20,9 +20,10 @@
 	  --version                Prints version and exits.
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### FastqExtractBarcode changelog
-	FastqExtractBarcode 2020_03-159-g5c8b2e82
+	FastqExtractBarcode 2024_08-110-g317f43b9
 	
 	2020-07-15 Added 'compression_level' parameter.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

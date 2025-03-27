@@ -1,5 +1,5 @@
 
-QT       += gui widgets network sql xml xmlpatterns printsupport charts svg
+QT       += gui widgets network sql xml printsupport charts svg
 QTPLUGIN += QSQLMYSQL
 
 TARGET = GSvar
@@ -28,11 +28,14 @@ SOURCES += main.cpp\
     MainWindow.cpp \
     ExternalToolDialog.cpp \
     MaintenanceDialog.cpp \
+    MethylationWidget.cpp \
+    NsxSettingsDialog.cpp \
     PathogenicWtDialog.cpp \
     ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
     ReportDialog.cpp \
     Background/ReportWorker.cpp \
+    SampleCountWidget.cpp \
     SettingsDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
@@ -159,11 +162,14 @@ HEADERS += MainWindow.h \
     IgvSessionManager.h \
     ImportDialog.h \
     MaintenanceDialog.h \
+    MethylationWidget.h \
+    NsxSettingsDialog.h \
     PathogenicWtDialog.h \
     ReSearchWidget.h \
     RepeatExpansionWidget.h \
     ReportDialog.h \
     Background/ReportWorker.h \
+    SampleCountWidget.h \
     SettingsDialog.h \
     TrioDialog.h \
     HttpHandler.h \
@@ -281,10 +287,13 @@ FORMS    += MainWindow.ui \
     IgvLogWidget.ui \
     ImportDialog.ui \
     MaintenanceDialog.ui \
+    MethylationWidget.ui \
+    NsxSettingsDialog.ui \
     PathogenicWtDialog.ui \
     ReSearchWidget.ui \
     RepeatExpansionWidget.ui \
     ReportDialog.ui \
+    SampleCountWidget.ui \
     SettingsDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
@@ -393,3 +402,6 @@ LIBS += -L$$PWD/../bin -lcppVISUAL
 RESOURCES += \
     GSvar.qrc
 
+mac {
+    ICON = Icons/Icon.icns
+}

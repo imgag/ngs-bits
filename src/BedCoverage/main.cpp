@@ -56,7 +56,7 @@ public:
 		foreach(QString bam, bams)
 		{
 			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getInt("threads"), getInt("decimals"), getInfile("ref"), getFlag("random_access"), getFlag("debug"));
-			header += "\t" + QFileInfo(bam).baseName();
+            header += "\t" + QFileInfo(bam).baseName().toUtf8();
 		}
 
 		//store

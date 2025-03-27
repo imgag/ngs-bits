@@ -116,7 +116,7 @@ private:
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 
 	QString filepath_;
-	VersatileFile file_;
+    QSharedPointer<VersatileFile> file_;
 	double percent_deletion_;
 
 	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_;
