@@ -5568,11 +5568,11 @@ void FilterVariantRNAGeneExpression::apply(const VariantList& variants, FilterRe
 
 		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
 		result.flags()[i] = false;
-		foreach (const QByteArray& fraction_string, fraction_strings)
+        for (const QByteArray& fraction_string : fraction_strings)
 		{
-			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
+            if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
 
-			double fraction_value = Helper::toDouble(fraction_string, "tpm", QString::number(i));
+            double fraction_value = Helper::toDouble(fraction_string, "tpm", QString::number(i));
 			if (fraction_value >= min_tpm)
 			{
 				result.flags()[i] = true;
