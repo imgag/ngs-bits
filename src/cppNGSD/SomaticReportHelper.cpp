@@ -113,7 +113,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 		else
 		{
-			foreach(QByteArray gene, var.annotations()[i_germl_gene].split(','))
+            for (QByteArray gene : var.annotations()[i_germl_gene].split(','))
 			{
 				important_genes << gene;
 			}
@@ -187,7 +187,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	QStringList tmp;
 	QList<SampleDiseaseInfo> disease_info = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps));
 
-	foreach(const SampleDiseaseInfo& entry, disease_info)
+    for (const SampleDiseaseInfo& entry : disease_info)
 	{
 		if(entry.type == "tumor fraction") tmp.append(entry.disease_info);
 	}
@@ -546,7 +546,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		stream << "\t";
 
 		QByteArrayList gene_effects;
-		foreach(const auto& gene, genes)
+        for (const auto& gene : genes)
 		{
 			SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
 			if (!gene_role.isValid()) continue;
@@ -1978,7 +1978,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 		if (quality_comments[0]  != "no abnormalities" && quality_comments[0].trimmed() != "")
 		{
 			QStringList translated;
-			foreach(QString qual_comment, quality_comments)
+            for (QString qual_comment : quality_comments)
 			{
 				translated.append(trans(qual_comment.toUtf8()));
 			}
@@ -2296,7 +2296,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
 					GeneSet genes_cnv = db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end());
-					foreach(const QByteArray& gene, genes_cnv)
+                    for (const QByteArray& gene : genes_cnv)
 					{
 						if (!genes_pathway.contains(gene)) continue;
 						if (!cnv_high_impact_indices_[k].contains(gene)) continue;
@@ -2318,7 +2318,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					QByteArrayList genes = genes_a.split(',');
 					genes.append(genes_b.split(','));
 
-					foreach(QByteArray gene, genes)
+                    for (QByteArray gene : genes)
 					{
 						if (!genes_pathway.contains(gene.trimmed())) continue;
 
@@ -2364,7 +2364,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 
 				//add entries to content table cell
 				QByteArrayList rtf_text;
-				foreach(const PathwaysEntry& entry, entries)
+                for (const PathwaysEntry& entry : entries)
 				{
 					QByteArray text = RtfText(entry.gene).setFontSize(18).RtfCode() + " " + RtfText(entry.alteration).setFontSize(16).RtfCode();
 					if (!entry.highlight) text = RtfText("[ ").setFontSize(18).RtfCode() + text + RtfText(" ]").setFontSize(18).RtfCode();
@@ -2404,7 +2404,7 @@ QByteArray SomaticReportHelper::prepareTranscriptType(QByteArray transcript_type
 	}
 
 	QByteArray clean_transcript_type;
-	foreach(QByteArray t, transcript_type.split(','))
+    for (QByteArray t : transcript_type.split(','))
 	{
 		t = t.trimmed();
 		if (t != "intron")

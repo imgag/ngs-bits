@@ -53,7 +53,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	bool is_multi_with_extra_genotypes = data_.variants.type()==GERMLINE_MULTISAMPLE && !data_.report_settings.ps_additional.isEmpty();
 	if (is_multi_with_extra_genotypes)
 	{
-		foreach(QString ps, data_.report_settings.ps_additional)
+        for (QString ps : data_.report_settings.ps_additional)
 		{
 			info_additional <<  data_.variants.getSampleHeader().infoByID(ps);
 		}
@@ -80,7 +80,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (is_multi_with_extra_genotypes)
 	{
         stream << "<br />" << QT_ENDL;
-		foreach(const SampleInfo& info, info_additional)
+        for (const SampleInfo& info : info_additional)
 		{
             stream << "<br />" << trans("Zusatzprobe") << ": "  << info.name << QT_ENDL;
 		}
@@ -106,12 +106,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
     stream << QT_ENDL;
     stream << "<p><b>" << trans("Ph&auml;notyp") << "</b>" << QT_ENDL;
 	QList<SampleDiseaseInfo> info = db_.getSampleDiseaseInfo(sample_id, "ICD10 code");
-	foreach(const SampleDiseaseInfo& entry, info)
+    for (const SampleDiseaseInfo& entry : info)
 	{
         stream << "<br />ICD10: " << entry.disease_info << QT_ENDL;
 	}
 	info = db_.getSampleDiseaseInfo(sample_id, "HPO term id");
-	foreach(const SampleDiseaseInfo& entry, info)
+    for (const SampleDiseaseInfo& entry : info)
 	{
 		int hpo_id = db_.phenotypeIdByAccession(entry.disease_info.toUtf8(), false);
 		if (hpo_id!=-1)
@@ -120,12 +120,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		}
 	}
 	info = db_.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
-	foreach(const SampleDiseaseInfo& entry, info)
+    for (const SampleDiseaseInfo& entry : info)
 	{
         stream << "<br />OMIM: " << entry.disease_info << QT_ENDL;
 	}
 	info = db_.getSampleDiseaseInfo(sample_id, "Orpha number");
-	foreach(const SampleDiseaseInfo& entry, info)
+    for (const SampleDiseaseInfo& entry : info)
 	{
         stream << "<br />Orphanet: " << entry.disease_info << QT_ENDL;
 	}
@@ -213,14 +213,14 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}
 	if (is_multi_with_extra_genotypes)
 	{
-		foreach(const SampleInfo& info, info_additional)
+        for (const SampleInfo& info : info_additional)
 		{
 			stream << "<td><b>" << trans("Genotyp") << " " << info.name << "</b></td>";
 		}
 		colspan += info_additional.count();
 	}
     stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>" << trans("gnomAD Allelfrequenz") << "<br />(" << trans("Kontrollkohorte") << ")</b></td><td><b>RNA</b></td></tr>" << QT_ENDL;
-	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& var_conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!selected_small_.contains(var_conf.variant_index)) continue;
@@ -243,7 +243,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		}
 		if (is_multi_with_extra_genotypes)
 		{
-			foreach(const SampleInfo& info, info_additional)
+            for (const SampleInfo& info : info_additional)
 			{
 				stream << "<td>" << formatGenotype(data_.build, info.gender(), variant.annotations().at(info.column_index), variant) << "</td>";
 			}
@@ -2087,7 +2087,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 				if (data_.report_settings.show_refseq_transcripts)
 				{
 					const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(data_.build);
-					foreach (const QByteArray& match, transcript_matches.value(trans.name()))
+                    for (const QByteArray& match : transcript_matches.value(trans.name()))
 					{
 						if (match.startsWith("NM_"))
 						{
@@ -2225,7 +2225,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	QList<SampleDiseaseInfo> disease_infos = db_.getSampleDiseaseInfo(sample_id);
 	QString clinical_phenotype;
 	QStringList infos;
-	foreach(const SampleDiseaseInfo& info, disease_infos)
+    for (const SampleDiseaseInfo& info : disease_infos)
 	{
 		if (info.type=="ICD10 code")
 		{
@@ -2266,7 +2266,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
     stream << "    <p><b>Kausale Varianten:</b>" << QT_ENDL;
     stream << "      <table border='1'>" << QT_ENDL;
 	printVariantSheetRowHeader(stream, true);
-	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (conf.causal)
@@ -2280,7 +2280,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
     stream << "    <p><b>Sonstige Varianten:</b>" << QT_ENDL;
     stream << "      <table border='1'>" << QT_ENDL;
 	printVariantSheetRowHeader(stream, false);
-	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!conf.causal)
@@ -2295,7 +2295,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
     stream << "    <p><b>Kausale CNVs:</b>" << QT_ENDL;
     stream << "      <table border='1'>" << QT_ENDL;
 	printVariantSheetRowHeaderCnv(stream, true);
-	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::CNVS) continue;
 		if (conf.causal)
@@ -2309,7 +2309,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
     stream << "    <p><b>Sonstige CNVs:</b>" << QT_ENDL;
     stream << "      <table border='1'>" << QT_ENDL;
 	printVariantSheetRowHeaderCnv(stream, false);
-	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::CNVS) continue;
 		if (!conf.causal)
@@ -2324,7 +2324,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
     stream << "    <p><b>Kausale SVs:</b>" << QT_ENDL;
     stream << "      <table border='1'>" << QT_ENDL;
 	printVariantSheetRowHeaderSv(stream, true);
-	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SVS) continue;
 		if (conf.causal)
@@ -2338,7 +2338,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
     stream << "    <p><b>Sonstige SVs:</b>" << QT_ENDL;
     stream << "      <table border='1'>" << QT_ENDL;
 	printVariantSheetRowHeaderSv(stream, false);
-	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SVS) continue;
 		if (!conf.causal)
@@ -2354,7 +2354,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
     stream << "    <p><b>Kausale REs:</b>" << QT_ENDL;
     stream << "      <table border='1'>" << QT_ENDL;
 	printVariantSheetRowHeaderRe(stream, true);
-	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::RES) continue;
 		if (conf.causal)
@@ -2368,7 +2368,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
     stream << "    <p><b>Sonstige REs:</b>" << QT_ENDL;
     stream << "      <table border='1'>" << QT_ENDL;
 	printVariantSheetRowHeaderRe(stream, false);
-	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+    for (const ReportVariantConfiguration& conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::RES) continue;
 		if (!conf.causal)
@@ -2454,7 +2454,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	QStringList types;
 	QStringList hgvs_cs;
 	QStringList hgvs_ps;
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		int gene_id = db_.geneId(gene);
 		Transcript trans = db_.bestTranscript(gene_id);
@@ -2721,7 +2721,7 @@ void GermlineReportGenerator::gapsByGene(const BedFile& low_cov, const GeneSet& 
 		const BedLine& line = low_cov[i];
 		GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
 		bool gene_match = false;
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			if (roi_genes.contains(gene))
 			{
