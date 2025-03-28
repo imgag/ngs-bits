@@ -5610,7 +5610,7 @@ void FilterVariantRNAExpressionFC::apply(const VariantList& variants, FilterResu
 
 		QList<QByteArray> fc_strings = variants[i].annotations()[idx_fc].split(',');
 		result.flags()[i] = false;
-		foreach (const QByteArray& fc_string, fc_strings)
+        for (const QByteArray& fc_string : fc_strings)
 		{
 			if(fc_string.isEmpty() || fc_string.startsWith("n/a")) continue;
 
@@ -5652,7 +5652,7 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 
 		QList<QByteArray> zscore_strings = variants[i].annotations()[idx_zscore].split(',');
 		result.flags()[i] = false;
-		foreach (const QByteArray& zscore_string, zscore_strings)
+        for (const QByteArray& zscore_string : zscore_strings)
 		{
 			if(zscore_string.isEmpty() || zscore_string.startsWith("n/a")) continue;
 
