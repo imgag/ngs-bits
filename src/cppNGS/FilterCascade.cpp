@@ -260,7 +260,7 @@ QStringList FilterBase::description(bool add_parameter_description) const
 	{
 		output << "Parameters:";
 
-		foreach(const FilterParameter& p, params_)
+        for (const FilterParameter& p : params_)
 		{
 			QString text = p.name + " - " + p.description;
 			QString default_value = p.type==FilterParameterType::STRINGLIST ? p.value.toStringList().join(",").trimmed() : p.value.toString().trimmed();
@@ -542,7 +542,7 @@ QStringList FilterBase::getStringList(const QString& name, bool check_constraint
 		if (p.constraints.contains("valid"))
 		{
 			QStringList valid = p.constraints["valid"].split(',');
-			foreach(QString value, list)
+            for (const QString& value : list)
 			{
 				if (!valid.contains(value))
 				{
@@ -763,10 +763,10 @@ void FilterCascade::store(QString filename)
 QStringList FilterCascade::toText()
 {
 	QStringList lines;
-	foreach(QSharedPointer<FilterBase> filter, filters_)
+    for (QSharedPointer<FilterBase> filter : filters_)
 	{
 		QStringList params;
-		foreach(const FilterParameter& param, filter->parameters())
+        for (const FilterParameter& param : filter->parameters())
 		{
 			params << param.name + "=" + param.valueAsString();
 		}
@@ -782,7 +782,7 @@ FilterCascade FilterCascade::fromText(const QStringList& lines)
 {
 	FilterCascade output;
 
-	foreach(QString line, lines)
+    for (QString line : lines)
 	{
 		line = line.trimmed();
 		if (line.isEmpty()) continue;
