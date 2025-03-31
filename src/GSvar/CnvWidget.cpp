@@ -426,7 +426,7 @@ void CnvWidget::applyFilters(bool debug_time)
 					if (!filter_result.flags()[r]) continue;
 
 					bool match_found = false;
-					foreach(const QByteArray& cnv_gene, cnvs_[r].genes())
+                    for (const QByteArray& cnv_gene : cnvs_[r].genes())
 					{
                         if (reg.match(cnv_gene).hasMatch())
 						{
@@ -489,7 +489,7 @@ void CnvWidget::applyFilters(bool debug_time)
 			//convert phenotypes to genes
 			NGSD db;
 			GeneSet pheno_genes;
-			foreach(const Phenotype& pheno, phenotypes)
+            for (const Phenotype& pheno : phenotypes)
 			{
 				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 			}
@@ -497,7 +497,7 @@ void CnvWidget::applyFilters(bool debug_time)
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			BedFile pheno_roi;
 			timer.start();
-			foreach(const QByteArray& gene, pheno_genes)
+            for (const QByteArray& gene : pheno_genes)
 			{
 				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}

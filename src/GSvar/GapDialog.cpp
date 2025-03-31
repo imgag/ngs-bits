@@ -72,7 +72,7 @@ void GapDialog::calculteGaps()
 	{
 		GeneSet genes_invalid;
 		GeneSet genes_no_transcript;
-		foreach(const QByteArray& gene, genes_)
+        for (const QByteArray& gene : genes_)
 		{
 			int gene_id = db_.geneId(gene);
 			if (gene_id==-1)
@@ -185,7 +185,7 @@ void GapDialog::calculteGaps()
 
 			//use relevant transcripts
 			BedFile coding_overlap;
-			foreach(QByteArray gene, info.genes)
+            for (const QByteArray& gene : info.genes)
 			{
 				int gene_id = db_.geneId(gene);
 				if (gene_id==-1) continue;

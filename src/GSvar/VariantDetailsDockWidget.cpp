@@ -967,7 +967,7 @@ QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const
 		QRegularExpressionMatch match = i.next();
 		hits << QPair<int, int>(match.capturedStart(0), match.capturedEnd());
 	}
-	hits << QPair<int, int>(details.count(), -1);
+    hits << QPair<int, int>(details.size(), -1);
 
 	for (int i=0; i<hits.count()-1; ++i)
 	{

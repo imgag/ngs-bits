@@ -53,7 +53,7 @@ void PhenotypeSelectionWidget::deletePhenotype(QListWidgetItem* item)
 void PhenotypeSelectionWidget::updateSelectedPhenotypeList()
 {
 	ui_.pheno_list->clear();
-	foreach(const Phenotype& pheno, phenos_)
+    for (const Phenotype& pheno : phenos_)
 	{
 		ui_.pheno_list->addItem(pheno.accession() + " - " + pheno.name());
 	}

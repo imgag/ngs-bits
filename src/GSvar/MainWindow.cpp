@@ -624,7 +624,7 @@ void MainWindow::on_actionRegionToGenes_triggered()
 		dlg.setReadOnly(true);
 		dlg.setWordWrapMode(QTextOption::NoWrap);
 		dlg.appendLine("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
-		foreach (const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			QList<OmimInfo> omim_genes = db.omimInfo(gene);
 			foreach (const OmimInfo& omim_gene, omim_genes)
@@ -1125,7 +1125,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	GeneSet variant_target_region;
 	if(ui_.filters->phenotypes().count() > 0)
 	{
-		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+		for (const Phenotype& phenotype : ui_.filters->phenotypes())
 		{
 			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
 		}
@@ -6445,7 +6445,7 @@ void MainWindow::storeCurrentVariantList()
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "application/json");
 			add_headers.insert("Content-Type", "application/json");
-			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
+            add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().size()));
 
 			QString reply = HttpHandler(true).put(
 						ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),

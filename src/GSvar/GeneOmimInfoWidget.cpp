@@ -54,7 +54,7 @@ void GeneOmimInfoWidget::updateTable()
 			ui_.table->setCellWidget(row, 2, label);
 
 			QStringList phenos;
-			foreach(const Phenotype& p, omim_info.phenotypes)
+            for (const Phenotype& p : omim_info.phenotypes)
 			{
 				phenos << p.name();
 			}

@@ -834,7 +834,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 		//determine hpo subtree of patient
 		PhenotypeList pheno_subtrees = GlobalServiceProvider::filterWidget()->phenotypes();
 		NGSD db;
-		foreach(const Phenotype& pheno, GlobalServiceProvider::filterWidget()->phenotypes())
+        for (const Phenotype& pheno : GlobalServiceProvider::filterWidget()->phenotypes())
 		{
 			pheno_subtrees << db.phenotypeChildTerms(db.phenotypeIdByAccession(pheno.accession()), true);
 		}

@@ -47,7 +47,7 @@ void PhenotypeSelector::search(QString text)
 
 	//add search terms
 	PhenotypeList phenos = db_.phenotypes(text.split(" "));
-	foreach(const Phenotype& pheno, phenos)
+    for (const Phenotype& pheno : phenos)
 	{
 		ui->list->addItem(pheno.name());
 	}
