@@ -900,7 +900,7 @@ QStringList FilterFactory::filterNames(VariantType subject)
 	const auto& registry = getRegistry();
 	QStringList names = registry.keys();
 
-    for (const QString& name : names)
+    foreach(const QString& name, names)
 	{
 		QSharedPointer<FilterBase> filter = QSharedPointer<FilterBase>(registry[name]());
 		if (filter->type()!=subject)
@@ -1092,7 +1092,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 
 			GeneSet var_genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 			bool match_found = false;
-            for (const QByteArray& var_gene : var_genes)
+            foreach(const QByteArray& var_gene, var_genes)
 			{
                 if (reg.match(var_gene).hasMatch())
 				{
