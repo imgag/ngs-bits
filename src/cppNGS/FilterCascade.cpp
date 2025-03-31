@@ -4625,7 +4625,7 @@ void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 			int ngsd_count_hom = Helper::toInt(svs[i].annotations()[idx_ngsd_hom], "NGSD count hom", QString::number(i));
 			int ngsd_count_het = Helper::toInt(svs[i].annotations()[idx_ngsd_het], "NGSD count het", QString::number(i));
 
-			foreach (int idx_format_data, indices_format_data)
+            for (const int& idx_format_data : indices_format_data)
 			{
 				QByteArrayList format_values = svs[i].annotations()[idx_format_data].split(':');
 
@@ -4959,7 +4959,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
             if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
             {
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
-                foreach(const QByteArray& gene, genes)
+                for (const QByteArray& gene : genes)
                 {
 					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="maternal")
                     {
@@ -4970,7 +4970,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
             if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
             {
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
-                foreach(const QByteArray& gene, genes)
+                for (const QByteArray& gene : genes)
                 {
 					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="paternal")
                     {
@@ -5286,7 +5286,7 @@ bool FilterSpliceEffect::applyMaxEntScanFilter_(const QByteArray& mes_anno, MaxE
 {
 	if (!mes_anno.isEmpty() && min_mes!=MaxEntScanImpact::LOW)
 	{
-		foreach (QByteArray entry, mes_anno.split(','))
+        for (const QByteArray& entry : mes_anno.split(','))
 		{
 			QByteArray details;
 			MaxEntScanImpact impact = NGSHelper::maxEntScanImpact(entry.split('/'), details, splice_site_only);
