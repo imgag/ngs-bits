@@ -898,18 +898,18 @@ QStringList FilterFactory::filterNames()
 QStringList FilterFactory::filterNames(VariantType subject)
 {
 	const auto& registry = getRegistry();
-	QStringList names = registry.keys();
+    QStringList filtered_names = registry.keys();
 
-    foreach(const QString& name, names)
+    for (const QString& name : registry.keys())
 	{
 		QSharedPointer<FilterBase> filter = QSharedPointer<FilterBase>(registry[name]());
 		if (filter->type()!=subject)
 		{
-			names.removeAll(name);
+            filtered_names.removeAll(name);
 		}
 	}
 
-	return names;
+    return filtered_names;
 }
 
 template<typename T> FilterBase* createInstance() { return new T; }
