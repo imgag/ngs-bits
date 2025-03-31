@@ -1216,7 +1216,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	GeneSet variant_target_region;
 	if(ui_.filters->phenotypes().count() > 0)
 	{
-		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+        for (const Phenotype& phenotype : ui_.filters->phenotypes())
 		{
 			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
 		}
@@ -6507,14 +6507,14 @@ void MainWindow::variantRanking()
 		{
 			phenotypes = db.getSampleData(sample_id).phenotypes;
 		}
-		foreach(const Phenotype& pheno, phenotypes)
+        for (const Phenotype& pheno : phenotypes)
 		{
 			//pheno > genes
 			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 
 			//genes > roi
 			BedFile roi;
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}

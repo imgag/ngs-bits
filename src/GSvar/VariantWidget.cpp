@@ -185,7 +185,7 @@ void VariantWidget::updateGUI()
 			addItem(row, 8, s_data.disease_group);
 			addItem(row, 9, s_data.disease_status);
 			QStringList pho_list;
-			foreach(const Phenotype& pheno, s_data.phenotypes)
+            for (const Phenotype& pheno : s_data.phenotypes)
 			{
 				pho_list << pheno.toString();
 			}
@@ -460,7 +460,7 @@ void VariantWidget::copyVariant()
 		NGSD db;
 		GeneSet genes = db.genesOverlapping(variant_.chr(), variant_.start(), variant_.end());
 		VariantHgvsAnnotator hgvs_annotator(genome_idx);
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			Transcript trans = db.bestTranscript(db.geneId(gene));
 			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);

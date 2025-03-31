@@ -249,7 +249,7 @@ void ExpressionExonWidget::applyFilters()
 							GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8(), ',');
 
 							bool match_found = false;
-							foreach(const QByteArray& sv_gene, sv_genes)
+                            for (const QByteArray& sv_gene : sv_genes)
 							{
                                 if (reg.match(sv_gene).hasMatch())
 								{

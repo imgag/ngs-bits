@@ -612,7 +612,7 @@ void CnvWidget::showContextMenu(QPoint p)
 		menu.addSeparator();
 
 		int gene_nr = 1;
-		foreach(const QByteArray& gene, cnvs_[row].genes())
+        for (const QByteArray& gene : cnvs_[row].genes())
 		{
 			++gene_nr;
 			if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
@@ -620,7 +620,7 @@ void CnvWidget::showContextMenu(QPoint p)
 			QMenu* sub_menu = menu.addMenu(gene);
             sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in_);
 			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
-			foreach(const GeneDB& db, GeneInfoDBs::all())
+            for (const GeneDB& db : GeneInfoDBs::all())
 			{
 				sub_menu->addAction(db.icon, db.name);
 			}
@@ -718,7 +718,7 @@ void CnvWidget::showContextMenu(QPoint p)
 		else if (db_name=="Google")
 		{
 			QString query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, ui->filter_widget->phenotypes())
+            for (const Phenotype& pheno : ui->filter_widget->phenotypes())
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -1040,7 +1040,7 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 	if (i_genes!=-1)
 	{
 		GeneSet genes = GeneSet::createFromText(cnvs_[row].annotations()[i_genes], ',');
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};

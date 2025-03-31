@@ -212,7 +212,7 @@ void GapDialog::calculteGaps()
 
 			//check if overlapping with preferred transcript
 			BedFile pt_exon_regions;
-			foreach(QByteArray gene, info.genes)
+            for (const QByteArray& gene : info.genes)
 			{
 				QByteArray gene_approved = db_.geneToApproved(gene, true);
 				if (preferred_transcripts.contains(gene_approved))

@@ -578,7 +578,7 @@ void ClinvarUploadDialog::upload()
             details << "affected_status=" + ui_.cb_affected_status->currentText();
             details << "allele_origin=" + ui_.cb_allele_origin->currentText();
             QStringList phenotypes;
-            foreach (const Phenotype& phenotype, ui_.phenos->selectedPhenotypes())
+            for (const Phenotype& phenotype : ui_.phenos->selectedPhenotypes())
             {
                 phenotypes << phenotype.accession();
             }
@@ -938,7 +938,7 @@ bool ClinvarUploadDialog::checkGuiData()
 
 	//check genes
 	QStringList invalid_genes;
-	foreach (QByteArray gene, gene_set)
+    for (QByteArray gene : gene_set)
 	{
 		gene = gene.trimmed();
 		QByteArray approved_gene_name = NGSD().geneToApproved(gene, false);
@@ -1563,7 +1563,7 @@ QJsonObject ClinvarUploadDialog::createJson()
             //optional
             QJsonArray clinical_features;
             {
-                foreach (const Phenotype& phenotype, ui_.phenos->selectedPhenotypes())
+                for (const Phenotype& phenotype : ui_.phenos->selectedPhenotypes())
                 {
                     QJsonObject feature;
                     feature.insert("db", "HP");
@@ -1727,7 +1727,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 						QJsonArray genes;
 						{
 							GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(gene_string.replace(";", ",").split(',')));
-							foreach (const QByteArray& gene_name, gene_set)
+                            for (const QByteArray& gene_name : gene_set)
 							{
 								QJsonObject gene;
 								gene.insert("symbol", QString(gene_name));
@@ -2089,7 +2089,7 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
             QJsonArray variant_array = variant_set.value("variant").toArray();
             if (variant_array.size() > 0)
             {
-                foreach (const QJsonValue& variant, variant_array)
+                for (const QJsonValue& variant : variant_array)
                 {
 					VariantType type = VariantType::SNVS_INDELS;
 
@@ -2416,7 +2416,7 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 			QJsonArray variant_sets = compound_heterozygote_set.value("variantSets").toArray();
 			if (variant_sets.size() == 2)
 			{
-				foreach (QJsonValue variant_set_buffer, variant_sets)
+                for (const QJsonValue& variant_set_buffer : variant_sets)
 				{
 					QJsonObject variant_set_item = variant_set_buffer.toObject();
 					if (variant_set_item.contains("variantSet"))
@@ -2428,7 +2428,7 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 							QJsonArray variant_array = variant_set.value("variant").toArray();
 							if (variant_array.size() > 0)
 							{
-								foreach (const QJsonValue& variant, variant_array)
+                                for (const QJsonValue& variant : variant_array)
 								{
 									VariantType type = VariantType::SNVS_INDELS;
 

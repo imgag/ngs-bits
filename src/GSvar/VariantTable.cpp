@@ -133,14 +133,14 @@ void VariantTable::customContextMenu(QPoint pos)
 		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
 
 		//genes
-		foreach(const QByteArray& g, genes)
+        for (const QByteArray& g : genes)
 		{
 			sub_menu->addAction(g);
 		}
 		sub_menu->addSeparator();
 
 		//transcripts
-		foreach(const VariantTranscript& transcript, transcripts)
+        for (const VariantTranscript& transcript : transcripts)
 		{
 			if  (transcript.id!="" && transcript.hgvs_c!="")
 			{
@@ -179,11 +179,11 @@ void VariantTable::customContextMenu(QPoint pos)
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
 	//create links for each gene/disease
-	foreach(const QByteArray& g, genes)
+    for (const QByteArray& g : genes)
 	{
 		sub_menu->addAction(g + " AND \"mutation\"");
 		sub_menu->addAction(g + " AND \"variant\"");
-		foreach(const Phenotype& p, active_phenotypes_)
+        for (const Phenotype& p : active_phenotypes_)
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
 		}
@@ -197,12 +197,12 @@ void VariantTable::customContextMenu(QPoint pos)
 	if (!genes.isEmpty())
 	{
 		menu.addSeparator();
-		foreach(const QByteArray& g, genes)
+        for (const QByteArray& g : genes)
 		{
 			sub_menu = menu.addMenu(g);
 			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in);
 			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
-			foreach(const GeneDB& db, GeneInfoDBs::all())
+            for (const GeneDB& db : GeneInfoDBs::all())
 			{
 				sub_menu->addAction(db.icon, db.name);
 			}
@@ -347,7 +347,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		else if (text=="Google")
 		{
 			QString query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, active_phenotypes_)
+            for (const Phenotype& pheno : active_phenotypes_)
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -363,7 +363,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	else if (parent_menu && parent_menu->title()=="Custom")
 	{
 		QStringList custom_entries = Settings::string("custom_menu_small_variants", true).trimmed().split("\t");
-		foreach(QString custom_entry, custom_entries)
+        for (QString custom_entry : custom_entries)
 		{
 			QStringList parts = custom_entry.split("|");
 			if (parts.count()==2 && parts[0]==text)

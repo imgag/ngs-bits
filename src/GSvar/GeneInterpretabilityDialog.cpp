@@ -72,7 +72,7 @@ void GeneInterpretabilityDialog::calculate()
 
 		//calculate
 		row = 0;
-		foreach(QByteArray gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			//get relevant transcripts
 			QByteArray gene_approved = db.geneToApproved(gene);

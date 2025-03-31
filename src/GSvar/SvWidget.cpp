@@ -394,14 +394,14 @@ void SvWidget::applyFilters(bool debug_time)
 			NGSD db;
 			//convert phenotypes to genes
 			GeneSet pheno_genes;
-			foreach(const Phenotype& pheno, phenotypes)
+            for (const Phenotype& pheno : phenotypes)
 			{
 				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			BedFile pheno_roi;
-			foreach(const QByteArray& gene, pheno_genes)
+            for (const QByteArray& gene : pheno_genes)
 			{
 				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -440,7 +440,7 @@ void SvWidget::applyFilters(bool debug_time)
 						GeneSet sv_genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
 
 						bool match_found = false;
-						foreach(const QByteArray& sv_gene, sv_genes)
+                        for (const QByteArray& sv_gene : sv_genes)
 						{
                             if (reg.match(sv_gene).hasMatch())
 							{
@@ -1406,7 +1406,7 @@ void SvWidget::showContextMenu(QPoint pos)
 		else if (db_name=="Google")
 		{
 			QString query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, ui->filter_widget->phenotypes())
+            for (const Phenotype& pheno : ui->filter_widget->phenotypes())
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}

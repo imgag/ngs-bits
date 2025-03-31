@@ -190,7 +190,7 @@ void FilterWidget::checkGeneNames(const GeneSet& genes, QLineEdit* widget)
 
     QStringList errors;
 	NGSD db;
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		if (!db.approvedGeneNames().contains(gene))
 		{
@@ -510,7 +510,7 @@ void FilterWidget::phenotypesChanged()
 {
 	//update phenotype list
 	QByteArrayList tmp;
-	foreach(const Phenotype& pheno, phenotypes_)
+    for (const Phenotype& pheno : phenotypes_)
 	{
 		tmp << pheno.name();
 	}
@@ -521,14 +521,14 @@ void FilterWidget::phenotypesChanged()
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Selected HPO terms:</nobr>";
-		foreach(const Phenotype& pheno, phenotypes_)
+        for (const Phenotype& pheno : phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
 
 		tooltip += "<br><br><nobr>Selected phenotype-gene sources:</nobr>";
 		tooltip += "<br><nobr>";
-		foreach(const PhenotypeSource& s, phenotype_settings_.sources)
+        for (const PhenotypeSource& s : phenotype_settings_.sources)
 		{
 			tooltip += Phenotype::sourceToString(s) + ", ";
 		}

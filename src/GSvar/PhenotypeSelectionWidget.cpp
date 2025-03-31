@@ -84,7 +84,7 @@ void PhenotypeSelectionWidget::addParentsByContextMenu()
 	PhenotypeList parents = db.phenotypeParentTerms(pheno_id, false);
 
 	//add parents to selection
-	foreach(const Phenotype& parent, parents)
+    for (const Phenotype& parent : parents)
 	{
 		phenos_ << parent;
 	}
