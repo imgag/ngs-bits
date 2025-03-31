@@ -1092,7 +1092,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 
 			GeneSet var_genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 			bool match_found = false;
-            foreach(const QByteArray& var_gene, var_genes)
+            for (const QByteArray& var_gene : var_genes)
 			{
                 if (reg.match(var_gene).hasMatch())
 				{
@@ -5318,7 +5318,7 @@ bool FilterSpliceEffect::applySpliceAi_(const QByteArray& sai_anno, double min_s
 			QList<int> indices;
 			indices << 2 << 4;
 			if (!splice_site_only) indices << 1 << 3;
-			foreach(int i, indices)
+            for (const int& i : indices)
 			{
 				QString score = parts[i];
 				if (parts.count()!=9) THROW(ProgrammingException, "Invalid SpliceAI annotation - score with index "+QString::number(i)+" is not numeric: " + entry);

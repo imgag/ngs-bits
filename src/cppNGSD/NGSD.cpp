@@ -7196,7 +7196,7 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 {
 	BedFile output;
 
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		output.add(geneToRegions(gene, source, mode, fallback, annotate_transcript_names, messages));
 	}

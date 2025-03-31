@@ -291,7 +291,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			QStringList omim_parts = omim.append(" ").split("]; ");
             for (QString omim_part : omim_parts)
 			{
-				if (omim_part.count()<10) continue;
+                if (omim_part.size()<10) continue;
 				omim = "OMIM ID: " + omim_part.left(6) + " Details: " + omim_part.mid(8);
 			}
             stream << "<tr><td colspan=\"" << colspan << "\">" << omim << "</td></tr>" << QT_ENDL;
@@ -1310,7 +1310,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeStartElement("SvList");
 
 	QString caller = "Unknown";
-    for (const QByteArray header : data_.svs.headers())
+    for (const QByteArray& header : data_.svs.headers())
 	{
 		if (! header.startsWith("##cmdline=")) continue;
 
