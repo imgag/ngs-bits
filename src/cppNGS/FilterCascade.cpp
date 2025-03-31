@@ -842,7 +842,7 @@ FilterCascade FilterCascadeFile::load(QString filename, QString filter)
 	//extract text of filter
 	QStringList filter_text;
 	bool in_filter = false;
-	foreach(const QString& line, filter_file)
+    for (const QString& line : filter_file)
 	{
 		if (line.startsWith("#"))
 		{
@@ -874,7 +874,7 @@ QSharedPointer<FilterBase> FilterFactory::create(const QString& name, const QStr
 	QSharedPointer<FilterBase> filter = QSharedPointer<FilterBase>(registry[name]());
 
 	//set parameters
-	foreach(QString param, parameters)
+    for (const QString& param : parameters)
 	{
 		if (param=="disabled")
 		{
@@ -900,7 +900,7 @@ QStringList FilterFactory::filterNames(VariantType subject)
 	const auto& registry = getRegistry();
 	QStringList names = registry.keys();
 
-	foreach(const QString& name, names)
+    for (const QString& name : names)
 	{
 		QSharedPointer<FilterBase> filter = QSharedPointer<FilterBase>(registry[name]());
 		if (filter->type()!=subject)
@@ -1092,7 +1092,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 
 			GeneSet var_genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 			bool match_found = false;
-			foreach(const QByteArray& var_gene, var_genes)
+            for (const QByteArray& var_gene : var_genes)
 			{
                 if (reg.match(var_gene).hasMatch())
 				{
@@ -5309,7 +5309,7 @@ bool FilterSpliceEffect::applySpliceAi_(const QByteArray& sai_anno, double min_s
 
 		//new format - comma-speparated list of predictions, e.g. BABAM1|0.03|0.00|0.01|0.00|-2|2|41|2,CTD-2278I10.6|0.03|0.00|0.01|0.00|-2|2|41|2 (GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL)
 		 max_score = 0.0;
-		foreach(QByteArray entry, sai_anno.split(','))
+        for (const QByteArray& entry : sai_anno.split(','))
 		{
 			QByteArrayList parts = entry.split('|');
 			if (parts.count()!=9) THROW(ProgrammingException, "Invalid SpliceAI annotation - not 9 parts: " + entry);
@@ -5526,7 +5526,7 @@ void FilterVariantRNAAberrantSplicing::apply(const VariantList& variants, Filter
 
 		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
 		result.flags()[i] = false;
-		foreach (const QByteArray& fraction_string, fraction_strings)
+        for (const QByteArray& fraction_string : fraction_strings)
 		{
 			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
 
