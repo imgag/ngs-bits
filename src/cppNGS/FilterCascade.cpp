@@ -824,7 +824,7 @@ QStringList FilterCascadeFile::names(QString filename)
 {
 	QStringList output;
 
-	foreach(QString line, Helper::loadTextFile(filename, true, QChar::Null, true))
+    for (QString line : Helper::loadTextFile(filename, true, QChar::Null, true))
 	{
 		if (line.startsWith("#"))
 		{
@@ -3521,7 +3521,7 @@ void FilterCnvGeneOverlap::apply(const CnvList& cnvs, FilterResult& result) cons
 		{
 			int start = gene.indexOf('(');
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-			foreach(const QByteArray& term, term_entries)
+            for (const QByteArray& term : term_entries)
 			{
 				if (term.startsWith("region="))
 				{
@@ -3702,7 +3702,7 @@ void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) 
 		}
 
 		QSet<QString> genotypes_all;
-		foreach (int data_idx, format_data_indices)
+        for (int data_idx : format_data_indices)
 		{
 			QByteArrayList format_values = svs[i].annotations()[data_idx].split(':');
 
@@ -3784,7 +3784,7 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 		}
 
 		QSet<QString> genotypes_all;
-		foreach (int data_idx, format_data_indices)
+        for (int data_idx : format_data_indices)
 		{
 			QByteArrayList format_values = svs[i].annotations()[data_idx].split(':');
 
@@ -4268,11 +4268,11 @@ void FilterSvGeneConstraint::apply(const BedpeFile& svs, FilterResult& result) c
 		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
 		QByteArrayList gene_entries= svs[i].annotations()[i_gene_info].split(',');
 		bool any_gene_passed = false;
-		foreach(const QByteArray& gene, gene_entries)
+        for (const QByteArray& gene : gene_entries)
 		{
 			int start = gene.indexOf('(');
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-			foreach(const QByteArray& term, term_entries)
+            for (const QByteArray& term : term_entries)
 			{
 				if (term.startsWith("oe_lof="))
 				{
@@ -4332,11 +4332,11 @@ void FilterSvGeneOverlap::apply(const BedpeFile& svs, FilterResult& result) cons
 		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
 		QByteArrayList gene_entries = svs[i].annotations()[i_gene_info].split(',');
 		bool any_gene_passed = false;
-		foreach(const QByteArray& gene, gene_entries)
+        for (const QByteArray& gene : gene_entries)
 		{
 			int start = gene.indexOf('(');
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-			foreach(const QByteArray& term, term_entries)
+            for (const QByteArray& term : term_entries)
 			{
 				if (term.startsWith("region="))
 				{
@@ -4486,7 +4486,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 		if (!result.flags()[i]) continue;
 
 		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			gene_count[gene] += 1;
 		}
@@ -4518,7 +4518,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 			}
 		}
 
-		foreach(const QByteArray& gene, single_hit_sv)
+        for (const QByteArray& gene : single_hit_sv)
 		{
 			if (het_hit_genes_.contains(gene))
 			{
