@@ -139,8 +139,7 @@ public:
 
 				if (! unmapped.isNull())
 				{
-					unmapped->write("# " + e.message().toUtf8() + "\n");
-					unmapped->write(l.toString(false).toUtf8() + "\n");
+					unmapped->write(l.toString(false).toUtf8() +"\t#" + e.message().toUtf8() + "\n");
 				}
 			}
 		}
