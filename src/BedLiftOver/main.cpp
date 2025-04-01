@@ -80,8 +80,8 @@ public:
 		long long lifted_length = 0;
 
 		//write BedLiftOver header
-		QStringList from_to = getString("chain").split("_");
-		QString header_line = "#BedLiftOver: Lifted file '" + in + "' from " + from_to[0] + " to " + from_to[1] + "\n";
+
+		QString header_line = "#BedLiftOver: Lifted file using '" + chain + "' \n";
 		lifted->write(header_line.toUtf8());
 
 		while(! bed->atEnd())
@@ -148,7 +148,7 @@ public:
 		QTextStream out(stdout);
 		long long lifted_in_length = in_length - unlifted_in_length;
         out << "LiftOver Statistics:" << QT_ENDL;
-        out << "Input regions : " << in_count << QT_ENDL;
+		out << "Input regions : " << in_count << QT_ENDL;
         out << "lifted        : " << lifted_count << " (" << QString::number(100.0*lifted_count/in_count, 'f', 2) << "%)" << QT_ENDL;
         out << "unlifted      : " << unlifted_count << " (" << QString::number(100.0*unlifted_count/in_count, 'f', 2) << "%)" << QT_ENDL;
         out << QT_ENDL;
