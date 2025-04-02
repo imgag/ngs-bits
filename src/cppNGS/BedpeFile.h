@@ -294,8 +294,8 @@ public:
 	///Sorts Bedpe file (by columns chr1, start1, chr2, start2)
 	void sort();
 
-	///Stores file as TSV
-	void toTSV(QString file_name);
+	///Stores file
+	void store(QString file_name);
 
 	///Returns bedpe type according entry in file comments ##fileformat=
 	BedpeFileFormat format() const;

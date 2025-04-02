@@ -77,7 +77,7 @@ public:
 		}
 
 		// write output
-		bedpe_file.toTSV(out);
+		bedpe_file.store(out);
 
 	}
 

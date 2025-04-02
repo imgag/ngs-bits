@@ -592,7 +592,7 @@ QMap <QByteArray,QByteArray> BedpeFile::metaInfoDescriptionByID(const QByteArray
 	return out;
 }
 
-void BedpeFile::toTSV(QString file_name)
+void BedpeFile::store(QString file_name)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(file_name,false,false);
 	foreach(const QByteArray& comment, headers_)
@@ -609,7 +609,7 @@ void BedpeFile::toTSV(QString file_name)
 
 void BedpeFile::sort()
 {
-	std::sort(lines_.begin(),lines_.end());
+	std::sort(lines_.begin(), lines_.end());
 }
 
 
