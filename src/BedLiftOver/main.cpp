@@ -27,6 +27,7 @@ public:
 		addInt("max_deletion", "Allowed percentage of deleted/unmapped bases in each region.", true, 5);
 		addInt("max_increase", "Allowed percentage size increase of a region.", true, 10);
 		addFlag("remove_special_chr", "Removes regions that are mapped to special chromosomes.");
+		addFlag("merged_output", "Output lifted and unlifted regions in the output file, keeping the order of the input regions.");
 
 		changeLog(2022,  02, 14, "First implementation");
 	}
@@ -40,6 +41,7 @@ public:
 		int max_inc = getInt("max_increase");
 		int max_del = getInt("max_deletion");
 		bool remove_special_chr = getFlag("remove_special_chr");
+		bool merged_output = getFlag("merged_output");
 
 
 		if (! QFile(chain).exists() && ! chain.contains('\\') && ! chain.contains('/'))
@@ -64,10 +66,20 @@ public:
 		QSharedPointer<QFile> lifted = Helper::openFileForWriting(lifted_path, true);
 
 		QString unmapped_path = getOutfile("unmapped");
+		if (merged_output && unmapped_path != "")
+		{
+			THROW(ArgumentException, "Flag 'merged_output' and 'unmapped' outfile cannot be given together. With Flag 'merged_output' all regions are reported in 'out' outfile.");
+		}
+
 		QSharedPointer<QFile> unmapped;
 		if (unmapped_path != "")
 		{
 			unmapped = Helper::openFileForWriting(unmapped_path, true);
+		}
+
+		if (merged_output)
+		{
+			unmapped = lifted;
 		}
 
 		//for statistics:
@@ -139,7 +151,7 @@ public:
 
 				if (! unmapped.isNull())
 				{
-					unmapped->write(l.toString(false).toUtf8() +"\t#" + e.message().toUtf8() + "\n");
+					unmapped->write(l.toString(false).toUtf8() +"\t#Error: " + e.message().toUtf8() + "\n");
 				}
 			}
 		}

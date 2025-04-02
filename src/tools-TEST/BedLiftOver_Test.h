@@ -108,4 +108,11 @@ private slots:
 		EXECUTE("BedLiftOver", "-in " + TESTDATA("../cppNGS-TEST/data_in/ChainFileReader_in2.bed") + " -chain hg19_hg38 -out out/BedLiftOver_out5_lifted.bed -unmapped out/BedLiftOver_out5_unmapped.bed");
 
 	}
+
+	void test_merged_output()
+	{
+		EXECUTE("BedLiftOver", "-in " + TESTDATA("../cppNGS-TEST/data_in/ChainFileReader_in1.bed") + " -chain hg38_hg19 -out out/BedLiftOver_out6_lifted.bed -merged_output -max_deletion 5 -max_increase 9999");
+		REMOVE_LINES("out/BedLiftOver_out6_lifted.bed", QRegularExpression("^#"));
+		COMPARE_FILES("out/BedLiftOver_out6_lifted.bed", TESTDATA("data_out/BedLiftOver_out6_lifted.bed"));
+	}
 };
