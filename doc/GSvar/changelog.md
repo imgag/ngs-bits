@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2025_03-13 (28.03.25)
+
+- small variants: fixed crash in Google search from variant context menu
+
 ## 2025_03-4 (19.03.25)
 
 - germline report: added sequencing run date

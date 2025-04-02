@@ -442,8 +442,6 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 	if(line_a.samples == line_b.samples || mate_missing) out.samples = line_a.samples;
 	else out.samples = {"AMBIGUOUS"};
 
-
-
 	QChar orientation1 = '.';
 	QChar orientation2 = '.';
 

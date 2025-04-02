@@ -231,7 +231,10 @@ QByteArray BedpeLine::genotype(const QList<QByteArray>& annotation_headers, bool
 	QByteArrayList values = annotations_[sample_idx].split(':');
 	if (keys.size() != values.size())
 	{
-		THROW(ArgumentException, "Format and value column differ in length!");
+		qDebug() << toString(true);
+		qDebug() << keys;
+		qDebug() << values;
+		THROW(ArgumentException, "Format and value column differ in length in BedpeLine::genotype!");
 	}
 
 	//get value for the given key
@@ -264,7 +267,7 @@ void BedpeLine::setGenotype(const QList<QByteArray>& annotation_headers, QByteAr
 	QByteArrayList values = annotations_[sample_idx].split(':');
 	if (keys.size() != values.size())
 	{
-		THROW(ArgumentException, "Format and value column differ in length!");
+		THROW(ArgumentException, "Format and value column differ in length in BedpeLine::setGenotype!");
 	}
 
 	//get value for the given key
@@ -388,6 +391,9 @@ void BedpeFile::load(const QString& file_name)
 	//clear
 	clear();
 
+	//filename
+	filename_ = file_name;
+
 	//header
 	TSVFileStream file(file_name);
 	parseHeader(file);
@@ -415,6 +421,9 @@ void BedpeFile::loadHeaderOnly(const QString& file_name)
 {
 	//clear
 	clear();
+
+	//filename
+	filename_ = file_name;
 
 	//header
 	TSVFileStream file(file_name);
@@ -632,19 +641,90 @@ bool BedpeFile::isSomatic() const
 
 QByteArray BedpeFile::build()
 {
-	//parse header line, e.g. "##reference=file:///tmp/local_ngs_data/GRCh37.fa"
+	//Manta format   : ##reference=file:///tmp/local_ngs_data/GRCh37.fa
+	//DRAGEN format  : ##reference=file:///usr/local/illumina/install/genomes/GRCh38/DRAGEN/10
+	//Sniffles format: ##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
 	foreach(const QByteArray& line, headers_)
 	{
 		if (line.startsWith("##reference="))
 		{
-			QByteArray genome = line.split('=').last();
-			genome = genome.split('/').last();
-			genome = genome.split('.').first();
-			return genome;
+			QByteArrayList parts = line.split('/');
+			if (line.contains("/DRAGEN/"))
+			{
+				return parts[parts.count()-3];
+			}
+			else
+			{
+				return parts.last().split('.').first();
+			}
 		}
 	}
 
 	return "";
+}
+
+QByteArray BedpeFile::caller()
+{
+	//Manta format   : ##source=GenerateSVCandidates 1.6.0
+	//DRAGEN format  : ##source=DRAGEN_SV
+	//Sniffles format: ##source=Sniffles2_2.0.7
+	foreach(const QByteArray& line, headers_)
+	{
+		if (line.startsWith("##source=GenerateSVCandidates"))
+		{
+			return "Manta";
+		}
+		else if (line.startsWith("##source=Sniffles"))
+		{
+			return "Sniffles";
+		}
+		else if (line.startsWith("##source=DRAGEN_SV"))
+		{
+			return "DRAGEN";
+		}
+	}
+
+	THROW(FileParseException, "Could not determine caller from " + filename_);
+}
+
+QByteArray BedpeFile::callerVersion()
+{
+	//Manta format   : ##source=GenerateSVCandidates 1.6.0
+	//DRAGEN format  : ##DRAGENVersion=<ID=dragen,Version="SW: 4.3.16, HW: 10.131.732">
+	//Sniffles format: ##source=Sniffles2_2.0.7
+	foreach(const QByteArray& line, headers_)
+	{
+		if (line.startsWith("##source=GenerateSVCandidates "))
+		{
+			return line.trimmed().split(' ')[1];
+		}
+		else if (line.startsWith("##source=Sniffles2_"))
+		{
+			return line.trimmed().split('_')[1];
+		}
+		else if (line.startsWith("##DRAGENVersion="))
+		{
+			int i1 = line.indexOf("SW:")+3;
+			int i2 = line.indexOf(",", i1);
+			return line.mid(i1, i2-i1).trimmed();
+		}
+	}
+
+	THROW(FileParseException, "Could not determine caller version from " + filename_);
+}
+
+QDate BedpeFile::callingDate()
+{
+	//Manta/DRAGEN/Sniffles format: ##fileDate=20240127
+	foreach(const QByteArray& line, headers_)
+	{
+		if (line.startsWith("##fileDate="))
+		{
+			return QDate::fromString(line.split('=')[1].trimmed(), "yyyyMMdd");
+		}
+	}
+
+	THROW(FileParseException, "Could not determine calling date from " + filename_);
 }
 
 

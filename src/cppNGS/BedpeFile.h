@@ -227,6 +227,12 @@ public:
 
 	///Returns the genome build from the header or an empty string if it could not be determined.
 	QByteArray build();
+	///Returns the variant caller. Throws an exception if it could not be determined.
+	QByteArray caller();
+	///Returns the variant caller version. Throws an exception if it could not be determined.
+	QByteArray callerVersion();
+	///Returns the variant calling date. Throws an exception if it could not be determined.
+	QDate callingDate();
 
 	///Read-only access to members
 	const BedpeLine& operator[](int index) const
@@ -313,6 +319,7 @@ public:
 	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true, bool compare_ci=true) const;
 
 private:
+	QString filename_;
 	void parseHeader(const TSVFileStream& stream);
     void parseSampleHeaderInfo();
 	QList<QByteArray> annotation_headers_;
