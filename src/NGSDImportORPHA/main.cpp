@@ -41,32 +41,32 @@ public:
 		xml.readNextStartElement(); //root element JDBOR
 		while (xml.readNextStartElement())
 		{
-			if (xml.name()=="DisorderList")
+            if (xml.name().toString()=="DisorderList")
 			{
 				while (xml.readNextStartElement())
 				{
-					if (xml.name()=="Disorder")
+                    if (xml.name().toString()=="Disorder")
 					{
 						QString number;
 						while (xml.readNextStartElement())
 						{
-							if (xml.name()=="OrphaCode")
+                            if (xml.name().toString()=="OrphaCode")
 							{
 								number = "ORPHA:" + xml.readElementText();
 							}
-							else if (xml.name()=="DisorderGeneAssociationList")
+                            else if (xml.name().toString()=="DisorderGeneAssociationList")
 							{
 								while (xml.readNextStartElement())
 								{
-									if (xml.name()=="DisorderGeneAssociation")
+                                    if (xml.name().toString()=="DisorderGeneAssociation")
 									{
 										while (xml.readNextStartElement())
 										{
-											if (xml.name()=="Gene")
+                                            if (xml.name().toString()=="Gene")
 											{
 												while (xml.readNextStartElement())
 												{
-													if (xml.name()=="Symbol")
+                                                    if (xml.name().toString()=="Symbol")
 													{
 														QByteArray gene = xml.readElementText().toUtf8();
 														gene = db.geneToApproved(gene, true);
@@ -148,11 +148,11 @@ public:
 			xml.readNextStartElement(); //root element JDBOR
 			while (xml.readNextStartElement())
 			{
-				if (xml.name()=="DisorderList")
+                if (xml.name().toString()=="DisorderList")
 				{
 					while (xml.readNextStartElement())
 					{
-						if (xml.name()=="Disorder")
+                        if (xml.name().toString()=="Disorder")
 						{
 							//parse disease entry
 							QString number;
@@ -162,34 +162,34 @@ public:
 							bool skip = false;
 							while (xml.readNextStartElement())
 							{
-								if (xml.name()=="OrphaCode")
+                                if (xml.name().toString()=="OrphaCode")
 								{
 									number = "ORPHA:" + xml.readElementText();
 								}
-								else if (xml.name()=="Name")
+                                else if (xml.name().toString()=="Name")
 								{
 									name = xml.readElementText();
 								}
-								else if (xml.name()=="SynonymList")
+                                else if (xml.name().toString()=="SynonymList")
 								{
 									while (xml.readNextStartElement())
 									{
-										if (xml.name()=="Synonym")
+                                        if (xml.name().toString()=="Synonym")
 										{
 											synonyms << xml.readElementText();
 										}
 										else xml.skipCurrentElement();
 									}
 								}
-								else if (xml.name()=="DisorderFlagList")
+                                else if (xml.name().toString()=="DisorderFlagList")
 								{
 									while (xml.readNextStartElement())
 									{
-										if (xml.name()=="DisorderFlag")
+                                        if (xml.name().toString()=="DisorderFlag")
 										{
 											while (xml.readNextStartElement())
 											{
-												if (xml.name()=="Label")
+                                                if (xml.name().toString()=="Label")
 												{
 													QString flag = xml.readElementText();
 													if (flag=="Obsolete entity" || flag=="offline")
@@ -203,11 +203,11 @@ public:
 										else xml.skipCurrentElement();
 									}
 								}
-								else if (xml.name()=="DisorderType")
+                                else if (xml.name().toString()=="DisorderType")
 								{
 									while (xml.readNextStartElement())
 									{
-										if (xml.name()=="Name")
+                                        if (xml.name().toString()=="Name")
 										{
 											types << xml.readElementText();
 										}
@@ -230,7 +230,7 @@ public:
 								//insert disease-gene relation
 								if (disease_genes.contains(number))
 								{
-									foreach(const QByteArray& gene, disease_genes[number])
+                                    for (const QByteArray& gene : disease_genes[number])
 									{
 										qi_gene.bindValue(0, id);
 										qi_gene.bindValue(1, gene);

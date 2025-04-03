@@ -64,7 +64,7 @@ int ChunkProcessor::base_to_int(char base)
 bool ChunkProcessor::get_seqs(const Variant& variant, int slice_start, int length, bool is_minus_strand, Sequence& ref_seq, Sequence& alt_seq)
 {
 	//get ref sequence
-	ref_seq = reference_.seq(variant.chr(), slice_start, length + variant.ref().count() - 1);
+    ref_seq = reference_.seq(variant.chr(), slice_start, length + variant.ref().size() - 1);
 
 	//check that ref sequence contains only valid bases
 	if (!ref_seq.onlyACGT()) return false;

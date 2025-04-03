@@ -94,7 +94,7 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 		auto dlg = GUIHelper::createDialog(selector, "Select HPO term(s)", "", true);
 		if (dlg->exec()!=QDialog::Accepted) return;
 
-		foreach(const Phenotype& pheno, selector->selectedPhenotypes())
+        for (const Phenotype& pheno : selector->selectedPhenotypes())
 		{
 			tmp.disease_info = pheno.accession();
 			disease_info_ <<  tmp;

@@ -8,12 +8,16 @@
 #include "BedFile.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-
-#include <QChartView>
 #include <QMenu>
 #include <QMessageBox>
 #include <QTime>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QtCharts/QChartView>
+#else
+#include <QChartView>
 QT_CHARTS_USE_NAMESPACE
+#endif
 
 ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
 										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QWidget* parent):
@@ -245,7 +249,7 @@ void ExpressionExonWidget::applyFilters()
 							GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8(), ',');
 
 							bool match_found = false;
-							foreach(const QByteArray& sv_gene, sv_genes)
+                            for (const QByteArray& sv_gene : sv_genes)
 							{
                                 if (reg.match(sv_gene).hasMatch())
 								{

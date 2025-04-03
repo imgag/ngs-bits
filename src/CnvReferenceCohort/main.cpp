@@ -47,9 +47,9 @@ public:
 	QByteArray sampleName(QString filename)
 	{
 		QString output = QFileInfo(filename).fileName();
-		if (output.endsWith(".gz", Qt::CaseInsensitive)) output = output.left(output.count()-3);
-		if (output.endsWith(".bed", Qt::CaseInsensitive)) output = output.left(output.count()-4);
-		if (output.endsWith(".cov", Qt::CaseInsensitive)) output = output.left(output.count()-4);
+        if (output.endsWith(".gz", Qt::CaseInsensitive)) output = output.left(output.size()-3);
+        if (output.endsWith(".bed", Qt::CaseInsensitive)) output = output.left(output.size()-4);
+        if (output.endsWith(".cov", Qt::CaseInsensitive)) output = output.left(output.size()-4);
 		return output.toUtf8();
 	}
 

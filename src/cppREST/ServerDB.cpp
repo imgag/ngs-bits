@@ -88,7 +88,8 @@ void ServerDB::initDbIfEmpty()
     QList<QString> filedb_tables = QList<QString>() << client_info_table << user_notification << sessions_table << urls_table << file_locations_table;
     for(int i = 0; i < filedb_tables.size(); i++)
     {
-        QSqlQuery query = db_->exec(filedb_tables[i]);
+        QSqlQuery query(*(db_.data()));
+        query.exec(filedb_tables[i]);
         bool success = query.lastError().text().trimmed().isEmpty();
 
         if(!success)
@@ -104,7 +105,8 @@ void ServerDB::reinitializeDb()
     QList<QString> table_name_list = QList<QString>() << "client_info" << "user_notification" << "sessions" << "urls" << "file_locations";
     for(int i = 0; i < table_name_list.size(); i++)
     {
-        QSqlQuery query = db_->exec("DROP TABLE IF EXISTS " + table_name_list[i]);
+        QSqlQuery query(*(db_.data()));
+        query.exec("DROP TABLE IF EXISTS " + table_name_list[i]);
         bool success = query.lastError().text().trimmed().isEmpty();
 
         if(!success)
@@ -118,7 +120,8 @@ void ServerDB::reinitializeDb()
 bool ServerDB::addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time, const bool is_for_db_only)
 {
     qint64 login_time_as_num = login_time.toSecsSinceEpoch();
-    QSqlQuery query = db_->exec("INSERT INTO sessions (string_id, user_id, user_login, user_name, login_time, is_for_db_only)"
+    QSqlQuery query(*(db_.data()));
+    query.exec("INSERT INTO sessions (string_id, user_id, user_login, user_name, login_time, is_for_db_only)"
                                                        " VALUES (\""+string_id+"\", " + QString::number(user_id) + ", \"" + user_login + "\", \"" + user_name + "\", " + QString::number(login_time_as_num) + ", " + QString::number(is_for_db_only) + ")");
     bool success = query.lastError().text().trimmed().isEmpty();
 
@@ -163,7 +166,8 @@ bool ServerDB::addSessions(const QList<Session> all_sessions)
         query_text = query_text.left(query_text.size()-1);
 
         Log::info("Processed session count: " + QString::number(processed_items));
-        QSqlQuery query = db_->exec(query_text);
+        QSqlQuery query(*(db_.data()));
+        query.exec(query_text);
         bool success = query.lastError().text().trimmed().isEmpty();
 
         if(!success)
@@ -178,7 +182,8 @@ bool ServerDB::addSessions(const QList<Session> all_sessions)
 
 bool ServerDB::removeSession(const QString& string_id)
 {
-    QSqlQuery query = db_->exec("DELETE FROM sessions WHERE string_id = \"" + string_id + "\"");
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM sessions WHERE string_id = \"" + string_id + "\"");
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -191,7 +196,8 @@ bool ServerDB::removeSession(const QString& string_id)
 bool ServerDB::wipeSessions()
 {
     Log::info("Removing current backup for sessions");
-    QSqlQuery query = db_->exec("DELETE FROM sessions");
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM sessions");
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -203,7 +209,8 @@ bool ServerDB::wipeSessions()
 
 bool ServerDB::removeSessionsOlderThan(qint64 seconds)
 {
-    QSqlQuery query = db_->exec("DELETE FROM sessions WHERE login_time < " + QString::number(seconds));
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM sessions WHERE login_time < " + QString::number(seconds));
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -215,7 +222,8 @@ bool ServerDB::removeSessionsOlderThan(qint64 seconds)
 
 Session ServerDB::getSession(const QString& string_id)
 {
-    QSqlQuery query = db_->exec("SELECT * FROM sessions WHERE string_id = \"" + string_id + "\"");
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT * FROM sessions WHERE string_id = \"" + string_id + "\"");
 
     if (query.next())
     {
@@ -242,7 +250,8 @@ QList<Session> ServerDB::getAllSessions()
 {
     QList<Session> results;
 
-    QSqlQuery query = db_->exec("SELECT * FROM sessions");
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT * FROM sessions");
     while (query.next())
     {
         int index_string_id = query.record().indexOf("string_id");
@@ -269,7 +278,8 @@ QList<Session> ServerDB::getAllSessions()
 
 int ServerDB::getSessionsCount()
 {
-    QSqlQuery query = db_->exec("SELECT COUNT(*) FROM sessions");
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT COUNT(*) FROM sessions");
     if (query.next())
     {
         return query.value(0).toInt();
@@ -282,7 +292,8 @@ bool ServerDB::addUrl(const QString string_id, const QString filename, const QSt
     qint64 created_as_num = created.toSecsSinceEpoch();
     QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created)"
                          " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " +  QString::number(size) + ", " + QString::number(static_cast<int>(file_exists)) + ", " + QString::number(created_as_num) + ")";
-    QSqlQuery query = db_->exec(query_text);
+    QSqlQuery query(*(db_.data()));
+    query.exec(query_text);
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
     {
@@ -325,7 +336,8 @@ bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
         query_text = query_text.left(query_text.size()-1);
 
         Log::info("Processed URL count: " + QString::number(processed_items));
-        QSqlQuery query = db_->exec(query_text);
+        QSqlQuery query(*(db_.data()));
+        query.exec(query_text);
         bool success = query.lastError().text().trimmed().isEmpty();
 
         if(!success)
@@ -339,7 +351,8 @@ bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
 
 bool ServerDB::removeUrl(const QString& string_id)
 {
-    QSqlQuery query = db_->exec("DELETE FROM urls WHERE string_id = \"" + string_id + "\"");
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM urls WHERE string_id = \"" + string_id + "\"");
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
     {
@@ -351,7 +364,8 @@ bool ServerDB::removeUrl(const QString& string_id)
 bool ServerDB::wipeUrls()
 {
     Log::info("Removing current backup for URLs");
-    QSqlQuery query = db_->exec("DELETE FROM urls");
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM urls");
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
     {
@@ -362,7 +376,8 @@ bool ServerDB::wipeUrls()
 
 bool ServerDB::removeUrlsOlderThan(qint64 seconds)
 {
-    QSqlQuery query = db_->exec("DELETE FROM urls WHERE created < " + QString::number(seconds));
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM urls WHERE created < " + QString::number(seconds));
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -374,8 +389,9 @@ bool ServerDB::removeUrlsOlderThan(qint64 seconds)
 
 bool ServerDB::isFileInStoreAlready(const QString& filename_with_path)
 {
-    QSqlQuery cur_query = db_->exec("SELECT * FROM urls WHERE filename_with_path = \"" + filename_with_path + "\"");
-    if (cur_query.next())
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT * FROM urls WHERE filename_with_path = \"" + filename_with_path + "\"");
+    if (query.next())
     {
         return true;
     }
@@ -384,7 +400,8 @@ bool ServerDB::isFileInStoreAlready(const QString& filename_with_path)
 
 UrlEntity ServerDB::getUrl(const QString& string_id)
 {
-    QSqlQuery query = db_->exec("SELECT * FROM urls WHERE string_id = \"" + string_id + "\"");
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT * FROM urls WHERE string_id = \"" + string_id + "\"");
 
     if (query.next())
     {
@@ -415,7 +432,8 @@ UrlEntity ServerDB::getUrl(const QString& string_id)
 QList<UrlEntity> ServerDB::getAllUrls()
 {
     QList<UrlEntity> results;
-    QSqlQuery query = db_->exec("SELECT * FROM urls");
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT * FROM urls");
 
     while (query.next())
     {
@@ -447,7 +465,8 @@ QList<UrlEntity> ServerDB::getAllUrls()
 
 int ServerDB::getUrlsCount()
 {
-    QSqlQuery query = db_->exec("SELECT COUNT(*) FROM urls");
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT COUNT(*) FROM urls");
     if (query.next())
     {
         return query.value(0).toInt();
@@ -460,7 +479,8 @@ bool ServerDB::addFileLocation(const QString filename_with_path, const QString t
     qint64 requested_as_num = requested.toSecsSinceEpoch();
     QString json_string = json_content.replace("'", "''");
     json_string = json_string.replace("\"", "\\\"");
-    QSqlQuery query = db_->exec("INSERT INTO file_locations (filename_with_path, type, locus, multiple_files, return_if_missing, json_content, requested)"
+    QSqlQuery query(*(db_.data()));
+    query.exec("INSERT INTO file_locations (filename_with_path, type, locus, multiple_files, return_if_missing, json_content, requested)"
                                 " VALUES (\"" + filename_with_path + "\", \"" + type + "\", \"" + locus + "\", " + QString::number(static_cast<int>(multiple_files)) + ", " + QString::number(static_cast<int>(return_if_missing)) + ", \"" + json_string + "\", " + QString::number(requested_as_num) + ")");
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
@@ -473,7 +493,8 @@ bool ServerDB::addFileLocation(const QString filename_with_path, const QString t
 
 bool ServerDB::removeFileLocation(const QString& id)
 {
-    QSqlQuery query = db_->exec("DELETE FROM file_locations WHERE id = \"" + id + "\"");
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM file_locations WHERE id = \"" + id + "\"");
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
     {
@@ -485,7 +506,8 @@ bool ServerDB::removeFileLocation(const QString& id)
 bool ServerDB::wipeFileLocations()
 {
     Log::info("Removing current backup for FileLocations");
-    QSqlQuery query = db_->exec("DELETE FROM file_locations");
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM file_locations");
     bool success = query.lastError().text().trimmed().isEmpty();
     if(!success)
     {
@@ -496,7 +518,8 @@ bool ServerDB::wipeFileLocations()
 
 bool ServerDB::removeFileLocationsOlderThan(qint64 seconds)
 {
-    QSqlQuery query = db_->exec("DELETE FROM file_locations WHERE requested < " + QString::number(seconds));
+    QSqlQuery query(*(db_.data()));
+    query.exec("DELETE FROM file_locations WHERE requested < " + QString::number(seconds));
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -507,8 +530,9 @@ bool ServerDB::removeFileLocationsOlderThan(qint64 seconds)
 }
 
 QJsonDocument ServerDB::getFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing)
-{    
-    QSqlQuery query = db_->exec("SELECT * FROM file_locations WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
+{
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT * FROM file_locations WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
     if (query.next())
     {
         int index_json_content = query.record().indexOf("json_content");      
@@ -519,7 +543,8 @@ QJsonDocument ServerDB::getFileLocation(const QString filename_with_path, const 
 
 bool ServerDB::hasFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing)
 {
-    QSqlQuery query = db_->exec("SELECT * FROM file_locations WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT * FROM file_locations WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
     if (query.next())
     {
         return true;
@@ -530,12 +555,14 @@ bool ServerDB::hasFileLocation(const QString filename_with_path, const QString t
 
 void ServerDB::updateFileLocation(const QString filename_with_path, const QString type, const QString locus, const bool multiple_files, const bool return_if_missing)
 {
-    db_->exec("UPDATE file_locations SET requested="+QString::number(QDateTime::currentDateTime().toSecsSinceEpoch())+" WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
+    QSqlQuery query(*(db_.data()));
+    query.exec("UPDATE file_locations SET requested="+QString::number(QDateTime::currentDateTime().toSecsSinceEpoch())+" WHERE (filename_with_path = \"" + filename_with_path + "\" AND type = \"" + type + "\" AND locus = \"" + locus + "\" AND multiple_files=" + QString::number(static_cast<int>(multiple_files)) + " AND return_if_missing=" + QString::number(static_cast<int>(return_if_missing)) + ")");
 }
 
 int ServerDB::getFileLocationsCount()
 {
-    QSqlQuery query = db_->exec("SELECT COUNT(*) FROM file_locations");
+    QSqlQuery query(*(db_.data()));
+    query.exec("SELECT COUNT(*) FROM file_locations");
     if (query.next())
     {
         return query.value(0).toInt();

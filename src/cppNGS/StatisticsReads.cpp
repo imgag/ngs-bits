@@ -37,7 +37,7 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 	}
 
 	//check number of cycles
-	int cycles = entry.bases.count();
+    int cycles = entry.bases.size();
     bases_sequenced_ += cycles;
 	read_lengths_[cycles]++;
 	if (cycles>pileups_.size())

@@ -71,7 +71,7 @@ private slots:
 	void lengthOf()
 	{
 		FastaFileIndex index(TESTDATA("data_in/example.fa"));
-		S_EQUAL(index.lengthOf("chr14"), 1509);
+        I_EQUAL(index.lengthOf("chr14"), 1509);
 	}
 
 	void names()

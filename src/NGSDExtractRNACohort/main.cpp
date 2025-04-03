@@ -130,7 +130,7 @@ public:
 		output_stream << ps_names.join("\t") << "\n";
 
 		//iterate over gene list
-		foreach (const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			QVector<double> expression_values = db.getGeneExpressionValues(gene, cohort);
 			QByteArrayList expression_values_str;

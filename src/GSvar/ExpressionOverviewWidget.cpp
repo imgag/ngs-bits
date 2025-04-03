@@ -141,7 +141,7 @@ void ExpressionOverviewWidget::phenotypesChanged()
 {
 	//update GUI
 	QByteArrayList tmp;
-	foreach(const Phenotype& pheno, phenotypes_)
+    for (const Phenotype& pheno : phenotypes_)
 	{
 		tmp << pheno.name();
 	}
@@ -153,7 +153,7 @@ void ExpressionOverviewWidget::phenotypesChanged()
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
-		foreach(const Phenotype& pheno, phenotypes_)
+        for (const Phenotype& pheno : phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
@@ -243,14 +243,14 @@ void ExpressionOverviewWidget::showExpressionData()
 
 		//get processed sample IDs for each processing system and tissue
 		QMap<QPair<QString, QString>, ExpressioData> expression;
-		foreach (const QString& tissue, selected_tissues)
+        for (const QString& tissue : selected_tissues)
 		{
 			QSet<int> current_cohort = db.getRNACohort(sys_id, tissue);
 
 			// skip columns with no samples
 			if(current_cohort.size() == 0) continue;
 
-			foreach (const QByteArray& gene, gene_set)
+            for (const QByteArray& gene : gene_set)
 			{
 				//get expression data for each gene
 				QVector<double> tpm_values = db.getGeneExpressionValues(gene, current_cohort);
@@ -262,7 +262,7 @@ void ExpressionOverviewWidget::showExpressionData()
 					data.tpm_stdev = BasicStatistics::stdev(tpm_values, data.tpm_mean);
 
 					int n_tpm01=0, n_tpm1=0;
-					foreach (double tpm, tpm_values)
+                    for (double tpm : tpm_values)
 					{
 						if(tpm >= 0.1)
 						{
@@ -305,12 +305,12 @@ void ExpressionOverviewWidget::showExpressionData()
 
 		// fill table
 		int row_idx = 0;
-		foreach (const QString& gene, gene_set)
+        for (const QString gene : gene_set)
 		{
 			col_idx = 0;
 			ui_->tw_expression->setItem(row_idx, col_idx++, new QTableWidgetItem(gene));
 
-			foreach (auto tissue, selected_tissues)
+            for (auto tissue : selected_tissues)
 			{
 				if(expression.contains(QPair<QString, QString>(tissue, gene)))
 				{
@@ -357,7 +357,7 @@ void ExpressionOverviewWidget::applyGeneFilter()
 		//get genes from phenotype filter
 		if (phenotypes_.count() > 0)
 		{
-			foreach (const Phenotype& phenotype, phenotypes_)
+            for (const Phenotype& phenotype : phenotypes_)
 			{
 				genes << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
 			}

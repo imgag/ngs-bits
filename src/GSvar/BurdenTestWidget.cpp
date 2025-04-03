@@ -548,7 +548,7 @@ void BurdenTestWidget::validateInputData()
 		QVBoxLayout* v_layout = new QVBoxLayout(view);
 		v_layout->addWidget(new QLabel(warnings.join("<br>")));
 		v_layout->setSpacing(3);
-		v_layout->setMargin(0);
+        v_layout->setContentsMargins(0, 0, 0, 0);
 		if(warning_table.size() > 0)
 		{
 			QPushButton* bt_copy_table = new QPushButton(QIcon(":/Icons/CopyClipboard.png"), "");
@@ -558,7 +558,7 @@ void BurdenTestWidget::validateInputData()
 			QVBoxLayout* h_layout = new QVBoxLayout(h_view);
 			h_layout->addWidget(bt_copy_table);
 			h_layout->addSpacerItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Fixed));
-			h_layout->setMargin(0);
+            h_layout->setContentsMargins(0, 0, 0, 0);
 			v_layout->addWidget(tw_warnings_);
 			v_layout->addWidget(h_view);
 		}
@@ -951,7 +951,7 @@ void BurdenTestWidget::performBurdenTest()
 
 	// get genes
 	QList<int> gene_ids;
-	foreach (QByteArray gene, selected_genes_)
+    for (QByteArray gene : selected_genes_)
 	{
 		gene_ids << db_.geneId(gene);
 	}
@@ -965,7 +965,7 @@ void BurdenTestWidget::performBurdenTest()
 		//get callset ids for each processed sample
 		SqlQuery cnv_callset_query = db_.getQuery();
 		cnv_callset_query.prepare("SELECT id, quality_metrics FROM cnv_callset WHERE processed_sample_id=:0");
-		foreach (int ps_id, case_samples_)
+        for (int ps_id : case_samples_)
 		{
 			//get sample type
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
@@ -1256,7 +1256,7 @@ void BurdenTestWidget::validateCCRGenes()
 	if(!ui_->cb_only_ccr->isChecked()) return;
 
 	GeneSet unsupported_genes;
-	foreach(const QByteArray& gene, selected_genes_)
+    for (const QByteArray& gene : selected_genes_)
 	{
 		if(!ccr_genes_.contains(gene))
 		{

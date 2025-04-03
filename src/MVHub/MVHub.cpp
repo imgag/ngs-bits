@@ -309,9 +309,9 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 			if (!object.contains("type")) continue;
 			if (object["type"].toString()!="permit") continue;
 
-			foreach(QJsonValue v, object["code"].toArray())
+            for (const QJsonValue& v : object["code"].toArray())
 			{
-				foreach(QJsonValue v2, v.toObject()["coding"].toArray())
+                for (const QJsonValue& v2 : v.toObject()["coding"].toArray())
 				{
 					allowed << v2.toObject()["display"].toString().toLatin1();
 				}

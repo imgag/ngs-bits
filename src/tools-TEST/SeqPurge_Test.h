@@ -23,7 +23,7 @@ void fastqStatistics(QString fastq, QString out)
 		stream.readEntry(e);
 
 		//read data
-		int length = e.bases.count();
+        int length = e.bases.size();
 		reads += 1;
 		if (!read_len.contains(length)) read_len.insert(length, 0);
 		read_len[length] += 1;

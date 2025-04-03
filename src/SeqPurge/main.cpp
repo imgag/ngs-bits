@@ -69,10 +69,10 @@ public:
 		params.summary = getOutfile("summary");
 		if (params.files_in1.count()!=params.files_in2.count()) THROW(CommandLineParsingException, "Input file lists 'in1' and 'in2' differ in counts!");
 		params.a1 = getString("a1").trimmed().toUtf8();
-		if (params.a1.count()<15) THROW(CommandLineParsingException, "Forward adapter " + params.a1 + " too short!");
+        if (params.a1.size()<15) THROW(CommandLineParsingException, "Forward adapter " + params.a1 + " too short!");
 		params.a2 = getString("a2").trimmed().toUtf8();
-		if (params.a2.count()<15) THROW(CommandLineParsingException, "Reverse adapter " + params.a2 + " too short!");
-		params.a_size = std::min(20, std::min(params.a1.count(), params.a2.count()));
+        if (params.a2.size()<15) THROW(CommandLineParsingException, "Reverse adapter " + params.a2 + " too short!");
+        params.a_size = std::min(SIZE_TO_INT(20), std::min(SIZE_TO_INT(params.a1.size()), SIZE_TO_INT(params.a2.size())));
 
 		params.match_perc = getFloat("match_perc");
 		params.mep = getFloat("mep");

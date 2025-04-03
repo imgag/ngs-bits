@@ -37,7 +37,7 @@ public:
 
 		//write output
 		QSharedPointer<QFile> out_stream = Helper::openFileForWriting(out, true);
-		foreach(const Phenotype& pheno, child_terms)
+        for (const Phenotype& pheno : child_terms)
 		{
 			out_stream->write(pheno.accession() + "\t" + pheno.name() + "\n");
 		}

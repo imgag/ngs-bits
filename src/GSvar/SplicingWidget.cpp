@@ -155,7 +155,7 @@ void SplicingWidget::applyFilter()
 						GeneSet genes = GeneSet::createFromText(ui_->tw_splicing->item(row_idx, gene_idx)->text().toUtf8(), ',');
 
 						bool match_found = false;
-						foreach(const QByteArray& gene, genes)
+                        for (const QByteArray& gene : genes)
 						{
                             if (reg.match(gene).hasMatch())
 							{

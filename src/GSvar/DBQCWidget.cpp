@@ -3,7 +3,6 @@
 #include "DBSelector.h"
 #include "GUIHelper.h"
 #include "ProcessedSampleSelector.h"
-
 #include <QDebug>
 
 DBQCWidget::DBQCWidget(QWidget *parent)

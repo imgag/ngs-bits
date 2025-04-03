@@ -635,7 +635,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			QStringList ids = anno.split(",");
 			ids.removeAll("");
 			text.clear();
-			for (int i = 0; i < std::min(ids.size(), 2); ++i)
+            for (int i = 0; i < std::min(SIZE_TO_INT(ids.size()), SIZE_TO_INT(2)); ++i)
 			{
 				QString id = ids.at(i).trimmed();
 				text += formatLink(id, "https://pubmed.ncbi.nlm.nih.gov/" + id + "/") + " ";
@@ -967,7 +967,7 @@ QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const
 		QRegularExpressionMatch match = i.next();
 		hits << QPair<int, int>(match.capturedStart(0), match.capturedEnd());
 	}
-	hits << QPair<int, int>(details.count(), -1);
+    hits << QPair<int, int>(details.size(), -1);
 
 	for (int i=0; i<hits.count()-1; ++i)
 	{
