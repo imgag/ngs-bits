@@ -69,7 +69,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	<tr>
 		<td>ngs-bits\htslib\lib\</td>
 		<td>
-		libxml2-16.dll
+		.*.
 		</td>
 	</tr>
 	<tr>
@@ -88,7 +88,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\Tools\mingw730_64\opt\bin\</td>
-		<td>ssleay32.dll, libeay32.dll</td>
+		<td>ssleay32.dll, libeay32.dll, libgcc_s_seh-1.dll</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\mysql-8.0.31-winx64\lib\</td>

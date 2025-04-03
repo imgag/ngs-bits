@@ -18,7 +18,7 @@ PhenotypeList& PhenotypeList::operator<<(const Phenotype& pheno)
 
 PhenotypeList& PhenotypeList::operator<<(const QSet<Phenotype>& set)
 {
-	foreach(const Phenotype& pheno, set)
+    for (const Phenotype& pheno : set)
 	{
 		*this << pheno;
 	}
@@ -27,7 +27,7 @@ PhenotypeList& PhenotypeList::operator<<(const QSet<Phenotype>& set)
 
 PhenotypeList& PhenotypeList::operator<<(const PhenotypeList& list)
 {
-	foreach(const Phenotype& pheno, list)
+    for (const Phenotype& pheno : list)
 	{
 		*this << pheno;
 	}
@@ -41,7 +41,7 @@ void PhenotypeList::removeAt(int i)
 
 	//removed element > update accession list (the same element can be in the list twice, thus we cannot remove the accession from accessions_)
 	accessions_.clear();
-	foreach(const Phenotype& pheno, *this)
+    for (const Phenotype& pheno : *this)
 	{
 		accessions_ << pheno.accession();
 	}
@@ -72,7 +72,7 @@ QStringList PhenotypeList::toStringList() const
 {
 	QStringList output;
 
-	foreach(const Phenotype& phenotype, *this)
+    for (const Phenotype& phenotype : *this)
 	{
 		output << phenotype.name();
 	}

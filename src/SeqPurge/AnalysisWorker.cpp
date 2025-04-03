@@ -20,7 +20,7 @@ AnalysisWorker::~AnalysisWorker()
 void AnalysisWorker::correctErrors(int r, QTextStream& debug_out)
 {
 	int mm_count = 0;
-	const int count = std::min(job_.r1[r].bases.count(), job_.r2[r].bases.count());
+    const int count = std::min(job_.r1[r].bases.size(), job_.r2[r].bases.size());
 	for (int i=0; i<count; ++i)
 	{
 		const int i2 = count-i-1;
@@ -123,8 +123,8 @@ void AnalysisWorker::run()
 			//make sure the sequences have the same length
 			Sequence seq1 = job_.r1[r].bases;
 			Sequence seq2 = job_.r2[r].bases.toReverseComplement();
-			job_.length_r1_orig[r] = seq1.count();
-			job_.length_r2_orig[r] = seq2.count();
+            job_.length_r1_orig[r] = seq1.size();
+            job_.length_r2_orig[r] = seq2.size();
 			int min_length = std::min(job_.length_r1_orig[r], job_.length_r2_orig[r]);
 			int max_length = std::max(job_.length_r1_orig[r], job_.length_r2_orig[r]);
 
@@ -185,7 +185,7 @@ void AnalysisWorker::run()
 				int a1_matches = 0;
 				int a1_mismatches = 0;
 				int a1_invalid = 0;
-				for (int i=0; i<adapter1.count(); ++i)
+                for (int i=0; i<adapter1.size(); ++i)
 				{
 					//forward
 					char b1 = adapter1.constData()[i];
@@ -209,7 +209,7 @@ void AnalysisWorker::run()
 				int a2_matches = 0;
 				int a2_mismatches = 0;
 				int a2_invalid = 0;
-				for (int i=0; i<adapter2.count(); ++i)
+                for (int i=0; i<adapter2.size(); ++i)
 				{
 					//forward
 					char b1 = adapter2.constData()[i];
@@ -278,14 +278,14 @@ void AnalysisWorker::run()
 
 				//update consensus adapter sequence
 				QByteArray adapter1 = seq1.mid(new_length);
-				if (adapter1.count()>40) adapter1.resize(40);
-				for (int i=0; i<adapter1.count(); ++i)
+                if (adapter1.size()>40) adapter1.resize(40);
+                for (int i=0; i<adapter1.size(); ++i)
 				{
 					stats_.acons1[i].inc(adapter1.at(i));
 				}
 				QByteArray adapter2 = seq2.left(best_offset).toReverseComplement();
-				if (adapter2.count()>40) adapter2.resize(40);
-				for (int i=0; i<adapter2.count(); ++i)
+                if (adapter2.size()>40) adapter2.resize(40);
+                for (int i=0; i<adapter2.size(); ++i)
 				{
 					stats_.acons2[i].inc(adapter2.at(i));
 				}

@@ -32,7 +32,7 @@ void MaintenanceDialog::executeAction()
 	try
 	{
 		QString action = ui_.action->currentText().trimmed();
-		if (action.isEmpty() || action[0]=="[")
+        if (action.isEmpty() || action[0]==QString("["))
 		{
 			appendOutputLine("No action selected!");
 		}

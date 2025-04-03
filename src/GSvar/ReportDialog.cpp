@@ -308,32 +308,30 @@ void ReportDialog::updateVariantTable()
 
 
 	//add REs
-	if (res_.isValid())
+	foreach(int i, settings_.report_config->variantIndices(VariantType::RES, true, type()))
 	{
-		foreach(int i, settings_.report_config->variantIndices(VariantType::RES, true, type()))
+		RepeatLocus re = res_[i];
+		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::RES, i);
+
+		//manual curation
+		if (var_conf.isManuallyCurated()) var_conf.updateRe(re);
+
+		//check if variant is in ROI (if there is a ROI)
+
+		bool in_roi = true;
+		if (roi_.name!="")
 		{
-			RepeatLocus re = res_[i];
-			const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::RES,i);
-
-			//manual curation
-			if (var_conf.isManuallyCurated()) var_conf.updateRe(re);
-
-			//check if variant is in ROI (if there is a ROI)
-			bool in_roi = true;
-			if (roi_.name!="")
-			{
-				in_roi = roi_.regions.overlapsWith(re.region());
-			}
-
-			ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-			addCheckBox(row, 0, in_roi, !in_roi)->setData(Qt::UserRole, i);
-			addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
-			addTableItem(row, 2, variantTypeToString(VariantType::RES));
-			addTableItem(row, 3, re.toString(true, true));
-			addTableItem(row, 4, re.name());
-			addTableItem(row, 5, var_conf.classification);
-			++row;
+			in_roi = roi_.regions.overlapsWith(re.region());
 		}
+
+		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
+		addCheckBox(row, 0, in_roi, !in_roi)->setData(Qt::UserRole, i);
+		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
+		addTableItem(row, 2, variantTypeToString(VariantType::RES));
+		addTableItem(row, 3, re.toString(true, true));
+		addTableItem(row, 4, re.name());
+		addTableItem(row, 5, var_conf.classification);
+		++row;
 	}
 
 	//add other causal variant

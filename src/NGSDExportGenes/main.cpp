@@ -90,7 +90,7 @@ public:
 				//HPO terms
 				QByteArrayList hpos;
 				PhenotypeList phenos = db.phenotypes(gene_symbol);
-				foreach(const Phenotype& pheno, phenos)
+                for (const Phenotype& pheno : phenos)
 				{
 					hpos << pheno.toString();
 				}
@@ -98,9 +98,9 @@ public:
 
 				//OMIM
 				QByteArrayList omim_phenos;
-				foreach(const OmimInfo& omim, db.omimInfo(gene_symbol))
+                for (const OmimInfo& omim : db.omimInfo(gene_symbol))
 				{
-					foreach(const Phenotype& p, omim.phenotypes)
+                    for (const Phenotype& p : omim.phenotypes)
 					{
 						omim_phenos << p.name();
 					}

@@ -128,6 +128,7 @@ public:
 	void printIndexTreeNode(const IndexRTreeNode& node, int level) const;
 
 private:
+    void trimNonNumericFromEnd(QString &data);
 
 	// Buffer for the intervals that were recently read from file to reduce decompression calls.
 	struct IntervalBuffer

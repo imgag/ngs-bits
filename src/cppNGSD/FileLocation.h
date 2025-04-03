@@ -306,7 +306,7 @@ struct FileLocation
 			case PathType::CNV_RAW_DATA_CALL_REGIONS:
 				return "copy-number raw data for call regions";
 			case PathType::MANTA_EVIDENCE:
-				return "evidence file for Manta structural variants";
+				return "evidence BAM file for structural variants";
 			case PathType::REPEAT_EXPANSIONS:
 				return "repeat expansions";
 			case PathType::LOWCOV_BED:

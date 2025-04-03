@@ -36,7 +36,7 @@ private slots:
 		//check bases
 		QByteArray bases = al.bases();
 		S_EQUAL(bases, "CACTTCAGCCTGGGTGACAGAGCCAGACCATGTCACAAAAAGTTAGAAAAAAAAAAGAGAGAGGGAGAGAGACTATACACAGGCACCACCACATTTGGCTAATTTTTAAATATTCTGTAGAGACAAGGTCTTGCTAGGTTGCCCAGGCTAG");
-		for (int i=0; i<bases.count(); ++i)
+        for (int i=0; i<bases.size(); ++i)
 		{
 			S_EQUAL(bases.data()[i], al.base(i));
 		}
@@ -44,7 +44,7 @@ private slots:
 		//check qualities
 		QByteArray qualities = al.qualities();
 		S_EQUAL(qualities, "BBBBBFFFFFFFGEGEGGGGGGHGHGHFHHGHHHFHHHHHHGHHFHHHHHHGGCEGGFHHGEFGGGGGGGGGGFHHGFHHHHGGEHGHH/FFHHHGHFHHFFFHHHHHGHHFBHFFHHGEFHFHHGHHHFHHFDFEHGHG0CGHFHFHHFF");
-		for (int i=0; i<qualities.count(); ++i)
+        for (int i=0; i<qualities.size(); ++i)
 		{
 			S_EQUAL(qualities.data()[i], (char)(al.quality(i)+33));
 		}
@@ -402,7 +402,7 @@ private slots:
 		//check bases
 		QByteArray bases = al.bases();
 		S_EQUAL(bases, "TGCTGGGATTACAGGTGTGAGCCACCGCGCCCGGCGTTTTGTTTCATTTTTATTTTTGAGACACGGTCTTGCTCTGTCGCCCAGGCTGGAGTGCAGTGTCGCAATCTCGGCTCACTGCATCCTCCGCCTC");
-		for (int i=0; i<bases.count(); ++i)
+        for (int i=0; i<bases.size(); ++i)
 		{
 			S_EQUAL(bases.data()[i], al.base(i));
 		}
@@ -410,7 +410,7 @@ private slots:
 		//check qualities
 		QByteArray qualities = al.qualities();
 		S_EQUAL(qualities, "3>AABF@FFFFFGGGGGGGGGFHHHFGGGCGGGGEEGGGGHCGHHHHHHHHGHHHGHGFGHHHHGGGGGGHHHHHHHHGFGGGGGHHFEHFHGHHHHHHHGHGGGHHGGFGGGHHHFHHHHHHHHGGFGG");
-		for (int i=0; i<qualities.count(); ++i)
+        for (int i=0; i<qualities.size(); ++i)
 		{
 			S_EQUAL(qualities.data()[i], (char)(al.quality(i)+33));
 		}

@@ -46,7 +46,7 @@ public:
 		if (!value.isArray()) THROW(FileParseException, "JSON input file does contain key '" + key + "' with invalid type (not array)!");
 
 		QStringList output;
-		foreach(const QJsonValue& entry, value.toArray())
+        for (const QJsonValue& entry : value.toArray())
 		{
 			output << entry.toString();
 		}

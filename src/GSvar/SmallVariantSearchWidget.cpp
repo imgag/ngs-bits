@@ -59,7 +59,7 @@ void SmallVariantSearchWidget::updateVariants()
 		{
 			QByteArray text = ui_.genes->text().toUtf8().trimmed().replace(' ', ',');
 			GeneSet genes = GeneSet::createFromText(text, ',');
-			foreach(QByteArray gene, genes)
+            for (QByteArray gene : genes)
 			{
 				//check gene name
 				NGSD db;
