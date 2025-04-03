@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2025_03-20 (02.04.25)
+
+- improved support for DRAGEN 4.2 structural variant output
+
 ## 2025_03-13 (28.03.25)
 
 - small variants: fixed crash in Google search from variant context menu
