@@ -90,7 +90,7 @@ struct VcfToBedpe::BedpeLineInternal
 		out << ID << QUAL << QByteArray().append(STRAND_A) << QByteArray().append(STRAND_B) << TYPE  << FILTER  << NAME_A  << REF_A  << ALT_A;
 		out << NAME_B << REF_B << ALT_B << INFO_A << INFO_B<< FORMAT_DESC;
 
-		foreach(const QByteArray& sample, samples) out << sample;
+        for(const QByteArray& sample : samples) out << sample;
 
 		return out.join('\t');
 	}
@@ -286,7 +286,7 @@ QMap<QByteArray,QByteArray> VcfToBedpe::parseInfoField(const QByteArray &field)
 {
 	QMap<QByteArray,QByteArray> out;
 
-	foreach(const QByteArray& part, field.split(';'))
+    for(const QByteArray& part : field.split(';'))
 	{
 		QByteArrayList data = part.split('=');
 		if(data.count() != 2) continue;
@@ -318,7 +318,7 @@ VcfToBedpe::BedpeLineInternal VcfToBedpe::convertSingleLine(const VcfToBedpe::Vc
 
 	res.STRAND_A = '.';
 	res.STRAND_B = '.';
-	if(info.contains("STRANDS") && info.value("STRANDS").count() == 2)
+    if(info.contains("STRANDS") && info.value("STRANDS").size() == 2)
 	{
 		res.STRAND_A = info.value("STRANDS").at(0);
 		res.STRAND_B = info.value("STRANDS").at(1);
@@ -444,13 +444,13 @@ void VcfToBedpe::convert(QString out_file)
 {
 	//Parse input/output lines
 	QSharedPointer<QFile> out = Helper::openFileForWriting(out_file);
-	foreach(const QByteArray& header, out_headers_)
+    for(const QByteArray& header : out_headers_)
 	{
 		out->write(header + "\n");
 	}
 
 	QByteArray heading ="#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\tID\tQUAL\tSTRAND_A\tSTRAND_B\tTYPE\tFILTER\tNAME_A\tREF_A\tALT_A\tNAME_B\tREF_B\tALT_B\tINFO_A\tINFO_B\tFORMAT";
-	foreach(const QByteArray& sample, samples_) heading += "\t" + sample;
+    for(const QByteArray& sample : samples_) heading += "\t" + sample;
 	out->write(heading + "\n");
 
 
