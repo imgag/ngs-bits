@@ -174,6 +174,7 @@ void FilterWidgetCNV::roiSelectionChanged(int index)
         QCompleter *completer = new QCompleter(proxy_model, ui_.roi);
         completer->setCompletionMode(QCompleter::PopupCompletion);
         completer->setFilterMode(Qt::MatchContains);
+		completer->setCaseSensitivity(Qt::CaseInsensitive);
         completer->setCompletionRole(Qt::DisplayRole);
 
 		ui_.roi->setCompleter(completer);

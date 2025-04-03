@@ -26,8 +26,16 @@ public:
     virtual void setup()
     {
         setDescription("Annotates a VCF file with MaxEntScan scores.");
+		QStringList desc;
+		desc << "This is essentially a multithreaded C++ reimplementation of the MaxEntScan plugin for VEP (https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm). MaxEntScan was first introduced by Shamsani et al. (https://doi.org/10.1093/bioinformatics/bty960).";
+		desc << "Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread.";
+		desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided GFF file).";
+		desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (SWA).";
+		desc << "Intergenic variants never get a MES scores.";
+		setExtendedDescription(desc);
+
 		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz.", false);
-        //optional
+		//optional
 		addOutfile("out", "Output VCF file containing the MaxEntScan scores in the INFO column. If unset, writes to STDOUT.", true);
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true);
 		addFlag("swa", "Enables sliding window approach, i.e. predictions of de-novo acceptor/donor sites.");
@@ -41,20 +49,11 @@ public:
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true);
 		addFlag("debug", "Enables debug output (use only with one thread).");
+
+		changeLog(2025,  3, 20, "Fixed bug in SWA alternative sequence generation and using 'min_score' for comp scores as well.");
+		changeLog(2023,  9, 26, "Added several parameters to make output more configurable.");
+		changeLog(2023,  9, 18, "first version");
     }
-
-    QStringList extendedDescription()
-	{
-		QStringList desc;
-
-		desc << "This is essentially a multithreaded C++ reimplementation of the MaxEntScan plugin for VEP (https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm). MaxEntScan was first introduced by Shamsani et al. (https://doi.org/10.1093/bioinformatics/bty960).";
-        desc << "Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread.";
-		desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided GFF file).";
-		desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (SWA).";
-		desc << "Intergenic variants never get a MES scores.";
-
-		return desc;
-	}
 
     virtual void main()
     {

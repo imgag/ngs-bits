@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_01
+	> git checkout 2025_03
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -38,8 +38,9 @@ For some tools the documentation pages contain only the command-line help, for o
 
 ## License
 
-*ngs-bits* is provided under the [MIT license](LICENSE) and is based on other open source software:
+*ngs-bits* is provided under the [MIT license](LICENSE), but is is based on other software components with different lincenses:
 
+* [Qt](https://www.qt.io/) is our base framwork for the graphical user interface, platform abstraction, data structures and much more.
 * [htslib](https://github.com/samtools/htslib) for HTS data format support (BAM, VCF, ...)
 * [SimpleCrypt](https://wiki.qt.io/Simple_encryption_with_SimpleCrypt) for weak encryption
 * [QR-Code-generator](https://github.com/nayuki/QR-Code-generator) for QR code generation
@@ -181,19 +182,14 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ## ChangeLog
 
-Changes since last release:
-
-* added tools:
-* removed tools:
-* NGSD:
-
-
-For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
+Change log is available on the [releases](https://github.com/imgag/ngs-bits/releases) page.
 
 ## Citing
 
 You can cite ngs-bits in using Zenodo DOIs:
 
+
+* 2025_03: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15051584.svg)](https://doi.org/10.5281/zenodo.15051584)
 * 2025_01: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14747530.svg)](https://doi.org/10.5281/zenodo.14747530)
 * 2024_11: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14216792.svg)](https://doi.org/10.5281/zenodo.14216792)
 

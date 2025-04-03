@@ -96,7 +96,7 @@ public:
         result.removeFlagged(svs);
 
 		//store result
-        svs.toTSV(getOutfile("out"));
+        svs.store(getOutfile("out"));
 	}
 };
 

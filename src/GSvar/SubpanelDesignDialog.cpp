@@ -36,14 +36,12 @@ QString SubpanelDesignDialog::lastCreatedSubPanel()
 
 void SubpanelDesignDialog::createSubpanelCompleter()
 {
-    // completer_ = new QCompleter(subpanel_names_);
-    // completer_->setCaseSensitivity(Qt::CaseInsensitive);
-    // ui_.name->setCompleter(completer_);
     QStringListModel *model = new QStringListModel(subpanel_names_);
     QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel();
     proxy_model->setSourceModel(model);
     proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
     completer_ = new QCompleter(proxy_model);
+	completer_->setCaseSensitivity(Qt::CaseInsensitive);
 }
 
 void SubpanelDesignDialog::checkAndCreatePanel()

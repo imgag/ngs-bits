@@ -114,7 +114,7 @@ public:
 		}
 
 		// write annotated BEDPE file to disk
-		svs.toTSV(getOutfile("out"));
+		svs.store(getOutfile("out"));
 	}
 };
 
