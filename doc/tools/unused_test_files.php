@@ -48,6 +48,7 @@ foreach($folders as $folder)
 		//special handing
 		if ($file=="NGSDExportStudyGHGA_sample_data") continue; //filename used via text file
 		if ($file=="VcfAnnotateFromVcf_an1_ClinVar.vcf.gz") continue; //filename used via text file
+		if ($file=="BamDownsample_out1_OSX.txt") continue; //filename used via text file
 		
 		//perform check
 		$found = false;
