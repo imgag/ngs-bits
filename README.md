@@ -1,4 +1,4 @@
-# *ngs-bits* - Short-read sequencing tools
+# *ngs-bits* - Short-read and long-read sequencing tools for diagnostics
 
 ![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
 ![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
