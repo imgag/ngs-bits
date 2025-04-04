@@ -1,0 +1,58 @@
+############################# public settings #############################
+#          Common settings that need to be set for many tools             #
+###########################################################################
+
+#Path to the reference genome FASTA file for GRCh38
+reference_genome = ""
+
+#Data for lift-over between genome builds (GRCh38 <> GRCh37)
+reference_genome_hg19 = ""
+liftover_hg19_hg38 = ""
+liftover_hg38_hg19 = ""
+
+############################ internal settings ############################
+#   If you do not know what these settings mean, leave them unchanged!    #
+###########################################################################
+
+#NGSD MySQL credentials
+ngsd_host = "localhost"
+ngsd_port = 3306
+ngsd_name = "ngsd"
+ngsd_user = "ngsduser"
+ngsd_pass = ""
+
+ngsd_test_host = ""
+ngsd_test_port = 3306
+ngsd_test_name = ""
+ngsd_test_user = ""
+ngsd_test_pass = ""
+
+#GL8 MySQL credentials
+genlab_mssql = false
+genlab_host = ""
+genlab_port = 3306
+genlab_name = ""
+genlab_user = ""
+genlab_pass = ""
+
+#megSAP folders
+projects_folder_diagnostic = "";
+projects_folder_research = "";
+projects_folder_test = "";
+projects_folder_external = "";
+data_folder = ""
+
+#setting for variant scoring/ranking
+ranking_variant_blacklist=
+
+#python executable for plotting (set if the python exe is not in the PATH)
+python_exe = ""
+
+#NovaSeqX
+sample_sheet_path = 
+nova_seq_x_sw_version = "4.3.16"
+nova_seq_x_app_version = "1.3.13"
+nova_seq_x_keep_fastq = 1
+
+#location, used to enable site-specific adaptations
+location = ""
