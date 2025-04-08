@@ -240,7 +240,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		}
 		else
 		{
-			out_folder = project_folder + "/Sample_" + ps_data[t_idx].name + "/";
+			out_folder = project_folder + "/Somatic_" + ps_data[t_idx].name + "/";
 		}
 		if (Helper::mkdir(out_folder)==1)
 		{
@@ -251,8 +251,8 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 			}
 		}
 
-		script = "somatic_dna.php";
-		args << "--log "+out_folder+"/somatic_dna_"+timestamp+".log";
+		script = (n_idx!=-1) ? "somatic_tumor_normal.php" : "somatic_tumor_only.php";
+		args << "--log "+out_folder+"/somatic_"+timestamp+".log";
 		args << "-out_folder " + out_folder;
 		args << "-prefix " + ps_data[t_idx].name + (n_idx!=-1 ? "-"+ps_data[n_idx].name : "");
 		args << "-t_bam " + bams[t_idx];

@@ -2243,11 +2243,19 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		if (file_location.exists) analyses << file_location.filename;
 
 		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
+		//check for tumor-normal analyses
 		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
 			analyses << GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic");
 		}
+		//check for tumor-only analyses
+		QStringList tumor_only_analyses = GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name, "somatic");
+		if (!tumor_only_analyses.isEmpty())
+		{
+			analyses << tumor_only_analyses;
+		}
+
 		//check for germline trio/multi analyses
 		if (search_multi)
 		{
