@@ -300,6 +300,11 @@
 														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
+												<xs:attribute name="preferred_phenotype" type="xs:boolean">
+													<xs:annotation>
+														<xs:documentation>Indicates that the phenotype is the preferred phenotype of the gene for the patient's disease group</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
 										<xs:element name="Gap" minOccurs="0" maxOccurs="unbounded">

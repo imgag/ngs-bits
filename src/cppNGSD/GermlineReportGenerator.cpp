@@ -916,6 +916,9 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			Transcript transcript = db_.bestTranscript(gene_id);
 			w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
 
+			QString preferred_phenotype_accession;
+			if (sample_data.disease_group!="n/a") preferred_phenotype_accession = db_.omimPreferredPhenotype(gene, sample_data.disease_group.toUtf8());
+
 			//omim info
 			QList<OmimInfo> omim_infos = db_.omimInfo(gene);
             for (const OmimInfo& omim_info : omim_infos)
@@ -928,6 +931,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					if (!pheno.accession().isEmpty())
 					{
 						w.writeAttribute("phenotype_number", pheno.accession());
+						if (pheno.accession()==preferred_phenotype_accession)
+						{
+							w.writeAttribute("preferred_phenotype", "true");
+						}
 					}
 					w.writeEndElement();
 				}
