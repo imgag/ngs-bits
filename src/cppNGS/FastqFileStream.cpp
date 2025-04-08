@@ -52,7 +52,7 @@ void FastqEntry::clear()
 int FastqEntry::trimQuality(int cutoff, int window, int offset)
 {
     //too small read => abort
-	int count = qualities.count();
+    int count = qualities.size();
     if (count<window) return 0;
 
     //init
@@ -89,7 +89,7 @@ int FastqEntry::trimQuality(int cutoff, int window, int offset)
 int FastqEntry::trimN(int num_n)
 {
     //too small read => abort
-	int count = bases.count();
+    int count = bases.size();
     if (count<num_n) return 0;
 
     //init

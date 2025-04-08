@@ -107,7 +107,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
-		foreach(const auto& gene, genes)
+        for (const auto& gene : genes)
 		{
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
 			if (!role.isValid()) continue;
@@ -204,7 +204,7 @@ bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 {
 	//neccessary DNA annotations (exact match)
 	const QByteArrayList an_names_dna = {"coding_and_splicing", "tumor_af"};
-	foreach(const QByteArray& an, an_names_dna)
+    for (const QByteArray& an : an_names_dna)
 	{
 		if(variants.annotationIndexByName(an, true, false) == -1) return false;
 	}
@@ -214,7 +214,7 @@ bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 {
 	QByteArrayList an_names_dna = {"cnv_type"};
-	foreach(const QByteArray& an, an_names_dna)
+    for (const QByteArray& an : an_names_dna)
 	{
 		if(cnvs.annotationIndexByName(an, false) < 0) return false;
 	}
@@ -247,7 +247,7 @@ RtfTable SomaticRnaReport::partFusions()
 
 	fusion_table.addRow(RtfTableRow({"Strukturvariante", "Transkript links", "Bruchpunkt Gen 1", "Transkript rechts", "Bruchpunkt Gen 2", "Typ", "Leseraster"},{1600,1400,1400,1400,1400,1700, 1021}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
-	foreach(const auto& sv, svs_)
+    for (const auto& sv : svs_)
 	{
 		RtfTableRow temp;
 
@@ -316,7 +316,7 @@ RtfTable SomaticRnaReport::partSVs()
 
 	fusion_table.addRow(RtfTableRow({"Gen", "Transkript", "Bruchpunkt 1", "Bruchpunkt 2", "Beschreibung"},{1600,1800,1400,1800,3321}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
-	foreach(const auto& sv, svs_)
+    for (const auto& sv : svs_)
 	{
 		if ( ! (sv.type.contains("duplication") && sv.gene_left == sv.gene_right) && !sv.type.contains("deletion")) continue;
 
@@ -426,7 +426,7 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
 
-		foreach(const auto& gene, genes)
+        for (const auto& gene : genes)
 		{
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
 			if (!role.isValid()) continue;
@@ -539,7 +539,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 		return a.symbol < b.symbol;
 	});
 
-	foreach(const auto& data, pathways_)
+    for (const auto& data : pathways_)
 	{
 		RtfTableRow row;
 		row.addCell(1237, data.symbol );
@@ -613,7 +613,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	QList<ExpressionData> activating_genes;
 	QList<ExpressionData> lof_genes;
 
-	foreach(const auto& data, high_confidence_expression_)
+    for (const auto& data : high_confidence_expression_)
 	{
 		if(data.role.role == SomaticGeneRole::Role::ACTIVATING		 && data.tumor_tpm >= 10 && data.cohort_mean_tpm > 10) activating_genes << data;
 		if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION && data.tumor_tpm >= 10 && data.cohort_mean_tpm > 10) lof_genes << data;
@@ -635,7 +635,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	for(int i=2; i<table.last().count(); ++i) table.last()[i].setBackgroundColor(4);
 
 
-	foreach(const auto& data, genes_to_be_reported)
+    for (const auto& data : genes_to_be_reported)
 	{
 		RtfTableRow row;
 
@@ -715,7 +715,7 @@ double SomaticRnaReport::getRnaData(QByteArray gene, QString field, QString key)
 	QStringList entries = field.split(',');
 
 	//Extract data from rna_data column. Data is organized as GENE_SYMBOL (KEY1=VALUE1 KEY2=VALUE2 ...)
-	foreach(QString entry, entries)
+    for (QString entry : entries)
 	{
 		QList<QString> parts = entry.append(' ').split(' ');
 		if(parts[0].toUtf8() == gene)
@@ -723,7 +723,7 @@ double SomaticRnaReport::getRnaData(QByteArray gene, QString field, QString key)
 			int start = entry.indexOf('(');
 			int end = entry.indexOf(')');
 			QStringList data_entries = entry.mid(start+1, end-start-1).split(' '); //data from gene between brackets (...)
-			foreach(QString data_entry, data_entries)
+            for (QString data_entry : data_entries)
 			{
 				QStringList res = data_entry.append('=').split('=');
 				if(res[0] == key)

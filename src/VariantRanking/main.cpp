@@ -61,7 +61,7 @@ public:
 			//pheno > genes > roi
 			BedFile roi;
 			GeneSet genes = db.phenotypeToGenes(term_id, true);
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				if (!gene2region_cache.contains(gene))
 				{

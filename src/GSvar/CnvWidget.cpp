@@ -27,10 +27,15 @@
 #include <QUrl>
 #include <QDir>
 #include <QInputDialog>
-#include <QChartView>
-QT_CHARTS_USE_NAMESPACE
 #include "ColumnConfig.h"
 #include "SettingsDialog.h"
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QtCharts/QChartView>
+#else
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
+#endif
 
 CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, SomaticReportConfiguration* rep_conf_somatic, const GeneSet& het_hit_genes)
 	: QWidget(parent)
@@ -421,7 +426,7 @@ void CnvWidget::applyFilters(bool debug_time)
 					if (!filter_result.flags()[r]) continue;
 
 					bool match_found = false;
-					foreach(const QByteArray& cnv_gene, cnvs_[r].genes())
+                    for (const QByteArray& cnv_gene : cnvs_[r].genes())
 					{
                         if (reg.match(cnv_gene).hasMatch())
 						{
@@ -484,7 +489,7 @@ void CnvWidget::applyFilters(bool debug_time)
 			//convert phenotypes to genes
 			NGSD db;
 			GeneSet pheno_genes;
-			foreach(const Phenotype& pheno, phenotypes)
+            for (const Phenotype& pheno : phenotypes)
 			{
 				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 			}
@@ -492,7 +497,7 @@ void CnvWidget::applyFilters(bool debug_time)
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			BedFile pheno_roi;
 			timer.start();
-			foreach(const QByteArray& gene, pheno_genes)
+            for (const QByteArray& gene : pheno_genes)
 			{
 				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -607,7 +612,7 @@ void CnvWidget::showContextMenu(QPoint p)
 		menu.addSeparator();
 
 		int gene_nr = 1;
-		foreach(const QByteArray& gene, cnvs_[row].genes())
+        for (const QByteArray& gene : cnvs_[row].genes())
 		{
 			++gene_nr;
 			if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
@@ -615,7 +620,7 @@ void CnvWidget::showContextMenu(QPoint p)
 			QMenu* sub_menu = menu.addMenu(gene);
             sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in_);
 			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
-			foreach(const GeneDB& db, GeneInfoDBs::all())
+            for (const GeneDB& db : GeneInfoDBs::all())
 			{
 				sub_menu->addAction(db.icon, db.name);
 			}
@@ -713,7 +718,7 @@ void CnvWidget::showContextMenu(QPoint p)
 		else if (db_name=="Google")
 		{
 			QString query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, ui->filter_widget->phenotypes())
+            for (const Phenotype& pheno : ui->filter_widget->phenotypes())
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -1035,7 +1040,7 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 	if (i_genes!=-1)
 	{
 		GeneSet genes = GeneSet::createFromText(cnvs_[row].annotations()[i_genes], ',');
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};

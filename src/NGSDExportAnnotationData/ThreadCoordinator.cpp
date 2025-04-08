@@ -245,7 +245,7 @@ void ThreadCoordinator::exportGeneInformation()
 	//process all genes
 	NGSD db(params_.use_test_db);
 	GeneSet genes = db.approvedGeneNames();
-	foreach (const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		//get gene infos
 		GeneInfo gene_info = db.geneInfo(gene);

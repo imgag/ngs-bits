@@ -21,6 +21,9 @@
 #include "GenLabDB.h"
 #include "ExpressionExonWidget.h"
 #include "SplicingWidget.h"
+#include <QDir>
+#include <QDesktopServices>
+#include <QInputDialog>
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)

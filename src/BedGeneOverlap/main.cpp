@@ -52,7 +52,7 @@ public:
 
 		//process
 		BedFile reg_unassigned = in;
-		foreach(QByteArray gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			//create gene-specific regions
 			QTextStream messages(stderr);

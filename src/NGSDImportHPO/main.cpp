@@ -1019,7 +1019,7 @@ public:
 				}
 				if (genes.isEmpty() || (diseases.isEmpty() && hpos.isEmpty())) continue;
 
-				foreach(const QByteArray& gene, genes)
+                for (const QByteArray& gene : genes)
 				{
 					//make sure the gene symbol is approved by HGNC
 					int approved_id = db.geneId(gene);
@@ -1031,7 +1031,7 @@ public:
 					}
 					QByteArray gene_approved = db.geneSymbol(approved_id);
 
-					foreach(const QByteArray& disease, diseases)
+                    for (const QByteArray& disease : diseases)
 					{
 						if (debug) out << "DISEASE-GENE (ClinVar): " << disease << " - " << gene_approved << "\n";
 
@@ -1066,9 +1066,9 @@ public:
 			int added_t2g = 0;
             if (debug) out << "Parsing HGMD Phenobase dump file..." << QT_ENDL;
 			// define look-up tables
-			QMultiMap<int, QByteArray> phenid2gene_mapping = QMap<int, QByteArray>();
-			QMultiMap<QByteArray,int> cui2phenid_mapping = QMap<QByteArray,int>();
-			QMultiMap<QByteArray,QByteArray> hpo2cui_mapping = QMap<QByteArray,QByteArray>();
+            QMultiMap<int, QByteArray> phenid2gene_mapping = QMultiMap<int, QByteArray>();
+            QMultiMap<QByteArray,int> cui2phenid_mapping = QMultiMap<QByteArray,int>();
+            QMultiMap<QByteArray,QByteArray> hpo2cui_mapping = QMultiMap<QByteArray,QByteArray>();
 
 			QSharedPointer<QFile> fp = Helper::openFileForReading(hgmd_file);
 			int line_number = 0;
@@ -1305,7 +1305,7 @@ public:
 		// get first level of subtrees:
 		PhenotypeList subtree_roots = db.phenotypeChildTerms(db.phenotypeIdByAccession(root.accession()), false);
 		QList<PhenotypeList> subtrees;
-		foreach (const Phenotype& pt, subtree_roots)
+        for (const Phenotype& pt : subtree_roots)
 		{
 			subtrees.append(db.phenotypeChildTerms(db.phenotypeIdByAccession(pt.accession()), true));
 		}
@@ -1313,7 +1313,7 @@ public:
 
 		//calulate stats:
 		QStringList hpo_terms = db.getValues("SELECT ht.hpo_id, hg.gene FROM hpo_genes hg INNER JOIN hpo_term ht ON hg.hpo_term_id = ht.id");
-		foreach (const QString& hpo_term, hpo_terms)
+        for (const QString& hpo_term : hpo_terms)
 		{
 			QByteArray pt = hpo_term.toUtf8();
 			for (int i = 0; i < subtree_roots.count(); ++i)
@@ -1343,7 +1343,7 @@ public:
 
 		// get all genes which are associated with the sub-trees
 		GeneSet genes_children;
-		foreach (const Phenotype& child, children)
+        for (const Phenotype& child : children)
 		{
 			genes_children.insert(db.phenotypeToGenes(db.phenotypeIdByAccession(child.accession()), true, false));
 		}
@@ -1359,7 +1359,7 @@ public:
 			// remove all duplicate genes from parent node
 			SqlQuery remove_gene_query = db.getQuery();
 			remove_gene_query.prepare("DELETE FROM hpo_genes WHERE hpo_term_id=" + QByteArray::number(pt_id) + " AND gene=:0");
-			foreach (const QByteArray& gene, genes_to_remove)
+            for (const QByteArray& gene : genes_to_remove)
 			{
 				remove_gene_query.bindValue(0, gene);
 				remove_gene_query.exec();
@@ -1368,7 +1368,7 @@ public:
 		}
 
 		// start optimization for all child nodes
-		foreach (const Phenotype& child, children)
+        for (const Phenotype& child : children)
 		{
 			optimizeHpoGeneTable(child, db, pt2id, removed_genes);
 		}

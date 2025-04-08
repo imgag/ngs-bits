@@ -19,7 +19,7 @@ private slots:
 		I_EQUAL(vl.count(),vl2.count());
 		for (int i=0; i<vl.count(); ++i)
 		{
-			S_EQUAL(vl[i].start(), vl2[i].start());
+            I_EQUAL(vl[i].start(), vl2[i].start());
 			I_EQUAL(vl[i].alt().size(), vl2[i].alt().size())
 			for(int alt_id = 0; alt_id < vl[i].alt().count(); ++alt_id)
 			{

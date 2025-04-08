@@ -70,7 +70,7 @@ private slots:
 		while(errors==0);
 
 		int errors_found = 0;
-		for(int i=0; i<seq.count(); ++i)
+        for(int i=0; i<seq.size(); ++i)
 		{
 			if (seq[i]!=original[i])
 			{

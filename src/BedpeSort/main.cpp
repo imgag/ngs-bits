@@ -26,7 +26,7 @@ public:
 		BedpeFile file;
 		file.load(getInfile("in"));
 		file.sort();
-		file.toTSV(getOutfile("out"));
+		file.store(getOutfile("out"));
 	}
 };
 

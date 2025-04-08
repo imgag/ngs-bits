@@ -36,16 +36,16 @@ void OutputWorker::run()
 		int reads_removed = 0;
 		for (int r=0; r<job_.read_count; ++r)
 		{
-			if (job_.r1[r].bases.count()>=params_.min_len && job_.r2[r].bases.count()>=params_.min_len)
+            if (job_.r1[r].bases.size()>=params_.min_len && job_.r2[r].bases.size()>=params_.min_len)
 			{
 				//nothing to do here as they are written in parallel by separate threads (see above)
 			}
-			else if (!streams_.ostream3.isNull() && job_.r1[r].bases.count()>=params_.min_len)
+            else if (!streams_.ostream3.isNull() && job_.r1[r].bases.size()>=params_.min_len)
 			{
 				reads_removed += 1;
 				streams_.ostream3->write(job_.r1[r]);
 			}
-			else if (!streams_.ostream4.isNull() && job_.r2[r].bases.count()>=params_.min_len)
+            else if (!streams_.ostream4.isNull() && job_.r2[r].bases.size()>=params_.min_len)
 			{
 				reads_removed += 1;
 				streams_.ostream4->write(job_.r2[r]);
@@ -69,11 +69,11 @@ void OutputWorker::run()
 			stats_.bases_remaining[job_.r2[r].bases.length()] += 1;
 			if (job_.length_r1_orig[r]>0)
 			{
-				stats_.bases_perc_trim_sum += (double)(job_.length_r1_orig[r] - job_.r1[r].bases.count()) / job_.length_r1_orig[r];
+                stats_.bases_perc_trim_sum += (double)(job_.length_r1_orig[r] - job_.r1[r].bases.size()) / job_.length_r1_orig[r];
 			}
 			if (job_.length_r2_orig[r]>0)
 			{
-				stats_.bases_perc_trim_sum += (double)(job_.length_r2_orig[r] - job_.r2[r].bases.count()) / job_.length_r2_orig[r];
+                stats_.bases_perc_trim_sum += (double)(job_.length_r2_orig[r] - job_.r2[r].bases.size()) / job_.length_r2_orig[r];
 			}
 		}
 

@@ -52,7 +52,7 @@ void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, bool archived,
 	if (!f_genes.isEmpty())
 	{
 		QStringList conditions;
-		foreach(const QByteArray& gene, f_genes)
+        for (const QByteArray& gene : f_genes)
 		{
 			conditions << "genes LIKE '%" + gene + "%'";
 		}

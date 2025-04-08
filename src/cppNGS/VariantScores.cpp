@@ -143,7 +143,7 @@ QList<Variant> VariantScores::loadBlacklist()
 	QList<Variant> output;
 
 	QStringList entries = Settings::stringList("ranking_variant_blacklist", true);
-	foreach(const QString& entry, entries)
+    for (const QString& entry : entries)
 	{
 		output << Variant::fromString(entry);
 	}
@@ -202,7 +202,7 @@ double CategorizedScores::score(QByteArrayList& best_genes) const
 
 	//gene-specific scores
 	QHash<QByteArray, double> gene2score;
-	foreach(const QByteArray& gene, keys())
+    for (const QByteArray& gene : keys())
 	{
 		if (gene=="*") continue;
 
@@ -264,7 +264,7 @@ QStringList CategorizedScores::explainations(const QByteArrayList& best_genes) c
 	}
 
 	QStringList output;
-	foreach(const QByteArray& gene, best_genes)
+    for (const QByteArray& gene : best_genes)
 	{
 		if (best_genes.count()>1) output << "[" + gene + "]";
 		output << explainations(gene);
@@ -295,7 +295,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 	//prepare ROI for fast lookup
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	BedFile roi;
-	foreach(const BedFile& pheno_roi, phenotype_rois)
+    for (const BedFile& pheno_roi : phenotype_rois)
 	{
 		roi.add(pheno_roi);
 	}
@@ -339,7 +339,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		//get gene/transcript list
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		GeneSet genes;
-		foreach(const VariantTranscript& transcript, transcript_info)
+        for (const VariantTranscript& transcript : transcript_info)
 		{
 			genes << transcript.gene;
 		}
@@ -357,7 +357,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 
 		//impact
 		double impact_score = 0.0;
-		foreach(const VariantTranscript& transcript, transcript_info)
+        for (const VariantTranscript& transcript : transcript_info)
 		{
 			if(transcript.impact == VariantImpact::HIGH)
 			{
@@ -411,7 +411,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		{
 			double hgmd_score = 0.0;
 			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
-			foreach(const QByteArray& entry, hgmd)
+            for (const QByteArray& entry : hgmd)
 			{
 				if (entry.contains("DM?"))
 				{
@@ -433,7 +433,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		//ClinVar
 		double clinvar_score = 0.0;
 		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-		foreach(const QByteArray& entry, clinvar)
+        for (const QByteArray& entry : clinvar)
 		{
 			if (entry.contains("likely pathogenic"))
 			{
@@ -480,16 +480,16 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		double min_oe = 1;
 		QByteArrayList gene_infos = v.annotations()[i_gene_info].trimmed().split(',');
 
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
-			foreach(const QByteArray& gene_info, gene_infos)
+            for (const QByteArray& gene_info : gene_infos)
 			{
 				//use gene info for current gene only
 				if (!gene_info.startsWith(gene+" ")) continue;
 
 				int start = gene_info.indexOf('(');
 				QByteArrayList entries = gene_info.mid(start+1, gene_info.length()-start-2).split(' ');
-				foreach(const QByteArray& entry, entries)
+                for (const QByteArray& entry : entries)
 				{
 					if (entry.startsWith("inh="))
 					{
@@ -636,7 +636,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		{
 			double hgmd_score = 0.0;
 			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
-			foreach(const QByteArray& entry, hgmd)
+            for (const QByteArray& entry : hgmd)
 			{
 				if (entry.contains("DM?"))
 				{
@@ -659,7 +659,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		{
 			double clinvar_score = 0.0;
 			QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-			foreach(const QByteArray& entry, clinvar)
+            for (const QByteArray& entry : clinvar)
 			{
 				if (entry.contains("likely pathogenic"))
 				{
@@ -698,7 +698,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			if (!omim.isEmpty())
 			{
 				QByteArrayList entries = omim.split('&');
-				foreach(QByteArray entry, entries)
+                for (QByteArray entry : entries)
 				{
 					QByteArrayList parts = entry.replace("GENE=", "|").replace("_PHENOS=", "|").split('|');
 					if (parts.count()<3)
@@ -721,7 +721,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 
 		//impact (gene-specific)
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
-		foreach(const VariantTranscript& transcript, transcript_info)
+        for (const VariantTranscript& transcript : transcript_info)
 		{
 			if(transcript.impact==VariantImpact::HIGH)
 			{
@@ -738,7 +738,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 
 		//gnomAD o/e lof, inheritance (gene-specific) - format: SAMD11 (inh=n/a oe_syn=1.70 oe_mis=1.51 oe_lof=0.90), NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03)
-		foreach(QByteArray gene_info, v.annotations()[i_gene_info].split(','))
+        for (QByteArray gene_info : v.annotations()[i_gene_info].split(','))
 		{
 			gene_info = gene_info.trimmed();
 			if (gene_info.isEmpty()) continue;
@@ -755,7 +755,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 
 			QByteArray gene = gene_info.left(start-1).trimmed();
 			QByteArrayList entries = gene_info.mid(start+1).split(' ');
-			foreach(const QByteArray& entry, entries)
+            for (const QByteArray& entry : entries)
 			{
 				if (entry.startsWith("inh="))
 				{
@@ -839,11 +839,11 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 		//determine gene set (there are typically several transcripts per gene)
 		GeneSet genes;
-		foreach(const VariantTranscript& transcript, v.transcriptAnnotations(i_coding))
+        for (const VariantTranscript& transcript : v.transcriptAnnotations(i_coding))
 		{
 			genes << transcript.gene;
 		}
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			gene_hits_het[gene] += 1;
 		}
@@ -905,7 +905,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		{
 			double hgmd_score = 0.0;
 			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
-			foreach(const QByteArray& entry, hgmd)
+            for (const QByteArray& entry : hgmd)
 			{
 				if (entry.contains("DM?"))
 				{
@@ -928,7 +928,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		{
 			double clinvar_score = 0.0;
 			QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-			foreach(const QByteArray& entry, clinvar)
+            for (const QByteArray& entry : clinvar)
 			{
 				if (entry.contains("likely pathogenic"))
 				{
@@ -967,7 +967,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 			if (!omim.isEmpty())
 			{
 				QByteArrayList entries = omim.split('&');
-				foreach(QByteArray entry, entries)
+                for (QByteArray entry : entries)
 				{
 					QByteArrayList parts = entry.replace("GENE=", "|").replace("_PHENOS=", "|").split('|');
 					if (parts.count()<3)
@@ -990,7 +990,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 		//impact (gene-specific)
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
-		foreach(const VariantTranscript& transcript, transcript_info)
+        for (const VariantTranscript& transcript : transcript_info)
 		{
 			if(transcript.impact==VariantImpact::HIGH)
 			{
@@ -1008,7 +1008,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 		//gnomAD o/e lof, inheritance (gene-specific) - format: SAMD11 (inh=n/a oe_syn=1.70 oe_mis=1.51 oe_lof=0.90), NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03)
 		QByteArray v_genotype = v.annotations()[i_genotye].trimmed();
-		foreach(QByteArray gene_info, v.annotations()[i_gene_info].split(','))
+        for (QByteArray gene_info : v.annotations()[i_gene_info].split(','))
 		{
 			gene_info = gene_info.trimmed();
 			if (gene_info.isEmpty()) continue;
@@ -1025,7 +1025,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 			QByteArray gene = gene_info.left(start-1).trimmed();
 			QByteArrayList entries = gene_info.mid(start+1).split(' ');
-			foreach(const QByteArray& entry, entries)
+            for (const QByteArray& entry : entries)
 			{
 				if (entry.startsWith("inh="))
 				{
@@ -1058,7 +1058,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		}
 		if (v_genotype=="het")
 		{
-			foreach(const VariantTranscript& transcript, transcript_info)
+            for (const VariantTranscript& transcript : transcript_info)
 			{
 				const QByteArray& gene = transcript.gene;
 				if(gene_hits_het.value(gene, 0)>=2)
