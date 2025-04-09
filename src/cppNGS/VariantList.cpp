@@ -1362,13 +1362,6 @@ QList<VariantTranscript> Variant::parseTranscriptString(QByteArray text, bool al
 	return output;
 }
 
-QDebug operator<<(QDebug d, const Variant& v)
-{
-	d.nospace() << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << "=>" << v.obs();
-	return d.space();
-}
-
-
 QByteArray VariantTranscript::toString(char sep) const
 {
 	return gene + sep + id + sep + type + sep + variantImpactToString(impact) + sep + exon + sep + hgvs_c + sep + hgvs_p + sep + domain;
