@@ -292,7 +292,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	}
 	if (!threads_in_args)
 	{
-		pipeline_args << "-threads " << QString::number(threads);
+        pipeline_args << "-threads" << QString::number(threads);
 	}
 
 	//submit to queue
