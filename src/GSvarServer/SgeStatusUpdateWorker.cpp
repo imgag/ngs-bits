@@ -117,12 +117,12 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	}
 
 	QString script;
-    QStringList args;
+	QStringList pipeline_args;
 	if (job.type=="single sample")
 	{
 		QString folder = QFileInfo(bams[0]).path() + "/";
-		args << "-folder " + folder;
-		args << "-name " + ps_data[0].name;
+		pipeline_args << "-folder" << folder;
+		pipeline_args << "-name" << ps_data[0].name;
 
 		QString sys_type = ps_data[0].processing_system_type;
 		if (sys_type=="RNA") //RNA
@@ -131,22 +131,22 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 			queues = PipelineSettings::queuesHighMemory();
 
 			script = "analyze_rna.php";
-			args << "--log "+folder+"analyze_rna_"+timestamp+".log";
+			pipeline_args << "--log" << (folder+"analyze_rna_"+timestamp+".log");
 		}
 		else if (sys_type=="cfDNA (patient-specific)" || sys_type=="cfDNA")
 		{
 			script = "analyze_cfdna.php";
-			args << "--log "+folder+"analyze_cfdna_"+timestamp+".log";
+			pipeline_args << "--log" << (folder+"analyze_cfdna_"+timestamp+".log");
 		}
 		else if (sys_type=="lrGS") //longread WGS
 		{
 			script = "analyze_longread.php";
-			args << "--log "+folder+"analyze_longread_"+timestamp+".log";
+			pipeline_args << "--log" << (folder+"analyze_longread_"+timestamp+".log");
 		}
 		else //DNA
 		{
 			script = "analyze.php";
-			args << "--log "+folder+"analyze_"+timestamp+".log";
+			pipeline_args << "--log" << (folder+"analyze_"+timestamp+".log");
 		}
 	}
 	else if (job.type=="trio")
@@ -178,11 +178,11 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		}
 
 		script = (ps_data[0].processing_system_type=="lrGS") ? "trio_longread.php" : "trio.php";
-		args << "-c " + bams[c_idx];
-		args << "-f " + bams[f_idx];
-		args << "-m " + bams[m_idx];
-		args << "-out_folder " + out_folder;
-		args << "--log " + out_folder + "/trio.log";
+		pipeline_args << "-c" << bams[c_idx];
+		pipeline_args << "-f" << bams[f_idx];
+		pipeline_args << "-m" << bams[m_idx];
+		pipeline_args << "-out_folder" << out_folder;
+		pipeline_args << "--log" << (out_folder + "/trio.log");
 	}
 	else if (job.type=="multi sample")
 	{
@@ -210,10 +210,10 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 
 		//determine command and arguments
 		script = (ps_data[0].processing_system_type=="lrGS") ? "multisample_longread.php" : "multisample.php";
-		args << "-bams " + bams.join(" ");
-		args << "-status " + infos.join(" ");
-		args << "-out_folder " + out_folder;
-		args << "--log " + out_folder + "/multi.log";
+		pipeline_args << "-bams" << bams;
+		pipeline_args << "-status" << infos;
+		pipeline_args << "-out_folder" << out_folder;
+		pipeline_args << "--log" << (out_folder + "/multi.log");
 	}
 	else if (job.type=="somatic")
 	{
@@ -252,17 +252,17 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		}
 
 		script = (n_idx!=-1) ? "somatic_tumor_normal.php" : "somatic_tumor_only.php";
-		args << "--log "+out_folder+"/somatic_"+timestamp+".log";
-		args << "-out_folder " + out_folder;
-		args << "-prefix " + ps_data[t_idx].name + (n_idx!=-1 ? "-"+ps_data[n_idx].name : "");
-		args << "-t_bam " + bams[t_idx];
+		pipeline_args << "--log" << (out_folder+"/somatic_"+timestamp+".log");
+		pipeline_args << "-out_folder" << out_folder;
+		pipeline_args << "-prefix" << (ps_data[t_idx].name + (n_idx!=-1 ? "-"+ps_data[n_idx].name : ""));
+		pipeline_args << "-t_bam" << bams[t_idx];
 		if (n_idx!=-1)
 		{
-			args << "-n_bam " + bams[n_idx];
+			pipeline_args << "-n_bam" << bams[n_idx];
 		}
 		if (r_idx!=-1)
 		{
-			args << "-t_rna_bam " + bams[r_idx];
+			pipeline_args << "-t_rna_bam" << bams[r_idx];
 		}
 	}
 	else
@@ -292,7 +292,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	}
 	if (!threads_in_args)
 	{
-		args << "-threads "+QString::number(threads);
+		pipeline_args << "-threads " << QString::number(threads);
 	}
 
 	//submit to queue
@@ -308,8 +308,8 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	qsub_args << "-q" << queues.join(",");
     qsub_args << "php";
     qsub_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
-    qsub_args << job.args.simplified().split(" ");
-    qsub_args << args;
+	qsub_args << job.args.simplified().split(' ');
+	qsub_args << pipeline_args;
 
 	QByteArrayList output;
 	int exit_code = Helper::executeCommand("qsub", qsub_args, &output);
