@@ -230,6 +230,11 @@ FileLocationList FileLocationProviderRemote::getSomaticLowCoverageFiles(bool ret
 	return getFileLocationsByType(PathType::LOWCOV_BED, return_if_missing);
 }
 
+FileLocationList FileLocationProviderRemote::getParaphaseEvidenceFiles(bool return_if_missing) const
+{
+	return getFileLocationsByType(PathType::PARAPHASE_EVIDENCE, return_if_missing);
+}
+
 FileLocation FileLocationProviderRemote::getSomaticCnvCoverageFile() const
 {
 	return getOneFileLocationByType(PathType::COPY_NUMBER_RAW_DATA, "");

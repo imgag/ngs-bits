@@ -453,6 +453,9 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				}
 				file_list << file_locator->getMethylationImage(locus);
 				break;
+			case PathType::PARAPHASE_EVIDENCE:
+				file_list = file_locator->getParaphaseEvidenceFiles(return_if_missing);
+				break;
 			case PathType::GSVAR:
 				file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);
 				break;
