@@ -117,7 +117,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	}
 
 	QString script;
-	QStringList args;
+    QStringList args;
 	if (job.type=="single sample")
 	{
 		QString folder = QFileInfo(bams[0]).path() + "/";
@@ -306,7 +306,11 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	qsub_args << "-e" << (sge_out_base + ".err");
 	qsub_args << "-o" << (sge_out_base + ".out");
 	qsub_args << "-q" << queues.join(",");
-	qsub_args << "php "+PipelineSettings::rootDir()+"/src/Pipelines/"+script+" " + job.args + " " + args.join(" ");
+    qsub_args << "php";
+    qsub_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
+    qsub_args << job.args.simplified().split(" ");
+    qsub_args << args;
+
 	QByteArrayList output;
 	int exit_code = Helper::executeCommand("qsub", qsub_args, &output);
 	if (exit_code!=0)
