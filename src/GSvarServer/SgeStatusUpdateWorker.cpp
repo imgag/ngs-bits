@@ -308,6 +308,20 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	qsub_args << "-q" << queues.join(",");
 	qsub_args << "php "+PipelineSettings::rootDir()+"/src/Pipelines/"+script+" " + job.args + " " + args.join(" ");
 	QByteArrayList output;
+
+    QFile file("qsub_args.txt");
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        Log::error("Cannot open file for writing:" + file.errorString());
+        return;
+    }
+    QTextStream out(&file);
+    for (const QString &line : qsub_args)
+    {
+        out << line << "\n";
+    }
+    file.close();
+
 	int exit_code = Helper::executeCommand("qsub", qsub_args, &output);
 	if (exit_code!=0)
 	{
