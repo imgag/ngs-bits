@@ -318,6 +318,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		details << "Output:";
 		details << output.join('\n');
 		db.addAnalysisHistoryEntry(job_id, "error", details);
+		return;
 	}
 	QByteArray sge_id = output.join(" ").simplified().split(' ')[2];
 
