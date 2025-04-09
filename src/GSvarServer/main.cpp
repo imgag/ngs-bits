@@ -589,5 +589,23 @@ int main(int argc, char **argv)
         Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
     }
 
+
+    QStringList p_args;
+
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    process.start("ls", p_args);
+    process.waitForFinished(-1);
+
+
+    Log::info("Output");
+    Log::info(process.readAll());
+
+
+    //special case exit code handling
+    if (process.exitStatus()!=QProcess::NormalExit) return -1;
+
+    Log::info("process.exitCode() = " + QString::number(process.exitCode()));
+
 	return app.exec();
 }
