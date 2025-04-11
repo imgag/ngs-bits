@@ -18,6 +18,7 @@ The settings are:
 
 - *reference_genome*: the path to the reference genome FASTA file
 - *ngsd_...*: Database credentials for the NGSD (if available)
+- *db_ssl_ca: SSL certificate authorities needed to validate connections to the database server
 - *genlab_...*: Database credentials for the GenLab (if available)
 - *projects_folder_...*: Prject data folders for different project types (diagnostic, research, test, external)
 - *data_folder*: megSAP data folder used to find target region BED files of processing systems
