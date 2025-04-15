@@ -57,6 +57,12 @@ NGSD::NGSD(bool test_db, QString test_name_override)
 		db_->setPassword(Settings::string(prefix + "_pass"));
 		db_name = prefix;
 	}
+    QByteArray db_ssl_ca = Settings::string("db_ssl_ca", true).trimmed().toUtf8();
+    if (!db_ssl_ca.isEmpty())
+    {
+        //setting certificate authorities (e.g. needed to validate secure connections to AWS DB servers)
+        db_->setConnectOptions("SSL_CA=" + db_ssl_ca);
+    }
 
 	if (!db_->open())
 	{

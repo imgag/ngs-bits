@@ -247,7 +247,11 @@ protected:
 };
 
 ///Debug output operator for Variant.
-QDebug operator<<(QDebug d, const Variant& v);
+inline QDebug operator<<(QDebug d, const Variant& v)
+{
+    d.nospace() << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << "=>" << v.obs();
+    return d.space();
+}
 
 ///Supported analysis types.
 enum AnalysisType
