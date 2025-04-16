@@ -115,5 +115,13 @@ void IGVInitCacheWorker::process()
             }
         }
     }
+
+	//Paraphase evidence file
+	FileLocationList paraphase_files = GlobalServiceProvider::fileLocationProvider().getParaphaseEvidenceFiles(true);
+	foreach(const FileLocation& file, paraphase_files)
+	{
+		IgvSessionManager::get(0).addLocationToCache(file, false);
+	}
+
     Log::info("Finished preloading IGV file information");
 }
