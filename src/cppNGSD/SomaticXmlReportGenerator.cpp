@@ -129,7 +129,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(tumor_s_id, "ICD10 code");
 		if(!disease_infos.empty())
 		{
-			foreach(const auto& disease_info, disease_infos)
+            for (const auto& disease_info : disease_infos)
 			{
 				w.writeStartElement("DiseaseInfo");
 				w.writeAttribute("type", "ICD10");
@@ -266,7 +266,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		w.writeEndElement();
 	}
 
-	foreach(const QByteArray& gene, data.settings.target_region_filter.genes)
+    for (const QByteArray& gene : data.settings.target_region_filter.genes)
 	{
 		GeneInfo gene_info = db.geneInfo(gene);
 		if(gene_info.symbol.isEmpty()) continue;
@@ -414,7 +414,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			}
 
 			//Elements transcript information
-			foreach(const auto& trans, snv.transcriptAnnotations(i_germl_co_sp) )
+            for (const auto& trans : snv.transcriptAnnotations(i_germl_co_sp) )
 			{
 				w.writeStartElement("TranscriptInformation");
 

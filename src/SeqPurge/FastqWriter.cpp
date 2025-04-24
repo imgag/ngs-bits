@@ -21,7 +21,7 @@ void FastqWriter::run()
 	{
 		for (int r=0; r<job_.read_count; ++r)
 		{
-			if (job_.r1[r].bases.count()>=params_.min_len && job_.r2[r].bases.count()>=params_.min_len)
+            if (job_.r1[r].bases.size()>=params_.min_len && job_.r2[r].bases.size()>=params_.min_len)
 			{
 				if (r1_) streams_.ostream1->write(job_.r1[r]);
 				else streams_.ostream2->write(job_.r2[r]);

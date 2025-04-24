@@ -134,7 +134,7 @@ void GapClosingDialog::updateTable()
 		GeneSet genes_overlapping = db_.genesOverlappingByExon(chr, start, end, 20);
 		genes << genes_overlapping.join("<br>");
 		QStringList tmp;
-		foreach(const QByteArray& gene, genes_overlapping)
+        for (const QByteArray& gene : genes_overlapping)
 		{
 			QString exon = exonNumber(gene, start, end);
 			if (exon!="") tmp << exon;

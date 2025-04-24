@@ -27,7 +27,7 @@ void GeneSet::remove(const QByteArray& gene)
 
 void GeneSet::remove(const GeneSet& genes)
 {
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		remove(gene);
 	}
@@ -35,7 +35,7 @@ void GeneSet::remove(const GeneSet& genes)
 
 void GeneSet::remove(const QByteArrayList& genes)
 {
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		remove(gene);
 	}
@@ -43,7 +43,7 @@ void GeneSet::remove(const QByteArrayList& genes)
 
 bool GeneSet::containsAll(const GeneSet& genes) const
 {
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		if (!contains(gene)) return false;
 	}
@@ -57,7 +57,7 @@ GeneSet GeneSet::intersect(const GeneSet& genes) const
 
 	QSet<QByteArray> tmp = set_;
 	tmp.intersect(genes.set_);
-	foreach(const QByteArray& gene, tmp)
+    for (const QByteArray& gene : tmp)
 	{
 		output.insert(gene);
 	}
@@ -68,7 +68,7 @@ GeneSet GeneSet::intersect(const GeneSet& genes) const
 void GeneSet::store(QString filename) const
 {
 	auto handle = Helper::openFileForWriting(filename);
-	foreach(const QByteArray& gene, *this)
+    for (const QByteArray& gene : *this)
 	{
 		handle->write(gene + "\n");
 	}
@@ -94,7 +94,7 @@ GeneSet GeneSet::createFromText(const QByteArray& text, char seperator)
 	GeneSet output;
 
 	QList<QByteArray> lines = text.split(seperator);
-	foreach(const QByteArray& line, lines)
+    for (const QByteArray& line : lines)
 	{
 		if (line.startsWith("#")) continue;
 		output.insert(line);
@@ -107,7 +107,7 @@ GeneSet GeneSet::createFromStringList(const QStringList& list)
 {
 	GeneSet output;
 
-	foreach(const QString& line, list)
+    for (const QString& line : list)
 	{
 		output.insert(line.toUtf8());
 	}
@@ -119,7 +119,7 @@ QStringList GeneSet::toStringList() const
 {
 	QStringList output;
 
-	foreach(const QByteArray& gene, *this)
+    for (const QByteArray& gene : *this)
 	{
 		output.append(gene);
 	}

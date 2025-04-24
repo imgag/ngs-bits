@@ -294,7 +294,7 @@ void SampleSearchWidget::phenotypeSelection()
 
 	//update GUI
 	QByteArrayList tmp;
-	foreach(const Phenotype& pheno, phenotypes_)
+    for (const Phenotype& pheno : phenotypes_)
 	{
 		tmp << pheno.name();
 	}

@@ -657,7 +657,7 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	{
 		if(old_CIGAR[i].Type!=BAM_CDEL && old_CIGAR[i].Type!=BAM_CSOFT_CLIP && old_CIGAR[i].Type!=BAM_CMATCH && old_CIGAR[i].Type!=BAM_CINS && old_CIGAR[i].Type!=BAM_CHARD_CLIP)
 		{
-			THROW(ToolFailedException, "Unsupported CIGAR type '" + QString(old_CIGAR[i].Type) + "'");
+            THROW(ToolFailedException, "Unsupported CIGAR type '" + QString::number(old_CIGAR[i].Type) + "'");
 		}
 	}
 
@@ -1291,7 +1291,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			{
 				int enst_start = details.indexOf("Parent=")+7;
 				int enst_end = details.indexOf(";", enst_start);
-				if (enst_end==-1) enst_end=details.count();
+                if (enst_end==-1) enst_end=details.size();
 				QByteArray parent_id = details.mid(enst_start, enst_end-enst_start);
 
 				//skip exons of skipped genes

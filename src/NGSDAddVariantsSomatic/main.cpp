@@ -24,9 +24,9 @@ public:
 		addString("t_ps", "Tumor processed sample name", false);
 		//optional
 		addString("n_ps", "Normal processed sample name", true);
-		addInfile("var", "Small variant list (i.e. SNVs and small INDELs) in GSvar format (as produced by megSAP).", true, true);
+		addInfile("var", "Small variant list in GSvar format (as produced by megSAP).", true, true);
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
-		addInfile("sv", "SV list in TSV format (as produced by megSAP).", true, true);
+		addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
 		addFlag("force", "Force import of variants, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFloat("max_af", "Maximum allele frequency of small variants to import (gnomAD) for import of tumor-only.", true, 0.05);
@@ -327,52 +327,14 @@ public:
 		BedpeFile svs;
 		svs.load(filename);
 
-		// create SV callset for given processed sample
-		QByteArray caller;
-		QByteArray caller_version;
-		QDate date;
-		foreach (const QByteArray &header, svs.headers())
-		{
-			// parse date
-			if (header.startsWith("##fileDate="))
-			{
-				date = QDate::fromString(header.split('=')[1].trimmed(), "yyyyMMdd");
-			}
-
-			// parse caller and caller version
-			// Manta:    ##source=GenerateSVCandidates 1.6.0
-			// DRAGEN:   ##source=DRAGEN 01.011.608.3.9.3
-			// Sniffles: ##source=Sniffles2_2.0.7
-			if (header.startsWith("##source="))
-			{
-				QByteArray application_string = header.split('=')[1].trimmed();
-
-				int sep_idx = application_string.indexOf(" ");
-				if(sep_idx==-1) sep_idx = application_string.indexOf("_"); //fallback: use '_' as version seperator
-				if(sep_idx==-1)  THROW(FileParseException, "Source line does not contain version after first space/underscore: " + header);
-
-				QByteArray tmp = application_string.left(sep_idx).trimmed();
-				if (tmp=="GenerateSVCandidates") caller = "Manta";
-				else if (tmp=="DRAGEN") caller = "DRAGEN";
-				else if (tmp=="Sniffles2") caller = "Sniffles";
-
-				caller_version = application_string.mid(sep_idx+1).trimmed();
-			}
-		}
-
-		// check if all required data is available
-		if (caller == "") THROW(FileParseException, "Caller is missing");
-		if (caller_version == "") THROW(FileParseException, "Version is missing");
-		if (date.isNull()) THROW(FileParseException, "Date is missing");
-
 		// create callset entry
 		SqlQuery insert_callset = db.getQuery();
 		insert_callset.prepare("INSERT INTO `somatic_sv_callset` (`ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3, :4)");
 		insert_callset.bindValue(0, t_ps_id);
 		insert_callset.bindValue(1, n_ps_id);
-		insert_callset.bindValue(2, caller);
-		insert_callset.bindValue(3, caller_version);
-		insert_callset.bindValue(4, date);
+		insert_callset.bindValue(2, svs.caller());
+		insert_callset.bindValue(3, svs.callerVersion());
+		insert_callset.bindValue(4, svs.callingDate());
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 

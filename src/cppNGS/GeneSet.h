@@ -31,7 +31,7 @@ class CPPNGSSHARED_EXPORT GeneSet
 		///Inserts a gene set
 		void insert(const GeneSet& genes)
 		{
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				insert(gene);
 			}
@@ -40,7 +40,7 @@ class CPPNGSSHARED_EXPORT GeneSet
 		///Inserts a gene list
 		void insert(const QByteArrayList& genes)
 		{
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				insert(gene);
 			}

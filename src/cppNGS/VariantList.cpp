@@ -71,7 +71,7 @@ QByteArrayList Variant::vepAnnotations(int csq_index, int field_index) const
 	QByteArrayList output;
 
 	QByteArray csq = annotations()[csq_index].trimmed();
-	if (csq.count()>0)
+    if (csq.size()>0)
 	{
 		QByteArrayList transcripts = csq.split(',');
 
@@ -146,7 +146,7 @@ QString Variant::toString(QChar sep, int max_sequence_length, bool chr_normalize
 	}
 	else
 	{
-		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + sep.toLatin1() + QString::number(start_) + sep.toLatin1() + QString::number(end_) + sep.toLatin1() + ref + sep.toLatin1() + obs;
+        return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + sep.toLatin1() + QString::number(start_) + sep.toLatin1() + QString::number(end_) + sep.toLatin1() + ref + sep.toLatin1() + obs;
 	}
 }
 
@@ -460,7 +460,7 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 		return prefix + QString::number(start) + '_' + QString::number(start + ref_len - 1) + "delins" + obs;
 	}
 
-	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
+    THROW(ProgrammingException, "Could not convert variant " + toString(QChar(), -1, false) + " to string! This should not happen!");
 }
 
 VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const

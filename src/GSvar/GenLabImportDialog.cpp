@@ -83,7 +83,7 @@ void GenLabImportDialog::initTable()
 		}
 
 		PhenotypeList phenos = genlab.phenotypes(ps_name);
-		foreach (const Phenotype& pheno, phenos)
+        for (const Phenotype& pheno : phenos)
 		{
 			QString hpo_ngsd = diseaseDataContains(s_id, "HPO term id", pheno.accession()) ? pheno.toString() : "";
 			addItem("disease details: HPO term", hpo_ngsd, pheno.toString());

@@ -8,58 +8,58 @@ private slots:
 	void test_getContentTypeFromString()
 	{
 		ContentType type = HttpUtils::getContentTypeFromString("application/octet-stream");
-		S_EQUAL(type, ContentType::APPLICATION_OCTET_STREAM);
+        I_EQUAL(type, ContentType::APPLICATION_OCTET_STREAM);
 
 		type = HttpUtils::getContentTypeFromString("application/json");
-		S_EQUAL(type, ContentType::APPLICATION_JSON);
+        I_EQUAL(type, ContentType::APPLICATION_JSON);
 
 		type = HttpUtils::getContentTypeFromString("application/javascript");
-		S_EQUAL(type, ContentType::APPLICATION_JAVASCRIPT);
+        I_EQUAL(type, ContentType::APPLICATION_JAVASCRIPT);
 
 		type = HttpUtils::getContentTypeFromString("image/jpeg");
-		S_EQUAL(type, ContentType::IMAGE_JPEG);
+        I_EQUAL(type, ContentType::IMAGE_JPEG);
 
 		type = HttpUtils::getContentTypeFromString("image/png");
-		S_EQUAL(type, ContentType::IMAGE_PNG);
+        I_EQUAL(type, ContentType::IMAGE_PNG);
 
 		type = HttpUtils::getContentTypeFromString("image/svg+xml");
-		S_EQUAL(type, ContentType::IMAGE_SVG_XML);
+        I_EQUAL(type, ContentType::IMAGE_SVG_XML);
 
 		type = HttpUtils::getContentTypeFromString("text/plain");
-		S_EQUAL(type, ContentType::TEXT_PLAIN);
+        I_EQUAL(type, ContentType::TEXT_PLAIN);
 
 		type = HttpUtils::getContentTypeFromString("text/csv");
-		S_EQUAL(type, ContentType::TEXT_CSV);
+        I_EQUAL(type, ContentType::TEXT_CSV);
 
 		type = HttpUtils::getContentTypeFromString("text/html");
-		S_EQUAL(type, ContentType::TEXT_HTML);
+        I_EQUAL(type, ContentType::TEXT_HTML);
 
 		type = HttpUtils::getContentTypeFromString("text/xml");
-		S_EQUAL(type, ContentType::TEXT_XML);
+        I_EQUAL(type, ContentType::TEXT_XML);
 
 		type = HttpUtils::getContentTypeFromString("text/css");
-		S_EQUAL(type, ContentType::TEXT_CSS);
+        I_EQUAL(type, ContentType::TEXT_CSS);
 
 		type = HttpUtils::getContentTypeFromString("multipart/form-data");
-		S_EQUAL(type, ContentType::MULTIPART_FORM_DATA);
+        I_EQUAL(type, ContentType::MULTIPART_FORM_DATA);
 	}
 
 	void test_getMethodTypeFromString()
 	{
 		RequestMethod type = HttpUtils::getMethodTypeFromString("get");
-		S_EQUAL(type, RequestMethod::GET);
+        I_EQUAL(type, RequestMethod::GET);
 
 		type = HttpUtils::getMethodTypeFromString("post");
-		S_EQUAL(type, RequestMethod::POST);
+        I_EQUAL(type, RequestMethod::POST);
 
 		type = HttpUtils::getMethodTypeFromString("delete");
-		S_EQUAL(type, RequestMethod::DELETE);
+        I_EQUAL(type, RequestMethod::DELETE);
 
 		type = HttpUtils::getMethodTypeFromString("put");
-		S_EQUAL(type, RequestMethod::PUT);
+        I_EQUAL(type, RequestMethod::PUT);
 
 		type = HttpUtils::getMethodTypeFromString("patch");
-		S_EQUAL(type, RequestMethod::PATCH);
+        I_EQUAL(type, RequestMethod::PATCH);
 	}
 
 	void test_convertMethodTypeToString()
@@ -122,40 +122,40 @@ private slots:
 	void test_getContentTypeByFilename()
 	{
 		ContentType type = HttpUtils::getContentTypeByFilename("json");
-		S_EQUAL(type, ContentType::APPLICATION_JSON);
+        I_EQUAL(type, ContentType::APPLICATION_JSON);
 
 		type = HttpUtils::getContentTypeByFilename("js");
-		S_EQUAL(type, ContentType::APPLICATION_JAVASCRIPT);
+        I_EQUAL(type, ContentType::APPLICATION_JAVASCRIPT);
 
 		type = HttpUtils::getContentTypeByFilename("jpeg");
-		S_EQUAL(type, ContentType::IMAGE_JPEG);
+        I_EQUAL(type, ContentType::IMAGE_JPEG);
 
 		type = HttpUtils::getContentTypeByFilename("jpg");
-		S_EQUAL(type, ContentType::IMAGE_JPEG);
+        I_EQUAL(type, ContentType::IMAGE_JPEG);
 
 		type = HttpUtils::getContentTypeByFilename("png");
-		S_EQUAL(type, ContentType::IMAGE_PNG);
+        I_EQUAL(type, ContentType::IMAGE_PNG);
 
 		type = HttpUtils::getContentTypeByFilename("svg");
-		S_EQUAL(type, ContentType::IMAGE_SVG_XML);
+        I_EQUAL(type, ContentType::IMAGE_SVG_XML);
 
 		type = HttpUtils::getContentTypeByFilename("txt");
-		S_EQUAL(type, ContentType::TEXT_PLAIN);
+        I_EQUAL(type, ContentType::TEXT_PLAIN);
 
 		type = HttpUtils::getContentTypeByFilename("csv");
-		S_EQUAL(type, ContentType::TEXT_CSV);
+        I_EQUAL(type, ContentType::TEXT_CSV);
 
 		type = HttpUtils::getContentTypeByFilename("html");
-		S_EQUAL(type, ContentType::TEXT_HTML);
+        I_EQUAL(type, ContentType::TEXT_HTML);
 
 		type = HttpUtils::getContentTypeByFilename("htm");
-		S_EQUAL(type, ContentType::TEXT_HTML);
+        I_EQUAL(type, ContentType::TEXT_HTML);
 
 		type = HttpUtils::getContentTypeByFilename("xml");
-		S_EQUAL(type, ContentType::TEXT_XML);
+        I_EQUAL(type, ContentType::TEXT_XML);
 
 		type = HttpUtils::getContentTypeByFilename("css");
-		S_EQUAL(type, ContentType::TEXT_CSS);
+        I_EQUAL(type, ContentType::TEXT_CSS);
 	}
 
 	void test_convertErrorTypeToText()

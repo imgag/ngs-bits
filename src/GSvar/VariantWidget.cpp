@@ -58,7 +58,7 @@ void VariantWidget::updateGUI()
 	QString variant_id = db.variantId(variant_);
 
 	//variant base info
-	ui_.variant->setText(variant_.toString(false, -1, true));
+    ui_.variant->setText(variant_.toString(QChar(), -1, true));
 
 	SqlQuery query1 = db.getQuery();
 	query1.exec("SELECT * FROM variant WHERE id=" + variant_id);
@@ -151,7 +151,11 @@ void VariantWidget::updateGUI()
 	bool fill_table = true;
 	if (query2.size()>250)
 	{
-		int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the variant table might be slow.\nDo you want to fill the variant table?", QMessageBox::Yes, QMessageBox::No|QMessageBox::Default);
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the variant table might be slow.\nDo you want to fill the variant table?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        #else
+        int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the variant table might be slow.\nDo you want to fill the variant table?", QMessageBox::Yes, QMessageBox::No|QMessageBox::Default);
+        #endif
 		if (res!=QMessageBox::Yes) fill_table = false;
 	}
 
@@ -185,7 +189,7 @@ void VariantWidget::updateGUI()
 			addItem(row, 8, s_data.disease_group);
 			addItem(row, 9, s_data.disease_status);
 			QStringList pho_list;
-			foreach(const Phenotype& pheno, s_data.phenotypes)
+            for (const Phenotype& pheno : s_data.phenotypes)
 			{
 				pho_list << pheno.toString();
 			}
@@ -460,7 +464,7 @@ void VariantWidget::copyVariant()
 		NGSD db;
 		GeneSet genes = db.genesOverlapping(variant_.chr(), variant_.start(), variant_.end());
 		VariantHgvsAnnotator hgvs_annotator(genome_idx);
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			Transcript trans = db.bestTranscript(db.geneId(gene));
 			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);

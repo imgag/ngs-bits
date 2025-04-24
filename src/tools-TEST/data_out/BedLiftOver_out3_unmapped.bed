@@ -1,8 +1,4 @@
-# Region was mapped to a special chromosome.
-chr1	144508965	144508975
-# Region was mapped to a special chromosome.
-chr1	145428421	145428426
-# Region was mapped to a special chromosome.
-chr1	146407513	146407613
-# Region was mapped to a special chromosome.
-chr1	146408513	146408520
+chr1	144508965	144508975	#Error: Region was mapped to a special chromosome.
+chr1	145428421	145428426	#Error: Region was mapped to a special chromosome.
+chr1	146407513	146407613	#Error: Region was mapped to a special chromosome.
+chr1	146408513	146408520	#Error: Region was mapped to a special chromosome.

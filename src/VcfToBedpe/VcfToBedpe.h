@@ -30,10 +30,10 @@ private:
 	char* buffer_;
 
 	///struct for the data that is contained in a single (input!) vcf line
-	struct vcf_line;
+	struct VcfLineInternal;
 
 	///Struct for the data that is contained in a single (output!) bedpe line
-	struct bedpe_line;
+	struct BedpeLineInternal;
 
 	///parses an INFO field (usually contained in header)  and returns entries as key value pairs
 	static QMap<QByteArray,QByteArray> parseInfoField(const QByteArray& field);
@@ -45,10 +45,10 @@ private:
 	void addHeaderInfoFieldAfter(const QByteArray& before,const QByteArray& key, const QByteArray& type, int number, const QByteArray& desc);
 
 	///Converts VCF line with "simple" SV (=> no mate) into BedpeLine, the end entry in INFO is in this case on same chromosome
-	VcfToBedpe::bedpe_line convertSingleLine(const vcf_line& line_in, bool single_manta_bnd = false);
+	VcfToBedpe::BedpeLineInternal convertSingleLine(const VcfLineInternal& line_in, bool single_manta_bnd = false);
 
 	///Converts VCF line with "complex" SV (where we have a Mate) into BedpeLine
-	VcfToBedpe::bedpe_line convertComplexLine(const vcf_line& line_a, const vcf_line& line_b, bool mate_missing = false);
+	VcfToBedpe::BedpeLineInternal convertComplexLine(const VcfLineInternal& line_a, const VcfLineInternal& line_b, bool mate_missing = false);
 
 	///adds entry into INFO field after certain entry
 	static QByteArray newInfoFieldAfterKey(const QByteArray& info_old,const QByteArray& key_before, const QByteArray& key, const QByteArray& data);

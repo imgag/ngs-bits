@@ -35,7 +35,7 @@ Variants are sometimes not displayed. Use carefully!
  
 ![alt text](igv_settings_lr_chimeric.png)
 
-For documentation of chimeric reads, see <https://igv.org/doc/desktop/\#UserGuide/tracks/alignments/chimeric\_reads/>
+For documentation of chimeric reads, see <https://igv.org/doc/desktop/#UserGuide/tracks/alignments/chimeric_reads/>
 
  
 ### Methylation Analysis

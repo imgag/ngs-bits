@@ -382,51 +382,13 @@ public:
 		BedpeFile svs;
 		svs.load(filename);
 
-		// create SV callset for given processed sample
-		QByteArray caller;
-		QByteArray caller_version;
-		QDate date;
-		foreach (const QByteArray &header, svs.headers())
-		{
-			// parse date
-			if (header.startsWith("##fileDate="))
-			{
-				date = QDate::fromString(header.split('=')[1].trimmed(), "yyyyMMdd");
-			}
-
-			// parse caller and caller version
-			// Manta:    ##source=GenerateSVCandidates 1.6.0
-			// DRAGEN:   ##source=DRAGEN 01.011.608.3.9.3
-			// Sniffles: ##source=Sniffles2_2.0.7
-			if (header.startsWith("##source="))
-			{
-				QByteArray application_string = header.split('=')[1].trimmed();
-
-				int sep_idx = application_string.indexOf(" ");
-				if(sep_idx==-1) sep_idx = application_string.indexOf("_"); //fallback: use '_' as version seperator
-				if(sep_idx==-1)  THROW(FileParseException, "Source line does not contain version after first space/underscore: " + header);
-
-				QByteArray tmp = application_string.left(sep_idx).trimmed();
-				if (tmp=="GenerateSVCandidates") caller = "Manta";
-				else if (tmp=="DRAGEN") caller = "DRAGEN";
-				else if (tmp=="Sniffles2") caller = "Sniffles";
-
-				caller_version = application_string.mid(sep_idx+1).trimmed();
-			}
-		}
-
-		// check if all required data is available
-		if (caller == "") THROW(FileParseException, "Caller is missing");
-		if(caller_version == "") THROW(FileParseException, "Version is missing");
-		if(date.isNull()) THROW(FileParseException, "Date is missing");
-
 		// create callset entry
 		SqlQuery insert_callset = db.getQuery();
 		insert_callset.prepare("INSERT INTO `sv_callset` (`processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
 		insert_callset.bindValue(0, ps_id);
-		insert_callset.bindValue(1, caller);
-		insert_callset.bindValue(2, caller_version);
-		insert_callset.bindValue(3, date);
+		insert_callset.bindValue(1, svs.caller());
+		insert_callset.bindValue(2, svs.callerVersion());
+		insert_callset.bindValue(3, svs.callingDate());
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 

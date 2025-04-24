@@ -111,12 +111,12 @@ public:
 				else
 				{
 					QStringList min_dist_diff;
-					for (int j=0; j<key.count(); ++j) min_dist_diff.append("x");
+                    for (int j=0; j<key.size(); ++j) min_dist_diff.append("x");
 					SampleSheetEntry min_dist_entry;
 					foreach(const SampleSheetEntry& entry, sheet)
 					{
 						QStringList different;
-						for(int j=0; j<entry.mid.count(); ++j)
+                        for(int j=0; j<entry.mid.size(); ++j)
 						{
 							if (entry.mid[j]!=key[j]) different.append(QString::number(j));
 						}

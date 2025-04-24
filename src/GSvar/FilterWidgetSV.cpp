@@ -180,6 +180,7 @@ void FilterWidgetSV::roiSelectionChanged(int index)
         QCompleter *completer = new QCompleter(proxy_model, ui_.roi);
         completer->setCompletionMode(QCompleter::PopupCompletion);
         completer->setFilterMode(Qt::MatchContains);
+		completer->setCaseSensitivity(Qt::CaseInsensitive);
         completer->setCompletionRole(Qt::DisplayRole);
         ui_.roi->setCompleter(completer);
 	}
@@ -234,7 +235,7 @@ void FilterWidgetSV::phenotypesChanged()
 {
 	//update GUI
 	QByteArrayList tmp;
-	foreach(const Phenotype& pheno, phenotypes_)
+    for (const Phenotype& pheno : phenotypes_)
 	{
 		tmp << pheno.name();
 	}
@@ -245,7 +246,7 @@ void FilterWidgetSV::phenotypesChanged()
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
-		foreach(const Phenotype& pheno, phenotypes_)
+        for (const Phenotype& pheno : phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}

@@ -43,7 +43,7 @@ void Sequence::reverse()
 
 void Sequence::complement()
 {
-	for (int i=0; i<count(); ++i)
+    for (int i=0; i<size(); ++i)
 	{
 		switch(at(i))
 		{
@@ -85,7 +85,7 @@ double Sequence::gcContent() const
 {
 	int gc = 0;
 	int at = 0;
-	for (int i=0; i<count(); ++i)
+    for (int i=0; i<size(); ++i)
 	{
 		char base = operator[](i);
 		if (base=='G' ||base=='C') ++gc;
@@ -119,7 +119,7 @@ int Sequence::addNoise(double error_probability, std::mt19937& gen)
 
 	//bases vector
 	QByteArray bases = "ACGT";
-	for(int i=0; i<count(); ++i)
+    for(int i=0; i<size(); ++i)
 	{
 		//base error?
 		bool error = error_dist(gen) < error_probability;
@@ -129,7 +129,14 @@ int Sequence::addNoise(double error_probability, std::mt19937& gen)
 		{
 			do
 			{
-				std::random_shuffle(bases.begin(), bases.end());
+                #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                // we need to provide a random number generator explicitly
+                std::random_device rd;
+                std::mt19937 g(rd());
+                std::shuffle(bases.begin(), bases.end(), g);
+                #else
+                std::random_shuffle(bases.begin(), bases.end());
+                #endif
 			}
 			while (at(i)==bases[0]);
 			operator[](i) = bases[0];

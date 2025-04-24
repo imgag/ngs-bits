@@ -36,14 +36,12 @@ QString SubpanelDesignDialog::lastCreatedSubPanel()
 
 void SubpanelDesignDialog::createSubpanelCompleter()
 {
-    // completer_ = new QCompleter(subpanel_names_);
-    // completer_->setCaseSensitivity(Qt::CaseInsensitive);
-    // ui_.name->setCompleter(completer_);
     QStringListModel *model = new QStringListModel(subpanel_names_);
     QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel();
     proxy_model->setSourceModel(model);
     proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
     completer_ = new QCompleter(proxy_model);
+	completer_->setCaseSensitivity(Qt::CaseInsensitive);
 }
 
 void SubpanelDesignDialog::checkAndCreatePanel()
@@ -89,7 +87,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//check gene names
 	bool ignore_gene_errors = ui_.ignore_gene_errors->isChecked();
 	GeneSet valid_genes;
-	foreach(QString gene, genes_)
+    for (const QString gene : genes_)
 	{
 		QPair<QString, QString> geneinfo = db.geneToApprovedWithMessage(gene);
 		QByteArray gene_new = geneinfo.first.toLatin1();
@@ -139,13 +137,13 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//add special regions (gene symbol, region1, region2, ...)
     auto special_regions = GSvarHelper::specialRegions();
     QStringList genes_special;
-	foreach(QByteArray gene, genes_)
+    for (const QByteArray& gene : genes_)
     {
         if (special_regions.contains(gene))
         {
             genes_special << gene;
 
-            foreach(const BedLine& region, special_regions[gene])
+            for (const BedLine& region : special_regions[gene])
             {
 				regions_.append(region);
             }
