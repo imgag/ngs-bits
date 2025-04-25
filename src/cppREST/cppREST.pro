@@ -86,6 +86,7 @@ HEADERS += \
     SessionAndUrlBackupWorker.h \
     SessionManager.h \
     SslServer.h \
+    ThreadPoolMonitor.h \
     ThreadSafeHashMap.h \
     UrlEntity.h \
     UrlManager.h

@@ -28,6 +28,10 @@ gsvar_server_db_name = "server_db"
 gsvar_server_db_user = "server_user"
 gsvar_server_db_pass = "server_password"
 
+#Email notifications (an email will be sent to the selected admin users when critical errors are detected)
+server_email_address = "gsvarserver@server.com"
+users_to_be_notified_on_errors = "email@server.com"
+
 #number of seconds after which a temporary URL will expire
 url_lifetime = 36000
 #number of seconds after which a user session will expire
