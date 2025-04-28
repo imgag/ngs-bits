@@ -10,9 +10,19 @@ ngs-bits depends on the following software to be installed
 * _git_ (to extract the version hash)
 * __optional:__ python and matplotlib (for plot generation in QC tools)
 
-For example, the installation of the dependencies using Ubuntu 22.04 looks like that:
+### Qt 5
+Ubuntu 22.04 is the last LTS release of Ubuntu that ships with Qt 5 by default. On Ubuntu 22.04 ngs-bits requires the following packages:
 
         > sudo apt-get install git make g++ qtbase5-dev libqt5sql5-mysql libqt5sql5-odbc libqt5charts5-dev libqt5svg5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev pkg-config libxml2 libxml2-dev
+
+### Qt 6
+We recommend using Ubuntu 24.04, since it is the current LTS release of Ubuntu that has Qt 6 as the default Qt version. On Ubuntu 24.04 ngs-bits requires the following packages:
+
+        > sudo apt-get install git make g++ qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev
+        
+You will also have to create a symlink for qmake6, or adjust the `Makefile` (it uses `qmake`, not `qmake6` that comes with Qt 6):
+
+        > sudo ln -fs /usr/bin/qmake6 /usr/bin/qmake
     
 ### Resolving proxy issues with git
 
