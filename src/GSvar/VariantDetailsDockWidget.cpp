@@ -392,15 +392,15 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				text = anno;
 			}
 		}
-		else if(name=="CADD")
+		else if(name=="CADD") //Cutoffs from https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/
 		{
 			bool ok = true;
 			double value = anno.toDouble(&ok);
-			if (ok && value>=20)
+			if (ok && value>=25.3)
 			{
 				text = formatText(anno, RED);
 			}
-			else if (ok && value>=15)
+			else if (ok && value>=22.7)
 			{
 				text = formatText(anno, ORANGE);
 			}
