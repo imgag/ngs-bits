@@ -612,6 +612,35 @@ QString GenLabDB::tissue(QString ps_name)
 	return "";
 }
 
+QStringList GenLabDB::tables() const
+{
+	QStringList output;
+
+	SqlQuery query =  getQuery();
+	query.exec("SELECT name FROM sys.views");
+	while(query.next())
+	{
+		output << query.value(0).toString();
+	}
+
+	return output;
+}
+
+QStringList GenLabDB::fields(QString table) const
+{
+	QStringList output;
+
+	SqlQuery query =  getQuery();
+	query.exec("Select COLUMN_NAME From INFORMATION_SCHEMA.COLUMNS Where TABLE_NAME = '"+table+"'");
+	while(query.next())
+	{
+		output << query.value(0).toString();
+	}
+
+	return output;
+
+}
+
 QStringList GenLabDB::names(QString ps_name)
 {
 	QStringList output;

@@ -525,6 +525,12 @@ void MainWindow::userSpecificDebugFunction()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
+		GenLabDB db;
+		foreach(QString table, db.tables())
+		{
+			qDebug() << table;
+			qDebug() << db.fields(table);
+		}
 	}
 	else if (user=="ahschul1")
 	{
@@ -3094,7 +3100,7 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 			if (ps_id=="") continue; //not in NGSD
 
 			QString project_type = db.getValue("SELECT p.type FROM processed_sample ps, project p WHERE p.id=ps.project_id AND ps.id=" + ps_id).toString();
-			if (project_type=="diagnostic")
+			if (project_type=="diagnostics")
 			{
 				GenLabDB genlab;
 				QString genlab_patient_id = genlab.patientIdentifier(ps_name);
@@ -4039,9 +4045,9 @@ void MainWindow::generateReportSomaticRTF()
 
 		//reminder of MTB upload
 		QStringList studies = db.studies(ps_tumor_id);
-		if (studies.contains("MTB"))
+		if (studies.contains("MTB") || studies.contains("Modellvorhaben_2024"))
 		{
-			if (QMessageBox::question(this, "DNA report", "This sample is part of the study 'MTB'.\nDo you want to upload the data to MTB now?")==QMessageBox::Yes)
+			if (QMessageBox::question(this, "DNA report", "This sample is part of the study 'MTB' or the study 'Modellvorhaben_2024'.\nDo you want to upload the data to MTB now?")==QMessageBox::Yes)
 			{
 				transferSomaticData();
 			}
