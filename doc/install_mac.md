@@ -50,9 +50,11 @@ If you need to build a different version of htslib, please follow [these instruc
 Qt comes with a deployment tool for Mac computers. This tool helps finding and copying dependencies of an app. However, it does not work correctly. Some manual work and twicking are necessary afterwards.
 
 For example, to see all the dependencies of GSvar, you may use otool utility:
+
     > otool -L GSvar.app/Contents/MacOS/GSvar
 
 Fix path values for dependencies first:
+
     > install_name_tool -change libcppCORE.1.dylib @executable_path/../Frameworks/libcppCORE.1.dylib GSvar.app/Contents/MacOS/GSvar
     > install_name_tool -change libcppXML.1.dylib @executable_path/../Frameworks/libcppXML.1.dylib GSvar.app/Contents/MacOS/GSvar 
     > install_name_tool -change libcppNGS.1.dylib @executable_path/../Frameworks/libcppNGS.1.dylib GSvar.app/Contents/MacOS/GSvar
@@ -61,9 +63,11 @@ Fix path values for dependencies first:
     > install_name_tool -change libcppVISUAL.1.dylib @executable_path/../Frameworks/libcppVISUAL.1.dylib GSvar.app/Contents/MacOS/GSvar
 
 Check for available signatures (the app needs to be signed):
+
     > security find-identity -v -p codesigning 
 
-Following these steps to create a Mac bundle: 
+Following these steps to create a Mac bundle:
+
     > xattr -cr GSvar.app
 	> cp -r genomes/ GSvar.app/Contents/MacOS
     > cp GSvar_filters.ini GSvar.app/Contents/MacOS
