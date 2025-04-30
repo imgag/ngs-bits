@@ -384,7 +384,7 @@ struct FileLocation
 			case PathType::METHYLATION_IMAGE:
 				return "image of a given methylation locus";
 			case PathType::PARAPHASE_EVIDENCE:
-				return "evidence file for pseudo gene regions mapped by Paraphase";
+				return "Mapping of pseudo gene regions (Paraphase)";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
