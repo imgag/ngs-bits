@@ -285,6 +285,12 @@ QString LoginManager::ngsdPassword()
 	return ngsd_password;
 }
 
+bool LoginManager::hasGenlabInfo()
+{
+    return (!instance().genlab_host_.isEmpty() && !instance().genlab_name_.isEmpty()
+            && !instance().genlab_user_.isEmpty() && !instance().genlab_password_.isEmpty());
+}
+
 bool LoginManager::genlab_mssql()
 {
 	return instance().genlab_mssql_;

@@ -79,8 +79,8 @@ bool GenLabDB::isAvailable()
 {
 	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer())
 	{
-		return true;
-	}
+        return LoginManager::hasGenlabInfo();
+    }
 
 	return Settings::contains("genlab_host") && Settings::contains("genlab_name") && Settings::contains("genlab_user") && Settings::contains("genlab_pass"); //port is not required for MsSQL
 }
