@@ -35,7 +35,8 @@ DEALINGS IN THE SOFTWARE.  */
 #include "../htslib/hts_defs.h"
 #include "../htslib/kstring.h"
 
-void HTS_NORETURN fail(const char *format, ...)
+void HTS_FORMAT(HTS_PRINTF_FMT, 1, 2) HTS_NORETURN
+fail(const char *format, ...)
 {
     int err = errno;
     va_list args;
@@ -176,7 +177,7 @@ int main(void)
     original = slurp("vcf.c");
     for (i = 1; i <= 6; i++) {
         char *text;
-        sprintf(buffer, "test/hfile%d.tmp", i);
+        snprintf(buffer, sizeof(buffer), "test/hfile%d.tmp", i);
         text = slurp(buffer);
         if (strcmp(original, text) != 0) {
             fprintf(stderr, "%s differs from vcf.c\n", buffer);

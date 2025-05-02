@@ -6,8 +6,21 @@ This manual assumes you have already retrieved a local copy of the [github respo
 
 First, we need to install Qt and some basic dependencies:
 
-* Download and install [Qt 5.12.12](https://download.qt.io/archive/qt/5.12/5.12.12/) to the default location.  
-  Make sure to install `MinGW 7.3.0 64 bit`, `Qt Charts` and `Sources` from the `Qt 5.12.12` components as well. 
+* Download and launch [Qt online installer](https://www.qt.io/download-qt-installer-oss). The online installer requires to have a Qt Account: you can create it free of charge [here](https://login.qt.io/login).
+* During the installation you will need to login with your Qt credentials:
+![Qt login form](qt-installer-account.png)
+* The installer will also ask if you belong to an organization (it is possible to leave this field empty): ![Your organization](qt-installer-organization.png)
+* Select the `Custom installation`:
+![Custom Qt installation](qt-installer-custom.png)
+* Choose Qt 6.8.3 (select all components, since we will need them, especially the source code), build tools (MinGW 13.1.0 , CMake, Ninja, OpenSSL), Qt Creator (all components):
+
+![Selection Qt components](qt-installer-components.png)
+* The installation may take a while, the duration mainly depends on your internet connection speed, since the installer downloads everything from the server:
+![Qt installation progress](qt-installer-progress.png)
+* Download [MariaDB Connector C 64-bit](https://downloads.mariadb.com/Connectors/c/) (choose the latest available version). Consider using the corresponding [MySQL Connector](https://dev.mysql.com/downloads/connector/cpp/), if you have a MySQL database server.
+![Mariadb installer](mariadb-installer.png)
+* Install MariaDB Connector C 64-bit by selecting the `Complete` variant:
+![Mariadb complete install](mariadb-complete.png)
 * Download and install [Git](https://git-scm.com/download/win).  
   It is needed to extract the repository version during the build process.  
 * **Optional:** To create plots in qcML files, install [WinPython](http://winpython.github.io/) and add the python directory to the PATH (it is inside the WinPython directory).
@@ -16,36 +29,50 @@ First, we need to install Qt and some basic dependencies:
 
 [htslib](https://github.com/samtools/htslib) is a third-party library that provides functionality for NGS data formats like BAM or VCF.
 
-We have pre-built `htslib 1.16.1` for Windows and it can be found inside the repository at `ngs-bits\htslib\htslib_win_64.zip`. Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
+We have pre-built `htslib 1.21` for Windows and it can be found inside the repository at `ngs-bits\htslib\htslib_win_64.zip`. Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 
 If you want to use a different version, e.g. when testing the latest version of htslib, there is a [manual on how to build htslib](build_htslib.md#windows) available.
 
 ### libxml2
+
 [libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2_win_64.zip` into `ngs-bits\`. Qt Creator will detect the library files and headers while compiling GSvar.
 
-
-### MySQL driver
-
-The Qt distribution does not contains the MySQL driver.  
-Thus, we need to install it manually:
-
-* Download the ZIP file of [MySQL Community Server 8.0.31](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\.  
-* Copy C:\Qt\mysql-8.0.31-winx64\lib\libmysql.dll to `ngs-bits\bin`
 
 ### MySQL plugin for Qt
 
 The Qt distribution no longer contains a MySQL plugin.
 
-Based on the [official instructions](https://doc.qt.io/qt-5/sql-driver.html#how-to-build-the-qmysql-plugin-on-windows), we have created these updated short instructions:
+You will need to have the source code of `Qt 6` and `MariaDB Connector C` installed on your Windows machine.
 
-* Open a Windows CMD window.
-* Add the Qt paths to the PATH: *set PATH=C:\Qt\Qt5.12.12\5.12.12\mingw73_64\bin\;C:\Qt\Qt5.12.12\Tools\mingw730_64\bin\;%PATH%*
-* Navigate to `C:\Qt\Qt5.12.12\5.12.12\Src\qtbase\src\plugins\sqldrivers\`.
-* Execute `qmake -- MYSQL_INCDIR="C:\Qt\mysql-8.0.31-winx64\include" MYSQL_LIBDIR="C:\Qt\mysql-8.0.31-winx64\lib"`
-* Execute `mingw32-make sub-mysql`
-* Execute `mingw32-make sub-mysql-install_subtargets`
+Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html) on how to build the plugin. You may consult their page, if you encounter any issues. We, however, outline only the most essential parts in the current tutorial. For the majority of users it should be sufficient.
+
+In the main Windows menu type `Qt 6.8.3 (MinGW 13.1.0 64-bit)` to open a `MinGW` terminal.
+![MinGW terminal](mingw-terminal.png)
+
+Assuiming you have installed Qt 6.8.3 into C:\Qt folder, run the following commands to build the database plugin (run them in `MinGW` terminal, not in the standard Windows CMD or PowerShell terminals):
+	
+	> cd C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers
+	> set PATH=C:\Qt\Tools\CMake_64\bin;%PATH%
+	> set PATH=C:\Qt\Tools\Ninja;%PATH%
+	> mkdir C:\build
+	> mkdir build-sqldrivers
+	> cd build-sqldrivers
+	> qt-cmake -G Ninja C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers -DMySQL_INCLUDE_DIR="MARIA_DB_CONNECTOR_C_LOCATION\include" -DMySQL_LIBRARY="MARIA_DB_CONNECTOR_C_LOCATION\lib\libmariadb.lib" -DCMAKE_INSTALL_PREFIX="C:\build"
+	> cmake --build .
+	> cmake --install .
+
+Note: please pay attention to the spaced in the path names (e.g. for MariaDB Connector C), escape them properly or copy the files to the folder that does not have spaces in its path.
+
+Upon succesfull completion, `C:\build` folder will have the binary files you need.
+
 
 ## Build
+
+Before building the project, `Qt Creator` has to be set up correctly. Depending on your version, go to `Preference`(`Settings` or `Options`), in the search field at the top left corner type `Default build directory`. You will see the settings for the build dicrectory location (something like): `./build/%{Asciify:%{Kit:FileSystemName}-%{BuildConfig:Name}}`
+
+Change the `Default build directory` to `../%{JS: Util.asciify("build-%{Project:Name}-%{Kit:FileSystemName}-%{BuildConfig:Name}")}`
+
+![Qt Creator default bulild path](qt-creator-options.png)
 
 We can now build ngs-bits:
 
@@ -59,45 +86,16 @@ To use GSvar, it needs to be [configured](GSvar/configuration.md) first.
 
 ## Making the ngs-bits tools portable
 
-To make the tools executable outside *QtCreator* and portable, you have to copy some files/folders into the `bin` folder:
+To make the tools executable outside *QtCreator* and portable, you have to copy some files/folders of `GSvar` dependencies into the `bin` folder: `GSvar` will need `htslib`, `libxml2`, `sql drivers`, and some `qt libraries`. Currently `GSvar.exe` binary relies on the following DLLs: cppCORE.dll, cppGUI.dll, cppNGSD.dll, cppNGS.dll, cppVISUAL.dll, cppXML.dll, hts-3.dll, hts-3.lib, hts.dll.a, libbrotlicommon.dll, libbrotlidec.dll, libbz2-1.dll, libcppCORE.a, libcppGUI.a, libcppNGS.a, libcppNGSD.a, libcppVISUAL.a, libcppXML.a, libcrypto-3-x64.dll, libcurl-4.dll, libgcc_s_seh-1.dll, libhts.a, libiconv-2.dll, libidn2-0.dll, libintl-8.dll, liblzma-5.dll, libnghttp2-14.dll, libnghttp3-9.dll, libpsl-5.dll, libssh2-1.dll, libssl-3-x64.dll, libstdc++-6.dll, libsystre-0.dll, libtre-5.dll, libunistring-5.dll, libwinpthread-1.dll, libxml2-16.dll, libxml2.dll.a, libxml2.la, qsqlmysql.dll, Qt6Charts.dll, Qt6Core.dll, Qt6Gui.dll, Qt6Network.dll, Qt6OpenGL.dll, Qt6OpenGLWidgets.dll, Qt6PrintSupport.dll, Qt6Sql.dll, Qt6Svg.dll, Qt6Widgets.dll, Qt6Xml.dll, zlib1.dll
 
-<table>
-	<tr>
-		<td><b>from path</b></td>
-		<td><b>copy</b></td>
-	</tr>
-	<tr>
-		<td>ngs-bits\htslib\lib\</td>
-		<td>
-		.*.
-		</td>
-	</tr>
-	<tr>
-		<td>ngs-bits\libxml2\libs\</td>
-		<td>
-		*.*
-		</td>
-	</tr>
-	<tr>
-		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\bin\</td>
-		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Svg.dll, Qt5Widgets.dll, Qt5Xml.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
-	</tr>
-	<tr>
-		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\plugins\</td>
-		<td>platforms, sqldrivers, printsupport, imageformats, bearer, iconengines, styles</td>
-	</tr>
-	<tr>
-		<td>C:\Qt\Qt5.12.12\Tools\mingw730_64\opt\bin\</td>
-		<td>ssleay32.dll, libeay32.dll, libgcc_s_seh-1.dll</td>
-	</tr>
-	<tr>
-		<td>C:\Qt\mysql-8.0.31-winx64\lib\</td>
-		<td>libmysql.dll</td>
-	</tr>
-</table>
+Rather than manually finding and copying these files, use `windeployqt.exe` utility that comes with Qt:
+
+    > c:\Qt\6.8.3\mingw_64\bin\windeployqt.exe GSvar.exe
+
+Adjust the command, based on your Qt version and the `GSvar.exe` file location. Sometimes `windeployqt.exe` may fail to get all of the dependencies. If it happens, the linbraries have to be copied manually.
+
+The database connection has become more secure and now it requires a certificate authorities file to validate the database server certificates (only if the operating system has not been configured correctly already). It means that `GSvar` application connecting to AWS intances my need a `*.pem` file (e.g. `eu-central-1-bundle.pem`). Please visit the official [AWS RDS documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html) for more inforamtion.
 
 ## Integration with IGV
 
 For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
-
-

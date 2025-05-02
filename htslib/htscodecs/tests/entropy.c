@@ -31,6 +31,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "config.h"
 
 /*
  * This test aims to test all entropy codecs on an input file.
@@ -125,7 +126,7 @@ int main(int argc, char **argv) {
     unsigned char *in = load(infp, &in_size);
     int order_a[] = {0,1,                            // r4x8
                      64,65, 128,129, 192,193,        // r4x16, arith
-                     4,5, 68,69, 132,133, 194,197,   // r4x16 SIMD
+                     4,5, 68,69, 132,133, 196,197,   // r4x16 SIMD
                      };
     char *codec[] = {"r4x8", "r4x16", "r32x16", "arith"};
     int i, j;
@@ -180,9 +181,15 @@ int main(int argc, char **argv) {
                     printf("%10s-o%d      \t", codec[j], order);
                 printf("%10d uncomp, %10d comp", in_size, csize);
 
+                if (comp == NULL) {
+                    printf("\tFAIL (comp)\n");
+                    result = EXIT_FAILURE;
+                    continue;
+                }
+
                 if (comp0) {
                     if (csize != csize0 || memcmp(comp, comp0, csize) != 0) {
-                        printf("\tFAIL (comp)\n");
+                        printf("\tFAIL (comp cmp)\n");
                         result = EXIT_FAILURE;
                     }
                 } else {

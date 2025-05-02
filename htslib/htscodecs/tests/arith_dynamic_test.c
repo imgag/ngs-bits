@@ -31,6 +31,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "config.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -265,12 +266,13 @@ int main(int argc, char **argv) {
                 bytes += out_size;
             }
         } else {
-            for (;;) {
+            int loop = 0;
+            for (;;loop++) {
                 uint32_t in_size, out_size;
                 unsigned char *out;
 
                 in_size = fread(in_buf, 1, BLK_SIZE, infp);
-                if (in_size <= 0)
+                if (loop && in_size <= 0)
                     break;
 
                 if (in_size < 4)

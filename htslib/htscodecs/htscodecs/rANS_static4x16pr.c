@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Genome Research Ltd.
+ * Copyright (c) 2017-2023 Genome Research Ltd.
  * Author(s): James Bonfield
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,10 @@
 #include <sys/time.h>
 #include <limits.h>
 #include <math.h>
+
+#ifndef NO_THREADS
+#include <pthread.h>
+#endif
 
 #include "rANS_word.h"
 #include "rANS_static4x16.h"
@@ -136,7 +140,8 @@ unsigned char *rans_compress_O0_4x16(unsigned char *in, unsigned int in_size,
         goto empty;
 
     // Compute statistics
-    hist8(in, in_size, F);
+    if (hist8(in, in_size, F) < 0)
+        return NULL;
 
     // Normalise so frequences sum to power of 2
     uint32_t fsum = in_size;
@@ -171,8 +176,11 @@ unsigned char *rans_compress_O0_4x16(unsigned char *in, unsigned int in_size,
 
     switch (i=(in_size&3)) {
     case 3: RansEncPutSymbol(&rans2, &ptr, &syms[in[in_size-(i-2)]]);
+        // fall-through
     case 2: RansEncPutSymbol(&rans1, &ptr, &syms[in[in_size-(i-1)]]);
+        // fall-through
     case 1: RansEncPutSymbol(&rans0, &ptr, &syms[in[in_size-(i-0)]]);
+        // fall-through
     case 0:
         break;
     }
@@ -569,7 +577,7 @@ unsigned char *rans_uncompress_O1_4x16(unsigned char *in, unsigned int in_size,
         uint32_t u_freq_sz, c_freq_sz;
         cp += var_get_u32(cp, cp_end, &u_freq_sz);
         cp += var_get_u32(cp, cp_end, &c_freq_sz);
-        if (c_freq_sz >= cp_end - cp - 16)
+        if (c_freq_sz > cp_end - cp)
             goto err;
         tab_end = cp + c_freq_sz;
         if (!(c_freq = rans_uncompress_O0_4x16(cp, c_freq_sz, NULL, u_freq_sz)))
@@ -817,16 +825,11 @@ unsigned char *rans_uncompress_O1_4x16(unsigned char *in, unsigned int in_size,
  */
 #include "rANS_static32x16pr.h"
 
-// Test interface for restricting the auto-detection methods so we
-// can forcibly compare different implementations on the same machine.
-// See RANS_CPU_ defines in rANS_static4x16.h
 static int rans_cpu = 0xFFFF; // all
-void rans_set_cpu(int opts) {
-    rans_cpu = opts;
-}
 
-#if (defined(__GNUC__) || defined(__clang__)) && defined(__x86_64__)
-// Icc and Clang both also set __GNUC__ on linux, but not on Windows.
+#if defined(__x86_64__) && \
+    defined(HAVE_DECL___CPUID_COUNT)   && HAVE_DECL___CPUID_COUNT && \
+    defined(HAVE_DECL___GET_CPUID_MAX) && HAVE_DECL___GET_CPUID_MAX
 #include <cpuid.h>
 
 #if defined(__clang__) && defined(__has_attribute)
@@ -841,26 +844,29 @@ void rans_set_cpu(int opts) {
 #  define UNUSED
 #endif
 
-static inline
-unsigned char *(*rans_enc_func(int do_simd, int order))
-    (unsigned char *in,
-     unsigned int in_size,
-     unsigned char *out,
-     unsigned int *out_size) {
-    if (!do_simd) { // SIMD disabled
-        return order & 1
-            ? rans_compress_O1_4x16
-            : rans_compress_O0_4x16;
-    }
+// CPU detection is performed once.  NB this has an assumption that we're
+// not migrating between processes with different instruction stes, but
+// to date the only systems I know of that support this don't have different
+// capabilities (that we use) per core.
+#ifndef NO_THREADS
+static pthread_once_t rans_cpu_once = PTHREAD_ONCE_INIT;
+#endif
+
+static int have_ssse3   UNUSED = 0;
+static int have_sse4_1  UNUSED = 0;
+static int have_popcnt  UNUSED = 0;
+static int have_avx2    UNUSED = 0;
+static int have_avx512f UNUSED = 0;
+static int is_amd       UNUSED = 0;
+
+#define HAVE_HTSCODECS_TLS_CPU_INIT
+static void htscodecs_tls_cpu_init(void) {
     unsigned int eax = 0, ebx = 0, ecx = 0, edx = 0;
     // These may be unused, depending on HAVE_* config.h macros
-    int have_ssse3   UNUSED = 0;
-    int have_sse4_1  UNUSED = 0;
-    int have_popcnt  UNUSED = 0;
-    int have_avx2    UNUSED = 0;
-    int have_avx512f UNUSED = 0;
 
     int level = __get_cpuid_max(0, NULL);
+    __cpuid_count(0, 0, eax, ebx, ecx, edx);
+    is_amd = (ecx == 0x444d4163);
     if (level >= 1) {
         __cpuid_count(1, 0, eax, ebx, ecx, edx);
 #if defined(bit_SSSE3)
@@ -885,36 +891,76 @@ unsigned char *(*rans_enc_func(int do_simd, int order))
 
     if (!have_popcnt) have_avx512f = have_avx2 = have_sse4_1 = 0;
     if (!have_ssse3)  have_sse4_1 = 0;
+}
 
-    if (!(rans_cpu & RANS_CPU_ENC_AVX512)) have_avx512f = 0;
-    if (!(rans_cpu & RANS_CPU_ENC_AVX2))   have_avx2 = 0;
-    if (!(rans_cpu & RANS_CPU_ENC_SSE4))   have_sse4_1 = 0;
+static inline
+unsigned char *(*rans_enc_func(int do_simd, int order))
+    (unsigned char *in,
+     unsigned int in_size,
+     unsigned char *out,
+     unsigned int *out_size) {
+
+    int have_e_sse4_1  = have_sse4_1;
+    int have_e_avx2    = have_avx2;
+    int have_e_avx512f = have_avx512f;
+
+    if (!(rans_cpu & RANS_CPU_ENC_AVX512)) have_e_avx512f = 0;
+    if (!(rans_cpu & RANS_CPU_ENC_AVX2))   have_e_avx2    = 0;
+    if (!(rans_cpu & RANS_CPU_ENC_SSE4))   have_e_sse4_1  = 0;
+
+    if (!do_simd) { // SIMD disabled
+        return order & 1
+            ? rans_compress_O1_4x16
+            : rans_compress_O0_4x16;
+    }
+
+#ifdef NO_THREADS
+    htscodecs_tls_cpu_init();
+#else
+    int err = pthread_once(&rans_cpu_once, htscodecs_tls_cpu_init);
+    if (err != 0) {
+        fprintf(stderr, "Initialising TLS data failed: pthread_once: %s\n",
+                strerror(err));
+        fprintf(stderr, "Using scalar code only\n");
+    }
+#endif
 
     if (order & 1) {
+        // With simulated gathers, the AVX512 is now slower than AVX2, so
+        // we avoid using it unless asking for the real avx512 gather.
+        // Note for testing we do -c 0x0404 to enable AVX512 and disable AVX2.
+        // We then need to call the avx512 func regardless.
+        int use_gather;
+#ifdef USE_GATHER
+        use_gather = 1;
+#else
+        use_gather = !have_e_avx2;
+#endif
+
 #if defined(HAVE_AVX512)
-        if (have_avx512f)
+        if (have_e_avx512f && (!is_amd || !have_e_avx2) && use_gather)
             return rans_compress_O1_32x16_avx512;
 #endif
 #if defined(HAVE_AVX2)
-        if (have_avx2)
+        if (have_e_avx2)
             return rans_compress_O1_32x16_avx2;
 #endif
 #if defined(HAVE_SSE4_1) && defined(HAVE_SSSE3) && defined(HAVE_POPCNT)
-        if (have_sse4_1) 
+        if (have_e_sse4_1)
             return rans_compress_O1_32x16;
 #endif
         return rans_compress_O1_32x16;
     } else {
 #if defined(HAVE_AVX512)
-        if (have_avx512f)
+        if (have_e_avx512f && (!is_amd || !have_e_avx2))
             return rans_compress_O0_32x16_avx512;
 #endif
 #if defined(HAVE_AVX2)
-        if (have_avx2)
+        if (have_e_avx2)
             return rans_compress_O0_32x16_avx2;
 #endif
 #if defined(HAVE_SSE4_1) && defined(HAVE_SSSE3) && defined(HAVE_POPCNT)
-        if (have_sse4_1)
+        if (have_e_sse4_1)
             return rans_compress_O0_32x16;
 #endif
         return rans_compress_O0_32x16;
@@ -928,84 +974,92 @@ unsigned char *(*rans_dec_func(int do_simd, int order))
      unsigned char *out,
      unsigned int out_size) {
 
+    int have_d_sse4_1  = have_sse4_1;
+    int have_d_avx2    = have_avx2;
+    int have_d_avx512f = have_avx512f;
+
+    if (!(rans_cpu & RANS_CPU_DEC_AVX512)) have_d_avx512f = 0;
+    if (!(rans_cpu & RANS_CPU_DEC_AVX2))   have_d_avx2    = 0;
+    if (!(rans_cpu & RANS_CPU_DEC_SSE4))   have_d_sse4_1  = 0;
+
     if (!do_simd) { // SIMD disabled
         return order & 1
             ? rans_uncompress_O1_4x16
             : rans_uncompress_O0_4x16;
     }
-    unsigned int eax = 0, ebx = 0, ecx = 0, edx = 0;
-    // These may be unused, depending on HAVE_* config.h macros
-    int have_ssse3   UNUSED = 0;
-    int have_sse4_1  UNUSED = 0;
-    int have_popcnt  UNUSED = 0;
-    int have_avx2    UNUSED = 0;
-    int have_avx512f UNUSED = 0;
 
-    int level = __get_cpuid_max(0, NULL);
-    if (level >= 1) {
-        __cpuid_count(1, 0, eax, ebx, ecx, edx);
-#if defined(bit_SSSE3)
-        have_ssse3 = ecx & bit_SSSE3;
-#endif
-#if defined(bit_POPCNT)
-        have_popcnt = ecx & bit_POPCNT;
-#endif
-#if defined(bit_SSE4_1)
-        have_sse4_1 = ecx & bit_SSE4_1;
-#endif
+#ifdef NO_THREADS
+    htscodecs_tls_cpu_init();
+#else
+    int err = pthread_once(&rans_cpu_once, htscodecs_tls_cpu_init);
+    if (err != 0) {
+        fprintf(stderr, "Initialising TLS data failed: pthread_once: %s\n",
+                strerror(err));
+        fprintf(stderr, "Using scalar code only\n");
     }
-    if (level >= 7) {
-        __cpuid_count(7, 0, eax, ebx, ecx, edx);
-#if defined(bit_AVX2)
-        have_avx2 = ebx & bit_AVX2;
 #endif
-#if defined(bit_AVX512F)
-        have_avx512f = ebx & bit_AVX512F;
-#endif
-    }
-
-    if (!have_popcnt) have_avx512f = have_avx2 = have_sse4_1 = 0;
-    if (!have_ssse3)  have_sse4_1 = 0;
-
-    if (!(rans_cpu & RANS_CPU_DEC_AVX512)) have_avx512f = 0;
-    if (!(rans_cpu & RANS_CPU_DEC_AVX2))   have_avx2 = 0;
-    if (!(rans_cpu & RANS_CPU_DEC_SSE4))   have_sse4_1 = 0;
-
-    //  fprintf(stderr, "SSSE3 %d, SSE4.1 %d, POPCNT %d, AVX2 %d, AVX512F %d\n",
-    //          have_ssse3, have_sse4_1, have_popcnt, have_avx2, have_avx512f);
 
     if (order & 1) {
 #if defined(HAVE_AVX512)
-        if (have_avx512f)
+        if (have_d_avx512f)
             return rans_uncompress_O1_32x16_avx512;
 #endif
 #if defined(HAVE_AVX2)
-        if (have_avx2)
+        if (have_d_avx2)
             return rans_uncompress_O1_32x16_avx2;
 #endif
 #if defined(HAVE_SSE4_1) && defined(HAVE_SSSE3) && defined(HAVE_POPCNT)
-        if (have_sse4_1)
+        if (have_d_sse4_1)
             return rans_uncompress_O1_32x16_sse4;
 #endif
         return rans_uncompress_O1_32x16;
     } else {
 #if defined(HAVE_AVX512)
-        if (have_avx512f)
+        if (have_d_avx512f)
             return rans_uncompress_O0_32x16_avx512;
 #endif
 #if defined(HAVE_AVX2)
-        if (have_avx2)
+        if (have_d_avx2)
             return rans_uncompress_O0_32x16_avx2;
 #endif
 #if defined(HAVE_SSE4_1) && defined(HAVE_SSSE3) && defined(HAVE_POPCNT)
-        if (have_sse4_1)
+        if (have_d_sse4_1)
             return rans_uncompress_O0_32x16_sse4;
 #endif
         return rans_uncompress_O0_32x16;
     }
 }
 
-#elif defined(__ARM_NEON)
+#elif defined(__ARM_NEON) && defined(__aarch64__)
+
+#if defined(__linux__) || defined(__FreeBSD__)
+#include <sys/auxv.h>
+#elif defined(_WIN32)
+#include <processthreadsapi.h>
+#endif
+
+static inline int have_neon(void) {
+#if defined(__linux__) && defined(__arm__)
+    return (getauxval(AT_HWCAP) & HWCAP_NEON) != 0;
+#elif defined(__linux__) && defined(__aarch64__) && defined(HWCAP_ASIMD)
+    return (getauxval(AT_HWCAP) & HWCAP_ASIMD) != 0;
+#elif defined(__APPLE__)
+    return 1;
+#elif defined(__FreeBSD__) && defined(__arm__)
+    unsigned long cap;
+    if (elf_aux_info(AT_HWCAP, &cap, sizeof cap) != 0) return 0;
+    return (cap & HWCAP_NEON) != 0;
+#elif defined(__FreeBSD__) && defined(__aarch64__) && defined(HWCAP_ASIMD)
+    unsigned long cap;
+    if (elf_aux_info(AT_HWCAP, &cap, sizeof cap) != 0) return 0;
+    return (cap & HWCAP_ASIMD) != 0;
+#elif defined(_WIN32)
+    return IsProcessorFeaturePresent(PF_ARM_V8_INSTRUCTIONS_AVAILABLE) != 0;
+#else
+    return 0;
+#endif
+}
+
 static inline
 unsigned char *(*rans_enc_func(int do_simd, int order))
     (unsigned char *in,
@@ -1014,7 +1068,7 @@ unsigned char *(*rans_enc_func(int do_simd, int order))
      unsigned int *out_size) {
 
     if (do_simd) {
-        if (rans_cpu & RANS_CPU_ENC_NEON)
+        if ((rans_cpu & RANS_CPU_ENC_NEON) && have_neon())
             return order & 1
                 ? rans_compress_O1_32x16_neon
                 : rans_compress_O0_32x16_neon;
@@ -1037,7 +1091,7 @@ unsigned char *(*rans_dec_func(int do_simd, int order))
      unsigned int out_size) {
 
     if (do_simd) {
-        if (rans_cpu & RANS_CPU_DEC_NEON)
+        if ((rans_cpu & RANS_CPU_DEC_NEON) && have_neon())
             return order & 1
                 ? rans_uncompress_O1_32x16_neon
                 : rans_uncompress_O0_32x16_neon;
@@ -1092,6 +1146,16 @@ unsigned char *(*rans_dec_func(int do_simd, int order))
 
 #endif
 
+// Test interface for restricting the auto-detection methods so we
+// can forcibly compare different implementations on the same machine.
+// See RANS_CPU_ defines in rANS_static4x16.h
+void rans_set_cpu(int opts) {
+    rans_cpu = opts;
+#ifdef HAVE_HTSCODECS_TLS_CPU_INIT
+    htscodecs_tls_cpu_init();
+#endif
+}
+
 /*-----------------------------------------------------------------------------
  * Simple interface to the order-0 vs order-1 encoders and decoders.
  *
@@ -1127,9 +1191,10 @@ unsigned char *rans_compress_to_4x16(unsigned char *in, unsigned int in_size,
 
     if (in_size <= 20)
         order &= ~RANS_ORDER_STRIPE;
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
     if (in_size <= 1000)
         order &= ~RANS_ORDER_X32;
-
+#endif
     if (order & RANS_ORDER_STRIPE) {
         int N = (order>>8) & 0xff;
         if (N == 0) N = 4; // default for compatibility with old tests
@@ -1236,7 +1301,8 @@ unsigned char *rans_compress_to_4x16(unsigned char *in, unsigned int in_size,
         out[0] = RANS_ORDER_CAT;
         c_meta_len = 1;
         c_meta_len += var_put_u32(&out[1], out_end, in_size);
-        memcpy(out+c_meta_len, in, in_size);
+        if (in_size)
+            memcpy(out+c_meta_len, in, in_size);
         *out_size = c_meta_len + in_size;
         return out;
     }
@@ -1264,7 +1330,7 @@ unsigned char *rans_compress_to_4x16(unsigned char *in, unsigned int in_size,
         int pmeta_len;
         uint64_t packed_len;
         packed = hts_pack(in, in_size, out+c_meta_len, &pmeta_len, &packed_len);
-        if (!packed || (pmeta_len == 1 && out[c_meta_len] > 16)) {
+        if (!packed) {
             out[0] &= ~RANS_ORDER_PACK;
             do_pack = 0;
             free(packed);
@@ -1349,7 +1415,8 @@ unsigned char *rans_compress_to_4x16(unsigned char *in, unsigned int in_size,
     if (*out_size >= in_size) {
         out[0] &= ~3;
         out[0] |= RANS_ORDER_CAT | no_size;
-        memcpy(out+c_meta_len, in, in_size);
+        if (in_size)
+            memcpy(out+c_meta_len, in, in_size);
         *out_size = in_size;
     }
 

@@ -1,10 +1,10 @@
-.TH tabix 1 "18 August 2022" "htslib-1.16" "Bioinformatics tools"
+.TH tabix 1 "12 September 2024" "htslib-1.21" "Bioinformatics tools"
 .SH NAME
 .PP
 tabix \- Generic indexer for TAB-delimited genome position files
 .\"
 .\" Copyright (C) 2009-2011 Broad Institute.
-.\" Copyright (C) 2014, 2016, 2018, 2020 Genome Research Ltd.
+.\" Copyright (C) 2014, 2016, 2018, 2020, 2022, 2024 Genome Research Ltd.
 .\"
 .\" Author: Heng Li <lh3@sanger.ac.uk>
 .\"
@@ -78,6 +78,8 @@ and BAI index formats can handle individual chromosomes up to 512 Mbp
 If your input file might contain data lines with begin or end positions
 greater than that, you will need to use a CSI index.
 
+Multiple threads can be used for operations except listing of sequence names.
+
 .SH INDEXING OPTIONS
 .TP 10
 .B -0, --zero-based
@@ -101,7 +103,7 @@ start column. [5]
 Force to overwrite the index file if it is present.
 .TP
 .BI "-m, --min-shift " INT
-set minimal interval size for CSI indices to 2^INT [14]
+Set minimal interval size for CSI indices to 2^INT [14]
 .TP
 .BI "-p, --preset " STR
 Input format for indexing. Valid values are: gff, bed, sam, vcf.
@@ -167,6 +169,10 @@ The default is 3, which turns on error and warning messages;
 2 reduces warning messages;
 1 prints only error messages and 0 is mostly silent.
 Values higher than 3 produce additional informational and debugging messages.
+.TP
+.BI "-@, --threads " INT
+Set number of threads to use for the operation.
+The default is 0, where no extra threads are in use.
 .PP
 .SH EXAMPLE
 (grep "^#" in.gff; grep -v "^#" in.gff | sort -t"`printf '\(rst'`" -k1,1 -k4,4n) | bgzip > sorted.gff.gz;
@@ -199,6 +205,5 @@ implemented by Bob Handsaker and modified by Heng Li for remote file
 access and in-memory caching.
 
 .SH SEE ALSO
-.PP
-.BR bgzip (1),
-.BR samtools (1)
+.IR bgzip (1),
+.IR samtools (1)

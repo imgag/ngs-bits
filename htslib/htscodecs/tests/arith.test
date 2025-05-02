@@ -5,11 +5,18 @@ then
     mkdir $out
 fi
 
-for f in `ls -1 $srcdir/dat/q* $srcdir/htscodecs-corpus/dat/q* 2>/dev/null`
+for f in `ls -1 $srcdir/dat/q* $srcdir/dat/u32* $srcdir/htscodecs-corpus/dat/q* 2>/dev/null`
 do 
     comp=${f%/*/*}/dat/arith/${f##*/}
-    cut -f 1 < $f | tr -d '\012' > $out/arith-nl
-    for o in 0 1 64 65 128 129 192 193 8 9
+    case $f in
+	*/q*)
+	    cut -f 1 < $f | tr -d '\012' > $out/arith-nl
+	    ;;
+	*)
+	    cp $f $out/arith-nl
+	    ;;
+    esac
+    for o in 0 1 64 65 128 129 192 193 8 9 4
     do
         if [ ! -e "$comp.$o" ]
         then

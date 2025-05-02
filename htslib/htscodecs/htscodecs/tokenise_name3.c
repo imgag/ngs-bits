@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021 Genome Research Ltd.
+ * Copyright (c) 2016-2022 Genome Research Ltd.
  * Author(s): James Bonfield
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -232,15 +232,15 @@ static void free_context(name_context *ctx) {
 // Returns number of bytes written.
 static int append_uint32_fixed(char *cp, uint32_t i, uint8_t l) {
     switch (l) {
-    case 9:*cp++ = i / 100000000 + '0', i %= 100000000;
-    case 8:*cp++ = i / 10000000  + '0', i %= 10000000;
-    case 7:*cp++ = i / 1000000   + '0', i %= 1000000;
-    case 6:*cp++ = i / 100000    + '0', i %= 100000;
-    case 5:*cp++ = i / 10000     + '0', i %= 10000;
-    case 4:*cp++ = i / 1000      + '0', i %= 1000;
-    case 3:*cp++ = i / 100       + '0', i %= 100;
-    case 2:*cp++ = i / 10        + '0', i %= 10;
-    case 1:*cp++ = i             + '0';
+    case 9:*cp++ = i / 100000000 + '0', i %= 100000000; // fall-through
+    case 8:*cp++ = i / 10000000  + '0', i %= 10000000;  // fall-through
+    case 7:*cp++ = i / 1000000   + '0', i %= 1000000;   // fall-through
+    case 6:*cp++ = i / 100000    + '0', i %= 100000;    // fall-through
+    case 5:*cp++ = i / 10000     + '0', i %= 10000;     // fall-through
+    case 4:*cp++ = i / 1000      + '0', i %= 1000;      // fall-through
+    case 3:*cp++ = i / 100       + '0', i %= 100;       // fall-through
+    case 2:*cp++ = i / 10        + '0', i %= 10;        // fall-through
+    case 1:*cp++ = i             + '0';                 // fall-throuhg
     case 0:break;
     }
     return l;
@@ -489,11 +489,11 @@ int build_trie(name_context *ctx, char *data, size_t len, int n) {
     for (nlines = i = 0; i < len; i++, nlines++) {
         t = ctx->t_head;
         t->count++;
-        while (i < len && data[i] > '\n') {
+        while (i < len && (unsigned char)data[i] > '\n') {
             unsigned char c = data[i++];
             if (c & 0x80)
                 //fprintf(stderr, "8-bit ASCII is unsupported\n");
-                abort();
+                return -1;
             c &= 127;
 
 
@@ -653,7 +653,7 @@ int search_trie(name_context *ctx, char *data, size_t len, int n, int *exact, in
             unsigned char c = data[i++];
             if (c & 0x80)
                 //fprintf(stderr, "8-bit ASCII is unsupported\n");
-                abort();
+                return -1;
             c &= 127;
 
             trie_t *x = t->next;
@@ -756,6 +756,8 @@ static int encode_name(name_context *ctx, char *name, int len, int mode) {
 
     for (; i < len; i++) {
         if (ntok >= ctx->max_tok) {
+            if (ctx->max_tok >= MAX_TOKENS)
+                return -1;
             memset(&ctx->desc[ctx->max_tok << 4], 0, 16*sizeof(ctx->desc[0]));
             memset(&ctx->token_dcount[ctx->max_tok], 0, sizeof(int));
             memset(&ctx->token_icount[ctx->max_tok], 0, sizeof(int));
@@ -763,19 +765,20 @@ static int encode_name(name_context *ctx, char *name, int len, int mode) {
         }
 
         /* Determine data type of this segment */
-        if (isalpha(name[i])) {
+        if (isalpha((uint8_t)name[i])) {
             int s = i+1;
 //          int S = i+1;
 
 //          // FIXME: try which of these is best.  alnum is good sometimes.
-//          while (s < len && isalpha(name[s]))
-            while (s < len && (isalpha(name[s]) || ispunct(name[s])))
+//          while (s < len && isalpha((uint8_t)name[s]))
+            while (s < len && (isalpha((uint8_t)name[s]) ||
+                               ispunct((uint8_t)name[s])))
 //          while (s < len && name[s] != ':')
-//          while (s < len && !isdigit(name[s]) && name[s] != ':')
+//          while (s < len && !isdigit((uint8_t)name[s]) && name[s] != ':')
                 s++;
 
 //          if (!is_fixed) {
-//              while (S < len && isalnum(name[S]))
+//              while (S < len && isalnum((uint8_t)name[S]))
 //                  S++;
 //              if (s < S)
 //                  s = S;
@@ -819,7 +822,7 @@ static int encode_name(name_context *ctx, char *name, int len, int mode) {
             uint32_t v = 0;
             int d = 0;
 
-            while (s < len && isdigit(name[s]) && s-i < 9) {
+            while (s < len && isdigit((uint8_t)name[s]) && s-i < 9) {
                 v = v*10 + name[s] - '0';
                 //putchar(name[s]);
                 s++;
@@ -837,14 +840,14 @@ static int encode_name(name_context *ctx, char *name, int len, int mode) {
                     //ctx->lc[pnum].last[ntok].token_delta=0;
                 } else if (mode == 1 && d < 256 && d >= 0 && ctx->lc[pnum].last[ntok].token_str == s-i) {
 #ifdef ENC_DEBUG
-                    fprintf(stderr, "Tok %d (dig-delta, %d / %d)\n", N_DDELTA, ctx->lc[pnum].last[ntok].token_int, v);
+                    fprintf(stderr, "Tok %d (dig0-delta, %d / %d)\n", N_DDELTA0, ctx->lc[pnum].last[ntok].token_int, v);
 #endif
                     //if (encode_token_int1_(ctx, ntok, N_DZLEN, s-i) < 0) return -1;
                     if (encode_token_int1(ctx, ntok, N_DDELTA0, d) < 0) return -1;
                     //ctx->lc[pnum].last[ntok].token_delta=1;
                 } else {
 #ifdef ENC_DEBUG
-                    fprintf(stderr, "Tok %d (dig, %d / %d)\n", N_DIGITS, ctx->lc[pnum].last[ntok].token_int, v);
+                    fprintf(stderr, "Tok %d (dig0, %d / %d len %d)\n", N_DIGITS0, ctx->lc[pnum].last[ntok].token_int, v, s-i);
 #endif
                     if (encode_token_int1_(ctx, ntok, N_DZLEN, s-i) < 0) return -1;
                     if (encode_token_int(ctx, ntok, N_DIGITS0, v) < 0) return -1;
@@ -852,7 +855,7 @@ static int encode_name(name_context *ctx, char *name, int len, int mode) {
                 }
             } else {
 #ifdef ENC_DEBUG
-                fprintf(stderr, "Tok %d (new dig, %d)\n", N_DIGITS, v);
+                fprintf(stderr, "Tok %d (new dig0, %d len %d)\n", N_DIGITS0, v, s-i);
 #endif
                 if (encode_token_int1_(ctx, ntok, N_DZLEN, s-i) < 0) return -1;
                 if (encode_token_int(ctx, ntok, N_DIGITS0, v) < 0) return -1;
@@ -864,13 +867,13 @@ static int encode_name(name_context *ctx, char *name, int len, int mode) {
             ctx->lc[cnum].last[ntok].token_type = N_DIGITS0;
 
             i = s-1;
-        } else if (isdigit(name[i])) {
+        } else if (isdigit((uint8_t)name[i])) {
             // digits starting 1-9; encode value
             uint32_t s = i;
             uint32_t v = 0;
             int d = 0;
 
-            while (s < len && isdigit(name[s]) && s-i < 9) {
+            while (s < len && isdigit((uint8_t)name[s]) && s-i < 9) {
                 v = v*10 + name[s] - '0';
                 //putchar(name[s]);
                 s++;
@@ -936,7 +939,7 @@ static int encode_name(name_context *ctx, char *name, int len, int mode) {
             i = s-1;
         } else {
         n_char:
-            //if (!isalpha(name[i])) putchar(name[i]);
+            //if (!isalpha((uint8_t)name[i])) putchar(name[i]);
             if (pnum < cnum && ntok < ctx->lc[pnum].last_ntok && ctx->lc[pnum].last[ntok].token_type == N_CHAR) {
                 if (name[i] == ctx->lc[pnum].last[ntok].token_int) {
 #ifdef ENC_DEBUG
@@ -968,6 +971,8 @@ static int encode_name(name_context *ctx, char *name, int len, int mode) {
     fprintf(stderr, "Tok %d (end)\n", N_END);
 #endif
     if (ntok >= ctx->max_tok) {
+        if (ctx->max_tok >= MAX_TOKENS)
+            return -1;
         memset(&ctx->desc[ctx->max_tok << 4], 0, 16*sizeof(ctx->desc[0]));
         memset(&ctx->token_dcount[ctx->max_tok], 0, sizeof(int));
         memset(&ctx->token_icount[ctx->max_tok], 0, sizeof(int));
@@ -1241,60 +1246,155 @@ static int64_t rans_decode(uint8_t *in, uint64_t in_len, uint8_t *out, uint64_t 
     return clen+nb;
 }
 
-static int compress(uint8_t *in, uint64_t in_len, int level, int use_arith,
+static int compress(uint8_t *in, uint64_t in_len, enum name_type type,
+                    int level, int use_arith,
                     uint8_t *out, uint64_t *out_len) {
     uint64_t best_sz = UINT64_MAX;
-    int best = 0;
     uint64_t olen = *out_len;
+    int ret = -1;
 
-    //fprintf(stderr, "=== try %d ===\n", (int)in_len);
-
-    int m, rmethods[5][12] = {
-        {2,   0,      128},                                   // 1
-        {2,   0,                         192+8},              // 3
-        {3,   0,  128,                   193+8},              // 5
-        {6,   0,1,    129,   65,    193, 193+8},              // 7
-        {9,   0,1,128,129,64,65,192,193, 193+8},              // 9
-    };
-
-    // 1-9 to 0-4
+    // Map levels 1-9 to 0-4, for parameter lookup in R[] below
     level = (level-1)/2;
     if (level<0) level=0;
     if (level>4) level=4;
 
-    for (m = 1; m <= rmethods[level][0]; m++) {
+    // rANS4x16pr and arith_dynamic parameters to explore.
+    // We brute force these, so fast levels test 1 setting and slow test more
+    int R[5][N_ALL][7] = {
+        {   // -1
+            /* TYPE     */ {1, 128},
+            /* ALPHA    */ {1, 129},
+            /* CHAR     */ {1, 0},
+            /* DIGITS0  */ {1, 8},
+            /* DZLEN    */ {1, 0},
+            /* DUP      */ {1, 8},
+            /* DIFF     */ {1, 8},
+            /* DIGITS   */ {1, 8},
+            /* DDELTA   */ {1, 0},
+            /* DDELTA0  */ {1, 128},
+            /* MATCH    */ {1, 0},
+            /* NOP      */ {1, 0},
+            /* END      */ {1, 0}
+        },
+
+        {   // -3
+            /* TYPE     */ {2, 192,0},
+            /* ALPHA    */ {2, 129,1},
+            /* CHAR     */ {1, 0},
+            /* DIGITS0  */ {2, 128+8,0}, // size%4==0
+            /* DZLEN    */ {1, 0},
+            /* DUP      */ {1, 192+8},   // size%4==0
+            /* DIFF     */ {1, 128+8},   // size%4==0
+            /* DIGITS   */ {1, 192+8},   // size%4==0
+            /* DDELTA   */ {1, 0},
+            /* DDELTA0  */ {1, 128},
+            /* MATCH    */ {1, 0},
+            /* NOP      */ {1, 0},
+            /* END      */ {1, 0}
+        },
+
+        {   // -5
+            /* TYPE     */ {2, 192,0},
+            /* ALPHA    */ {4, 1,128,0,129},
+            /* CHAR     */ {1, 0},
+            /* DIGITS0  */ {2, 200,0},
+            /* DZLEN    */ {1, 0},
+            /* DUP      */ {1, 200},
+            /* DIFF     */ {2, 192,200},
+            /* DIGITS   */ {2, 132,201},
+            /* DDELTA   */ {1, 0},
+            /* DDELTA0  */ {1, 128},
+            /* MATCH    */ {1, 0},
+            /* NOP      */ {1, 0},
+            /* END      */ {1, 0}
+        },
+
+        {   // -7
+            /* TYPE     */ {3, 193,0,1},
+            /* ALPHA    */ {5, 128, 1,128,0,129},
+            /* CHAR     */ {2, 1,0},
+            /* DIGITS0  */ {2, 200,0},    // or 201,0
+            /* DZLEN    */ {1, 0},
+            /* DUP      */ {1, 201},
+            /* DIFF     */ {2, 192,200},  // or 192,201
+            /* DIGITS   */ {2, 132, 201}, // +bz2 here and -9
+            /* DDELTA   */ {1, 0},
+            /* DDELTA0  */ {1, 128},
+            /* MATCH    */ {1, 0},
+            /* NOP      */ {1, 0},
+            /* END      */ {1, 0}
+        },
+
+        {   // -9
+            /* TYPE     */ {6, 192,0,1,  65,  193,132},
+            /* ALPHA    */ {4, 132, 1, 0,129},
+            /* CHAR     */ {3, 1,0,192},
+            /* DIGITS0  */ {4, 201,0, 192,64},
+            /* DZLEN    */ {3, 0,128,1},
+            /* DUP      */ {1, 201},
+            /* DIFF     */ {3, 192,  201,65},
+            /* DIGITS   */ {6, 132, 201,1,  192,129,  193},
+            /* DDELTA   */ {3, 1,0,  192},
+            /* DDELTA0  */ {3, 192,1,  0},
+            /* MATCH    */ {1, 0},
+            /* NOP      */ {1, 0},
+            /* END      */ {1, 0}
+        },
+    };
+    // Minor tweak to level 3 DIGITS if arithmetic, to use O(201) instead.
+    if (use_arith) R[1][N_DIGITS][1]=201;
+
+    int *meth = R[level][type];
+
+    int last = 0, m;
+    uint8_t best_static[8192];
+    uint8_t *best_dat = best_static;
+    for (m = 1; m <= meth[0]; m++) {
         *out_len = olen;
 
-        if (in_len % 4 != 0 && (rmethods[level][m] & 8))
+        if (!use_arith && (meth[m] & 4))
+            meth[m] &= ~4;
+
+        if (in_len % 4 != 0 && (meth[m] & 8))
             continue;
 
+        last = 0;
         if (use_arith) {
-            if (arith_encode(in, in_len, out, out_len, rmethods[level][m]) < 0)
-                return -1;
+            if (arith_encode(in, in_len, out, out_len, meth[m]) <0)
+                goto err;
         } else {
-            if (rans_encode(in, in_len, out, out_len, rmethods[level][m]) < 0)
-                return -1;
+            if (rans_encode(in, in_len, out, out_len, meth[m]) < 0)
+                goto err;
         }
 
         if (best_sz > *out_len) {
             best_sz = *out_len;
-            best = rmethods[level][m];
+            last = 1;
+
+            if (m+1 > meth[0])
+                // no need to memcpy if we're not going to overwrite out
+                break;
+
+            if (best_sz > 8192 && best_dat == best_static) {
+                // No need to realloc as best_sz only ever decreases
+                best_dat = malloc(best_sz);
+                if (!best_dat)
+                    return -1;
+            }
+            memcpy(best_dat, out, best_sz);
         }
     }
 
-    *out_len = olen;
-    if (use_arith) {
-        if (arith_encode(in, in_len, out, out_len, best) < 0)
-            return -1;
-    } else {
-        if (rans_encode(in, in_len, out, out_len, best) < 0)
-            return -1;
-    }
+    if (!last)
+        memcpy(out, best_dat, best_sz);
+    *out_len = best_sz;
+    ret = 0;
 
-//    uint64_t tmp;
-//    fprintf(stderr, "%d -> %d via method %x, %x\n", (int)in_len, (int)best_sz, best, out[i7get(out,&tmp)]);
+ err:
+    if (best_dat != best_static)
+        free(best_dat);
 
-    return 0;
+    return ret;
 }
 
 static uint64_t uncompressed_size(uint8_t *in, uint64_t in_len) {
@@ -1369,10 +1469,16 @@ uint8_t *tok3_encode_names(char *blk, int len, int level, int use_arith,
 
     // Encode name
     for (i = j = 0; i < len; j=++i) {
-        while (i < len && blk[i] > '\n')
+        while (i < len && (signed char)blk[i] >= ' ') // non-ASCII check
             i++;
         if (i >= len)
             break;
+
+        if (blk[i] != '\0' && blk[i] != '\n') {
+            // Names must be 7-bit ASCII printable
+            free_context(ctx);
+            return NULL;
+        }
 
         blk[i] = '\0';
         // try both 0 and 1 and pick best?
@@ -1433,11 +1539,8 @@ uint8_t *tok3_encode_names(char *blk, int len, int level, int use_arith,
 
     // Serialise descriptors
     uint32_t tot_size = 9;
-    int ndesc = 0;
     for (i = 0; i < ctx->max_tok*16; i++) {
         if (!ctx->desc[i].buf_l) continue;
-
-        ndesc++;
 
         int tnum = i>>4;
         int ttype = i&15;
@@ -1449,8 +1552,8 @@ uint8_t *tok3_encode_names(char *blk, int len, int level, int use_arith,
             return NULL;
         }
 
-        if (compress(ctx->desc[i].buf, ctx->desc[i].buf_l, level, use_arith,
-                     out, &out_len) < 0) {
+        if (compress(ctx->desc[i].buf, ctx->desc[i].buf_l, i&0xf, level,
+                     use_arith, out, &out_len) < 0) {
             free_context(ctx);
             return NULL;
         }
@@ -1475,7 +1578,7 @@ uint8_t *tok3_encode_names(char *blk, int len, int level, int use_arith,
             ctx->desc[i].dup_from = j;
             tot_size += 3; // flag, dup_from, ttype
         } else {
-            ctx->desc[i].dup_from = 0;
+            ctx->desc[i].dup_from = -1;
             tot_size += out_len + 1; // ttype
         }
     }
@@ -1483,7 +1586,7 @@ uint8_t *tok3_encode_names(char *blk, int len, int level, int use_arith,
 #if 0
     for (i = 0; i < ctx->max_tok*16; i++) {
         char fn[1024];
-        if (!ctx->desc[i].buf_l && !ctx->desc[i].dup_from) continue;
+        if (!ctx->desc[i].buf_l && ctx->desc[i].dup_from == -1) continue;
         sprintf(fn, "_tok.%02d_%02d.%d.comp", i>>4,i&15,i);
         FILE *fp = fopen(fn, "w");
         fwrite(ctx->desc[i].buf, 1, ctx->desc[i].buf_l, fp);
@@ -1521,7 +1624,7 @@ uint8_t *tok3_encode_names(char *blk, int len, int level, int use_arith,
             ttype8 |= 128;
             last_tnum = ctx->desc[i].tnum;
         }
-        if (ctx->desc[i].dup_from) {
+        if (ctx->desc[i].dup_from >= 0) {
             //fprintf(stderr, "Dup %d from %d, sz %d\n", i, ctx->desc[i].dup_from, ctx->desc[i].buf_l);
             *cp++ = ttype8 | 64;
             *cp++ = ctx->desc[i].dup_from >> 4;
@@ -1583,7 +1686,7 @@ uint8_t *tok3_decode_names(uint8_t *in, uint32_t sz, uint32_t *out_len) {
     while (o < sz) {
         uint8_t ttype = in[o++];
         if (ttype & 64) {
-            if (o+2 >= sz) goto err;
+            if (o+2 > sz) goto err;
             int j = in[o++]<<4;
             j += in[o++];
             if (ttype & 128) {

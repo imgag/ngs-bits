@@ -1,6 +1,6 @@
 # Configure script for htslib, a C library for high-throughput sequencing data.
 #
-#    Copyright (C) 2015-2022 Genome Research Ltd.
+#    Copyright (C) 2015-2024 Genome Research Ltd.
 #
 #    Author: John Marshall <jm18@sanger.ac.uk>
 #
@@ -30,12 +30,12 @@ AC_CONFIG_SRCDIR(hts.c)
 AC_CONFIG_HEADERS(config.h)
 
 m4_include([m4/hts_prog_cc_warnings.m4])
-m4_include([m4/ax_check_compile_flag.m4])
+m4_include([m4/hts_check_compile_flags_needed.m4])
 m4_include([m4/hts_hide_dynamic_syms.m4])
 m4_include([m4/pkg.m4])
 
 dnl Copyright notice to be copied into the generated configure script
-AC_COPYRIGHT([Portions copyright (C) 2020-2021 Genome Research Ltd.
+AC_COPYRIGHT([Portions copyright (C) 2020-2024 Genome Research Ltd.
 
 This configure script is free software: you are free to change and
 redistribute it.  There is NO WARRANTY, to the extent permitted by law.])
@@ -70,79 +70,125 @@ dnl Flags to treat warnings as errors.  These need to be applied to CFLAGS
 dnl later as they can interfere with some of the tests (notably AC_SEARCH_LIBS)
 HTS_PROG_CC_WERROR(hts_late_cflags)
 
-dnl Check for various compiler flags to enable SIMD features
-dnl Options for rANS32x16 sse4.1 version
-AX_CHECK_COMPILE_FLAG([-mssse3 -mpopcnt -msse4.1], [
-  hts_cflags_sse4="-mssse3 -mpopcnt -msse4.1"
-  AC_SUBST([hts_cflags_sse4])
-  AC_DEFINE([HAVE_SSSE3],1,
-            [Defined to 1 if the compiler can issue SSSE3 instructions.])
-  AC_DEFINE([HAVE_POPCNT],1,
-            [Defined to 1 if the compiler can issue popcnt instructions.])
-  AC_DEFINE([HAVE_SSE4_1],1,
-            [Defined to 1 if the compiler can issue SSE4.1 instructions.])
+# HTSlib uses X/Open-only facilities (M_SQRT2 etc, drand48() etc), and
+# various POSIX functions that are provided by various _POSIX_C_SOURCE values
+# or by _XOPEN_SOURCE >= 500. It also uses usleep(), which is removed when
+# _XOPEN_SOURCE >= 700. Additionally, some definitions may require
+# _XOPEN_SOURCE >= 600 on some platforms (snprintf on MinGW,
+# PTHREAD_MUTEX_RECURSIVE on some Linux distributions). Hence we set it to 600.
+
+# Define _XOPEN_SOURCE unless the user has already done so via $CPPFLAGS etc.
+AC_CHECK_DECL([_XOPEN_SOURCE], [],
+  [AC_DEFINE([_XOPEN_SOURCE], [600], [Specify X/Open requirements])],
+  [])
+
+dnl Check that we have cpuid, and if so run the x86 SIMD checks
+AC_CHECK_DECLS([__get_cpuid_max, __cpuid_count], [
+   hts_have_cpuid=yes
+], [
+   hts_have_cpuid=no
+], [[#include <cpuid.h>]])
+
+AS_IF(test "x$hts_have_cpuid" = "xyes", [
+dnl Options for rANS32x16 sse4.1 version - sse4.1
+HTS_CHECK_COMPILE_FLAGS_NEEDED([sse4.1], [-msse4.1 -mssse3 -mpopcnt],
+ [AC_LANG_PROGRAM([[
+    #ifdef __x86_64__
+    #include "x86intrin.h"
+    #endif
+  ]],[[
+    #ifdef __x86_64__
+    __m128i a = _mm_set_epi32(1, 2, 3, 4), b = _mm_set_epi32(4, 3, 2, 1);
+    __m128i c = _mm_shuffle_epi8(_mm_max_epu32(a, b), b);
+    return _mm_popcnt_u32(*((char *) &c));
+    #endif
+  ]])], [
+  hts_cflags_sse4="$flags_needed"
+  AC_DEFINE([HAVE_SSSE3],1,[Defined to 1 if rANS source using SSSE3 can be compiled.])
+  AC_DEFINE([HAVE_POPCNT],1,[Defined to 1 if rANS source using popcnt can be compiled.])
+  AC_DEFINE([HAVE_SSE4_1],1,[Defined to 1 if rANS source using SSE4.1 can be compiled.
+])
+
 dnl Propagate HTSlib's unaligned access preference to htscodecs
   AH_VERBATIM([UBSAN],[
 /* Prevent unaligned access in htscodecs SSE4 rANS codec */
 #if defined(HTS_ALLOW_UNALIGNED) && HTS_ALLOW_UNALIGNED == 0
 #undef UBSAN
-#endif
-  ])
+#endif])
   AC_DEFINE([UBSAN],1,[])
-  ], [], [], [AC_LANG_PROGRAM([[
-    #include "x86intrin.h"
-  ]],[[
-    unsigned int i = _mm_popcnt_u32(1);
-    __m128i a = _mm_set_epi32(1, 2, 3, i), b = _mm_set_epi32(4, 3, 2, 1);
-    __m128i c = _mm_max_epu32(a, b);
-    b = _mm_shuffle_epi8(a, c);
-    return *((char *) &b);
-  ]])])
+])
+AC_SUBST([hts_cflags_sse4])
 
 dnl Options for rANS32x16 avx2 version
-AX_CHECK_COMPILE_FLAG([-mavx2], [
-  hts_cflags_avx2="-mavx2"
-  AC_SUBST([hts_cflags_avx2])
-  AC_DEFINE([HAVE_AVX2],1,
-            [Defined to 1 if the compiler can issue AVX2 instructions.])
-  ], [], [], [AC_LANG_PROGRAM([[
-  #include "x86intrin.h"
+HTS_CHECK_COMPILE_FLAGS_NEEDED([avx2], [-mavx2 -mpopcnt], [AC_LANG_PROGRAM([[
+    #ifdef __x86_64__
+    #include "x86intrin.h"
+    #endif
   ]],[[
+    #ifdef __x86_64__
     __m256i a = _mm256_set_epi32(1, 2, 3, 4, 5, 6, 7, 8);
     __m256i b = _mm256_add_epi32(a, a);
     long long c = _mm256_extract_epi64(b, 0);
-    return (int) c;
-  ]])])
+    return _mm_popcnt_u32((int) c);
+    #endif
+  ]])], [
+  hts_cflags_avx2="$flags_needed"
+  AC_SUBST([hts_cflags_avx2])
+  AC_DEFINE([HAVE_POPCNT],1,[Defined to 1 if rANS source using popcnt can be compiled.])
+  AC_DEFINE([HAVE_AVX2],1,[Defined to 1 if rANS source using AVX2 can be compiled.])
+])
 
 dnl Options for rANS32x16 avx512 version
-AX_CHECK_COMPILE_FLAG([-mavx512f], [
-  hts_cflags_avx512="-mavx512f"
-  AC_SUBST([hts_cflags_avx512])
-  AC_DEFINE([HAVE_AVX512],1,
-            [Defined to 1 if the compiler can issue AVX512 instructions.])
-  ], [], [], [AC_LANG_PROGRAM([[
+HTS_CHECK_COMPILE_FLAGS_NEEDED([avx512f], [-mavx512f -mpopcnt],
+ [AC_LANG_PROGRAM([[
+    #ifdef __x86_64__
     #include "x86intrin.h"
+    #endif
   ]],[[
+    #ifdef __x86_64__
     __m512i a = _mm512_set1_epi32(1);
     __m512i b = _mm512_add_epi32(a, a);
-    return *((char *) &b);
-  ]])])
+    __m256i c = _mm512_castsi512_si256(b);
+    __m256i d = _mm512_extracti64x4_epi64(a, 1);
+    return _mm_popcnt_u32(*((char *) &c)) + (*(char *) &d);
+    #endif
+  ]])], [
+  hts_cflags_avx512="$flags_needed"
+  AC_SUBST([hts_cflags_avx512])
+  AC_DEFINE([HAVE_POPCNT],1,[Defined to 1 if rANS source using popcnt can be compiled.])
+  AC_DEFINE([HAVE_AVX512],1,[Defined to 1 if rANS source using AVX512F can be compiled.])
+])
 
-dnl Detect ARM Neon availability
-AC_CACHE_CHECK([whether C compiler supports ARM Neon], [hts_cv_have_neon], [
-  AC_COMPILE_IFELSE([
-    AC_LANG_PROGRAM([[
-      #include "arm_neon.h"
-    ]], [[
-      int32x4_t a = vdupq_n_s32(1);
-      int32x4_t b = vaddq_s32(a, a);
-      return *((char *) &b);
-    ]])], [hts_cv_have_neon=yes], [hts_cv_have_neon=no])])
-if test "$hts_cv_have_neon" = yes; then
-  hts_have_neon=yes
-  AC_SUBST([hts_have_neon])
-fi
+dnl Check for working __builtin_cpu_supports (ssse3 is broken on some clangs)
+AC_MSG_CHECKING([for working __builtin_cpu_supports("ssse3")])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([],[
+  if (__builtin_cpu_supports("ssse3")) {
+    return 0;
+  }
+])], [
+  AC_MSG_RESULT([yes])
+  AC_DEFINE([HAVE_BUILTIN_CPU_SUPPORT_SSSE3], 1,
+            [Defined to 1 if __builtin_cpu_supports("ssse3") works])
+], [
+  AC_MSG_RESULT([no])
+])
 
+dnl Check for function attribute used in conjunction with __builtin_cpu_supports
+AC_MSG_CHECKING([for __attribute__((target))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  __attribute__((target("ssse3")))
+  int zero(void) {
+    return 0;
+  }
+]], [[zero();]])], [
+  AC_MSG_RESULT([yes])
+  AC_DEFINE([HAVE_ATTRIBUTE_TARGET], 1,
+            [Define if __attribute__((target(...))) is available.])
+], [
+  AC_MSG_RESULT([no])
+])
+
+]) dnl End of AS_IF(hts_have_cpuid)
 
 dnl Avoid chicken-and-egg problem where pkg-config supplies the
 dnl PKG_PROG_PKG_CONFIG macro, but we want to use it to check
@@ -154,6 +200,11 @@ pc_requires=
 static_LDFLAGS=$LDFLAGS
 static_LIBS='-lpthread -lz -lm'
 private_LIBS=$LDFLAGS
+
+AC_ARG_ENABLE([versioned-symbols],
+  [AS_HELP_STRING([--disable-versioned-symbols],
+                  [disable versioned symbols in shared library])],
+  [], [enable_versioned_symbols=yes])
 
 AC_ARG_ENABLE([bz2],
   [AS_HELP_STRING([--disable-bz2],
@@ -238,7 +289,9 @@ case $basic_host in
     # This also sets __USE_MINGW_ANSI_STDIO which in turn makes PRId64,
     # %lld and %z printf formats work.  It also enforces the snprintf to
     # be C99 compliant so it returns the correct values (in kstring.c).
-    CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600"
+
+    # Now set by default, so no need to do it here.
+    # CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600"
     ;;
   *)
     host_result="plain .so"
@@ -248,6 +301,24 @@ case $basic_host in
 esac
 AC_MSG_RESULT([$host_result])
 AC_SUBST([PLATFORM])
+
+dnl Check for versioned symbol support
+dnl Only try for .so shared libraries as other types won't work
+AS_IF([test x"$PLATFORM" = xdefault && test x"$enable_versioned_symbols" = xyes],
+  [AC_CACHE_CHECK([whether the linker supports versioned symbols],
+    [hts_cv_have_versioned_symbols], [
+      save_LDFLAGS=$LDFLAGS
+      LDFLAGS="-Wl,-version-script,$srcdir/htslib.map $LDFLAGS"
+      AC_LINK_IFELSE([AC_LANG_PROGRAM()],
+                     [hts_cv_have_versioned_symbols=yes],
+                     [hts_cv_have_versioned_symbols=no])
+      LDFLAGS=$save_LDFLAGS
+    ])
+   AS_IF([test "x$hts_cv_have_versioned_symbols" = xyes],[
+     VERSION_SCRIPT_LDFLAGS='-Wl,-version-script,$(srcprefix)htslib.map'
+     AC_SUBST([VERSION_SCRIPT_LDFLAGS])
+   ])
+])
 
 dnl Try to get more control over which symbols are exported in the shared
 dnl library.
@@ -259,6 +330,25 @@ AC_CHECK_FUNCS([gmtime_r fsync drand48 srand48_deterministic])
 
 # Darwin has a dubious fdatasync() symbol, but no declaration in <unistd.h>
 AC_CHECK_DECL([fdatasync(int)], [AC_CHECK_FUNCS(fdatasync)])
+
+AC_MSG_CHECKING([for __attribute__((constructor))])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  static __attribute__((constructor)) void noop(void) {}
+]], [])], [
+  AC_MSG_RESULT([yes])
+  AC_DEFINE([HAVE_ATTRIBUTE_CONSTRUCTOR], 1,
+            [Define if __attribute__((constructor)) is available.])
+], [AC_MSG_RESULT([no])])
+
+AC_MSG_CHECKING([for clock_gettime with CLOCK_PROCESS_CPUTIME_ID])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <time.h>]], [[
+  struct timespec ts;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+]])], [
+  AC_MSG_RESULT([yes])
+  AC_DEFINE([HAVE_CLOCK_GETTIME_CPUTIME], 1,
+            [Define if clock_gettime exists and accepts CLOCK_PROCESS_CPUTIME_ID.])
+], [AC_MSG_RESULT([no])])
 
 if test $enable_plugins != no; then
   AC_SEARCH_LIBS([dlsym], [dl], [],
@@ -540,7 +630,8 @@ AC_SEARCH_LIBS(regcomp, regex, [libregex=needed], [])
 
 dnl Look for PTHREAD_MUTEX_RECURSIVE.
 dnl This is normally in pthread.h except on some broken glibc implementations.
-AC_CHECK_DECL(PTHREAD_MUTEX_RECURSIVE, [], [AC_DEFINE([_XOPEN_SOURCE],[600], [Needed for PTHREAD_MUTEX_RECURSIVE])], [[#include <pthread.h>]])
+dnl Now set by default
+dnl AC_CHECK_DECL(PTHREAD_MUTEX_RECURSIVE, [], [AC_DEFINE([_XOPEN_SOURCE],[600], [Needed for PTHREAD_MUTEX_RECURSIVE])], [[#include <pthread.h>]])
 
 if test "$s3" = enabled ; then
    AC_DEFINE([ENABLE_S3], 1, [Define if HTSlib should enable S3 support.])

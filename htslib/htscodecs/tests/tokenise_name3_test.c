@@ -30,6 +30,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,6 +146,10 @@ static int encode(int argc, char **argv) {
             int out_len;
             uint8_t *out = tok3_encode_names(blk, len, level, use_arith,
                                              &out_len, &last_start);
+            if (!out) {
+                fprintf(stderr, "Couldn't encode names\n");
+                exit(1);
+            }
             if (write(1, &out_len, 4) < 4) exit(1);
             if (write(1, out, out_len) < out_len) exit(1);   // encoded data
             free(out);

@@ -17,7 +17,7 @@ Building process is almost identical on these platforms. Only the dependencies a
 
 After that follow the steps:
 
-1. Download `htslib 1.16.0` from [http://www.htslib.org/download/](http://www.htslib.org/download/) and unpack it.
+1. Download the latest `htslib` from [http://www.htslib.org/download/](http://www.htslib.org/download/) and unpack it.
 
 2. Configure htslib:
 
@@ -57,7 +57,7 @@ The process of building *htslib* on Windows is described in this [issue](https:/
 		> pacman -Syu
 		> pacman -S --noconfirm --needed base-devel autotools mingw-w64-x86_64-toolchain mingw-w64-x86_64-zlib mingw-w64-x86_64-bzip2 mingw-w64-x86_64-xz mingw-w64-x86_64-curl
 
-4. Download `htslib 1.16.0` from [http://www.htslib.org/download/](http://www.htslib.org/download/) and unzip in some where in the [msys] directory.
+4. Download the latest `htslib` from [http://www.htslib.org/download/](http://www.htslib.org/download/) and unzip in some where in the [msys] directory.
 
 5. configure htslib:
 	
@@ -78,11 +78,11 @@ The process of building *htslib* on Windows is described in this [issue](https:/
 
 ### Deploying GSvar with htslib that supports HTTP/HTTPS
 
-Normally, `hts-3.dll` has the following dependencies:
+Normally, `hts-3.dll` has the following dependencies (the list may vary, depending on your version):
  * libbrotlicommon.dll
  * libbrotlidec.dll
  * libbz2-1.dll
- * libcrypto-1_1-x64.dll
+ * libcrypto-3-x64.dll
  * libcurl-4.dll
  * libdeflate.dll
  * libiconv-2.dll
@@ -92,7 +92,7 @@ Normally, `hts-3.dll` has the following dependencies:
  * libnghttp2-14.dll
  * libpsl-5.dll
  * libssh2-1.dll
- * libssl-1_1-x64.dll
+ * libssl-3-x64.dll
  * libsystre-0.dll
  * libtre-5.dll
  * libunistring-2.dll

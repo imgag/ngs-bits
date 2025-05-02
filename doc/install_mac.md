@@ -107,11 +107,10 @@ At the moment GSvar is distributed as an individual DMG file (not through the of
 - Launch GSvar from `Applications` folder or using `Spotlight`. Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the drop-down list next to the `Allow applications from`. If choosing the `App Store & Known Developers` option does not solve the problem, you will need to disable `Gatekeeper` by executing `sudo spctl --master-disable` in the terminal. After that `Anywhere` option will become available
 - During the launch GSvar will ask to perform its automatic configuration, press `Yes`. It will generate `settings.ini` file containing settings tuned to your system
 
-## IGV installation
+## Integration with IGV
+
 - Download IGV from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/). Choose the `Command line IGV and igvtools for all platforms` version
 - If you do not have Java 21 or greater installed, run `brew install openjdk`, and follow the instructions (pay attention to the $PATH variable). If Java is installed correctly, you should be able to run `java -version` in your terminal
 - IGV has to be started, before you launch GSvar. In the terminal run `[FULL_PATH]/igv.sh --port 61152` script from the IGV folder. IGV will be listening to commands from GSvar. If there are problems with IGV, you should be able to see them in the terminal. 
-
-## Integration with IGV
 
 For more details related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).

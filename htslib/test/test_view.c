@@ -25,6 +25,7 @@ DEALINGS IN THE SOFTWARE.  */
 
 #include <config.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -224,7 +225,8 @@ int vcf_loop(int argc, char **argv, int optind, struct opts *opts, htsFile *in, 
             hts_itr_t *iter;
             if ((iter = bcf_itr_querys(idx, h, argv[i])) == 0) {
                 fprintf(stderr, "[E::%s] fail to parse region '%s'\n", __func__, argv[i]);
-                continue;
+                exit_code = 1;
+                break;
             }
             while ((r = bcf_itr_next(in, iter, b)) >= 0) {
                 if (!opts->benchmark && bcf_write1(out, h, b) < 0) {
@@ -361,7 +363,8 @@ int main(int argc, char *argv[])
     }
 
     strcpy(modew, "w");
-    if (opts.clevel >= 0 && opts.clevel <= 9) sprintf(modew + 1, "%d", opts.clevel);
+    if (opts.clevel >= 0 && opts.clevel <= 9)
+        snprintf(modew + 1, sizeof(modew) - 1, "%d", opts.clevel);
     if (opts.flag & WRITE_CRAM) strcat(modew, "c");
     else if (opts.flag & WRITE_BINARY_COMP) strcat(modew, "b");
     else if (opts.flag & WRITE_COMPRESSED) strcat(modew, "z");
@@ -427,6 +430,11 @@ int main(int argc, char *argv[])
 
     if (p.pool)
         hts_tpool_destroy(p.pool);
+
+    if (fclose(stdout) != 0 && errno != EBADF) {
+        fprintf(stderr, "Error closing standard output.\n");
+        exit_code = EXIT_FAILURE;
+    }
 
     return exit_code;
 }

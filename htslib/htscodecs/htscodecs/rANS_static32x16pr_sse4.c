@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Genome Research Ltd.
+ * Copyright (c) 2017-2023 Genome Research Ltd.
  * Author(s): James Bonfield
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,8 @@
 
 #include "config.h"
 
-#if defined(HAVE_SSE4_1) && defined(HAVE_SSSE3) && defined(HAVE_POPCNT)
+#if defined(__x86_64__) && \
+    defined(HAVE_SSE4_1) && defined(HAVE_SSSE3) && defined(HAVE_POPCNT)
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -235,8 +236,8 @@ unsigned char *rans_compress_O0_32x16_sse4(unsigned char *in,
         goto empty;
 
     // Compute statistics
-    hist8(in, in_size, F);
-    //hist8(in, in_size, F); int low_ent = 0;
+    if (hist8(in, in_size, F) < 0)
+        return NULL;
 
     // Normalise so frequences sum to power of 2
     uint32_t fsum = in_size;
@@ -806,19 +807,59 @@ unsigned char *rans_uncompress_O0_32x16_sse4(unsigned char *in,
 static inline void transpose_and_copy(uint8_t *out, int iN[32],
                                       uint8_t t[32][32]) {
     int z;
-#ifdef UBSAN
-    // Simplified version to avoid undefined behaviour sanitiser warnings.
+
+    // Simplified version from below.
+    // This is pretty good with zig cc, but slow on clang and very slow on
+    // gcc, even with -O3
+    /*
     for (z = 0; z < NX; z++) {
         int k;
         for (k = 0; k < 32; k++)
             out[iN[z]+k] = t[k][z];
         iN[z] += 32;
     }
-#else
-    // Unaligned access.  We know we can get away with this as this
-    // code is only ever executed on x86 platforms which permit this.
-    for (z = 0; z < NX; z+=4) {
-        *(uint64_t *)&out[iN[z]] =
+    */
+
+
+    // A better approach for clang and gcc can be had with some manual
+    // restructuring to attempt to do the two loops in explcit blocks.
+    // With gcc -O3 or -O2 -ftree-vectorize this is quite fast, as is clang
+    // and zig but neither beat the version below (or, for zig, the basic
+    // code above).
+    //
+    // It's left here incase we ever want to move to tidier code and
+    // to understand what auto-vectorises and what doesn't.
+    /*
+#define NZ 2
+#define NK 8
+    for (z = 0; z < 32; z+=NZ) {
+        for (int k = 0; k < 32; k+=NK) {
+            for (int z0 = z; z0 < z+NZ; z0++) {
+                uint8_t tmp[NK];// __attribute__((aligned(32)));
+                //uint8_t (*RESTRICT t0)[32] = &t[k];
+                for (int k0 = 0; k0 < NK; k0++)
+                    //tmp[k0] = t0[k0][z0];
+                    tmp[k0] = t[k+k0][z0];
+                memcpy(&out[iN[z0]+k], tmp, NK);
+            }
+        }
+        for (int z0 = z; z0 < z+NZ; z0++)
+            iN[z0] += 32;
+    }
+    */
+
+    // Manually unrolled code.
+    // This is fastest on gcc and clang and not far behind with zig cc.
+    // It also doesn't need aggressive gcc optimisation levels to be
+    // efficient.
+    //
+    // It works by constructing 64-bit ints and copying them with a single
+    // memory write.  The fixed size memcpys just boil down to a memory write,
+    // but unlike the earlier versions that did this direct, this isn't
+    // exploiting undefined behaviour.
+    for (z = 0; z < 32; z+=4) {
+        uint64_t i64;
+        i64 =
             ((uint64_t)(t[0][z])<< 0) +
             ((uint64_t)(t[1][z])<< 8) +
             ((uint64_t)(t[2][z])<<16) +
@@ -827,7 +868,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[5][z])<<40) +
             ((uint64_t)(t[6][z])<<48) +
             ((uint64_t)(t[7][z])<<56);
-        *(uint64_t *)&out[iN[z+1]] =
+        memcpy(&out[iN[z]], &i64, 8);
+        i64 =
             ((uint64_t)(t[0][z+1])<< 0) +
             ((uint64_t)(t[1][z+1])<< 8) +
             ((uint64_t)(t[2][z+1])<<16) +
@@ -836,7 +878,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[5][z+1])<<40) +
             ((uint64_t)(t[6][z+1])<<48) +
             ((uint64_t)(t[7][z+1])<<56);
-        *(uint64_t *)&out[iN[z+2]] =
+        memcpy(&out[iN[z+1]], &i64, 8);
+        i64 =
             ((uint64_t)(t[0][z+2])<< 0) +
             ((uint64_t)(t[1][z+2])<< 8) +
             ((uint64_t)(t[2][z+2])<<16) +
@@ -845,7 +888,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[5][z+2])<<40) +
             ((uint64_t)(t[6][z+2])<<48) +
             ((uint64_t)(t[7][z+2])<<56);
-        *(uint64_t *)&out[iN[z+3]] =
+        memcpy(&out[iN[z+2]], &i64, 8);
+        i64 =
             ((uint64_t)(t[0][z+3])<< 0) +
             ((uint64_t)(t[1][z+3])<< 8) +
             ((uint64_t)(t[2][z+3])<<16) +
@@ -854,8 +898,9 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[5][z+3])<<40) +
             ((uint64_t)(t[6][z+3])<<48) +
             ((uint64_t)(t[7][z+3])<<56);
+        memcpy(&out[iN[z+3]], &i64, 8);
 
-        *(uint64_t *)&out[iN[z]+8] =
+        i64 =
             ((uint64_t)(t[8+0][z])<< 0) +
             ((uint64_t)(t[8+1][z])<< 8) +
             ((uint64_t)(t[8+2][z])<<16) +
@@ -864,7 +909,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[8+5][z])<<40) +
             ((uint64_t)(t[8+6][z])<<48) +
             ((uint64_t)(t[8+7][z])<<56);
-        *(uint64_t *)&out[iN[z+1]+8] =
+        memcpy(&out[iN[z]+8], &i64, 8);
+        i64 =
             ((uint64_t)(t[8+0][z+1])<< 0) +
             ((uint64_t)(t[8+1][z+1])<< 8) +
             ((uint64_t)(t[8+2][z+1])<<16) +
@@ -873,7 +919,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[8+5][z+1])<<40) +
             ((uint64_t)(t[8+6][z+1])<<48) +
             ((uint64_t)(t[8+7][z+1])<<56);
-        *(uint64_t *)&out[iN[z+2]+8] =
+        memcpy(&out[iN[z+1]+8], &i64, 8);
+        i64 =
             ((uint64_t)(t[8+0][z+2])<< 0) +
             ((uint64_t)(t[8+1][z+2])<< 8) +
             ((uint64_t)(t[8+2][z+2])<<16) +
@@ -882,7 +929,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[8+5][z+2])<<40) +
             ((uint64_t)(t[8+6][z+2])<<48) +
             ((uint64_t)(t[8+7][z+2])<<56);
-        *(uint64_t *)&out[iN[z+3]+8] =
+        memcpy(&out[iN[z+2]+8], &i64, 8);
+        i64 =
             ((uint64_t)(t[8+0][z+3])<< 0) +
             ((uint64_t)(t[8+1][z+3])<< 8) +
             ((uint64_t)(t[8+2][z+3])<<16) +
@@ -891,8 +939,9 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[8+5][z+3])<<40) +
             ((uint64_t)(t[8+6][z+3])<<48) +
             ((uint64_t)(t[8+7][z+3])<<56);
+        memcpy(&out[iN[z+3]+8], &i64, 8);
 
-        *(uint64_t *)&out[iN[z]+16] =
+        i64 =
             ((uint64_t)(t[16+0][z])<< 0) +
             ((uint64_t)(t[16+1][z])<< 8) +
             ((uint64_t)(t[16+2][z])<<16) +
@@ -901,7 +950,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[16+5][z])<<40) +
             ((uint64_t)(t[16+6][z])<<48) +
             ((uint64_t)(t[16+7][z])<<56);
-        *(uint64_t *)&out[iN[z+1]+16] =
+        memcpy(&out[iN[z]+16], &i64, 8);
+        i64 =
             ((uint64_t)(t[16+0][z+1])<< 0) +
             ((uint64_t)(t[16+1][z+1])<< 8) +
             ((uint64_t)(t[16+2][z+1])<<16) +
@@ -910,7 +960,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[16+5][z+1])<<40) +
             ((uint64_t)(t[16+6][z+1])<<48) +
             ((uint64_t)(t[16+7][z+1])<<56);
-        *(uint64_t *)&out[iN[z+2]+16] =
+        memcpy(&out[iN[z+1]+16], &i64, 8);
+        i64 =
             ((uint64_t)(t[16+0][z+2])<< 0) +
             ((uint64_t)(t[16+1][z+2])<< 8) +
             ((uint64_t)(t[16+2][z+2])<<16) +
@@ -919,7 +970,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[16+5][z+2])<<40) +
             ((uint64_t)(t[16+6][z+2])<<48) +
             ((uint64_t)(t[16+7][z+2])<<56);
-        *(uint64_t *)&out[iN[z+3]+16] =
+        memcpy(&out[iN[z+2]+16], &i64, 8);
+        i64 =
             ((uint64_t)(t[16+0][z+3])<< 0) +
             ((uint64_t)(t[16+1][z+3])<< 8) +
             ((uint64_t)(t[16+2][z+3])<<16) +
@@ -928,8 +980,9 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[16+5][z+3])<<40) +
             ((uint64_t)(t[16+6][z+3])<<48) +
             ((uint64_t)(t[16+7][z+3])<<56);
+        memcpy(&out[iN[z+3]+16], &i64, 8);
 
-        *(uint64_t *)&out[iN[z]+24] =
+        i64 =
             ((uint64_t)(t[24+0][z])<< 0) +
             ((uint64_t)(t[24+1][z])<< 8) +
             ((uint64_t)(t[24+2][z])<<16) +
@@ -938,7 +991,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[24+5][z])<<40) +
             ((uint64_t)(t[24+6][z])<<48) +
             ((uint64_t)(t[24+7][z])<<56);
-        *(uint64_t *)&out[iN[z+1]+24] =
+        memcpy(&out[iN[z]+24], &i64, 8);
+        i64 =
             ((uint64_t)(t[24+0][z+1])<< 0) +
             ((uint64_t)(t[24+1][z+1])<< 8) +
             ((uint64_t)(t[24+2][z+1])<<16) +
@@ -947,7 +1001,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[24+5][z+1])<<40) +
             ((uint64_t)(t[24+6][z+1])<<48) +
             ((uint64_t)(t[24+7][z+1])<<56);
-        *(uint64_t *)&out[iN[z+2]+24] =
+        memcpy(&out[iN[z+1]+24], &i64, 8);
+        i64 =
             ((uint64_t)(t[24+0][z+2])<< 0) +
             ((uint64_t)(t[24+1][z+2])<< 8) +
             ((uint64_t)(t[24+2][z+2])<<16) +
@@ -956,7 +1011,8 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[24+5][z+2])<<40) +
             ((uint64_t)(t[24+6][z+2])<<48) +
             ((uint64_t)(t[24+7][z+2])<<56);
-        *(uint64_t *)&out[iN[z+3]+24] =
+        memcpy(&out[iN[z+2]+24], &i64, 8);
+        i64 =
             ((uint64_t)(t[24+0][z+3])<< 0) +
             ((uint64_t)(t[24+1][z+3])<< 8) +
             ((uint64_t)(t[24+2][z+3])<<16) +
@@ -965,13 +1021,13 @@ static inline void transpose_and_copy(uint8_t *out, int iN[32],
             ((uint64_t)(t[24+5][z+3])<<40) +
             ((uint64_t)(t[24+6][z+3])<<48) +
             ((uint64_t)(t[24+7][z+3])<<56);
+        memcpy(&out[iN[z+3]+24], &i64, 8);
 
         iN[z+0] += 32;
         iN[z+1] += 32;
         iN[z+2] += 32;
         iN[z+3] += 32;
     }
-#endif
 }
 
 unsigned char *rans_uncompress_O1_32x16_sse4(unsigned char *in,
@@ -1014,7 +1070,7 @@ unsigned char *rans_uncompress_O1_32x16_sse4(unsigned char *in,
         uint32_t u_freq_sz, c_freq_sz;
         cp += var_get_u32(cp, cp_end, &u_freq_sz);
         cp += var_get_u32(cp, cp_end, &c_freq_sz);
-        if (c_freq_sz >= cp_end - cp - 16)
+        if (c_freq_sz > cp_end - cp)
             goto err;
         tab_end = cp + c_freq_sz;
         if (!(c_freq = rans_uncompress_O0_4x16(cp, c_freq_sz, NULL,u_freq_sz)))
@@ -1413,8 +1469,10 @@ unsigned char *rans_uncompress_O1_32x16_sse4(unsigned char *in,
             uint32_t S = s3[l[z]][m];
             unsigned char c = S & 0xff;
             out[i4[z]++] = c;
-            R[z] = (S>>(TF_SHIFT_O1+8)) * (R[z]>>TF_SHIFT_O1) +
-                ((S>>8) & ((1u<<TF_SHIFT_O1)-1));
+            int f = (S>>(TF_SHIFT_O1+8));
+            if (f == 0)
+                f = 4096;
+            R[z] = f * (R[z]>>TF_SHIFT_O1) + ((S>>8) & ((1u<<TF_SHIFT_O1)-1));
             RansDecRenormSafe(&R[z], &ptr, ptr_end);
             l[z] = c;
         }
@@ -1423,7 +1481,7 @@ unsigned char *rans_uncompress_O1_32x16_sse4(unsigned char *in,
         uint16_t *sp = (uint16_t *)ptr;
         const uint32_t mask = ((1u << TF_SHIFT_O1_FAST)-1);
         __m128i maskv  = _mm_set1_epi32(mask); // set mask in all lanes
-        uint8_t tbuf[32][32];
+        uint8_t tbuf[32][32] __attribute__((aligned(32)));
         int tidx = 0;
         LOAD128(Rv, R);
         LOAD128(Lv, l);
@@ -1767,5 +1825,7 @@ unsigned char *rans_uncompress_O1_32x16_sse4(unsigned char *in,
 
     return NULL;
 }
-
+#else  // HAVE_SSE4_1 and HAVE_SSSE3
+// Prevent "empty translation unit" errors when building without SSE4 etc.
+const char *rANS_static32x16pr_sse4_disabled = "No SSE4";
 #endif // HAVE_SSE4_1 and HAVE_SSSE3
