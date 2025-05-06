@@ -40,4 +40,4 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 #copy EXE to bin folder
-DESTDIR = ../../bin/
+DESTDIR = ../../../../bin/

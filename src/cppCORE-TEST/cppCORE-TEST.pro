@@ -7,7 +7,7 @@ QT       += network
 CONFIG   += console
 CONFIG   -= app_bundle
 TEMPLATE = app
-DESTDIR = ../../bin/
+DESTDIR = ../../../../bin/
 
 #enable O3 optimization
 QMAKE_CXXFLAGS_RELEASE -= -O

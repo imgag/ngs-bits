@@ -1,0 +1,45 @@
+# .clang-format
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: ForIndentation
+
+# Spacing and alignment
+AlignConsecutiveAssignments: false
+AlignOperands: false
+AlignTrailingComments: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakTemplateDeclarations: No
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: true
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+
+# Pointer and reference binding
+PointerAlignment: Left
+
+# Namespace, control flow, and switch indentation
+IndentCaseLabels: true
+IndentGotoLabels: false
+IndentPPDirectives: None
+IndentWrappedFunctionNames: false
+
+# Advanced indentation tuning
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: false
+IndentAccessModifiers: false
+IndentRequires: false
+
+# Fallback for missing QtCreator-specific rules
+SpacesInConditionalStatement: false
+

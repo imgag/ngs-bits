@@ -9,7 +9,7 @@ QMAKE_CXXFLAGS_RELEASE *= -O3
 
 #include cppCORE library
 INCLUDEPATH += $$PWD/cppCORE
-LIBS += -L$$PWD/../bin -lcppCORE
+LIBS += -L$$PWD/../../bin -lcppCORE
 
 #include htslib library
 INCLUDEPATH += $$PWD/../htslib/include/
@@ -28,5 +28,5 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 #copy EXE to bin folder
-DESTDIR = ../../bin/
+DESTDIR = ../../../../bin/
 

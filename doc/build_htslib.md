@@ -39,7 +39,7 @@ The main problem with Windows is that htslib does not maintain a build system fo
 The process of building *htslib* on Windows is described in this [issue](https://github.com/samtools/htslib/issues/907).  
 
 
-1. Install 64-bit MSYS2 from the [project website](https://msys2.github.io/). Currently used in the project htslib has been built with msys2-x86_64_20221216. This version of msys2 uses OpenSSL v1, later versions switched to OpenSSL v3. When building htslib with newer versions, there seems to be a clash of depdendencies with GSvar. Older versions can be found [here](https://github.com/msys2/msys2-installer/releases/)
+1. Install 64-bit MSYS2 from the [project website](https://msys2.github.io/). Older versions can be found [here](https://github.com/msys2/msys2-installer/releases/)
 
 2. If behind a proxy, update proxy settings as described [here](https://stackoverflow.com/questions/29783065/msys2-pacman-cant-update-packages-through-corporate-firewall9):
 	- Uncomment and set proxy credentials in `[msys]\etc\wgetrc`:
@@ -65,7 +65,7 @@ The process of building *htslib* on Windows is described in this [issue](https:/
 		> PATH=/mingw64/bin:$PATH
 		> autoreconf -i
 		> ./configure --enable-libcurl
-    - `--enable-libcurl` option is needed, if you want to access files (e.g. BAM) over HTTP/HTTPS protocol. Otherwise htslib will be able to work only with the local filesystem, accessing the server files will not be possible.
+    - `--enable-libcurl` option is needed, if you want to access files (e.g. BAM or CRAM) over HTTP/HTTPS protocol. Otherwise htslib will be able to work only with the local filesystem, accessing the server files will not be possible.
     - After executing the script you will see the results of the configuration on your screen. Make sure that the features you need have been enabled.
 
 6. build htslib:
@@ -99,11 +99,11 @@ Normally, `hts-3.dll` has the following dependencies (the list may vary, dependi
  * libzstd.dll
  * zlib1.dll
 
-However, the list may change depending on the version of the libraries. It is recommended to use the`windeployqt` utility shipped with Qt for finding libraries GSvar application depends on. Run it from a command line and specify the location of `GSvar.exe`:
+However, the list may change depending on the version of the libraries. It is recommended to use the `windeployqt` utility shipped with Qt for finding libraries GSvar application depends on. Run it from a command line and specify the location of `GSvar.exe`:
 
         > QTDIR/bin/windeployqt GSvar.exe
 
-The majority of GSvar dependencies will be copied to the folder with its binary executable. Add htslib depdendencies to the same folder (listed above). Try to launch `GSvar.exe`. It will probably complain about missing DLLs. Locate them (one at a time) at the mingw folder and copy them next to the `GSvar.exe`. Keep adding DLLs until the application starts working. This strategy many not work in 100% of the cases (e.g. if there is a conflict between DLLs), but it significantly narrrows down the search area. More information about the `windeployqt` utility can be found [here](https://doc.qt.io/Qt-5/windows-deployment.html)
+The majority of GSvar dependencies will be copied to the folder with its binary executable. Add htslib depdendencies to the same folder (listed above). Try to launch `GSvar.exe`. It will probably complain about missing DLLs. Locate them (one at a time) at the mingw folder and copy them next to the `GSvar.exe`. Keep adding DLLs until the application starts working. This strategy many not work in 100% of the cases (e.g. if there is a conflict between DLLs), but it significantly narrrows down the search area. More information about the `windeployqt` utility can be found [here](https://doc.qt.io/qt-6/windows-deployment.html)
 
 By default, reading files over HTTPS inside `GSvar` on Winodws does not work. You will need to set the `CURL_CA_BUNDLE` environment variable. It should contain the location of a CA bundle file (`ca-bundle.crt`, `ca-bundle.trust.crt`, or something ele) - the file that includes root and intermediate certificates. Use `set` command for that:
 
