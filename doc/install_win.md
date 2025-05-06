@@ -8,13 +8,12 @@ First, we need to install Qt and some basic dependencies:
 
 * Download and launch [Qt online installer](https://www.qt.io/download-qt-installer-oss). The online installer requires to have a Qt Account: you can create it free of charge [here](https://login.qt.io/login).
 * During the installation you will need to login with your Qt credentials:
-![Qt login form](qt-installer-account.png)
+<img style="float: center;" src="qt-installer-account.png">
 * The installer will also ask if you belong to an organization (it is possible to leave this field empty): ![Your organization](qt-installer-organization.png)
 * Select the `Custom installation`:
 ![Custom Qt installation](qt-installer-custom.png)
 * Choose Qt 6.8.3 (select all components, since we will need them, especially the source code), build tools (MinGW 13.1.0 , CMake, Ninja, OpenSSL), Qt Creator (all components):
-
-![Selection Qt components](qt-installer-components.png)
+<img style="float: center;" src="qt-installer-components.png">
 * The installation may take a while, the duration mainly depends on your internet connection speed, since the installer downloads everything from the server:
 ![Qt installation progress](qt-installer-progress.png)
 * Download [MariaDB Connector C 64-bit](https://downloads.mariadb.com/Connectors/c/) (choose the latest available version). Consider using the corresponding [MySQL Connector](https://dev.mysql.com/downloads/connector/cpp/), if you have a MySQL database server.
