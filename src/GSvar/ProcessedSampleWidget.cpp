@@ -133,6 +133,9 @@ void ProcessedSampleWidget::delayedInitialization()
         addIgvMenuEntry(menu, PathType::STRUCTURAL_VARIANTS);
         menu->addSeparator();
         addIgvMenuEntry(menu, PathType::MANTA_EVIDENCE);
+		menu->addSeparator();
+		addIgvMenuEntry(menu, PathType::PARAPHASE_EVIDENCE);
+		menu->addSeparator();
     }
 
     ui_->igv_btn->setMenu(menu);

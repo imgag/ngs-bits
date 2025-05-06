@@ -330,6 +330,21 @@ FileLocationList FileLocationProviderLocal::getSomaticLowCoverageFiles(bool retu
 	return output;
 }
 
+FileLocationList FileLocationProviderLocal::getParaphaseEvidenceFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		QString folder = loc.value.left(loc.value.length()-loc.key.length());
+
+		FileLocation file = FileLocation{loc.key, PathType::PARAPHASE_EVIDENCE, folder + "paraphase/" + loc.key + ".paraphase.bam", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
 
 FileLocationList FileLocationProviderLocal::getCopyNumberCallFiles(bool return_if_missing) const
 {
