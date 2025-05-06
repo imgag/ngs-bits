@@ -338,7 +338,7 @@ public:
 
 		//sudies
 		QStringList genlab_studies = genlab.studies(ps_name);
-		QStringList ngsd_studies = db.getValues("SELECT st.name FROM study st, study_sample ss, processed_sample ps WHERE ss.study_id=st.id AND ps.id=ss.processed_sample_id AND ps.sample_id=" + s_id);
+		QStringList ngsd_studies = db.getValues("SELECT st.name FROM study st, study_sample ss WHERE ss.study_id=st.id AND ss.processed_sample_id=" + ps_id);
 		foreach(const QString& study, genlab_studies)
 		{
 			if (!ngsd_studies.contains(study))

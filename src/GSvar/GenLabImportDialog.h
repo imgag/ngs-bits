@@ -27,7 +27,7 @@ protected:
 	void addItem(QString label, QString v_ngsd, QString v_genlab);
 	bool diseaseDataContains(QString sample_id, QString type, QString value);
 	bool relationDataContains(QString sample_id, SampleRelation relation);
-	bool studyDataContains(QString sample_id, QString study);
+	bool studyDataContains(QString ps_id, QString study);
 	static void addDiseaseDetail(QList<SampleDiseaseInfo>& disease_details, QString type, QString data);
 
 private:
