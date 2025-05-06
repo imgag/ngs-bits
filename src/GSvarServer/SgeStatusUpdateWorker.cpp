@@ -308,7 +308,11 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	qsub_args << "-q" << queues.join(",");
     qsub_args << "php";
     qsub_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
-	qsub_args << job.args.simplified().split(' ');
+	QString job_args = job.args.simplified();
+	if (!job_args.isEmpty())
+	{
+		qsub_args << job_args.split(' ');
+	}
 	qsub_args << pipeline_args;
 
 	QByteArrayList output;
