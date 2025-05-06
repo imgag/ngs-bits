@@ -18,6 +18,7 @@ First, we need to install Qt and some basic dependencies:
 * The installation may take a while, the duration mainly depends on your internet connection speed, since the installer downloads everything from the server:
 ![Qt installation progress](qt-installer-progress.png)
 * Download [MariaDB Connector C 64-bit](https://downloads.mariadb.com/Connectors/c/) (choose the latest available version). Consider using the corresponding [MySQL Connector](https://dev.mysql.com/downloads/connector/cpp/), if you have a MySQL database server.
+
 ![Mariadb installer](mariadb-installer.png)
 * Install MariaDB Connector C 64-bit by selecting the `Complete` variant:
 ![Mariadb complete install](mariadb-complete.png)
