@@ -16,6 +16,3 @@ cppVISUAL.depends = cppNGS cppGUI
 
 SUBDIRS += GSvar
 GSvar.depends = cppNGSD cppVISUAL
-
-SUBDIRS += MVHub
-MVHub.depends = cppNGSD cppVISUAL
