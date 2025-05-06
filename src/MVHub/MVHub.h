@@ -21,17 +21,21 @@ public slots:
 
 	void updateConsentData();
 	void test_apiPseudo();
-	void test_apiReCapCaseManagement();
 
 private:
 	Ui::MVHub ui_;
 	DelayedInitializationTimer delayed_init_;
+	QHash<QString, QStringList> cmid2messages_;
 
 	//clear output panel on bottom
 	void clearOutput(QObject* sender);
-	//load samples in Modellvorhaben from NGSD
-	void loadSamplesFromNGSD();
-	//annotate consent data of sample
+
+	//load data Modellvorhaben RedCap and copy it to MVH database
+	void loadDataFromCM();
+	//determine processed samples for cases from NGSD
+	void determineProcessedSamples();
+	//show messages
+	void showMessages();
 
 	//get SAP patient ID for processed sample. Empty string if not available.
 	QString getSAP(QString ps, bool padded);

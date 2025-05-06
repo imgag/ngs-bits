@@ -37,27 +37,6 @@
     <property name="bottomMargin">
      <number>6</number>
     </property>
-    <item row="0" column="0">
-     <widget class="QPushButton" name="update_consent">
-      <property name="text">
-       <string>update consent data</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QPushButton" name="api_redcap_se">
-      <property name="text">
-       <string>RedCap (SE)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="api_redcap_case">
-      <property name="text">
-       <string>RedCap (Case Management)</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="0">
      <widget class="QPushButton" name="api_pseudo">
       <property name="text">
@@ -65,27 +44,14 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="3" rowspan="2">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="2">
-     <widget class="QPushButton" name="api_redcap_se_upload">
+    <item row="0" column="0">
+     <widget class="QPushButton" name="update_consent">
       <property name="text">
-       <string>RedCap (SE) Upload</string>
+       <string>update consent data</string>
       </property>
      </widget>
     </item>
-    <item row="2" column="0" colspan="4">
+    <item row="2" column="0" colspan="2">
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -102,17 +68,7 @@
        </property>
        <column>
         <property name="text">
-         <string>PS</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>type</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>additional samples</string>
+         <string>CM ID</string>
         </property>
        </column>
        <column>
@@ -122,22 +78,55 @@
        </column>
        <column>
         <property name="text">
-         <string>CM ID</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
          <string>Netzwerk</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Consent</string>
+         <string>Sequenzierungsart</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Probeneingang</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Sequenzierungsstatus</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Befunddatum</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>PS</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>messages</string>
         </property>
        </column>
       </widget>
       <widget class="QPlainTextEdit" name="output"/>
      </widget>
+    </item>
+    <item row="0" column="1" rowspan="2">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
    </layout>
   </widget>

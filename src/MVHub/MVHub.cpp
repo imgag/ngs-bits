@@ -9,6 +9,7 @@
 
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QDomDocument>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
@@ -20,13 +21,20 @@ MVHub::MVHub(QWidget *parent)
 
 	connect(ui_.update_consent, SIGNAL(clicked()), this, SLOT(updateConsentData()));
 	connect(ui_.api_pseudo, SIGNAL(clicked()), this, SLOT(test_apiPseudo()));
-	connect(ui_.api_redcap_case, SIGNAL(clicked()), this, SLOT(test_apiReCapCaseManagement()));
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 }
 
 void MVHub::delayedInitialization()
 {
-	loadSamplesFromNGSD();
+	loadDataFromCM();
+
+	determineProcessedSamples();
+
+	showMessages();
+
+	//resize columns
+	GUIHelper::resizeTableCellWidths(ui_.table, 400, 20);
+	GUIHelper::resizeTableCellHeightsToMinimum(ui_.table, 20);
 }
 
 void MVHub::tableContextMenu(QPoint pos)
@@ -62,15 +70,79 @@ void MVHub::updateConsentData()
 	ui_.table->resizeRowsToContents();
 }
 
-void MVHub::loadSamplesFromNGSD()
+void MVHub::determineProcessedSamples()
 {
+	//init
 	NGSD db;
 	GenLabDB genlab;
-	ProcessedSampleSearchParameters params;
-	params.s_study = "Modellvorhaben_2024";
-	params.include_archived_projects = false;
-	params.run_finished = true;
-	params.include_bad_quality_samples = false;
+	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
+	int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+	int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
+	int c_report = GUIHelper::columnIndex(ui_.table, "Befunddatum");
+	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		//determine search parameters
+		ProcessedSampleSearchParameters params;
+		params.run_finished = true;
+		params.p_type = "diagnostic";
+
+		//skip if information is not complete
+		QString report_date = ui_.table->item(r, c_report)->text();
+		if (report_date.isEmpty()) continue;
+		QString seq_type = ui_.table->item(r, c_seq_type)->text();
+		QString network = ui_.table->item(r, c_network)->text();
+		if (network.isEmpty() || seq_type.isEmpty() || seq_type=="Keine") continue;
+
+		QString cm_id = ui_.table->item(r, c_cm)->text();
+		if (network=="Netzwerk Seltene Erkrankungen" && seq_type=="WES")
+		{
+			params.include_bad_quality_samples = false;
+			params.include_tumor_samples = false;
+			params.sys_type = "WES";
+		}
+		else if (network=="Netzwerk Seltene Erkrankungen" && seq_type=="WGS")
+		{
+			params.include_bad_quality_samples = false;
+			params.include_tumor_samples = false;
+			//system type can be WGS or lrGS > filtering below
+		}
+		else
+		{
+			cmid2messages_[cm_id] << "Could not determine processed sample(s): unhandled combination of network '"+network+"' and sequencing type '"+seq_type+"'";
+		}
+
+		QString sap_id = ui_.table->item(r, c_sap)->text();
+		QStringList ps_list;
+		QStringList tmp = genlab.samplesWithSapID(sap_id, params);
+		foreach(QString ps, tmp)
+		{
+			QString ps_id = db.processedSampleId(ps);
+			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
+			QString sys_type = ps_data.processing_system_type;
+			if (seq_type=="WGS" && sys_type!="WGS" && sys_type!="lrGS") continue; //system type can be WGS or lrGS > filtering here instead via parameters
+
+			QString entry = ps;
+			entry += " ("+sys_type;
+			entry += ")";
+			ps_list << entry;
+
+			if (!db.studies(ps_id).contains("Modellvorhaben_2024")) cmid2messages_[cm_id] << (ps +" not in study ");
+		}
+		if (ps_list.count()>0)
+		{
+			ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps_list.join(", ")));
+			if (ps_list.count()>1) cmid2messages_[cm_id] << "Could not determine processed sample(s): several matching samples in NGSD";
+		}
+		else
+		{
+			cmid2messages_[cm_id] << "Could not determine processed sample(s): no matching samples in NGSD";
+		}
+	}
+
+	/*
 	DBTable res = db.processedSampleSearch(params);
 	int i_ps = res.columnIndex("name");
 	int i_sys_type = res.columnIndex("system_type");
@@ -125,10 +197,25 @@ void MVHub::loadSamplesFromNGSD()
 		//Case management information
 		//TODO
 	}
+	*/
 
-	GUIHelper::resizeTableCellWidths(ui_.table, 400, 20);
-	GUIHelper::resizeTableCellHeightsToMinimum(ui_.table, 20);
+}
 
+void MVHub::showMessages()
+{
+	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+	int c_messages = GUIHelper::columnIndex(ui_.table, "messages");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		QString cm_id = ui_.table->item(r,c_cm)->text();
+		if (!cmid2messages_.contains(cm_id)) continue;
+
+		QString text = cmid2messages_[cm_id].join("\n");
+		QTableWidgetItem* item = GUIHelper::createTableItem(text);
+		item->setToolTip(text);
+		ui_.table->setItem(r, c_messages, item);
+	}
 }
 
 QString MVHub::getSAP(QString ps, bool padded)
@@ -137,7 +224,7 @@ QString MVHub::getSAP(QString ps, bool padded)
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
-		if (ui_.table->item(r,0)->text()==ps)
+		if (ui_.table->item(r,0)->text()==ps) //TODO not working anymore
 		{
 			QString id = ui_.table->item(r,c_sap)->text();
 			while (padded && id.size()<10) id.prepend('0');
@@ -405,23 +492,80 @@ void MVHub::test_apiPseudo()
 	}
 }
 
-
-
-void MVHub::test_apiReCapCaseManagement()
+void MVHub::loadDataFromCM()
 {
 	try
 	{
 		clearOutput(sender());
 
+		QHash<QString, QStringList> cmid2data;
+		QHash<QString, QString> cmid2sapid;
+
+		//process data from RedCap API
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/x-www-form-urlencoded");
-		QByteArray data = "token="+Settings::string("redcap_casemanagement_token").toLatin1()+"&content=record";
+		QByteArray data = "token="+Settings::string("redcap_casemanagement_token").toLatin1()+"&content=record&rawOrLabel=label";
 		HttpHandler handler(true);
-		QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers);
+		QByteArrayList reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).split('\n');
+		foreach(QString line, reply)
+		{
+			if (!line.startsWith("<item>")) continue;
 
-		ui_.output->appendPlainText("reply:");
-		ui_.output->appendPlainText(XmlHelper::format(reply));
+			//open file
+			QDomDocument doc;
+			QString error_msg;
+			int error_line, error_column;
+			if(!doc.setContent(line, &error_msg, &error_line, &error_column))
+			{
+				THROW(FileParseException, "XML invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+			}
 
+			QDomElement root = doc.documentElement();
+			QString cm_id = root.namedItem("record_id").toElement().text().trimmed();
+			cmid2data[cm_id] << line;
+			QString sap_id = root.namedItem("pat_id").toElement().text().trimmed();
+			if (!sap_id.isEmpty()) cmid2sapid[cm_id] = sap_id; //redcap_repeat_instance SAP ID is empty
+
+			//skip items flagged as 'redcap_repeat_instance'
+			if(root.namedItem("redcap_repeat_instance").toElement().text()=="1") continue;
+
+			//add table line
+			int r = ui_.table->rowCount();
+			ui_.table->setRowCount(r+1);
+
+			//fill table line
+			QDomNode n = root.firstChild();
+			while(!n.isNull())
+			{
+				QDomElement e = n.toElement(); // try to convert the node to an element.
+				if(e.isNull()) continue;
+
+				QString tag = e.tagName();
+				if (tag=="record_id") ui_.table->setItem(r, 0, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="pat_id") ui_.table->setItem(r, 1, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="network_title") ui_.table->setItem(r, 2, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="seq_mode") ui_.table->setItem(r, 3, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="sample_arrival_date") ui_.table->setItem(r, 4, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="seq_state") ui_.table->setItem(r, 5, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="gen_finding_date") ui_.table->setItem(r, 6, GUIHelper::createTableItem(e.text().trimmed()));
+
+				n = n.nextSibling();
+			}
+		}
+
+		//insert/update data in MVH database
+		NGSD mvh_db(true, "mvh");
+		SqlQuery query = mvh_db.getQuery();
+		query.prepare("INSERT INTO case_data (cm_id, cm_data, sap_id) VALUES (:0,:1,:2) ON DUPLICATE KEY UPDATE cm_data=VALUES(cm_data), sap_id=VALUES(sap_id)");
+		foreach(QString cm_id, cmid2sapid.keys())
+		{
+			QString sap_id = cmid2sapid[cm_id];
+			QStringList cm_data = cmid2data[cm_id];
+			query.bindValue(0, cm_id);
+			query.bindValue(1, cm_data.join("\n"));
+			query.bindValue(2, sap_id);
+			query.exec();
+		}
 	}
 	catch (Exception& e)
 	{
@@ -429,3 +573,8 @@ void MVHub::test_apiReCapCaseManagement()
 		ui_.output->appendPlainText(e.message());
 	}
 }
+
+//TODO:
+//- text filder
+//- copy field, line, all
+//- store PS in MVH-DB
