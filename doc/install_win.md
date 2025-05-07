@@ -97,6 +97,8 @@ Adjust the command, based on your Qt version and the `GSvar.exe` file location. 
 
 The database connection has become more secure and now it requires a certificate authorities file to validate the database server certificates (only if the operating system has not been configured correctly already). It means that `GSvar` application connecting to AWS intances my need a `*.pem` file (e.g. `eu-central-1-bundle.pem`). Please visit the official [AWS RDS documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html) for more inforamtion.
 
+Add `db_ssl_ca` parameter to your config and set its value to the CA bundle file path, for example `c:\\eu-central-1-bundle.pem`
+
 ## Integration with IGV
 
 For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
