@@ -230,7 +230,7 @@ public:
 		q_set.bindValue(1, n_ps_id);
 		q_set.bindValue(2, call_data.caller);
 		q_set.bindValue(3, call_data.caller_version);
-		q_set.bindValue(4, call_data.call_date);
+        q_set.bindValue(4, call_data.call_date.toString("yyyyMMdd"));
 		q_set.bindValue(5, json_doc.toJson(QJsonDocument::Compact));
 		q_set.bindValue(6, "n/a");
 		q_set.exec();
@@ -334,7 +334,7 @@ public:
 		insert_callset.bindValue(1, n_ps_id);
 		insert_callset.bindValue(2, svs.caller());
 		insert_callset.bindValue(3, svs.callerVersion());
-		insert_callset.bindValue(4, svs.callingDate());
+        insert_callset.bindValue(4, svs.callingDate().toString("yyyyMMdd"));
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 

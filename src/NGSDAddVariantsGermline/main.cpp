@@ -1,6 +1,5 @@
 #include "ToolBase.h"
 #include "NGSD.h"
-#include "TSVFileStream.h"
 #include "KeyValuePair.h"
 #include "RepeatLocusList.h"
 #include <QJsonDocument>
@@ -126,7 +125,7 @@ public:
 			q_set.bindValue(0, ps_id);
 			q_set.bindValue(1, caller.name);
 			q_set.bindValue(2, caller.version);
-			q_set.bindValue(3, calling_date);
+            q_set.bindValue(3, calling_date.toString("yyyyMMdd"));
 			q_set.exec();
 		}
 
@@ -292,7 +291,7 @@ public:
 		q_set.bindValue(0, ps_id);
 		q_set.bindValue(1, caller);
 		q_set.bindValue(2, caller_version);
-		q_set.bindValue(3, call_date);
+        q_set.bindValue(3, call_date.toString("yyyyMMdd"));
 		q_set.bindValue(4, json_doc.toJson(QJsonDocument::Compact));
 		q_set.bindValue(5, "n/a");
 		q_set.exec();
@@ -388,7 +387,7 @@ public:
 		insert_callset.bindValue(0, ps_id);
 		insert_callset.bindValue(1, svs.caller());
 		insert_callset.bindValue(2, svs.callerVersion());
-		insert_callset.bindValue(3, svs.callingDate());
+        insert_callset.bindValue(3, svs.callingDate().toString("yyyyMMdd"));
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 
@@ -510,7 +509,7 @@ public:
 		insert_callset.bindValue(0, ps_id);
 		insert_callset.bindValue(1, RepeatLocusList::typeToString(res.caller()));
 		insert_callset.bindValue(2, res.callerVersion());
-		insert_callset.bindValue(3, res.callDate());
+        insert_callset.bindValue(3, res.callDate().toString("yyyyMMdd"));
 		insert_callset.exec();
 
 		//prepare queries
