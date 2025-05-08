@@ -18,6 +18,7 @@ public:
 public slots:
 	void delayedInitialization();
 	void tableContextMenu(QPoint pos);
+	void updateTableFilters();
 
 	void updateConsentData();
 	void test_apiPseudo();
@@ -49,6 +50,9 @@ private:
 	static QByteArray jsonDataPseudo(QByteArray str);
 	//parses JSON output of pseudonymization
 	QByteArray parseJsonDataPseudo(QByteArray reply, QByteArray context);
+
+	//returns the string contents of a table item
+	QString getString(int r, int c, bool trim=true);
 };
 
 #endif // MVHUB_H

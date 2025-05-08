@@ -123,7 +123,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		else
 		{
 			GenLabDB genlab;
-			w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) );
+			w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) ); //TODO Marc: make mandatory (also in schema) => throw error if not present (check if all samples have SAP id)
 		}
 
 		QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(tumor_s_id, "ICD10 code");
