@@ -15,7 +15,6 @@
 #include "SqlQuery.h"
 #include "GeneSet.h"
 #include "PhenotypeList.h"
-#include "Helper.h"
 #include "DBTable.h"
 #include "ReportConfiguration.h"
 #include "SomaticReportConfiguration.h"
@@ -23,11 +22,9 @@
 #include "BedpeFile.h"
 #include "SomaticVariantInterpreter.h"
 #include "SomaticCnvInterpreter.h"
-#include "NGSHelper.h"
 #include "FileLocation.h"
 #include "FileInfo.h"
 #include "TsvFile.h"
-#include "HttpRequestHandler.h"
 
 const int MAX_VARIANT_SIZE = 500;
 
@@ -218,7 +215,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobHistoryEntry
 
 	QString timeAsString() const
 	{
-		return time.toString(Qt::ISODate).replace('T', ' ');
+		return time.toString(Qt::ISODate).replace('T', ' ').replace('Z', "");
 	}
 };
 
