@@ -2682,7 +2682,7 @@ CREATE  TABLE IF NOT EXISTS `small_variants_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `caller` ENUM('freebayes', 'DRAGEN', 'Clair3') NOT NULL,
+  `caller` ENUM('freebayes', 'DRAGEN', 'Clair3', 'DeepVariant') NOT NULL,
   `caller_version` VARCHAR(25) NOT NULL,
   `call_date` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),

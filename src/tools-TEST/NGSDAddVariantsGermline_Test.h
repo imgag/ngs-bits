@@ -40,9 +40,9 @@ private slots:
         REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line38.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line38.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
 
-		//check callset (Clair3)
-		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "Clair3");
-		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "1.0.0");
+		//check callset (DeepVariant)
+		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "DeepVariant");
+		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "1.8.0");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='3999'").toDate().toString(Qt::ISODate), "2023-11-03");
 	}
 
