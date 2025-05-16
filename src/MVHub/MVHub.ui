@@ -47,6 +47,30 @@
      <number>3</number>
     </property>
     <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QPushButton" name="load_consent_data">
+        <property name="text">
+         <string>load consent data</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
        <number>3</number>
@@ -169,11 +193,17 @@
        </column>
        <column>
         <property name="text">
+         <string>consent</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>messages</string>
         </property>
        </column>
       </widget>
       <widget class="QPlainTextEdit" name="output"/>
+      <widget class="QLineEdit" name="lineEdit"/>
      </widget>
     </item>
    </layout>
