@@ -17,8 +17,8 @@ public:
 		setDescription("Converts a text file with gene names to a TSV file with two columns (transcript, gene name).");
 		addInfile("in", "Input TXT file with one gene symbol per line. If unset, reads from STDIN.", true, true);
 		QStringList modes;
-		modes << "all" << "best" << "relevant";
-		addEnum("mode", "Mode: all = all transcripts, best = best transcript, relevant = all relevant transcripts.", false, modes);
+		modes << "all" << "best" << "relevant" << "mane_select";
+		addEnum("mode", "Mode: all = all transcripts, best = best transcript, relevant = all relevant transcripts, mane_select = only MANE select transcripts.", false, modes);
 		addFlag("version", "Append transcript version to transcript name.");
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true, true);
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -70,6 +70,16 @@ public:
 			else if (mode=="relevant")
 			{
 				transcripts = db.relevantTranscripts(gene_id);
+			}
+			else if (mode=="mane_select")
+			{
+				foreach(const Transcript& t, db.transcripts(gene_id, Transcript::ENSEMBL, false))
+				{
+					if (t.isManeSelectTranscript())
+					{
+						transcripts << t;
+					}
+				}
 			}
 			else //all
 			{
