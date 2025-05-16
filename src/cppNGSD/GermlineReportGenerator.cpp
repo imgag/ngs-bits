@@ -274,7 +274,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		{
 			try
 			{
-				gnomad_percentage = QByteArray::number(100.0 * Helper::toDouble(freq, "gnomAD AF"), 'f', 3) + "%";
+				gnomad_percentage = formatFloat(100.0 * Helper::toDouble(freq, "gnomAD AF"), 3) + "%";
 			}
 			catch (Exception& e)
 			{
@@ -320,7 +320,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
         stream << "<tr>" << QT_ENDL;
         stream << "<td>" << (cn<2 ? trans("Deletion") : trans("Duplikation")) << "</td>" << QT_ENDL;
         stream << "<td>" << cnv.toString() << "</td>" << QT_ENDL;
-        stream << "<td>" << QString::number(cnv.size()/1000.0, 'f', 3) << " " << trans("kb") << " / " << std::max(1, cnv.regions()) << " " << trans("Regionen") << "</td>" << QT_ENDL;
+		stream << "<td>" << formatFloat(cnv.size()/1000.0, 3) << " " << trans("kb") << " / " << std::max(1, cnv.regions()) << " " << trans("Regionen") << "</td>" << QT_ENDL;
 		QString cn_str = QString::number(cn);
 		if (var_conf.de_novo) cn_str += " (de-novo)";
 		if (var_conf.mosaic) cn_str += " (mosaic)";
@@ -377,7 +377,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>";
 		if (size!=-1)
 		{
-			stream << QString::number(size/1000.0, 'f', 3) << " " << trans("kb");
+			stream << formatFloat(size/1000.0, 3) << " " << trans("kb");
 		}
 		stream << "</td>";
 
@@ -482,7 +482,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					QChar ref = var.ref()[0];
 					QChar alt = var.obs()[0];
 					double af = pileup.frequency(ref, alt);
-					details << ("AF="+QString::number(af, 'g', 3));
+					details << ("AF="+formatFloat(af, 3));
 					if (af<0.15)
 					{
 						genotype = ref+QString("/")+ref;
@@ -551,7 +551,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		//print general information about ROI
         stream << QT_ENDL;
         stream << "<p><b>" << trans("Abdeckungsstatistik Zielregion") << "</b>" << QT_ENDL;
-        stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << QString::number(target_region_read_depth, 'f', 2) << QT_ENDL;
+		stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << formatFloat(target_region_read_depth, 2) << QT_ENDL;
 		BedFile mito_bed;
 		mito_bed.append(BedLine("chrMT", 1, 16569));
 		data_.statistics_service.avgCoverage(mito_bed, data_.ps_bam, data_.threads);
@@ -720,7 +720,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				double mean = -0.422;
 				double stdev = 0.608;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
-				zscore = QString::number(zscore_num, 'f', 3);
+				zscore = formatFloat(zscore_num, 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
 				{
 					zscore = "<b>" + zscore + "</b>";
@@ -735,7 +735,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				double mean = -0.259;
 				double stdev = 0.315;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
-				zscore = QString::number(zscore_num, 'f', 3);
+				zscore = formatFloat(zscore_num, 3);
 				if (population!=NGSHelper::populationCodeToHumanReadable("EUR") || processed_sample_data.gender=="male")
 				{
 					zscore = "(" + zscore + ")";
@@ -746,7 +746,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				double mean = -0.424;
 				double stdev = 0.611;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
-				zscore = QString::number(zscore_num, 'f', 3);
+				zscore = formatFloat(zscore_num, 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
 				{
 					zscore = "<b>" + zscore + "</b>";
@@ -1867,6 +1867,17 @@ QString GermlineReportGenerator::trans(const QString& text)
 	THROW(ProgrammingException, "Unsupported language '" + data_.report_settings.language + "'!");
 }
 
+QByteArray GermlineReportGenerator::formatFloat(double number, int decimals)
+{
+	QByteArray output = QByteArray::number(number, 'f', decimals);
+	if (data_.report_settings.language=="german")
+	{
+		output.replace(".", ",");
+	}
+
+	return output;
+}
+
 GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi)
 {
 	//get low-coverage regions (precalculated or calculate on the fly)
@@ -1904,7 +1915,7 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 	double gap_percentage = 100.0 * gap_bases/roi_bases;
     stream << "<br />" << trans("Basen") << ": " << QString::number(roi_bases) << QT_ENDL;
     stream << "<br />" << trans("Basen mit Tiefe &lt;") << data_.report_settings.min_depth << ": " << QString::number(gap_bases) << QT_ENDL;
-    stream << "<br />" << trans("Prozent L&uuml;cken") << ": " << QString::number(gap_percentage, 'f', 2) << "%" << QT_ENDL;
+	stream << "<br />" << trans("Prozent L&uuml;cken") << ": " << formatFloat(gap_percentage, 2) << "%" << QT_ENDL;
 
 	//group gaps by gene
 	QMap<QByteArray, BedFile> gaps_by_gene;
@@ -2011,7 +2022,7 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 		gap_percentage = 100.0 * gap_bases_remaining/roi_bases;
 		stream << "<p>";
         stream << trans("Basen mit Tiefe &lt;") << data_.report_settings.min_depth << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_bases_remaining) << QT_ENDL;
-        stream << "<br />" << trans("Prozent L&uuml;cken") << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_percentage, 'f', 2) << "%" << QT_ENDL;
+		stream << "<br />" << trans("Prozent L&uuml;cken") << " " << trans("nach L&uuml;ckenschluss") << ": " << formatFloat(gap_percentage, 2) << "%" << QT_ENDL;
 		stream << "</p>";
 	}
 
@@ -2057,7 +2068,7 @@ void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)
 		}
         stream << QT_ENDL;
         stream << "<p><b>" << trans("Abdeckungsstatistik der RNA-Probe") << "</b>" << QT_ENDL;
-        stream << "<br />" << trans("Anzahl der Reads") << ": " << QString::number((double) read_count.toInt()/1000000.0, 'f', 2) << " Mio" << QT_ENDL;
+		stream << "<br />" << trans("Anzahl der Reads") << ": " << formatFloat((double) read_count.toInt()/1000000.0, 2) << " Mio" << QT_ENDL;
         stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << QT_ENDL;
         stream << "<br />" << trans("Durchschnittliche Sequenziertiefe der Housekeeping-Gene") << ": " << avg_cov_housekeeping << QT_ENDL;
         stream << "<br />" << trans("Abgedeckte Gene") << ": " << covered_genes << QT_ENDL;
@@ -2559,7 +2570,7 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
     stream << "       <td>" << conf.inheritance << "</td>" << QT_ENDL;
 	if (conf.causal)
 	{
-        stream << "       <td>regions:" << cnv.regions() << " size:" << QString::number(cnv.size()/1000.0, 'f', 3) << "kb</td>" << QT_ENDL;
+		stream << "       <td>regions:" << cnv.regions() << " size:" << formatFloat(cnv.size()/1000.0, 3) << "kb</td>" << QT_ENDL;
 	}
 	else
 	{
@@ -2618,7 +2629,7 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
     stream << "       <td>" << conf.inheritance << "</td>" << QT_ENDL;
 	if (conf.causal)
 	{
-        stream << "       <td>estimated size:" << QString::number(data_.svs.estimatedSvSize(conf.variant_index)/1000.0, 'f', 3) << "kb</td>" << QT_ENDL;
+		stream << "       <td>estimated size:" << formatFloat(data_.svs.estimatedSvSize(conf.variant_index)/1000.0, 3) << "kb</td>" << QT_ENDL;
 	}
 	else
 	{
