@@ -19,9 +19,9 @@ public slots:
 	void delayedInitialization();
 	void tableContextMenu(QPoint pos);
 	void updateTableFilters();
-
-	void updateConsentData();
 	void test_apiPseudo();
+	//load research consent data from meDIC
+	void loadConsentData();
 
 private:
 	Ui::MVHub ui_;
@@ -38,12 +38,9 @@ private:
 	//show messages
 	void showMessages();
 
-	//get SAP patient ID for processed sample. Empty string if not available.
-	QString getSAP(QString ps, bool padded);
-
 	//get consent status of patient. Empty string if not available.
-	QString getConsent(QString ps, bool debug);
-	static QByteArray parseConsentJson(QByteArray json_text);
+	QString getConsent(QString cm_id, QString sap_id, bool debug);
+	QByteArray parseConsentJson(QByteArray json_text);
 
 
 	//creates JSON input for pseudonymization

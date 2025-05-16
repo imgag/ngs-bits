@@ -21,6 +21,7 @@ MVHub::MVHub(QWidget *parent)
 	setWindowTitle(QCoreApplication::applicationName());
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
+	connect(ui_.load_consent_data, SIGNAL(clicked()), this, SLOT(loadConsentData()));
 }
 
 void MVHub::delayedInitialization()
@@ -150,23 +151,23 @@ void MVHub::updateTableFilters()
 	ui_.filter_status->setText(QString::number(visible.count(true))+"/"+QString::number(rows)+" pass");
 }
 
-void MVHub::updateConsentData() //TODO
+void MVHub::loadConsentData()
 {
 	clearOutput(sender());
 
-	int c_consent = GUIHelper::columnIndex(ui_.table, "Consent");
+	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
+	int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
-		QString ps = getString(r,0);
-		QString consent = getConsent(ps, false);
+		QString cm_id = getString(r, c_cm);
+		QString sap_id = getString(r, c_sap);
+		QString consent = getConsent(cm_id, sap_id, false);
 
 		QTableWidgetItem* item = GUIHelper::createTableItem(consent);
 		ui_.table->setItem(r, c_consent, item);
 	}
-
-	ui_.table->resizeColumnToContents(c_consent);
-	ui_.table->resizeRowsToContents();
 }
 
 void MVHub::determineProcessedSamples()
@@ -300,23 +301,6 @@ void MVHub::showMessages()
 	}
 }
 
-QString MVHub::getSAP(QString ps, bool padded)
-{
-	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
-
-	for (int r=0; r<ui_.table->rowCount(); ++r)
-	{
-		if (getString(r,0)==ps) //TODO not working anymore
-		{
-			QString id = getString(r,c_sap);
-			while (padded && id.size()<10) id.prepend('0');
-			return id;
-		}
-	}
-
-	return "";
-}
-
 QByteArray MVHub::jsonDataPseudo(QByteArray str)
 {
 	return	QByteArray( "{ \"resourceType\": \"Bundle\", ")+
@@ -404,10 +388,13 @@ void MVHub::clearOutput(QObject* sender)
 	}
 }
 
-QString MVHub::getConsent(QString ps, bool debug)
+QString MVHub::getConsent(QString cm_id, QString sap_id, bool debug)
 {
 	try
 	{
+		//meDIC API expects SAP ID padded to 10 characters...
+		while (sap_id.size()<10) sap_id.prepend('0');
+
 		//test or production
 		bool test_server = false;
 		if (test_server)
@@ -439,8 +426,7 @@ QString MVHub::getConsent(QString ps, bool debug)
 		}
 
 		//get consent
-		ui_.output->appendPlainText("Getting consent for "+ps+"...");
-		QString sap_id = getSAP(ps, true);
+		ui_.output->appendPlainText("Getting consent for "+sap_id+"...");
 		HttpHeaders headers2;
 		headers2.insert("Authorization", "Bearer "+token);
 		QString url = test_server ? "https://tc-t.med.uni-tuebingen.de:8443/fhir/Consent" : "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent";
@@ -449,10 +435,18 @@ QString MVHub::getConsent(QString ps, bool debug)
 		QByteArray reply = handler.get(url, headers2);
 		if (debug)
 		{
-			ui_.output->appendPlainText("URL:" + url);
-			ui_.output->appendPlainText("SAP ID:" + sap_id);
-			ui_.output->appendPlainText("Consent:" + reply);
+			ui_.output->appendPlainText("URL: " + url);
+			ui_.output->appendPlainText("SAP ID: " + sap_id);
+			ui_.output->appendPlainText("Consent: " + reply);
 		}
+
+		//store consent data in MVH database
+		NGSD mvh_db(true, "mvh");
+		SqlQuery query = mvh_db.getQuery();
+		query.prepare("UPDATE case_data SET rc_data=:0 WHERE cm_id=:1");
+		query.bindValue(0, reply);
+		query.bindValue(1, cm_id);
+		query.exec();
 
 		return parseConsentJson(reply);
 	}
