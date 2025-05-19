@@ -6507,6 +6507,17 @@ void MainWindow::variantRanking()
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
 
+	//determine title
+	QString algorithm = sender()->objectName();
+	QString title = "Ranking variants with algorithm '" + algorithm + "'";
+
+	PhenotypeList phenotypes = ui_.filters->phenotypes();
+	if (phenotypes.isEmpty())
+	{
+		QMessageBox::warning(this, title, "Phenotype data missing. Please set a phenotype filter!");
+		return;
+	}
+
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 	QString ps_name = germlineReportSample();
 	try
@@ -6516,12 +6527,7 @@ void MainWindow::variantRanking()
 		//create phenotype list
 		QHash<Phenotype, BedFile> phenotype_rois;
 		QString sample_id = db.sampleId(ps_name);
-		PhenotypeList phenotypes = ui_.filters->phenotypes();
-		if (phenotypes.isEmpty())
-		{
-			phenotypes = db.getSampleData(sample_id).phenotypes;
-		}
-        for (const Phenotype& pheno : phenotypes)
+		for (const Phenotype& pheno : phenotypes)
 		{
 			//pheno > genes
 			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
@@ -6539,7 +6545,6 @@ void MainWindow::variantRanking()
 
 		//score
 		VariantScores::Parameters parameters;
-		QString algorithm = sender()->objectName();
 		VariantScores::Result result = VariantScores::score(algorithm, variants_, phenotype_rois, parameters);
 
 		//update variant list
@@ -6552,13 +6557,13 @@ void MainWindow::variantRanking()
 		//show warnings
 		if (result.warnings.count()>0)
 		{
-			QMessageBox::warning(this, "Variant ranking", "Please note the following warnings:\n" + result.warnings.join("\n"));
+			QMessageBox::warning(this, title, "Please note the following warnings:\n" + result.warnings.join("\n"));
 		}
 	}
 	catch(Exception& e)
 	{
 		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Ranking variants", "An error occurred:\n" + e.message());
+		QMessageBox::warning(this, title, "An error occurred:\n" + e.message());
 	}
 }
 
