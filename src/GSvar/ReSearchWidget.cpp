@@ -44,7 +44,7 @@ void ReSearchWidget::search()
 		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
 
 		//prepared SQL query
-		QString query_str = "SELECT reg.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, sys.type as 'system type', s.gender, s.year_of_birth as 'year of birth', YEAR(s.order_date) as 'year of order', s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, reg.filter, reg.allele1, reg.allele2, rc.causal, CONCAT(rc.comments, ' // ', rc.comments2) as report_config_comments"
+		QString query_str = "SELECT reg.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, sys.type as 'system type', s.gender, s.year_of_birth as 'year of birth', YEAR(s.order_date) as 'year of order', s.patient_identifier, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, reg.filter, reg.allele1, reg.allele2, rc.causal, CONCAT(rc.comments, ' // ', rc.comments2) as report_config_comments"
 							" FROM repeat_expansion_genotype reg LEFT JOIN report_configuration_re rc ON rc.repeat_expansion_genotype_id=reg.id, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, project p"
 							" WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND reg.processed_sample_id=ps.id AND ps.project_id=p.id AND reg.repeat_expansion_id=" + reg_id + " AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 
