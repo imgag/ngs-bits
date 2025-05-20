@@ -5395,6 +5395,7 @@ AnalysisJob NGSD::analysisInfo(int job_id, bool throw_if_fails)
 	{
 		output.type = query.value("type").toString();
 		output.high_priority = query.value("high_priority").toBool();
+		output.use_dragen = query.value("use_dragen").toBool();
 		output.args = query.value("args").toString();
 		output.sge_id = query.value("sge_id").toString();
 		output.sge_queue = query.value("sge_queue").toString();
@@ -5422,12 +5423,12 @@ AnalysisJob NGSD::analysisInfo(int job_id, bool throw_if_fails)
 	return output;
 }
 
-void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples)
+void NGSD::queueAnalysis(QString type, bool high_priority, bool use_dragen, QStringList args, QList<AnalysisJobSample> samples)
 {
 	SqlQuery query = getQuery();
 
 	//insert job
-	query.exec("INSERT INTO `analysis_job`(`type`, `high_priority`, `args`) VALUES ('" + type + "','" + (high_priority ? "1" : "0") + "','" + args.join(" ") +  "')");
+	query.exec("INSERT INTO `analysis_job`(`type`, `high_priority`, `use_dragen`, `args`) VALUES ('" + type + "','" + (high_priority ? "1" : "0") + "','"  + (use_dragen ? "1" : "0") + "','" + args.join(" ") +  "')");
 	QString job_id = query.lastInsertId().toString();
 
 	//insert samples

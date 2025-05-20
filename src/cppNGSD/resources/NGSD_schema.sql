@@ -1124,6 +1124,7 @@ CREATE TABLE IF NOT EXISTS `analysis_job`
   `args` text NOT NULL,
   `sge_id` varchar(10) DEFAULT NULL,
   `sge_queue` varchar(50) DEFAULT NULL,
+  `use_dragen` BOOLEAN DEFAULT FALSE COMMENT 'defines if dragen pipeline should be used',
   PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB

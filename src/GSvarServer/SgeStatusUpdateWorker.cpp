@@ -145,8 +145,18 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		}
 		else //DNA
 		{
-			script = "analyze.php";
-			pipeline_args << "--log" << (folder+"analyze_"+timestamp+".log");
+			if (job.use_dragen)
+			{
+				script = "analyze_dragen.php";
+				pipeline_args << "-queue_analysis";
+				pipeline_args << "--log" << (folder+"analyze_dragen_"+timestamp+".log");
+			}
+			else
+			{
+				script = "analyze.php";
+				pipeline_args << "--log" << (folder+"analyze_"+timestamp+".log");
+			}
+
 		}
 	}
 	else if (job.type=="trio")
@@ -264,6 +274,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		{
 			pipeline_args << "-t_rna_bam" << bams[r_idx];
 		}
+		if (job.use_dragen) pipeline_args << "-use_dragen";
 	}
 	else
 	{

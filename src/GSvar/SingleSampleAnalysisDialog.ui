@@ -151,19 +151,6 @@
       <property name="bottomMargin">
        <number>3</number>
       </property>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="high_priority">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLineEdit" name="custom_args"/>
-      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
@@ -171,10 +158,13 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_2">
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="high_priority">
         <property name="text">
-         <string>custom arguments:</string>
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -190,6 +180,36 @@
       </item>
       <item row="2" column="1">
        <widget class="QCheckBox" name="annotate_only">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>custom arguments:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="custom_args"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="l_use_dragen">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>DRAGEN analysis: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="use_dragen">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string/>
         </property>

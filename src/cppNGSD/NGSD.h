@@ -224,6 +224,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJob
 {
 	QString type;
 	bool high_priority;
+	bool use_dragen;
 	QString args;
 	QString sge_id;
 	QString sge_queue;
@@ -1180,7 +1181,7 @@ public:
 	///Returns information about an analysis job
 	AnalysisJob analysisInfo(int job_id, bool throw_if_fails = true);
 	///Queues an analysis.
-	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples);
+	void queueAnalysis(QString type, bool high_priority, bool use_dragen, QStringList args, QList<AnalysisJobSample> samples);
 	///Canceles an analysis. Returns 'true' if it was canceled and 'false' if it was not running anymore.
 	bool cancelAnalysis(int job_id);
 	///Deletes the analysis job record. Returns 'true' if a job was deleted, i.e. a job with the given ID existed.
