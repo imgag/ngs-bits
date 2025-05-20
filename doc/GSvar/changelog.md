@@ -1,5 +1,13 @@
 # GSvar change log
 
+## 2025_03-80 (20.05.25)
+
+- RE search: added order date and patient identifier to result table
+- report: float numbers in germline report are now formatted according to the selected report language
+- GenLab import: fixed study import (studies were not imported if a merged sample already contained the study)
+- updated CADD cutoffs according to <https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/>
+- report dialog: fixed bug in report dialog (REs not included in report dialog when calling data is not in RE file)
+
 ## 2025_03-20 (02.04.25)
 
 - improved support for DRAGEN 4.2 structural variant output
