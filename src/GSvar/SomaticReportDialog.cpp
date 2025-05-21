@@ -189,7 +189,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 			if (! class_map.contains(key) || (class_map[key].classification != "4" && class_map[key].classification != "5")) continue;
 
 			//determine frequency of variant in tumor bam
-			VariantDetails variant_details = bam_reader.getVariantDetails(fasta_idx, snv);
+			VariantDetails variant_details = bam_reader.getVariantDetails(fasta_idx, snv, false);
 			double freq_in_tum = variant_details.frequency;
 			double depth_in_tum = variant_details.depth;
 

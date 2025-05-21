@@ -644,7 +644,7 @@ void BamReader::clearIterator()
 	iter_ = nullptr;
 }
 
-Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, int min_mapq, bool anom, int min_baseq)
+Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, int min_mapq, bool include_not_properly_paired, int min_baseq)
 {
 	//init
 	Pileup output;
@@ -658,7 +658,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	BamAlignment al;
 	while (getNextAlignment(al))
 	{
-		if (!al.isProperPair() && anom==false) continue;
+		if (!al.isProperPair() && !include_not_properly_paired) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
 		if (al.isUnmapped()) continue;
@@ -688,13 +688,13 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 }
 
 
-VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, const Variant& variant)
+VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, const Variant& variant, bool include_not_properly_paired)
 {
 	VariantDetails output;
 
 	if (variant.isSNV()) //SVN
 	{
-		Pileup pileup = getPileup(variant.chr(), variant.start(), -1);
+		Pileup pileup = getPileup(variant.chr(), variant.start(), -1, 1, include_not_properly_paired);
 		output.depth = pileup.depth(true);
 		if (output.depth!=0)
 		{
@@ -712,7 +712,7 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 
 		//get indels from region
 		QVector<Sequence> indels;
-		getIndels(reference, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac);
+		getIndels(reference, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac, include_not_properly_paired);
 		//qDebug() << "INDELS:" << indels.join(" ");
 
 		Variant variant_normalized = variant;
@@ -748,7 +748,7 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 }
 
 
-void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac)
+void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac, bool include_not_properly_paired)
 {
 	//init
 	indels.clear();
@@ -765,7 +765,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 	{
 		//skip low-quality reads
 		if (al.isDuplicate()) continue;
-		if (!al.isProperPair()) continue;
+		if (!al.isProperPair() && !include_not_properly_paired) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isUnmapped()) continue;
 

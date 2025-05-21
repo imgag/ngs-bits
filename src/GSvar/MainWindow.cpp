@@ -1404,12 +1404,22 @@ void MainWindow::on_actionPRS_triggered()
 void MainWindow::on_actionPathogenicWT_triggered()
 {
 	if (filename_=="") return;
+	if (!germlineReportSupported(false)) return;
 
-	// determine PRS file name
-	FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false);
-	if (bams.isEmpty()) return; //this should not happen because the button is not enabled then...
+	//determine BAM file
+	QString ps = germlineReportSample();
+	FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps);
+	if (bams.isEmpty())
+	{
+		QMessageBox::warning(this, "Pathogenic WT variants", "Could not find a BAM file for sample " + ps + ". Aborting!");
+		return;
+	}
 
-	PathogenicWtDialog dlg(this, bams[0].filename);
+	//check if long-read
+	bool is_longread = (LoginManager::active() ? NGSD().isLongRead(filename_) : true);
+
+	//show dialog
+	PathogenicWtDialog dlg(this, bams[0].filename, is_longread);
 	dlg.exec();
 }
 
@@ -1421,7 +1431,7 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	// Workaround to manual add panels for non patient-specific processing systems
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)' OR type='cfDNA'");
-	// TODO: reactivate
+	//TODO: reactivate
 //	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
 	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
@@ -2173,9 +2183,11 @@ void MainWindow::deleteClosedModelessDialogs()
 
 void MainWindow::importPhenotypesFromNGSD()
 {
-	QString ps_name = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
+	if (filename_=="") return;
+
 	try
 	{
+		QString ps_name = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
 		NGSD db;
 		QString sample_id = db.sampleId(ps_name);
 		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
@@ -6511,18 +6523,30 @@ void MainWindow::variantRanking()
 	QString algorithm = sender()->objectName();
 	QString title = "Ranking variants with algorithm '" + algorithm + "'";
 
+	//init
+	NGSD db;
+	QString ps_name = germlineReportSample();
+
 	PhenotypeList phenotypes = ui_.filters->phenotypes();
 	if (phenotypes.isEmpty())
 	{
-		QMessageBox::warning(this, title, "Phenotype data missing. Please set a phenotype filter!");
-		return;
+		QString sample_id = db.sampleId(ps_name);
+		phenotypes = db.getSampleData(sample_id).phenotypes;
+		if (phenotypes.isEmpty())
+		{
+			QMessageBox::warning(this, title, "Phenotype data missing. Please set a phenotype filter!");
+			return;
+		}
+		else
+		{
+			int button = QMessageBox::information(this, title, "No phenotype filter set.\nDo you want to use phenotype information of the sample from NGSD?", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+			if (button==QMessageBox::No) return;
+		}
 	}
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
-	QString ps_name = germlineReportSample();
 	try
 	{
-		NGSD db;
 
 		//create phenotype list
 		QHash<Phenotype, BedFile> phenotype_rois;

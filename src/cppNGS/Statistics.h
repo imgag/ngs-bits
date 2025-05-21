@@ -61,7 +61,7 @@ public:
 	static QCValue mutationBurden(QString somatic_vcf, QString target, QString blacklist);
 
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
-	static QCCollection contamination(GenomeBuild build, QString bam, const QString& ref_file = QString(), bool debug = false, int min_cov = 20, int min_snps = 50, bool longread = false);
+	static QCCollection contamination(GenomeBuild build, QString bam, const QString& ref_file = QString(), bool debug = false, int min_cov = 20, int min_snps = 50, bool include_not_properly_paired = false);
 	///Returns ancestry estimates for a variant list in VCF format.
 	static AncestryEstimates ancestry(GenomeBuild build, QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
 
@@ -73,9 +73,9 @@ public:
 	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
 
 	///Determines the gender based on the read ratio between X and Y chromosome.
-	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString(), bool include_single_end_reads = false);
+	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString());
 	///Determines the gender based on the fraction of heterozygous SNPs on chromosome X.
-	static GenderEstimate genderHetX(GenomeBuild build, QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString(), bool include_single_end_reads = false);
+	static GenderEstimate genderHetX(GenomeBuild build, QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString(), bool include_not_properly_paired = false);
 	///Determines the gender based on the coverge of the SRY gene on chrY.
 	static GenderEstimate genderSRY(GenomeBuild build, QString bam_file, double min_cov=20.0, const QString& ref_file = QString());
 
@@ -85,8 +85,8 @@ protected:
 
 private:
 	static BedFile lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool is_high, bool random_access, bool debug);
-	//Returns the ratio of chrY and chrX reads (for gender check and determining XXY karyotype). If no reads are found on chrX, nan is returned;
-	static double yxRatio(BamReader& reader);
+	//Returns the ratio of chrY and chrX reads (for gender check and determining XXY karyotype). If no reads are found on chrX, nan is returned.
+	static double yxRatio(BamReader& reader, double* count_x=nullptr, double* count_y=nullptr);
 
 	template <typename T>
 	static void addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value);

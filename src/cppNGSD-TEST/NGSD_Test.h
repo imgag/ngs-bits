@@ -2148,7 +2148,7 @@ private slots:
 		I_EQUAL(res_cnv.end(), 27694430);
 
 
-		//Test methods for somatic SVs in NGSD: TODO
+		//Test methods for somatic SVs in NGSD:
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/somatic_svs_manta.bedpe"));
 

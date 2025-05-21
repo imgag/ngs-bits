@@ -471,7 +471,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			if (var.isSNV())
 			{
 				BamReader reader(data_.ps_bam);
-				Pileup pileup = reader.getPileup(var.chr(), var.start());
+				Pileup pileup = reader.getPileup(var.chr(), var.start(), -1, 1, true);
 				details << (trans("Tiefe")+"="+QString::number(pileup.depth(false)));
 				if (pileup.depth(false)<20)
 				{
