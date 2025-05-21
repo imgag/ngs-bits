@@ -1,5 +1,5 @@
 ### VariantAnnotateFrequency tool help
-	VariantAnnotateFrequency (2024_08-113-g94a3b440)
+	VariantAnnotateFrequency (2025_03-80-g74f31dd7)
 	
 	Annotates a variant list with variant frequencies from a BAM/CRAM file.
 	
@@ -17,6 +17,8 @@
 	                    Default value: ''
 	  -ref <file>       Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                    Default value: ''
+	  -long_read        Support long reads (> 1kb).
+	                    Default value: 'false'
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -26,7 +28,8 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantAnnotateFrequency changelog
-	VariantAnnotateFrequency 2024_08-113-g94a3b440
+	VariantAnnotateFrequency 2025_03-80-g74f31dd7
 	
+	2025-05-21 Added long-read support.
 	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

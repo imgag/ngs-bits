@@ -1,5 +1,5 @@
 ### SnifflesVcfFix tool help
-	SnifflesVcfFix (2025_01-25-g1d2b52ea)
+	SnifflesVcfFix (2025_03-80-g74f31dd7)
 	
 	Fixes VCF file from Sniffles SV Caller.
 	
@@ -19,7 +19,8 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### SnifflesVcfFix changelog
-	SnifflesVcfFix 2025_01-25-g1d2b52ea
+	SnifflesVcfFix 2025_03-80-g74f31dd7
 	
+	2025-04-08 Added sorting of read names.
 	2025-02-14 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

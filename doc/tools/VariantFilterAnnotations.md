@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2024_11-86-g94c45dea)
+	VariantFilterAnnotations (2025_03-80-g74f31dd7)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -91,7 +91,7 @@
 	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
 	                                     skip_high_impact - Do not apply this filter to variants with impact 'HIGH'. [default=false]
 	                                     cutoff_phylop - Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0. [default=1.6]
-	                                     cutoff_cadd - Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0. [default=20] [min=0]
+	                                     cutoff_cadd - Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0. [default=22.7] [min=0]
 	                                     cutoff_revel - Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0. [default=0.9] [min=0] [max=1]
 	                                     cutoff_alphamissense - Minimum AlphaMissense score for a pathogenic prediction. The AlphaMissense score is not used if set to 0.0. [default=0.564] [min=0] [max=1]
 	RNA ASE allele frequency           Filter based on the allele specific expression allele frequency.
@@ -147,8 +147,8 @@
 	                                     build - Genome build used for pseudoautosomal region coordinates [default=hg38] [valid=hg19,hg38]
 	Tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.
 	                                   Parameters:
-	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
-	                                     hom_af_range - Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
+	                                     het_af_range - Consider allele frequencies of 50% Â± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
+	                                     hom_af_range - Consider allele frequencies of 100% Â± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
 	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
@@ -183,7 +183,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2024_11-86-g94c45dea
+	VariantFilterAnnotations 2025_03-80-g74f31dd7
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.
