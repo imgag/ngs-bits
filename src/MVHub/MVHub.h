@@ -22,6 +22,8 @@ public slots:
 	void test_apiPseudo();
 	//load research consent data from meDIC
 	void loadConsentData();
+	//export consent data
+	void exportConsentData();
 
 private:
 	Ui::MVHub ui_;
@@ -38,8 +40,8 @@ private:
 	//show messages
 	void showMessages();
 
-	//get consent status of patient. Empty string if not available.
-	QString getConsent(QString cm_id, QString sap_id, bool debug);
+	//returns consent status of patient. Empty string if not available.
+	QString getConsent(QString sap_id, bool return_parsed_data = true, bool debug=false);
 	QByteArray parseConsentJson(QByteArray json_text);
 
 
