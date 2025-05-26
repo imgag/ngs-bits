@@ -82,6 +82,12 @@ void PipelineSettings::loadSettings(QString ini_file)
 					Helper::trim(tmp);
 					instance().queues_high_mem_ = tmp;
 				}
+				if (key=="queues_dragen")
+				{
+					QStringList tmp = value.split(',');
+					Helper::trim(tmp);
+					instance().queues_dragen_ = tmp;
+				}
 			}
 			else
 			{
@@ -143,6 +149,12 @@ QStringList PipelineSettings::queuesHighMemory()
 {
 	checkInitialized();
 	return instance().queues_high_mem_;
+}
+
+QStringList PipelineSettings::queuesDragen()
+{
+	checkInitialized();
+	return instance().queues_dragen_;
 }
 
 PipelineSettings& PipelineSettings::instance()
