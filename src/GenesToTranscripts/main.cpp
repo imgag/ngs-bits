@@ -14,7 +14,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Converts a text file with gene names to a TSV file with these columns: gene name, transcript name, biotype, flags");
+		setDescription("Converts a text file with gene names to a TSV file with these columns: gene name, transcript name, biotype, exon count, flags");
 		addInfile("in", "Input TXT file with one gene symbol per line. If unset, reads from STDIN.", true, true);
 		QStringList modes;
 		modes << "all" << "best" << "relevant" << "mane_select";
