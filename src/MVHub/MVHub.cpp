@@ -11,6 +11,7 @@
 #include <QJsonDocument>
 #include <QDomDocument>
 #include <QPushButton>
+#include <QFileDialog>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
@@ -22,6 +23,7 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.load_consent_data, SIGNAL(clicked()), this, SLOT(loadConsentData()));
+	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
 }
 
 void MVHub::delayedInitialization()
@@ -163,11 +165,46 @@ void MVHub::loadConsentData()
 	{
 		QString cm_id = getString(r, c_cm);
 		QString sap_id = getString(r, c_sap);
-		QString consent = getConsent(cm_id, sap_id, false);
+		QString consent = getConsent(sap_id);
+
+		//store consent data in MVH database
+		NGSD mvh_db(true, "mvh");
+		SqlQuery query = mvh_db.getQuery();
+		query.prepare("UPDATE case_data SET rc_data=:0 WHERE cm_id=:1");
+		query.bindValue(0, consent);
+		query.bindValue(1, cm_id);
+		query.exec();
+
 
 		QTableWidgetItem* item = GUIHelper::createTableItem(consent);
 		ui_.table->setItem(r, c_consent, item);
 	}
+}
+
+void MVHub::exportConsentData()
+{
+	QString title = "Import SAP IDs.";
+	//get file names
+	QString filename = QFileDialog::getOpenFileName(this, "Text file with one SAP patient identifier per line, or in first column of TSV file");
+	if(filename.isEmpty()) return;
+
+	//create ouput
+	QStringList output;
+	foreach(QString line, Helper::loadTextFile(filename, true, '#', true))
+	{
+		QStringList parts = line.split('\t');
+		QString sap_id = parts[0];
+
+		output << ("###" + sap_id + "###");
+		output << getConsent(sap_id, false);
+		output << "";
+	}
+
+	//store output
+	QString filename2 = QFileDialog::getSaveFileName(this, "File to store consent data");
+	if(filename2.isEmpty()) return;
+	auto file_handle = Helper::openFileForWriting(filename2);
+	Helper::storeTextFile(file_handle, output);
 }
 
 void MVHub::determineProcessedSamples()
@@ -388,11 +425,12 @@ void MVHub::clearOutput(QObject* sender)
 	}
 }
 
-QString MVHub::getConsent(QString cm_id, QString sap_id, bool debug)
+QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 {
 	try
 	{
 		//meDIC API expects SAP ID padded to 10 characters...
+		sap_id = sap_id.trimmed();
 		while (sap_id.size()<10) sap_id.prepend('0');
 
 		//test or production
@@ -440,15 +478,7 @@ QString MVHub::getConsent(QString cm_id, QString sap_id, bool debug)
 			ui_.output->appendPlainText("Consent: " + reply);
 		}
 
-		//store consent data in MVH database
-		NGSD mvh_db(true, "mvh");
-		SqlQuery query = mvh_db.getQuery();
-		query.prepare("UPDATE case_data SET rc_data=:0 WHERE cm_id=:1");
-		query.bindValue(0, reply);
-		query.bindValue(1, cm_id);
-		query.exec();
-
-		return parseConsentJson(reply);
+		return return_parsed_data ? parseConsentJson(reply) : reply;
 	}
 	catch (Exception& e)
 	{

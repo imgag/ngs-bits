@@ -360,7 +360,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 
 		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
 
-		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var );
+		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var, false);
 
 		RtfTableRow row;
 
@@ -762,7 +762,7 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 
 		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
 
-		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var );
+		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var, false);
 
 		RtfTableRow row;
 

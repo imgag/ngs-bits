@@ -777,15 +777,15 @@ TEST_CLASS(Statistics_Test)
 		GenderEstimate estimate = Statistics::genderXY(TESTDATA("data_in/panel.bam"));
 		I_EQUAL(estimate.add_info.count(), 3);
 		S_EQUAL(estimate.add_info[0].key, "reads_chry");
-		S_EQUAL(estimate.add_info[0].value, "2");
+		S_EQUAL(estimate.add_info[0].value, "0");
 		S_EQUAL(estimate.add_info[1].key, "reads_chrx");
-		S_EQUAL(estimate.add_info[1].value, "30592");
+		S_EQUAL(estimate.add_info[1].value, "30528");
 		S_EQUAL(estimate.add_info[2].key, "ratio_chry_chrx");
-		S_EQUAL(estimate.add_info[2].value, "0.0001");
+		S_EQUAL(estimate.add_info[2].value, "0.0000");
 		S_EQUAL(estimate.gender, "female");
 
 		//longread test
-		estimate = Statistics::genderXY(TESTDATA("data_in/Statistics_longread.bam"), 0.06, 0.09, QString(), true);
+		estimate = Statistics::genderXY(TESTDATA("data_in/Statistics_longread.bam"), 0.06, 0.09, QString());
 		I_EQUAL(estimate.add_info.count(), 3);
 		S_EQUAL(estimate.add_info[0].key, "reads_chry");
 		S_EQUAL(estimate.add_info[0].value, "0");

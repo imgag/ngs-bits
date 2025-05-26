@@ -29,7 +29,9 @@ public:
 		addFlag("mapq0", "Annotate an additional column containing the percentage of mapq 0 reads.");
 		addString("name", "Column header prefix in output file.", true, "");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
+		changeLog(2025,   5, 21, "Added long-read support.");
 		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
 
@@ -41,6 +43,7 @@ public:
 		QString ref_file = getInfile("ref");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
+		bool long_read = getFlag("long_read");
 
 		//load input
 		VariantList input;
@@ -52,7 +55,7 @@ public:
 		for (int i=0; i<input.count(); ++i)
 		{
 			Variant& variant = input[i];
-			VariantDetails tmp = reader.getVariantDetails(reference, variant);
+			VariantDetails tmp = reader.getVariantDetails(reference, variant, long_read);
 
 			//annotate variant
 			if (tmp.depth==0 || !BasicStatistics::isValidFloat(tmp.frequency))

@@ -1026,6 +1026,8 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
+	///Returns if the sequencing type is LR
+	bool isLongRead(const QString& ps);
 
 	///Returns a path (including filename) for the processing system target region file. Returns an empty string if unset.
 	QString processingSystemRegionsFilePath(int sys_id);

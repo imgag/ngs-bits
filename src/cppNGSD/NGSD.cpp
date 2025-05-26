@@ -1123,6 +1123,13 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	return output;
 }
 
+bool NGSD::isLongRead(const QString& ps)
+{
+	QString ps_id = processedSampleId(ps);
+	QString sys_type = getValue("SELECT sys.type FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id="+ps_id).toString();
+	return sys_type=="lrGS";
+}
+
 QString NGSD::processingSystemRegionsFilePath(int sys_id)
 {
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
@@ -9350,7 +9357,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	if(!query.value("filters").isNull())
 	{
 		output.setFilters(FilterCascade::fromText(query.value("filters").toString().split("\n")));
-	} else if (!query.value("filter_base_name").isNull()) { // TODO temp loading help while converting to having the filters completely in the DB
+	} else if (!query.value("filter_base_name").isNull()) { //TODO temp loading help while converting to having the filters completely in the DB
 		QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
 		output.setFilters(FilterCascadeFile::load(filterFileName, query.value("filter_base_name").toString()));
 	}

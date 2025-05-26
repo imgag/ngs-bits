@@ -301,33 +301,40 @@ private slots:
 
 		//inseration T (left)
 		Variant v("chr6", 109732622, 109732622, "-", "T");
-		VariantDetails output = reader.getVariantDetails(reference, v);
+		VariantDetails output = reader.getVariantDetails(reference, v, false);
 		I_EQUAL(output.depth, 42);
 		F_EQUAL2(output.frequency, 0.381, 0.001);
 
 		//inseration T (right)
 		v = Variant("chr16", 89510486, 89510486, "-", "T");
-		output = reader.getVariantDetails(reference, v);
+		output = reader.getVariantDetails(reference, v, false);
 		I_EQUAL(output.depth, 114);
 		F_EQUAL2(output.frequency, 0.132, 0.001);
 
 		//deletion AG
 		v = Variant("chr14", 53046761, 53046761, "AG", "-");
-		output = reader.getVariantDetails(reference, v);
+		output = reader.getVariantDetails(reference, v, false);
 		I_EQUAL(output.depth, 66);
 		F_EQUAL2(output.frequency, 0.212, 0.001);
 
 		//SNP A>G (het)
 		v = Variant("chr4", 107947255, 107947255, "A", "G");
-		output = reader.getVariantDetails(reference, v);
+		output = reader.getVariantDetails(reference, v, false);
 		I_EQUAL(output.depth, 80);
 		F_EQUAL2(output.frequency, 0.325, 0.001);
 
 		//SNP C>T (hom)
 		v = Variant("chr2", 201760892, 201760892, "C", "T");
-		output = reader.getVariantDetails(reference, v);
+		output = reader.getVariantDetails(reference, v, false);
 		I_EQUAL(output.depth, 166);
 		F_EQUAL2(output.frequency, 1.0, 0.001);
+
+		//TODO Marc test on long-read data
+		BamReader reader2(TESTDATA("data_in/BamReader_lr.bam"));
+		v = Variant("chr17", 43092418, 43092418, "T", "C");
+		output = reader2.getVariantDetails(reference, v, true);
+		I_EQUAL(output.depth, 36);
+		F_EQUAL2(output.frequency, 0.528, 0.001);
 	}
 
 
@@ -343,7 +350,7 @@ private slots:
 		double mapq0_frac;
 
 		//inseration of TT
-		reader.getIndels(reference, "chr6", 109732622-20, 109732622+20, indels, depth, mapq0_frac);
+		reader.getIndels(reference, "chr6", 109732622-20, 109732622+20, indels, depth, mapq0_frac, false);
 		I_EQUAL(depth, 42);
 		I_EQUAL(indels.count(), 30);
 		I_EQUAL(indels.count("+TT"), 10);
@@ -352,7 +359,7 @@ private slots:
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
 
 		//deletion of AG
-		reader.getIndels(reference, "chr14", 53046761-10, 53046762+10, indels, depth, mapq0_frac);
+		reader.getIndels(reference, "chr14", 53046761-10, 53046762+10, indels, depth, mapq0_frac, false);
 		I_EQUAL(depth, 64);
 		I_EQUAL(indels.count(), 14);
 		I_EQUAL(indels.count("-AG"), 14);
@@ -360,14 +367,22 @@ private slots:
 
 		//depth calculation on spliced reads in RNA samples
 		BamReader reader2(TESTDATA("data_in/rna.bam"));
-		reader2.getIndels(reference, "chr1", 998764-10, 998764+10, indels, depth, mapq0_frac);
+		reader2.getIndels(reference, "chr1", 998764-10, 998764+10, indels, depth, mapq0_frac, false);
 		I_EQUAL(depth, 2);
 
-		reader2.getIndels(reference, "chr1", 2401387-10, 2401392+10, indels, depth, mapq0_frac);
+		reader2.getIndels(reference, "chr1", 2401387-10, 2401392+10, indels, depth, mapq0_frac, false);
 		I_EQUAL(depth, 0);
 
-		reader2.getIndels(reference, "chr1", 10460908-10, 10460909+10, indels, depth, mapq0_frac);
+		reader2.getIndels(reference, "chr1", 10460908-10, 10460909+10, indels, depth, mapq0_frac, false);
 		I_EQUAL(depth, 27);
+
+
+		//long-read data
+		BamReader reader3(TESTDATA("data_in/BamReader_lr.bam"));
+		reader3.getIndels(reference, "chr17", 43092000-10, 43092000+10, indels, depth, mapq0_frac, true);
+		I_EQUAL(depth, 38);
+		I_EQUAL(indels.count(), 21);
+		I_EQUAL(indels.count("-A"), 11);
 	}
 
 	void BamReader_genomeSize()

@@ -36,6 +36,7 @@ public:
 		changeLog(2020,  6,  18, "Initial version of the tool.");
 	}
 
+	//TODO Marc: use QMap/QSet instead of std:: stuff and refactor code
 	virtual void main()
     {
 		QTextStream out(stdout);
@@ -59,7 +60,7 @@ public:
 		trio.emplace(Member::CHILD, VariantInfo(bam_c));
 
         VcfFile variant_list = NGSHelper::getKnownVariants(build, true);
-		std::unordered_set< VcfLine> homozygousVariants;
+		std::unordered_set<VcfLine> homozygousVariants;
 
 		//find all variants
 		for(auto& member : trio)

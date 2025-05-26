@@ -31,11 +31,13 @@ public:
 		//optional
 		addInfile("ref", "Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addInt("min_depth", "Depth cutoff below which uncalled SNPs are considered not callable and POP_AF is used instead of genotype.", true, 10);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
-		changeLog(2020,  7, 22, "Initial version of this tool.");
-		changeLog(2022, 12, 15, "Added BAM depth check and population AF.");
-		changeLog(2024,  4, 22, "Added output of factors and support for wt variants.");
+		changeLog(2025,  5, 21, "Added parameter 'long_read' for long-read support.");
 		changeLog(2024,  6,  5, "Added support for imputed variants.");
+		changeLog(2024,  4, 22, "Added output of factors and support for wt variants.");
+		changeLog(2022, 12, 15, "Added BAM depth check and population AF.");
+		changeLog(2020,  7, 22, "Initial version of this tool.");
 	}
 
 	virtual void main()
@@ -43,6 +45,7 @@ public:
 		//init
 		QTextStream out(stdout);
 		int min_depth = getInt("min_depth");
+		bool long_read = getFlag("long_read");
 
 		//load sample VCF
 		TabixIndexedFile sample_vcf;
@@ -175,8 +178,8 @@ public:
 				}
 				else
 				{
-					var_depth = bam_file.getVariantDetails(reference, prs_variant).depth;
-					if ( var_depth < min_depth)
+					var_depth = bam_file.getVariantDetails(reference, prs_variant, long_read).depth;
+					if (var_depth < min_depth)
 					{
 						//coverage too low --> use POP_AF
 						allele_count = -1;

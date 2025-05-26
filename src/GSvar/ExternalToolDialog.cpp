@@ -81,7 +81,7 @@ void ExternalToolDialog::browse()
 			GenderEstimate estimate;
 			if (mode_=="xy")
 			{
-				estimate = Statistics::genderXY(filename, 0.06, 0.09, QString(), is_single_end);
+				estimate = Statistics::genderXY(filename, 0.06, 0.09, QString());
 			}
 			else if (mode_=="hetx")
 			{
@@ -116,8 +116,8 @@ void ExternalToolDialog::browse()
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 			if (mode_=="bam")
 			{
-				SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename1, 30, 500, false);
-				SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename2, 30, 500, false);
+				SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename1, 15, 500, false, "", true);
+				SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename2, 15, 500, false, "", true);
 
 				SampleSimilarity sc;
 				sc.calculateSimilarity(geno1, geno2);

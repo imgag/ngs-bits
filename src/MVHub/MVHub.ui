@@ -68,6 +68,13 @@
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="QPushButton" name="export_consent_data">
+        <property name="text">
+         <string>export consent data</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

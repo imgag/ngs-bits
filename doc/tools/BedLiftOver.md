@@ -1,5 +1,5 @@
 ### BedLiftOver tool help
-	BedLiftOver (2024_08-110-g317f43b9)
+	BedLiftOver (2025_03-80-g74f31dd7)
 	
 	Lift-over of regions in a BED file to a different genome build.
 	
@@ -18,6 +18,8 @@
 	                       Default value: '10'
 	  -remove_special_chr  Removes regions that are mapped to special chromosomes.
 	                       Default value: 'false'
+	  -merged_output       Output lifted and unlifted regions in the output file, keeping the order of the input regions.
+	                       Default value: 'false'
 	
 	Special parameters:
 	  --help               Shows this help and exits.
@@ -27,7 +29,7 @@
 	  --settings [file]    Settings override file (no other settings files are used).
 	
 ### BedLiftOver changelog
-	BedLiftOver 2024_08-110-g317f43b9
+	BedLiftOver 2025_03-80-g74f31dd7
 	
 	2022-02-14 First implementation
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

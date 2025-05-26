@@ -170,8 +170,7 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 			sys_types.insert(db.getProcessingSystemData(db.processingSystemId(sample_details.system)).type);
 		}
 		bool sample_table_is_longread = sys_types.contains("lrGS");
-		bool new_sample_is_longread = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps_name)).type == "lrGS";
-		if (sample_table_is_longread != new_sample_is_longread)
+		if (sample_table_is_longread != db.isLongRead(ps_name))
 		{
 			THROW(ArgumentException, "Cannot queue longread and shortread analysis in one batch!");
 		}
