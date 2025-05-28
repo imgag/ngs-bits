@@ -88,9 +88,14 @@ ServerWrapper::ServerWrapper(const quint16& port)
             connect(log_check_timer, SIGNAL(timeout()), this, SLOT(switchLogFile()));
             log_check_timer->start(60 * 60 * 1000); // every 60 minutes
 
-            QFileSystemWatcher *watcher = new QFileSystemWatcher();
-            watcher->addPath(QCoreApplication::applicationDirPath());
-            connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
+            // Enables watching files with information for users
+            bool allow_notifying_users = Settings::boolean("allow_notifying_users", true);
+            if (allow_notifying_users)
+            {
+                QFileSystemWatcher *watcher = new QFileSystemWatcher();
+                watcher->addPath(QCoreApplication::applicationDirPath());
+                connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
+            }
 
             // Read the client version and notification information during the initialization
             SessionManager::setCurrentClientInfo(readClientInfoFromFile());

@@ -1,2 +1,3 @@
-uc001uub.2	BRCA2
-uc002urh.1	PMS1
+#gene	transcript	biotype	exons	flags
+BRCA2	uc001uub.2	IG C gene	27	
+PMS1	uc002urh.1	IG C gene	13	MANE select

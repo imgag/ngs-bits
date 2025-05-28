@@ -736,6 +736,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				double stdev = 0.315;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
 				zscore = formatFloat(zscore_num, 3);
+				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
+				{
+					zscore = "<b>" + zscore + "</b>";
+				}
 				if (population!=NGSHelper::populationCodeToHumanReadable("EUR") || processed_sample_data.gender=="male")
 				{
 					zscore = "(" + zscore + ")";
