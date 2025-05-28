@@ -1652,5 +1652,6 @@ created_by: schuetz
 id: QC:2000149
 name: basecall info
 def: "Info about flow cell, chemistry and basecall model used to call nucleotide bases in lrGS sample"
-is_a: QC:2000002 ! NGS aquisition parameterxref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: schuetz
