@@ -3020,12 +3020,12 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 	{
 		if (create_date < QDate::currentDate().addDays(-42))
 		{
-			issues << qMakePair(Log::LOG_INFO, "Variant annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ").");
+			issues << qMakePair(Log::LOG_INFO, "Variant annotations are older than six weeks (" + create_date.toString(Qt::ISODate) + ").");
 		}
 		QDate gsvar_file_outdated_before = QDate::fromString(Settings::string("gsvar_file_outdated_before", true), "yyyy-MM-dd");
 		if (gsvar_file_outdated_before.isValid() && create_date<gsvar_file_outdated_before)
 		{
-			issues << qMakePair(Log::LOG_WARNING, "Variant annotations are outdated! They are older than " + gsvar_file_outdated_before.toString("yyyy-MM-dd") + ". Please re-annotate variants!");
+			issues << qMakePair(Log::LOG_WARNING, "Variant annotations are outdated! They are older than " + gsvar_file_outdated_before.toString(Qt::ISODate) + ". Please re-annotate variants!");
 		}
 	}
 

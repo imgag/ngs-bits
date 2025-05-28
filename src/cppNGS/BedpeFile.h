@@ -226,13 +226,13 @@ public:
 	}
 
 	///Returns the genome build from the header or an empty string if it could not be determined.
-	QByteArray build();
+	QByteArray build() const;
 	///Returns the variant caller. Throws an exception if it could not be determined.
-	QByteArray caller();
+	QByteArray caller() const;
 	///Returns the variant caller version. Throws an exception if it could not be determined.
-	QByteArray callerVersion();
+	QByteArray callerVersion() const;
 	///Returns the variant calling date. Throws an exception if it could not be determined.
-	QDate callingDate();
+	QDate callingDate() const;
 
 	///Read-only access to members
 	const BedpeLine& operator[](int index) const

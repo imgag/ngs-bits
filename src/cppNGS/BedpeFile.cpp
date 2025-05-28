@@ -639,7 +639,7 @@ bool BedpeFile::isSomatic() const
 	return false;
 }
 
-QByteArray BedpeFile::build()
+QByteArray BedpeFile::build() const
 {
 	//Manta format   : ##reference=file:///tmp/local_ngs_data/GRCh37.fa
 	//DRAGEN format  : ##reference=file:///usr/local/illumina/install/genomes/GRCh38/DRAGEN/10
@@ -663,7 +663,7 @@ QByteArray BedpeFile::build()
 	return "";
 }
 
-QByteArray BedpeFile::caller()
+QByteArray BedpeFile::caller() const
 {
 	//Manta format   : ##source=GenerateSVCandidates 1.6.0
 	//DRAGEN format  : ##source=DRAGEN_SV
@@ -687,7 +687,7 @@ QByteArray BedpeFile::caller()
 	THROW(FileParseException, "Could not determine caller from " + filename_);
 }
 
-QByteArray BedpeFile::callerVersion()
+QByteArray BedpeFile::callerVersion() const
 {
 	//Manta format   : ##source=GenerateSVCandidates 1.6.0
 	//DRAGEN format  : ##DRAGENVersion=<ID=dragen,Version="SW: 4.3.16, HW: 10.131.732">
@@ -713,7 +713,7 @@ QByteArray BedpeFile::callerVersion()
 	THROW(FileParseException, "Could not determine caller version from " + filename_);
 }
 
-QDate BedpeFile::callingDate()
+QDate BedpeFile::callingDate() const
 {
 	//Manta/DRAGEN/Sniffles format: ##fileDate=20240127
 	foreach(const QByteArray& line, headers_)

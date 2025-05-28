@@ -56,7 +56,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 
 	w.writeStartElement("ReportGeneration");
-	w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString("yyyy-MM-dd")) );
+	w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString(Qt::ISODate)) );
 	w.writeAttribute("user_name", (test ? "ahtest1" : LoginManager::userLogin() ) );
 	w.writeAttribute("software",  (test ? "cppNGSD-TEST-CASE" : QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()) );
 	w.writeEndElement();

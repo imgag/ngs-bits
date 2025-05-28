@@ -23,10 +23,11 @@ private slots:
         REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line21.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line21.log", TESTDATA("data_out/NGSDAddVariantsGermline_out1.log"));
 
-		//check callset (freebayes)
-		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "freebayes");
-		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "v1.3.3");
-		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='3999'").toDate().toString(Qt::ISODate), "2022-04-25");
+		//test callset was imported correctly
+		QString ps_id = db.processedSampleId("NA12878_18");
+		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "freebayes");
+		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.3.3");
+		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2022-04-25");
 
 		//2. import - skipped because the same callset was already imported
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -force");
@@ -40,10 +41,10 @@ private slots:
         REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line38.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line38.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
 
-		//check callset (DeepVariant)
-		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "DeepVariant");
-		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='3999'").toString(), "1.8.0");
-		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='3999'").toDate().toString(Qt::ISODate), "2023-11-03");
+		//test callset was imported correctly
+		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "DeepVariant");
+		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "1.8.0");
+		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2023-11-03");
 	}
 
 
@@ -62,10 +63,11 @@ private slots:
         REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line60.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line60.log", TESTDATA("data_out/NGSDAddVariantsGermline_out4.log"));
 
-		//check callset (DRAGEN)
-		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='4000'").toString(), "DRAGEN");
-		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='4000'").toString(), "3.0.2");
-		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='4000'").toDate().toString(Qt::ISODate), "2018-11-08");
+		//test callset was imported correctly
+		QString ps_id = db.processedSampleId("NA12878_38");
+		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "DRAGEN");
+		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "3.0.2");
+		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2018-11-08");
 
 		//check if PubMed ids are imported
 		Variant var = Variant(Chromosome("chrX"), 155255024, 155255024, "C", "T");
@@ -278,7 +280,7 @@ private slots:
 		I_EQUAL(count, 1);
 		S_EQUAL(db.getValue("SELECT caller FROM re_callset").toString(), "ExpansionHunter");
 		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "v5.0.0");
-        S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDateTime().toString(Qt::ISODate).left(19), "2024-04-16T00:00:00"); //TODO remove .left(19) when migratio to Qt6 is done
+		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2024-04-16");
 
 		//check import of Straglr
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
@@ -294,7 +296,7 @@ private slots:
 		I_EQUAL(count, 1);
 		S_EQUAL(db.getValue("SELECT caller FROM re_callset").toString(), "Straglr");
 		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "V1.5.0");
-        S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDateTime().toString(Qt::ISODate).left(19), "2024-06-06T00:00:00"); //TODO remove .left(19) when migratio to Qt6 is done
+		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2024-06-06");
 	}
 
 };

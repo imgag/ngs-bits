@@ -802,7 +802,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element ReportGeneration
 	w.writeStartElement("ReportGeneration");
-	w.writeAttribute("date", date_.toString("yyyy-MM-dd"));
+	w.writeAttribute("date", date_.toString(Qt::ISODate));
 	w.writeAttribute("user_name", LoginManager::userLogin());
 	w.writeAttribute("software", QCoreApplication::applicationName() + " " + QCoreApplication::applicationVersion());
 	w.writeAttribute("outcome", db_.getDiagnosticStatus(ps_id_).outcome);
@@ -1473,7 +1473,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//RE List
 	w.writeStartElement("ReList");
-	w.writeAttribute("re_caller", RepeatLocusList::typeToString(data_.res.caller()));
+	w.writeAttribute("re_caller", data_.res.callerAsString());
 	w.writeAttribute("genome_build", buildToString(data_.build, true));
 
     for (const ReportVariantConfiguration& var_conf : data_.report_settings.report_config->variantConfig())

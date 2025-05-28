@@ -2,8 +2,9 @@
 #include "NGSD.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "QJsonDocument"
-#include "QJsonArray"
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 class ConcreteTool
 		: public ToolBase

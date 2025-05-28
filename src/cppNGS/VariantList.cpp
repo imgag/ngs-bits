@@ -1187,7 +1187,7 @@ AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
 }
 
-VariantCaller VariantList::getCaller() const
+QByteArray VariantList::caller() const
 {
 	foreach(const QString& line, comments_)
 	{
@@ -1195,14 +1195,29 @@ VariantCaller VariantList::getCaller() const
 		{
 			QString tmp = line.mid(9).trimmed() + ' ';
 			int sep_idx = tmp.indexOf(' ');
-			return VariantCaller{tmp.left(sep_idx).trimmed(), tmp.mid(sep_idx).trimmed()};
+			return tmp.left(sep_idx).trimmed().toUtf8();
 		}
 	}
 
-	return VariantCaller();
+	return "";
 }
 
-QDate VariantList::getCallingDate() const
+QByteArray VariantList::callerVersion() const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##SOURCE="))
+		{
+			QString tmp = line.mid(9).trimmed() + ' ';
+			int sep_idx = tmp.indexOf(' ');
+			return tmp.mid(sep_idx).trimmed().toUtf8();
+		}
+	}
+
+	return "";
+}
+
+QDate VariantList::callingDate() const
 {
 	foreach(const QString& line, comments_)
 	{
