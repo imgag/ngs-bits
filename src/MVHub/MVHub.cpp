@@ -8,6 +8,7 @@
 #include "GenLabDB.h"
 #include <QMessageBox>
 #include <QJsonArray>
+#include <QJsonObject>
 #include <QJsonDocument>
 #include <QDomDocument>
 #include <QPushButton>

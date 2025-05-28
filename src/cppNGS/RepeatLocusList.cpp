@@ -151,15 +151,14 @@ void RepeatLocusList::load(QString filename)
 		if (header_line.key=="filedate")
 		{
 			QString value = header_line.value.trimmed();
-			call_date_ = QDateTime::fromString(value, Qt::ISODate);
+			call_date_ = QDate::fromString(value, Qt::ISODate);
 			if (!call_date_.isValid()) THROW(FileParseException, "Cannot convert 'filedate' header value to datetime: '" + value + "'");
-			call_date_.setTime(QTime()); //set the time to midnight - we use the date only anyway
 		}
 		//Straglr: ##fileDate=20240606
 		if (header_line.key=="fileDate")
 		{
 			QString value = header_line.value.trimmed();
-			call_date_ = QDateTime::fromString(value, "yyyyMMdd");
+			call_date_ = QDate::fromString(value, "yyyyMMdd");
 			if (!call_date_.isValid()) THROW(FileParseException, "Cannot convert 'fileDate' header value to datetime: '" + value + "'");
 		}
 	}
@@ -260,21 +259,21 @@ ReCallerType RepeatLocusList::caller() const
 	return caller_;
 }
 
-const QByteArray& RepeatLocusList::callerVersion() const
+QByteArray RepeatLocusList::callerAsString() const
+{
+	if (caller_==ReCallerType::INVALID) return "invalid";
+	if (caller_==ReCallerType::EXPANSIONHUNTER) return "ExpansionHunter";
+	if (caller_==ReCallerType::STRAGLR) return "Straglr";
+
+	THROW(ProgrammingException, "Unknown RE caller type '" + QString::number((int)caller_) + "'!");
+}
+
+const QByteArray RepeatLocusList::callerVersion() const
 {
 	return caller_version_;
 }
 
-const QDateTime& RepeatLocusList::callDate() const
+const QDate& RepeatLocusList::callingDate() const
 {
 	return call_date_;
-}
-
-QByteArray RepeatLocusList::typeToString(ReCallerType type)
-{
-	if (type==ReCallerType::INVALID) return "invalid";
-	if (type==ReCallerType::EXPANSIONHUNTER) return "ExpansionHunter";
-	if (type==ReCallerType::STRAGLR) return "Straglr";
-
-	THROW(ProgrammingException, "Unknown RE caller type '" + QString::number((int)type) + "'!");
 }

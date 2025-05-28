@@ -1,4 +1,6 @@
 ##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
+##ClinCNV version: v1.18.3
+##Analysis finished on: 2025-05-28 09:05:46
 ##GENOME_BUILD=GRCh38
 ##high-quality cnvs: 91
 ##gender of sample: F

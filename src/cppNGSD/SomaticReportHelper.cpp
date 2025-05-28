@@ -2318,7 +2318,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					QByteArrayList genes = genes_a.split(',');
 					genes.append(genes_b.split(','));
 
-                    for (QByteArray gene : genes)
+					foreach(const QByteArray& gene, genes)
 					{
 						if (!genes_pathway.contains(gene.trimmed())) continue;
 

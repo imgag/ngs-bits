@@ -108,7 +108,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	//Element ReportGeneration
 	w.writeStartElement("ReportGeneration");
-	w.writeAttribute("date", (test ? "2000-01-01" : QDate::currentDate().toString("yyyy-MM-dd") ) );
+	w.writeAttribute("date", (test ? "2000-01-01" : QDate::currentDate().toString(Qt::ISODate) ) );
 	w.writeAttribute("user_name", LoginManager::userLogin());
 	w.writeAttribute("software", QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion());
 	w.writeEndElement();
