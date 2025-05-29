@@ -5,6 +5,7 @@
 #include "OntologyTermCollection.h"
 #include "VcfFile.h"
 
+//TODO Marc: also check if the same variant is contained twice because of breaking multi-allelic variants
 class ConcreteTool
 		: public ToolBase
 {
