@@ -613,6 +613,18 @@ private slots:
         S_EQUAL(output_lines[0], "VCF version: 4.2");
     }
 
+	void vcf_check_duplicates()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		QString output;
+		QTextStream out_stream(&output);
+		bool is_valid = VcfFile::isValid(TESTDATA("data_in/duplicate_variants.vcf"), ref_file, out_stream, true, 10000, true);
+
+		IS_FALSE(is_valid);
+	}
+
     void vcf_url_encoding()
     {
         QString input_string = "Test-String= blabla%, \t; \r\n; \r";

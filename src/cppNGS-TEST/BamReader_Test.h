@@ -329,7 +329,7 @@ private slots:
 		I_EQUAL(output.depth, 166);
 		F_EQUAL2(output.frequency, 1.0, 0.001);
 
-		//TODO Marc test on long-read data
+		//test on long-read data
 		BamReader reader2(TESTDATA("data_in/BamReader_lr.bam"));
 		v = Variant("chr17", 43092418, 43092418, "T", "C");
 		output = reader2.getVariantDetails(reference, v, true);
