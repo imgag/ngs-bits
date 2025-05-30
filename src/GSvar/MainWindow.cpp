@@ -934,7 +934,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	QSharedPointer<ReportConfiguration> rc_germline;
-	SomaticReportConfiguration* rc_somatic = nullptr; //TODO Alexander: use shared pointer like in germline
+	SomaticReportConfiguration* rc_somatic = nullptr; //TODO Marc/Alexander: use shared pointer like in germline
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
 	{
 		rc_somatic = &(somatic_report_settings_.report_config);
