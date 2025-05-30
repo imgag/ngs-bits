@@ -4,6 +4,6 @@ build-*
 t.log
 *.crt
 *.key
-*.txt
+cppREST-TEST_urls.txt
 libxml2/include
 libxml2/libs
