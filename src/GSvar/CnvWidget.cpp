@@ -37,7 +37,7 @@
 QT_CHARTS_USE_NAMESPACE
 #endif
 
-CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, SomaticReportConfiguration* rep_conf_somatic, const GeneSet& het_hit_genes)
+CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, QSharedPointer<SomaticReportConfiguration> rep_conf_somatic, const GeneSet& het_hit_genes)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
 	, ps_id_(ps_id)

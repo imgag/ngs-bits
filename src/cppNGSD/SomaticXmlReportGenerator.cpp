@@ -31,31 +31,31 @@ void SomaticXmlReportGeneratorData::check() const
 {
 	QStringList messages;
 
-	if( settings.report_config.includeTumContentByHistological() && !BasicStatistics::isValidFloat(tumor_content_histology))
+	if( settings.report_config->includeTumContentByHistological() && !BasicStatistics::isValidFloat(tumor_content_histology))
 	{
 		messages << "Tumor content by histology selected but value is not valid float";
 	}
 
-	if( settings.report_config.includeTumContentByMaxSNV() && !BasicStatistics::isValidFloat(tumor_content_snvs))
+	if( settings.report_config->includeTumContentByMaxSNV() && !BasicStatistics::isValidFloat(tumor_content_snvs))
 	{
 		messages << "Tumor content by median SNV B-AF selected but value is not valid float";
 	}
 
-	if( settings.report_config.includeTumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) )
+	if( settings.report_config->includeTumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) )
 	{
 		messages << "Tumor content by maximum CNV clonality selected but value is not valid float";
 	}
 
-	if( settings.report_config.includeTumContentByEstimated() && !BasicStatistics::isValidFloat(tumor_content_estimated) )
+	if( settings.report_config->includeTumContentByEstimated() && !BasicStatistics::isValidFloat(tumor_content_estimated) )
 	{
 		messages << "Tumor content by estimation is selected but value is not valid float";
 	}
 
-	if( settings.report_config.includeMutationBurden() && !BasicStatistics::isValidFloat(tumor_mutation_burden))
+	if( settings.report_config->includeMutationBurden() && !BasicStatistics::isValidFloat(tumor_mutation_burden))
 	{
 		messages << "Tumor mutation burden is not a valid float";
 	}
-	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(msi_unstable_percent))
+	if( settings.report_config->msiStatus() && !BasicStatistics::isValidFloat(msi_unstable_percent))
 	{
 		messages << "MSI status selected but value is not valid float";
 	}
@@ -165,28 +165,28 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	{
 		w.writeAttribute("tissue", tissue);
 	}
-	if( data.settings.report_config.includeTumContentByHistological())
+	if( data.settings.report_config->includeTumContentByHistological())
 	{
 		w.writeAttribute("tumor_content_histology", QByteArray::number(data.tumor_content_histology, 'f', 3) );
 	}
-	if (data.settings.report_config.includeTumContentByEstimated() && BasicStatistics::isValidFloat(data.tumor_content_estimated))
+	if (data.settings.report_config->includeTumContentByEstimated() && BasicStatistics::isValidFloat(data.tumor_content_estimated))
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_estimated, 'f', 3));
 	}
-	else if( data.settings.report_config.includeTumContentByClonality() && BasicStatistics::isValidFloat(data.tumor_content_clonality) )
+	else if( data.settings.report_config->includeTumContentByClonality() && BasicStatistics::isValidFloat(data.tumor_content_clonality) )
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_clonality, 'f', 3));
 	}
-	else if( data.settings.report_config.includeTumContentByMaxSNV() && BasicStatistics::isValidFloat(data.tumor_content_snvs) )
+	else if( data.settings.report_config->includeTumContentByMaxSNV() && BasicStatistics::isValidFloat(data.tumor_content_snvs) )
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_snvs, 'f', 3));
 	}
-	if ( data.settings.report_config.includeMutationBurden())
+	if ( data.settings.report_config->includeMutationBurden())
 	{
 		w.writeAttribute( "mutation_burden", QString::number(data.tumor_mutation_burden,'f', 2) );
 	}
-	if( data.settings.report_config.msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.msi_unstable_percent, 'f', 2) );
-	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config.cnvLohCount() + data.settings.report_config.cnvTaiCount() + data.settings.report_config.cnvLstCount()));
+	if( data.settings.report_config->msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.msi_unstable_percent, 'f', 2) );
+	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config->cnvLohCount() + data.settings.report_config->cnvTaiCount() + data.settings.report_config->cnvLstCount()));
 
 	//QC data
 	QCCollection qc_data = db.getQCData(tumor_ps_id);

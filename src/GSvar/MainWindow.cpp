@@ -934,10 +934,10 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	QSharedPointer<ReportConfiguration> rc_germline;
-	SomaticReportConfiguration* rc_somatic = nullptr; //TODO Marc/Alexander: use shared pointer like in germline
+	QSharedPointer<SomaticReportConfiguration> rc_somatic;
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
 	{
-		rc_somatic = &(somatic_report_settings_.report_config);
+		rc_somatic = somatic_report_settings_.report_config;
 	}
 	else
 	{
@@ -3334,16 +3334,16 @@ void MainWindow::loadSomaticReportConfig()
 	}
 
 	//Preselect target region bed file in NGSD
-	if(somatic_report_settings_.report_config.targetRegionName()!="")
+	if(somatic_report_settings_.report_config->targetRegionName()!="")
 	{
-		ui_.filters->setTargetRegionByDisplayName(somatic_report_settings_.report_config.targetRegionName());
+		ui_.filters->setTargetRegionByDisplayName(somatic_report_settings_.report_config->targetRegionName());
 	}
 
 	//Preselect filter from NGSD som. rep. conf.
-	if(somatic_report_settings_.report_config.filterName() != "")
+	if(somatic_report_settings_.report_config->filterName() != "")
 	{
-		ui_.filters->setFilter( somatic_report_settings_.report_config.filterName() );
-		ui_.filters->setFilterCascade(somatic_report_settings_.report_config.filters());
+		ui_.filters->setFilter( somatic_report_settings_.report_config->filterName() );
+		ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
 	}
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
@@ -3821,16 +3821,16 @@ void MainWindow::generateReportSomaticRTF()
 	QString ps_normal_id = db.processedSampleId(ps_normal);
 
 	//Set data in somatic report settings
-	somatic_report_settings_.report_config.setTargetRegionName(ui_.filters->targetRegion().name);
+	somatic_report_settings_.report_config->setTargetRegionName(ui_.filters->targetRegion().name);
 
-	somatic_report_settings_.report_config.setFilterName((ui_.filters->filterName() != "[none]" ? ui_.filters->filterName() : "") ); //filter name -> goes to NGSD som. rep. conf.
-	somatic_report_settings_.report_config.setFilters(ui_.filters->filters()); //filter cascase -> goes to report helper
+	somatic_report_settings_.report_config->setFilterName((ui_.filters->filterName() != "[none]" ? ui_.filters->filterName() : "") ); //filter name -> goes to NGSD som. rep. conf.
+	somatic_report_settings_.report_config->setFilters(ui_.filters->filters()); //filter cascase -> goes to report helper
 
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
-	somatic_report_settings_.report_config.setEvaluationDate(QDate::currentDate());
+	somatic_report_settings_.report_config->setEvaluationDate(QDate::currentDate());
 
 	//load obo terms for filtering coding/splicing variants
 	if (somatic_report_settings_.obo_terms_coding_splicing.size() == 0)
@@ -3858,27 +3858,27 @@ void MainWindow::generateReportSomaticRTF()
 	if (db.getValues("SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND (qc.qcml_id ='QC:2000062' OR qc.qcml_id ='QC:2000063' OR qc.qcml_id ='QC:2000064') ").size() < 3)
 	{
 		QMessageBox::warning(this, "No HRD score found", "Warning:\nNo hrd score values found in the imported QC of tumor sample. HRD score set to 0.");
-		somatic_report_settings_.report_config.setCnvLohCount(0);
-		somatic_report_settings_.report_config.setCnvTaiCount(0);
-		somatic_report_settings_.report_config.setCnvLstCount(0);
+		somatic_report_settings_.report_config->setCnvLohCount(0);
+		somatic_report_settings_.report_config->setCnvTaiCount(0);
+		somatic_report_settings_.report_config->setCnvLstCount(0);
 	}
 	else
 	{
 		QString query = "SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND qc.qcml_id = :1";
-		somatic_report_settings_.report_config.setCnvLohCount( db.getValue(query, false, "QC:2000062").toInt() );
-		somatic_report_settings_.report_config.setCnvTaiCount( db.getValue(query, false, "QC:2000063").toInt() );
-		somatic_report_settings_.report_config.setCnvLstCount( db.getValue(query, false, "QC:2000064").toInt() );
+		somatic_report_settings_.report_config->setCnvLohCount( db.getValue(query, false, "QC:2000062").toInt() );
+		somatic_report_settings_.report_config->setCnvTaiCount( db.getValue(query, false, "QC:2000063").toInt() );
+		somatic_report_settings_.report_config->setCnvLstCount( db.getValue(query, false, "QC:2000064").toInt() );
 	}
 
 
 	//Preselect report settings if not already exists to most common values
 	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1)
 	{
-		somatic_report_settings_.report_config.setIncludeTumContentByMaxSNV(true);
-		somatic_report_settings_.report_config.setIncludeTumContentByClonality(true);
-		somatic_report_settings_.report_config.setIncludeTumContentByHistological(true);
-		somatic_report_settings_.report_config.setMsiStatus(true);
-		somatic_report_settings_.report_config.setCnvBurden(true);
+		somatic_report_settings_.report_config->setIncludeTumContentByMaxSNV(true);
+		somatic_report_settings_.report_config->setIncludeTumContentByClonality(true);
+		somatic_report_settings_.report_config->setIncludeTumContentByHistological(true);
+		somatic_report_settings_.report_config->setMsiStatus(true);
+		somatic_report_settings_.report_config->setCnvBurden(true);
 	}
 
 	//Parse genome ploidy from ClinCNV file
@@ -3892,7 +3892,7 @@ void MainWindow::generateReportSomaticRTF()
 			if (line.startsWith("##ploidy:"))
 			{
 				QStringList parts = line.split(':');
-				somatic_report_settings_.report_config.setPloidy(parts[1].toDouble());
+				somatic_report_settings_.report_config->setPloidy(parts[1].toDouble());
 				break;
 			}
 
@@ -5668,7 +5668,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 	else if(somaticReportSupported())
 	{
-		 a_delete->setEnabled(somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+		 a_delete->setEnabled(somatic_report_settings_.report_config->exists(VariantType::SNVS_INDELS, index));
 	}
 	else
 	{
@@ -5693,7 +5693,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 		}
 		else
 		{
-			somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+			somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
 		}
 		updateReportConfigHeaderIcon(index);
 	}
@@ -5776,7 +5776,7 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 	}
 	else if (action == context_menu_actions_.a_report_del)
 	{
-		if ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index))
+		if ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config->exists(VariantType::SNVS_INDELS, index))
 		{
 			if(germlineReportSupported())
 			{
@@ -5784,7 +5784,7 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 			}
 			else if(somaticReportSupported())
 			{
-				somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+				somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
 				storeSomaticReportConfig();
 			}
 
@@ -6360,10 +6360,10 @@ void MainWindow::editVariantReportConfiguration(int index)
 	else if(somaticReportSupported()) //somatic report variant configuration
 	{
 		SomaticReportVariantConfiguration var_config;
-		bool settings_exists = somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index);
+		bool settings_exists = somatic_report_settings_.report_config->exists(VariantType::SNVS_INDELS, index);
 		if(settings_exists)
 		{
-			var_config = somatic_report_settings_.report_config.get(VariantType::SNVS_INDELS, index);
+			var_config = somatic_report_settings_.report_config->get(VariantType::SNVS_INDELS, index);
 		}
 		else
 		{
@@ -6373,7 +6373,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(variants_[index].toString(), var_config, this);
 
 		if(dlg->exec() != QDialog::Accepted) return;
-		somatic_report_settings_.report_config.addSomaticVariantConfiguration(var_config);
+		somatic_report_settings_.report_config->addSomaticVariantConfiguration(var_config);
 
 		storeSomaticReportConfig();
 		updateReportConfigHeaderIcon(index);
@@ -6771,7 +6771,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 		else if( somaticReportSupported() && rc_filter != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
 		{
-            QSet<int> report_variant_indices = LIST_TO_SET(somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false));
+			QSet<int> report_variant_indices = LIST_TO_SET(somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if ( !filter_result_.flags()[i] ) continue;
@@ -6790,9 +6790,9 @@ void MainWindow::applyFilters(bool debug_time)
 		//keep somatic variants that are marked with "include" in report settings (overrides possible filtering for that variant)
 		if( somaticReportSupported() && rc_filter != ReportConfigFilter::NO_RC)
 		{
-			foreach(int index, somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+			foreach(int index, somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false))
 			{
-				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
+				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config->variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 			}
 		}
 	}
