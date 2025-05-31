@@ -21,6 +21,7 @@ public:
 	static QStringList queuesResearch();
 	static QStringList queuesHighPriority();
 	static QStringList queuesHighMemory();
+	static QStringList queuesDragen();
 
 private:
 	PipelineSettings();
@@ -34,6 +35,7 @@ private:
 	QStringList queues_research_;
 	QStringList queues_high_priority_;
 	QStringList queues_high_mem_;
+	QStringList queues_dragen_;
 };
 
 #endif // PIPELINESETTINGS_H

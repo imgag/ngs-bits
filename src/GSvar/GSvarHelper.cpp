@@ -488,7 +488,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		{
 			foreach(const AnalysisJobSample& sample,  dlg.samples())
 			{
-				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+				db.queueAnalysis("single sample", dlg.highPriority(), dlg.useDragen(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
 			}
 			return true;
 		}
@@ -499,7 +499,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			db.queueAnalysis("multi sample", dlg.highPriority(), false, dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}
@@ -511,7 +511,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		{
 			foreach(auto sample, dlg.samples()) qDebug() << "Sample: " << sample.name;
 
-			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			NGSD().queueAnalysis("trio", dlg.highPriority(), false, dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}
@@ -522,7 +522,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			db.queueAnalysis("somatic", dlg.highPriority(), dlg.useDragen(), dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}

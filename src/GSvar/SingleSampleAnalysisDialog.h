@@ -39,6 +39,9 @@ public:
 	QStringList arguments() const;
 	//Returns if the analysis is to be performed with high priority
 	bool highPriority() const;
+	//Returns if the analysis is to be performed with illumina DRAGEN pipeline
+	bool useDragen() const;
+
 
 	//Adds a sample and returns the processed sample ID (or empty string if canelled)
 	static QString addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString& analysis_type, QString ps_name="", bool throw_if_bam_missing=true, bool force_showing_dialog=false);
@@ -55,6 +58,7 @@ private slots:
 	void on_clear_clicked(bool);
 	void updateStartButton();
 	void annotate_only_state_changed();
+	void dragen_analysis_changed();
 
 private:
 	Ui::SingleSampleAnalysisDialog ui_;

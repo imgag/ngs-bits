@@ -814,7 +814,7 @@ private slots:
 		S_EQUAL(analysis_job.history[2].output.join("\n"), "warning: bla bla bla");
 
 		//queueAnalysis
-		db.queueAnalysis("single sample", true, QStringList() << "-steps ma,vc,an", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" });
+		db.queueAnalysis("single sample", true, false, QStringList() << "-steps ma,vc,an", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" });
 		analysis_job = db.analysisInfo(2);
 		S_EQUAL(analysis_job.type, "single sample");
 		I_EQUAL(analysis_job.high_priority, true);
@@ -860,13 +860,13 @@ private slots:
 		//analysisJobFolder
 		QString folder = db.analysisJobFolder(1);
 		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/"));
-		db.queueAnalysis("somatic", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"});
+		db.queueAnalysis("somatic", false, false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"});
 		folder = db.analysisJobFolder(3);
 		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/"));
-		db.queueAnalysis("trio", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"});
+		db.queueAnalysis("trio", false, false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"});
 		folder = db.analysisJobFolder(4);
 		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/"));
-		db.queueAnalysis("multi sample", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"});
+		db.queueAnalysis("multi sample", false, false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"});
 		folder = db.analysisJobFolder(5);
 		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
 

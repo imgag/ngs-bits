@@ -18,6 +18,7 @@ SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent)
 	initTable(ui_.samples_table);
 
 	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
+	connect(ui_.use_dragen, SIGNAL(stateChanged(int)), this, SLOT(dragen_analysis_changed()));
 }
 
 void SingleSampleAnalysisDialog::setAnalysisSteps()
@@ -51,12 +52,27 @@ void SingleSampleAnalysisDialog::setAnalysisSteps()
 				ui_.annotate_only->setEnabled(false);
 				ui_.l_annotation_only->setEnabled(false);
 				ui_.annotate_only->setChecked(false);
+				ui_.use_dragen->setChecked(false);
+				ui_.use_dragen->setEnabled(false);
+				ui_.l_use_dragen->setEnabled(false);
+
 			}
 			else
 			{
 				steps_ = loadSteps("analysis_steps_single_sample");
 				ui_.annotate_only->setEnabled(true);
 				ui_.l_annotation_only->setEnabled(true);
+				if(sys_types.contains("WGS") || sys_types.contains("WES"))
+				{
+					ui_.use_dragen->setEnabled(true);
+					ui_.l_use_dragen->setEnabled(true);
+				}
+				else
+				{
+					ui_.use_dragen->setChecked(false);
+					ui_.use_dragen->setEnabled(false);
+					ui_.l_use_dragen->setEnabled(true);
+				}
 			}
 
 		}
@@ -96,6 +112,11 @@ QStringList SingleSampleAnalysisDialog::arguments() const
 bool SingleSampleAnalysisDialog::highPriority() const
 {
 	return ui_.high_priority->isChecked();
+}
+
+bool SingleSampleAnalysisDialog::useDragen() const
+{
+	return ui_.use_dragen->isChecked();
 }
 
 QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString& analysis_type, QString ps_name, bool throw_if_bam_missing, bool force_showing_dialog)
@@ -351,6 +372,30 @@ void SingleSampleAnalysisDialog::annotate_only_state_changed()
 			}
 		}
 	}
+}
+
+void SingleSampleAnalysisDialog::dragen_analysis_changed()
+{
+	if (!ui_.use_dragen->isChecked()) return;
+	QLabel* label = new QLabel("Are you sure you want to proceed?");
+	auto dlg = GUIHelper::createDialog(label, "DRAGEN analysis", "You are about to (re-)start a full DRAGEN analysis. <br>"
+																 "This will overwrite previous mapping and variant calls <br>"
+																 "and will fail if a report config exists.", true);
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		//activate ma,vc and sv
+		QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegularExpression("^step_"));
+		foreach (QCheckBox* step, step_boxes)
+		{
+			// activate vc, cn and sv by default
+			if ((step->objectName() == "step_ma") || (step->objectName() == "step_vc") || (step->objectName() == "step_sv")) step->setChecked(true);
+		}
+	}
+	else
+	{
+		ui_.use_dragen->setCheckState(Qt::Unchecked);
+	}
+
 }
 
 void SingleSampleAnalysisDialog::addSample(QString status, QString sample)
