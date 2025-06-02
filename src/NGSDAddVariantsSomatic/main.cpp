@@ -185,7 +185,6 @@ public:
 		}
 
 		QString last_callset_id = db.getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id).toString();
-
 		if(last_callset_id!="" && !cnv_force)
 		{
             out << "Skipped import of CNVs for sample " << ps_full_name << ": a report configuration with somatic CNVs exists for this sample!" << QT_ENDL;
@@ -210,17 +209,12 @@ public:
 			THROW(ArgumentException, "CNV file is not a tumor normal sample. Use NGSDAddVariantsGermline for germline CNVs.");
 		}
 
-		CnvListCallData call_data = CnvList::getCallData(cnvs, filename, true);
-
-		QJsonDocument json_doc;
-		json_doc.setObject(call_data.quality_metrics);
-
-        out << "caller: " << call_data.caller << QT_ENDL;
-        out << "caller version: " << call_data.caller_version << QT_ENDL;
+		out << "caller: " << cnvs.callerAsString() << QT_ENDL;
+		out << "caller version: " << cnvs.callerVersion() << QT_ENDL;
 
 		if(debug)
 		{
-            out << "DEBUG: callset quality: " << json_doc.toJson(QJsonDocument::Compact) << QT_ENDL;
+			out << "DEBUG: callset quality: " << cnvs.qcJson().toJson(QJsonDocument::Compact) << QT_ENDL;
 		}
 
 		//Import somatic cnv callset
@@ -228,10 +222,10 @@ public:
 		q_set.prepare("INSERT INTO `somatic_cnv_callset` (`ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES (:0, :1, :2, :3, :4, :5, :6)");
 		q_set.bindValue(0, t_ps_id);
 		q_set.bindValue(1, n_ps_id);
-		q_set.bindValue(2, call_data.caller);
-		q_set.bindValue(3, call_data.caller_version);
-		q_set.bindValue(4, call_data.call_date);
-		q_set.bindValue(5, json_doc.toJson(QJsonDocument::Compact));
+		q_set.bindValue(2, cnvs.callerAsString());
+		q_set.bindValue(3, cnvs.callerVersion());
+		q_set.bindValue(4, cnvs.callingDate().toString("yyyyMMdd"));
+		q_set.bindValue(5, cnvs.qcJson().toJson(QJsonDocument::Compact));
 		q_set.bindValue(6, "n/a");
 		q_set.exec();
 
@@ -334,7 +328,7 @@ public:
 		insert_callset.bindValue(1, n_ps_id);
 		insert_callset.bindValue(2, svs.caller());
 		insert_callset.bindValue(3, svs.callerVersion());
-		insert_callset.bindValue(4, svs.callingDate());
+        insert_callset.bindValue(4, svs.callingDate().toString("yyyyMMdd"));
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 

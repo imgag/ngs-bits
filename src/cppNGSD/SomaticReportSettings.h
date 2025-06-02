@@ -11,7 +11,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	///Default constructor
 	SomaticReportSettings();
 
-	SomaticReportConfiguration report_config;
+	QSharedPointer<SomaticReportConfiguration> report_config;
 	QString tumor_ps;
 	QString normal_ps;
 

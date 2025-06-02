@@ -4,9 +4,6 @@ build-*
 t.log
 *.crt
 *.key
-*.txt
-htslib/include
-htslib/libs
-src/build/*
+cppREST-TEST_urls.txt
 libxml2/include
 libxml2/libs

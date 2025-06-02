@@ -1,5 +1,5 @@
 ### VcfCalculatePRS tool help
-	VcfCalculatePRS (2024_08-113-g94a3b440)
+	VcfCalculatePRS (2025_03-80-g74f31dd7)
 	
 	Calculates the Polgenic Risk Score(s) for a sample.
 	
@@ -20,6 +20,8 @@
 	                    Default value: ''
 	  -min_depth <int>  Depth cutoff below which uncalled SNPs are considered not callable and POP_AF is used instead of genotype.
 	                    Default value: '10'
+	  -long_read        Support long reads (> 1kb).
+	                    Default value: 'false'
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -29,8 +31,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfCalculatePRS changelog
-	VcfCalculatePRS 2024_08-113-g94a3b440
+	VcfCalculatePRS 2025_03-80-g74f31dd7
 	
+	2025-05-21 Added parameter 'long_read' for long-read support.
 	2024-06-05 Added support for imputed variants.
 	2024-04-22 Added output of factors and support for wt variants.
 	2022-12-15 Added BAM depth check and population AF.

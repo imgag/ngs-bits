@@ -1,6 +1,5 @@
 #include "ToolBase.h"
 #include "NGSD.h"
-#include "TSVFileStream.h"
 #include "KeyValuePair.h"
 #include "RepeatLocusList.h"
 #include <QJsonDocument>
@@ -91,12 +90,13 @@ public:
 		sub_times << ("adding variants took: " + Helper::elapsedTime(sub_timer));
 
 		//skip import of detected variants if same callset was already imported
-		VariantCaller caller = variants.getCaller();
-		QDate calling_date = variants.getCallingDate();
-		if (!caller.name.isEmpty() && calling_date.isValid())
+		QByteArray caller = variants.caller();
+		QByteArray caller_ver = variants.callerVersion();
+		QDate calling_date = variants.callingDate();
+		if (!caller.isEmpty() && !caller_ver.isEmpty() && calling_date.isValid())
 		{
 			VariantCallingInfo calling_info_ngsd = db.variantCallingInfo(ps_id);
-			if (calling_info_ngsd.small_caller==caller.name && calling_info_ngsd.small_caller_version==caller.version && calling_info_ngsd.small_call_date==calling_date.toString(Qt::ISODate))
+			if (calling_info_ngsd.small_caller==caller && calling_info_ngsd.small_caller_version==caller_ver && calling_info_ngsd.small_call_date==calling_date.toString(Qt::ISODate))
 			{
                 out << "Skipped import because variants were already imported with the same caller, caller version and calling date!" << QT_ENDL;
 				if (!no_time)
@@ -118,15 +118,15 @@ public:
 		}
 
 		//add callset (if caller info in header)
-		if (caller.name!="" && caller.version!="")
+		if (caller!="" && caller_ver!="")
 		{
 			SqlQuery q_set = db.getQuery();
 			q_set.exec("DELETE FROM small_variants_callset WHERE processed_sample_id='" + ps_id + "'");
 			q_set.prepare("INSERT INTO small_variants_callset (`processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
 			q_set.bindValue(0, ps_id);
-			q_set.bindValue(1, caller.name);
-			q_set.bindValue(2, caller.version);
-			q_set.bindValue(3, calling_date);
+			q_set.bindValue(1, caller);
+			q_set.bindValue(2, caller_ver);
+            q_set.bindValue(3, calling_date.toString("yyyyMMdd"));
 			q_set.exec();
 		}
 
@@ -251,7 +251,7 @@ public:
 
 		//parse file header
 		QString caller_version;
-		QDateTime call_date;
+		QDate call_date;
 		QJsonObject quality_metrics;
 		foreach(const QByteArray& line, cnvs.comments())
 		{
@@ -265,7 +265,7 @@ public:
 				}
 				else if (pair.key.endsWith(" finished on"))
 				{
-					call_date = QDateTime::fromString(pair.value, "yyyy-MM-dd hh:mm:ss");
+					call_date = QDate::fromString(pair.value, "yyyy-MM-dd");
 				}
 				else //quality metrics
 				{
@@ -292,7 +292,7 @@ public:
 		q_set.bindValue(0, ps_id);
 		q_set.bindValue(1, caller);
 		q_set.bindValue(2, caller_version);
-		q_set.bindValue(3, call_date);
+        q_set.bindValue(3, call_date.toString("yyyyMMdd"));
 		q_set.bindValue(4, json_doc.toJson(QJsonDocument::Compact));
 		q_set.bindValue(5, "n/a");
 		q_set.exec();
@@ -388,7 +388,7 @@ public:
 		insert_callset.bindValue(0, ps_id);
 		insert_callset.bindValue(1, svs.caller());
 		insert_callset.bindValue(2, svs.callerVersion());
-		insert_callset.bindValue(3, svs.callingDate());
+        insert_callset.bindValue(3, svs.callingDate().toString("yyyyMMdd"));
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 
@@ -508,9 +508,9 @@ public:
 		SqlQuery insert_callset = db.getQuery();
 		insert_callset.prepare("INSERT INTO `re_callset` (`processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
 		insert_callset.bindValue(0, ps_id);
-		insert_callset.bindValue(1, RepeatLocusList::typeToString(res.caller()));
+		insert_callset.bindValue(1, res.callerAsString());
 		insert_callset.bindValue(2, res.callerVersion());
-		insert_callset.bindValue(3, res.callDate());
+		insert_callset.bindValue(3, res.callingDate().toString("yyyyMMdd"));
 		insert_callset.exec();
 
 		//prepare queries

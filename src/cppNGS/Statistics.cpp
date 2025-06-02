@@ -2196,7 +2196,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	return output;
 }
 
-QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps, bool longread)
+QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps, bool include_not_properly_paired)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -2208,7 +2208,7 @@ QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QSt
 	VcfFile snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
-		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start(), -1, 1, longread);
+		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start(), -1, 1, include_not_properly_paired);
 		int depth = pileup.depth(false);
 		if (depth<min_cov) continue;
 
@@ -2518,8 +2518,9 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	return output;
 }
 
-double Statistics::yxRatio(BamReader& reader)
+double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 {
+	//reads chrY
 	double reads_y = 0;
 	BamAlignment al;
 	reader.setRegion("chrY", 1, reader.chromosomeSize("chrY"));
@@ -2529,7 +2530,9 @@ double Statistics::yxRatio(BamReader& reader)
 		if (al.mappingQuality()<30) continue;
 		reads_y += 1.0;
 	}
+	if (count_y!=nullptr) *count_y = reads_y;
 
+	//reads chrX
 	double reads_x = 0;
 	reader.setRegion("chrX", 1, reader.chromosomeSize("chrX"));
 	while(reader.getNextAlignment(al))
@@ -2538,6 +2541,7 @@ double Statistics::yxRatio(BamReader& reader)
 		if (al.mappingQuality()<30) continue;
 		reads_x += 1.0;
 	}
+	if (count_x!=nullptr) *count_x = reads_x;
 
 	if (reads_x==0) return std::numeric_limits<double>::quiet_NaN();
 
@@ -2662,45 +2666,18 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true, random_access, debug);
 }
 
-GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file, bool include_single_end_reads)
+GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
-
-	//get RefID of X and Y chromosome
-
-	//count reads on chrX
-	int count_x = 0;
-	Chromosome chrx("chrX");
-	reader.setRegion(chrx, 1, reader.chromosomeSize(chrx));
-	BamAlignment al;
-	while (reader.getNextAlignment(al))
-	{
-		if (!include_single_end_reads && !al.isProperPair()) continue;
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.isDuplicate()) continue;
-
-		++count_x;
-	}
-
-	//count reads on chrY
-	int count_y = 0;
-	Chromosome chry("chrY");
-	reader.setRegion(chry, 1, reader.chromosomeSize(chry));
-	while (reader.getNextAlignment(al))
-	{
-		if (!include_single_end_reads && !al.isProperPair()) continue;
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.isDuplicate()) continue;
-
-		++count_y;
-	}
-	double ratio_yx = (double) count_y / count_x;
+	double count_x = 0.0;
+	double count_y = 0.0;
+	double ratio_yx = Statistics::yxRatio(reader, &count_x, &count_y);
 
 	//output
 	GenderEstimate output;
-	output.add_info << KeyValuePair("reads_chry", QString::number(count_y));
-	output.add_info << KeyValuePair("reads_chrx", QString::number(count_x));
+	output.add_info << KeyValuePair("reads_chry", QString::number(count_y, 'f', 0));
+	output.add_info << KeyValuePair("reads_chrx", QString::number(count_x, 'f', 0));
 	output.add_info << KeyValuePair("ratio_chry_chrx", QString::number(ratio_yx, 'f', 4));
 
 	//output
@@ -2711,7 +2688,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_single_end_reads)
+GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_not_properly_paired)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2731,7 +2708,7 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 	for (int i=0; i<snps.count(); ++i)
 	{
 		const VcfLine& snp = snps[i];
-		Pileup pileup = reader.getPileup(snp.chr(), snp.start(), -1, 20, include_single_end_reads, 20);
+		Pileup pileup = reader.getPileup(snp.chr(), snp.start(), -1, 20, include_not_properly_paired, 20);
 
 		int depth = pileup.depth(false);
 		if (depth<20) continue;

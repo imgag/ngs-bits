@@ -170,7 +170,7 @@ void MaintenanceDialog::importStudySamples()
 	}
 	appendOutputLine("Notice: The following studies are present in GenLab and not in NGSD: " + missing.join(", "));
 
-	//import study samples into NGSD
+	//import
 	foreach(const QString& study, studies_genlab)
 	{
 		if (missing.contains(study)) continue;
@@ -414,7 +414,7 @@ void MaintenanceDialog::importYearOfBirth()
 	int c_imported = 0;
 	int c_not_in_genlab = 0;
 
-	//import study samples from GenLab
+	//import
 	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 	foreach(const QString& ps, ps_list)
 	{
@@ -457,7 +457,7 @@ void MaintenanceDialog::importTissue()
 	int c_imported = 0;
 	int c_not_in_genlab = 0;
 
-	//import study samples from GenLab
+	//import
 	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 	for(int i=0; i<ps_list.count(); ++i)
 	{
@@ -501,7 +501,7 @@ void MaintenanceDialog::importPatientIDs()
 	int c_not_in_genlab = 0;
 	int c_imported = 0;
 
-	//import study samples from GenLab
+	//import
 	SqlQuery query = db.getQuery();
 	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.patient_identifier, s.id as sample_id FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 
@@ -553,7 +553,7 @@ void MaintenanceDialog::importOrderAndSamplingDate()
 	int c_not_in_genlab = 0;
 	int c_imported = 0;
 
-	//import study samples from GenLab
+	//import
 	SqlQuery query = db.getQuery();
 	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.id as sample_id, s.order_date, s.sampling_date FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 

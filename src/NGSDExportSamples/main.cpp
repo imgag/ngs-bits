@@ -35,6 +35,7 @@ public:
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_normal", "If set, germline samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
+		addFlag("no_resequencing", "If set, samples that are scheduled for resequencing are excluded.");
 		addFlag("match_external_names", "If set, also samples for which the external name matches 'sample' are exported.");
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
 		addFlag("only_with_small_variants", "If set, only processed samples that have small variants in NGSD are listed.");
@@ -69,7 +70,9 @@ public:
 		addFlag("add_lab_columns", "Adds columns input, molarity, operator, processing method and batch number.");
 		addFlag("add_study_column", "Add a column with studies of the sample.");
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addEnum("preset", "Presets for different common searches. Note: presets are applied after argument parsing and thus override command line argument.", true, QStringList() << "none" << "germline", "none");
 
+		changeLog(2025,  5, 19, "Added 'preset' and 'no_resequencing' parameters.");
 		changeLog(2024,  8, 21, "Added 'add_study_column' flag.");
 		changeLog(2024,  4, 24, "Added 'only_with_small_variants' flag.");
 		changeLog(2024,  3,  4, "Added 'add_lab_columns' flag.");
@@ -115,6 +118,7 @@ public:
 		params.include_tumor_samples = !getFlag("no_tumor");
 		params.include_germline_samples = !getFlag("no_normal");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
+		params.include_scheduled_for_resequencing_samples = !getFlag("no_resequencing");
 		params.include_merged_samples = getFlag("with_merged");
 		params.only_with_small_variants = getFlag("only_with_small_variants");
 		params.p_name = getString("project");
@@ -156,9 +160,22 @@ public:
 		params.add_lab_columns = getFlag("add_lab_columns");
 		params.add_study_column = getFlag("add_study_column");
 
+		//apply presets
+		if (getEnum("preset")=="germline")
+		{
+			params.include_ffpe_samples = false;
+			params.include_tumor_samples = false;
+			params.include_merged_samples = false;
+			params.include_bad_quality_samples = false;
+			params.include_scheduled_for_resequencing_samples = false;
+
+			params.include_archived_projects = false;
+
+			params.include_bad_quality_runs = false;
+			params.run_finished = true;
+		}
 
 		//check parameters
-
 		if (! params.include_germline_samples && ! params.include_tumor_samples)
 		{
 			THROW(ArgumentException, "Flags 'no_normal' and 'no_tumor' can't be provided for the same export.");

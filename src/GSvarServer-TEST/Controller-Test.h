@@ -412,6 +412,6 @@ private slots:
 
         // This test is intended to be changed when PathType changes, OTHER is always the last element,
         // it will always change when items are added or deleted
-        I_EQUAL(static_cast<int>(PathType::OTHER), 47);
+		I_EQUAL(static_cast<int>(PathType::OTHER), 48);
     }
 };

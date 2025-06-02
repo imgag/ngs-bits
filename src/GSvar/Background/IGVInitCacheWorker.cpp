@@ -87,7 +87,7 @@ void IGVInitCacheWorker::process()
         }
     }
 
-    //related RNA tracks
+
     if (LoginManager::active())
     {
         NGSD db;
@@ -95,6 +95,7 @@ void IGVInitCacheWorker::process()
         QString sample_id = db.sampleId(current_filename_, false);
         if (sample_id!="")
         {
+			//related RNA tracks
             foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
             {
                 // iterate over all processed RNA samples
@@ -113,7 +114,19 @@ void IGVInitCacheWorker::process()
                     if (rna_splicing_bed_file.exists) IgvSessionManager::get(0).addLocationToCache(rna_splicing_bed_file, false);
                 }
             }
-        }
+
+
+			//Paraphase evidence file
+			if (db.getProcessedSampleData(db.processedSampleId(current_filename_)).processing_system_type == "lrGS")
+			{
+				FileLocationList paraphase_files = GlobalServiceProvider::fileLocationProvider().getParaphaseEvidenceFiles(true);
+				foreach(const FileLocation& file, paraphase_files)
+				{
+					IgvSessionManager::get(0).addLocationToCache(file, false);
+				}
+			}
+        }	
     }
+
     Log::info("Finished preloading IGV file information");
 }

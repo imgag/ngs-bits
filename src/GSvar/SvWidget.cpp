@@ -46,13 +46,13 @@ SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, 
 	initGUI();
 }
 
-SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes)
+SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QSharedPointer<SomaticReportConfiguration> som_rep_conf, const GeneSet& het_hit_genes)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, svs_(bedpe_file)
 	, ps_id_()
 	, var_het_genes_(het_hit_genes)
-	, som_report_config_(&som_rep_conf)
+	, som_report_config_(som_rep_conf)
     , ngsd_user_logged_in_(LoginManager::active())
     , rc_enabled_(ngsd_user_logged_in_ && som_report_config_!=nullptr)
 	, is_somatic_(true)

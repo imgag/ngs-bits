@@ -1,7 +1,7 @@
 #include "TestFramework.h"
 #include "TestFrameworkNGS.h"
 
-TEST_CLASS(VcfFilter_TEST)
+TEST_CLASS(VcfFilter_Test)
 {
 Q_OBJECT
 private slots:

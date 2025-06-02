@@ -1,3 +1,0 @@
-Percentage of variants from mother passed to child: 0.5
-Percentage of variants from father passed to child: 0.5
-Ratio mother/father: 1.00

@@ -656,9 +656,9 @@ void VariantTable::update(VariantList& variants, const FilterResult& filter_resu
 	//init
 	QHash<int, bool> index_show_report_icon;
 	QSet<int> index_causal;
-	foreach(int index, report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+	foreach(int index, report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
 	{
-		index_show_report_icon[index] = report_settings.report_config.get(VariantType::SNVS_INDELS, index).showInReport();
+		index_show_report_icon[index] = report_settings.report_config->get(VariantType::SNVS_INDELS, index).showInReport();
 	}
 
 	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
@@ -681,9 +681,9 @@ void VariantTable::updateVariantHeaderIcon(const SomaticReportSettings &report_s
 {
 	int row = variantIndexToRow(variant_index);
 	QIcon report_icon;
-	if(report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
+	if(report_settings.report_config->exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport(), false);
+		report_icon = reportIcon(report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index).showInReport(), false);
 	}
 	verticalHeaderItem(row)->setIcon(report_icon);
 }

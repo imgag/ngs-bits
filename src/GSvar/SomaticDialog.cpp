@@ -44,6 +44,11 @@ bool SomaticDialog::highPriority() const
 	return ui_.high_priority->isChecked();
 }
 
+bool SomaticDialog::useDragen() const
+{
+	return ui_.use_dragen->isChecked();
+}
+
 void SomaticDialog::on_add_samples_clicked(bool)
 {
 	//clear old data
@@ -79,6 +84,10 @@ void SomaticDialog::updateStartButton()
 {
 	//tumor normal analysis
 	ui_.start_button->setEnabled(samples_.count()==2);
+	ui_.use_dragen->setEnabled(samples_.count()==2);
+	if (samples_.count()!=2) ui_.use_dragen->setChecked(false);
+	ui_.l_use_dragen->setEnabled(samples_.count()==2);
+
 
 	//tumor only analysis
 	if(samples_.count() == 1 && samples_[0].status == "tumor") ui_.start_button->setEnabled(true);

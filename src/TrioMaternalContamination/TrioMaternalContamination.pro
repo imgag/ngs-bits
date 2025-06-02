@@ -9,11 +9,8 @@ QT       -= gui
 CONFIG   += console
 CONFIG   -= app_bundle
 
-SOURCES += main.cpp \
-    ShallowVariantCallerFunctions.cpp
+SOURCES += main.cpp
 
 include("../app_cli.pri")
 
-HEADERS += \
-    ShallowVariantCallerFunctions.h \
-    Auxilary.h
+HEADERS +=

@@ -1,7 +1,13 @@
 ### VcfAnnotateMaxEntScan tool help
-	VcfAnnotateMaxEntScan (2024_08-110-g317f43b9)
+	VcfAnnotateMaxEntScan (2025_03-80-g74f31dd7)
 	
 	Annotates a VCF file with MaxEntScan scores.
+	
+	This is essentially a multithreaded C++ reimplementation of the MaxEntScan plugin for VEP (https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm). MaxEntScan was first introduced by Shamsani et al. (https://doi.org/10.1093/bioinformatics/bty960).
+	Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread.
+	The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided GFF file).
+	De-novo splice sites can be found by using the MES scores from the sliding window approach (SWA).
+	Intergenic variants never get a MES scores.
 	
 	Mandatory parameters:
 	  -gff <file>        Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz.
@@ -42,6 +48,9 @@
 	  --settings [file]  Settings override file (no other settings files are used).
 	
 ### VcfAnnotateMaxEntScan changelog
-	VcfAnnotateMaxEntScan 2024_08-110-g317f43b9
+	VcfAnnotateMaxEntScan 2025_03-80-g74f31dd7
 	
+	2025-03-20 Fixed bug in SWA alternative sequence generation and using 'min_score' for comp scores as well.
+	2023-09-26 Added several parameters to make output more configurable.
+	2023-09-18 first version
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

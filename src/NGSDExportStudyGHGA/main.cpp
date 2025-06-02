@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "Helper.h"
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QJsonArray>
 #include <QDir>
 

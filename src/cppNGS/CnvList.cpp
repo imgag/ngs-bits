@@ -6,6 +6,7 @@
 #include "KeyValuePair.h"
 #include "NGSHelper.h"
 #include <QFileInfo>
+#include <QJsonObject>
 
 CopyNumberVariant::CopyNumberVariant()
 	: chr_()
@@ -364,7 +365,7 @@ void CnvList::store(QString filename)
 	file.data()->close();
 }
 
-QString CnvList::typeAsString() const
+QByteArray CnvList::typeAsString() const
 {
 	if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) return "CLINCNV_GERMLINE_SINGLE";
 	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI) return "CLINCNV_GERMLINE_MULTI";
@@ -392,7 +393,7 @@ CnvCallerType CnvList::caller() const
 	}
 }
 
-QString CnvList::callerAsString() const
+QByteArray CnvList::callerAsString() const
 {
 	CnvCallerType caller_type = caller();
 	if (caller_type==CnvCallerType::CLINCNV)
@@ -403,6 +404,38 @@ QString CnvList::callerAsString() const
 	{
 		THROW(ProgrammingException, "CNV caller type not handled in CnvList::callerAsString()!");
 	}
+}
+
+QByteArray CnvList::callerVersion() const
+{
+	foreach(const QByteArray& line, comments_)
+	{
+		if (!line.contains(":")) continue;
+
+		KeyValuePair pair = split(line, ':');
+		if (pair.key.endsWith(" version"))
+		{
+			return pair.value.trimmed().toUtf8();
+		}
+	}
+
+	THROW(ProgrammingException, "CNV caller version could not be determined!");
+}
+
+QDate CnvList::callingDate() const
+{
+	foreach(const QByteArray& line, comments_)
+	{
+		if (!line.contains(":")) continue;
+
+		KeyValuePair pair = split(line, ':');
+		if (pair.key.endsWith(" finished on"))
+		{
+			return QDate::fromString(pair.value.left(10), "yyyy-MM-dd");
+		}
+	}
+
+	THROW(ProgrammingException, "CNV calling data could not be determined!");
 }
 
 QByteArray CnvList::build()
@@ -417,6 +450,25 @@ QByteArray CnvList::build()
 	}
 
 	return "";
+}
+
+QJsonDocument CnvList::qcJson() const
+{
+	QJsonObject obj;
+	foreach(const QByteArray& line, comments_)
+	{
+		if (!line.contains(":")) continue;
+
+		KeyValuePair pair = split(line, ':');
+		if (pair.key.endsWith(" version")) continue;
+		if (pair.key.endsWith(" finished on")) continue;
+
+		obj.insert(pair.key, pair.value);
+	}
+
+	QJsonDocument doc;
+	doc.setObject(obj);
+	return doc;
 }
 
 QByteArray CnvList::qcMetric(QString name, bool throw_if_missing) const
@@ -527,44 +579,6 @@ KeyValuePair CnvList::split(const QByteArray& string, char sep)
 	QString value = parts.join(sep).trimmed();
 
 	return KeyValuePair(key, value);
-}
-
-CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, bool ignore_inval_header_lines)
-{
-	//parse file header
-	CnvListCallData out;
-
-	out.caller = cnvs.callerAsString();
-
-	foreach(const QByteArray& line, cnvs.comments())
-	{
-		if (line.contains(":"))
-		{
-			KeyValuePair pair = split(line, ':');
-
-			if (pair.key.endsWith(" version"))
-			{
-				out.caller_version = pair.value;
-			}
-			else if (pair.key.endsWith(" finished on"))
-			{
-				out.call_date = QDateTime::fromString(pair.value, "yyyy-MM-dd hh:mm:ss");
-			}
-			else //quality metrics
-			{
-				out.quality_metrics.insert(pair.key, pair.value);
-			}
-		}
-		else if(!ignore_inval_header_lines)
-		{
-			THROW(FileParseException, "Invalid header line '" + line + "' in file '" + filename + "'!");
-		}
-	}
-
-	if (out.call_date.isNull()) THROW(ArgumentException, "Cannot determine date of CNV calling!");
-
-	return out;
-
 }
 
 int CnvList::determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender, GenomeBuild build)

@@ -391,7 +391,7 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		IS_TRUE(vl.getCreationDate().isValid());
-		S_EQUAL(vl.getCreationDate().toString("yyyy-MM-dd"), "2020-08-15");
+		S_EQUAL(vl.getCreationDate().toString(Qt::ISODate), "2020-08-15");
 
 		//header not set
 		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
@@ -411,27 +411,25 @@ private slots:
 	{
 		VariantList vl;
 		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
-		VariantCaller caller = vl.getCaller();
-		S_EQUAL(caller.name, "freebayes");
-		S_EQUAL(caller.version, "v1.3.3");
+		S_EQUAL(vl.caller(), "freebayes");
+		S_EQUAL(vl.callerVersion(), "v1.3.3");
 
 		//header not set
 		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
-		caller = vl.getCaller();
-		S_EQUAL(caller.name, "");
-		S_EQUAL(caller.version, "");
+		S_EQUAL(vl.caller(), "");
+		S_EQUAL(vl.callerVersion(), "");
 	}
 
 	void getCallingDate()
 	{
 		VariantList vl;
 		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
-		IS_TRUE(vl.getCallingDate().isValid());
-		S_EQUAL(vl.getCallingDate().toString("yyyy-MM-dd"), "2022-04-25");
+		IS_TRUE(vl.callingDate().isValid());
+		S_EQUAL(vl.callingDate().toString(Qt::ISODate), "2022-04-25");
 
 		//header not set
 		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
-		IS_FALSE(vl.getCallingDate().isValid());
+		IS_FALSE(vl.callingDate().isValid());
 	}
 
 

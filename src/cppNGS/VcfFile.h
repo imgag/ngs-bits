@@ -121,7 +121,7 @@ public:
 	static VcfFile fromGSvar(const VariantList& variant_list, const QString& reference_genome);
 
 	///Validates a VCF file
-	static bool isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
+	static bool isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max(), bool duplicates = false);
 
 	///Returns string where all forbidden char of an INFO column value are URL encoded
 	static QString encodeInfoValue(QString info_value);

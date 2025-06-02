@@ -145,8 +145,20 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		}
 		else //DNA
 		{
-			script = "analyze.php";
-			pipeline_args << "--log" << (folder+"analyze_"+timestamp+".log");
+			if (job.use_dragen)
+			{
+				script = "analyze_dragen.php";
+				pipeline_args << "--log" << (folder+"analyze_dragen_"+timestamp+".log");
+
+				//switch to dragen queue
+				queues = PipelineSettings::queuesDragen();
+			}
+			else
+			{
+				script = "analyze.php";
+				pipeline_args << "--log" << (folder+"analyze_"+timestamp+".log");
+			}
+
 		}
 	}
 	else if (job.type=="trio")
@@ -264,6 +276,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		{
 			pipeline_args << "-t_rna_bam" << bams[r_idx];
 		}
+		if (job.use_dragen) pipeline_args << "-use_dragen";
 	}
 	else
 	{
@@ -308,7 +321,11 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	qsub_args << "-q" << queues.join(",");
     qsub_args << "php";
     qsub_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
-	qsub_args << job.args.simplified().split(' ');
+	QString job_args = job.args.simplified();
+	if (!job_args.isEmpty())
+	{
+		qsub_args << job_args.split(' ');
+	}
 	qsub_args << pipeline_args;
 
 	QByteArrayList output;

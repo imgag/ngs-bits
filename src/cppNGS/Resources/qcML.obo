@@ -1361,7 +1361,7 @@ created_by: sturm
 [Term]
 id: QC:2000113
 name: CNV count
-def: "Number of high-quality CNVs called by ClinCNV. High-quality means that log-likelihood is bigger or equal to 20."
+def: "Number of high-quality CNVs called by ClinCNV. High-quality means that log-likelihood is bigger or equal to 20 for short-reads and 12 for ONT long-reads."
 is_a: QC:2000112 ! NGS CNV list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: sturm
@@ -1646,4 +1646,12 @@ name: Q20 base percentage
 def: "The percentage of bases with a minimum quality score of Q20." [PXS:QC]
 is_a: QC:2000002 ! NGS aquisition parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000149
+name: basecall info
+def: "Info about flow cell, chemistry and basecall model used to call nucleotide bases in lrGS sample"
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: schuetz

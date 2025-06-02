@@ -79,7 +79,8 @@ HEADERS += \
     BigWigReader_Test.h \
     VariantHgvsAnnotator_Test.h \
     TabIndexedFile_Test.h \
-    PipelineSettings_Test.h
+    PipelineSettings_Test.h \
+    RepeatLocusList_Test.h
 
 SOURCES += \
         main.cpp

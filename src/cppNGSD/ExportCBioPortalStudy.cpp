@@ -583,8 +583,8 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder, bool debug)
 		if (debug)
 		{
 			QString errors;
-			for (int i=0;i<settings_.report_settings[idx].report_config.filters().count(); i++ ) {
-				errors += settings_.report_settings[idx].report_config.filters().errors(i).join("; ");
+			for (int i=0;i<settings_.report_settings[idx].report_config->filters().count(); i++ ) {
+				errors += settings_.report_settings[idx].report_config->filters().errors(i).join("; ");
 			}
 
 			if (errors.length() > 0)
@@ -843,7 +843,7 @@ void ExportCBioPortalStudy::exportSvs(const QString& out_folder, bool /*debug*/)
 		int idx_flags = bedpe.annotationIndexByName("FLAGS");
 
 
-		// TODO write filter? In somatic report settings?
+		//TODO write filter? In somatic report settings?
 
 		for(int idx_var=0; idx_var<bedpe.count(); idx_var++)
 		{

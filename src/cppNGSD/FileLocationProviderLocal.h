@@ -40,6 +40,7 @@ public:
 	FileLocationList getExpressionFiles(bool return_if_missing) const override;
 	FileLocationList getExonExpressionFiles(bool return_if_missing) const override;
 	FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const override;
+	FileLocationList getParaphaseEvidenceFiles(bool return_if_missing) const override;
 
 
 	FileLocation getSomaticCnvCoverageFile() const override;

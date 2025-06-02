@@ -21,7 +21,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates a variant list with variant frequencies from a BAM/CRAM file.");
+		setDescription("Annotates a variant list with variant frequencies from a RNA BAM/CRAM file. Used to check for allele-specific expression.");
 		addInfile("in", "Input variant list to annotate in GSvar format.", false, true);
 		addInfile("bam", "Input BAM/CRAM file.", false, true);
 		addOutfile("out", "Output variant list file name (VCF or GSvar).", false, true);
@@ -114,7 +114,7 @@ public:
 		for (int i=0; i<input.count(); ++i)
 		{
 			Variant& variant = input[i];
-			VariantDetails tmp = reader.getVariantDetails(reference, variant);
+			VariantDetails tmp = reader.getVariantDetails(reference, variant, false);
 
 			//no coverage
 			if (tmp.depth==0 || !BasicStatistics::isValidFloat(tmp.frequency))

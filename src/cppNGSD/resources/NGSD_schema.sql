@@ -1124,6 +1124,7 @@ CREATE TABLE IF NOT EXISTS `analysis_job`
   `args` text NOT NULL,
   `sge_id` varchar(10) DEFAULT NULL,
   `sge_queue` varchar(50) DEFAULT NULL,
+  `use_dragen` BOOLEAN DEFAULT FALSE COMMENT 'defines if dragen pipeline should be used',
   PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB
@@ -1377,7 +1378,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_cnv_callset`
   `ps_normal_id` INT(11) NOT NULL,
   `caller` ENUM('ClinCNV') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME NOT NULL,
+  `call_date` DATE NOT NULL,
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
@@ -1462,7 +1463,7 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
--- Table `somatic_somatic_sv_callset`
+-- Table `somatic_sv_callset`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `somatic_sv_callset`
 (
@@ -1471,7 +1472,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_callset`
   `ps_normal_id` INT(11) NOT NULL,
   `caller` ENUM('Manta', 'DRAGEN', 'Sniffles') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
   INDEX `somatic_sv_caller` (`call_date` ASC),
@@ -1808,7 +1809,7 @@ CREATE  TABLE IF NOT EXISTS `cnv_callset`
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('ClinCNV') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
@@ -1906,7 +1907,7 @@ CREATE  TABLE IF NOT EXISTS `sv_callset`
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('Manta', 'DRAGEN', 'Sniffles') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
   UNIQUE KEY `sv_callset_references_processed_sample` (`processed_sample_id`),
@@ -2682,9 +2683,9 @@ CREATE  TABLE IF NOT EXISTS `small_variants_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `caller` ENUM('freebayes', 'DRAGEN', 'Clair3') NOT NULL,
+  `caller` ENUM('freebayes', 'DRAGEN', 'Clair3', 'DeepVariant') NOT NULL,
   `caller_version` VARCHAR(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
   UNIQUE KEY `small_variants_callset_references_processed_sample` (`processed_sample_id`),
@@ -2800,7 +2801,7 @@ CREATE  TABLE IF NOT EXISTS `re_callset`
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('ExpansionHunter', 'Straglr') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
   UNIQUE KEY `re_callset_references_processed_sample` (`processed_sample_id`),

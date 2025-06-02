@@ -15,7 +15,6 @@
 #include "SqlQuery.h"
 #include "GeneSet.h"
 #include "PhenotypeList.h"
-#include "Helper.h"
 #include "DBTable.h"
 #include "ReportConfiguration.h"
 #include "SomaticReportConfiguration.h"
@@ -23,11 +22,9 @@
 #include "BedpeFile.h"
 #include "SomaticVariantInterpreter.h"
 #include "SomaticCnvInterpreter.h"
-#include "NGSHelper.h"
 #include "FileLocation.h"
 #include "FileInfo.h"
 #include "TsvFile.h"
-#include "HttpRequestHandler.h"
 
 const int MAX_VARIANT_SIZE = 500;
 
@@ -218,7 +215,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobHistoryEntry
 
 	QString timeAsString() const
 	{
-		return time.toString(Qt::ISODate).replace('T', ' ');
+		return time.toString(Qt::ISODate).replace('T', ' ').replace('Z', "");
 	}
 };
 
@@ -227,6 +224,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJob
 {
 	QString type;
 	bool high_priority;
+	bool use_dragen;
 	QString args;
 	QString sge_id;
 	QString sge_queue;
@@ -1028,6 +1026,8 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
+	///Returns if the sequencing type is LR
+	bool isLongRead(const QString& ps);
 
 	///Returns a path (including filename) for the processing system target region file. Returns an empty string if unset.
 	QString processingSystemRegionsFilePath(int sys_id);
@@ -1162,11 +1162,11 @@ public:
 	///Returns database ID of somatic report configuration, -1 if not present
 	int somaticReportConfigId(QString t_ps_id, QString n_ps_id);
 	///Sets/overwrites somatic report configuration for tumor-normal processed sample pair
-	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name);
+	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointer<SomaticReportConfiguration> config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name);
 	///Removes a somatic report configuration from NGSD, including its variant and cnv configurations
 	void deleteSomaticReportConfig(int id);
 	///Retrieve somatic report configuration using tumor and normal processed sample ids
-	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages);
+	QSharedPointer<SomaticReportConfiguration> somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
 
@@ -1183,7 +1183,7 @@ public:
 	///Returns information about an analysis job
 	AnalysisJob analysisInfo(int job_id, bool throw_if_fails = true);
 	///Queues an analysis.
-	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples);
+	void queueAnalysis(QString type, bool high_priority, bool use_dragen, QStringList args, QList<AnalysisJobSample> samples);
 	///Canceles an analysis. Returns 'true' if it was canceled and 'false' if it was not running anymore.
 	bool cancelAnalysis(int job_id);
 	///Deletes the analysis job record. Returns 'true' if a job was deleted, i.e. a job with the given ID existed.

@@ -26,5 +26,6 @@ private slots:
 		IS_TRUE(PipelineSettings::queuesResearch().contains("research_srv011"));
 		IS_TRUE(PipelineSettings::queuesHighPriority().contains("priority_srv010"));
 		IS_TRUE(PipelineSettings::queuesHighMemory().contains("highmem_srv010"));
+		S_EQUAL(PipelineSettings::queuesDragen().at(0), "dragen_srv016");
 	}
 };

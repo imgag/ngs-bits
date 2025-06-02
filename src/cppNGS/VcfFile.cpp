@@ -969,7 +969,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 	return vcf_file;
 }
 
-bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines)
+bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines, bool duplicates)
 {
 	//open input file
 	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toUtf8().data(), "rb");
@@ -1004,6 +1004,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	QMap<QByteArray, DefinitionLine> defined_formats;
 	QMap<QByteArray, DefinitionLine> defined_infos;
 	QByteArrayList defined_samples;
+	QByteArray last_tag;
 	int expected_parts = MIN_COLS;
 	bool in_header = true;
 	bool vcf_main_header_found = false;
@@ -1207,7 +1208,8 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			}
 
 			//alternate base(s)
-			QByteArrayList alts = parts[ALT].split(',');
+			QByteArray alt = parts[ALT];
+			QByteArrayList alts = alt.split(',');
 			if (alts.count()==1 && alts[0]==".")
 			{
 				printWarning(out_stream, "Missing value '.' used as alternative allele!", l, line);
@@ -1240,6 +1242,18 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 						printWarning(out_stream, "First base of insertion/deletion not matching - ref: '" + ref + "' alt: '" + alt + "'!", l, line);
 					}
 				}
+			}
+
+			//check for duplicate variants
+			if (duplicates)
+			{
+				QByteArray tag = chr.str() + ":" + QByteArray::number(pos) + " " + ref + ">" + alt;
+				if (tag==last_tag)
+				{
+					printError(out_stream, "Variant '" + tag + "' contained at least twice!", l, line);
+					return false;
+				}
+				last_tag = tag;
 			}
 
 			//quality

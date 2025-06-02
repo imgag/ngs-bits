@@ -11,7 +11,7 @@ class PathogenicWtDialog
 	Q_OBJECT
 
 public:
-	PathogenicWtDialog(QWidget* parent, QString bam);
+	PathogenicWtDialog(QWidget* parent, QString bam, bool is_long_read);
 
 private slots:
 	void delayedInitialization();
@@ -20,6 +20,7 @@ private slots:
 private:
 	Ui::PathogenicWtDialog ui_;
 	QString bam_;
+	bool is_long_read_;
 	DelayedInitializationTimer delayed_init_timer_;
 };
 

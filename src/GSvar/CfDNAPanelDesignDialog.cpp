@@ -16,7 +16,7 @@
 #include <QHeaderView>
 
 
-CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
+CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, QSharedPointer<SomaticReportConfiguration> somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),
 	ui_(new Ui::CfDNAPanelDesignDialog),
 	variants_(variants),
@@ -245,7 +245,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("MonitoringScore of the preselection tool.");
 
 	// get indices of report config
-	QList<int> report_config_indices = somatic_report_configuration_.variantIndices(VariantType::SNVS_INDELS, false);
+	QList<int> report_config_indices = somatic_report_configuration_->variantIndices(VariantType::SNVS_INDELS, false);
 
 	// get af/dp indices
 	int tumor_af_idx = variants_.annotationIndexByName("tumor_af");
@@ -309,7 +309,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 		SomaticReportVariantConfiguration var_conf;
 		if (report_config_indices.contains(i))
 		{
-			var_conf = somatic_report_configuration_.variantConfig(i, VariantType::SNVS_INDELS);
+			var_conf = somatic_report_configuration_->variantConfig(i, VariantType::SNVS_INDELS);
 		}
 
 		// create table
