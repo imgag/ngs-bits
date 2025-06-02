@@ -17,8 +17,8 @@ For the detection of insertions reads which overlap the start and end of the ins
 
 ## Algorithm details
 
-For SV calling [Manta](https://github.com/Illumina/manta) is used.  
-For algorithm details, see the Manta documentation.
+For SV calling [Manta](https://github.com/Illumina/manta) or [Illumina DRAGEN](https://support.illumina.com/sequencing/sequencing_software/dragen-bio-it-platform/documentation.html) is used.  
+For algorithm details, see the respective documentation.
 
 ## SV analysis window
 
