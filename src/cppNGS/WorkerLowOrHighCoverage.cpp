@@ -2,7 +2,7 @@
 #include "BamReader.h"
 #include "Statistics.h"
 
-WorkerLowOrHighCoverage::WorkerLowOrHighCoverage(Chunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug)
+WorkerLowOrHighCoverage::WorkerLowOrHighCoverage(Chunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug, bool high_depth)
 	: QRunnable()
 	, chunk_(bed_chunk)
 	, bam_file_(bam_file)
@@ -12,6 +12,7 @@ WorkerLowOrHighCoverage::WorkerLowOrHighCoverage(Chunk& bed_chunk, QString bam_f
 	, ref_file_(ref_file)
 	, is_high_(is_high)
 	, debug_(debug)
+	, high_depth_(high_depth)
 {
 }
 
@@ -120,7 +121,7 @@ void WorkerLowOrHighCoverage::run()
 	}
 }
 
-WorkerLowOrHighCoverageChr::WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::Chunk& bed_chunk, const ChromosomalIndex<BedFile>& bed_index, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug)
+WorkerLowOrHighCoverageChr::WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::Chunk& bed_chunk, const ChromosomalIndex<BedFile>& bed_index, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug, bool high_depth)
 	: QRunnable()
 	, chunk_(bed_chunk)
 	, bed_index_(bed_index)
@@ -131,6 +132,7 @@ WorkerLowOrHighCoverageChr::WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::
 	, ref_file_(ref_file)
 	, is_high_(is_high)
 	, debug_(debug)
+	, high_depth_(high_depth)
 {
 }
 
@@ -142,7 +144,7 @@ void WorkerLowOrHighCoverageChr::run()
 		if (chunk_.start<0) THROW(ArgumentException, "Chunk start index is less than zero!");
 		if (chunk_.start>chunk_.end) THROW(ArgumentException, "Chunk start index is after chunk end index!");
 		if (chunk_.end>=chunk_.data.count()) THROW(ArgumentException, "Chunk end index is behind data end!");
-		if (cutoff_>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+		if (!high_depth_ && (cutoff_>255)) THROW(ArgumentException, "Cutoff cannot be bigger than 255 in normal mode!");
 
 		//init
 		Chromosome chr = chunk_.data[chunk_.start].chr();
@@ -158,8 +160,11 @@ void WorkerLowOrHighCoverageChr::run()
         if (debug_) QTextStream(stdout) << "Determining chromosome size for " << chr.str() << QT_ENDL;
 		int max_pos = reader.chromosomeSize(chr);
         if (debug_) QTextStream(stdout) << "creating coverage array for " << chr.str() << QT_ENDL;
+
 		QVector<unsigned char> cov;
-		cov.fill(0, max_pos+1);
+		QVector<int> cov_high_depth;
+		if (high_depth_) cov_high_depth.fill(0, max_pos+1);
+		else cov.fill(0, max_pos+1);
 
 		//iterate through all alignments
         if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " - max position=" << max_pos << " start index=" << chunk_.start << " end index=" << chunk_.end << QT_ENDL;
@@ -185,7 +190,8 @@ void WorkerLowOrHighCoverageChr::run()
 				{
 					if(base_qualities.testBit(quality_pos))
 					{
-						if (cov[p]<254) ++cov[p];
+						if(high_depth_) ++cov_high_depth[p];
+						else if (cov[p]<254) ++cov[p];
 					}
 					++quality_pos;
 				}
@@ -194,7 +200,8 @@ void WorkerLowOrHighCoverageChr::run()
 			{
 				for (int p=start; p<=end; ++p)
 				{
-					if (cov[p]<254) ++cov[p];
+					if(high_depth_) ++cov_high_depth[p];
+					else if (cov[p]<254) ++cov[p];
 				}
 			}
 		}
@@ -210,7 +217,9 @@ void WorkerLowOrHighCoverageChr::run()
 			int reg_start = -1;
 			for (int p=bed_line.start(); p<=bed_line.end(); ++p)
 			{
-				bool filter = is_high_ ? (cov[p]>=cutoff_) : (cov[p]<cutoff_);
+				bool filter;
+				if (high_depth_) filter = is_high_ ? (cov_high_depth[p]>=cutoff_) : (cov_high_depth[p]<cutoff_);
+				else filter = is_high_ ? (cov[p]>=cutoff_) : (cov[p]<cutoff_);
 
 				if (reg_open && !filter)
 				{

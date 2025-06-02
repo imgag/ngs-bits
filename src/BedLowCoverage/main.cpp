@@ -29,8 +29,10 @@ public:
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addInt("threads", "Number of threads used.", true, 1);
+		addFlag("high_depth_mode", "Allows cutoffs over 255x (e.g. cfDNA).");
 		addFlag("debug", "Enable debug output.");
 
+		changeLog(2025,  4,  16, "Added 'high_depth_mode' parameter for deep samples.");
 		changeLog(2024,  7,  3, "Added 'random_access' and 'debug' parameters and removed 'wgs' parameter.");
 		changeLog(2022,  9, 19, "Added 'threads' parameter.");
 		changeLog(2020,  11, 27, "Added CRAM support.");
@@ -48,7 +50,7 @@ public:
 		BedFile file;
 		file.load(in);
 		file.merge(true, true);
-		BedFile output = Statistics::lowCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"), getFlag("random_access"), getFlag("debug"));
+		BedFile output = Statistics::lowCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"), getFlag("random_access"), getFlag("debug"), getFlag("high_depth_mode"));
 
 		output.appendHeader("#BAM: " + QFileInfo(bam).fileName().toUtf8());
 		output.appendHeader("#ROI: " + QFileInfo(in).fileName().toUtf8());

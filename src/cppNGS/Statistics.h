@@ -66,11 +66,11 @@ public:
 	static AncestryEstimates ancestry(GenomeBuild build, QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
-	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
+	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false, bool high_depth=false);
 	///Calculates and annotates the average coverage of the regions in the bed file. Debug flag enables debug output to stdout.
 	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, int threads=1, int decimals=2, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
 	///Calculates the part of the genome that has a higher coverage than the given cutoff.
-	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
+	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false, bool high_depth=false);
 
 	///Determines the gender based on the read ratio between X and Y chromosome.
 	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString());
@@ -84,7 +84,7 @@ protected:
 	Statistics();
 
 private:
-	static BedFile lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool is_high, bool random_access, bool debug);
+	static BedFile lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool is_high, bool random_access, bool debug, bool high_depth);
 	//Returns the ratio of chrY and chrX reads (for gender check and determining XXY karyotype). If no reads are found on chrX, nan is returned.
 	static double yxRatio(BamReader& reader, double* count_x=nullptr, double* count_y=nullptr);
 

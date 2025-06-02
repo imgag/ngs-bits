@@ -32,7 +32,7 @@ public:
 		}
 	};
 
-	WorkerLowOrHighCoverage(Chunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug);
+	WorkerLowOrHighCoverage(Chunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug, bool high_depth);
 	virtual void run() override;
 
 private:
@@ -44,6 +44,7 @@ private:
 	QString ref_file_;
 	bool is_high_;
 	bool debug_;
+	bool high_depth_;
 };
 
 
@@ -51,7 +52,7 @@ class WorkerLowOrHighCoverageChr : public QRunnable
 {
 public:
 
-	WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::Chunk& bed_chunk, const ChromosomalIndex<BedFile>& bed_index, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug);
+	WorkerLowOrHighCoverageChr(WorkerLowOrHighCoverage::Chunk& bed_chunk, const ChromosomalIndex<BedFile>& bed_index, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high, bool debug, bool high_depth);
 	virtual void run() override;
 
 private:
@@ -64,6 +65,7 @@ private:
 	QString ref_file_;
 	bool is_high_;
 	bool debug_;
+	bool high_depth_;
 };
 
 

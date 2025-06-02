@@ -2389,7 +2389,7 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	return output;
 }
 
-BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool is_high, bool random_access, bool debug)
+BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool is_high, bool random_access, bool debug, bool high_depth)
 {
 	//check BED is sorted for WGS mode
 	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
@@ -2481,7 +2481,7 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 			ChromosomalIndex<BedFile> bed_index(bed_file);
 
             if (debug) QTextStream(stdout) << "Starting worker " << i << QT_ENDL;
-			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bed_index, bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
+			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bed_index, bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug, high_depth);
 			thread_pool.start(worker);
 
 			//wait until finished
@@ -2490,7 +2490,7 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 		}
 		else
 		{
-			WorkerLowOrHighCoverage* worker = new WorkerLowOrHighCoverage(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
+			WorkerLowOrHighCoverage* worker = new WorkerLowOrHighCoverage(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug, high_depth);
 			thread_pool.start(worker);
 
 			//wait until finished
@@ -2548,9 +2548,9 @@ double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 	return reads_y / reads_x;
 }
 
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool random_access, bool debug)
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool random_access, bool debug, bool high_depth)
 {
-	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false, random_access, debug);
+	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false, random_access, debug, high_depth);
 }
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file, bool random_access, bool debug)
@@ -2661,9 +2661,9 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 }
 
-BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool random_access, bool debug)
+BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, bool random_access, bool debug, bool high_depth)
 {
-	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true, random_access, debug);
+	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true, random_access, debug, high_depth);
 }
 
 GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file)
