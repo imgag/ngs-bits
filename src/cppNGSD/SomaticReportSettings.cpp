@@ -2,7 +2,7 @@
 #include "TSVFileStream.h"
 
 SomaticReportSettings::SomaticReportSettings()
-	: report_config()
+	: report_config(QSharedPointer<SomaticReportConfiguration>(new SomaticReportConfiguration()))
 	, tumor_ps()
 	, normal_ps()
 {
