@@ -312,7 +312,8 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
 	QStringList qsub_args;
 	qsub_args << "-V";
-	qsub_args << "-pe" << "smp" << QString::number(threads);
+	if (job.use_dragen)
+	qsub_args << "-pe" << "smp" << ((script=="analyze_dragen.php")? "1": QString::number(threads));
 	qsub_args << "-b" << "y";
 	qsub_args << "-wd" << project_folder;
 	qsub_args << "-m" << "n";
