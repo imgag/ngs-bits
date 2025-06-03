@@ -121,10 +121,12 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	{
 		w.writeAttribute("sap_patient_identifier", "SAP_TEST_IDENTIFIER");
 	}
-	else
+	else if (GenLabDB::isAvailable())
 	{
 		GenLabDB genlab;
-			w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) ); //TODO Marc: make mandatory (also in schema) => throw error if not present (check if all samples have SAP id)
+		QString sap_id = genlab.sapID(data.settings.tumor_ps);
+		if (sap_id.isEmpty()) THROW(ArgumentException, "Aborting somatic XML creation: could not get SAP identifier from GenLab!");
+		w.writeAttribute("sap_patient_identifier",  sap_id);
 	}
 
 	QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(tumor_s_id);
