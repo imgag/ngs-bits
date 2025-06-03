@@ -2,8 +2,9 @@
 #include "NGSD.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "QJsonDocument"
-#include "QJsonArray"
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 class ConcreteTool
 		: public ToolBase
@@ -68,7 +69,7 @@ public:
 		if (refs.contains("UMLS"))
 		{
 			if (! refs["UMLS"].isArray()) THROW(ArgumentException, "The external reference UMLS of node " + parsed_node.name + " with code " + parsed_node.code + " was not an JsonArray.");
-			foreach (QJsonValue var, refs["UMLS"].toArray()) {
+            for (QJsonValue var : refs["UMLS"].toArray()) {
 				parsed_node.umls.append(var.toString());
 			}
 		}
@@ -76,29 +77,29 @@ public:
 		if (refs.contains("NCI"))
 		{
 			if (! refs["NCI"].isArray()) THROW(ArgumentException, "The external reference NCI of node " + parsed_node.name + " with code " + parsed_node.code + " was not an JsonArray.");
-			foreach (QJsonValue var, refs["NCI"].toArray()) {
+            for (QJsonValue var : refs["NCI"].toArray()) {
 				parsed_node.nci.append(var.toString());
 			}
 		}
 
 		if (! node["history"].isArray()) THROW(ArgumentException, "The history of node " + parsed_node.name + " with code " + parsed_node.code + " was not an JsonArray.");
-		foreach (QJsonValue var, node["history"].toArray()) {
+        for (QJsonValue var : node["history"].toArray()) {
 			parsed_node.history.append(var.toString());
 		}
 
 		if (! node["revocations"].isArray()) THROW(ArgumentException, "The revocations of node " + parsed_node.name + " with code " + parsed_node.code + " was not an JsonArray.");
-		foreach (QJsonValue var, node["revocations"].toArray()) {
+        for (QJsonValue var : node["revocations"].toArray()) {
 			parsed_node.revocations.append(var.toString());
 		}
 
 		if (! node["precursors"].isArray()) THROW(ArgumentException, "The precursors of node " + parsed_node.name + " with code " + parsed_node.code + " was not an JsonArray.");
-		foreach (QJsonValue var, node["precursors"].toArray()) {
+        for (QJsonValue var : node["precursors"].toArray()) {
 			parsed_node.precursors.append(var.toString());
 		}
 		children.clear();
 		if (! node["children"].isObject()) THROW(ArgumentException, "The children of node " + parsed_node.name + " with code " + parsed_node.code + " were not an JsonObject.");
 		QJsonObject children_obj = node["children"].toObject();
-		foreach(QString key, children_obj.keys())
+        for (QString key : children_obj.keys())
 		{
 			if (! children_obj[key].isObject()) THROW(ArgumentException, "The child " + key + " of node " + parsed_node.name + " with code " + parsed_node.code + " were not an JsonObject.");
 			children.append(children_obj[key].toObject());
@@ -182,9 +183,9 @@ public:
 				}
 			}
 		}
-		out << "Imported " << codes.count() << "  Oncotree terms." << endl;
-		out << "Imported " << count_parent_relations << "  Oncotree parent-child relations." << endl;
-		out << "Imported " << count_obsolete << " obsolete Oncotree terms." << endl;
+        out << "Imported " << codes.count() << "  Oncotree terms." << QT_ENDL;
+        out << "Imported " << count_parent_relations << "  Oncotree parent-child relations." << QT_ENDL;
+        out << "Imported " << count_obsolete << " obsolete Oncotree terms." << QT_ENDL;
 	}
 
 	QList<OncotreeCode> parsingTree(QJsonObject root)

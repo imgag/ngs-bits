@@ -84,7 +84,7 @@ void CnvSearchWidget::search()
 		{
 			// parse genes
 			GeneSet genes;
-			foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QString::SkipEmptyParts))
+            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS))
 			{
 				QByteArray approved_gene_name = db_.geneToApproved(gene.toUtf8());
 				if (approved_gene_name == "") THROW(ArgumentException, "Invalid gene name '" + gene + "' given!");
@@ -335,7 +335,7 @@ void CnvSearchWidget::changeSearchType()
 void CnvSearchWidget::openSelectedSampleTabs()
 {
 	int col = ui_.table->columnIndex("sample");
-	foreach (int row, ui_.table->selectedRows().toList())
+    foreach (int row, ui_.table->selectedRows().values())
 	{
 		QString ps = ui_.table->item(row, col)->text();
 		GlobalServiceProvider::openProcessedSampleTab(ps);

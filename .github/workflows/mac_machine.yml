@@ -1,10 +1,10 @@
-name: MacOS build
+name: MacOS build (arm64, M1)
 
 on: [push, pull_request]
 
 jobs:
   mac-build-and-test:
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -19,11 +19,11 @@ jobs:
     - name: Install Python 3
       run: brew install python@3.10
     - name: Setup other dependencies
-      run: brew install lzlib
-    - name: Install Qt 5
-      run: brew install qt@5
+      run: brew install lzlib libxml2
+    - name: Install Qt 6
+      run: brew install qt qt-mariadb
     - name: Link Qt installation      
-      run: brew link qt@5 --force
+      run: brew link qt --force
     - name: Install matplotlib and numpy for Python 2
       run: sudo pip install matplotlib numpy
     - name: Install matplotlib and numpy for Python 3

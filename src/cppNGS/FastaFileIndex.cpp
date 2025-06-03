@@ -3,7 +3,6 @@
 #include "Helper.h"
 #include "Log.h"
 #include <QNetworkProxy>
-#include <QRegExp>
 #include <QStringList>
 #include "HttpRequestHandler.h"
 

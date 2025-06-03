@@ -85,7 +85,7 @@ void AnalysisStatusWidget::refreshStatus()
 
 	try
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//query job IDs
@@ -126,7 +126,7 @@ void AnalysisStatusWidget::refreshStatus()
 			if (repeated && !ui_.f_repeated->isChecked()) continue;
 
 			//filter date
-			QDateTime f_date = QDateTime(ui_.f_date->date());
+            QDateTime f_date = QDateTime(ui_.f_date->date(), QTime(0, 0, 0));
 			if (job.history.count()==0)
 			{
 				qDebug() << "No history for job " << job_id;
@@ -607,13 +607,13 @@ void AnalysisStatusWidget::updateDetails()
 	//history
 	ui_.history->setRowCount(job.history.count());
 	r = 0;
-	foreach(const AnalysisJobHistoryEntry& entry, job.history)
+    for (const AnalysisJobHistoryEntry& entry : job.history)
 	{
 		addItem(ui_.history, r, 0, entry.timeAsString());
 		addItem(ui_.history, r, 1, entry.user);
 		addItem(ui_.history, r, 2, entry.status, statusToColor(entry.status));
 		QString output = entry.output.join("\n").trimmed();
-		if (output.count()>50)
+        if (output.size()>50)
 		{
 			output.resize(50);
 			output += "...";
@@ -702,7 +702,7 @@ QTableWidgetItem* AnalysisStatusWidget::addItem(QTableWidget* table, int row, in
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 
 	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-	item->setBackgroundColor(bg_color);
+    item->setBackground(QBrush(QColor(bg_color)));
 	table->setItem(row, col, item);
 
 	return item;

@@ -2,7 +2,7 @@
 #include "TSVFileStream.h"
 
 SomaticReportSettings::SomaticReportSettings()
-	: report_config()
+	: report_config(QSharedPointer<SomaticReportConfiguration>(new SomaticReportConfiguration()))
 	, tumor_ps()
 	, normal_ps()
 {
@@ -25,13 +25,13 @@ double SomaticReportSettings::get_msi_value(NGSD &db) const
 
 VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const SomaticReportSettings& sett, bool throw_errors)
 {
-	QSet<int> variant_indices = sett.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+	QSet<int> variant_indices = LIST_TO_SET(sett.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 
 	VariantList result;
 
 	result.copyMetaData(snvs);
 
-	FilterResult filter_res = sett.report_config.filters().apply(snvs, throw_errors); //does not regard "include" result of report_config
+	FilterResult filter_res = sett.report_config->filters().apply(snvs, throw_errors); //does not regard "include" result of report_config
 
 	//filter for target region
 	if(sett.target_region_filter.regions.count() > 0)
@@ -43,7 +43,7 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 	//Adapt filter results to results from report settings
 	foreach(int index, variant_indices)
 	{
-		filter_res.flags()[index] = sett.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
+		filter_res.flags()[index] = sett.report_config->variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 	}
 
 
@@ -57,10 +57,10 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 		result.append(snvs[i]);
 
 		//add additional report config info into new empty annotation columns
-		if(variant_indices.contains(i) && sett.report_config.variantConfig(i, VariantType::SNVS_INDELS).showInReport())
+		if(variant_indices.contains(i) && sett.report_config->variantConfig(i, VariantType::SNVS_INDELS).showInReport())
 		{
-			result[result.count()-1].annotations().append(sett.report_config.variantConfig(i, VariantType::SNVS_INDELS).include_variant_alteration.toUtf8());
-			result[result.count()-1].annotations().append(sett.report_config.variantConfig(i, VariantType::SNVS_INDELS).include_variant_description.toUtf8());
+			result[result.count()-1].annotations().append(sett.report_config->variantConfig(i, VariantType::SNVS_INDELS).include_variant_alteration.toUtf8());
+			result[result.count()-1].annotations().append(sett.report_config->variantConfig(i, VariantType::SNVS_INDELS).include_variant_description.toUtf8());
 		}
 		else
 		{
@@ -73,7 +73,7 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 
 VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &germl_snvs, const SomaticReportSettings &sett)
 {
-	QSet<int> variant_indices = sett.report_config.variantIndicesGermline().toSet();
+	QSet<int> variant_indices = LIST_TO_SET(sett.report_config->variantIndicesGermline());
 
 	VariantList result;
 
@@ -87,8 +87,8 @@ VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &ger
 		if(variant_indices.contains(i))
 		{
 			result.append(germl_snvs[i]);
-			result[result.count()-1].annotations().append( QByteArray::number(sett.report_config.variantConfigGermline(i).tum_freq) );
-			result[result.count()-1].annotations().append( QByteArray::number(sett.report_config.variantConfigGermline(i).tum_depth) );
+			result[result.count()-1].annotations().append( QByteArray::number(sett.report_config->variantConfigGermline(i).tum_freq) );
+			result[result.count()-1].annotations().append( QByteArray::number(sett.report_config->variantConfigGermline(i).tum_depth) );
 		}
 	}
 
@@ -98,10 +98,10 @@ VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &ger
 CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticReportSettings &sett)
 {
 	QBitArray cnv_flags(cnvs.count(), true);
-	QSet<int> cnv_indices = sett.report_config.variantIndices(VariantType::CNVS, false).toSet();
+	QSet<int> cnv_indices = LIST_TO_SET(sett.report_config->variantIndices(VariantType::CNVS, false));
 	for(int index : cnv_indices)
 	{
-		cnv_flags[index] = sett.report_config.variantConfig(index, VariantType::CNVS).showInReport();
+		cnv_flags[index] = sett.report_config->variantConfig(index, VariantType::CNVS).showInReport();
 	}
 
 	CnvList result;
@@ -125,7 +125,7 @@ BedpeFile SomaticReportSettings::filterSvs(NGSD& db, const BedpeFile& svs, const
 	result.addAnnotationHeader("START_POS_REPORT");
 	result.addAnnotationHeader("END_POS_REPORT");
 
-	QSet<int> sv_indicies = sett.report_config.variantIndices(VariantType::SVS, true).toSet();
+	QSet<int> sv_indicies = LIST_TO_SET(sett.report_config->variantIndices(VariantType::SVS, true));
 
 	if (sv_indicies.count() == 0) return result;
 
@@ -134,7 +134,7 @@ BedpeFile SomaticReportSettings::filterSvs(NGSD& db, const BedpeFile& svs, const
 		BedpeLine sv = svs[idx];
 		GeneSet genes_A = db.genesOverlapping(sv.chr1(), sv.start1(), sv.end1(), 5000);
 		GeneSet genes_B = db.genesOverlapping(sv.chr2(), sv.start2(), sv.end2(), 5000);
-		const auto& var_config = sett.report_config.variantConfig(idx, VariantType::SVS);
+		const auto& var_config = sett.report_config->variantConfig(idx, VariantType::SVS);
 		sv.appendAnnotation(var_config.description.toUtf8());
 		sv.appendAnnotation(genes_A.toStringList().join(", ").toUtf8());
 		sv.appendAnnotation(genes_B.toStringList().join(", ").toUtf8());

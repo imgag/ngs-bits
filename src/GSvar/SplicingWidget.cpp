@@ -126,7 +126,7 @@ void SplicingWidget::applyFilter()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		int row_count = ui_->tw_splicing->rowCount();
@@ -146,7 +146,7 @@ void SplicingWidget::applyFilter()
 			{
 				if (genes_joined.contains("*")) //with wildcards
 				{
-					QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                    QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 					for(int row_idx=0; row_idx<row_count; ++row_idx)
 					{
 						if (!filter_result.flags()[row_idx]) continue;
@@ -155,9 +155,9 @@ void SplicingWidget::applyFilter()
 						GeneSet genes = GeneSet::createFromText(ui_->tw_splicing->item(row_idx, gene_idx)->text().toUtf8(), ',');
 
 						bool match_found = false;
-						foreach(const QByteArray& gene, genes)
+                        for (const QByteArray& gene : genes)
 						{
-							if (reg.exactMatch(gene))
+                            if (reg.match(gene).hasMatch())
 							{
 								match_found = true;
 								break;

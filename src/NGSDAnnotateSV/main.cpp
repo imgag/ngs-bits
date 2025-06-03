@@ -64,16 +64,6 @@ public:
 		//prepare a query for each SV type to find pathogenic SVs of class 4/5
 		QByteArray select_class = "SELECT rc.class FROM `report_configuration_sv` rc, ";
 
-		// queries to find all class 4/5 svs for a DEL/DUP/INV
-		QByteArray overlap_del_dup_inv = "AND sv.chr = :0 AND sv.start_min <= :1 AND :2 <= sv.start_max AND sv.end_min <= :3 AND :4 <= sv.end_max";
-
-		SqlQuery select_class_sv_deletion = db.getQuery();
-		select_class_sv_deletion.prepare(select_class + "sv_deletion sv WHERE (rc.class='4' || rc.class='5') AND rc.sv_deletion_id=sv.id " + overlap_del_dup_inv);
-		SqlQuery select_class_sv_duplication = db.getQuery();
-		select_class_sv_duplication.prepare(select_class + "sv_duplication sv WHERE (rc.class='4' || rc.class='5') AND rc.sv_duplication_id=sv.id " + overlap_del_dup_inv);
-		SqlQuery select_class_sv_inverison = db.getQuery();
-		select_class_sv_inverison.prepare(select_class + "sv_inversion sv WHERE (rc.class='4' || rc.class='5') AND rc.sv_inversion_id=sv.id " + overlap_del_dup_inv);
-
 		// query to find all class 4/5 svs for a INS
 		QByteArray get_class_insertion = "sv_insertion sv WHERE (rc.class='4' || rc.class='5') AND rc.sv_insertion_id=sv.id AND sv.chr = :0 AND sv.pos <= :1 AND :2 <= (sv.pos + sv.ci_upper)";
 		SqlQuery select_class_sv_insertion = db.getQuery();
@@ -148,11 +138,23 @@ public:
 				{
 					//Del, Dup or Inv
 
+                    // queries to find all class 4/5 svs for a DEL/DUP/INV
+                    QByteArray overlap_del_dup_inv = "AND sv.chr = :0 AND sv.start_min <= :1 AND :2 <= sv.start_max AND sv.end_min <= :3 AND :4 <= sv.end_max";
+
 					// select query according to SV type
-					SqlQuery query_class = db.getQuery();
-					if (sv.type() == StructuralVariantType::DEL) query_class = select_class_sv_deletion;
-					else if (sv.type() == StructuralVariantType::DUP) query_class = select_class_sv_duplication;
-					else if (sv.type() == StructuralVariantType::INV) query_class = select_class_sv_inverison;
+                    SqlQuery query_class = db.getQuery();
+                    if (sv.type() == StructuralVariantType::DEL)
+                    {
+                        query_class.prepare(select_class + "sv_deletion sv WHERE (rc.class='4' || rc.class='5') AND rc.sv_deletion_id=sv.id " + overlap_del_dup_inv);
+                    }
+                    else if (sv.type() == StructuralVariantType::DUP)
+                    {
+                        query_class.prepare(select_class + "sv_duplication sv WHERE (rc.class='4' || rc.class='5') AND rc.sv_duplication_id=sv.id " + overlap_del_dup_inv);
+                    }
+                    else if (sv.type() == StructuralVariantType::INV)
+                    {
+                        query_class.prepare(select_class + "sv_inversion sv WHERE (rc.class='4' || rc.class='5') AND rc.sv_inversion_id=sv.id " + overlap_del_dup_inv);
+                    }
 					else THROW(FileParseException, "Invalid SV type in BEDPE line.");
 
 					//get matches classifed as class 4/5
@@ -188,7 +190,7 @@ public:
 
 		}
 
-		out << "writing annotated SVs to file..." << endl;
+        out << "writing annotated SVs to file..." << QT_ENDL;
 
 		// open output file
 		QSharedPointer<QFile> output_file = Helper::openFileForWriting(getOutfile("out"),false,false);

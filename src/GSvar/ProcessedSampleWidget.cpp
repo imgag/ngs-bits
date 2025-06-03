@@ -21,6 +21,9 @@
 #include "GenLabDB.h"
 #include "ExpressionExonWidget.h"
 #include "SplicingWidget.h"
+#include <QDir>
+#include <QDesktopServices>
+#include <QInputDialog>
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
@@ -130,6 +133,9 @@ void ProcessedSampleWidget::delayedInitialization()
         addIgvMenuEntry(menu, PathType::STRUCTURAL_VARIANTS);
         menu->addSeparator();
         addIgvMenuEntry(menu, PathType::MANTA_EVIDENCE);
+		menu->addSeparator();
+		addIgvMenuEntry(menu, PathType::PARAPHASE_EVIDENCE);
+		menu->addSeparator();
     }
 
     ui_->igv_btn->setMenu(menu);
@@ -403,7 +409,7 @@ void ProcessedSampleWidget::showPlot()
 {
 	NGSD db;
 
-	QList<int> selected_rows = ui_->qc_table->selectedRows().toList();
+    QList<int> selected_rows = ui_->qc_table->selectedRows().values();
 	if (selected_rows.count()<1 || selected_rows.count()>2)
 	{
 		QMessageBox::information(this, "Plot error", "Please select <b>one or two</b> quality metric for plotting!");
@@ -467,7 +473,7 @@ void ProcessedSampleWidget::openSampleTab()
 	NGSD db;
 
 	//check that a relation is selected
-	QList<int> selected_rows = ui_->sample_relations->selectedRows().toList();
+    QList<int> selected_rows = ui_->sample_relations->selectedRows().values();
 	if (selected_rows.isEmpty())
 	{
 		QMessageBox::warning(this, "Sample relation - processed sample tab", "Please select at least one relation!");
@@ -518,7 +524,7 @@ void ProcessedSampleWidget::openSampleTab()
 
 void ProcessedSampleWidget::openExternalDiseaseDatabase()
 {
-	QList<int> selected_rows = ui_->disease_details->selectedRows().toList();
+    QList<int> selected_rows = ui_->disease_details->selectedRows().values();
 	foreach(int row, selected_rows)
 	{
 		QString type = ui_->disease_details->item(row, 0)->text();
@@ -569,7 +575,7 @@ void ProcessedSampleWidget::addRelation()
 void ProcessedSampleWidget::removeRelation()
 {
 	//check that a relation is selected
-	QList<int> selected_rows = ui_->sample_relations->selectedRows().toList();
+    QList<int> selected_rows = ui_->sample_relations->selectedRows().values();
 	if (selected_rows.isEmpty())
 	{
 		QMessageBox::warning(this, "Sample relation", "Please select a relation!");
@@ -591,8 +597,8 @@ void ProcessedSampleWidget::removeRelation()
 
 void ProcessedSampleWidget::editStudy()
 {
-	//check that a study
-	QList<int> selected_rows = ui_->studies->selectedRows().toList();
+    //check that a study
+    QList<int> selected_rows = ui_->studies->selectedRows().values();
 	if (selected_rows.isEmpty())
 	{
 		QMessageBox::warning(this, "Study", "Please select a study!");
@@ -650,7 +656,7 @@ void ProcessedSampleWidget::addStudy()
 void ProcessedSampleWidget::removeStudy()
 {
 	//check that a study
-	QList<int> selected_rows = ui_->studies->selectedRows().toList();
+    QList<int> selected_rows = ui_->studies->selectedRows().values();
 	if (selected_rows.isEmpty())
 	{
 		QMessageBox::warning(this, "Study deletion", "Please select a study!");
@@ -931,6 +937,7 @@ QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type
 		parameter_list << "QC:2000113"; // CNV count
 		parameter_list << "QC:2000114"; // coverage profile correlation
 		parameter_list << "QC:2000117"; // SV count
+		parameter_list << "QC:2000131"; // N50 value
 	}
 	else if(sample_type == "cfDNA")
 	{

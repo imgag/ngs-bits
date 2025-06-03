@@ -55,7 +55,7 @@ public:
 
 		if (extend>0)
 		{
-			while (e.bases.count()<extend)
+            while (e.bases.size()<extend)
 			{
 				e.bases.append('N');
 				e.qualities.append(35); //33+2
@@ -82,7 +82,7 @@ public:
 	virtual void main()
 	{
 		//init
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 		QTextStream out(stdout);
 		BamReader reader(getInfile("in"), getInfile("ref"));
@@ -133,8 +133,6 @@ public:
 		QSharedPointer<BamAlignment> al = QSharedPointer<BamAlignment>(new BamAlignment());
 		while (reader.getNextAlignment(*al))
 		{
-			//out << al.name() << " PAIRED=" << al.isPaired() << " SEC=" << al.isSecondaryAlignment() << " PROP=" << al.isProperPair() << endl;
-			
 			//skip secondary alinments
 			if(al->isSecondaryAlignment() || al->isSupplementaryAlignment()) continue;
 
@@ -170,9 +168,7 @@ public:
 				QByteArray name = al->name();
 				if (al_cache.contains(name))
 				{
-					QSharedPointer<BamAlignment> mate = al_cache.take(name);
-					//out << name << " [AL] First: " << al.isRead1() << " Reverse: " << al.isReverseStrand() << " Seq: " << al.QueryBases.data() << endl;
-					//out << name << " [MA] First: " << mate.isRead1() << " Reverse: " << mate.isReverseStrand() << " Seq: " << mate.QueryBases.data() << endl;
+					QSharedPointer<BamAlignment> mate = al_cache.take(name);					
 					ReadPair& pair = pair_pool.nextFreePair();
 					if (al->isRead1())
 					{
@@ -193,7 +189,7 @@ public:
 					al = QSharedPointer<BamAlignment>(new BamAlignment());
 				}
 
-				max_cached = std::max(max_cached, al_cache.size());
+                max_cached = std::max(SIZE_TO_INT(max_cached), SIZE_TO_INT(al_cache.size()));
 			}
 			else //single-end
 			{
@@ -207,25 +203,25 @@ public:
 		//write debug output
 		if(is_pe)
 		{
-			out << "Pair reads (written)            : " << c_paired << endl;
-			out << "Unpaired reads (skipped)        : " << c_unpaired << endl;
-			out << "Unmatched paired reads (skipped): " << al_cache.size() << endl;
+            out << "Pair reads (written)            : " << c_paired << QT_ENDL;
+            out << "Unpaired reads (skipped)        : " << c_unpaired << QT_ENDL;
+            out << "Unmatched paired reads (skipped): " << al_cache.size() << QT_ENDL;
 		}
 		else //single-end
 		{
-			out << "Reads (written)                 : " << c_single_end << endl;
+            out << "Reads (written)                 : " << c_single_end << QT_ENDL;
 		}
 		if (remove_duplicates)
 		{
-			out << "Duplicate tagged reads (skipped): " << c_duplicates << endl;
+            out << "Duplicate tagged reads (skipped): " << c_duplicates << QT_ENDL;
 		}
 		if (fix)
 		{
-			out << "Duplicate name reads (skipped)  : " << c_fixed << endl;
+            out << "Duplicate name reads (skipped)  : " << c_fixed << QT_ENDL;
 		}
-		out << endl;
-		out << "Maximum cached reads            : " << max_cached << endl;
-		out << "Time elapsed                    : " << Helper::elapsedTime(timer, true) << endl;
+        out << QT_ENDL;
+        out << "Maximum cached reads            : " << max_cached << QT_ENDL;
+        out << "Time elapsed                    : " << Helper::elapsedTime(timer, true) << QT_ENDL;
 
 		//terminate FASTQ writer after all reads are written
 		pair_pool.waitAllWritten();

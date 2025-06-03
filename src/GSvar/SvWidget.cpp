@@ -46,13 +46,13 @@ SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, 
 	initGUI();
 }
 
-SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes)
+SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QSharedPointer<SomaticReportConfiguration> som_rep_conf, const GeneSet& het_hit_genes)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, svs_(bedpe_file)
 	, ps_id_()
 	, var_het_genes_(het_hit_genes)
-	, som_report_config_(&som_rep_conf)
+	, som_report_config_(som_rep_conf)
     , ngsd_user_logged_in_(LoginManager::active())
     , rc_enabled_(ngsd_user_logged_in_ && som_report_config_!=nullptr)
 	, is_somatic_(true)
@@ -175,8 +175,8 @@ void SvWidget::initGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-	if((report_config_ != NULL) && !is_somatic_) report_variant_indices = report_config_->variantIndices(VariantType::SVS, false).toSet();
-	if((som_report_config_ != NULL) && is_somatic_) report_variant_indices = som_report_config_->variantIndices(VariantType::SVS, false).toSet();
+    if((report_config_ != NULL) && !is_somatic_) report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::SVS, false));
+    if((som_report_config_ != NULL) && is_somatic_) report_variant_indices = LIST_TO_SET(som_report_config_->variantIndices(VariantType::SVS, false));
 
 	//fill table widget with data from bedpe file
 	for(int row=0; row<svs_.count(); ++row)
@@ -292,7 +292,7 @@ void SvWidget::applyFilters(bool debug_time)
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		// filter by FilterCascade
@@ -394,14 +394,14 @@ void SvWidget::applyFilters(bool debug_time)
 			NGSD db;
 			//convert phenotypes to genes
 			GeneSet pheno_genes;
-			foreach(const Phenotype& pheno, phenotypes)
+            for (const Phenotype& pheno : phenotypes)
 			{
 				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			BedFile pheno_roi;
-			foreach(const QByteArray& gene, pheno_genes)
+            for (const QByteArray& gene : pheno_genes)
 			{
 				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -431,7 +431,7 @@ void SvWidget::applyFilters(bool debug_time)
 			{
 				if (genes_joined.contains("*")) //with wildcards
 				{
-					QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                    QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 					for(int row=0; row<row_count; ++row)
 					{
 						if (!filter_result.flags()[row]) continue;
@@ -440,9 +440,9 @@ void SvWidget::applyFilters(bool debug_time)
 						GeneSet sv_genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
 
 						bool match_found = false;
-						foreach(const QByteArray& sv_gene, sv_genes)
+                        for (const QByteArray& sv_gene : sv_genes)
 						{
-							if (reg.exactMatch(sv_gene))
+                            if (reg.match(sv_gene).hasMatch())
 							{
 								match_found = true;
 								break;
@@ -616,7 +616,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	if (i_genes!=-1)
 	{
 		GeneSet genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
-		foreach(const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 
 			GeneInfo gene_info = db.geneInfo(gene);
@@ -1304,7 +1304,7 @@ void SvWidget::showContextMenu(QPoint pos)
 			menu.addSeparator();
 
 			int gene_nr = 1;
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				++gene_nr;
 				if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
@@ -1312,7 +1312,7 @@ void SvWidget::showContextMenu(QPoint pos)
 				QMenu* sub_menu = menu.addMenu(gene);
                 sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in_);
 				sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
-				foreach(const GeneDB& db, GeneInfoDBs::all())
+                for (const GeneDB& db : GeneInfoDBs::all())
 				{
 					sub_menu->addAction(db.icon, db.name);
 				}
@@ -1406,7 +1406,7 @@ void SvWidget::showContextMenu(QPoint pos)
 		else if (db_name=="Google")
 		{
 			QString query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, ui->filter_widget->phenotypes())
+            for (const Phenotype& pheno : ui->filter_widget->phenotypes())
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}

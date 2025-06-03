@@ -26,8 +26,16 @@ public:
     virtual void setup()
     {
         setDescription("Annotates a VCF file with MaxEntScan scores.");
+		QStringList desc;
+		desc << "This is essentially a multithreaded C++ reimplementation of the MaxEntScan plugin for VEP (https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm). MaxEntScan was first introduced by Shamsani et al. (https://doi.org/10.1093/bioinformatics/bty960).";
+		desc << "Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread.";
+		desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided GFF file).";
+		desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (SWA).";
+		desc << "Intergenic variants never get a MES scores.";
+		setExtendedDescription(desc);
+
 		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz.", false);
-        //optional
+		//optional
 		addOutfile("out", "Output VCF file containing the MaxEntScan scores in the INFO column. If unset, writes to STDOUT.", true);
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true);
 		addFlag("swa", "Enables sliding window approach, i.e. predictions of de-novo acceptor/donor sites.");
@@ -41,20 +49,11 @@ public:
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true);
 		addFlag("debug", "Enables debug output (use only with one thread).");
+
+		changeLog(2025,  3, 20, "Fixed bug in SWA alternative sequence generation and using 'min_score' for comp scores as well.");
+		changeLog(2023,  9, 26, "Added several parameters to make output more configurable.");
+		changeLog(2023,  9, 18, "first version");
     }
-
-    QStringList extendedDescription()
-	{
-		QStringList desc;
-
-		desc << "This is essentially a multithreaded C++ reimplementation of the MaxEntScan plugin for VEP (https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm). MaxEntScan was first introduced by Shamsani et al. (https://doi.org/10.1093/bioinformatics/bty960).";
-        desc << "Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread.";
-		desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided GFF file).";
-		desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (SWA).";
-		desc << "Intergenic variants never get a MES scores.";
-
-		return desc;
-	}
 
     virtual void main()
     {
@@ -80,19 +79,19 @@ public:
 		if (params.in!="" && params.in==params.out) THROW(ArgumentException, "Input and output files must be different when streaming!");
 
         // read in reference genome
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
         QString ref_file = getInfile("ref");
         if (ref_file=="") ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
         FastaFileIndex reference(ref_file);
-		out << "Reading reference took: " << Helper::elapsedTime(timer) << endl;
+        out << "Reading reference took: " << Helper::elapsedTime(timer) << QT_ENDL;
 
         // read in matrices
 		timer.start();
 		QHash<QByteArray,float> score5_rest_ = read_matrix_5prime(":/resources/score5_matrix.tsv");
         QHash<int,QHash<int,float>> score3_rest_ = read_matrix_3prime(":/resources/score3_matrix.tsv");
-		out << "Parsing matrices from resources took: " << Helper::elapsedTime(timer) << endl;
+        out << "Parsing matrices from resources took: " << Helper::elapsedTime(timer) << QT_ENDL;
 
 		// parse GFF file
 		timer.start();
@@ -103,7 +102,7 @@ public:
 		gff_settings.include_all = all;
 		gff_settings.skip_not_hgnc = false;
 		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
-		out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
+        out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << QT_ENDL;
         gff_file.transcripts.sortByPosition();
 
 		QByteArrayList annotation_header_lines;
@@ -122,7 +121,7 @@ public:
 		out << "Block (Chunk) size: \t" << params.block_size << "\n";
 
 		//create coordinator instance
-		out << "Performing annotation..." << endl;
+        out << "Performing annotation..." << QT_ENDL;
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }

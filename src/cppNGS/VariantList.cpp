@@ -9,7 +9,6 @@
 
 #include <QFile>
 #include <QTextStream>
-#include <QRegExp>
 #include <QBitArray>
 #include <QUrl>
 
@@ -72,7 +71,7 @@ QByteArrayList Variant::vepAnnotations(int csq_index, int field_index) const
 	QByteArrayList output;
 
 	QByteArray csq = annotations()[csq_index].trimmed();
-	if (csq.count()>0)
+    if (csq.size()>0)
 	{
 		QByteArrayList transcripts = csq.split(',');
 
@@ -147,7 +146,7 @@ QString Variant::toString(QChar sep, int max_sequence_length, bool chr_normalize
 	}
 	else
 	{
-		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + sep.toLatin1() + QString::number(start_) + sep.toLatin1() + QString::number(end_) + sep.toLatin1() + ref + sep.toLatin1() + obs;
+        return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + sep.toLatin1() + QString::number(start_) + sep.toLatin1() + QString::number(end_) + sep.toLatin1() + ref + sep.toLatin1() + obs;
 	}
 }
 
@@ -163,12 +162,12 @@ void Variant::checkValid() const
 		THROW(ArgumentException, "Invalid variant position range in variant '" + toString() + "'");
 	}
 
-	if (ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(ref()))
+    if (ref()!="-" && !QRegularExpression(QRegularExpression::anchoredPattern("[ACGTN]+")).match(ref()).hasMatch())
 	{
 		THROW(ArgumentException, "Invalid variant reference sequence in variant '" + toString() + "'");
 	}
 
-	if (obs()!="-" && obs()!="." && !QRegExp("[ACGTN,]+").exactMatch(obs()))
+    if (obs()!="-" && obs()!="." && !QRegularExpression(QRegularExpression::anchoredPattern("[ACGTN,]+")).match(obs()).hasMatch())
 	{
 		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString() + "'");
 	}
@@ -385,7 +384,7 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 		return prefix + QString::number(start) + '_' + QString::number(start + ref_len - 1) + "delins" + obs;
 	}
 
-	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
+    THROW(ProgrammingException, "Could not convert variant " + toString(QChar(), -1, false) + " to string! This should not happen!");
 }
 
 VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
@@ -1188,7 +1187,7 @@ AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
 }
 
-VariantCaller VariantList::getCaller() const
+QByteArray VariantList::caller() const
 {
 	foreach(const QString& line, comments_)
 	{
@@ -1196,14 +1195,29 @@ VariantCaller VariantList::getCaller() const
 		{
 			QString tmp = line.mid(9).trimmed() + ' ';
 			int sep_idx = tmp.indexOf(' ');
-			return VariantCaller{tmp.left(sep_idx).trimmed(), tmp.mid(sep_idx).trimmed()};
+			return tmp.left(sep_idx).trimmed().toUtf8();
 		}
 	}
 
-	return VariantCaller();
+	return "";
 }
 
-QDate VariantList::getCallingDate() const
+QByteArray VariantList::callerVersion() const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##SOURCE="))
+		{
+			QString tmp = line.mid(9).trimmed() + ' ';
+			int sep_idx = tmp.indexOf(' ');
+			return tmp.mid(sep_idx).trimmed().toUtf8();
+		}
+	}
+
+	return "";
+}
+
+QDate VariantList::callingDate() const
 {
 	foreach(const QString& line, comments_)
 	{
@@ -1363,13 +1377,6 @@ QList<VariantTranscript> Variant::parseTranscriptString(QByteArray text, bool al
 	return output;
 }
 
-QDebug operator<<(QDebug d, const Variant& v)
-{
-	d.nospace() << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << "=>" << v.obs();
-	return d.space();
-}
-
-
 QByteArray VariantTranscript::toString(char sep) const
 {
 	return gene + sep + id + sep + type + sep + variantImpactToString(impact) + sep + exon + sep + hgvs_c + sep + hgvs_p + sep + domain;
@@ -1401,12 +1408,12 @@ Variant Variant::fromString(const QString& text_orig)
 	text.replace("\t", " ");
 	text.replace(":", " ");
 	text.replace(">", " ");
-	text.replace(QRegExp("-([0-9])"), " \\1"); //replace '-' between start/end but preserve '-' in ref/obs of indels
-	text.replace(QRegExp("([0-9]+)"), "\\1 "); //special handling if space after end position is missing
+    text.replace(QRegularExpression("-([0-9])"), " \\1"); //replace '-' between start/end but preserve '-' in ref/obs of indels
+    text.replace(QRegularExpression("([0-9]+)"), "\\1 "); //special handling if space after end position is missing
 	text = text.simplified();
 
 	//split
-	QStringList parts = text.split(QRegExp("\\s+"));
+    QStringList parts = text.split(QRegularExpression("\\s+"));
 	if (parts.count()!=5) THROW(ArgumentException, "Input text has " + QString::number(parts.count()) + " part(s), but must consist of 5 parts (chr, start, end, ref, obs)!");
 
 	return Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toUtf8(), parts[4].toUtf8());

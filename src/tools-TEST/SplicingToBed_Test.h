@@ -2,7 +2,7 @@
 #include "Settings.h"
 #include "NGSD.h"
 
-TEST_CLASS(SplicingToBed_TEST)
+TEST_CLASS(SplicingToBed_Test)
 {
 Q_OBJECT
 private slots:

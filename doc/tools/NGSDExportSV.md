@@ -1,5 +1,5 @@
 ### NGSDExportSV tool help
-	NGSDExportSV (2024_08-110-g317f43b9)
+	NGSDExportSV (2025_01-25-g1d2b52ea)
 	
 	Exports all SVs from the NGSD into BEDPE files.
 	
@@ -20,8 +20,9 @@
 	  --settings [file]           Settings override file (no other settings files are used).
 	
 ### NGSDExportSV changelog
-	NGSDExportSV 2024_08-110-g317f43b9
+	NGSDExportSV 2025_01-25-g1d2b52ea
 	
+	2025-01-13 Added DISEASE_GROUP column to BEDPE files
 	2024-02-07 Added output of processing specific breakpoint density.
 	2022-02-24 Changed SV break point output format.
 	2022-02-18 Implemented tool.

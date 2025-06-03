@@ -1,4 +1,4 @@
-# *ngs-bits* - Short-read sequencing tools
+# *ngs-bits* - Short-read and long-read sequencing tools for diagnostics
 
 ![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
 ![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_01
+	> git checkout 2025_05
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -38,8 +38,9 @@ For some tools the documentation pages contain only the command-line help, for o
 
 ## License
 
-*ngs-bits* is provided under the [MIT license](LICENSE) and is based on other open source software:
+*ngs-bits* is provided under the [MIT license](LICENSE), but is is based on other software components with different lincenses:
 
+* [Qt](https://www.qt.io/) is our base framwork for the graphical user interface, platform abstraction, data structures and much more.
 * [htslib](https://github.com/samtools/htslib) for HTS data format support (BAM, VCF, ...)
 * [SimpleCrypt](https://wiki.qt.io/Simple_encryption_with_SimpleCrypt) for weak encryption
 * [QR-Code-generator](https://github.com/nayuki/QR-Code-generator) for QR code generation
@@ -71,6 +72,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
+* [TrioMendelianErrors](doc/tools/TrioMendelianErrors.md) - Determines mendelian error rate form a trio VCF file.
 * [RnaQC](doc/tools/RnaQC.md) - Calculates QC metrics for RNA samples.
 * [QcToTsv](doc/tools/QcToTsv.md) - Converts qcML files to a TSV file.
 
@@ -180,19 +182,15 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ## ChangeLog
 
-Changes since last release:
-
-* added tools:
-* removed tools:
-* NGSD:
-
-
-For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
+Change log is available on the [releases](https://github.com/imgag/ngs-bits/releases) page.
 
 ## Citing
 
 You can cite ngs-bits in using Zenodo DOIs:
 
-* 2025_01: [![DOI](https://zenodo.org/badge/38034492.svg)](https://doi.org/10.5281/zenodo.14747530)
-* 2024_11: [![DOI](https://zenodo.org/badge/38034492.svg)](https://doi.org/10.5281/zenodo.14216718)
 
+* 2025_05: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15542696.svg)](https://doi.org/10.5281/zenodo.15542696)
+* 2025_03: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15051584.svg)](https://doi.org/10.5281/zenodo.15051584)
+* 2025_01: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14747530.svg)](https://doi.org/10.5281/zenodo.14747530)
+
+A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).

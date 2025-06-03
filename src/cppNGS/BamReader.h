@@ -242,6 +242,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		  @note If the base is deleted, '-' with quality 255 is returned. If the base is skipped/soft-clipped, '~' with quality -1 is returned.
 		*/
 		QPair<char, int> extractBaseByCIGAR(int pos);
+		QPair<char, int> extractBaseByCIGAR(int pos, int& actual_pos);
 
 		/**
 		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.
@@ -330,18 +331,22 @@ class CPPNGSSHARED_EXPORT BamReader
 		/**
 		  @brief Returns the pileup at the given chromosomal position (1-based).
 		  @param indel_window The value controls how far up- and down-stream of the given postion, indels are considered to compensate for alignment differences. Indels are not reported when this parameter is set to -1.
-		  @param anom also uses reads which are not properly paired
+		  @param include_not_properly_paired also uses reads which are not properly paired. This flag has to be set when used on long-read data.
 		*/
-		Pileup getPileup(const Chromosome& chr, int pos, int indel_window = -1, int min_mapq = 1, bool anom = false, int min_baseq = 13);
+		Pileup getPileup(const Chromosome& chr, int pos, int indel_window = -1, int min_mapq = 1, bool include_not_properly_paired = false, int min_baseq = 13);
 
-		//Returns the depth/frequency for a variant (start, ref, obs in TSV style). If the depth is 0, quiet_NaN is returned as frequency.
-		VariantDetails getVariantDetails(const FastaFileIndex& reference, const Variant& variant);
+		/**
+			@bried Returns the depth/frequency for a variant (start, ref, obs in TSV style). If the depth is 0, quiet_NaN is returned as frequency.
+			@param include_not_properly_paired also uses reads which are not properly paired. This flag has to be set when used on long-read data.
+		*/
+		VariantDetails getVariantDetails(const FastaFileIndex& reference, const Variant& variant, bool include_not_properly_paired);
 
 		/**
 		  @brief Returns indels for a chromosomal range (1-based) and the depth of the region.
+		  @param include_not_properly_paired also uses reads which are not properly paired. This flag has to be set when used on long-read data.
 		  @note Insertions are prefixed with '+', deletions with '-'.
 		*/
-		void getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac);
+		void getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac, bool include_not_properly_paired);
 
 
 	protected:

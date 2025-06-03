@@ -30,7 +30,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in2.vcf") + " -out out/VcfCheck_out3.txt");
-		REMOVE_LINES("out/VcfCheck_out3.txt", QRegExp("^chr"));
+        REMOVE_LINES("out/VcfCheck_out3.txt", QRegularExpression("^chr"));
 		COMPARE_FILES("out/VcfCheck_out3.txt", TESTDATA("data_out/VcfCheck_out3.txt"));
 	}
 
@@ -49,7 +49,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE_FAIL("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in3.vcf") + " -out out/VcfCheck_out5.txt");
-		REMOVE_LINES("out/VcfCheck_out5.txt", QRegExp("^chr"));
+        REMOVE_LINES("out/VcfCheck_out5.txt", QRegularExpression("^chr"));
 		COMPARE_FILES("out/VcfCheck_out5.txt", TESTDATA("data_out/VcfCheck_out5.txt"));
 	}
 

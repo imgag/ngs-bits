@@ -49,13 +49,13 @@ public:
 
 			if (start>0 || end>0)
 			{
-				const int len2 = entry.bases.count();
+                const int len2 = entry.bases.size();
 				if (len2<=start+end) continue;
 				entry.bases = entry.bases.mid(start, len2-start-end);
 				entry.qualities = entry.qualities.mid(start, len2-start-end);
 			}
 
-			if (len>0 && entry.bases.count()>len)
+            if (len>0 && entry.bases.size()>len)
 			{
 				entry.bases.resize(len);
 				entry.qualities.resize(len);

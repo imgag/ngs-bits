@@ -56,7 +56,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 
 	w.writeStartElement("ReportGeneration");
-	w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString("yyyy-MM-dd")) );
+	w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString(Qt::ISODate)) );
 	w.writeAttribute("user_name", (test ? "ahtest1" : LoginManager::userLogin() ) );
 	w.writeAttribute("software",  (test ? "cppNGSD-TEST-CASE" : QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()) );
 	w.writeEndElement();
@@ -114,7 +114,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		{
 			const BedLine& line = low_cov[i];
 			GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				gaps_by_gene[gene].append(line);
 			}
@@ -137,9 +137,9 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 		//omim info
 		QList<OmimInfo> omim_infos = db_.omimInfo(gene);
-		foreach(const OmimInfo& omim_info, omim_infos)
+        for (const OmimInfo& omim_info : omim_infos)
 		{
-			foreach(const Phenotype& pheno, omim_info.phenotypes)
+            for (const Phenotype& pheno : omim_info.phenotypes)
 			{
 				w.writeStartElement("Omim");
 				w.writeAttribute("gene", omim_info.mim);

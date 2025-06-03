@@ -1,18 +1,19 @@
-uc001uua	BRCA2
-uc001uub	BRCA2
-uc031qky	BRCA2
-uc031qkz	BRCA2
-uc010zfz	PMS1
-uc010zga	PMS1
-uc010zgb	PMS1
-uc002urh	PMS1
-uc002uri	PMS1
-uc002urk	PMS1
-uc010zgc	PMS1
-uc010zgd	PMS1
-uc002urj	PMS1
-uc010fry	PMS1
-uc010frz	PMS1
-uc002url	PMS1
-uc002urm	PMS1
-uc002urn	PMS1
+#gene	transcript	biotype	exons	flags
+BRCA2	uc001uua	IG C gene	10	
+BRCA2	uc001uub	IG C gene	27	
+BRCA2	uc031qky	IG C gene	2	
+BRCA2	uc031qkz	IG C gene	2	
+PMS1	uc010zfz	IG C gene	4	
+PMS1	uc010zga	IG C gene	10	
+PMS1	uc010zgb	IG C gene	9	
+PMS1	uc002urh	IG C gene	13	MANE select
+PMS1	uc002uri	IG C gene	12	
+PMS1	uc002urk	IG C gene	12	MANE plus clinical
+PMS1	uc010zgc	IG C gene	12	
+PMS1	uc010zgd	IG C gene	11	
+PMS1	uc002urj	IG C gene	13	
+PMS1	uc010fry	IG C gene	9	
+PMS1	uc010frz	IG C gene	5	
+PMS1	uc002url	IG C gene	7	
+PMS1	uc002urm	IG C gene	8	
+PMS1	uc002urn	IG C gene	3	

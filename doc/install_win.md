@@ -20,6 +20,9 @@ We have pre-built `htslib 1.16.1` for Windows and it can be found inside the rep
 
 If you want to use a different version, e.g. when testing the latest version of htslib, there is a [manual on how to build htslib](build_htslib.md#windows) available.
 
+### libxml2
+[libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2_win_64.zip` into `ngs-bits\`. Qt Creator will detect the library files and headers while compiling GSvar.
+
 
 ### MySQL driver
 
@@ -66,12 +69,18 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	<tr>
 		<td>ngs-bits\htslib\lib\</td>
 		<td>
+		.*.
+		</td>
+	</tr>
+	<tr>
+		<td>ngs-bits\libxml2\libs\</td>
+		<td>
 		*.*
 		</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\bin\</td>
-		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Svg.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Svg.dll, Qt5Widgets.dll, Qt5Xml.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\plugins\</td>
@@ -79,7 +88,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.12.12\Tools\mingw730_64\opt\bin\</td>
-		<td>ssleay32.dll, libeay32.dll</td>
+		<td>ssleay32.dll, libeay32.dll, libgcc_s_seh-1.dll</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\mysql-8.0.31-winx64\lib\</td>

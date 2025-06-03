@@ -28,8 +28,52 @@ private slots:
 	{
 		BedpeFile file;
 		file.loadHeaderOnly(TESTDATA("data_in/panel_svs.bedpe"));
-
 		S_EQUAL(file.build(), "GRCh37");
+
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs_dragen.bedpe"));
+		S_EQUAL(file.build(), "GRCh38");
+
+		file.loadHeaderOnly(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+		S_EQUAL(file.build(), "GRCh38");
+	}
+
+	void caller()
+	{
+		BedpeFile file;
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs.bedpe"));
+		S_EQUAL(file.caller(), "Manta");
+
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs_dragen.bedpe"));
+		S_EQUAL(file.caller(), "DRAGEN");
+
+		file.loadHeaderOnly(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+		S_EQUAL(file.caller(), "Sniffles");
+	}
+
+	void callerVersion()
+	{
+		BedpeFile file;
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs.bedpe"));
+		S_EQUAL(file.callerVersion(), "1.6.0");
+
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs_dragen.bedpe"));
+		S_EQUAL(file.callerVersion(), "4.3.16");
+
+		file.loadHeaderOnly(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+		S_EQUAL(file.callerVersion(), "2.0.7");
+	}
+
+	void callingDate()
+	{
+		BedpeFile file;
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs.bedpe"));
+		S_EQUAL(file.callingDate().toString("yyyyMMdd"), "20201021");
+
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs_dragen.bedpe"));
+		S_EQUAL(file.callingDate().toString("yyyyMMdd"), "20250402");
+
+		file.loadHeaderOnly(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+		S_EQUAL(file.callingDate().toString("yyyyMMdd"), "20240127");
 	}
 
 	void toTsv()

@@ -62,7 +62,7 @@ void GeneWidget::updateGUI()
 	ui_.type->setText(info.locus_group);
 	ui_.inheritance->setText(info.inheritance);
     QString html = info.comments;
-    html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
+    html.replace(QRegularExpression("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
 	GSvarHelper::limitLines(ui_.comments, html);
 
 	//ids
@@ -155,7 +155,7 @@ void GeneWidget::updateGUI()
 	//show phenotypes/diseases from HPO
 	hpo_lines.clear();
 	PhenotypeList pheno_list = db.phenotypes(symbol_);
-	foreach(const Phenotype& pheno, pheno_list)
+    for (const Phenotype& pheno : pheno_list)
 	{
 		int pheno_id = db.phenotypeIdByAccession(pheno.accession());
 		QSet<QString> sources;
@@ -170,17 +170,17 @@ void GeneWidget::updateGUI()
 			}
 
 		}
-		hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.toList().join(", ") + ")";
+        hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.values().join(", ") + ")";
 	}
 	ui_.hpo->setText(hpo_lines.join("<br>"));
 
     //show OMIM info
 	omim_lines.clear();
 	QList<OmimInfo> omim_infos = db.omimInfo(symbol_);
-	foreach(const OmimInfo& omim, omim_infos)
+    for (const OmimInfo& omim : omim_infos)
 	{
 		QStringList omim_phenos;
-		foreach(const Phenotype& p, omim.phenotypes)
+        for (const Phenotype& p : omim.phenotypes)
 		{
 			omim_phenos << p.name();
 		}

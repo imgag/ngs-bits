@@ -3,10 +3,11 @@
 #include "GUIHelper.h"
 #include <QMenu>
 
-PathogenicWtDialog::PathogenicWtDialog(QWidget* parent, QString bam)
+PathogenicWtDialog::PathogenicWtDialog(QWidget* parent, QString bam, bool is_long_read)
 	: QDialog(parent)
 	, ui_()
 	, bam_(bam)
+	, is_long_read_(is_long_read)
 	, delayed_init_timer_(this, true)
 {
 	ui_.setupUi(this);
@@ -20,7 +21,8 @@ void PathogenicWtDialog::delayedInitialization()
 	{
 		Variant variant = Variant::fromString(ui_.variants->item(row, 0)->text());
 
-		Pileup pileup = reader.getPileup(variant.chr(), variant.start());
+
+		Pileup pileup = reader.getPileup(variant.chr(), variant.start(), -1, 1, is_long_read_);
 
 		//determine AF
 		long long depth = pileup.countOf(variant.obs()[0]) + pileup.countOf(variant.ref()[0]);
@@ -41,7 +43,7 @@ void PathogenicWtDialog::delayedInitialization()
 		ui_.variants->setItem(row, 3, GUIHelper::createTableItem(QString::number(depth), Qt::AlignLeft|Qt::AlignVCenter));
 
 		auto item = GUIHelper::createTableItem(geno, Qt::AlignLeft|Qt::AlignVCenter);
-		if (geno.startsWith("WT")) item->setBackgroundColor(QColor(255,0, 0, 128));
+        if (geno.startsWith("WT")) item->setBackground(QBrush(QColor(QColor(255,0, 0, 128))));
 		ui_.variants->setItem(row, 4, item);
 	}
 

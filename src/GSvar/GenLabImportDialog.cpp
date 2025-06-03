@@ -83,7 +83,7 @@ void GenLabImportDialog::initTable()
 		}
 
 		PhenotypeList phenos = genlab.phenotypes(ps_name);
-		foreach (const Phenotype& pheno, phenos)
+        for (const Phenotype& pheno : phenos)
 		{
 			QString hpo_ngsd = diseaseDataContains(s_id, "HPO term id", pheno.accession()) ? pheno.toString() : "";
 			addItem("disease details: HPO term", hpo_ngsd, pheno.toString());
@@ -102,7 +102,7 @@ void GenLabImportDialog::initTable()
 		QStringList studies = genlab.studies(ps_name);
 		foreach (QString study, studies)
 		{
-			QString study_ngsd = studyDataContains(s_id, study) ? study : "";
+			QString study_ngsd = studyDataContains(ps_id_, study) ? study : "";
 			addItem("study", study_ngsd, study);
 		}
 
@@ -177,16 +177,9 @@ bool GenLabImportDialog::relationDataContains(QString sample_id, SampleRelation 
 	return sample_ids.contains(sample2_id);
 }
 
-bool GenLabImportDialog::studyDataContains(QString sample_id, QString study)
+bool GenLabImportDialog::studyDataContains(QString ps_id, QString study)
 {
-	QList<QString> studies = db_.getValues("SELECT st.name FROM study st, study_sample ss, processed_sample ps WHERE ss.study_id=st.id AND ps.id=ss.processed_sample_id AND ps.sample_id=" + sample_id);
-
-	//compare independent of case
-	study = study.toLower();
-	for(int i=0; i<studies.count(); ++i)
-	{
-		studies[i] = studies[i].toLower();
-	}
+	QList<QString> studies = db_.getValues("SELECT st.name FROM study st, study_sample ss WHERE ss.study_id=st.id AND ss.processed_sample_id=" + ps_id);
 
 	return studies.contains(study);
 }

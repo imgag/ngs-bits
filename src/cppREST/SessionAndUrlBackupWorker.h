@@ -1,5 +1,5 @@
 #ifndef SESSIONANDURLBACKUPWORKER_H
-#define SESSIONANDURLBACKUPwORKER_H
+#define SESSIONANDURLBACKUPWORKER_H
 
 #include "cppREST_global.h"
 #include <QRunnable>
@@ -21,4 +21,4 @@ private:
 
 };
 
-#endif // SESSIONANDURLBACKUPwORKER_H
+#endif // SESSIONANDURLBACKUPWORKER_H

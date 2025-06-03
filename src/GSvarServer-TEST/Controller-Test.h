@@ -223,13 +223,14 @@ private slots:
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("404"));
 		IS_TRUE(response.getPayload().isNull());
 
-		QRegExp rx("(length:)(?:\\s*)(\\d+)");
-		rx.setCaseSensitivity(Qt::CaseInsensitive);
-		int pos = rx.indexIn(response.getHeaders());
+        QRegularExpression rx("(length:)(?:\\s*)(\\d+)", QRegularExpression::CaseInsensitiveOption);
+        QRegularExpressionMatch match = rx.match(response.getHeaders());
 
+        int pos = match.hasMatch() ? match.capturedStart(2) : -1;
 		IS_TRUE(pos > -1);
-		int length = rx.cap(2).toInt();
-		I_EQUAL(length, 0);
+
+        int length = match.hasMatch() ? match.captured(2).toInt() : 0;
+        I_EQUAL(length, 0);
 	}
 
 	void test_head_response_with_empty_body_for_existing_file()
@@ -265,13 +266,14 @@ private slots:
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("200"));
 		IS_TRUE(response.getPayload().isNull());
 
-		QRegExp rx("(length:)(?:\\s*)(\\d+)");
-		rx.setCaseSensitivity(Qt::CaseInsensitive);
-		int pos = rx.indexIn(response.getHeaders());
+        QRegularExpression rx("(length:)(?:\\s*)(\\d+)", QRegularExpression::CaseInsensitiveOption);
+        QRegularExpressionMatch match = rx.match(response.getHeaders());
 
+        int pos = match.hasMatch() ? match.capturedStart(2) : -1;
 		IS_TRUE(pos > -1);
-		int length = rx.cap(2).toInt();
-		I_EQUAL(length, 18);
+
+        int length = match.hasMatch() ? match.captured(2).toInt() : 0;
+        I_EQUAL(length, 18);
 	}
 
 	void test_current_client_info()
@@ -410,6 +412,6 @@ private slots:
 
         // This test is intended to be changed when PathType changes, OTHER is always the last element,
         // it will always change when items are added or deleted
-        I_EQUAL(static_cast<int>(PathType::OTHER), 47);
+		I_EQUAL(static_cast<int>(PathType::OTHER), 48);
     }
 };

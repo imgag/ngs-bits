@@ -14,6 +14,7 @@
 #include <QDialog>
 #include <QDir>
 #include <QMessageBox>
+#include <QSortFilterProxyModel>
 
 FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	: QWidget(parent)
@@ -166,11 +167,16 @@ void FilterWidgetCNV::roiSelectionChanged(int index)
 	{
 		ui_.roi->setEditable(true);
 
-		QCompleter* completer = new QCompleter(ui_.roi->model(), ui_.roi);
-		completer->setCompletionMode(QCompleter::PopupCompletion);
+        QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel(ui_.roi);
+        proxy_model->setSourceModel(ui_.roi->model());
+        proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
+
+        QCompleter *completer = new QCompleter(proxy_model, ui_.roi);
+        completer->setCompletionMode(QCompleter::PopupCompletion);
+        completer->setFilterMode(Qt::MatchContains);
 		completer->setCaseSensitivity(Qt::CaseInsensitive);
-		completer->setFilterMode(Qt::MatchContains);
-		completer->setCompletionRole(Qt::DisplayRole);
+        completer->setCompletionRole(Qt::DisplayRole);
+
 		ui_.roi->setCompleter(completer);
 	}
 	else
@@ -224,7 +230,7 @@ void FilterWidgetCNV::phenotypesChanged()
 {
 	//update GUI
 	QByteArrayList tmp;
-	foreach(const Phenotype& pheno, phenotypes_)
+    for (const Phenotype& pheno : phenotypes_)
 	{
 		tmp << pheno.name();
 	}
@@ -235,7 +241,7 @@ void FilterWidgetCNV::phenotypesChanged()
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
-		foreach(const Phenotype& pheno, phenotypes_)
+        for (const Phenotype& pheno : phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}

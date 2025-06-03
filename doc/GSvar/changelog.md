@@ -1,5 +1,34 @@
 # GSvar change log
 
+## 2025_03-80 (20.05.25)
+
+- RE search: added order date and patient identifier to result table
+- report: float numbers in germline report are now formatted according to the selected report language
+- GenLab import: fixed study import (studies were not imported if a merged sample already contained the study)
+- updated CADD cutoffs according to <https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/>
+- report dialog: fixed bug in report dialog (REs not included in report dialog when calling data is not in RE file)
+
+## 2025_03-20 (02.04.25)
+
+- improved support for DRAGEN 4.2 structural variant output
+
+## 2025_03-13 (28.03.25)
+
+- small variants: fixed crash in Google search from variant context menu
+
+## 2025_03-4 (19.03.25)
+
+- germline report: added sequencing run date
+
+## 2025_01-41 (20.02.25)
+
+- trio: adapted mendelian error rate calculation to Dragen 4.3 output
+
+## 2025_01-22 (06.02.25)
+
+- sequencing run tab: added settings dialog for NovaSeqX sample sheet creation
+- variant context menu: added new PubMed search string
+
 ## 2025_01-9 (29.01.25)
 
 - general: added 'urgent' flag to processed samples (run tab, processed sample tab, batch import)

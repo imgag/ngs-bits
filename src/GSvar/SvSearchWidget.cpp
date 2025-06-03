@@ -170,7 +170,7 @@ void SvSearchWidget::search()
 		{
 			// (0) + (1) parse input and validate
 			GeneSet genes;
-			foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QString::SkipEmptyParts))
+            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS))
 			{
 				QByteArray approved_gene_name = db_.geneToApproved(gene.toUtf8());
 				if (approved_gene_name == "") THROW(ArgumentException, "Invalid gene name '" + gene + "' given!");

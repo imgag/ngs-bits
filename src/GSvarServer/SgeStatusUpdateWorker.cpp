@@ -11,7 +11,7 @@ void SgeStatusUpdateWorker::run()
 {
 	try
 	{
-		if (debug_) QTextStream(stdout) << "SGE update started" << endl;
+        if (debug_) QTextStream(stdout) << "SGE update started" << QT_ENDL;
 
 		NGSD db;
 
@@ -43,12 +43,12 @@ void SgeStatusUpdateWorker::run()
 			}
 			catch (Exception& e)
 			{
-				if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed: " << e.message() << endl;
+                if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed: " << e.message() << QT_ENDL;
 				Log::info("SGE job (id=" + QString::number(job_id) + ") update failed: " + e.message());
 			}
 			catch (...)
 			{
-				if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed with unkown error" << endl;
+                if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed with unkown error" << QT_ENDL;
 				Log::info("SGE job (id=" + QString::number(job_id) + ") update failed with unkown error");
 			}
 		}
@@ -58,22 +58,25 @@ void SgeStatusUpdateWorker::run()
 		while(query.next())
 		{
 			QString job_id = query.value("id").toString();
-			if (debug_) QTextStream(stdout) <<  "Removing job " << job_id << " because it is older than 60 days" << endl;
+            if (debug_)
+            {
+                QTextStream(stdout) <<  "Removing job " << job_id << " because it is older than 60 days" << QT_ENDL;
+            }
 			db.getQuery().exec("DELETE FROM `analysis_job_history` WHERE analysis_job_id=" + job_id);
 			db.getQuery().exec("DELETE FROM `analysis_job_sample` WHERE analysis_job_id=" + job_id);
 			db.getQuery().exec("DELETE FROM `analysis_job` WHERE id=" + job_id);
 		}
 
-		if (debug_) QTextStream(stdout) << "SGE update done" << endl;
+        if (debug_) QTextStream(stdout) << "SGE update done" << QT_ENDL;
 	}
 	catch (Exception& e)
 	{
-		if (debug_) QTextStream(stdout) << "SGE update failed: " << e.message() << endl;
+        if (debug_) QTextStream(stdout) << "SGE update failed: " << e.message() << QT_ENDL;
 		Log::info("SGE status update failed: " + e.message());
 	}
 	catch (...)
 	{
-		if (debug_) QTextStream(stdout) << "SGE update failed with unkown error" << endl;
+        if (debug_) QTextStream(stdout) << "SGE update failed with unkown error" << QT_ENDL;
 		Log::info("SGE status update failed with unkown error");
 	}
 
@@ -81,7 +84,7 @@ void SgeStatusUpdateWorker::run()
 
 void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
 {
-	if (debug_) QTextStream(stdout) << "Starting job " << job_id << " (type: " << job.type << ")" << endl;
+    if (debug_) QTextStream(stdout) << "Starting job " << job_id << " (type: " << job.type << ")" << QT_ENDL;
 
 	//init
 	QString timestamp = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
@@ -114,12 +117,12 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	}
 
 	QString script;
-	QStringList args;
+	QStringList pipeline_args;
 	if (job.type=="single sample")
 	{
 		QString folder = QFileInfo(bams[0]).path() + "/";
-		args << "-folder " + folder;
-		args << "-name " + ps_data[0].name;
+		pipeline_args << "-folder" << folder;
+		pipeline_args << "-name" << ps_data[0].name;
 
 		QString sys_type = ps_data[0].processing_system_type;
 		if (sys_type=="RNA") //RNA
@@ -128,22 +131,34 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 			queues = PipelineSettings::queuesHighMemory();
 
 			script = "analyze_rna.php";
-			args << "--log "+folder+"analyze_rna_"+timestamp+".log";
+			pipeline_args << "--log" << (folder+"analyze_rna_"+timestamp+".log");
 		}
 		else if (sys_type=="cfDNA (patient-specific)" || sys_type=="cfDNA")
 		{
 			script = "analyze_cfdna.php";
-			args << "--log "+folder+"analyze_cfdna_"+timestamp+".log";
+			pipeline_args << "--log" << (folder+"analyze_cfdna_"+timestamp+".log");
 		}
 		else if (sys_type=="lrGS") //longread WGS
 		{
 			script = "analyze_longread.php";
-			args << "--log "+folder+"analyze_longread_"+timestamp+".log";
+			pipeline_args << "--log" << (folder+"analyze_longread_"+timestamp+".log");
 		}
 		else //DNA
 		{
-			script = "analyze.php";
-			args << "--log "+folder+"analyze_"+timestamp+".log";
+			if (job.use_dragen)
+			{
+				script = "analyze_dragen.php";
+				pipeline_args << "--log" << (folder+"analyze_dragen_"+timestamp+".log");
+
+				//switch to dragen queue
+				queues = PipelineSettings::queuesDragen();
+			}
+			else
+			{
+				script = "analyze.php";
+				pipeline_args << "--log" << (folder+"analyze_"+timestamp+".log");
+			}
+
 		}
 	}
 	else if (job.type=="trio")
@@ -151,7 +166,10 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		//check if single analysis is still running > skip for now
 		if(singleSampleAnalysisRunning(db, job))
 		{
-			if (debug_) QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << endl;
+            if (debug_)
+            {
+                QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+            }
 			return;
 		}
 
@@ -172,18 +190,21 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		}
 
 		script = (ps_data[0].processing_system_type=="lrGS") ? "trio_longread.php" : "trio.php";
-		args << "-c " + bams[c_idx];
-		args << "-f " + bams[f_idx];
-		args << "-m " + bams[m_idx];
-		args << "-out_folder " + out_folder;
-		args << "--log " + out_folder + "/trio.log";
+		pipeline_args << "-c" << bams[c_idx];
+		pipeline_args << "-f" << bams[f_idx];
+		pipeline_args << "-m" << bams[m_idx];
+		pipeline_args << "-out_folder" << out_folder;
+		pipeline_args << "--log" << (out_folder + "/trio.log");
 	}
 	else if (job.type=="multi sample")
 	{
 		//check if single analysis is still running > skip for now
 		if(singleSampleAnalysisRunning(db, job))
 		{
-			if (debug_) QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << endl;
+            if (debug_)
+            {
+                QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+            }
 			return;
 		}
 
@@ -201,17 +222,20 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 
 		//determine command and arguments
 		script = (ps_data[0].processing_system_type=="lrGS") ? "multisample_longread.php" : "multisample.php";
-		args << "-bams " + bams.join(" ");
-		args << "-status " + infos.join(" ");
-		args << "-out_folder " + out_folder;
-		args << "--log " + out_folder + "/multi.log";
+		pipeline_args << "-bams" << bams;
+		pipeline_args << "-status" << infos;
+		pipeline_args << "-out_folder" << out_folder;
+		pipeline_args << "--log" << (out_folder + "/multi.log");
 	}
 	else if (job.type=="somatic")
 	{
 		//check if single analysis is still running > skip for now
 		if(singleSampleAnalysisRunning(db, job))
 		{
-			if (debug_) QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << endl;
+            if (debug_)
+            {
+                QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+            }
 			return;
 		}
 
@@ -228,7 +252,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		}
 		else
 		{
-			out_folder = project_folder + "/Sample_" + ps_data[t_idx].name + "/";
+			out_folder = project_folder + "/Somatic_" + ps_data[t_idx].name + "/";
 		}
 		if (Helper::mkdir(out_folder)==1)
 		{
@@ -239,19 +263,20 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 			}
 		}
 
-		script = "somatic_dna.php";
-		args << "--log "+out_folder+"/somatic_dna_"+timestamp+".log";
-		args << "-out_folder " + out_folder;
-		args << "-prefix " + ps_data[t_idx].name + (n_idx!=-1 ? "-"+ps_data[n_idx].name : "");
-		args << "-t_bam " + bams[t_idx];
+		script = (n_idx!=-1) ? "somatic_tumor_normal.php" : "somatic_tumor_only.php";
+		pipeline_args << "--log" << (out_folder+"/somatic_"+timestamp+".log");
+		pipeline_args << "-out_folder" << out_folder;
+		pipeline_args << "-prefix" << (ps_data[t_idx].name + (n_idx!=-1 ? "-"+ps_data[n_idx].name : ""));
+		pipeline_args << "-t_bam" << bams[t_idx];
 		if (n_idx!=-1)
 		{
-			args << "-n_bam " + bams[n_idx];
+			pipeline_args << "-n_bam" << bams[n_idx];
 		}
 		if (r_idx!=-1)
 		{
-			args << "-t_rna_bam " + bams[r_idx];
+			pipeline_args << "-t_rna_bam" << bams[r_idx];
 		}
+		if (job.use_dragen) pipeline_args << "-use_dragen";
 	}
 	else
 	{
@@ -280,21 +305,30 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	}
 	if (!threads_in_args)
 	{
-		args << "-threads "+QString::number(threads);
+        pipeline_args << "-threads" << QString::number(threads);
 	}
 
 	//submit to queue
 	QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
 	QStringList qsub_args;
 	qsub_args << "-V";
-	qsub_args << "-pe" << "smp" << QString::number(threads);
+	if (job.use_dragen)
+	qsub_args << "-pe" << "smp" << ((script=="analyze_dragen.php")? "1": QString::number(threads));
 	qsub_args << "-b" << "y";
 	qsub_args << "-wd" << project_folder;
 	qsub_args << "-m" << "n";
 	qsub_args << "-e" << (sge_out_base + ".err");
 	qsub_args << "-o" << (sge_out_base + ".out");
 	qsub_args << "-q" << queues.join(",");
-	qsub_args << "php "+PipelineSettings::rootDir()+"/src/Pipelines/"+script+" " + job.args + " " + args.join(" ");
+    qsub_args << "php";
+    qsub_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
+	QString job_args = job.args.simplified();
+	if (!job_args.isEmpty())
+	{
+		qsub_args << job_args.split(' ');
+	}
+	qsub_args << pipeline_args;
+
 	QByteArrayList output;
 	int exit_code = Helper::executeCommand("qsub", qsub_args, &output);
 	if (exit_code!=0)
@@ -306,13 +340,14 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		details << "Output:";
 		details << output.join('\n');
 		db.addAnalysisHistoryEntry(job_id, "error", details);
+		return;
 	}
 	QByteArray sge_id = output.join(" ").simplified().split(' ')[2];
 
 	//handle qsub output
 	if (Helper::isNumeric(sge_id) && sge_id.toInt()>0)
 	{
-		if (debug_) QTextStream(stdout) << "  Started with SGE id " << sge_id << endl;
+        if (debug_) QTextStream(stdout) << "  Started with SGE id " << sge_id << QT_ENDL;
 		db.getQuery().exec("UPDATE analysis_job SET sge_id='"+sge_id+"' WHERE id="+QString::number(job_id));
 
 		db.addAnalysisHistoryEntry(job_id, "started", QByteArrayList());
@@ -331,7 +366,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 
 void SgeStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const AnalysisJob& job, int job_id)
 {
-	if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << endl;
+    if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
 
 	//check if job is still running
 	int exit_code = Helper::executeCommand("qstat", QStringList() << "-j" << job.sge_id);
@@ -349,7 +384,7 @@ void SgeStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const AnalysisJob& jo
 				if (parts.count()<8) continue;
 
 				QByteArray status = parts[4].trimmed();
-				if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << endl;
+                if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << QT_ENDL;
 
 				if (status=="r" && job.sge_queue.isEmpty())
 				{
@@ -403,12 +438,12 @@ void SgeStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const AnalysisJob& jo
 			}
 			if (sge_exit_code=="0")
 			{
-				if (debug_) QTextStream(stdout) << "	Job finished successfully" << endl;
+                if (debug_) QTextStream(stdout) << "	Job finished successfully" << QT_ENDL;
 				db.addAnalysisHistoryEntry(job_id, "finished", stdout_stderr);
 			}
 			else
 			{
-				if (debug_) QTextStream(stdout) << "	Job failed with exit code: " << sge_exit_code << endl;
+                if (debug_) QTextStream(stdout) << "	Job failed with exit code: " << sge_exit_code << QT_ENDL;
 				stdout_stderr.prepend(("job exit code: " + sge_exit_code).toLatin1());
 				db.addAnalysisHistoryEntry(job_id, "error", stdout_stderr);
 			}
@@ -422,13 +457,17 @@ void SgeStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const AnalysisJob& jo
 
 void SgeStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
 {
-	if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << endl;
+    if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
 
 	//cancel job
 	QByteArrayList output;
 	if (!job.sge_id.isEmpty()) // not started yet => nothing to cancel
 	{
-		Helper::executeCommand("qdel", QStringList() << job.sge_id, &output);
+		int exit_code = Helper::executeCommand("qdel", QStringList() << job.sge_id, &output);
+		if (exit_code!=0)
+		{
+			Log::warn("qdel " + job.sge_id + "' failed with exit code " + QString::number(exit_code));
+		}
 	}
 
 	//update NGSD

@@ -226,7 +226,13 @@ public:
 	}
 
 	///Returns the genome build from the header or an empty string if it could not be determined.
-	QByteArray build();
+	QByteArray build() const;
+	///Returns the variant caller. Throws an exception if it could not be determined.
+	QByteArray caller() const;
+	///Returns the variant caller version. Throws an exception if it could not be determined.
+	QByteArray callerVersion() const;
+	///Returns the variant calling date. Throws an exception if it could not be determined.
+	QDate callingDate() const;
 
 	///Read-only access to members
 	const BedpeLine& operator[](int index) const
@@ -288,8 +294,8 @@ public:
 	///Sorts Bedpe file (by columns chr1, start1, chr2, start2)
 	void sort();
 
-	///Stores file as TSV
-	void toTSV(QString file_name);
+	///Stores file
+	void store(QString file_name);
 
 	///Returns bedpe type according entry in file comments ##fileformat=
 	BedpeFileFormat format() const;
@@ -313,6 +319,7 @@ public:
 	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true, bool compare_ci=true) const;
 
 private:
+	QString filename_;
 	void parseHeader(const TSVFileStream& stream);
     void parseSampleHeaderInfo();
 	QList<QByteArray> annotation_headers_;

@@ -26,12 +26,10 @@
 #include <QToolButton>
 #include <QMimeData>
 #include <QSqlError>
-#include <QChartView>
 #include <GenLabDB.h>
 #include <QToolTip>
 #include <QImage>
 #include <QBuffer>
-QT_CHARTS_USE_NAMESPACE
 #include "Background/ReportWorker.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
@@ -157,6 +155,14 @@ QT_CHARTS_USE_NAMESPACE
 #include "HerediVarImportDialog.h"
 #include "Background/IGVInitCacheWorker.h"
 #include "SampleCountWidget.h"
+#include "MethylationWidget.h"
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QtCharts/QChartView>
+#else
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -513,12 +519,18 @@ AnalysisType MainWindow::getCurrentAnalysisType()
 
 void MainWindow::userSpecificDebugFunction()
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
+		GenLabDB db;
+		foreach(QString table, db.tables())
+		{
+			qDebug() << table;
+			qDebug() << db.fields(table);
+		}
 	}
 	else if (user=="ahschul1")
 	{
@@ -618,7 +630,7 @@ void MainWindow::on_actionRegionToGenes_triggered()
 		dlg.setReadOnly(true);
 		dlg.setWordWrapMode(QTextOption::NoWrap);
 		dlg.appendLine("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
-		foreach (const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			QList<OmimInfo> omim_genes = db.omimInfo(gene);
 			foreach (const OmimInfo& omim_gene, omim_genes)
@@ -922,10 +934,10 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	QSharedPointer<ReportConfiguration> rc_germline;
-	SomaticReportConfiguration* rc_somatic = nullptr; //TODO Alexander: use shared pointer like in germline
+	QSharedPointer<SomaticReportConfiguration> rc_somatic;
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
 	{
-		rc_somatic = &(somatic_report_settings_.report_config);
+		rc_somatic = somatic_report_settings_.report_config;
 	}
 	else
 	{
@@ -1119,7 +1131,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	GeneSet variant_target_region;
 	if(ui_.filters->phenotypes().count() > 0)
 	{
-		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+		for (const Phenotype& phenotype : ui_.filters->phenotypes())
 		{
 			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
 		}
@@ -1210,7 +1222,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	GeneSet variant_target_region;
 	if(ui_.filters->phenotypes().count() > 0)
 	{
-		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+        for (const Phenotype& phenotype : ui_.filters->phenotypes())
 		{
 			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
 		}
@@ -1338,6 +1350,24 @@ void MainWindow::on_actionShowProcessingSystemCoverage_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionMethylation_triggered()
+{
+	if (filename_=="") return;
+	if (variants_.type()!=GERMLINE_SINGLESAMPLE) return;
+	FileLocation methylation_file = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
+	if (!methylation_file.exists)
+	{
+		//this should not happen because the button is not enabled then...
+		QMessageBox::warning(this, "Methylation file access", "Methylation file does not exist or the URL has expired");
+		return;
+	}
+
+	MethylationWidget* widget = new MethylationWidget(methylation_file.filename, this);
+	auto dlg = GUIHelper::createDialog(widget, "Methylation of " + variants_.analysisName());
+
+	addModelessDialog(dlg, true);
+}
+
 void MainWindow::on_actionRE_triggered()
 {
 	if (filename_=="") return;
@@ -1374,12 +1404,22 @@ void MainWindow::on_actionPRS_triggered()
 void MainWindow::on_actionPathogenicWT_triggered()
 {
 	if (filename_=="") return;
+	if (!germlineReportSupported(false)) return;
 
-	// determine PRS file name
-	FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false);
-	if (bams.isEmpty()) return; //this should not happen because the button is not enabled then...
+	//determine BAM file
+	QString ps = germlineReportSample();
+	FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps);
+	if (bams.isEmpty())
+	{
+		QMessageBox::warning(this, "Pathogenic WT variants", "Could not find a BAM file for sample " + ps + ". Aborting!");
+		return;
+	}
 
-	PathogenicWtDialog dlg(this, bams[0].filename);
+	//check if long-read
+	bool is_longread = (LoginManager::active() ? NGSD().isLongRead(filename_) : true);
+
+	//show dialog
+	PathogenicWtDialog dlg(this, bams[0].filename, is_longread);
 	dlg.exec();
 }
 
@@ -1391,7 +1431,7 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	// Workaround to manual add panels for non patient-specific processing systems
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)' OR type='cfDNA'");
-	// TODO: reactivate
+	//TODO: reactivate
 //	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
 	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
@@ -2143,9 +2183,11 @@ void MainWindow::deleteClosedModelessDialogs()
 
 void MainWindow::importPhenotypesFromNGSD()
 {
-	QString ps_name = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
+	if (filename_=="") return;
+
 	try
 	{
+		QString ps_name = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
 		NGSD db;
 		QString sample_id = db.sampleId(ps_name);
 		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
@@ -2164,7 +2206,7 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 	NGSD db;
 	GeneSet genes;
-	foreach(const Phenotype& pheno, ui_.filters->phenotypes())
+    for (const Phenotype& pheno : ui_.filters->phenotypes())
 	{
 		genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 	}
@@ -2219,11 +2261,19 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		if (file_location.exists) analyses << file_location.filename;
 
 		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
+		//check for tumor-normal analyses
 		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
 			analyses << GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic");
 		}
+		//check for tumor-only analyses
+		QStringList tumor_only_analyses = GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name, "somatic");
+		if (!tumor_only_analyses.isEmpty())
+		{
+			analyses << tumor_only_analyses;
+		}
+
 		//check for germline trio/multi analyses
 		if (search_multi)
 		{
@@ -2305,50 +2355,70 @@ void MainWindow::openSampleFromNGSD(QString sample_name)
 	}
 }
 
-void MainWindow::checkMendelianErrorRate(double cutoff_perc)
+void MainWindow::checkMendelianErrorRate()
 {
 	QString output = "";
 	try
 	{
 		SampleHeaderInfo infos = variants_.getSampleHeader();
-		int col_c = infos.infoByStatus(true).column_index;
+		int i_c = infos.infoByStatus(true).column_index;
+		int i_f = infos.infoByStatus(false, "male").column_index;
+		int i_m = infos.infoByStatus(false, "female").column_index;
 
-		bool above_cutoff = false;
-		QStringList mers;
-		foreach(const SampleInfo& info, infos)
+		int i_qual = variants_.annotationIndexByName("quality");
+
+		int errors = 0;
+		int used = 0;
+		for (int i=0; i<variants_.count(); ++i)
 		{
-			if (info.isAffected()) continue;
+			const Variant& v = variants_[i];
+			if (!v.chr().isAutosome()) continue;
 
-			int errors = 0;
-			int autosomal = 0;
+			//remove no genotyping
+			QString geno_c = v.annotations()[i_c];
+			QString geno_f = v.annotations()[i_f];
+			QString geno_m = v.annotations()[i_m];
+			if (geno_c=="n/a" || geno_f=="n/a" || geno_m=="n/a") continue;
 
-			int col_p = info.column_index;
+			//remove filter entry
+			if (!v.filters().isEmpty()) continue;
 
-			for (int i=0; i<variants_.count(); ++i)
+			//remove low depth
+			bool low_depth = false;
+			QByteArrayList entries = v.annotations()[i_qual].split(';');
+			foreach(const QByteArray& entry, entries)
 			{
-				const Variant& v = variants_[i];
-				if (!v.chr().isAutosome()) continue;
-				++autosomal;
-
-				QString geno_c = v.annotations()[col_c];
-				QString geno_p = v.annotations()[col_p];
-
-				if ((geno_p=="hom" && geno_c=="wt") || (geno_p=="wt" && geno_c=="hom")) ++errors;
+				if (!entry.startsWith("DP=")) continue;
+				foreach(const QByteArray& value, entry.mid(3).split(','))
+				{
+					if (value.toInt()<20) low_depth = true;
+				}
 			}
+			if (low_depth) continue;
 
-			double percentage = 100.0 * errors / autosomal;
-			if (percentage>cutoff_perc) above_cutoff = true;
-			mers << infos.infoByStatus(true).name + " - " + info.name + ": " + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
+			++used;
+
+			if ((geno_c=="wt" && (geno_f=="hom" || geno_m=="hom")) ||
+				(geno_c=="hom" && (geno_f=="wt" || geno_m=="wt")) ||
+				(geno_c!="hom" && (geno_f=="hom" && geno_m=="hom")) ||
+				(geno_c!="wt" && (geno_f=="wt" && geno_m=="wt")))
+			{
+				++errors;
+				//qDebug() << v.toString() << geno_c << geno_f << geno_m << entries.join(" ");
+			}
 		}
 
-		if (above_cutoff)
+		double percentage = 100.0 * errors / used;
+
+		qDebug() << used << errors << percentage;
+		if (percentage>10)
 		{
-			output = "Mendelian error rate too high:\n" + mers.join("\n");
+			output = "Mendelian error rate too high:\n" + QString::number(errors) + "/" + QString::number(used) + " ~ " + QString::number(percentage, 'f', 2) + "%";
 		}
 	}
 	catch (Exception& e)
 	{
-		output = "Mendelian error rate calulation not possible:\n" + e.message();
+		output = "Mendelian error rate calulation failed:\n" + e.message();
 	}
 
 	if (!output.isEmpty())
@@ -2394,10 +2464,39 @@ void MainWindow::openRunTab(QString run_name)
 		return;
 	}
 
-	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
+	SequencingRunWidget* widget = new SequencingRunWidget(this, QStringList() << run_id);
 	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, type, widget);
 	ui_.tabs->tabBar()->setTabData(index, run_id);
+}
+
+void MainWindow::openRunBatchTab(const QStringList& run_names)
+{
+	TabType type = TabType::RUN;
+	if (focusTab(type, run_names.join(", "))) return;
+
+	QStringList run_ids;
+	foreach (const QString& run_name, run_names)
+	{
+		try
+		{
+			run_ids << NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
+		}
+		catch (DatabaseException e)
+		{
+			GUIHelper::showMessage("NGSD error", "The run database ID could not be determined for '"  + run_name + "'!\nError message: " + e.message());
+			return;
+		}
+
+	}
+
+	SequencingRunWidget* widget = new SequencingRunWidget(this, run_ids);
+	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
+	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_names.join(", "), type, widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + run_ids.join(", "));
+	}
 }
 
 void MainWindow::openGeneTab(QString symbol)
@@ -2426,7 +2525,7 @@ void MainWindow::openVariantTab(Variant variant)
 		QString v_id = db.variantId(variant);
 
 		TabType type = TabType::VARIANT;
-		QString name = variant.toString(false, -1, true);
+        QString name = variant.toString(QChar(), -1, true);
 		if (focusTab(type, name)) return;
 
 		//open tab
@@ -2582,7 +2681,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		}
 	}
 
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	//mark IGV as not initialized
@@ -2897,6 +2996,14 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			}
 		}
 	}
+
+	//activate Methylation menu
+	if (type==GERMLINE_SINGLESAMPLE)
+	{
+		FileLocation met_loc = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
+		ui_.actionMethylation->setEnabled(met_loc.exists);
+
+	}
 }
 
 void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
@@ -2913,12 +3020,12 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 	{
 		if (create_date < QDate::currentDate().addDays(-42))
 		{
-			issues << qMakePair(Log::LOG_INFO, "Variant annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ").");
+			issues << qMakePair(Log::LOG_INFO, "Variant annotations are older than six weeks (" + create_date.toString(Qt::ISODate) + ").");
 		}
 		QDate gsvar_file_outdated_before = QDate::fromString(Settings::string("gsvar_file_outdated_before", true), "yyyy-MM-dd");
 		if (gsvar_file_outdated_before.isValid() && create_date<gsvar_file_outdated_before)
 		{
-			issues << qMakePair(Log::LOG_WARNING, "Variant annotations are outdated! They are older than " + gsvar_file_outdated_before.toString("yyyy-MM-dd") + ". Please re-annotate variants!");
+			issues << qMakePair(Log::LOG_WARNING, "Variant annotations are outdated! They are older than " + gsvar_file_outdated_before.toString(Qt::ISODate) + ". Please re-annotate variants!");
 		}
 	}
 
@@ -3005,7 +3112,7 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 			if (ps_id=="") continue; //not in NGSD
 
 			QString project_type = db.getValue("SELECT p.type FROM processed_sample ps, project p WHERE p.id=ps.project_id AND ps.id=" + ps_id).toString();
-			if (project_type=="diagnostic")
+			if (project_type=="diagnostics")
 			{
 				GenLabDB genlab;
 				QString genlab_patient_id = genlab.patientIdentifier(ps_name);
@@ -3227,16 +3334,16 @@ void MainWindow::loadSomaticReportConfig()
 	}
 
 	//Preselect target region bed file in NGSD
-	if(somatic_report_settings_.report_config.targetRegionName()!="")
+	if(somatic_report_settings_.report_config->targetRegionName()!="")
 	{
-		ui_.filters->setTargetRegionByDisplayName(somatic_report_settings_.report_config.targetRegionName());
+		ui_.filters->setTargetRegionByDisplayName(somatic_report_settings_.report_config->targetRegionName());
 	}
 
 	//Preselect filter from NGSD som. rep. conf.
-	if(somatic_report_settings_.report_config.filterName() != "")
+	if(somatic_report_settings_.report_config->filterName() != "")
 	{
-		ui_.filters->setFilter( somatic_report_settings_.report_config.filterName() );
-		ui_.filters->setFilterCascade(somatic_report_settings_.report_config.filters());
+		ui_.filters->setFilter( somatic_report_settings_.report_config->filterName() );
+		ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
 	}
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
@@ -3714,16 +3821,16 @@ void MainWindow::generateReportSomaticRTF()
 	QString ps_normal_id = db.processedSampleId(ps_normal);
 
 	//Set data in somatic report settings
-	somatic_report_settings_.report_config.setTargetRegionName(ui_.filters->targetRegion().name);
+	somatic_report_settings_.report_config->setTargetRegionName(ui_.filters->targetRegion().name);
 
-	somatic_report_settings_.report_config.setFilterName((ui_.filters->filterName() != "[none]" ? ui_.filters->filterName() : "") ); //filter name -> goes to NGSD som. rep. conf.
-	somatic_report_settings_.report_config.setFilters(ui_.filters->filters()); //filter cascase -> goes to report helper
+	somatic_report_settings_.report_config->setFilterName((ui_.filters->filterName() != "[none]" ? ui_.filters->filterName() : "") ); //filter name -> goes to NGSD som. rep. conf.
+	somatic_report_settings_.report_config->setFilters(ui_.filters->filters()); //filter cascase -> goes to report helper
 
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
-	somatic_report_settings_.report_config.setEvaluationDate(QDate::currentDate());
+	somatic_report_settings_.report_config->setEvaluationDate(QDate::currentDate());
 
 	//load obo terms for filtering coding/splicing variants
 	if (somatic_report_settings_.obo_terms_coding_splicing.size() == 0)
@@ -3751,27 +3858,27 @@ void MainWindow::generateReportSomaticRTF()
 	if (db.getValues("SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND (qc.qcml_id ='QC:2000062' OR qc.qcml_id ='QC:2000063' OR qc.qcml_id ='QC:2000064') ").size() < 3)
 	{
 		QMessageBox::warning(this, "No HRD score found", "Warning:\nNo hrd score values found in the imported QC of tumor sample. HRD score set to 0.");
-		somatic_report_settings_.report_config.setCnvLohCount(0);
-		somatic_report_settings_.report_config.setCnvTaiCount(0);
-		somatic_report_settings_.report_config.setCnvLstCount(0);
+		somatic_report_settings_.report_config->setCnvLohCount(0);
+		somatic_report_settings_.report_config->setCnvTaiCount(0);
+		somatic_report_settings_.report_config->setCnvLstCount(0);
 	}
 	else
 	{
 		QString query = "SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND qc.qcml_id = :1";
-		somatic_report_settings_.report_config.setCnvLohCount( db.getValue(query, false, "QC:2000062").toInt() );
-		somatic_report_settings_.report_config.setCnvTaiCount( db.getValue(query, false, "QC:2000063").toInt() );
-		somatic_report_settings_.report_config.setCnvLstCount( db.getValue(query, false, "QC:2000064").toInt() );
+		somatic_report_settings_.report_config->setCnvLohCount( db.getValue(query, false, "QC:2000062").toInt() );
+		somatic_report_settings_.report_config->setCnvTaiCount( db.getValue(query, false, "QC:2000063").toInt() );
+		somatic_report_settings_.report_config->setCnvLstCount( db.getValue(query, false, "QC:2000064").toInt() );
 	}
 
 
 	//Preselect report settings if not already exists to most common values
 	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1)
 	{
-		somatic_report_settings_.report_config.setIncludeTumContentByMaxSNV(true);
-		somatic_report_settings_.report_config.setIncludeTumContentByClonality(true);
-		somatic_report_settings_.report_config.setIncludeTumContentByHistological(true);
-		somatic_report_settings_.report_config.setMsiStatus(true);
-		somatic_report_settings_.report_config.setCnvBurden(true);
+		somatic_report_settings_.report_config->setIncludeTumContentByMaxSNV(true);
+		somatic_report_settings_.report_config->setIncludeTumContentByClonality(true);
+		somatic_report_settings_.report_config->setIncludeTumContentByHistological(true);
+		somatic_report_settings_.report_config->setMsiStatus(true);
+		somatic_report_settings_.report_config->setCnvBurden(true);
 	}
 
 	//Parse genome ploidy from ClinCNV file
@@ -3785,7 +3892,7 @@ void MainWindow::generateReportSomaticRTF()
 			if (line.startsWith("##ploidy:"))
 			{
 				QStringList parts = line.split(':');
-				somatic_report_settings_.report_config.setPloidy(parts[1].toDouble());
+				somatic_report_settings_.report_config->setPloidy(parts[1].toDouble());
 				break;
 			}
 
@@ -3897,7 +4004,7 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, svs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
-			QTime timer;
+            QElapsedTimer timer;
 
 			try
 			{
@@ -3950,9 +4057,9 @@ void MainWindow::generateReportSomaticRTF()
 
 		//reminder of MTB upload
 		QStringList studies = db.studies(ps_tumor_id);
-		if (studies.contains("MTB"))
+		if (studies.contains("MTB") || studies.contains("Modellvorhaben_2024"))
 		{
-			if (QMessageBox::question(this, "DNA report", "This sample is part of the study 'MTB'.\nDo you want to upload the data to MTB now?")==QMessageBox::Yes)
+			if (QMessageBox::question(this, "DNA report", "This sample is part of the study 'MTB' or the study 'Modellvorhaben_2024'.\nDo you want to upload the data to MTB now?")==QMessageBox::Yes)
 			{
 				transferSomaticData();
 			}
@@ -4110,7 +4217,7 @@ void MainWindow::generateReportGermline()
 	QString roi_name = ui_.filters->targetRegion().name;
 	if (roi_name!="") //remove date and prefix with '_'
 	{
-		roi_name.remove(QRegExp("_[0-9]{4}_[0-9]{2}_[0-9]{2}"));
+        roi_name.remove(QRegularExpression("_[0-9]{4}_[0-9]{2}_[0-9]{2}"));
 		roi_name = "_" + roi_name;
 	}
 	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + ps_name + roi_name + "_report_" + trio_suffix + type_suffix + "_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
@@ -4540,7 +4647,7 @@ void MainWindow::on_actionExportTestData_triggered()
 {
 	NGSD db;
 	QMap<QString, QSet<int>> sql_history;
-	QTime timer;
+    QElapsedTimer timer;
 	QStringList base_tables = {
 		"user",
 		"device",
@@ -4604,8 +4711,12 @@ void MainWindow::on_actionExportTestData_triggered()
 		if (file_name.isEmpty()) return;
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
-		QTextStream output_stream(file.data());
-		output_stream.setCodec("UTF-8");
+        QTextStream output_stream(file.data());
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        output_stream.setEncoding(QStringConverter::Utf8);
+        #else
+        output_stream.setCodec("UTF-8");
+        #endif
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -4879,6 +4990,7 @@ void MainWindow::on_actionNotifyUsers_triggered()
 	EmailDialog dlg(this, to, subject, body);
 	dlg.exec();
 }
+
 
 void MainWindow::on_actionCohortAnalysis_triggered()
 {
@@ -5480,7 +5592,7 @@ void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	//apply filters
@@ -5556,7 +5668,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 	else if(somaticReportSupported())
 	{
-		 a_delete->setEnabled(somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+		 a_delete->setEnabled(somatic_report_settings_.report_config->exists(VariantType::SNVS_INDELS, index));
 	}
 	else
 	{
@@ -5581,7 +5693,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 		}
 		else
 		{
-			somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+			somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
 		}
 		updateReportConfigHeaderIcon(index);
 	}
@@ -5664,7 +5776,7 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 	}
 	else if (action == context_menu_actions_.a_report_del)
 	{
-		if ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index))
+		if ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config->exists(VariantType::SNVS_INDELS, index))
 		{
 			if(germlineReportSupported())
 			{
@@ -5672,7 +5784,7 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 			}
 			else if(somaticReportSupported())
 			{
-				somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+				somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
 				storeSomaticReportConfig();
 			}
 
@@ -6204,7 +6316,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		if (i_genes!=-1)
 		{
 			GeneSet genes = GeneSet::createFromText(variant.annotations()[i_genes], ',');
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 				inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
@@ -6212,7 +6324,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-		ReportVariantDialog dlg(variant.toString(false), inheritance_by_gene, var_config, this);
+        ReportVariantDialog dlg(variant.toString(QChar()), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
 
@@ -6248,10 +6360,10 @@ void MainWindow::editVariantReportConfiguration(int index)
 	else if(somaticReportSupported()) //somatic report variant configuration
 	{
 		SomaticReportVariantConfiguration var_config;
-		bool settings_exists = somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index);
+		bool settings_exists = somatic_report_settings_.report_config->exists(VariantType::SNVS_INDELS, index);
 		if(settings_exists)
 		{
-			var_config = somatic_report_settings_.report_config.get(VariantType::SNVS_INDELS, index);
+			var_config = somatic_report_settings_.report_config->get(VariantType::SNVS_INDELS, index);
 		}
 		else
 		{
@@ -6261,7 +6373,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(variants_[index].toString(), var_config, this);
 
 		if(dlg->exec() != QDialog::Accepted) return;
-		somatic_report_settings_.report_config.addSomaticVariantConfiguration(var_config);
+		somatic_report_settings_.report_config->addSomaticVariantConfiguration(var_config);
 
 		storeSomaticReportConfig();
 		updateReportConfigHeaderIcon(index);
@@ -6359,7 +6471,7 @@ void MainWindow::storeCurrentVariantList()
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "application/json");
 			add_headers.insert("Content-Type", "application/json");
-			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
+            add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().size()));
 
 			QString reply = HttpHandler(true).put(
 						ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
@@ -6392,7 +6504,7 @@ void MainWindow::showNotification(QString text)
 	text = text.trimmed();
 
 	//update tooltip
-	QStringList tooltips = notification_label_->toolTip().split("\n", QString::SkipEmptyParts);
+    QStringList tooltips = notification_label_->toolTip().split("\n", QT_SKIP_EMPTY_PARTS);
 	if (!tooltips.contains(text)) tooltips.prepend(text);
 	notification_label_->setToolTip(tooltips.join("<br>"));
 
@@ -6407,28 +6519,46 @@ void MainWindow::variantRanking()
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
 
-	QApplication::setOverrideCursor(Qt::BusyCursor);
+	//determine title
+	QString algorithm = sender()->objectName();
+	QString title = "Ranking variants with algorithm '" + algorithm + "'";
+
+	//init
+	NGSD db;
 	QString ps_name = germlineReportSample();
+
+	PhenotypeList phenotypes = ui_.filters->phenotypes();
+	if (phenotypes.isEmpty())
+	{
+		QString sample_id = db.sampleId(ps_name);
+		phenotypes = db.getSampleData(sample_id).phenotypes;
+		if (phenotypes.isEmpty())
+		{
+			QMessageBox::warning(this, title, "Phenotype data missing. Please set a phenotype filter!");
+			return;
+		}
+		else
+		{
+			int button = QMessageBox::information(this, title, "No phenotype filter set.\nDo you want to use phenotype information of the sample from NGSD?", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+			if (button==QMessageBox::No) return;
+		}
+	}
+
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	try
 	{
-		NGSD db;
 
 		//create phenotype list
 		QHash<Phenotype, BedFile> phenotype_rois;
 		QString sample_id = db.sampleId(ps_name);
-		PhenotypeList phenotypes = ui_.filters->phenotypes();
-		if (phenotypes.isEmpty())
-		{
-			phenotypes = db.getSampleData(sample_id).phenotypes;
-		}
-		foreach(const Phenotype& pheno, phenotypes)
+		for (const Phenotype& pheno : phenotypes)
 		{
 			//pheno > genes
 			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 
 			//genes > roi
 			BedFile roi;
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -6439,7 +6569,6 @@ void MainWindow::variantRanking()
 
 		//score
 		VariantScores::Parameters parameters;
-		QString algorithm = sender()->objectName();
 		VariantScores::Result result = VariantScores::score(algorithm, variants_, phenotype_rois, parameters);
 
 		//update variant list
@@ -6452,13 +6581,13 @@ void MainWindow::variantRanking()
 		//show warnings
 		if (result.warnings.count()>0)
 		{
-			QMessageBox::warning(this, "Variant ranking", "Please note the following warnings:\n" + result.warnings.join("\n"));
+			QMessageBox::warning(this, title, "Please note the following warnings:\n" + result.warnings.join("\n"));
 		}
 	}
 	catch(Exception& e)
 	{
 		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Ranking variants", "An error occurred:\n" + e.message());
+		QMessageBox::warning(this, title, "An error occurred:\n" + e.message());
 	}
 }
 
@@ -6479,7 +6608,7 @@ void MainWindow::applyFilters(bool debug_time)
 	try
 	{
 		//apply main filter
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		const FilterCascade& filter_cascade = ui_.filters->filters();
@@ -6579,7 +6708,7 @@ void MainWindow::applyFilters(bool debug_time)
 			NGSD db;
 			GeneSet pheno_genes;
 			int i = 0;
-			foreach(const Phenotype& pheno, phenos)
+            for (const Phenotype& pheno : phenos)
 			{
 				GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), pheno_settings.sources, pheno_settings.evidence_levels, true, false);
 
@@ -6596,7 +6725,7 @@ void MainWindow::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
-			foreach(const QByteArray& gene, pheno_genes)
+            for (const QByteArray& gene : pheno_genes)
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -6625,7 +6754,7 @@ void MainWindow::applyFilters(bool debug_time)
 		ReportConfigFilter rc_filter = ui_.filters->reportConfigurationFilter();
 		if (germlineReportSupported() && rc_filter!=ReportConfigFilter::NONE)
 		{
-			QSet<int> report_variant_indices = report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false).toSet();
+            QSet<int> report_variant_indices = LIST_TO_SET(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!filter_result_.flags()[i]) continue;
@@ -6642,7 +6771,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 		else if( somaticReportSupported() && rc_filter != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
 		{
-			QSet<int> report_variant_indices = somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+			QSet<int> report_variant_indices = LIST_TO_SET(somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if ( !filter_result_.flags()[i] ) continue;
@@ -6661,9 +6790,9 @@ void MainWindow::applyFilters(bool debug_time)
 		//keep somatic variants that are marked with "include" in report settings (overrides possible filtering for that variant)
 		if( somaticReportSupported() && rc_filter != ReportConfigFilter::NO_RC)
 		{
-			foreach(int index, somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+			foreach(int index, somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false))
 			{
-				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
+				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config->variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 			}
 		}
 	}

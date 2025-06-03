@@ -129,28 +129,28 @@ public:
 	{
 		//init
 		QTextStream stream(stdout);
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 		double min_ol = getFloat("min_ol");
 
 		//load GFFs
-		stream << "### loading Ensembl transcripts from GFF ###" << endl;
+        stream << "### loading Ensembl transcripts from GFF ###" << QT_ENDL;
 		GffSettings s_e;
 		TranscriptList trans_e = NGSHelper::loadGffFile(getInfile("ensembl"), s_e).transcripts;
 		trans_e.sortByPosition();
-		stream << "took " << Helper::elapsedTime(timer.restart(), true) << endl;
-		stream << endl;
+        stream << "took " << Helper::elapsedTime(timer.restart(), true) << QT_ENDL;
+        stream << QT_ENDL;
 
-		stream << "### loading RefSeq transcripts from GFF ###" << endl;
+        stream << "### loading RefSeq transcripts from GFF ###" << QT_ENDL;
 		GffSettings s_r;
 		s_r.source = "refseq";
 		TranscriptList trans_r = NGSHelper::loadGffFile(getInfile("refseq"), s_r).transcripts;
 		trans_r.sortByPosition();
 		ChromosomalIndex<TranscriptList> idx_r(trans_r);
-		stream << "took " << Helper::elapsedTime(timer.restart(), true) << endl;
-		stream << endl;
+        stream << "took " << Helper::elapsedTime(timer.restart(), true) << QT_ENDL;
+        stream << QT_ENDL;
 
-		stream << "### loading CCDS transcripts from NGSD ###" << endl;
+        stream << "### loading CCDS transcripts from NGSD ###" << QT_ENDL;
 		NGSD db(getFlag("test"));
 		TranscriptList trans_c;
 		foreach(const Transcript& t, db.transcripts())
@@ -159,11 +159,11 @@ public:
 		}
 		trans_c.sortByPosition();
 		ChromosomalIndex<TranscriptList> idx_c(trans_c);
-		stream << "loaded CCDS transcripts: " << trans_c.count() << endl;
-		stream << "took " << Helper::elapsedTime(timer.restart(), true) << endl;
-		stream << endl;
+        stream << "loaded CCDS transcripts: " << trans_c.count() << QT_ENDL;
+        stream << "took " << Helper::elapsedTime(timer.restart(), true) << QT_ENDL;
+        stream << QT_ENDL;
 
-		stream << "### comparing transcripts ###" << endl;
+        stream << "### comparing transcripts ###" << QT_ENDL;
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		out->write("##Ensembl file: "+getInfile("ensembl").toLatin1()+"\n");
 		out->write("##RefSeq file: "+getInfile("refseq").toLatin1()+"\n");
@@ -283,13 +283,13 @@ public:
 			}
 		}
 
-		stream << "Overall Ensembl-RefSeq transcript matches written: " << written_overall << endl;
-		stream << "Ensembl transcripts with RefSeq match: " << transcripts_matched.count() << endl;
-		stream << "Ensembl transcripts without RefSeq match: " << (trans_e.count()-transcripts_matched.count()) << endl;
-		stream << "Ensembl genes with RefSeq match: " << genes_matched.count() << endl;
-		stream << "Ensembl genes without RefSeq match: " << (genes.count()-genes_matched.count()) << endl;
+        stream << "Overall Ensembl-RefSeq transcript matches written: " << written_overall << QT_ENDL;
+        stream << "Ensembl transcripts with RefSeq match: " << transcripts_matched.count() << QT_ENDL;
+        stream << "Ensembl transcripts without RefSeq match: " << (trans_e.count()-transcripts_matched.count()) << QT_ENDL;
+        stream << "Ensembl genes with RefSeq match: " << genes_matched.count() << QT_ENDL;
+        stream << "Ensembl genes without RefSeq match: " << (genes.count()-genes_matched.count()) << QT_ENDL;
 
-		stream << "Overall Ensembl-CCDS transcript matches written: " << matched_ccds << endl;
+        stream << "Overall Ensembl-CCDS transcript matches written: " << matched_ccds << QT_ENDL;
 	}
 };
 

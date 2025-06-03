@@ -90,6 +90,7 @@ private:
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
 	QString trans(const QString& text);
+	QByteArray formatFloat(double number, int decimals);
 	GapDetails writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi);
 	void writeClosedGapsReport(QTextStream& stream);
 	void writeRNACoverageReport(QTextStream& stream);

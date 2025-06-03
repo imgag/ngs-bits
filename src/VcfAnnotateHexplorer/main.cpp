@@ -324,7 +324,7 @@ private:
 
     bool isValidSequence(const QString& sequence)
     {
-        return QRegExp("[ACGTacgt]*").exactMatch(sequence);
+        return QRegularExpression(QRegularExpression::anchoredPattern("[ACGTacgt]*")).match(sequence).hasMatch();
     }
 
     QByteArray collect_info(const QByteArray& old_info, const QByteArray& prefix, const QByteArray& new_info, const QByteArray& sep=";")

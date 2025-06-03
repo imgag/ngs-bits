@@ -25,31 +25,31 @@ private slots:
 
 	void method_xy_longread1()
 	{
-		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr1.bam") + " -method xy -out out/SampleGender_test04_out.tsv -include_single_end_reads");
+		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr1.bam") + " -method xy -out out/SampleGender_test04_out.tsv -long_read");
 		COMPARE_FILES("out/SampleGender_test04_out.tsv", TESTDATA("data_out/SampleGender_test04_out.tsv"));
 	}
 
 	void method_xy_longread2()
 	{
-		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr2.bam") + " -method xy -out out/SampleGender_test05_out.tsv -include_single_end_reads");
+		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr2.bam") + " -method xy -out out/SampleGender_test05_out.tsv -long_read");
 		COMPARE_FILES("out/SampleGender_test05_out.tsv", TESTDATA("data_out/SampleGender_test05_out.tsv"));
 	}
 
 	void method_hetx_longread1()
 	{
-		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr1.bam") + " -method hetx -out out/SampleGender_test06_out.tsv -include_single_end_reads");
+		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr1.bam") + " -method hetx -out out/SampleGender_test06_out.tsv -long_read");
 		COMPARE_FILES("out/SampleGender_test06_out.tsv", TESTDATA("data_out/SampleGender_test06_out.tsv"));
 	}
 
 	void method_hetx_longread2()
 	{
-		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr2.bam") + " -method hetx -out out/SampleGender_test07_out.tsv -include_single_end_reads");
+		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr2.bam") + " -method hetx -out out/SampleGender_test07_out.tsv -long_read");
 		COMPARE_FILES("out/SampleGender_test07_out.tsv", TESTDATA("data_out/SampleGender_test07_out.tsv"));
 	}
 
 	void method_sry_batch_longread()
 	{
-		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr1.bam") + " " + TESTDATA("data_in/SampleGender_in_lr2.bam") + " -method sry -out out/SampleGender_test08_out.tsv -include_single_end_reads");
+		EXECUTE("SampleGender", "-in " + TESTDATA("data_in/SampleGender_in_lr1.bam") + " " + TESTDATA("data_in/SampleGender_in_lr2.bam") + " -method sry -out out/SampleGender_test08_out.tsv -long_read");
 		COMPARE_FILES("out/SampleGender_test08_out.tsv", TESTDATA("data_out/SampleGender_test08_out.tsv"));
 	}
 

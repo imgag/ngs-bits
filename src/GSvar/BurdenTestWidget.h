@@ -61,8 +61,8 @@ private:
 	QStringList excluded_regions_file_names;
 	QTableWidget* tw_warnings_;
 	QStringList createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic, bool include_mosaic);
-	int countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int> >& detected_variants, Inheritance inheritance, QStringList& ps_names);
-	int countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const BedFile& cnv_polymorphism_region, const ChromosomalIndex<BedFile>& cnv_polymorphism_region_index, QStringList& ps_names);
+	int countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int> >& detected_variants, Inheritance inheritance, QMap<QString, QString>& ps_names);
+	int countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const BedFile& cnv_polymorphism_region, const ChromosomalIndex<BedFile>& cnv_polymorphism_region_index, QMap<QString, QString>& ps_names);
 	QSet<int> loadSampleList(const QString& type, const QSet<int>& selected_ps_ids=QSet<int>());
 	QSet<int> getVariantsForRegion(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QString& gene_symbol, const QStringList& impacts, bool predict_pathogenic);
 	QString createGeneQuery(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic);

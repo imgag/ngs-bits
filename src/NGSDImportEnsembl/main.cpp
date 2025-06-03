@@ -72,7 +72,6 @@ public:
 
 	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, int version, const QByteArray& source, const Transcript& t, bool is_gencode_basic, bool is_ensembl_canonical, bool is_mane_select, bool is_mane_plus_clinical)
 	{
-		//QTextStream(stdout) << "Adding transcript name=" << name << " version=" << version << " source=" << source << endl;
 		query.bindValue(0, gene_id);
 		query.bindValue(1, name);
 		query.bindValue(2, version);
@@ -105,10 +104,8 @@ public:
 
 	void addExons(SqlQuery& query, int transcript_id, const BedFile& exons)
 	{
-		//QTextStream(stdout) << " " << exons.count() << endl;
 		for (int i=0; i<exons.count(); ++i)
 		{
-			//out << "  Adding exon start=" << exons[i].start() << " end=" <<exons[i].end() << endl;
 			query.bindValue(0, transcript_id);
 			query.bindValue(1, exons[i].start());
 			query.bindValue(2, exons[i].end());
@@ -269,10 +266,10 @@ public:
 		QString constraint = protein_coding ? "g.type='protein-coding gene'" : "g.type!='protein-coding gene'";
 
 		QList<int> gene_ids = db.getValuesInt("SELECT id FROM gene g WHERE " + constraint);
-		out << "NGSD contains " << gene_ids.count() << " " << (protein_coding? "protein-coding" : "other") << " genes" << endl;
-		out << "  - with at least one Ensembl transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='Ensembl'").count() << endl;
-		out << "  - with a CCDS transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='CCDS'").count() << endl;
-		out << "  - with MANE transcripts: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND (gt.is_mane_select=1 || gt.is_mane_plus_clinical=1)").count() << endl;
+        out << "NGSD contains " << gene_ids.count() << " " << (protein_coding? "protein-coding" : "other") << " genes" << QT_ENDL;
+        out << "  - with at least one Ensembl transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='Ensembl'").count() << QT_ENDL;
+        out << "  - with a CCDS transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='CCDS'").count() << QT_ENDL;
+        out << "  - with MANE transcripts: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND (gt.is_mane_select=1 || gt.is_mane_plus_clinical=1)").count() << QT_ENDL;
 		GeneSet no_chr_genes;
 		GeneSet multi_chr_genes;
 		GeneSet duplicate_ensg;
@@ -292,9 +289,9 @@ public:
 				duplicate_ensg << db.geneSymbol(gene_id);
 			}
 		}
-		out << "  - without transcripts: " << no_chr_genes.count() << " (" << no_chr_genes.join(", ") << ")" << endl;
-		out << "  - with transcripts on several chromosomes: " << multi_chr_genes.count() << " (" << multi_chr_genes.join(", ") << ")" << endl;
-		out << "  - with transcripts from several ENSGs: " << duplicate_ensg.count() << " (" << duplicate_ensg.join(", ") << ")" << endl;
+        out << "  - without transcripts: " << no_chr_genes.count() << " (" << no_chr_genes.join(", ") << ")" << QT_ENDL;
+        out << "  - with transcripts on several chromosomes: " << multi_chr_genes.count() << " (" << multi_chr_genes.join(", ") << ")" << QT_ENDL;
+        out << "  - with transcripts from several ENSGs: " << duplicate_ensg.count() << " (" << duplicate_ensg.join(", ") << ")" << QT_ENDL;
 	}
 
 	virtual void main()
@@ -371,19 +368,19 @@ public:
 				if (db.approvedGeneNames().contains(gene))
 				{
 					ngsd_gene_id = db.geneId(gene);
-					out << "Notice: HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << " determined via gene name" << endl;
+                    out << "Notice: HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << " determined via gene name" << QT_ENDL;
 				}
 			}
 			if (ngsd_gene_id==-1) //fallback to gene symbol ID
             {
-				out << "Notice: Could not determine HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << endl;
+                out << "Notice: Could not determine HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << QT_ENDL;
                 continue;
             }
 
 			//skip transcripts in chrY PAR as it is masked - necessary since Ensembl 110 release: https://www.ensembl.info/2023/07/17/ensembl-110-has-been-released/
 			if (t.chr().isY() && par.overlapsWith(t.chr(), t.start(), t.end()))
 			{
-				out << "Notice: skipped chrY PAR transcript of " << gene << "/" << t.geneId() << "/" << t.hgncId() << endl;
+                out << "Notice: skipped chrY PAR transcript of " << gene << "/" << t.geneId() << "/" << t.hgncId() << QT_ENDL;
 				continue;
 			}
 
@@ -424,7 +421,7 @@ public:
 		}
 
 		//statistics output
-		out << "Imported " << db.getValue("SELECT count(*) FROM gene_transcript").toInt() << " transcripts into NGSD" << endl;
+        out << "Imported " << db.getValue("SELECT count(*) FROM gene_transcript").toInt() << " transcripts into NGSD" << QT_ENDL;
 		statistics(db, out, true, gene2ensg);
 		statistics(db, out, false, gene2ensg);
 	}

@@ -1,4 +1,5 @@
 ##ANALYSISTYPE=CLINCNV_GERMLINE_MULTI
+##GENOME_BUILD=GRCh38
 ##NA12878_38 ClinCNV version: v1.16.0
 ##NA12878_38 Analysis finished on: 2019-07-30 12:58:46
 ##NA12878_38 high-quality cnvs: 49
@@ -7,8 +8,8 @@
 ##NA12878_38 quality used at final iteration: 20
 ##NA12878_38 was it outlier after clustering: FALSE
 ##NA12878_38 fraction of outliers: 0.039
-##NA12878_58 ClinCNV version: v1.16.0
-##NA12878_58 Analysis finished on: 2019-07-30 13:52:26
+##NA12878_58 ClinCNV version: v1.16.1
+##NA12878_58 Analysis finished on: 2019-07-31 13:52:26
 ##NA12878_58 high-quality cnvs: 91
 ##NA12878_58 gender of sample: F
 ##NA12878_58 number of iterations: 1

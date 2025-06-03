@@ -34,14 +34,4 @@ private slots:
 		is_number = ServerHelper::canConvertToInt("String");
 		IS_FALSE(is_number);
 	}
-
-	void test_getNumSettingsValue()
-	{		
-		IS_THROWN(Exception, Settings::integer("fake_key"));
-	}
-
-	void test_getStringSettingsValue()
-	{
-		IS_THROWN(Exception, Settings::string("fake_key"));
-	}
 };

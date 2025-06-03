@@ -34,7 +34,7 @@ public:
 		while (!stream.atEnd())
 		{
 			stream.readEntry(entry);
-			for (int i=0; i<entry.qualities.count(); ++i)
+            for (int i=0; i<entry.qualities.size(); ++i)
 			{
 				entry.qualities[i] = (char)(entry.qualities[i]) - 31;
 			}

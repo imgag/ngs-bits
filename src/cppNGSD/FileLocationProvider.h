@@ -69,6 +69,8 @@ public:
 	virtual FileLocationList getExonExpressionFiles(bool return_if_missing) const = 0;
 	//Returns the somatic low coverage files in BED format
 	virtual FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific reads mapped to the correct pseudo gene (BAM format)
+	virtual FileLocationList getParaphaseEvidenceFiles(bool return_if_missing) const = 0;
 
 
 	//############################## somatic-only files ##############################

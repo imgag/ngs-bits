@@ -3,6 +3,8 @@
 #include "GSvarHelper.h"
 #include <GUIHelper.h>
 #include <QMessageBox>
+#include <QSortFilterProxyModel>
+#include <QStringListModel>
 
 SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	: QDialog(parent)
@@ -34,9 +36,12 @@ QString SubpanelDesignDialog::lastCreatedSubPanel()
 
 void SubpanelDesignDialog::createSubpanelCompleter()
 {
-	completer_ = new QCompleter(subpanel_names_);
+    QStringListModel *model = new QStringListModel(subpanel_names_);
+    QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel();
+    proxy_model->setSourceModel(model);
+    proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    completer_ = new QCompleter(proxy_model);
 	completer_->setCaseSensitivity(Qt::CaseInsensitive);
-	ui_.name->setCompleter(completer_);
 }
 
 void SubpanelDesignDialog::checkAndCreatePanel()
@@ -49,7 +54,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
 	//name check name
 	QString name = getName(true);
-	if (name.isEmpty() || !QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(name))
+    if (name.isEmpty() || !QRegularExpression("[0-9a-zA-Z_\\.]+").match(name).hasMatch())
 	{
 		addMessage("Name '" + name + "' is empty or contains invalid characters!", true, true);
 		return;
@@ -82,7 +87,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//check gene names
 	bool ignore_gene_errors = ui_.ignore_gene_errors->isChecked();
 	GeneSet valid_genes;
-	foreach(QString gene, genes_)
+    for (const QString gene : genes_)
 	{
 		QPair<QString, QString> geneinfo = db.geneToApprovedWithMessage(gene);
 		QByteArray gene_new = geneinfo.first.toLatin1();
@@ -132,13 +137,13 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//add special regions (gene symbol, region1, region2, ...)
     auto special_regions = GSvarHelper::specialRegions();
     QStringList genes_special;
-	foreach(QByteArray gene, genes_)
+    for (const QByteArray& gene : genes_)
     {
         if (special_regions.contains(gene))
         {
             genes_special << gene;
 
-            foreach(const BedLine& region, special_regions[gene])
+            for (const BedLine& region : special_regions[gene])
             {
 				regions_.append(region);
             }

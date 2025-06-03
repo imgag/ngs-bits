@@ -109,7 +109,7 @@ void CohortAnalysisWidget::updateOutputTable()
 				int start = query.value(2).toInt();
 				int end = query.value(3).toInt();
 				GeneSet genes = db.genesOverlapping(chr, start, end);
-				foreach(const QByteArray& gene, genes)
+                for (const QByteArray& gene : genes)
 				{
 					int hits = query.value(4).toByteArray()=="hom" ? 2 : 1;
 					hits_by_gene[gene] += hits;
@@ -159,7 +159,7 @@ void CohortAnalysisWidget::updateOutputTable()
 			}
 		}
 		ui_.output->setSortingEnabled(true);
-		ui_.output->sortByColumn(1);
+        ui_.output->sortByColumn(1, ui_.output->horizontalHeader()->sortIndicatorOrder());
 		GUIHelper::resizeTableCellWidths(ui_.output, 400);
 		GUIHelper::resizeTableCellHeightsToFirst(ui_.output);
 

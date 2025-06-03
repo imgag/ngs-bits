@@ -38,7 +38,7 @@ void DBEditor::createGUI()
 {
 	//layout
 	QGridLayout* layout = new QGridLayout();
-	layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(3);
 	layout->setColumnStretch(0,0);
 	layout->setColumnStretch(1,1);

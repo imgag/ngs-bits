@@ -164,19 +164,19 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	QStringList messages;
 
 	GeneSet intersect = genes.intersect(imprinting_genes);
-	foreach(const QByteArray& gene, intersect)
+    for (const QByteArray& gene : intersect)
 	{
 		messages << (gene + ": Imprinting gene");
 	}
 
 	intersect = genes.intersect(hi0_genes);
-	foreach(const QByteArray& gene, intersect)
+    for (const QByteArray& gene : intersect)
 	{
 		messages << (gene + ": No evidence for haploinsufficiency");
 	}
 
 	intersect = genes.intersect(pseudogene_genes);
-	foreach(const QByteArray& gene, intersect)
+    for (const QByteArray& gene : intersect)
 	{
 		messages << (gene + ": Has pseudogene(s)");
 	}
@@ -185,7 +185,7 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	if (!messages.isEmpty())
 	{
 		messages.sort();
-		item->setBackgroundColor(Qt::yellow);
+        item->setBackground(QBrush(QColor(Qt::yellow)));
 		item->setToolTip(messages.join('\n'));
 	}
 }
@@ -218,7 +218,7 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 		else if (sys_type=="lrGS")
 		{
 			if (value<30) color = &orange;
-			if (value<20) color = &red;
+			if (value<25) color = &red;
 		}
 		else
 		{
@@ -232,6 +232,11 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 		{
 			if (value<99) color = &orange;
 			if (value<95) color = &red;
+		}
+		else if (sys_type=="lrGS")
+		{
+			if (value<95) color = &orange;
+			if (value<85) color = &red;
 		}
 		else
 		{
@@ -260,6 +265,11 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 	}
 	else if (accession=="QC:2000113") //CNV count
 	{
+		if (sys_type=="WGS")
+		{
+			if (value>2500 || value<500) color = &orange;
+			if (value>8000) color = &red;
+		}
 		if (value<1) color = &red;
 	}
 	else if (accession=="QC:2000024") //duplicate %
@@ -282,11 +292,18 @@ bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, 
 		if (value<0.9) color = &orange;
 		if (value<0.75) color = &red;
 	}
+	else if (accession=="QC:2000131")// N50 value
+	{
+		if (sys_type=="lrGS")
+		{
+			if (value<10000) color = &orange;
+		}
+	}
 
 	//set color
 	if (color!=nullptr)
 	{
-		item->setBackgroundColor(*color);
+        item->setBackground(QBrush(QColor(*color)));
 	}
 
 	return color!=nullptr;
@@ -471,7 +488,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		{
 			foreach(const AnalysisJobSample& sample,  dlg.samples())
 			{
-				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+				db.queueAnalysis("single sample", dlg.highPriority(), dlg.useDragen(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
 			}
 			return true;
 		}
@@ -482,7 +499,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			db.queueAnalysis("multi sample", dlg.highPriority(), false, dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}
@@ -494,7 +511,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		{
 			foreach(auto sample, dlg.samples()) qDebug() << "Sample: " << sample.name;
 
-			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			NGSD().queueAnalysis("trio", dlg.highPriority(), false, dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}
@@ -505,7 +522,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			db.queueAnalysis("somatic", dlg.highPriority(), dlg.useDragen(), dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}
@@ -571,7 +588,7 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 	{
 		THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
 	}
-	QString system_name = processing_systems.toList().at(0);
+    QString system_name = processing_systems.values().at(0);
 
 
 	// load cfDNA panel

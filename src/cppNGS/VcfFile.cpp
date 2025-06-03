@@ -73,7 +73,7 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		}
 
 		//determine column and sample names
-		int header_count = allow_multi_sample ? header_fields.count() : std::min(10, header_fields.count());
+        int header_count = allow_multi_sample ? header_fields.count() : std::min(SIZE_TO_INT(10), SIZE_TO_INT(header_fields.count()));
 		for(int i = 9; i < header_count; ++i)
 		{
 			sample_names_ << header_fields.at(i);
@@ -160,7 +160,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		foreach(const QByteArray& info, line_parts[INFO].split(';'))
 		{
 			int sep_index = info.indexOf('=');
-			const QByteArray& key = strCache(sep_index==-1 ? info : info.left(sep_index));
+            const QByteArray key = strCache(sep_index==-1 ? info : info.left(sep_index));
 
 			//check if the info is known in header
 			if(!info_ids.contains(key))
@@ -195,7 +195,6 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		//parse format entries
 		bool is_first = true;
 		QByteArrayList format_list = line_parts[FORMAT].split(':');
-		//QTextStream(stdout) << __FILE__ << " " << __LINE__ << " " << format_list.count() << " " << endl;
 		foreach(const QByteArray& format, format_list)
 		{
 			//first entry must be GT if GT is present
@@ -256,7 +255,6 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 					sample_entries[i] = strCache(sample_entries[i]);
 				}
 				vcf_line.addFormatValues(strArrayCache(sample_entries));
-				//QTextStream(stdout) << __FILE__ << " " << __LINE__ << " " << sample_entries.count() << " " << endl;
 			}
 		}
 		else
@@ -592,7 +590,7 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 	for (int i=0; i<vcf_lines_.count()-1; ++i)
 	{
 		int j = i+1;
-		if (vcf_lines_[i].chr() != vcf_lines_[j].chr() || vcf_lines_[i].start() != vcf_lines_[j].start() || vcf_lines_[i].ref() !=vcf_lines_[j].ref() || !qEqual(vcf_lines_[i].alt().begin(),  vcf_lines_[i].alt().end(), vcf_lines_[j].alt().begin()))
+        if (vcf_lines_[i].chr() != vcf_lines_[j].chr() || vcf_lines_[i].start() != vcf_lines_[j].start() || vcf_lines_[i].ref() !=vcf_lines_[j].ref() || !std::equal(vcf_lines_[i].alt().begin(),  vcf_lines_[i].alt().end(), vcf_lines_[j].alt().begin()))
 		{
 			output.append(vcf_lines_.at(i));
 		}
@@ -971,7 +969,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 	return vcf_file;
 }
 
-bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines)
+bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines, bool duplicates)
 {
 	//open input file
 	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toUtf8().data(), "rb");
@@ -986,7 +984,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo", true);
 
 	//ALT allele regexp
-	QRegExp alt_regexp("[ACGTN]+");
+    QRegularExpression alt_regexp(QRegularExpression::anchoredPattern("[ACGTN]+"));
 
 	//create list of all invalid chars in INFO column values
 	QList<char> invalid_chars;
@@ -1006,6 +1004,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	QMap<QByteArray, DefinitionLine> defined_formats;
 	QMap<QByteArray, DefinitionLine> defined_infos;
 	QByteArrayList defined_samples;
+	QByteArray last_tag;
 	int expected_parts = MIN_COLS;
 	bool in_header = true;
 	bool vcf_main_header_found = false;
@@ -1209,7 +1208,8 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			}
 
 			//alternate base(s)
-			QByteArrayList alts = parts[ALT].split(',');
+			QByteArray alt = parts[ALT];
+			QByteArrayList alts = alt.split(',');
 			if (alts.count()==1 && alts[0]==".")
 			{
 				printWarning(out_stream, "Missing value '.' used as alternative allele!", l, line);
@@ -1220,7 +1220,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 				{
 					if (alt.startsWith('<') && alt.endsWith('>')) continue; //special case for structural variant
 					if (alt=="*") continue; //special case for missing allele due to downstream deletion
-					if (alt.isEmpty() || !alt_regexp.exactMatch(alt))
+                    if (alt.isEmpty() || !alt_regexp.match(alt).hasMatch())
 					{
 						printError(out_stream, "Invalid alternative allele '" + alt + "'!", l, line);
 						error_found = true;
@@ -1242,6 +1242,18 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 						printWarning(out_stream, "First base of insertion/deletion not matching - ref: '" + ref + "' alt: '" + alt + "'!", l, line);
 					}
 				}
+			}
+
+			//check for duplicate variants
+			if (duplicates)
+			{
+				QByteArray tag = chr.str() + ":" + QByteArray::number(pos) + " " + ref + ">" + alt;
+				if (tag==last_tag)
+				{
+					printError(out_stream, "Variant '" + tag + "' contained at least twice!", l, line);
+					return false;
+				}
+				last_tag = tag;
 			}
 
 			//quality
@@ -1631,7 +1643,7 @@ const QByteArray& VcfFile::strCache(const QByteArray& str)
 	return *it;
 }
 
-const QByteArrayList& VcfFile::strArrayCache(const QByteArrayList& str)
+const QByteArrayList VcfFile::strArrayCache(const QByteArrayList& str)
 {
 	static QSet<QByteArrayList> cache;
 
@@ -1639,9 +1651,8 @@ const QByteArrayList& VcfFile::strArrayCache(const QByteArrayList& str)
 	if (it==cache.end())
 	{
 		it = cache.insert(str);
-	}
-
-	return *it;
+    }
+    return *it;
 }
 
 //Define URL encoding

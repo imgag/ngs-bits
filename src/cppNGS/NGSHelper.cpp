@@ -127,7 +127,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 					}
 					else
 					{
-						QSet<QString> parts = line.trimmed().split('\t').toSet();
+                        QSet<QString> parts = LIST_TO_SET(line.trimmed().split('\t'));
 						for (int i=cols.count()-1; i>=0; --i)
 						{
 							if (!parts.contains(cols[i]))
@@ -511,7 +511,7 @@ void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, in
 	simplyfied.replace(":", " ");
 	simplyfied.replace(",", "");
 	simplyfied = simplyfied.trimmed();
-	QStringList parts = simplyfied.split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
+    QStringList parts = simplyfied.split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS);
 
 	//support for chrosomome only
 	if (allow_chr_only && parts.count()==1 && Chromosome(simplyfied).isNonSpecial())
@@ -657,7 +657,7 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	{
 		if(old_CIGAR[i].Type!=BAM_CDEL && old_CIGAR[i].Type!=BAM_CSOFT_CLIP && old_CIGAR[i].Type!=BAM_CMATCH && old_CIGAR[i].Type!=BAM_CINS && old_CIGAR[i].Type!=BAM_CHARD_CLIP)
 		{
-			THROW(ToolFailedException, "Unsupported CIGAR type '" + QString(old_CIGAR[i].Type) + "'");
+            THROW(ToolFailedException, "Unsupported CIGAR type '" + QString::number(old_CIGAR[i].Type) + "'");
 		}
 	}
 
@@ -1088,24 +1088,24 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 	if (settings.print_to_stdout)
 	{
 		QTextStream out(stdout);
-		out << "Parsed " << data.transcripts.geneCount() << " genes from GFF" << endl;
-		out << "Parsed " << data.transcripts.count() << " transcripts from GFF" << endl;
+        out << "Parsed " << data.transcripts.geneCount() << " genes from GFF" << QT_ENDL;
+        out << "Parsed " << data.transcripts.count() << " transcripts from GFF" << QT_ENDL;
 		if (c_skipped_special_chr>0)
 		{
-			out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " genes on special chromosomes skipped: " << special_chrs.toList().join(", ") << endl;
+            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " genes on special chromosomes skipped: " << special_chrs.values().join(", ") << QT_ENDL;
 		}
 		if (c_skipped_no_name_and_hgnc>0)
 		{
-			out << "Notice: " << QByteArray::number(c_skipped_no_name_and_hgnc) << " genes without symbol and HGNC identifier skipped." << endl;
+            out << "Notice: " << QByteArray::number(c_skipped_no_name_and_hgnc) << " genes without symbol and HGNC identifier skipped." << QT_ENDL;
 		}
 		if (c_skipped_not_hgnc>0)
 		{
-			out << "Notice: " << QByteArray::number(c_skipped_not_hgnc) << " genes without a HGNC identifier skipped." << endl;
+            out << "Notice: " << QByteArray::number(c_skipped_not_hgnc) << " genes without a HGNC identifier skipped." << QT_ENDL;
 		}
 		if (c_skipped_low_evidence>0)
 		{
 
-			out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << endl;
+            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << QT_ENDL;
 		}
 	}
 
@@ -1291,7 +1291,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			{
 				int enst_start = details.indexOf("Parent=")+7;
 				int enst_end = details.indexOf(";", enst_start);
-				if (enst_end==-1) enst_end=details.count();
+                if (enst_end==-1) enst_end=details.size();
 				QByteArray parent_id = details.mid(enst_start, enst_end-enst_start);
 
 				//skip exons of skipped genes

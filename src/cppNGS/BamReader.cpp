@@ -91,7 +91,7 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 		}
 		else
 		{
-			output.append(QString::number(bam_cigar_oplen(cigar[i])));
+            output.append(QString::number(bam_cigar_oplen(cigar[i])).toUtf8());
 			output.append(bam_cigar_opchr(cigar[i]));
 		}
 	}
@@ -142,7 +142,7 @@ QVector<int> BamAlignment::baseIntegers() const
 void BamAlignment::setBases(const Sequence& bases)
 {
 	//check that length stays the same
-	if (aln_->core.l_qseq!=bases.count())
+    if (aln_->core.l_qseq!=bases.size())
 	{
 		THROW(NotImplementedException, "BamAlignment::setBases: Setting bases with different length is not implemented!");
 	}
@@ -167,7 +167,7 @@ void BamAlignment::setBases(const Sequence& bases)
 
 	//process bases
 	uint8_t* s = bam_get_seq(aln_);
-	for(int i=0; i<bases.count(); ++i)
+    for(int i=0; i<bases.size(); ++i)
 	{
 		//determine base index
 		int base_index = char_to_base_index[(int)(bases[i])];
@@ -176,22 +176,15 @@ void BamAlignment::setBases(const Sequence& bases)
 			THROW(ProgrammingException, QByteArray("Cannot store character '") + bases[i] + "' in BAM/CRAM file. Only A,C,G,T,N are allowed!");
 		}
 
-		//std::cout << "  base=" << bases[i] << " base_index=" << "(" << std::bitset<8>(base_index)  << ")" << std::endl;
 		const int index = (i>>1); //two bases are stored on one byte => divide index by two via shifting
 		uint8_t two_bases = s[index]; //two bases (lower~even index on the left)
 		if (i % 2 == 0) //even index
 		{
-			//std::cout << "    index=" << i << " (even ~ left)" << std::endl;
-			//std::cout << "    old=" << two_bases << "(" << std::bitset<8>(two_bases)  << ")" << std::endl;
 			two_bases = (two_bases & 0xf) | (base_index << 4);
-			//std::cout << "    new=" << two_bases << "(" << std::bitset<8>(two_bases)  << ")" << std::endl;
 		}
 		else //odd index
 		{
-			//std::cout << "    index=" << i << " (odd ~ right)" << std::endl;
-			//std::cout << "    old=" << two_bases << "(" << std::bitset<8>(two_bases)  << ")" << std::endl;
 			two_bases = (two_bases & 0xf0) | base_index;
-			//std::cout << "    new=" << two_bases << "(" << std::bitset<8>(two_bases)  << ")" << std::endl;
 		}
 		s[index] = two_bases;
 	}
@@ -269,13 +262,13 @@ void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
 void BamAlignment::setQualities(const QByteArray& qualities)
 {
 	//check that length stays the same
-	if (aln_->core.l_qseq!=qualities.count())
+    if (aln_->core.l_qseq!=qualities.size())
 	{
 		THROW(NotImplementedException, "BamAlignment::setQualities: Setting qualities with different length is not implemented!");
 	}
 
 	uint8_t* q = bam_get_qual(aln_);
-	for(int i=0; i<qualities.count(); ++i)
+    for(int i=0; i<qualities.size(); ++i)
 	{
 		q[i] = qualities[i]-33;
 	}
@@ -313,6 +306,12 @@ void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& va
 }
 
 QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
+{
+	int actual_pos = 0;
+	return extractBaseByCIGAR(pos, actual_pos);
+}
+
+QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int& actual_pos)
 {
 	int read_pos = 0;
 	int genome_pos = start()-1;
@@ -366,7 +365,7 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 
 		if (genome_pos>=pos)
 		{
-			int actual_pos = read_pos - (genome_pos + 1 - pos);
+			actual_pos = read_pos - (genome_pos + 1 - pos);
 			return qMakePair(base(actual_pos), quality(actual_pos));
 		}
 	}
@@ -394,7 +393,7 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 	foreach(const CigarOp& op, cigar_data)
 	{
 		//update positions
-		if (op.Type==BAM_CMATCH) //match or mismatch
+		if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF) //match or mismatch
 		{
 			genome_pos += op.Length;
 			read_pos += op.Length;
@@ -645,7 +644,7 @@ void BamReader::clearIterator()
 	iter_ = nullptr;
 }
 
-Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, int min_mapq, bool anom, int min_baseq)
+Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, int min_mapq, bool include_not_properly_paired, int min_baseq)
 {
 	//init
 	Pileup output;
@@ -659,7 +658,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	BamAlignment al;
 	while (getNextAlignment(al))
 	{
-		if (!al.isProperPair() && anom==false) continue;
+		if (!al.isProperPair() && !include_not_properly_paired) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
 		if (al.isUnmapped()) continue;
@@ -689,13 +688,13 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 }
 
 
-VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, const Variant& variant)
+VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, const Variant& variant, bool include_not_properly_paired)
 {
 	VariantDetails output;
 
 	if (variant.isSNV()) //SVN
 	{
-		Pileup pileup = getPileup(variant.chr(), variant.start(), -1);
+		Pileup pileup = getPileup(variant.chr(), variant.start(), -1, 1, include_not_properly_paired);
 		output.depth = pileup.depth(true);
 		if (output.depth!=0)
 		{
@@ -713,7 +712,7 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 
 		//get indels from region
 		QVector<Sequence> indels;
-		getIndels(reference, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac);
+		getIndels(reference, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac, include_not_properly_paired);
 		//qDebug() << "INDELS:" << indels.join(" ");
 
 		Variant variant_normalized = variant;
@@ -749,7 +748,7 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 }
 
 
-void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac)
+void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac, bool include_not_properly_paired)
 {
 	//init
 	indels.clear();
@@ -766,7 +765,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 	{
 		//skip low-quality reads
 		if (al.isDuplicate()) continue;
-		if (!al.isProperPair()) continue;
+		if (!al.isProperPair() && !include_not_properly_paired) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isUnmapped()) continue;
 
@@ -801,7 +800,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 		foreach(const CigarOp& op, cigar_data2)
 		{
 			//update positions
-			if (op.Type==BAM_CMATCH)
+			if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF)
 			{
 				genome_pos += op.Length;
 				read_pos += op.Length;

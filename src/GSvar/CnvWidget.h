@@ -22,7 +22,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, SomaticReportConfiguration* rep_conf_somatic, const GeneSet& het_hit_genes);
+	CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, QSharedPointer<SomaticReportConfiguration> rep_conf_somatic, const GeneSet& het_hit_genes);
 	~CnvWidget();
 
 protected:
@@ -82,7 +82,7 @@ private:
 	const CnvList& cnvs_;
 	QStringList special_cols_;
 	QSharedPointer<ReportConfiguration> report_config_;
-	SomaticReportConfiguration* somatic_report_config_;
+	QSharedPointer<SomaticReportConfiguration> somatic_report_config_;
 
 	GeneSet var_het_genes_;
 	QSet<QString> metrics_done_;

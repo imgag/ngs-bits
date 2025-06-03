@@ -21,7 +21,7 @@ class CfDNAPanelDesignDialog : public QDialog
 	Q_OBJECT
 
 public:
-	explicit CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent = 0);
+	CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, QSharedPointer<SomaticReportConfiguration> somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent = 0);
 	~CfDNAPanelDesignDialog();
 
 private slots:
@@ -52,7 +52,7 @@ private:
 	Ui::CfDNAPanelDesignDialog *ui_;
 	const VariantList& variants_;
 	const FilterResult& filter_result_;
-	const SomaticReportConfiguration& somatic_report_configuration_;
+	const QSharedPointer<SomaticReportConfiguration> somatic_report_configuration_;
 	QMap<QString, bool> prev_vars_;
 	QMap<QString, bool> candidate_vars_;
 	QMap<QString, float> candidate_scores_;

@@ -98,7 +98,7 @@ public:
 
 
 		//get cohort
-		QVector<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, "genes").toList().toVector();
+        QVector<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, "genes").values().toVector();
 		std::sort(cohort.rbegin(), cohort.rend());
 
 		//remove given ps_id if manual file is provided
@@ -130,7 +130,7 @@ public:
 		output_stream << ps_names.join("\t") << "\n";
 
 		//iterate over gene list
-		foreach (const QByteArray& gene, genes)
+        for (const QByteArray& gene : genes)
 		{
 			QVector<double> expression_values = db.getGeneExpressionValues(gene, cohort);
 			QByteArrayList expression_values_str;

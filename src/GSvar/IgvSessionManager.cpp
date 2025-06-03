@@ -20,8 +20,11 @@ IGVSession* IgvSessionManager::create(QWidget* parent, const QString& name, cons
 
 	//determine port
 	int port = Settings::integer("igv_port");
-	port += 1000 * (instance().session_list_.count()+1); //specific port for each IGV session
-	if (LoginManager::active()) port += LoginManager::userId(); //specific port for each user (needed e.g. for citrix)
+    if (!Settings::boolean("use_fixed_igv_port_number", true))
+    {
+        port += 1000 * (instance().session_list_.count()+1); //specific port for each IGV session
+        if (LoginManager::active()) port += LoginManager::userId(); //specific port for each user (needed e.g. for citrix)
+    }
 
 	//create session
 	QSharedPointer<IGVSession> session = QSharedPointer<IGVSession>(new IGVSession(parent, name, app, host, port, genome));

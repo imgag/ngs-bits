@@ -18,19 +18,19 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job, const MetaData& settings, const
 	, reference_(settings.reference)
 	, hgvs_anno_(reference_, settings_.annotation_parameters)
 {
-	if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << endl;
+    if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << QT_ENDL;
 }
 
 ChunkProcessor::~ChunkProcessor()
 {
-	if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << endl;
+    if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << QT_ENDL;
 }
 
 // single chunks are processed
 void ChunkProcessor::run()
 {
 	ChromosomalIndex<TranscriptList> transcript_index(settings_.transcripts);
-	if (params_.debug) QTextStream(stdout) << "ChunkProcessor::run() " << job_.index << endl;
+    if (params_.debug) QTextStream(stdout) << "ChunkProcessor::run() " << job_.index << QT_ENDL;
 	try
 	{
 		// read vcf file
@@ -135,8 +135,8 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 			catch(Exception& e)
 			{
 				QTextStream out(stdout);
-				out << "Error processing variant " << variant.toString() << " and transcript " << t.nameWithVersion() << ":" << endl;
-				out << "  " << e.message().replace("\n", "  \n") << endl;
+                out << "Error processing variant " << variant.toString() << " and transcript " << t.nameWithVersion() << ":" << QT_ENDL;
+                out << "  " << e.message().replace("\n", "  \n") << QT_ENDL;
 			}
 		}
 	}

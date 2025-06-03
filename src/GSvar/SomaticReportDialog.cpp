@@ -54,7 +54,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	, db_()
 	, settings_(settings)
 	, germl_variants_(germl_variants)
-	, target_region_(settings.report_config.targetRegionName())
+	, target_region_(settings.report_config->targetRegionName())
 	, tum_cont_snps_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_max_clonality_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
@@ -139,7 +139,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	int old_entry_row = -1;
 	for(int i=0; i<ui_.tmb_reference->rowCount(); ++i)
 	{
-		if(settings_.report_config.tmbReferenceText() == ui_.tmb_reference->item(i, 1)->text())
+		if(settings_.report_config->tmbReferenceText() == ui_.tmb_reference->item(i, 1)->text())
 		{
 			old_entry_row = i;
 			break;
@@ -150,12 +150,12 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	{
 		ui_.tmb_reference->insertRow(ui_.tmb_reference->rowCount());
 		ui_.tmb_reference->setItem(ui_.tmb_reference->rowCount()-1, 0, new QTableWidgetItem("former report"));
-		ui_.tmb_reference->setItem(ui_.tmb_reference->rowCount()-1, 1, new QTableWidgetItem( settings_.report_config.tmbReferenceText()) );
+		ui_.tmb_reference->setItem(ui_.tmb_reference->rowCount()-1, 1, new QTableWidgetItem( settings_.report_config->tmbReferenceText()) );
 		ui_.tmb_reference->selectRow(ui_.tmb_reference->rowCount()-1);
 	}
 	else //set selection to former entry if already in table
 	{
-		if(settings_.report_config.tmbReferenceText() != "") ui_.tmb_reference->selectRow(old_entry_row);
+		if(settings_.report_config->tmbReferenceText() != "") ui_.tmb_reference->selectRow(old_entry_row);
 		else if(ui_.tmb_reference->rowCount() >= 3) ui_.tmb_reference->selectRow(2); //First entry that referes to a suggested ref value
 	}
 
@@ -174,7 +174,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	BamReader bam_reader(GlobalServiceProvider::database().processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::BAM).filename);
 	FastaFileIndex fasta_idx(Settings::string("reference_genome"));
 
-	QList<int> germl_indices_in_report = settings_.report_config.variantIndicesGermline();
+	QList<int> germl_indices_in_report = settings_.report_config->variantIndicesGermline();
 
 	if(i_co_sp != -1)
 	{
@@ -189,7 +189,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 			if (! class_map.contains(key) || (class_map[key].classification != "4" && class_map[key].classification != "5")) continue;
 
 			//determine frequency of variant in tumor bam
-			VariantDetails variant_details = bam_reader.getVariantDetails(fasta_idx, snv);
+			VariantDetails variant_details = bam_reader.getVariantDetails(fasta_idx, snv, false);
 			double freq_in_tum = variant_details.frequency;
 			double depth_in_tum = variant_details.depth;
 
@@ -239,9 +239,9 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	}
 
 	//limitations
-	if(settings.report_config.limitations() != "")
+	if(settings.report_config->limitations() != "")
 	{
-		ui_.limitations_text->setPlainText(settings.report_config.limitations());
+		ui_.limitations_text->setPlainText(settings.report_config->limitations());
 		ui_.limitations_check->setChecked(true);
 	}
 	else
@@ -259,7 +259,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	if(BasicStatistics::isValidFloat(tum_cont_snps_))
 	{
-		ui_.include_max_tum_freq->setChecked(settings_.report_config.includeTumContentByMaxSNV());
+		ui_.include_max_tum_freq->setChecked(settings_.report_config->includeTumContentByMaxSNV());
 		ui_.include_max_tum_freq->setText(ui_.include_max_tum_freq->text() + " ("  + QString::number(tum_cont_snps_, 'f', 1) +"%)");
 	}
 	else
@@ -269,7 +269,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	if(BasicStatistics::isValidFloat( tum_cont_max_clonality_))
 	{
-		ui_.include_max_clonality->setChecked(settings_.report_config.includeTumContentByClonality());
+		ui_.include_max_clonality->setChecked(settings_.report_config->includeTumContentByClonality());
 		ui_.include_max_clonality->setText(ui_.include_max_clonality->text() + " ("  + QString::number(tum_cont_max_clonality_ * 100., 'f', 1) +"%)");
 	}
 	else
@@ -280,7 +280,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	if(BasicStatistics::isValidFloat( tum_cont_histological_) && tum_cont_histological_ > 0.)
 	{
-		ui_.include_tum_content_histological->setChecked(settings_.report_config.includeTumContentByHistological());
+		ui_.include_tum_content_histological->setChecked(settings_.report_config->includeTumContentByHistological());
 		ui_.include_tum_content_histological->setText(ui_.include_tum_content_histological->text() + " (" + QString::number(tum_cont_histological_, 'f', 1)+"%)");
 	}
 	else
@@ -300,7 +300,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 
 	if(SomaticReportHelper::cnvBurden(cnvs_) > 0.01)
 	{
-		ui_.include_cnv_burden->setChecked(settings_.report_config.cnvBurden());
+		ui_.include_cnv_burden->setChecked(settings_.report_config->cnvBurden());
 		ui_.include_cnv_burden->setText(ui_.include_cnv_burden->text() + " (" + QString::number(SomaticReportHelper::cnvBurden(cnvs_), 'f', 1)  + "%)");
 	}
 	else
@@ -309,13 +309,13 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 		ui_.include_cnv_burden->setEnabled(false);
 	}
 
-	ui_.include_mutation_burden->setChecked(settings_.report_config.includeMutationBurden());
+	ui_.include_mutation_burden->setChecked(settings_.report_config->includeMutationBurden());
 
 	if(cnvs_.count() > 0)
 	{
-		ui_.cnv_loh_count->setText( QString::number(settings_.report_config.cnvLohCount()) );
-		ui_.cnv_tai_count->setText( QString::number(settings_.report_config.cnvTaiCount()) );
-		ui_.cnv_lst_count->setText( QString::number(settings_.report_config.cnvLstCount()) );
+		ui_.cnv_loh_count->setText( QString::number(settings_.report_config->cnvLohCount()) );
+		ui_.cnv_tai_count->setText( QString::number(settings_.report_config->cnvTaiCount()) );
+		ui_.cnv_lst_count->setText( QString::number(settings_.report_config->cnvLstCount()) );
 	}
 
 
@@ -323,8 +323,8 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	cinState();
 
 	//Preselect remaining options
-	ui_.include_msi_status->setChecked(settings_.report_config.msiStatus());
-	ui_.fusions_detected->setChecked(settings_.report_config.fusionsDetected());
+	ui_.include_msi_status->setChecked(settings_.report_config->msiStatus());
+	ui_.fusions_detected->setChecked(settings_.report_config->fusionsDetected());
 	if(Settings::boolean("debug_mode_enabled")) ui_.no_ngsd->setChecked(true);
 
 	//Load possible quality settings
@@ -343,7 +343,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 		item = ui_.quality_list->item(i);
 		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
 
-		if(settings_.report_config.quality().contains(ui_.quality_list->item(i)->text()))
+		if(settings_.report_config->quality().contains(ui_.quality_list->item(i)->text()))
 		{
 			ui_.quality_list->item(i)->setCheckState(Qt::CheckState::Checked);
 		}
@@ -353,7 +353,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 		}
 	}
 
-	if (settings_.report_config.quality().count() == 1 && settings_.report_config.quality()[0] == "no abnormalities")
+	if (settings_.report_config->quality().count() == 1 && settings_.report_config->quality()[0] == "no abnormalities")
 	{
 		ui_.quality_no_abnormalities->setChecked(true);
 	}
@@ -367,7 +367,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	//Preselect  entry to old setting
 	for(int i=0; i<ui_.hrd_statement->count(); ++i)
 	{
-		if(ui_.hrd_statement->itemText(i) == settings_.report_config.hrdStatement())
+		if(ui_.hrd_statement->itemText(i) == settings_.report_config->hrdStatement())
 		{
 			ui_.hrd_statement->setCurrentIndex(i);
 			break;
@@ -403,16 +403,16 @@ void SomaticReportDialog::writeBackSettings()
 {
 	if(getReportType() == RNA) return; //No report configuration for RNA samples
 
-	settings_.report_config.setIncludeTumContentByMaxSNV(ui_.include_max_tum_freq->isChecked());
-	settings_.report_config.setIncludeTumContentByClonality(ui_.include_max_clonality->isChecked());
-	settings_.report_config.setIncludeTumContentByHistological(ui_.include_tum_content_histological->isChecked());
-	settings_.report_config.setIncludeTumContentByEstimated(ui_.include_tum_content_estimated->isChecked());
-	settings_.report_config.setTumContentByEstimated(ui_.tum_content_estimated->value());
+	settings_.report_config->setIncludeTumContentByMaxSNV(ui_.include_max_tum_freq->isChecked());
+	settings_.report_config->setIncludeTumContentByClonality(ui_.include_max_clonality->isChecked());
+	settings_.report_config->setIncludeTumContentByHistological(ui_.include_tum_content_histological->isChecked());
+	settings_.report_config->setIncludeTumContentByEstimated(ui_.include_tum_content_estimated->isChecked());
+	settings_.report_config->setTumContentByEstimated(ui_.tum_content_estimated->value());
 
-	settings_.report_config.setMsiStatus(ui_.include_msi_status->isChecked());
-	settings_.report_config.setCnvBurden(ui_.include_cnv_burden->isChecked());
-	settings_.report_config.setIncludeMutationBurden(ui_.include_mutation_burden->isChecked());
-	settings_.report_config.setFusionsDetected(ui_.fusions_detected->isChecked());
+	settings_.report_config->setMsiStatus(ui_.include_msi_status->isChecked());
+	settings_.report_config->setCnvBurden(ui_.include_cnv_burden->isChecked());
+	settings_.report_config->setIncludeMutationBurden(ui_.include_mutation_burden->isChecked());
+	settings_.report_config->setFusionsDetected(ui_.fusions_detected->isChecked());
 
 	//current index of hrd_score is identical to value!
 	QStringList quality;
@@ -431,18 +431,18 @@ void SomaticReportDialog::writeBackSettings()
 			}
 		}
 	}
-	settings_.report_config.setQuality(quality);
+	settings_.report_config->setQuality(quality);
 
-	settings_.report_config.setHrdStatement( ui_.hrd_statement->currentText() );
+	settings_.report_config->setHrdStatement( ui_.hrd_statement->currentText() );
 
 	if(ui_.tmb_reference->selectionModel()->selectedRows().count() == 1)
 	{
 		QString ref_text = ui_.tmb_reference->item(ui_.tmb_reference->selectionModel()->selectedRows()[0].row(), 1)->text();
-		settings_.report_config.setTmbReferenceText(ref_text);
+		settings_.report_config->setTmbReferenceText(ref_text);
 	}
 
 	//get selected variants in germline sample - clear current and replace by the selected
-	settings_.report_config.clearGermlineVariantConfigurations();
+	settings_.report_config->clearGermlineVariantConfigurations();
 
 	for(int i=0; i<ui_.germline_variants->rowCount(); ++i)
 	{
@@ -469,21 +469,21 @@ void SomaticReportDialog::writeBackSettings()
 				var_conf.tum_depth = std::numeric_limits<double>::quiet_NaN();
 			}
 
-			settings_.report_config.addGermlineVariantConfiguration(var_conf);
+			settings_.report_config->addGermlineVariantConfiguration(var_conf);
 		}
 	}
 
 	//Resolve CIN settings
-	settings_.report_config.setCinChromosomes(resolveCIN());
+	settings_.report_config->setCinChromosomes(resolveCIN());
 
 
 	if(ui_.limitations_check->isChecked())
 	{
-		settings_.report_config.setLimitations(ui_.limitations_text->toPlainText());
+		settings_.report_config->setLimitations(ui_.limitations_text->toPlainText());
 	}
 	else
 	{
-		settings_.report_config.setLimitations("");
+		settings_.report_config->setLimitations("");
 	}
 
 	//IGV data
@@ -558,7 +558,7 @@ void SomaticReportDialog::cinState()
 	{
 		ui_.tabs->setTabEnabled(2, true);
 		//preselect CIN chromosomes
-		for(const auto& chr : settings_.report_config.cinChromosomes())
+		for(const auto& chr : settings_.report_config->cinChromosomes())
 		{
 			ui_.cin->findChild<QCheckBox*>(chr)->setChecked(true);
 		}

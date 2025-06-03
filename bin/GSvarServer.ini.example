@@ -28,12 +28,19 @@ gsvar_server_db_name = "server_db"
 gsvar_server_db_user = "server_user"
 gsvar_server_db_pass = "server_password"
 
+#Email notifications (an email will be sent to the selected admin users when critical errors are detected)
+server_email_address = "gsvarserver@server.com"
+users_to_be_notified_on_errors = "email@server.com"
+
 #number of seconds after which a temporary URL will expire
 url_lifetime = 36000
 #number of seconds after which a user session will expire
 session_duration = 36000
 #use in-memory structure to keep file metadata information(name, absolute path, size, etc.), reduces the number of calls to the file system
 enable_file_metadata_caching = false
+file_location_cache_lifespan = 300
+#enables file watcher for the files with notifications for users
+allow_notifying_users = false
 
 #proxy settings - set if proxy is needed to access files on the internet
 proxy_host = ""

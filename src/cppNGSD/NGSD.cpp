@@ -57,6 +57,12 @@ NGSD::NGSD(bool test_db, QString test_name_override)
 		db_->setPassword(Settings::string(prefix + "_pass"));
 		db_name = prefix;
 	}
+    QByteArray db_ssl_ca = Settings::string("db_ssl_ca", true).trimmed().toUtf8();
+    if (!db_ssl_ca.isEmpty())
+    {
+        //setting certificate authorities (e.g. needed to validate secure connections to AWS DB servers)
+        db_->setConnectOptions("SSL_CA=" + db_ssl_ca);
+    }
 
 	if (!db_->open())
 	{
@@ -206,16 +212,16 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 		switch(permission)
 		{
 			case Permission::PROJECT:
-				ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()).toSet();
+                ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
 				break;
 			case Permission::PROJECT_TYPE:
-				ps_ids += getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'").toSet();
+                ps_ids += LIST_TO_SET(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
 				break;
 			case Permission::SAMPLE:
-				ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()).toSet();
+                ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
 				break;
 			case Permission::STUDY:
-				ps_ids += getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()).toSet();
+                ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
 				break;
 		}
 	}
@@ -360,11 +366,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 		//create complete phenotype list with children
 		QStringList accessions;
-		foreach(const Phenotype& phenotype, p.s_phenotypes)
+
+        for(const Phenotype& phenotype : p.s_phenotypes)
 		{
 			accessions << phenotype.accession();
 			int phenotype_id = phenotypeIdByAccession(phenotype.accession());
-			foreach(const Phenotype& child, phenotypeChildTerms(phenotype_id, true))
+            for(const Phenotype& child : phenotypeChildTerms(phenotype_id, true))
 			{
 				accessions << child.accession();
 			}
@@ -454,6 +461,19 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		fields << "s.quality as sample_quality"
 			   << "ps.quality as processed_sample_quality";
 	}
+
+	//add lab columns
+	if (p.add_lab_columns)
+	{
+		tables << "user";
+		conditions << "ps.operator_id=user.id";
+		fields << "ps.processing_input as processing_input"
+			   << "ps.molarity as molarity"
+			   << "user.name as operator"
+			   << "ps.processing_modus as processing_modus"
+			   << "ps.batch_number as batch_number";
+	}
+
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY r.name ASC, s.name ASC, ps.process_id ASC");
 
 	//remove duplicates
@@ -1103,6 +1123,13 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	return output;
 }
 
+bool NGSD::isLongRead(const QString& ps)
+{
+	QString ps_id = processedSampleId(ps);
+	QString sys_type = getValue("SELECT sys.type FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id="+ps_id).toString();
+	return sys_type=="lrGS";
+}
+
 QString NGSD::processingSystemRegionsFilePath(int sys_id)
 {
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
@@ -1370,6 +1397,8 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 		}
 	}
 	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";
+	else if (type==PathType::MANTA_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
+	else if (type==PathType::PARAPHASE_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 	return QFileInfo(output).absoluteFilePath();
@@ -1479,7 +1508,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 		const Variant& variant = variant_list[i];
 
 		//skip variants over 500 bases length - the unique index of the variant table does not work for those
-		if (variant.ref().count()>MAX_VARIANT_SIZE || variant.obs().count()>MAX_VARIANT_SIZE)
+        if (variant.ref().size()>MAX_VARIANT_SIZE || variant.obs().size()>MAX_VARIANT_SIZE)
 		{
 			output << -1;
 			continue;
@@ -1916,15 +1945,15 @@ ImportStatusGermline NGSD::importStatus(const QString& ps_id)
 void NGSD::importGeneExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug)
 {
 	QTextStream outstream(stdout);
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	//check ps_name
 	QString ps_id = processedSampleId(ps_name);
-	if(debug) outstream << "Processed sample: " << ps_name << endl;
+    if(debug) outstream << "Processed sample: " << ps_name << QT_ENDL;
 
 	// check if already imported
 	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
-	if(debug) outstream << "Previously imported expression values: " << n_prev_entries << endl;
+    if(debug) outstream << "Previously imported expression values: " << n_prev_entries << QT_ENDL;
 
 	if (!force && (n_prev_entries > 0))
 	{
@@ -1939,7 +1968,7 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	{
 		SqlQuery query = getQuery();
 		query.exec("DELETE FROM `expression` WHERE `processed_sample_id`='"+ps_id+"'");
-		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
+        if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << QT_ENDL;
 	}
 
 	//get ENSG -> id mapping
@@ -2004,9 +2033,9 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	// commit
 	commit();
 
-	if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << endl;
-	if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
-	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << endl;
+    if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << QT_ENDL;
+    if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << QT_ENDL;
+    if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << QT_ENDL;
 }
 
 int NGSD::addGeneSymbolToExpressionTable(const QByteArray& gene_symbol)
@@ -2026,15 +2055,15 @@ int NGSD::addGeneSymbolToExpressionTable(const QByteArray& gene_symbol)
 void NGSD::importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug)
 {
 	QTextStream outstream(stdout);
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	//check ps_name
 	QString ps_id = processedSampleId(ps_name);
-	if(debug) outstream << "Processed sample: " << ps_name << endl;
+    if(debug) outstream << "Processed sample: " << ps_name << QT_ENDL;
 
 	// check if already imported
 	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression_exon` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
-	if(debug) outstream << "Previously imported expression values: " << n_prev_entries << endl;
+    if(debug) outstream << "Previously imported expression values: " << n_prev_entries << QT_ENDL;
 
 	if (!force && (n_prev_entries > 0))
 	{
@@ -2049,7 +2078,7 @@ void NGSD::importExonExpressionData(const QString& expression_data_file_path, co
 	{
 		SqlQuery query = getQuery();
 		query.exec("DELETE FROM `expression_exon` WHERE `processed_sample_id`='"+ps_id+"'");
-		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
+        if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << QT_ENDL;
 	}
 
 
@@ -2082,7 +2111,7 @@ void NGSD::importExonExpressionData(const QString& expression_data_file_path, co
 		valid_exons << exon.toString(true).toUtf8();
 	}
 
-	if(debug) outstream << QByteArray::number(valid_exons.size()) << " unique exons stored in the NGSD (" << Helper::elapsedTime(timer) << ") " << endl;
+    if(debug) outstream << QByteArray::number(valid_exons.size()) << " unique exons stored in the NGSD (" << Helper::elapsedTime(timer) << ") " << QT_ENDL;
 
 
 
@@ -2125,17 +2154,17 @@ void NGSD::importExonExpressionData(const QString& expression_data_file_path, co
 		line_idx++;
 		if(debug && (line_idx % 100000 == 0))
 		{
-			outstream << QByteArray::number(line_idx) << " lines parsed..." << endl;
+            outstream << QByteArray::number(line_idx) << " lines parsed..." << QT_ENDL;
 		}
 	}
 
 
 	// commit
 	commit();
-	if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << endl;
-	if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
-	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped (not in NGSD)." << endl;
-	if(debug) outstream << QByteArray::number(n_duplicates) + " expression values skipped (duplicates)." << endl;
+    if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << QT_ENDL;
+    if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << QT_ENDL;
+    if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped (not in NGSD)." << QT_ENDL;
+    if(debug) outstream << QByteArray::number(n_duplicates) + " expression values skipped (duplicates)." << QT_ENDL;
 }
 
 
@@ -2218,7 +2247,7 @@ QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id
 QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2)
 {
 	// debug
-	QVector<int> cohort_sorted = cohort.toList().toVector();
+    QVector<int> cohort_sorted = cohort.values().toVector();
 	std::sort(cohort_sorted.begin(), cohort_sorted.end());
 
 	return getGeneExpressionValues(gene, cohort_sorted, log2);
@@ -2269,7 +2298,7 @@ QVector<double> NGSD::getExonExpressionValues(const BedLine& exon, QSet<int> coh
 {
 	QVector<double> expr_values;
 
-	QList<int> cohort_sorted = cohort.toList();
+    QList<int> cohort_sorted = cohort.values();
 	std::sort(cohort_sorted.begin(), cohort_sorted.end());
 	QStringList cohort_str;
 	foreach (int i , cohort_sorted)
@@ -2335,7 +2364,7 @@ QMap<QByteArray, int> NGSD::getGeneExpressionGene2IdMapping()
 
 QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene_symbol, bool debug)
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	QMap<QByteArray, ExpressionStats> gene_stats;
@@ -2401,7 +2430,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 
 QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon, bool debug)
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	QMap<QByteArray, ExpressionStats> exon_stats;
@@ -2467,7 +2496,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project, const QString& ps_id,
 																	  RnaCohortDeterminationStategy cohort_type, const QStringList& exclude_quality, bool debug)
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	//get cohort
@@ -2481,7 +2510,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 
 QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, bool debug)
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	QSet<int> cohort;
 
@@ -2489,18 +2518,18 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 	QSet<int> all_ps_ids;
 	if (mode == "genes")
 	{
-		all_ps_ids = getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression e").toSet();
+        all_ps_ids = LIST_TO_SET(getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression e"));
 	}
 	else if (mode == "exons")
 	{
-		all_ps_ids = getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression_exon e").toSet();
+        all_ps_ids = LIST_TO_SET(getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression_exon e"));
 	}
 	else
 	{
 		THROW(ArgumentException, "Invalid mode '" + mode + "' given! Valid modes are 'genes' or 'exons'");
 	}
 
-	if(debug) qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
+    if(debug) qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
 
 
 	if ((cohort_type == RNA_COHORT_GERMLINE) || (cohort_type == RNA_COHORT_GERMLINE_PROJECT))
@@ -2530,12 +2559,12 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 			query_string_cohort.append("  AND ps.project_id = " + QByteArray::number(project_id));
 		}
 
-		cohort = getValuesInt(query_string_cohort).toSet();
+        cohort = LIST_TO_SET(getValuesInt(query_string_cohort));
 
 	}
 	else if (cohort_type == RNA_COHORT_SOMATIC)
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//check requirements:
@@ -2585,8 +2614,8 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 											  "AND ps.project_id=" + QString::number(project_id) + " "
 											  "AND ps.quality != 'bad' "
 											  "AND (sr.relation='same sample' OR sr.relation IS NULL) "
-											  "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.toList().at(0) + "') "
-											  "OR (sdi.type='HPO term id' AND sdi.disease_info='" + hpo_disease_info.toList().at(0) + "')) ");
+                                              "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.values().at(0) + "') "
+                                              "OR (sdi.type='HPO term id' AND sdi.disease_info='" + hpo_disease_info.values().at(0) + "')) ");
 
 		if (exclude_quality.size() > 0)
 		{
@@ -2594,7 +2623,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		}
 
 
-		cohort = getValuesInt(query_string_cohort).toSet();
+        cohort = LIST_TO_SET(getValuesInt(query_string_cohort));
 
 
 		if(debug) qDebug() << "get ps_ids of cohort (somatic)" << Helper::elapsedTime(timer);
@@ -2967,7 +2996,7 @@ BedpeLine NGSD::somaticSv(QString sv_id, StructuralVariantType type, const Bedpe
 	QList<QByteArray> annotations;
 
 	int qual_idx = -1, filter_idx = -1, alt_a_idx = -1, info_a_idx = -1;
-	annotations = QVector<QByteArray>(svs.annotationHeaders().size()).toList();
+    annotations = QVector<QByteArray>(svs.annotationHeaders().size()).toList();
 	if (!no_annotation)
 	{
 		// determine indices for annotations
@@ -3389,7 +3418,7 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 	QList<QByteArray> annotations;
 
 	int qual_idx = -1, filter_idx = -1, alt_a_idx = -1, info_a_idx = -1, format_idx = -1;
-	annotations = QVector<QByteArray>(svs.annotationHeaders().size()).toList();
+    annotations = QVector<QByteArray>(svs.annotationHeaders().size()).toList();
 	format_idx = svs.annotationIndexByName("FORMAT");
 	if (!no_annotation)
 	{
@@ -4123,7 +4152,12 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 		{
 			QVariant value = query_result.value(c);
 			QString value_as_string = value.isNull() ? ""  : value.toString();
-			if (value.type()==QVariant::DateTime)
+
+            #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            if (value.typeId()==QVariant::DateTime)
+            #else
+            if (value.type()==QVariant::DateTime)
+            #endif
 			{
 				value_as_string = value_as_string.replace("T", " ");
 			}
@@ -4760,7 +4794,11 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 		{
 			if(state == SomaticViccData::State::VICC_TRUE) return QVariant(true);
 			else if(state == SomaticViccData::State::VICC_FALSE) return QVariant(false);
-			return QVariant(QVariant::Bool);
+            #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            return QVariant(QMetaType(QMetaType::Bool));
+            #else
+            return QVariant(QVariant::Bool);
+            #endif
 		};
 
 		query.bindValue( 0 , stateToVar( vicc_data.null_mutation_in_tsg ) );
@@ -5316,7 +5354,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 				// get error message
 				QJsonArray errors = summary_response.object().value("submissions").toArray().at(0).toObject().value("errors").toArray();
 				QStringList error_messages;
-				foreach (const QJsonValue& error, errors)
+                for (const QJsonValue& error : errors)
 				{
 					error_messages << error.toObject().value("output").toObject().value("errors").toArray().at(0).toObject().value("userMessage").toString();
 				}
@@ -5364,6 +5402,7 @@ AnalysisJob NGSD::analysisInfo(int job_id, bool throw_if_fails)
 	{
 		output.type = query.value("type").toString();
 		output.high_priority = query.value("high_priority").toBool();
+		output.use_dragen = query.value("use_dragen").toBool();
 		output.args = query.value("args").toString();
 		output.sge_id = query.value("sge_id").toString();
 		output.sge_queue = query.value("sge_queue").toString();
@@ -5391,12 +5430,12 @@ AnalysisJob NGSD::analysisInfo(int job_id, bool throw_if_fails)
 	return output;
 }
 
-void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples)
+void NGSD::queueAnalysis(QString type, bool high_priority, bool use_dragen, QStringList args, QList<AnalysisJobSample> samples)
 {
 	SqlQuery query = getQuery();
 
 	//insert job
-	query.exec("INSERT INTO `analysis_job`(`type`, `high_priority`, `args`) VALUES ('" + type + "','" + (high_priority ? "1" : "0") + "','" + args.join(" ") +  "')");
+	query.exec("INSERT INTO `analysis_job`(`type`, `high_priority`, `use_dragen`, `args`) VALUES ('" + type + "','" + (high_priority ? "1" : "0") + "','"  + (use_dragen ? "1" : "0") + "','" + args.join(" ") +  "')");
 	QString job_id = query.lastInsertId().toString();
 
 	//insert samples
@@ -5504,12 +5543,12 @@ FileInfo NGSD::analysisJobLatestLogInfo(int job_id)
 			foreach(QString file, files)
 			{
 				QFileInfo file_info(file);
-				QDateTime mod_time = file_info.lastModified();
+                QDateTime mod_time = file_info.metadataChangeTime();
 				if (output.last_modiefied.isNull() || mod_time>output.last_modiefied)
 				{
 					output.file_name = file_info.fileName();
 					output.file_name_with_path = file_info.filePath();
-					output.created = file_info.created();
+                    output.created = file_info.birthTime();
 					output.last_modiefied = mod_time;
 				}
 			}
@@ -5936,7 +5975,7 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 	return output;
 }
 
-QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
+QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnalysisSettings& settings)
 {
 	QStringList sample_sheet;
 
@@ -6024,25 +6063,28 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 		if (!sys_info.adapter1_p5.trimmed().isEmpty()) adapter_sequences_read1.insert(sys_info.adapter1_p5);
 		if (!sys_info.adapter2_p7.trimmed().isEmpty()) adapter_sequences_read2.insert(sys_info.adapter2_p7);
 
-
-		if (sample_type == "DNA" || sample_type == "cfDNA")
+		//generate analysis
+		if (settings.dragen_analysis)
 		{
-			if (system_type == "WGS")
+			if (sample_type == "DNA" || sample_type == "cfDNA")
 			{
-				germline_analysis.append(ps_name);
+				if (system_type == "WGS")
+				{
+					germline_analysis.append(ps_name);
+				}
+				else if (system_type == "WES")
+				{
+					enrichment_analysis.append(ps_name + ",DragenEnrichment/" + system_name + ".bed");
+				}
 			}
-			else if (system_type == "WES")
+			else if (sample_type == "RNA")
 			{
-				enrichment_analysis.append(ps_name + "," + system_name + ".bed");
+				rna_analysis.append(ps_name);
 			}
-		}
-		else if (sample_type == "RNA")
-		{
-			rna_analysis.append(ps_name);
-		}
-		else
-		{
-			THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+			else
+			{
+				THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+			}
 		}
 
 		//create line for BCLConvert
@@ -6110,14 +6152,22 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings)
 	sample_sheet.append("SoftwareVersion,"  + sw_version);
 
 	//sort adapter to make it testable
-	QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
-	adapter_sequences_read1_list.sort();
-	if (adapter_sequences_read1_list.length() > 0) sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
-	else warnings << "WARNING: No adapter for read 1 provided! Adapter trimming will not work.";
-	QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
-	adapter_sequences_read2_list.sort();
-	if (adapter_sequences_read2_list.length() > 0) sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
-	else warnings << "WARNING: No adapter for read 2 provided! Adapter trimming will not work.";
+	if (settings.adapter_trimming)
+	{
+        QStringList adapter_sequences_read1_list = adapter_sequences_read1.values();
+		adapter_sequences_read1_list.sort();
+		if (adapter_sequences_read1_list.length() > 0) sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
+		else warnings << "WARNING: No adapter for read 1 provided! Adapter trimming will not work.";
+        QStringList adapter_sequences_read2_list = adapter_sequences_read2.values();
+		adapter_sequences_read2_list.sort();
+		if (adapter_sequences_read2_list.length() > 0) sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
+		else warnings << "WARNING: No adapter for read 2 provided! Adapter trimming will not work.";
+	}
+	else
+	{
+		sample_sheet.append("AdapterRead1,na");
+		sample_sheet.append("AdapterRead2,na");
+	}
 
 	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
 	sample_sheet.append("");
@@ -6454,7 +6504,7 @@ GeneSet NGSD::genesToApproved(GeneSet genes, bool return_input_when_unconvertabl
 {
 	GeneSet output;
 
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		QByteArray gene_new = geneToApproved(gene, return_input_when_unconvertable);
 		if (!gene_new.isEmpty())
@@ -6511,7 +6561,7 @@ QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 		while(q_syn.next())
 		{
 			if (!genes.isEmpty()) genes.append(", ");
-			genes.append(q_syn.value(0).toString());
+            genes.append(q_syn.value(0).toString().toUtf8());
 		}
 		return qMakePair(gene, "ERROR: " + gene + " is a synonymous symbol of the genes " + genes);
 	}
@@ -6667,13 +6717,13 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 	{
 		int pheno_inh = phenotypeIdByAccession("HP:0000005"); //"Mode of inheritance"
 		ignored_terms_ids << pheno_inh;
-		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_inh, true))
+        for (const Phenotype& pheno : phenotypeChildTerms(pheno_inh, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}
 		int pheno_freq = phenotypeIdByAccession("HP:0040279"); //"Frequency"
 		ignored_terms_ids << pheno_freq;
-		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_freq, true))
+        for (const Phenotype& pheno : phenotypeChildTerms(pheno_freq, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}
@@ -6684,7 +6734,7 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 	pheno_ids << id;
 	if (recursive)
 	{
-		foreach(const Phenotype& pheno, phenotypeChildTerms(id, true))
+        for (const Phenotype& pheno : phenotypeChildTerms(id, true))
 		{
 			pheno_ids << phenotypeIdByAccession(pheno.accession());
 		}
@@ -6718,13 +6768,13 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 	{
 		int pheno_inh = phenotypeIdByAccession("HP:0000005"); //"Mode of inheritance"
 		ignored_terms_ids << pheno_inh;
-		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_inh, true))
+        for (const Phenotype& pheno : phenotypeChildTerms(pheno_inh, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}
 		int pheno_freq = phenotypeIdByAccession("HP:0040279"); //"Frequency"
 		ignored_terms_ids << pheno_freq;
-		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_freq, true))
+        for (const Phenotype& pheno : phenotypeChildTerms(pheno_freq, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}
@@ -6735,7 +6785,7 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 	pheno_ids << id;
 	if (recursive)
 	{
-		foreach(const Phenotype& pheno, phenotypeChildTerms(id, true))
+        for (const Phenotype& pheno : phenotypeChildTerms(id, true))
 		{
 			pheno_ids << phenotypeIdByAccession(pheno.accession());
 		}
@@ -6860,16 +6910,17 @@ QList<OmimInfo> NGSD::omimInfo(const QByteArray& symbol)
 		info.mim = getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
 		info.gene_symbol = getValue("SELECT gene FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
 
-		QRegExp mim_exp("[^0-9]([0-9]{6})[^0-9]");
+        QRegularExpression mim_exp("[^0-9]([0-9]{6})[^0-9]");
 		QStringList phenos = getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + omim_gene_id + " ORDER BY phenotype ASC");
 		foreach(const QString& pheno, phenos)
 		{
 			Phenotype tmp;
 
 			tmp.setName(pheno.toUtf8());
-			if (mim_exp.indexIn(pheno)!=-1)
+            QRegularExpressionMatch mim_exp_match = mim_exp.match(pheno);
+            if (mim_exp_match.hasMatch())
 			{
-				tmp.setAccession(mim_exp.cap(1).toUtf8());
+                tmp.setAccession(mim_exp_match.captured(1).toUtf8());
 			}
 
 			info.phenotypes << tmp;
@@ -7117,7 +7168,7 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 	int id = geneId(gene);
 	if (id==-1)
 	{
-		if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << endl;
+        if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << QT_ENDL;
 		return output;
 	}
 
@@ -7161,7 +7212,7 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 
 	if (output.isEmpty() && messages!=nullptr)
 	{
-		*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << endl;
+        *messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << QT_ENDL;
 	}
 
 	if (!output.isSorted()) output.sort();
@@ -7174,7 +7225,7 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 {
 	BedFile output;
 
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		output.add(geneToRegions(gene, source, mode, fallback, annotate_transcript_names, messages));
 	}
@@ -7311,7 +7362,7 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 	//MANE select
 	foreach(const Transcript& t, list)
 	{
-		if (t.isManeSelectTranscript()) list_lvl.append(t);
+		if (t.isManeSelectTranscript() || t.isManePlusClinicalTranscript()) list_lvl.append(t);
 	}
 
 	if (list_lvl.count() > 0)
@@ -8094,18 +8145,18 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 						// report-variant combination is already imported -> update
 						var_conf.id = var_conf_id_str.toInt();
 						rvc_to_update.append(var_conf);
-						query = query_update_var;
+                        query = std::move(query_update_var);
 					}
 					else
 					{
 						//actual new variant
-						query = query_new_var;
+                        query = std::move(query_new_var);
 					}
 				}
 				else
 				{
 					//update
-					query = query_update_var;
+                    query = std::move(query_update_var);
 				}
 
 				query.bindValue(0, report_config_id);
@@ -8175,19 +8226,19 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 					{
 						// report-cnv combination is already imported -> update
 						var_conf.id = var_conf_id_str.toInt();
-						rvc_to_update.append(var_conf);
-						query = query_update_cnv;
+						rvc_to_update.append(var_conf);                        
+                        query = std::move(query_update_cnv);
 					}
 					else
 					{
-						//actual new variant
-						query = query_new_cnv;
+						//actual new variant                        
+                        query = std::move(query_new_cnv);
 					}
 				}
 				else
 				{
 					//update
-					query = query_update_cnv;
+                    query = std::move(query_update_cnv);
 				}
 
 				query.bindValue(0, report_config_id);
@@ -8261,28 +8312,28 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 					{
 						// report-sv combination is already imported -> update
 						var_conf.id = var_conf_id_str.toInt();
-						rvc_to_update.append(var_conf);
-						query = query_update_sv;
+						rvc_to_update.append(var_conf);                        
+                        query = std::move(query_update_sv);
 					}
 					else
 					{
-						//actual new variant
-						query = query_new_sv;
+						//actual new variant                        
+                        query = std::move(query_new_sv);
 					}
 				}
 				else
 				{
-					//update
-					query = query_update_sv;
+					//update                    
+                    query = std::move(query_update_sv);
 				}
 
 				//define SQL query
 				query.bindValue(0, report_config_id);
-				query.bindValue(1, QVariant(QVariant::String));
-				query.bindValue(2, QVariant(QVariant::String));
-				query.bindValue(3, QVariant(QVariant::String));
-				query.bindValue(4, QVariant(QVariant::String));
-				query.bindValue(5, QVariant(QVariant::String));
+                query.bindValue(1, QVariant(QString()));
+                query.bindValue(2, QVariant(QString()));
+                query.bindValue(3, QVariant(QString()));
+                query.bindValue(4, QVariant(QString()));
+                query.bindValue(5, QVariant(QString()));
 				query.bindValue(6, var_conf.report_type);
 				query.bindValue(7, var_conf.causal);
 				query.bindValue(8, var_conf.classification);
@@ -8368,19 +8419,19 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 					{
 						// report-RE combination is already imported -> update
 						var_conf.id = var_conf_id_str.toInt();
-						rvc_to_update.append(var_conf);
-						query = query_update_re;
+						rvc_to_update.append(var_conf);                        
+                        query = std::move(query_update_re);
 					}
 					else
 					{
-						//actual new variant
-						query = query_new_re;
+						//actual new variant                        
+                        query = std::move(query_new_re);
 					}
 				}
 				else
 				{
-					//update
-					query = query_update_re;
+					//update                    
+                    query = std::move(query_update_re);
 				}
 
 				query.bindValue(0, report_config_id);
@@ -8396,8 +8447,8 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query.bindValue(10, var_conf.exclude_other);
 				query.bindValue(11, var_conf.comments.isEmpty() ? "" : var_conf.comments);
 				query.bindValue(12, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-				query.bindValue(13, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele1.toInt() : QVariant(QVariant::Int));
-				query.bindValue(14, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele2.toInt() : QVariant(QVariant::Int));
+                query.bindValue(13, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele1.toInt() : QVariant(QString()));
+                query.bindValue(14, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele2.toInt() : QVariant(QString()));
 
 				if (var_conf.id < 0)
 				{
@@ -8925,14 +8976,14 @@ int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name)
+int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointer<SomaticReportConfiguration> config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name)
 {
 	int id = somaticReportConfigId(t_ps_id, n_ps_id);
 	QString target_file = "";
 
-	if(!config.targetRegionName().isEmpty())
+	if(!config->targetRegionName().isEmpty())
 	{
-		target_file = QFileInfo(config.targetRegionName()).fileName(); //store filename without path
+		target_file = QFileInfo(config->targetRegionName()).fileName(); //store filename without path
 	}
 
 	if(id != -1) //delete old report if id exists
@@ -8948,42 +8999,42 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1, `tum_content_max_af` =:2, `tum_content_max_clonality` =:3, `tum_content_hist` =:4, `msi_status` =:5, `cnv_burden` =:6, `hrd_statement` =:7, `cnv_loh_count` =:8, `cnv_tai_count` =:9, `cnv_lst_count` =:10, `tmb_ref_text` =:11, `quality` =:12, `fusions_detected`=:13, `cin_chr`=:14, `limitations` = :15, `filter_base_name` =:16, `tum_content_estimated` =:17, `tum_content_estimated_value` =:18, `include_mutation_burden` =:19, `filters` =:20 WHERE id=:21");
 		query.bindValue(0, userId(user_name));
 		if(target_file != "") query.bindValue(1, target_file);
-		else query.bindValue(1, QVariant(QVariant::String));
-		query.bindValue(2, config.includeTumContentByMaxSNV());
-		query.bindValue(3, config.includeTumContentByClonality());
-		query.bindValue(4, config.includeTumContentByHistological());
-		query.bindValue(5, config.msiStatus());
-		query.bindValue(6, config.cnvBurden());
+        else query.bindValue(1, QVariant(QString()));
+		query.bindValue(2, config->includeTumContentByMaxSNV());
+		query.bindValue(3, config->includeTumContentByClonality());
+		query.bindValue(4, config->includeTumContentByHistological());
+		query.bindValue(5, config->msiStatus());
+		query.bindValue(6, config->cnvBurden());
 
-		if(getEnum("somatic_report_configuration", "hrd_statement").contains(config.hrdStatement())) query.bindValue(7, config.hrdStatement());
-		else query.bindValue(7, QVariant(QVariant::String));
+		if(getEnum("somatic_report_configuration", "hrd_statement").contains(config->hrdStatement())) query.bindValue(7, config->hrdStatement());
+        else query.bindValue(7, QVariant(QString()));
 
-		query.bindValue(8, config.cnvLohCount());
-		query.bindValue(9, config.cnvTaiCount());
-		query.bindValue(10, config.cnvLstCount());
+		query.bindValue(8, config->cnvLohCount());
+		query.bindValue(9, config->cnvTaiCount());
+		query.bindValue(10, config->cnvLstCount());
 
-		query.bindValue(11, config.tmbReferenceText());
+		query.bindValue(11, config->tmbReferenceText());
 
-		if(config.quality().count() > 0) query.bindValue(12, config.quality().join(","));
-		else query.bindValue(12, QVariant(QVariant::String));
+		if(config->quality().count() > 0) query.bindValue(12, config->quality().join(","));
+        else query.bindValue(12, QVariant(QString()));
 
-		query.bindValue(13, config.fusionsDetected());
+		query.bindValue(13, config->fusionsDetected());
 
-		if(config.cinChromosomes().count() > 0)	query.bindValue( 14, config.cinChromosomes().join(',') );
-		else query.bindValue( 14, QVariant(QVariant::String) );
+		if(config->cinChromosomes().count() > 0)	query.bindValue( 14, config->cinChromosomes().join(',') );
+        else query.bindValue(14, QVariant(QString()));
 
-		if( !config.limitations().isEmpty()) query.bindValue(15, config.limitations() );
-		else query.bindValue( 15, QVariant(QVariant::String) );
+		if(!config->limitations().isEmpty()) query.bindValue(15, config->limitations() );
+        else query.bindValue(15, QVariant(QString()));
 
-		if( !config.filterName().isEmpty() ) query.bindValue(16, config.filterName());
-		else query.bindValue( 16, QVariant(QVariant::String) );
+		if(!config->filterName().isEmpty()) query.bindValue(16, config->filterName());
+        else query.bindValue(16, QVariant(QString()));
 
-		query.bindValue(17, config.includeTumContentByEstimated());
-		query.bindValue(18, config.tumContentByEstimated());
-		query.bindValue(19, config.includeMutationBurden());
+		query.bindValue(17, config->includeTumContentByEstimated());
+		query.bindValue(18, config->tumContentByEstimated());
+		query.bindValue(19, config->includeMutationBurden());
 
-		if (config.filters().count() > 0) query.bindValue(20, config.filters().toText().join("\n"));
-		else query.bindValue(20, QVariant(QVariant::String));
+		if (config->filters().count() > 0) query.bindValue(20, config->filters().toText().join("\n"));
+        else query.bindValue(20, QVariant(QString()));
 
 		query.bindValue(21, id);
 		query.exec();
@@ -8995,49 +9046,49 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 		query.bindValue(0, t_ps_id);
 		query.bindValue(1, n_ps_id);
-		query.bindValue(2, userId(config.createdBy()));
-		query.bindValue(3, config.createdAt());
+		query.bindValue(2, userId(config->createdBy()));
+		query.bindValue(3, config->createdAt());
 		query.bindValue(4, userId(user_name));
 		if(target_file != "") query.bindValue(5, target_file);
-		else query.bindValue(5, QVariant(QVariant::String));
+        else query.bindValue(5, QVariant(QString()));
 
-		query.bindValue(6, config.includeTumContentByMaxSNV());
-		query.bindValue(7, config.includeTumContentByClonality());
-		query.bindValue(8, config.includeTumContentByHistological());
+		query.bindValue(6, config->includeTumContentByMaxSNV());
+		query.bindValue(7, config->includeTumContentByClonality());
+		query.bindValue(8, config->includeTumContentByHistological());
 
-		query.bindValue(9, config.msiStatus());
-		query.bindValue(10, config.cnvBurden());
+		query.bindValue(9, config->msiStatus());
+		query.bindValue(10, config->cnvBurden());
 
-		if( getEnum("somatic_report_configuration", "hrd_statement").contains(config.hrdStatement()) ) query.bindValue(11, config.hrdStatement());
-		else query.bindValue(11, QVariant(QVariant::String));
+		if( getEnum("somatic_report_configuration", "hrd_statement").contains(config->hrdStatement()) ) query.bindValue(11, config->hrdStatement());
+        else query.bindValue(11, QVariant(QString()));
 
-		query.bindValue(12, config.cnvLohCount());
-		query.bindValue(13, config.cnvTaiCount());
-		query.bindValue(14, config.cnvLstCount());
+		query.bindValue(12, config->cnvLohCount());
+		query.bindValue(13, config->cnvTaiCount());
+		query.bindValue(14, config->cnvLstCount());
 
 
-		query.bindValue(15, config.tmbReferenceText());
+		query.bindValue(15, config->tmbReferenceText());
 
-		if(config.quality().count() > 0) query.bindValue(16, config.quality().join(","));
-		else query.bindValue(16, QVariant(QVariant::String));
+		if(config->quality().count() > 0) query.bindValue(16, config->quality().join(","));
+        else query.bindValue(16, QVariant(QString()));
 
-		query.bindValue(17, config.fusionsDetected());
+		query.bindValue(17, config->fusionsDetected());
 
-		if(config.cinChromosomes().count() != 0) query.bindValue(18, config.cinChromosomes().join(','));
-		else query.bindValue(18, QVariant(QVariant::String));
+		if(config->cinChromosomes().count() != 0) query.bindValue(18, config->cinChromosomes().join(','));
+        else query.bindValue(18, QVariant(QString()));
 
-		if(!config.limitations().isEmpty()) query.bindValue(19, config.limitations());
-		else query.bindValue(19, QVariant(QVariant::String));
+		if(!config->limitations().isEmpty()) query.bindValue(19, config->limitations());
+        else query.bindValue(19, QVariant(QString()));
 
-		if( !config.filterName().isEmpty() ) query.bindValue( 20, config.filterName() );
-		else query.bindValue( 20, QVariant(QVariant::String) );
+		if( !config->filterName().isEmpty() ) query.bindValue( 20, config->filterName());
+        else query.bindValue( 20, QVariant(QString()));
 
-		query.bindValue(21, config.includeTumContentByEstimated());
-		query.bindValue(22, config.tumContentByEstimated());
-		query.bindValue(23, config.includeMutationBurden());
+		query.bindValue(21, config->includeTumContentByEstimated());
+		query.bindValue(22, config->tumContentByEstimated());
+		query.bindValue(23, config->includeMutationBurden());
 
-		if (config.filters().count() > 0) query.bindValue(24, config.filters().toText().join("\n"));
-		else query.bindValue(24, QVariant(QVariant::String));
+		if (config->filters().count() > 0) query.bindValue(24, config->filters().toText().join("\n"));
+        else query.bindValue(24, QVariant(QString()));
 
 		query.exec();
 		id = query.lastInsertId().toInt();
@@ -9056,7 +9107,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 
 
-	foreach(const auto& var_conf, config.variantConfig())
+	foreach(const auto& var_conf, config->variantConfig())
 	{
 		if(var_conf.variant_type == VariantType::SNVS_INDELS)
 		{
@@ -9145,11 +9196,11 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 			//define SQL query
 			query_sv.bindValue(0, id);
-			query_sv.bindValue(1, QVariant(QVariant::String));
-			query_sv.bindValue(2, QVariant(QVariant::String));
-			query_sv.bindValue(3, QVariant(QVariant::String));
-			query_sv.bindValue(4, QVariant(QVariant::String));
-			query_sv.bindValue(5, QVariant(QVariant::String));
+            query_sv.bindValue(1, QVariant(QString()));
+            query_sv.bindValue(2, QVariant(QString()));
+            query_sv.bindValue(3, QVariant(QString()));
+            query_sv.bindValue(4, QVariant(QString()));
+            query_sv.bindValue(5, QVariant(QString()));
 			query_sv.bindValue(6, var_conf.exclude_artefact);
 			query_sv.bindValue(7, var_conf.exclude_unclear_effect);
 			query_sv.bindValue(8, var_conf.exclude_other_reason);
@@ -9201,7 +9252,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 		query_germl_var.prepare("INSERT INTO `somatic_report_configuration_germl_var` (`somatic_report_configuration_id`, `variant_id`, `tum_freq`, `tum_depth`) VALUES (:0, :1, :2, :3)");
 
-		foreach(const auto& var_conf, config.variantConfigGermline())
+		foreach(const auto& var_conf, config->variantConfigGermline())
 		{
 			//check whether indices exist in variant list
 			if(var_conf.variant_index<0 || var_conf.variant_index >= germl_snvs.count())
@@ -9222,10 +9273,10 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 
 			if(BasicStatistics::isValidFloat(var_conf.tum_freq)) query_germl_var.bindValue(2, var_conf.tum_freq);
-			else query_germl_var.bindValue(2, QVariant(QVariant::Double) );
+            else query_germl_var.bindValue(2, QVariant(double()));
 
 			if(BasicStatistics::isValidFloat(var_conf.tum_depth)) query_germl_var.bindValue(3, var_conf.tum_depth);
-			else query_germl_var.bindValue(3, QVariant(QVariant::Double) );
+            else query_germl_var.bindValue(3, QVariant(double()));
 
 			query_germl_var.exec();
 		}
@@ -9253,9 +9304,9 @@ void NGSD::deleteSomaticReportConfig(int id)
 	query.exec("DELETE FROM `somatic_report_configuration` WHERE `id`=" + report_conf_id);
 }
 
-SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages)
+QSharedPointer<SomaticReportConfiguration> NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages)
 {
-	SomaticReportConfiguration output;
+	QSharedPointer<SomaticReportConfiguration> output(new SomaticReportConfiguration());
 
 	int config_id = somaticReportConfigId(t_ps_id, n_ps_id);
 	if(config_id == -1)
@@ -9267,52 +9318,52 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	SqlQuery query = getQuery();
 	query.exec("SELECT u.name, r.* FROM somatic_report_configuration r, user u WHERE r.id=" + QByteArray::number(config_id) + " AND u.id = r.created_by");
 	query.next();
-	output.setCreatedBy(query.value("name").toString());
-	output.setCreatedAt(query.value("created_date").toDateTime());
-	output.setTargetRegionName(query.value("target_file").toString());
+	output->setCreatedBy(query.value("name").toString());
+	output->setCreatedAt(query.value("created_date").toDateTime());
+	output->setTargetRegionName(query.value("target_file").toString());
 
-	output.setIncludeTumContentByMaxSNV(query.value("tum_content_max_af").toBool());
-	output.setIncludeTumContentByClonality(query.value("tum_content_max_clonality").toBool());
-	output.setIncludeTumContentByHistological(query.value("tum_content_hist").toBool());
-	output.setIncludeTumContentByEstimated(query.value("tum_content_estimated").toBool());
+	output->setIncludeTumContentByMaxSNV(query.value("tum_content_max_af").toBool());
+	output->setIncludeTumContentByClonality(query.value("tum_content_max_clonality").toBool());
+	output->setIncludeTumContentByHistological(query.value("tum_content_hist").toBool());
+	output->setIncludeTumContentByEstimated(query.value("tum_content_estimated").toBool());
 
-	if(!query.value("tum_content_estimated_value").isNull()) output.setTumContentByEstimated(query.value("tum_content_estimated_value").toDouble() );
-	else output.setTumContentByEstimated(0);
+	if(!query.value("tum_content_estimated_value").isNull()) output->setTumContentByEstimated(query.value("tum_content_estimated_value").toDouble() );
+	else output->setTumContentByEstimated(0);
 
-	output.setMsiStatus(query.value("msi_status").toBool());
-	output.setCnvBurden(query.value("cnv_burden").toBool());
-	output.setIncludeMutationBurden(query.value("include_mutation_burden").toBool());
+	output->setMsiStatus(query.value("msi_status").toBool());
+	output->setCnvBurden(query.value("cnv_burden").toBool());
+	output->setIncludeMutationBurden(query.value("include_mutation_burden").toBool());
 
-	output.setHrdStatement( query.value("hrd_statement").toString() );
-	output.setCnvLohCount( query.value("cnv_loh_count").toInt() );
-	output.setCnvLstCount( query.value("cnv_lst_count").toInt() );
-	output.setCnvTaiCount( query.value("cnv_tai_count").toInt() );
+	output->setHrdStatement( query.value("hrd_statement").toString() );
+	output->setCnvLohCount( query.value("cnv_loh_count").toInt() );
+	output->setCnvLstCount( query.value("cnv_lst_count").toInt() );
+	output->setCnvTaiCount( query.value("cnv_tai_count").toInt() );
 
 
-	if(query.value("tmb_ref_text").isNull()) output.setTmbReferenceText("");
-	else output.setTmbReferenceText(query.value("tmb_ref_text").toString());
+	if(query.value("tmb_ref_text").isNull()) output->setTmbReferenceText("");
+	else output->setTmbReferenceText(query.value("tmb_ref_text").toString());
 
-	if(query.value("quality").isNull()) output.setQuality(QStringList());
-	else output.setQuality(query.value("quality").toString().split(","));
+	if(query.value("quality").isNull()) output->setQuality(QStringList());
+	else output->setQuality(query.value("quality").toString().split(","));
 
-	output.setFusionsDetected(query.value("fusions_detected").toBool());
+	output->setFusionsDetected(query.value("fusions_detected").toBool());
 
-	if(!query.value("cin_chr").isNull()) output.setCinChromosomes( query.value("cin_chr").toString().split(',') );
+	if(!query.value("cin_chr").isNull()) output->setCinChromosomes( query.value("cin_chr").toString().split(',') );
 
-	if(!query.value("limitations").isNull()) output.setLimitations( query.value("limitations").toString() );
+	if(!query.value("limitations").isNull()) output->setLimitations( query.value("limitations").toString() );
 
-	if(!query.value("filter_base_name").isNull()) output.setFilterName( query.value("filter_base_name").toString() );
+	if(!query.value("filter_base_name").isNull()) output->setFilterName( query.value("filter_base_name").toString() );
 
 	if(!query.value("filters").isNull())
 	{
-		output.setFilters(FilterCascade::fromText(query.value("filters").toString().split("\n")));
-	} else if (!query.value("filter_base_name").isNull()) { // TODO temp loading help while converting to having the filters completely in the DB
+		output->setFilters(FilterCascade::fromText(query.value("filters").toString().split("\n")));
+	} else if (!query.value("filter_base_name").isNull()) { //TODO temp loading help while converting to having the filters completely in the DB
 		QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
-		output.setFilters(FilterCascadeFile::load(filterFileName, query.value("filter_base_name").toString()));
+		output->setFilters(FilterCascadeFile::load(filterFileName, query.value("filter_base_name").toString()));
 	}
 	else
 	{
-		output.setFilters(FilterCascade());
+		output->setFilters(FilterCascade());
 	}
 
 	//Load SNVs
@@ -9345,7 +9396,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 
 		var_conf.comment = query.value("comment").toString();
 
-		output.addSomaticVariantConfiguration(var_conf);
+		output->addSomaticVariantConfiguration(var_conf);
 	}
 
 	//Load Cnvs
@@ -9376,7 +9427,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		var_conf.exclude_other_reason = query.value("exclude_other_reason").toBool();
 		var_conf.comment = query.value("comment").toString();
 
-		output.addSomaticVariantConfiguration(var_conf);
+		output->addSomaticVariantConfiguration(var_conf);
 	}
 
 	//Load SVs
@@ -9455,7 +9506,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		var_conf.manual_sv_hgvs_type_bnd = query.value("manual_hgvs_type_bnd").toString();
 		var_conf.manual_sv_hgvs_suffix_bnd = query.value("manual_hgvs_suffix_bnd").toString();
 
-		output.addSomaticVariantConfiguration(var_conf);
+		output->addSomaticVariantConfiguration(var_conf);
 	}
 
 	//Load germline SNVs related to tumor
@@ -9479,7 +9530,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		if(!query.value("tum_depth").isNull() ) var_conf.tum_depth = query.value("tum_depth").toDouble();
 		else var_conf.tum_depth = std::numeric_limits<double>::quiet_NaN();
 
-		output.addGermlineVariantConfiguration(var_conf);
+		output->addGermlineVariantConfiguration(var_conf);
 	}
 
 	return output;
@@ -10001,7 +10052,13 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 QString NGSD::escapeText(QString text)
 {
 	QSqlField f;
-	f.setType(QVariant::String);
+
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    f.setMetaType(QMetaType(QMetaType::QString));
+    #else
+    f.setType(QVariant::String);
+    #endif
+
 	f.setValue(text);
 
 	return db_->driver()->formatValue(f);
@@ -10132,7 +10189,7 @@ void NGSD::initTranscriptCache()
 
 	//get preferred transcript list
 	QSet<QByteArray> pts;
-	foreach(QString trans, getValues("SELECT DISTINCT name FROM preferred_transcripts"))
+    for (QString trans : getValues("SELECT DISTINCT name FROM preferred_transcripts"))
 	{
 		pts.insert(trans.toUtf8());
 	}

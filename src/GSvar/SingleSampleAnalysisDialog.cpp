@@ -18,6 +18,7 @@ SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent)
 	initTable(ui_.samples_table);
 
 	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
+	connect(ui_.use_dragen, SIGNAL(stateChanged(int)), this, SLOT(dragen_analysis_changed()));
 }
 
 void SingleSampleAnalysisDialog::setAnalysisSteps()
@@ -46,17 +47,32 @@ void SingleSampleAnalysisDialog::setAnalysisSteps()
 
 			if(sys_types.contains("lrGS"))
 			{
-				if(sys_types.size() > 1) THROW(ArgumentException, "Error: Multiple processing types selected (" + sys_types.toList().join(", ") + "). Cannot start analysis!");
+                if(sys_types.size() > 1) THROW(ArgumentException, "Error: Multiple processing types selected (" + sys_types.values().join(", ") + "). Cannot start analysis!");
 				steps_ = loadSteps("analysis_steps_single_sample_lr");
 				ui_.annotate_only->setEnabled(false);
 				ui_.l_annotation_only->setEnabled(false);
 				ui_.annotate_only->setChecked(false);
+				ui_.use_dragen->setChecked(false);
+				ui_.use_dragen->setEnabled(false);
+				ui_.l_use_dragen->setEnabled(false);
+
 			}
 			else
 			{
 				steps_ = loadSteps("analysis_steps_single_sample");
 				ui_.annotate_only->setEnabled(true);
 				ui_.l_annotation_only->setEnabled(true);
+				if(sys_types.contains("WGS") || sys_types.contains("WES"))
+				{
+					ui_.use_dragen->setEnabled(true);
+					ui_.l_use_dragen->setEnabled(true);
+				}
+				else
+				{
+					ui_.use_dragen->setChecked(false);
+					ui_.use_dragen->setEnabled(false);
+					ui_.l_use_dragen->setEnabled(true);
+				}
 			}
 
 		}
@@ -96,6 +112,11 @@ QStringList SingleSampleAnalysisDialog::arguments() const
 bool SingleSampleAnalysisDialog::highPriority() const
 {
 	return ui_.high_priority->isChecked();
+}
+
+bool SingleSampleAnalysisDialog::useDragen() const
+{
+	return ui_.use_dragen->isChecked();
 }
 
 QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString& analysis_type, QString ps_name, bool throw_if_bam_missing, bool force_showing_dialog)
@@ -149,8 +170,7 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 			sys_types.insert(db.getProcessingSystemData(db.processingSystemId(sample_details.system)).type);
 		}
 		bool sample_table_is_longread = sys_types.contains("lrGS");
-		bool new_sample_is_longread = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps_name)).type == "lrGS";
-		if (sample_table_is_longread != new_sample_is_longread)
+		if (sample_table_is_longread != db.isLongRead(ps_name))
 		{
 			THROW(ArgumentException, "Cannot queue longread and shortread analysis in one batch!");
 		}
@@ -272,7 +292,7 @@ QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 	if (anno_only!=nullptr && anno_only->isChecked()) output << "-annotation_only";
 
 	QStringList steps;
-	QList<QCheckBox*> step_boxes = widget->findChildren<QCheckBox*>(QRegExp("^step_"));
+    QList<QCheckBox*> step_boxes = widget->findChildren<QCheckBox*>(QRegularExpression("^step_"));
 	if (step_boxes.count()>0)
 	{
 		foreach(QCheckBox* box, step_boxes)
@@ -333,7 +353,7 @@ void SingleSampleAnalysisDialog::updateStartButton()
 void SingleSampleAnalysisDialog::annotate_only_state_changed()
 {
 	// get all step check boxes
-	QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegExp("^step_"));
+    QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegularExpression("^step_"));
 
 	if(ui_.annotate_only->isChecked())
 	{
@@ -352,6 +372,30 @@ void SingleSampleAnalysisDialog::annotate_only_state_changed()
 			}
 		}
 	}
+}
+
+void SingleSampleAnalysisDialog::dragen_analysis_changed()
+{
+	if (!ui_.use_dragen->isChecked()) return;
+	QLabel* label = new QLabel("Are you sure you want to proceed?");
+	auto dlg = GUIHelper::createDialog(label, "DRAGEN analysis", "You are about to (re-)start a full DRAGEN analysis. <br>"
+																 "This will overwrite previous mapping and variant calls <br>"
+																 "and will fail if a report config exists.", true);
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		//activate ma,vc and sv
+		QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegularExpression("^step_"));
+		foreach (QCheckBox* step, step_boxes)
+		{
+			// activate vc, cn and sv by default
+			if ((step->objectName() == "step_ma") || (step->objectName() == "step_vc") || (step->objectName() == "step_sv")) step->setChecked(true);
+		}
+	}
+	else
+	{
+		ui_.use_dragen->setCheckState(Qt::Unchecked);
+	}
+
 }
 
 void SingleSampleAnalysisDialog::addSample(QString status, QString sample)

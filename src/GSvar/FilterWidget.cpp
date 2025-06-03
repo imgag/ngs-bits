@@ -18,6 +18,7 @@
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include <QClipboard>
+#include <QSortFilterProxyModel>
 
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
@@ -189,7 +190,7 @@ void FilterWidget::checkGeneNames(const GeneSet& genes, QLineEdit* widget)
 
     QStringList errors;
 	NGSD db;
-	foreach(const QByteArray& gene, genes)
+    for (const QByteArray& gene : genes)
 	{
 		if (!db.approvedGeneNames().contains(gene))
 		{
@@ -445,12 +446,16 @@ void FilterWidget::roiSelectionChanged(int index)
 	{
 		ui_.roi->setEditable(true);
 
-		QCompleter* completer = new QCompleter(ui_.roi->model(), ui_.roi);
-		completer->setCompletionMode(QCompleter::PopupCompletion);
+        QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel(ui_.roi);
+        proxy_model->setSourceModel(ui_.roi->model());
+        proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
+
+        QCompleter *completer = new QCompleter(proxy_model, ui_.roi);
+        completer->setCompletionMode(QCompleter::PopupCompletion);
+        completer->setFilterMode(Qt::MatchContains);
 		completer->setCaseSensitivity(Qt::CaseInsensitive);
-		completer->setFilterMode(Qt::MatchContains);
-		completer->setCompletionRole(Qt::DisplayRole);
-		ui_.roi->setCompleter(completer);
+        completer->setCompletionRole(Qt::DisplayRole);
+        ui_.roi->setCompleter(completer);
 	}
 	else
 	{
@@ -506,7 +511,7 @@ void FilterWidget::phenotypesChanged()
 {
 	//update phenotype list
 	QByteArrayList tmp;
-	foreach(const Phenotype& pheno, phenotypes_)
+    for (const Phenotype& pheno : phenotypes_)
 	{
 		tmp << pheno.name();
 	}
@@ -517,14 +522,14 @@ void FilterWidget::phenotypesChanged()
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Selected HPO terms:</nobr>";
-		foreach(const Phenotype& pheno, phenotypes_)
+        for (const Phenotype& pheno : phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
 
 		tooltip += "<br><br><nobr>Selected phenotype-gene sources:</nobr>";
 		tooltip += "<br><nobr>";
-		foreach(const PhenotypeSource& s, phenotype_settings_.sources)
+        for (const PhenotypeSource& s : phenotype_settings_.sources)
 		{
 			tooltip += Phenotype::sourceToString(s) + ", ";
 		}

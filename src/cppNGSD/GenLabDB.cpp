@@ -79,8 +79,8 @@ bool GenLabDB::isAvailable()
 {
 	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer())
 	{
-		return true;
-	}
+        return LoginManager::hasGenlabInfo();
+    }
 
 	return Settings::contains("genlab_host") && Settings::contains("genlab_name") && Settings::contains("genlab_user") && Settings::contains("genlab_pass"); //port is not required for MsSQL
 }
@@ -101,28 +101,28 @@ PhenotypeList GenLabDB::phenotypes(QString ps_name)
 		//"Mode of inheritance"
 		int parent_term = ngsd.phenotypeIdByAccession("HP:0000005");
 		ignored_terms_ids << parent_term;
-		foreach(const Phenotype& pheno, ngsd.phenotypeChildTerms(parent_term, true))
+        for (const Phenotype& pheno : ngsd.phenotypeChildTerms(parent_term, true))
 		{
 			ignored_terms_ids << ngsd.phenotypeIdByAccession(pheno.accession());
 		}
 		//"Frequency"
 		parent_term = ngsd.phenotypeIdByAccession("HP:0040279");
 		ignored_terms_ids << parent_term;
-		foreach(const Phenotype& pheno, ngsd.phenotypeChildTerms(parent_term, true))
+        for (const Phenotype& pheno : ngsd.phenotypeChildTerms(parent_term, true))
 		{
 			ignored_terms_ids << ngsd.phenotypeIdByAccession(pheno.accession());
 		}
 		//"Blood group"
 		parent_term = ngsd.phenotypeIdByAccession("HP:0032223");
 		ignored_terms_ids << parent_term;
-		foreach(const Phenotype& pheno, ngsd.phenotypeChildTerms(parent_term, true))
+        for (const Phenotype& pheno : ngsd.phenotypeChildTerms(parent_term, true))
 		{
 			ignored_terms_ids << ngsd.phenotypeIdByAccession(pheno.accession());
 		}
 	}
 
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT code FROM v_ngs_hpo WHERE labornummer='" + name + "'");
@@ -149,7 +149,7 @@ QStringList GenLabDB::orphanet(QString ps_name)
 {
 	QStringList output;
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT code FROM v_ngs_orpha WHERE labornummer='" + name + "'");
@@ -176,7 +176,7 @@ QStringList GenLabDB::diagnosis(QString ps_name)
 {
 	QStringList output;
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT code FROM v_ngs_icd10 WHERE labornummer='" + name + "'");
@@ -198,7 +198,7 @@ QStringList GenLabDB::anamnesis(QString ps_name)
 {
 	QStringList output;
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT ANAMNESE FROM v_ngs_anamnese WHERE LABORNUMMER='" + name + "' AND ANAMNESE != 'leer'");
@@ -221,7 +221,7 @@ QStringList GenLabDB::tumorFraction(QString ps_name)
 {
 	QStringList output;
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT tumoranteil FROM v_ngs_tumoranteil WHERE labornummer='" + name + "' AND tumoranteil IS NOT NULL");
@@ -241,7 +241,7 @@ QStringList GenLabDB::tumorFraction(QString ps_name)
 
 QString GenLabDB::yearOfBirth(QString ps_name)
 {
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT Geburtsjahr FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Geburtsjahr IS NOT NULL");
@@ -256,7 +256,7 @@ QString GenLabDB::yearOfBirth(QString ps_name)
 
 QString GenLabDB::samplingDate(QString ps_name)
 {
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT Probe_Entnahmedatum FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Probe_Entnahmedatum IS NOT NULL");
@@ -271,7 +271,7 @@ QString GenLabDB::samplingDate(QString ps_name)
 
 QString GenLabDB::orderEntryDate(QString ps_name)
 {
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT Datum_Auftragseingang FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Datum_Auftragseingang IS NOT NULL");
@@ -289,7 +289,7 @@ QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
 	QString group = "n/a";
 	QString status = "n/a";
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT krankheitsgruppe, patienttyp FROM v_krankheitsgruppe_pattyp WHERE labornummer='" + name + "'");
@@ -332,7 +332,7 @@ QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
 
 QString GenLabDB::sapID(QString ps_name)
 {
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT SAPID FROM v_ngs_patient_ids WHERE labornummer='" + name + "'");
@@ -364,7 +364,7 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, ProcessedSampleSearchPara
 	//convert DNA number to processed sample names
 	QSet<QString> output;
 	NGSD db;
-	foreach(QString dna_nr, dna_nrs)
+    for (QString dna_nr : dna_nrs)
 	{
 		params.s_name = dna_nr;
 		DBTable res = db.processedSampleSearch(params);
@@ -374,7 +374,7 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, ProcessedSampleSearchPara
 		}
 	}
 
-	return output.toList();
+    return output.values();
 }
 
 QList<SampleRelation> GenLabDB::relatives(QString ps_name)
@@ -382,7 +382,7 @@ QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 	NGSD db;
 	QList<SampleRelation> output;
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT BEZIEHUNGSTEXT, Labornummer_Verwandter FROM v_ngs_duo WHERE Labornummer_Index='" + name + "'");
@@ -422,7 +422,7 @@ QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 
 QString GenLabDB::gender(QString ps_name)
 {
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT geschlecht FROM v_ngs_geschlecht WHERE labornummer='" + name + "'");
@@ -441,7 +441,7 @@ QString GenLabDB::patientIdentifier(QString ps_name)
 {
 	QString output;
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT GenlabID FROM v_ngs_patient_ids WHERE labornummer='" + name + "'");
@@ -480,7 +480,7 @@ QStringList GenLabDB::studies(QString ps_name)
 {
 	QStringList output;
 
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT STUDIE FROM v_ngs_studie WHERE LABORNUMMER='" + name + "'");
@@ -528,7 +528,7 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 			}
 			else
 			{
-				output.unite(ps_ids.toSet());
+                output.unite(LIST_TO_SET(ps_ids));
 			}
 		}
 
@@ -547,7 +547,7 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 		}
 	}
 
-	return output.toList();
+    return output.values();
 }
 
 QStringList GenLabDB::patientSamples(QString ps_name)
@@ -594,7 +594,7 @@ QStringList GenLabDB::dnaSamplesofRna(QString external_name)
 
 QString GenLabDB::tissue(QString ps_name)
 {
-	foreach(QString name, names(ps_name))
+    for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT PROBENART_LANGFORM FROM v_ngs_eingangsprobe WHERE LABORNUMMER='" + name + "'");
@@ -610,6 +610,35 @@ QString GenLabDB::tissue(QString ps_name)
 	}
 
 	return "";
+}
+
+QStringList GenLabDB::tables() const
+{
+	QStringList output;
+
+	SqlQuery query =  getQuery();
+	query.exec("SELECT name FROM sys.views");
+	while(query.next())
+	{
+		output << query.value(0).toString();
+	}
+
+	return output;
+}
+
+QStringList GenLabDB::fields(QString table) const
+{
+	QStringList output;
+
+	SqlQuery query =  getQuery();
+	query.exec("Select COLUMN_NAME From INFORMATION_SCHEMA.COLUMNS Where TABLE_NAME = '"+table+"'");
+	while(query.next())
+	{
+		output << query.value(0).toString();
+	}
+
+	return output;
+
 }
 
 QStringList GenLabDB::names(QString ps_name)

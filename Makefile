@@ -111,10 +111,10 @@ clean:
 	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
-	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
+	cd bin && ./cppCORE-TEST && ./cppXML-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
 
 test_lib_windows:
-	cd bin && ./cppCORE-TEST.exe && ./cppNGS-TEST.exe && ./cppNGSD-TEST.exe && ./cppREST-TEST.exe
+	cd bin && ./cppCORE-TEST.exe && ./cppXML-TEST.exe && ./cppNGS-TEST.exe && ./cppNGSD-TEST.exe && ./cppREST-TEST.exe
 
 test_server:
 	cd bin && ./GSvarServer-TEST
@@ -212,9 +212,11 @@ doc_find_missing_tools:
 	grep "doc/tools/" README.md | tr "]" "[" | cut -f2 -d[ | sort > /tmp/tools_linked.txt
 	diff /tmp/tools.txt /tmp/tools_linked.txt | grep "<" | cut -f2 -d' ' | egrep -v "^Tsv|^NGSDImport|^NGSDExport|^NGSDAddVariants|NGSDInit|NGSDMaintain|BamCleanHaloplex"
 
+unused_test_files:
+	php doc/tools/unused_test_files.php
+	
 find_text:
 	find src/ doc/ tools/ -name "*.md" -or -name "*.cpp" -or -name "*.h" -or -name "*.sql" -or -name "*.pro" -or -name "*.pri" | xargs -l100000 grep $(T) 
-
 
 check_tool_ngsd_dependencies:
 	find src/ -name "*.pro" | xargs grep lcppNGSD | cut -f2 -d/ | egrep -v "GSvar|cppNGSD-TEST" | sort > cppNGSD_should

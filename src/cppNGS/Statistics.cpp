@@ -15,7 +15,7 @@
 #include "Helper.h"
 #include "SampleSimilarity.h"
 #include <QFileInfo>
-#include <QPair>
+#include <utility>
 #include <QThreadPool>
 #include "Histogram.h"
 #include "FilterCascade.h"
@@ -1274,7 +1274,7 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
 	double length_stdev = std::sqrt(sq_sum / lengths.size() - length_mean * length_mean);
 
 	//chromosome list string
-	QList<Chromosome> chr_list = chromosomes.toList();
+    QList<Chromosome> chr_list = chromosomes.values();
 	std::sort(chr_list.begin(), chr_list.end());
 	QString chr_list_str = "";
 	foreach(Chromosome chr, chr_list)
@@ -1857,8 +1857,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	plot1.setYLabel("normal allele frequency");
 	plot1.setXRange(-0.015,1.015);
 	plot1.setYRange(-0.015,1.015);
-	QList< QPair<double,double> > points_black;
-	QList< QPair<double,double> > points_green;
+    QList< std::pair<double,double> > points_black;
+    QList< std::pair<double,double> > points_green;
 	for(int i=0; i<variants.count(); ++i)
 	{
 		double af_tumor = -1;
@@ -1938,14 +1938,14 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields
-		QPair<double,double> point;
+        std::pair<double,double> point;
 		point.first = af_tumor;
 		point.second = af_normal;
 		if (!variants[i].filtersPassed())	points_black.append(point);
 		else points_green.append(point);
 	}
 
-	QList< QPair<double,double> > points;
+    QList< std::pair<double,double> > points;
 	points  << points_black << points_green;
 
 	QString g = "k";
@@ -2152,7 +2152,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			plot3.addVLine(chrom_starts_norm[c]);
 		}
 		//(2) calculate distance for each chromosome and convert it to x-coordinates
-		QList< QPair<double,double> > points3;
+        QList< std::pair<double,double> > points3;
 		QString tmp_chr = "";
 		int tmp_pos = 0;
 		double tmp_offset = 0;
@@ -2165,7 +2165,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			if(tmp_chr == variants[i].chr().str())	//same chromosome
 			{
 				//convert distance to x-Axis position
-				QPair<double,double> point;
+                std::pair<double,double> point;
 				point.first = tmp_offset + double(variants[i].start())/double(genome_size);
 				point.second = variants[i].start() - tmp_pos;
 				if(max < point.second)	max = point.second;
@@ -2196,7 +2196,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	return output;
 }
 
-QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps, bool longread)
+QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps, bool include_not_properly_paired)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -2208,7 +2208,7 @@ QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QSt
 	VcfFile snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
-		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start(), -1, 1, longread);
+		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start(), -1, 1, include_not_properly_paired);
 		int depth = pileup.depth(false);
 		if (depth<min_cov) continue;
 
@@ -2395,13 +2395,13 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
 
 	//create analysis chunks (200 lines)
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	QList<WorkerLowOrHighCoverage::Chunk> bed_chunks;
 	if (!random_access)
 	{
 		//determine chr chunks
-		QList<QPair<long, WorkerLowOrHighCoverage::Chunk>> chunks_with_size;
+        QList<std::pair<long, WorkerLowOrHighCoverage::Chunk>> chunks_with_size;
 		foreach(const Chromosome& chr, bed_file.chromosomes())
 		{
 			//determine start index
@@ -2432,12 +2432,12 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 			{
 				bases += bed_file[i].length();
 			}
-			chunks_with_size << qMakePair(bases,  WorkerLowOrHighCoverage::Chunk{bed_file, start, end, "", BedFile()});
+            chunks_with_size << std::make_pair(bases,  WorkerLowOrHighCoverage::Chunk{bed_file, start, end, "", BedFile()});
 		}
 
 		//sort chunks by size
 		std::sort(chunks_with_size.begin(), chunks_with_size.end(),
-			[](const QPair<long, WorkerLowOrHighCoverage::Chunk>& a, const QPair<long, WorkerLowOrHighCoverage::Chunk>& b)
+            [](const std::pair<long, WorkerLowOrHighCoverage::Chunk>& a, const std::pair<long, WorkerLowOrHighCoverage::Chunk>& b)
 			{
 				return a.first > b.first;
 			}
@@ -2446,7 +2446,7 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 		//add chunks ordered by size
 		foreach(const auto& entry, chunks_with_size)
 		{
-			bed_chunks << entry.second;
+            bed_chunks.append(entry.second);
 		}
 	}
 	else
@@ -2463,9 +2463,9 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	if (debug)
 	{
 		QTextStream out(stdout);
-		out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << endl;
-		out << "Creating " << bed_chunks.count() << " chunks took " << Helper::elapsedTime(timer) << endl;
-		out << "Starting processing chunks with " << threads << " threads" << endl;
+        out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << QT_ENDL;
+        out << "Creating " << bed_chunks.count() << " chunks took " << Helper::elapsedTime(timer) << QT_ENDL;
+        out << "Starting processing chunks with " << threads << " threads" << QT_ENDL;
 	}
 
 	//create thread pool
@@ -2477,15 +2477,15 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	{
 		if (!random_access)
 		{
-			if (debug) QTextStream(stdout) << "Creating BED index" << endl;
+            if (debug) QTextStream(stdout) << "Creating BED index" << QT_ENDL;
 			ChromosomalIndex<BedFile> bed_index(bed_file);
 
-			if (debug) QTextStream(stdout) << "Starting worker " << i << endl;
+            if (debug) QTextStream(stdout) << "Starting worker " << i << QT_ENDL;
 			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bed_index, bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
 			thread_pool.start(worker);
 
 			//wait until finished
-			if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << endl;
+            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << QT_ENDL;
 			thread_pool.waitForDone();
 		}
 		else
@@ -2494,13 +2494,13 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 			thread_pool.start(worker);
 
 			//wait until finished
-			if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << endl;
+            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << QT_ENDL;
 			thread_pool.waitForDone();
 		}
 	}
 
 	//debug output
-	if (debug) QTextStream(stdout) << "Writing output" << endl;
+    if (debug) QTextStream(stdout) << "Writing output" << QT_ENDL;
 
 	//check for errors and merge results
 	BedFile output;
@@ -2518,8 +2518,9 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	return output;
 }
 
-double Statistics::yxRatio(BamReader& reader)
+double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 {
+	//reads chrY
 	double reads_y = 0;
 	BamAlignment al;
 	reader.setRegion("chrY", 1, reader.chromosomeSize("chrY"));
@@ -2529,7 +2530,9 @@ double Statistics::yxRatio(BamReader& reader)
 		if (al.mappingQuality()<30) continue;
 		reads_y += 1.0;
 	}
+	if (count_y!=nullptr) *count_y = reads_y;
 
+	//reads chrX
 	double reads_x = 0;
 	reader.setRegion("chrX", 1, reader.chromosomeSize("chrX"));
 	while(reader.getNextAlignment(al))
@@ -2538,6 +2541,7 @@ double Statistics::yxRatio(BamReader& reader)
 		if (al.mappingQuality()<30) continue;
 		reads_x += 1.0;
 	}
+	if (count_x!=nullptr) *count_x = reads_x;
 
 	if (reads_x==0) return std::numeric_limits<double>::quiet_NaN();
 
@@ -2555,13 +2559,13 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
 
 	//create analysis chunks
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 	QList<WorkerAverageCoverage::Chunk> chunks;
 	if (!random_access)
 	{
 		//determine chr chunks
-		QList<QPair<long, WorkerAverageCoverage::Chunk>> chunks_with_size;
+        QList<std::pair<long, WorkerAverageCoverage::Chunk>> chunks_with_size;
 		foreach(const Chromosome& chr, bed_file.chromosomes())
 		{
 			//determine start index
@@ -2592,12 +2596,12 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			{
 				bases += bed_file[i].length();
 			}
-			chunks_with_size << qMakePair(bases,  WorkerAverageCoverage::Chunk{bed_file, start, end, ""});
+            chunks_with_size << std::make_pair(bases,  WorkerAverageCoverage::Chunk{bed_file, start, end, ""});
 		}
 
 		//sort chunks by size
 		std::sort(chunks_with_size.begin(), chunks_with_size.end(),
-			[](const QPair<long, WorkerAverageCoverage::Chunk>& a, const QPair<long, WorkerAverageCoverage::Chunk>& b)
+            [](const std::pair<long, WorkerAverageCoverage::Chunk>& a, const std::pair<long, WorkerAverageCoverage::Chunk>& b)
 			{
 				return a.first > b.first;
 			}
@@ -2606,7 +2610,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		//add chunks ordered by size
 		foreach(const auto& entry, chunks_with_size)
 		{
-			chunks << entry.second;
+            chunks.append(entry.second);
 		}
 	}
 	else
@@ -2624,8 +2628,8 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	if (debug)
 	{
 		QTextStream out(stdout);
-		out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << endl;
-		out << "Creating " << chunks.count() << " chunks took " << Helper::elapsedTime(timer) << endl;
+        out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << QT_ENDL;
+        out << "Creating " << chunks.count() << " chunks took " << Helper::elapsedTime(timer) << QT_ENDL;
 	}
 
 	//create thread pool
@@ -2662,45 +2666,18 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true, random_access, debug);
 }
 
-GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file, bool include_single_end_reads)
+GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
-
-	//get RefID of X and Y chromosome
-
-	//count reads on chrX
-	int count_x = 0;
-	Chromosome chrx("chrX");
-	reader.setRegion(chrx, 1, reader.chromosomeSize(chrx));
-	BamAlignment al;
-	while (reader.getNextAlignment(al))
-	{
-		if (!include_single_end_reads && !al.isProperPair()) continue;
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.isDuplicate()) continue;
-
-		++count_x;
-	}
-
-	//count reads on chrY
-	int count_y = 0;
-	Chromosome chry("chrY");
-	reader.setRegion(chry, 1, reader.chromosomeSize(chry));
-	while (reader.getNextAlignment(al))
-	{
-		if (!include_single_end_reads && !al.isProperPair()) continue;
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.isDuplicate()) continue;
-
-		++count_y;
-	}
-	double ratio_yx = (double) count_y / count_x;
+	double count_x = 0.0;
+	double count_y = 0.0;
+	double ratio_yx = Statistics::yxRatio(reader, &count_x, &count_y);
 
 	//output
 	GenderEstimate output;
-	output.add_info << KeyValuePair("reads_chry", QString::number(count_y));
-	output.add_info << KeyValuePair("reads_chrx", QString::number(count_x));
+	output.add_info << KeyValuePair("reads_chry", QString::number(count_y, 'f', 0));
+	output.add_info << KeyValuePair("reads_chrx", QString::number(count_x, 'f', 0));
 	output.add_info << KeyValuePair("ratio_chry_chrx", QString::number(ratio_yx, 'f', 4));
 
 	//output
@@ -2711,7 +2688,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_single_end_reads)
+GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_not_properly_paired)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2731,7 +2708,7 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 	for (int i=0; i<snps.count(); ++i)
 	{
 		const VcfLine& snp = snps[i];
-		Pileup pileup = reader.getPileup(snp.chr(), snp.start(), -1, 20, include_single_end_reads, 20);
+		Pileup pileup = reader.getPileup(snp.chr(), snp.start(), -1, 20, include_not_properly_paired, 20);
 
 		int depth = pileup.depth(false);
 		if (depth<20) continue;

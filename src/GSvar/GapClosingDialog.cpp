@@ -134,7 +134,7 @@ void GapClosingDialog::updateTable()
 		GeneSet genes_overlapping = db_.genesOverlappingByExon(chr, start, end, 20);
 		genes << genes_overlapping.join("<br>");
 		QStringList tmp;
-		foreach(const QByteArray& gene, genes_overlapping)
+        for (const QByteArray& gene : genes_overlapping)
 		{
 			QString exon = exonNumber(gene, start, end);
 			if (exon!="") tmp << exon;
@@ -162,7 +162,7 @@ void GapClosingDialog::edit()
 		return;
 	}
 
-	edit(rows.toList().first());
+    edit(rows.values().first());
 }
 
 void GapClosingDialog::edit(int row)
@@ -191,7 +191,7 @@ void GapClosingDialog::addComment()
 	QString comment = QInputDialog::getText(this, "Comment", "Comment text:").trimmed();
 	if (comment.isEmpty()) return;
 
-	int row = rows.toList().first();
+    int row = rows.values().first();
 	int id = ui_.table->getId(row).toInt();
 	db_.addGapComment(id, comment);
 

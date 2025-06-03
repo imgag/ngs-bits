@@ -53,8 +53,8 @@ public:
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
 		//get list of formats and infos to keep
-		QSet<QByteArray> formats_keep = getString("format").toUtf8().split(',').toSet().subtract(QSet<QByteArray>{""});
-		QSet<QByteArray> infos_keep = getString("info").toUtf8().split(',').toSet().subtract(QSet<QByteArray>{""});
+        QSet<QByteArray> formats_keep = LIST_TO_SET(getString("format").toUtf8().split(',')).subtract(QSet<QByteArray>{""});
+        QSet<QByteArray> infos_keep = LIST_TO_SET(getString("info").toUtf8().split(',')).subtract(QSet<QByteArray>{""});
 
         while(!in_p->atEnd())
         {

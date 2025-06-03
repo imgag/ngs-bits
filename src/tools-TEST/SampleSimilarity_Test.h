@@ -42,7 +42,7 @@ private slots:
 		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in8.bam") + " " + TESTDATA("data_in/SampleSimilarity_in9.bam") + " -out out/SampleSimilarity_out6.tsv -mode bam -max_snps 200");
 		COMPARE_FILES("out/SampleSimilarity_out6.tsv", TESTDATA("data_out/SampleSimilarity_out6.tsv"));
 
-		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in8.bam") + " " + TESTDATA("data_in/SampleSimilarity_in9.bam") + " -out out/SampleSimilarity_out7.tsv -mode bam -max_snps 200 -include_single_end_reads -min_cov 5");
+		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in8.bam") + " " + TESTDATA("data_in/SampleSimilarity_in9.bam") + " -out out/SampleSimilarity_out7.tsv -mode bam -max_snps 200 -long_read -min_cov 5");
 		COMPARE_FILES("out/SampleSimilarity_out7.tsv", TESTDATA("data_out/SampleSimilarity_out7.tsv"));
 	}
 

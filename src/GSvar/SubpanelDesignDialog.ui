@@ -155,6 +155,11 @@
          <string>5000</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>100000</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item>

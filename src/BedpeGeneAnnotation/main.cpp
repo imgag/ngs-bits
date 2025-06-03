@@ -46,12 +46,12 @@ public:
 		QTextStream out(stdout);
 
 		// start timer
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//generate BED files for whole gene loci
 		BedFile gene_regions;
-		foreach (const QByteArray& gene_name, db.approvedGeneNames())
+        for (const QByteArray& gene_name : db.approvedGeneNames())
 		{
 			BedFile regions = db.geneToRegions(gene_name, Transcript::ENSEMBL, "gene", true, false);
 			regions.extend(5000);
@@ -59,12 +59,12 @@ public:
 		}
 		gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
-		out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+        out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << QT_ENDL;
 		timer.restart();
 
 		//cache gnomAD o/e LOF values
 		QHash<QByteArray, QByteArray> gene_oe_lof;
-		foreach (const QByteArray& gene_name, db.approvedGeneNames())
+        for (const QByteArray& gene_name : db.approvedGeneNames())
 		{
 			QVariant tmp = db.getValue("SELECT gnomad_oe_lof FROM geneinfo_germline WHERE symbol='" + gene_name + "'");
 			if (tmp.isValid() && !tmp.isNull())
@@ -76,7 +76,7 @@ public:
 				gene_oe_lof[gene_name] = "n/a";
 			}
 		}
-		out << "caching gnomAD o/e finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+        out << "caching gnomAD o/e finished (runtime: " << Helper::elapsedTime(timer) << ")" << QT_ENDL;
 		timer.restart();
 
 		// open input file
@@ -205,7 +205,7 @@ public:
 
 			// gene info
 			QByteArrayList gene_info_entry;
-			foreach (const QByteArray& gene, matching_genes)
+            for (const QByteArray& gene : matching_genes)
 			{
 				gene_info_entry.append(gene + " (oe_lof=" + gene_oe_lof[gene] + " region=" + covered_regions[gene] + ")");
 			}
@@ -235,7 +235,7 @@ public:
 		sv_output_file->close();
 
 
-		out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << endl;
+        out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << QT_ENDL;
 
 	}
 };

@@ -47,9 +47,9 @@ public:
 	QByteArray sampleName(QString filename)
 	{
 		QString output = QFileInfo(filename).fileName();
-		if (output.endsWith(".gz", Qt::CaseInsensitive)) output = output.left(output.count()-3);
-		if (output.endsWith(".bed", Qt::CaseInsensitive)) output = output.left(output.count()-4);
-		if (output.endsWith(".cov", Qt::CaseInsensitive)) output = output.left(output.count()-4);
+        if (output.endsWith(".gz", Qt::CaseInsensitive)) output = output.left(output.size()-3);
+        if (output.endsWith(".bed", Qt::CaseInsensitive)) output = output.left(output.size()-4);
+        if (output.endsWith(".cov", Qt::CaseInsensitive)) output = output.left(output.size()-4);
 		return output.toUtf8();
 	}
 
@@ -250,7 +250,7 @@ public:
 	virtual void main()
 	{
 		//init
-		QTime timer;
+        QElapsedTimer timer;
 		QTextStream out(stdout);
 		QString in = getInfile("in");
 		QStringList exclude_files = getInfileList("exclude");
@@ -269,12 +269,12 @@ public:
 		}
 		merged_excludes.merge();
 		timer.restart();
-		if (debug) out << "merging excludes: " << Helper::elapsedTime(timer.restart()) << endl;
+        if (debug) out << "merging excludes: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 
 		//Determine indices to use
 		//load main sample and determine row indices for correlation computation
 		QList<BedLineRepresentation> main_file = parseGzFileBedFile(in);
-		if (debug) out << "loading main sample: " << Helper::elapsedTime(timer.restart()) << endl;
+        if (debug) out << "loading main sample: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 
 		//compute ChromosomalIndex from merged excludes
 		ChromosomalIndex<BedFile> exclude_idx(merged_excludes);
@@ -305,7 +305,7 @@ public:
 			//include the rest
 			correct_indices.setBit(i, is_valid);
 		}
-		if (debug) out << "computing used indices: " << Helper::elapsedTime(timer.restart()) << endl;
+        if (debug) out << "computing used indices: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 
 		QMap<QByteArray, MinMaxIndex> chr_indices;
 		int row_count = 0;
@@ -326,7 +326,7 @@ public:
 			}
 		}
 
-		if (debug) out << "calculating min/max indices of chromosomes: " << Helper::elapsedTime(timer.restart()) << endl;
+        if (debug) out << "calculating min/max indices of chromosomes: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 
 		//Create coverage profile for main_file
 		CoverageProfile cov1;
@@ -338,10 +338,10 @@ public:
 			cov1 << line.depth;
 		}
 
-		if (debug) out << "creating coverage profile of main sample: " << Helper::elapsedTime(timer.restart()) << endl;
+        if (debug) out << "creating coverage profile of main sample: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 
 		//Load other samples and calculate correlation
-		QTime corr_timer;
+        QElapsedTimer corr_timer;
 		QList<QPair<QString, double>> file2corr;
 		CoverageProfile cov2(cov1.size());
 
@@ -353,7 +353,7 @@ public:
 
 			//load coverage profile for ref_file
 			parseGzFileCovProfile(cov2, ref_file, correct_indices, main_file.size(), main_file);
-			if (debug) out << "loading coverage profile for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
+            if (debug) out << "loading coverage profile for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 
 			//calculate correlation between main_sample and current ref_file
 			QVector<double> corr;
@@ -371,7 +371,7 @@ public:
 			double median_correlation = 0.0;
 			if (corr.count()>0) median_correlation = BasicStatistics::median(corr);
 			file2corr << qMakePair(ref_file, median_correlation);
-			if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << endl;
+            if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 		}
 
 		//sort all reference files by descending correlation coefficent
@@ -380,27 +380,27 @@ public:
 			return a.second > b.second;
 		});
 
-		if (debug) out << "loading all coverage profiles and compute correlation: " << Helper::elapsedTime(corr_timer.restart()) << endl;
+        if (debug) out << "loading all coverage profiles and compute correlation: " << Helper::elapsedTime(corr_timer.restart()) << QT_ENDL;
 
 		//write number of compared coverage files to stdout
-		out << "compared number of coverage files: " << file2corr.size() << endl;
+        out << "compared number of coverage files: " << file2corr.size() << QT_ENDL;
 
 		//select best n reference files by correlation + compute mean correlation
-		out << "Selected the following files as reference samples based on correlation: " << endl;
+        out << "Selected the following files as reference samples based on correlation: " << QT_ENDL;
 		QStringList best_ref_files;
 		double mean_correaltion = 0.0;
 		for (int i = 0; i<file2corr.size(); ++i)
 		{
 			best_ref_files << file2corr[i].first;
 			mean_correaltion += file2corr[i].second;
-			out << QFileInfo(file2corr[i].first).fileName() << ": " << file2corr[i].second << endl;
+            out << QFileInfo(file2corr[i].first).fileName() << ": " << file2corr[i].second << QT_ENDL;
 			if (best_ref_files.count()>= cov_max) break;
 		}
 		best_ref_files.sort();
 		mean_correaltion /= best_ref_files.size();
-		out << "Mean correlation to reference samples is: " << mean_correaltion << endl;
+        out << "Mean correlation to reference samples is: " << mean_correaltion << QT_ENDL;
 
-		if (debug) out << "determining best reference samples and calculating mean correlation: " << Helper::elapsedTime(timer.restart()) << endl;
+        if (debug) out << "determining best reference samples and calculating mean correlation: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 
 		//Merge coverage profiles and store them in a tsv file
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
@@ -454,7 +454,7 @@ public:
 		}
 		outstream -> close();
 
-		if (debug) out << "writing output: " << Helper::elapsedTime(timer.restart()) << endl;
+        if (debug) out << "writing output: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 	}
 };
 

@@ -19,7 +19,7 @@ private slots:
 		I_EQUAL(vl.count(),vl2.count());
 		for (int i=0; i<vl.count(); ++i)
 		{
-			S_EQUAL(vl[i].start(), vl2[i].start());
+            I_EQUAL(vl[i].start(), vl2[i].start());
 			I_EQUAL(vl[i].alt().size(), vl2[i].alt().size())
 			for(int alt_id = 0; alt_id < vl[i].alt().count(); ++alt_id)
 			{
@@ -612,6 +612,18 @@ private slots:
         I_EQUAL(output_lines.length(), 78);
         S_EQUAL(output_lines[0], "VCF version: 4.2");
     }
+
+	void vcf_check_duplicates()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		QString output;
+		QTextStream out_stream(&output);
+		bool is_valid = VcfFile::isValid(TESTDATA("data_in/duplicate_variants.vcf"), ref_file, out_stream, true, 10000, true);
+
+		IS_FALSE(is_valid);
+	}
 
     void vcf_url_encoding()
     {

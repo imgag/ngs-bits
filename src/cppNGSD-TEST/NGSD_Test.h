@@ -77,7 +77,7 @@ private slots:
 
 		//processingSystemIdFromSample
 		int sys_id = db.processingSystemIdFromProcessedSample(ps_name);
-		S_EQUAL(sys_id, 1);
+        I_EQUAL(sys_id, 1);
 
 		//getProcessingSystemData
 		ProcessingSystemData system_data = db.getProcessingSystemData(sys_id);
@@ -670,7 +670,7 @@ private slots:
 
 		//getDiagnosticStatus
 		DiagnosticStatusData diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
-		S_EQUAL(diag_status.date.toString(Qt::ISODate), "2014-07-29T09:40:49");
+        S_EQUAL(diag_status.date.toString(Qt::ISODate).left(19), "2014-07-29T09:40:49"); //TODO remove .left(19) when migratio to Qt6 is done
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
@@ -814,7 +814,7 @@ private slots:
 		S_EQUAL(analysis_job.history[2].output.join("\n"), "warning: bla bla bla");
 
 		//queueAnalysis
-		db.queueAnalysis("single sample", true, QStringList() << "-steps ma,vc,an", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" });
+		db.queueAnalysis("single sample", true, false, QStringList() << "-steps ma,vc,an", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" });
 		analysis_job = db.analysisInfo(2);
 		S_EQUAL(analysis_job.type, "single sample");
 		I_EQUAL(analysis_job.high_priority, true);
@@ -860,13 +860,13 @@ private slots:
 		//analysisJobFolder
 		QString folder = db.analysisJobFolder(1);
 		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/"));
-		db.queueAnalysis("somatic", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"});
+		db.queueAnalysis("somatic", false, false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"});
 		folder = db.analysisJobFolder(3);
 		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/"));
-		db.queueAnalysis("trio", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"});
+		db.queueAnalysis("trio", false, false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"});
 		folder = db.analysisJobFolder(4);
 		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/"));
-		db.queueAnalysis("multi sample", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"});
+		db.queueAnalysis("multi sample", false, false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"});
 		folder = db.analysisJobFolder(5);
 		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
 
@@ -1465,7 +1465,6 @@ private slots:
 		IS_TRUE(esd_test_input.filtered_by_trio_stringent == esd_db_export.filtered_by_trio_stringent);
 		IS_TRUE(esd_test_input.filtered_by_trio_relaxed == esd_db_export.filtered_by_trio_relaxed);
 
-
 		//change input
 		esd_test_input.dna_rna = "DNA_67890";
 
@@ -1620,9 +1619,9 @@ private slots:
 
 		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).at(0);
 		I_EQUAL(loaded_panel_info.tumor_id, panel_info.tumor_id);
-		S_EQUAL(loaded_panel_info.created_by, panel_info.created_by);
+        I_EQUAL(loaded_panel_info.created_by, panel_info.created_by);
 		IS_TRUE(loaded_panel_info.created_date == panel_info.created_date);
-		S_EQUAL(loaded_panel_info.processing_system_id, panel_info.processing_system_id);
+        I_EQUAL(loaded_panel_info.processing_system_id, panel_info.processing_system_id);
 
 		S_EQUAL(db.cfdnaPanelRegions(loaded_panel_info.id).toText(), bed.toText());
 		S_EQUAL(db.cfdnaPanelVcf(loaded_panel_info.id).toText(), vcf.toText());
@@ -2149,7 +2148,7 @@ private slots:
 		I_EQUAL(res_cnv.end(), 27694430);
 
 
-		//Test methods for somatic SVs in NGSD: TODO
+		//Test methods for somatic SVs in NGSD:
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/somatic_svs_manta.bedpe"));
 
@@ -2248,36 +2247,36 @@ private slots:
 		var2.include_variant_description = "Testtreiber (bekannt)";
 		var2.comment = "known test driver was not included in any db yet.";
 
-		SomaticReportConfiguration som_rep_conf;
-		som_rep_conf.addSomaticVariantConfiguration(var1);
-		som_rep_conf.addSomaticVariantConfiguration(var2);
-		som_rep_conf.setCreatedBy("ahmustm1");
-		som_rep_conf.setTargetRegionName("/path/to/somewhere.bed");
-		som_rep_conf.setIncludeTumContentByMaxSNV(true);
-		som_rep_conf.setIncludeTumContentByClonality(true);
-		som_rep_conf.setIncludeTumContentByHistological(true);
-		som_rep_conf.setIncludeTumContentByEstimated(true);
-		som_rep_conf.setTumContentByEstimated(42);
-		som_rep_conf.setMsiStatus(true);
-		som_rep_conf.setCnvBurden(true);
-		som_rep_conf.setIncludeMutationBurden(true);
-		som_rep_conf.setHrdStatement("undeterminable");
-		som_rep_conf.setCnvLohCount(12);
-		som_rep_conf.setCnvTaiCount(3);
-		som_rep_conf.setCnvLstCount(43);
-		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
-		som_rep_conf.setQuality(QStringList(""));
-		som_rep_conf.setFusionsDetected(true);
+		QSharedPointer<SomaticReportConfiguration> som_rep_conf(new SomaticReportConfiguration());
+		som_rep_conf->addSomaticVariantConfiguration(var1);
+		som_rep_conf->addSomaticVariantConfiguration(var2);
+		som_rep_conf->setCreatedBy("ahmustm1");
+		som_rep_conf->setTargetRegionName("/path/to/somewhere.bed");
+		som_rep_conf->setIncludeTumContentByMaxSNV(true);
+		som_rep_conf->setIncludeTumContentByClonality(true);
+		som_rep_conf->setIncludeTumContentByHistological(true);
+		som_rep_conf->setIncludeTumContentByEstimated(true);
+		som_rep_conf->setTumContentByEstimated(42);
+		som_rep_conf->setMsiStatus(true);
+		som_rep_conf->setCnvBurden(true);
+		som_rep_conf->setIncludeMutationBurden(true);
+		som_rep_conf->setHrdStatement("undeterminable");
+		som_rep_conf->setCnvLohCount(12);
+		som_rep_conf->setCnvTaiCount(3);
+		som_rep_conf->setCnvLstCount(43);
+		som_rep_conf->setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
+		som_rep_conf->setQuality(QStringList(""));
+		som_rep_conf->setFusionsDetected(true);
 
-		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
-		som_rep_conf.setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
-		som_rep_conf.setFilterName("somatic");
+		som_rep_conf->setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
+		som_rep_conf->setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
+		som_rep_conf->setFilterName("somatic");
 		QStringList filter_text;
 		filter_text << "Variant type	HIGH=frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost	MODERATE=inframe_deletion,inframe_insertion,missense_variant	LOW=splice_region_variant	MODIFIER=";
 		filter_text << "Column match	pattern=promoter	column=regulatory	action=KEEP";
 		filter_text << "Filter column empty";
 		FilterCascade filters = FilterCascade::fromText(filter_text);
-		som_rep_conf.setFilters(filters);
+		som_rep_conf->setFilters(filters);
 
 
 		SomaticReportVariantConfiguration cnv1;
@@ -2286,7 +2285,7 @@ private slots:
 		cnv1.exclude_artefact = true;
 		cnv1.exclude_other_reason = true;
 		cnv1.comment = "This test somatic cnv shall be excluded.";
-		som_rep_conf.addSomaticVariantConfiguration(cnv1);
+		som_rep_conf->addSomaticVariantConfiguration(cnv1);
 
 		SomaticReportGermlineVariantConfiguration var1_germl, var2_germl;
 		var1_germl.variant_index = 2;
@@ -2296,27 +2295,27 @@ private slots:
 		var2_germl.variant_index = 4;
 		var2_germl.tum_freq = 0.68;
 		var2_germl.tum_depth = 1022;
-		som_rep_conf.addGermlineVariantConfiguration(var1_germl);
-		som_rep_conf.addGermlineVariantConfiguration(var2_germl);
+		som_rep_conf->addGermlineVariantConfiguration(var1_germl);
+		som_rep_conf->addGermlineVariantConfiguration(var2_germl);
 
 
 		//Check resolving single variant config from report configuration
-		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).include_variant_alteration, "c.-124A>C");
-		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).include_variant_description, "Testtreiber (bekannt)");
-		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet.");
-		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).variant_index, 2);
-		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).variant_type, VariantType::SNVS_INDELS);
+		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::SNVS_INDELS).include_variant_alteration, "c.-124A>C");
+		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::SNVS_INDELS).include_variant_description, "Testtreiber (bekannt)");
+		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet.");
+		I_EQUAL(som_rep_conf->variantConfig(2, VariantType::SNVS_INDELS).variant_index, 2);
+		I_EQUAL(som_rep_conf->variantConfig(2, VariantType::SNVS_INDELS).variant_type, VariantType::SNVS_INDELS);
 
-		IS_TRUE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_artefact);
-		IS_TRUE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_other_reason);
-		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_high_baf_deviation);
-		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_low_copy_number);
-		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_low_tumor_content);
-		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).include_variant_alteration, "");
-		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).include_variant_description, "");
-		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).comment, "This test somatic cnv shall be excluded.");
-		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).variant_index, 2);
-		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).variant_type, VariantType::CNVS);
+		IS_TRUE(som_rep_conf->variantConfig(2, VariantType::CNVS).exclude_artefact);
+		IS_TRUE(som_rep_conf->variantConfig(2, VariantType::CNVS).exclude_other_reason);
+		IS_FALSE(som_rep_conf->variantConfig(2, VariantType::CNVS).exclude_high_baf_deviation);
+		IS_FALSE(som_rep_conf->variantConfig(2, VariantType::CNVS).exclude_low_copy_number);
+		IS_FALSE(som_rep_conf->variantConfig(2, VariantType::CNVS).exclude_low_tumor_content);
+		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::CNVS).include_variant_alteration, "");
+		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::CNVS).include_variant_description, "");
+		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::CNVS).comment, "This test somatic cnv shall be excluded.");
+		I_EQUAL(som_rep_conf->variantConfig(2, VariantType::CNVS).variant_index, 2);
+		I_EQUAL(som_rep_conf->variantConfig(2, VariantType::CNVS).variant_type, VariantType::CNVS);
 
 
 		QString t_ps_id = db.processedSampleId("NA12345_01");
@@ -2332,46 +2331,46 @@ private slots:
 		var2_changed.include_variant_description = "Testtreiber (bekannt)";
 		var2_changed.comment = "known test driver was not included in any db yet. Now published in NCBI:XYZ.";
 
-		som_rep_conf.addSomaticVariantConfiguration(var2_changed);
+		som_rep_conf->addSomaticVariantConfiguration(var2_changed);
 
 		config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will still be 52 in test NGSD
 
-		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet. Now published in NCBI:XYZ.");
+		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet. Now published in NCBI:XYZ.");
 
 		QStringList messages = {};
 
 		//Test resolving report config
-		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, svs, vl_germl, messages);
-		IS_TRUE(res_config.includeTumContentByMaxSNV());
-		IS_TRUE(res_config.includeTumContentByClonality());
-		IS_TRUE(res_config.includeTumContentByHistological());
-		IS_TRUE(res_config.includeTumContentByEstimated());
-		I_EQUAL(res_config.tumContentByEstimated(), 42);
-		IS_TRUE(res_config.msiStatus());
-		IS_TRUE(res_config.cnvBurden());
-		IS_TRUE(res_config.includeMutationBurden());
-		S_EQUAL(res_config.hrdStatement(), "undeterminable");
-		I_EQUAL(res_config.cnvLohCount(), 12);
-		I_EQUAL(res_config.cnvTaiCount(), 3);
-		I_EQUAL(res_config.cnvLstCount(), 43);
+		QSharedPointer<SomaticReportConfiguration> res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, svs, vl_germl, messages);
+		IS_TRUE(res_config->includeTumContentByMaxSNV());
+		IS_TRUE(res_config->includeTumContentByClonality());
+		IS_TRUE(res_config->includeTumContentByHistological());
+		IS_TRUE(res_config->includeTumContentByEstimated());
+		I_EQUAL(res_config->tumContentByEstimated(), 42);
+		IS_TRUE(res_config->msiStatus());
+		IS_TRUE(res_config->cnvBurden());
+		IS_TRUE(res_config->includeMutationBurden());
+		S_EQUAL(res_config->hrdStatement(), "undeterminable");
+		I_EQUAL(res_config->cnvLohCount(), 12);
+		I_EQUAL(res_config->cnvTaiCount(), 3);
+		I_EQUAL(res_config->cnvLstCount(), 43);
 
-		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
-		I_EQUAL(res_config.quality().count(), 0);
-		IS_TRUE(res_config.fusionsDetected());
-		S_EQUAL(res_config.cinChromosomes().join(','), "chr1,chr5,chr9,chrX,chrY");
-		IS_THROWN(ArgumentException, som_rep_conf.setCinChromosomes({"chr1", "chr24"}));
-		S_EQUAL(res_config.limitations(), "Due to low coverage we could not detect all variants for gene BRAF.");
-		S_EQUAL(res_config.filterName(), "somatic");
-		IS_TRUE(res_config.filters() == filters)
+		S_EQUAL(res_config->tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
+		I_EQUAL(res_config->quality().count(), 0);
+		IS_TRUE(res_config->fusionsDetected());
+		S_EQUAL(res_config->cinChromosomes().join(','), "chr1,chr5,chr9,chrX,chrY");
+		IS_THROWN(ArgumentException, som_rep_conf->setCinChromosomes({"chr1", "chr24"}));
+		S_EQUAL(res_config->limitations(), "Due to low coverage we could not detect all variants for gene BRAF.");
+		S_EQUAL(res_config->filterName(), "somatic");
+		IS_TRUE(res_config->filters() == filters)
 
-		QStringList res_filter_text = res_config.filters().toText();
+		QStringList res_filter_text = res_config->filters().toText();
 		for (int i=0; i< filter_text.count(); i++)
 		{
 			S_EQUAL(res_filter_text[i].trimmed(), filter_text[i]);
 		}
 
 		//Test variants included in resolved report
-		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
+		QList<SomaticReportVariantConfiguration> res =  res_config->variantConfig();
 		const SomaticReportVariantConfiguration& res0 = res.at(0);
 
 		I_EQUAL(res.count(), 3);
@@ -2400,7 +2399,7 @@ private slots:
 		IS_TRUE(res1.showInReport());
 
 		//Test germline variants included in resolved report
-		QList<SomaticReportGermlineVariantConfiguration> res_germl = res_config.variantConfigGermline();
+		QList<SomaticReportGermlineVariantConfiguration> res_germl = res_config->variantConfigGermline();
 		I_EQUAL(res_germl.count(), 2);
 		I_EQUAL(res_germl[0].variant_index, 2);
 		F_EQUAL(res_germl[0].tum_freq, 0.7);
@@ -2425,52 +2424,54 @@ private slots:
 
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits
-		som_rep_conf.setTargetRegionName("/path/to/somewhere/else.bed");
-		som_rep_conf.setIncludeTumContentByMaxSNV(false);
-		som_rep_conf.setIncludeTumContentByClonality(false);
-		som_rep_conf.setIncludeTumContentByHistological(false);
-		som_rep_conf.setIncludeTumContentByEstimated(false);
-		som_rep_conf.setTumContentByEstimated(31);
-		som_rep_conf.setMsiStatus(false);
-		som_rep_conf.setCnvBurden(false);
-		som_rep_conf.setIncludeMutationBurden(false);
+		som_rep_conf->setTargetRegionName("/path/to/somewhere/else.bed");
+		som_rep_conf->setIncludeTumContentByMaxSNV(false);
+		som_rep_conf->setIncludeTumContentByClonality(false);
+		som_rep_conf->setIncludeTumContentByHistological(false);
+		som_rep_conf->setIncludeTumContentByEstimated(false);
+		som_rep_conf->setTumContentByEstimated(31);
+		som_rep_conf->setMsiStatus(false);
+		som_rep_conf->setCnvBurden(false);
+		som_rep_conf->setIncludeMutationBurden(false);
 
-		som_rep_conf.setHrdStatement("proof");
-		som_rep_conf.setCnvLohCount(9);
-		som_rep_conf.setCnvTaiCount(1);
-		som_rep_conf.setCnvLstCount(23);
+		som_rep_conf->setHrdStatement("proof");
+		som_rep_conf->setCnvLohCount(9);
+		som_rep_conf->setCnvTaiCount(1);
+		som_rep_conf->setCnvLstCount(23);
 
 
-		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
-		som_rep_conf.setQuality(QStringList("DNA quantity too low"));
-		som_rep_conf.setFusionsDetected(false);
-		som_rep_conf.setCinChromosomes({"chr10","chr21"});
-		som_rep_conf.setLimitations("With German umlauts: ???????");
-		som_rep_conf.setFilterName("");
+		som_rep_conf->setTmbReferenceText("An alternative tmb reference value.");
+		som_rep_conf->setQuality(QStringList("DNA quantity too low"));
+		som_rep_conf->setFusionsDetected(false);
+		som_rep_conf->setCinChromosomes({"chr10","chr21"});
+		som_rep_conf->setLimitations("With German umlauts: ???????");
+		som_rep_conf->setFilterName("");
 
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahkerra1");
 
-		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, svs, vl_germl, messages);
-		IS_FALSE(res_config_2.includeTumContentByMaxSNV());
-		IS_FALSE(res_config_2.includeTumContentByClonality());
-		IS_FALSE(res_config_2.includeTumContentByHistological());
-		IS_FALSE(res_config_2.includeTumContentByEstimated());
-		I_EQUAL(res_config_2.tumContentByEstimated(), 31);
-		IS_FALSE(res_config_2.msiStatus());
-		IS_FALSE(res_config_2.cnvBurden());
-		IS_FALSE(res_config_2.includeMutationBurden());
 
-		S_EQUAL(res_config_2.hrdStatement(), "proof");
-		I_EQUAL(res_config_2.cnvLohCount(), 9);
-		I_EQUAL(res_config_2.cnvTaiCount(), 1);
-		I_EQUAL(res_config_2.cnvLstCount(), 23);
 
-		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
-		S_EQUAL(res_config_2.quality()[0], "DNA quantity too low");
-		IS_FALSE(res_config_2.fusionsDetected());
-		S_EQUAL(res_config_2.cinChromosomes().join(','), "chr10,chr21");
-		S_EQUAL(res_config_2.limitations(), "With German umlauts: ???????");
-		S_EQUAL(res_config_2.filterName(), "");
+		QSharedPointer<SomaticReportConfiguration> res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, svs, vl_germl, messages);
+		IS_FALSE(res_config_2->includeTumContentByMaxSNV());
+		IS_FALSE(res_config_2->includeTumContentByClonality());
+		IS_FALSE(res_config_2->includeTumContentByHistological());
+		IS_FALSE(res_config_2->includeTumContentByEstimated());
+		I_EQUAL(res_config_2->tumContentByEstimated(), 31);
+		IS_FALSE(res_config_2->msiStatus());
+		IS_FALSE(res_config_2->cnvBurden());
+		IS_FALSE(res_config_2->includeMutationBurden());
+
+		S_EQUAL(res_config_2->hrdStatement(), "proof");
+		I_EQUAL(res_config_2->cnvLohCount(), 9);
+		I_EQUAL(res_config_2->cnvTaiCount(), 1);
+		I_EQUAL(res_config_2->cnvLstCount(), 23);
+
+		S_EQUAL(res_config_2->tmbReferenceText(), "An alternative tmb reference value.");
+		S_EQUAL(res_config_2->quality()[0], "DNA quantity too low");
+		IS_FALSE(res_config_2->fusionsDetected());
+		S_EQUAL(res_config_2->cinChromosomes().join(','), "chr10,chr21");
+		S_EQUAL(res_config_2->limitations(), "With German umlauts: ???????");
+		S_EQUAL(res_config_2->filterName(), "");
 
 		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_2.created_by, "Max Mustermann");
@@ -2480,7 +2481,7 @@ private slots:
 		IS_TRUE(config_data_2.last_edit_date != "");
 
 		//report config in case of no target file
-		som_rep_conf.setTargetRegionName("");
+		som_rep_conf->setTargetRegionName("");
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahkerra1");
 
 		SomaticReportConfigurationData config_data_3 = db.somaticReportConfigData(config_id);
@@ -2791,7 +2792,7 @@ private slots:
 		QStringList messages;
 
 		SomaticReportSettings somatic_report_settings;
-		SomaticReportConfiguration somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, svs, control_tissue_variants, messages);
+		QSharedPointer<SomaticReportConfiguration> somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, svs, control_tissue_variants, messages);
 		somatic_report_settings.report_config = somatic_report_config;
 
 		somatic_report_settings.tumor_ps = "DNA123456_01";
@@ -2801,20 +2802,20 @@ private slots:
 
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
 
-		somatic_report_settings.report_config.setIncludeTumContentByHistological(true);
-		somatic_report_settings.report_config.setIncludeTumContentByClonality(true);
-		somatic_report_settings.report_config.setIncludeTumContentByMaxSNV(true);
-		somatic_report_settings.report_config.setIncludeTumContentByEstimated(false);
-		somatic_report_settings.report_config.setMsiStatus(true);
-		somatic_report_settings.report_config.setCnvBurden(true);
-		somatic_report_settings.report_config.setIncludeMutationBurden(true);
-		somatic_report_settings.report_config.setHrdStatement("proof");
-		somatic_report_settings.report_config.setCnvLohCount(12);
-		somatic_report_settings.report_config.setCnvTaiCount(3);
-		somatic_report_settings.report_config.setCnvLstCount(33);
-		somatic_report_settings.report_config.setTmbReferenceText("Test reference text for the tmb of this analysis!");
-		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
-		somatic_report_settings.report_config.setLimitations("This text should appear as limitations!");
+		somatic_report_settings.report_config->setIncludeTumContentByHistological(true);
+		somatic_report_settings.report_config->setIncludeTumContentByClonality(true);
+		somatic_report_settings.report_config->setIncludeTumContentByMaxSNV(true);
+		somatic_report_settings.report_config->setIncludeTumContentByEstimated(false);
+		somatic_report_settings.report_config->setMsiStatus(true);
+		somatic_report_settings.report_config->setCnvBurden(true);
+		somatic_report_settings.report_config->setIncludeMutationBurden(true);
+		somatic_report_settings.report_config->setHrdStatement("proof");
+		somatic_report_settings.report_config->setCnvLohCount(12);
+		somatic_report_settings.report_config->setCnvTaiCount(3);
+		somatic_report_settings.report_config->setCnvLstCount(33);
+		somatic_report_settings.report_config->setTmbReferenceText("Test reference text for the tmb of this analysis!");
+		somatic_report_settings.report_config->setEvaluationDate(QDate(2022,12,1));
+		somatic_report_settings.report_config->setLimitations("This text should appear as limitations!");
 		//preferred transcripts
 		somatic_report_settings.preferred_transcripts = db.getPreferredTranscripts();
 
@@ -2835,7 +2836,7 @@ private slots:
 		QStringList quality;
 		quality.append("DNA quantity too low");
 		quality.append("heterogeneous sample");
-		somatic_report_settings.report_config.setQuality(quality);
+		somatic_report_settings.report_config->setQuality(quality);
 
 		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, svs, control_tissue_variants, somatic_report_settings, true);
 		report.storeRtf("out/somatic_report_tumor_normal_1.rtf");
@@ -2888,7 +2889,7 @@ private slots:
 		QStringList messages;
 
 		SomaticReportSettings somatic_report_settings;
-		SomaticReportConfiguration somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, svs, control_tissue_variants, messages);
+		QSharedPointer<SomaticReportConfiguration> somatic_report_config = db.somaticReportConfig(db.processedSampleId("DNA123456_01"), db.processedSampleId("NA12878_03"), vl, cnv_list, svs, control_tissue_variants, messages);
 		somatic_report_settings.report_config = somatic_report_config;
 
 		somatic_report_settings.tumor_ps = "DNA123456_01";
@@ -2903,21 +2904,21 @@ private slots:
 
 		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
 
-		somatic_report_settings.report_config.setIncludeTumContentByHistological(true);
-		somatic_report_settings.report_config.setIncludeTumContentByClonality(false);
-		somatic_report_settings.report_config.setIncludeTumContentByMaxSNV(false);
-		somatic_report_settings.report_config.setIncludeTumContentByEstimated(true);
-		somatic_report_settings.report_config.setTumContentByEstimated(42);
-		somatic_report_settings.report_config.setMsiStatus(false);
-		somatic_report_settings.report_config.setCnvBurden(false);
-		somatic_report_settings.report_config.setIncludeMutationBurden(false);
-		somatic_report_settings.report_config.setHrdStatement("no proof");
-		somatic_report_settings.report_config.setCnvLohCount(0);
-		somatic_report_settings.report_config.setCnvTaiCount(1);
-		somatic_report_settings.report_config.setCnvLstCount(2);
-		somatic_report_settings.report_config.setTmbReferenceText("Test reference text for the tmb of this analysis!");
-		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
-		somatic_report_settings.report_config.setLimitations("This text should appear as limitations!");
+		somatic_report_settings.report_config->setIncludeTumContentByHistological(true);
+		somatic_report_settings.report_config->setIncludeTumContentByClonality(false);
+		somatic_report_settings.report_config->setIncludeTumContentByMaxSNV(false);
+		somatic_report_settings.report_config->setIncludeTumContentByEstimated(true);
+		somatic_report_settings.report_config->setTumContentByEstimated(42);
+		somatic_report_settings.report_config->setMsiStatus(false);
+		somatic_report_settings.report_config->setCnvBurden(false);
+		somatic_report_settings.report_config->setIncludeMutationBurden(false);
+		somatic_report_settings.report_config->setHrdStatement("no proof");
+		somatic_report_settings.report_config->setCnvLohCount(0);
+		somatic_report_settings.report_config->setCnvTaiCount(1);
+		somatic_report_settings.report_config->setCnvLstCount(2);
+		somatic_report_settings.report_config->setTmbReferenceText("Test reference text for the tmb of this analysis!");
+		somatic_report_settings.report_config->setEvaluationDate(QDate(2022,12,1));
+		somatic_report_settings.report_config->setLimitations("This text should appear as limitations!");
 
 		//preferred transcripts
 		somatic_report_settings.preferred_transcripts = db.getPreferredTranscripts();
@@ -2938,7 +2939,7 @@ private slots:
 		target_region.regions = db.subpanelRegions(target_region.name);
 		somatic_report_settings.target_region_filter = target_region;
 		QStringList quality;
-		somatic_report_settings.report_config.setQuality(quality);
+		somatic_report_settings.report_config->setQuality(quality);
 
 		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, svs, control_tissue_variants, somatic_report_settings, true);
 		report.storeRtf("out/somatic_report_tumor_normal_2.rtf");
@@ -2950,7 +2951,6 @@ private slots:
 
 		COMPARE_FILES("out/somatic_report_tumor_normal_2.xml", TESTDATA("data_out/somatic_report_tumor_normal_2.xml"));
 	}
-
 
 	//Test tumor only RTF report generation
 	void report_tumor_only()
@@ -3009,8 +3009,8 @@ private slots:
 		report_worker.checkAnnotation(vl);
 		report_worker.writeRtf("out/tumor_only_report.rtf");
 
-		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
-		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QCoreApplication::applicationName().toUtf8())); //application name and version
+        REMOVE_LINES("out/tumor_only_report.rtf", QRegularExpression(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
+        REMOVE_LINES("out/tumor_only_report.rtf", QRegularExpression(QCoreApplication::applicationName().toUtf8())); //application name and version
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 
 
@@ -3311,7 +3311,7 @@ private slots:
 
 			//process overlapping genes
 			GeneSet genes = db.genesOverlapping(v.chr(), v.start(), v.end());
-			foreach(const QByteArray& gene, genes)
+            for (const QByteArray& gene : genes)
 			{
 				//process best transcript for gene
 				if (!best.contains(gene)) continue;
@@ -3382,10 +3382,10 @@ private slots:
 					else
 					{
 						++c_fail;
-						out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << endl;
+                        out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << QT_ENDL;
 						foreach(QByteArray difference, differences)
 						{
-							out << "  " << difference << endl;
+                            out << "  " << difference << QT_ENDL;
 						}
 					}
 				}
@@ -3419,7 +3419,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
 
 		QStringList warnings;
-		QString sample_sheet = db.createSampleSheet(1, warnings);
+		QString sample_sheet = db.createSampleSheet(1, warnings, NsxAnalysisSettings());
 		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (5) and the number of lanes on the flow cell (8) does not match!");
 
 		//write to file
@@ -3432,7 +3432,7 @@ private slots:
 
 		//second run without adapter sequence
 		warnings.clear();
-		sample_sheet = db.createSampleSheet(2, warnings);
+		sample_sheet = db.createSampleSheet(2, warnings, NsxAnalysisSettings());
 		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (3) and the number of lanes on the flow cell (2) does not match!");
 		S_EQUAL(warnings.at(1), "WARNING: No adapter for read 1 provided! Adapter trimming will not work.");
 		S_EQUAL(warnings.at(2), "WARNING: No adapter for read 2 provided! Adapter trimming will not work.");
@@ -3446,4 +3446,5 @@ private slots:
 		COMPARE_FILES("out/NovaSeqX_samplesheet2.csv",  TESTDATA("data_out/NovaSeqX_samplesheet2.csv") );
 
 	}
+
 };

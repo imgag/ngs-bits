@@ -12,10 +12,9 @@ private slots:
 		if (chain_file=="") SKIP("Test needs the liftOver hg38->hg19 chain file!");
 
 		EXECUTE("BedLiftOver", "-in " + TESTDATA("../cppNGS-TEST/data_in/ChainFileReader_in1.bed") + " -chain hg38_hg19 -out out/BedLiftOver_out1_lifted.bed -unmapped out/BedLiftOver_out1_unmapped.bed -max_deletion 5 -max_increase 9999");
-		REMOVE_LINES("out/BedLiftOver_out1_lifted.bed", QRegExp("#"));
-		REMOVE_LINES("out/BedLiftOver_out1_unmapped.bed", QRegExp("#"));
+        REMOVE_LINES("out/BedLiftOver_out1_lifted.bed", QRegularExpression("#"));
 		COMPARE_FILES("out/BedLiftOver_out1_lifted.bed", TESTDATA("../cppNGS-TEST/data_out/ChainFileReader_out1_lifted.bed"));
-		COMPARE_FILES("out/BedLiftOver_out1_unmapped.bed", TESTDATA("../cppNGS-TEST/data_out/ChainFileReader_out1_unmapped.bed"));
+		COMPARE_FILES("out/BedLiftOver_out1_unmapped.bed", TESTDATA("data_out/BedLiftOver_out1_unmapped.bed"));
 	}
 	
 	// testing allowed number of deleted bases
@@ -30,8 +29,7 @@ private slots:
 		for (int i=0; i<allowed_deletion.size(); i++)
 		{
 			EXECUTE("BedLiftOver", "-in " + TESTDATA("../cppNGS-TEST/data_in/ChainFileReader_in3.bed") + " -chain hg38_hg19 -out out/BedLiftOver_out3_lifted.bed -unmapped out/BedLiftOver_out3_unmapped.bed -max_deletion " + QString::number(allowed_deletion[i]));
-			REMOVE_LINES("out/BedLiftOver_out3_lifted.bed", QRegExp("#"));
-			REMOVE_LINES("out/BedLiftOver_out3_unmapped.bed", QRegExp("#"));
+            REMOVE_LINES("out/BedLiftOver_out3_lifted.bed", QRegularExpression("#"));
 
 			QFile lifted("out/BedLiftOver_out3_lifted.bed");
 			lifted.open(QFile::ReadOnly | QIODevice::Text);
@@ -79,8 +77,7 @@ private slots:
 		for (int i=0; i<max_increase.size(); i++)
 		{
 			EXECUTE("BedLiftOver", "-in " + TESTDATA("data_in/BedLiftOver_in2.bed") + " -chain hg38_hg19 -out out/BedLiftOver_out4_lifted.bed -unmapped out/BedLiftOver_out4_unmapped.bed -max_deletion 5 -max_increase " + QString::number(max_increase[i]));
-			REMOVE_LINES("out/BedLiftOver_out4_lifted.bed", QRegExp("#"));
-			REMOVE_LINES("out/BedLiftOver_out4_unmapped.bed", QRegExp("#"));
+            REMOVE_LINES("out/BedLiftOver_out4_lifted.bed", QRegularExpression("#"));
 
 			QFile lifted("out/BedLiftOver_out4_lifted.bed");
 			lifted.open(QFile::ReadOnly | QIODevice::Text);
@@ -108,7 +105,14 @@ private slots:
 
 	void test_annotations()
 	{
-		EXECUTE("BedLiftOver", "-in " + TESTDATA("../cppNGS-TEST/data_in/ChainFileReader_in2.bed") + " -chain hg19_hg38 -out out/BedLiftOver_out4_lifted.bed -unmapped out/BedLiftOver_out4_unmapped.bed");
+		EXECUTE("BedLiftOver", "-in " + TESTDATA("../cppNGS-TEST/data_in/ChainFileReader_in2.bed") + " -chain hg19_hg38 -out out/BedLiftOver_out5_lifted.bed -unmapped out/BedLiftOver_out5_unmapped.bed");
 
+	}
+
+	void test_merged_output()
+	{
+		EXECUTE("BedLiftOver", "-in " + TESTDATA("../cppNGS-TEST/data_in/ChainFileReader_in1.bed") + " -chain hg38_hg19 -out out/BedLiftOver_out6_lifted.bed -merged_output -max_deletion 5 -max_increase 9999");
+		REMOVE_LINES("out/BedLiftOver_out6_lifted.bed", QRegularExpression("^#"));
+		COMPARE_FILES("out/BedLiftOver_out6_lifted.bed", TESTDATA("data_out/BedLiftOver_out6_lifted.bed"));
 	}
 };

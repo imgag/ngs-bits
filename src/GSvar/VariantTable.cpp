@@ -133,14 +133,14 @@ void VariantTable::customContextMenu(QPoint pos)
 		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
 
 		//genes
-		foreach(const QByteArray& g, genes)
+        for (const QByteArray& g : genes)
 		{
 			sub_menu->addAction(g);
 		}
 		sub_menu->addSeparator();
 
 		//transcripts
-		foreach(const VariantTranscript& transcript, transcripts)
+        for (const VariantTranscript& transcript : transcripts)
 		{
 			if  (transcript.id!="" && transcript.hgvs_c!="")
 			{
@@ -179,11 +179,11 @@ void VariantTable::customContextMenu(QPoint pos)
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
 	//create links for each gene/disease
-	foreach(const QByteArray& g, genes)
+    for (const QByteArray& g : genes)
 	{
 		sub_menu->addAction(g + " AND \"mutation\"");
 		sub_menu->addAction(g + " AND \"variant\"");
-		foreach(const Phenotype& p, active_phenotypes_)
+        for (const Phenotype& p : active_phenotypes_)
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
 		}
@@ -197,12 +197,12 @@ void VariantTable::customContextMenu(QPoint pos)
 	if (!genes.isEmpty())
 	{
 		menu.addSeparator();
-		foreach(const QByteArray& g, genes)
+        for (const QByteArray& g : genes)
 		{
 			sub_menu = menu.addMenu(g);
 			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in);
 			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
-			foreach(const GeneDB& db, GeneInfoDBs::all())
+            for (const GeneDB& db : GeneInfoDBs::all())
 			{
 				sub_menu->addAction(db.icon, db.name);
 			}
@@ -261,7 +261,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		{
 			QByteArray protein_change = hgvs_p.mid(2).trimmed();
 			query += " OR \"" + protein_change + "\"";
-			if (QRegExp("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").exactMatch(protein_change) && !protein_change.endsWith("del"))
+			if (QRegularExpression("^[A-Za-z]{3}[0-9]+[A-Za-z]{3}$").match(protein_change).hasMatch() && !protein_change.endsWith("del"))
 			{
 				QByteArray aa1 = protein_change.left(3);
 				QByteArray aa2 = protein_change.right(3);
@@ -299,7 +299,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 	else if (action == a_ucsc_enigma)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/s/abenet/BRCA1_BRCA2_ENIGMA_hg38?position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)+"&hgsid=2395490845_kJTSEC0eF5uwLq9urfDpQRoxIEPY"));
 	}
 	else if (action == a_lovd)
 	{
@@ -347,7 +347,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		else if (text=="Google")
 		{
 			QString query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, active_phenotypes_)
+            for (const Phenotype& pheno : active_phenotypes_)
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -363,7 +363,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	else if (parent_menu && parent_menu->title()=="Custom")
 	{
 		QStringList custom_entries = Settings::string("custom_menu_small_variants", true).trimmed().split("\t");
-		foreach(QString custom_entry, custom_entries)
+        for (QString custom_entry : custom_entries)
 		{
 			QStringList parts = custom_entry.split("|");
 			if (parts.count()==2 && parts[0]==text)
@@ -486,7 +486,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 		setItem(r, 0, createTableItem(variant.chr().str()));
 		if (!variant.chr().isAutosome())
 		{
-			item(r,0)->setBackgroundColor(Qt::yellow);
+            item(r,0)->setBackground(QBrush(QColor(Qt::yellow)));
 			item(r,0)->setToolTip("Not autosome");
 		}
 		setItem(r, 1, createTableItem(QByteArray::number(variant.start())));
@@ -505,37 +505,37 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 			//warning
 			if (anno_index==i_co_sp && anno.contains(":HIGH:"))
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_classification && (anno=="3" || anno=="M" || anno=="R"))
 			{
-				item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 				is_notice_line = true;
 			}
 			else if (anno_index==i_classification && (anno=="4" || anno=="5"))
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_clinvar && anno.contains("pathogenic") && !anno.contains("conflicting interpretations of pathogenicity")) //matches "pathogenic" and "likely pathogenic"
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_hgmd && anno.contains("CLASS=DM")) //matches both "DM" and "DM?"
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_warning_line = true;
 			}
 			else if (anno_index==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.8)
 			{
-				item->setBackgroundColor(Qt::red);
+                item->setBackground(QBrush(QColor(Qt::red)));
 				is_notice_line = true;
 			}
 			else if (anno_index==i_spliceai && NGSHelper::maxSpliceAiScore(anno) >= 0.5)
 			{
-				item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 				is_notice_line = true;
 			}
 			else if (anno_index==i_maxentscan && !anno.isEmpty())
@@ -558,12 +558,12 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				//output: max import
 				if (impacts.contains(MaxEntScanImpact::HIGH))
 				{
-					item->setBackgroundColor(Qt::red); //orange
+                    item->setBackground(QBrush(QColor(Qt::red))); //orange
 					is_notice_line = true;
 				}
 				else if (impacts.contains(MaxEntScanImpact::MODERATE))
 				{
-					item->setBackgroundColor(QColor(255, 135, 60)); //orange
+                    item->setBackground(QBrush(QColor(QColor(255, 135, 60)))); //orange
 					is_notice_line = true;
 				}
 			}
@@ -571,30 +571,30 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 			//non-pathogenic
 			if (anno_index==i_classification && (anno=="1" || anno=="2"))
 			{
-				item->setBackgroundColor(Qt::green);
+                item->setBackground(QBrush(QColor(Qt::green)));
 				is_ngsd_benign = true;
 			}
 
 			//highlighed
 			if (anno_index==i_validation && anno.contains("TP"))
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_comment && anno!="")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_ihdb_hom && anno=="0")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_ihdb_het && anno=="0")
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_clinvar && anno.contains("(confirmed)"))
 			{
-				item->setBackgroundColor(Qt::yellow);
+                item->setBackground(QBrush(QColor(Qt::yellow)));
 			}
 			else if (anno_index==i_genes)
 			{
@@ -656,9 +656,9 @@ void VariantTable::update(VariantList& variants, const FilterResult& filter_resu
 	//init
 	QHash<int, bool> index_show_report_icon;
 	QSet<int> index_causal;
-	foreach(int index, report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+	foreach(int index, report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
 	{
-		index_show_report_icon[index] = report_settings.report_config.get(VariantType::SNVS_INDELS, index).showInReport();
+		index_show_report_icon[index] = report_settings.report_config->get(VariantType::SNVS_INDELS, index).showInReport();
 	}
 
 	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
@@ -681,9 +681,9 @@ void VariantTable::updateVariantHeaderIcon(const SomaticReportSettings &report_s
 {
 	int row = variantIndexToRow(variant_index);
 	QIcon report_icon;
-	if(report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
+	if(report_settings.report_config->exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport(), false);
+		report_icon = reportIcon(report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index).showInReport(), false);
 	}
 	verticalHeaderItem(row)->setIcon(report_icon);
 }
@@ -770,7 +770,7 @@ QList<int> VariantTable::columnWidths() const
 
 void VariantTable::setColumnWidths(const QList<int>& widths)
 {
-	int col_count = std::min(widths.count(), columnCount());
+    int col_count = std::min(SIZE_TO_INT(widths.count()), SIZE_TO_INT(columnCount()));
 	for (int c=0; c<col_count; ++c)
 	{
 		setColumnWidth(c, widths[c]);
@@ -805,7 +805,7 @@ void VariantTable::clearContents()
 
 void VariantTable::adaptColumnWidths()
 {
-	QTime timer;
+    QElapsedTimer timer;
 	timer.start();
 
 	//restrict width

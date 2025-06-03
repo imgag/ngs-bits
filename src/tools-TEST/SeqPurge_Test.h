@@ -23,7 +23,7 @@ void fastqStatistics(QString fastq, QString out)
 		stream.readEntry(e);
 
 		//read data
-		int length = e.bases.count();
+        int length = e.bases.size();
 		reads += 1;
 		if (!read_len.contains(length)) read_len.insert(length, 0);
 		read_len[length] += 1;
@@ -108,9 +108,9 @@ private slots:
 		COMPARE_GZ_FILES("out/SeqPurge_out2.fastq.gz", TESTDATA("data_out/SeqPurge_out2.fastq.gz"));
 
 		//qc comparison
-		REMOVE_LINES("out/SeqPurge_out1.qcML", QRegExp("creation "));
-		REMOVE_LINES("out/SeqPurge_out1.qcML", QRegExp("source file"));
-		REMOVE_LINES("out/SeqPurge_out1.qcML", QRegExp("<binary>"));
+        REMOVE_LINES("out/SeqPurge_out1.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/SeqPurge_out1.qcML", QRegularExpression("source file"));
+        REMOVE_LINES("out/SeqPurge_out1.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/SeqPurge_out1.qcML", TESTDATA("data_out/SeqPurge_out1.qcML"));
 	}
 	
@@ -212,7 +212,7 @@ private slots:
 	//multi-thread test
 	void test_multithread()
 	{
-		QTime timer;
+        QElapsedTimer timer;
 		for (int i=1; i<=8; ++i)
 		{
 			QString suffix = QString::number(i) + "threads";
@@ -220,7 +220,6 @@ private slots:
 			QString out2 = "out/SeqPurge_"+suffix+"_R2.fastq.gz";
 			timer.restart();
 			EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 "+out1+" -out2 "+out2+" -ncut 0 -qcut 0 -min_len 15 -qc out/SeqPurge_"+suffix+".qcML -summary out/SeqPurge_"+suffix+".log -block_size 100 -threads " + QString::number(i));
-			//QTextStream(stdout) << " threads: " << i << " time: " << Helper::elapsedTime(timer, true) << endl;
 
 			//compare fastq statistics
 			QString out1_stats = "out/SeqPurge_"+suffix+"_R1.stats";
@@ -234,9 +233,9 @@ private slots:
 			S_EQUAL(fastqCheckPair(out1, out2), "");
 
 			//qc comparison
-			REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegExp("creation "));
-			REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegExp("source file"));
-			REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegExp("<binary>"));
+            REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegularExpression("creation "));
+            REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegularExpression("source file"));
+            REMOVE_LINES("out/SeqPurge_"+suffix+".qcML", QRegularExpression("<binary>"));
 			COMPARE_FILES("out/SeqPurge_"+suffix+".qcML", "out/SeqPurge_1threads.qcML");
 		}
 	}

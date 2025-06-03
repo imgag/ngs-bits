@@ -37,7 +37,7 @@ public:
 		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).",  true, 5000);
 		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
-		addFlag("include_single_end_reads", "In bam mode: include reads which are not (properly) paired. Required e.g. for long-read input data.");
+		addFlag("long_read", "Support long reads (BAM mode).");
 		addFlag("debug", "Print debug output.");
 
 		//changelog
@@ -70,17 +70,17 @@ public:
 		bool include_gonosomes = getFlag("include_gonosomes");
 		GenomeBuild build = stringToBuild(getEnum("build"));
 		bool debug = getFlag("debug");
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		//write header
 		if (mode=="vcf" || mode=="gsvar")
 		{
-			out << "#file1\tfile2\toverlap_percent\tcorrelation\tibs2_percent\tcount1\tcount2\tcomments" << endl;
+            out << "#file1\tfile2\toverlap_percent\tcorrelation\tibs2_percent\tcount1\tcount2\tcomments" << QT_ENDL;
 		}
 		else if (mode=="bam")
 		{
-			out << "#file1\tfile2\tvariant_count\tcorrelation\tibs0_percent\tibs2_percent\tcomments" << endl;
+            out << "#file1\tfile2\tvariant_count\tcorrelation\tibs0_percent\tibs2_percent\tcomments" << QT_ENDL;
 		}
 		else
 		{
@@ -95,7 +95,7 @@ public:
 		if (roi_hg38_wes_wgs) roi_reg.load(":/Resources/hg38_coding_highconf_all_kits.bed");
 		if (debug)
 		{
-			out << "##loaded target region (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+            out << "##loaded target region (took: " << Helper::elapsedTime(timer, true) << ")" << QT_ENDL;
 			timer.restart();
 		}
 
@@ -106,7 +106,7 @@ public:
 		{
 			if (!QFile::exists(filename))
 			{
-				out << "##skipped missing file " << filename << endl;
+                out << "##skipped missing file " << filename << QT_ENDL;
 				continue;
 			}
 			if (mode=="vcf")
@@ -119,12 +119,12 @@ public:
 			}
 			else
 			{
-				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref"), getFlag("include_single_end_reads"))
-													: SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref"), getFlag("include_single_end_reads")));
+				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref"), getFlag("long_read"))
+													: SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref"), getFlag("long_read")));
 			}
 			if (debug)
 			{
-				out << "##loaded input file " << filename << " (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+                out << "##loaded input file " << filename << " (took: " << Helper::elapsedTime(timer, true) << ")" << QT_ENDL;
 				timer.restart();
 			}
 		}
@@ -158,12 +158,12 @@ public:
 					cols << QString::number(sc.ibs2Perc(), 'f', 2);
 				}
 				cols << sc.messages().join(", ");
-				out << cols.join("\t") << endl;
+                out << cols.join("\t") << QT_ENDL;
 			}
 		}
 		if (debug)
 		{
-			out << "##calculated similarity (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+            out << "##calculated similarity (took: " << Helper::elapsedTime(timer, true) << ")" << QT_ENDL;
 		}
 	}
 

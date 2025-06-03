@@ -6,9 +6,7 @@
 #include <QDesktopServices>
 #include <QMenu>
 #include <QChartView>
-QT_CHARTS_USE_NAMESPACE
-#include <QSvgWidget>
-#include <QSvgRenderer>
+
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "TsvFile.h"
@@ -19,6 +17,15 @@ QT_CHARTS_USE_NAMESPACE
 #include "ClientHelper.h"
 #include "Log.h"
 #include "ReportVariantDialog.h"
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QtSvg/QSvgRenderer>
+#include <QPainter>
+#else
+QT_CHARTS_USE_NAMESPACE
+#include <QSvgWidget>
+#include <QSvgRenderer>
+#endif
 
 RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_name)
 	: QWidget(parent)
@@ -166,15 +173,42 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 			svg = VersatileFile(hist_loc.filename).readAll();
 		}
 
-		QSvgWidget* widget = new QSvgWidget();
-		widget->load(svg);
-		QRect rect = widget->renderer()->viewBox();
-		widget->setMinimumSize(rect.width(), rect.height());
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QSvgRenderer renderer(svg);
+        if (!renderer.isValid()) {
+            QMessageBox::warning(this, "SVG error", "Failed to load SVG file");
+            return;
+        }
+        QSize svg_size = renderer.viewBox().size();
+
+        // New pixmap for SVG rendering
+        QPixmap pixmap(svg_size);
+        pixmap.fill(Qt::transparent);
+
+        // Draw SVG content inside the pixmap
+        QPainter painter(&pixmap);
+        renderer.render(&painter);
+
+        // Display the pixmap inside QLabel
+        QLabel *label = new QLabel;
+        label->setPixmap(pixmap);
+        label->setMinimumSize(svg_size);
 
 		QScrollArea* scroll_area = new QScrollArea(this);
 		scroll_area->setFrameStyle(QFrame::NoFrame);
-		scroll_area->setWidget(widget);
+        scroll_area->setWidget(label);
 		scroll_area->setMinimumSize(1200, 800);
+        #else
+        QSvgWidget* widget = new QSvgWidget();
+        widget->load(svg);
+        QRect rect = widget->renderer()->viewBox();
+        widget->setMinimumSize(rect.width(), rect.height());
+
+        QScrollArea* scroll_area = new QScrollArea(this);
+        scroll_area->setFrameStyle(QFrame::NoFrame);
+        scroll_area->setWidget(widget);
+        scroll_area->setMinimumSize(1200, 800);
+        #endif
 
 		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Histogram of " + getCell(row, "repeat ID").trimmed());
 		dlg->exec();
@@ -198,15 +232,16 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		}
 	}
 	else if (action==a_omim)
-	{
-		QRegExp mim_exp("([0-9]{6})");
-		QString text = getCell(row, "OMIM disease IDs");
-		int pos = 0;
-		while (mim_exp.indexIn(text, pos)!=-1)
-		{
-			QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + mim_exp.cap(1)));
-			pos = mim_exp.pos() + 6;
-		}
+    {
+        QRegularExpression mim_exp("([0-9]{6})");
+        QString text = getCell(row, "OMIM disease IDs");
+
+        QRegularExpressionMatchIterator it = mim_exp.globalMatch(text);
+        while (it.hasNext())
+        {
+            QRegularExpressionMatch match = it.next();
+            QDesktopServices::openUrl(QUrl("https://www.omim.org/entry/" + match.captured(1)));
+        }
 	}
 	else if (action==a_stripy)
 	{
@@ -382,7 +417,7 @@ void RepeatExpansionWidget::setCellDecoration(int row, QString column, QString t
 	//set background color
 	if (bg_color.isValid())
 	{
-		item->setBackgroundColor(bg_color);
+        item->setBackground(QBrush(QColor(bg_color)));
 	}
 }
 
@@ -718,10 +753,10 @@ void RepeatExpansionWidget::setReportConfigHeaderIcons()
 {
 	if(report_config_==NULL) return;
 
-	QSet<int> report_variant_indices = report_config_->variantIndices(VariantType::RES, false).toSet();
+    QSet<int> report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::RES, false));
 	for(int r=0; r<res_.count(); ++r)
 	{
-		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
+        QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
 		if (report_variant_indices.contains(r))
 		{
 			const ReportVariantConfiguration& rc = report_config_->get(VariantType::RES, r);
@@ -780,7 +815,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 		int col = GUIHelper::columnIndex(ui_.table, "genotype");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			QColor color = ui_.table->item(row, col)->backgroundColor();
+            QColor color = ui_.table->item(row, col)->background().color();
 			if (color!=red_ && color!=orange_ && color!=yellow_) hidden[row] = true;
 		}
 	}
@@ -789,7 +824,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 		int col = GUIHelper::columnIndex(ui_.table, "genotype");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-			if (ui_.table->item(row, col)->backgroundColor()!=red_) hidden[row] = true;
+            if (ui_.table->item(row, col)->background().color()!=red_) hidden[row] = true;
 		}
 	}
 
@@ -799,7 +834,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 		//determine hpo subtree of patient
 		PhenotypeList pheno_subtrees = GlobalServiceProvider::filterWidget()->phenotypes();
 		NGSD db;
-		foreach(const Phenotype& pheno, GlobalServiceProvider::filterWidget()->phenotypes())
+        for (const Phenotype& pheno : GlobalServiceProvider::filterWidget()->phenotypes())
 		{
 			pheno_subtrees << db.phenotypeChildTerms(db.phenotypeIdByAccession(pheno.accession()), true);
 		}
@@ -829,7 +864,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 	//RC filter
 	if (ui_.filter_rc->isChecked() && report_config_!=NULL)
 	{
-		QSet<int> report_variant_indices = report_config_->variantIndices(VariantType::RES, false).toSet();
+        QSet<int> report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::RES, false));
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			if (!report_variant_indices.contains(row)) hidden[row] = true;

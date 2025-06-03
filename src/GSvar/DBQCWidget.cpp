@@ -3,7 +3,6 @@
 #include "DBSelector.h"
 #include "GUIHelper.h"
 #include "ProcessedSampleSelector.h"
-
 #include <QDebug>
 
 DBQCWidget::DBQCWidget(QWidget *parent)
@@ -426,7 +425,7 @@ void DBQCWidget::updatePlot()
 				if (!datetime.isValid()) //date can be null
 				{
 					if (!all_dates_unset) continue; //skip data points without date
-					datetime = QDateTime(QDate(2000, 1, 1));
+                    datetime.setDate(QDate(2000, 1, 1));
 				}
 				value2 = datetime.toMSecsSinceEpoch();
 			}

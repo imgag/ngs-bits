@@ -285,6 +285,12 @@ QString LoginManager::ngsdPassword()
 	return ngsd_password;
 }
 
+bool LoginManager::hasGenlabInfo()
+{
+    return (!instance().genlab_host_.isEmpty() && !instance().genlab_name_.isEmpty()
+            && !instance().genlab_user_.isEmpty() && !instance().genlab_password_.isEmpty());
+}
+
 bool LoginManager::genlab_mssql()
 {
 	return instance().genlab_mssql_;
@@ -346,7 +352,7 @@ void LoginManager::checkRoleNotIn(QStringList roles)
 	{
 		//invert role selection for output
 		QStringList roles_db = db.getEnum("user", "user_role");
-		roles = roles_db.toSet().subtract(roles.toSet()).toList();
+        roles = LIST_TO_SET(roles_db).subtract(LIST_TO_SET(roles)).values();
 
 		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + NGSD().getUserRole(manager.userId()) + "'!");
 	}

@@ -10,14 +10,16 @@ class WorkerLowOrHighCoverage : public QRunnable
 {
 public:
 	struct Chunk
-	{
-		const BedFile& data;
+    {
+        const BedFile& data;
 		int start;
 		int end;
 		QString error; //In case of error
 		BedFile output;
 
-		void operator=(const Chunk& bed_chunk)
+        Chunk(const Chunk& bed_chunk) = default;
+
+        void operator=(const Chunk& bed_chunk)
 		{
 			if (&data != &bed_chunk.data)
 			{

@@ -40,6 +40,7 @@ public:
 	static QString ngsdUser();
 	static QString ngsdPassword();
 
+    static bool hasGenlabInfo();
 	static bool genlab_mssql();
 	static QString genlabHost();
 	static int genlabPort();

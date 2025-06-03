@@ -42,23 +42,23 @@ public:
 		QTextStream out(stdout);
 
 		// start timer
-		QTime timer;
+        QElapsedTimer timer;
 		timer.start();
 
 		// generate whole gene BED file and index
 		GeneSet gene_names = db.approvedGeneNames();
-		out << "Getting gene regions from NGSD for " << gene_names.count() << " genes ..." << endl;
+        out << "Getting gene regions from NGSD for " << gene_names.count() << " genes ..." << QT_ENDL;
 		BedFile gene_regions;
-		foreach (const QByteArray& gene_name, gene_names)
+        for (const QByteArray& gene_name : gene_names)
 		{
 			gene_regions.add(getGeneRegion(gene_name, db, "gene"));
 		}
 		if (!gene_regions.isSorted()) gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
-		out << "preprocessing done (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+        out << "preprocessing done (runtime: " << Helper::elapsedTime(timer) << ")" << QT_ENDL;
 		timer.restart();
 
-		out << "annotating CNV file..." << endl;
+        out << "annotating CNV file..." << QT_ENDL;
 
 		// copy comments
 		TSVFileStream cnv_input_file(getInfile("in"));
@@ -146,7 +146,7 @@ public:
 			output_buffer << tsv_line.join("\t");
 		}
 
-		out << "Writing output file..." << endl;
+        out << "Writing output file..." << QT_ENDL;
 		// open output file and write annotated CNVs to file
 		QSharedPointer<QFile> cnv_output_file = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream output_stream(cnv_output_file.data());
@@ -158,7 +158,7 @@ public:
 		output_stream.flush();
 		cnv_output_file->close();
 
-		out << "annotation done (runtime: " << Helper::elapsedTime(timer) << ")." << endl;
+        out << "annotation done (runtime: " << Helper::elapsedTime(timer) << ")." << QT_ENDL;
 	}
 private:
 	bool use_test_db_;

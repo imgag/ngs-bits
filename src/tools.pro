@@ -442,7 +442,7 @@ NGSDExportSV.depends = cppNGSD
 
 SUBDIRS += BedpeAnnotateCounts
 tools-TEST.depends += BedpeAnnotateCounts
-BedpeAnnotateCounts.depends = cppNGS
+BedpeAnnotateCounts.depends = cppNGSD
 
 SUBDIRS += BedpeSort
 tools-TEST.depends += BedpeSort
@@ -478,7 +478,7 @@ VcfAnnotateHexplorer.depends = cppNGS
 
 SUBDIRS += NGSDExportGff
 tools-TEST.depends += NGSDExportGff
-NGSDExportGff.depends = cppNGS
+NGSDExportGff.depends = cppNGSD
 
 SUBDIRS += NGSDAnnotateRNA
 tools-TEST.depends += NGSDAnnotateRNA
@@ -599,3 +599,19 @@ TsvDiff.depends = cppNGS
 SUBDIRS += QcToTsv
 tools-TEST.depends += QcToTsv
 QcToTsv.depends = cppNGS
+
+SUBDIRS += TrioMendelianErrors
+tools-TEST.depends += TrioMendelianErrors
+TrioMendelianErrors.depends = cppNGS
+
+SUBDIRS += MantaVcfFix
+tools-TEST.depends += MantaVcfFix
+MantaVcfFix.depends = cppNGS
+
+SUBDIRS += MantaFindDuplicates
+tools-TEST.depends += MantaFindDuplicates
+MantaFindDuplicates.depends = cppNGSD
+
+SUBDIRS += SnifflesVcfFix
+tools-TEST.depends += SnifflesVcfFix
+SnifflesVcfFix.depends = cppNGSD

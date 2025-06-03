@@ -55,8 +55,7 @@ public:
 				{
 					++c_reads_failed;
 					al.setIsUnmapped(true);
-					al.setIsSecondaryAlignment(true);
-					//QTextStream(stdout) << "REMOVED: " << al.name() << " " << reader.chromosome(al.chromosomeID()).str() << ":" << al.start() << "-" << al.end() << endl;
+					al.setIsSecondaryAlignment(true);					
 				}
 			}
 
@@ -65,9 +64,9 @@ public:
 
 		//statistics output
 		QTextStream out(stdout);
-		out << "overall reads: " << c_reads << endl;
-		out << "mapped reads : " << c_reads_mapped << " (" << QString::number(100.0*c_reads_mapped/c_reads, 'f', 2) << "%)" << endl;
-		out << "removed reads: " << c_reads_failed << " (" << QString::number(100.0*c_reads_failed/c_reads, 'f', 2) << "%)" << endl;
+        out << "overall reads: " << c_reads << QT_ENDL;
+        out << "mapped reads : " << c_reads_mapped << " (" << QString::number(100.0*c_reads_mapped/c_reads, 'f', 2) << "%)" << QT_ENDL;
+        out << "removed reads: " << c_reads_failed << " (" << QString::number(100.0*c_reads_failed/c_reads, 'f', 2) << "%)" << QT_ENDL;
 	}
 
 };

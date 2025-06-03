@@ -22,7 +22,7 @@ void PipelineSettings::loadSettings(QString ini_file)
         }
 
         // Key-value pair
-		QStringList parts = line.split("=", QString::SkipEmptyParts);
+        QStringList parts = line.split("=", QT_SKIP_EMPTY_PARTS);
 		if (parts.size() == 2)
         {
 			QString key = parts.at(0).trimmed();
@@ -31,7 +31,7 @@ void PipelineSettings::loadSettings(QString ini_file)
 			//handle double quotes around values
 			if(value.startsWith('"') && value.endsWith('"'))
 			{
-				value = value.mid(1, value.count()-2).trimmed();
+                value = value.mid(1, value.size()-2).trimmed();
 			}
 			if (value.startsWith("[path]"))
 			{
@@ -81,6 +81,12 @@ void PipelineSettings::loadSettings(QString ini_file)
 					QStringList tmp = value.split(',');
 					Helper::trim(tmp);
 					instance().queues_high_mem_ = tmp;
+				}
+				if (key=="queues_dragen")
+				{
+					QStringList tmp = value.split(',');
+					Helper::trim(tmp);
+					instance().queues_dragen_ = tmp;
 				}
 			}
 			else
@@ -143,6 +149,12 @@ QStringList PipelineSettings::queuesHighMemory()
 {
 	checkInitialized();
 	return instance().queues_high_mem_;
+}
+
+QStringList PipelineSettings::queuesDragen()
+{
+	checkInitialized();
+	return instance().queues_dragen_;
 }
 
 PipelineSettings& PipelineSettings::instance()

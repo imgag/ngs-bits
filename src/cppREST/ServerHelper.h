@@ -23,9 +23,7 @@ public:
 	static QString getAppName();
 	static int strToInt(const QString& in);
 	static bool canConvertToInt(const QString& in);
-	static QString generateUniqueStr();
-	static int getNumSettingsValue(const QString& key);
-	static QString getStringSettingsValue(const QString& key);
+	static QString generateUniqueStr();	
 	static QString getUrlWithoutParams(const QString& url);
 	static bool settingsValid(bool test_mode, bool throw_exception_if_invalid=false);
 	static QString getSessionBackupFileName();

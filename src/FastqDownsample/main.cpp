@@ -66,7 +66,7 @@ public:
 				os1.write(read1);
 				os2.write(read2);
 				++c_passed;
-				if (test) out << "KEPT PAIR: " << read1.header << endl;
+                if (test) out << "KEPT PAIR: " << read1.header << QT_ENDL;
 			}
 		}
 
@@ -81,8 +81,8 @@ public:
 		}
 
 		//write debug output
-		out << "PE reads read   : " << c_read_pairs << endl;
-		out << "PE reads written: " << c_passed << endl;
+        out << "PE reads read   : " << c_read_pairs << QT_ENDL;
+        out << "PE reads written: " << c_passed << QT_ENDL;
 	}
 };
 

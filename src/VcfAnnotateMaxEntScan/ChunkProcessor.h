@@ -23,7 +23,7 @@ signals:
 private:
 	int hashseq(const QByteArray& sequence);
 	int base_to_int(char base);
-	void get_seqs(const Variant& variant, int slice_start, int slice_end, int length, const Transcript& transcript, Sequence& ref_seq, Sequence& alt_seq);
+	bool get_seqs(const Variant& variant, int slice_start, int length, bool is_minus_strand, Sequence& ref_seq, Sequence& alt_seq);
 	float score5_consensus(const Sequence& sequence);
 	float score5_rest(const Sequence& sequence);
 	float score5(const Sequence& sequence);
@@ -40,7 +40,7 @@ private:
 	const MetaData& meta_;
 	const Parameters& params_;
 	FastaFileIndex reference_;
-	QRegExp acgt_regexp_;
+    QRegularExpression acgt_regexp_;
 
 	//constants
 	QHash<char,float> bgd_ = {

@@ -59,7 +59,7 @@ void SmallVariantSearchWidget::updateVariants()
 		{
 			QByteArray text = ui_.genes->text().toUtf8().trimmed().replace(' ', ',');
 			GeneSet genes = GeneSet::createFromText(text, ',');
-			foreach(QByteArray gene, genes)
+            for (QByteArray gene : genes)
 			{
 				//check gene name
 				NGSD db;
@@ -275,7 +275,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 			QStringList parts2 = part.split(":");
 			types.insert(parts2[2]);
 		}
-		QString type = types.toList().join(", ");
+        QString type = types.values().join(", ");
 		QString coding = parts_match.join(", ");
 
 		//add sample info

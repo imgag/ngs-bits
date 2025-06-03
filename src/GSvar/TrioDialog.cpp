@@ -100,7 +100,7 @@ void TrioDialog::updateStartButton()
 void TrioDialog::annotate_only_state_changed()
 {
 	// get all step check boxes
-	QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegExp("^step_"));
+    QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegularExpression("^step_"));
 
 	if(ui_.annotate_only->isChecked())
 	{
@@ -143,8 +143,7 @@ void TrioDialog::checkLongread()
 		QSet<bool> is_longread_sample;
 		foreach (const SampleDetails& sample, samples_)
 		{
-			qDebug() << db_.getProcessedSampleData(db_.processedSampleId(sample.name)).processing_system_type;
-			is_longread_sample.insert(db_.getProcessedSampleData(db_.processedSampleId(sample.name)).processing_system_type == "lrGS");
+			is_longread_sample.insert(db_.isLongRead(sample.name));
 		}
 		if (is_longread_sample.size() > 1)
 		{
