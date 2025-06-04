@@ -149,6 +149,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 			{
 				script = "analyze_dragen.php";
 				pipeline_args << "--log" << (folder+"analyze_dragen_"+timestamp+".log");
+				if(job.high_priority) pipeline_args << "-high_priority";
 
 				//switch to dragen queue
 				queues = PipelineSettings::queuesDragen();
