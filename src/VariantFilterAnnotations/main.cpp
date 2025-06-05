@@ -20,12 +20,14 @@ public:
 	virtual void setup()
 	{
 		setDescription("Filter a variant list in GSvar format based on variant annotations.");
-		addInfile("in", "Input variant list in GSvar format.", false);
-		addOutfile("out", "Output variant list in GSvar format.", false);
 		addInfile("filters", "Filter definition file.", false);
+		//optional
+		addInfile("in", "Input variant list in GSvar format.", true);
+		addOutfile("out", "Output variant list in GSvar format.", true);
 
 		setExtendedDescription(extendedDescription());
 
+		changeLog(2025, 6,  5, "Made input and output files optional.");
 		changeLog(2018, 7, 30, "Replaced command-line parameters by INI file and added many new filters.");
 		changeLog(2017, 6, 14, "Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.");
 		changeLog(2017, 6, 14, "Added sub-population allele frequency filter.");
