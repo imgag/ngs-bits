@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2025_05-16 (11.06.2025)
+
+- added support for new megSAP pipeline with separate DRAGEN and megSAP analysis
+
 ## 2025_03-80 (20.05.25)
 
 - RE search: added order date and patient identifier to result table
