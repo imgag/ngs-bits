@@ -149,6 +149,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 			{
 				script = "analyze_dragen.php";
 				pipeline_args << "--log" << (folder+"analyze_dragen_"+timestamp+".log");
+				if(job.high_priority) pipeline_args << "-high_priority";
 
 				//switch to dragen queue
 				queues = PipelineSettings::queuesDragen();
@@ -312,7 +313,9 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
 	QStringList qsub_args;
 	qsub_args << "-V";
-	qsub_args << "-pe" << "smp" << QString::number(threads);
+	if (debug_) QTextStream(stdout) << "megSAP pipeline:\t " << script << QT_ENDL;
+	if (script == "analyze_dragen.php") qsub_args << "-pe" << "smp" << "1";
+	else qsub_args << "-pe" << "smp" << QString::number(threads);
 	qsub_args << "-b" << "y";
 	qsub_args << "-wd" << project_folder;
 	qsub_args << "-m" << "n";
@@ -329,6 +332,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	qsub_args << pipeline_args;
 
 	QByteArrayList output;
+	if (debug_) QTextStream(stdout) << "SGE command:\t qsub " << qsub_args.join(" ") << QT_ENDL;
 	int exit_code = Helper::executeCommand("qsub", qsub_args, &output);
 	if (exit_code!=0)
 	{

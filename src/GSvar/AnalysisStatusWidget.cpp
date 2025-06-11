@@ -578,17 +578,19 @@ void AnalysisStatusWidget::updateDetails()
 	const AnalysisJob& job = jobs_[selected_rows[0]].job_data;
 
 	//properties
-	ui_.properties->setRowCount(5);
+	ui_.properties->setRowCount(6);
 	addItem(ui_.properties, 0, 0, "high_priority");
 	addItem(ui_.properties, 0, 1, job.high_priority ? "yes" : "no");
-	addItem(ui_.properties, 1, 0, "arguments");
-	addItem(ui_.properties, 1, 1, job.args);
-	addItem(ui_.properties, 2, 0, "SGE id");
-	addItem(ui_.properties, 2, 1, job.sge_id);
-	addItem(ui_.properties, 3, 0, "SGE queue");
-	addItem(ui_.properties, 3, 1, job.sge_queue);
-	addItem(ui_.properties, 4, 0, "run time");
-	addItem(ui_.properties, 4, 1, job.runTimeAsString());
+	addItem(ui_.properties, 1, 0, "dragen_analysis");
+	addItem(ui_.properties, 1, 1, job.use_dragen ? "yes" : "no");
+	addItem(ui_.properties, 2, 0, "arguments");
+	addItem(ui_.properties, 2, 1, job.args);
+	addItem(ui_.properties, 3, 0, "SGE id");
+	addItem(ui_.properties, 3, 1, job.sge_id);
+	addItem(ui_.properties, 4, 0, "SGE queue");
+	addItem(ui_.properties, 4, 1, job.sge_queue);
+	addItem(ui_.properties, 5, 0, "run time");
+	addItem(ui_.properties, 5, 1, job.runTimeAsString());
 	GUIHelper::resizeTableCellWidths(ui_.properties);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.properties);
 
