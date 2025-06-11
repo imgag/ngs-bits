@@ -475,7 +475,7 @@ public:
 			}
 		}
 
-		//check if CNV callset already exists > delete old callset
+		//check if RE callset already exists > delete old callset
 		QString last_callset_id = db.getValue("SELECT id FROM re_callset WHERE processed_sample_id=:0", true, ps_id).toString();
 		if(last_callset_id!="" && !force)
 		{

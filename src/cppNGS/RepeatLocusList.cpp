@@ -172,7 +172,6 @@ void RepeatLocusList::load(QString filename)
 
 		if (caller_==ReCallerType::STRAGLR)
 		{
-
 			//repeat ID
 			QByteArray repeat_id = re.info("LOCUS").trimmed();
 			rl.setName(repeat_id);
@@ -188,15 +187,40 @@ void RepeatLocusList::load(QString filename)
 			//filters
 			rl.setFilters(re.filters());
 
-			//genotype
-			QByteArrayList genotypes = re.formatValueFromSample("AC").trimmed().split('/');
-			rl.setAllele1(genotypes[0]);
-			if (genotypes.count()==2) rl.setAllele2(genotypes[1]);
-			else if (genotypes.count()>2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.formatValueFromSample("AC"));
+			if (caller_version_ == "V1.5.0" || caller_version_ == "V1.5.0")
+			{
+				//genotype
+				QByteArrayList genotypes = re.formatValueFromSample("AC").trimmed().split('/');
+				rl.setAllele1(genotypes[0]);
+				if (genotypes.count()==2) rl.setAllele2(genotypes[1]);
+				else if (genotypes.count()>2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.formatValueFromSample("AC"));
 
-			//genotype CI
-			QByteArray genotype_ci = re.formatValueFromSample("ACR").trimmed();
-			rl.setConfidenceIntervals(genotype_ci);
+				//genotype CI
+				QByteArray genotype_ci = re.formatValueFromSample("ACR").trimmed();
+				rl.setConfidenceIntervals(genotype_ci);
+			}
+			else if (caller_version_ == "V1.5.3")
+			{
+
+				//genotype
+				QByteArrayList genotypes = re.info("RUC").trimmed().split(',');
+				rl.setAllele1(genotypes[0]);
+				if (genotypes.count()==2) rl.setAllele2(genotypes[1]);
+				else if (genotypes.count()>2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+
+				//genotype CI
+				QByteArrayList genotype_ci = re.info("CIRUC").trimmed().split(',');
+				if (genotype_ci.contains(".")) rl.setFilters(QByteArrayList() << rl.filters() << "CallIsLowerBound");
+				QByteArray genotype_ci_str;
+				if (genotype_ci.size() == 2) genotype_ci_str = genotype_ci.at(0) + "-" + genotype_ci.at(1);
+				else if (genotype_ci.size() == 4) genotype_ci_str = genotype_ci.at(0) + "-" + genotype_ci.at(1) + "/" + genotype_ci.at(2) + "-" + genotype_ci.at(3);
+				else THROW(ArgumentException, "Invalid number of genotype CI in " + repeat_id +":" + re.info("CIRUC"));
+				rl.setConfidenceIntervals(genotype_ci_str);
+			}
+			else
+			{
+				THROW(FileParseException, "Unsupported straglr version '" + caller_version_ + "'!");
+			}
 
 			//local coverage
 			QByteArray coverage = re.formatValueFromSample("DP").trimmed();
