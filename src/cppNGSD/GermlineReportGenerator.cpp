@@ -166,7 +166,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
     stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << QT_ENDL;
 	for(int i=0; i<data_.filters.count(); ++i)
 	{
-        stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << data_.filters[i]->toText() << QT_ENDL;
+		if (data_.filters[i]->enabled()) stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << data_.filters[i]->toText() << QT_ENDL;
 	}
 	stream << "<br />";
 
