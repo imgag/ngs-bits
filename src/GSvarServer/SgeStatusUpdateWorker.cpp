@@ -141,6 +141,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 		else if (sys_type=="lrGS") //longread WGS
 		{
 			script = "analyze_longread.php";
+
 			pipeline_args << "--log" << (folder+"analyze_longread_"+timestamp+".log");
 		}
 		else //DNA
@@ -148,6 +149,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 			if (job.use_dragen)
 			{
 				script = "analyze_dragen.php";
+				pipeline_args << "-user" << job.history.last().user;
 				pipeline_args << "--log" << (folder+"analyze_dragen_"+timestamp+".log");
 				if(job.high_priority) pipeline_args << "-high_priority";
 
