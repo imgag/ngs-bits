@@ -9602,8 +9602,8 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	const QMap<QByteArray, ImprintingInfo>& imprinting = NGSHelper::imprintingGenes();
 	if (imprinting.contains(symbol))
 	{
-		output.imprinting_source_allele = imprinting[symbol].expressed_allele;
-		output.imprinting_status = imprinting[symbol].status;
+		output.imprinting_expressed_allele = imprinting[symbol].expressed_allele;
+		output.imprinting_confidence = imprinting[symbol].status;
 	}
 
 	//pseudogene info
