@@ -124,9 +124,9 @@ void GeneWidget::updateGUI()
     }
 
 	//add imprinting infos
-	if (!info.imprinting_status.isEmpty() || !info.imprinting_source_allele.isEmpty())
+	if (!info.imprinting_confidence.isEmpty() || !info.imprinting_expressed_allele.isEmpty())
 	{
-		ui_.imprinting->setText(info.imprinting_source_allele + " (" + info.imprinting_status + ")");
+		ui_.imprinting->setText("expressed allele: " + info.imprinting_expressed_allele + " (confidence: " + info.imprinting_confidence + ")");
 	}
 	else
 	{

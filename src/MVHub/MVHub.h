@@ -22,6 +22,8 @@ public slots:
 	void test_apiPseudo();
 	//load research consent data from meDIC
 	void loadConsentData();
+	//load data from GenLab
+	void loadGenLabData();
 	//export consent data
 	void exportConsentData();
 

@@ -24,6 +24,7 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.load_consent_data, SIGNAL(clicked()), this, SLOT(loadConsentData()));
+	connect(ui_.load_genlab_data, SIGNAL(clicked()), this, SLOT(loadGenLabData()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
 }
 
@@ -161,6 +162,7 @@ void MVHub::loadConsentData()
 	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
 	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
 	int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
+	if (ui_.table->columnWidth(c_consent)<300) ui_.table->setColumnWidth(c_consent, 300);
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -178,7 +180,44 @@ void MVHub::loadConsentData()
 
 
 		QTableWidgetItem* item = GUIHelper::createTableItem(consent);
+		item->setToolTip(consent);
 		ui_.table->setItem(r, c_consent, item);
+	}
+}
+
+void MVHub::loadGenLabData()
+{
+	clearOutput(sender());
+
+	GenLabDB genlab;
+	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+	int c_genlab = GUIHelper::columnIndex(ui_.table, "GenLab");
+	if (ui_.table->columnWidth(c_genlab)<300) ui_.table->setColumnWidth(c_genlab, 300);
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		QString ps = getString(r, c_ps);
+		if (ps.isEmpty()) continue;
+
+		ui_.output->appendPlainText("Getting GenLab data for "+ps+"...");
+		QStringList gl_data;
+
+		AccountingData accounting_data = genlab.accountingData(ps);
+		gl_data << "accounting_mode: " + accounting_data.accounting_mode;
+
+		//store GenLab data in MVH database
+		QString cm_id = getString(r, c_cm);
+		NGSD mvh_db(true, "mvh");
+		SqlQuery query = mvh_db.getQuery();
+		query.prepare("UPDATE case_data SET gl_data=:0 WHERE cm_id=:1");
+		query.bindValue(0, gl_data.join("\n"));
+		query.bindValue(1, cm_id);
+		query.exec();
+
+		QTableWidgetItem* item = GUIHelper::createTableItem(gl_data.join("\n"));
+		item->setToolTip(gl_data.join("\n"));
+		ui_.table->setItem(r, c_genlab, item);
 	}
 }
 
@@ -296,6 +335,7 @@ void MVHub::determineProcessedSamples()
 		}
 	}
 
+	//TODO replace by view v_ngs_Modellvorhaben
 	//check if PS are in the correct study in NGSD
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -374,14 +414,6 @@ QByteArray MVHub::parseJsonDataPseudo(QByteArray reply, QByteArray context)
 
 		//get base64-encoded string from results
 		QByteArray str_base64 = object["identifier"].toArray()[0].toObject()["value"].toString().toLatin1().trimmed();
-		//ui_.output->appendPlainText("base64-encoded reply: " + str_base64);
-
-		/*
-			QFile file2("T:\\users\\ahsturm1\\scripts\\2024_05_06_MVH\\encrypted_base64.txt");
-			file2.open(QIODevice::WriteOnly);
-			file2.write(str_base64);
-			file2.close();
-		*/
 
 		//use webserice to decrypt (not easy in C++)
 		QString url = Settings::string("pseudo_decrypt_webservice");
@@ -428,6 +460,7 @@ void MVHub::clearOutput(QObject* sender)
 
 QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 {
+	static QByteArray token = "";
 	try
 	{
 		//meDIC API expects SAP ID padded to 10 characters...
@@ -443,7 +476,6 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 		}
 
 		//get token if missing
-		static QByteArray token = "";
 		if (token.isEmpty())
 		{
 			ui_.output->appendPlainText("");
@@ -485,6 +517,9 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 	{
 		ui_.output->appendPlainText("ERROR:");
 		ui_.output->appendPlainText(e.message());
+
+		//clear token in case of error
+		token = "";
 	}
 
 	return "";
@@ -505,8 +540,10 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 		if (!object.contains("resourceType")) continue;
 		if (object["resourceType"].toString()!="Consent") continue;
 
-		QByteArray status = object["status"].toString().toLatin1();
-		QByteArray date = object["dateTime"].toString().left(10).toLatin1();
+		//remove consents before Modellvorhaben
+		QDate date = QDate::fromString(object["dateTime"].toString().left(10), Qt::ISODate);
+		if (date<QDate(2024, 7, 1)) continue;
+
 		QByteArrayList allowed;
 		QJsonArray provisions = object["provision"].toObject()["provision"].toArray();
 		for (int i=0; i<provisions.count(); ++i)
@@ -520,12 +557,13 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 			{
                 for (const QJsonValue& v2 : v.toObject()["coding"].toArray())
 				{
-					allowed << v2.toObject()["display"].toString().toLatin1();
+					allowed << v2.toObject()["code"].toString().toLatin1() + "/" +v2.toObject()["display"].toString().toLatin1();
 				}
 			}
 		}
 
-		output << (date+"/"+status+": "+allowed.join(", "));
+		QByteArray status = object["status"].toString().toLatin1();
+		output << (date.toString(Qt::ISODate).toLatin1()+"/"+status+": "+allowed.join(", "));
 	}
 	return output.join("\n");
 }
