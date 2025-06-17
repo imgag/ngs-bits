@@ -193,7 +193,6 @@ void MVHub::loadGenLabData()
 	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
 	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
 	int c_genlab = GUIHelper::columnIndex(ui_.table, "GenLab");
-	if (ui_.table->columnWidth(c_genlab)<300) ui_.table->setColumnWidth(c_genlab, 300);
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -206,19 +205,23 @@ void MVHub::loadGenLabData()
 		AccountingData accounting_data = genlab.accountingData(ps);
 		gl_data << "accounting_mode: " + accounting_data.accounting_mode;
 
+		QString gl_string = gl_data.join("\n");
+
 		//store GenLab data in MVH database
 		QString cm_id = getString(r, c_cm);
 		NGSD mvh_db(true, "mvh");
 		SqlQuery query = mvh_db.getQuery();
 		query.prepare("UPDATE case_data SET gl_data=:0 WHERE cm_id=:1");
-		query.bindValue(0, gl_data.join("\n"));
+		query.bindValue(0, gl_string);
 		query.bindValue(1, cm_id);
 		query.exec();
 
-		QTableWidgetItem* item = GUIHelper::createTableItem(gl_data.join("\n"));
-		item->setToolTip(gl_data.join("\n"));
+		QTableWidgetItem* item = GUIHelper::createTableItem(gl_string);
+		item->setToolTip(gl_string);
 		ui_.table->setItem(r, c_genlab, item);
 	}
+
+	ui_.table->resizeColumnToContents(c_genlab);
 }
 
 void MVHub::exportConsentData()
@@ -335,7 +338,7 @@ void MVHub::determineProcessedSamples()
 		}
 	}
 
-	//TODO replace by view v_ngs_Modellvorhaben
+	//TODO replace by view v_ngs_modellvorhaben
 	//check if PS are in the correct study in NGSD
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{

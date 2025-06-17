@@ -619,7 +619,7 @@ AccountingData GenLabDB::accountingData(QString ps_name)
 	for (QString name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT KASSENNAME, ABRECHNUNGSMODUS FROM v_ngs_Abrechnung WHERE LABORNUMMER='" + name + "'");
+		query.exec("SELECT KASSENNAME, ABRECHNUNGSMODUS FROM v_ngs_abrechnung WHERE LABORNUMMER='" + name + "'");
 		while (query.next())
 		{
 			QString company = query.value("KASSENNAME").toString().trimmed();
