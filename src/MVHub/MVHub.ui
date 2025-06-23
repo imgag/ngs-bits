@@ -90,6 +90,38 @@
        <number>3</number>
       </property>
       <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>network:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="f_network">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>0</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Netzwerk Seltene Erkrankungen</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Deutsches Netzwerk für Personalisierte Medizin</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="label">
         <property name="text">
          <string>text filter:</string>
@@ -106,7 +138,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>200</width>
+          <width>250</width>
           <height>16777215</height>
          </size>
         </property>
@@ -171,6 +203,11 @@
        <column>
         <property name="text">
          <string>Netzwerk</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Netzwerk ID</string>
         </property>
        </column>
        <column>

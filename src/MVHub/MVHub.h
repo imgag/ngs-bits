@@ -33,10 +33,12 @@ private:
 	QHash<QString, QStringList> cmid2messages_;
 
 	//clear output panel on bottom
-	void clearOutput(QObject* sender);
+	void addOutputHeader(QString section, bool clear=true);
 
-	//load data Modellvorhaben RedCap and copy it to MVH database
+	//load data Modellvorhaben case management RedCap and copy it to MVH database
 	void loadDataFromCM();
+	//load data Modellvorhaben SE RedCap and copy it to MVH database
+	void loadDataFromSE();
 	//determine processed samples for cases from NGSD
 	void determineProcessedSamples();
 	//show messages
