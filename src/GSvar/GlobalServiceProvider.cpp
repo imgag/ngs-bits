@@ -170,8 +170,8 @@ const BedFile& GlobalServiceProvider::geneToRegions(QByteArray gene, NGSD& db)
 	static QHash<QByteArray, BedFile> cache_;
 	gene = gene.trimmed().toUpper();
 	if (!cache_.contains(gene))
-	{
-		BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+	{        
+        BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
 		tmp.clearAnnotations();
 		tmp.extend(5000);
 		tmp.merge();

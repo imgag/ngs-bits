@@ -6428,6 +6428,33 @@ int NGSD::geneId(const QByteArray& gene)
 	return -1;
 }
 
+void NGSD::cacheGenes(GeneSet genes)
+{
+	QHash<QByteArray, int>& gene2id = getCache().gene2id;
+	QList<QString> symbols;
+	for (const QByteArray& gene : genes)
+	{
+		//approved
+		if (approvedGeneNames().contains(gene))
+		{
+			symbols.append("'"+gene+"'");
+		}
+	}
+	Log::error(QString::number(symbols.size()));
+	SqlQuery gq = getQuery();
+	gq.prepare("SELECT symbol, id FROM gene WHERE symbol IN (" + symbols.join(", ") + ")");
+	gq.exec();
+
+	while(gq.next())
+	{
+		gene2id.insert(gq.value(0).toString().toLocal8Bit(), gq.value(1).toInt());
+
+	}
+
+
+
+}
+
 int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, GenomeBuild build)
 {
 	//Ensembl / CCDS
@@ -6795,11 +6822,24 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 	GeneSet genes;
 	SqlQuery pid2genes = getQuery();
 	pid2genes.prepare("SELECT gene FROM hpo_genes WHERE hpo_term_id=:0");
-	while (!pheno_ids.isEmpty())
-	{
-		int id = pheno_ids.takeLast();
-		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
-		QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
+
+	// while (!pheno_ids.isEmpty())
+	// {
+		QList<QString> id_list;
+		// int id = pheno_ids.takeLast();
+
+		foreach (int id_item, pheno_ids)
+		{
+			if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id_item)) continue;
+			id_list.append("'" + QString::number(id_item) + "'");
+		}
+		QString in_clause = "IN (" + id_list.join(", ") + ")";
+
+		// QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
+
+		QString query = "SELECT gene FROM hpo_genes WHERE hpo_term_id " + in_clause;
+
+
 
 		if (allowed_sources.size() > 0 && allowed_sources.count() < Phenotype::allSourceValues().count())
 		{
@@ -6825,13 +6865,15 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 		}
 		//pid2genes.bindValue(0, id);
 		pid2genes.exec(query);
+		Log::error(query);
 
 		while(pid2genes.next())
-		{
+		{			
 			QByteArray gene = pid2genes.value(0).toByteArray();
+			// Log::error(gene);
 			genes.insert(geneToApproved(gene, true));
 		}
-	}
+	// }
 	return genes;
 }
 

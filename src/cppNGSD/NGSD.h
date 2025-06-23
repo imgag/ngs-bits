@@ -758,6 +758,8 @@ public:
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if no approved gene name could be found. Checks approved symbols, previous symbols and synonyms. Uses internal cache to speed up repeated queries of the same gene name.
 	int geneId(const QByteArray& gene);
+
+    void cacheGenes(GeneSet genes);
 	///Returns the gene ID of the transcript, or -1 if no gene could be determined.
 	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
 	///Returns the gene symbol for a gene ID.

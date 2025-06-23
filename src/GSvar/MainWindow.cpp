@@ -5596,7 +5596,8 @@ void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 	timer.start();
 
 	//apply filters
-	applyFilters(false);
+	// applyFilters(false);
+	applyFilters(true);
 	int passing_variants = filter_result_.countPassing();
 	QString status = QString::number(passing_variants) + " of " + QString::number(variants_.count()) + " variants passed filters.";
 	int max_variants = 10000;
@@ -6721,10 +6722,13 @@ void MainWindow::applyFilters(bool debug_time)
 					pheno_genes = pheno_genes.intersect(genes);
 				}
 				++i;
+				Log::error(QString::number(i));
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
+
+			NGSD().cacheGenes(pheno_genes);
             for (const QByteArray& gene : pheno_genes)
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));
