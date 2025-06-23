@@ -834,7 +834,7 @@ void MVHub::loadDataFromSE()
 				QString sap_id = psn2sap[psn];
 
 				query.bindValue(0, psn);
-				query.bindValue(1, psn2items[psn].join("\n"));
+				query.bindValue(1, "<items>\n"+psn2items[psn].join("\n")+"\n</items>");
 				query.bindValue(2, mvh_id);
 				query.exec();
 			}
