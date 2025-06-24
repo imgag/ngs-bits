@@ -63,6 +63,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="check_xml">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check XML fields in MVH cases are valid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>check_xml</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -262,7 +272,6 @@
        </column>
       </widget>
       <widget class="QPlainTextEdit" name="output"/>
-      <widget class="QLineEdit" name="lineEdit"/>
      </widget>
     </item>
    </layout>

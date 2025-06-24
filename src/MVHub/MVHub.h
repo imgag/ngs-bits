@@ -24,8 +24,10 @@ public slots:
 	void loadConsentData();
 	//load data from GenLab
 	void loadGenLabData();
-	//export consent data
+	//export consent data for a sample list
 	void exportConsentData();
+	//check XML data in MVH database
+	void checkXML();
 
 private:
 	Ui::MVHub ui_;
@@ -46,6 +48,7 @@ private:
 
 	//returns consent status of patient. Empty string if not available.
 	QString getConsent(QString sap_id, bool return_parsed_data = true, bool debug=false);
+	//parse JSON and convert it to XML
 	QByteArray parseConsentJson(QByteArray json_text);
 
 

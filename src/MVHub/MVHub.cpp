@@ -27,6 +27,7 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.load_consent_data, SIGNAL(clicked()), this, SLOT(loadConsentData()));
 	connect(ui_.load_genlab_data, SIGNAL(clicked()), this, SLOT(loadGenLabData()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
+	connect(ui_.check_xml, SIGNAL(clicked()), this, SLOT(checkXML()));
 }
 
 void MVHub::delayedInitialization()
@@ -195,7 +196,7 @@ void MVHub::loadConsentData()
 		query.exec();
 
 
-		QTableWidgetItem* item = GUIHelper::createTableItem(consent);
+		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
 		item->setToolTip(consent);
 		ui_.table->setItem(r, c_consent, item);
 	}
@@ -216,10 +217,11 @@ void MVHub::loadGenLabData()
 		if (ps.isEmpty()) continue;
 
 		ui_.output->appendPlainText("Getting GenLab data for "+ps+"...");
-		QStringList gl_data;
 
-		AccountingData accounting_data = genlab.accountingData(ps);
-		gl_data << "accounting_mode: " + accounting_data.accounting_mode;
+		QStringList gl_data;
+		gl_data << "<item>";
+		gl_data << "  <accounting_mode>" + genlab.accountingData(ps).accounting_mode + "</accounting_mode>";
+		gl_data << "</item>";
 
 		QString gl_string = gl_data.join("\n");
 
@@ -232,7 +234,7 @@ void MVHub::loadGenLabData()
 		query.bindValue(1, cm_id);
 		query.exec();
 
-		QTableWidgetItem* item = GUIHelper::createTableItem(gl_string);
+		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
 		item->setToolTip(gl_string);
 		ui_.table->setItem(r, c_genlab, item);
 	}
@@ -265,6 +267,44 @@ void MVHub::exportConsentData()
 	if(filename2.isEmpty()) return;
 	auto file_handle = Helper::openFileForWriting(filename2);
 	Helper::storeTextFile(file_handle, output);
+}
+
+void MVHub::checkXML()
+{
+	addOutputHeader("checking XML data");
+
+	//init
+	NGSD mvh_db(true, "mvh");
+	QString tmp_file = Helper::tempFileName(".xml");
+
+	//iterate over all rows
+	SqlQuery query = mvh_db.getQuery();
+	query.exec("SELECT id, cm_data, se_data, rc_data, gl_data FROM case_data");
+	while(query.next())
+	{
+		QString id = query.value("id").toString();
+
+		//iterate over all fields
+		foreach(QString field, QStringList() << "cm_data" << "se_data" << "rc_data" << "gl_data") //TODO
+		{
+			QString data = query.value(field).toString().trimmed();
+			if (data.isEmpty()) continue;
+
+			try
+			{
+				Helper::storeTextFile(tmp_file, QStringList() << "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>" << data.split("\n"));
+				QString error = XmlHelper::isValidXml(tmp_file);
+				if (!error.isEmpty())
+				{
+					ui_.output->appendPlainText(id +"\t" + field + "\t" + error);
+				}
+			}
+			catch (Exception& e)
+			{
+				ui_.output->appendPlainText(id +"\t" + field + "\t" + e.message());
+			}
+		}
+	}
 }
 
 void MVHub::determineProcessedSamples()
@@ -576,14 +616,28 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 			{
                 for (const QJsonValue& v2 : v.toObject()["coding"].toArray())
 				{
-					allowed << v2.toObject()["code"].toString().toLatin1() + "/" +v2.toObject()["display"].toString().toLatin1();
+					allowed << "    <permit>";
+					allowed << "      <code>"+v2.toObject()["code"].toString().toLatin1()+"</code>";
+					allowed << "      <display>"+v2.toObject()["display"].toString().toLatin1()+"</display>";
+					allowed << "    </permit>";
 				}
 			}
 		}
 
 		QByteArray status = object["status"].toString().toLatin1();
-		output << (date.toString(Qt::ISODate).toLatin1()+"/"+status+": "+allowed.join(", "));
+		output << "  <consent>";
+		output << "    <date>"+date.toString(Qt::ISODate).toLatin1()+"</date>";
+		output << "    <status>"+status+"</status>";
+		output << allowed;
+		output << "  </consent>";
 	}
+
+	if (!output.isEmpty())
+	{
+		output.prepend("<consents>");
+		output.append("</consents>");
+	}
+
 	return output.join("\n");
 }
 
@@ -748,7 +802,10 @@ void MVHub::loadDataFromCM()
 			}
 
 			//insert data
-			QStringList cm_data = cmid2data[cm_id];
+			QStringList cm_data;
+			cm_data << "<items>";
+			cm_data << cmid2data[cm_id];
+			cm_data << "</items>";
 			query.bindValue(0, cm_id);
 			query.bindValue(1, cm_data.join("\n"));
 			query.bindValue(2, sap_id);
