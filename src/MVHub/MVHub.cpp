@@ -875,6 +875,7 @@ void MVHub::loadDataFromSE()
 				ui_.output->appendPlainText("Skipping sample with SE ID '" + psn_id + "': no SAP ID available!");
 				continue;
 			}
+			sap2psn[sap_id] = psn_id;
 
 			NGSD mvh_db(true, "mvh");
 			QString mvh_id = mvh_db.getValue("SELECT id FROM case_data WHERE sap_id='"+sap_id+"'").toString();
@@ -886,17 +887,10 @@ void MVHub::loadDataFromSE()
 
 			SqlQuery query = mvh_db.getQuery();
 			query.prepare("UPDATE case_data SET se_id=:0, se_data=:1 WHERE id=:2");
-			foreach(QString psn, psn2sap.keys())
-			{
-				QString sap_id = psn2sap[psn];
-
-				query.bindValue(0, psn);
-				query.bindValue(1, "<items>\n"+psn2items[psn].join("\n")+"\n</items>");
-				query.bindValue(2, mvh_id);
-				query.exec();
-			}
-
-			sap2psn[sap_id] = psn_id;
+			query.bindValue(0, psn_id);
+			query.bindValue(1, "<items>\n"+psn2items[psn_id].join("\n")+"\n</items>");
+			query.bindValue(2, mvh_id);
+			query.exec();
 		}
 
 
