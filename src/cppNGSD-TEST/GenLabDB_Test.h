@@ -174,5 +174,17 @@ private slots:
 		S_EQUAL(db.tissue("DXtest1"), ""); //is 'DNA' but this cannot be converted to tissue
 		S_EQUAL(db.tissue("DXtest2"), ""); //not set
 	}
+
+
+	void accountingData()
+	{
+		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+
+		GenLabDB db;
+		S_EQUAL(db.accountingData("DXtest1").insurance_company, "");
+		S_EQUAL(db.accountingData("DXtest1").accounting_mode, "");
+		S_EQUAL(db.accountingData("DXtest2").insurance_company, "");
+		S_EQUAL(db.accountingData("DXtest2").accounting_mode, "");
+	}
 };
 

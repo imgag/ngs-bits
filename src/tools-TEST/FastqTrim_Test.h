@@ -23,10 +23,22 @@ private slots:
 		COMPARE_GZ_FILES("out/FastqTrim_out3.fastq.gz", TESTDATA("data_out/FastqTrim_out3.fastq.gz"));
 	}
 
+	void max_len()
+	{
+		EXECUTE("FastqTrim", "-in " + TESTDATA("data_in/FastqTrim_in1.fastq.gz") + " -out out/FastqTrim_out4.fastq.gz -end 5 -max_len 80");
+		COMPARE_GZ_FILES("out/FastqTrim_out4.fastq.gz", TESTDATA("data_out/FastqTrim_out4.fastq.gz"));
+	}
+
+	void all()
+	{
+		EXECUTE("FastqTrim", "-in " + TESTDATA("data_in/FastqTrim_in1.fastq.gz") + " -out out/FastqTrim_out5.fastq.gz -len 50 -start 5 -end 5 -max_len 80");
+		COMPARE_GZ_FILES("out/FastqTrim_out5.fastq.gz", TESTDATA("data_out/FastqTrim_out5.fastq.gz"));
+	}
+
 	void long_read()
 	{
-		EXECUTE("FastqTrim", "-long_read -in " + TESTDATA("data_in/FastqTrim_in2.fastq.gz") + " -out out/FastqTrim_out4.fastq.gz -len 1000");
-		COMPARE_GZ_FILES("out/FastqTrim_out4.fastq.gz", TESTDATA("data_out/FastqTrim_out4.fastq.gz"));
+		EXECUTE("FastqTrim", "-long_read -in " + TESTDATA("data_in/FastqTrim_in2.fastq.gz") + " -out out/FastqTrim_out6.fastq.gz -len 1000");
+		COMPARE_GZ_FILES("out/FastqTrim_out6.fastq.gz", TESTDATA("data_out/FastqTrim_out6.fastq.gz"));
 	}
 
 };

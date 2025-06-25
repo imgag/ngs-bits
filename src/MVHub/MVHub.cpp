@@ -23,13 +23,17 @@ MVHub::MVHub(QWidget *parent)
 	setWindowTitle(QCoreApplication::applicationName());
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.load_consent_data, SIGNAL(clicked()), this, SLOT(loadConsentData()));
+	connect(ui_.load_genlab_data, SIGNAL(clicked()), this, SLOT(loadGenLabData()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
+	connect(ui_.check_xml, SIGNAL(clicked()), this, SLOT(checkXML()));
 }
 
 void MVHub::delayedInitialization()
 {
 	loadDataFromCM();
+	loadDataFromSE();
 
 	determineProcessedSamples();
 
@@ -124,6 +128,20 @@ void MVHub::updateTableFilters()
 	const int cols = ui_.table->columnCount();
 	QBitArray visible(rows, true);
 
+
+	//apply network filter
+	QString f_network = ui_.f_network->currentText();
+	if (!f_network.isEmpty())
+	{
+		int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+		for (int r=0; r<rows; ++r)
+		{
+			if (!visible[r]) continue;
+
+			visible[r] = getString(r, c_network)==f_network;
+		}
+	}
+
 	//apply text filter
 	QString f_text = ui_.f_text->text().trimmed();
 	if (!f_text.isEmpty())
@@ -156,11 +174,12 @@ void MVHub::updateTableFilters()
 
 void MVHub::loadConsentData()
 {
-	clearOutput(sender());
+	addOutputHeader("loading consent data");
 
 	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
 	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
 	int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
+	if (ui_.table->columnWidth(c_consent)<300) ui_.table->setColumnWidth(c_consent, 300);
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -177,9 +196,50 @@ void MVHub::loadConsentData()
 		query.exec();
 
 
-		QTableWidgetItem* item = GUIHelper::createTableItem(consent);
+		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
+		item->setToolTip(consent);
 		ui_.table->setItem(r, c_consent, item);
 	}
+}
+
+void MVHub::loadGenLabData()
+{
+	addOutputHeader("loading GenLab data");
+
+	GenLabDB genlab;
+	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+	int c_genlab = GUIHelper::columnIndex(ui_.table, "GenLab");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		QString ps = getString(r, c_ps);
+		if (ps.isEmpty()) continue;
+
+		ui_.output->appendPlainText("Getting GenLab data for "+ps+"...");
+
+		QStringList gl_data;
+		gl_data << "<item>";
+		gl_data << "  <accounting_mode>" + genlab.accountingData(ps).accounting_mode + "</accounting_mode>";
+		gl_data << "</item>";
+
+		QString gl_string = gl_data.join("\n");
+
+		//store GenLab data in MVH database
+		QString cm_id = getString(r, c_cm);
+		NGSD mvh_db(true, "mvh");
+		SqlQuery query = mvh_db.getQuery();
+		query.prepare("UPDATE case_data SET gl_data=:0 WHERE cm_id=:1");
+		query.bindValue(0, gl_string);
+		query.bindValue(1, cm_id);
+		query.exec();
+
+		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
+		item->setToolTip(gl_string);
+		ui_.table->setItem(r, c_genlab, item);
+	}
+
+	ui_.table->resizeColumnToContents(c_genlab);
 }
 
 void MVHub::exportConsentData()
@@ -196,6 +256,7 @@ void MVHub::exportConsentData()
 		QStringList parts = line.split('\t');
 		QString sap_id = parts[0];
 
+		output << "";
 		output << ("###" + sap_id + "###");
 		output << getConsent(sap_id, false);
 		output << "";
@@ -206,6 +267,44 @@ void MVHub::exportConsentData()
 	if(filename2.isEmpty()) return;
 	auto file_handle = Helper::openFileForWriting(filename2);
 	Helper::storeTextFile(file_handle, output);
+}
+
+void MVHub::checkXML()
+{
+	addOutputHeader("checking XML data");
+
+	//init
+	NGSD mvh_db(true, "mvh");
+	QString tmp_file = Helper::tempFileName(".xml");
+
+	//iterate over all rows
+	SqlQuery query = mvh_db.getQuery();
+	query.exec("SELECT id, cm_data, se_data, rc_data, gl_data FROM case_data");
+	while(query.next())
+	{
+		QString id = query.value("id").toString();
+
+		//iterate over all fields
+		foreach(QString field, QStringList() << "cm_data" << "se_data" << "rc_data" << "gl_data") //TODO
+		{
+			QString data = query.value(field).toString().trimmed();
+			if (data.isEmpty()) continue;
+
+			try
+			{
+				Helper::storeTextFile(tmp_file, QStringList() << "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>" << data.split("\n"));
+				QString error = XmlHelper::isValidXml(tmp_file);
+				if (!error.isEmpty())
+				{
+					ui_.output->appendPlainText(id +"\t" + field + "\t" + error);
+				}
+			}
+			catch (Exception& e)
+			{
+				ui_.output->appendPlainText(id +"\t" + field + "\t" + e.message());
+			}
+		}
+	}
 }
 
 void MVHub::determineProcessedSamples()
@@ -296,6 +395,7 @@ void MVHub::determineProcessedSamples()
 		}
 	}
 
+	//TODO replace by view v_ngs_modellvorhaben
 	//check if PS are in the correct study in NGSD
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -374,14 +474,6 @@ QByteArray MVHub::parseJsonDataPseudo(QByteArray reply, QByteArray context)
 
 		//get base64-encoded string from results
 		QByteArray str_base64 = object["identifier"].toArray()[0].toObject()["value"].toString().toLatin1().trimmed();
-		//ui_.output->appendPlainText("base64-encoded reply: " + str_base64);
-
-		/*
-			QFile file2("T:\\users\\ahsturm1\\scripts\\2024_05_06_MVH\\encrypted_base64.txt");
-			file2.open(QIODevice::WriteOnly);
-			file2.write(str_base64);
-			file2.close();
-		*/
 
 		//use webserice to decrypt (not easy in C++)
 		QString url = Settings::string("pseudo_decrypt_webservice");
@@ -414,20 +506,20 @@ QString MVHub::getString(int r, int c, bool trim)
 	return output;
 }
 
-void MVHub::clearOutput(QObject* sender)
+void MVHub::addOutputHeader(QString section, bool clear)
 {
-	ui_.output->clear();
+	if (clear) ui_.output->clear();
 
-	QPushButton* button = qobject_cast<QPushButton*>(sender);
-	if (button!=nullptr)
+	if (!section.isEmpty())
 	{
-		ui_.output->appendPlainText("### " + button->text() + " ###");
+		ui_.output->appendPlainText("### " + section + " ###");
 		ui_.output->appendPlainText("");
 	}
 }
 
 QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 {
+	static QByteArray token = "";
 	try
 	{
 		//meDIC API expects SAP ID padded to 10 characters...
@@ -443,7 +535,6 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 		}
 
 		//get token if missing
-		static QByteArray token = "";
 		if (token.isEmpty())
 		{
 			ui_.output->appendPlainText("");
@@ -485,6 +576,9 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 	{
 		ui_.output->appendPlainText("ERROR:");
 		ui_.output->appendPlainText(e.message());
+
+		//clear token in case of error
+		token = "";
 	}
 
 	return "";
@@ -505,8 +599,10 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 		if (!object.contains("resourceType")) continue;
 		if (object["resourceType"].toString()!="Consent") continue;
 
-		QByteArray status = object["status"].toString().toLatin1();
-		QByteArray date = object["dateTime"].toString().left(10).toLatin1();
+		//remove consents before Modellvorhaben
+		QDate date = QDate::fromString(object["dateTime"].toString().left(10), Qt::ISODate);
+		if (date<QDate(2024, 7, 1)) continue;
+
 		QByteArrayList allowed;
 		QJsonArray provisions = object["provision"].toObject()["provision"].toArray();
 		for (int i=0; i<provisions.count(); ++i)
@@ -520,13 +616,28 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 			{
                 for (const QJsonValue& v2 : v.toObject()["coding"].toArray())
 				{
-					allowed << v2.toObject()["display"].toString().toLatin1();
+					allowed << "    <permit>";
+					allowed << "      <code>"+v2.toObject()["code"].toString().toLatin1()+"</code>";
+					allowed << "      <display>"+v2.toObject()["display"].toString().toLatin1()+"</display>";
+					allowed << "    </permit>";
 				}
 			}
 		}
 
-		output << (date+"/"+status+": "+allowed.join(", "));
+		QByteArray status = object["status"].toString().toLatin1();
+		output << "  <consent>";
+		output << "    <date>"+date.toString(Qt::ISODate).toLatin1()+"</date>";
+		output << "    <status>"+status+"</status>";
+		output << allowed;
+		output << "  </consent>";
 	}
+
+	if (!output.isEmpty())
+	{
+		output.prepend("<consents>");
+		output.append("</consents>");
+	}
+
 	return output.join("\n");
 }
 
@@ -534,7 +645,7 @@ void MVHub::test_apiPseudo() //TODO
 {
 	try
 	{
-		clearOutput(sender());
+		addOutputHeader(sender()->objectName());
 
 		//test or production
 		bool test_server = true;
@@ -616,7 +727,7 @@ void MVHub::loadDataFromCM()
 {
 	try
 	{
-		clearOutput(sender());
+		addOutputHeader("loading case-management data from RedCap", false);
 
 		QHash<QString, QStringList> cmid2data;
 		QHash<QString, QString> cmid2sapid;
@@ -664,11 +775,11 @@ void MVHub::loadDataFromCM()
 				if (tag=="record_id") ui_.table->setItem(r, 0, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="pat_id") ui_.table->setItem(r, 1, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="network_title") ui_.table->setItem(r, 2, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="seq_mode") ui_.table->setItem(r, 3, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="sample_arrival_date") ui_.table->setItem(r, 4, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="seq_state") ui_.table->setItem(r, 5, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="gen_finding_date") ui_.table->setItem(r, 6, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 6, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="seq_mode") ui_.table->setItem(r, 4, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="sample_arrival_date") ui_.table->setItem(r, 5, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="seq_state") ui_.table->setItem(r, 6, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="gen_finding_date") ui_.table->setItem(r, 7, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 8, GUIHelper::createTableItem(e.text().trimmed()));
 
 				n = n.nextSibling();
 			}
@@ -681,7 +792,20 @@ void MVHub::loadDataFromCM()
 		foreach(QString cm_id, cmid2sapid.keys())
 		{
 			QString sap_id = cmid2sapid[cm_id];
-			QStringList cm_data = cmid2data[cm_id];
+
+			//check that SAP ID is not used by other sample
+			QString mvh_case_id = mvh_db.getValue("SELECT cm_id FROM case_data WHERE sap_id='"+sap_id+"'").toString();
+			if (!mvh_case_id.isEmpty() && mvh_case_id!=cm_id)
+			{
+				ui_.output->appendPlainText("Skipping sample with CM ID '" + cm_id + "': SAP ID '"+sap_id+"' already used by sample with CM ID '" + mvh_case_id + "'!");
+				continue;
+			}
+
+			//insert data
+			QStringList cm_data;
+			cm_data << "<items>";
+			cm_data << cmid2data[cm_id];
+			cm_data << "</items>";
 			query.bindValue(0, cm_id);
 			query.bindValue(1, cm_data.join("\n"));
 			query.bindValue(2, sap_id);
@@ -695,6 +819,100 @@ void MVHub::loadDataFromCM()
 	}
 }
 
+void MVHub::loadDataFromSE()
+{	try
+	{
+		addOutputHeader("loading SE data from RedCap", false);
+
+		QTextStream stream(stdout);
+		QHash<QString, QString> sap2psn;
+		QHash<QString, QString> psn2sap;
+		QHash<QString, QStringList> psn2items;
+
+		//get data from RedCap API
+		HttpHeaders headers;
+		headers.insert("Content-Type", "application/x-www-form-urlencoded");
+		QByteArray data = "token="+Settings::string("redcap_se_token").toLatin1()+"&content=record&rawOrLabel=label";
+		HttpHandler handler(true);
+		QByteArrayList reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).split('\n');
+
+		//parse items
+		QDomDocument doc;
+		QString error_msg;
+		int error_line, error_column;
+		if(!doc.setContent(reply.join("\n"), &error_msg, &error_line, &error_column))
+		{
+			THROW(FileParseException, "XML invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+		}
+		QDomElement root = doc.documentElement();
+		QDomNode n = root.firstChild();
+		while(!n.isNull())
+		{
+			QDomElement e = n.toElement(); // try to convert the node to an element.
+			if(e.isNull()) continue;
+
+			QString psn_id = e.namedItem("psn").toElement().text().trimmed();
+			QString sap_id = e.namedItem("pat_id").toElement().text().trimmed();
+
+			if (!sap_id.isEmpty()) psn2sap[psn_id] = sap_id;
+
+			QString item;
+			QTextStream stream(&item);
+			e.save(stream, 0);
+			stream.flush();
+			psn2items[psn_id] << item;
+
+			n = n.nextSibling();
+		}
+
+		//store data in MVH database
+		for(auto it=psn2sap.begin(); it!=psn2sap.end(); ++it)
+		{
+			QString psn_id = it.key();
+			QString sap_id = it.value();
+			if (sap_id.isEmpty())
+			{
+				ui_.output->appendPlainText("Skipping sample with SE ID '" + psn_id + "': no SAP ID available!");
+				continue;
+			}
+			sap2psn[sap_id] = psn_id;
+
+			NGSD mvh_db(true, "mvh");
+			QString mvh_id = mvh_db.getValue("SELECT id FROM case_data WHERE sap_id='"+sap_id+"'").toString();
+			if (mvh_id.isEmpty())
+			{
+				ui_.output->appendPlainText("Skipping sample with SE ID '" + psn_id + "': no entry in MVH case_data table for SAP id '"+sap_id+"'!");
+				continue;
+			}
+
+			SqlQuery query = mvh_db.getQuery();
+			query.prepare("UPDATE case_data SET se_id=:0, se_data=:1 WHERE id=:2");
+			query.bindValue(0, psn_id);
+			query.bindValue(1, "<items>\n"+psn2items[psn_id].join("\n")+"\n</items>");
+			query.bindValue(2, mvh_id);
+			query.exec();
+		}
+
+
+		//update main table
+		int c_sap_id = GUIHelper::columnIndex(ui_.table, "SAP ID");
+		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
+		for(int r=0; r<ui_.table->rowCount(); ++r)
+		{
+			QString sap_id = getString(r, c_sap_id);
+			if (sap_id=="") continue;
+
+			ui_.table->setItem(r, c_network_id, GUIHelper::createTableItem(sap2psn[sap_id]));
+		}
+	}
+	catch (Exception& e)
+	{
+		ui_.output->appendPlainText("ERROR:");
+		ui_.output->appendPlainText(e.message());
+	}
+}
+
 //TODO:
+//- store variant data in SE RedCap database
 //- trigger GRZ/KDK upload (Bericht geschrieben und Kündigung der Teilnahmeerklärung nicht vorhanden)
 

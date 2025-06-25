@@ -354,10 +354,10 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//gnomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
 
-	//status of imprinting information
-	QString imprinting_status;
-	//sources allele of imprinted gene
-	QString imprinting_source_allele;
+	//expressed allele
+	QString imprinting_expressed_allele;
+	//confidence of imprinting information
+	QString imprinting_confidence;
 
 	//list of pseudogenes (not all are HGNC-approved symbols)
 	QStringList pseudogenes;
