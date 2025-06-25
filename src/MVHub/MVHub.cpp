@@ -625,9 +625,13 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 		}
 
 		QByteArray status = object["status"].toString().toLatin1();
+		QByteArray start = object["provision"].toObject()["period"].toObject()["start"].toString().left(10).toUtf8();
+		QByteArray end = object["provision"].toObject()["period"].toObject()["end"].toString().left(10).toUtf8();
 		output << "  <consent>";
 		output << "    <date>"+date.toString(Qt::ISODate).toLatin1()+"</date>";
 		output << "    <status>"+status+"</status>";
+		output << "    <start>"+start+"</start>";
+		output << "    <end>"+end+"</end>";
 		output << allowed;
 		output << "  </consent>";
 	}
