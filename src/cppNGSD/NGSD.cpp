@@ -3846,6 +3846,7 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 			else if(type=="timestamp") info.type = TableFieldInfo::TIMESTAMP;
 			else if(type=="tinyint(1)") info.type = TableFieldInfo::BOOL;
 			else if(type=="int" || type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
+			else if (type=="bigint" || type.startsWith("bigint(")) info.type = TableFieldInfo::LONG;
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
@@ -3905,7 +3906,7 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 					info.fk_field = query_fk.value(2).toString();
 
 					//set type
-					if (info.type!=TableFieldInfo::FK && info.type!=TableFieldInfo::INT)
+					if (info.type!=TableFieldInfo::FK && info.type!=TableFieldInfo::INT && info.type!=TableFieldInfo::LONG)
 					{
 						THROW(ProgrammingException, "Found SQL foreign key with non-integer type '" + type + "' in field '" + info.name + "' of table '" + table + "'!");
 					}
@@ -9732,6 +9733,9 @@ QString TableFieldInfo::typeToString(TableFieldInfo::Type type)
 		case INT:
 			return "INT";
 			break;
+		case LONG:
+			return "LONG";
+			break;
 		case FLOAT:
 			return "FLOAT";
 			break;
@@ -9785,6 +9789,13 @@ bool TableFieldInfo::isValid(QString text) const
 				return ok && !(is_unsigned && tmp<0);
 			}
 			break;
+		case LONG:
+		{
+			bool ok = false;
+			int tmp = text.toLongLong(&ok);
+			return ok && !(is_unsigned && tmp<0);
+		}
+		break;
 		case FLOAT:
 			{
 				bool ok = false;
@@ -9835,6 +9846,28 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 			{
 				bool ok = true;
 				int value_numeric = value.toInt(&ok);
+				if (!ok)
+				{
+					errors << "Cannot be converted to a integer number!";
+				}
+				else if (field_info.is_unsigned && value_numeric<0)
+				{
+					errors << "Must not be negative!";
+				}
+			}
+			break;
+		case TableFieldInfo::LONG:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check if numeric
+			if (!value.isEmpty())
+			{
+				bool ok = true;
+				long long value_numeric = value.toLongLong(&ok);
 				if (!ok)
 				{
 					errors << "Cannot be converted to a integer number!";

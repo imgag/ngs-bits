@@ -70,6 +70,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	{
 		BOOL,
 		INT,
+		LONG, //BIGINT
 		FLOAT,
 		TEXT, //multi-line text
 		VARCHAR, //one line text
