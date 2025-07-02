@@ -24,6 +24,8 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_messages, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_ready_export, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
 	connect(ui_.load_consent_data, SIGNAL(clicked()), this, SLOT(loadConsentData()));
 	connect(ui_.load_genlab_data, SIGNAL(clicked()), this, SLOT(loadGenLabData()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
@@ -36,6 +38,7 @@ void MVHub::delayedInitialization()
 	loadDataFromSE();
 
 	determineProcessedSamples();
+	updateExportStatus();
 
 	showMessages();
 
@@ -55,21 +58,23 @@ void MVHub::tableContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* a_show_ngsd = menu.addAction("Show all NGSD samples");
 	a_show_ngsd->setEnabled(rows.count()==1);
+	QAction* a_export = menu.addAction("Export to GRZ/KDK");
+	a_export->setEnabled(true);//TODO ui_.f_ready_export->isChecked() && rows.count()==1); //TODO batch export
 
 	//execute
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
 	if (action==nullptr) return;
 
 	//actions
-	if  (action==a_copy)
+	if (action==a_copy)
 	{
 		GUIHelper::copyToClipboard(ui_.table);
 	}
-	if  (action==a_copy_sel)
+	if (action==a_copy_sel)
 	{
 		GUIHelper::copyToClipboard(ui_.table, true);
 	}
-	if  (action==a_show_ngsd)
+	if (action==a_show_ngsd)
 	{
 		NGSD db;
 		GenLabDB genlab;
@@ -120,6 +125,43 @@ void MVHub::tableContextMenu(QPoint pos)
 		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(table, title);
 		dlg->exec();
 	}
+	if (action==a_export)
+	{
+		//init
+		int r = rows.first();
+		QString title = "GRZ/KDK export";
+		NGSD mvh_db(true, "mvh");
+		int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+		int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
+
+		//get ID
+		QString cm_id = getString(r, c_cm);
+		QByteArray id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toByteArray().trimmed();
+
+		//check that GRZ export is not pending
+		int pending_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='pending'").toInt();
+		int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
+		if (pending_grz>0)
+		{
+			QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
+		}
+		else if (done_grz>0)
+		{
+			QMessageBox::warning(this, title, "GRZ export is already done!"); //TODO implement followup/addition/correction
+		}
+		else //add GRZ export
+		{
+			QByteArray tag = getString(r, c_sap).toLatin1() + "_GRZ_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+			qDebug() << tag;
+			QString tan = getPseudonym(tag, false, true);
+			qDebug() << tan;
+			mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+			updateExportStatus(mvh_db, r);
+		}
+
+		//TODO check that export is not pending
+		//TODO add KDK export
+	}
 }
 
 void MVHub::updateTableFilters()
@@ -160,6 +202,58 @@ void MVHub::updateTableFilters()
 				}
 			}
 			if (!string_match) visible[r] = false;
+		}
+	}
+
+	//apply messages filter
+	if (ui_.f_messages->isChecked())
+	{
+		int c_messages = GUIHelper::columnIndex(ui_.table, "messages");
+
+		for (int r=0; r<rows; ++r)
+		{
+			if (!visible[r]) continue;
+
+			if (getString(r, c_messages).trimmed().isEmpty())
+			{
+				visible[r] = false;
+			}
+		}
+	}
+
+	//apply GRZ/KDK export filter
+	if (ui_.f_ready_export->isChecked())
+	{
+		int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+		int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
+		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
+		int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
+		int c_genlab = GUIHelper::columnIndex(ui_.table, "GenLab");
+		int c_report_date = GUIHelper::columnIndex(ui_.table, "Befunddatum");
+		int c_te_retracted = GUIHelper::columnIndex(ui_.table, "Kündigung TE");
+
+		for (int r=0; r<rows; ++r)
+		{
+			if (!visible[r]) continue;
+
+			if (getString(r, c_network)!="Netzwerk Seltene Erkrankungen") //TODO implement for other networks
+			{
+				visible[r] = false;
+				continue;
+			}
+
+			if (getString(r, c_seq_type)=="Keine") //TODO implement as well
+			{
+				visible[r] = false;
+				continue;
+			}
+
+			//SE - report done, all data available and TE not retreacted
+			if (getString(r, c_report_date)=="" || getString(r, c_network_id)=="" || getString(r, c_consent)=="" || getString(r, c_genlab)=="" || getString(r, c_te_retracted)!="")
+			{
+				visible[r] = false;
+				continue;
+			}
 		}
 	}
 
@@ -285,7 +379,7 @@ void MVHub::checkXML()
 		QString id = query.value("id").toString();
 
 		//iterate over all fields
-		foreach(QString field, QStringList() << "cm_data" << "se_data" << "rc_data" << "gl_data") //TODO
+		foreach(QString field, QStringList() << "cm_data" << "se_data" << "rc_data" << "gl_data")
 		{
 			QString data = query.value(field).toString().trimmed();
 			if (data.isEmpty()) continue;
@@ -305,6 +399,7 @@ void MVHub::checkXML()
 			}
 		}
 	}
+	addOutputHeader("checking XML data: done", false);
 }
 
 void MVHub::determineProcessedSamples()
@@ -346,13 +441,7 @@ void MVHub::determineProcessedSamples()
 		QString network = getString(r, c_network);
 		if (network.isEmpty() || seq_type.isEmpty() || seq_type=="Keine") continue;
 
-		if (network=="Netzwerk Seltene Erkrankungen" && seq_type=="WES")
-		{
-			params.include_bad_quality_samples = false;
-			params.include_tumor_samples = false;
-			params.sys_type = "WES";
-		}
-		else if (network=="Netzwerk Seltene Erkrankungen" && seq_type=="WGS")
+		if (network=="Netzwerk Seltene Erkrankungen" && seq_type=="WGS")
 		{
 			params.include_bad_quality_samples = false;
 			params.include_tumor_samples = false;
@@ -420,6 +509,47 @@ void MVHub::determineProcessedSamples()
 			}
 		}
 	}
+}
+
+void MVHub::updateExportStatus()
+{
+	//init
+	NGSD mvh_db(true, "mvh");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		updateExportStatus(mvh_db, r);
+
+	}
+}
+
+
+void MVHub::updateExportStatus(NGSD& mvh_db, int r)
+{
+	//init
+	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+	int c_export_status = GUIHelper::columnIndex(ui_.table, "export status");
+
+	//get ID
+	QString cm_id = getString(r, c_cm);
+	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toString().trimmed();
+
+	//add GRZ uploads
+	SqlQuery query = mvh_db.getQuery();
+	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "'");
+	QStringList tooltip;
+	while(query.next())
+	{
+		tooltip << "GRZ: " + query.value("date").toString() + "/" + query.value("type").toString() + "/" + query.value("status").toString();
+	}
+	if (!tooltip.isEmpty())
+	{
+		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
+		item->setToolTip(tooltip.join("<br>"));
+		ui_.table->setItem(r, c_export_status, item);
+	}
+
+	//TODO add KDK uploads
 }
 
 void MVHub::showMessages()
@@ -645,86 +775,80 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 	return output.join("\n");
 }
 
-void MVHub::test_apiPseudo() //TODO
+QByteArray MVHub::getPseudonym(QByteArray str, bool test_server, bool debug)
 {
-	try
+	addOutputHeader(sender()->objectName());
+
+	//test or production
+	if (test_server)
 	{
-		addOutputHeader(sender()->objectName());
-
-		//test or production
-		bool test_server = true;
-		if (test_server)
-		{
-			ui_.output->appendPlainText("ATTENTION: using test server!");
-			ui_.output->appendPlainText("");
-		}
-
-		//get token
-		QByteArray token = "";
-		{
-			ui_.output->appendPlainText("Getting token...");
-
-			HttpHeaders headers;
-			headers.insert("Content-Type", "application/x-www-form-urlencoded");
-			headers.insert("Prefer", "handling=strict");
-
-			QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("pseudo_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("pseudo_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
-			QString url = "https://" + QString(test_server ? "tc-t" : "tc-p") + ".med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token";
-			ui_.output->appendPlainText("URL: "+url);
-			//ui_.output->appendPlainText("data: " + data);
-
-			HttpHandler handler(true);
-			QByteArray reply = handler.post(url, data, headers);
-			QByteArrayList parts = reply.split('"');
-			if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
-
-			token = parts[3];
-			ui_.output->appendPlainText("Token: " + token);
-		}
-
-		//get first pseudonyms
-		QByteArray str = "ABCDE";
+		ui_.output->appendPlainText("ATTENTION: using test server!");
 		ui_.output->appendPlainText("");
-		ui_.output->appendPlainText("String to encode: " + str);
-		QByteArray pseudo1 = "";
-		{
-			QString url = "https://" + QString(test_server ? "tc-t.med.uni-tuebingen.de" : "tc.medic-tuebingen.de") + "/v1/process?targetSystem=MVH_T_F";
-			ui_.output->appendPlainText("URL: "+url);
-
-			HttpHeaders headers;
-			headers.insert("Content-Type", "application/json");
-			headers.insert("Authorization", "Bearer "+token);
-
-			HttpHandler handler(test_server);
-			QByteArray data =  jsonDataPseudo(str);
-			QByteArray reply = handler.post(url, data, headers);
-			pseudo1 = parseJsonDataPseudo(reply, "T_F");
-		}
-		ui_.output->appendPlainText("Pseudonym 1: " + pseudo1);
-
-		//get second pseudonyms
-		QByteArray pseudo2 = "";
-		{
-			QString url = "https://" + QString(test_server ? "tc-t.med.uni-tuebingen.de" : "tc.medic-tuebingen.de") + "/v1/process?targetSystem=MVH_T_SE";
-			ui_.output->appendPlainText("URL: "+url);
-
-			HttpHeaders headers;
-			headers.insert("Content-Type", "application/json");
-			headers.insert("Authorization", "Bearer "+token);
-
-			HttpHandler handler(test_server);
-			QByteArray data =  jsonDataPseudo(pseudo1);
-			QByteArray reply = handler.post(url, data, headers);
-			pseudo2 = parseJsonDataPseudo(reply, "T_SE");
-		}
-		ui_.output->appendPlainText("Pseudonym 2: " + pseudo2);
-
 	}
-	catch (Exception& e)
+
+	//get token
+	QByteArray token = "";
 	{
-		ui_.output->appendPlainText("ERROR:");
-		ui_.output->appendPlainText(e.message());
+		if (debug) ui_.output->appendPlainText("Getting token...");
+
+		HttpHeaders headers;
+		headers.insert("Content-Type", "application/x-www-form-urlencoded");
+		headers.insert("Prefer", "handling=strict");
+
+		QString url = "https://" + QString(test_server ? "tc-t" : "tc-p") + ".med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token";
+		if (debug) ui_.output->appendPlainText("URL: "+url);
+		QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("pseudo_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("pseudo_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
+		if (debug) ui_.output->appendPlainText("data: " + data);
+
+		HttpHandler handler(true);
+		QByteArray reply = handler.post(url, data, headers);
+		QByteArrayList parts = reply.split('"');
+		if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
+
+		token = parts[3];
+		if (debug) ui_.output->appendPlainText("Token: " + token);
 	}
+
+	//get first pseudonyms
+	ui_.output->appendPlainText("");
+	ui_.output->appendPlainText("String to encode: " + str);
+	QByteArray pseudo1 = "";
+	{
+		QString url = "https://" + QString(test_server ? "tc-t.med.uni-tuebingen.de" : "tc.medic-tuebingen.de") + "/v1/process?targetSystem=MVH_T_F";
+		if (debug) ui_.output->appendPlainText("URL: "+url);
+
+		HttpHeaders headers;
+		headers.insert("Content-Type", "application/json");
+		headers.insert("Authorization", "Bearer "+token);
+
+		HttpHandler handler(test_server);
+		QByteArray data =  jsonDataPseudo(str);
+		if (debug) ui_.output->appendPlainText("data: " + data);
+		QByteArray reply = handler.post(url, data, headers);
+		if (debug) ui_.output->appendPlainText("reply: " + reply);
+		pseudo1 = parseJsonDataPseudo(reply, "T_F");
+	}
+	if (debug) ui_.output->appendPlainText("Pseudonym 1: " + pseudo1);
+
+	//get second pseudonyms
+	QByteArray pseudo2 = "";
+	{
+		QString url = "https://" + QString(test_server ? "tc-t.med.uni-tuebingen.de" : "tc.medic-tuebingen.de") + "/v1/process?targetSystem=MVH_T_SE";
+		if (debug) ui_.output->appendPlainText("URL: "+url);
+
+		HttpHeaders headers;
+		headers.insert("Content-Type", "application/json");
+		headers.insert("Authorization", "Bearer "+token);
+
+		HttpHandler handler(test_server);
+		QByteArray data =  jsonDataPseudo(pseudo1);
+		if (debug) ui_.output->appendPlainText("data: " + data);
+		QByteArray reply = handler.post(url, data, headers);
+		pseudo2 = parseJsonDataPseudo(reply, "T_SE");
+	}
+	if (debug) ui_.output->appendPlainText("Pseudonym 2: " + pseudo2);
+
+	return pseudo2;
 }
 
 void MVHub::loadDataFromCM()

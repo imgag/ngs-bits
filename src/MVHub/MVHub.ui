@@ -9,13 +9,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1500</width>
     <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1200</width>
+    <width>1500</width>
     <height>800</height>
    </size>
   </property>
@@ -100,6 +100,29 @@
        <number>3</number>
       </property>
       <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>text filter:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="f_text">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>250</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>network:</string>
@@ -132,25 +155,32 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QCheckBox" name="f_messages">
         <property name="text">
-         <string>text filter:</string>
+         <string>with message(s)</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="f_text">
-        <property name="minimumSize">
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
          <size>
-          <width>0</width>
-          <height>0</height>
+          <width>40</width>
+          <height>20</height>
          </size>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>250</width>
-          <height>16777215</height>
-         </size>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="f_ready_export">
+        <property name="text">
+         <string>ready for GRZ/KDK export (load consent and GenLab data)</string>
         </property>
        </widget>
       </item>
@@ -270,6 +300,11 @@
          <string>messages</string>
         </property>
        </column>
+       <column>
+        <property name="text">
+         <string>export status</string>
+        </property>
+       </column>
       </widget>
       <widget class="QPlainTextEdit" name="output"/>
      </widget>
@@ -281,7 +316,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1500</width>
      <height>21</height>
     </rect>
    </property>
