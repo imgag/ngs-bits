@@ -52,6 +52,8 @@ public:
 
 	//return gene locus padded by 5000 bases (cached)
 	static const BedFile& geneToRegions(QByteArray gene, NGSD& db);
+    //return gene locus padded by 5000 bases (cached), takes a list of gene id - symbol pairs to speed up things
+    static const BedFile& geneToRegions(QByteArray gene,  QList<GeneIdSymbolPair>& id_symbol_pairs, NGSD& db);
 
 protected:
 	GlobalServiceProvider();

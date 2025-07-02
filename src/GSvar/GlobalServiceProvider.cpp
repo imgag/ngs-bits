@@ -180,3 +180,19 @@ const BedFile& GlobalServiceProvider::geneToRegions(QByteArray gene, NGSD& db)
 	}
 	return cache_[gene];
 }
+
+const BedFile& GlobalServiceProvider::geneToRegions(QByteArray gene, QList<GeneIdSymbolPair>& id_symbol_pairs, NGSD& db)
+{
+    static QHash<QByteArray, BedFile> cache_;
+    gene = gene.trimmed().toUpper();
+    if (!cache_.contains(gene))
+    {
+        BedFile tmp = db.geneToRegions(gene, id_symbol_pairs, Transcript::ENSEMBL, "gene", true);
+        tmp.clearAnnotations();
+        tmp.extend(5000);
+        tmp.merge();
+        cache_[gene] = tmp;
+
+    }
+    return cache_[gene];
+}

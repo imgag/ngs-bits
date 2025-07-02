@@ -6835,6 +6835,36 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 	return genes;
 }
 
+
+void NGSD::cacheGenes(GeneSet genes)
+{
+	QHash<QByteArray, int>& gene2id = getCache().gene2id;
+	QList<QString> symbols;
+	for (const QByteArray& gene : genes)
+	{
+		//approved
+		if (approvedGeneNames().contains(gene))
+		{
+			symbols.append("'"+gene+"'");
+		}
+	}
+
+	if (!symbols.isEmpty())
+	{
+		SqlQuery gq = getQuery();
+		gq.prepare("SELECT symbol, id FROM gene WHERE symbol IN (" + symbols.join(", ") + ")");
+		gq.exec();
+
+		while(gq.next())
+		{
+			gene2id.insert(gq.value(0).toString().toLocal8Bit(), gq.value(1).toInt());
+
+		}
+	}
+}
+
+
+
 PhenotypeList NGSD::phenotypeChildTerms(int term_id, bool recursive)
 {
 	PhenotypeList output;
@@ -7213,6 +7243,90 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 	if (output.isEmpty() && messages!=nullptr)
 	{
         *messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << QT_ENDL;
+	}
+
+	if (!output.isSorted()) output.sort();
+	if (!annotate_transcript_names) output.removeDuplicates();
+
+	return output;
+}
+
+BedFile NGSD::geneToRegions(const QByteArray& gene, const QList<GeneIdSymbolPair>& id_symbol_pairs, Transcript::SOURCE source, QString mode, bool fallback, bool annotate_transcript_names, QTextStream* messages)
+{
+	//check mode
+	QStringList valid_modes;
+	valid_modes << "gene" << "exon";
+	if (!valid_modes.contains(mode))
+	{
+		THROW(ArgumentException, "Invalid mode '" + mode + "'. Valid modes are: " + valid_modes.join(", ") + ".");
+	}
+
+	//process input data
+	BedFile output;
+
+	//get approved gene id
+	// int id = geneId(gene);
+	int id = -1;
+
+	QByteArrayList annos;
+
+
+	foreach (GeneIdSymbolPair item, id_symbol_pairs)
+	{
+		if (item.gene == gene)
+		{
+			id = item.id;
+			annos << item.gene;
+		}
+	}
+
+	if (id==-1)
+	{
+		if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << QT_ENDL;
+		return output;
+	}
+
+	//prepare annotations
+	// QByteArrayList annos;
+	// annos << geneSymbol(id);
+
+	QList<Transcript::SOURCE> sources;
+	sources << source;
+	if (fallback) sources << (source==Transcript::ENSEMBL ? Transcript::CCDS : Transcript::ENSEMBL);
+	foreach(Transcript::SOURCE current_source, sources)
+	{
+		TranscriptList transcript_list = transcripts(id, current_source, false);
+		foreach(const Transcript& trans, transcript_list)
+		{
+			if (annotate_transcript_names)
+			{
+				annos.clear();
+				annos << trans.gene() + " " + trans.nameWithVersion();
+			}
+
+			if (mode=="gene")
+			{
+				output.append(BedLine(trans.chr(), trans.start(), trans.end(), annos));
+			}
+			else
+			{
+				const BedFile& regions = trans.isCoding() ? trans.codingRegions() : trans.regions();
+				for(int i=0; i<regions.count(); ++i)
+				{
+					const BedLine& line = regions[i];
+					output.append(BedLine(line.chr(), line.start(), line.end(), annos));
+				}
+			}
+		}
+
+		//no fallback in case we found the gene in the primary source database
+		if (current_source==source && !output.isEmpty()) break;
+	}
+
+
+	if (output.isEmpty() && messages!=nullptr)
+	{
+		*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << QT_ENDL;
 	}
 
 	if (!output.isSorted()) output.sort();

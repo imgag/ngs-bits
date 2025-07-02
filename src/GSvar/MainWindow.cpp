@@ -5609,7 +5609,7 @@ void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 	timer.start();
 
 	//apply filters
-	applyFilters(false);
+	applyFilters(true);
 	int passing_variants = filter_result_.countPassing();
 	QString status = QString::number(passing_variants) + " of " + QString::number(variants_.count()) + " variants passed filters.";
 	int max_variants = 10000;
@@ -6738,11 +6738,68 @@ void MainWindow::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
+			//NGSD().cacheGenes(pheno_genes);
+
+			QList<GeneIdSymbolPair> id_symbol_pairs;
+			QList<QByteArray> approved_genes;
+			QList<QByteArray> all_other_genes;
+			GeneSet approved_gene_names = db.approvedGeneNames();
+
+			for (const QByteArray& gene : pheno_genes)
+			{
+				if (approved_gene_names.contains(gene))
+				{
+					approved_genes.append("'" + gene + "'");
+				}
+				else
+				{
+					all_other_genes.append("'" + gene + "'");
+				}
+			}
+
+			if (!approved_genes.isEmpty())
+			{
+				SqlQuery approved_gene_id_and_symbols = db.getQuery();
+				approved_gene_id_and_symbols.prepare("SELECT id, symbol FROM gene WHERE symbol IN ("+approved_genes.join(", ")+")");
+				approved_gene_id_and_symbols.exec();
+				while(approved_gene_id_and_symbols.next())
+				{
+					GeneIdSymbolPair pair;
+					pair.id = approved_gene_id_and_symbols.value(0).toInt();
+					pair.gene = approved_gene_id_and_symbols.value(1).toByteArray();
+					id_symbol_pairs.append(pair);
+				}
+			}
+
+			if (!all_other_genes.isEmpty())
+			{
+				QList<QString> ga_type;
+				ga_type << "previous";
+				ga_type << "synonymous";
+
+				foreach(QString current_type, ga_type)
+				{
+					SqlQuery query_gene_id_and_symbols = db.getQuery();
+					query_gene_id_and_symbols.prepare("SELECT g.id, ga.symbol FROM gene g JOIN gene_alias ga ON g.id = ga.gene_id WHERE ga.symbol IN (" + all_other_genes.join(", ") + ") AND ga.type = '" + current_type + "' AND ga.symbol IN (SELECT ga2.symbol FROM gene_alias ga2 WHERE ga2.symbol IN (" + all_other_genes.join(", ") + ") AND ga2.type = '" + current_type + "' GROUP BY ga2.symbol HAVING COUNT(DISTINCT ga2.gene_id) = 1)");
+					query_gene_id_and_symbols.exec();
+					while(query_gene_id_and_symbols.next())
+					{
+						GeneIdSymbolPair pair;
+						pair.id = query_gene_id_and_symbols.value(0).toInt();
+						pair.gene = query_gene_id_and_symbols.value(1).toByteArray();
+						id_symbol_pairs.append(pair);
+					}
+				}
+			}
+
+			Log::perf("Caching for phenotype took ", timer);
             for (const QByteArray& gene : pheno_genes)
 			{
-				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));
+				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, id_symbol_pairs, db));
 			}
+			Log::perf("Iterating over the phenotypes took ", timer);
 			phenotype_roi_.merge();
+			Log::perf("Merging the phenotypes took ", timer);
 
 			if (debug_time)
 			{

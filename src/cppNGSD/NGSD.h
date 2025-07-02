@@ -667,6 +667,13 @@ struct CPPNGSDSHARED_EXPORT VariantCallingInfo
 	QString re_call_date; //ISO format
 };
 
+
+struct CPPNGSDSHARED_EXPORT GeneIdSymbolPair
+{
+    int id;
+    QByteArray gene;    
+};
+
 struct  NsxAnalysisSettings
 {
 	//adapter trimming during demultiplexing
@@ -782,6 +789,9 @@ public:
 	GeneSet genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corresponding to the given gene. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
+
+    BedFile geneToRegions(const QByteArray& gene, const QList<GeneIdSymbolPair>& id_symbol_pairs, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
+
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given transcript. Messages about unknown transcripts etc. are written to the steam, if given.
@@ -827,6 +837,10 @@ public:
 	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
 	///Returns all genes associated with a phenotype that fullfil the allowed source/evidence criteria. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.
 	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> allowed_sources, QSet<PhenotypeEvidenceLevel> allowed_evidences, bool recursive, bool ignore_non_phenotype_terms=true);
+
+
+    void cacheGenes(GeneSet genes);
+
 	///Returns all child terms of the given phenotype
 	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns all parent terms of the given phenotype
