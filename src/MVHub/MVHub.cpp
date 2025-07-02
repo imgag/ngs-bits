@@ -58,8 +58,9 @@ void MVHub::tableContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* a_show_ngsd = menu.addAction("Show all NGSD samples");
 	a_show_ngsd->setEnabled(rows.count()==1);
+	menu.addSeparator();
 	QAction* a_export = menu.addAction("Export to GRZ/KDK");
-	a_export->setEnabled(true);//TODO ui_.f_ready_export->isChecked() && rows.count()==1); //TODO batch export
+	a_export->setEnabled(ui_.f_ready_export->isChecked() && rows.count()==1); //TODO batch export
 
 	//execute
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
@@ -127,40 +128,61 @@ void MVHub::tableContextMenu(QPoint pos)
 	}
 	if (action==a_export)
 	{
-		//init
-		int r = rows.first();
-		QString title = "GRZ/KDK export";
-		NGSD mvh_db(true, "mvh");
-		int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-		int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
-
-		//get ID
-		QString cm_id = getString(r, c_cm);
-		QByteArray id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toByteArray().trimmed();
-
-		//check that GRZ export is not pending
-		int pending_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='pending'").toInt();
-		int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
-		if (pending_grz>0)
+		try
 		{
-			QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
-		}
-		else if (done_grz>0)
-		{
-			QMessageBox::warning(this, title, "GRZ export is already done!"); //TODO implement followup/addition/correction
-		}
-		else //add GRZ export
-		{
-			QByteArray tag = getString(r, c_sap).toLatin1() + "_GRZ_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-			qDebug() << tag;
-			QString tan = getPseudonym(tag, false, true);
-			qDebug() << tan;
-			mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
-			updateExportStatus(mvh_db, r);
-		}
+			//init
+			int r = rows.first();
+			QString title = "GRZ/KDK export";
+			NGSD mvh_db(true, "mvh");
+			int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+			int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
 
-		//TODO check that export is not pending
-		//TODO add KDK export
+			//get ID
+			QString cm_id = getString(r, c_cm);
+			QByteArray id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toByteArray().trimmed();
+
+			//check that GRZ export is not pending/done
+			int pending_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='pending'").toInt();
+			int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
+			if (pending_grz>0)
+			{
+				QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
+			}
+			else if (done_grz>0)
+			{
+				QMessageBox::warning(this, title, "GRZ export is already done!"); //TODO implement followup/addition/correction
+			}
+			else //add GRZ export
+			{
+				QByteArray tag = getString(r, c_sap).toLatin1() + "_GRZ_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+				QString tan = getPseudonym(tag, false, false);
+				mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+				updateExportStatus(mvh_db, r);
+			}
+
+			//check that KDK export is not pending/done
+			int pending_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='pending'").toInt();
+			int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
+			if (pending_kdk>0)
+			{
+				QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
+			}
+			else if (done_kdk>0)
+			{
+				QMessageBox::warning(this, title, "KDK export is already done!"); //TODO implement followup/addition/correction
+			}
+			else //add KDK export
+			{
+				QByteArray tag = getString(r, c_sap).toLatin1() + "_KDK_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+				QString tan = getPseudonym(tag, false, false);
+				mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+				updateExportStatus(mvh_db, r);
+			}
+		}
+		catch (Exception& e)
+		{
+			ui_.output->appendPlainText("Export error:\n"+e.message());
+		}
 	}
 }
 
@@ -293,6 +315,8 @@ void MVHub::loadConsentData()
 		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
 		item->setToolTip(consent);
 		ui_.table->setItem(r, c_consent, item);
+
+		qApp->processEvents();
 	}
 }
 
@@ -331,6 +355,8 @@ void MVHub::loadGenLabData()
 		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
 		item->setToolTip(gl_string);
 		ui_.table->setItem(r, c_genlab, item);
+
+		qApp->processEvents();
 	}
 
 	ui_.table->resizeColumnToContents(c_genlab);
@@ -529,6 +555,7 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	//init
 	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
 	int c_export_status = GUIHelper::columnIndex(ui_.table, "export status");
+	QStringList tooltip;
 
 	//get ID
 	QString cm_id = getString(r, c_cm);
@@ -537,19 +564,25 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	//add GRZ uploads
 	SqlQuery query = mvh_db.getQuery();
 	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "'");
-	QStringList tooltip;
 	while(query.next())
 	{
 		tooltip << "GRZ: " + query.value("date").toString() + "/" + query.value("type").toString() + "/" + query.value("status").toString();
 	}
+
+	//add KDK uploads
+	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "'");
+	while(query.next())
+	{
+		tooltip << "KDK SE: " + query.value("date").toString() + "/" + query.value("type").toString() + "/" + query.value("status").toString();
+	}
+
+	//add table item
 	if (!tooltip.isEmpty())
 	{
 		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
 		item->setToolTip(tooltip.join("<br>"));
 		ui_.table->setItem(r, c_export_status, item);
 	}
-
-	//TODO add KDK uploads
 }
 
 void MVHub::showMessages()
@@ -777,8 +810,6 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 
 QByteArray MVHub::getPseudonym(QByteArray str, bool test_server, bool debug)
 {
-	addOutputHeader(sender()->objectName());
-
 	//test or production
 	if (test_server)
 	{
@@ -810,18 +841,18 @@ QByteArray MVHub::getPseudonym(QByteArray str, bool test_server, bool debug)
 	}
 
 	//get first pseudonyms
-	ui_.output->appendPlainText("");
-	ui_.output->appendPlainText("String to encode: " + str);
+	if (debug) ui_.output->appendPlainText("");
+	if (debug) ui_.output->appendPlainText("String to encode: " + str);
 	QByteArray pseudo1 = "";
 	{
-		QString url = "https://" + QString(test_server ? "tc-t.med.uni-tuebingen.de" : "tc.medic-tuebingen.de") + "/v1/process?targetSystem=MVH_T_F";
+		QString url = "https://tc-" + QString(test_server ? "t" : "p") + ".med.uni-tuebingen.de/v1/process?targetSystem=MVH_"+(test_server ? "T" : "P")+"_F";
 		if (debug) ui_.output->appendPlainText("URL: "+url);
 
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/json");
 		headers.insert("Authorization", "Bearer "+token);
 
-		HttpHandler handler(test_server);
+		HttpHandler handler(true);
 		QByteArray data =  jsonDataPseudo(str);
 		if (debug) ui_.output->appendPlainText("data: " + data);
 		QByteArray reply = handler.post(url, data, headers);
@@ -833,14 +864,14 @@ QByteArray MVHub::getPseudonym(QByteArray str, bool test_server, bool debug)
 	//get second pseudonyms
 	QByteArray pseudo2 = "";
 	{
-		QString url = "https://" + QString(test_server ? "tc-t.med.uni-tuebingen.de" : "tc.medic-tuebingen.de") + "/v1/process?targetSystem=MVH_T_SE";
+		QString url = "https://tc-" + QString(test_server ? "t" : "p") + ".med.uni-tuebingen.de/v1/process?targetSystem=MVH_"+(test_server ? "T" : "P")+"_SE";
 		if (debug) ui_.output->appendPlainText("URL: "+url);
 
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/json");
 		headers.insert("Authorization", "Bearer "+token);
 
-		HttpHandler handler(test_server);
+		HttpHandler handler(true);
 		QByteArray data =  jsonDataPseudo(pseudo1);
 		if (debug) ui_.output->appendPlainText("data: " + data);
 		QByteArray reply = handler.post(url, data, headers);
