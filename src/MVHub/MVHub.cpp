@@ -175,7 +175,7 @@ void MVHub::tableContextMenu(QPoint pos)
 			{
 				QByteArray tag = getString(r, c_sap).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
 				QString tan = getPseudonym(tag, "KDK_SE", false, false);
-				mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+				mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
 				updateExportStatus(mvh_db, r);
 			}
 		}
