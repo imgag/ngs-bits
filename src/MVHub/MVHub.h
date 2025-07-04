@@ -21,7 +21,7 @@ public slots:
 	void tableContextMenu(QPoint pos);
 	void updateTableFilters();
 	//pseudonymization function
-	QByteArray getPseudonym(QByteArray str, bool test_server = true, bool debug = true);
+	QByteArray getPseudonym(QByteArray str, QByteArray context, bool test_server = true, bool debug = true);
 	//load research consent data from meDIC
 	void loadConsentData();
 	//load data from GenLab

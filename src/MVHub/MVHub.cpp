@@ -154,8 +154,8 @@ void MVHub::tableContextMenu(QPoint pos)
 			}
 			else //add GRZ export
 			{
-				QByteArray tag = getString(r, c_sap).toLatin1() + "_GRZ_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-				QString tan = getPseudonym(tag, false, false);
+				QByteArray tag = getString(r, c_sap).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+				QString tan = getPseudonym(tag, "GRZ", false, false);
 				mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
 				updateExportStatus(mvh_db, r);
 			}
@@ -173,9 +173,9 @@ void MVHub::tableContextMenu(QPoint pos)
 			}
 			else //add KDK export
 			{
-				QByteArray tag = getString(r, c_sap).toLatin1() + "_KDK_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-				QString tan = getPseudonym(tag, false, false);
-				mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+				QByteArray tag = getString(r, c_sap).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+				QString tan = getPseudonym(tag, "KDK_SE", false, false);
+				mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
 				updateExportStatus(mvh_db, r);
 			}
 		}
@@ -302,17 +302,19 @@ void MVHub::loadConsentData()
 		QString cm_id = getString(r, c_cm);
 		QString sap_id = getString(r, c_sap);
 		QString consent = getConsent(sap_id);
+		QString consent_json = getConsent(sap_id, false);
 
 		//store consent data in MVH database
 		NGSD mvh_db(true, "mvh");
 		SqlQuery query = mvh_db.getQuery();
-		query.prepare("UPDATE case_data SET rc_data=:0 WHERE cm_id=:1");
+		query.prepare("UPDATE case_data SET rc_data=:0, rc_data_json=:1 WHERE cm_id=:2");
 		query.bindValue(0, consent);
-		query.bindValue(1, cm_id);
+		query.bindValue(1, consent_json);
+		query.bindValue(2, cm_id);
 		query.exec();
 
 
-		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
+		QTableWidgetItem* item = GUIHelper::createTableItem(consent.isEmpty() ? "" : "yes (see tooltip)");
 		item->setToolTip(consent);
 		ui_.table->setItem(r, c_consent, item);
 
@@ -808,8 +810,14 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 	return output.join("\n");
 }
 
-QByteArray MVHub::getPseudonym(QByteArray str, bool test_server, bool debug)
+QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_server, bool debug)
 {
+	//check context
+	if (context!="GRZ" && context!="KDK_SE")
+	{
+		THROW(ProgrammingException, " MVHub::getPseudonym: unknown context '" + context + "'!");
+	}
+
 	//test or production
 	if (test_server)
 	{
@@ -857,14 +865,14 @@ QByteArray MVHub::getPseudonym(QByteArray str, bool test_server, bool debug)
 		if (debug) ui_.output->appendPlainText("data: " + data);
 		QByteArray reply = handler.post(url, data, headers);
 		if (debug) ui_.output->appendPlainText("reply: " + reply);
-		pseudo1 = parseJsonDataPseudo(reply, "T_F");
+		pseudo1 = parseJsonDataPseudo(reply, "first_level");
 	}
 	if (debug) ui_.output->appendPlainText("Pseudonym 1: " + pseudo1);
 
 	//get second pseudonyms
 	QByteArray pseudo2 = "";
 	{
-		QString url = "https://tc-" + QString(test_server ? "t" : "p") + ".med.uni-tuebingen.de/v1/process?targetSystem=MVH_"+(test_server ? "T" : "P")+"_SE";
+		QString url = "https://tc-" + QString(test_server ? "t" : "p") + ".med.uni-tuebingen.de/v1/process?targetSystem=MVH_"+(test_server ? "T" : "P")+"_"+(context=="GRZ" ? "G" : "SE");
 		if (debug) ui_.output->appendPlainText("URL: "+url);
 
 		HttpHeaders headers;
@@ -875,7 +883,7 @@ QByteArray MVHub::getPseudonym(QByteArray str, bool test_server, bool debug)
 		QByteArray data =  jsonDataPseudo(pseudo1);
 		if (debug) ui_.output->appendPlainText("data: " + data);
 		QByteArray reply = handler.post(url, data, headers);
-		pseudo2 = parseJsonDataPseudo(reply, "T_SE");
+		pseudo2 = parseJsonDataPseudo(reply, "second_level");
 	}
 	if (debug) ui_.output->appendPlainText("Pseudonym 2: " + pseudo2);
 
