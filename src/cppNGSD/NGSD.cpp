@@ -2500,7 +2500,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	timer.start();
 
 	//get cohort
-	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", exclude_quality, debug);
+	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", exclude_quality, "all", debug);
 
 	QMap<QByteArray, ExpressionStats> expression_stats = calculateGeneExpressionStatistics(cohort);
 
@@ -2508,7 +2508,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	return expression_stats;
 }
 
-QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, bool debug)
+QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, const QString& gender, bool debug)
 {
     QElapsedTimer timer;
 	timer.start();
@@ -2552,6 +2552,12 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		{
 			query_string_cohort.append(" AND ps.quality NOT IN ('" + exclude_quality.join("', '") + "')");
 		}
+
+		// apply gender filter
+		if (gender == "male") query_string_cohort.append(" AND s.gender = 'male'");
+		else if (gender == "female") query_string_cohort.append(" AND s.gender = 'female'");
+		else if (gender != "all") THROW(ArgumentException, "Invalid gender '" + gender + "' provided!");
+
 
 		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT)
 		{
@@ -2621,6 +2627,11 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		{
 			query_string_cohort.append("AND ps.quality NOT IN ('" + exclude_quality.join("', '") + "') ");
 		}
+
+		// apply gender filter
+		if (gender == "male") query_string_cohort.append("AND s.gender = 'male' ");
+		else if (gender == "female") query_string_cohort.append(" AND s.gender = 'female' ");
+		else if (gender != "all") THROW(ArgumentException, "Invalid gender '" + gender + "' provided!");
 
 
         cohort = LIST_TO_SET(getValuesInt(query_string_cohort));
