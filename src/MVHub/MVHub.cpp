@@ -320,6 +320,9 @@ void MVHub::loadConsentData()
 
 		qApp->processEvents();
 	}
+
+	ui_.output->appendPlainText("");
+	ui_.output->appendPlainText("done");
 }
 
 void MVHub::loadGenLabData()
@@ -362,6 +365,9 @@ void MVHub::loadGenLabData()
 	}
 
 	ui_.table->resizeColumnToContents(c_genlab);
+
+	ui_.output->appendPlainText("");
+	ui_.output->appendPlainText("done");
 }
 
 void MVHub::exportConsentData()
