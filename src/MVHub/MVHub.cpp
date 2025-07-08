@@ -13,6 +13,7 @@
 #include <QDomDocument>
 #include <QPushButton>
 #include <QFileDialog>
+#include "ExportHistoryDialog.h"
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
@@ -61,6 +62,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* a_export = menu.addAction("Export to GRZ/KDK");
 	a_export->setEnabled(ui_.f_ready_export->isChecked() && rows.count()==1); //TODO batch export
+	QAction* a_export_history = menu.addAction("Show export history");
+	a_export_history->setEnabled(rows.count()==1);
 
 	//execute
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
@@ -183,6 +186,15 @@ void MVHub::tableContextMenu(QPoint pos)
 		{
 			ui_.output->appendPlainText("Export error:\n"+e.message());
 		}
+	}
+	if (action==a_export_history)
+	{
+		int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
+		int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+		int r = rows.first();
+
+		ExportHistoryDialog dlg(this, getString(r, c_cm), getString(r, c_network));
+		dlg.exec();
 	}
 }
 
@@ -553,7 +565,6 @@ void MVHub::updateExportStatus()
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
 		updateExportStatus(mvh_db, r);
-
 	}
 }
 
@@ -563,34 +574,38 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	//init
 	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
 	int c_export_status = GUIHelper::columnIndex(ui_.table, "export status");
-	QStringList tooltip;
 
 	//get ID
 	QString cm_id = getString(r, c_cm);
 	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toString().trimmed();
 
-	//add GRZ uploads
+	//determine overall export count
+	int c_exp_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='" + id + "'").toInt();
+	int c_exp_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='" + id + "'").toInt();
+	int c_exp_all = c_exp_grz + c_exp_kdk;
+	if (c_exp_all==0) return;
+
+
+	QString text = "uploads: " + QString::number(c_exp_all);
+
+	//add status of latest GRZ upload
 	SqlQuery query = mvh_db.getQuery();
-	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "'");
-	while(query.next())
+	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
+	if(query.next())
 	{
-		tooltip << "GRZ: " + query.value("date").toString() + "/" + query.value("type").toString() + "/" + query.value("status").toString();
+		text += " GRZ: " + query.value("type").toString() + "/" + query.value("status").toString();
 	}
 
-	//add KDK uploads
-	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "'");
-	while(query.next())
+	//add status of latest KDK upload
+	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
+	if(query.next())
 	{
-		tooltip << "KDK SE: " + query.value("date").toString() + "/" + query.value("type").toString() + "/" + query.value("status").toString();
+		text += " KDK: " + query.value("type").toString() + "/" + query.value("status").toString();
 	}
 
 	//add table item
-	if (!tooltip.isEmpty())
-	{
-		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
-		item->setToolTip(tooltip.join("<br>"));
-		ui_.table->setItem(r, c_export_status, item);
-	}
+	QTableWidgetItem* item = GUIHelper::createTableItem(text);
+	ui_.table->setItem(r, c_export_status, item);
 }
 
 void MVHub::showMessages()
