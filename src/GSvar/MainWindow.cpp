@@ -413,9 +413,22 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
 		{
-			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
+			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible");
 		}
-	}   
+	}
+
+	if (Settings::boolean("use_proxy_for_gsvar_server", true))
+	{
+		QString proxy_params = "http://" + Settings::string("proxy_user") + ":" + Settings::string("proxy_password") + "@" + Settings::string("proxy_host") + ":" + QString::number(Settings::integer("proxy_port"));
+		if (!qputenv("HTTPS_PROXY", proxy_params.toUtf8()))
+		{
+			Log::error("Could not set HTTPS_PROXY variable, access to BAM/CRAM files over HTTPS may not be possible");
+		}
+		if (!qputenv("HTTP_PROXY", proxy_params.toUtf8()))
+		{
+			Log::error("Could not set HTTP_PROXY variable, access to BAM/CRAM files over HTTP may not be possible");
+		}
+	}
 }
 
 QString MainWindow::appName() const

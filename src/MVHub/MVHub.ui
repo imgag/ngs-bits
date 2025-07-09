@@ -9,13 +9,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1500</width>
     <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1200</width>
+    <width>1500</width>
     <height>800</height>
    </size>
   </property>
@@ -63,6 +63,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="check_xml">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check XML fields in MVH cases are valid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>check_xml</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -106,9 +116,71 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>200</width>
+          <width>250</width>
           <height>16777215</height>
          </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>network:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="f_network">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>0</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Netzwerk Seltene Erkrankungen</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Deutsches Netzwerk für Personalisierte Medizin</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="f_messages">
+        <property name="text">
+         <string>with message(s)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="f_ready_export">
+        <property name="text">
+         <string>ready for GRZ/KDK export (load consent and GenLab data)</string>
         </property>
        </widget>
       </item>
@@ -175,6 +247,11 @@
        </column>
        <column>
         <property name="text">
+         <string>Netzwerk ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>Sequenzierungsart</string>
         </property>
        </column>
@@ -223,9 +300,13 @@
          <string>messages</string>
         </property>
        </column>
+       <column>
+        <property name="text">
+         <string>export status</string>
+        </property>
+       </column>
       </widget>
       <widget class="QPlainTextEdit" name="output"/>
-      <widget class="QLineEdit" name="lineEdit"/>
      </widget>
     </item>
    </layout>
@@ -235,7 +316,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1500</width>
      <height>21</height>
     </rect>
    </property>
