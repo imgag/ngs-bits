@@ -305,7 +305,7 @@ private slots:
         S_EQUAL(asset_file_content, index_page_content);
 
         IS_TRUE(index_page_file->atEnd());
-        index_page_file->seek(0);
+        index_page_file->seek(0);        
         IS_FALSE(index_page_file->atEnd());
         QByteArray first_line = index_page_file->readLine();
         S_EQUAL(first_line.trimmed(), "<!doctype html>");
