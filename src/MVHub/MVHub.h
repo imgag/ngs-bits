@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "DelayedInitializationTimer.h"
 #include "ui_MVHub.h"
+#include "NGSD.h"
 
 ///Main window class
 class MVHub
@@ -19,7 +20,8 @@ public slots:
 	void delayedInitialization();
 	void tableContextMenu(QPoint pos);
 	void updateTableFilters();
-	void test_apiPseudo();
+	//pseudonymization function
+	QByteArray getPseudonym(QByteArray str, QByteArray context, bool test_server = true, bool debug = true);
 	//load research consent data from meDIC
 	void loadConsentData();
 	//load data from GenLab
@@ -43,6 +45,9 @@ private:
 	void loadDataFromSE();
 	//determine processed samples for cases from NGSD
 	void determineProcessedSamples();
+	//update GRZ/KDK export status
+	void updateExportStatus();
+	void updateExportStatus(NGSD& mvh_db, int r);
 	//show messages
 	void showMessages();
 
@@ -50,7 +55,6 @@ private:
 	QString getConsent(QString sap_id, bool return_parsed_data = true, bool debug=false);
 	//parse JSON and convert it to XML
 	QByteArray parseConsentJson(QByteArray json_text);
-
 
 	//creates JSON input for pseudonymization
 	static QByteArray jsonDataPseudo(QByteArray str);

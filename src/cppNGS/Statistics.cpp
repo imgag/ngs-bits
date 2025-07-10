@@ -369,13 +369,14 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	ChromosomalIndex<BedFile> dropout_index(dropout);
 
 	//init counts
-	int al_total = 0;
-	int al_mapped = 0;
-	int al_ontarget = 0;
-	int al_neartarget = 0;
-	int al_ontarget_raw = 0;
-	int al_dup = 0;
-	int al_proper_paired = 0;
+	long long al_total = 0;
+	long long al_mapped = 0;
+	long long al_ontarget = 0;
+	long long al_neartarget = 0;
+	long long al_ontarget_raw = 0;
+	long long al_dup = 0;
+	long long al_proper_paired = 0;
+	long long insert_size_read_count = 0;
 	double bases_trimmed = 0;
 	double bases_mapped = 0;
 	double bases_clipped = 0;
@@ -483,9 +484,13 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 				//if alignment is spliced, exclude it from insert size calculation
 				if (!spliced_alignment)
 				{
-					int insert_size = std::min(abs(al.insertSize()), 999); //cap insert size at 1000
-					insert_size_sum += insert_size;
-					insert_dist.inc(insert_size, true);
+					const int insert_size = abs(al.insertSize());
+					if (insert_size < 1000)
+					{
+						++insert_size_read_count;
+						insert_size_sum += insert_size;
+						insert_dist.inc(insert_size, true);
+					}
 				}
 			}
 		}
@@ -583,7 +588,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	if (paired_end)
 	{
 		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
-		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / al_proper_paired);
+		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / insert_size_read_count);
 	}
 	else
 	{
@@ -740,6 +745,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	long long al_ontarget = 0;
 	long long al_dup = 0;
 	long long al_proper_paired = 0;
+	long long insert_size_read_count = 0;
 	double bases_trimmed = 0;
 	double bases_mapped = 0;
 	double bases_clipped = 0;
@@ -804,9 +810,13 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 				//if alignment is spliced, exclude it from insert size calculation
 				if (!spliced_alignment)
 				{
-					const int insert_size = std::min(abs(al.insertSize()),  999); //cap insert size at 1000
-					insert_size_sum += insert_size;
-					insert_dist.inc(insert_size, true);
+					const int insert_size = abs(al.insertSize());
+					if (insert_size < 1000)
+					{
+						++insert_size_read_count;
+						insert_size_sum += insert_size;
+						insert_dist.inc(insert_size, true);
+					}
 				}
 			}
 		}
@@ -832,7 +842,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	if (paired_end)
 	{
 		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
-		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / al_proper_paired);
+		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / insert_size_read_count);
 	}
 	else
 	{
@@ -944,6 +954,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	long long al_ontarget = 0;
 	long long al_dup = 0;
 	long long al_proper_paired = 0;
+	long long insert_size_read_count = 0;
 	double bases_trimmed = 0;
 	double bases_mapped = 0;
 	double bases_clipped = 0;
@@ -1010,9 +1021,13 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 				//if alignment is spliced, exclude it from insert size calculation
 				if (!spliced_alignment)
 				{
-					const int insert_size = std::min(abs(al.insertSize()),  999); //cap insert size at 1000
-					insert_size_sum += insert_size;
-					insert_dist.inc(insert_size, true);
+					const int insert_size = abs(al.insertSize());
+					if (insert_size < 1000)
+					{
+						++insert_size_read_count;
+						insert_size_sum += insert_size;
+						insert_dist.inc(insert_size, true);
+					}
 				}
 			}
 		}
@@ -1119,7 +1134,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	if (paired_end)
 	{
 		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
-		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / al_proper_paired);
+		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / insert_size_read_count);
 	}
 	else
 	{

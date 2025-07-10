@@ -1970,18 +1970,31 @@ RtfSourceCode SomaticReportHelper::partSummary()
 		general_info_table.addRow(RtfTableRow({"HRD-Score", "nicht bestimmbar"}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 	}
 
+	//Check for low AF variants to add comment about akkreditation limits:
+	QStringList quality_comments = settings_.report_config->quality();
 
-
-	if(settings_.report_config->quality().count() >= 1)
+	int i_tum_af = somatic_vl_.annotationIndexByName("tumor_af");
+	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
-		QStringList quality_comments = settings_.report_config->quality();
-		if (quality_comments[0]  != "no abnormalities" && quality_comments[0].trimmed() != "")
+		const Variant& var = somatic_vl_[i];
+		if(var.annotations().at(i_tum_af).toDouble() < 0.05)
 		{
-			QStringList translated;
-            for (QString qual_comment : quality_comments)
-			{
-				translated.append(trans(qual_comment.toUtf8()));
-			}
+			quality_comments.append("Durch die Senkung des Detektionslimits auf 1% Allelfraktion konnten somatische Varianten nachgewiesen werden. Die Detektion von Varianten mit einer Allelfraktion von unter 5% ist nicht Teil des Akkreditierungsumfangs.");
+			break;
+		}
+	}
+
+	if(quality_comments.count() >= 1)
+	{
+		QStringList translated;
+		foreach (const QString& qual_comment, quality_comments)
+		{
+			if (qual_comment == "no abnormalities" || qual_comment.trimmed() == "") continue;
+			translated.append(trans(qual_comment.toUtf8()));
+		}
+
+		if (translated.count() > 0)
+		{
 			general_info_table.addRow(RtfTableRow({"Anmerkungen", translated.join(", ").toUtf8()}, {2500, 7421}, RtfParagraph()).setBorders(1, "brdrhair", 4));
 		}
 	}

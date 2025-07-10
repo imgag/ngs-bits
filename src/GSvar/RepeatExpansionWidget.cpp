@@ -473,10 +473,12 @@ void RepeatExpansionWidget::displayRepeats()
 		setCell(row_idx, "repeat ID", re.name());
 
 		//region
-		setCell(row_idx, "region", re.region().toString(true));
+		QTableWidgetItem* item = setCell(row_idx, "region", re.region().toString(true));
+		item->setToolTip("region size: " + QString::number(re.region().length()));
 
 		//repreat unit
-		setCell(row_idx, "repeat unit", re.unit());
+		item = setCell(row_idx, "repeat unit", re.unit());
+		item->setToolTip("units in region: " + QString::number((double) re.region().length() / re.unit().trimmed().length(), 'f', 2));
 
 		//filters
 		setCell(row_idx, "filters", re.filters().join(","));

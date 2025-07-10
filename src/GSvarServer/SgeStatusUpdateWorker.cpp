@@ -280,6 +280,8 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 			pipeline_args << "-t_rna_bam" << bams[r_idx];
 		}
 		if (job.use_dragen) pipeline_args << "-use_dragen";
+
+		if (ps_data[t_idx].processing_system_type == "WGS") queues = PipelineSettings::queuesHighMemory();
 	}
 	else
 	{
