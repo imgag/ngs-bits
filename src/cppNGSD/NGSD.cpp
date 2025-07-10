@@ -2500,7 +2500,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	timer.start();
 
 	//get cohort
-	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", exclude_quality, debug);
+	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", exclude_quality, "all", debug);
 
 	QMap<QByteArray, ExpressionStats> expression_stats = calculateGeneExpressionStatistics(cohort);
 
@@ -2508,7 +2508,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	return expression_stats;
 }
 
-QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, bool debug)
+QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, const QString& gender, bool debug)
 {
     QElapsedTimer timer;
 	timer.start();
@@ -2552,6 +2552,12 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		{
 			query_string_cohort.append(" AND ps.quality NOT IN ('" + exclude_quality.join("', '") + "')");
 		}
+
+		// apply gender filter
+		if (gender == "male") query_string_cohort.append(" AND s.gender = 'male'");
+		else if (gender == "female") query_string_cohort.append(" AND s.gender = 'female'");
+		else if (gender != "all") THROW(ArgumentException, "Invalid gender '" + gender + "' provided!");
+
 
 		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT)
 		{
@@ -2621,6 +2627,11 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		{
 			query_string_cohort.append("AND ps.quality NOT IN ('" + exclude_quality.join("', '") + "') ");
 		}
+
+		// apply gender filter
+		if (gender == "male") query_string_cohort.append("AND s.gender = 'male' ");
+		else if (gender == "female") query_string_cohort.append(" AND s.gender = 'female' ");
+		else if (gender != "all") THROW(ArgumentException, "Invalid gender '" + gender + "' provided!");
 
 
         cohort = LIST_TO_SET(getValuesInt(query_string_cohort));
@@ -3846,6 +3857,7 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 			else if(type=="timestamp") info.type = TableFieldInfo::TIMESTAMP;
 			else if(type=="tinyint(1)") info.type = TableFieldInfo::BOOL;
 			else if(type=="int" || type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
+			else if (type=="bigint" || type.startsWith("bigint(")) info.type = TableFieldInfo::LONG;
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
@@ -3905,7 +3917,7 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 					info.fk_field = query_fk.value(2).toString();
 
 					//set type
-					if (info.type!=TableFieldInfo::FK && info.type!=TableFieldInfo::INT)
+					if (info.type!=TableFieldInfo::FK && info.type!=TableFieldInfo::INT && info.type!=TableFieldInfo::LONG)
 					{
 						THROW(ProgrammingException, "Found SQL foreign key with non-integer type '" + type + "' in field '" + info.name + "' of table '" + table + "'!");
 					}
@@ -9846,6 +9858,9 @@ QString TableFieldInfo::typeToString(TableFieldInfo::Type type)
 		case INT:
 			return "INT";
 			break;
+		case LONG:
+			return "LONG";
+			break;
 		case FLOAT:
 			return "FLOAT";
 			break;
@@ -9899,6 +9914,13 @@ bool TableFieldInfo::isValid(QString text) const
 				return ok && !(is_unsigned && tmp<0);
 			}
 			break;
+		case LONG:
+		{
+			bool ok = false;
+			int tmp = text.toLongLong(&ok);
+			return ok && !(is_unsigned && tmp<0);
+		}
+		break;
 		case FLOAT:
 			{
 				bool ok = false;
@@ -9949,6 +9971,28 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 			{
 				bool ok = true;
 				int value_numeric = value.toInt(&ok);
+				if (!ok)
+				{
+					errors << "Cannot be converted to a integer number!";
+				}
+				else if (field_info.is_unsigned && value_numeric<0)
+				{
+					errors << "Must not be negative!";
+				}
+			}
+			break;
+		case TableFieldInfo::LONG:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check if numeric
+			if (!value.isEmpty())
+			{
+				bool ok = true;
+				long long value_numeric = value.toLongLong(&ok);
 				if (!ok)
 				{
 					errors << "Cannot be converted to a integer number!";

@@ -1172,6 +1172,70 @@ void MaintenanceDialog::deleteInvalidVariants()
 	}
 }
 
+void MaintenanceDialog::addMissingGenderForRnaSamples()
+{
+	NGSD db;
+	int count_rna_no_gender = 0;
+	int count_gender_set = 0;
+
+	ProcessedSampleSearchParameters params;
+	params.s_type = "RNA";
+	params.p_type = "diagnostic";
+	DBTable table = db.processedSampleSearch(params);
+	int c_ps = table.columnIndex("name");
+	int c_gender = table.columnIndex("gender");
+	for (int r=0; r<table.rowCount(); ++r)
+	{
+		QString gender = table.row(r).value(c_gender);
+		if (gender!="n/a") continue;
+		++count_rna_no_gender;
+
+		//get related DNA samples
+		QString ps = table.row(r).value(c_ps);
+		int sample_id = db.sampleId(ps).toInt();
+		QSet<int> sample_ids_dna = db.relatedSamples(sample_id, "same sample", "DNA");
+		sample_ids_dna.unite(db.relatedSamples(sample_id, "same patient", "DNA"));
+		if (sample_ids_dna.count()==0)
+		{
+			appendOutputLine(ps + "\tskipped: no DNA samples found");
+			continue;
+		}
+
+		//determine gender from DNA samples
+		QSet<QString> genders;
+		foreach(int s_id, sample_ids_dna)
+		{
+			QString gender = db.getValue("SELECT gender FROM sample WHERE id='" + QString::number(s_id) + "'").toString();
+			if (gender=="n/a") continue;
+
+			genders << gender;
+		}
+		if (genders.count()==0)
+		{
+			appendOutputLine(ps + "\tskipped: no gender in DNA samples");
+			continue;
+		}
+		else if (genders.count()>1)
+		{
+			appendOutputLine(ps + "\tskipped: contradicting gender in DNA samples");
+			continue;
+		}
+
+		//set gender
+		QString gender_dna = *(genders.begin());
+		appendOutputLine(ps + "\tsetting gender '" + gender_dna + "'");
+		db.getQuery().exec("UPDATE sample SET gender='"+gender_dna+"' WHERE id='" + QString::number(sample_id) + "'");
+		++count_gender_set;
+	}
+
+	appendOutputLine("");
+	appendOutputLine("### summary ###");
+	appendOutputLine("diagnostic RNA samples: " + QString::number(table.rowCount()));
+	appendOutputLine("diagnostic RNA samples without gender: " + QString::number(count_rna_no_gender));
+	appendOutputLine("set gender for " + QString::number(count_gender_set) + " samples");
+	appendOutputLine("");
+}
+
 void MaintenanceDialog::updateDescription(QString text)
 {
 	ui_.description->clear();
@@ -1236,5 +1300,9 @@ void MaintenanceDialog::updateDescription(QString text)
 	else if (action=="replaceobsoltegenesymbols")
 	{
 		ui_.description->setText("Replaces outdated gene symbols with current approved symbol if possible.");
+	}
+	else if (action=="addmissinggenderforrnasamples")
+	{
+		ui_.description->setText("Tries to determine missing gender entries of diagnostic RNA samples based on related DNA samples.");
 	}
 }

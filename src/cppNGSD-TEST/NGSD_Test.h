@@ -3131,6 +3131,19 @@ private slots:
 		IS_TRUE(cohort.contains(5005));
 		IS_TRUE(cohort.contains(5007));
 
+		cohort = db.getRNACohort(1, "blood", "", "", RNA_COHORT_GERMLINE, "genes", QStringList() << "bad", "female");
+		I_EQUAL(cohort.size(), 2);
+		IS_TRUE(cohort.contains(5005));
+		IS_TRUE(cohort.contains(5006));
+
+		cohort = db.getRNACohort(1, "skin", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT, "genes", QStringList() << "bad", "male");
+		I_EQUAL(cohort.size(), 1);
+		IS_TRUE(cohort.contains(5003));
+
+		cohort = db.getRNACohort(1, "", "KontrollDNACoriell", "5001", RNA_COHORT_SOMATIC, "genes", QStringList() << "bad", "female");
+		I_EQUAL(cohort.size(), 2);
+		IS_TRUE(cohort.contains(5001));
+		IS_TRUE(cohort.contains(5005));
 
 		//Test expression stats:
 		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(1, "blood", cohort);
