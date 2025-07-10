@@ -3200,9 +3200,9 @@ FilterCnvCompHet::FilterCnvCompHet()
 {
 	name_ = "CNV compound-heterozygous";
 	type_ = VariantType::CNVS;
-	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and exactly one small variant hit (after other filters are applied).";
+	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and at least one herozygous small variant hit (after other filters are applied)." << "Mode 'CNV-SNV/INDEL multi-hit' detectes genes with exactly one or more CNVs and at least one herozygous small variant hit (after other filters are applied).";
 	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
-	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL";
+	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL,CNV-SNV/INDEL multi-hit";
 
 	checkIsRegistered();
 }
@@ -3245,7 +3245,7 @@ void FilterCnvCompHet::apply(const CnvList& cnvs, FilterResult& result) const
 		}
 	}
 
-	//one CNV and one SNV/INDEL hit
+	//one CNV and at least one SNV/INDEL hit
 	else if (mode=="CNV-SNV/INDEL")
 	{
 		GeneSet single_hit_cnv;
@@ -3259,6 +3259,20 @@ void FilterCnvCompHet::apply(const CnvList& cnvs, FilterResult& result) const
 
         for (const QByteArray& gene : single_hit_cnv)
 		{
+			if (het_hit_genes_.contains(gene))
+			{
+				comphet_hit.insert(gene);
+			}
+		}
+	}
+
+
+	//at least one CNV and at least one SNV/INDEL hit
+	else if (mode=="CNV-SNV/INDEL multi-hit")
+	{
+		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
+		{
+			QByteArray gene = it.key();
 			if (het_hit_genes_.contains(gene))
 			{
 				comphet_hit.insert(gene);

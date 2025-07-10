@@ -908,7 +908,6 @@ void MainWindow::on_actionCNV_triggered()
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
 	QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
 	i_genotypes.removeAll(-1);
-
 	if (i_genes!=-1 && i_genotypes.count()>0)
 	{
 		//check that a filter was applied (otherwise this can take forever)

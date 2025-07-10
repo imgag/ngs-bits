@@ -32,6 +32,7 @@ private slots:
 	void compareBaseDataOfTestAndProduction();
 	void findTumorSamplesWithGermlineVariants();
 	void deleteInvalidVariants();
+	void addMissingGenderForRnaSamples();
 
 	//auxilary slots
 	void updateDescription(QString text);
