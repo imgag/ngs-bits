@@ -632,8 +632,10 @@ int VariantList::annotationIndexByName(const QString& name, bool exact_match, bo
 		}
 	}
 
+    qint64 matches_count = matches.count();
+
 	//error checks
-	if (matches.count()<1)
+    if (matches_count<1)
 	{
 		if (error_on_mismatch)
 		{
@@ -645,7 +647,7 @@ int VariantList::annotationIndexByName(const QString& name, bool exact_match, bo
 		}
 	}
 
-	if (matches.count()>1)
+    if (matches_count>1)
 	{
 		if (error_on_mismatch)
 		{
@@ -819,11 +821,12 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		if (line.startsWith("##"))//comment/description line
 		{
 			QList <QByteArray> parts = line.split('=');
-			if (line.startsWith("##DESCRIPTION=") && parts.count()>2)
+            int parts_count = parts.count();
+            if (line.startsWith("##DESCRIPTION=") && parts_count>2)
 			{
 				annotationDescriptions().append(VariantAnnotationDescription(parts[1], parts.mid(2).join('='), VariantAnnotationDescription::STRING));
 			}
-			else if (line.startsWith("##FILTER=") && parts.count()>2)
+            else if (line.startsWith("##FILTER=") && parts_count>2)
 			{
 				filters_[parts[1]] = parts.mid(2).join('=');
 			}
@@ -995,8 +998,9 @@ void VariantList::removeDuplicates()
 
 	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
 	QVector<Variant> output;
-	output.reserve(variants_.count());
-	for (int i=0; i<variants_.count()-1; ++i)
+    qint64 variants_count = variants_.count();
+    output.reserve(variants_count);
+    for (int i=0; i<variants_count-1; ++i)
 	{
 		int j = i+1;
 		if (variants_[i].chr()!=variants_[j].chr() || variants_[i].start()!=variants_[j].start() || variants_[i].obs()!=variants_[j].obs() || variants_[i].ref()!=variants_[j].ref())

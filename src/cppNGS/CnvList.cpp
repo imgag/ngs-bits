@@ -532,8 +532,9 @@ int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error, 
 		}
 	}
 
+    qint64 matches_count = matches.count();
 	//Error handling
-	if (matches.count()<1)
+    if (matches_count<1)
 	{
 		if (throw_on_error)
 		{
@@ -545,7 +546,7 @@ int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error, 
 		}
 	}
 
-	if (matches.count()>1)
+    if (matches_count>1)
 	{
 		if (throw_on_error)
 		{

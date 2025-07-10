@@ -803,8 +803,10 @@ public:
 	int transcriptId(QString name, bool throw_on_error=true);
 	///Returns all transcripts in the database;
 	const TranscriptList& transcripts();
-	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
-	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
+    ///Returns transcripts of a gene by gene id(if @p coding_only is set, only coding transcripts).
+	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);    
+    ///Returns transcripts of a gene (by gene)
+    TranscriptList transcripts(const QByteArray& gene, Transcript::SOURCE source, bool coding_only);
 	///Returns all transcripts overlapping the given region (extended by some bases).
 	TranscriptList transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend=0, Transcript::SOURCE source=Transcript::ENSEMBL);
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, ensemble canonical, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.

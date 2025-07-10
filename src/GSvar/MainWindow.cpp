@@ -5608,7 +5608,7 @@ void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 	timer.start();
 
 	//apply filters
-	applyFilters(true);
+	applyFilters(false);
 	int passing_variants = filter_result_.countPassing();
 	QString status = QString::number(passing_variants) + " of " + QString::number(variants_.count()) + " variants passed filters.";
 	int max_variants = 10000;
@@ -6736,8 +6736,7 @@ void MainWindow::applyFilters(bool debug_time)
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
-			phenotype_roi_.clear();
-			//NGSD().cacheGenes(pheno_genes);
+			phenotype_roi_.clear();			
 
 			QList<GeneIdSymbolPair> id_symbol_pairs;
 			QList<QByteArray> approved_genes;
@@ -6791,14 +6790,11 @@ void MainWindow::applyFilters(bool debug_time)
 				}
 			}
 
-			Log::perf("Caching for phenotype took ", timer);
             for (const QByteArray& gene : pheno_genes)
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, id_symbol_pairs, db));
-			}
-			Log::perf("Iterating over the phenotypes took ", timer);
+			}			
 			phenotype_roi_.merge();
-			Log::perf("Merging the phenotypes took ", timer);
 
 			if (debug_time)
 			{
