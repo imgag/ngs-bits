@@ -593,18 +593,20 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
 	if(query.next())
 	{
-		text += " GRZ: " + query.value("type").toString() + "/" + query.value("status").toString();
+		text += " // GRZ " + query.value("status").toString();
 	}
 
 	//add status of latest KDK upload
 	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
 	if(query.next())
 	{
-		text += " KDK: " + query.value("type").toString() + "/" + query.value("status").toString();
+		text += " // KDK " + query.value("status").toString();
 	}
 
 	//add table item
 	QTableWidgetItem* item = GUIHelper::createTableItem(text);
+	if (!item->text().contains("pending")) item->setForeground(Qt::darkGreen);
+	if (item->text().contains("failed")) item->setForeground(Qt::red);
 	ui_.table->setItem(r, c_export_status, item);
 }
 
