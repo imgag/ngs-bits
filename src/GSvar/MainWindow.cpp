@@ -3352,11 +3352,9 @@ void MainWindow::loadSomaticReportConfig()
 	}
 
 	//Preselect filter from NGSD som. rep. conf.
-	if(somatic_report_settings_.report_config->filterName() != "")
-	{
-		ui_.filters->setFilter( somatic_report_settings_.report_config->filterName() );
-		ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
-	}
+	if (somatic_report_settings_.report_config->filterName() != "") ui_.filters->setFilter( somatic_report_settings_.report_config->filterName());
+	if(somatic_report_settings_.report_config->filters().count() != 0) ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
+
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 

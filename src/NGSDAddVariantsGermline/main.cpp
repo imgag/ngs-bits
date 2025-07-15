@@ -28,13 +28,14 @@ public:
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
 		addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
 		addInfile("re", "RE list in VCF format (as produced by megSAP).", true, true);
-		addFlag("force", "Force import of variants, even if they are already imported.");
+		addFlag("force", "Force import of small variants (they are skipped, if the same callset is already in NGSD).");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFloat("max_af", "Maximum allele frequency of small variants to import (gnomAD).", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
 		addFlag("no_time", "Disable timing output.");
 
+		changeLog(2025,  7, 14, "Changed behaviour of 'force' parameter (affects only small variants if callset was already imported now).");
 		changeLog(2024,  8, 28, "Merged all force parameters into one. Implmented skipping of small variants import if the same callset was already imported.");
 		changeLog(2021,  7, 19, "Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.");
 	}
@@ -71,11 +72,6 @@ public:
 		QString ps_id = db.processedSampleId(ps_name);
 		int count_old = db.importStatus(ps_id).small_variants;
         out << "Found " << count_old  << " variants already imported into NGSD!" << QT_ENDL;
-		if(count_old>0 && !force && !var_update)
-		{
-            out << "Skipped import because variants were already imported for '" + ps_name + "'. Use the flag '-force' to overwrite them." << QT_ENDL;
-			return;
-		}
 
 		//load variant list
 		VariantList variants;
@@ -96,7 +92,7 @@ public:
 		if (!caller.isEmpty() && !caller_ver.isEmpty() && calling_date.isValid())
 		{
 			VariantCallingInfo calling_info_ngsd = db.variantCallingInfo(ps_id);
-			if (calling_info_ngsd.small_caller==caller && calling_info_ngsd.small_caller_version==caller_ver && calling_info_ngsd.small_call_date==calling_date.toString(Qt::ISODate))
+			if (!force && calling_info_ngsd.small_caller==caller && calling_info_ngsd.small_caller_version==caller_ver && calling_info_ngsd.small_call_date==calling_date.toString(Qt::ISODate))
 			{
                 out << "Skipped import because variants were already imported with the same caller, caller version and calling date!" << QT_ENDL;
 				if (!no_time)
@@ -109,7 +105,7 @@ public:
 		}
 
 		//remove old variants
-		if (count_old>0 && force)
+		if (count_old>0 && !var_update)
 		{
 			sub_timer.start();
 			db.deleteVariants(ps_id, VariantType::SNVS_INDELS);
@@ -201,7 +197,7 @@ public:
 		}
 	}
 
-	void importCNVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool force)
+	void importCNVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time)
 	{
 		QString filename = getInfile("cnv");
 		if (filename=="") return;
@@ -230,14 +226,7 @@ public:
 
 		//check if CNV callset already exists > delete old callset
 		QString last_callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
-		if(last_callset_id!="" && !force)
-		{
-			out << "NOTE: CNVs were already imported for '" << ps_name << "' - skipping import";
-			return;
-		}
-
-		//check if variants were already imported for this PID
-		if (last_callset_id!="" && force)
+		if (last_callset_id!="")
 		{
 			db.getQuery().exec("DELETE FROM cnv WHERE cnv_callset_id='" + last_callset_id + "'");
 			db.getQuery().exec("DELETE FROM cnv_callset WHERE id='" + last_callset_id + "'");
@@ -328,7 +317,7 @@ public:
 		}
 	}
 
-	void importSVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool force)
+	void importSVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time)
 	{
 		QString filename = getInfile("sv");
 		if (filename=="") return;
@@ -357,15 +346,9 @@ public:
 			}
 		}
 
-		// check if processed sample has already been imported
+		//check if SV callset already exists > delete old callset
 		QString previous_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, QString::number(ps_id)).toString();
-		if(previous_callset_id!="" && !force)
-		{
-            out << "NOTE: SVs were already imported for '" << ps_name << "' - skipping import" << QT_ENDL;
-			return;
-		}
-		//remove old imports of this processed sample
-		if (previous_callset_id!="" && force)
+		if (previous_callset_id!="")
 		{
 			db.getQuery().exec("DELETE FROM sv_deletion WHERE sv_callset_id='" + previous_callset_id + "'");
 			db.getQuery().exec("DELETE FROM sv_duplication WHERE sv_callset_id='" + previous_callset_id + "'");
@@ -376,7 +359,6 @@ public:
 
             out << "Deleted previous SV callset" << QT_ENDL;
 		}
-
 
 		// open BEDPE file
 		BedpeFile svs;
@@ -443,7 +425,7 @@ public:
 		}
 	}
 
-	void importREs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool force)
+	void importREs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time)
 	{
 		QString filename = getInfile("re");
 		if (filename=="") return;
@@ -477,22 +459,7 @@ public:
 
 		//check if RE callset already exists > delete old callset
 		QString last_callset_id = db.getValue("SELECT id FROM re_callset WHERE processed_sample_id=:0", true, ps_id).toString();
-		if(last_callset_id!="" && !force)
-		{
-			out << "NOTE: REs were already imported for '" << ps_name << "' - skipping import";
-			return;
-		}
-
-		// check if processed sample has already been imported
-		int imported_re_genotypes = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE processed_sample_id=:0", true, ps_id).toInt();
-		if(imported_re_genotypes>0 && !force)
-		{
-            out << "NOTE: REs were already imported for '" << ps_name << "' - skipping import" << QT_ENDL;
-			return;
-		}
-
-		//remove old imports of this processed sample
-		if ((last_callset_id!="" || imported_re_genotypes>0) && force)
+		if (last_callset_id!="")
 		{
 			db.getQuery().exec("DELETE FROM re_callset WHERE processed_sample_id='" + ps_id + "'");
 
@@ -594,9 +561,9 @@ public:
 
 		//import
 		importSmallVariants(db, stream, ps_name, debug, no_time, force, var_update);
-		importCNVs(db, stream, ps_name, debug, no_time, force);
-		importSVs(db, stream, ps_name, debug, no_time, force);
-		importREs(db, stream, ps_name, debug, no_time, force);
+		importCNVs(db, stream, ps_name, debug, no_time);
+		importSVs(db, stream, ps_name, debug, no_time);
+		importREs(db, stream, ps_name, debug, no_time);
 	}
 };
 

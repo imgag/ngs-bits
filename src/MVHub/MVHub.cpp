@@ -1010,7 +1010,8 @@ void MVHub::loadDataFromCM()
 }
 
 void MVHub::loadDataFromSE()
-{	try
+{
+	try
 	{
 		addOutputHeader("loading SE data from RedCap", false);
 
