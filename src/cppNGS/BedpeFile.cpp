@@ -453,7 +453,8 @@ int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_misma
 		if(name == annotation_headers_[i]) matches << i;
 	}
 
-	if(matches.count() > 1)
+    qint64 matches_count = matches.count();
+    if(matches_count > 1)
 	{
 		if(error_on_mismatch)
 		{
@@ -465,7 +466,7 @@ int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_misma
 		}
 	}
 
-	if(matches.count() == 0)
+    if(matches_count == 0)
 	{
 		if(error_on_mismatch)
 		{
