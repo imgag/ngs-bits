@@ -138,7 +138,7 @@ void MVHub::tableContextMenu(QPoint pos)
 			QString title = "GRZ/KDK export";
 			NGSD mvh_db(true, "mvh");
 			int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-			int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
+			int c_case_id = GUIHelper::columnIndex(ui_.table, "CM Fallnummer");
 
 			//get ID
 			QString cm_id = getString(r, c_cm);
@@ -157,7 +157,7 @@ void MVHub::tableContextMenu(QPoint pos)
 			}
 			else //add GRZ export
 			{
-				QByteArray tag = getString(r, c_sap).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+				QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
 				QString tan = getPseudonym(tag, "GRZ", false, false);
 				mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
 				updateExportStatus(mvh_db, r);
@@ -176,7 +176,7 @@ void MVHub::tableContextMenu(QPoint pos)
 			}
 			else //add KDK export
 			{
-				QByteArray tag = getString(r, c_sap).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+				QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
 				QString tan = getPseudonym(tag, "KDK_SE", false, false);
 				mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
 				updateExportStatus(mvh_db, r);
@@ -258,6 +258,7 @@ void MVHub::updateTableFilters()
 	//apply GRZ/KDK export filter
 	if (ui_.f_ready_export->isChecked())
 	{
+		int c_case_id = GUIHelper::columnIndex(ui_.table, "CM Fallnummer");
 		int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
 		int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
 		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
@@ -276,14 +277,22 @@ void MVHub::updateTableFilters()
 				continue;
 			}
 
-			if (getString(r, c_seq_type)=="Keine") //TODO implement as well
+			//base data available
+			if (getString(r, c_case_id)=="" || getString(r, c_network_id)=="" || getString(r, c_consent)=="" || getString(r, c_genlab)=="")
 			{
 				visible[r] = false;
 				continue;
 			}
 
-			//SE - report done, all data available and TE not retreacted
-			if (getString(r, c_report_date)=="" || getString(r, c_network_id)=="" || getString(r, c_consent)=="" || getString(r, c_genlab)=="" || getString(r, c_te_retracted)!="")
+			//TE retreacted
+			if (getString(r, c_te_retracted)!="")
+			{
+				visible[r] = false;
+				continue;
+			}
+
+			//SE - report done or no sequencing at all
+			if (getString(r, c_report_date)=="" &&  getString(r, c_seq_type)!="Keine")
 			{
 				visible[r] = false;
 				continue;
@@ -445,7 +454,9 @@ void MVHub::checkXML()
 			}
 		}
 	}
-	addOutputHeader("checking XML data: done", false);
+
+	ui_.output->appendPlainText("");
+	ui_.output->appendPlainText("done");
 }
 
 void MVHub::determineProcessedSamples()
@@ -577,7 +588,8 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 
 	//get ID
 	QString cm_id = getString(r, c_cm);
-	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toString().trimmed();
+	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", true).toString().trimmed();
+	if (id.isEmpty()) return; //this can happen when the SAP ID is listed twice in SE RedCap
 
 	//determine overall export count
 	int c_exp_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='" + id + "'").toInt();
@@ -700,6 +712,7 @@ void MVHub::addOutputHeader(QString section, bool clear)
 
 	if (!section.isEmpty())
 	{
+		ui_.output->appendPlainText("");
 		ui_.output->appendPlainText("### " + section + " ###");
 		ui_.output->appendPlainText("");
 	}
@@ -963,13 +976,14 @@ void MVHub::loadDataFromCM()
 
 				QString tag = e.tagName();
 				if (tag=="record_id") ui_.table->setItem(r, 0, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="pat_id") ui_.table->setItem(r, 1, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="network_title") ui_.table->setItem(r, 2, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="seq_mode") ui_.table->setItem(r, 4, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="sample_arrival_date") ui_.table->setItem(r, 5, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="seq_state") ui_.table->setItem(r, 6, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="gen_finding_date") ui_.table->setItem(r, 7, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 8, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="case_id") ui_.table->setItem(r, 1, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="pat_id") ui_.table->setItem(r, 2, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="network_title") ui_.table->setItem(r, 3, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="seq_mode") ui_.table->setItem(r, 5, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="sample_arrival_date") ui_.table->setItem(r, 6, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="seq_state") ui_.table->setItem(r, 7, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="gen_finding_date") ui_.table->setItem(r, 8, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 9, GUIHelper::createTableItem(e.text().trimmed()));
 
 				n = n.nextSibling();
 			}
