@@ -7277,12 +7277,8 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, const QList<GeneIdSymbolPair
 	BedFile output;
 
 	//get approved gene id
-	// int id = geneId(gene);
 	int id = -1;
-
 	QByteArrayList annos;
-
-
 	foreach (GeneIdSymbolPair item, id_symbol_pairs)
 	{
 		if (item.gene == gene)
@@ -7299,15 +7295,13 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, const QList<GeneIdSymbolPair
 	}
 
 	//prepare annotations
-	// QByteArrayList annos;
-	// annos << geneSymbol(id);
-
 	QList<Transcript::SOURCE> sources;
 	sources << source;
 	if (fallback) sources << (source==Transcript::ENSEMBL ? Transcript::CCDS : Transcript::ENSEMBL);
 	foreach(Transcript::SOURCE current_source, sources)
 	{
-		TranscriptList transcript_list = transcripts(id, current_source, false);
+		// if (gene.isEmpty()) gene = geneSymbol(id);
+		TranscriptList transcript_list = transcripts(gene, current_source, false);
 		foreach(const Transcript& trans, transcript_list)
 		{
 			if (annotate_transcript_names)
@@ -7334,7 +7328,6 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, const QList<GeneIdSymbolPair
 		//no fallback in case we found the gene in the primary source database
 		if (current_source==source && !output.isEmpty()) break;
 	}
-
 
 	if (output.isEmpty() && messages!=nullptr)
 	{
@@ -7431,6 +7424,68 @@ TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool co
 	TranscriptList output;
 
 	QByteArray gene = geneSymbol(gene_id);
+	foreach(int index, gene2indices[gene])
+	{
+		const Transcript& trans = cache[index];
+		if (trans.source()!=source) continue;
+		if (coding_only && !trans.isCoding()) continue;
+
+		output << trans;
+	}
+
+	output.sortByPosition();
+
+	return output;
+}
+
+TranscriptList NGSD::transcripts(int gene_id, const QList<GeneIdSymbolPair>& id_symbol_pairs, Transcript::SOURCE source, bool coding_only)
+{
+	TranscriptList& cache = getCache().gene_transcripts;
+	if (cache.isEmpty()) initTranscriptCache();
+	QHash<QByteArray, QSet<int>>& gene2indices = getCache().gene_transcripts_symbol2indices;
+
+	TranscriptList output;
+
+	// QByteArray gene = geneSymbol(gene_id);
+
+
+	QByteArray gene;
+
+	foreach (GeneIdSymbolPair item, id_symbol_pairs)
+	{
+		if (item.id == gene_id)
+		{
+			gene = item.gene;
+			break;
+		}
+	}
+
+	if (gene.isEmpty()) gene = geneSymbol(gene_id);
+
+
+	foreach(int index, gene2indices[gene])
+	{
+		const Transcript& trans = cache[index];
+		if (trans.source()!=source) continue;
+		if (coding_only && !trans.isCoding()) continue;
+
+		output << trans;
+	}
+
+	output.sortByPosition();
+
+	return output;
+}
+
+TranscriptList NGSD::transcripts(const QByteArray& gene, Transcript::SOURCE source, bool coding_only)
+{
+	TranscriptList& cache = getCache().gene_transcripts;
+	if (cache.isEmpty()) initTranscriptCache();
+	QHash<QByteArray, QSet<int>>& gene2indices = getCache().gene_transcripts_symbol2indices;
+
+	TranscriptList output;
+	// if (gene.isEmpty()) gene = geneSymbol(gene_id);
+
 	foreach(int index, gene2indices[gene])
 	{
 		const Transcript& trans = cache[index];

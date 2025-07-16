@@ -805,6 +805,10 @@ public:
 	const TranscriptList& transcripts();
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
 	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
+    TranscriptList transcripts(int gene_id, const QList<GeneIdSymbolPair>& id_symbol_pairs, Transcript::SOURCE source, bool coding_only);
+
+    TranscriptList transcripts(const QByteArray& gene, Transcript::SOURCE source, bool coding_only);
+
 	///Returns all transcripts overlapping the given region (extended by some bases).
 	TranscriptList transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend=0, Transcript::SOURCE source=Transcript::ENSEMBL);
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, ensemble canonical, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
