@@ -187,7 +187,7 @@ void RepeatLocusList::load(QString filename)
 			//filters
 			rl.setFilters(re.filters());
 
-			if (caller_version_ == "V1.5.0" || caller_version_ == "V1.5.0")
+			if (caller_version_ == "V1.5.0" || caller_version_ == "V1.5.1")
 			{
 				//genotype
 				QByteArrayList genotypes = re.formatValueFromSample("AC").trimmed().split('/');
@@ -202,20 +202,69 @@ void RepeatLocusList::load(QString filename)
 			else if (caller_version_ == "V1.5.3")
 			{
 
-				//genotype
 				QByteArrayList genotypes = re.info("RUC").trimmed().split(',');
-				rl.setAllele1(genotypes[0]);
-				if (genotypes.count()==2) rl.setAllele2(genotypes[1]);
-				else if (genotypes.count()>2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
-
-				//genotype CI
 				QByteArrayList genotype_ci = re.info("CIRUC").trimmed().split(',');
+				QByteArrayList genotypes_wt = re.info("RUC_WT").trimmed().split(',');
 				if (genotype_ci.contains(".")) rl.setFilters(QByteArrayList() << rl.filters() << "CallIsLowerBound");
+
+				QByteArray format_genotype = re.formatValueFromSample("GT");
 				QByteArray genotype_ci_str;
-				if (genotype_ci.size() == 2) genotype_ci_str = genotype_ci.at(0) + "-" + genotype_ci.at(1);
-				else if (genotype_ci.size() == 4) genotype_ci_str = genotype_ci.at(0) + "-" + genotype_ci.at(1) + "/" + genotype_ci.at(2) + "-" + genotype_ci.at(3);
-				else THROW(ArgumentException, "Invalid number of genotype CI in " + repeat_id +":" + re.info("CIRUC"));
-				rl.setConfidenceIntervals(genotype_ci_str);
+				if (format_genotype == "0/0")
+				{
+					//hom wildtype
+					if (genotypes_wt.count()!=1) THROW(ArgumentException, "Invalid number of wildtype genotypes in " + repeat_id +":" + re.info("RUC_WT"));
+					rl.setAllele1(genotypes_wt.at(0));
+					rl.setAllele2(genotypes_wt.at(0));
+					rl.setConfidenceIntervals("./.");
+				}
+				else if (format_genotype == "0")
+				{
+					//wildtype on male X/Y
+					if (genotypes_wt.count()!=1) THROW(ArgumentException, "Invalid number of wildtype genotypes in " + repeat_id +":" + re.info("RUC_WT"));
+					rl.setAllele1(genotypes_wt.at(0));
+					rl.setConfidenceIntervals(".");
+				}
+				else if (format_genotype == "0/1")
+				{
+					//het alt
+					if (genotypes_wt.count()!=1) THROW(ArgumentException, "Invalid number of wildtype genotypes in " + repeat_id +":" + re.info("RUC_WT"));
+					if (genotypes.count()!=1) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+					if (genotype_ci.count()!=2) THROW(ArgumentException, "Invalid number of CI genotypes in " + repeat_id +":" + re.info("CIRUC"));
+					rl.setAllele1(genotypes.at(0));
+					rl.setAllele2(genotypes_wt.at(0));
+					rl.setConfidenceIntervals(genotype_ci.at(0) + "-" + genotype_ci.at(1) + "/.");
+
+				}
+				else if (format_genotype == "1")
+				{
+					//alt on male X/Y
+					if (genotypes.count()!=1) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+					if (genotype_ci.count()!=2) THROW(ArgumentException, "Invalid number of CI genotypes in " + repeat_id +":" + re.info("CIRUC"));
+					rl.setAllele1(genotypes.at(0));
+					rl.setConfidenceIntervals(genotype_ci.at(0) + "-" + genotype_ci.at(1));
+				}
+				else if (format_genotype == "1/1")
+				{
+					//hom alt
+					if (genotypes.count()!=1) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+					if (genotype_ci.count()!=2) THROW(ArgumentException, "Invalid number of CI genotypes in " + repeat_id +":" + re.info("CIRUC"));
+					rl.setAllele1(genotypes.at(0));
+					rl.setAllele2(genotypes.at(0));
+					rl.setConfidenceIntervals(genotype_ci.at(0) + "-" + genotype_ci.at(1) + "/" + genotype_ci.at(0) + "-" + genotype_ci.at(1));
+				}
+				else if (format_genotype == "1/2")
+				{
+					//2 different alleles
+					if (genotypes.count()!=2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+					if (genotype_ci.count()!=4) THROW(ArgumentException, "Invalid number of CI genotypes in " + repeat_id +":" + re.info("CIRUC"));
+					rl.setAllele1(genotypes.at(0));
+					rl.setAllele2(genotypes.at(1));
+					rl.setConfidenceIntervals(genotype_ci.at(0) + "-" + genotype_ci.at(1) + "/" + genotype_ci.at(2) + "-" + genotype_ci.at(3));
+				}
+				else
+				{
+					THROW(ArgumentException, "Invalid genotype entry '" + format_genotype + "' in " + repeat_id);
+				}
 			}
 			else
 			{
