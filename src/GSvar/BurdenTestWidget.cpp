@@ -969,7 +969,7 @@ void BurdenTestWidget::performBurdenTest()
 		{
 			//get sample type
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
-			double min_correlation = (processing_system_type == "WGS")? 0.55: 0.9;
+			double min_correlation = (processing_system_type == "WGS")? 0.35: 0.9;
 			cnv_callset_query.bindValue(0, ps_id);
 			cnv_callset_query.exec();
 			while(cnv_callset_query.next())
@@ -987,7 +987,7 @@ void BurdenTestWidget::performBurdenTest()
 		{
 			//get sample type
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
-			double min_correlation = (processing_system_type == "WGS")? 0.55: 0.9;
+			double min_correlation = (processing_system_type == "WGS")? 0.35: 0.9;
 			cnv_callset_query.bindValue(0, ps_id);
 			cnv_callset_query.exec();
 			while(cnv_callset_query.next())
@@ -1236,10 +1236,9 @@ void BurdenTestWidget::copyToClipboard()
 	if(ui_->cb_include_cnvs->isChecked())
 	{
 		comments << "CNV_scaled_log_likelihood=15";
-		comments << "CNV_reference_correlation>=0.9(WES)|>=0.55(WGS)";
+		comments << "CNV_reference_correlation>=0.9(WES)|>=0.35(WGS)";
 		comments << "CNV_polymorphism_overlap<=0.95";
 		comments << "CNV_copy_number=0";
-
 	}
 
 	GUIHelper::copyToClipboard(ui_->tw_gene_table, false, comments);

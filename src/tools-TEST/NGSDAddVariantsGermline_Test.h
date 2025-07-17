@@ -30,7 +30,7 @@ private slots:
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2022-04-25");
 
 		//2. import - skipped because the same callset was already imported
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -force");
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line33.log", QRegularExpression("^WARNING: transactions"));
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line33.log", QRegularExpression("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line33.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
@@ -115,7 +115,7 @@ private slots:
 	}
 
 
-	void sv_failed_reimport()
+	void sv_reimport()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
@@ -123,50 +123,13 @@ private slots:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_init.sql"));
-
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
 
-		//re-import SVs for same sample without "-force" (no change)
+		//re-import SVs for same sample but with empty file (all variants are deleted)
 		EXECUTE_FAIL("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in_empty.bedpe"));
 
 		//check db content
 		int count = db.getValue("SELECT count(*) FROM sv_deletion").toInt();
-		I_EQUAL(count, 35);
-		count = db.getValue("SELECT count(*) FROM sv_duplication").toInt();
-		I_EQUAL(count, 8);
-		count = db.getValue("SELECT count(*) FROM sv_insertion").toInt();
-		I_EQUAL(count, 36);
-		count = db.getValue("SELECT count(*) FROM sv_inversion").toInt();
-		I_EQUAL(count, 0);
-		count = db.getValue("SELECT count(*) FROM sv_translocation").toInt();
-		I_EQUAL(count, 6);
-		count = db.getValue("SELECT count(*) FROM sv_callset").toInt();
-		I_EQUAL(count, 1);
-
-		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line127.log", QRegularExpression("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line127.log", TESTDATA("data_out/NGSDAddVariantsGermline_out6.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line130.log", QRegularExpression("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line130.log", TESTDATA("data_out/NGSDAddVariantsGermline_out7.log"));
-	}
-
-
-	void sv_forced_reimport()
-	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-
-		//init
-		NGSD db(true);
-		db.init();
-		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_init.sql"));
-
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
-
-		//re-import SVs for same sample with "-force" (overwrite)
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in_empty.bedpe"));
-
-		//check db content
-		int count = db.getValue("SELECT count(*) FROM sv_deletion").toInt();
 		I_EQUAL(count, 0);
 		count = db.getValue("SELECT count(*) FROM sv_duplication").toInt();
 		I_EQUAL(count, 0);
@@ -180,10 +143,10 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line163.log", QRegularExpression("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line163.log", TESTDATA("data_out/NGSDAddVariantsGermline_out8.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line166.log", QRegularExpression("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line166.log", TESTDATA("data_out/NGSDAddVariantsGermline_out9.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line126.log", QRegularExpression("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line126.log", TESTDATA("data_out/NGSDAddVariantsGermline_out6.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line129.log", QRegularExpression("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line129.log", TESTDATA("data_out/NGSDAddVariantsGermline_out7.log"));
 	}
 
 	void import_with_existing_report_config()
@@ -197,8 +160,8 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_report_config.sql"));
 
 		//try to import variants
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
 
 		//check db content
 		int count = db.getValue("SELECT count(*) FROM variant").toInt();
@@ -217,10 +180,10 @@ private slots:
 		I_EQUAL(count, 0);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line200.log", QRegularExpression("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line200.log", TESTDATA("data_out/NGSDAddVariantsGermline_out10.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line201.log", QRegularExpression("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line201.log", TESTDATA("data_out/NGSDAddVariantsGermline_out11.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line163.log", QRegularExpression("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line163.log", TESTDATA("data_out/NGSDAddVariantsGermline_out10.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line164.log", QRegularExpression("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line164.log", TESTDATA("data_out/NGSDAddVariantsGermline_out11.log"));
 	}
 
 	void sv_longread_import()
@@ -249,8 +212,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line235.log", QRegularExpression("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line235.log", TESTDATA("data_out/NGSDAddVariantsGermline_Test_line233.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line198.log", QRegularExpression("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line198.log", TESTDATA("data_out/NGSDAddVariantsGermline_Test_line233.log"));
 	}
 
 	void re_import()
@@ -283,7 +246,7 @@ private slots:
 		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2024-04-16");
 
 		//check import of Straglr
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
 		I_EQUAL(count, 30);
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();

@@ -166,7 +166,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
     stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << QT_ENDL;
 	for(int i=0; i<data_.filters.count(); ++i)
 	{
-        stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << data_.filters[i]->toText() << QT_ENDL;
+		if (data_.filters[i]->enabled()) stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << data_.filters[i]->toText() << QT_ENDL;
 	}
 	stream << "<br />";
 
@@ -635,7 +635,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
         stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << QT_ENDL;
         stream << "</p>" << QT_ENDL;
         stream << "<table>" << QT_ENDL;
-		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td>";
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << "HGNC ID" << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td>";
         if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td><b>" << trans("Hauptphenotyp") << "</b></td>" << QT_ENDL;
 		stream << "</tr>";
         for (const QByteArray& gene : data_.roi.genes)
@@ -686,7 +686,13 @@ void GermlineReportGenerator::writeHTML(QString filename)
 						names = QStringList() << names[selected_index];
 					}
 				}
-				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << accessions.join("<br />") << "</td><td>" << names.join("<br />") << "</td>";
+
+				//determine HGNC id
+				QByteArray hgnc_id;
+				int gene_id = db_.geneId(omim_info.gene_symbol);
+				if (gene_id!=-1) hgnc_id = db_.geneHgncId(gene_id);
+
+				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << hgnc_id << "</td><td>" << omim_info.mim << "</td><td>" << accessions.join("<br />") << "</td><td>" << names.join("<br />") << "</td>";
                 if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td>" <<trans(preferred_phenotype_name!="" ? "ja" : "nein") << "</td>" << QT_ENDL;
 				stream << "</tr>";
 			}

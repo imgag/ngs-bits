@@ -24,14 +24,14 @@ public:
 	{
 		setDescription("Creates a table with gene expression values for a given set of genes and cohort");
 		addString("ps", "Processed sample name on which the cohort is calculated.", false);
-		addInfile("genes", "Text file containing gene names which should be included in the table. (1 gene per line.)", false);
-
 
 		//optional
+		addInfile("genes", "Text file containing gene names which should be included in the table. (1 gene per line.)", true);
 		addInfile("sample_expression", "TSV file containing gene expression for processed sample (required if processed sample data hasn't been imported to the database yet)", true);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		QStringList valid_cohort = QStringList() << "RNA_COHORT_GERMLINE" << "RNA_COHORT_GERMLINE_PROJECT" << "RNA_COHORT_SOMATIC";
 		addEnum("cohort_strategy", "Determines which samples are used as reference cohort.", true, valid_cohort, "RNA_COHORT_GERMLINE");
+		addFlag("only_samples", "return only the samples belonging to the cohort - one sample per line");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2022, 7, 21, "Initial commit.");
@@ -42,6 +42,11 @@ public:
 		//init
 		QString ps_name = getString("ps");
 		QString gene_file = getInfile("genes");
+		if(!getFlag("only_samples") && gene_file == "")
+		{
+			THROW(ArgumentException, "No genes are given and flag only_samples not active: please provide genes for expression export or set flag to only get the cohort samples.");
+		}
+
 		QString expression_file = getInfile("sample_expression");
 
 		QString out = getOutfile("out");
@@ -74,6 +79,26 @@ public:
 		SampleData s_data = db.getSampleData(s_id);
 		int sys_id = db.processingSystemId(ps_data.processing_system);
 
+		//get cohort
+        QVector<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, "genes").values().toVector();
+		std::sort(cohort.rbegin(), cohort.rend());
+
+		if(getFlag("only_samples"))
+		{
+			QSharedPointer<QFile> output_file = Helper::openFileForWriting(out, true);
+			QTextStream output_stream(output_file.data());
+
+			foreach (int ps_id, cohort)
+			{
+				QString ps_name = db.processedSampleName(QString::number(ps_id));
+				output_stream << ps_name << "\n";
+			}
+
+			output_stream.flush();
+			output_file->close();
+			return;
+		}
+
 		//get list of genes
 		GeneSet genes = GeneSet::createFromFile(gene_file);
 
@@ -95,11 +120,6 @@ public:
 			}
 
 		}
-
-
-		//get cohort
-        QVector<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, "genes").values().toVector();
-		std::sort(cohort.rbegin(), cohort.rend());
 
 		//remove given ps_id if manual file is provided
 		if(!expression_file.isEmpty())
@@ -130,7 +150,7 @@ public:
 		output_stream << ps_names.join("\t") << "\n";
 
 		//iterate over gene list
-        for (const QByteArray& gene : genes)
+		foreach (const QByteArray& gene, genes)
 		{
 			QVector<double> expression_values = db.getGeneExpressionValues(gene, cohort);
 			QByteArrayList expression_values_str;
@@ -159,7 +179,6 @@ public:
 		output_file->close();
 
 	}
-
 };
 
 #include "main.moc"

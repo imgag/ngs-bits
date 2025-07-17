@@ -391,6 +391,8 @@ QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 			QByteArray relation = query.value(0).toByteArray().toUpper();
 			if (relation=="VATER") relation = "parent-child";
 			else if (relation=="MUTTER") relation = "parent-child";
+			else if (relation=="VATER (FET)") relation = "parent-child";
+			else if (relation=="MUTTER (FET)") relation = "parent-child";
 			else if (relation=="SCHWESTER") relation = "siblings";
 			else if (relation=="BRUDER") relation = "siblings";
 			else if (relation=="ZWILLINGSSCHWESTER") relation = "twins";
@@ -610,6 +612,30 @@ QString GenLabDB::tissue(QString ps_name)
 	}
 
 	return "";
+}
+
+AccountingData GenLabDB::accountingData(QString ps_name)
+{
+	AccountingData output;
+
+	for (QString name : names(ps_name))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT KASSENNAME, ABRECHNUNGSMODUS FROM v_ngs_abrechnung WHERE LABORNUMMER='" + name + "'");
+		while (query.next())
+		{
+			QString company = query.value("KASSENNAME").toString().trimmed();
+			QString mode = query.value("ABRECHNUNGSMODUS").toString().trimmed();
+			if (mode=="Undefiniert") mode.clear();
+			if (!company.isEmpty() || !mode.isEmpty())
+			{
+				output.insurance_company = company;
+				output.accounting_mode = mode;
+			}
+		}
+	}
+
+	return output;
 }
 
 QStringList GenLabDB::tables() const

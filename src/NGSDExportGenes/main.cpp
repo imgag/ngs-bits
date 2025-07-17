@@ -44,7 +44,7 @@ public:
 		output->write("\tgnomAD oe (mis)");
 		output->write("\tgnomAD oe (lof)");
 		output->write("\tinheritance");
-		output->write("\timprinting");
+		output->write("\timprinting_expressed_allele");
 		output->write("\tpseudogenes");
 		if (add_disease_info)
 		{
@@ -75,9 +75,9 @@ public:
 			output->write(gene_info.oe_lof.replace("n/a", "").toUtf8() + "\t");
 			output->write(gene_info.inheritance.replace("n/a", "").toUtf8() + "\t");
 			QString inprinting_info = "";
-			if(!gene_info.imprinting_source_allele.isEmpty() || !gene_info.imprinting_status.isEmpty())
+			if(!gene_info.imprinting_expressed_allele.isEmpty() || !gene_info.imprinting_confidence.isEmpty())
 			{
-				inprinting_info = gene_info.imprinting_source_allele + " (" + gene_info.imprinting_status + ")";
+				inprinting_info = gene_info.imprinting_expressed_allele + " (" + gene_info.imprinting_confidence + ")";
 			}
 			output->write(inprinting_info.toUtf8() + "\t");
 			output->write(gene_info.pseudogenes.join(", ").toUtf8());

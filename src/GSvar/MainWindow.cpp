@@ -413,9 +413,22 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
 		{
-			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
+			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible");
 		}
-	}   
+	}
+
+	if (Settings::boolean("use_proxy_for_gsvar_server", true))
+	{
+		QString proxy_params = "http://" + Settings::string("proxy_user") + ":" + Settings::string("proxy_password") + "@" + Settings::string("proxy_host") + ":" + QString::number(Settings::integer("proxy_port"));
+		if (!qputenv("HTTPS_PROXY", proxy_params.toUtf8()))
+		{
+			Log::error("Could not set HTTPS_PROXY variable, access to BAM/CRAM files over HTTPS may not be possible");
+		}
+		if (!qputenv("HTTP_PROXY", proxy_params.toUtf8()))
+		{
+			Log::error("Could not set HTTP_PROXY variable, access to BAM/CRAM files over HTTP may not be possible");
+		}
+	}
 }
 
 QString MainWindow::appName() const
@@ -895,7 +908,6 @@ void MainWindow::on_actionCNV_triggered()
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
 	QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
 	i_genotypes.removeAll(-1);
-
 	if (i_genes!=-1 && i_genotypes.count()>0)
 	{
 		//check that a filter was applied (otherwise this can take forever)
@@ -3340,11 +3352,9 @@ void MainWindow::loadSomaticReportConfig()
 	}
 
 	//Preselect filter from NGSD som. rep. conf.
-	if(somatic_report_settings_.report_config->filterName() != "")
-	{
-		ui_.filters->setFilter( somatic_report_settings_.report_config->filterName() );
-		ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
-	}
+	if (somatic_report_settings_.report_config->filterName() != "") ui_.filters->setFilter( somatic_report_settings_.report_config->filterName());
+	if(somatic_report_settings_.report_config->filters().count() != 0) ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
+
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
