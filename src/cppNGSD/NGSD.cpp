@@ -200,32 +200,40 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 	//access restricted only for user role 'user_restricted'
 	if (getUserRole(user_id)!="user_restricted") return true;
 
-	//get permission list
+	QMap<int, QSet<int>>& user_can_access = getCache().user_can_access;
 	QSet<int> ps_ids;
-	SqlQuery query = getQuery();
-	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
-	while(query.next())
+	if (user_can_access.contains(user_id))
 	{
-		Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
-		QVariant data = query.value("data").toString();
-
-		switch(permission)
-		{
-			case Permission::PROJECT:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
-				break;
-			case Permission::PROJECT_TYPE:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
-				break;
-			case Permission::SAMPLE:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
-				break;
-			case Permission::STUDY:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
-				break;
-		}
+		ps_ids = user_can_access.value(user_id);
 	}
+	else
+	{		
+		//get permission list
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
+		while(query.next())
+		{
+			Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+			QVariant data = query.value("data").toString();
 
+			switch(permission)
+			{
+				case Permission::PROJECT:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
+					break;
+				case Permission::PROJECT_TYPE:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
+					break;
+				case Permission::SAMPLE:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
+					break;
+				case Permission::STUDY:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
+					break;
+			}
+		}		
+		user_can_access.insert(user_id, ps_ids);
+	}
 	return ps_ids.contains(ps_id);
 }
 
