@@ -237,6 +237,11 @@
        </column>
        <column>
         <property name="text">
+         <string>CM Fallnummer</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>SAP ID</string>
         </property>
        </column>

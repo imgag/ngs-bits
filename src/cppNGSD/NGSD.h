@@ -1272,6 +1272,7 @@ protected:
 		//gene expression
 		QMap<int, QByteArray> gene_expression_id2gene;
 		QMap<QByteArray, int> gene_expression_gene2id;
+        QMap<int, QSet<int>> user_can_access;
 	};
 	static Cache& getCache();
 	void clearCache();

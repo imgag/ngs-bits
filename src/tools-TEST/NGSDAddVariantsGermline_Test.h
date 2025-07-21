@@ -160,8 +160,8 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_report_config.sql"));
 
 		//try to import variants
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
 
 		//check db content
 		int count = db.getValue("SELECT count(*) FROM variant").toInt();
@@ -246,7 +246,7 @@ private slots:
 		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2024-04-16");
 
 		//check import of Straglr
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in6.vcf"));
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
 		I_EQUAL(count, 30);
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();
