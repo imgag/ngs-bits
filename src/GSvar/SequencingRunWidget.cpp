@@ -808,6 +808,7 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	if (system_types.contains("lrGS"))
 	{
 		qc_metric_accessions_ << "QC:2000131"; // N50 value
+		qc_metric_accessions_ << "QC:2000149"; // Basecall info
 	}
 	if (sample_types.contains("cfDNA"))
 	{
