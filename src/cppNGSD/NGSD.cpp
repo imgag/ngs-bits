@@ -6485,7 +6485,28 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 
 QByteArray NGSD::geneSymbol(int id)
 {
+	QHash<int, QByteArray>& id2gene = getCache().id2gene;
+
+	//check cache first
+	QByteArray gene_symbol = id2gene.value(id, "");
+	if (!gene_symbol.isEmpty())
+	{
+		return gene_symbol;
+	}
+
 	return getValue("SELECT symbol FROM gene WHERE id=" + QString::number(id), false).toByteArray();
+}
+
+void NGSD::addGeneSymbol2Cache(const int& id, const QByteArray& symbol)
+{
+	QHash<int, QByteArray>& id2gene = getCache().id2gene;
+	id2gene.insert(id, symbol);
+}
+
+void NGSD::addGeneId2Cache(const QByteArray& symbol, const int& id)
+{
+	QHash<QByteArray, int>& gene2id = getCache().gene2id;
+	gene2id.insert(symbol, id);
 }
 
 QByteArray NGSD::geneHgncId(int id)

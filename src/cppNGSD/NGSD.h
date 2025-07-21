@@ -763,6 +763,10 @@ public:
 	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
 	///Returns the gene symbol for a gene ID.
 	QByteArray geneSymbol(int id);
+    ///Saves id-gene pairs into a cache for the fast access
+    void addGeneSymbol2Cache(const int& id, const QByteArray& symbol);
+    ///Saves gene-id pairs into a cache for the fast access
+    void addGeneId2Cache(const QByteArray& symbol, const int& id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);
 	///Returns the approved gene symbol or "" if it could not be determined.
@@ -1259,6 +1263,7 @@ protected:
 		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
 		QHash<QByteArray, int> gene2id;
+        QHash<int, QByteArray> id2gene;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;
