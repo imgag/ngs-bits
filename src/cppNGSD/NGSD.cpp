@@ -6398,6 +6398,17 @@ int NGSD::geneId(const QByteArray& gene)
 {
 	QHash<QByteArray, int>& gene2id = getCache().gene2id;
 
+	//fill the cache, if it is empty
+	if (gene2id.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT symbol, id FROM gene");
+		while (query.next())
+		{
+			gene2id[query.value(0).toByteArray()] = query.value(1).toInt();
+		}
+	}
+	
 	//check cache first
 	int cache_id = gene2id.value(gene, -1);
 	if (cache_id!=-1)
@@ -6485,6 +6496,24 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 
 QByteArray NGSD::geneSymbol(int id)
 {
+	QHash<int, QByteArray>& id2gene = getCache().id2gene;
+
+	//fill the cache, if it is empty
+	if (id2gene.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, symbol FROM gene");
+		while (query.next())
+		{
+			id2gene[query.value(0).toInt()] = query.value(1).toByteArray();
+		}
+	}
+
+	QByteArray gene_symbol = id2gene.value(id, "");
+	if (!gene_symbol.isEmpty())
+	{
+		return gene_symbol;
+	}
 	return getValue("SELECT symbol FROM gene WHERE id=" + QString::number(id), false).toByteArray();
 }
 

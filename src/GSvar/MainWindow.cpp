@@ -6735,6 +6735,7 @@ void MainWindow::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
+
             for (const QByteArray& gene : pheno_genes)
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));

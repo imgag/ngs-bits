@@ -1259,6 +1259,7 @@ protected:
 		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
 		QHash<QByteArray, int> gene2id;
+        QHash<int, QByteArray> id2gene;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;
