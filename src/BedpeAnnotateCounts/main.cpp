@@ -372,34 +372,18 @@ private:
 	void parseBedpeGzHead(QString file_path, QByteArray processing_system, QByteArray disease_group)
 	{
 		QTextStream out(stdout);
-		//open input file
-		FILE* instream = fopen(file_path.toUtf8().data(), "rb");
-		if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + file_path + "' for reading!");
-		gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
-		if (file==nullptr) THROW(FileAccessException, "Could not open file '" + file_path + "' for reading!");
 
-		const int buffer_size = 1048576; //1MB buffer
-		char* buffer = new char[buffer_size];
+		//open input file
+		VersatileFile file(file_path);
+		file.open();
 
 		//regex for disease group ID extraction
 		QRegularExpression regex(R"(ID=(GSC\d+))");
 
 		//parse BEDPE GZ file
-		while(!gzeof(file))
+		while(!file.atEnd())
 		{
-			// get next line
-			char* char_array = gzgets(file, buffer, buffer_size);
-			//handle errors like truncated GZ file
-			if (char_array==nullptr)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(file, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading file '" + file_path + "': " + error_message);
-				}
-			}
-			QByteArray line = QByteArray(char_array);
+			QByteArray line = file.readLine();
 
 			//break if headerlines are read
 			if(!line.startsWith("#")) break;
@@ -443,10 +427,6 @@ private:
 		}
 
 		if (disease_group_id_.isEmpty() && disease_group!="") THROW(FileParseException, "Annotation file doesn't contain info about disease group ID for given disease group: '" + disease_group + "'");
-
-		//close file
-		gzclose(file);
-
 
 		//check if all required informations are parsed:
 		if (sample_count_ == 0) out << "WARNING: Annotation file doesn't contain sample count for this processing system! NGSD count annotation will be empty.\n";

@@ -5,6 +5,7 @@
 #include <QTime>
 #include <QMetaMethod>
 #include <QScrollBar>
+#include "Settings.h"
 
 MaintenanceDialog::MaintenanceDialog(QWidget *parent)
 	: QDialog(parent)

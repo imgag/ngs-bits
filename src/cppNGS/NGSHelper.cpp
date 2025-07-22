@@ -2,7 +2,7 @@
 #include "Helper.h"
 #include "FilterCascade.h"
 #include "Log.h"
-
+#include "VersatileTextStream.h"
 #include <QFileInfo>
 
 namespace {
@@ -1121,30 +1121,11 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 	QHash<QByteArray, TranscriptData> transcripts;
 	QHash<QByteArray, QByteArray> gene_to_hgnc;
 
-
-	char* buffer = new char[8192];
-	gzFile gz_file = gzopen(filename.toUtf8().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-	if (gz_file == NULL) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	gzbuffer(gz_file, 131072);
-
-	while(!gzeof(gz_file))
+	VersatileTextStream stream(filename);
+	while(!stream.atEnd())
     {
-		char* line_raw  = gzgets(gz_file, buffer, 8192);
-
-		//handle errors like truncated GZ file
-		if (line_raw==nullptr)
-		{
-			int error_no = Z_OK;
-			QByteArray error_message = gzerror(gz_file, &error_no);
-			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-			{
-				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-			}
-		}
-
-		QByteArray line(buffer);
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
-        if (line.isEmpty()) continue;
+		QByteArray line = stream.readLine(true).toUtf8();
+		if (line.isEmpty()) continue;
 
         //section end => commit data
         if (line=="###")
@@ -1320,10 +1301,6 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			}
 		}
 	}
-
-	//close buffers
-	delete[] buffer;
-	gzclose(gz_file);
 }
 
 
@@ -1347,28 +1324,11 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 	QHash<QByteArray, GeneInfo> geneid_to_data;
 	QHash<QByteArray, TranscriptData> transcripts; //ID > data
 
-	char* buffer = new char[8192];
-	gzFile gz_file = gzopen(filename.toUtf8().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-	if (gz_file == NULL) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	gzbuffer(gz_file, 131072);
 
-	while(!gzeof(gz_file))
+	VersatileTextStream stream(filename);
+	while(!stream.atEnd())
 	{
-		char* line_raw  = gzgets(gz_file, buffer, 8192);
-
-		//handle errors like truncated GZ file
-		if (line_raw==nullptr)
-		{
-			int error_no = Z_OK;
-			QByteArray error_message = gzerror(gz_file, &error_no);
-			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-			{
-				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-			}
-		}
-
-		QByteArray line(buffer);
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+		QByteArray line = stream.readLine().toUtf8();
 		if (line.isEmpty()) continue;
 
 		//skip header lines
@@ -1498,11 +1458,6 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 			}
 		}
 	}
-
-	//close buffers
-	delete[] buffer;
-	gzclose(gz_file);
-
 
 	//convert from TranscriptData to Transcript and append to list
 	output.transcripts.reserve(transcripts.count());

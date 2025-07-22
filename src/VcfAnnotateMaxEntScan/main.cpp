@@ -8,7 +8,7 @@
 #include "ChunkProcessor.h"
 #include "OutputWorker.h"
 #include "ThreadCoordinator.h"
-
+#include "Settings.h"
 
 class ConcreteTool
         : public ToolBase

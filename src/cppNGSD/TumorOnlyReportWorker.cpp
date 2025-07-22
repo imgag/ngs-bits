@@ -7,6 +7,7 @@
 #include "LoginManager.h"
 #include "RtfDocument.h"
 #include "XmlHelper.h"
+#include "Settings.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
 	: config_(config)

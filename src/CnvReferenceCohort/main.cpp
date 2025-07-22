@@ -1,7 +1,6 @@
 #include "ToolBase.h"
 #include "Statistics.h"
 #include "BasicStatistics.h"
-#include <zlib.h>
 #include <QFileInfo>
 #include <QVector>
 #include <QElapsedTimer>
@@ -82,38 +81,14 @@ public:
 	//Function to load a BED file with coverage data (.cov, .bed and gzipped possible)
 	QList<BedLineRepresentation> parseGzFileBedFile(const QString& filename)
 	{
-		const int buffer_size = 1048576;
-		std::vector<char> buffer(buffer_size);
 		QList<BedLineRepresentation> lines;
 
 		//open stream
-		FILE* instream = fopen(filename.toUtf8().data(), "rb");
-		if (!instream)
+		VersatileFile file(filename);
+		file.open();
+		while(!file.atEnd())
 		{
-			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-		}
-		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-		if (!file)
-		{
-			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-		}
-
-		while(!gzeof(file))
-		{
-			char* char_array = gzgets(file, buffer.data(), buffer_size);
-			//handle errors like truncated GZ file
-			if (!char_array)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(file, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-				}
-			}
-
-			QByteArray line(char_array);
-			line = line.trimmed();
+			QByteArray line = file.readLine(false).trimmed();
 			if(line.isEmpty()) continue;
 
 			//skip headers
@@ -142,48 +117,22 @@ public:
 			//append line
 			lines << BedLineRepresentation{fields[0], start, end, depth, fields[0] + "\t" + fields[1] + "\t" + fields[2]};
 		}
-		gzclose(file);
+
 		return lines;
 	}
 
 	//Function to load the coverage profile of a given file (QByteArray determining which lines to include must be provided as well as the number of lines of the main file)
 	void parseGzFileCovProfile(CoverageProfile& cov_profile, const QString& filename, const QBitArray& rows_to_use, int main_file_size, const QList<BedLineRepresentation>& main_file)
 	{
-		const int buffer_size = 1048576;
-		char* buffer = new char[buffer_size];
-
-		//open stream
-		FILE* instream = fopen(filename.toUtf8().data(), "rb");
-		if (!instream)
-		{
-			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-		}
-		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-		if (!file)
-		{
-			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-		}
-
 		int line_index = -1;
 		int row_count = 0;
 
-		while(!gzeof(file))
+		VersatileFile file(filename);
+		file.open();
+		while(!file.atEnd())
 		{
-			char* char_array = gzgets(file, buffer, buffer_size);
-
-			//handle errors like truncated GZ file
-			if (char_array==nullptr)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(file, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-				}
-				continue;
-			}
-
-			QByteArray line(char_array);
+			QByteArray line = file.readLine(true);
+			if (line.isEmpty()) continue;
 
 			//skip headers
 			if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser "))
@@ -220,7 +169,6 @@ public:
 			++row_count;
 			if (!ok) THROW(ArgumentException, "Could not convert depth value " + line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1) + " to double in line: " + line);
 		}
-		gzclose(file);
 
 		++line_index;
 		if (line_index != main_file_size)
@@ -404,23 +352,16 @@ public:
 
 		//Merge coverage profiles and store them in a tsv file
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
-		QVector<gzFile> files;
-		files << gzopen(in.toUtf8().constData(), "rb");
+		QList<QSharedPointer<VersatileFile>> files;
+		QSharedPointer<VersatileFile> file = QSharedPointer<VersatileFile>(new VersatileFile(in));
+		file->open();
+		files << file;
 		foreach(QString ref_file, best_ref_files)
 		{
-			gzFile file = gzopen(ref_file.toUtf8().constData(), "rb");
-			if (file)
-			{
-				files << file;
-			}
-			else
-			{
-				THROW(FileAccessException, "Could not open file for reading: '" + ref_file + "'!")
-			}
+			file = QSharedPointer<VersatileFile>(new VersatileFile(ref_file));
+			file->open();
+			files << file;
 		}
-
-		const int buffer_size = 1048576;
-		std::vector<char> buffer(buffer_size);
 
 		bool done = false;
 		while (!done)
@@ -428,31 +369,22 @@ public:
 			done = true;
 			for (int i = 0; i < files.size(); ++i)
 			{
-				if (gzgets(files[i], buffer.data(), buffer_size) != Z_NULL)
+				QByteArray line = files[i]->readLine();
+				if (line.isEmpty()) continue;
+				TabIndices tab_indices = getTabPosition(line);
+				if (i == 0)
 				{
-					QByteArray line(buffer.data());
-
-					TabIndices tab_indices = getTabPosition(line);
-
-					if (i == 0)
-					{
-						outstream->write(line.left(tab_indices.tab1) + '\t' + line.mid(tab_indices.tab1+1, tab_indices.tab2 - tab_indices.tab1-1) + '\t' + line.mid(tab_indices.tab2+1, tab_indices.tab3 - tab_indices.tab2-1));
-					}
-
-					outstream->write('\t' + line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1));
-					 // If a line was read, we're not done yet
-					done = false;
-
-					if (i == files.size()-1) outstream->write("\n");
+					outstream->write(line.left(tab_indices.tab1) + '\t' + line.mid(tab_indices.tab1+1, tab_indices.tab2 - tab_indices.tab1-1) + '\t' + line.mid(tab_indices.tab2+1, tab_indices.tab3 - tab_indices.tab2-1));
 				}
+
+				outstream->write('\t' + line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1));
+				 // If a line was read, we're not done yet
+				done = false;
+
+				if (i == files.size()-1) outstream->write("\n");
 			}
 		}
-
-		foreach (gzFile file, files)
-		{
-			gzclose(file);
-		}
-		outstream -> close();
+		outstream->close();
 
         if (debug) out << "writing output: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
 	}

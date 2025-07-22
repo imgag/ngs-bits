@@ -1,10 +1,11 @@
 #include "GeneSelectionDialog.h"
 #include "PhenotypeSelectionWidget.h"
 #include "ui_GeneSelectionDialog.h"
-
+#include "Settings.h"
 #include "GUIHelper.h"
 #include "NGSD.h"
 #include "GlobalServiceProvider.h"
+#include "Settings.h"
 
 GeneSelectionDialog::GeneSelectionDialog(QWidget *parent) :
 	QDialog(parent),

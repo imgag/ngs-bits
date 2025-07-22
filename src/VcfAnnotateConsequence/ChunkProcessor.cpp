@@ -1,7 +1,6 @@
 #include "ChunkProcessor.h"
 #include "VcfFile.h"
 #include "ToolBase.h"
-#include <zlib.h>
 #include <QFileInfo>
 #include "Helper.h"
 #include "VcfFile.h"
