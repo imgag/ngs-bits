@@ -367,7 +367,11 @@ void VcfFile::storeAsTsv(const QString& filename)
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
-	stream.setCodec("UTF-8");
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    stream.setEncoding(QStringConverter::Utf8);
+    #else
+    stream.setCodec("UTF-8");
+    #endif
 
 	foreach(const VcfHeaderLine& comment, vcfHeader().comments())
 	{
@@ -463,8 +467,12 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 	{
 		//open stream
 		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
-		QTextStream file_stream(file.data());
-		file_stream.setCodec("UTF-8");
+		QTextStream file_stream(file.data());		
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        file_stream.setEncoding(QStringConverter::Utf8);
+        #else
+        file_stream.setCodec("UTF-8");
+        #endif
 
 		//write header information
 		vcf_header_.storeHeaderInformation(file_stream);
@@ -500,8 +508,12 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 		//write gzipped informations
 		//open stream
 		QString vcf_file;
-		QTextStream stream(&vcf_file);
-		stream.setCodec("UTF-8");
+		QTextStream stream(&vcf_file);		
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        stream.setEncoding(QStringConverter::Utf8);
+        #else
+        stream.setCodec("UTF-8");
+        #endif
 
 		//write header information
 		vcf_header_.storeHeaderInformation(stream);

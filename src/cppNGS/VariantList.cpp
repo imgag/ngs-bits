@@ -904,7 +904,11 @@ void VariantList::store(QString filename) const
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
-	stream.setCodec("UTF-8");
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    stream.setEncoding(QStringConverter::Utf8);
+    #else
+    stream.setCodec("UTF-8");
+    #endif
 
 	//comments
 	if (comments_.count()>0)

@@ -178,7 +178,11 @@ void BedFile::store(QString filename, bool stdout_if_empty) const
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_empty);
 	QTextStream stream(file.data());
-	stream.setCodec("UTF-8");
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    stream.setEncoding(QStringConverter::Utf8);
+    #else
+    stream.setCodec("UTF-8");
+    #endif
 
 	//write headers
 	foreach(const QByteArray& header, headers_)

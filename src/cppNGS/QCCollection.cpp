@@ -201,7 +201,11 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
-	stream.setCodec("UTF-8");
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    stream.setEncoding(QStringConverter::Utf8);
+    #else
+    stream.setCodec("UTF-8");
+    #endif
 
 	//write header
     stream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << QT_ENDL;
