@@ -6398,6 +6398,17 @@ int NGSD::geneId(const QByteArray& gene)
 {
 	QHash<QByteArray, int>& gene2id = getCache().gene2id;
 
+	//fill the cache, if it is empty
+	if (gene2id.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT symbol, id FROM gene");
+		while (query.next())
+		{
+			gene2id[query.value(0).toByteArray()] = query.value(1).toInt();
+		}
+	}
+	
 	//check cache first
 	int cache_id = gene2id.value(gene, -1);
 	if (cache_id!=-1)
@@ -6487,26 +6498,18 @@ QByteArray NGSD::geneSymbol(int id)
 {
 	QHash<int, QByteArray>& id2gene = getCache().id2gene;
 
-	//check cache first
-	QByteArray gene_symbol = id2gene.value(id, "");
-	if (!gene_symbol.isEmpty())
+	//fill the cache, if it is empty
+	if (id2gene.isEmpty())
 	{
-		return gene_symbol;
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, symbol FROM gene");
+		while (query.next())
+		{
+			id2gene[query.value(0).toInt()] = query.value(1).toByteArray();
+		}
 	}
 
-	return getValue("SELECT symbol FROM gene WHERE id=" + QString::number(id), false).toByteArray();
-}
-
-void NGSD::addGeneSymbol2Cache(const int& id, const QByteArray& symbol)
-{
-	QHash<int, QByteArray>& id2gene = getCache().id2gene;
-	id2gene.insert(id, symbol);
-}
-
-void NGSD::addGeneId2Cache(const QByteArray& symbol, const int& id)
-{
-	QHash<QByteArray, int>& gene2id = getCache().gene2id;
-	gene2id.insert(symbol, id);
+	return id2gene.value(id, "");
 }
 
 QByteArray NGSD::geneHgncId(int id)
