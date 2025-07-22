@@ -6509,13 +6509,11 @@ QByteArray NGSD::geneSymbol(int id)
 		}
 	}
 
-	//check cache first
 	QByteArray gene_symbol = id2gene.value(id, "");
 	if (!gene_symbol.isEmpty())
 	{
 		return gene_symbol;
 	}
-
 	return getValue("SELECT symbol FROM gene WHERE id=" + QString::number(id), false).toByteArray();
 }
 
