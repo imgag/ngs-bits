@@ -311,7 +311,7 @@ private slots:
         S_EQUAL(first_line.trimmed(), "<!doctype html>");
         I_EQUAL(index_page_file->pos(), 16);
         index_page_file->seek(10);
-        QByteArray line_fragment = index_page_file->read(3);
+        QByteArray line_fragment = index_page_file->read(4);
         S_EQUAL(line_fragment, "html");
         I_EQUAL(index_page_file->pos(), 13);
     }
