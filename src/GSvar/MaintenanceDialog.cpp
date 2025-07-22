@@ -2,6 +2,7 @@
 #include "Helper.h"
 #include "NGSD.h"
 #include "GenLabDB.h"
+#include "Settings.h"
 #include <QTime>
 #include <QMetaMethod>
 #include <QScrollBar>

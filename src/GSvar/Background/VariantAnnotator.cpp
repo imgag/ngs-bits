@@ -2,6 +2,7 @@
 #include "LoginManager.h"
 #include "ApiCaller.h"
 #include "GlobalServiceProvider.h"
+#include "Settings.h"
 
 VariantAnnotator::VariantAnnotator(const VariantList& variants)
 	: BackgroundWorkerBase("Variant annnotation")

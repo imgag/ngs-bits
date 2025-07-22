@@ -8,6 +8,7 @@
 #include "GeneInfoDBs.h"
 #include "GenomeVisualizationWidget.h"
 #include "ColumnConfig.h"
+#include "Settings.h"
 #include <QBitArray>
 #include <QApplication>
 #include <QClipboard>

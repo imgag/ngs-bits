@@ -13,6 +13,7 @@
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
+#include "Settings.h"
 #include <QMessageBox>
 #include "AnalysisInformationWidget.h"
 #include "ExpressionGeneWidget.h"

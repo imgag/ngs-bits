@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QTextEdit>
 #include "GSvarHelper.h"
+#include "Settings.h"
 
 
 BurdenTestWidget::BurdenTestWidget(QWidget *parent) :

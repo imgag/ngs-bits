@@ -2,6 +2,7 @@
 #include "VariantType.h"
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
+#include "Settings.h"
 
 #include <QCheckBox>
 #include <QFileDialog>

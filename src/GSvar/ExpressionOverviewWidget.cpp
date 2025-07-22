@@ -6,6 +6,7 @@
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "PhenotypeSelectionWidget.h"
+#include "Settings.h"
 #include <QCheckBox>
 #include <QMessageBox>
 

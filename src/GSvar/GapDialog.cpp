@@ -5,6 +5,7 @@
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include "Log.h"
+#include "Settings.h"
 #include <QMessageBox>
 #include <QMenu>
 
