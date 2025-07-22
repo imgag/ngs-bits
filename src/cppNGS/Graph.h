@@ -475,7 +475,11 @@ void Graph<NodeType, EdgeType>::store(const QString& file)
 {
     QSharedPointer<QFile> writer = Helper::openFileForWriting(file);
 	QTextStream stream(writer.data());
-	stream.setCodec("UTF-8");
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    stream.setEncoding(QStringConverter::Utf8);
+    #else
+    stream.setCodec("UTF-8");
+    #endif
 
     QList<QPair<QString, QString>> sorted_edge_list = edge_list_.values();
 
