@@ -4,6 +4,7 @@
 #include "Transcript.h"
 #include "NGSD.h"
 #include <QDate>
+#include "Settings.h"
 
 class ConcreteTool
 		: public ToolBase

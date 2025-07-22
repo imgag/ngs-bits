@@ -12,8 +12,6 @@
 #include <QBitArray>
 #include <QUrl>
 
-#include <zlib.h>
-
 Variant::Variant()
 	: chr_()
 	, start_(-1)
@@ -810,8 +808,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 	int filter_index = -1;
 	while(!file->atEnd())
 	{
-		QByteArray line = file->readLine();
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+		QByteArray line = file->readLine(true);
 
 		//skip empty lines
 		if(line.length()==0) continue;
@@ -907,6 +904,7 @@ void VariantList::store(QString filename) const
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
+	stream.setCodec("UTF-8");
 
 	//comments
 	if (comments_.count()>0)

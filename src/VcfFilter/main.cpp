@@ -6,6 +6,7 @@
 #include "Helper.h"
 #include <QFile>
 #include <QRegularExpression>
+#include "Settings.h"
 
 struct FilterDefinition
 {

@@ -261,6 +261,7 @@ void CnvList::store(QString filename)
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
+	stream.setCodec("UTF-8");
 
 	//write header lines
 

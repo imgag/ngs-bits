@@ -29,7 +29,7 @@ public:
 		QTextStream outstream(outfile.data());
 
 		//process
-		FastqFileStream stream( getInfile("in"), false);
+		FastqFileStream stream(getInfile("in"), false);
 		FastqEntry entry;
 		while (!stream.atEnd())
 		{

@@ -38,6 +38,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 {
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(filename);
 	QTextStream stream(outfile.data());
+	stream.setCodec("UTF-8");
 	writeHtmlHeader(stream, data_.ps);
 
 	//get trio data
@@ -2154,6 +2155,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
 	QTextStream stream(file.data());
+	stream.setCodec("UTF-8");
 
 	//write header
     stream << "<html>" << QT_ENDL;

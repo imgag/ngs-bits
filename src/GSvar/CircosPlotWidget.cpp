@@ -44,7 +44,7 @@ void CircosPlotWidget::loadCircosPlot(QString filename)
 {
 	// load plot file
 	VersatileFile file(filename);
-	if (!file.open(QIODevice::ReadOnly))
+	if (!file.open(QIODevice::ReadOnly, false))
 	{
 		QMessageBox::warning(this, "Read error", "Could not open a circos plot image file: '" + filename);
 		return;

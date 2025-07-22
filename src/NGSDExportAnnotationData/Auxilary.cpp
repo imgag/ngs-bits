@@ -1,6 +1,7 @@
 #include "Auxilary.h"
 #include "Helper.h"
 #include <QDir>
+#include <QCoreApplication>
 
 QByteArray getTimeString(double milliseconds)
 {

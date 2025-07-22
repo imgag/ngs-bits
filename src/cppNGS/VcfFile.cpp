@@ -1,7 +1,6 @@
 #include "VcfFile.h"
 #include "Helper.h"
 #include <QFileInfo>
-#include <zlib.h>
 
 VcfFile::VcfFile()
 	: vcf_lines_()
@@ -321,10 +320,9 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
 		while(!file->atEnd())
 		{
-			QByteArray line = file->readLine();
+			QByteArray line = file->readLine(true);
 			processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
 		}
-		file->close();
 	}
 	else
 	{
@@ -335,43 +333,14 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 		bool is_wgs = (extension=="VCF" && mb>200) || (extension=="GZ" && mb>35);
 		vcf_lines_.reserve(is_wgs ? 5000000 : 80000);
 
-		const int buffer_size = 1048576; //1MB buffer
-		char* buffer = new char[buffer_size];
 		//open stream
-		FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toUtf8().data(), "rb");
-		if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-		if (file==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-
-		while(!gzeof(file))
+		VersatileFile file(filename);
+		file.open();
+		while(!file.atEnd())
 		{
-			char* char_array = gzgets(file, buffer, buffer_size);
-			//handle errors like truncated GZ file
-			if (char_array==nullptr)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(file, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-				}
-
-				continue;
-			}
-
-			//determine end of read line
-			int i=0;
-			while(i<buffer_size && char_array[i]!='\0' && char_array[i]!='\n' && char_array[i]!='\r')
-			{
-				++i;
-			}
-
-			QByteArray line = QByteArray::fromRawData(char_array, i);
-
+			QByteArray line = file.readLine(true);
 			processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
 		}
-		gzclose(file);
-		delete[] buffer;
 	}
 }
 
@@ -398,6 +367,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
+	stream.setCodec("UTF-8");
 
 	foreach(const VcfHeaderLine& comment, vcfHeader().comments())
 	{
@@ -494,6 +464,7 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 		//open stream
 		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
 		QTextStream file_stream(file.data());
+		file_stream.setCodec("UTF-8");
 
 		//write header information
 		vcf_header_.storeHeaderInformation(file_stream);
@@ -530,6 +501,7 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 		//open stream
 		QString vcf_file;
 		QTextStream stream(&vcf_file);
+		stream.setCodec("UTF-8");
 
 		//write header information
 		vcf_header_.storeHeaderInformation(stream);
@@ -971,12 +943,8 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 
 bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines, bool duplicates)
 {
-	//open input file
-	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toUtf8().data(), "rb");
-	if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
-	if (file==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	
+	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
+
 	//open reference genome
 	FastaFileIndex reference(ref_file);
 
@@ -1011,37 +979,14 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	bool error_found = false;
 	int c_data = 0;
 	int l = 0;
-	const int buffer_size = 1048576; //1MB buffer
-	char* buffer = new char[buffer_size];
-	while(!gzeof(file) && c_data<max_lines)
+	while(!file->atEnd() && c_data<max_lines)
 	{
 		++l;
 
 		// get next line
-		char* char_array = gzgets(file, buffer, buffer_size);
-
-		//handle errors like truncated GZ file
-		if (char_array==nullptr)
-		{
-			int error_no = Z_OK;
-			QByteArray error_message = gzerror(file, &error_no);
-			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-			{
-				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-			}
-			
-			continue;
-		}
-		
-		//determine end of read line
-		int i=0;
-		while(i<buffer_size && char_array[i]!='\0' && char_array[i]!='\n' && char_array[i]!='\r')
-		{
-			++i;
-		}
+		QByteArray line = file->readLine(false).trimmed();
 		
 		//skip empty lines
-		QByteArray line = QByteArray::fromRawData(char_array, i).trimmed();
 		if (line.isEmpty()) continue;
 
 		//check first line (VCF format)
@@ -1447,10 +1392,6 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 		}
 	}
 	
-	//delete resources
-	gzclose(file);
-	delete[] buffer;
-
 	//output infos
 	if (print_general_information)
 	{
