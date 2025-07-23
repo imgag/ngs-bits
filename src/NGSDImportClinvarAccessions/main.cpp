@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "Settings.h"
 
 #include <ChainFileReader.h>
 

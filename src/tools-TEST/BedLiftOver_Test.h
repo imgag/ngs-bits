@@ -1,4 +1,5 @@
 #include "TestFramework.h"
+#include "Settings.h"
 
 TEST_CLASS(BedLiftOver_Test)
 {

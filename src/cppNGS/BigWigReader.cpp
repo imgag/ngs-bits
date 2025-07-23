@@ -2,7 +2,6 @@
 #include "Exceptions.h"
 #include <QDataStream>
 #include <iostream>
-#include <zlib.h>
 #include <Log.h>
 #include <QRegularExpression>
 #include "Chromosome.h"
@@ -15,10 +14,7 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath)
     , fp_(new VersatileFile(bigWigFilepath))
 {
 	//init
-    if (!fp_->open(QFile::ReadOnly))
-	{
-		THROW(FileAccessException, "Could not open file for reading: '" + bigWigFilepath + "'!");
-	}
+	fp_->open();
 	buffer_.clear();
 
 	parseInfo();

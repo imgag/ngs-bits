@@ -761,7 +761,7 @@ public:
 	int geneId(const QByteArray& gene);
 	///Returns the gene ID of the transcript, or -1 if no gene could be determined.
 	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
-	///Returns the gene symbol for a gene ID.
+	///Returns the gene symbol for a gene ID. Throws a DatabaseException if the ID is not valid.
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);

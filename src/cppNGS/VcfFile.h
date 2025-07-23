@@ -7,8 +7,6 @@
 #include "VariantList.h"
 #include "htslib/bgzf.h"
 
-#include <zlib.h>
-
 #define BGZF_NO_COMPRESSION         10
 #define BGZF_GZIP_COMPRESSION		0
 #define BGZF_BEST_SPEED             1

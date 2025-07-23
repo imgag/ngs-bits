@@ -3,6 +3,7 @@
 #include "Exceptions.h"
 #include "ChainFileReader.h"
 #include "Helper.h"
+#include "Settings.h"
 
 class ConcreteTool
 		: public ToolBase

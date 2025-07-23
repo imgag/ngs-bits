@@ -8,6 +8,7 @@
 #include "PhenotypeSelectionWidget.h"
 #include <QCheckBox>
 #include <QMessageBox>
+#include "Settings.h"
 
 struct ExpressioData
 {

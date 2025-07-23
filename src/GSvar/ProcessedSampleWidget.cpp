@@ -24,6 +24,7 @@
 #include <QDir>
 #include <QDesktopServices>
 #include <QInputDialog>
+#include "Settings.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)

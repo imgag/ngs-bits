@@ -6509,12 +6509,13 @@ QByteArray NGSD::geneSymbol(int id)
 		}
 	}
 
-	QByteArray gene_symbol = id2gene.value(id, "");
-	if (!gene_symbol.isEmpty())
+	//exception if invalid ID
+	if (!id2gene.contains(id))
 	{
-		return gene_symbol;
+		THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
 	}
-	return getValue("SELECT symbol FROM gene WHERE id=" + QString::number(id), false).toByteArray();
+
+	return id2gene[id];
 }
 
 QByteArray NGSD::geneHgncId(int id)
@@ -10233,6 +10234,7 @@ void NGSD::clearCache()
 	cache_instance.related_samples.clear();
 	cache_instance.approved_gene_names.clear();
 	cache_instance.gene2id.clear();
+	cache_instance.id2gene.clear();
 	cache_instance.enum_values.clear();
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();

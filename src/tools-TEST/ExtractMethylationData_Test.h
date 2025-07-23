@@ -1,5 +1,5 @@
 #include "TestFramework.h"
-
+#include "Settings.h"
 
 TEST_CLASS(ExtractMethylationData_Test)
 {

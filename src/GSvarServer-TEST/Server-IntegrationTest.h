@@ -301,6 +301,7 @@ private slots:
         }
 
         QSharedPointer<VersatileFile> index_page_file(new VersatileFile(html_file));
+        index_page_file.data()->open(QIODevice::ReadOnly);
         QByteArray index_page_content = index_page_file->readAll();
         S_EQUAL(asset_file_content, index_page_content);
 
