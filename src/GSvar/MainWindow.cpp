@@ -6522,6 +6522,7 @@ void MainWindow::showNotification(QString text)
 	QToolTip::showText(pos, text);
 }
 
+//TODO Marc: disable phenotype filter after ranking (instead of clearing it)
 void MainWindow::variantRanking()
 {
 	if (filename_.isEmpty()) return;

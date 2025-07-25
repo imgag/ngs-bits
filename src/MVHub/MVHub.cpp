@@ -263,7 +263,6 @@ void MVHub::updateTableFilters()
 		int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
 		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
 		int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
-		int c_genlab = GUIHelper::columnIndex(ui_.table, "GenLab");
 		int c_report_date = GUIHelper::columnIndex(ui_.table, "Befunddatum");
 		int c_te_retracted = GUIHelper::columnIndex(ui_.table, "Kündigung TE");
 
@@ -278,7 +277,7 @@ void MVHub::updateTableFilters()
 			}
 
 			//base data available
-			if (getString(r, c_case_id)=="" || getString(r, c_network_id)=="" || getString(r, c_consent)=="" || getString(r, c_genlab)=="")
+			if (getString(r, c_case_id)=="" || getString(r, c_network_id)=="" || getString(r, c_consent)=="")
 			{
 				visible[r] = false;
 				continue;
@@ -362,9 +361,9 @@ void MVHub::loadGenLabData()
 
 		ui_.output->appendPlainText("Getting GenLab data for "+ps+"...");
 
+		//TODO remove if not needed anymore when starting production mode
 		QStringList gl_data;
 		gl_data << "<item>";
-		gl_data << "  <accounting_mode>" + genlab.accountingData(ps).accounting_mode + "</accounting_mode>";
 		gl_data << "</item>";
 
 		QString gl_string = gl_data.join("\n");
