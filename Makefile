@@ -233,6 +233,7 @@ download_test_files:
 #################################### 3rd party  ##################################
 
 build_htslib:
+	unzip htslib/htslib_linux.zip -d ./htslib/
 	chmod 755 htslib/configure
 	cd htslib && ./configure --prefix=$(PWD)/htslib/ --enable-libcurl
 	cd htslib && make install
@@ -240,8 +241,7 @@ build_htslib:
 	cp htslib/lib/libhts.* bin/
 
 clean_htslib:
-	cd htslib && make clean
-	rm -rf htslib/share htslib/lib htslib/include htslib/bin bin/libhts*
+	@if [ -d htslib/lib ]; then cd htslib && make clean; rm -rf htslib/share htslib/lib htslib/include htslib/bin bin/libhts*; fi;
 
 clean_3rdparty: clean_htslib
 
