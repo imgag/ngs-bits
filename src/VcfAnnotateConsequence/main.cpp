@@ -104,7 +104,6 @@ public:
 		params.in = in_file;
 		params.out = out_file;
 
-
 		//parse GFF file
 		QTextStream stream(stdout);
         QElapsedTimer timer;

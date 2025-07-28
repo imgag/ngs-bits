@@ -391,6 +391,8 @@ QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 			QByteArray relation = query.value(0).toByteArray().toUpper();
 			if (relation=="VATER") relation = "parent-child";
 			else if (relation=="MUTTER") relation = "parent-child";
+			else if (relation=="VATER (FET)") relation = "parent-child";
+			else if (relation=="MUTTER (FET)") relation = "parent-child";
 			else if (relation=="SCHWESTER") relation = "siblings";
 			else if (relation=="BRUDER") relation = "siblings";
 			else if (relation=="ZWILLINGSSCHWESTER") relation = "twins";

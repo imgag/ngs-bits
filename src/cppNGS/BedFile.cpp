@@ -126,11 +126,10 @@ void BedFile::load(QString filename, bool stdin_if_empty, bool read_annotations)
 	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, stdin_if_empty);
 	while(!file->atEnd())
 	{
-		QByteArray line = file->readLine();
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+		QByteArray line = file->readLine(true);
 
 		//skip empty lines
-		if(line.length()==0) continue;
+		if(line.isEmpty()) continue;
 
 		//store headers
 		if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser ") || line.startsWith("Chromosome\tStart\tEnd"))
@@ -179,6 +178,11 @@ void BedFile::store(QString filename, bool stdout_if_empty) const
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_empty);
 	QTextStream stream(file.data());
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    stream.setEncoding(QStringConverter::Utf8);
+    #else
+    stream.setCodec("UTF-8");
+    #endif
 
 	//write headers
 	foreach(const QByteArray& header, headers_)

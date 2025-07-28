@@ -1,6 +1,7 @@
 #include "ToolBase.h"
 #include "BamReader.h"
 #include "Helper.h"
+#include "Settings.h"
 
 #include <HttpRequestHandler.h>
 #include <ProxyDataService.h>

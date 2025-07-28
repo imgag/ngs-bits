@@ -6,13 +6,16 @@ TARGET = MVHub
 TEMPLATE = app
 
 SOURCES += main.cpp \
+    ExportHistoryDialog.cpp \
     HttpHandler.cpp \
     MVHub.cpp
 
 HEADERS += MVHub.h \
+	ExportHistoryDialog.h \
 	HttpHandler.h
 
-FORMS    += MVHub.ui
+FORMS    += MVHub.ui \
+    ExportHistoryDialog.ui
 
 include("../app_gui.pri")
 

@@ -76,7 +76,6 @@ void SomaticDataTransferWidget::uploadXML()
 
 			QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(xml_path_);
 			res =  http_handler_.post(xml_url_ + "/mtb_imgag", file->readAll(), add_headers);
-			file->close();
 		}
 		catch(Exception& e)
 		{

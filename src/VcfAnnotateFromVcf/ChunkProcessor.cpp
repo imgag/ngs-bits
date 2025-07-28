@@ -1,7 +1,6 @@
 #include "ChunkProcessor.h"
 #include "VcfFile.h"
 #include "TabixIndexedFile.h"
-#include <zlib.h>
 #include <QFileInfo>
 
 ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, Parameters& params)
@@ -125,26 +124,11 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 	QByteArrayList info_header_lines;
 	id_column_idx = id_column_name.isEmpty() ? -1 : 2;
 
-	//read binary: always open in binary mode because windows and mac open in text mode
-	gzFile vcfgz_file = gzopen(vcf_file_path, "rb");
-	if (vcfgz_file==NULL) THROW(FileAccessException, "Could not open file '" + vcf_file_path + "' for reading!");
-
-	const int buffer_size = 1048576; //1MB buffer
-	char* buffer = new char[buffer_size];
-	while(!gzeof(vcfgz_file))
+	VersatileFile file(vcf_file_path);
+	file.open();
+	while(!file.atEnd())
 	{
-
-		char* char_array = gzgets(vcfgz_file, buffer, buffer_size);
-
-		//handle errors like truncated GZ file
-		if (char_array==nullptr)
-		{
-			int error_no = Z_OK;
-			QByteArray error_string = gzerror(vcfgz_file, &error_no);
-			if (error_no!=Z_OK && error_no!=Z_STREAM_END) THROW(FileAccessException, "Error while reading file '" + vcf_file_path + "': " + error_string);
-		}
-
-		QByteArray line = QByteArray(char_array);
+		QByteArray line = file.readLine();
 
 		//skip empty lines
 		if (line.trimmed().isEmpty()) continue;
@@ -164,8 +148,6 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 			}
 		}
 	}
-	gzclose(vcfgz_file);
-	delete[] buffer;
 
 	if (info_ids.size() > 0)
 	{

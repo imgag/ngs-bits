@@ -1,5 +1,4 @@
 #include "VcfToBedpe.h"
-#include "zlib.h"
 #include "VariantList.h"
 #include "Exceptions.h"
 #include "Helper.h"
@@ -196,27 +195,6 @@ struct VcfToBedpe::BedpeLineInternal
 	}
 };
 
-QByteArray VcfToBedpe::getLine()
-{
-	char* char_array = gzgets(file_,buffer_,buffer_size_);
-	
-	//handle errors like truncated GZ file
-	if (char_array==nullptr)
-	{
-		int error_no = Z_OK;
-		QByteArray error_message = gzerror(file_, &error_no);
-		if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-		{
-			THROW(FileParseException, "Error while reading file '" + filename_ + "': " + error_message);
-		}
-	}
-
-	QByteArray line(char_array);
-	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
-
-	return line;
-}
-
 void VcfToBedpe::addHeaderInfoFieldAfter(const QByteArray& before, const QByteArray &key, const QByteArray &type, int number, const QByteArray &desc)
 {
 	for(int i=0;i<out_headers_.count();++i)
@@ -231,22 +209,13 @@ void VcfToBedpe::addHeaderInfoFieldAfter(const QByteArray& before, const QByteAr
 }
 
 VcfToBedpe::VcfToBedpe(const QByteArray& filename)
+	: filename_(filename)
+	, file_(filename)
 {
-	//set buffer size for gz file line
-	filename_ = filename;
-	buffer_size_ = 1048576; //1MB buffer
-	buffer_ = new char[buffer_size_];
-
-	file_ = gzopen(filename.data(),"rb");
-	if (file_ == NULL)
+	file_.open();
+	while(!file_.atEnd())
 	{
-		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	}
-	
-	//Parse headers
-	while(!gzeof(file_))
-	{
-		QByteArray line = getLine();
+		QByteArray line = file_.readLine(true);
 
 		//Parse vcf header
 		if(line.startsWith("#"))
@@ -457,10 +426,9 @@ void VcfToBedpe::convert(QString out_file)
 	QMap<QByteArray,VcfLineInternal> complex_lines; //complex lines: have two parts in original file, need to be treated different
 
 	//Continues after header lines (were parsed in constructor already)
-	while(!gzeof(file_))
+	while(!file_.atEnd())
 	{
-		QByteArray raw_line = getLine().trimmed();
-
+		QByteArray raw_line = file_.readLine().trimmed();
 		if(raw_line.isEmpty() || raw_line.startsWith("#")) continue;
 
 		VcfLineInternal line_in(raw_line);

@@ -68,6 +68,8 @@ ExpressionGeneWidget::ExpressionGeneWidget(QString tsv_filename, int sys_id, QSt
 	connect(ui_->rb_somatic, SIGNAL(toggled(bool)), this, SLOT(toggleCohortStats()));
 	connect(ui_->rb_custom, SIGNAL(toggled(bool)), this, SLOT(toggleCohortStats()));
 	connect(ui_->cb_sample_quality, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleCohortStats()));
+	connect(ui_->cb_filter_by_gender, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleCohortStats()));
+
 
 
 
@@ -164,12 +166,14 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 		}
 
 		QStringList exclude_quality = getQualityFilter();
+		QString gender = ui_->cb_filter_by_gender->currentText();
 
-		if ((cohort_type != cohort_type_) || (exclude_quality != exclude_quality_) || ((cohort_type == RNA_COHORT_CUSTOM) && (cohort_ != custom_cohort_)))
+		if ((cohort_type != cohort_type_) || (exclude_quality != exclude_quality_) || ((cohort_type == RNA_COHORT_CUSTOM) && (cohort_ != custom_cohort_)) || (gender != gender_))
 		{
 			//update cohort determination strategy
 			cohort_type_ = cohort_type;
 			exclude_quality_ = exclude_quality;
+			gender_ = gender;
 			updateCohort();
 		}
 
@@ -687,6 +691,9 @@ void ExpressionGeneWidget::toggleUICustomCohort()
 {
 	ui_->b_set_custom_cohort->setEnabled(ui_->rb_custom->isChecked());
 	ui_->cb_sample_quality->setEnabled(!ui_->rb_custom->isChecked());
+	ui_->l_sample_quality->setEnabled(!ui_->rb_custom->isChecked());
+	ui_->l_filter_by_gender->setEnabled(!ui_->rb_custom->isChecked());
+	ui_->cb_filter_by_gender->setEnabled(!ui_->rb_custom->isChecked());
 }
 
 void ExpressionGeneWidget::toggleCohortStats(bool enable)
@@ -708,7 +715,7 @@ void ExpressionGeneWidget::updateCohort()
 	}
 	else
 	{
-		cohort_ = db_.getRNACohort(sys_id_, tissue_, project_, ps_id_, cohort_type_, "genes", exclude_quality_, false);
+		cohort_ = db_.getRNACohort(sys_id_, tissue_, project_, ps_id_, cohort_type_, "genes", exclude_quality_, gender_, false);
 	}
 
 	//update NGSD query
@@ -736,13 +743,11 @@ void ExpressionGeneWidget::loadExpressionData()
 		//parse TSV file
 		while (!expression_data_file->atEnd())
 		{
-			QString line = expression_data_file->readLine().replace("\r", "").replace("\n", "");
-			if (line == "")
-			{
-				// skip empty lines
-				continue;
-			}
-			else if	(line.startsWith("##"))
+			QString line = expression_data_file->readLine(true);
+			// skip empty lines
+			if (line.isEmpty()) continue;
+
+			if	(line.startsWith("##"))
 			{
 				expression_data_.addComment(line);
 			}

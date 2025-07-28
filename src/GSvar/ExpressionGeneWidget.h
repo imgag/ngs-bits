@@ -64,6 +64,7 @@ private:
 	RnaCohortDeterminationStategy cohort_type_;
 	QSet<int> custom_cohort_;
 	QStringList exclude_quality_;
+	QString gender_ = "all";
 
 	//db
 	NGSD db_;

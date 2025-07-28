@@ -15,6 +15,7 @@
 #include <QHeaderView>
 #include <QDesktopServices>
 #include <QMenu>
+#include "Settings.h"
 
 VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)

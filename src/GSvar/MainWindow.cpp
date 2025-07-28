@@ -908,7 +908,6 @@ void MainWindow::on_actionCNV_triggered()
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
 	QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
 	i_genotypes.removeAll(-1);
-
 	if (i_genes!=-1 && i_genotypes.count()>0)
 	{
 		//check that a filter was applied (otherwise this can take forever)
@@ -1444,8 +1443,6 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	// Workaround to manual add panels for non patient-specific processing systems
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)' OR type='cfDNA'");
-	//TODO: reactivate
-//	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
 	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
@@ -3353,11 +3350,9 @@ void MainWindow::loadSomaticReportConfig()
 	}
 
 	//Preselect filter from NGSD som. rep. conf.
-	if(somatic_report_settings_.report_config->filterName() != "")
-	{
-		ui_.filters->setFilter( somatic_report_settings_.report_config->filterName() );
-		ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
-	}
+	if (somatic_report_settings_.report_config->filterName() != "") ui_.filters->setFilter( somatic_report_settings_.report_config->filterName());
+	if(somatic_report_settings_.report_config->filters().count() != 0) ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
+
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
@@ -6738,6 +6733,7 @@ void MainWindow::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
+
             for (const QByteArray& gene : pheno_genes)
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));

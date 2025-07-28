@@ -200,32 +200,40 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 	//access restricted only for user role 'user_restricted'
 	if (getUserRole(user_id)!="user_restricted") return true;
 
-	//get permission list
+	QMap<int, QSet<int>>& user_can_access = getCache().user_can_access;
 	QSet<int> ps_ids;
-	SqlQuery query = getQuery();
-	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
-	while(query.next())
+	if (user_can_access.contains(user_id))
 	{
-		Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
-		QVariant data = query.value("data").toString();
-
-		switch(permission)
-		{
-			case Permission::PROJECT:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
-				break;
-			case Permission::PROJECT_TYPE:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
-				break;
-			case Permission::SAMPLE:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
-				break;
-			case Permission::STUDY:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
-				break;
-		}
+		ps_ids = user_can_access.value(user_id);
 	}
+	else
+	{		
+		//get permission list
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
+		while(query.next())
+		{
+			Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+			QVariant data = query.value("data").toString();
 
+			switch(permission)
+			{
+				case Permission::PROJECT:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
+					break;
+				case Permission::PROJECT_TYPE:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
+					break;
+				case Permission::SAMPLE:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
+					break;
+				case Permission::STUDY:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
+					break;
+			}
+		}		
+		user_can_access.insert(user_id, ps_ids);
+	}
 	return ps_ids.contains(ps_id);
 }
 
@@ -2500,7 +2508,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	timer.start();
 
 	//get cohort
-	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", exclude_quality, debug);
+	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", exclude_quality, "all", debug);
 
 	QMap<QByteArray, ExpressionStats> expression_stats = calculateGeneExpressionStatistics(cohort);
 
@@ -2508,7 +2516,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	return expression_stats;
 }
 
-QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, bool debug)
+QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, const QString& gender, bool debug)
 {
     QElapsedTimer timer;
 	timer.start();
@@ -2552,6 +2560,12 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		{
 			query_string_cohort.append(" AND ps.quality NOT IN ('" + exclude_quality.join("', '") + "')");
 		}
+
+		// apply gender filter
+		if (gender == "male") query_string_cohort.append(" AND s.gender = 'male'");
+		else if (gender == "female") query_string_cohort.append(" AND s.gender = 'female'");
+		else if (gender != "all") THROW(ArgumentException, "Invalid gender '" + gender + "' provided!");
+
 
 		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT)
 		{
@@ -2621,6 +2635,11 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		{
 			query_string_cohort.append("AND ps.quality NOT IN ('" + exclude_quality.join("', '") + "') ");
 		}
+
+		// apply gender filter
+		if (gender == "male") query_string_cohort.append("AND s.gender = 'male' ");
+		else if (gender == "female") query_string_cohort.append(" AND s.gender = 'female' ");
+		else if (gender != "all") THROW(ArgumentException, "Invalid gender '" + gender + "' provided!");
 
 
         cohort = LIST_TO_SET(getValuesInt(query_string_cohort));
@@ -3846,6 +3865,7 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 			else if(type=="timestamp") info.type = TableFieldInfo::TIMESTAMP;
 			else if(type=="tinyint(1)") info.type = TableFieldInfo::BOOL;
 			else if(type=="int" || type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
+			else if (type=="bigint" || type.startsWith("bigint(")) info.type = TableFieldInfo::LONG;
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
@@ -3905,7 +3925,7 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 					info.fk_field = query_fk.value(2).toString();
 
 					//set type
-					if (info.type!=TableFieldInfo::FK && info.type!=TableFieldInfo::INT)
+					if (info.type!=TableFieldInfo::FK && info.type!=TableFieldInfo::INT && info.type!=TableFieldInfo::LONG)
 					{
 						THROW(ProgrammingException, "Found SQL foreign key with non-integer type '" + type + "' in field '" + info.name + "' of table '" + table + "'!");
 					}
@@ -6378,6 +6398,17 @@ int NGSD::geneId(const QByteArray& gene)
 {
 	QHash<QByteArray, int>& gene2id = getCache().gene2id;
 
+	//fill the cache, if it is empty
+	if (gene2id.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT symbol, id FROM gene");
+		while (query.next())
+		{
+			gene2id[query.value(0).toByteArray()] = query.value(1).toInt();
+		}
+	}
+	
 	//check cache first
 	int cache_id = gene2id.value(gene, -1);
 	if (cache_id!=-1)
@@ -6465,7 +6496,26 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 
 QByteArray NGSD::geneSymbol(int id)
 {
-	return getValue("SELECT symbol FROM gene WHERE id=" + QString::number(id), false).toByteArray();
+	QHash<int, QByteArray>& id2gene = getCache().id2gene;
+
+	//fill the cache, if it is empty
+	if (id2gene.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, symbol FROM gene");
+		while (query.next())
+		{
+			id2gene[query.value(0).toInt()] = query.value(1).toByteArray();
+		}
+	}
+
+	//exception if invalid ID
+	if (!id2gene.contains(id))
+	{
+		THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
+	}
+
+	return id2gene[id];
 }
 
 QByteArray NGSD::geneHgncId(int id)
@@ -9732,6 +9782,9 @@ QString TableFieldInfo::typeToString(TableFieldInfo::Type type)
 		case INT:
 			return "INT";
 			break;
+		case LONG:
+			return "LONG";
+			break;
 		case FLOAT:
 			return "FLOAT";
 			break;
@@ -9785,6 +9838,13 @@ bool TableFieldInfo::isValid(QString text) const
 				return ok && !(is_unsigned && tmp<0);
 			}
 			break;
+		case LONG:
+		{
+			bool ok = false;
+			int tmp = text.toLongLong(&ok);
+			return ok && !(is_unsigned && tmp<0);
+		}
+		break;
 		case FLOAT:
 			{
 				bool ok = false;
@@ -9835,6 +9895,28 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 			{
 				bool ok = true;
 				int value_numeric = value.toInt(&ok);
+				if (!ok)
+				{
+					errors << "Cannot be converted to a integer number!";
+				}
+				else if (field_info.is_unsigned && value_numeric<0)
+				{
+					errors << "Must not be negative!";
+				}
+			}
+			break;
+		case TableFieldInfo::LONG:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check if numeric
+			if (!value.isEmpty())
+			{
+				bool ok = true;
+				long long value_numeric = value.toLongLong(&ok);
 				if (!ok)
 				{
 					errors << "Cannot be converted to a integer number!";
@@ -10152,6 +10234,7 @@ void NGSD::clearCache()
 	cache_instance.related_samples.clear();
 	cache_instance.approved_gene_names.clear();
 	cache_instance.gene2id.clear();
+	cache_instance.id2gene.clear();
 	cache_instance.enum_values.clear();
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();

@@ -186,28 +186,29 @@ BedFile BedpeLine::affectedRegion(bool plus_one) const
 
 QString BedpeLine::toString(bool add_type) const
 {
-	BedFile region = affectedRegion(false);
-	if (add_type)
+	switch (type())
 	{
-		if(type() == StructuralVariantType::BND)
-		{
-			return "BND from " + region[0].toString(true) + " to " +region[1].toString(true);
-		}
-		else
-		{
-			return BedpeFile::typeToString(type()) + " at " + region[0].toString(true);
-		}
-	}
-	else
-	{
-		if(type() == StructuralVariantType::BND)
-		{
-			return region[0].toString(true) + " <> " +region[1].toString(true);
-		}
-		else
-		{
-			return region[0].toString(true);
-		}
+		case StructuralVariantType::INV:
+		case StructuralVariantType::DEL:
+		case StructuralVariantType::DUP:
+			// whole area
+			return ((add_type)?(BedpeFile::typeToString(type()) + " at "):"") + BedLine(chr1(), start1(), end2()).toString(true);
+			break;
+
+		case StructuralVariantType::BND:
+			// consider pos 1 and pos 2 seperately
+			if (add_type) return "BND from " + BedLine(chr1(), start1(), end1()).toString(true) + " to " + BedLine(chr2(), start2(), end2()).toString(true);
+			else return BedLine(chr1(), start1(), end1()).toString(true) + " <> " + BedLine(chr2(), start2(), end2()).toString(true);
+			break;
+
+		case StructuralVariantType::INS:
+			// compute CI of insertion
+			return ((add_type)?"INS at ":"") + BedLine(chr1(), std::min(start1(), start2()),  std::max(end1(), end2())).toString(true); //workaround: CI of insertions is sometimes not defined correctly
+			break;
+
+		default:
+			THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(type()));
+			break;
 	}
 }
 

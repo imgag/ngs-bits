@@ -1,5 +1,6 @@
 #include "IGVInitCacheWorker.h"
 #include "GlobalServiceProvider.h"
+#include "Settings.h"
 
 IGVInitCacheWorker::IGVInitCacheWorker(const AnalysisType analysis_type, const QString current_filename)
     : BackgroundWorkerBase("IGV cache initializer")

@@ -72,4 +72,4 @@ FORMAT: ID=QA (156x used) Type=Integer Number=A Description="Sum of quality of t
 FORMAT: ID=QR (156x used) Type=Integer Number=1 Description="Sum of quality of the reference observations"
 FORMAT: ID=RO (156x used) Type=Integer Number=1 Description="Reference allele observation count"
 SAMPLE: NA12878
-Finished - checked 249 lines - 156 data lines.
+Finished - checked 248 lines - 156 data lines.
