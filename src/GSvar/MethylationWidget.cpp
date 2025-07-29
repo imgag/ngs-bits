@@ -47,7 +47,7 @@ void MethylationWidget::openMethylationPlot(int row_idx, int)
 	}
 
 	VersatileFile file(methylation_plot.filename);
-	if (!file.open(QIODevice::ReadOnly))
+	if (!file.open(QIODevice::ReadOnly, false))
 	{
 		QMessageBox::warning(this, "Read error", "Could not open a methylation plot image file: '" + methylation_plot.filename);
 		return;

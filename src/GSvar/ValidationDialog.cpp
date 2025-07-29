@@ -5,6 +5,7 @@
 #include "LoginManager.h"
 #include "GSvarHelper.h"
 #include "VariantHgvsAnnotator.h"
+#include "Settings.h"
 
 ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	: QDialog(parent)

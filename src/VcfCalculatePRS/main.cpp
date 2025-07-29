@@ -2,7 +2,7 @@
 #include "TabixIndexedFile.h"
 #include "Helper.h"
 #include "VcfFile.h"
-
+#include "Settings.h"
 #include <BamReader.h>
 #include <QFile>
 #include <QTextStream>

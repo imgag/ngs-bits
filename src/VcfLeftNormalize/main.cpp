@@ -4,7 +4,6 @@
 #include "VcfFile.h"
 #include "Settings.h"
 #include <QFile>
-#include <QTextStream>
 #include <QList>
 
 class ConcreteTool

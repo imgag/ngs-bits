@@ -1507,9 +1507,8 @@ RtfTable SomaticReportHelper::signatureTable()
 
 	while (! desc_file->atEnd())
 	{
-		QByteArray line = desc_file->readLine();
-		line = line.trimmed();
-		if (line.startsWith('#') || line.isEmpty()) continue;
+		QByteArray line = desc_file->readLine().trimmed();
+		if (line.isEmpty() || line.startsWith('#')) continue;
 
 		QByteArrayList parts = line.split('\t');
 		if (parts.count() != 2)
@@ -1559,7 +1558,7 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 	try
 	{
 		//file not present or cannot be opened
-		if (file=="" || !stream.exists() || !stream.open(QIODevice::ReadOnly)) THROW(Exception, "could not open file "+file);
+		stream.open(QIODevice::ReadOnly, true);
 
 		//init
 		QList<int> cell_widths = {1500, 1500, 1500, 2000, 3422};

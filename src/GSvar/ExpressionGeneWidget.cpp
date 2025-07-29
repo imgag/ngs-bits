@@ -743,13 +743,11 @@ void ExpressionGeneWidget::loadExpressionData()
 		//parse TSV file
 		while (!expression_data_file->atEnd())
 		{
-			QString line = expression_data_file->readLine().replace("\r", "").replace("\n", "");
-			if (line == "")
-			{
-				// skip empty lines
-				continue;
-			}
-			else if	(line.startsWith("##"))
+			QString line = expression_data_file->readLine(true);
+			// skip empty lines
+			if (line.isEmpty()) continue;
+
+			if	(line.startsWith("##"))
 			{
 				expression_data_.addComment(line);
 			}

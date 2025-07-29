@@ -7,6 +7,7 @@
 #include "Log.h"
 #include <QMessageBox>
 #include <QMenu>
+#include "Settings.h"
 
 GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowcov_file, const BedFile& roi, const GeneSet& genes)
 	: QDialog(parent)

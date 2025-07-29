@@ -1,5 +1,6 @@
 #include "TestFramework.h"
 #include "ReportConfiguration.h"
+#include "Settings.h"
 
 TEST_CLASS(ReportConfiguration_Test)
 {

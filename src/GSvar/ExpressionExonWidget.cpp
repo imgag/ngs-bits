@@ -80,14 +80,12 @@ void ExpressionExonWidget::loadExpressionFile()
 		QSet<QByteArray> imported_lines;
 		while (!expression_data_file->atEnd())
 		{
-			QString line = expression_data_file->readLine().replace("\n", "").replace("\r", "");
-			if (line == "")
-			{
-				// skip empty lines
-				continue;
-			}
+			QString line = expression_data_file->readLine(true);
+			// skip empty lines
+			if (line.isEmpty()) continue;
+
 			//Legacy support for old megSAP file format
-			else if (line.startsWith("#Total library size "))
+			if (line.startsWith("#Total library size "))
 			{
 				//parse special header line
 				expression_data_.addComment("#" + line);
