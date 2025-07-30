@@ -261,7 +261,7 @@ private slots:
 		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "V1.5.0");
 		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2024-06-06");
 
-		//check import of Straglr 1.5.3
+		//check import of Straglr 1.5.3/1.5.4
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in7.vcf"));
 		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
 		I_EQUAL(count, 82);
@@ -274,7 +274,7 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM re_callset").toInt();
 		I_EQUAL(count, 1);
 		S_EQUAL(db.getValue("SELECT caller FROM re_callset").toString(), "Straglr");
-		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "V1.5.3");
+		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "V1.5.4");
 		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2025-07-16");
 	}
 
