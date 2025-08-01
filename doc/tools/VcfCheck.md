@@ -1,5 +1,5 @@
 ### VcfCheck tool help
-	VcfCheck (2024_08-113-g94a3b440)
+	VcfCheck (2025_05-79-g6c060cfd)
 	
 	Checks a VCF file for errors.
 	
@@ -17,6 +17,8 @@
 	                    Default value: ''
 	  -info             Add general information about the input file to the output.
 	                    Default value: 'false'
+	  -duplicates       Check for variants occuring twice (input VCF needs to be sorted).
+	                    Default value: 'false'
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -26,8 +28,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfCheck changelog
-	VcfCheck 2024_08-113-g94a3b440
+	VcfCheck 2025_05-79-g6c060cfd
 	
+	2025-05-30 Added parameter 'duplicates'.
 	2019-12-13 Added support for gzipped VCF files.
 	2019-12-11 Added check for invalid characters in INFO column.
 	2018-12-03 Initial implementation.

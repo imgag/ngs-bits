@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_05
+	> git checkout 2025_07
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
