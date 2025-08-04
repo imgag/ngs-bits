@@ -283,12 +283,12 @@
        </column>
        <column>
         <property name="text">
-         <string>consent</string>
+         <string>consent signed [CM]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>GenLab</string>
+         <string>consent</string>
         </property>
        </column>
        <column>

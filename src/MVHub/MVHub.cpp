@@ -274,6 +274,7 @@ void MVHub::updateTableFilters()
 		int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
 		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
 		int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
+		int c_consent_cm = GUIHelper::columnIndex(ui_.table, "consent signed [CM]");
 		int c_report_date = GUIHelper::columnIndex(ui_.table, "Befunddatum");
 		int c_te_retracted = GUIHelper::columnIndex(ui_.table, "Kündigung TE");
 
@@ -296,7 +297,14 @@ void MVHub::updateTableFilters()
 			}
 
 			//base data available
-			if (getString(r, c_case_id)=="" || getString(r, c_network_id)=="" || getString(r, c_consent)=="")
+			if (getString(r, c_case_id)=="" || getString(r, c_network_id)=="")
+			{
+				visible[r] = false;
+				continue;
+			}
+
+			//consent data available
+			if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
 			{
 				visible[r] = false;
 				continue;
@@ -608,6 +616,7 @@ void MVHub::checkForMetaDataErrors()
 	int c_cm_status = GUIHelper::columnIndex(ui_.table, "CM Status");
 	int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
 	int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
+	int c_consent_cm = GUIHelper::columnIndex(ui_.table, "consent signed [CM]");
 	int c_report_date = GUIHelper::columnIndex(ui_.table, "Befunddatum");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
@@ -615,7 +624,7 @@ void MVHub::checkForMetaDataErrors()
 		QString cm_id = getString(r, c_cm_id);
 
 		//consent missing
-		if (getString(r, c_consent)=="")
+		if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
 		{
 			cmid2messages_[cm_id] << "No consent data";
 		}
@@ -947,6 +956,7 @@ void MVHub::loadDataFromCM()
 
 		QHash<QString, QStringList> cmid2data;
 		QHash<QString, QString> cmid2sapid;
+		int c_cm_consent = GUIHelper::columnIndex(ui_.table, "consent signed [CM]");
 
 		//get RedCap data from API
 		HttpHeaders headers;
@@ -1031,7 +1041,7 @@ void MVHub::loadDataFromCM()
 				if (tag=="seq_state") ui_.table->setItem(r, 8, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="gen_finding_date") ui_.table->setItem(r, 9, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 10, GUIHelper::createTableItem(e.text().trimmed()));
-
+				if (tag=="bc_signed") ui_.table->setItem(r, c_cm_consent, GUIHelper::createTableItem(e.text().trimmed()));
 				n = n.nextSibling();
 			}
 		}
