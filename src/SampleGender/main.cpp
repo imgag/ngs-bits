@@ -33,7 +33,7 @@ public:
 		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
 		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
-		addFlag("long_read", "Support long reads (> 1kb).");
+		addFlag("long_read", "Support long reads (> 1kb) and uses single-end reads for gender calculation.");
 
 		//changelog
 		changeLog(2024,  2, 29, "Added parameter to include single-end reads (long-read).");
