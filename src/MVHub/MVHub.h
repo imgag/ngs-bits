@@ -24,8 +24,6 @@ public slots:
 	QByteArray getPseudonym(QByteArray str, QByteArray context, bool test_server = true, bool debug = true);
 	//load research consent data from meDIC
 	void loadConsentData();
-	//load data from GenLab
-	void loadGenLabData();
 	//export consent data for a sample list
 	void exportConsentData();
 	//check XML data in MVH database
@@ -48,6 +46,8 @@ private:
 	//update GRZ/KDK export status
 	void updateExportStatus();
 	void updateExportStatus(NGSD& mvh_db, int r);
+	//check for errors in the data
+	void checkForMetaDataErrors();
 	//show messages
 	void showMessages();
 

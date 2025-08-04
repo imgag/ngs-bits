@@ -49,20 +49,6 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QPushButton" name="load_consent_data">
-        <property name="text">
-         <string>load consent data</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="load_genlab_data">
-        <property name="text">
-         <string>load GenLab data</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="check_xml">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check XML fields in MVH cases are valid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -180,7 +166,7 @@
       <item>
        <widget class="QCheckBox" name="f_ready_export">
         <property name="text">
-         <string>ready for GRZ/KDK export (load consent and GenLab data)</string>
+         <string>ready for GRZ/KDK export (load consent data first)</string>
         </property>
        </widget>
       </item>
@@ -238,6 +224,11 @@
        <column>
         <property name="text">
          <string>CM Fallnummer</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>CM Status</string>
         </property>
        </column>
        <column>

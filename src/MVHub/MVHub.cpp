@@ -27,20 +27,22 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_messages, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_ready_export, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
-	connect(ui_.load_consent_data, SIGNAL(clicked()), this, SLOT(loadConsentData()));
-	connect(ui_.load_genlab_data, SIGNAL(clicked()), this, SLOT(loadGenLabData()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
 	connect(ui_.check_xml, SIGNAL(clicked()), this, SLOT(checkXML()));
 }
 
 void MVHub::delayedInitialization()
 {
+	qApp->processEvents();
+
 	loadDataFromCM();
 	loadDataFromSE();
+	loadConsentData();
 
 	determineProcessedSamples();
 	updateExportStatus();
 
+	checkForMetaDataErrors();
 	showMessages();
 
 	//resize columns
@@ -139,31 +141,39 @@ void MVHub::tableContextMenu(QPoint pos)
 			NGSD mvh_db(true, "mvh");
 			int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
 			int c_case_id = GUIHelper::columnIndex(ui_.table, "CM Fallnummer");
+			int c_status = GUIHelper::columnIndex(ui_.table, "CM Status");
+			int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
 
 			//get ID
 			QString cm_id = getString(r, c_cm);
 			QByteArray id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toByteArray().trimmed();
 
-			//check that GRZ export is not pending/done
-			int pending_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='pending'").toInt();
-			int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
-			if (pending_grz>0)
+			//check if that patient did not get sequencing
+			bool no_seq = getString(r, c_status)=="Abgebrochen" && getString(r, c_seq_type)=="Keine";
+
+			//add GRZ export - if it is not pending/done
+			if (!no_seq)
 			{
-				QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
-			}
-			else if (done_grz>0)
-			{
-				QMessageBox::warning(this, title, "GRZ export is already done!"); //TODO implement followup/addition/correction
-			}
-			else //add GRZ export
-			{
-				QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-				QString tan = getPseudonym(tag, "GRZ", false, false);
-				mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
-				updateExportStatus(mvh_db, r);
+				int pending_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='pending'").toInt();
+				int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
+				if (pending_grz>0)
+				{
+					QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
+				}
+				else if (done_grz>0)
+				{
+					QMessageBox::warning(this, title, "GRZ export is already done!"); //TODO implement followup/addition/correction
+				}
+				else //
+				{
+					QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+					QString tan = getPseudonym(tag, "GRZ", false, false);
+					mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+					updateExportStatus(mvh_db, r);
+				}
 			}
 
-			//check that KDK export is not pending/done
+			//add KDK export - if it is not pending/done
 			int pending_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='pending'").toInt();
 			int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
 			if (pending_kdk>0)
@@ -174,7 +184,7 @@ void MVHub::tableContextMenu(QPoint pos)
 			{
 				QMessageBox::warning(this, title, "KDK export is already done!"); //TODO implement followup/addition/correction
 			}
-			else //add KDK export
+			else
 			{
 				QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
 				QString tan = getPseudonym(tag, "KDK_SE", false, false);
@@ -259,6 +269,7 @@ void MVHub::updateTableFilters()
 	if (ui_.f_ready_export->isChecked())
 	{
 		int c_case_id = GUIHelper::columnIndex(ui_.table, "CM Fallnummer");
+		int c_case_status = GUIHelper::columnIndex(ui_.table, "CM Status");
 		int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
 		int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
 		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
@@ -276,6 +287,14 @@ void MVHub::updateTableFilters()
 				continue;
 			}
 
+			//status 'Abgeschlossen' oder 'Abgebrochen'
+			QString status = getString(r, c_case_status);
+			if (status!="Abgeschlossen" && status!="Abgebrochen")
+			{
+				visible[r] = false;
+				continue;
+			}
+
 			//base data available
 			if (getString(r, c_case_id)=="" || getString(r, c_network_id)=="" || getString(r, c_consent)=="")
 			{
@@ -283,15 +302,22 @@ void MVHub::updateTableFilters()
 				continue;
 			}
 
-			//TE retreacted
+			//TE not retreacted
 			if (getString(r, c_te_retracted)!="")
 			{
 				visible[r] = false;
 				continue;
 			}
 
-			//SE - report done or no sequencing at all
-			if (getString(r, c_report_date)=="" &&  getString(r, c_seq_type)!="Keine")
+			//SE - Abgeschlossen, but no report date set
+			if (status=="Abgeschlossen" && getString(r, c_report_date)=="")
+			{
+				visible[r] = false;
+				continue;
+			}
+
+			//SE - Abgebrochen, seqencing type not 'keine'
+			if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
 			{
 				visible[r] = false;
 				continue;
@@ -310,7 +336,7 @@ void MVHub::updateTableFilters()
 
 void MVHub::loadConsentData()
 {
-	addOutputHeader("loading consent data");
+	addOutputHeader("loading consent data", false);
 
 	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
 	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
@@ -340,51 +366,6 @@ void MVHub::loadConsentData()
 
 		qApp->processEvents();
 	}
-
-	ui_.output->appendPlainText("");
-	ui_.output->appendPlainText("done");
-}
-
-void MVHub::loadGenLabData()
-{
-	addOutputHeader("loading GenLab data");
-
-	GenLabDB genlab;
-	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
-	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-	int c_genlab = GUIHelper::columnIndex(ui_.table, "GenLab");
-
-	for (int r=0; r<ui_.table->rowCount(); ++r)
-	{
-		QString ps = getString(r, c_ps);
-		if (ps.isEmpty()) continue;
-
-		ui_.output->appendPlainText("Getting GenLab data for "+ps+"...");
-
-		//TODO remove if not needed anymore when starting production mode
-		QStringList gl_data;
-		gl_data << "<item>";
-		gl_data << "</item>";
-
-		QString gl_string = gl_data.join("\n");
-
-		//store GenLab data in MVH database
-		QString cm_id = getString(r, c_cm);
-		NGSD mvh_db(true, "mvh");
-		SqlQuery query = mvh_db.getQuery();
-		query.prepare("UPDATE case_data SET gl_data=:0 WHERE cm_id=:1");
-		query.bindValue(0, gl_string);
-		query.bindValue(1, cm_id);
-		query.exec();
-
-		QTableWidgetItem* item = GUIHelper::createTableItem("yes (see tooltip)");
-		item->setToolTip(gl_string);
-		ui_.table->setItem(r, c_genlab, item);
-
-		qApp->processEvents();
-	}
-
-	ui_.table->resizeColumnToContents(c_genlab);
 
 	ui_.output->appendPlainText("");
 	ui_.output->appendPlainText("done");
@@ -427,13 +408,13 @@ void MVHub::checkXML()
 
 	//iterate over all rows
 	SqlQuery query = mvh_db.getQuery();
-	query.exec("SELECT id, cm_data, se_data, rc_data, gl_data FROM case_data");
+	query.exec("SELECT id, cm_data, se_data, rc_data FROM case_data");
 	while(query.next())
 	{
 		QString id = query.value("id").toString();
 
 		//iterate over all fields
-		foreach(QString field, QStringList() << "cm_data" << "se_data" << "rc_data" << "gl_data")
+		foreach(QString field, QStringList() << "cm_data" << "se_data" << "rc_data")
 		{
 			QString data = query.value(field).toString().trimmed();
 			if (data.isEmpty()) continue;
@@ -621,6 +602,39 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	ui_.table->setItem(r, c_export_status, item);
 }
 
+void MVHub::checkForMetaDataErrors()
+{
+	int c_cm_id = GUIHelper::columnIndex(ui_.table, "CM ID");
+	int c_cm_status = GUIHelper::columnIndex(ui_.table, "CM Status");
+	int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
+	int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
+	int c_report_date = GUIHelper::columnIndex(ui_.table, "Befunddatum");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		QString cm_id = getString(r, c_cm_id);
+
+		//consent missing
+		if (getString(r, c_consent)=="")
+		{
+			cmid2messages_[cm_id] << "No consent data";
+		}
+
+		//Abgeschlossen, but no report date set
+		QString status = getString(r, c_cm_status);
+		if (status=="Abgeschlossen" && getString(r, c_report_date)=="")
+		{
+			cmid2messages_[cm_id] << "Status 'Abgeschlossen', but no report date set";
+		}
+
+		//Abgebrochen, seqencing type not 'keine'
+		if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
+		{
+			cmid2messages_[cm_id] << "Status 'Abgebrochen', but sequencing is not 'Keine'";
+		}
+	}
+}
+
 void MVHub::showMessages()
 {
 	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
@@ -756,7 +770,7 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 		}
 
 		//get consent
-		ui_.output->appendPlainText("Getting consent for "+sap_id+"...");
+		if (debug) ui_.output->appendPlainText("Getting consent for "+sap_id+"...");
 		HttpHeaders headers2;
 		headers2.insert("Authorization", "Bearer "+token);
 		QString url = test_server ? "https://tc-t.med.uni-tuebingen.de:8443/fhir/Consent" : "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent";
@@ -934,12 +948,45 @@ void MVHub::loadDataFromCM()
 		QHash<QString, QStringList> cmid2data;
 		QHash<QString, QString> cmid2sapid;
 
-		//process data from RedCap API
+		//get RedCap data from API
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/x-www-form-urlencoded");
 		QByteArray data = "token="+Settings::string("redcap_casemanagement_token").toLatin1()+"&content=record&rawOrLabel=label";
 		HttpHandler handler(true);
 		QByteArrayList reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).split('\n');
+
+		//get IDs of entries currently in RedCap
+		QSet<QString> cm_ids_redcap;
+		foreach(QString line, reply)
+		{
+			if (!line.startsWith("<item>")) continue;
+
+			//open file
+			QDomDocument doc;
+			QString error_msg;
+			int error_line, error_column;
+			if(!doc.setContent(line, &error_msg, &error_line, &error_column))
+			{
+				THROW(FileParseException, "XML invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+			}
+
+			QDomElement root = doc.documentElement();
+			QString cm_id = root.namedItem("record_id").toElement().text().trimmed();
+			cm_ids_redcap << cm_id;
+		}
+
+		//delete database entries that are no longer in RedCap
+		NGSD mvh_db(true, "mvh");
+		QStringList cm_ids_db = mvh_db.getValues("SELECT cm_id FROM case_data WHERE id NOT IN (SELECT case_id FROM submission_grz) AND id NOT IN (SELECT case_id FROM submission_kdk_se)");
+		foreach(QString cm_id, cm_ids_db)
+		{
+			if (cm_ids_redcap.contains(cm_id)) continue;
+
+			ui_.output->appendPlainText("Deleting sample with CM ID '" + cm_id + "': no longer contained in CM RedCap!");
+			mvh_db.getQuery().exec("DELETE FROM case_data WHERE cm_id='" + cm_id + "'");
+		}
+
+		//add/update database entries with up-to-date data from RedCap API
 		foreach(QString line, reply)
 		{
 			if (!line.startsWith("<item>")) continue;
@@ -976,20 +1023,20 @@ void MVHub::loadDataFromCM()
 				QString tag = e.tagName();
 				if (tag=="record_id") ui_.table->setItem(r, 0, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="case_id") ui_.table->setItem(r, 1, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="pat_id") ui_.table->setItem(r, 2, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="network_title") ui_.table->setItem(r, 3, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="seq_mode") ui_.table->setItem(r, 5, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="sample_arrival_date") ui_.table->setItem(r, 6, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="seq_state") ui_.table->setItem(r, 7, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="gen_finding_date") ui_.table->setItem(r, 8, GUIHelper::createTableItem(e.text().trimmed()));
-				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 9, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="status_study") ui_.table->setItem(r, 2, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="pat_id") ui_.table->setItem(r, 3, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="network_title") ui_.table->setItem(r, 4, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="seq_mode") ui_.table->setItem(r, 6, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="sample_arrival_date") ui_.table->setItem(r, 7, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="seq_state") ui_.table->setItem(r, 8, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="gen_finding_date") ui_.table->setItem(r, 9, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 10, GUIHelper::createTableItem(e.text().trimmed()));
 
 				n = n.nextSibling();
 			}
 		}
 
 		//insert/update data in MVH database
-		NGSD mvh_db(true, "mvh");
 		SqlQuery query = mvh_db.getQuery();
 		query.prepare("INSERT INTO case_data (cm_id, cm_data, sap_id) VALUES (:0,:1,:2) ON DUPLICATE KEY UPDATE cm_data=VALUES(cm_data), sap_id=VALUES(sap_id)");
 		foreach(QString cm_id, cmid2sapid.keys())
@@ -1116,7 +1163,6 @@ void MVHub::loadDataFromSE()
 	}
 }
 
-//TODO:
-//- store variant data in SE RedCap database
-//- trigger GRZ/KDK upload (Bericht geschrieben und Kündigung der Teilnahmeerklärung nicht vorhanden)
+//TODO transfer variant data to SE RedCap database
+//TODO transfer HPO data to SE RedCap database
 
