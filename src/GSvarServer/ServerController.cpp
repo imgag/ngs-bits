@@ -216,7 +216,8 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		json_object.insert("version", ToolBase::version());
 		json_object.insert("api_version", ClientHelper::serverApiVersion());
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
-		json_doc.setObject(json_object);
+        json_object.insert("server_url", Settings::string("server_host", true));
+        json_doc.setObject(json_object);
 
 		BasicResponseData response_data;
 		response_data.length = json_doc.toJson().length();
