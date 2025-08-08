@@ -25,6 +25,7 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_status, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_messages, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_ready_export, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
@@ -33,14 +34,22 @@ MVHub::MVHub(QWidget *parent)
 
 void MVHub::delayedInitialization()
 {
-	qApp->processEvents();
-
 	loadDataFromCM();
 	loadDataFromSE();
 	loadConsentData();
 
 	determineProcessedSamples();
 	updateExportStatus();
+
+	//add missing data to SE RedCap
+	int added_hpos = updateHpoTerms(true);
+	int added_variants = updateVariants(1);
+
+	//update SE RedCap data when we have changed it
+	if (added_hpos>0 || added_variants>0)
+	{
+		loadDataFromSE();
+	}
 
 	checkForMetaDataErrors();
 	showMessages();
@@ -194,7 +203,7 @@ void MVHub::tableContextMenu(QPoint pos)
 		}
 		catch (Exception& e)
 		{
-			ui_.output->appendPlainText("Export error:\n"+e.message());
+			addOutputLine("Export error:\n"+e.message());
 		}
 	}
 	if (action==a_export_history)
@@ -214,6 +223,19 @@ void MVHub::updateTableFilters()
 	const int cols = ui_.table->columnCount();
 	QBitArray visible(rows, true);
 
+
+	//apply status filter
+	QString f_status = ui_.f_status->currentText();
+	if (!f_status.isEmpty())
+	{
+		int c_status = GUIHelper::columnIndex(ui_.table, "CM Status");
+		for (int r=0; r<rows; ++r)
+		{
+			if (!visible[r]) continue;
+
+			visible[r] = getString(r, c_status)==f_status;
+		}
+	}
 
 	//apply network filter
 	QString f_network = ui_.f_network->currentText();
@@ -371,12 +393,10 @@ void MVHub::loadConsentData()
 		QTableWidgetItem* item = GUIHelper::createTableItem(consent.isEmpty() ? "" : "yes (see tooltip)");
 		item->setToolTip(consent);
 		ui_.table->setItem(r, c_consent, item);
-
-		qApp->processEvents();
 	}
 
-	ui_.output->appendPlainText("");
-	ui_.output->appendPlainText("done");
+	addOutputLine("");
+	addOutputLine("done");
 }
 
 void MVHub::exportConsentData()
@@ -433,18 +453,18 @@ void MVHub::checkXML()
 				QString error = XmlHelper::isValidXml(tmp_file);
 				if (!error.isEmpty())
 				{
-					ui_.output->appendPlainText(id +"\t" + field + "\t" + error);
+					addOutputLine(id +"\t" + field + "\t" + error);
 				}
 			}
 			catch (Exception& e)
 			{
-				ui_.output->appendPlainText(id +"\t" + field + "\t" + e.message());
+				addOutputLine(id +"\t" + field + "\t" + e.message());
 			}
 		}
 	}
 
-	ui_.output->appendPlainText("");
-	ui_.output->appendPlainText("done");
+	addOutputLine("");
+	addOutputLine("done");
 }
 
 void MVHub::determineProcessedSamples()
@@ -554,6 +574,222 @@ void MVHub::determineProcessedSamples()
 			}
 		}
 	}
+}
+
+int MVHub::updateHpoTerms(bool debug)
+{
+	int added_hpo_terms = 0;
+	addOutputHeader("updating HPO terms in SE RedCap", false);
+
+	//TODO re-add when we have
+	addOutputLine("SKIPPED: it is unclear how to add HPO terms to RedCap");
+	return 0;
+
+	//init
+	NGSD db;
+	NGSD mvh_db(true, "mvh");
+	int c_se_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
+	int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		//no SE ID => skip
+		QString se_id = getString(r, c_se_id);
+		if (se_id.isEmpty()) continue;
+
+		//no PS => skip
+		QString ps = getString(r, c_ps);
+		if (ps.isEmpty()) continue;
+
+		//only for SE
+		if (getString(r, c_network)!="Netzwerk Seltene Erkrankungen") continue;
+
+		//determine HPO terms in MVH database
+		PhenotypeList hpo_mvh;
+		QString se_data = mvh_db.getValue("SELECT se_data FROM case_data WHERE se_id='"+se_id+"'").toString();
+		QDomDocument doc; //TODO Marc move loading XML from file/text with error handling to XMLHelper class
+		QString error_msg;
+		int error_line, error_column;
+		if(!doc.setContent(se_data, &error_msg, &error_line, &error_column))
+		{
+			addOutputLine(se_id + "/" + ps + ": could not parse SE data: " + error_msg + " in line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+			continue;
+		}
+		QDomElement root = doc.documentElement();
+		for(QDomNode n = root.firstChild(); !n.isNull(); n = n.nextSibling()) //TODO Marc use 'for' loop everywhere to avoid hanging in case someone uses 'continue' in the loop
+		{
+			QDomElement e = n.toElement(); // try to convert the node to an element.
+			if(!e.isNull() && e.nodeName()=="item")
+			{
+				QDomElement e2 = e.namedItem("hpo").toElement();
+				if(e2.isNull()) continue;
+
+				QByteArray hpo_name = e2.text().trimmed().toUtf8();
+				if (hpo_name.isEmpty()) continue;
+
+				int hpo_db_id = db.phenotypeIdByName(hpo_name, false);
+				if (hpo_db_id!=-1)
+				{
+					hpo_mvh << db.phenotype(hpo_db_id);
+				}
+				else
+				{
+					addOutputLine(se_id + "/" + ps + ": invalid HPO term with name '" + hpo_name + "' in SE RedCap!");
+				}
+			}
+		}
+
+		//determine HPO terms in NGSD
+		QString s_id = db.sampleId(ps);
+		PhenotypeList hpo_ngsd = db.samplePhenotypes(s_id, false);
+
+		if (debug) addOutputLine(se_id + "/" + ps + ": HPOs NGSD: " + QString::number(hpo_ngsd.count()) + " HPOs SE RedCap: " + QString::number(hpo_mvh.count()));
+
+		//update if terms are missing
+		foreach(Phenotype hpo, hpo_ngsd)
+		{
+			if (hpo_mvh.containsAccession(hpo.accession()))
+			{
+				if (debug) addOutputLine(se_id + "/" + ps + ": HPO skipped (already in SE RedCap): " + hpo.toString());
+				continue;
+			}
+
+			//TODO replace fixed version_hpo with correct value from NGSD when implmented: https://github.com/imgag/megSAP/issues/423
+			//add HPO term to SE RedCap
+			addOutputLine(se_id + "/" + ps + ": adding HPO term "+hpo.toString()+" ...");
+			HttpHeaders headers;
+			headers.insert("Content-Type", "application/x-www-form-urlencoded");
+			QByteArray xml =   "<records>"
+								"	<item>"
+								"		<psn><![CDATA[" + se_id.toUtf8() + "]]></psn>"
+								"		<redcap_repeat_instrument><![CDATA[hpo]]></redcap_repeat_instrument>"
+								"		<redcap_repeat_instance><![CDATA[new]]></redcap_repeat_instance>"
+								"		<hpo><![CDATA[" + hpo.accession() + "]]></hpo>"
+								"		<version_hpo><![CDATA[2025-03-03]]></version_hpo>"
+								"		<beginn_symptome_nb___000_01><![CDATA[1]]></beginn_symptome_nb___000_01>"
+								"		<hpo_complete><![CDATA[2]]></hpo_complete>"
+								"	</item>"
+								"</records>";
+			QByteArray data = "token="+Settings::string("redcap_se_token").toLatin1()+"&content=record&format=xml&type=flat&data="+xml;
+			HttpHandler handler(true);
+			QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers);
+			if (!reply.contains("<count>1</count>"))
+			{
+				addOutputLine(se_id + "/" + ps + ": ERROR creating HPO term in SE RedCap! Reply:\n" +reply);
+				return added_hpo_terms;
+			}
+			++added_hpo_terms;
+		}
+	}
+
+	addOutputLine("added " + QString::number(added_hpo_terms) + " HPO terms");
+
+	return added_hpo_terms;
+}
+
+int MVHub::updateVariants(int debug_level)
+{
+	int added_variants = 0;
+	addOutputHeader("updating variants in SE RedCap", false);
+
+	//init
+	NGSD db;
+	NGSD mvh_db(true, "mvh");
+	int c_se_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
+	int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		//no SE ID => skip
+		QString se_id = getString(r, c_se_id);
+		if (se_id.isEmpty()) continue;
+
+		//no PS => skip
+		QString ps = getString(r, c_ps);
+		if (ps.isEmpty()) continue;
+
+		//only for SE
+		if (getString(r, c_network)!="Netzwerk Seltene Erkrankungen") continue;
+
+		//determine variants in MVH database
+		QStringList variants_mvh;
+		QString se_data = mvh_db.getValue("SELECT se_data FROM case_data WHERE se_id='"+se_id+"'").toString();
+		QDomDocument doc; //TODO Marc move loading XML from file/text with error handling to XMLHelper class
+		QString error_msg;
+		int error_line, error_column;
+		if(!doc.setContent(se_data, &error_msg, &error_line, &error_column))
+		{
+			addOutputLine(se_id + "/" + ps + ": could not parse SE data: " + error_msg + " in line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+			continue;
+		}
+		QDomElement root = doc.documentElement();
+		for(QDomNode n = root.firstChild(); !n.isNull(); n = n.nextSibling()) //TODO Marc use 'for' loop everywhere to avoid hanging in case someone uses 'continue' in the loop
+		{
+			QDomElement e = n.toElement(); // try to convert the node to an element.
+			if(!e.isNull() && e.nodeName()=="item")
+			{
+				QDomElement e2 = e.namedItem("variante").toElement();
+				if(e2.isNull()) continue;
+
+				QByteArray var = e2.text().trimmed().toUtf8();
+				if (var.isEmpty()) continue;
+				variants_mvh << var;
+			}
+		}
+
+		//determine variants terms in NGSD
+		QList<VarData> variants_ngsd = getVariants(db, ps);
+
+		if (debug_level>=3) addOutputLine(se_id + "/" + ps + ": variants in NGSD: " + QString::number(variants_ngsd.count()) + " // variants SE RedCap: " + QString::number(variants_mvh.count()));
+
+		//add missing variants to SE RedCap
+		foreach(VarData var, variants_ngsd)
+		{
+			if (variants_mvh.contains(var.name))
+			{
+				if (debug_level>=2) addOutputLine(se_id + "/" + ps + ": variant skipped (already in SE RedCap): " + var.name);
+				continue;
+			}
+
+			//determine variant type
+			QByteArray var_typ;
+			if (var.type==VarType::CAUSAL) var_typ = "1";
+			else if (var.type==VarType::INCIDENTAL) var_typ = "2";
+			else if (var.type==VarType::VUS) var_typ = "3";
+			else THROW(ProgrammingException, "Inhandled variant type '" + QString::number(var.type) + "'!");
+
+			//add variant to SE RedCap
+			if (debug_level>=1) addOutputLine(se_id + "/" + ps + ": adding variant "+var.name+" ...");
+			HttpHeaders headers;
+			headers.insert("Content-Type", "application/x-www-form-urlencoded");
+			QByteArray xml =   "<records>"
+								"	<item>"
+								"		<psn><![CDATA[" + se_id.toUtf8() + "]]></psn>"
+								"		<redcap_repeat_instrument><![CDATA[varianten]]></redcap_repeat_instrument>"
+								"		<redcap_repeat_instance><![CDATA[new]]></redcap_repeat_instance>"
+								"		<variante><![CDATA[" + var.name + "]]></variante>"
+								"		<lok_variante><![CDATA[" + var.localization + "]]></lok_variante>"
+								"		<typ_variante><![CDATA[" + var_typ + "]]></typ_variante>"
+								"		<varianten_complete><![CDATA[2]]></varianten_complete>"
+								"	</item>"
+								"</records>";
+			QByteArray data = "token="+Settings::string("redcap_se_token").toLatin1()+"&content=record&format=xml&type=flat&data="+xml;
+			HttpHandler handler(true);
+			QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers);
+			if (!reply.contains("<count>1</count>"))
+			{
+				addOutputLine(se_id + "/" + ps + ": ERROR creating variant in SE RedCap! Reply:\n" +reply);
+				return added_variants;
+			}
+			++added_variants;
+		}
+	}
+
+	addOutputLine("added " + QString::number(added_variants) + " variants");
+
+	return added_variants;
 }
 
 void MVHub::updateExportStatus()
@@ -705,7 +941,7 @@ QByteArray MVHub::parseJsonDataPseudo(QByteArray reply, QByteArray context)
 		QByteArray data = file.readAll();
 		file.close();
 
-		//ui_.output->appendPlainText("base64-encoded key: " +data.toBase64());
+		//addOutputLine("base64-encoded key: " +data.toBase64());
 		HttpHandler handler(true);
 		QByteArray reply = handler.post(url, "input="+str_base64+"&key="+data.toBase64());
 
@@ -734,10 +970,17 @@ void MVHub::addOutputHeader(QString section, bool clear)
 
 	if (!section.isEmpty())
 	{
-		ui_.output->appendPlainText("");
-		ui_.output->appendPlainText("### " + section + " ###");
-		ui_.output->appendPlainText("");
+		addOutputLine("");
+		addOutputLine("### " + section + " ###");
+		addOutputLine("");
 	}
+}
+
+void MVHub::addOutputLine(QString line)
+{
+	ui_.output->appendPlainText(line);
+	ui_.output->ensureCursorVisible();
+	qApp->processEvents();
 }
 
 QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
@@ -753,33 +996,33 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 		bool test_server = false;
 		if (test_server)
 		{
-			ui_.output->appendPlainText("ATTENTION: using test servers for getConsent");
-			ui_.output->appendPlainText("");
+			addOutputLine("ATTENTION: using test servers for getConsent");
+			addOutputLine("");
 		}
 
 		//get token if missing
 		if (token.isEmpty())
 		{
-			ui_.output->appendPlainText("");
-			ui_.output->appendPlainText("Getting consent token...");
+			addOutputLine("");
+			addOutputLine("Getting consent token...");
 			HttpHeaders headers;
 			headers.insert("Content-Type", "application/x-www-form-urlencoded");
 			headers.insert("Prefer", "handling=strict");
 			QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("consent_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("consent_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
 			QString url = test_server ? "https://tc-t.med.uni-tuebingen.de/auth/realms/consent-test/protocol/openid-connect/token" : "https://tc-p.med.uni-tuebingen.de/auth/realms/consent/protocol/openid-connect/token";
-			if (debug) ui_.output->appendPlainText("URL: "+url);
-			if (debug) ui_.output->appendPlainText("data: " + data);
+			if (debug) addOutputLine("URL: "+url);
+			if (debug) addOutputLine("data: " + data);
 			HttpHandler handler(true);
 			QByteArray reply = handler.post(url, data, headers);
 			QByteArrayList parts = reply.split('"');
 			if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
 			token = parts[3];
-			if (debug) ui_.output->appendPlainText("Token: "+ token);
+			if (debug) addOutputLine("Token: "+ token);
 		}
 
 		//get consent
-		if (debug) ui_.output->appendPlainText("Getting consent for "+sap_id+"...");
+		if (debug) addOutputLine("Getting consent for "+sap_id+"...");
 		HttpHeaders headers2;
 		headers2.insert("Authorization", "Bearer "+token);
 		QString url = test_server ? "https://tc-t.med.uni-tuebingen.de:8443/fhir/Consent" : "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent";
@@ -788,17 +1031,17 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 		QByteArray reply = handler.get(url, headers2);
 		if (debug)
 		{
-			ui_.output->appendPlainText("URL: " + url);
-			ui_.output->appendPlainText("SAP ID: " + sap_id);
-			ui_.output->appendPlainText("Consent: " + reply);
+			addOutputLine("URL: " + url);
+			addOutputLine("SAP ID: " + sap_id);
+			addOutputLine("Consent: " + reply);
 		}
 
 		return return_parsed_data ? parseConsentJson(reply) : reply;
 	}
 	catch (Exception& e)
 	{
-		ui_.output->appendPlainText("ERROR:");
-		ui_.output->appendPlainText(e.message());
+		addOutputLine("ERROR:");
+		addOutputLine(e.message());
 
 		//clear token in case of error
 		token = "";
@@ -879,23 +1122,23 @@ QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_ser
 	//test or production
 	if (test_server)
 	{
-		ui_.output->appendPlainText("ATTENTION: using test server!");
-		ui_.output->appendPlainText("");
+		addOutputLine("ATTENTION: using test server!");
+		addOutputLine("");
 	}
 
 	//get token
 	QByteArray token = "";
 	{
-		if (debug) ui_.output->appendPlainText("Getting token...");
+		if (debug) addOutputLine("Getting token...");
 
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/x-www-form-urlencoded");
 		headers.insert("Prefer", "handling=strict");
 
 		QString url = "https://" + QString(test_server ? "tc-t" : "tc-p") + ".med.uni-tuebingen.de/auth/realms/trustcenter/protocol/openid-connect/token";
-		if (debug) ui_.output->appendPlainText("URL: "+url);
+		if (debug) addOutputLine("URL: "+url);
 		QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("pseudo_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("pseudo_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
-		if (debug) ui_.output->appendPlainText("data: " + data);
+		if (debug) addOutputLine("data: " + data);
 
 		HttpHandler handler(true);
 		QByteArray reply = handler.post(url, data, headers);
@@ -903,16 +1146,16 @@ QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_ser
 		if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
 		token = parts[3];
-		if (debug) ui_.output->appendPlainText("Token: " + token);
+		if (debug) addOutputLine("Token: " + token);
 	}
 
 	//get first pseudonyms
-	if (debug) ui_.output->appendPlainText("");
-	if (debug) ui_.output->appendPlainText("String to encode: " + str);
+	if (debug) addOutputLine("");
+	if (debug) addOutputLine("String to encode: " + str);
 	QByteArray pseudo1 = "";
 	{
 		QString url = "https://tc-" + QString(test_server ? "t" : "p") + ".med.uni-tuebingen.de/v1/process?targetSystem=MVH_"+(test_server ? "T" : "P")+"_F";
-		if (debug) ui_.output->appendPlainText("URL: "+url);
+		if (debug) addOutputLine("URL: "+url);
 
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/json");
@@ -920,18 +1163,18 @@ QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_ser
 
 		HttpHandler handler(true);
 		QByteArray data =  jsonDataPseudo(str);
-		if (debug) ui_.output->appendPlainText("data: " + data);
+		if (debug) addOutputLine("data: " + data);
 		QByteArray reply = handler.post(url, data, headers);
-		if (debug) ui_.output->appendPlainText("reply: " + reply);
+		if (debug) addOutputLine("reply: " + reply);
 		pseudo1 = parseJsonDataPseudo(reply, "first_level");
 	}
-	if (debug) ui_.output->appendPlainText("Pseudonym 1: " + pseudo1);
+	if (debug) addOutputLine("Pseudonym 1: " + pseudo1);
 
 	//get second pseudonyms
 	QByteArray pseudo2 = "";
 	{
 		QString url = "https://tc-" + QString(test_server ? "t" : "p") + ".med.uni-tuebingen.de/v1/process?targetSystem=MVH_"+(test_server ? "T" : "P")+"_"+(context=="GRZ" ? "G" : "SE");
-		if (debug) ui_.output->appendPlainText("URL: "+url);
+		if (debug) addOutputLine("URL: "+url);
 
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/json");
@@ -939,11 +1182,11 @@ QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_ser
 
 		HttpHandler handler(true);
 		QByteArray data =  jsonDataPseudo(pseudo1);
-		if (debug) ui_.output->appendPlainText("data: " + data);
+		if (debug) addOutputLine("data: " + data);
 		QByteArray reply = handler.post(url, data, headers);
 		pseudo2 = parseJsonDataPseudo(reply, "second_level");
 	}
-	if (debug) ui_.output->appendPlainText("Pseudonym 2: " + pseudo2);
+	if (debug) addOutputLine("Pseudonym 2: " + pseudo2);
 
 	return pseudo2;
 }
@@ -992,7 +1235,7 @@ void MVHub::loadDataFromCM()
 		{
 			if (cm_ids_redcap.contains(cm_id)) continue;
 
-			ui_.output->appendPlainText("Deleting sample with CM ID '" + cm_id + "': no longer contained in CM RedCap!");
+			addOutputLine("Deleting sample with CM ID '" + cm_id + "': no longer contained in CM RedCap!");
 			mvh_db.getQuery().exec("DELETE FROM case_data WHERE cm_id='" + cm_id + "'");
 		}
 
@@ -1057,7 +1300,7 @@ void MVHub::loadDataFromCM()
 			QString mvh_case_id = mvh_db.getValue("SELECT cm_id FROM case_data WHERE sap_id='"+sap_id+"'").toString();
 			if (!mvh_case_id.isEmpty() && mvh_case_id!=cm_id)
 			{
-				ui_.output->appendPlainText("Skipping sample with CM ID '" + cm_id + "': SAP ID '"+sap_id+"' already used by sample with CM ID '" + mvh_case_id + "'!");
+				addOutputLine("Skipping sample with CM ID '" + cm_id + "': SAP ID '"+sap_id+"' already used by sample with CM ID '" + mvh_case_id + "'!");
 				continue;
 			}
 
@@ -1074,8 +1317,8 @@ void MVHub::loadDataFromCM()
 	}
 	catch (Exception& e)
 	{
-		ui_.output->appendPlainText("ERROR:");
-		ui_.output->appendPlainText(e.message());
+		addOutputLine("ERROR:");
+		addOutputLine(e.message());
 	}
 }
 
@@ -1133,7 +1376,7 @@ void MVHub::loadDataFromSE()
 			QString sap_id = it.value();
 			if (sap_id.isEmpty())
 			{
-				ui_.output->appendPlainText("Skipping sample with SE ID '" + psn_id + "': no SAP ID available!");
+				addOutputLine("Skipping sample with SE ID '" + psn_id + "': no SAP ID available!");
 				continue;
 			}
 			sap2psn[sap_id] = psn_id;
@@ -1142,7 +1385,7 @@ void MVHub::loadDataFromSE()
 			QString mvh_id = mvh_db.getValue("SELECT id FROM case_data WHERE sap_id='"+sap_id+"'").toString();
 			if (mvh_id.isEmpty())
 			{
-				ui_.output->appendPlainText("Skipping sample with SE ID '" + psn_id + "': no entry in MVH case_data table for SAP id '"+sap_id+"'!");
+				addOutputLine("Skipping sample with SE ID '" + psn_id + "': no entry in MVH case_data table for SAP id '"+sap_id+"'!");
 				continue;
 			}
 
@@ -1153,7 +1396,6 @@ void MVHub::loadDataFromSE()
 			query.bindValue(2, mvh_id);
 			query.exec();
 		}
-
 
 		//update main table
 		int c_sap_id = GUIHelper::columnIndex(ui_.table, "SAP ID");
@@ -1168,11 +1410,174 @@ void MVHub::loadDataFromSE()
 	}
 	catch (Exception& e)
 	{
-		ui_.output->appendPlainText("ERROR:");
-		ui_.output->appendPlainText(e.message());
+		addOutputLine("ERROR:");
+		addOutputLine(e.message());
 	}
 }
 
-//TODO transfer variant data to SE RedCap database
-//TODO transfer HPO data to SE RedCap database
+//TODO add VUS/INCIDENTAL variants?
+QList<MVHub::VarData> MVHub::getVariants(NGSD& db, QString ps)
+{
+	QList<VarData> output;
 
+	QString processed_sample_id = db.processedSampleId(ps);
+
+	int rc_id = db.reportConfigId(processed_sample_id);
+	if (rc_id!=-1)
+	{
+		//find causal small variants
+		{
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT * FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
+			while(query.next())
+			{
+				QString var_id = query.value("variant_id").toString();
+				Variant var = db.variant(var_id);
+				GeneSet genes = variantGenes(db, var.chr(), var.start(), var.end());
+
+				VarData var_data;
+				var_data.name = (var.toString() + " (" + genes.join(", ") + ")").toUtf8();
+				var_data.localization = variantLocalization(db, var.chr(), var.start(), var.end(), genes);
+				var_data.type = VarType::CAUSAL;
+
+				output << var_data;
+			}
+		}
+
+		//find causal CNVs
+		{
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT * FROM report_configuration_cnv WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
+			while(query.next())
+			{
+				QString cnv_id = query.value("cnv_id").toString();
+				CopyNumberVariant var = db.cnv(cnv_id.toInt());
+				QString cn = db.getValue("SELECT cn FROM cnv WHERE id='" + cnv_id + "'").toString();
+				GeneSet genes = variantGenes(db, var.chr(), var.start(), var.end());
+
+				VarData var_data;
+				QString genes_str = genes.count()<10 ? genes.join(", ") : "many";
+				var_data.name = ("CNV: " + var.toString() + " CN=" + cn + " size=" + QString::number((var.end()-var.start())/1000.0, 'f', 3) + "kb (" + genes_str + ")").toUtf8();
+				var_data.localization = variantLocalization(db, var.chr(), var.start(), var.end(), genes);
+				var_data.type = VarType::CAUSAL;
+
+				output << var_data;
+			}
+		}
+
+		//find causal SVs
+		{
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT * FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
+			while(query.next())
+			{
+				//determine type and ID in type-specific table of SV
+				StructuralVariantType type = StructuralVariantType::UNKNOWN;
+				int sv_id = -1;
+				if (query.value("sv_deletion_id").toInt()!=0)
+				{
+					type = StructuralVariantType::DEL;
+					sv_id = query.value("sv_deletion_id").toInt();
+				}
+				if (query.value("sv_duplication_id").toInt()!=0)
+				{
+					type = StructuralVariantType::DUP;
+					sv_id = query.value("sv_duplication_id").toInt();
+				}
+				if (query.value("sv_insertion_id").toInt()!=0)
+				{
+					type = StructuralVariantType::INS;
+					sv_id = query.value("sv_insertion_id").toInt();
+				}
+				if (query.value("sv_inversion_id").toInt()!=0)
+				{
+					type = StructuralVariantType::INV;
+					sv_id = query.value("sv_inversion_id").toInt();
+				}
+				//missing: BNDs
+				if (query.value("sv_translocation_id").toInt()!=0)
+				{
+					continue;
+				}
+
+				//get variant and genotype
+				BedpeFile svs;
+				svs.setAnnotationHeaders(QList<QByteArray>() << "FORMAT" << ps.toUtf8()); //FROMAT column that will contain the genotype
+				BedpeLine var = db.structuralVariant(sv_id, type, svs, true);
+				QString genotype = var.annotations()[1];
+				if (genotype=="1/1") genotype = "hom";
+				if (genotype=="0/1") genotype = "het";
+				BedLine reg = var.affectedRegion()[0];
+				GeneSet genes = variantGenes(db, reg.chr(), reg.start(), reg.end());
+
+				VarData var_data;
+				QString genes_str = genes.count()<10 ? genes.join(", ") : "many";
+				var_data.name = ("SV-" + var.toString(true) + " genotype=" + genotype + " (" + genes_str + ")").toUtf8();
+				var_data.localization = variantLocalization(db, reg.chr(), reg.start(), reg.end(), genes);
+				var_data.type = VarType::CAUSAL;
+
+				output << var_data;
+			}
+		}
+
+		//find causal REs
+		{
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT re.name, re.region, reg.allele1, reg.allele2 FROM report_configuration_re rcr, repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=rcr.repeat_expansion_genotype_id AND rcr.causal='1' AND rcr.report_configuration_id=" + QString::number(rc_id));
+			while(query.next())
+			{
+				QByteArray a1 = query.value("allele1").toByteArray();
+				QByteArray a2 = query.value("allele2").toByteArray();
+				QByteArray name = "RE: " + query.value("name").toByteArray() + " length=" + a1;
+				if (!a2.isEmpty()) name += "/" + a2;
+				BedLine reg = BedLine::fromString(query.value("region").toByteArray());
+				GeneSet genes = variantGenes(db, reg.chr(), reg.start(), reg.end());
+
+				VarData var_data;
+				QByteArray genes_str = genes.count()<10 ? genes.join(", ") : "many";
+				var_data.name = name + " (" + genes_str + ")";
+				var_data.localization = variantLocalization(db, reg.chr(), reg.start(), reg.end(), genes);
+				var_data.type = VarType::CAUSAL;
+
+				output << var_data;
+			}
+		}
+
+		//missing: add other causal variants
+	}
+	return output;
+}
+
+GeneSet MVHub::variantGenes(NGSD& db, const Chromosome& chr, int start, int end)
+{
+	GeneSet genes = db.genesOverlapping(chr, start, end, 0);
+	if (genes.isEmpty()) genes = db.genesOverlapping(chr, start, end, 5000);
+
+	return genes;
+}
+
+QByteArray MVHub::variantLocalization(NGSD& db, const Chromosome& chr, int start, int end, const GeneSet& genes)
+{
+	//runtime optimization for largs CNVs/SVs
+	if (genes.count()>=10) return "coding-region";
+
+	//exon region
+	BedFile exon_regions = db.genesToRegions(genes, Transcript::ENSEMBL, "exon");
+	exon_regions.merge();
+	if (exon_regions.overlapsWith(chr, start, end)) return "coding-region";
+
+	//splice reion
+	BedFile splicing_regions = exon_regions;
+	splicing_regions.extend(20);
+	splicing_regions.merge();
+	splicing_regions.subtract(exon_regions);
+	if (splicing_regions.overlapsWith(chr, start, end)) return "splicing-region";
+
+	//intronic region
+	BedFile gene_loci = db.genesToRegions(genes, Transcript::ENSEMBL, "gene");
+	if (gene_loci.overlapsWith(chr, start, end)) return "intronic";
+
+	//missing: "regulatory-region" because it is not tracked in NGSD
+
+	return "intergenic"; //fallback
+}

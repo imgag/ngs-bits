@@ -86,7 +86,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_);
 		}
 
-		///Convert cnv to string wit additional data (size, regions).
+		///Convert cnv to string with additional data (size, regions).
 		QString toStringWithMetaData() const;
 
 
