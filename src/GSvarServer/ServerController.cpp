@@ -3,7 +3,6 @@
 #include "FileMetaCache.h"
 #include <QUrl>
 #include <QProcess>
-#include <QTemporaryFile>
 
 ServerController::ServerController()
 {
@@ -991,8 +990,11 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 
     BasicResponseData response_data;
     response_data.length = body.length();
-    response_data.content_type = request.getContentType();
+    response_data.content_type = request.getContentType();  
+    response_data.is_stream = true;
+    response_data.content_type = ContentType::TEXT_PLAIN;
     response_data.is_downloadable = false;
+
     return HttpResponse(response_data, body);
 }
 
