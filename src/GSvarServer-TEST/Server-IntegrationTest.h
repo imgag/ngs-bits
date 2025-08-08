@@ -91,7 +91,7 @@ private slots:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
-		add_headers.insert("Range", "bytes=454-");
+        add_headers.insert("Range", "bytes=461-");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
 		{
