@@ -171,8 +171,7 @@ int FastaFileIndex::n(const Chromosome& chr) const
 		Sequence sequence = seq(chr, false);
 		for (int i=0; i<sequence.length(); ++i)
 		{
-			QByteRef ref = sequence.operator[](i);
-			if (ref=='N' || ref=='n') ++output;
+			if (sequence[i]=='N' || sequence[i]=='n') ++output;
 		}
 		n_[chr] = output;
 	}
