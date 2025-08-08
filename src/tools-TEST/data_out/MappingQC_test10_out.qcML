@@ -14,7 +14,7 @@
     <qualityParameter ID="qp0005" name="properly-paired read percentage" description="Percentage of properly paired reads (for paired-end reads only)." value="98.74" cvRef="QC" accession="QC:2000022"/>
     <qualityParameter ID="qp0006" name="insert size" description="Average insert size (for paired-end reads only)." value="424.50" cvRef="QC" accession="QC:2000023"/>
     <qualityParameter ID="qp0007" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="0.34" cvRef="QC" accession="QC:2000024"/>
-    <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="0.79" cvRef="QC" accession="QC:2000050"/>
+    <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="0.78" cvRef="QC" accession="QC:2000050"/>
     <qualityParameter ID="qp0009" name="target region read depth" description="Average sequencing depth in target region." value="0.00" cvRef="QC" accession="QC:2000025"/>
     <qualityParameter ID="qp0010" name="target region 10x percentage" description="Percentage of the target region that is covered at least 10-fold." value="0.11" cvRef="QC" accession="QC:2000026"/>
     <qualityParameter ID="qp0011" name="target region 20x percentage" description="Percentage of the target region that is covered at least 20-fold." value="0.00" cvRef="QC" accession="QC:2000027"/>

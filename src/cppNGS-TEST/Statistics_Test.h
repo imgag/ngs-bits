@@ -350,7 +350,11 @@ TEST_CLASS(Statistics_Test)
 
 	void mapping()
 	{
-		QCCollection stats = Statistics::mapping(TESTDATA("data_in/close_exons.bam"));
+
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		QCCollection stats = Statistics::mapping(TESTDATA("data_in/close_exons.bam"), ref_file);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("20.88"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
@@ -368,7 +372,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[7].name(), QString("bases usable (MB)"));
 		S_EQUAL(stats[7].toString(), QString("0.17"));
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
-		S_EQUAL(stats[8].toString(8), QString("0.00005488"));
+		S_EQUAL(stats[8].toString(8), QString("0.00005781"));
 		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
 		IS_TRUE(stats[9].type()==QCValueType::IMAGE);
 		I_EQUAL(stats.count(), 10);
@@ -398,7 +402,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[7].name(), QString("bases usable (MB)"));
 		S_EQUAL(stats[7].toString(), QString("0.17"));
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
-		S_EQUAL(stats[8].toString(8), QString("0.00005488"));
+		S_EQUAL(stats[8].toString(8), QString("0.00005781"));
 		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
 		IS_TRUE(stats[9].type()==QCValueType::IMAGE);
 
@@ -421,9 +425,9 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[6].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[6].toString(), QString("0.77"));
 		S_EQUAL(stats[7].name(), QString("bases usable (MB)"));
-		S_EQUAL(stats[7].toString(), QString("0.35"));
+		S_EQUAL(stats[7].toString(), QString("0.33"));
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
-		S_EQUAL(stats[8].toString(8), QString("0.00011258"));
+		S_EQUAL(stats[8].toString(8), QString("0.00011283"));
 		S_EQUAL(stats[9].name(), QString("target region 10x percentage"));
 		S_EQUAL(stats[9].toString(), QString("22.10"));
 		S_EQUAL(stats[10].name(), QString("target region 20x percentage"));
