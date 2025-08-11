@@ -3200,9 +3200,9 @@ FilterCnvCompHet::FilterCnvCompHet()
 {
 	name_ = "CNV compound-heterozygous";
 	type_ = VariantType::CNVS;
-	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and at least one herozygous small variant hit (after other filters are applied)." << "Mode 'CNV-SNV/INDEL multi-hit' detectes genes with exactly one or more CNVs and at least one herozygous small variant hit (after other filters are applied).";
+	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detects genes with at least one CNV and at least one heterozygous small variant hit (after other filters are applied).";
 	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
-	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL,CNV-SNV/INDEL multi-hit";
+	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL";
 
 	checkIsRegistered();
 }
@@ -3245,30 +3245,8 @@ void FilterCnvCompHet::apply(const CnvList& cnvs, FilterResult& result) const
 		}
 	}
 
-	//one CNV and at least one SNV/INDEL hit
-	else if (mode=="CNV-SNV/INDEL")
-	{
-		GeneSet single_hit_cnv;
-		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
-		{
-			if (it.value()==1)
-			{
-				single_hit_cnv.insert(it.key());
-			}
-		}
-
-        for (const QByteArray& gene : single_hit_cnv)
-		{
-			if (het_hit_genes_.contains(gene))
-			{
-				comphet_hit.insert(gene);
-			}
-		}
-	}
-
-
 	//at least one CNV and at least one SNV/INDEL hit
-	else if (mode=="CNV-SNV/INDEL multi-hit")
+	else if (mode=="CNV-SNV/INDEL")
 	{
 		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
 		{
@@ -4471,7 +4449,7 @@ FilterSvCompHet::FilterSvCompHet()
 {
 	name_ = "SV compound-heterozygous";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Filter for compound-heterozygous SVs." << "Mode 'SV-SV' detects genes with two or more SV hits." << "Mode 'SV-SNV/INDEL' detectes genes with exactly one SV and exactly one small variant hit (after other filters are applied).";
+	description_ = QStringList() << "Filter for compound-heterozygous SVs." << "Mode 'SV-SV' detects genes with two or more SV hits." << "Mode 'SV-SNV/INDEL' detects genes with at least one SV and at least one small variant hit (after other filters are applied).";
 	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
 	params_.last().constraints["valid"] = "n/a,SV-SV,SV-SNV/INDEL";
 
@@ -4523,17 +4501,9 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	//one SV and one SNV/INDEL hit
 	else if (mode=="SV-SNV/INDEL")
 	{
-		GeneSet single_hit_sv;
 		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
 		{
-			if (it.value()==1)
-			{
-				single_hit_sv.insert(it.key());
-			}
-		}
-
-        for (const QByteArray& gene : single_hit_sv)
-		{
+			QByteArray gene = it.key();
 			if (het_hit_genes_.contains(gene))
 			{
 				comphet_hit.insert(gene);

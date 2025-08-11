@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2025_03-80-g74f31dd7)
+	VariantFilterAnnotations (2025_05-79-g6c060cfd)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -171,9 +171,13 @@
 	                                     invert - If set, removes all variants if they were called in short-read WGS sample. [default=false]
 	
 	Mandatory parameters:
-	  -in <file>        Input variant list in GSvar format.
-	  -out <file>       Output variant list in GSvar format.
 	  -filters <file>   Filter definition file.
+	
+	Optional parameters:
+	  -in <file>        Input variant list in GSvar format.
+	                    Default value: ''
+	  -out <file>       Output variant list in GSvar format.
+	                    Default value: ''
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -183,8 +187,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2025_03-80-g74f31dd7
+	VariantFilterAnnotations 2025_05-79-g6c060cfd
 	
+	2025-06-05 Made input and output files optional.
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.
 	2017-06-14 Added sub-population allele frequency filter.

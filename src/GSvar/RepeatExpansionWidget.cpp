@@ -159,19 +159,14 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_show_hist)
 	{
-		QString filename;
 		QByteArray svg;
-		if (!ClientHelper::isClientServerMode())
+		VersatileFile file(hist_loc.filename);
+		if (!file.open(QIODevice::ReadOnly, false))
 		{
-			filename = QFileInfo(hist_loc.filename).absoluteFilePath();
-			VersatileFile file(hist_loc.filename);
-			file.open(QIODevice::ReadOnly);
-			svg = file.readAll();
+			QMessageBox::warning(this, "RE historgam", "Could not open histogram SVG file!");
+			return;
 		}
-		else
-		{
-			svg = VersatileFile(hist_loc.filename).readAll();
-		}
+		svg = file.readAll();
 
         #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         QSvgRenderer renderer(svg);

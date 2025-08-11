@@ -1,5 +1,5 @@
 ### CnvFilterAnnotations tool help
-	CnvFilterAnnotations (2024_08-113-g94a3b440)
+	CnvFilterAnnotations (2025_05-79-g6c060cfd)
 	
 	Filter a copy-number variant list in TSV format based on variant annotations.
 	
@@ -26,9 +26,10 @@
 	                             max_clonality - Maximum Clonality of the CNV  [default=1]
 	CNV compound-heterozygous  Filter for compound-heterozygous CNVs.
 	                           Mode 'CNV-CNV' detects genes with two or more CNV hits.
-	                           Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and exactly one small variant hit (after other filters are applied).
+	                           Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and at least one herozygous small variant hit (after other filters are applied).
+	                           Mode 'CNV-SNV/INDEL multi-hit' detectes genes with exactly one or more CNVs and at least one herozygous small variant hit (after other filters are applied).
 	                           Parameters:
-	                             mode - Compound-heterozygotes detection mode. [default=n/a] [valid=n/a,CNV-CNV,CNV-SNV/INDEL]
+	                             mode - Compound-heterozygotes detection mode. [default=n/a] [valid=n/a,CNV-CNV,CNV-SNV/INDEL,CNV-SNV/INDEL multi-hit]
 	CNV copy-number            Filter for CNV copy number.
 	                           Parameters:
 	                             cn - Copy number [valid=0,1,2,3,4,5+] [non-empty]
@@ -91,7 +92,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### CnvFilterAnnotations changelog
-	CnvFilterAnnotations 2024_08-113-g94a3b440
+	CnvFilterAnnotations 2025_05-79-g6c060cfd
 	
 	2020-05-25 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

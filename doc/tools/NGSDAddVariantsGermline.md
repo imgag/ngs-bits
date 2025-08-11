@@ -1,5 +1,5 @@
 ### NGSDAddVariantsGermline tool help
-	NGSDAddVariantsGermline (2024_08-113-g94a3b440)
+	NGSDAddVariantsGermline (2025_05-79-g6c060cfd)
 	
 	Imports variants of a processed sample into the NGSD.
 	
@@ -17,7 +17,7 @@
 	                    Default value: ''
 	  -re <file>        RE list in VCF format (as produced by megSAP).
 	                    Default value: ''
-	  -force            Force import of variants, even if they are already imported.
+	  -force            Force import of small variants (they are skipped, if the same callset is already in NGSD).
 	                    Default value: 'false'
 	  -out <file>       Output file. If unset, writes to STDOUT.
 	                    Default value: ''
@@ -38,8 +38,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDAddVariantsGermline changelog
-	NGSDAddVariantsGermline 2024_08-113-g94a3b440
+	NGSDAddVariantsGermline 2025_05-79-g6c060cfd
 	
+	2025-07-14 Changed behaviour of 'force' parameter (affects only small variants if callset was already imported now).
 	2024-08-28 Merged all force parameters into one. Implmented skipping of small variants import if the same callset was already imported.
 	2021-07-19 Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

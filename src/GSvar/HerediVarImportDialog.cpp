@@ -3,6 +3,7 @@
 #include "GUIHelper.h"
 #include "HttpHandler.h"
 #include "NGSD.h"
+#include "Settings.h"
 
 HerediVarImportDialog::HerediVarImportDialog(QWidget* parent)
 	: QDialog(parent)

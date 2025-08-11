@@ -1,7 +1,6 @@
 #include "ChunkProcessor.h"
 #include "VcfFile.h"
 #include "TabixIndexedFile.h"
-#include <zlib.h>
 #include <QFileInfo>
 
 #include "ToolBase.h"

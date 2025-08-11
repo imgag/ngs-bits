@@ -91,7 +91,7 @@ private slots:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
-		add_headers.insert("Range", "bytes=454-");
+        add_headers.insert("Range", "bytes=461-");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
 		{
@@ -301,6 +301,7 @@ private slots:
         }
 
         QSharedPointer<VersatileFile> index_page_file(new VersatileFile(html_file));
+        index_page_file.data()->open(QIODevice::ReadOnly);
         QByteArray index_page_content = index_page_file->readAll();
         S_EQUAL(asset_file_content, index_page_content);
 
@@ -311,9 +312,9 @@ private slots:
         S_EQUAL(first_line.trimmed(), "<!doctype html>");
         I_EQUAL(index_page_file->pos(), 16);
         index_page_file->seek(10);
-        QByteArray line_fragment = index_page_file->read(3);
+        QByteArray line_fragment = index_page_file->read(4);
         S_EQUAL(line_fragment, "html");
-        I_EQUAL(index_page_file->pos(), 13);
+        I_EQUAL(index_page_file->pos(), 14);
     }
 };
 

@@ -7,6 +7,7 @@
 #include <QSslError>
 #include <QSslConfiguration>
 #include <QHostAddress>
+#include <QTemporaryFile>
 #include <QList>
 
 #include "Log.h"

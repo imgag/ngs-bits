@@ -7,6 +7,7 @@
 #include "Log.h"
 #include <QMessageBox>
 #include <QMenu>
+#include "Settings.h"
 
 GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowcov_file, const BedFile& roi, const GeneSet& genes)
 	: QDialog(parent)
@@ -109,7 +110,7 @@ void GapDialog::calculteGaps()
 		}
 		if (!genes_no_transcript.isEmpty())
 		{
-			output << "Genes without transcripts could not be converted to exons: " + genes_invalid.join(", ");
+			output << "Genes without transcripts could not be converted to exons: " + genes_no_transcript.join(", ");
 		}
 	}
 	else

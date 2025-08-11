@@ -24,8 +24,6 @@ public slots:
 	QByteArray getPseudonym(QByteArray str, QByteArray context, bool test_server = true, bool debug = true);
 	//load research consent data from meDIC
 	void loadConsentData();
-	//load data from GenLab
-	void loadGenLabData();
 	//export consent data for a sample list
 	void exportConsentData();
 	//check XML data in MVH database
@@ -38,6 +36,8 @@ private:
 
 	//clear output panel on bottom
 	void addOutputHeader(QString section, bool clear=true);
+	//add output line and make sure the new line is visible to the user
+	void addOutputLine(QString line);
 
 	//load data Modellvorhaben case management RedCap and copy it to MVH database
 	void loadDataFromCM();
@@ -45,9 +45,16 @@ private:
 	void loadDataFromSE();
 	//determine processed samples for cases from NGSD
 	void determineProcessedSamples();
+	//add missing HPO terms to SE RedCap and update SE data in MVH database
+	int updateHpoTerms(bool debug=false);
+	//add missing variants to SE RedCap and update SE data in MVH database
+	int updateVariants(int debug_level=0);
 	//update GRZ/KDK export status
 	void updateExportStatus();
 	void updateExportStatus(NGSD& mvh_db, int r);
+
+	//check for errors in the data
+	void checkForMetaDataErrors();
 	//show messages
 	void showMessages();
 
@@ -63,6 +70,23 @@ private:
 
 	//returns the string contents of a table item
 	QString getString(int r, int c, bool trim=true);
+
+	//returns a list of causal variants
+	enum VarType
+	{
+		CAUSAL,
+		INCIDENTAL,
+		VUS
+	};
+	struct VarData
+	{
+		QByteArray name;
+		QByteArray localization;
+		VarType type;
+	};
+	QList<VarData> getVariants(NGSD& db, QString ps);
+	GeneSet variantGenes(NGSD& db, const Chromosome& chr, int start, int end);
+	QByteArray variantLocalization(NGSD& db, const Chromosome& chr, int start, int end, const GeneSet& genes);
 };
 
 #endif // MVHUB_H

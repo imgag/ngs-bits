@@ -24,8 +24,10 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 	ui_->gene_panel->setDependencies(genome_idx_, transcripts_);
 
 	//init chromosome list (ordered correctly)
-	valid_chrs_ = genome_idx_.names();
-	std::sort(valid_chrs_.begin(), valid_chrs_.end(), [](const QString& s1, const QString& s2){ Chromosome c1(s1); Chromosome c2(s2); return (c1.num()<1004 || c2.num()<1004) ? c1<c2 : s1<s2;  });
+	foreach(const Chromosome& chr, genome_idx_.chromosomes())
+	{
+		valid_chrs_ << chr.str();
+	}
 	ui_->chr_selector->addItems(valid_chrs_);
 
 	//init gene and transcript list

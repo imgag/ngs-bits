@@ -9,6 +9,7 @@
 #include "GlobalServiceProvider.h"
 #include "Background/VariantAnnotator.h"
 #include "LoginManager.h"
+#include "Settings.h"
 
 ImportDialog::ImportDialog(QWidget* parent, Type type)
 	: QDialog(parent)

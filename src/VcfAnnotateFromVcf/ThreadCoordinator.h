@@ -6,8 +6,8 @@
 #include <QTimer>
 #include <QFile>
 #include <QSharedPointer>
-#include <zlib.h>
 #include "Auxilary.h"
+#include "VersatileFile.h"
 
 //coordinator class for multi-threading
 class ThreadCoordinator
@@ -35,7 +35,7 @@ public slots:
 private:
 	Parameters params_;
 	MetaData meta_;
-	gzFile in_stream_;
+	QSharedPointer<VersatileFile> in_stream_;
 	QSharedPointer<QFile> out_stream_;
 	QList<AnalysisJob> job_pool_;
 	QThreadPool thread_pool_read_;

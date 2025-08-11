@@ -1443,8 +1443,6 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	// Workaround to manual add panels for non patient-specific processing systems
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)' OR type='cfDNA'");
-	//TODO: reactivate
-//	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
 	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
@@ -3267,7 +3265,8 @@ void MainWindow::on_actionAbout_triggered()
             about_text += "\nServer version: " + server_info.version;
             about_text += "\nAPI version: " + server_info.api_version;
             about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-        }
+			about_text += "\nServer URL: " + server_info.server_url;
+		}
     }
 	else
 	{
@@ -6524,6 +6523,7 @@ void MainWindow::showNotification(QString text)
 	QToolTip::showText(pos, text);
 }
 
+//TODO Marc: disable phenotype filter after ranking (instead of clearing it)
 void MainWindow::variantRanking()
 {
 	if (filename_.isEmpty()) return;
@@ -6735,6 +6735,7 @@ void MainWindow::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
+
             for (const QByteArray& gene : pheno_genes)
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));

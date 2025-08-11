@@ -58,7 +58,7 @@ void VariantWidget::updateGUI()
 	QString variant_id = db.variantId(variant_);
 
 	//variant base info
-    ui_.variant->setText(variant_.toString(QChar(), -1, true));
+	ui_.variant->setText(variant_.toString(QChar(), -1, true));
 
 	SqlQuery query1 = db.getQuery();
 	query1.exec("SELECT * FROM variant WHERE id=" + variant_id);
@@ -74,14 +74,6 @@ void VariantWidget::updateGUI()
 	ui_.cadd->setText(cadd.isNull() ? "" : cadd.toString());
 	QVariant spliceai = query1.value("spliceai");
 	ui_.spliceai->setText(spliceai.isNull() ? "" : spliceai.toString());
-
-	GenotypeCounts counts = db.genotypeCounts(variant_id);
-	QString text;
-	text += QString::number(counts.hom)+"x hom, ";
-	text += QString::number(counts.het)+"x het, ";
-	text += QString::number(counts.mosaic)+"x mosaic";
-	ui_.ngsd_counts->setText(text);
-	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
 
 	//PubMed ids
 	QStringList pubmed_ids = db.pubmedIds(variant_id);
@@ -122,8 +114,7 @@ void VariantWidget::updateGUI()
 	GUIHelper::resizeTableCellWidths(ui_.transcripts, 450);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.transcripts);
 
-
-	//classification
+	//ClinVar
 	SqlQuery query4 = db.getQuery();
 	query4.exec("SELECT s.name as s_name, vp.db, vp.class, vp.date, vp.result, u.name as u_name FROM sample s, variant_publication vp, user u WHERE s.id=vp.sample_id AND vp.user_id=u.id AND variant_id=" + variant_id + " AND vp.replaced=0 ORDER BY vp.date DESC");
 	if (query4.next())
@@ -144,6 +135,21 @@ void VariantWidget::updateGUI()
 	ClassificationInfo class_info = db.getClassification(variant_);
 	ui_.classification->setText(class_info.classification);
 	GSvarHelper::limitLines(ui_.classification_comment, class_info.comments);
+
+	//update GUI (next code block is slow)
+	qApp->processEvents();
+
+	//NGSD counts
+	GenotypeCounts counts = db.genotypeCounts(variant_id);
+	QString text;
+	text += QString::number(counts.hom)+"x hom, ";
+	text += QString::number(counts.het)+"x het, ";
+	text += QString::number(counts.mosaic)+"x mosaic";
+	ui_.ngsd_counts->setText(text);
+	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
+
+	//update GUI (next code block is slow)
+	qApp->processEvents();
 
 	//samples table
 	SqlQuery query2 = db.getQuery();
@@ -180,24 +186,25 @@ void VariantWidget::updateGUI()
 			addItem(row, 1,  s_data.name_external);
 			addItem(row, 2,  s_data.patient_identifier);
 			addItem(row, 3,  s_data.gender);
-			addItem(row, 4,  s_data.quality + " / " + ps_data.quality);
+			addItem(row, 4,  ps_data.ancestry);
+			addItem(row, 5,  s_data.quality + " / " + ps_data.quality);
 			QString genotype = query2.value(1).toString();
 			if (query2.value(2).toInt()==1) genotype += " (mosaic)";
-			addItem(row, 5, genotype);
-			addItem(row, 6, ps_data.processing_system);
-			addItem(row, 7, ps_data.project_name);
-			addItem(row, 8, s_data.disease_group);
-			addItem(row, 9, s_data.disease_status);
+			addItem(row, 6, genotype);
+			addItem(row, 7, ps_data.processing_system);
+			addItem(row, 8, ps_data.project_name);
+			addItem(row, 9, s_data.disease_group);
+			addItem(row, 10, s_data.disease_status);
 			QStringList pho_list;
             for (const Phenotype& pheno : s_data.phenotypes)
 			{
 				pho_list << pheno.toString();
 			}
-			addItem(row, 10, pho_list.join("; "));
-			addItem(row, 11, diag_data.dagnostic_status);
-			addItem(row, 12, diag_data.user);
-			addItem(row, 13, s_data.comments, true);
-			addItem(row, 14, ps_data.comments, true);
+			addItem(row, 11, pho_list.join("; "));
+			addItem(row, 12, diag_data.dagnostic_status);
+			addItem(row, 13, diag_data.user);
+			addItem(row, 14, s_data.comments, true);
+			addItem(row, 15, ps_data.comments, true);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -207,7 +214,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_causal << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
-			addItem(row, 15, genes_causal.join(','));
+			addItem(row, 16, genes_causal.join(','));
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
@@ -216,7 +223,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_candidate << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
-			addItem(row, 16, genes_candidate.join(','));
+			addItem(row, 17, genes_candidate.join(','));
 
 			//add report config comment of variant
 			QString rc_comment;
@@ -225,20 +232,20 @@ void VariantWidget::updateGUI()
 			{
 				rc_comment = query3.value(0).toString().trimmed();
 			}
-			addItem(row, 17, rc_comment, true);
+			addItem(row, 18, rc_comment, true);
 
 			//validation info
 			QString vv_id = db.getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + variant_id + "' AND variant_type='SNV_INDEL'").toString();
 			if (!vv_id.isEmpty())
 			{
-				addItem(row, 18, db.getValue("SELECT status FROM variant_validation WHERE id='" + vv_id + "'").toString());
+				addItem(row, 19, db.getValue("SELECT status FROM variant_validation WHERE id='" + vv_id + "'").toString());
 			}
 
 			++row;
 		}
 
 		//sort by processed sample name
-        ui_.table->sortByColumn(0, ui_.table->horizontalHeader()->sortIndicatorOrder());
+		ui_.table->sortByColumn(0, ui_.table->horizontalHeader()->sortIndicatorOrder());
 
 		//resize table cols
 		GUIHelper::resizeTableCellWidths(ui_.table, 200);

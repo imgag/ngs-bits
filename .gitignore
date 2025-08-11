@@ -7,3 +7,6 @@ t.log
 cppREST-TEST_urls.txt
 libxml2/include
 libxml2/libs
+htslib/build/
+htslib/include/
+htslib/lib/

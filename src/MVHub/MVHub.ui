@@ -49,18 +49,90 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QPushButton" name="load_consent_data">
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>load consent data</string>
+         <string>status:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="load_genlab_data">
+       <widget class="QComboBox" name="f_status">
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Keine Angabe</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rekrutiert</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Aktiv</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Abgebrochen</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Abgeschlossen</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>load GenLab data</string>
+         <string>network:</string>
         </property>
        </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="f_network">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>0</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Netzwerk Seltene Erkrankungen</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Deutsches Netzwerk für Personalisierte Medizin</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
        <widget class="QPushButton" name="check_xml">
@@ -73,13 +145,16 @@
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer_2">
+       <spacer name="horizontalSpacer_4">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
+          <width>10</width>
           <height>20</height>
          </size>
         </property>
@@ -123,38 +198,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>network:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="f_network">
-        <property name="minimumSize">
-         <size>
-          <width>250</width>
-          <height>0</height>
-         </size>
-        </property>
-        <item>
-         <property name="text">
-          <string/>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Netzwerk Seltene Erkrankungen</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Deutsches Netzwerk für Personalisierte Medizin</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
        <widget class="QCheckBox" name="f_messages">
         <property name="text">
          <string>with message(s)</string>
@@ -180,7 +223,7 @@
       <item>
        <widget class="QCheckBox" name="f_ready_export">
         <property name="text">
-         <string>ready for GRZ/KDK export (load consent and GenLab data)</string>
+         <string>ready for GRZ/KDK export</string>
         </property>
        </widget>
       </item>
@@ -237,6 +280,16 @@
        </column>
        <column>
         <property name="text">
+         <string>CM Fallnummer</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>CM Status</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>SAP ID</string>
         </property>
        </column>
@@ -287,12 +340,12 @@
        </column>
        <column>
         <property name="text">
-         <string>consent</string>
+         <string>consent signed [CM]</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>GenLab</string>
+         <string>consent</string>
         </property>
        </column>
        <column>

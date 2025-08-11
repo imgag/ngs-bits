@@ -200,32 +200,40 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 	//access restricted only for user role 'user_restricted'
 	if (getUserRole(user_id)!="user_restricted") return true;
 
-	//get permission list
+	QMap<int, QSet<int>>& user_can_access = getCache().user_can_access;
 	QSet<int> ps_ids;
-	SqlQuery query = getQuery();
-	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
-	while(query.next())
+	if (user_can_access.contains(user_id))
 	{
-		Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
-		QVariant data = query.value("data").toString();
-
-		switch(permission)
-		{
-			case Permission::PROJECT:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
-				break;
-			case Permission::PROJECT_TYPE:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
-				break;
-			case Permission::SAMPLE:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
-				break;
-			case Permission::STUDY:
-                ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
-				break;
-		}
+		ps_ids = user_can_access.value(user_id);
 	}
+	else
+	{		
+		//get permission list
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
+		while(query.next())
+		{
+			Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+			QVariant data = query.value("data").toString();
 
+			switch(permission)
+			{
+				case Permission::PROJECT:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
+					break;
+				case Permission::PROJECT_TYPE:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
+					break;
+				case Permission::SAMPLE:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
+					break;
+				case Permission::STUDY:
+					ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
+					break;
+			}
+		}		
+		user_can_access.insert(user_id, ps_ids);
+	}
 	return ps_ids.contains(ps_id);
 }
 
@@ -5987,6 +5995,7 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 	return output;
 }
 
+//Illumina docu: https://help.connected.illumina.com/run-set-up/overview/instrument-settings/novaseq-x-series-settings
 QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnalysisSettings& settings)
 {
 	QStringList sample_sheet;
@@ -6390,6 +6399,17 @@ int NGSD::geneId(const QByteArray& gene)
 {
 	QHash<QByteArray, int>& gene2id = getCache().gene2id;
 
+	//fill the cache, if it is empty
+	if (gene2id.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT symbol, id FROM gene");
+		while (query.next())
+		{
+			gene2id[query.value(0).toByteArray()] = query.value(1).toInt();
+		}
+	}
+	
 	//check cache first
 	int cache_id = gene2id.value(gene, -1);
 	if (cache_id!=-1)
@@ -6477,7 +6497,26 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 
 QByteArray NGSD::geneSymbol(int id)
 {
-	return getValue("SELECT symbol FROM gene WHERE id=" + QString::number(id), false).toByteArray();
+	QHash<int, QByteArray>& id2gene = getCache().id2gene;
+
+	//fill the cache, if it is empty
+	if (id2gene.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, symbol FROM gene");
+		while (query.next())
+		{
+			id2gene[query.value(0).toInt()] = query.value(1).toByteArray();
+		}
+	}
+
+	//exception if invalid ID
+	if (!id2gene.contains(id))
+	{
+		THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
+	}
+
+	return id2gene[id];
 }
 
 QByteArray NGSD::geneHgncId(int id)
@@ -8061,6 +8100,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 	return output;
 }
 
+//TODO Marc: add user created / user last edited to report config variant tables
 int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res)
 {
 	int report_config_id = reportConfigId(processed_sample_id);
@@ -10196,6 +10236,7 @@ void NGSD::clearCache()
 	cache_instance.related_samples.clear();
 	cache_instance.approved_gene_names.clear();
 	cache_instance.gene2id.clear();
+	cache_instance.id2gene.clear();
 	cache_instance.enum_values.clear();
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();

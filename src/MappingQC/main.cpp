@@ -104,7 +104,7 @@ public:
 			QString build = getEnum("build");
 			if (build=="non_human")
 			{
-				metrics = Statistics::mapping(in, min_mapq, ref_file);
+				metrics = Statistics::mapping(in, ref_file, min_mapq);
 			}
 			else
 			{
@@ -117,7 +117,7 @@ public:
 		}
 		else if(rna)
 		{
-			metrics = Statistics::mapping(in, min_mapq, ref_file);
+			metrics = Statistics::mapping(in, ref_file, min_mapq);
 
 			//parameters
 			parameters << "-rna";

@@ -4,6 +4,7 @@
 #include <iostream>
 #include "HttpRequestHandler.h"
 #include <QTime>
+#include "Settings.h"
 
 TEST_CLASS(ChainFileReader_Test)
 {

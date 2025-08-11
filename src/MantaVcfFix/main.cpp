@@ -38,10 +38,6 @@ public:
 
 	virtual void main()
 	{
-		//static variables
-		static const int buffer_size = 1048576; //1MB buffer
-		static char* buffer = new char[buffer_size];
-
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
 		bool debug = getFlag("debug");
@@ -50,10 +46,7 @@ public:
 		QSharedPointer<QFile> out_stream = Helper::openFileForWriting(out, true);
 
 		//open input steam
-		FILE* file = in.isEmpty() ? stdin : fopen(in.toUtf8().data(), "rb");
-		if (file==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
-		gzFile in_stream = gzdopen(fileno(file), "rb"); //always open in binary mode because windows and mac open in text mode
-		if (in_stream==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
+		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(in, true);
 
 		//cache to store read SVs
 		QMap<QByteArray,int> id_buffer_mapping;
@@ -61,22 +54,9 @@ public:
 		int buffer_idx = 0;
 
 		//read lines
-		while(!gzeof(in_stream))
+		while(!file->atEnd())
 		{
-			char* char_array = gzgets(in_stream, buffer, buffer_size);
-
-			//handle errors like truncated GZ file
-			if (char_array==nullptr)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(in_stream, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading input: " + error_message);
-				}
-			}
-
-			QByteArray line = QByteArray(char_array);
+			QByteArray line = file->readLine();
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
@@ -162,8 +142,6 @@ public:
 				output_buffer.append(parts.join("\t") + "\n");
 				buffer_idx++;
 			}
-
-
 		}
 
 		//write variants from buffer to file
@@ -171,7 +149,6 @@ public:
 		{
 			out_stream->write(line);
 		}
-
 	}
 };
 

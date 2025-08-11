@@ -4,10 +4,10 @@
 #include <QObject>
 #include <QFile>
 #include <QDate>
-#include "zlib.h"
 #include "Exceptions.h"
 #include "Helper.h"
 #include "BedpeFile.h"
+#include "VersatileFile.h"
 
 class VcfToBedpe
 {
@@ -21,13 +21,9 @@ public:
 
 private:
 	QByteArray filename_;
-	gzFile file_;
+	VersatileFile file_;
 	QList<QByteArray> out_headers_;
 	QList<QByteArray> samples_;
-
-	//buffer size for gz file
-	int buffer_size_;
-	char* buffer_;
 
 	///struct for the data that is contained in a single (input!) vcf line
 	struct VcfLineInternal;
@@ -37,9 +33,6 @@ private:
 
 	///parses an INFO field (usually contained in header)  and returns entries as key value pairs
 	static QMap<QByteArray,QByteArray> parseInfoField(const QByteArray& field);
-
-	///Returns line from gz file
-	QByteArray getLine();
 
 	///Adds info field to header after another header string contains "before"
 	void addHeaderInfoFieldAfter(const QByteArray& before,const QByteArray& key, const QByteArray& type, int number, const QByteArray& desc);

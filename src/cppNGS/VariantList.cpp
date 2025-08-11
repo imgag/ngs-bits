@@ -12,8 +12,6 @@
 #include <QBitArray>
 #include <QUrl>
 
-#include <zlib.h>
-
 Variant::Variant()
 	: chr_()
 	, start_(-1)
@@ -142,7 +140,6 @@ QString Variant::toString(QChar sep, int max_sequence_length, bool chr_normalize
 	if (sep.isNull())
 	{
 		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref + ">" + obs;
-
 	}
 	else
 	{
@@ -810,8 +807,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 	int filter_index = -1;
 	while(!file->atEnd())
 	{
-		QByteArray line = file->readLine();
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+		QByteArray line = file->readLine(true);
 
 		//skip empty lines
 		if(line.length()==0) continue;
@@ -907,6 +903,11 @@ void VariantList::store(QString filename) const
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    stream.setEncoding(QStringConverter::Utf8);
+    #else
+    stream.setCodec("UTF-8");
+    #endif
 
 	//comments
 	if (comments_.count()>0)
