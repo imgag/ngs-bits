@@ -345,7 +345,7 @@ RtfSourceCode SomaticReportHelper::partBillingTable()
 	QByteArray heading_text = "Abrechnungsinformation gemäß einheitlicher Bewertungsmaßstab";
 	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
 
-	table.addRow(RtfTableRow({"Gen", "OMIM"}, {doc_.maxWidth()/2, doc_.maxWidth()/2}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
+	table.addRow(RtfTableRow({"Gen", "OMIM", "HGNC"}, {doc_.maxWidth()/3, doc_.maxWidth()/3, doc_.maxWidth()/3}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
 
 	BedFile target = settings_.target_region_filter.regions;
 	target.merge();
@@ -364,14 +364,17 @@ RtfSourceCode SomaticReportHelper::partBillingTable()
 		size = 123670;
 	}
 
-    for (const auto& gene : ebm_genes_)
+	for (auto& gene : ebm_genes_)
 	{
+		gene = db_.geneToApproved(gene);
 		QByteArrayList omim_mims;
-        for (const auto& info : db_.omimInfo(gene))
+		foreach (const auto& info, db_.omimInfo(gene))
 		{
 			omim_mims << info.mim;
 		}
-		table.addRow( RtfTableRow({gene, omim_mims.join(", ")},{doc_.maxWidth()/2, doc_.maxWidth()/2}) );
+		QByteArray hgnc_id = db_.geneHgncId(db_.geneId(gene));
+
+		table.addRow( RtfTableRow({gene, omim_mims.join(", "), hgnc_id}, {doc_.maxWidth()/3, doc_.maxWidth()/3, doc_.maxWidth()/3}) );
 	}
 	table.setUniqueBorder(1,"brdrhair",4);
 
