@@ -40,13 +40,13 @@ private:
 	void addOutputLine(QString line);
 
 	//load data Modellvorhaben case management RedCap and copy it to MVH database
-	void loadDataFromCM();
+	void loadDataFromCM(int debug_level=0);
 	//load data Modellvorhaben SE RedCap and copy it to MVH database
 	void loadDataFromSE();
 	//determine processed samples for cases from NGSD
 	void determineProcessedSamples();
 	//add missing HPO terms to SE RedCap and update SE data in MVH database
-	int updateHpoTerms(bool debug=false);
+	int updateHpoTerms(int debug_level=0);
 	//add missing variants to SE RedCap and update SE data in MVH database
 	int updateVariants(int debug_level=0);
 	//update GRZ/KDK export status

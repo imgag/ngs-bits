@@ -42,8 +42,8 @@ void MVHub::delayedInitialization()
 	updateExportStatus();
 
 	//add missing data to SE RedCap
-	int added_hpos = updateHpoTerms(true);
-	int added_variants = updateVariants(1);
+	int added_hpos = updateHpoTerms(0);
+	int added_variants = updateVariants(0);
 
 	//update SE RedCap data when we have changed it
 	if (added_hpos>0 || added_variants>0)
@@ -576,14 +576,10 @@ void MVHub::determineProcessedSamples()
 	}
 }
 
-int MVHub::updateHpoTerms(bool debug)
+int MVHub::updateHpoTerms(int debug_level)
 {
 	int added_hpo_terms = 0;
 	addOutputHeader("updating HPO terms in SE RedCap", false);
-
-	//TODO re-add when we have
-	addOutputLine("SKIPPED: it is unclear how to add HPO terms to RedCap");
-	return 0;
 
 	//init
 	NGSD db;
@@ -644,18 +640,22 @@ int MVHub::updateHpoTerms(bool debug)
 		QString s_id = db.sampleId(ps);
 		PhenotypeList hpo_ngsd = db.samplePhenotypes(s_id, false);
 
-		if (debug) addOutputLine(se_id + "/" + ps + ": HPOs NGSD: " + QString::number(hpo_ngsd.count()) + " HPOs SE RedCap: " + QString::number(hpo_mvh.count()));
+		if (debug_level>=2) addOutputLine(se_id + "/" + ps + ": HPOs NGSD: " + QString::number(hpo_ngsd.count()) + " HPOs SE RedCap: " + QString::number(hpo_mvh.count()));
 
 		//update if terms are missing
 		foreach(Phenotype hpo, hpo_ngsd)
 		{
 			if (hpo_mvh.containsAccession(hpo.accession()))
 			{
-				if (debug) addOutputLine(se_id + "/" + ps + ": HPO skipped (already in SE RedCap): " + hpo.toString());
+				if (debug_level>=3) addOutputLine(se_id + "/" + ps + ": HPO skipped (already in SE RedCap): " + hpo.toString());
 				continue;
 			}
 
-			//TODO replace fixed version_hpo with correct value from NGSD when implmented: https://github.com/imgag/megSAP/issues/423
+			if (debug_level>=1) addOutputLine(se_id + "/" + ps + ": adding HPO: " + hpo.toString());
+
+			//TODO re-add when meDIC figures out how this is done
+			/*
+			//TODO replace fixed version_hpo with correct value from NGSD when implemented: https://github.com/imgag/megSAP/issues/423
 			//add HPO term to SE RedCap
 			addOutputLine(se_id + "/" + ps + ": adding HPO term "+hpo.toString()+" ...");
 			HttpHeaders headers;
@@ -680,6 +680,7 @@ int MVHub::updateHpoTerms(bool debug)
 				return added_hpo_terms;
 			}
 			++added_hpo_terms;
+			*/
 		}
 	}
 
@@ -1191,7 +1192,7 @@ QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_ser
 	return pseudo2;
 }
 
-void MVHub::loadDataFromCM()
+void MVHub::loadDataFromCM(int debug_level)
 {
 	try
 	{
@@ -1255,12 +1256,18 @@ void MVHub::loadDataFromCM()
 
 			QDomElement root = doc.documentElement();
 			QString cm_id = root.namedItem("record_id").toElement().text().trimmed();
-			cmid2data[cm_id] << line;
-			QString sap_id = root.namedItem("pat_id").toElement().text().trimmed();
-			if (!sap_id.isEmpty()) cmid2sapid[cm_id] = sap_id; //redcap_repeat_instance SAP ID is empty
 
 			//skip items flagged as 'redcap_repeat_instance'
-			if(root.namedItem("redcap_repeat_instance").toElement().text()=="1") continue;
+			if(root.namedItem("redcap_repeat_instance").toElement().text().trimmed()!="")
+			{
+				if (debug_level>=2) addOutputLine("Skipped repeat instance for " + cm_id);
+				continue;
+			}
+
+			//cache SAP ID
+			cmid2data[cm_id] << line;
+			QString sap_id = root.namedItem("pat_id").toElement().text().trimmed();
+			if (!sap_id.isEmpty()) cmid2sapid[cm_id] = sap_id;
 
 			//add table line
 			int r = ui_.table->rowCount();
@@ -1274,7 +1281,14 @@ void MVHub::loadDataFromCM()
 				if(e.isNull()) continue;
 
 				QString tag = e.tagName();
-				if (tag=="record_id") ui_.table->setItem(r, 0, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="record_id")
+				{
+					QString cm_id = e.text().trimmed();
+					QTableWidgetItem* item = GUIHelper::createTableItem(cm_id);
+					QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='" + cm_id + "'").toString();
+					item->setToolTip("id: "+id);
+					ui_.table->setItem(r, 0, item);
+				}
 				if (tag=="case_id") ui_.table->setItem(r, 1, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="status_study") ui_.table->setItem(r, 2, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="pat_id") ui_.table->setItem(r, 3, GUIHelper::createTableItem(e.text().trimmed()));
