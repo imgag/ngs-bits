@@ -1345,6 +1345,7 @@ void MVHub::loadDataFromSE()
 		QTextStream stream(stdout);
 		QHash<QString, QString> sap2psn;
 		QHash<QString, QString> psn2sap;
+		QHash<QString, QString> psn2consent_version;
 		QHash<QString, QStringList> psn2items;
 
 		//get data from RedCap API
@@ -1370,10 +1371,20 @@ void MVHub::loadDataFromSE()
 			if(e.isNull()) continue;
 
 			QString psn_id = e.namedItem("psn").toElement().text().trimmed();
-			QString sap_id = e.namedItem("pat_id").toElement().text().trimmed();
+			QString sap_id = e.namedItem("pat_id").toElement().text().trimmed(); //attention: not contained in repeat elements!
 
+			//store network id to SAP ID mapping (if not repeat element)
 			if (!sap_id.isEmpty()) psn2sap[psn_id] = sap_id;
 
+			//store consent version in datastructure (in repeat element)
+			QString consent_version = e.namedItem("vers_einwillig_forsch").toElement().text().trimmed();
+			if (!consent_version.isEmpty())
+			{
+				qDebug() << psn_id << sap_id << consent_version;
+				psn2consent_version[psn_id] = consent_version;
+			}
+
+			//store SE data in datastructure
 			QString item;
 			QTextStream stream(&item);
 			e.save(stream, 0);
@@ -1414,12 +1425,15 @@ void MVHub::loadDataFromSE()
 		//update main table
 		int c_sap_id = GUIHelper::columnIndex(ui_.table, "SAP ID");
 		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
+		int c_consent_ver = GUIHelper::columnIndex(ui_.table, "consent version [SE]");
 		for(int r=0; r<ui_.table->rowCount(); ++r)
 		{
 			QString sap_id = getString(r, c_sap_id);
 			if (sap_id=="") continue;
 
-			ui_.table->setItem(r, c_network_id, GUIHelper::createTableItem(sap2psn[sap_id]));
+			QString network_id = sap2psn[sap_id];
+			ui_.table->setItem(r, c_network_id, GUIHelper::createTableItem(network_id));
+			ui_.table->setItem(r, c_consent_ver, GUIHelper::createTableItem(psn2consent_version[network_id]));
 		}
 	}
 	catch (Exception& e)
@@ -1429,7 +1443,6 @@ void MVHub::loadDataFromSE()
 	}
 }
 
-//TODO add VUS/INCIDENTAL variants?
 QList<MVHub::VarData> MVHub::getVariants(NGSD& db, QString ps)
 {
 	QList<VarData> output;
@@ -1558,6 +1571,7 @@ QList<MVHub::VarData> MVHub::getVariants(NGSD& db, QString ps)
 		}
 
 		//missing: add other causal variants
+		//missing: VUS/INCIDENTAL variants (they are optional - see email Corinna Ernst from 2025-08-11)
 	}
 	return output;
 }
