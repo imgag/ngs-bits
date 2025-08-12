@@ -6,7 +6,8 @@
 #include <QTextStream>
 #include <QFileInfo>
 #include <QElapsedTimer>
-
+#include <numeric>
+#include <cmath>
 
 class ConcreteTool
 		: public ToolBase
@@ -34,6 +35,7 @@ public:
 		addEnum("cohort_strategy", "Determines which samples are used as reference cohort.", true, valid_cohort, "RNA_COHORT_GERMLINE");
 		addOutfile("corr", "File path to output file containing the spearman correlation to cohort mean.", true);
 		addInfile("hpa_file", "TSV file containing the Human Protein Atlas (https://www.proteinatlas.org) to annotate gene expression", true);
+		addInfile("cohort_data", "TSV file containing the a column with the TPM/SBRP for the full cohort - overwrites 'cohort_strategy'", true);
 		addFlag("update_genes", "Update annotated gene names with approved gene names from the NGSD");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
@@ -45,6 +47,85 @@ public:
 
 	}
 
+	QMap<QByteArray, ExpressionStats> calculateExpressionStatsFromFile(NGSD &db,const QString &cohort_file,const QString &ps_name,QMap<QByteArray, QByteArray> ensg_gene_mapping, bool exons=false)
+	{
+		QSharedPointer<VersatileFile> cohort_data = Helper::openVersatileFileForReading(cohort_file, false);
+		QMap<QByteArray, ExpressionStats> expression_stats;
+		QMap<QByteArray, QByteArrayList> exon_transcript_mapping;
+
+		if (exons)
+		{
+			exon_transcript_mapping = db.getExonTranscriptMapping();
+		}
+
+		QByteArrayList headers = cohort_data->readLine().split('\t');
+		headers.last() = headers.last().trimmed();
+		//get tpm column indices:
+		QList<int> tpm_indices;
+		for(int i=0; i<headers.count(); ++i)
+		{
+			QByteArray col_header = headers[i];
+			if (col_header.endsWith("_tpm") && ! col_header.contains(ps_name.toLatin1()))
+			{
+				tpm_indices.append(i);
+			}
+		}
+
+		bool type_ok = true;
+		while(! cohort_data->atEnd())
+		{
+			QByteArrayList parts = cohort_data->readLine().split('\t');
+			parts.last() = parts.last().trimmed();
+
+			if (parts.count() != headers.count())
+			{
+				QTextStream err( stderr );
+				err << "Headers: [" << headers.join(", ") << "]";
+				err << "Line: [" << parts.join(", ") << "]";
+				THROW(ArgumentException, "Cohort file parsing error: Line has different column count than header!\n")
+			}
+
+			QByteArray ident = parts[0];
+			QVector<float> tpms(tpm_indices.count());
+			for (int i=0; i<tpm_indices.count(); ++i) {
+				int idx = tpm_indices[i];
+
+				double tpm = parts[idx].toFloat(&type_ok);
+				if(! type_ok)
+				{
+					THROW(ArgumentException, "Cohort file contains a non-float value in tpm column: " + headers[idx] + " in line :" + ident);
+				}
+				tpms[i] = tpm;
+			}
+
+			double sum = 0;
+			double sum_log2 = 0;
+			double sq_sum_log2 = 0;
+			foreach(float value, tpms)
+			{
+				sum += value;
+				double log2 = std::log2(value+1);
+				sum_log2 += log2;
+				sq_sum_log2 += (log2*log2);
+			}
+			double mean = sum / tpms.count();
+			double mean_log2 = sum_log2 / tpms.count();
+			double stddev_log2 = std::sqrt(sq_sum_log2 / tpms.size() - mean_log2 * mean_log2);
+
+			ExpressionStats stats;
+			stats.mean = mean;
+			stats.mean_log2 = mean_log2;
+			stats.stddev_log2 = stddev_log2;
+
+			if (! exons)
+			{
+				expression_stats[ensg_gene_mapping[ident]] = stats;
+			}
+		}
+
+		return expression_stats;
+	}
+
 	virtual void main()
 	{
 		//init
@@ -53,6 +134,7 @@ public:
 		QString ps_name = getString("ps");
 		QString mode = getEnum("mode");
 		QString cohort_strategy_str = getEnum("cohort_strategy");
+		QString cohort_data = getInfile("cohort_data");
 		QString corr = getOutfile("corr");
 		QString hpa_file_path = getInfile("hpa_file");
 		bool update_genes = getFlag("update_genes");
@@ -97,18 +179,23 @@ public:
 
 		if (cohort.size() > 0)
 		{
-			if (mode == "genes")
+			if (cohort_data != "")
 			{
-				expression_stats = db.calculateGeneExpressionStatistics(cohort, "", true);
-			}
-			else if(mode == "exons")
-			{
-				expression_stats = db.calculateExonExpressionStatistics(cohort);
-				exon_transcript_mapping  = db.getExonTranscriptMapping();
+				bool exons = mode == "exons";
+				expression_stats = calculateExpressionStatsFromFile(db, cohort_data, ps_name, ensg_gene_mapping, exons);
+				if (exons) exon_transcript_mapping  = db.getExonTranscriptMapping();
 			}
 			else
 			{
-				THROW(ArgumentException, "Invalid mode '" + mode + "given!")
+				if (mode == "genes")
+				{
+					expression_stats = db.calculateGeneExpressionStatistics(cohort, "", true);
+				}
+				else if(mode == "exons")
+				{
+					expression_stats = db.calculateExonExpressionStatistics(cohort);
+					exon_transcript_mapping  = db.getExonTranscriptMapping();
+				}
 			}
 		}
 
