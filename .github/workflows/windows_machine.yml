@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025
     defaults:
       run:
         shell: msys2 {0}
@@ -20,7 +20,7 @@ jobs:
         run: git submodule update --recursive --init
       - name: Unpack htslib
         working-directory: ./htslib
-        run: unzip htslib_win_64.zip
+        run: unzip htslib_win_64_qt6.zip
       - name: Copy htslib to bin folder
         run: (cp htslib/lib/hts.dll.a bin/) && (cp htslib/lib/hts-3.dll bin/) && (cp htslib/lib/libhts.a bin/)
       - name: Unpack libxml2
