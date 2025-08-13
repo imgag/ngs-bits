@@ -40,7 +40,7 @@ private slots:
 		QString file = TESTDATA("data/sample.gsvar");
 		QString copy_name = file+"_tmp";
 		QFile::copy(file, copy_name);
-		QString file_copy = TESTDATA(copy_name.toUtf8());
+        QString file_copy = TESTDATA("data/sample.gsvar_tmp");
 
         IS_FALSE(UrlManager::isInStorageAlready(file_copy));
         QFileInfo info = QFileInfo(file_copy);

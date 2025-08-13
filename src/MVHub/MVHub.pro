@@ -21,11 +21,11 @@ include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
-LIBS += -L$$PWD/../bin -lcppNGSD
+LIBS += -L$$PWD/../../bin -lcppNGSD
 
 #include VISUAL library
 INCLUDEPATH += $$PWD/../cppVISUAL
-LIBS += -L$$PWD/../bin -lcppVISUAL
+LIBS += -L$$PWD/../../bin -lcppVISUAL
 
 RESOURCES += \
     resources.qrc

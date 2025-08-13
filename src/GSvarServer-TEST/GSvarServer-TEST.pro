@@ -12,17 +12,17 @@ QTPLUGIN += QSQLMYSQL
 CONFIG   += console
 CONFIG   -= app_bundle
 TEMPLATE = app
-DESTDIR = ../../bin/
+DESTDIR = ../../../../bin/
 
 include("../app_cli.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
-LIBS += -L$$PWD/../bin -lcppNGSD
+LIBS += -L$$PWD/../../bin -lcppNGSD
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppREST
-LIBS += -L$$PWD/../bin -lcppREST
+LIBS += -L$$PWD/../../bin -lcppREST
 
 #the server itself
 INCLUDEPATH += $$PWD/../GSvarServer

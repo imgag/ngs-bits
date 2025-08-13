@@ -19,95 +19,95 @@ help:
 ##################################### build - DEBUG #####################################
 
 build_libs_debug_noclean:
-	mkdir -p build-libs-Linux-Debug;
-	cd build-libs-Linux-Debug; \
-		qmake ../src/libs.pro "CONFIG+=debug" "CONFIG-=release"; \
+	mkdir -p src/build/build-libs-Linux-Debug;
+	cd src/build/build-libs-Linux-Debug; \
+		qmake ../../libs.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make -j5;
 
 clean_libs_debug:
-	rm -rf build-libs-Linux-Debug;
+	rm -rf src/build/build-libs-Linux-Debug;
 
 build_libs_debug: clean_libs_debug build_libs_debug_noclean
 
 build_tools_debug_noclean:
-	mkdir -p build-tools-Linux-Debug;
-	cd build-tools-Linux-Debug; \
-		qmake ../src/tools.pro "CONFIG+=debug" "CONFIG-=release"; \
+	mkdir -p src/build/build-tools-Linux-Debug;
+	cd src/build/build-tools-Linux-Debug; \
+		qmake ../../tools.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make -j5;
 
 clean_tools_debug:
-	rm -rf build-tools-Linux-Debug;
+	rm -rf src/build/build-tools-Linux-Debug;
 
 build_tools_debug: clean_tools_debug build_tools_debug_noclean
 
 build_server_debug:
-	rm -rf build-GSvarServer-Linux-Debug;
-	mkdir -p build-GSvarServer-Linux-Debug;
-	cd build-GSvarServer-Linux-Debug; \
-                qmake ../src/tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
+	rm -rf src/build/build-GSvarServer-Linux-Debug;
+	mkdir -p src/build/build-GSvarServer-Linux-Debug;
+	cd src/build/build-GSvarServer-Linux-Debug; \
+                qmake ../../tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
                 make -j5;
 	
 #################################### build - RELEASE ####################################
 
 build_libs_release:
-	rm -rf build-libs-Linux-Release;
-	mkdir -p build-libs-Linux-Release;
-	cd build-libs-Linux-Release; \
-		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	rm -rf src/build/build-libs-Linux-Release;
+	mkdir -p src/build/build-libs-Linux-Release;
+	cd src/build/build-libs-Linux-Release; \
+		qmake ../../libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_tools_release:
-	rm -rf build-tools-Linux-Release;
-	mkdir -p build-tools-Linux-Release;
-	cd build-tools-Linux-Release; \
-		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	rm -rf src/build/build-tools-Linux-Release;
+	mkdir -p src/build/build-tools-Linux-Release;
+	cd src/build/build-tools-Linux-Release; \
+		qmake ../../tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_gui_release:
-	rm -rf build-tools_gui-Linux-Release;
-	mkdir -p build-tools_gui-Linux-Release;
-	cd build-tools_gui-Linux-Release; \
-		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	rm -rf src/build/build-tools_gui-Linux-Release;
+	mkdir -p src/build/build-tools_gui-Linux-Release;
+	cd src/build/build-tools_gui-Linux-Release; \
+		qmake ../../tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_libs_release_noclean:
-	mkdir -p build-libs-Linux-Release;
-	cd build-libs-Linux-Release; \
-		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	mkdir -p src/build/build-libs-Linux-Release;
+	cd src/build/build-libs-Linux-Release; \
+		qmake ../../libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_tools_release_noclean:
-	mkdir -p build-tools-Linux-Release;
-	cd build-tools-Linux-Release; \
-		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	mkdir -p src/build/build-tools-Linux-Release;
+	cd src/build/build-tools-Linux-Release; \
+		qmake ../../tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_gui_release_noclean:
-	mkdir -p build-tools_gui-Linux-Release;
-	cd build-tools_gui-Linux-Release; \
-		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	mkdir -p src/build/build-tools_gui-Linux-Release;
+	cd src/build/build-tools_gui-Linux-Release; \
+		qmake ../../tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_release_noclean: build_libs_release_noclean  build_tools_release_noclean build_gui_release_noclean
 
 build_server_release:
-	rm -rf build-GSvarServer-Linux-Release;
-	mkdir -p build-GSvarServer-Linux-Release;
-	cd build-GSvarServer-Linux-Release; \
-                qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	rm -rf src/build/build-GSvarServer-Linux-Release;
+	mkdir -p src/build/build-GSvarServer-Linux-Release;
+	cd src/build/build-GSvarServer-Linux-Release; \
+                qmake ../../tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 	
 build_server_release_noclean:
-	mkdir -p build-GSvarServer-Linux-Release;
-	cd build-GSvarServer-Linux-Release; \
-                qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	mkdir -p src/build/build-GSvarServer-Linux-Release;
+	cd src/build/build-GSvarServer-Linux-Release; \
+                qmake ../../tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 
 #################################### other targets ##################################
 
 clean:
 	find src -name "*.user" | xargs rm -rf
-	rm -rf build-* bin/out
+	rm -rf src/build/build-* bin/out
 	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:

@@ -10,7 +10,7 @@ QT += network
 CONFIG   += console
 CONFIG   -= app_bundle
 TEMPLATE = app
-DESTDIR = ../../bin/
+DESTDIR = ../../../../bin/
 
 #include cppCORE library
 INCLUDEPATH += $$PWD/../cppCORE
@@ -18,7 +18,7 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 
 #include XML library
 INCLUDEPATH += $$PWD/../cppXML
-LIBS += -L$$PWD/../bin -lcppXML
+LIBS += -L$$PWD/../../bin -lcppXML
 
 #include cppTFW library
 INCLUDEPATH += $$PWD/../cppTFW
