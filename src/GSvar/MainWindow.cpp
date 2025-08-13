@@ -545,7 +545,7 @@ void MainWindow::userSpecificDebugFunction()
 		{
 			foreach(int lines, QList<int>() << 100 << 1000 << 10000)
 			{
-				out << filename << " - " << QString::number(lines) << " MB" << endl;
+				out << filename << " - " << QString::number(lines) << " MB\n";
 
 				//remove output file
 				if (QFile::exists(filename))
@@ -562,7 +562,7 @@ void MainWindow::userSpecificDebugFunction()
 					file.write(line);
 				}
 				file.close();
-				out << "  write: " << Helper::elapsedTime(timer, true) << endl;
+				out << "  write: " << Helper::elapsedTime(timer, true) << "\n";
 
 				//read test
 				timer.start();
@@ -579,7 +579,7 @@ void MainWindow::userSpecificDebugFunction()
 						c = buf[0];
 					}
 				}
-				out << "  read: " << Helper::elapsedTime(timer, true) << " (char=" << c << ")" << endl;
+				out << "  read: " << Helper::elapsedTime(timer, true) << " (char=" << c << ")\n";
 			}
 		}
 	}
