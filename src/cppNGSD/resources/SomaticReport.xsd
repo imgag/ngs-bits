@@ -47,7 +47,7 @@
 						<xs:sequence>
 							<xs:element name="DiseaseInfo" minOccurs="0" maxOccurs="unbounded">
 								<xs:annotation>
-									<xs:documentation>Disease and phenotype information of the patient</xs:documentation>
+									<xs:documentation>Disease and phenotype information of the patient (tumor sample)</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
 									<xs:attribute name="type" use="required">
@@ -58,6 +58,37 @@
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="ICD10"/>
 												<xs:enumeration value="HPO"/>
+												<xs:enumeration value="ORPHA"/>
+												<xs:enumeration value="ONCOTREE"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="identifier" use="required">
+										<xs:annotation>
+											<xs:documentation>Disease/phenotype identifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="DiseaseInfoGermline" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Disease and phenotype information of the patient (germline sample)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="type" use="required">
+										<xs:annotation>
+											<xs:documentation>Source database of the disease/phenotype identifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="ICD10"/>
+												<xs:enumeration value="HPO"/>
+												<xs:enumeration value="ORPHA"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
@@ -214,12 +245,12 @@
 						</xs:attribute>
 						<xs:attribute name="microsatellite_instability">
 							<xs:annotation>
-                                                            <xs:documentation>Microsatellite instability: unstable sites in percent</xs:documentation>
+								<xs:documentation>Microsatellite instability: unstable sites in percent</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:float">
 									<xs:minInclusive value="0"/>
-                                                                        <xs:maxInclusive value="100"/>
+									<xs:maxInclusive value="100"/>
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
@@ -933,8 +964,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="5"/>
-						<xs:maxInclusive value="5"/>
+						<xs:minInclusive value="6"/>
+						<xs:maxInclusive value="6"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

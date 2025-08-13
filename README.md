@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_05
+	> git checkout 2025_07
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -187,10 +187,7 @@ Change log is available on the [releases](https://github.com/imgag/ngs-bits/rele
 ## Citing
 
 You can cite ngs-bits in using Zenodo DOIs:
-
-
+* 2025_07: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16676392.svg)](https://doi.org/10.5281/zenodo.16676392)
 * 2025_05: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15542696.svg)](https://doi.org/10.5281/zenodo.15542696)
-* 2025_03: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15051584.svg)](https://doi.org/10.5281/zenodo.15051584)
-* 2025_01: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14747530.svg)](https://doi.org/10.5281/zenodo.14747530)
 
 A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).

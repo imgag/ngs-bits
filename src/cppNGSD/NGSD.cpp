@@ -5995,6 +5995,7 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 	return output;
 }
 
+//Illumina docu: https://help.connected.illumina.com/run-set-up/overview/instrument-settings/novaseq-x-series-settings
 QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnalysisSettings& settings)
 {
 	QStringList sample_sheet;
@@ -8099,6 +8100,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 	return output;
 }
 
+//TODO Marc: add user created / user last edited to report config variant tables
 int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res)
 {
 	int report_config_id = reportConfigId(processed_sample_id);

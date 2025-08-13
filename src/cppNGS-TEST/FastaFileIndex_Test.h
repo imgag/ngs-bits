@@ -74,15 +74,21 @@ private slots:
         I_EQUAL(index.lengthOf("chr14"), 1509);
 	}
 
+	void n()
+	{
+		FastaFileIndex index(TESTDATA("data_in/example.fa"));
+		I_EQUAL(index.n("chr14"), 4);
+	}
+
 	void names()
 	{
 		FastaFileIndex index(TESTDATA("data_in/example.fa"));
-		QList<QString> names = index.names();
+		QList<Chromosome> names = index.chromosomes();
 		I_EQUAL(names.count(), 4);
-		S_EQUAL(names[0], QString("chr14"));
-		S_EQUAL(names[1], QString("chr15"));
-		S_EQUAL(names[2], QString("chr16"));
-		S_EQUAL(names[3], QString("chr17"));
+		S_EQUAL(names[0].str(), QString("chr14"));
+		S_EQUAL(names[1].str(), QString("chr15"));
+		S_EQUAL(names[2].str(), QString("chr16"));
+		S_EQUAL(names[3].str(), QString("chr17"));
 	}
 
 };

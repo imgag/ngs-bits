@@ -140,7 +140,6 @@ QString Variant::toString(QChar sep, int max_sequence_length, bool chr_normalize
 	if (sep.isNull())
 	{
 		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref + ">" + obs;
-
 	}
 	else
 	{
