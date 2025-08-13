@@ -6791,20 +6791,27 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 		}
 	}
 
+	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes;
+	if (hpo_genes_cache.isEmpty())
+	{
+		SqlQuery hpo_pairs_query = getQuery();
+		hpo_pairs_query.exec("SELECT hpo_term_id, gene FROM hpo_genes");
+		while(hpo_pairs_query.next())
+		{
+			hpo_genes_cache[hpo_pairs_query.value(0).toInt()] << hpo_pairs_query.value(1).toByteArray();
+		}
+	}
+
 	//create output gene set
 	GeneSet genes;
-	SqlQuery pid2genes = getQuery();
-	pid2genes.prepare("SELECT gene FROM hpo_genes WHERE hpo_term_id=:0");
 	while (!pheno_ids.isEmpty())
 	{
 		int id = pheno_ids.takeLast();
 		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
 
-		pid2genes.bindValue(0, id);
-		pid2genes.exec();
-		while(pid2genes.next())
+		QList<QByteArray> hpo_gene_list = hpo_genes_cache[id];
+		foreach(const QByteArray& gene, hpo_gene_list)
 		{
-			QByteArray gene = pid2genes.value(0).toByteArray();
 			genes.insert(geneToApproved(gene, true));
 		}
 	}
@@ -6889,10 +6896,16 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 PhenotypeList NGSD::phenotypeChildTerms(int term_id, bool recursive)
 {
 	PhenotypeList output;
-
-	//prepare queries
-	SqlQuery pid2children = getQuery();
-	pid2children.prepare("SELECT child FROM hpo_parent WHERE parent=:0");
+	QHash<int, QList<int>>& hpo_parent = getCache().hpo_parent;
+	if (hpo_parent.isEmpty())
+	{
+		SqlQuery hpo_parent_query = getQuery();
+		hpo_parent_query.exec("SELECT parent, child FROM hpo_parent");
+		while(hpo_parent_query.next())
+		{
+			hpo_parent[hpo_parent_query.value(0).toInt()] << hpo_parent_query.value(1).toInt();
+		}
+	}
 
 	//convert term ids to genes
 	QList<int> term_ids;
@@ -6900,12 +6913,9 @@ PhenotypeList NGSD::phenotypeChildTerms(int term_id, bool recursive)
 	while (!term_ids.isEmpty())
 	{
 		int id = term_ids.takeLast();
-
-		pid2children.bindValue(0, id);
-		pid2children.exec();
-		while(pid2children.next())
+		QList<int> hpo_children = hpo_parent[id];
+		foreach(const int& id_child, hpo_children)
 		{
-			int id_child = pid2children.value(0).toInt();
 			output << phenotype(id_child);
 			if (recursive)
 			{
@@ -10241,6 +10251,8 @@ void NGSD::clearCache()
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();
 	cache_instance.phenotypes_accession_to_id.clear();
+	cache_instance.hpo_genes.clear();
+	cache_instance.hpo_parent.clear();
 
 	cache_instance.gene_transcripts.clear();
 	cache_instance.gene_transcripts_index.createIndex();
