@@ -6557,10 +6557,8 @@ void MainWindow::variantRanking()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 	try
 	{
-
 		//create phenotype list
-		QHash<Phenotype, BedFile> phenotype_rois;
-		QString sample_id = db.sampleId(ps_name);
+		QHash<Phenotype, BedFile> phenotype_rois;		
 		for (const Phenotype& pheno : phenotypes)
 		{
 			//pheno > genes

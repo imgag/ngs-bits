@@ -1264,6 +1264,8 @@ protected:
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;
 		QHash<QByteArray, int> phenotypes_accession_to_id;
+        QHash<int, QList<QByteArray>> hpo_genes;
+        QHash<int, QList<int>> hpo_parent;
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
