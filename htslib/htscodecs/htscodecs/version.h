@@ -1,1 +1,0 @@
-#define HTSCODECS_VERSION_TEXT "1.6.1"
