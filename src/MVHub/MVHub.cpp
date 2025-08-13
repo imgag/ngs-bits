@@ -1380,7 +1380,6 @@ void MVHub::loadDataFromSE()
 			QString consent_version = e.namedItem("vers_einwillig_forsch").toElement().text().trimmed();
 			if (!consent_version.isEmpty())
 			{
-				qDebug() << psn_id << sap_id << consent_version;
 				psn2consent_version[psn_id] = consent_version;
 			}
 

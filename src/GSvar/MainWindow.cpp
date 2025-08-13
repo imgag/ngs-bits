@@ -538,11 +538,49 @@ void MainWindow::userSpecificDebugFunction()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
-		GenLabDB db;
-		foreach(QString table, db.tables())
+		QTextStream out(stdout);
+		QElapsedTimer timer;
+		QByteArray line = Helper::randomString(1024*1024-10).toLatin1() + "\n"; // 1 line == 1 MB
+		foreach(QByteArray filename, QByteArrayList() << "C:\\Marc\\test.txt" << "F:\\Marc\\test.txt")
 		{
-			qDebug() << table;
-			qDebug() << db.fields(table);
+			foreach(int lines, QList<int>() << 100 << 1000 << 10000)
+			{
+				out << filename << " - " << QString::number(lines) << " MB" << endl;
+
+				//remove output file
+				if (QFile::exists(filename))
+				{
+					QFile::remove(filename);
+				}
+
+				//write test
+				timer.start();
+				QFile file(filename);
+				file.open(QFile::ReadWrite);
+				for(int i=0; i<lines; ++i)
+				{
+					file.write(line);
+				}
+				file.close();
+				out << "  write: " << Helper::elapsedTime(timer, true) << endl;
+
+				//read test
+				timer.start();
+				char c = 'x';
+				file.setFileName(filename);
+				file.open(QFile::ReadOnly);
+				while(!file.atEnd())
+				{
+					const int buf_size = 1024*1024;
+					char buf[buf_size];
+					qint64 chars_read = file.readLine(buf, buf_size);
+					if (chars_read!=-1)
+					{
+						c = buf[0];
+					}
+				}
+				out << "  read: " << Helper::elapsedTime(timer, true) << " (char=" << c << ")" << endl;
+			}
 		}
 	}
 	else if (user=="ahschul1")
