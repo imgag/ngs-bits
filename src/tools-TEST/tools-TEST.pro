@@ -15,6 +15,8 @@ TEMPLATE = app
 #include zlib library
 LIBS += -lz
 
+include("../qt_compatibility.pri")
+
 #include cppTFW library
 INCLUDEPATH += $$PWD/../cppTFW
 
