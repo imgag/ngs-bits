@@ -16,6 +16,8 @@
 #include <QClipboard>
 #include "ExportHistoryDialog.h"
 
+//TODO add export filter: n/a, no export, in progress, done
+
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -64,8 +66,9 @@ void MVHub::delayedInitialization()
 	addOutputLine("done");
 
 	//resize columns
-	GUIHelper::resizeTableCellWidths(ui_.table, 400, -1);
-	GUIHelper::resizeTableCellHeightsToMinimum(ui_.table, 20);
+	GUIHelper::resizeTableCellWidths(ui_.table, 200, -1);
+	ui_.table->resizeRowsToContents();
+	ui_.table->setColumnWidth(colOf("Netzwerk"), 300);
 }
 
 void MVHub::tableContextMenu(QPoint pos)
@@ -111,7 +114,7 @@ void MVHub::tableContextMenu(QPoint pos)
 		NGSD db;
 		GenLabDB genlab;
 
-		int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
+		int c_sap = colOf("SAP ID");
 		QString sap_id = getString(rows.first(), c_sap);
 		QString title = "Samples of case with SAP ID "+sap_id;
 
@@ -165,10 +168,10 @@ void MVHub::tableContextMenu(QPoint pos)
 			int r = rows.first();
 			QString title = "GRZ/KDK export";
 			NGSD mvh_db(true, "mvh");
-			int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-			int c_case_id = GUIHelper::columnIndex(ui_.table, "CM Fallnummer");
-			int c_status = GUIHelper::columnIndex(ui_.table, "CM Status");
-			int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
+			int c_cm = colOf("CM ID");
+			int c_case_id = colOf("CM Fallnummer");
+			int c_status = colOf("CM Status");
+			int c_seq_type = colOf("Sequenzierungsart");
 
 			//get ID
 			QString cm_id = getString(r, c_cm);
@@ -228,8 +231,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	}
 	if (action==a_export_history)
 	{
-		int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-		int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+		int c_cm = colOf("CM ID");
+		int c_network = colOf("Netzwerk");
 		int r = rows.first();
 
 		ExportHistoryDialog dlg(this, getString(r, c_cm), getString(r, c_network));
@@ -238,7 +241,7 @@ void MVHub::tableContextMenu(QPoint pos)
 	if (action->parent()==copy_col_menu)
 	{
 		QStringList output;
-		int c = GUIHelper::columnIndex(ui_.table, action->text());
+		int c = colOf(action->text());
 		foreach(int r, rows)
 		{
 			QString entry = getString(r, c);
@@ -260,7 +263,7 @@ void MVHub::updateTableFilters()
 	QString f_status = ui_.f_status->currentText();
 	if (!f_status.isEmpty())
 	{
-		int c_status = GUIHelper::columnIndex(ui_.table, "CM Status");
+		int c_status = colOf("CM Status");
 		for (int r=0; r<rows; ++r)
 		{
 			if (!visible[r]) continue;
@@ -273,7 +276,7 @@ void MVHub::updateTableFilters()
 	QString f_network = ui_.f_network->currentText();
 	if (!f_network.isEmpty())
 	{
-		int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+		int c_network = colOf("Netzwerk");
 		for (int r=0; r<rows; ++r)
 		{
 			if (!visible[r]) continue;
@@ -306,7 +309,7 @@ void MVHub::updateTableFilters()
 	//apply messages filter
 	if (ui_.f_messages->isChecked())
 	{
-		int c_messages = GUIHelper::columnIndex(ui_.table, "messages");
+		int c_messages = colOf("messages");
 
 		for (int r=0; r<rows; ++r)
 		{
@@ -322,14 +325,14 @@ void MVHub::updateTableFilters()
 	//apply GRZ/KDK export filter
 	if (ui_.f_ready_export->isChecked())
 	{
-		int c_case_id = GUIHelper::columnIndex(ui_.table, "CM Fallnummer");
-		int c_case_status = GUIHelper::columnIndex(ui_.table, "CM Status");
-		int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
-		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
-		int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
-		int c_consent_cm = GUIHelper::columnIndex(ui_.table, "consent signed [CM]");
-		int c_report_date = GUIHelper::columnIndex(ui_.table, "Befunddatum");
-		int c_te_retracted = GUIHelper::columnIndex(ui_.table, "Kündigung TE");
+		int c_case_id = colOf("CM Fallnummer");
+		int c_case_status = colOf("CM Status");
+		int c_seq_type = colOf("Sequenzierungsart");
+		int c_network_id = colOf("Netzwerk ID");
+		int c_consent = colOf("consent");
+		int c_consent_cm = colOf("consent signed [CM]");
+		int c_report_date = colOf("Befunddatum");
+		int c_te_retracted = colOf("Kündigung TE");
 
 		for (int r=0; r<rows; ++r)
 		{
@@ -385,7 +388,7 @@ void MVHub::updateTableFilters()
 			{
 				//done
 				QString status = getString(r, c_case_status);
-				if (status!="Abgeschlossen" && status!="Abgebrochen" && status!="Follow-Up") //TODO Öznur
+				if (status!="Abgeschlossen" && status!="Abgebrochen" && status!="Follow-Up")
 				{
 					visible[r] = false;
 					continue;
@@ -440,9 +443,9 @@ void MVHub::loadConsentData()
 {
 	addOutputHeader("loading consent data", false);
 
-	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
-	int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
+	int c_cm = colOf("CM ID");
+	int c_sap = colOf("SAP ID");
+	int c_consent = colOf("consent");
 	if (ui_.table->columnWidth(c_consent)<300) ui_.table->setColumnWidth(c_consent, 300);
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
@@ -556,14 +559,14 @@ void MVHub::determineProcessedSamples(int debug_level)
 	NGSD db;
 	GenLabDB genlab;
 	NGSD mvh_db(true, "mvh");
-	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
-	int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
-	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
-	int c_ps_t = GUIHelper::columnIndex(ui_.table, "PS tumor");
+	int c_cm = colOf("CM ID");
+	int c_sap = colOf("SAP ID");
+	int c_seq_type = colOf("Sequenzierungsart");
+	int c_ps = colOf("PS");
+	int c_ps_t = colOf("PS tumor");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
-	{	
+	{
 		//skip if no network is set
 		Network network = getNetwork(r);
 		if (network==UNSET)
@@ -666,11 +669,11 @@ void MVHub::determineProcessedSamples(int debug_level)
 		//set germline PS if exactly one PS found
 		if (ps_list_germline.count()==0)
 		{
-			cmid2messages_[cm_id] << "Could not determine/store processed sample(s): no matching samples in NGSD";
+			cmid2messages_[cm_id] << "Could not determine processed sample(s): no matching samples in NGSD";
 		}
 		else if (ps_list_germline.count()>1)
 		{
-			cmid2messages_[cm_id] << "Could not determine/store processed sample(s): several matching samples in NGSD";
+			cmid2messages_[cm_id] << "Could not determine processed sample(s): several matching samples in NGSD";
 		}
 		else
 		{
@@ -711,8 +714,8 @@ int MVHub::updateHpoTerms(int debug_level)
 	//init
 	NGSD db;
 	NGSD mvh_db(true, "mvh");
-	int c_se_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
-	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+	int c_se_id = colOf("Netzwerk ID");
+	int c_ps = colOf("PS");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -823,8 +826,8 @@ int MVHub::updateVariants(int debug_level)
 	//init
 	NGSD db;
 	NGSD mvh_db(true, "mvh");
-	int c_se_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
-	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+	int c_se_id = colOf("Netzwerk ID");
+	int c_ps = colOf("PS");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -933,8 +936,8 @@ void MVHub::updateExportStatus()
 void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 {
 	//init
-	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-	int c_export_status = GUIHelper::columnIndex(ui_.table, "export status");
+	int c_cm = colOf("CM ID");
+	int c_export_status = colOf("export status");
 
 	//get ID
 	QString cm_id = getString(r, c_cm);
@@ -977,12 +980,12 @@ void MVHub::checkForMetaDataErrors()
 	addOutputHeader("checking for meta data errors", false);
 
 	NGSD db;
-	int c_cm_id = GUIHelper::columnIndex(ui_.table, "CM ID");
-	int c_cm_status = GUIHelper::columnIndex(ui_.table, "CM Status");
-	int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
-	int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
-	int c_consent_cm = GUIHelper::columnIndex(ui_.table, "consent signed [CM]");
-	int c_report_date = GUIHelper::columnIndex(ui_.table, "Befunddatum");
+	int c_cm_id = colOf("CM ID");
+	int c_cm_status = colOf("CM Status");
+	int c_seq_type = colOf("Sequenzierungsart");
+	int c_consent = colOf("consent");
+	int c_consent_cm = colOf("consent signed [CM]");
+	int c_report_date = colOf("Befunddatum");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -1026,7 +1029,7 @@ void MVHub::checkForMetaDataErrors()
 		//check germline sample is in study
 		if (network!=OE)
 		{
-			int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+			int c_ps = colOf("PS");
 			QString ps = getString(r, c_ps).split(" ").first();
 			if (ps!="")
 			{
@@ -1041,7 +1044,7 @@ void MVHub::checkForMetaDataErrors()
 		//check tumor sample is in study
 		if (network==OE)
 		{
-			int c_ps_t = GUIHelper::columnIndex(ui_.table, "PS tumor");
+			int c_ps_t = colOf("PS tumor");
 			QString ps_t = getString(r, c_ps_t);
 			if (ps_t!="")
 			{
@@ -1057,8 +1060,8 @@ void MVHub::checkForMetaDataErrors()
 
 void MVHub::showMessages()
 {
-	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
-	int c_messages = GUIHelper::columnIndex(ui_.table, "messages");
+	int c_cm = colOf("CM ID");
+	int c_messages = colOf("messages");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -1253,9 +1256,9 @@ QByteArray MVHub::consentJsonToXml(QByteArray json_text, bool debug)
 			if (!object.contains("type")) continue;
 			if (object["type"].toString()!="permit") continue;
 
-            for (const QJsonValue& v : object["code"].toArray())
+			for (const QJsonValue& v : object["code"].toArray())
 			{
-                for (const QJsonValue& v2 : v.toObject()["coding"].toArray())
+				for (const QJsonValue& v2 : v.toObject()["coding"].toArray())
 				{
 					allowed << "    <permit>";
 					allowed << "      <code>"+v2.toObject()["code"].toString().toLatin1()+"</code>";
@@ -1379,7 +1382,8 @@ void MVHub::loadDataFromCM(int debug_level)
 
 		QHash<QString, QStringList> cmid2data;
 		QHash<QString, QString> cmid2sapid;
-		int c_cm_consent = GUIHelper::columnIndex(ui_.table, "consent signed [CM]");
+		int c_cm_consent = colOf("consent signed [CM]");
+		int c_confirmation = colOf("export confirmation");
 
 		//get RedCap data from API
 		HttpHeaders headers;
@@ -1507,6 +1511,45 @@ void MVHub::loadDataFromCM(int debug_level)
 			query.bindValue(2, sap_id);
 			query.exec();
 		}
+
+		//update export confirmation (from repeat elements)
+		QHash<QString, QStringList> cmid2conf;
+		foreach(QString line, reply)
+		{
+			if (!line.startsWith("<item>")) continue;
+
+			//open file
+			QDomDocument doc;
+			QString error_msg;
+			int error_line, error_column;
+			if(!doc.setContent(line, &error_msg, &error_line, &error_column))
+			{
+				THROW(FileParseException, "XML invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+			}
+
+			QDomElement root = doc.documentElement();
+			QString cm_id = root.namedItem("record_id").toElement().text().trimmed();
+
+			//get confirmation data
+			QString type = root.namedItem("report_data_type").toElement().text();
+			if (type.isEmpty()) continue;
+			if (type=="klinisch") type = "KDK";
+			if (type=="genomisch") type = "GRZ";
+
+			QString date = root.namedItem("report_date").toElement().text();
+			if (date.isEmpty()) continue;
+
+			QString result = root.namedItem("report_dq").toElement().text();
+			if (result!="Bestanden") continue;
+
+			cmid2conf[cm_id] << (type + " " +date);
+		}
+		for(auto it = cmid2conf.begin(); it!=cmid2conf.end(); ++it)
+		{
+			QString cm_id = it.key();
+
+			ui_.table->setItem(rowOf(cm_id), c_confirmation, GUIHelper::createTableItem(it.value().join(" // ")));
+		}
 	}
 	catch (Exception& e)
 	{
@@ -1601,9 +1644,9 @@ void MVHub::loadDataFromSE()
 		}
 
 		//update main table
-		int c_sap_id = GUIHelper::columnIndex(ui_.table, "SAP ID");
-		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
-		int c_consent_ver = GUIHelper::columnIndex(ui_.table, "consent version [SE]");
+		int c_sap_id = colOf("SAP ID");
+		int c_network_id = colOf("Netzwerk ID");
+		int c_consent_ver = colOf("consent version [SE]");
 		for(int r=0; r<ui_.table->rowCount(); ++r)
 		{
 			QString sap_id = getString(r, c_sap_id);
@@ -1790,8 +1833,10 @@ QByteArray MVHub::variantLocalization(NGSD& db, const Chromosome& chr, int start
 
 MVHub::Network MVHub::getNetwork(int r)
 {
-	int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
-	QString network = getString(r, c_network);
+	static int c = -1;
+	if (c==-1) c= colOf("Netzwerk");
+
+	QString network = getString(r, c);
 	if (network=="Netzwerk Seltene Erkrankungen") return SE;
 	if (network=="Deutsches Netzwerk für Personalisierte Medizin") return OE;
 	if (network=="") return UNSET;
@@ -1810,4 +1855,22 @@ QString MVHub::networkToString(Network network)
 			return "";
 	}
 	THROW(ProgrammingException, "Unhandled network enum " + QString::number(network));
+}
+
+int MVHub::rowOf(QString cm_id)
+{
+	static int c = -1;
+	if (c==-1) c= colOf("CM ID");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		if (getString(r, c)==cm_id) return r;
+	}
+
+	return -1;
+}
+
+int MVHub::colOf(QString col, bool throw_if_not_found)
+{
+	return GUIHelper::columnIndex(ui_.table, col, throw_if_not_found);
 }

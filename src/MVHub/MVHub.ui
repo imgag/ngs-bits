@@ -368,6 +368,11 @@
          <string>export status</string>
         </property>
        </column>
+       <column>
+        <property name="text">
+         <string>export confirmation</string>
+        </property>
+       </column>
       </widget>
       <widget class="QPlainTextEdit" name="output"/>
      </widget>

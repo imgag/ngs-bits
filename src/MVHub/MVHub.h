@@ -100,6 +100,10 @@ private:
 	};
 	Network getNetwork(int row);
 	QString networkToString(Network network);
+	//returns the row index of the given CM ID
+	int rowOf(QString cm_id);
+	//returns the columd index of the given column name
+	int colOf(QString col, bool throw_if_not_found=true);
 };
 
 #endif // MVHUB_H
