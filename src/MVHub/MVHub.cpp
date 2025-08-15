@@ -550,7 +550,7 @@ void MVHub::on_actionAbout_triggered()
 
 void MVHub::determineProcessedSamples(int debug_level)
 {
-	addOutputHeader("determining processed samples", false);
+	addOutputHeader("determining processed samples (if missing)", false);
 
 	//init
 	NGSD db;
@@ -563,20 +563,7 @@ void MVHub::determineProcessedSamples(int debug_level)
 	int c_ps_t = GUIHelper::columnIndex(ui_.table, "PS tumor");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
-	{
-		//skip if already in MVH database
-		QString cm_id = getString(r, c_cm);
-		QString sap_id = getString(r, c_sap);
-		if (debug_level>=1) addOutputLine("cm_id: " + cm_id + " // SAP ID: " + sap_id);
-		QString ps_in_mvh_db = mvh_db.getValue("SELECT ps FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
-		if(ps_in_mvh_db!="")
-		{
-			ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps_in_mvh_db));
-			ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(mvh_db.getValue("SELECT ps_t FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed()));
-			if (debug_level>=1) addOutputLine("  skipped: PS already in MV db");
-			continue;
-		}
-
+	{	
 		//skip if no network is set
 		Network network = getNetwork(r);
 		if (network==UNSET)
@@ -584,6 +571,33 @@ void MVHub::determineProcessedSamples(int debug_level)
 			if (debug_level>=1) addOutputLine("  skipped: No network");
 			continue;
 		}
+
+		//skip if already in MVH database
+		QString cm_id = getString(r, c_cm);
+		QString sap_id = getString(r, c_sap);
+		if (debug_level>=1) addOutputLine("cm_id: " + cm_id + " // SAP ID: " + sap_id);
+		QString ps_mvh = mvh_db.getValue("SELECT ps FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
+		QString ps_mvh_t = mvh_db.getValue("SELECT ps_t FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
+		if(network==SE)
+		{
+			if (!ps_mvh.isEmpty())
+			{
+				ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps_mvh));
+				if (debug_level>=1) addOutputLine("  skipped: PS already in MV db (SE)");
+				continue;
+			}
+		}
+		else if(network==OE)
+		{
+			if (!ps_mvh.isEmpty() && !ps_mvh_t.isEmpty())
+			{
+				ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps_mvh));
+				ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(ps_mvh_t));
+				if (debug_level>=1) addOutputLine("  skipped: PS already in MV db (SE)");
+				continue;
+			}
+		}
+		else THROW(ProgrammingException, "Unhandled network type '" + networkToString(network) + "'");
 
 		//skip if no sequencing was done
 		QString seq_type = getString(r, c_seq_type);
@@ -668,25 +682,6 @@ void MVHub::determineProcessedSamples(int debug_level)
 			query.exec("UPDATE case_data SET ps='"+ps+"' WHERE cm_id='"+cm_id+"'");
 		}
 
-		//set germline PS if exactly one PS found
-		if (ps_list_germline.count()==0)
-		{
-			cmid2messages_[cm_id] << "Could not determine germline processed sample(s): no matches in NGSD";
-		}
-		else if (ps_list_germline.count()>1)
-		{
-			cmid2messages_[cm_id] << "Could not determine germline processed sample(s): several matches in NGSD";
-		}
-		else
-		{
-			QString ps = ps_list_germline.first();
-			ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps));
-
-			//store PS in MVH database
-			SqlQuery query = mvh_db.getQuery();
-			query.exec("UPDATE case_data SET ps='"+ps+"' WHERE cm_id='"+cm_id+"'");
-		}
-
 		//set tumor PS if exactly one PS found
 		if (ps_list_tumor.count()==0)
 		{
@@ -703,7 +698,7 @@ void MVHub::determineProcessedSamples(int debug_level)
 
 			//store PS in MVH database
 			SqlQuery query = mvh_db.getQuery();
-			query.exec("UPDATE case_data SET ps='"+ps+"' WHERE cm_id='"+cm_id+"'");
+			query.exec("UPDATE case_data SET ps_t='"+ps+"' WHERE cm_id='"+cm_id+"'");
 		}
 	}
 }
@@ -979,7 +974,7 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 
 void MVHub::checkForMetaDataErrors()
 {
-	addOutputHeader("checking for meta data errors");
+	addOutputHeader("checking for meta data errors", false);
 
 	NGSD db;
 	int c_cm_id = GUIHelper::columnIndex(ui_.table, "CM ID");
@@ -1814,4 +1809,5 @@ QString MVHub::networkToString(Network network)
 		case UNSET:
 			return "";
 	}
+	THROW(ProgrammingException, "Unhandled network enum " + QString::number(network));
 }
