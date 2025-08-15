@@ -13,6 +13,7 @@
 #include <QDomDocument>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QClipboard>
 #include "ExportHistoryDialog.h"
 
 MVHub::MVHub(QWidget *parent)
@@ -34,11 +35,17 @@ MVHub::MVHub(QWidget *parent)
 
 void MVHub::delayedInitialization()
 {
+	//clear GUI and datastructures
+	ui_.table->setRowCount(0);
+	ui_.output->clear();
+	cmid2messages_.clear();
+
+	//load main data
 	loadDataFromCM();
 	loadDataFromSE();
 	loadConsentData();
 
-	determineProcessedSamples();
+	determineProcessedSamples(0);
 	updateExportStatus();
 
 	//add missing data to SE RedCap
@@ -54,6 +61,8 @@ void MVHub::delayedInitialization()
 	checkForMetaDataErrors();
 	showMessages();
 
+	addOutputLine("done");
+
 	//resize columns
 	GUIHelper::resizeTableCellWidths(ui_.table, 400, -1);
 	GUIHelper::resizeTableCellHeightsToMinimum(ui_.table, 20);
@@ -67,6 +76,14 @@ void MVHub::tableContextMenu(QPoint pos)
 	QMenu menu;
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
+	QMenu* copy_col_menu = menu.addMenu("Copy column");
+	copy_col_menu->setIcon(QIcon(":/Icons/CopyClipboard.png"));
+	copy_col_menu->addAction("CM ID");
+	copy_col_menu->addAction("SAP ID");
+	copy_col_menu->addAction("Netzwerk ID");
+	copy_col_menu->addSeparator();
+	copy_col_menu->addAction("PS");
+	copy_col_menu->addAction("PS tumor");
 	menu.addSeparator();
 	QAction* a_show_ngsd = menu.addAction("Show all NGSD samples");
 	a_show_ngsd->setEnabled(rows.count()==1);
@@ -173,7 +190,7 @@ void MVHub::tableContextMenu(QPoint pos)
 				{
 					QMessageBox::warning(this, title, "GRZ export is already done!"); //TODO implement followup/addition/correction
 				}
-				else //
+				else
 				{
 					QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
 					QString tan = getPseudonym(tag, "GRZ", false, false);
@@ -183,22 +200,25 @@ void MVHub::tableContextMenu(QPoint pos)
 			}
 
 			//add KDK export - if it is not pending/done
-			int pending_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='pending'").toInt();
-			int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
-			if (pending_kdk>0)
+			if (getNetwork(r)==SE)
 			{
-				QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
-			}
-			else if (done_kdk>0)
-			{
-				QMessageBox::warning(this, title, "KDK export is already done!"); //TODO implement followup/addition/correction
-			}
-			else
-			{
-				QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-				QString tan = getPseudonym(tag, "KDK_SE", false, false);
-				mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
-				updateExportStatus(mvh_db, r);
+				int pending_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='pending'").toInt();
+				int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
+				if (pending_kdk>0)
+				{
+					QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
+				}
+				else if (done_kdk>0)
+				{
+					QMessageBox::warning(this, title, "KDK export is already done!"); //TODO implement followup/addition/correction
+				}
+				else
+				{
+					QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+					QString tan = getPseudonym(tag, "KDK_SE", false, false);
+					mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+					updateExportStatus(mvh_db, r);
+				}
 			}
 		}
 		catch (Exception& e)
@@ -214,6 +234,18 @@ void MVHub::tableContextMenu(QPoint pos)
 
 		ExportHistoryDialog dlg(this, getString(r, c_cm), getString(r, c_network));
 		dlg.exec();
+	}
+	if (action->parent()==copy_col_menu)
+	{
+		QStringList output;
+		int c = GUIHelper::columnIndex(ui_.table, action->text());
+		foreach(int r, rows)
+		{
+			QString entry = getString(r, c);
+			if (entry.isEmpty()) continue;
+			output << entry;
+		}
+		QApplication::clipboard()->setText(output.join("\n"));
 	}
 }
 
@@ -292,7 +324,6 @@ void MVHub::updateTableFilters()
 	{
 		int c_case_id = GUIHelper::columnIndex(ui_.table, "CM Fallnummer");
 		int c_case_status = GUIHelper::columnIndex(ui_.table, "CM Status");
-		int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
 		int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
 		int c_network_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
 		int c_consent = GUIHelper::columnIndex(ui_.table, "consent");
@@ -304,50 +335,91 @@ void MVHub::updateTableFilters()
 		{
 			if (!visible[r]) continue;
 
-			if (getString(r, c_network)!="Netzwerk Seltene Erkrankungen") //TODO implement for other networks
+			Network network = getNetwork(r);
+			if (network==SE)
 			{
-				visible[r] = false;
-				continue;
-			}
+				//done
+				QString status = getString(r, c_case_status);
+				if (status!="Abgeschlossen" && status!="Abgebrochen")
+				{
+					visible[r] = false;
+					continue;
+				}
 
-			//status 'Abgeschlossen' oder 'Abgebrochen'
-			QString status = getString(r, c_case_status);
-			if (status!="Abgeschlossen" && status!="Abgebrochen")
+				//base data available
+				if (getString(r, c_case_id)=="" || getString(r, c_network_id)=="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//consent data available
+				if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//TE not retreacted
+				if (getString(r, c_te_retracted)!="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//Abgeschlossen, but no report date set
+				if (status=="Abgeschlossen" && getString(r, c_report_date)=="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//Abgebrochen, seqencing type not 'keine'
+				if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
+				{
+					visible[r] = false;
+					continue;
+				}
+			}
+			else if (network==OE)
 			{
-				visible[r] = false;
-				continue;
-			}
+				//done
+				QString status = getString(r, c_case_status);
+				if (status!="Abgeschlossen" && status!="Abgebrochen" && status!="Follow-Up") //TODO Öznur
+				{
+					visible[r] = false;
+					continue;
+				}
 
-			//base data available
-			if (getString(r, c_case_id)=="" || getString(r, c_network_id)=="")
-			{
-				visible[r] = false;
-				continue;
-			}
+				//base data available
+				if (getString(r, c_case_id)=="")
+				{
+					visible[r] = false;
+					continue;
+				}
 
-			//consent data available
-			if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
-			{
-				visible[r] = false;
-				continue;
-			}
+				//consent data available
+				if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
+				{
+					visible[r] = false;
+					continue;
+				}
 
-			//TE not retreacted
-			if (getString(r, c_te_retracted)!="")
-			{
-				visible[r] = false;
-				continue;
-			}
+				//TE not retreacted
+				if (getString(r, c_te_retracted)!="")
+				{
+					visible[r] = false;
+					continue;
+				}
 
-			//SE - Abgeschlossen, but no report date set
-			if (status=="Abgeschlossen" && getString(r, c_report_date)=="")
-			{
-				visible[r] = false;
-				continue;
+				//seqencing type not 'keine'
+				if (getString(r, c_seq_type)=="Keine")
+				{
+					visible[r] = false;
+					continue;
+				}
 			}
-
-			//SE - Abgebrochen, seqencing type not 'keine'
-			if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
+			else //TODO implement for other networks
 			{
 				visible[r] = false;
 				continue;
@@ -377,26 +449,23 @@ void MVHub::loadConsentData()
 	{
 		QString cm_id = getString(r, c_cm);
 		QString sap_id = getString(r, c_sap);
-		QString consent = getConsent(sap_id);
-		QString consent_json = getConsent(sap_id, false);
+		QByteArray consent_json = getConsent(sap_id);
+		QString consent_xml = consentJsonToXml(consent_json);
 
 		//store consent data in MVH database
 		NGSD mvh_db(true, "mvh");
 		SqlQuery query = mvh_db.getQuery();
 		query.prepare("UPDATE case_data SET rc_data=:0, rc_data_json=:1 WHERE cm_id=:2");
-		query.bindValue(0, consent);
+		query.bindValue(0, consent_xml);
 		query.bindValue(1, consent_json);
 		query.bindValue(2, cm_id);
 		query.exec();
 
 
-		QTableWidgetItem* item = GUIHelper::createTableItem(consent.isEmpty() ? "" : "yes (see tooltip)");
-		item->setToolTip(consent);
+		QTableWidgetItem* item = GUIHelper::createTableItem(consent_xml.isEmpty() ? "" : "yes (see tooltip)");
+		item->setToolTip(consent_xml);
 		ui_.table->setItem(r, c_consent, item);
 	}
-
-	addOutputLine("");
-	addOutputLine("done");
 }
 
 void MVHub::exportConsentData()
@@ -415,7 +484,7 @@ void MVHub::exportConsentData()
 
 		output << "";
 		output << ("###" + sap_id + "###");
-		output << getConsent(sap_id, false);
+		output << getConsent(sap_id);
 		output << "";
 	}
 
@@ -467,17 +536,29 @@ void MVHub::checkXML()
 	addOutputLine("done");
 }
 
-void MVHub::determineProcessedSamples()
+void MVHub::on_actionReloadData_triggered()
 {
+	delayedInitialization();
+}
+
+void MVHub::on_actionAbout_triggered()
+{
+	QString about_text = QApplication::applicationName() + " " + QCoreApplication::applicationVersion();
+
+	QMessageBox::about(this, "About " + QApplication::applicationName(), about_text);
+}
+
+void MVHub::determineProcessedSamples(int debug_level)
+{
+	addOutputHeader("determining processed samples", false);
+
 	//init
 	NGSD db;
 	GenLabDB genlab;
 	NGSD mvh_db(true, "mvh");
 	int c_cm = GUIHelper::columnIndex(ui_.table, "CM ID");
 	int c_sap = GUIHelper::columnIndex(ui_.table, "SAP ID");
-	int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
 	int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
-	int c_report = GUIHelper::columnIndex(ui_.table, "Befunddatum");
 	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
 	int c_ps_t = GUIHelper::columnIndex(ui_.table, "PS tumor");
 
@@ -485,11 +566,30 @@ void MVHub::determineProcessedSamples()
 	{
 		//skip if already in MVH database
 		QString cm_id = getString(r, c_cm);
+		QString sap_id = getString(r, c_sap);
+		if (debug_level>=1) addOutputLine("cm_id: " + cm_id + " // SAP ID: " + sap_id);
 		QString ps_in_mvh_db = mvh_db.getValue("SELECT ps FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
 		if(ps_in_mvh_db!="")
 		{
 			ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps_in_mvh_db));
 			ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(mvh_db.getValue("SELECT ps_t FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed()));
+			if (debug_level>=1) addOutputLine("  skipped: PS already in MV db");
+			continue;
+		}
+
+		//skip if no network is set
+		Network network = getNetwork(r);
+		if (network==UNSET)
+		{
+			if (debug_level>=1) addOutputLine("  skipped: No network");
+			continue;
+		}
+
+		//skip if no sequencing was done
+		QString seq_type = getString(r, c_seq_type);
+		if (seq_type.isEmpty() || seq_type=="Keine")
+		{
+			if (debug_level>=1) addOutputLine("  skipped: No sequencing type or sequencing type is 'Keine'");
 			continue;
 		}
 
@@ -498,80 +598,112 @@ void MVHub::determineProcessedSamples()
 		params.run_finished = true;
 		params.p_type = "diagnostic";
 		params.r_after = QDate(2024, 7, 1);
-
-		//skip if information is not complete
-		QString report_date = getString(r, c_report);
-		if (report_date.isEmpty()) continue;
-		QString seq_type = getString(r, c_seq_type);
-		QString network = getString(r, c_network);
-		if (network.isEmpty() || seq_type.isEmpty() || seq_type=="Keine") continue;
-
-		if (network=="Netzwerk Seltene Erkrankungen" && seq_type=="WGS")
+		bool post_filter_wgs_lrgs = false;
+		if (network==SE && seq_type=="WGS")
 		{
 			params.include_bad_quality_samples = false;
 			params.include_tumor_samples = false;
-			//system type can be WGS or lrGS > filtering below
+			post_filter_wgs_lrgs = true; //system type can be WGS or lrGS > filtering below
+		}
+		else if (network==OE && seq_type=="WES")
+		{
+			params.include_bad_quality_samples = true;
+			params.include_tumor_samples = true;
+			params.sys_type = "WES";
+		}
+		else if (network==OE && seq_type=="WGS")
+		{
+			params.include_bad_quality_samples = true;
+			params.include_tumor_samples = true;
+			params.sys_type = "WGS";
 		}
 		else
 		{
-			cmid2messages_[cm_id] << "Could not determine processed sample(s): unhandled combination of network '"+network+"' and sequencing type '"+seq_type+"'";
+			cmid2messages_[cm_id] << "Could not determine processed sample(s): unhandled combination of network '"+networkToString(network)+"' and sequencing type '"+seq_type+"'";
 		}
 
-		QString sap_id = getString(r, c_sap);
-		QStringList ps_list;
+		//perform search and determine possible PS
+		QStringList ps_list_germline;
+		QStringList ps_list_tumor;
 		QStringList tmp = genlab.samplesWithSapID(sap_id, params);
 		foreach(QString ps, tmp)
 		{
 			QString ps_id = db.processedSampleId(ps);
-			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
-			QString sys_type = ps_data.processing_system_type;
-			if (seq_type=="WGS" && sys_type!="WGS" && sys_type!="lrGS") continue; //system type can be WGS or lrGS > filtering here instead via parameters
+			QString s_id = db.sampleId(ps);
+			if (post_filter_wgs_lrgs)
+			{
+				ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
+				QString sys_type = ps_data.processing_system_type;
+				if (sys_type!="WGS" && sys_type!="lrGS") continue; //system type can be WGS or lrGS > filtering here instead via parameters
+			}
 
-			QString entry = ps + " ("+sys_type+")";
-			ps_list << entry;
+
+			SampleData s_data = db.getSampleData(s_id);
+			if (!s_data.is_tumor)
+			{
+				ps_list_germline << ps;
+			}
+			else
+			{
+				ps_list_tumor << ps;
+			}
 		}
-		if (ps_list.count()==0)
+
+		//set germline PS if exactly one PS found
+		if (ps_list_germline.count()==0)
 		{
 			cmid2messages_[cm_id] << "Could not determine/store processed sample(s): no matching samples in NGSD";
 		}
-		else if (ps_list.count()>1)
+		else if (ps_list_germline.count()>1)
 		{
 			cmid2messages_[cm_id] << "Could not determine/store processed sample(s): several matching samples in NGSD";
 		}
 		else
 		{
-			QString ps = ps_list.first().split(" ").first();
+			QString ps = ps_list_germline.first();
 			ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps));
 
 			//store PS in MVH database
 			SqlQuery query = mvh_db.getQuery();
 			query.exec("UPDATE case_data SET ps='"+ps+"' WHERE cm_id='"+cm_id+"'");
 		}
-	}
 
-	//TODO replace by view v_ngs_modellvorhaben
-	//check if PS are in the correct study in NGSD
-	for (int r=0; r<ui_.table->rowCount(); ++r)
-	{
-		QString cm_id = getString(r, c_cm);
-		QString ps = getString(r, c_ps).split(" ").first();
-		if (ps!="")
+		//set germline PS if exactly one PS found
+		if (ps_list_germline.count()==0)
 		{
-			QString ps_id = db.processedSampleId(ps);
-			if (!db.studies(ps_id).contains("Modellvorhaben_2024"))
-			{
-				cmid2messages_[cm_id] << (ps +" not in study");
-			}
+			cmid2messages_[cm_id] << "Could not determine germline processed sample(s): no matches in NGSD";
+		}
+		else if (ps_list_germline.count()>1)
+		{
+			cmid2messages_[cm_id] << "Could not determine germline processed sample(s): several matches in NGSD";
+		}
+		else
+		{
+			QString ps = ps_list_germline.first();
+			ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps));
+
+			//store PS in MVH database
+			SqlQuery query = mvh_db.getQuery();
+			query.exec("UPDATE case_data SET ps='"+ps+"' WHERE cm_id='"+cm_id+"'");
 		}
 
-		QString ps_t = getString(r, c_ps_t);
-		if (ps_t!="")
+		//set tumor PS if exactly one PS found
+		if (ps_list_tumor.count()==0)
 		{
-			QString ps_id = db.processedSampleId(ps_t).split(" ").first();
-			if (!db.studies(ps_id).contains("Modellvorhaben_2024"))
-			{
-				cmid2messages_[cm_id] << (ps_t +" not in study");
-			}
+			cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): no matches in NGSD";
+		}
+		else if (ps_list_tumor.count()>1)
+		{
+			cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): several matches in NGSD";
+		}
+		else
+		{
+			QString ps = ps_list_tumor.first();
+			ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(ps));
+
+			//store PS in MVH database
+			SqlQuery query = mvh_db.getQuery();
+			query.exec("UPDATE case_data SET ps='"+ps+"' WHERE cm_id='"+cm_id+"'");
 		}
 	}
 }
@@ -585,7 +717,6 @@ int MVHub::updateHpoTerms(int debug_level)
 	NGSD db;
 	NGSD mvh_db(true, "mvh");
 	int c_se_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
-	int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
 	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
@@ -599,7 +730,7 @@ int MVHub::updateHpoTerms(int debug_level)
 		if (ps.isEmpty()) continue;
 
 		//only for SE
-		if (getString(r, c_network)!="Netzwerk Seltene Erkrankungen") continue;
+		if (getNetwork(r)!=SE) continue;
 
 		//determine HPO terms in MVH database
 		PhenotypeList hpo_mvh;
@@ -698,7 +829,6 @@ int MVHub::updateVariants(int debug_level)
 	NGSD db;
 	NGSD mvh_db(true, "mvh");
 	int c_se_id = GUIHelper::columnIndex(ui_.table, "Netzwerk ID");
-	int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
 	int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
@@ -712,7 +842,7 @@ int MVHub::updateVariants(int debug_level)
 		if (ps.isEmpty()) continue;
 
 		//only for SE
-		if (getString(r, c_network)!="Netzwerk Seltene Erkrankungen") continue;
+		if (getNetwork(r)!=SE) continue;
 
 		//determine variants in MVH database
 		QStringList variants_mvh;
@@ -849,6 +979,9 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 
 void MVHub::checkForMetaDataErrors()
 {
+	addOutputHeader("checking for meta data errors");
+
+	NGSD db;
 	int c_cm_id = GUIHelper::columnIndex(ui_.table, "CM ID");
 	int c_cm_status = GUIHelper::columnIndex(ui_.table, "CM Status");
 	int c_seq_type = GUIHelper::columnIndex(ui_.table, "Sequenzierungsart");
@@ -859,6 +992,13 @@ void MVHub::checkForMetaDataErrors()
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
 		QString cm_id = getString(r, c_cm_id);
+		QString seq_type = getString(r, c_seq_type);
+		QString status = getString(r, c_cm_status);
+
+		//check for errors only if case is finished
+		if (status!="Abgeschlossen" && status=="Abgebrochen" && status=="Follow-Up") continue;
+
+		Network network = getNetwork(r);
 
 		//consent missing
 		if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
@@ -866,17 +1006,56 @@ void MVHub::checkForMetaDataErrors()
 			cmid2messages_[cm_id] << "No consent data";
 		}
 
-		//Abgeschlossen, but no report date set
-		QString status = getString(r, c_cm_status);
-		if (status=="Abgeschlossen" && getString(r, c_report_date)=="")
+		//checks for status 'Abgeschlossen'
+		if (status=="Abgeschlossen")
 		{
-			cmid2messages_[cm_id] << "Status 'Abgeschlossen', but no report date set";
+			if (getString(r, c_report_date)=="")
+			{
+				cmid2messages_[cm_id] << "Status 'Abgeschlossen', but no report date set";
+			}
+			if (seq_type=="Keine" || seq_type=="")
+			{
+				cmid2messages_[cm_id] << "Status 'Abgeschlossen', but sequencing type not valid: '" + seq_type + "'";
+			}
 		}
 
-		//Abgebrochen, seqencing type not 'keine'
-		if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
+		//checks for status 'Abgebrochen'
+		if (status=="Abgebrochen")
 		{
-			cmid2messages_[cm_id] << "Status 'Abgebrochen', but sequencing is not 'Keine'";
+			if (seq_type!="Keine")
+			{
+				cmid2messages_[cm_id] << "Status 'Abgebrochen', but sequencing is not 'Keine'";
+			}
+		}
+
+		//check germline sample is in study
+		if (network!=OE)
+		{
+			int c_ps = GUIHelper::columnIndex(ui_.table, "PS");
+			QString ps = getString(r, c_ps).split(" ").first();
+			if (ps!="")
+			{
+				QString ps_id = db.processedSampleId(ps);
+				if (!db.studies(ps_id).contains("Modellvorhaben_2024"))
+				{
+					cmid2messages_[cm_id] << (ps +" not in study");
+				}
+			}
+		}
+
+		//check tumor sample is in study
+		if (network==OE)
+		{
+			int c_ps_t = GUIHelper::columnIndex(ui_.table, "PS tumor");
+			QString ps_t = getString(r, c_ps_t);
+			if (ps_t!="")
+			{
+				QString ps_id = db.processedSampleId(ps_t).split(" ").first();
+				if (!db.studies(ps_id).contains("Modellvorhaben_2024"))
+				{
+					cmid2messages_[cm_id] << (ps_t +" not in study");
+				}
+			}
 		}
 	}
 }
@@ -984,7 +1163,7 @@ void MVHub::addOutputLine(QString line)
 	qApp->processEvents();
 }
 
-QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
+QByteArray MVHub::getConsent(QString sap_id, bool debug)
 {
 	static QByteArray token = "";
 	try
@@ -1004,8 +1183,12 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 		//get token if missing
 		if (token.isEmpty())
 		{
-			addOutputLine("");
-			addOutputLine("Getting consent token...");
+			if (debug)
+
+			{
+				addOutputLine("");
+				addOutputLine("Getting consent token...");
+			}
 			HttpHeaders headers;
 			headers.insert("Content-Type", "application/x-www-form-urlencoded");
 			headers.insert("Prefer", "handling=strict");
@@ -1037,7 +1220,7 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 			addOutputLine("Consent: " + reply);
 		}
 
-		return return_parsed_data ? parseConsentJson(reply) : reply;
+		return reply;
 	}
 	catch (Exception& e)
 	{
@@ -1051,7 +1234,7 @@ QString MVHub::getConsent(QString sap_id, bool return_parsed_data, bool debug)
 	return "";
 }
 
-QByteArray MVHub::parseConsentJson(QByteArray json_text)
+QByteArray MVHub::consentJsonToXml(QByteArray json_text, bool debug)
 {
 	QByteArrayList output;
 
@@ -1065,10 +1248,6 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 		object = object["resource"].toObject();
 		if (!object.contains("resourceType")) continue;
 		if (object["resourceType"].toString()!="Consent") continue;
-
-		//remove consents before Modellvorhaben
-		QDate date = QDate::fromString(object["dateTime"].toString().left(10), Qt::ISODate);
-		if (date<QDate(2024, 7, 1)) continue;
 
 		QByteArrayList allowed;
 		QJsonArray provisions = object["provision"].toObject()["provision"].toArray();
@@ -1094,6 +1273,7 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 		QByteArray status = object["status"].toString().toLatin1();
 		QByteArray start = object["provision"].toObject()["period"].toObject()["start"].toString().left(10).toUtf8();
 		QByteArray end = object["provision"].toObject()["period"].toObject()["end"].toString().left(10).toUtf8();
+		QDate date = QDate::fromString(object["dateTime"].toString().left(10), Qt::ISODate);
 		output << "  <consent>";
 		output << "    <date>"+date.toString(Qt::ISODate).toLatin1()+"</date>";
 		output << "    <status>"+status+"</status>";
@@ -1108,7 +1288,11 @@ QByteArray MVHub::parseConsentJson(QByteArray json_text)
 		output.prepend("<consents>");
 		output.append("</consents>");
 	}
-
+	if (debug)
+	{
+		addOutputLine("  consent XML:");
+		addOutputLine(output.join("\n"));
+	}
 	return output.join("\n");
 }
 
@@ -1607,4 +1791,27 @@ QByteArray MVHub::variantLocalization(NGSD& db, const Chromosome& chr, int start
 	//missing: "regulatory-region" because it is not tracked in NGSD
 
 	return "intergenic"; //fallback
+}
+
+MVHub::Network MVHub::getNetwork(int r)
+{
+	int c_network = GUIHelper::columnIndex(ui_.table, "Netzwerk");
+	QString network = getString(r, c_network);
+	if (network=="Netzwerk Seltene Erkrankungen") return SE;
+	if (network=="Deutsches Netzwerk für Personalisierte Medizin") return OE;
+	if (network=="") return UNSET;
+	THROW(ArgumentException, "Unhandled network type '" + network +"'!");
+}
+
+QString MVHub::networkToString(Network network)
+{
+	switch(network)
+	{
+		case SE:
+			return "Netzwerk Seltene Erkrankungen";
+		case OE:
+			return "Deutsches Netzwerk für Personalisierte Medizin";
+		case UNSET:
+			return "";
+	}
 }

@@ -59,7 +59,7 @@ public:
 	void leftNormalize(QString reference_genome);
 	///Right-normalize every VCF line in the vcf file according to a reference genome
 	void rightNormalize(QString reference_genome);
-	///Load a VCF file
+	///Load a VCF file  //TODO Marc move allow_multi_sample and roi to member functions that must be called before loading. Keep only one load function and add support fo read from stdin. Re-add support for stdin to VcfToTsv
 	void load(const QString& filename, bool allow_multi_sample = true);
 	///Load part of a VCF file defied by a region (inside the region of invert=false and outside the region otherwise)
 	void load(const QString& filename, const BedFile& roi,  bool allow_multi_sample = true, bool invert = false);

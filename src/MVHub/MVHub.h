@@ -29,6 +29,10 @@ public slots:
 	//check XML data in MVH database
 	void checkXML();
 
+	//main menu slots
+	void on_actionReloadData_triggered();
+	void on_actionAbout_triggered();
+
 private:
 	Ui::MVHub ui_;
 	DelayedInitializationTimer delayed_init_;
@@ -44,7 +48,7 @@ private:
 	//load data Modellvorhaben SE RedCap and copy it to MVH database
 	void loadDataFromSE();
 	//determine processed samples for cases from NGSD
-	void determineProcessedSamples();
+	void determineProcessedSamples(int debug_level=0);
 	//add missing HPO terms to SE RedCap and update SE data in MVH database
 	int updateHpoTerms(int debug_level=0);
 	//add missing variants to SE RedCap and update SE data in MVH database
@@ -59,9 +63,9 @@ private:
 	void showMessages();
 
 	//returns consent status of patient. Empty string if not available.
-	QString getConsent(QString sap_id, bool return_parsed_data = true, bool debug=false);
+	QByteArray getConsent(QString sap_id, bool debug=false);
 	//parse JSON and convert it to XML
-	QByteArray parseConsentJson(QByteArray json_text);
+	QByteArray consentJsonToXml(QByteArray json_text, bool debug=false);
 
 	//creates JSON input for pseudonymization
 	static QByteArray jsonDataPseudo(QByteArray str);
@@ -87,6 +91,15 @@ private:
 	QList<VarData> getVariants(NGSD& db, QString ps);
 	GeneSet variantGenes(NGSD& db, const Chromosome& chr, int start, int end);
 	QByteArray variantLocalization(NGSD& db, const Chromosome& chr, int start, int end, const GeneSet& genes);
+
+	enum Network
+	{
+		SE,
+		OE,
+		UNSET
+	};
+	Network getNetwork(int row);
+	QString networkToString(Network network);
 };
 
 #endif // MVHUB_H
