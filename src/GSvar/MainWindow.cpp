@@ -541,7 +541,7 @@ void MainWindow::userSpecificDebugFunction()
 		QTextStream out(stdout);
 		QElapsedTimer timer;
 		QByteArray line = Helper::randomString(1024*1024-10).toLatin1() + "\n"; // 1 line == 1 MB
-		foreach(QByteArray filename, QByteArrayList() << "C:\\Marc\\test.txt" << "F:\\Marc\\test.txt")
+		foreach(QByteArray filename, QByteArrayList() << "C:\\Marc\\test.txt" << "E:\\Marc\\test.txt")
 		{
 			foreach(int lines, QList<int>() << 100 << 1000 << 10000)
 			{
@@ -563,6 +563,7 @@ void MainWindow::userSpecificDebugFunction()
 				}
 				file.close();
 				out << "  write: " << Helper::elapsedTime(timer, true) << "\n";
+				out.flush();
 
 				//read test
 				timer.start();
@@ -580,6 +581,7 @@ void MainWindow::userSpecificDebugFunction()
 					}
 				}
 				out << "  read: " << Helper::elapsedTime(timer, true) << " (char=" << c << ")\n";
+				out.flush();
 			}
 		}
 	}
