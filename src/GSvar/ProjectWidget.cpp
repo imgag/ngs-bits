@@ -44,6 +44,9 @@ void ProjectWidget::updateGUI()
 	ui_.email_notification->setText(emails.join("; "));
 	GSvarHelper::limitLines(ui_.comment, query.value("comment").toString());
 	ui_.archived->setText(query.value("archived").toString()=="1" ? "yes" : "no");
+	QString matchmaking = query.value("matchmaking").toString();
+	if (matchmaking=="no") matchmaking = "<font color=red>"+matchmaking+"</font>";
+	ui_.matchmaking->setText(matchmaking);
 
 	//### samples
 	QString project_id = query.value("id").toString();
