@@ -5,16 +5,16 @@
 #include <QTimer>
 #include "NGSD.h"
 #include "ui_AnalysisStatusWidget.h"
+#include "TabBaseClass.h"
 
 //Dialog the shows the analysis status of all samples in SGE.
 class AnalysisStatusWidget
-	: public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 
 public:
 	AnalysisStatusWidget(QWidget* parent = 0);
-	bool updateIsRunning() const;
 
 signals:
 	void loadFile(QString gsvar_file);
@@ -41,7 +41,6 @@ private:
 		bool repeated;
 	};
 	QList<JobData> jobs_; //shown jobs only (index==row in widget)
-	bool update_running_;
 
 	static QTableWidgetItem* addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color = Qt::transparent);
 	static QColor statusToColor(QString status);

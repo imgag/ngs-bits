@@ -724,7 +724,7 @@
 
 ### 2019_09-80 (20.11.19)
 - CNVs: callset quality is now automatically set if it is good.
-- CNVs: added new CNV filters (genomAD o/e LOF, gene region).
+- CNVs: added new CNV filters (gnomAD o/e LOF, gene region).
 - CNVs: updated default filters.
 - Report: Added inheritance and classification to CNV table in report.
 

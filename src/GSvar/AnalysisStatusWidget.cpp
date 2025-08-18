@@ -20,7 +20,7 @@
 #include <QProcess>
 
 AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_()
 {
 	//setup UI
@@ -38,11 +38,6 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.f_text, SIGNAL(returnPressed()), this, SLOT(applyFilters()));
 	connect(ui_.f_mine, SIGNAL(stateChanged(int)), this, SLOT(applyFilters()));
-}
-
-bool AnalysisStatusWidget::updateIsRunning() const
-{
-	return update_running_;
 }
 
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
@@ -81,7 +76,7 @@ void AnalysisStatusWidget::refreshStatus()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	update_running_ = true;
+	is_busy_ = true;
 
 	try
 	{
@@ -240,7 +235,7 @@ void AnalysisStatusWidget::refreshStatus()
 	GUIHelper::resizeTableCellWidths(ui_.analyses, 400);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.analyses);
 
-	update_running_ = false;
+	is_busy_ = false;
 
 	QApplication::restoreOverrideCursor();
 }

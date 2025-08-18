@@ -6,13 +6,14 @@
 #include <QMenu>
 #include "NGSD.h"
 #include "DelayedInitializationTimer.h"
+#include "TabBaseClass.h"
 
 namespace Ui {
 class ProcessedSampleWidget;
 }
 
 class ProcessedSampleWidget
-	: public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 

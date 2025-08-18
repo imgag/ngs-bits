@@ -2655,13 +2655,16 @@ void MainWindow::closeTab(int index)
 		return;
 	}
 
-	//for analysis status widget and refresh is done > abort
+	//make sure we do not close tabs while they are loading/upading
 	QWidget* widget = ui_.tabs->widget(index);
-	AnalysisStatusWidget* analysis_status_widget = widget->findChild<AnalysisStatusWidget*>();
-	while (analysis_status_widget!=nullptr && analysis_status_widget->updateIsRunning())
+	TabBaseClass* tab_widget = widget->findChild<TabBaseClass*>();
+	if (tab_widget!=nullptr)
 	{
-		QMessageBox::information(this, "Analysis status tab", "Please wait until table update is done before closing the analysis status tab!");
-		return;
+		if (tab_widget->isBusy())
+		{
+			QMessageBox::information(this, ui_.tabs->tabText(index), "You cannot close a tab while it is busy, e.g. initializing, updating, searching.\nPlease retry when the tab is no longer busy!");
+			return;
+		}
 	}
 
 	//remove tab and delete tab widget

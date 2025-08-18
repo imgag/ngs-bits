@@ -37,6 +37,7 @@ SOURCES += main.cpp\
     Background/ReportWorker.cpp \
     SampleCountWidget.cpp \
     SettingsDialog.cpp \
+    TabBaseClass.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
     UserPermissionsEditor.cpp \
@@ -169,6 +170,7 @@ HEADERS += MainWindow.h \
     Background/ReportWorker.h \
     SampleCountWidget.h \
     SettingsDialog.h \
+    TabBaseClass.h \
     TrioDialog.h \
     HttpHandler.h \
     UserPermissionsEditor.h \

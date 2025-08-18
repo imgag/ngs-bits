@@ -5,12 +5,14 @@
 #include <QAction>
 #include <QTableWidgetItem>
 #include "NGSD.h"
+#include "TabBaseClass.h"
 
 namespace Ui {
 class SequencingRunWidget;
 }
 
-class SequencingRunWidget : public QWidget
+class SequencingRunWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 
