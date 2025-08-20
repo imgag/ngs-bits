@@ -22,8 +22,6 @@ jobs:
       run: brew install lzlib libxml2
     - name: Install Qt 6
       run: brew install qt qt-mariadb
-    - name: Link Qt installation      
-      run: brew link qt --force
     - name: Install matplotlib and numpy for Python 2
       run: sudo pip install matplotlib numpy
     - name: Install matplotlib and numpy for Python 3

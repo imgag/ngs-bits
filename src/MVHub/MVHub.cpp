@@ -772,7 +772,7 @@ int MVHub::updateHpoTerms(int debug_level)
 		if (debug_level>=2) addOutputLine(se_id + "/" + ps + ": HPOs NGSD: " + QString::number(hpo_ngsd.count()) + " HPOs SE RedCap: " + QString::number(hpo_mvh.count()));
 
 		//update if terms are missing
-		foreach(Phenotype hpo, hpo_ngsd)
+        for(const Phenotype& hpo: hpo_ngsd)
 		{
 			if (hpo_mvh.containsAccession(hpo.accession()))
 			{
