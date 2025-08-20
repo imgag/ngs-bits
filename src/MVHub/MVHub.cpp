@@ -16,8 +16,6 @@
 #include <QClipboard>
 #include "ExportHistoryDialog.h"
 
-//TODO add export filter: n/a, no export, in progress, done
-
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -31,6 +29,7 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.f_status, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_messages, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_ready_export, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_export, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
 	connect(ui_.check_xml, SIGNAL(clicked()), this, SLOT(checkXML()));
 }
@@ -92,7 +91,7 @@ void MVHub::tableContextMenu(QPoint pos)
 	a_show_ngsd->setEnabled(rows.count()==1);
 	menu.addSeparator();
 	QAction* a_export = menu.addAction("Export to GRZ/KDK");
-	a_export->setEnabled(ui_.f_ready_export->isChecked() && rows.count()==1); //TODO batch export
+	a_export->setEnabled(ui_.f_ready_export->isChecked() && rows.count()>0);
 	QAction* a_export_history = menu.addAction("Show export history");
 	a_export_history->setEnabled(rows.count()==1);
 
@@ -164,63 +163,66 @@ void MVHub::tableContextMenu(QPoint pos)
 	{
 		try
 		{
-			//init
-			int r = rows.first();
-			QString title = "GRZ/KDK export";
 			NGSD mvh_db(true, "mvh");
 			int c_cm = colOf("CM ID");
 			int c_case_id = colOf("CM Fallnummer");
 			int c_status = colOf("CM Status");
 			int c_seq_type = colOf("Sequenzierungsart");
 
-			//get ID
-			QString cm_id = getString(r, c_cm);
-			QByteArray id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toByteArray().trimmed();
-
-			//check if that patient did not get sequencing
-			bool no_seq = getString(r, c_status)=="Abgebrochen" && getString(r, c_seq_type)=="Keine";
-
-			//add GRZ export - if it is not pending/done
-			if (!no_seq)
+			foreach(int r, rows)
 			{
-				int pending_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='pending'").toInt();
-				int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
-				if (pending_grz>0)
-				{
-					QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
-				}
-				else if (done_grz>0)
-				{
-					QMessageBox::warning(this, title, "GRZ export is already done!"); //TODO implement followup/addition/correction
-				}
-				else
-				{
-					QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-					QString tan = getPseudonym(tag, "GRZ", false, false);
-					mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
-					updateExportStatus(mvh_db, r);
-				}
-			}
+				//init
+				QString cm_id = getString(r, c_cm);
+				QString title = "GRZ/KDK export of "+cm_id;
 
-			//add KDK export - if it is not pending/done
-			if (getNetwork(r)==SE)
-			{
-				int pending_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='pending'").toInt();
-				int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
-				if (pending_kdk>0)
+				//get ID
+				QByteArray id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toByteArray().trimmed();
+
+				//check if that patient did not get sequencing
+				bool no_seq = getString(r, c_status)=="Abgebrochen" && getString(r, c_seq_type)=="Keine";
+
+				//add GRZ export - if it is not pending/done
+				if (!no_seq)
 				{
-					QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
+					int pending_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='pending'").toInt();
+					int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
+					if (pending_grz>0)
+					{
+						QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
+					}
+					else if (done_grz>0)
+					{
+						QMessageBox::warning(this, title, "GRZ export is already done!"); //TODO implement followup/addition/correction
+					}
+					else
+					{
+						QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+						QString tan = getPseudonym(tag, "GRZ", false, false);
+						mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+						updateExportStatus(mvh_db, r);
+					}
 				}
-				else if (done_kdk>0)
+
+				//add KDK export - if it is not pending/done
+				if (getNetwork(r)==SE)
 				{
-					QMessageBox::warning(this, title, "KDK export is already done!"); //TODO implement followup/addition/correction
-				}
-				else
-				{
-					QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-					QString tan = getPseudonym(tag, "KDK_SE", false, false);
-					mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
-					updateExportStatus(mvh_db, r);
+					int pending_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='pending'").toInt();
+					int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
+					if (pending_kdk>0)
+					{
+						QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
+					}
+					else if (done_kdk>0)
+					{
+						QMessageBox::warning(this, title, "KDK export is already done!"); //TODO implement followup/addition/correction
+					}
+					else
+					{
+						QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+						QString tan = getPseudonym(tag, "KDK_SE", false, false);
+						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+						updateExportStatus(mvh_db, r);
+					}
 				}
 			}
 		}
@@ -316,6 +318,36 @@ void MVHub::updateTableFilters()
 			if (!visible[r]) continue;
 
 			if (getString(r, c_messages).trimmed().isEmpty())
+			{
+				visible[r] = false;
+			}
+		}
+	}
+
+	//export status filter
+	if (ui_.f_export->currentText()!="")
+	{
+		int c_exp_status = colOf("export status");
+		int c_exp_conf = colOf("export confirmation");
+		QString export_filter = ui_.f_export->currentText();
+		for (int r=0; r<rows; ++r)
+		{
+			if (!visible[r]) continue;
+
+			QString status = getString(r, c_exp_status);
+			QString conf = getString(r, c_exp_conf);
+
+			if (export_filter=="pending" && status!="")
+			{
+				visible[r] = false;
+			}
+
+			if (export_filter=="in progress" && !(status!="" && conf==""))
+			{
+				visible[r] = false;
+			}
+
+			if (export_filter=="done" && (status=="" || conf==""))
 			{
 				visible[r] = false;
 			}
@@ -849,7 +881,7 @@ int MVHub::updateVariants(int debug_level)
 		//determine variants in MVH database
 		QStringList variants_mvh;
 		QString se_data = mvh_db.getValue("SELECT se_data FROM case_data WHERE se_id='"+se_id+"'").toString();
-		QDomDocument doc; //TODO Marc move loading XML from file/text with error handling to XMLHelper class
+		QDomDocument doc;
 		QString error_msg;
 		int error_line, error_column;
 		if(!doc.setContent(se_data, &error_msg, &error_line, &error_column))
@@ -858,7 +890,7 @@ int MVHub::updateVariants(int debug_level)
 			continue;
 		}
 		QDomElement root = doc.documentElement();
-		for(QDomNode n = root.firstChild(); !n.isNull(); n = n.nextSibling()) //TODO Marc use 'for' loop everywhere to avoid hanging in case someone uses 'continue' in the loop
+		for(QDomNode n = root.firstChild(); !n.isNull(); n = n.nextSibling())
 		{
 			QDomElement e = n.toElement(); // try to convert the node to an element.
 			if(!e.isNull() && e.nodeName()=="item")
