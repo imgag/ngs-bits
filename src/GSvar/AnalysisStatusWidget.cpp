@@ -462,7 +462,8 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 				//create a local copy of the log file
 				QString tmp_filename = GSvarHelper::localLogFolder() + log_location.fileName();
 				QSharedPointer<QFile> tmp_file = Helper::openFileForWriting(tmp_filename);
-				tmp_file->write(VersatileFile(log_location.filename).readAll());
+                QSharedPointer<VersatileFile> log_file = Helper::openVersatileFileForReading(log_location.filename);
+                tmp_file->write(log_file.data()->readAll());
 				tmp_file->close();
 
 				//open local file in text editor
