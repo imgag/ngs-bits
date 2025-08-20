@@ -12,7 +12,7 @@ else
 endif
 
 # Show chosen directory
-$(info Curretntly used Qt version: $(QT_VERSION))
+$(info Currently used Qt version: $(QT_VERSION))
 $(info Default build directory: $(PROJECT_BUILD_DIR))
 $(info Relative path to the source code: $(PATH_TO_ROOT))
 

@@ -541,7 +541,11 @@ void MVHub::checkXML()
 
 void MVHub::on_actionReloadData_triggered()
 {
+	//reload data
 	delayedInitialization();
+
+	//apply filters
+	updateTableFilters();
 }
 
 void MVHub::on_actionAbout_triggered()
@@ -983,8 +987,9 @@ void MVHub::checkForMetaDataErrors()
 	int c_cm_id = colOf("CM ID");
 	int c_cm_status = colOf("CM Status");
 	int c_seq_type = colOf("Sequenzierungsart");
-	int c_consent = colOf("consent");
 	int c_consent_cm = colOf("consent signed [CM]");
+	int c_consent_ver = colOf("consent version [SE]");
+	int c_consent = colOf("consent");
 	int c_report_date = colOf("Befunddatum");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
@@ -998,10 +1003,40 @@ void MVHub::checkForMetaDataErrors()
 
 		Network network = getNetwork(r);
 
-		//consent missing
-		if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
+		//consent meta data in CM RedCap missing
+		QString bc_signed = getString(r, c_consent_cm);
+		if (bc_signed=="")
 		{
-			cmid2messages_[cm_id] << "No consent data";
+			cmid2messages_[cm_id] << "No info about BC in CM RedCap";
+		}
+		else if (bc_signed=="Ja")
+		{
+			if (network==SE)
+			{
+				QString consent_ver = getString(r, c_consent_ver);
+				if (consent_ver=="")
+				{
+					cmid2messages_[cm_id] << "No BC type in SE RedCap";
+				}
+				else if (consent_ver.startsWith("Erwachsene"))
+				{
+					//consent missing
+					if (getString(r, c_consent)=="")
+					{
+						cmid2messages_[cm_id] << "No consent data in SAP";
+					}
+				}
+			}
+
+
+			if (network==OE)
+			{
+				//consent missing
+				if (getString(r, c_consent)=="")
+				{
+					cmid2messages_[cm_id] << "No consent data in SAP";
+				}
+			}
 		}
 
 		//checks for status 'Abgeschlossen'
@@ -1022,12 +1057,12 @@ void MVHub::checkForMetaDataErrors()
 		{
 			if (seq_type!="Keine")
 			{
-				cmid2messages_[cm_id] << "Status 'Abgebrochen', but sequencing is not 'Keine'";
+				cmid2messages_[cm_id] << "Status 'Abgebrochen', but sequencing type is not 'Keine'";
 			}
 		}
 
 		//check germline sample is in study
-		if (network!=OE)
+		if (network!=SE)
 		{
 			int c_ps = colOf("PS");
 			QString ps = getString(r, c_ps).split(" ").first();
