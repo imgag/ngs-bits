@@ -4829,6 +4829,63 @@ void MainWindow::on_actionExportTestData_triggered()
 	}
 }
 
+void MainWindow::on_actionExportSampleData_triggered()
+{	
+	NGSD db;
+	QElapsedTimer timer;
+
+	try
+	{
+		LoginManager::checkRoleIn(QStringList{"admin", "user"});
+
+		//get samples from user
+		ProcessedSampleSelector dlg(this, false);
+		dlg.showSearchMulti(true);
+		if (!dlg.exec()) return;
+
+		QString ps_name = dlg.processedSampleName();
+		if (ps_name.isEmpty()) return;
+
+		QString ps_id = db.processedSampleId(ps_name.trimmed());
+
+		//get and open output file
+		QString file_name = QFileDialog::getSaveFileName(this, "Export sample data", QDir::homePath()+QDir::separator()+ps_name+"_data_"+QDateTime::currentDateTime().toString("dd_MM_yyyy")+".sql", "SQL (*.sql);;All files (*.*)");
+		if (file_name.isEmpty()) return;
+
+		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
+		QTextStream output_stream(file.data());
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		output_stream.setEncoding(QStringConverter::Utf8);
+		#else
+		output_stream.setCodec("UTF-8");
+		#endif
+
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+		timer.start();
+
+		QList<QString> sample_db_data; // store all SQL statements here
+
+		db.exportSampleData(ps_id, sample_db_data);
+
+		for (QString single_query: sample_db_data)
+		{
+			output_stream << single_query.replace("\n", "\\n") << ";\n";
+		}
+
+		Log::perf("Exporting processed sample data took ", timer);
+
+		QApplication::restoreOverrideCursor();
+		QMessageBox::information(this, "Sample data export", "Exported sample data to " + file_name);
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, "NGSD export error");
+	}
+
+
+
+}
+
 void MainWindow::on_actionImportSequencingRuns_triggered()
 {
 	ImportDialog dlg(this, ImportDialog::RUNS);
