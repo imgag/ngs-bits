@@ -4829,6 +4829,11 @@ void MainWindow::on_actionExportTestData_triggered()
 	}
 }
 
+void MainWindow::on_actionExportSampleData_triggered()
+{
+	QMessageBox::information(this, "Sample data export", "Exporting the selected sample data");
+}
+
 void MainWindow::on_actionImportSequencingRuns_triggered()
 {
 	ImportDialog dlg(this, ImportDialog::RUNS);

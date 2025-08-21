@@ -156,6 +156,7 @@ public slots:
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
 	void on_actionExportTestData_triggered();
+    void on_actionExportSampleData_triggered();
 	void on_actionImportSequencingRuns_triggered();
 	void on_actionImportTestData_triggered();
 	void on_actionImportMids_triggered();

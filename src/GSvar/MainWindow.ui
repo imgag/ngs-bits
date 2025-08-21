@@ -43,7 +43,7 @@
     <item>
      <widget class="QTabWidget" name="tabs">
       <property name="contextMenuPolicy">
-       <enum>Qt::CustomContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
       </property>
       <property name="currentIndex">
        <number>0</number>
@@ -83,14 +83,14 @@
         <item>
          <widget class="QSplitter" name="splitter_2">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="childrenCollapsible">
            <bool>false</bool>
           </property>
           <widget class="QSplitter" name="splitter">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="childrenCollapsible">
             <bool>true</bool>
@@ -145,7 +145,7 @@
                     <normaloff>:/Icons/Save.png</normaloff>:/Icons/Save.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
@@ -180,7 +180,7 @@
                 <item>
                  <widget class="Line" name="line">
                   <property name="orientation">
-                   <enum>Qt::Vertical</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                  </widget>
                 </item>
@@ -197,14 +197,14 @@
                     <normaloff>:/Icons/Resize_colums.png</normaloff>:/Icons/Resize_colums.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="Line" name="line_2">
                   <property name="orientation">
-                   <enum>Qt::Vertical</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                  </widget>
                 </item>
@@ -221,7 +221,7 @@
                     <normaloff>:/Icons/ranking.png</normaloff>:/Icons/ranking.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
@@ -238,7 +238,7 @@
                     <normaloff>:/Icons/AF_histogram.png</normaloff>:/Icons/AF_histogram.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
@@ -259,7 +259,7 @@
                 <item>
                  <widget class="Line" name="line_5">
                   <property name="orientation">
-                   <enum>Qt::Vertical</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                  </widget>
                 </item>
@@ -276,14 +276,14 @@
                     <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                   <enum>Qt::Orientation::Horizontal</enum>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
@@ -305,19 +305,19 @@
                 </sizepolicy>
                </property>
                <property name="contextMenuPolicy">
-                <enum>Qt::CustomContextMenu</enum>
+                <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
                </property>
                <property name="editTriggers">
-                <set>QAbstractItemView::NoEditTriggers</set>
+                <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
                </property>
                <property name="alternatingRowColors">
                 <bool>true</bool>
                </property>
                <property name="selectionMode">
-                <enum>QAbstractItemView::ExtendedSelection</enum>
+                <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
                </property>
                <property name="selectionBehavior">
-                <enum>QAbstractItemView::SelectItems</enum>
+                <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
                </property>
                <property name="sortingEnabled">
                 <bool>false</bool>
@@ -369,7 +369,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -505,6 +505,11 @@
      <property name="title">
       <string>Admin</string>
      </property>
+     <widget class="QMenu" name="menuImport_test_data">
+      <property name="title">
+       <string>Import test data</string>
+      </property>
+     </widget>
      <addaction name="actionDevice"/>
      <addaction name="actionGenome"/>
      <addaction name="actionMID"/>
@@ -523,12 +528,13 @@
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
      <addaction name="actionExportTestData"/>
-     <addaction name="actionImportTestData"/>
+     <addaction name="menuImport_test_data"/>
      <addaction name="separator"/>
      <addaction name="actionPrepareGhgaUpload"/>
      <addaction name="separator"/>
      <addaction name="actionMaintenance"/>
      <addaction name="actionNotifyUsers"/>
+     <addaction name="actionExportSampleData"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1157,7 +1163,7 @@
     <string>Show repeat expansions of the current sample.</string>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::WidgetShortcut</enum>
+    <enum>Qt::ShortcutContext::WidgetShortcut</enum>
    </property>
   </action>
   <action name="actionPRS">
@@ -1378,11 +1384,6 @@
     <string>Export test data</string>
    </property>
   </action>
-  <action name="actionImportTestData">
-   <property name="text">
-    <string>Import test data</string>
-   </property>
-  </action>
   <action name="actionShowProcessingSystemCoverage">
    <property name="icon">
     <iconset resource="GSvar.qrc">
@@ -1541,6 +1542,11 @@
   <action name="actionSampleCounts">
    <property name="text">
     <string>Sample counts</string>
+   </property>
+  </action>
+  <action name="actionExportSampleData">
+   <property name="text">
+    <string>Export sample data</string>
    </property>
   </action>
  </widget>
