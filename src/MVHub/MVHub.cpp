@@ -68,6 +68,7 @@ void MVHub::delayedInitialization()
 	GUIHelper::resizeTableCellWidths(ui_.table, 200, -1);
 	ui_.table->resizeRowsToContents();
 	ui_.table->setColumnWidth(colOf("Netzwerk"), 300);
+	ui_.table->setColumnWidth(colOf("export status"), 250);
 }
 
 void MVHub::tableContextMenu(QPoint pos)
@@ -994,21 +995,24 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
 	if(query.next())
 	{
-		text += " // GRZ " + query.value("status").toString();
+		QString status = query.value("status").toString();
+		text += " // GRZ " + status;
+		if (status=="failed") text += QChar(0x274C);
+		if (status=="done") text += QChar(0x2705);
 	}
 
 	//add status of latest KDK upload
 	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
 	if(query.next())
 	{
-		text += " // KDK " + query.value("status").toString();
+		QString status = query.value("status").toString();
+		text += " // KDK " + status;
+		if (status=="failed") text += QChar(0x274C);
+		if (status=="done") text += QChar(0x2705);
 	}
 
 	//add table item
-	QTableWidgetItem* item = GUIHelper::createTableItem(text);
-	if (!item->text().contains("pending")) item->setForeground(Qt::darkGreen);
-	if (item->text().contains("failed")) item->setForeground(Qt::red);
-	ui_.table->setItem(r, c_export_status, item);
+	ui_.table->setItem(r, c_export_status, GUIHelper::createTableItem(text));
 }
 
 void MVHub::checkForMetaDataErrors()
