@@ -1,6 +1,7 @@
 #include "VcfFile.h"
 #include "Helper.h"
 #include <QFileInfo>
+#include "VersatileFile.h"
 
 VcfFile::VcfFile()
 	: vcf_lines_()
@@ -339,10 +340,12 @@ void VcfFile::load(const QString& filename, bool stdin_if_file_empty)
 	QSet<QByteArray> filter_ids_in_header;
 
 	//open file
-	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, stdin_if_file_empty);
-	while(!file->atEnd())
+
+	VersatileFile file(filename, stdin_if_file_empty);
+	file.open(QFile::ReadOnly | QIODevice::Text);
+	while(!file.atEnd())
 	{
-		QByteArray line = file->readLine(true);
+		QByteArray line = file.readLine(true);
 		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header);
 	}
 }
@@ -909,7 +912,8 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 
 bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines, bool duplicates)
 {
-	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
+	VersatileFile file(filename, true);
+	file.open(QFile::ReadOnly | QIODevice::Text);
 
 	//open reference genome
 	FastaFileIndex reference(ref_file);
@@ -945,12 +949,12 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	bool error_found = false;
 	int c_data = 0;
 	int l = 0;
-	while(!file->atEnd() && c_data<max_lines)
+	while(!file.atEnd() && c_data<max_lines)
 	{
 		++l;
 
 		// get next line
-		QByteArray line = file->readLine(false).trimmed();
+		QByteArray line = file.readLine(false).trimmed();
 		
 		//skip empty lines
 		if (line.isEmpty()) continue;

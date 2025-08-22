@@ -1,5 +1,6 @@
 #include "ToolBase.h"
 #include "VcfFile.h"
+#include "VersatileFile.h"
 
 class ConcreteTool
 		: public ToolBase

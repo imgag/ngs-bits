@@ -5,8 +5,7 @@
 #include "ChromosomalIndex.h"
 #include "Helper.h"
 #include <QFile>
-
-
+#include "VersatileFile.h"
 
 class ConcreteTool: public ToolBase
 {
@@ -45,18 +44,17 @@ public:
 		//open output stream
 		QSharedPointer<QFile> out_stream = Helper::openFileForWriting(out, true);
 
-		//open input steam
-		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(in, true);
-
 		//cache to store read SVs
 		QMap<QByteArray,int> id_buffer_mapping;
 		QByteArrayList output_buffer;
 		int buffer_idx = 0;
 
 		//read lines
-		while(!file->atEnd())
+		VersatileFile file(in, true);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		while(!file.atEnd())
 		{
-			QByteArray line = file->readLine();
+			QByteArray line = file.readLine();
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
