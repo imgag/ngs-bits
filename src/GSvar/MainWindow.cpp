@@ -4883,11 +4883,11 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  "`description`, "
 									  "`type`, "
 									  "`obsolete`)"
-									  "VALUES ("
+									  " VALUES ("
 									  + qc_terms_id + ", "
 									  + qc_terms_query.value("qcml_id").toString() + ", "
 									  + qc_terms_query.value("name").toString() + ", "
-									  + qc_terms_query.value("description").toString() + ", "
+									  + db.escapeText(qc_terms_query.value("description").toString()) + ", "
 									  + qc_terms_query.value("type").toString() + ", "
 									  + qc_terms_query.value("obsolete").toString() +
 									  ")");
@@ -4898,7 +4898,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 								  "`processed_sample_id`, "
 								  "`qc_terms_id`, "
 								  "`value`)"
-								  "VALUES ("
+								  " VALUES ("
 								  + ps_qc_query.value("id").toString() + ", "
 								  + ps_id + ", "
 								  + qc_terms_id + ", "
@@ -4944,7 +4944,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  "`year_of_birth`, "
 									  "`order_date`, "
 									  "`sampling_date`)"
-									  "VALUES ("
+									  " VALUES ("
 									  + sample_id + ", "
 									  + sample_query.value("name").toString() + ", "
 									  + sample_query.value("name_external").toString() + ", "
@@ -4958,7 +4958,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  + sample_query.value("volume").toString() + ", "
 									  + sample_query.value("od_260_280").toString() + ", "
 									  + sample_query.value("gender").toString() + ", "
-									  + sample_query.value("comment").toString() + ", "
+									  + db.escapeText(sample_query.value("comment").toString()) + ", "
 									  + sample_query.value("quality").toString() + ", "
 									  + sample_query.value("od_260_230").toString() + ", "
 									  + sample_query.value("integrity_number").toString() + ", "
@@ -4988,7 +4988,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  "`umi_type`, "
 									  "`target_file`, "
 									  "`genome_id`)"
-									  "VALUES ("
+									  " VALUES ("
 									  + p_system_query.value("id").toString() + ", "
 									  + p_system_query.value("name_short").toString() + ", "
 									  + p_system_query.value("name_manufacturer").toString() + ", "
@@ -5017,11 +5017,11 @@ void MainWindow::on_actionExportSampleData_triggered()
 										  "`type`, "
 										  "`name`, "
 										  "`comment`)"
-										  "VALUES ("
+										  " VALUES ("
 										  + device_id + ", "
 										  + device_query.value("type").toString() + ", "
 										  + device_query.value("name").toString() + ", "
-										  + device_query.value("comment").toString() +
+										  + db.escapeText(device_query.value("comment").toString()) +
 										  ")");
 				}
 
@@ -5041,7 +5041,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  "`quality`, "
 									  "`status`, "
 									  "`backup_done`)"
-									  "VALUES ("
+									  " VALUES ("
 									  + sequencing_run_query.value("id").toString() + ", "
 									  + sequencing_run_query.value("name").toString() + ", "
 									  + sequencing_run_query.value("fcid").toString() + ", "
@@ -5053,7 +5053,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  + sequencing_run_query.value("recipe").toString() + ", "
 									  + sequencing_run_query.value("pool_molarity").toString() + ", "
 									  + sequencing_run_query.value("pool_quantification_method").toString() + ", "
-									  + sequencing_run_query.value("comment").toString() + ", "
+									  + db.escapeText(sequencing_run_query.value("comment").toString()) + ", "
 									  + sequencing_run_query.value("quality").toString() + ", "
 									  + sequencing_run_query.value("status").toString() + ", "
 									  + sequencing_run_query.value("backup_done").toString() +
@@ -5080,7 +5080,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 										  "`q30_perc`, "
 										  "`occupied_perc`, "
 										  "`runqc_read_id`)"
-										  "VALUES ("
+										  " VALUES ("
 										  + runqc_lane_query.value("id").toString() + ", "
 										  + runqc_lane_query.value("lane_num").toString() + ", "
 										  + runqc_lane_query.value("cluster_density").toString() + ", "
@@ -5101,7 +5101,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  "`q30_perc`, "
 									  "`error_rate`, "
 									  "`sequencing_run_id`)"
-									  "VALUES ("
+									  " VALUES ("
 									  + runqc_read_id + ", "
 									  + runqc_read_query.value("read_num").toString() + ", "
 									  + runqc_read_query.value("cycles").toString() + ", "
@@ -5133,7 +5133,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 								  "`folder_override_client`, "
 								  "`scheduled_for_resequencing`, "
 								  "`urgent`)"
-								  "VALUES ("
+								  " VALUES ("
 								  + p_sample_query.value("id").toString() + ", "
 								  + sample_id + ", "
 								  + ps_id + ", "
@@ -5143,7 +5143,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 								  + p_sample_query.value("mid2_i5").toString() + ", "
 								  + dummy_user_id + ", "
 								  + processing_system_id + ", "
-								  + p_sample_query.value("comment").toString() + ", "
+								  + db.escapeText(p_sample_query.value("comment").toString()) + ", "
 								  + dummy_project_id + ", "
 								  + p_sample_query.value("processing_input").toString() + ", "
 								  + p_sample_query.value("molarity").toString() + ", "
@@ -5158,9 +5158,9 @@ void MainWindow::on_actionExportSampleData_triggered()
 
 
 
-		for (const QString single_query: sample_db_data)
+		for (QString single_query: sample_db_data)
 		{
-			output_stream << single_query + ";\n";
+			output_stream << single_query.replace("\n", "\\n") << ";\n";
 		}
 
 		Log::perf("Exporting processed sample data took ", timer);
