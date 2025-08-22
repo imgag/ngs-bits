@@ -63,7 +63,8 @@ VcfFile NGSHelper::getKnownVariants(GenomeBuild build, bool only_snvs, const Bed
 
 	//load
 	VcfFile output;
-	output.load(tmp, roi, false);
+	output.setRegion(roi);
+	output.load(tmp);
 
 	//remove temporary file
 	QFile::remove(tmp);
@@ -81,7 +82,8 @@ VcfFile NGSHelper::getKnownVariants(GenomeBuild build, bool only_snvs, double mi
 
 	//load
 	VcfFile output;
-	output.load(tmp, false);
+	output.setAllowMultiSample(false);
+	output.load(tmp);
 
 	//remove temporary file
 	QFile::remove(tmp);

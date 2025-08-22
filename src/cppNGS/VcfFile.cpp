@@ -9,9 +9,30 @@ VcfFile::VcfFile()
 {
 }
 
+void VcfFile::setRegion(const BedFile& roi, bool invert)
+{
+	if (load_performed_) THROW(ProgrammingException, "Calling 'VcfFile::setRegion' after 'VcfFile::load' is not allowed!");
+
+	//create ROI index (if given)
+	if (!roi.isSorted())
+	{
+		THROW(ArgumentException, "VcfFile::setRegion: Target region has to be sorted, but unsorted region given!");
+	}
+	load_reg_.reset(new ChromosomalIndex<BedFile>(roi));
+	load_reg_inv_ = invert;
+}
+
+void VcfFile::setAllowMultiSample(bool allow)
+{
+	if (load_performed_) THROW(ProgrammingException, "Calling 'VcfFile::setAllowMultiSample' after 'VcfFile::load' is not allowed!");
+
+	load_allow_multi_sample_ = allow;
+}
+
 void VcfFile::clear()
 {
 	vcf_lines_.clear();
+	vcf_lines_.reserve(10000);
 	vcf_header_.clear();
 	sample_names_.clear();
 }
@@ -47,7 +68,7 @@ void VcfFile::parseVcfHeader(int line_number, const QByteArray& line)
 	}
 }
 
-void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
+void VcfFile::parseHeaderFields(const QByteArray& line)
 {
 	//header line
 	if (line.startsWith("#CHROM"))
@@ -72,7 +93,7 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		}
 
 		//determine column and sample names
-        int header_count = allow_multi_sample ? header_fields.count() : std::min(SIZE_TO_INT(10), SIZE_TO_INT(header_fields.count()));
+		int header_count = load_allow_multi_sample_ ? header_fields.count() : std::min(SIZE_TO_INT(10), SIZE_TO_INT(header_fields.count()));
 		for(int i = 9; i < header_count; ++i)
 		{
 			sample_names_ << header_fields.at(i);
@@ -80,7 +101,7 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 	}
 }
 
-void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids)
 {
 	QList<QByteArray> line_parts = line.split('\t');
 	if (line_parts.count()< MIN_COLS)
@@ -102,11 +123,11 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	vcf_line.setRef(strCache(line_parts[REF].toUpper()));
 
 	//Skip variants that are not in the target region (if given)
-	if (roi_idx!=nullptr)
+	if (load_reg_!=nullptr)
 	{
 		int end =  vcf_line.start() +  vcf_line.ref().length() - 1;
-		bool in_roi = roi_idx->matchingIndex(vcf_line.chr(), vcf_line.start(), end) != -1;
-		if ((!in_roi && !invert) || (in_roi && invert))
+		bool in_roi = load_reg_->matchingIndex(vcf_line.chr(), vcf_line.start(), end) != -1;
+		if ((!in_roi && !load_reg_inv_) || (in_roi && load_reg_inv_))
 		{
 			return;
 		}
@@ -231,9 +252,9 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		//SAMPLE
 		if(line_parts.count() >= 10)
 		{
-			int last_column_to_parse = allow_multi_sample ? line_parts.count() : 10;
+			int last_column_to_parse = load_allow_multi_sample_ ? line_parts.count() : 10;
 
-			if(allow_multi_sample && sampleIDs().count() != line_parts.count() - 9)
+			if(load_allow_multi_sample_ && sampleIDs().count() != line_parts.count() - 9)
 			{
 				THROW(FileParseException, "Number of samples in line (" + QString::number(line_parts.count() - 9) + ") not equal to number of samples in header (" + QString::number(sampleIDs().count()) + ")  in line " + QString::number(line_number) + ": " + line);
 			}
@@ -268,7 +289,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	vcf_lines_.append(vcf_line);
 }
 
-void VcfFile::processVcfLine(int& line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFile::processVcfLine(int& line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids)
 {
 	++line_number;
 
@@ -282,7 +303,7 @@ void VcfFile::processVcfLine(int& line_number, const QByteArray& line, QSet<QByt
 	}
 	else if (line.startsWith("#CHROM"))
 	{
-		parseHeaderFields(line, allow_multi_sample);
+		parseHeaderFields(line);
 		//all header lines should be read at this point
 		foreach(const InfoFormatLine& format, vcf_header_.formatLines())
 		{
@@ -299,67 +320,31 @@ void VcfFile::processVcfLine(int& line_number, const QByteArray& line, QSet<QByt
 	}
 	else
 	{
-		parseVcfEntry(line_number, line, info_ids, format_ids, filter_ids, allow_multi_sample, roi_idx, invert);
+		parseVcfEntry(line_number, line, info_ids, format_ids, filter_ids);
 	}
 }
 
-//zlib also opens BGZF files (if index is not needed)
-void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+
+void VcfFile::load(const QString& filename, bool stdin_if_file_empty)
 {
+	load_performed_ = true;
+
 	//clear content in case we load a second file
 	clear();
 
+	//init
 	int line_number = 0;
-	//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 	QSet<QByteArray> info_ids_in_header;
 	QSet<QByteArray> format_ids_in_header;
 	QSet<QByteArray> filter_ids_in_header;
 
-	if (Helper::isHttpUrl(filename))
+	//open file
+	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, stdin_if_file_empty);
+	while(!file->atEnd())
 	{
-		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
-		while(!file->atEnd())
-		{
-			QByteArray line = file->readLine(true);
-			processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
-		}
+		QByteArray line = file->readLine(true);
+		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header);
 	}
-	else
-	{
-		//reserve elements according to estimated experiment type
-		QFileInfo info(filename);
-		double mb = info.size()/1000000;
-		QString extension = info.suffix().toUpper();
-		bool is_wgs = (extension=="VCF" && mb>200) || (extension=="GZ" && mb>35);
-		vcf_lines_.reserve(is_wgs ? 5000000 : 80000);
-
-		//open stream
-		VersatileFile file(filename);
-		file.open();
-		while(!file.atEnd())
-		{
-			QByteArray line = file.readLine(true);
-			processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
-		}
-	}
-}
-
-void VcfFile::load(const QString& filename, bool allow_multi_sample)
-{
-	loadFromVCFGZ(filename, allow_multi_sample);
-}
-
-void VcfFile::load(const QString& filename, const BedFile& roi, bool allow_multi_sample, bool invert)
-{
-	//create ROI index (if given)
-	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
-	if (!roi.isSorted())
-	{
-		THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
-	}
-	roi_idx.reset(new ChromosomalIndex<BedFile>(roi));
-
-	loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
 }
 
 void VcfFile::storeAsTsv(const QString& filename)
@@ -449,18 +434,6 @@ void VcfFile::storeAsTsv(const QString& filename)
 	}
 }
 
-void writeBGZipped(BGZF* instream, QString& vcf_file_data)
-{
-	const QByteArray utf8String = vcf_file_data.toUtf8();
-	size_t length_bytes = utf8String.size();
-	size_t written_bytes = bgzf_write(instream, utf8String.constData(), length_bytes);
-
-	if(length_bytes != written_bytes)
-	{
-		THROW(FileAccessException, "Writing bgzipped vcf file failed; not all bytes were written.");
-	}
-}
-
 void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int compression_level) const
 {
 	if(compression_level == BGZF_NO_COMPRESSION)
@@ -488,46 +461,22 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 	}
 	else
 	{
-		if(filename.isEmpty())
-		{
-			THROW(ArgumentException, "Conflicting parameters for empty filename and compression level > 0");
-		}
+		if(filename.isEmpty()) THROW(ArgumentException, "Cannot write VCF.GZ to stdout! Specify a file name of disable compression!");
 		if (compression_level<0 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + filename + "'!");
 
-		std::string compression_mode_string = "wb";
-		std::string compression_mode_level_string = std::to_string(compression_level);
-		compression_mode_string.append(compression_mode_level_string);
+		//open file
+		QByteArray open_flags = "wb"+QByteArray::number(compression_level);
+		BGZF* instream = bgzf_open(filename.toUtf8().data(), open_flags.data());
+		if (instream==NULL) THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
 
-		const char* compression_mode = compression_mode_string.c_str();
-		BGZF* instream = bgzf_open(filename.toUtf8().data(), compression_mode);
-		if (instream==NULL)
-		{
-			THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
-		}
+		//write text (this is not efficient as it writes to entire file to memory and then to the disk)
+		QByteArray text = toText();
+		int written_bytes = bgzf_write(instream, text.constData(), text.size());
+		if(written_bytes!=text.size()) THROW(FileAccessException, "Writing bgzipped VCF file '" + filename + "' failed: not all bytes were written.");
 
-		//write gzipped informations
-		//open stream
-		QString vcf_file;
-		QTextStream stream(&vcf_file);		
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        stream.setEncoding(QStringConverter::Utf8);
-        #else
-        stream.setCodec("UTF-8");
-        #endif
-
-		//write header information
-		vcf_header_.storeHeaderInformation(stream);
-		//write header columns
-		storeHeaderColumns(stream);
-
-		foreach (const VcfLine& line, vcf_lines_)
-		{
-			storeLineInformation(stream, line);
-		}
-
-		writeBGZipped(instream, vcf_file);
-
-		bgzf_close(instream);
+		//close file
+		int closed = bgzf_close(instream);
+		if (closed!=0) THROW(FileAccessException, "Writing bgzipped VCF file '" + filename + "' failed: could not close file.");
 	}
 
 }
@@ -674,8 +623,13 @@ void VcfFile::copyMetaData(const VcfFile& rhs)
 QByteArray VcfFile::toText() const
 {
 	//open stream
-	QString output;
+	QByteArray output;
 	QTextStream stream(&output);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	stream.setEncoding(QStringConverter::Utf8);
+#else
+	stream.setCodec("UTF-8");
+#endif
 
 	//write header information
 	vcf_header_.storeHeaderInformation(stream);
@@ -687,23 +641,23 @@ QByteArray VcfFile::toText() const
 		storeLineInformation(stream, line);
 	}
 
-	return output.toUtf8();
+	return output;
 }
 
 void VcfFile::fromText(const QByteArray &text)
 {
 	//clear content in case we load a second file
 	clear();
-    QByteArrayList lines = text.split('\n');
 
 	int line_number = 0;
 	QSet<QByteArray> info_ids_in_header;
 	QSet<QByteArray> format_ids_in_header;
 	QSet<QByteArray> filter_ids_in_header;
 
+	QByteArrayList lines = text.split('\n');
 	foreach (const QByteArray& line, lines)
 	{
-		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, true, nullptr, false);
+		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header);
 	}
 }
 

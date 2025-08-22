@@ -107,7 +107,8 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesBam(const VcfFile&
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi)
 {
 	VcfFile variants;
-	variants.load(filename, roi, false);
+	variants.setRegion(roi);
+	variants.load(filename);
 
 	//vcf file must have only one sample to parse the correct genotype
 	if(variants.sampleIDs().count() > 1)
@@ -128,7 +129,8 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi)
 {
 	VcfFile variants;
-	variants.load(filename, false);
+	variants.setAllowMultiSample(false);
+	variants.load(filename);
 
 	//vcf file must have only one sample to parse the correct genotype
 	if(variants.sampleIDs().count() > 1)
