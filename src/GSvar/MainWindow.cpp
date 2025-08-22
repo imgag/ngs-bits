@@ -4832,7 +4832,6 @@ void MainWindow::on_actionExportTestData_triggered()
 void MainWindow::on_actionExportSampleData_triggered()
 {	
 	NGSD db;
-	QMap<QString, QSet<int>> sql_history;
 	QElapsedTimer timer;
 
 	try
@@ -4840,9 +4839,10 @@ void MainWindow::on_actionExportSampleData_triggered()
 		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 
 		//get samples from user
-		bool ok = false;
-		QString ps_text = QInputDialog::getText(this, "Sample data export", "Enter the processed sample name:", "", &ok);
-		if (!ok) return;
+		// bool ok = false;
+		QString ps_text = QInputDialog::getText(this, "Sample data export", "Enter the processed sample name:", QLineEdit::Normal);
+		// if (!ok) return;
+		if (ps_text.isEmpty()) return;
 
 		QString ps_id = db.processedSampleId(ps_text.trimmed());
 
@@ -4859,28 +4859,24 @@ void MainWindow::on_actionExportSampleData_triggered()
 		#endif
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-
+		timer.start();
 
 		QList<QString> sample_db_data; // store all SQL statements here
 		QString dummy_user_id = "1";
 		QString dummy_project_id = "1";
 
 
-
-
-
-
-		SqlQuery ps_qc_query = getQuery();
+		SqlQuery ps_qc_query = db.getQuery();
 		ps_qc_query.exec("SELECT * FROM processed_sample_qc WHERE processed_sample_id=" + ps_id);
 		while(ps_qc_query.next())
 		{
 			QString qc_terms_id = ps_qc_query.value("qc_terms_id").toString();
 
-			SqlQuery qc_terms_query = getQuery();
+			SqlQuery qc_terms_query = db.getQuery();
 			qc_terms_query.exec("SELECT * FROM qc_terms WHERE id=" + qc_terms_id);
 			while(qc_terms_query.next())
 			{
-				sample_db_data.append("INSERT INTO `qc_terms` "
+				sample_db_data.append("INSERT IGNORE INTO `qc_terms` "
 									  "(`id`, "
 									  "`qcml_id`, "
 									  "`name`, "
@@ -4889,16 +4885,15 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  "`obsolete`)"
 									  "VALUES ("
 									  + qc_terms_id + ", "
-									  + ps_qc_query.value("qcml_id").toString() + ", "
-									  + ps_qc_query.value("name").toString() + ", "
-									  + ps_qc_query.value("description").toString() + ", "
-									  + ps_qc_query.value("type").toString() + ", "
-									  + ps_qc_query.value("obsolete").toString() +
+									  + qc_terms_query.value("qcml_id").toString() + ", "
+									  + qc_terms_query.value("name").toString() + ", "
+									  + qc_terms_query.value("description").toString() + ", "
+									  + qc_terms_query.value("type").toString() + ", "
+									  + qc_terms_query.value("obsolete").toString() +
 									  ")");
 			}
 
-
-			sample_db_data.append("INSERT INTO `processed_sample` "
+			sample_db_data.append("INSERT IGNORE INTO `processed_sample_qc` "
 								  "(`id`, "
 								  "`processed_sample_id`, "
 								  "`qc_terms_id`, "
@@ -4911,12 +4906,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 								  ")");
 		}
 
-
-
-
-
-
-		SqlQuery p_sample_query = getQuery();
+		SqlQuery p_sample_query = db.getQuery();
 		p_sample_query.exec("SELECT * FROM processed_sample WHERE id=" + ps_id);
 		while(p_sample_query.next())
 		{
@@ -4924,55 +4914,11 @@ void MainWindow::on_actionExportSampleData_triggered()
 			QString processing_system_id = p_sample_query.value("processing_system_id").toString();
 			QString sequencing_run_id = p_sample_query.value("sequencing_run_id").toString();
 
-			sample_db_data.append("INSERT INTO `processed_sample` "
-								  "(`id`, "
-								  "`sample_id`, "
-								  "`process_id`, "
-								  "`sequencing_run_id`, "
-								  "`lane`, "
-								  "`mid1_i7`, "
-								  "`mid2_i5`, "
-								  "`operator_id`, "
-								  "`processing_system_id`, "
-								  "`comment`, "
-								  "`project_id`, "
-								  "`processing_input`, "
-								  "`molarity`, "
-								  "`processing_modus`, "
-								  "`batch_number`, "
-								  "`quality`, "
-								  "`folder_override`, "
-								  "`folder_override_client`, "
-								  "`scheduled_for_resequencing`, "
-								  "`urgent`)"
-								  "VALUES ("
-								  + p_sample_query.value("id").toString() + ", "
-								  + sample_id + ", "
-								  + ps_id + ", "
-								  + sequencing_run_id + ", "
-								  + p_sample_query.value("lane").toString() + ", "
-								  + p_sample_query.value("mid1_i7").toString() + ", "
-								  + p_sample_query.value("mid2_i5").toString() + ", "
-								  + dummy_user_id + ", "
-								  + processing_system_id + ", "
-								  + p_sample_query.value("comment").toString() + ", "
-								  + dummy_project_id + ", "
-								  + p_sample_query.value("processing_input").toString() + ", "
-								  + p_sample_query.value("molarity").toString() + ", "
-								  + p_sample_query.value("batch_number").toString() + ", "
-								  + p_sample_query.value("quality").toString() + ", "
-								  + p_sample_query.value("folder_override").toString() + ", "
-								  + p_sample_query.value("folder_override_client").toString() + ", "
-								  + p_sample_query.value("scheduled_for_resequencing").toString() + ", "
-								  + p_sample_query.value("urgent").toString() +
-								  ")");
-
-
-			SqlQuery sample_query = getQuery();
+			SqlQuery sample_query = db.getQuery();
 			sample_query.exec("SELECT * FROM sample WHERE id=" + sample_id);
 			while(sample_query.next())
 			{
-				sample_db_data.append("INSERT INTO `sample` "
+				sample_db_data.append("INSERT IGNORE INTO `sample` "
 									  "(`id`, "
 									  "`name`, "
 									  "`name_external`, "
@@ -5027,17 +4973,11 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  ")");
 			}
 
-
-
-
-
-
-
-			SqlQuery p_system_query = getQuery();
+			SqlQuery p_system_query = db.getQuery();
 			p_system_query.exec("SELECT * FROM processing_system WHERE id=" + processing_system_id);
 			while(p_system_query.next())
 			{
-				sample_db_data.append("INSERT INTO `processing_system` "
+				sample_db_data.append("INSERT IGNORE INTO `processing_system` "
 									  "(`id`, "
 									  "`name_short`, "
 									  "`name_manufacturer`, "
@@ -5062,12 +5002,30 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  ")");
 			}
 
-			SqlQuery sequencing_run_query = getQuery();
+			SqlQuery sequencing_run_query = db.getQuery();
 			sequencing_run_query.exec("SELECT * FROM sequencing_run WHERE id=" + sequencing_run_id);
 			while(sequencing_run_query.next())
 			{
 				QString device_id = sequencing_run_query.value("device_id").toString();
-				sample_db_data.append("INSERT INTO `sequencing_run` "
+
+				SqlQuery device_query = db.getQuery();
+				device_query.exec("SELECT * FROM device WHERE id=" + device_id);
+				while(device_query.next())
+				{
+					sample_db_data.append("INSERT IGNORE INTO `device` "
+										  "(`id`, "
+										  "`type`, "
+										  "`name`, "
+										  "`comment`)"
+										  "VALUES ("
+										  + device_id + ", "
+										  + device_query.value("type").toString() + ", "
+										  + device_query.value("name").toString() + ", "
+										  + device_query.value("comment").toString() +
+										  ")");
+				}
+
+				sample_db_data.append("INSERT IGNORE INTO `sequencing_run` "
 									  "(`id`, "
 									  "`name`, "
 									  "`fcid`, "
@@ -5100,33 +5058,42 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  + sequencing_run_query.value("status").toString() + ", "
 									  + sequencing_run_query.value("backup_done").toString() +
 									  ")");
-
-				SqlQuery device_query = getQuery();
-				device_query.exec("SELECT * FROM device WHERE id=" + device_id);
-				while(device_query.next())
-				{
-					sample_db_data.append("INSERT INTO `device` "
-										  "(`id`, "
-										  "`type`, "
-										  "`name`, "
-										  "`comment`)"
-										  "VALUES ("
-										  + device_id + ", "
-										  + device_query.value("type").toString() + ", "
-										  + device_query.value("name").toString() + ", "
-										  + device_query.value("comment").toString() +
-										  ")");
-				}
 			}
 
-
-
-			SqlQuery runqc_read_query = getQuery();
+			SqlQuery runqc_read_query = db.getQuery();
 			runqc_read_query.exec("SELECT * FROM runqc_read WHERE sequencing_run_id=" + sequencing_run_id);
 			while(runqc_read_query.next())
 			{
 				QString runqc_read_id = runqc_read_query.value("id").toString();
-				sample_db_data.append("INSERT INTO `runqc_read` "
+
+				SqlQuery  runqc_lane_query = db.getQuery();
+				runqc_lane_query.exec("SELECT * FROM runqc_lane WHERE runqc_read_id=" + runqc_read_id);
+				while(runqc_lane_query.next())
+				{
+					sample_db_data.append("INSERT IGNORE INTO `runqc_lane` "
+										  "(`id`, "
+										  "`lane_num`, "
+										  "`cluster_density`, "
+										  "`cluster_density_pf`, "
+										  "`yield`, "
+										  "`error_rate`, "
+										  "`q30_perc`, "
+										  "`occupied_perc`, "
+										  "`runqc_read_id`)"
+										  "VALUES ("
+										  + runqc_lane_query.value("id").toString() + ", "
+										  + runqc_lane_query.value("lane_num").toString() + ", "
+										  + runqc_lane_query.value("cluster_density").toString() + ", "
+										  + runqc_lane_query.value("cluster_density_pf").toString() + ", "
+										  + runqc_lane_query.value("yield").toString() + ", "
+										  + runqc_lane_query.value("error_rate").toString() + ", "
+										  + runqc_lane_query.value("q30_perc").toString() + ", "
+										  + runqc_lane_query.value("occupied_perc").toString() + ", "
+										  + runqc_read_id +
+										  ")");
+				}
+
+				sample_db_data.append("INSERT IGNORE INTO `runqc_read` "
 									  "(`id`, "
 									  "`read_num`, "
 									  "`cycles`, "
@@ -5143,94 +5110,62 @@ void MainWindow::on_actionExportSampleData_triggered()
 									  + runqc_read_query.value("error_rate").toString() + ", "
 									  + sequencing_run_id +
 									  ")");
-
-
-				SqlQuery  runqc_lane_query = getQuery();
-				runqc_lane_query.exec("SELECT * FROM runqc_lane WHERE runqc_read_id=" + runqc_read_id);
-				while(runqc_lane_query.next())
-				{
-					sample_db_data.append("INSERT INTO `runqc_lane` "
-										  "(`id`, "
-										  "`lane_num`, "
-										  "`cluster_density`, "
-										  "`cluster_density_pf`, "
-										  "`yield`, "
-										  "`error_rate`, "
-										  "`q30_perc`, "
-										  "`occupied_perc`, "
-										  "`runqc_read_id`)"
-										  "VALUES ("
-										  + runqc_read_query.value("id").toString() + ", "
-										  + runqc_read_query.value("lane_num").toString() + ", "
-										  + runqc_read_query.value("cluster_density").toString() + ", "
-										  + runqc_read_query.value("cluster_density_pf").toString() + ", "
-										  + runqc_read_query.value("yield").toString() + ", "
-										  + runqc_read_query.value("error_rate").toString() + ", "
-										  + runqc_read_query.value("q30_perc").toString() + ", "
-										  + runqc_read_query.value("occupied_perc").toString() + ", "
-										  + runqc_read_id +
-										  ")");
-				}
 			}
 
-
-
-
-
+			sample_db_data.append("INSERT IGNORE INTO `processed_sample` "
+								  "(`id`, "
+								  "`sample_id`, "
+								  "`process_id`, "
+								  "`sequencing_run_id`, "
+								  "`lane`, "
+								  "`mid1_i7`, "
+								  "`mid2_i5`, "
+								  "`operator_id`, "
+								  "`processing_system_id`, "
+								  "`comment`, "
+								  "`project_id`, "
+								  "`processing_input`, "
+								  "`molarity`, "
+								  "`processing_modus`, "
+								  "`batch_number`, "
+								  "`quality`, "
+								  "`folder_override`, "
+								  "`folder_override_client`, "
+								  "`scheduled_for_resequencing`, "
+								  "`urgent`)"
+								  "VALUES ("
+								  + p_sample_query.value("id").toString() + ", "
+								  + sample_id + ", "
+								  + ps_id + ", "
+								  + sequencing_run_id + ", "
+								  + p_sample_query.value("lane").toString() + ", "
+								  + p_sample_query.value("mid1_i7").toString() + ", "
+								  + p_sample_query.value("mid2_i5").toString() + ", "
+								  + dummy_user_id + ", "
+								  + processing_system_id + ", "
+								  + p_sample_query.value("comment").toString() + ", "
+								  + dummy_project_id + ", "
+								  + p_sample_query.value("processing_input").toString() + ", "
+								  + p_sample_query.value("molarity").toString() + ", "
+								  + p_sample_query.value("batch_number").toString() + ", "
+								  + p_sample_query.value("quality").toString() + ", "
+								  + p_sample_query.value("folder_override").toString() + ", "
+								  + p_sample_query.value("folder_override_client").toString() + ", "
+								  + p_sample_query.value("scheduled_for_resequencing").toString() + ", "
+								  + p_sample_query.value("urgent").toString() +
+								  ")");
 		}
 
 
 
-
-		timer.start();
-		for (int i = 0; i < base_tables.count(); i++)
+		for (const QString single_query: sample_db_data)
 		{
-			ui_.statusBar->showMessage("Exporting table \"" + base_tables[i] + "\"");
-			QApplication::processEvents();
-			db.exportTable(base_tables[i], output_stream);
+			output_stream << single_query + ";\n";
 		}
-		Log::perf("Exporting base tables took ", timer);
 
-		timer.start();
-		foreach(const QString& ps, ps_list)
-		{
-			ui_.statusBar->showMessage("Exporting data of " + ps);
-			QApplication::processEvents();
-
-			QString s_id = db.sampleId(ps);
-			QString ps_id = db.processedSampleId(ps);
-			db.exportTable("sample", output_stream, "id='"+s_id+"'", &sql_history);
-			db.exportTable("sample_disease_info", output_stream, "sample_id='"+s_id+"'", &sql_history);
-			db.exportTable("processed_sample", output_stream, "id='"+ps_id+"'", &sql_history);
-			db.exportTable("processed_sample_qc", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
-			db.exportTable("repeat_expansion_genotype", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
-
-			QStringList variant_id_list = db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id='"+ps_id+"'");
-			db.exportTable("variant", output_stream, "id IN ("+variant_id_list.join(", ")+")", &sql_history);
-			db.exportTable("detected_variant", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
-
-			QString ps_cnv_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
-			if (!ps_cnv_id.isEmpty())
-			{
-				db.exportTable("cnv_callset", output_stream, "id="+ps_cnv_id, &sql_history);
-				db.exportTable("cnv", output_stream, "cnv_callset_id="+ps_cnv_id, &sql_history);
-			}
-
-			QString sv_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id='"+ps_id+"'", true).toString();
-			if (!sv_callset_id.isEmpty())
-			{
-				db.exportTable("sv_callset", output_stream, "id="+sv_callset_id, &sql_history);
-				db.exportTable("sv_deletion", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
-				db.exportTable("sv_duplication", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
-				db.exportTable("sv_insertion", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
-				db.exportTable("sv_inversion", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
-				db.exportTable("sv_translocation", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
-			}
-		}
 		Log::perf("Exporting processed sample data took ", timer);
 
 		QApplication::restoreOverrideCursor();
-
 		QMessageBox::information(this, "Test data export", "Exported test data to " + file_name);
 	}
 	catch (Exception& e)
