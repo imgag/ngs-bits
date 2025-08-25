@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2024_08-113-g94a3b440)
+	SvFilterAnnotations (2025_07-53-gefb5888f)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -40,7 +40,7 @@
 	                              only_system_specific - Filter only based on the density of breakpoint of the current processing system. [default=false]
 	SV compound-heterozygous    Filter for compound-heterozygous SVs.
 	                            Mode 'SV-SV' detects genes with two or more SV hits.
-	                            Mode 'SV-SNV/INDEL' detectes genes with exactly one SV and exactly one small variant hit (after other filters are applied).
+	                            Mode 'SV-SNV/INDEL' detects genes with at least one SV and at least one small variant hit (after other filters are applied).
 	                            Parameters:
 	                              mode - Compound-heterozygotes detection mode. [default=n/a] [valid=n/a,SV-SV,SV-SNV/INDEL]
 	SV count NGSD               Filter based on the hom/het occurances of a structural variant in the NGSD.
@@ -118,7 +118,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2024_08-113-g94a3b440
+	SvFilterAnnotations 2025_07-53-gefb5888f
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
