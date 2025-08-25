@@ -325,6 +325,7 @@ void MVHub::updateTableFilters()
 		}
 	}
 
+	//TODO correctly handle filters (status: +x failed)
 	//export status filter
 	if (ui_.f_export->currentText()!="")
 	{
@@ -336,19 +337,21 @@ void MVHub::updateTableFilters()
 			if (!visible[r]) continue;
 
 			QString status = getString(r, c_exp_status);
+			int c_todo = status.split("//").count();
 			QString conf = getString(r, c_exp_conf);
+			int c_conf = conf.split("//").count();
 
-			if (export_filter=="pending" && status!="")
+			if (export_filter=="pending" && !(status==""))
 			{
 				visible[r] = false;
 			}
 
-			if (export_filter=="in progress" && !(status!="" && conf==""))
+			if (export_filter=="in progress" && !(status!="" && c_todo!=c_conf))
 			{
 				visible[r] = false;
 			}
 
-			if (export_filter=="done" && (status=="" || conf==""))
+			if (export_filter=="done" && !(status!="" && c_todo==c_conf))
 			{
 				visible[r] = false;
 			}
@@ -981,14 +984,7 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", true).toString().trimmed();
 	if (id.isEmpty()) return; //this can happen when the SAP ID is listed twice in SE RedCap
 
-	//determine overall export count
-	int c_exp_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='" + id + "'").toInt();
-	int c_exp_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='" + id + "'").toInt();
-	int c_exp_all = c_exp_grz + c_exp_kdk;
-	if (c_exp_all==0) return;
-
-
-	QString text = "uploads: " + QString::number(c_exp_all);
+	QString text = "";
 
 	//add status of latest GRZ upload
 	SqlQuery query = mvh_db.getQuery();
@@ -996,10 +992,15 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	if(query.next())
 	{
 		QString status = query.value("status").toString();
-		text += " // GRZ " + status;
+		text += "GRZ " + status;
 		if (status=="failed") text += QChar(0x274C);
 		if (status=="done") text += QChar(0x2705);
+
+		//add previous uploads
+		int c_other = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='" + id + "' AND id!='"+query.value("id").toString()+"'").toInt();
+		if (c_other>0) text += " +" + QString::number(c_other);
 	}
+
 
 	//add status of latest KDK upload
 	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
@@ -1009,6 +1010,10 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 		text += " // KDK " + status;
 		if (status=="failed") text += QChar(0x274C);
 		if (status=="done") text += QChar(0x2705);
+
+		//add previous uploads
+		int c_other = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='" + id + "' AND id!='"+query.value("id").toString()+"'").toInt();
+		if (c_other>0) text += " +" + QString::number(c_other);
 	}
 
 	//add table item
