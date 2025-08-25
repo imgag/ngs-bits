@@ -4839,15 +4839,17 @@ void MainWindow::on_actionExportSampleData_triggered()
 		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 
 		//get samples from user
-		// bool ok = false;
-		QString ps_text = QInputDialog::getText(this, "Sample data export", "Enter the processed sample name:", QLineEdit::Normal);
-		// if (!ok) return;
-		if (ps_text.isEmpty()) return;
+		ProcessedSampleSelector dlg(this, false);
+		dlg.showSearchMulti(true);
+		if (!dlg.exec()) return;
 
-		QString ps_id = db.processedSampleId(ps_text.trimmed());
+		QString ps_name = dlg.processedSampleName();
+		if (ps_name.isEmpty()) return;
+
+		QString ps_id = db.processedSampleId(ps_name.trimmed());
 
 		//get and open output file
-		QString file_name = QFileDialog::getSaveFileName(this, "Export sample data", QDir::homePath()+QDir::separator()+ps_text+"_data_"+QDateTime::currentDateTime().toString("dd_MM_yyyy")+".sql", "SQL (*.sql);;All files (*.*)");
+		QString file_name = QFileDialog::getSaveFileName(this, "Export sample data", QDir::homePath()+QDir::separator()+ps_name+"_data_"+QDateTime::currentDateTime().toString("dd_MM_yyyy")+".sql", "SQL (*.sql);;All files (*.*)");
 		if (file_name.isEmpty()) return;
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
@@ -5166,7 +5168,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 		Log::perf("Exporting processed sample data took ", timer);
 
 		QApplication::restoreOverrideCursor();
-		QMessageBox::information(this, "Test data export", "Exported test data to " + file_name);
+		QMessageBox::information(this, "Sample data export", "Exported sample data to " + file_name);
 	}
 	catch (Exception& e)
 	{
