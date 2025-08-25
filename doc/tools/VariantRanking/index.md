@@ -1,6 +1,6 @@
 # VariantRanking documentation
 
-The `VariantRanking` tool takes a small variant list of a single sample in [GSvar format] (../../GSvar/gsvar_format.md) as produced by the [megSAP](https://github.com/imgag/megSAP/) analysis pipeline along with the patient's phenotype as a list of [HPO](https://hpo.jax.org/) terms.
+The `VariantRanking` tool takes a small variant list of a single sample in [GSvar format](../../GSvar/gsvar_format.md) as produced by the [megSAP](https://github.com/imgag/megSAP/) analysis pipeline along with the patient's phenotype as a list of [HPO](https://hpo.jax.org/) terms.
 
 ## Algorithm description
 
