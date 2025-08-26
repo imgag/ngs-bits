@@ -3460,4 +3460,28 @@ private slots:
 
 	}
 
+    void test_export_sample_data()
+    {
+        if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+        NGSD db(true);
+        db.init();
+        db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
+
+        QList<QString> db_dump;
+        db.exportSampleData("3999", db_dump);
+        IS_TRUE(db_dump.size()>0);
+
+
+        db.init();
+        db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
+        SqlQuery import_query = db.getQuery();
+
+        for (const QString& single_query: db_dump)
+        {
+            import_query.exec(single_query);
+        }
+
+    }
+
 };

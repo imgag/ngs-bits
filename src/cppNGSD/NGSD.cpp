@@ -10181,12 +10181,12 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  "`type`, "
 						  "`obsolete`)"
 						  " VALUES ("
-						  + qc_terms_id + ", "
-						  + qc_terms_query.value("qcml_id").toString() + ", "
-						  + qc_terms_query.value("name").toString() + ", "
+						  + escapeText(qc_terms_id) + ", "
+						  + escapeText(qc_terms_query.value("qcml_id").toString()) + ", "
+						  + escapeText(qc_terms_query.value("name").toString()) + ", "
 						  + escapeText(qc_terms_query.value("description").toString()) + ", "
-						  + qc_terms_query.value("type").toString() + ", "
-						  + qc_terms_query.value("obsolete").toString() +
+						  + escapeText(qc_terms_query.value("type").toString()) + ", "
+						  + escapeText(qc_terms_query.value("obsolete").toString()) +
 						  ")");
 		}
 
@@ -10196,10 +10196,10 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 					  "`qc_terms_id`, "
 					  "`value`)"
 					  " VALUES ("
-					  + ps_qc_query.value("id").toString() + ", "
-					  + ps_id + ", "
-					  + qc_terms_id + ", "
-					  + ps_qc_query.value("value").toString() +
+					  + escapeText(ps_qc_query.value("id").toString()) + ", "
+					  + escapeText(ps_id) + ", "
+					  + escapeText(qc_terms_id) + ", "
+					  + escapeText(ps_qc_query.value("value").toString()) +
 					  ")");
 	}
 
@@ -10242,31 +10242,31 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  "`order_date`, "
 						  "`sampling_date`)"
 						  " VALUES ("
-						  + sample_id + ", "
-						  + sample_query.value("name").toString() + ", "
-						  + sample_query.value("name_external").toString() + ", "
+						  + escapeText(sample_id) + ", "
+						  + escapeText(sample_query.value("name").toString()) + ", "
+						  + escapeText(sample_query.value("name_external").toString()) + ", "
 						  + "NULL, "
-						  + sample_query.value("received").toString() + ", "
-						  + dummy_user_id + ", "
-						  + sample_query.value("sample_type").toString() + ", "
-						  + sample_query.value("tissue").toString() + ", "
-						  + sample_query.value("species_id").toString() + ", "
-						  + sample_query.value("concentration").toString() + ", "
-						  + sample_query.value("volume").toString() + ", "
-						  + sample_query.value("od_260_280").toString() + ", "
-						  + sample_query.value("gender").toString() + ", "
+						  + escapeText(sample_query.value("received").toString()) + ", "
+						  + escapeText(dummy_user_id) + ", "
+						  + escapeText(sample_query.value("sample_type").toString()) + ", "
+						  + escapeText(sample_query.value("tissue").toString()) + ", "
+						  + escapeText(sample_query.value("species_id").toString()) + ", "
+						  + escapeText(sample_query.value("concentration").toString()) + ", "
+						  + escapeText(sample_query.value("volume").toString()) + ", "
+						  + escapeText(sample_query.value("od_260_280").toString()) + ", "
+						  + escapeText(sample_query.value("gender").toString()) + ", "
 						  + escapeText(sample_query.value("comment").toString()) + ", "
-						  + sample_query.value("quality").toString() + ", "
-						  + sample_query.value("od_260_230").toString() + ", "
-						  + sample_query.value("integrity_number").toString() + ", "
-						  + sample_query.value("tumor").toString() + ", "
-						  + sample_query.value("ffpe").toString() + ", "
-						  + dummy_user_id + ", "
-						  + sample_query.value("disease_group").toString() + ", "
-						  + sample_query.value("disease_status").toString() + ", "
-						  + sample_query.value("year_of_birth").toString() + ", "
-						  + sample_query.value("order_date").toString() + ", "
-						  + sample_query.value("sampling_date").toString() +
+						  + escapeText(sample_query.value("quality").toString()) + ", "
+						  + escapeText(sample_query.value("od_260_230").toString()) + ", "
+						  + escapeText(sample_query.value("integrity_number").toString()) + ", "
+						  + escapeText(sample_query.value("tumor").toString()) + ", "
+						  + escapeText(sample_query.value("ffpe").toString()) + ", "
+						  + escapeText(dummy_user_id) + ", "
+						  + escapeText(sample_query.value("disease_group").toString()) + ", "
+						  + escapeText(sample_query.value("disease_status").toString()) + ", "
+						  + escapeText(sample_query.value("year_of_birth").toString()) + ", "
+						  + escapeText(sample_query.value("order_date").toString()) + ", "
+						  + escapeText(sample_query.value("sampling_date").toString()) +
 						  ")");
 		}
 
@@ -10286,16 +10286,16 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  "`target_file`, "
 						  "`genome_id`)"
 						  " VALUES ("
-						  + p_system_query.value("id").toString() + ", "
-						  + p_system_query.value("name_short").toString() + ", "
-						  + p_system_query.value("name_manufacturer").toString() + ", "
-						  + p_system_query.value("adapter1_p5").toString() + ", "
-						  + p_system_query.value("adapter2_p7").toString() + ", "
-						  + p_system_query.value("type").toString() + ", "
-						  + p_system_query.value("shotgun").toString() + ", "
-						  + p_system_query.value("umi_type").toString() + ", "
-						  + p_system_query.value("target_file").toString() + ", "
-						  + p_system_query.value("genome_id").toString() +
+						  + escapeText(p_system_query.value("id").toString()) + ", "
+						  + escapeText(p_system_query.value("name_short").toString()) + ", "
+						  + escapeText(p_system_query.value("name_manufacturer").toString()) + ", "
+						  + escapeText(p_system_query.value("adapter1_p5").toString()) + ", "
+						  + escapeText(p_system_query.value("adapter2_p7").toString()) + ", "
+						  + escapeText(p_system_query.value("type").toString()) + ", "
+						  + escapeText(p_system_query.value("shotgun").toString()) + ", "
+						  + escapeText(p_system_query.value("umi_type").toString()) + ", "
+						  + escapeText(p_system_query.value("target_file").toString()) + ", "
+						  + escapeText(p_system_query.value("genome_id").toString()) +
 						  ")");
 		}
 
@@ -10315,9 +10315,9 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 							  "`name`, "
 							  "`comment`)"
 							  " VALUES ("
-							  + device_id + ", "
-							  + device_query.value("type").toString() + ", "
-							  + device_query.value("name").toString() + ", "
+							  + escapeText(device_id) + ", "
+							  + escapeText(device_query.value("type").toString()) + ", "
+							  + escapeText(device_query.value("name").toString()) + ", "
 							  + escapeText(device_query.value("comment").toString()) +
 							  ")");
 			}
@@ -10339,21 +10339,21 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  "`status`, "
 						  "`backup_done`)"
 						  " VALUES ("
-						  + sequencing_run_query.value("id").toString() + ", "
-						  + sequencing_run_query.value("name").toString() + ", "
-						  + sequencing_run_query.value("fcid").toString() + ", "
-						  + sequencing_run_query.value("flowcell_type").toString() + ", "
-						  + sequencing_run_query.value("start_date").toString() + ", "
-						  + sequencing_run_query.value("end_date").toString() + ", "
-						  + device_id + ", "
-						  + sequencing_run_query.value("side").toString() + ", "
-						  + sequencing_run_query.value("recipe").toString() + ", "
-						  + sequencing_run_query.value("pool_molarity").toString() + ", "
-						  + sequencing_run_query.value("pool_quantification_method").toString() + ", "
+						  + escapeText(sequencing_run_query.value("id").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("name").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("fcid").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("flowcell_type").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("start_date").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("end_date").toString()) + ", "
+						  + escapeText(device_id) + ", "
+						  + escapeText(sequencing_run_query.value("side").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("recipe").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("pool_molarity").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("pool_quantification_method").toString()) + ", "
 						  + escapeText(sequencing_run_query.value("comment").toString()) + ", "
-						  + sequencing_run_query.value("quality").toString() + ", "
-						  + sequencing_run_query.value("status").toString() + ", "
-						  + sequencing_run_query.value("backup_done").toString() +
+						  + escapeText(sequencing_run_query.value("quality").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("status").toString()) + ", "
+						  + escapeText(sequencing_run_query.value("backup_done").toString()) +
 						  ")");
 		}
 
@@ -10378,15 +10378,15 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 							  "`occupied_perc`, "
 							  "`runqc_read_id`)"
 							  " VALUES ("
-							  + runqc_lane_query.value("id").toString() + ", "
-							  + runqc_lane_query.value("lane_num").toString() + ", "
-							  + runqc_lane_query.value("cluster_density").toString() + ", "
-							  + runqc_lane_query.value("cluster_density_pf").toString() + ", "
-							  + runqc_lane_query.value("yield").toString() + ", "
-							  + runqc_lane_query.value("error_rate").toString() + ", "
-							  + runqc_lane_query.value("q30_perc").toString() + ", "
-							  + runqc_lane_query.value("occupied_perc").toString() + ", "
-							  + runqc_read_id +
+							  + escapeText(runqc_lane_query.value("id").toString()) + ", "
+							  + escapeText(runqc_lane_query.value("lane_num").toString()) + ", "
+							  + escapeText(runqc_lane_query.value("cluster_density").toString()) + ", "
+							  + escapeText(runqc_lane_query.value("cluster_density_pf").toString()) + ", "
+							  + escapeText(runqc_lane_query.value("yield").toString()) + ", "
+							  + escapeText(runqc_lane_query.value("error_rate").toString()) + ", "
+							  + escapeText(runqc_lane_query.value("q30_perc").toString()) + ", "
+							  + escapeText(runqc_lane_query.value("occupied_perc").toString()) + ", "
+							  + escapeText(runqc_read_id) +
 							  ")");
 			}
 
@@ -10399,13 +10399,13 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  "`error_rate`, "
 						  "`sequencing_run_id`)"
 						  " VALUES ("
-						  + runqc_read_id + ", "
-						  + runqc_read_query.value("read_num").toString() + ", "
-						  + runqc_read_query.value("cycles").toString() + ", "
-						  + runqc_read_query.value("is_index").toString() + ", "
-						  + runqc_read_query.value("q30_perc").toString() + ", "
-						  + runqc_read_query.value("error_rate").toString() + ", "
-						  + sequencing_run_id +
+						  + escapeText(runqc_read_id) + ", "
+						  + escapeText(runqc_read_query.value("read_num").toString()) + ", "
+						  + escapeText(runqc_read_query.value("cycles").toString()) + ", "
+						  + escapeText(runqc_read_query.value("is_index").toString()) + ", "
+						  + escapeText(runqc_read_query.value("q30_perc").toString()) + ", "
+						  + escapeText(runqc_read_query.value("error_rate").toString()) + ", "
+						  + escapeText(sequencing_run_id) +
 						  ")");
 		}
 
@@ -10431,25 +10431,26 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 					  "`scheduled_for_resequencing`, "
 					  "`urgent`)"
 					  " VALUES ("
-					  + p_sample_query.value("id").toString() + ", "
-					  + sample_id + ", "
-					  + ps_id + ", "
-					  + sequencing_run_id + ", "
-					  + p_sample_query.value("lane").toString() + ", "
-					  + p_sample_query.value("mid1_i7").toString() + ", "
-					  + p_sample_query.value("mid2_i5").toString() + ", "
-					  + dummy_user_id + ", "
-					  + processing_system_id + ", "
+					  + escapeText(p_sample_query.value("id").toString()) + ", "
+					  + escapeText(sample_id) + ", "
+					  + escapeText(ps_id) + ", "
+					  + escapeText(sequencing_run_id) + ", "
+					  + escapeText(p_sample_query.value("lane").toString()) + ", "
+					  + escapeText(p_sample_query.value("mid1_i7").toString()) + ", "
+					  + escapeText(p_sample_query.value("mid2_i5").toString()) + ", "
+					  + escapeText(dummy_user_id) + ", "
+					  + escapeText(processing_system_id) + ", "
 					  + escapeText(p_sample_query.value("comment").toString()) + ", "
-					  + dummy_project_id + ", "
-					  + p_sample_query.value("processing_input").toString() + ", "
-					  + p_sample_query.value("molarity").toString() + ", "
-					  + p_sample_query.value("batch_number").toString() + ", "
-					  + p_sample_query.value("quality").toString() + ", "
-					  + p_sample_query.value("folder_override").toString() + ", "
-					  + p_sample_query.value("folder_override_client").toString() + ", "
-					  + p_sample_query.value("scheduled_for_resequencing").toString() + ", "
-					  + p_sample_query.value("urgent").toString() +
+					  + escapeText(dummy_project_id) + ", "
+					  + escapeText(p_sample_query.value("processing_input").toString()) + ", "
+					  + escapeText(p_sample_query.value("molarity").toString()) + ", "
+					  + escapeText(p_sample_query.value("processing_modus").toString()) + ", "
+					  + escapeText(p_sample_query.value("batch_number").toString()) + ", "
+					  + escapeText(p_sample_query.value("quality").toString()) + ", "
+					  + escapeText(p_sample_query.value("folder_override").toString()) + ", "
+					  + escapeText(p_sample_query.value("folder_override_client").toString()) + ", "
+					  + escapeText(p_sample_query.value("scheduled_for_resequencing").toString()) + ", "
+					  + escapeText(p_sample_query.value("urgent").toString()) +
 					  ")");
 	}
 }
