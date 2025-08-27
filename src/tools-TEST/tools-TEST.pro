@@ -170,7 +170,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     TsvDiff_Test.h \
     QcToTsv_Test.h \
     TrioMendelianErrors_Test.h \
-    MantaVcfFix_Test.h
+    MantaVcfFix_Test.h \
+	VcfReplaceSamples_Test.h
 
 SOURCES += \
     main.cpp
