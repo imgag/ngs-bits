@@ -325,7 +325,6 @@ void MVHub::updateTableFilters()
 		}
 	}
 
-	//TODO correctly handle filters (status: +x failed)
 	//export status filter
 	if (ui_.f_export->currentText()!="")
 	{
@@ -992,7 +991,7 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	if(query.next())
 	{
 		QString status = query.value("status").toString();
-		text += "GRZ " + status;
+		text += "GRZ " + (status=="done" ? query.value("date").toString() : status);
 		if (status=="failed") text += QChar(0x274C);
 		if (status=="done") text += QChar(0x2705);
 
@@ -1001,13 +1000,12 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 		if (c_other>0) text += " +" + QString::number(c_other);
 	}
 
-
 	//add status of latest KDK upload
 	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
 	if(query.next())
 	{
 		QString status = query.value("status").toString();
-		text += " // KDK " + status;
+		text += " // KDK " + (status=="done" ? query.value("date").toString() : status);
 		if (status=="failed") text += QChar(0x274C);
 		if (status=="done") text += QChar(0x2705);
 
