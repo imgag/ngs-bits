@@ -10160,9 +10160,9 @@ QString NGSD::escapeText(QString text)
 
 void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 {
-	QString dummy_user_id = "1";
-	QString dummy_project_id = "1";
-	QString dummy_sender = "1";
+	QString dummy_user_id = "99999";
+	QString dummy_project_id = "99999";
+	QString dummy_sender = "99999";
 
 	sql_data.append("INSERT IGNORE INTO `user` "
 					 "(`id`, "
@@ -10202,9 +10202,9 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 					 "`folder_override`, "
 					 "`folder_override_client`) VALUES"
 					 "('" + dummy_project_id + "', "
-					 "'Dummy project', "
+					 "'Dummy', "
 					 "NULL, "
-					 "'diagnostic', "
+					 "'test', "
 					 "'" + dummy_user_id + "' , "
 					 "NULL, "
 					 "'variants', "
@@ -10508,7 +10508,7 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 					  " VALUES ("
 					  + escapeText(p_sample_query.value("id").toString()) + ", "
 					  + escapeText(sample_id) + ", "
-					  + escapeText(ps_id) + ", "
+					  + escapeText(p_sample_query.value("process_id").toString()) + ", "
 					  + escapeText(sequencing_run_id) + ", "
 					  + escapeText(p_sample_query.value("lane").toString()) + ", "
 					  + mid1_i7 + ", "
