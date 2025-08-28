@@ -10164,7 +10164,7 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 	QString dummy_project_id = "1";
 	QString dummy_sender = "1";
 
-	QList<QString>& ps_qc_sql_data;
+	QList<QString> ps_qc_sql_data;
 	SqlQuery ps_qc_query = getQuery();
 	ps_qc_query.exec("SELECT * FROM processed_sample_qc WHERE processed_sample_id=" + ps_id);
 	while(ps_qc_query.next())
