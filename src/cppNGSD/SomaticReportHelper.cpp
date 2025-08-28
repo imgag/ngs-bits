@@ -880,6 +880,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	}
 
 	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Auswertungsdatum:", settings_.report_config->evaluationDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,1480,3481}) );
+	metadata.addRow(RtfTableRow({"Durchschnittliche Insert size:", tumor_qcml_data_.value("QC:2000023",true).toString().toUtf8(), normal_qcml_data_.value("QC:2000023",true).toString().toUtf8(), "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
 	RtfSourceCode tum_panel_depth = "n/a";
@@ -895,7 +896,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	{
 	}
 
-	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tum_panel_depth, nor_panel_depth, "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
+	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tum_panel_depth, nor_panel_depth, "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
 
@@ -906,7 +907,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	}
 	catch(Exception)
 	{} //nothing to do here
-	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x, "", "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()} , {2000,1480,1480,1480,3481}) );
+	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x, "", "", ""} , {2000,1480,1480,1480,3481}) );
 
 
 	RtfSourceCode tum_panel_cov_60x = "n/a";
