@@ -10162,7 +10162,9 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 {
 	QString dummy_user_id = "1";
 	QString dummy_project_id = "1";
+	QString dummy_sender = "1";
 
+	QList<QString>& ps_qc_sql_data;
 	SqlQuery ps_qc_query = getQuery();
 	ps_qc_query.exec("SELECT * FROM processed_sample_qc WHERE processed_sample_id=" + ps_id);
 	while(ps_qc_query.next())
@@ -10190,7 +10192,7 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  ")");
 		}
 
-		sql_data.append("INSERT IGNORE INTO `processed_sample_qc` "
+		ps_qc_sql_data.append("INSERT IGNORE INTO `processed_sample_qc` "
 					  "(`id`, "
 					  "`processed_sample_id`, "
 					  "`qc_terms_id`, "
@@ -10261,7 +10263,7 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  + escapeText(sample_query.value("integrity_number").toString()) + ", "
 						  + escapeText(sample_query.value("tumor").toString()) + ", "
 						  + escapeText(sample_query.value("ffpe").toString()) + ", "
-						  + escapeText(dummy_user_id) + ", "
+						  + escapeText(dummy_sender) + ", "
 						  + escapeText(sample_query.value("disease_group").toString()) + ", "
 						  + escapeText(sample_query.value("disease_status").toString()) + ", "
 						  + escapeText(sample_query.value("year_of_birth").toString()) + ", "
@@ -10409,6 +10411,9 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  ")");
 		}
 
+		QString mid1_i7 = !p_sample_query.value("mid1_i7").toString().isEmpty() ? escapeText(p_sample_query.value("mid1_i7").toString())  : "NULL";
+		QString mid2_i5 = !p_sample_query.value("mid2_i5").toString().isEmpty() ? escapeText(p_sample_query.value("mid2_i5").toString())  : "NULL";
+
 		sql_data.append("INSERT IGNORE INTO `processed_sample` "
 					  "(`id`, "
 					  "`sample_id`, "
@@ -10436,8 +10441,8 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 					  + escapeText(ps_id) + ", "
 					  + escapeText(sequencing_run_id) + ", "
 					  + escapeText(p_sample_query.value("lane").toString()) + ", "
-					  + escapeText(p_sample_query.value("mid1_i7").toString()) + ", "
-					  + escapeText(p_sample_query.value("mid2_i5").toString()) + ", "
+					  + mid1_i7 + ", "
+					  + mid2_i5 + ", "
 					  + escapeText(dummy_user_id) + ", "
 					  + escapeText(processing_system_id) + ", "
 					  + escapeText(p_sample_query.value("comment").toString()) + ", "
@@ -10453,6 +10458,7 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 					  + escapeText(p_sample_query.value("urgent").toString()) +
 					  ")");
 	}
+	sql_data.append(ps_qc_sql_data);
 }
 
 void NGSD::exportTable(const QString& table, QTextStream& out, QString where_clause, QMap<QString, QSet<int>> *sql_history)
