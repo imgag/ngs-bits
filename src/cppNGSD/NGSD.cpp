@@ -10164,6 +10164,83 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 	QString dummy_project_id = "1";
 	QString dummy_sender = "1";
 
+	sql_data.append("INSERT IGNORE INTO `user` "
+					 "(`id`, "
+					 "`user_id`, "
+					 "`password`, "
+					 "`user_role`, "
+					 "`name`, "
+					 "`email`, "
+					 "`created`, "
+					 "`last_login`, "
+					 "`active`, "
+					 "`salt`, "
+					 "`comment`) VALUES"
+					 "(" + dummy_user_id + ", "
+					 "'dummy_user', "
+					 "'pass', "
+					 "'user_restricted', "
+					 "'Dummy User', "
+					 "'no_valid@email5.de', "
+					 "'2024-08-07 10:06:28', "
+					 "'2025-08-26 12:00:25', "
+					 "1, "
+					 "NULL, "
+					 "NULL)");
+
+	sql_data.append("INSERT IGNORE INTO `project` "
+					 "(`id`, "
+					 "`name`, "
+					 "`aliases`, "
+					 "`type`, "
+					 "`internal_coordinator_id`, "
+					 "`comment`, "
+					 "`analysis`, "
+					 "`preserve_fastqs`, "
+					 "`email_notification`, "
+					 "`archived`, "
+					 "`folder_override`, "
+					 "`folder_override_client`) VALUES"
+					 "(" + dummy_project_id + ", "
+					 "'Dummy project', "
+					 "NULL, "
+					 "'diagnostic', "
+					 + "`" + dummy_user_id + "` , "
+					 "NULL, "
+					 "'variants', "
+					 "'0', "
+					 "NULL, "
+					 "'1', "
+					 "NULL, "
+					 "NULL)");
+
+	sql_data.append("INSERT INTO `sender` "
+					"(`id`, "
+					"`name`, "
+					"`phone`, "
+					"`email`, "
+					"`affiliation`) VALUES"
+					"(" + dummy_sender + ", "
+					"'Dummy Senders', "
+					"NULL, "
+					"NULL, "
+					"'Fake sender')");
+
+	SqlQuery mid_query = getQuery();
+	mid_query.exec("SELECT * FROM mid");
+	while(mid_query.next())
+	{
+		sql_data.append("INSERT IGNORE INTO `mid` "
+					  "(`id`, "
+					  "`name`, "
+					  "`sequence`)"
+					  " VALUES ("
+					  + escapeText(mid_query.value("id").toString()) + ", "
+					  + escapeText(mid_query.value("name").toString()) + ", "
+					  + escapeText(mid_query.value("sequence").toString()) +
+					  ")");
+	}
+
 	QList<QString> ps_qc_sql_data;
 	SqlQuery ps_qc_query = getQuery();
 	ps_qc_query.exec("SELECT * FROM processed_sample_qc WHERE processed_sample_id=" + ps_id);
@@ -10217,6 +10294,8 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 		sample_query.exec("SELECT * FROM sample WHERE id=" + sample_id);
 		while(sample_query.next())
 		{
+			QString order_date = !sample_query.value("order_date").toString().isEmpty() ? escapeText(sample_query.value("order_date").toString()) : "NULL";
+			QString sampling_date = !sample_query.value("sampling_date").toString().isEmpty() ? escapeText(sample_query.value("sampling_date").toString()) : "NULL";
 			sql_data.append("INSERT IGNORE INTO `sample` "
 						  "(`id`, "
 						  "`name`, "
@@ -10267,8 +10346,8 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  + escapeText(sample_query.value("disease_group").toString()) + ", "
 						  + escapeText(sample_query.value("disease_status").toString()) + ", "
 						  + escapeText(sample_query.value("year_of_birth").toString()) + ", "
-						  + escapeText(sample_query.value("order_date").toString()) + ", "
-						  + escapeText(sample_query.value("sampling_date").toString()) +
+						  + order_date + ", "
+						  + sampling_date +
 						  ")");
 		}
 
@@ -10411,8 +10490,8 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  ")");
 		}
 
-		QString mid1_i7 = !p_sample_query.value("mid1_i7").toString().isEmpty() ? escapeText(p_sample_query.value("mid1_i7").toString())  : "NULL";
-		QString mid2_i5 = !p_sample_query.value("mid2_i5").toString().isEmpty() ? escapeText(p_sample_query.value("mid2_i5").toString())  : "NULL";
+		QString mid1_i7 = !p_sample_query.value("mid1_i7").toString().isEmpty() ? escapeText(p_sample_query.value("mid1_i7").toString()) : "NULL";
+		QString mid2_i5 = !p_sample_query.value("mid2_i5").toString().isEmpty() ? escapeText(p_sample_query.value("mid2_i5").toString()) : "NULL";
 
 		sql_data.append("INSERT IGNORE INTO `processed_sample` "
 					  "(`id`, "
