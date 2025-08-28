@@ -3,11 +3,11 @@
 
 #include "DelayedInitializationTimer.h"
 #include <QWidget>
-
+#include "TabBaseClass.h"
 #include "ui_ProjectWidget.h"
 
 class ProjectWidget
-	: public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 

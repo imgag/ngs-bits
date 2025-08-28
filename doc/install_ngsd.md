@@ -52,7 +52,7 @@ Restart the server:
 
 		> sudo service mysql restart
 
-## Initial import of gene, transcript and diesease data
+## Initial import of gene, transcript and disease data
 
 The initial import of database content using ngs-bits.
 
@@ -83,9 +83,9 @@ The initial import of database content using ngs-bits.
 		> ngs-bits/bin/NGSDImportORPHA --help
 
 
-## Update of gene, transcript and diesease data
+## Update of gene, transcript and disease data
 
-To keep gene, transcript and diesease data in NGSD up-to-date, you need to perform regular updates.  
+To keep gene, transcript and disease data in NGSD up-to-date, you need to perform regular updates.  
 To do that, update ngs-bits and re-run these import tools:
 
 		> ngs-bits/bin/NGSDImportHGNC --help

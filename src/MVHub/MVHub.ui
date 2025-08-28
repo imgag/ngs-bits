@@ -87,6 +87,11 @@
           <string>Abgeschlossen</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Follow-Up</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>
@@ -117,6 +122,37 @@
         <item>
          <property name="text">
           <string>Deutsches Netzwerk für Personalisierte Medizin</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>export status:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="f_export">
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>pending</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>in progress</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>done</string>
          </property>
         </item>
        </widget>
@@ -345,6 +381,11 @@
        </column>
        <column>
         <property name="text">
+         <string>consent version [SE]</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>consent</string>
         </property>
        </column>
@@ -356,6 +397,11 @@
        <column>
         <property name="text">
          <string>export status</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>export confirmation</string>
         </property>
        </column>
       </widget>
@@ -373,7 +419,31 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionReloadData"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionReloadData">
+   <property name="text">
+    <string>Reload data</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

@@ -155,7 +155,7 @@
          <bool>true</bool>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;filter criteria:&lt;/p&gt;&lt;p&gt;callset reference correlation &amp;ge; 0.9 (WES) / &amp;ge;0.55 (WGS)&lt;/p&gt;&lt;p&gt;scaled log-liklihood &amp;ge; 15&lt;/p&gt;&lt;p&gt;polymorphism region overlap &amp;lt; 0.95&lt;/p&gt;&lt;p&gt;copy-number = 0&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;filter criteria:&lt;/p&gt;&lt;p&gt;callset reference correlation ≥ 0.9 (WES) / ≥&lt;span style=&quot; color:#000080;&quot;&gt;0.35&lt;/span&gt; (WGS)&lt;/p&gt;&lt;p&gt;scaled log-liklihood ≥ 15&lt;/p&gt;&lt;p&gt;polymorphism region overlap &amp;lt; 0.95&lt;/p&gt;&lt;p&gt;copy-number = 0&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>include CNVs</string>

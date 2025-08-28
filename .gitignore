@@ -1,5 +1,6 @@
 bin/*
 build-*
+src/build/*
 *.pro.user*
 t.log
 *.crt

@@ -66,10 +66,12 @@ void GeneSelectorDialog::updateGeneTable()
 		cnv_calls.merge();
 
 		//load skipped regions from SEG file
-		auto f = Helper::openVersatileFileForReading(seg_files[0]);
-		while(!f->atEnd())
+
+		VersatileFile file(seg_files[0], false);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		while(file.atEnd())
 		{
-			QByteArray line = f->readLine();
+			QByteArray line = file.readLine();
 
 			//skip empty and comment lines
 			if (line.trimmed().isEmpty() || line.startsWith('#')) continue;

@@ -7,7 +7,10 @@ QT       += network
 CONFIG   += console
 CONFIG   -= app_bundle
 TEMPLATE = app
-DESTDIR = ../../bin/
+
+include("../qt_compatibility.pri")
+
+DESTDIR = $$DEST_DIR_PATH_PART/bin/
 
 #enable O3 optimization
 QMAKE_CXXFLAGS_RELEASE -= -O

@@ -43,11 +43,11 @@ include("../app_cli.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
-LIBS += -L$$PWD/../bin -lcppNGSD
+LIBS += -L$$PWD/../../bin -lcppNGSD
 
 #include REST library
 INCLUDEPATH += $$PWD/../cppREST
-LIBS += -L$$PWD/../bin -lcppREST
+LIBS += -L$$PWD/../../bin -lcppREST
 
 RESOURCES += \
     GSvarServer.qrc

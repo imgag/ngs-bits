@@ -26,6 +26,7 @@ public:
 		return output;
 	}
 
+	//TODO Marc: Add mode for annotation of existing processed sample list
 	virtual void setup()
 	{
 		setDescription("Lists processed samples from the NGSD.");

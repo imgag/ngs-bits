@@ -78,10 +78,11 @@ public:
 		QMap<QByteArray,QByteArrayList> cache;
 
 		//open input steam
-		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(in, true);
-		while(!file->atEnd())
+		VersatileFile file(in, true);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		while(!file.atEnd())
 		{
-			QByteArray line = file->readLine(true);
+			QByteArray line = file.readLine(true);
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;

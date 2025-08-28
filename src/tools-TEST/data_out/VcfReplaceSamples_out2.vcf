@@ -1,0 +1,63 @@
+##fileformat=VCFv4.2
+##DRAGENCommandLine=<ID=HashTableBuild,Version="SW: 00.000.000.4.3.13, HashTableVersion: 10",CommandLineOptions="dragen --build-hash-table true --ht-reference /staging/genomes/GRCh38/GRCh38.fa --output-dir /staging/genomes/GRCh38/dragen/ --ht-suppress-mask yes --ht-suppress-decoys yes --enable-cnv true">
+##DRAGENCommandLine=<ID=dragen,Version="SW: 07.031.732.4.3.17, HW: 07.031.732",Date="Fri Aug 22 12:33:24 CEST 2025",CommandLineOptions="-r /staging/genomes//GRCh38/dragen/ --tumor-cram-input /mnt/storage2/users/ahott1a1/projects/+analysis/+Validations/250813_Exome_10ng_NS6000_Covaris_bravo/mixtures/Sample_REP1_REP2_40/REP1_REP2_40.cram --cram-input /mnt/storage2/users/ahott1a1/projects/+analysis/+Validations/250813_Exome_10ng_NS6000_Covaris_bravo/mixtures/Sample_REP2/REP2.cram --output-directory /staging/data//megSAP_working_dir/ --output-file-prefix output --enable-map-align false --pair-by-name true --enable-variant-caller true --vc-min-tumor-read-qual 3 --vc-min-base-qual 15 --vc-callability-tumor-thresh 15 --vc-callability-normal-thresh 5 --vc-enable-unequal-ntd-errors false --msi-command tumor-normal --msi-microsatellites-file /mnt/storage2/megSAP/data//dbs/msisensor-pro/msisensor_references_GRCh38.site --msi-coverage-threshold 60">
+##referenceSexKaryotype=XY
+##cmdline=/opt/strelka2/bin/configureStrelkaSomaticWorkflow.py --tumor /mnt/storage2/users/ahott1a1/projects/+analysis/+Validations/250813_Exome_10ng_NS6000_Covaris_bravo/mixtures/Sample_REP1_REP2_40/REP1_REP2_40.cram --normal /mnt/storage2/users/ahott1a1/projects/+analysis/+Validations/250813_Exome_10ng_NS6000_Covaris_bravo/mixtures/Sample_REP2/REP2.cram --referenceFasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --runDir /tmp/1021459.1.default_srv010/megSAP_user_ahott1a1/vc_strelka2_vpZI3p/strelkaAnalysis --config /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py.ini --exome --indelCandidates /mnt/storage2/users/ahott1a1/projects/+analysis/+Validations/250813_Exome_10ng_NS6000_Covaris_bravo/mixtures/Sample_REP1_REP2_40/REP1_REP2_40_calledByStrelka_manta_var_smallIndels.vcf.gz
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrMT,length=16569>
+##contig=<ID=chrEBV,length=171823>
+##reference=file:///staging/genomes//GRCh38/dragen//reference.bin
+##source=DRAGEN_SNV
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (informative and non-informative); some reads may have been filtered based on mapq etc.">
+##INFO=<ID=FractionInformativeReads,Number=1,Type=Float,Description="The fraction of informative reads out of the total reads">
+##INFO=<ID=MQ,Number=1,Type=Float,Description="RMS Mapping Quality">
+##INFO=<ID=MQRankSum,Number=1,Type=Float,Description="Z-score From Wilcoxon rank sum test of Alt vs. Ref read mapping qualities">
+##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt vs. Ref read position bias">
+##INFO=<ID=SoftClipRatio,Number=1,Type=Float,Description="Ratio of soft-clipped bases out of total bases supporting the variant">
+##INFO=<ID=hotspot,Number=0,Type=Flag,Description="Known somatic site, used to increase confidence in call">
+##FILTER=<ID=all-unknown,Description="Allele unknown">
+##FILTER=<ID=special-chromosome,Description="Special chromosome">
+##FILTER=<ID=depth-tum,Description="Sequencing depth in tumor is too low (< 20)">
+##FILTER=<ID=freq-tum,Description="Allele frequency in tumor < 0.05">
+##FILTER=<ID=depth-nor,Description="Sequencing depth in normal is too low (< 15)">
+##FILTER=<ID=freq-nor,Description="Allele frequency in normal > 0.17 * allele frequency in tumor">
+##FILTER=<ID=lt-3-reads,Description="Less than 3 supporting tumor reads">
+##FILTER=<ID=weak-evidence,Description="Somatic Quality lower than 17.5">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths (counting only informative reads out of the total reads) for the ref and alt alleles in the order listed">
+##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions for alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with ">
+##FORMAT=<ID=F1R2,Number=R,Type=Integer,Description="Count of reads in F1R2 pair orientation supporting each allele">
+##FORMAT=<ID=F2R1,Number=R,Type=Integer,Description="Count of reads in F2R1 pair orientation supporting each allele">
+##FORMAT=<ID=MB,Number=4,Type=Integer,Description="Per-sample component statistics to detect mate bias">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=SB,Number=4,Type=Integer,Description="Per-sample component statistics which comprise the Fisher's Exact Test to detect strand bias">
+##FORMAT=<ID=SQ,Number=A,Type=Float,Description="Somatic quality">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	REP2	REP1_REP2_40
+chr1	14677	.	G	A	.	off-target	DP=222;MQ=20.78;FractionInformativeReads=1.000;SoftClipRatio=0.00	GT:SQ:AD:AF:F1R2:F2R1:DP:SB:MB	0/0:0.00:89,0:0.0000:36,0:53,0:89:.:.	0/1:24.65:118,11:0.0853:39,6:79,5:129:95,23,9,2:50,68,6,5
+chr1	1310876	.	CGGCTCTGGGTCACAGGT	C	.	PASS	DP=480;MQ=47.34;FractionInformativeReads=0.902;SoftClipRatio=0.02	GT:SQ:AD:AF:F1R2:F2R1:DP:SB:MB	0/0:0.00:153,0:0.0000:63,0:90,0:153:.:.	0/1:99.41:235,45:0.1607:107,17:128,28:280:120,115,26,19:114,121,22,23
+chr1	2421981	.	G	GAAGAA	.	weak-evidence;depth-tum;depth-nor;off-target	DP=19;MQ=47.68;FractionInformativeReads=0.842;SoftClipRatio=0.00	GT:SQ:AD:AF:F1R2:F2R1:DP:SB:MB	0/0:1.21:6,0:0.0000:3,0:3,0:6:.:.	0/1:5.96:6,4:0.4000:2,3:4,1:10:2,4,3,1:4,2,2,2

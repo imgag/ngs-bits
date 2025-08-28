@@ -7,6 +7,8 @@ QMAKE_CXXFLAGS_RELEASE -= -O1
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE *= -O3
 
+include("qt_compatibility.pri")
+
 #include cppCORE library
 INCLUDEPATH += $$PWD/cppCORE
 LIBS += -L$$PWD/../bin -lcppCORE
@@ -28,5 +30,5 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 #copy EXE to bin folder
-DESTDIR = ../../bin/
+DESTDIR = $$DEST_DIR_PATH_PART/bin/
 

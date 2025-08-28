@@ -538,11 +538,51 @@ void MainWindow::userSpecificDebugFunction()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
-		GenLabDB db;
-		foreach(QString table, db.tables())
+		QTextStream out(stdout);
+		QElapsedTimer timer;
+		QByteArray line = Helper::randomString(1024*1024-10).toLatin1() + "\n"; // 1 line == 1 MB
+		foreach(QByteArray filename, QByteArrayList() << "C:\\Marc\\test.txt" << "E:\\Marc\\test.txt")
 		{
-			qDebug() << table;
-			qDebug() << db.fields(table);
+			foreach(int lines, QList<int>() << 100 << 1000 << 10000)
+			{
+				out << filename << " - " << QString::number(lines) << " MB\n";
+
+				//remove output file
+				if (QFile::exists(filename))
+				{
+					QFile::remove(filename);
+				}
+
+				//write test
+				timer.start();
+				QFile file(filename);
+				file.open(QFile::ReadWrite);
+				for(int i=0; i<lines; ++i)
+				{
+					file.write(line);
+				}
+				file.close();
+				out << "  write: " << Helper::elapsedTime(timer, true) << "\n";
+				out.flush();
+
+				//read test
+				timer.start();
+				char c = 'x';
+				file.setFileName(filename);
+				file.open(QFile::ReadOnly);
+				while(!file.atEnd())
+				{
+					const int buf_size = 1024*1024;
+					char buf[buf_size];
+					qint64 chars_read = file.readLine(buf, buf_size);
+					if (chars_read!=-1)
+					{
+						c = buf[0];
+					}
+				}
+				out << "  read: " << Helper::elapsedTime(timer, true) << " (char=" << c << ")\n";
+				out.flush();
+			}
 		}
 	}
 	else if (user=="ahschul1")
@@ -2023,10 +2063,11 @@ void MainWindow::showBafHistogram()
 
 		//determine CN values
 		Histogram hist(0.0, 1.0, 0.025);
-        QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(baf_files[0]);
-        while (!file->atEnd())
+		VersatileFile file(baf_files[0], false);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		while (!file.atEnd())
         {
-            QString line = file->readLine();
+			QString line = file.readLine();
 			QStringList parts = line.split("\t");
 			if (parts.count()<5) continue;
 
@@ -2615,13 +2656,16 @@ void MainWindow::closeTab(int index)
 		return;
 	}
 
-	//for analysis status widget and refresh is done > abort
+	//make sure we do not close tabs while they are loading/upading
 	QWidget* widget = ui_.tabs->widget(index);
-	AnalysisStatusWidget* analysis_status_widget = widget->findChild<AnalysisStatusWidget*>();
-	while (analysis_status_widget!=nullptr && analysis_status_widget->updateIsRunning())
+	TabBaseClass* tab_widget = widget->findChild<TabBaseClass*>();
+	if (tab_widget!=nullptr)
 	{
-		QMessageBox::information(this, "Analysis status tab", "Please wait until table update is done before closing the analysis status tab!");
-		return;
+		if (tab_widget->isBusy())
+		{
+			QMessageBox::information(this, ui_.tabs->tabText(index), "You cannot close a tab while it is busy, e.g. initializing, updating, searching.\nPlease retry when the tab is no longer busy!");
+			return;
+		}
 	}
 
 	//remove tab and delete tab widget
@@ -4090,8 +4134,10 @@ void MainWindow::generateReportSomaticRTF()
 
 			try
 			{
-				QSharedPointer<VersatileFile> corr_file =  Helper::openVersatileFileForReading( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_CORR ).filename );
-				rna_report_data.expression_correlation = Helper::toDouble(corr_file->readAll());
+				QString filename = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_CORR).filename;
+				VersatileFile file(filename, false);
+				file.open(QFile::ReadOnly | QIODevice::Text);
+				rna_report_data.expression_correlation = Helper::toDouble(file.readAll());
 			}
 			catch(Exception)
 			{
@@ -6557,10 +6603,8 @@ void MainWindow::variantRanking()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 	try
 	{
-
 		//create phenotype list
-		QHash<Phenotype, BedFile> phenotype_rois;
-		QString sample_id = db.sampleId(ps_name);
+		QHash<Phenotype, BedFile> phenotype_rois;		
 		for (const Phenotype& pheno : phenotypes)
 		{
 			//pheno > genes

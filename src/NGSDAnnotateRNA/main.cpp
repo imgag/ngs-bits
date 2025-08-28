@@ -49,7 +49,8 @@ public:
 
 	QMap<QByteArray, ExpressionStats> calculateExpressionStatsFromFile(NGSD &db,const QString &cohort_file,const QString &ps_name,QMap<QByteArray, QByteArray> ensg_gene_mapping, bool exons=false)
 	{
-		QSharedPointer<VersatileFile> cohort_data = Helper::openVersatileFileForReading(cohort_file, false);
+		VersatileFile cohort_data(cohort_file, false);
+		cohort_data.open(QFile::ReadOnly | QIODevice::Text);
 		QMap<QByteArray, ExpressionStats> expression_stats;
 		QMap<QByteArray, QByteArrayList> exon_transcript_mapping;
 
@@ -58,7 +59,7 @@ public:
 			exon_transcript_mapping = db.getExonTranscriptMapping();
 		}
 
-		QByteArrayList headers = cohort_data->readLine().split('\t');
+		QByteArrayList headers = cohort_data.readLine().split('\t');
 		headers.last() = headers.last().trimmed();
 		//get tpm column indices:
 		QList<int> tpm_indices;
@@ -72,9 +73,9 @@ public:
 		}
 
 		bool type_ok = true;
-		while(! cohort_data->atEnd())
+		while(!cohort_data.atEnd())
 		{
-			QByteArrayList parts = cohort_data->readLine().split('\t');
+			QByteArrayList parts = cohort_data.readLine().split('\t');
 			parts.last() = parts.last().trimmed();
 
 			if (parts.count() != headers.count())

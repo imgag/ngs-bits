@@ -19,7 +19,7 @@
 #include <QMessageBox>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run_ids)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_(new Ui::SequencingRunWidget)
 	, run_ids_(run_ids)
 {
@@ -171,6 +171,8 @@ void SequencingRunWidget::initBatchView()
 
 void SequencingRunWidget::updateGUI()
 {
+	is_busy_ = true;
+
 	try
 	{
 		//#### run details ####
@@ -259,6 +261,7 @@ void SequencingRunWidget::updateGUI()
 		QMessageBox::warning(this, "Update failed", "Could not update data:\n" + e.message());
 	}
 
+	is_busy_ = false;
 }
 
 void SequencingRunWidget::updateRunSampleTable()

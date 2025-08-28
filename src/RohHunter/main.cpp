@@ -26,9 +26,9 @@ public:
 		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as column name and 4th column of the BED file is used as annotation value.", true);
-		addInfile("exclude", "BED files with regions to exclude from ROH analysis. Regions where variant callins is not possible should be removed (centromers, MQ=0 regions and large stretches of N bases).", true);
+		addInfile("exclude", "BED files with regions to exclude from ROH analysis. Regions where variant calling is not possible should be removed (centromers, MQ=0 regions and large stretches of N bases).", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
-		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 30);
+		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 20);
 		addString("var_af_keys", "Comma-separated allele frequency info field names in 'in'.", true, "");
 		addString("var_af_keys_vep", "Comma-separated VEP CSQ field names of allele frequency annotations in 'in'.", true, "");
 		addFloat("roh_min_q", "Minimum Q score of output ROH regions.", true, 30.0);

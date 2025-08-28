@@ -7,7 +7,10 @@ QT       += network
 CONFIG   += console
 CONFIG   -= app_bundle
 TEMPLATE = app
-DESTDIR = ../../bin/
+
+include("../qt_compatibility.pri")
+
+DESTDIR = $$DEST_DIR_PATH_PART/bin/
 
 #enable O3 optimization
 QMAKE_CXXFLAGS_RELEASE -= -O
@@ -21,7 +24,7 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 
 #include cppXML library
 INCLUDEPATH += $$PWD/cppXML
-LIBS += -L$$PWD/../bin -lcppXML
+LIBS += -L$$PWD/../../bin -lcppXML
 
 #include cppNGS library
 INCLUDEPATH += $$PWD/../cppNGS

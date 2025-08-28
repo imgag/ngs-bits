@@ -21,8 +21,8 @@ public:
 		setDescription("Converts a VCF file to a tab-separated text file.");
         setExtendedDescription(QStringList() << "Multi-allelic variants are supported. All alternative sequences are stored as a comma-seperated list."
                                              << "Multi-sample VCFs are supported. For every combination of FORMAT and SAMPLE a seperate column is generated and named in the following way: <SAMPLEID>_<FORMATID>_<format>.");
+		addInfile("in", "Input variant list in VCF or VCF.GZ format.", false);
 		//optional
-		addInfile("in", "Input variant list in VCF format. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output variant list in TSV format. If unset, writes to STDOUT.", true, true);
 
 		changeLog(2022, 11,  3, "Changed output variant style from GSvar to VCF.");

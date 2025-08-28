@@ -1504,14 +1504,15 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_tumor, QString ps_normal)
 
 RtfTable SomaticReportHelper::signatureTable()
 {
-	// load descriptions from file:
-	QSharedPointer<VersatileFile> desc_file = Helper::openVersatileFileForReading(":/resources/signature_description.tsv");
+	//load descriptions from file
+	VersatileFile desc_file(":/resources/signature_description.tsv");
+	desc_file.open(QFile::ReadOnly | QIODevice::Text);
 
 	QMap<QByteArray, QByteArray> descriptions;
 
-	while (! desc_file->atEnd())
+	while (!desc_file.atEnd())
 	{
-		QByteArray line = desc_file->readLine().trimmed();
+		QByteArray line = desc_file.readLine(false).trimmed();
 		if (line.isEmpty() || line.startsWith('#')) continue;
 
 		QByteArrayList parts = line.split('\t');
@@ -1562,7 +1563,7 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 	try
 	{
 		//file not present or cannot be opened
-		stream.open(QIODevice::ReadOnly, true);
+		stream.open(QIODevice::ReadOnly);
 
 		//init
 		QList<int> cell_widths = {1500, 1500, 1500, 2000, 3422};
