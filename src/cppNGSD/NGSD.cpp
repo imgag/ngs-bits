@@ -10347,6 +10347,26 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  + sampling_date + ")");
 		}
 
+		SqlQuery sample_di_query = getQuery();
+		sample_di_query.exec("SELECT * FROM sample_disease_info WHERE sample_id=" + sample_id);
+		while(sample_di_query.next())
+		{
+			sql_data.append("INSERT IGNORE INTO `sample_disease_info` "
+						  "(`id`, "
+						  "`sample_id`, "
+						  "`disease_info`, "
+						  "`type`, "
+						  "`user_id`, "
+						  "`date`)"
+						  " VALUES ("
+						  + escapeText(sample_di_query.value("id").toString()) + ", "
+						  + escapeText(sample_id) + ", "
+						  + escapeText(sample_di_query.value("disease_info").toString()) + ", "
+						  + escapeText(sample_di_query.value("type").toString()) + ", "
+						  + escapeText(dummy_user_id) + ", "
+						  + escapeText(sample_di_query.value("date").toString()) + ")");
+		}
+
 		SqlQuery p_system_query = getQuery();
 		p_system_query.exec("SELECT * FROM processing_system WHERE id=" + processing_system_id);
 		while(p_system_query.next())
