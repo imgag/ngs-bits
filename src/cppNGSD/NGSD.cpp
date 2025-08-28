@@ -10481,8 +10481,8 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 						  + escapeText(sequencing_run_id) + ")");
 		}
 
-		QString mid1_i7 = !p_sample_query.value("mid1_i7").toString().isEmpty() ? escapeText(p_sample_query.value("mid1_i7").toString()) : "NULL";
-		QString mid2_i5 = !p_sample_query.value("mid2_i5").toString().isEmpty() ? escapeText(p_sample_query.value("mid2_i5").toString()) : "NULL";
+		QString mid1_i7 = p_sample_query.value("mid1_i7").toString() != "0" ? escapeText(p_sample_query.value("mid1_i7").toString()) : "NULL";
+		QString mid2_i5 = p_sample_query.value("mid2_i5").toString() != "0" ? escapeText(p_sample_query.value("mid2_i5").toString()) : "NULL";
 
 		sql_data.append("INSERT IGNORE INTO `processed_sample` "
 					  "(`id`, "
