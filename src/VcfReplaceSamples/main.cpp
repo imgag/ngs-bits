@@ -30,8 +30,10 @@ public:
 	virtual void main()
 	{
 		//init
-		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
-
+		QString in = getInfile("in");
+		QString out = getOutfile("out");
+		if (in!="" && in==out) THROW(ArgumentException, "Parameters 'in' and 'out' cannot be the same file!");
+		QSharedPointer<QFile> out_file = Helper::openFileForWriting(out, true);
 
 		//parse sample replacement
 		using IdPair=QPair<QByteArray,QByteArray>;
@@ -54,7 +56,7 @@ public:
 		markers << "##commandline="; //freebayes
 
 		//process
-		VersatileFile file(getInfile("in"), true);
+		VersatileFile file(in, true);
 		file.open(QFile::ReadOnly|QFile::Text);
 		while(!file.atEnd())
 		{
@@ -71,8 +73,10 @@ public:
 				}
 			}
 
-			out->write(line);
+			out_file->write(line);
 		}
+		file.close();
+		out_file->close();
     }
 };
 

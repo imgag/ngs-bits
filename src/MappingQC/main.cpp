@@ -7,6 +7,7 @@
 #include "StatisticsReads.h"
 #include <QFileInfo>
 
+//TODO Marc add metric for adapters detection (both standard adapter pairs)
 class ConcreteTool
 		: public ToolBase
 {
