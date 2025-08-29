@@ -10181,7 +10181,7 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 					 "'pass', "
 					 "'user_restricted', "
 					 "'Dummy User', "
-					 "'no_valid@email5.de', "
+					 "'no_valid@email" + dummy_user_id + ".de', "
 					 "'2024-08-07 10:06:28', "
 					 "'2025-08-26 12:00:25', "
 					 "'1', "
@@ -10225,20 +10225,6 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 					"NULL, "
 					"NULL, "
 					"'Fake sender')");
-
-	SqlQuery mid_query = getQuery();
-	mid_query.exec("SELECT * FROM mid");
-	while(mid_query.next())
-	{
-		sql_data.append("INSERT IGNORE INTO `mid` "
-					  "(`id`, "
-					  "`name`, "
-					  "`sequence`)"
-					  " VALUES ("
-					  + escapeText(mid_query.value("id").toString()) + ", "
-					  + escapeText(mid_query.value("name").toString()) + ", "
-					  + escapeText(mid_query.value("sequence").toString().trimmed()) + ")");
-	}
 
 	QList<QString> ps_qc_sql_data;
 	SqlQuery ps_qc_query = getQuery();
@@ -10503,6 +10489,20 @@ void NGSD::exportSampleData(const QString& ps_id, QList<QString>& sql_data)
 
 		QString mid1_i7 = p_sample_query.value("mid1_i7").toString() != "0" ? escapeText(p_sample_query.value("mid1_i7").toString()) : "NULL";
 		QString mid2_i5 = p_sample_query.value("mid2_i5").toString() != "0" ? escapeText(p_sample_query.value("mid2_i5").toString()) : "NULL";
+
+		SqlQuery mid_query = getQuery();
+		mid_query.exec("SELECT * FROM mid WHERE (id=" + mid1_i7 + " OR id=" + mid2_i5 + ")");
+		while(mid_query.next())
+		{
+			sql_data.append("INSERT IGNORE INTO `mid` "
+						  "(`id`, "
+						  "`name`, "
+						  "`sequence`)"
+						  " VALUES ("
+						  + escapeText(mid_query.value("id").toString()) + ", "
+						  + escapeText(mid_query.value("name").toString()) + ", "
+						  + escapeText(mid_query.value("sequence").toString().trimmed()) + ")");
+		}
 
 		sql_data.append("INSERT IGNORE INTO `processed_sample` "
 					  "(`id`, "
