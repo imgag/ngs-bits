@@ -2063,10 +2063,11 @@ void MainWindow::showBafHistogram()
 
 		//determine CN values
 		Histogram hist(0.0, 1.0, 0.025);
-        QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(baf_files[0]);
-        while (!file->atEnd())
+		VersatileFile file(baf_files[0], false);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		while (!file.atEnd())
         {
-            QString line = file->readLine();
+			QString line = file.readLine();
 			QStringList parts = line.split("\t");
 			if (parts.count()<5) continue;
 
@@ -4133,8 +4134,10 @@ void MainWindow::generateReportSomaticRTF()
 
 			try
 			{
-				QSharedPointer<VersatileFile> corr_file =  Helper::openVersatileFileForReading( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_CORR ).filename );
-				rna_report_data.expression_correlation = Helper::toDouble(corr_file->readAll());
+				QString filename = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_CORR).filename;
+				VersatileFile file(filename, false);
+				file.open(QFile::ReadOnly | QIODevice::Text);
+				rna_report_data.expression_correlation = Helper::toDouble(file.readAll());
 			}
 			catch(Exception)
 			{

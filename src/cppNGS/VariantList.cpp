@@ -6,7 +6,7 @@
 #include "ChromosomalIndex.h"
 #include "NGSHelper.h"
 #include "VcfFile.h"
-
+#include "VersatileFile.h"
 #include <QFile>
 #include <QTextStream>
 #include <QBitArray>
@@ -803,11 +803,13 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 	clear();
 
 	//parse from stream
-	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
+	VersatileFile file(filename, true);
+	file.open(QFile::ReadOnly | QIODevice::Text);
+
 	int filter_index = -1;
-	while(!file->atEnd())
+	while(!file.atEnd())
 	{
-		QByteArray line = file->readLine(true);
+		QByteArray line = file.readLine(true);
 
 		//skip empty lines
 		if(line.length()==0) continue;

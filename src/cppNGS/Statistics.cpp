@@ -1633,7 +1633,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	//variants
 	VcfFile variants;
 
-	variants.load(somatic_vcf, true);
+	variants.load(somatic_vcf);
 
 	variants.sort();
 
@@ -2336,7 +2336,8 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 
 	//load relevant variants from VCF
 	VcfFile vl;
-	vl.load(filename, roi);
+	vl.setRegion(roi);
+	vl.load(filename);
 
 	//multi-sample VCF is not supported
 	if(vl.sampleIDs().count()!=1)

@@ -1,5 +1,5 @@
 ### RohHunter tool help
-	RohHunter (2025_01-55-gd44a7c92)
+	RohHunter (2025_07-53-gefb5888f)
 	
 	ROH detection based on a variant list.
 	
@@ -12,12 +12,12 @@
 	Optional parameters:
 	  -annotate <filelist>      List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as column name and 4th column of the BED file is used as annotation value.
 	                            Default value: ''
-	  -exclude <file>           BED files with regions to exclude from ROH analysis. Regions where variant callins is not possible should be removed (centromers, MQ=0 regions and large stretches of N bases).
+	  -exclude <file>           BED files with regions to exclude from ROH analysis. Regions where variant calling is not possible should be removed (centromers, MQ=0 regions and large stretches of N bases).
 	                            Default value: ''
 	  -var_min_dp <int>         Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.
 	                            Default value: '20'
 	  -var_min_q <float>        Minimum variant quality. Variants with lower quality are excluded from the analysis.
-	                            Default value: '30'
+	                            Default value: '20'
 	  -var_af_keys <string>     Comma-separated allele frequency info field names in 'in'.
 	                            Default value: ''
 	  -var_af_keys_vep <string> Comma-separated VEP CSQ field names of allele frequency annotations in 'in'.
@@ -47,7 +47,7 @@
 	  --settings [file]         Settings override file (no other settings files are used).
 	
 ### RohHunter changelog
-	RohHunter 2025_01-55-gd44a7c92
+	RohHunter 2025_07-53-gefb5888f
 	
 	2025-02-25 Added new parameters 'exclude', 'ext_max_het_perc' and 'debug'.
 	2020-08-07 VCF files only as input format for variant list.

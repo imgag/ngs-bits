@@ -615,3 +615,7 @@ MantaFindDuplicates.depends = cppNGSD
 SUBDIRS += SnifflesVcfFix
 tools-TEST.depends += SnifflesVcfFix
 SnifflesVcfFix.depends = cppNGSD
+
+SUBDIRS += VcfReplaceSamples
+tools-TEST.depends += VcfReplaceSamples
+VcfReplaceSamples.depends = cppNGS

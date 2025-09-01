@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QRunnable>
 #include "Auxilary.h"
+#include "VersatileFile.h"
 
 class InputWorker
 	: public QObject

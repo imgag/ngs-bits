@@ -27,7 +27,8 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaDat
 	out_stream_ = Helper::openFileForWriting(params_.out, true);
 
 	//open input steam
-	in_stream_ = Helper::openVersatileFileForReading(params.in, true);
+	in_stream_ = QSharedPointer<VersatileFile>(new VersatileFile(params_.in, true));
+	in_stream_->open(QFile::ReadOnly|QFile::Text, false);
 
 	//initially fill thread pool with analysis jobs
 	for (int i=0; i<params_.prefetch; ++i)

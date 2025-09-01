@@ -191,7 +191,8 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	// parse VCF
 	QMap<QString, bool> selected_variants;
 	VcfFile input_file;
-	input_file.load(vcf_file_path, false);
+	input_file.setAllowMultiSample(false);
+	input_file.load(vcf_file_path);
 	for (int i = 0; i < input_file.count(); ++i)
 	{
 		const VcfLine& vcf_line = input_file[i];

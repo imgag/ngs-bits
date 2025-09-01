@@ -2,6 +2,7 @@
 #include "Settings.h"
 #include "VcfFile.h"
 #include "Helper.h"
+#include "VersatileFile.h"
 
 class ConcreteTool
         : public ToolBase

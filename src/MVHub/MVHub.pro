@@ -4,6 +4,7 @@ QTPLUGIN += QSQLMYSQL
 
 TARGET = MVHub
 TEMPLATE = app
+RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
     ExportHistoryDialog.cpp \

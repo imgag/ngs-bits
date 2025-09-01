@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <QVector>
 #include <QElapsedTimer>
+#include "VersatileFile.h"
 
 class ConcreteTool
 		: public ToolBase

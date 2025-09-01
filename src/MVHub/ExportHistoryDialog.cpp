@@ -46,8 +46,28 @@ void ExportHistoryDialog::updateTable()
 
 void ExportHistoryDialog::addTableRow(QString data_center, QDate date, QString type, QString tan, QString status, QString submission_id, QString submission_output)
 {
+	//color warnings/errors
+	submission_output = submission_output.trimmed();
+	QStringList lines = submission_output.split("\n");
+	for(int i=0; i<lines.count(); ++i)
+	{
+		QString& line = lines[i];
+		line.replace(" ", "&nbsp;");
+		if (line.contains("warning", Qt::CaseInsensitive))
+		{
+			line = "<font color='orange'>"+line+"</font>";
+		}
+		if (line.contains("error", Qt::CaseInsensitive))
+		{
+			line = "<font color='red'>"+line+"</font>";
+		}
+	}
+	submission_output = "<html>\n" + lines.join("<br>\n") + "</html>";
+
+	//add new line to table
 	int r = ui_.table->rowCount();
 	ui_.table->setRowCount(r+1);
+
 	ui_.table->setItem(r, 0, GUIHelper::createTableItem(data_center));
 	ui_.table->setItem(r, 1, GUIHelper::createTableItem(date.toString(Qt::ISODate)));
 	ui_.table->setItem(r, 2, GUIHelper::createTableItem(type));

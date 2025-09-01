@@ -68,6 +68,7 @@ void MVHub::delayedInitialization()
 	GUIHelper::resizeTableCellWidths(ui_.table, 200, -1);
 	ui_.table->resizeRowsToContents();
 	ui_.table->setColumnWidth(colOf("Netzwerk"), 300);
+	ui_.table->setColumnWidth(colOf("export status"), 250);
 }
 
 void MVHub::tableContextMenu(QPoint pos)
@@ -335,19 +336,21 @@ void MVHub::updateTableFilters()
 			if (!visible[r]) continue;
 
 			QString status = getString(r, c_exp_status);
+			int c_todo = status.split("//").count();
 			QString conf = getString(r, c_exp_conf);
+			int c_conf = conf.split("//").count();
 
-			if (export_filter=="pending" && status!="")
+			if (export_filter=="pending" && !(status==""))
 			{
 				visible[r] = false;
 			}
 
-			if (export_filter=="in progress" && !(status!="" && conf==""))
+			if (export_filter=="in progress" && !(status!="" && c_todo!=c_conf))
 			{
 				visible[r] = false;
 			}
 
-			if (export_filter=="done" && (status=="" || conf==""))
+			if (export_filter=="done" && !(status!="" && c_todo==c_conf))
 			{
 				visible[r] = false;
 			}
@@ -363,6 +366,7 @@ void MVHub::updateTableFilters()
 		int c_network_id = colOf("Netzwerk ID");
 		int c_consent = colOf("consent");
 		int c_consent_cm = colOf("consent signed [CM]");
+		int c_consent_ver = colOf("consent version [SE]");
 		int c_report_date = colOf("Befunddatum");
 		int c_te_retracted = colOf("Kündigung TE");
 
@@ -389,7 +393,7 @@ void MVHub::updateTableFilters()
 				}
 
 				//consent data available
-				if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
+				if (getString(r, c_consent_ver).startsWith("Erwachsene") && getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
 				{
 					visible[r] = false;
 					continue;
@@ -980,35 +984,39 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", true).toString().trimmed();
 	if (id.isEmpty()) return; //this can happen when the SAP ID is listed twice in SE RedCap
 
-	//determine overall export count
-	int c_exp_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='" + id + "'").toInt();
-	int c_exp_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='" + id + "'").toInt();
-	int c_exp_all = c_exp_grz + c_exp_kdk;
-	if (c_exp_all==0) return;
-
-
-	QString text = "uploads: " + QString::number(c_exp_all);
+	QString text = "";
 
 	//add status of latest GRZ upload
 	SqlQuery query = mvh_db.getQuery();
 	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
 	if(query.next())
 	{
-		text += " // GRZ " + query.value("status").toString();
+		QString status = query.value("status").toString();
+		text += "GRZ " + (status=="done" ? query.value("date").toString() : status);
+		if (status=="failed") text += QChar(0x274C);
+		if (status=="done") text += QChar(0x2705);
+
+		//add previous uploads
+		int c_other = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='" + id + "' AND id!='"+query.value("id").toString()+"'").toInt();
+		if (c_other>0) text += " +" + QString::number(c_other);
 	}
 
 	//add status of latest KDK upload
 	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
 	if(query.next())
 	{
-		text += " // KDK " + query.value("status").toString();
+		QString status = query.value("status").toString();
+		text += " // KDK " + (status=="done" ? query.value("date").toString() : status);
+		if (status=="failed") text += QChar(0x274C);
+		if (status=="done") text += QChar(0x2705);
+
+		//add previous uploads
+		int c_other = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='" + id + "' AND id!='"+query.value("id").toString()+"'").toInt();
+		if (c_other>0) text += " +" + QString::number(c_other);
 	}
 
 	//add table item
-	QTableWidgetItem* item = GUIHelper::createTableItem(text);
-	if (!item->text().contains("pending")) item->setForeground(Qt::darkGreen);
-	if (item->text().contains("failed")) item->setForeground(Qt::red);
-	ui_.table->setItem(r, c_export_status, item);
+	ui_.table->setItem(r, c_export_status, GUIHelper::createTableItem(text));
 }
 
 void MVHub::checkForMetaDataErrors()

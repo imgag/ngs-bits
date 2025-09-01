@@ -116,9 +116,9 @@ TEST_CLASS(VcfLine_Test)
         QSet<QByteArray> empty_set;
         VcfFile vcf_file;
         QByteArray header_line = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample_1\tsample_2";
-        vcf_file.parseHeaderFields(header_line, true);
+		vcf_file.parseHeaderFields(header_line);
 
-        vcf_file.parseVcfEntry(1, vcf_line, empty_set, empty_set, empty_set, true, nullptr);
+		vcf_file.parseVcfEntry(1, vcf_line, empty_set, empty_set, empty_set);
         I_EQUAL(vcf_file.count(), 1);
 
         QList<QByteArrayList> all_samples = vcf_file[0].samples();
