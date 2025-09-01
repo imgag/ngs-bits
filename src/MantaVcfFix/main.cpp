@@ -115,7 +115,7 @@ public:
 				// Keep variant with higher quality
 				int qual_current = -1;
 				int qual_cache = -1;
-				if (parts.at(VcfFile::QUAL) != ".") qual_current = Helper::toInt(parts.at(VcfFile::QUAL), "VCF quality value (current varinat)", line);
+				if (parts.at(VcfFile::QUAL) != ".") qual_current = Helper::toInt(parts.at(VcfFile::QUAL), "VCF quality value (current variant)", line);
 				if (cached_parts.at(VcfFile::QUAL) != ".") qual_cache =  Helper::toInt(cached_parts.at(VcfFile::QUAL), "VCF quality value (cached variant)", line);
 
 				if (qual_current > qual_cache)
