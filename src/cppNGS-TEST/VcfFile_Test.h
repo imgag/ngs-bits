@@ -113,26 +113,26 @@ private slots:
 	{
 		//test loading and storing with BGZF_NO_COMPRESSION
 		VcfFile vcfH;
-		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
+		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
 		vcfH.store("out/VcfFileHandler_out.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/VcfFileHandler_out.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
 
 		//test BGZF_BEST_COMPRESSION
 		vcfH.store("out/VcfFileHandler_out.vcf.gz", false, BGZF_BEST_COMPRESSION);
-		vcfH.load("out/VcfFileHandler_out.vcf.gz", true);
+		vcfH.load("out/VcfFileHandler_out.vcf.gz");
 		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
 
 		//test intermediate BGZF COMPRESSION
 		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped_compression5.vcf.gz", false, 5);
-		vcfH.load("out/VcfFileHandler_out_loaded_from_gzipped_compression5.vcf.gz", true);
+		vcfH.load("out/VcfFileHandler_out_loaded_from_gzipped_compression5.vcf.gz");
 		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped_2.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("out/VcfFileHandler_out_loaded_from_gzipped_2.vcf"));
 
 		//test BGZF_GZIP_COMPRESSION
-		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
+		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
 		vcfH.store("out/VcfFileHandler_out_gzipped.vcf.gz", false, BGZF_GZIP_COMPRESSION);
-		vcfH.load("out/VcfFileHandler_out_gzipped.vcf.gz", true);
+		vcfH.load("out/VcfFileHandler_out_gzipped.vcf.gz");
 		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
 	}
@@ -144,7 +144,8 @@ private slots:
 		roi.append(BedLine("chr18", 67904549, 67904670));
 
 		VcfFile vl;
-		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), roi, false);
+		vl.setRegion(roi);
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.vcfHeader().comments().count(), 2);
 		I_EQUAL(vl.sampleIDs().count(), 1);
@@ -548,18 +549,19 @@ private slots:
 
 	void getSampleIds()
 	{
-		VcfFile vcf_file;
-
 		//load multisample
-		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
+		VcfFile vcf_file;
+		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
 		QByteArrayList sample_ids = vcf_file.sampleIDs();
 		I_EQUAL(sample_ids.count(), 2);
 		S_EQUAL(sample_ids.at(0), "normal");
 		S_EQUAL(sample_ids.at(1), "tumor");
 
 		//load single sample
-		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), false);
-		sample_ids = vcf_file.sampleIDs();
+		VcfFile vcf_file2;
+		vcf_file2.setAllowMultiSample(false);
+		vcf_file2.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
+		sample_ids = vcf_file2.sampleIDs();
 		I_EQUAL(sample_ids.count(), 1);
 		S_EQUAL(sample_ids.at(0), "normal");
 	}

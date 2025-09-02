@@ -304,6 +304,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Set region for alignment retrieval (1-based coordinates).
 		void setRegion(const Chromosome& chr, int start, int end);
 
+		//TODO Marc: Add option to read only part of the read (e.g. no bases, no quality, no annotations) to speed up certain operations (e.g. read QC in MappingQC). See https://brentp.github.io/post/cram-speed/
 		//Get next alignment and stores it in @p al.
 		bool getNextAlignment(BamAlignment& al)
 		{

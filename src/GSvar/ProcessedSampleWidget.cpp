@@ -27,7 +27,7 @@
 #include "Settings.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_(new Ui::ProcessedSampleWidget)
     , init_timer_(this, true)
 	, ps_id_(ps_id)
@@ -106,13 +106,16 @@ void ProcessedSampleWidget::styleQualityLabel(QLabel* label, const QString& qual
 
 void ProcessedSampleWidget::delayedInitialization()
 {
-    NGSD db;
-    // determine sample type
-    QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
+	//main GUI setup
+	updateGUI();
 
+	is_busy_ = true;
+
+	//init IGV menu (can be slow, so we do it after the main initialization)
+	NGSD db;
     QMenu* menu = new QMenu();
-    addIgvMenuEntry(menu, PathType::BAM);
-
+	addIgvMenuEntry(menu, PathType::BAM);
+	QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
     if(sample_type == "cfDNA")
     {
         menu->addSeparator();
@@ -138,8 +141,7 @@ void ProcessedSampleWidget::delayedInitialization()
 		addIgvMenuEntry(menu, PathType::PARAPHASE_EVIDENCE);
 		menu->addSeparator();
     }
-
-    ui_->igv_btn->setMenu(menu);
+	ui_->igv_btn->setMenu(menu);
 
     //init RNA menu
     ui_->rna_btn->setEnabled(false);
@@ -158,150 +160,162 @@ void ProcessedSampleWidget::delayedInitialization()
 
         ui_->rna_btn->setMenu(rna_menu);
         ui_->rna_btn->setEnabled(true);
-    }
+	}
 
-    updateGUI();
+	is_busy_ = false;
 }
 
 void ProcessedSampleWidget::updateGUI()
 {
-	NGSD db;
+	is_busy_ = true;
 
-	//#### processed sample details ####
-	ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id_);
-	styleQualityLabel(ui_->quality, ps_data.quality);
-	ui_->name->setText(ps_data.name);
-	GSvarHelper::limitLines(ui_->comments_processed_sample, ps_data.comments);
-	QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
-	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
-	ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
-	QString run = ps_data.run_name;
-	if (run.isEmpty())
-	{
-		ui_->r_quality->setVisible(false);
-	}
-	else
-	{
-		QString run_quality = db.getValue("SELECT quality FROM sequencing_run WHERE name=:0", true, run).toString();
-		styleQualityLabel(ui_->r_quality, run_quality);
-	}
-	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
-	ui_->merged->setText(mergedSamples());
-	ui_->sequencing->setText(QString(ps_data.scheduled_for_resequencing ? "<font color=red>yes</font>" : "no"));
-	ui_->lab_operator->setText(ps_data.lab_operator);
-	ui_->processing_modus->setText(ps_data.processing_modus);
-	ui_->batch_number->setText(ps_data.batch_number);
-	ui_->processing_input->setText(ps_data.processing_input);
-	ui_->molarity->setText(ps_data.molarity);
-	QString normal_sample = ps_data.normal_sample_name;
-	ui_->normal_sample->setText("<a href=\"" + normal_sample + "\">"+normal_sample+"</a>");
-	ui_->ancestry->setText(NGSHelper::populationCodeToHumanReadable(ps_data.ancestry));
-	QStringList ancestry_details;
-	ancestry_details << "Raw scores:";
-	ancestry_details << "AFR (African): " + db.getValue("SELECT score_afr FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-	ancestry_details << "EUR (European): " + db.getValue("SELECT score_eur FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-	ancestry_details << "SAS (South asian): " + db.getValue("SELECT score_sas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-	ancestry_details << "EAS (East asian): " + db.getValue("SELECT score_eas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-	ui_->ancestry->setToolTip(ancestry_details.join("\n"));
-	ui_->urgent->setText(ps_data.urgent ? "<font color=red>yes</font>" : "");
-
-	//#### sample details ####
-	QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
-	SampleData s_data = db.getSampleData(s_id);
-	styleQualityLabel(ui_->s_quality, s_data.quality);
-	ui_->s_name->setText(s_data.name);
-	ui_->name_external->setText(s_data.name_external);
-	ui_->patient_identifier->setText(s_data.patient_identifier);
-	ui_->year_ob_birth->setText(s_data.year_of_birth);
-	ui_->sampling_date->setText(s_data.sampling_date);
-	ui_->order_date->setText(s_data.order_date);
-	ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
-	ui_->species_type->setText(s_data.species + " / " + s_data.type);
-	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
-	ui_->gender->setText(s_data.gender);
-	ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
-	ui_->tissue->setText(s_data.tissue);
-	GSvarHelper::limitLines(ui_->comments_sample, s_data.comments);
-	QStringList groups;
-	foreach(SampleGroup group, s_data.sample_groups)
-	{
-		groups << group.name;
-	}
-	ui_->sample_groups->setText(groups.join(", "));
-
-	//#### diagnostic status ####
-	DiagnosticStatusData diag = db.getDiagnosticStatus(ps_id_);
-	ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
-	ui_->outcome->setText(diag.outcome);
-	GSvarHelper::limitLines(ui_->comments_diag, diag.comments);
-	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_, true));
-
-	//#### kasp status ####
 	try
 	{
-		KaspData kasp_data = db.kaspData(ps_id_);
-		QString tooltip;
-		if (!kasp_data.calculated_date.isEmpty() && !kasp_data.calculated_by.isEmpty())
+
+		NGSD db;
+
+		//#### processed sample details ####
+		ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id_);
+		styleQualityLabel(ui_->quality, ps_data.quality);
+		ui_->name->setText(ps_data.name);
+		GSvarHelper::limitLines(ui_->comments_processed_sample, ps_data.comments);
+		QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
+		ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
+		ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
+		QString run = ps_data.run_name;
+		if (run.isEmpty())
 		{
-			tooltip += "calcualted by " + kasp_data.calculated_by + " on " + kasp_data.calculated_date;
+			ui_->r_quality->setVisible(false);
+		}
+		else
+		{
+			QString run_quality = db.getValue("SELECT quality FROM sequencing_run WHERE name=:0", true, run).toString();
+			styleQualityLabel(ui_->r_quality, run_quality);
+		}
+		ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
+		ui_->merged->setText(mergedSamples());
+		ui_->sequencing->setText(QString(ps_data.scheduled_for_resequencing ? "<font color=red>yes</font>" : "no"));
+		ui_->lab_operator->setText(ps_data.lab_operator);
+		ui_->processing_modus->setText(ps_data.processing_modus);
+		ui_->batch_number->setText(ps_data.batch_number);
+		ui_->processing_input->setText(ps_data.processing_input);
+		ui_->molarity->setText(ps_data.molarity);
+		QString normal_sample = ps_data.normal_sample_name;
+		ui_->normal_sample->setText("<a href=\"" + normal_sample + "\">"+normal_sample+"</a>");
+		ui_->ancestry->setText(NGSHelper::populationCodeToHumanReadable(ps_data.ancestry));
+		QStringList ancestry_details;
+		ancestry_details << "Raw scores:";
+		ancestry_details << "AFR (African): " + db.getValue("SELECT score_afr FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+		ancestry_details << "EUR (European): " + db.getValue("SELECT score_eur FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+		ancestry_details << "SAS (South asian): " + db.getValue("SELECT score_sas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+		ancestry_details << "EAS (East asian): " + db.getValue("SELECT score_eas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+		ui_->ancestry->setToolTip(ancestry_details.join("\n"));
+		ui_->urgent->setText(ps_data.urgent ? "<font color=red>yes</font>" : "");
+
+		//#### sample details ####
+		QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
+		SampleData s_data = db.getSampleData(s_id);
+		styleQualityLabel(ui_->s_quality, s_data.quality);
+		ui_->s_name->setText(s_data.name);
+		ui_->name_external->setText(s_data.name_external);
+		ui_->patient_identifier->setText(s_data.patient_identifier);
+		ui_->year_ob_birth->setText(s_data.year_of_birth);
+		ui_->sampling_date->setText(s_data.sampling_date);
+		ui_->order_date->setText(s_data.order_date);
+		ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
+		ui_->species_type->setText(s_data.species + " / " + s_data.type);
+		ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
+		ui_->gender->setText(s_data.gender);
+		ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
+		ui_->tissue->setText(s_data.tissue);
+		GSvarHelper::limitLines(ui_->comments_sample, s_data.comments);
+		QStringList groups;
+		foreach(SampleGroup group, s_data.sample_groups)
+		{
+			groups << group.name;
+		}
+		ui_->sample_groups->setText(groups.join(", "));
+
+		//#### diagnostic status ####
+		DiagnosticStatusData diag = db.getDiagnosticStatus(ps_id_);
+		ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
+		ui_->outcome->setText(diag.outcome);
+		GSvarHelper::limitLines(ui_->comments_diag, diag.comments);
+		ui_->report_config->setText(db.reportConfigSummaryText(ps_id_, true));
+
+		//#### kasp status ####
+		try
+		{
+			KaspData kasp_data = db.kaspData(ps_id_);
+			QString tooltip;
+			if (!kasp_data.calculated_date.isEmpty() && !kasp_data.calculated_by.isEmpty())
+			{
+				tooltip += "calcualted by " + kasp_data.calculated_by + " on " + kasp_data.calculated_date;
+			}
+
+			ui_->kasp_snps->setText(QString::number(kasp_data.snps_match) + "/" + QString::number(kasp_data.snps_evaluated));
+			ui_->kasp_snps->setToolTip(tooltip);
+
+			double swap_perc = 100.0 * kasp_data.random_error_prob;
+			QString value = QString::number(swap_perc, 'f', 4) + "%";
+			if (swap_perc>1.1) value = "<font color=red>"+value+"</font>";
+			ui_->kasp_swap->setText(value);
+			ui_->kasp_swap->setToolTip(tooltip);
+		}
+		catch(DatabaseException /*e*/)
+		{
+			ui_->kasp_snps->setText("n/a");
+			ui_->kasp_snps->setToolTip("");
+			ui_->kasp_swap->setText("n/a");
+			ui_->kasp_swap->setToolTip("");
 		}
 
-		ui_->kasp_snps->setText(QString::number(kasp_data.snps_match) + "/" + QString::number(kasp_data.snps_evaluated));
-		ui_->kasp_snps->setToolTip(tooltip);
+		//#### disease details ####
+		DBTable dd_table = db.createTable("sample_disease_info", "SELECT sdi.id, sdi.type, sdi.disease_info, u.name, sdi.date, t.name as hpo_name FROM user u, processed_sample ps, sample_disease_info sdi LEFT JOIN hpo_term t ON sdi.disease_info=t.hpo_id WHERE sdi.sample_id=ps.sample_id AND sdi.user_id=u.id AND ps.id='" + ps_id_ + "' ORDER BY sdi.date ASC");
+		//append merge HPO id and name
+		QStringList hpo_names = dd_table.takeColumn(dd_table.columnIndex("hpo_name"));
+		QStringList info_entries = dd_table.extractColumn(dd_table.columnIndex("disease_info"));
+		QStringList types = dd_table.extractColumn(dd_table.columnIndex("type"));
+		for (int i=0; i<info_entries.count(); ++i)
+		{
+			if (info_entries[i].startsWith("HP:"))
+			{
+				info_entries[i] += " (" + hpo_names[i] + ")";
+			}
 
-		double swap_perc = 100.0 * kasp_data.random_error_prob;
-		QString value = QString::number(swap_perc, 'f', 4) + "%";
-		if (swap_perc>1.1) value = "<font color=red>"+value+"</font>";
-		ui_->kasp_swap->setText(value);
-		ui_->kasp_swap->setToolTip(tooltip);
+			if (types[i] == "Oncotree code")
+			{
+				QString name = db.getValue("SELECT name from oncotree_term WHERE oncotree_code ='" + info_entries[i] + "'", true).toString();
+
+				info_entries[i] += " (" + (name == "" ? "invalid" : name) + ")";
+			}
+		}
+		dd_table.setColumn(dd_table.columnIndex("disease_info"), info_entries);
+		ui_->disease_details->setData(dd_table);
+		GUIHelper::resizeTableHeight(ui_->disease_details);
+
+		//#### sample relations ####
+		addMissingRelations(db, s_id);
+		DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), (SELECT gender FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT gender  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
+		rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "gender 1" << "relation" << "sample 2" << "type 2" << "gender 2" << "added_by" << "added_date");
+		ui_->sample_relations->setData(rel_table);
+		GUIHelper::resizeTableHeight(ui_->sample_relations);
+
+		//#### studies ####
+		DBTable study_table = db.createTable("study_sample", "SELECT id, (SELECT name FROM study WHERE id=study_id), study_sample_idendifier FROM study_sample WHERE processed_sample_id='" + ps_id_ + "'");
+		study_table.setHeaders(QStringList() << "study" << "study sample identifier");
+		ui_->studies->setData(study_table);
+		GUIHelper::resizeTableHeight(ui_->studies);
+
+		//#### QC ####
+		updateQCMetrics();
 	}
-	catch(DatabaseException /*e*/)
+	catch (Exception& e)
 	{
-		ui_->kasp_snps->setText("n/a");
-		ui_->kasp_snps->setToolTip("");
-		ui_->kasp_swap->setText("n/a");
-		ui_->kasp_swap->setToolTip("");
+		QMessageBox::warning(this, "Error", "Could not update data:\n" + e.message());
 	}
 
-	//#### disease details ####
-	DBTable dd_table = db.createTable("sample_disease_info", "SELECT sdi.id, sdi.type, sdi.disease_info, u.name, sdi.date, t.name as hpo_name FROM user u, processed_sample ps, sample_disease_info sdi LEFT JOIN hpo_term t ON sdi.disease_info=t.hpo_id WHERE sdi.sample_id=ps.sample_id AND sdi.user_id=u.id AND ps.id='" + ps_id_ + "' ORDER BY sdi.date ASC");
-	//append merge HPO id and name
-	QStringList hpo_names = dd_table.takeColumn(dd_table.columnIndex("hpo_name"));
-	QStringList info_entries = dd_table.extractColumn(dd_table.columnIndex("disease_info"));
-	QStringList types = dd_table.extractColumn(dd_table.columnIndex("type"));
-	for (int i=0; i<info_entries.count(); ++i)
-	{
-		if (info_entries[i].startsWith("HP:"))
-		{
-			info_entries[i] += " (" + hpo_names[i] + ")";
-		}
-
-		if (types[i] == "Oncotree code")
-		{
-			QString name = db.getValue("SELECT name from oncotree_term WHERE oncotree_code ='" + info_entries[i] + "'", true).toString();
-
-			info_entries[i] += " (" + (name == "" ? "invalid" : name) + ")";
-		}
-	}
-	dd_table.setColumn(dd_table.columnIndex("disease_info"), info_entries);
-	ui_->disease_details->setData(dd_table);
-	GUIHelper::resizeTableHeight(ui_->disease_details);
-
-	//#### sample relations ####
-	addMissingRelations(db, s_id);
-	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), (SELECT gender FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT gender  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
-	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "gender 1" << "relation" << "sample 2" << "type 2" << "gender 2" << "added_by" << "added_date");
-	ui_->sample_relations->setData(rel_table);
-	GUIHelper::resizeTableHeight(ui_->sample_relations);
-
-	//#### studies ####
-	DBTable study_table = db.createTable("study_sample", "SELECT id, (SELECT name FROM study WHERE id=study_id), study_sample_idendifier FROM study_sample WHERE processed_sample_id='" + ps_id_ + "'");
-	study_table.setHeaders(QStringList() << "study" << "study sample identifier");
-	ui_->studies->setData(study_table);
-	GUIHelper::resizeTableHeight(ui_->studies);
-
-	//#### QC ####
-	updateQCMetrics();
+	is_busy_ = false;
 }
 
 void ProcessedSampleWidget::updateQCMetrics()
@@ -696,8 +710,8 @@ void ProcessedSampleWidget::addIgvMenuEntry(QMenu* menu, PathType file_type)
     QAction* action = menu->addAction(FileLocation::typeToHumanReadableString(file_type), this, SLOT(openIgvTrack()));
     action->setData((int)file_type);
     try
-    {
-        action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, file_type).exists);
+	{
+		action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, file_type).exists);
     }
     catch(Exception& e)
     {        

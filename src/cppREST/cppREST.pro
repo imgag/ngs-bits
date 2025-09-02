@@ -17,8 +17,10 @@ QMAKE_CXXFLAGS_RELEASE -= -O1
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE *= -O3
 
+include("../qt_compatibility.pri")
+
 #copy DLL to bin folder
-DESTDIR = ../../bin/
+DESTDIR = $$DEST_DIR_PATH_PART/bin/
 
 #include cppCORE library
 INCLUDEPATH += $$PWD/../cppCORE

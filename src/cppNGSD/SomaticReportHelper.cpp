@@ -345,7 +345,7 @@ RtfSourceCode SomaticReportHelper::partBillingTable()
 	QByteArray heading_text = "Abrechnungsinformation gemäß einheitlicher Bewertungsmaßstab";
 	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
 
-	table.addRow(RtfTableRow({"Gen", "OMIM"}, {doc_.maxWidth()/2, doc_.maxWidth()/2}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
+	table.addRow(RtfTableRow({"Gen", "OMIM", "HGNC"}, {doc_.maxWidth()/3, doc_.maxWidth()/3, doc_.maxWidth()/3}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
 
 	BedFile target = settings_.target_region_filter.regions;
 	target.merge();
@@ -364,14 +364,17 @@ RtfSourceCode SomaticReportHelper::partBillingTable()
 		size = 123670;
 	}
 
-    for (const auto& gene : ebm_genes_)
+	for (auto& gene : ebm_genes_)
 	{
+		gene = db_.geneToApproved(gene);
 		QByteArrayList omim_mims;
-        for (const auto& info : db_.omimInfo(gene))
+		foreach (const auto& info, db_.omimInfo(gene))
 		{
 			omim_mims << info.mim;
 		}
-		table.addRow( RtfTableRow({gene, omim_mims.join(", ")},{doc_.maxWidth()/2, doc_.maxWidth()/2}) );
+		QByteArray hgnc_id = db_.geneHgncId(db_.geneId(gene));
+
+		table.addRow( RtfTableRow({gene, omim_mims.join(", "), hgnc_id}, {doc_.maxWidth()/3, doc_.maxWidth()/3, doc_.maxWidth()/3}) );
 	}
 	table.setUniqueBorder(1,"brdrhair",4);
 
@@ -877,6 +880,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	}
 
 	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Auswertungsdatum:", settings_.report_config->evaluationDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,1480,3481}) );
+	metadata.addRow(RtfTableRow({"Durchschnittliche Insert size:", tumor_qcml_data_.value("QC:2000023",true).toString().toUtf8(), normal_qcml_data_.value("QC:2000023",true).toString().toUtf8(), "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
 	RtfSourceCode tum_panel_depth = "n/a";
@@ -892,7 +896,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	{
 	}
 
-	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tum_panel_depth, nor_panel_depth, "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
+	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tum_panel_depth, nor_panel_depth, "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
 
@@ -903,7 +907,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	}
 	catch(Exception)
 	{} //nothing to do here
-	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x, "", "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()} , {2000,1480,1480,1480,3481}) );
+	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x, "", "", ""} , {2000,1480,1480,1480,3481}) );
 
 
 	RtfSourceCode tum_panel_cov_60x = "n/a";
@@ -1500,14 +1504,15 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_tumor, QString ps_normal)
 
 RtfTable SomaticReportHelper::signatureTable()
 {
-	// load descriptions from file:
-	QSharedPointer<VersatileFile> desc_file = Helper::openVersatileFileForReading(":/resources/signature_description.tsv");
+	//load descriptions from file
+	VersatileFile desc_file(":/resources/signature_description.tsv");
+	desc_file.open(QFile::ReadOnly | QIODevice::Text);
 
 	QMap<QByteArray, QByteArray> descriptions;
 
-	while (! desc_file->atEnd())
+	while (!desc_file.atEnd())
 	{
-		QByteArray line = desc_file->readLine().trimmed();
+		QByteArray line = desc_file.readLine(false).trimmed();
 		if (line.isEmpty() || line.startsWith('#')) continue;
 
 		QByteArrayList parts = line.split('\t');
@@ -1558,7 +1563,7 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 	try
 	{
 		//file not present or cannot be opened
-		stream.open(QIODevice::ReadOnly, true);
+		stream.open(QIODevice::ReadOnly);
 
 		//init
 		QList<int> cell_widths = {1500, 1500, 1500, 2000, 3422};

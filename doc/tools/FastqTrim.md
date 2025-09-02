@@ -1,5 +1,5 @@
 ### FastqTrim tool help
-	FastqTrim (2024_08-110-g317f43b9)
+	FastqTrim (2025_05-79-g6c060cfd)
 	
 	Trims start/end bases from all reads in a FASTQ file.
 	
@@ -14,6 +14,8 @@
 	                           Default value: '0'
 	  -len <int>               Restrict read length to this value (after trimming from start/end).
 	                           Default value: '0'
+	  -max_len <int>           Only trim reads smaller than the given length. Used e.g. to remove UMIs at the read end from read-throughs.
+	                           Default value: '0'
 	  -compression_level <int> Output FASTQ compression level from 1 (fastest) to 9 (best compression).
 	                           Default value: '1'
 	  -long_read               Support long reads (> 1kb).
@@ -27,7 +29,7 @@
 	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### FastqTrim changelog
-	FastqTrim 2024_08-110-g317f43b9
+	FastqTrim 2025_05-79-g6c060cfd
 	
 	2023-06-15 Added support for long reads.
 	2020-07-15 Added 'compression_level' parameter.

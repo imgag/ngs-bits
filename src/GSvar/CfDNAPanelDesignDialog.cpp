@@ -971,7 +971,7 @@ void CfDNAPanelDesignDialog::writePanelToFile()
 	BedFile bed_file = createBedFile(vcf_file);
 
 	// write to disk
-	vcf_file.store(vcf_file_path, false, 10);
+	vcf_file.store(vcf_file_path);
 	bed_file.store(bed_file_path);
 }
 

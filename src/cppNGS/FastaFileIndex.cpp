@@ -83,7 +83,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 	//read data
 	int newlines_in_sequence = entry.length / entry.line_blen;
 	int seqlen = newlines_in_sequence  + entry.length;
-	Sequence output {};
+	Sequence output;
 
 	if (isLocal())
 	{
@@ -163,12 +163,28 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	return output;
 }
 
+int FastaFileIndex::n(const Chromosome& chr) const
+{
+	if (!n_.contains(chr))
+	{
+		int output = 0;
+		Sequence sequence = seq(chr, false);
+		for (int i=0; i<sequence.length(); ++i)
+		{
+			if (sequence[i]=='N' || sequence[i]=='n') ++output;
+		}
+		n_[chr] = output;
+	}
+
+	return n_[chr];
+}
+
 const FastaFileIndex::FastaIndexEntry& FastaFileIndex::index(const Chromosome& chr) const
 {
-	QMap<QString, FastaIndexEntry>::const_iterator it = index_.find(chr.strNormalized(true));
+	QHash<Chromosome, FastaIndexEntry>::const_iterator it = index_.find(chr);
 	if(it==index_.cend())
 	{
-		THROW(ArgumentException, "Unknown FASTA index chromosome '" + chr.strNormalized(true) + "' requested!");
+		THROW(ArgumentException, "Unknown FASTA index chromosome '" + chr.str() + "' requested!");
 	}
 	return it.value();
 }
@@ -188,4 +204,5 @@ void FastaFileIndex::saveEntryToIndex(const QList<QByteArray>& fields)
 	entry.line_len = fields[4].toInt();
 	QString name_norm = Chromosome(fields[0]).strNormalized(true);
 	index_[name_norm] = entry;
+	chrs_ << name_norm;
 }

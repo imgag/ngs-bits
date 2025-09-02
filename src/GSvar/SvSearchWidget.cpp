@@ -69,7 +69,7 @@ void SvSearchWidget::search()
 		// define table columns
 		QByteArrayList selected_columns;
 		selected_columns << "sv.id" << "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample" << "s.gender" << "ps.quality as quality_sample "
-						 << "sys.name_manufacturer as system" << "s.disease_group" << "s.disease_status" << "s.id as 'HPO terms'" << "ds.outcome" << "sc.caller" << "sc.caller_version"
+						 << "sys.name_manufacturer as system_name" << "s.disease_group" << "s.disease_status" << "s.id as 'HPO terms'" << "ds.outcome" << "sc.caller" << "sc.caller_version"
 						 << "\"" + BedpeFile::typeToString(type) + "\" AS type" << "sv.genotype";
 
 		// define type specific table columns

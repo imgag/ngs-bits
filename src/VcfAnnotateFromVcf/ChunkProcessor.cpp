@@ -2,6 +2,7 @@
 #include "VcfFile.h"
 #include "TabixIndexedFile.h"
 #include <QFileInfo>
+#include "VersatileFile.h"
 
 ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, Parameters& params)
 	: QObject()

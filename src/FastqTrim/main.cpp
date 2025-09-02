@@ -22,7 +22,7 @@ public:
 		addInt("start", "Trim this number of bases from the start of the read.", true, 0);
 		addInt("end", "Trim this number of bases from the end of the read.", true, 0);
 		addInt("len", "Restrict read length to this value (after trimming from start/end).", true, 0);
-		addInt("max_len", "Ignore reads larger than max_len. Only trim smaller reads. (To remove UMIs at the read end from read-throughs)", true, 0);
+		addInt("max_len", "Only trim reads smaller than the given length. Used e.g. to remove UMIs at the read end from read-throughs.", true, 0);
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
 		addFlag("long_read", "Support long reads (> 1kb).");
 

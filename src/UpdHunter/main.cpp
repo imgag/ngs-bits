@@ -30,7 +30,7 @@ public:
 		addOutfile("out_informative", "Output IGV file containing informative variants.", true, true);
 		addInfile("exclude", "BED file with regions to exclude, e.g. copy-number variant regions.", true);
 		addInt("var_min_dp", "Minimum depth (DP) of a variant (in all three samples).", true, 20);
-		addFloat("var_min_q", "Minimum quality (QUAL) of a variant.", true, 30);
+		addFloat("var_min_q", "Minimum quality (QUAL) of a variant.", true, 20);
 		addFlag("var_use_indels", "Also use InDels. The default is to use SNVs only.");
 		addFloat("ext_marker_perc", "Percentage of markers that can be spanned when merging adjacent regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of base size that can be spanned when merging adjacent regions.", true, 20.0);
@@ -209,7 +209,7 @@ public:
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
 		VcfFile variants;
-        variants.load(getInfile("in"), true);
+		variants.load(getInfile("in"));
 		variants.sort();
 		int skip_chr = 0;
 		int skip_qual = 0;

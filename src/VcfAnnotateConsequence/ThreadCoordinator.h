@@ -9,6 +9,7 @@
 #include <QSharedPointer>
 #include <QMutex>
 #include "Auxilary.h"
+#include "VersatileFile.h"
 
 //coordinator class for multi-threading
 class ThreadCoordinator

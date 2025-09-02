@@ -74,14 +74,14 @@ void ExpressionExonWidget::loadExpressionFile()
 
 		//load TSV file
 		expression_data_ = TsvFile();
-		QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
 
 		//parse TSV file
 		QSet<QByteArray> imported_lines;
-		while (!expression_data_file->atEnd())
+		VersatileFile expression_data_file(tsv_filename_, false);
+		expression_data_file.open(QFile::ReadOnly | QIODevice::Text);
+		while (!expression_data_file.atEnd())
 		{
-			QString line = expression_data_file->readLine(true);
-			// skip empty lines
+			QString line = expression_data_file.readLine(true);
 			if (line.isEmpty()) continue;
 
 			//Legacy support for old megSAP file format

@@ -969,7 +969,7 @@ void BurdenTestWidget::performBurdenTest()
 		{
 			//get sample type
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
-			double min_correlation = (processing_system_type == "WGS")? 0.35: 0.9;
+			double min_correlation = (processing_system_type == "WGS") ? 0.35: 0.9;
 			cnv_callset_query.bindValue(0, ps_id);
 			cnv_callset_query.exec();
 			while(cnv_callset_query.next())
@@ -987,7 +987,7 @@ void BurdenTestWidget::performBurdenTest()
 		{
 			//get sample type
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
-			double min_correlation = (processing_system_type == "WGS")? 0.35: 0.9;
+			double min_correlation = (processing_system_type == "WGS") ? 0.35: 0.9;
 			cnv_callset_query.bindValue(0, ps_id);
 			cnv_callset_query.exec();
 			while(cnv_callset_query.next())

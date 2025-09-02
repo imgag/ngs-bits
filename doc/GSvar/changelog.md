@@ -1,9 +1,16 @@
 # GSvar change log
 
+## 2025_07-44 (20.08.2025)
+
+- project tag: added `matchmaking` field.
+- filters: updated comp-het CNV/SV filters to also show genes with more than two variants.
+- variant tag: added ancestry to sample overview.
+- germline report: only show active filters as filter criteria
+- filters: improved trio relaxed filter
+
 ## 2025_05-32 (01.07.2025)
 
 - germline report: added HGNC ID to gene table.
-- 
 
 ## 2025_05-16 (11.06.2025)
 
@@ -724,7 +731,7 @@
 
 ### 2019_09-80 (20.11.19)
 - CNVs: callset quality is now automatically set if it is good.
-- CNVs: added new CNV filters (genomAD o/e LOF, gene region).
+- CNVs: added new CNV filters (gnomAD o/e LOF, gene region).
 - CNVs: updated default filters.
 - Report: Added inheritance and classification to CNV table in report.
 

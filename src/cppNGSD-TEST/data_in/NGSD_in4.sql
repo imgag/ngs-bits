@@ -4107,6 +4107,7 @@ INSERT INTO `hpo_parent`(`parent`, `child`) VALUES
 (9,11);
 
 INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES
+(17, "QC:2000023", "insert size", "Average insert size (for paired-end reads only).", 'float', 0),
 (31, "QC:2000027", "target region 20x percentage", "Percentage of the target region that is covered at...", 'float', 0),
 (47, "QC:2000025", "target region read depth", "Average sequencing depth in target region.", 'float', 0),
 (48, "QC:2000053", "somatic variant rate", "Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp].", 'float', 0),
@@ -4116,7 +4117,6 @@ INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete
 (52, "QC:2000063", "telomer allelic imbalance", "Count of somatic telomer allelic imbalance (TAI) events.", 'int', 0),
 (53, "QC:2000064", "long state transition", "Count of somatic long state transition (LST) events.", 'int', 0),
 (54, "QC:2000141", "MSI percentage unstable regions", "Percentage of microsatelite regions that are unstable", 'float', 0);
-
 
 INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `value`) VALUES
 (1, 3999, 31, "95.96"),
@@ -4131,7 +4131,10 @@ INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `v
 (12, 4004, 51, "10"),
 (13, 4004, 52, "23"),
 (14, 4004, 53, "9"),
-(15, 4004, 54, "5.75");
+(15, 4004, 54, "5.75"),
+(16, 3999, 17, "249.45"),
+(17, 4003, 17, "243.45"),
+(18, 4004, 17, "244.5");
 
 INSERT INTO `analysis_job`(`type`, `high_priority`, `args`, `sge_id`, `sge_queue`) VALUES
 ('single sample',0,'','4711','default_srv018'),

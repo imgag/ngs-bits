@@ -5,8 +5,7 @@
 #include "ChromosomalIndex.h"
 #include "Helper.h"
 #include <QFile>
-
-
+#include "VersatileFile.h"
 
 class ConcreteTool: public ToolBase
 {
@@ -45,18 +44,17 @@ public:
 		//open output stream
 		QSharedPointer<QFile> out_stream = Helper::openFileForWriting(out, true);
 
-		//open input steam
-		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(in, true);
-
 		//cache to store read SVs
 		QMap<QByteArray,int> id_buffer_mapping;
 		QByteArrayList output_buffer;
 		int buffer_idx = 0;
 
 		//read lines
-		while(!file->atEnd())
+		VersatileFile file(in, true);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		while(!file.atEnd())
 		{
-			QByteArray line = file->readLine();
+			QByteArray line = file.readLine();
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
@@ -117,7 +115,7 @@ public:
 				// Keep variant with higher quality
 				int qual_current = -1;
 				int qual_cache = -1;
-				if (parts.at(VcfFile::QUAL) != ".") qual_current = Helper::toInt(parts.at(VcfFile::QUAL), "VCF quality value (current varinat)", line);
+				if (parts.at(VcfFile::QUAL) != ".") qual_current = Helper::toInt(parts.at(VcfFile::QUAL), "VCF quality value (current variant)", line);
 				if (cached_parts.at(VcfFile::QUAL) != ".") qual_cache =  Helper::toInt(cached_parts.at(VcfFile::QUAL), "VCF quality value (cached variant)", line);
 
 				if (qual_current > qual_cache)

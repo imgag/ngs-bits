@@ -4,9 +4,10 @@
 #include <QWidget>
 #include "ui_SampleSearchWidget.h"
 #include "NGSD.h"
+#include "TabBaseClass.h"
 
 class SampleSearchWidget
-	: public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 

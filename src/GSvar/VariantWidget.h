@@ -5,9 +5,10 @@
 #include "ui_VariantWidget.h"
 #include "VariantList.h"
 #include "DelayedInitializationTimer.h"
+#include "TabBaseClass.h"
 
 class VariantWidget
-	: public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 

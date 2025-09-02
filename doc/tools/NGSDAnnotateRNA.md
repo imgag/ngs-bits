@@ -1,5 +1,5 @@
 ### NGSDAnnotateRNA tool help
-	NGSDAnnotateRNA (2024_08-110-g317f43b9)
+	NGSDAnnotateRNA (2025_07-53-gefb5888f)
 	
 	Annotates a RNA expression TSV file with cohort information.
 	
@@ -21,6 +21,8 @@
 	                          Default value: ''
 	  -hpa_file <file>        TSV file containing the Human Protein Atlas (https://www.proteinatlas.org) to annotate gene expression
 	                          Default value: ''
+	  -cohort_data <file>     TSV file containing the a column with the TPM/SBRP for the full cohort - overwrites 'cohort_strategy'
+	                          Default value: ''
 	  -update_genes           Update annotated gene names with approved gene names from the NGSD
 	                          Default value: 'false'
 	  -test                   Uses the test database instead of on the production database.
@@ -34,7 +36,7 @@
 	  --settings [file]       Settings override file (no other settings files are used).
 	
 ### NGSDAnnotateRNA changelog
-	NGSDAnnotateRNA 2024_08-110-g317f43b9
+	NGSDAnnotateRNA 2025_07-53-gefb5888f
 	
 	2022-09-15 Added annotation of transcript ids.
 	2022-08-18 Added ability to update gene names.

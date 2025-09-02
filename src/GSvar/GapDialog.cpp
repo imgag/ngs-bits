@@ -110,7 +110,7 @@ void GapDialog::calculteGaps()
 		}
 		if (!genes_no_transcript.isEmpty())
 		{
-			output << "Genes without transcripts could not be converted to exons: " + genes_invalid.join(", ");
+			output << "Genes without transcripts could not be converted to exons: " + genes_no_transcript.join(", ");
 		}
 	}
 	else

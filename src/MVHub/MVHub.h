@@ -24,12 +24,14 @@ public slots:
 	QByteArray getPseudonym(QByteArray str, QByteArray context, bool test_server = true, bool debug = true);
 	//load research consent data from meDIC
 	void loadConsentData();
-	//load data from GenLab
-	void loadGenLabData();
 	//export consent data for a sample list
 	void exportConsentData();
 	//check XML data in MVH database
 	void checkXML();
+
+	//main menu slots
+	void on_actionReloadData_triggered();
+	void on_actionAbout_triggered();
 
 private:
 	Ui::MVHub ui_;
@@ -38,23 +40,32 @@ private:
 
 	//clear output panel on bottom
 	void addOutputHeader(QString section, bool clear=true);
+	//add output line and make sure the new line is visible to the user
+	void addOutputLine(QString line);
 
 	//load data Modellvorhaben case management RedCap and copy it to MVH database
-	void loadDataFromCM();
+	void loadDataFromCM(int debug_level=0);
 	//load data Modellvorhaben SE RedCap and copy it to MVH database
 	void loadDataFromSE();
 	//determine processed samples for cases from NGSD
-	void determineProcessedSamples();
+	void determineProcessedSamples(int debug_level=0);
+	//add missing HPO terms to SE RedCap and update SE data in MVH database
+	int updateHpoTerms(int debug_level=0);
+	//add missing variants to SE RedCap and update SE data in MVH database
+	int updateVariants(int debug_level=0);
 	//update GRZ/KDK export status
 	void updateExportStatus();
 	void updateExportStatus(NGSD& mvh_db, int r);
+
+	//check for errors in the data
+	void checkForMetaDataErrors();
 	//show messages
 	void showMessages();
 
 	//returns consent status of patient. Empty string if not available.
-	QString getConsent(QString sap_id, bool return_parsed_data = true, bool debug=false);
+	QByteArray getConsent(QString sap_id, bool debug=false);
 	//parse JSON and convert it to XML
-	QByteArray parseConsentJson(QByteArray json_text);
+	QByteArray consentJsonToXml(QByteArray json_text, bool debug=false);
 
 	//creates JSON input for pseudonymization
 	static QByteArray jsonDataPseudo(QByteArray str);
@@ -63,6 +74,36 @@ private:
 
 	//returns the string contents of a table item
 	QString getString(int r, int c, bool trim=true);
+
+	//returns a list of causal variants
+	enum VarType
+	{
+		CAUSAL,
+		INCIDENTAL,
+		VUS
+	};
+	struct VarData
+	{
+		QByteArray name;
+		QByteArray localization;
+		VarType type;
+	};
+	QList<VarData> getVariants(NGSD& db, QString ps);
+	GeneSet variantGenes(NGSD& db, const Chromosome& chr, int start, int end);
+	QByteArray variantLocalization(NGSD& db, const Chromosome& chr, int start, int end, const GeneSet& genes);
+
+	enum Network
+	{
+		SE,
+		OE,
+		UNSET
+	};
+	Network getNetwork(int row);
+	QString networkToString(Network network);
+	//returns the row index of the given CM ID
+	int rowOf(QString cm_id);
+	//returns the columd index of the given column name
+	int colOf(QString col, bool throw_if_not_found=true);
 };
 
 #endif // MVHUB_H

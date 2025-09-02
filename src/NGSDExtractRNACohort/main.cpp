@@ -31,8 +31,9 @@ public:
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		QStringList valid_cohort = QStringList() << "RNA_COHORT_GERMLINE" << "RNA_COHORT_GERMLINE_PROJECT" << "RNA_COHORT_SOMATIC";
 		addEnum("cohort_strategy", "Determines which samples are used as reference cohort.", true, valid_cohort, "RNA_COHORT_GERMLINE");
-		addFlag("only_samples", "return only the samples belonging to the cohort - one sample per line");
+		addFlag("only_samples", "Return only the samples belonging to the cohort - one sample per line");
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addString("allowed_systems", "Processing systems allowed to be in cohort as comma seperated list of short names  - default: only the same as the processed sample", true, "");
 
 		changeLog(2022, 7, 21, "Initial commit.");
 	}
@@ -69,6 +70,7 @@ public:
 		{
 			THROW(ArgumentException, "Invalid cohort strategy '" + cohort_strategy_str + "' given!");
 		}
+		QStringList allowed_systems = getString("allowed_systems").split(",");
 
 		NGSD db(getFlag("test"));
 
@@ -81,6 +83,16 @@ public:
 
 		//get cohort
         QVector<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, "genes").values().toVector();
+		foreach(QString system, allowed_systems)
+		{
+			if (system == "") continue;
+			int added_sys_id = db.processingSystemId(system);
+			if (added_sys_id == sys_id) continue;
+
+			QVector<int> added_cohort = db.getRNACohort(added_sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, "genes").values().toVector();
+			cohort.append(added_cohort);
+		}
+
 		std::sort(cohort.rbegin(), cohort.rend());
 
 		if(getFlag("only_samples"))

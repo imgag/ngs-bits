@@ -533,6 +533,7 @@ CREATE  TABLE IF NOT EXISTS `project`
   `preserve_fastqs` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Prevents FASTQ files from being deleted after mapping in this project.<br>Has no effect if megSAP is not configured to delete FASTQs automatically.<br>For diagnostics, do not check. For other project types ask the bioinformatician in charge.',
   `email_notification` varchar(200) DEFAULT NULL COMMENT 'List of email addresses (separated by semicolon) that are notified in addition to the project coordinator when new samples are available.',
   `archived` TINYINT(1) NOT NULL DEFAULT 0,
+  `matchmaking` ENUM('n/a','yes','no') NOT NULL DEFAULT 'n/a' COMMENT 'States if the samples in the project can be used for matchmaking in other projects.',
   `folder_override` TEXT NULL DEFAULT NULL COMMENT 'Override for project folder',
   `folder_override_client` TEXT NULL DEFAULT NULL COMMENT 'Override for project folder used in GSvar client',
 PRIMARY KEY (`id`),

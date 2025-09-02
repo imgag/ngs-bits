@@ -143,9 +143,34 @@ private slots:
 		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX009_01", false, false);
 
 		EXECUTE("NGSDExtractRNACohort", "-test -only_samples -ps RX001_01 -cohort_strategy RNA_COHORT_SOMATIC -out out/NGSDExtractRNACohort_cohort_out6.tsv");
 		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out6.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out6.tsv"))
+	}
+
+	void somatic_only_samples_multiple_systems()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExtractRNACohort_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX009_01", false, false);
+
+		EXECUTE("NGSDExtractRNACohort", "-test -only_samples -ps RX001_01 -cohort_strategy RNA_COHORT_SOMATIC -allowed_systems nebRNAU2_mrna2 -out out/NGSDExtractRNACohort_cohort_out7.tsv");
+		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out7.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out7.tsv"))
 	}
 
 

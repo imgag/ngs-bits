@@ -734,10 +734,11 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QString& ref_file)
+QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_file, int min_mapq)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
+	FastaFileIndex ref_idx(ref_file);
 
 	//init counts
 	long long al_total = 0;
@@ -832,6 +833,18 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 			++al_dup;
 		}
 	}
+	bases_usable -= bases_clipped;
+
+	//calcualte number of 'N' bases in genome (takes about 10s, but that's ok for WGS QC)
+	double no_base = 0.0;
+	foreach(const Chromosome& c, reader.chromosomes())
+	{
+		if (c.isNonSpecial())
+		{
+			int n = ref_idx.n(c);
+			no_base +=n;
+		}
+	}
 
 	//output
 	QCCollection output;
@@ -857,8 +870,8 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	{
 		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
 	}
-	addQcValue(output, "QC:2000050", "bases usable (MB)", (double)bases_usable / 1000000.0);
-	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / reader.genomeSize(false));
+	addQcValue(output, "QC:2000050", "bases usable (MB)", (double) bases_usable / 1000000.0);
+	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / (reader.genomeSize(false) - no_base));
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -923,7 +936,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		roi_bases += line.length();
 	}
 
-	//prepare At/GC dropout data structure
+	//prepare AT/GC dropout data structure
 	BedFile dropout;
 	dropout.add(roi);
 	dropout.chunk(100);
@@ -1073,6 +1086,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			}
 		}
 	}
+	bases_usable -= bases_clipped;
 
 	//calculate coverage depth statistics
 	double avg_depth = (double) bases_usable_roi / roi.baseCount();
@@ -1125,6 +1139,17 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		}
 	}
 
+	//calcualte number of 'N' bases in genome (takes about 10s, but that's ok for WGS QC)
+	double no_base = 0.0;
+	foreach(const Chromosome& c, reader.chromosomes())
+	{
+		if (c.isNonSpecial())
+		{
+			int n = ref_idx.n(c);
+			no_base +=n;
+		}
+	}
+
 	//output
 	QCCollection output;
 	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
@@ -1150,7 +1175,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
 	}
 	addQcValue(output, "QC:2000050", "bases usable (MB)", (double) bases_usable / 1000000.0);
-	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / reader.genomeSize(false));
+	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / (reader.genomeSize(false) - no_base));
 
 	if (roi_available)
 	{
@@ -1608,7 +1633,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	//variants
 	VcfFile variants;
 
-	variants.load(somatic_vcf, true);
+	variants.load(somatic_vcf);
 
 	variants.sort();
 
@@ -2059,10 +2084,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	{
 		FastaFileIndex reference(ref_fasta);
 		int bin = 50000000;
-		for(int i=0; i<reference.names().count(); ++i)
+		foreach(const Chromosome& chr, reference.chromosomes())
 		{
-			Chromosome chr = reference.names().at(i);
-
 			if(!chr.isNonSpecial()) continue;
 
 			int chrom_length = reference.lengthOf(chr);
@@ -2313,7 +2336,8 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 
 	//load relevant variants from VCF
 	VcfFile vl;
-	vl.load(filename, roi);
+	vl.setRegion(roi);
+	vl.load(filename);
 
 	//multi-sample VCF is not supported
 	if(vl.sampleIDs().count()!=1)
@@ -2535,6 +2559,12 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 
 double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 {
+	// return NaN if chrX or chrY does not exist
+	if (!reader.chromosomes().contains(Chromosome("chrX")) ||
+		!reader.chromosomes().contains(Chromosome("chrY")))
+	{
+		return std::numeric_limits<double>::quiet_NaN();
+	}
 	//reads chrY
 	double reads_y = 0;
 	BamAlignment al;
