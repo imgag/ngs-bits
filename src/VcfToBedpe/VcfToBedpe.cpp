@@ -22,7 +22,7 @@ struct VcfToBedpe::VcfLineInternal
 	VcfLineInternal(const QByteArray& raw_line)
 	{
 		QByteArrayList parts = raw_line.split('\t');
-		if(parts.count() < 9) THROW(FileParseException,"Could not parse vcf line containing Structural variants!");
+		if(parts.count() < 9) THROW(FileParseException,"Could not parse vcf line containing less than 9 columns (line:" + raw_line.trimmed() + ")!");
 
 		chr = parts[0];
 		pos = parts[1];
@@ -212,6 +212,7 @@ VcfToBedpe::VcfToBedpe(const QByteArray& filename)
 	: filename_(filename)
 	, file_(filename)
 {
+	file_.setGzBufferSize(4194304);//increase buffer size for strange large SV calls from Sniffles
 	file_.open();
 	while(!file_.atEnd())
 	{
