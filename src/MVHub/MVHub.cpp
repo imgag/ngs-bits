@@ -366,6 +366,7 @@ void MVHub::updateTableFilters()
 		int c_network_id = colOf("Netzwerk ID");
 		int c_consent = colOf("consent");
 		int c_consent_cm = colOf("consent signed [CM]");
+		int c_consent_ver = colOf("consent version [SE]");
 		int c_report_date = colOf("Befunddatum");
 		int c_te_retracted = colOf("Kündigung TE");
 
@@ -392,7 +393,7 @@ void MVHub::updateTableFilters()
 				}
 
 				//consent data available
-				if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
+				if (getString(r, c_consent_ver).startsWith("Erwachsene") && getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
 				{
 					visible[r] = false;
 					continue;
