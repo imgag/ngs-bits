@@ -2,9 +2,9 @@
 <DiagnosticNgsReport version="1" genome_build="GRCh37">
     <ReportGeneration date="2022-01-30" user_name="ahtest1" software="cppNGSD-TEST-CASE"/>
     <Sample name="DX000001_01" processing_system="tumor only test panel" processing_system_type="Panel" comments="MHH_STUFF_IN_COMMENT">
+        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="210.30"/>
         <QcTerm id="QC:2000030" name="target region 100x percentage" def="Percentage of the target region that is covered at least 100-fold." value="94.70"/>
         <QcTerm id="QC:2000032" name="target region 500x percentage" def="Percentage of the target region that is covered at least 500-fold." value="89.87"/>
-        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="210.30"/>
     </Sample>
     <AnalysisPipeline name="megSAP" version="0.2-413-gaf6ed63"/>
     <TargetRegion name="tum_only_target_filter">
