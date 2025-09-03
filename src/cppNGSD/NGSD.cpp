@@ -4551,7 +4551,7 @@ QCCollection NGSD::getQCData(const QString& processed_sample_id)
 {
 	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id, n.type FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + processed_sample_id + "' AND nm.qc_terms_id=n.id AND n.obsolete=0");
+	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id, n.type FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + processed_sample_id + "' AND nm.qc_terms_id=n.id AND n.obsolete=0 ORDER BY n.qcml_id");
 	QCCollection output;
 	while(q.next())
 	{

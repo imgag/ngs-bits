@@ -2559,6 +2559,12 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 
 double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 {
+	// return NaN if chrX or chrY does not exist
+	if (!reader.chromosomes().contains(Chromosome("chrX")) ||
+		!reader.chromosomes().contains(Chromosome("chrY")))
+	{
+		return std::numeric_limits<double>::quiet_NaN();
+	}
 	//reads chrY
 	double reads_y = 0;
 	BamAlignment al;

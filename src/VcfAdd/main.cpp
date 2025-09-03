@@ -19,7 +19,7 @@ public:
 	{
 		setDescription("Merges several VCF files into one VCF by appending one to the other.");
 		setExtendedDescription(QStringList() << "Variant lines from all other input files are appended to the first input file." << "VCF header lines are taken from the first input file only.");
-		addInfileList("in", "Input VCF ro VCG.GZ files to merge.", false);
+		addInfileList("in", "Input files to merge in VCF or VCG.GZ format.", false);
 
 		//optional
 		addOutfile("out", "Output VCF file with all variants.", true);

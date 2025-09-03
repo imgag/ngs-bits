@@ -212,6 +212,15 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 			}
 		}
 
+		//QC data
+		if (ui_.qc_data->isChecked())
+		{
+			foreach(const QString& ps_id, ps_ids_)
+			{
+				db.getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id=" + ps_id);
+			}
+		}
+
 		//processed sample
 		if (ui_.processed_sample->isChecked())
 		{

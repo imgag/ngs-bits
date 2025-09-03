@@ -3,21 +3,21 @@
     <ReportGeneration date="2000-01-01" user_name="ahmustm1" software="cppNGSD-TEST 0.1-cppNGSD-TEST-Version"/>
     <PatientInfo sap_patient_identifier="SAP_TEST_IDENTIFIER"/>
     <TumorSample name="DNA123456_01" processing_system="HaloPlex HBOC v5" processing_system_type="Panel" sequencer="MiSeq" average_depth="131.24" type="DNA" is_ffpe="false" tumor_content_histology="0.700" tumor_content_bioinformatic="0.650" mutation_burden="3.41" microsatellite_instability="5.75" hrd_score_chromo="48">
+        <QcTerm id="QC:2000023" name="insert size" def="Average insert size (for paired-end reads only)." value="244.50"/>
         <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="131.24"/>
         <QcTerm id="QC:2000053" name="somatic variant rate" def="Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp]." value="3.41"/>
         <QcTerm id="QC:2000054" name="tumor content estimate" def="Estimate of tumor content." value="62.62"/>
-        <QcTerm id="QC:2000125" name="HRD: homologous recombination deficiency" def="Sum of TAI, LST and LOH events." value="48"/>
         <QcTerm id="QC:2000062" name="somatic LOH events" def="Count of large somatic LOHs events (that do not touch centromeres)." value="10"/>
         <QcTerm id="QC:2000063" name="telomer allelic imbalance" def="Count of somatic telomer allelic imbalance (TAI) events." value="23"/>
         <QcTerm id="QC:2000064" name="long state transition" def="Count of somatic long state transition (LST) events." value="9"/>
+        <QcTerm id="QC:2000125" name="HRD: homologous recombination deficiency" def="Sum of TAI, LST and LOH events." value="48"/>
         <QcTerm id="QC:2000141" name="MSI percentage unstable regions" def="Percentage of microsatelite regions that are unstable" value="5.75"/>
-        <QcTerm id="QC:2000023" name="insert size" def="Average insert size (for paired-end reads only)." value="244.50"/>
     </TumorSample>
     <NormalSample name="NA12878_03" processing_system="HaloPlex HBOC v5" processing_system_type="Panel" sequencer="MiSeq" average_depth="103.24">
-        <QcTerm id="QC:2000027" name="target region 20x percentage" def="Percentage of the target region that is covered at..." value="95.96"/>
-        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="103.24"/>
-        <QcTerm id="QC:2000053" name="somatic variant rate" def="Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp]." value="3.42"/>
         <QcTerm id="QC:2000023" name="insert size" def="Average insert size (for paired-end reads only)." value="249.45"/>
+        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="103.24"/>
+        <QcTerm id="QC:2000027" name="target region 20x percentage" def="Percentage of the target region that is covered at..." value="95.96"/>
+        <QcTerm id="QC:2000053" name="somatic variant rate" def="Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp]." value="3.42"/>
     </NormalSample>
     <AnalysisPipeline name="megSAP" version="2022_08-55-g2538d173" url="https://github.com/imgag/megSAP" comment="Mapping: bwa mem, Indel Realignment: Abra2, Variant Caller: Strelka2, CNV Caller: ClinCNV"/>
     <TargetRegion name="VirtualTumorPanel_v5_exon20_ahott1a1_20230505">
