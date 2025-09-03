@@ -1522,7 +1522,7 @@ void VcfFile::checkValues(const DefinitionLine& def, const QByteArrayList& value
 		{
 			if (value!=".")
 			{
-				value.toFloat(&value_valid);
+				value.toDouble(&value_valid);
 			}
 		}
 		else if (def.type=="Character")
