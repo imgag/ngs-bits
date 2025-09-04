@@ -524,6 +524,7 @@
      <addaction name="separator"/>
      <addaction name="actionExportTestData"/>
      <addaction name="actionImportTestData"/>
+     <addaction name="actionExportSampleData"/>
      <addaction name="separator"/>
      <addaction name="actionPrepareGhgaUpload"/>
      <addaction name="separator"/>
@@ -1541,6 +1542,11 @@
   <action name="actionSampleCounts">
    <property name="text">
     <string>Sample counts</string>
+   </property>
+  </action>
+  <action name="actionExportSampleData">
+   <property name="text">
+    <string>Export sample data</string>
    </property>
   </action>
  </widget>

@@ -1,3 +1,26 @@
+# Running GSvar client application
+
+ The Mac version works exclusively on Apple Silicon machines and will not launch on older Intel Macs. At the moment GSvar for Mac is distributed as an individual DMG file (not through the official App Store). It may cause some inconveniences due to the Mac OS privacy and security settings. GSvar needs to be added as an exception, since Mac OS cannot establish or verify where the app comes from. This might change in the future, but for now please follow these steps to launch GSvar:
+
+- Download DMG file
+- Double click on the file, you will see the app container (this may take several minutes, since the operating system will be performing some checks)
+- Copy GSvar to your computer: open the context menu and select `Copy` (or use `Cmd` + `C`)
+![Qt login form](dmg.jpeg)
+- Open `Applications` folder, call the context menu and select `Paste Item` (or use `Cmd` + `V`)
+![Qt login form](apps.jpeg)
+- Launch GSvar from `Applications` folder or using `Spotlight` (press `cmd` + `space` and type `GSvar`). Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the drop-down list next to the `Allow applications from`. If choosing the `App Store & Known Developers` option does not solve the problem, you will need to disable `Gatekeeper` by executing `sudo spctl --master-disable` in the terminal. After that `Anywhere` option will become available. More information is available [`here`](https://support.apple.com/en-us/102445).
+- During the launch GSvar will ask to perform its automatic configuration, press `Yes`. It will generate `settings.ini` file containing settings tuned to your system
+![Qt login form](autoconfig.jpeg)
+
+## IGV installation
+- Download IGV from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/). Choose the `IGV for MacOS (Apple Chip - Java included)` version
+- IGV has to be started, before you launch GSvar. Otherwise GSvar may have problems with the connection to IGV. 
+
+## Integration with IGV
+
+For more details related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
+
+
 # Building ngs-bits from sources MacOS
 
 ## Dependencies
@@ -96,22 +119,3 @@ Steps to update an existing cloud instance of GSvar server
 GSvar can be build from inside Qt Creator by using its standard mechanisms:
 
 	> tools_gui -> Release -> GSvar
-
-## Running GSvar client app
-
-At the moment GSvar is distributed as an individual DMG file (not through the official App Store). It may cause some inconveniences due to the Mac OS privacy and security settings. GSvar needs to be added as an exception, since Mac OS cannot establish or verify where the app comes from. Follow these steps to launch GSvar:
-
-- Download DMG file
-- Double click on the file, you will see the app container (this may take several minutes, since the operating system will be performing some checks)
-- Copy-paste or drag-and-drop GSvar into your `Applications` folder
-- Launch GSvar from `Applications` folder or using `Spotlight`. Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the drop-down list next to the `Allow applications from`. If choosing the `App Store & Known Developers` option does not solve the problem, you will need to disable `Gatekeeper` by executing `sudo spctl --master-disable` in the terminal. After that `Anywhere` option will become available
-- During the launch GSvar will ask to perform its automatic configuration, press `Yes`. It will generate `settings.ini` file containing settings tuned to your system
-
-## IGV installation
-- Download IGV from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/). Choose the `Command line IGV and igvtools for all platforms` version
-- If you do not have Java 21 or greater installed, run `brew install openjdk`, and follow the instructions (pay attention to the $PATH variable). If Java is installed correctly, you should be able to run `java -version` in your terminal
-- IGV has to be started, before you launch GSvar. In the terminal run `[FULL_PATH]/igv.sh --port 61152` script from the IGV folder. IGV will be listening to commands from GSvar. If there are problems with IGV, you should be able to see them in the terminal. 
-
-## Integration with IGV
-
-For more details related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
