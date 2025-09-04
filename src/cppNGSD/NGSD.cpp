@@ -231,7 +231,8 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 					ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
 					break;
 			}
-		}		
+		}
+		if (user_can_access.contains(user_id)) ps_ids = user_can_access.value(user_id);
 		user_can_access.insert(user_id, ps_ids);
 	}
 	return ps_ids.contains(ps_id);
