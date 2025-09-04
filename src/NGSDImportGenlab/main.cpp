@@ -122,7 +122,7 @@ public:
 				if (ps_data.quality == "bad") continue;
 
 				QString run_status = db.getValue("SELECT status FROM sequencing_run WHERE name='" + ps_data.run_name + "'").toString();
-				if (run_status!="run_started" && run_status!="demultiplexing_started" && run_status!="analysis_started" && run_status!="analysis_finished") continue;
+				if (run_status == "run_aborted") continue;
 
 				if (best_candidate.name.isEmpty())
 				{
