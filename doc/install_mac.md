@@ -4,9 +4,13 @@
 
 - Download DMG file
 - Double click on the file, you will see the app container (this may take several minutes, since the operating system will be performing some checks)
-- Copy GSvar into your `Applications` folder
-- Launch GSvar from `Applications` folder or using `Spotlight` (press `cmd` + `space` and type `GSvar`). Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the drop-down list next to the `Allow applications from`. If choosing the `App Store & Known Developers` option does not solve the problem, you will need to disable `Gatekeeper` by executing `sudo spctl --master-disable` in the terminal. After that `Anywhere` option will become available
+- Copy GSvar to your computer: open the context menu and select `Copy` (or use `Cmd` + `C`)
+![Qt login form](dmg.jpeg)
+- Open `Applications` folder, call the context menu and select `Paste Item` (or use `Cmd` + `V`)
+![Qt login form](apps.jpeg)
+- Launch GSvar from `Applications` folder or using `Spotlight` (press `cmd` + `space` and type `GSvar`). Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the drop-down list next to the `Allow applications from`. If choosing the `App Store & Known Developers` option does not solve the problem, you will need to disable `Gatekeeper` by executing `sudo spctl --master-disable` in the terminal. After that `Anywhere` option will become available. More information is available [`here`](https://support.apple.com/en-us/102445).
 - During the launch GSvar will ask to perform its automatic configuration, press `Yes`. It will generate `settings.ini` file containing settings tuned to your system
+![Qt login form](autoconfig.jpeg)
 
 ## IGV installation
 - Download IGV from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/). Choose the `IGV for MacOS (Apple Chip - Java included)` version
