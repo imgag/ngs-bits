@@ -521,6 +521,17 @@ int main(int argc, char **argv)
 					});
 
     int server_port = 0;
+	int server_internal_port = 0; // needed if we have a revese proxy, server_port will be used to create URL only
+	try
+	{
+		server_internal_port = Settings::integer("server_internal_port");
+	}
+	catch (Exception& e)
+	{
+		Log::info("Reverse proxy configuration will not be applied: " + e.message());
+		server_internal_port = 0;
+	}
+
 	if (!server_port_cli.isEmpty())
 	{
 		Log::info("HTTPS server port has been provided through the command line arguments:" + server_port_cli);
@@ -534,6 +545,7 @@ int main(int argc, char **argv)
 	}
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
+	if (server_internal_port>0) server_port = server_internal_port; // Use only, if we need a reverse proxy
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
 	{
