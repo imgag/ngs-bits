@@ -76,7 +76,6 @@ void ExternalToolDialog::browse()
 
 			//open BAM file
 			BamReader reader(filename);
-			bool is_single_end = reader.is_single_end();
 
 			GenderEstimate estimate;
 			if (mode_=="xy")
@@ -85,7 +84,7 @@ void ExternalToolDialog::browse()
 			}
 			else if (mode_=="hetx")
 			{
-				estimate = Statistics::genderHetX(GSvarHelper::build(), filename, 0.15, 0.24, QString(), is_single_end);
+				estimate = Statistics::genderHetX(GSvarHelper::build(), filename, 0.15, 0.24, QString(), !reader.info().paired_end);
 			}
 			else if (mode_=="sry")
 			{

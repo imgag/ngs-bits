@@ -187,7 +187,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		{
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
 		}
-		//Fills the given vector with integer representations of bases ()
+		//Fills the given vector with integer representations of bases (faster than characters - A=1, C=2, G=4, T=8, N=15)
 		QVector<int> baseIntegers() const;
 
 		//Returns the sequence qualities - ASCII encoded in Illumina 1.8 format i.e. 0-41 equals '!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJ'
@@ -276,6 +276,13 @@ struct CPPNGSSHARED_EXPORT VariantDetails
 	int obs;
 };
 
+struct BamInfo
+{
+	QByteArray build;
+	bool paired_end;
+
+};
+
 //C++ wrapper for htslib BAM file access
 class CPPNGSSHARED_EXPORT BamReader
 {
@@ -293,13 +300,8 @@ class CPPNGSSHARED_EXPORT BamReader
 		QByteArrayList headerLines() const;
 		//Returns the genome build based on the length of the chr1 (works for human only). Throws an exception if it could not be determined.
 		GenomeBuild build() const;
-		/**
-			@brief Returns true if reads from loaded BAM file are from long-read sequencing
-			@warning WARNING: function changes the set region, use before setting a region or re-set your region
-			@details Checks the BRCA1 locus for single-end reads
-			@param reads	number of reads which are checked
-		*/
-		bool is_single_end(int reads=100);
+		//Returns general information about a BAM file. Note: it changes the region, thus use before setting a region or re-set region afterwards
+		BamInfo info();
 
 		//Set region for alignment retrieval (1-based coordinates).
 		void setRegion(const Chromosome& chr, int start, int end);

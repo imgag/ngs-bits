@@ -542,15 +542,19 @@ private slots:
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
 	}
 
-	void is_single_end()
+	void info()
 	{
 		//short read (paired-end)
 		BamReader reader1(TESTDATA("data_in/BamReader_sr.bam"));
-		IS_FALSE(reader1.is_single_end());
+		BamInfo info1 = reader1.info();
+		S_EQUAL(info1.build, "hg38");
+		IS_TRUE(info1.paired_end);
 
 		//long read (sinle-end)
 		BamReader reader2(TESTDATA("data_in/BamReader_lr.bam"));
-		IS_TRUE(reader2.is_single_end());
+		BamInfo info2 = reader2.info();
+		S_EQUAL(info2.build, "hg38");
+		IS_FALSE(info2.paired_end);
 	}
 
 };
