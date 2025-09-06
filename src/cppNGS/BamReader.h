@@ -278,9 +278,13 @@ struct CPPNGSSHARED_EXPORT VariantDetails
 
 struct BamInfo
 {
-	QByteArray build;
-	bool paired_end;
-
+    QByteArray file_format; //'BAM' or 'CRAM' plus container version
+    QByteArray build; //hg38, hg19 or empty
+    bool false_duplications_masked = true; //checked for hg38 only
+    bool contains_alt_chrs = false;
+    bool paired_end;
+    QByteArray mapper; //the last used mapper
+    QByteArray mapper_version;
 };
 
 //C++ wrapper for htslib BAM file access
@@ -289,7 +293,7 @@ class CPPNGSSHARED_EXPORT BamReader
 	public:
 		//Default constructor
 		BamReader(const QString& bam_file);
-		//CRAM Constructor with explicit reference genome
+        //CRAM Constructor with explicit reference genome
 		//reference genome is mandatory for CRAM support
         BamReader(const QString& bam_file, QString ref_genome);
 

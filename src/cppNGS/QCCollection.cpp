@@ -404,6 +404,7 @@ QCCollection QCCollection::fromQCML(QString filename, QString obo, QStringList& 
 	//open file
 	QDomDocument doc;	
 	QFile f(filename);
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
 
     #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     QDomDocument::ParseResult result = doc.setContent(&f);

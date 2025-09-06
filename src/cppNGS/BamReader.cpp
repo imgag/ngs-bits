@@ -1,6 +1,7 @@
 #include "BamReader.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "VersatileFile.h"
 
 /*
 External documentation used for the implementation:
@@ -513,7 +514,7 @@ BamReader::~BamReader()
 	clearIterator();
 	hts_idx_destroy(index_);
 	sam_hdr_destroy(header_);
-	hts_close(fp_);
+    hts_close(fp_);
 }
 
 QByteArrayList BamReader::headerLines() const
@@ -539,6 +540,22 @@ BamInfo BamReader::info()
 {
 	BamInfo output;
 
+    //CRAM container version
+    VersatileFile f(bam_file_);
+    f.open(QFile::ReadOnly);
+    QByteArray header = f.read(6);
+    if (header.startsWith("CRAM"))
+    {
+        quint8 major = static_cast<quint8>(header[4]);
+        quint8 minor = static_cast<quint8>(header[5]);
+        output.file_format = "CRAM "+QByteArray::number(major) + "." + QByteArray::number(minor);
+    }
+    else
+    {
+        output.file_format = "BAM";
+    }
+    f.close();
+
 	//genome build
 	try
 	{
@@ -546,22 +563,15 @@ BamInfo BamReader::info()
 	}
 	catch (...) {}
 
-
-	//paired end
-	if (output.build=="hg38")
-	{
-		setRegion(Chromosome("chr17"), 43091500, 43094000);
-	}
-	else //HG19
-	{
-		setRegion(Chromosome("chr17"), 41243500, 41246500);
-	}
+    //paired end
 	double n_all = 0;
 	double n_paired = 0;
-	BamAlignment al;
+    clearIterator();
+    BamAlignment al;
 	while (getNextAlignment(al))
 	{
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
+        if (al.mappingQuality()<20) continue;
 
 		if (al.isPaired()) n_paired += 1.0;
 
@@ -569,6 +579,88 @@ BamInfo BamReader::info()
 		if (n_all >= 100.0) break;
 	}
 	output.paired_end = n_paired/n_all > 0.1;
+
+    //mapper
+    QByteArrayList headers = headerLines();
+    for(int i=headers.count()-1; i>=0; --i) //last @PG line is the most important
+    {
+        QByteArray line = headers[i];
+        if (!line.startsWith("@PG")) continue;
+
+        if (line.contains("PN:bwa-mem2"))
+        {
+            output.mapper = "bwa-mem2";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+        if (line.contains("PN:bwa"))
+        {
+            output.mapper = "bwa";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+        if (line.contains("ID: DRAGEN SW build"))
+        {
+            output.mapper = "DRAGEN";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:"))
+                {
+                    QByteArrayList parts = part.mid(3).trimmed().split('.');
+
+                    output.mapper_version = parts.mid(parts.count()-3).join('.');
+                }
+            }
+            break;
+        }
+        if (line.contains("PN:minimap2"))
+        {
+            output.mapper = "minimap2";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+
+        if (line.contains("PN:STAR"))
+        {
+            output.mapper = "STAR";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed().replace("STAR_", "");
+            }
+            break;
+        }
+    }
+
+    //false duplications masked (checks a masked region. Nothing is mapped there if mased. Works for WES/panel as well because of off-target reads).
+    if (output.build=="hg38")
+    {
+        setRegion("chr21", 5968000, 6160000);
+        while(getNextAlignment(al))
+        {
+            output.false_duplications_masked = false;
+            break;
+        }
+    }
+
+    //alt chrs
+    foreach(const Chromosome& chr, chromosomes())
+    {
+        QByteArray name = chr.str().toLower();
+        if (name.endsWith("_alt") || name.endsWith("_hap1")) //_alt for hg38, _hap for hg19
+        {
+            output.contains_alt_chrs = true;
+            break;
+        }
+    }
 
 	return output;
 }

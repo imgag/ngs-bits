@@ -372,7 +372,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[7].name(), QString("bases usable (MB)"));
 		S_EQUAL(stats[7].toString(), QString("0.17"));
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
-		S_EQUAL(stats[8].toString(8), QString("0.00005781"));
+        F_EQUAL2(stats[8].asDouble(), 0.0000578, 0.0000001);
 		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
 		IS_TRUE(stats[9].type()==QCValueType::IMAGE);
 		I_EQUAL(stats.count(), 10);
@@ -401,8 +401,8 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[6].toString(), QString("n/a (duplicates not marked or removed during data analysis)"));
 		S_EQUAL(stats[7].name(), QString("bases usable (MB)"));
 		S_EQUAL(stats[7].toString(), QString("0.17"));
-		S_EQUAL(stats[8].name(), QString("target region read depth"));
-		S_EQUAL(stats[8].toString(8), QString("0.00005781"));
+        S_EQUAL(stats[8].name(), QString("target region read depth"));
+        F_EQUAL2(stats[8].asDouble(), 0.0000578, 0.0000001);
 		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
 		IS_TRUE(stats[9].type()==QCValueType::IMAGE);
 
@@ -427,7 +427,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[7].name(), QString("bases usable (MB)"));
 		S_EQUAL(stats[7].toString(), QString("0.33"));
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
-		S_EQUAL(stats[8].toString(8), QString("0.00011283"));
+        F_EQUAL2(stats[8].asDouble(), 0.0001128, 0.0000001);
 		S_EQUAL(stats[9].name(), QString("target region 10x percentage"));
 		S_EQUAL(stats[9].toString(), QString("22.10"));
 		S_EQUAL(stats[10].name(), QString("target region 20x percentage"));

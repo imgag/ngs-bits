@@ -13,6 +13,10 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
+SUBDIRS += BamInfo
+tools-TEST.depends += BamInfo
+BamInfo.depends = cppNGS
+
 SUBDIRS += SampleAncestry
 tools-TEST.depends += SampleAncestry
 SampleAncestry.depends = cppNGS

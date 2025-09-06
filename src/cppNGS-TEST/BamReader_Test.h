@@ -523,7 +523,7 @@ private slots:
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 4);
 		//DELATION
 		pileup = reader.getPileup("chr2", 47806751, 1);
-		I_EQUAL(pileup.depth(false), 32);
+        I_EQUAL(pileup.depth(false), 32);
 		I_EQUAL(pileup.a(), 0);
 		I_EQUAL(pileup.indels().count(), 26);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 14);
@@ -543,18 +543,45 @@ private slots:
 	}
 
 	void info()
-	{
-		//short read (paired-end)
-		BamReader reader1(TESTDATA("data_in/BamReader_sr.bam"));
-		BamInfo info1 = reader1.info();
-		S_EQUAL(info1.build, "hg38");
-		IS_TRUE(info1.paired_end);
+    {
+        //CRAM - short read DNA, HG38, no ALT
+        {
+            BamReader reader(TESTDATA("data_in/cramTest.cram"));
+            BamInfo info = reader.info();
+            S_EQUAL(info.version, "CRAM 3.0");
+            S_EQUAL(info.build, "hg38");
+            IS_TRUE(info.paired_end);
+            S_EQUAL(info.mapper, "bwa");
+            S_EQUAL(info.mapper_version, "0.7.17-r1188");
+            IS_TRUE(info.false_duplications_masked);
+            IS_FALSE(info.contains_alt_chrs);
+        }
 
-		//long read (sinle-end)
-		BamReader reader2(TESTDATA("data_in/BamReader_lr.bam"));
-		BamInfo info2 = reader2.info();
-		S_EQUAL(info2.build, "hg38");
-		IS_FALSE(info2.paired_end);
-	}
+        //BAM - long read DNA, HG38, no ALT
+        {
+            BamReader reader(TESTDATA("data_in/BamReader_lr.bam"));
+            BamInfo info = reader.info();
+            S_EQUAL(info.version, "BAM");
+            S_EQUAL(info.build, "hg38");
+            IS_FALSE(info.paired_end);
+            S_EQUAL(info.mapper, "minimap2");
+            S_EQUAL(info.mapper_version, "2.26-r1175");
+            IS_TRUE(info.false_duplications_masked);
+            IS_FALSE(info.contains_alt_chrs);
+        }
+
+        //BAM - short-read RNA, HG19, with ALT
+        {
+            BamReader reader(TESTDATA("/data_in/BamReader_rna.bam"));
+            BamInfo info = reader.info();
+            S_EQUAL(info.version, "BAM");
+            S_EQUAL(info.build, "hg19");
+            IS_TRUE(info.paired_end);
+            S_EQUAL(info.mapper, "STAR");
+            S_EQUAL(info.mapper_version, "2.3.0e_r291");
+            IS_TRUE(info.false_duplications_masked);
+            IS_TRUE(info.contains_alt_chrs);
+        }
+    }
 
 };
