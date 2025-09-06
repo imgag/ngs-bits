@@ -548,7 +548,7 @@ private slots:
         {
             BamReader reader(TESTDATA("data_in/cramTest.cram"));
             BamInfo info = reader.info();
-            S_EQUAL(info.version, "CRAM 3.0");
+            S_EQUAL(info.file_format, "CRAM 3.0");
             S_EQUAL(info.build, "hg38");
             IS_TRUE(info.paired_end);
             S_EQUAL(info.mapper, "bwa");
@@ -561,7 +561,7 @@ private slots:
         {
             BamReader reader(TESTDATA("data_in/BamReader_lr.bam"));
             BamInfo info = reader.info();
-            S_EQUAL(info.version, "BAM");
+            S_EQUAL(info.file_format, "BAM");
             S_EQUAL(info.build, "hg38");
             IS_FALSE(info.paired_end);
             S_EQUAL(info.mapper, "minimap2");
@@ -574,7 +574,7 @@ private slots:
         {
             BamReader reader(TESTDATA("/data_in/BamReader_rna.bam"));
             BamInfo info = reader.info();
-            S_EQUAL(info.version, "BAM");
+            S_EQUAL(info.file_format, "BAM");
             S_EQUAL(info.build, "hg19");
             IS_TRUE(info.paired_end);
             S_EQUAL(info.mapper, "STAR");
