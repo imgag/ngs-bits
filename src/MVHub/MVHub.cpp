@@ -10,7 +10,6 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QDomDocument>
 #include <QPushButton>
 #include <QFileDialog>
 #include <QClipboard>
@@ -772,17 +771,19 @@ int MVHub::updateHpoTerms(int debug_level)
 
 		//determine HPO terms in MVH database
 		PhenotypeList hpo_mvh;
-		QString se_data = mvh_db.getValue("SELECT se_data FROM case_data WHERE se_id='"+se_id+"'").toString();
-		QDomDocument doc; //TODO Marc move loading XML from file/text with error handling to XMLHelper class
-		QString error_msg;
-		int error_line, error_column;
-		if(!doc.setContent(se_data, &error_msg, &error_line, &error_column))
-		{
-			addOutputLine(se_id + "/" + ps + ": could not parse SE data: " + error_msg + " in line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
-			continue;
-		}
+        QByteArray se_data = mvh_db.getValue("SELECT se_data FROM case_data WHERE se_id='"+se_id+"'").toByteArray();
+        QDomDocument doc;
+        try
+        {
+            doc = XmlHelper::parse(se_data);
+        }
+        catch (Exception& e)
+        {
+            addOutputLine(se_id + "/" + ps + ": could not parse SE data: " + e.message());
+            continue;
+        }
 		QDomElement root = doc.documentElement();
-		for(QDomNode n = root.firstChild(); !n.isNull(); n = n.nextSibling()) //TODO Marc use 'for' loop everywhere to avoid hanging in case someone uses 'continue' in the loop
+        for(QDomNode n = root.firstChild(); !n.isNull(); n = n.nextSibling())
 		{
 			QDomElement e = n.toElement(); // try to convert the node to an element.
 			if(!e.isNull() && e.nodeName()=="item")
@@ -884,15 +885,17 @@ int MVHub::updateVariants(int debug_level)
 
 		//determine variants in MVH database
 		QStringList variants_mvh;
-		QString se_data = mvh_db.getValue("SELECT se_data FROM case_data WHERE se_id='"+se_id+"'").toString();
-		QDomDocument doc;
-		QString error_msg;
-		int error_line, error_column;
-		if(!doc.setContent(se_data, &error_msg, &error_line, &error_column))
-		{
-			addOutputLine(se_id + "/" + ps + ": could not parse SE data: " + error_msg + " in line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
-			continue;
-		}
+        QByteArray se_data = mvh_db.getValue("SELECT se_data FROM case_data WHERE se_id='"+se_id+"'").toByteArray();
+        QDomDocument doc;
+        try
+        {
+            doc = XmlHelper::parse(se_data);
+        }
+        catch (Exception& e)
+        {
+            addOutputLine(se_id + "/" + ps + ": could not parse SE data: " + e.message());
+            continue;
+        }
 		QDomElement root = doc.documentElement();
 		for(QDomNode n = root.firstChild(); !n.isNull(); n = n.nextSibling())
 		{
@@ -1469,19 +1472,12 @@ void MVHub::loadDataFromCM(int debug_level)
 
 		//get IDs of entries currently in RedCap
 		QSet<QString> cm_ids_redcap;
-		foreach(QString line, reply)
+        foreach(QByteArray line, reply)
 		{
 			if (!line.startsWith("<item>")) continue;
 
 			//open file
-			QDomDocument doc;
-			QString error_msg;
-			int error_line, error_column;
-			if(!doc.setContent(line, &error_msg, &error_line, &error_column))
-			{
-				THROW(FileParseException, "XML invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
-			}
-
+            QDomDocument doc = XmlHelper::parse(line);
 			QDomElement root = doc.documentElement();
 			QString cm_id = root.namedItem("record_id").toElement().text().trimmed();
 			cm_ids_redcap << cm_id;
@@ -1499,19 +1495,12 @@ void MVHub::loadDataFromCM(int debug_level)
 		}
 
 		//add/update database entries with up-to-date data from RedCap API
-		foreach(QString line, reply)
+        foreach(QByteArray line, reply)
 		{
 			if (!line.startsWith("<item>")) continue;
 
 			//open file
-			QDomDocument doc;
-			QString error_msg;
-			int error_line, error_column;
-			if(!doc.setContent(line, &error_msg, &error_line, &error_column))
-			{
-				THROW(FileParseException, "XML invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
-			}
-
+            QDomDocument doc = XmlHelper::parse(line);
 			QDomElement root = doc.documentElement();
 			QString cm_id = root.namedItem("record_id").toElement().text().trimmed();
 
@@ -1589,19 +1578,12 @@ void MVHub::loadDataFromCM(int debug_level)
 
 		//update export confirmation (from repeat elements)
 		QHash<QString, QStringList> cmid2conf;
-		foreach(QString line, reply)
+        foreach(QByteArray line, reply)
 		{
 			if (!line.startsWith("<item>")) continue;
 
 			//open file
-			QDomDocument doc;
-			QString error_msg;
-			int error_line, error_column;
-			if(!doc.setContent(line, &error_msg, &error_line, &error_column))
-			{
-				THROW(FileParseException, "XML invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
-			}
-
+            QDomDocument doc = XmlHelper::parse(line);
 			QDomElement root = doc.documentElement();
 			QString cm_id = root.namedItem("record_id").toElement().text().trimmed();
 
@@ -1650,16 +1632,10 @@ void MVHub::loadDataFromSE()
 		headers.insert("Content-Type", "application/x-www-form-urlencoded");
 		QByteArray data = "token="+Settings::string("redcap_se_token").toLatin1()+"&content=record&rawOrLabel=label";
 		HttpHandler handler(true);
-		QByteArrayList reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).split('\n');
+        QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers);
 
 		//parse items
-		QDomDocument doc;
-		QString error_msg;
-		int error_line, error_column;
-		if(!doc.setContent(reply.join("\n"), &error_msg, &error_line, &error_column))
-		{
-			THROW(FileParseException, "XML invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
-		}
+        QDomDocument doc = XmlHelper::parse(reply);
 		QDomElement root = doc.documentElement();
 		QDomNode n = root.firstChild();
 		while(!n.isNull())

@@ -19,7 +19,6 @@ TEST_CLASS(NGSD_Test)
 {
 Q_OBJECT
 private slots:
-
 	//Normally, one member is tested in one QT slot.
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	void main_tests()
@@ -3458,7 +3457,7 @@ private slots:
 
 		COMPARE_FILES("out/NovaSeqX_samplesheet2.csv",  TESTDATA("data_out/NovaSeqX_samplesheet2.csv") );
 
-	}
+    }
 
     void test_export_sample_data()
     {

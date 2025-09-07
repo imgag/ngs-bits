@@ -187,7 +187,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		{
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
 		}
-		//Fills the given vector with integer representations of bases ()
+		//Fills the given vector with integer representations of bases (faster than characters - A=1, C=2, G=4, T=8, N=15)
 		QVector<int> baseIntegers() const;
 
 		//Returns the sequence qualities - ASCII encoded in Illumina 1.8 format i.e. 0-41 equals '!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJ'
@@ -276,35 +276,42 @@ struct CPPNGSSHARED_EXPORT VariantDetails
 	int obs;
 };
 
+struct BamInfo
+{
+    QByteArray file_format; //'BAM' or 'CRAM' plus container version
+    QByteArray build; //hg38, hg19 or empty
+    bool false_duplications_masked = true; //checked for hg38 only
+    bool contains_alt_chrs = false;
+    bool paired_end;
+    QByteArray mapper; //the last used mapper
+    QByteArray mapper_version;
+};
+
 //C++ wrapper for htslib BAM file access
 class CPPNGSSHARED_EXPORT BamReader
 {
 	public:
 		//Default constructor
 		BamReader(const QString& bam_file);
-		//CRAM Constructor with explicit reference genome
+        //CRAM Constructor with explicit reference genome
 		//reference genome is mandatory for CRAM support
         BamReader(const QString& bam_file, QString ref_genome);
-
 		//Destructor
 		~BamReader();
+
+        //TODO Marc: Add option to read only part of the read (e.g. no bases, no quality, no annotations) to speed up certain operations (e.g. read QC in MappingQC). See https://brentp.github.io/post/cram-speed/
+        void skipSeqAndQual();
 
 		//Returns the BAM header lines
 		QByteArrayList headerLines() const;
 		//Returns the genome build based on the length of the chr1 (works for human only). Throws an exception if it could not be determined.
 		GenomeBuild build() const;
-		/**
-			@brief Returns true if reads from loaded BAM file are from long-read sequencing
-			@warning WARNING: function changes the set region, use before setting a region or re-set your region
-			@details Checks the BRCA1 locus for single-end reads
-			@param reads	number of reads which are checked
-		*/
-		bool is_single_end(int reads=100);
+		//Returns general information about a BAM file. Note: it changes the region, thus use before setting a region or re-set region afterwards
+		BamInfo info();
 
 		//Set region for alignment retrieval (1-based coordinates).
 		void setRegion(const Chromosome& chr, int start, int end);
 
-		//TODO Marc: Add option to read only part of the read (e.g. no bases, no quality, no annotations) to speed up certain operations (e.g. read QC in MappingQC). See https://brentp.github.io/post/cram-speed/
 		//Get next alignment and stores it in @p al.
 		bool getNextAlignment(BamAlignment& al)
 		{

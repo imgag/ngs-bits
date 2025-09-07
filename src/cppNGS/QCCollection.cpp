@@ -402,23 +402,7 @@ QCCollection QCCollection::fromQCML(QString filename, QString obo, QStringList& 
 	OntologyTermCollection terms(obo, false);
 
 	//open file
-	QDomDocument doc;	
-	QFile f(filename);
-
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-    QDomDocument::ParseResult result = doc.setContent(&f);
-    if (!result)
-    {
-        THROW(FileParseException, "QC file '" + filename + "' is invalid: " + result.errorMessage + " line: " + QString::number(result.errorLine) + " column: " +  QString::number(result.errorColumn));
-    }
-    #else
-    QString error_msg;
-    int error_line, error_column;
-    if(!doc.setContent(&f, &error_msg, &error_line, &error_column))
-    {
-        THROW(FileParseException, "QC file '" + filename + "' is invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
-    }
-    #endif
+    QDomDocument doc = XmlHelper::load(filename);
 	
 	//make list of all elements in doc
 	QList<QDomElement> found_elements;

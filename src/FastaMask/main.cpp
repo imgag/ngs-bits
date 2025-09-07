@@ -90,6 +90,8 @@ public:
 				out->write("\n");
 			}
 		}
+
+        //TODO: update MD5 checksum after masking
 	}
 };
 

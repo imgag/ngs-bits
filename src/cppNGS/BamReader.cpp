@@ -1,6 +1,7 @@
 #include "BamReader.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "VersatileFile.h"
 
 /*
 External documentation used for the implementation:
@@ -513,7 +514,15 @@ BamReader::~BamReader()
 	clearIterator();
 	hts_idx_destroy(index_);
 	sam_hdr_destroy(header_);
-	hts_close(fp_);
+    hts_close(fp_);
+}
+
+void BamReader::skipSeqAndQual()
+{
+    int required = SAM_QNAME | SAM_FLAG | SAM_RNAME | SAM_POS |
+                   SAM_MAPQ | SAM_CIGAR | SAM_RNEXT | SAM_PNEXT |
+                   SAM_TLEN | SAM_AUX;
+    hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required);
 }
 
 QByteArrayList BamReader::headerLines() const
@@ -535,38 +544,133 @@ GenomeBuild BamReader::build() const
 	THROW(Exception, "Could not determine genome build of BAM file '" + bam_file_ + "'!");
 }
 
-bool BamReader::is_single_end(int reads)
+BamInfo BamReader::info()
 {
-	if (build() == GenomeBuild::HG38)
-	{
-		setRegion(Chromosome("chr17"), 43091500, 43094000);
-	}
-	else //HG19
-	{
-		setRegion(Chromosome("chr17"), 41243500, 41246500);
-	}
+	BamInfo output;
 
-	//iterate through all alignments and create counts
-	BamAlignment al;
-	int n_all = 0;
-	int n_paired = 0;
+    //CRAM container version
+    VersatileFile f(bam_file_);
+    f.open(QFile::ReadOnly);
+    QByteArray header = f.read(6);
+    if (header.startsWith("CRAM"))
+    {
+        quint8 major = static_cast<quint8>(header[4]);
+        quint8 minor = static_cast<quint8>(header[5]);
+        output.file_format = "CRAM "+QByteArray::number(major) + "." + QByteArray::number(minor);
+    }
+    else
+    {
+        output.file_format = "BAM";
+    }
+    f.close();
+
+	//genome build
+	try
+	{
+		output.build = buildToString(build()).toUtf8();
+	}
+	catch (...) {}
+
+    //paired end
+	double n_all = 0;
+	double n_paired = 0;
+    clearIterator();
+    BamAlignment al;
 	while (getNextAlignment(al))
 	{
-		//ignore
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.isDuplicate()) continue;
-		if (al.isUnmapped()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
+        if (al.mappingQuality()<20) continue;
 
-		//count reads
-		n_all++;
-		if (al.isPaired()) n_paired++;
+		if (al.isPaired()) n_paired += 1.0;
 
-		if (n_all >= reads) break;
+		n_all += 1.0;
+		if (n_all >= 100.0) break;
 	}
+	output.paired_end = n_paired/n_all > 0.1;
 
-	//if less than 10% is paired return true
-	if (((float) n_paired/n_all) < 0.1) return true;
-	return false;
+    //mapper
+    QByteArrayList headers = headerLines();
+    for(int i=headers.count()-1; i>=0; --i) //last @PG line is the most important
+    {
+        QByteArray line = headers[i];
+        if (!line.startsWith("@PG")) continue;
+
+        if (line.contains("PN:bwa-mem2"))
+        {
+            output.mapper = "bwa-mem2";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+        if (line.contains("PN:bwa"))
+        {
+            output.mapper = "bwa";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+        if (line.contains("ID: DRAGEN SW build"))
+        {
+            output.mapper = "DRAGEN";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:"))
+                {
+                    QByteArrayList parts = part.mid(3).trimmed().split('.');
+
+                    output.mapper_version = parts.mid(parts.count()-3).join('.');
+                }
+            }
+            break;
+        }
+        if (line.contains("PN:minimap2"))
+        {
+            output.mapper = "minimap2";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+
+        if (line.contains("PN:STAR"))
+        {
+            output.mapper = "STAR";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed().replace("STAR_", "");
+            }
+            break;
+        }
+    }
+
+    //false duplications masked (checks a masked region. Nothing is mapped there if mased. Works for WES/panel as well because of off-target reads).
+    if (output.build=="hg38")
+    {
+        setRegion("chr21", 5968000, 6160000);
+        while(getNextAlignment(al))
+        {
+            output.false_duplications_masked = false;
+            break;
+        }
+    }
+
+    //alt chrs
+    foreach(const Chromosome& chr, chromosomes())
+    {
+        QByteArray name = chr.str().toLower();
+        if (name.endsWith("_alt") || name.endsWith("_hap1")) //_alt for hg38, _hap for hg19
+        {
+            output.contains_alt_chrs = true;
+            break;
+        }
+    }
+
+	return output;
 }
 
 void BamReader::setRegion(const Chromosome& chr, int start, int end)

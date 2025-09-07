@@ -65,7 +65,6 @@ void AnalysisInformationWidget::updateGUI()
 			ImportStatusGermline import_status = db.importStatus(ps_id_);
 			VariantCallingInfo call_info = db.variantCallingInfo(ps_id_);
 
-			//TODO Marc: show genome details - build, masked, alt
 			//BAM
 			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
 			ui_.table->setItem(0, 0, GUIHelper::createTableItem(file.fileName()));
@@ -73,17 +72,26 @@ void AnalysisInformationWidget::updateGUI()
             if (!file.exists) ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
+                //color build if not matching GSvar build
 				BamReader reader(file.filename);
-				try
-				{
-					GenomeBuild build = reader.build();
-					if (build!=GSvarHelper::build())
-					{
-						ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + buildToString(build) + ")");
-                        ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
-					}
-				}
-				catch(...) {} //do nothing (genome build could not be determined)
+                BamInfo info = reader.info();
+                if (info.build!="" && info.build!=buildToString(GSvarHelper::build()))
+                {
+                    ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + info.build + ")");
+                    ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
+                }
+
+                //add BAM/CRAM infos as tooltip
+                QString tooltip;
+                tooltip += "file format: " + info.file_format + "\n";
+                QString build = info.build;
+                build += "masked:" + QString(info.false_duplications_masked ? "yes" : "no");
+                build += "alt:" + QString(info.contains_alt_chrs ? "yes" : "no");
+                tooltip += "build: " + build + "\n";
+                tooltip += "paired-end: " + QString(info.paired_end ? "yes" : "no")+"\n";
+                tooltip += "mapper: " + info.mapper + " " + info.mapper_version+"\n";
+                ui_.table->item(0,0)->setToolTip(tooltip);
+                ui_.table->item(0,1)->setToolTip(tooltip);
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
 			GUIHelper::resizeTableCellWidths(ui_.table);

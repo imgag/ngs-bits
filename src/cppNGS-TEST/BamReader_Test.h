@@ -398,8 +398,7 @@ private slots:
 	void CramSupport_referenceAsParameter_tests()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
+        if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
@@ -453,8 +452,7 @@ private slots:
 	void  CramSupport_cigarDataAsString()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
+        if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 		BamAlignment al;
@@ -488,8 +486,7 @@ private slots:
 	void CramSupport_getPileup()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
+        if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
@@ -523,7 +520,7 @@ private slots:
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 4);
 		//DELATION
 		pileup = reader.getPileup("chr2", 47806751, 1);
-		I_EQUAL(pileup.depth(false), 32);
+        I_EQUAL(pileup.depth(false), 32);
 		I_EQUAL(pileup.a(), 0);
 		I_EQUAL(pileup.indels().count(), 26);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 14);
@@ -541,16 +538,50 @@ private slots:
 		I_EQUAL(pileup.indels().count(), 6);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
 	}
+    void info_bam()
+    {
+        //BAM - long read DNA, HG38, no ALT
+        {
+            BamReader reader(TESTDATA("data_in/BamReader_lr.bam"));
+            BamInfo info = reader.info();
+            S_EQUAL(info.file_format, "BAM");
+            S_EQUAL(info.build, "hg38");
+            IS_FALSE(info.paired_end);
+            S_EQUAL(info.mapper, "minimap2");
+            S_EQUAL(info.mapper_version, "2.26-r1175");
+            IS_TRUE(info.false_duplications_masked);
+            IS_FALSE(info.contains_alt_chrs);
+        }
 
-	void is_single_end()
-	{
-		//short read (paired-end)
-		BamReader reader1(TESTDATA("data_in/BamReader_sr.bam"));
-		IS_FALSE(reader1.is_single_end());
+        //BAM - short-read RNA, HG19, with ALT
+        {
+            BamReader reader(TESTDATA("/data_in/BamReader_rna.bam"));
+            BamInfo info = reader.info();
+            S_EQUAL(info.file_format, "BAM");
+            S_EQUAL(info.build, "hg19");
+            IS_TRUE(info.paired_end);
+            S_EQUAL(info.mapper, "STAR");
+            S_EQUAL(info.mapper_version, "2.3.0e_r291");
+            IS_TRUE(info.false_duplications_masked);
+            IS_TRUE(info.contains_alt_chrs);
+        }
+    }
 
-		//long read (sinle-end)
-		BamReader reader2(TESTDATA("data_in/BamReader_lr.bam"));
-		IS_TRUE(reader2.is_single_end());
-	}
+    void info_cram()
+    {
+        QString ref_file = Settings::string("reference_genome", true);
+        if (ref_file=="") SKIP("Test needs the reference genome!");
+
+        //CRAM - short read DNA, HG38, no ALT
+        BamReader reader(TESTDATA("data_in/cramTest.cram"));
+        BamInfo info = reader.info();
+        S_EQUAL(info.file_format, "CRAM 3.0");
+        S_EQUAL(info.build, "hg38");
+        IS_TRUE(info.paired_end);
+        S_EQUAL(info.mapper, "bwa");
+        S_EQUAL(info.mapper_version, "0.7.17-r1188");
+        IS_TRUE(info.false_duplications_masked);
+        IS_FALSE(info.contains_alt_chrs);
+    }
 
 };
