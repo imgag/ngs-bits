@@ -296,9 +296,11 @@ class CPPNGSSHARED_EXPORT BamReader
         //CRAM Constructor with explicit reference genome
 		//reference genome is mandatory for CRAM support
         BamReader(const QString& bam_file, QString ref_genome);
-
 		//Destructor
 		~BamReader();
+
+        //TODO Marc: Add option to read only part of the read (e.g. no bases, no quality, no annotations) to speed up certain operations (e.g. read QC in MappingQC). See https://brentp.github.io/post/cram-speed/
+        void skipSeqAndQual();
 
 		//Returns the BAM header lines
 		QByteArrayList headerLines() const;
@@ -310,7 +312,6 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Set region for alignment retrieval (1-based coordinates).
 		void setRegion(const Chromosome& chr, int start, int end);
 
-		//TODO Marc: Add option to read only part of the read (e.g. no bases, no quality, no annotations) to speed up certain operations (e.g. read QC in MappingQC). See https://brentp.github.io/post/cram-speed/
 		//Get next alignment and stores it in @p al.
 		bool getNextAlignment(BamAlignment& al)
 		{

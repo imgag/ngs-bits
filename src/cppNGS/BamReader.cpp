@@ -517,6 +517,14 @@ BamReader::~BamReader()
     hts_close(fp_);
 }
 
+void BamReader::skipSeqAndQual()
+{
+    int required = SAM_QNAME | SAM_FLAG | SAM_RNAME | SAM_POS |
+                   SAM_MAPQ | SAM_CIGAR | SAM_RNEXT | SAM_PNEXT |
+                   SAM_TLEN | SAM_AUX;
+    hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required);
+}
+
 QByteArrayList BamReader::headerLines() const
 {
 	QByteArrayList output = QByteArray(header_->text).split('\n');

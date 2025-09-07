@@ -65,7 +65,6 @@ void AnalysisInformationWidget::updateGUI()
 			ImportStatusGermline import_status = db.importStatus(ps_id_);
 			VariantCallingInfo call_info = db.variantCallingInfo(ps_id_);
 
-            //TODO Marc: show genome details - build, masked, alt, CRAM 3.1?
 			//BAM
 			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
 			ui_.table->setItem(0, 0, GUIHelper::createTableItem(file.fileName()));
