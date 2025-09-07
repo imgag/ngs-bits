@@ -306,13 +306,7 @@ void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& va
 	}
 }
 
-QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
-{
-	int actual_pos = 0;
-	return extractBaseByCIGAR(pos, actual_pos);
-}
-
-QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int& actual_pos)
+QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
 {
 	int read_pos = 0;
 	int genome_pos = start()-1;
@@ -366,8 +360,11 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int& actual_pos)
 
 		if (genome_pos>=pos)
 		{
-			actual_pos = read_pos - (genome_pos + 1 - pos);
-			return qMakePair(base(actual_pos), quality(actual_pos));
+            if (index_in_read!=nullptr)
+            {
+                (*index_in_read) = read_pos - (genome_pos + 1 - pos);
+            }
+            return qMakePair(base(*index_in_read), quality(*index_in_read));
 		}
 	}
 
@@ -517,12 +514,16 @@ BamReader::~BamReader()
     hts_close(fp_);
 }
 
-void BamReader::skipSeqAndQual()
+void BamReader::skipQualities()
 {
-    int required = SAM_QNAME | SAM_FLAG | SAM_RNAME | SAM_POS |
-                   SAM_MAPQ | SAM_CIGAR | SAM_RNEXT | SAM_PNEXT |
-                   SAM_TLEN | SAM_AUX;
-    hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required);
+    required_fields_ = required_fields_ & ~SAM_QUAL;
+    hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required_fields_);
+}
+
+void BamReader::skipBases()
+{
+    required_fields_ = required_fields_ & ~SAM_SEQ;
+    hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required_fields_);
 }
 
 QByteArrayList BamReader::headerLines() const
@@ -774,7 +775,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 
 		//snps
 		QPair<char, int> base = al.extractBaseByCIGAR(pos);
-		if (base.second>=min_baseq)
+        if (base.second>=min_baseq)
 		{
 			output.inc(base.first);
 		}

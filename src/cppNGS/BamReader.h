@@ -240,9 +240,9 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		/**
 		  @brief Returns the base and quality at a chromosomal position (1-based).
 		  @note If the base is deleted, '-' with quality 255 is returned. If the base is skipped/soft-clipped, '~' with quality -1 is returned.
-		*/
-		QPair<char, int> extractBaseByCIGAR(int pos);
-		QPair<char, int> extractBaseByCIGAR(int pos, int& actual_pos);
+          @note If 'index_in_read' is set, the index of the position in the read is returned.
+        */
+        QPair<char, int> extractBaseByCIGAR(int pos, int* index_in_read=nullptr);
 
 		/**
 		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.
@@ -253,6 +253,8 @@ class CPPNGSSHARED_EXPORT BamAlignment
 
 	protected:
 		bam1_t* aln_;
+        bool contains_bases_ = true;
+        bool contains_qualities_ = true;
 
 		//friends
 		friend class BamReader;
@@ -276,6 +278,7 @@ struct CPPNGSSHARED_EXPORT VariantDetails
 	int obs;
 };
 
+//General information about the BAM/CRAM.
 struct BamInfo
 {
     QByteArray file_format; //'BAM' or 'CRAM' plus container version
@@ -286,7 +289,8 @@ struct BamInfo
     QByteArray mapper; //the last used mapper
     QByteArray mapper_version;
 };
-
+//TODO Marc: try skipping MD/NM tags: hts_set_opt(fp, CRAM_OPT_DECODE_MD, 0);
+//TODO Marc: try multi-threaded reading: hts_set_threads(fp, n_threads);
 //C++ wrapper for htslib BAM file access
 class CPPNGSSHARED_EXPORT BamReader
 {
@@ -299,8 +303,10 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Destructor
 		~BamReader();
 
-        //TODO Marc: Add option to read only part of the read (e.g. no bases, no quality, no annotations) to speed up certain operations (e.g. read QC in MappingQC). See https://brentp.github.io/post/cram-speed/
-        void skipSeqAndQual();
+        //Do not load bases into alignments. Call after constructor. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+        void skipBases();
+        //Do not load qualities into alignments. Call after constructor. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+        void skipQualities();
 
 		//Returns the BAM header lines
 		QByteArrayList headerLines() const;
@@ -365,6 +371,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		sam_hdr_t* header_ = nullptr;
 		hts_idx_t* index_ = nullptr;
 		hts_itr_t* iter_  = nullptr;
+        int required_fields_ = SAM_QNAME | SAM_FLAG | SAM_RNAME | SAM_POS | SAM_MAPQ | SAM_CIGAR | SAM_RNEXT | SAM_PNEXT | SAM_TLEN | SAM_SEQ | SAM_QUAL | SAM_AUX | SAM_RGAUX;
 
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();

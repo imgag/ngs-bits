@@ -81,7 +81,7 @@ public:
 			if (var.isSNV())
 			{
 				int read_pos = -1;
-				QPair<char, int> base = al.extractBaseByCIGAR(var.start(), read_pos);
+                QPair<char, int> base = al.extractBaseByCIGAR(var.start(), &read_pos);
 				Sequence read_base;
 				read_base.append(base.first);
 

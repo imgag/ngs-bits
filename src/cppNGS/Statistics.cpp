@@ -392,6 +392,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
 	//iterate through all alignments
 	BamReader reader(bam_file, ref_file);
+    reader.skipBases();
+    reader.skipQualities();
 	BamAlignment al;
 	while (reader.getNextAlignment(al))
 	{
@@ -737,7 +739,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_file, int min_mapq)
 {
 	//open BAM file
-	BamReader reader(bam_file, ref_file);
+    BamReader reader(bam_file, ref_file);
+    reader.skipBases();
+    reader.skipQualities();
 	FastaFileIndex ref_idx(ref_file);
 
 	//init counts
@@ -908,7 +912,9 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bedpath, int min_mapq, const QString& ref_file)
 {
 	//open BAM file
-	BamReader reader(bam_file, ref_file);
+    BamReader reader(bam_file, ref_file);
+    reader.skipBases();
+    reader.skipQualities();
 	FastaFileIndex ref_idx(ref_file);
 	bool roi_available = false;
 	BedFile roi;
