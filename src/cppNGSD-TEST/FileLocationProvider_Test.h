@@ -5,8 +5,7 @@
 
 TEST_CLASS(FileLocationProvider_Test)
 {
-Q_OBJECT
-private slots:
+private:
 	void get_files()
 	{
         if (!NGSD::isAvailable()) SKIP("Test needs access to the NGSD production database!");

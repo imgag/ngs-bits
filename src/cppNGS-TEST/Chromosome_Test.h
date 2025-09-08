@@ -3,8 +3,7 @@
 
 TEST_CLASS(Chromosome_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void str()
 	{

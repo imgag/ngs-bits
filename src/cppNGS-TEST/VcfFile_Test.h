@@ -5,8 +5,7 @@
 
 TEST_CLASS(VcfFile_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void removeDuplicates_VCF()
 	{

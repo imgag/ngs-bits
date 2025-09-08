@@ -4,8 +4,7 @@
 
 TEST_CLASS(Variant_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void constructor()
 	{

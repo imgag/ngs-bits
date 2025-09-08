@@ -6,8 +6,7 @@
 
 TEST_CLASS(ChromosomalIndex_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void matchingIndices_BedFile()
 	{

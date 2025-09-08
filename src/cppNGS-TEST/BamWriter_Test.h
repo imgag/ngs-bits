@@ -37,8 +37,7 @@ const QString write_cram_file(QString ref_file)
 
 TEST_CLASS(BamWriter_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void write_bam_test()
 	{

@@ -6,8 +6,7 @@
 
 TEST_CLASS(NGSHelper_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void getKnownVariants()
 	{

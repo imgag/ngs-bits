@@ -3,8 +3,7 @@
 
 TEST_CLASS(RequestParser_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void test_parsing_get_request()
 	{

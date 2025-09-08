@@ -4,8 +4,7 @@
 
 TEST_CLASS(UrlManager_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void test_url_manager()
 	{        

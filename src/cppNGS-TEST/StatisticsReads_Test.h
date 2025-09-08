@@ -3,8 +3,7 @@
 
 TEST_CLASS(StatisticsReads_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void reads()
 	{

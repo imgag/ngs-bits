@@ -4,8 +4,7 @@
 
 TEST_CLASS(PipelineSettings_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void loadSettings()
 	{

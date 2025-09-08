@@ -7,8 +7,7 @@
 
 TEST_CLASS(GenLabDB_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void phenotypes()
 	{

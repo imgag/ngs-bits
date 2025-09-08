@@ -6,7 +6,6 @@
 
 TEST_CLASS(Transcript_Test)
 {
-Q_OBJECT
 
 	Transcript trans_SLC51A()
 	{
@@ -52,7 +51,7 @@ Q_OBJECT
 		return t;
 	}
 
-private slots:
+private:
 
 	void setRegions()
 	{

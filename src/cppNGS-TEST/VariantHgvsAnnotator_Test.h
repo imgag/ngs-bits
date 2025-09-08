@@ -10,8 +10,7 @@
 
 TEST_CLASS(VariantHgvsAnnotator_Test)
 {
-Q_OBJECT
-
+private:
     Transcript trans_SLC51A()
     {
         Transcript t;
@@ -292,7 +291,7 @@ Q_OBJECT
 		return t;
 	}
 
-private slots:
+private:
 
 	void annotate_plus_strand()
     {

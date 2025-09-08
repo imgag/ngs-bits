@@ -4,8 +4,7 @@
 
 TEST_CLASS(ExportcBioPortal_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void test()
 	{

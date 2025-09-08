@@ -10,8 +10,7 @@
 
 TEST_CLASS(BigWigReader_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
     void read_local_values()
 	{

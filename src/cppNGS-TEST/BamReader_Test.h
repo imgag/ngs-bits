@@ -15,8 +15,7 @@ int countSequencesContaining(QList<Sequence> sequences, char c)
 
 TEST_CLASS(BamReader_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	/************************************************************* BamAlignment *************************************************************/
 

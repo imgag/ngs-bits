@@ -4,8 +4,7 @@
 
 TEST_CLASS(BedFile_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void convenience_constructor()
 	{

@@ -8,8 +8,7 @@
 
 TEST_CLASS(ChainFileReader_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void test01()
 	{

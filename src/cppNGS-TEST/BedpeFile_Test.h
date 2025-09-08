@@ -3,13 +3,12 @@
 
 TEST_CLASS(BedpeFile_Test)
 {
-Q_OBJECT
 private:
 	BedpeFile test_file_germl_;
 	BedpeFile test_file_som_;
 
 
-private slots:
+private:
 	void load()
 	{
 		test_file_germl_.load( TESTDATA("data_in/SV_Manta_germline.bedpe") );

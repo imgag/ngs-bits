@@ -3,8 +3,7 @@
 
 TEST_CLASS(FileLocation_Test)
 {
-Q_OBJECT
-private slots:
+private:
 	void typeToString_and_stringToType()
 	{
 		for (int i=0; i<static_cast<int>(PathType::OTHER); ++i)

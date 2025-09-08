@@ -5,8 +5,7 @@
 
 TEST_CLASS(FileMetaCache_Test)
 {
-    Q_OBJECT
-private slots:
+private:
 
     void test_file_metadata_caching()
     {

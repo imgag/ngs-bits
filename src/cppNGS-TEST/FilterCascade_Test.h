@@ -3,8 +3,7 @@
 #include "Settings.h"
 TEST_CLASS(FilterCascade_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	/********************************************* Filter factory *********************************************/
 

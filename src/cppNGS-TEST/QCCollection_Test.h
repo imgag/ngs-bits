@@ -3,8 +3,7 @@
 
 TEST_CLASS(QCCollection_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void QCValue_string_constructor()
 	{

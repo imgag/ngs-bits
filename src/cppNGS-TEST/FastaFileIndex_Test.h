@@ -4,8 +4,7 @@
 
 TEST_CLASS(FastaFileIndex_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void seq_complete()
 	{

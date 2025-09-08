@@ -3,8 +3,7 @@
 
 TEST_CLASS(Sequence_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void reverse()
 	{

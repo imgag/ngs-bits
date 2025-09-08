@@ -6,8 +6,7 @@
 
 TEST_CLASS(HtmlEngine_Test)
 {
-Q_OBJECT
-private slots:
+private:
 	void test_convertIconNameToString()
 	{
 		QString icon = HtmlEngine::convertIconNameToString(FolderItemIcon::TO_PARENT_FOLDER);

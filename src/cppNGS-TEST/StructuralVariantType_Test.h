@@ -3,8 +3,7 @@
 
 TEST_CLASS(StructuralVariantType_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void stringConversion()
 	{

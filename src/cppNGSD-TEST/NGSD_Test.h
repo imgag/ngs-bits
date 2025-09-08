@@ -17,8 +17,7 @@
 
 TEST_CLASS(NGSD_Test)
 {
-Q_OBJECT
-private slots:
+private:
 	//Normally, one member is tested in one QT slot.
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	void main_tests()

@@ -4,8 +4,7 @@
 
 TEST_CLASS(XmlValidation_Test)
 {
-Q_OBJECT
-private slots:
+private:
     void test_xml_validation()
     {
         QString xml_error = XmlHelper::isValidXml(TESTDATA("data/germline_report2.xml"));

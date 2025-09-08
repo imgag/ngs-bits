@@ -3,8 +3,7 @@
 
 TEST_CLASS(BedpeLine_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void load()
 	{

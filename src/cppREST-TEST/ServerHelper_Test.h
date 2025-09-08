@@ -3,8 +3,7 @@
 
 TEST_CLASS(ServerHelper_Test)
 {
-Q_OBJECT
-private slots:
+private:
 	void test_generateUniqueStr()
 	{
 		QString token = ServerHelper::generateUniqueStr();		

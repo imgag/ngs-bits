@@ -3,8 +3,7 @@
 
 TEST_CLASS(VersatileTextStream_Test)
 {
-Q_OBJECT
-private slots:
+public:
 
 	void plain_text_file()
 	{

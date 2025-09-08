@@ -6,10 +6,9 @@
 
 TEST_CLASS(Settings_Test)
 {
-Q_OBJECT
-private slots:
+public:
 
-	void integer()
+    void integer()
 	{
 		QString key = "unit_test_integer";
 

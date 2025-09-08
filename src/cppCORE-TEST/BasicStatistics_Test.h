@@ -3,10 +3,9 @@
 
 TEST_CLASS(BasicStatistics_Test)
 {
-Q_OBJECT
-private slots:
+public:
 
-	void median()
+    void median()
 	{
 		QVector<double> data;
 		data << 0.5 << 1.0 << 1.5;
@@ -28,11 +27,11 @@ private slots:
 		F_EQUAL(BasicStatistics::q1(data), 0.2);
 
 		data.clear();
-		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5;
+        data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5;
 		F_EQUAL(BasicStatistics::q1(data), 0.2);
 
 		data.clear();
-		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6;
+        data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6;
 		F_EQUAL(BasicStatistics::q1(data), 0.2);
 
 		data.clear();

@@ -6,8 +6,7 @@
 
 TEST_CLASS(SomaticVariantInterpreter_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void SomaticViccDataTest()
 	{

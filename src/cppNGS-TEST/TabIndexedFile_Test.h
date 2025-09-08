@@ -8,8 +8,7 @@
 
 TEST_CLASS(TabixIndexedFile_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void working_index()
 	{

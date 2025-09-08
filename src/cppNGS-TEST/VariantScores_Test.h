@@ -4,8 +4,7 @@
 
 TEST_CLASS(VariantScores_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void algorithms()
 	{

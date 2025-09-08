@@ -3,8 +3,7 @@
 
 TEST_CLASS(RepeatLocusList_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void base_tests_ExpansionHunter()
 	{

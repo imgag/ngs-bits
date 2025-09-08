@@ -3,8 +3,7 @@
 
 TEST_CLASS(BedLine_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void isValid()
 	{

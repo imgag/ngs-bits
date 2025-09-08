@@ -3,8 +3,7 @@
 
 TEST_CLASS(OntologyTermCollection_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void load_invalid_filename_exception()
 	{

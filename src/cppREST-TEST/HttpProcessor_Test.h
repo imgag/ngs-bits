@@ -3,8 +3,7 @@
 
 TEST_CLASS(HttpProcessor_Test)
 {
-Q_OBJECT
-private slots:
+private:
 	void test_getContentTypeFromString()
 	{
 		ContentType type = HttpUtils::getContentTypeFromString("application/octet-stream");

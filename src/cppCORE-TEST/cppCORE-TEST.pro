@@ -29,11 +29,12 @@ INCLUDEPATH += $$PWD/../cppTFW
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 HEADERS += \
-        Helper_Test.h \
         BasicStatistics_Test.h \
+        Helper_Test.cpp \
         TSVFileStream_Test.h \
         Settings_Test.h \
         VersatileTextStream_Test.h
 
 SOURCES += \
+        Helper_Test.cpp \
         main.cpp

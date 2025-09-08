@@ -3,10 +3,9 @@
 
 TEST_CLASS(Helper_Test)
 {
-Q_OBJECT
-private slots:
+public:
 
-	void randomNumber()
+    TEST_METHOD(randomNumber)
 	{
 		for (int i=0; i<1000; ++i)
 		{
@@ -16,7 +15,7 @@ private slots:
 		}
 	}
 
-	void randomString()
+    TEST_METHOD(randomString)
 	{
         I_EQUAL(Helper::randomString(8).size(), 8);
         QString bases = Helper::randomString(1000, "ACGT");
@@ -27,7 +26,7 @@ private slots:
         IS_TRUE(bases.count('T')>0);
     }
 
-	void loadTextFile()
+    TEST_METHOD(loadTextFile)
 	{
 		QStringList genes;
 		genes = Helper::loadTextFile(TESTDATA("data_in/genes.txt"), true, '#', true);
@@ -55,7 +54,7 @@ private slots:
 		I_EQUAL(genes.count(), 6);
 	}
 
-	void storeTextFile()
+    TEST_METHOD(storeTextFile)
 	{
 		QStringList genes;
 		genes << "#header" << "Gene1" << "Gene2" << "Gene3";
@@ -63,7 +62,7 @@ private slots:
 		COMPARE_FILES("out/Helper_storeTextFile_out.txt", TESTDATA("data_out/Helper_storeTextFile_out.txt"));
 	}
 
-	void levenshtein()
+    TEST_METHOD(levenshtein)
 	{
 		I_EQUAL(Helper::levenshtein("", ""), 0);
 		I_EQUAL(Helper::levenshtein("abc", "abc"), 0);
@@ -86,7 +85,7 @@ private slots:
 		I_EQUAL(Helper::levenshtein("abc", ""), 3);
 	}
 
-	void findFiles()
+    TEST_METHOD(findFiles)
 	{
 		QStringList files = Helper::findFiles(TESTDATA(""), "*.txt", false);
 		I_EQUAL(files.count(), 0);
@@ -96,7 +95,7 @@ private slots:
 		I_EQUAL(files.count(), 0);
 	}
 
-	void findFolder()
+    TEST_METHOD(findFolder)
 	{
 		QStringList folders = Helper::findFolders(TESTDATA(""), "data_*", false);
 		I_EQUAL(folders.count(), 2);
@@ -106,7 +105,7 @@ private slots:
 		I_EQUAL(folders.count(), 0);
 	}
 
-	void canonicalPath()
+    TEST_METHOD(canonicalPath)
 	{
 		if (Helper::isWindows())
 		{
@@ -126,7 +125,7 @@ private slots:
 		}
 	}
 
-	void FormatLargeNumber()
+    TEST_METHOD(FormatLargeNumber)
 	{
 		//raw counts
 		S_EQUAL(Helper::formatLargeNumber(123, "raw_counts"), "123");
@@ -150,7 +149,7 @@ private slots:
 	}
 
 
-	void isNumeric()
+    TEST_METHOD(isNumeric)
 	{
 		//raw counts
 		IS_TRUE(Helper::isNumeric(QString("-10")));
@@ -187,7 +186,7 @@ private slots:
 		IS_FALSE(Helper::isNumeric(QByteArray("10.0 ")));
 	}
 
-	void mkdir()
+    TEST_METHOD(mkdir)
 	{
 		QString base_path = QFileInfo(Helper::tempFileName(".tmp")).path() + QDir::separator();
 		QString name;
@@ -204,7 +203,7 @@ private slots:
 	}
 
 
-	void set777()
+    TEST_METHOD(set777)
 	{
 		QString base_path = QFileInfo(Helper::tempFileName(".tmp")).path() + QDir::separator();
 		QString name;
@@ -220,7 +219,7 @@ private slots:
 		QDir(base_path).rmdir(name);
 	}
 
-	void executeCommand()
+    TEST_METHOD(executeCommand)
 	{
 		if (Helper::isWindows())
 		{

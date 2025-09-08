@@ -3,10 +3,9 @@
 
 TEST_CLASS(TSVFileStream_Test)
 {
-Q_OBJECT
-private slots:
+public:
 
-	void empty()
+    void empty()
 	{
 		TSVFileStream stream(TESTDATA("data_in/tsv_empty.txt"));
 

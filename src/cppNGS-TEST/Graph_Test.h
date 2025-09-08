@@ -19,11 +19,10 @@ struct EdgeContent
 
 TEST_CLASS(Graph_Test)
 {
-Q_OBJECT
     QByteArray string_db_file{"data_in/string_db_interactions.txt"};
     QByteArray alias_file{"data_in/string_db_aliases.txt"};
 
-private slots:
+private:
     void testUndirectedGraph()
     {
         // create undirected graph with NodeType and EdgeType int

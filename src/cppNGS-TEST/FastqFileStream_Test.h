@@ -4,8 +4,7 @@
 
 TEST_CLASS(FastqFileStream_Test)
 {
-Q_OBJECT
-private slots:
+private:
 
 	void entry_trimQuality()
 	{
