@@ -220,7 +220,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->somatic_oncogene, vl, index, "ncg_oncogene");
 	setAnnotation(ui->somatic_tsg, vl, index, "ncg_tsg");
 	setAnnotation(ui->somatic_cancerhotspots, vl, index, "CANCERHOTSPOTS_AA_CHANGE");
-	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance");
+	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance"); //TODO Marc add link - test in DNA2507997A1_01
 	setAnnotation(ui->genome_nexus, vl, index, "genome_nexus");
 
 	//somatic VICC data from NGSD

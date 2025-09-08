@@ -79,19 +79,19 @@ void AnalysisInformationWidget::updateGUI()
                 {
                     ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + info.build + ")");
                     ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
-                }
+				}
 
-                //add BAM/CRAM infos as tooltip
-                QString tooltip;
-                tooltip += "file format: " + info.file_format + "\n";
-                QString build = info.build;
-                build += "masked:" + QString(info.false_duplications_masked ? "yes" : "no");
-                build += "alt:" + QString(info.contains_alt_chrs ? "yes" : "no");
-                tooltip += "build: " + build + "\n";
-                tooltip += "paired-end: " + QString(info.paired_end ? "yes" : "no")+"\n";
-                tooltip += "mapper: " + info.mapper + " " + info.mapper_version+"\n";
-                ui_.table->item(0,0)->setToolTip(tooltip);
-                ui_.table->item(0,1)->setToolTip(tooltip);
+				//show mapper
+				ui_.table->setItem(0, 4, GUIHelper::createTableItem(info.mapper + " " + info.mapper_version));
+				//add BAM/CRAM infos as tooltip
+				QString tooltip;
+				tooltip += "file format: " + info.file_format + "\n";
+				QString build = info.build;
+				build += "masked:" + QString(info.false_duplications_masked ? "yes" : "no");
+				build += "alt:" + QString(info.contains_alt_chrs ? "yes" : "no");
+				tooltip += "build: " + build + "\n";
+				tooltip += "paired-end: " + QString(info.paired_end ? "yes" : "no")+"\n";
+				ui_.table->item(0, 4)->setToolTip(tooltip);
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
 			GUIHelper::resizeTableCellWidths(ui_.table);
