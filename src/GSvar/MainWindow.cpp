@@ -15,7 +15,6 @@
 #include <QUrl>
 #include <QTcpSocket>
 #include <QTime>
-#include <ProxyDataService.h>
 #include "ExternalToolDialog.h"
 #include "ReportDialog.h"
 #include <QBrush>
@@ -138,7 +137,6 @@
 #include "SomaticcfDNAReport.h"
 #include "MaintenanceDialog.h"
 #include "ClientHelper.h"
-#include "ProxyDataService.h"
 #include "RefGenomeService.h"
 #include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"

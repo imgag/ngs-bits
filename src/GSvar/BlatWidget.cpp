@@ -36,6 +36,7 @@ void BlatWidget::performSearch()
 		Sequence sequence = ui_.sequence->text().toUtf8();
 		if (sequence.length()<20) THROW(ArgumentException, "Input sequence too short! Must be at least 20 bases!");
 
+		//TODO Marc/Alexandr: move to GSvarServer (download from https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v479/blat/)
 		//perform API request
 		static HttpHandler http_handler(false); //static to allow caching of credentials
 		QByteArray response_text = http_handler.get("https://genome.ucsc.edu/cgi-bin/hgBlat?userSeq="+sequence+"&type=DNA&db="+ui_.genome->currentText()+"&output=json");
@@ -43,13 +44,13 @@ void BlatWidget::performSearch()
 
 		//check reply format (https://genome.ucsc.edu/FAQ/FAQformat.html)
 		QJsonArray fields = response.value("fields").toArray();
-		if (fields.count()<21) THROW(ProgrammingException, "BALT JSON reply field count below 21!");
-		if (fields[0]!="matches") THROW(ProgrammingException, "BALT JSON reply field 0 is not 'matches'!");
-		if (fields[2]!="repMatches") THROW(ProgrammingException, "BALT JSON reply field 2 is not 'matches'!");
-		if (fields[8]!="strand") THROW(ProgrammingException, "BALT JSON reply field 8 is not 'strand'!");
-		if (fields[13]!="tName") THROW(ProgrammingException, "BALT JSON reply field 13 is not 'tName'!");
-		if (fields[15]!="tStart") THROW(ProgrammingException, "BALT JSON reply field 15 is not 'tStart'!");
-		if (fields[16]!="tEnd") THROW(ProgrammingException, "BALT JSON reply field 16 is not 'tEnd'!");
+		if (fields.count()<21) THROW(ProgrammingException, "BLAT JSON reply field count below 21!");
+		if (fields[0]!="matches") THROW(ProgrammingException, "BLAT JSON reply field 0 is not 'matches'!");
+		if (fields[2]!="repMatches") THROW(ProgrammingException, "BLAT JSON reply field 2 is not 'matches'!");
+		if (fields[8]!="strand") THROW(ProgrammingException, "BLAT JSON reply field 8 is not 'strand'!");
+		if (fields[13]!="tName") THROW(ProgrammingException, "BLAT JSON reply field 13 is not 'tName'!");
+		if (fields[15]!="tStart") THROW(ProgrammingException, "BLAT JSON reply field 15 is not 'tStart'!");
+		if (fields[16]!="tEnd") THROW(ProgrammingException, "BLAT JSON reply field 16 is not 'tEnd'!");
 
 		//update GUI
 		QJsonArray blat_matches =  response.value("blat").toArray();
