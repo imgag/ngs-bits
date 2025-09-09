@@ -16,7 +16,7 @@ private:
 		COMPARE_GZ_FILES("out/BamToFastq_out2.fastq.gz", TESTDATA("data_out/BamToFastq_out2.fastq.gz"));
 	}
 
-	void test_fix() //uses data and results from first test, but duplicates the reads
+	TEST_METHOD(test_fix) //uses data and results from first test, but duplicates the reads
 	{
 		//create BAM with each read duplicated
 		QString bam_temp = Helper::tempFileName(".bam");

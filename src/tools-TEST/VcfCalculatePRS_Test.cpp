@@ -47,7 +47,7 @@ private:
 		COMPARE_FILES("out/VcfCalculatePRS_out4_details.tsv", TESTDATA("data_out/VcfCalculatePRS_out4_details.tsv"));
 	}
 
-	void test_with_reference_effect_allele() //flagged in INFO column
+	TEST_METHOD(test_with_reference_effect_allele) //flagged in INFO column
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -58,7 +58,7 @@ private:
 		COMPARE_FILES("out/VcfCalculatePRS_out5_details.tsv", TESTDATA("data_out/VcfCalculatePRS_out5_details.tsv"));
 	}
 
-	void test_with_reference_effect_allele2() // written as A>A
+	TEST_METHOD(test_with_reference_effect_allele2) // written as A>A
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -69,7 +69,7 @@ private:
 		COMPARE_FILES("out/VcfCalculatePRS_out6_details.tsv", TESTDATA("data_out/VcfCalculatePRS_out5_details.tsv"));
 	}
 
-	void test_with_reference_effect_allele3() // written as A>.
+	TEST_METHOD(test_with_reference_effect_allele3) // written as A>.
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -79,7 +79,6 @@ private:
 		COMPARE_FILES("out/VcfCalculatePRS_out7.tsv", TESTDATA("data_out/VcfCalculatePRS_out5.tsv"));
 		COMPARE_FILES("out/VcfCalculatePRS_out7_details.tsv", TESTDATA("data_out/VcfCalculatePRS_out5_details.tsv"));
 	}
-
 
 	TEST_METHOD(test_with_imputed)
 	{

@@ -175,7 +175,7 @@ TEST_CLASS(Statistics_Test)
 		}
 	}
 
-	void somatic_custom_depth() //test uses the same input data as "mapping_panel"-test
+	TEST_METHOD(somatic_custom_depth) //test uses the same input data as "mapping_panel"-test
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if(ref_file=="") SKIP("Test needs the reference genome");

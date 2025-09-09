@@ -53,7 +53,7 @@ private:
 		IS_TRUE(list.contains("G11.0"));
 	}
 
-	void anamnesis() //Wenn der Test fehlschlägt, muss das Freigabedatum der Untersuchungen in Genlab auf das aktuelle Datum gesetzt werden für 'Karl/Karla Bioinformatik'. Der View enthält nur die Daten der letzten 9 Monate.
+	TEST_METHOD(anamnesis) //Wenn der Test fehlschlägt, muss das Freigabedatum der Untersuchungen in Genlab auf das aktuelle Datum gesetzt werden für 'Karl/Karla Bioinformatik'. Der View enthält nur die Daten der letzten 9 Monate.
 	{
 		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
 

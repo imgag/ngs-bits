@@ -1853,7 +1853,7 @@ private:
 	}
 
 	//Test for germline report
-	inline void report_germline()
+	TEST_METHOD(report_germline)
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		QString ref_file = Settings::string("reference_genome", true);
@@ -2113,7 +2113,7 @@ private:
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants
-	inline void report_somatic()
+	TEST_METHOD(report_somatic)
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
