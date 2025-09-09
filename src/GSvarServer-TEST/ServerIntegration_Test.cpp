@@ -33,11 +33,9 @@ int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 
 TEST_CLASS(Server_IntegrationTest)
 {
-Q_OBJECT
+private:
 
-private slots:
-
-	void test_if_server_is_running()
+	TEST_METHOD(test_if_server_is_running)
 	{
 		if (!ServerHelper::settingsValid(true))
 		{
@@ -58,7 +56,7 @@ private slots:
 	}
 
 
-	void test_partial_content_multirange_request()
+	TEST_METHOD(test_partial_content_multirange_request)
 	{
 		if (!ServerHelper::settingsValid(true))
 		{
@@ -80,7 +78,7 @@ private slots:
 		IS_TRUE(reply.contains("help"));
 	}
 
-	void test_partial_content_empty_end_request()
+	TEST_METHOD(test_partial_content_empty_end_request)
 	{
 		if (!ServerHelper::settingsValid(true))
 		{
@@ -101,7 +99,7 @@ private slots:
 		S_EQUAL(reply.trimmed(), "</html>");
 	}
 
-	void test_partial_content_empty_start_request()
+	TEST_METHOD(test_partial_content_empty_start_request)
 	{
 		if (!ServerHelper::settingsValid(true))
 		{
@@ -128,7 +126,7 @@ private slots:
         IS_THROWN(HttpException, HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl(), add_headers));
 	}	
 
-	void test_token_based_authentication()
+	TEST_METHOD(test_token_based_authentication)
 	{
 		if (!ServerHelper::settingsValid(true))
 		{
@@ -179,7 +177,7 @@ private slots:
 		IS_FALSE(is_db_token);
 	}
 
-	void test_access_to_remote_bam_files()
+	TEST_METHOD(test_access_to_remote_bam_files)
 	{
 		if (!ServerHelper::settingsValid(true))
 		{
@@ -204,7 +202,7 @@ private slots:
 		I_EQUAL(reader.chromosomes().count(), 2580);
 	}
 
-	void test_server_info_retrieval()
+	TEST_METHOD(test_server_info_retrieval)
 	{
 		if (!ServerHelper::settingsValid(true))
 		{
@@ -229,7 +227,7 @@ private slots:
 		IS_TRUE(doc.object().contains("start_time"));
 	}
 
-	void test_client_info_retrieval()
+	TEST_METHOD(test_client_info_retrieval)
 	{
 		if (!ServerHelper::settingsValid(true))
 		{
@@ -250,7 +248,7 @@ private slots:
 		IS_TRUE(out.isObject());
 	}
 
-    void test_remote_file_metadata()
+	TEST_METHOD(test_remote_file_metadata)
     {
 		if (!ServerHelper::settingsValid(true))
         {
@@ -276,7 +274,7 @@ private slots:
         IS_TRUE(file_over_https->isReadable());
     }
 
-    void test_remote_file_readability()
+	TEST_METHOD(test_remote_file_readability)
     {
 		if (!ServerHelper::settingsValid(true))
         {

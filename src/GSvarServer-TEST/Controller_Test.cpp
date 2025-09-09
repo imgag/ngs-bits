@@ -4,9 +4,9 @@
 
 TEST_CLASS(Controller_Test)
 {
-Q_OBJECT
-private slots:
-	void test_api_info()
+private:
+
+	TEST_METHOD(test_api_info)
     {
 		if (!ServerHelper::settingsValid(true))
         {
@@ -29,7 +29,7 @@ private slots:
 		S_EQUAL(json_doc.object()["api_version"].toString(), ClientHelper::serverApiVersion());
     }
 
-	void test_saving_gsvar_file()
+	TEST_METHOD(test_saving_gsvar_file)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -75,7 +75,7 @@ private slots:
 		QFile::remove(copy_name);
 	}
 
-	void test_uploading_file()
+	TEST_METHOD(test_uploading_file)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -118,7 +118,7 @@ private slots:
 		QFile::remove(file_copy);
 	}
 
-	void test_session_info()
+	TEST_METHOD(test_session_info)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -151,7 +151,7 @@ private slots:
 		IS_FALSE(json_object.value("is_db_token").toBool());
 	}
 
-	void test_static_file_random_access()
+	TEST_METHOD(test_static_file_random_access)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -195,7 +195,7 @@ private slots:
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("404"));
 	}
 
-	void test_head_response_with_empty_body_for_missing_file()
+	TEST_METHOD(test_head_response_with_empty_body_for_missing_file)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -233,7 +233,7 @@ private slots:
         I_EQUAL(length, 0);
 	}
 
-	void test_head_response_with_empty_body_for_existing_file()
+	TEST_METHOD(test_head_response_with_empty_body_for_existing_file)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -276,7 +276,7 @@ private slots:
         I_EQUAL(length, 18);
 	}
 
-	void test_current_client_info()
+	TEST_METHOD(test_current_client_info)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -307,7 +307,7 @@ private slots:
 		S_EQUAL(out.object().value("message").toString(), current_info.message);
 	}
 
-	void test_user_notification()
+	TEST_METHOD(test_user_notification)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -338,7 +338,7 @@ private slots:
 		S_EQUAL(out.object().value("message").toString(), notification_message);
 	}
 
-	void test_file_upload()
+	TEST_METHOD(test_file_upload)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -368,7 +368,7 @@ private slots:
 		S_EQUAL(outfile.data()->readAll(), test_content);
 	}
 
-    void test_locate_file_by_type()
+	TEST_METHOD(test_locate_file_by_type)
     {
         if (!ServerHelper::settingsValid(true))
         {

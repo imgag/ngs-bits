@@ -48,21 +48,24 @@ __Example:__
 
 ## Testing
 
-Code testing is important to make sure the code really does what you intended it to do. Additionally, a good test coverage
-allows large-scale refactoring without worring that you have broken the functionality.  
-Each class method with complicated code or more then three lines of code must be tested in a unit test.
+Code testing is important to make sure the code really does what you intended it to do.  
+Additionally, a good test coverage allows large-scale refactoring without worring that you have broken the functionality.  
+Each class method with complicated code or more then three lines of code must be tested in a unit test.  
+
+See the documenation of the [test framewok](https://github.com/marc-sturm/cppTFW/) for details.
 
 ## Documenting
 
-Each class and method should be documented. The documentation is done in the source code 
-using [Doxygen](http://www.stack.nl/~dimitri/doxygen/).  
+Each class and method should be documented. The documentation is done in the source code.
 
 ## Optimization
 
-Premature optimization is the cause of many bugs.  
-Initially, a straight-forward version of each algorithm should be implemented, tested thoroughly and benchmarked.  
-After that, a more optimized version of the algorithm can be implemented.  
-Profiling the code before the optimizing is crucial, unless you are not 100% sure where the bottleneck is. A very easy-to-use profiler is [VerySleepy](http://www.codersnotes.com/sleepy).
+Donald Knuth coined the phrase `premature optimization is the root of all evil`.  
+What it means is that most code does not need to be optimized. Optimize only code that is crucial for the runtime.  
+Why? Because optimized code is often more complex and harder to maintain than simple code.
 
+Initially, a straight-forward version of each algorithm should be implemented, tested thoroughly and benchmarked.  
+After that, a more optimized version of the algorithm can be implemented of that is necessary.  
+Profiling the code before the optimizing is crucial, unless you are a 100% sure where the bottleneck is.
 
 [Back to main page](index.md)

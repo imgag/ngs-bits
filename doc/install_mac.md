@@ -63,10 +63,8 @@ Just import your database dump and you are ready to go.
 Just execute the following make commands to build the desktop app (the last command is for the tools):
 
     > make build_3rdparty
-	> make build_libs_release
-	> make build_tools_release
-
-If you need to build a different version of htslib, please follow [these instructions](build_htslib.md#linux_mac)
+    > make build_libs_release
+    > make build_tools_release
 
 ## Deployment
 
