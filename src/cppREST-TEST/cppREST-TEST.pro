@@ -39,15 +39,13 @@ INCLUDEPATH += $$PWD/../GSvarServer
 #include cppTFW library
 INCLUDEPATH += $$PWD/../cppTFW
 
-HEADERS += \
-    FileMetaCache_Test.h \
-    HtmlEngine_Test.h \
-    HttpProcessor_Test.h \
-    RequestParser_Test.h \
-    ServerHelper_Test.h \
-    UrlManager_Test.h
-
 SOURCES += \
+        FileMetaCache_Test.cpp \
+        HtmlEngine_Test.cpp \
+        HttpProcessor_Test.cpp \
+        RequestParser_Test.cpp \
+        ServerHelper_Test.cpp \
+        UrlManager_Test.cpp \
         main.cpp
 
 DISTFILES +=

@@ -87,8 +87,8 @@ void AnalysisInformationWidget::updateGUI()
 				QString tooltip;
 				tooltip += "file format: " + info.file_format + "\n";
 				QString build = info.build;
-				build += "masked:" + QString(info.false_duplications_masked ? "yes" : "no");
-				build += "alt:" + QString(info.contains_alt_chrs ? "yes" : "no");
+				build += " masked:" + QString(info.false_duplications_masked ? "yes" : "no");
+				build += " alt:" + QString(info.contains_alt_chrs ? "yes" : "no");
 				tooltip += "build: " + build + "\n";
 				tooltip += "paired-end: " + QString(info.paired_end ? "yes" : "no")+"\n";
 				ui_.table->item(0, 4)->setToolTip(tooltip);

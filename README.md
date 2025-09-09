@@ -5,7 +5,7 @@
 ![Windows build status](https://github.com/imgag/ngs-bits/workflows/Windows%20build/badge.svg)  
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
-## Obtaining ngs-bits
+## Installation
 
 Binaries of *ngs-bits* are available via Bioconda:
 
@@ -26,15 +26,14 @@ Depending on your operating system, building instructions vary slightly:
 
 ## Support
 
-Please report any issues or questions to the [ngs-bits issue 
-tracker](https://github.com/imgag/ngs-bits/issues).
+Please report any issues or questions to the [ngs-bits issue tracker](https://github.com/imgag/ngs-bits/issues).
 
 ## Documentation
 
-Have a look at the [ECCB'2018 poster](doc/data/poster_ECCB2018.pdf).
-
 The documentation of individual tools is linked in the tools list below.  
 For some tools the documentation pages contain only the command-line help, for other tools they contain more information.
+
+If you want to contribute, check the [development documentation](doc/development/index.md).
 
 ## License
 
@@ -45,6 +44,17 @@ For some tools the documentation pages contain only the command-line help, for o
 * [SimpleCrypt](https://wiki.qt.io/Simple_encryption_with_SimpleCrypt) for weak encryption
 * [QR-Code-generator](https://github.com/nayuki/QR-Code-generator) for QR code generation
 
+## ChangeLog
+
+Change log is available on the [releases](https://github.com/imgag/ngs-bits/releases) page.
+
+## Citing
+
+You can cite ngs-bits in using Zenodo DOIs:
+* 2025_07: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16676392.svg)](https://doi.org/10.5281/zenodo.16676392)
+* 2025_05: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15542696.svg)](https://doi.org/10.5281/zenodo.15542696)
+
+A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).
 
 ## Tools list
 
@@ -70,7 +80,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files.
 * [MappingQC](doc/tools/MappingQC/index.md) - Quality control tool for a BAM file.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
-* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
+* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
 * [TrioMendelianErrors](doc/tools/TrioMendelianErrors.md) - Determines mendelian error rate form a trio VCF file.
 * [RnaQC](doc/tools/RnaQC.md) - Calculates QC metrics for RNA samples.
@@ -179,15 +189,3 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
-
-## ChangeLog
-
-Change log is available on the [releases](https://github.com/imgag/ngs-bits/releases) page.
-
-## Citing
-
-You can cite ngs-bits in using Zenodo DOIs:
-* 2025_07: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16676392.svg)](https://doi.org/10.5281/zenodo.16676392)
-* 2025_05: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15542696.svg)](https://doi.org/10.5281/zenodo.15542696)
-
-A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).

@@ -35,10 +35,8 @@ unix: LIBS += -lxml2
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
-HEADERS += \
-	XmlValidation_Test.h
-
 SOURCES += \
+        XmlValidation_Test.cpp \
         main.cpp
 
 RESOURCES += \
