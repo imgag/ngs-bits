@@ -31,10 +31,10 @@ tracker](https://github.com/imgag/ngs-bits/issues).
 
 ## Documentation
 
-Have a look at the [ECCB'2018 poster](doc/data/poster_ECCB2018.pdf).
-
 The documentation of individual tools is linked in the tools list below.  
 For some tools the documentation pages contain only the command-line help, for other tools they contain more information.
+
+If you want to contribute, check the [development documentation](doc/development/index.md).
 
 ## License
 
@@ -70,7 +70,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files.
 * [MappingQC](doc/tools/MappingQC/index.md) - Quality control tool for a BAM file.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
-* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
+* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
 * [TrioMendelianErrors](doc/tools/TrioMendelianErrors.md) - Determines mendelian error rate form a trio VCF file.
 * [RnaQC](doc/tools/RnaQC.md) - Calculates QC metrics for RNA samples.

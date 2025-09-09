@@ -28,13 +28,10 @@ INCLUDEPATH += $$PWD/../cppTFW
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
-HEADERS += \
-        BasicStatistics_Test.h \
-        Helper_Test.cpp \
-        TSVFileStream_Test.h \
-        Settings_Test.h \
-        VersatileTextStream_Test.h
-
 SOURCES += \
+        BasicStatistics_Test.cpp \
         Helper_Test.cpp \
+        TSVFileStream_Test.cpp \
+        Settings_Test.cpp \
+        VersatileTextStream_Test.cpp \
         main.cpp

@@ -64,7 +64,7 @@ Upon succesfull completion, `C:\mariadb_plugin` folder will have the binary file
 
 ## Build
 
-Before building the project, `Qt Creator` has to be set up correctly. Make sure your code style adheres to the parameters defined in [QtCreatorCodingStyle.xml](../QtCreatorCodingStyle.xml) (see [Qt Creator configuration page](qtcreator_setup.md) for more details on how to set this style globally inside the IDE), if you are planning on contributing to this repository. Depending on your version, go to `Preference`(`Settings` or `Options`), in the search field at the top left corner type `Default build directory`. You will see the settings for the build dicrectory location (something like): `./build/%{Asciify:%{Kit:FileSystemName}-%{BuildConfig:Name}}`
+Before building the project, `Qt Creator` has to be set up correctly. Depending on your version, go to `Preference`(`Settings` or `Options`), in the search field at the top left corner type `Default build directory`. You will see the settings for the build dicrectory location (something like): `./build/%{Asciify:%{Kit:FileSystemName}-%{BuildConfig:Name}}`
 
 Change the `Default build directory` to `../%{JS: Util.asciify("build-%{Project:Name}-%{Kit:FileSystemName}-%{BuildConfig:Name}")}`
 

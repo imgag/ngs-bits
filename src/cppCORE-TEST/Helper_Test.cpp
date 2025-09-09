@@ -3,7 +3,7 @@
 
 TEST_CLASS(Helper_Test)
 {
-public:
+private:
 
     TEST_METHOD(randomNumber)
 	{
