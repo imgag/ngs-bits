@@ -27,8 +27,6 @@ First, we need to install Qt and some basic dependencies:
 
 We have pre-built `htslib` for Windows: `htslib 1.16.1` supports Qt 5 and `htslib 1.21` supports Qt 6. Corresponding Zip-archives can be found inside the repository: `ngs-bits\htslib\htslib_win_64_qt5.zip` and `ngs-bits\htslib\htslib_win_64_qt6.zip`. Depending on your Qt version, just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 
-If you want to use a different version, e.g. when testing the latest version of htslib, there is a [manual on how to build htslib](build_htslib.md#windows) available.
-
 ### libxml2
 
 [libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2_win_64.zip` into `ngs-bits\`. Qt Creator will detect the library files and headers while compiling GSvar.
@@ -64,7 +62,7 @@ Upon succesfull completion, `C:\mariadb_plugin` folder will have the binary file
 
 ## Build
 
-Before building the project, `Qt Creator` has to be set up correctly. Make sure your code style adheres to the parameters defined in [QtCreatorCodingStyle.xml](../QtCreatorCodingStyle.xml) (see [Qt Creator configuration page](qtcreator_setup.md) for more details on how to set this style globally inside the IDE), if you are planning on contributing to this repository. Depending on your version, go to `Preference`(`Settings` or `Options`), in the search field at the top left corner type `Default build directory`. You will see the settings for the build dicrectory location (something like): `./build/%{Asciify:%{Kit:FileSystemName}-%{BuildConfig:Name}}`
+Before building the project, `Qt Creator` has to be set up correctly. Depending on your version, go to `Preference`(`Settings` or `Options`), in the search field at the top left corner type `Default build directory`. You will see the settings for the build dicrectory location (something like): `./build/%{Asciify:%{Kit:FileSystemName}-%{BuildConfig:Name}}`
 
 Change the `Default build directory` to `../%{JS: Util.asciify("build-%{Project:Name}-%{Kit:FileSystemName}-%{BuildConfig:Name}")}`
 

@@ -55,13 +55,11 @@ LIBS += -lz
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
-HEADERS += \
-	ExportcBioPortal_Test.h \
-	NGSD_Test.h \
-	FileLocationProvider_Test.h \
-	FileLocation_Test.h \
-	GenLabDB_Test.h \
-	ReportConfiguration_Test.h
-
 SOURCES += \
+        ExportcBioPortal_Test.cpp \
+        NGSD_Test.cpp \
+        FileLocationProvider_Test.cpp \
+        FileLocation_Test.cpp \
+        GenLabDB_Test.cpp \
+        ReportConfiguration_Test.cpp \
         main.cpp

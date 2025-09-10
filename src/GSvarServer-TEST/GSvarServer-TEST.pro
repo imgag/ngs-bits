@@ -31,11 +31,9 @@ INCLUDEPATH += $$PWD/../GSvarServer
 #include cppTFW library
 INCLUDEPATH += $$PWD/../cppTFW
 
-HEADERS += \
-    Controller-Test.h \
-    Server-IntegrationTest.h
-
 SOURCES += \
+        Controller_Test.cpp \
+        ServerIntegration_Test.cpp \
         main.cpp
 
 RESOURCES += \

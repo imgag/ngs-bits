@@ -27,7 +27,18 @@ void IGVCommandWorker::run()
 		emit commandStarted(launch_command_id);
 
 		//start IGV
-        bool started = QProcess::startDetached(igv_data_.executable, QStringList() << "--port" << QString::number(igv_data_.port));
+		bool debug = true;
+		QProcess process;
+		process.setProgram(igv_data_.executable);
+		process.setArguments(QStringList() << "--port" << QString::number(igv_data_.port));
+		if (debug)
+		{
+			process.setStandardErrorFile("C:/marc/igv.stderr");
+			process.setStandardOutputFile("C:/marc/igv.stdout");
+		}
+		qint64 pid;
+		bool started = process.startDetached(&pid);
+		if (debug) qDebug() << __LINE__ << started << pid;
 		if (!started)
 		{
 			emit commandFailed(launch_command_id, "Could not start IGV: IGV application '" + igv_data_.executable + "' did not start!", (double)(timer.elapsed())/1000.0);
@@ -45,13 +56,16 @@ void IGVCommandWorker::run()
 				}
 				socket.abort();
 			}
+			if (debug) qDebug() << __LINE__ << socket.isValid();
 			if (!socket.isValid())
 			{
 				emit commandFailed(launch_command_id, "Could not start IGV: IGV application '" + igv_data_.executable + "' started on port '" + QString::number(igv_data_.port) + "', but does not respond!", (double)(timer.elapsed())/1000.0);
 			}
+			if (debug) qDebug() << __LINE__;
 
             //wait 5s until the genome is loaded (currently loaded genome is not detected correctly and consistently, possible concurrency issue in IGV)
 			QThread::msleep(5000);
+			if (debug) qDebug() << __LINE__;
 
 			emit commandFinished(launch_command_id, answer_, (double)(timer.elapsed())/1000.0);
 		}

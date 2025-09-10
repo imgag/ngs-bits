@@ -1090,6 +1090,7 @@ public:
 	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
 	int getSomaticViccId(const Variant& variant);
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
+	//TODO Alexander: add method to delete VICC entry and allow deleting if from GSvar VICC dialog
 
 	///Returns a list of all somatic pathways.
 	QByteArrayList getSomaticPathways();
