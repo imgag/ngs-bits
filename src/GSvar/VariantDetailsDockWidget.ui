@@ -1874,6 +1874,9 @@
             <property name="text">
              <string/>
             </property>
+            <property name="openExternalLinks">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item row="5" column="1">
@@ -1938,6 +1941,9 @@
            <widget class="QLabel" name="genome_nexus">
             <property name="text">
              <string/>
+            </property>
+            <property name="openExternalLinks">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

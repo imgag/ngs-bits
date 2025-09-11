@@ -34,7 +34,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
-	connect(ui->genome_nexus, SIGNAL(linkActivated(QString)), this, SLOT(genomeNexusClicked(QString)));
 	connect(ui->spliceai, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(spliceaiContextMenu(QPoint)));
 
 	//set up transcript buttons
@@ -220,7 +219,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->somatic_oncogene, vl, index, "ncg_oncogene");
 	setAnnotation(ui->somatic_tsg, vl, index, "ncg_tsg");
 	setAnnotation(ui->somatic_cancerhotspots, vl, index, "CANCERHOTSPOTS_AA_CHANGE");
-	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance"); //TODO Marc add link - test in DNA2507997A1_01
+	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance");
 	setAnnotation(ui->genome_nexus, vl, index, "genome_nexus");
 
 	//somatic VICC data from NGSD
@@ -563,8 +562,15 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="CMC_mutation_significance")
 		{
-			if(anno == "1" || anno == "2" || anno == "3") text = formatText(anno, RED);
-			else text = anno;
+			if (anno!="")
+			{
+				Color bg_color = NONE;
+				if(anno == "1" || anno == "2" || anno == "3") bg_color = RED;
+
+				int a_index = vl.annotationIndexByName("CMC_MUTATION_ID", true, false);
+				QString cmc_var_id = vl[index].annotations()[a_index];
+				text = formatLink(anno, "https://cancer.sanger.ac.uk/cosmic/search?q="+cmc_var_id, bg_color);
+			}
 		}
 		else if(name == "NGSD_som_vicc_interpretation")
 		{
@@ -940,11 +946,6 @@ void VariantDetailsDockWidget::pubmedClicked(QString link)
 			QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/" + id + "/"));
 		}
 	}
-}
-
-void VariantDetailsDockWidget::genomeNexusClicked(QString link)
-{
-	QDesktopServices::openUrl(QUrl(link));
 }
 
 void VariantDetailsDockWidget::variantButtonClicked()
