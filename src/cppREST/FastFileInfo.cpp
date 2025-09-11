@@ -10,6 +10,7 @@ FastFileInfo::FastFileInfo(QString absolute_file_path)
         filename_ = meta_cache.filename;
         size_ = meta_cache.size;
         exists_ = meta_cache.file_exists;
+        last_modified_ = meta_cache.modified;
     }
     else
     {
@@ -18,9 +19,10 @@ FastFileInfo::FastFileInfo(QString absolute_file_path)
         filename_ = info.fileName();
         size_ = 0;
         exists_ = false;
+        last_modified_ = info.lastModified();
         if (Settings::boolean("enable_file_metadata_caching", true))
         {
-            FileMetaCache::addMetadata(FileMetadata(absolute_file_path_, absolute_path_, filename_, false, size_, false, exists_, QDateTime::currentDateTime()));
+            FileMetaCache::addMetadata(FileMetadata(absolute_file_path_, absolute_path_, filename_, false, size_, false, exists_, last_modified_, QDateTime::currentDateTime()));
         }
     }
 }
@@ -76,4 +78,9 @@ QString FastFileInfo::absolutePath()
 QString FastFileInfo::fileName()
 {
     return filename_;
+}
+
+QDateTime FastFileInfo::lastModified()
+{
+    return last_modified_;
 }

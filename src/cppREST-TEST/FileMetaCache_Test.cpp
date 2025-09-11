@@ -15,7 +15,7 @@ private:
         FastFileInfo *info = new FastFileInfo(file);
         S_EQUAL(info->absoluteFilePath(), file);
 
-        FileMetaCache::addMetadata(FileMetadata(info->absoluteFilePath(), info->absolutePath(), info->fileName(), true, info->size(), true, info->exists(), QDateTime::currentDateTime()));
+        FileMetaCache::addMetadata(FileMetadata(info->absoluteFilePath(), info->absolutePath(), info->fileName(), true, info->size(), true, info->exists(), info->lastModified(), QDateTime::currentDateTime()));
         FileMetadata metadata = FileMetaCache::getMetadata(info->absoluteFilePath());
 
         I_EQUAL(info->size(), metadata.size);

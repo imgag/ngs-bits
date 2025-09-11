@@ -487,7 +487,8 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
         QJsonObject cur_json_item;
         QJsonObject cur_json_item_without_token;
 		cur_json_item.insert("id", file_list[i].id);
-		cur_json_item.insert("type", FileLocation::typeToString(file_list[i].type));
+        cur_json_item.insert("type", file_list[i].typeAsString());
+        cur_json_item.insert("modified", file_list[i].modifiedAsString());
         cur_json_item.insert("exists", file_list[i].exists);
 
         cur_json_item_without_token = cur_json_item;
@@ -565,7 +566,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
     }
 
     FastFileInfo file_info(found_file_path);
-    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.exists());
+    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.lastModified(), file_info.exists());
 
 	QJsonDocument json_doc_output;
 	QJsonArray file_location_as_json_list;
@@ -573,6 +574,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	file_location_as_json_object.insert("id", ps_name);
 	file_location_as_json_object.insert("type", project_file.typeAsString());
 	file_location_as_json_object.insert("filename", project_file.filename);
+    file_location_as_json_object.insert("modified", project_file.modifiedAsString());
 	file_location_as_json_object.insert("exists", project_file.exists);
 	file_location_as_json_list.append(file_location_as_json_object);
 	json_doc_output.setArray(file_location_as_json_list);
@@ -618,6 +620,7 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 	file_location_as_json_object.insert("id", ps_name);
 	file_location_as_json_object.insert("type", analysis_job_gsvar_file.typeAsString());
 	file_location_as_json_object.insert("filename", analysis_job_gsvar_file.filename);
+    file_location_as_json_object.insert("modified", analysis_job_gsvar_file.modifiedAsString());
 	file_location_as_json_object.insert("exists", analysis_job_gsvar_file.exists);
 	json_doc_output.setObject(file_location_as_json_object);
 
@@ -699,6 +702,7 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
 	file_location_as_json_object.insert("id", analysis_job_log_file.id);
 	file_location_as_json_object.insert("type", analysis_job_log_file.typeAsString());
 	file_location_as_json_object.insert("filename", analysis_job_log_file.filename);
+    file_location_as_json_object.insert("modified", analysis_job_log_file.modifiedAsString());
 	file_location_as_json_object.insert("exists", analysis_job_log_file.exists);
 	json_doc_output.setObject(file_location_as_json_object);
 
