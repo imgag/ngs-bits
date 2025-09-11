@@ -185,6 +185,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Returns the n-th base.
 		char base(int n) const
 		{
+			if (!contains_bases_) THROW(ProgrammingException, "BamAlgiment does not contain bases, but base(int) used!");
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
 		}
 		//Fills the given vector with integer representations of bases (faster than characters - A=1, C=2, G=4, T=8, N=15)
@@ -197,6 +198,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Returns the quality of the n-th base (integer value).
 		int quality(int n)const
 		{
+			if (!contains_bases_) THROW(ProgrammingException, "BamAlgiment does not contain qualities, but quality(int) used!");
 			return bam_get_qual(aln_)[n];
 		}
 		//Fills a bit array representing base qualities - a bit is set if the base quality is >= min_baseq
@@ -286,8 +288,8 @@ struct BamInfo
     bool false_duplications_masked = true; //checked for hg38 only
     bool contains_alt_chrs = false;
     bool paired_end;
-    QByteArray mapper; //the last used mapper
-    QByteArray mapper_version;
+	QByteArray mapper; //the last mapper listed in the BAM header
+	QByteArray mapper_version; //the version of the mapper
 };
 //TODO Marc: try skipping MD/NM tags: hts_set_opt(fp, CRAM_OPT_DECODE_MD, 0);
 //TODO Marc: try multi-threaded reading: hts_set_threads(fp, n_threads);
@@ -326,6 +328,9 @@ class CPPNGSSHARED_EXPORT BamReader
 			{
 				THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
 			}
+
+			al.contains_bases_ = required_fields_ & SAM_SEQ;
+			al.contains_qualities_ = required_fields_ & SAM_QUAL;
 
 			return res>=0;
 		}

@@ -114,6 +114,7 @@ bool BamAlignment::cigarIsOnlyInsertion() const
 
 Sequence BamAlignment::bases() const
 {
+	if (!contains_bases_) THROW(ProgrammingException, "BamAlgiment does not contain bases, but bases() used!");
 	Sequence output;
 	output.resize(aln_->core.l_qseq);
 
@@ -128,6 +129,8 @@ Sequence BamAlignment::bases() const
 
 QVector<int> BamAlignment::baseIntegers() const
 {
+	if (!contains_bases_) THROW(ProgrammingException, "BamAlgiment does not contain bases, but baseIntegers() used!");
+
 	QVector<int> ints;
 	ints.resize(aln_->core.l_qseq);
 
@@ -203,6 +206,8 @@ void BamAlignment::setBases(const Sequence& bases)
 
 QByteArray BamAlignment::qualities() const
 {
+	if (!contains_bases_) THROW(ProgrammingException, "BamAlgiment does not contain qualities, but qualities() used!");
+
 	QByteArray output;
 	output.resize(aln_->core.l_qseq);
 
@@ -360,11 +365,12 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
 
 		if (genome_pos>=pos)
 		{
+			int actual_pos = read_pos - (genome_pos + 1 - pos);
             if (index_in_read!=nullptr)
             {
-                (*index_in_read) = read_pos - (genome_pos + 1 - pos);
+				(*index_in_read) = actual_pos;
             }
-            return qMakePair(base(*index_in_read), quality(*index_in_read));
+			return qMakePair(base(actual_pos), quality(actual_pos));
 		}
 	}
 

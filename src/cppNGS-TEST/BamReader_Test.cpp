@@ -537,6 +537,7 @@ private:
 		I_EQUAL(pileup.indels().count(), 6);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
 	}
+
     TEST_METHOD(info_bam)
     {
         //BAM - long read DNA, HG38, no ALT
