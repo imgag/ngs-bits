@@ -12,7 +12,6 @@ BamWriter::BamWriter(const QString& bam_file, const QString& ref_file)
 	}
 	else if(bam_file_.endsWith(".cram"))
 	{
-
 		fp_ = sam_open(bam_file_.toUtf8().constData(), "wc");
 
 		//set reference for CRAM files
@@ -35,6 +34,9 @@ BamWriter::BamWriter(const QString& bam_file, const QString& ref_file)
 	{
 		THROW(FileAccessException, "Could not open file for writing: " + bam_file_);
 	}
+
+	//apply optimizations
+	hts_set_threads(fp_, 1); //one extra thread for compression
 }
 
 BamWriter::~BamWriter()

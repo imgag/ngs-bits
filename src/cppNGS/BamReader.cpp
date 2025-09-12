@@ -475,7 +475,7 @@ void BamReader::init(const QString& bam_file, QString ref_genome)
 
 	//apply optimizations
 	hts_set_cache_size(fp_, 100*1024*1024); //100MB - helps for repeated queries in nearby regions by avoiding repeated parsing and unpacking of the same BAM/CRAM block
-	hts_set_threads(fp_, 1); //one  extra thread for compression/decompression
+	hts_set_threads(fp_, 1); //one extra thread for decompression
 
 	//read header
 	header_ = sam_hdr_read(fp_);

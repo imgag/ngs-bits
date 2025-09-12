@@ -27,7 +27,7 @@ jobs:
     - name: Update OS repositories
       run: sudo apt-get update
     - name: Setup test environment
-      run: sudo apt-get -y install make g++ git python3 python3-matplotlib qtbase5-dev qt5-qmake libqt5sql5-mysql libqt5charts5-dev libbz2-dev libqt5svg5-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev
+      run: sudo apt-get -y install make g++ git python3 python3-matplotlib qtbase5-dev qt5-qmake libqt5sql5-mysql libqt5charts5-dev libbz2-dev libqt5svg5-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev libssl-dev libdeflate-dev
     - name: Create symlink for python
       run: sudo ln -fs /bin/python3 /bin/python
     - name: Update submodules
