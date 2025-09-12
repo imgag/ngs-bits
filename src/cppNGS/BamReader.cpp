@@ -615,7 +615,7 @@ BamInfo BamReader::info()
 		output.build = buildToString(build()).toUtf8();
 	}
 	catch (...) {}
-	//TODO Marc check where EX250144_01 analysis info fails
+
     //paired end
 	double n_all = 0;
 	double n_paired = 0;
@@ -695,14 +695,18 @@ BamInfo BamReader::info()
 
     //false duplications masked (checks a masked region. Nothing is mapped there if mased. Works for WES/panel as well because of off-target reads).
     if (output.build=="hg38")
-    {
-        setRegion("chr21", 5968000, 6160000);
-        while(getNextAlignment(al))
-        {
-            output.false_duplications_masked = false;
-            break;
-        }
-    }
+	{
+		try
+		{
+			setRegion("chr21", 5968000, 6160000);
+			while(getNextAlignment(al))
+			{
+				output.false_duplications_masked = false;
+				break;
+			}
+		}
+		catch(...) {} //sometimes an exception is thrown if the range is empty > catch that
+	}
 
     //alt chrs
     foreach(const Chromosome& chr, chromosomes())

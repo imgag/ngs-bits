@@ -327,7 +327,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Do not load qualities into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
         void skipQualities();
 		//Do not load tags into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
-		void skipTags(); //TODO
+		void skipTags();
 		//Do not skip bases (read by default). Used to re-active bases after skipping them.
 		void readBases();
 		//Do not skip qualties. Used to re-active qualties after skipping them.

@@ -72,7 +72,7 @@ void AnalysisInformationWidget::updateGUI()
             if (!file.exists) ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
-                //color build if not matching GSvar build
+				//color build if not matching GSvar build
 				BamReader reader(file.filename);
                 BamInfo info = reader.info();
                 if (info.build!="" && info.build!=buildToString(GSvarHelper::build()))

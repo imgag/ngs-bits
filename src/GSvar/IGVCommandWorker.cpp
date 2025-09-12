@@ -27,14 +27,17 @@ void IGVCommandWorker::run()
 		emit commandStarted(launch_command_id);
 
 		//start IGV
-		bool debug = true;
+		bool debug = false;
 		QProcess process;
 		process.setProgram(igv_data_.executable);
 		process.setArguments(QStringList() << "--port" << QString::number(igv_data_.port));
 		if (debug)
 		{
-			process.setStandardErrorFile("C:/igv.stderr");
-			process.setStandardOutputFile("C:/igv.stdout");
+			if (QDir("C:/Marc/").exists())
+			{
+				process.setStandardErrorFile("C:/Marc/igv.stderr");
+				process.setStandardOutputFile("C:/Marc/igv.stdout");
+			}
 		}
 		qint64 pid = -1;
 		bool started = process.startDetached(&pid);
