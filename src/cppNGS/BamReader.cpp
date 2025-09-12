@@ -473,6 +473,10 @@ void BamReader::init(const QString& bam_file, QString ref_genome)
 		THROW(FileAccessException, "Could not open BAM/CRAM file " + bam_file_);
 	}
 
+	//apply optimizations
+	hts_set_cache_size(fp_, 100*1024*1024); //100MB - helps for repeated queries in nearby regions by avoiding repeated parsing and unpacking of the same BAM/CRAM block
+	hts_set_threads(fp_, 1); //one  extra thread for compression/decompression
+
 	//read header
 	header_ = sam_hdr_read(fp_);
 	if (header_==nullptr)
@@ -611,7 +615,7 @@ BamInfo BamReader::info()
 		output.build = buildToString(build()).toUtf8();
 	}
 	catch (...) {}
-
+	//TODO Marc check where EX250144_01 analysis info fails
     //paired end
 	double n_all = 0;
 	double n_paired = 0;

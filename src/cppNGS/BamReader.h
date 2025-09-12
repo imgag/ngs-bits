@@ -309,8 +309,7 @@ struct BamInfo
 	QByteArray mapper; //the last mapper listed in the BAM header
 	QByteArray mapper_version; //the version of the mapper
 };
-//TODO Marc: try skipping MD/NM tags: hts_set_opt(fp, CRAM_OPT_DECODE_MD, 0);
-//TODO Marc: try multi-threaded reading: hts_set_threads(fp, n_threads);
+
 //C++ wrapper for htslib BAM file access
 class CPPNGSSHARED_EXPORT BamReader
 {
