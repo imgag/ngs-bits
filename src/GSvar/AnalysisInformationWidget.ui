@@ -101,7 +101,12 @@
      </column>
      <column>
       <property name="text">
-       <string>date</string>
+       <string>Call date</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Modification date</string>
       </property>
      </column>
      <column>

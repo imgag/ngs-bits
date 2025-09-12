@@ -82,7 +82,7 @@ void AnalysisInformationWidget::updateGUI()
 				}
 
 				//show mapper
-				ui_.table->setItem(0, 4, GUIHelper::createTableItem(info.mapper + " " + info.mapper_version));
+                ui_.table->setItem(0, 5, GUIHelper::createTableItem(info.mapper + " " + info.mapper_version));
 				//add BAM/CRAM infos as tooltip
 				QString tooltip;
 				tooltip += "file format: " + info.file_format + "\n";
@@ -91,9 +91,10 @@ void AnalysisInformationWidget::updateGUI()
 				build += " alt:" + QString(info.contains_alt_chrs ? "yes" : "no");
 				tooltip += "build: " + build + "\n";
 				tooltip += "paired-end: " + QString(info.paired_end ? "yes" : "no")+"\n";
-				ui_.table->item(0, 4)->setToolTip(tooltip);
+                ui_.table->item(0, 5)->setToolTip(tooltip);
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+            if (file.exists) ui_.table->setItem(0, 4, GUIHelper::createTableItem(file.modifiedAsString()));
 			GUIHelper::resizeTableCellWidths(ui_.table);
 			GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
 
@@ -114,8 +115,9 @@ void AnalysisInformationWidget::updateGUI()
 			}
 			ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.small_variants) + " small variants" + rcData(db, "report_configuration_variant", rc_id)));
 			ui_.table->setItem(1, 3, GUIHelper::createTableItem(call_info.small_call_date));
-			ui_.table->setItem(1, 4, GUIHelper::createTableItem(call_info.small_caller + " " + call_info.small_caller_version));
-			ui_.table->setItem(1, 4, GUIHelper::createTableItem(call_info.small_caller + " " + call_info.small_caller_version));
+            if (file.exists) ui_.table->setItem(1, 4, GUIHelper::createTableItem(file.modifiedAsString()));
+            ui_.table->setItem(1, 5, GUIHelper::createTableItem(call_info.small_caller + " " + call_info.small_caller_version));
+            ui_.table->setItem(1, 5, GUIHelper::createTableItem(call_info.small_caller + " " + call_info.small_caller_version));
 			GUIHelper::resizeTableCellWidths(ui_.table);
 
 			//CNVs
@@ -136,7 +138,8 @@ void AnalysisInformationWidget::updateGUI()
 			}
 			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs" + rcData(db, "report_configuration_cnv", rc_id)));
 			ui_.table->setItem(2, 3, GUIHelper::createTableItem(call_info.cnv_call_date));
-			ui_.table->setItem(2, 4, GUIHelper::createTableItem(call_info.cnv_caller + " " + call_info.cnv_caller_version));
+            if (file.exists) ui_.table->setItem(2, 4, GUIHelper::createTableItem(file.modifiedAsString()));
+            ui_.table->setItem(2, 5, GUIHelper::createTableItem(call_info.cnv_caller + " " + call_info.cnv_caller_version));
 			GUIHelper::resizeTableCellWidths(ui_.table);
 
 			//SVs
@@ -157,7 +160,8 @@ void AnalysisInformationWidget::updateGUI()
 			}
 			ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.svs) + " SVs" + rcData(db, "report_configuration_sv", rc_id)));
 			ui_.table->setItem(3, 3, GUIHelper::createTableItem(call_info.sv_call_date));
-			ui_.table->setItem(3, 4, GUIHelper::createTableItem(call_info.sv_caller + " " + call_info.sv_caller_version));
+            if (file.exists) ui_.table->setItem(3, 4, GUIHelper::createTableItem(file.modifiedAsString()));
+            ui_.table->setItem(3, 5, GUIHelper::createTableItem(call_info.sv_caller + " " + call_info.sv_caller_version));
 			GUIHelper::resizeTableCellWidths(ui_.table);
 
 			//REs
@@ -167,7 +171,8 @@ void AnalysisInformationWidget::updateGUI()
             if (!file.exists) ui_.table->item(4,1)->setForeground(QBrush(QColor(Qt::red)));
 			ui_.table->setItem(4, 2, GUIHelper::createTableItem(QString::number(import_status.res) + " REs" + rcData(db, "report_configuration_re", rc_id)));
 			ui_.table->setItem(4, 3, GUIHelper::createTableItem(call_info.re_call_date));
-			ui_.table->setItem(4, 4, GUIHelper::createTableItem(call_info.re_caller + " " + call_info.re_caller_version));
+            if (file.exists) ui_.table->setItem(4, 4, GUIHelper::createTableItem(file.modifiedAsString()));
+            ui_.table->setItem(4, 5, GUIHelper::createTableItem(call_info.re_caller + " " + call_info.re_caller_version));
 		}
 		else if (sample_data.type.startsWith("RNA"))
 		{
@@ -194,30 +199,35 @@ void AnalysisInformationWidget::updateGUI()
 				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+            if (file.exists) ui_.table->setItem(0, 4, GUIHelper::createTableItem(file.modifiedAsString()));
 
 			//counts
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COUNTS);
 			ui_.table->setItem(1, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(1, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
             if (!file.exists) ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
+            if (file.exists) ui_.table->setItem(1, 4, GUIHelper::createTableItem(file.modifiedAsString()));
 
 			//expression
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION);
 			ui_.table->setItem(2, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(2, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
             if (!file.exists) ui_.table->item(2,1)->setForeground(QBrush(QColor(Qt::red)));
+            if (file.exists) ui_.table->setItem(2, 4, GUIHelper::createTableItem(file.modifiedAsString()));
 
 			//fusions
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS);
 			ui_.table->setItem(3, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(3, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
             if (!file.exists) ui_.table->item(3,1)->setForeground(QBrush(QColor(Qt::red)));
+            if (file.exists) ui_.table->setItem(3, 4, GUIHelper::createTableItem(file.modifiedAsString()));
 
 			//splicing info
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SPLICING_BED);
 			ui_.table->setItem(4, 0, GUIHelper::createTableItem(file.fileName()));
 			ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
             if (!file.exists) ui_.table->item(4,1)->setForeground(QBrush(QColor(Qt::red)));
+            if (file.exists) ui_.table->setItem(4, 4, GUIHelper::createTableItem(file.modifiedAsString()));
 		}
 		else if(sample_data.type.startsWith("cfDNA"))
 		{
@@ -243,6 +253,7 @@ void AnalysisInformationWidget::updateGUI()
 				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+            if (file.exists) ui_.table->setItem(0, 4, GUIHelper::createTableItem(file.modifiedAsString()));
 
 			//small variants
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);
@@ -260,6 +271,7 @@ void AnalysisInformationWidget::updateGUI()
 				}
 			}
 			ui_.table->setItem(1, 2, GUIHelper::createTableItem(""));
+            if (file.exists) ui_.table->setItem(1, 4, GUIHelper::createTableItem(file.modifiedAsString()));
 		}
 		else
 		{
