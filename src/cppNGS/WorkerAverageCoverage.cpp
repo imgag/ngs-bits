@@ -23,7 +23,9 @@ void WorkerAverageCoverage::run()
 
 		//open BAM file
 		BamReader reader(bam_file_, ref_file_);
-
+		reader.skipBases();
+		reader.skipQualities();
+		reader.skipTags();
 		for (int i=chunk_.start; i<=chunk_.end; ++i)
 		{
 			BedLine& bed_line = chunk_.data[i];

@@ -439,6 +439,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 				if (indices.count()!=0)
 				{
 					++al_ontarget;
+
 					int dp = al.tagi("DP");
 					if (dp != 0)
 					{
@@ -742,6 +743,7 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
     BamReader reader(bam_file, ref_file);
     reader.skipBases();
     reader.skipQualities();
+	reader.skipTags();
 	FastaFileIndex ref_idx(ref_file);
 
 	//init counts
@@ -915,6 +917,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
     BamReader reader(bam_file, ref_file);
     reader.skipBases();
     reader.skipQualities();
+	reader.skipTags();
 	FastaFileIndex ref_idx(ref_file);
 	bool roi_available = false;
 	BedFile roi;
@@ -1505,19 +1508,16 @@ QCCollection Statistics::somaticCustomDepth(const BedFile& bed_file, QString bam
 
 	long long bases_usable = 0;
 
-	Histogram dp_dist(0.5, 4.5, 1);
-	int max_length = 0;
-
 	//iterate through all alignments
 	BamReader reader(bam_file, ref_file);
+	reader.skipBases();
+	reader.skipQualities();
+	reader.skipTags();
 	BamAlignment al;
 	while (reader.getNextAlignment(al))
 	{
 		//skip secondary alignments
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-
-		max_length = std::max(max_length, al.length());
-
 
 		if (!al.isUnmapped())
 		{
@@ -1535,12 +1535,6 @@ QCCollection Statistics::somaticCustomDepth(const BedFile& bed_file, QString bam
 				indices = roi_index.matchingIndices(chr, start_pos, end_pos);
 				if (indices.count()!=0)
 				{
-					int dp = al.tagi("DP");
-					if (dp != 0)
-					{
-						dp_dist.inc(std::min(dp, 4), true);
-					}
-
 					//calculate usable bases and base-resolution coverage on target region
 					if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 					{
@@ -2721,6 +2715,9 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
+	reader.skipBases();
+	reader.skipQualities();
+	reader.skipTags();
 	double count_x = 0.0;
 	double count_y = 0.0;
 	double ratio_yx = Statistics::yxRatio(reader, &count_x, &count_y);

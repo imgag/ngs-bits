@@ -1,7 +1,7 @@
 #include "IGVCommandWorker.h"
-
 #include <QProcess>
 #include <QThread>
+#include <QDir>
 
 IGVCommandWorker::IGVCommandWorker(const IGVData& igv_data, const QList<IgvWorkerCommand>& commands, int max_command_exec_ms)
 	: igv_data_(igv_data)
@@ -33,12 +33,12 @@ void IGVCommandWorker::run()
 		process.setArguments(QStringList() << "--port" << QString::number(igv_data_.port));
 		if (debug)
 		{
-			process.setStandardErrorFile("C:/marc/igv.stderr");
-			process.setStandardOutputFile("C:/marc/igv.stdout");
+			process.setStandardErrorFile("C:/igv.stderr");
+			process.setStandardOutputFile("C:/igv.stdout");
 		}
-		qint64 pid;
+		qint64 pid = -1;
 		bool started = process.startDetached(&pid);
-		if (debug) qDebug() << __LINE__ << started << pid;
+		if (debug) Log::info(QString("IVG started: ") + (started ? "yes" : "no") + " PID: " + QString::number(pid));
 		if (!started)
 		{
 			emit commandFailed(launch_command_id, "Could not start IGV: IGV application '" + igv_data_.executable + "' did not start!", (double)(timer.elapsed())/1000.0);
@@ -56,16 +56,14 @@ void IGVCommandWorker::run()
 				}
 				socket.abort();
 			}
-			if (debug) qDebug() << __LINE__ << socket.isValid();
+			if (debug) Log::info(QString("Socket is valid: ") + (started ? "yes" : "no"));
 			if (!socket.isValid())
 			{
 				emit commandFailed(launch_command_id, "Could not start IGV: IGV application '" + igv_data_.executable + "' started on port '" + QString::number(igv_data_.port) + "', but does not respond!", (double)(timer.elapsed())/1000.0);
 			}
-			if (debug) qDebug() << __LINE__;
 
             //wait 5s until the genome is loaded (currently loaded genome is not detected correctly and consistently, possible concurrency issue in IGV)
 			QThread::msleep(5000);
-			if (debug) qDebug() << __LINE__;
 
 			emit commandFinished(launch_command_id, answer_, (double)(timer.elapsed())/1000.0);
 		}
