@@ -94,7 +94,8 @@ void AnalysisInformationWidget::updateGUI()
 				ui_.table->item(0, 4)->setToolTip(tooltip);
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
-			GUIHelper::resizeTableCellWidths(ui_.table);
+            if (file.exists) ui_.table->setItem(0, 3, GUIHelper::createTableItem(file.modifiedAsString(true)));
+            GUIHelper::resizeTableCellWidths(ui_.table);
 			GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
 
 			//small variants
@@ -194,6 +195,7 @@ void AnalysisInformationWidget::updateGUI()
 				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+            if (file.exists) ui_.table->setItem(0, 3, GUIHelper::createTableItem(file.modifiedAsString(true)));
 
 			//counts
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COUNTS);
@@ -243,6 +245,7 @@ void AnalysisInformationWidget::updateGUI()
 				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+            if (file.exists) ui_.table->setItem(0, 3, GUIHelper::createTableItem(file.modifiedAsString(true)));
 
 			//small variants
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);
