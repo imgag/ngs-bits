@@ -185,6 +185,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Returns the n-th base.
 		char base(int n) const
 		{
+			if (!contains_bases_) THROW(ProgrammingException, "BamAlignment does not contain bases, but base(int) used!");
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
 		}
 		//Fills the given vector with integer representations of bases (faster than characters - A=1, C=2, G=4, T=8, N=15)
@@ -197,17 +198,19 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Returns the quality of the n-th base (integer value).
 		int quality(int n)const
 		{
+			if (!contains_bases_) THROW(ProgrammingException, "BamAlignment does not contain qualities, but quality(int) used!");
 			return bam_get_qual(aln_)[n];
 		}
 		//Fills a bit array representing base qualities - a bit is set if the base quality is >= min_baseq
 		//the array is of size al.end() - al.start() +1 and by that includes deletions
 		void qualities(QBitArray& qualities, int min_baseq, int len) const;
+
 		//Returns the string data of a tag.
 		QByteArray tag(const QByteArray& tag) const;
 		//Adds a tag to the alignment.
 		void addTag(const QByteArray& tag, char type, const QByteArray& data);
 		//Returns the integer data of a tag with type 'i'.
-		int tagi(const QByteArray&) const;
+		int tagi(const QByteArray& tag) const;
 
 		/**************************** MATE functions ****************************/
 
@@ -238,11 +241,11 @@ class CPPNGSSHARED_EXPORT BamAlignment
 
 
 		/**
-		  @brief Returns the base and quality at a chromosomal position (1-based).
+		  @brief Returns the base and quality at a chromosomal position (1-based). If qualities are skipped, -1 is returned.
 		  @note If the base is deleted, '-' with quality 255 is returned. If the base is skipped/soft-clipped, '~' with quality -1 is returned.
-		*/
-		QPair<char, int> extractBaseByCIGAR(int pos);
-		QPair<char, int> extractBaseByCIGAR(int pos, int& actual_pos);
+          @note If 'index_in_read' is set, the index of the position in the read is returned.
+        */
+        QPair<char, int> extractBaseByCIGAR(int pos, int* index_in_read=nullptr);
 
 		/**
 		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.
@@ -251,8 +254,27 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		*/
 		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0);
 
+		//Indicates if bases were loaded
+		bool containsBases() const
+		{
+			return contains_bases_;
+		}
+		//Indicates if qualities were loaded
+		bool containsQualities() const
+		{
+			return contains_qualities_;
+		}
+		//Indicates if tags were loaded
+		bool containsTags() const
+		{
+			return contains_tags_;
+		}
+
 	protected:
 		bam1_t* aln_;
+        bool contains_bases_ = true;
+        bool contains_qualities_ = true;
+		bool contains_tags_ = false;
 
 		//friends
 		friend class BamReader;
@@ -276,6 +298,7 @@ struct CPPNGSSHARED_EXPORT VariantDetails
 	int obs;
 };
 
+//General information about the BAM/CRAM.
 struct BamInfo
 {
     QByteArray file_format; //'BAM' or 'CRAM' plus container version
@@ -283,8 +306,8 @@ struct BamInfo
     bool false_duplications_masked = true; //checked for hg38 only
     bool contains_alt_chrs = false;
     bool paired_end;
-    QByteArray mapper; //the last used mapper
-    QByteArray mapper_version;
+	QByteArray mapper; //the last mapper listed in the BAM header
+	QByteArray mapper_version; //the version of the mapper
 };
 
 //C++ wrapper for htslib BAM file access
@@ -299,8 +322,18 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Destructor
 		~BamReader();
 
-        //TODO Marc: Add option to read only part of the read (e.g. no bases, no quality, no annotations) to speed up certain operations (e.g. read QC in MappingQC). See https://brentp.github.io/post/cram-speed/
-        void skipSeqAndQual();
+		//Do not load bases into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+        void skipBases();
+		//Do not load qualities into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+        void skipQualities();
+		//Do not load tags into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+		void skipTags(); //TODO
+		//Do not skip bases (read by default). Used to re-active bases after skipping them.
+		void readBases();
+		//Do not skip qualties. Used to re-active qualties after skipping them.
+		void readQualities();
+		//Do not skip tags. Used to re-active tgs after skipping them.
+		void readTags();
 
 		//Returns the BAM header lines
 		QByteArrayList headerLines() const;
@@ -320,6 +353,10 @@ class CPPNGSSHARED_EXPORT BamReader
 			{
 				THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
 			}
+
+			al.contains_bases_ = required_fields_ & SAM_SEQ;
+			al.contains_qualities_ = required_fields_ & SAM_QUAL;
+			al.contains_tags_ = required_fields_ & SAM_AUX;
 
 			return res>=0;
 		}
@@ -365,6 +402,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		sam_hdr_t* header_ = nullptr;
 		hts_idx_t* index_ = nullptr;
 		hts_itr_t* iter_  = nullptr;
+		int required_fields_ = SAM_QNAME | SAM_FLAG | SAM_RNAME | SAM_POS | SAM_MAPQ | SAM_CIGAR | SAM_RNEXT | SAM_PNEXT | SAM_TLEN | SAM_SEQ | SAM_QUAL | SAM_AUX | SAM_RGAUX;
 
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();

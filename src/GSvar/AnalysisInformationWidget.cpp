@@ -90,7 +90,7 @@ void AnalysisInformationWidget::updateGUI()
 				build += " masked:" + QString(info.false_duplications_masked ? "yes" : "no");
 				build += " alt:" + QString(info.contains_alt_chrs ? "yes" : "no");
 				tooltip += "build: " + build + "\n";
-				tooltip += "paired-end: " + QString(info.paired_end ? "yes" : "no")+"\n";
+				tooltip += "paired-end: " + QString(info.paired_end ? "yes" : "no");
 				ui_.table->item(0, 4)->setToolTip(tooltip);
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));

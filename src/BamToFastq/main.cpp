@@ -86,6 +86,7 @@ public:
 		timer.start();
 		QTextStream out(stdout);
 		BamReader reader(getInfile("in"), getInfile("ref"));
+		reader.skipTags();
 		QString out1 = getOutfile("out1");
 		QString out2 = getOutfile("out2");
 		bool fix = getFlag("fix");

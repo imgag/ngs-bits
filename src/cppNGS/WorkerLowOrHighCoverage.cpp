@@ -24,6 +24,10 @@ void WorkerLowOrHighCoverage::run()
         if (debug_) QTextStream(stdout) << "Processing chunk (" << chunk_.start << "-" << chunk_.end << ")" << QT_ENDL;
 
 		BamReader reader(bam_file_, ref_file_);
+		reader.skipBases();
+		reader.skipTags();
+		if (min_baseq_<=0) reader.skipQualities();
+
 		for (int i=chunk_.start; i<=chunk_.end; ++i)
 		{
 			const BedLine& bed_line = chunk_.data[i];

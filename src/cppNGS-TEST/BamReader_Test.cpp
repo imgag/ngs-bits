@@ -161,6 +161,52 @@ private:
 	}
 
 
+	TEST_METHOD(BamAlignment_skippingData)
+	{
+		BamReader reader(TESTDATA("data_in/panel.bam"));
+		BamAlignment al;
+		reader.getNextAlignment(al);
+		IS_TRUE(al.containsBases());
+		IS_TRUE(al.containsQualities());
+		IS_TRUE(al.containsTags());
+
+		reader.skipBases();
+		reader.getNextAlignment(al);
+		IS_FALSE(al.containsBases());
+		IS_TRUE(al.containsQualities());
+		IS_TRUE(al.containsTags());
+
+		reader.skipQualities();
+		reader.getNextAlignment(al);
+		IS_FALSE(al.containsBases());
+		IS_FALSE(al.containsQualities());
+		IS_TRUE(al.containsTags());
+
+		reader.skipTags();
+		reader.getNextAlignment(al);
+		IS_FALSE(al.containsBases());
+		IS_FALSE(al.containsQualities());
+		IS_FALSE(al.containsTags());
+
+		reader.readBases();
+		reader.getNextAlignment(al);
+		IS_TRUE(al.containsBases());
+		IS_FALSE(al.containsQualities());
+		IS_FALSE(al.containsTags());
+
+		reader.readQualities();
+		reader.getNextAlignment(al);
+		IS_TRUE(al.containsBases());
+		IS_TRUE(al.containsQualities());
+		IS_FALSE(al.containsTags());
+
+		reader.readTags();
+		reader.getNextAlignment(al);
+		IS_TRUE(al.containsBases());
+		IS_TRUE(al.containsQualities());
+		IS_TRUE(al.containsTags());
+	}
+
 /************************************************************* BamReader *************************************************************/
 
 	TEST_METHOD(BamReader_build)
@@ -448,7 +494,7 @@ private:
 		S_EQUAL(al.tag("RG"), "");
 	}
 
-	TEST_METHOD( CramSupport_cigarDataAsString)
+	TEST_METHOD(CramSupport_cigarDataAsString)
 	{
 		QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -537,6 +583,7 @@ private:
 		I_EQUAL(pileup.indels().count(), 6);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
 	}
+
     TEST_METHOD(info_bam)
     {
         //BAM - long read DNA, HG38, no ALT

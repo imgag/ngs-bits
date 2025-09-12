@@ -87,6 +87,7 @@ public:
 
 			BamAlignment al;
 			BamReader reader(in, ref_file);
+			reader.skipTags();
 			while (reader.getNextAlignment(al))
 			{
 				stats.update(al);

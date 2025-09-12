@@ -956,7 +956,7 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 	}
 
 	int threads = Settings::integer("threads");
-	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff, threads);
+	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff, 1, 0, threads);
 
 	QByteArray body = low_cov.toText().toUtf8();
 
