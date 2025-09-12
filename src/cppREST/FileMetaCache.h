@@ -16,6 +16,7 @@ struct CPPRESTSHARED_EXPORT FileMetadata
     qint64 size;
     bool has_existence_info;
     bool file_exists;
+    QDateTime modified;
     QDateTime created;
 
     FileMetadata()
@@ -26,11 +27,12 @@ struct CPPRESTSHARED_EXPORT FileMetadata
         , size()
         , has_existence_info()
         , file_exists()
+        , modified()
         , created()
     {
     }
 
-    FileMetadata(const QString absolute_file_path, const QString absolute_path, const QString filename, const bool has_size_info, const qint64 size, const bool has_existence_info, const bool file_exists, const QDateTime created)
+    FileMetadata(const QString absolute_file_path, const QString absolute_path, const QString filename, const bool has_size_info, const qint64 size, const bool has_existence_info, const bool file_exists, const QDateTime modified, const QDateTime created)
         : absolute_file_path(absolute_file_path)
         , absolute_path(absolute_path)
         , filename(filename)
@@ -38,6 +40,7 @@ struct CPPRESTSHARED_EXPORT FileMetadata
         , size(size)
         , has_existence_info(has_existence_info)
         , file_exists(file_exists)
+        , modified(modified)
         , created(created)
     {
     }

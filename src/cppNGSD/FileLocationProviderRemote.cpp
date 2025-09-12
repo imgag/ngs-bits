@@ -132,11 +132,34 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 }
 
 FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject obj) const
-{	
-	return FileLocation {
+{
+    if (!obj.contains("id"))
+    {
+        THROW(ProgrammingException, "FileLocation object is invalid: 'id' field is missing");
+    }
+    else if (!obj.contains("type"))
+    {
+        THROW(ProgrammingException, "FileLocation object is invalid: 'type' field is missing");
+    }
+    else if (!obj.contains("filename"))
+    {
+        THROW(ProgrammingException, "FileLocation object is invalid: 'filename' field is missing");
+    }
+    else if (!obj.contains("modified"))
+    {
+        THROW(ProgrammingException, "FileLocation object is invalid: 'modified' field is missing");
+    }
+    else if (!obj.contains("exists"))
+    {
+        THROW(ProgrammingException, "FileLocation object is invalid: 'exists' field is missing");
+    }
+
+    QString modified = obj.value("modified").toString();
+    return FileLocation {
 		obj.value("id").toString(),
 		FileLocation::stringToType(obj.value("type").toString()),
-		obj.value("filename").toString(),
+        obj.value("filename").toString(),
+        FileLocation::stringToModified(modified),
 		obj.value("exists").toBool()
 	};
 }

@@ -19,6 +19,7 @@ public:
     QString absoluteFilePath();
     QString absolutePath();
     QString fileName();
+    QDateTime lastModified();
 
 private:
     QString absolute_file_path_;
@@ -26,6 +27,7 @@ private:
     QString filename_;
     qint64 size_;
     bool exists_;
+    QDateTime last_modified_;
 };
 
 #endif // FASTFILEINFO_H

@@ -6,6 +6,7 @@
 #include "Helper.h"
 #include <QString>
 #include <QFileInfo>
+#include <QDateTime>
 
 enum class PathType
 {
@@ -72,12 +73,14 @@ struct FileLocation
 	QString id; //sample name (for single sample analyses) or analysis name (for multi-sample analyses)
 	PathType type = PathType::OTHER; //file type
 	QString filename; //file name
+    QDateTime modified; // the date of last modifiation
 	bool exists = false; // if filename actually exists or not
 
 	FileLocation()
 		: id()
 		, type(PathType::OTHER)
 		, filename()
+        , modified()
 		, exists(false)
 	{
 	}
@@ -85,10 +88,24 @@ struct FileLocation
 	FileLocation(const QString& id_, PathType type_, const QString& filename_, bool exists_)
 		: id(id_)
 		, type(type_)
-		, filename(filename_)
+        , filename(filename_)
 		, exists(exists_)
 	{
+        if (filename_.startsWith("http"))
+        {
+            THROW(ProgrammingException, "Could not determine the modification date for: " + filename_);
+        }
+        modified = QFileInfo(filename_).lastModified();
 	}
+
+    FileLocation(const QString& id_, PathType type_, const QString& filename_, QDateTime modified_, bool exists_)
+        : id(id_)
+        , type(type_)
+        , filename(filename_)
+        , modified(modified_)
+        , exists(exists_)
+    {
+    }
 
 	//Returns if the file is a HTTP/HTTPS URL.
 	bool isHttpUrl() const
@@ -109,6 +126,16 @@ struct FileLocation
 
 		return output;
 	}
+
+    QString modifiedAsString() const
+    {
+        return modified.toString("yyyy-MM-dd hh:mm:ss");
+    }
+
+    static QDateTime stringToModified(QString date_as_string)
+    {
+        return QDateTime::fromString(date_as_string,"yyyy-MM-dd hh:mm:ss");
+    }
 
 	QString typeAsString() const
 	{

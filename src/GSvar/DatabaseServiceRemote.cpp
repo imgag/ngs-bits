@@ -98,7 +98,7 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 
 		if (json_array.at(i).toObject().contains("id") && json_array.at(i).toObject().contains("type") && json_array.at(i).toObject().contains("filename") && json_array.at(i).toObject().contains("exists"))
 		{
-			return FileLocation(json_array.at(i).toObject().value("id").toString(), FileLocation::stringToType(json_array.at(i).toObject().value("type").toString()), json_array.at(i).toObject().value("filename").toString(), json_array.at(i).toObject().value("exists").toBool());
+            return FileLocation(json_array.at(i).toObject().value("id").toString(), FileLocation::stringToType(json_array.at(i).toObject().value("type").toString()), json_array.at(i).toObject().value("filename").toString(), FileLocation::stringToModified(json_array.at(i).toObject().value("modified").toString()), json_array.at(i).toObject().value("exists").toBool());
 		}
 	}
 
@@ -142,7 +142,7 @@ FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) cons
 
 	if (json_object.contains("id") && json_object.contains("type") && json_object.contains("filename") && json_object.contains("exists"))
 	{
-		return FileLocation(json_object.value("id").toString(), FileLocation::stringToType(json_object.value("type").toString()), json_object.value("filename").toString(), json_object.value("exists").toBool());
+        return FileLocation(json_object.value("id").toString(), FileLocation::stringToType(json_object.value("type").toString()), json_object.value("filename").toString(), FileLocation::stringToModified(json_object.value("modified").toString()), json_object.value("exists").toBool());
 	}
 
 	return FileLocation{};
@@ -163,7 +163,7 @@ FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
 
 	if (json_object.contains("id") && json_object.contains("type") && json_object.contains("filename") && json_object.contains("exists"))
 	{
-		return FileLocation(json_object.value("id").toString(), FileLocation::stringToType(json_object.value("type").toString()), json_object.value("filename").toString(), json_object.value("exists").toBool());
+        return FileLocation(json_object.value("id").toString(), FileLocation::stringToType(json_object.value("type").toString()), json_object.value("filename").toString(), FileLocation::stringToModified(json_object.value("modified").toString()), json_object.value("exists").toBool());
 	}
 
 	return FileLocation{};
