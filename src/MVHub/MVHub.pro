@@ -1,9 +1,9 @@
+include("../app_gui.pri")
 
 QT       += gui widgets network sql xml printsupport charts svg
 QTPLUGIN += QSQLMYSQL
 
 TARGET = MVHub
-TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
@@ -12,13 +12,11 @@ SOURCES += main.cpp \
     MVHub.cpp
 
 HEADERS += MVHub.h \
-	ExportHistoryDialog.h \
-	HttpHandler.h
+    ExportHistoryDialog.h \
+    HttpHandler.h
 
 FORMS    += MVHub.ui \
     ExportHistoryDialog.ui
-
-include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

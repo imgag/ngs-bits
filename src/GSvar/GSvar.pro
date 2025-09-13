@@ -1,10 +1,25 @@
+include("../app_gui.pri")
 
 QT       += gui widgets network sql xml printsupport charts svg
 QTPLUGIN += QSQLMYSQL
 
 TARGET = GSvar
-TEMPLATE = app
 RC_FILE	 = icon.rc
+
+#include NGSD library
+INCLUDEPATH += $$PWD/../cppNGSD
+LIBS += -L$$PWD/../../bin -lcppNGSD
+
+#include VISUAL library
+INCLUDEPATH += $$PWD/../cppVISUAL
+LIBS += -L$$PWD/../../bin -lcppVISUAL
+
+RESOURCES += \
+GSvar.qrc
+
+mac {
+ICON = Icons/Icon.icns
+}
 
 SOURCES += main.cpp\
     Background/BackgroundJobDialog.cpp \
@@ -384,20 +399,3 @@ FORMS    += MainWindow.ui \
     ReportVariantSelectionDialog.ui \
     BurdenTestWidget.ui \
     OncoTreeSelector.ui
-
-include("../app_gui.pri")
-
-#include NGSD library
-INCLUDEPATH += $$PWD/../cppNGSD
-LIBS += -L$$PWD/../../bin -lcppNGSD
-
-#include VISUAL library
-INCLUDEPATH += $$PWD/../cppVISUAL
-LIBS += -L$$PWD/../../bin -lcppVISUAL
-
-RESOURCES += \
-    GSvar.qrc
-
-mac {
-    ICON = Icons/Icon.icns
-}

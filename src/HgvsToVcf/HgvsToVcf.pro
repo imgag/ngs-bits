@@ -1,19 +1,8 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2013-10-08T13:40:57
-#
-#-------------------------------------------------
-
-TEMPLATE = app
-QT       -= gui
-QT       += sql
-CONFIG   += console
-CONFIG   -= app_bundle
+include("../app_cli.pri")
 
 SOURCES += main.cpp
 
-include("../app_cli.pri")
-
 #include cppNGSD library
+QT       += sql
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../bin -lcppNGSD

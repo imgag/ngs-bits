@@ -1,21 +1,12 @@
-#c++11 support
-CONFIG += c++11
+include("../app_cli.pri")
 
 #base settings
-QT += core
-QT += network
-QT -= gui
 QT += sql
 
 QTPLUGIN += QSQLMYSQL
 
 CONFIG   += console
 CONFIG   -= app_bundle
-TEMPLATE = app
-
-include("../app_cli.pri")
-
-DESTDIR = $$DEST_DIR_PATH_PART/bin/
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
@@ -32,9 +23,9 @@ INCLUDEPATH += $$PWD/../GSvarServer
 INCLUDEPATH += $$PWD/../cppTFW
 
 SOURCES += \
-        Controller_Test.cpp \
-        ServerIntegration_Test.cpp \
-        main.cpp
+    Controller_Test.cpp \
+    ServerIntegration_Test.cpp \
+    main.cpp
 
 RESOURCES += \
     ../GSvarServer/GSvarServer.qrc

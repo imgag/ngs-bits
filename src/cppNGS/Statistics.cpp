@@ -8,7 +8,6 @@
 #include "BasicStatistics.h"
 #include <QVector>
 #include "Pileup.h"
-#include "FastqFileStream.h"
 #include "LinePlot.h"
 #include "ScatterPlot.h"
 #include "BarPlot.h"
@@ -19,7 +18,6 @@
 #include <QThreadPool>
 #include "Histogram.h"
 #include "FilterCascade.h"
-#include "ToolBase.h"
 
 class RegionDepth
 {
@@ -372,8 +370,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	long long al_total = 0;
 	long long al_mapped = 0;
 	long long al_ontarget = 0;
-	long long al_neartarget = 0;
-	long long al_ontarget_raw = 0;
+    long long al_neartarget = 0;
 	long long al_dup = 0;
 	long long al_proper_paired = 0;
 	long long insert_size_read_count = 0;
@@ -443,8 +440,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 					int dp = al.tagi("DP");
 					if (dp != 0)
 					{
-						dp_dist.inc(std::min(dp, 4), true);
-						al_ontarget_raw += dp;
+                        dp_dist.inc(std::min(dp, 4), true);
 					}
 
 					//calculate usable bases and base-resolution coverage on target region
@@ -934,15 +930,13 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		}
 	}
 
-	//create coverage statistics data structure
-	long long roi_bases = 0;
+    //create coverage statistics data structure
 	QVector<RegionDepth> roi_cov(roi.count());
 
 	for (int i=0; i<roi.count(); ++i)
 	{
 		const BedLine& line = roi[i];
 		roi_cov[i] = RegionDepth(line.chr(), line.start(), line.end());
-		roi_bases += line.length();
 	}
 
 	//prepare AT/GC dropout data structure

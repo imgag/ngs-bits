@@ -2,7 +2,6 @@
 #include "VcfToBedpe.h"
 #include "VcfToBedpe.cpp"
 
-
 TEST_CLASS(VcfToBedpe_Test)
 {
 private:
