@@ -1,22 +1,9 @@
-#c++11 support
-CONFIG += c++11 
+include("../lib.pri")
 
 #base settings
 QT       += gui widgets xml network
-TEMPLATE = lib
 TARGET = cppVISUAL
 DEFINES += CPPVISUAL_LIBRARY
-
-#enable O3 optimization
-QMAKE_CXXFLAGS_RELEASE -= -O
-QMAKE_CXXFLAGS_RELEASE -= -O1
-QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE *= -O3
-
-include("../qt_compatibility.pri")
-
-#copy DLL to bin folder
-DESTDIR = $$DEST_DIR_PATH_PART/bin/
 
 #include cppCORE library
 INCLUDEPATH += $$PWD/../cppCORE
@@ -39,12 +26,6 @@ win32: LIBS += -L$$PWD/../../libxml2/libs/ -lxml2
 
 unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
-
-#include zlib library
-LIBS += -lz
-
-#make the executable search for .so-files in the same folder under linux
-QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
     GenomeVisualizationWidget.cpp \

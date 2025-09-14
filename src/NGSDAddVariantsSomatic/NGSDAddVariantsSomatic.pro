@@ -1,15 +1,8 @@
-TEMPLATE = app
-
-QT       -= gui
-QT       += sql
-CONFIG   += console
-CONFIG   -= app_bundle
+include("../app_cli.pri")
 
 SOURCES += main.cpp
 
-include("../app_cli.pri")
-
-
 #include cppNGS library
+QT       += sql
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../bin -lcppNGSD
