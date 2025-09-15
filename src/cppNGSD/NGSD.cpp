@@ -6135,7 +6135,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 			}
 			else if ((sys_info.umi_type == "IDT-xGen-Prism") || (sys_info.umi_type == "Twist"))
 			{
-				qDebug() << "UMI processing will be done in megSAP";
+				//qDebug() << "UMI processing will be done in megSAP";
 			}
 			else if (sys_info.umi_type != "n/a")
 			{

@@ -3,7 +3,7 @@ CONFIG += c++14
 
 #define project root folder
 PROJECT_ROOT = $$absolute_path($$PWD/..)
-#message(Project root is $$PROJECT_ROOT)
+#message(PROJECT_ROOT is $$PROJECT_ROOT)
 #export projectr root as preprocessor define for C++
 DEFINES += PROJECT_ROOT=\\\"$$PROJECT_ROOT\\\"
 

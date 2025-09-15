@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2025_07-95 (15.09.2025)
+
+- added link for CMC mutation significance in variant details
+- updated tumor-only filter
+- updated trio relaxed filter
+
 ## 2025_07-44 (20.08.2025)
 
 - project tag: added `matchmaking` field.

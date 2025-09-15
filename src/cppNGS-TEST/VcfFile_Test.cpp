@@ -126,7 +126,7 @@ private:
 		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped_compression5.vcf.gz", false, 5);
 		vcfH.load("out/VcfFileHandler_out_loaded_from_gzipped_compression5.vcf.gz");
 		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped_2.vcf", false, BGZF_NO_COMPRESSION);
-		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("out/VcfFileHandler_out_loaded_from_gzipped_2.vcf"));
+		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", "out/VcfFileHandler_out_loaded_from_gzipped_2.vcf");
 
 		//test BGZF_GZIP_COMPRESSION
 		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
