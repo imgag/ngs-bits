@@ -823,8 +823,6 @@ int MVHub::updateHpoTerms(int debug_level)
 
 			if (debug_level>=1) addOutputLine(se_id + "/" + ps + ": adding HPO: " + hpo.toString());
 
-			//TODO re-add when meDIC figures out how this is done
-			/*
 			//TODO replace fixed version_hpo with correct value from NGSD when implemented: https://github.com/imgag/megSAP/issues/423
 			//add HPO term to SE RedCap
 			addOutputLine(se_id + "/" + ps + ": adding HPO term "+hpo.toString()+" ...");
@@ -850,7 +848,6 @@ int MVHub::updateHpoTerms(int debug_level)
 				return added_hpo_terms;
 			}
 			++added_hpo_terms;
-			*/
 		}
 	}
 

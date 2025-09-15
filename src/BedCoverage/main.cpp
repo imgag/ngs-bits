@@ -37,6 +37,7 @@ public:
 		changeLog(2017,  6,  2, "Added 'dup' parameter.");
 	}
 
+	//TODO Marc: add flag to skip ready with MAPQ<20 and matching bases<50 > check if the coverge variance between bins is reduced by that > check if CNV calling is improved by that (less 1 bin calls)
 	virtual void main()
 	{
 		//load regions
