@@ -2592,7 +2592,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false, random_access, debug);
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file, bool random_access, bool debug)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file, bool random_access, bool skip_mismapped, bool debug)
 {
 	//check BED is sorted for chromosomal sweep algorithm
 	if (!random_access && !bed_file.isSorted()) THROW(ArgumentException, "Input BED file has to be sorted for sweep algorithm!");
@@ -2680,12 +2680,12 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	{
 		if (!random_access)
 		{
-			WorkerAverageCoverageChr* worker = new WorkerAverageCoverageChr(chunks[i], bam_file, min_mapq, decimals, ref_file, debug);
+			WorkerAverageCoverageChr* worker = new WorkerAverageCoverageChr(chunks[i], bam_file, min_mapq, decimals, ref_file, skip_mismapped, debug);
 			thread_pool.start(worker);
 		}
 		else
 		{
-			WorkerAverageCoverage* worker = new WorkerAverageCoverage(chunks[i], bam_file, min_mapq, decimals, ref_file, debug);
+			WorkerAverageCoverage* worker = new WorkerAverageCoverage(chunks[i], bam_file, min_mapq, decimals, ref_file, skip_mismapped, debug);
 			thread_pool.start(worker);
 		}
 	}

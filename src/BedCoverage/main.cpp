@@ -26,9 +26,11 @@ public:
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("clear", "Clear previous annotation columns before annotating (starting from 4th column).");
 		addInt("threads", "Number of threads used.", true, 1);
-		addFlag("random_access", "Use random access via index to get reads from BAM/CRAM instead of chromosome-wise sweep. Random access is quite slow, so use it only if a small subset of the file needs to be accessed.");
+		addFlag("random_access", "Use random access via index to get reads from BAM/CRAM instead of chromosome-wise sweep. Random access is quite slow, especially on CRAM, so use it only if a small subset of the file needs to be accessed.");
 		addFlag("debug", "Enable debug output.");
+		addFlag("skip_mismapped", "Skip reads with mapping quality less than 20 that are not properly paired (they are often mis-mapped).");
 
+		changeLog(2025,  9, 15, "Added 'skip_mismapped' parameter.");
 		changeLog(2024,  6, 26, "Added 'random_access' parameter.");
 		changeLog(2022,  9, 16, "Added 'threads' parameter and removed 'dup' parameter.");
 		changeLog(2022,  8, 12, "Added parameter to clear previous annotation columns.");
@@ -37,7 +39,7 @@ public:
 		changeLog(2017,  6,  2, "Added 'dup' parameter.");
 	}
 
-	//TODO Marc: add flag to skip ready with MAPQ<20 and matching bases<50 > check if the coverge variance between bins is reduced by that > check if CNV calling is improved by that (less 1 bin calls)
+	//TODO Marc: add flag to skip ready with MAPQ<20 and not properly paired > check if the coverge variance between bins is reduced by that > check if CNV calling is improved by that (less 1 bin calls)
 	virtual void main()
 	{
 		//load regions
@@ -56,7 +58,7 @@ public:
 		QStringList bams = getInfileList("bam");
 		foreach(QString bam, bams)
 		{
-			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getInt("threads"), getInt("decimals"), getInfile("ref"), getFlag("random_access"), getFlag("debug"));
+			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getInt("threads"), getInt("decimals"), getInfile("ref"), getFlag("random_access"), getFlag("skip_mismapped"), getFlag("debug"));
             header += "\t" + QFileInfo(bam).baseName().toUtf8();
 		}
 

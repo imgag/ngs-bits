@@ -2,13 +2,14 @@
 #include "BamReader.h"
 #include "ChromosomalIndex.h"
 
-WorkerAverageCoverage::WorkerAverageCoverage(WorkerAverageCoverage::Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file, bool debug)
+WorkerAverageCoverage::WorkerAverageCoverage(WorkerAverageCoverage::Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file, bool skip_mismapped, bool debug)
 	: QRunnable()
 	, chunk_(chunk)
 	, bam_file_(bam_file)
 	, min_mapq_(min_mapq)
 	, decimals_(decimals)
 	, ref_file_(ref_file)
+	, skip_mismapped_(skip_mismapped)
 	, debug_(debug)
 {
 }
@@ -40,6 +41,9 @@ void WorkerAverageCoverage::run()
 				if (al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 				if (al.isUnmapped() || al.mappingQuality()<min_mapq_) continue;
 
+				//skip mis-mapped reads (poly-G artefacts from 2 color chemistry mainly)
+				if (skip_mismapped_ && !al.isProperPair() && al.mappingQuality()<20) continue;
+
 				const int ol_start = std::max(bed_line.start(), al.start());
 				const int ol_end = std::min(bed_line.end(), al.end());
 				if (ol_start<=ol_end)
@@ -67,13 +71,14 @@ void WorkerAverageCoverage::run()
 	}
 }
 
-WorkerAverageCoverageChr::WorkerAverageCoverageChr(WorkerAverageCoverage::Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file, bool debug)
+WorkerAverageCoverageChr::WorkerAverageCoverageChr(WorkerAverageCoverage::Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file, bool skip_mismapped, bool debug)
 	: QRunnable()
 	, chunk_(chunk)
 	, bam_file_(bam_file)
 	, min_mapq_(min_mapq)
 	, decimals_(decimals)
 	, ref_file_(ref_file)
+	, skip_mismapped_(skip_mismapped)
 	, debug_(debug)
 {
 }
@@ -82,7 +87,6 @@ void WorkerAverageCoverageChr::run()
 {
 	try
 	{
-
 		//init
         QElapsedTimer timer;
 		timer.start();
@@ -123,6 +127,9 @@ void WorkerAverageCoverageChr::run()
 		{
 			if (al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq_) continue;
+
+			//skip mis-mapped reads (poly-G artefacts from 2 color chemistry mainly)
+			if (skip_mismapped_ && !al.isProperPair() && al.mappingQuality()<20) continue;
 
 			QVector<int> indices = index.matchingIndices(chr, al.start(), al.end());
 			foreach(int i, indices)

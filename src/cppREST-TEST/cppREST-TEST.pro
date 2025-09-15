@@ -24,9 +24,6 @@ LIBS += -L$$PWD/../../bin -lcppREST
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
-#the server itself
-#//TODO INCLUDEPATH += $$PWD/../GSvarServer
-
 SOURCES += \
         FileMetaCache_Test.cpp \
         HtmlEngine_Test.cpp \

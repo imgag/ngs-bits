@@ -68,7 +68,7 @@ public:
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
 	///Calculates and annotates the average coverage of the regions in the bed file. Debug flag enables debug output to stdout.
-	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, int threads=1, int decimals=2, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
+	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, int threads=1, int decimals=2, const QString& ref_file = QString(), bool random_access=true, bool skip_mismapped = false, bool debug=false);
 	///Calculates the part of the genome that has a higher coverage than the given cutoff.
 	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
 
