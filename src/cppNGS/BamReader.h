@@ -73,11 +73,20 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		}
 
 		//Returns the read length.
+		//Note: For CRAM files, if bases and qualities are skipped, the length is determined from the CIGAR string. However if the read is unmapped, there is no CIGAR string. In this case -1 is returned.
 		int length() const
 		{
 			if (!length_initialized_)
 			{
-				length_ = (aln_->core.l_qseq==0 && !containsBases() && !containsQualities()) ? bam_cigar2qlen(aln_->core.n_cigar, bam_get_cigar(aln_)) : aln_->core.l_qseq;
+				if (!containsBases() && !containsQualities())
+				{
+					length_ = aln_->core.n_cigar ? bam_cigar2qlen(aln_->core.n_cigar, bam_get_cigar(aln_)) : -1;
+				}
+				else
+				{
+					length_ = aln_->core.l_qseq;
+				}
+
 				length_initialized_ = true;
 			}
 
@@ -259,17 +268,17 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		*/
 		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0);
 
-		//Indicates if bases were loaded
+		//Indicates if bases were loaded (for CRAM).
 		bool containsBases() const
 		{
 			return loaded_fields_ & SAM_SEQ;
 		}
-		//Indicates if qualities were loaded
+		//Indicates if qualities were loaded (for CRAM).
 		bool containsQualities() const
 		{
 			return loaded_fields_ & SAM_QUAL;
 		}
-		//Indicates if tags were loaded
+		//Indicates if tags were loaded (for CRAM).
 		bool containsTags() const
 		{
 			return loaded_fields_ & SAM_AUX;
@@ -279,7 +288,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		bam1_t* aln_;
 		mutable int length_ = -1;
 		mutable bool length_initialized_ = false;
-		int loaded_fields_;
+		int loaded_fields_; //fields loaded (for CRAM)
 
 		//friends
 		friend class BamReader;
@@ -327,17 +336,18 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Destructor
 		~BamReader();
 
-		//Do not load bases into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+		//Optimization of CRAM read times - see https://brentp.github.io/post/cram-speed/
+		//Do not load bases into alignments. If the file is not a CRAM file, this has no effect.
         void skipBases();
-		//Do not load qualities into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+		//Do not load qualities into alignments. If the file is not a CRAM file, this has no effect.
         void skipQualities();
-		//Do not load tags into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+		//Do not load tags into alignments. If the file is not a CRAM file, this has no effect.
 		void skipTags();
-		//Do not skip bases (read by default). Used to re-active bases after skipping them.
+		//Used to re-active bases after skipping them. If the file is not a CRAM file, this has no effect.
 		void readBases();
-		//Do not skip qualties. Used to re-active qualties after skipping them.
+		//Used to re-active qualties after skipping them. If the file is not a CRAM file, this has no effect.
 		void readQualities();
-		//Do not skip tags. Used to re-active tgs after skipping them.
+		//Used to re-active tgs after skipping them. If the file is not a CRAM file, this has no effect.
 		void readTags();
 
 		//Returns the BAM header lines

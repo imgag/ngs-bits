@@ -533,36 +533,49 @@ BamReader::~BamReader()
 
 void BamReader::skipQualities()
 {
+	if (!fp_->is_cram) return;
+
 	requested_fields_ = requested_fields_ & ~SAM_QUAL;
 	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
+
 void BamReader::skipBases()
 {
-	requested_fields_ = requested_fields_ & ~SAM_SEQ;
-	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
-}
+	if (!fp_->is_cram) return;
 
-void BamReader::readBases()
-{
-	requested_fields_ = requested_fields_ | SAM_SEQ;
+	requested_fields_ = requested_fields_ & ~SAM_SEQ;
 	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
 void BamReader::skipTags()
 {
+	if (!fp_->is_cram) return;
+
 	requested_fields_ = requested_fields_ & ~SAM_AUX;
 	requested_fields_ = requested_fields_ & ~SAM_RGAUX;
 	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
+void BamReader::readBases()
+{
+	if (!fp_->is_cram) return;
+
+	requested_fields_ = requested_fields_ | SAM_SEQ;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
+}
+
 void BamReader::readQualities()
 {
+	if (!fp_->is_cram) return;
+
 	requested_fields_ = requested_fields_ | SAM_QUAL;
 	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
 void BamReader::readTags()
 {
+	if (!fp_->is_cram) return;
+
 	requested_fields_ = requested_fields_ | SAM_AUX | SAM_RGAUX;
 	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }

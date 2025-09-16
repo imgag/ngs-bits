@@ -496,8 +496,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 			}
 		}
 
-		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-		if (length<max_length)
+		//trimmed bases - for CRAM files the length of unmapped reads cannot be determined (-1), thus we skip those reads.
+		if (length<max_length && length!=-1)
 		{
 			bases_trimmed += (max_length - length);
 		}
@@ -828,8 +828,8 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 			}
 		}
 
-		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-		if (length<max_length)
+		//trimmed bases - for CRAM files the length of unmapped reads cannot be determined (-1), thus we skip those reads.
+		if (length<max_length && length!=-1)
 		{
 			bases_trimmed += (max_length - length);
 		}
@@ -1054,8 +1054,8 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			}
 		}
 
-		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-		if (length<max_length)
+		//trimmed bases - for CRAM files the length of unmapped reads cannot be determined (-1), thus we skip those reads.
+		if (length<max_length && length!=-1)
 		{
 			bases_trimmed += (max_length - length);
 		}
