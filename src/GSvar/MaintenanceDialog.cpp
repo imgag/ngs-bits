@@ -887,11 +887,42 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 		//differing type/keys
 		foreach(QString field, fields_both)
 		{
-			if (info_p.fieldInfo(field).toString()!=info_t.fieldInfo(field).toString())
+			const TableFieldInfo& field_p = info_p.fieldInfo(field);
+			const TableFieldInfo& field_t = info_t.fieldInfo(field);
+
+			if (field_p.toString()!=field_t.toString())
 			{
 				appendOutputLine("differing type/key in "+table+"/"+field+" for production/test:");
-				appendOutputLine("  "+info_p.fieldInfo(field).toString());
-				appendOutputLine("  "+info_t.fieldInfo(field).toString());
+				appendOutputLine("  "+field_p.toString());
+				appendOutputLine("  "+field_t.toString());
+			}
+			else if (field_p.type==TableFieldInfo::ENUM)
+			{
+				QStringList values_p = field_p.type_constraints.valid_strings;
+				std::sort(values_p.begin(), values_p.end());
+				QStringList values_t = field_t.type_constraints.valid_strings;
+				std::sort(values_t.begin(), values_t.end());
+				if (values_p!=values_t)
+				{
+					appendOutputLine("differing ENUM values in "+table+"/"+field+" for production/test:");
+					appendOutputLine("  "+field_p.type_constraints.valid_strings.join(", "));
+					appendOutputLine("  "+field_t.type_constraints.valid_strings.join(", "));
+				}
+			}
+			else if (field_p.type==TableFieldInfo::VARCHAR)
+			{
+				if (field_p.type_constraints.max_length!=field_t.type_constraints.max_length)
+				{
+					appendOutputLine("differing VARCHAR max length in "+table+"/"+field+" for production/test:");
+					appendOutputLine("  "+QString::number(field_p.type_constraints.max_length));
+					appendOutputLine("  "+QString::number(field_t.type_constraints.max_length));
+				}
+				if (field_p.type_constraints.regexp.pattern()!=field_t.type_constraints.regexp.pattern())
+				{
+					appendOutputLine("differing VARCHAR regexp in "+table+"/"+field+" for production/test:");
+					appendOutputLine("  "+field_p.type_constraints.regexp.pattern());
+					appendOutputLine("  "+field_t.type_constraints.regexp.pattern());
+				}
 			}
 		}
 

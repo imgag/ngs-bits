@@ -3870,12 +3870,12 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
-				info.type_constraints.valid_strings = getEnum(table, info.name);
+				info.type_constraints.valid_strings = getEnum(table, info.name, use_cache);
 			}
 			else if (type.startsWith("set("))
 			{
 				info.type = TableFieldInfo::SET;
-				info.type_constraints.valid_strings = getEnum(table, info.name);
+				info.type_constraints.valid_strings = getEnum(table, info.name, use_cache);
 			}
 			else if(type.startsWith("varchar("))
 			{
@@ -6284,12 +6284,12 @@ QString NGSD::nextProcessingId(const QString& sample_id)
 	return max_num.isEmpty() ? "1" : QString::number(max_num.toInt()+1);
 }
 
-QStringList NGSD::getEnum(QString table, QString column) const
+QStringList NGSD::getEnum(QString table, QString column, bool use_cache) const
 {
 	//check cache
 	QMap<QString, QStringList>& cache = getCache().enum_values;
 	QString hash = table+"."+column;
-	if (cache.contains(hash))
+	if (use_cache && cache.contains(hash))
 	{
 		return cache.value(hash);
 	}

@@ -567,7 +567,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `project_id` INT(11) NOT NULL,
   `processing_input` FLOAT NULL DEFAULT NULL,
   `molarity` FLOAT NULL DEFAULT NULL,
-  `processing_modus` ENUM('n/a','manual','Biomek i5','Biomek i7', 'Bravo') NOT NULL DEFAULT 'n/a',
+  `processing_modus` ENUM('n/a','manual','Biomek i5','Biomek i7', 'Bravo', 'Assist Plus') NOT NULL DEFAULT 'n/a',
   `batch_number` VARCHAR(100) NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL COMMENT 'For tumor samples, a normal sample can be given here which is used as reference sample during the data analysis.',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
@@ -1125,7 +1125,7 @@ CREATE TABLE IF NOT EXISTS `analysis_job`
   `args` text NOT NULL,
   `sge_id` varchar(10) DEFAULT NULL,
   `sge_queue` varchar(50) DEFAULT NULL,
-  `use_dragen` BOOLEAN DEFAULT FALSE COMMENT 'defines if dragen pipeline should be used',
+  `use_dragen` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'defines if dragen pipeline should be used',
   PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB
@@ -2188,7 +2188,7 @@ CREATE TABLE IF NOT EXISTS `preferred_transcripts`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(40) NOT NULL,
   `added_by` INT(11) NOT NULL,
-  `added_date` timestamp NOT NULL,
+  `added_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`name` ASC),
   CONSTRAINT `preferred_transcriptsg_created_by_user`
@@ -2718,7 +2718,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `location` TEXT DEFAULT NULL COMMENT 'Location of repeat',
   `comments` TEXT DEFAULT NULL,
   `type` ENUM('diagnostic', 'low evidence') NOT NULL,
-  `inhouse_testing` BOOLEAN NOT NULL,
+  `inhouse_testing` BOOLEAN NOT NULL DEFAULT FALSE,
   `statisticial_cutoff_wgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for short-read WGS (this cutoff can deviate from min_pathogenic when RE length cannot be determined accurately from NGSD)',
   `statisticial_cutoff_lrgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for long-read WGS',
   PRIMARY KEY (`id`),

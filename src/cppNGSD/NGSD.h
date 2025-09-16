@@ -743,7 +743,7 @@ public:
 	void executeQueriesFromFile(QString filename);
 
 	///Returns all possible values for a enum column.
-	QStringList getEnum(QString table, QString column) const;
+	QStringList getEnum(QString table, QString column, bool use_cache=true) const;
 	///Checks if a table exists.
 	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
 	///Checks if a row the given id exists in the table.
