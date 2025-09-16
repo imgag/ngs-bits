@@ -389,8 +389,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
 	//iterate through all alignments
 	BamReader reader(bam_file, ref_file);
-    reader.skipBases();
-    reader.skipQualities();
+	reader.skipBases();
+	reader.skipQualities();
 	BamAlignment al;
 	while (reader.getNextAlignment(al))
 	{
@@ -398,7 +398,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
-		max_length = std::max(max_length, al.length());
+
+		const int length = al.length();
+		max_length = std::max(max_length, length);
 
 		//track if spliced alignment
 		bool spliced_alignment = false;
@@ -410,7 +412,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 			//calculate soft/hard-clipped bases
 			const int start_pos = al.start();
 			const int end_pos = al.end();
-			bases_mapped += al.length();
+			bases_mapped += length;
 			const QList<CigarOp> cigar_data = al.cigarData();
 			foreach(const CigarOp& op, cigar_data)
 			{
@@ -495,9 +497,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		}
 
 		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-		if (al.length()<max_length)
+		if (length<max_length)
 		{
-			bases_trimmed += (max_length - al.length());
+			bases_trimmed += (max_length - length);
 		}
 
 		if (al.isDuplicate())
@@ -766,7 +768,9 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
-		max_length = std::max(max_length, al.length());
+
+		const int length = al.length();
+		max_length = std::max(max_length, length);
 
 		//track if spliced alignment
 		bool spliced_alignment = false;
@@ -776,7 +780,7 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 			++al_mapped;
 
 			//calculate soft/hard-clipped bases
-			bases_mapped += al.length();
+			bases_mapped += length;
 			const QList<CigarOp> cigar_data = al.cigarData();
 			foreach(const CigarOp& op, cigar_data)
 			{
@@ -797,7 +801,7 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 
 				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 				{
-					bases_usable += al.length();
+					bases_usable += length;
 				}
 			}
 		}
@@ -825,9 +829,9 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 		}
 
 		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-		if (al.length()<max_length)
+		if (length<max_length)
 		{
-			bases_trimmed += (max_length - al.length());
+			bases_trimmed += (max_length - length);
 		}
 
 		if (al.isDuplicate())
@@ -990,7 +994,9 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
-		max_length = std::max(max_length, al.length());
+
+		const int length = al.length();
+		max_length = std::max(max_length, length);
 
 		//track if spliced alignment
 		bool spliced_alignment = false;
@@ -1000,7 +1006,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			++al_mapped;
 
 			//calculate soft/hard-clipped bases
-			bases_mapped += al.length();
+			bases_mapped += length;
 			const QList<CigarOp> cigar_data = al.cigarData();
 			foreach(const CigarOp& op, cigar_data)
 			{
@@ -1021,7 +1027,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 				++al_ontarget;
 				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 				{
-					bases_usable += al.length();
+					bases_usable += length;
 				}
 			}
 		}
@@ -1049,9 +1055,9 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		}
 
 		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-		if (al.length()<max_length)
+		if (length<max_length)
 		{
-			bases_trimmed += (max_length - al.length());
+			bases_trimmed += (max_length - length);
 		}
 
 		if (al.isDuplicate())

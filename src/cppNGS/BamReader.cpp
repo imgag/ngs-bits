@@ -25,6 +25,9 @@ BamAlignment::~BamAlignment()
 
 BamAlignment::BamAlignment(const BamAlignment& rhs)
 	: aln_(bam_dup1(rhs.aln_))
+	, length_(rhs.length_)
+	, length_initialized_(rhs.length_initialized_)
+	, loaded_fields_(rhs.loaded_fields_)
 {
 }
 
@@ -114,7 +117,7 @@ bool BamAlignment::cigarIsOnlyInsertion() const
 
 Sequence BamAlignment::bases() const
 {
-	if (!contains_bases_) THROW(ProgrammingException, "BamAlignment does not contain bases, but bases() used!");
+	if (!containsBases()) THROW(ProgrammingException, "BamAlignment does not contain bases, but bases() used!");
 	Sequence output;
 	output.resize(aln_->core.l_qseq);
 
@@ -129,7 +132,7 @@ Sequence BamAlignment::bases() const
 
 QVector<int> BamAlignment::baseIntegers() const
 {
-	if (!contains_bases_) THROW(ProgrammingException, "BamAlignment does not contain bases, but baseIntegers() used!");
+	if (!containsBases()) THROW(ProgrammingException, "BamAlignment does not contain bases, but baseIntegers() used!");
 
 	QVector<int> ints;
 	ints.resize(aln_->core.l_qseq);
@@ -206,7 +209,7 @@ void BamAlignment::setBases(const Sequence& bases)
 
 QByteArray BamAlignment::qualities() const
 {
-	if (!contains_bases_) THROW(ProgrammingException, "BamAlignment does not contain qualities, but qualities() used!");
+	if (!containsQualities()) THROW(ProgrammingException, "BamAlignment does not contain qualities, but qualities() used!");
 
 	QByteArray output;
 	output.resize(aln_->core.l_qseq);
@@ -282,7 +285,7 @@ void BamAlignment::setQualities(const QByteArray& qualities)
 
 QByteArray BamAlignment::tag(const QByteArray& tag) const
 {
-	if (!contains_tags_) THROW(ProgrammingException, "BamAlignment does not contain tags, but tag(QByteArray) used!");
+	if (!containsTags()) THROW(ProgrammingException, "BamAlignment does not contain tags, but tag(QByteArray) used!");
 
 	uint8_t* data_raw = bam_aux_get(aln_, tag);
 	if (data_raw==nullptr)
@@ -290,13 +293,13 @@ QByteArray BamAlignment::tag(const QByteArray& tag) const
 		return QByteArray();
 	}
 	const char* data = reinterpret_cast<const char*>(data_raw);
-	if (data[0]!='Z') THROW(NotImplementedException, "BamAlignment::tag: Getting tag data other than 'Z' type is not implemented!");
-	return QByteArray(data);
+	if (data[0]!='Z') THROW(ProgrammingException, "BamAlignment::tag: Cannot return string for type '" + QString(data[0]) + "' tag!");
+	return QByteArray(data).mid(1);
 }
 
 int BamAlignment::tagi(const QByteArray& tag) const
 {
-	if (!contains_tags_) THROW(ProgrammingException, "BamAlignment does not contain tags, but tagi(QByteArray) used!");
+	if (!containsTags()) THROW(ProgrammingException, "BamAlignment does not contain tags, but tagi(QByteArray) used!");
 
 	uint8_t* data_raw = bam_aux_get(aln_, tag);
 	if (data_raw==nullptr)
@@ -530,38 +533,38 @@ BamReader::~BamReader()
 
 void BamReader::skipQualities()
 {
-    required_fields_ = required_fields_ & ~SAM_QUAL;
-	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required_fields_);
+	requested_fields_ = requested_fields_ & ~SAM_QUAL;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 void BamReader::skipBases()
 {
-    required_fields_ = required_fields_ & ~SAM_SEQ;
-    hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required_fields_);
+	requested_fields_ = requested_fields_ & ~SAM_SEQ;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
 void BamReader::readBases()
 {
-	required_fields_ = required_fields_ | SAM_SEQ;
-	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required_fields_);
+	requested_fields_ = requested_fields_ | SAM_SEQ;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
 void BamReader::skipTags()
 {
-	required_fields_ = required_fields_ & ~SAM_AUX;
-	required_fields_ = required_fields_ & ~SAM_RGAUX;
-	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required_fields_);
+	requested_fields_ = requested_fields_ & ~SAM_AUX;
+	requested_fields_ = requested_fields_ & ~SAM_RGAUX;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
 void BamReader::readQualities()
 {
-	required_fields_ = required_fields_ | SAM_QUAL;
-	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required_fields_);
+	requested_fields_ = requested_fields_ | SAM_QUAL;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
 void BamReader::readTags()
 {
-	required_fields_ = required_fields_ | SAM_AUX | SAM_RGAUX;
-	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, required_fields_);
+	requested_fields_ = requested_fields_ | SAM_AUX | SAM_RGAUX;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
 QByteArrayList BamReader::headerLines() const
@@ -586,7 +589,7 @@ GenomeBuild BamReader::build() const
 BamInfo BamReader::info()
 {
 	//we don't need bases and qualities for this method - they are re-enabled at the end
-	int required_fields_before = required_fields_;
+	int requested_fields_before = requested_fields_;
 	skipBases();
 	skipQualities();
 	skipTags();
@@ -719,7 +722,7 @@ BamInfo BamReader::info()
         }
     }
 
-	required_fields_ = required_fields_before;
+	requested_fields_ = requested_fields_before;
 
 	return output;
 }
@@ -807,7 +810,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	int reads_mapq0 = 0;
 
 	//we don't need qualities for this method - they are re-enabled at the end
-	int required_fields_before = required_fields_;
+	int requested_fields_before = requested_fields_;
 	if (min_baseq<=0) skipQualities();
 	skipTags();
 
@@ -844,7 +847,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 
 	output.setMapq0Frac((double)reads_mapq0 / reads_mapped);
 
-	required_fields_ = required_fields_before;
+	requested_fields_ = requested_fields_before;
 
 	return output;
 }
@@ -919,7 +922,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 	int reads_mapq0 = 0;
 
 	//we don't need qualities for this method - they are re-enabled at the end
-	int required_fields_before = required_fields_;
+	int requested_fields_before = requested_fields_;
 	skipQualities();
 	skipTags();
 
@@ -1016,5 +1019,5 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 
 	mapq0_frac = (double)reads_mapq0 / reads_mapped;
 
-	required_fields_ = required_fields_before;
+	requested_fields_ = requested_fields_before;
 }
