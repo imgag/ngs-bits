@@ -1,4 +1,4 @@
-name: MacOS build (arm64, M1)
+name: Qt 6.8.3 on MacOS 15 (arm64, M1)
 
 on: [push, pull_request]
 
