@@ -12,6 +12,9 @@ jobs:
         submodules: recursive
     - name: Update submodules
       run: git submodule update --recursive --init
+    - name: Adjust the number of threads used during the build
+      run: sed -i '' 's/-j5/-j2/g' Makefile
+      shell: bash
     - name: Update Homebrew
       run: brew update
     - name: Remove existing Python symlinks
