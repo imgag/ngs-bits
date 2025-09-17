@@ -280,10 +280,17 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(contamination)
 	{
+		//without ROI
 		QCCollection stats = Statistics::contamination(GenomeBuild::HG38, TESTDATA("data_in/panel.bam"));
 		I_EQUAL(stats.count(), 1);
 		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
 		S_EQUAL(stats[0].toString(), QString("4.76"));
+
+		//with ROI
+		stats = Statistics::contamination(GenomeBuild::HG38, TESTDATA("data_in/panel.bam"), "", TESTDATA("data_in/panel.bed"));
+		I_EQUAL(stats.count(), 1);
+		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
+		S_EQUAL(stats[0].toString(), QString("5.77"));
 	}
 
 	TEST_METHOD(mapping_close_exons)

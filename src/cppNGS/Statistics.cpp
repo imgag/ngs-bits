@@ -2234,16 +2234,23 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	return output;
 }
 
-QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps, bool include_not_properly_paired)
+QCCollection Statistics::contamination(GenomeBuild build, QString bam, QString ref_file, QString roi_file, bool debug, int min_cov, int min_snps, bool include_not_properly_paired)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
+
+	BedFile roi;
+	if (roi_file!="")
+	{
+		roi.load(roi_file);
+		roi.sort();
+	}
 
 	//calcualate frequency histogram
 	Histogram hist(0, 1, 0.05);
 	int passed = 0;
 	double passed_depth_sum = 0.0;
-	VcfFile snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
+	VcfFile snps = roi_file!="" ? NGSHelper::getKnownVariants(build, true, roi, 0.2, 0.8) : NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
 		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start(), -1, 1, include_not_properly_paired);

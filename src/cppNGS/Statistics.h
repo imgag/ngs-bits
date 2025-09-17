@@ -61,7 +61,7 @@ public:
 	static QCValue mutationBurden(QString somatic_vcf, QString target, QString blacklist);
 
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
-	static QCCollection contamination(GenomeBuild build, QString bam, const QString& ref_file = QString(), bool debug = false, int min_cov = 20, int min_snps = 50, bool include_not_properly_paired = false);
+	static QCCollection contamination(GenomeBuild build, QString bam, QString ref_file = "", QString roi = "", bool debug = false, int min_cov = 20, int min_snps = 50, bool include_not_properly_paired = false);
 	///Returns ancestry estimates for a variant list in VCF format.
 	static AncestryEstimates ancestry(GenomeBuild build, QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
 
