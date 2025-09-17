@@ -61,24 +61,25 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 	}
 
+	int i_cnv_type = cnvs_.annotationIndexByName("cnv_type", true);
+
 	//high significance genes: with reported CNV
 	for(int i=0; i<cnvs_.count(); ++i)
 	{
 		const CopyNumberVariant& cnv = cnvs_[i];
 		int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
-		if(cn == 2) continue; //Skip LOHs
+		if(cn == 2 || cn == 3) continue; //Skip LOHs and low cn amps
 
+		QByteArray cnv_type = cnv.annotations()[i_cnv_type];
 		for(const QByteArray& gene : cnv.genes())
 		{
-			//only genes with high evidence role
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
-			if (!role.isValid() || !role.high_evidence) continue;
+			//only genes with high evidence role
+			if (! role.isValid() || ! role.high_evidence) continue;
 
 			//only if included in report
-			if(!SomaticCnvInterpreter::includeInReport(cnvs_, cnv, role)) continue;
-
-			if(cn == 3)	continue; //skip low cn amps
+			if(!SomaticCnvInterpreter::includeInReport(cn, cnv_type, role)) continue;
 
 			important_genes << gene;
 		}
@@ -170,6 +171,8 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	}
 	catch(...) {} //Nothing to do here
 
+
+
 	//assign CNV annotation indices
 	cnv_index_cn_change_ = cnvs_.annotationIndexByName("CN_change", false);
 	cnv_index_cnv_type_ = cnvs_.annotationIndexByName("cnv_type", false);
@@ -194,7 +197,6 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	if(tmp.count() == 1) histol_tumor_fraction_ = tmp[0].toDouble();
 	else histol_tumor_fraction_ = std::numeric_limits<double>::quiet_NaN();
 	tmp.clear();
-
 
 	//get mutation burden
 	try
@@ -461,7 +463,6 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 					effect = "ambiguous";
 				}
 			}
-
 		}
 		else effect = "NA";
 
@@ -552,7 +553,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
         for (const auto& gene : genes)
 		{
 			SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
-			if (!gene_role.isValid()) continue;
+			if (! gene_role.isValid()) continue;
 
 			QByteArray effect = "";
 			int cn = variant.copyNumber(cnvs_.annotationHeaders());
@@ -1304,6 +1305,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 	if(high_impact_table)
 	{
 		QVector<RtfTableRow> cnv_rows;
+		int i_cnv_type = cnvs_.annotationIndexByName("cnv_type", true);
 		for(int i=0;i<cnvs_.count();++i)
 		{
 			const CopyNumberVariant& cnv = cnvs_[i];
@@ -1313,15 +1315,17 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 			if( settings_.target_region_filter.isValid() && !settings_.target_region_filter.regions.overlapsWith( cnv.chr(), cnv.start(), cnv.end() ) ) continue; //target region from GSvar filter widget
 
+			QByteArray cnv_type = cnv.annotations()[i_cnv_type];
+
 			GeneSet genes = settings_.target_region_filter.genes.intersect(db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end()));
 
             for (const auto& gene : genes)
 			{
 				//skip genes without defined gene role
 				SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
-				if (!gene_role.isValid()) continue;
+				if (! gene_role.isValid()) continue;
 
-				if( !SomaticCnvInterpreter::includeInReport(cnvs_, cnv, gene_role) ) continue;
+				if( !SomaticCnvInterpreter::includeInReport(cn, cnv_type, gene_role) ) continue;
 
 				if(!gene_role.high_evidence) continue; //Skip genes that are not high evidence
 
@@ -1558,6 +1562,14 @@ RtfTable SomaticReportHelper::signatureTable()
 
 void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, const QMap<QByteArray, QByteArray>& descriptions, const QByteArray& type)
 {
+	if (file.trimmed().isEmpty())
+	{
+		RtfTableRow row;
+		row.addCell(doc_.maxWidth(), "Die Mutationssignaturen des Typs " + type + " konnten nicht berechnet werden.");
+		table.addRow(row);
+		return;
+	}
+
 	VersatileFile stream(file);
 
 	try
@@ -1652,7 +1664,6 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 }
 
 
-
 void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 {
 	/******************************
@@ -1679,8 +1690,6 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	doc_.addPart(partUnclearVariants());
 	doc_.addPart(RtfParagraph("").RtfCode());
-
-//	low_impact_indices_converted_to_high_.clear();
 
 	doc_.addPart(partCnvTable());
 	doc_.addPart(RtfParagraph("").RtfCode());
@@ -1726,6 +1735,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	/*******************************************
 	 * GENERAL INFORMATION / QUALITY PARAMETERS*
 	 *******************************************/
+
 	doc_.addPart(partMetaData());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
@@ -1785,8 +1795,6 @@ SomaticXmlReportGeneratorData SomaticReportHelper::getXmlData()
 	data.rtf_part_summary = partSummary();
 	data.rtf_part_relevant_variants = partRelevantVariants();
 	data.rtf_part_unclear_variants = partUnclearVariants();
-
-//	low_impact_indices_converted_to_high_.clear();
 
 	data.rtf_part_cnvs = partCnvTable();
 	data.rtf_part_svs = partFusions();
@@ -2313,7 +2321,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
 					GeneSet genes_cnv = db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end());
-                    for (const QByteArray& gene : genes_cnv)
+					foreach (const QByteArray& gene, genes_cnv)
 					{
 						if (!genes_pathway.contains(gene)) continue;
 						if (!cnv_high_impact_indices_[k].contains(gene)) continue;

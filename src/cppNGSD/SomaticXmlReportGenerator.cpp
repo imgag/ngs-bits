@@ -272,6 +272,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeEndElement();
 
 	//Element TargetRegion
+	// QMap<QString, QString> hgnc = db.geneHgncIds();
 	w.writeStartElement("TargetRegion");
 
 	if(!data.settings.target_region_filter.isValid())
@@ -297,14 +298,13 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
     for (const QByteArray& gene : data.settings.target_region_filter.genes)
 	{
-		GeneInfo gene_info = db.geneInfo(gene);
-		if(gene_info.symbol.isEmpty()) continue;
-		if(gene_info.hgnc_id.isEmpty()) continue;
+		QByteArray approved = db.geneToApproved(gene);
+		if (approved.isEmpty()) continue;
 
 		w.writeStartElement("Gene");
 
-		w.writeAttribute("name", gene_info.symbol);
-		w.writeAttribute("id", gene_info.hgnc_id);
+		w.writeAttribute("name", approved);
+		w.writeAttribute("id", db.geneHgncId(db.geneId(approved)));
 		w.writeEndElement();
 	}
 
@@ -313,137 +313,80 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	w.writeStartElement("VariantList");
 
+	int i_tumor_af = data.tumor_snvs.annotationIndexByName("tumor_af",true,true);
+	int i_tumor_depth = data.tumor_snvs.annotationIndexByName("tumor_dp",true,true);
 
-		int i_tumor_af = data.tumor_snvs.annotationIndexByName("tumor_af",true,true);
-		int i_tumor_depth = data.tumor_snvs.annotationIndexByName("tumor_dp",true,true);
+	int i_normal_af = data.tumor_snvs.annotationIndexByName("normal_af", true,true);
+	int i_normal_depth = data.tumor_snvs.annotationIndexByName("normal_dp", true, true);
 
-		int i_normal_af = data.tumor_snvs.annotationIndexByName("normal_af", true,true);
-		int i_normal_depth = data.tumor_snvs.annotationIndexByName("normal_dp", true, true);
+	int i_genes = data.tumor_snvs.annotationIndexByName("gene");
 
-		int i_genes = data.tumor_snvs.annotationIndexByName("gene");
+	int i_ncg_oncogene = data.tumor_snvs.annotationIndexByName("ncg_oncogene");
+	int i_ncg_tsg = data.tumor_snvs.annotationIndexByName("ncg_tsg");
+	int i_co_sp = data.tumor_snvs.annotationIndexByName("coding_and_splicing");
 
-		int i_ncg_oncogene = data.tumor_snvs.annotationIndexByName("ncg_oncogene");
-		int i_ncg_tsg = data.tumor_snvs.annotationIndexByName("ncg_tsg");
-		int i_co_sp = data.tumor_snvs.annotationIndexByName("coding_and_splicing");
+	for(int i=0; i<data.tumor_snvs.count(); ++i) //variants only in tumor
+	{
+		const Variant& snv = data.tumor_snvs[i];
 
-		for(int i=0; i<data.tumor_snvs.count(); ++i) //variants only in tumor
+		w.writeStartElement("Variant");
+
+		w.writeAttribute( "chr", snv.chr().strNormalized(true) );
+		w.writeAttribute( "start", QString::number(snv.start()) );
+		w.writeAttribute( "end", QString::number(snv.end()) );
+		w.writeAttribute( "ref", snv.ref() );
+		w.writeAttribute( "obs", snv.obs() );
+		w.writeAttribute( "af_tumor", QString(snv.annotations()[i_tumor_af]) );
+		w.writeAttribute( "depth_tumor", QString(snv.annotations()[i_tumor_depth]) );
+		w.writeAttribute( "af_normal", QString(snv.annotations()[i_normal_af]) );
+		w.writeAttribute( "depth_normal", QString(snv.annotations()[i_normal_depth]) );
+
+		if(db.getSomaticViccId(snv) != -1)
 		{
-			const Variant& snv = data.tumor_snvs[i];
-
-			w.writeStartElement("Variant");
-
-			w.writeAttribute( "chr", snv.chr().strNormalized(true) );
-			w.writeAttribute( "start", QString::number(snv.start()) );
-			w.writeAttribute( "end", QString::number(snv.end()) );
-			w.writeAttribute( "ref", snv.ref() );
-			w.writeAttribute( "obs", snv.obs() );
-			w.writeAttribute( "af_tumor", QString(snv.annotations()[i_tumor_af]) );
-			w.writeAttribute( "depth_tumor", QString(snv.annotations()[i_tumor_depth]) );
-			w.writeAttribute( "af_normal", QString(snv.annotations()[i_normal_af]) );
-			w.writeAttribute( "depth_normal", QString(snv.annotations()[i_normal_depth]) );
-
-			if(db.getSomaticViccId(snv) != -1)
-			{
-				w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(snv)).toLower() );
-			}
-
-				QByteArrayList genes = snv.annotations()[i_genes].split(',');
-				QByteArrayList oncogenes = snv.annotations()[i_ncg_oncogene].split(',');
-				QByteArrayList tsg = snv.annotations()[i_ncg_tsg].split(',');
-
-				for(int j=0; j < genes.count(); ++j)
-				{
-
-					GeneInfo gene_info = db.geneInfo(genes[j]);
-					if(gene_info.symbol.isEmpty()) continue;
-					if(gene_info.hgnc_id.isEmpty()) continue; //genes that have been withdrawn or cannot be mapped to a unique approved symbol
-					w.writeStartElement("Gene");
-
-
-					w.writeAttribute("name", gene_info.symbol);
-					w.writeAttribute("id", gene_info.hgnc_id);
-
-					SomaticGeneRole gene_role = db.getSomaticGeneRole(gene_info.symbol.toUtf8());
-					if(gene_role.isValid())
-					{
-						w.writeAttribute("role", gene_role.asString());
-					}
-
-					if(tsg[j].contains("1"))
-					{
-						w.writeStartElement("IsTumorSuppressor");
-						w.writeAttribute("source", "Network of Cancer Genes");
-						w.writeAttribute("source_version", "7.1");
-						w.writeEndElement();
-					}
-
-					if(oncogenes[j].contains("1"))
-					{
-						w.writeStartElement("IsOncoGene");
-						w.writeAttribute("source", "Network of Cancer Genes");
-						w.writeAttribute("source_version", "7.1");
-						w.writeEndElement();
-					}
-
-					w.writeEndElement();
-				}
-
-				//Elements transcript information
-				VariantTranscript selected_transcript = SomaticReportHelper::selectSomaticTranscript(db, snv, i_co_sp);
-                for (const auto& trans : snv.transcriptAnnotations(i_co_sp) )
-				{
-					w.writeStartElement("TranscriptInformation");
-
-					w.writeAttribute("transcript_id", trans.id);
-					w.writeAttribute("gene", trans.gene);
-					w.writeAttribute("type", trans.type);
-					w.writeAttribute("hgvs_c", trans.hgvs_c);
-					w.writeAttribute("hgvs_p", trans.hgvs_p);
-					w.writeAttribute("exon", trans.exon);
-					w.writeAttribute("variant_type", trans.type);
-
-					if(selected_transcript.id == trans.id)
-					{
-						w.writeAttribute("main_transcript", "true");
-					}
-					else
-					{
-						w.writeAttribute("main_transcript", "false");
-					}
-
-
-					w.writeEndElement();
-				}
-
-			w.writeEndElement();
+			w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(snv)).toLower() );
 		}
 
-		int i_germl_freq_in_tum = data.germline_snvs.annotationIndexByName("freq_in_tum");
-		int i_germl_depth_in_tum = data.germline_snvs.annotationIndexByName("depth_in_tum");
-		int i_germl_hom_het = data.germline_snvs.annotationIndexByName(data.settings.normal_ps);
-		int i_germl_co_sp = data.germline_snvs.annotationIndexByName("coding_and_splicing");
+			QByteArrayList genes = snv.annotations()[i_genes].split(',');
+			QByteArrayList oncogenes = snv.annotations()[i_ncg_oncogene].split(',');
+			QByteArrayList tsg = snv.annotations()[i_ncg_tsg].split(',');
 
-		for(int i=0; i<data.germline_snvs.count(); ++i)
-		{
-			const Variant& snv = data.germline_snvs[i];
-
-			w.writeStartElement("Variant");
-
-			w.writeAttribute( "chr", snv.chr().strNormalized(true) );
-			w.writeAttribute( "start", QString::number(snv.start()) );
-			w.writeAttribute( "end", QString::number(snv.end()) );
-			w.writeAttribute( "ref", snv.ref() );
-			w.writeAttribute( "obs", snv.obs() );
-			w.writeAttribute( "af_tumor", QString(snv.annotations()[i_germl_freq_in_tum]) );
-			w.writeAttribute( "depth_tumor", QString(snv.annotations()[i_germl_depth_in_tum]) );
-			w.writeAttribute( "af_normal", (snv.annotations()[i_germl_hom_het].contains("het") ? "0.5" : "1.0" ) );
-			if(db.getSomaticViccId(snv) != -1)
+			for(int j=0; j < genes.count(); ++j)
 			{
-				w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(snv)).toLower() );
+				QByteArray approved = db.geneToApproved(genes[j]);
+				if(approved.isEmpty()) continue;
+				w.writeStartElement("Gene");
+
+				w.writeAttribute("name", approved);
+				w.writeAttribute("id", db.geneHgncId(db.geneId(approved)));
+
+				SomaticGeneRole gene_role = db.getSomaticGeneRole(approved);
+				if(gene_role.isValid())
+				{
+					w.writeAttribute("role", gene_role.asString());
+				}
+
+				if(tsg[j].contains("1"))
+				{
+					w.writeStartElement("IsTumorSuppressor");
+					w.writeAttribute("source", "Network of Cancer Genes");
+					w.writeAttribute("source_version", "7.1");
+					w.writeEndElement();
+				}
+
+				if(oncogenes[j].contains("1"))
+				{
+					w.writeStartElement("IsOncoGene");
+					w.writeAttribute("source", "Network of Cancer Genes");
+					w.writeAttribute("source_version", "7.1");
+					w.writeEndElement();
+				}
+
+				w.writeEndElement();
 			}
 
 			//Elements transcript information
-            for (const auto& trans : snv.transcriptAnnotations(i_germl_co_sp) )
+			VariantTranscript selected_transcript = SomaticReportHelper::selectSomaticTranscript(db, snv, i_co_sp);
+			for (const auto& trans : snv.transcriptAnnotations(i_co_sp) )
 			{
 				w.writeStartElement("TranscriptInformation");
 
@@ -455,17 +398,72 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				w.writeAttribute("exon", trans.exon);
 				w.writeAttribute("variant_type", trans.type);
 
-				bool is_main_transcript = data.settings.preferred_transcripts.contains(trans.gene) && data.settings.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
-				w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
+				if(selected_transcript.id == trans.id)
+				{
+					w.writeAttribute("main_transcript", "true");
+				}
+				else
+				{
+					w.writeAttribute("main_transcript", "false");
+				}
+
 
 				w.writeEndElement();
 			}
 
+		w.writeEndElement();
+	}
+
+	int i_germl_freq_in_tum = data.germline_snvs.annotationIndexByName("freq_in_tum");
+	int i_germl_depth_in_tum = data.germline_snvs.annotationIndexByName("depth_in_tum");
+	int i_germl_hom_het = data.germline_snvs.annotationIndexByName(data.settings.normal_ps);
+	int i_germl_co_sp = data.germline_snvs.annotationIndexByName("coding_and_splicing");
+
+	for(int i=0; i<data.germline_snvs.count(); ++i)
+	{
+		const Variant& snv = data.germline_snvs[i];
+
+		w.writeStartElement("Variant");
+
+		w.writeAttribute( "chr", snv.chr().strNormalized(true) );
+		w.writeAttribute( "start", QString::number(snv.start()) );
+		w.writeAttribute( "end", QString::number(snv.end()) );
+		w.writeAttribute( "ref", snv.ref() );
+		w.writeAttribute( "obs", snv.obs() );
+		w.writeAttribute( "af_tumor", QString(snv.annotations()[i_germl_freq_in_tum]) );
+		w.writeAttribute( "depth_tumor", QString(snv.annotations()[i_germl_depth_in_tum]) );
+		w.writeAttribute( "af_normal", (snv.annotations()[i_germl_hom_het].contains("het") ? "0.5" : "1.0" ) );
+		if(db.getSomaticViccId(snv) != -1)
+		{
+			w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(snv)).toLower() );
+		}
+
+		//Elements transcript information
+		for (const auto& trans : snv.transcriptAnnotations(i_germl_co_sp) )
+		{
+			w.writeStartElement("TranscriptInformation");
+
+			w.writeAttribute("transcript_id", trans.id);
+			w.writeAttribute("gene", trans.gene);
+			w.writeAttribute("type", trans.type);
+			w.writeAttribute("hgvs_c", trans.hgvs_c);
+			w.writeAttribute("hgvs_p", trans.hgvs_p);
+			w.writeAttribute("exon", trans.exon);
+			w.writeAttribute("variant_type", trans.type);
+
+			bool is_main_transcript = data.settings.preferred_transcripts.contains(trans.gene) && data.settings.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+			w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
+
 			w.writeEndElement();
 		}
 
+		w.writeEndElement();
+	}
+
 	w.writeEndElement();
 
+	//add specific set to have faster lookups in the creation of the CNV list
+	QSet<QByteArray> target_region_genes = data.settings.target_region_filter.genes.toSet();
 
 	//Element CNVList
 	w.writeStartElement("CnvList");
@@ -486,7 +484,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		int i_oncogene = data.tumor_cnvs.annotationIndexByName("ncg_oncogene", true);
 
 		int i_cytoband = data.tumor_cnvs.annotationIndexByName("cytoband", true);
-
 
 		for(int i=0; i<data.tumor_cnvs.count(); ++i)
 		{
@@ -511,19 +508,16 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeAttribute( "cn_a", QString(cnv.annotations()[i_cn_minor]));
 			w.writeAttribute( "cn_b", QString(cnv.annotations()[i_cn_major]));
 
-			GeneSet genes = cnv.genes();
+			GeneSet genes = db.genesToApproved(cnv.genes(), false); // remove gene that cannot be approved
 			GeneSet tsg = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_tsg], ',' ), true);
 			GeneSet oncogenes = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_oncogene], ',' ), true);
 			for(const auto& gene : genes)
 			{
-				QByteArray gene_symbol = db.geneToApproved(gene).trimmed();
-				if (gene_symbol.isEmpty()) continue; //no approved symbol
-
-				if(!data.settings.target_region_filter.genes.contains(gene)) continue; //Include genes from target filter only
+				if(!target_region_genes.contains(gene)) continue; //Include genes from target filter only
 
 				w.writeStartElement("Gene");
-				w.writeAttribute("name", gene_symbol);
-				w.writeAttribute("id", "HGNC:" + db.getValue("SELECT hgnc_id FROM gene WHERE symbol = '" + gene_symbol + "'").toString());
+				w.writeAttribute("name", gene);
+				w.writeAttribute("id", db.geneHgncId(db.geneId(gene)));
 
 				SomaticGeneRole gene_role = db.getSomaticGeneRole(gene);
 				if(gene_role.isValid())
@@ -531,7 +525,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 					w.writeAttribute("role",  gene_role.asString());
 				}
 
-				if(tsg.contains(gene_symbol))
+				if(tsg.contains(gene))
 				{
 					w.writeStartElement("IsTumorSuppressor");
 					w.writeAttribute("source", "Network of Cancer Genes");
@@ -539,7 +533,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 					w.writeEndElement();
 				}
 
-				if(oncogenes.contains(gene_symbol))
+				if(oncogenes.contains(gene))
 				{
 					w.writeStartElement("IsOncoGene");
 					w.writeAttribute("source", "Network of Cancer Genes");
@@ -581,6 +575,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//validate written XML file
 	QString filename = out_file->fileName();
 	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/SomaticReport.xsd");
+
 	if(xml_error!= "")
 	{
 		THROW(ProgrammingException, "Invalid somatic report XML file " + filename+ " generated:\n" + xml_error);

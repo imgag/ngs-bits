@@ -4900,21 +4900,28 @@ GeneSet NGSD::getSomaticPathwayGenes(QByteArray pathway_name)
 	return output;
 }
 
-
 int NGSD::getSomaticGeneRoleId(QByteArray gene_symbol)
 {
 	QVariant id = getValue("SELECT id FROM somatic_gene_role WHERE symbol = '" + geneToApproved(gene_symbol, true) + "'", true);
 	return id.isValid() ? id.toInt() : -1;
 }
 
-SomaticGeneRole NGSD::getSomaticGeneRole(QByteArray gene, bool throw_on_fail)
+SomaticGeneRole NGSD::getSomaticGeneRole(const QByteArray& gene, bool throw_on_fail)
 {
-	int gene_role_id = getSomaticGeneRoleId(gene);
-	if(gene_role_id == -1)
+	QMap<QString, SomaticGeneRole>& role_cache = getCache().gene_symbol_to_somatic_gene_role;
+
+	if (role_cache.isEmpty())
+	{
+		bool only_high_evidence = false;
+		role_cache = getSomaticGeneRoles(only_high_evidence);
+	}
+
+	QString approved = geneToApproved(gene, true);
+	if(! role_cache.contains(approved))
 	{
 		if(throw_on_fail)
 		{
-			THROW(DatabaseException, "There is no somatic gene role for gene symbol '" + gene + "' in the NGSD.") ;
+			THROW(DatabaseException, "There is no somatic gene role for gene symbol '" + gene + "' (used approved symbol" + approved + ") in the NGSD.") ;
 		}
 		else
 		{
@@ -4922,23 +4929,35 @@ SomaticGeneRole NGSD::getSomaticGeneRole(QByteArray gene, bool throw_on_fail)
 		}
 	}
 
+	return role_cache[approved];
+}
+
+QMap<QString, SomaticGeneRole> NGSD::getSomaticGeneRoles(bool only_high_evidence)
+{
 	SqlQuery query = getQuery();
-	query.exec("SELECT gene_role, high_evidence, comment FROM somatic_gene_role WHERE somatic_gene_role.id = " + QByteArray::number(gene_role_id));
-	query.next();
+	QString query_str = "SELECT symbol,gene_role, high_evidence, comment FROM somatic_gene_role";
+	if (only_high_evidence) query_str + " WHERE high_evidence = 1";
+	query.exec(query_str);
 
-	SomaticGeneRole out;
-	out.gene = gene;
+	QMap<QString, SomaticGeneRole> gene_roles;
 
-	QString role = query.value(0).toString();
-	if(role == "activating") out.role = SomaticGeneRole::Role::ACTIVATING;
-	else if(role == "loss_of_function") out.role = SomaticGeneRole::Role::LOSS_OF_FUNCTION;
-	else if(role == "ambiguous") out.role = SomaticGeneRole::Role::AMBIGUOUS;
-	else THROW(DatabaseException, "Unknown gene role '" + role + "' in relation 'somatic_gene_role'.");
+	while(query.next())
+	{
+		SomaticGeneRole role;
+		role.gene = query.value(0).toString().toUtf8();
+		QString role_str = query.value(1).toString();
+		if(role_str == "activating") role.role = SomaticGeneRole::Role::ACTIVATING;
+		else if(role_str == "loss_of_function") role.role = SomaticGeneRole::Role::LOSS_OF_FUNCTION;
+		else if(role_str == "ambiguous") role.role = SomaticGeneRole::Role::AMBIGUOUS;
+		else THROW(DatabaseException, "Unknown gene role '" + role_str + "' in relation 'somatic_gene_role'.");
 
-	out.high_evidence = query.value(1).toBool();
-	out.comment = query.value(2).toString();
+		role.high_evidence = query.value(2).toBool();
+		role.comment = query.value(3).toString();
 
-	return out;
+		gene_roles.insert(role.gene, role);
+	}
+
+	return gene_roles;
 }
 
 void NGSD::setSomaticGeneRole(const SomaticGeneRole& gene_role)
@@ -6522,7 +6541,35 @@ QByteArray NGSD::geneSymbol(int id)
 
 QByteArray NGSD::geneHgncId(int id)
 {
+	QMap<int, QByteArray>& cache = getCache().gene_id_to_hgnc;
+	if (cache.isEmpty())
+	{
+		cache = geneIdsToHgnc();
+	}
+
+	if (! cache.contains(id))
+	{
+		THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
+	}
+
+	return cache[id];
+
 	return "HGNC:" + getValue("SELECT hgnc_id FROM gene WHERE id=" + QString::number(id), false).toByteArray();
+}
+
+QMap<int, QByteArray> NGSD::geneIdsToHgnc()
+{
+	SqlQuery query = getQuery();
+	QString query_str = "SELECT id, hgnc_id FROM gene";
+	query.exec(query_str);
+
+	QMap<int, QByteArray> gene_id2hgnc;
+
+	while(query.next())
+	{
+		gene_id2hgnc.insert(query.value(0).toInt(), "HGNC:" + query.value(1).toByteArray());
+	}
+	return gene_id2hgnc;
 }
 
 QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconvertable)
@@ -10646,6 +10693,8 @@ void NGSD::clearCache()
 	cache_instance.phenotypes_accession_to_id.clear();
 	cache_instance.hpo_genes.clear();
 	cache_instance.hpo_parent.clear();
+	cache_instance.gene_symbol_to_somatic_gene_role.clear();
+	cache_instance.gene_id_to_hgnc.clear();
 
 	cache_instance.gene_transcripts.clear();
 	cache_instance.gene_transcripts_index.createIndex();
@@ -10654,6 +10703,8 @@ void NGSD::clearCache()
 
 	cache_instance.gene_expression_id2gene.clear();
 	cache_instance.gene_expression_gene2id.clear();
+
+	cache_instance.user_can_access.clear();
 }
 
 
