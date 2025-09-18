@@ -6067,6 +6067,11 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 		QString sample_type = query.value("sample_type").toString();
 		QByteArray system_type = query.value("system_type").toByteArray();
 		QByteArray system_name = query.value("system_name").toByteArray();
+		bool is_tumor =  query.value("tumor").toBool();
+
+		//define variant calling mode
+		QByteArray variant_calling_mode = "AllVariantCallers";
+		if (is_tumor) variant_calling_mode = "None";
 
 		//cut MIDs to fit recipe
 		if (mid1.length() > index1_read_length)
@@ -6092,11 +6097,11 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 			{
 				if (system_type == "WGS")
 				{
-					germline_analysis.append(ps_name);
+					germline_analysis.append(ps_name + "," + variant_calling_mode);
 				}
 				else if (system_type == "WES")
 				{
-					enrichment_analysis.append(ps_name + ",DragenEnrichment/" + system_name + ".bed");
+					enrichment_analysis.append(ps_name + ",DragenEnrichment/" + system_name + ".bed," + variant_calling_mode);
 				}
 			}
 			else if (sample_type == "RNA")
@@ -6202,7 +6207,6 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 	if (mid1_chopped) warnings << "WARNING: At least one Sample has a i7 MID which is longer than recipe. It will be shorted according to recipe.";
 	if (mid2_chopped) warnings << "WARNING: At least one Sample has a i5 MID which is longer than recipe. It will be shorted according to recipe.";
 
-
 	//DRAGEN Germline
 	if (germline_analysis.size() > 0)
 	{
@@ -6212,10 +6216,10 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 		sample_sheet.append("KeepFastq," + keep_fastq);
 		sample_sheet.append("MapAlignOutFormat,cram");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38");
-		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		//sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
 		sample_sheet.append("[DragenGermline_Data]");
-		sample_sheet.append("Sample_ID");
+		sample_sheet.append("Sample_ID,VariantCallingMode");
 		sample_sheet.append(germline_analysis);
 		sample_sheet.append("");
 	}
@@ -6230,10 +6234,10 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 		sample_sheet.append("MapAlignOutFormat,cram");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38");
 		sample_sheet.append("GermlineOrSomatic,germline");
-		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		//sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
 		sample_sheet.append("[DragenEnrichment_Data]");
-		sample_sheet.append("Sample_ID,BedFile");
+		sample_sheet.append("Sample_ID,BedFile,VariantCallingMode");
 		sample_sheet.append(enrichment_analysis);
 		sample_sheet.append("");
 	}

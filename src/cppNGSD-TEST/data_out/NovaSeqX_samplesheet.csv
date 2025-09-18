@@ -33,11 +33,10 @@ AppVersion,1.3.13
 KeepFastq,true
 MapAlignOutFormat,cram
 ReferenceGenomeDir,GRCh38
-VariantCallingMode,AllVariantCallers
 
 [DragenGermline_Data]
-Sample_ID
-NA12878_45
+Sample_ID,VariantCallingMode
+NA12878_45,AllVariantCallers
 
 [DragenEnrichment_Settings]
 SoftwareVersion,4.3.16
@@ -46,11 +45,10 @@ KeepFastq,true
 MapAlignOutFormat,cram
 ReferenceGenomeDir,GRCh38
 GermlineOrSomatic,germline
-VariantCallingMode,AllVariantCallers
 
 [DragenEnrichment_Data]
-Sample_ID,BedFile
-NA12878_58,DragenEnrichment/twistCustomExomeV2.bed
-NA12878_59,DragenEnrichment/twistCustomExomeV2.bed
-DX000002_01,DragenEnrichment/twistCustomExomeV2.bed
-DX000001_01,DragenEnrichment/twistCustomExomeV2.bed
+Sample_ID,BedFile,VariantCallingMode
+NA12878_58,DragenEnrichment/twistCustomExomeV2.bed,AllVariantCallers
+NA12878_59,DragenEnrichment/twistCustomExomeV2.bed,AllVariantCallers
+DX000002_01,DragenEnrichment/twistCustomExomeV2.bed,AllVariantCallers
+DX000001_01,DragenEnrichment/twistCustomExomeV2.bed,None
