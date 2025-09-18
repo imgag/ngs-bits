@@ -188,7 +188,7 @@ void RtfDocument::save(const QByteArray &file_name)
 
 	foreach(const RtfSourceCode& part, body_parts_)
 	{
-        stream << part << QT_ENDL;
+		stream << part << "\n";
 	}
 
 	stream << footer();

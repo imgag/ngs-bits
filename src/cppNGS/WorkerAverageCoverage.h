@@ -33,7 +33,7 @@ public:
 		}
 	};
 
-	WorkerAverageCoverage(Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file, bool debug);
+	WorkerAverageCoverage(Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file, bool skip_mismapped, bool debug);
 	virtual void run() override;
 
 private:
@@ -42,6 +42,7 @@ private:
 	int min_mapq_;
 	int decimals_;
 	QString ref_file_;
+	bool skip_mismapped_;
 	bool debug_;
 };
 
@@ -51,7 +52,7 @@ class WorkerAverageCoverageChr
 {
 public:
 
-	WorkerAverageCoverageChr(WorkerAverageCoverage::Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file, bool debug);
+	WorkerAverageCoverageChr(WorkerAverageCoverage::Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file, bool skip_mismapped, bool debug);
 	virtual void run() override;
 
 private:
@@ -60,6 +61,7 @@ private:
 	int min_mapq_;
 	int decimals_;
 	QString ref_file_;
+	bool skip_mismapped_;
 	bool debug_;
 };
 #endif // WORKERAVERAGECOVERAGE_H

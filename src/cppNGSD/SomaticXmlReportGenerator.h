@@ -61,7 +61,6 @@ public:
 	///writes a ReportDocumentParts element
 	static void writeReportPartsElement(QXmlStreamWriter& w, QString name, RtfSourceCode rtf_part);
 
-
 };
 
 #endif // SOMATICXMLREPORTGENERATOR_H

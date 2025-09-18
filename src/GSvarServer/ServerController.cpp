@@ -991,12 +991,10 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 	Statistics::avgCoverage(roi, bam_file_name, 1, threads);
 
     QByteArray body = roi.toText().toUtf8();
-
     BasicResponseData response_data;
     response_data.length = body.length();
-    response_data.content_type = request.getContentType();  
-    response_data.is_stream = true;
-    response_data.content_type = ContentType::TEXT_PLAIN;
+    response_data.content_type = request.getContentType();
+    response_data.is_stream = (!body.isEmpty() ? true : false);
     response_data.is_downloadable = false;
 
     return HttpResponse(response_data, body);

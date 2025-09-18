@@ -127,8 +127,9 @@ struct FileLocation
 		return output;
 	}
 
-    QString modifiedAsString() const
+    QString modifiedAsString(bool exclude_time=false) const
     {
+        if (exclude_time) return modified.toString("yyyy-MM-dd");
         return modified.toString("yyyy-MM-dd hh:mm:ss");
     }
 

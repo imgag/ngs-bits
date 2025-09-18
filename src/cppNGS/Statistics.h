@@ -61,14 +61,14 @@ public:
 	static QCValue mutationBurden(QString somatic_vcf, QString target, QString blacklist);
 
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
-	static QCCollection contamination(GenomeBuild build, QString bam, const QString& ref_file = QString(), bool debug = false, int min_cov = 20, int min_snps = 50, bool include_not_properly_paired = false);
+	static QCCollection contamination(GenomeBuild build, QString bam, QString ref_file = "", QString roi = "", bool debug = false, int min_cov = 20, int min_snps = 50, bool include_not_properly_paired = false);
 	///Returns ancestry estimates for a variant list in VCF format.
 	static AncestryEstimates ancestry(GenomeBuild build, QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
 	///Calculates and annotates the average coverage of the regions in the bed file. Debug flag enables debug output to stdout.
-	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, int threads=1, int decimals=2, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
+	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, int threads=1, int decimals=2, const QString& ref_file = QString(), bool random_access=true, bool skip_mismapped = false, bool debug=false);
 	///Calculates the part of the genome that has a higher coverage than the given cutoff.
 	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
 

@@ -73,9 +73,24 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		}
 
 		//Returns the read length.
+		//Note: For CRAM files, if bases and qualities are skipped, the length is determined from the CIGAR string. However if the read is unmapped, there is no CIGAR string. In this case -1 is returned.
 		int length() const
 		{
-			return aln_->core.l_qseq;
+			if (!length_initialized_)
+			{
+				if (!containsBases() && !containsQualities())
+				{
+					length_ = aln_->core.n_cigar ? bam_cigar2qlen(aln_->core.n_cigar, bam_get_cigar(aln_)) : -1;
+				}
+				else
+				{
+					length_ = aln_->core.l_qseq;
+				}
+
+				length_initialized_ = true;
+			}
+
+			return length_;
 		}
 
 		//Returns the insert size of the read pair.
@@ -185,7 +200,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Returns the n-th base.
 		char base(int n) const
 		{
-			if (!contains_bases_) THROW(ProgrammingException, "BamAlignment does not contain bases, but base(int) used!");
+			if (!containsBases()) THROW(ProgrammingException, "BamAlignment does not contain bases, but base(int) used!");
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
 		}
 		//Fills the given vector with integer representations of bases (faster than characters - A=1, C=2, G=4, T=8, N=15)
@@ -198,26 +213,26 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Returns the quality of the n-th base (integer value).
 		int quality(int n)const
 		{
-			if (!contains_bases_) THROW(ProgrammingException, "BamAlignment does not contain qualities, but quality(int) used!");
+			if (!containsQualities()) THROW(ProgrammingException, "BamAlignment does not contain qualities, but quality(int) used!");
 			return bam_get_qual(aln_)[n];
 		}
 		//Fills a bit array representing base qualities - a bit is set if the base quality is >= min_baseq
 		//the array is of size al.end() - al.start() +1 and by that includes deletions
 		void qualities(QBitArray& qualities, int min_baseq, int len) const;
 
-		//Returns the string data of a tag.
+		//Returns a string tag. If the tag is not present, an empty string is returned. If the tag is not a string, i.e. type Z, an exception is thrown.
 		QByteArray tag(const QByteArray& tag) const;
 		//Adds a tag to the alignment.
 		void addTag(const QByteArray& tag, char type, const QByteArray& data);
-		//Returns the integer data of a tag with type 'i'.
+		//Returns a integer tag. If the tag is not present, 0 is returned.
 		int tagi(const QByteArray& tag) const;
 
 		/**************************** MATE functions ****************************/
 
-		//returnt the mate start position
+		//return the mate start position (1-based).
 		int mateStart() const
 		{
-			return aln_->core.mpos;
+			return aln_->core.mpos + 1;
 		}
 		void setMateStart(int start)
 		{
@@ -239,7 +254,6 @@ class CPPNGSSHARED_EXPORT BamAlignment
 			return aln_->core.flag & BAM_FMUNMAP;
 		}
 
-
 		/**
 		  @brief Returns the base and quality at a chromosomal position (1-based). If qualities are skipped, -1 is returned.
 		  @note If the base is deleted, '-' with quality 255 is returned. If the base is skipped/soft-clipped, '~' with quality -1 is returned.
@@ -254,27 +268,27 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		*/
 		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0);
 
-		//Indicates if bases were loaded
+		//Indicates if bases were loaded (for CRAM).
 		bool containsBases() const
 		{
-			return contains_bases_;
+			return loaded_fields_ & SAM_SEQ;
 		}
-		//Indicates if qualities were loaded
+		//Indicates if qualities were loaded (for CRAM).
 		bool containsQualities() const
 		{
-			return contains_qualities_;
+			return loaded_fields_ & SAM_QUAL;
 		}
-		//Indicates if tags were loaded
+		//Indicates if tags were loaded (for CRAM).
 		bool containsTags() const
 		{
-			return contains_tags_;
+			return loaded_fields_ & SAM_AUX;
 		}
 
 	protected:
 		bam1_t* aln_;
-        bool contains_bases_ = true;
-        bool contains_qualities_ = true;
-		bool contains_tags_ = false;
+		mutable int length_ = -1;
+		mutable bool length_initialized_ = false;
+		int loaded_fields_; //fields loaded (for CRAM)
 
 		//friends
 		friend class BamReader;
@@ -322,17 +336,18 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Destructor
 		~BamReader();
 
-		//Do not load bases into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+		//Optimization of CRAM read times - see https://brentp.github.io/post/cram-speed/
+		//Do not load bases into alignments. If the file is not a CRAM file, this has no effect.
         void skipBases();
-		//Do not load qualities into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+		//Do not load qualities into alignments. If the file is not a CRAM file, this has no effect.
         void skipQualities();
-		//Do not load tags into alignments. See speed-up for CRAM files at https://brentp.github.io/post/cram-speed/
+		//Do not load tags into alignments. If the file is not a CRAM file, this has no effect.
 		void skipTags();
-		//Do not skip bases (read by default). Used to re-active bases after skipping them.
+		//Used to re-active bases after skipping them. If the file is not a CRAM file, this has no effect.
 		void readBases();
-		//Do not skip qualties. Used to re-active qualties after skipping them.
+		//Used to re-active qualties after skipping them. If the file is not a CRAM file, this has no effect.
 		void readQualities();
-		//Do not skip tags. Used to re-active tgs after skipping them.
+		//Used to re-active tgs after skipping them. If the file is not a CRAM file, this has no effect.
 		void readTags();
 
 		//Returns the BAM header lines
@@ -354,9 +369,8 @@ class CPPNGSSHARED_EXPORT BamReader
 				THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
 			}
 
-			al.contains_bases_ = required_fields_ & SAM_SEQ;
-			al.contains_qualities_ = required_fields_ & SAM_QUAL;
-			al.contains_tags_ = required_fields_ & SAM_AUX;
+			al.loaded_fields_ = requested_fields_;
+			al.length_initialized_ = false;
 
 			return res>=0;
 		}
@@ -402,7 +416,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		sam_hdr_t* header_ = nullptr;
 		hts_idx_t* index_ = nullptr;
 		hts_itr_t* iter_  = nullptr;
-		int required_fields_ = SAM_QNAME | SAM_FLAG | SAM_RNAME | SAM_POS | SAM_MAPQ | SAM_CIGAR | SAM_RNEXT | SAM_PNEXT | SAM_TLEN | SAM_SEQ | SAM_QUAL | SAM_AUX | SAM_RGAUX;
+		int requested_fields_ = SAM_QNAME | SAM_FLAG | SAM_RNAME | SAM_POS | SAM_MAPQ | SAM_CIGAR | SAM_RNEXT | SAM_PNEXT | SAM_TLEN | SAM_SEQ | SAM_QUAL | SAM_AUX | SAM_RGAUX;
 
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();

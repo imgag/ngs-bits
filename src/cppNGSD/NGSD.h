@@ -743,7 +743,7 @@ public:
 	void executeQueriesFromFile(QString filename);
 
 	///Returns all possible values for a enum column.
-	QStringList getEnum(QString table, QString column) const;
+	QStringList getEnum(QString table, QString column, bool use_cache=true) const;
 	///Checks if a table exists.
 	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
 	///Checks if a row the given id exists in the table.
@@ -768,6 +768,8 @@ public:
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);
+	//Returns the mapping from gene symbol to HGNC ID
+	QMap<int, QByteArray> geneIdsToHgnc();
 	///Returns the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the approved gene symbols.
@@ -1099,11 +1101,12 @@ public:
 	///Returns a list of genes contained in the given pathway
 	GeneSet getSomaticPathwayGenes(QByteArray pathway_name);
 
-
 	///Returns the NGSD id of a somatic gene role
 	int getSomaticGeneRoleId(QByteArray gene_symbol);
 	///Returns the somatic gene role data for a gene. If there is no gene role definition and throw_on_fail=false, a invalid SomaticGeneRole instance is returned.
-	SomaticGeneRole getSomaticGeneRole(QByteArray gene, bool throw_on_fail = false);
+	SomaticGeneRole getSomaticGeneRole(const QByteArray& gene, bool throw_on_fail = false);
+	//Returns a full map of all somatic gene roles
+	QMap<QString, SomaticGeneRole> getSomaticGeneRoles(bool only_high_evidence = false);
 	///stores/updates somatic gene role data. "gene_role" has to contain valid gene
 	void setSomaticGeneRole(const SomaticGeneRole& gene_role);
 	///delete somatic gene role data for certain gene
@@ -1233,9 +1236,15 @@ public:
 	///Returns the (sorted) list of studies of a processed sample
 	QStringList studies(const QString& processed_sample_id);
 
+
+	//clearCache() should only be called outside of NGSD for tests!
+	void clearCache();
+
 signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
+
+
 
 protected:
 	///Copy constructor "declared away".
@@ -1257,6 +1266,7 @@ protected:
 	{
 		Cache();
 
+		//REMEMBER TO ADD ALL MEMBER TO CLEAR CACHE FUNCTION
 		QMap<QString, TableInfo> table_infos;
 		QHash<int, QSet<int>> same_samples;
 		QHash<int, QSet<int>> same_patients;
@@ -1270,6 +1280,8 @@ protected:
 		QHash<QByteArray, int> phenotypes_accession_to_id;
         QHash<int, QList<QByteArray>> hpo_genes;
         QHash<int, QList<int>> hpo_parent;
+		QMap<QString, SomaticGeneRole> gene_symbol_to_somatic_gene_role;
+		QMap<int, QByteArray> gene_id_to_hgnc;
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
@@ -1279,10 +1291,12 @@ protected:
 		//gene expression
 		QMap<int, QByteArray> gene_expression_id2gene;
 		QMap<QByteArray, int> gene_expression_gene2id;
+
         QMap<int, QSet<int>> user_can_access;
+
+
 	};
 	static Cache& getCache();
-	void clearCache();
 	void initTranscriptCache();
 	void initGeneExpressionCache();
 };

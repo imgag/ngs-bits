@@ -39,7 +39,7 @@ struct SomaticGeneRole
 class CPPNGSSHARED_EXPORT SomaticCnvInterpreter
 {
 public:
-	static bool includeInReport(const CnvList& cnvs_, const CopyNumberVariant& cnv, const SomaticGeneRole& gene_role);
+	static bool includeInReport(const int copy_number, const QByteArray& cnv_type, const SomaticGeneRole& gene_role);
 
 private:
 	SomaticCnvInterpreter() = delete;

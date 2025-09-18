@@ -104,7 +104,7 @@ void StatisticsReads::update(const BamAlignment& al)
 
 
 	//check number of cycles
-	int cycles = al.length();
+	int cycles = al.length(); //no handling of length -1 necessary. It's not CRAM without bases/qualities.
 	bases_sequenced_ += cycles;
 	read_lengths_[cycles]++;
 	if (cycles>pileups_.size())

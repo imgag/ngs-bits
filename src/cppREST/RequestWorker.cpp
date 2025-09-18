@@ -194,11 +194,12 @@ void RequestWorker::run()
 
         if (response.isStream())
         {
-            if (!response.getPayload().isNull())
+            if (!response.getPayload().isEmpty())
             {
                 QSharedPointer<QFile> roi_file;
                 if (temp_bed_file.open())
                 {
+                    Log::info("Temporary ROI file: " + temp_bed_file.fileName());
                     response.setFilename(temp_bed_file.fileName());
                     roi_file = Helper::openFileForWriting(response.getFilename());
                     roi_file.data()->write(response.getPayload());

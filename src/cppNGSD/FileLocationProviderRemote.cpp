@@ -144,11 +144,12 @@ FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject
     else if (!obj.contains("filename"))
     {
         THROW(ProgrammingException, "FileLocation object is invalid: 'filename' field is missing");
-    }
-    else if (!obj.contains("modified"))
-    {
-        THROW(ProgrammingException, "FileLocation object is invalid: 'modified' field is missing");
-    }
+	}
+	else if (!obj.contains("modified"))
+	{
+		//TODO Marc: re-activate when new server is deployed
+		//THROW(ProgrammingException, "FileLocation object is invalid: 'modified' field is missing");
+	}
     else if (!obj.contains("exists"))
     {
         THROW(ProgrammingException, "FileLocation object is invalid: 'exists' field is missing");

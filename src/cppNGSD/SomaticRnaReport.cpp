@@ -104,15 +104,20 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 			genes_with_var << gene;
 		}
 	}
+
+	int i_cnv_type = dna_cnvs_.annotationIndexByName("cnv_type", true);
 	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
+		int cn = dna_cnvs_[i].copyNumber(dna_cnvs_.annotationHeaders());
+		QByteArray cnv_type = dna_cnvs_[i].annotations()[i_cnv_type];
+
         for (const auto& gene : genes)
 		{
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
 			if (!role.isValid()) continue;
 
-			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_, dna_cnvs_[i], role) ) continue;
+			if( !SomaticCnvInterpreter::includeInReport(cn, cnv_type, role) ) continue;
 			if( !role.high_evidence) continue;
 
 			if( !genes_with_var.contains(gene) ) genes_with_var << gene;
@@ -416,13 +421,15 @@ RtfTable SomaticRnaReport::partSnvTable()
 RtfTable SomaticRnaReport::partCnvTable()
 {
 	int i_tum_clonality = dna_cnvs_.annotationIndexByName("tumor_clonality", true);
-	int i_size_desc = dna_cnvs_.annotationIndexByName("cnv_type", true);
-	//RNA annotations indices
+	int i_cnv_type = dna_cnvs_.annotationIndexByName("cnv_type", true);
 
 	RtfTable table;
+
 	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
 		const CopyNumberVariant& cnv = dna_cnvs_[i];
+		int cn = cnv.copyNumber(cnv.annotations());
+		QByteArray cnv_type = cnv.annotations()[i_cnv_type];
 
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
 
@@ -431,15 +438,14 @@ RtfTable SomaticRnaReport::partCnvTable()
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
 			if (!role.isValid()) continue;
 
-			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_,cnv, role) ) continue;
+			if( !SomaticCnvInterpreter::includeInReport(cn, cnv_type, role) ) continue;
 			if( !role.high_evidence) continue;
 
 			ExpressionData expr_data = expression_per_gene_.value(gene, ExpressionData());
 
-
 			RtfTableRow temp;
 			temp.addCell(800, gene, RtfParagraph().setBold(true).setItalic(true).setFontSize(16));
-			temp.addCell(1900, cnv.chr().str() + " (" + cnv.annotations().at(i_size_desc).trimmed() + ")", RtfParagraph().setFontSize(16));
+			temp.addCell(1900, cnv.chr().str() + " (" + cnv_type.trimmed() + ")", RtfParagraph().setFontSize(16));
 
 			int tumor_cn = cnv.copyNumber(dna_cnvs_.annotationHeaders());
 			temp.addCell(1300, SomaticReportHelper::CnvTypeDescription(tumor_cn, true), RtfParagraph().setFontSize(16));

@@ -325,7 +325,6 @@ private:
 	//indices for somatic variant file
 	int snv_index_coding_splicing_;
 
-
 	//indices for somatic CNV file
 	int cnv_index_cn_change_;
 	int cnv_index_cnv_type_;

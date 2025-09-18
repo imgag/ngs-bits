@@ -128,5 +128,47 @@ private:
 		COMPARE_FILES("out/MappingQC_test13_out.qcML", TESTDATA("data_out/MappingQC_test13_out.qcML"));
 	}
 
+	/*
+	TEST_METHOD(debug_mapping_qc_runtime)
+	{
+		//chrX
+		EXECUTE("MappingQC", "-in C:\\Marc\\NA12878_17.bam  -roi C:\\Marc\\nxLRRK2_SNCA_2016_10_25.bed -out C:\\Marc\\test_chrx_out1_bam.qcML  -debug -read_qc C:\\Marc\\test_chrx_out2_bam.qcML");
+		foreach(QString line, Helper::loadTextFile(lastLogFile(), true))
+		{
+			if (line.contains("took:")) qDebug() << QString("chrX BAM: ")+line;
+		}
+		EXECUTE("MappingQC", "-in C:\\Marc\\NA12878_17.cram -roi C:\\Marc\\nxLRRK2_SNCA_2016_10_25.bed -out C:\\Marc\\test_chrx_out1_cram.qcML -debug -read_qc C:\\Marc\\test_chrx_out2_cram.qcML");
+		foreach(QString line, Helper::loadTextFile(lastLogFile(), true))
+		{
+			if (line.contains("took:")) qDebug() << QString("chrX CRAM: ")+line;
+		}
+		qDebug() << "";
+
+		//WES 100x
+		EXECUTE("MappingQC", "-in C:\\Marc\\NA12878x3_13.bam  -roi C:\\Marc\\twistCustomExomeV2_2021_12_14.bed -out C:\\Marc\\test_wes_out1_bam.qcML  -debug -read_qc C:\\Marc\\test_wes_out2_bam.qcML");
+		foreach(QString line, Helper::loadTextFile(lastLogFile(), true))
+		{
+			if (line.contains("took:")) qDebug() << QString("WES BAM: ")+line;
+		}
+		EXECUTE("MappingQC", "-in C:\\Marc\\NA12878x3_13.cram -roi C:\\Marc\\twistCustomExomeV2_2021_12_14.bed -out C:\\Marc\\test_wes_out1_cram.qcML -debug -read_qc C:\\Marc\\test_wes_out2_cram.qcML");
+		foreach(QString line, Helper::loadTextFile(lastLogFile(), true))
+		{
+			if (line.contains("took:")) qDebug() << QString("WES CRAM: ")+line;
+		}
+		qDebug() << "";
+
+		//WGS 30x
+		EXECUTE("MappingQC", "-in C:\\Marc\\NA12878_45.bam  -wgs -out C:\\Marc\\test_wgs_out1_bam.qcML  -debug -read_qc C:\\Marc\\test_wgs_out2_bam.qcML");
+		foreach(QString line, Helper::loadTextFile(lastLogFile(), true))
+		{
+			if (line.contains("took:")) qDebug() << QString("WGS BAM: ")+line;
+		}
+		EXECUTE("MappingQC", "-in C:\\Marc\\NA12878_45.cram -wgs -out C:\\Marc\\test_wgs_out1_cram.qcML -debug -read_qc C:\\Marc\\test_wgs_out2_cram.qcML");
+		foreach(QString line, Helper::loadTextFile(lastLogFile(), true))
+		{
+			if (line.contains("took:")) qDebug() << QString("WGS CRAM: ")+line;
+		}
+	}
+	*/
 
 };

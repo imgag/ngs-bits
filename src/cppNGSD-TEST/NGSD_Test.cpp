@@ -2676,15 +2676,12 @@ private:
 		SomaticViccData vicc_data3 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T") );
 		S_EQUAL(vicc_data3.comment, vicc_data2.comment);
 
-
-
 		//somatic CNV gene role
 		I_EQUAL(db.getSomaticGeneRoleId("EPRS"), 3);
 		I_EQUAL(db.getSomaticGeneRoleId("BRCA2"), 1);
 		I_EQUAL(db.getSomaticGeneRoleId("PTGS2"), 2);
 		I_EQUAL(db.getSomaticGeneRoleId("FOXP1"), -1);
 		I_EQUAL(db.getSomaticGeneRoleId("ASDFJKL"), -1);
-
 
 		IS_THROWN(DatabaseException, db.getSomaticGeneRole("FOXP1", true));
 		IS_THROWN(DatabaseException, db.getSomaticGeneRole("ASDFJKL", true));
@@ -2716,6 +2713,7 @@ private:
 		gene_role_res1.high_evidence = true;
 		gene_role_res1.comment = "comment update";
 		db.setSomaticGeneRole(gene_role_res1);
+		db.clearCache();
 		gene_role_res1 =  db.getSomaticGeneRole("PTGS2", true);
 		S_EQUAL(gene_role_res1.gene, "PTGS2");
 		I_EQUAL(gene_role_res1.role, SomaticGeneRole::Role::ACTIVATING);
@@ -2736,6 +2734,7 @@ private:
 		role_for_ins2.role = SomaticGeneRole::Role::ACTIVATING;
 		role_for_ins2.comment = "newly inserted test role";
 		db.setSomaticGeneRole(role_for_ins2);
+		db.clearCache();
 		SomaticGeneRole gene_role_res5 = db.getSomaticGeneRole("FOXP1");
 		S_EQUAL(gene_role_res5.gene, "FOXP1");
 		I_EQUAL(gene_role_res5.role, SomaticGeneRole::Role::ACTIVATING);
@@ -2837,7 +2836,7 @@ private:
 		somatic_report_settings.report_config->setQuality(quality);
 
 		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, svs, control_tissue_variants, somatic_report_settings, true);
-		report.storeRtf("out/somatic_report_tumor_normal_1.rtf");
+		report.storeRtf("out/somatic_report_tumor_normal_1.rtf");		
 		COMPARE_FILES("out/somatic_report_tumor_normal_1.rtf", TESTDATA("data_out/somatic_report_tumor_normal_1.rtf"));
 
 		// test xml generation is legal:

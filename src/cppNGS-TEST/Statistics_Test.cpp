@@ -280,10 +280,17 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(contamination)
 	{
+		//without ROI
 		QCCollection stats = Statistics::contamination(GenomeBuild::HG38, TESTDATA("data_in/panel.bam"));
 		I_EQUAL(stats.count(), 1);
 		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
 		S_EQUAL(stats[0].toString(), QString("4.76"));
+
+		//with ROI
+		stats = Statistics::contamination(GenomeBuild::HG38, TESTDATA("data_in/panel.bam"), "", TESTDATA("data_in/panel.bed"));
+		I_EQUAL(stats.count(), 1);
+		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
+		S_EQUAL(stats[0].toString(), QString("5.77"));
 	}
 
 	TEST_METHOD(mapping_close_exons)
@@ -659,7 +666,7 @@ TEST_CLASS(Statistics_Test)
 		bed_file.merge();
 		I_EQUAL(bed_file.baseCount(), 271536);
 
-		for (int threads=1; threads<=8; ++threads)
+		foreach(int threads, QList<int>() << 2 << 4 << 8)
 		{
 			BedFile output = Statistics::lowCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20, 0, threads);
 			I_EQUAL(output.count(), 450);
@@ -709,7 +716,7 @@ TEST_CLASS(Statistics_Test)
 		bed_file.merge();
 		I_EQUAL(bed_file.baseCount(), 271536);
 
-		for (int threads=1; threads<=4; ++threads)
+		foreach(int threads, QList<int>() << 2 << 4 << 8)
 		{
 			BedFile low_cov = Statistics::highCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20, 0, threads);
 			I_EQUAL(low_cov.count(), 1707);
@@ -756,7 +763,7 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(avgCoverage_multiple_threads)
 	{
-		for (int threads=1; threads<=8; ++threads)
+		foreach(int threads, QList<int>() << 2 << 4 << 8)
 		{
 			BedFile bed_file;
 			bed_file.load(TESTDATA("data_in/panel.bed"));

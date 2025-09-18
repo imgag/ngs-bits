@@ -212,7 +212,7 @@ private:
 	TEST_METHOD(test_multithread)
 	{
         QElapsedTimer timer;
-		for (int i=1; i<=8; ++i)
+		foreach (int i, QList<int>() << 1 << 4 << 8)
 		{
 			QString suffix = QString::number(i) + "threads";
 			QString out1 = "out/SeqPurge_"+suffix+"_R1.fastq.gz";

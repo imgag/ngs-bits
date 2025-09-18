@@ -64,7 +64,7 @@ private:
 		}
 
 		//tag
-		S_EQUAL(al.tag("RG"), "Zpanel_realigned");
+		S_EQUAL(al.tag("RG"), "panel_realigned");
 		S_EQUAL(al.tag("XX"), "");
 	}
 
@@ -157,54 +157,7 @@ private:
 		al.addTag("XX", 'Z', "BLA1234");
 
 		//check
-		S_EQUAL(al.tag("XX"), "ZBLA1234");
-	}
-
-
-	TEST_METHOD(BamAlignment_skippingData)
-	{
-		BamReader reader(TESTDATA("data_in/panel.bam"));
-		BamAlignment al;
-		reader.getNextAlignment(al);
-		IS_TRUE(al.containsBases());
-		IS_TRUE(al.containsQualities());
-		IS_TRUE(al.containsTags());
-
-		reader.skipBases();
-		reader.getNextAlignment(al);
-		IS_FALSE(al.containsBases());
-		IS_TRUE(al.containsQualities());
-		IS_TRUE(al.containsTags());
-
-		reader.skipQualities();
-		reader.getNextAlignment(al);
-		IS_FALSE(al.containsBases());
-		IS_FALSE(al.containsQualities());
-		IS_TRUE(al.containsTags());
-
-		reader.skipTags();
-		reader.getNextAlignment(al);
-		IS_FALSE(al.containsBases());
-		IS_FALSE(al.containsQualities());
-		IS_FALSE(al.containsTags());
-
-		reader.readBases();
-		reader.getNextAlignment(al);
-		IS_TRUE(al.containsBases());
-		IS_FALSE(al.containsQualities());
-		IS_FALSE(al.containsTags());
-
-		reader.readQualities();
-		reader.getNextAlignment(al);
-		IS_TRUE(al.containsBases());
-		IS_TRUE(al.containsQualities());
-		IS_FALSE(al.containsTags());
-
-		reader.readTags();
-		reader.getNextAlignment(al);
-		IS_TRUE(al.containsBases());
-		IS_TRUE(al.containsQualities());
-		IS_TRUE(al.containsTags());
+		S_EQUAL(al.tag("XX"), "BLA1234");
 	}
 
 /************************************************************* BamReader *************************************************************/
@@ -490,7 +443,7 @@ private:
 		}
 
 		//tag
-		S_EQUAL(al.tag("MC"), "Z130M");
+		S_EQUAL(al.tag("MC"), "130M");
 		S_EQUAL(al.tag("RG"), "");
 	}
 
@@ -582,6 +535,91 @@ private:
 		I_EQUAL(pileup.a(), 16);
 		I_EQUAL(pileup.indels().count(), 6);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
+	}
+
+	TEST_METHOD(CramSupport_skippedFields)
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		//full test of first alignment
+		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
+		BamAlignment al;
+		while(reader.getNextAlignment(al)) { if (al.isProperPair()) break; }//get next read that is properly paired
+		IS_TRUE(al.containsBases());
+		IS_TRUE(al.containsQualities());
+		IS_TRUE(al.containsTags());
+		S_EQUAL(al.name(), "PC0226:121:000000000-AB2J9:1:2101:19474:26718");
+		S_EQUAL(reader.chromosome(al.chromosomeID()).str(), "chr1");
+		I_EQUAL(al.start(), 1008789);
+		I_EQUAL(al.end(), 1008918);
+		I_EQUAL(al.length(), 130);
+		I_EQUAL(al.insertSize(), 130);
+		I_EQUAL(al.mappingQuality(), 60);
+		S_EQUAL(reader.chromosome(al.mateChrosomeID()).str(), "chr1");
+		I_EQUAL(al.mateStart(), 1008789);
+		S_EQUAL(al.bases(), "TGCTGGGATTACAGGTGTGAGCCACCGCGCCCGGCGTTTTGTTTCATTTTTATTTTTGAGACACGGTCTTGCTCTGTCGCCCAGGCTGGAGTGCAGTGTCGCAATCTCGGCTCACTGCATCCTCCGCCTC");
+		S_EQUAL(al.qualities(), "3>AABF@FFFFFGGGGGGGGGFHHHFGGGCGGGGEEGGGGHCGHHHHHHHHGHHHGHGFGHHHHGGGGGGHHHHHHHHGFGGGGGHHFEHFHGHHHHHHHGHGGGHHGGFGGGHHHFHHHHHHHHGGFGG");
+		S_EQUAL(al.tag("MC"), "130M");
+		I_EQUAL(al.tagi("AS"), 130);
+
+		//test contains functions
+		reader.skipBases();
+		reader.getNextAlignment(al);
+		IS_FALSE(al.containsBases());
+		IS_TRUE(al.containsQualities());
+		IS_TRUE(al.containsTags());
+
+		//test contains functions
+		reader.skipQualities();
+		reader.getNextAlignment(al);
+		IS_FALSE(al.containsBases());
+		IS_FALSE(al.containsQualities());
+		IS_TRUE(al.containsTags());
+
+		//full test without bases/qualities/tags
+		reader.skipTags();
+		while(reader.getNextAlignment(al)) { if (al.isProperPair()) break; }//get next read that is properly paired
+		IS_FALSE(al.containsBases());
+		IS_FALSE(al.containsQualities());
+		IS_FALSE(al.containsTags());
+		S_EQUAL(al.name(), "PC0226:121:000000000-AB2J9:1:1103:29188:14228");
+		S_EQUAL(reader.chromosome(al.chromosomeID()).str(), "chr1");
+		I_EQUAL(al.start(), 27355746);
+		I_EQUAL(al.end(), 27355820);
+		I_EQUAL(al.length(), 75);
+		I_EQUAL(al.insertSize(), 75);
+		I_EQUAL(al.mappingQuality(), 60);
+		S_EQUAL(reader.chromosome(al.mateChrosomeID()).str(), "chr1");
+		I_EQUAL(al.mateStart(), 27355746);
+		IS_THROWN(ProgrammingException, al.bases());
+		IS_THROWN(ProgrammingException, al.base(0));
+		IS_THROWN(ProgrammingException, al.baseIntegers());
+		IS_THROWN(ProgrammingException, al.qualities());
+		IS_THROWN(ProgrammingException, al.quality(0));
+		IS_THROWN(ProgrammingException, al.tag("RG"));
+		IS_THROWN(ProgrammingException, al.tagi("NM"));
+
+		//test contains functions
+		reader.readBases();
+		reader.getNextAlignment(al);
+		IS_TRUE(al.containsBases());
+		IS_FALSE(al.containsQualities());
+		IS_FALSE(al.containsTags());
+
+		//test contains functions
+		reader.readQualities();
+		reader.getNextAlignment(al);
+		IS_TRUE(al.containsBases());
+		IS_TRUE(al.containsQualities());
+		IS_FALSE(al.containsTags());
+
+		//test contains functions
+		reader.readTags();
+		reader.getNextAlignment(al);
+		IS_TRUE(al.containsBases());
+		IS_TRUE(al.containsQualities());
+		IS_TRUE(al.containsTags());
 	}
 
     TEST_METHOD(info_bam)
