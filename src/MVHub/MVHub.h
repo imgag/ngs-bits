@@ -31,6 +31,7 @@ public slots:
 
 	//main menu slots
 	void on_actionReloadData_triggered();
+	void on_actionReloadExportStatus_triggered();
 	void on_actionAbout_triggered();
 
 private:

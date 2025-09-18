@@ -583,6 +583,19 @@ void MVHub::on_actionReloadData_triggered()
 	updateTableFilters();
 }
 
+
+void MVHub::on_actionReloadExportStatus_triggered()
+{
+	ui_.output->clear();
+
+	updateExportStatus();
+
+	addOutputLine("done");
+
+	//apply filters
+	updateTableFilters();
+}
+
 void MVHub::on_actionAbout_triggered()
 {
 	QString about_text = QApplication::applicationName() + " " + QCoreApplication::applicationVersion();
