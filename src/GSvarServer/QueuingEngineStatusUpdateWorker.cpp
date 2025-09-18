@@ -1,13 +1,13 @@
-#include "SgeStatusUpdateWorker.h"
+#include "QueuingEngineStatusUpdateWorker.h"
 #include "Log.h"
 #include "PipelineSettings.h"
 
-SgeStatusUpdateWorker::SgeStatusUpdateWorker()
+QueuingEngineStatusUpdateWorker::QueuingEngineStatusUpdateWorker()
     : QRunnable()
 {
 }
 
-void SgeStatusUpdateWorker::run()
+void QueuingEngineStatusUpdateWorker::run()
 {
 	try
 	{
@@ -82,7 +82,7 @@ void SgeStatusUpdateWorker::run()
 
 }
 
-void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
+void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
 {
     if (debug_) QTextStream(stdout) << "Starting job " << job_id << " (type: " << job.type << ")" << QT_ENDL;
 
@@ -371,7 +371,7 @@ void SgeStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int 
 	}
 }
 
-void SgeStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const AnalysisJob& job, int job_id)
+void QueuingEngineStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const AnalysisJob& job, int job_id)
 {
     if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
 
@@ -462,7 +462,7 @@ void SgeStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const AnalysisJob& jo
 	}
 }
 
-void SgeStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
+void QueuingEngineStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
 {
     if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
 
@@ -481,7 +481,7 @@ void SgeStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJob& job, i
 	db.addAnalysisHistoryEntry(job_id, "canceled", output);
 }
 
-bool SgeStatusUpdateWorker::singleSampleAnalysisRunning(NGSD& db, const AnalysisJob& job)
+bool QueuingEngineStatusUpdateWorker::singleSampleAnalysisRunning(NGSD& db, const AnalysisJob& job)
 {
 	foreach (const AnalysisJobSample& sample, job.samples)
 	{

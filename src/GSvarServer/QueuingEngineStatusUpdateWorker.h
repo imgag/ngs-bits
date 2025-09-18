@@ -1,15 +1,15 @@
-#ifndef SGESTATUSUPDATEWORKER_H
-#define SGESTATUSUPDATEWORKER_H
+#ifndef QUEUINGENGLINESUPDATEWORKER_H
+#define QUEUINGENGLINESUPDATEWORKER_H
 
 #include <QRunnable>
 #include "NGSD.h"
 
-class SgeStatusUpdateWorker
+class QueuingEngineStatusUpdateWorker
     : public QRunnable
 {
 
 public:
-	SgeStatusUpdateWorker();
+    QueuingEngineStatusUpdateWorker();
 	void run() override;
 
 private:
@@ -22,4 +22,4 @@ private:
 	bool debug_ = false;
 };
 
-#endif // SGESTATUSUPDATEWORKER_H
+#endif // QUEUINGENGLINESUPDATEWORKER_H
