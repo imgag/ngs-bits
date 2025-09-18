@@ -794,6 +794,15 @@ int MVHub::updateHpoTerms(int debug_level)
 				QByteArray hpo_name = e2.text().trimmed().toUtf8();
 				if (hpo_name.isEmpty()) continue;
 
+				//there is no easy way to get IDs, thus we have to handle terms with changed names...
+				if (hpo_name=="Abnormal circulating potassium concentration") hpo_name = "Abnormal blood potassium concentration";
+
+				//handle terms with accession instead of name (RedCap bug in Ontology handling)
+				if (hpo_name.startsWith("HP:"))
+				{
+					hpo_name = db.getValue("SELECT name FROM hpo_term WHERE hpo_id='"+hpo_name+"'").toByteArray();
+				}
+
 				int hpo_db_id = db.phenotypeIdByName(hpo_name, false);
 				if (hpo_db_id!=-1)
 				{
