@@ -19,6 +19,7 @@ public:
 public slots:
 	void delayedInitialization();
 	void tableContextMenu(QPoint pos);
+	void openExportHistory(int row);
 	void updateTableFilters();
 	//pseudonymization function
 	QByteArray getPseudonym(QByteArray str, QByteArray context, bool test_server = true, bool debug = true);

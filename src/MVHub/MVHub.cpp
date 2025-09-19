@@ -23,6 +23,7 @@ MVHub::MVHub(QWidget *parent)
 	ui_.setupUi(this);
 	setWindowTitle(QCoreApplication::applicationName());
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
+	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(openExportHistory(int)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_status, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
@@ -233,12 +234,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	}
 	if (action==a_export_history)
 	{
-		int c_cm = colOf("CM ID");
-		int c_network = colOf("Netzwerk");
 		int r = rows.first();
-
-		ExportHistoryDialog dlg(this, getString(r, c_cm), getString(r, c_network));
-		dlg.exec();
+		openExportHistory(r);
 	}
 	if (action->parent()==copy_col_menu)
 	{
@@ -252,6 +249,15 @@ void MVHub::tableContextMenu(QPoint pos)
 		}
 		QApplication::clipboard()->setText(output.join("\n"));
 	}
+}
+
+void MVHub::openExportHistory(int row)
+{
+	int c_cm = colOf("CM ID");
+	int c_network = colOf("Netzwerk");
+
+	ExportHistoryDialog dlg(this, getString(row, c_cm), getString(row, c_network));
+	dlg.exec();
 }
 
 void MVHub::updateTableFilters()
