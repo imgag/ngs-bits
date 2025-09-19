@@ -428,7 +428,7 @@ RtfTable SomaticRnaReport::partCnvTable()
 	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
 		const CopyNumberVariant& cnv = dna_cnvs_[i];
-		int cn = cnv.copyNumber(cnv.annotations());
+		int cn = cnv.copyNumber(dna_cnvs_.annotationHeaders());
 		QByteArray cnv_type = cnv.annotations()[i_cnv_type];
 
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);

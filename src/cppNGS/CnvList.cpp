@@ -61,7 +61,7 @@ int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool
 
 	if (throw_if_not_found)
 	{
-		THROW(ProgrammingException, "Copy-number could not be determine for CNV: " + toString());
+		THROW(ProgrammingException, "Copy-number could not be determined for CNV: " + toString());
 	}
 
 	return -1;
@@ -81,7 +81,7 @@ void CopyNumberVariant::setCopyNumber(int cn, const QByteArrayList& annotation_h
 
 	if (!found && throw_if_not_found)
 	{
-		THROW(ProgrammingException, "Copy-number could not be determine for CNV: " + toString());
+		THROW(ProgrammingException, "Copy-number could not be set for CNV: " + toString());
 	}
 }
 
