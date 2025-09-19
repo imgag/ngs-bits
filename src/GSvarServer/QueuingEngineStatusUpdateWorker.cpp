@@ -1,10 +1,20 @@
 #include "QueuingEngineStatusUpdateWorker.h"
 #include "Log.h"
 #include "PipelineSettings.h"
+#include "QueuingEngineExecutorProviderSge.h"
+#include "QueuingEngineExecutorProviderSlurm.h"
 
 QueuingEngineStatusUpdateWorker::QueuingEngineStatusUpdateWorker()
     : QRunnable()
 {
+    if (PipelineSettings::queingEngine() == "sge")
+    {
+        executor_provider_ = QSharedPointer<QueuingEngineExecutorProviderSge>(new QueuingEngineExecutorProviderSge());
+    }
+    if (PipelineSettings::queingEngine() == "slurm")
+    {
+        executor_provider_ = QSharedPointer<QueuingEngineExecutorProviderSlurm>(new QueuingEngineExecutorProviderSlurm());
+    }
 }
 
 void QueuingEngineStatusUpdateWorker::run()

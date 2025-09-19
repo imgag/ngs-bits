@@ -23,7 +23,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SVN_VER= \\\"$$system(cd .. && git describe --tags)\\\"
 DEFINES += "SERVER_VERSION=$$SVN_VER"
 
-SOURCES += \
+SOURCES += \        
+        QueuingEngineExecutorProviderSge.cpp \
+        QueuingEngineExecutorProviderSlurm.cpp \
         QueuingEngineStatusUpdateWorker.cpp \
         ServerController.cpp \
         ServerWrapper.cpp \
@@ -35,6 +37,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    QueuingEngineExecutorProvider.h \
+    QueuingEngineExecutorProviderSge.h \
+    QueuingEngineExecutorProviderSlurm.h \
     QueuingEngineStatusUpdateWorker.h \
     ServerController.h \
     ServerWrapper.h
