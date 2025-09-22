@@ -1647,7 +1647,6 @@ void MVHub::loadDataFromSE()
 		addOutputHeader("loading SE data from RedCap", false);
 
 		QTextStream stream(stdout);
-		QHash<QString, QString> sap2psn;
 		QHash<QString, QString> psn2sap;
 		QHash<QString, QString> psn2consent_version;
 		QHash<QString, QStringList> psn2items;
@@ -1691,6 +1690,27 @@ void MVHub::loadDataFromSE()
 			n = n.nextSibling();
 		}
 
+		//create mapping SAP > PSN
+		QHash<QString, QStringList> sap2psn;
+		for(auto it=psn2sap.begin(); it!=psn2sap.end(); ++it)
+		{
+			QString psn_id = it.key();
+			QString sap_id = it.value();
+			if (sap_id.isEmpty()) continue;
+
+			sap2psn[sap_id] << psn_id;
+		}
+		//check for duplicate SAP IDs
+		for(auto it=sap2psn.begin(); it!=sap2psn.end(); ++it)
+		{
+			if (it.value().count()>1)
+			{
+				QString sap_id = it.key();
+				addOutputLine("Skipping samples with SAP ID '" + sap_id +"' - SAP ID used several times: "+it.value().join(", "));
+				sap2psn[sap_id].clear();
+			}
+		}
+
 		//store data in MVH database
 		for(auto it=psn2sap.begin(); it!=psn2sap.end(); ++it)
 		{
@@ -1701,7 +1721,6 @@ void MVHub::loadDataFromSE()
 				addOutputLine("Skipping sample with SE ID '" + psn_id + "': no SAP ID available!");
 				continue;
 			}
-			sap2psn[sap_id] = psn_id;
 
 			NGSD mvh_db(true, "mvh");
 			QString mvh_id = mvh_db.getValue("SELECT id FROM case_data WHERE sap_id='"+sap_id+"'").toString();
@@ -1728,9 +1747,12 @@ void MVHub::loadDataFromSE()
 			QString sap_id = getString(r, c_sap_id);
 			if (sap_id=="") continue;
 
-			QString network_id = sap2psn[sap_id];
-			ui_.table->setItem(r, c_network_id, GUIHelper::createTableItem(network_id));
-			ui_.table->setItem(r, c_consent_ver, GUIHelper::createTableItem(psn2consent_version[network_id]));
+			if (sap2psn[sap_id].count()==1)
+			{
+				QString network_id = sap2psn[sap_id].first();
+				ui_.table->setItem(r, c_network_id, GUIHelper::createTableItem(network_id));
+				ui_.table->setItem(r, c_consent_ver, GUIHelper::createTableItem(psn2consent_version[network_id]));
+			}
 		}
 	}
 	catch (Exception& e)
