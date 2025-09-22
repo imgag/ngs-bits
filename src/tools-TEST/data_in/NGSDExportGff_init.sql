@@ -1,12 +1,12 @@
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`, `ncbi_id`) VALUES 
 (432230, 1100, 'BRCA1', 'BRCA1 DNA repair associated', 'protein-coding gene', 'ENSG00000012048', 672);
 
-INSERT INTO `gene_transcript` (`id`,`gene_id`,`name`,`version`,`source`,`chromosome`,`start_coding`,`end_coding`,`strand`,`biotype`,`is_gencode_basic`,`is_ensembl_canonical`,`is_mane_select`,`is_mane_plus_clinical`) VALUES
-(1144036,432230,'CCDS11453',1,'ccds','17',43045678,43124096,'-','protein coding',0,0,0,0),
-(1144030,432230,'CCDS11459',2,'ccds','17',43045678,43106526,'+','protein coding',0,0,0,0),
-(1144032,432230,'ENST00000352993',7,'ensembl','17',43045678,43124096,'+','protein coding',1,0,0,0),
-(1144028,432230,'ENST00000354071',7,'ensembl','17',43091331,43124096,'+','protein coding',1,0,0,0),
-(1144033,432230,'ENST00000591534',5,'ensembl','17',43045678,43074478,'+','protein coding',1,0,0,0);
+INSERT INTO `gene_transcript` (`id`,`gene_id`,`name`,`version`,`source`,`chromosome`,`start_coding`,`end_coding`,`strand`,`biotype`,`is_gencode_basic`,`is_gencode_primary`,`is_ensembl_canonical`,`is_mane_select`,`is_mane_plus_clinical`) VALUES
+(1144036,432230,'CCDS11453',1,'ccds','17',43045678,43124096,'-','protein coding',0,0,0,0,0),
+(1144030,432230,'CCDS11459',2,'ccds','17',43045678,43106526,'+','protein coding',0,0,0,0,0),
+(1144032,432230,'ENST00000352993',7,'ensembl','17',43045678,43124096,'+','protein coding',1,1,1,0,0),
+(1144028,432230,'ENST00000354071',7,'ensembl','17',43091331,43124096,'+','protein coding',1,0,0,1,0),
+(1144033,432230,'ENST00000591534',5,'ensembl','17',43045678,43074478,'+','protein coding',1,0,0,0,1);
 
 
 INSERT INTO `gene_exon` (`transcript_id`,`start`,`end`) VALUES 

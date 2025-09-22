@@ -1048,6 +1048,7 @@ struct TranscriptData
 	QByteArray strand;
 	QByteArray biotype;
 	bool is_gencode_basic;
+	bool is_gencode_primary;
 	bool is_ensembl_canonical;
 	bool is_mane_select;
 	bool is_mane_plus_clinical;
@@ -1158,6 +1159,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
                 }
                 t.setRegions(t_data.exons, coding_start, coding_end);
 				t.setGencodeBasicTranscript(t_data.is_gencode_basic);
+				t.setGencodePrimaryTranscript(t_data.is_gencode_primary);
 				t.setEnsemblCanonicalTranscript(t_data.is_ensembl_canonical);
 				t.setManeSelectTranscript(t_data.is_mane_select);
 				t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);
@@ -1236,7 +1238,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 
 			// store GENCODE basic data
 			QByteArrayList tags = data.value("tag").split(',');
-			bool is_gencode_basic = tags.contains("basic") || tags.contains("gencode_basic"); //The tag was changed from "basic" in Ensembl 112 to "gencode_basic" in Ensembl 115
+			bool is_gencode_basic = tags.contains("basic") || tags.contains("gencode_basic"); //The tag was changed from "basic" in Ensembl 112 to "gencode_basic" in Ensembl 113
 
 			if (!settings.include_all && !is_gencode_basic)
 			{
@@ -1260,6 +1262,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			tmp.strand = parts[6];
 			tmp.biotype = data["biotype"];
 			tmp.is_gencode_basic = is_gencode_basic;
+			tmp.is_gencode_primary = tags.contains("gencode_primary");
 			tmp.is_ensembl_canonical = tags.contains("Ensembl_canonical");
 			tmp.is_mane_select = tags.contains("MANE_Select");
 			tmp.is_mane_plus_clinical = tags.contains("MANE_Plus_Clinical");
@@ -1419,6 +1422,7 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 			tmp.strand = parts[6];
 			tmp.biotype = gene_data.biotype;
 			tmp.is_gencode_basic = false;
+			tmp.is_gencode_primary = false;
 			tmp.is_ensembl_canonical = false;
 			tmp.is_mane_select = false;
 			tmp.is_mane_plus_clinical = false;
@@ -1488,6 +1492,7 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 		}
 		t.setRegions(t_data.exons, coding_start, coding_end);
 		t.setGencodeBasicTranscript(t_data.is_gencode_basic);
+		t.setGencodePrimaryTranscript(t_data.is_gencode_primary);
 		t.setEnsemblCanonicalTranscript(t_data.is_ensembl_canonical);
 		t.setManeSelectTranscript(t_data.is_mane_select);
 		t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);
