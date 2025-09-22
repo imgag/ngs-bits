@@ -24,7 +24,7 @@ public:
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
 		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2024/clinvar_20240805.vcf.gz'.", true);
-		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2024.2.dump').", true);
+		addInfile("hgmd", "HGMD phenbase file (Manually download and unzip 'hgmd_phenbase-2024.2.dump').", true);
 
 		// optional (for evidence information):
 		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from wget https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-08-13/phenotype.hpoa", true);
@@ -40,7 +40,7 @@ public:
 		changeLog(2020,  3,  5, "Added support for new HPO annotation file.");
 		changeLog(2020,  3,  9, "Added optimization for hpo-gene relations.");
 		changeLog(2020,  3, 10, "Removed support for old HPO annotation file.");
-		changeLog(2020,  7,  6, "Added support for HGMD phenobase file.");
+		changeLog(2020,  7,  6, "Added support for HGMD phenbase file.");
 	}
 
 	/// simple sruct to keep a set of source databases
@@ -1059,12 +1059,12 @@ public:
 			out << "Imported " << added_d2g << " disease-gene relations, " << added_t2g << " term-gene relations from ClinVar.\n";
 		}
 
-		// parse hpo-gene relations from HGMD (Phenobase dbdump file):
+		// parse hpo-gene relations from HGMD (phenbase dbdump file):
 		QString hgmd_file = getInfile("hgmd");
 		if(hgmd_file != "")
 		{
 			int added_t2g = 0;
-            if (debug) out << "Parsing HGMD Phenobase dump file..." << QT_ENDL;
+			if (debug) out << "Parsing HGMD phenbase dump file..." << QT_ENDL;
 			// define look-up tables
             QMultiMap<int, QByteArray> phenid2gene_mapping = QMultiMap<int, QByteArray>();
             QMultiMap<QByteArray,int> cui2phenid_mapping = QMultiMap<QByteArray,int>();

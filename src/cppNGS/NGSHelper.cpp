@@ -1236,7 +1236,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 
 			// store GENCODE basic data
 			QByteArrayList tags = data.value("tag").split(',');
-			bool is_gencode_basic = tags.contains("basic");
+			bool is_gencode_basic = tags.contains("basic") || tags.contains("gencode_basic"); //The tag was changed from "basic" in Ensembl 112 to "gencode_basic" in Ensembl 115
 
 			if (!settings.include_all && !is_gencode_basic)
 			{

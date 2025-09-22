@@ -34,7 +34,7 @@ public:
 		desc << "Intergenic variants never get a MES scores.";
 		setExtendedDescription(desc);
 
-		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz.", false);
+		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-115/gff3/homo_sapiens/Homo_sapiens.GRCh38.115.gff3.gz.", false);
 		//optional
 		addOutfile("out", "Output VCF file containing the MaxEntScan scores in the INFO column. If unset, writes to STDOUT.", true);
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true);
