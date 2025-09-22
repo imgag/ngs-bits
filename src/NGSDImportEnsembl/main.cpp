@@ -72,6 +72,7 @@ public:
 
 	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, int version, const QByteArray& source, const Transcript& t, bool is_gencode_basic, bool is_gencode_primary, bool is_ensembl_canonical, bool is_mane_select, bool is_mane_plus_clinical)
 	{
+		qDebug() << t.gene() << t.name() << gene_id << name << version << source << t.strand();
 		query.bindValue(0, gene_id);
 		query.bindValue(1, name);
 		query.bindValue(2, version);
