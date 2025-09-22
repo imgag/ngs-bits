@@ -19,6 +19,7 @@ public:
 public slots:
 	void delayedInitialization();
 	void tableContextMenu(QPoint pos);
+	void openExportHistory(int row);
 	void updateTableFilters();
 	//pseudonymization function
 	QByteArray getPseudonym(QByteArray str, QByteArray context, bool test_server = true, bool debug = true);
@@ -31,6 +32,7 @@ public slots:
 
 	//main menu slots
 	void on_actionReloadData_triggered();
+	void on_actionReloadExportStatus_triggered();
 	void on_actionAbout_triggered();
 
 private:

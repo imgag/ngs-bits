@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2025_07-120 (18.09.2025)
+
+- RE search: added caller information
+
 ## 2025_07-95 (15.09.2025)
 
 - added link for CMC mutation significance in variant details
