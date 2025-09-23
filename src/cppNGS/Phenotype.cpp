@@ -107,7 +107,7 @@ PhenotypeSource Phenotype::sourceFromString(QString s)
 	{
 		return PhenotypeSource::CLINVAR;
 	}
-	else if (s == "g2p" || s == "decipher") //also accept old name for support of legacy data (MS, 23.09.2025)
+	else if (s == "g2p")
 	{
 		return PhenotypeSource::G2P;
 	}
