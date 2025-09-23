@@ -8,7 +8,7 @@ Phenotype::Phenotype(const QByteArray& accession, const QByteArray& name)
 
 QSet<PhenotypeSource> Phenotype::allSourceValues()
 {
-	return QSet<PhenotypeSource>{PhenotypeSource::HPO, PhenotypeSource::OMIM, PhenotypeSource::CLINVAR, PhenotypeSource::DECIPHER, PhenotypeSource::HGMD, PhenotypeSource::GENCC};
+	return QSet<PhenotypeSource>{PhenotypeSource::HPO, PhenotypeSource::OMIM, PhenotypeSource::CLINVAR, PhenotypeSource::G2P, PhenotypeSource::HGMD, PhenotypeSource::GENCC};
 }
 
 QSet<PhenotypeEvidenceLevel> Phenotype::allEvidenceValues(bool include_against)
@@ -63,7 +63,7 @@ PhenotypeEvidenceLevel Phenotype::evidenceFromString(QString e)
 		return PhenotypeEvidenceLevel::HIGH;
 	}
 
-	THROW(ProgrammingException, "Cannot convert string: '" + e + "' to phenotype evidence level!")
+	THROW(ProgrammingException, "Cannot convert string '" + e + "' to phenotype evidence level!")
 }
 
 QString Phenotype::sourceToString(PhenotypeSource src)
@@ -79,8 +79,8 @@ QString Phenotype::sourceToString(PhenotypeSource src)
 		case PhenotypeSource::CLINVAR:
 			return "ClinVar";
 			break;
-		case PhenotypeSource::DECIPHER:
-			return "Decipher";
+		case PhenotypeSource::G2P:
+			return "G2P";
 			break;
 		case PhenotypeSource::HGMD:
 			return "HGMD";
@@ -107,9 +107,9 @@ PhenotypeSource Phenotype::sourceFromString(QString s)
 	{
 		return PhenotypeSource::CLINVAR;
 	}
-	else if (s == "decipher")
+	else if (s == "g2p" || s == "decipher") //also accept old name for support of legacy data (MS, 23.09.2025)
 	{
-		return PhenotypeSource::DECIPHER;
+		return PhenotypeSource::G2P;
 	}
 	else if (s == "hgmd")
 	{
@@ -119,5 +119,5 @@ PhenotypeSource Phenotype::sourceFromString(QString s)
 	{
 		return PhenotypeSource::GENCC;
 	}
-	THROW(ProgrammingException, "Cannot convert string: '" + s + "' to PhenotypeSource!")
+	THROW(ProgrammingException, "Cannot convert string '" + s + "' to phenotype source!")
 }

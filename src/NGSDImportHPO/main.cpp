@@ -18,23 +18,24 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
-		addInfile("obo", "HPO ontology file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-08-13/hp.obo'.", false);
-		addInfile("anno", "HPO annotations file from 'https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-08-13/phenotype_to_genes.txt'", false);
+		addInfile("obo", "HPO ontology file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2025-09-01/hp.obo", false);
+		addInfile("anno", "HPO annotations file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2025-09-01/phenotype_to_genes.txt", false);
 
 		//optional
-		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2024/clinvar_20240805.vcf.gz'.", true);
-		addInfile("hgmd", "HGMD phenbase file (Manually download and unzip 'hgmd_phenbase-2024.2.dump').", true);
+		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from https://omim.org/downloads/", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2025/clinvar_20250907.vcf.gz", true);
+		addInfile("hgmd", "HGMD phenbase file (Manually download 'hgmd_phenbase-2025.2.dump.gz').", true);
 
 		// optional (for evidence information):
-		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from wget https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2024-08-13/phenotype.hpoa", true);
-		addInfile("gencc", "gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. Download from https://search.thegencc.org/download", true);
-		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information. Download from https://www.ebi.ac.uk/gene2phenotype/downloads/", true);
+		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2025-09-01/phenotype.hpoa", true);
+		addInfile("gencc", "gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. (Manually download from https://search.thegencc.org/download).", true);
+		addInfile("g2p", "DDG2P file for additional gene-disease-phenotype evidence information. Download from http://ftp.ebi.ac.uk/pub/databases/gene2phenotype/G2P_data_downloads/2025_08_28/DDG2P_2025-08-28.csv.gz", true);
 
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
 
+		changeLog(2025,  9, 23, "Renamed '-decipher' to '-g2p' and adapted parser to new G2P format.");
 		changeLog(2021, 12, 22, "Added support for GenCC and DECIPHER.");
 		changeLog(2020,  7,  7, "Added support of HGMD gene-phenotype relations.");
 		changeLog(2020,  3,  5, "Added support for new HPO annotation file.");
@@ -404,41 +405,45 @@ public:
 		fp->close();
 	}
 
-	void parseDecipher(NGSD& db, const QHash<QByteArray, int>& id2ngsd, QHash<QByteArray, AnnotatedList>& disease2genes, QHash<int, AnnotatedList>& term2diseases, QHash<int, AnnotatedList>& term2genes)
+	void parseG2P(NGSD& db, const QHash<QByteArray, int>& id2ngsd, QHash<QByteArray, AnnotatedList>& disease2genes, QHash<int, AnnotatedList>& term2diseases, QHash<int, AnnotatedList>& term2genes)
 	{
-		if (getInfile("decipher") == "") return;
+		QString filename = getInfile("g2p");
+		if (filename=="") return;
+
 		bool debug = getFlag("debug");
 		QTextStream out(stdout);
-        if (debug) out << "Parsing Decipher..." << QT_ENDL;
+		if (debug) out << "Parsing G2P..." << QT_ENDL;
 		int countT2D = 0;
 		int countD2G = 0;
 		int countT2G = 0;
 
-		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("decipher"));
+		VersatileFile file(filename);
+		file.open(QFile::ReadOnly|QFile::Text);
 
-		QByteArray line = fp->readLine();
-		//"gene symbol","gene mim","disease name","disease mim","confidence category","allelic requirement","mutation consequence",phenotypes,"organ specificity list",pmids,panel,"prev symbols","hgnc id","gene disease pair entry date","cross cutting modifier","mutation consequence flag"
+		//read header
+		QByteArray line = file.readLine();
+		int header_parts = line.split(',').count();
+		if (header_parts!=23) THROW(FileParseException, "G2P file header contains " + QString::number(header_parts) + " columns, but 23 expected!");
 
 		QList<QByteArray> non_hgc_genes;
 		QSet<QByteArray> bad_hpo_terms;
-		QByteArray source = "Decipher";
-		int lineCount = 0;
+		QByteArray source = "G2P";
+		int line_nr = 0;
         QRegularExpression mim_exp("([0-9]{6})");
-		while(! fp->atEnd())
+		while(!file.atEnd())
 		{
-			lineCount++;
-			line = fp->readLine().trimmed();
+			line_nr++;
+			line = file.readLine().trimmed();
 			QByteArrayList parts = line.split(',');
+			parts = reconstructStrings(parts); // merge escaped strings that contained commas
+			if (parts.count()!=23) THROW(FileParseException, "G2P file contains " + QString::number(parts.count()) + " columns, but 23 expected!");
 
-			// merge parts of strings that contained commas
-			parts = reconstructStrings(parts);
-
-			QByteArray gene = parts[0].trimmed();
-			QByteArray disease_num = parts[3].trimmed();
-			QByteArray disease = "OMIM:" + parts[3].trimmed();
-			QByteArray decipher_evi = parts[4].trimmed();
-			PhenotypeEvidenceLevel evidence = translateDecipherEvidence(decipher_evi);
-			QByteArrayList hpo_terms = parts[7].trimmed().split(';');
+			QByteArray gene = parts[1].trimmed();
+			QByteArray disease_num = parts[6].trimmed();
+			QByteArray disease = "OMIM:" + parts[6].trimmed();
+			QByteArray g2p_evi = parts[10].trimmed();
+			PhenotypeEvidenceLevel evidence = translateD2GEvidence(g2p_evi);
+			QByteArrayList hpo_terms = parts[17].trimmed().split(';');
 
 			//verify information
 			int gene_db_id = db.geneId(gene);
@@ -446,16 +451,18 @@ public:
 			{
 				non_hgc_genes.append(gene);
 				// add term2disease relations
-				foreach (const QByteArray& term, hpo_terms)
+				foreach (QByteArray term, hpo_terms)
 				{
+					term = term.trimmed();
+
 					int term_db_id = id2ngsd.value(term, -1);
                     if (term_db_id != -1 && mim_exp.match(disease_num).hasMatch())
 					{
 						ExactSources e_src = ExactSources();
-						e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
-						term2diseases[term_db_id].add(disease, source, decipher_evi,  evidence, e_src);
+						e_src.term2disease = QString("G2P line") + QString::number(line_nr);
+						term2diseases[term_db_id].add(disease, source, g2p_evi,  evidence, e_src);
 						countT2D++;
-						if (debug) out << "Deciper\tTERM2DISEASE\tTERM,DISEASE,GENE\t" << term << "\t" << disease << "\t''\t" << "\tSource:\t" << e_src.term2disease <<"\n";
+						if (debug) out << "G2P\tTERM2DISEASE\tTERM,DISEASE,GENE\t" << term << "\t" << disease << "\t''\t" << "\tSource:\t" << e_src.term2disease <<"\n";
 					}
 					else
 					{
@@ -467,24 +474,26 @@ public:
 			{
 				QByteArray approved_gene_symbol = db.geneSymbol(gene_db_id);
 
-				foreach (const QByteArray& term, hpo_terms)
+				foreach (QByteArray term, hpo_terms)
 				{
+					term = term.trimmed();
+
 					int term_db_id = id2ngsd.value(term, -1);
 					if (term_db_id != -1)
 					{
 						ExactSources e_src = ExactSources();
-						e_src.term2gene = QString("Decipher line") + QString::number(lineCount);
-						term2genes[term_db_id].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
+						e_src.term2gene = QString("G2P line") + QString::number(line_nr);
+						term2genes[term_db_id].add(approved_gene_symbol, source, g2p_evi, evidence, e_src);
 						countT2G++;
-						if (debug) out << "Deciper\tTERM2GENE\tTERM,DISEASE,GENE\t" << term << "\t''\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
+						if (debug) out << "G2P\tTERM2GENE\tTERM,DISEASE,GENE\t" << term << "\t''\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
 
                         if (mim_exp.match(disease_num).hasMatch())
 						{
 							e_src = ExactSources();
-							e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
-							term2diseases[term_db_id].add(disease, source, decipher_evi, evidence, e_src);
+							e_src.term2disease = QString("G2P line") + QString::number(line_nr);
+							term2diseases[term_db_id].add(disease, source, g2p_evi, evidence, e_src);
 							countT2D++;
-							if (debug) out << "Deciper\tTERM2DISEASE\tTERM,DISEASE,GENE\t" << term << "\t" << disease << "\t''\t" << "\tSource:\t" << e_src.term2disease <<"\n";
+							if (debug) out << "G2P\tTERM2DISEASE\tTERM,DISEASE,GENE\t" << term << "\t" << disease << "\t''\t" << "\tSource:\t" << e_src.term2disease <<"\n";
 						}
 
 					}
@@ -496,16 +505,15 @@ public:
                 if (mim_exp.match(disease_num).hasMatch())
 				{
 					ExactSources e_src = ExactSources();
-					e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
-					disease2genes[disease].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
+					e_src.term2disease = QString("G2P line") + QString::number(line_nr);
+					disease2genes[disease].add(approved_gene_symbol, source, g2p_evi, evidence, e_src);
 					countD2G++;
-					if (debug) out << "Deciper\tTERM2GENE\tTERM,DISEASE,GENE\t" << "''\t" << disease << "\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
+					if (debug) out << "G2P\tTERM2GENE\tTERM,DISEASE,GENE\t" << "''\t" << disease << "\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
 				}
 			}
 		}
-		fp->close();
 
-		out << "Imported " << countD2G << " disease-gene relations, " << countT2D << " term-disease relations, " << countT2G << " term-gene relations from Decipher.\n";
+		out << "Imported " << countD2G << " disease-gene relations, " << countT2D << " term-disease relations, " << countT2G << " term-gene relations from G2P.\n";
 	}
 
 	void parseGenCC(NGSD& db, QHash<QByteArray, AnnotatedList>& disease2genes)
@@ -676,39 +684,25 @@ public:
 			THROW(ArgumentException, "Given Evidence is not a Omim evidence value: " + QString(omim_evi));
 		}
 	}
-	/// turns a given Decipher Evidence value into one from the Evidences enum
-	static PhenotypeEvidenceLevel translateDecipherEvidence(const QByteArray& decipher_evi)
+	/// turns a given G2P Evidence value into one from the Evidences enum
+	static PhenotypeEvidenceLevel translateD2GEvidence(const QByteArray& g2p_evi)
 	{
-		//disease confidence: One value from the list of possible categories: both DD and IF, confirmed, possible, probable
-		// Confirmed 	Plausible disease-causing mutations* within, affecting or encompassing an interpretable functional region** of a single gene identified in multiple (>3) unrelated cases/families with a developmental disorder***
-		//				Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in multiple (>3) unrelated cases/families with a developmental disorder
-		//				As definition 1 and 2 of Probable Gene (see below) with addition of convincing bioinformatic or functional evidence of causation e.g. known inborn error of metabolism with mutation in orthologous gene which is known to have the relevant deficient enzymatic activity in other species; existence of animal mode which recapitulates the human phenotype
-		//   Probable 	Plausible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one (2 or 3) unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
-		//				Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in in more than one (2 or 3) unrelated cases/families with a developmental disorder
-		//				As definitions of Possible Gene (see below) with addition of convincing bioinformatic or functional evidence of causation e.g. known inborn error of metabolism with mutation in orthologous gene which is known to have the relevant deficient enzymatic activity in other species; existence of animal mode which recapitulates the human phenotype
-		//   Possible 	Plausible disease-causing mutations within, affecting or encompassingan interpretable functional region of a single gene identified in one case or segregation within multiple individuals within a small family with a developmental disorder
-		//				Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in one case/family with a developmental disorder
-		//				Possible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
-		//   Both RD and IF 	Plausible disease-causing mutations within, affecting or encompassing the coding region of a single gene identified in multiple (>3) unrelated cases/families with both the relevant disease (RD) and an incidental disorder
-		if (decipher_evi == "\"both RD and IF\"")
-		{ // meaning?
-			return PhenotypeEvidenceLevel::LOW;
-		}
-		else if (decipher_evi == "possible" || decipher_evi == "limited" || decipher_evi == "supportive")
-		{
-			return PhenotypeEvidenceLevel::LOW;
-		}
-		else if (decipher_evi == "probable" || decipher_evi == "moderate")
-		{
-			return PhenotypeEvidenceLevel::MEDIUM;
-		}
-		else if (decipher_evi == "confirmed" || decipher_evi == "definitive" || decipher_evi == "strong")
+		//disease confidence: https://www.ebi.ac.uk/gene2phenotype/about/terminology
+		if (g2p_evi=="definitive" || g2p_evi=="strong")
 		{
 			return PhenotypeEvidenceLevel::HIGH;
 		}
+		else if (g2p_evi=="moderate")
+		{
+			return PhenotypeEvidenceLevel::MEDIUM;
+		}
+		else if (g2p_evi=="limited" || g2p_evi=="disputed" || g2p_evi=="refuted")
+		{
+			return PhenotypeEvidenceLevel::LOW;
+		}
 		else
 		{
-			THROW(ArgumentException, "Given Evidence is not a Decipher evidence value.: " + QString(decipher_evi));
+			THROW(ArgumentException, "Unsupported G2P evidence value '" + g2p_evi + "'");
 		}
 	}
 
@@ -811,8 +805,8 @@ public:
 		QHash<QByteArray, AnnotatedList> disease2genes;
 
 		// parse Evidence files if provided
-		// parse g2pDDG2P_11_11_2021.csv file
-		parseDecipher(db, id2ngsd, disease2genes, term2diseases, term2genes);
+		// parse DDG2P file
+		parseG2P(db, id2ngsd, disease2genes, term2diseases, term2genes);
 		// parse gencc-submissions.csv file
 		parseGenCC(db, disease2genes);
 		// parse phenotype.hpoa file
@@ -1070,14 +1064,15 @@ public:
             QMultiMap<QByteArray,int> cui2phenid_mapping = QMultiMap<QByteArray,int>();
             QMultiMap<QByteArray,QByteArray> hpo2cui_mapping = QMultiMap<QByteArray,QByteArray>();
 
-			QSharedPointer<QFile> fp = Helper::openFileForReading(hgmd_file);
+			VersatileFile file(hgmd_file);
+			file.open(QFile::ReadOnly|QFile::Text);
 			int line_number = 0;
-			while(!fp->atEnd())
+			while(!file.atEnd())
 			{
 				line_number++;
 				// show progress
                 if(debug && line_number%100 == 0) out << "\tparsed " << line_number << " lines..." << QT_ENDL;
-				QByteArray line = fp->readLine().trimmed();
+				QByteArray line = file.readLine().trimmed();
 				if (line.isEmpty()) continue;
 
 				// parse concept table
