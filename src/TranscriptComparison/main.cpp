@@ -22,7 +22,7 @@ public:
 
 		//optional
 		addOutfile("out", "Output TSV file with matches.", true);
-		addFloat("min_ol", "Minum overall/CDS overlap percentage for printing out a relation if there is no perfect match (disabled by default).", true, 100.0);
+		addFloat("min_ol", "Minimum overall/CDS overlap percentage for printing out a relation if there is no perfect match (disabled by default).", true, 100.0);
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		//changelog

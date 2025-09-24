@@ -36,7 +36,7 @@ public:
 		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 		addInt("prefetch", "Maximum number of blocks that may be pre-fetched into memory.", true, 64);
-		addFlag("all", "If set, all transcripts are imported. The default is to skip transcripts not labeled as 'GENCODE basic' for Ensembl and not with RefSeq/BestRefSeq origin for Refseq.");
+		addFlag("all", "If set, all transcripts are used for annotation. The default is to skip transcripts not labeled with 'gencode_basic' and not labeled with 'RefSeq'/'BestRefSeq' origin for Refseq."); //TODO Marc change to GENCODE primary?
 		addFlag("skip_not_hgnc", "Skip genes that do not have a HGNC identifier.");
 		addString("tag", "Tag that is used for the consequence annotation.", true, "CSQ");
 		addInt("max_dist_to_trans", "Maximum distance between variant and transcript.", true, 5000);
