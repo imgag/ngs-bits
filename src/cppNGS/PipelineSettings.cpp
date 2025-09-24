@@ -60,7 +60,7 @@ void PipelineSettings::loadSettings(QString ini_file)
 				}
                 if (key=="queuing_engine")
                 {
-                    instance().queuing_engine = value;
+                    instance().queuing_engine_ = value;
                 }
 				if (key=="queues_default")
 				{
