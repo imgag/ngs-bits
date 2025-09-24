@@ -7,11 +7,11 @@
 QueuingEngineStatusUpdateWorker::QueuingEngineStatusUpdateWorker()
     : QRunnable()
 {
-    if (PipelineSettings::queingEngine() == "sge")
+    if (PipelineSettings::queuingEngine() == "sge")
     {
         executor_provider_ = QSharedPointer<QueuingEngineExecutorProviderSge>(new QueuingEngineExecutorProviderSge());
     }
-    if (PipelineSettings::queingEngine() == "slurm")
+    if (PipelineSettings::queuingEngine() == "slurm")
     {
         executor_provider_ = QSharedPointer<QueuingEngineExecutorProviderSlurm>(new QueuingEngineExecutorProviderSlurm());
     }
