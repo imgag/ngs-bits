@@ -40,7 +40,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSge::submitJob(int threads, QSt
     output.command = "qsub";
     output.args = qsub_args;
     output.exit_code = Helper::executeCommand(output.command, qsub_args, &output.result);
-    Log::info(output.command + " " + qsub_args.join(" "));
+    Log::info(output.command + " " + output.args.join(" "));
     return output;
 }
 
@@ -50,7 +50,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSge::checkJobsForAllUsers() con
     output.command = "qstat";
     output.args = QStringList() << "-u" << "*";
     output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
-    Log::info(output.command + " " + qsub_args.join(" "));
+    Log::info(output.command + " " + output.args.join(" "));
     return output;
 }
 
@@ -60,7 +60,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSge::checkJobDetails(QString jo
     output.command = "qstat";
     output.args = QStringList() << "-j" << job_id;
     output.exit_code = Helper::executeCommand(output.command, output.args);
-    Log::info(output.command + " " + qsub_args.join(" "));
+    Log::info(output.command + " " + output.args.join(" "));
     return output;
 }
 
@@ -70,7 +70,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSge::checkCompletedJob(QString 
     output.command = "qacct";
     output.args = QStringList() << "-j" << job_id;
     output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
-    Log::info(output.command + " " + qsub_args.join(" "));
+    Log::info(output.command + " " + output.args.join(" "));
     return output;
 }
 
@@ -80,6 +80,6 @@ QueuingEngineOutput QueuingEngineExecutorProviderSge::deleteJob(QString job_id) 
     output.command = "qdel";
     output.args = QStringList() << job_id;
     output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
-    Log::info(output.command + " " + qsub_args.join(" "));
+    Log::info(output.command + " " + output.args.join(" "));
     return output;
 }
