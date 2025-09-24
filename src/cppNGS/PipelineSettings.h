@@ -17,7 +17,7 @@ public:
 	static QString rootDir();
 	static QString projectFolder(QString type);
 	static QString dataFolder();
-    static QString queingEngine();
+    static QString queuingEngine();
 	static QStringList queuesDefault();
 	static QStringList queuesResearch();
 	static QStringList queuesHighPriority();

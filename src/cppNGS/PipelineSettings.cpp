@@ -131,10 +131,10 @@ QString PipelineSettings::dataFolder()
 	return instance().data_folder_;
 }
 
-QString PipelineSettings::queingEngine()
+QString PipelineSettings::queuingEngine()
 {
     checkInitialized();
-    return instance().queing_engine_;
+    return instance().queuing_engine_;
 }
 
 QStringList PipelineSettings::queuesDefault()
