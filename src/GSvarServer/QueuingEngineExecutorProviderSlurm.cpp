@@ -39,7 +39,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
     output.command = "sbatch";
     output.args = sbatch_args;
     output.exit_code = Helper::executeCommand(output.command, sbatch_args, &output.result);
-
+    Log::info(output.command + " " + qsub_args.join(" "));
     return output;
 }
 
@@ -49,7 +49,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::checkJobsForAllUsers() c
     output.command = "squeue";
     output.args = QStringList();
     output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
-
+    Log::info(output.command + " " + qsub_args.join(" "));
     return output;
 }
 
@@ -59,7 +59,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::checkJobDetails(QString 
     output.command = "squeue";
     output.args = QStringList() << "-j" << job_id;
     output.exit_code = Helper::executeCommand(output.command, output.args);
-
+    Log::info(output.command + " " + qsub_args.join(" "));
     return output;
 }
 
@@ -69,7 +69,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::checkCompletedJob(QStrin
     output.command = "sacct";
     output.args = QStringList() << "-j" << job_id;
     output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
-
+    Log::info(output.command + " " + qsub_args.join(" "));
     return output;
 }
 
@@ -79,6 +79,6 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::deleteJob(QString job_id
     output.command = "scancel";
     output.args = QStringList() << job_id;
     output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
-
+    Log::info(output.command + " " + qsub_args.join(" "));
     return output;
 }
