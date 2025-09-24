@@ -58,9 +58,9 @@ void PipelineSettings::loadSettings(QString ini_file)
 				{
 					instance().data_folder_ = value;
 				}
-                if (key=="queing_engine")
+                if (key=="queuing_engine")
                 {
-                    instance().queing_engine_ = value;
+                    instance().queuing_engine = value;
                 }
 				if (key=="queues_default")
 				{

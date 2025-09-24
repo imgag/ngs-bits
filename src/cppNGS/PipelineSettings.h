@@ -31,7 +31,7 @@ private:
 
 	QString root_dir_;
 	QString data_folder_;
-    QString queing_engine_;
+    QString queuing_engine_;
 	QMap<QString, QString>  projects_folder_;
 	QStringList queues_default_;
 	QStringList queues_research_;
