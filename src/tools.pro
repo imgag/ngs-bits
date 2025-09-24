@@ -623,3 +623,7 @@ SnifflesVcfFix.depends = cppNGSD
 SUBDIRS += VcfReplaceSamples
 tools-TEST.depends += VcfReplaceSamples
 VcfReplaceSamples.depends = cppNGS
+
+SUBDIRS += GenlabInfo
+tools-TEST.depends += GenlabInfo
+GenlabInfo.depends = cppNGS

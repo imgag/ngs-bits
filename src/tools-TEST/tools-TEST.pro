@@ -170,4 +170,5 @@ SOURCES += \
     TrioMendelianErrors_Test.cpp \
     MantaVcfFix_Test.cpp \
     VcfReplaceSamples_Test.cpp \
+    GenlabInfo_Test.cpp \
     main.cpp
