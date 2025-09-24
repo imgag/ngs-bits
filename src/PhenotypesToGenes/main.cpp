@@ -23,7 +23,7 @@ public:
 		addFlag("ignore_invalid", "Ignores invalid HPO identifiers instead of throwing an error.");
 		addFlag("ignore_non_phenotype", "Ignores HPO identifiers that are sub-terms of 'Mode of inheritance' or 'Frequency'");
 
-		addString("source", "Comma-separated list of phenotype-gene source databases.", true, "HPO,OMIM,ClinVar,Decipher,HGMD,GenCC");
+		addString("source", "Comma-separated list of phenotype-gene source databases.", true, "HPO,OMIM,ClinVar,G2P,HGMD,GenCC");
 		addString("evidence", "Comma-separated list of phenotype-gene evidence levels.", true, "n/a,low,medium,high");
 
 		changeLog(2020, 11, 23, "Added parameter 'ignore_invalid'.");
