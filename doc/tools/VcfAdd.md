@@ -1,5 +1,5 @@
 ### VcfAdd tool help
-	VcfAdd (2024_11-86-g94c45dea)
+	VcfAdd (2025_07-127-g60fc6b39)
 	
 	Merges several VCF files into one VCF by appending one to the other.
 	
@@ -7,7 +7,7 @@
 	VCF header lines are taken from the first input file only.
 	
 	Mandatory parameters:
-	  -in <filelist>        Input VCF ro VCG.GZ files to merge.
+	  -in <filelist>        Input files to merge in VCF or VCG.GZ format.
 	
 	Optional parameters:
 	  -out <file>           Output VCF file with all variants.
@@ -27,7 +27,7 @@
 	  --settings [file]     Settings override file (no other settings files are used).
 	
 ### VcfAdd changelog
-	VcfAdd 2024_11-86-g94c45dea
+	VcfAdd 2025_07-127-g60fc6b39
 	
 	2025-01-17 Added support for gzipped VCFs and removing duplicates if there is only one input file.
 	2022-12-08 Initial implementation.

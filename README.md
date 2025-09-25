@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_07
+	> git checkout 2025_09
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -149,6 +149,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
+* [VcfReplaceSamples](doc/tools/VcfReplaceSamples.md) - Replaces sample identifiers in the VCF header.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
 * [VcfStrip](doc/tools/VcfStrip.md) - Removes unwanted information from a VCF file

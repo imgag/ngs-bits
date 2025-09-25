@@ -1,5 +1,5 @@
 ### VcfAnnotateMaxEntScan tool help
-	VcfAnnotateMaxEntScan (2025_03-80-g74f31dd7)
+	VcfAnnotateMaxEntScan (2025_07-127-g60fc6b39)
 	
 	Annotates a VCF file with MaxEntScan scores.
 	
@@ -10,7 +10,7 @@
 	Intergenic variants never get a MES scores.
 	
 	Mandatory parameters:
-	  -gff <file>        Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz.
+	  -gff <file>        Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-115/gff3/homo_sapiens/Homo_sapiens.GRCh38.115.gff3.gz.
 	
 	Optional parameters:
 	  -out <file>        Output VCF file containing the MaxEntScan scores in the INFO column. If unset, writes to STDOUT.
@@ -48,7 +48,7 @@
 	  --settings [file]  Settings override file (no other settings files are used).
 	
 ### VcfAnnotateMaxEntScan changelog
-	VcfAnnotateMaxEntScan 2025_03-80-g74f31dd7
+	VcfAnnotateMaxEntScan 2025_07-127-g60fc6b39
 	
 	2025-03-20 Fixed bug in SWA alternative sequence generation and using 'min_score' for comp scores as well.
 	2023-09-26 Added several parameters to make output more configurable.
