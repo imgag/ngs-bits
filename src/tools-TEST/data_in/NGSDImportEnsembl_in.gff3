@@ -128,7 +128,7 @@
 1	havana	exon	13453	13670	.	+	.	Parent=transcript:ENST00000450305;Name=ENSE00001863096;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001863096;rank=6;version=1
 ###
 3	ensembl_havana	gene	49133365	49142553	.	-	.	ID=gene:ENSG00000172053;Name=QARS;biotype=protein_coding;description=glutaminyl-tRNA synthetase [Source:HGNC Symbol%3BAcc:9751];gene_id=ENSG00000172053;logic_name=ensembl_havana_gene;version=10
-3	ensembl_havana	mRNA	49133365	49142504	.	-	.	ID=transcript:ENST00000306125;Parent=gene:ENSG00000172053;Name=QARS-001;biotype=protein_coding;ccdsid=CCDS2788.1;havana_transcript=OTTHUMT00000345689;havana_version=2;tag=basic,Ensembl_canonical,MANE_Select;transcript_id=ENST00000306125;version=6
+3	ensembl_havana	mRNA	49133365	49142504	.	-	.	ID=transcript:ENST00000306125;Parent=gene:ENSG00000172053;Name=QARS-001;biotype=protein_coding;ccdsid=CCDS2788.1;havana_transcript=OTTHUMT00000345689;havana_version=2;tag=gencode_basic,gencode_primary,Ensembl_canonical,MANE_Select;transcript_id=ENST00000306125;version=6
 3	ensembl_havana	three_prime_UTR	49133365	49133461	.	-	.	Parent=transcript:ENST00000306125
 3	ensembl_havana	exon	49133365	49133512	.	-	.	Parent=transcript:ENST00000306125;Name=ENSE00003540328;constitutive=0;ensembl_end_phase=-1;ensembl_phase=0;exon_id=ENSE00003540328;rank=24;version=1
 3	ensembl_havana	CDS	49133462	49133512	.	-	0	ID=CDS:ENSP00000307567;Parent=transcript:ENST00000306125;protein_id=ENSP00000307567

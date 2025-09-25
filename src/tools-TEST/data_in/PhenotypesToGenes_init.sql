@@ -12,9 +12,9 @@ INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`, `details`, `evidence`) VALUES
 (11495, 'BUB1', '(HPO,,n/a); (GenCC, Moderate, medium)', 'medium'),
 (11495, 'ACTG2', '(HGMD,, n/a)', 'n/a'),
-(64350, 'BUB1', '(Decipher, probable, medium)', 'medium'),
+(64350, 'BUB1', '(G2P, probable, medium)', 'medium'),
 (64350, 'AAGAB', '(OMIM, (3), high); (HPO, PCS, high)', 'high'),
 (11495, 'BRACA2', '(HPO, IEA, low)', 'low'),
 (64350, 'BRACA2', '(HPO, IEA, low); (HGMD,,n/a)', 'low'),
-(64350, 'PMS1', '(Decipher, probable, medium)', 'medium'),
+(64350, 'PMS1', '(G2P, probable, medium)', 'medium'),
 (11495, 'PMS1', '(GenCC, Definite, high); (Decipher, probable, medium)', 'high');

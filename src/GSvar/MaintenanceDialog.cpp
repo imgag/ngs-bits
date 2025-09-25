@@ -1099,6 +1099,7 @@ void MaintenanceDialog::compareBaseDataOfTestAndProduction()
 	appendOutputLine("transcripts (Ensembl): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE source='Ensembl'"));
 	appendOutputLine("transcripts (CCDS): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE source='CCDS'"));
 	appendOutputLine("transcripts (GenCode basic): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_gencode_basic='1'"));
+	appendOutputLine("transcripts (GenCode primary): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_gencode_primary='1'"));
 	appendOutputLine("transcripts (MANE select): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_mane_select='1'"));
 	appendOutputLine("transcripts (MANE plus clinical): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_mane_plus_clinical='1'"));
 

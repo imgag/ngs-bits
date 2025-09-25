@@ -17,7 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports genes from the HGNC flat file.");
-		addInfile("in", "HGNC flat file (download https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt)", false);
+		addInfile("in", "HGNC flat file (download https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2025-09-02.tsv)", false);
 		addInfile("ensembl", "Ensembl gene file (gff3) to resolve duplicate ENSG identifier (same as NGSDImportEnsembl 'in' parameter).", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");

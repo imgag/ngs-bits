@@ -205,6 +205,15 @@ public:
 		is_gencode_basic_ = is_gencode_basic;
 	}
 
+	bool isGencodePrimaryTranscript() const
+	{
+		return is_gencode_primary_;
+	}
+	void setGencodePrimaryTranscript(bool is_gencode_primary)
+	{
+		is_gencode_primary_ = is_gencode_primary;
+	}
+
 	bool isEnsemblCanonicalTranscript() const
 	{
 		return is_ensembl_canonical_;
@@ -326,6 +335,7 @@ protected:
 	int end_;
 	bool is_preferred_transcript_;
 	bool is_gencode_basic_;
+	bool is_gencode_primary_;
 	bool is_ensembl_canonical_;
 	bool is_mane_select_;
 	bool is_mane_plus_clinical_;

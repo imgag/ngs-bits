@@ -17,7 +17,7 @@ void PhenotypeSettingsDialog::set(PhenotypeSettings& settings)
 {
 	//source
 	ui_.s_clinvar ->setChecked(settings.sources.contains(PhenotypeSource::CLINVAR));
-	ui_.s_decipher->setChecked(settings.sources.contains(PhenotypeSource::DECIPHER));
+	ui_.s_g2p->setChecked(settings.sources.contains(PhenotypeSource::G2P));
 	ui_.s_gencc->setChecked(settings.sources.contains(PhenotypeSource::GENCC));
 	ui_.s_hgmd->setChecked(settings.sources.contains(PhenotypeSource::HGMD));
 	ui_.s_hpo->setChecked(settings.sources.contains(PhenotypeSource::HPO));
@@ -40,7 +40,7 @@ PhenotypeSettings PhenotypeSettingsDialog::get() const
 
 	output.sources.clear();
 	if (ui_.s_clinvar->isChecked()) output.sources << PhenotypeSource::CLINVAR;
-	if (ui_.s_decipher->isChecked()) output.sources << PhenotypeSource::DECIPHER;
+	if (ui_.s_g2p->isChecked()) output.sources << PhenotypeSource::G2P;
 	if (ui_.s_gencc->isChecked()) output.sources << PhenotypeSource::GENCC;
 	if (ui_.s_hgmd->isChecked()) output.sources << PhenotypeSource::HGMD;
 	if (ui_.s_hpo->isChecked()) output.sources << PhenotypeSource::HPO;

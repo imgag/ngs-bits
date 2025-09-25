@@ -7,7 +7,7 @@
 #include "Exceptions.h"
 
 //Phenotye source enumeration.
-enum class PhenotypeSource : int {HPO, OMIM, CLINVAR, DECIPHER, HGMD, GENCC};
+enum class PhenotypeSource : int {HPO, OMIM, CLINVAR, G2P, HGMD, GENCC};
 //Phenotype evidence level enumeration.
 enum class PhenotypeEvidenceLevel : int {NA, AGAINST, LOW, MEDIUM, HIGH};
 //Phenotype combination mode enumeration.

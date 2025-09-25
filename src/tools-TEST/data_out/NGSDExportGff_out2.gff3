@@ -1,6 +1,6 @@
 ##gff-version 3
 chr17	NGSD	gene	43044295	43125370	.	+	.	ID=gene:ENSG00000012048;Name=BRCA1;hgnc_id=1100;gene_id=ENSG00000012048;type=protein-coding gene;description=BRCA1 DNA repair associated
-chr17	NGSD	RNA	43044295	43125370	.	+	.	ID=transcript:ENST00000352993;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=ENST00000352993;biotype=protein_coding;is_gencode_basic=1;is_ensembl_canonical=0;is_mane_select=0;is_mane_plus_clinical=0
+chr17	NGSD	RNA	43044295	43125370	.	+	.	ID=transcript:ENST00000352993;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=ENST00000352993;biotype=protein_coding;is_gencode_basic=1;is_gencode_primary=1;is_ensembl_canonical=1;is_mane_select=0;is_mane_plus_clinical=0
 chr17	NGSD	three_prime_UTR	43124097	43124115	.	+	.	Parent=transcript:ENST00000352993
 chr17	NGSD	three_prime_UTR	43125271	43125370	.	+	.	Parent=transcript:ENST00000352993
 chr17	NGSD	CDS	43045678	43045802	.	+	0	Parent=transcript:ENST00000352993
@@ -25,7 +25,7 @@ chr17	NGSD	CDS	43106456	43106533	.	+	2	Parent=transcript:ENST00000352993
 chr17	NGSD	CDS	43115726	43115779	.	+	2	Parent=transcript:ENST00000352993
 chr17	NGSD	CDS	43124017	43124096	.	+	2	Parent=transcript:ENST00000352993
 chr17	NGSD	five_prime_UTR	43044295	43045677	.	+	.	Parent=transcript:ENST00000352993
-chr17	NGSD	RNA	43045563	43125329	.	+	.	ID=transcript:ENST00000591534;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=ENST00000591534;biotype=protein_coding;is_gencode_basic=1;is_ensembl_canonical=0;is_mane_select=0;is_mane_plus_clinical=0
+chr17	NGSD	RNA	43045563	43125329	.	+	.	ID=transcript:ENST00000591534;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=ENST00000591534;biotype=protein_coding;is_gencode_basic=1;is_gencode_primary=0;is_ensembl_canonical=0;is_mane_select=0;is_mane_plus_clinical=1
 chr17	NGSD	three_prime_UTR	43074479	43074521	.	+	.	Parent=transcript:ENST00000591534
 chr17	NGSD	three_prime_UTR	43125271	43125329	.	+	.	Parent=transcript:ENST00000591534
 chr17	NGSD	CDS	43045678	43045802	.	+	0	Parent=transcript:ENST00000591534
@@ -39,7 +39,7 @@ chr17	NGSD	CDS	43067608	43067695	.	+	1	Parent=transcript:ENST00000591534
 chr17	NGSD	CDS	43070928	43071238	.	+	0	Parent=transcript:ENST00000591534
 chr17	NGSD	CDS	43074331	43074478	.	+	1	Parent=transcript:ENST00000591534
 chr17	NGSD	five_prime_UTR	43045563	43045677	.	+	.	Parent=transcript:ENST00000591534
-chr17	NGSD	RNA	43045678	43106526	.	+	.	ID=transcript:CCDS11459;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=CCDS11459;biotype=protein_coding;is_gencode_basic=0;is_ensembl_canonical=0;is_mane_select=0;is_mane_plus_clinical=0
+chr17	NGSD	RNA	43045678	43106526	.	+	.	ID=transcript:CCDS11459;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=CCDS11459;biotype=protein_coding;is_gencode_basic=0;is_gencode_primary=0;is_ensembl_canonical=0;is_mane_select=0;is_mane_plus_clinical=0
 chr17	NGSD	CDS	43045678	43045802	.	+	0	Parent=transcript:CCDS11459
 chr17	NGSD	CDS	43047643	43047703	.	+	1	Parent=transcript:CCDS11459
 chr17	NGSD	CDS	43049121	43049194	.	+	0	Parent=transcript:CCDS11459
@@ -60,7 +60,7 @@ chr17	NGSD	CDS	43099775	43099880	.	+	1	Parent=transcript:CCDS11459
 chr17	NGSD	CDS	43104122	43104261	.	+	0	Parent=transcript:CCDS11459
 chr17	NGSD	CDS	43104868	43104956	.	+	1	Parent=transcript:CCDS11459
 chr17	NGSD	CDS	43106456	43106526	.	+	2	Parent=transcript:CCDS11459
-chr17	NGSD	RNA	43045678	43124096	.	-	.	ID=transcript:CCDS11453;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=CCDS11453;biotype=protein_coding;is_gencode_basic=0;is_ensembl_canonical=0;is_mane_select=0;is_mane_plus_clinical=0
+chr17	NGSD	RNA	43045678	43124096	.	-	.	ID=transcript:CCDS11453;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=CCDS11453;biotype=protein_coding;is_gencode_basic=0;is_gencode_primary=0;is_ensembl_canonical=0;is_mane_select=0;is_mane_plus_clinical=0
 chr17	NGSD	CDS	43124017	43124096	.	-	0	Parent=transcript:CCDS11453
 chr17	NGSD	CDS	43115726	43115779	.	-	1	Parent=transcript:CCDS11453
 chr17	NGSD	CDS	43106456	43106533	.	-	1	Parent=transcript:CCDS11453
@@ -83,7 +83,7 @@ chr17	NGSD	CDS	43051063	43051117	.	-	0	Parent=transcript:CCDS11453
 chr17	NGSD	CDS	43049121	43049194	.	-	2	Parent=transcript:CCDS11453
 chr17	NGSD	CDS	43047643	43047703	.	-	0	Parent=transcript:CCDS11453
 chr17	NGSD	CDS	43045678	43045802	.	-	2	Parent=transcript:CCDS11453
-chr17	NGSD	RNA	43091098	43125315	.	+	.	ID=transcript:ENST00000354071;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=ENST00000354071;biotype=protein_coding;is_gencode_basic=1;is_ensembl_canonical=0;is_mane_select=0;is_mane_plus_clinical=0
+chr17	NGSD	RNA	43091098	43125315	.	+	.	ID=transcript:ENST00000354071;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=ENST00000354071;biotype=protein_coding;is_gencode_basic=1;is_gencode_primary=0;is_ensembl_canonical=0;is_mane_select=1;is_mane_plus_clinical=0
 chr17	NGSD	three_prime_UTR	43124097	43124115	.	+	.	Parent=transcript:ENST00000354071
 chr17	NGSD	three_prime_UTR	43125271	43125315	.	+	.	Parent=transcript:ENST00000354071
 chr17	NGSD	CDS	43091331	43094860	.	+	0	Parent=transcript:ENST00000354071

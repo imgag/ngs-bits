@@ -163,6 +163,11 @@ private:
 		is_gencode_basic = db.getValue("SELECT is_gencode_basic FROM gene_transcript WHERE name='ENST00000515242'").toBool();
 		IS_FALSE(is_gencode_basic);
 
+		bool is_gencode_primary = db.getValue("SELECT is_gencode_primary FROM gene_transcript WHERE name='ENST00000306125'").toBool();
+		IS_TRUE(is_gencode_primary);
+		is_gencode_primary = db.getValue("SELECT is_gencode_primary FROM gene_transcript WHERE name='ENST00000456328'").toBool();
+		IS_FALSE(is_gencode_primary);
+
 		bool is_ensembl_canonical = db.getValue("SELECT is_ensembl_canonical FROM gene_transcript WHERE name='ENST00000450305'").toBool();
 		IS_TRUE(is_ensembl_canonical);
 		is_ensembl_canonical = db.getValue("SELECT is_ensembl_canonical FROM gene_transcript WHERE name='ENST00000456328'").toBool();
