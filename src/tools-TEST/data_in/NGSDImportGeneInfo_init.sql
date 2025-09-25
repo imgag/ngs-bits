@@ -18,5 +18,5 @@ INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 (2, 'HP:0001427', 'Mitochondrial inheritance', '\"A mode of inheritance that is observed for traits related to a gene encoded on the mitochondrial genome. Because the mitochondrial genome is essentially always maternally inherited, a mitochondrial condition can only be transmitted by females, although the condition can affect both sexes. The proportion of mutant mitochondria can vary (heteroplasmy).', '');
 
 INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`, `details`, `evidence`) VALUES
-(1, 'OR4F5', '(Decipher,possible,low)', 'low'),
+(1, 'OR4F5', '(G2P,possible,low)', 'low'),
 (2, 'OR4F5', '(HGMD,,n/a)', 'n/a');

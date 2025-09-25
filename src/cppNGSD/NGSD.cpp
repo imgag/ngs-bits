@@ -10734,7 +10734,7 @@ void NGSD::initTranscriptCache()
 
 	//get preferred transcript list
 	QSet<QByteArray> pts;
-    for (QString trans : getValues("SELECT DISTINCT name FROM preferred_transcripts"))
+	for (const QString& trans : getValues("SELECT DISTINCT name FROM preferred_transcripts"))
 	{
 		pts.insert(trans.toUtf8());
 	}
@@ -10759,7 +10759,7 @@ void NGSD::initTranscriptCache()
 
 	//create all transcripts
 	QHash<QByteArray, int> tmp_name2id;
-	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_gencode_basic, t.is_ensembl_canonical, t.is_mane_select, t.is_mane_plus_clinical, t.version, g.ensembl_id FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_gencode_basic, t.is_gencode_primary, t.is_ensembl_canonical, t.is_mane_select, t.is_mane_plus_clinical, t.version, g.ensembl_id FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
 	while(query.next())
 	{
 		int trans_id = query.value(0).toInt();
@@ -10767,17 +10767,18 @@ void NGSD::initTranscriptCache()
 		//get base information
 		Transcript transcript;
 		transcript.setGene(query.value(1).toByteArray());
-		transcript.setGeneId(query.value(14).toByteArray());
 		transcript.setName(query.value(2).toByteArray());
 		transcript.setSource(Transcript::stringToSource(query.value(3).toString()));
 		transcript.setStrand(Transcript::stringToStrand(query.value(4).toByteArray()));
 		transcript.setBiotype(Transcript::stringToBiotype(query.value(8).toByteArray()));
 		transcript.setPreferredTranscript(pts.contains(transcript.name()));
 		transcript.setGencodeBasicTranscript(query.value(9).toInt()!=0);
-		transcript.setEnsemblCanonicalTranscript(query.value(10).toInt()!=0);
-		transcript.setManeSelectTranscript(query.value(11).toInt()!=0);
-		transcript.setManePlusClinicalTranscript(query.value(12).toInt()!=0);
-		transcript.setVersion(query.value(13).toInt());
+		transcript.setGencodePrimaryTranscript(query.value(10).toInt()!=0);
+		transcript.setEnsemblCanonicalTranscript(query.value(11).toInt()!=0);
+		transcript.setManeSelectTranscript(query.value(12).toInt()!=0);
+		transcript.setManePlusClinicalTranscript(query.value(13).toInt()!=0);
+		transcript.setVersion(query.value(14).toInt());
+		transcript.setGeneId(query.value(15).toByteArray());
 
 		//get exons
 		BedFile regions;

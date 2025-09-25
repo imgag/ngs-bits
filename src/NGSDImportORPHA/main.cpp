@@ -18,8 +18,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports ORPHA diseases/genes into the NGSD.");
-		addInfile("terms", "Terms XML file from 'http://www.orphadata.com/data/xml/en_product1.xml'.", false);
-		addInfile("genes", "Terms<>genes XML file from 'http://www.orphadata.com/data/xml/en_product6.xml'.", false);
+		addInfile("terms", "Terms XML file from 'https://www.orphadata.com/data/xml/en_product1.xml'.", false);
+		addInfile("genes", "Terms<>genes XML file from 'https://www.orphadata.com/data/xml/en_product6.xml'.", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");

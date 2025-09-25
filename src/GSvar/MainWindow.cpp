@@ -3903,11 +3903,22 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 	if(!ui_.filters->targetRegion().isValid()) //use processing system data in case no filter is set
 	{
+		ProcessingSystemData sys_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps_tumor));
+
 		TargetRegionInfo generic_target;
-		generic_target.regions = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
-		generic_target.genes = db.genesToApproved(GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor), false), true);
-		generic_target.name = db.getProcessedSampleData(db.processedSampleId(ps_tumor)).processing_system;
-		somatic_report_settings_.target_region_filter = generic_target;
+		if (sys_data.type == "WGS")
+		{
+			generic_target.regions = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
+			generic_target.genes = db.approvedGeneNames();
+			generic_target.name = sys_data.name;
+			somatic_report_settings_.target_region_filter = generic_target;
+
+		} else {
+			generic_target.regions = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
+			generic_target.genes = db.genesToApproved(GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor), false), true);
+			generic_target.name = sys_data.name;
+			somatic_report_settings_.target_region_filter = generic_target;
+		}
 	}
 
 	if (db.getValues("SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND (qc.qcml_id ='QC:2000062' OR qc.qcml_id ='QC:2000063' OR qc.qcml_id ='QC:2000064') ").size() < 3)
