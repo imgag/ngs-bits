@@ -241,11 +241,10 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 		}
 		else if (hpo_terms_obsolete.contains(hpo_id)) //try to replace
 		{
-			QVariant replace_term_id = db.getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + hpo_id + "'", false);
-			if(!replace_term_id.isNull()) //replacement term available => replace
+			int replace_term_id = db.phenotypeReplacementByAccession(hpo_id);
+			if(replace_term_id!=-1) //replacement term available => replace
 			{
-				QString replace_term = db.getValue("SELECT hpo_id FROM hpo_term WHERE id='" + replace_term_id.toString() + "'", false).toString().trimmed();
-				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + replace_term + "' WHERE id=" + query.value("id").toByteArray());
+				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + db.phenotype(replace_term_id).accession() + "' WHERE id=" + query.value("id").toByteArray());
 				++c_replaced;
 			}
 			else

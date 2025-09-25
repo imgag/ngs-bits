@@ -7159,6 +7159,27 @@ int NGSD::phenotypeIdByName(const QByteArray& name, bool throw_on_error)
 	return q.value(0).toInt();
 }
 
+int NGSD::phenotypeReplacementByAccession(const QByteArray& accession)
+{
+	QVariant replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + accession + "'", true);
+	return replace_term_id.isNull() ? -1 : replace_term_id.toInt();
+}
+
+int NGSD::phenotypeReplacementByName(const QByteArray& name)
+{
+	//with 'obsolote ' prefix
+	QVariant replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE name='obsolete " + name + "'", true);
+
+	//without prefix (error in the HPO OBO file we need to take care of)
+	if (replace_term_id.isNull())
+	{
+		replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE name='" + name + "'", true);
+	}
+
+	return replace_term_id.isNull() ? -1 : replace_term_id.toInt();
+
+}
+
 int NGSD::phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error)
 {
 	QHash<QByteArray, int>& cache = getCache().phenotypes_accession_to_id;

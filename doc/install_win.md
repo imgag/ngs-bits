@@ -95,4 +95,4 @@ Add `db_ssl_ca` parameter to your config and set its value to the CA bundle file
 
 ## Integration with IGV
 
-For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).

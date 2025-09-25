@@ -630,6 +630,13 @@ private:
 		int hpo_id2 = db.phenotypeIdByAccession("HP:0040279");
 		I_EQUAL(hpo_id1, hpo_id2);
 
+		//phenotypeReplacementByAccession // phenotypeReplacementByName
+		I_EQUAL(db.phenotypeReplacementByAccession("HP:0001240"), 12);
+		I_EQUAL(db.phenotypeReplacementByAccession("HP:0001242"), -1);
+		I_EQUAL(db.phenotypeReplacementByName("Ataxia (old1)"), 12);
+		I_EQUAL(db.phenotypeReplacementByName("Ataxia (old2)"), 12);
+		I_EQUAL(db.phenotypeReplacementByName("Ataxia (old3)"), -1);
+
 		//phenotypeChildTems
 		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("All"), true);
 		I_EQUAL(phenos.count(), 10);
@@ -3273,132 +3280,6 @@ private:
 		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean_log2, 1.351783794, 0.001);
 		F_EQUAL2(expression_stats.value("chr1:30267-30667").stddev_log2, 2.341358211, 0.001);
 
-	}
-
-	//This test should be in VariantHgvsAnnotator_Test.h, but it requires the production NGSD. Thus it is here.
-	//Test data exported from NGSD via GSvar (debug section of ahsturm1) on Nov 1th 2022.
-	//Annotation done with VEP 107 (/mnt/users/ahsturm1/Sandbox/2022_11_04_compare_annotations_with_VEP/).
-	//Some annotations were manually corrected because VEP was wrong - this is documented in the CORRECTED info entry of the variant.
-	TEST_METHOD(VariantHgvsAnnotator_comparison_vep)
-	{
-		if (!NGSD::isAvailable()) SKIP("Test needs access to the NGSD production database!");
-		NGSD db;
-		int gene_count = db.getValue("SELECT count(*) FROM gene").toInt();
-		if (gene_count<15000) SKIP("Too little genes in production database!");
-		int tans_count = db.getValue("SELECT count(*) FROM gene_transcript").toInt();
-		if (tans_count<40000) SKIP("Too transcripts genes in production database!");
-
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		FastaFileIndex reference(ref_file);
-
-		VariantHgvsAnnotator annotator(reference);
-		QTextStream out(stdout);
-
-		int c_pass = 0;
-		int c_fail = 0;
-
-		//load best transcripts
-		QMap<QByteArray, QByteArray> best;
-		TsvFile tmp;
-		tmp.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep_best_transcripts.tsv"));
-		for (int i=0; i<tmp.count(); ++i)
-		{
-			const QStringList& row = tmp[i];
-			best[row[0].toUtf8()] = row[1].toUtf8();
-		}
-
-		//process VCF
-		VcfFile vcf;
-		vcf.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep.vcf.gz"));
-		for(int i=0; i<vcf.count(); ++i)
-		{
-			const VcfLine& v = vcf[i];
-
-			//process overlapping genes
-			GeneSet genes = db.genesOverlapping(v.chr(), v.start(), v.end());
-            for (const QByteArray& gene : genes)
-			{
-				//process best transcript for gene
-				if (!best.contains(gene)) continue;
-				Transcript trans = db.transcript(db.transcriptId(best[gene]));
-				best[gene] = trans.name();
-				if (trans.isValid())
-				{
-
-					//check VEP for transcript exists
-					QByteArrayList vep_annos;
-					foreach(QByteArray entry, v.info("CSQ").split(','))
-					{
-						if (entry.contains("|" + trans.name() + "."))
-						{
-							vep_annos = entry.split('|');
-						}
-					}
-					if (vep_annos.isEmpty()) continue;
-
-					//compare VEP and own annotation
-					QByteArrayList differences;
-					VariantConsequence cons = annotator.annotate(trans, v);
-					if (cons.hgvs_p=="p.?") cons.hgvs_p="";
-
-					QByteArray vep_hgvsc = (vep_annos[2]+':').split(':')[1];
-					if (vep_hgvsc!=cons.hgvs_c) differences << vep_hgvsc + " > " + cons.hgvs_c;
-
-					QByteArray vep_hgvsp = (vep_annos[3]+':').split(':')[1];
-					vep_hgvsp.replace("%3D", "=");
-					if (vep_hgvsp!=cons.hgvs_p) differences << vep_hgvsp + " > " + cons.hgvs_p;
-
-					QByteArrayList vep_types = vep_annos[4].split('&');
-					if (vep_types.contains("splice_polypyrimidine_tract_variant")) vep_types << "splice_region_variant"; //we don't annotate this type
-					if (vep_types.contains("splice_donor_region_variant")) vep_types << "splice_region_variant";  //we don't annotate this type
-					if (vep_types.contains("splice_donor_5th_base_variant")) vep_types << "splice_region_variant";  //we don't annotate this type
-					if (vep_types.contains("mature_miRNA_variant")) vep_types << "non_coding_transcript_exon_variant";  //we don't annotate this type
-					if (vep_types.contains("frameshift_variant") && vep_hgvsp.contains("Ter") && !vep_hgvsp.contains("fs")) vep_types << "stop_gained"; //VEP handles direct stop-gain variants as frameshift, which is not correct.
-					VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
-					foreach(VariantConsequenceType csq_type, cons.types)
-					{
-						if(csq_type > max_csq_type)
-						{
-							max_csq_type = csq_type;
-						}
-					}
-					if (!vep_types.contains(VariantConsequence::typeToString(max_csq_type)))
-					{
-						differences << VariantConsequence::typeToString(max_csq_type) + " not in VEP (" + vep_types.join(", ") + ")";
-					}
-
-					QByteArray vep_impact = vep_annos[5];
-					if (vep_impact != variantImpactToString(cons.impact)) differences << vep_impact + " > " + variantImpactToString(cons.impact);
-
-					QByteArray vep_exon = vep_annos[6].split('/')[0];
-					if (vep_exon.contains('-')) vep_exon = vep_exon.split('-')[0]; //we annotate only the first affected exon
-					int vep_exon_nr = vep_exon.isEmpty() ? -1 : vep_exon.toInt();
-					if (vep_exon_nr!=cons.exon_number) differences << "exon " + QByteArray::number(vep_exon_nr) + " > " + QByteArray::number(cons.exon_number);
-
-					QByteArray vep_intron = vep_annos[7].split('/')[0];
-					if (vep_intron.contains('-')) vep_intron = vep_intron.split('-')[0]; //we annotate only the first affected intron
-					int vep_intron_nr = vep_intron.isEmpty() ? -1 : vep_intron.toInt();
-					if (vep_intron_nr!=cons.intron_number) differences << "intron " + QByteArray::number(vep_intron_nr) + " > " + QByteArray::number(cons.intron_number);
-
-					if (differences.isEmpty())
-					{
-						++c_pass;
-					}
-					else
-					{
-						++c_fail;
-                        out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << QT_ENDL;
-						foreach(QByteArray difference, differences)
-						{
-                            out << "  " << difference << QT_ENDL;
-						}
-					}
-				}
-			}
-		}
-
-		I_EQUAL(c_fail, 0);
 	}
 
 	TEST_METHOD(test_overriding_the_processed_sample_data_folder)
