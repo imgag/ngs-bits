@@ -75,7 +75,10 @@ public:
 		bool type_ok = true;
 		while(!cohort_data.atEnd())
 		{
-			QByteArrayList parts = cohort_data.readLine().split('\t');
+			QByteArray line = cohort_data.readLine();
+			if (line.trimmed() == "") continue;
+
+			QByteArrayList parts = line.split('\t');
 			parts.last() = parts.last().trimmed();
 
 			if (parts.count() != headers.count())
@@ -171,7 +174,29 @@ public:
 		QMap<QByteArray, ExpressionStats> expression_stats;
 		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
 		QMap<QByteArray, QByteArrayList> exon_transcript_mapping;
-		QSet<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, mode.toUtf8());
+		QSet<int> cohort;
+
+		if (cohort_data == "")
+		{
+			cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, mode.toUtf8());
+		} else {
+			VersatileFile cohort_data_f(cohort_data, false);
+			cohort_data_f.open(QFile::ReadOnly | QIODevice::Text);
+
+			QByteArrayList headers = cohort_data_f.readLine().split('\t');
+			headers.last() = headers.last().trimmed();
+			//get tpm column indices:
+			QList<int> tpm_indices;
+			for(int i=0; i<headers.count(); ++i)
+			{
+				QByteArray col_header = headers[i];
+				if (col_header.endsWith("_tpm") && ! col_header.contains(ps_name.toLatin1()))
+				{
+					cohort.insert(db.processedSampleId(col_header.chopped(4)).toInt());
+					tpm_indices.append(i);
+				}
+			}
+		}
 
 		//remove this sample from cohort
 		cohort.remove(ps_id.toInt());
