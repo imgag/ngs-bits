@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2025_07-127 (24.09.2025)
+- Updated gene/transcript databases from Ensembl 112 to 115. There are may more transcripts now!
+	- Here the release notes: <https://www.ensembl.info/2025/09/02/ensembl-115-has-been-released/>
+	- Here the explaination of `GENCODE Primary`: <https://www.ensembl.info/2025/02/14/cool-stuff-ensembl-vep-can-do-reduce-the-number-of-human-transcripts-you-need-to-consider-without-missing-results/>
+
 ## 2025_07-120 (18.09.2025)
 
 - RE search: added caller information

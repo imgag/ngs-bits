@@ -814,7 +814,10 @@ int MVHub::updateHpoTerms(int debug_level)
 				if (hpo_name.isEmpty()) continue;
 
 				//there is no easy way to get IDs, thus we have to handle terms with changed names...
-				if (hpo_name=="Abnormal circulating potassium concentration") hpo_name = "Abnormal blood potassium concentration";
+				if (hpo_name=="Leukopenia") hpo_name = "Decreased total leukocyte count"; //renamed
+				if (hpo_name=="Monocytopenia") hpo_name = "Decreased total monocyte count"; //renamed
+				if (hpo_name=="Eosinophilia") hpo_name = "Increased total eosinophil count"; //renamed
+				if (hpo_name=="Poor motor coordination") hpo_name = "Incoordination"; //obsolete and replaced
 
 				//handle terms with accession instead of name (RedCap bug in Ontology handling)
 				if (hpo_name.startsWith("HP:"))
