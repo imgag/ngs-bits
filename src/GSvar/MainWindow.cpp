@@ -305,6 +305,11 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->setMenu(new QMenu());
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
+	if (Settings::string("HerediVar", true).trimmed()!="")
+	{
+		ui_.vars_export_btn->menu()->addAction("Export VCF for HerediCare", this, SLOT(exportHerediCareVCF()));
+	}
+
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add_causal.png"), "Add/edit other causal variant", this, SLOT(editOtherCausalVariant()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_exclude.png"), "Delete other causal variant", this, SLOT(deleteOtherCausalVariant()));
@@ -2113,7 +2118,6 @@ void MainWindow::showAfHistogram(bool filtered)
 	int col_quality = variants_.annotationIndexByName("quality");
 	for (int i=0; i<variants_.count(); ++i)
 	{
-
 		if (filtered && !filter_result_.passing(i)) continue;
 
 		QByteArrayList parts = variants_[i].annotations()[col_quality].split(';');
@@ -5363,6 +5367,95 @@ void MainWindow::exportVCF()
 	}
 }
 
+void MainWindow::exportHerediCareVCF()
+{
+	//init
+	QString title = "HerediCare VCF export";
+	GeneSet genes;
+	genes << "ABRAXAS1" << "APC" << "ATM" << "BARD1" << "BRCA1" << "BRCA2" << "BRIP1" << "CDH1" << "CDKN2A" << "CHEK2" << "EPCAM" << "FANCC" << "FANCM" << "HOXB13" << "MEN1" << "MLH1" << "MRE11" << "MSH2" << "MSH6" << "MUTYH" << "NBN" << "NF1" << "NTHL1" << "PALB2" << "PMS2" << "POLD1" << "POLE" << "PTEN" << "RAD50" << "RAD51C" << "RAD51D" << "SMARCA4" << "STK11" << "TP53";
+	FastaFileIndex ref_genome(Settings::string("reference_genome", false));
+
+	//check it is a germine analysis
+	if (variants_.type()!=GERMLINE_SINGLESAMPLE)
+	{
+		QMessageBox::information(this, title, "This functionality is only available for germline single sample analysis.");
+		return;
+	}
+
+	try
+	{
+		//get HerediCare ID from user
+		QString id = QInputDialog::getText(this, title, "HerediCare ID (used in VCF header):");
+		if (id.isEmpty()) return;
+
+		//get export file name from user
+		QString file_name = Settings::path("gsvar_variant_export_folder", true) + QDir::separator() + id + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf";
+		file_name = QFileDialog::getSaveFileName(this, title, file_name, "VCF (*.vcf);;All files (*.*)");
+		if (file_name.isEmpty()) return;
+
+		//convert gene list to exon regions
+		NGSD db;
+		BedFile roi = db.genesToRegions(genes, Transcript::ENSEMBL, "exon");
+		roi.extend(20);
+		roi.merge();
+		ChromosomalIndex<BedFile> roi_idx(roi);
+
+		//create VCF file and add header data
+		VcfFile vcf;
+		vcf.vcfHeader().addInfoLine(InfoFormatLine{"CLASS", "1", "String", "ACMG classification"});
+		vcf.vcfHeader().addFormatLine(InfoFormatLine{"GT", "1", "String", "Genotype in the sample."});
+		vcf.vcfHeader().addFormatLine(InfoFormatLine{"DP", "1", "Integer", "Depth at the variant location."});
+		vcf.vcfHeader().addFormatLine(InfoFormatLine{"AF", "1", "Float", "Allele frequency in the sample."});
+		vcf.setSampleNames(QByteArrayList() << id.toUtf8());
+
+		//add variants in ROI to VCF
+		int i_qual = variants_.annotationIndexByName("quality");
+		int i_geno = variants_.getSampleHeader()[0].column_index;
+		int c_classified = 0;
+		for(int i=0; i<variants_.count(); ++i)
+		{
+			const Variant& v = variants_[i];
+
+			//check ROI
+			if (roi_idx.matchingIndex(v.chr(), v.start(), v.end())==-1) continue;
+
+			VcfLine v2 = v.toVCF(ref_genome, i_geno);
+
+			//add quality, DP and AF
+			QByteArray qual;
+			QByteArray dp;
+			QByteArray af;
+			foreach(QByteArray entry, v.annotations()[i_qual].split(';'))
+			{
+				entry = entry.trimmed();
+				if (entry.startsWith("QUAL=")) qual = entry.mid(5);
+				if (entry.startsWith("DP=")) dp = entry.mid(3);
+				if (entry.startsWith("AF=")) af = entry.mid(3);
+			}
+			v2.setQual(Helper::toDouble(qual, "QUAL"));
+			v2.addFormatKeys(QByteArrayList() << "DP" << "AF");
+			v2.setFormatValues(0, QByteArrayList() << v2.formatValueFromSample("GT") << dp << af);
+
+			//add ACMG class
+			QByteArray c = db.getClassification(v).classification.toUtf8();
+			if (!c.isEmpty())
+			{
+				v2.setInfo(QByteArrayList() << "CLASS", QByteArrayList() << c);
+				++c_classified;
+			}
+
+			vcf.append(v2);
+		}
+
+		vcf.store(file_name);
+		QMessageBox::information(this, title, "Exported " + QString::number(vcf.count()) + " variants in exons/splice region of the " + QString::number(genes.count()) + " genes:\n" + genes.join(", ") + "\n\n" + QString::number(c_classified) + " of the variants have a classification.");
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, title, e.message());
+	}
+}
+
 void MainWindow::exportGSvar()
 {
 	try
@@ -6639,7 +6732,6 @@ void MainWindow::showNotification(QString text)
 	QToolTip::showText(pos, text);
 }
 
-//TODO Marc: disable phenotype filter after ranking (instead of clearing it)
 void MainWindow::variantRanking()
 {
 	if (filename_.isEmpty()) return;

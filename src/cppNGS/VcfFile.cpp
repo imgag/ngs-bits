@@ -892,7 +892,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 			}
 			else if(gt == "het")
 			{
-				formats_new.push_back("1/0");
+				formats_new.push_back("0/1");
 			}
 			else
 			{

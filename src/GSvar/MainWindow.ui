@@ -135,7 +135,7 @@
                 <item>
                  <widget class="QToolButton" name="vars_export_btn">
                   <property name="toolTip">
-                   <string>Export filtered variant list.</string>
+                   <string>Export variants</string>
                   </property>
                   <property name="text">
                    <string>...</string>

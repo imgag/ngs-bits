@@ -45,7 +45,7 @@ The most important settings are:
 	- path to BED file
 - *text_editor*: Path of the preferred text editor. It is e.g. used to open log files.
 - *use_free_hgmd_version*: If HGMD links are for free version or for licensed version (login required).
-
+- *HerediVar*: URL of the HerediVar webservice.
 To allow IGV integration, you have to provide some IGV settings:
 
 - *igv_app*: Path to `igv.bat`.

@@ -384,7 +384,7 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
     THROW(ProgrammingException, "Could not convert variant " + toString(QChar(), -1, false) + " to string! This should not happen!");
 }
 
-VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
+VcfLine Variant::toVCF(const FastaFileIndex& genome_index, int gt_index) const
 {
 	int pos = start_;
 	Sequence ref = ref_;
@@ -419,7 +419,42 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
 		}
 	}
 
-	return VcfLine(chr_, pos, ref, QList<Sequence>() << alt);
+	VcfLine output(chr_, pos, ref, QList<Sequence>() << alt);
+
+	//add genotype info if column in GSvar file is kown
+	if (gt_index!=-1)
+	{
+		//check colum exists
+		if (gt_index>=annotations().count()) THROW(ProgrammingException, "Invalid genotype column index given: '" + QString::number(gt_index) + "'");
+
+		//convert genotype
+		QByteArray gt = annotations()[gt_index].trimmed();
+		if(gt.isEmpty() || gt == "." || gt == "n/a")
+		{
+			gt = "./.";
+		}
+		else if(gt == "wt")
+		{
+			gt = "0/0";
+		}
+		else if(gt == "hom")
+		{
+			gt = "1/1";
+		}
+		else if(gt == "het")
+		{
+			gt = "0/1";
+		}
+		else
+		{
+			THROW(ArgumentException, "Genotype column in GSvar file contains invalid entry '" + gt + "'.");
+		}
+
+		output.setFormatKeys(QByteArrayList() << "GT");
+		output.addFormatValues(QByteArrayList() << gt);
+	}
+
+	return output;
 }
 
 QString Variant::toGnomAD(const FastaFileIndex& genome_index) const

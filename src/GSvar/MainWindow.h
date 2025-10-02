@@ -202,6 +202,8 @@ public slots:
 	void on_actionGapsRecalculate_triggered();
 	///VCF export
 	void exportVCF();
+	///VCF export for import into HerediCare
+	void exportHerediCareVCF();
 	///GSvar export
 	void exportGSvar();
 	///Preferred transcript list
