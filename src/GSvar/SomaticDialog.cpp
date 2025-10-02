@@ -83,11 +83,22 @@ void SomaticDialog::on_add_samples_clicked(bool)
 void SomaticDialog::updateStartButton()
 {
 	//tumor normal analysis
-	ui_.start_button->setEnabled(samples_.count()==2);
-	ui_.use_dragen->setEnabled(samples_.count()==2);
-	if (samples_.count()!=2) ui_.use_dragen->setChecked(false);
-	ui_.l_use_dragen->setEnabled(samples_.count()==2);
+	bool tumor_normal = samples_.count()==2;
 
+	ui_.start_button->setEnabled(tumor_normal);
+	ui_.use_dragen->setEnabled(tumor_normal);
+	if (! tumor_normal )ui_.use_dragen->setChecked(false);
+	ui_.l_use_dragen->setEnabled(tumor_normal);
+
+	foreach(QObject* child, ui_.param_group->children())
+	{
+		if (child->objectName() == "step_msi")
+		{
+			QCheckBox* step = qobject_cast<QCheckBox*>(child);
+			step->setEnabled(tumor_normal);
+			step->setChecked(tumor_normal);
+		}
+	}
 
 	//tumor only analysis
 	if(samples_.count() == 1 && samples_[0].status == "tumor") ui_.start_button->setEnabled(true);
