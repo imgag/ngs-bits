@@ -12,6 +12,8 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	, genome_idx_(Settings::string("reference_genome", false))
 {
 	ui_.setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
+
 	connect(ui_.manual_small_var_import, SIGNAL(clicked(bool)), this, SLOT(importManualSmallVariant()));
 	ui_.variant->setText(variant_);
 

@@ -46,8 +46,17 @@ ClassificationInfo ClassificationDialog::classificationInfo() const
 
 void ClassificationDialog::classificationChanged()
 {
-	QString text = ui_.comment->toPlainText().trimmed();
-	if (text!="") text += "\n";
-	text += "[" + ui_.classification->currentText() + "] " + LoginManager::userLogin() + " " + QDate::currentDate().toString("dd.MM.yyyy");
-	ui_.comment->setPlainText(text);
+	//prepend new classification
+	QString text_old = ui_.comment->toPlainText().trimmed();
+	QString text_new = "[" + ui_.classification->currentText() + "] " + LoginManager::userLogin() + " " + QDate::currentDate().toString("dd.MM.yyyy") +"\n\n\n";
+	ui_.comment->setPlainText(text_new + text_old);
+
+	//set cursor
+	QTextCursor cursor = ui_.comment->textCursor();
+	int pos = text_new.count()-2;
+	cursor.setPosition(pos);
+	ui_.comment->setTextCursor(cursor);
+
+	//make sure the cursor is shown
+	ui_.comment->setFocus();
 }
