@@ -7368,14 +7368,6 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 
 BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 {
-	//check mode
-	QStringList valid_modes;
-	valid_modes << "gene" << "exon";
-	if (!valid_modes.contains(mode))
-	{
-		THROW(ArgumentException, "Invalid mode '" + mode + "'. Valid modes are: " + valid_modes.join(", ") + ".");
-	}
-
 	//get transcript id
 	int id = transcriptId(name, false);
 	if (id==-1)
@@ -7386,29 +7378,7 @@ BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 	//get transcript
 	const Transcript& trans = transcript(id);
 
-	//prepare annotations
-	QByteArrayList annos;
-	annos << (trans.gene() + " " + trans.nameWithVersion());
-
-	//create output
-	BedFile output;
-	if (mode=="gene")
-	{
-		output.append(BedLine(trans.chr(), trans.start(), trans.end(), annos));
-	}
-	else
-	{
-		const BedFile& regions = trans.isCoding() ? trans.codingRegions() : trans.regions();
-		for(int i=0; i<regions.count(); ++i)
-		{
-			const BedLine& line = regions[i];
-			output.append(BedLine(line.chr(), line.start(), line.end(), annos));
-		}
-	}
-
-	if (!output.isSorted()) output.sort();
-
-	return output;
+	return trans.toRegion(mode);
 }
 
 int NGSD::transcriptId(QString name, bool throw_on_error)

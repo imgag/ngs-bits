@@ -320,6 +320,9 @@ public:
 		return name_==rhs.name_;
 	}
 
+	///Converts the transcript to a region. Valid modes are 'gene' and 'exon'.
+	BedFile toRegion(QString mode, bool sort=true) const;
+
 protected:
 	QByteArray gene_;
     QByteArray gene_id_;

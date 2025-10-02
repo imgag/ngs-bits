@@ -85,7 +85,7 @@ void GeneInterpretabilityDialog::calculate()
 			BedFile roi;
 			foreach(const Transcript& t, transcripts)
 			{
-				roi.add(db.transcriptToRegions(t.name(), mode));
+				roi.add(t.toRegion(mode, false));
 			}
 			roi.merge();
 			int bases_coding = exon_mode ? roi.baseCount() : -1;

@@ -666,6 +666,40 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	return variant;
 }
 
+BedFile Transcript::toRegion(QString mode, bool sort) const
+{
+	//check mode
+	static QStringList valid_modes = QStringList() << "gene" << "exon";
+	if (!valid_modes.contains(mode))
+	{
+		THROW(ArgumentException, "Invalid mode for convertring transcript to region: '" + mode + "'. Valid modes are: " + valid_modes.join(", ") + ".");
+	}
+
+	//prepare annotations
+	QByteArrayList annos;
+	annos << (gene() + " " + nameWithVersion());
+
+	//create output
+	BedFile output;
+	if (mode=="gene")
+	{
+		output.append(BedLine(chr(), start(), end(), annos));
+	}
+	else
+	{
+		const BedFile& regs = isCoding() ? codingRegions() : regions();
+		for(int i=0; i<regs.count(); ++i)
+		{
+			const BedLine& line = regs[i];
+			output.append(BedLine(line.chr(), line.start(), line.end(), annos));
+		}
+	}
+
+	if (sort && !output.isSorted()) output.sort();
+
+	return output;
+}
+
 void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int& pos, int& offset) const
 {
 	//determine positions of special characters
