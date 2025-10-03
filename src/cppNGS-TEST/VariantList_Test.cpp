@@ -495,7 +495,7 @@ private:
 			//genotype
 			v2 = v.toVCF(ref_index, 0);
 			I_EQUAL(v2.samples().count(), 1);
-			S_EQUAL(v2.formatValueFromSample("GT"), "1/0")
+			S_EQUAL(v2.formatValueFromSample("GT"), "0/1")
 		}
 
 		//DEL
