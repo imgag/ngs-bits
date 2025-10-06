@@ -178,6 +178,7 @@ void MVHub::tableContextMenu(QPoint pos)
 
 				//get ID
 				QByteArray id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toByteArray().trimmed();
+				QByteArray case_id = getString(r, c_case_id).toLatin1().trimmed();
 
 				//check if that patient did not get sequencing
 				bool no_seq = getString(r, c_status)=="Abgebrochen" && getString(r, c_seq_type)=="Keine";
@@ -197,9 +198,10 @@ void MVHub::tableContextMenu(QPoint pos)
 					}
 					else
 					{
-						QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-						QString tan = getPseudonym(tag, "GRZ", false, false);
-						mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+						QByteArray tag = case_id + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+						QString tan = getTAN(tag, "GRZ");
+						QString pseudo = getTAN(case_id, "GRZ", true);
+						mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `pseudog`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','"+pseudo+"','pending')");
 						updateExportStatus(mvh_db, r);
 					}
 				}
@@ -219,9 +221,10 @@ void MVHub::tableContextMenu(QPoint pos)
 					}
 					else
 					{
-						QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-						QString tan = getPseudonym(tag, "KDK_SE", false, false);
-						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+						QByteArray tag = case_id + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+						QString tan = getTAN(tag, "KDK_SE");
+						QString pseudo = getTAN(case_id, "KDK_SE", true);
+						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `pseudok`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','"+pseudo+"','pending')");
 						updateExportStatus(mvh_db, r);
 					}
 				}
@@ -1400,7 +1403,7 @@ QByteArray MVHub::consentJsonToXml(QByteArray json_text, bool debug)
 	return output.join("\n");
 }
 
-QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_server, bool debug)
+QByteArray MVHub::getTAN(QByteArray str, QByteArray context, bool skip_pseudo1, bool test_server, bool debug)
 {
 	//check context
 	if (context!="GRZ" && context!="KDK_SE")
@@ -1442,6 +1445,11 @@ QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_ser
 	if (debug) addOutputLine("");
 	if (debug) addOutputLine("String to encode: " + str);
 	QByteArray pseudo1 = "";
+	if (skip_pseudo1)
+	{
+		pseudo1 = str;
+	}
+	else
 	{
 		QString url = "https://tc-" + QString(test_server ? "t" : "p") + ".med.uni-tuebingen.de/v1/process?targetSystem=MVH_"+(test_server ? "T" : "P")+"_F";
 		if (debug) addOutputLine("URL: "+url);
