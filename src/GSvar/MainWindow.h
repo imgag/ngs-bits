@@ -196,10 +196,6 @@ public slots:
 	void on_actionSampleAncestry_triggered();
 	///Sample analysis status
 	void on_actionAnalysisStatus_triggered();
-	///Lookup gaps in low-coverage BED file
-	void on_actionGapsLookup_triggered();
-	///Calculate gaps based on current target region
-	void on_actionGapsRecalculate_triggered();
 	///VCF export
 	void exportVCF();
 	///VCF export for import into HerediCare
@@ -322,6 +318,13 @@ public slots:
 	void on_actionClearLogFile_triggered();
 	///Opens AppData folder of GSvar
 	void on_actionOpenGSvarDataFolder_triggered();
+
+	///Calculate gaps based on current target region filter
+	void calculateGapsByTargetRegionFilter();
+	///Calculate gaps based on genes
+	void calculateGapsByGenes();
+	///Shows the gap closing dialog with the given regions and genes
+	void showGapsClosingDialog(QString title, const BedFile& regions, const GeneSet& genes);
 
 	///Load report configuration
 	void loadReportConfig();
@@ -545,6 +548,7 @@ private:
 	VariantList somatic_control_tissue_variants_;
 
 	bool cf_dna_available;
+	QToolButton* gap_btn_;
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;

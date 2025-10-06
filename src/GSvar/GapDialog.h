@@ -9,6 +9,7 @@
 #include "DelayedInitializationTimer.h"
 #include "NGSD.h"
 
+//dialog for determining gaps and deciding how to handle the gaps
 class GapDialog
 	: public QDialog
 {
@@ -26,6 +27,9 @@ private slots:
 	void gapsContextMenu(QPoint pos);
 	void copyToClipboard();
 
+protected:
+	void keyPressEvent(QKeyEvent* event);
+
 private:
 	Ui::GapDialog ui_;
 	DelayedInitializationTimer init_timer_;
@@ -34,7 +38,7 @@ private:
 	QString bam_;
 	QString lowcov_file_;
 	const BedFile& roi_;
-	const GeneSet& genes_;
+	GeneSet genes_;
 	int ngsd_col_;
 	struct GapInfo
 	{

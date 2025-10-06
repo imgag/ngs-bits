@@ -17,7 +17,7 @@ GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowc
 	, bam_(bam_file)
 	, lowcov_file_(lowcov_file.trimmed())
 	, roi_(roi)
-	, genes_(genes)
+	, genes_()
 	, ngsd_col_(7)
 {
 	ui_.setupUi(this);
@@ -30,6 +30,12 @@ GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowc
 	connect(ui_.f_type, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFilters()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.gap_btn, SIGNAL(clicked(bool)), this, SLOT(calculteGaps()));
+
+	//convert input genes to approved gene names
+	foreach(const QByteArray& gene, genes)
+	{
+		genes_ << db_.geneToApproved(gene, true);
+	}
 }
 
 void GapDialog::delayedInitialization()
@@ -102,7 +108,6 @@ void GapDialog::calculteGaps()
 		}
 		roi.extend(20);
 		roi.merge();
-		roi.sort();
 
 		if (!genes_invalid.isEmpty())
 		{
@@ -182,7 +187,7 @@ void GapDialog::calculteGaps()
 			bool ok = true;
 			info.avg_depth = low_cov[i].annotations()[0].toDouble(&ok);
 			if (!ok) output << "Could not convert average depth to decimal number for gap " + low_cov[i].toString(true);
-			info.genes = db_.genesOverlappingByExon(info.region.chr(), info.region.start(), info.region.end(), 30);
+			info.genes = db_.genesOverlapping(info.region.chr(), info.region.start(), info.region.end(), 20);
 
 			//use relevant transcripts
 			BedFile coding_overlap;
@@ -215,8 +220,7 @@ void GapDialog::calculteGaps()
 			BedFile pt_exon_regions;
             for (const QByteArray& gene : info.genes)
 			{
-				QByteArray gene_approved = db_.geneToApproved(gene, true);
-				if (preferred_transcripts.contains(gene_approved))
+				if (preferred_transcripts.contains(gene))
 				{
 					int gene_id = db_.geneId(gene);
 					TranscriptList transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
@@ -298,7 +302,7 @@ void GapDialog::calculteGaps()
 
 			//preferred transcripts
 			item = GUIHelper::createTableItem(gap.preferred_transcript);
-			if (gap.preferred_transcript=="yes") highlightItem(item);
+			if (gap.preferred_transcript.startsWith("yes")) highlightItem(item);
 			ui_.gaps->setItem(i, 5, item);
 
 			//suggested action
@@ -452,6 +456,18 @@ void GapDialog::gapsContextMenu(QPoint pos)
 void GapDialog::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_.gaps);
+}
+
+void GapDialog::keyPressEvent(QKeyEvent* event)
+{
+	if(event->matches(QKeySequence::Copy))
+	{
+		copyToClipboard();
+	}
+	else //default key-press event
+	{
+		QDialog::keyPressEvent(event);
+	}
 }
 
 void GapDialog::highlightItem(QTableWidgetItem* item)

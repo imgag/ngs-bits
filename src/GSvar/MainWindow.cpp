@@ -223,6 +223,17 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	connect(ui_.tabs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tabContextMenu(QPoint)));
 
+	//gaps button
+	gap_btn_ = new QToolButton();
+	gap_btn_->setObjectName("gap_btn");
+	gap_btn_->setIcon(QIcon(":/Icons/Gaps_lookup.png"));
+	gap_btn_->setToolTip("Determine low-coverage regions (gaps) and request closing the gaps if necessary.");
+	gap_btn_->setPopupMode(QToolButton::InstantPopup);
+	gap_btn_->setMenu(new QMenu());
+	gap_btn_->menu()->addAction("Gaps by target region filter", this, SLOT(calculateGapsByTargetRegionFilter()));
+	gap_btn_->menu()->addAction("Gaps by gene(s)", this, SLOT(calculateGapsByGenes()));
+	ui_.tools->insertWidget(ui_.actionGeneSelector, gap_btn_);
+
 	// add rna menu
 	rna_menu_btn_ = new QToolButton();
 	rna_menu_btn_->setObjectName("rna_btn");
@@ -5189,138 +5200,69 @@ void MainWindow::on_actionAnalysisStatus_triggered()
 	openTab(QIcon(":/Icons/Server.png"), "Analysis status", type, widget);
 }
 
-void MainWindow::on_actionGapsLookup_triggered()
+void MainWindow::calculateGapsByTargetRegionFilter()
 {
-	if (filename_=="") return;
+	if (filename_=="" || !LoginManager::active()) return;
 
-	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
+	QString title = "Gaps by target region filter";
 
-	QString ps_name = selectProcessedSample();
-	if (ps_name.isEmpty()) return;
-
-	//check low-coverage file exists
-	QStringList low_cov_files = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps_name).asStringList();
-	if (low_cov_files.isEmpty())
+	if (!ui_.filters->targetRegion().isValid())
 	{
-		QMessageBox::warning(this, "Gap lookup", "No look-up of gaps is possible!\nCould not find a low-coverage file for sample " + ps_name + ".");
+		QMessageBox::warning(this, title, "No target region filter set!");
 		return;
 	}
-	if (low_cov_files.count()>1) Log::warn( "Several gap files found for " + ps_name + ".");
 
-	//get gene name from user
-	QString gene = QInputDialog::getText(this, "Display gaps", "Gene:").trimmed();
-	if (gene=="") return;
-
-	//check if gene is in target region
-	if (LoginManager::active())
-	{
-		NGSD db;
-		QString ps_id = db.processedSampleId(germlineReportSample());
-		if (ps_id!="")
-		{
-			int sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toInt();
-			BedFile sys_regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
-			if (!sys_regions.isEmpty())
-			{
-				BedFile region = db.geneToRegions(gene.toUtf8(), Transcript::ENSEMBL, "gene");
-				region.merge();
-				if (region.count()==0)
-				{
-					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nCould not convert gene symbol '" + gene + "' to a genomic region.\nIs this a HGNC-approved gene name with associated transcripts?");
-					return;
-				}
-
-				region.intersect(sys_regions);
-				if (region.count()==0)
-				{
-					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nGene '" + gene + "' locus does not overlap with sample target region!");
-					return;
-				}
-			}
-		}
-	}
-
-	//look up data in report
-	QStringList output;
-	QStringList lines = Helper::loadTextFile(low_cov_files[0], true);
-	foreach(QString line, lines)
-	{
-		QStringList parts = line.split('\t');
-		if(parts.count()==4 && parts[3].contains(gene, Qt::CaseInsensitive))
-		{
-			double size_kb = (parts[2].toDouble() - parts[1].toDouble()) / 1000.0;
-			output.append(line + "\t" + QString::number(size_kb, 'f', 3) + " kb");
-		}
-	}
-
-	//show output
-	QTextEdit* edit = new QTextEdit();
-	edit->setText(output.join("\n"));
-	edit->setMinimumWidth(500);
-	edit->setWordWrapMode(QTextOption::NoWrap);
-	edit->setReadOnly(true);
-	auto dlg = GUIHelper::createDialog(edit, "Gaps of gene '" + gene + "' from low-coverage BED file for sample " + ps_name);
-	dlg->exec();
+	showGapsClosingDialog(title, ui_.filters->targetRegion().regions, ui_.filters->targetRegion().genes);
 }
 
-void MainWindow::on_actionGapsRecalculate_triggered()
+void MainWindow::calculateGapsByGenes()
 {
-	if (filename_=="") return;
+	if (filename_=="" || !LoginManager::active()) return;
 
-	//only available for gmerline and somatic single sample
+	QString title = "Gaps by gene(s)";
+
+	QString text = QInputDialog::getMultiLineText(this, title, "genes (one per line):");
+	if (text=="") return;
+
+	//convert to regions
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	NGSD db;
+	BedFile regions;
+	GeneSet genes = GeneSet::createFromStringList(text.split("\n"));
+	foreach(const QByteArray& gene, genes)
+	{
+		regions.add(db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true, false));
+	}
+	regions.extend(5000);
+	regions.merge();
+	QApplication::restoreOverrideCursor();
+
+	showGapsClosingDialog(title, regions, genes);
+}
+
+void MainWindow::showGapsClosingDialog(QString title, const BedFile& regions, const GeneSet& genes)
+{
+	//only available for certain types
 	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE && type!=SOMATIC_SINGLESAMPLE) return;
-
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE && type!=SOMATIC_SINGLESAMPLE)
+	{
+		QMessageBox::warning(this, title, "Only available for germline single/multi/trio analysis or somatic tumor-only!");
+		return;
+	}
 
 	//check for BAM file
-	QString ps = type==SOMATIC_SINGLESAMPLE ? variants_.getSampleHeader()[0].name : germlineReportSample();
+	QString ps = (type==SOMATIC_SINGLESAMPLE) ? variants_.getSampleHeader()[0].name : germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
 	if (bams.empty())
 	{
-		QMessageBox::warning(this, "Gaps error", "No BAM file found for sample " + ps + "!");
-		return;
-	}
-
-	//determine ROI name, ROI and gene list
-	BedFile roi;
-	GeneSet genes;
-
-	//check for ROI file
-	if (ui_.filters->targetRegion().isValid())
-	{
-		roi = ui_.filters->targetRegion().regions;
-		genes = ui_.filters->targetRegion().genes;
-	}
-	else if (LoginManager::active())
-	{
-		QMessageBox::StandardButton btn = QMessageBox::information(this, "Gaps error", "No target region filter set!<br>Do you want to determine gaps for exon +- 20 bases of a specific gene?", QMessageBox::Yes, QMessageBox::No);
-		if (btn!=QMessageBox::Yes) return;
-
-		QByteArray symbol = selectGene().toUtf8();
-		if (symbol=="") return;
-
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		roi = NGSD().geneToRegions(symbol, Transcript::ENSEMBL, "exon", true, false);
-		roi.extend(20);
-		roi.merge();
-
-		genes << symbol;
-
-		QApplication::restoreOverrideCursor();
-	}
-	else
-	{
-		QMessageBox::warning(this, "Gaps error", "No target region filter set!");
+		QMessageBox::warning(this, title, "No BAM/CRAM file found for sample " + ps + "!");
 		return;
 	}
 
 	//show dialog
 	QStringList low_covs = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps).asStringList();
-	low_covs << ""; //add empty string in case there is no low-coverage file > this case is handled inside the dialog
-	if (low_covs.count()>1) Log::warn("Several gap files found for " + ps + ".");
-	GapDialog dlg(this, ps, bams[0], low_covs[0], roi, genes);
+	if (low_covs.isEmpty()) low_covs << ""; //add empty string in case there is no low-coverage file > this case is handled inside the dialog
+	GapDialog dlg(this, ps, bams[0], low_covs[0], regions, genes);
 	dlg.exec();
 }
 
@@ -7091,13 +7033,12 @@ void MainWindow::updateNGSDSupport()
 	ui_.report_btn->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_user_logged_in);
 	ui_.actionReanalyze->setEnabled(ngsd_user_logged_in);
-	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionGeneSelector->setEnabled(ngsd_user_logged_in);
 	ui_.actionSampleSearch->setEnabled(ngsd_user_logged_in);
 	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
 	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
 	ui_.actionRegionToGenes->setEnabled(ngsd_user_logged_in);
-	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
+	gap_btn_->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
 	ui_.actionImportHerediVar->setEnabled(ngsd_user_logged_in && Settings::string("HerediVar", true).trimmed()!="");
 
