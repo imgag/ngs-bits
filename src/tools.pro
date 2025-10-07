@@ -627,3 +627,7 @@ VcfReplaceSamples.depends = cppNGS
 SUBDIRS += GenlabInfo
 tools-TEST.depends += GenlabInfo
 GenlabInfo.depends = cppNGS
+
+SUBDIRS += VcfIndex
+tools-TEST.depends += VcfIndex
+VcfIndex.depends = cppNGS
