@@ -16,10 +16,11 @@ public:
 	virtual void setup()
 	{
 		setDescription("Indexes a VCF file.");
+		setExtendedDescription(QStringList() << "Be carefull with the choice of the parameter m when using a CSI index. Smaller values of m give better performance for large VCFs, e.g. gnomAD VCFs. However, smaller values of m can also drastically increase the runtime for small VCFs.");
 		addInfile("in", "Input VCF.GZ format. Must be compressed with bgzip.", false);
 		//optional
 		addEnum("type", "Index type.", true, QStringList() << "CSI" << "TBI", "CSI");
-		addInt("m", "Set minimal interval size for CSI indices to 2^INT.", 9); //the tabix default of 14 ofen produces indices that are slower than TBI with annotating genomes, so we use smaller bins.
+		addInt("m", "Set minimal interval size for CSI indices to 2^INT.", 14);
 		addInt("threads", "Number of threads to use.", 4);
 		addFlag("hts_version", "Prints used htlib version and exits.");
 

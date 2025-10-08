@@ -375,6 +375,7 @@ void ChunkProcessor::run()
 			// load tab-indexed vcf file
 			annotation_files[i].load(meta_.annotation_file_list[i]);
 			if (params_.debug) QTextStream(stdout) << "ChunkProcessor::run():" << job_.index << " index type of " << meta_.annotation_file_list[i] << " is " << annotation_files[i].format() << " (filename: " << annotation_files[i].filenameIndex() << ")" << QT_ENDL;
+			if (params_.debug && annotation_files[i].format()=="CSI") QTextStream(stdout) << "ChunkProcessor::run():" << job_.index << " min_shift=" << annotation_files[i].minShift() << QT_ENDL;
 		}
 		if (params_.debug) QTextStream(stdout) << "ChunkProcessor::run(): " << job_.index << " loading indices took:" << Helper::elapsedTime(timer) << QT_ENDL;
 

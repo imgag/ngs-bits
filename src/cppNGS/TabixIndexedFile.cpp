@@ -68,7 +68,7 @@ QByteArray TabixIndexedFile::format() const
 	THROW(ProgrammingException, "Invalid tabix index format: " + QString::number(fmt));
 }
 
-CsiInfo TabixIndexedFile::csiInfo() const
+int TabixIndexedFile::minShift() const
 {
 	struct CsiHeader {
 		uint32_t magic;
@@ -91,7 +91,7 @@ CsiInfo TabixIndexedFile::csiInfo() const
 	// magic bytes are stored little-endian
 	if (hdr.magic != 0x01495343) THROW(FileAccessException, "Not a valid CSI header " + QString::number(hdr.magic, 16).rightJustified(8, '0') + " in " + filename_index_);
 
-	return CsiInfo{hdr.min_shift, hdr.depth, hdr.aux_len};
+	return hdr.min_shift;
 }
 
 QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int start, int end, bool ignore_missing_chr) const
