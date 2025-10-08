@@ -3,6 +3,7 @@
 #include "TabixIndexedFile.h"
 #include <QFileInfo>
 #include "VersatileFile.h"
+#include <QElapsedTimer>
 
 ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, Parameters& params)
 	: QObject()
@@ -183,7 +184,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 }
 
 //extends a given vcf line by a key-value-pair of the given annotation vcf
-QByteArray extendVcfDataLine(const QByteArray& vcf_line, const MetaData& meta, const QVector<int>& id_column_indices, const QVector<TabixIndexedFile>& annotation_files)
+QByteArray extendVcfDataLine(const QByteArray& vcf_line, const MetaData& meta, const Parameters& params, int job_index, const QVector<int>& id_column_indices, const QVector<TabixIndexedFile>& annotation_files)
 {
 	int extended_lines_ = 0;
 
@@ -207,7 +208,10 @@ QByteArray extendVcfDataLine(const QByteArray& vcf_line, const MetaData& meta, c
     for (int ann_file_idx = 0; ann_file_idx < annotation_files.size(); ann_file_idx++)
     {
         // get all matching variants for this annotaion file
+		QElapsedTimer timer;
+		timer.start();
 		QByteArrayList matches = annotation_files[ann_file_idx].getMatchingLines(chr, start, end, true);
+		if (params.debug) QTextStream(stdout) << "ChunkProcessor::extendVcfDataLine(): " << job_index << " getting/processing matches for " << chr.str() << ":" << start << "-" << end << " from " << annotation_files[ann_file_idx].filename() << " (" << matches.count() << " lines) took:" << Helper::elapsedTime(timer) << QT_ENDL;
 
         // collect the key-value pairs for all matches to prevent key duplications
         QByteArrayList additional_keys;
@@ -293,6 +297,7 @@ QByteArray extendVcfDataLine(const QByteArray& vcf_line, const MetaData& meta, c
         {
 			additional_annotation.append(additional_keys[kv_idx] + "=" + additional_values[kv_idx]);
         }
+
     }
 
     if (additional_annotation.size() > 0)
@@ -326,6 +331,8 @@ void ChunkProcessor::run()
 	try
 	{
 		//load annotation indices - they are not thread-safe, so we need to load them in each thread :(
+		QElapsedTimer timer;
+		timer.start();
 		QVector<TabixIndexedFile> annotation_files(meta_.annotation_file_list.size());
 		QVector<int> id_column_indices(meta_.annotation_file_list.size(), -1);
 		QByteArrayList annotation_header_lines;
@@ -367,7 +374,9 @@ void ChunkProcessor::run()
 			annotation_header_lines.append(header_lines);
 			// load tab-indexed vcf file
 			annotation_files[i].load(meta_.annotation_file_list[i]);
+			if (params_.debug) QTextStream(stdout) << "ChunkProcessor::run():" << job_.index << " index type of " << meta_.annotation_file_list[i] << " is " << annotation_files[i].format() << " (filename: " << annotation_files[i].filenameIndex() << ")" << QT_ENDL;
 		}
+		if (params_.debug) QTextStream(stdout) << "ChunkProcessor::run(): " << job_.index << " loading indices took:" << Helper::elapsedTime(timer) << QT_ENDL;
 
 		//process data
 		QList<QByteArray> lines_new;
@@ -395,7 +404,7 @@ void ChunkProcessor::run()
 			}
 			else //content line
 			{
-				lines_new << extendVcfDataLine(line, meta_, id_column_indices, annotation_files);
+				lines_new << extendVcfDataLine(line, meta_, params_, job_.index, id_column_indices, annotation_files);
 			}
 		}
 		job_.lines = lines_new;
