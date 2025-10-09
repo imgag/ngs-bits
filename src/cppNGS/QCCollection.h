@@ -3,7 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QVariant>
-#include <QtXml/QDomElement>
+#include <QDomElement>
 
 enum class QCValueType
 {
