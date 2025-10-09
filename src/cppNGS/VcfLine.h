@@ -1,13 +1,13 @@
 #pragma once
 
 #include "cppNGS_global.h"
-
 #include "Sequence.h"
 #include "Exceptions.h"
 #include "FastaFileIndex.h"
 #include "BasicStatistics.h"
 #include "BedFile.h"
 #include "Helper.h"
+#include <QTextStream>
 
 enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 

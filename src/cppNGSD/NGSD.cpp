@@ -26,7 +26,7 @@
 #include "QUuid"
 #include "ClientHelper.h"
 #include "PipelineSettings.h"
-
+#include <QCoreApplication>
 
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)

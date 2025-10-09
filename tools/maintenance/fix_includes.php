@@ -41,7 +41,7 @@ function files_recursive($folder, $ext)
 }
 
 //checks if a class was used in the given file
-function class_used($input, $file_content_lc)
+function include_used($input, $file_content_lc)
 {
 	$check = [];
 	if (is_array($input))
@@ -56,9 +56,9 @@ function class_used($input, $file_content_lc)
 		$check[] = strtolower($input);
 	}
 	
-	foreach($check as $name)
+	foreach($check as $name_lc)
 	{
-		if (contains($file_content_lc, $name)) return true;
+		if (contains($file_content_lc, $name_lc)) return true;
 	}
 	return false;
 }
@@ -160,8 +160,6 @@ $qt_headers_extra = [
 	"QCloseEvent"=>true,
 	"QTime"=>true,
 	"QDragEnterEvent"=>true,
-	"QtGlobal"=>true,	
-	"QtDebug"=>true,
 	"QDropEvent"=>true,	
 	"QListIterator"=>true,	
 	"QDoubleSpinBox"=>true,	
@@ -173,10 +171,12 @@ $qt_headers_extra = [
 ];
 
 ### clean up ngs-bits headers ###
-
+$stats = [];
 $filenames = array_merge(files_recursive("../../src/", ".h"), files_recursive("../../src/", ".cpp"));
 foreach($filenames as $filename)
 {
+	if (!contains($filename, "cppCORE")) continue; //TODO
+	
 	$file = file($filename);
 	$file_content_lc = "";
 	foreach($file as $line)
@@ -207,7 +207,7 @@ foreach($filenames as $filename)
 		
 		//ngs-bits stuff
 		if ($header=="cppCORE_global" || $header=="cppGUI_global" || $header=="cppNGS_global" || $header=="cppNGSD_global" || $header=="cppXML_global" || $header=="cppREST_global" || $header=="cppVISUAL_global") continue;
-		if ($header=="TestFrameworkNGS") continue;
+		if ($hreader=="TestFramework" || $header=="TestFrameworkNGS") continue;
 		if (ends_with($header, ".cpp")) continue;
 		
 		//std C++ stufff
@@ -220,23 +220,52 @@ foreach($filenames as $filename)
 		
 		if (isset($qt_headers[strtolower($header)]) || isset($qt_headers[strtolower($basename)]) || isset($qt_headers_extra[$header])) //Qt
 		{
-			if (!class_used($basename, $file_content_lc)) 
+			if (!include_used($basename, $file_content_lc)) 
 			{
 				$i_del[$i] = $line;
 			}
 		}
-		else if (isset($h2def[$header]) || isset($h2def[$basename])) //ngs-bits
+		else if (isset($h2def[$basename])) //ngs-bits
 		{
-			//TODO
+			if (!include_used($h2def[$basename], $file_content_lc)) 
+			{
+				$i_del[$i] = $line;
+			}
 		}
 		else
 		{
 			print "warning: unhandled include of '$header' in '$filename'\n";
 		}
 	}
-	print $filename."\n";
-	print_r($i_del);
+	
+	//delete lines
+	$c_del = count($i_del);
+	if ($c_del>0)
+	{
+		$h = fopen($filename, "w");
+		if ($h===false) trigger_error("Could not open file for readning: $filename", E_USER_ERROR);
+		for ($i=0; $i<count($file); ++$i)
+		{
+			if (isset($i_del[$i])) continue;
+			fputs($h, $file[$i]);
+		}
+		fclose($h);
+	}
+	
+	//update stats
+	if (!isset($stats[$c_del]))
+	{
+		$stats[$c_del] = 0;
+	}
+	$stats[$c_del] += 1;
 }
 
+//statistics output
+print "\nDeleted includes:\n";
+ksort($stats);
+foreach($stats as $c_deleted => $c_files)
+{
+  print "  {$c_deleted} in {$c_files} files\n";
+}
 
 ?>

@@ -6,6 +6,7 @@
 #include "Statistics.h"
 #include "LoginManager.h"
 #include "VariantHgvsAnnotator.h"
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QXmlStreamWriter>
 

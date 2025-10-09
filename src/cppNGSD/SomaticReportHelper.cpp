@@ -19,6 +19,7 @@
 #include <QCollator>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QCoreApplication>
 
 
 SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const BedpeFile &svs, const VariantList& variants_germline, const SomaticReportSettings& settings, bool test_db)
