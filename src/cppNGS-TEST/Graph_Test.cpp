@@ -1,11 +1,7 @@
 #include "TestFramework.h"
 #include "Graph.h"
-#include "Helper.h"
 #include <QByteArray>
 #include <QString>
-#include <QStringList>
-#include <QFile>
-#include <QSharedPointer>
 
 struct EdgeContent
 {

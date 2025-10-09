@@ -1,4 +1,5 @@
 #include "Phenotype.h"
+#include "Exceptions.h"
 
 Phenotype::Phenotype(const QByteArray& accession, const QByteArray& name)
 	: accession_(accession)

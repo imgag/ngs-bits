@@ -1,8 +1,9 @@
 #ifndef PIPELINESETTINGS_H
 #define PIPELINESETTINGS_H
 
-#include <QVariant>
 #include "cppNGS_global.h"
+#include <QStringList>
+#include <QMap>
 
 ///Parses megSAP pipeline settings file (used for GSvar server only)
 class CPPNGSSHARED_EXPORT PipelineSettings

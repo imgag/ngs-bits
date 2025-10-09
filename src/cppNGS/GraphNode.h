@@ -2,8 +2,6 @@
 #define GRAPHNODE_H
 
 #include "cppNGS_global.h"
-#include <QList>
-#include <QSharedPointer>
 #include <QString>
 
 template <typename NodeType>

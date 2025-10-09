@@ -1,12 +1,8 @@
 #include "TestFramework.h"
 #include "VariantHgvsAnnotator.h"
 #include "Transcript.h"
-#include "VcfFile.h"
 #include "Sequence.h"
 #include "Settings.h"
-#include <QTextStream>
-#include <QVector>
-#include "Helper.h"
 
 TEST_CLASS(VariantHgvsAnnotator_Test)
 {

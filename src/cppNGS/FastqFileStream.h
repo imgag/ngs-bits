@@ -5,8 +5,7 @@
 #include "Exceptions.h"
 #include "Sequence.h"
 #include <QString>
-#include <QVector>
-#include "VersatileTextStream.h"
+#include "VersatileFile.h"
 
 ///Representation of a FASTQ entry.
 struct CPPNGSSHARED_EXPORT FastqEntry

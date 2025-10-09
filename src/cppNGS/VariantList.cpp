@@ -4,12 +4,11 @@
 #include "Helper.h"
 #include "Log.h"
 #include "ChromosomalIndex.h"
-#include "NGSHelper.h"
 #include "VcfFile.h"
 #include "VersatileFile.h"
 #include <QFile>
+#include <QRegularExpression>
 #include <QTextStream>
-#include <QBitArray>
 #include <QUrl>
 
 Variant::Variant()

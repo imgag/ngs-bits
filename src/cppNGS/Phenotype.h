@@ -3,9 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QString>
-#include <QList>
 #include <QSet>
-#include "Exceptions.h"
 
 //Phenotye source enumeration.
 enum class PhenotypeSource : int {HPO, OMIM, CLINVAR, G2P, HGMD, GENCC};

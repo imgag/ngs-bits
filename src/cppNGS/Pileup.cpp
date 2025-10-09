@@ -1,6 +1,7 @@
 #include "Pileup.h"
 #include "Exceptions.h"
 #include "limits"
+#include <QList>
 
 Pileup::Pileup()
 	: a_(0)

@@ -114,6 +114,7 @@ foreach(files_recursive("../../src/", ".h") as $filename)
 		}
 	}
 }
+$h2def['XmlHelper'][] = 'XmlHelper'; //only status methods > no class/struct
 
 //check for headers without definitions
 foreach($h2def as $header => $definitions)
@@ -183,7 +184,7 @@ $stats = [];
 $filenames = array_merge(files_recursive("../../src/", ".h"), files_recursive("../../src/", ".cpp"));
 foreach($filenames as $filename)
 {
-	if (!contains($filename, "cppNGSD")) continue; //TODO
+	if (!contains($filename, "cppNGS")) continue; //TODO
 	
 	$file = file($filename);
 	$file_content_lc = "";

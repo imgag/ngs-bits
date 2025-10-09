@@ -4,8 +4,8 @@
 #include "cppNGS_global.h"
 #include "Chromosome.h"
 #include "Sequence.h"
-#include <QMap>
 #include <QFile>
+#include <QHash>
 
 ///Fasta file index for fast access to seqences in a FASTA file.
 class CPPNGSSHARED_EXPORT FastaFileIndex

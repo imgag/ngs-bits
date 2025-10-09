@@ -1,5 +1,6 @@
 #include "RefGenomeService.h"
 #include "Settings.h"
+#include "Exceptions.h"
 
 RefGenomeService::RefGenomeService()
 {

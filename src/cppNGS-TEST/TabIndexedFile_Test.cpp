@@ -3,7 +3,6 @@
 
 #include "TestFramework.h"
 #include "TestFrameworkNGS.h"
-#include "Settings.h"
 #include "TabixIndexedFile.h"
 
 TEST_CLASS(TabixIndexedFile_Test)

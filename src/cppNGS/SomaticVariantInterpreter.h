@@ -3,7 +3,6 @@
 
 #include "cppNGS_global.h"
 #include "VariantList.h"
-#include <QVariant>
 #include <QDateTime>
 
 //struct with VICC (Variant Interpretation for Cancer Consortium) input configuration for SomaticVariantInterpreter

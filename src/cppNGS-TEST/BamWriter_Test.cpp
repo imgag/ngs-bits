@@ -1,7 +1,6 @@
 #include "TestFramework.h"
 #include "BamReader.h"
 #include "BamWriter.h"
-#include "BasicStatistics.h"
 #include "Settings.h"
 
 const QString write_bam_file()
