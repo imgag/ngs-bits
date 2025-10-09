@@ -2,7 +2,6 @@
 #include "Settings.h"
 #include <QCoreApplication>
 
-#include <QStandardPaths>
 
 TEST_CLASS(Settings_Test)
 {

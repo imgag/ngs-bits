@@ -207,7 +207,7 @@ foreach($filenames as $filename)
 		
 		//ngs-bits stuff
 		if ($header=="cppCORE_global" || $header=="cppGUI_global" || $header=="cppNGS_global" || $header=="cppNGSD_global" || $header=="cppXML_global" || $header=="cppREST_global" || $header=="cppVISUAL_global") continue;
-		if ($hreader=="TestFramework" || $header=="TestFrameworkNGS") continue;
+		if ($header=="TestFramework" || $header=="TestFrameworkNGS") continue;
 		if (ends_with($header, ".cpp")) continue;
 		
 		//std C++ stufff
@@ -220,7 +220,12 @@ foreach($filenames as $filename)
 		
 		if (isset($qt_headers[strtolower($header)]) || isset($qt_headers[strtolower($basename)]) || isset($qt_headers_extra[$header])) //Qt
 		{
-			if (!include_used($basename, $file_content_lc)) 
+			$names = $basename;
+			if ($basename=="QDebug")
+			{
+				$names = ["qdebug", "qwarning"];
+			}
+			if (!include_used($names, $file_content_lc)) 
 			{
 				$i_del[$i] = $line;
 			}
