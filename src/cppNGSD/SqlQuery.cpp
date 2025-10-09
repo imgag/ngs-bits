@@ -1,6 +1,6 @@
-#include <QSqlError>
 #include "SqlQuery.h"
 #include "Exceptions.h"
+#include <QSqlError> //Comment to prevent removal by fix_includes.php
 
 SqlQuery::SqlQuery(QSqlDatabase db)
 	: QSqlQuery(db)

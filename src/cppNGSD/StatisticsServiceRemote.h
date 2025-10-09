@@ -3,8 +3,6 @@
 
 #include "cppNGSD_global.h"
 #include "StatisticsService.h"
-#include "Exceptions.h"
-#include "LoginManager.h"
 
 class CPPNGSDSHARED_EXPORT StatisticsServiceRemote
 	: virtual public StatisticsService

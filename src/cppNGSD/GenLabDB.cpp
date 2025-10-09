@@ -1,5 +1,4 @@
 #include <QSqlQuery>
-#include <QSqlError>
 #include "GenLabDB.h"
 #include "LoginManager.h"
 #include "Helper.h"

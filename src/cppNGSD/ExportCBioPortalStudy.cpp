@@ -1,5 +1,5 @@
 #include "ExportCBioPortalStudy.h"
-
+#include <QDir>
 #include <QFile>
 #include <Helper.h>
 #include "Exceptions.h"

@@ -1,5 +1,4 @@
 #include <QCoreApplication>
-#include <QDebug>
 #include <cmath>
 #include "NGSD.h"
 #include "SomaticRnaReport.h"

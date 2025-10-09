@@ -94,6 +94,14 @@ foreach(files_recursive("../../src/", ".h") as $filename)
 		{
 			$def = $parts[1];
 		}
+		if (starts_with($line, "using ") && count($parts)>=3 && $parts[2]=="=")
+		{
+			$def = $parts[1];
+		}
+		if (starts_with($line, "typedef ") && count($parts)>=3)
+		{
+			$def = end($parts);
+		}		
 		
 		if ($def!="")
 		{
@@ -175,7 +183,7 @@ $stats = [];
 $filenames = array_merge(files_recursive("../../src/", ".h"), files_recursive("../../src/", ".cpp"));
 foreach($filenames as $filename)
 {
-	if (!contains($filename, "cppCORE")) continue; //TODO
+	if (!contains($filename, "cppNGSD")) continue; //TODO
 	
 	$file = file($filename);
 	$file_content_lc = "";
@@ -197,7 +205,7 @@ foreach($filenames as $filename)
 		$header = trim(strtr($line, ["#include"=>"", "<"=>"", ">"=>"", "\""=>"", ".h"=>""]));
 		$basename = basename($header);
 		
-		//with comment => keep
+		//with comment, e.g. //Comment to prevent removal by fix_includes.php
 		if (contains($header, "//")) continue;
 		
 		//Qt stuff

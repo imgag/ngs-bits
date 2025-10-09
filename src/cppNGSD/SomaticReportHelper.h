@@ -4,19 +4,13 @@
 #include "VariantList.h"
 #include "GeneSet.h"
 #include "CnvList.h"
-#include "BedFile.h"
 #include "NGSD.h"
 #include "Settings.h"
 #include "QCCollection.h"
 #include "TSVFileStream.h"
-#include "OntologyTermCollection.h"
-#include "FilterCascade.h"
-#include <QMultiMap>
-#include <QDir>
 #include "RtfDocument.h"
 #include "BedpeFile.h"
 #include "SomaticReportSettings.h"
-#include "HttpRequestHandler.h"
 #include "SomaticXmlReportGenerator.h"
 
 struct CPPNGSDSHARED_EXPORT SomaticVirusInfo
