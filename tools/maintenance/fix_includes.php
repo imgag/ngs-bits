@@ -80,6 +80,10 @@ foreach(files_recursive("../../src/", ".h") as $filename)
 		if (count($parts)<2) continue;
 		
 		$def = "";
+		if (starts_with($line, "enum "))
+		{
+			$def = $parts[1];
+		}
 		if (starts_with($line, "enum class "))
 		{
 			$def = $parts[2];
@@ -184,7 +188,7 @@ $stats = [];
 $filenames = array_merge(files_recursive("../../src/", ".h"), files_recursive("../../src/", ".cpp"));
 foreach($filenames as $filename)
 {
-	if (!contains($filename, "cppNGS")) continue; //TODO
+	if (!contains($filename, "cppREST")) continue; //TODO
 	
 	$file = file($filename);
 	$file_content_lc = "";
