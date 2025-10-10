@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "Settings.h"
 #include "NGSD.h"
 
@@ -8,8 +8,7 @@ private:
 	
 	TEST_METHOD(default_parameters)
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -27,8 +26,7 @@ private:
 
 	TEST_METHOD(forced_import)
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -59,8 +57,7 @@ private:
 
 	TEST_METHOD(exon_import)
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);

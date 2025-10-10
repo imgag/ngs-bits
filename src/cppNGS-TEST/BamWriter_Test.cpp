@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "BamReader.h"
 #include "BamWriter.h"
 #include "Settings.h"
@@ -54,10 +54,9 @@ private:
 
 	TEST_METHOD(write_cram_test)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
+		SKIP_IF_NO_HG38_GENOME();
 
+		QString ref_file = Settings::string("reference_genome", true);
 		const QString al_string = write_cram_file(ref_file);
 
 		//read new BAM file

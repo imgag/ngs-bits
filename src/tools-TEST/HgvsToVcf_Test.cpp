@@ -1,4 +1,3 @@
-#include "TestFramework.h"
 #include "TestFrameworkNGS.h"
 #include "Settings.h"
 #include "NGSD.h"
@@ -9,14 +8,14 @@ private:
 	
 	TEST_METHOD(test1)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_HG38_GENOME();
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/HgvsToVcf_init.sql"));
+
+		QString ref_file = Settings::string("reference_genome", true);
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in1.tsv") + " -out out/HgvsToVcf_out1.vcf -test" + " -ref " + ref_file);
         REMOVE_LINES("out/HgvsToVcf_out1.vcf", QRegularExpression("^##fileDate="));
@@ -28,10 +27,9 @@ private:
 
 	TEST_METHOD(no_header)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_TEST_NGSD();
 
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		QString ref_file = Settings::string("reference_genome", true);
 
 		NGSD db(true);
 		db.init();
@@ -46,10 +44,10 @@ private:
 
 	TEST_METHOD(rename_column)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+		SKIP_IF_NO_TEST_NGSD();
 
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		QString ref_file = Settings::string("reference_genome", true);
 
 		NGSD db(true);
 		db.init();
@@ -64,10 +62,10 @@ private:
 
 	TEST_METHOD(refseq_transcripts)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+		SKIP_IF_NO_TEST_NGSD();
 
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		QString ref_file = Settings::string("reference_genome", true);
 
 		NGSD db(true);
 		db.init();
@@ -83,10 +81,10 @@ private:
 
 	TEST_METHOD(ccds_transcripts)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+		SKIP_IF_NO_TEST_NGSD();
 
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		QString ref_file = Settings::string("reference_genome", true);
 
 		NGSD db(true);
 		db.init();

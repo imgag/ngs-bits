@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "Settings.h"
 
 TEST_CLASS(VcfCheck_Test)
@@ -7,8 +7,7 @@ private:
 	
 	TEST_METHOD(no_warnings)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in1.vcf") + " -out out/VcfCheck_out1.txt");
 		COMPARE_FILES("out/VcfCheck_out1.txt", TESTDATA("data_out/VcfCheck_out1.txt"));
@@ -16,8 +15,7 @@ private:
 
 	TEST_METHOD(no_warnings_with_info_lines)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in1.vcf") + " -out out/VcfCheck_out2.txt -info -lines 200");
 		COMPARE_FILES("out/VcfCheck_out2.txt", TESTDATA("data_out/VcfCheck_out2.txt"));
@@ -25,8 +23,7 @@ private:
 
 	TEST_METHOD(with_warnings)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in2.vcf") + " -out out/VcfCheck_out3.txt");
         REMOVE_LINES("out/VcfCheck_out3.txt", QRegularExpression("^chr"));
@@ -35,8 +32,7 @@ private:
 
 	TEST_METHOD(no_warnings_vcfgz)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in1.vcf.gz") + " -out out/VcfCheck_out4.txt");
 		COMPARE_FILES("out/VcfCheck_out4.txt", TESTDATA("data_out/VcfCheck_out1.txt"));
@@ -44,8 +40,7 @@ private:
 
 	TEST_METHOD(empty_info_column)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE_FAIL("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in3.vcf") + " -out out/VcfCheck_out5.txt");
         REMOVE_LINES("out/VcfCheck_out5.txt", QRegularExpression("^chr"));
@@ -54,8 +49,7 @@ private:
 
 	TEST_METHOD(invalid_reference_sequence_of_deletion)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE_FAIL("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in4.vcf") + " -out out/VcfCheck_out6.txt");
 		COMPARE_FILES("out/VcfCheck_out6.txt", TESTDATA("data_out/VcfCheck_out6.txt"));
@@ -63,8 +57,7 @@ private:
 
 	TEST_METHOD(space_in_info_column_value)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE_FAIL("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in5.vcf") + " -out out/VcfCheck_out7.txt");
 		COMPARE_FILES("out/VcfCheck_out7.txt", TESTDATA("data_out/VcfCheck_out7.txt"));
@@ -72,8 +65,7 @@ private:
 
 	TEST_METHOD(missing_header_line)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE_FAIL("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in6.vcf") + " -out out/VcfCheck_out8.txt");
 		COMPARE_FILES("out/VcfCheck_out8.txt", TESTDATA("data_out/VcfCheck_out8.txt"));
@@ -81,8 +73,7 @@ private:
 
 	TEST_METHOD(invalid_reference_sequence)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE_FAIL("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in7.vcf") + " -out out/VcfCheck_out9.txt");
 		COMPARE_FILES("out/VcfCheck_out9.txt", TESTDATA("data_out/VcfCheck_out9.txt"));

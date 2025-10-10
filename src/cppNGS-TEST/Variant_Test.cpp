@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "VariantList.h"
 #include "Settings.h"
 
@@ -88,8 +88,9 @@ private:
 
 	TEST_METHOD(static_indelRegion)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		//insertion T left (TSV-style)
@@ -301,8 +302,9 @@ private:
 
 	TEST_METHOD(toHGVS)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex genome_index(ref_file);
 
 		//SNP
@@ -358,8 +360,9 @@ private:
 
 	TEST_METHOD(toVCF)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex genome_index(ref_file);
 
 		VcfLine v_rep;
@@ -449,8 +452,9 @@ private:
 
 	TEST_METHOD(checkValid)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		Variant v;
 		v = Variant ("chr4", 88536883, 88536900, "AAATTATTTTCTGCCTGG", "-");
@@ -471,8 +475,9 @@ private:
 
 	TEST_METHOD(leftAlign)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		Variant v;
 

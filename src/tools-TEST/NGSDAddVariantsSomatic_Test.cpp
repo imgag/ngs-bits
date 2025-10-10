@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
 
 TEST_CLASS(NGSDAddVariantsSomatic_Test)
@@ -6,7 +6,7 @@ TEST_CLASS(NGSDAddVariantsSomatic_Test)
 private:
 	TEST_METHOD(test_small_variants_tumor_normal)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
@@ -35,7 +35,7 @@ private:
 
 	TEST_METHOD(test_small_variants_tumor_only)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
@@ -62,7 +62,7 @@ private:
 
 	TEST_METHOD(test_cnvs)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
@@ -90,7 +90,7 @@ private:
 
 	TEST_METHOD(test_svs)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();

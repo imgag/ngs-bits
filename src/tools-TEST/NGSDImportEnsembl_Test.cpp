@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
 
 TEST_CLASS(NGSDImportEnsembl_Test)
@@ -7,7 +7,7 @@ private:
 	
 	TEST_METHOD(default_parameters)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -42,7 +42,7 @@ private:
 
     TEST_METHOD(with_pseudogenes)
     {
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
         //init
         NGSD db(true);
@@ -73,7 +73,7 @@ private:
 
 	TEST_METHOD(with_pseudogene_duplicates)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -104,7 +104,7 @@ private:
 
 	TEST_METHOD(with_multiple_pseudogene_files)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -135,7 +135,7 @@ private:
 
 	TEST_METHOD(with_parameter_all)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);

@@ -19,10 +19,11 @@ private:
 
 	TEST_METHOD(leftAlign)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		FastaFileIndex ref_index(ref_file);
+		SKIP_IF_NO_HG38_GENOME();
 
+		FastaFileIndex ref_index(Settings::string("reference_genome"));
+
+		QString ref_file = Settings::string("reference_genome", true);
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in.GSvar"));
 		vl.checkValid(ref_index);
@@ -33,8 +34,9 @@ private:
 
 	TEST_METHOD(leftAlign_nothing_to_do)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex ref_index(ref_file);
 
 		VariantList vl;
@@ -479,8 +481,9 @@ private:
 
 	TEST_METHOD(toVCF)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex ref_index(ref_file);
 
 		//SNV

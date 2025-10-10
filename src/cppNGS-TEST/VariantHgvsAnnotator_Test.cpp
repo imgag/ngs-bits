@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "VariantHgvsAnnotator.h"
 #include "Transcript.h"
 #include "Sequence.h"
@@ -291,8 +291,9 @@ private:
 
 	TEST_METHOD(annotate_plus_strand)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
         FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -670,8 +671,9 @@ private:
 
 	TEST_METHOD(annotate_minus_strand)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
         FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1002,8 +1004,9 @@ private:
 
     TEST_METHOD(vcfToHgvsDelIns)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
         FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1135,8 +1138,9 @@ private:
 
     TEST_METHOD(vcfToHgvsUtrIntrons)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
         FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1186,8 +1190,9 @@ private:
 
     TEST_METHOD(vcfToHgvsNonCoding)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
         FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1230,8 +1235,9 @@ private:
 
 	TEST_METHOD(bug_complex_indel)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1252,8 +1258,9 @@ private:
 
 	TEST_METHOD(five_prime_utr_deletion_with_shift)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1272,8 +1279,9 @@ private:
 
 	TEST_METHOD(bug_deletion_of_exonic_bases_just_after_splice_site)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1293,8 +1301,9 @@ private:
 
 	TEST_METHOD(bug_insertion_just_after_splice_site)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1314,8 +1323,9 @@ private:
 
 	TEST_METHOD(bug_insertion_just_after_splice_site_case2)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
@@ -1335,8 +1345,9 @@ private:
 
 	TEST_METHOD(bug_insertion_in_5_prime_UTR)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));

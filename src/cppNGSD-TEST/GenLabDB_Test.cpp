@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "GenLabDB.h"
 
 //NOTE: all tests are based on dummy data in GenLab:
@@ -11,7 +11,7 @@ private:
 
 	TEST_METHOD(phenotypes)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		PhenotypeList phenos = db.phenotypes("DXtest1");
@@ -27,7 +27,7 @@ private:
 
 	TEST_METHOD(orphanet)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		QStringList list = db.orphanet("DXtest1");
@@ -41,7 +41,7 @@ private:
 
 	TEST_METHOD(diagnosis)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		QStringList list = db.diagnosis("DXtest1");
@@ -55,7 +55,7 @@ private:
 
 	TEST_METHOD(anamnesis) //Wenn der Test fehlschlägt, muss das Freigabedatum der Untersuchungen in Genlab auf das aktuelle Datum gesetzt werden für 'Karl/Karla Bioinformatik'. Der View enthält nur die Daten der letzten 9 Monate.
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		QStringList list = db.anamnesis("DXtest1");
@@ -69,7 +69,7 @@ private:
 
 	TEST_METHOD(tumorFraction)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		I_EQUAL(db.tumorFraction("DXtest1").count(), 1);
@@ -79,7 +79,7 @@ private:
 
 	TEST_METHOD(yearOfBirth)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		S_EQUAL(db.yearOfBirth("DXtest1"), "2018");
@@ -88,7 +88,7 @@ private:
 
 	TEST_METHOD(orderEntryDate)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		S_EQUAL(db.orderEntryDate("DXtest1"), "2022-05-03");
@@ -97,7 +97,7 @@ private:
 
 	TEST_METHOD(diseaseInfo)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		QPair<QString, QString> info = db.diseaseInfo("DXtest1");
@@ -111,7 +111,7 @@ private:
 
 	TEST_METHOD(sapID)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		S_EQUAL(db.sapID("DXtest1"), ""); //not in SAP, we can only test that the method call works...
@@ -120,7 +120,7 @@ private:
 
 	TEST_METHOD(relatives)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		QList<SampleRelation> relations = db.relatives("DXtest1");
@@ -138,7 +138,7 @@ private:
 
 	TEST_METHOD(gender)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		S_EQUAL(db.gender("DXtest1"), "male");
@@ -147,7 +147,7 @@ private:
 
 	TEST_METHOD(patientIdentifier)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		S_EQUAL(db.patientIdentifier("DXtest1"), "179158");
@@ -156,7 +156,7 @@ private:
 
 	TEST_METHOD(studies)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		I_EQUAL(db.studies("DXtest1").count(), 2);
@@ -167,7 +167,7 @@ private:
 
 	TEST_METHOD(tissue)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		S_EQUAL(db.tissue("DXtest1"), ""); //is 'DNA' but this cannot be converted to tissue
@@ -177,7 +177,7 @@ private:
 
 	TEST_METHOD(accountingData)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		GenLabDB db;
 		S_EQUAL(db.accountingData("DXtest1").insurance_company, "");
