@@ -3,7 +3,6 @@
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "QMessageBox"
-#include <QDebug>
 
 SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(int variant_index, const VariantList& vl, QWidget *parent)
 	: QWidget(parent)

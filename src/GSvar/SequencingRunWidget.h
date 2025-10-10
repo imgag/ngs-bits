@@ -2,7 +2,6 @@
 #define SEQUENCINGRUNWIDGET_H
 
 #include <QWidget>
-#include <QAction>
 #include <QTableWidgetItem>
 #include "NGSD.h"
 #include "TabBaseClass.h"

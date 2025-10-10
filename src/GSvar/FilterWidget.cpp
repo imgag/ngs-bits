@@ -17,8 +17,8 @@
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include <QClipboard>
 #include <QSortFilterProxyModel>
+#include <QClipboard>
 
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)

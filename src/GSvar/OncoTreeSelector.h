@@ -5,7 +5,6 @@
 #include "ui_OncoTreeSelector.h"
 
 #include "NGSD.h"
-#include "DBSelector.h"
 
 namespace Ui {
 class OncoTreeSelector;

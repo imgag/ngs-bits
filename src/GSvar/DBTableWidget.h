@@ -5,7 +5,6 @@
 
 #include "DBTable.h"
 #include "Exceptions.h"
-#include <QDebug>
 
 //Visualization of a database table.
 class DBTableWidget

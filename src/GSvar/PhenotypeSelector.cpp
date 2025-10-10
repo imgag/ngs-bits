@@ -1,6 +1,5 @@
 #include "PhenotypeSelector.h"
 #include "ui_PhenotypeSelector.h"
-#include "GUIHelper.h"
 #include <QAction>
 #include <QTextEdit>
 

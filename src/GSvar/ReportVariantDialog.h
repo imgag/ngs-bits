@@ -3,8 +3,8 @@
 
 #include <QDialog>
 #include "ui_ReportVariantDialog.h"
-#include "ReportSettings.h"
 #include "KeyValuePair.h"
+#include "ReportConfiguration.h"
 
 ///Report configutation dialog for variants
 class ReportVariantDialog

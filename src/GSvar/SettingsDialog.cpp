@@ -1,7 +1,6 @@
 #include "SettingsDialog.h"
 #include "Settings.h"
 #include "Log.h"
-#include <QDebug>
 #include <QMessageBox>
 
 SettingsDialog::SettingsDialog(QWidget *parent) :

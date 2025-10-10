@@ -5,10 +5,9 @@
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
 #include <QApplication>
-#include <QClipboard>
 #include <QMessageBox>
-#include <QKeyEvent>
 #include <QMenu>
+#include <QClipboard>
 
 SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
 	: QWidget(parent)

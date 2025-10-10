@@ -1,13 +1,11 @@
 #include "DiseaseCourseWidget.h"
 #include "ui_DiseaseCourseWidget.h"
 #include "GUIHelper.h"
-#include "Settings.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include "VariantHgvsAnnotator.h"
-#include <QDir>
 #include <QMessageBox>
-
+#include "LoginManager.h"
+#include "GSvarHelper.h"
 
 DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidget *parent) :
 	QWidget(parent),

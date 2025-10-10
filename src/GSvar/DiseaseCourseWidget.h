@@ -6,8 +6,6 @@
 #include <TsvFile.h>
 #include "VcfFile.h"
 #include "NGSD.h"
-#include "LoginManager.h"
-#include "GSvarHelper.h"
 
 struct cfDnaColumn
 {

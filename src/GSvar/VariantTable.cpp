@@ -10,12 +10,12 @@
 #include "ColumnConfig.h"
 #include <QBitArray>
 #include <QApplication>
-#include <QClipboard>
 #include <QMessageBox>
-#include <QHeaderView>
 #include <QDesktopServices>
 #include <QMenu>
 #include "Settings.h"
+#include <QMetaMethod>
+#include <QClipboard>
 
 VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)

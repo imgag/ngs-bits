@@ -1,7 +1,6 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "NGSD.h"
-#include "HttpHandler.h"
 #include "Settings.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "MultiSampleDialog.h"
@@ -14,10 +13,7 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
-#include <QBuffer>
 #include <VariantHgvsAnnotator.h>
-#include "ClientHelper.h"
-#include "ApiCaller.h"
 
 const GeneSet& GSvarHelper::impritingGenes()
 {

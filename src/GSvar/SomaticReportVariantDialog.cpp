@@ -1,7 +1,7 @@
 #include "SomaticReportVariantDialog.h"
 #include "ui_SomaticReportVariantDialog.h"
-#include <QPushButton>
 #include "NGSD.h"
+#include <QPushButton>
 
 SomaticReportVariantDialog::SomaticReportVariantDialog(QString variant, SomaticReportVariantConfiguration& var_conf, QWidget *parent)
 	: QDialog(parent)

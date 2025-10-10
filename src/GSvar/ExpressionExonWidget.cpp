@@ -6,11 +6,9 @@
 #include "VersatileFile.h"
 #include "LoginManager.h"
 #include "BedFile.h"
-#include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include <QMenu>
 #include <QMessageBox>
-#include <QTime>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>

@@ -2,7 +2,6 @@
 #define GENESELECTORDIALOG_H
 
 #include <QDialog>
-#include "BedFile.h"
 #include <QTableWidgetItem>
 #include "GeneSet.h"
 

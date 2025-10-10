@@ -1,9 +1,9 @@
 #include "PhenoToGenesDialog.h"
 #include "Helper.h"
 #include "PhenotypeSettingsDialog.h"
-#include <QClipboard>
 #include <QFileDialog>
 #include <QMenu>
+#include <QClipboard>
 
 PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent)
 	: QDialog(parent)

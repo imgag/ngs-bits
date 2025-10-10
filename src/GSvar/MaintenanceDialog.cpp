@@ -2,10 +2,9 @@
 #include "Helper.h"
 #include "NGSD.h"
 #include "GenLabDB.h"
-#include <QTime>
+#include "Settings.h"
 #include <QMetaMethod>
 #include <QScrollBar>
-#include "Settings.h"
 
 MaintenanceDialog::MaintenanceDialog(QWidget *parent)
 	: QDialog(parent)

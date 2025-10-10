@@ -2,6 +2,8 @@
 #include <QProcess>
 #include <QThread>
 #include <QDir>
+#include "Log.h"
+#include <QTcpSocket>
 
 IGVCommandWorker::IGVCommandWorker(const IGVData& igv_data, const QList<IgvWorkerCommand>& commands, int max_command_exec_ms)
 	: igv_data_(igv_data)

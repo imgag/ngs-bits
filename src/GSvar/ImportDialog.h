@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QKeyEvent>
-#include <QTableWidgetItem>
 #include "ui_ImportDialog.h"
 #include "FastaFileIndex.h"
 #include "NGSD.h"

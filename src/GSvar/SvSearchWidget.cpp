@@ -2,16 +2,10 @@
 #include "Exceptions.h"
 #include "Chromosome.h"
 #include "Helper.h"
-#include "FilterCascade.h"
 #include "NGSHelper.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QMessageBox>
-#include <QClipboard>
 #include <QAction>
 
 SvSearchWidget::SvSearchWidget(QWidget* parent)

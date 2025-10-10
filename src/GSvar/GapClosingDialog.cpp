@@ -1,14 +1,13 @@
 #include "GapClosingDialog.h"
 #include "Settings.h"
 #include "GUIHelper.h"
-#include "LoginManager.h"
 #include "GSvarHelper.h"
 #include "GapClosingEditDialog.h"
 #include <QDesktopServices>
 #include <QAction>
-#include <QClipboard>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QClipboard>
 
 GapClosingDialog::GapClosingDialog(QWidget* parent)
 	: QDialog(parent)

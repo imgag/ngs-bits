@@ -4,8 +4,6 @@
 #include <QWidget>
 #include <QTableWidgetItem>
 #include "RohList.h"
-#include "BedFile.h"
-#include "GeneSet.h"
 #include "FilterWidget.h"
 #include "VariantList.h"
 

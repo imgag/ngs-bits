@@ -6,7 +6,6 @@
 #include "GeneInfoDBs.h"
 #include "GSvarHelper.h"
 #include "GlobalServiceProvider.h"
-#include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
 #include <QDesktopServices>

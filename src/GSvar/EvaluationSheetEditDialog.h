@@ -3,8 +3,6 @@
 
 #include <NGSD.h>
 #include <QDialog>
-#include "DBSelector.h"
-#include "GUIHelper.h"
 
 namespace Ui {
 class EvaluationSheetEditDialog;

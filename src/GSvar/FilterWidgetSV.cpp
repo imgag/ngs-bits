@@ -1,5 +1,4 @@
 #include "FilterWidgetSV.h"
-#include "Settings.h"
 #include "Helper.h"
 #include "NGSD.h"
 #include "Log.h"
@@ -8,11 +7,9 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
-#include <QFileInfo>
 #include <QCompleter>
 #include <QMenu>
 #include <QDialog>
-#include <QDir>
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
 

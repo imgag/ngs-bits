@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QFileDialog>
 #include "ExportHistoryDialog.h"
+#include <QClipboard>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)

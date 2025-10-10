@@ -7,9 +7,6 @@
 #include "SomaticReportConfiguration.h"
 #include "VariantList.h"
 #include "VcfFile.h"
-#include "Settings.h"
-#include "Exceptions.h"
-#include "DBComboBox.h"
 #include "NGSD.h"
 
 namespace Ui {

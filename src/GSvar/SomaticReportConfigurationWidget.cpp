@@ -3,9 +3,7 @@
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
 #include <QMenu>
-#include <QBitArray>
 #include <QApplication>
-#include <QClipboard>
 #include <QShortcut>
 #include "cmath"
 

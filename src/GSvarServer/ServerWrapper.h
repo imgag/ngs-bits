@@ -2,19 +2,11 @@
 #define SERVERWRAPPER_H
 
 #include <QObject>
-#include <QFile>
-#include <QSslCertificate>
 #include <QSslKey>
-#include <QSslConfiguration>
-#include <QSslSocket>
-#include <QStandardPaths>
-#include <QTimer>
-#include <QFileSystemWatcher>
-
+#include <QCoreApplication>
 #include "Log.h"
 #include "SslServer.h"
-#include "UrlManager.h"
-#include "FileMetaCache.h"
+#include "ClientHelper.h"
 
 class ServerWrapper : public QObject
 {

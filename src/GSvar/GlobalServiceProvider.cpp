@@ -1,12 +1,10 @@
 #include "GlobalServiceProvider.h"
 
-#include "Settings.h"
 #include "DatabaseServiceLocal.h"
 #include "DatabaseServiceRemote.h"
 #include "StatisticsServiceLocal.h"
 #include "StatisticsServiceRemote.h"
 #include "MainWindow.h"
-#include "GSvarHelper.h"
 #include "ClientHelper.h"
 
 GlobalServiceProvider::GlobalServiceProvider()

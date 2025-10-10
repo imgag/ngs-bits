@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include "ui_GeneInterpretabilityDialog.h"
-#include "GeneSet.h"
 
 struct GeneInterpretabilityRegion
 {
