@@ -1,5 +1,5 @@
 #include "FileMetaCache.h"
-
+#include "Log.h"
 
 FileMetaCache::FileMetaCache()
     : metadata_storage_()

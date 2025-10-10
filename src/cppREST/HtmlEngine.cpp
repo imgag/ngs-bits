@@ -1,5 +1,6 @@
 #include "HtmlEngine.h"
 #include "ToolBase.h"
+#include <QTextStream>
 
 HtmlEngine::HtmlEngine()
 {

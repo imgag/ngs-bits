@@ -1,5 +1,6 @@
 #include "TestFramework.h"
 #include "RequestParser.h"
+#include "HttpUtils.h"
 
 TEST_CLASS(RequestParser_Test)
 {

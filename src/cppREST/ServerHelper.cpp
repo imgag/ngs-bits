@@ -1,8 +1,9 @@
 #include "ServerHelper.h"
 #include "Helper.h"
 #include "PipelineSettings.h"
-#include <QStandardPaths>
 #include <QDir>
+#include <QCoreApplication>
+#include <QUuid>
 
 ServerHelper::ServerHelper()
 {

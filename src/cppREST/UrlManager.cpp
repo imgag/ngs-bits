@@ -1,5 +1,7 @@
 #include "UrlManager.h"
-#include "Helper.h"
+#include "Settings.h"
+#include "Exceptions.h"
+#include "Log.h"
 
 UrlManager::UrlManager()
     : url_storage_()

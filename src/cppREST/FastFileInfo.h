@@ -3,10 +3,7 @@
 
 #include "cppREST_global.h"
 #include <QObject>
-#include <QFileInfo>
-#include "Exceptions.h"
-#include "FileMetaCache.h"
-#include "Settings.h"
+#include <QDateTime>
 
 class CPPRESTSHARED_EXPORT FastFileInfo : public QObject
 {

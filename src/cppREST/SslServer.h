@@ -8,11 +8,7 @@
 #include <QSslConfiguration>
 #include <QList>
 #include <QThreadPool>
-#include <QTimer>
-#include <QProcess>
-#include "Exceptions.h"
 #include "RequestWorker.h"
-#include "Log.h"
 
 class CPPRESTSHARED_EXPORT SslServer : public QTcpServer
 {

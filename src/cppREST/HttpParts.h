@@ -2,9 +2,10 @@
 #define HTTPPARTS_H
 
 #include "cppREST_global.h"
-#include <QMap>
+#include <QString>
+#include <QList>
 
-typedef enum
+enum ContentType
 {
 	APPLICATION_OCTET_STREAM,
 	APPLICATION_JSON,
@@ -19,9 +20,9 @@ typedef enum
 	TEXT_CSS,
 	MULTIPART_FORM_DATA,
 	APPLICATION_X_WWW_FORM_URLENCODED
-} ContentType;
+};
 
-typedef enum
+enum ResponseStatus
 {
 	CONTINUE,
 	SWITCHING_PROTOCOLS,
@@ -64,9 +65,9 @@ typedef enum
 	GATEWAY_TIMEOUT,
 	HTTP_VERSION_NOT_SUPPORTED,
 	UNKNOWN_STATUS_CODE
-} ResponseStatus;
+};
 
-typedef enum
+enum RequestMethod
 {
 	GET,
 	POST,
@@ -74,7 +75,7 @@ typedef enum
 	PUT,
 	PATCH,
 	HEAD,
-} RequestMethod;
+};
 
 struct CPPRESTSHARED_EXPORT ByteRange
 {

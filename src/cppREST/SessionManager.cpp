@@ -1,5 +1,8 @@
 #include "SessionManager.h"
 #include "Helper.h"
+#include "Settings.h"
+#include "Log.h"
+#include "ServerHelper.h"
 
 SessionManager::SessionManager()
     : current_client_info_()

@@ -1,7 +1,6 @@
 #include "TestFramework.h"
 #include "FileMetaCache.h"
 #include "FastFileInfo.h"
-#include "ServerHelper.h"
 
 TEST_CLASS(FileMetaCache_Test)
 {

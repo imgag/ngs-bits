@@ -1,11 +1,9 @@
 #ifndef URLMANAGER_H
 #define URLMANAGER_H
 
-#include <QDateTime>
 #include "cppREST_global.h"
-#include "ServerHelper.h"
-#include "ServerDB.h"
 #include "ThreadSafeHashMap.h"
+#include "UrlEntity.h"
 
 class CPPRESTSHARED_EXPORT UrlManager
 {
