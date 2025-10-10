@@ -1,5 +1,4 @@
 #include "TestFramework.h"
-#include "Settings.h"
 #include "GenLabDB.h"
 
 TEST_CLASS(NGSDGenlabInfo_Test)

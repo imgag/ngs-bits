@@ -4,8 +4,6 @@
 #include <QFileInfo>
 #include <QFileInfo>
 #include "Exceptions.h"
-#include "Helper.h"
-#include "NGSHelper.h"
 
 class ConcreteTool
 		: public ToolBase

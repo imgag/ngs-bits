@@ -1,16 +1,6 @@
 #include "ToolBase.h"
 #include "Graph.h"
 #include "StringDbParser.h"
-#include "Exceptions.h"
-#include "Helper.h"
-#include <QTextStream>
-#include <QFile>
-#include <QString>
-#include <QStringList>
-#include <QList>
-#include <QSet>
-#include <QHash>
-#include <QSharedPointer>
 
 struct NodeContent
 {

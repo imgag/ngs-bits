@@ -1,11 +1,8 @@
 #include "ChunkProcessor.h"
 #include "VcfFile.h"
-#include "ToolBase.h"
 #include <QFileInfo>
-#include "Helper.h"
 #include "VcfFile.h"
 #include "VariantList.h"
-#include <QMutex>
 
 ChunkProcessor::ChunkProcessor(AnalysisJob &job_, QByteArray name_, const BedFile& bed_file_, const ChromosomalIndex<BedFile>& bed_index_, QByteArray bed_file_path_, QByteArray sep_)
 

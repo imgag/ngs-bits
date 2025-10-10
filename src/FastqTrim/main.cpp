@@ -1,6 +1,5 @@
 #include "ToolBase.h"
 #include "FastqFileStream.h"
-#include "Exceptions.h"
 
 class ConcreteTool
 		: public ToolBase

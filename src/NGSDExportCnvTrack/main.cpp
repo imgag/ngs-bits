@@ -3,11 +3,7 @@
 #include "NGSD.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "Settings.h"
 #include "BasicStatistics.h"
-#include <QSqlQuery>
-#include <QSqlRecord>
-#include <QDir>
 #include <QBitArray>
 
 struct CNV

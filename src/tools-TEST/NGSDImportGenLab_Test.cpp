@@ -1,5 +1,4 @@
 #include "TestFramework.h"
-#include "Settings.h"
 #include "NGSD.h"
 #include "GenLabDB.h"
 

@@ -1,11 +1,6 @@
 #include "ToolBase.h"
 #include "NGSD.h"
 #include "Exceptions.h"
-#include "Helper.h"
-#include "TSVFileStream.h"
-#include <QTextStream>
-#include <QFileInfo>
-#include <QElapsedTimer>
 
 
 class ConcreteTool

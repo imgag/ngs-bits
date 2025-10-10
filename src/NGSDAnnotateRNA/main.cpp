@@ -4,8 +4,6 @@
 #include "Helper.h"
 #include "TSVFileStream.h"
 #include <QTextStream>
-#include <QFileInfo>
-#include <QElapsedTimer>
 #include <numeric>
 #include <cmath>
 

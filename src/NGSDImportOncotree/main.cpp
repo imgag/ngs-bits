@@ -3,8 +3,8 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include <QJsonDocument>
-#include <QJsonArray>
 #include <QJsonObject>
+#include <QJsonArray> //Comment to prevent removal by fix_includes.php
 
 class ConcreteTool
 		: public ToolBase
@@ -26,7 +26,6 @@ public:
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
 	}
-
 
 	struct OncotreeCode
 	{

@@ -1,7 +1,5 @@
 #include "ToolBase.h"
-#include "NGSHelper.h"
 #include "Helper.h"
-#include "BasicStatistics.h"
 #include "BamWriter.h"
 #include <QTime>
 

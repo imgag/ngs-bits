@@ -5,8 +5,6 @@
 #include "TSVFileStream.h"
 #include "GeneSet.h"
 #include <QTextStream>
-#include <QFileInfo>
-#include <QElapsedTimer>
 
 
 class ConcreteTool

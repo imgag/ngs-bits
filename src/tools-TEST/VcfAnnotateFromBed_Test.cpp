@@ -1,6 +1,5 @@
 #include "TestFramework.h"
 #include "TestFrameworkNGS.h"
-#include "Settings.h"
 
 TEST_CLASS(VcfAnnotateFromBed_Test)
 {

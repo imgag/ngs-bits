@@ -1,9 +1,7 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
-#include "ChromosomalIndex.h"
 #include "VariantList.h"
 #include "BedFile.h"
-#include "Helper.h"
 #include "FilterCascade.h"
 
 class ConcreteTool

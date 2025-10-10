@@ -1,7 +1,5 @@
 #include "TestFramework.h"
-#include "Settings.h"
 #include "NGSD.h"
-#include "Helper.h"
 
 TEST_CLASS(NGSDImportHPO_Test)
 {

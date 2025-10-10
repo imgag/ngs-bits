@@ -187,9 +187,7 @@ $qt_headers_extra = [
 $stats = [];
 $filenames = array_merge(files_recursive("../../src/", ".h"), files_recursive("../../src/", ".cpp"));
 foreach($filenames as $filename)
-{
-	if (!contains($filename, "cppREST")) continue; //TODO
-	
+{	
 	$file = file($filename);
 	$file_content_lc = "";
 	foreach($file as $line)

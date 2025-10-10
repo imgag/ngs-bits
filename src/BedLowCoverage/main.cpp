@@ -1,7 +1,6 @@
 #include "BedFile.h"
 #include "ToolBase.h"
 #include "Statistics.h"
-#include "Exceptions.h"
 #include <QFileInfo>
 
 class ConcreteTool

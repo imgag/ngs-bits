@@ -1,7 +1,5 @@
 #include "TestFramework.h"
-#include "Settings.h"
 #include "NGSD.h"
-#include <QThread>
 
 TEST_CLASS(NGSDImportEnsembl_Test)
 {

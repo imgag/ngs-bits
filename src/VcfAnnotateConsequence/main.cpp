@@ -2,12 +2,8 @@
 #include "Settings.h"
 #include "NGSHelper.h"
 #include "Helper.h"
-#include "VcfFile.h"
 #include "VariantHgvsAnnotator.h"
 #include "Auxilary.h"
-#include "ChunkProcessor.h"
-#include "OutputWorker.h"
-#include <QThreadPool>
 #include "ThreadCoordinator.h"
 
 

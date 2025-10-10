@@ -5,7 +5,7 @@
 #include <QSqlQuery>
 #include <QUuid>
 #include <QSqlError> //Comment to prevent removal by fix_includes.php
-#include <QSqlRecord>
+#include <QSqlRecord> //Comment to prevent removal by fix_includes.php
 
 ServerDB::ServerDB()
 {

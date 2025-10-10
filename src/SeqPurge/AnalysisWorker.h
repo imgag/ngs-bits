@@ -2,7 +2,6 @@
 #define ANALYSISWORKER_H
 
 #include <QRunnable>
-#include "ThreadCoordinator.h"
 #include "Auxilary.h"
 
 ///Analysis worker

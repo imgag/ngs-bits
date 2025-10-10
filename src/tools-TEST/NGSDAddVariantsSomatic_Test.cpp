@@ -1,7 +1,5 @@
 #include "TestFramework.h"
 #include "NGSD.h"
-#include "Settings.h"
-#include <QSqlRecord>
 
 TEST_CLASS(NGSDAddVariantsSomatic_Test)
 {

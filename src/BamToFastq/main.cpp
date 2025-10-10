@@ -1,9 +1,9 @@
 #include "ToolBase.h"
 #include "FastqFileStream.h"
-#include "NGSHelper.h"
 #include "Helper.h"
 #include <QThreadPool>
 #include "OutputWorker.h"
+#include "BamReader.h"
 
 class ConcreteTool
 		: public ToolBase

@@ -1,6 +1,4 @@
 #include "TestFramework.h"
-#include "Helper.h"
-#include "Settings.h"
 #include "NGSD.h"
 
 TEST_CLASS(NGSDExportIgvGeneTrack_Test)

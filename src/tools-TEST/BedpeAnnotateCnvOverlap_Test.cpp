@@ -1,6 +1,4 @@
 #include "TestFramework.h"
-#include "Settings.h"
-#include "NGSD.h"
 
 TEST_CLASS(BedpeAnnotateCnvOverlap_Test)
 {

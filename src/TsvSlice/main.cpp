@@ -1,9 +1,6 @@
 #include "ToolBase.h"
 #include "TSVFileStream.h"
 #include "Helper.h"
-#include "BasicStatistics.h"
-#include <QFileInfo>
-#include <QBitArray>
 
 class ConcreteTool
 		: public ToolBase

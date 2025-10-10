@@ -1,5 +1,4 @@
 #include "ToolBase.h"
-#include "Helper.h"
 #include "FastqFileStream.h"
 #include "Log.h"
 
