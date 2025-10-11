@@ -2955,6 +2955,7 @@ private:
 	TEST_METHOD(report_tumor_only)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+        SKIP_IF_NO_HG38_GENOME();
 
 		NGSD db(true);
 		db.init();
