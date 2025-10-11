@@ -10,10 +10,8 @@
 #include <QMenu>
 #include <QMessageBox>
 #include "LoginManager.h"
-#include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include <QDialogButtonBox>
-#include <QSignalMapper>
 #include <QTextEdit>
 
 

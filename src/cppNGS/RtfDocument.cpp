@@ -1,5 +1,7 @@
 #include "RtfDocument.h"
 #include "Helper.h"
+#include <QTextStream>
+#include <QDebug>
 
 RtfPicture::RtfPicture()
 	: png_data_("")
@@ -182,6 +184,7 @@ void RtfDocument::setMargins(int left, int top, int right, int bottom)
 void RtfDocument::save(const QByteArray &file_name)
 {
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(file_name);
+
 	QTextStream stream(outfile.data());
 
 	stream << header();

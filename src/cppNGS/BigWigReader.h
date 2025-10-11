@@ -6,7 +6,7 @@
 #include <QString>
 #include <QVector>
 #include <QDataStream>
-
+#include "Exceptions.h"
 
 // Reader for BigWig files:
 class CPPNGSSHARED_EXPORT BigWigReader

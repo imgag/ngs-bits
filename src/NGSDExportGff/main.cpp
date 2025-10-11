@@ -1,5 +1,4 @@
 #include "ToolBase.h"
-#include <QDebug>
 #include "NGSD.h"
 #include "Helper.h"
 

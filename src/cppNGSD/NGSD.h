@@ -3,7 +3,6 @@
 
 #include "cppNGSD_global.h"
 #include <QVariant>
-#include <QVariantList>
 #include <QSharedPointer>
 #include <QTextStream>
 #include <QDateTime>

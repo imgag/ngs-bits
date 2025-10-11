@@ -1,6 +1,4 @@
 #include "OutputWorker.h"
-#include "Helper.h"
-#include <QThread>
 
 OutputWorker::OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream, Parameters& params)
 	: QRunnable()

@@ -2,8 +2,8 @@
 #define AUXILARY_H
 
 #include <QByteArray>
-#include <QByteArrayList>
 #include <QString>
+#include <QList>
 
 //Analysis status
 enum AnalysisStatus

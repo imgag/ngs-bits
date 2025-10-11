@@ -1,5 +1,4 @@
-#include "TestFramework.h"
-#include "Settings.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
 
 TEST_CLASS(BedAnnotateGenes_Test)
@@ -8,7 +7,7 @@ private:
 
 	TEST_METHOD(without_existing_annotations)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -22,7 +21,7 @@ private:
 
 	TEST_METHOD(with_existing_annotations_and_extend25)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -37,7 +36,7 @@ private:
 
 	TEST_METHOD(with_existing_annotations_and_clear)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);

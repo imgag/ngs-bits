@@ -9,6 +9,7 @@
 #include "GenomeBuild.h"
 #include "VcfLine.h"
 #include "VariantImpact.h"
+#include <QDebug>
 
 ///Transcript annotations e.g. from SnpEff/VEP.
 struct CPPNGSSHARED_EXPORT VariantTranscript

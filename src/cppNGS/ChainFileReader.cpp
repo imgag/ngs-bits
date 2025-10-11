@@ -1,5 +1,6 @@
 #include "ChainFileReader.h"
 #include "Exceptions.h"
+#include "VersatileFile.h"
 
 ChainFileReader::ChainFileReader(QString filepath, double percent_deletion)
 	: filepath_(filepath)

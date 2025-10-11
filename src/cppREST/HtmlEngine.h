@@ -2,7 +2,6 @@
 #define HTMLENGINE_H
 
 #include "cppREST_global.h"
-#include <QTextStream>
 #include <QDateTime>
 
 struct CPPRESTSHARED_EXPORT FolderItem
@@ -13,7 +12,7 @@ struct CPPRESTSHARED_EXPORT FolderItem
 	QDateTime modified;
 };
 
-typedef enum
+enum FolderItemIcon
 {
 	TO_PARENT_FOLDER,
 	GENERIC_FILE,
@@ -23,7 +22,7 @@ typedef enum
 	TEXT_FILE,
 	TABLE_FILE,
 	FOLDER
-} FolderItemIcon;
+};
 
 class CPPRESTSHARED_EXPORT HtmlEngine
 {

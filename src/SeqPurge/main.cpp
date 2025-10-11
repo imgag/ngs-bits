@@ -1,10 +1,6 @@
 #include "ToolBase.h"
 #include "ThreadCoordinator.h"
-#include "AnalysisWorker.h"
-#include "OutputWorker.h"
-#include "Helper.h"
 #include "BasicStatistics.h"
-#include <QThreadPool>
 
 class ConcreteTool
 		: public ToolBase

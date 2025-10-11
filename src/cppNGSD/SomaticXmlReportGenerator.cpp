@@ -2,15 +2,11 @@
 #include "BasicStatistics.h"
 #include "LoginManager.h"
 #include "GenLabDB.h"
-#include "XmlHelper.h"
-
-#include "SomaticReportConfiguration.h"
+#include "RtfDocument.h"
 #include "SomaticReportHelper.h"
-
+#include "XmlHelper.h"
 #include <QXmlStreamWriter>
 #include <QCoreApplication>
-#include <QFileInfo>
-#include <QDir>
 
 SomaticXmlReportGeneratorData::SomaticXmlReportGeneratorData(GenomeBuild genome_build, const SomaticReportSettings &som_settings, const VariantList& snvs, const VariantList& germl_snvs, const CnvList& cnvs)
 	: build(genome_build)

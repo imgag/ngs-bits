@@ -3,9 +3,6 @@
 #include "Helper.h"
 #include <QFile>
 #include <QSharedPointer>
-#include <QThreadPool>
-#include "ChunkProcessor.h"
-#include "OutputWorker.h"
 #include "ThreadCoordinator.h"
 
 

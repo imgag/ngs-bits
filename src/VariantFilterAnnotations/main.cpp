@@ -1,10 +1,5 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
-#include "ChromosomalIndex.h"
 #include "FilterCascade.h"
-#include "BedFile.h"
-#include "Helper.h"
-#include "NGSHelper.h"
 
 class ConcreteTool
 	: public ToolBase

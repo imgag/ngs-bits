@@ -1,6 +1,8 @@
 #include "Sequence.h"
 #include "Exceptions.h"
 
+#include <QRegularExpression>
+
 Sequence::Sequence()
 	: QByteArray()
 {

@@ -1,6 +1,5 @@
 #include "BurdenTestWidget.h"
 #include "ui_BurdenTestWidget.h"
-#include "GlobalServiceProvider.h"
 #include <GUIHelper.h>
 #include <LoginManager.h>
 #include <NGSD.h>
@@ -10,6 +9,7 @@
 #include <QTextEdit>
 #include "GSvarHelper.h"
 #include "Settings.h"
+#include <QJsonObject>
 
 BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 	QWidget(parent),

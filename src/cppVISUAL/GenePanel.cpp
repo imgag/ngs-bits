@@ -1,7 +1,6 @@
 #include "GenePanel.h"
 #include "Helper.h"
 #include "NGSHelper.h"
-#include <QDebug>
 #include <QPainter>
 #include <QMenu>
 #include <QToolTip>

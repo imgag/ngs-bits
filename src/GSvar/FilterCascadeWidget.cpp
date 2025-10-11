@@ -1,6 +1,5 @@
 #include "FilterCascadeWidget.h"
 #include "FilterEditDialog.h"
-#include "Settings.h"
 #include "GSvarHelper.h"
 #include <QTextDocument>
 #include <QMenu>

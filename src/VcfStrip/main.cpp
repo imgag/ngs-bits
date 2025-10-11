@@ -2,7 +2,6 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "VcfFile.h"
-#include <QRegularExpression>
 #include <QFile>
 
 class ConcreteTool: public ToolBase

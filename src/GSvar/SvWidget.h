@@ -4,10 +4,8 @@
 #include <QWidget>
 #include <QTableWidgetItem>
 #include <QByteArray>
-#include <QByteArrayList>
 #include <NGSD.h>
 #include "BedpeFile.h"
-#include "FilterWidget.h"
 #include "ReportConfiguration.h"
 
 namespace Ui {

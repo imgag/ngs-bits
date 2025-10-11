@@ -7,7 +7,6 @@
 #include "SampleDiseaseInfoWidget.h"
 #include "SampleRelationDialog.h"
 #include "ProcessedSampleDataDeletionDialog.h"
-#include "SingleSampleAnalysisDialog.h"
 #include "DBEditor.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"

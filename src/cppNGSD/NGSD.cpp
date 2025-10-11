@@ -14,7 +14,6 @@
 #include <QSqlDriver>
 #include <QSqlIndex>
 #include <QSqlField>
-#include <QSqlError>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QCryptographicHash>
@@ -26,7 +25,9 @@
 #include "QUuid"
 #include "ClientHelper.h"
 #include "PipelineSettings.h"
-
+#include <QCoreApplication>
+#include <QSqlError> //Comment to prevent removal by fix_includes.php
+#include <QJsonArray>
 
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)

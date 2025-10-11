@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "ReportConfiguration.h"
 #include "Settings.h"
 
@@ -9,8 +9,9 @@ private:
 
 	TEST_METHOD(ReportVariantConfiguration_isValid)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex ref_idx(ref_file);
 
 		ReportVariantConfiguration rvc;
@@ -177,8 +178,9 @@ private:
 
 	TEST_METHOD(ReportVariantConfiguration_manualVarIsValid)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex ref_idx(ref_file);
 
 		ReportVariantConfiguration rvc;

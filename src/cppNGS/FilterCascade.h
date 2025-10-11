@@ -2,12 +2,12 @@
 #define FILTERCASCADE_H
 
 #include "BedpeFile.h"
-#include "NGSHelper.h"
 #include "CnvList.h"
 #include "VariantType.h"
-
+#include "VcfFile.h"
+#include <QBitArray>
 #include <QRegularExpression>
-
+#include "NGSHelper.h"
 
 //Parameter type
 enum class FilterParameterType

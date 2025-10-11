@@ -2,8 +2,6 @@
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
-#include <QFileInfo>
-#include <QMessageBox>
 #include <QAction>
 
 AnalysisInformationWidget::AnalysisInformationWidget(QString ps_id, QWidget* parent)

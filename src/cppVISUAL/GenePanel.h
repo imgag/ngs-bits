@@ -3,7 +3,6 @@
 
 #include "cppVISUAL_global.h"
 #include <QWidget>
-#include <QLabel>
 #include <QMouseEvent>
 #include "BedFile.h"
 #include "FastaFileIndex.h"

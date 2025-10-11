@@ -1,7 +1,7 @@
 #include "VcfFile.h"
 #include "Helper.h"
-#include <QFileInfo>
 #include "VersatileFile.h"
+#include <QRegularExpression>
 
 VcfFile::VcfFile()
 	: vcf_lines_()

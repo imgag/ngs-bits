@@ -1,7 +1,5 @@
 #include "TestFramework.h"
 #include "TestFrameworkNGS.h"
-#include "Settings.h"
-#include "VcfFile.h"
 #include <iostream>
 
 TEST_CLASS(VcfAnnotateFromBigWig_Test)

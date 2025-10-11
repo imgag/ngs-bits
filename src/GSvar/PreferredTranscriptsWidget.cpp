@@ -3,7 +3,6 @@
 #include <QMessageBox>
 #include <QAction>
 #include "ScrollableTextDialog.h"
-#include "GUIHelper.h"
 #include "NGSD.h"
 
 PreferredTranscriptsWidget::PreferredTranscriptsWidget(QWidget* parent)

@@ -1,4 +1,3 @@
-#include "TestFramework.h"
 #include "TestFrameworkNGS.h"
 #include "VcfFile.h"
 #include "Settings.h"
@@ -488,12 +487,12 @@ private:
 
 	TEST_METHOD(fromGSvar_single)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		VariantList variant_list;
 		variant_list.load(TESTDATA("data_in/VcfFile_fromGSvar_single.GSvar"));
 
+		QString ref_file = Settings::string("reference_genome", true);
 		VcfFile vcf_file = VcfFile::fromGSvar(variant_list, ref_file);
 		vcf_file.store("out/VcfFile_fromGSvar_out1.vcf");
 
@@ -508,13 +507,13 @@ private:
 
 	TEST_METHOD(fromGSvar_trio)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		VariantList variant_list;
 		variant_list.load(TESTDATA("data_in/VcfFile_fromGSvar_trio.GSvar"));
 
 		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
+		QString ref_file = Settings::string("reference_genome", true);
 		VcfFile vcf_file = VcfFile::fromGSvar(variant_list, ref_file);
 		vcf_file.store("out/VcfFile_fromGSvar_out2.vcf");
 
@@ -528,13 +527,13 @@ private:
 
 	TEST_METHOD(fromGSvar_somatic)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		VariantList variant_list;
 		variant_list.load(TESTDATA("data_in/VcfFile_fromGSvar_somatic.GSvar"));
 
 		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
+		QString ref_file = Settings::string("reference_genome", true);
 		VcfFile vcf_file = VcfFile::fromGSvar(variant_list, ref_file);
 		vcf_file.store("out/VcfFile_fromGSvar_out3.vcf");
 
@@ -588,11 +587,11 @@ private:
 
     TEST_METHOD(vcf_check_default_params)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
         QString output;
         QTextStream out_stream(&output);
+		QString ref_file = Settings::string("reference_genome", true);
 		bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep.vcf"), ref_file, out_stream);
 
         IS_TRUE(is_valid);
@@ -601,11 +600,11 @@ private:
 
     TEST_METHOD(vcf_check_with_info)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
         QString output;
         QTextStream out_stream(&output);
+		QString ref_file = Settings::string("reference_genome", true);
 		bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep.vcf"), ref_file, out_stream, true);
 
         IS_TRUE(is_valid);
@@ -616,11 +615,11 @@ private:
 
 	TEST_METHOD(vcf_check_duplicates)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		QString output;
 		QTextStream out_stream(&output);
+		QString ref_file = Settings::string("reference_genome", true);
 		bool is_valid = VcfFile::isValid(TESTDATA("data_in/duplicate_variants.vcf"), ref_file, out_stream, true, 10000, true);
 
 		IS_FALSE(is_valid);

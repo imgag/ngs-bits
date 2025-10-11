@@ -1,24 +1,20 @@
 #include "SomaticReportHelper.h"
 #include "BasicStatistics.h"
-#include "OntologyTermCollection.h"
 #include "Helper.h"
 #include "TSVFileStream.h"
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
-#include "XmlHelper.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticVariantInterpreter.h"
-#include "SomaticReportConfiguration.h"
-#include "LoginManager.h"
 #include "ApiCaller.h"
 #include "ClientHelper.h"
 #include <cmath>
 #include <QDir>
 #include <QMap>
 #include <QPair>
-#include <QCollator>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QCoreApplication>
 
 
 SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const BedpeFile &svs, const VariantList& variants_germline, const SomaticReportSettings& settings, bool test_db)

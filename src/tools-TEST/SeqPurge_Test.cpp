@@ -1,6 +1,5 @@
 #include "TestFramework.h"
 #include "FastqFileStream.h"
-#include <QTime>
 
 void fastqStatistics(QString fastq, QString out)
 {

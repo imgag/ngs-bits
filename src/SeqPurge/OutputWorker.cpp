@@ -1,7 +1,6 @@
 #include "OutputWorker.h"
 #include "FastqWriter.h"
 #include <QThread>
-#include <QTime>
 
 OutputWorker::OutputWorker(AnalysisJob& job, OutputStreams& streams, const TrimmingParameters& params, TrimmingStatistics& stats)
 	: QObject()

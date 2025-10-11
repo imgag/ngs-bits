@@ -1,13 +1,14 @@
 #include "GermlineReportGenerator.h"
 #include "Helper.h"
-#include "XmlHelper.h"
 #include "Settings.h"
 #include "Log.h"
 #include "Statistics.h"
 #include "LoginManager.h"
 #include "VariantHgvsAnnotator.h"
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QXmlStreamWriter>
+#include "XmlHelper.h"
 
 GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_)
 	: build(build_)

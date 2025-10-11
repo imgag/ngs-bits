@@ -1,7 +1,6 @@
 #include "ToolBase.h"
 #include "VariantList.h"
 #include "Helper.h"
-#include "NGSHelper.h"
 #include "Statistics.h"
 
 #include <QTextStream>

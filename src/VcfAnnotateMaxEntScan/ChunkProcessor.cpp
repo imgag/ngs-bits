@@ -1,17 +1,8 @@
 #include "ChunkProcessor.h"
-#include "VcfFile.h"
-#include "TabixIndexedFile.h"
-#include <QFileInfo>
 
-#include "ToolBase.h"
 #include "Exceptions.h"
-#include "Helper.h"
 #include "Transcript.h"
 #include <QDebug>
-#include <QHash>
-#include <QRegularExpressionMatchIterator>
-#include "NGSHelper.h"
-#include "BasicStatistics.h"
 
 ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, const Parameters& params)
 	: QObject()

@@ -5,7 +5,6 @@
 #include "ui_ProcessedSampleSelector.h"
 
 #include "NGSD.h"
-#include "DBSelector.h"
 
 namespace Ui {
 class ProcessedSampleSelector;

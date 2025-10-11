@@ -2,7 +2,6 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "OntologyTermCollection.h"
 #include "VcfFile.h"
 
 class ConcreteTool

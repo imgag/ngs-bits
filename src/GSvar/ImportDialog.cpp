@@ -1,7 +1,6 @@
 #include "ImportDialog.h"
 #include "Exceptions.h"
 #include <QMessageBox>
-#include <QClipboard>
 #include <QAction>
 #include "VariantOpenDialog.h"
 #include "GUIHelper.h"
@@ -10,6 +9,7 @@
 #include "Background/VariantAnnotator.h"
 #include "LoginManager.h"
 #include "Settings.h"
+#include <QClipboard>
 
 ImportDialog::ImportDialog(QWidget* parent, Type type)
 	: QDialog(parent)

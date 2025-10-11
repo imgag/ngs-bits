@@ -3,8 +3,6 @@
 
 #include "cppNGSD_global.h"
 #include "FileLocationProvider.h"
-#include "LoginManager.h"
-#include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
 

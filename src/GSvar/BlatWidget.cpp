@@ -4,7 +4,6 @@
 #include "HttpHandler.h"
 #include "GSvarHelper.h"
 #include "GUIHelper.h"
-#include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include <QJsonObject>
 #include <QJsonDocument>

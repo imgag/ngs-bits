@@ -10,7 +10,6 @@
 
 #include "QHash"
 
-#include "RefGenomeService.h"
 #include "htslib/sam.h"
 #include "htslib/cram.h"
 

@@ -10,10 +10,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QPushButton>
 #include <QFileDialog>
-#include <QClipboard>
 #include "ExportHistoryDialog.h"
+#include <QClipboard>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)

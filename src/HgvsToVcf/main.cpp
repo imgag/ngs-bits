@@ -1,6 +1,5 @@
 #include "ToolBase.h"
 #include "Helper.h"
-#include "VcfFile.h"
 #include "Transcript.h"
 #include "NGSD.h"
 #include <QDate>

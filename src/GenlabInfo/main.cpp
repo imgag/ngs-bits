@@ -1,5 +1,4 @@
 #include "ToolBase.h"
-#include "NGSD.h"
 #include "Helper.h"
 #include "GenLabDB.h"
 

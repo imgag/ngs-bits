@@ -1,5 +1,4 @@
 #include "VcfLine.h"
-#include "Helper.h"
 #include "Log.h"
 #include "VariantList.h"
 

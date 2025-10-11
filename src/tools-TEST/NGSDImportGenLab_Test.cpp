@@ -1,5 +1,4 @@
-#include "TestFramework.h"
-#include "Settings.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
 #include "GenLabDB.h"
 
@@ -48,7 +47,7 @@ private:
 
 	TEST_METHOD(metadata_import)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		NGSD db(true);
 		db.init();
@@ -144,7 +143,7 @@ private:
 
 	TEST_METHOD(relations_import)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		NGSD db(true);
 		db.init();
@@ -228,7 +227,7 @@ private:
 
 	TEST_METHOD(rna_tissue_import)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		NGSD db(true);
 		db.init();
@@ -297,7 +296,7 @@ private:
 
 	TEST_METHOD(add_information_to_existing_information)
 	{
-		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+		SKIP_IF_NO_PROD_GENLAB();
 
 		NGSD db(true);
 		db.init();

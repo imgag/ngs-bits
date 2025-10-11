@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "Settings.h"
 #include "NGSD.h"
 #include "LoginManager.h"
@@ -22,7 +22,7 @@ private:
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	TEST_METHOD(main_tests)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -1862,9 +1862,8 @@ private:
 	//Test for germline report
 	TEST_METHOD(report_germline)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_TEST_NGSD();
+        SKIP_IF_NO_HG38_GENOME();
 
 		//init NGSD
 		NGSD db(true);
@@ -2122,7 +2121,7 @@ private:
 	//Tests for SomaticReportConfiguration and specific somatic variants
 	TEST_METHOD(report_somatic)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
 		//init
@@ -2764,7 +2763,7 @@ private:
 	// Test the somatic report RTF generation
 	TEST_METHOD(test_somatic_rtf_1)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
@@ -2855,7 +2854,7 @@ private:
 
 	TEST_METHOD(test_somatic_rtf_2)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
@@ -2955,10 +2954,8 @@ private:
 	//Test tumor only RTF report generation
 	TEST_METHOD(report_tumor_only)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
+        SKIP_IF_NO_HG38_GENOME();
 
 		NGSD db(true);
 		db.init();
@@ -3023,8 +3020,7 @@ private:
 	//Test for RNA expression data
 	TEST_METHOD(rna_expression)
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
@@ -3284,7 +3280,7 @@ private:
 
 	TEST_METHOD(test_overriding_the_processed_sample_data_folder)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
@@ -3299,7 +3295,7 @@ private:
 
 	TEST_METHOD(test_create_sample_sheet_for_novaseqx)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		NGSD db(true);
 		db.init();
@@ -3336,7 +3332,7 @@ private:
 
     TEST_METHOD(test_export_sample_data)
     {
-        if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
         NGSD db(true);
         db.init();

@@ -2,12 +2,9 @@
 #define VARIANTTABLE_H
 
 #include <QTableWidget>
-#include "GeneSet.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
 #include "SomaticReportSettings.h"
-#include <QMenu>
-#include <QMetaMethod>
 
 //GUI representation of (filtered) variant table
 class VariantTable

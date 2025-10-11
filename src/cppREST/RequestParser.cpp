@@ -1,5 +1,10 @@
 #include "RequestParser.h"
 #include <QRegularExpression>
+#include "Settings.h"
+#include "Log.h"
+#include "Exceptions.h"
+#include "HttpUtils.h"
+#include "ServerHelper.h"
 
 RequestParser::RequestParser()
 {

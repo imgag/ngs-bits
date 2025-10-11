@@ -1,15 +1,8 @@
-#include <QDir>
-#include <QDebug>
-#include <QPushButton>
-#include <QTimer>
 #include <QMessageBox>
-#include <QHttpMultiPart>
-#include <QNetworkReply>
 
 #include "SomaticDataTransferWidget.h"
 #include "Settings.h"
 #include "Exceptions.h"
-#include "Helper.h"
 #include "NGSD.h"
 #include "Settings.h"
 

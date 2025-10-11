@@ -1,6 +1,5 @@
 #include "Transcript.h"
 #include "Exceptions.h"
-#include "NGSHelper.h"
 #include <QRegularExpression>
 
 Transcript::Transcript()

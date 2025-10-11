@@ -1,9 +1,6 @@
 #include "BedFile.h"
 #include "ToolBase.h"
-#include "ChromosomalIndex.h"
-#include "Exceptions.h"
 #include "Helper.h"
-#include "Settings.h"
 #include "NGSD.h"
 
 class ConcreteTool

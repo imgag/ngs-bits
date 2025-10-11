@@ -1,7 +1,5 @@
-#include <QFileInfo>
 #include "SomaticReportConfiguration.h"
 #include "NGSD.h"
-#include "Settings.h"
 
 SomaticReportVariantConfiguration::SomaticReportVariantConfiguration()
 	: variant_type(VariantType::SNVS_INDELS)

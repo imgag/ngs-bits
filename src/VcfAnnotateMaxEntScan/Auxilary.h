@@ -3,14 +3,9 @@
 
 #include <QByteArrayList>
 #include <QString>
-#include <QVector>
-#include <QSet>
 
-#include "Helper.h"
 #include "Transcript.h"
 #include <QHash>
-#include <VcfFile.h>
-#include "NGSHelper.h"
 
 //Tool parameters
 struct Parameters

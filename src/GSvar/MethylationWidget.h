@@ -1,7 +1,6 @@
 #ifndef METHYLATIONWIDGET_H
 #define METHYLATIONWIDGET_H
 
-#include <QTableWidgetItem>
 #include <QWidget>
 #include "TsvFile.h"
 

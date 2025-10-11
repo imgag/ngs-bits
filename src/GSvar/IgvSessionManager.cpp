@@ -1,5 +1,6 @@
 #include "IgvSessionManager.h"
 #include "Settings.h"
+#include "LoginManager.h"
 
 IgvSessionManager::IgvSessionManager()
 {

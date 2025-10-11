@@ -1,5 +1,4 @@
 #include "SingleSampleAnalysisDialog.h"
-#include <QInputDialog>
 #include <QMessageBox>
 #include <Settings.h>
 #include <QPlainTextEdit>

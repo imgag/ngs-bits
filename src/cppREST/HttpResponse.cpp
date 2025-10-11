@@ -1,4 +1,10 @@
 #include "HttpResponse.h"
+#include "HttpUtils.h"
+#include "HtmlEngine.h"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include "ServerHelper.h"
+#include <QDir>
 
 HttpResponse::HttpResponse()
 {

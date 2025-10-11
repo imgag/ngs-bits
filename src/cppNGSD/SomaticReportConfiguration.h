@@ -2,7 +2,6 @@
 #define SOMATICREPORTCONFIGURATION_H
 #include "cppNGSD_global.h"
 #include "VariantType.h"
-#include "Helper.h"
 #include "ReportConfiguration.h"
 #include "FilterCascade.h"
 #include <Chromosome.h>

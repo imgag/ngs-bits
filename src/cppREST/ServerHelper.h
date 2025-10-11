@@ -2,9 +2,6 @@
 #define SERVERHELPER_H
 
 #include "cppREST_global.h"
-#include <QCoreApplication>
-#include <QDir>
-#include <QUuid>
 #include <QDate>
 #include "Log.h"
 #include "Exceptions.h"

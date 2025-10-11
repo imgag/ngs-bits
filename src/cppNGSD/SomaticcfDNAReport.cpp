@@ -1,13 +1,9 @@
-#include <QDebug>
 #include <cmath>
 #include "NGSD.h"
 #include "SomaticcfDNAReport.h"
-#include "SomaticReportHelper.h"
-#include "TSVFileStream.h"
 #include "VariantHgvsAnnotator.h"
 #include "VariantList.h"
-
-
+#include "Settings.h"
 
 SomaticcfDNAReportData::SomaticcfDNAReportData(const SomaticReportSettings& other, const CfdnaDiseaseCourseTable& table_data)
 	: SomaticReportSettings(other)

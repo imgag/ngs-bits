@@ -1,14 +1,9 @@
 #include "ToolBase.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include <QFile>
-#include <QSharedPointer>
-#include <QThreadPool>
-#include <QDateTime>
-#include "ChunkProcessor.h"
-#include "OutputWorker.h"
 #include "ThreadCoordinator.h"
 #include "Settings.h"
+#include "NGSHelper.h"
 
 class ConcreteTool
         : public ToolBase

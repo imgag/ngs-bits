@@ -1,6 +1,4 @@
 #include "ToolBase.h"
-#include "FastqFileStream.h"
-#include "Helper.h"
 #include "TsvFile.h"
 #include "ExportCBioPortalStudy.h"
 #include <QFile>

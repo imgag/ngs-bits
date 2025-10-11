@@ -3,7 +3,6 @@
 #include "BedFile.h"
 #include "GUIHelper.h"
 #include <QToolTip>
-#include <QDebug>
 #include <QMessageBox>
 
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx, const TranscriptList& transcripts)

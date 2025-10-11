@@ -1,6 +1,5 @@
 #include "TestFramework.h"
 #include "NGSHelper.h"
-#include "BasicStatistics.h"
 #include "Settings.h"
 #include <iostream>
 

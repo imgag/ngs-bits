@@ -12,6 +12,7 @@
 #include <QFile>
 #include "GraphNode.h"
 #include "GraphEdge.h"
+#include <QTextStream>
 
 template <typename NodeType, typename EdgeType>
 class CPPNGSSHARED_EXPORT Graph

@@ -2,12 +2,10 @@
 #define STATISTICSREADS_H
 
 #include "cppNGS_global.h"
-#include <QSet>
 #include "FastqFileStream.h"
 #include "QCCollection.h"
 #include "Pileup.h"
 #include <QMap>
-#include <QMutex>
 #include "BamReader.h"
 #include "Histogram.h"
 

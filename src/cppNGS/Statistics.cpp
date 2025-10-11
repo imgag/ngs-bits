@@ -18,6 +18,8 @@
 #include <QThreadPool>
 #include "Histogram.h"
 #include "FilterCascade.h"
+#include "WorkerLowOrHighCoverage.h"
+#include "WorkerAverageCoverage.h"
 
 class RegionDepth
 {

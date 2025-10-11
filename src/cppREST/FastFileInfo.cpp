@@ -1,4 +1,7 @@
 #include "FastFileInfo.h"
+#include "FileMetaCache.h"
+#include <QFileInfo>
+#include "Settings.h"
 
 FastFileInfo::FastFileInfo(QString absolute_file_path)
     : absolute_file_path_(absolute_file_path)

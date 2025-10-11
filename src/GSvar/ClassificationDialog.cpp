@@ -1,5 +1,4 @@
 #include "ClassificationDialog.h"
-#include "Helper.h"
 #include "LoginManager.h"
 
 ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& variant, bool is_somatic)

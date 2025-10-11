@@ -1,4 +1,3 @@
-#include <QThread>
 #include "InputWorker.h"
 #include "Exceptions.h"
 

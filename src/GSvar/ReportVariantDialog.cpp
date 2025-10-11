@@ -1,8 +1,8 @@
 #include "ReportVariantDialog.h"
-#include "ClassificationDialog.h"
 #include "Settings.h"
 #include "VariantOpenDialog.h"
 #include <QMessageBox>
+#include "ReportConfiguration.h"
 
 ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> inheritance_by_gene, ReportVariantConfiguration& config, QWidget* parent)
 	: QDialog(parent)

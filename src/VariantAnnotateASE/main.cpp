@@ -1,12 +1,9 @@
-#include "BedFile.h"
 #include "ToolBase.h"
-#include "NGSHelper.h"
 #include "BasicStatistics.h"
 #include "FastaFileIndex.h"
 #include "Settings.h"
-#include "Exceptions.h"
-#include "Helper.h"
-#include <cmath>
+#include "VariantList.h"
+#include "BamReader.h"
 
 class ConcreteTool
 		: public ToolBase

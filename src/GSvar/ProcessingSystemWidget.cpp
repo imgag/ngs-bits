@@ -5,8 +5,6 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include <QDir>
-#include <QDesktopServices>
 #include <QDialog>
 #include <QMessageBox>
 

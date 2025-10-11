@@ -1,6 +1,13 @@
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
 #include "SgeStatusUpdateWorker.h"
+#include <QStandardPaths>
+#include <QTimer>
+#include "SessionManager.h"
+#include "UrlManager.h"
+#include <QDir>
+#include <QFileSystemWatcher>
+#include "FileMetaCache.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)

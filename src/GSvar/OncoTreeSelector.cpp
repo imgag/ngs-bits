@@ -1,6 +1,4 @@
 #include "OncoTreeSelector.h"
-#include <QInputDialog>
-#include <QMessageBox>
 
 OncoTreeSelector::OncoTreeSelector(QWidget* parent)
 	: QDialog(parent)

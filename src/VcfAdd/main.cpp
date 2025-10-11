@@ -1,5 +1,4 @@
 #include "ToolBase.h"
-#include "Settings.h"
 #include "VcfFile.h"
 #include "Helper.h"
 #include "VersatileFile.h"

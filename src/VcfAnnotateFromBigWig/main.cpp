@@ -1,11 +1,8 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "VcfFile.h"
-#include "Settings.h"
 #include <QFile>
 #include <QList>
-#include <BigWigReader.h>
 #include "Auxilary.h"
 #include "ChunkProcessor.h"
 #include "OutputWorker.h"

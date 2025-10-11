@@ -1,9 +1,9 @@
-#include <QApplication>
 #include <QMessageBox>
 #include "DatabaseServiceRemote.h"
-#include "Settings.h"
 #include "ApiCaller.h"
 #include "GUIHelper.h"
+#include <QJsonArray>
+#include <QJsonObject>
 
 DatabaseServiceRemote::DatabaseServiceRemote()
     : enabled_(true)

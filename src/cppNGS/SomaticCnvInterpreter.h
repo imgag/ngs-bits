@@ -2,8 +2,7 @@
 #define SOMATICCNVINTERPRETER_H
 
 #include "cppNGS_global.h"
-#include "CnvList.h"
-
+#include <QString>
 
 struct SomaticGeneRole
 {

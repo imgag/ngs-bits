@@ -2,7 +2,8 @@
 #define HTTPREQUEST_H
 
 #include "cppREST_global.h"
-#include "HttpUtils.h"
+#include "HttpParts.h"
+#include <QMap>
 
 class CPPRESTSHARED_EXPORT HttpRequest
 {
@@ -17,7 +18,7 @@ public:
 	ContentType getContentType() const;
 
 	void addHeader(QString key, QString value);
-	const QMap<QString, QList<QString>>& getHeaders() const;
+	const QMap<QString, QStringList>& getHeaders() const;
 	QList<QString> getHeaderByName(QString key) const;
 
 	void setBody(QByteArray body);
@@ -56,7 +57,7 @@ public:
 private:
 	RequestMethod method_;
 	ContentType return_type_;
-	QMap<QString, QList<QString>> headers_;
+	QMap<QString, QStringList> headers_;
 	QByteArray body_;
 	QMap<QString, QString> form_data_params_;
 	QString multipart_file_name_;

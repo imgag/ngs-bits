@@ -2,7 +2,6 @@
 #define REFGENOMESERVICE_H
 
 #include "cppNGS_global.h"
-#include "Exceptions.h"
 #include <QString>
 
 //Singleton that defines the reference genome used in the application (e.g. for reading CRAM files)

@@ -1,9 +1,9 @@
 #include "StatisticsServiceLocal.h"
 #include "Statistics.h"
+#include "Settings.h"
 
 StatisticsServiceLocal::StatisticsServiceLocal()
 {
-
 }
 
 BedFile StatisticsServiceLocal::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff) const

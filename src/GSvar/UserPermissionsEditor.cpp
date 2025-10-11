@@ -1,6 +1,5 @@
 #include "UserPermissionsEditor.h"
 #include "UserPermissionList.h"
-#include "DBEditor.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
 #include <QMenu>

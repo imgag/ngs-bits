@@ -4,6 +4,7 @@
 #include "ChainFileReader.h"
 #include "Helper.h"
 #include "Settings.h"
+#include <QTextStream>
 
 class ConcreteTool
 		: public ToolBase

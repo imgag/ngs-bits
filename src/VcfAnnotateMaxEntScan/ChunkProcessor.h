@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QRunnable>
 #include "Auxilary.h"
+#include "ChromosomalIndex.h"
+#include <QRegularExpression>
 
 class ChunkProcessor
 	: public QObject

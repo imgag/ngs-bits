@@ -2,10 +2,7 @@
 #include "ui_GeneSelectorDialog.h"
 #include "Helper.h"
 #include "NGSD.h"
-#include "NGSHelper.h"
 #include "GUIHelper.h"
-#include <QDebug>
-#include <QFileInfo>
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"

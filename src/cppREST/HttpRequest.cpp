@@ -1,4 +1,5 @@
 #include "HttpRequest.h"
+#include "HttpUtils.h"
 
 HttpRequest::HttpRequest()
 {
@@ -43,7 +44,7 @@ void HttpRequest::addHeader(QString key, QString value)
 	}
 }
 
-const QMap<QString, QList<QString>>& HttpRequest::getHeaders() const
+const QMap<QString, QStringList>& HttpRequest::getHeaders() const
 {
 	return headers_;
 }

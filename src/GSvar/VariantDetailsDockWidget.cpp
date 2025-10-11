@@ -11,13 +11,11 @@
 #include "Settings.h"
 #include "NGSD.h"
 #include "Log.h"
-#include "HttpHandler.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include <QHeaderView>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
