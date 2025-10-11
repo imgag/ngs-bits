@@ -3,6 +3,7 @@
 #include "GUIHelper.h"
 #include <QApplication>
 #include <QClipboard>
+#include <QKeyEvent>
 
 DBSelector::DBSelector(QWidget* parent)
 	: QLineEdit(parent)
