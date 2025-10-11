@@ -1863,6 +1863,7 @@ private:
 	TEST_METHOD(report_germline)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+        SKIP_IF_NO_HG38_GENOME();
 
 		//init NGSD
 		NGSD db(true);
