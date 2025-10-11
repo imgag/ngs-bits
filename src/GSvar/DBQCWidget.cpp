@@ -3,6 +3,11 @@
 #include "DBSelector.h"
 #include "GUIHelper.h"
 #include "ProcessedSampleSelector.h"
+#include <QMenu>
+#include <QClipboard>
+#include <QMessageBox>
+#include <QValueAxis>
+#include <QDateTimeAxis>
 
 DBQCWidget::DBQCWidget(QWidget *parent)
 	: QWidget(parent)
