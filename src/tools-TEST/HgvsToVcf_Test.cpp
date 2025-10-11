@@ -27,6 +27,7 @@ private:
 
 	TEST_METHOD(no_header)
 	{
+        SKIP_IF_NO_HG38_GENOME();
 		SKIP_IF_NO_TEST_NGSD();
 
 		QString ref_file = Settings::string("reference_genome", true);
