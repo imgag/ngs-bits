@@ -4,6 +4,7 @@
 #include "IgvSessionManager.h"
 #include <QAction>
 #include <QMenu>
+#include <QKeyEvent>
 
 VirusDetectionWidget::VirusDetectionWidget(QString viral_file, QWidget* parent)
     : QTableWidget(parent)
