@@ -27,6 +27,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
     sbatch_args << "-e" << (slurm_out_base + ".err");
     sbatch_args << "-o" << (slurm_out_base + ".out");
 
+	queues.removeAll("");
 	if (!queues.isEmpty()) sbatch_args << "-p" << queues.join(",");
 
 	// Build command line for wrapped job
