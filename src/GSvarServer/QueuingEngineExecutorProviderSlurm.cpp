@@ -16,8 +16,9 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
     QueuingEngineOutput output;
 
     QString slurm_out_base = PipelineSettings::dataFolder() + "/slurm/megSAP_slurm_job_" + job_id;
-    QStringList sbatch_args;
 
+	//Prepare sbatch arguments
+    QStringList sbatch_args;
     if (display_debug) QTextStream(stdout) << "megSAP pipeline:\t " << script << QT_ENDL;
     if (script == "analyze_dragen.php") sbatch_args << "--cpus-per-task=1";
     else sbatch_args << "--cpus-per-task=" + QString::number(threads);
@@ -25,18 +26,25 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
     sbatch_args << "--mail-type=NONE";
     sbatch_args << "-e" << (slurm_out_base + ".err");
     sbatch_args << "-o" << (slurm_out_base + ".out");
-    sbatch_args << "-p" << queues.join(",");
-    sbatch_args << "php";
-    sbatch_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
+
+	if (!queues.isEmpty()) sbatch_args << "-p" << queues.join(",");
+
+	// Build command line for wrapped job
+	QString command = "php " + PipelineSettings::rootDir()+"/src/Pipelines/" + script;
 
     if (!job_args.isEmpty())
     {
-        sbatch_args << job_args.split(' ');
+		command += " " + job_args;
     }
-    sbatch_args << pipeline_args;
+	command += " " + pipeline_args.join(" ");
 
+	// Wrap the actual command
+	sbatch_args << "--wrap=" + QString("\"%1\"").arg(command);
+
+	// Debug output
     if (display_debug) QTextStream(stdout) << "Slurm command:\t sbatch " << sbatch_args.join(" ") << QT_ENDL;
 
+	// Execute sbatch
     output.command = "sbatch";
     output.args = sbatch_args;
     output.exit_code = Helper::executeCommand(output.command, sbatch_args, &output.result);
