@@ -350,6 +350,7 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
  //    // QByteArrayList output;
     // if (debug_) QTextStream(stdout) << "SGE command:\t qsub " << qsub_args.join(" ") << QT_ENDL;
     // int exit_code = Helper::executeCommand("qsub", qsub_args, &output);
+
     QueuingEngineOutput qe_output = executor_provider_->submitJob(threads, queues, pipeline_args, project_folder, script, job.args.simplified(), QString::number(job_id), debug_);
     if (qe_output.exit_code!=0)
 	{
@@ -362,7 +363,25 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
 		db.addAnalysisHistoryEntry(job_id, "error", details);
 		return;
 	}
-    QByteArray sge_id = qe_output.result.join(" ").simplified().split(' ')[2];
+
+	// Determine queuing engine job number
+	QByteArray sge_id;
+	QByteArrayList qe_result = qe_output.result.join(" ").simplified().split(' ');
+	if (qe_result.size() >= 3 && qe_result[0] == "Your" && qe_result[1] == "job")
+	{
+		// SGE format
+		sge_id = qe_result[2];
+	}
+	else if (qe_result.size() >= 4 && qe_result[0] == "Submitted" && qe_result[1] == "batch")
+	{
+		// Slurm format
+		sge_id = qe_result[3];
+	}
+	else
+	{
+		Log::warn("Could not determine job ID from: " + qe_output.result.join(" "));
+	}
+
 
 	//handle qsub output
 	if (Helper::isNumeric(sge_id) && sge_id.toInt()>0)
