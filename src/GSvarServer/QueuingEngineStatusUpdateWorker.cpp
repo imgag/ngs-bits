@@ -323,39 +323,13 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
         pipeline_args << "-threads" << QString::number(threads);
 	}
 
-
-
-    //submit to queue
-    // QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
-    // QStringList qsub_args;
-    // qsub_args << "-V";
-    // if (debug_) QTextStream(stdout) << "megSAP pipeline:\t " << script << QT_ENDL;
-    // if (script == "analyze_dragen.php") qsub_args << "-pe" << "smp" << "1";
-    // else qsub_args << "-pe" << "smp" << QString::number(threads);
-    // qsub_args << "-b" << "y";
-    // qsub_args << "-wd" << project_folder;
-    // qsub_args << "-m" << "n";
-    // qsub_args << "-e" << (sge_out_base + ".err");
-    // qsub_args << "-o" << (sge_out_base + ".out");
-    // qsub_args << "-q" << queues.join(",");
- //    qsub_args << "php";
- //    qsub_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
-    // QString job_args = job.args.simplified();
-    // if (!job_args.isEmpty())
-    // {
-    // 	qsub_args << job_args.split(' ');
-    // }
-    // qsub_args << pipeline_args;
-
- //    // QByteArrayList output;
-    // if (debug_) QTextStream(stdout) << "SGE command:\t qsub " << qsub_args.join(" ") << QT_ENDL;
-    // int exit_code = Helper::executeCommand("qsub", qsub_args, &output);
-
-    QueuingEngineOutput qe_output = executor_provider_->submitJob(threads, queues, pipeline_args, project_folder, script, job.args.simplified(), QString::number(job_id), debug_);
+	//job submission
+	QueuingEngineOutput qe_output = executor_provider_->submitJob(threads, queues, pipeline_args, project_folder, script, job.args.simplified(), QString::number(job_id), debug_);
+	QByteArray engine_name = executor_provider_->getEngineName().toLatin1();
     if (qe_output.exit_code!=0)
 	{
 		QByteArrayList details;
-        details << (executor_provider_->getEngineName().toLatin1() + " job submission failed: returned exit code "+QByteArray::number(qe_output.exit_code)+"!");
+		details << (engine_name + " job submission failed: returned exit code "+QByteArray::number(qe_output.exit_code)+"!");
 		details << "Command:";
         details << (qe_output.command + " " + qe_output.args.join(" ")).toLatin1();
 		details << "Output:";
@@ -364,24 +338,11 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
 		return;
 	}
 
-	// Determine queuing engine job number
+	//determine queuing engine job number
 	QByteArray sge_id;
 	QByteArrayList qe_result = qe_output.result.join(" ").simplified().split(' ');
-	if (qe_result.size() >= 3 && qe_result[0] == "Your" && qe_result[1] == "job")
-	{
-		// SGE format
-		sge_id = qe_result[2];
-	}
-	else if (qe_result.size() >= 4 && qe_result[0] == "Submitted" && qe_result[1] == "batch")
-	{
-		// Slurm format
-		sge_id = qe_result[3];
-	}
-	else
-	{
-		Log::warn("Could not determine job ID from: " + qe_output.result.join(" "));
-	}
-
+	if (engine_name == "SGE") sge_id = qe_result[2]; //sge result has format: "Your job 17 ("php") has been submitted"
+	else if (engine_name == "SLURM") sge_id = qe_result[3]; //slurm result has format: "Submitted batch job 17"
 
 	//handle qsub output
 	if (Helper::isNumeric(sge_id) && sge_id.toInt()>0)
@@ -394,9 +355,9 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
 	else
 	{
 		QByteArrayList details;
-        details << executor_provider_->getEngineName().toLatin1() + " job submission failed - could not determine queuing engine job number!";
+		details << engine_name + " job submission failed - could not determine queuing engine job number!";
 		details << "Command:";
-        details << ("qsub " + qe_output.args.join(" ")).toLatin1();
+		details << (qe_output.command + qe_output.args.join(" ")).toLatin1();
 		details << "Output:";
         details << qe_output.result.join('\n');
 		db.addAnalysisHistoryEntry(job_id, "error", details);
@@ -409,13 +370,11 @@ void QueuingEngineStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const Analy
 
 
 	//check if job is still running
-    // int exit_code = Helper::executeCommand("qstat", QStringList() << "-j" << job.sge_id);
+	QByteArray engine_name = executor_provider_->getEngineName().toLatin1();
     QueuingEngineOutput general_stats = executor_provider_->checkJobDetails(job.sge_id);
     if (general_stats.exit_code==0) //still running/queued > update NGSD infos if necessary
 	{
-        // QueuingEngineOutput output;
         QueuingEngineOutput output = executor_provider_->checkJobsForAllUsers();
-        // int exit_code2 = Helper::executeCommand("qstat", QStringList() << "-u" << "*", &output);
         if (output.exit_code==0)
 		{
             foreach(QByteArray line, output.result)
@@ -425,12 +384,14 @@ void QueuingEngineStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const Analy
 				QByteArrayList parts = line.split(' ');
 				if (parts.count()<8) continue;
 
-				QByteArray status = parts[4].trimmed();
+				QByteArray status = parts[4].trimmed().toLower();
                 if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << QT_ENDL;
 
 				if (status=="r" && job.sge_queue.isEmpty())
 				{
-					QByteArray queue = parts[7].split('@')[0].trimmed();
+					QByteArray queue;
+					if (engine_name == "SGE") queue = parts[7].split('@')[0].trimmed();
+					else if (engine_name == "SLURM") queue = parts[1].split('@')[0].trimmed();
 
 					SqlQuery query = db.getQuery();
 					query.prepare("UPDATE analysis_job SET sge_queue=:0 WHERE id=:1");
@@ -465,20 +426,36 @@ void QueuingEngineStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const Analy
 			}
 		}
 
-        // QByteArrayList output;
         QueuingEngineOutput output = executor_provider_->checkCompletedJob(job.sge_id);
-        // int exit_code2 = Helper::executeCommand("qacct", QStringList() << "-j" << job.sge_id, &output);
         if (output.exit_code==0)
 		{
 			QString sge_exit_code = "";
-            foreach(QByteArray line, output.result)
+
+			if (engine_name == "SGE")
 			{
-				line = line.simplified();
-				if (line.startsWith("exit_status "))
+				foreach(QByteArray line, output.result)
 				{
-					sge_exit_code = line.split(' ')[1];
+					line = line.simplified();
+					if (line.startsWith("exit_status "))
+					{
+						sge_exit_code = line.split(' ')[1];
+					}
 				}
 			}
+			else if (engine_name == "SLURM")
+			{
+				foreach(QByteArray line, output.result)
+				{
+					if (!line.startsWith(job.sge_id.toLatin1() + ' ')) continue;
+					QByteArrayList parts = line.simplified().split(' ');
+					if (parts.size() >= 7)
+					{
+						QByteArray exit_code = parts.last();
+						sge_exit_code = exit_code.split(':')[0];
+					}
+				}
+			}
+
 			if (sge_exit_code=="0")
 			{
                 if (debug_) QTextStream(stdout) << "	Job finished successfully" << QT_ENDL;
@@ -503,12 +480,10 @@ void QueuingEngineStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJ
     if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
 
 	//cancel job
-    // QByteArrayList output;
     QueuingEngineOutput output;
 	if (!job.sge_id.isEmpty()) // not started yet => nothing to cancel
 	{
         output = executor_provider_->deleteJob(job.sge_id);
-        // int exit_code = Helper::executeCommand("qdel", QStringList() << job.sge_id, &output);
         if (output.exit_code!=0)
         {
             Log::warn(output.command + " " + job.sge_id + "' failed with exit code " + QString::number(output.exit_code));

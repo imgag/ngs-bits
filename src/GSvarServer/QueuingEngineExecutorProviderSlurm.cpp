@@ -40,14 +40,14 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
 	command += " " + pipeline_args.join(" ");
 
 	// Create bash script for command
-	QString command_sh = slurm_out_base + "_command.sh";
+	QString command_sh = slurm_out_base + "_cmd.sh";
 
 	QFile file(command_sh);
 	if (file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		QTextStream out(&file);
-		out << "#!/bin/sh\n";    // Shebang
-		out << command << "\n";  // The actual command
+		out << "#!/bin/sh\n";
+		out << command << "\n";
 		file.close();
 		QFile::setPermissions(command_sh, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser |
 										   QFileDevice::ReadGroup | QFileDevice::ReadOther);
