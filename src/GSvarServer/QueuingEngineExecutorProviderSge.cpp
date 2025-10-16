@@ -59,7 +59,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSge::checkJobDetails(QString jo
     QueuingEngineOutput output;
     output.command = "qstat";
     output.args = QStringList() << "-j" << job_id;
-	output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
+	output.exit_code = Helper::executeCommand(output.command, output.args);
     Log::info(output.command + " " + output.args.join(" "));
     return output;
 }
