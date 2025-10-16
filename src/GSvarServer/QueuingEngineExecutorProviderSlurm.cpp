@@ -39,12 +39,22 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
     }
 	command += " " + pipeline_args.join(" ");
 
-	// DEBUG TODO REMOVE
-	command = "/usr/bin/php8.4 -v";
-	// END DEBUG TODO REMOVE
+	// Create bash script for command
+	QString command_sh = slurm_out_base + "_command.sh";
 
-	// Wrap the actual command
-	sbatch_args << "--wrap=" + QString("\"%1\"").arg(command);
+	QFile file(command_sh);
+	if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		QTextStream out(&file);
+		out << "#!/bin/sh\n";    // Shebang
+		out << command << "\n";  // The actual command
+		file.close();
+		QFile::setPermissions(command_sh, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser |
+										   QFileDevice::ReadGroup | QFileDevice::ReadOther);
+	}
+	else QTextStream(stderr) << "Failed to write command script: " << command_sh << "\n";
+
+	sbatch_args << command_sh;
 
 	// Debug output
     if (display_debug) QTextStream(stdout) << "Slurm command:\t sbatch " << sbatch_args.join(" ") << QT_ENDL;
