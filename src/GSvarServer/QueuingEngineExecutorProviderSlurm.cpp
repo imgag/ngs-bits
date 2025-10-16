@@ -40,7 +40,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
 	command += " " + pipeline_args.join(" ");
 
 	// DEBUG TODO REMOVE
-	command = "/usr/bin/php -v";
+	command = "/usr/bin/php8.4 -v";
 	// END DEBUG TODO REMOVE
 
 	// Wrap the actual command
