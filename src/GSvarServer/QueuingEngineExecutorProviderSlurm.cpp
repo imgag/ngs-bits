@@ -39,6 +39,10 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
     }
 	command += " " + pipeline_args.join(" ");
 
+	// DEBUG TODO REMOVE
+	command = "whoami";
+	// END DEBUG TODO REMOVE
+
 	// Wrap the actual command
 	sbatch_args << "--wrap=" + QString("\"%1\"").arg(command);
 
@@ -49,7 +53,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
     output.command = "sbatch";
     output.args = sbatch_args;
     output.exit_code = Helper::executeCommand(output.command, sbatch_args, &output.result);
-    Log::info(output.command + " " + output.args.join(" "));
+	Log::info(output.command + " " + output.args.join(" ") + output.result.join(" "));
     return output;
 }
 
