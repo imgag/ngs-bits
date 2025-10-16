@@ -63,6 +63,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::submitJob(int threads, Q
     output.command = "sbatch";
     output.args = sbatch_args;
     output.exit_code = Helper::executeCommand(output.command, sbatch_args, &output.result);
+	QFile::remove(command_sh);
 	Log::info(output.command + " " + output.args.join(" "));
     return output;
 }
@@ -81,7 +82,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::checkJobDetails(QString 
 {
     QueuingEngineOutput output;
     output.command = "squeue";
-    output.args = QStringList() << "-j" << job_id;
+	output.args = QStringList() << "--noheader" << "-j" << job_id;
 	output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
     Log::info(output.command + " " + output.args.join(" "));
     return output;

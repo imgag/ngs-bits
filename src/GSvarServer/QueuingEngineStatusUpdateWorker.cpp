@@ -372,11 +372,16 @@ void QueuingEngineStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const Analy
 	//check if job is still running
 	QByteArray engine_name = executor_provider_->getEngineName().toLatin1();
     QueuingEngineOutput general_stats = executor_provider_->checkJobDetails(job.sge_id);
+	bool slurm_running = true;
 	if (engine_name == "SLURM")
 	{
-		if (general_stats.result.count() < 2) general_stats.exit_code=1;
+		slurm_running = false;
+		foreach(QByteArray line, general_stats.result)
+		{
+			 if (line.startsWith(job.sge_id.toLatin1() + ' ')) slurm_running = true;
+		}
 	}
-	if (general_stats.exit_code==0) //still running/queued > update NGSD infos if necessary
+	if (general_stats.exit_code==0 && slurm_running) //still running/queued > update NGSD infos if necessary
 	{
         QueuingEngineOutput output = executor_provider_->checkJobsForAllUsers();
         if (output.exit_code==0)
