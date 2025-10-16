@@ -372,7 +372,7 @@ void QueuingEngineStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const Analy
 	//check if job is still running
 	QByteArray engine_name = executor_provider_->getEngineName().toLatin1();
     QueuingEngineOutput general_stats = executor_provider_->checkJobDetails(job.sge_id);
-    if (general_stats.exit_code==0) //still running/queued > update NGSD infos if necessary
+	if (general_stats.exit_code==0 && general_stats.result.size() > 1) //still running/queued > update NGSD infos if necessary
 	{
         QueuingEngineOutput output = executor_provider_->checkJobsForAllUsers();
         if (output.exit_code==0)

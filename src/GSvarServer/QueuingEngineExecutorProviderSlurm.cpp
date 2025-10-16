@@ -82,7 +82,7 @@ QueuingEngineOutput QueuingEngineExecutorProviderSlurm::checkJobDetails(QString 
     QueuingEngineOutput output;
     output.command = "squeue";
     output.args = QStringList() << "-j" << job_id;
-    output.exit_code = Helper::executeCommand(output.command, output.args);
+	output.exit_code = Helper::executeCommand(output.command, output.args, &output.result);
     Log::info(output.command + " " + output.args.join(" "));
     return output;
 }
