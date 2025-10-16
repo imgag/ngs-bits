@@ -1,18 +1,12 @@
-#include <QFileInfo>
-#include <QLabel>
 #include <QMessageBox>
-#include <QClipboard>
-#include <QBitArray>
 #include <QByteArray>
 #include <QMenu>
 #include <QAction>
-#include <QCompleter>
 #include <QDesktopServices>
 #include "SvWidget.h"
 #include "ui_SvWidget.h"
 #include "Helper.h"
 #include "GUIHelper.h"
-#include "PhenotypeSelectionWidget.h"
 #include "Settings.h"
 #include "Log.h"
 #include "LoginManager.h"
@@ -28,6 +22,8 @@
 #include "ClinvarUploadDialog.h"
 #include "GSvarHelper.h"
 #include "SettingsDialog.h"
+#include <QApplication>
+#include <QClipboard>
 
 SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes)
 	: QWidget(parent)

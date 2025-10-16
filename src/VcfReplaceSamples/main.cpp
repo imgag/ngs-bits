@@ -1,6 +1,7 @@
 #include "ToolBase.h"
 #include "VersatileFile.h"
-#include "VcfFile.h"
+#include "Helper.h"
+#include "VcfFile.h" //Comment to prevent removal by fix_includes.php
 
 class ConcreteTool
 		: public ToolBase

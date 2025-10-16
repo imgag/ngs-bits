@@ -4,8 +4,6 @@
 #include "Statistics.h"
 #include "Exceptions.h"
 #include <QFileInfo>
-#include <QDir>
-#include <SampleSimilarity.h>
 #include "TSVFileStream.h"
 #include "Settings.h"
 

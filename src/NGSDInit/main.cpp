@@ -1,6 +1,5 @@
 #include "ToolBase.h"
 #include "NGSD.h"
-#include "Exceptions.h"
 
 class ConcreteTool
 		: public ToolBase

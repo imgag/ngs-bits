@@ -1,6 +1,6 @@
 #include "FileLocationProviderRemote.h"
 #include "ApiCaller.h"
-#include "Log.h"
+#include <QJsonDocument>
 
 FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id)
 	: sample_id_(sample_id)

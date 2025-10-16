@@ -1,8 +1,5 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
-#include "BedFile.h"
 #include "VcfFile.h"
-#include "ChromosomalIndex.h"
 #include "Helper.h"
 #include <QFile>
 #include "VersatileFile.h"

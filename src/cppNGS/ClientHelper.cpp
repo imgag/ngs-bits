@@ -1,6 +1,9 @@
 #include "ClientHelper.h"
-
+#include "Settings.h"
 #include <QNetworkProxy>
+#include "Log.h"
+#include "HttpRequestHandler.h"
+#include <QJsonDocument>
 
 bool ClientHelper::isClientServerMode()
 {

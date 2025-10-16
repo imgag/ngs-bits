@@ -1,8 +1,4 @@
 #include "AnalysisStatusWidget.h"
-#include "MultiSampleDialog.h"
-#include "TrioDialog.h"
-#include "SomaticDialog.h"
-#include "SingleSampleAnalysisDialog.h"
 #include "GUIHelper.h"
 #include "cmath"
 #include "LoginManager.h"
@@ -11,13 +7,11 @@
 #include "GSvarHelper.h"
 #include "ClientHelper.h"
 #include <QMenu>
-#include <QFileInfo>
 #include <QDesktopServices>
-#include <QUrl>
 #include <QDir>
 #include <QMessageBox>
-#include <QMetaMethod>
 #include <QProcess>
+#include "Settings.h"
 
 AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	: TabBaseClass(parent)

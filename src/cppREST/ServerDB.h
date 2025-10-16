@@ -3,12 +3,9 @@
 
 #include "Session.h"
 #include "UrlEntity.h"
-#include "ClientHelper.h"
 #include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QSqlRecord>
 #include <QJsonDocument>
+#include <QSharedPointer>
 
 class CPPRESTSHARED_EXPORT ServerDB
 {

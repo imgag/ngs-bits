@@ -1,5 +1,4 @@
 #include "TestFramework.h"
-#include "FastqFileStream.h"
 #include "BamReader.h"
 #include "BamWriter.h"
 

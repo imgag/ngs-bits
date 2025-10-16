@@ -45,7 +45,7 @@ The most important settings are:
 	- path to BED file
 - *text_editor*: Path of the preferred text editor. It is e.g. used to open log files.
 - *use_free_hgmd_version*: If HGMD links are for free version or for licensed version (login required).
-
+- *HerediVar*: URL of the HerediVar webservice.
 To allow IGV integration, you have to provide some IGV settings:
 
 - *igv_app*: Path to `igv.bat`.
@@ -62,7 +62,7 @@ If you want to run GSvar with a GSvar server, you need to provide these settings
 
 - *server_host*: Server name.
 - *server_port*: Server port.
-- *curl_ca_bundle*: Path to certificate CRT file used by the server. If not proviced, the client and/or IGV cannot access BAM files over HTTPS.
+- *curl_ca_bundle*: Path to the certificate bundle `.crt` file used by the server. If not provided, the GSvar and/or IGV cannot access BAM files over HTTPS.
 - *display_user_notifications*: Enable/Disable showing user notifications from the server in the client.
 - *use_proxy_for_gsvar_server*: for using an external GSvar server should be set to True (if your network is behind a HTTP proxy server).
 

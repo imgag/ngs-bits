@@ -4,7 +4,6 @@
 #include <GUIHelper.h>
 #include <Helper.h>
 #include <TsvFile.h>
-#include <VersatileFile.h>
 
 FusionWidget::FusionWidget(const QString& filename, QWidget *parent) :
 	QWidget(parent),

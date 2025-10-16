@@ -114,16 +114,55 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 		addMessage(warning, false, false);
 	}
 
-	//create target region
+	//convert gene list to target region
+	regions_.clear();
 	QString mode = ui_.mode->currentText();
-	QString messages;
-	QTextStream stream(&messages);
-	regions_ = db.genesToRegions(genes_, Transcript::ENSEMBL, mode, ui_.fallback->isChecked(), false, &stream);
-	if (messages!="")
+	QString transcripts = ui_.transcripts->currentText();
+	if (transcripts=="all")
 	{
-		foreach(QString message, messages.split('\n'))
+		QString messages;
+		QTextStream stream(&messages);
+		regions_ = db.genesToRegions(genes_, Transcript::ENSEMBL, mode, ui_.fallback->isChecked(), false, &stream);
+		if (messages!="")
 		{
-			addMessage(message.trimmed(), !ignore_gene_errors, false);
+			foreach(QString message, messages.split('\n'))
+			{
+				addMessage(message.trimmed(), !ignore_gene_errors, false);
+			}
+		}
+	}
+	else if (transcripts=="best")
+	{
+		//determine transcripts
+		foreach(QByteArray gene, genes_)
+		{
+			int gene_id = db.geneId(gene);
+
+			Transcript trans = db.bestTranscript(gene_id);
+			if (!trans.isValid()) //invalid transcript is returned if none is found
+			{
+				addMessage("No transcripts found for gene '" + gene + "'. Skipping it!", !ignore_gene_errors, false);
+			}
+			else
+			{
+				regions_.add(trans.toRegion(mode, false));
+			}
+		}
+	}
+	else if (transcripts=="relevant")
+	{
+		foreach(QByteArray gene, genes_)
+		{
+			int gene_id = db.geneId(gene);
+			TranscriptList transcript_list = db.relevantTranscripts(gene_id);
+			if (transcript_list.isEmpty())
+			{
+				addMessage("No transcripts found for gene '" + gene + "'. Skipping it!", !ignore_gene_errors, false);
+			}
+			else foreach(const Transcript& t, transcript_list)
+			{
+				regions_.add(t.toRegion(mode, false));
+			}
 		}
 	}
 
@@ -149,6 +188,8 @@ void SubpanelDesignDialog::checkAndCreatePanel()
             }
         }
     }
+
+	//merge regions
 	regions_.merge();
 
 	//show message
@@ -221,7 +262,12 @@ QString SubpanelDesignDialog::getName(bool with_suffix) const
 
 	if (with_suffix)
 	{
-		output += "_" + ui_.mode->currentText() + ui_.flanking->currentText() + "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd");
+		output += "_" + ui_.mode->currentText() + ui_.flanking->currentText();
+		if (ui_.transcripts->currentText()!="all")
+		{
+			output += "_" + ui_.transcripts->currentText() + "Transcripts";
+		}
+		output += "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd");
 	}
 
 	return output;

@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "ui_ProcessingSystemWidget.h"
-#include "VariantList.h"
 #include "DelayedInitializationTimer.h"
 #include "TabBaseClass.h"
 

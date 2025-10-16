@@ -135,7 +135,7 @@
                 <item>
                  <widget class="QToolButton" name="vars_export_btn">
                   <property name="toolTip">
-                   <string>Export filtered variant list.</string>
+                   <string>Export variants</string>
                   </property>
                   <property name="text">
                    <string>...</string>
@@ -614,8 +614,6 @@
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
    <addaction name="separator"/>
-   <addaction name="actionGapsLookup"/>
-   <addaction name="actionGapsRecalculate"/>
    <addaction name="actionGeneSelector"/>
    <addaction name="separator"/>
    <addaction name="actionCNV"/>
@@ -700,18 +698,6 @@
     <string>ChangeLog</string>
    </property>
   </action>
-  <action name="actionGapsLookup">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/Gaps_lookup.png</normaloff>:/Icons/Gaps_lookup.png</iconset>
-   </property>
-   <property name="text">
-    <string>Show gaps</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Look-up low-coverage regions in the pre-calcualated low-coverage BED file located in the sample folder.&lt;/p&gt;&lt;p&gt;Note: the gaps are based on the target region of the processing system, not the current target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </action>
   <action name="actionShowHGMD">
    <property name="checkable">
     <bool>true</bool>
@@ -728,18 +714,6 @@
   <action name="actionShowTranscripts">
    <property name="text">
     <string>Show</string>
-   </property>
-  </action>
-  <action name="actionGapsRecalculate">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/Gaps_calculate.png</normaloff>:/Icons/Gaps_calculate.png</iconset>
-   </property>
-   <property name="text">
-    <string>Recalculate gaps</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Determine low-coverage regions (gaps) and request closing the gaps if necessary.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionOpenDocumentation">

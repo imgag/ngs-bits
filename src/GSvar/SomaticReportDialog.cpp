@@ -3,11 +3,13 @@
 #include "SomaticReportHelper.h"
 #include "GlobalServiceProvider.h"
 #include "Statistics.h"
-#include "MainWindow.h"
 #include "ClientHelper.h"
 #include "IgvSessionManager.h"
 #include <QMessageBox>
 #include <QBuffer>
+#include <QDir>
+#include "HttpHandler.h"
+#include "LoginManager.h"
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
 struct tmbInfo

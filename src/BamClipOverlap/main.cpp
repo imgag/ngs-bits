@@ -1,13 +1,7 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
-#include "ChromosomalIndex.h"
-#include "VariantList.h"
-#include "BasicStatistics.h"
 #include "Helper.h"
-#include <QFile>
 #include <QTextStream>
-#include <QFileInfo>
-#include <QSet>
 #include "NGSHelper.h"
 #include "BamWriter.h"
 #include <QHash>

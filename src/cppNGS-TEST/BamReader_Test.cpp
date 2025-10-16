@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "BamReader.h"
 #include "BasicStatistics.h"
 #include "Settings.h"
@@ -291,8 +291,9 @@ private:
 
 	TEST_METHOD(BamReader_getVariantDetails)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -338,8 +339,9 @@ private:
 
 	TEST_METHOD(BamReader_getIndels)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -395,9 +397,9 @@ private:
 
 	TEST_METHOD(CramSupport_referenceAsParameter_tests)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
+		QString ref_file = Settings::string("reference_genome", true);
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
 		BamAlignment al;
@@ -449,9 +451,9 @@ private:
 
 	TEST_METHOD(CramSupport_cigarDataAsString)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
+		QString ref_file = Settings::string("reference_genome", true);
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 		BamAlignment al;
 
@@ -483,9 +485,9 @@ private:
 
 	TEST_METHOD(CramSupport_getPileup)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
+		QString ref_file = Settings::string("reference_genome", true);
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
 		Pileup pileup;
@@ -539,10 +541,10 @@ private:
 
 	TEST_METHOD(CramSupport_skippedFields)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		//full test of first alignment
+		QString ref_file = Settings::string("reference_genome", true);
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 		BamAlignment al;
 		while(reader.getNextAlignment(al)) { if (al.isProperPair()) break; }//get next read that is properly paired
@@ -653,8 +655,7 @@ private:
 
     TEST_METHOD(info_cram)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
         //CRAM - short read DNA, HG38, no ALT
         BamReader reader(TESTDATA("data_in/cramTest.cram"));

@@ -4,8 +4,8 @@
 #include "Settings.h"
 #include "GUIHelper.h"
 #include "NGSD.h"
-#include "GlobalServiceProvider.h"
 #include "Settings.h"
+#include "LoginManager.h"
 
 GeneSelectionDialog::GeneSelectionDialog(QWidget *parent) :
 	QDialog(parent),

@@ -3,9 +3,12 @@
 
 #include "cppNGS_global.h"
 #include "BedFile.h"
-#include "Statistics.h"
 #include <QStringList>
 #include <QHash>
+#include "GenomeBuild.h"
+#include "VariantList.h"
+#include "VcfFile.h"
+#include "BamReader.h"
 
 // Sample similarity calculator
 class CPPNGSSHARED_EXPORT SampleSimilarity

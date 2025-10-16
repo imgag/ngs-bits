@@ -1,5 +1,4 @@
-#include "TestFramework.h"
-#include "Settings.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
 
 TEST_CLASS(NGSDExportStudyGHGA_Test)
@@ -8,7 +7,7 @@ private:
 
 	TEST_METHOD(test_default)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -22,7 +21,7 @@ private:
 
 	TEST_METHOD(test_vcf_patid)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -36,7 +35,7 @@ private:
 
 	TEST_METHOD(test_use_sample_folder)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -51,7 +50,7 @@ private:
 
 	TEST_METHOD(test_group_analyses)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -66,7 +65,7 @@ private:
 
 	TEST_METHOD(test_fastq_only)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);

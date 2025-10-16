@@ -2,8 +2,8 @@
 #include "Helper.h"
 #include "GUIHelper.h"
 #include <QDesktopServices>
-#include <QFile>
 #include <QMenu>
+#include <QUrl>
 
 PRSWidget::PRSWidget(QString filename, QWidget *parent)
 	: QWidget(parent)

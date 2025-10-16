@@ -1,5 +1,5 @@
 ### SampleGender tool help
-	SampleGender (2025_03-80-g74f31dd7)
+	SampleGender (2025_07-127-g60fc6b39)
 	
 	Determines the gender of a sample from the BAM/CRAM file.
 	
@@ -26,7 +26,7 @@
 	                      Valid: 'hg19,hg38'
 	  -ref <file>         Reference genome for CRAM support (mandatory if CRAM is used).
 	                      Default value: ''
-	  -long_read          Support long reads (> 1kb).
+	  -long_read          Support long reads (> 1kb) and uses single-end reads for gender calculation.
 	                      Default value: 'false'
 	
 	Special parameters:
@@ -37,7 +37,7 @@
 	  --settings [file]   Settings override file (no other settings files are used).
 	
 ### SampleGender changelog
-	SampleGender 2025_03-80-g74f31dd7
+	SampleGender 2025_07-127-g60fc6b39
 	
 	2024-02-29 Added parameter to include single-end reads (long-read).
 	2022-08-05 Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.

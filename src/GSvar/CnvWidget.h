@@ -4,12 +4,11 @@
 #include "ui_CnvWidget.h"
 #include <QWidget>
 #include <QTableWidgetItem>
-#include <QMenu>
 #include "CnvList.h"
 #include "GeneSet.h"
-#include "FilterWidget.h"
-#include "VariantTable.h"
 #include "Settings.h"
+#include "ReportConfiguration.h"
+#include "SomaticReportConfiguration.h"
 
 namespace Ui {
 class CnvWidget;

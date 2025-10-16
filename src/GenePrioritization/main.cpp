@@ -1,6 +1,5 @@
 #include "ToolBase.h"
 #include "Graph.h"
-#include "Exceptions.h"
 #include "Helper.h"
 #include <cmath>
 #include <QTextStream>

@@ -1,7 +1,6 @@
 #include "ExpressionOverviewWidget.h"
 #include "FilterWidget.h"
 #include "ui_ExpressionOverviewWidget.h"
-#include "GlobalServiceProvider.h"
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "GUIHelper.h"

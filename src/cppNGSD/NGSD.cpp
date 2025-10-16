@@ -14,7 +14,6 @@
 #include <QSqlDriver>
 #include <QSqlIndex>
 #include <QSqlField>
-#include <QSqlError>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QCryptographicHash>
@@ -26,7 +25,9 @@
 #include "QUuid"
 #include "ClientHelper.h"
 #include "PipelineSettings.h"
-
+#include <QCoreApplication>
+#include <QSqlError> //Comment to prevent removal by fix_includes.php
+#include <QJsonArray>
 
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
@@ -7163,6 +7164,27 @@ int NGSD::phenotypeIdByName(const QByteArray& name, bool throw_on_error)
 	return q.value(0).toInt();
 }
 
+int NGSD::phenotypeReplacementByAccession(const QByteArray& accession)
+{
+	QVariant replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + accession + "'", true);
+	return replace_term_id.isNull() ? -1 : replace_term_id.toInt();
+}
+
+int NGSD::phenotypeReplacementByName(const QByteArray& name)
+{
+	//with 'obsolote ' prefix
+	QVariant replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE name='obsolete " + name + "'", true);
+
+	//without prefix (error in the HPO OBO file we need to take care of)
+	if (replace_term_id.isNull())
+	{
+		replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE name='" + name + "'", true);
+	}
+
+	return replace_term_id.isNull() ? -1 : replace_term_id.toInt();
+
+}
+
 int NGSD::phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error)
 {
 	QHash<QByteArray, int>& cache = getCache().phenotypes_accession_to_id;
@@ -7351,14 +7373,6 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 
 BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 {
-	//check mode
-	QStringList valid_modes;
-	valid_modes << "gene" << "exon";
-	if (!valid_modes.contains(mode))
-	{
-		THROW(ArgumentException, "Invalid mode '" + mode + "'. Valid modes are: " + valid_modes.join(", ") + ".");
-	}
-
 	//get transcript id
 	int id = transcriptId(name, false);
 	if (id==-1)
@@ -7369,29 +7383,7 @@ BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 	//get transcript
 	const Transcript& trans = transcript(id);
 
-	//prepare annotations
-	QByteArrayList annos;
-	annos << (trans.gene() + " " + trans.nameWithVersion());
-
-	//create output
-	BedFile output;
-	if (mode=="gene")
-	{
-		output.append(BedLine(trans.chr(), trans.start(), trans.end(), annos));
-	}
-	else
-	{
-		const BedFile& regions = trans.isCoding() ? trans.codingRegions() : trans.regions();
-		for(int i=0; i<regions.count(); ++i)
-		{
-			const BedLine& line = regions[i];
-			output.append(BedLine(line.chr(), line.start(), line.end(), annos));
-		}
-	}
-
-	if (!output.isSorted()) output.sort();
-
-	return output;
+	return trans.toRegion(mode);
 }
 
 int NGSD::transcriptId(QString name, bool throw_on_error)

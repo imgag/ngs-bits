@@ -1,4 +1,5 @@
 #include "VariantHgvsAnnotator.h"
+#include "NGSHelper.h"
 
 VariantHgvsAnnotator::VariantHgvsAnnotator(const FastaFileIndex& genome_idx, Parameters params)
 	: params_(params)

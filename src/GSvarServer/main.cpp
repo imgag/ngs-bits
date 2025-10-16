@@ -5,6 +5,9 @@
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "ServerController.h"
+#include "ServerDB.h"
+#include "UrlManager.h"
+#include "SessionManager.h"
 
 int main(int argc, char **argv)
 {

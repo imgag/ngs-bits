@@ -2,7 +2,6 @@
 #define IGVINITCACHEWORKER_H
 
 #include "Background/BackgroundWorkerBase.h"
-#include "IgvSessionManager.h"
 #include "VariantList.h"
 
 // This worker requests FileLocation information from the server and

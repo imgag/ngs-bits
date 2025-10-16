@@ -1,5 +1,4 @@
 #include "SomaticReportSettings.h"
-#include "TSVFileStream.h"
 
 SomaticReportSettings::SomaticReportSettings()
 	: report_config(QSharedPointer<SomaticReportConfiguration>(new SomaticReportConfiguration()))

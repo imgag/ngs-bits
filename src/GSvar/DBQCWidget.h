@@ -7,11 +7,6 @@
 #include <QWidget>
 #include <QChart>
 #include <QScatterSeries>
-#include <QMenu>
-#include <QMessageBox>
-#include <QDateTimeAxis>
-#include <QValueAxis>
-#include <QClipboard>
 
 ///Quality statistics widget.
 class DBQCWidget

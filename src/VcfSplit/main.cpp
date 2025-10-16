@@ -1,5 +1,6 @@
 #include "ToolBase.h"
 #include "Helper.h"
+#include <QTextStream>
 
 class ConcreteTool: public ToolBase
 {

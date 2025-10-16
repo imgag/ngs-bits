@@ -1,10 +1,6 @@
 #include "ToolBase.h"
 #include "NGSD.h"
-#include "TSVFileStream.h"
-#include "KeyValuePair.h"
 #include <QJsonDocument>
-#include <QJsonObject>
-#include <QFileInfo>
 
 
 class ConcreteTool

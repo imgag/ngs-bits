@@ -1,10 +1,9 @@
 #include "DBSelector.h"
 #include "Exceptions.h"
 #include "GUIHelper.h"
-#include <QCompleter>
-#include <QStringListModel>
-#include <QClipboard>
 #include <QApplication>
+#include <QClipboard>
+#include <QKeyEvent>
 
 DBSelector::DBSelector(QWidget* parent)
 	: QLineEdit(parent)

@@ -5,7 +5,6 @@
 #include "BasicStatistics.h"
 #include "KeyValuePair.h"
 #include "NGSHelper.h"
-#include <QFileInfo>
 #include <QJsonObject>
 
 CopyNumberVariant::CopyNumberVariant()

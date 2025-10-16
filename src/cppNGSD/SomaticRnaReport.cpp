@@ -1,4 +1,4 @@
-#include <QDebug>
+#include <QCoreApplication>
 #include <cmath>
 #include "NGSD.h"
 #include "SomaticRnaReport.h"
@@ -535,7 +535,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 {
 	RtfTable table;
 
-	table.addRow( RtfTableRow({"Expression ausgewählter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.addRow( RtfTableRow("Expression ausgewählter Gene", 9921, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"},	{1237, 1237, 1958, 1137, 1137, 937, 1137, 1141}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
@@ -634,7 +634,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	QList<ExpressionData> genes_to_be_reported;
 	genes_to_be_reported << activating_genes.mid(0, 10) << lof_genes.mid(0, 10);
 
-	table.addRow( RtfTableRow({"Top 10 Gene mit veränderter Expression"}, {9921}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.addRow( RtfTableRow("Top 10 Gene mit veränderter Expression", 9921, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 
 	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW-TPM", "Veränderung (x-fach)"},	{1488, 1488, 1388, 1388, 1188, 1488, 1492}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1, "brdrhair", 2));

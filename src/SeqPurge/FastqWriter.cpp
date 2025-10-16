@@ -1,5 +1,4 @@
 #include "FastqWriter.h"
-#include <QThread>
 
 FastqWriter::FastqWriter(const AnalysisJob& job, OutputStreams& streams, const TrimmingParameters& params, bool r1)
 	: QObject()

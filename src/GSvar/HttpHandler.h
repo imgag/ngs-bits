@@ -3,8 +3,6 @@
 
 #include <QObject>
 #include <QString>
-#include <QSslError>
-#include <QNetworkAccessManager>
 #include <QNetworkProxy>
 #include <QHttpMultiPart>
 #include "HttpRequestHandler.h"

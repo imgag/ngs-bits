@@ -1,7 +1,6 @@
 #ifndef CFDNAREMOVEDREGIONS_H
 #define CFDNAREMOVEDREGIONS_H
 
-#include <BedFile.h>
 #include <NGSD.h>
 #include <QDialog>
 

@@ -2,7 +2,6 @@
 #define AnalysisStatusWidget_H
 
 #include <QWidget>
-#include <QTimer>
 #include "NGSD.h"
 #include "ui_AnalysisStatusWidget.h"
 #include "TabBaseClass.h"

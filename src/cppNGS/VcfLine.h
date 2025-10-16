@@ -1,13 +1,13 @@
 #pragma once
 
 #include "cppNGS_global.h"
-
 #include "Sequence.h"
 #include "Exceptions.h"
 #include "FastaFileIndex.h"
 #include "BasicStatistics.h"
 #include "BedFile.h"
 #include "Helper.h"
+#include <QTextStream>
 
 enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 
@@ -365,12 +365,20 @@ public:
 	{
 		format_keys_ = keys;
 	}
+	//Adds a format keys
+	void addFormatKeys(const QByteArrayList& keys)
+	{
+		format_keys_.append(keys);
+	}
 	//Set the list, which stores for every sample a list of all format values
 	void setSamplNames(const QByteArrayList& sample_names)
 	{
 		sample_names_ = sample_names;
 	}
+	//Appends format values for a sample
 	void addFormatValues(const QByteArrayList& format_values);
+	//Overwrites existing format values of a sample
+	void setFormatValues(int sample_index, const QByteArrayList& format_values);
 
 	//Overlap check for chromosome and position range.
 	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const

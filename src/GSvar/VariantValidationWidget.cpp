@@ -1,11 +1,8 @@
 #include "VariantValidationWidget.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
-#include "DBEditor.h"
 #include "Settings.h"
 #include "ValidationDialog.h"
-#include "LoginManager.h"
-#include "GSvarHelper.h"
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QAction>

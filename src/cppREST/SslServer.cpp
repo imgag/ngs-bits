@@ -1,4 +1,6 @@
 #include "SslServer.h"
+#include <QTimer>
+#include <QProcess>
 
 SslServer::SslServer(QObject *parent)
     : QTcpServer(parent)

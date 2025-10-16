@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include <QTableWidget>
-#include "PhenotypeList.h"
 #include "RepeatLocusList.h"
 #include "ui_RepeatExpansionWidget.h"
 #include "NGSD.h"

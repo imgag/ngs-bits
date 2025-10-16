@@ -1,5 +1,4 @@
 #include "PhenotypeList.h"
-#include <QDebug>
 
 PhenotypeList::PhenotypeList()
 	: QList<Phenotype>()

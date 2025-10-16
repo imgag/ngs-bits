@@ -1,6 +1,4 @@
-#include "TestFramework.h"
-#include "Helper.h"
-#include "Settings.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
 
 TEST_CLASS(NGSDSameSample_Test)
@@ -9,7 +7,7 @@ private:
 	
 	TEST_METHOD(same_sample)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -23,7 +21,7 @@ private:
 
 	TEST_METHOD(same_patient)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -37,7 +35,7 @@ private:
 
 	TEST_METHOD(dna_only_with_bad)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -51,7 +49,7 @@ private:
 
 	TEST_METHOD(only_wgs)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -65,7 +63,7 @@ private:
 
 	TEST_METHOD(only_nanopore)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -79,7 +77,7 @@ private:
 
 	TEST_METHOD(include_merged)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);

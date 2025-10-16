@@ -2,7 +2,6 @@
 #include <QDesktopServices>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QMenu>
 #include <QMessageBox>
 #include "PublishedVariantsWidget.h"
 #include "ui_PublishedVariantsWidget.h"
@@ -13,6 +12,7 @@
 #include "GUIHelper.h"
 #include "LoginManager.h"
 #include "Settings.h"
+#include <QJsonObject>
 
 const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";

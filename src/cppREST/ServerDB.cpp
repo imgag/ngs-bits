@@ -1,5 +1,11 @@
 #include "ServerDB.h"
-#include "ServerHelper.h"
+#include "Settings.h"
+#include "Log.h"
+#include "Exceptions.h"
+#include <QSqlQuery>
+#include <QUuid>
+#include <QSqlError> //Comment to prevent removal by fix_includes.php
+#include <QSqlRecord> //Comment to prevent removal by fix_includes.php
 
 ServerDB::ServerDB()
 {

@@ -5,8 +5,8 @@
 #include "Chromosome.h"
 #include "BedFile.h"
 #include "GeneSet.h"
-#include "VcfFile.h"
 #include "TSVFileStream.h"
+#include "VariantList.h"
 
 enum StructuralVariantType
 {

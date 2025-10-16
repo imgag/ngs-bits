@@ -1,5 +1,4 @@
 #include "VcfLine.h"
-#include "Helper.h"
 #include "Log.h"
 #include "VariantList.h"
 
@@ -47,6 +46,15 @@ void VcfLine::setInfo(const QByteArrayList& info_keys, const QByteArrayList& inf
 void VcfLine::addFormatValues(const QByteArrayList& format_values)
 {
 	sample_values_.push_back(format_values);
+
+	if (format_values.count()!=format_keys_.count()) THROW(ProgrammingException, "Format keys and values have differing counts: " + QString::number(format_keys_.count()) + " / " + QString::number(format_values.count()));
+}
+
+void VcfLine::setFormatValues(int sample_index, const QByteArrayList& format_values)
+{
+	if (sample_index>=sample_values_.count()) THROW(ProgrammingException, "Sample format index exceeds number of sample format entries: " + QString::number(sample_index) + " / " + QString::number(sample_values_.count()));
+
+	sample_values_[sample_index] =format_values;
 
 	if (format_values.count()!=format_keys_.count()) THROW(ProgrammingException, "Format keys and values have differing counts: " + QString::number(format_keys_.count()) + " / " + QString::number(format_values.count()));
 }

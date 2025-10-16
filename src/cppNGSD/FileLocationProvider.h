@@ -4,7 +4,6 @@
 
 #include "cppNGSD_global.h"
 #include "VariantList.h"
-#include "Helper.h"
 #include "FileLocation.h"
 #include "FileLocationList.h"
 

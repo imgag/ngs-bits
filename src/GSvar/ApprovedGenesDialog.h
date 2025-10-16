@@ -2,7 +2,6 @@
 #define APPROVEDGENESDIALOG_H
 
 #include "ui_ApprovedGenesDialog.h"
-#include "NGSD.h"
 
 class ApprovedGenesDialog
 	: public QDialog

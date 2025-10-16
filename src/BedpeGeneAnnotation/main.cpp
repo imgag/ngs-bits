@@ -1,12 +1,9 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
 #include "ChromosomalIndex.h"
 #include "VariantList.h"
 #include "BedFile.h"
 #include "BedpeFile.h"
 #include "NGSD.h"
-#include "TSVFileStream.h"
-#include <QFileInfo>
 
 class ConcreteTool
 		: public ToolBase

@@ -3,10 +3,8 @@
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
 #include "Settings.h"
-#include <QCheckBox>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QToolTip>
 
 ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 	: QWidget(parent)

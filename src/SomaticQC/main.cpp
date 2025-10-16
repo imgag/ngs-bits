@@ -1,14 +1,11 @@
 #include "BedFile.h"
 #include "ToolBase.h"
-#include "Helper.h"
 #include "Statistics.h"
 #include "Exceptions.h"
 #include <QFileInfo>
 #include <QDir>
 #include "Settings.h"
 #include "Log.h"
-#include "NGSHelper.h"
-#include "GeneSet.h"
 #include <vector>
 
 

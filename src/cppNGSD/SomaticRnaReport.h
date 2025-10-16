@@ -1,10 +1,8 @@
 #ifndef SOMATICRNAREPORT_H
 #define SOMATICRNAREPORT_H
 
-#include <QMultiMap>
 #include "RtfDocument.h"
 #include "NGSD.h"
-#include "FilterCascade.h"
 #include "VariantList.h"
 #include "SomaticCnvInterpreter.h"
 #include "SomaticReportSettings.h"

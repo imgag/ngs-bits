@@ -2,7 +2,6 @@
 #define CHAINFILEREADER_H
 
 #include "cppNGS_global.h"
-#include "VersatileFile.h"
 #include "BedFile.h"
 
 

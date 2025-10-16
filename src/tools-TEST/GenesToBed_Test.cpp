@@ -1,5 +1,4 @@
-#include "TestFramework.h"
-#include "Settings.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
 
 TEST_CLASS(GenesToBed_Test)
@@ -8,7 +7,7 @@ private:
 	
 	TEST_METHOD(ensembl_gene)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -22,7 +21,7 @@ private:
 
 	TEST_METHOD(ensembl_exon)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -36,7 +35,7 @@ private:
 
 	TEST_METHOD(ccds_gene_annotated)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -50,7 +49,7 @@ private:
 
 	TEST_METHOD(ccds_exon_annotated)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);

@@ -11,10 +11,8 @@
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
-#include <QPushButton>
 #include <QFileDialog>
-#include <QHeaderView>
-
+#include "Settings.h"
 
 CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, QSharedPointer<SomaticReportConfiguration> somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),

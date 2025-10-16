@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_07
+	> git checkout 2025_09
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -51,8 +51,9 @@ Change log is available on the [releases](https://github.com/imgag/ngs-bits/rele
 ## Citing
 
 You can cite ngs-bits in using Zenodo DOIs:
-* 2025_07: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16676392.svg)](https://doi.org/10.5281/zenodo.16676392)
-* 2025_05: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15542696.svg)](https://doi.org/10.5281/zenodo.15542696)
+
+* 2025_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17201254.svg)](https://zenodo.org/records/17201254)
+* 2025_07: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16676392.svg)](https://zenodo.org/records/16676392)
 
 A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).
 
@@ -149,6 +150,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
+* [VcfReplaceSamples](doc/tools/VcfReplaceSamples.md) - Replaces sample identifiers in the VCF header.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
 * [VcfStrip](doc/tools/VcfStrip.md) - Removes unwanted information from a VCF file

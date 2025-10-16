@@ -5,7 +5,6 @@
 #include <QList>
 #include <QSet>
 #include <QByteArray>
-#include <QDataStream>
 
 // A set of gene names (sorted, upper-case and without duplicates)
 class CPPNGSSHARED_EXPORT GeneSet

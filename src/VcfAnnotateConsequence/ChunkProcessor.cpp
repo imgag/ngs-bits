@@ -1,11 +1,8 @@
 #include "ChunkProcessor.h"
 #include "VcfFile.h"
-#include "ToolBase.h"
-#include <QFileInfo>
 #include "Helper.h"
 #include "VcfFile.h"
 #include "VariantList.h"
-#include <QMutex>
 
 
 ChunkProcessor::ChunkProcessor(AnalysisJob &job, const MetaData& settings, const Parameters& params)

@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "BasicStatistics.h"
 #include <QBitArray>
+#include <QSet>
 
 template<typename T>
 QString stringRepresentation(const T& element)

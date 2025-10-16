@@ -1,6 +1,5 @@
 #include "RohList.h"
 #include "Exceptions.h"
-#include "Helper.h"
 #include "TSVFileStream.h"
 #include "BasicStatistics.h"
 

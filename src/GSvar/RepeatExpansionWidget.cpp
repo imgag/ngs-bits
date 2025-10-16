@@ -1,16 +1,13 @@
 #include "RepeatExpansionWidget.h"
-#include <QDir>
 #include <QFile>
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QMenu>
 #include <QChartView>
-
+#include "LoginManager.h"
 #include "Helper.h"
 #include "GUIHelper.h"
-#include "TsvFile.h"
-#include "VcfFile.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include "GeneInfoDBs.h"

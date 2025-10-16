@@ -1,4 +1,3 @@
-#include "TestFramework.h"
 #include "TestFrameworkNGS.h"
 
 TEST_CLASS(VcfAnnotateMaxEntScan_Test)
@@ -7,8 +6,7 @@ private:
 	
 	TEST_METHOD(with_tags_decimals_minscore)
 	{
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("VcfAnnotateMaxEntScan", "-in " + TESTDATA("data_in/VcfAnnotateMaxEntScan_in1.vcf") + " -out out/VcfAnnotateMaxEntScan_out1.vcf" + " -gff " + TESTDATA("data_in/VcfAnnotateMaxEntScan_transcripts.gff3") + " -swa -tag mes -tag_swa mes_swa -min_score 0 -decimals 1");
 		COMPARE_FILES("out/VcfAnnotateMaxEntScan_out1.vcf", TESTDATA("data_out/VcfAnnotateMaxEntScan_out1.vcf"));
@@ -17,8 +15,7 @@ private:
 
 	TEST_METHOD(splicing_variants)
 	{
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("VcfAnnotateMaxEntScan", "-in " + TESTDATA("data_in/VcfAnnotateMaxEntScan_in2.vcf") + " -out out/VcfAnnotateMaxEntScan_out2.vcf" + " -gff " + TESTDATA("data_in/VcfAnnotateMaxEntScan_transcripts_2.gff3") + " -swa");
 		COMPARE_FILES("out/VcfAnnotateMaxEntScan_out2.vcf", TESTDATA("data_out/VcfAnnotateMaxEntScan_out2.vcf"));
@@ -29,8 +26,8 @@ private:
 	//multi-thread test
 	TEST_METHOD(test_multithread)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+
 		for (int i=2; i<=8; ++i)
 		{
 			QString suffix = QString::number(i) + "threads";

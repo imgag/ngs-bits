@@ -2,9 +2,9 @@
 #define PILEUP_H
 
 #include "Sequence.h"
-#include <QVector>
-#include <QStringList>
 #include "cppNGS_global.h"
+#include <QChar>
+#include <QList>
 
 ///Pileup representation, similar to SAMTOOLS pileup.
 class CPPNGSSHARED_EXPORT Pileup

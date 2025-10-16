@@ -6,7 +6,6 @@
 #include "Settings.h"
 #include "NGSD.h"
 #include "GSvarHelper.h"
-#include <QDebug>
 #include <QMessageBox>
 #include <QFileDialog>
 

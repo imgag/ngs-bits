@@ -1,11 +1,8 @@
 #include "GenesToRegionsDialog.h"
 #include "ui_GenesToRegionsDialog.h"
 #include "NGSD.h"
-#include "Exceptions.h"
-#include "Helper.h"
-#include "NGSHelper.h"
-#include <QClipboard>
 #include <QFileDialog>
+#include <QClipboard>
 
 GenesToRegionsDialog::GenesToRegionsDialog(QWidget *parent) :
 	QDialog(parent),

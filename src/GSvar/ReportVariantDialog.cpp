@@ -1,8 +1,8 @@
 #include "ReportVariantDialog.h"
-#include "ClassificationDialog.h"
 #include "Settings.h"
 #include "VariantOpenDialog.h"
 #include <QMessageBox>
+#include "ReportConfiguration.h"
 
 ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> inheritance_by_gene, ReportVariantConfiguration& config, QWidget* parent)
 	: QDialog(parent)
@@ -12,6 +12,8 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	, genome_idx_(Settings::string("reference_genome", false))
 {
 	ui_.setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
+
 	connect(ui_.manual_small_var_import, SIGNAL(clicked(bool)), this, SLOT(importManualSmallVariant()));
 	ui_.variant->setText(variant_);
 

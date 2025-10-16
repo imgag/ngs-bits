@@ -89,13 +89,13 @@ struct FileLocation
 		: id(id_)
 		, type(type_)
         , filename(filename_)
+		, modified()
 		, exists(exists_)
 	{
-        if (filename_.startsWith("http"))
-        {
-            THROW(ProgrammingException, "Could not determine the modification date for: " + filename_);
-        }
-        modified = QFileInfo(filename_).lastModified();
+		if (!Helper::isHttpUrl(filename_))
+		{
+			modified = QFileInfo(filename_).lastModified();
+		}
 	}
 
     FileLocation(const QString& id_, PathType type_, const QString& filename_, QDateTime modified_, bool exists_)

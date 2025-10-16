@@ -1,4 +1,8 @@
 #include "SessionAndUrlBackupWorker.h"
+#include "ServerDB.h"
+#include "Log.h"
+#include "Exceptions.h"
+#include "Settings.h"
 
 SessionAndUrlBackupWorker::SessionAndUrlBackupWorker(QList<Session> all_sessions, QList<UrlEntity> all_urls)
     : QRunnable()

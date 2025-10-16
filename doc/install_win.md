@@ -19,7 +19,7 @@ First, we need to install Qt and some basic dependencies:
 * Download [MariaDB Connector C 64-bit](https://downloads.mariadb.com/Connectors/c/) (choose the latest available version, `*.msi` is the recommended option). Consider downlaoding the corresponding [MySQL Connector](https://dev.mysql.com/downloads/connector/cpp/), if you use MySQL as your database.
 * Run the MariaDB Connector C 64-bit installer and choose the `Complete` setup type.
 * Download and install [Git](https://git-scm.com/download/win) (it is needed to extract the repository version during the build process)
-* **Optional:** To create plots in qcML files, install [WinPython](http://winpython.github.io/) and add the python directory to the PATH (it is inside the WinPython directory).
+* **Optional:** To create plots in qcML files, install the portable version of [WinPython](https://github.com/winpython/winpython/releases/download/16.6.20250620final/Winpython64-3.13.5.0whl.7z) and add the directory containing the `python.exe` to the PATH.
 
 ### htslib
 
@@ -95,4 +95,4 @@ Add `db_ssl_ca` parameter to your config and set its value to the CA bundle file
 
 ## Integration with IGV
 
-For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).

@@ -1,9 +1,9 @@
 #include "StatisticsServiceRemote.h"
 #include "ApiCaller.h"
+#include "Exceptions.h"
 
 StatisticsServiceRemote::StatisticsServiceRemote()	
 {
-
 }
 
 BedFile StatisticsServiceRemote::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff) const

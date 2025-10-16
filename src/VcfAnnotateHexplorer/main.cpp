@@ -5,7 +5,6 @@
 #include <QDebug>
 #include <QHash>
 #include <QRegularExpressionMatchIterator>
-#include <VcfFile.h>
 #include "Settings.h"
 
 class ConcreteTool
