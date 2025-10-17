@@ -132,3 +132,11 @@ For full details, refer to:
    sbatch --wrap="whoami"
    sacct
    ```
+
+9. **Set Slurm as default queuing engine in megSAP**
+
+    Set the following line to "slurm" in your megSAP settings.ini
+
+    ```bash
+    queuing_engine = "slurm"
+    ```
