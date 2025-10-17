@@ -23,7 +23,7 @@ public slots:
 	void updateInfoForUsers(QString str);
     void switchLogFile();
     void cleanupSessionsAndUrls();
-    void updateSgeStatus();
+    void updateQueingEngineStatus();
 
 private:
 	ClientInfo readClientInfoFromFile();
@@ -32,7 +32,7 @@ private:
 	SslServer *server_;
     bool is_running_;
     QThreadPool cleanup_pool_;
-    QThreadPool sge_status_pool_;
+    QThreadPool qe_status_pool_;
 };
 
 #endif // SERVERWRAPPER_H
