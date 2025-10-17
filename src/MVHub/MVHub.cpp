@@ -641,7 +641,7 @@ void MVHub::determineProcessedSamples(int debug_level)
 		if (debug_level>=1) addOutputLine("cm_id: " + cm_id + " // SAP ID: " + sap_id);
 		QString ps_mvh = mvh_db.getValue("SELECT ps FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
 		QString ps_mvh_t = mvh_db.getValue("SELECT ps_t FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
-		if(network==SE)
+		if(network==SE || network==FBREK)
 		{
 			if (!ps_mvh.isEmpty())
 			{
@@ -1039,7 +1039,8 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	if(query.next())
 	{
 		QString status = query.value("status").toString();
-		text += " // KDK " + (status=="done" ? query.value("date").toString() : status);
+		if (!text.isEmpty()) text += " // ";
+		text += "KDK " + (status=="done" ? query.value("date").toString() : status);
 		if (status=="failed") text += QChar(0x274C);
 		if (status=="done") text += QChar(0x2705);
 
@@ -1947,6 +1948,7 @@ MVHub::Network MVHub::getNetwork(int r)
 	QString network = getString(r, c);
 	if (network=="Netzwerk Seltene Erkrankungen") return SE;
 	if (network=="Deutsches Netzwerk für Personalisierte Medizin") return OE;
+	if (network=="Deutsches Konsortium Familiärer Brust- und Eierstockkrebs") return FBREK;
 	if (network=="") return UNSET;
 	THROW(ArgumentException, "Unhandled network type '" + network +"'!");
 }
@@ -1959,6 +1961,8 @@ QString MVHub::networkToString(Network network)
 			return "Netzwerk Seltene Erkrankungen";
 		case OE:
 			return "Deutsches Netzwerk für Personalisierte Medizin";
+		case FBREK:
+			return "Deutsches Konsortium Familiärer Brust- und Eierstockkrebs";
 		case UNSET:
 			return "";
 	}
