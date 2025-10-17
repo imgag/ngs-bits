@@ -2,6 +2,7 @@
 #define QUEUINGENGINEEXECUTORPROVIDER_H
 
 #include "Helper.h"
+#include <QTextStream>
 #include "PipelineSettings.h"
 #include "QueuingEngineOutput.h"
 
