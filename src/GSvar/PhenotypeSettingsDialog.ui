@@ -56,9 +56,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="s_decipher">
+      <widget class="QCheckBox" name="s_g2p">
        <property name="text">
-        <string>Decipher</string>
+        <string>G2P</string>
        </property>
       </widget>
      </item>

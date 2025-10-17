@@ -1,11 +1,6 @@
 #ifndef VCFTOBEDPE_H
 #define VCFTOBEDPE_H
 
-#include <QObject>
-#include <QFile>
-#include <QDate>
-#include "Exceptions.h"
-#include "Helper.h"
 #include "BedpeFile.h"
 #include "VersatileFile.h"
 

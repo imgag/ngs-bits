@@ -19,13 +19,9 @@
 #include "IgvSessionManager.h"
 #include "ClinvarUploadDialog.h"
 #include <QMessageBox>
-#include <QFileInfo>
-#include <QBitArray>
-#include <QClipboard>
 #include <QMenu>
 #include <QDesktopServices>
 #include <QUrl>
-#include <QDir>
 #include <QInputDialog>
 #include "ColumnConfig.h"
 #include "SettingsDialog.h"

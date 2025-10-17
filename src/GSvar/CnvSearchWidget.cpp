@@ -7,11 +7,9 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QMessageBox>
-#include <QClipboard>
 #include <QAction>
+#include <QJsonObject>
+#include <QClipboard>
 
 CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	: QWidget(parent)

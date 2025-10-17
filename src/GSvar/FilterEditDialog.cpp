@@ -1,6 +1,5 @@
 #include "FilterEditDialog.h"
 #include "Helper.h"
-#include <QDebug>
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QDoubleSpinBox>

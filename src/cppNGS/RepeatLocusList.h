@@ -3,7 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "BedFile.h"
-#include <QDateTime>
+#include <QDate>
 
 //Repeat locus
 class CPPNGSSHARED_EXPORT RepeatLocus

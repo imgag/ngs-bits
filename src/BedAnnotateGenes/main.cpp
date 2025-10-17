@@ -1,9 +1,6 @@
 #include "BedFile.h"
 #include "ToolBase.h"
-#include "NGSHelper.h"
-#include "Settings.h"
 #include "NGSD.h"
-#include <QTextStream>
 
 class ConcreteTool
 		: public ToolBase

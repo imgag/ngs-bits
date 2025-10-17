@@ -2,11 +2,9 @@
 #include "Helper.h"
 #include "Exceptions.h"
 #include "VariantList.h"
-#include "Settings.h"
 #include "VcfFile.h"
 
 #include <QFile>
-#include <QList>
 
 class ConcreteTool
 		: public ToolBase

@@ -5,7 +5,6 @@
 #include <QDateTime>
 #include "cppREST_global.h"
 #include "ThreadSafeHashMap.h"
-#include "Log.h"
 
 struct CPPRESTSHARED_EXPORT FileMetadata
 {

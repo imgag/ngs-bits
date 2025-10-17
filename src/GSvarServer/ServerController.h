@@ -1,23 +1,12 @@
 #ifndef SERVERCONTROLLER_H
 #define SERVERCONTROLLER_H
 
-#include <QFile>
-#include <QDebug>
-#include <QDir>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
 
 #include "Log.h"
-#include "Exceptions.h"
-#include "FileLocationProviderLocal.h"
 #include "VariantList.h"
 #include "HttpResponse.h"
 #include "HttpRequest.h"
-#include "ToolBase.h"
-#include "Statistics.h"
 #include "EndpointManager.h"
-#include "UrlManager.h"
 #include "FastFileInfo.h"
 
 

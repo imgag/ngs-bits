@@ -1,12 +1,8 @@
 #include "DBTableWidget.h"
 #include "Exceptions.h"
 #include "GUIHelper.h"
-#include "NGSHelper.h"
-
 #include <QHeaderView>
 #include <QAction>
-#include <QApplication>
-#include <QClipboard>
 #include <QKeyEvent>
 
 DBTableWidget::DBTableWidget(QWidget* parent)

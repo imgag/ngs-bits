@@ -2,7 +2,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "VersatileFile.h"
-
+#include "RefGenomeService.h"
 /*
 External documentation used for the implementation:
 - reading BAM file: https://gist.github.com/PoisonAlien/350677acc03b2fbf98aa

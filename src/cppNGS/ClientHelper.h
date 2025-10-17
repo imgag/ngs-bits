@@ -2,15 +2,10 @@
 #define CLIENTHELPER_H
 
 #include "cppNGS_global.h"
-#include "Settings.h"
 #include "Helper.h"
-#include "HttpRequestHandler.h"
-#include "Log.h"
 #include <QString>
 #include <QDateTime>
-#include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 
 
 //Contains information about the GSvarServer (used in client-server mode)

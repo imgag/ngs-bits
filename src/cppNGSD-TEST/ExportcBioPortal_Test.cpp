@@ -1,5 +1,4 @@
 #include "TestFramework.h"
-#include "ExportCBioPortalStudy.h"
 
 
 TEST_CLASS(ExportcBioPortal_Test)

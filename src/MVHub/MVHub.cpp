@@ -10,10 +10,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QPushButton>
 #include <QFileDialog>
-#include <QClipboard>
 #include "ExportHistoryDialog.h"
+#include <QClipboard>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
@@ -23,6 +22,7 @@ MVHub::MVHub(QWidget *parent)
 	ui_.setupUi(this);
 	setWindowTitle(QCoreApplication::applicationName());
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
+	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(openExportHistory(int)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_status, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
@@ -177,6 +177,7 @@ void MVHub::tableContextMenu(QPoint pos)
 
 				//get ID
 				QByteArray id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toByteArray().trimmed();
+				QByteArray case_id = getString(r, c_case_id).toLatin1().trimmed();
 
 				//check if that patient did not get sequencing
 				bool no_seq = getString(r, c_status)=="Abgebrochen" && getString(r, c_seq_type)=="Keine";
@@ -196,9 +197,10 @@ void MVHub::tableContextMenu(QPoint pos)
 					}
 					else
 					{
-						QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-						QString tan = getPseudonym(tag, "GRZ", false, false);
-						mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+						QByteArray tag = case_id + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+						QString tan = getTAN(tag, "GRZ");
+						QString pseudo = getTAN(case_id, "GRZ", true);
+						mvh_db.getQuery().exec("INSERT INTO `submission_grz`(`case_id`, `date`, `type`, `tang`, `pseudog`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','"+pseudo+"','pending')");
 						updateExportStatus(mvh_db, r);
 					}
 				}
@@ -218,9 +220,10 @@ void MVHub::tableContextMenu(QPoint pos)
 					}
 					else
 					{
-						QByteArray tag = getString(r, c_case_id).toLatin1() + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
-						QString tan = getPseudonym(tag, "KDK_SE", false, false);
-						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','pending')");
+						QByteArray tag = case_id + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+						QString tan = getTAN(tag, "KDK_SE");
+						QString pseudo = getTAN(case_id, "KDK_SE", true);
+						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `pseudok`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','"+pseudo+"','pending')");
 						updateExportStatus(mvh_db, r);
 					}
 				}
@@ -233,12 +236,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	}
 	if (action==a_export_history)
 	{
-		int c_cm = colOf("CM ID");
-		int c_network = colOf("Netzwerk");
 		int r = rows.first();
-
-		ExportHistoryDialog dlg(this, getString(r, c_cm), getString(r, c_network));
-		dlg.exec();
+		openExportHistory(r);
 	}
 	if (action->parent()==copy_col_menu)
 	{
@@ -252,6 +251,15 @@ void MVHub::tableContextMenu(QPoint pos)
 		}
 		QApplication::clipboard()->setText(output.join("\n"));
 	}
+}
+
+void MVHub::openExportHistory(int row)
+{
+	int c_cm = colOf("CM ID");
+	int c_network = colOf("Netzwerk");
+
+	ExportHistoryDialog dlg(this, getString(row, c_cm), getString(row, c_network));
+	dlg.exec();
 }
 
 void MVHub::updateTableFilters()
@@ -583,6 +591,19 @@ void MVHub::on_actionReloadData_triggered()
 	updateTableFilters();
 }
 
+
+void MVHub::on_actionReloadExportStatus_triggered()
+{
+	ui_.output->clear();
+
+	updateExportStatus();
+
+	addOutputLine("done");
+
+	//apply filters
+	updateTableFilters();
+}
+
 void MVHub::on_actionAbout_triggered()
 {
 	QString about_text = QApplication::applicationName() + " " + QCoreApplication::applicationVersion();
@@ -793,6 +814,18 @@ int MVHub::updateHpoTerms(int debug_level)
 
 				QByteArray hpo_name = e2.text().trimmed().toUtf8();
 				if (hpo_name.isEmpty()) continue;
+
+				//there is no easy way to get IDs, thus we have to handle terms with changed names...
+				if (hpo_name=="Leukopenia") hpo_name = "Decreased total leukocyte count"; //renamed
+				if (hpo_name=="Monocytopenia") hpo_name = "Decreased total monocyte count"; //renamed
+				if (hpo_name=="Eosinophilia") hpo_name = "Increased total eosinophil count"; //renamed
+				if (hpo_name=="Poor motor coordination") hpo_name = "Incoordination"; //obsolete and replaced
+
+				//handle terms with accession instead of name (RedCap bug in Ontology handling)
+				if (hpo_name.startsWith("HP:"))
+				{
+					hpo_name = db.getValue("SELECT name FROM hpo_term WHERE hpo_id='"+hpo_name+"'").toByteArray();
+				}
 
 				int hpo_db_id = db.phenotypeIdByName(hpo_name, false);
 				if (hpo_db_id!=-1)
@@ -1369,7 +1402,7 @@ QByteArray MVHub::consentJsonToXml(QByteArray json_text, bool debug)
 	return output.join("\n");
 }
 
-QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_server, bool debug)
+QByteArray MVHub::getTAN(QByteArray str, QByteArray context, bool skip_pseudo1, bool test_server, bool debug)
 {
 	//check context
 	if (context!="GRZ" && context!="KDK_SE")
@@ -1411,6 +1444,11 @@ QByteArray MVHub::getPseudonym(QByteArray str, QByteArray context, bool test_ser
 	if (debug) addOutputLine("");
 	if (debug) addOutputLine("String to encode: " + str);
 	QByteArray pseudo1 = "";
+	if (skip_pseudo1)
+	{
+		pseudo1 = str;
+	}
+	else
 	{
 		QString url = "https://tc-" + QString(test_server ? "t" : "p") + ".med.uni-tuebingen.de/v1/process?targetSystem=MVH_"+(test_server ? "T" : "P")+"_F";
 		if (debug) addOutputLine("URL: "+url);
@@ -1619,7 +1657,6 @@ void MVHub::loadDataFromSE()
 		addOutputHeader("loading SE data from RedCap", false);
 
 		QTextStream stream(stdout);
-		QHash<QString, QString> sap2psn;
 		QHash<QString, QString> psn2sap;
 		QHash<QString, QString> psn2consent_version;
 		QHash<QString, QStringList> psn2items;
@@ -1663,6 +1700,27 @@ void MVHub::loadDataFromSE()
 			n = n.nextSibling();
 		}
 
+		//create mapping SAP > PSN
+		QHash<QString, QStringList> sap2psn;
+		for(auto it=psn2sap.begin(); it!=psn2sap.end(); ++it)
+		{
+			QString psn_id = it.key();
+			QString sap_id = it.value();
+			if (sap_id.isEmpty()) continue;
+
+			sap2psn[sap_id] << psn_id;
+		}
+		//check for duplicate SAP IDs
+		for(auto it=sap2psn.begin(); it!=sap2psn.end(); ++it)
+		{
+			if (it.value().count()>1)
+			{
+				QString sap_id = it.key();
+				addOutputLine("Skipping samples with SAP ID '" + sap_id +"' - SAP ID used several times: "+it.value().join(", "));
+				sap2psn[sap_id].clear();
+			}
+		}
+
 		//store data in MVH database
 		for(auto it=psn2sap.begin(); it!=psn2sap.end(); ++it)
 		{
@@ -1673,7 +1731,6 @@ void MVHub::loadDataFromSE()
 				addOutputLine("Skipping sample with SE ID '" + psn_id + "': no SAP ID available!");
 				continue;
 			}
-			sap2psn[sap_id] = psn_id;
 
 			NGSD mvh_db(true, "mvh");
 			QString mvh_id = mvh_db.getValue("SELECT id FROM case_data WHERE sap_id='"+sap_id+"'").toString();
@@ -1700,9 +1757,12 @@ void MVHub::loadDataFromSE()
 			QString sap_id = getString(r, c_sap_id);
 			if (sap_id=="") continue;
 
-			QString network_id = sap2psn[sap_id];
-			ui_.table->setItem(r, c_network_id, GUIHelper::createTableItem(network_id));
-			ui_.table->setItem(r, c_consent_ver, GUIHelper::createTableItem(psn2consent_version[network_id]));
+			if (sap2psn[sap_id].count()==1)
+			{
+				QString network_id = sap2psn[sap_id].first();
+				ui_.table->setItem(r, c_network_id, GUIHelper::createTableItem(network_id));
+				ui_.table->setItem(r, c_consent_ver, GUIHelper::createTableItem(psn2consent_version[network_id]));
+			}
 		}
 	}
 	catch (Exception& e)

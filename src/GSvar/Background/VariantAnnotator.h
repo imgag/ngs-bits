@@ -1,8 +1,8 @@
 #ifndef VARIANTANNOTATOR_H
 #define VARIANTANNOTATOR_H
 
+#include "VariantList.h"
 #include "Background/BackgroundWorkerBase.h"
-#include "GermlineReportGenerator.h"
 
 ///Report generation worker.
 class VariantAnnotator

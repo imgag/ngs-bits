@@ -1,7 +1,5 @@
 #include "BedFile.h"
 #include "ToolBase.h"
-#include "Helper.h"
-#include "Exceptions.h"
 
 class ConcreteTool
 		: public ToolBase

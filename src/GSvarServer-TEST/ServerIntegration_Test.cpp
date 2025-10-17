@@ -2,15 +2,14 @@
 #define SERVERINTEGRATIONTEST_H
 
 #include "TestFramework.h"
-#include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "HttpRequestHandler.h"
 #include <QJsonDocument>
-#include <QJsonObject>
 #include <QNetworkProxy>
-#include "EndpointManager.h"
-#include "ServerController.h"
 #include "VersatileFile.h"
+#include "ServerDB.h"
+#include "ClientHelper.h"
+#include "BamReader.h"
 
 int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
@@ -41,7 +40,7 @@ private:
 		{
 			SKIP("Server has not been configured correctly");
 		}
-        ServerDB().reinitializeDb();
+		ServerDB().reinitializeDb();
 
 		QByteArray reply;
 		HttpHeaders add_headers;

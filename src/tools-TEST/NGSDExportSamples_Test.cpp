@@ -1,6 +1,4 @@
-#include "TestFramework.h"
-#include "Helper.h"
-#include "Settings.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
 
 TEST_CLASS(NGSDExportSamples_Test)
@@ -9,7 +7,7 @@ private:
 	
 	TEST_METHOD(default_parameters)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -23,7 +21,7 @@ private:
 
 	TEST_METHOD(with_all_optional_output)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -37,7 +35,7 @@ private:
 
 	TEST_METHOD(with_all_search_parameters)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -51,7 +49,7 @@ private:
 
 	TEST_METHOD(only_tumor)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);

@@ -2,10 +2,9 @@
 #include "Helper.h"
 #include "NGSD.h"
 #include "GenLabDB.h"
-#include <QTime>
+#include "Settings.h"
 #include <QMetaMethod>
 #include <QScrollBar>
-#include "Settings.h"
 
 MaintenanceDialog::MaintenanceDialog(QWidget *parent)
 	: QDialog(parent)
@@ -241,11 +240,10 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 		}
 		else if (hpo_terms_obsolete.contains(hpo_id)) //try to replace
 		{
-			QVariant replace_term_id = db.getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + hpo_id + "'", false);
-			if(!replace_term_id.isNull()) //replacement term available => replace
+			int replace_term_id = db.phenotypeReplacementByAccession(hpo_id);
+			if(replace_term_id!=-1) //replacement term available => replace
 			{
-				QString replace_term = db.getValue("SELECT hpo_id FROM hpo_term WHERE id='" + replace_term_id.toString() + "'", false).toString().trimmed();
-				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + replace_term + "' WHERE id=" + query.value("id").toByteArray());
+				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + db.phenotype(replace_term_id).accession() + "' WHERE id=" + query.value("id").toByteArray());
 				++c_replaced;
 			}
 			else
@@ -1099,6 +1097,7 @@ void MaintenanceDialog::compareBaseDataOfTestAndProduction()
 	appendOutputLine("transcripts (Ensembl): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE source='Ensembl'"));
 	appendOutputLine("transcripts (CCDS): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE source='CCDS'"));
 	appendOutputLine("transcripts (GenCode basic): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_gencode_basic='1'"));
+	appendOutputLine("transcripts (GenCode primary): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_gencode_primary='1'"));
 	appendOutputLine("transcripts (MANE select): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_mane_select='1'"));
 	appendOutputLine("transcripts (MANE plus clinical): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_mane_plus_clinical='1'"));
 

@@ -205,6 +205,15 @@ public:
 		is_gencode_basic_ = is_gencode_basic;
 	}
 
+	bool isGencodePrimaryTranscript() const
+	{
+		return is_gencode_primary_;
+	}
+	void setGencodePrimaryTranscript(bool is_gencode_primary)
+	{
+		is_gencode_primary_ = is_gencode_primary;
+	}
+
 	bool isEnsemblCanonicalTranscript() const
 	{
 		return is_ensembl_canonical_;
@@ -311,6 +320,9 @@ public:
 		return name_==rhs.name_;
 	}
 
+	///Converts the transcript to a region. Valid modes are 'gene' and 'exon'.
+	BedFile toRegion(QString mode, bool sort=true) const;
+
 protected:
 	QByteArray gene_;
     QByteArray gene_id_;
@@ -326,6 +338,7 @@ protected:
 	int end_;
 	bool is_preferred_transcript_;
 	bool is_gencode_basic_;
+	bool is_gencode_primary_;
 	bool is_ensembl_canonical_;
 	bool is_mane_select_;
 	bool is_mane_plus_clinical_;

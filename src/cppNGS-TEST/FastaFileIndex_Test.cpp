@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "FastaFileIndex.h"
 #include "Settings.h"
 
@@ -50,9 +50,9 @@ private:
 
 	TEST_METHOD(seq_substr_large)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
+		QString ref_file = Settings::string("reference_genome", true);
 		FastaFileIndex index(ref_file);
 		Sequence seq = index.seq("chr16", 87604329, 1);
 		S_EQUAL(seq, Sequence("G"));

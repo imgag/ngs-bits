@@ -1,5 +1,4 @@
 #include "TestFramework.h"
-#include "Settings.h"
 
 TEST_CLASS(BedpeAnnotateFromBed_Test)
 {

@@ -14,7 +14,6 @@
 #include <QSqlDriver>
 #include <QSqlIndex>
 #include <QSqlField>
-#include <QSqlError>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QCryptographicHash>
@@ -26,7 +25,9 @@
 #include "QUuid"
 #include "ClientHelper.h"
 #include "PipelineSettings.h"
-
+#include <QCoreApplication>
+#include <QSqlError> //Comment to prevent removal by fix_includes.php
+#include <QJsonArray>
 
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
@@ -7159,6 +7160,27 @@ int NGSD::phenotypeIdByName(const QByteArray& name, bool throw_on_error)
 	return q.value(0).toInt();
 }
 
+int NGSD::phenotypeReplacementByAccession(const QByteArray& accession)
+{
+	QVariant replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + accession + "'", true);
+	return replace_term_id.isNull() ? -1 : replace_term_id.toInt();
+}
+
+int NGSD::phenotypeReplacementByName(const QByteArray& name)
+{
+	//with 'obsolote ' prefix
+	QVariant replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE name='obsolete " + name + "'", true);
+
+	//without prefix (error in the HPO OBO file we need to take care of)
+	if (replace_term_id.isNull())
+	{
+		replace_term_id = getValue("SELECT replaced_by FROM hpo_obsolete WHERE name='" + name + "'", true);
+	}
+
+	return replace_term_id.isNull() ? -1 : replace_term_id.toInt();
+
+}
+
 int NGSD::phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error)
 {
 	QHash<QByteArray, int>& cache = getCache().phenotypes_accession_to_id;
@@ -7347,14 +7369,6 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 
 BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 {
-	//check mode
-	QStringList valid_modes;
-	valid_modes << "gene" << "exon";
-	if (!valid_modes.contains(mode))
-	{
-		THROW(ArgumentException, "Invalid mode '" + mode + "'. Valid modes are: " + valid_modes.join(", ") + ".");
-	}
-
 	//get transcript id
 	int id = transcriptId(name, false);
 	if (id==-1)
@@ -7365,29 +7379,7 @@ BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 	//get transcript
 	const Transcript& trans = transcript(id);
 
-	//prepare annotations
-	QByteArrayList annos;
-	annos << (trans.gene() + " " + trans.nameWithVersion());
-
-	//create output
-	BedFile output;
-	if (mode=="gene")
-	{
-		output.append(BedLine(trans.chr(), trans.start(), trans.end(), annos));
-	}
-	else
-	{
-		const BedFile& regions = trans.isCoding() ? trans.codingRegions() : trans.regions();
-		for(int i=0; i<regions.count(); ++i)
-		{
-			const BedLine& line = regions[i];
-			output.append(BedLine(line.chr(), line.start(), line.end(), annos));
-		}
-	}
-
-	if (!output.isSorted()) output.sort();
-
-	return output;
+	return trans.toRegion(mode);
 }
 
 int NGSD::transcriptId(QString name, bool throw_on_error)
@@ -10730,7 +10722,7 @@ void NGSD::initTranscriptCache()
 
 	//get preferred transcript list
 	QSet<QByteArray> pts;
-    for (QString trans : getValues("SELECT DISTINCT name FROM preferred_transcripts"))
+	for (const QString& trans : getValues("SELECT DISTINCT name FROM preferred_transcripts"))
 	{
 		pts.insert(trans.toUtf8());
 	}
@@ -10755,7 +10747,7 @@ void NGSD::initTranscriptCache()
 
 	//create all transcripts
 	QHash<QByteArray, int> tmp_name2id;
-	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_gencode_basic, t.is_ensembl_canonical, t.is_mane_select, t.is_mane_plus_clinical, t.version, g.ensembl_id FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_gencode_basic, t.is_gencode_primary, t.is_ensembl_canonical, t.is_mane_select, t.is_mane_plus_clinical, t.version, g.ensembl_id FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
 	while(query.next())
 	{
 		int trans_id = query.value(0).toInt();
@@ -10763,17 +10755,18 @@ void NGSD::initTranscriptCache()
 		//get base information
 		Transcript transcript;
 		transcript.setGene(query.value(1).toByteArray());
-		transcript.setGeneId(query.value(14).toByteArray());
 		transcript.setName(query.value(2).toByteArray());
 		transcript.setSource(Transcript::stringToSource(query.value(3).toString()));
 		transcript.setStrand(Transcript::stringToStrand(query.value(4).toByteArray()));
 		transcript.setBiotype(Transcript::stringToBiotype(query.value(8).toByteArray()));
 		transcript.setPreferredTranscript(pts.contains(transcript.name()));
 		transcript.setGencodeBasicTranscript(query.value(9).toInt()!=0);
-		transcript.setEnsemblCanonicalTranscript(query.value(10).toInt()!=0);
-		transcript.setManeSelectTranscript(query.value(11).toInt()!=0);
-		transcript.setManePlusClinicalTranscript(query.value(12).toInt()!=0);
-		transcript.setVersion(query.value(13).toInt());
+		transcript.setGencodePrimaryTranscript(query.value(10).toInt()!=0);
+		transcript.setEnsemblCanonicalTranscript(query.value(11).toInt()!=0);
+		transcript.setManeSelectTranscript(query.value(12).toInt()!=0);
+		transcript.setManePlusClinicalTranscript(query.value(13).toInt()!=0);
+		transcript.setVersion(query.value(14).toInt());
+		transcript.setGeneId(query.value(15).toByteArray());
 
 		//get exons
 		BedFile regions;

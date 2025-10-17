@@ -5,9 +5,6 @@
 #include <QObject>
 #include <QList>
 #include "HttpRequest.h"
-#include "HttpUtils.h"
-#include "Exceptions.h"
-#include "ServerHelper.h"
 
 const QString empty_line = "\r\n\r\n";
 const char end_of_line = '\n';

@@ -2,19 +2,10 @@
 #include "Exceptions.h"
 #include "Settings.h"
 #include "Helper.h"
-#include "GSvarHelper.h"
 #include "ProxyDataService.h"
-#include "LoginManager.h"
 #include "GUIHelper.h"
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QEventLoop>
 #include <QNetworkProxy>
 #include <QInputDialog>
-#include <QApplication>
-#include <QAuthenticator>
-#include <QFile>
-#include <QPointer>
 #include <QHttpMultiPart>
 #include <QMessageBox>
 

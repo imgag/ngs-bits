@@ -3,7 +3,6 @@
 #include "FastqFileStream.h"
 #include "Helper.h"
 #include <QMap>
-#include <QSet>
 #include <QTextStream>
 
 struct SampleSheetEntry

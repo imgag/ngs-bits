@@ -7,6 +7,7 @@
 #include "cppNGSD_global.h"
 #include "PhenotypeList.h"
 #include "NGSD.h"
+#include <QSqlError> //Comment to prevent removal by fix_includes.php
 
 //accounting data
 struct AccountingData

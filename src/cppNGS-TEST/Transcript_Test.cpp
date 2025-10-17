@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "Transcript.h"
 #include "Settings.h"
 #include "ChromosomalIndex.h"
@@ -123,8 +123,9 @@ private:
 
 	TEST_METHOD(hgvsToVariant_plus_strand)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		Transcript t = trans_SLC51A();
@@ -276,8 +277,9 @@ private:
 
 	TEST_METHOD(hgvsToVariant_minus_strand)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
 		Transcript t = trans_APOD();

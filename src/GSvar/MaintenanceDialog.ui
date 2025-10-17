@@ -64,22 +64,22 @@
      </item>
      <item>
       <property name="text">
-       <string>Delete unused samples</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Delete unused variants</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
        <string>Replace obsolte HPO terms</string>
       </property>
      </item>
      <item>
       <property name="text">
        <string>Replace obsolte gene symbols</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Delete unused samples</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Delete unused variants</string>
       </property>
      </item>
      <item>

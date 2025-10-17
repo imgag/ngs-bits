@@ -1,8 +1,6 @@
 #ifndef TUMORONLYREPORTWORKER_H
 #define TUMORONLYREPORTWORKER_H
 
-#include <QObject>
-#include <QXmlStreamWriter>
 #include "cppNGSD_global.h"
 #include "VariantList.h"
 #include "RtfDocument.h"

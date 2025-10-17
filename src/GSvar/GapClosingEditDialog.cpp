@@ -1,6 +1,4 @@
 #include "GapClosingEditDialog.h"
-#include "LoginManager.h"
-#include "GUIHelper.h"
 #include "GSvarHelper.h"
 
 GapClosingEditDialog::GapClosingEditDialog(QWidget *parent, int id)

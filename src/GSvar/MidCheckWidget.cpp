@@ -2,9 +2,7 @@
 #include "GUIHelper.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "Settings.h"
 #include "DBSelector.h"
-#include <QDebug>
 #include <QDialog>
 #include <QMessageBox>
 

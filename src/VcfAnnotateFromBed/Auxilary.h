@@ -2,7 +2,6 @@
 #define AUXILARY_H
 
 #include <QByteArray>
-#include <QByteArrayList>
 #include <QString>
 
 //Analysis status

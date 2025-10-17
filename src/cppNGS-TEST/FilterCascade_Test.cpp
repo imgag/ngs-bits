@@ -1,6 +1,5 @@
 #include "TestFramework.h"
 #include "FilterCascade.h"
-#include "Settings.h"
 TEST_CLASS(FilterCascade_Test)
 {
 private:

@@ -1,5 +1,4 @@
 #include "OntologyTermCollection.h"
-#include "ToolBase.h"
 #include "Helper.h"
 
 

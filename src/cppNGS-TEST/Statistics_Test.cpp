@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "VariantList.h"
 #include "QCCollection.h"
 #include "Statistics.h"
@@ -177,12 +177,13 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(somatic_custom_depth) //test uses the same input data as "mapping_panel"-test
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if(ref_file=="") SKIP("Test needs the reference genome");
+		SKIP_IF_NO_HG38_GENOME();
 
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/panel.bed"));
 		bed_file.merge();
+
+		QString ref_file = Settings::string("reference_genome", true);
 		QCCollection res = Statistics::somaticCustomDepth(bed_file, TESTDATA("data_in/panel.bam"), ref_file, 20);
 
 		I_EQUAL(res.count(), 9);
@@ -210,13 +211,13 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(mapping_panel)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/panel.bed"));
 		bed_file.merge();
 
+		QString ref_file = Settings::string("reference_genome", true);
 		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/panel.bam"), ref_file, 20);
 		I_EQUAL(stats.count(), 25);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
@@ -295,8 +296,9 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(mapping_close_exons)
 	{
+		SKIP_IF_NO_HG38_GENOME();
+
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
@@ -356,10 +358,9 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(mapping)
 	{
+		SKIP_IF_NO_HG38_GENOME();
 
 		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-
 		QCCollection stats = Statistics::mapping(TESTDATA("data_in/close_exons.bam"), ref_file);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("20.88"));
@@ -386,10 +387,10 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(mapping_wgs)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		//without roi
+		QString ref_file = Settings::string("reference_genome", true);
 		QCCollection stats = Statistics::mapping_wgs(TESTDATA("data_in/close_exons.bam"), "", 1, ref_file);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("20.88"));
@@ -468,13 +469,13 @@ TEST_CLASS(Statistics_Test)
 
 	TEST_METHOD(mapping_cfdna)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/cfDNA.bed"));
 		bed_file.merge();
 
+		QString ref_file = Settings::string("reference_genome", true);
 		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/cfDNA.bam"), ref_file, 1, true);
 		I_EQUAL(stats.count(), 36);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));

@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "FileLocationProvider.h"
 #include "FileLocationProviderLocal.h"
 #include "NGSD.h"
@@ -8,7 +8,7 @@ TEST_CLASS(FileLocationProvider_Test)
 private:
 	TEST_METHOD(get_files)
 	{
-        if (!NGSD::isAvailable()) SKIP("Test needs access to the NGSD production database!");
+		SKIP_IF_NO_PROD_NGSD();
 
         // Single
 		QString filename = "data_in/VariantFilter_in.GSvar";

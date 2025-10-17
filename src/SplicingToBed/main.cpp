@@ -4,7 +4,6 @@
 #include "Helper.h"
 
 #include <QTextStream>
-#include <QFileInfo>
 
 struct Explanation
 {

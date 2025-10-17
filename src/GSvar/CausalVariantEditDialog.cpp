@@ -1,5 +1,6 @@
 #include "CausalVariantEditDialog.h"
 #include "ui_CausalVariantEditDialog.h"
+#include <QPushButton>
 
 CausalVariantEditDialog::CausalVariantEditDialog(const OtherCausalVariant& causal_variant, const QStringList& variant_types, const QStringList& inheritance_modes, QWidget* parent) :
 	QDialog(parent),

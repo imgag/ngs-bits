@@ -1,5 +1,4 @@
 #include "Chromosome.h"
-#include "Exceptions.h"
 #include <QHash>
 #include <QMutex>
 

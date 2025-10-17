@@ -6,11 +6,8 @@
 #include "BedFile.h"
 #include "QCCollection.h"
 #include "KeyValuePair.h"
-#include "NGSHelper.h"
 #include "GenomeBuild.h"
-#include <QMap>
-#include "WorkerLowOrHighCoverage.h"
-#include "WorkerAverageCoverage.h"
+#include "BamReader.h"
 
 ///Helper class for gender estimates
 struct CPPNGSSHARED_EXPORT GenderEstimate

@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "Settings.h"
 #include "NGSD.h"
 
@@ -8,8 +8,8 @@ private:
 
 	TEST_METHOD(test_germline_one_thread_with_genes)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
+		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -28,8 +28,8 @@ private:
 
 	TEST_METHOD(test_germline_several_threads)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
+		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -47,8 +47,8 @@ private:
 
 	TEST_METHOD(test_somatic_one_thread)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
+		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -66,8 +66,8 @@ private:
 
 	TEST_METHOD(test_somatic_several_threads_with_vicc_with_germline)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
+		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);

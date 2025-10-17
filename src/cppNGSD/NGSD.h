@@ -3,7 +3,6 @@
 
 #include "cppNGSD_global.h"
 #include <QVariant>
-#include <QVariantList>
 #include <QSharedPointer>
 #include <QTextStream>
 #include <QDateTime>
@@ -790,7 +789,7 @@ public:
 	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
-	///Returns the chromosomal regions corresponding to the given transcript. Messages about unknown transcripts etc. are written to the steam, if given.
+	///Returns the chromosomal regions corresponding to the given transcript. Internally it uses the Transcript::toRegion() method.
 	BedFile transcriptToRegions(const QByteArray& name, QString mode);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
 	const Transcript& transcript(int id);
@@ -805,7 +804,7 @@ public:
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, ensemble canonical, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
 	/// The return_quality int is higher the higher the quality of the returned transcript is. Exact numbers may not be constant: preferred > MANE > canonical > longest coding , longest non-coding , not found
 	Transcript bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
-	//Return the transcript with the highest impact given the variant transcript impacts
+	///Return the transcript with the highest impact given the variant transcript impacts
 	Transcript highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene (best transcript, prefered transcripts, MANE select transcript, MANE plus clinical transcript)
 	TranscriptList relevantTranscripts(int gene_id);
@@ -823,6 +822,10 @@ public:
 	int phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error=true);
 	///Returns the NGSD database ID of the phenotype given. Returns -1 or throws a DatabaseException if term name does not exist. Prefer phenotypeIdByAccession whenever possible since it is faster!
 	int phenotypeIdByName(const QByteArray& name, bool throw_on_error=true);
+	///Returns the NGSD database ID of the replacement term. Returns -1 if there is no replacement term.
+	int phenotypeReplacementByAccession(const QByteArray& accession);
+	///Returns the NGSD database ID of the replacement term. Returns -1 if there is no replacement term.
+	int phenotypeReplacementByName(const QByteArray& name);
 	///Returns the phenotype for a given HPO accession.
 	const Phenotype& phenotype(int id);
 	///Returns the phenotypes of a gene

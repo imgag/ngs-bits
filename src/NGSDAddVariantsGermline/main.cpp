@@ -4,7 +4,6 @@
 #include "RepeatLocusList.h"
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QFileInfo>
 
 
 class ConcreteTool

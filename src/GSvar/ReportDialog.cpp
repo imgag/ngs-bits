@@ -7,7 +7,7 @@
 #include <QTableWidgetItem>
 #include <QMenu>
 #include <QMessageBox>
-
+#include <QPushButton>
 
 ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res, const TargetRegionInfo& roi, QWidget* parent)
 	: QDialog(parent)

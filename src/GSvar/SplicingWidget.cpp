@@ -4,7 +4,6 @@
 #include "GUIHelper.h"
 #include "Helper.h"
 #include "GeneSet.h"
-#include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 
 #include <FilterCascade.h>

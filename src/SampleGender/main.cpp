@@ -1,4 +1,3 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
 #include "Helper.h"
 #include <QFile>

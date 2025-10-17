@@ -1,8 +1,21 @@
 #include "ServerController.h"
 #include "PipelineSettings.h"
-#include "FileMetaCache.h"
 #include <QUrl>
 #include <QProcess>
+#include "HttpUtils.h"
+#include "Settings.h"
+#include "HtmlEngine.h"
+#include "ToolBase.h"
+#include "ServerHelper.h"
+#include "ClientHelper.h"
+#include "FileLocationList.h"
+#include <QJsonArray>
+#include "SessionManager.h"
+#include <QDir>
+#include "UrlManager.h"
+#include "ServerDB.h"
+#include "Statistics.h"
+#include "FileLocationProviderLocal.h"
 
 ServerController::ServerController()
 {

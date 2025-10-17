@@ -6,7 +6,6 @@
 #include "VariantList.h"
 #include "GenomeBuild.h"
 #include "NGSD.h"
-#include "TsvFile.h"
 #include <QTableWidgetItem>
 #include <QLabel>
 

@@ -1,7 +1,6 @@
 #include "ReportConfiguration.h"
 #include "Exceptions.h"
 #include "NGSD.h"
-#include "Helper.h"
 #include "LoginManager.h"
 
 /*************************************** ReportVariantConfiguration ***************************************/

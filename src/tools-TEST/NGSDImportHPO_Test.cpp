@@ -1,7 +1,5 @@
-#include "TestFramework.h"
-#include "Settings.h"
+#include "TestFrameworkNGS.h"
 #include "NGSD.h"
-#include "Helper.h"
 
 TEST_CLASS(NGSDImportHPO_Test)
 {
@@ -9,7 +7,7 @@ private:
 	
 	TEST_METHOD(default_parameters)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -37,7 +35,7 @@ private:
 
 	TEST_METHOD(with_omim)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -89,7 +87,7 @@ private:
 
 	TEST_METHOD(with_clinvar)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -113,7 +111,7 @@ private:
 
 	TEST_METHOD(with_hgmd)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -140,7 +138,7 @@ private:
 
 	TEST_METHOD(with_hpophen)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -186,7 +184,7 @@ private:
 
 	TEST_METHOD(with_gencc)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -250,9 +248,9 @@ private:
 
 	}
 
-	TEST_METHOD(with_decipher1)
+	TEST_METHOD(with_g2p)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -260,7 +258,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -decipher " + TESTDATA("data_in/NGSDImportHPO_decipher1.csv") + " -debug");
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -g2p " + TESTDATA("data_in/NGSDImportHPO_decipher1.csv") + " -debug");
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
@@ -268,85 +266,20 @@ private:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 128);
-		count = db.getValue("SELECT count(*) FROM hpo_genes WHERE details LIKE '%Decipher%'").toInt();
-		I_EQUAL(count, 18);
+		I_EQUAL(count, 130);
+		count = db.getValue("SELECT count(*) FROM hpo_genes WHERE details LIKE '%G2P%'").toInt();
+		I_EQUAL(count, 22);
 
-		QStringList results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%both RD and IF%'");
-		I_EQUAL(results.length(), 3);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "low")
-		}
-
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%possible%'");
-		I_EQUAL(results.length(), 1);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "low")
-		}
-
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%probable%'");
-		I_EQUAL(results.length(), 1);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "medium")
-		}
-
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%confirmed%'");
-		I_EQUAL(results.length(), 13);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "high")
-		}
-	}
-
-	TEST_METHOD(with_decipher2)
-	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-
-		//init
-		NGSD db(true);
-		db.init();
-		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
-
-		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -decipher " + TESTDATA("data_in/NGSDImportHPO_decipher2.csv") + " -debug");
-
-		//check
-		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 15)
-		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
-		I_EQUAL(count, 11)
-		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 128);
-		count = db.getValue("SELECT count(*) FROM hpo_genes WHERE details LIKE '%Decipher%'").toInt();
-		I_EQUAL(count, 18);
-
-		QStringList results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%both RD and IF%'");
-		I_EQUAL(results.length(), 3);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "low")
-		}
-
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%limited%'");
-		I_EQUAL(results.length(), 1);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "low")
-		}
-
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%strong%'");
-		I_EQUAL(results.length(), 1);
-		foreach (const QString res, results)
+		QStringList results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%G2P, definitive,%'");
+		I_EQUAL(results.length(), 21);
+		foreach (QString res, results)
 		{
 			S_EQUAL(res, "high")
 		}
 
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%definitive%'");
-		I_EQUAL(results.length(), 13);
-		foreach (const QString res, results)
+		results = results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%G2P, strong,%'");
+		I_EQUAL(results.length(), 1);
+		foreach (QString res, results)
 		{
 			S_EQUAL(res, "high")
 		}
@@ -354,7 +287,7 @@ private:
 
 	TEST_METHOD(with_all)
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		SKIP_IF_NO_TEST_NGSD();
 
 		//init
 		NGSD db(true);
@@ -362,7 +295,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -omim " + TESTDATA("data_in/NGSDImportHPO_omim.txt") + " -clinvar " + TESTDATA("data_in/NGSDImportHPO_clinvar.txt") + " -hgmd " + TESTDATA("data_in/NGSDImportHPO_hgmd.dump") + " -hpophen " + TESTDATA("data_in/NGSDImportHPO_phenotype.hpoa") + " -gencc " + TESTDATA("data_in/NGSDImportHPO_gencc.csv") + " -decipher " + TESTDATA("data_in/NGSDImportHPO_decipher1.csv") + " -debug");
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -omim " + TESTDATA("data_in/NGSDImportHPO_omim.txt") + " -clinvar " + TESTDATA("data_in/NGSDImportHPO_clinvar.txt") + " -hgmd " + TESTDATA("data_in/NGSDImportHPO_hgmd.dump") + " -hpophen " + TESTDATA("data_in/NGSDImportHPO_phenotype.hpoa") + " -gencc " + TESTDATA("data_in/NGSDImportHPO_gencc.csv") + " -g2p " + TESTDATA("data_in/NGSDImportHPO_decipher1.csv") + " -debug");
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
@@ -370,7 +303,7 @@ private:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 179);
+		I_EQUAL(count, 180);
 	}
 };
 

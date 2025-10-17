@@ -2,10 +2,8 @@
 #define ENDPOINTMANAGER_H
 
 #include "cppREST_global.h"
-#include "ServerHelper.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
-#include "SessionManager.h"
 #include "NGSD.h"
 
 struct CPPRESTSHARED_EXPORT ParamProps
@@ -30,13 +28,13 @@ struct CPPRESTSHARED_EXPORT ParamProps
 	}	
 };
 
-typedef enum
+enum AuthType
 {
 	NONE,
 	HTTP_BASIC_AUTH,
 	USER_TOKEN,
 	DB_TOKEN
-} AuthType;
+};
 
 struct CPPRESTSHARED_EXPORT Endpoint
 {

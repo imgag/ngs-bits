@@ -4,11 +4,9 @@
 #include "cppNGS_global.h"
 #include "BedFile.h"
 #include "VariantList.h"
-#include "VcfFile.h"
 #include "FastaFileIndex.h"
 #include "Transcript.h"
 #include "Sequence.h"
-#include "NGSHelper.h"
 #include "Exceptions.h"
 #include "VariantImpact.h"
 

@@ -10,10 +10,11 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QInputDialog>
-#include <QClipboard>
 #include "VariantHgvsAnnotator.h"
 #include "ClientHelper.h"
 #include "Background/VariantAnnotator.h"
+#include "Settings.h"
+#include <QClipboard>
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: TabBaseClass(parent)

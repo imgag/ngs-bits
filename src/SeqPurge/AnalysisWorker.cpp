@@ -1,6 +1,5 @@
 #include "AnalysisWorker.h"
 #include "cmath"
-#include "NGSHelper.h"
 #include "BasicStatistics.h"
 
 AnalysisWorker::AnalysisWorker(AnalysisJob& job, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats)

@@ -1,4 +1,9 @@
 #include "RequestWorker.h"
+#include <QTemporaryFile>
+#include "HttpUtils.h"
+#include "EndpointManager.h"
+#include "RequestParser.h"
+#include "SessionManager.h"
 
 RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket, RequestWorkerParams params)
     : QRunnable()

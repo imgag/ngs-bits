@@ -2,12 +2,8 @@
 #include "Settings.h"
 #include "NGSHelper.h"
 #include "Helper.h"
-#include "VcfFile.h"
 #include "VariantHgvsAnnotator.h"
 #include "Auxilary.h"
-#include "ChunkProcessor.h"
-#include "OutputWorker.h"
-#include <QThreadPool>
 #include "ThreadCoordinator.h"
 
 
@@ -28,7 +24,7 @@ public:
 		setDescription("Adds transcript-specific consequence predictions to a VCF file.");
 		setExtendedDescription(extendedDescription());
 		addInfile("in", "Input VCF file to annotate.", false);
-		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz.", false);
+		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-115/gff3/homo_sapiens/Homo_sapiens.GRCh38.115.gff3.gz.", false);
 
 		//optional
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
@@ -36,7 +32,7 @@ public:
 		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 		addInt("prefetch", "Maximum number of blocks that may be pre-fetched into memory.", true, 64);
-		addFlag("all", "If set, all transcripts are imported. The default is to skip transcripts not labeled as 'GENCODE basic' for Ensembl and not with RefSeq/BestRefSeq origin for Refseq.");
+		addFlag("all", "If set, all transcripts are used for annotation. The default is to skip transcripts not labeled with 'gencode_basic' and not labeled with 'RefSeq'/'BestRefSeq' origin for Refseq."); //TODO Marc change to GENCODE primary?
 		addFlag("skip_not_hgnc", "Skip genes that do not have a HGNC identifier.");
 		addString("tag", "Tag that is used for the consequence annotation.", true, "CSQ");
 		addInt("max_dist_to_trans", "Maximum distance between variant and transcript.", true, 5000);

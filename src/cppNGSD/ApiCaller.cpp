@@ -1,5 +1,4 @@
 #include "ApiCaller.h"
-#include "Settings.h"
 #include "Exceptions.h"
 #include "ClientHelper.h"
 #include "LoginManager.h"

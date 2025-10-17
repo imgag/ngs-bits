@@ -3,17 +3,9 @@
 
 #include <QRunnable>
 #include <QByteArray>
-#include <QByteArrayList>
-#include <QTextStream>
 #include <iostream>
-#include <QBuffer>
-#include <QVector>
-#include <QMutex>
 #include "ChromosomalIndex.h"
 #include "Auxilary.h"
-#include "Exceptions.h"
-#include "TabixIndexedFile.h"
-#include "Helper.h"
 #include "BedFile.h"
 
 class ChunkProcessor

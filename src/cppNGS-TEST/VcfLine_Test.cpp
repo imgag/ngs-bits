@@ -1,4 +1,3 @@
-#include "TestFramework.h"
 #include "TestFrameworkNGS.h"
 #include "VcfFile.h"
 
@@ -220,8 +219,9 @@ TEST_CLASS(VcfLine_Test)
     //test same variants as in Variant::leftAlign()
     TEST_METHOD(leftNormalize)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
         FastaFileIndex reference(ref_file);
 
         VariantList v_list;
@@ -374,8 +374,9 @@ TEST_CLASS(VcfLine_Test)
 
     TEST_METHOD(rightNormalize)
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
         FastaFileIndex reference(ref_file);
 
         Variant v;

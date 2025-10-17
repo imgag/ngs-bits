@@ -1,6 +1,4 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
-#include "NGSHelper.h"
 #include "BamWriter.h"
 
 class ConcreteTool

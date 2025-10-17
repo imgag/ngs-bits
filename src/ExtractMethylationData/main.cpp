@@ -1,12 +1,12 @@
 #include "BedFile.h"
 #include "ToolBase.h"
 #include "Helper.h"
-#include "Statistics.h"
 #include "Exceptions.h"
 #include "Settings.h"
-#include <QFileInfo>
 #include "TabixIndexedFile.h"
 #include "FastaFileIndex.h"
+#include <QTextStream>
+#include <QDebug>
 
 class ConcreteTool
 		: public ToolBase

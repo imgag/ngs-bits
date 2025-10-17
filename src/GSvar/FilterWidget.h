@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "ui_FilterWidget.h"
-#include "BedFile.h"
 #include "GeneSet.h"
 #include "PhenotypeList.h"
 #include "FilterCascade.h"

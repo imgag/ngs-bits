@@ -1,5 +1,5 @@
 ### TranscriptComparison tool help
-	TranscriptComparison (2024_08-113-g94a3b440)
+	TranscriptComparison (2025_07-127-g60fc6b39)
 	
 	Compares transcripts from Ensembl and RefSeq/CCDS.
 	
@@ -10,7 +10,7 @@
 	Optional parameters:
 	  -out <file>       Output TSV file with matches.
 	                    Default value: ''
-	  -min_ol <float>   Minum overall/CDS overlap percentage for printing out a relation if there is no perfect match (disabled by default).
+	  -min_ol <float>   Minimum overall/CDS overlap percentage for printing out a relation if there is no perfect match (disabled by default).
 	                    Default value: '100'
 	  -test             Uses the test database instead of on the production database.
 	                    Default value: 'false'
@@ -23,7 +23,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### TranscriptComparison changelog
-	TranscriptComparison 2024_08-113-g94a3b440
+	TranscriptComparison 2025_07-127-g60fc6b39
 	
 	2024-09-26 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

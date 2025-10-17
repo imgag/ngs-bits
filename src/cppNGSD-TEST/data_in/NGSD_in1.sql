@@ -523,6 +523,12 @@ INSERT INTO `hpo_parent`(`parent`, `child`) VALUES
 (9,10),
 (9,11);
 
+
+INSERT INTO `hpo_obsolete`(`id`, `hpo_id`, `name`, `definition`, `replaced_by`) VALUES
+(1, 'HP:0001240', 'obsolete Ataxia (old1)', 'def', 12),
+(2, 'HP:0001241', 'Ataxia (old2)', 'def', 12),
+(3, 'HP:0001242', 'obsolete Ataxia (old3)', 'def', NULL);
+
 INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES
 (31, "QC:2000027", "target region 20x percentage", "Percentage of the target region that is covered at...", 'float', 0),
 (47, "QC:2000025", "target region read depth", "Average sequencing depth in target region.", 'float', 0);

@@ -1,4 +1,4 @@
-#include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "Settings.h"
 
 TEST_CLASS(RnaQC_Test)
@@ -7,8 +7,7 @@ private:
 
 	TEST_METHOD(base_test1)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -housekeeping_genes " + TESTDATA("data_in/RnaQC_in1_housekeeping_genes.bed")
@@ -20,8 +19,7 @@ private:
 
 	TEST_METHOD(base_test2)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -housekeeping_genes " + TESTDATA("data_in/RnaQC_in1_housekeeping_genes.bed")
@@ -35,8 +33,7 @@ private:
 
 	TEST_METHOD(base_test3)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -splicing " + TESTDATA("data_in/RnaQC_in1_splicing_gene.tsv")
@@ -49,8 +46,7 @@ private:
 
 	TEST_METHOD(base_test4)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -housekeeping_genes " + TESTDATA("data_in/RnaQC_in1_housekeeping_genes.bed")
@@ -65,8 +61,7 @@ private:
 
 	TEST_METHOD(base_test5)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -housekeeping_genes " + TESTDATA("data_in/RnaQC_in1_housekeeping_genes.bed")
@@ -81,8 +76,7 @@ private:
 
 	TEST_METHOD(text_test)
 	{
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -housekeeping_genes " + TESTDATA("data_in/RnaQC_in1_housekeeping_genes.bed")

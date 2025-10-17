@@ -1,5 +1,4 @@
 #include "DatabaseServiceLocal.h"
-#include "Settings.h"
 
 DatabaseServiceLocal::DatabaseServiceLocal()
     : enabled_(NGSD::isAvailable())

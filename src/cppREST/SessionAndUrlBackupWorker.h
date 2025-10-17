@@ -3,9 +3,8 @@
 
 #include "cppREST_global.h"
 #include <QRunnable>
-#include "Log.h"
-#include "Exceptions.h"
-#include "SessionManager.h"
+#include "Session.h"
+#include "UrlEntity.h"
 
 class CPPRESTSHARED_EXPORT SessionAndUrlBackupWorker
     : public QRunnable

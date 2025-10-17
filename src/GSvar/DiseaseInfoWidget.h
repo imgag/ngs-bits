@@ -1,9 +1,7 @@
 #ifndef DISEASEINFODIALOG_H
 #define DISEASEINFODIALOG_H
 
-#include <QDialog>
 #include "ui_DiseaseInfoWidget.h"
-#include "NGSD.h"
 
 class DiseaseInfoWidget
 	: public QWidget

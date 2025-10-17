@@ -4,7 +4,6 @@
 #include <FileLocation.h>
 #include <GUIHelper.h>
 #include <Helper.h>
-#include <QDir>
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 

@@ -1,5 +1,5 @@
 #include "DiseaseInfoWidget.h"
-#include "Settings.h"
+#include "NGSD.h"
 
 DiseaseInfoWidget::DiseaseInfoWidget(QString ps_name, QString sample_id, QWidget* parent)
 	: QWidget(parent)

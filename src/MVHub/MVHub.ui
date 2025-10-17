@@ -424,6 +424,7 @@
      <string>File</string>
     </property>
     <addaction name="actionReloadData"/>
+    <addaction name="actionReloadExportStatus"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -442,6 +443,11 @@
   <action name="actionReloadData">
    <property name="text">
     <string>Reload data</string>
+   </property>
+  </action>
+  <action name="actionReloadExportStatus">
+   <property name="text">
+    <string>Reload export status</string>
    </property>
   </action>
  </widget>

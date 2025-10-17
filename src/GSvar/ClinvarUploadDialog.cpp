@@ -14,7 +14,6 @@
 #include <QJsonArray>
 #include <QPrinter>
 #include <QPrintDialog>
-#include <QFileInfo>
 #include <QDesktopServices>
 #include <QMenu>
 #include <QMessageBox>

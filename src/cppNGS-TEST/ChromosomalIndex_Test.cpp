@@ -2,7 +2,6 @@
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
 #include "VcfFile.h"
-#include "Log.h"
 
 TEST_CLASS(ChromosomalIndex_Test)
 {

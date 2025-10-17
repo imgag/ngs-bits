@@ -3,8 +3,8 @@
 
 #include <QRunnable>
 #include "BedFile.h"
-#include "BamReader.h"
 #include "ChromosomalIndex.h"
+#include "Exceptions.h"
 
 class WorkerLowOrHighCoverage : public QRunnable
 {

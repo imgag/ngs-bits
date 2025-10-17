@@ -6,15 +6,10 @@
 #include "VariantList.h"
 #include "BedFile.h"
 #include "NGSD.h"
-#include "BusyDialog.h"
-#include "IgvDialog.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
 #include "SomaticReportSettings.h"
-#include "FileLocationProviderLocal.h"
-#include "FileLocationProviderRemote.h"
-#include "VersatileTextStream.h"
 #include "Log.h"
 #include "ClickableLabel.h"
 #include "ImportDialog.h"
@@ -196,12 +191,10 @@ public slots:
 	void on_actionSampleAncestry_triggered();
 	///Sample analysis status
 	void on_actionAnalysisStatus_triggered();
-	///Lookup gaps in low-coverage BED file
-	void on_actionGapsLookup_triggered();
-	///Calculate gaps based on current target region
-	void on_actionGapsRecalculate_triggered();
 	///VCF export
 	void exportVCF();
+	///VCF export for import into HerediCare
+	void exportHerediCareVCF();
 	///GSvar export
 	void exportGSvar();
 	///Preferred transcript list
@@ -320,6 +313,13 @@ public slots:
 	void on_actionClearLogFile_triggered();
 	///Opens AppData folder of GSvar
 	void on_actionOpenGSvarDataFolder_triggered();
+
+	///Calculate gaps based on current target region filter
+	void calculateGapsByTargetRegionFilter();
+	///Calculate gaps based on genes
+	void calculateGapsByGenes();
+	///Shows the gap closing dialog with the given regions and genes
+	void showGapsClosingDialog(QString title, const BedFile& regions, const GeneSet& genes);
 
 	///Load report configuration
 	void loadReportConfig();
@@ -543,6 +543,7 @@ private:
 	VariantList somatic_control_tissue_variants_;
 
 	bool cf_dna_available;
+	QToolButton* gap_btn_;
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
