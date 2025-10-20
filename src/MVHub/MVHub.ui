@@ -124,6 +124,11 @@
           <string>Deutsches Netzwerk für Personalisierte Medizin</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Deutsches Konsortium Familiärer Brust- und Eierstockkrebs</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>
