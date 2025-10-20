@@ -69,7 +69,6 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_clinvar->setToolTip(vl.annotationDescriptionByName("ClinVar").description());
 	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false).description()); //optional
 	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false).description()); //optional
-	ui->label_cosmic->setToolTip(vl.annotationDescriptionByName("COSMIC").description());
 	ui->label_pubmed->setToolTip(vl.annotationDescriptionByName("PubMed", false).description()); //optional
 
 	//AFs
@@ -164,7 +163,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->clinvar, vl, index, "ClinVar");
 	setAnnotation(ui->hgmd, vl, index, "HGMD");
 	setAnnotation(ui->omim, vl, index, "OMIM");
-	setAnnotation(ui->cosmic, vl, index, "COSMIC");
 	setAnnotation(ui->pubmed, vl, index, "PubMed");
 
 	//public allel frequencies
@@ -344,28 +342,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 
 				text += formatLink(entry.id, "https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/mut.php?acc=" + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
-			}
-		}
-		else if(name=="COSMIC")
-		{
-			QStringList ids = anno.split(",");
-			foreach(QString id, ids)
-			{
-				QString temp_id = id.mid(4).trimmed();
-				if(temp_id.isEmpty()) continue;
-
-				if(id.startsWith("COSM"))
-				{
-					text += formatLink(temp_id, "https://cancer.sanger.ac.uk/cosmic/mutation/overview?id=" + temp_id) + " ";
-				}
-				else if(id.startsWith("COSN"))
-				{
-					text += formatLink(temp_id, "https://cancer.sanger.ac.uk/cosmic/ncv/overview?id=" + temp_id) + " ";
-				}
-				else if(id.startsWith("COSV"))
-				{
-					text += formatLink(temp_id, "https://cancer.sanger.ac.uk/cosmic/search?q=COSV" + temp_id) + " ";
-				}
 			}
 		}
 		else if(name=="quality")
