@@ -4743,10 +4743,12 @@ int NGSD::getSomaticViccId(const Variant &variant)
 
 SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_fail)
 {
+	SomaticViccData out;
+
 	QString variant_id = variantId(variant, throw_on_fail);
 	if (variant_id=="")
 	{
-		return SomaticViccData();
+		return out;
 	}
 
 	SqlQuery query = getQuery();
@@ -4759,14 +4761,10 @@ SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_f
 		}
 		else
 		{
-			return SomaticViccData();
+			return out;
 		}
 	}
 	query.next();
-
-
-
-	SomaticViccData out;
 
 	auto varToState = [](const QVariant& var)
 	{

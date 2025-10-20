@@ -406,7 +406,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Germline classification</string>
+      <string>ACMG classification (germline)</string>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -529,7 +529,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Publication of germline classification</string>
+      <string>Publication of ACMG classification</string>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -641,7 +641,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Somatic classification</string>
+      <string>VICC classification (somatic)</string>
      </property>
      <property name="flat">
       <bool>true</bool>

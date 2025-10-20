@@ -144,9 +144,9 @@ void VariantWidget::updateGUI()
 
 
 		//somatic classification
-		ClassificationInfo vicc_info = db.getSomaticClassification(variant_);
-		ui_.classification_vicc->setText(vicc_info.classification);
-		GSvarHelper::limitLines(ui_.classification_vicc_comment, vicc_info.comments);
+		SomaticViccData vicc_info = db.getSomaticViccData(variant_, false);
+		ui_.classification_vicc->setText(SomaticVariantInterpreter::viccScoreAsString(vicc_info));
+		GSvarHelper::limitLines(ui_.classification_vicc_comment, vicc_info.comment);
 
 		//update GUI (next code block is slow)
 		qApp->processEvents();
