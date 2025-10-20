@@ -25,6 +25,7 @@ public:
 
 		changeLog(2018, 10, 18, "Initial implementation.");
 		changeLog(2024, 11, 21, "Implemented handling of phased GT");
+		changeLog(2025, 10, 20, "Implemented support for FORMAT and INFO fields of type 'G'");
     }
 
 	///Return ID from FORMAT/INFO line
@@ -65,6 +66,11 @@ public:
 		return false;
 	}
 
+	int genotypeIndex(int i, int j)
+	{
+		return j * (j + 1) / 2 + i;
+	}
+
     virtual void main()
     {
         //open input/output streams
@@ -78,7 +84,7 @@ public:
         }
         QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
-		enum AnnotationType {R, A, OTHER};
+		enum AnnotationType {R, A, G, OTHER};
 		QHash<QByteArray, AnnotationType> info2type;
 		QHash<QByteArray, AnnotationType> format2type;
 		QHash<QByteArray, int> ignored_info_field_errors;
@@ -95,13 +101,17 @@ public:
 			//header
             if (line.startsWith('#'))
 			{
-				if (line.startsWith("##INFO") && (line.contains("Number=R") || line.contains("Number=A")))
+				if (line.startsWith("##INFO"))
 				{
-					info2type[getId(line)] = line.contains("Number=R") ? R : A;
+					if (line.contains("Number=R")) info2type[getId(line)] = R;
+					else if (line.contains("Number=A")) info2type[getId(line)] = A;
+					else if (line.contains("Number=G")) info2type[getId(line)] = G;
                 }
-                else if (line.startsWith("##FORMAT") && (line.contains("Number=R") || line.contains("Number=A")))
+				else if (line.startsWith("##FORMAT"))
 				{
-					format2type[getId(line)] = line.contains("Number=R") ? R : A;
+					if (line.contains("Number=R")) format2type[getId(line)] = R;
+					else if (line.contains("Number=A")) format2type[getId(line)] = A;
+					else if (line.contains("Number=G")) format2type[getId(line)] = G;
                 }
 
 				out_p->write(line);
@@ -137,8 +147,11 @@ public:
 				{
 					AnnotationType type = info2type[info_name];
 					QByteArrayList info_value_per_allele = info_parts[1].split(',');
+					int parts_expected;
 
-					int parts_expected = alt.size() + (type==R);
+					if (type == A || type == R) parts_expected = alt.size() + (type==R);
+					else parts_expected = (alt.size() + 1) * (alt.size() + 2) / 2;
+
 					if (info_value_per_allele.size() != parts_expected)
 					{
 						if (no_errors)
@@ -167,6 +180,10 @@ public:
 							if (type==R) // use INFO (ref), ALLELE (count)
 							{
 								new_infos_per_allele[j] += info_name + '=' + info_value_per_allele[0] + ',' + info_value_per_allele[j+1];
+							}
+							else if (type==G)
+							{
+								new_infos_per_allele[j] += info_name + '=' + info_value_per_allele[0] + ',' + info_value_per_allele[genotypeIndex(0,j+1)] + ',' + info_value_per_allele[genotypeIndex(j+1,j+1)];
 							}
 							else // use ALLELE (count)
 							{
@@ -298,11 +315,15 @@ public:
 							}
 						}
 
-						else if (format_types.at(j) == R || format_types.at(j) == A) //special handling A/R entries
+						else if (format_types.at(j) == R || format_types.at(j) == A || format_types.at(j) == G) //special handling A/R/G entries
 						{
 							QByteArrayList sample_value_parts = sample_values[j].split(',');
+							AnnotationType type = format_types.at(j);
+							int parts_expected;
 
-							int parts_expected = alt.size() + (format_types.at(j)==R);
+							if (type == A || type == R) parts_expected = alt.size() + (type==R);
+							else parts_expected = (alt.size() + 1) * (alt.size() + 2) / 2;
+
 							if (sample_value_parts.size() != parts_expected)
 							{
 								if (no_errors)
@@ -329,11 +350,19 @@ public:
 									if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
 
 									// appends a VALUE: (with seperator)
-									if (format_types[j] == R)
+									if (type == R)
 									{
 										new_samples_per_allele[a][i] += sample_value_parts[0];
 										new_samples_per_allele[a][i] += ',';
 										new_samples_per_allele[a][i] += sample_value_parts[a+1];
+									}
+									else if (type == G)
+									{
+										new_samples_per_allele[a][i] += sample_value_parts[0];
+										new_samples_per_allele[a][i] += ',';
+										new_samples_per_allele[a][i] += sample_value_parts[genotypeIndex(0,a+1)];
+										new_samples_per_allele[a][i] += ',';
+										new_samples_per_allele[a][i] += sample_value_parts[genotypeIndex(a+1,a+1)];
 									}
 									else
 									{
