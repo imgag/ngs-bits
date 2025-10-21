@@ -4157,11 +4157,33 @@ void MainWindow::generateReportSomaticRTF()
 
 			try
 			{
-				TSVFileStream cohort_file( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_COHORT ).filename );
-				rna_report_data.cohort_size = cohort_file.header().count()-1;
+				TSVFileStream expr_file(rna_report_data.rna_expression_file);
+				for (QByteArray comment: expr_file.comments()) {
+					if (comment.contains("cohort_size"))
+					{
+						bool ok;
+						int size = comment.split(':')[1].toInt(&ok);
+						if(ok)
+						{
+							rna_report_data.cohort_size = size;
+						}
+					}
+				}
 			}
-			catch(Exception)
+			catch (Exception)
 			{
+			}
+
+			if (rna_report_data.cohort_size == 0)
+			{
+				try
+				{
+					TSVFileStream cohort_file( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_COHORT ).filename );
+					rna_report_data.cohort_size = cohort_file.header().count()-1;
+				}
+				catch(Exception)
+				{
+				}
 			}
 
 			rna_report_data.rna_qcml_data = db.getQCData(db.processedSampleId(dlg.getRNAid()));

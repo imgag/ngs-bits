@@ -1654,16 +1654,22 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 	QSet<int> samples_done_hom;
 	QSet<int> samples_done_mosaic;
 	SqlQuery query = getQuery();
-	query.exec("SELECT ps.sample_id, dv.genotype, dv.mosaic FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
+	query.exec("SELECT processed_sample_id, genotype, mosaic FROM detected_variant WHERE variant_id='" + variant_id + "'");
 	while(query.next())
 	{
-		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
-		int sample_id = query.value(0).toInt();
-		QByteArray genotype = query.value(1).toByteArray();
-		bool mosaic = query.value(2).toBool();
+		SqlQuery query2 = getQuery();
+		query2.exec("SELECT sample_id, quality FROM processed_sample WHERE id=" + query.value(0).toString());
+		query2.next();
 
+		//skip bad quality
+		if (query2.value(1).toByteArray()=="bad") continue;
+
+		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
+		int sample_id = query2.value(0).toInt();
+		QByteArray genotype = query.value(1).toByteArray();
 		if (genotype=="het")
 		{
+			bool mosaic = query.value(2).toBool();
 			if (!mosaic && !samples_done_het.contains(sample_id))
 			{
 				++c_het;
@@ -1678,7 +1684,6 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 				samples_done_mosaic << sample_id;
 				samples_done_mosaic.unite(sameSamples(sample_id, SameSampleMode::SAME_PATIENT));
 			}
-
 		}
 		if (genotype=="hom" && !samples_done_hom.contains(sample_id))
 		{
@@ -4738,10 +4743,12 @@ int NGSD::getSomaticViccId(const Variant &variant)
 
 SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_fail)
 {
+	SomaticViccData out;
+
 	QString variant_id = variantId(variant, throw_on_fail);
 	if (variant_id=="")
 	{
-		return SomaticViccData();
+		return out;
 	}
 
 	SqlQuery query = getQuery();
@@ -4754,14 +4761,10 @@ SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_f
 		}
 		else
 		{
-			return SomaticViccData();
+			return out;
 		}
 	}
 	query.next();
-
-
-
-	SomaticViccData out;
 
 	auto varToState = [](const QVariant& var)
 	{
@@ -7453,7 +7456,6 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 
 	foreach(const Transcript& t, list)
 	{
-
 		if (t.isPreferredTranscript()) list_lvl.append(t);
 	}
 
