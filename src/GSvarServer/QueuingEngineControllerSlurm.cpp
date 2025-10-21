@@ -1,6 +1,11 @@
 #include "QueuingEngineControllerSlurm.h"
 #include "Log.h"
 
+QueuingEngineControllerSlurm::QueuingEngineControllerSlurm()
+{
+
+}
+
 QString QueuingEngineControllerSlurm::getEngineName() const
 {
     return "SLURM";

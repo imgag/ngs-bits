@@ -1,6 +1,11 @@
 #include "QueuingEngineControllerSge.h"
 #include "Log.h"
 
+QueuingEngineControllerSge::QueuingEngineControllerSge()
+{
+
+}
+
 QString QueuingEngineControllerSge::getEngineName() const
 {
     return "SGE";
