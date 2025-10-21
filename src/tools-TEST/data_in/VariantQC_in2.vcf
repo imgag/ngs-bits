@@ -1,74 +1,22 @@
 ##fileformat=VCFv4.2
 ##source=Clair3
 ##clair3_version=1.0.0
-##filter="QUAL > 5"
-##longphaseVersion=1.4
-##commandline="phase -s /mnt/storage1/projects/research/23014I_1145_ONTpilot_TNAMSE/Sample_23014LRa023L2_01/clair_temp/merge_output.vcf.gz -b /mnt/storage1/projects/research/23014I_1145_ONTpilot_TNAMSE/Sample_23014LRa023L2_01/23014LRa023L2_01.bam -r /tmp/local_ngs_data_GRCh38//GRCh38.fa -t 10 -o /tmp/584156.1.default_srv014/megSAP_user_ahschul1/longphaseRycQdY --ont "
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 2022_08-251-g8de5b488
 ##SAMPLE=<ID=23014LRa023L2_01,Gender=n/a,ExternalSampleName=DNA-2300790 A/GLAB NA12878,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=n/a>
-##longphaseVersion=1.4
-##commandline="phase -s /mnt/storage1/projects/research/23014I_1145_ONTpilot_TNAMSE/Sample_23014LRa023L2_01/23014LRa023L2_01_var.vcf.gz -b /mnt/storage1/projects/research/23014I_1145_ONTpilot_TNAMSE/Sample_23014LRa023L2_01/23014LRa023L2_01.bam -r /tmp/local_ngs_data_GRCh38//GRCh38.fa -t 10 -o /tmp/584156.1.default_srv014/megSAP_user_ahschul1/longphasepyJtve --sv-file /mnt/storage1/projects/research/23014I_1145_ONTpilot_TNAMSE/Sample_23014LRa023L2_01/23014LRa023L2_01_var_structural_variant.vcf.gz --ont "
 ##VEP="v107" time="2023-04-12 18:24:15" cache="/tmp/local_ngs_data_GRCh38/ensembl-vep-107/homo_sapiens/107_GRCh38" ensembl-io=107.a473894 ensembl-funcgen=107.0fbd7d5 ensembl=107.5f39899 ensembl-variation=107.ab78711 1000genomes="phase3" COSMIC="95" ClinVar="202201" HGMD-PUBLIC="20204" assembly="GRCh38.p13" dbSNP="154" gencode="GENCODE 41" genebuild="2014-07" gnomADe="r2.1.1" gnomADg="v3.1.2" polyphen="2.2.2" regbuild="1.0" sift="sift5.2.2"
-##MaxEntScan_alt=MaxEntScan alternate sequence score
-##MaxEntScan_diff=MaxEntScan score difference
-##MaxEntScan_ref=MaxEntScan reference sequence score
-##VEP-command-line='vep -i /tmp/584156.1.default_srv014/megSAP_user_ahschul1/annotate_tauTi2_unzipped.vcf --format vcf -o /tmp/584156.1.default_srv014/megSAP_user_ahschul1/an_vep_53iJaq_vep.vcf --vcf --no_stats --force_overwrite --species homo_sapiens --assembly GRCh38 --fork 10 --offline --cache --dir_cache /tmp/local_ngs_data_GRCh38//ensembl-vep-107// --fasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --transcript_version --domains --failed 1 --regulatory --sift b --polyphen b --plugin MaxEntScan,/mnt/storage2/megSAP/tools/ensembl-vep-release-107.0/MaxEntScan/ --pubmed --gencode_basic --fields Allele,Consequence,Feature,Feature_type,DOMAINS,SIFT,PolyPhen,Existing_variation,BIOTYPE,MaxEntScan_ref,MaxEntScan_alt,PUBMED'
-##INFO=<ID=F,Number=0,Type=Flag,Description="Result from full-alignment calling">
-##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
-##INFO=<ID=P,Number=0,Type=Flag,Description="Result from pileup calling">
-##INFO=<ID=TYPE,Number=A,Type=String,Description="The type of allele, either snp, mnp, ins, del, or complex.">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|SIFT|PolyPhen|Existing_variation|BIOTYPE|MaxEntScan_ref|MaxEntScan_alt|PUBMED">
-##INFO=<ID=CSQ2,Number=.,Type=String,Description="Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp">
-##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="/tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/hg38.phyloP100way.bw (ngs-bits/VcfAnnotateFromBigWig - mode max)">
-##INFO=<ID=gnomADg_AF,Number=A,Type=Float,Description="Alternate allele frequency in samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_AFR_AF,Number=A,Type=Float,Description="Alternate allele frequency in AFR samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_AMR_AF,Number=A,Type=Float,Description="Alternate allele frequency in AMR samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_EAS_AF,Number=A,Type=Float,Description="Alternate allele frequency in EAS samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_NFE_AF,Number=A,Type=Float,Description="Alternate allele frequency in NFE samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_SAS_AF,Number=A,Type=Float,Description="Alternate allele frequency in SAS samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_AC,Number=A,Type=Float,Description="Alternate allele count (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_Hom,Number=A,Type=Integer,Description="Count of homozygous individuals in samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_Hemi,Number=A,Type=Integer,Description="Alternate allele count for male samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_Het,Number=A,Type=Integer,Description="Count of heterozygous alleles in all samples. (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADg_Wt,Number=A,Type=Integer,Description="Count of wildtype alleles in all samples. (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
-##INFO=<ID=gnomADm_AF_hom,Number=1,Type=Float,Description="Allele frequency restricted to variants with a heteroplasmy level > (from file gnomAD_genome_v3.1.mito_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20230311_converted_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20230311_converted_GRCh38.vcf.gz)">
-##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats (from file HGMD_PRO_2022_4_fixed.vcf.gz)">
-##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2022_4_fixed.vcf.gz)">
-##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2022_4_fixed.vcf.gz)">
-##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype.  The ',' (comma) in primary phenotype descriptions have been replaced with '%2C'.  Instructions to deal with such characters with special meaning are given in Section 1.2 of the VCFv4.3 specfication. (from file HGMD_PRO_2022_4_fixed.vcf.gz)">
-##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2022_4_fixed.vcf.gz)">
-##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.6_GRCh38.vcf.gz)">
-##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6_GRCh38.vcf.gz)">
-##INFO=<ID=REVEL,Number=1,Type=Float,Description="Maximum REVEL score of all scored transcripts. (from file REVEL_1.3.vcf.gz)">
-##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_12_30_GRCh38.vcf.gz)">
-##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=NGSD_GROUP,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for n/a. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/storage2/megSAP/data//dbs/NGSD/NGSD_genes.bed delimited by '&'">
-##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/RepeatMasker_GRCh38.bed delimited by '&'">
-##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/omim.bed delimited by '&'">
-##FILTER=<ID=LowQual,Description="Low quality variant">
-##FILTER=<ID=PASS,Description="All filters passed">
-##FILTER=<ID=RefCall,Description="Reference call">
-##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##VEP-command-line='vep -i /tmp/584156.1.default_srv014/megSAP_user_ahschul1/annotate_tauTi2_unzipped.vcf --format vcf -o /tmp/584156.1.default_srv014/megSAP_user_ahschul1/an_vep_53iJaq_vep.vcf --vcf --no_stats --force_overwrite --species homo_sapiens --assembly GRCh38 --fork 10 --offline --cache --dir_cache /tmp/local_ngs_data_GRCh38//ensembl-vep-107// --fasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --transcript_version --domains --failed 1 --regulatory --sift b --polyphen b --plugin MaxEntScan,/mnt/storage2/megSAP/tools/ensembl-vep-release-107.0/MaxEntScan/ --pubmed --gencode_basic --fields Allele,Consequence,Feature,Feature_type,DOMAINS,SIFT,PolyPhen,Existing_variation,BIOTYPE,MaxEntScan_ref,MaxEntScan_alt,PUBMED'">
+##INFO=<ID=RS,Number=1,Type=String,Description="dbSNP ID">
 ##FILTER=<ID=low_conf_region,Description="Variant marked as 'low_conf_region'.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Read depth for each allele">
 ##FORMAT=<ID=AF,Number=1,Type=Float,Description="Estimated allele frequency in the range of [0,1]">
 ##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
 ##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
-##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled genotype likelihoods rounded to the closest integer">
 ##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase set identifier">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	23014LRa023L2_01
-chr21	14383028	.	T	C	32.84	PASS	.	GT:GQ:DP:AF:PS	1|0:32:63:0.3651:13733164
-chr21	14385381	.	C	G	30.82	PASS	.	GT:GQ:DP:AF:PS	1|0:30:58:0.4138:13733164
-chr21	14388938	.	A	G	28.8	PASS	.	GT:GQ:DP:AF:PS	1/1:28:70:0.9857:.
+chr21	14383028	.	T	C	32.84	PASS	RS=rs123456	GT:GQ:DP:AF:PS	1|0:32:63:0.3651:13733164
+chr21	14385381	.	C	G	30.82	PASS	RS=rs123457	GT:GQ:DP:AF:PS	1|0:30:58:0.4138:13733164
+chr21	14388938	.	A	G	28.8	PASS	RS=rs123458	GT:GQ:DP:AF:PS	1/1:28:70:0.9857:.
 chr21	14389004	.	A	G	31.06	PASS	.	GT:GQ:DP:AF:PS	1|0:31:67:0.4776:13733164
 chr21	14389011	.	C	T	31.1	PASS	.	GT:GQ:DP:AF:PS	1|0:31:67:0.4925:13733164
 chr21	14389996	.	ATG	A	7.14	PASS	.	GT:GQ:DP:AF:PS	./1:7:56:0.6964:.

@@ -103,6 +103,11 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 
 	QCCollection output;
 
+	//init
+	bool csq_info_exists = variants.vcfHeader().infoIdDefined("CSQ"); //from VEP
+	bool csq2_info_exists = variants.vcfHeader().infoIdDefined("CSQ2"); //from VcfAnnotateConsequence
+	bool rs_info_exists = variants.vcfHeader().infoIdDefined("RS"); //dbSNP rs number
+
 	//filter variants
 	FilterResult filter_result(variants.count());
 	if (filter)
@@ -115,25 +120,20 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 	//var_total
 	addQcValue(output, "QC:2000013", "variant count", vars_passing_filter);
 
-	//var_perc_dbsnp and high-impact variants
+	//known variants percentage
 	if (vars_passing_filter==0)
 	{
 		addQcValue(output, "QC:2000014", "known variants percentage", "n/a (no variants)");
-		addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (no variants)");
 	}
 	else
 	{
-		bool csq_entry_exists = variants.vcfHeader().infoIdDefined("CSQ");
-		if (!csq_entry_exists)
+		if (!csq_info_exists && !rs_info_exists)
 		{
 			addQcValue(output, "QC:2000014", "known variants percentage", "n/a (CSQ info field missing)");
-			addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (CSQ info field missing)");
 		}
 		else
 		{
-			bool csq2_entry_exists = variants.vcfHeader().infoIdDefined("CSQ2");
 			double dbsnp_count = 0;
-			double high_impact_count = 0;
 			for(int i=0; i<variants.count(); ++i)
 			{
 				if (!filter_result.passing(i)) continue;
@@ -142,17 +142,43 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 				{
 					++dbsnp_count;
 				}
+				else if (variants[i].info("RS").startsWith("rs"))
+				{
+					++dbsnp_count;
+				}
+			}
+			addQcValue(output, "QC:2000014", "known variants percentage", 100.0*dbsnp_count/vars_passing_filter);
+		}
+	}
+
+	//high-impact variants
+	if (vars_passing_filter==0)
+	{
+		addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (no variants)");
+	}
+	else
+	{
+		if (!csq_info_exists)
+		{
+			addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (CSQ info field missing)");
+		}
+		else
+		{
+			double high_impact_count = 0;
+			for(int i=0; i<variants.count(); ++i)
+			{
+				if (!filter_result.passing(i)) continue;
+
 				if (variants[i].info("CSQ").contains("|HIGH|")) //works without splitting by transcript
 				{
 					++high_impact_count;
 				}
-				else if (csq2_entry_exists && variants[i].info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
+				else if (csq2_info_exists && variants[i].info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
 				{
 					++high_impact_count;
 				}
 
 			}
-			addQcValue(output, "QC:2000014", "known variants percentage", 100.0*dbsnp_count/vars_passing_filter);
 			addQcValue(output, "QC:2000015", "high-impact variants percentage", 100.0*high_impact_count/vars_passing_filter);
 		}
 	}

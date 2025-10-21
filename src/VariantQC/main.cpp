@@ -26,6 +26,7 @@ public:
 
 		//changelog
 		changeLog(2023,  9, 21, "Added parameter 'longread' to add longread specific QC values.");
+		changeLog(2023,  9, 21, "Added parameter 'longread' to add longread specific QC values.");
 		changeLog(2020,  8,  7, "VCF files only as input format for variant list.");
 		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");
 		changeLog(2017,  1,  5, "Added 'ignore_filter' flag.");
