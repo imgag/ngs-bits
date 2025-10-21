@@ -1,27 +1,21 @@
-#include "QueuingEngineStatusUpdateWorker.h"
+#include "QueuingEngineController.h"
+#include "QueuingEngineControllerSge.h"
+#include "QueuingEngineControllerSlurm.h"
 #include "Log.h"
 #include "PipelineSettings.h"
-#include "QueuingEngineExecutorProviderSge.h"
-#include "QueuingEngineExecutorProviderSlurm.h"
 
-QueuingEngineStatusUpdateWorker::QueuingEngineStatusUpdateWorker()
-    : QRunnable()
+QueuingEngineController* QueuingEngineController::create(const QString& engine)
 {
-    if (PipelineSettings::queuingEngine() == "sge")
-    {
-        executor_provider_ = QSharedPointer<QueuingEngineExecutorProviderSge>(new QueuingEngineExecutorProviderSge());
-    }
-    if (PipelineSettings::queuingEngine() == "slurm")
-    {
-        executor_provider_ = QSharedPointer<QueuingEngineExecutorProviderSlurm>(new QueuingEngineExecutorProviderSlurm());
-    }
+	if (engine == "sge") return new QueuingEngineControllerSge();
+	if (engine == "slurm") return new QueuingEngineControllerSlurm();
+	return nullptr;
 }
 
-void QueuingEngineStatusUpdateWorker::run()
+void QueuingEngineController::run()
 {
 	try
 	{
-        if (debug_) QTextStream(stdout) << "SGE update started" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << "SGE update started" << QT_ENDL;
 
 		NGSD db;
 
@@ -48,17 +42,17 @@ void QueuingEngineStatusUpdateWorker::run()
 				if(status=="cancel")
 				{
 					job.checkValid(job_id);
-					canceledAnalysis(db, job, job_id);
+					deleteJob(db, job, job_id);
 				}
 			}
 			catch (Exception& e)
 			{
-                if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed: " << e.message() << QT_ENDL;
+				if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed: " << e.message() << QT_ENDL;
 				Log::info("SGE job (id=" + QString::number(job_id) + ") update failed: " + e.message());
 			}
 			catch (...)
 			{
-                if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed with unkown error" << QT_ENDL;
+				if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed with unkown error" << QT_ENDL;
 				Log::info("SGE job (id=" + QString::number(job_id) + ") update failed with unkown error");
 			}
 		}
@@ -68,33 +62,32 @@ void QueuingEngineStatusUpdateWorker::run()
 		while(query.next())
 		{
 			QString job_id = query.value("id").toString();
-            if (debug_)
-            {
-                QTextStream(stdout) <<  "Removing job " << job_id << " because it is older than 60 days" << QT_ENDL;
-            }
+			if (debug_)
+			{
+				QTextStream(stdout) <<  "Removing job " << job_id << " because it is older than 60 days" << QT_ENDL;
+			}
 			db.getQuery().exec("DELETE FROM `analysis_job_history` WHERE analysis_job_id=" + job_id);
 			db.getQuery().exec("DELETE FROM `analysis_job_sample` WHERE analysis_job_id=" + job_id);
 			db.getQuery().exec("DELETE FROM `analysis_job` WHERE id=" + job_id);
 		}
 
-        if (debug_) QTextStream(stdout) << "SGE update done" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << "SGE update done" << QT_ENDL;
 	}
 	catch (Exception& e)
 	{
-        if (debug_) QTextStream(stdout) << "SGE update failed: " << e.message() << QT_ENDL;
+		if (debug_) QTextStream(stdout) << "SGE update failed: " << e.message() << QT_ENDL;
 		Log::info("SGE status update failed: " + e.message());
 	}
 	catch (...)
 	{
-        if (debug_) QTextStream(stdout) << "SGE update failed with unkown error" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << "SGE update failed with unkown error" << QT_ENDL;
 		Log::info("SGE status update failed with unkown error");
 	}
-
 }
 
-void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
+void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
 {
-    if (debug_) QTextStream(stdout) << "Starting job " << job_id << " (type: " << job.type << ")" << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Starting job " << job_id << " (type: " << job.type << ")" << QT_ENDL;
 
 	//init
 	QString timestamp = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
@@ -179,10 +172,10 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
 		//check if single analysis is still running > skip for now
 		if(singleSampleAnalysisRunning(db, job))
 		{
-            if (debug_)
-            {
-                QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
-            }
+			if (debug_)
+			{
+				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+			}
 			return;
 		}
 
@@ -214,10 +207,10 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
 		//check if single analysis is still running > skip for now
 		if(singleSampleAnalysisRunning(db, job))
 		{
-            if (debug_)
-            {
-                QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
-            }
+			if (debug_)
+			{
+				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+			}
 			return;
 		}
 
@@ -245,10 +238,10 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
 		//check if single analysis is still running > skip for now
 		if(singleSampleAnalysisRunning(db, job))
 		{
-            if (debug_)
-            {
-                QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
-            }
+			if (debug_)
+			{
+				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+			}
 			return;
 		}
 
@@ -320,100 +313,24 @@ void QueuingEngineStatusUpdateWorker::startAnalysis(NGSD& db, const AnalysisJob&
 	}
 	if (!threads_in_args)
 	{
-        pipeline_args << "-threads" << QString::number(threads);
+		pipeline_args << "-threads" << QString::number(threads);
 	}
 
 	//job submission
-	QueuingEngineOutput qe_output = executor_provider_->submitJob(threads, queues, pipeline_args, project_folder, script, job.args.simplified(), QString::number(job_id), debug_);
-	QByteArray engine_name = executor_provider_->getEngineName().toLatin1();
-    if (qe_output.exit_code!=0)
-	{
-		QByteArrayList details;
-		details << (engine_name + " job submission failed: returned exit code "+QByteArray::number(qe_output.exit_code)+"!");
-		details << "Command:";
-        details << (qe_output.command + " " + qe_output.args.join(" ")).toLatin1();
-		details << "Output:";
-        details << qe_output.result.join('\n');
-		db.addAnalysisHistoryEntry(job_id, "error", details);
-		return;
-	}
-
-	//determine queuing engine job number
-	QByteArray sge_id;
-	QByteArrayList qe_result = qe_output.result.join(" ").simplified().split(' ');
-	if (engine_name == "SGE") sge_id = qe_result[2]; //sge result has format: "Your job 17 ("php") has been submitted"
-	else if (engine_name == "SLURM") sge_id = qe_result[3]; //slurm result has format: "Submitted batch job 17"
-
-	//handle qsub output
-	if (Helper::isNumeric(sge_id) && sge_id.toInt()>0)
-	{
-        if (debug_) QTextStream(stdout) << "  Started with SGE id " << sge_id << QT_ENDL;
-		db.getQuery().exec("UPDATE analysis_job SET sge_id='"+sge_id+"' WHERE id="+QString::number(job_id));
-
-		db.addAnalysisHistoryEntry(job_id, "started", QByteArrayList());
-	}
-	else
-	{
-		QByteArrayList details;
-		details << engine_name + " job submission failed - could not determine queuing engine job number!";
-		details << "Command:";
-		details << (qe_output.command + qe_output.args.join(" ")).toLatin1();
-		details << "Output:";
-        details << qe_output.result.join('\n');
-		db.addAnalysisHistoryEntry(job_id, "error", details);
-	}
+	submitJob(db, threads, queues, pipeline_args, project_folder, script, job.args.simplified(), job_id);
 }
 
-void QueuingEngineStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const AnalysisJob& job, int job_id)
+void QueuingEngineController::updateAnalysisStatus(NGSD &db, const AnalysisJob &job, int job_id)
 {
-    if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
 
 
 	//check if job is still running
-	QByteArray engine_name = executor_provider_->getEngineName().toLatin1();
-    QueuingEngineOutput general_stats = executor_provider_->checkJobDetails(job.sge_id);
-	bool slurm_running = true;
-	if (engine_name == "SLURM")
+	bool still_running = checkJobRunning(job.sge_id);
+
+	if (still_running)
 	{
-		slurm_running = false;
-		foreach(QByteArray line, general_stats.result)
-		{
-			 if (line.startsWith(job.sge_id.toLatin1() + ' ')) slurm_running = true;
-		}
-	}
-	if (general_stats.exit_code==0 && slurm_running) //still running/queued > update NGSD infos if necessary
-	{
-        QueuingEngineOutput output = executor_provider_->checkJobsForAllUsers();
-        if (output.exit_code==0)
-		{
-            foreach(QByteArray line, output.result)
-			{
-				line = line.simplified();
-				if (!line.startsWith(job.sge_id.toLatin1() + ' ')) continue;
-				QByteArrayList parts = line.split(' ');
-				if (parts.count()<8) continue;
-
-				QByteArray status = parts[4].trimmed().toLower();
-                if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << QT_ENDL;
-
-				if (status=="r" && job.sge_queue.isEmpty())
-				{
-					QByteArray queue;
-					if (engine_name == "SGE") queue = parts[7].split('@')[0].trimmed();
-					else if (engine_name == "SLURM") queue = parts[1].split('@')[0].trimmed();
-
-					SqlQuery query = db.getQuery();
-					query.prepare("UPDATE analysis_job SET sge_queue=:0 WHERE id=:1");
-					query.bindValue(0, queue);
-					query.bindValue(1, job_id);
-					query.exec();
-				}
-			}
-		}
-		else
-		{
-            Log::warn(output.command + " " + output.args.join(" ") + " failed - skipping update of SGE job with id " + job.sge_id);
-		}
+		updateRunningJob(db, job, job_id);
 	}
 	else //finished => add status in NGSD
 	{
@@ -435,75 +352,11 @@ void QueuingEngineStatusUpdateWorker::updateAnalysisStatus(NGSD& db, const Analy
 			}
 		}
 
-        QueuingEngineOutput output = executor_provider_->checkCompletedJob(job.sge_id);
-        if (output.exit_code==0)
-		{
-			QString sge_exit_code = "";
-
-			if (engine_name == "SGE")
-			{
-				foreach(QByteArray line, output.result)
-				{
-					line = line.simplified();
-					if (line.startsWith("exit_status "))
-					{
-						sge_exit_code = line.split(' ')[1];
-					}
-				}
-			}
-			else if (engine_name == "SLURM")
-			{
-				foreach(QByteArray line, output.result)
-				{
-					if (!line.startsWith(job.sge_id.toLatin1() + ' ')) continue;
-					QByteArrayList parts = line.simplified().split(' ');
-					if (parts.size() >= 7)
-					{
-						QByteArray exit_code = parts.last();
-						sge_exit_code = exit_code.split(':')[0];
-					}
-				}
-			}
-
-			if (sge_exit_code=="0")
-			{
-                if (debug_) QTextStream(stdout) << "	Job finished successfully" << QT_ENDL;
-				db.addAnalysisHistoryEntry(job_id, "finished", stdout_stderr);
-			}
-			else
-			{
-                if (debug_) QTextStream(stdout) << "	Job failed with exit code: " << sge_exit_code << QT_ENDL;
-				stdout_stderr.prepend(("job exit code: " + sge_exit_code).toLatin1());
-				db.addAnalysisHistoryEntry(job_id, "error", stdout_stderr);
-			}
-		}
-		else
-		{
-            Log::warn(output.command + " " + output.args.join(" ") + "' failed with exit code " + QString::number(output.exit_code));
-		}
+		checkCompletedJob(db, job.sge_id, stdout_stderr, job_id);
 	}
 }
 
-void QueuingEngineStatusUpdateWorker::canceledAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
-{
-    if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
-
-	//cancel job
-    QueuingEngineOutput output;
-	if (!job.sge_id.isEmpty()) // not started yet => nothing to cancel
-	{
-        output = executor_provider_->deleteJob(job.sge_id);
-        if (output.exit_code!=0)
-        {
-            Log::warn(output.command + " " + job.sge_id + "' failed with exit code " + QString::number(output.exit_code));
-		}
-	}
-
-	//update NGSD
-    db.addAnalysisHistoryEntry(job_id, "canceled", output.result);
-}
-
-bool QueuingEngineStatusUpdateWorker::singleSampleAnalysisRunning(NGSD& db, const AnalysisJob& job)
+bool QueuingEngineController::singleSampleAnalysisRunning(NGSD &db, const AnalysisJob &job)
 {
 	foreach (const AnalysisJobSample& sample, job.samples)
 	{
@@ -520,3 +373,4 @@ bool QueuingEngineStatusUpdateWorker::singleSampleAnalysisRunning(NGSD& db, cons
 	}
 	return false;
 }
+

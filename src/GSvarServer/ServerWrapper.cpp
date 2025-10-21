@@ -1,6 +1,6 @@
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
-#include "QueuingEngineStatusUpdateWorker.h"
+#include "QueuingEngineController.h"
 #include <QStandardPaths>
 #include <QTimer>
 #include "SessionManager.h"
@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QFileSystemWatcher>
 #include "FileMetaCache.h"
+#include "PipelineSettings.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
@@ -291,5 +292,5 @@ void ServerWrapper::updateQueingEngineStatus()
 
     if (qe_status_pool_.activeThreadCount() > 0) return;
 
-    qe_status_pool_.start(new QueuingEngineStatusUpdateWorker());
+	qe_status_pool_.start(QueuingEngineController::create(PipelineSettings::queuingEngine()));
 }
