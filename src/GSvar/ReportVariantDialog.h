@@ -27,7 +27,8 @@ protected:
 	bool variantReportConfigChanged();
 	///Write settings from GUI back to config
 	void writeBack(ReportVariantConfiguration& rvc);
-
+	///Reimplemented close event to make sure changes are not lost
+	void closeEvent(QCloseEvent* e);
 	Ui::ReportVariantDialog ui_;
 	QString variant_;
 	ReportVariantConfiguration& config_;

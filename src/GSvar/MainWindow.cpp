@@ -3298,7 +3298,7 @@ void MainWindow::on_actionAbout_triggered()
 	about_text += "\n";
 	if (ClientHelper::isClientServerMode())
 	{
-		about_text += "\nMode: client-server";
+		about_text += "\nServer information:";
         int status_code = -1;
         ServerInfo server_info = ClientHelper::getServerInfo(status_code);
         if (status_code!=200)
@@ -3307,11 +3307,11 @@ void MainWindow::on_actionAbout_triggered()
         }
         else
         {
-			about_text += "\nServer version: " + server_info.version;
-            about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-			about_text += "\nAPI URL: " + server_info.server_url;
-			about_text += "\nAPI version: " + server_info.api_version;
-			about_text += "\nhtslib version: " + server_info.htslib_version;
+			about_text += "\n  version: " + server_info.version;
+			about_text += "\n  start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
+			about_text += "\n  API URL: " + server_info.server_url;
+			about_text += "\n  API version: " + server_info.api_version;
+			about_text += "\n  htslib version: " + server_info.htslib_version;
 		}
     }
 	else

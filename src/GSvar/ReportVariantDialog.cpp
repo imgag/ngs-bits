@@ -12,7 +12,6 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	, genome_idx_(Settings::string("reference_genome", false))
 {
 	ui_.setupUi(this);
-	setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
 
 	connect(ui_.manual_small_var_import, SIGNAL(clicked(bool)), this, SLOT(importManualSmallVariant()));
 	ui_.variant->setText(variant_);
@@ -261,6 +260,18 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 		rvc.manual_re_allele1 = ui_.manual_re_allele1->text().trimmed();
 		rvc.manual_re_allele2 = ui_.manual_re_allele2->text().trimmed();
 	}
+}
+
+void ReportVariantDialog::closeEvent(QCloseEvent* e)
+{
+	if(variantReportConfigChanged())
+	{
+		int reply = QMessageBox::question(this, "Report configuration", "Report configuration changed!\nDo you want to store the changes before closing the dialog?");
+		if (reply==QMessageBox::Yes) accept();
+	}
+
+	//close
+	e->accept();
 }
 
 void ReportVariantDialog::activateOkButtonIfValid()
