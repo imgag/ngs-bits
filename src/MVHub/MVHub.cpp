@@ -11,6 +11,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFileDialog>
+#include <QDesktopServices>
 #include "ExportHistoryDialog.h"
 #include <QClipboard>
 
@@ -74,6 +75,9 @@ void MVHub::tableContextMenu(QPoint pos)
 {
 	QList<int> rows = GUIHelper::selectedTableRows(ui_.table);
 
+	//init
+	int c_export_status = colOf("export status");
+
 	//create menu
 	QMenu menu;
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
@@ -94,6 +98,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	a_export->setEnabled(ui_.f_ready_export->isChecked() && rows.count()>0);
 	QAction* a_export_history = menu.addAction("Show export history");
 	a_export_history->setEnabled(rows.count()==1);
+	QAction* a_export_failed_email = menu.addAction("Email: export failed");
+	a_export_failed_email->setEnabled(rows.count()==1 && getString(rows.first(), c_export_status).contains("failed"));
 
 	//execute
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
@@ -239,6 +245,11 @@ void MVHub::tableContextMenu(QPoint pos)
 		int r = rows.first();
 		openExportHistory(r);
 	}
+	if (action==a_export_failed_email)
+	{
+		int r = rows.first();
+		emailExportFailed(r);
+	}
 	if (action->parent()==copy_col_menu)
 	{
 		QStringList output;
@@ -260,6 +271,69 @@ void MVHub::openExportHistory(int row)
 
 	ExportHistoryDialog dlg(this, getString(row, c_cm), getString(row, c_network));
 	dlg.exec();
+}
+
+void MVHub::emailExportFailed(int row)
+{
+	//init
+	QString cm_id = getString(row, colOf("CM ID"));
+	QString sap_id = getString(row, colOf("SAP ID"));
+	QString network_id = getString(row, colOf("Netzwerk ID"));
+	NGSD mvh_db(true, "mvh");
+	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toString().trimmed();
+
+	//to email adress
+	QString to;
+	Network network = getNetwork(row);
+	if (network==SE) to = Settings::string("email_se");
+	if (network==OE) to = Settings::string("email_oe");
+	if (network==FBREK) to = Settings::string("email_fbrek");
+
+	//subject
+	QString subject = "MVH Export fehlgeschlagen in " + cm_id + (network_id.isEmpty() ? "" : " / " + network_id);
+
+	//body
+	QStringList body;
+	body << "Hallo,";
+	body << "";
+	body << "bei folgendem Fall ist der Export fehlgeschlagen:";
+	body << ("ID RedCap Fallverwaltung: " + cm_id);
+	body << ("ID RedCap Netzwerk: " + network_id);
+	body << ("ID SAP: " + sap_id);
+	body << "";
+	body << "Fehler:";
+
+	//GRZ
+	SqlQuery query = mvh_db.getQuery();
+	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
+	if(query.next() && query.value("status")=="failed")
+	{
+		QStringList lines = query.value("submission_output").toString().split("\n");
+		foreach(QString line, lines)
+		{
+			if (!line.contains("error")) continue;
+			body << ("GRZ: " + line);
+		}
+	}
+
+	//KDK SE
+	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
+	if(query.next() && query.value("status")=="failed")
+	{
+		QStringList lines = query.value("submission_output").toString().split("\n");
+		foreach(QString line, lines)
+		{
+			if (!line.contains("error")) continue;
+			body << ("KDK: " + line);
+		}
+	}
+
+	body << "";
+	body << "Viele Grüße,";
+	body << "  " + Settings::string("email_sender_name");
+
+	//open in email app
+	QDesktopServices::openUrl(QUrl("mailto:" + to + "?subject=" + subject + "&body=" + body.join("\n")));
 }
 
 void MVHub::updateTableFilters()
@@ -641,7 +715,7 @@ void MVHub::determineProcessedSamples(int debug_level)
 		if (debug_level>=1) addOutputLine("cm_id: " + cm_id + " // SAP ID: " + sap_id);
 		QString ps_mvh = mvh_db.getValue("SELECT ps FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
 		QString ps_mvh_t = mvh_db.getValue("SELECT ps_t FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
-		if(network==SE)
+		if(network==SE || network==FBREK)
 		{
 			if (!ps_mvh.isEmpty())
 			{
@@ -1039,7 +1113,8 @@ void MVHub::updateExportStatus(NGSD& mvh_db, int r)
 	if(query.next())
 	{
 		QString status = query.value("status").toString();
-		text += " // KDK " + (status=="done" ? query.value("date").toString() : status);
+		if (!text.isEmpty()) text += " // ";
+		text += "KDK " + (status=="done" ? query.value("date").toString() : status);
 		if (status=="failed") text += QChar(0x274C);
 		if (status=="done") text += QChar(0x2705);
 
@@ -1947,6 +2022,7 @@ MVHub::Network MVHub::getNetwork(int r)
 	QString network = getString(r, c);
 	if (network=="Netzwerk Seltene Erkrankungen") return SE;
 	if (network=="Deutsches Netzwerk für Personalisierte Medizin") return OE;
+	if (network=="Deutsches Konsortium Familiärer Brust- und Eierstockkrebs") return FBREK;
 	if (network=="") return UNSET;
 	THROW(ArgumentException, "Unhandled network type '" + network +"'!");
 }
@@ -1959,6 +2035,8 @@ QString MVHub::networkToString(Network network)
 			return "Netzwerk Seltene Erkrankungen";
 		case OE:
 			return "Deutsches Netzwerk für Personalisierte Medizin";
+		case FBREK:
+			return "Deutsches Konsortium Familiärer Brust- und Eierstockkrebs";
 		case UNSET:
 			return "";
 	}
