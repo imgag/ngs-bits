@@ -14,7 +14,7 @@ QString QueuingEngineControllerSge::getEngineName() const
 void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
 {
 	//Prepare qsub command
-    QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + job_id;
+	QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
     QStringList qsub_args;
     qsub_args << "-V";
 	if (debug_) QTextStream(stdout) << "megSAP pipeline:\t " << script << QT_ENDL;

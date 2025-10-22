@@ -13,7 +13,7 @@ QString QueuingEngineControllerSlurm::getEngineName() const
 
 void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
 {
-	QString slurm_out_base = PipelineSettings::dataFolder() + "/slurm/megSAP_slurm_job_" + job_id;
+	QString slurm_out_base = PipelineSettings::dataFolder() + "/slurm/megSAP_slurm_job_" + QString::number(job_id);
 
 	//Prepare sbatch arguments
     QStringList sbatch_args;
@@ -152,7 +152,8 @@ bool QueuingEngineControllerSlurm::checkJobRunning(QString job_id) const
 	{
 		foreach(QByteArray line, result)
 		{
-			 if (line.startsWith(job_id.toLatin1() + ' ')) running = true;
+			 if (line.trimmed().startsWith(job_id.toLatin1() + ' ')) running = true;
+			 break;
 		}
 	}
 	else running = false;
