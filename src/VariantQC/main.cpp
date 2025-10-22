@@ -25,7 +25,7 @@ public:
 		addOutfile("phasing_bed", "Output BED file containing phasing blocks with id. (requires parameter '-longread')", true);
 
 		//changelog
-		changeLog(2023,  9, 21, "Added parameter 'longread' to add longread specific QC values.");
+		changeLog(2025, 10, 21, "Added parameter support for dbSNP IDs from INFO entry 'RS' in addition to INFO entry 'CSQ'.");
 		changeLog(2023,  9, 21, "Added parameter 'longread' to add longread specific QC values.");
 		changeLog(2020,  8,  7, "VCF files only as input format for variant list.");
 		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");

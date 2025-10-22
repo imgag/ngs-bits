@@ -475,11 +475,9 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	//add lab columns
 	if (p.add_lab_columns)
 	{
-		tables << "user";
-		conditions << "ps.operator_id=user.id";
 		fields << "ps.processing_input as processing_input"
 			   << "ps.molarity as molarity"
-			   << "user.name as operator"
+			   << "u.name as operator"
 			   << "ps.processing_modus as processing_modus"
 			   << "ps.batch_number as batch_number";
 	}
