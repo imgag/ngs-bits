@@ -52,12 +52,12 @@ void QueuingEngineController::run()
 			}
 			catch (Exception& e)
 			{
-				if (debug_) QTextStream(stdout) << "Queuing engine job (id=" << QString::number(job_id) << ") update failed: " << e.message() << QT_ENDL;
+				if (debug_) QTextStream(stdout) << engine << " job (id=" << QString::number(job_id) << ") update failed: " << e.message() << QT_ENDL;
 				Log::info(engine + " job (id=" + QString::number(job_id) + ") update failed: " + e.message());
 			}
 			catch (...)
 			{
-				if (debug_) QTextStream(stdout) << "Queuing job (id=" << QString::number(job_id) << ") update failed with unkown error" << QT_ENDL;
+				if (debug_) QTextStream(stdout) << engine << " job (id=" << QString::number(job_id) << ") update failed with unkown error" << QT_ENDL;
 				Log::info(engine + " job (id=" + QString::number(job_id) + ") update failed with unkown error");
 			}
 		}
@@ -85,7 +85,7 @@ void QueuingEngineController::run()
 	}
 	catch (...)
 	{
-		if (debug_) QTextStream(stdout) << "Queuing engine update failed with unkown error" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << engine << " update failed with unkown error" << QT_ENDL;
 		Log::info(engine + " status update failed with unkown error");
 	}
 }
