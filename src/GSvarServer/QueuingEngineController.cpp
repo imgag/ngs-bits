@@ -326,13 +326,9 @@ void QueuingEngineController::updateAnalysisStatus(NGSD &db, const AnalysisJob &
 
 
 	//check if job is still running
-	bool still_running = checkJobRunning(job.sge_id);
+	bool finished = updateRunningJob(db, job, job_id);;
 
-	if (still_running)
-	{
-		updateRunningJob(db, job, job_id);
-	}
-	else //finished => add status in NGSD
+	if (finished) //finished => add status in NGSD
 	{
 		//load stdout/stderr output
 		QByteArrayList stdout_stderr;

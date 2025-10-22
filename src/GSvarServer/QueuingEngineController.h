@@ -23,11 +23,8 @@ protected:
     // Submits a job to a queuing engine and returns an exit code
 	virtual void submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const = 0;
 
-	// Updates the status of a running job in NGSD
-	virtual void updateRunningJob(NGSD& db, const AnalysisJob &job, int job_id) const = 0;
-
-	// Checks if a job is still running and returns a boolean
-	virtual bool checkJobRunning(QString job_id) const = 0;
+	// Updates the status of a running job in NGSD and returns if the job is finished
+	virtual bool updateRunningJob(NGSD& db, const AnalysisJob &job, int job_id) const = 0;
 
     // Performs job accounting after completion and returns an exit code
 	virtual void checkCompletedJob(NGSD& db, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const = 0;

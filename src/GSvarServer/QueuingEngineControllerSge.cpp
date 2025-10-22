@@ -79,8 +79,9 @@ void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList qu
 	}
 }
 
-void QueuingEngineControllerSge::updateRunningJob(NGSD& db, const AnalysisJob &job, int job_id) const
+bool QueuingEngineControllerSge::updateRunningJob(NGSD& db, const AnalysisJob &job, int job_id) const
 {
+	bool job_finished = true;
 	QByteArrayList result;
 	QString command = "qstat";
 	QStringList qstat_args = QStringList() << "-u" << "*";
@@ -92,22 +93,26 @@ void QueuingEngineControllerSge::updateRunningJob(NGSD& db, const AnalysisJob &j
 		foreach(QByteArray line, result)
 		{
 			line = line.simplified();
-			if (!line.startsWith(job.sge_id.toLatin1() + ' ')) continue;
-			QByteArrayList parts = line.split(' ');
-			if (parts.count()<8) continue;
-
-			QByteArray status = parts[4].trimmed().toLower();
-			if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << QT_ENDL;
-
-			if (status=="r" && job.sge_queue.isEmpty())
+			if (line.startsWith(job.sge_id.toLatin1() + ' '))
 			{
-				QByteArray queue = parts[7].split('@')[0].trimmed();
+				job_finished = false;
+				QByteArrayList parts = line.split(' ');
+				if (parts.count()<8) continue;
 
-				SqlQuery query = db.getQuery();
-				query.prepare("UPDATE analysis_job SET sge_queue=:0 WHERE id=:1");
-				query.bindValue(0, queue);
-				query.bindValue(1, job_id);
-				query.exec();
+				QByteArray status = parts[4].trimmed().toLower();
+				if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << QT_ENDL;
+
+				if (status=="r" && job.sge_queue.isEmpty())
+				{
+					QByteArray queue = parts[7].split('@')[0].trimmed();
+
+					SqlQuery query = db.getQuery();
+					query.prepare("UPDATE analysis_job SET sge_queue=:0 WHERE id=:1");
+					query.bindValue(0, queue);
+					query.bindValue(1, job_id);
+					query.exec();
+				}
+				break;
 			}
 		}
 	}
@@ -115,17 +120,8 @@ void QueuingEngineControllerSge::updateRunningJob(NGSD& db, const AnalysisJob &j
 	{
 		Log::warn(command + " " + qstat_args.join(" ") + " failed - skipping update of SGE job with id " + job.sge_id);
 	}
-}
 
-bool QueuingEngineControllerSge::checkJobRunning(QString job_id) const
-{
-	QString command = "qstat";
-	QStringList qstat_args = QStringList() << "-j" << job_id;
-	int exit_code = Helper::executeCommand(command, qstat_args);
-	Log::info(command + " " + qstat_args.join(" "));
-
-	if (exit_code == 0) return true;
-	else return false;
+	return job_finished;
 }
 
 void QueuingEngineControllerSge::checkCompletedJob(NGSD& db, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const
