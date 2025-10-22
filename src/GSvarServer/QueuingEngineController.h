@@ -17,10 +17,10 @@ public:
 	void run() override;
 
 protected:
-    // Returns the name of a queuing engine
-    virtual QString getEngineName() const = 0;
+	// Returns the name of a queuing engine
+	virtual QString getEngineName() const = 0;
 
-    // Submits a job to a queuing engine and returns an exit code
+	// Submits a job to a queuing engine and returns an exit code
 	virtual void submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const = 0;
 
 	// Updates the status of a running job in NGSD and returns if the job is finished

@@ -8,7 +8,7 @@ QueuingEngineControllerSlurm::QueuingEngineControllerSlurm()
 
 QString QueuingEngineControllerSlurm::getEngineName() const
 {
-    return "SLURM";
+	return "SLURM";
 }
 
 void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
@@ -79,13 +79,13 @@ void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList 
 
 	//Update NGSD on qsub success
 	QByteArrayList qe_result = result.join(" ").simplified().split(' ');
-	QByteArray sge_id = qe_result[3]; //slurm result has format: "Submitted batch job 17"
+	QByteArray slurm_id = qe_result[3]; //slurm result has format: "Submitted batch job 17"
 
 	//handle qsub output
-	if (Helper::isNumeric(sge_id) && sge_id.toInt()>0)
+	if (Helper::isNumeric(slurm_id) && slurm_id.toInt()>0)
 	{
-		if (debug_) QTextStream(stdout) << "  Started with SGE id " << sge_id << QT_ENDL;
-		db.getQuery().exec("UPDATE analysis_job SET sge_id='"+sge_id+"' WHERE id="+QString::number(job_id));
+		if (debug_) QTextStream(stdout) << "  Started with Slurm id " << slurm_id << QT_ENDL;
+		db.getQuery().exec("UPDATE analysis_job SET sge_id='" + slurm_id + "' WHERE id="+QString::number(job_id));
 
 		db.addAnalysisHistoryEntry(job_id, "started", QByteArrayList());
 	}
@@ -140,7 +140,7 @@ bool QueuingEngineControllerSlurm::updateRunningJob(NGSD& db, const AnalysisJob 
 	}
 	else
 	{
-		Log::warn(command + " " + squeue_args.join(" ") + " failed - skipping update of SGE job with id " + job.sge_id);
+		Log::warn(command + " " + squeue_args.join(" ") + " failed - skipping update of Slurm job with id " + job.sge_id);
 	}
 
 	return job_finished;
@@ -190,7 +190,7 @@ void QueuingEngineControllerSlurm::checkCompletedJob(NGSD& db, QString qe_job_id
 
 void QueuingEngineControllerSlurm::deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const
 {
-	if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " Slurm-id: " << job.sge_id << ")" << QT_ENDL;
 
 	QByteArrayList result;
 	if (!job.sge_id.isEmpty())

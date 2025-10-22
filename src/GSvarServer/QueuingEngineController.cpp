@@ -6,16 +6,21 @@
 
 QueuingEngineController* QueuingEngineController::create(const QString& engine)
 {
-	if (engine == "sge") return new QueuingEngineControllerSge();
-	if (engine == "slurm") return new QueuingEngineControllerSlurm();
-	return nullptr;
+	if (engine.toLower() == "sge") return new QueuingEngineControllerSge();
+	else if (engine.toLower() == "slurm") return new QueuingEngineControllerSlurm();
+	else
+	{
+		Log::error("Invalid queueing engine set in megSAP settings.ini: " + engine);
+		return nullptr;
+	}
 }
 
 void QueuingEngineController::run()
 {
+	QString engine = getEngineName();
 	try
 	{
-		if (debug_) QTextStream(stdout) << "SGE update started" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << engine << " update started" << QT_ENDL;
 
 		NGSD db;
 
@@ -47,13 +52,13 @@ void QueuingEngineController::run()
 			}
 			catch (Exception& e)
 			{
-				if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed: " << e.message() << QT_ENDL;
-				Log::info("SGE job (id=" + QString::number(job_id) + ") update failed: " + e.message());
+				if (debug_) QTextStream(stdout) << "Queuing engine job (id=" << QString::number(job_id) << ") update failed: " << e.message() << QT_ENDL;
+				Log::info(engine + " job (id=" + QString::number(job_id) + ") update failed: " + e.message());
 			}
 			catch (...)
 			{
-				if (debug_) QTextStream(stdout) << "SGE job (id=" << QString::number(job_id) << ") update failed with unkown error" << QT_ENDL;
-				Log::info("SGE job (id=" + QString::number(job_id) + ") update failed with unkown error");
+				if (debug_) QTextStream(stdout) << "Queuing job (id=" << QString::number(job_id) << ") update failed with unkown error" << QT_ENDL;
+				Log::info(engine + " job (id=" + QString::number(job_id) + ") update failed with unkown error");
 			}
 		}
 
@@ -71,17 +76,17 @@ void QueuingEngineController::run()
 			db.getQuery().exec("DELETE FROM `analysis_job` WHERE id=" + job_id);
 		}
 
-		if (debug_) QTextStream(stdout) << "SGE update done" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << engine << " update done" << QT_ENDL;
 	}
 	catch (Exception& e)
 	{
-		if (debug_) QTextStream(stdout) << "SGE update failed: " << e.message() << QT_ENDL;
-		Log::info("SGE status update failed: " + e.message());
+		if (debug_) QTextStream(stdout) << engine << " update failed: " << e.message() << QT_ENDL;
+		Log::info(engine + " status update failed: " + e.message());
 	}
 	catch (...)
 	{
-		if (debug_) QTextStream(stdout) << "SGE update failed with unkown error" << QT_ENDL;
-		Log::info("SGE status update failed with unkown error");
+		if (debug_) QTextStream(stdout) << "Queuing engine update failed with unkown error" << QT_ENDL;
+		Log::info(engine + " status update failed with unkown error");
 	}
 }
 
@@ -91,6 +96,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 
 	//init
 	QString timestamp = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
+	QString engine = getEngineName();
 
 	//get processed sample data
 	QString project_folder;
@@ -190,7 +196,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		{
 			if (!Helper::set777(out_folder))
 			{
-				db.addAnalysisHistoryEntry(job_id, "error", QByteArrayList() << ("Error while submitting analysis to SGE: Could not change privileges of folder " + out_folder.toLatin1()));
+				db.addAnalysisHistoryEntry(job_id, "error", QByteArrayList() << ("Error while submitting analysis to " + engine.toLatin1() + ": Could not change privileges of folder " + out_folder.toLatin1()));
 				return;
 			}
 		}
@@ -221,7 +227,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		{
 			if (!Helper::set777(out_folder))
 			{
-				db.addAnalysisHistoryEntry(job_id, "error", QByteArrayList() << ("Error while submitting analysis to SGE: Could not change privileges of folder " + out_folder.toLatin1()));
+				db.addAnalysisHistoryEntry(job_id, "error", QByteArrayList() << ("Error while submitting analysis to " + engine.toLatin1() + ": Could not change privileges of folder " + out_folder.toLatin1()));
 				return;
 			}
 		}
@@ -264,7 +270,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		{
 			if (!Helper::set777(out_folder))
 			{
-				db.addAnalysisHistoryEntry(job_id, "error", QByteArrayList() << ("Error while submitting analysis to SGE: Could not change privileges of folder " + out_folder.toLatin1()));
+				db.addAnalysisHistoryEntry(job_id, "error", QByteArrayList() << ("Error while submitting analysis to " + engine.toLatin1() + ": Could not change privileges of folder " + out_folder.toLatin1()));
 				return;
 			}
 		}
@@ -288,11 +294,11 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 	}
 	else
 	{
-		db.addAnalysisHistoryEntry(job_id, "error", QByteArrayList() << "Error while submitting analysis to SGE: Unknown analysis type '"+job.type.toLatin1()+"'!");
+		db.addAnalysisHistoryEntry(job_id, "error", QByteArrayList() << "Error while submitting analysis to " + engine.toLatin1() + ": Unknown analysis type '"+job.type.toLatin1()+"'!");
 		return;
 	}
 
-	//determine number of threads to use (equal to the number of SGE slots)
+	//determine number of threads to use (equal to the number of SGE/slurm slots)
 	int threads = 4;
 	foreach(const ProcessedSampleData& s, ps_data) //use more slots for WGS and RNA
 	{
@@ -322,17 +328,18 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 
 void QueuingEngineController::updateAnalysisStatus(NGSD &db, const AnalysisJob &job, int job_id)
 {
-	if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " QE-id: " << job.sge_id << ")" << QT_ENDL;
 
 
 	//check if job is still running
-	bool finished = updateRunningJob(db, job, job_id);;
+	bool finished = updateRunningJob(db, job, job_id);
 
 	if (finished) //finished => add status in NGSD
 	{
 		//load stdout/stderr output
 		QByteArrayList stdout_stderr;
-		QString base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
+		QString engine = getEngineName().toLower();
+		QString base = PipelineSettings::dataFolder() + "/" + engine + "/megSAP_" + engine + "_job_" + QString::number(job_id);
 		if (QFile::exists(base+".out"))
 		{
 			foreach(QString line, Helper::loadTextFile(base+".out"))

@@ -8,7 +8,7 @@ QueuingEngineControllerSge::QueuingEngineControllerSge()
 
 QString QueuingEngineControllerSge::getEngineName() const
 {
-    return "SGE";
+	return "SGE";
 }
 
 void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
