@@ -458,8 +458,11 @@ void BamReader::checkChromosomeLengths(const QString& ref_genome)
 	for(int32_t i = 0; i < number_chromosomes; ++i)
 	{
 		char* name_chromosome = header_->target_name[i];
+		Chromosome chr(name_chromosome);
+		if (!chr.isAutosome() && !chr.isGonosome()) continue; //check only autosomes and gonosomes
+
 		uint32_t length_chromosome = header_->target_len[i];
-		uint32_t length_reference_chromosome = (uint32_t)reference.lengthOf(Chromosome(name_chromosome));
+		uint32_t length_reference_chromosome = (uint32_t)reference.lengthOf(chr);
 
 		if(length_chromosome != length_reference_chromosome)
 		{
