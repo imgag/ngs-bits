@@ -1427,8 +1427,22 @@ QByteArray MVHub::consentJsonToXml(QByteArray json_text, bool debug)
 		if (!object.contains("resource")) continue;
 
 		object = object["resource"].toObject();
+
+		//check that the resource type is a consent
 		if (!object.contains("resourceType")) continue;
 		if (object["resourceType"].toString()!="Consent") continue;
+
+		//check that the consent version is not V9
+		if (!object.contains("identifier")) continue;
+		bool is_v9 = true;
+		QJsonArray identifiers = object["identifier"].toArray();
+		for (int i=0; i<identifiers.count(); ++i)
+		{
+			QJsonObject object = identifiers[i].toObject();
+			if (!object.contains("system")) continue;
+			if (object["system"].toString()!="source.ish.document.v09") is_v9 = false;
+		}
+		if (is_v9) continue;
 
 		QByteArrayList allowed;
 		QJsonArray provisions = object["provision"].toObject()["provision"].toArray();
