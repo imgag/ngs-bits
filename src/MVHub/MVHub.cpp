@@ -11,6 +11,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFileDialog>
+#include <QDesktopServices>
 #include "ExportHistoryDialog.h"
 #include <QClipboard>
 
@@ -74,6 +75,9 @@ void MVHub::tableContextMenu(QPoint pos)
 {
 	QList<int> rows = GUIHelper::selectedTableRows(ui_.table);
 
+	//init
+	int c_export_status = colOf("export status");
+
 	//create menu
 	QMenu menu;
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
@@ -94,6 +98,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	a_export->setEnabled(ui_.f_ready_export->isChecked() && rows.count()>0);
 	QAction* a_export_history = menu.addAction("Show export history");
 	a_export_history->setEnabled(rows.count()==1);
+	QAction* a_export_failed_email = menu.addAction("Email: export failed");
+	a_export_failed_email->setEnabled(rows.count()==1 && getString(rows.first(), c_export_status).contains("failed"));
 
 	//execute
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
@@ -239,6 +245,11 @@ void MVHub::tableContextMenu(QPoint pos)
 		int r = rows.first();
 		openExportHistory(r);
 	}
+	if (action==a_export_failed_email)
+	{
+		int r = rows.first();
+		emailExportFailed(r);
+	}
 	if (action->parent()==copy_col_menu)
 	{
 		QStringList output;
@@ -260,6 +271,69 @@ void MVHub::openExportHistory(int row)
 
 	ExportHistoryDialog dlg(this, getString(row, c_cm), getString(row, c_network));
 	dlg.exec();
+}
+
+void MVHub::emailExportFailed(int row)
+{
+	//init
+	QString cm_id = getString(row, colOf("CM ID"));
+	QString sap_id = getString(row, colOf("SAP ID"));
+	QString network_id = getString(row, colOf("Netzwerk ID"));
+	NGSD mvh_db(true, "mvh");
+	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toString().trimmed();
+
+	//to email adress
+	QString to;
+	Network network = getNetwork(row);
+	if (network==SE) to = Settings::string("email_se");
+	if (network==OE) to = Settings::string("email_oe");
+	if (network==FBREK) to = Settings::string("email_fbrek");
+
+	//subject
+	QString subject = "MVH Export fehlgeschlagen in " + cm_id + (network_id.isEmpty() ? "" : " / " + network_id);
+
+	//body
+	QStringList body;
+	body << "Hallo,";
+	body << "";
+	body << "bei folgendem Fall ist der Export fehlgeschlagen:";
+	body << ("ID RedCap Fallverwaltung: " + cm_id);
+	body << ("ID RedCap Netzwerk: " + network_id);
+	body << ("ID SAP: " + sap_id);
+	body << "";
+	body << "Fehler:";
+
+	//GRZ
+	SqlQuery query = mvh_db.getQuery();
+	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
+	if(query.next() && query.value("status")=="failed")
+	{
+		QStringList lines = query.value("submission_output").toString().split("\n");
+		foreach(QString line, lines)
+		{
+			if (!line.contains("error")) continue;
+			body << ("GRZ: " + line);
+		}
+	}
+
+	//KDK SE
+	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
+	if(query.next() && query.value("status")=="failed")
+	{
+		QStringList lines = query.value("submission_output").toString().split("\n");
+		foreach(QString line, lines)
+		{
+			if (!line.contains("error")) continue;
+			body << ("KDK: " + line);
+		}
+	}
+
+	body << "";
+	body << "Viele Grüße,";
+	body << "  " + Settings::string("email_sender_name");
+
+	//open in email app
+	QDesktopServices::openUrl(QUrl("mailto:" + to + "?subject=" + subject + "&body=" + body.join("\n")));
 }
 
 void MVHub::updateTableFilters()
@@ -1353,8 +1427,22 @@ QByteArray MVHub::consentJsonToXml(QByteArray json_text, bool debug)
 		if (!object.contains("resource")) continue;
 
 		object = object["resource"].toObject();
+
+		//check that the resource type is a consent
 		if (!object.contains("resourceType")) continue;
 		if (object["resourceType"].toString()!="Consent") continue;
+
+		//check that the consent version is not V9
+		if (!object.contains("identifier")) continue;
+		bool is_v9 = true;
+		QJsonArray identifiers = object["identifier"].toArray();
+		for (int i=0; i<identifiers.count(); ++i)
+		{
+			QJsonObject object = identifiers[i].toObject();
+			if (!object.contains("system")) continue;
+			if (object["system"].toString()!="source.ish.document.v09") is_v9 = false;
+		}
+		if (is_v9) continue;
 
 		QByteArrayList allowed;
 		QJsonArray provisions = object["provision"].toObject()["provision"].toArray();

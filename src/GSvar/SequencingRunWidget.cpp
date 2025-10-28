@@ -712,7 +712,6 @@ void SequencingRunWidget::sendStatusEmail()
 	//send
 	EmailDialog dlg(this, to, subject, body);
 	dlg.exec();
-
 }
 
 void SequencingRunWidget::checkMids()

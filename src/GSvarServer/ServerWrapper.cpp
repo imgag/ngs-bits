@@ -1,6 +1,6 @@
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
-#include "SgeStatusUpdateWorker.h"
+#include "QueuingEngineController.h"
 #include <QStandardPaths>
 #include <QTimer>
 #include "SessionManager.h"
@@ -8,14 +8,15 @@
 #include <QDir>
 #include <QFileSystemWatcher>
 #include "FileMetaCache.h"
+#include "PipelineSettings.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
     , cleanup_pool_()
-    , sge_status_pool_()
+    , qe_status_pool_()
 {
     cleanup_pool_.setMaxThreadCount(1);
-    sge_status_pool_.setMaxThreadCount(1);
+    qe_status_pool_.setMaxThreadCount(1);
 
     QString ssl_certificate = Settings::string("ssl_certificate", true);
 	if (ssl_certificate.isEmpty())
@@ -80,10 +81,10 @@ ServerWrapper::ServerWrapper(const quint16& port)
             connect(session_timer, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));
             session_timer->start(60 * 5 * 1000); // every 5 minutes
 
-			// Update SGE status
-            QTimer *sge_status_update_timer = new QTimer(this);
-            connect(sge_status_update_timer, SIGNAL(timeout()), this, SLOT(updateSgeStatus()));
-			sge_status_update_timer->start(15 * 1000); // every 15 sec
+            // Update queing engine status
+            QTimer *qe_status_update_timer = new QTimer(this);
+            connect(qe_status_update_timer, SIGNAL(timeout()), this, SLOT(updateQueingEngineStatus()));
+            qe_status_update_timer->start(15 * 1000); // every 15 sec
 
             // ClinVar submission status automatic update on schedule
             QTimer *clinvar_timer = new QTimer(this);
@@ -285,11 +286,11 @@ void ServerWrapper::cleanupSessionsAndUrls()
     }
 }
 
-void ServerWrapper::updateSgeStatus()
+void ServerWrapper::updateQueingEngineStatus()
 {
 	if (!Settings::boolean("queue_update_enabled", true)) return;
 
-	if (sge_status_pool_.activeThreadCount() > 0) return;
+    if (qe_status_pool_.activeThreadCount() > 0) return;
 
-	sge_status_pool_.start(new SgeStatusUpdateWorker());
+	qe_status_pool_.start(QueuingEngineController::create(PipelineSettings::queuingEngine()));
 }
