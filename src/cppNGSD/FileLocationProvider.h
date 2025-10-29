@@ -36,6 +36,8 @@ public:
 	virtual FileLocation getMethylationFile() const = 0;
 	//Returns the methylation image of a given locus
 	virtual FileLocation getMethylationImage(QString locus) const = 0;
+	//Returns the methylation image of a given locus
+	virtual FileLocation getMethylationCohortImage(QString locus) const = 0;
 
 	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files

@@ -22,6 +22,11 @@ private:
 	TsvFile data_;
 	void loadFile();
 
+	QColor red_ = QColor(255, 0, 0, 128);
+	QColor orange_ = QColor(255, 135, 60, 128);
+	QColor yellow_ = QColor(255, 255, 0, 128);
+
+
 private slots:
 	void openMethylationPlot(int row_idx, int);
 	void updateTable();

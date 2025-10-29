@@ -25,6 +25,7 @@ public:
 	FileLocationList getQcFiles() const override;
 	FileLocation getMethylationFile() const override;
 	FileLocation getMethylationImage(QString locus) const override;
+	FileLocation getMethylationCohortImage(QString locus) const override;
 
 	FileLocationList getBamFiles(bool return_if_missing) const override;
 	FileLocationList getViralBamFiles(bool return_if_missing) const override;
