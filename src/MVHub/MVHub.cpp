@@ -311,7 +311,7 @@ void MVHub::emailExportFailed(int row)
 		QStringList lines = query.value("submission_output").toString().split("\n");
 		foreach(QString line, lines)
 		{
-			if (!line.contains("error")) continue;
+			if (!line.contains("error", Qt::CaseInsensitive)) continue;
 			body << ("GRZ: " + line);
 		}
 	}
@@ -323,7 +323,7 @@ void MVHub::emailExportFailed(int row)
 		QStringList lines = query.value("submission_output").toString().split("\n");
 		foreach(QString line, lines)
 		{
-			if (!line.contains("error")) continue;
+			if (!line.contains("error", Qt::CaseInsensitive)) continue;
 			body << ("KDK: " + line);
 		}
 	}
