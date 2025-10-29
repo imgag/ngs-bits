@@ -177,7 +177,7 @@ void AnalysisStatusWidget::refreshStatus()
 				parts << data.run_name;
 			}
 			parts.removeDuplicates();
-			addItem(ui_.analyses, row, 5, parts.count()==1 ? parts[0] : "");
+			addItem(ui_.analyses, row, 5, parts.join(", "));
 
 			//project(s)
 			parts.clear();
