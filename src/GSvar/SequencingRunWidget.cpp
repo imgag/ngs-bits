@@ -803,6 +803,7 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	qc_metric_accessions_ << "QC:2000021"; // on-target read percentage
 	qc_metric_accessions_ << "QC:2000024"; // duplicate read percentage
 	qc_metric_accessions_ << "QC:2000025"; // target region read depth
+	qc_metric_accessions_ << "QC:2000150"; // target region read depth no overlap
 	if (sample_types.contains("DNA") || sample_types.contains("RNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
 	{
 		qc_metric_accessions_ << "QC:2000027"; // target region 20x percentage
