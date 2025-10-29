@@ -377,7 +377,7 @@ public:
 				{
 					if (prs < percentiles[i])
 					{
-						percentile = i + 1;
+						percentile = i;
 						break;
 					}
 				}
