@@ -24,9 +24,11 @@ SVN_VER= \\\"$$system(cd .. && git describe --tags)\\\"
 DEFINES += "SERVER_VERSION=$$SVN_VER"
 
 SOURCES += \
+        QueuingEngineController.cpp \
+        QueuingEngineControllerSge.cpp \
+        QueuingEngineControllerSlurm.cpp \
         ServerController.cpp \
         ServerWrapper.cpp \
-        SgeStatusUpdateWorker.cpp \
         main.cpp
 
 # Default rules for deployment.
@@ -35,9 +37,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    QueuingEngineController.h \
+    QueuingEngineControllerSge.h \
+    QueuingEngineControllerSlurm.h \
     ServerController.h \
-    ServerWrapper.h \
-    SgeStatusUpdateWorker.h
+    ServerWrapper.h
 
 include("../app_cli.pri")
 

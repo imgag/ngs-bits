@@ -6,7 +6,7 @@
 #include "ui_AnalysisStatusWidget.h"
 #include "TabBaseClass.h"
 
-//Dialog the shows the analysis status of all samples in SGE.
+//Dialog that shows the analysis status of all samples in SGE.
 class AnalysisStatusWidget
 	: public TabBaseClass
 {

@@ -137,7 +137,7 @@ int Sequence::addNoise(double error_probability, std::mt19937& gen)
                 std::mt19937 g(rd());
                 std::shuffle(bases.begin(), bases.end(), g);
                 #else
-                std::random_shuffle(bases.begin(), bases.end());
+				std::random_shuffle(bases.begin(), bases.end());
                 #endif
 			}
 			while (at(i)==bases[0]);

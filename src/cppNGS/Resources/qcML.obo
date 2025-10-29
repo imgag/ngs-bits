@@ -1655,3 +1655,11 @@ def: "Info about flow cell, chemistry and basecall model used to call nucleotide
 is_a: QC:2000002 ! NGS aquisition parameter
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: schuetz
+
+[Term]
+id: QC:2000150
+name: target region read depth (no ol)
+def: "estimated average sequencing depth in target region without counting the read overlap."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: ott
