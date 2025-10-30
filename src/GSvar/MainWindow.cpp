@@ -3286,7 +3286,7 @@ void MainWindow::on_actionAbout_triggered()
 {
 	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
 
-	about_text += "\n\nA free viewing and filtering tool for genomic variants.";
+	about_text += "\n\nA free decision support system for germline and somatic variants.";
 
 	//general infos
 	about_text += "\n";

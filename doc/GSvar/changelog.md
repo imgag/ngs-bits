@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2025_09-38 (29.10.2025)
+
+- report config dialog is closable via 'X' button again. It now asks if the user wants to store changed data.
+
 ## 2025_09-27 (22.10.2025)
 
 - variant details: removed germline COSMIC info

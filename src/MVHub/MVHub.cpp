@@ -419,7 +419,7 @@ void MVHub::updateTableFilters()
 			QString status = getString(r, c_exp_status);
 			int c_todo = status.split("//").count();
 			QString conf = getString(r, c_exp_conf);
-			int c_conf = conf.split("//").count();
+			int c_conf = conf.isEmpty() ? 0 : conf.split("//").count();
 
 			if (export_filter=="pending" && !(status==""))
 			{
@@ -450,6 +450,8 @@ void MVHub::updateTableFilters()
 		int c_consent_ver = colOf("consent version [SE]");
 		int c_report_date = colOf("Befunddatum");
 		int c_te_retracted = colOf("Kündigung TE");
+		int c_ps_n = colOf("PS");
+		int c_ps_t = colOf("PS tumor");
 
 		for (int r=0; r<rows; ++r)
 		{
@@ -480,7 +482,7 @@ void MVHub::updateTableFilters()
 					continue;
 				}
 
-				//TE not retreacted
+				//TE not retracted
 				if (getString(r, c_te_retracted)!="")
 				{
 					visible[r] = false;
@@ -518,22 +520,34 @@ void MVHub::updateTableFilters()
 					continue;
 				}
 
-				//consent data available
-				if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
+				//consent signed info available
+				if (getString(r, c_consent_cm)=="")
 				{
 					visible[r] = false;
 					continue;
 				}
 
-				//TE not retreacted
+				//TE not retracted
 				if (getString(r, c_te_retracted)!="")
 				{
 					visible[r] = false;
 					continue;
 				}
 
-				//seqencing type not 'keine'
-				if (getString(r, c_seq_type)=="Keine")
+				//seqencing type valid
+				if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
+				{
+					visible[r] = false;
+					continue;
+				}
+				if (status!="Abgebrochen" && (getString(r, c_seq_type)=="Keine" || getString(r, c_seq_type)==""))
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//tumor/normal PS found
+				if (getString(r, c_ps_t)=="" || getString(r, c_ps_n)=="")
 				{
 					visible[r] = false;
 					continue;
@@ -1176,7 +1190,6 @@ void MVHub::checkForMetaDataErrors()
 				}
 			}
 
-
 			if (network==OE)
 			{
 				//consent missing
@@ -1209,8 +1222,17 @@ void MVHub::checkForMetaDataErrors()
 			}
 		}
 
+		//checks for status 'Follow-Up' (is basically 'Abgeschlossen' in OE)
+		if (network==OE && status=="Follow-Up")
+		{
+			if (seq_type=="Keine" || seq_type=="")
+			{
+				cmid2messages_[cm_id] << "Status 'Follow-Up', but sequencing type not valid: '" + seq_type + "'";
+			}
+		}
+
 		//check germline sample is in study
-		if (network!=SE)
+		if (network!=OE) //for OE, only the tumor sample gets the study!
 		{
 			int c_ps = colOf("PS");
 			QString ps = getString(r, c_ps).split(" ").first();

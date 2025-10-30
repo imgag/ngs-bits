@@ -280,6 +280,7 @@ void VariantWidget::updateSampleTable()
 
 		//sort by processed sample name
 		ui_.table->sortByColumn(0, ui_.table->horizontalHeader()->sortIndicatorOrder());
+		ui_.table->setSortingEnabled(true);
 
 		//resize table cols
 		GUIHelper::resizeTableCellWidths(ui_.table, 200);
