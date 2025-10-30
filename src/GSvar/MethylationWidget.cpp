@@ -112,7 +112,6 @@ void MethylationWidget::updateTable()
 	float_columns << "meth_all_avg" << "meth_all_std" << "cov_all" << "cohort_mean_all" << "cohort_stdev_all" << "zscore_all";
 
 	QSet<QString> int_columns;
-	int_columns << "cohort_size";
 
 
 	// fill columns
@@ -129,25 +128,6 @@ void MethylationWidget::updateTable()
 	{
 		ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem(header.at(header_idx)));
 	}
-
-
-	/*
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("title"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("gene"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("region"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("mean methylation all"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("stddev methylation all"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("mean methylation allele 1"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("stddev methylation allele 1"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("mean methylation allele 2"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("stddev methylation allele 2"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("mean methylation unphased"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("stddev methylation unphased"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("coverage all"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("coverage allele 1"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("coverage allele 2"));
-	ui_->tw_methylation->setHorizontalHeaderItem(col_idx++, new QTableWidgetItem("coverage unphased"));
-	*/
 
 	//fill rows
 	ui_->tw_methylation->setRowCount(data_.count());
@@ -208,23 +188,6 @@ void MethylationWidget::updateTable()
 			col_idx++;
 		}
 
-		/*
-		//store identifier in header item
-		QTableWidgetItem* v_header_item = new QTableWidgetItem("");
-		v_header_item->setData(Qt::UserRole, line.at(0).trimmed());
-		ui_->tw_methylation->setVerticalHeaderItem(row_idx, v_header_item);
-
-		ui_->tw_methylation->setItem(row_idx, col_idx++, GUIHelper::createTableItem(line.at(1))); //title
-		ui_->tw_methylation->setItem(row_idx, col_idx++, GUIHelper::createTableItem(line.at(2))); //gene
-		QString region = line.at(3) + ":" + line.at(6) + "-" + line.at(7);
-		ui_->tw_methylation->setItem(row_idx, col_idx++, GUIHelper::createTableItem(region));
-
-		for (int i = 8; i < line.size(); ++i)
-		{
-			double value = Helper::toDouble(line.at(i), "TSV column " + QString::number(i), QString::number(row_idx));
-			ui_->tw_methylation->setItem(row_idx, i-5, GUIHelper::createTableItem(value, 2));
-		}
-		*/
 		row_idx++;
 	}
 	//set actual row size
