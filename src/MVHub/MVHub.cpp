@@ -25,9 +25,10 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(openExportHistory(int)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_exclude_ps, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_status, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
-	connect(ui_.f_messages, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_messages, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_ready_export, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_export, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
@@ -391,15 +392,21 @@ void MVHub::updateTableFilters()
 	}
 
 	//apply messages filter
-	if (ui_.f_messages->isChecked())
+	if (ui_.f_messages->currentText()!="")
 	{
 		int c_messages = colOf("messages");
+		QString messages_filter = ui_.f_messages->currentText();
 
 		for (int r=0; r<rows; ++r)
 		{
 			if (!visible[r]) continue;
 
-			if (getString(r, c_messages).trimmed().isEmpty())
+			QString messages = getString(r, c_messages).trimmed();
+			if (messages_filter=="exist" && messages.isEmpty())
+			{
+				visible[r] = false;
+			}
+			if (messages_filter=="none" && !messages.isEmpty())
 			{
 				visible[r] = false;
 			}
@@ -558,6 +565,22 @@ void MVHub::updateTableFilters()
 				visible[r] = false;
 				continue;
 			}
+		}
+	}
+
+	//apply exclude PS filter
+	QString f_exclude_ps = ui_.f_exclude_ps->text().replace(',', ' ').simplified();
+	if (!f_exclude_ps.isEmpty())
+	{
+		int c_ps = colOf("PS");
+		int c_ps_tumor = colOf("PS tumor");
+
+		QSet<QString> exclude = f_exclude_ps.split(' ').toSet();
+		for (int r=0; r<rows; ++r)
+		{
+			if (!visible[r]) continue;
+
+			if (exclude.contains(getString(r, c_ps)) || exclude.contains(getString(r, c_ps_tumor))) visible[r] = false;
 		}
 	}
 
