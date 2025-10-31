@@ -234,6 +234,28 @@ void MVHub::tableContextMenu(QPoint pos)
 						updateExportStatus(mvh_db, r);
 					}
 				}
+
+				//add KDK export as done (we just need the TAN)
+				if (getNetwork(r)==FBREK)
+				{
+					int pending_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='pending'").toInt();
+					int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
+					if (pending_kdk>0)
+					{
+						QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
+					}
+					else if (done_kdk>0)
+					{
+						QMessageBox::warning(this, title, "KDK export is already done!");
+					}
+					else
+					{
+						QByteArray tag = case_id + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+						QString tan = getTAN(tag, "KDK_SE");
+						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `pseudok`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','','done')");
+						updateExportStatus(mvh_db, r);
+					}
+				}
 			}
 		}
 		catch (Exception& e)
@@ -484,6 +506,51 @@ void MVHub::updateTableFilters()
 
 				//consent data available
 				if (getString(r, c_consent_ver).startsWith("Erwachsene") && getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//TE not retracted
+				if (getString(r, c_te_retracted)!="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//Abgeschlossen, but no report date set
+				if (status=="Abgeschlossen" && getString(r, c_report_date)=="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//Abgebrochen, seqencing type not 'keine'
+				if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
+				{
+					visible[r] = false;
+					continue;
+				}
+			}
+			else if (network==FBREK)
+			{
+				//done
+				QString status = getString(r, c_case_status);
+				if (status!="Abgeschlossen" && status!="Abgebrochen")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//base data available
+				if (getString(r, c_case_id)=="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//consent signed info available
+				if (getString(r, c_consent_cm)=="")
 				{
 					visible[r] = false;
 					continue;
@@ -787,7 +854,7 @@ void MVHub::determineProcessedSamples(int debug_level)
 		params.p_type = "diagnostic";
 		params.r_after = QDate(2024, 7, 1);
 		bool post_filter_wgs_lrgs = false;
-		if (network==SE && seq_type=="WGS")
+		if ((network==SE || network==FBREK) && seq_type=="WGS")
 		{
 			params.include_bad_quality_samples = false;
 			params.include_tumor_samples = false;
@@ -1213,7 +1280,7 @@ void MVHub::checkForMetaDataErrors()
 				}
 			}
 
-			if (network==OE)
+			if (network==OE || network==FBREK)
 			{
 				//consent missing
 				if (getString(r, c_consent)=="")
