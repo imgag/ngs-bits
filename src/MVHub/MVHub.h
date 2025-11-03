@@ -99,7 +99,7 @@ private:
 	{
 		SE,
 		OE,
-		FBREK, //TODO check that FREK is handled correctly everywhere
+		FBREK,
 		UNSET
 	};
 	Network getNetwork(int row);

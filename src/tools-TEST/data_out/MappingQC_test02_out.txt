@@ -5,6 +5,7 @@ on-target read percentage: 99.98
 near-target read percentage: 99.98
 properly-paired read percentage: 99.79
 insert size: 161.93
+target region read depth (no ol): 73.05
 duplicate read percentage: n/a (no duplicates marked or duplicates removed during data analysis)
 bases usable (MB): 0.71
 target region read depth: 84.45
