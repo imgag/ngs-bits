@@ -61,6 +61,7 @@ private:
 		NONE,
 		RED,
 		ORANGE,
+		YELLOW,
 		GREEN
 	};
 

@@ -346,7 +346,31 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="quality")
 		{
-			text = anno.replace(';', ' ');
+			QStringList show;
+			foreach(QString part, anno.split(';'))
+			{
+				part = part.trimmed();
+				if (part.isEmpty()) continue;
+
+				if (part.startsWith("QUAL="))
+				{
+					if (part.midRef(5).toInt()<20)
+					{
+						part = formatText(part, YELLOW);
+					}
+				}
+				if (part.startsWith("DP="))
+				{
+					if (part.midRef(3).toInt()<15)
+					{
+						part = formatText(part, YELLOW);
+					}
+				}
+
+				show << part;
+			}
+
+			text = show.join(' ');
 		}
 		else if(name=="filter")
 		{
@@ -681,6 +705,8 @@ QString VariantDetailsDockWidget::colorToString(VariantDetailsDockWidget::Color 
 			return "rgba(255, 100, 0, 128)";
 		case RED:
 			return "rgba(255, 0, 0, 128)";
+		case YELLOW:
+			return "rgba(255, 255, 0, 128)";
 	};
 
 	THROW(ProgrammingException, "Unkonwn color!");
