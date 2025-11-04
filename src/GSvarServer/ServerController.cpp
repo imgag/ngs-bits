@@ -697,7 +697,7 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
         QString log = db.analysisJobLatestLogInfo(job_id).file_name_with_path;
 
         FastFileInfo file_info(log);
-        analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.exists());
+        analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.lastModified(), file_info.exists());
 	}
     catch (DatabaseException& e)
     {

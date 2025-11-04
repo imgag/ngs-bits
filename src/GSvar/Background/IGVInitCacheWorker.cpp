@@ -73,7 +73,7 @@ void IGVInitCacheWorker::process()
         {
             if(loc.filename.contains("somatic_custom_panel_stat"))
             {
-                IgvSessionManager::get(0).addLocationToCache(FileLocation{loc.id + " (somatic custom panel)", PathType::LOWCOV_BED, loc.filename, QFile::exists(loc.filename)}, igv_default_lowcov);
+                IgvSessionManager::get(0).addLocationToCache(FileLocation(loc.id + " (somatic custom panel)", PathType::LOWCOV_BED, loc.filename, loc.modified, loc.exists), igv_default_lowcov);
             }
             else
             {
