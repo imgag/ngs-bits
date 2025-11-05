@@ -2,14 +2,6 @@
 #include "Exceptions.h"
 #include "Chromosome.h"
 
-/*
-#include "htslib/sam.h"
-#include "htslib/vcf.h"
-#include "htslib/kseq.h"
-#include "htslib/bgzf.h"
-#include "htslib/hts.h"
-#include "htslib/regidx.h"
-*/
 TabixIndexedFile::TabixIndexedFile()
 	: file_(nullptr)
 	, tbx_(nullptr)
@@ -35,7 +27,6 @@ void TabixIndexedFile::load(QByteArray filename)
 	//load index
 	tbx_ = tbx_index_load(filename.data());
 	if (tbx_ == nullptr) THROW(FileParseException, "Could not load tabix index of " + filename_);
-
 	//create dictionary of chromosome identifiers
 	int nseq;
 	const char** seq = tbx_seqnames(tbx_, &nseq);
@@ -77,30 +68,21 @@ QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int sta
 		{
 			THROW(ProgrammingException, "Chromosome '"+chr.str() + "' not found in tabix index of " + filename_);
 		}
+	}
 
-	}
-	kstring_t str = {0, 0, nullptr};
 	hts_itr_t* itr = tbx_itr_queryi(tbx_, chr_id, start-1, end);
-	if (itr)
+
+	if (!itr) THROW(FileParseException, "Error while parsing the index file for " + filename_ + ".");
+
+	kstring_t str = {0, 0, nullptr};
+	int r;
+	while(r=tbx_itr_next(file_, tbx_, itr, &str), r>=0)
 	{
-		int r;
-		while(r=tbx_itr_next(file_, tbx_, itr, &str), r>=0)
-		{
-			output << QByteArray(str.s);
-		}
-		tbx_itr_destroy(itr);
-		if (r < -1)
-		{
-			free(str.s);
-			THROW(FileParseException, "Error while accessing file through the index file for " + filename_ + ".");
-		}
+		output << QByteArray(str.s);
 	}
-	else
-	{
-		free(str.s);
-		THROW(FileParseException, "Error while parsing the index file for " + filename_ + ".");
-	}
+	tbx_itr_destroy(itr);
 	free(str.s);
+	if (r < -1) THROW(FileParseException, "Error while accessing file through the index file for " + filename_ + ".");
 
 	return output;
 }
