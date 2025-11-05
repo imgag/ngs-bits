@@ -1277,13 +1277,26 @@ void SvWidget::showContextMenu(QPoint pos)
 	QAction* copy_pos1 = menu.addAction("Copy position A to clipboard");
 	QAction* copy_pos2 = menu.addAction("Copy position B to clipboard");
 	menu.addSeparator();
+
 	//ClinVar search
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
     a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
-	//gene sub-menus
+
+	//PubMed
+	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
 	int i_genes = svs_.annotationIndexByName("GENES", false);
+	for (const QByteArray& g : GeneSet::createFromText(svs_[row].annotations()[i_genes], ','))
+	{
+		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
+		for (const Phenotype& p : ui->filter_widget->phenotypes())
+		{
+			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
+		}
+	}
+
+	//gene sub-menus
 	if (i_genes!=-1)
 	{
 		//use breakpoint genes only if the breakpoint genes column was right-clicked
@@ -1389,6 +1402,10 @@ void SvWidget::showContextMenu(QPoint pos)
 	else if (action == copy_pos2)
 	{
 		QApplication::clipboard()->setText(sv.position2());
+	}
+	else if (parent_menu && parent_menu->title()=="PubMed")
+	{
+		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + action->text()));
 	}
 	else if (parent_menu)
 	{

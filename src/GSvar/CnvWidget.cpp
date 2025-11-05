@@ -596,11 +596,23 @@ void CnvWidget::showContextMenu(QPoint p)
 	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 	QAction* a_ucsc_override = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
 	menu.addSeparator();
+
 	//ClinVar search
 	QMenu*sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
     a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+
+	//PubMed
+	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
+	for (const QByteArray& g : cnvs_[row].genes())
+	{
+		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
+		for (const Phenotype& p : ui->filter_widget->phenotypes())
+		{
+			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
+		}
+	}
 
 	//gene sub-menus
 	if (!cnvs_[row].genes().isEmpty())
@@ -701,6 +713,10 @@ void CnvWidget::showContextMenu(QPoint p)
 	else if (action==a_clinvar_pub)
 	{
 		uploadToClinvar(row);
+	}
+	else if (parent_menu && parent_menu->title()=="PubMed")
+	{
+		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + action->text()));
 	}
 	else if (parent_menu) //gene sub-menus
 	{
