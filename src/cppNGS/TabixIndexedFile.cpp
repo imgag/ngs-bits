@@ -1,6 +1,8 @@
 #include "TabixIndexedFile.h"
 #include "Exceptions.h"
 #include "Chromosome.h"
+#include "QFile"
+#include <htslib/bgzf.h>
 
 TabixIndexedFile::TabixIndexedFile()
 	: file_(nullptr)
@@ -24,8 +26,13 @@ void TabixIndexedFile::load(QByteArray filename)
 	file_ = hts_open(filename.data(), "r");
 	if (file_ == nullptr) THROW(FileParseException, "Could not open data file " + filename_);
 
+	//determine index file
+	filename_index_ = filename + ".csi";
+	if (!QFile::exists(filename_index_)) filename_index_ = filename + ".tbi";
+	if (!QFile::exists(filename_index_)) THROW(FileAccessException, "Could not determine tabix index of file " + filename_);
+
 	//load index
-	tbx_ = tbx_index_load(filename.data());
+	tbx_ = tbx_index_load3(filename.data(), filename_index_.data(), HTS_IDX_SAVE_REMOTE);
 	if (tbx_ == nullptr) THROW(FileParseException, "Could not load tabix index of " + filename_);
 	//create dictionary of chromosome identifiers
 	int nseq;
@@ -50,6 +57,40 @@ void TabixIndexedFile::clear()
 	file_ = nullptr;
 
 	chr2chr_.clear();
+}
+
+QByteArray TabixIndexedFile::format() const
+{
+	int fmt = hts_idx_fmt(tbx_->idx);
+	if (fmt==HTS_FMT_CSI) return "CSI";
+	if (fmt==HTS_FMT_TBI) return "TBI";
+	THROW(ProgrammingException, "Invalid tabix index format: " + QString::number(fmt));
+}
+
+int TabixIndexedFile::minShift() const
+{
+	struct CsiHeader {
+		uint32_t magic;
+		int32_t min_shift;
+		int32_t depth;
+		int32_t aux_len;
+	};
+	CsiHeader hdr;
+
+	BGZF *fp = bgzf_open(filename_index_.data(), "r");
+	if (!fp) THROW(FileAccessException, "Could not open index file for reading: " + filename_index_);
+
+	if (bgzf_read(fp, &hdr, sizeof(hdr)) != sizeof(hdr))
+	{
+		bgzf_close(fp);
+		THROW(FileAccessException, "Could not read header of index file: " + filename_index_);
+	}
+	bgzf_close(fp);
+
+	// magic bytes are stored little-endian
+	if (hdr.magic != 0x01495343) THROW(FileAccessException, "Not a valid CSI header " + QString::number(hdr.magic, 16).rightJustified(8, '0') + " in " + filename_index_);
+
+	return hdr.min_shift;
 }
 
 QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int start, int end, bool ignore_missing_chr) const
