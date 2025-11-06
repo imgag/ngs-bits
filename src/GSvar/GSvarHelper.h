@@ -10,7 +10,7 @@
 #include <QLabel>
 
 
-///Helper class for GSvar
+///Helper class for GSvar (singleton)
 class GSvarHelper
 {
 public:
@@ -72,8 +72,22 @@ public:
     //Returns a path for the settings file (Windows or Unix format), by substituting a placeholder with the current app path
     static QString appPathForTemplate(QString path);
 
+	//Updates phenotype history with new phenotype list
+	static void updatePhenotypeHistory(const PhenotypeList& phenos);
+	//Returns phenotype history
+	static const QList<PhenotypeList>& phenotypeHistory();
+
+	//Updates ROI history
+	static void updateRoiHistory(QString name);
+	//Returns ROI history
+	static const QStringList& roiHistory();
+
 protected:
-	GSvarHelper() = delete;
+	GSvarHelper();
+	static GSvarHelper& instance();
+
+	QList<PhenotypeList> history_pheno;
+	QStringList history_roi;
 };
 
 #endif // GSVARHELPER_H

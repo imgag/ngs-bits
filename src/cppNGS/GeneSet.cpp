@@ -89,11 +89,11 @@ GeneSet GeneSet::createFromFile(QString filename)
 	return output;
 }
 
-GeneSet GeneSet::createFromText(const QByteArray& text, char seperator)
+GeneSet GeneSet::createFromText(const QByteArray& text, char separator)
 {
 	GeneSet output;
 
-	QList<QByteArray> lines = text.split(seperator);
+	QList<QByteArray> lines = text.split(separator);
     for (const QByteArray& line : lines)
 	{
 		if (line.startsWith("#")) continue;
