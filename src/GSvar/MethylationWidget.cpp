@@ -53,9 +53,11 @@ void MethylationWidget::openMethylationPlot(int row_idx, int)
 		QMessageBox::warning(this, "Read error", "Could not open a methylation plot image file: '" + methylation_plot.filename + "'!");
 		return;
 	}
+
+	QImage image;
+	image.loadFromData(file.readAll());
 	QVBoxLayout* v_box = new QVBoxLayout();
 	ImageLabel* image_label = new ImageLabel();
-	QImage image = QImage(methylation_plot.filename);
 	image_label->setImage(image);
 	image_label->resize(1024, 489);
 	v_box->addWidget(image_label);
@@ -70,8 +72,8 @@ void MethylationWidget::openMethylationPlot(int row_idx, int)
 			QMessageBox::warning(this, "Read error", "Could not open a methylation cohort plot image file: '" + methylation_cohort_plot.filename);
 			return;
 		}
-
-		QImage image = QImage(methylation_cohort_plot.filename);
+		QImage image;
+		image.loadFromData(file.readAll());
 		image_label_cohort_plot->setImage(image);
 		image_label_cohort_plot->resize(1024, 489);
 		v_box->addWidget(image_label_cohort_plot);
