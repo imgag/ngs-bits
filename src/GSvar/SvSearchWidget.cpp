@@ -16,7 +16,11 @@ SvSearchWidget::SvSearchWidget(QWidget* parent)
 	ui_.setupUi(this);
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
 
-	connect(ui_.rb_single_sv->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        connect(ui_.rb_single_sv->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
+    #else
+        connect(ui_.rb_single_sv->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+    #endif
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);

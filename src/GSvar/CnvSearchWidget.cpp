@@ -26,7 +26,13 @@ CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 
 	QAction* action = new QAction("Copy coordinates");
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoodinatesToClipboard()));
-	connect(ui_.rb_chr_pos->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        connect(ui_.rb_chr_pos->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
+    #else
+        connect(ui_.rb_chr_pos->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+    #endif
+
 	ui_.table->addAction(action);
 
 	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
