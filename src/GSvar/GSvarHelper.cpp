@@ -828,5 +828,72 @@ QString GSvarHelper::appPathForTemplate(QString path)
         }
     }
 
-    return path;
+	return path;
+}
+
+void GSvarHelper::updatePhenotypeHistory(const PhenotypeList& phenos)
+{
+	if (phenos.isEmpty()) return;
+
+	QList<PhenotypeList>& history = instance().history_pheno;
+
+	//already  contained > shift to top
+	if (history.contains(phenos))
+	{
+		history.removeAll(phenos);
+		history.prepend(phenos);
+		return;
+	}
+
+	//new > prepend
+	history.prepend(phenos);
+	while(history.count()>10)
+	{
+		history.pop_back();
+	}
+}
+
+const QList<PhenotypeList>& GSvarHelper::phenotypeHistory()
+{
+	return instance().history_pheno;
+}
+
+void GSvarHelper::updateRoiHistory(QString name)
+{
+	name.replace("Sub-panel:", "");
+	name.replace("Processing system:", "");
+	name = name.trimmed();
+	if (name=="") return;
+
+	QStringList& history = instance().history_roi;
+
+	//already  contained > shift to top
+	if (history.contains(name))
+	{
+		history.removeAll(name);
+		history.prepend(name);
+		return;
+	}
+
+	//new > prepend
+	history.prepend(name);
+	while(history.count()>10)
+	{
+		history.pop_back();
+	}
+}
+
+const QStringList& GSvarHelper::roiHistory()
+{
+	return instance().history_roi;
+}
+
+GSvarHelper::GSvarHelper()
+{
+}
+
+GSvarHelper& GSvarHelper::instance()
+{
+	static GSvarHelper inst;
+	return inst;
 }

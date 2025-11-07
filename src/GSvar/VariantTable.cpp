@@ -179,11 +179,9 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
-	//create links for each gene/disease
     for (const QByteArray& g : genes)
 	{
-		sub_menu->addAction(g + " AND \"mutation\"");
-		sub_menu->addAction(g + " AND \"variant\"");
+		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
         for (const Phenotype& p : active_phenotypes_)
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");

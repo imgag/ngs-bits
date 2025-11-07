@@ -121,6 +121,7 @@ protected slots:
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
 	void showGeneContextMenu(QPoint pos);
+	void showRoiContextMenu(QPoint pos);
 	void setFilter(int index);
 	void clearTargetRegion();
 	void clearFilters();

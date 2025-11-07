@@ -558,7 +558,7 @@ private:
 		QAction* a_var_interpretation_somatic;
 		QAction* a_var_comment;
 		QAction* a_var_val;
-		QAction* seperator;
+		QAction* separator;
 	};
 	ContextMenuActions context_menu_actions_;
 	void registerCustomContextMenuActions();

@@ -5897,7 +5897,7 @@ void MainWindow::registerCustomContextMenuActions()
 	bool  ngsd_user_logged_in = LoginManager::active();
 
 	QList<QAction*> actions;
-	context_menu_actions_.seperator = new QAction("---");
+	context_menu_actions_.separator = new QAction("---");
 
 	//NGSD report configuration
 	context_menu_actions_.a_report_edit = new QAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
@@ -5907,7 +5907,7 @@ void MainWindow::registerCustomContextMenuActions()
 	context_menu_actions_.a_report_del = new QAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	context_menu_actions_.a_report_del->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_report_del;
-	actions << context_menu_actions_.seperator;
+	actions << context_menu_actions_.separator;
 
 	//NGSD variant options
 	context_menu_actions_.a_var_class = new QAction("Edit classification");
@@ -5927,7 +5927,7 @@ void MainWindow::registerCustomContextMenuActions()
 	context_menu_actions_.a_var_val = new QAction("Perform variant validation");
 	context_menu_actions_.a_var_val->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_val;
-	actions << context_menu_actions_.seperator;
+	actions << context_menu_actions_.separator;
 
 	ui_.vars->addCustomContextMenuActions(actions);
 	connect(ui_.vars, SIGNAL(customActionTriggered(QAction*,int)), this, SLOT(execContextMenuAction(QAction*,int)));

@@ -150,7 +150,7 @@ void QueuingEngineControllerSlurm::checkCompletedJob(NGSD& db, QString qe_job_id
 {
 	QByteArrayList result;
 	QString command = "sacct";
-	QStringList sacct_args = QStringList() << "-j" << qe_job_id;
+	QStringList sacct_args = QStringList() << "--parsable" << "--format=JobID,ExitCode" << "-j" << qe_job_id;
 	int exit_code = Helper::executeCommand(command, sacct_args, &result);
 
 	Log::info(command + " " + sacct_args.join(" "));
@@ -161,13 +161,9 @@ void QueuingEngineControllerSlurm::checkCompletedJob(NGSD& db, QString qe_job_id
 
 		foreach(QByteArray line, result)
 		{
-			if (!line.startsWith(qe_job_id.toLatin1() + ' ')) continue;
-			QByteArrayList parts = line.simplified().split(' ');
-			if (parts.size() >= 7)
-			{
-				QByteArray exit_codes = parts.last();
-				slurm_exit_code = exit_codes.split(':')[0];
-			}
+			if (!line.startsWith(qe_job_id.toLatin1() + '|')) continue;
+			QByteArray exit_codes = line.split('|')[1];
+			slurm_exit_code = exit_codes.split(':')[0];
 		}
 
 		if (slurm_exit_code == "0")
