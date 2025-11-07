@@ -1568,6 +1568,40 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
+{
+
+    QString genome = "hg38.fa";
+
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+    QString blat_search_out = Helper::tempFileName(".psl");
+    QString blat_search_query = Helper::tempFileName(".fa");
+
+    Log::info("Running BLAT search: " + blat_search_out);
+    process.start("blat", QStringList() << genome << blat_search_query << blat_search_out);
+    bool success = process.waitForFinished(-1);
+    Log::error("Exit code = " + QString::number(process.exitCode()));
+    if (!success || process.exitCode()>0)
+    {
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_vep.php: " + process.readAll())));
+    }
+    Log::info(process.readAll());
+
+    QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
+    Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
+    process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
+    success = process.waitForFinished(-1);
+    if (!success || process.exitCode()>0)
+    {
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing vcf2gsvar.php: " + process.readAll())));
+    }
+    Log::info(EndpointManager::formatResponseMessage(request, process.readAll()));
+
+    return createStaticStreamResponse(vcf2gsvar_out, true);
+
+}
+
 HttpResponse ServerController::getCurrentNotification(const HttpRequest& /*request*/)
 {
 	QJsonDocument json_doc_output;

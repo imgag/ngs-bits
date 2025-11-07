@@ -441,6 +441,19 @@ int main(int argc, char **argv)
 						&ServerController::annotateVariant
 					});
 
+    EndpointManager::appendEndpoint(Endpoint{
+                        "blat_search",
+                        QMap<QString, ParamProps> {
+                            {"sequence", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "sequence"}},
+                            {"genome", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "genome"}}
+                        },
+                        RequestMethod::GET,
+                        ContentType::APPLICATION_JSON,
+                        AuthType::NONE,
+                        "BLAT search for a given sequence and genome",
+                        &ServerController::performBlatSearch
+                    });
+
 	EndpointManager::appendEndpoint(Endpoint{
 						"login",
 						QMap<QString, ParamProps>{
