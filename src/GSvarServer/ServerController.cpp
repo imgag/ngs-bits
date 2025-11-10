@@ -1570,36 +1570,68 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 
 HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
 {
+    if (Settings::integer("blat_server_port") == 0)
+    {
+        return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("BLAT server port number is not set, the search cannot be performed!")));
+    }
 
-    QString genome = "hg38.fa";
+    QString sequence = request.getUrlParams()["sequence"];
+    Log::info(sequence);
+    if (sequence.length()<20)
+    {
+        return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Input sequence too short! Must be at least 20 bases!")));
+    }
 
-    QProcess process;
-    process.setProcessChannelMode(QProcess::MergedChannels);
-    QString blat_search_out = Helper::tempFileName(".psl");
     QString blat_search_query = Helper::tempFileName(".fa");
+    Helper::storeTextFile(blat_search_query, QStringList() << ">sequence_1" << sequence);
+    QString blat_search_out = Helper::tempFileName(".psl");
+    Helper::touchFile(blat_search_out);
 
-    Log::info("Running BLAT search: " + blat_search_out);
-    process.start("blat", QStringList() << genome << blat_search_query << blat_search_out);
-    bool success = process.waitForFinished(-1);
-    Log::error("Exit code = " + QString::number(process.exitCode()));
-    if (!success || process.exitCode()>0)
+    QProcess blat_client;
+    blat_client.setProcessChannelMode(QProcess::MergedChannels);
+    blat_client.start(QCoreApplication::applicationDirPath() + "/blat/gfClient", {"localhost", QString::number(Settings::integer("blat_server_port")), QCoreApplication::applicationDirPath() + "/blat/", blat_search_query, blat_search_out});
+    bool success = blat_client.waitForFinished(-1);
+    QString command_out = blat_client.readAllStandardOutput().trimmed();
+    Log::info(command_out);
+
+    if (!success || blat_client.exitCode()>0)
     {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_vep.php: " + process.readAll())));
-    }
-    Log::info(process.readAll());
+        command_out += blat_client.readAll().trimmed();
+        Log::error("BLAT search error: exit code " + QString::number(blat_client.exitCode()) + ", " + command_out);
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while performing BLAT search: " + command_out)));
+    }    
 
-    QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
-    Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
-    process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
-    success = process.waitForFinished(-1);
-    if (!success || process.exitCode()>0)
+    // reading results
+    QSharedPointer<QFile> out_file = Helper::openFileForReading(blat_search_out, false);
+    int line_count = 0;
+    QJsonDocument json_doc_output;
+    QJsonArray json_array;
+    while(!out_file->atEnd())
     {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing vcf2gsvar.php: " + process.readAll())));
+        line_count++;
+        QString line = out_file->readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        if (line_count>=6)
+        {
+            QJsonObject json_object;
+            QStringList line_items = line.split("\t");
+
+            json_object.insert("matches", line_items[0].toInt());
+            json_object.insert("repMatches", line_items[2].toInt());
+            json_object.insert("strand", line_items[8]);
+            json_object.insert("tName", line_items[13]);
+            json_object.insert("tStart", line_items[15].toInt());
+            json_object.insert("tEnd", line_items[16].toInt());
+            json_array.append(json_object);
+        }
     }
-    Log::info(EndpointManager::formatResponseMessage(request, process.readAll()));
+    json_doc_output.setArray(json_array);
 
-    return createStaticStreamResponse(vcf2gsvar_out, true);
-
+    BasicResponseData response_data;
+    response_data.length = json_doc_output.toJson().length();
+    response_data.content_type = ContentType::APPLICATION_JSON;
+    return HttpResponse(response_data, json_doc_output.toJson());
 }
 
 HttpResponse ServerController::getCurrentNotification(const HttpRequest& /*request*/)

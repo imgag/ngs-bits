@@ -1,5 +1,6 @@
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
+#include "BlatInitWorker.h"
 #include "QueuingEngineController.h"
 #include <QStandardPaths>
 #include <QTimer>
@@ -12,9 +13,11 @@
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
+    , background_task_pool_()
     , cleanup_pool_()
     , qe_status_pool_()
 {
+    background_task_pool_.setMaxThreadCount(1);
     cleanup_pool_.setMaxThreadCount(1);
     qe_status_pool_.setMaxThreadCount(1);
 
@@ -108,6 +111,16 @@ ServerWrapper::ServerWrapper(const quint16& port)
             // Read the client version and notification information during the initialization
             SessionManager::setCurrentClientInfo(readClientInfoFromFile());
             SessionManager::setCurrentNotification(readUserNotificationFromFile());
+
+
+            // Initialize BLAT server, if the corresponding port is set
+            int blat_server_port = Settings::integer("blat_server_port");
+            if (blat_server_port > 0)
+            {
+                Log::info("Starting BLAT server");
+                BlatInitWorker *blat_init_worker = new BlatInitWorker(blat_server_port);
+                background_task_pool_.start(blat_init_worker);
+            }
         }
         else
         {
