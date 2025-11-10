@@ -9,6 +9,130 @@
 #include "UrlManager.h"
 #include "SessionManager.h"
 
+#ifdef Q_OS_UNIX
+#include <csignal>
+#include <unistd.h>
+#include <sys/types.h>
+#include "HttpRequestHandler.h"
+#include "ProxyDataService.h"
+
+QProcess *blat_process = nullptr;
+void handleSignal(int)
+{
+    if (blat_process && blat_process->state() != QProcess::NotRunning)
+    {
+        pid_t pid = blat_process->processId();
+        if (pid > 0)
+        {
+            qDebug() << "Killing process group for PID" << pid;
+            kill(-pid, SIGKILL);
+        }
+    }
+    QCoreApplication::quit();
+}
+
+bool prepareBlatServer()
+{
+    QStringList blat_files;
+    blat_files << "https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/faToTwoBit";
+    blat_files << "http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/blat";
+    blat_files << "http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/gfServer";
+    blat_files << "http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/gfClient";
+
+    for (QString current_url: blat_files)
+    {
+        QUrl url(current_url);
+        QString current_file = QCoreApplication::applicationDirPath() + "/" + url.fileName();
+        if (QFile::exists(current_file))
+        {
+            Log::info("Found " + current_file);
+            continue;
+        }
+
+        Log::info("Downloading " + current_url);
+        QSharedPointer<QFile> downloaded_file = Helper::openFileForWriting(current_file);
+
+        QNetworkProxy proxy = QNetworkProxy::NoProxy;
+        if(!ProxyDataService::isConnected())
+        {
+            const QNetworkProxy& proxy = ProxyDataService::getProxy();
+            if(proxy.type() != QNetworkProxy::HttpProxy)
+            {
+                Log::error("No connection to the internet! Please check your proxy settings.");
+                return false;
+            }
+            if(proxy.hostName().isEmpty() || (proxy.port() < 1))
+            {
+                Log::error("HTTP proxy without reqired host name or port provided!");
+                return false;
+            }
+
+            //final check of the connection
+            if(!ProxyDataService::isConnected())
+            {
+                Log::error("No connection to the internet! Please check your proxy settings.");
+                return false;
+            }
+        }
+
+        // set proxy for the file download, if needed
+        proxy = ProxyDataService::getProxy();
+        if (proxy!=QNetworkProxy::NoProxy)
+        {
+            Log::info(proxy.hostName());
+        }
+
+        try
+        {
+            HttpHeaders add_headers;
+            QByteArray file_content = HttpRequestHandler(proxy).get(current_url, add_headers).body;
+            downloaded_file->write(file_content);
+            downloaded_file->close();
+            Log::info(current_file + " has been saved");
+        }
+        catch(Exception e)
+        {
+            Log::error("File download has failed: " + e.message());
+            return false;
+        }
+
+        QFileDevice::Permissions permissions = downloaded_file->permissions();
+        permissions |= QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther;
+        bool ok = downloaded_file->setPermissions(permissions);
+        if (!ok)
+        {
+            Log::error("Failed to set +x permission for " + current_file);
+            return false;
+        }
+    }
+
+    // check if hg38.2bit is present
+    QString genome_file = QCoreApplication::applicationDirPath() + "/hg38.2bit";
+    if (QFile::exists(genome_file))
+    {
+        Log::info("Found the genome " + genome_file);
+    }
+    else
+    {
+        QProcess process;
+        process.setProcessChannelMode(QProcess::MergedChannels);
+
+        Log::info("Converting FA into 2BIT: " + Settings::string("reference_genome"));
+        process.start(QCoreApplication::applicationDirPath() + "/faToTwoBit", QStringList() << Settings::string("reference_genome") << QCoreApplication::applicationDirPath() + "/hg38.2bit");
+
+        bool success = process.waitForFinished(-1);
+        if (!success || process.exitCode()>0)
+        {
+            Log::error("Conversion error: exit code " + QString::number(process.exitCode()) + ", " + process.readAll());
+            return false;
+        }
+        Log::info(process.readAll().trimmed());
+    }
+
+    return true;
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
@@ -444,8 +568,7 @@ int main(int argc, char **argv)
     EndpointManager::appendEndpoint(Endpoint{
                         "blat_search",
                         QMap<QString, ParamProps> {
-                            {"sequence", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "sequence"}},
-                            {"genome", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "genome"}}
+                            {"sequence", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "sequence"}}
                         },
                         RequestMethod::GET,
                         ContentType::APPLICATION_JSON,
@@ -616,6 +739,72 @@ int main(int argc, char **argv)
     {
         Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
     }
+
+    if (!Settings::boolean("blat_server_enabled", true)) return app.exec();
+
+    #ifdef Q_OS_UNIX
+    int blat_server_port = Settings::integer("blat_server_port");
+    if (blat_server_port == 0)
+    {
+        Log::error("BLAT server port number is missing or invalid");
+        return EXIT_FAILURE;
+    }
+
+    if (!prepareBlatServer())
+    {
+        Log::error("Could not initialize and start the BLAT server on port " + QString::number(blat_server_port));
+        return EXIT_FAILURE;
+    }
+
+    QProcess *process = new QProcess(&app);
+    process->setProcessChannelMode(QProcess::MergedChannels);
+    blat_process = process;
+
+    QString program = QCoreApplication::applicationDirPath() + "/gfServer";
+    QStringList args = {"start", "localhost", QString::number(blat_server_port), "-stepSize=5", "-log=untrans.log", QCoreApplication::applicationDirPath() + "/hg38.2bit"};
+    // Set up Unix-specific process group
+    QObject::connect(process, &QProcess::started, [process]()
+    {
+        pid_t pid = process->processId();
+        if (pid>0)
+        {
+            setpgid(pid, pid);
+        }
+    });
+
+    QObject::connect(process, &QProcess::readyReadStandardOutput, [process]()
+    {
+        Log::info(QString::fromUtf8(process->readAllStandardOutput()));
+    });
+
+    QObject::connect(process, &QProcess::readyReadStandardError, [process]()
+    {
+        Log::error(QString::fromUtf8(process->readAllStandardError()));
+    });
+
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QObject::connect(process, &QProcess::finished, [process](int exitCode, QProcess::ExitStatus status)
+    {
+        Log::info("Process finished with exit code " + QString::number(exitCode) + ", status: " + (status == QProcess::NormalExit ? "normal exit" : "crashed"));
+    });
+    #else
+    Log::warn("The server has been built with Qt 5");
+    #endif
+
+    // Handle signals (Ctrl+C, kill, etc.)
+    std::signal(SIGINT, handleSignal);
+    std::signal(SIGTERM, handleSignal);
+
+    process->start(program, args);
+
+    if (!process->waitForStarted())
+    {
+        Log::error("Failed to start BLAT server");
+        return EXIT_FAILURE;
+    }
+
+    Log::info("BLAT server has been started on the port " + QString::number(blat_server_port) + " with the PID " + QString::number(process->processId()));
+    #endif
 
 	return app.exec();
 }

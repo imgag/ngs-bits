@@ -86,8 +86,6 @@ void SslServer::checkPoolStatus()
     int active = thread_pool_.activeThreadCount();
     int max_threads = thread_pool_.maxThreadCount();
 
-    qDebug() << "Active threads: " << active << "/" << max_threads;
-
     if (active >= max_threads)
     {
         thread_pool_check_count_++;
