@@ -40,6 +40,9 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool exclude_frequency; //variant frequency is too high in NGSD, gnomAD or elsewhere
 	bool exclude_phenotype; //variant/gene does not match genotype
 	bool exclude_mechanism; //variant pathomechanism not matching
+	bool exclude_hit2_missing; //second variant missing is recessive context
+	bool exclude_gus; //gene of unknown significance
+	bool exclude_used_other_var_type; //used other variant type
 	bool exclude_other; //other reason
 	QString comments; //comments of 1. evaluation
 	QString comments2; //comments of 2. evaluation

@@ -1171,6 +1171,9 @@ private:
 		IS_FALSE(var_conf.comp_het);
 		IS_FALSE(var_conf.exclude_frequency);
 		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_hit2_missing);
+		IS_FALSE(var_conf.exclude_gus);
+		IS_FALSE(var_conf.exclude_used_other_var_type);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
 		S_EQUAL(var_conf.manual_var, "chr2:47635523-47635523 ->TT");
@@ -1190,6 +1193,9 @@ private:
 		IS_FALSE(var_conf.comp_het);
 		IS_FALSE(var_conf.exclude_frequency);
 		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_hit2_missing);
+		IS_FALSE(var_conf.exclude_gus);
+		IS_FALSE(var_conf.exclude_used_other_var_type);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
 		S_EQUAL(var_conf.manual_cnv_start, "89240000");
@@ -1212,6 +1218,9 @@ private:
 		IS_FALSE(var_conf.comp_het);
 		IS_FALSE(var_conf.exclude_frequency);
 		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_hit2_missing);
+		IS_FALSE(var_conf.exclude_gus);
+		IS_FALSE(var_conf.exclude_used_other_var_type);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
 		IS_TRUE(var_conf.variant_type == VariantType::SVS);
@@ -1237,6 +1246,9 @@ private:
 		IS_FALSE(var_conf.comp_het);
 		IS_FALSE(var_conf.exclude_frequency);
 		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_hit2_missing);
+		IS_FALSE(var_conf.exclude_gus);
+		IS_FALSE(var_conf.exclude_used_other_var_type);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
 		IS_TRUE(var_conf.variant_type == VariantType::RES);
@@ -1266,6 +1278,9 @@ private:
 		IS_FALSE(var_conf.comp_het);
 		IS_FALSE(var_conf.exclude_frequency);
 		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_hit2_missing);
+		IS_FALSE(var_conf.exclude_gus);
+		IS_FALSE(var_conf.exclude_used_other_var_type);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
 		S_EQUAL(var_conf.manual_var, "chr2:47635523-47635523 ->TT");

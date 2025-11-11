@@ -838,7 +838,7 @@ void MainWindow::on_actionDeleteIgvFolder_triggered()
 	   return;
 	}
 
-	int res = QMessageBox::question(this, title, "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will use all settings (proxy, alignment options, ...)!");
+	int res = QMessageBox::question(this, title, "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will loose all settings (proxy, alignment options, ...)!");
 	if (res==QMessageBox::Yes)
 	{
 		QDir(path_canonical).removeRecursively();

@@ -142,6 +142,9 @@ void ReportVariantDialog::updateGUI()
 	ui_.exclude_frequency->setChecked(config_.exclude_frequency);
 	ui_.exclude_phenotype->setChecked(config_.exclude_phenotype);
 	ui_.exclude_mechanism->setChecked(config_.exclude_mechanism);
+	ui_.exclude_hit2_missing->setChecked(config_.exclude_hit2_missing);
+	ui_.exclude_gus->setChecked(config_.exclude_gus);
+	ui_.exclude_used_other_var_type->setChecked(config_.exclude_used_other_var_type);
 	ui_.exclude_other->setChecked(config_.exclude_other);
 	ui_.comments->setPlainText(config_.comments);
 	ui_.comments2->setPlainText(config_.comments2);
@@ -215,6 +218,9 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 	rvc.exclude_frequency = ui_.exclude_frequency->isChecked();
 	rvc.exclude_phenotype = ui_.exclude_phenotype->isChecked();
 	rvc.exclude_mechanism = ui_.exclude_mechanism->isChecked();
+	rvc.exclude_hit2_missing = ui_.exclude_hit2_missing->isChecked();
+	rvc.exclude_gus = ui_.exclude_gus->isChecked();
+	rvc.exclude_used_other_var_type = ui_.exclude_used_other_var_type->isChecked();
 	rvc.exclude_other = ui_.exclude_other->isChecked();
 	rvc.comments = ui_.comments->toPlainText();
 	rvc.comments2 = ui_.comments2->toPlainText();
