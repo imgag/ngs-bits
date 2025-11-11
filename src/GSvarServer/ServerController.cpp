@@ -467,6 +467,13 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				}
 				file_list << file_locator->getMethylationImage(locus);
 				break;
+			case PathType::METHYLATION_COHORT_IMAGE:
+				if (locus.isEmpty())
+				{
+					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
+				}
+				file_list << file_locator->getMethylationCohortImage(locus);
+				break;
 			case PathType::PARAPHASE_EVIDENCE:
 				file_list = file_locator->getParaphaseEvidenceFiles(return_if_missing);
 				break;
