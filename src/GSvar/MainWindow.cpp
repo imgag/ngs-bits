@@ -4632,7 +4632,7 @@ void MainWindow::on_actionStatistics_triggered()
 	QApplication::restoreOverrideCursor();
 
 	//show dialog
-	TsvTableWidget* widget = new TsvTableWidget(table);
+	TsvTableWidget* widget = new TsvTableWidget(table, this);
 	widget->setMinimumWidth(850);
 	auto dlg = GUIHelper::createDialog(widget, "Statistics", "Sequencing statistics grouped by month (human)");
 	dlg->exec();
@@ -6082,6 +6082,7 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 
 		//show table
 		TsvTableWidget* widget = new TsvTableWidget(table, this);
+		connect(widget, SIGNAL(rowDoubleClicked(int)), this, SLOT(jumpToCnvOrSvPosition(int)));
 		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(widget, "CNVs and SVs matching " + v_reg.toString(true));
 		dlg->exec();
 	}
@@ -6143,7 +6144,15 @@ QString MainWindow::getJobStatus(int id)
 
 QString MainWindow::getJobMessages(int id)
 {
-    return bg_job_dialog_->getJobMessages(id);
+	return bg_job_dialog_->getJobMessages(id);
+}
+
+void MainWindow::jumpToCnvOrSvPosition(int row)
+{
+	TsvTableWidget* tsv_table = qobject_cast<TsvTableWidget*>(sender());
+	QString pos = tsv_table->getText(row, 1);
+
+	IgvSessionManager::get(0).gotoInIGV(pos, true);
 }
 
 void MainWindow::on_actionVirusDetection_triggered()

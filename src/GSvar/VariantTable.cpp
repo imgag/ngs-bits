@@ -87,7 +87,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 
 	bool  ngsd_user_logged_in = LoginManager::active();
-	const Variant variant = (*variants_)[index];
+	const Variant& variant = (*variants_)[index];
 	int i_gene = variants_->annotationIndexByName("gene", true, true);
 	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 	int i_co_sp = variants_->annotationIndexByName("coding_and_splicing", true, true);
@@ -97,7 +97,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	QMenu* copy_menu = menu.addMenu(QIcon("://Icons/Clipboard.png"), "Copy");
 	QAction* a_copy_variant = copy_menu->addAction("Variant");
 	QAction* a_copy_genes = copy_menu->addAction("Genes");
-	QAction* a_cnv_sv = menu.addAction("show CNVs/SVs in gene");
+	QAction* a_cnv_sv = menu.addAction("Show CNVs/SVs in gene");
 	QAction* a_visualize = menu.addAction("Visualize");
 	a_visualize->setEnabled(Settings::boolean("debug_mode_enabled", true));
 	menu.addSeparator();
