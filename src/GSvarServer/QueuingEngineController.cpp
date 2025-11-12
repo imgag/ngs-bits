@@ -120,9 +120,17 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 
 	//determine usable queues
 	QStringList queues = PipelineSettings::queuesDefault();
-	if(job.high_priority)
+	bool use_high_prio_queues = job.high_priority;
+	foreach(const ProcessedSampleData& data, ps_data)
 	{
-		queues = PipelineSettings::queuesHighPriority();
+		if (data.urgent) use_high_prio_queues = true;
+	}
+	if(use_high_prio_queues)
+	{
+		foreach(QString queue, PipelineSettings::queuesHighPriority())
+		{
+			if (!queues.contains(queue)) queues << queue;
+		}
 	}
 
 	QString script;
