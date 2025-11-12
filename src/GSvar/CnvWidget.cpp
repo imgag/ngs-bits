@@ -1007,7 +1007,7 @@ void CnvWidget::annotateTargetRegionGeneOverlap()
 			}
 
 			// update tooltip
-			ui->cnvs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toStringList().join(", ") + "</div>");
+			ui->cnvs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toString(", ") + "</div>");
 		}
 	}
 	QApplication::restoreOverrideCursor();

@@ -134,7 +134,7 @@ void GeneSelectionDialog::determineGenes()
 		}
 
 		// set genes:
-		ui_->te_genes->setPlainText(genes.toStringList().join('\n'));
+		ui_->te_genes->setPlainText(genes.toString("\n"));
 
 		QApplication::restoreOverrideCursor();
 	}

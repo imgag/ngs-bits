@@ -1208,7 +1208,7 @@ void MainWindow::on_actionExpressionData_triggered()
 		cohort_type = RNA_COHORT_SOMATIC;
 	}
 
-	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
+	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toString(", "), variant_target_region, project, rna_ps_id,
 															cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(rna_ps_id) + " (DNA: " + variants_.analysisName() + ")");
 	addModelessDialog(dlg);

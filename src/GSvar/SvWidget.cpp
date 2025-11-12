@@ -850,7 +850,7 @@ void SvWidget::annotateTargetRegionGeneOverlap()
 			}
 
 			// update tooltip
-			ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toStringList().join(", ") + "</div>");
+			ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toString(", ") + "</div>");
 		}
 	}
 

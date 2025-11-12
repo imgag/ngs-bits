@@ -444,16 +444,16 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		{
 			const BedLine& line = low_cov[i];
 
-			QStringList tmp_genes = db_.genesOverlapping(line.chr(), line.start(), line.end()).toStringList();
+			QByteArrayList tmp_genes = db_.genesOverlapping(line.chr(), line.start(), line.end()).toByteArrayList();
 
-			genes.append( tmp_genes.join(", ").toUtf8() );
+			genes.append(tmp_genes.join(", "));
 
 			if(config_.include_exon_number_per_gap)
 			{
 				QStringList tmp_exons;
-				for(const auto& tmp_gene : tmp_genes)
+				for(const QByteArray& tmp_gene : tmp_genes)
 				{
-					QByteArray exon = exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
+					QByteArray exon = exonNumber(tmp_gene , line.start(), line.end());
 					if(exon != "")
 					{
 						tmp_exons << exon;

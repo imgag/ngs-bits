@@ -602,7 +602,7 @@ void ClinvarUploadDialog::upload()
 					THROW(ArgumentException, "Invalid variant type provided!");
 					break;
 			}
-			details << "gene=" +  NGSD().genesToApproved(GeneSet::createFromStringList(genes.replace(";", ",").split(','))).toStringList().join(',');
+			details << "gene=" +  NGSD().genesToApproved(GeneSet::createFromText(genes.replace(";", ",").toUtf8(), ',')).toString(",");
 
 			// additional info for reupload
 			if (clinvar_upload_data_.variant_publication_id > 0)

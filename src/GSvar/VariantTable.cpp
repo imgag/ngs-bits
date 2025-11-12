@@ -94,8 +94,10 @@ void VariantTable::customContextMenu(QPoint pos)
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
+	QMenu* copy_menu = menu.addMenu(QIcon("://Icons/Clipboard.png"), "Copy");
+	QAction* a_copy_variant = copy_menu->addAction("Variant");
+	QAction* a_copy_genes = copy_menu->addAction("Genes");
 	QAction* a_cnv_sv = menu.addAction("show CNVs/SVs in gene");
-
 	QAction* a_visualize = menu.addAction("Visualize");
 	a_visualize->setEnabled(Settings::boolean("debug_mode_enabled", true));
 	menu.addSeparator();
@@ -233,6 +235,16 @@ void VariantTable::customContextMenu(QPoint pos)
 	QByteArray text = action->text().toUtf8();
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
+
+	//copy
+	if (action==a_copy_variant)
+	{
+		QApplication::clipboard()->setText(variant.toString());
+	}
+	if (action==a_copy_genes)
+	{
+		QApplication::clipboard()->setText(genes.toString("\n"));
+	}
 
 	//perform actions
 	if (action==a_cnv_sv)

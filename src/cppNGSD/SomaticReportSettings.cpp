@@ -135,8 +135,8 @@ BedpeFile SomaticReportSettings::filterSvs(NGSD& db, const BedpeFile& svs, const
 		GeneSet genes_B = db.genesOverlapping(sv.chr2(), sv.start2(), sv.end2(), 5000);
 		const auto& var_config = sett.report_config->variantConfig(idx, VariantType::SVS);
 		sv.appendAnnotation(var_config.description.toUtf8());
-		sv.appendAnnotation(genes_A.toStringList().join(", ").toUtf8());
-		sv.appendAnnotation(genes_B.toStringList().join(", ").toUtf8());
+		sv.appendAnnotation(genes_A.toString(", "));
+		sv.appendAnnotation(genes_B.toString(", "));
 		sv.appendAnnotation(var_config.manual_sv_start != "" ? sv.chr1().strNormalized(true) + ": " + var_config.manual_sv_start.toUtf8() : sv.chr1().strNormalized(true) + ": " +QByteArray::number(sv.start1()));
 		sv.appendAnnotation(var_config.manual_sv_end != ""   ? sv.chr2().strNormalized(true) + ": " + var_config.manual_sv_end.toUtf8()   : sv.chr2().strNormalized(true) + ": " +QByteArray::number(sv.start2()));
 
