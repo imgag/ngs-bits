@@ -1278,6 +1278,10 @@ void SvWidget::showContextMenu(QPoint pos)
 	QAction* copy_pos2 = menu.addAction("Copy position B to clipboard");
 	menu.addSeparator();
 
+	QAction* a_deciphter = menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
+	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	menu.addSeparator();
+
 	//ClinVar search
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
@@ -1402,6 +1406,16 @@ void SvWidget::showContextMenu(QPoint pos)
 	else if (action == copy_pos2)
 	{
 		QApplication::clipboard()->setText(sv.position2());
+	}
+	else if (action==a_ucsc)
+	{
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + sv.positionRange()));
+	}
+	else if (action==a_deciphter)
+	{
+		QString region = sv.positionRange();
+		region.remove("chr");
+		QDesktopServices::openUrl(QUrl("https://www.deciphergenomics.org/browser#q/" + region));
 	}
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{

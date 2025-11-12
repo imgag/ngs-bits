@@ -54,18 +54,18 @@ For each CNV the following properties are shown (3):
 
 * genomic position
 * size (kB)
-* number of regions (exons/bins)
+* number of regions (exons for WES/bins for WGS)
 * affected genes
 * copy-number change
 * log-likelihood: logarithm of the ratio between likelihoods of the *no CN change model* vs the *CN equal to the reported state model* (bigger is better)
 * potential AF: frequency of the copy-number change in the analyzed cohort, i.e. the 100-200 most similar samples *(Note: this can deviate from the population allele frequency, especially for rare CNVs)*
-* q-value: p-value corrected for the number of CNVs detected (smaller is better)
+* q-value: p-value corrected for the number of CNVs detected. Below 0.05 for high quality CNVs. If higher than 0.05 the CNV call might be false-postive (CNP region, repeat region, ...). 
 
 Additionally, generic annotation columns are added (4), e.g.:
 
-* overlap af_genomes_imgag: overlap with copy-number-polymorphism regions
-	* The first number is the overlap with the CNP regions (AF>2%) determined from 650 in-house genomes. The range is 0 (no overlap) to 1 (complete overlap).
-    * The numbers in brackets are the allele-frequency (i.e. the fraction of samples with CN not equal to 2) of sub-regions within the overlap.
+* overlap af_genomes_imgag: overlap with copy-number-polymorphism (CNP) region determined from IMGAG in-house genomes. CNPs are regions where more than 2% or samples deviate from the expected copy number. 
+    * The first number is the fraction of overlap between CNP region and CNV in questions. The range is 0 (no overlap) to 1 (complete overlap).
+    * The number in brackets is the allele-frequency of the CNP, i.e. the fraction of samples with CN not equal to the expected copy number. If several CNP regions overlap with the CNV, several AFs are listed as a comma-sparated list.
         * These numbers are calculated from the `AF TruSeqPCRfree` track described below.
 * cn_pathogenic: in-house database of pathogenic CNVs
 * dosage_sensitive_disease_genes: dosage-sensitive disease genes (from [ClinGen Dosage Sensitivity Map](https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/))
