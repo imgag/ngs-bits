@@ -440,6 +440,7 @@ void MVHub::updateTableFilters()
 	{
 		int c_exp_status = colOf("export status");
 		int c_exp_conf = colOf("export confirmation");
+		int c_case_status = colOf("CM Status");
 		QString export_filter = ui_.f_export->currentText();
 		for (int r=0; r<rows; ++r)
 		{
@@ -450,7 +451,11 @@ void MVHub::updateTableFilters()
 			QString conf = getString(r, c_exp_conf);
 			int c_conf = conf.isEmpty() ? 0 : conf.split("//").count();
 
-			if (export_filter=="pending" && !(status==""))
+			if (export_filter=="pending" && status!="")
+			{
+				visible[r] = false;
+			}
+			if (export_filter=="pending" && getString(r, c_case_status)=="Abgebrochen" && getNetwork(r)!=SE)
 			{
 				visible[r] = false;
 			}
