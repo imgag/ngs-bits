@@ -157,6 +157,18 @@ void SvWidget::initGUI()
 			item->setToolTip("Double click table cell to open table view of annotations");
 		}
 
+		if (col=="FILTER")
+		{
+			QString tooltip;
+			auto filters_desc = svs_.metaInfoDescriptionByID("FILTER");
+			for(auto it=filters_desc.begin(); it!=filters_desc.end(); ++it)
+			{
+				tooltip += it.key() + ":\n" + it.value() + "\n\n";
+			}
+			tooltip.chop(2);
+			item->setToolTip(tooltip);
+		}
+
 		QByteArray desc = svs_.annotationDescriptionByName(col.toUtf8()).trimmed();
 		if(desc!="")
 		{
@@ -266,7 +278,6 @@ void SvWidget::clearGUI()
 	//clear table widget to cols / rows specified in .ui file
 	ui->svs->setRowCount(0);
 	ui->svs->setColumnCount(6);
-
 }
 
 void SvWidget::resizeTableContent(QTableWidget* table_widget)

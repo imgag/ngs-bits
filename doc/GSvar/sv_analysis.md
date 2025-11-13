@@ -33,8 +33,9 @@ The "Structural variants" dialog shows the filtered list of all detected SVs wit
 * filter
 * sequence of the reference
 * sequence of the SV
-* genes
-* gene info: gene-specific information from NGSD
+* GENES: all genes overlapping the SV
+* GENES_BREAKPOINTS: genes overlapping the SV breakpoints
+* GENE_INFO: gene-specific information from NGSD
 	* gnomAD o/e score for LOF variants
 	* overlap with gene (complete, intronic/intergenic, exonic/splicing) 
 * NGSD_HOM: how often the SV was seen homozygous in NGSD
