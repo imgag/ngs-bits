@@ -117,9 +117,9 @@ void PublishedVariantsWidget::updateTable()
 		if (!ui_->f_region->text().trimmed().isEmpty())
 		{
 			Chromosome chr;
-			int start, end;
+			QByteArray start, end;
 			NGSHelper::parseRegion(ui_->f_region->text(), chr, start, end);
-			constraints << ("variant_id IN (SELECT id FROM variant where chr='" + chr.strNormalized(true) + "' AND start>=" + QString::number(start) + " AND end<=" + QString::number(end) + ")");
+			constraints << ("variant_id IN (SELECT id FROM variant where chr='" + chr.strNormalized(true) + "' AND start>=" + start + " AND end<=" + end + ")");
 
 			ui_->f_region->setStyleSheet("");
 		}
