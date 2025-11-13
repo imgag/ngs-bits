@@ -270,7 +270,7 @@ public:
         out << "NGSD contains " << gene_ids.count() << " " << (protein_coding? "protein-coding" : "other") << " genes" << QT_ENDL;
         out << "  - with at least one Ensembl transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='Ensembl'").count() << QT_ENDL;
         out << "  - with a CCDS transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='CCDS'").count() << QT_ENDL;
-        out << "  - with MANE transcripts: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND (gt.is_mane_select=1 || gt.is_mane_plus_clinical=1)").count() << QT_ENDL;
+		out << "  - with MANE transcripts: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND (gt.is_mane_select=1 OR gt.is_mane_plus_clinical=1)").count() << QT_ENDL;
 		GeneSet no_chr_genes;
 		GeneSet multi_chr_genes;
 		GeneSet duplicate_ensg;

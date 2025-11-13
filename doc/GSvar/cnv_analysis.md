@@ -78,7 +78,7 @@ Additionally, generic annotation columns are added (4), e.g.:
 * ngsd_pathogenic_cnvs: overlap with known pathogenic CNVs from NGSD
 	* Contains a list with all known pathogenic CNVs from the NGSD which overlaps with the current CNV
 	* The first value of each entry defines the class of the overlapping CNV (4 or 5)
-	* The second value is the overlap of both CNVs from 0 (no overlap) to 1 (complete overlap). (All overlaps below 0.0001 will be displayed as 0.0001.)
+	* The second value is the fraction of the pathogenic CNV that overlaps the annotated CNV. Range: from 0 (no overlap) to 1 (complete overlap).
 
 ![alt text](cnv_filtering_clincnv.png)
 

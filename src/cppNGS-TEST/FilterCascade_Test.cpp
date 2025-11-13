@@ -1388,7 +1388,7 @@ private:
 		I_EQUAL(result.countPassing(), 65);
 	}
 
-	TEST_METHOD(FilterCnvPathogenicCnvOverlap_apply)
+	TEST_METHOD(FilterCnvPathogenicCnvOverlap_apply_filter)
 	{
 		CnvList cnvs;
 		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_somatic.tsv"));
@@ -1400,6 +1400,20 @@ private:
 		I_EQUAL(result.countPassing(), 3);
 	}
 
+
+	TEST_METHOD(FilterCnvPathogenicCnvOverlap_apply_keep)
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_somatic.tsv"));
+
+		FilterResult result(cnvs.count(), false);
+
+		FilterCnvPathogenicCnvOverlap filter;
+		filter.setString("action", "KEEP");
+		filter.apply(cnvs, result);
+
+		I_EQUAL(result.countPassing(), 3);
+	}
 	/********************************************* Default filters for CNVs *********************************************/
 
 	TEST_METHOD(default_filters_ClinCNV_germline_single)
@@ -1908,6 +1922,31 @@ private:
 		result.reset();
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 5);
+	}
+
+	TEST_METHOD(FilterSvPathogenic_apply_filter)
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvPathogenic filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 1);
+	}
+
+	TEST_METHOD(FilterSvPathogenic_apply_keep)
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count(), false);
+
+		FilterSvPathogenic filter;
+		filter.setString("action", "KEEP");
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 1);
 	}
 
 	/********************************************* Filters for lrSVs *********************************************/
