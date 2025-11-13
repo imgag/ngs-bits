@@ -592,6 +592,13 @@ void MVHub::updateTableFilters()
 					continue;
 				}
 
+				//documentation incomplete
+				if (ui_.table->item(r,2)->toolTip()!="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
 				//base data available
 				if (getString(r, c_case_id)=="")
 				{
@@ -1260,6 +1267,12 @@ void MVHub::checkForMetaDataErrors()
 
 		Network network = getNetwork(r);
 
+		//check if docu is complete
+		if (ui_.table->item(r,2)->toolTip()!="")
+		{
+			cmid2messages_[cm_id] << "CM docu not flagged as complete";
+		}
+
 		//consent meta data in CM RedCap missing
 		QString bc_signed = getString(r, c_consent_cm);
 		if (bc_signed=="")
@@ -1787,6 +1800,13 @@ void MVHub::loadDataFromCM(int debug_level)
 				if (tag=="gen_finding_date") ui_.table->setItem(r, 9, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 10, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="bc_signed") ui_.table->setItem(r, c_cm_consent, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="status_complete" && e.text().trimmed()!="Complete")
+				{
+					QTableWidgetItem* item = ui_.table->item(r,2);
+					if (item!=nullptr) item->setToolTip("CM docu incomplete");
+					else qDebug() << cm_id << "item with index 2 missing";
+				}
+
 				n = n.nextSibling();
 			}
 		}
