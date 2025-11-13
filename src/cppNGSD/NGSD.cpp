@@ -7926,6 +7926,9 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
 		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
 		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+		var_conf.exclude_hit2_missing = query.value("exclude_hit2_missing").toBool();
+		var_conf.exclude_gus = query.value("exclude_gus").toBool();
+		var_conf.exclude_used_other_var_type = query.value("exclude_used_other_var_type").toBool();
 		var_conf.exclude_other = query.value("exclude_other").toBool();
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
@@ -7968,6 +7971,9 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
 		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
 		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+		var_conf.exclude_hit2_missing = query.value("exclude_hit2_missing").toBool();
+		var_conf.exclude_gus = query.value("exclude_gus").toBool();
+		var_conf.exclude_used_other_var_type = query.value("exclude_used_other_var_type").toBool();
 		var_conf.exclude_other = query.value("exclude_other").toBool();
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
@@ -8053,6 +8059,9 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 			var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
 			var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
 			var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+			var_conf.exclude_hit2_missing = query.value("exclude_hit2_missing").toBool();
+			var_conf.exclude_gus = query.value("exclude_gus").toBool();
+			var_conf.exclude_used_other_var_type = query.value("exclude_used_other_var_type").toBool();
 			var_conf.exclude_other = query.value("exclude_other").toBool();
 			var_conf.comments = query.value("comments").toString();
 			var_conf.comments2 = query.value("comments2").toString();
@@ -8150,7 +8159,6 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 	return output;
 }
 
-//TODO Marc: add user created / user last edited to report config variant tables
 int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res)
 {
 	int report_config_id = reportConfigId(processed_sample_id);
@@ -8192,17 +8200,17 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 
 		//store variant data
 		SqlQuery query_new_var = getQuery();
-		query_new_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_var`, `manual_genotype`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17)");
+		query_new_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_hit2_missing`, `exclude_gus`, `exclude_used_other_var_type`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_var`, `manual_genotype`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20)");
 		SqlQuery query_update_var = getQuery();
-		query_update_var.prepare("UPDATE `report_configuration_variant` SET `report_configuration_id`=:0, `variant_id`=:1, `type`=:2, `causal`=:3, `inheritance`=:4, `de_novo`=:5, `mosaic`=:6, `compound_heterozygous`=:7, `exclude_artefact`=:8, `exclude_frequency`=:9, `exclude_phenotype`=:10, `exclude_mechanism`=:11, `exclude_other`=:12, `comments`=:13, `comments2`=:14, `rna_info`=:15, `manual_var`=:16, `manual_genotype`=:17 WHERE `id`=:18");
+		query_update_var.prepare("UPDATE `report_configuration_variant` SET `report_configuration_id`=:0, `variant_id`=:1, `type`=:2, `causal`=:3, `inheritance`=:4, `de_novo`=:5, `mosaic`=:6, `compound_heterozygous`=:7, `exclude_artefact`=:8, `exclude_frequency`=:9, `exclude_phenotype`=:10, `exclude_mechanism`=:11, `exclude_hit2_missing`=:12, `exclude_gus`=:13, `exclude_used_other_var_type`=:14, `exclude_other`=:15, `comments`=:16, `comments2`=:17, `rna_info`=:18, `manual_var`=:19, `manual_genotype`=:20 WHERE `id`=:21");
 		SqlQuery query_new_cnv = getQuery();
-		query_new_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_cn`, `manual_hgvs_type`, `manual_hgvs_suffix`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21)");
+		query_new_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_hit2_missing`, `exclude_gus`, `exclude_used_other_var_type`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_cn`, `manual_hgvs_type`, `manual_hgvs_suffix`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24)");
 		SqlQuery query_update_cnv = getQuery();
-		query_update_cnv.prepare("UPDATE `report_configuration_cnv` SET `report_configuration_id`=:0, `cnv_id`=:1, `type`=:2, `causal`=:3, `class`=:4, `inheritance`=:5, `de_novo`=:6, `mosaic`=:7, `compound_heterozygous`=:8, `exclude_artefact`=:9, `exclude_frequency`=:10, `exclude_phenotype`=:11, `exclude_mechanism`=:12, `exclude_other`=:13, `comments`=:14, `comments2`=:15, `rna_info`=:16, `manual_start`=:17, `manual_end`=:18, `manual_cn`=:19, `manual_hgvs_type`=:20, `manual_hgvs_suffix`=:21 WHERE `id`=:22");
+		query_update_cnv.prepare("UPDATE `report_configuration_cnv` SET `report_configuration_id`=:0, `cnv_id`=:1, `type`=:2, `causal`=:3, `class`=:4, `inheritance`=:5, `de_novo`=:6, `mosaic`=:7, `compound_heterozygous`=:8, `exclude_artefact`=:9, `exclude_frequency`=:10, `exclude_phenotype`=:11, `exclude_mechanism`=:12, `exclude_hit2_missing`=:13, `exclude_gus`=:14, `exclude_used_other_var_type`=:15, `exclude_other`=:16, `comments`=:17, `comments2`=:18, `rna_info`=:19, `manual_start`=:20, `manual_end`=:21, `manual_cn`=:22, `manual_hgvs_type`=:23, `manual_hgvs_suffix`=:24 WHERE `id`=:25");
 		SqlQuery query_new_sv = getQuery();
-		query_new_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_genotype`, `manual_start_bnd`, `manual_end_bnd`, `manual_hgvs_type`, `manual_hgvs_suffix`, `manual_hgvs_type_bnd`, `manual_hgvs_suffix_bnd`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29)");
+		query_new_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_hit2_missing`, `exclude_gus`, `exclude_used_other_var_type`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_genotype`, `manual_start_bnd`, `manual_end_bnd`, `manual_hgvs_type`, `manual_hgvs_suffix`, `manual_hgvs_type_bnd`, `manual_hgvs_suffix_bnd`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32)");
 		SqlQuery query_update_sv = getQuery();
-		query_update_sv.prepare("UPDATE `report_configuration_sv` SET `report_configuration_id`=:0, `sv_deletion_id`=:1, `sv_duplication_id`=:2, `sv_insertion_id`=:3, `sv_inversion_id`=:4, `sv_translocation_id`=:5, `type`=:6, `causal`=:7, `class`=:8, `inheritance`=:9, `de_novo`=:10, `mosaic`=:11, `compound_heterozygous`=:12, `exclude_artefact`=:13, `exclude_frequency`=:14, `exclude_phenotype`=:15, `exclude_mechanism`=:16, `exclude_other`=:17, `comments`=:18, `comments2`=:19, `rna_info`=:20, `manual_start`=:21, `manual_end`=:22, `manual_genotype`=:23, `manual_start_bnd`=:24, `manual_end_bnd`=:25, `manual_hgvs_type`=:26, `manual_hgvs_suffix`=:27 , `manual_hgvs_type_bnd`=:28, `manual_hgvs_suffix_bnd`=:29 WHERE `id`=:30");
+		query_update_sv.prepare("UPDATE `report_configuration_sv` SET `report_configuration_id`=:0, `sv_deletion_id`=:1, `sv_duplication_id`=:2, `sv_insertion_id`=:3, `sv_inversion_id`=:4, `sv_translocation_id`=:5, `type`=:6, `causal`=:7, `class`=:8, `inheritance`=:9, `de_novo`=:10, `mosaic`=:11, `compound_heterozygous`=:12, `exclude_artefact`=:13, `exclude_frequency`=:14, `exclude_phenotype`=:15, `exclude_mechanism`=:16, `exclude_hit2_missing`=:17, `exclude_gus`=:18, `exclude_used_other_var_type`=:19, `exclude_other`=:20, `comments`=:21, `comments2`=:22, `rna_info`=:23, `manual_start`=:24, `manual_end`=:25, `manual_genotype`=:26, `manual_start_bnd`=:27, `manual_end_bnd`=:28, `manual_hgvs_type`=:29, `manual_hgvs_suffix`=:30 , `manual_hgvs_type_bnd`=:31, `manual_hgvs_suffix_bnd`=:32 WHERE `id`=:33");
 		SqlQuery query_new_re = getQuery();
 		query_new_re.prepare("INSERT INTO `report_configuration_re`(`report_configuration_id`, `repeat_expansion_genotype_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_phenotype`, `exclude_other`, `comments`, `comments2`, `manual_allele1`, `manual_allele2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
 		SqlQuery query_update_re = getQuery();
@@ -8273,12 +8281,15 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query.bindValue(9, var_conf.exclude_frequency);
 				query.bindValue(10, var_conf.exclude_phenotype);
 				query.bindValue(11, var_conf.exclude_mechanism);
-				query.bindValue(12, var_conf.exclude_other);
-				query.bindValue(13, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-				query.bindValue(14, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-				query.bindValue(15, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
-				query.bindValue(16, var_conf.manual_var);
-				query.bindValue(17, var_conf.manualVarGenoIsValid() ? var_conf.manual_genotype : QVariant());
+				query.bindValue(12, var_conf.exclude_hit2_missing);
+				query.bindValue(13, var_conf.exclude_gus);
+				query.bindValue(14, var_conf.exclude_used_other_var_type);
+				query.bindValue(15, var_conf.exclude_other);
+				query.bindValue(16, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query.bindValue(17, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query.bindValue(18, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query.bindValue(19, var_conf.manual_var);
+				query.bindValue(20, var_conf.manualVarGenoIsValid() ? var_conf.manual_genotype : QVariant());
 
 				if (var_conf.id < 0)
 				{
@@ -8290,7 +8301,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				else
 				{
 					//update
-					query.bindValue(18, var_conf.id);
+					query.bindValue(21, var_conf.id);
 					query.exec();
 				}
 
@@ -8356,15 +8367,18 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query.bindValue(10, var_conf.exclude_frequency);
 				query.bindValue(11, var_conf.exclude_phenotype);
 				query.bindValue(12, var_conf.exclude_mechanism);
-				query.bindValue(13, var_conf.exclude_other);
-				query.bindValue(14, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-				query.bindValue(15, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-				query.bindValue(16, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
-				query.bindValue(17, var_conf.manualCnvStartIsValid() ? var_conf.manual_cnv_start : QVariant());
-				query.bindValue(18, var_conf.manualCnvEndIsValid() ? var_conf.manual_cnv_end : QVariant());
-				query.bindValue(19, var_conf.manualCnvCnIsValid() ? var_conf.manual_cnv_cn : QVariant());
-				query.bindValue(20, var_conf.manual_cnv_hgvs_type);
-				query.bindValue(21, var_conf.manual_cnv_hgvs_suffix);
+				query.bindValue(13, var_conf.exclude_hit2_missing);
+				query.bindValue(14, var_conf.exclude_gus);
+				query.bindValue(15, var_conf.exclude_used_other_var_type);
+				query.bindValue(16, var_conf.exclude_other);
+				query.bindValue(17, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query.bindValue(18, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query.bindValue(19, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query.bindValue(20, var_conf.manualCnvStartIsValid() ? var_conf.manual_cnv_start : QVariant());
+				query.bindValue(21, var_conf.manualCnvEndIsValid() ? var_conf.manual_cnv_end : QVariant());
+				query.bindValue(22, var_conf.manualCnvCnIsValid() ? var_conf.manual_cnv_cn : QVariant());
+				query.bindValue(23, var_conf.manual_cnv_hgvs_type);
+				query.bindValue(24, var_conf.manual_cnv_hgvs_suffix);
 
 				if (var_conf.id < 0)
 				{
@@ -8376,7 +8390,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				else
 				{
 					//update
-					query.bindValue(22, var_conf.id);
+					query.bindValue(25, var_conf.id);
 					query.exec();
 				}
 
@@ -8447,19 +8461,22 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query.bindValue(14, var_conf.exclude_frequency);
 				query.bindValue(15, var_conf.exclude_phenotype);
 				query.bindValue(16, var_conf.exclude_mechanism);
-				query.bindValue(17, var_conf.exclude_other);
-				query.bindValue(18, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-				query.bindValue(19, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-				query.bindValue(20, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
-				query.bindValue(21, var_conf.manualSvStartIsValid() ? var_conf.manual_sv_start : QVariant());
-				query.bindValue(22, var_conf.manualSvEndIsValid() ? var_conf.manual_sv_end : QVariant());
-				query.bindValue(23, var_conf.manualSvGenoIsValid() ? var_conf.manual_sv_genotype : QVariant());
-				query.bindValue(24, var_conf.manualSvStartBndIsValid() ? var_conf.manual_sv_start_bnd : QVariant());
-				query.bindValue(25, var_conf.manualSvEndBndIsValid() ? var_conf.manual_sv_end_bnd : QVariant());
-				query.bindValue(26, var_conf.manual_sv_hgvs_type);
-				query.bindValue(27, var_conf.manual_sv_hgvs_suffix);
-				query.bindValue(28, var_conf.manual_sv_hgvs_type_bnd);
-				query.bindValue(29, var_conf.manual_sv_hgvs_suffix_bnd);
+				query.bindValue(17, var_conf.exclude_hit2_missing);
+				query.bindValue(18, var_conf.exclude_gus);
+				query.bindValue(19, var_conf.exclude_used_other_var_type);
+				query.bindValue(20, var_conf.exclude_other);
+				query.bindValue(21, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query.bindValue(22, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query.bindValue(23, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query.bindValue(24, var_conf.manualSvStartIsValid() ? var_conf.manual_sv_start : QVariant());
+				query.bindValue(25, var_conf.manualSvEndIsValid() ? var_conf.manual_sv_end : QVariant());
+				query.bindValue(26, var_conf.manualSvGenoIsValid() ? var_conf.manual_sv_genotype : QVariant());
+				query.bindValue(27, var_conf.manualSvStartBndIsValid() ? var_conf.manual_sv_start_bnd : QVariant());
+				query.bindValue(28, var_conf.manualSvEndBndIsValid() ? var_conf.manual_sv_end_bnd : QVariant());
+				query.bindValue(29, var_conf.manual_sv_hgvs_type);
+				query.bindValue(30, var_conf.manual_sv_hgvs_suffix);
+				query.bindValue(31, var_conf.manual_sv_hgvs_type_bnd);
+				query.bindValue(32, var_conf.manual_sv_hgvs_suffix_bnd);
 
 				// set SV id
 				switch (sv.type())
@@ -8494,7 +8511,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				else
 				{
 					//update
-					query.bindValue(30, var_conf.id);
+					query.bindValue(33, var_conf.id);
 					query.exec();
 				}
 
@@ -8710,6 +8727,9 @@ ReportVariantConfiguration NGSD::reportVariantConfiguration(int id, VariantType 
 		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
 		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
 		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+		var_conf.exclude_hit2_missing = query.value("exclude_hit2_missing").toBool();
+		var_conf.exclude_gus = query.value("exclude_gus").toBool();
+		var_conf.exclude_used_other_var_type = query.value("exclude_used_other_var_type").toBool();
 		var_conf.exclude_other = query.value("exclude_other").toBool();
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
@@ -8749,6 +8769,9 @@ ReportVariantConfiguration NGSD::reportVariantConfiguration(int id, VariantType 
 		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
 		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
 		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+		var_conf.exclude_hit2_missing = query.value("exclude_hit2_missing").toBool();
+		var_conf.exclude_gus = query.value("exclude_gus").toBool();
+		var_conf.exclude_used_other_var_type = query.value("exclude_used_other_var_type").toBool();
 		var_conf.exclude_other = query.value("exclude_other").toBool();
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
@@ -8828,6 +8851,9 @@ ReportVariantConfiguration NGSD::reportVariantConfiguration(int id, VariantType 
 		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
 		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
 		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+		var_conf.exclude_hit2_missing = query.value("exclude_hit2_missing").toBool();
+		var_conf.exclude_gus = query.value("exclude_gus").toBool();
+		var_conf.exclude_used_other_var_type = query.value("exclude_used_other_var_type").toBool();
 		var_conf.exclude_other = query.value("exclude_other").toBool();
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();

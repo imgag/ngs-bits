@@ -51,6 +51,9 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	//show exclude resons only when needed
 	ui_.exclude_frequency->setVisible(config.variant_type!=VariantType::RES);
 	ui_.exclude_mechanism->setVisible(config.variant_type!=VariantType::RES);
+	ui_.exclude_hit2_missing->setVisible(config.variant_type!=VariantType::RES);
+	ui_.exclude_gus->setVisible(config.variant_type!=VariantType::RES);
+	ui_.exclude_used_other_var_type->setVisible(config.variant_type!=VariantType::RES);
 
 	//show manual variant override options when needed
     foreach(QWidget* widget, findChildren<QWidget*>(QRegularExpression("manual_.*")))
