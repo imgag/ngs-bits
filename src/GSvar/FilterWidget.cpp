@@ -615,7 +615,7 @@ void FilterWidget::showTargetRegionDetails()
 
 void FilterWidget::copyGenesToClipboard()
 {
-	QApplication::clipboard()->setText(roi_.genes.toStringList().join("\n"));
+	QApplication::clipboard()->setText(roi_.genes.toString("\n"));
 }
 
 void FilterWidget::copyTargetRegionToClipboard()

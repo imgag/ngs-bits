@@ -383,7 +383,7 @@ void ExpressionOverviewWidget::applyGeneFilter()
 		}
 
 		// set genes:
-		ui_->te_selected_genes->setPlainText(genes.toStringList().join('\n'));
+		ui_->te_selected_genes->setPlainText(genes.toString("\n"));
 
 		QApplication::restoreOverrideCursor();
 	}

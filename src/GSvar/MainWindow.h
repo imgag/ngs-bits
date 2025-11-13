@@ -492,6 +492,8 @@ public slots:
     QString getJobStatus(int id);
     //Returns error messages for a background job by its id (if it failed)
     QString getJobMessages(int id);
+	///Opens IVG at the position of a CNV/SV
+	void jumpToCnvOrSvPosition(int row);
 
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();

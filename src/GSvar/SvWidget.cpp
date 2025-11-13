@@ -157,6 +157,18 @@ void SvWidget::initGUI()
 			item->setToolTip("Double click table cell to open table view of annotations");
 		}
 
+		if (col=="FILTER")
+		{
+			QString tooltip;
+			auto filters_desc = svs_.metaInfoDescriptionByID("FILTER");
+			for(auto it=filters_desc.begin(); it!=filters_desc.end(); ++it)
+			{
+				tooltip += it.key() + ":\n" + it.value() + "\n\n";
+			}
+			tooltip.chop(2);
+			item->setToolTip(tooltip);
+		}
+
 		QByteArray desc = svs_.annotationDescriptionByName(col.toUtf8()).trimmed();
 		if(desc!="")
 		{
@@ -266,7 +278,6 @@ void SvWidget::clearGUI()
 	//clear table widget to cols / rows specified in .ui file
 	ui->svs->setRowCount(0);
 	ui->svs->setColumnCount(6);
-
 }
 
 void SvWidget::resizeTableContent(QTableWidget* table_widget)
@@ -850,7 +861,7 @@ void SvWidget::annotateTargetRegionGeneOverlap()
 			}
 
 			// update tooltip
-			ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toStringList().join(", ") + "</div>");
+			ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toString(", ") + "</div>");
 		}
 	}
 
@@ -1278,6 +1289,10 @@ void SvWidget::showContextMenu(QPoint pos)
 	QAction* copy_pos2 = menu.addAction("Copy position B to clipboard");
 	menu.addSeparator();
 
+	QAction* a_deciphter = menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
+	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	menu.addSeparator();
+
 	//ClinVar search
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
@@ -1402,6 +1417,16 @@ void SvWidget::showContextMenu(QPoint pos)
 	else if (action == copy_pos2)
 	{
 		QApplication::clipboard()->setText(sv.position2());
+	}
+	else if (action==a_ucsc)
+	{
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + sv.positionRange()));
+	}
+	else if (action==a_deciphter)
+	{
+		QString region = sv.positionRange();
+		region.remove("chr");
+		QDesktopServices::openUrl(QUrl("https://www.deciphergenomics.org/browser#q/" + region));
 	}
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{

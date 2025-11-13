@@ -130,7 +130,7 @@ void DiseaseCourseWidget::createTableView()
 			coding_splicing_collapsed << entry.join(":");
 		}
 
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(genes.toStringList().join(",")));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(genes.toString(",")));
 		ui_->vars->setItem(row_idx, col_idx, GUIHelper::createTableItem(coding_splicing_collapsed.join(", ")));
 		ui_->vars->item(row_idx, col_idx++)->setToolTip(coding_splicing_collapsed.join("\n").replace(":", " "));
 

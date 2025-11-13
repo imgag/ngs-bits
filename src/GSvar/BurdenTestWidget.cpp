@@ -81,7 +81,7 @@ void BurdenTestWidget::loadGeneList()
 	QTextEdit* te_genes = new QTextEdit();
 	if(selected_genes_.count() > 0)
 	{
-		te_genes->setText(selected_genes_.toStringList().join("\n"));
+		te_genes->setText(selected_genes_.toString("\n"));
 	}
 	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(te_genes, "Gene selection",
 															 "Paste the gene list (one gene per line).", true);
@@ -1210,7 +1210,7 @@ void BurdenTestWidget::copyToClipboard()
 	comments << "controls=" + control_sample_list.join(",");
 
 	//custom gene set
-	comments << "genes=" + selected_genes_.toStringList().join(",");
+	comments << "genes=" + selected_genes_.toString(",");
 	comments << "splice_region_size=" + QString::number(ui_->sb_splice_region_size->value());
 
 	//excluded regions
@@ -1265,7 +1265,7 @@ void BurdenTestWidget::validateCCRGenes()
 
 	if(unsupported_genes.count() > 0)
 	{
-		GUIHelper::showMessage("Unsupported Genes", "The foillowing genes are not supported by the constrained coding region and will be removed:\n" + unsupported_genes.toStringList().join(", "));
+		GUIHelper::showMessage("Unsupported Genes", "The foillowing genes are not supported by the constrained coding region and will be removed:\n" + unsupported_genes.toString(", "));
 		selected_genes_.remove(unsupported_genes);
 		updateGeneCounts();
 	}

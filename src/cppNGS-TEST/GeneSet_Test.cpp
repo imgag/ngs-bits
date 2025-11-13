@@ -255,6 +255,23 @@ private:
 		S_EQUAL(list[2], "C");
 	}
 
+	TEST_METHOD(toByteArrayList)
+	{
+		GeneSet set = GeneSet::createFromText("#bla,A,C,B", ',');
+		QByteArrayList list = set.toByteArrayList();
+
+		I_EQUAL(list.count(), 3);
+		S_EQUAL(list[0], "A");
+		S_EQUAL(list[1], "B");
+		S_EQUAL(list[2], "C");
+	}
+
+	TEST_METHOD(toString)
+	{
+		GeneSet set = GeneSet::createFromText("A,C,B", ',');
+		S_EQUAL(set.toString(", "), "A, B, C");
+	}
+
 	TEST_METHOD(remove_single)
 	{
 		GeneSet set;

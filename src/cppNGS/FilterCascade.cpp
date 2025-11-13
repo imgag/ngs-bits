@@ -981,6 +981,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV break point density NGSD"] = &createInstance<FilterSvBreakpointDensityNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
 		output["SV CNV overlap"] = &createInstance<FilterSvCnvOverlap>;
+		output["SV annotated pathogenic"] = &createInstance<FilterSvPathogenic>;
 		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
 		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
 		output["RNA ASE depth"] = &createInstance<FilterVariantRNAAseDepth>;
@@ -3543,6 +3544,8 @@ FilterCnvPathogenicCnvOverlap::FilterCnvPathogenicCnvOverlap()
 	name_ = "CNV pathogenic CNV overlap";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for overlap with pathogenic CNVs from the NGSD i.e. the 'ngsd_pathogenic_cnvs' column is not empty.";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "FILTER,KEEP";
 
 	checkIsRegistered();
 }
@@ -3558,14 +3561,32 @@ void FilterCnvPathogenicCnvOverlap::apply(const CnvList& cnvs, FilterResult& res
 
 	int index = cnvs.annotationIndexByName("ngsd_pathogenic_cnvs", true);
 
-	for(int i=0; i<cnvs.count(); ++i)
+	QString action = getString("action");
+	if (action=="FILTER")
 	{
-		if (!result.flags()[i]) continue;
-
-		if (cnvs[i].annotations()[index].trimmed().isEmpty())
+		for(int i=0; i<cnvs.count(); ++i)
 		{
-			result.flags()[i] = false;
+			if (!result.flags()[i]) continue;
+
+			if (cnvs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
 		}
+	}
+	else if (action=="KEEP")
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!cnvs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = true;
+			}
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Invalid action '" + action +"'provided!");
 	}
 }
 
@@ -5828,3 +5849,54 @@ void FilterSvLrSupportReads::apply(const BedpeFile& svs, FilterResult& result) c
 	}
 }
 
+
+FilterSvPathogenic::FilterSvPathogenic()
+{
+	name_ = "SV annotated pathogenic";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter variants that are already annotated to be pathogenic in NGSD..";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "FILTER,KEEP";
+
+	checkIsRegistered();
+}
+
+QString FilterSvPathogenic::toText() const
+{
+	return name();
+}
+
+void FilterSvPathogenic::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int index = svs.annotationIndexByName("NGSD_PATHOGENIC_SVS", true);
+
+	QString action = getString("action");
+	if (action=="FILTER")
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (svs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+	else if (action=="KEEP")
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!svs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = true;
+			}
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Invalid action '" + action +"'provided!");
+	}
+}

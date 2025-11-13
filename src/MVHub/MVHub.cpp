@@ -440,6 +440,7 @@ void MVHub::updateTableFilters()
 	{
 		int c_exp_status = colOf("export status");
 		int c_exp_conf = colOf("export confirmation");
+		int c_case_status = colOf("CM Status");
 		QString export_filter = ui_.f_export->currentText();
 		for (int r=0; r<rows; ++r)
 		{
@@ -450,7 +451,11 @@ void MVHub::updateTableFilters()
 			QString conf = getString(r, c_exp_conf);
 			int c_conf = conf.isEmpty() ? 0 : conf.split("//").count();
 
-			if (export_filter=="pending" && !(status==""))
+			if (export_filter=="pending" && status!="")
+			{
+				visible[r] = false;
+			}
+			if (export_filter=="pending" && getString(r, c_case_status)=="Abgebrochen" && getNetwork(r)!=SE)
 			{
 				visible[r] = false;
 			}
@@ -582,6 +587,13 @@ void MVHub::updateTableFilters()
 				//done
 				QString status = getString(r, c_case_status);
 				if (status!="Abgeschlossen" && status!="Abgebrochen" && status!="Follow-Up")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//documentation incomplete
+				if (ui_.table->item(r,2)->toolTip()!="")
 				{
 					visible[r] = false;
 					continue;
@@ -1255,6 +1267,12 @@ void MVHub::checkForMetaDataErrors()
 
 		Network network = getNetwork(r);
 
+		//check if docu is complete
+		if (ui_.table->item(r,2)->toolTip()!="")
+		{
+			cmid2messages_[cm_id] << "CM docu not flagged as complete";
+		}
+
 		//consent meta data in CM RedCap missing
 		QString bc_signed = getString(r, c_consent_cm);
 		if (bc_signed=="")
@@ -1782,6 +1800,13 @@ void MVHub::loadDataFromCM(int debug_level)
 				if (tag=="gen_finding_date") ui_.table->setItem(r, 9, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 10, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="bc_signed") ui_.table->setItem(r, c_cm_consent, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="status_complete" && e.text().trimmed()!="Complete")
+				{
+					QTableWidgetItem* item = ui_.table->item(r,2);
+					if (item!=nullptr) item->setToolTip("CM docu incomplete");
+					else qDebug() << cm_id << "item with index 2 missing";
+				}
+
 				n = n.nextSibling();
 			}
 		}
