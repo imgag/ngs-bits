@@ -29,6 +29,8 @@ void BlatWidget::performSearch()
 	//clear
 	ui_.table->setRowCount(0);
 
+    QStringList mandatory_fields = QStringList() << "matches" << "repMatches" << "strand" << "tName" << "tStart" << "tEnd";
+
 	//perform search
 	try
 	{
@@ -48,14 +50,11 @@ void BlatWidget::performSearch()
 			ui_.table->setRowCount(ui_.table->rowCount()+1);
 
             QJsonObject current_object = blat_matches[i].toObject();
-            qDebug() << current_object;
 
-            if (!current_object.contains("matches")) THROW(ProgrammingException, "BLAT JSON object does not have 'matches' field!")
-            if (!current_object.contains("repMatches")) THROW(ProgrammingException, "BLAT JSON object does not have 'repMatches' field!")
-            if (!current_object.contains("strand")) THROW(ProgrammingException, "BLAT JSON object does not have 'strand' field!")
-            if (!current_object.contains("tName")) THROW(ProgrammingException, "BLAT JSON object does not have 'tName' field!")
-            if (!current_object.contains("tStart")) THROW(ProgrammingException, "BLAT JSON object does not have 'tStart' field!")
-            if (!current_object.contains("tEnd")) THROW(ProgrammingException, "BLAT JSON object does not have 'tEnd' field!")
+            for (QString field: mandatory_fields)
+            {
+                if (!current_object.contains(field)) THROW(ProgrammingException, "BLAT JSON object does not have '" + field + "' field!")
+            }
 
             ui_.table->setItem(i, 0, GUIHelper::createTableItem(QString::number(current_object.value("matches").toInt())+"/"+QString::number(sequence.size())));
             ui_.table->setItem(i, 1, GUIHelper::createTableItem(QString::number(current_object.value("repMatches").toInt())+"/"+QString::number(sequence.size())));

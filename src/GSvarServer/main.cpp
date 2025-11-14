@@ -756,9 +756,6 @@ int main(int argc, char **argv)
         Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
     }
 
-    if (!Settings::boolean("blat_server_enabled", true)) return app.exec();
-
-    #ifdef Q_OS_UNIX
     int blat_server_port = Settings::integer("blat_server_port");
     if (blat_server_port == 0)
     {
@@ -819,8 +816,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    Log::info("BLAT server has been started on the port " + QString::number(blat_server_port) + " with the PID " + QString::number(process->processId()));
-    #endif
+    Log::info("BLAT server has been started on the port " + QString::number(blat_server_port) + " with the PID " + QString::number(process->processId()));   
 
 	return app.exec();
 }

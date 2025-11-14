@@ -1570,9 +1570,9 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 
 HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
 {
-    if (!Settings::boolean("blat_server_enabled", true))
+    if (Settings::integer("blat_server_port") == 0)
     {
-        return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("The BLAT server is not enabled due to the specific configuration or the license.")));
+        return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("BLAT server port number is not set, the search cannot be performed!")));
     }
 
     QString sequence = request.getUrlParams()["sequence"];
@@ -1589,7 +1589,7 @@ HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
 
     QProcess blat_client;
     blat_client.setProcessChannelMode(QProcess::MergedChannels);
-    blat_client.start(QCoreApplication::applicationDirPath() + "/blat/gfClient", {"localhost", QString::number(Settings::integer("blat_server_port")), ".", blat_search_query, blat_search_out});
+    blat_client.start(QCoreApplication::applicationDirPath() + "/blat/gfClient", {"localhost", QString::number(Settings::integer("blat_server_port")), QCoreApplication::applicationDirPath() + "/blat/", blat_search_query, blat_search_out});
     bool success = blat_client.waitForFinished(-1);
     QString command_out = blat_client.readAllStandardOutput().trimmed();
     Log::info(command_out);
