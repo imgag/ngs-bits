@@ -1589,7 +1589,7 @@ HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
 
     QProcess blat_client;
     blat_client.setProcessChannelMode(QProcess::MergedChannels);
-    blat_client.start(QCoreApplication::applicationDirPath() + "/gfClient", {"localhost", QString::number(Settings::integer("blat_server_port")), ".", blat_search_query, blat_search_out});
+    blat_client.start(QCoreApplication::applicationDirPath() + "/blat/gfClient", {"localhost", QString::number(Settings::integer("blat_server_port")), ".", blat_search_query, blat_search_out});
     bool success = blat_client.waitForFinished(-1);
     QString command_out = blat_client.readAllStandardOutput().trimmed();
     Log::info(command_out);

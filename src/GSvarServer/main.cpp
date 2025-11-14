@@ -9,7 +9,7 @@
 #include "UrlManager.h"
 #include "SessionManager.h"
 
-#ifdef Q_OS_UNIX
+#include <QDir>
 #include <csignal>
 #include <unistd.h>
 #include <sys/types.h>
@@ -39,10 +39,28 @@ bool prepareBlatServer()
     blat_files << "http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/gfServer";
     blat_files << "http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/gfClient";
 
+    QString blat_folder = QCoreApplication::applicationDirPath() + "/blat";
+    QDir dir;
+    if (!dir.exists(blat_folder))
+    {
+        if (dir.mkpath(blat_folder))
+        {
+            Log::info("Created BLAT folder: " + blat_folder);
+        }
+        else
+        {
+            Log::error("Could not create BLAT folder: " + blat_folder);
+            return false;
+        }
+    } else
+    {
+        Log::info("BLAT folder already exists: " + blat_folder);
+    }
+
     for (QString current_url: blat_files)
     {
         QUrl url(current_url);
-        QString current_file = QCoreApplication::applicationDirPath() + "/" + url.fileName();
+        QString current_file = blat_folder + "/" + url.fileName();
         if (QFile::exists(current_file))
         {
             Log::info("Found " + current_file);
@@ -79,7 +97,7 @@ bool prepareBlatServer()
         proxy = ProxyDataService::getProxy();
         if (proxy!=QNetworkProxy::NoProxy)
         {
-            Log::info(proxy.hostName());
+            Log::info("Using Proxy: " + proxy.hostName());
         }
 
         try
@@ -107,7 +125,7 @@ bool prepareBlatServer()
     }
 
     // check if hg38.2bit is present
-    QString genome_file = QCoreApplication::applicationDirPath() + "/hg38.2bit";
+    QString genome_file = QCoreApplication::applicationDirPath() + "/blat/hg38.2bit";
     if (QFile::exists(genome_file))
     {
         Log::info("Found the genome " + genome_file);
@@ -118,7 +136,7 @@ bool prepareBlatServer()
         process.setProcessChannelMode(QProcess::MergedChannels);
 
         Log::info("Converting FA into 2BIT: " + Settings::string("reference_genome"));
-        process.start(QCoreApplication::applicationDirPath() + "/faToTwoBit", QStringList() << Settings::string("reference_genome") << QCoreApplication::applicationDirPath() + "/hg38.2bit");
+        process.start(QCoreApplication::applicationDirPath() + "/blat/faToTwoBit", QStringList() << Settings::string("reference_genome") << QCoreApplication::applicationDirPath() + "/blat/hg38.2bit");
 
         bool success = process.waitForFinished(-1);
         if (!success || process.exitCode()>0)
@@ -126,12 +144,10 @@ bool prepareBlatServer()
             Log::error("Conversion error: exit code " + QString::number(process.exitCode()) + ", " + process.readAll());
             return false;
         }
-        Log::info(process.readAll().trimmed());
     }
 
     return true;
 }
-#endif
 
 int main(int argc, char **argv)
 {
@@ -760,8 +776,8 @@ int main(int argc, char **argv)
     process->setProcessChannelMode(QProcess::MergedChannels);
     blat_process = process;
 
-    QString program = QCoreApplication::applicationDirPath() + "/gfServer";
-    QStringList args = {"start", "localhost", QString::number(blat_server_port), "-stepSize=5", "-log=untrans.log", QCoreApplication::applicationDirPath() + "/hg38.2bit"};
+    QString program = QCoreApplication::applicationDirPath() + "/blat/gfServer";
+    QStringList args = {"start", "localhost", QString::number(blat_server_port), "-stepSize=5", "-log=" + QCoreApplication::applicationDirPath() + "/blat/untrans.log", QCoreApplication::applicationDirPath() + "/blat/hg38.2bit"};
     // Set up Unix-specific process group
     QObject::connect(process, &QProcess::started, [process]()
     {
