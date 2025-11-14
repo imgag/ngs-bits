@@ -802,7 +802,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
+	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://www.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";
@@ -1079,8 +1079,6 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 
 void VariantDetailsDockWidget::spliceaiContextMenu(QPoint pos)
 {
-	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
-
 	QMenu menu;
 	QAction* a_lookup = menu.addAction("Open SpliceAI Lookup");
 

@@ -150,6 +150,11 @@ GenomeBuild GSvarHelper::build()
 	return GenomeBuild::HG38; //fallback in case of exception
 }
 
+QString GSvarHelper::buildAsString(bool grch)
+{
+	return buildToString(build(), grch);
+}
+
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 {
 	//init
@@ -418,9 +423,9 @@ QString GSvarHelper::allOfUsLink(const Variant& v)
 }
 
 
-QString GSvarHelper::clinVarSearchLink(const Variant& v, GenomeBuild build)
+QString GSvarHelper::clinVarSearchLink(const Variant& v)
 {
-	return "https://www.ncbi.nlm.nih.gov/clinvar/?term=" + v.chr().strNormalized(false)+"[chr]+AND+" + QString::number(v.start()) + "%3A" + QString::number(v.end()) + (build==GenomeBuild::HG38? "[chrpos38]" : "[chrpos37]");
+	return "https://www.ncbi.nlm.nih.gov/clinvar/?term=" + v.chr().strNormalized(false)+"[chr]+AND+" + QString::number(v.start()) + "%3A" + QString::number(v.end()) + "[chrpos38]";
 }
 
 QString GSvarHelper::localRoiFolder()

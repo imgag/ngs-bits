@@ -643,30 +643,19 @@ void CnvWidget::showContextMenu(QPoint p)
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 	if (action==a_dgv)
 	{
-		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_"+buildToString(GSvarHelper::build())+"/?name=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg38/?name=" + cnvs_[row].toString()));
 	}
 	else if (action==a_ucsc)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + cnvs_[row].toString()));
 	}
 	else if (action==a_ucsc_override)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs_[row].toString()));
 	}
 	else if (action==a_deciphter)
 	{
-		try
-		{
-			//get region as string (Decipher supports only HG38)
-			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end(), true).toString(true);
-			region.remove("chr");
-
-			QDesktopServices::openUrl(QUrl("https://www.deciphergenomics.org/browser#q/" + region));
-		}
-		catch(Exception& e)
-		{
-			QMessageBox::warning(this, "Lift-over error", "Decipher only accepts GRCh38 coordinates.\nCould not convert coordinates to GRCh38:\n" + e.message());
-		}
+		QDesktopServices::openUrl(QUrl("https://www.deciphergenomics.org/browser#q/" + cnvs_[row].toString().remove("chr")));
 	}
 	else if (action==a_rep_edit)
 	{
@@ -707,7 +696,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	else if (action==a_clinvar_find)
 	{
 		//use GSvar helper with dummy variant
-		QString url = GSvarHelper::clinVarSearchLink(Variant(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end(), "", ""), GSvarHelper::build());
+		QString url = GSvarHelper::clinVarSearchLink(Variant(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end(), "", ""));
 		QDesktopServices::openUrl(QUrl(url));
 	}
 	else if (action==a_clinvar_pub)

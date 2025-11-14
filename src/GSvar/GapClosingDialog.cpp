@@ -211,14 +211,6 @@ void GapClosingDialog::openPrimerDesign()
 			int end;
 			gapCoordinates(row, chr, start, end);
 
-			if(GSvarHelper::build()==GenomeBuild::HG19) //PrimerDesign supports HG38 only
-			{
-				BedLine region = GSvarHelper::liftOver(chr, start, end, true);
-				chr = region.chr();
-				start = region.start();
-				end = region.end();
-			}
-
 			QString url = Settings::string("PrimerDesign")+"/primer3/query?region="+chr.strNormalized(true)+":"+QString::number(start)+"-"+QString::number(end)+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}

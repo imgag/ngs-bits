@@ -1390,7 +1390,7 @@ void SvWidget::showContextMenu(QPoint pos)
 			const BedLine& region = regions[i];
 			//create dummy variant to use GSvar helper
 			Variant variant = Variant(region.chr(), region.start(), region.end(), "", "");
-			QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+			QString url = GSvarHelper::clinVarSearchLink(variant);
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}
@@ -1420,7 +1420,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_ucsc)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + sv.positionRange()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + sv.positionRange()));
 	}
 	else if (action==a_deciphter)
 	{

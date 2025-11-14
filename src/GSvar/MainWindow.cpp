@@ -3290,7 +3290,7 @@ void MainWindow::on_actionAbout_triggered()
 
 	//general infos
 	about_text += "\n";
-	about_text += "\nGenome build: " + buildToString(GSvarHelper::build());
+	about_text += "\nGenome build: " + GSvarHelper::buildAsString();
 	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
 	about_text += "\nhtslib version: " + QString(hts_version());
 

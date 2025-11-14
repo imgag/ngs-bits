@@ -29,6 +29,8 @@ public:
 	static QString applicationBaseName();
 	//Returns the genome build used by GSvar.
 	static GenomeBuild build();
+	//Returns the genome build used by GSvar.
+	static QString buildAsString(bool grch=false);
 
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
@@ -48,7 +50,7 @@ public:
 	//Returns All of Us link for a variant
 	static QString allOfUsLink(const Variant& v);
 	//Returns ClinVar search link for a variant
-	static QString clinVarSearchLink(const Variant& v, GenomeBuild build);
+	static QString clinVarSearchLink(const Variant& v);
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();

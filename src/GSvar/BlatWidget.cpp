@@ -20,7 +20,7 @@ BlatWidget::BlatWidget(QWidget *parent)
 	connect(ui_.sequence, SIGNAL(returnPressed()), this, SLOT(performSearch()));
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(resultContextMenu(QPoint)));
 
-	ui_.genome->setCurrentText(buildToString(GSvarHelper::build()));
+	ui_.genome->setCurrentText(GSvarHelper::buildAsString());
 }
 
 void BlatWidget::performSearch()
