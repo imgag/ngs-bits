@@ -274,12 +274,14 @@ void MaintenanceDialog::replaceObsolteGeneSymbols()
 	fixGeneNames(db, "report_polymorphisms", "symbol");
 	fixGeneNames(db, "somatic_gene_role", "symbol");
 	fixGeneNames(db, "somatic_pathway_gene", "symbol");
-	//TODO Marc/Leon: fixGeneNames(db, "expression_gene", "symbol");
 	fixGeneNames(db, "hpo_genes", "gene");
 	fixGeneNames(db, "omim_gene", "gene");
 	fixGeneNames(db, "omim_preferred_phenotype", "gene");
 	fixGeneNames(db, "disease_gene", "gene");
 	fixGeneNames(db, "report_configuration_other_causal_variant", "gene");
+
+	//cannot be done because the gene names in the RNA reference cohort files differ then
+	//fixGeneNames(db, "expression_gene", "symbol");
 }
 
 void MaintenanceDialog::appendOutputLine(QString line)
