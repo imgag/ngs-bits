@@ -39,24 +39,7 @@ void BlatWidget::performSearch()
         RequestUrlParams params;
         params.insert("sequence", sequence);
         QByteArray reply = ApiCaller().get("blat_search", params, HttpHeaders(), true, false, true);
-        if (reply.length() == 0)
-        {
-            THROW(Exception, "Could not get BLAT search results");
-        }
-
-
-        // QByteArray response_text = http_handler.get("https://genome.ucsc.edu/cgi-bin/hgBlat?userSeq="+sequence+"&type=DNA&db="+ui_.genome->currentText()+"&output=json");
-        // QJsonObject response = QJsonDocument::fromJson(response_text).object();
-
-		//check reply format (https://genome.ucsc.edu/FAQ/FAQformat.html)
-        // QJsonArray fields = response.value("fields").toArray();
-        // if (fields.count()<21) THROW(ProgrammingException, "BLAT JSON reply field count below 21!");
-        // if (fields[0]!="matches") THROW(ProgrammingException, "BLAT JSON reply field 0 is not 'matches'!");
-        // if (fields[2]!="repMatches") THROW(ProgrammingException, "BLAT JSON reply field 2 is not 'matches'!");
-        // if (fields[8]!="strand") THROW(ProgrammingException, "BLAT JSON reply field 8 is not 'strand'!");
-        // if (fields[13]!="tName") THROW(ProgrammingException, "BLAT JSON reply field 13 is not 'tName'!");
-        // if (fields[15]!="tStart") THROW(ProgrammingException, "BLAT JSON reply field 15 is not 'tStart'!");
-        // if (fields[16]!="tEnd") THROW(ProgrammingException, "BLAT JSON reply field 16 is not 'tEnd'!");
+        if (reply.length()==0) THROW(Exception, "Could not get BLAT search results");
 
 		//update GUI
         QJsonArray blat_matches =  QJsonDocument::fromJson(reply).array();
@@ -66,6 +49,14 @@ void BlatWidget::performSearch()
 
             QJsonObject current_object = blat_matches[i].toObject();
             qDebug() << current_object;
+
+            if (!current_object.contains("matches")) THROW(ProgrammingException, "BLAT JSON object does not have 'matches' field!")
+            if (!current_object.contains("repMatches")) THROW(ProgrammingException, "BLAT JSON object does not have 'repMatches' field!")
+            if (!current_object.contains("strand")) THROW(ProgrammingException, "BLAT JSON object does not have 'strand' field!")
+            if (!current_object.contains("tName")) THROW(ProgrammingException, "BLAT JSON object does not have 'tName' field!")
+            if (!current_object.contains("tStart")) THROW(ProgrammingException, "BLAT JSON object does not have 'tStart' field!")
+            if (!current_object.contains("tEnd")) THROW(ProgrammingException, "BLAT JSON object does not have 'tEnd' field!")
+
             ui_.table->setItem(i, 0, GUIHelper::createTableItem(QString::number(current_object.value("matches").toInt())+"/"+QString::number(sequence.size())));
             ui_.table->setItem(i, 1, GUIHelper::createTableItem(QString::number(current_object.value("repMatches").toInt())+"/"+QString::number(sequence.size())));
             ui_.table->setItem(i, 2, GUIHelper::createTableItem(current_object.value("strand").toString()));
