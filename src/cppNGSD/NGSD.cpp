@@ -8172,8 +8172,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 
 	try
 	{
-		transaction();
-
+		transaction();		
 		if (report_config_id!=-1) //clear old report config
 		{
 			//delete report config variants if it already exists
@@ -8215,7 +8214,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		query_new_re.prepare("INSERT INTO `report_configuration_re`(`report_configuration_id`, `repeat_expansion_genotype_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_phenotype`, `exclude_other`, `comments`, `comments2`, `manual_allele1`, `manual_allele2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
 		SqlQuery query_update_re = getQuery();
 		query_update_re.prepare("UPDATE `report_configuration_re` SET `report_configuration_id`=:0, `repeat_expansion_genotype_id`=:1, `type`=:2, `causal`=:3, `inheritance`=:4, `de_novo`=:5, `mosaic`=:6, `compound_heterozygous`=:7, `exclude_artefact`=:8, `exclude_phenotype`=:9, `exclude_other`=:10, `comments`=:11, `comments2`=:12, `manual_allele1`=:13, `manual_allele2`=:14 WHERE `id`=:15");
-		SqlQuery query = getQuery();
+		SqlQuery* query;
 
 		QList<ReportVariantConfiguration> rvc_to_update;
 
@@ -8234,8 +8233,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				if (var_conf.classification!="n/a" && var_conf.classification!="")
 				{
 					THROW(ProgrammingException, "Report configuration for small variant '" + variants[var_conf.variant_index].toString() + "' set, but not supported!");
-				}
-
+				}				
 				//get variant id (add variant if not in DB)
 				const Variant& variant = variants[var_conf.variant_index];
 				QString variant_id = variantId(variant, false);
@@ -8255,54 +8253,53 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 						// report-variant combination is already imported -> update
 						var_conf.id = var_conf_id_str.toInt();
 						rvc_to_update.append(var_conf);
-                        query = std::move(query_update_var);
+						query = &query_update_var;
 					}
 					else
 					{
 						//actual new variant
-                        query = std::move(query_new_var);
+						query = &query_new_var;
 					}
 				}
 				else
 				{
 					//update
-                    query = std::move(query_update_var);
-				}
-
-				query.bindValue(0, report_config_id);
-				query.bindValue(1, variant_id);
-				query.bindValue(2, var_conf.report_type);
-				query.bindValue(3, var_conf.causal);
-				query.bindValue(4, var_conf.inheritance);
-				query.bindValue(5, var_conf.de_novo);
-				query.bindValue(6, var_conf.mosaic);
-				query.bindValue(7, var_conf.comp_het);
-				query.bindValue(8, var_conf.exclude_artefact);
-				query.bindValue(9, var_conf.exclude_frequency);
-				query.bindValue(10, var_conf.exclude_phenotype);
-				query.bindValue(11, var_conf.exclude_mechanism);
-				query.bindValue(12, var_conf.exclude_hit2_missing);
-				query.bindValue(13, var_conf.exclude_gus);
-				query.bindValue(14, var_conf.exclude_used_other_var_type);
-				query.bindValue(15, var_conf.exclude_other);
-				query.bindValue(16, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-				query.bindValue(17, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-				query.bindValue(18, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
-				query.bindValue(19, var_conf.manual_var);
-				query.bindValue(20, var_conf.manualVarGenoIsValid() ? var_conf.manual_genotype : QVariant());
+					query = &query_update_var;
+				}				
+				query->bindValue(0, report_config_id);
+				query->bindValue(1, variant_id);
+				query->bindValue(2, var_conf.report_type);
+				query->bindValue(3, var_conf.causal);
+				query->bindValue(4, var_conf.inheritance);
+				query->bindValue(5, var_conf.de_novo);
+				query->bindValue(6, var_conf.mosaic);
+				query->bindValue(7, var_conf.comp_het);
+				query->bindValue(8, var_conf.exclude_artefact);
+				query->bindValue(9, var_conf.exclude_frequency);
+				query->bindValue(10, var_conf.exclude_phenotype);
+				query->bindValue(11, var_conf.exclude_mechanism);
+				query->bindValue(12, var_conf.exclude_hit2_missing);
+				query->bindValue(13, var_conf.exclude_gus);
+				query->bindValue(14, var_conf.exclude_used_other_var_type);
+				query->bindValue(15, var_conf.exclude_other);
+				query->bindValue(16, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query->bindValue(17, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query->bindValue(18, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query->bindValue(19, var_conf.manual_var);
+				query->bindValue(20, var_conf.manualVarGenoIsValid() ? var_conf.manual_genotype : QVariant());
 
 				if (var_conf.id < 0)
 				{
 					//new variant
-					query.exec();
-					var_conf.id = query.lastInsertId().toInt();
+					query->exec();
+					var_conf.id = query->lastInsertId().toInt();
 					rvc_to_update.append(var_conf);
 				}
 				else
 				{
 					//update
-					query.bindValue(21, var_conf.id);
-					query.exec();
+					query->bindValue(21, var_conf.id);
+					query->exec();
 				}
 
 			}
@@ -8340,58 +8337,57 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 						// report-cnv combination is already imported -> update
 						var_conf.id = var_conf_id_str.toInt();
 						rvc_to_update.append(var_conf);                        
-                        query = std::move(query_update_cnv);
+						query = &query_update_cnv;
 					}
 					else
 					{
 						//actual new variant                        
-                        query = std::move(query_new_cnv);
+						query = &query_new_cnv;
 					}
 				}
 				else
 				{
 					//update
-                    query = std::move(query_update_cnv);
-				}
-
-				query.bindValue(0, report_config_id);
-				query.bindValue(1, cnv_id);
-				query.bindValue(2, var_conf.report_type);
-				query.bindValue(3, var_conf.causal);
-				query.bindValue(4, var_conf.classification); //only for CNVs
-				query.bindValue(5, var_conf.inheritance);
-				query.bindValue(6, var_conf.de_novo);
-				query.bindValue(7, var_conf.mosaic);
-				query.bindValue(8, var_conf.comp_het);
-				query.bindValue(9, var_conf.exclude_artefact);
-				query.bindValue(10, var_conf.exclude_frequency);
-				query.bindValue(11, var_conf.exclude_phenotype);
-				query.bindValue(12, var_conf.exclude_mechanism);
-				query.bindValue(13, var_conf.exclude_hit2_missing);
-				query.bindValue(14, var_conf.exclude_gus);
-				query.bindValue(15, var_conf.exclude_used_other_var_type);
-				query.bindValue(16, var_conf.exclude_other);
-				query.bindValue(17, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-				query.bindValue(18, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-				query.bindValue(19, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
-				query.bindValue(20, var_conf.manualCnvStartIsValid() ? var_conf.manual_cnv_start : QVariant());
-				query.bindValue(21, var_conf.manualCnvEndIsValid() ? var_conf.manual_cnv_end : QVariant());
-				query.bindValue(22, var_conf.manualCnvCnIsValid() ? var_conf.manual_cnv_cn : QVariant());
-				query.bindValue(23, var_conf.manual_cnv_hgvs_type);
-				query.bindValue(24, var_conf.manual_cnv_hgvs_suffix);
+					query = &query_update_cnv;
+				}				
+				query->bindValue(0, report_config_id);
+				query->bindValue(1, cnv_id);
+				query->bindValue(2, var_conf.report_type);
+				query->bindValue(3, var_conf.causal);
+				query->bindValue(4, var_conf.classification); //only for CNVs
+				query->bindValue(5, var_conf.inheritance);
+				query->bindValue(6, var_conf.de_novo);
+				query->bindValue(7, var_conf.mosaic);
+				query->bindValue(8, var_conf.comp_het);
+				query->bindValue(9, var_conf.exclude_artefact);
+				query->bindValue(10, var_conf.exclude_frequency);
+				query->bindValue(11, var_conf.exclude_phenotype);
+				query->bindValue(12, var_conf.exclude_mechanism);
+				query->bindValue(13, var_conf.exclude_hit2_missing);
+				query->bindValue(14, var_conf.exclude_gus);
+				query->bindValue(15, var_conf.exclude_used_other_var_type);
+				query->bindValue(16, var_conf.exclude_other);
+				query->bindValue(17, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query->bindValue(18, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query->bindValue(19, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query->bindValue(20, var_conf.manualCnvStartIsValid() ? var_conf.manual_cnv_start : QVariant());
+				query->bindValue(21, var_conf.manualCnvEndIsValid() ? var_conf.manual_cnv_end : QVariant());
+				query->bindValue(22, var_conf.manualCnvCnIsValid() ? var_conf.manual_cnv_cn : QVariant());
+				query->bindValue(23, var_conf.manual_cnv_hgvs_type);
+				query->bindValue(24, var_conf.manual_cnv_hgvs_suffix);
 
 				if (var_conf.id < 0)
 				{
 					//new variant
-					query.exec();
-					var_conf.id = query.lastInsertId().toInt();
+					query->exec();
+					var_conf.id = query->lastInsertId().toInt();
 					rvc_to_update.append(var_conf);
 				}
 				else
 				{
 					//update
-					query.bindValue(25, var_conf.id);
-					query.exec();
+					query->bindValue(25, var_conf.id);
+					query->exec();
 				}
 
 			}
@@ -8429,72 +8425,72 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 						// report-sv combination is already imported -> update
 						var_conf.id = var_conf_id_str.toInt();
 						rvc_to_update.append(var_conf);                        
-                        query = std::move(query_update_sv);
+						query = &query_update_sv;
 					}
 					else
 					{
 						//actual new variant                        
-                        query = std::move(query_new_sv);
+						query = &query_new_sv;
 					}
 				}
 				else
 				{
 					//update                    
-                    query = std::move(query_update_sv);
+					query = &query_update_sv;
 				}
 
 				//define SQL query
-				query.bindValue(0, report_config_id);
-                query.bindValue(1, QVariant(QString()));
-                query.bindValue(2, QVariant(QString()));
-                query.bindValue(3, QVariant(QString()));
-                query.bindValue(4, QVariant(QString()));
-                query.bindValue(5, QVariant(QString()));
-				query.bindValue(6, var_conf.report_type);
-				query.bindValue(7, var_conf.causal);
-				query.bindValue(8, var_conf.classification);
-				query.bindValue(9, var_conf.inheritance);
-				query.bindValue(10, var_conf.de_novo);
-				query.bindValue(11, var_conf.mosaic);
-				query.bindValue(12, var_conf.comp_het);
-				query.bindValue(13, var_conf.exclude_artefact);
-				query.bindValue(14, var_conf.exclude_frequency);
-				query.bindValue(15, var_conf.exclude_phenotype);
-				query.bindValue(16, var_conf.exclude_mechanism);
-				query.bindValue(17, var_conf.exclude_hit2_missing);
-				query.bindValue(18, var_conf.exclude_gus);
-				query.bindValue(19, var_conf.exclude_used_other_var_type);
-				query.bindValue(20, var_conf.exclude_other);
-				query.bindValue(21, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-				query.bindValue(22, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-				query.bindValue(23, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
-				query.bindValue(24, var_conf.manualSvStartIsValid() ? var_conf.manual_sv_start : QVariant());
-				query.bindValue(25, var_conf.manualSvEndIsValid() ? var_conf.manual_sv_end : QVariant());
-				query.bindValue(26, var_conf.manualSvGenoIsValid() ? var_conf.manual_sv_genotype : QVariant());
-				query.bindValue(27, var_conf.manualSvStartBndIsValid() ? var_conf.manual_sv_start_bnd : QVariant());
-				query.bindValue(28, var_conf.manualSvEndBndIsValid() ? var_conf.manual_sv_end_bnd : QVariant());
-				query.bindValue(29, var_conf.manual_sv_hgvs_type);
-				query.bindValue(30, var_conf.manual_sv_hgvs_suffix);
-				query.bindValue(31, var_conf.manual_sv_hgvs_type_bnd);
-				query.bindValue(32, var_conf.manual_sv_hgvs_suffix_bnd);
+				query->bindValue(0, report_config_id);
+				query->bindValue(1, QVariant(QString()));
+				query->bindValue(2, QVariant(QString()));
+				query->bindValue(3, QVariant(QString()));
+				query->bindValue(4, QVariant(QString()));
+				query->bindValue(5, QVariant(QString()));
+				query->bindValue(6, var_conf.report_type);
+				query->bindValue(7, var_conf.causal);
+				query->bindValue(8, var_conf.classification);
+				query->bindValue(9, var_conf.inheritance);
+				query->bindValue(10, var_conf.de_novo);
+				query->bindValue(11, var_conf.mosaic);
+				query->bindValue(12, var_conf.comp_het);
+				query->bindValue(13, var_conf.exclude_artefact);
+				query->bindValue(14, var_conf.exclude_frequency);
+				query->bindValue(15, var_conf.exclude_phenotype);
+				query->bindValue(16, var_conf.exclude_mechanism);
+				query->bindValue(17, var_conf.exclude_hit2_missing);
+				query->bindValue(18, var_conf.exclude_gus);
+				query->bindValue(19, var_conf.exclude_used_other_var_type);
+				query->bindValue(20, var_conf.exclude_other);
+				query->bindValue(21, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query->bindValue(22, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query->bindValue(23, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query->bindValue(24, var_conf.manualSvStartIsValid() ? var_conf.manual_sv_start : QVariant());
+				query->bindValue(25, var_conf.manualSvEndIsValid() ? var_conf.manual_sv_end : QVariant());
+				query->bindValue(26, var_conf.manualSvGenoIsValid() ? var_conf.manual_sv_genotype : QVariant());
+				query->bindValue(27, var_conf.manualSvStartBndIsValid() ? var_conf.manual_sv_start_bnd : QVariant());
+				query->bindValue(28, var_conf.manualSvEndBndIsValid() ? var_conf.manual_sv_end_bnd : QVariant());
+				query->bindValue(29, var_conf.manual_sv_hgvs_type);
+				query->bindValue(30, var_conf.manual_sv_hgvs_suffix);
+				query->bindValue(31, var_conf.manual_sv_hgvs_type_bnd);
+				query->bindValue(32, var_conf.manual_sv_hgvs_suffix_bnd);
 
 				// set SV id
 				switch (sv.type())
 				{
 					case StructuralVariantType::DEL:
-						query.bindValue(1, sv_id);
+						query->bindValue(1, sv_id);
 						break;
 					case StructuralVariantType::DUP:
-						query.bindValue(2, sv_id);
+						query->bindValue(2, sv_id);
 						break;
 					case StructuralVariantType::INS:
-						query.bindValue(3, sv_id);
+						query->bindValue(3, sv_id);
 						break;
 					case StructuralVariantType::INV:
-						query.bindValue(4, sv_id);
+						query->bindValue(4, sv_id);
 						break;
 					case StructuralVariantType::BND:
-						query.bindValue(5, sv_id);
+						query->bindValue(5, sv_id);
 						break;
 					default:
 						THROW(ArgumentException, "Invalid structural variant type!")
@@ -8504,15 +8500,15 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				if (var_conf.id < 0)
 				{
 					//new variant
-					query.exec();
-					var_conf.id = query.lastInsertId().toInt();
+					query->exec();
+					var_conf.id = query->lastInsertId().toInt();
 					rvc_to_update.append(var_conf);
 				}
 				else
 				{
 					//update
-					query.bindValue(33, var_conf.id);
-					query.exec();
+					query->bindValue(33, var_conf.id);
+					query->exec();
 				}
 
 			}
@@ -8539,48 +8535,48 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 						// report-RE combination is already imported -> update
 						var_conf.id = var_conf_id_str.toInt();
 						rvc_to_update.append(var_conf);                        
-                        query = std::move(query_update_re);
+						query = &query_update_re;
 					}
 					else
 					{
 						//actual new variant                        
-                        query = std::move(query_new_re);
+						query = &query_new_re;
 					}
 				}
 				else
 				{
 					//update                    
-                    query = std::move(query_update_re);
+					query = &query_update_re;
 				}
 
-				query.bindValue(0, report_config_id);
-				query.bindValue(1, re_id);
-				query.bindValue(2, var_conf.report_type);
-				query.bindValue(3, var_conf.causal);
-				query.bindValue(4, var_conf.inheritance);
-				query.bindValue(5, var_conf.de_novo);
-				query.bindValue(6, var_conf.mosaic);
-				query.bindValue(7, var_conf.comp_het);
-				query.bindValue(8, var_conf.exclude_artefact);
-				query.bindValue(9, var_conf.exclude_phenotype);
-				query.bindValue(10, var_conf.exclude_other);
-				query.bindValue(11, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-				query.bindValue(12, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-                query.bindValue(13, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele1.toInt() : QVariant(QString()));
-                query.bindValue(14, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele2.toInt() : QVariant(QString()));
+				query->bindValue(0, report_config_id);
+				query->bindValue(1, re_id);
+				query->bindValue(2, var_conf.report_type);
+				query->bindValue(3, var_conf.causal);
+				query->bindValue(4, var_conf.inheritance);
+				query->bindValue(5, var_conf.de_novo);
+				query->bindValue(6, var_conf.mosaic);
+				query->bindValue(7, var_conf.comp_het);
+				query->bindValue(8, var_conf.exclude_artefact);
+				query->bindValue(9, var_conf.exclude_phenotype);
+				query->bindValue(10, var_conf.exclude_other);
+				query->bindValue(11, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query->bindValue(12, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query->bindValue(13, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele1.toInt() : QVariant(QString()));
+				query->bindValue(14, var_conf.manualReAllele1IsValid() ? var_conf.manual_re_allele2.toInt() : QVariant(QString()));
 
 				if (var_conf.id < 0)
 				{
 					//new variant
-					query.exec();
-					var_conf.id = query.lastInsertId().toInt();
+					query->exec();
+					var_conf.id = query->lastInsertId().toInt();
 					rvc_to_update.append(var_conf);
 				}
 				else
 				{
 					//update
-					query.bindValue(15, var_conf.id);
-					query.exec();
+					query->bindValue(15, var_conf.id);
+					query->exec();
 				}
 			}
 			else
