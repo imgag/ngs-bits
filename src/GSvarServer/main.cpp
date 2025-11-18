@@ -9,6 +9,44 @@
 #include "UrlManager.h"
 #include "SessionManager.h"
 
+#include <csignal>
+#include <unistd.h>
+#include <sys/types.h>
+#include <cstdio>
+#include <array>
+#include <string>
+
+
+// find a PID for a BALT server instance
+int findBlatPid()
+{
+    std::string cmd = "pidof -s gfServer";
+    std::array<char, 128> buffer{};
+
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    if (!pipe) return -1;
+
+    if (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+    {
+        return std::stoi(buffer.data());
+    }
+
+    return -1;
+}
+
+// kill all instances of the BLAT server before the main app exits
+void handleExitSignal(int)
+{
+    pid_t pid = static_cast<pid_t>(findBlatPid());
+    while (pid > 0)
+    {
+        Log::info("Killing a BLAT process with PID " + QString::number(pid));
+        kill(pid, SIGKILL);
+        pid = static_cast<pid_t>(findBlatPid());
+    }
+    QCoreApplication::quit();
+}
+
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
@@ -441,6 +479,18 @@ int main(int argc, char **argv)
 						&ServerController::annotateVariant
 					});
 
+    EndpointManager::appendEndpoint(Endpoint{
+                        "blat_search",
+                        QMap<QString, ParamProps> {
+                            {"sequence", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "sequence"}}
+                        },
+                        RequestMethod::GET,
+                        ContentType::APPLICATION_JSON,
+                        AuthType::NONE,
+                        "BLAT search for a given sequence and genome",
+                        &ServerController::performBlatSearch
+                    });
+
 	EndpointManager::appendEndpoint(Endpoint{
 						"login",
 						QMap<QString, ParamProps>{
@@ -602,6 +652,14 @@ int main(int argc, char **argv)
     catch (DatabaseException& e)
     {
         Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
+    }
+
+    int blat_server_port = Settings::integer("blat_server_port");
+    if (blat_server_port > 0)
+    {
+        // Handle signals (Ctrl+C, kill, etc.), we need to kill the BLAT server before exiting
+        std::signal(SIGINT, handleExitSignal);
+        std::signal(SIGTERM, handleExitSignal);
     }
 
 	return app.exec();
