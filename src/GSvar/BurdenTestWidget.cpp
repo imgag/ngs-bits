@@ -746,9 +746,8 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 	while(query.next())
 	{
 		//filter by impact
-		QStringList parts = query.value("coding").toString().split(",");
-		QStringList parts_match;
-		foreach(const QString& part, parts)
+		bool at_least_one_part_matches = false;
+		foreach(const QString& part, query.value("coding").toString().split(","))
 		{
 			//skip empty enties
 			int index = part.indexOf(':');
@@ -771,9 +770,7 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 			{
 				if (part.contains(impact))
 				{
-					double cadd = query.value("cadd").toDouble();
-					double spliceai = query.value("spliceai").toDouble();
-					if (predict_pathogenic && (impact != "HIGH") && (cadd < 20) && (spliceai < 0.5))
+					if (predict_pathogenic && (impact != "HIGH") && (query.value("cadd").toDouble() < 20) && (query.value("spliceai").toDouble() < 0.5))
 					{
 						n_skipped_non_pathogenic++;
 						continue;
@@ -784,13 +781,14 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 			}
 			if (match)
 			{
-				parts_match << part;
+				at_least_one_part_matches = true;
+				break;
 			}
 
 			//TODO: filter by live-calculated impact?
 		}
 
-		if (parts_match.count()==0)
+		if (at_least_one_part_matches)
 		{
 			n_skipped_impact++;
 			continue;

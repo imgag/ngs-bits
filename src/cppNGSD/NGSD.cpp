@@ -838,7 +838,7 @@ void NGSD::addSampleDiseaseInfo(const QString& sample_id, const SampleDiseaseInf
 	query_insert.bindValue(0, entry.disease_info);
 	query_insert.bindValue(1, entry.type);
 	query_insert.bindValue(2, userId(entry.user));
-	query_insert.bindValue(3, entry.date.toString(Qt::ISODate));
+	query_insert.bindValue(3, entry.date.toString(Qt::ISODate).left(19));
 	query_insert.exec();
 }
 

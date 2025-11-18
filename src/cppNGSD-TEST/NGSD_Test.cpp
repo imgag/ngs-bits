@@ -675,7 +675,7 @@ private:
 
 		//getDiagnosticStatus
 		DiagnosticStatusData diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
-        S_EQUAL(diag_status.date.toString(Qt::ISODate).left(19), "2014-07-29T09:40:49"); //TODO remove .left(19) when migratio to Qt6 is done
+		S_EQUAL(diag_status.date.toString(Qt::ISODate).left(19), "2014-07-29T09:40:49"); //TODO remove .left(19) when migration to Qt6 is done
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
