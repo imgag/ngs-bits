@@ -187,7 +187,7 @@
       <item row="0" column="0">
        <widget class="QComboBox" name="roi">
         <property name="contextMenuPolicy">
-         <enum>Qt::ActionsContextMenu</enum>
+         <enum>Qt::CustomContextMenu</enum>
         </property>
         <property name="maxVisibleItems">
          <number>30</number>

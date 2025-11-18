@@ -267,7 +267,7 @@ void GeneWidget::parseLink(QString link)
     if (link.startsWith("ensembl:"))
     {
         QString ensembl_id = link.split(':').at(1);
-		QString url = "https://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?g=" + ensembl_id;
+		QString url = "https://www.ensembl.org/Homo_sapiens/Transcript/Summary?g=" + ensembl_id;
         QDesktopServices::openUrl(QUrl(url));
     }
     else
@@ -326,7 +326,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		int row = ui_.transcripts->rowCount();
 		ui_.transcripts->setRowCount(row+1);
 
-		QLabel* label = GUIHelper::createLinkLabel("<a href='http://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.nameWithVersion() + "</a>");
+		QLabel* label = GUIHelper::createLinkLabel("<a href='http://www.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.nameWithVersion() + "</a>");
 		ui_.transcripts->setCellWidget(row, 0, label);
 
 		QString coords = "";

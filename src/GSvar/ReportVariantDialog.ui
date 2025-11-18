@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>483</width>
+    <width>467</width>
     <height>927</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
   </property>
-  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0">
    <property name="leftMargin">
     <number>3</number>
    </property>
@@ -33,67 +33,10 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <item row="2" column="1" colspan="3">
-    <widget class="QComboBox" name="type"/>
-   </item>
-   <item row="19" column="1" colspan="3">
-    <widget class="QPlainTextEdit" name="comments2"/>
-   </item>
-   <item row="13" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_frequency">
-     <property name="text">
-      <string>frequency too high</string>
-     </property>
-    </widget>
-   </item>
-   <item row="59" column="0">
-    <widget class="QLabel" name="manual_label_re_allele2">
-     <property name="text">
-      <string>manual allele 2</string>
-     </property>
-    </widget>
-   </item>
-   <item row="32" column="0">
-    <widget class="QLabel" name="manual_label_cnv_hgvs_suffix">
-     <property name="text">
-      <string>manual HGVS suffix</string>
-     </property>
-    </widget>
-   </item>
-   <item row="50" column="0">
-    <widget class="QLabel" name="manual_label_sv_hgvs_suffix">
-     <property name="text">
-      <string>manual HGVS suffix</string>
-     </property>
-    </widget>
-   </item>
-   <item row="29" column="0">
-    <widget class="QLabel" name="manual_label_cnv_end">
-     <property name="text">
-      <string>manual end coordinate</string>
-     </property>
-    </widget>
-   </item>
-   <item row="52" column="0">
-    <widget class="QLabel" name="manual_label_sv_start_bnd">
-     <property name="text">
-      <string>manual start coordinate 2</string>
-     </property>
-    </widget>
-   </item>
-   <item row="61" column="1" colspan="3">
-    <widget class="QComboBox" name="rna_info"/>
-   </item>
-   <item row="10" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="toolTip">
-      <string>The variant is compound-heterozygous.</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   <item row="39" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_start">
+     <property name="placeholderText">
+      <string>genomic start position of chrA</string>
      </property>
     </widget>
    </item>
@@ -104,28 +47,34 @@
      </property>
     </widget>
    </item>
-   <item row="54" column="0">
-    <widget class="QLabel" name="manual_label_sv_hgvs_type_bnd">
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_8">
+     <property name="toolTip">
+      <string>The variant is causal for the patient phenotype(s).</string>
+     </property>
      <property name="text">
-      <string>manual HGVS type 2</string>
+      <string>causal:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
-   <item row="50" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_hgvs_suffix">
+   <item row="59" column="0">
+    <widget class="QLabel" name="manual_label_re_allele2">
+     <property name="text">
+      <string>manual allele 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="23" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_small_genotype">
      <property name="placeholderText">
-      <string>HGVS suffix</string>
+      <string>genotype 'het' or 'hom'</string>
      </property>
     </widget>
    </item>
-   <item row="21" column="1">
-    <widget class="QLineEdit" name="manual_small_var">
-     <property name="placeholderText">
-      <string>variant in GSvar format</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="3">
+   <item row="7" column="5">
     <widget class="QLabel" name="inheritance_hint">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -150,22 +99,15 @@
      </property>
     </widget>
    </item>
-   <item row="55" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_hgvs_suffix_bnd">
-     <property name="placeholderText">
-      <string>HGVS suffix (BND only)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="49" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_hgvs_type">
+   <item row="31" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_cnv_hgvs_type">
      <property name="placeholderText">
       <string>HGVS type</string>
      </property>
     </widget>
    </item>
-   <item row="11" column="0" colspan="4">
-    <widget class="Line" name="line_2">
+   <item row="38" column="0" colspan="6">
+    <widget class="Line" name="manual_line_3">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -175,6 +117,144 @@
     <widget class="QLabel" name="manual_label_sv_hgvs_suffix_bnd">
      <property name="text">
       <string>manual HGVS suffix 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="0">
+    <widget class="QLabel" name="label_9">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comments of a second person that reviews the first evaluation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comments:&lt;br/&gt;(2. assessor)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="52" column="0">
+    <widget class="QLabel" name="manual_label_sv_start_bnd">
+     <property name="text">
+      <string>manual start coordinate 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="46" column="0">
+    <widget class="QLabel" name="manual_label_sv_genotype">
+     <property name="text">
+      <string>manual genotype</string>
+     </property>
+    </widget>
+   </item>
+   <item row="59" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_re_allele2">
+     <property name="placeholderText">
+      <string>repeat unit count - allele 2 (if present)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
+    <widget class="QCheckBox" name="de_novo">
+     <property name="text">
+      <string>de-novo</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="2" colspan="4">
+    <widget class="QCheckBox" name="exclude_gus">
+     <property name="toolTip">
+      <string>Gene not clearly associated with the patient's disease/phenotype.</string>
+     </property>
+     <property name="text">
+      <string>gene of unknown significance</string>
+     </property>
+    </widget>
+   </item>
+   <item row="52" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_start_bnd">
+     <property name="placeholderText">
+      <string>genomic start position of chrB  (BND only)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1" colspan="4">
+    <widget class="QComboBox" name="inheritance">
+     <property name="toolTip">
+      <string>Inhertitance mode of the variant.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="1" colspan="4">
+    <widget class="QLineEdit" name="manual_small_var">
+     <property name="placeholderText">
+      <string>variant in GSvar format</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="0" colspan="6">
+    <widget class="Line" name="line_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="28" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_cnv_start">
+     <property name="placeholderText">
+      <string>genomic start position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="30" column="0">
+    <widget class="QLabel" name="manual_label_cnv_cn">
+     <property name="text">
+      <string>manual copy-number</string>
+     </property>
+    </widget>
+   </item>
+   <item row="23" column="0">
+    <widget class="QLabel" name="manual_label_small_genotype">
+     <property name="text">
+      <string>manual genotype</string>
+     </property>
+    </widget>
+   </item>
+   <item row="29" column="0">
+    <widget class="QLabel" name="manual_label_cnv_end">
+     <property name="text">
+      <string>manual end coordinate</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="5">
+    <widget class="QToolButton" name="manual_small_var_import">
+     <property name="toolTip">
+      <string>Create variant using other formats.</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset resource="GSvar.qrc">
+       <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="61" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>RNA information:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="60" column="0" colspan="6">
+    <widget class="Line" name="line_4">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -191,52 +271,125 @@
      </property>
     </widget>
    </item>
-   <item row="23" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_small_genotype">
-     <property name="placeholderText">
-      <string>genotype 'het' or 'hom'</string>
+   <item row="20" column="0" colspan="6">
+    <widget class="Line" name="manual_line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
-   <item row="40" column="0">
-    <widget class="QLabel" name="manual_label_sv_end">
+   <item row="40" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_end">
+     <property name="placeholderText">
+      <string>genomic end position of chrA</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1">
+    <widget class="QCheckBox" name="exclude_artefact">
+     <property name="toolTip">
+      <string>Variant is an artefact.</string>
+     </property>
      <property name="text">
-      <string>manual end coordinate</string>
+      <string>artefact</string>
      </property>
     </widget>
    </item>
-   <item row="31" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_cnv_hgvs_type">
-     <property name="placeholderText">
-      <string>HGVS type</string>
+   <item row="12" column="2" colspan="4">
+    <widget class="QCheckBox" name="exclude_hit2_missing">
+     <property name="toolTip">
+      <string>Second hit in gene missing (for recessive inheritance).</string>
      </property>
-    </widget>
-   </item>
-   <item row="10" column="1" colspan="3">
-    <widget class="QCheckBox" name="comp_het">
      <property name="text">
-      <string>compound heterozygous</string>
+      <string>2nd hit in gene missing</string>
      </property>
     </widget>
    </item>
-   <item row="58" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_re_allele1">
-     <property name="placeholderText">
-      <string>repeat unit count - allele 1</string>
-     </property>
-    </widget>
-   </item>
-   <item row="30" column="1" colspan="3">
+   <item row="30" column="1" colspan="5">
     <widget class="QLineEdit" name="manual_cnv_cn">
      <property name="placeholderText">
       <string>copy-number (0, 1, ...)</string>
      </property>
     </widget>
    </item>
-   <item row="29" column="1" colspan="3">
+   <item row="9" column="1" colspan="5">
+    <widget class="QCheckBox" name="comp_het">
+     <property name="text">
+      <string>compound heterozygous</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="1">
+    <widget class="QCheckBox" name="exclude_phenotype">
+     <property name="toolTip">
+      <string>Phenotype of the variant gene not matching patient's phenotype.</string>
+     </property>
+     <property name="text">
+      <string>phenotype not matching</string>
+     </property>
+    </widget>
+   </item>
+   <item row="29" column="1" colspan="5">
     <widget class="QLineEdit" name="manual_cnv_end">
      <property name="placeholderText">
       <string>genomic end position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="6">
+    <widget class="QLabel" name="variant">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Variant representation</string>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" colspan="6">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Report type the variant belongs to.&lt;/p&gt;&lt;p&gt;This information is mandatory!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>report type:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="57" column="0" colspan="6">
+    <widget class="Line" name="manual_line_4">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="50" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_hgvs_suffix">
+     <property name="placeholderText">
+      <string>HGVS suffix</string>
+     </property>
+    </widget>
+   </item>
+   <item row="49" column="0">
+    <widget class="QLabel" name="manual_label_sv_hgvs_type">
+     <property name="text">
+      <string>manual HGVS type</string>
      </property>
     </widget>
    </item>
@@ -247,37 +400,37 @@
      </property>
     </widget>
    </item>
-   <item row="21" column="3">
-    <widget class="QToolButton" name="manual_small_var_import">
-     <property name="toolTip">
-      <string>Create variant using other formats.</string>
-     </property>
-     <property name="text">
-      <string>...</string>
-     </property>
-     <property name="icon">
-      <iconset resource="GSvar.qrc">
-       <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
+   <item row="32" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_cnv_hgvs_suffix">
+     <property name="placeholderText">
+      <string>HGVS suffix</string>
      </property>
     </widget>
    </item>
-   <item row="38" column="0" colspan="4">
-    <widget class="Line" name="manual_line_3">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="49" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_hgvs_type">
+     <property name="placeholderText">
+      <string>HGVS type</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_8">
+   <item row="16" column="1">
+    <widget class="QCheckBox" name="exclude_mechanism">
      <property name="toolTip">
-      <string>The variant is causal for the patient phenotype(s).</string>
+      <string>PAthomechanism of the variant not matching the patient's disease.</string>
      </property>
      <property name="text">
-      <string>causal:</string>
+      <string>pathomechanism not matching</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+    </widget>
+   </item>
+   <item row="19" column="1" colspan="5">
+    <widget class="QPlainTextEdit" name="comments2"/>
+   </item>
+   <item row="53" column="0">
+    <widget class="QLabel" name="manual_label_sv_end_bnd">
+     <property name="text">
+      <string>manual end coordinate 2</string>
      </property>
     </widget>
    </item>
@@ -288,44 +441,74 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="toolTip">
-      <string>The variant is in mosaic state.</string>
+   <item row="2" column="1" colspan="5">
+    <widget class="QComboBox" name="type"/>
+   </item>
+   <item row="10" column="0" colspan="6">
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
+    </widget>
+   </item>
+   <item row="8" column="2" colspan="4">
+    <widget class="QCheckBox" name="mosaic">
      <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      <string>mosaic</string>
      </property>
     </widget>
    </item>
-   <item row="54" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_hgvs_type_bnd">
-     <property name="placeholderText">
-      <string>HGVS type (BND only)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="1" colspan="3">
-    <widget class="QCheckBox" name="de_novo">
+   <item row="32" column="0">
+    <widget class="QLabel" name="manual_label_cnv_hgvs_suffix">
      <property name="text">
-      <string>de-novo</string>
+      <string>manual HGVS suffix</string>
      </property>
     </widget>
    </item>
-   <item row="15" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_mechanism">
-     <property name="text">
-      <string>pathomechanism not matching</string>
-     </property>
-    </widget>
+   <item row="18" column="1" colspan="5">
+    <widget class="QPlainTextEdit" name="comments"/>
    </item>
-   <item row="16" column="1" colspan="3">
+   <item row="16" column="2" colspan="4">
     <widget class="QCheckBox" name="exclude_other">
+     <property name="toolTip">
+      <string>Other exclude reason.</string>
+     </property>
      <property name="text">
       <string>other reason</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_classification">
+     <property name="text">
+      <string>classifcation:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="1">
+    <widget class="QCheckBox" name="exclude_frequency">
+     <property name="toolTip">
+      <string>Variant frequency in general population too high.</string>
+     </property>
+     <property name="text">
+      <string>frequency too high</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1" colspan="5">
+    <widget class="QComboBox" name="classification"/>
+   </item>
+   <item row="54" column="0">
+    <widget class="QLabel" name="manual_label_sv_hgvs_type_bnd">
+     <property name="text">
+      <string>manual HGVS type 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="27" column="0" colspan="6">
+    <widget class="Line" name="manual_line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -345,51 +528,17 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1" colspan="3">
-    <widget class="QComboBox" name="classification"/>
-   </item>
-   <item row="53" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_end_bnd">
+   <item row="46" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_genotype">
      <property name="placeholderText">
-      <string>genomic end position of chrB (BND only)</string>
+      <string>genotype 'het' or 'hom'</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_2">
+   <item row="50" column="0">
+    <widget class="QLabel" name="manual_label_sv_hgvs_suffix">
      <property name="text">
-      <string>inheritance:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="57" column="0" colspan="4">
-    <widget class="Line" name="manual_line_4">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="32" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_cnv_hgvs_suffix">
-     <property name="placeholderText">
-      <string>HGVS suffix</string>
-     </property>
-    </widget>
-   </item>
-   <item row="20" column="0" colspan="4">
-    <widget class="Line" name="manual_line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_artefact">
-     <property name="text">
-      <string>artefact</string>
+      <string>manual HGVS suffix</string>
      </property>
     </widget>
    </item>
@@ -400,42 +549,69 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_classification">
-     <property name="text">
-      <string>classifcation:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0" colspan="4">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="23" column="0">
-    <widget class="QLabel" name="manual_label_small_genotype">
-     <property name="text">
-      <string>manual genotype</string>
-     </property>
-    </widget>
-   </item>
-   <item row="40" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_end">
+   <item row="55" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_hgvs_suffix_bnd">
      <property name="placeholderText">
-      <string>genomic end position of chrA</string>
+      <string>HGVS suffix (BND only)</string>
      </property>
     </widget>
    </item>
-   <item row="14" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_phenotype">
+   <item row="15" column="2" colspan="4">
+    <widget class="QCheckBox" name="exclude_used_other_var_type">
+     <property name="toolTip">
+      <string>Other variant type used in report, e.g. when a deletion is called both as CNV and SV.</string>
+     </property>
      <property name="text">
-      <string>phenotype not matching</string>
+      <string>other variant type used</string>
      </property>
     </widget>
    </item>
-   <item row="63" column="0" colspan="4">
+   <item row="40" column="0">
+    <widget class="QLabel" name="manual_label_sv_end">
+     <property name="text">
+      <string>manual end coordinate</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1" colspan="5">
+    <widget class="QCheckBox" name="causal">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="58" column="0">
+    <widget class="QLabel" name="manual_label_re_allele1">
+     <property name="text">
+      <string>manual allele 1</string>
+     </property>
+    </widget>
+   </item>
+   <item row="53" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_end_bnd">
+     <property name="placeholderText">
+      <string>genomic end position of chrB (BND only)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="58" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_re_allele1">
+     <property name="placeholderText">
+      <string>repeat unit count - allele 1</string>
+     </property>
+    </widget>
+   </item>
+   <item row="54" column="1" colspan="5">
+    <widget class="QLineEdit" name="manual_sv_hgvs_type_bnd">
+     <property name="placeholderText">
+      <string>HGVS type (BND only)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="61" column="1" colspan="5">
+    <widget class="QComboBox" name="rna_info"/>
+   </item>
+   <item row="63" column="0" colspan="6">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="spacing">
       <number>3</number>
@@ -494,186 +670,13 @@
      </item>
     </layout>
    </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Report type the variant belongs to.&lt;/p&gt;&lt;p&gt;This information is mandatory!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
+   <item row="7" column="0" rowspan="3">
+    <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>report type:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="58" column="0">
-    <widget class="QLabel" name="manual_label_re_allele1">
-     <property name="text">
-      <string>manual allele 1</string>
-     </property>
-    </widget>
-   </item>
-   <item row="53" column="0">
-    <widget class="QLabel" name="manual_label_sv_end_bnd">
-     <property name="text">
-      <string>manual end coordinate 2</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1" colspan="2">
-    <widget class="QComboBox" name="inheritance">
-     <property name="toolTip">
-      <string>Inhertitance mode of the variant.</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="1" colspan="3">
-    <widget class="QCheckBox" name="mosaic">
-     <property name="text">
-      <string>mosaic</string>
-     </property>
-    </widget>
-   </item>
-   <item row="61" column="0">
-    <widget class="QLabel" name="label_10">
-     <property name="text">
-      <string>RNA information:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="18" column="1" colspan="3">
-    <widget class="QPlainTextEdit" name="comments"/>
-   </item>
-   <item row="52" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_start_bnd">
-     <property name="placeholderText">
-      <string>genomic start position of chrB  (BND only)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="30" column="0">
-    <widget class="QLabel" name="manual_label_cnv_cn">
-     <property name="text">
-      <string>manual copy-number</string>
-     </property>
-    </widget>
-   </item>
-   <item row="17" column="0" colspan="4">
-    <widget class="Line" name="line_3">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0" colspan="4">
-    <widget class="QLabel" name="variant">
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Variant representation</string>
-     </property>
-     <property name="textInteractionFlags">
-      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-     </property>
-    </widget>
-   </item>
-   <item row="49" column="0">
-    <widget class="QLabel" name="manual_label_sv_hgvs_type">
-     <property name="text">
-      <string>manual HGVS type</string>
-     </property>
-    </widget>
-   </item>
-   <item row="46" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_genotype">
-     <property name="placeholderText">
-      <string>genotype 'het' or 'hom'</string>
-     </property>
-    </widget>
-   </item>
-   <item row="28" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_cnv_start">
-     <property name="placeholderText">
-      <string>genomic start position</string>
-     </property>
-    </widget>
-   </item>
-   <item row="59" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_re_allele2">
-     <property name="placeholderText">
-      <string>repeat unit count - allele 2 (if present)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="46" column="0">
-    <widget class="QLabel" name="manual_label_sv_genotype">
-     <property name="text">
-      <string>manual genotype</string>
-     </property>
-    </widget>
-   </item>
-   <item row="27" column="0" colspan="4">
-    <widget class="Line" name="manual_line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="toolTip">
-      <string>The variant is de-novo.</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-     </property>
-     <property name="buddy">
-      <cstring>de_novo</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="19" column="0">
-    <widget class="QLabel" name="label_9">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comments of a second person that reviews the first evaluation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comments:&lt;br/&gt;(2. assessor)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>inheritance:</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="39" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_sv_start">
-     <property name="placeholderText">
-      <string>genomic start position of chrA</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1" colspan="3">
-    <widget class="QCheckBox" name="causal">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="60" column="0" colspan="4">
-    <widget class="Line" name="line_4">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -685,13 +688,6 @@
   <tabstop>classification</tabstop>
   <tabstop>inheritance</tabstop>
   <tabstop>de_novo</tabstop>
-  <tabstop>mosaic</tabstop>
-  <tabstop>comp_het</tabstop>
-  <tabstop>exclude_artefact</tabstop>
-  <tabstop>exclude_frequency</tabstop>
-  <tabstop>exclude_phenotype</tabstop>
-  <tabstop>exclude_mechanism</tabstop>
-  <tabstop>exclude_other</tabstop>
   <tabstop>comments</tabstop>
   <tabstop>comments2</tabstop>
   <tabstop>manual_small_var</tabstop>

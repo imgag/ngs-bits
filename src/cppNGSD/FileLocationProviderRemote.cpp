@@ -62,6 +62,11 @@ FileLocation FileLocationProviderRemote::getMethylationImage(QString locus) cons
 	return getOneFileLocationByType(PathType::METHYLATION_IMAGE, locus);
 }
 
+FileLocation FileLocationProviderRemote::getMethylationCohortImage(QString locus) const
+{
+	return getOneFileLocationByType(PathType::METHYLATION_COHORT_IMAGE, locus);
+}
+
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
 {
     FileLocationList output;

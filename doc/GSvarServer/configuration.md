@@ -32,7 +32,7 @@ These are the most important config parameters:
 * `file_location_cache_lifespan` - lifespan (seconds) of a cached FileLocation object. When a cached object is accessed, its creation time is reset to the current time.
 
 GSvarServer needs its own database for transient information (sessions, temporary URLs, etc.).  
-The database should be a separate instance of MySQL/MariaDB (not NGSD database).
+You have to create a separate database used only by GSvarServer (don't use NGSD).
 These are the seettings for the database:
 
 * `gsvar_server_db_host` - database host name

@@ -62,18 +62,15 @@ void PhenotypeList::sortByAccession()
 	std::sort(begin(), end(), [](const Phenotype& a, const Phenotype& b){ return a.accession()<b.accession(); });
 }
 
-QString PhenotypeList::toString(QString seperator) const
+QString PhenotypeList::toString(QString separator, bool add_accession) const
 {
-	return toStringList().join(seperator);
-}
+	QString output;
 
-QStringList PhenotypeList::toStringList() const
-{
-	QStringList output;
-
-    for (const Phenotype& phenotype : *this)
+	for (const Phenotype& phenotype : *this)
 	{
-		output << phenotype.name();
+		if (!output.isEmpty()) output += separator;
+		if (add_accession) output += phenotype.accession() + " - ";
+		output += phenotype.name();
 	}
 
 	return output;

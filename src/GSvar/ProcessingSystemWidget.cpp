@@ -42,7 +42,7 @@ void ProcessingSystemWidget::updateGUI()
 
 		//genome build
 		QString build = ps_data.genome;
-		if (GSvarHelper::build()==GenomeBuild::HG38 && build=="GRCh37")
+		if (build=="GRCh37")
 		{
 			build = "<font color='red'>" + build + "</font>";
 		}

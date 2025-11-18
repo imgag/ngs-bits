@@ -87,15 +87,17 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 
 	bool  ngsd_user_logged_in = LoginManager::active();
-	const Variant variant = (*variants_)[index];
+	const Variant& variant = (*variants_)[index];
 	int i_gene = variants_->annotationIndexByName("gene", true, true);
 	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 	int i_co_sp = variants_->annotationIndexByName("coding_and_splicing", true, true);
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
-	QAction* a_cnv_sv = menu.addAction("show CNVs/SVs in gene");
-
+	QMenu* copy_menu = menu.addMenu(QIcon("://Icons/Clipboard.png"), "Copy");
+	QAction* a_copy_variant = copy_menu->addAction("Variant");
+	QAction* a_copy_genes = copy_menu->addAction("Genes");
+	QAction* a_cnv_sv = menu.addAction("Show CNVs/SVs in gene");
 	QAction* a_visualize = menu.addAction("Visualize");
 	a_visualize->setEnabled(Settings::boolean("debug_mode_enabled", true));
 	menu.addSeparator();
@@ -179,11 +181,9 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
-	//create links for each gene/disease
     for (const QByteArray& g : genes)
 	{
-		sub_menu->addAction(g + " AND \"mutation\"");
-		sub_menu->addAction(g + " AND \"variant\"");
+		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
         for (const Phenotype& p : active_phenotypes_)
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
@@ -235,6 +235,16 @@ void VariantTable::customContextMenu(QPoint pos)
 	QByteArray text = action->text().toUtf8();
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
+
+	//copy
+	if (action==a_copy_variant)
+	{
+		QApplication::clipboard()->setText(variant.toString());
+	}
+	if (action==a_copy_genes)
+	{
+		QApplication::clipboard()->setText(genes.toString("\n"));
+	}
 
 	//perform actions
 	if (action==a_cnv_sv)
@@ -296,7 +306,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 	else if (action == a_ucsc)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
 	}
 	else if (action == a_ucsc_enigma)
 	{
@@ -306,11 +316,11 @@ void VariantTable::customContextMenu(QPoint pos)
 	{
 		int pos = variant.start();
 		if (variant.ref()=="-") pos += 1;
-		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants?search_chromosome=%3D%22" + variant.chr().strNormalized(false) + "%22&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
+		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants?search_chromosome=%3D%22" + variant.chr().strNormalized(false) + "%22&search_VariantOnGenome/DNA/hg38=g." + QString::number(pos)));
 	}
 	else if (action == a_clinvar_find)
 	{
-		QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+		QString url = GSvarHelper::clinVarSearchLink(variant);
 		QDesktopServices::openUrl(QUrl(url));
 	}
 	else if (action == a_clinvar_pub)
@@ -324,8 +334,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		QString obs = variant.obs();
 		obs.replace("-", "");
 		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
-		QString genome = variant.chr().isM() ? "hg38" : buildToString(GSvarHelper::build());
-		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
+		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/hg38/" + var));
 	}
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{

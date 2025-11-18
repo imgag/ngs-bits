@@ -2746,6 +2746,9 @@ QString GermlineReportGenerator::exclusionCriteria(const ReportVariantConfigurat
 	if (conf.exclude_frequency) exclustion_criteria << "Frequenz";
 	if (conf.exclude_phenotype) exclustion_criteria << "Phenotyp";
 	if (conf.exclude_mechanism) exclustion_criteria << "Pathomechanismus";
+	if (conf.exclude_hit2_missing) exclustion_criteria << "2. Hit fehlt";
+	if (conf.exclude_gus) exclustion_criteria << "GUS";
+	if (conf.exclude_used_other_var_type) exclustion_criteria << "Anderer Typ genutzt";
 	if (conf.exclude_other) exclustion_criteria << "Anderer (siehe Kommentare)";
 	return exclustion_criteria.join(", ");
 }

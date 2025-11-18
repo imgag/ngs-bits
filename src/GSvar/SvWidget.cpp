@@ -157,6 +157,18 @@ void SvWidget::initGUI()
 			item->setToolTip("Double click table cell to open table view of annotations");
 		}
 
+		if (col=="FILTER")
+		{
+			QString tooltip;
+			auto filters_desc = svs_.metaInfoDescriptionByID("FILTER");
+			for(auto it=filters_desc.begin(); it!=filters_desc.end(); ++it)
+			{
+				tooltip += it.key() + ":\n" + it.value() + "\n\n";
+			}
+			tooltip.chop(2);
+			item->setToolTip(tooltip);
+		}
+
 		QByteArray desc = svs_.annotationDescriptionByName(col.toUtf8()).trimmed();
 		if(desc!="")
 		{
@@ -266,7 +278,6 @@ void SvWidget::clearGUI()
 	//clear table widget to cols / rows specified in .ui file
 	ui->svs->setRowCount(0);
 	ui->svs->setColumnCount(6);
-
 }
 
 void SvWidget::resizeTableContent(QTableWidget* table_widget)
@@ -850,7 +861,7 @@ void SvWidget::annotateTargetRegionGeneOverlap()
 			}
 
 			// update tooltip
-			ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toStringList().join(", ") + "</div>");
+			ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toString(", ") + "</div>");
 		}
 	}
 
@@ -1277,13 +1288,30 @@ void SvWidget::showContextMenu(QPoint pos)
 	QAction* copy_pos1 = menu.addAction("Copy position A to clipboard");
 	QAction* copy_pos2 = menu.addAction("Copy position B to clipboard");
 	menu.addSeparator();
+
+	QAction* a_deciphter = menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
+	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	menu.addSeparator();
+
 	//ClinVar search
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
     a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
-	//gene sub-menus
+
+	//PubMed
+	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
 	int i_genes = svs_.annotationIndexByName("GENES", false);
+	for (const QByteArray& g : GeneSet::createFromText(svs_[row].annotations()[i_genes], ','))
+	{
+		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
+		for (const Phenotype& p : ui->filter_widget->phenotypes())
+		{
+			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
+		}
+	}
+
+	//gene sub-menus
 	if (i_genes!=-1)
 	{
 		//use breakpoint genes only if the breakpoint genes column was right-clicked
@@ -1362,7 +1390,7 @@ void SvWidget::showContextMenu(QPoint pos)
 			const BedLine& region = regions[i];
 			//create dummy variant to use GSvar helper
 			Variant variant = Variant(region.chr(), region.start(), region.end(), "", "");
-			QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+			QString url = GSvarHelper::clinVarSearchLink(variant);
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}
@@ -1389,6 +1417,20 @@ void SvWidget::showContextMenu(QPoint pos)
 	else if (action == copy_pos2)
 	{
 		QApplication::clipboard()->setText(sv.position2());
+	}
+	else if (action==a_ucsc)
+	{
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + sv.positionRange()));
+	}
+	else if (action==a_deciphter)
+	{
+		QString region = sv.positionRange();
+		region.remove("chr");
+		QDesktopServices::openUrl(QUrl("https://www.deciphergenomics.org/browser#q/" + region));
+	}
+	else if (parent_menu && parent_menu->title()=="PubMed")
+	{
+		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + action->text()));
 	}
 	else if (parent_menu)
 	{

@@ -37,12 +37,12 @@ public:
 	}
 
 	/*!
-	 * \brief Searches a string for seperator before column n
+	 * \brief Searches a string for separator before column n
 	 * \param text - the text to search for
-	 * \param seperator - the seperator to look for: usually ,
+	 * \param separator - the separator to look for: usually ,
 	 * \param column - the column to look in e.g start looking for in the 4th colum
 	 */
-	bool includesSeperator(const QByteArray& text, char seperator, int column)
+	bool includesSeparator(const QByteArray& text, char separator, int column)
 	{
 		int current_col = 0;
 		for (int i = 0; i < text.length(); ++i)
@@ -54,7 +54,7 @@ public:
 
 			if (current_col == column)
 			{
-				if (text[i] == seperator)
+				if (text[i] == separator)
 				{
 					return true;
 				}
@@ -119,7 +119,7 @@ public:
             }
 
 			//single-allele variant > write out unchanged
-			if (!includesSeperator(line, ',', VcfFile::ALT))
+			if (!includesSeparator(line, ',', VcfFile::ALT))
 			{
                 out_p->write(line);
 				continue;
@@ -349,7 +349,7 @@ public:
 								{
 									if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
 
-									// appends a VALUE: (with seperator)
+									// appends a VALUE: (with separator)
 									if (type == R)
 									{
 										new_samples_per_allele[a][i] += sample_value_parts[0];

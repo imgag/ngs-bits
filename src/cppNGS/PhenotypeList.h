@@ -62,10 +62,8 @@ public:
 	//Sort elements by accession.
 	void sortByAccession();
 
-	//Converts the phenotype list to a string.
-	QString toString(QString seperator = "; ") const;
-	//converts the phenotype list to a string list.
-	QStringList toStringList() const;
+	//Converts the phenotype list to a string. By default contains only the name. The accession can be prepended using @p add_accession.
+	QString toString(QString separator = "; ", bool add_accession=false) const;
 
 protected:
 	QSet<QByteArray> accessions_;

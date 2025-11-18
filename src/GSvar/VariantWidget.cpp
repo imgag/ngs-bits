@@ -128,7 +128,7 @@ void VariantWidget::updateGUI()
 			QString db = query4.value("db").toString();
 			if (db=="ClinVar")
 			{
-				QString url = GSvarHelper::clinVarSearchLink(variant_, GSvarHelper::build());
+				QString url = GSvarHelper::clinVarSearchLink(variant_);
 				db = "<a href=\"" + url + "\">" + db + "</a>";
 			}
 

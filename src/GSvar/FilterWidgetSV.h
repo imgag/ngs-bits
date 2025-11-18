@@ -48,6 +48,9 @@ public:
 	///Returns if only SVs with report config should be shown
 	ReportConfigFilter reportConfigurationFilter() const;
 
+	///Sets the target region by name file (without the type prefix).
+	void setTargetRegionByDisplayName(QString name);
+
 signals:
 	////Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
 	void filtersChanged();
@@ -66,6 +69,7 @@ protected slots:
 	void phenotypesChanged();
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
+	void showRoiContextMenu(QPoint pos);
 	void importHPO();
 	void importROI();
 	void importRegion();

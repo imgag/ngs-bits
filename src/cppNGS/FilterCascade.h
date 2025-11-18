@@ -1170,6 +1170,16 @@ class CPPNGSSHARED_EXPORT FilterSvCnvOverlap
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
 
+//Filter SVs that are annotated to be pathogenic in NGSD
+class CPPNGSSHARED_EXPORT FilterSvPathogenic
+	: public FilterBase
+{
+	public:
+		FilterSvPathogenic();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
 // Filter lr SVs for AF
 class CPPNGSSHARED_EXPORT FilterSvLrAF
 	: public FilterBase

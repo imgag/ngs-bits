@@ -90,7 +90,7 @@ ExpressionGeneWidget::ExpressionGeneWidget(QString tsv_filename, int sys_id, QSt
 		QString tool_tip = QString("<p>") + QString::number(variant_gene_set_.count()) + " genes selected:<br><br>";
 		QStringList genes;
 		int i = 0;
-		foreach (const QString& gene, variant_gene_set_.toStringList())
+		foreach (const QByteArray& gene, variant_gene_set_.toByteArrayList())
 		{
 			genes << gene;
 			i++;

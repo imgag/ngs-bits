@@ -215,7 +215,7 @@ void SubpanelDesignDialog::storePanel()
 	query.bindValue(2, QDate::currentDate().toString(Qt::ISODate));
 	query.bindValue(3, ui_.mode->currentText());
 	query.bindValue(4, ui_.flanking->currentText());
-	query.bindValue(5, genes_.toStringList().join("\n"));
+	query.bindValue(5, genes_.toString("\n"));
 	query.bindValue(6, regions_.toText());
 	query.exec();
 

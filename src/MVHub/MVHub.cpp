@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QFileDialog>
 #include <QDesktopServices>
+#include <QInputDialog>
 #include "ExportHistoryDialog.h"
 #include <QClipboard>
 
@@ -196,7 +197,7 @@ void MVHub::tableContextMenu(QPoint pos)
 					int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
 					if (pending_grz>0)
 					{
-						QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
+						//QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
 					}
 					else if (done_grz>0)
 					{
@@ -219,7 +220,7 @@ void MVHub::tableContextMenu(QPoint pos)
 					int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
 					if (pending_kdk>0)
 					{
-						QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
+						//QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
 					}
 					else if (done_kdk>0)
 					{
@@ -238,13 +239,8 @@ void MVHub::tableContextMenu(QPoint pos)
 				//add KDK export as done (we just need the TAN)
 				if (getNetwork(r)==FBREK)
 				{
-					int pending_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='pending'").toInt();
 					int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
-					if (pending_kdk>0)
-					{
-						QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
-					}
-					else if (done_kdk>0)
+					if (done_kdk>0)
 					{
 						QMessageBox::warning(this, title, "KDK export is already done!");
 					}
@@ -252,7 +248,7 @@ void MVHub::tableContextMenu(QPoint pos)
 					{
 						QByteArray tag = case_id + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
 						QString tan = getTAN(tag, "KDK_SE");
-						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `pseudok`, `status`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','','done')");
+						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `pseudok`, `status`, `submission_output`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','','done','Upload manually via HerediCare')");
 						updateExportStatus(mvh_db, r);
 					}
 				}
@@ -440,6 +436,7 @@ void MVHub::updateTableFilters()
 	{
 		int c_exp_status = colOf("export status");
 		int c_exp_conf = colOf("export confirmation");
+		int c_case_status = colOf("CM Status");
 		QString export_filter = ui_.f_export->currentText();
 		for (int r=0; r<rows; ++r)
 		{
@@ -450,7 +447,11 @@ void MVHub::updateTableFilters()
 			QString conf = getString(r, c_exp_conf);
 			int c_conf = conf.isEmpty() ? 0 : conf.split("//").count();
 
-			if (export_filter=="pending" && !(status==""))
+			if (export_filter=="pending" && status!="")
+			{
+				visible[r] = false;
+			}
+			if (export_filter=="pending" && getString(r, c_case_status)=="Abgebrochen" && getNetwork(r)!=SE)
 			{
 				visible[r] = false;
 			}
@@ -587,6 +588,13 @@ void MVHub::updateTableFilters()
 					continue;
 				}
 
+				//documentation incomplete
+				if (ui_.table->item(r,2)->toolTip()!="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
 				//base data available
 				if (getString(r, c_case_id)=="")
 				{
@@ -694,29 +702,23 @@ void MVHub::loadConsentData()
 
 void MVHub::exportConsentData()
 {
-	QString title = "Import SAP IDs.";
-	//get file names
-	QString filename = QFileDialog::getOpenFileName(this, "Text file with one SAP patient identifier per line, or in first column of TSV file");
-	if(filename.isEmpty()) return;
+	QString title = "Export broad consent JSON files using the meDIC API.";
 
-	//create ouput
-	QStringList output;
-	foreach(QString line, Helper::loadTextFile(filename, true, '#', true))
+	//get file names
+	QString text = QInputDialog::getMultiLineText(this, title, "SAP IDs (one per line or first column in TSV):");
+	if(text.isEmpty()) return;
+
+	//store output
+	QString folder = QFileDialog::getExistingDirectory(this, "Folder to store consent JSON files", QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+	if(folder.isEmpty()) return;
+
+	//store output files
+	foreach(QString line, text.split('\n'))
 	{
 		QStringList parts = line.split('\t');
 		QString sap_id = parts[0];
-
-		output << "";
-		output << ("###" + sap_id + "###");
-		output << getConsent(sap_id);
-		output << "";
+		Helper::storeTextFile(folder + "/broad_consent_" + sap_id + ".json", QStringList() << getConsent(sap_id));
 	}
-
-	//store output
-	QString filename2 = QFileDialog::getSaveFileName(this, "File to store consent data");
-	if(filename2.isEmpty()) return;
-	auto file_handle = Helper::openFileForWriting(filename2);
-	Helper::storeTextFile(file_handle, output);
 }
 
 void MVHub::checkXML()
@@ -924,22 +926,25 @@ void MVHub::determineProcessedSamples(int debug_level)
 		}
 
 		//set tumor PS if exactly one PS found
-		if (ps_list_tumor.count()==0)
+		if (network==OE)
 		{
-			cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): no matches in NGSD";
-		}
-		else if (ps_list_tumor.count()>1)
-		{
-			cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): several matches in NGSD";
-		}
-		else
-		{
-			QString ps = ps_list_tumor.first();
-			ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(ps));
+			if (ps_list_tumor.count()==0)
+			{
+				cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): no matches in NGSD";
+			}
+			else if (ps_list_tumor.count()>1)
+			{
+				cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): several matches in NGSD";
+			}
+			else
+			{
+				QString ps = ps_list_tumor.first();
+				ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(ps));
 
-			//store PS in MVH database
-			SqlQuery query = mvh_db.getQuery();
-			query.exec("UPDATE case_data SET ps_t='"+ps+"' WHERE cm_id='"+cm_id+"'");
+				//store PS in MVH database
+				SqlQuery query = mvh_db.getQuery();
+				query.exec("UPDATE case_data SET ps_t='"+ps+"' WHERE cm_id='"+cm_id+"'");
+			}
 		}
 	}
 }
@@ -1254,6 +1259,12 @@ void MVHub::checkForMetaDataErrors()
 		if (status!="Abgeschlossen" && status=="Abgebrochen" && status=="Follow-Up") continue;
 
 		Network network = getNetwork(r);
+
+		//check if docu is complete
+		if (ui_.table->item(r,2)->toolTip()!="")
+		{
+			cmid2messages_[cm_id] << "CM docu not flagged as complete";
+		}
 
 		//consent meta data in CM RedCap missing
 		QString bc_signed = getString(r, c_consent_cm);
@@ -1782,6 +1793,13 @@ void MVHub::loadDataFromCM(int debug_level)
 				if (tag=="gen_finding_date") ui_.table->setItem(r, 9, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 10, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="bc_signed") ui_.table->setItem(r, c_cm_consent, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="status_complete" && e.text().trimmed()!="Complete")
+				{
+					QTableWidgetItem* item = ui_.table->item(r,2);
+					if (item!=nullptr) item->setToolTip("CM docu incomplete");
+					else qDebug() << cm_id << "item with index 2 missing";
+				}
+
 				n = n.nextSibling();
 			}
 		}

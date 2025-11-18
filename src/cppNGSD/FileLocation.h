@@ -64,6 +64,7 @@ enum class PathType
 	SIGNATURE_CNV,	// Somatic: resut from SigProfileExtractor for CNVs (CSV format)
 	METHYLATION, // Methylation calls (TSV format)
 	METHYLATION_IMAGE, // image of a given methylation locus (PNG format)
+	METHYLATION_COHORT_IMAGE, // cohort plot of a given methylation locus (PNG format)
 	PARAPHASE_EVIDENCE, //Corrected mapping of pseudo gene regions (BAM format)
 	OTHER // everything else
 };
@@ -248,6 +249,8 @@ struct FileLocation
 				return "METHYLATION";
 			case PathType::METHYLATION_IMAGE:
 				return "METHYLATION_IMAGE";
+			case PathType::METHYLATION_COHORT_IMAGE:
+				return "METHYLATION_COHORT_IMAGE";
 			case PathType::PARAPHASE_EVIDENCE:
 				return "PARAPHASE_EVIDENCE";
 
@@ -307,6 +310,7 @@ struct FileLocation
 		if (in_upper == "SIGNATURE_CNV") return PathType::SIGNATURE_CNV;
 		if (in_upper == "METHYLATION") return PathType::METHYLATION;
 		if (in_upper == "METHYLATION_IMAGE") return PathType::METHYLATION_IMAGE;
+		if (in_upper == "METHYLATION_COHORT_IMAGE") return PathType::METHYLATION_COHORT_IMAGE;
 		if (in_upper == "PARAPHASE_EVIDENCE") return PathType::PARAPHASE_EVIDENCE;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -411,6 +415,8 @@ struct FileLocation
 				return "methylation calls";
 			case PathType::METHYLATION_IMAGE:
 				return "image of a given methylation locus";
+			case PathType::METHYLATION_COHORT_IMAGE:
+				return "cohort plot of a given methylation locus";
 			case PathType::PARAPHASE_EVIDENCE:
 				return "Mapping of pseudo gene regions (Paraphase)";
 		}
