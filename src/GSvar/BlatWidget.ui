@@ -38,7 +38,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>genome:</string>
+      <string>Search in hg38 genome</string>
      </property>
     </widget>
    </item>
@@ -47,33 +47,6 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <item>
-      <widget class="QComboBox" name="genome">
-       <item>
-        <property name="text">
-         <string>hg19</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>hg38</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
     </layout>
    </item>
    <item>

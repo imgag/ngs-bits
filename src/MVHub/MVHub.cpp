@@ -15,6 +15,7 @@
 #include <QInputDialog>
 #include "ExportHistoryDialog.h"
 #include <QClipboard>
+#include <QStandardPaths>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
