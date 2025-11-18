@@ -1537,6 +1537,18 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 		QByteArrayList pubmed_ids;
 		if (i_pubmed > 0) pubmed_ids = variant.annotations()[i_pubmed].split(',');
 
+		//prepare string inserted into 'coding' field (we need only gene name, ENST number, variant type and and variant impact in NGSD)
+		QByteArray coding = "";
+		QByteArrayList entries = variant.annotations()[i_co_sp].split(',');
+		foreach(const QByteArray& entry, entries)
+		{
+			QByteArrayList parts = entry.split(':');
+			if (parts.count()<4) continue;
+
+			if (!coding.isEmpty()) coding += ",";
+			coding += parts.mid(0, 4).join(':');
+		}
+
 		//get variant ID
 		q_id.bindValue(0, variant.chr().strNormalized(true));
 		q_id.bindValue(1, variant.start());
@@ -1550,13 +1562,13 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 
 			//check if variant meta data needs to be updated
 			if (q_id.value(1).toByteArray().toDouble()!=gnomad.toDouble() //numeric comparison (NULL > "" > 0.0)
-				|| q_id.value(2).toByteArray()!=variant.annotations()[i_co_sp]
+				|| q_id.value(2).toByteArray()!=coding
 				|| q_id.value(3).toByteArray().toDouble()!=cadd.toDouble() //numeric comparison (NULL > "" > 0.0)
 				|| q_id.value(4).toByteArray().toDouble()!=std::max(0.0, spliceai) //numeric comparison (NULL > "" > 0.0); no SpliceAI leads to a score of -1, so we use max to set it to 0.
 				)
 			{
 				q_update.bindValue(0, gnomad.isEmpty() ? QVariant() : gnomad);
-				q_update.bindValue(1, variant.annotations()[i_co_sp]);
+				q_update.bindValue(1, coding);
 				q_update.bindValue(2, cadd.isEmpty() ? QVariant() : cadd);
 				q_update.bindValue(3, spliceai<0 ? QVariant() : spliceai);
 				q_update.bindValue(4, id);
@@ -1574,7 +1586,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			q_insert.bindValue(3, variant.ref());
 			q_insert.bindValue(4, variant.obs());
 			q_insert.bindValue(5, gnomad.isEmpty() ? QVariant() : gnomad);
-			q_insert.bindValue(6, variant.annotations()[i_co_sp]);
+			q_insert.bindValue(6, coding);
 			q_insert.bindValue(7, cadd.isEmpty() ? QVariant() : cadd);
 			q_insert.bindValue(8, spliceai<0 ? QVariant() : spliceai);
 			q_insert.exec();
