@@ -24,6 +24,7 @@ SVN_VER= \\\"$$system(cd .. && git describe --tags)\\\"
 DEFINES += "SERVER_VERSION=$$SVN_VER"
 
 SOURCES += \
+        BlatInitWorker.cpp \
         QueuingEngineController.cpp \
         QueuingEngineControllerSge.cpp \
         QueuingEngineControllerSlurm.cpp \
@@ -37,6 +38,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    BlatInitWorker.h \
     QueuingEngineController.h \
     QueuingEngineControllerSge.h \
     QueuingEngineControllerSlurm.h \
