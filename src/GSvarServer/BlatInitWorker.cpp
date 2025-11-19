@@ -8,11 +8,12 @@
 #include <QProcess>
 #include <QCoreApplication>
 
-BlatInitWorker::BlatInitWorker(int port)
+BlatInitWorker::BlatInitWorker(int port, QString server_folder)
     : QRunnable()
     , port_(port)
+    , server_folder_(server_folder)
 {
-    Log::info("Trying to initialize the BLAT server at port " + QString::number(port_));
+    Log::info("Trying to initialize the BLAT server from the provided location '" + server_folder_ + "' at port " + QString::number(port_));
 }
 
 void BlatInitWorker::run()
@@ -30,7 +31,7 @@ void BlatInitWorker::run()
         QProcess *process = new QProcess();
         process->setProcessChannelMode(QProcess::MergedChannels);
 
-        QString program = QCoreApplication::applicationDirPath() + "/blat/gfServer";
+        QString program = server_folder_ + "/gfServer";
         QStringList args = {"start", "localhost", QString::number(port_), "-stepSize=5", "-log=" + QCoreApplication::applicationDirPath() + "/blat/untrans.log", QCoreApplication::applicationDirPath() + "/blat/hg38.2bit"};
 
         QObject::connect(process, &QProcess::readyReadStandardOutput, [process]()
@@ -84,28 +85,27 @@ bool BlatInitWorker::prepareBlatServer()
     blat_files << "https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/gfServer";
     blat_files << "https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/gfClient";
 
-    QString blat_folder = QCoreApplication::applicationDirPath() + "/blat";
     QDir dir;
-    if (!dir.exists(blat_folder))
+    if (!dir.exists(server_folder_))
     {
-        if (dir.mkpath(blat_folder))
+        if (dir.mkpath(server_folder_))
         {
-            Log::info("Created BLAT folder: " + blat_folder);
+            Log::info("Created BLAT folder: " + server_folder_);
         }
         else
         {
-            Log::error("Could not create BLAT folder: " + blat_folder);
+            Log::error("Could not create BLAT folder: " + server_folder_);
             return false;
         }
     } else
     {
-        Log::info("BLAT folder already exists: " + blat_folder);
+        Log::info("BLAT folder already exists: " + server_folder_);
     }
 
     for (QString current_url: blat_files)
     {
         QUrl url(current_url);
-        QString current_file = blat_folder + "/" + url.fileName();
+        QString current_file = server_folder_ + "/" + url.fileName();
         if (QFile::exists(current_file))
         {
             Log::info("Found " + current_file);
@@ -170,7 +170,7 @@ bool BlatInitWorker::prepareBlatServer()
     }
 
     // check if hg38.2bit is present
-    QString genome_file = QCoreApplication::applicationDirPath() + "/blat/hg38.2bit";
+    QString genome_file = server_folder_ + "/hg38.2bit";
     if (QFile::exists(genome_file))
     {
         Log::info("Found the genome " + genome_file);
@@ -181,7 +181,7 @@ bool BlatInitWorker::prepareBlatServer()
         process.setProcessChannelMode(QProcess::MergedChannels);
 
         Log::info("Converting FA into 2BIT: " + Settings::string("reference_genome"));
-        process.start(QCoreApplication::applicationDirPath() + "/blat/faToTwoBit", QStringList() << Settings::string("reference_genome") << QCoreApplication::applicationDirPath() + "/blat/hg38.2bit");
+        process.start(server_folder_ + "/faToTwoBit", QStringList() << Settings::string("reference_genome") << server_folder_ + "/hg38.2bit");
 
         bool success = process.waitForFinished(-1);
         if (!success || process.exitCode()>0)

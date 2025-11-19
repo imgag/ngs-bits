@@ -654,7 +654,15 @@ int main(int argc, char **argv)
         Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
     }
 
-    int blat_server_port = Settings::integer("blat_server_port");
+    int blat_server_port = 0;
+    try
+    {
+        blat_server_port = Settings::integer("blat_server_port");
+    }
+    catch (Exception& e)
+    {
+        Log::info("BLAT server will not be started: " + e.message());
+    }
     if (blat_server_port > 0)
     {
         // Handle signals (Ctrl+C, kill, etc.), we need to kill the BLAT server before exiting
