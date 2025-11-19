@@ -95,7 +95,6 @@ bool BlatInitWorker::prepareBlatServer()
         else
         {
             Log::error("Could not create BLAT folder: " + server_folder_);
-            return false;
         }
     } else
     {
