@@ -494,9 +494,12 @@ public slots:
     QString getJobMessages(int id);
 	///Opens IVG at the position of a CNV/SV
 	void jumpToCnvOrSvPosition(int row);
+	//Set application style
+	void setStyle(QString name);
 
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
+
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
