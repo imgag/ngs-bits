@@ -17,45 +17,63 @@ BlatInitWorker::BlatInitWorker(int port)
 
 void BlatInitWorker::run()
 {
-    if (!prepareBlatServer())
+    try
     {
-        Log::error("Could not initialize and start the BLAT server on port " + QString::number(port_));
-        return;
-    }
 
-    QProcess *process = new QProcess();
-    process->setProcessChannelMode(QProcess::MergedChannels);   
 
-    QString program = QCoreApplication::applicationDirPath() + "/blat/gfServer";
-    QStringList args = {"start", "localhost", QString::number(port_), "-stepSize=5", "-log=" + QCoreApplication::applicationDirPath() + "/blat/untrans.log", QCoreApplication::applicationDirPath() + "/blat/hg38.2bit"};
-
-    QObject::connect(process, &QProcess::readyReadStandardOutput, [process]()
-    {
-        Log::info(QString::fromUtf8(process->readAllStandardOutput()));
-    });
-
-    QObject::connect(process, &QProcess::readyReadStandardError, [process]()
-    {
-        Log::error(QString::fromUtf8(process->readAllStandardError()));
-    });
-
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        QObject::connect(process, &QProcess::finished, [process](int exitCode, QProcess::ExitStatus status)
+        if (!prepareBlatServer())
         {
-            Log::info("Process finished with exit code " + QString::number(exitCode) + ", status: " + (status == QProcess::NormalExit ? "normal exit" : "crashed"));
-        });
-    #else
-        Log::warn("The server has been built with Qt 5");
-    #endif
+            Log::error("Could not initialize and start the BLAT server on port " + QString::number(port_));
+            return;
+        }
 
-    process->start(program, args);
-    if (!process->waitForStarted())
+        QProcess *process = new QProcess();
+        process->setProcessChannelMode(QProcess::MergedChannels);
+
+        QString program = QCoreApplication::applicationDirPath() + "/blat/gfServer";
+        QStringList args = {"start", "localhost", QString::number(port_), "-stepSize=5", "-log=" + QCoreApplication::applicationDirPath() + "/blat/untrans.log", QCoreApplication::applicationDirPath() + "/blat/hg38.2bit"};
+
+        QObject::connect(process, &QProcess::readyReadStandardOutput, [process]()
+        {
+            Log::info(QString::fromUtf8(process->readAllStandardOutput()));
+        });
+
+        QObject::connect(process, &QProcess::readyReadStandardError, [process]()
+        {
+            Log::error(QString::fromUtf8(process->readAllStandardError()));
+        });
+
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            QObject::connect(process, &QProcess::finished, [process](int exitCode, QProcess::ExitStatus status)
+            {
+                Log::info("Process finished with exit code " + QString::number(exitCode) + ", status: " + (status == QProcess::NormalExit ? "normal exit" : "crashed"));
+            });
+        #else
+            Log::warn("The server has been built with Qt 5");
+        #endif
+
+        process->start(program, args);
+        if (!process->waitForStarted())
+        {
+            Log::error("Failed to start BLAT server");
+            return;
+        }
+
+        Log::info("BLAT server has been started on the port " + QString::number(port_) + " with the PID " + QString::number(process->processId()));
+    }
+    catch (FileAccessException& e)
     {
-        Log::error("Failed to start BLAT server");
+        Log::error("File access problem has been detected while initialazing the BLAT server: " + e.message());
+    }
+    catch (Exception& e)
+    {
+        Log::error("An error has been detected while initialazing the BLAT server: " + e.message());
+    }
+    catch (...)
+    {
+        Log::error("Could not initialize the BLAT server: unknown error");
         return;
     }
-
-    Log::info("BLAT server has been started on the port " + QString::number(port_) + " with the PID " + QString::number(process->processId()));
 }
 
 bool BlatInitWorker::prepareBlatServer()
