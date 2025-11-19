@@ -1639,7 +1639,7 @@ QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 Variant NGSD::variant(const QString& variant_id)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT * FROM variant WHERE id=" + variant_id);
+	query.exec("SELECT chr, start, end, ref, obs FROM variant WHERE id=" + variant_id);
 	if (!query.next()) THROW(DatabaseException, "Variant with identifier '" + variant_id + "' does not exist!");
 
 	return Variant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt(), query.value("ref").toByteArray(), query.value("obs").toByteArray());

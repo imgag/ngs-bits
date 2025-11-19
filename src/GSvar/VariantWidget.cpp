@@ -67,7 +67,7 @@ void VariantWidget::updateGUI()
 		ui_.variant->setText(variant_.toString(QChar(), -1, true));
 
 		SqlQuery query1 = db.getQuery();
-		query1.exec("SELECT * FROM variant WHERE id=" + variant_id_);
+		query1.exec("SELECT gnomad, cadd, spliceai FROM variant WHERE id=" + variant_id_);
 		query1.next();
 		QString gnomad_af;
 		if (!query1.value("gnomad").isNull())
@@ -151,8 +151,7 @@ void VariantWidget::updateGUI()
 		//update GUI (next code block is slow)
 		qApp->processEvents();
 
-		//TODO Marc: get values from NGSD export flat file via GSvarServer when we deprecate the client-only mode
-		//NGSD counts
+		//exact NGSD counts mathing the variants shown below
 		GenotypeCounts counts = db.genotypeCounts(variant_id_);
 		QString text;
 		text += QString::number(counts.hom)+"x hom, ";
