@@ -51,7 +51,7 @@ GenLabDB::GenLabDB()
 	{
 		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QODBC", "GENLAB_" + Helper::randomString(20))));
 		QString driver = "ODBC Driver 17 for SQL Server";
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	driver = "ODBC Driver 18 for SQL Server";
 #endif
 		QString connection_string = "DRIVER={"+driver+"};SERVER="+host+";DATABASE="+name+";UID="+user+";PWD="+pass+";Encrypt=no";
