@@ -112,7 +112,7 @@ bool BlatInitWorker::prepareBlatServer()
             continue;
         }
 
-        Log::info("Downloading " + current_url);
+        Log::info("Downloading " + current_url + " into " + current_file);
         QSharedPointer<QFile> downloaded_file = Helper::openFileForWriting(current_file);
 
         QNetworkProxy proxy = QNetworkProxy::NoProxy;
