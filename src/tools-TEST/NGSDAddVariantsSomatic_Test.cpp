@@ -24,12 +24,16 @@ private:
 		S_EQUAL(table.row(1).asString(';'), "2;8;7;2;0.1304;26;22");
 		S_EQUAL(table.row(2).asString(';'), "3;8;7;3;0.1254;639;330");
 
+		QString t_ps_id = db.processedSampleId("DX184894_01");
+		QString n_ps_id = db.processedSampleId("DX184263_01");
 		//test callset was imported correctly
-		//TODO Alexander: add somatic callset for small variants to NGSD
+		S_EQUAL(db.getValue("SELECT caller FROM somatic_snv_callset WHERE processed_sample_id_tumor='"+t_ps_id+"' AND processed_sample_id_normal='"+n_ps_id+"'").toString(), "strelka2");
+		S_EQUAL(db.getValue("SELECT caller_version FROM somatic_snv_callset WHERE processed_sample_id_tumor='"+t_ps_id+"' AND processed_sample_id_normal='"+n_ps_id+"'").toString(), "2.9.10");
+		S_EQUAL(db.getValue("SELECT call_date FROM somatic_snv_callset WHERE processed_sample_id_tumor='"+t_ps_id+"' AND processed_sample_id_normal='"+n_ps_id+"'").toDate().toString(Qt::ISODate), "2020-10-10");
 
 		//force variant import
 		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
-		//should fail because variants already exist an force is unset
+		//should fail because variants already exist and force is unset
 		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
 	}
 
@@ -52,11 +56,15 @@ private:
 		S_EQUAL(table.row(1).asString(';'), "2;8;;2;0.1254;639;330");
 
 		//test callset was imported correctly
-		//TODO Alexander: add somatic callset for small variants to NGSD
+		QString t_ps_id = db.processedSampleId("DX184894_01");
+		//test callset was imported correctly
+		S_EQUAL(db.getValue("SELECT caller FROM somatic_snv_callset WHERE processed_sample_id_tumor='"+t_ps_id+"' AND processed_sample_id_normal IS NULL").toString(), "VarScan2");
+		S_EQUAL(db.getValue("SELECT caller_version FROM somatic_snv_callset WHERE processed_sample_id_tumor='"+t_ps_id+"' AND processed_sample_id_normal IS NULL").toString(), "v2.4.6");
+		S_EQUAL(db.getValue("SELECT call_date FROM somatic_snv_callset WHERE processed_sample_id_tumor='"+t_ps_id+"' AND processed_sample_id_normal IS NULL").toDate().toString(Qt::ISODate), "2020-10-10");
 
 		//force variant import
 		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.GSvar"));
-		//should fail because variants already exist an force is unset
+		//should fail because variants already exist and force is unset
 		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in3.GSvar"));
 	}
 

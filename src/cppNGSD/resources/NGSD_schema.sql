@@ -2845,6 +2845,37 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='Variants that can be optionally added to a report';
 
+-- -----------------------------------------------------
+-- Table `somatic_snv_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `somatic_snv_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id_tumor` INT(11) NOT NULL,
+  `processed_sample_id_normal` INT(11),
+  `caller` ENUM('strelka2', 'DRAGEN', 'VarScan2', 'DeepSomatic') NOT NULL,
+  `caller_version` VARCHAR(25) NOT NULL,
+  `call_date` DATE DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `call_date` (`call_date` ASC),
+  UNIQUE KEY `somatic_snv_callset_tumor_references_processed_sample` (`processed_sample_id_tumor`),
+  CONSTRAINT `somatic_snv_callset_tumor_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id_tumor`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE KEY `somatic_snv_callset_normal_references_processed_sample` (`processed_sample_id_normal`),
+  CONSTRAINT `somatic_snv_callset_normal_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id_normal`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='somatic small variants call set';
+
+
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START

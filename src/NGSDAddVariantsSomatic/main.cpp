@@ -31,7 +31,7 @@ public:
 		addFlag("no_time", "Disable timing output.");
 	}
 
-	//import SNVs/INDELs from tumor-normal GSVar file
+	//import SNVs/INDELs from GSVar file
 	void importSmallVariants(NGSD& db, QTextStream& out, QString t_ps_name, QString n_ps_name, bool debug, bool no_time, bool var_force)
 	{
 		QString filename = getInfile("var");
@@ -86,6 +86,16 @@ public:
 			query.exec("DELETE FROM detected_somatic_variant WHERE "+dv_where);
             out << "Deleted previous somatic variants." << QT_ENDL;
 			sub_times << ("Deleted previous detected somatic variants took: " + Helper::elapsedTime(sub_timer));
+
+			SqlQuery del_callset = db.getQuery();
+			if (is_tumor_only)
+			{
+				del_callset.exec("DELETE FROM somatic_snv_callset WHERE processed_sample_id_tumor='" + t_ps_id + "' AND processed_sample_id_normal IS NULL");
+			}
+			else
+			{
+				del_callset.exec("DELETE FROM somatic_snv_callset WHERE processed_sample_id_tumor='" + t_ps_id + "' AND processed_sample_id_normal='" + n_ps_id + "'");
+			}
 		}
 
 		VariantList variants;
@@ -131,6 +141,35 @@ public:
 		}
 		db.commit();
 		sub_times << ("Adding detected somatic variants took: " + Helper::elapsedTime(sub_timer));
+
+		//add callset (if caller info in header)
+		QByteArray caller = variants.caller();
+		QByteArray caller_ver = variants.callerVersion();
+		QDate calling_date = variants.callingDate();
+		if (caller!="" && caller_ver!="")
+		{
+			if (is_tumor_only)
+			{
+				SqlQuery q_set = db.getQuery();
+				q_set.prepare("INSERT INTO somatic_snv_callset (`processed_sample_id_tumor`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
+				q_set.bindValue(0, t_ps_id);
+				q_set.bindValue(1, caller);
+				q_set.bindValue(2, caller_ver);
+				q_set.bindValue(3, calling_date.toString("yyyyMMdd"));
+				q_set.exec();
+			}
+			else
+			{
+				SqlQuery q_set = db.getQuery();
+				q_set.prepare("INSERT INTO somatic_snv_callset (`processed_sample_id_tumor`, `processed_sample_id_normal`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3,:4)");
+				q_set.bindValue(0, t_ps_id);
+				q_set.bindValue(1, n_ps_id);
+				q_set.bindValue(2, caller);
+				q_set.bindValue(3, caller_ver);
+				q_set.bindValue(4, calling_date.toString("yyyyMMdd"));
+				q_set.exec();
+			}
+		}
 
 		//output
 		int c_skipped = variant_ids.count(-1);
