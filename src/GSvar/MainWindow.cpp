@@ -6170,7 +6170,6 @@ void MainWindow::setStyle(QString name)
 	}
 
 	QApplication::setStyle(style);
-	QApplication::setPalette(style->standardPalette());
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
