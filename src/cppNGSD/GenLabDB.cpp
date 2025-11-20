@@ -50,11 +50,12 @@ GenLabDB::GenLabDB()
 	else //Microsoft SQL server
 	{
 		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QODBC", "GENLAB_" + Helper::randomString(20))));
-		QString driver = "ODBC Driver 17 for SQL Server";
+		QString driver = Helper::isWindows() ? "SQL Server" : "ODBC Driver 17 for SQL Server"; //on Windows systems with an old ODBC dll, only "SQL Server" works...
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	driver = "ODBC Driver 18 for SQL Server";
 #endif
 		QString connection_string = "DRIVER={"+driver+"};SERVER="+host+";DATABASE="+name+";UID="+user+";PWD="+pass+";Encrypt=no";
+		Log::info("ODBC driver for GenLab: " + driver);
 		db_->setDatabaseName(connection_string);
 	}
 
