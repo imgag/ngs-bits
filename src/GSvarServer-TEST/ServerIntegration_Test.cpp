@@ -10,6 +10,7 @@
 #include "ServerDB.h"
 #include "ClientHelper.h"
 #include "BamReader.h"
+#include "Statistics.h"
 
 int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
@@ -183,7 +184,7 @@ private:
 			SKIP("Server has not been configured correctly");
 		}
 
-		QString filename = ClientHelper::serverApiUrl() + "bam/rna.bam";
+        QString filename = ClientHelper::serverApiUrl() + "assets/rna.bam";
 
 		QByteArray reply;
 		HttpHeaders add_headers;
@@ -255,7 +256,7 @@ private:
         {
             SKIP("Server has not been configured correctly");
         }
-        const QString bam_file = ClientHelper::serverApiUrl() + "bam/rna.bam";
+        const QString bam_file = ClientHelper::serverApiUrl() + "assets/rna.bam";
 
         QByteArray reply;
         HttpHeaders add_headers;
@@ -275,7 +276,7 @@ private:
         IS_TRUE(file_over_https->isReadable());
     }
 
-	TEST_METHOD(test_remote_file_readability)
+    TEST_METHOD(test_remote_text_file_random_access)
     {
 		if (!ServerHelper::settingsValid(true))
         {
@@ -314,6 +315,44 @@ private:
         QByteArray line_fragment = index_page_file->read(4);
         S_EQUAL(line_fragment, "html");
         I_EQUAL(index_page_file->pos(), 14);
+    }
+
+    TEST_METHOD(test_remote_gender_xy)
+    {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString gender_filename = ClientHelper::serverApiUrl() + "assets/panel.bam";
+        GenderEstimate estimate = Statistics::genderXY(gender_filename);
+        I_EQUAL(estimate.add_info.count(), 3);
+        S_EQUAL(estimate.add_info[0].key, "reads_chry");
+        S_EQUAL(estimate.add_info[0].value, "0");
+        S_EQUAL(estimate.add_info[1].key, "reads_chrx");
+        S_EQUAL(estimate.add_info[1].value, "30528");
+        S_EQUAL(estimate.add_info[2].key, "ratio_chry_chrx");
+        S_EQUAL(estimate.add_info[2].value, "0.0000");
+        S_EQUAL(estimate.gender, "female");
+    }
+
+    TEST_METHOD(test_remote_vcf_gz_file)
+    {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QString filename = ClientHelper::serverApiUrl() + "assets/ancestry_hg38.vcf.gz";
+
+        AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data/ancestry_hg38.vcf.gz"));
+        // AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, filename);
+        I_EQUAL(ancestry.snps, 2126);
+        F_EQUAL2(ancestry.afr, 0.4984, 0.001);
+        F_EQUAL2(ancestry.eur, 0.0241, 0.001);
+        F_EQUAL2(ancestry.sas, 0.1046, 0.001);
+        F_EQUAL2(ancestry.eas, 0.0742, 0.001);
+        S_EQUAL(ancestry.population, "AFR");
     }
 };
 

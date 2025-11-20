@@ -4,5 +4,9 @@
         <file>assets/client/favicon.ico</file>
         <file>assets/client/rna.bam</file>
         <file>assets/client/rna.bam.bai</file>
+        <file>assets/client/ancestry_hg38.vcf.gz</file>
+        <file>assets/client/text.txt</file>
+        <file>assets/client/panel.bam</file>
+        <file>assets/client/panel.bam.bai</file>
     </qresource>
 </RCC>

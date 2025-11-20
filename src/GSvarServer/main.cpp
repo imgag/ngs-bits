@@ -104,25 +104,25 @@ int main(int argc, char **argv)
 						&ServerController::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
-						"bam",
+                        "assets",
 						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the BAM file to be served"}}
+                           {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the asset file to be served"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_OCTET_STREAM,
 						AuthType::NONE,
-						"BAM file used for the testing purposes",
+                        "Asset file used for the testing purposes",
 						&ServerController::serveResourceAsset
 				   });
 	EndpointManager::appendEndpoint(Endpoint{
-						"bam",
+                        "assets",
 						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the BAM file to be served"}}
+                           {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the asset file to be served"}}
 						},
 						RequestMethod::HEAD,
 						ContentType::APPLICATION_OCTET_STREAM,
 						AuthType::NONE,
-						"Size of the BAM file used for the testing purposes",
+                        "Size of the asset file used for the testing purposes",
 						&ServerController::serveResourceAsset
 				   });
 
