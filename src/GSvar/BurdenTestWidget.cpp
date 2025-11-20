@@ -810,9 +810,8 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic)
 {
 	//prepare db queries
-	QString query_text = QString() + "SELECT v.* FROM variant v WHERE"
-			+ " (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd)
-			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")";
+	QString query_text = "SELECT * FROM variant WHERE (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd) + " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")";
+
 	//impacts
 	if(impacts.size() > 0)
 	{

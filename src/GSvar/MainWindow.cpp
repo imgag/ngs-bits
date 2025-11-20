@@ -137,6 +137,7 @@
 #include "FileLocationProviderRemote.h"
 #include <QMimeData>
 #include "MaintenanceDialog.h"
+#include <QStyleFactory>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
@@ -193,6 +194,9 @@ MainWindow::MainWindow(QWidget *parent)
         proxy.setPassword(Settings::string("proxy_password"));
         CustomProxyService::setProxy(proxy);
     }
+
+	//set style
+	setStyle(Settings::string("window_style", true));
 
     //setup GUI
 	ui_.setupUi(this);
@@ -2176,6 +2180,7 @@ void MainWindow::openSettingsDialog(QString page_name, QString section)
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
+		setStyle(Settings::string("window_style", true));
 	}
 }
 
@@ -6153,6 +6158,18 @@ void MainWindow::jumpToCnvOrSvPosition(int row)
 	QString pos = tsv_table->getText(row, 1);
 
 	IgvSessionManager::get(0).gotoInIGV(pos, true);
+}
+
+void MainWindow::setStyle(QString name)
+{
+	QStyle* style = QStyleFactory::create(name);
+	if (style==nullptr)
+	{
+		Log::info("Invalid style name '" + name + "' selected!");
+		return;
+	}
+
+	QApplication::setStyle(style);
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
