@@ -1,4 +1,6 @@
 ##ANALYSISTYPE=SOMATIC_PAIR
+##SOURCE=strelka2 2.9.10
+##CALLING_DATE=2020-10-10
 ##PIPELINE=megSAP 0.1-835-g57035c2
 ##SAMPLE=<ID=DX184894_01,Gender=female,ExternalSampleName=DNA-184894 A1,IsTumor=yes,IsFFPE=yes,DiseaseGroup=n/a,DiseaseStatus=n/a>
 ##SAMPLE=<ID=DX184263_01,Gender=female,ExternalSampleName=DNA-184263 A1,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=n/a>

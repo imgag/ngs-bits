@@ -372,7 +372,7 @@ void CfDNAPanelBatchImport::importPanels()
 	if (add_sample_identifier)
 	{
 		// get KASP SNPs
-		QStringList vcf_content = Helper::loadTextFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf", false,QChar::Null, false);
+		QStringList vcf_content = Helper::loadTextFile("://Resources/hg38_KASP_set2.vcf", false,QChar::Null, false);
 		general_sample_ids.fromText(vcf_content.join("\n").toUtf8());
 	}
 

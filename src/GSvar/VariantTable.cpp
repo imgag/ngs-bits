@@ -306,7 +306,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 	else if (action == a_ucsc)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
 	}
 	else if (action == a_ucsc_enigma)
 	{
@@ -316,11 +316,11 @@ void VariantTable::customContextMenu(QPoint pos)
 	{
 		int pos = variant.start();
 		if (variant.ref()=="-") pos += 1;
-		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants?search_chromosome=%3D%22" + variant.chr().strNormalized(false) + "%22&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
+		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants?search_chromosome=%3D%22" + variant.chr().strNormalized(false) + "%22&search_VariantOnGenome/DNA/hg38=g." + QString::number(pos)));
 	}
 	else if (action == a_clinvar_find)
 	{
-		QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+		QString url = GSvarHelper::clinVarSearchLink(variant);
 		QDesktopServices::openUrl(QUrl(url));
 	}
 	else if (action == a_clinvar_pub)
@@ -334,8 +334,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		QString obs = variant.obs();
 		obs.replace("-", "");
 		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
-		QString genome = variant.chr().isM() ? "hg38" : buildToString(GSvarHelper::build());
-		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
+		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/hg38/" + var));
 	}
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{

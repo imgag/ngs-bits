@@ -22,6 +22,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	, ui(new Ui::VariantDetailsDockWidget)
 {
 	ui->setupUi(this);
+	ui->gene->setMaximumHeight(ui->gene->fontMetrics().height()); //TODO Marc: should no longer be needed after switch to Qt6 (see below)
 
 	//signals + slots
 	connect(ui->trans_prev, SIGNAL(clicked(bool)), this, SLOT(previousTanscript()));
@@ -652,6 +653,18 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			tooltip = ids.join(", ");
 
 		}
+		else if (name=="gene_info") //TODO Marc: after Qt6 switch use setTextElideMode (everywhere else too)
+		{
+			tooltip = QString(anno).replace(", ", "\n");
+
+			anno.replace("n/a", "");
+			if(anno.size()>200)
+			{
+				anno = anno.left(200) + "...";
+			}
+
+			text = anno;
+		}
 		else //fallback: use complete annotations string
 		{
 			text = anno;
@@ -802,7 +815,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
+	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://www.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";
@@ -1079,8 +1092,6 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 
 void VariantDetailsDockWidget::spliceaiContextMenu(QPoint pos)
 {
-	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
-
 	QMenu menu;
 	QAction* a_lookup = menu.addAction("Open SpliceAI Lookup");
 

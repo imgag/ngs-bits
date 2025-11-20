@@ -33,13 +33,20 @@ The "Structural variants" dialog shows the filtered list of all detected SVs wit
 * filter
 * sequence of the reference
 * sequence of the SV
-* genes
-* gene info: gene-specific information from NGSD
+* GENES: all genes overlapping the SV
+* GENES_BREAKPOINTS: genes overlapping the SV breakpoints
+* GENE_INFO: gene-specific information from NGSD
 	* gnomAD o/e score for LOF variants
 	* overlap with gene (complete, intronic/intergenic, exonic/splicing) 
-* NGSD count: number of exact matches in the NGSD and the allele frequency in brackets
-* NGSD overlap: number of SVs of the sample type in the NGSD which overlap the current SV
-* OMIM genes	
+* NGSD_HOM: how often the SV was seen homozygous in NGSD
+* NGSD_HET: how often the SV was seen heterozygous in NGSD
+* NGSD_AF: Allele-frequency of the SV in the NGSD
+* NGSD_group: Homozygous/heterozygous count of the variant in the same disease group as the current sample.
+* NGSD_SV_BREAKPOINT_DENSITY: Number of SVs in NGSD that share the breakpoint(s). The count is calcualted independend of the SV type.
+* NGSD_SV_BREAKPOINT_DENSITY_SYS: Number of SVs in NGSD that share the breakpoint(s) and have the same disease group as the current sample. The count is calcualted independend of the SV type.
+* NGSD_PATHOGENIC_SVS: How often the SV was annotated as pathogenic (class 4 or 5) in NGSD
+* OMIM: OMIM genes overlapping the SV
+* CNV_OVERLAP: fraction of the the SV that is supported by CNV calls. This number is only calcualted for deletions (DEL) and duplications (DUP). 
 
 Additionally the `Format` and `Info` columns of the currently selected SV is expanded below this table (2). On the right side there is a filter widget similar to the variant or CNV view where filters can be added and modified (3). Below that the target, chromosomal or phenotype region can be defined and the SVs filtered by genes or text (4). 
 ![SV window](sv_window.png)

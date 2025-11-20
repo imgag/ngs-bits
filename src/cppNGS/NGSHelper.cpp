@@ -537,6 +537,14 @@ void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, in
 	end = Helper::toInt(parts[2], "End coordinate", text);
 }
 
+void NGSHelper::parseRegion(const QString& text, Chromosome& chr, QByteArray& start, QByteArray& end, bool allow_chr_only)
+{
+	int i_start, i_end;
+	parseRegion(text, chr, i_start, i_end, allow_chr_only);
+	start = QByteArray::number(i_start);
+	end = QByteArray::number(i_end);
+}
+
 const BedFile& NGSHelper::centromeres(GenomeBuild build)
 {
 	static QMap<GenomeBuild, BedFile> output;

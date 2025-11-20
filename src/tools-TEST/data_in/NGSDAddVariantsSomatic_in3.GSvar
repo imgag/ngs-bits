@@ -1,5 +1,7 @@
 ##ANALYSISTYPE=SOMATIC_PAIR
 ##PIPELINE=megSAP 0.1-835-g57035c2
+##SOURCE=VarScan2 v2.4.6
+##CALLING_DATE=2020-10-10
 ##SAMPLE=<ID=DX184894_01,Gender=female,ExternalSampleName=DNA-184894 A1,IsTumor=yes,IsFFPE=yes,DiseaseGroup=n/a,DiseaseStatus=n/a>
 ##SAMPLE=<ID=DX184263_01,Gender=female,ExternalSampleName=DNA-184263 A1,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=n/a>
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.

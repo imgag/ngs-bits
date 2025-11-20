@@ -137,6 +137,7 @@
 #include "FileLocationProviderRemote.h"
 #include <QMimeData>
 #include "MaintenanceDialog.h"
+#include <QStyleFactory>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
@@ -193,6 +194,9 @@ MainWindow::MainWindow(QWidget *parent)
         proxy.setPassword(Settings::string("proxy_password"));
         CustomProxyService::setProxy(proxy);
     }
+
+	//set style
+	setStyle(Settings::string("window_style", true));
 
     //setup GUI
 	ui_.setupUi(this);
@@ -838,7 +842,7 @@ void MainWindow::on_actionDeleteIgvFolder_triggered()
 	   return;
 	}
 
-	int res = QMessageBox::question(this, title, "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will use all settings (proxy, alignment options, ...)!");
+	int res = QMessageBox::question(this, title, "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will loose all settings (proxy, alignment options, ...)!");
 	if (res==QMessageBox::Yes)
 	{
 		QDir(path_canonical).removeRecursively();
@@ -2176,6 +2180,7 @@ void MainWindow::openSettingsDialog(QString page_name, QString section)
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
+		setStyle(Settings::string("window_style", true));
 	}
 }
 
@@ -3290,7 +3295,7 @@ void MainWindow::on_actionAbout_triggered()
 
 	//general infos
 	about_text += "\n";
-	about_text += "\nGenome build: " + buildToString(GSvarHelper::build());
+	about_text += "\nGenome build: " + GSvarHelper::buildAsString();
 	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
 	about_text += "\nhtslib version: " + QString(hts_version());
 
@@ -6153,6 +6158,18 @@ void MainWindow::jumpToCnvOrSvPosition(int row)
 	QString pos = tsv_table->getText(row, 1);
 
 	IgvSessionManager::get(0).gotoInIGV(pos, true);
+}
+
+void MainWindow::setStyle(QString name)
+{
+	QStyle* style = QStyleFactory::create(name);
+	if (style==nullptr)
+	{
+		Log::info("Invalid style name '" + name + "' selected!");
+		return;
+	}
+
+	QApplication::setStyle(style);
 }
 
 void MainWindow::on_actionVirusDetection_triggered()

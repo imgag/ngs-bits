@@ -541,7 +541,7 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 {
 	// open BED file
 	BedFile hotspot_regions;
-	hotspot_regions.load("://Resources/" + buildToString(GSvarHelper::build()) + "_cfDNA_hotspot_regions.bed");
+	hotspot_regions.load("://Resources/hg38_cfDNA_hotspot_regions.bed");
 
 	// fill table
 
@@ -666,7 +666,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 	if (ui_->cb_sample_identifier->isChecked())
 	{
 		// get KASP SNPs
-		QStringList vcf_content = Helper::loadTextFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf", false,QChar::Null, false);
+		QStringList vcf_content = Helper::loadTextFile("://Resources/hg38_KASP_set2.vcf", false,QChar::Null, false);
 		if(variants_.type() == SOMATIC_SINGLESAMPLE)
 		{
 			//postprocess KASP file for tumor-only: remove FORMAT column of normal sample

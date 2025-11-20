@@ -70,17 +70,17 @@ void CnvSearchWidget::search()
 		{
 			// parse position
 			Chromosome chr;
-			int start, end;
+			QByteArray start, end;
 			NGSHelper::parseRegion(ui_.coordinates->text(), chr, start, end);
 
 			QString operation = ui_.operation->currentText();
 			if (operation=="overlaps")
 			{
-				query_str += " AND chr='" + chr.strNormalized(true) + "' AND " + QString::number(start) + "<=end AND " + QString::number(end) + ">=start";
+				query_str += " AND chr='" + chr.strNormalized(true) + "' AND " + start + "<=end AND " + end + ">=start";
 			}
 			else if (operation=="contains")
 			{
-				query_str += " AND chr='" + chr.strNormalized(true) + "' AND start<=" + QString::number(start) + " AND end>=" + QString::number(end);
+				query_str += " AND chr='" + chr.strNormalized(true) + "' AND start<=" + start + " AND end>=" + end;
 			}
 			else THROW(ProgrammingException, "Invalid operation: " + operation);
 		}

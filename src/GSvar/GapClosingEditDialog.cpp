@@ -27,20 +27,15 @@ void GapClosingEditDialog::updateGUI()
 	Chromosome chr = query.value("chr").toString();
 	int start = query.value("start").toInt();
 	int end = query.value("end").toInt();
-	QString text = chr.str()+":"+QString::number(start)+"-"+QString::number(end);
-	if (GSvarHelper::build()==GenomeBuild::HG38)
+	QString text = chr.str()+":"+QString::number(start)+"-"+QString::number(end) + " // HG19: ";
+	try
 	{
-		QString tmp;
-		try
-		{
-			BedLine coords_hg19 = GSvarHelper::liftOver(chr, start, end, false);
-			tmp = coords_hg19.toString(true);
-		}
-		catch(Exception& e)
-		{
-			tmp = e.message();
-		}
-		text += " // HG19: " + tmp;
+		BedLine coords_hg19 = GSvarHelper::liftOver(chr, start, end, false);
+		text += coords_hg19.toString(true);
+	}
+	catch(Exception& e)
+	{
+		text += e.message();
 	}
 	ui_.gap->setText(text);
 

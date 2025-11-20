@@ -233,7 +233,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//get variants in chromosomal range
 	QSet<QString> vars_distinct;
 	QList<QList<QVariant>> var_data;
-	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND " + constraints.join(" AND ")  + " ORDER BY start";
+	QString query_text = "SELECT * FROM variant WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND " + constraints.join(" AND ")  + " ORDER BY start";
 	SqlQuery query = db.getQuery();
 	query.exec(query_text);
 	while(query.next())

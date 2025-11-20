@@ -31,6 +31,7 @@ private:
     QSslKey readPrivateKey(const QString &filePath, const QByteArray &passPhrase = QByteArray());
 	SslServer *server_;
     bool is_running_;
+    QThreadPool background_task_pool_;
     QThreadPool cleanup_pool_;
     QThreadPool qe_status_pool_;
 };

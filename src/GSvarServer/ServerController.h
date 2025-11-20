@@ -89,6 +89,10 @@ public:
 	static HttpResponse getRnaExpressionPlots(const HttpRequest& request);
 	/// Returns information about the latest available version of the desktop client
 	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
+
+    /// Returns BLAT search results for the given genome and sequence
+    static HttpResponse performBlatSearch(const HttpRequest& request);
+
 	// Returns some notification displayed to the users of the client application
 	static HttpResponse getCurrentNotification(const HttpRequest& request);
 

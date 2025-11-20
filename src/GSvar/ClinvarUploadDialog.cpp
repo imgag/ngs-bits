@@ -1611,7 +1611,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 						QJsonObject chromosome_coordinates;
 						{
 							chromosome_coordinates.insert("alternateAllele", ui_.le_obs_snv1->text());
-							chromosome_coordinates.insert("assembly", buildToString(GSvarHelper::build(), true));
+							chromosome_coordinates.insert("assembly", GSvarHelper::buildAsString(true));
 							chromosome_coordinates.insert("chromosome", ui_.cb_chr_snv1->currentText());
 							chromosome_coordinates.insert("referenceAllele", ui_.le_ref_snv1->text());
 							chromosome_coordinates.insert("start", Helper::toInt(ui_.le_start_snv1->text()));
@@ -1633,7 +1633,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 						//required (except hgvs)
 						QJsonObject chromosome_coordinates;
 						{
-							chromosome_coordinates.insert("assembly", buildToString(GSvarHelper::build(), true));
+							chromosome_coordinates.insert("assembly", GSvarHelper::buildAsString(true));
 							chromosome_coordinates.insert("chromosome", ui_.cb_chr_cnv1->currentText());
 							chromosome_coordinates.insert("start", Helper::toInt(ui_.le_start_cnv1->text()));
 							chromosome_coordinates.insert("stop", Helper::toInt(ui_.le_end_cnv1->text()));
@@ -1653,7 +1653,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 						//required (except hgvs)
 						QJsonObject chromosome_coordinates;
 						{
-							chromosome_coordinates.insert("assembly", buildToString(GSvarHelper::build(), true));
+							chromosome_coordinates.insert("assembly", GSvarHelper::buildAsString(true));
 							chromosome_coordinates.insert("chromosome", ui_.cb_chr1_sv1->currentText());
 
 							if (ui_.cb_type_sv1->currentText() == "BND") THROW(NotImplementedException, "The upload of translocations is not supported by the ClinVar API!")
@@ -1760,7 +1760,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 							QJsonObject chromosome_coordinates;
 							{
 								chromosome_coordinates.insert("alternateAllele", ui_.le_obs_snv2->text());
-								chromosome_coordinates.insert("assembly", buildToString(GSvarHelper::build(), true));
+								chromosome_coordinates.insert("assembly", GSvarHelper::buildAsString(true));
 								chromosome_coordinates.insert("chromosome", ui_.cb_chr_snv2->currentText());
 								chromosome_coordinates.insert("referenceAllele", ui_.le_ref_snv2->text());
 								chromosome_coordinates.insert("start", Helper::toInt(ui_.le_start_snv2->text()));
@@ -1782,7 +1782,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 							//required (except hgvs)
 							QJsonObject chromosome_coordinates;
 							{
-								chromosome_coordinates.insert("assembly", buildToString(GSvarHelper::build(), true));
+								chromosome_coordinates.insert("assembly", GSvarHelper::buildAsString(true));
 								chromosome_coordinates.insert("chromosome", ui_.cb_chr_cnv2->currentText());
 								chromosome_coordinates.insert("start", Helper::toInt(ui_.le_start_cnv2->text()));
 								chromosome_coordinates.insert("stop", Helper::toInt(ui_.le_end_cnv2->text()));
@@ -1802,7 +1802,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 							//required (except hgvs)
 							QJsonObject chromosome_coordinates;
 							{
-								chromosome_coordinates.insert("assembly", buildToString(GSvarHelper::build(), true));
+								chromosome_coordinates.insert("assembly", GSvarHelper::buildAsString(true));
 								chromosome_coordinates.insert("chromosome", ui_.cb_chr1_sv2->currentText());
 
 								if (ui_.cb_type_sv2->currentText() == "BND") THROW(NotImplementedException, "The upload of translocations is not supported by the ClinVar API!")

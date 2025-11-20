@@ -157,6 +157,18 @@ void SvWidget::initGUI()
 			item->setToolTip("Double click table cell to open table view of annotations");
 		}
 
+		if (col=="FILTER")
+		{
+			QString tooltip;
+			auto filters_desc = svs_.metaInfoDescriptionByID("FILTER");
+			for(auto it=filters_desc.begin(); it!=filters_desc.end(); ++it)
+			{
+				tooltip += it.key() + ":\n" + it.value() + "\n\n";
+			}
+			tooltip.chop(2);
+			item->setToolTip(tooltip);
+		}
+
 		QByteArray desc = svs_.annotationDescriptionByName(col.toUtf8()).trimmed();
 		if(desc!="")
 		{
@@ -266,7 +278,6 @@ void SvWidget::clearGUI()
 	//clear table widget to cols / rows specified in .ui file
 	ui->svs->setRowCount(0);
 	ui->svs->setColumnCount(6);
-
 }
 
 void SvWidget::resizeTableContent(QTableWidget* table_widget)
@@ -1379,7 +1390,7 @@ void SvWidget::showContextMenu(QPoint pos)
 			const BedLine& region = regions[i];
 			//create dummy variant to use GSvar helper
 			Variant variant = Variant(region.chr(), region.start(), region.end(), "", "");
-			QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+			QString url = GSvarHelper::clinVarSearchLink(variant);
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}
@@ -1409,7 +1420,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_ucsc)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + sv.positionRange()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=" + sv.positionRange()));
 	}
 	else if (action==a_deciphter)
 	{
