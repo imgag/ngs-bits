@@ -2175,12 +2175,10 @@ void MainWindow::on_actionSettings_triggered()
 void MainWindow::openSettingsDialog(QString page_name, QString section)
 {
 	SettingsDialog dlg(this);
-	dlg.setWindowFlags(Qt::Window);
 	dlg.gotoPage(page_name, section);
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
-		setStyle(Settings::string("window_style", true));
 	}
 }
 
@@ -6162,6 +6160,7 @@ void MainWindow::jumpToCnvOrSvPosition(int row)
 
 void MainWindow::setStyle(QString name)
 {
+	if (name=="" || name=="[default]") name = "windowsvista";
 	QStyle* style = QStyleFactory::create(name);
 	if (style==nullptr)
 	{

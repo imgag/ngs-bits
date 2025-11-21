@@ -1360,7 +1360,6 @@ void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
 void CnvWidget::openColumnSettings()
 {
 	SettingsDialog dlg(this);
-	dlg.setWindowFlags(Qt::Window);
 	dlg.gotoPage("columns", variantTypeToString(VariantType::CNVS));
 	if (dlg.exec()==QDialog::Accepted)
 	{

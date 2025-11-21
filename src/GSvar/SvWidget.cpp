@@ -989,7 +989,6 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 void SvWidget::openColumnSettings()
 {
 	SettingsDialog dlg(this);
-	dlg.setWindowFlags(Qt::Window);
 	dlg.gotoPage("columns", variantTypeToString(VariantType::SVS));
 	if (dlg.exec()==QDialog::Accepted)
 	{

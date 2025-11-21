@@ -401,7 +401,7 @@ public slots:
 	///Open column settings dialog
 	void openColumnSettings();
 	///Open settings dialog on a specific page
-	void openSettingsDialog(QString page_name="general", QString section = "");
+	void openSettingsDialog(QString page_name="view", QString section = "");
 
 	///Subpanel design dialog
 	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());

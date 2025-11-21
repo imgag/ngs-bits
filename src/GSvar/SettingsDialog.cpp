@@ -1,15 +1,17 @@
 #include "SettingsDialog.h"
 #include "Settings.h"
 #include "Log.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QStyleFactory>
 
-SettingsDialog::SettingsDialog(QWidget *parent) :
-	QDialog(parent),
-	ui_()
+SettingsDialog::SettingsDialog(QWidget *parent)
+	: QDialog(parent)
+	, ui_()
 {
 	ui_.setupUi(this);
 	ui_.stack->setCurrentIndex(0);
+	setWindowFlags(Qt::Window);
 
 	//connect page buttons
 	foreach(QPushButton* button, findChildren<QPushButton*>())
@@ -22,8 +24,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
 	//add available styles
 	ui_.style->addItems(QStyleFactory::keys());
-
-	loadSettings();
 }
 
 void SettingsDialog::gotoPage(QString page_name, QString section)
@@ -35,6 +35,11 @@ void SettingsDialog::gotoPage(QString page_name, QString section)
 
 	//update title
 	QPushButton* button = findChild<QPushButton*>("btn_"+page_name);
+	if (button==nullptr)
+	{
+		qDebug() << "Invalid page name '" << page_name << "'";
+		return;
+	}
 	ui_.title->setText(button->text());
 
 	//update page
@@ -63,7 +68,7 @@ void SettingsDialog::changePage()
 void SettingsDialog::closeEvent(QCloseEvent* e)
 {
 	e->ignore();
-	if (QMessageBox::Yes == QMessageBox::question(this, windowTitle(), "Do you want to exit without storing the changes?", QMessageBox::Yes | QMessageBox::No))
+	if (QMessageBox::question(this, windowTitle(), "There might be changes to the settings.\nDo you want to exit without storing changes?", QMessageBox::Yes | QMessageBox::No)==QMessageBox::Yes)
 	{
 		e->accept();
 	}
@@ -92,9 +97,6 @@ void SettingsDialog::loadSettings()
 	if (Settings::string("view_adjust_large_numbers", true) == "raw_counts") ui_.view_adjust_large_numbers->setCurrentText( "raw counts");
 	if (Settings::string("view_adjust_large_numbers", true) == "modifier") ui_.view_adjust_large_numbers->setCurrentText("T, G, M, k modifier");
 	if (Settings::string("view_adjust_large_numbers", true) == "thousands_separator") ui_.view_adjust_large_numbers->setCurrentText( "use ',' as thousands separator");
-
-	//Columns
-
 }
 
 void SettingsDialog::storeSettings()
@@ -118,4 +120,7 @@ void SettingsDialog::storeSettings()
 
 	//columns
 	ui_.column_config->store();
+
+	//apply settings that take immediate effect
+	GlobalServiceProvider::mainWindow()->setStyle(Settings::string("window_style", true));
 }
