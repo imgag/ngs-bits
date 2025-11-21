@@ -345,8 +345,9 @@ private:
 
         QString filename = ClientHelper::serverApiUrl() + "assets/ancestry_hg38.vcf.gz";
 
-        AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data/ancestry_hg38.vcf.gz"));
-        // AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, filename);
+        // AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data/ancestry_hg38.vcf.gz"));
+        Log::error(filename);
+        AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, filename);
         I_EQUAL(ancestry.snps, 2126);
         F_EQUAL2(ancestry.afr, 0.4984, 0.001);
         F_EQUAL2(ancestry.eur, 0.0241, 0.001);
