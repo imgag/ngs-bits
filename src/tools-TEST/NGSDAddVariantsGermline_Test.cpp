@@ -26,6 +26,9 @@ private:
 		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "freebayes");
 		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.3.3");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2022-04-25");
+		S_EQUAL(db.getValue("SELECT caller FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "ClinCNV");
+		S_EQUAL(db.getValue("SELECT caller_version FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.16.1");
+		S_EQUAL(db.getValue("SELECT call_date FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2019-09-30");
 
 		//2. import - skipped because the same callset was already imported
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
@@ -43,6 +46,9 @@ private:
 		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "DeepVariant");
 		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "1.8.0");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2023-11-03");
+		S_EQUAL(db.getValue("SELECT caller FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "ClinCNV");
+		S_EQUAL(db.getValue("SELECT caller_version FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.16.1");
+		S_EQUAL(db.getValue("SELECT call_date FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2019-09-30");
 	}
 
 
@@ -66,6 +72,9 @@ private:
 		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "DRAGEN");
 		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "3.0.2");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2018-11-08");
+		S_EQUAL(db.getValue("SELECT caller FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "ClinCNV");
+		S_EQUAL(db.getValue("SELECT caller_version FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.16.1");
+		S_EQUAL(db.getValue("SELECT call_date FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2019-09-30");
 
 		//check if PubMed ids are imported
 		Variant var = Variant(Chromosome("chrX"), 155255024, 155255024, "C", "T");
