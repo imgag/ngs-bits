@@ -8,5 +8,6 @@
         <file>assets/client/text.txt</file>
         <file>assets/client/panel.bam</file>
         <file>assets/client/panel.bam.bai</file>
+        <file>assets/client/NA12878_58_var_annotated.vcf.gz</file>
     </qresource>
 </RCC>

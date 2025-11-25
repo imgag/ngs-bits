@@ -31,7 +31,7 @@ int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
     return status_code;
 }
 
-TEST_CLASS(Server_IntegrationTest)
+TEST_CLASS(Server_Integration_Test)
 {
 private:
 
@@ -343,17 +343,16 @@ private:
             SKIP("Server has not been configured correctly");
         }
 
-        QString filename = ClientHelper::serverApiUrl() + "assets/ancestry_hg38.vcf.gz";
-
-        // AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data/ancestry_hg38.vcf.gz"));
-        Log::error(filename);
+        QString filename = ClientHelper::serverApiUrl() + "assets/NA12878_58_var_annotated.vcf.gz";
         AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, filename);
-        I_EQUAL(ancestry.snps, 2126);
-        F_EQUAL2(ancestry.afr, 0.4984, 0.001);
-        F_EQUAL2(ancestry.eur, 0.0241, 0.001);
-        F_EQUAL2(ancestry.sas, 0.1046, 0.001);
-        F_EQUAL2(ancestry.eas, 0.0742, 0.001);
-        S_EQUAL(ancestry.population, "AFR");
+        // AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data/NA12878_58_var_annotated.vcf.gz"));
+
+        I_EQUAL(ancestry.snps, 2907);
+        F_EQUAL2(ancestry.afr, 0.00860332, 0.001);
+        F_EQUAL2(ancestry.eur, 0.310719, 0.001);
+        F_EQUAL2(ancestry.sas, 0.156908, 0.001);
+        F_EQUAL2(ancestry.eas, 0.0452005, 0.001);
+        S_EQUAL(ancestry.population, "EUR");
     }
 };
 
