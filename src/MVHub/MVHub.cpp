@@ -1471,7 +1471,7 @@ void MVHub::addOutputLine(QString line)
 QByteArray MVHub::getConsent(QString sap_id, bool debug)
 {
 	static QByteArray token = "";
-	static QDateTime token_datetime = QDateTime(QDate(1970, 1, 1));
+	static QDateTime token_datetime = QDateTime(QDate(1970, 1, 1), QTime(0,0));
 	try
 	{
 		//meDIC API expects SAP ID padded to 10 characters...
