@@ -22,6 +22,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	, ui(new Ui::VariantDetailsDockWidget)
 {
 	ui->setupUi(this);
+	ui->gene->setMaximumHeight(ui->gene->fontMetrics().height()); //TODO Marc: should no longer be needed after switch to Qt6 (see below)
 
 	//signals + slots
 	connect(ui->trans_prev, SIGNAL(clicked(bool)), this, SLOT(previousTanscript()));
@@ -346,7 +347,31 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="quality")
 		{
-			text = anno.replace(';', ' ');
+			QStringList show;
+			foreach(QString part, anno.split(';'))
+			{
+				part = part.trimmed();
+				if (part.isEmpty()) continue;
+
+				if (part.startsWith("QUAL="))
+				{
+					if (part.mid(5).toInt()<20)
+					{
+						part = formatText(part, YELLOW);
+					}
+				}
+				if (part.startsWith("DP="))
+				{
+					if (part.mid(3).toInt()<15)
+					{
+						part = formatText(part, YELLOW);
+					}
+				}
+
+				show << part;
+			}
+
+			text = show.join(' ');
 		}
 		else if(name=="filter")
 		{
@@ -628,6 +653,18 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			tooltip = ids.join(", ");
 
 		}
+		else if (name=="gene_info") //TODO Marc: after Qt6 switch use setTextElideMode (everywhere else too)
+		{
+			tooltip = QString(anno).replace(", ", "\n");
+
+			anno.replace("n/a", "");
+			if(anno.size()>200)
+			{
+				anno = anno.left(200) + "...";
+			}
+
+			text = anno;
+		}
 		else //fallback: use complete annotations string
 		{
 			text = anno;
@@ -681,6 +718,8 @@ QString VariantDetailsDockWidget::colorToString(VariantDetailsDockWidget::Color 
 			return "rgba(255, 100, 0, 128)";
 		case RED:
 			return "rgba(255, 0, 0, 128)";
+		case YELLOW:
+			return "rgba(255, 255, 0, 128)";
 	};
 
 	THROW(ProgrammingException, "Unkonwn color!");
@@ -776,7 +815,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
+	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://www.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";
@@ -1053,8 +1092,6 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 
 void VariantDetailsDockWidget::spliceaiContextMenu(QPoint pos)
 {
-	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
-
 	QMenu menu;
 	QAction* a_lookup = menu.addAction("Open SpliceAI Lookup");
 

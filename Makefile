@@ -181,7 +181,7 @@ deploy_server_nobuild:
 	@echo ""
 	@echo "#Deploy binaries"
 	mkdir $(SERVER_DEP_PATH)
-	find ./bin/ -type f  -or -type l | grep -v "settings" | xargs -I{} cp {} $(SERVER_DEP_PATH)
+	find ./bin/ -type f  -or -type l | grep -v "settings" | grep -v "blat" | xargs -I{} cp {} $(SERVER_DEP_PATH)
 	@echo ""
 	@echo "#Create a new link"
 	rm /opt/GSvarServer/GSvarServer-current && ln -s $(SERVER_DEP_PATH) /opt/GSvarServer/GSvarServer-current

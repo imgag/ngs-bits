@@ -20,6 +20,7 @@ public slots:
 	void delayedInitialization();
 	void tableContextMenu(QPoint pos);
 	void openExportHistory(int row);
+	void emailExportFailed(int row);
 	void updateTableFilters();
 	//returns TAN for the given context. Set skip_pseudo1=true of you want to create donor pseudonyms.
 	QByteArray getTAN(QByteArray str, QByteArray context, bool skip_pseudo1=false, bool test_server=false, bool debug=false);
@@ -98,7 +99,7 @@ private:
 	{
 		SE,
 		OE,
-		FBREK, //TODO check that FREK is handled correctly everywhere
+		FBREK,
 		UNSET
 	};
 	Network getNetwork(int row);

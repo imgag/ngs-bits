@@ -15,7 +15,13 @@ SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
 {
 	ui_.setupUi(this);
 	setWindowFlags(Qt::Window);
-	connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        connect(ui_.radio_region->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
+    #else
+        connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+    #endif
+
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.variants, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(variantContextMenu(QPoint)));
@@ -227,7 +233,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//get variants in chromosomal range
 	QSet<QString> vars_distinct;
 	QList<QList<QVariant>> var_data;
-	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND " + constraints.join(" AND ")  + " ORDER BY start";
+	QString query_text = "SELECT * FROM variant WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND " + constraints.join(" AND ")  + " ORDER BY start";
 	SqlQuery query = db.getQuery();
 	query.exec(query_text);
 	while(query.next())

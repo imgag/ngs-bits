@@ -78,6 +78,7 @@ The initial import of database content using ngs-bits.
 		> ngs-bits/bin/NGSDImportHGNC --help
 		> ngs-bits/bin/NGSDImportEnsembl --help
 		> ngs-bits/bin/NGSDImportHPO --help
+		> ngs-bits/bin/NGSDImportOncotree --help
 		> ngs-bits/bin/NGSDImportGeneInfo --help
 		> ngs-bits/bin/NGSDImportOMIM --help
 		> ngs-bits/bin/NGSDImportORPHA --help
@@ -88,9 +89,11 @@ The initial import of database content using ngs-bits.
 To keep gene, transcript and disease data in NGSD up-to-date, you need to perform regular updates.  
 To do that, update ngs-bits and re-run these import tools:
 
+		> ngs-bits/bin/NGSDImportQC --help
 		> ngs-bits/bin/NGSDImportHGNC --help
 		> ngs-bits/bin/NGSDImportEnsembl --help
 		> ngs-bits/bin/NGSDImportHPO --help
+		> ngs-bits/bin/NGSDImportOncotree --help
 		> ngs-bits/bin/NGSDImportGeneInfo --help
 		> ngs-bits/bin/NGSDImportOMIM --help
 		> ngs-bits/bin/NGSDImportORPHA --help

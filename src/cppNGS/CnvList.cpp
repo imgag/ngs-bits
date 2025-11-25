@@ -338,14 +338,14 @@ void CnvList::store(QString filename)
 			// assemble CNV line
 			cnv_annotations.insert(2, QByteArray::number(variant.regions()));
 			cnv_annotations.insert(3, QByteArray::number(((variant.size() - 1)/1000.0), 'f', 3).rightJustified(8, ' '));
-			cnv_annotations.insert(5, variant.genes().toStringList().join(",").toUtf8());
+			cnv_annotations.insert(5, variant.genes().toString(","));
 		}
 		else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI)
 		{
 			// assemble CNV line
 			cnv_annotations.insert(0, "multi");
 			cnv_annotations.insert(1, QByteArray::number(variant.size() - 1));
-			cnv_annotations.insert(9, variant.genes().toStringList().join(", ").toUtf8());
+			cnv_annotations.insert(9, variant.genes().toString(", "));
 		}
 		else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 		{
@@ -353,14 +353,14 @@ void CnvList::store(QString filename)
 			cnv_annotations.insert(0, "somatic");
 			cnv_annotations.insert(1, QByteArray::number(variant.size()));
 			cnv_annotations.insert(9, QByteArray::number(variant.regions()));
-			cnv_annotations.insert(10, variant.genes().toStringList().join(",").toUtf8());
+			cnv_annotations.insert(10, variant.genes().toString(","));
 		}
 		else if(type() == CnvListType::CLINCNV_TUMOR_ONLY)
 		{
 			// assemble CNV line
 			cnv_annotations.insert(5, QByteArray::number(variant.regions()));
 			cnv_annotations.insert(6, QByteArray::number(((variant.size() - 1)/1000.0), 'f', 3).rightJustified(8, ' '));
-			cnv_annotations.insert(8, variant.genes().toStringList().join(",").toUtf8());
+			cnv_annotations.insert(8, variant.genes().toString(","));
 		}
 		stream << "\t" << cnv_annotations.join("\t") << "\n";
 	}

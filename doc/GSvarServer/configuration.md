@@ -25,14 +25,14 @@ These are the most important config parameters:
 * `ngsd_name` - NGSD database name
 * `ngsd_user` - NGSD database user name
 * `ngsd_pass` - NGSD user password
-* `queue_update_enabled` - turns on SGE update worker (true/false)
+* `queue_update_enabled` - turns on SGE/Slurm update worker (true/false). SGE or Slurm must be setup for this option (see [Slurm installation](install_slurm.md)).
 * `megsap_settings_ini` - path to the megSAP settings file (additional settings are extracted from this file)
 * `show_raw_request` - flag used for debugging, allows to print out entire HTTP requests in log files(true/false), may significantly increase log sizes, should not be used in productio
 * `enable_file_metadata_caching` - turns on/off (true/false) file metadata caching, the cache is needed to reduce the number of calls to a file system (e.g. file size, check if file exists, etc.)
 * `file_location_cache_lifespan` - lifespan (seconds) of a cached FileLocation object. When a cached object is accessed, its creation time is reset to the current time.
 
 GSvarServer needs its own database for transient information (sessions, temporary URLs, etc.).  
-The database should be a separate instance of MySQL/MariaDB (not NGSD database).
+You have to create a separate database used only by GSvarServer (don't use NGSD).
 These are the seettings for the database:
 
 * `gsvar_server_db_host` - database host name

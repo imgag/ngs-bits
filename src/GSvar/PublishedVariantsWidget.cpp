@@ -117,9 +117,9 @@ void PublishedVariantsWidget::updateTable()
 		if (!ui_->f_region->text().trimmed().isEmpty())
 		{
 			Chromosome chr;
-			int start, end;
+			QByteArray start, end;
 			NGSHelper::parseRegion(ui_->f_region->text(), chr, start, end);
-			constraints << ("variant_id IN (SELECT id FROM variant where chr='" + chr.strNormalized(true) + "' AND start>=" + QString::number(start) + " AND end<=" + QString::number(end) + ")");
+			constraints << ("variant_id IN (SELECT id FROM variant where chr='" + chr.strNormalized(true) + "' AND start>=" + start + " AND end<=" + end + ")");
 
 			ui_->f_region->setStyleSheet("");
 		}
@@ -350,7 +350,7 @@ void PublishedVariantsWidget::searchForVariantInLOVD()
 
 			int pos = variant.start();
 			if (variant.ref()=="-") pos += 1;
-			QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants?search_chromosome=%3D%22" + variant.chr().strNormalized(false) + "%22&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
+			QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants?search_chromosome=%3D%22" + variant.chr().strNormalized(false) + "%22&search_VariantOnGenome/DNA/hg38=g." + QString::number(pos)));
 		}
 	}
 	catch(Exception& e)
@@ -373,7 +373,7 @@ void PublishedVariantsWidget::searchForVariantInClinVar()
 			if ((variant_table != "variant") && (variant_table != "n/a")) continue;
 			QString variant_text = ui_->table->item(row, var_col)->text().split('(').at(0);
 			Variant variant = Variant::fromString(variant_text);
-			QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+			QString url = GSvarHelper::clinVarSearchLink(variant);
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}

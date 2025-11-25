@@ -401,7 +401,7 @@ public slots:
 	///Open column settings dialog
 	void openColumnSettings();
 	///Open settings dialog on a specific page
-	void openSettingsDialog(QString page_name="general", QString section = "");
+	void openSettingsDialog(QString page_name="view", QString section = "");
 
 	///Subpanel design dialog
 	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());
@@ -492,9 +492,14 @@ public slots:
     QString getJobStatus(int id);
     //Returns error messages for a background job by its id (if it failed)
     QString getJobMessages(int id);
+	///Opens IVG at the position of a CNV/SV
+	void jumpToCnvOrSvPosition(int row);
+	//Set application style
+	void setStyle(QString name);
 
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
+
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -558,7 +563,7 @@ private:
 		QAction* a_var_interpretation_somatic;
 		QAction* a_var_comment;
 		QAction* a_var_val;
-		QAction* seperator;
+		QAction* separator;
 	};
 	ContextMenuActions context_menu_actions_;
 	void registerCustomContextMenuActions();

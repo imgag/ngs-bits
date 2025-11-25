@@ -218,7 +218,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','Illumina NovaSeqX 1.5B','Illumina NovaSeqX 10B','Illumina NovaSeqX 25B','PromethION FLO-PRO002','PromethION FLO-PRO114M','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','Illumina NovaSeqX 1.5B','Illumina NovaSeqX 10B','Illumina NovaSeqX 25B','PromethION FLO-PRO002','PromethION FLO-PRO114M','PromethION FLO-PRO114P','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
@@ -1746,6 +1746,9 @@ CREATE TABLE IF NOT EXISTS `report_configuration_variant`
   `exclude_frequency` BOOLEAN NOT NULL,
   `exclude_phenotype` BOOLEAN NOT NULL,
   `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_hit2_missing` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_gus` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_used_other_var_type` BOOLEAN NOT NULL DEFAULT 0,
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
@@ -1875,6 +1878,9 @@ CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
   `exclude_frequency` BOOLEAN NOT NULL,
   `exclude_phenotype` BOOLEAN NOT NULL,
   `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_hit2_missing` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_gus` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_used_other_var_type` BOOLEAN NOT NULL DEFAULT 0,
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
@@ -2082,6 +2088,9 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `exclude_frequency` BOOLEAN NOT NULL,
   `exclude_phenotype` BOOLEAN NOT NULL,
   `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_hit2_missing` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_gus` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_used_other_var_type` BOOLEAN NOT NULL DEFAULT 0,
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
@@ -2835,6 +2844,37 @@ CREATE  TABLE IF NOT EXISTS `report_polymorphisms`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='Variants that can be optionally added to a report';
+
+-- -----------------------------------------------------
+-- Table `somatic_snv_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `somatic_snv_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id_tumor` INT(11) NOT NULL,
+  `processed_sample_id_normal` INT(11),
+  `caller` ENUM('strelka2', 'DRAGEN', 'VarScan2', 'DeepSomatic') NOT NULL,
+  `caller_version` VARCHAR(25) NOT NULL,
+  `call_date` DATE DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `call_date` (`call_date` ASC),
+  UNIQUE KEY `somatic_snv_callset_tumor_references_processed_sample` (`processed_sample_id_tumor`),
+  CONSTRAINT `somatic_snv_callset_tumor_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id_tumor`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE KEY `somatic_snv_callset_normal_references_processed_sample` (`processed_sample_id_normal`),
+  CONSTRAINT `somatic_snv_callset_normal_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id_normal`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='somatic small variants call set';
+
 
 
 -- ----------------------------------------------------------------------------------------------------------

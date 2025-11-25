@@ -26,6 +26,9 @@ private:
 		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "freebayes");
 		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.3.3");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2022-04-25");
+		S_EQUAL(db.getValue("SELECT caller FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "ClinCNV");
+		S_EQUAL(db.getValue("SELECT caller_version FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.16.1");
+		S_EQUAL(db.getValue("SELECT call_date FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2019-09-30");
 
 		//2. import - skipped because the same callset was already imported
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
@@ -43,6 +46,9 @@ private:
 		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "DeepVariant");
 		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "1.8.0");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2023-11-03");
+		S_EQUAL(db.getValue("SELECT caller FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "ClinCNV");
+		S_EQUAL(db.getValue("SELECT caller_version FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.16.1");
+		S_EQUAL(db.getValue("SELECT call_date FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2019-09-30");
 	}
 
 
@@ -66,6 +72,9 @@ private:
 		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "DRAGEN");
 		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "3.0.2");
 		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2018-11-08");
+		S_EQUAL(db.getValue("SELECT caller FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "ClinCNV");
+		S_EQUAL(db.getValue("SELECT caller_version FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "v1.16.1");
+		S_EQUAL(db.getValue("SELECT call_date FROM cnv_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2019-09-30");
 
 		//check if PubMed ids are imported
 		Variant var = Variant(Chromosome("chrX"), 155255024, 155255024, "C", "T");
@@ -273,6 +282,29 @@ private:
 		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2025-07-16");
 	}
 
+	TEST_METHOD(QSQ_too_long_bug)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_init.sql"));
+
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in8.GSvar"));
+
+		//check db content
+		QString ps_id = db.processedSampleId("NA12878_45");
+		S_EQUAL(db.getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "DeepVariant");
+		S_EQUAL(db.getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toString(), "1.8.0");
+		S_EQUAL(db.getValue("SELECT call_date FROM small_variants_callset WHERE processed_sample_id='"+ps_id+"'").toDate().toString(Qt::ISODate), "2025-07-16");
+		I_EQUAL(db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=" + ps_id).toInt(), 1);
+
+		//check that not the fill consequence information is imported, but only what we need
+		QString v_id = db.getValue("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id).toString();
+		QString coding = db.getValue("SELECT coding FROM variant WHERE id="+v_id).toString();
+		IS_TRUE(coding.contains("SORBS1:ENST00000901915.1:intron_variant:MODIFIER,"));
+	}
 };
 
 

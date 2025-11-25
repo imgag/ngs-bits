@@ -106,6 +106,7 @@ public:
 
 	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
 	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end, bool allow_chr_only = false);
+	static void parseRegion(const QString& text, Chromosome& chr, QByteArray& start, QByteArray& end, bool allow_chr_only = false);
 
 	///Returns Bed File with coordinates of centromeres.
 	static const BedFile& centromeres(GenomeBuild build);

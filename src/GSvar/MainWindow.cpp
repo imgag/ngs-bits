@@ -137,6 +137,7 @@
 #include "FileLocationProviderRemote.h"
 #include <QMimeData>
 #include "MaintenanceDialog.h"
+#include <QStyleFactory>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
@@ -193,6 +194,9 @@ MainWindow::MainWindow(QWidget *parent)
         proxy.setPassword(Settings::string("proxy_password"));
         CustomProxyService::setProxy(proxy);
     }
+
+	//set style
+	setStyle(Settings::string("window_style", true));
 
     //setup GUI
 	ui_.setupUi(this);
@@ -838,7 +842,7 @@ void MainWindow::on_actionDeleteIgvFolder_triggered()
 	   return;
 	}
 
-	int res = QMessageBox::question(this, title, "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will use all settings (proxy, alignment options, ...)!");
+	int res = QMessageBox::question(this, title, "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will loose all settings (proxy, alignment options, ...)!");
 	if (res==QMessageBox::Yes)
 	{
 		QDir(path_canonical).removeRecursively();
@@ -1208,7 +1212,7 @@ void MainWindow::on_actionExpressionData_triggered()
 		cohort_type = RNA_COHORT_SOMATIC;
 	}
 
-	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
+	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toString(", "), variant_target_region, project, rna_ps_id,
 															cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(rna_ps_id) + " (DNA: " + variants_.analysisName() + ")");
 	addModelessDialog(dlg);
@@ -2171,7 +2175,6 @@ void MainWindow::on_actionSettings_triggered()
 void MainWindow::openSettingsDialog(QString page_name, QString section)
 {
 	SettingsDialog dlg(this);
-	dlg.setWindowFlags(Qt::Window);
 	dlg.gotoPage(page_name, section);
 	if (dlg.exec()==QDialog::Accepted)
 	{
@@ -3286,18 +3289,19 @@ void MainWindow::on_actionAbout_triggered()
 {
 	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
 
-	about_text += "\n\nA free viewing and filtering tool for genomic variants.";
+	about_text += "\n\nA free decision support system for germline and somatic variants.";
 
 	//general infos
 	about_text += "\n";
-	about_text += "\nGenome build: " + buildToString(GSvarHelper::build());
+	about_text += "\nGenome build: " + GSvarHelper::buildAsString();
 	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
+	about_text += "\nhtslib version: " + QString(hts_version());
 
 	//client-server infos
 	about_text += "\n";
 	if (ClientHelper::isClientServerMode())
 	{
-		about_text += "\nMode: client-server";
+		about_text += "\nServer information:";
         int status_code = -1;
         ServerInfo server_info = ClientHelper::getServerInfo(status_code);
         if (status_code!=200)
@@ -3306,10 +3310,11 @@ void MainWindow::on_actionAbout_triggered()
         }
         else
         {
-            about_text += "\nServer version: " + server_info.version;
-            about_text += "\nAPI version: " + server_info.api_version;
-            about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-			about_text += "\nServer URL: " + server_info.server_url;
+			about_text += "\n  version: " + server_info.version;
+			about_text += "\n  start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
+			about_text += "\n  API URL: " + server_info.server_url;
+			about_text += "\n  API version: " + server_info.api_version;
+			about_text += "\n  htslib version: " + server_info.htslib_version;
 		}
     }
 	else
@@ -4630,7 +4635,7 @@ void MainWindow::on_actionStatistics_triggered()
 	QApplication::restoreOverrideCursor();
 
 	//show dialog
-	TsvTableWidget* widget = new TsvTableWidget(table);
+	TsvTableWidget* widget = new TsvTableWidget(table, this);
 	widget->setMinimumWidth(850);
 	auto dlg = GUIHelper::createDialog(widget, "Statistics", "Sequencing statistics grouped by month (human)");
 	dlg->exec();
@@ -5895,7 +5900,7 @@ void MainWindow::registerCustomContextMenuActions()
 	bool  ngsd_user_logged_in = LoginManager::active();
 
 	QList<QAction*> actions;
-	context_menu_actions_.seperator = new QAction("---");
+	context_menu_actions_.separator = new QAction("---");
 
 	//NGSD report configuration
 	context_menu_actions_.a_report_edit = new QAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
@@ -5905,7 +5910,7 @@ void MainWindow::registerCustomContextMenuActions()
 	context_menu_actions_.a_report_del = new QAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	context_menu_actions_.a_report_del->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_report_del;
-	actions << context_menu_actions_.seperator;
+	actions << context_menu_actions_.separator;
 
 	//NGSD variant options
 	context_menu_actions_.a_var_class = new QAction("Edit classification");
@@ -5925,7 +5930,7 @@ void MainWindow::registerCustomContextMenuActions()
 	context_menu_actions_.a_var_val = new QAction("Perform variant validation");
 	context_menu_actions_.a_var_val->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_val;
-	actions << context_menu_actions_.seperator;
+	actions << context_menu_actions_.separator;
 
 	ui_.vars->addCustomContextMenuActions(actions);
 	connect(ui_.vars, SIGNAL(customActionTriggered(QAction*,int)), this, SLOT(execContextMenuAction(QAction*,int)));
@@ -6080,6 +6085,7 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 
 		//show table
 		TsvTableWidget* widget = new TsvTableWidget(table, this);
+		connect(widget, SIGNAL(rowDoubleClicked(int)), this, SLOT(jumpToCnvOrSvPosition(int)));
 		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(widget, "CNVs and SVs matching " + v_reg.toString(true));
 		dlg->exec();
 	}
@@ -6141,7 +6147,28 @@ QString MainWindow::getJobStatus(int id)
 
 QString MainWindow::getJobMessages(int id)
 {
-    return bg_job_dialog_->getJobMessages(id);
+	return bg_job_dialog_->getJobMessages(id);
+}
+
+void MainWindow::jumpToCnvOrSvPosition(int row)
+{
+	TsvTableWidget* tsv_table = qobject_cast<TsvTableWidget*>(sender());
+	QString pos = tsv_table->getText(row, 1);
+
+	IgvSessionManager::get(0).gotoInIGV(pos, true);
+}
+
+void MainWindow::setStyle(QString name)
+{
+	if (name=="" || name=="[default]") name = "windowsvista";
+	QStyle* style = QStyleFactory::create(name);
+	if (style==nullptr)
+	{
+		Log::info("Invalid style name '" + name + "' selected!");
+		return;
+	}
+
+	QApplication::setStyle(style);
 }
 
 void MainWindow::on_actionVirusDetection_triggered()

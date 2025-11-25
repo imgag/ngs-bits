@@ -11,8 +11,11 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFileDialog>
+#include <QDesktopServices>
+#include <QInputDialog>
 #include "ExportHistoryDialog.h"
 #include <QClipboard>
+#include <QStandardPaths>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
@@ -24,9 +27,10 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(openExportHistory(int)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_exclude_ps, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_status, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
-	connect(ui_.f_messages, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_messages, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_ready_export, SIGNAL(stateChanged(int)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_export, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
@@ -74,6 +78,9 @@ void MVHub::tableContextMenu(QPoint pos)
 {
 	QList<int> rows = GUIHelper::selectedTableRows(ui_.table);
 
+	//init
+	int c_export_status = colOf("export status");
+
 	//create menu
 	QMenu menu;
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
@@ -94,6 +101,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	a_export->setEnabled(ui_.f_ready_export->isChecked() && rows.count()>0);
 	QAction* a_export_history = menu.addAction("Show export history");
 	a_export_history->setEnabled(rows.count()==1);
+	QAction* a_export_failed_email = menu.addAction("Email: export failed");
+	a_export_failed_email->setEnabled(rows.count()==1 && getString(rows.first(), c_export_status).contains("failed"));
 
 	//execute
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
@@ -189,7 +198,7 @@ void MVHub::tableContextMenu(QPoint pos)
 					int done_grz = mvh_db.getValue("SELECT count(*) FROM submission_grz WHERE case_id='"+id+"' and status='done'").toInt();
 					if (pending_grz>0)
 					{
-						QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
+						//QMessageBox::warning(this, title, "GRZ export is pending. Be patient...");
 					}
 					else if (done_grz>0)
 					{
@@ -212,7 +221,7 @@ void MVHub::tableContextMenu(QPoint pos)
 					int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
 					if (pending_kdk>0)
 					{
-						QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
+						//QMessageBox::warning(this, title, "KDK export is pending. Be patient...");
 					}
 					else if (done_kdk>0)
 					{
@@ -227,6 +236,23 @@ void MVHub::tableContextMenu(QPoint pos)
 						updateExportStatus(mvh_db, r);
 					}
 				}
+
+				//add KDK export as done (we just need the TAN)
+				if (getNetwork(r)==FBREK)
+				{
+					int done_kdk = mvh_db.getValue("SELECT count(*) FROM submission_kdk_se WHERE case_id='"+id+"' and status='done'").toInt();
+					if (done_kdk>0)
+					{
+						QMessageBox::warning(this, title, "KDK export is already done!");
+					}
+					else
+					{
+						QByteArray tag = case_id + "_" + QDateTime::currentDateTime().toString(Qt::ISODate).toLatin1();
+						QString tan = getTAN(tag, "KDK_SE");
+						mvh_db.getQuery().exec("INSERT INTO `submission_kdk_se`(`case_id`, `date`, `type`, `tank`, `pseudok`, `status`, `submission_output`) VALUES ("+id+",CURDATE(),'initial','"+tan+"','','done','Upload manually via HerediCare')");
+						updateExportStatus(mvh_db, r);
+					}
+				}
 			}
 		}
 		catch (Exception& e)
@@ -238,6 +264,11 @@ void MVHub::tableContextMenu(QPoint pos)
 	{
 		int r = rows.first();
 		openExportHistory(r);
+	}
+	if (action==a_export_failed_email)
+	{
+		int r = rows.first();
+		emailExportFailed(r);
 	}
 	if (action->parent()==copy_col_menu)
 	{
@@ -260,6 +291,69 @@ void MVHub::openExportHistory(int row)
 
 	ExportHistoryDialog dlg(this, getString(row, c_cm), getString(row, c_network));
 	dlg.exec();
+}
+
+void MVHub::emailExportFailed(int row)
+{
+	//init
+	QString cm_id = getString(row, colOf("CM ID"));
+	QString sap_id = getString(row, colOf("SAP ID"));
+	QString network_id = getString(row, colOf("Netzwerk ID"));
+	NGSD mvh_db(true, "mvh");
+	QString id = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+cm_id+"'", false).toString().trimmed();
+
+	//to email adress
+	QString to;
+	Network network = getNetwork(row);
+	if (network==SE) to = Settings::string("email_se");
+	if (network==OE) to = Settings::string("email_oe");
+	if (network==FBREK) to = Settings::string("email_fbrek");
+
+	//subject
+	QString subject = "MVH Export fehlgeschlagen bei " + cm_id + (network_id.isEmpty() ? "" : " / " + network_id);
+
+	//body
+	QStringList body;
+	body << "Hallo,";
+	body << "";
+	body << "bei folgendem Fall ist der Export fehlgeschlagen:";
+	body << ("ID RedCap Fallverwaltung: " + cm_id);
+	body << ("ID RedCap Netzwerk: " + network_id);
+	body << ("ID SAP: " + sap_id);
+	body << "";
+	body << "Fehler:";
+
+	//GRZ
+	SqlQuery query = mvh_db.getQuery();
+	query.exec("SELECT * FROM submission_grz WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
+	if(query.next() && query.value("status")=="failed")
+	{
+		QStringList lines = query.value("submission_output").toString().split("\n");
+		foreach(QString line, lines)
+		{
+			if (!line.contains("error", Qt::CaseInsensitive)) continue;
+			body << ("GRZ: " + line);
+		}
+	}
+
+	//KDK SE
+	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id DESC LIMIT 1");
+	if(query.next() && query.value("status")=="failed")
+	{
+		QStringList lines = query.value("submission_output").toString().split("\n");
+		foreach(QString line, lines)
+		{
+			if (!line.contains("error", Qt::CaseInsensitive)) continue;
+			body << ("KDK: " + line);
+		}
+	}
+
+	body << "";
+	body << "Viele Grüße,";
+	body << "  " + Settings::string("email_sender_name");
+
+	//open in email app
+	QDesktopServices::openUrl(QUrl("mailto:" + to + "?subject=" + subject + "&body=" + body.join("\n")));
 }
 
 void MVHub::updateTableFilters()
@@ -317,15 +411,21 @@ void MVHub::updateTableFilters()
 	}
 
 	//apply messages filter
-	if (ui_.f_messages->isChecked())
+	if (ui_.f_messages->currentText()!="")
 	{
 		int c_messages = colOf("messages");
+		QString messages_filter = ui_.f_messages->currentText();
 
 		for (int r=0; r<rows; ++r)
 		{
 			if (!visible[r]) continue;
 
-			if (getString(r, c_messages).trimmed().isEmpty())
+			QString messages = getString(r, c_messages).trimmed();
+			if (messages_filter=="exist" && messages.isEmpty())
+			{
+				visible[r] = false;
+			}
+			if (messages_filter=="none" && !messages.isEmpty())
 			{
 				visible[r] = false;
 			}
@@ -337,6 +437,7 @@ void MVHub::updateTableFilters()
 	{
 		int c_exp_status = colOf("export status");
 		int c_exp_conf = colOf("export confirmation");
+		int c_case_status = colOf("CM Status");
 		QString export_filter = ui_.f_export->currentText();
 		for (int r=0; r<rows; ++r)
 		{
@@ -345,9 +446,13 @@ void MVHub::updateTableFilters()
 			QString status = getString(r, c_exp_status);
 			int c_todo = status.split("//").count();
 			QString conf = getString(r, c_exp_conf);
-			int c_conf = conf.split("//").count();
+			int c_conf = conf.isEmpty() ? 0 : conf.split("//").count();
 
-			if (export_filter=="pending" && !(status==""))
+			if (export_filter=="pending" && status!="")
+			{
+				visible[r] = false;
+			}
+			if (export_filter=="pending" && getString(r, c_case_status)=="Abgebrochen" && getNetwork(r)!=SE)
 			{
 				visible[r] = false;
 			}
@@ -376,6 +481,8 @@ void MVHub::updateTableFilters()
 		int c_consent_ver = colOf("consent version [SE]");
 		int c_report_date = colOf("Befunddatum");
 		int c_te_retracted = colOf("Kündigung TE");
+		int c_ps_n = colOf("PS");
+		int c_ps_t = colOf("PS tumor");
 
 		for (int r=0; r<rows; ++r)
 		{
@@ -406,7 +513,52 @@ void MVHub::updateTableFilters()
 					continue;
 				}
 
-				//TE not retreacted
+				//TE not retracted
+				if (getString(r, c_te_retracted)!="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//Abgeschlossen, but no report date set
+				if (status=="Abgeschlossen" && getString(r, c_report_date)=="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//Abgebrochen, seqencing type not 'keine'
+				if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
+				{
+					visible[r] = false;
+					continue;
+				}
+			}
+			else if (network==FBREK)
+			{
+				//done
+				QString status = getString(r, c_case_status);
+				if (status!="Abgeschlossen" && status!="Abgebrochen")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//base data available
+				if (getString(r, c_case_id)=="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//consent signed info available
+				if (getString(r, c_consent_cm)=="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//TE not retracted
 				if (getString(r, c_te_retracted)!="")
 				{
 					visible[r] = false;
@@ -437,6 +589,13 @@ void MVHub::updateTableFilters()
 					continue;
 				}
 
+				//documentation incomplete
+				if (ui_.table->item(r,2)->toolTip()!="")
+				{
+					visible[r] = false;
+					continue;
+				}
+
 				//base data available
 				if (getString(r, c_case_id)=="")
 				{
@@ -444,22 +603,34 @@ void MVHub::updateTableFilters()
 					continue;
 				}
 
-				//consent data available
-				if (getString(r, c_consent)=="" && getString(r, c_consent_cm)!="Nein")
+				//consent signed info available
+				if (getString(r, c_consent_cm)=="")
 				{
 					visible[r] = false;
 					continue;
 				}
 
-				//TE not retreacted
+				//TE not retracted
 				if (getString(r, c_te_retracted)!="")
 				{
 					visible[r] = false;
 					continue;
 				}
 
-				//seqencing type not 'keine'
-				if (getString(r, c_seq_type)=="Keine")
+				//seqencing type valid
+				if (status=="Abgebrochen" && getString(r, c_seq_type)!="Keine")
+				{
+					visible[r] = false;
+					continue;
+				}
+				if (status!="Abgebrochen" && (getString(r, c_seq_type)=="Keine" || getString(r, c_seq_type)==""))
+				{
+					visible[r] = false;
+					continue;
+				}
+
+				//tumor/normal PS found
+				if (getString(r, c_ps_t)=="" || getString(r, c_ps_n)=="")
 				{
 					visible[r] = false;
 					continue;
@@ -470,6 +641,22 @@ void MVHub::updateTableFilters()
 				visible[r] = false;
 				continue;
 			}
+		}
+	}
+
+	//apply exclude PS filter
+	QString f_exclude_ps = ui_.f_exclude_ps->text().replace(',', ' ').simplified();
+	if (!f_exclude_ps.isEmpty())
+	{
+		int c_ps = colOf("PS");
+		int c_ps_tumor = colOf("PS tumor");
+
+		QSet<QString> exclude = LIST_TO_SET(f_exclude_ps.split(' '));
+		for (int r=0; r<rows; ++r)
+		{
+			if (!visible[r]) continue;
+
+			if (exclude.contains(getString(r, c_ps)) || exclude.contains(getString(r, c_ps_tumor))) visible[r] = false;
 		}
 	}
 
@@ -516,29 +703,23 @@ void MVHub::loadConsentData()
 
 void MVHub::exportConsentData()
 {
-	QString title = "Import SAP IDs.";
-	//get file names
-	QString filename = QFileDialog::getOpenFileName(this, "Text file with one SAP patient identifier per line, or in first column of TSV file");
-	if(filename.isEmpty()) return;
+	QString title = "Export broad consent JSON files using the meDIC API.";
 
-	//create ouput
-	QStringList output;
-	foreach(QString line, Helper::loadTextFile(filename, true, '#', true))
+	//get file names
+	QString text = QInputDialog::getMultiLineText(this, title, "SAP IDs (one per line or first column in TSV):");
+	if(text.isEmpty()) return;
+
+	//store output
+	QString folder = QFileDialog::getExistingDirectory(this, "Folder to store consent JSON files", QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+	if(folder.isEmpty()) return;
+
+	//store output files
+	foreach(QString line, text.split('\n'))
 	{
 		QStringList parts = line.split('\t');
 		QString sap_id = parts[0];
-
-		output << "";
-		output << ("###" + sap_id + "###");
-		output << getConsent(sap_id);
-		output << "";
+		Helper::storeTextFile(folder + "/broad_consent_" + sap_id + ".json", QStringList() << getConsent(sap_id));
 	}
-
-	//store output
-	QString filename2 = QFileDialog::getSaveFileName(this, "File to store consent data");
-	if(filename2.isEmpty()) return;
-	auto file_handle = Helper::openFileForWriting(filename2);
-	Helper::storeTextFile(file_handle, output);
 }
 
 void MVHub::checkXML()
@@ -676,7 +857,7 @@ void MVHub::determineProcessedSamples(int debug_level)
 		params.p_type = "diagnostic";
 		params.r_after = QDate(2024, 7, 1);
 		bool post_filter_wgs_lrgs = false;
-		if (network==SE && seq_type=="WGS")
+		if ((network==SE || network==FBREK) && seq_type=="WGS")
 		{
 			params.include_bad_quality_samples = false;
 			params.include_tumor_samples = false;
@@ -746,22 +927,25 @@ void MVHub::determineProcessedSamples(int debug_level)
 		}
 
 		//set tumor PS if exactly one PS found
-		if (ps_list_tumor.count()==0)
+		if (network==OE)
 		{
-			cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): no matches in NGSD";
-		}
-		else if (ps_list_tumor.count()>1)
-		{
-			cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): several matches in NGSD";
-		}
-		else
-		{
-			QString ps = ps_list_tumor.first();
-			ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(ps));
+			if (ps_list_tumor.count()==0)
+			{
+				cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): no matches in NGSD";
+			}
+			else if (ps_list_tumor.count()>1)
+			{
+				cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): several matches in NGSD";
+			}
+			else
+			{
+				QString ps = ps_list_tumor.first();
+				ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(ps));
 
-			//store PS in MVH database
-			SqlQuery query = mvh_db.getQuery();
-			query.exec("UPDATE case_data SET ps_t='"+ps+"' WHERE cm_id='"+cm_id+"'");
+				//store PS in MVH database
+				SqlQuery query = mvh_db.getQuery();
+				query.exec("UPDATE case_data SET ps_t='"+ps+"' WHERE cm_id='"+cm_id+"'");
+			}
 		}
 	}
 }
@@ -1077,6 +1261,12 @@ void MVHub::checkForMetaDataErrors()
 
 		Network network = getNetwork(r);
 
+		//check if docu is complete
+		if (ui_.table->item(r,2)->toolTip()!="")
+		{
+			cmid2messages_[cm_id] << "CM docu not flagged as complete";
+		}
+
 		//consent meta data in CM RedCap missing
 		QString bc_signed = getString(r, c_consent_cm);
 		if (bc_signed=="")
@@ -1102,8 +1292,7 @@ void MVHub::checkForMetaDataErrors()
 				}
 			}
 
-
-			if (network==OE)
+			if (network==OE || network==FBREK)
 			{
 				//consent missing
 				if (getString(r, c_consent)=="")
@@ -1135,8 +1324,17 @@ void MVHub::checkForMetaDataErrors()
 			}
 		}
 
+		//checks for status 'Follow-Up' (is basically 'Abgeschlossen' in OE)
+		if (network==OE && status=="Follow-Up")
+		{
+			if (seq_type=="Keine" || seq_type=="")
+			{
+				cmid2messages_[cm_id] << "Status 'Follow-Up', but sequencing type not valid: '" + seq_type + "'";
+			}
+		}
+
 		//check germline sample is in study
-		if (network!=SE)
+		if (network!=OE) //for OE, only the tumor sample gets the study!
 		{
 			int c_ps = colOf("PS");
 			QString ps = getString(r, c_ps).split(" ").first();
@@ -1273,6 +1471,7 @@ void MVHub::addOutputLine(QString line)
 QByteArray MVHub::getConsent(QString sap_id, bool debug)
 {
 	static QByteArray token = "";
+	static QDateTime token_datetime = QDateTime(QDate(1970, 1, 1), QTime(0,0));
 	try
 	{
 		//meDIC API expects SAP ID padded to 10 characters...
@@ -1287,8 +1486,8 @@ QByteArray MVHub::getConsent(QString sap_id, bool debug)
 			addOutputLine("");
 		}
 
-		//get token if missing
-		if (token.isEmpty())
+		//get token if missing or older than 5 minutes
+		if (token.isEmpty() || token_datetime<QDateTime::currentDateTime().addSecs(-300))
 		{
 			if (debug)
 
@@ -1309,6 +1508,7 @@ QByteArray MVHub::getConsent(QString sap_id, bool debug)
 			if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
 			token = parts[3];
+			token_datetime = QDateTime::currentDateTime();
 			if (debug) addOutputLine("Token: "+ token);
 		}
 
@@ -1327,7 +1527,52 @@ QByteArray MVHub::getConsent(QString sap_id, bool debug)
 			addOutputLine("Consent: " + reply);
 		}
 
-		return reply;
+		//filter consent (has to be active, v09 cannot be used for MVH)
+		QJsonDocument doc = QJsonDocument::fromJson(reply);
+		QJsonArray entries = doc.object()["entry"].toArray();
+		QJsonArray entries_filtered;
+		for (int i=0; i<entries.count(); ++i)
+		{
+			QJsonObject object = entries[i].toObject();
+			if (!object.contains("resource")) continue;
+
+			object = object["resource"].toObject();
+
+			//check that the resource type is a consent
+			if (!object.contains("resourceType")) continue;
+			if (object["resourceType"].toString()!="Consent") continue;
+
+			//check that the status type is active
+			if (!object.contains("status")) continue;
+			if (object["status"].toString()!="active")
+			{
+				if (debug) addOutputLine("  skipped BC because it is not active: " + object["status"].toString());
+				continue;
+			}
+
+			//check that the consent version is not V9
+			if (!object.contains("identifier")) continue;
+			bool is_v9 = true;
+			QJsonArray identifiers = object["identifier"].toArray();
+			for (int i=0; i<identifiers.count(); ++i)
+			{
+				QJsonObject object = identifiers[i].toObject();
+				if (!object.contains("system")) continue;
+				if (object["system"].toString()!="source.ish.document.v09") is_v9 = false;
+			}
+			if (is_v9)
+			{
+				if (debug) addOutputLine("  skipped BC because it is V09");
+				continue;
+			}
+
+			entries_filtered.append(entries[i]);
+		}
+		QJsonObject tmp = doc.object();
+		tmp.insert("entry", entries_filtered);
+		doc.setObject(tmp);
+
+		return doc.toJson();
 	}
 	catch (Exception& e)
 	{
@@ -1350,11 +1595,13 @@ QByteArray MVHub::consentJsonToXml(QByteArray json_text, bool debug)
 	for (int i=0; i<entries.count(); ++i)
 	{
 		QJsonObject object = entries[i].toObject();
-		if (!object.contains("resource")) continue;
+		if (!object.contains("resource")) THROW(ArgumentException, "BC entry does not contain 'resource' key!");
 
 		object = object["resource"].toObject();
-		if (!object.contains("resourceType")) continue;
-		if (object["resourceType"].toString()!="Consent") continue;
+
+		//check that the resource type is a consent
+		if (!object.contains("resourceType")) THROW(ArgumentException, "BC entry does not contain 'resourceType' key!");
+		if (object["resourceType"].toString()!="Consent") THROW(ArgumentException, "BC entry has 'resourceType' other than 'Consent'!");
 
 		QByteArrayList allowed;
 		QJsonArray provisions = object["provision"].toObject()["provision"].toArray();
@@ -1582,6 +1829,13 @@ void MVHub::loadDataFromCM(int debug_level)
 				if (tag=="gen_finding_date") ui_.table->setItem(r, 9, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="datum_kuendigung_te") ui_.table->setItem(r, 10, GUIHelper::createTableItem(e.text().trimmed()));
 				if (tag=="bc_signed") ui_.table->setItem(r, c_cm_consent, GUIHelper::createTableItem(e.text().trimmed()));
+				if (tag=="status_complete" && e.text().trimmed()!="Complete")
+				{
+					QTableWidgetItem* item = ui_.table->item(r,2);
+					if (item!=nullptr) item->setToolTip("CM docu incomplete");
+					else qDebug() << cm_id << "item with index 2 missing";
+				}
+
 				n = n.nextSibling();
 			}
 		}

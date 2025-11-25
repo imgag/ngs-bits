@@ -3,6 +3,7 @@
 #include "QCCollection.h"
 #include "OntologyTermCollection.h"
 
+//TODO Marc: rename to TsvTo and add format parameter (qcML, TXT, MD)
 class ConcreteTool
 		: public ToolBase
 {

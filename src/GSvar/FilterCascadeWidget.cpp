@@ -223,7 +223,7 @@ void FilterCascadeWidget::addFilter()
 	//set genome build if the filter contains the parameter
 	if (filter->hasParameter("build", FilterParameterType::STRING))
 	{
-		filter->setString("build", buildToString(GSvarHelper::build()));
+		filter->setString("build", GSvarHelper::buildAsString());
 	}
 
 	//determine if filter should be added

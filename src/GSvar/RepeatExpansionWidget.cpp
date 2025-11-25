@@ -276,6 +276,16 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 			double max = lengths[max_bin];
 			double median = BasicStatistics::median(lengths, false);
 			if (2*median > max) max = 2*median;
+
+			//increase upper limit to show current RE
+			double cur_max = -1;
+			foreach (const QString& gt_str, getCell(row, "genotype").split("/"))
+			{
+				double gt = 1.1 * Helper::toDouble(gt_str, "genotype", title); //current genotype + 10% offset
+				cur_max = std::max(cur_max, gt);
+			}
+			max = std::max(max, cur_max);
+
 			double bin_size = (max-min)/40;
 
 			//create histogram

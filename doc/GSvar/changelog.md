@@ -1,5 +1,15 @@
 # GSvar change log
 
+## 2025_09-38 (29.10.2025)
+
+- report config dialog is closable via 'X' button again. It now asks if the user wants to store changed data.
+
+## 2025_09-27 (22.10.2025)
+
+- variant details: removed germline COSMIC info
+- variant tab: no longer shows bad quality samples in genotype counts and sample table
+- variant tag: shows somatic VICC classification
+
 ## 2025_09-12 (06.10.2025)
 
 - gap dialog: refactoring and updated documentation

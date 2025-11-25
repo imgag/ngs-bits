@@ -81,7 +81,7 @@ void BurdenTestWidget::loadGeneList()
 	QTextEdit* te_genes = new QTextEdit();
 	if(selected_genes_.count() > 0)
 	{
-		te_genes->setText(selected_genes_.toStringList().join("\n"));
+		te_genes->setText(selected_genes_.toString("\n"));
 	}
 	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(te_genes, "Gene selection",
 															 "Paste the gene list (one gene per line).", true);
@@ -746,9 +746,8 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 	while(query.next())
 	{
 		//filter by impact
-		QStringList parts = query.value("coding").toString().split(",");
-		QStringList parts_match;
-		foreach(const QString& part, parts)
+		bool at_least_one_part_matches = false;
+		foreach(const QString& part, query.value("coding").toString().split(","))
 		{
 			//skip empty enties
 			int index = part.indexOf(':');
@@ -771,9 +770,7 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 			{
 				if (part.contains(impact))
 				{
-					double cadd = query.value("cadd").toDouble();
-					double spliceai = query.value("spliceai").toDouble();
-					if (predict_pathogenic && (impact != "HIGH") && (cadd < 20) && (spliceai < 0.5))
+					if (predict_pathogenic && (impact != "HIGH") && (query.value("cadd").toDouble() < 20) && (query.value("spliceai").toDouble() < 0.5))
 					{
 						n_skipped_non_pathogenic++;
 						continue;
@@ -784,13 +781,14 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 			}
 			if (match)
 			{
-				parts_match << part;
+				at_least_one_part_matches = true;
+				break;
 			}
 
 			//TODO: filter by live-calculated impact?
 		}
 
-		if (parts_match.count()==0)
+		if (at_least_one_part_matches)
 		{
 			n_skipped_impact++;
 			continue;
@@ -812,9 +810,8 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic)
 {
 	//prepare db queries
-	QString query_text = QString() + "SELECT v.* FROM variant v WHERE"
-			+ " (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd)
-			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")";
+	QString query_text = "SELECT * FROM variant WHERE (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd) + " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")";
+
 	//impacts
 	if(impacts.size() > 0)
 	{
@@ -1210,7 +1207,7 @@ void BurdenTestWidget::copyToClipboard()
 	comments << "controls=" + control_sample_list.join(",");
 
 	//custom gene set
-	comments << "genes=" + selected_genes_.toStringList().join(",");
+	comments << "genes=" + selected_genes_.toString(",");
 	comments << "splice_region_size=" + QString::number(ui_->sb_splice_region_size->value());
 
 	//excluded regions
@@ -1265,7 +1262,7 @@ void BurdenTestWidget::validateCCRGenes()
 
 	if(unsupported_genes.count() > 0)
 	{
-		GUIHelper::showMessage("Unsupported Genes", "The foillowing genes are not supported by the constrained coding region and will be removed:\n" + unsupported_genes.toStringList().join(", "));
+		GUIHelper::showMessage("Unsupported Genes", "The foillowing genes are not supported by the constrained coding region and will be removed:\n" + unsupported_genes.toString(", "));
 		selected_genes_.remove(unsupported_genes);
 		updateGeneCounts();
 	}

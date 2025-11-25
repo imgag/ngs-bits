@@ -103,6 +103,11 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 
 	QCCollection output;
 
+	//init
+	bool csq_info_exists = variants.vcfHeader().infoIdDefined("CSQ"); //from VEP
+	bool csq2_info_exists = variants.vcfHeader().infoIdDefined("CSQ2"); //from VcfAnnotateConsequence
+	bool rs_info_exists = variants.vcfHeader().infoIdDefined("RS"); //dbSNP rs number
+
 	//filter variants
 	FilterResult filter_result(variants.count());
 	if (filter)
@@ -115,25 +120,20 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 	//var_total
 	addQcValue(output, "QC:2000013", "variant count", vars_passing_filter);
 
-	//var_perc_dbsnp and high-impact variants
+	//known variants percentage
 	if (vars_passing_filter==0)
 	{
 		addQcValue(output, "QC:2000014", "known variants percentage", "n/a (no variants)");
-		addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (no variants)");
 	}
 	else
 	{
-		bool csq_entry_exists = variants.vcfHeader().infoIdDefined("CSQ");
-		if (!csq_entry_exists)
+		if (!csq_info_exists && !rs_info_exists)
 		{
 			addQcValue(output, "QC:2000014", "known variants percentage", "n/a (CSQ info field missing)");
-			addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (CSQ info field missing)");
 		}
 		else
 		{
-			bool csq2_entry_exists = variants.vcfHeader().infoIdDefined("CSQ2");
 			double dbsnp_count = 0;
-			double high_impact_count = 0;
 			for(int i=0; i<variants.count(); ++i)
 			{
 				if (!filter_result.passing(i)) continue;
@@ -142,17 +142,43 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 				{
 					++dbsnp_count;
 				}
+				else if (variants[i].info("RS").startsWith("rs"))
+				{
+					++dbsnp_count;
+				}
+			}
+			addQcValue(output, "QC:2000014", "known variants percentage", 100.0*dbsnp_count/vars_passing_filter);
+		}
+	}
+
+	//high-impact variants
+	if (vars_passing_filter==0)
+	{
+		addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (no variants)");
+	}
+	else
+	{
+		if (!csq_info_exists)
+		{
+			addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (CSQ info field missing)");
+		}
+		else
+		{
+			double high_impact_count = 0;
+			for(int i=0; i<variants.count(); ++i)
+			{
+				if (!filter_result.passing(i)) continue;
+
 				if (variants[i].info("CSQ").contains("|HIGH|")) //works without splitting by transcript
 				{
 					++high_impact_count;
 				}
-				else if (csq2_entry_exists && variants[i].info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
+				else if (csq2_info_exists && variants[i].info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
 				{
 					++high_impact_count;
 				}
 
 			}
-			addQcValue(output, "QC:2000014", "known variants percentage", 100.0*dbsnp_count/vars_passing_filter);
 			addQcValue(output, "QC:2000015", "high-impact variants percentage", 100.0*high_impact_count/vars_passing_filter);
 		}
 	}
@@ -382,6 +408,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	double insert_size_sum = 0;
 	Histogram insert_dist(0, 999, 5);
 	long long bases_usable = 0;
+	long long bases_usable_no_overlap = 0;
 	QVector<long long> bases_usable_dp(5); //usable bases by duplication level
 	long long bases_usable_raw = 0; //usable bases in BAM before deduplication
 	bases_usable_dp.fill(0);
@@ -400,6 +427,11 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
+
+		if (al.isPaired())
+		{
+			paired_end = true;
+		}
 
 		const int length = al.length();
 		max_length = std::max(max_length, length);
@@ -458,6 +490,49 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 							bases_usable_dp[std::min(dp, 4)] += ol_end - ol_start + 1;
 							bases_usable_raw += (ol_end - ol_start + 1)  * (dp + 1);
 							roi_cov[index].incrementRegion(ol_start, ol_end);
+
+							bases_usable_no_overlap += ol_end - ol_start + 1;
+						}
+
+						const int insert_size = abs(al.insertSize());
+
+						//overlap is only checked for properly paired reads where twice the read length is longer than the insert size.
+						//check only for read1 to not substract the full overlap twice!
+						if (al.isRead1() && al.isPaired() && al.isProperPair() && !spliced_alignment && 2*al.length() > insert_size)
+						{
+							const int read_overlap_length = 2*al.length() - insert_size;
+							int read_overlap_start = 0;
+							int read_overlap_end = 0;
+							if (al.insertSize() > 0)
+							{
+								//read is left alignment
+								read_overlap_start = start_pos + al.length() - read_overlap_length;
+								read_overlap_end = read_overlap_start + read_overlap_length-1;
+							} else {
+								//read is right alignment
+								read_overlap_start = start_pos;
+								read_overlap_end = read_overlap_start + read_overlap_length-1;
+							}
+							bool debug_all = false;
+							QByteArrayList read_names;
+
+							if (debug_all || read_names.contains(al.name()))
+							{
+								qWarning() << "insert size:" << insert_size << "  - read length: " << al.length() << "  - overlap length: " << read_overlap_length;
+								qWarning() << "read start:"  << al.start()  << "  - read end:" << al.end() << "  - read name: " << al.name();
+								qWarning() << "overlap start: " << read_overlap_start << "  - overlap end: " << read_overlap_end;
+							}
+							foreach(int index, roi_index.matchingIndices(chr, read_overlap_start, read_overlap_end))
+							{
+								const int ol_start = std::max(bed_file[index].start(), read_overlap_start);
+								const int ol_end = std::min(bed_file[index].end(), read_overlap_end);
+								bases_usable_no_overlap -= (ol_end - ol_start + 1);
+
+								if (debug_all || read_names.contains(al.name()))
+								{
+									qWarning() << "ROI region: " << bed_file[index].start() << "-" <<  bed_file[index].end() << "  - removed bases: " << (ol_end - ol_start + 1);
+								}
+							}
 						}
 					}
 
@@ -476,24 +551,19 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		}
 
 		//insert size
-		if (al.isPaired())
+		if (al.isPaired() && al.isProperPair())
 		{
-			paired_end = true;
+			++al_proper_paired;
 
-			if (al.isProperPair())
+			//if alignment is spliced, exclude it from insert size calculation
+			if (!spliced_alignment)
 			{
-				++al_proper_paired;
-
-				//if alignment is spliced, exclude it from insert size calculation
-				if (!spliced_alignment)
+				const int insert_size = abs(al.insertSize());
+				if (insert_size < 1000)
 				{
-					const int insert_size = abs(al.insertSize());
-					if (insert_size < 1000)
-					{
-						++insert_size_read_count;
-						insert_size_sum += insert_size;
-						insert_dist.inc(insert_size, true);
-					}
+					++insert_size_read_count;
+					insert_size_sum += insert_size;
+					insert_dist.inc(insert_size, true);
 				}
 			}
 		}
@@ -592,6 +662,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	{
 		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
 		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / insert_size_read_count);
+		addQcValue(output, "QC:2000150", "target region read depth (no ol)", (double) bases_usable_no_overlap / roi_bases);
 	}
 	else
 	{
@@ -759,6 +830,7 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 	double insert_size_sum = 0;
 	Histogram insert_dist(0, 999, 5);
 	long long bases_usable = 0;
+	long long bases_usable_no_overlap = 0;
 	int max_length = 0;
 	bool paired_end = false;
 
@@ -770,6 +842,11 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
+
+		if (al.isPaired())
+		{
+			paired_end = true;
+		}
 
 		const int length = al.length();
 		max_length = std::max(max_length, length);
@@ -804,27 +881,28 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 				{
 					bases_usable += length;
+					if (paired_end) bases_usable_no_overlap += length;
 				}
 			}
 		}
 
 		//insert size
-		if (al.isPaired())
+		if (al.isPaired() && al.isProperPair())
 		{
-			paired_end = true;
-
-			if (al.isProperPair())
+			++al_proper_paired;
+			//if alignment is spliced, exclude it from insert size calculation
+			if (!spliced_alignment)
 			{
-				++al_proper_paired;
-				//if alignment is spliced, exclude it from insert size calculation
-				if (!spliced_alignment)
+				const int insert_size = abs(al.insertSize());
+				if (insert_size < 1000)
 				{
-					const int insert_size = abs(al.insertSize());
-					if (insert_size < 1000)
+					++insert_size_read_count;
+					insert_size_sum += insert_size;
+					insert_dist.inc(insert_size, true);
+
+					if (al.isRead1() && !al.isDuplicate() && al.mappingQuality()>=min_mapq && 2*length > insert_size)
 					{
-						++insert_size_read_count;
-						insert_size_sum += insert_size;
-						insert_dist.inc(insert_size, true);
+						bases_usable_no_overlap -= (2*length) - insert_size;
 					}
 				}
 			}
@@ -864,6 +942,7 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 	{
 		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
 		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / insert_size_read_count);
+		addQcValue(output, "QC:2000150", "target region read depth (no ol)", (double) bases_usable_no_overlap / (reader.genomeSize(false) - no_base));
 	}
 	else
 	{
@@ -983,6 +1062,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	double insert_size_sum = 0;
 	Histogram insert_dist(0, 999, 5);
 	long long bases_usable = 0;
+	long long bases_usable_no_overlap = 0;
 	long long bases_usable_roi = 0;
 
 	int max_length = 0;
@@ -996,6 +1076,11 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
+
+		if (al.isPaired())
+		{
+			paired_end = true;
+		}
 
 		const int length = al.length();
 		max_length = std::max(max_length, length);
@@ -1030,27 +1115,29 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 				{
 					bases_usable += length;
+
+					if (paired_end) bases_usable_no_overlap += length;
 				}
 			}
 		}
 
 		//insert size
-		if (al.isPaired())
+		if (al.isPaired() && al.isProperPair())
 		{
-			paired_end = true;
-
-			if (al.isProperPair())
+			++al_proper_paired;
+			//if alignment is spliced, exclude it from insert size calculation
+			if (!spliced_alignment)
 			{
-				++al_proper_paired;
-				//if alignment is spliced, exclude it from insert size calculation
-				if (!spliced_alignment)
+				const int insert_size = abs(al.insertSize());
+				if (insert_size < 1000)
 				{
-					const int insert_size = abs(al.insertSize());
-					if (insert_size < 1000)
+					++insert_size_read_count;
+					insert_size_sum += insert_size;
+					insert_dist.inc(insert_size, true);
+
+					if (al.isRead1() && !al.isDuplicate() && al.mappingQuality()>=min_mapq && 2*length > insert_size)
 					{
-						++insert_size_read_count;
-						insert_size_sum += insert_size;
-						insert_dist.inc(insert_size, true);
+						bases_usable_no_overlap -= (2*length) - insert_size;
 					}
 				}
 			}
@@ -1171,6 +1258,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	{
 		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
 		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / insert_size_read_count);
+		addQcValue(output, "QC:2000150", "target region read depth (no ol)", (double) bases_usable_no_overlap / (reader.genomeSize(false) - no_base));
 	}
 	else
 	{

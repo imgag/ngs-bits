@@ -1534,7 +1534,20 @@
         </layout>
        </item>
        <item>
-        <widget class="DBTableWidget" name="qc_table"/>
+        <widget class="DBTableWidget" name="qc_table">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>450</width>
+           <height>500</height>
+          </size>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

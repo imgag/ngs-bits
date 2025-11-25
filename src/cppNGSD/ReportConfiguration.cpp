@@ -19,6 +19,9 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 	, exclude_frequency(false)
 	, exclude_phenotype(false)
 	, exclude_mechanism(false)
+	, exclude_hit2_missing(false)
+	, exclude_gus(false)
+	, exclude_used_other_var_type(false)
 	, exclude_other(false)
 	, comments()
 	, comments2()
@@ -44,7 +47,7 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 
 bool ReportVariantConfiguration::showInReport() const
 {
-	return !(exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other);
+	return !(exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_hit2_missing || exclude_gus || exclude_used_other_var_type || exclude_other);
 }
 
 bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& ref_index)
@@ -73,8 +76,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	}
 
 	//check causal variant is not excluced
-	bool exclude = exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other;
-	if (causal && exclude)
+	if (causal && !showInReport())
 	{
 		errors << "Variant cannot be causal and excluded at the same time!";
 	}
@@ -200,6 +202,9 @@ bool ReportVariantConfiguration::operator==(const ReportVariantConfiguration& rh
 			exclude_frequency == rhs.exclude_frequency &&
 			exclude_phenotype == rhs.exclude_phenotype &&
 			exclude_mechanism == rhs.exclude_mechanism &&
+			exclude_hit2_missing == rhs.exclude_hit2_missing &&
+			exclude_gus == rhs.exclude_gus &&
+			exclude_used_other_var_type == rhs.exclude_used_other_var_type &&
 			exclude_other == rhs.exclude_other &&
 			comments == rhs.comments &&
 			comments2 == rhs.comments2 &&

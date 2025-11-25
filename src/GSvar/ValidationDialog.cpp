@@ -39,20 +39,15 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 		ui_.variant_type->setText("SNV/Indel");
 		QString variant_id = query.value("variant_id").toString();
 		Variant variant = db_.variant(variant_id);
-		QString text = variant.toString() + " (" + query.value("genotype").toString() + ")";
-		if (GSvarHelper::build()==GenomeBuild::HG38)
+		QString text = variant.toString() + " (" + query.value("genotype").toString() + ") // HG19: ";
+		try
 		{
-			QString tmp;
-			try
-			{
-				Variant variant_hg19 = GSvarHelper::liftOverVariant(variant, false);
-				tmp = variant_hg19.toString();
-			}
-			catch(Exception& e)
-			{
-				tmp = e.message();
-			}
-			text += " // HG19: " + tmp;
+			Variant variant_hg19 = GSvarHelper::liftOverVariant(variant, false);
+			text += variant_hg19.toString();
+		}
+		catch(Exception& e)
+		{
+			text += e.message();
 		}
 		ui_.variant->setText(text);
 

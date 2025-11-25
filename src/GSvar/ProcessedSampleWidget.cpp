@@ -33,6 +33,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 {
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
+	ui_->splitter->setStretchFactor(0, 10);
+	ui_->splitter->setStretchFactor(1, 1);
 	connect(ui_->folder_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleFolder()));
 	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SLOT(openRunTab(QString)));
 	connect(ui_->system, SIGNAL(linkActivated(QString)), this, SLOT(openProcessingSystemTab(QString)));
@@ -933,6 +935,7 @@ QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type
 	parameter_list << "QC:2000020"; // mapped read percentage
 	parameter_list << "QC:2000021"; // on-target read percentage
 	parameter_list << "QC:2000025"; // target region read depth
+	parameter_list << "QC:2000150"; // target region read depth no overlap
 	parameter_list << "QC:2000058"; // target region half depth percentage
 
 	// add type-specific parameter

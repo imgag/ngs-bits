@@ -128,8 +128,8 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	{
 		if( !hpos_ngsd.contains(hpo_tmb.hpoterm) ) continue;
 
-		QTableWidgetItem *disease = new QTableWidgetItem(QString(hpo_tmb.tumor_entity));
-		QTableWidgetItem *tmb_text = new QTableWidgetItem("Median: " + QString::number(hpo_tmb.tmb_median,'f', 2).replace(".",",") + " Var/Mbp, Maximum: " + QString::number(hpo_tmb.tmb_max,'f',2).replace(".",",") + " Var/Mbp");
+		QTableWidgetItem* disease = new QTableWidgetItem(QString(hpo_tmb.tumor_entity));
+		QTableWidgetItem* tmb_text = new QTableWidgetItem("Median: " + QString::number(hpo_tmb.tmb_median,'f', 2).replace(".",",") + " Var/Mbp, Maximum: " + QString::number(hpo_tmb.tmb_max,'f',2).replace(".",",") + " Var/Mbp");
 
 		ui_.tmb_reference->insertRow(ui_.tmb_reference->rowCount());
 		ui_.tmb_reference->setItem(ui_.tmb_reference->rowCount()-1, 0, disease);

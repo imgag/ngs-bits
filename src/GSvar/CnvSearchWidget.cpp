@@ -26,7 +26,13 @@ CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 
 	QAction* action = new QAction("Copy coordinates");
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoodinatesToClipboard()));
-	connect(ui_.rb_chr_pos->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        connect(ui_.rb_chr_pos->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
+    #else
+        connect(ui_.rb_chr_pos->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+    #endif
+
 	ui_.table->addAction(action);
 
 	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
@@ -64,17 +70,17 @@ void CnvSearchWidget::search()
 		{
 			// parse position
 			Chromosome chr;
-			int start, end;
+			QByteArray start, end;
 			NGSHelper::parseRegion(ui_.coordinates->text(), chr, start, end);
 
 			QString operation = ui_.operation->currentText();
 			if (operation=="overlaps")
 			{
-				query_str += " AND chr='" + chr.strNormalized(true) + "' AND " + QString::number(start) + "<=end AND " + QString::number(end) + ">=start";
+				query_str += " AND chr='" + chr.strNormalized(true) + "' AND " + start + "<=end AND " + end + ">=start";
 			}
 			else if (operation=="contains")
 			{
-				query_str += " AND chr='" + chr.strNormalized(true) + "' AND start<=" + QString::number(start) + " AND end>=" + QString::number(end);
+				query_str += " AND chr='" + chr.strNormalized(true) + "' AND start<=" + start + " AND end>=" + end;
 			}
 			else THROW(ProgrammingException, "Invalid operation: " + operation);
 		}

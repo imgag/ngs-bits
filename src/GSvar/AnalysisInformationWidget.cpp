@@ -73,7 +73,7 @@ void AnalysisInformationWidget::updateGUI()
 				//color build if not matching GSvar build
 				BamReader reader(file.filename);
                 BamInfo info = reader.info();
-                if (info.build!="" && info.build!=buildToString(GSvarHelper::build()))
+				if (info.build!="" && info.build!=GSvarHelper::buildAsString())
                 {
                     ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + info.build + ")");
                     ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));

@@ -18,6 +18,7 @@ public:
 	static QString rootDir();
 	static QString projectFolder(QString type);
 	static QString dataFolder();
+    static QString queuingEngine();
 	static QStringList queuesDefault();
 	static QStringList queuesResearch();
 	static QStringList queuesHighPriority();
@@ -31,6 +32,7 @@ private:
 
 	QString root_dir_;
 	QString data_folder_;
+    QString queuing_engine_;
 	QMap<QString, QString>  projects_folder_;
 	QStringList queues_default_;
 	QStringList queues_research_;

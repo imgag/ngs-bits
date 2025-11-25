@@ -11,7 +11,7 @@ BackgroundJobDialog::BackgroundJobDialog(QWidget* parent)
 {
 	ui_.setupUi(this);
 
-	pool_.setMaxThreadCount(1);
+	pool_.setMaxThreadCount(3);
 }
 
 int BackgroundJobDialog::start(BackgroundWorkerBase* job, bool show_busy_dialog)

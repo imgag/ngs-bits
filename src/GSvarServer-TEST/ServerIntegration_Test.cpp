@@ -224,6 +224,8 @@ private:
 		IS_TRUE(doc.object().contains("api_version"));
 		S_EQUAL(doc.object()["api_version"].toString(), "v1");
 		IS_TRUE(doc.object().contains("start_time"));
+		IS_TRUE(doc.object().contains("htslib_version"));
+		IS_TRUE(doc.object()["htslib_version"].toString().startsWith("1."));
 	}
 
 	TEST_METHOD(test_client_info_retrieval)

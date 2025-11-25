@@ -34,6 +34,7 @@ public:
 		addFlag("debug", "Enable verbose debug output.");
 		addFlag("no_time", "Disable timing output.");
 
+		changeLog(2025, 11, 18, "No longer import entire variant consequence. Now imports only gene name, transcript ID, variant type and impact.");
 		changeLog(2025,  7, 14, "Changed behaviour of 'force' parameter (affects only small variants if callset was already imported now).");
 		changeLog(2024,  8, 28, "Merged all force parameters into one. Implmented skipping of small variants import if the same callset was already imported.");
 		changeLog(2021,  7, 19, "Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.");
@@ -253,7 +254,7 @@ public:
 				}
 				else if (pair.key.endsWith(" finished on"))
 				{
-					call_date = QDate::fromString(pair.value, "yyyy-MM-dd");
+					call_date = QDate::fromString(pair.value.left(10), "yyyy-MM-dd");
 				}
 				else //quality metrics
 				{

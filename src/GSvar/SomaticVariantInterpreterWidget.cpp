@@ -17,8 +17,13 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(int variant_ind
 
 	for(QButtonGroup* buttongroup: findChildren<QButtonGroup*>(QRegularExpression("^benign_*|onco_*")) )
 	{
-		connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(disableUnapplicableParameters()));
-		connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(predict()));
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            connect(buttongroup, SIGNAL(idToggled(int,bool)), this, SLOT(disableUnapplicableParameters()));
+            connect(buttongroup, SIGNAL(idToggled(int,bool)), this, SLOT(predict()));
+        #else
+            connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(disableUnapplicableParameters()));
+            connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(predict()));
+        #endif
 	}
 
 	QString variant_description = vl[variant_index].toString(QChar(), -1, true);
