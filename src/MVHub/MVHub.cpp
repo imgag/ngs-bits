@@ -310,7 +310,7 @@ void MVHub::emailExportFailed(int row)
 	if (network==FBREK) to = Settings::string("email_fbrek");
 
 	//subject
-	QString subject = "MVH Export fehlgeschlagen in " + cm_id + (network_id.isEmpty() ? "" : " / " + network_id);
+	QString subject = "MVH Export fehlgeschlagen bei " + cm_id + (network_id.isEmpty() ? "" : " / " + network_id);
 
 	//body
 	QStringList body;
@@ -1471,6 +1471,7 @@ void MVHub::addOutputLine(QString line)
 QByteArray MVHub::getConsent(QString sap_id, bool debug)
 {
 	static QByteArray token = "";
+	static QDateTime token_datetime = QDateTime(QDate(1970, 1, 1));
 	try
 	{
 		//meDIC API expects SAP ID padded to 10 characters...
@@ -1485,8 +1486,8 @@ QByteArray MVHub::getConsent(QString sap_id, bool debug)
 			addOutputLine("");
 		}
 
-		//get token if missing
-		if (token.isEmpty())
+		//get token if missing or older than 5 minutes
+		if (token.isEmpty() || token_datetime<QDateTime::currentDateTime().addSecs(-300))
 		{
 			if (debug)
 
@@ -1507,6 +1508,7 @@ QByteArray MVHub::getConsent(QString sap_id, bool debug)
 			if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
 			token = parts[3];
+			token_datetime = QDateTime::currentDateTime();
 			if (debug) addOutputLine("Token: "+ token);
 		}
 
@@ -1525,7 +1527,52 @@ QByteArray MVHub::getConsent(QString sap_id, bool debug)
 			addOutputLine("Consent: " + reply);
 		}
 
-		return reply;
+		//filter consent (has to be active, v09 cannot be used for MVH)
+		QJsonDocument doc = QJsonDocument::fromJson(reply);
+		QJsonArray entries = doc.object()["entry"].toArray();
+		QJsonArray entries_filtered;
+		for (int i=0; i<entries.count(); ++i)
+		{
+			QJsonObject object = entries[i].toObject();
+			if (!object.contains("resource")) continue;
+
+			object = object["resource"].toObject();
+
+			//check that the resource type is a consent
+			if (!object.contains("resourceType")) continue;
+			if (object["resourceType"].toString()!="Consent") continue;
+
+			//check that the status type is active
+			if (!object.contains("status")) continue;
+			if (object["status"].toString()!="active")
+			{
+				if (debug) addOutputLine("  skipped BC because it is not active: " + object["status"].toString());
+				continue;
+			}
+
+			//check that the consent version is not V9
+			if (!object.contains("identifier")) continue;
+			bool is_v9 = true;
+			QJsonArray identifiers = object["identifier"].toArray();
+			for (int i=0; i<identifiers.count(); ++i)
+			{
+				QJsonObject object = identifiers[i].toObject();
+				if (!object.contains("system")) continue;
+				if (object["system"].toString()!="source.ish.document.v09") is_v9 = false;
+			}
+			if (is_v9)
+			{
+				if (debug) addOutputLine("  skipped BC because it is V09");
+				continue;
+			}
+
+			entries_filtered.append(entries[i]);
+		}
+		QJsonObject tmp = doc.object();
+		tmp.insert("entry", entries_filtered);
+		doc.setObject(tmp);
+
+		return doc.toJson();
 	}
 	catch (Exception& e)
 	{
@@ -1548,25 +1595,13 @@ QByteArray MVHub::consentJsonToXml(QByteArray json_text, bool debug)
 	for (int i=0; i<entries.count(); ++i)
 	{
 		QJsonObject object = entries[i].toObject();
-		if (!object.contains("resource")) continue;
+		if (!object.contains("resource")) THROW(ArgumentException, "BC entry does not contain 'resource' key!");
 
 		object = object["resource"].toObject();
 
 		//check that the resource type is a consent
-		if (!object.contains("resourceType")) continue;
-		if (object["resourceType"].toString()!="Consent") continue;
-
-		//check that the consent version is not V9
-		if (!object.contains("identifier")) continue;
-		bool is_v9 = true;
-		QJsonArray identifiers = object["identifier"].toArray();
-		for (int i=0; i<identifiers.count(); ++i)
-		{
-			QJsonObject object = identifiers[i].toObject();
-			if (!object.contains("system")) continue;
-			if (object["system"].toString()!="source.ish.document.v09") is_v9 = false;
-		}
-		if (is_v9) continue;
+		if (!object.contains("resourceType")) THROW(ArgumentException, "BC entry does not contain 'resourceType' key!");
+		if (object["resourceType"].toString()!="Consent") THROW(ArgumentException, "BC entry has 'resourceType' other than 'Consent'!");
 
 		QByteArrayList allowed;
 		QJsonArray provisions = object["provision"].toObject()["provision"].toArray();
