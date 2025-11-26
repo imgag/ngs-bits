@@ -324,6 +324,17 @@ private:
             SKIP("Server has not been configured correctly");
         }
 
+        QByteArray reply;
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
+        add_headers.insert("Range", "bytes=-8");
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+
         QString gender_filename = ClientHelper::serverApiUrl() + "assets/panel.bam";
         GenderEstimate estimate = Statistics::genderXY(gender_filename);
         I_EQUAL(estimate.add_info.count(), 3);
@@ -336,23 +347,43 @@ private:
         S_EQUAL(estimate.gender, "female");
     }
 
-    TEST_METHOD(test_remote_vcf_gz_file)
+    TEST_METHOD(test_versatile_file_url_gz)
     {
         if (!ServerHelper::settingsValid(true))
         {
             SKIP("Server has not been configured correctly");
         }
 
-        QString filename = ClientHelper::serverApiUrl() + "assets/NA12878_58_var_annotated.vcf.gz";
-        AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, filename);
+        QByteArray reply;
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
+        add_headers.insert("Range", "bytes=-8");
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+
+        QString filename_small = ClientHelper::serverApiUrl() + "assets/ancestry_hg38.vcf.gz";
+        AncestryEstimates ancestry_small = Statistics::ancestry(GenomeBuild::HG38, filename_small);
+        I_EQUAL(ancestry_small.snps, 2126);
+        F_EQUAL2(ancestry_small.afr, 0.4984, 0.001);
+        F_EQUAL2(ancestry_small.eur, 0.0241, 0.001);
+        F_EQUAL2(ancestry_small.sas, 0.1046, 0.001);
+        F_EQUAL2(ancestry_small.eas, 0.0742, 0.001);
+        S_EQUAL(ancestry_small.population, "AFR");
+
+        QString filename_large = ClientHelper::serverApiUrl() + "assets/NA12878_58_var_annotated.vcf.gz";
+        AncestryEstimates ancestry_large = Statistics::ancestry(GenomeBuild::HG38, filename_large);
         // AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data/NA12878_58_var_annotated.vcf.gz"));
 
-        I_EQUAL(ancestry.snps, 2907);
-        F_EQUAL2(ancestry.afr, 0.00860332, 0.001);
-        F_EQUAL2(ancestry.eur, 0.310719, 0.001);
-        F_EQUAL2(ancestry.sas, 0.156908, 0.001);
-        F_EQUAL2(ancestry.eas, 0.0452005, 0.001);
-        S_EQUAL(ancestry.population, "EUR");
+        I_EQUAL(ancestry_large.snps, 2907);
+        F_EQUAL2(ancestry_large.afr, 0.00860332, 0.001);
+        F_EQUAL2(ancestry_large.eur, 0.310719, 0.001);
+        F_EQUAL2(ancestry_large.sas, 0.156908, 0.001);
+        F_EQUAL2(ancestry_large.eas, 0.0452005, 0.001);
+        S_EQUAL(ancestry_large.population, "EUR");
     }
 };
 
