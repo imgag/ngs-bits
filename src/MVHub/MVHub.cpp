@@ -538,7 +538,7 @@ void MVHub::updateTableFilters()
 			{
 				//done
 				QString status = getString(r, c_case_status);
-				if (status!="Abgeschlossen" && status!="Abgebrochen")
+				if (status!="Abgeschlossen" && status!="Abgebrochen" && status!="Follow-Up")
 				{
 					visible[r] = false;
 					continue;
