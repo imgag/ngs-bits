@@ -385,6 +385,86 @@ private:
         F_EQUAL2(ancestry_large.eas, 0.0452005, 0.001);
         S_EQUAL(ancestry_large.population, "EUR");
     }
+
+    TEST_METHOD(plain_text_file)
+    {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QByteArray reply;
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
+        add_headers.insert("Range", "bytes=-8");
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+
+        QString text_filename = ClientHelper::serverApiUrl() + "assets/txt_file.txt";
+
+        VersatileFile file(text_filename);
+        file.open();
+        I_EQUAL(file.mode(), VersatileFile::URL);
+
+        QString entire_file = file.readAll();
+        S_EQUAL(entire_file, "##comment\n#header\nthis is a plain text file");
+        IS_TRUE(file.atEnd())
+        file.seek(0);
+
+        IS_FALSE(file.atEnd())
+        QString line = file.readLine();
+        S_EQUAL(line.trimmed(), "##comment");
+        I_EQUAL(file.pos(), 10);
+
+        QString fragment = file.read(7);
+        S_EQUAL(fragment, "#header");
+        I_EQUAL(file.pos(), 17);
+
+        file.seek(0);
+        QString start_fragment = file.read(9);
+        S_EQUAL(start_fragment, "##comment");
+        I_EQUAL(file.pos(), 9);
+    }
+
+
+    TEST_METHOD(gzipped_text_file)
+    {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QByteArray reply;
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
+        add_headers.insert("Range", "bytes=-8");
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+
+        QString text_gz_filename = ClientHelper::serverApiUrl() + "assets/txt_file_gzipped.txt.gz";
+
+        VersatileFile file(text_gz_filename);
+        file.open();
+        I_EQUAL(file.mode(), VersatileFile::URL_GZ);
+
+        QString entire_file = file.readAll();
+        QString expected_content = "##comment\r\n#header\r\nthis is a gzipped text file";
+        S_EQUAL(entire_file.trimmed(), expected_content);
+        IS_TRUE(file.atEnd())
+        file.seek(0);
+
+        IS_FALSE(file.atEnd())
+        QString line = file.readLine();
+        S_EQUAL(line.trimmed(), "##comment");
+    }
 };
 
 #endif // SERVERINTEGRATIONTEST_H
