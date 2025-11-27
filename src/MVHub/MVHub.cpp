@@ -27,6 +27,7 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(openExportHistory(int)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
+	connect(ui_.f_cmid, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_exclude_ps, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_network, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.f_status, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
@@ -103,6 +104,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	a_export_history->setEnabled(rows.count()==1);
 	QAction* a_export_failed_email = menu.addAction("Email: export failed");
 	a_export_failed_email->setEnabled(rows.count()==1 && getString(rows.first(), c_export_status).contains("failed"));
+	QAction* a_kdk_tan = menu.addAction("Copy KDK TAN");
+	a_kdk_tan->setEnabled(rows.count()==1 && getNetwork(rows.first())==FBREK);
 
 	//execute
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
@@ -270,6 +273,23 @@ void MVHub::tableContextMenu(QPoint pos)
 		int r = rows.first();
 		emailExportFailed(r);
 	}
+	if (action==a_kdk_tan)
+	{
+		int r = rows.first();
+		int c_cm = colOf("CM ID");
+
+		NGSD mvh_db(true, "mvh");
+		QByteArray cm_id_db = mvh_db.getValue("SELECT id FROM case_data WHERE cm_id='"+getString(r, c_cm)+"'", false).toByteArray().trimmed();
+		QStringList tans = mvh_db.getValues("SELECT tank FROM submission_kdk_se WHERE case_id='"+cm_id_db+"'");
+		if (tans.count()==1)
+		{
+			QApplication::clipboard()->setText(tans.first());
+		}
+		else
+		{
+			QApplication::clipboard()->setText("");
+		}
+	}
 	if (action->parent()==copy_col_menu)
 	{
 		QStringList output;
@@ -362,6 +382,20 @@ void MVHub::updateTableFilters()
 	const int cols = ui_.table->columnCount();
 	QBitArray visible(rows, true);
 
+	//apply CM-ID filter
+	QString f_cmid = ui_.f_cmid->text().trimmed();
+	if (!f_cmid.isEmpty())
+	{
+		for (int r=0; r<rows; ++r)
+		{
+			if (!visible[r]) continue;
+
+			if (getString(r, 0)!=f_cmid)
+			{
+				visible[r] = false;
+			}
+		}
+	}
 
 	//apply status filter
 	QString f_status = ui_.f_status->currentText();
