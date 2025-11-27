@@ -430,7 +430,6 @@ private:
         I_EQUAL(file.pos(), 9);
     }
 
-
     TEST_METHOD(gzipped_text_file)
     {
         if (!ServerHelper::settingsValid(true))
@@ -461,8 +460,9 @@ private:
         IS_TRUE(file.atEnd())
         file.seek(0);
 
-        IS_FALSE(file.atEnd())
+        IS_FALSE(file.atEnd());
         QString line = file.readLine();
+        IS_FALSE(file.atEnd());
         S_EQUAL(line.trimmed(), "##comment");
     }
 };
