@@ -4,5 +4,11 @@
         <file>assets/client/favicon.ico</file>
         <file>assets/client/rna.bam</file>
         <file>assets/client/rna.bam.bai</file>
+        <file>assets/client/ancestry_hg38.vcf.gz</file>
+        <file>assets/client/panel.bam</file>
+        <file>assets/client/panel.bam.bai</file>
+        <file>assets/client/NA12878_58_var_annotated.vcf.gz</file>
+        <file>assets/client/txt_file_gzipped.txt.gz</file>
+        <file>assets/client/txt_file.txt</file>
     </qresource>
 </RCC>
