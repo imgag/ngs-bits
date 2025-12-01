@@ -752,7 +752,7 @@ void MVHub::exportConsentData()
 	{
 		QStringList parts = line.split('\t');
 		QString sap_id = parts[0];
-		Helper::storeTextFile(folder + "/broad_consent_" + sap_id + ".json", QStringList() << getConsent(sap_id));
+		Helper::storeTextFile(folder + "/broad_consent_" + sap_id + ".json", QStringList() << getConsent(sap_id, true));
 	}
 }
 
