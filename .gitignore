@@ -12,3 +12,5 @@ htslib/build/
 htslib/include/
 htslib/lib/
 tools/deploy/
+Desktop_Qt_6_8_3_MinGW_64_bit-Release/
+Desktop_Qt_6_8_3_MinGW_64_bit-Debug/
