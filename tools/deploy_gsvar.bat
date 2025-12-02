@@ -1,0 +1,1 @@
+php.exe deploy.php ../bin/GSvar.exe
