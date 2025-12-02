@@ -1,9 +1,29 @@
 <?php
 
+function ends_with($string, $suffix)
+{
+	return substr($string, -strlen($suffix)) == $suffix;
+}
+
+function git_tag($bin_folder)
+{
+	$output = [];
+	$exit_code = -1;
+	exec("cd {$bin_folder}//..// && git describe --tags", $output, $exit_code);
+	if ($exit_code!=0) trigger_error("Coult not determine GIT version", E_USER_ERROR);
+	return trim(implode("", $output));
+}
+
 //parse command line args
-$bin_folder = ($argc>=2) ? $argv[2] : "..\\bin\\";
+$exe = "";
+$bin_folder = ($argc>=2) ? $argv[1] : "..\\bin\\";
+if (is_file($bin_folder)) //exe given > deploy ony that exe, not all
+{
+	$exe = basename($bin_folder);
+	$bin_folder = dirname($bin_folder);
+}
 $bin_folder = realpath($bin_folder)."\\";
-$dest = ($argc>=3) ? $argv[2] : ".\\deploy\\";
+$dest = ($argc>=3) ? $argv[2] : ".\\deploy_".git_tag($bin_folder)."\\";
 if (!file_exists($dest))
 {
 	if (!mkdir($dest,  0777, true))
@@ -22,7 +42,7 @@ print "copying executables and DLLs...\n";
 foreach(glob("{$bin_folder}\\*.exe") as $file)
 {
 	if (strpos($file, "-TEST.exe")!==false) continue;
-	
+	if ($exe!="" && !ends_with($file, $exe)) continue;
 	copy($file, $dest."\\".basename($file));
 }
 
@@ -40,7 +60,7 @@ foreach($files as $file)
 }
 
 //copy Qt plugins
-$plugins = ["iconengines", "imageformats", "platforms", "sqldrivers", "styles"];
+$plugins = ["iconengines", "imageformats", "platforms", "sqldrivers", "styles", "tls"];
 foreach($plugins as $plugin)
 {
 	$plugin_folder = "C:\\Qt\\6.8.3\\mingw_64\\plugins\\{$plugin}\\";
@@ -56,6 +76,12 @@ foreach($plugins as $plugin)
 	{
 		copy($file, "{$plugin_dest_folder}\\".basename($file));
 	}
+}
+
+//move libmariadb to the main folder
+if (file_exists($dest."\\sqldrivers\\libmariadb.dll"))
+{
+	rename($dest."\\sqldrivers\\libmariadb.dll", $dest."\\libmariadb.dll");
 }
 
 //copy htslib DLLs

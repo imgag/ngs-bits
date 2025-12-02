@@ -24,6 +24,7 @@ unix: LIBS += -lxml2
 INCLUDEPATH += $$PWD/../VcfToBedpe
 
 SOURCES += \
+    BedToEpigen_Test.cpp \
     NGSDAddVariantsSomatic_Test.cpp \
     BamInfo_Test.cpp \
     BamRemoveVariants_Test.cpp \

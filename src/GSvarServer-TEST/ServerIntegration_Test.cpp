@@ -10,6 +10,7 @@
 #include "ServerDB.h"
 #include "ClientHelper.h"
 #include "BamReader.h"
+#include "Statistics.h"
 
 int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
@@ -30,7 +31,7 @@ int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
     return status_code;
 }
 
-TEST_CLASS(Server_IntegrationTest)
+TEST_CLASS(Server_Integration_Test)
 {
 private:
 
@@ -183,7 +184,7 @@ private:
 			SKIP("Server has not been configured correctly");
 		}
 
-		QString filename = ClientHelper::serverApiUrl() + "bam/rna.bam";
+        QString filename = ClientHelper::serverApiUrl() + "assets/rna.bam";
 
 		QByteArray reply;
 		HttpHeaders add_headers;
@@ -255,7 +256,7 @@ private:
         {
             SKIP("Server has not been configured correctly");
         }
-        const QString bam_file = ClientHelper::serverApiUrl() + "bam/rna.bam";
+        const QString bam_file = ClientHelper::serverApiUrl() + "assets/rna.bam";
 
         QByteArray reply;
         HttpHeaders add_headers;
@@ -275,7 +276,7 @@ private:
         IS_TRUE(file_over_https->isReadable());
     }
 
-	TEST_METHOD(test_remote_file_readability)
+    TEST_METHOD(test_remote_text_file_random_access)
     {
 		if (!ServerHelper::settingsValid(true))
         {
@@ -314,6 +315,161 @@ private:
         QByteArray line_fragment = index_page_file->read(4);
         S_EQUAL(line_fragment, "html");
         I_EQUAL(index_page_file->pos(), 14);
+    }
+
+    TEST_METHOD(test_remote_gender_xy)
+    {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QByteArray reply;
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
+        add_headers.insert("Range", "bytes=-8");
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+
+        QString gender_filename = ClientHelper::serverApiUrl() + "assets/panel.bam";
+        GenderEstimate estimate = Statistics::genderXY(gender_filename);
+        I_EQUAL(estimate.add_info.count(), 3);
+        S_EQUAL(estimate.add_info[0].key, "reads_chry");
+        S_EQUAL(estimate.add_info[0].value, "0");
+        S_EQUAL(estimate.add_info[1].key, "reads_chrx");
+        S_EQUAL(estimate.add_info[1].value, "30528");
+        S_EQUAL(estimate.add_info[2].key, "ratio_chry_chrx");
+        S_EQUAL(estimate.add_info[2].value, "0.0000");
+        S_EQUAL(estimate.gender, "female");
+    }
+
+    TEST_METHOD(test_versatile_file_url_gz)
+    {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QByteArray reply;
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
+        add_headers.insert("Range", "bytes=-8");
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+
+        QString filename_small = ClientHelper::serverApiUrl() + "assets/ancestry_hg38.vcf.gz";
+        AncestryEstimates ancestry_small = Statistics::ancestry(GenomeBuild::HG38, filename_small);
+        I_EQUAL(ancestry_small.snps, 2126);
+        F_EQUAL2(ancestry_small.afr, 0.4984, 0.001);
+        F_EQUAL2(ancestry_small.eur, 0.0241, 0.001);
+        F_EQUAL2(ancestry_small.sas, 0.1046, 0.001);
+        F_EQUAL2(ancestry_small.eas, 0.0742, 0.001);
+        S_EQUAL(ancestry_small.population, "AFR");
+
+        QString filename_large = ClientHelper::serverApiUrl() + "assets/NA12878_58_var_annotated.vcf.gz";
+        AncestryEstimates ancestry_large = Statistics::ancestry(GenomeBuild::HG38, filename_large);
+        // AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data/NA12878_58_var_annotated.vcf.gz"));
+
+        I_EQUAL(ancestry_large.snps, 2907);
+        F_EQUAL2(ancestry_large.afr, 0.00860332, 0.001);
+        F_EQUAL2(ancestry_large.eur, 0.310719, 0.001);
+        F_EQUAL2(ancestry_large.sas, 0.156908, 0.001);
+        F_EQUAL2(ancestry_large.eas, 0.0452005, 0.001);
+        S_EQUAL(ancestry_large.population, "EUR");
+    }
+
+    TEST_METHOD(plain_text_file)
+    {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QByteArray reply;
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
+        add_headers.insert("Range", "bytes=-8");
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+
+        QString text_filename = ClientHelper::serverApiUrl() + "assets/txt_file.txt";
+
+        VersatileFile file(text_filename);
+        file.open();
+        I_EQUAL(file.mode(), VersatileFile::URL);
+
+        QString entire_file = file.readAll();
+        S_EQUAL(entire_file, "##comment\n#header\nthis is a plain text file");
+        IS_TRUE(file.atEnd())
+        file.seek(0);
+
+        IS_FALSE(file.atEnd())
+        QString line = file.readLine();
+        S_EQUAL(line.trimmed(), "##comment");
+        I_EQUAL(file.pos(), 10);
+
+        QString fragment = file.read(7);
+        S_EQUAL(fragment, "#header");
+        I_EQUAL(file.pos(), 17);
+
+        file.seek(0);
+        QString start_fragment = file.read(9);
+        S_EQUAL(start_fragment, "##comment");
+        I_EQUAL(file.pos(), 9);
+    }
+
+    TEST_METHOD(gzipped_text_file)
+    {
+        if (!ServerHelper::settingsValid(true))
+        {
+            SKIP("Server has not been configured correctly");
+        }
+
+        QByteArray reply;
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
+        add_headers.insert("Range", "bytes=-8");
+        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+
+        QString text_gz_filename = ClientHelper::serverApiUrl() + "assets/txt_file_gzipped.txt.gz";
+
+        VersatileFile file(text_gz_filename);
+        file.open();
+        I_EQUAL(file.mode(), VersatileFile::URL_GZ);
+
+        QString entire_file = file.readAll();
+        QString expected_content = "##comment\r\n#header\r\nthis is a gzipped text file";
+        S_EQUAL(entire_file.trimmed(), expected_content);
+        IS_TRUE(file.atEnd())
+        file.seek(0);
+
+        IS_FALSE(file.atEnd());
+        QString line = file.readLine();
+        IS_FALSE(file.atEnd());
+        S_EQUAL(line.trimmed(), "##comment");
+
+        while(!file.atEnd())
+        {
+            line = file.readLine();
+        }
+        IS_TRUE(file.atEnd());
     }
 };
 

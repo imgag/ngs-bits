@@ -239,7 +239,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 
 		return HttpResponse(response_data, json_doc.toJson());
 	}
-	else if (path_lower=="bam")
+    else if (path_lower=="assets")
 	{
 		QString filename;
 		if (request.getPathItems().count() > 0) filename = request.getPathItems()[0];
