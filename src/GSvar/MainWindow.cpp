@@ -138,6 +138,7 @@
 #include <QMimeData>
 #include "MaintenanceDialog.h"
 #include <QStyleFactory>
+#include <QLibraryInfo>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
@@ -3296,6 +3297,7 @@ void MainWindow::on_actionAbout_triggered()
 	about_text += "\nGenome build: " + GSvarHelper::buildAsString();
 	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
 	about_text += "\nhtslib version: " + QString(hts_version());
+	about_text += "\nQt version: " + QLibraryInfo::version().toString();
 
 	//client-server infos
 	about_text += "\n";

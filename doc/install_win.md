@@ -69,13 +69,7 @@ This is optional. If python is not installed, no plots are generated.
 
 ## Build ngs-bits and GSvar
 
-Before building the project, `Qt Creator` has to be set up correctly. Depending on your version, go to `Preference`(`Settings` or `Options`), in the search field at the top left corner type `Default build directory`. You will see the settings for the build dicrectory location (something like): `./build/%{Asciify:%{Kit:FileSystemName}-%{BuildConfig:Name}}`
-
-Change the `Default build directory` to `../%{JS: Util.asciify("build-%{Project:Name}-%{Kit:FileSystemName}-%{BuildConfig:Name}")}`
-
-![Qt Creator default bulild path](qt-creator-options.png)
-
-We can now build ngs-bits:
+we can now build ngs-bits:
 
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`. Make sure to build in release mode!  
 * Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`. Make sure to build in release mode!  
