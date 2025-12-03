@@ -821,11 +821,11 @@ QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, co
 		{
 			if (!predict_pathogenic || impact == "HIGH")
 			{
-				impact_query_statement << "(v.coding LIKE '%" + impact + "%')";
+				impact_query_statement << "(coding LIKE '%" + impact + "%')";
 			}
 			else
 			{
-				impact_query_statement << "(v.coding LIKE '%" + impact + "%' AND (v.cadd>=20 OR v.spliceai>=0.5))";
+				impact_query_statement << "(coding LIKE '%" + impact + "%' AND (cadd>=20 OR spliceai>=0.5))";
 			}
 		}
 		query_text += impact_query_statement.join(" OR ");
@@ -836,7 +836,7 @@ QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, co
 	QStringList chr_ranges;
 	for (int i = 0; i < regions.count(); ++i)
 	{
-		chr_ranges << "(v.chr='" + regions[i].chr().strNormalized(true) + "' AND v.end>=" + QString::number(regions[i].start()) + " AND v.start<=" + QString::number(regions[i].end()) + ")";
+		chr_ranges << "(chr='" + regions[i].chr().strNormalized(true) + "' AND end>=" + QString::number(regions[i].start()) + " AND start<=" + QString::number(regions[i].end()) + ")";
 	}
 	//collapse to final query
 	query_text += " AND (" + chr_ranges.join(" OR ") + ") ORDER BY start";
