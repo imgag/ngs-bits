@@ -191,10 +191,10 @@
       <item>
        <spacer name="horizontalSpacer_3">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
+         <enum>QSizePolicy::Policy::Fixed</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -214,7 +214,7 @@
       <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -230,17 +230,24 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check XML fields in MVH cases are valid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>check_xml</string>
+         <string>check XML</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="check_ps">
+        <property name="text">
+         <string>check PS</string>
         </property>
        </widget>
       </item>
       <item>
        <spacer name="horizontalSpacer_4">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
+         <enum>QSizePolicy::Policy::Fixed</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -323,14 +330,14 @@
          </size>
         </property>
         <property name="text">
-         <string>DNA2401731A1_01 DNA2500993A1_01 DNA2502191A1_01 DNA2503393A1_01 DNA2504120A1_01 DNA2504124A1_01 DNA2504127A1_01 DNA2504547A1_01 DNA2504549A1_01 DNA2504567A1_01 DNA2504923A1_01 DNA2505009A1_01 DNA2505055A1_01 DNA2505089A1_01 DNA2505117A1_01 DNA2505454A1_01 DNA2505456A1_01 DNA2505669A1_01 DNA2505855A1_01 DNA2505963A1_01 DNA2506016A1_01 DNA2506245A1_01 DNA2506249A1_01 DNA2506367A1_01 DNA2506370A1_01 DNA2506672A1_01 DNA2506793A1_01 DNA2506900A1_01 DNA2506903A1_01 DNA2507037A1_01 DNA2507049A1_01 DNA2507153A1_01 DNA2507314A1_01 DNA2507340A1_01 DNA2507349A1_01 DNA2507861A1_01 DNA2508352A1_01 DNA2508539A1_01 DNA2508749A1_01 DNA2508755A1_01 DNA2509012A1_01 DNA2509138A1_01 DNA2509411A1_01 DNA2509535A1_01 </string>
+         <string>DNA2502191A1_01 DNA2504127A1_01</string>
         </property>
        </widget>
       </item>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -358,17 +365,17 @@
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
-       <enum>Qt::Vertical</enum>
+       <enum>Qt::Orientation::Vertical</enum>
       </property>
       <widget class="QTableWidget" name="table">
        <property name="contextMenuPolicy">
-        <enum>Qt::CustomContextMenu</enum>
+        <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
        </property>
        <property name="selectionMode">
-        <enum>QAbstractItemView::ExtendedSelection</enum>
+        <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
        </property>
        <property name="selectionBehavior">
-        <enum>QAbstractItemView::SelectRows</enum>
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
        </property>
        <property name="wordWrap">
         <bool>false</bool>
@@ -480,7 +487,7 @@
      <x>0</x>
      <y>0</y>
      <width>1500</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -5,7 +5,6 @@
 #include "XmlHelper.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
-#include "GenLabDB.h"
 #include <QMessageBox>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -16,6 +15,7 @@
 #include "ExportHistoryDialog.h"
 #include <QClipboard>
 #include <QStandardPaths>
+#include <QStyleFactory>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
@@ -23,6 +23,7 @@ MVHub::MVHub(QWidget *parent)
 	, delayed_init_(this, true)
 {
 	ui_.setupUi(this);
+	setStyle(QStyleFactory::create("windowsvista"));
 	setWindowTitle(QCoreApplication::applicationName());
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(openExportHistory(int)));
@@ -36,6 +37,7 @@ MVHub::MVHub(QWidget *parent)
 	connect(ui_.f_export, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTableFilters()));
 	connect(ui_.export_consent_data, SIGNAL(clicked()), this, SLOT(exportConsentData()));
 	connect(ui_.check_xml, SIGNAL(clicked()), this, SLOT(checkXML()));
+	connect(ui_.check_ps, SIGNAL(clicked()), this, SLOT(checkPS()));
 }
 
 void MVHub::delayedInitialization()
@@ -145,7 +147,7 @@ void MVHub::tableContextMenu(QPoint pos)
 		//show table
 		QTableWidget* table = new QTableWidget();
 		table->setMinimumSize(1000, 600);
-		QStringList cols = QStringList() << "PS" << "quality" << "tumor/ffpe" << "system" << "project" << "run";
+		QStringList cols = QStringList() << "PS" << "quality" << "tumor/ffpe" << "system" << "project" << "run" << "avg. depth";
 		table->setColumnCount(cols.count());
 		table->setHorizontalHeaderLabels(cols);
 		table->setRowCount(ps_list.count());
@@ -157,6 +159,15 @@ void MVHub::tableContextMenu(QPoint pos)
 			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
 			QString s_id = db.sampleId(ps);
 			SampleData s_data = db.getSampleData(s_id);
+			QCCollection qc_data = db.getQCData(ps_id);
+			QString depth = "";
+			try {
+				depth = qc_data.value("QC:2000025", true).toString();
+			}
+			catch (Exception& e)
+			{
+				qDebug() << e.message();
+			}
 
 			table->setItem(r, 0, GUIHelper::createTableItem(ps));
 			table->setItem(r, 1, GUIHelper::createTableItem(ps_data.quality));
@@ -164,6 +175,7 @@ void MVHub::tableContextMenu(QPoint pos)
 			table->setItem(r, 3, GUIHelper::createTableItem(ps_data.processing_system_type + " ("+ps_data.processing_system+")"));
 			table->setItem(r, 4, GUIHelper::createTableItem(ps_data.project_name + " (" + ps_data.project_type +")"));
 			table->setItem(r, 5, GUIHelper::createTableItem(ps_data.run_name + " (" + db.getValue("SELECT start_date FROM sequencing_run WHERE name='"+ps_data.run_name+"'").toString()+")"));
+			table->setItem(r, 6, GUIHelper::createTableItem(depth));
 
 			++r;
 		}
@@ -797,6 +809,64 @@ void MVHub::checkXML()
 	addOutputLine("done");
 }
 
+void MVHub::checkPS()
+{
+	addOutputHeader("checking processed samples", true);
+
+	//init
+	NGSD db;
+	GenLabDB genlab;
+	NGSD mvh_db(true, "mvh");
+	int c_cm = colOf("CM ID");
+	int c_sap = colOf("SAP ID");
+	int c_seq_type = colOf("Sequenzierungsart");
+
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		//skip if no network is set
+		Network network = getNetwork(r);
+		if (network==UNSET) continue;
+
+		//skip if no sequencing was done
+		QString seq_type = getString(r, c_seq_type);
+		if (seq_type.isEmpty() || seq_type=="Keine") continue;
+
+		//skip if already in MVH database
+		QString cm_id = getString(r, c_cm);
+		QString sap_id = getString(r, c_sap);
+		QString ps_mvh = mvh_db.getValue("SELECT ps FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
+		QString ps_mvh_t = mvh_db.getValue("SELECT ps_t FROM case_data WHERE cm_id='"+cm_id+"'").toString().trimmed();
+		if(network==SE || network==FBREK)
+		{
+			if (ps_mvh.isEmpty()) continue;
+
+			PSData ps_data = getMatchingPS(db, genlab, sap_id, network, seq_type);
+
+			QString ps_new = ps_data.germline.join("/");
+			if(ps_new!=ps_mvh)
+			{
+				addOutputLine(cm_id+" ("+networkToString(network)+"): Old PS is " + ps_mvh +", but new would be " + ps_new);
+			}
+		}
+		else if(network==OE)
+		{
+			if (ps_mvh.isEmpty() || ps_mvh_t.isEmpty()) continue;
+
+			PSData ps_data = getMatchingPS(db, genlab, sap_id, network, seq_type);
+
+			QString ps_new = ps_data.germline.join("/");
+			QString ps_new_t = ps_data.tumor.join("/");
+			if(ps_new!=ps_mvh || ps_new_t!=ps_mvh_t)
+			{
+				addOutputLine(cm_id+" ("+networkToString(network)+"): Old PS is " + ps_mvh + "/" + ps_mvh_t +", but new would be " + ps_new + "/" + ps_new_t);
+			}
+		}
+		else THROW(ProgrammingException, "Unhandled network type '" + networkToString(network) + "'");
+	}
+
+	addOutputLine("done");
+}
+
 void MVHub::on_actionReloadData_triggered()
 {
 	//reload data
@@ -885,74 +955,20 @@ void MVHub::determineProcessedSamples(int debug_level)
 			continue;
 		}
 
-		//determine search parameters
-		ProcessedSampleSearchParameters params;
-		params.run_finished = true;
-		params.p_type = "diagnostic";
-		params.r_after = QDate(2024, 7, 1);
-		bool post_filter_wgs_lrgs = false;
-		if ((network==SE || network==FBREK) && seq_type=="WGS")
-		{
-			params.include_bad_quality_samples = false;
-			params.include_tumor_samples = false;
-			post_filter_wgs_lrgs = true; //system type can be WGS or lrGS > filtering below
-		}
-		else if (network==OE && seq_type=="WES")
-		{
-			params.include_bad_quality_samples = true;
-			params.include_tumor_samples = true;
-			params.sys_type = "WES";
-		}
-		else if (network==OE && seq_type=="WGS")
-		{
-			params.include_bad_quality_samples = true;
-			params.include_tumor_samples = true;
-			params.sys_type = "WGS";
-		}
-		else
-		{
-			cmid2messages_[cm_id] << "Could not determine processed sample(s): unhandled combination of network '"+networkToString(network)+"' and sequencing type '"+seq_type+"'";
-		}
-
-		//perform search and determine possible PS
-		QStringList ps_list_germline;
-		QStringList ps_list_tumor;
-		QStringList tmp = genlab.samplesWithSapID(sap_id, params);
-		foreach(QString ps, tmp)
-		{
-			QString ps_id = db.processedSampleId(ps);
-			QString s_id = db.sampleId(ps);
-			if (post_filter_wgs_lrgs)
-			{
-				ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
-				QString sys_type = ps_data.processing_system_type;
-				if (sys_type!="WGS" && sys_type!="lrGS") continue; //system type can be WGS or lrGS > filtering here instead via parameters
-			}
-
-
-			SampleData s_data = db.getSampleData(s_id);
-			if (!s_data.is_tumor)
-			{
-				ps_list_germline << ps;
-			}
-			else
-			{
-				ps_list_tumor << ps;
-			}
-		}
+		PSData ps_data = getMatchingPS(db, genlab, sap_id, network, seq_type);
 
 		//set germline PS if exactly one PS found
-		if (ps_list_germline.count()==0)
+		if (ps_data.germline.count()==0)
 		{
 			cmid2messages_[cm_id] << "Could not determine processed sample(s): no matching samples in NGSD";
 		}
-		else if (ps_list_germline.count()>1)
+		else if (ps_data.germline.count()>1)
 		{
 			cmid2messages_[cm_id] << "Could not determine processed sample(s): several matching samples in NGSD";
 		}
 		else
 		{
-			QString ps = ps_list_germline.first();
+			QString ps = ps_data.germline.first();
 			ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(ps));
 
 			//store PS in MVH database
@@ -963,17 +979,17 @@ void MVHub::determineProcessedSamples(int debug_level)
 		//set tumor PS if exactly one PS found
 		if (network==OE)
 		{
-			if (ps_list_tumor.count()==0)
+			if (ps_data.tumor.count()==0)
 			{
 				cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): no matches in NGSD";
 			}
-			else if (ps_list_tumor.count()>1)
+			else if (ps_data.tumor.count()>1)
 			{
 				cmid2messages_[cm_id] << "Could not determine tumor processed sample(s): several matches in NGSD";
 			}
 			else
 			{
-				QString ps = ps_list_tumor.first();
+				QString ps = ps_data.tumor.first();
 				ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(ps));
 
 				//store PS in MVH database
@@ -982,6 +998,67 @@ void MVHub::determineProcessedSamples(int debug_level)
 			}
 		}
 	}
+}
+
+MVHub::PSData MVHub::getMatchingPS(NGSD& db, GenLabDB& genlab, QString sap_id, Network network, QString seq_type)
+{
+	PSData output;
+
+	//determine search parameters
+	ProcessedSampleSearchParameters params;
+	params.run_finished = true;
+	params.p_type = "diagnostic";
+	params.r_after = QDate(2024, 7, 1);
+	bool post_filter_wgs_lrgs = false;
+	if ((network==SE || network==FBREK) && seq_type=="WGS")
+	{
+		params.include_bad_quality_samples = false;
+		params.include_tumor_samples = false;
+		post_filter_wgs_lrgs = true; //system type can be WGS or lrGS > filtering below
+	}
+	else if (network==OE && seq_type=="WES")
+	{
+		params.include_bad_quality_samples = true;
+		params.include_tumor_samples = true;
+		params.sys_type = "WES";
+	}
+	else if (network==OE && seq_type=="WGS")
+	{
+		params.include_bad_quality_samples = true;
+		params.include_tumor_samples = true;
+		params.sys_type = "WGS";
+	}
+	else
+	{
+		return output;
+		addOutputLine("Could not determine processed sample(s): unhandled combination of network '"+networkToString(network)+"' and sequencing type '"+seq_type+"' for SAP ID " + sap_id);
+	}
+
+	//perform search and determine possible PS
+	QStringList tmp = genlab.samplesWithSapID(sap_id, params);
+	foreach(QString ps, tmp)
+	{
+		QString ps_id = db.processedSampleId(ps);
+		QString s_id = db.sampleId(ps);
+		if (post_filter_wgs_lrgs)
+		{
+			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
+			QString sys_type = ps_data.processing_system_type;
+			if (sys_type!="WGS" && sys_type!="lrGS") continue; //system type can be WGS or lrGS > filtering here instead via parameters
+		}
+
+		SampleData s_data = db.getSampleData(s_id);
+		if (!s_data.is_tumor)
+		{
+			output.germline << ps;
+		}
+		else
+		{
+			output.tumor << ps;
+		}
+	}
+
+	return output;
 }
 
 int MVHub::updateHpoTerms(int debug_level)
