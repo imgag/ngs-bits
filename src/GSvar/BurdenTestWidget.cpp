@@ -948,7 +948,7 @@ void BurdenTestWidget::performBurdenTest()
 
 	// get genes
 	QList<int> gene_ids;
-    for (QByteArray gene : selected_genes_)
+	for (const QByteArray& gene : selected_genes_)
 	{
 		gene_ids << db_.geneId(gene);
 	}
@@ -1013,7 +1013,6 @@ void BurdenTestWidget::performBurdenTest()
 	ChromosomalIndex<BedFile> cnv_polymorphism_region_index(cnv_polymorphism_region);
 
 	int i=0;
-	double n_sec_single_query = 0;
 	// perform search
 	foreach (int gene_id, gene_ids)
 	{
@@ -1053,7 +1052,6 @@ void BurdenTestWidget::performBurdenTest()
 		tmp_timer.start();
 		//get all variants for this gene
 		QSet<int> variant_ids = getVariantsForRegion(max_ngsd, max_gnomad_af, gene_regions, gene_name, impacts, predict_pathogenic);
-		n_sec_single_query += tmp_timer.elapsed();
 
 		qDebug() << i << "get var ids for gene " + gene_name + ": "<< variant_ids.size() << Helper::elapsedTime(timer);
 
@@ -1388,10 +1386,6 @@ countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const B
 {
 	ps_names.clear();
 
-	//debug logs:
-	int skipped_wrong_cn = 0;
-	int skipped_low_logll = 0;
-	int skipped_overlap_pmr = 0;
 	//get all cnvs intersecting the given region
 	//create query
 	QString query_text = QString("SELECT id FROM cnv WHERE ");
@@ -1420,22 +1414,14 @@ countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const B
 	{
 		//filter by CN
 		int cn = db_.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toInt();
-		if (cn != 0)
-		{
-			skipped_wrong_cn++;
-			continue;
-		}
+		if (cn != 0) continue;
 
 		//filter by logll
 		QJsonDocument json = QJsonDocument::fromJson(db_.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toByteArray());
 		int ll = json.object().value("loglikelihood").toInt();
 		int n_regions = (json.object().contains("regions"))?json.object().value("regions").toInt():json.object().value("no_of_regions").toInt();
 		double scaled_ll = (double) ll / n_regions;
-		if (scaled_ll < 15.0)
-		{
-			skipped_low_logll++;
-			continue;
-		}
+		if (scaled_ll < 15.0) continue;
 
 		//filter by polymorphim region
 		CopyNumberVariant cnv = db_.cnv(cnv_id);
@@ -1449,11 +1435,7 @@ countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const B
 		overlap_regions.sort();
 		overlap_regions.merge();
 		double overlap = (double) overlap_regions.baseCount() / cnv.size();
-		if(overlap > 0.95)
-		{
-			skipped_overlap_pmr++;
-			continue;
-		}
+		if(overlap > 0.95) continue;
 
 		int ps_id = db_.getValue("SELECT cc.processed_sample_id FROM cnv c INNER JOIN cnv_callset cc ON cc.id=c.cnv_callset_id WHERE c.id=:0", false, QString::number(cnv_id)).toInt();
 

@@ -5241,7 +5241,7 @@ void MainWindow::calculateGapsByGenes()
 	NGSD db;
 	BedFile regions;
 	GeneSet genes = GeneSet::createFromStringList(text.split("\n"));
-	foreach(const QByteArray& gene, genes)
+	for(const QByteArray& gene: genes)
 	{
 		regions.add(db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true, false));
 	}

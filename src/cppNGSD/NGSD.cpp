@@ -9166,7 +9166,19 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
         else query.bindValue(16, QVariant(QString()));
 
 		query.bindValue(17, config->includeTumContentByEstimated());
-		query.bindValue(18, config->tumContentByEstimated());
+		if (config->includeTumContentByEstimated())
+		{
+			query.bindValue(18, config->tumContentByEstimated());
+		}
+		else
+		{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			query.bindValue(18, QVariant(QMetaType(QMetaType::Int)));
+#else
+			query.bindValue(18, QVariant(QVariant::Int));
+#endif
+		}
+
 		query.bindValue(19, config->includeMutationBurden());
 
 		if (config->filters().count() > 0) query.bindValue(20, config->filters().toText().join("\n"));
@@ -9220,7 +9232,19 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
         else query.bindValue( 20, QVariant(QString()));
 
 		query.bindValue(21, config->includeTumContentByEstimated());
-		query.bindValue(22, config->tumContentByEstimated());
+		if (config->includeTumContentByEstimated())
+		{
+			query.bindValue(22, config->tumContentByEstimated());
+		}
+		else
+		{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			query.bindValue(22, QVariant(QMetaType(QMetaType::Int)));
+#else
+			query.bindValue(22, QVariant(QVariant::Int));
+#endif
+		}
+
 		query.bindValue(23, config->includeMutationBurden());
 
 		if (config->filters().count() > 0) query.bindValue(24, config->filters().toText().join("\n"));
@@ -9462,10 +9486,7 @@ QSharedPointer<SomaticReportConfiguration> NGSD::somaticReportConfig(QString t_p
 	output->setIncludeTumContentByClonality(query.value("tum_content_max_clonality").toBool());
 	output->setIncludeTumContentByHistological(query.value("tum_content_hist").toBool());
 	output->setIncludeTumContentByEstimated(query.value("tum_content_estimated").toBool());
-
-	if(!query.value("tum_content_estimated_value").isNull()) output->setTumContentByEstimated(query.value("tum_content_estimated_value").toDouble() );
-	else output->setTumContentByEstimated(0);
-
+	output->setTumContentByEstimated(query.value("tum_content_estimated_value").isNull() ? 0 : query.value("tum_content_estimated_value").toInt() );
 	output->setMsiStatus(query.value("msi_status").toBool());
 	output->setCnvBurden(query.value("cnv_burden").toBool());
 	output->setIncludeMutationBurden(query.value("include_mutation_burden").toBool());

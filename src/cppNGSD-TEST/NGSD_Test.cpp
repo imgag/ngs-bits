@@ -2475,7 +2475,7 @@ private:
 		IS_FALSE(res_config_2->includeTumContentByClonality());
 		IS_FALSE(res_config_2->includeTumContentByHistological());
 		IS_FALSE(res_config_2->includeTumContentByEstimated());
-		I_EQUAL(res_config_2->tumContentByEstimated(), 31);
+		I_EQUAL(res_config_2->tumContentByEstimated(), 0);
 		IS_FALSE(res_config_2->msiStatus());
 		IS_FALSE(res_config_2->cnvBurden());
 		IS_FALSE(res_config_2->includeMutationBurden());

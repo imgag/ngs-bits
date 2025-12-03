@@ -485,7 +485,7 @@ QStringList GenLabDB::studies(QString ps_name)
 {
 	QStringList output;
 
-    for (QString name : names(ps_name))
+	for (const QString& name : names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT STUDIE FROM v_ngs_studie WHERE LABORNUMMER='" + name + "'");

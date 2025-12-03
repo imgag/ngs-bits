@@ -1869,7 +1869,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	//estimated tumor content (if checked overwrite bioinf tumor content)
 	if(settings_.report_config->includeTumContentByEstimated())
 	{
-		tumor_content_bioinf = "ca. " + QByteArray::number(settings_.report_config->tumContentByEstimated(), 'f', 0) + " \%";
+		tumor_content_bioinf = "ca. " + QByteArray::number(settings_.report_config->tumContentByEstimated()) + " \%";
 	}
 
 

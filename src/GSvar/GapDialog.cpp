@@ -32,7 +32,7 @@ GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowc
 	connect(ui_.gap_btn, SIGNAL(clicked(bool)), this, SLOT(calculteGaps()));
 
 	//convert input genes to approved gene names
-	foreach(const QByteArray& gene, genes)
+	for(const QByteArray& gene: genes)
 	{
 		genes_ << db_.geneToApproved(gene, true);
 	}

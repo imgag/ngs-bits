@@ -342,12 +342,12 @@ void SomaticReportConfiguration::setIncludeTumContentByEstimated(bool include_tu
 	include_tum_content_estimated_ = include_tum_content_estimated;
 }
 
-double SomaticReportConfiguration::tumContentByEstimated() const
+int SomaticReportConfiguration::tumContentByEstimated() const
 {
 	return tum_content_estimated_;
 }
 
-void SomaticReportConfiguration::setTumContentByEstimated(double tum_content_estimated)
+void SomaticReportConfiguration::setTumContentByEstimated(int tum_content_estimated)
 {
 	tum_content_estimated_ = tum_content_estimated;
 }
