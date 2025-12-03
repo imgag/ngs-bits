@@ -21,7 +21,7 @@ INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `stat
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected'),
 (2, 'DX000001' , 'ext_tum 1', 'DNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a'),
-(3, 'DX000002' , 'ext_normal 1', 'DNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a'),
+(3, 'DX000002' , 'ext_normal 1', 'DNA', 1, 'male', 'good', 0, 1, 1, 'commenting stuff', 'n/a', 'n/a'),
 (4, 'RX123456', 'ex1 RNA', 'RNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected'),
 (5, 'cfDNA005' , 'ext_normal 1', 'cfDNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a');
 
@@ -57,4 +57,6 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (128, 4, 1, 1, '5', 13, 14, 3, 3, 'n/a', 'RNA sample', null),
 (129, 1, 77, 2, '1,2', 1, 2, 4, 1, 'n/a', 'WGS sample', null),
 (130, 1, 66, 2, '3', 3, 4, 4, 2, 'n/a', 'WES sample', null),
-(131, 5, 1, 2, '1,2', 5, 6, 5, 2, 'n/a', 'cfDNA sample', null);
+(131, 5, 1, 2, '1,2', 5, 6, 5, 2, 'n/a', 'cfDNA sample', null),
+(132, 3, 2, 2, '4', 1, 2, 4, 1, 'n/a', 'WGS Normal sample', null),
+(133, 2, 2, 2, '4', 3, 4, 4, 1, 'n/a', 'WGS Tumor sample', 132);
