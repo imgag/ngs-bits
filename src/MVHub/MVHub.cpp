@@ -15,7 +15,6 @@
 #include "ExportHistoryDialog.h"
 #include <QClipboard>
 #include <QStandardPaths>
-#include <QStyleFactory>
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
@@ -23,8 +22,6 @@ MVHub::MVHub(QWidget *parent)
 	, delayed_init_(this, true)
 {
 	ui_.setupUi(this);
-	setStyle(QStyleFactory::create("windowsvista"));
-	setWindowTitle(QCoreApplication::applicationName());
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(openExportHistory(int)));
 	connect(ui_.f_text, SIGNAL(textChanged(QString)), this, SLOT(updateTableFilters()));
@@ -99,6 +96,8 @@ void MVHub::tableContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* a_show_ngsd = menu.addAction("Show all NGSD samples");
 	a_show_ngsd->setEnabled(rows.count()==1);
+	QAction* a_delete_ps = menu.addAction("Clear processed samples");
+	a_delete_ps->setEnabled(rows.count()>0);
 	menu.addSeparator();
 	QAction* a_export = menu.addAction("Export to GRZ/KDK");
 	a_export->setEnabled(ui_.f_ready_export->isChecked() && rows.count()>0);
@@ -121,6 +120,24 @@ void MVHub::tableContextMenu(QPoint pos)
 	if (action==a_copy_sel)
 	{
 		GUIHelper::copyToClipboard(ui_.table, true);
+	}
+	if (action==a_delete_ps)
+	{
+		if (QMessageBox::question(this, "Delete PS data?", "Do you really want to delete PS data?")==QMessageBox::Yes)
+		{
+			NGSD mvh_db(true, "mvh");
+			int c_cm = colOf("CM ID");
+			int c_ps = colOf("PS");
+			int c_ps_t = colOf("PS tumor");
+
+			foreach(int r, rows)
+			{
+				QString cm_id = getString(r, c_cm);
+				mvh_db.getQuery().exec("UPDATE case_data SET ps=NULL, ps_t=NULL WHERE cm_id='" + cm_id + "'");
+				ui_.table->setItem(r, c_ps, GUIHelper::createTableItem(""));
+				ui_.table->setItem(r, c_ps_t, GUIHelper::createTableItem(""));
+			}
+		}
 	}
 	if (action==a_show_ngsd)
 	{
@@ -395,14 +412,20 @@ void MVHub::updateTableFilters()
 	QBitArray visible(rows, true);
 
 	//apply CM-ID filter
-	QString f_cmid = ui_.f_cmid->text().trimmed();
-	if (!f_cmid.isEmpty())
+	QSet<QString> cm_ids;
+	foreach(QString cm_id, ui_.f_cmid->text().split('|'))
+	{
+		cm_id = cm_id.trimmed();
+		if (cm_id.isEmpty()) continue;
+		cm_ids << cm_id;
+	}
+	if (!cm_ids.isEmpty())
 	{
 		for (int r=0; r<rows; ++r)
 		{
 			if (!visible[r]) continue;
 
-			if (getString(r, 0)!=f_cmid)
+			if (!cm_ids.contains(getString(r, 0)))
 			{
 				visible[r] = false;
 			}
@@ -439,6 +462,9 @@ void MVHub::updateTableFilters()
 	QString f_text = ui_.f_text->text().trimmed();
 	if (!f_text.isEmpty())
 	{
+		bool use_regexp = f_text.contains("|");
+		QRegularExpression regexp(f_text);
+
 		for (int r=0; r<rows; ++r)
 		{
 			if (!visible[r]) continue;
@@ -446,10 +472,21 @@ void MVHub::updateTableFilters()
 			bool string_match = false;
 			for (int c=0; c<cols; ++c)
 			{
-				if (getString(r,c).contains(f_text, Qt::CaseInsensitive))
+				if (use_regexp)
 				{
-					string_match = true;
-					break;
+					if (regexp.match(getString(r,c)).hasMatch())
+					{
+						string_match = true;
+						break;
+					}
+				}
+				else
+				{
+					if (getString(r,c).contains(f_text, Qt::CaseInsensitive))
+					{
+						string_match = true;
+						break;
+					}
 				}
 			}
 			if (!string_match) visible[r] = false;

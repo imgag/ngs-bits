@@ -286,6 +286,9 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>several separated by '|'</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -311,6 +314,12 @@
           <width>250</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>String // RegExp if contains '|'</string>
+        </property>
+        <property name="placeholderText">
+         <string/>
         </property>
        </widget>
       </item>
