@@ -5789,7 +5789,8 @@ void FilterSvLrAF::apply(const BedpeFile& svs, FilterResult& result) const
 	double lower_limit = getDouble("min_af", false);
 
 
-	int col_index = svs.annotationIndexByName("AF");
+	int col_index = svs.annotationIndexByName("AF", false);
+	if (col_index == -1 ) col_index = svs.annotationIndexByName("VAF");
 
 	if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
 	{
