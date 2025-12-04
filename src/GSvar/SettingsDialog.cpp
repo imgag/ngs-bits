@@ -24,6 +24,8 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 
 	//add available styles
 	ui_.style->addItems(QStyleFactory::keys());
+
+	loadSettings();
 }
 
 void SettingsDialog::gotoPage(QString page_name, QString section)

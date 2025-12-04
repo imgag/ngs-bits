@@ -163,7 +163,7 @@ void MVHub::tableContextMenu(QPoint pos)
 
 		//show table
 		QTableWidget* table = new QTableWidget();
-		table->setMinimumSize(1000, 600);
+		table->setMinimumSize(1100, 600);
 		QStringList cols = QStringList() << "PS" << "quality" << "tumor/ffpe" << "system" << "project" << "run" << "avg. depth";
 		table->setColumnCount(cols.count());
 		table->setHorizontalHeaderLabels(cols);
@@ -1397,6 +1397,8 @@ void MVHub::checkForMetaDataErrors()
 	int c_consent_ver = colOf("consent version [SE]");
 	int c_consent = colOf("consent");
 	int c_report_date = colOf("Befunddatum");
+	int c_ps = colOf("PS");
+	int c_ps_t = colOf("PS tumor");
 
 	for (int r=0; r<ui_.table->rowCount(); ++r)
 	{
@@ -1484,8 +1486,7 @@ void MVHub::checkForMetaDataErrors()
 		//check germline sample is in study
 		if (network!=OE) //for OE, only the tumor sample gets the study!
 		{
-			int c_ps = colOf("PS");
-			QString ps = getString(r, c_ps).split(" ").first();
+			QString ps = getString(r, c_ps);
 			if (ps!="")
 			{
 				QString ps_id = db.processedSampleId(ps);
@@ -1499,14 +1500,28 @@ void MVHub::checkForMetaDataErrors()
 		//check tumor sample is in study
 		if (network==OE)
 		{
-			int c_ps_t = colOf("PS tumor");
 			QString ps_t = getString(r, c_ps_t);
 			if (ps_t!="")
 			{
-				QString ps_id = db.processedSampleId(ps_t).split(" ").first();
+				QString ps_id = db.processedSampleId(ps_t);
 				if (!db.studies(ps_id).contains("Modellvorhaben_2024"))
 				{
 					cmid2messages_[cm_id] << (ps_t +" not in study");
+				}
+			}
+		}
+
+		//check that tumor-normal analysis is done and imported into NGSD
+		if (network==OE)
+		{
+			QString ps = getString(r, c_ps);
+			QString ps_t = getString(r, c_ps_t);
+			if (ps!="" && ps_t!="")
+			{
+				int c_tn = db.getValue("SELECT count(*) FROM secondary_analysis WHERE type='somatic' AND gsvar_file LIKE '%Somatic_"+ps_t+"-"+ps+"%'").toInt();
+				if (c_tn==0)
+				{
+					cmid2messages_[cm_id] << "No tumor/normal analysis found in NGSD";
 				}
 			}
 		}
