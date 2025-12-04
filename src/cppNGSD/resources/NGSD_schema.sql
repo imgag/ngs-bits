@@ -2731,6 +2731,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `inhouse_testing` BOOLEAN NOT NULL DEFAULT FALSE,
   `statisticial_cutoff_wgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for short-read WGS (this cutoff can deviate from min_pathogenic when RE length cannot be determined accurately from NGSD)',
   `statisticial_cutoff_lrgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for long-read WGS',
+  `strchive_link` VARCHAR(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `repeat_id` (`name` ASC),
   UNIQUE INDEX `region_unit` (`region` ASC, `repeat_unit` ASC)
