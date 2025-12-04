@@ -785,7 +785,7 @@ QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant
 		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant);
 
 		QStringList entry;
-		entry << trans.gene() << trans.nameWithVersion() << consequence.typesToString() << consequence.hgvs_c << consequence.hgvs_p;
+		entry << trans.gene() << trans.nameWithVersion() << consequence.typesToStringSimplified() << consequence.hgvs_c << consequence.hgvs_p;
 		genes << trans.gene();
 
 		if(add_flags)

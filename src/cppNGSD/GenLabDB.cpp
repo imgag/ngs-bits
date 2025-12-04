@@ -55,7 +55,7 @@ GenLabDB::GenLabDB()
 	driver = "ODBC Driver 18 for SQL Server";
 #endif
 		QString connection_string = "DRIVER={"+driver+"};SERVER="+host+";DATABASE="+name+";UID="+user+";PWD="+pass+";Encrypt=no";
-		Log::info("ODBC driver for GenLab: " + driver);
+		//Log::info("ODBC driver for GenLab: " + driver);
 		db_->setDatabaseName(connection_string);
 	}
 

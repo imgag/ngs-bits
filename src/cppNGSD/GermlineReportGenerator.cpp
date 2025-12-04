@@ -1089,17 +1089,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				VariantTranscript consequence;
 				consequence.gene = trans.gene();
 				consequence.id = trans.nameWithVersion();
-				consequence.type = hgvs.typesToString();
+				consequence.type = hgvs.typesToStringSimplified();
 				consequence.hgvs_c = hgvs.hgvs_c;
 				consequence.hgvs_p = hgvs.hgvs_p;
-				if (hgvs.exon_number!=-1)
-				{
-					consequence.exon = "exon"+QByteArray::number(hgvs.exon_number)+"/"+QByteArray::number(trans.regions().count());
-				}
-				else if (hgvs.intron_number!=-1)
-				{
-					consequence.exon = "intron"+QByteArray::number(hgvs.intron_number)+"/"+QByteArray::number(trans.regions().count());
-				}
+				consequence.exon = hgvs.exonOrIntron(trans);
 				transcript_infos << consequence;
 			}
 		}
@@ -2504,7 +2497,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 			try
 			{
 				VariantConsequence consequence = hgvs_annotator.annotate(trans, v);
-				types << consequence.typesToString("&amp;");
+				types << consequence.typesToStringSimplified("&amp;");
 				hgvs_cs << trans.nameWithVersion() + ":" + consequence.hgvs_c;
 				hgvs_ps << trans.nameWithVersion() + ":" + consequence.hgvs_p;
 			}

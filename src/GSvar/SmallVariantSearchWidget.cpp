@@ -4,6 +4,8 @@
 #include "NGSHelper.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
+#include "VariantHgvsAnnotator.h"
+#include "Settings.h"
 #include <QApplication>
 #include <QMessageBox>
 #include <QMenu>
@@ -25,6 +27,11 @@ SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.variants, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(variantContextMenu(QPoint)));
+
+	QMenu* menu = new QMenu();
+	menu->addAction("GENCODE Primary transcripts", this, SLOT(updateConsequences()));
+	menu->addAction("MANE transcripts only", this, SLOT(updateConsequences()));
+	ui_.update_cons_btn->setMenu(menu);
 }
 
 void SmallVariantSearchWidget::setGene(const QString& gene)
@@ -64,7 +71,7 @@ void SmallVariantSearchWidget::updateVariants()
 		{
 			QByteArray text = ui_.genes->text().toUtf8().trimmed().replace(' ', ',');
 			GeneSet genes = GeneSet::createFromText(text, ',');
-            for (QByteArray gene : genes)
+			for (QByteArray gene : genes)
 			{
 				//check gene name
 				NGSD db;
@@ -168,6 +175,50 @@ void SmallVariantSearchWidget::variantContextMenu(QPoint pos)
 		QString variant_string = ui_.variants->item(item->row(), 1)->text();
 		Variant v = Variant::fromString(variant_string);
 		QApplication::clipboard()->setText(v.toString());
+	}
+}
+
+void SmallVariantSearchWidget::updateConsequences()
+{
+	//init
+	FastaFileIndex ref_genome_idx(Settings::string("reference_genome"));;
+	VariantHgvsAnnotator hgvs_annotator(ref_genome_idx);
+	NGSD db;
+	int c_var = GUIHelper::columnIndex(ui_.variants, "variant");
+	int c_type = GUIHelper::columnIndex(ui_.variants, "variant type");
+	int c_coding = GUIHelper::columnIndex(ui_.variants, "coding and splicing");
+	bool mane_only = qobject_cast<QAction*>(sender())->text()=="MANE transcripts only";
+
+	for (int r=0; r<ui_.variants->rowCount(); ++r)
+	{
+		//get transcripts
+		Variant var = Variant::fromString(ui_.variants->item(r, c_var)->text());
+		TranscriptList transcripts = db.transcriptsOverlapping(var.chr(), var.start(), var.end(), 5000);
+
+		//annotate
+		QStringList types;
+		QStringList consequence_strings;
+		foreach(const Transcript& trans, transcripts)
+		{
+			if (!trans.isGencodePrimaryTranscript()) continue;
+			if (mane_only && !(trans.isManeSelectTranscript() || trans.isManePlusClinicalTranscript())) continue;
+
+			VariantConsequence consequence = hgvs_annotator.annotate(trans, var);
+			QString type = consequence.typesToStringSimplified();
+			if (!types.contains(type)) types << type;
+
+			QStringList tmp;
+			tmp << trans.gene();
+			tmp << trans.nameWithVersion();
+			tmp << type;
+			tmp << variantImpactToString(consequence.impact);
+			tmp << consequence.exonOrIntron(trans);
+			tmp << consequence.hgvs_c;
+			tmp << consequence.hgvs_p;
+			consequence_strings << tmp.join(":");
+		}
+		ui_.variants->setItem(r, c_type, GUIHelper::createTableItem(types.join(", ")));
+		ui_.variants->setItem(r, c_coding, GUIHelper::createTableItem(consequence_strings.join(", ")));
 	}
 }
 
