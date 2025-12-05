@@ -47,7 +47,7 @@ public:
 	static HttpResponse getAnalysisJobLastUpdate(const HttpRequest& request);
 	/// Locates a log file for a specific job
 	static HttpResponse getAnalysisJobLog(const HttpRequest& request);
-	/// Saves changes to the project file
+	/// Saves changes to a GSvar file
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	/// Saves qbic files in the folder on the server
 	static HttpResponse saveQbicFiles(const HttpRequest& request);

@@ -769,7 +769,6 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 	int ref_pos = -1;
 	int obs_pos = -1;
 	bool is_file_changed = false;
-
 	while(!in_stream.atEnd())
 	{
 		QString line = in_stream.readLine();
@@ -780,7 +779,7 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 		}
 
 		// Headers
-		if ((line.startsWith("#")) && (line.count("#") == 1))
+		if (line.startsWith("#"))
 		{
 			out_stream << line << "\n";
 			column_names = line.split("\t");
@@ -790,27 +789,27 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 			ref_pos = column_names.indexOf("ref");
 			obs_pos = column_names.indexOf("obs");
 
-			if ((chr_pos == -1) || (start_pos == -1) || (end_pos == -1) || (ref_pos == -1) || (obs_pos == -1))
+			if (chr_pos==-1 || start_pos==-1 || end_pos==-1 || ref_pos==-1 || obs_pos==-1)
             {
                 return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not identify key columns in GSvar file: " + ps_url_id));
 			}
 			continue;
 		}
 
-		QList<QString> line_columns = line.split("\t");
-		QString variant_in = line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos];
+		QStringList line_columns = line.split("\t");
+		QString variant_in = (line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos]).toLower().trimmed();
 		bool is_current_variant_changed = false;
 
-		for (int i = 0; i <  json_doc.array().size(); i++)
+		for (int i=0; i<json_doc.array().size(); i++)
 		{
 			try
 			{
-				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString().trimmed();
+				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString().toLower().trimmed();
 				QString column = json_doc.array().takeAt(i).toObject().value("column").toString().trimmed();
 				QString text = json_doc.array().takeAt(i).toObject().value("text").toString();
 
 				// Locating changed variant
-				if (variant_in.toLower().trimmed() == variant_changed.toLower())
+				if (variant_in == variant_changed)
 				{
 					// Locating changed column
 					if (column_names.indexOf(column) == -1)
@@ -820,7 +819,7 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 					is_current_variant_changed = true;
 					is_file_changed = true;
 
-					line_columns[column_names.indexOf(column)] = QUrl::toPercentEncoding(text); // text.replace("\n", " ").replace("\t", " ");
+					line_columns[column_names.indexOf(column)] = QUrl::toPercentEncoding(text);
 				}
 			}
 			catch (Exception& e)
@@ -839,28 +838,43 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 			out_stream << line_columns.join("\t") << "\n";
 		}
 	}
-
 	in_file.data()->close();
+	out_stream.flush();
 	out_file.data()->close();
 
+	//file was changed => update it on server
 	if (is_file_changed)
 	{
 		//remove original file
-		if (!in_file.data()->remove())
+		QString filename_orig = in_file.data()->fileName();
+		QString filename_backup = filename_orig + ".gsvarserver.bak";
+		if (!QFile::rename(filename_orig, filename_backup))
         {
-            Log::warn(EndpointManager::formatResponseMessage(request, "Could not remove: " + in_file.data()->fileName()));
+			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_orig + " to " + filename_backup));
 		}
-		//put the changed copy instead of the original
-		if (!out_file.data()->rename(url.filename_with_path))
-        {
-            Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename: " + out_file.data()->fileName()));
-		}
-	}
 
-	if (is_file_changed)
-	{
+		//rename changed copy to original file
+		if (!QFile::rename(tmp, filename_orig))
+		{
+			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + tmp + " to " + filename_orig));
+
+			if (!QFile::rename(filename_backup, filename_orig))
+			{
+				Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_backup + " to " + filename_orig));
+			}
+		}
+		else
+		{
+			QFile::remove(filename_backup);
+		}
+
 		return HttpResponse(ResponseStatus::OK, request.getContentType(), "Project file has been changed");
 	}
+	else
+	{
+		QFile::remove(tmp);
+	}
+
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "No changes to the file detected");
 }
 
