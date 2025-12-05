@@ -20,6 +20,7 @@
 // find a PID for a BALT server instance
 int findBlatPid()
 {
+    #ifdef Q_OS_LINUX
     std::string cmd = "pidof -s gfServer";
     std::array<char, 128> buffer{};
 
@@ -30,13 +31,14 @@ int findBlatPid()
     {
         return std::stoi(buffer.data());
     }
-
+    #endif
     return -1;
 }
 
 // kill all instances of the BLAT server before the main app exits
 void handleExitSignal(int)
 {
+    #ifdef Q_OS_LINUX
     pid_t pid = static_cast<pid_t>(findBlatPid());
     while (pid > 0)
     {
@@ -45,6 +47,7 @@ void handleExitSignal(int)
         pid = static_cast<pid_t>(findBlatPid());
     }
     QCoreApplication::quit();
+    #endif
 }
 
 int main(int argc, char **argv)
