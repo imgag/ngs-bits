@@ -788,7 +788,7 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 			//TODO: filter by live-calculated impact?
 		}
 
-		if (at_least_one_part_matches)
+		if (!at_least_one_part_matches)
 		{
 			n_skipped_impact++;
 			continue;
