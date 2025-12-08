@@ -3317,6 +3317,7 @@ void MainWindow::on_actionAbout_triggered()
 			about_text += "\n  API URL: " + server_info.server_url;
 			about_text += "\n  API version: " + server_info.api_version;
 			about_text += "\n  htslib version: " + server_info.htslib_version;
+			about_text += "\n  Qt version: " + server_info.qt_version;
 		}
     }
 	else
