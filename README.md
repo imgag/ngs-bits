@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_09
+	> git checkout 2025_12
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -94,6 +94,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BamExtract](doc/tools/BamExtract.md) - Extract reads from BAM/CRAM by read name.
 * [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
 * [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
+* [BamInfo](doc/tools/BamInfo.md) - Basic BAM information.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a coordinate-sorted BAM file to FASTQ files.
 * [FastaFromBam](doc/tools/FastaFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 
