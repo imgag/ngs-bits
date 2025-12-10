@@ -52,8 +52,8 @@ Change log is available on the [releases](https://github.com/imgag/ngs-bits/rele
 
 You can cite ngs-bits in using Zenodo DOIs:
 
+* 2025_12: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17877407.svg)](https://zenodo.org/records/17877407)
 * 2025_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17201254.svg)](https://zenodo.org/records/17201254)
-* 2025_07: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16676392.svg)](https://zenodo.org/records/16676392)
 
 A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).
 
