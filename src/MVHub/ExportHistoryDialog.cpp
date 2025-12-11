@@ -37,7 +37,7 @@ void ExportHistoryDialog::updateTable()
 	query.exec("SELECT * FROM submission_kdk_se WHERE case_id='" + id + "' ORDER BY id ASC");
 	while(query.next())
 	{
-		addTableRow("KDK SE", query.value("date").toDate(), query.value("type").toString(), query.value("tank").toString(), query.value("status").toString(), query.value("submission_id").toString(), query.value("submission_output").toString());
+		addTableRow("KDK", query.value("date").toDate(), query.value("type").toString(), query.value("tank").toString(), query.value("status").toString(), query.value("submission_id").toString(), query.value("submission_output").toString());
 	}
 
 	GUIHelper::resizeTableCellWidths(ui_.table);
@@ -62,7 +62,10 @@ void ExportHistoryDialog::addTableRow(QString data_center, QDate date, QString t
 			line = "<font color='red'>"+line+"</font>";
 		}
 	}
-	submission_output = "<html>\n" + lines.join("<br>\n") + "</html>";
+	if (lines.count()>1)
+	{
+		submission_output = "<html>" + lines.join("<br>\n") + "</html>";
+	}
 
 	//add new line to table
 	int r = ui_.table->rowCount();
@@ -77,7 +80,7 @@ void ExportHistoryDialog::addTableRow(QString data_center, QDate date, QString t
 	if (status=="done") item->setForeground(Qt::darkGreen);
 	ui_.table->setItem(r, 4, item);
 	ui_.table->setItem(r, 5, GUIHelper::createTableItem(submission_id));
-	item = GUIHelper::createTableItem(submission_output.isEmpty() ? "" : "[see tooltip]");
+	item = GUIHelper::createTableItem(submission_output.contains("\n") ? "[see tooltip]" : submission_output);
 	item->setToolTip(submission_output);
 	ui_.table->setItem(r, 6, item);
 }

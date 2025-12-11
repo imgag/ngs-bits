@@ -6100,6 +6100,21 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 		QString sample_type = query.value("sample_type").toString();
 		QByteArray system_type = query.value("system_type").toByteArray();
 		QByteArray system_name = query.value("system_name").toByteArray();
+		bool is_tumor =  query.value("tumor").toBool();
+
+		//define variant calling mode
+		QByteArray variant_calling_mode = "AllVariantCallers";
+
+		//define target region
+		QByteArray target_region = "DragenEnrichment/" + system_name + ".bed";
+
+		//disable calling on tumors
+		if (is_tumor)
+		{
+			variant_calling_mode = "None";
+			target_region = "na";
+		}
+
 
 		//cut MIDs to fit recipe
 		if (mid1.length() > index1_read_length)
@@ -6125,11 +6140,11 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 			{
 				if (system_type == "WGS")
 				{
-					germline_analysis.append(ps_name);
+					germline_analysis.append(ps_name + "," + variant_calling_mode);
 				}
 				else if (system_type == "WES")
 				{
-					enrichment_analysis.append(ps_name + ",DragenEnrichment/" + system_name + ".bed");
+					enrichment_analysis.append(ps_name + "," + target_region + "," + variant_calling_mode);
 				}
 			}
 			else if (sample_type == "RNA")
@@ -6235,7 +6250,6 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 	if (mid1_chopped) warnings << "WARNING: At least one Sample has a i7 MID which is longer than recipe. It will be shorted according to recipe.";
 	if (mid2_chopped) warnings << "WARNING: At least one Sample has a i5 MID which is longer than recipe. It will be shorted according to recipe.";
 
-
 	//DRAGEN Germline
 	if (germline_analysis.size() > 0)
 	{
@@ -6245,10 +6259,10 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 		sample_sheet.append("KeepFastq," + keep_fastq);
 		sample_sheet.append("MapAlignOutFormat,cram");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38");
-		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		//sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
 		sample_sheet.append("[DragenGermline_Data]");
-		sample_sheet.append("Sample_ID");
+		sample_sheet.append("Sample_ID,VariantCallingMode");
 		sample_sheet.append(germline_analysis);
 		sample_sheet.append("");
 	}
@@ -6263,10 +6277,10 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 		sample_sheet.append("MapAlignOutFormat,cram");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38");
 		sample_sheet.append("GermlineOrSomatic,germline");
-		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		//sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
 		sample_sheet.append("[DragenEnrichment_Data]");
-		sample_sheet.append("Sample_ID,BedFile");
+		sample_sheet.append("Sample_ID,BedFile,VariantCallingMode");
 		sample_sheet.append(enrichment_analysis);
 		sample_sheet.append("");
 	}
@@ -9166,7 +9180,19 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
         else query.bindValue(16, QVariant(QString()));
 
 		query.bindValue(17, config->includeTumContentByEstimated());
-		query.bindValue(18, config->tumContentByEstimated());
+		if (config->includeTumContentByEstimated())
+		{
+			query.bindValue(18, config->tumContentByEstimated());
+		}
+		else
+		{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			query.bindValue(18, QVariant(QMetaType(QMetaType::Int)));
+#else
+			query.bindValue(18, QVariant(QVariant::Int));
+#endif
+		}
+
 		query.bindValue(19, config->includeMutationBurden());
 
 		if (config->filters().count() > 0) query.bindValue(20, config->filters().toText().join("\n"));
@@ -9220,7 +9246,19 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
         else query.bindValue( 20, QVariant(QString()));
 
 		query.bindValue(21, config->includeTumContentByEstimated());
-		query.bindValue(22, config->tumContentByEstimated());
+		if (config->includeTumContentByEstimated())
+		{
+			query.bindValue(22, config->tumContentByEstimated());
+		}
+		else
+		{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			query.bindValue(22, QVariant(QMetaType(QMetaType::Int)));
+#else
+			query.bindValue(22, QVariant(QVariant::Int));
+#endif
+		}
+
 		query.bindValue(23, config->includeMutationBurden());
 
 		if (config->filters().count() > 0) query.bindValue(24, config->filters().toText().join("\n"));
@@ -9462,10 +9500,7 @@ QSharedPointer<SomaticReportConfiguration> NGSD::somaticReportConfig(QString t_p
 	output->setIncludeTumContentByClonality(query.value("tum_content_max_clonality").toBool());
 	output->setIncludeTumContentByHistological(query.value("tum_content_hist").toBool());
 	output->setIncludeTumContentByEstimated(query.value("tum_content_estimated").toBool());
-
-	if(!query.value("tum_content_estimated_value").isNull()) output->setTumContentByEstimated(query.value("tum_content_estimated_value").toDouble() );
-	else output->setTumContentByEstimated(0);
-
+	output->setTumContentByEstimated(query.value("tum_content_estimated_value").isNull() ? 0 : query.value("tum_content_estimated_value").toInt() );
 	output->setMsiStatus(query.value("msi_status").toBool());
 	output->setCnvBurden(query.value("cnv_burden").toBool());
 	output->setIncludeMutationBurden(query.value("include_mutation_burden").toBool());

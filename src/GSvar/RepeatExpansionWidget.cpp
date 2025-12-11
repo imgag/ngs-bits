@@ -132,6 +132,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	QAction* a_omim_gene = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM gene page");
 	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM disease page(s)");
 	QAction* a_stripy = menu.addAction("Open STRipy locus information");
+	QAction* a_strchive = menu.addAction(QIcon(":/Icons/strchive.png"), "Open STRchive locus information");
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
@@ -239,6 +240,23 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	{
 		QString name = getCell(row, "repeat ID");
 		QDesktopServices::openUrl(QUrl("https://stripy.org/database/" + name));
+	}
+	else if (action==a_strchive)
+	{
+		QString name = getCell(row, "repeat ID");
+
+		NGSD db;
+		QString id = getRepeatId(db, row, false);
+		QString url = db.getValue("SELECT strchive_link FROM repeat_expansion WHERE id='"+id + "'").toString().trimmed();
+
+		if (url=="")
+		{
+			QMessageBox::warning(this, "STRchive", "No STRchive URL available in NGSD for repeat with name '"+name+"'");
+		}
+		else
+		{
+			QDesktopServices::openUrl(QUrl(url));
+		}
 	}
 	else if (action==a_comments)
 	{

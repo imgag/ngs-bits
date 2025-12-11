@@ -127,7 +127,13 @@ void SequencingRunWidget::initBatchView()
 			int run_id = run_ids_.at(c-1).toInt();
 			signal_mapper->setMapping(btn_edit, run_id);
 			connect(btn_edit, SIGNAL(clicked(bool)), signal_mapper, SLOT(map()));
-			connect(signal_mapper, SIGNAL(mapped(int)), this, SLOT(edit(int)));
+
+			#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+				connect(signal_mapper, SIGNAL(mappedInt(int)), this, SLOT(edit(int)));
+			#else
+				connect(signal_mapper, SIGNAL(mapped(int)), this, SLOT(edit(int)));
+			#endif
+
 
 			hbox->addWidget(btn_edit, 0, Qt::AlignLeft| Qt::AlignCenter);
 

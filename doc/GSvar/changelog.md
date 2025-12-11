@@ -1,5 +1,27 @@
 # GSvar change log
 
+## 2025_09-134 (08.12.2025)
+
+- General: improved burden test dialog
+- small variants search: added functionality to update variant consequences
+- RE dialog: added STRchive links (from NGSD)
+
+## 2025_09-122 (03.12.2025)
+
+- GSvar is now based on Qt6
+- General: Windows style can not be selected in settings
+- Report config: Added new exclude reasons to report configuration of germline small variants, CNVs and SVs
+- SV search: implemented search by breakpoint
+- CNV/SVs filters: added KEEP filter for pathogenic CNVs/SVs
+- SV dialog: added Decipher/UCSC context menu entry
+- Matching CNVs/SVs dialog: double clicking a row now jumps to the CNV/SV position in IGV
+- small variants table: Added context menu entry to copy variant or variant genes
+- filter dock widgets: added ROI and phenotype history via context menu
+- CNV/SV table: added PubMed search
+- Bugfix: BLAT search works again
+- Bugfix: Sample ancestry tool works again
+- Bugfix: Fixed crash because of estimated tumor content when storing somatic report config
+
 ## 2025_09-38 (29.10.2025)
 
 - report config dialog is closable via 'X' button again. It now asks if the user wants to store changed data.

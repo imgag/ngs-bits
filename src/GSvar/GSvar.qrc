@@ -129,5 +129,6 @@
         <file>Icons/ProteinAtlas.png</file>
         <file>Icons/Icon.icns</file>
         <file>Icons/Methylation.png</file>
+        <file>Icons/strchive.png</file>
     </qresource>
 </RCC>

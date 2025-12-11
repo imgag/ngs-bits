@@ -138,6 +138,7 @@
 #include <QMimeData>
 #include "MaintenanceDialog.h"
 #include <QStyleFactory>
+#include <QLibraryInfo>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
@@ -3296,6 +3297,7 @@ void MainWindow::on_actionAbout_triggered()
 	about_text += "\nGenome build: " + GSvarHelper::buildAsString();
 	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
 	about_text += "\nhtslib version: " + QString(hts_version());
+	about_text += "\nQt version: " + QLibraryInfo::version().toString();
 
 	//client-server infos
 	about_text += "\n";
@@ -3315,6 +3317,7 @@ void MainWindow::on_actionAbout_triggered()
 			about_text += "\n  API URL: " + server_info.server_url;
 			about_text += "\n  API version: " + server_info.api_version;
 			about_text += "\n  htslib version: " + server_info.htslib_version;
+			about_text += "\n  Qt version: " + server_info.qt_version;
 		}
     }
 	else
@@ -5239,7 +5242,7 @@ void MainWindow::calculateGapsByGenes()
 	NGSD db;
 	BedFile regions;
 	GeneSet genes = GeneSet::createFromStringList(text.split("\n"));
-	foreach(const QByteArray& gene, genes)
+	for(const QByteArray& gene: genes)
 	{
 		regions.add(db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true, false));
 	}

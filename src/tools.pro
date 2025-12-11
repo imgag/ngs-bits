@@ -631,3 +631,8 @@ VcfReplaceSamples.depends = cppNGS
 SUBDIRS += GenlabInfo
 tools-TEST.depends += GenlabInfo
 GenlabInfo.depends = cppNGS
+
+SUBDIRS += BedToEpigen
+tools-TEST.depends += BedToEpigen
+BedToEpigen.depends = cppNGS
+

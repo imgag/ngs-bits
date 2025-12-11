@@ -11,3 +11,4 @@ libxml2/libs
 htslib/build/
 htslib/include/
 htslib/lib/
+tools/deploy/

@@ -184,57 +184,7 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 {
 	QByteArrayList output;
 	output << allele;
-
-	//find variant consequence type with highest priority (apart from splicing)
-	VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
-	foreach(VariantConsequenceType csq_type, hgvs.types)
-	{
-		if(csq_type > max_csq_type &&
-				csq_type != VariantConsequenceType::SPLICE_REGION_VARIANT &&
-				csq_type != VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT &&
-				csq_type != VariantConsequenceType::SPLICE_DONOR_VARIANT &&
-				csq_type != VariantConsequenceType::NMD_TRANSCRIPT_VARIANT &&
-				csq_type != VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT)
-		{
-			max_csq_type = csq_type;
-		}
-	}
-	QByteArray consequence_type = VariantConsequence::typeToString(max_csq_type);
-
-	//additionally insert splice region consequence type (if present) and order types by impact
-	if(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT))
-	{
-		VariantConsequenceType splice_type = VariantConsequenceType::SPLICE_REGION_VARIANT;
-		if(hgvs.types.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT))
-		{
-			splice_type = VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT;
-		}
-		else if(hgvs.types.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT))
-		{
-			splice_type = VariantConsequenceType::SPLICE_DONOR_VARIANT;
-		}
-
-		if(splice_type > max_csq_type)
-		{
-			consequence_type.prepend(VariantConsequence::typeToString(splice_type) + "&");
-		}
-		else
-		{
-			consequence_type.append("&" + VariantConsequence::typeToString(splice_type));
-		}
-	}
-
-	//add transcript info (at end)
-	if (hgvs.types.contains(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT))
-	{
-		consequence_type.append("&" + VariantConsequence::typeToString(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT));
-	}
-	else if (hgvs.types.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT) && !hgvs.types.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT))
-	{
-		consequence_type.append("&" + VariantConsequence::typeToString(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT));
-	}
-
-	output << consequence_type;
+	output << hgvs.typesToStringSimplified();
 	output << variantImpactToString(hgvs.impact);
 
 	//gene symbol, HGNC ID, transcript ID, feature type

@@ -2475,7 +2475,7 @@ private:
 		IS_FALSE(res_config_2->includeTumContentByClonality());
 		IS_FALSE(res_config_2->includeTumContentByHistological());
 		IS_FALSE(res_config_2->includeTumContentByEstimated());
-		I_EQUAL(res_config_2->tumContentByEstimated(), 31);
+		I_EQUAL(res_config_2->tumContentByEstimated(), 0);
 		IS_FALSE(res_config_2->msiStatus());
 		IS_FALSE(res_config_2->cnvBurden());
 		IS_FALSE(res_config_2->includeMutationBurden());
@@ -3331,7 +3331,7 @@ private:
 		//second run without adapter sequence
 		warnings.clear();
 		sample_sheet = db.createSampleSheet(2, warnings, NsxAnalysisSettings());
-		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (3) and the number of lanes on the flow cell (2) does not match!");
+		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (4) and the number of lanes on the flow cell (2) does not match!");
 		S_EQUAL(warnings.at(1), "WARNING: No adapter for read 1 provided! Adapter trimming will not work.");
 		S_EQUAL(warnings.at(2), "WARNING: No adapter for read 2 provided! Adapter trimming will not work.");
 
@@ -3343,7 +3343,7 @@ private:
 
 		COMPARE_FILES("out/NovaSeqX_samplesheet2.csv",  TESTDATA("data_out/NovaSeqX_samplesheet2.csv") );
 
-    }
+	}
 
     TEST_METHOD(test_export_sample_data)
     {

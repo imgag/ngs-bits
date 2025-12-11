@@ -5,6 +5,7 @@
 #include "DelayedInitializationTimer.h"
 #include "ui_MVHub.h"
 #include "NGSD.h"
+#include "GenLabDB.h"
 
 ///Main window class
 class MVHub
@@ -30,6 +31,8 @@ public slots:
 	void exportConsentData();
 	//check XML data in MVH database
 	void checkXML();
+	//check PS data is up-to-date
+	void checkPS();
 
 	//main menu slots
 	void on_actionReloadData_triggered();
@@ -104,6 +107,15 @@ private:
 	};
 	Network getNetwork(int row);
 	QString networkToString(Network network);
+
+	struct PSData
+	{
+		QStringList germline;
+		QStringList tumor;
+	};
+	PSData getMatchingPS(NGSD& db, GenLabDB& genlab, QString sap_id, Network network, QString seq_type);
+
+
 	//returns the row index of the given CM ID
 	int rowOf(QString cm_id);
 	//returns the columd index of the given column name

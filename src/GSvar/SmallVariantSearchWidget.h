@@ -21,6 +21,7 @@ private slots:
 	void updateVariants();
 	void copyToClipboard();
 	void variantContextMenu(QPoint pos);
+	void updateConsequences();
 
 private:
 	Ui::SmallVariantSearchWidget ui_;

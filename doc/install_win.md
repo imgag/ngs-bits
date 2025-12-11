@@ -4,6 +4,8 @@ This manual assumes you have already retrieved a local copy of the [github respo
 
 ## Dependencies
 
+### Install Qt
+
 First, we need to install Qt and some basic dependencies:
 
 * Download and launch [Qt online installer](https://www.qt.io/download-qt-installer-oss). The online installer requires to have a Qt Account: you can create it free of charge [here](https://login.qt.io/login).
@@ -16,30 +18,29 @@ First, we need to install Qt and some basic dependencies:
 
   ![Selection Qt components](qt-installer-components.png)
 * The installation may take a while, its total duration mainly depends on your internet connection speed, since the installer downloads everything from the server (about 7GB).
-* Download [MariaDB Connector C 64-bit](https://downloads.mariadb.com/Connectors/c/) (choose the latest available version, `*.msi` is the recommended option). Consider downlaoding the corresponding [MySQL Connector](https://dev.mysql.com/downloads/connector/cpp/), if you use MySQL as your database.
-* Run the MariaDB Connector C 64-bit installer and choose the `Complete` setup type.
-* Download and install [Git](https://git-scm.com/download/win) (it is needed to extract the repository version during the build process)
-* **Optional:** To create plots in qcML files, install the portable version of [WinPython](https://github.com/winpython/winpython/releases/download/16.6.20250620final/Winpython64-3.13.5.0whl.7z) and add the directory containing the `python.exe` to the PATH.
 
-### htslib
+### Unpack htslib
 
 [htslib](https://github.com/samtools/htslib) is a third-party library that provides functionality for NGS data formats like BAM or VCF.
 
-We have pre-built `htslib` for Windows: `htslib 1.16.1` supports Qt 5 and `htslib 1.21` supports Qt 6. Corresponding Zip-archives can be found inside the repository: `ngs-bits\htslib\htslib_win_64_qt5.zip` and `ngs-bits\htslib\htslib_win_64_qt6.zip`. Depending on your Qt version, just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
+We have pre-built `htslib` for Windows. The corresponding ZIP archive can be found in `ngs-bits\htslib\`.  
+Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 
-### libxml2
+### Unpack libxml2
 
-[libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2_win_64.zip` into `ngs-bits\`. Qt Creator will detect the library files and headers while compiling GSvar.
+[libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2\libxml2_win_64.zip`. Qt Creator will detect the library files and headers while compiling ngs-bits and GSvar.
 
-### MySQL plugin for Qt
+### Build SQL plugin for Qt
 
-The Qt distribution no longer contains a MySQL plugin.
+The Qt distribution no longer contains a MySQL plugin, so we need to build it manually:
 
-You will need to have the source code of `Qt 6` and `MariaDB Connector C` installed on your Windows machine.
+* Download [MariaDB Connector C 64-bit](https://downloads.mariadb.com/Connectors/c/connector-c-3.4.7/mariadb-connector-c-3.4.7-win64.msi).
+* Run the installer and choose the `Complete` setup type.
 
-Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html) on how to build the plugin. You may consult their page, if you encounter any issues. We, however, outline only the most essential parts in the current tutorial. For the majority of users it should be sufficient.
+Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html) on how to build the plugin. You may consult their page, if you encounter any issues.  
+We have summarized the tutorial, here:
 
-In the main Windows menu type `Qt 6.8.3 (MinGW 13.1.0 64-bit)` to open a `MinGW` terminal.
+In the main Windows menu search, type `mingw` and open `Qt 6.8.3 (MinGW 13.1.0 64-bit)` terminal window.
 ![MinGW terminal](mingw-terminal.png)
 
 Assuiming you have installed Qt 6.8.3 into C:\Qt folder, run the following commands to build the database plugin (run them in `MinGW` terminal, not in the standard Windows CMD or PowerShell terminals):
@@ -47,51 +48,69 @@ Assuiming you have installed Qt 6.8.3 into C:\Qt folder, run the following comma
 	> cd C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers
 	> set PATH=C:\Qt\Tools\CMake_64\bin;%PATH%
 	> set PATH=C:\Qt\Tools\Ninja;%PATH%
-	> mkdir C:\build
 	> mkdir build-sqldrivers
 	> cd build-sqldrivers
 	> qt-cmake -G Ninja C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers -DMySQL_INCLUDE_DIR="C:\PROGRA~1\MariaDB\MARIAD~1\include" -DMySQL_LIBRARY="C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.lib" -DCMAKE_INSTALL_PREFIX="C:\Qt\mariadb_plugin"
 	> cmake --build .
 	> cmake --install .
 	> copy C:\Qt\mariadb_plugin\plugins\sqldrivers\qsqlmysql.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+	> copy C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
 
-Note: please pay attention to the spaces in the path names (e.g. for MariaDB Connector C), escape them properly (or copy the files to the folder that does not have spaces in its path).
+Upon succesfull completion, `qsqlmysql.dll` and `libmariadb.dll` sould be located in `C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\`.
 
-Upon succesfull completion, `C:\mariadb_plugin` folder will have the binary files you need.
+### Install Git
 
+Download and install [Git](https://git-scm.com/download/win).  
+It is needed to extract the repository version during the build process.
 
-## Build
+### Install python
 
-Before building the project, `Qt Creator` has to be set up correctly. Depending on your version, go to `Preference`(`Settings` or `Options`), in the search field at the top left corner type `Default build directory`. You will see the settings for the build dicrectory location (something like): `./build/%{Asciify:%{Kit:FileSystemName}-%{BuildConfig:Name}}`
+To create plots in qcML files, install the portable version of [WinPython](https://github.com/winpython/winpython/releases/download/16.6.20250620final/Winpython64-3.13.5.0whl.7z) and add the directory containing the `python.exe` to the PATH.
 
-Change the `Default build directory` to `../%{JS: Util.asciify("build-%{Project:Name}-%{Kit:FileSystemName}-%{BuildConfig:Name}")}`
+You have to install `maplotlib` in case it is not found:
 
-![Qt Creator default bulild path](qt-creator-options.png)
+	> python.exe -m pip install matplotlib
 
-We can now build ngs-bits:
+This is optional. If python is not installed, no plots are generated.
+
+## Build ngs-bits and GSvar
+
+we can now build ngs-bits:
 
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`. Make sure to build in release mode!  
 * Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`. Make sure to build in release mode!  
 
-*Attention: Make sure to compile the [CRYPT_KEY](../GSvar/encrypt_settings.md) into the GSvar binary when using it in client-server mode. The CRYPT_KEY is used for a handshake between client and server.*
+*Attention: Make sure to compile the [CRYPT_KEY](GSvar/encrypt_settings.md) into the GSvar binary when using it in client-server mode. The CRYPT_KEY is used for encrypting settings and for a handshake between client and server.*
 
 Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.  
 To use GSvar, it needs to be [configured](GSvar/configuration.md) first.
 
 
-## Making the ngs-bits tools portable
+## Making the ngs-bits tools and GSvar portable
 
-To make the tools executable outside *QtCreator* and portable, you have to copy some files/folders of `GSvar` dependencies into the `bin` folder: `GSvar` will need `htslib`, `libxml2`, `sql drivers`, and some `qt libraries`. Currently `GSvar.exe` binary relies on the following DLLs: cppCORE.dll, cppGUI.dll, cppNGSD.dll, cppNGS.dll, cppVISUAL.dll, cppXML.dll, hts-3.dll, hts-3.lib, hts.dll.a, libbrotlicommon.dll, libbrotlidec.dll, libbz2-1.dll, libcppCORE.a, libcppGUI.a, libcppNGS.a, libcppNGSD.a, libcppVISUAL.a, libcppXML.a, libcrypto-3-x64.dll, libcurl-4.dll, libgcc_s_seh-1.dll, libhts.a, libiconv-2.dll, libidn2-0.dll, libintl-8.dll, liblzma-5.dll, libnghttp2-14.dll, libnghttp3-9.dll, libpsl-5.dll, libssh2-1.dll, libssl-3-x64.dll, libstdc++-6.dll, libsystre-0.dll, libtre-5.dll, libunistring-5.dll, libwinpthread-1.dll, libxml2-16.dll, libxml2.dll.a, libxml2.la, qsqlmysql.dll, Qt6Charts.dll, Qt6Core.dll, Qt6Gui.dll, Qt6Network.dll, Qt6OpenGL.dll, Qt6OpenGLWidgets.dll, Qt6PrintSupport.dll, Qt6Sql.dll, Qt6Svg.dll, Qt6Widgets.dll, Qt6Xml.dll, zlib1.dll. You will also need to locate (depending on where you installed `MariaDB Connector C` or `MySQL Connector`) and copy `libmariadb.dll` or `libmysqldb.dll` into the `bin` folder. 
+To make the ngs-bits tools and GSvar executable outside *QtCreator* and portable, we provide a PHP script.
 
-Rather than manually finding and copying these files, use `windeployqt.exe` utility that comes with Qt:
+If you do not have PHP installed, download the [zip](https://downloads.php.net/~windows/releases/archives/php-8.4.15-Win32-vs17-x64.zip) to `C:\PHP\` and unzip it.
 
-    > c:\Qt\6.8.3\mingw_64\bin\windeployqt.exe GSvar.exe
+Now you can open a `CMD` terminal and execute the following commands:
 
-Adjust the command, based on your Qt version and the `GSvar.exe` file location. Sometimes `windeployqt.exe` may fail to get all of the dependencies. If it happens, the linbraries have to be copied manually.
+	> cd ngs-bits/tools/
+	> C:\PHP\php.exe deploy.php 
 
-The database connection has become more secure and now it requires a certificate authorities file to validate the database server certificates (only if the operating system has not been configured correctly already). It means that `GSvar` application connecting to AWS intances my need a `*.pem` file (e.g. `eu-central-1-bundle.pem`). Please visit the official [AWS RDS documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html) for more inforamtion.
+After running the script, the portable executables are located in `ngs-bits/tools/deploy/`.
 
-Add `db_ssl_ca` parameter to your config and set its value to the CA bundle file path, for example `c:\\eu-central-1-bundle.pem`. Incorrect CA configuration will lead to TLS errors while connecting to the database server.
+*Attention: The script assumes that you have installed all software accoring to the documentation above. If you have installed different versions or changed the installations paths, you may have to adapt the script!*
+
+## FAQ
+
+### I get TLS errors when connecting to a SQL database
+
+The SQL database connection requires certificate authorities to validate the database server certificates.  
+If the operating system has not been configured to provide the certificate authorities, you may have to do so manually.
+
+For example, if the GSvar server is running on AWS, the `GSvar` client needs a `*.pem` file (e.g. `eu-central-1-bundle.pem`). Please visit the official [AWS RDS documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html) for more inforamtion.
+
+To manually add a the certificate authorities file, set the `db_ssl_ca` parameter in [GSvar settings] to your config and set its value to the CA bundle file path, for example `C:\\eu-central-1-bundle.pem`. Incorrect CA configuration will lead to TLS errors while connecting to the database server.
 
 ## Integration with IGV
 

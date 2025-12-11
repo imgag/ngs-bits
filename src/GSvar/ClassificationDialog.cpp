@@ -52,7 +52,7 @@ void ClassificationDialog::classificationChanged()
 
 	//set cursor
 	QTextCursor cursor = ui_.comment->textCursor();
-	int pos = text_new.count()-2;
+	int pos = text_new.length()-2;
 	cursor.setPosition(pos);
 	ui_.comment->setTextCursor(cursor);
 

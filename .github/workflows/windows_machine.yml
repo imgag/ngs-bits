@@ -31,7 +31,7 @@ jobs:
       - name: Download test files
         run: make download_test_files
       - name: Build other dependencies
-        run: make build_libs_release build_tools_release build_gui_release
+        run: make build_libs_release build_tools_release build_gui_release build_server_release
       - name: Create a settings.ini file for tests
         run: .github/workflows/settings_win_mac.sh
         shell: bash

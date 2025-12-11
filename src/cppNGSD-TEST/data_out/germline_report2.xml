@@ -56,7 +56,7 @@
     </TargetRegion>
     <VariantList overall_number="319" genome_build="GRCh38">
         <Variant chr="chr13" start="40793233" end="40793233" ref="T" obs="A" allele_frequency="0.48" depth="268" genotype="hom" causal="false" de_novo="false" comp_het="true" mosaic="false" rna_info="splicing effect validated by RNA dataset" report_type="diagnostic variant">
-            <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:10985" transcript_id="ENST00000338625.1" type="coding_sequence_variant&amp;missense_variant&amp;protein_altering_variant" hgvs_c="7T&gt;A" hgvs_p="Ser3Thr" exon="Exon 2/7" main_transcript="true"/>
+            <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:10985" transcript_id="ENST00000338625.1" type="missense_variant" hgvs_c="7T&gt;A" hgvs_p="Ser3Thr" exon="Exon 2/7" main_transcript="true"/>
         </Variant>
         <Variant chr="chr16" start="89531961" end="89531961" ref="G" obs="A" allele_frequency="0.28" depth="43" genotype="het" causal="true" de_novo="true" comp_het="false" mosaic="true" rna_info="n/a" report_type="diagnostic variant">
             <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17" main_transcript="true"/>

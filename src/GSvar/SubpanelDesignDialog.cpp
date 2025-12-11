@@ -87,7 +87,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//check gene names
 	bool ignore_gene_errors = ui_.ignore_gene_errors->isChecked();
 	GeneSet valid_genes;
-    for (const QString gene : genes_)
+	for (const QByteArray& gene : genes_)
 	{
 		QPair<QString, QString> geneinfo = db.geneToApprovedWithMessage(gene);
 		QByteArray gene_new = geneinfo.first.toLatin1();
@@ -134,7 +134,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	else if (transcripts=="best")
 	{
 		//determine transcripts
-		foreach(QByteArray gene, genes_)
+		for(const QByteArray& gene: genes_)
 		{
 			int gene_id = db.geneId(gene);
 
@@ -151,7 +151,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	}
 	else if (transcripts=="relevant")
 	{
-		foreach(QByteArray gene, genes_)
+		for(const QByteArray& gene: genes_)
 		{
 			int gene_id = db.geneId(gene);
 			TranscriptList transcript_list = db.relevantTranscripts(gene_id);
