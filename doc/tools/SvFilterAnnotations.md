@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2025_07-53-gefb5888f)
+	SvFilterAnnotations (2025_09-112-ga53ff6f3d)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -33,6 +33,9 @@
 	                            Note: this filter should only be used for whole genome samples.
 	                            Parameters:
 	                              max_af - Maximum allele frequency in % [default=1] [min=0.0] [max=200.0]
+	SV annotated pathogenic     Filter variants that are already annotated to be pathogenic in NGSD..
+	                            Parameters:
+	                              action - Action to perform [default=FILTER] [valid=FILTER,KEEP]
 	SV break point density NGSD Filter based on the density of SV break points in the NGSD in the CI of the structural variant.
 	                            Parameters:
 	                              max_density - Maximum density in the confidence interval of the SV [default=20] [min=0]
@@ -118,7 +121,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2025_07-53-gefb5888f
+	SvFilterAnnotations 2025_09-112-ga53ff6f3d
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

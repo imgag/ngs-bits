@@ -23,7 +23,8 @@ First, we need to install Qt and some basic dependencies:
 
 [htslib](https://github.com/samtools/htslib) is a third-party library that provides functionality for NGS data formats like BAM or VCF.
 
-We have pre-built `htslib` for Windows: `htslib 1.16.1` supports Qt 5 and `htslib 1.21` supports Qt 6. Corresponding Zip-archives can be found inside the repository: `ngs-bits\htslib\htslib_win_64_qt5.zip` and `ngs-bits\htslib\htslib_win_64_qt6.zip`. Depending on your Qt version, just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
+We have pre-built `htslib` for Windows. The corresponding ZIP archive can be found in `ngs-bits\htslib\`.  
+Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 
 ### Unpack libxml2
 
@@ -53,6 +54,7 @@ Assuiming you have installed Qt 6.8.3 into C:\Qt folder, run the following comma
 	> cmake --build .
 	> cmake --install .
 	> copy C:\Qt\mariadb_plugin\plugins\sqldrivers\qsqlmysql.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+	> copy C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
 
 Upon succesfull completion, `qsqlmysql.dll` and `libmariadb.dll` sould be located in `C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\`.
 
@@ -64,6 +66,10 @@ It is needed to extract the repository version during the build process.
 ### Install python
 
 To create plots in qcML files, install the portable version of [WinPython](https://github.com/winpython/winpython/releases/download/16.6.20250620final/Winpython64-3.13.5.0whl.7z) and add the directory containing the `python.exe` to the PATH.
+
+You have to install `maplotlib` in case it is not found:
+
+	> python.exe -m pip install matplotlib
 
 This is optional. If python is not installed, no plots are generated.
 
