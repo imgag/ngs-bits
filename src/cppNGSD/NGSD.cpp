@@ -6104,7 +6104,17 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 
 		//define variant calling mode
 		QByteArray variant_calling_mode = "AllVariantCallers";
-		if (is_tumor) variant_calling_mode = "None";
+
+		//define target region
+		QByteArray target_region = "DragenEnrichment/" + system_name + ".bed";
+
+		//disable calling on tumors
+		if (is_tumor)
+		{
+			variant_calling_mode = "None";
+			target_region = "na";
+		}
+
 
 		//cut MIDs to fit recipe
 		if (mid1.length() > index1_read_length)
@@ -6134,7 +6144,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 				}
 				else if (system_type == "WES")
 				{
-					enrichment_analysis.append(ps_name + ",DragenEnrichment/" + system_name + ".bed," + variant_calling_mode);
+					enrichment_analysis.append(ps_name + "," + target_region + "," + variant_calling_mode);
 				}
 			}
 			else if (sample_type == "RNA")
