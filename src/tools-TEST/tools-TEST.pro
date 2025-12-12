@@ -62,6 +62,7 @@ SOURCES += \
     BedAnnotateFreq_Test.cpp \
     GenesToBed_Test.cpp \
     VariantAnnotateFrequency_Test.cpp \
+    VcfAnnotateFrequency_Test.cpp \
     VariantQC_Test.cpp \
     MappingQC_Test.cpp \
     FastqList_Test.cpp \
