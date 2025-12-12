@@ -1,0 +1,6 @@
+#key	value
+text	bla
+integer	4711
+float	1.234
+special_html	<html>
+special_md	|test|
