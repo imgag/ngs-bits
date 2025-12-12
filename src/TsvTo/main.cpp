@@ -76,7 +76,7 @@ public:
 				QByteArrayList parts = in.readLine();
 				for (int i=0; i<in.columns(); ++i)
 				{
-					col_size_[i] = std::max(col_size_[i], text(parts, i).size());
+                    col_size_[i] = qMax<qint64>(col_size_[i], text(parts, i).size());
 				}
 			}
 			in.reset();
