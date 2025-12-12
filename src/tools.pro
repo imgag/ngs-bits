@@ -508,6 +508,10 @@ SUBDIRS += TsvToQC
 tools-TEST.depends += TsvToQC
 TsvToQC.depends = cppNGS
 
+SUBDIRS += TsvTo
+tools-TEST.depends += TsvTo
+TsvTo.depends = cppNGS
+
 SUBDIRS += NGSDImportGenlab
 tools-TEST.depends += NGSDImportGenlab
 NGSDImportGenlab.depends = cppNGS

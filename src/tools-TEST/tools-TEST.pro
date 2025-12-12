@@ -155,6 +155,7 @@ SOURCES += \
     NGSDExtractRNACohort_Test.cpp \
     VcfToBed_Test.cpp \
     TsvToQC_Test.cpp \
+    TsvTo_Test.cpp \
     VcfAdd_Test.cpp \
     NGSDImportGenlab_Test.cpp \
     NGSDExportStudyGHGA_Test.cpp \
