@@ -64,7 +64,7 @@ public:
 	static QString nobr();
 
 	///Edit classification of a variant
-	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
+	void editVariantClassification(VariantList& variant, int index);
 
 	///Returns if germline report is supported for current variant list. If error is given, it is filled with the error message, if false is returned.
 	bool germlineReportSupported(bool require_ngsd = true, QString* error=nullptr);
@@ -559,7 +559,6 @@ private:
 		QAction* a_report_edit;
 		QAction* a_report_del;
 		QAction* a_var_class;
-		QAction* a_var_class_somatic;
 		QAction* a_var_interpretation_somatic;
 		QAction* a_var_comment;
 		QAction* a_var_val;

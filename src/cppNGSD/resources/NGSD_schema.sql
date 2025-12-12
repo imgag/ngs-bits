@@ -715,26 +715,6 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
--- Table `somatic_variant_classification`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `somatic_variant_classification`
-(
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `variant_id` int(11) NOT NULL,
-  `class` ENUM('n/a','activating','likely_activating','inactivating','likely_inactivating','unclear','test_dependent') NOT NULL,
-  `comment` TEXT,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `somatic_variant_classification_has_variant` (`variant_id`),
-  CONSTRAINT `somatic_variant_classification_has_variant`
-    FOREIGN KEY (`variant_id`)
-    REFERENCES `variant` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
-
--- -----------------------------------------------------
 -- Table `somatic_vicc_interpretation`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `somatic_vicc_interpretation`

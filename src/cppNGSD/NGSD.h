@@ -1090,10 +1090,6 @@ public:
 	QMap<QString, ClassificationInfo> getAllClassifications();
 	///Sets the classification of a variant in the NGSD.
 	void setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info);
-	///Returns somatic classification information
-	ClassificationInfo getSomaticClassification(const Variant& variant);
-	///Sets the somatic classification of a variant in the NGSD.
-	void setSomaticClassification(const Variant& variant, ClassificationInfo info);
 
 	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
 	int getSomaticViccId(const Variant& variant);
