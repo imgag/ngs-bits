@@ -19,7 +19,7 @@ TEST_CLASS(NGSD_Test)
 {
 private:
 	//Normally, one member is tested in one QT slot.
-	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
+	//Because initializing the database takes very long, most NGSD functionality is tested in one slot.
 	TEST_METHOD(main_tests)
 	{
 		SKIP_IF_NO_TEST_NGSD();
@@ -1025,6 +1025,15 @@ private:
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 0);
 		I_EQUAL(ps_table.columnCount(), 78);
+		//PS override (4 out of the 9 processed samples in defined order)
+		params.ps_override = QStringList() << "DX184894_01" << "NA12878_04" << "NA12123repeat_01" << "NA12123_23";
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 4);
+		S_EQUAL(ps_table.row(0).value(0), "DX184894_01");
+		S_EQUAL(ps_table.row(1).value(0), "NA12878_04");
+		S_EQUAL(ps_table.row(2).value(0), "NA12123repeat_01");
+		S_EQUAL(ps_table.row(3).value(0), "NA12123_23");
+
 		//filter based on access rights (restricted user)
 		params = ProcessedSampleSearchParameters();
 		params.restricted_user = "ahkerra1";

@@ -437,6 +437,9 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	//filter output to processed samples that user has access to
 	QString restricted_user;
 
+	//filter override (processed sample names are provided and not determined by the filters above). The result table of the searched is ordered in the given order.
+	QStringList ps_override;
+
 	//output options
 	QString add_path;
 	bool add_disease_details = false;
