@@ -1,6 +1,6 @@
 # Get the Qt version from qmake
-QT_VERSION := $(shell qmake -query QT_VERSION)
-QT_MAJOR   := $(word 1, $(subst ., ,$(QT_VERSION)))
+QMAKE := $(shell command -v qmake 2>/dev/null || command -v qmake6)
+QT_MAJOR := $(shell $(QMAKE) -query QT_VERSION | cut -d. -f1)
 
 # Choose build folder based on the available Qt version
 ifeq ($(QT_MAJOR),6)
@@ -14,7 +14,7 @@ else
 endif
 
 # Show chosen directory
-$(info Currently used Qt version: $(QT_VERSION))
+$(info Currently used Qt major version: $(QT_MAJOR))
 $(info Default build directory: $(PROJECT_BUILD_DIR))
 $(info Relative path to the source code: $(PATH_TO_ROOT))
 
