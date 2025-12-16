@@ -810,7 +810,7 @@ created_by: schroeder
 [Term]
 id: QC:2000045
 name: known somatic variants percentage
-def: "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in gnomAD)." [PXS:QC]
+def: "Percentage of somatic variants that are listed as germline variants in public databases (e.g. AF>1% in gnomAD)." [PXS:QC]
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schroeder
