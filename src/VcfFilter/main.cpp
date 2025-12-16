@@ -185,7 +185,7 @@ public:
 		ChromosomalIndex<BedFile> roi_index(roi);
 
 		//open input/output streams
-		QString in = getInfile("in");
+		QString in = getInfile("in"); //TODO Marc: add support for VCF.GZ
 		QString out = getOutfile("out");
 		if(in!="" && in==out)
 		{
