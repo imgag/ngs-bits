@@ -108,7 +108,7 @@ However, the list may change depending on the version of the libraries. It is re
 
 The majority of GSvar dependencies will be copied to the folder with its binary executable. `windeployqt` usually handles only Qt-related libraries: use the combination of `windeployqt` and the list from above to get all the necessary dependencies. If `GSvar.exe` complains about missing DLLs, try locating them (one at a time) at the `mingw64/bin` folder and copy them next to the `GSvar.exe`. Keep adding DLLs until the application starts working. This strategy may not work in 100% of the cases (e.g. if there is a conflict between DLLs), but it significantly narrrows down the search area. More information on how to use `windeployqt` utility can be found [here](https://doc.qt.io/qt-6/windows-deployment.html)
 
-There is a chance that reading files over HTTPS inside `GSvar` on Winodws will not work, if the system has no information about the certificate authorities needed to validate SSL certifiactes. You may need to set the `CURL_CA_BUNDLE` environment variable: it should contain the location of a CA bundle file (`ca-bundle.crt`, `ca-bundle.trust.crt`, or something else) - the file that includes root and intermediate certificates. Use `set` command for that:
+There is a chance that reading files over HTTPS inside `GSvar` on Winodws will not work. It may happen if the system has no information about the certificate authorities needed to validate SSL certifiactes. You will need to set the `CURL_CA_BUNDLE` environment variable: it should contain the location of a CA bundle file (`ca-bundle.crt`, `ca-bundle.trust.crt`, or something else) - the file that includes root and intermediate certificates. Use `set` command for that:
 
         > set CURL_CA_BUNDLE=ca-bundle.crt
 
