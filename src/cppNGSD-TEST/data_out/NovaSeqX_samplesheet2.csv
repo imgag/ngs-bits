@@ -22,6 +22,8 @@ Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismat
 1,cfDNA005_01,AAAAATTTTT,CCCCCGGGGG,Y151;I10N9;I10;Y151,1,1
 2,cfDNA005_01,AAAAATTTTT,CCCCCGGGGG,Y151;I10N9;I10;Y151,1,1
 3,NA12878_66,CGATCGATCG,ATCGATCGAT,Y151;I10N9;I10;Y151,1,1
+4,DX000002_02,CGATCGAT,ATCGATCG,Y151;I8N11;N2I8;Y151,1,1
+4,DX000001_02,CGATCGATCG,ATCGATCGAT,Y151;I10N9;I10;Y151,1,1
 
 [DragenGermline_Settings]
 SoftwareVersion,4.3.16
@@ -29,9 +31,10 @@ AppVersion,1.3.13
 KeepFastq,true
 MapAlignOutFormat,cram
 ReferenceGenomeDir,GRCh38
-VariantCallingMode,AllVariantCallers
 
 [DragenGermline_Data]
-Sample_ID
-NA12878_77
-NA12878_66
+Sample_ID,VariantCallingMode
+NA12878_77,AllVariantCallers
+NA12878_66,AllVariantCallers
+DX000002_02,AllVariantCallers
+DX000001_02,None

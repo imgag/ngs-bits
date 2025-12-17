@@ -1,20 +1,16 @@
 #include "ClassificationDialog.h"
 #include "LoginManager.h"
 
-ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& variant, bool is_somatic)
+ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& variant)
 	: QDialog(parent)
 	, ui_()
 {
 	ui_.setupUi(this);
 	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(classificationChanged()));
-	if (is_somatic)
-	{
-		setWindowTitle("Variant classification (somatic)");
-	}
 
 	//set status options
 	NGSD db;
-	QStringList status = db.getEnum(is_somatic ? "somatic_variant_classification" : "variant_classification", "class");
+	QStringList status = db.getEnum("variant_classification", "class");
 	foreach(QString s, status)
 	{
 		ui_.classification->addItem(s);
@@ -24,18 +20,9 @@ ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& varia
 	ui_.variant->setText(variant.toString());
 
 	//get classification data from NGSD
-	if(is_somatic)
-	{
-		ClassificationInfo class_info = db.getSomaticClassification(variant);
-		ui_.classification->setCurrentText(class_info.classification);
-		ui_.comment->setPlainText(class_info.comments);
-	}
-	else
-	{
-		ClassificationInfo class_info = db.getClassification(variant);
-		ui_.classification->setCurrentText(class_info.classification);
-		ui_.comment->setPlainText(class_info.comments);
-	}
+	ClassificationInfo class_info = db.getClassification(variant);
+	ui_.classification->setCurrentText(class_info.classification);
+	ui_.comment->setPlainText(class_info.comments);
 }
 
 ClassificationInfo ClassificationDialog::classificationInfo() const
@@ -52,7 +39,7 @@ void ClassificationDialog::classificationChanged()
 
 	//set cursor
 	QTextCursor cursor = ui_.comment->textCursor();
-	int pos = text_new.count()-2;
+	int pos = text_new.length()-2;
 	cursor.setPosition(pos);
 	ui_.comment->setTextCursor(cursor);
 

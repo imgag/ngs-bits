@@ -64,6 +64,7 @@ ServerInfo ClientHelper::getServerInfo(int& status_code)
 		if (json_doc.object().contains("start_time")) info.server_start_time = QDateTime::fromSecsSinceEpoch(json_doc.object()["start_time"].toInt());
         if (json_doc.object().contains("server_url")) info.server_url = json_doc.object()["server_url"].toString();
 		if (json_doc.object().contains("htslib_version")) info.htslib_version = json_doc.object()["htslib_version"].toString();
+        if (json_doc.object().contains("qt_version")) info.qt_version = json_doc.object()["qt_version"].toString();
     }
 
 	return info;

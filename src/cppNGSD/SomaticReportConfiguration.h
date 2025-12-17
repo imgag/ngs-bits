@@ -131,8 +131,8 @@ public:
 	bool includeTumContentByEstimated() const;
 	void setIncludeTumContentByEstimated(bool include_tum_content_estimated);
 
-	double tumContentByEstimated() const;
-	void setTumContentByEstimated(double tum_content_estimated);
+	int tumContentByEstimated() const;
+	void setTumContentByEstimated(int tum_content_estimated);
 
 	bool msiStatus() const;
 	void setMsiStatus(bool include_msi_status);
@@ -197,7 +197,7 @@ private:
 	bool include_tum_content_histological_;
 	bool include_tum_content_estimated_;
 
-	double tum_content_estimated_;
+	int tum_content_estimated_;
 
 	bool include_msi_status_;
 	bool include_cnv_burden_;

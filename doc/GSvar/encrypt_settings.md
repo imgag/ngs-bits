@@ -26,7 +26,10 @@ Or, encrypted like this:
 
 	ngsd_pass = "encrypted:AwtUTQrbAFKiDzc="
 
+# GSvar cient/server handshake
 
+In addition to the enrypting settings, the `CRYPT_KEY` is used for a handshake between GSvar cient and server.  
+Communincation between client and sever will be refused if the `CRYPT_KEYs` of client and server do not match.
 
 --
 

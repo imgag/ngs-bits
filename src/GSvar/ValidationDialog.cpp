@@ -64,17 +64,7 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 		{
 			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant);
 
-			QString exon_intron;
-			if (consequence.exon_number!=-1)
-			{
-				exon_intron = "exon"+QString::number(consequence.exon_number)+"/"+QString::number(trans.regions().count());
-			}
-			else if (consequence.intron_number!=-1)
-			{
-				exon_intron = "intron"+QString::number(consequence.intron_number)+"/"+QString::number(trans.regions().count());
-			}
-
-			QString line = trans.gene() + " " + trans.nameWithVersion() + " " + exon_intron + " " + variant.chr().str() + ":" + QString::number(variant.start()) + "-" + QString::number(variant.end()) + " " + consequence.hgvs_c + " " + consequence.hgvs_p;
+			QString line = trans.gene() + " " + trans.nameWithVersion() + " " + consequence.exonOrIntron(trans) + " " + variant.chr().str() + ":" + QString::number(variant.start()) + "-" + QString::number(variant.end()) + " " + consequence.hgvs_c + " " + consequence.hgvs_p;
 
 			//flags for important transcripts
 			QStringList flags = trans.flags(true);

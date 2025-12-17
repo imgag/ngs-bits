@@ -24,6 +24,7 @@ unix: LIBS += -lxml2
 INCLUDEPATH += $$PWD/../VcfToBedpe
 
 SOURCES += \
+    BedToEpigen_Test.cpp \
     NGSDAddVariantsSomatic_Test.cpp \
     BamInfo_Test.cpp \
     BamRemoveVariants_Test.cpp \
@@ -61,6 +62,7 @@ SOURCES += \
     BedAnnotateFreq_Test.cpp \
     GenesToBed_Test.cpp \
     VariantAnnotateFrequency_Test.cpp \
+    VcfAnnotateFrequency_Test.cpp \
     VariantQC_Test.cpp \
     MappingQC_Test.cpp \
     FastqList_Test.cpp \
@@ -153,6 +155,7 @@ SOURCES += \
     NGSDExtractRNACohort_Test.cpp \
     VcfToBed_Test.cpp \
     TsvToQC_Test.cpp \
+    TsvTo_Test.cpp \
     VcfAdd_Test.cpp \
     NGSDImportGenlab_Test.cpp \
     NGSDExportStudyGHGA_Test.cpp \

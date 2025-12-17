@@ -110,7 +110,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 		else
 		{
-            for (QByteArray gene : var.annotations()[i_germl_gene].split(','))
+			for (const QByteArray& gene: var.annotations()[i_germl_gene].split(','))
 			{
 				important_genes << gene;
 			}
@@ -922,7 +922,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	QList<SampleDiseaseInfo> sample_disease_infos = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps), "Oncotree code");
 	QByteArrayList oncotree_codes;
 
-    for (SampleDiseaseInfo sdi : sample_disease_infos)
+	for (const SampleDiseaseInfo& sdi : sample_disease_infos)
 	{
 		oncotree_codes.append(sdi.disease_info.toUtf8());
 	}
@@ -1486,7 +1486,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_tumor, QString ps_normal)
 	table.addTitelRow({"HLA"},{doc_.maxWidth()});
 	table.addHeaderRow({"Gene","Blut (" + ps_normal.toUtf8() + ")", "Tumor (" + ps_tumor.toUtf8() + ")"}, {1522, 4200, 4200});
 
-    for (QByteArray gene : QByteArrayList({"HLA-A", "HLA-B", "HLA-C"}))
+	for (const QByteArray& gene : QByteArrayList({"HLA-A", "HLA-B", "HLA-C"}))
 	{
 		QByteArray normal_hla_allel1 = normal_hla.isValid() ? normal_hla.getGeneAllele(gene, true)  : "nicht bestimmbar";
 		QByteArray normal_hla_allel2 = normal_hla.isValid() ? normal_hla.getGeneAllele(gene, false) : "nicht bestimmbar";
@@ -1638,7 +1638,7 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 		}
 		else
 		{
-            for (auto sig : signatures)
+			for (const KeyValuePair& sig : signatures)
 			{
 				RtfTableRow row;
 				row.addCell(cell_widths[0], sig.key.toLatin1());
@@ -1869,7 +1869,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	//estimated tumor content (if checked overwrite bioinf tumor content)
 	if(settings_.report_config->includeTumContentByEstimated())
 	{
-		tumor_content_bioinf = "ca. " + QByteArray::number(settings_.report_config->tumContentByEstimated(), 'f', 0) + " \%";
+		tumor_content_bioinf = "ca. " + QByteArray::number(settings_.report_config->tumContentByEstimated()) + " \%";
 	}
 
 
@@ -2317,7 +2317,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
 					GeneSet genes_cnv = db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end());
-					foreach (const QByteArray& gene, genes_cnv)
+					for (const QByteArray& gene: genes_cnv)
 					{
 						if (!genes_pathway.contains(gene)) continue;
 						if (!cnv_high_impact_indices_[k].contains(gene)) continue;

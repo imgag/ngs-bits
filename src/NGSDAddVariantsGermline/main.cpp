@@ -254,7 +254,7 @@ public:
 				}
 				else if (pair.key.endsWith(" finished on"))
 				{
-					call_date = QDate::fromString(pair.value, "yyyy-MM-dd");
+					call_date = QDate::fromString(pair.value.left(10), "yyyy-MM-dd");
 				}
 				else //quality metrics
 				{

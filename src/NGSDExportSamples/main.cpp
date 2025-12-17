@@ -26,7 +26,6 @@ public:
 		return output;
 	}
 
-	//TODO Marc: Add mode for annotation of existing processed sample list
 	virtual void setup()
 	{
 		setDescription("Lists processed samples from the NGSD.");
@@ -59,6 +58,7 @@ public:
 		addString("run_before", "Sequencing run before or equal to the given date.", true, "");
 		addString("run_after", "Sequencing run after or equal to the given date.", true, "");
 		addFlag("no_bad_runs", "If set, sequencing runs with 'bad' quality are excluded.");
+		addString("ps_override", "Processed sample list separated by colon, e.g. 'NA12878_58;NA24385_03', or a file containing one processed sample per line.", true, "");
 		addFlag("add_qc", "If set, QC columns are added to output.");
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
 		addFlag("add_disease_details", "If set, disease details columns are added to the output.");
@@ -73,6 +73,7 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addEnum("preset", "Presets for different common searches. Note: presets are applied after argument parsing and thus override command line argument.", true, QStringList() << "none" << "germline", "none");
 
+		changeLog(2025, 12, 12, "Added 'ps_override' parameter.");
 		changeLog(2025,  5, 19, "Added 'preset' and 'no_resequencing' parameters.");
 		changeLog(2024,  8, 21, "Added 'add_study_column' flag.");
 		changeLog(2024,  4, 24, "Added 'only_with_small_variants' flag.");
@@ -174,6 +175,20 @@ public:
 
 			params.include_bad_quality_runs = false;
 			params.run_finished = true;
+		}
+
+		//PS override
+		QString ps_override = getString("ps_override");
+		if (!ps_override.isEmpty())
+		{
+			if (QFile::exists(ps_override))
+			{
+				params.ps_override = Helper::loadTextFile(ps_override, true, '#', true);
+			}
+			else
+			{
+				params.ps_override = ps_override.split(';');
+			}
 		}
 
 		//check parameters

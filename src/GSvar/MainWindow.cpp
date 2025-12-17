@@ -138,6 +138,7 @@
 #include <QMimeData>
 #include "MaintenanceDialog.h"
 #include <QStyleFactory>
+#include <QLibraryInfo>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
@@ -2175,12 +2176,10 @@ void MainWindow::on_actionSettings_triggered()
 void MainWindow::openSettingsDialog(QString page_name, QString section)
 {
 	SettingsDialog dlg(this);
-	dlg.setWindowFlags(Qt::Window);
 	dlg.gotoPage(page_name, section);
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
-		setStyle(Settings::string("window_style", true));
 	}
 }
 
@@ -3298,6 +3297,7 @@ void MainWindow::on_actionAbout_triggered()
 	about_text += "\nGenome build: " + GSvarHelper::buildAsString();
 	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
 	about_text += "\nhtslib version: " + QString(hts_version());
+	about_text += "\nQt version: " + QLibraryInfo::version().toString();
 
 	//client-server infos
 	about_text += "\n";
@@ -3317,6 +3317,7 @@ void MainWindow::on_actionAbout_triggered()
 			about_text += "\n  API URL: " + server_info.server_url;
 			about_text += "\n  API version: " + server_info.api_version;
 			about_text += "\n  htslib version: " + server_info.htslib_version;
+			about_text += "\n  Qt version: " + server_info.qt_version;
 		}
     }
 	else
@@ -5241,7 +5242,7 @@ void MainWindow::calculateGapsByGenes()
 	NGSD db;
 	BedFile regions;
 	GeneSet genes = GeneSet::createFromStringList(text.split("\n"));
-	foreach(const QByteArray& gene, genes)
+	for(const QByteArray& gene: genes)
 	{
 		regions.add(db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true, false));
 	}
@@ -5919,9 +5920,6 @@ void MainWindow::registerCustomContextMenuActions()
 	context_menu_actions_.a_var_class->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_class;
 
-	context_menu_actions_.a_var_class_somatic = new QAction("Edit classification  (somatic)");
-	context_menu_actions_.a_var_class_somatic->setEnabled(ngsd_user_logged_in);
-	actions << context_menu_actions_.a_var_class_somatic;
 	context_menu_actions_.a_var_interpretation_somatic = new QAction("Edit VICC interpretation (somatic)");
 	context_menu_actions_.a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_interpretation_somatic;
@@ -5970,10 +5968,6 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 	else if (action == context_menu_actions_.a_var_class)
 	{
 		editVariantClassification(variants_, index);
-	}
-	else if (action == context_menu_actions_.a_var_class_somatic)
-	{
-		editVariantClassification(variants_, index, true);
 	}
 	else if (action == context_menu_actions_.a_var_interpretation_somatic)
 	{
@@ -6162,6 +6156,7 @@ void MainWindow::jumpToCnvOrSvPosition(int row)
 
 void MainWindow::setStyle(QString name)
 {
+	if (name=="" || name=="[default]") name = "windowsvista";
 	QStyle* style = QStyleFactory::create(name);
 	if (style==nullptr)
 	{
@@ -6216,67 +6211,47 @@ void MainWindow::on_actionOpenGSvarDataFolder_triggered()
 	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
 }
 
-void MainWindow::editVariantClassification(VariantList& variants, int index, bool is_somatic)
+void MainWindow::editVariantClassification(VariantList& variants, int index)
 {
 	try
 	{
 		Variant& variant = variants[index];
 
 		//execute dialog
-		ClassificationDialog dlg(this, variant, is_somatic);
+		ClassificationDialog dlg(this, variant);
 		if (dlg.exec()!=QDialog::Accepted) return;
 
 		//update NGSD
 		NGSD db;
 
 		ClassificationInfo class_info = dlg.classificationInfo();
-		if(is_somatic)
+
+		db.setClassification(variant, variants_, class_info);
+
+		//update variant list classification
+		int i_class = variants.annotationIndexByName("classification");
+		QString new_class = class_info.classification.replace("n/a", "");
+		variant.annotations()[i_class] = new_class.toUtf8();
+
+		markVariantListChanged(variant, "classification", new_class);
+
+		//update variant list classification comment
+		int i_class_comment = variants.annotationIndexByName("classification_comment");
+		variant.annotations()[i_class_comment] = class_info.comments.toUtf8();
+
+		markVariantListChanged(variant, "classification_comment", class_info.comments);
+
+		//check if already uploaded to ClinVar
+		QString var_id = db.variantId(variant);
+		QString sample_id = db.sampleId(germlineReportSample(), false);
+		if (!sample_id.isEmpty())
 		{
-			db.setSomaticClassification(variant, class_info);
-
-			//update variant list classification
-			int i_som_class = variants.annotationIndexByName("somatic_classification");
-			QString new_class = class_info.classification.replace("n/a", "");
-			variant.annotations()[i_som_class] = new_class.toUtf8();
-
-			markVariantListChanged(variant, "somatic_classification", new_class);
-
-			//update variant list classification comment
-			int i_som_class_comment = variants.annotationIndexByName("somatic_classification_comment");
-			variant.annotations()[i_som_class_comment] = class_info.comments.toUtf8();
-
-			markVariantListChanged(variant, "somatic_classification_comment", class_info.comments);
-
-		}
-		else //germline variants
-		{
-			db.setClassification(variant, variants_, class_info);
-
-			//update variant list classification
-			int i_class = variants.annotationIndexByName("classification");
-			QString new_class = class_info.classification.replace("n/a", "");
-			variant.annotations()[i_class] = new_class.toUtf8();
-
-			markVariantListChanged(variant, "classification", new_class);
-
-			//update variant list classification comment
-			int i_class_comment = variants.annotationIndexByName("classification_comment");
-			variant.annotations()[i_class_comment] = class_info.comments.toUtf8();
-
-			markVariantListChanged(variant, "classification_comment", class_info.comments);
-
-			//check if already uploaded to ClinVar
-			QString var_id = db.variantId(variant);
-			QString sample_id = db.sampleId(germlineReportSample(), false);
-			if (!sample_id.isEmpty())
+			QString clinvar_class = db.getValue("SELECT class FROM  variant_publication WHERE variant_table='variant' AND db='ClinVar' AND sample_id='" + sample_id + "' AND variant_id='" + var_id + "' ORDER BY id DESC LIMIT 1").toString();
+			if(!clinvar_class.isEmpty() && clinvar_class!=new_class)
 			{
-				QString clinvar_class = db.getValue("SELECT class FROM  variant_publication WHERE variant_table='variant' AND db='ClinVar' AND sample_id='" + sample_id + "' AND variant_id='" + var_id + "' ORDER BY id DESC LIMIT 1").toString();
-				if(!clinvar_class.isEmpty() && clinvar_class!=new_class)
-				{
-					//update on ClinVar
-					int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
-					if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
-				}
+				//update on ClinVar
+				int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
+				if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
 			}
 		}
 

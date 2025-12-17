@@ -36,6 +36,7 @@ private slots:
 	void updateSampleCounts();
 	void updateGeneCounts();
 	void updateExcludedRegions();
+	//TODO: move Burden-Test to lib class and implement tests
 	void performBurdenTest();
 	void copyToClipboard();
 	void copyWarningsToClipboard();

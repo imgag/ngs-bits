@@ -15,7 +15,8 @@ struct CPPNGSSHARED_EXPORT ServerInfo
 	QDateTime server_start_time; // date and time when the server was started
     QString server_url; // server host / domain name
 	QString api_version; // server API version
-	QString htslib_version;
+    QString htslib_version; // htslib version on the server
+    QString qt_version; // Qt version on the server
 
 	bool isEmpty()
 	{

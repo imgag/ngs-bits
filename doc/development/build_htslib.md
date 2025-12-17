@@ -39,7 +39,7 @@ The main problem with Windows is that htslib does not maintain a build system fo
 The process of building *htslib* on Windows is described in this [issue](https://github.com/samtools/htslib/issues/907).  
 
 
-1. Install 64-bit MSYS2 from the [project website](https://msys2.github.io/). Older versions can be found [here](https://github.com/msys2/msys2-installer/releases/)
+1. Install 64-bit `MSYS2` (which includes `mingw`) from the [project website](https://msys2.github.io/). Howerver, you should pay attention to which version you are installing, since the latest one is likely binary incompatible with the `mingw` that comes with your Qt. This `mingw` is incomplete in the sense that it does not have any build tools. Qt online installer changes over time and it is difficult to tell which version of `mingw` it currently has. You will have to manually check the version and find the corresponding `MSYS2` release. E.g. the `MSYS2` release from 2024-05-07 is compatible with `mingw` 13.1.0.  Older versions of `MSYS2` can be found [here](https://github.com/msys2/msys2-installer/releases/).
 
 2. If behind a proxy, update proxy settings as described [here](https://stackoverflow.com/questions/29783065/msys2-pacman-cant-update-packages-through-corporate-firewall9):
 	- Uncomment and set proxy credentials in `[msys]\etc\wgetrc`:
@@ -52,10 +52,11 @@ The process of building *htslib* on Windows is described in this [issue](https:/
 			XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
 
 
-3. Open the MSYS shell **as admin** and install build environment:
+3. Open the `mingw` shell (by launching `mingw64.exe`) and install build environment (avoid using `pacman -Syu`, if you want to keep binary compatibility or install older versions of the packages):
 
-		> pacman -Syu
 		> pacman -S --noconfirm --needed base-devel autotools mingw-w64-x86_64-toolchain mingw-w64-x86_64-zlib mingw-w64-x86_64-bzip2 mingw-w64-x86_64-xz mingw-w64-x86_64-curl
+
+	You may see some warnings inside the shell. Ignore them, if you did not run `pacman -Syu` and want to keep using older packages.
 
 4. Download the latest `htslib` from [http://www.htslib.org/download/](http://www.htslib.org/download/) and unzip in some where in the [msys] directory.
 
@@ -78,13 +79,13 @@ The process of building *htslib* on Windows is described in this [issue](https:/
 
 ### Deploying GSvar with htslib that supports HTTP/HTTPS
 
-Normally, `hts-3.dll` has the following dependencies (the list may vary, depending on your version):
+Normally, `hts-3.dll` has the following dependencies:
  * libbrotlicommon.dll
  * libbrotlidec.dll
  * libbz2-1.dll
  * libcrypto-3-x64.dll
  * libcurl-4.dll
- * libdeflate.dll
+ * libgcc_s_seh-1.dll
  * libiconv-2.dll
  * libidn2-0.dll
  * libintl-8.dll
@@ -93,9 +94,11 @@ Normally, `hts-3.dll` has the following dependencies (the list may vary, dependi
  * libpsl-5.dll
  * libssh2-1.dll
  * libssl-3-x64.dll
+ * libstdc++-6.dll
  * libsystre-0.dll
  * libtre-5.dll
- * libunistring-2.dll
+ * libunistring-5.dll
+ * libwinpthread-1.dll
  * libzstd.dll
  * zlib1.dll
 
@@ -103,9 +106,9 @@ However, the list may change depending on the version of the libraries. It is re
 
         > QTDIR/bin/windeployqt GSvar.exe
 
-The majority of GSvar dependencies will be copied to the folder with its binary executable. Add htslib depdendencies to the same folder (listed above). Try to launch `GSvar.exe`. It will probably complain about missing DLLs. Locate them (one at a time) at the mingw folder and copy them next to the `GSvar.exe`. Keep adding DLLs until the application starts working. This strategy many not work in 100% of the cases (e.g. if there is a conflict between DLLs), but it significantly narrrows down the search area. More information about the `windeployqt` utility can be found [here](https://doc.qt.io/qt-6/windows-deployment.html)
+The majority of GSvar dependencies will be copied to the folder with its binary executable. `windeployqt` usually handles only Qt-related libraries: use the combination of `windeployqt` and the list from above to get all the necessary dependencies. If `GSvar.exe` complains about missing DLLs, try locating them (one at a time) at the `mingw64/bin` folder and copy them next to the `GSvar.exe`. Keep adding DLLs until the application starts working. This strategy may not work in 100% of the cases (e.g. if there is a conflict between DLLs), but it significantly narrrows down the search area. More information on how to use `windeployqt` utility can be found [here](https://doc.qt.io/qt-6/windows-deployment.html)
 
-By default, reading files over HTTPS inside `GSvar` on Winodws does not work. You will need to set the `CURL_CA_BUNDLE` environment variable. It should contain the location of a CA bundle file (`ca-bundle.crt`, `ca-bundle.trust.crt`, or something ele) - the file that includes root and intermediate certificates. Use `set` command for that:
+There is a chance that reading files over HTTPS inside `GSvar` on Winodws will not work. It may happen if the system has no information about the certificate authorities needed to validate SSL certifiactes. You will need to set the `CURL_CA_BUNDLE` environment variable: it should contain the location of a CA bundle file (`ca-bundle.crt`, `ca-bundle.trust.crt`, or something else) - the file that includes root and intermediate certificates. Use `set` command for that:
 
         > set CURL_CA_BUNDLE=ca-bundle.crt
 

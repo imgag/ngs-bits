@@ -200,7 +200,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio', 'DNBSEQ-T7') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -568,7 +568,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `project_id` INT(11) NOT NULL,
   `processing_input` FLOAT NULL DEFAULT NULL,
   `molarity` FLOAT NULL DEFAULT NULL,
-  `processing_modus` ENUM('n/a','manual','Biomek i5','Biomek i7', 'Bravo', 'Assist Plus') NOT NULL DEFAULT 'n/a',
+  `processing_modus` ENUM('n/a','manual','Biomek i5','Biomek i7', 'Bravo', 'Assist Plus', 'MGISP-Smart 8') NOT NULL DEFAULT 'n/a',
   `batch_number` VARCHAR(100) NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL COMMENT 'For tumor samples, a normal sample can be given here which is used as reference sample during the data analysis.',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
@@ -710,26 +710,6 @@ CONSTRAINT `fk_variant_classification_has_variant`
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
 INDEX `class` (`class` ASC)
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
-
--- -----------------------------------------------------
--- Table `somatic_variant_classification`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `somatic_variant_classification`
-(
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `variant_id` int(11) NOT NULL,
-  `class` ENUM('n/a','activating','likely_activating','inactivating','likely_inactivating','unclear','test_dependent') NOT NULL,
-  `comment` TEXT,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `somatic_variant_classification_has_variant` (`variant_id`),
-  CONSTRAINT `somatic_variant_classification_has_variant`
-    FOREIGN KEY (`variant_id`)
-    REFERENCES `variant` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -2731,6 +2711,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `inhouse_testing` BOOLEAN NOT NULL DEFAULT FALSE,
   `statisticial_cutoff_wgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for short-read WGS (this cutoff can deviate from min_pathogenic when RE length cannot be determined accurately from NGSD)',
   `statisticial_cutoff_lrgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for long-read WGS',
+  `strchive_link` VARCHAR(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `repeat_id` (`name` ASC),
   UNIQUE INDEX `region_unit` (`region` ASC, `repeat_unit` ASC)

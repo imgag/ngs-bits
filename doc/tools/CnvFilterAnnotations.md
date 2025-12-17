@@ -1,5 +1,5 @@
 ### CnvFilterAnnotations tool help
-	CnvFilterAnnotations (2025_07-53-gefb5888f)
+	CnvFilterAnnotations (2025_09-112-ga53ff6f3d)
 	
 	Filter a copy-number variant list in TSV format based on variant annotations.
 	
@@ -57,6 +57,8 @@
 	                             max_ll - Maixmum log-likelihood [default=200] [min=0.0]
 	                             scale_by_regions - Scale log-likelihood by number of regions. [default=false]
 	CNV pathogenic CNV overlap Filter for overlap with pathogenic CNVs from the NGSD i.e. the 'ngsd_pathogenic_cnvs' column is not empty.
+	                           Parameters:
+	                             action - Action to perform [default=FILTER] [valid=FILTER,KEEP]
 	CNV polymorphism region    Filter for overlap with CNP regions.
 	                           Parameters:
 	                             column - CNP column name [default=overlap af_genomes_imgag]
@@ -91,7 +93,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### CnvFilterAnnotations changelog
-	CnvFilterAnnotations 2025_07-53-gefb5888f
+	CnvFilterAnnotations 2025_09-112-ga53ff6f3d
 	
 	2020-05-25 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
