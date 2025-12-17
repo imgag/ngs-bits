@@ -24,7 +24,7 @@ public:
 	{
 		setDescription("Calculates QC metrics based on tumor-normal pairs.");
 		addInfile("tumor_bam", "Input tumor BAM/CRAM file.", false, true);
-		addInfile("normal_bam", "Input normal BAM/CRAM file.", false, true);
+		addInfile("normal_bam", "Input normal BAM/CRAM file.", false, true); //TODO adapt for tumor-only and use in megSAP (replace tumor-only QC code in create_qcml.php)
 		addInfile("somatic_vcf", "Input somatic VCF file.", false, true);
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
