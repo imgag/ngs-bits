@@ -1203,7 +1203,7 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-    Session cur_session = Session(secure_token, user_id, user_login, user_real_name, QDateTime::currentDateTime(), false);
+	Session cur_session = Session(secure_token, user_id, user_login, user_real_name, Helper::randomString(128), QDateTime::currentDateTime(), false);
     SessionManager::addNewSession(cur_session);
     QByteArray body = secure_token.toUtf8();
 
@@ -1288,7 +1288,7 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
     }
 
     QString db_token = ServerHelper::generateUniqueStr();
-    Session cur_session = Session(db_token, user_session.user_id, user_session.user_login, user_session.user_name, QDateTime::currentDateTime(), true);
+	Session cur_session = Session(db_token, user_session.user_id, user_session.user_login, user_session.user_name, Helper::randomString(128), QDateTime::currentDateTime(), true);
     SessionManager::addNewSession(cur_session);
 	QByteArray body = db_token.toUtf8();
 
@@ -1297,6 +1297,23 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, body);
+}
+
+HttpResponse ServerController::getRandomSecret(const HttpRequest &request)
+{
+	QString token = EndpointManager::getTokenIfAvailable(request);
+	if (token.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to access this information"));
+	}
+	Session current_session = SessionManager::getSessionBySecureToken(token);
+
+	BasicResponseData response_data;
+	response_data.length = current_session.random_secret.length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, current_session.random_secret.toLocal8Bit());
 }
 
 HttpResponse ServerController::getNgsdCredentials(const HttpRequest& request)

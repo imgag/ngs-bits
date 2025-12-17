@@ -117,8 +117,8 @@ HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to request the database credentials. This incident will be reported"));
     }
 
-    bool ok = true;
-    if (request.getFormUrlEncoded()["secret"].toULongLong(&ok, 16) != ToolBase::encryptionKey("encryption helper"))
+	Session current_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["dbtoken"]);
+	if (request.getFormUrlEncoded()["secret"] != current_session.random_secret)
     {
         Log::warn(EndpointManager::formatResponseMessage(request, "Secret check failed for the database credentials"));
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to request the database credentials. This incident will be reported"));
