@@ -1,5 +1,4 @@
 #include "TestFrameworkNGS.h"
-#include "Settings.h"
 #include "NGSD.h"
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
@@ -10,7 +9,6 @@
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
 #include "FileLocationProviderLocal.h"
-#include "VariantHgvsAnnotator.h"
 #include "OntologyTermCollection.h"
 #include "RepeatLocusList.h"
 #include <QThread>
@@ -1252,7 +1250,7 @@ private:
 		var_conf.causal = false;
 		var_conf.exclude_artefact = false;
 		report_conf2->set(var_conf);
-		conf_id2 = db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs, res);
+		db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs, res);
 		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		var_conf = report_conf2->variantConfig()[1];
 		I_EQUAL(var_conf.id, 2)
@@ -2156,6 +2154,14 @@ private:
 		I_EQUAL(res_cnv.start(), 26582421);
 		I_EQUAL(res_cnv.end(), 27694430);
 
+		//test adding tumor-only CNV
+		CnvList cnvs2;
+		cnvs2.load(TESTDATA("data_in/somatic_cnvs_clincnv_tumor_only.tsv"));
+		cnv_id =  db.addSomaticCnv(1, cnvs2[0], cnvs2).toInt();
+		res_cnv = db.somaticCnv(cnv_id);
+		S_EQUAL(res_cnv.chr().strNormalized(true), "chr1");
+		I_EQUAL(res_cnv.start(), 3901206);
+		I_EQUAL(res_cnv.end(), 5765702);
 
 		//Test methods for somatic SVs in NGSD:
 		BedpeFile svs;
@@ -2214,6 +2220,19 @@ private:
 		S_EQUAL(var.chr2().strNormalized(true), "chr22");
 		I_EQUAL(var.start2(), 38103385);
 		I_EQUAL(var.end2(), 38103385);
+
+		//test adding tumor-only SV
+		BedpeFile svs2;
+		svs2.load(TESTDATA("data_in/somatic_svs_manta_tumor_only.bedpe"));
+		sv_id = db.addSomaticSv(1, svs2[0], svs2);
+		S_EQUAL(sv_id, "6");
+		var = db.somaticSv("6", StructuralVariantType::DUP, svs2);
+		S_EQUAL(var.chr1().strNormalized(true), "chr1");
+		I_EQUAL(var.start1(), 1310824);
+		I_EQUAL(var.end1(), 1310867);
+		S_EQUAL(var.chr2().strNormalized(true), "chr1");
+		I_EQUAL(var.start2(), 1310893);
+		I_EQUAL(var.end2(), 1310893);
 
 		//Test methods for somatic report configuration
 		VariantList vl;
@@ -2329,7 +2348,7 @@ private:
 
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
-		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
 
 		//test changing existing variant config:
 
@@ -2342,7 +2361,7 @@ private:
 
 		som_rep_conf->addSomaticVariantConfiguration(var2_changed);
 
-		config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will still be 52 in test NGSD
+		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will still be 52 in test NGSD
 
 		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet. Now published in NCBI:XYZ.");
 
@@ -3350,8 +3369,8 @@ private:
         db.init();
         db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
         SqlQuery import_query = db.getQuery();
-        for (const QString& single_query: db_dump)
-        {
+		for (const QString& single_query: std::as_const(db_dump))
+		{
             import_query.exec(single_query);
         }
 

@@ -1357,7 +1357,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_cnv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ps_tumor_id` INT(11) NOT NULL,
-  `ps_normal_id` INT(11) NOT NULL,
+  `ps_normal_id` INT(11) NULL,
   `caller` ENUM('ClinCNV') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATE NOT NULL,
@@ -1451,7 +1451,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ps_tumor_id` INT(11) NOT NULL,
-  `ps_normal_id` INT(11) NOT NULL,
+  `ps_normal_id` INT(11) NULL,
   `caller` ENUM('Manta', 'DRAGEN', 'Sniffles') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATE DEFAULT NULL,

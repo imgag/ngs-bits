@@ -1745,26 +1745,46 @@ void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id)
 {
 	deleteSomaticVariants(t_ps_id, n_ps_id, VariantType::SNVS_INDELS);
 	deleteSomaticVariants(t_ps_id, n_ps_id, VariantType::CNVS);
+	deleteSomaticVariants(t_ps_id, n_ps_id, VariantType::SVS);
 }
 
-void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type)
+void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type) //TODO Marc add tests for tumor-only (small, CNVs, SVs) and tumor-normal SVs
 {
 	if(type==VariantType::SNVS_INDELS)
 	{
-		getQuery().exec("DELETE FROM detected_somatic_variant WHERE processed_sample_id_tumor=" + t_ps_id + " AND processed_sample_id_normal=" +n_ps_id);
+		getQuery().exec("DELETE FROM detected_somatic_variant WHERE processed_sample_id_tumor=" + t_ps_id + " AND processed_sample_id_normal " + (n_ps_id=="" ? "IS NULL" : "=" +n_ps_id));
+
+		QString callset_id = getValue("SELECT id FROM somatic_snv_callset WHERE processed_sample_id_tumor=" + t_ps_id + " AND processed_sample_id_normal " + (n_ps_id.isEmpty() ? "IS NULL" : "=" + n_ps_id)).toString();
+		if (!callset_id.isEmpty())
+		{
+			getQuery().exec("DELETE FROM somatic_snv_callset WHERE id=" + callset_id);
+		}
 	}
 	else if(type == VariantType::CNVS)
 	{
-		QString callset_id = getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id).toString();
-		if(callset_id != "")
+		QString callset_id = getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id " + (n_ps_id.isEmpty() ? "IS NULL" : "=" + n_ps_id)).toString();
+		if (!callset_id.isEmpty())
 		{
 			getQuery().exec("DELETE FROM somatic_cnv WHERE somatic_cnv_callset_id=" + callset_id);
 			getQuery().exec("DELETE FROM somatic_cnv_callset WHERE id=" + callset_id);
 		}
 	}
+	else if(type == VariantType::SVS)
+	{
+		QString callset_id = getValue("SELECT id FROM somatic_sv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id " + (n_ps_id.isEmpty() ? "IS NULL" : "=" + n_ps_id)).toString();
+		if (!callset_id.isEmpty())
+		{
+			getQuery().exec("DELETE FROM somatic_sv_deletion WHERE somatic_sv_callset_id=" + callset_id);
+			getQuery().exec("DELETE FROM somatic_sv_duplication WHERE somatic_sv_callset_id=" + callset_id);
+			getQuery().exec("DELETE FROM somatic_sv_insertion WHERE somatic_sv_callset_id=" + callset_id);
+			getQuery().exec("DELETE FROM somatic_sv_inversion WHERE somatic_sv_callset_id=" + callset_id);
+			getQuery().exec("DELETE FROM somatic_sv_translocation WHERE somatic_sv_callset_id=" + callset_id);
+			getQuery().exec("DELETE FROM somatic_sv_callset WHERE id=" + callset_id);
+		}
+	}
 	else
 	{
-		THROW(NotImplementedException, "Deleting somatic variants of type '" + QString::number((int)type) + "' not implemented!");
+		THROW(NotImplementedException, "Deleting somatic variants of type '" + variantTypeToString(type) + "' not implemented!");
 	}
 }
 
@@ -2726,18 +2746,17 @@ CopyNumberVariant NGSD::cnv(int cnv_id)
 
 QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const CnvList &cnv_list, double min_ll)
 {
-	if(cnv_list.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	CnvListType type = cnv_list.type();
+	if(type!=CnvListType::CLINCNV_TUMOR_NORMAL_PAIR && type!=CnvListType::CLINCNV_TUMOR_ONLY)
 	{
-		THROW(ProgrammingException, "NGSD::addSomaticCnv can only be used with tumor-normal ClinCNV data.");
+		THROW(ProgrammingException, "NGSD::addSomaticCnv can only be used with tumor-normal or tumor-only CNV calls.");
 	}
+	bool is_tumor_only = (type==CnvListType::CLINCNV_TUMOR_ONLY);
 
+	//determin quality metrics to be included (determinend from columns in CNV file)
 	QJsonObject quality_metrics;
 	quality_metrics.insert("regions", QString::number(cnv.regions()));
-
-	//Quality metrics to be included (determinend from columns in CNV file)
-	const QList<QString> qc_metric_cols = {"major_CN_allele", "minor_CN_allele", "loglikelihood", "regions", "Ontarget_RD_CI_lower", "Ontarget_RD_CI_upper","Offtarget_RD_CI_lower",
-								 "Offtarget_RD_CI_upper", "Lowmed_tumor_BAF", "Highmed_tumor_BAF", "BAF_qval_fdr", "Overall_qvalue"};
-
+	const QList<QString> qc_metric_cols = {"major_CN_allele", "minor_CN_allele", "loglikelihood", "regions", "Ontarget_RD_CI_lower", "Ontarget_RD_CI_upper","Offtarget_RD_CI_lower", "Offtarget_RD_CI_upper", "Lowmed_tumor_BAF", "Highmed_tumor_BAF", "BAF_qval_fdr", "Overall_qvalue"};
 	for(int i=0; i<cnv_list.annotationHeaders().count(); ++i)
 	{
 		const QByteArray& col_name = cnv_list.annotationHeaders()[i];
@@ -2756,15 +2775,13 @@ QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const 
 		}
 	}
 
-
 	int tumor_cn = cnv.annotations()[cnv_list.annotationIndexByName("tumor_CN_change", true)].toInt();
 	double clonality = cnv.annotations()[cnv_list.annotationIndexByName("tumor_clonality", true)].toDouble();
 	double normal_cn = cnv.annotations()[cnv_list.annotationIndexByName("CN_change", true)].toDouble();
 
-	//Insert data
+	//insert data
 	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO `somatic_cnv` (`somatic_cnv_callset_id`, `chr`, `start`, `end`, `cn`, `tumor_cn`, `tumor_clonality`, `quality_metrics`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7)");
-
 	query.bindValue(0, callset_id);
 	query.bindValue(1, cnv.chr().strNormalized(true));
 	query.bindValue(2, cnv.start());
@@ -2779,7 +2796,6 @@ QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const 
 
 	//return ID of inserted somatic CNV
 	return query.lastInsertId().toString();
-
 }
 
 QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll)
@@ -2836,12 +2852,13 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 
 QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 {
-	// skip SVs on special chr
+	//skip SVs on special chr
 	if (!sv.chr1().isNonSpecial() || !sv.chr2().isNonSpecial() )
 	{
 		THROW(ArgumentException, "Structural variants on special chromosomes can not be added to the NGSD!");
 		return "";
 	}
+
 	// parse qc data
 	QJsonObject quality_metrics;
 	// get quality value
@@ -2853,7 +2870,6 @@ QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile&
 	QByteArray quality_metrics_string = json_doc.toJson(QJsonDocument::Compact);
 
 	QByteArray table = somaticSvTableName(sv.type()).toLatin1();
-
 	if (sv.type() == StructuralVariantType::DEL || sv.type() == StructuralVariantType::DUP || sv.type() == StructuralVariantType::INV)
 	{
 		// insert SV into the NGSD
@@ -2955,6 +2971,7 @@ QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile&
 		return "";
 	}
 }
+
 QString NGSD::somaticSvId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails)
 {
 	QString db_table_name = somaticSvTableName(sv.type());
@@ -4225,7 +4242,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 			QString value_as_string = value.isNull() ? ""  : value.toString();
 
             #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            if (value.typeId()==QVariant::DateTime)
+			if (value.typeId()==QMetaType::QDateTime)
             #else
             if (value.type()==QVariant::DateTime)
             #endif
@@ -5411,7 +5428,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 				// get error message
 				QJsonArray errors = summary_response.object().value("submissions").toArray().at(0).toObject().value("errors").toArray();
 				QStringList error_messages;
-				for (const QJsonValue& error : errors)
+				for (const QJsonValue& error : std::as_const(errors))
 				{
 					error_messages << error.toObject().value("output").toObject().value("errors").toArray().at(0).toObject().value("userMessage").toString();
 				}
@@ -5420,9 +5437,6 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		}
 
 		return submission_status;
-
-
-
 	}
 	catch(Exception e)
 	{
@@ -9123,7 +9137,6 @@ SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 
 int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 {
-	//Identify report configuration using tumor and normal processed sample ids (and rna ps if available)
 	QString query = "SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='" +t_ps_id + "' AND ps_normal_id='" + n_ps_id + "'";
 	QVariant id = getValue(query, true);
 	return id.isValid() ? id.toInt() : -1;
@@ -9331,7 +9344,6 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 
 			const CopyNumberVariant& cnv = cnvs[var_conf.variant_index];
 			QString cnv_id = somaticCnvId(cnv, callset_id.toInt(), false);
-
 			if(cnv_id=="")
 			{
 				cnv_id = addSomaticCnv(callset_id.toInt(), cnv, cnvs);
@@ -9531,7 +9543,9 @@ QSharedPointer<SomaticReportConfiguration> NGSD::somaticReportConfig(QString t_p
 	if(!query.value("filters").isNull())
 	{
 		output->setFilters(FilterCascade::fromText(query.value("filters").toString().split("\n")));
-	} else if (!query.value("filter_base_name").isNull()) { //TODO temp loading help while converting to having the filters completely in the DB
+	}
+	else if (!query.value("filter_base_name").isNull()) //TODO temp loading help while converting to having the filters completely in the DB
+	{
 		QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
 		output->setFilters(FilterCascadeFile::load(filterFileName, query.value("filter_base_name").toString()));
 	}
