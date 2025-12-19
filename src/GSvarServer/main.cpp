@@ -532,7 +532,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"db_token",
 						QMap<QString, ParamProps>{
-							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "User name"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token to identify the session"}}
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
@@ -540,6 +540,17 @@ int main(int argc, char **argv)
 						"Secure token generation for accessing the database credentials",
 						&ServerController::getDbToken
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"secret",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token to identify the session"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::USER_TOKEN,
+						"Secret string used for extra security while requesting sensitive data",
+						&ServerController::getRandomSecret
+	});
 	EndpointManager::appendEndpoint(Endpoint{
 						"ngsd_credentials",
 						QMap<QString, ParamProps>{

@@ -56,8 +56,7 @@ private:
 		json_array.append(json_object);
 		json_doc.setArray(json_array);
 
-
-        Session cur_session("gsvar_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+		Session cur_session("gsvar_token", 1, "jsmith", "John Smith", Helper::randomString(128), QDateTime::currentDateTime());
         SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
@@ -92,7 +91,7 @@ private:
         UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), upload_file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(upload_file));
 
-        Session cur_session("upload_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+		Session cur_session("upload_token", 1, "jsmith", "John Smith", Helper::randomString(128), QDateTime::currentDateTime());
         SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
@@ -118,7 +117,7 @@ private:
 		QFile::remove(file_copy);
 	}
 
-	TEST_METHOD(test_session_info)
+	TEST_METHOD(test_session)
 	{
 		if (!ServerHelper::settingsValid(true))
         {
@@ -127,7 +126,8 @@ private:
 
         QDateTime login_time = QDateTime::currentDateTime();
         qint64 login_time_as_num = login_time.toSecsSinceEpoch();
-        Session cur_session("test_session_info_token", 1, "jsmith", "John Smith", login_time, 0);
+		QString random_secret = Helper::randomString(128);
+		Session cur_session("test_session_info_token", 1, "jsmith", "John Smith", random_secret,login_time, 0);
         SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
@@ -144,11 +144,17 @@ private:
 		QJsonDocument json_doc = QJsonDocument::fromJson(response.getPayload());
 		QJsonObject  json_object = json_doc.object();
 
-
 		I_EQUAL(response.getStatusCode(), 200);
 		I_EQUAL(json_object.value("user_id").toInt(), 1);
         I_EQUAL(json_object.value("login_time").toInt(), login_time_as_num);
 		IS_FALSE(json_object.value("is_db_token").toBool());
+		IS_FALSE(json_object.contains("random_secret"));
+
+		request.setPath("secret");
+		response = ServerController::getRandomSecret(request);
+
+		I_EQUAL(response.getStatusCode(), 200);
+		S_EQUAL(response.getPayload(), random_secret);
 	}
 
 	TEST_METHOD(test_static_file_random_access)
@@ -165,7 +171,7 @@ private:
         UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file));
 
-        Session cur_session("static_file_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime(), 0);
+		Session cur_session("static_file_token", 1, "jsmith", "John Smith", Helper::randomString(128), QDateTime::currentDateTime(), 0);
         SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
@@ -202,7 +208,7 @@ private:
             SKIP("Server has not been configured correctly");
         }
 
-        Session cur_session("head_response_empty_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+		Session cur_session("head_response_empty_token", 1, "jsmith", "John Smith", Helper::randomString(128), QDateTime::currentDateTime());
         SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
@@ -245,7 +251,7 @@ private:
         QFileInfo info = QFileInfo(file);
         UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 
-        Session cur_session("head_response_exists_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+		Session cur_session("head_response_exists_token", 1, "jsmith", "John Smith", Helper::randomString(128), QDateTime::currentDateTime());
         SessionManager::addNewSession(cur_session);
 
 		HttpRequest request;
@@ -381,7 +387,7 @@ private:
         QFileInfo info = QFileInfo(file);
         UrlManager::addNewUrl(UrlEntity(url_id, info.fileName(), info.absolutePath(), file, url_id, info.size(), info.exists(), QDateTime::currentDateTime()));
 
-        Session cur_session("gsvar_token", 1, "jsmith", "John Smith", QDateTime::currentDateTime());
+		Session cur_session("gsvar_token", 1, "jsmith", "John Smith", Helper::randomString(128), QDateTime::currentDateTime());
         SessionManager::addNewSession(cur_session);
 
         HttpRequest request;

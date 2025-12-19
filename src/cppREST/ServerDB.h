@@ -16,7 +16,7 @@ public:
     void initDbIfEmpty();
     void reinitializeDb();
 
-    bool addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time, const bool is_for_db_only);
+	bool addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QString random_secret, const QDateTime login_time, const bool is_for_db_only);
     bool addSession(const Session new_session);
     bool addSessions(const QList<Session> all_sessions);
     bool removeSession(const QString& string_id);

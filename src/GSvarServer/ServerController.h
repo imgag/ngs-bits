@@ -71,6 +71,8 @@ public:
 	static HttpResponse validateCredentials(const HttpRequest& request);
 	/// Requests a toke to access the database credentials
 	static HttpResponse getDbToken(const HttpRequest& request);
+	/// Requests a random secret string to access sensitive data
+	static HttpResponse getRandomSecret(const HttpRequest& request);
 	/// Requests NGSD credentials for the GSvar application
 	static HttpResponse getNgsdCredentials(const HttpRequest& request);
 	/// Requests Genlab database credentials for the GSvar application
