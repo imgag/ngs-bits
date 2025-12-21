@@ -70,9 +70,11 @@ void LoginManager::setAllTokens(const QString& user, const QString& password)
         HttpHeaders add_headers;
         add_headers.insert("Accept", "text/plain");
         add_headers.insert("Content-type", "application/x-www-form-urlencoded");
-        manager.user_token_ = sendPostApiRequest("login", "name="+user+"&password="+password, add_headers);
+		manager.user_token_ = sendPostApiRequest("login", "name="+user+"&password="+password, add_headers);
         manager.db_token_ = sendPostApiRequest("db_token", "token="+manager.user_token_, add_headers);
-        QByteArray ngsd_credentials = sendPostApiRequest("ngsd_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
+		manager.random_secret_ = sendPostApiRequest("secret", "token="+manager.db_token_, add_headers);
+
+		QByteArray ngsd_credentials = sendPostApiRequest("ngsd_credentials", "dbtoken="+manager.db_token_+"&secret="+manager.random_secret_, add_headers);
         QJsonDocument ngsd_json = QJsonDocument::fromJson(ngsd_credentials);
 
         if (ngsd_json.isObject())
@@ -84,7 +86,7 @@ void LoginManager::setAllTokens(const QString& user, const QString& password)
             manager.ngsd_password_ = ngsd_json.object().value("ngsd_pass").toString();
         }
 
-        QByteArray genlab_credentials = sendPostApiRequest("genlab_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
+		QByteArray genlab_credentials = sendPostApiRequest("genlab_credentials", "dbtoken="+manager.db_token_+"&secret="+manager.random_secret_, add_headers);
         QJsonDocument genlab_json = QJsonDocument::fromJson(genlab_credentials);
 
         if (genlab_json.isObject())
@@ -132,6 +134,14 @@ QString LoginManager::userToken()
 	if (token.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::userToken() if no user is logged in!");
 
 	return token;
+}
+
+QString LoginManager::randomSecret()
+{
+	QString random_secret = instance().random_secret_;
+	if (random_secret.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::randomSecret() if no user is logged in!");
+
+	return random_secret;
 }
 
 QString LoginManager::userPassword()

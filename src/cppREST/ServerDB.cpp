@@ -64,6 +64,7 @@ void ServerDB::initDbIfEmpty()
                              "`user_id` INTEGER NOT NULL,"
                              "`user_login` TEXT NOT NULL,"
                              "`user_name` VARCHAR(40),"
+							 "`random_secret` VARCHAR(128),"
                              "`login_time` BIGINT NOT NULL,"
                              "`is_for_db_only` INTEGER(1)"
                              ");";
@@ -123,12 +124,12 @@ void ServerDB::reinitializeDb()
     initDbIfEmpty();
 }
 
-bool ServerDB::addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time, const bool is_for_db_only)
+bool ServerDB::addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QString random_secret, const QDateTime login_time, const bool is_for_db_only)
 {
     qint64 login_time_as_num = login_time.toSecsSinceEpoch();
     QSqlQuery query(*(db_.data()));
-    query.exec("INSERT INTO sessions (string_id, user_id, user_login, user_name, login_time, is_for_db_only)"
-                                                       " VALUES (\""+string_id+"\", " + QString::number(user_id) + ", \"" + user_login + "\", \"" + user_name + "\", " + QString::number(login_time_as_num) + ", " + QString::number(is_for_db_only) + ")");
+	query.exec("INSERT INTO sessions (string_id, user_id, user_login, user_name, random_secret, login_time, is_for_db_only)"
+													   " VALUES (\""+string_id+"\", " + QString::number(user_id) + ", \"" + user_login + "\", \"" + user_name + "\", \"" + random_secret + "\", " + QString::number(login_time_as_num) + ", " + QString::number(is_for_db_only) + ")");
     bool success = query.lastError().text().trimmed().isEmpty();
 
     if(!success)
@@ -141,7 +142,7 @@ bool ServerDB::addSession(const QString string_id, const int user_id, const QStr
 
 bool ServerDB::addSession(const Session new_session)
 {
-    return addSession(new_session.string_id, new_session.user_id, new_session.user_login, new_session.user_name, new_session.login_time, new_session.is_for_db_only);
+	return addSession(new_session.string_id, new_session.user_id, new_session.user_login, new_session.user_name, new_session.random_secret, new_session.login_time, new_session.is_for_db_only);
 }
 
 bool ServerDB::addSessions(const QList<Session> all_sessions)
@@ -237,6 +238,7 @@ Session ServerDB::getSession(const QString& string_id)
         int index_user_id = query.record().indexOf("user_id");
         int index_user_login = query.record().indexOf("user_login");
         int index_user_name = query.record().indexOf("user_name");
+		int index_random_secret = query.record().indexOf("random_secret");
         int index_login_time = query.record().indexOf("login_time");
         int index_is_for_db_only = query.record().indexOf("is_for_db_only");
         return Session(
@@ -244,6 +246,7 @@ Session ServerDB::getSession(const QString& string_id)
             query.value(index_user_id).toInt(),
             query.value(index_user_login).toString(),
             query.value(index_user_name).toString(),
+			query.value(index_random_secret).toString(),
             QDateTime::fromSecsSinceEpoch(query.value(index_login_time).toLongLong()),
             query.value(index_is_for_db_only).toInt()
         );
@@ -264,6 +267,7 @@ QList<Session> ServerDB::getAllSessions()
         int index_user_id = query.record().indexOf("user_id");
         int index_user_login = query.record().indexOf("user_login");
         int index_user_name = query.record().indexOf("user_name");
+		int index_random_secret = query.record().indexOf("random_secret");
         int index_login_time = query.record().indexOf("login_time");
         int index_is_for_db_only = query.record().indexOf("is_for_db_only");
 
@@ -273,6 +277,7 @@ QList<Session> ServerDB::getAllSessions()
                 query.value(index_user_id).toInt(),
                 query.value(index_user_login).toString(),
                 query.value(index_user_name).toString(),
+				query.value(index_random_secret).toString(),
                 QDateTime::fromSecsSinceEpoch(query.value(index_login_time).toLongLong()),
                 query.value(index_is_for_db_only).toInt()
             )

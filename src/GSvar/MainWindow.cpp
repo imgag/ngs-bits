@@ -6387,7 +6387,7 @@ bool MainWindow::germlineReportSupported(bool require_ngsd, QString* error)
 
 QString MainWindow::germlineReportSample()
 {
-	if (!germlineReportSupported(false))
+	if (!germlineReportSupported(false) && Settings::string("location", true)!="MHH")
 	{
 		THROW(ProgrammingException, "germlineReportSample() cannot be used if germline report is not supported!");
 	}
