@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2025_12-24 (19.12.2025)
+
+- General: remove somatic variant classification (it was replaced by VICC)
+- BugFix: added support for Straglr 1.5.5
+
 ## 2025_09-134 (08.12.2025)
 
 - General: improved burden test dialog
