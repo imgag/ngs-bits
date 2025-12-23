@@ -320,8 +320,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_finalize.png"), "Finalize report configuration", this, SLOT(finalizeReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
-	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
-	connect(ui_.open_qc_files, SIGNAL(clicked(bool)), this, SLOT(openVariantListQcFiles()));
 	ui_.vars_ranking->setMenu(new QMenu());
 	ui_.vars_ranking->menu()->addAction("dominant model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_dominant");
 	ui_.vars_ranking->menu()->addAction("recessive model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_recessive");
@@ -1566,76 +1564,6 @@ void MainWindow::on_actionGeneOmimInfo_triggered()
 	GeneOmimInfoWidget* widget = new GeneOmimInfoWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "OMIM information for genes");
 	dlg->exec();
-}
-
-void MainWindow::openVariantListFolder()
-{
-	if (filename_=="") return;
-
-	try
-	{
-		QString sample_folder;
-
-		if (GlobalServiceProvider::fileLocationProvider().isLocal())
-		{
-			sample_folder = QFileInfo(filename_).absolutePath();
-		}
-		else //client-server (allow opening folders if GSvar project paths are configured)
-		{
-			NGSD db;
-			if (variants_.type()==AnalysisType::GERMLINE_SINGLESAMPLE)
-			{
-				QString ps = variants_.mainSampleName();
-				QString ps_id = db.processedSampleId(ps);
-				QString project_type = db.getProcessedSampleData(ps_id).project_type;
-				QString project_folder = db.projectFolder(project_type).trimmed();
-				if (!project_folder.isEmpty())
-				{
-					sample_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
-					if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
-				}
-			}
-			else
-			{
-				THROW(Exception, "In client-server mode, opening analysis folders is only supported for germline single sample!");
-			}
-		}
-
-		QDesktopServices::openUrl(sample_folder);
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::information(this, "Open analysis folder", "Could not open analysis folder:\n" + e.message());
-	}
-}
-
-void MainWindow::openVariantListQcFiles()
-{
-	if (filename_=="") return;
-
-	const FileLocationProvider& flp = GlobalServiceProvider::fileLocationProvider();
-
-	foreach(const FileLocation& file, flp.getQcFiles())
-	{
-		if (flp.isLocal())
-		{
-			QDesktopServices::openUrl(QUrl::fromLocalFile(file.filename));
-		}
-		else
-		{
-			//create a local copy of the qcML file
-			VersatileFile in_file(file.filename);
-			in_file.open();
-			QByteArray file_contents = in_file.readAll();
-
-			QString tmp_filename = GSvarHelper::localQcFolder() + file.fileName();
-			QSharedPointer<QFile> tmp_file = Helper::openFileForWriting(tmp_filename);
-			tmp_file->write(file_contents);
-			tmp_file->close();
-
-			QDesktopServices::openUrl(QUrl::fromLocalFile(tmp_filename));
-		}
-	}
 }
 
 void MainWindow::on_actionReanalyze_triggered()

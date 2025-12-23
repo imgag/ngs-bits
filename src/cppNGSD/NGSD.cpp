@@ -4230,7 +4230,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
             if (value.type()==QVariant::DateTime)
             #endif
 			{
-				value_as_string = value_as_string.replace("T", " ");
+				value_as_string = value_as_string.replace("T", " ").replace(".000Z", "");
 			}
 			if (c==pk_col_index)
 			{
