@@ -13,11 +13,12 @@ The GSvar server needs a own MySQL/MariaDB database for transient data (user ses
 
 ## Build
 To build the server, the following steps have to be executed
-> make build_libs_release
-> build_server_release
+
+    > build_3rdparty
+    > make build_libs_release
+    > build_server_release
 
 
-*Attention: Make sure to compile the [CRYPT_KEY](../GSvar/encrypt_settings.md) into the GSvarServer binary, as it is used for a handshake between client and server.*
 
 ## Configuration
 The server is configurable via the GSVarServer.ini file located at the `./bin` folder together with all the rest config files.
@@ -29,16 +30,20 @@ The configuration of the GSvar server is described in detail [here](configuratio
 ## Running
 
 The following command starts the server (if you are located at the root of the repository):
-> ./bin/GSvarServer -p=8443
+    
+    > ./bin/GSvarServer
 
 You can force the server to ignore the port provided in the config file by using `p` argument and setting your own value:
-> ./bin/GSvarServer -p=8443
+
+    > ./bin/GSvarServer -p=8443
 
 GSvar server is intended to be used by the GSvar client app. However, you can also access its Web UI through any browser at:
-> https://[HOST_NAME]:[PORT_NUMBER]
 
-It is actually a good way to check, if the server is running. Web UI also provides an extensive help page describing all its endpoints:
-> https://[HOST_NAME]:[PORT_NUMBER]/help
+    https://[HOST_NAME]:[PORT_NUMBER]
+
+It is actually a good way to check, if the server is running. Web UI provides an extensive help page describing all its endpoints:
+
+    https://[HOST_NAME]:[PORT_NUMBER]/help
 
 
 ## FAQ
