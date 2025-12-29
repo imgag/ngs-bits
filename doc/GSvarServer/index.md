@@ -14,9 +14,7 @@ The GSvar server needs a own MySQL/MariaDB database for transient data (user ses
 ## Build
 To build the server, the following steps have to be executed
 
-    > build_3rdparty
-    > make build_libs_release
-    > build_server_release
+    > build_3rdparty make build_libs_release build_server_release
 
 
 
@@ -33,7 +31,7 @@ The following command starts the server (if you are located at the root of the r
     
     > ./bin/GSvarServer
 
-You can force the server to ignore the port provided in the config file by using `p` argument and setting your own value:
+You can make the server ignore the port parameter from the config file by using `p` argument and setting your own value:
 
     > ./bin/GSvarServer -p=8443
 
@@ -48,6 +46,47 @@ It is actually a good way to check, if the server is running. Web UI provides an
 
 ## FAQ
 
+### How to update an existing server instance to the latest version?
+
+1. Get the latest changes from the github repository:
+
+        > make pull
+
+2. Stop the running instance
+3. If you changed the server database schema, you should increase `EXPECTED_SCHEMA_VERSION` value in `ServerDB.h` by 1. When the schema version chganges, the server database will be removed and recreated during the first launch. All the user sessions and URLs will be lost, users will have to relogin. NGSD database remains intact.
+4. Build the new version:
+
+        > make build_3rdparty build_libs_release build_server_release
+
+5. The the new version of the server is reday to be used now.
+
 ### How do I start a development instance of the GSvarServer?
 
 Please see [Running a development server](development_instance.md).
+
+### It looks like the server uses HTTPS. How do I deal with the SSL certificates?
+
+Yes, `GSvarServer` supports only HTTPS protocol and you will need to configure the server to use a SSL certificate. There are multiple ways to get one, we recommend acquiring certificates through [Let's Encrypt](https://letsencrypt.org/getting-started/)
+
+1. Install `certbot`:
+
+        > sudo apt update
+        > sudo apt install -y certbot
+
+2. Generate a certificate:
+
+        > sudo certbot certonly --standalone --non-interactive --agree-tos --email [YOUR_EMAIL] -d [YOUR_DOMAIN_NAME]
+        
+3. Pay attention to the command output and adjust the server config accordingly:
+
+        ssl_certificate = "/etc/letsencrypt/live/[YOUR_DOMAIN_NAME]/cert.pem"
+        ssl_key = "/etc/letsencrypt/live/[YOUR_DOMAIN_NAME]/privkey.pem"
+        ssl_certificate_chain = "/etc/letsencrypt/live/[YOUR_DOMAIN_NAME]/fullchain.pem"
+
+### What are the minimal system requirements for building and running the server?
+
+The server can be built and started on Linux and Mac, Windows is not supported. Current version requires about 16GB of RAM and at least 2 core CPU for the compilation. For running the server, however, you may need significanlty less RAM - about 4GB should be sufficient. Memory consumption mainly depends on how many active users and active requests the server is processing simultaneoulsy.
+
+### Do I need to download, install, and configure BLAT server manually?
+
+No, you just need to specify the port number BLAT server should be running on in the server config file. `GSvarServer` will donwload and start BLAT server automatically. It will also turn BLAT server off, if `GSvarServer` is being stopped.

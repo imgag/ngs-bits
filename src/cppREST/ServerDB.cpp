@@ -45,6 +45,13 @@ ServerDB::~ServerDB()
 void ServerDB::initDbIfEmpty()
 {
     Log::info("Creating new tables, if they do not exist");
+	QString version_info_table = "CREATE TABLE IF NOT EXISTS schema_version ("
+								 "id TINYINT NOT NULL,"
+								 "version INT NOT NULL,"
+								 "PRIMARY KEY (id),"
+								 "CHECK (id = 1)"
+								 ");";
+
     QString client_info_table = "CREATE TABLE IF NOT EXISTS client_info ("
                                 "`id` INT(10) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                                 "`version` VARCHAR(50),"
@@ -92,7 +99,7 @@ void ServerDB::initDbIfEmpty()
                              "`requested` BIGINT NOT NULL"
                              ");";
 
-    QList<QString> filedb_tables = QList<QString>() << client_info_table << user_notification << sessions_table << urls_table << file_locations_table;
+	QList<QString> filedb_tables = QList<QString>() << version_info_table << client_info_table << user_notification << sessions_table << urls_table << file_locations_table;
     for(int i = 0; i < filedb_tables.size(); i++)
     {
         QSqlQuery query(*(db_.data()));
@@ -102,6 +109,7 @@ void ServerDB::initDbIfEmpty()
         if(!success)
         {
             Log::error("Failed to create a table: " + query.lastError().text());
+			return;
         }
     }
 }
@@ -109,7 +117,7 @@ void ServerDB::initDbIfEmpty()
 void ServerDB::reinitializeDb()
 {
     Log::info("Erasing existing tables");
-    QList<QString> table_name_list = QList<QString>() << "client_info" << "user_notification" << "sessions" << "urls" << "file_locations";
+	QList<QString> table_name_list = QList<QString>() << "schema_version" << "client_info" << "user_notification" << "sessions" << "urls" << "file_locations";
     for(int i = 0; i < table_name_list.size(); i++)
     {
         QSqlQuery query(*(db_.data()));
@@ -122,6 +130,34 @@ void ServerDB::reinitializeDb()
         }
     }
     initDbIfEmpty();
+}
+
+void ServerDB::updateSchemaVersion(int version)
+{
+	QSqlQuery query(*(db_.data()));
+	query.exec("INSERT INTO schema_version (id, version) "
+				"VALUES (1, "+QString::number(version)+") "
+				"ON DUPLICATE KEY UPDATE version = VALUES(version)");
+	bool success = query.lastError().text().trimmed().isEmpty();
+
+	if(!success)
+	{
+		Log::error("Failed to update the schema version: " + query.lastError().text());
+		Log::error(query.lastQuery());
+		return;
+	}
+}
+
+int ServerDB::getSchemaVersion()
+{
+	QSqlQuery query(*(db_.data()));
+	query.exec("SELECT * FROM schema_version");
+
+	if (query.next())
+	{
+		return query.record().indexOf("version");
+	}
+	return -1;
 }
 
 bool ServerDB::addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QString random_secret, const QDateTime login_time, const bool is_for_db_only)
