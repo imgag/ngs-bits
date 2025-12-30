@@ -62,7 +62,7 @@ It is actually a good way to check, if the server is running. Web UI provides an
 
 ### How do I start a development instance of the GSvarServer?
 
-Please see [Running a development server](development_instance.md).
+Please see [Running a development server](development/development_instance.md).
 
 ### It looks like the server uses HTTPS. How do I deal with the SSL certificates?
 
@@ -90,3 +90,11 @@ The server can be built and started on Linux and Mac, Windows is not supported. 
 ### Do I need to download, install, and configure BLAT server manually?
 
 No, you just need to specify the port number BLAT server should be running on in the server config file. `GSvarServer` will donwload and start BLAT server automatically. It will also turn BLAT server off, if `GSvarServer` is being stopped.
+
+### How to configure a queuing engine?
+
+Two eueuing engines are supported: SGE and Slurm. For more information please consult [Slurm Queuing Engine page](install_slurm.md)
+
+### Is it possible to deploy GSvarServer in AWS?
+
+Yes, more information can be found [here](run_gsvar_in_aws_cloud.md)
