@@ -2,6 +2,7 @@
 server_host = localhost
 server_port = 8443
 reference_genome = ""
+blat_server_port = 8449
 
 #megSAP ini file used as source for additional settings
 megsap_settings_ini = ""
