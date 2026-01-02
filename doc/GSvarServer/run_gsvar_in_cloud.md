@@ -5,24 +5,29 @@ The `GSvarServer` application can be deployed (among other places) inside the Am
 
 ## AWS deployment steps
 
-* Create an EC2 Linux instance. We recommed to use Ubuntu or Debian. CPU and RAM parameters may vary significantly, depending on your load. The server can be started even on a minimal instance (however, the compilation process will take a significant amount of time)
-* Provide a valid SSL certificate and key for your domain name. Self-signed certificate may be used, but all the functionality based on `htslib` will not be avaliable, since `htslib` will try to validate your certificate and fail.
-* Sample data should be stored in a S3 bucket. Use `s3fs` utility to mount a bucket as a regular folder:
-    
-    1. Install and configure it first 
+1. Create an EC2 Linux instance. We recommed to use Ubuntu or Debian. CPU and RAM parameters may vary significantly, depending on your load. The server can be started even on a minimal instance. However, the compilation requires around 16GB of RAM. Follow the instructions from the [main page](index.md) to build the server.
+
+2. Provide a valid SSL certificate and key for your domain name. Self-signed certificate may be used, but all the functionality based on `htslib` will not be avaliable, since `htslib` will try to validate your certificate and fail.
+
+3. Sample data should be stored in a S3 bucket. Use `s3fs` utility to mount a bucket as a regular folder. Install and configure it first 
     ```
-        sudo apt install s3fs
-        echo ACCESS_KEY_ID:SECRET_ACCESS_KEY > ${HOME}/.passwd-s3fs
-        chmod 600 ${HOME}/.passwd-s3fs
+    sudo apt install s3fs
+    echo ACCESS_KEY_ID:SECRET_ACCESS_KEY > ${HOME}/.passwd-s3fs
+    chmod 600 ${HOME}/.passwd-s3fs
     ```
-    2. Mount S3 bucket as a folder
+
+4. Mount S3 bucket as a folder
     ```
-        s3fs S3_BUCKET_NAME FOLDER_WHERE_MOUNTED_TO -o allow_other -o passwd_file=.passwd-s3fs
+    s3fs S3_BUCKET_NAME FOLDER_WHERE_MOUNTED_TO -o allow_other -o passwd_file=.passwd-s3fs
     ```
+
+5. Create a `systemd` to run `GSvarServer`, instead of manually starting `./GSvarServer`. Follow the instructions from [here](systemd.md) to achieve it.
+
+6. The server deployment is finished
 
 ## Deployment on Hetzner
 
-The procedure is identical to the deployement on a Linux server.
+The procedure is identical to the deployement on a Linux server in AWS, except for the S3 bucket mounting (if you are using a regular folder on your server).
 
 ## Installing GSvar on a client machine
 
