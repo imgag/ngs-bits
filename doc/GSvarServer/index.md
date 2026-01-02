@@ -58,7 +58,9 @@ It is actually a good way to check, if the server is running. Web UI provides an
 
         > make build_3rdparty build_libs_release build_server_release
 
-5. The the new version of the server is reday to be used now.
+5. Check for the NGSD database schema changes: outdated database may cause serious problems i.e. unstable client or server, freezes, crashes. Open `GSvar` app, go to `NGSD` -> `Admin` -> `Maintanance` menu, select `Compare structure of test and production` and press `Execute`. Soon you will see what has been changed in the database schema. You will have to adjust your database accordingly.
+
+6. The the new version of the server is reday to be used now.
 
 ### How do I start a development instance of the GSvarServer?
 
@@ -95,6 +97,6 @@ No, you just need to specify the port number BLAT server should be running on in
 
 Two eueuing engines are supported: SGE and Slurm. For more information please consult [Slurm Queuing Engine page](install_slurm.md)
 
-### Is it possible to deploy GSvarServer in AWS?
+### Is it possible to deploy GSvarServer in a cloud (e.g. in AWS or Hetzner)?
 
-Yes, more information can be found [here](run_gsvar_in_aws_cloud.md)
+Yes, more information can be found [here](run_gsvar_in_cloud.md)
