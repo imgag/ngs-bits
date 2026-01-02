@@ -21,13 +21,13 @@ Next you have to create a `GSvarServer.ini` in the `bin`folder:
 
 And perform the [configuration](../configuration.md).
 
-If you use encrypted passwords you have to add the crypt key to the `cppCORE` directory (sometimes not working on linux) or directly to the `cppCORE.pro` file.
-
 Next step is to build the server:
 
     > make build_libs_release build_server_release
 
-And run it:
+If NGSD database does not exist, you need to import it from a file or initialize an empty one. For local development and debugging we recommend running a MariaDB instance inside a Docker container. You can use the [following instructions](../../install_ngsd.md) to do this.
+
+And now run the server:
 
     > ./bin/GSvarServer
 
