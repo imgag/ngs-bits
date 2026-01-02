@@ -102,3 +102,15 @@ Two eueuing engines are supported: SGE and Slurm. For more information please co
 ### Is it possible to deploy GSvarServer in a cloud (e.g. in AWS or Hetzner)?
 
 Yes, more information can be found [here](run_gsvar_in_cloud.md)
+
+### How to test if the server is working correctly?
+
+* The easiest way is to open a browser at `https://[DOMAIN_NAME]:[SERVER_PORT]` (use `localhost`, if the server is running locally). You should be able to see the index page of `GSvarServer`. 
+
+* To make sure the client-server communication works properly, you need to login inside your `GSvar` application. You should be able to see the login winodw, and logging in should work with valid credentials.
+
+* Reading BAM/CRAM files sometimes does not work properly (due to SSL problems, missing or incorrect `htslib` dependencies, etc.). Try running `Tools` -> `Determine gender` -> `Based on heterozygous SNPs on X` agains a known sample. If the tools returns valid results, everything is fine.
+
+* Streaming of GZ files may not work properly. Try running `Tools` -> `Sample ancesntry` against a known sample. If the tools returns valid results, everything is fine.
+
+* In `Help` -> `About` dialog you can find more details about the server and the client you are currently using. This information may be helpful in troubleshooting.
