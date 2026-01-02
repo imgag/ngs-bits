@@ -1,24 +1,25 @@
 # GSvarServer
+
 The server handles the interaction between GSvar desktop app and the sample data storage. Having GSvarServer been deployed, we extend the functionality of GSvar: it can now work not only with local data but also with any remote location via HTTPS protocol. The server mimics Apache server's behavour to certain extent. Static content can be served, access can be restricted, connection can be encrypted (SSL certificates), or not (but it is not recommended). However, we have implemented only a small subset of the HTTP specification. The functionality has been reduced exclusively to the needs of GSvar on purpose.
 
 The server handles the interaction between GSvar desktop app and the sample data storage. Having GSvarServer been deployed, we extend the functionality of GSvar: it can now work not only with local data but also with any remote location via HTTPS protocol. The server mimics Apache server's behavour to certain extent. Static content can be served, access can be restricted, connection can be encrypted (SSL certificates), or not (but it is not recommended). However, we have implemented only a small subset of the HTTP specification. The functionality has been reduced exclusively to the needs of GSvar on purpose.
 
 ## Dependencies
 
-The server does not add any code dependencies to the project. It as the same dependencies as the rest of ngs-bits.
+The server does not add any code dependencies to the project. It uses only internal ngs-bits libraries. The server can be deployed on Linux and Mac, Windows is not supported.
 
 To allow IGV to read data from the GSvar server, a valid certificate is for the server is needed (a self-signed certificate is not enouth).
 
 The GSvar server needs a own MySQL/MariaDB database for transient data (user sessions, temporary URLs, etc.).
 
 ## Build
+
 To build the server, the following steps have to be executed
 
     > build_3rdparty make build_libs_release build_server_release
 
-
-
 ## Configuration
+
 The server is configurable via the GSVarServer.ini file located at the `./bin` folder together with all the rest config files.
 
 The configuration of the GSvar server is described in detail [here](configuration.md).
@@ -28,7 +29,7 @@ The configuration of the GSvar server is described in detail [here](configuratio
 ## Running
 
 The following command starts the server (if you are located at the root of the repository):
-    
+
     > ./bin/GSvarServer
 
 You can make the server ignore the port parameter from the config file by using `p` argument and setting your own value:
@@ -43,7 +44,6 @@ It is actually a good way to check, if the server is running. Web UI provides an
 
     https://[HOST_NAME]:[PORT_NUMBER]/help
 
-
 ## FAQ
 
 ### How to update an existing server instance to the latest version?
@@ -53,12 +53,14 @@ It is actually a good way to check, if the server is running. Web UI provides an
         > make pull
 
 2. Stop the running instance
+
 3. If you changed the server database schema, you should increase `EXPECTED_SCHEMA_VERSION` value in `ServerDB.h` by 1. When the schema version chganges, the server database will be removed and recreated during the first launch. All the user sessions and URLs will be lost, users will have to relogin. NGSD database remains intact.
+
 4. Build the new version:
 
         > make build_3rdparty build_libs_release build_server_release
 
-5. Check for the NGSD database schema changes: outdated database may cause serious problems i.e. unstable client or server, freezes, crashes. Open `GSvar` app, go to `NGSD` -> `Admin` -> `Maintanance` menu, select `Compare structure of test and production` and press `Execute`. Soon you will see what has been changed in the database schema. You will have to adjust your database accordingly.
+5. Check for the NGSD database schema changes: outdated database may cause serious problems i.e. unstable client or server, freezes, crashes. Open `GSvar` app, go to `NGSD` -> `Admin` -> `Maintanance` menu, select `Compare structure of test and production` and press `Execute`. Soon you will see what has been changed in the database schema. You will have to adjust your database accordingly. We recommend to make a backup before modifying the database.
 
 6. The the new version of the server is reday to be used now.
 
@@ -91,7 +93,7 @@ The server can be built and started on Linux and Mac, Windows is not supported. 
 
 ### Do I need to download, install, and configure BLAT server manually?
 
-No, you just need to specify the port number BLAT server should be running on in the server config file. `GSvarServer` will donwload and start BLAT server automatically. It will also turn BLAT server off, if `GSvarServer` is being stopped.
+No, you just need to specify the port number BLAT server should be running on in the server config file. `GSvarServer` will donwload and start BLAT server automatically. It will also turn BLAT server off, when `GSvarServer` is being stopped.
 
 ### How to configure a queuing engine?
 
