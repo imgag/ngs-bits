@@ -114,6 +114,14 @@ To manually add a the certificate authorities file, set the `db_ssl_ca` paramete
 
 More information about the database configuration, including SSL/TSL configuration, can be found [here](install_ngsd.md)
 
+### GSvar shows error messages when reading BAM/CRAM files
+
+All interactions with BAM/CRAM files are handled through `htslib` (visit [the official git repository](https://github.com/samtools/htslib) for more details), which uses `libcurl` to access files over HTTPS. `htslib` checks if HTTPS connections are secure by validating SSL certificates. Whenever somthing goes wrong during these checks, `htslib` fails to read BAM/CRAM files. It is worth checking `curl_ca_bundle` config parameter, which (if exist) provides information about certificate authorities needed for the SSL certificate validation. If your operating system does not have this information, you will have to set this parameter manually: it should contain CA bundle specific for your `GSvarServer` SSL certificate (see [this page](GSvarServer/index.md), if you need to deploy your own server).
+
+### After serveral hours of not using GSvar, it cannot load any files.
+
+For each file GSvarServer creates a temporary URL. When not used for a specific time period (depends on your server settings, but usually it is limited to several hours), URL expires, and becomes invalid. If it happens, you just need to reopen a sample.
+
 ## Integration with IGV
 
 For all the questions related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).
