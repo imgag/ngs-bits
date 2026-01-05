@@ -28,7 +28,7 @@ The database backend of the NGSD is a MariaDB database. To set it up, follow the
 		mysql> grant all on ngsd_test.* to 'ngsdtestuser'@'%' identified by '[password]';
 		mysql> exit
 
-## database optimization
+## Database optimization
 
 In order to optimize the performance of the SQL server for the NGSD, you can adapt/add the following settings in the `/etc/mysql/my.cnf` file:
 
@@ -51,6 +51,79 @@ In order to optimize the performance of the SQL server for the NGSD, you can ada
 Restart the server:
 
 		> sudo service mysql restart
+
+## Configuring SSL/TSL
+
+According to the best practices of Qt 6, using encrypted database connections is strongly encouraged. SSL has to be enabled in the database server configuration:
+
+```
+	[mysqld]
+	ssl-ca=/var/lib/mysql/ca.pem
+	ssl-cert=/var/lib/mysql/server-cert.pem
+	ssl-key=/var/lib/mysql/server-key.pem
+
+	# Optional but recommended
+	require_secure_transport=ON
+```
+
+`require_secure_transport=ON` forces SSL for all remote connections (local socket connections are still allowed).
+
+Make sure the database server can access the files. If you use Let's Encrypt certifiaces, do not use the default location at `/etc/letsencrypt/live/...`
+
+A much better way is to copy the files into MySQL-owned directory:
+```
+	sudo mkdir -p /etc/mysql/ssl
+	sudo cp /etc/letsencrypt/live/db.example.com/{fullchain.pem,privkey.pem,chain.pem} /etc/mysql/ssl/
+```
+
+Set ownership and permissions:
+
+```
+	sudo chown mysql:mysql /etc/mysql/ssl/*
+	sudo chmod 600 /etc/mysql/ssl/privkey.pem
+	sudo chmod 644 /etc/mysql/ssl/*.pem
+```
+
+Restart the server to apply the changes:
+
+		> sudo service mysql restart
+
+Verify SSL is enabled on the server by logging in locally:
+
+		> sudo mariadb -u root
+
+Run:
+
+```
+	SHOW VARIABLES LIKE 'have_ssl';
+	SHOW VARIABLES LIKE 'ssl_%';
+```
+
+You should be able to see `have_ssl = YES` and the paths you have previous specified for your SSL files.
+
+You may also want to check, if your database users are required to use SSL (even when it is enabled, user mays still ignore it):
+
+```
+	SELECT User, Host, ssl_type FROM mysql.user ORDER BY User, Host;
+```
+
+| ssl_type    | Meaning                               |
+| ----------- | ------------------------------------- |
+| *(empty)*   | SSL **not required**                  |
+| `ANY`       | SSL **required**                      |
+| `X509`      | SSL + **client certificate required** |
+| `SPECIFIED` | SSL + specific cert fields required   |
+
+
+Force the `dbuser` to use SSL for all hosts:
+```
+	ALTER USER 'dbuser'@'%' REQUIRE SSL;
+```
+
+Remove the SSL requirement:
+```
+	ALTER USER 'dbuser'@'%' REQUIRE NONE;
+```
 
 ## Initial import of gene, transcript and disease data
 

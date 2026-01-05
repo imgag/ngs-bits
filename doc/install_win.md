@@ -112,6 +112,8 @@ For example, if the GSvar server is running on AWS, the `GSvar` client needs a `
 
 To manually add a the certificate authorities file, set the `db_ssl_ca` parameter in [GSvar settings] to your config and set its value to the CA bundle file path, for example `C:\\eu-central-1-bundle.pem`. Incorrect CA configuration will lead to TLS errors while connecting to the database server.
 
+More information about the database configuration, including SSL/TSL configuration, can be found [here](install_ngsd.md)
+
 ## Integration with IGV
 
 For all the questions related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).
