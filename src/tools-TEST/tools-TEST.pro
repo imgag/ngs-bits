@@ -75,6 +75,8 @@ SOURCES += \
     FastqConvert_Test.cpp \
     BedGeneOverlap_Test.cpp \
     SeqPurge_Test.cpp \
+    VcfPruneSourceVariant_Test.cpp \
+    VcfStoreSourceVariant_Test.cpp \
     VcfStrip_Test.cpp \
     VcfToTsv_Test.cpp \
     BedChunk_Test.cpp \
@@ -172,4 +174,6 @@ SOURCES += \
     MantaVcfFix_Test.cpp \
     VcfReplaceSamples_Test.cpp \
     GenlabInfo_Test.cpp \
+    VcfPruneSourceVariant_Test.cpp \
+    VcfStoreSourceVariant_Test.cpp \
     main.cpp

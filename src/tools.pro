@@ -580,6 +580,14 @@ SUBDIRS += VcfSplit
 tools-TEST.depends += VcfSplit
 VcfSplit.depends = cppNGS
 
+SUBDIRS += VcfStoreSourceVariant
+tools-TEST.depends += VcfStoreSourceVariant
+VcfStoreSourceVariant.depends = cppNGS
+
+SUBDIRS += VcfPruneSourceVariant
+tools-TEST.depends += VcfPruneSourceVariant
+VcfPruneSourceVariant.depends = cppNGS
+
 SUBDIRS += NGSDExportIgvGeneTrack
 tools-TEST.depends += NGSDExportIgvGeneTrack
 NGSDExportIgvGeneTrack.depends = cppNGSD
