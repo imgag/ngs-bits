@@ -331,7 +331,13 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 	}
 
 	//job submission
-	submitJob(db, threads, queues, pipeline_args, project_folder, script, job.args.simplified(), job_id);
+	QString job_args = job.args.simplified();
+
+	if (!job_args.isEmpty())
+	{
+		pipeline_args = job_args.split(' ') << pipeline_args;
+	}
+	submitJob(db, threads, queues, pipeline_args, project_folder, script, job_id);
 }
 
 void QueuingEngineController::updateAnalysisStatus(NGSD &db, const AnalysisJob &job, int job_id)

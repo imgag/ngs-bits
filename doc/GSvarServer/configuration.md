@@ -1,6 +1,6 @@
 # GSvarServer settings and GSvar settings
 
-## configuring the GSvar server
+## Configuring the GSvar server
 
 To run GSvarServer, you have to configure it using the `GSvarServer.ini` file.  
 These are the most important config parameters:
@@ -26,6 +26,7 @@ These are the most important config parameters:
 * `ngsd_user` - NGSD database user name
 * `ngsd_pass` - NGSD user password
 * `queue_update_enabled` - turns on SGE/Slurm update worker (true/false). SGE or Slurm must be setup for this option (see [Slurm installation](install_slurm.md)).
+* `qe_api_base_url` - URL for the queuing engine HTTP API: submitting jobs, updating running jobs, cheking completed jobs, deleting jobs without interacting directly with the queuing engine
 * `megsap_settings_ini` - path to the megSAP settings file (additional settings are extracted from this file)
 * `show_raw_request` - flag used for debugging, allows to print out entire HTTP requests in log files(true/false), may significantly increase log sizes, should not be used in productio
 * `enable_file_metadata_caching` - turns on/off (true/false) file metadata caching, the cache is needed to reduce the number of calls to a file system (e.g. file size, check if file exists, etc.)
@@ -41,7 +42,79 @@ These are the seettings for the database:
 * `gsvar_server_db_user` - database user name
 * `gsvar_server_db_pass` - database user password
 
-## configuring GSvar
+## Using queuing engine HTTP API
+
+The endpoint can perform the following actions:
+
+1. `submit` (**POST** request) - Submits a new job
+    
+    ```
+    {
+        "action": "submit",
+        "threads": threads,
+        "queues": queues,
+        "pipeline_args": pipeline_args,
+        "project_folder": project_folder,
+        "script": script,
+        "job_id": job_id
+    }
+    ```
+2. `update` (**POST** request) - Updates the status of a running job
+    ```
+    {
+        "action": "update",
+        "job": {
+            "type": job.type,
+            "high_priority": job.high_priority,
+            "use_dragen": job.use_dragen,
+            "args": job.args,
+            "sge_id": job.sge_id,
+            "sge_queue": job.sge_queue,
+            "samples":
+            [
+                {
+                    "name": sample.name,
+                    "info": sample.info
+                }
+                ...
+            ],
+            "history":
+            [
+                {
+                    "time": history.timeAsString(),
+                    "user": history.user,
+                    "status": history.status,
+                    "output": QJsonArray::fromStringList(history.output)
+                }
+                ...
+            ]
+        },
+        "job_id": job_id
+    }
+    ```
+
+3. `check` (**POST** request) - Performs job accounting after completion
+    ```
+        {
+            "action": "check",
+            "qe_job_id": qe_job_id,
+            "stdout_stderr": json_stdout_stderr,
+            "job_id": job_id
+        }
+    ```
+
+4. `delete` (**POST** request) - Deletes a job
+    ```
+        {
+            "action": "delete",
+            "job": analysis_job_json_object,
+            "job_id": job_id
+        }
+    ```
+
+
+
+## Configuring GSvar
 
 To enable the communincation of the GSvar client with the GSvarServer, you have to adapt the `GSvar.ini` file of the client as well.  
 See the [GSvar configuration](../GSvar/configuration.md) for details.

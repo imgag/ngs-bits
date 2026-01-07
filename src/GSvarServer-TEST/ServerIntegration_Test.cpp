@@ -11,6 +11,7 @@
 #include "ClientHelper.h"
 #include "BamReader.h"
 #include "Statistics.h"
+#include "MockServer.h"
 
 int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
@@ -53,6 +54,10 @@ private:
 			SKIP("This test requieres a running server");
 		}
 		IS_TRUE(!reply.isEmpty());
+
+
+
+
 	}
 
 

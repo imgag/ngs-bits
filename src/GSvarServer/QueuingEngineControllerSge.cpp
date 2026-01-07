@@ -11,7 +11,7 @@ QString QueuingEngineControllerSge::getEngineName() const
 	return "SGE";
 }
 
-void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
+void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, int job_id) const
 {
 	//Prepare qsub command
 	QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
@@ -28,11 +28,6 @@ void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList qu
     qsub_args << "-q" << queues.join(",");
     qsub_args << "php";
     qsub_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
-
-    if (!job_args.isEmpty())
-    {
-        qsub_args << job_args.split(' ');
-    }
     qsub_args << pipeline_args;
 
 	if (debug_) QTextStream(stdout) << "SGE command:\t qsub " << qsub_args.join(" ") << QT_ENDL;

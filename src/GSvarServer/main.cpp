@@ -15,6 +15,9 @@
 #include <cstdio>
 #include <array>
 #include <string>
+#include "MockServer.h"
+
+
 
 
 // find a PID for a BALT server instance
@@ -637,6 +640,14 @@ int main(int argc, char **argv)
 		Log::error("Server has not been configured correctly: " + e.message());
 		return EXIT_FAILURE;
 	}
+
+
+
+
+
+	MockServer *mock_server = new MockServer(8000);
+	mock_server->is_running();
+	Log::info(QString::number(mock_server->is_running()));
 
     try
     {

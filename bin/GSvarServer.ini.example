@@ -72,3 +72,4 @@ genlab_name = ""
 genlab_user = ""
 genlab_pass = ""
 queue_update_enabled = false
+qe_api_base_url = ""
