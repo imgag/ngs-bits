@@ -36,6 +36,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->splitter->setStretchFactor(0, 10);
 	ui_->splitter->setStretchFactor(1, 1);
 	connect(ui_->folder_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleFolder()));
+	connect(ui_->qcml_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleQcFiles()));
 	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SLOT(openRunTab(QString)));
 	connect(ui_->system, SIGNAL(linkActivated(QString)), this, SLOT(openProcessingSystemTab(QString)));
 	connect(ui_->project, SIGNAL(linkActivated(QString)), this, SLOT(openProjectTab(QString)));
@@ -483,6 +484,34 @@ void ProcessedSampleWidget::openSampleFolder()
 		QMessageBox::information(this, "Open processed sample folder", "Could not open analysis folder:\n" + e.message());
 	}
 }
+
+void ProcessedSampleWidget::openSampleQcFiles()
+{
+	const FileLocationProvider& flp = GlobalServiceProvider::fileLocationProvider();
+
+	foreach(const FileLocation& file, flp.getQcFiles())
+	{
+		if (flp.isLocal())
+		{
+			QDesktopServices::openUrl(QUrl::fromLocalFile(file.filename));
+		}
+		else
+		{
+			//create a local copy of the qcML file
+			VersatileFile in_file(file.filename);
+			in_file.open();
+			QByteArray file_contents = in_file.readAll();
+
+			QString tmp_filename = GSvarHelper::localQcFolder() + file.fileName();
+			QSharedPointer<QFile> tmp_file = Helper::openFileForWriting(tmp_filename);
+			tmp_file->write(file_contents);
+			tmp_file->close();
+
+			QDesktopServices::openUrl(QUrl::fromLocalFile(tmp_filename));
+		}
+	}
+}
+
 
 void ProcessedSampleWidget::openSampleTab()
 {

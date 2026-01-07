@@ -1868,7 +1868,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	QList<Sequence> nucleotides = QList<Sequence>{"A","C","G","T"};
 
 	if(!variants.sampleIDs().contains(tumor_id.toUtf8()))	Log::error("Tumor sample " + tumor_id + " was not found in variant file " + somatic_vcf);
-	if(!variants.sampleIDs().contains(normal_id.toUtf8()))	Log::error("Normal sample " + normal_id + " was not found in variant file " + somatic_vcf);
+	if(!variants.sampleIDs().contains(normal_id.toUtf8()) && !variants.vcfHeader().infoIdDefined(normal_id.toUtf8() + "_AF"))	Log::error("Normal sample " + normal_id + " was not found in variant file " + somatic_vcf);
 
 	//plot0: histogram allele frequencies somatic mutations
 	Histogram hist_filtered(0,1,0.0125);
@@ -1920,6 +1920,13 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		{
 			hist_all.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());;
 			if(variants[i].filtersPassed()) hist_filtered.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());
+		}
+		//DeepSomatic
+		//##FORMAT=<ID=VAF,Number=A,Type=Float,Description="Variant allele fractions.">
+		else if(variants.vcfHeader().formatIdDefined("VAF"))
+		{
+			hist_all.inc(variants[i].formatValueFromSample("VAF", tumor_id.toUtf8()).toDouble());;
+			if(variants[i].filtersPassed()) hist_filtered.inc(variants[i].formatValueFromSample("VAF", tumor_id.toUtf8()).toDouble());
 		}
 		// else: strelka indel
 	}
@@ -2031,8 +2038,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			//TIR + TAR normal
 			count_mut = 0;
 			count_all = 0;
-			count_mut = variants[i].formatValueFromSample("TIR", tumor_id.toUtf8()).split(',')[0].toInt();
-			count_all = variants[i].formatValueFromSample("TAR", tumor_id.toUtf8()).split(',')[0].toInt() + count_mut;
+			count_mut = variants[i].formatValueFromSample("TIR", normal_id.toUtf8()).split(',')[0].toInt();
+			count_all = variants[i].formatValueFromSample("TAR", normal_id.toUtf8()).split(',')[0].toInt() + count_mut;
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
 		}
 		//freebayes tumor and normal
@@ -2062,9 +2069,17 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			af_tumor = variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble();
 			af_normal = variants[i].formatValueFromSample("AF", normal_id.toUtf8()).toDouble();
 		}
+		//DeepSomatic
+		//##INFO=<ID=<sample>_AF,Number=1,Type=Float,Description="Variant allele frequency in <sample>">
+		//##INFO=<ID=<sample>_DP,Number=1,Type=Integer,Description="Read depth in <sample>">
+		else if(variants.vcfHeader().infoIdDefined(normal_id.toUtf8() + "_AF") && variants.vcfHeader().formatIdDefined("VAF"))
+		{
+			af_tumor = variants[i].formatValueFromSample("VAF", tumor_id.toUtf8()).toDouble();
+			af_normal = variants[i].info(normal_id.toUtf8() + "_AF").toDouble();
+		}
 		else
 		{
-			Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka, freebayes and mutect2 are currently supported.");
+			Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka, freebayes, deepsomatic and mutect2 are currently supported.");
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields

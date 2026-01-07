@@ -23,7 +23,8 @@ First, we need to install Qt and some basic dependencies:
 
 [htslib](https://github.com/samtools/htslib) is a third-party library that provides functionality for NGS data formats like BAM or VCF.
 
-We have pre-built `htslib` for Windows: `htslib 1.16.1` supports Qt 5 and `htslib 1.21` supports Qt 6. Corresponding Zip-archives can be found inside the repository: `ngs-bits\htslib\htslib_win_64_qt5.zip` and `ngs-bits\htslib\htslib_win_64_qt6.zip`. Depending on your Qt version, just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
+We have pre-built `htslib` for Windows. The corresponding ZIP archive can be found in `ngs-bits\htslib\`.  
+Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 
 ### Unpack libxml2
 
@@ -53,6 +54,7 @@ Assuiming you have installed Qt 6.8.3 into C:\Qt folder, run the following comma
 	> cmake --build .
 	> cmake --install .
 	> copy C:\Qt\mariadb_plugin\plugins\sqldrivers\qsqlmysql.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+	> copy C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
 
 Upon succesfull completion, `qsqlmysql.dll` and `libmariadb.dll` sould be located in `C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\`.
 
@@ -64,6 +66,10 @@ It is needed to extract the repository version during the build process.
 ### Install python
 
 To create plots in qcML files, install the portable version of [WinPython](https://github.com/winpython/winpython/releases/download/16.6.20250620final/Winpython64-3.13.5.0whl.7z) and add the directory containing the `python.exe` to the PATH.
+
+You have to install `maplotlib` in case it is not found:
+
+	> python.exe -m pip install matplotlib
 
 This is optional. If python is not installed, no plots are generated.
 
@@ -105,6 +111,16 @@ If the operating system has not been configured to provide the certificate autho
 For example, if the GSvar server is running on AWS, the `GSvar` client needs a `*.pem` file (e.g. `eu-central-1-bundle.pem`). Please visit the official [AWS RDS documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html) for more inforamtion.
 
 To manually add a the certificate authorities file, set the `db_ssl_ca` parameter in [GSvar settings] to your config and set its value to the CA bundle file path, for example `C:\\eu-central-1-bundle.pem`. Incorrect CA configuration will lead to TLS errors while connecting to the database server.
+
+More information about the database configuration, including SSL/TSL configuration, can be found [here](install_ngsd.md)
+
+### GSvar shows error messages when reading BAM/CRAM files
+
+All interactions with BAM/CRAM files are handled through `htslib` (visit [the official git repository](https://github.com/samtools/htslib) for more details), which uses `libcurl` to access files over HTTPS. `htslib` checks if HTTPS connections are secure by validating SSL certificates. Whenever somthing goes wrong during these checks, `htslib` fails to read BAM/CRAM files. It is worth checking `curl_ca_bundle` config parameter, which (if exist) provides information about certificate authorities needed for the SSL certificate validation. If your operating system does not have this information, you will have to set this parameter manually: it should contain CA bundle specific for your `GSvarServer` SSL certificate (see [this page](GSvarServer/index.md), if you need to deploy your own server).
+
+### After serveral hours of not using GSvar, it cannot load any files.
+
+For each file GSvarServer creates a temporary URL. When not used for a specific time period (depends on your server settings, but usually it is limited to several hours), URL expires, and becomes invalid. If it happens, you just need to reopen a sample.
 
 ## Integration with IGV
 

@@ -19,7 +19,7 @@ TEST_CLASS(NGSD_Test)
 {
 private:
 	//Normally, one member is tested in one QT slot.
-	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
+	//Because initializing the database takes very long, most NGSD functionality is tested in one slot.
 	TEST_METHOD(main_tests)
 	{
 		SKIP_IF_NO_TEST_NGSD();
@@ -761,25 +761,6 @@ private:
 		S_EQUAL(class_info.classification, "5");
 		S_EQUAL(class_info.comments, "class_comm2");
 
-		//getSomaticClassification
-		Variant som_variant("chr7",  140453136, 140453136, "T", "A");
-		ClassificationInfo som_class_info = db.getSomaticClassification(variant);
-		S_EQUAL(som_class_info.classification, "");
-		S_EQUAL(som_class_info.comments, "");
-
-		som_class_info.classification = "activating";
-		som_class_info.comments = "som_class_comm1";
-		db.setSomaticClassification(som_variant, som_class_info);
-		som_class_info = db.getSomaticClassification(som_variant);
-		S_EQUAL(som_class_info.classification, "activating");
-		S_EQUAL(som_class_info.comments, "som_class_comm1");
-
-		som_class_info.classification = "inactivating";
-		som_class_info.comments = "som_class_comm2";
-		db.setSomaticClassification(som_variant, som_class_info);
-		S_EQUAL(som_class_info.classification, "inactivating");
-		S_EQUAL(som_class_info.comments, "som_class_comm2");
-
 		//addPubmedId
 		db.addPubmedId(199844, "12345678");
 		db.addPubmedId(199844, "87654321");
@@ -1025,6 +1006,15 @@ private:
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 0);
 		I_EQUAL(ps_table.columnCount(), 78);
+		//PS override (4 out of the 9 processed samples in defined order)
+		params.ps_override = QStringList() << "DX184894_01" << "NA12878_04" << "NA12123repeat_01" << "NA12123_23";
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 4);
+		S_EQUAL(ps_table.row(0).value(0), "DX184894_01");
+		S_EQUAL(ps_table.row(1).value(0), "NA12878_04");
+		S_EQUAL(ps_table.row(2).value(0), "NA12123repeat_01");
+		S_EQUAL(ps_table.row(3).value(0), "NA12123_23");
+
 		//filter based on access rights (restricted user)
 		params = ProcessedSampleSearchParameters();
 		params.restricted_user = "ahkerra1";

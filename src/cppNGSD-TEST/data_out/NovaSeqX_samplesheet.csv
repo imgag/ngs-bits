@@ -51,4 +51,4 @@ Sample_ID,BedFile,VariantCallingMode
 NA12878_58,DragenEnrichment/twistCustomExomeV2.bed,AllVariantCallers
 NA12878_59,DragenEnrichment/twistCustomExomeV2.bed,AllVariantCallers
 DX000002_01,DragenEnrichment/twistCustomExomeV2.bed,AllVariantCallers
-DX000001_01,DragenEnrichment/twistCustomExomeV2.bed,None
+DX000001_01,na,None

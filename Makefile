@@ -1,20 +1,17 @@
 # Get the Qt version from qmake
-QT_VERSION := $(shell qmake -query QT_VERSION)
-QT_MAJOR   := $(word 1, $(subst ., ,$(QT_VERSION)))
+QMAKE := $(shell command -v qmake6 2>/dev/null || command -v qmake 2>/dev/null)
+QT_MAJOR := $(shell $(QMAKE) -query QT_VERSION | cut -d. -f1)
 
 # Choose build folder based on the available Qt version
 ifeq ($(QT_MAJOR),6)
 	PROJECT_BUILD_DIR := ./src/build/
 	PATH_TO_ROOT := ../../
+	QMAKE_BIN := qmake6
 else
 	PROJECT_BUILD_DIR := ./
 	PATH_TO_ROOT := ../src/
+	QMAKE_BIN := qmake
 endif
-
-# Show chosen directory
-$(info Currently used Qt version: $(QT_VERSION))
-$(info Default build directory: $(PROJECT_BUILD_DIR))
-$(info Relative path to the source code: $(PATH_TO_ROOT))
 
 help:
 	@echo "General targets:"
@@ -36,89 +33,98 @@ help:
 
 ##################################### build - DEBUG #####################################
 
+build_info:
+	@echo "**************************************************"
+	@echo "*"
+	@echo "* Qt major version: $(QT_MAJOR)"
+	@echo "* Build dir: $(PROJECT_BUILD_DIR)"
+	@echo "* Source root: $(PATH_TO_ROOT)"
+	@echo "*"
+	@echo "**************************************************"
+
 build_libs_debug_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Debug;
 	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Debug; \
-		qmake $(PATH_TO_ROOT)libs.pro "CONFIG+=debug" "CONFIG-=release"; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make -j5;
 
 clean_libs_debug:
 	rm -rf $(PROJECT_BUILD_DIR)build-libs-Linux-Debug;
 
-build_libs_debug: clean_libs_debug build_libs_debug_noclean
+build_libs_debug: build_info clean_libs_debug build_libs_debug_noclean
 
 build_tools_debug_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Debug;
 	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Debug; \
-		qmake $(PATH_TO_ROOT)tools.pro "CONFIG+=debug" "CONFIG-=release"; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make -j5;
 
 clean_tools_debug:
 	rm -rf $(PROJECT_BUILD_DIR)build-tools-Linux-Debug;
 
-build_tools_debug: clean_tools_debug build_tools_debug_noclean
+build_tools_debug: build_info clean_tools_debug build_tools_debug_noclean
 
-build_server_debug:
+build_server_debug: build_info
 	rm -rf $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Debug;
 	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Debug;
 	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Debug; \
-                qmake $(PATH_TO_ROOT)tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
+                $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
                 make -j5;
 	
 #################################### build - RELEASE ####################################
 
-build_libs_release:
+build_libs_release: build_info
 	rm -rf $(PROJECT_BUILD_DIR)build-libs-Linux-Release;
 	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Release; \
-		qmake $(PATH_TO_ROOT)libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
-build_tools_release:
+build_tools_release: build_info
 	rm -rf $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Release; \
-		qmake $(PATH_TO_ROOT)tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
-build_gui_release:
+build_gui_release: build_info
 	rm -rf $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release; \
-		qmake $(PATH_TO_ROOT)tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_libs_release_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Release; \
-		qmake $(PATH_TO_ROOT)libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_tools_release_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Release; \
-		qmake $(PATH_TO_ROOT)tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_gui_release_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release; \
-		qmake $(PATH_TO_ROOT)tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_release_noclean: build_libs_release_noclean  build_tools_release_noclean build_gui_release_noclean
 
-build_server_release:
+build_server_release: build_info
 	rm -rf $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release;
 	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release; \
-                qmake $(PATH_TO_ROOT)tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+                $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 	
 build_server_release_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release; \
-                qmake $(PATH_TO_ROOT)tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+                $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 
 #################################### other targets ##################################

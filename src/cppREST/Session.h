@@ -10,6 +10,7 @@ struct CPPRESTSHARED_EXPORT Session
     int user_id;
     QString user_login;
     QString user_name;
+	QString random_secret;
     QDateTime login_time;
     bool is_for_db_only;
 
@@ -18,16 +19,18 @@ struct CPPRESTSHARED_EXPORT Session
         , user_id()
         , user_login()
         , user_name()
+		, random_secret()
         , login_time()
         , is_for_db_only()
     {
     }
 
-    Session(const QString string_id_in, const int user_id_in, const QString user_login_in, const QString user_name_in, const QDateTime login_time_in, const bool is_for_db_only_in = false)
+	Session(const QString string_id_in, const int user_id_in, const QString user_login_in, const QString user_name_in, const QString random_secret_in, const QDateTime login_time_in, const bool is_for_db_only_in = false)
         : string_id(string_id_in)
         , user_id(user_id_in)
         , user_login(user_login_in)
         , user_name(user_name_in)
+		, random_secret(random_secret_in)
         , login_time(login_time_in)
         , is_for_db_only(is_for_db_only_in)
     {

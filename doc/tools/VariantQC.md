@@ -1,5 +1,5 @@
 ### VariantQC tool help
-	VariantQC (2024_08-110-g317f43b9)
+	VariantQC (2025_09-112-ga53ff6f3d)
 	
 	Calculates QC metrics on variant lists.
 	
@@ -26,8 +26,9 @@
 	  --settings [file]   Settings override file (no other settings files are used).
 	
 ### VariantQC changelog
-	VariantQC 2024_08-110-g317f43b9
+	VariantQC 2025_09-112-ga53ff6f3d
 	
+	2025-10-21 Added parameter support for dbSNP IDs from INFO entry 'RS' in addition to INFO entry 'CSQ'.
 	2023-09-21 Added parameter 'longread' to add longread specific QC values.
 	2020-08-07 VCF files only as input format for variant list.
 	2018-09-12 Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).

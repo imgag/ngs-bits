@@ -1,5 +1,5 @@
 ### NGSDAddVariantsGermline tool help
-	NGSDAddVariantsGermline (2025_05-79-g6c060cfd)
+	NGSDAddVariantsGermline (2025_09-112-ga53ff6f3d)
 	
 	Imports variants of a processed sample into the NGSD.
 	
@@ -38,8 +38,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDAddVariantsGermline changelog
-	NGSDAddVariantsGermline 2025_05-79-g6c060cfd
+	NGSDAddVariantsGermline 2025_09-112-ga53ff6f3d
 	
+	2025-11-18 No longer import entire variant consequence. Now imports only gene name, transcript ID, variant type and impact.
 	2025-07-14 Changed behaviour of 'force' parameter (affects only small variants if callset was already imported now).
 	2024-08-28 Merged all force parameters into one. Implmented skipping of small variants import if the same callset was already imported.
 	2021-07-19 Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.

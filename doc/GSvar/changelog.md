@@ -1,5 +1,16 @@
 # GSvar change log
 
+## 2025_12-24 (19.12.2025)
+
+- General: remove somatic variant classification (it was replaced by VICC)
+- BugFix: added support for Straglr 1.5.5
+
+## 2025_09-134 (08.12.2025)
+
+- General: improved burden test dialog
+- small variants search: added functionality to update variant consequences
+- RE dialog: added STRchive links (from NGSD)
+
 ## 2025_09-122 (03.12.2025)
 
 - GSvar is now based on Qt6

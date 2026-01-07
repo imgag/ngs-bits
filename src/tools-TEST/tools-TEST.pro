@@ -62,6 +62,7 @@ SOURCES += \
     BedAnnotateFreq_Test.cpp \
     GenesToBed_Test.cpp \
     VariantAnnotateFrequency_Test.cpp \
+    VcfAnnotateFrequency_Test.cpp \
     VariantQC_Test.cpp \
     MappingQC_Test.cpp \
     FastqList_Test.cpp \
@@ -156,6 +157,7 @@ SOURCES += \
     NGSDExtractRNACohort_Test.cpp \
     VcfToBed_Test.cpp \
     TsvToQC_Test.cpp \
+    TsvTo_Test.cpp \
     VcfAdd_Test.cpp \
     NGSDImportGenlab_Test.cpp \
     NGSDExportStudyGHGA_Test.cpp \

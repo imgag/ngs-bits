@@ -242,6 +242,8 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 {
 	//init
+	bool ps_override = !p.ps_override.isEmpty();
+
 	QStringList fields;
 	fields	<< "ps.id"
 			<< "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name"
@@ -276,177 +278,195 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				<< "ps.processing_system_id=sys.id"
 				<< "ps.project_id=p.id";
 
-	//add filters (sample)
-	if (p.s_name.trimmed()!="")
+	if (!ps_override)
 	{
-		QStringList name_conditions;
-		QString name_pattern = escapeForSql(p.s_name);
-		if (name_pattern.startsWith('*')) name_pattern[0] = '%';
-		if (name_pattern.endsWith('*')) name_pattern[name_pattern.length()-1] = '%';
-		if (!name_pattern.startsWith('%') && !name_pattern.endsWith('%')) name_pattern = '%' + name_pattern + '%';
-		name_conditions << "s.name LIKE '" + name_pattern + "'";
-		if (p.s_name_ext)
+		//add filters (sample)
+		if (p.s_name.trimmed()!="")
 		{
-			name_conditions << "s.name_external LIKE '%" + escapeForSql(p.s_name) + "%'";
-		}
-		if (p.s_name_comments)
-		{
-			name_conditions << "s.comment LIKE '%" + escapeForSql(p.s_name) + "%'";
-			name_conditions << "ps.comment LIKE '%" + escapeForSql(p.s_name) + "%'";
-		}
-		conditions << "(" + name_conditions.join(" OR ") + ")";
-	}
-	if (p.s_patient_identifier.trimmed()!="")
-	{
-		conditions << "s.patient_identifier='" + escapeForSql(p.s_patient_identifier) + "'";
-	}
-	if (p.s_species.trimmed()!="")
-	{
-		tables	<< "species sp";
-		conditions	<< "sp.id=s.species_id"
-					<< "sp.name='" + escapeForSql(p.s_species) + "'";
-	}
-	if (p.s_type.trimmed()!="")
-	{
-		conditions << "s.sample_type='" + escapeForSql(p.s_type) + "'";
-	}
-	if (p.s_sender.trimmed()!="")
-	{
-		tables	<< "sender se";
-		conditions	<< "se.id=s.sender_id"
-					<< "se.name='" + escapeForSql(p.s_sender) + "'";
-	}
-	if (p.s_study.trimmed()!="")
-	{
-		tables	<< "study st";
-		tables	<< "study_sample sts";
-		conditions	<< "st.id=sts.study_id"
-					<< "sts.processed_sample_id=ps.id"
-					<< "st.name='" + escapeForSql(p.s_study) + "'";
-	}
-	if (p.s_disease_group.trimmed()!="")
-	{
-		conditions << "s.disease_group='" + escapeForSql(p.s_disease_group) + "'";
-	}
-	if (p.s_disease_status.trimmed()!="")
-	{
-		conditions << "s.disease_status='" + escapeForSql(p.s_disease_status) + "'";
-	}
-	if (p.s_tissue.trimmed() != "")
-	{
-		conditions << "s.tissue='" + escapeForSql(p.s_tissue) + "'";
-	}
-	if (p.s_ancestry.trimmed() != "")
-	{
-		conditions << "psa.population='" + escapeForSql(p.s_ancestry) + "'";
-	}
-	if (!p.include_bad_quality_samples)
-	{
-		conditions << "ps.quality!='bad'";
-	}
-	if (!p.include_scheduled_for_resequencing_samples)
-	{
-		conditions << "ps.scheduled_for_resequencing='0'";
-	}
-	if (!p.include_tumor_samples)
-	{
-		conditions << "s.tumor='0'";
-	}
-	if (!p.include_germline_samples)
-	{
-		conditions << "s.tumor='1'";
-	}
-	if (!p.include_ffpe_samples)
-	{
-		conditions << "s.ffpe='0'";
-	}
-	if (!p.include_merged_samples)
-	{
-		conditions << "ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
-	}
-	if (p.only_with_small_variants)
-	{
-		conditions << "ps.id IN (SELECT DISTINCT processed_sample_id FROM small_variants_callset)";
-	}
-	if (!p.s_phenotypes.isEmpty())
-	{
-		tables	<< "sample_disease_info sdi";
-		conditions	<< "s.id=sdi.sample_id";
-		conditions	<< "sdi.type='HPO term id'";
-
-		//create complete phenotype list with children
-		QStringList accessions;
-
-        for(const Phenotype& phenotype : p.s_phenotypes)
-		{
-			accessions << phenotype.accession();
-			int phenotype_id = phenotypeIdByAccession(phenotype.accession());
-            for(const Phenotype& child : phenotypeChildTerms(phenotype_id, true))
+			QStringList name_conditions;
+			QString name_pattern = escapeForSql(p.s_name);
+			if (name_pattern.startsWith('*')) name_pattern[0] = '%';
+			if (name_pattern.endsWith('*')) name_pattern[name_pattern.length()-1] = '%';
+			if (!name_pattern.startsWith('%') && !name_pattern.endsWith('%')) name_pattern = '%' + name_pattern + '%';
+			name_conditions << "s.name LIKE '" + name_pattern + "'";
+			if (p.s_name_ext)
 			{
-				accessions << child.accession();
+				name_conditions << "s.name_external LIKE '%" + escapeForSql(p.s_name) + "%'";
 			}
+			if (p.s_name_comments)
+			{
+				name_conditions << "s.comment LIKE '%" + escapeForSql(p.s_name) + "%'";
+				name_conditions << "ps.comment LIKE '%" + escapeForSql(p.s_name) + "%'";
+			}
+			conditions << "(" + name_conditions.join(" OR ") + ")";
 		}
-		accessions.removeDuplicates();
-		conditions	<< "sdi.disease_info IN ('" + accessions.join("', '") + "')";
+		if (p.s_patient_identifier.trimmed()!="")
+		{
+			conditions << "s.patient_identifier='" + escapeForSql(p.s_patient_identifier) + "'";
+		}
+		if (p.s_species.trimmed()!="")
+		{
+			tables	<< "species sp";
+			conditions	<< "sp.id=s.species_id"
+			                        << "sp.name='" + escapeForSql(p.s_species) + "'";
+		}
+		if (p.s_type.trimmed()!="")
+		{
+			conditions << "s.sample_type='" + escapeForSql(p.s_type) + "'";
+		}
+		if (p.s_sender.trimmed()!="")
+		{
+			tables	<< "sender se";
+			conditions	<< "se.id=s.sender_id"
+			                        << "se.name='" + escapeForSql(p.s_sender) + "'";
+		}
+		if (p.s_study.trimmed()!="")
+		{
+			tables	<< "study st";
+			tables	<< "study_sample sts";
+			conditions	<< "st.id=sts.study_id"
+			                        << "sts.processed_sample_id=ps.id"
+			                        << "st.name='" + escapeForSql(p.s_study) + "'";
+		}
+		if (p.s_disease_group.trimmed()!="")
+		{
+			conditions << "s.disease_group='" + escapeForSql(p.s_disease_group) + "'";
+		}
+		if (p.s_disease_status.trimmed()!="")
+		{
+			conditions << "s.disease_status='" + escapeForSql(p.s_disease_status) + "'";
+		}
+		if (p.s_tissue.trimmed() != "")
+		{
+			conditions << "s.tissue='" + escapeForSql(p.s_tissue) + "'";
+		}
+		if (p.s_ancestry.trimmed() != "")
+		{
+			conditions << "psa.population='" + escapeForSql(p.s_ancestry) + "'";
+		}
+		if (!p.include_bad_quality_samples)
+		{
+			conditions << "ps.quality!='bad'";
+		}
+		if (!p.include_scheduled_for_resequencing_samples)
+		{
+			conditions << "ps.scheduled_for_resequencing='0'";
+		}
+		if (!p.include_tumor_samples)
+		{
+			conditions << "s.tumor='0'";
+		}
+		if (!p.include_germline_samples)
+		{
+			conditions << "s.tumor='1'";
+		}
+		if (!p.include_ffpe_samples)
+		{
+			conditions << "s.ffpe='0'";
+		}
+		if (!p.include_merged_samples)
+		{
+			conditions << "ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
+		}
+		if (p.only_with_small_variants)
+		{
+			conditions << "ps.id IN (SELECT DISTINCT processed_sample_id FROM small_variants_callset)";
+		}
+		if (!p.s_phenotypes.isEmpty())
+		{
+			tables	<< "sample_disease_info sdi";
+			conditions	<< "s.id=sdi.sample_id";
+			conditions	<< "sdi.type='HPO term id'";
+
+			//create complete phenotype list with children
+			QStringList accessions;
+
+			for(const Phenotype& phenotype : p.s_phenotypes)
+			{
+				accessions << phenotype.accession();
+				int phenotype_id = phenotypeIdByAccession(phenotype.accession());
+				for(const Phenotype& child : phenotypeChildTerms(phenotype_id, true))
+				{
+					accessions << child.accession();
+				}
+			}
+			accessions.removeDuplicates();
+			conditions	<< "sdi.disease_info IN ('" + accessions.join("', '") + "')";
+		}
+
+		//add filters (project)
+		if (p.p_name.trimmed()!="")
+		{
+			conditions << "p.name LIKE '%" + escapeForSql(p.p_name) + "%'";
+		}
+		if (p.p_type.trimmed()!="")
+		{
+			conditions << "p.type='" + escapeForSql(p.p_type) + "'";
+		}
+		if (!p.include_archived_projects)
+		{
+			conditions << "p.archived='0'";
+		}
+
+		//add filters (system)
+		if (p.sys_name.trimmed()!="")
+		{
+			conditions << "(sys.name_manufacturer LIKE '" + escapeForSql(p.sys_name) + "' OR sys.name_short LIKE '" + escapeForSql(p.sys_name) + "')";
+		}
+		if (p.sys_type.trimmed()!="")
+		{
+			conditions << "sys.type ='" + escapeForSql(p.sys_type) + "'";
+		}
+
+		//add filters (run)
+		if (p.r_name.trimmed()!="")
+		{
+			conditions << "r.name LIKE '%" + escapeForSql(p.r_name) + "%'";
+		}
+		if (!p.include_bad_quality_runs)
+		{
+			conditions << "r.quality!='bad'";
+		}
+		if (p.run_finished)
+		{
+			conditions << "r.status='analysis_finished'";
+		}
+		if (p.r_before.isValid())
+		{
+			conditions << "r.start_date<='" + p.r_before.toString(Qt::ISODate)+"'";
+		}
+		if (p.r_after.isValid())
+		{
+			conditions << "r.start_date>='" + p.r_after.toString(Qt::ISODate)+"'";
+		}
+		if (p.r_device_name.trimmed()!="")
+		{
+			tables << "device d";
+			conditions << "d.id=r.device_id"
+			           << "d.name LIKE '%" + escapeForSql(p.r_device_name) + "%'";
+		}
 	}
 
-	//add filters (project)
-	if (p.p_name.trimmed()!="")
+	//PS override
+	QHash<QString, int> id2index;
+	if (ps_override)
 	{
-		conditions << "p.name LIKE '%" + escapeForSql(p.p_name) + "%'";
-	}
-	if (p.p_type.trimmed()!="")
-	{
-		conditions << "p.type='" + escapeForSql(p.p_type) + "'";
-	}
-	if (!p.include_archived_projects)
-	{
-		conditions << "p.archived='0'";
-	}
-
-	//add filters (system)
-	if (p.sys_name.trimmed()!="")
-	{
-		conditions << "(sys.name_manufacturer LIKE '" + escapeForSql(p.sys_name) + "' OR sys.name_short LIKE '" + escapeForSql(p.sys_name) + "')";
-	}
-	if (p.sys_type.trimmed()!="")
-	{
-		conditions << "sys.type ='" + escapeForSql(p.sys_type) + "'";
-	}
-
-	//add filters (run)
-	if (p.r_name.trimmed()!="")
-	{
-		conditions << "r.name LIKE '%" + escapeForSql(p.r_name) + "%'";
-	}
-	if (!p.include_bad_quality_runs)
-	{
-		conditions << "r.quality!='bad'";
-	}
-	if (p.run_finished)
-	{
-		conditions << "r.status='analysis_finished'";
-	}
-	if (p.r_before.isValid())
-	{
-		conditions << "r.start_date<='" + p.r_before.toString(Qt::ISODate)+"'";
-	}
-	if (p.r_after.isValid())
-	{
-		conditions << "r.start_date>='" + p.r_after.toString(Qt::ISODate)+"'";
-	}
-	if (p.r_device_name.trimmed()!="")
-	{
-		tables << "device d";
-		conditions << "d.id=r.device_id"
-				   << "d.name LIKE '%" + escapeForSql(p.r_device_name) + "%'";
+		QStringList tmp;
+		foreach(const QString& ps, p.ps_override)
+		{
+			QString id = processedSampleId(ps, false);
+			if (id.isEmpty()) THROW(DatabaseException, "Processed sample '" + ps + "' given in 'ps_override' not found in NGSD!");
+			tmp << id;
+			id2index[id] = id2index.size();
+		}
+		conditions << "ps.id IN (" + tmp.join(", ") + ")";
 	}
 
 	//add comments
 	if (p.add_comments)
 	{
 		fields	<< "s.comment as comment_sample"
-				<< "ps.comment as comment_processed_sample";
+		        << "ps.comment as comment_processed_sample";
 	}
 
 	//add outcome
@@ -512,6 +532,20 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				output.removeRow(r);
 			}
 		}
+	}
+
+	//PS override: reorder to input order
+	if (ps_override)
+	{
+		output.sortCustom([&id2index](const DBRow& a, const DBRow& b)
+		                        {
+			                        int i1 = id2index.value(a.id(), -1);
+						if (i1==-1) THROW(ProgrammingException, "Could not determine index of PS '" + a.value(0) + "'");
+						int i2 = id2index.value(b.id(), -1);
+						if (i2==-1) THROW(ProgrammingException, "Could not determine index of PS '" + b.value(0) + "'");
+						return i1 < i2;
+		                        }
+		                );
 	}
 
 	//add path
@@ -4196,7 +4230,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
             if (value.type()==QVariant::DateTime)
             #endif
 			{
-				value_as_string = value_as_string.replace("T", " ");
+				value_as_string = value_as_string.replace("T", " ").replace(".000Z", "");
 			}
 			if (c==pk_col_index)
 			{
@@ -4697,28 +4731,6 @@ QMap<QString, ClassificationInfo> NGSD::getAllClassifications()
 	return results;
 }
 
-
-ClassificationInfo NGSD::getSomaticClassification(const Variant& variant)
-{
-	//variant not in NGSD
-	QString variant_id = variantId(variant, false);
-	if (variant_id=="")
-	{
-		return ClassificationInfo();
-	}
-
-	//classification not present
-	SqlQuery query = getQuery();
-	query.exec("SELECT class, comment FROM somatic_variant_classification WHERE variant_id='" + variant_id + "'");
-	if (query.size()==0)
-	{
-		return ClassificationInfo();
-	}
-
-	query.next();
-	return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
-}
-
 void NGSD::setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info)
 {
 	QString variant_id = variantId(variant, false);
@@ -4729,15 +4741,6 @@ void NGSD::setClassification(const Variant& variant, const VariantList& variant_
 
 	SqlQuery query = getQuery(); //use binding (user input)
 	query.prepare("INSERT INTO variant_classification (variant_id, class, comment) VALUES (" + variant_id + ",:0,:1) ON DUPLICATE KEY UPDATE class=VALUES(class), comment=VALUES(comment)");
-	query.bindValue(0, info.classification);
-	query.bindValue(1, info.comments);
-	query.exec();
-}
-
-void NGSD::setSomaticClassification(const Variant& variant, ClassificationInfo info)
-{
-	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO somatic_variant_classification (variant_id, class, comment) VALUES (" + variantId(variant) + ",:0,:1) ON DUPLICATE KEY UPDATE class=VALUES(class), comment=VALUES(comment)");
 	query.bindValue(0, info.classification);
 	query.bindValue(1, info.comments);
 	query.exec();
@@ -5408,7 +5411,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 				// get error message
 				QJsonArray errors = summary_response.object().value("submissions").toArray().at(0).toObject().value("errors").toArray();
 				QStringList error_messages;
-                for (const QJsonValue& error : errors)
+				for (const QJsonValue& error : errors)
 				{
 					error_messages << error.toObject().value("output").toObject().value("errors").toArray().at(0).toObject().value("userMessage").toString();
 				}
@@ -6104,7 +6107,17 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 
 		//define variant calling mode
 		QByteArray variant_calling_mode = "AllVariantCallers";
-		if (is_tumor) variant_calling_mode = "None";
+
+		//define target region
+		QByteArray target_region = "DragenEnrichment/" + system_name + ".bed";
+
+		//disable calling on tumors
+		if (is_tumor)
+		{
+			variant_calling_mode = "None";
+			target_region = "na";
+		}
+
 
 		//cut MIDs to fit recipe
 		if (mid1.length() > index1_read_length)
@@ -6134,7 +6147,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 				}
 				else if (system_type == "WES")
 				{
-					enrichment_analysis.append(ps_name + ",DragenEnrichment/" + system_name + ".bed," + variant_calling_mode);
+					enrichment_analysis.append(ps_name + "," + target_region + "," + variant_calling_mode);
 				}
 			}
 			else if (sample_type == "RNA")

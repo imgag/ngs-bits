@@ -122,7 +122,6 @@ When leaving out the ClinVar-based critera, the performance is still very good:
 More than 78% of variants are on rank 1, more than 90% in the top 3, and more than 95% in the top 10.
 
 
-
 ## Help and ChangeLog
 
 The VariantRanking command-line help and changelog can be found [here](../VariantRanking.md).

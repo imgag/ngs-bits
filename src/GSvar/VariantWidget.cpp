@@ -115,7 +115,8 @@ void VariantWidget::updateGUI()
 			ui_.transcripts->setItem(i, 2, GUIHelper::createTableItem(consequence.hgvs_c));
 			ui_.transcripts->setItem(i, 3, GUIHelper::createTableItem(consequence.hgvs_p));
 			ui_.transcripts->setItem(i, 4, GUIHelper::createTableItem(consequence.typesToStringSimplified(", ")));
-			ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(trans.flags(false).join(", ")));
+			ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(variantImpactToString(consequence.impact)));
+			ui_.transcripts->setItem(i, 6, GUIHelper::createTableItem(trans.flags(false).join(", ")));
 		}
 		GUIHelper::resizeTableCellWidths(ui_.transcripts, 530);
 		GUIHelper::resizeTableCellHeightsToFirst(ui_.transcripts);

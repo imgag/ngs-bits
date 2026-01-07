@@ -64,7 +64,7 @@ public:
 	static QString nobr();
 
 	///Edit classification of a variant
-	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
+	void editVariantClassification(VariantList& variant, int index);
 
 	///Returns if germline report is supported for current variant list. If error is given, it is filled with the error message, if false is returned.
 	bool germlineReportSupported(bool require_ngsd = true, QString* error=nullptr);
@@ -267,10 +267,6 @@ public slots:
 	void on_actionMethylation_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
-	///Open folder of variant list in explorer.
-	void openVariantListFolder();
-	///Open variant list qcML files.
-	void openVariantListQcFiles();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
 	///Action for variant conversion (VCF > GSvar)
@@ -559,7 +555,6 @@ private:
 		QAction* a_report_edit;
 		QAction* a_report_del;
 		QAction* a_var_class;
-		QAction* a_var_class_somatic;
 		QAction* a_var_interpretation_somatic;
 		QAction* a_var_comment;
 		QAction* a_var_val;

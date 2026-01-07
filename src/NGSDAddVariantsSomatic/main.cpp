@@ -25,7 +25,7 @@ public:
 		addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
 		addFlag("force", "Force import of variants, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
-		addFloat("max_af", "Maximum allele frequency of small variants to import (gnomAD) for import of tumor-only.", true, 0.05);
+		addFloat("max_af", "Maximum gnomAD allele frequency of small variants to import for tumor-only.", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
 		addFlag("no_time", "Disable timing output.");

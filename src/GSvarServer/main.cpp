@@ -20,6 +20,7 @@
 // find a PID for a BALT server instance
 int findBlatPid()
 {
+    #ifdef Q_OS_LINUX
     std::string cmd = "pidof -s gfServer";
     std::array<char, 128> buffer{};
 
@@ -30,13 +31,14 @@ int findBlatPid()
     {
         return std::stoi(buffer.data());
     }
-
+    #endif
     return -1;
 }
 
 // kill all instances of the BLAT server before the main app exits
 void handleExitSignal(int)
 {
+    #ifdef Q_OS_LINUX
     pid_t pid = static_cast<pid_t>(findBlatPid());
     while (pid > 0)
     {
@@ -45,6 +47,7 @@ void handleExitSignal(int)
         pid = static_cast<pid_t>(findBlatPid());
     }
     QCoreApplication::quit();
+    #endif
 }
 
 int main(int argc, char **argv)
@@ -529,7 +532,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"db_token",
 						QMap<QString, ParamProps>{
-							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "User name"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token to identify the session"}}
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
@@ -537,6 +540,17 @@ int main(int argc, char **argv)
 						"Secure token generation for accessing the database credentials",
 						&ServerController::getDbToken
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"secret",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token to identify the session"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::USER_TOKEN,
+						"Secret string used for extra security while requesting sensitive data",
+						&ServerController::getRandomSecret
+	});
 	EndpointManager::appendEndpoint(Endpoint{
 						"ngsd_credentials",
 						QMap<QString, ParamProps>{
@@ -627,7 +641,13 @@ int main(int argc, char **argv)
     try
     {
         ServerDB db = ServerDB();
-        db.initDbIfEmpty();
+		db.initDbIfEmpty();
+		if (db.getSchemaVersion() < db.EXPECTED_SCHEMA_VERSION)
+		{
+			Log::info("Schema has changed. Reinitializing the server database...");
+			db.reinitializeDb();
+			db.updateSchemaVersion(db.EXPECTED_SCHEMA_VERSION);
+		}
 
         QList<UrlEntity> restored_urls = db.getAllUrls();
         for (int u = 0; u < restored_urls.count(); u++)

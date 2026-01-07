@@ -437,6 +437,9 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	//filter output to processed samples that user has access to
 	QString restricted_user;
 
+	//filter override (processed sample names are provided and not determined by the filters above). The result table of the searched is ordered in the given order.
+	QStringList ps_override;
+
 	//output options
 	QString add_path;
 	bool add_disease_details = false;
@@ -1087,10 +1090,6 @@ public:
 	QMap<QString, ClassificationInfo> getAllClassifications();
 	///Sets the classification of a variant in the NGSD.
 	void setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info);
-	///Returns somatic classification information
-	ClassificationInfo getSomaticClassification(const Variant& variant);
-	///Sets the somatic classification of a variant in the NGSD.
-	void setSomaticClassification(const Variant& variant, ClassificationInfo info);
 
 	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
 	int getSomaticViccId(const Variant& variant);

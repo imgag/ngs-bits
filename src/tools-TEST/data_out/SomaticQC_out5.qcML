@@ -13,7 +13,7 @@
     <qualityParameter ID="qp0001" name="sample correlation" description="Correlation of high-quality SNV genotypes between tumor and normal sample." value="n/a (too few variants)" cvRef="QC" accession="QC:2000040"/>
     <qualityParameter ID="qp0002" name="variant count" description="Total number of variants in the target region." value="3" cvRef="QC" accession="QC:2000013"/>
     <qualityParameter ID="qp0003" name="somatic variant count" description="Total number of somatic variants in the target region." value="2" cvRef="QC" accession="QC:2000041"/>
-    <qualityParameter ID="qp0004" name="known somatic variants percentage" description="Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF&gt;1% in gnomAD)." value="50.00" cvRef="QC" accession="QC:2000045"/>
+    <qualityParameter ID="qp0004" name="known somatic variants percentage" description="Percentage of somatic variants that are listed as germline variants in public databases (e.g. AF&gt;1% in gnomAD)." value="50.00" cvRef="QC" accession="QC:2000045"/>
     <qualityParameter ID="qp0005" name="somatic indel variants percentage" description="Percentage of somatic variants that are insertions/deletions." value="50.00" cvRef="QC" accession="QC:2000042"/>
     <qualityParameter ID="qp0006" name="somatic transition/transversion ratio" description="Transition/transversion ratio of somatic single nucleotide variants." value="n/a (no variants or transversions)" cvRef="QC" accession="QC:2000043"/>
     <qualityParameter ID="qp0007" name="tumor content estimate" description="Estimate of tumor content based on SNVs." value="n/a (too few variants)" cvRef="QC" accession="QC:2000054"/>

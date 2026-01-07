@@ -86,7 +86,6 @@ void GeneWidget::updateGUI()
 		}
 		ui_.ids->setText(ids.join(" "));
 
-
 		//add pseudogenes/parent genes
 		QStringList pseudogene_link_list;
 		QStringList parent_gene_link_list;
@@ -134,10 +133,16 @@ void GeneWidget::updateGUI()
 		}
 		else
 		{
-			ui_.imprinting->deleteLater();
-			ui_.imprinting = nullptr;
-			ui_.imprinting_label->deleteLater();
-			ui_.imprinting_label = nullptr;
+			if (ui_.imprinting!=nullptr)
+			{
+				ui_.imprinting->deleteLater();
+				ui_.imprinting = nullptr;
+			}
+			if (ui_.imprinting_label!=nullptr)
+			{
+				ui_.imprinting_label->deleteLater();
+				ui_.imprinting_label = nullptr;
+			}
 		}
 
 		//show gnomAD o/e score

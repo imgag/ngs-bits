@@ -320,8 +320,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_finalize.png"), "Finalize report configuration", this, SLOT(finalizeReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
-	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
-	connect(ui_.open_qc_files, SIGNAL(clicked(bool)), this, SLOT(openVariantListQcFiles()));
 	ui_.vars_ranking->setMenu(new QMenu());
 	ui_.vars_ranking->menu()->addAction("dominant model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_dominant");
 	ui_.vars_ranking->menu()->addAction("recessive model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_recessive");
@@ -1566,76 +1564,6 @@ void MainWindow::on_actionGeneOmimInfo_triggered()
 	GeneOmimInfoWidget* widget = new GeneOmimInfoWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "OMIM information for genes");
 	dlg->exec();
-}
-
-void MainWindow::openVariantListFolder()
-{
-	if (filename_=="") return;
-
-	try
-	{
-		QString sample_folder;
-
-		if (GlobalServiceProvider::fileLocationProvider().isLocal())
-		{
-			sample_folder = QFileInfo(filename_).absolutePath();
-		}
-		else //client-server (allow opening folders if GSvar project paths are configured)
-		{
-			NGSD db;
-			if (variants_.type()==AnalysisType::GERMLINE_SINGLESAMPLE)
-			{
-				QString ps = variants_.mainSampleName();
-				QString ps_id = db.processedSampleId(ps);
-				QString project_type = db.getProcessedSampleData(ps_id).project_type;
-				QString project_folder = db.projectFolder(project_type).trimmed();
-				if (!project_folder.isEmpty())
-				{
-					sample_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
-					if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
-				}
-			}
-			else
-			{
-				THROW(Exception, "In client-server mode, opening analysis folders is only supported for germline single sample!");
-			}
-		}
-
-		QDesktopServices::openUrl(sample_folder);
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::information(this, "Open analysis folder", "Could not open analysis folder:\n" + e.message());
-	}
-}
-
-void MainWindow::openVariantListQcFiles()
-{
-	if (filename_=="") return;
-
-	const FileLocationProvider& flp = GlobalServiceProvider::fileLocationProvider();
-
-	foreach(const FileLocation& file, flp.getQcFiles())
-	{
-		if (flp.isLocal())
-		{
-			QDesktopServices::openUrl(QUrl::fromLocalFile(file.filename));
-		}
-		else
-		{
-			//create a local copy of the qcML file
-			VersatileFile in_file(file.filename);
-			in_file.open();
-			QByteArray file_contents = in_file.readAll();
-
-			QString tmp_filename = GSvarHelper::localQcFolder() + file.fileName();
-			QSharedPointer<QFile> tmp_file = Helper::openFileForWriting(tmp_filename);
-			tmp_file->write(file_contents);
-			tmp_file->close();
-
-			QDesktopServices::openUrl(QUrl::fromLocalFile(tmp_filename));
-		}
-	}
 }
 
 void MainWindow::on_actionReanalyze_triggered()
@@ -3317,6 +3245,7 @@ void MainWindow::on_actionAbout_triggered()
 			about_text += "\n  API URL: " + server_info.server_url;
 			about_text += "\n  API version: " + server_info.api_version;
 			about_text += "\n  htslib version: " + server_info.htslib_version;
+			about_text += "\n  Qt version: " + server_info.qt_version;
 		}
     }
 	else
@@ -5919,9 +5848,6 @@ void MainWindow::registerCustomContextMenuActions()
 	context_menu_actions_.a_var_class->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_class;
 
-	context_menu_actions_.a_var_class_somatic = new QAction("Edit classification  (somatic)");
-	context_menu_actions_.a_var_class_somatic->setEnabled(ngsd_user_logged_in);
-	actions << context_menu_actions_.a_var_class_somatic;
 	context_menu_actions_.a_var_interpretation_somatic = new QAction("Edit VICC interpretation (somatic)");
 	context_menu_actions_.a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_interpretation_somatic;
@@ -5970,10 +5896,6 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 	else if (action == context_menu_actions_.a_var_class)
 	{
 		editVariantClassification(variants_, index);
-	}
-	else if (action == context_menu_actions_.a_var_class_somatic)
-	{
-		editVariantClassification(variants_, index, true);
 	}
 	else if (action == context_menu_actions_.a_var_interpretation_somatic)
 	{
@@ -6217,67 +6139,47 @@ void MainWindow::on_actionOpenGSvarDataFolder_triggered()
 	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
 }
 
-void MainWindow::editVariantClassification(VariantList& variants, int index, bool is_somatic)
+void MainWindow::editVariantClassification(VariantList& variants, int index)
 {
 	try
 	{
 		Variant& variant = variants[index];
 
 		//execute dialog
-		ClassificationDialog dlg(this, variant, is_somatic);
+		ClassificationDialog dlg(this, variant);
 		if (dlg.exec()!=QDialog::Accepted) return;
 
 		//update NGSD
 		NGSD db;
 
 		ClassificationInfo class_info = dlg.classificationInfo();
-		if(is_somatic)
+
+		db.setClassification(variant, variants_, class_info);
+
+		//update variant list classification
+		int i_class = variants.annotationIndexByName("classification");
+		QString new_class = class_info.classification.replace("n/a", "");
+		variant.annotations()[i_class] = new_class.toUtf8();
+
+		markVariantListChanged(variant, "classification", new_class);
+
+		//update variant list classification comment
+		int i_class_comment = variants.annotationIndexByName("classification_comment");
+		variant.annotations()[i_class_comment] = class_info.comments.toUtf8();
+
+		markVariantListChanged(variant, "classification_comment", class_info.comments);
+
+		//check if already uploaded to ClinVar
+		QString var_id = db.variantId(variant);
+		QString sample_id = db.sampleId(germlineReportSample(), false);
+		if (!sample_id.isEmpty())
 		{
-			db.setSomaticClassification(variant, class_info);
-
-			//update variant list classification
-			int i_som_class = variants.annotationIndexByName("somatic_classification");
-			QString new_class = class_info.classification.replace("n/a", "");
-			variant.annotations()[i_som_class] = new_class.toUtf8();
-
-			markVariantListChanged(variant, "somatic_classification", new_class);
-
-			//update variant list classification comment
-			int i_som_class_comment = variants.annotationIndexByName("somatic_classification_comment");
-			variant.annotations()[i_som_class_comment] = class_info.comments.toUtf8();
-
-			markVariantListChanged(variant, "somatic_classification_comment", class_info.comments);
-
-		}
-		else //germline variants
-		{
-			db.setClassification(variant, variants_, class_info);
-
-			//update variant list classification
-			int i_class = variants.annotationIndexByName("classification");
-			QString new_class = class_info.classification.replace("n/a", "");
-			variant.annotations()[i_class] = new_class.toUtf8();
-
-			markVariantListChanged(variant, "classification", new_class);
-
-			//update variant list classification comment
-			int i_class_comment = variants.annotationIndexByName("classification_comment");
-			variant.annotations()[i_class_comment] = class_info.comments.toUtf8();
-
-			markVariantListChanged(variant, "classification_comment", class_info.comments);
-
-			//check if already uploaded to ClinVar
-			QString var_id = db.variantId(variant);
-			QString sample_id = db.sampleId(germlineReportSample(), false);
-			if (!sample_id.isEmpty())
+			QString clinvar_class = db.getValue("SELECT class FROM  variant_publication WHERE variant_table='variant' AND db='ClinVar' AND sample_id='" + sample_id + "' AND variant_id='" + var_id + "' ORDER BY id DESC LIMIT 1").toString();
+			if(!clinvar_class.isEmpty() && clinvar_class!=new_class)
 			{
-				QString clinvar_class = db.getValue("SELECT class FROM  variant_publication WHERE variant_table='variant' AND db='ClinVar' AND sample_id='" + sample_id + "' AND variant_id='" + var_id + "' ORDER BY id DESC LIMIT 1").toString();
-				if(!clinvar_class.isEmpty() && clinvar_class!=new_class)
-				{
-					//update on ClinVar
-					int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
-					if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
-				}
+				//update on ClinVar
+				int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
+				if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
 			}
 		}
 
@@ -6413,7 +6315,7 @@ bool MainWindow::germlineReportSupported(bool require_ngsd, QString* error)
 
 QString MainWindow::germlineReportSample()
 {
-	if (!germlineReportSupported(false))
+	if (!germlineReportSupported(false) && Settings::string("location", true)!="MHH")
 	{
 		THROW(ProgrammingException, "germlineReportSample() cannot be used if germline report is not supported!");
 	}

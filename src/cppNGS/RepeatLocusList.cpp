@@ -199,9 +199,8 @@ void RepeatLocusList::load(QString filename)
 				QByteArray genotype_ci = re.formatValueFromSample("ACR").trimmed();
 				rl.setConfidenceIntervals(genotype_ci);
 			}
-			else if ((caller_version_ == "V1.5.3") || (caller_version_ == "V1.5.4"))
+			else if (caller_version_.startsWith("V1.5."))
 			{
-
 				QByteArrayList genotypes = re.info("RUC").trimmed().split(',');
 				QByteArrayList genotype_ci = re.info("CIRUC").trimmed().split(',');
 				QByteArrayList genotypes_wt = re.info("RUC_WT").trimmed().split(',');

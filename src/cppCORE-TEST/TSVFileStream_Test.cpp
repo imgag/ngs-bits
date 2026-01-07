@@ -57,6 +57,31 @@ private:
 		S_EQUAL(line[1], QByteArray("2"));
 		S_EQUAL(line[2], QByteArray("3"));
 		IS_TRUE(stream.atEnd());
+
+		//test reset method actually works
+		stream.reset();
+
+		I_EQUAL(stream.header().count(), 3);
+		S_EQUAL(stream.header()[0], QByteArray("one"));
+		I_EQUAL(stream.colIndex("one", false), 0);
+		S_EQUAL(stream.header()[1], QByteArray("two"));
+		I_EQUAL(stream.colIndex("two", false), 1);
+		S_EQUAL(stream.header()[2], QByteArray("three"));
+		I_EQUAL(stream.colIndex("three", false), 2);
+		I_EQUAL(stream.colIndex("four", false), -1);
+		I_EQUAL(stream.comments().count(), 3);
+		S_EQUAL(stream.comments()[0], QByteArray("##bli"));
+		S_EQUAL(stream.comments()[1], QByteArray("##bla"));
+		S_EQUAL(stream.comments()[2], QByteArray("##bluff"));
+		I_EQUAL(stream.columns(), 3);
+		IS_FALSE(stream.atEnd());
+
+		line = stream.readLine();
+		I_EQUAL(line.count(), 3);
+		S_EQUAL(line[0], QByteArray("1"));
+		S_EQUAL(line[1], QByteArray("2"));
+		S_EQUAL(line[2], QByteArray("3"));
+		IS_TRUE(stream.atEnd());
 	}
 
 	TEST_METHOD(many_lines)

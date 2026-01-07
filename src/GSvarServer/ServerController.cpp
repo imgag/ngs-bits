@@ -2,6 +2,9 @@
 #include "PipelineSettings.h"
 #include <QUrl>
 #include <QProcess>
+#include <QDir>
+#include <QJsonArray>
+#include <QLibraryInfo>
 #include "HttpUtils.h"
 #include "Settings.h"
 #include "HtmlEngine.h"
@@ -9,9 +12,7 @@
 #include "ServerHelper.h"
 #include "ClientHelper.h"
 #include "FileLocationList.h"
-#include <QJsonArray>
 #include "SessionManager.h"
-#include <QDir>
 #include "UrlManager.h"
 #include "ServerDB.h"
 #include "Statistics.h"
@@ -230,6 +231,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
         json_object.insert("server_url", Settings::string("server_host", true));
 		json_object.insert("htslib_version", hts_version());
+        json_object.insert("qt_version", QLibraryInfo::version().toString());
         json_doc.setObject(json_object);
 
 		BasicResponseData response_data;
@@ -769,7 +771,6 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 	int ref_pos = -1;
 	int obs_pos = -1;
 	bool is_file_changed = false;
-
 	while(!in_stream.atEnd())
 	{
 		QString line = in_stream.readLine();
@@ -780,7 +781,7 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 		}
 
 		// Headers
-		if ((line.startsWith("#")) && (line.count("#") == 1))
+		if (line.startsWith("#"))
 		{
 			out_stream << line << "\n";
 			column_names = line.split("\t");
@@ -790,27 +791,27 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 			ref_pos = column_names.indexOf("ref");
 			obs_pos = column_names.indexOf("obs");
 
-			if ((chr_pos == -1) || (start_pos == -1) || (end_pos == -1) || (ref_pos == -1) || (obs_pos == -1))
+			if (chr_pos==-1 || start_pos==-1 || end_pos==-1 || ref_pos==-1 || obs_pos==-1)
             {
                 return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not identify key columns in GSvar file: " + ps_url_id));
 			}
 			continue;
 		}
 
-		QList<QString> line_columns = line.split("\t");
-		QString variant_in = line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos];
+		QStringList line_columns = line.split("\t");
+		QString variant_in = (line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos]).toLower().trimmed();
 		bool is_current_variant_changed = false;
 
-		for (int i = 0; i <  json_doc.array().size(); i++)
+		for (int i=0; i<json_doc.array().size(); i++)
 		{
 			try
 			{
-				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString().trimmed();
+				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString().toLower().trimmed();
 				QString column = json_doc.array().takeAt(i).toObject().value("column").toString().trimmed();
 				QString text = json_doc.array().takeAt(i).toObject().value("text").toString();
 
 				// Locating changed variant
-				if (variant_in.toLower().trimmed() == variant_changed.toLower())
+				if (variant_in == variant_changed)
 				{
 					// Locating changed column
 					if (column_names.indexOf(column) == -1)
@@ -820,7 +821,7 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 					is_current_variant_changed = true;
 					is_file_changed = true;
 
-					line_columns[column_names.indexOf(column)] = QUrl::toPercentEncoding(text); // text.replace("\n", " ").replace("\t", " ");
+					line_columns[column_names.indexOf(column)] = QUrl::toPercentEncoding(text);
 				}
 			}
 			catch (Exception& e)
@@ -839,28 +840,43 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 			out_stream << line_columns.join("\t") << "\n";
 		}
 	}
-
 	in_file.data()->close();
+	out_stream.flush();
 	out_file.data()->close();
 
+	//file was changed => update it on server
 	if (is_file_changed)
 	{
 		//remove original file
-		if (!in_file.data()->remove())
+		QString filename_orig = in_file.data()->fileName();
+		QString filename_backup = filename_orig + ".gsvarserver.bak";
+		if (!QFile::rename(filename_orig, filename_backup))
         {
-            Log::warn(EndpointManager::formatResponseMessage(request, "Could not remove: " + in_file.data()->fileName()));
+			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_orig + " to " + filename_backup));
 		}
-		//put the changed copy instead of the original
-		if (!out_file.data()->rename(url.filename_with_path))
-        {
-            Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename: " + out_file.data()->fileName()));
-		}
-	}
 
-	if (is_file_changed)
-	{
+		//rename changed copy to original file
+		if (!QFile::rename(tmp, filename_orig))
+		{
+			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + tmp + " to " + filename_orig));
+
+			if (!QFile::rename(filename_backup, filename_orig))
+			{
+				Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_backup + " to " + filename_orig));
+			}
+		}
+		else
+		{
+			QFile::remove(filename_backup);
+		}
+
 		return HttpResponse(ResponseStatus::OK, request.getContentType(), "Project file has been changed");
 	}
+	else
+	{
+		QFile::remove(tmp);
+	}
+
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "No changes to the file detected");
 }
 
@@ -1187,7 +1203,7 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-    Session cur_session = Session(secure_token, user_id, user_login, user_real_name, QDateTime::currentDateTime(), false);
+	Session cur_session = Session(secure_token, user_id, user_login, user_real_name, Helper::randomString(128), QDateTime::currentDateTime(), false);
     SessionManager::addNewSession(cur_session);
     QByteArray body = secure_token.toUtf8();
 
@@ -1272,7 +1288,7 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
     }
 
     QString db_token = ServerHelper::generateUniqueStr();
-    Session cur_session = Session(db_token, user_session.user_id, user_session.user_login, user_session.user_name, QDateTime::currentDateTime(), true);
+	Session cur_session = Session(db_token, user_session.user_id, user_session.user_login, user_session.user_name, Helper::randomString(128), QDateTime::currentDateTime(), true);
     SessionManager::addNewSession(cur_session);
 	QByteArray body = db_token.toUtf8();
 
@@ -1281,6 +1297,23 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, body);
+}
+
+HttpResponse ServerController::getRandomSecret(const HttpRequest &request)
+{
+	QString token = EndpointManager::getTokenIfAvailable(request);
+	if (token.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to access this information"));
+	}
+	Session current_session = SessionManager::getSessionBySecureToken(token);
+
+	BasicResponseData response_data;
+	response_data.length = current_session.random_secret.length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, current_session.random_secret.toLocal8Bit());
 }
 
 HttpResponse ServerController::getNgsdCredentials(const HttpRequest& request)

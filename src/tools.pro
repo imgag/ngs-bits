@@ -125,6 +125,10 @@ SUBDIRS += VariantAnnotateFrequency
 tools-TEST.depends += VariantAnnotateFrequency
 VariantAnnotateFrequency.depends = cppNGS
 
+SUBDIRS += VcfAnnotateFrequency
+tools-TEST.depends += VcfAnnotateFrequency
+VcfAnnotateFrequency.depends = cppNGS
+
 SUBDIRS += MappingQC
 tools-TEST.depends += MappingQC
 MappingQC.depends = cppNGS
@@ -503,6 +507,10 @@ VcfToBed.depends = cppNGS
 SUBDIRS += TsvToQC
 tools-TEST.depends += TsvToQC
 TsvToQC.depends = cppNGS
+
+SUBDIRS += TsvTo
+tools-TEST.depends += TsvTo
+TsvTo.depends = cppNGS
 
 SUBDIRS += NGSDImportGenlab
 tools-TEST.depends += NGSDImportGenlab

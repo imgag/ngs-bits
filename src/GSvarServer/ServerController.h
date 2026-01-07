@@ -47,7 +47,7 @@ public:
 	static HttpResponse getAnalysisJobLastUpdate(const HttpRequest& request);
 	/// Locates a log file for a specific job
 	static HttpResponse getAnalysisJobLog(const HttpRequest& request);
-	/// Saves changes to the project file
+	/// Saves changes to a GSvar file
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	/// Saves qbic files in the folder on the server
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
@@ -71,6 +71,8 @@ public:
 	static HttpResponse validateCredentials(const HttpRequest& request);
 	/// Requests a toke to access the database credentials
 	static HttpResponse getDbToken(const HttpRequest& request);
+	/// Requests a random secret string to access sensitive data
+	static HttpResponse getRandomSecret(const HttpRequest& request);
 	/// Requests NGSD credentials for the GSvar application
 	static HttpResponse getNgsdCredentials(const HttpRequest& request);
 	/// Requests Genlab database credentials for the GSvar application
