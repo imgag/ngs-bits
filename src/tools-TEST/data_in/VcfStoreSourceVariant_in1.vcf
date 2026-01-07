@@ -32,6 +32,7 @@
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 2024_09-235-ga2dc3161
 ##SAMPLE=<ID=NA12878x3_26,Gender=n/a,ExternalSampleName=NA12878,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
+##INFO=<ID=SOURCE_VAR,Number=A,Type=String,Description="Source variant">
 ##INFO=<ID=NS,Number=.,Type=Integer,Description="Number of samples with data">
 ##INFO=<ID=DP,Number=.,Type=Integer,Description="Total read depth at the locus">
 ##INFO=<ID=DPB,Number=.,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
@@ -69,7 +70,6 @@
 ##INFO=<ID=NUMALT,Number=.,Type=Integer,Description="Number of unique non-reference alleles in called genotypes at this position.">
 ##INFO=<ID=MEANALT,Number=A,Type=Float,Description="Mean number of unique non-reference allele observations per sample with the corresponding alternate alleles.">
 ##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
-##INFO=<ID=SOURCE_VAR,Number=A,Type=String,Description="Source variant">
 ##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
 ##INFO=<ID=MQMR,Number=.,Type=Float,Description="Mean mapping quality of observed reference alleles">
 ##INFO=<ID=PAIRED,Number=A,Type=Float,Description="Proportion of observed alternate alleles which are supported by properly paired read fragments">

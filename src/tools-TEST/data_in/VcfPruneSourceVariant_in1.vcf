@@ -69,6 +69,7 @@
 ##INFO=<ID=NUMALT,Number=.,Type=Integer,Description="Number of unique non-reference alleles in called genotypes at this position.">
 ##INFO=<ID=MEANALT,Number=A,Type=Float,Description="Mean number of unique non-reference allele observations per sample with the corresponding alternate alleles.">
 ##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
+##INFO=<ID=SOURCE_VAR,Number=A,Type=String,Description="Source variant">
 ##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
 ##INFO=<ID=MQMR,Number=.,Type=Float,Description="Mean mapping quality of observed reference alleles">
 ##INFO=<ID=PAIRED,Number=A,Type=Float,Description="Proportion of observed alternate alleles which are supported by properly paired read fragments">
@@ -90,53 +91,18 @@
 ##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
 ##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878x3_26
-chr1	13613	.	T	AG	24	.	MQM=23;SAP=12;SAR=0;SAF=4;ABP=4	GT:DP:AO:GQ	0/1:6:4:0
-chr1	13684	.	C	T,G	36	.	MQM=23;SAP=10;SAR=0;SAF=3;ABP=0	GT:DP:AO:GQ	1/1:3:3:33
-chr1	13813	.	T	G	63	.		GT:DP:AO:GQ	0/1:6:5:0
-chr1	13838	.	C	T	77	off-target		GT:DP:AO:GQ	1/1:5:5:50
-chr1	14522	.	G	A	7	off-target	MQM=24;SAP=12;SAR=0;SAF=4;ABP=4	GT:DP:AO:GQ	0/1:10:4:7
-chr1	14542	.	A	G	103	off-target	MQM=24;SAP=23;SAR=0;SAF=9;ABP=10	GT:DP:AO:GQ	0/1:12:9:0
-chr1	14574	.	A	G	129	off-target	MQM=23;SAP=25;SAR=0;SAF=10;ABP=11	GT:DP:AO:GQ	0/1:13:10:0
-chr1	14590	.	G	A	37	off-target	MQM=22;SAP=16;SAR=0;SAF=6;ABP=4	GT:DP:AO:GQ	0/1:10:6:5
-chr1	14599	.	T	A	64	off-target	MQM=22;SAP=16;SAR=0;SAF=6;ABP=7	GT:DP:AO:GQ	0/1:8:6:0
-chr1	14604	.	A	G	49	off-target	MQM=22;SAP=14;SAR=0;SAF=5;ABP=6	GT:DP:AO:GQ	0/1:7:5:0
-chr1	14610	.	T	C	100	off-target	MQM=22;SAP=11;SAR=1;SAF=6;ABP=0	GT:DP:AO:GQ	1/1:8:7:45
-chr1	14653	.	C	T	757	off-target	MQM=27;SAP=60;SAR=5;SAF=39;ABP=0	GT:DP:AO:GQ	1/1:45:44:160
-chr1	14677	.	G	A	712	off-target	MQM=30;SAP=40;SAR=9;SAF=37;ABP=3	GT:DP:AO:GQ	0/1:92:46:138
-chr1	14907	.	A	G	30	off-target	MQM=24;SAP=3;SAR=2;SAF=3;ABP=3	GT:DP:AO:GQ	0/1:11:5:11
-chr1	14930	.	A	G	66	off-target	MQM=24;SAP=7;SAR=1;SAF=4;ABP=6	GT:DP:AO:GQ	0/1:7:5:0
-chr1	15118	.	A	G	56	off-target	MQM=25;SAP=16;SAR=6;SAF=0;ABP=7	GT:DP:AO:GQ	0/1:8:6:0
-chr1	16014	.	C	T	43	off-target	MQM=22;SAP=14;SAR=5;SAF=0;ABP=9	GT:DP:AO:GQ	0/1:6:5:0
-chr1	16068	.	T	C	56	off-target	MQM=22;SAP=14;SAR=5;SAF=0;ABP=0	GT:DP:AO:GQ	1/1:5:5:49
-chr1	16495	.	G	C	337	off-target	MQM=22;SAP=66;SAR=1;SAF=32;ABP=16	GT:DP:AO:GQ	0/1:49:33:9
-chr1	16688	.	G	A	19	low_mappability	MQM=6;SAP=7;SAR=20;SAF=12;ABP=365	GT:DP:AO:GQ	0/1:280:32:19
-chr1	16949	.	A	C	238	.	MQM=22;SAP=23;SAR=27;SAF=9;ABP=9	GT:DP:AO:GQ	0/1:88:36:143
-chr1	17020	.	G	A	303	.	MQM=23;SAP=7;SAR=20;SAF=12;ABP=10	GT:DP:AO:GQ	0/1:80:32:146
-chr1	17222	.	A	G	475	low_mappability	MQM=1;SAP=3;SAR=27;SAF=24;ABP=487	GT:DP:AO:GQ	0/1:401:51:160
-chr1	17379	.	G	A	2560	low_mappability	MQM=0;SAP=17;SAR=64;SAF=38;ABP=268	GT:DP:AO:GQ	0/1:434:102:160
-chr1	17385	.	G	A	226	.	MQM=33;SAP=17;SAR=4;SAF=15;ABP=16	GT:DP:AO:GQ	0/1:56:19:149
-chr1	17407	.	G	A	147	.	MQM=39;SAP=3;SAR=12;SAF=10;ABP=82	GT:DP:AO:GQ	0/1:106:22:135
-chr1	17614	.	G	A	30	.	MQM=40;SAP=29;SAR=12;SAF=0;ABP=50	GT:DP:AO:GQ	0/1:60:12:30
-chr1	17722	.	A	G	31	.	MQM=39;SAP=31;SAR=13;SAF=0;ABP=67	GT:DP:AO:GQ	0/1:72:13:30
-chr1	24786	.	G	A	1246	low_mappability	MQM=0;SAP=4;SAR=24;SAF=28;ABP=169	GT:DP:AO:GQ	0/1:239:52:160
-chr1	30489	.	G	A	130	low_mappability	MQM=0;SAP=20;SAR=0;SAF=8;ABP=27	GT:DP:AO:GQ	0/1:36:8:130
-chr1	30528	.	C	T	56	low_mappability	MQM=0;SAP=20;SAR=0;SAF=8;ABP=69	GT:DP:AO:GQ	0/1:58:8:55
-chr1	30548	.	T	G	268	low_mappability	MQM=3;SAP=21;SAR=2;SAF=13;ABP=75	GT:DP:AO:GQ	0/1:82:15:152
-chr1	30570	.	C	T	346	low_mappability	MQM=0;SAP=16;SAR=5;SAF=16;ABP=119	GT:DP:AO:GQ	0/1:123:21:143
-chr1	30663	.	C	T	1157	low_mappability	MQM=0;SAP=4;SAR=27;SAF=22;ABP=171	GT:DP:AO:GQ	0/1:232:49:155
-chr1	30672	.	A	G	1157	low_mappability	MQM=0;SAP=6;SAR=28;SAF=20;ABP=169	GT:DP:AO:GQ	0/1:228:48:153
-chr1	65591	.	C	T	406	low_mappability	MQM=0;SAP=3;SAR=8;SAF=9;ABP=53	GT:DP:AO:GQ	0/1:76:17:147
-chr1	69428	.	T	G	207	low_mappability	MQM=0;SAP=21;SAR=11;SAF=1;ABP=34	GT:DP:AO:GQ	0/1:51:12:147
-chr1	131102	.	G	C	28	low_mappability	MQM=0;SAP=12;SAR=0;SAF=4;ABP=30	GT:DP:AO:GQ	0/1:26:4:28
-chr1	131130	.	G	A	23	low_mappability	MQM=2;SAP=16;SAR=0;SAF=6;ABP=48	GT:DP:AO:GQ	0/1:41:6:23
-chr1	131172	.	G	T	53	low_mappability	MQM=8;SAP=23;SAR=0;SAF=9;ABP=69	GT:DP:AO:GQ	0/1:61:9:52
-chr1	131552	.	G	T	1126	low_mappability	MQM=11;SAP=16;SAR=27;SAF=12;ABP=14	GT:DP:AO:GQ	0/1:100:39:160
-chr1	131957	.	C	A	1023	low_mappability	MQM=0;SAP=4;SAR=24;SAF=20;ABP=150	GT:DP:AO:GQ	0/1:206:44:141
-chr1	132138	.	C	T	1034	low_mappability	MQM=0;SAP=8;SAR=25;SAF=15;ABP=71	GT:DP:AO:GQ	0/1:148:40:144
-chr1	132290	.	T	C	28	low_mappability	MQM=0;SAP=11;SAR=8;SAF=2;ABP=107	GT:DP:AO:GQ	0/1:83:10:28
-chr1	132359	.	C	T	20	low_mappability	MQM=0;SAP=6;SAR=5;SAF=2;ABP=69	GT:DP:AO:GQ	0/1:55:7:20
-chr1	132782	.	G	A	157	low_mappability	MQM=4;SAP=3;SAR=4;SAF=5;ABP=42	GT:DP:AO:GQ	0/1:47:9:139
-chr1	132838	.	G	T	67	low_mappability	MQM=0;SAP=11;SAR=6;SAF=1;ABP=49	GT:DP:AO:GQ	0/1:45:7:66
-chr1	133010	.	C	T	124	.	MQM=20;SAP=23;SAR=0;SAF=9;ABP=0	GT:DP:AO:GQ	1/1:9:9:74
-chr1	133129	.	G	A	309	.	MQM=34;SAP=7;SAR=4;SAF=9;ABP=0	GT:DP:AO:GQ	1/1:13:13:98
-chr1	133483	.	G	T	837	.	MQM=23;SAP=3;SAR=21;SAF=24;ABP=0	GT:DP:AO:GQ	1/1:45:45:160
+chr1	13614	.	T	A	24	.	MQM=23;SAP=12;SAR=0;SAF=4;ABP=4;SOURCE_VAR=chr1&13613&T&AG	GT:DP:AO:GQ	0/1:6:4:0
+chr1	13684	.	C	T	36	.	SOURCE_VAR=chr1&13684&C&T,G	GT:DP:AO:GQ	1/1:3:3:33
+chr1	13815	.	T	G	63	.		GT:DP:AO:GQ	0/1:6:5:0
+chr1	13838	.	C	T	77	off-target	MQM=24;SAP=12;SAR=0;SAF=4;ABP=4;SOURCE_VAR=chr1&13838&C&T	GT:DP:AO:GQ	1/1:5:5:50
+chr1	14522	.	G	A	7	off-target	SOURCE_VAR=chr1&14522&G&A	GT:DP:AO:GQ	0/1:10:4:7
+chr1	14542	.	A	G	103	off-target		GT:DP:AO:GQ	0/1:12:9:0
+chr1	14574	.	A	G	129	off-target	MQM=23;SAP=25;SAR=0;SAF=10;ABP=11;SOURCE_VAR=chr1&14574&A&G	GT:DP:AO:GQ	0/1:13:10:0
+chr1	14590	.	G	A	37	off-target	MQM=22;SAP=16;SAR=0;SAF=6;ABP=4;SOURCE_VAR=chr1&14590&G&A	GT:DP:AO:GQ	0/1:10:6:5
+chr1	14599	.	T	A	64	off-target	MQM=22;SAP=16;SAR=0;SAF=6;ABP=7;SOURCE_VAR=chr1&14599&T&A	GT:DP:AO:GQ	0/1:8:6:0
+chr1	14604	.	A	G	49	off-target	MQM=22;SAP=14;SAR=0;SAF=5;ABP=6;SOURCE_VAR=chr1&14604&A&G	GT:DP:AO:GQ	0/1:7:5:0
+chr1	14610	.	T	C	100	off-target	MQM=22;SAP=11;SAR=1;SAF=6;ABP=0;SOURCE_VAR=chr1&14610&T&C	GT:DP:AO:GQ	1/1:8:7:45
+chr1	14653	.	C	T	757	off-target	MQM=27;SAP=60;SAR=5;SAF=39;ABP=0;SOURCE_VAR=chr1&14653&C&T	GT:DP:AO:GQ	1/1:45:44:160
+chr1	14677	.	G	A	712	off-target	MQM=30;SAP=40;SAR=9;SAF=37;ABP=3;SOURCE_VAR=chr1&14677&G&A	GT:DP:AO:GQ	0/1:92:46:138
+chr1	16986097	.	G	A	255	.	CO=SVN_TRIM_RIGHT;SOURCE_VAR=chr1&16986097&GGA&AGA	GT:DP:AO:GQ	0/1:92:46:138
+chr2	230255540	.	CG	C	8.6	GERMLINE	LEN=1;TYPE=del;SOURCE_VAR=chr2&230255540&CGG&CG	GT:GQ:DP:AD:VAF:PL	0|0:2:167:5,87:0.520958:4,0,43

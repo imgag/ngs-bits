@@ -49,6 +49,8 @@ public:
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		FastaFileIndex reference(ref_file);
 
+		if (verbose) out_stream << "Source variant annotations deleted due to indel left align: " << QT_ENDL;
+
 		while(!in_p->atEnd())
 		{
 			QByteArray line = in_p->readLine();
@@ -65,6 +67,13 @@ public:
 
 			//split line and extract variant infos
 			QByteArrayList parts = line.trimmed().split('\t');
+
+			if (parts.count() <= VcfFile::FORMAT)
+			{
+				out_p->write(line);
+				continue;
+			}
+
 			QByteArray variant = parts[VcfFile::CHROM] + "&" + parts[VcfFile::POS] + "&" + parts[VcfFile::REF] + "&" + parts[VcfFile::ALT];
 			QByteArray info = parts[VcfFile::INFO];
 
@@ -79,32 +88,39 @@ public:
 					if (p.startsWith("SOURCE_VAR"))
 					{
 						QByteArray source_variant;
-						source_variant = p.split('=')[1];
+						QByteArrayList kv = p.split('=');
+
+						if (kv.count() != 2) { new_infos.append(p); continue; }
+						source_variant = kv[1];
+
 						if (source_variant == variant) continue;
 						else
 						{
-							//TODO: check if new variant came from left normalize
-							Variant var_source;
-							var_source.setChr(source_variant.split('&')[0]);
-							var_source.setStart(source_variant.split('&')[1].toInt());
-							var_source.setEnd(source_variant.split('&')[1].toInt());
-							var_source.setRef(source_variant.split('&')[2]);
-							var_source.setObs(source_variant.split('&')[3]);
+							//Check if new variant came from left normalize
+							QByteArrayList sv = source_variant.split('&');
+							if (sv.count() != 4) { new_infos.append(p); continue; }
 
-							Variant var;
-							var.setChr(parts[VcfFile::CHROM]);
-							var.setStart(parts[VcfFile::POS].toInt());
-							var.setEnd(parts[VcfFile::POS].toInt());
-							var.setRef(parts[VcfFile::REF]);
-							var.setObs(parts[VcfFile::ALT]);
+							Chromosome chr = sv[0];
+							int pos = Helper::toInt(sv[1], "VCF position");
+							Sequence ref = sv[2].toUpper();
+							QByteArray alt = sv[3].toUpper();
+
+							VcfLine var_source(chr, pos, ref, QList<Sequence>() << alt);
 
 							if (!var_source.isSNV())
 							{
-								var_source.normalize();
-								var_source.leftAlign(reference);
+								var_source.leftNormalize(reference);
+
+								Chromosome chr = parts[VcfFile::CHROM];
+								int pos = Helper::toInt(parts[VcfFile::POS], "VCF position");
+								Sequence ref = parts[VcfFile::REF].toUpper();
+								QByteArray alt = parts[VcfFile::ALT].toUpper();
+
+								VcfLine var(chr, pos, ref, QList<Sequence>() << alt);
 
 								if (var == var_source)
 								{
+									if (verbose) out_stream << source_variant << QT_ENDL;
 									++count;
 									continue;
 								}
@@ -122,7 +138,7 @@ public:
 			out_p->write(parts.join('\t').append('\n'));
 		}
 
-		if (verbose) out_stream << "Source variant annotations deleted due to indel left align: " << count << QT_ENDL;
+		if (verbose) out_stream << "Number of source variant annotations removed due to indel left align: " << count << QT_ENDL;
 	}
 };
 
