@@ -261,7 +261,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.actionVirusDetection->setEnabled(false);
 
 	//debugging
-	if (Settings::boolean("debug_mode_enabled", true))
+	if (Helper::runningInQtCreator())
 	{
 		QToolButton* debug_btn = new QToolButton();
 		debug_btn->setObjectName("cfdna_btn");
@@ -281,7 +281,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("processed sample: DNA2405534A1_01", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
-	ui_.actionEncrypt->setEnabled(Settings::boolean("debug_mode_enabled", true));
+	ui_.actionEncrypt->setEnabled(Helper::runningInQtCreator());
 
 	//signals and slots
     connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
@@ -683,7 +683,7 @@ void MainWindow::on_actionRegionToGenes_triggered()
 		dlg.setReadOnly(true);
 		dlg.setWordWrapMode(QTextOption::NoWrap);
 		dlg.appendLine("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
-        for (const QByteArray& gene : genes)
+		foreach (const QByteArray& gene, std::as_const(genes))
 		{
 			QList<OmimInfo> omim_genes = db.omimInfo(gene);
 			foreach (const OmimInfo& omim_gene, omim_genes)
@@ -2476,7 +2476,7 @@ void MainWindow::openRunBatchTab(const QStringList& run_names)
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_ids);
 	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_names.join(", "), type, widget);
-	if (Settings::boolean("debug_mode_enabled"))
+	if (Helper::runningInQtCreator())
 	{
 		ui_.tabs->setTabToolTip(index, "NGSD ID: " + run_ids.join(", "));
 	}
@@ -3887,7 +3887,7 @@ void MainWindow::generateReportSomaticRTF()
 	{
 		QStringList cnv_data = Helper::loadTextFile(cnvFile.filename, true, QChar::Null, true);
 
-		for (const QString& line: cnv_data)
+		foreach (const QString& line, cnv_data)
 		{
 			if (line.startsWith("##ploidy:"))
 			{
@@ -4839,7 +4839,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 
 		db.exportSampleData(ps_id, sample_db_data);
 
-		for (QString single_query: sample_db_data)
+		foreach (QString single_query, std::as_const(sample_db_data))
 		{
 			output_stream << single_query.replace("\n", "\\n") << ";\n";
 		}
@@ -6820,7 +6820,7 @@ void MainWindow::applyFilters(bool debug_time)
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
 
-            for (const QByteArray& gene : pheno_genes)
+			foreach (const QByteArray& gene, std::as_const(pheno_genes))
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
