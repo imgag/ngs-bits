@@ -26,6 +26,7 @@ DEFINES += "SERVER_VERSION=$$SVN_VER"
 SOURCES += \
         BlatInitWorker.cpp \
         QueuingEngineController.cpp \
+        QueuingEngineControllerGeneric.cpp \
         QueuingEngineControllerSge.cpp \
         QueuingEngineControllerSlurm.cpp \
         ServerController.cpp \
@@ -40,6 +41,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     BlatInitWorker.h \
     QueuingEngineController.h \
+    QueuingEngineControllerGeneric.h \
     QueuingEngineControllerSge.h \
     QueuingEngineControllerSlurm.h \
     ServerController.h \
