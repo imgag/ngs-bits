@@ -44,7 +44,7 @@ QString QueuingEngineControllerGeneric::getEngineName() const
 	return "Generic";
 }
 
-void QueuingEngineControllerGeneric::submitJob(NGSD &db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
+void QueuingEngineControllerGeneric::submitJob(NGSD &/*db*/, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
 {
 	if (qe_api_base_url_.isEmpty())
 	{
@@ -79,12 +79,13 @@ void QueuingEngineControllerGeneric::submitJob(NGSD &db, int threads, QStringLis
 	}
 }
 
-bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJob &job, int job_id) const
+bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &/*db*/, const AnalysisJob &job, int job_id) const
 {
+	bool job_finished = true;
 	if (qe_api_base_url_.isEmpty())
 	{
 		Log::error("Could not update a running job: base URL for queuing engine API had not been set");
-		return false;
+		return job_finished;
 	}
 
 	QJsonDocument json_doc_output;
@@ -99,7 +100,15 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 	{
 		HttpHeaders add_headers;
 		int status_code = HttpRequestHandler(proxy_).post(qe_api_base_url_, json_doc_output.toJson(), add_headers).status_code;
-		if (status_code!=200)
+		if (status_code==200)
+		{
+			job_finished = true; // OK - the job is finished
+		}
+		else if (status_code==201) // CREATED - the job is queued/running
+		{
+			job_finished = false;
+		}
+		else
 		{
 			Log::error("There has been an error while updating a job, response code: " + QString::number(status_code));
 		}
@@ -109,9 +118,11 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 	{
 		Log::error("There has been an error while updating a job: " + e.message());
 	}
+
+	return job_finished;
 }
 
-void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &db, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const
+void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &/*db*/, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const
 {
 	if (qe_api_base_url_.isEmpty())
 	{
@@ -149,7 +160,7 @@ void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &db, QString qe_job_
 	}
 }
 
-void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const
+void QueuingEngineControllerGeneric::deleteJob(NGSD &/*db*/, const AnalysisJob &job, int job_id) const
 {
 	if (qe_api_base_url_.isEmpty())
 	{
