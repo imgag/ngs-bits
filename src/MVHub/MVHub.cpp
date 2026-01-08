@@ -527,9 +527,12 @@ void MVHub::updateTableFilters()
 			if (!visible[r]) continue;
 
 			QString status = getString(r, c_exp_status);
-			int c_todo = status.split("//").count();
+			bool todo_kdk = status.contains("KDK");
+			bool todo_grz = status.contains("GRZ");
 			QString conf = getString(r, c_exp_conf);
-			int c_conf = conf.isEmpty() ? 0 : conf.split("//").count();
+			bool conf_kdk = conf.contains("KDK");
+			bool conf_grz = conf.contains("GRZ");
+			bool upload_done = (!todo_kdk || (todo_kdk && conf_kdk)) && (!todo_grz || (todo_grz && conf_grz));
 
 			if (export_filter=="pending" && status!="")
 			{
@@ -540,12 +543,12 @@ void MVHub::updateTableFilters()
 				visible[r] = false;
 			}
 
-			if (export_filter=="in progress" && !(status!="" && c_todo!=c_conf))
+			if (export_filter=="in progress" && !(status!="" && !upload_done))
 			{
 				visible[r] = false;
 			}
 
-			if (export_filter=="done" && !(status!="" && c_todo==c_conf))
+			if (export_filter=="done" && !(status!="" && upload_done))
 			{
 				visible[r] = false;
 			}
@@ -1046,12 +1049,17 @@ MVHub::PSData MVHub::getMatchingPS(NGSD& db, GenLabDB& genlab, QString sap_id, N
 	params.run_finished = true;
 	params.p_type = "diagnostic";
 	params.r_after = QDate(2024, 7, 1);
-	bool post_filter_wgs_lrgs = false;
 	if ((network==SE || network==FBREK) && seq_type=="WGS")
 	{
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
-		post_filter_wgs_lrgs = true; //system type can be WGS or lrGS > filtering below
+		params.sys_type = "WGS";
+	}
+	else if ((network==SE || network==FBREK) && seq_type=="lrGS")
+	{
+		params.include_bad_quality_samples = false;
+		params.include_tumor_samples = false;
+		params.sys_type = "lrGS";
 	}
 	else if (network==OE && seq_type=="WES")
 	{
@@ -1075,16 +1083,7 @@ MVHub::PSData MVHub::getMatchingPS(NGSD& db, GenLabDB& genlab, QString sap_id, N
 	QStringList tmp = genlab.samplesWithSapID(sap_id, params);
 	foreach(QString ps, tmp)
 	{
-		QString ps_id = db.processedSampleId(ps);
-		QString s_id = db.sampleId(ps);
-		if (post_filter_wgs_lrgs)
-		{
-			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
-			QString sys_type = ps_data.processing_system_type;
-			if (sys_type!="WGS" && sys_type!="lrGS") continue; //system type can be WGS or lrGS > filtering here instead via parameters
-		}
-
-		SampleData s_data = db.getSampleData(s_id);
+		SampleData s_data = db.getSampleData(db.sampleId(ps));
 		if (!s_data.is_tumor)
 		{
 			output.germline << ps;
@@ -1178,7 +1177,7 @@ int MVHub::updateHpoTerms(int debug_level)
 		if (debug_level>=2) addOutputLine(se_id + "/" + ps + ": HPOs NGSD: " + QString::number(hpo_ngsd.count()) + " HPOs SE RedCap: " + QString::number(hpo_mvh.count()));
 
 		//update if terms are missing
-        for(const Phenotype& hpo: hpo_ngsd)
+		for(const Phenotype& hpo: std::as_const(hpo_ngsd))
 		{
 			if (hpo_mvh.containsAccession(hpo.accession()))
 			{
