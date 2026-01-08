@@ -44,7 +44,7 @@ QString QueuingEngineControllerGeneric::getEngineName() const
 	return "Generic";
 }
 
-void QueuingEngineControllerGeneric::submitJob(NGSD &/*db*/, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
+void QueuingEngineControllerGeneric::submitJob(NGSD &/*db*/, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, int job_id) const
 {
 	if (qe_api_base_url_.isEmpty())
 	{
@@ -60,7 +60,6 @@ void QueuingEngineControllerGeneric::submitJob(NGSD &/*db*/, int threads, QStrin
 	top_level_json_object.insert("pipeline_args", QJsonArray::fromStringList(pipeline_args));
 	top_level_json_object.insert("project_folder", project_folder);
 	top_level_json_object.insert("script", script);
-	top_level_json_object.insert("job_args", job_args);
 	top_level_json_object.insert("job_id", job_id);
 	json_doc_output.setObject(top_level_json_object);
 	try

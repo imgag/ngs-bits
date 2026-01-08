@@ -11,7 +11,7 @@ QString QueuingEngineControllerSlurm::getEngineName() const
 	return "SLURM";
 }
 
-void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
+void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, int job_id) const
 {
 	QString slurm_out_base = PipelineSettings::dataFolder() + "/slurm/megSAP_slurm_job_" + QString::number(job_id);
 
@@ -30,11 +30,6 @@ void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList 
 
 	// Build command line for wrapped job
 	QString command_php = "php " + PipelineSettings::rootDir()+"/src/Pipelines/" + script;
-
-    if (!job_args.isEmpty())
-    {
-		command_php += " " + job_args;
-    }
 	command_php += " " + pipeline_args.join(" ");
 
 	// Create bash script for command
