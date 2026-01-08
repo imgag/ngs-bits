@@ -51,9 +51,9 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
 
 	//schedule re-sequencing
-	action = new QAction("Schedule sample(s) for resequencing", this);
+	action = new QAction("Toggle resequencing for sample(s)", this);
 	ui_->samples->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(scheduleForResequencing()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(toggleScheduleForResequencing()));
 
 	if (is_batch_view_) initBatchView();
 
@@ -464,13 +464,15 @@ void SequencingRunWidget::setQuality()
 	updateGUI();
 }
 
-void SequencingRunWidget::scheduleForResequencing()
+void SequencingRunWidget::toggleScheduleForResequencing()
 {
 	NGSD db;
 
 	//prepare query
 	SqlQuery query = db.getQuery();
-	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=TRUE WHERE id=:0");
+	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=:0 WHERE id=:1");
+
+
 
 	int col = ui_->samples->columnIndex("sample");
     QList<int> selected_rows = ui_->samples->selectedRows().values();
@@ -478,7 +480,9 @@ void SequencingRunWidget::scheduleForResequencing()
 	{
 		QString ps_name = ui_->samples->item(row, col)->text();
 		QString ps_id = db.processedSampleId(ps_name);
-		query.bindValue(0, ps_id);
+		bool reseq_flag_set = db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toBool();
+		query.bindValue(0, ! reseq_flag_set ? "1" : "0");
+		query.bindValue(1, ps_id);
 		query.exec();
 	}
 
