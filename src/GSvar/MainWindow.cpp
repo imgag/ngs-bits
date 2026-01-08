@@ -683,7 +683,7 @@ void MainWindow::on_actionRegionToGenes_triggered()
 		dlg.setReadOnly(true);
 		dlg.setWordWrapMode(QTextOption::NoWrap);
 		dlg.appendLine("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
-		foreach (const QByteArray& gene, std::as_const(genes))
+		for (const QByteArray& gene: std::as_const(genes))
 		{
 			QList<OmimInfo> omim_genes = db.omimInfo(gene);
 			foreach (const OmimInfo& omim_gene, omim_genes)
@@ -5170,7 +5170,7 @@ void MainWindow::calculateGapsByGenes()
 	NGSD db;
 	BedFile regions;
 	GeneSet genes = GeneSet::createFromStringList(text.split("\n"));
-	for(const QByteArray& gene: genes)
+	for(const QByteArray& gene: std::as_const(genes))
 	{
 		regions.add(db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true, false));
 	}
@@ -5192,7 +5192,7 @@ void MainWindow::showGapsClosingDialog(QString title, const BedFile& regions, co
 	}
 
 	//check for BAM file
-	QString ps = (type==SOMATIC_SINGLESAMPLE) ? variants_.getSampleHeader()[0].name : germlineReportSample();
+	QString ps = (type==SOMATIC_SINGLESAMPLE) ? variants_.getSampleHeader().value(0).name : germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
 	if (bams.empty())
 	{
@@ -5293,7 +5293,7 @@ void MainWindow::exportHerediCareVCF()
 
 		//add variants in ROI to VCF
 		int i_qual = variants_.annotationIndexByName("quality");
-		int i_geno = variants_.getSampleHeader()[0].column_index;
+		int i_geno = variants_.getSampleHeader().value(0).column_index;
 		int c_classified = 0;
 		for(int i=0; i<variants_.count(); ++i)
 		{
@@ -6412,7 +6412,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		if (i_genes!=-1)
 		{
 			GeneSet genes = GeneSet::createFromText(variant.annotations()[i_genes], ',');
-            for (const QByteArray& gene : genes)
+			for (const QByteArray& gene : std::as_const(genes))
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 				inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
@@ -6645,14 +6645,14 @@ void MainWindow::variantRanking()
 	{
 		//create phenotype list
 		QHash<Phenotype, BedFile> phenotype_rois;		
-		for (const Phenotype& pheno : phenotypes)
+		for (const Phenotype& pheno : std::as_const(phenotypes))
 		{
 			//pheno > genes
 			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 
 			//genes > roi
 			BedFile roi;
-            for (const QByteArray& gene : genes)
+			for (const QByteArray& gene : std::as_const(genes))
 			{
 				roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
