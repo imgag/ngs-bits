@@ -71,7 +71,6 @@ void QueuingEngineControllerGeneric::submitJob(NGSD &/*db*/, int threads, QStrin
 		{
 			Log::error("There has been an error while submitting a job, response code: " + QString::number(status_code));
 		}
-
 	}
 	catch(Exception e)
 	{
@@ -112,7 +111,6 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &/*db*/, const Analys
 		{
 			Log::error("There has been an error while updating a job, response code: " + QString::number(status_code));
 		}
-
 	}
 	catch(Exception e)
 	{
@@ -152,7 +150,6 @@ void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &/*db*/, QString qe_
 		{
 			Log::error("There has been an error while checking a completed job, response code: " + QString::number(status_code));
 		}
-
 	}
 	catch(Exception e)
 	{
