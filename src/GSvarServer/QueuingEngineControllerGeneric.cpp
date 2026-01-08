@@ -3,9 +3,6 @@
 #include "ProxyDataService.h"
 #include "Log.h"
 #include "Settings.h"
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
 
 QueuingEngineControllerGeneric::QueuingEngineControllerGeneric()
 {
@@ -92,9 +89,10 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 
 	QJsonDocument json_doc_output;
 	QJsonObject top_level_json_object;
+	QJsonObject analysis_job_json_object = convertAnalysisJobToJson(job);
+
 	top_level_json_object.insert("action", "update");
-
-
+	top_level_json_object.insert("job", analysis_job_json_object);
 	top_level_json_object.insert("job_id", job_id);
 	json_doc_output.setObject(top_level_json_object);
 	try
@@ -162,9 +160,8 @@ void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job,
 	QJsonDocument json_doc_output;
 	QJsonObject top_level_json_object;
 	top_level_json_object.insert("action", "delete");
-
-
-
+	QJsonObject analysis_job_json_object = convertAnalysisJobToJson(job);
+	top_level_json_object.insert("job", analysis_job_json_object);
 	top_level_json_object.insert("job_id", job_id);
 	json_doc_output.setObject(top_level_json_object);
 	try
@@ -175,10 +172,48 @@ void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job,
 		{
 			Log::error("There has been an error while deleting a job, response code: " + QString::number(status_code));
 		}
-
 	}
 	catch(Exception e)
 	{
 		Log::error("There has been an error while deleting a job: " + e.message());
 	}
+}
+
+QJsonObject QueuingEngineControllerGeneric::convertAnalysisJobToJson(const AnalysisJob job)
+{
+	QJsonObject analysis_job_json_object;
+
+	analysis_job_json_object.insert("type", job.type);
+	analysis_job_json_object.insert("high_priority", job.high_priority);
+	analysis_job_json_object.insert("use_dragen", job.use_dragen);
+	analysis_job_json_object.insert("args", job.args);
+	analysis_job_json_object.insert("sge_id", job.sge_id);
+	analysis_job_json_object.insert("sge_queue", job.sge_queue);
+
+	QJsonArray analysis_job_sample_json_array;
+	for (AnalysisJobSample sample: job.samples)
+	{
+		QJsonObject analysis_job_sample_json_object;
+		analysis_job_sample_json_object.insert("name", sample.name);
+		analysis_job_sample_json_object.insert("info", sample.info);
+
+		analysis_job_sample_json_array.append(analysis_job_sample_json_object);
+	}
+	analysis_job_json_object.insert("samples", analysis_job_sample_json_array);
+
+
+	QJsonArray analysis_job_history_json_array;
+	for (AnalysisJobHistoryEntry history: job.history)
+	{
+		QJsonObject analysis_job_history_json_object;
+		analysis_job_history_json_object.insert("time", history.timeAsString());
+		analysis_job_history_json_object.insert("user", history.user);
+		analysis_job_history_json_object.insert("status", history.status);
+		analysis_job_history_json_object.insert("output", QJsonArray::fromStringList(history.output));
+
+		analysis_job_history_json_array.append(analysis_job_history_json_object);
+	}
+	analysis_job_json_object.insert("history", analysis_job_history_json_array);
+
+	return analysis_job_json_object;
 }
