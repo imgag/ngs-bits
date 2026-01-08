@@ -15,6 +15,9 @@ protected:
 	bool updateRunningJob(NGSD& db, const AnalysisJob &job, int job_id) const override;
 	void checkCompletedJob(NGSD& db, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const override;
 	void deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const override;
+private:
+	QNetworkProxy proxy_;
+	QString qe_api_base_url_;
 };
 
 
