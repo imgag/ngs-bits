@@ -44,13 +44,75 @@ These are the seettings for the database:
 
 ## Using queuing engine HTTP API
 
-The endpoint can perform the following actions
-| action     | HTTP method | Description | Parameters |
-| ---------- | ----------- | ------------ | ---------- |
-| `submit`   | POST        | Submits a new job | params: {"threads": threads,<br>"queues": queues,<br>"pipeline_args": pipeline_args,<br>"project_folder": project_folder,<br>"script": script,<br>"job_args": job_args,<br>"job_id": job_id}
-| `update`   | POST        |              |            |
-| `check`    | POST        |              |            |
-| `delete`   | POST        |              |            |
+The endpoint can perform the following actions:
+
+1. `submit` (**POST** request) - Submits a new job
+    
+    ```
+    {
+        "action": "submit",
+        "threads": threads,
+        "queues": queues,
+        "pipeline_args": pipeline_args,
+        "project_folder": project_folder,
+        "script": script,
+        "job_id": job_id
+    }
+    ```
+2. `update` (**POST** request) - Updates the status of a running job
+    ```
+    {
+        "action": "update",
+        "job": {
+            "type": job.type,
+            "high_priority": job.high_priority,
+            "use_dragen": job.use_dragen,
+            "args": job.args,
+            "sge_id": job.sge_id,
+            "sge_queue": job.sge_queue,
+            "samples":
+            [
+                {
+                    "name": sample.name,
+                    "info": sample.info
+                }
+                ...
+            ],
+            "history":
+            [
+                {
+                    "time": history.timeAsString(),
+                    "user": history.user,
+                    "status": history.status,
+                    "output": QJsonArray::fromStringList(history.output)
+                }
+                ...
+            ]
+        },
+        "job_id": job_id
+    }
+    ```
+
+3. `check` (**POST** request) - Performs job accounting after completion
+    ```
+        {
+            "action": "check",
+            "qe_job_id": qe_job_id,
+            "stdout_stderr": json_stdout_stderr,
+            "job_id": job_id
+        }
+    ```
+
+4. `delete` (**POST** request) - Deletes a job
+    ```
+        {
+            "action": "delete",
+            "job": analysis_job_json_object,
+            "job_id": job_id
+        }
+    ```
+
+
 
 ## Configuring GSvar
 
