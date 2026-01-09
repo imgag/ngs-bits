@@ -3123,6 +3123,13 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		QString ps_id = db.processedSampleId(ps, false);
 		if (ps_id=="") continue;
 
+		//check scheduled for resequencing
+		QString resequencing = db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toString();
+		if (resequencing=="1")
+		{
+			issues << qMakePair(Log::LOG_WARNING, "Processed sample '" + ps + "' is scheduled for resequencing!");
+		}
+
 		//check quality
 		QString quality = db.getValue("SELECT quality FROM processed_sample WHERE id=" + ps_id).toString();
 		if (quality=="bad")
