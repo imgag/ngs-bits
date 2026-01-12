@@ -168,7 +168,7 @@ public:
 	QMap<QByteArray, int> sharedTranscripts(QMap<QByteArray,int> a, QMap<QByteArray,int> b, QByteArray prefix_a="E", QByteArray prefix_b="E")
 	{
 		QMap<QByteArray, int> result;
-        QSet<QByteArray> shared_transcripts = LIST_TO_SET(a.keys()).intersect(LIST_TO_SET(b.keys()));
+        QSet<QByteArray> shared_transcripts = Helper::listToSet(a.keys()).intersect(Helper::listToSet(b.keys()));
 		foreach (QByteArray gene_tx, shared_transcripts)
 		{
 			result.insert(gene_tx + ":" + prefix_a + QByteArray::number(a[gene_tx]) + "-" + prefix_b + QByteArray::number(b[gene_tx]),
@@ -279,7 +279,7 @@ public:
 
 			//same transcript found for left and right exon
 			QMap<QByteArray,int> matchesL_matchesR = sharedTranscripts(matchesL, matchesR);
-            foreach (QByteArray gene_tx, SET_TO_LIST(LIST_TO_SET(matchesL_matchesR.keys())))
+			foreach (QByteArray gene_tx, Helper::setToList(Helper::listToSet(matchesL_matchesR.keys()), true))
 			{
 				int diff = matchesL_matchesR.value(gene_tx);
 				if (diff == 1)
@@ -309,25 +309,13 @@ public:
 				QMap<QByteArray,int> overlapsL_overlapsR = sharedTranscripts(overlapsL, overlapsR);
 
 				QList<QByteArray> geneOverlapsL = genesByOverlap(db, chr, intron_start, strand);
-				QList<QByteArray> geneOverlapsR = genesByOverlap(db, chr, intron_end, strand);
-
-				//string representations
-                QByteArray matchesL_overlapsR_str = SET_TO_LIST(LIST_TO_SET(matchesL_overlapsR.keys())).join(",");
-                QByteArray overlapsL_matchesR_str = SET_TO_LIST(LIST_TO_SET(overlapsL_matchesR.keys())).join(",");
-                QByteArray overlapsL_overlapsR_str = SET_TO_LIST(LIST_TO_SET(overlapsL_overlapsR.keys())).join(",");
-				QByteArray matchesL_str = mapToKvStr(matchesL).join(",");
-				QByteArray matchesR_str = mapToKvStr(matchesR).join(",");
-				QByteArray overlapsL_str = mapToKvStr(overlapsL).join(",");
-				QByteArray overlapsR_str = mapToKvStr(overlapsR).join(",");
-
-				QByteArray geneOverlapsL_str = geneOverlapsL.join(",");
-				QByteArray geneOverlapsR_str = geneOverlapsR.join(",");
+				QList<QByteArray> geneOverlapsR = genesByOverlap(db, chr, intron_end, strand);				
 
 				if (!matchesL.isEmpty() && matchesR.isEmpty())
 				{
 					if (!overlapsR.isEmpty() && !matchesL_overlapsR.isEmpty())
 					{
-                        foreach (QByteArray gene_tx, SET_TO_LIST(LIST_TO_SET(matchesL_overlapsR.keys())))
+						foreach (QByteArray gene_tx, Helper::setToList(Helper::listToSet(matchesL_overlapsR.keys()), true))
 						{
 							int diff = matchesL_overlapsR.value(gene_tx);
 							if (diff == 1)
@@ -358,7 +346,7 @@ public:
 				{
 					if (!overlapsL.isEmpty() && !overlapsL_matchesR.isEmpty())
 					{
-                        foreach (QByteArray gene_tx, SET_TO_LIST(LIST_TO_SET(overlapsL_matchesR.keys())))
+						foreach (QByteArray gene_tx, Helper::setToList(Helper::listToSet(overlapsL_matchesR.keys()), true))
 						{
 							int diff = overlapsL_matchesR.value(gene_tx);
 							if (diff == 1)
@@ -390,7 +378,7 @@ public:
 				{
 					if (!overlapsL.isEmpty() && !overlapsR.isEmpty() && !overlapsL_overlapsR.isEmpty())
 					{
-                        foreach (QByteArray gene_tx, SET_TO_LIST(LIST_TO_SET(overlapsL_overlapsR.keys())))
+						foreach (QByteArray gene_tx, Helper::setToList(Helper::listToSet(overlapsL_overlapsR.keys()), true))
 						{
 							int diff = overlapsL_overlapsR.value(gene_tx);
 							if (diff == 1)
@@ -563,7 +551,7 @@ public:
 		QMap<QByteArray, int>::const_iterator i = stats.constBegin();
 		while (i != stats.constEnd())
 		{
-            out << i.key() << "\t" << i.value() << "\t" << QByteArray::number(1. * i.value() / stats["all"], 'f', 4) << QT_ENDL;
+            out << i.key() << "\t" << i.value() << "\t" << QByteArray::number(1. * i.value() / stats["all"], 'f', 4) << Qt::endl;
 			++i;
 		}
 
@@ -571,7 +559,7 @@ public:
 		{
 			gene_f->write("#symbol\t" + keys.join("\t") + "\taberrant_frac\n");
 			//per-gene stats
-            foreach (QByteArray g, SET_TO_LIST(LIST_TO_SET(gene_stats.keys())))
+			foreach (QByteArray g, Helper::setToList(Helper::listToSet(gene_stats.keys()), true))
 			{
 				QList<QByteArray> fields;
 				fields.append(g);

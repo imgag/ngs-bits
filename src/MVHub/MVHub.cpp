@@ -737,7 +737,7 @@ void MVHub::updateTableFilters()
 		int c_ps = colOf("PS");
 		int c_ps_tumor = colOf("PS tumor");
 
-		QSet<QString> exclude = LIST_TO_SET(f_exclude_ps.split(' '));
+		QSet<QString> exclude = Helper::listToSet(f_exclude_ps.split(' '));
 		for (int r=0; r<rows; ++r)
 		{
 			if (!visible[r]) continue;

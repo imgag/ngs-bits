@@ -161,16 +161,16 @@ public:
 		// print statistics:
 		QTextStream out(stdout);
 		long long lifted_in_length = in_length - unlifted_in_length;
-        out << "LiftOver Statistics:" << QT_ENDL;
-		out << "Input regions : " << in_count << QT_ENDL;
-        out << "lifted        : " << lifted_count << " (" << QString::number(100.0*lifted_count/in_count, 'f', 2) << "%)" << QT_ENDL;
-        out << "unlifted      : " << unlifted_count << " (" << QString::number(100.0*unlifted_count/in_count, 'f', 2) << "%)" << QT_ENDL;
-        out << QT_ENDL;
-        out << "Bases input: " << in_length << QT_ENDL;
-        out << "lifted     : " << lifted_in_length << " (" << QString::number(100.0*lifted_in_length/in_length, 'f', 2) << "%)" << QT_ENDL;
-        out << "unlifted   : " << unlifted_in_length  << " (" << QString::number(100.0*unlifted_in_length/in_length, 'f', 2) << "%)" << QT_ENDL;
-        out << QT_ENDL;
-        out << "Bases after lifting: " << lifted_length << QT_ENDL;
+        out << "LiftOver Statistics:" << Qt::endl;
+		out << "Input regions : " << in_count << Qt::endl;
+        out << "lifted        : " << lifted_count << " (" << QString::number(100.0*lifted_count/in_count, 'f', 2) << "%)" << Qt::endl;
+        out << "unlifted      : " << unlifted_count << " (" << QString::number(100.0*unlifted_count/in_count, 'f', 2) << "%)" << Qt::endl;
+        out << Qt::endl;
+        out << "Bases input: " << in_length << Qt::endl;
+        out << "lifted     : " << lifted_in_length << " (" << QString::number(100.0*lifted_in_length/in_length, 'f', 2) << "%)" << Qt::endl;
+        out << "unlifted   : " << unlifted_in_length  << " (" << QString::number(100.0*unlifted_in_length/in_length, 'f', 2) << "%)" << Qt::endl;
+        out << Qt::endl;
+        out << "Bases after lifting: " << lifted_length << Qt::endl;
 
 	}
 };

@@ -816,7 +816,7 @@ public:
 		NGSD db(data.test_mode);
 
 		//load processed samples to export
-        stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Loading processed sample list..." << QT_ENDL;
+        stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Loading processed sample list..." << Qt::endl;
 		auto handle = Helper::openFileForReading(getInfile("samples"), false);
 		while(!handle->atEnd())
 		{
@@ -859,7 +859,7 @@ public:
 
 			data.ps_list << PSData{ps_id, ps, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id), patient_id, ps_folder, QStringList(), QStringList()};
 		}
-        stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Writing JSON for " << data.ps_list.count() << " samples..." << QT_ENDL;
+        stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Writing JSON for " << data.ps_list.count() << " samples..." << Qt::endl;
 
 		//create JSON
 		QJsonObject root;
@@ -887,7 +887,7 @@ public:
 		QJsonDocument doc(root);
 		Helper::storeTextFile(getOutfile("out"), QStringList() << doc.toJson());
 
-        stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Done" << QT_ENDL;
+        stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Done" << Qt::endl;
 	}
 };
 

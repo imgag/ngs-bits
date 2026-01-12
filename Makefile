@@ -1,17 +1,10 @@
-# Get the Qt version from qmake
-QMAKE := $(shell command -v qmake6 2>/dev/null || command -v qmake 2>/dev/null)
-QT_MAJOR := $(shell $(QMAKE) -query QT_VERSION | cut -d. -f1)
+# Build settings
+PROJECT_BUILD_DIR := ./src/build/
+PATH_TO_ROOT := ../../
+QMAKE_BIN := qmake6
 
-# Choose build folder based on the available Qt version
-ifeq ($(QT_MAJOR),6)
-	PROJECT_BUILD_DIR := ./src/build/
-	PATH_TO_ROOT := ../../
-	QMAKE_BIN := qmake6
-else
-	PROJECT_BUILD_DIR := ./
-	PATH_TO_ROOT := ../src/
-	QMAKE_BIN := qmake
-endif
+# Get the Qt version information
+QT_VERSION := $(shell $(QMAKE_BIN) --version)
 
 help:
 	@echo "General targets:"
@@ -36,7 +29,7 @@ help:
 build_info:
 	@echo "**************************************************"
 	@echo "*"
-	@echo "* Qt major version: $(QT_MAJOR)"
+	@echo "* $(QT_VERSION)"
 	@echo "* Build dir: $(PROJECT_BUILD_DIR)"
 	@echo "* Source root: $(PATH_TO_ROOT)"
 	@echo "*"

@@ -94,7 +94,7 @@ void VcfFile::parseHeaderFields(const QByteArray& line)
 		}
 
 		//determine column and sample names
-		int header_count = load_allow_multi_sample_ ? header_fields.count() : std::min(SIZE_TO_INT(10), SIZE_TO_INT(header_fields.count()));
+		int header_count = load_allow_multi_sample_ ? header_fields.count() : std::min(static_cast<qsizetype>(10), static_cast<qsizetype>(header_fields.count()));
 		for(int i = 9; i < header_count; ++i)
 		{
 			sample_names_ << header_fields.at(i);
@@ -355,11 +355,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     stream.setEncoding(QStringConverter::Utf8);
-    #else
-    stream.setCodec("UTF-8");
-    #endif
 
 	foreach(const VcfHeaderLine& comment, vcfHeader().comments())
 	{
@@ -443,12 +439,8 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 	{
 		//open stream
 		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
-		QTextStream file_stream(file.data());		
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        file_stream.setEncoding(QStringConverter::Utf8);
-        #else
-        file_stream.setCodec("UTF-8");
-        #endif
+		QTextStream file_stream(file.data());
+        file_stream.setEncoding(QStringConverter::Utf8);        
 
 		//write header information
 		vcf_header_.storeHeaderInformation(file_stream);
@@ -628,11 +620,7 @@ QByteArray VcfFile::toText() const
 	//open stream
 	QByteArray output;
 	QTextStream stream(&output);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	stream.setEncoding(QStringConverter::Utf8);
-#else
-	stream.setCodec("UTF-8");
-#endif
 
 	//write header information
 	vcf_header_.storeHeaderInformation(stream);

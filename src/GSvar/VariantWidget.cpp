@@ -191,12 +191,8 @@ void VariantWidget::updateSampleTable()
 		SqlQuery query2 = db.getQuery();
 		query2.exec("SELECT dv.processed_sample_id, dv.genotype, dv.mosaic FROM detected_variant dv, processed_sample ps WHERE ps.id=dv.processed_sample_id AND dv.variant_id=" + variant_id_ + (ui_.show_bad_quality->isChecked() ? "" : " AND ps.quality!='bad'"));
 		if (query2.size()>250)
-		{
-			#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-			int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the sample table might be slow.\nDo you want to fill the sample table?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-			#else
-			int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the sample table might be slow.\nDo you want to fill the sample table?", QMessageBox::Yes, QMessageBox::No|QMessageBox::Default);
-			#endif
+		{			
+			int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the sample table might be slow.\nDo you want to fill the sample table?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);			
 			if (res!=QMessageBox::Yes) return;
 		}
 
@@ -341,7 +337,7 @@ void VariantWidget::calculateSimilarity()
 		ps_names << ps;
 
 		QString ps_id = db.processedSampleId(ps);
-        ps_vars << LIST_TO_SET(db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0"));
+        ps_vars << Helper::listToSet(db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0"));
 	}
 
 	//calculate and show overlap

@@ -40,9 +40,9 @@ public:
 		bool is_tumor_only = n_ps_name.isEmpty();
 		QString analysis_name = t_ps_name + (is_tumor_only ? "" : "-" + n_ps_name);
 
-        out << QT_ENDL;
-        out << "### importing small variants for " << analysis_name << " ###" << QT_ENDL;
-        out << "filename: " << filename << QT_ENDL;
+        out << Qt::endl;
+        out << "### importing small variants for " << analysis_name << " ###" << Qt::endl;
+        out << "filename: " << filename << Qt::endl;
 
 		QString t_ps_id = db.processedSampleId(t_ps_name);
 		QString n_ps_id = is_tumor_only ? "" : db.processedSampleId(n_ps_name);
@@ -58,7 +58,7 @@ public:
 				query.exec("SELECT * FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=" + QString::number(report_conf_id));
 				if(query.size()>0)
 				{
-                    out << "Skipped import of small variants for sample " << analysis_name << ": a somatic report configuration with small variants exists for this sample!" << QT_ENDL;
+                    out << "Skipped import of small variants for sample " << analysis_name << ": a somatic report configuration with small variants exists for this sample!" << Qt::endl;
 					return;
 				}
 			}
@@ -70,7 +70,7 @@ public:
 		QStringList sub_times;
 
 		int count_old = db.getValue("SELECT count(*) FROM detected_somatic_variant WHERE "+dv_where).toInt();
-        out << "Found " << count_old << " variants already imported into NGSD!" << QT_ENDL;
+        out << "Found " << count_old << " variants already imported into NGSD!" << Qt::endl;
 		if(count_old>0 && !var_force)
 		{
 			THROW(ArgumentException, "Variants were already imported for '" + analysis_name + "'. Use the flag '-force' to overwrite them.");
@@ -84,7 +84,7 @@ public:
 
 			SqlQuery query = db.getQuery();
 			query.exec("DELETE FROM detected_somatic_variant WHERE "+dv_where);
-            out << "Deleted previous somatic variants." << QT_ENDL;
+            out << "Deleted previous somatic variants." << Qt::endl;
 			sub_times << ("Deleted previous detected somatic variants took: " + Helper::elapsedTime(sub_timer));
 
 			SqlQuery del_callset = db.getQuery();
@@ -102,7 +102,7 @@ public:
 		variants.load(filename);
 		if(variants.count() == 0)
 		{
-            out << "No somatic variants imported (empty GSvar file)." << QT_ENDL;
+            out << "No somatic variants imported (empty GSvar file)." << Qt::endl;
 			return;
 		}
 
@@ -113,7 +113,7 @@ public:
 		int c_add, c_update;
 		double max_af = is_tumor_only ? getFloat("max_af") : 1.0;
 		QList<int> variant_ids = db.addVariants(variants,  max_af, c_add, c_update);
-        out << "Imported variants (added:" << c_add << " updated:" << c_update << ")" << QT_ENDL;
+        out << "Imported variants (added:" << c_add << " updated:" << c_update << ")" << Qt::endl;
 		sub_times << ("adding variants took: " + Helper::elapsedTime(sub_timer));
 
 		//add detected somatic variants
@@ -173,18 +173,18 @@ public:
 
 		//output
 		int c_skipped = variant_ids.count(-1);
-		out << "Imported " << (variant_ids.count()-c_skipped) << " detected variants" << QT_ENDL;
+		out << "Imported " << (variant_ids.count()-c_skipped) << " detected variants" << Qt::endl;
 		if (debug)
 		{
-			out << "DEBUG: Skipped " << c_skipped << " high-AF variants!" << QT_ENDL;
+			out << "DEBUG: Skipped " << c_skipped << " high-AF variants!" << Qt::endl;
 		}
 
 		if(!no_time)
 		{
-            out << "Import took: " << Helper::elapsedTime(timer) << QT_ENDL;
+            out << "Import took: " << Helper::elapsedTime(timer) << Qt::endl;
 			foreach(const QString& line, sub_times)
 			{
-                out << " " << line.trimmed() << QT_ENDL;
+                out << " " << line.trimmed() << Qt::endl;
 			}
 		}
 	}
@@ -198,9 +198,9 @@ public:
 		timer.start();
 
 		QString ps_full_name = t_ps_name + "-" + n_ps_name;
-        out << QT_ENDL;
-        out << "### importing somatic CNVs for " << ps_full_name << " ###" << QT_ENDL;
-        out << "filename: " << filename << QT_ENDL;
+        out << Qt::endl;
+        out << "### importing somatic CNVs for " << ps_full_name << " ###" << Qt::endl;
+        out << "filename: " << filename << Qt::endl;
 
 		//Prevent import if somatic report config contains CNVS
 		QString t_ps_id = db.processedSampleId(t_ps_name);
@@ -214,7 +214,7 @@ public:
 
 			if(query.size() > 0)
 			{
-                out << "Skipped import of somatic SNVs for sample " << ps_full_name << ": a somatic report configuration with CNVs exists for this sample" << QT_ENDL;
+                out << "Skipped import of somatic SNVs for sample " << ps_full_name << ": a somatic report configuration with CNVs exists for this sample" << Qt::endl;
 				return;
 			}
 		}
@@ -222,7 +222,7 @@ public:
 		QString last_callset_id = db.getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id).toString();
 		if(last_callset_id!="" && !cnv_force)
 		{
-            out << "Skipped import of CNVs for sample " << ps_full_name << ": a report configuration with somatic CNVs exists for this sample!" << QT_ENDL;
+            out << "Skipped import of CNVs for sample " << ps_full_name << ": a report configuration with somatic CNVs exists for this sample!" << Qt::endl;
 			return;
 		}
 
@@ -232,7 +232,7 @@ public:
 			db.getQuery().exec("DELETE FROM somatic_cnv WHERE somatic_cnv_callset_id ='" + last_callset_id + "'");
 			db.getQuery().exec("DELETE FROM somatic_cnv_callset WHERE id='" + last_callset_id + "'");
 
-            out << "Deleted previous somatic CNV callset" << QT_ENDL;
+            out << "Deleted previous somatic CNV callset" << Qt::endl;
 		}
 
 		//Load CNVs
@@ -244,12 +244,12 @@ public:
 			THROW(ArgumentException, "CNV file is not a tumor normal sample. Use NGSDAddVariantsGermline for germline CNVs.");
 		}
 
-		out << "caller: " << cnvs.callerAsString() << QT_ENDL;
-		out << "caller version: " << cnvs.callerVersion() << QT_ENDL;
+		out << "caller: " << cnvs.callerAsString() << Qt::endl;
+		out << "caller version: " << cnvs.callerVersion() << Qt::endl;
 
 		if(debug)
 		{
-			out << "DEBUG: callset quality: " << cnvs.qcJson().toJson(QJsonDocument::Compact) << QT_ENDL;
+			out << "DEBUG: callset quality: " << cnvs.qcJson().toJson(QJsonDocument::Compact) << Qt::endl;
 		}
 
 		//Import somatic cnv callset
@@ -289,12 +289,12 @@ public:
 			}
 		}
 
-        out << "Imported somatic cnvs: " << c_imported << QT_ENDL;
-        out << "Skipped low-quality cnvs: " << c_skipped_low_quality << QT_ENDL;
+        out << "Imported somatic cnvs: " << c_imported << Qt::endl;
+        out << "Skipped low-quality cnvs: " << c_skipped_low_quality << Qt::endl;
 
 		if(!no_time)
 		{
-            out << "Import took: " << Helper::elapsedTime(timer) << QT_ENDL;
+            out << "Import took: " << Helper::elapsedTime(timer) << Qt::endl;
 		}
 
 	}
@@ -304,9 +304,9 @@ public:
 		QString filename = getInfile("sv");
 		if (filename=="") return;
 
-        out << QT_ENDL;
-        out << "### importing SVs for tumor-normal pair " << t_ps_name << "-" << n_ps_name << " ###" << QT_ENDL;
-        out << "filename: " << filename << QT_ENDL;
+        out << Qt::endl;
+        out << "### importing SVs for tumor-normal pair " << t_ps_name << "-" << n_ps_name << " ###" << Qt::endl;
+        out << "filename: " << filename << Qt::endl;
 
         QElapsedTimer timer;
 		timer.start();
@@ -315,7 +315,7 @@ public:
 		QString ps_full_name = t_ps_name + "-" + n_ps_name;
 		QString t_ps_id = db.processedSampleId(t_ps_name);
 		QString n_ps_id = db.processedSampleId(n_ps_name);
-        if(debug) out << "Processed sample ids. Tumor: " << t_ps_id << " Normal: " << n_ps_id << QT_ENDL;
+        if(debug) out << "Processed sample ids. Tumor: " << t_ps_id << " Normal: " << n_ps_id << Qt::endl;
 
 		//prevent import if report config contains SVs
 		int report_conf_id = db.somaticReportConfigId(t_ps_id, n_ps_id);
@@ -326,7 +326,7 @@ public:
 
 			if(query.size() > 0)
 			{
-                out << "Skipped import of somatic SNVs for sample " << ps_full_name << ": a somatic report configuration with SVs exists for this sample" << QT_ENDL;
+                out << "Skipped import of somatic SNVs for sample " << ps_full_name << ": a somatic report configuration with SVs exists for this sample" << Qt::endl;
 				return;
 			}
 		}
@@ -335,7 +335,7 @@ public:
 		QString previous_callset_id = db.getValue("SELECT id FROM somatic_sv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id, true ).toString();
 		if(previous_callset_id!="" && !sv_force)
 		{
-            out << "NOTE: SVs were already imported for '" << ps_full_name << "' - skipping import" << QT_ENDL;
+            out << "NOTE: SVs were already imported for '" << ps_full_name << "' - skipping import" << Qt::endl;
 			return;
 		}
 
@@ -349,7 +349,7 @@ public:
 			db.getQuery().exec("DELETE FROM somatic_sv_translocation WHERE somatic_sv_callset_id='" + previous_callset_id + "'");
 			db.getQuery().exec("DELETE FROM somatic_sv_callset 		 WHERE id='" + previous_callset_id + "'");
 
-            out << "Deleted previous SV callset" << QT_ENDL;
+            out << "Deleted previous SV callset" << Qt::endl;
 		}
 
 		// open BEDPE file
@@ -367,7 +367,7 @@ public:
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 
-        if(debug) out << "Callset id: " << callset_id << QT_ENDL;
+        if(debug) out << "Callset id: " << callset_id << Qt::endl;
 
 		// import structural variants
 		int sv_imported = 0;
@@ -383,17 +383,17 @@ public:
 				QString db_table_name = db.somaticSvTableName(svs[i].type());
 
 				out << "DEBUG: " << svs[i].positionRange() << " sv: " << BedpeFile::typeToString(svs[i].type()) << " quality: "
-                    << db.getValue("SELECT quality_metrics FROM " + db_table_name + " WHERE id=" + sv_id).toString() << QT_ENDL;
+                    << db.getValue("SELECT quality_metrics FROM " + db_table_name + " WHERE id=" + sv_id).toString() << Qt::endl;
 			}
 		}
 
-        out << "Imported SVs: " << sv_imported << QT_ENDL;
-        out << "Skipped SVs: " << svs.count() - sv_imported << QT_ENDL;
+        out << "Imported SVs: " << sv_imported << Qt::endl;
+        out << "Skipped SVs: " << svs.count() - sv_imported << Qt::endl;
 
 
 		if(!no_time)
 		{
-            out << "Import took: " << Helper::elapsedTime(timer) << QT_ENDL;
+            out << "Import took: " << Helper::elapsedTime(timer) << Qt::endl;
 		}
 	}
 

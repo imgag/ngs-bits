@@ -17,7 +17,7 @@ void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList qu
 	QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
     QStringList qsub_args;
     qsub_args << "-V";
-	if (debug_) QTextStream(stdout) << "megSAP pipeline:\t " << script << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "megSAP pipeline:\t " << script << Qt::endl;
     if (script == "analyze_dragen.php") qsub_args << "-pe" << "smp" << "1";
     else qsub_args << "-pe" << "smp" << QString::number(threads);
     qsub_args << "-b" << "y";
@@ -35,7 +35,7 @@ void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList qu
     }
     qsub_args << pipeline_args;
 
-	if (debug_) QTextStream(stdout) << "SGE command:\t qsub " << qsub_args.join(" ") << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "SGE command:\t qsub " << qsub_args.join(" ") << Qt::endl;
 
 	//Execute qsub command
 	QByteArrayList result;
@@ -62,7 +62,7 @@ void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList qu
 
 	if (Helper::isNumeric(sge_id) && sge_id.toInt()>0)
 	{
-		if (debug_) QTextStream(stdout) << "  Started with SGE id " << sge_id << QT_ENDL;
+		if (debug_) QTextStream(stdout) << "  Started with SGE id " << sge_id << Qt::endl;
 		db.getQuery().exec("UPDATE analysis_job SET sge_id='"+sge_id+"' WHERE id="+QString::number(job_id));
 
 		db.addAnalysisHistoryEntry(job_id, "started", QByteArrayList());
@@ -100,7 +100,7 @@ bool QueuingEngineControllerSge::updateRunningJob(NGSD& db, const AnalysisJob &j
 				if (parts.count()<8) continue;
 
 				QByteArray status = parts[4].trimmed().toLower();
-				if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << QT_ENDL;
+				if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << Qt::endl;
 
 				if (status=="r" && job.sge_queue.isEmpty())
 				{
@@ -148,12 +148,12 @@ void QueuingEngineControllerSge::checkCompletedJob(NGSD& db, QString qe_job_id, 
 
 		if (sge_exit_code == "0")
 		{
-			if (debug_) QTextStream(stdout) << "	Job finished successfully" << QT_ENDL;
+			if (debug_) QTextStream(stdout) << "	Job finished successfully" << Qt::endl;
 			db.addAnalysisHistoryEntry(job_id, "finished", stdout_stderr);
 		}
 		else
 		{
-			if (debug_) QTextStream(stdout) << "	Job failed with exit code: " << sge_exit_code << QT_ENDL;
+			if (debug_) QTextStream(stdout) << "	Job failed with exit code: " << sge_exit_code << Qt::endl;
 			stdout_stderr.prepend(("job exit code: " + sge_exit_code).toLatin1());
 			db.addAnalysisHistoryEntry(job_id, "error", stdout_stderr);
 		}
@@ -166,7 +166,7 @@ void QueuingEngineControllerSge::checkCompletedJob(NGSD& db, QString qe_job_id, 
 
 void QueuingEngineControllerSge::deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const
 {
-	if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " SGE-id: " << job.sge_id << ")" << Qt::endl;
 
 	QByteArrayList result;
 	if (!job.sge_id.isEmpty())

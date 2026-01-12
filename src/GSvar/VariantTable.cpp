@@ -780,7 +780,7 @@ QList<int> VariantTable::columnWidths() const
 
 void VariantTable::setColumnWidths(const QList<int>& widths)
 {
-    int col_count = std::min(SIZE_TO_INT(widths.count()), SIZE_TO_INT(columnCount()));
+    int col_count = std::min(static_cast<qsizetype>(widths.count()), static_cast<qsizetype>(columnCount()));
 	for (int c=0; c<col_count; ++c)
 	{
 		setColumnWidth(c, widths[c]);

@@ -220,16 +220,16 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 			switch(permission)
 			{
 				case Permission::PROJECT:
-					ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
+					ps_ids += Helper::listToSet(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
 					break;
 				case Permission::PROJECT_TYPE:
-					ps_ids += LIST_TO_SET(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
+					ps_ids += Helper::listToSet(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
 					break;
 				case Permission::SAMPLE:
-					ps_ids += LIST_TO_SET(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
+					ps_ids += Helper::listToSet(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
 					break;
 				case Permission::STUDY:
-					ps_ids += LIST_TO_SET(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
+					ps_ids += Helper::listToSet(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
 					break;
 			}
 		}
@@ -2013,11 +2013,11 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	timer.start();
 	//check ps_name
 	QString ps_id = processedSampleId(ps_name);
-    if(debug) outstream << "Processed sample: " << ps_name << QT_ENDL;
+    if(debug) outstream << "Processed sample: " << ps_name << Qt::endl;
 
 	// check if already imported
 	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
-    if(debug) outstream << "Previously imported expression values: " << n_prev_entries << QT_ENDL;
+    if(debug) outstream << "Previously imported expression values: " << n_prev_entries << Qt::endl;
 
 	if (!force && (n_prev_entries > 0))
 	{
@@ -2032,7 +2032,7 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	{
 		SqlQuery query = getQuery();
 		query.exec("DELETE FROM `expression` WHERE `processed_sample_id`='"+ps_id+"'");
-        if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << QT_ENDL;
+		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << Qt::endl;
 	}
 
 	//get ENSG -> id mapping
@@ -2097,9 +2097,9 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	// commit
 	commit();
 
-    if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << QT_ENDL;
-    if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << QT_ENDL;
-    if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << QT_ENDL;
+    if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << Qt::endl;
+    if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << Qt::endl;
+    if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << Qt::endl;
 }
 
 int NGSD::addGeneSymbolToExpressionTable(const QByteArray& gene_symbol)
@@ -2123,11 +2123,11 @@ void NGSD::importExonExpressionData(const QString& expression_data_file_path, co
 	timer.start();
 	//check ps_name
 	QString ps_id = processedSampleId(ps_name);
-    if(debug) outstream << "Processed sample: " << ps_name << QT_ENDL;
+    if(debug) outstream << "Processed sample: " << ps_name << Qt::endl;
 
 	// check if already imported
 	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression_exon` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
-    if(debug) outstream << "Previously imported expression values: " << n_prev_entries << QT_ENDL;
+    if(debug) outstream << "Previously imported expression values: " << n_prev_entries << Qt::endl;
 
 	if (!force && (n_prev_entries > 0))
 	{
@@ -2142,7 +2142,7 @@ void NGSD::importExonExpressionData(const QString& expression_data_file_path, co
 	{
 		SqlQuery query = getQuery();
 		query.exec("DELETE FROM `expression_exon` WHERE `processed_sample_id`='"+ps_id+"'");
-        if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << QT_ENDL;
+		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << Qt::endl;
 	}
 
 
@@ -2175,7 +2175,7 @@ void NGSD::importExonExpressionData(const QString& expression_data_file_path, co
 		valid_exons << exon.toString(true).toUtf8();
 	}
 
-    if(debug) outstream << QByteArray::number(valid_exons.size()) << " unique exons stored in the NGSD (" << Helper::elapsedTime(timer) << ") " << QT_ENDL;
+    if(debug) outstream << QByteArray::number(valid_exons.size()) << " unique exons stored in the NGSD (" << Helper::elapsedTime(timer) << ") " << Qt::endl;
 
 
 
@@ -2218,17 +2218,17 @@ void NGSD::importExonExpressionData(const QString& expression_data_file_path, co
 		line_idx++;
 		if(debug && (line_idx % 100000 == 0))
 		{
-            outstream << QByteArray::number(line_idx) << " lines parsed..." << QT_ENDL;
+			outstream << QByteArray::number(line_idx) << " lines parsed..." << Qt::endl;
 		}
 	}
 
 
 	// commit
 	commit();
-    if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << QT_ENDL;
-    if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << QT_ENDL;
-    if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped (not in NGSD)." << QT_ENDL;
-    if(debug) outstream << QByteArray::number(n_duplicates) + " expression values skipped (duplicates)." << QT_ENDL;
+    if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << Qt::endl;
+    if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << Qt::endl;
+    if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped (not in NGSD)." << Qt::endl;
+    if(debug) outstream << QByteArray::number(n_duplicates) + " expression values skipped (duplicates)." << Qt::endl;
 }
 
 
@@ -2582,11 +2582,11 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 	QSet<int> all_ps_ids;
 	if (mode == "genes")
 	{
-        all_ps_ids = LIST_TO_SET(getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression e"));
+        all_ps_ids = Helper::listToSet(getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression e"));
 	}
 	else if (mode == "exons")
 	{
-        all_ps_ids = LIST_TO_SET(getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression_exon e"));
+        all_ps_ids = Helper::listToSet(getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression_exon e"));
 	}
 	else
 	{
@@ -2629,7 +2629,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 			query_string_cohort.append("  AND ps.project_id = " + QByteArray::number(project_id));
 		}
 
-        cohort = LIST_TO_SET(getValuesInt(query_string_cohort));
+        cohort = Helper::listToSet(getValuesInt(query_string_cohort));
 
 	}
 	else if (cohort_type == RNA_COHORT_SOMATIC)
@@ -2698,7 +2698,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		else if (gender != "all") THROW(ArgumentException, "Invalid gender '" + gender + "' provided!");
 
 
-        cohort = LIST_TO_SET(getValuesInt(query_string_cohort));
+        cohort = Helper::listToSet(getValuesInt(query_string_cohort));
 
 
 		if(debug) qDebug() << "get ps_ids of cohort (somatic)" << Helper::elapsedTime(timer);
@@ -4228,12 +4228,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 		{
 			QVariant value = query_result.value(c);
 			QString value_as_string = value.isNull() ? ""  : value.toString();
-
-            #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            if (value.typeId()==QVariant::DateTime)
-            #else
-            if (value.type()==QVariant::DateTime)
-            #endif
+			if (value.typeId()==QVariant::DateTime)
 			{
 				value_as_string = value_as_string.replace("T", " ").replace(".000Z", "");
 			}
@@ -4837,11 +4832,7 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 		{
 			if(state == SomaticViccData::State::VICC_TRUE) return QVariant(true);
 			else if(state == SomaticViccData::State::VICC_FALSE) return QVariant(false);
-            #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            return QVariant(QMetaType(QMetaType::Bool));
-            #else
-            return QVariant(QVariant::Bool);
-            #endif
+			return QVariant(QMetaType(QMetaType::Bool));
 		};
 
 		query.bindValue( 0 , stateToVar( vicc_data.null_mutation_in_tsg ) );
@@ -7334,7 +7325,7 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 	int id = geneId(gene);
 	if (id==-1)
 	{
-        if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << QT_ENDL;
+		if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << Qt::endl;
 		return output;
 	}
 
@@ -7378,7 +7369,7 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 
 	if (output.isEmpty() && messages!=nullptr)
 	{
-        *messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << QT_ENDL;
+		*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << Qt::endl;
 	}
 
 	if (!output.isSorted()) output.sort();
@@ -9194,11 +9185,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 		}
 		else
 		{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			query.bindValue(18, QVariant(QMetaType(QMetaType::Int)));
-#else
-			query.bindValue(18, QVariant(QVariant::Int));
-#endif
 		}
 
 		query.bindValue(19, config->includeMutationBurden());
@@ -9260,11 +9247,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 		}
 		else
 		{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			query.bindValue(22, QVariant(QMetaType(QMetaType::Int)));
-#else
-			query.bindValue(22, QVariant(QVariant::Int));
-#endif
 		}
 
 		query.bindValue(23, config->includeMutationBurden());
@@ -10263,13 +10246,7 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 QString NGSD::escapeText(QString text)
 {
 	QSqlField f;
-
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    f.setMetaType(QMetaType(QMetaType::QString));
-    #else
-    f.setType(QVariant::String);
-    #endif
-
+	f.setMetaType(QMetaType(QMetaType::QString));
 	f.setValue(text);
 
 	return db_->driver()->formatValue(f);

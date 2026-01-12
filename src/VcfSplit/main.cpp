@@ -27,12 +27,8 @@ public:
 	{
 		QString filename = out + QString::number(chunk_index).rightJustified(4, '0') + ".vcf";
 		QSharedPointer<QFile>  out_p = Helper::openFileForWriting(filename);
-		QTextStream stream(out_p.data());
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        stream.setEncoding(QStringConverter::Utf8);
-        #else
-        stream.setCodec("UTF-8");
-        #endif
+		QTextStream stream(out_p.data());        
+        stream.setEncoding(QStringConverter::Utf8);        
 		foreach(const QByteArray& line, header_lines)
 		{
 			stream << line;

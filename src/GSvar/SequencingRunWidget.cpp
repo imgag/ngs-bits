@@ -127,13 +127,7 @@ void SequencingRunWidget::initBatchView()
 			int run_id = run_ids_.at(c-1).toInt();
 			signal_mapper->setMapping(btn_edit, run_id);
 			connect(btn_edit, SIGNAL(clicked(bool)), signal_mapper, SLOT(map()));
-
-			#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-				connect(signal_mapper, SIGNAL(mappedInt(int)), this, SLOT(edit(int)));
-			#else
-				connect(signal_mapper, SIGNAL(mapped(int)), this, SLOT(edit(int)));
-			#endif
-
+			connect(signal_mapper, SIGNAL(mappedInt(int)), this, SLOT(edit(int)));
 
 			hbox->addWidget(btn_edit, 0, Qt::AlignLeft| Qt::AlignCenter);
 
@@ -310,8 +304,8 @@ void SequencingRunWidget::updateRunSampleTable()
 	samples.formatBooleanColumn(samples.columnIndex("scheduled_for_resequencing"), true);
 
 	// determine QC parameter based on sample types
-    QSet<QString> sample_types = LIST_TO_SET(samples.extractColumn(samples.columnIndex("sample_type")));
-    QSet<QString> system_types = LIST_TO_SET(samples.extractColumn(samples.columnIndex("sys_type")));
+    QSet<QString> sample_types = Helper::listToSet(samples.extractColumn(samples.columnIndex("sample_type")));
+    QSet<QString> system_types = Helper::listToSet(samples.extractColumn(samples.columnIndex("sys_type")));
 	setQCMetricAccessions(sample_types, system_types);
 
 	// update QC plot button
@@ -584,7 +578,7 @@ void SequencingRunWidget::sendStatusEmail()
 	if (is_batch_view_)
 	{
 		// get run status of all runs
-        QSet<QString> run_statuses = LIST_TO_SET(db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");"));
+        QSet<QString> run_statuses = Helper::listToSet(db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");"));
 		run_statuses.remove("analysis_finished");
 		run_statuses.remove("run_finished");
 

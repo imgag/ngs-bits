@@ -190,7 +190,7 @@ public:
 
 		}
 
-        out << "writing annotated SVs to file..." << QT_ENDL;
+        out << "writing annotated SVs to file..." << Qt::endl;
 
 		// open output file
 		QSharedPointer<QFile> output_file = Helper::openFileForWriting(getOutfile("out"),false,false);

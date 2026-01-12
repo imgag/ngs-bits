@@ -483,7 +483,7 @@ int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_misma
 QMap <QByteArray,QByteArray> BedpeFile::parseInfoField(QByteArray unparsed_fields)
 {
 	QMap<QByteArray,QByteArray> map = {};
-    QStringList tmp_list = QString(unparsed_fields).replace(">", "").replace("<", "").replace("##", "").simplified().split("\"", QT_SKIP_EMPTY_PARTS);
+    QStringList tmp_list = QString(unparsed_fields).replace(">", "").replace("<", "").replace("##", "").simplified().split("\"", Qt::SkipEmptyParts);
 	bool in_quotes = unparsed_fields.at(0) == '\"';
 
 	QStringList parts;
@@ -497,7 +497,7 @@ QMap <QByteArray,QByteArray> BedpeFile::parseInfoField(QByteArray unparsed_field
 		}
 		else //split by , if outside ""
 		{
-            parts.append(tmp.split(',', QT_SKIP_EMPTY_PARTS));
+            parts.append(tmp.split(',', Qt::SkipEmptyParts));
 		}
 		in_quotes = !in_quotes;
 	}

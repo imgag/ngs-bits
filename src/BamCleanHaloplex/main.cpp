@@ -62,9 +62,9 @@ public:
 
 		//statistics output
 		QTextStream out(stdout);
-        out << "overall reads: " << c_reads << QT_ENDL;
-        out << "mapped reads : " << c_reads_mapped << " (" << QString::number(100.0*c_reads_mapped/c_reads, 'f', 2) << "%)" << QT_ENDL;
-        out << "removed reads: " << c_reads_failed << " (" << QString::number(100.0*c_reads_failed/c_reads, 'f', 2) << "%)" << QT_ENDL;
+		out << "overall reads: " << c_reads << Qt::endl;
+		out << "mapped reads : " << c_reads_mapped << " (" << QString::number(100.0*c_reads_mapped/c_reads, 'f', 2) << "%)" << Qt::endl;
+		out << "removed reads: " << c_reads_failed << " (" << QString::number(100.0*c_reads_failed/c_reads, 'f', 2) << "%)" << Qt::endl;
 	}
 
 };

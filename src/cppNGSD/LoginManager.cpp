@@ -362,7 +362,7 @@ void LoginManager::checkRoleNotIn(QStringList roles)
 	{
 		//invert role selection for output
 		QStringList roles_db = db.getEnum("user", "user_role");
-        roles = LIST_TO_SET(roles_db).subtract(LIST_TO_SET(roles)).values();
+        roles = Helper::listToSet(roles_db).subtract(Helper::listToSet(roles)).values();
 
 		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + NGSD().getUserRole(manager.userId()) + "'!");
 	}

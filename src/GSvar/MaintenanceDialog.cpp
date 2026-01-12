@@ -107,7 +107,7 @@ void MaintenanceDialog::deleteUnusedVariants()
 	NGSD db;
 	QSet<QString> ref_tables = tablesReferencing(db, "variant");
 
-    QSet<int> var_ids_pub = LIST_TO_SET(db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'"));
+    QSet<int> var_ids_pub = Helper::listToSet(db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'"));
 
 	foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 	{
@@ -182,7 +182,7 @@ void MaintenanceDialog::importStudySamples()
 
 		//determine processed sample in study
 		QStringList errors;
-        QSet<int> genlab_ps_ids = LIST_TO_SET(genlab.studySamples(study, errors));
+        QSet<int> genlab_ps_ids = Helper::listToSet(genlab.studySamples(study, errors));
 		appendOutputLine("  Processed samples in study according to GenLab: " + QString::number(genlab_ps_ids.count()));
 
 		//add missing processed samples
@@ -201,7 +201,7 @@ void MaintenanceDialog::importStudySamples()
 		appendOutputLine("  Added processed sample to NGSD: " + QString::number(c_added));
 
 		//show samples that are only in study according to NGSD
-        QSet<int> extra_ids = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id='" + study_id + "'"));
+        QSet<int> extra_ids = Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id='" + study_id + "'"));
 		extra_ids.subtract(genlab_ps_ids);
 		if (extra_ids.count()>0)
 		{
@@ -219,8 +219,8 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 {
 	//init
 	NGSD db;
-    QSet<QString> hpo_terms_valid = LIST_TO_SET(db.getValues("SELECT hpo_id FROM hpo_term"));
-    QSet<QString> hpo_terms_obsolete = LIST_TO_SET(db.getValues("SELECT hpo_id FROM hpo_obsolete"));
+    QSet<QString> hpo_terms_valid = Helper::listToSet(db.getValues("SELECT hpo_id FROM hpo_term"));
+    QSet<QString> hpo_terms_obsolete = Helper::listToSet(db.getValues("SELECT hpo_id FROM hpo_obsolete"));
 
 	//process disease info
 	int c_valid = 0;
@@ -814,7 +814,7 @@ void MaintenanceDialog::deleteDataOfMergedSamples()
 	//delete QC metrics (except for read count)
 	QString qc_id_read_count = db.getValue("SELECT id FROM qc_terms WHERE qcml_id='QC:2000005'").toString();
 	c_deleted = 0;
-    QSet<int> ps_with_qc = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM processed_sample_qc"));
+    QSet<int> ps_with_qc = Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM processed_sample_qc"));
 	appendOutputLine("Found " + QString::number(ps_with_qc.count()) + " processed samples with QC data.");
 	foreach(int ps_id, ps_merged)
 	{
@@ -832,7 +832,7 @@ void MaintenanceDialog::deleteDataOfMergedSamples()
 
 	//delete KASP data
 	c_deleted = 0;
-    QSet<int> ps_with_kasp = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM kasp_status"));
+    QSet<int> ps_with_kasp = Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM kasp_status"));
 	appendOutputLine("Found " + QString::number(ps_with_kasp.count()) + " processed samples with KASP data.");
 	foreach(int ps_id, ps_merged)
 	{
@@ -855,7 +855,7 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 	//check for missing tables
 	QStringList tables_p = db_p.tables();
 	QStringList tables_t = db_t.tables();
-    QSet<QString> tables_both = LIST_TO_SET(tables_p).intersect(LIST_TO_SET(tables_t));
+    QSet<QString> tables_both = Helper::listToSet(tables_p).intersect(Helper::listToSet(tables_t));
 	foreach(QString table_p, tables_p)
 	{
 		if (!tables_both.contains(table_p)) appendOutputLine("Missing table in test database: " + table_p);
@@ -874,7 +874,7 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 		//missing/extra columns
 		QStringList fields_p = info_p.fieldNames();
 		QStringList fields_t = info_t.fieldNames();
-        QSet<QString> fields_both = LIST_TO_SET(fields_p).intersect(LIST_TO_SET(fields_t));
+        QSet<QString> fields_both = Helper::listToSet(fields_p).intersect(Helper::listToSet(fields_t));
 		foreach(QString field_p, fields_p)
 		{
 			if (!fields_both.contains(field_p)) appendOutputLine("Missing field in test database: " + table+"/"+field_p);
@@ -978,10 +978,10 @@ QSet<int> MaintenanceDialog::psWithVariants(NGSD& db)
 {
 	QSet<int> ps_with_vars;
 
-    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT processed_sample_id FROM detected_variant"));
-    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM cnv_callset"));
-    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM sv_callset"));
-    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM re_callset"));
+    ps_with_vars += Helper::listToSet(db.getValuesInt("SELECT DISTINCT processed_sample_id FROM detected_variant"));
+    ps_with_vars += Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM cnv_callset"));
+    ps_with_vars += Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM sv_callset"));
+    ps_with_vars += Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM re_callset"));
 
 	return ps_with_vars;
 }
@@ -990,11 +990,11 @@ void MaintenanceDialog::clearUnusedReportConfigs(NGSD& db)
 {
 	//determine used report configs
 	QSet<int> used_rc_ids;
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_variant"));
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv"));
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_sv"));
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_re"));
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_other_causal_variant"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_variant"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_sv"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_re"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_other_causal_variant"));
 
 	//delete unused report configs
 	SqlQuery query = db.getQuery();
