@@ -1411,6 +1411,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	}
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
+	else if (type==PathType::CIRCOS_PLOT) output += ps_name + "_circos.png";
 	else if (type==PathType::FUSIONS) output += ps_name + "_fusions_arriba.tsv";
 	else if (type==PathType::FUSIONS_PIC_DIR) output += ps_name + "_fusions_arriba_pics";
 	else if (type==PathType::FUSIONS_BAM) output += ps_name + "_fusions_arriba.bam";
@@ -1441,7 +1442,11 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";
 	else if (type==PathType::MANTA_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
 	else if (type==PathType::PARAPHASE_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
-	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
+	else if (type!=PathType::SAMPLE_FOLDER)
+	{
+		//nothing to do: output is the sample folder
+	}
+	else THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in NGSD::processedSamplePath(...)!");
 
 	return QFileInfo(output).absoluteFilePath();
 }

@@ -1766,7 +1766,7 @@ QString ServerController::getProcessedSampleFile(const int& ps_id, const PathTyp
     }
     catch (Exception& e)
     {
-        Log::error("Error opening processed sample from NGSD: " + e.message());
+		Log::error("Error getting processed sample file: " + e.message());
         THROW_HTTP(HttpException, e.message(), 500,  {}, {});
     }
     return found_file_path;

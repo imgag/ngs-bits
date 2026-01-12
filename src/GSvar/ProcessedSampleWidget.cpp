@@ -3,7 +3,6 @@
 #include "DBQCWidget.h"
 #include "GUIHelper.h"
 #include "DiagnosticStatusWidget.h"
-#include "DiseaseInfoWidget.h"
 #include "SampleDiseaseInfoWidget.h"
 #include "SampleRelationDialog.h"
 #include "ProcessedSampleDataDeletionDialog.h"
@@ -24,6 +23,7 @@
 #include <QDesktopServices>
 #include <QInputDialog>
 #include "Settings.h"
+#include "CircosPlotWidget.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: TabBaseClass(parent)
@@ -57,6 +57,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
 	connect(ui_->analysis_info_btn, SIGNAL(clicked(bool)), this, SLOT(showAnalysisInfo()));
+	connect(ui_->circos_btn, SIGNAL(clicked(bool)), this, SLOT(showCircosPlot()));
 	connect(ui_->genlab_import_btn, SIGNAL(clicked(bool)), this, SLOT(genLabImportDialog()));
 	ui_->genlab_import_btn->setEnabled(GenLabDB::isAvailable());
 
@@ -144,6 +145,12 @@ void ProcessedSampleWidget::delayedInitialization()
 		menu->addSeparator();
     }
 	ui_->igv_btn->setMenu(menu);
+
+	//check if circos plot is present
+	if (GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::CIRCOS_PLOT).exists)
+	{
+		ui_->circos_btn->setEnabled(true);
+	}
 
     //init RNA menu
     ui_->rna_btn->setEnabled(false);
@@ -756,6 +763,17 @@ void ProcessedSampleWidget::openIgvTrack()
 
 	QString file = GlobalServiceProvider::database().processedSamplePath(ps_id_, type).filename;
     IgvSessionManager::get(0).loadFileInIGV(file, false);
+}
+
+void ProcessedSampleWidget::showCircosPlot()
+{
+	NGSD db;
+	QString filename = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::CIRCOS_PLOT).filename;
+
+	//show plot
+	CircosPlotWidget* widget = new CircosPlotWidget(filename);
+	auto dlg = GUIHelper::createDialog(widget, "Circos Plot of " + db.processedSampleName(ps_id_));
+	dlg->exec();
 }
 
 void ProcessedSampleWidget::somRepDeleted()
