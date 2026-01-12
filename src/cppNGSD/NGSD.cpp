@@ -1442,7 +1442,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";
 	else if (type==PathType::MANTA_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
 	else if (type==PathType::PARAPHASE_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
-	else if (type!=PathType::SAMPLE_FOLDER)
+	else if (type==PathType::SAMPLE_FOLDER)
 	{
 		//nothing to do: output is the sample folder
 	}
