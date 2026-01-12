@@ -1,9 +1,11 @@
-# Integration with IGV
+# Installing new versions of IGV
 
-## Deploying a new version
+IGV is regularly updated. If you want to install the latest version of IGV, we recommend testing it first, (especially if you use a proxy server to access your data). Pay attention to the proxy configuration and to the BAM/CRAM tracks, since these are the most problematic things in IGV (while using it with `GSvar`).
 
-* Download IGV 2.19.1 from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/) (select `Command line IGV and igvtools for all platforms` variant)
-* Download a JDK that is reccomended for this particular version of IGV: IGV developers include JDK from [`Adoptium`](https://adoptium.net/de/marketplace/)
+## Deployment
+
+* Download IGV 2.19.7 (the latest version available at the moment) from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/) (select `Command line IGV and igvtools for all platforms` variant)
+* Download a JDK: IGV developers include JDK from [`Adoptium`](https://adoptium.net/de/releases/), but you may use a different one, just make sure the version number meets the requirement for a given IGV release (check out [Microsoft Open JDK](https://learn.microsoft.com/en-us/java/openjdk/download), [Amazon Open JDK](https://downloads.corretto.aws/#/overview), or some other)
 * Place the unpacked JDK to the folder with IGV and edit `igv.bat` (for Windows). Change the last line to `start %JAVA_CMD% -showversion --module-path=%BatchPath%\lib -Xmx8g -Dproduction=true @%BatchPath%\igv.args -Djava.net.preferIPv4Stack=true -Dsun.java2d.noddraw=true --module=org.igv/org.broad.igv.ui.Main  %*`
 * The file `conf/net.properties` inside the JDK folder has to be adjusted: comment out the line `jdk.http.auth.tunneling.disabledSchemes=Basic`. This will enable the correct proxy authentication method.
 
