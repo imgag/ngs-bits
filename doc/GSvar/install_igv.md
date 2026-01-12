@@ -8,7 +8,7 @@ IGV is regularly updated (usually every couple of months). If you want to instal
 
 2. Unpack the archive
 
-3. Download Open JDK, [Oracle Open JDK](jdk.java.net/archive/) is one of the most popular options. Select the version number which is required by IGV (newer version may need newer JDKs). There are many other Open JDK flavours: [`Adoptium Open JDK`](https://adoptium.net/de/releases/), [Microsoft Open JDK](https://learn.microsoft.com/en-us/java/openjdk/download), [Amazon Open JDK](https://downloads.corretto.aws/#/overview), etc.
+3. Download Open JDK, [Oracle Open JDK](jdk.java.net/archive/) is one of the most popular options. Select the version number which is required by IGV (newer version may need newer JDKs). There are many other Open JDK flavours: [`Adoptium Open JDK`](https://adoptium.net/de/temurin/releases), [Microsoft Open JDK](https://learn.microsoft.com/en-us/java/openjdk/download), [Amazon Open JDK](https://downloads.corretto.aws/#/overview), etc.
 
 4. Unpack the JDK archive to the folder with IGV (next to the `lib` folder)
 
@@ -18,7 +18,7 @@ IGV is regularly updated (usually every couple of months). If you want to instal
 
 7. Modify the path to IGV in GSvar config file `GSvar.ini`: adjust `igv_app` property accordingly
 
-8. Now it should be possible to launch IGV from GSvar. If you are behind a authenticating proxy and IGV cannot be launched from GSvar, you have to comment out `jdk.http.auth.tunneling.disabledSchemes=Basic` line in `net.properties` of JDK.
+8. Now it should be possible to launch IGV from GSvar. If you are behind an authenticating proxy and IGV cannot be launched from GSvar, you have to comment out `jdk.http.auth.tunneling.disabledSchemes=Basic` line in `net.properties` of JDK.
 
 ## Building a custom genome for IGV
 
