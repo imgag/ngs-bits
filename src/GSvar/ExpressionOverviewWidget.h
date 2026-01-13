@@ -34,6 +34,7 @@ private:
 private slots:
 	void showExpressionData();
 	void applyGeneFilter();
+	void tableContextMenu(QPoint pos);
 
 	//phenotype
 	void phenotypesChanged();

@@ -327,7 +327,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	//Preselect remaining options
 	ui_.include_msi_status->setChecked(settings_.report_config->msiStatus());
 	ui_.fusions_detected->setChecked(settings_.report_config->fusionsDetected());
-	if(Settings::boolean("debug_mode_enabled")) ui_.no_ngsd->setChecked(true);
+	if(Helper::runningInQtCreator()) ui_.no_ngsd->setChecked(true);
 
 	//Load possible quality settings
 	QStringList quality_entries = db_.getEnum("somatic_report_configuration", "quality");

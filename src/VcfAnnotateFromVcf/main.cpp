@@ -202,34 +202,37 @@ public:
 		}
 
 		//write meta data to stdout
-		out << "Input file: \t" << params.in << "\n";
-		out << "Output file: \t" << params.out << "\n";
-		out << "Threads: \t" << params.threads << "\n";
-		out << "Block (Chunk) size: \t" << params.block_size << "\n";
+		if (params.debug)
+		{
+			out << "Input file: \t" << params.in << "\n";
+			out << "Output file: \t" << params.out << "\n";
+			out << "Threads: \t" << params.threads << "\n";
+			out << "Block (Chunk) size: \t" << params.block_size << "\n";
 
-		for(int i = 0; i < meta.annotation_file_list.size(); i++)
-        {
-			out << "Annotation file: " << meta.annotation_file_list[i] << "\n";
-			if (meta.annotate_only_existence[i])
+			for (int i=0; i<meta.annotation_file_list.size(); ++i)
 			{
-				out << "Existence-only annotation, INFO key name:\t" + meta.existence_name_list[i] + "\n";
-			}
-			else
-			{
-				if (meta.id_column_name_list[i] != "")
+				out << "Annotation file: " << meta.annotation_file_list[i] << "\n";
+				if (meta.annotate_only_existence[i])
 				{
-					out << "Id column:\n\t " << meta.id_column_name_list[i].leftJustified(12) << "\t -> \t" << meta.out_id_column_name_list[i] << "\n";
+					out << "Existence-only annotation, INFO key name:\t" + meta.existence_name_list[i] + "\n";
 				}
-				out << "INFO ids:\n";
-				for (int j = 0; j < meta.info_id_list[i].size(); j++)
+				else
 				{
-                    out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << QT_ENDL;
+					if (meta.id_column_name_list[i] != "")
+					{
+						out << "Id column:\n\t " << meta.id_column_name_list[i].leftJustified(12) << "\t -> \t" << meta.out_id_column_name_list[i] << "\n";
+					}
+					out << "INFO ids:\n";
+					for (int j = 0; j < meta.info_id_list[i].size(); j++)
+					{
+						out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << QT_ENDL;
+					}
 				}
 			}
 		}
 
 		//create coordinator instance
-        out << "Performing annotation" << QT_ENDL;
+		if (params.debug) out << "Performing annotation" << QT_ENDL;
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }

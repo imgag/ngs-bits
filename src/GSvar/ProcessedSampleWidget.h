@@ -36,7 +36,10 @@ protected slots:
 	void updateGUI();
 	void updateQCMetrics();
 	void showPlot();
+	///Open sample folder
 	void openSampleFolder();
+	///Open sample qcML files
+	void openSampleQcFiles();
 	void openSampleTab();
 	void openExternalDiseaseDatabase();
 	void addRelation();
@@ -50,6 +53,7 @@ protected slots:
 	void showAnalysisInfo();
 
 	void openIgvTrack();
+	void showCircosPlot();
 	void somRepDeleted();
 
 	void openProcessedSampleTab(QString ps);

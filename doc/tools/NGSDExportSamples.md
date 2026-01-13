@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2025_03-80-g74f31dd7)
+	NGSDExportSamples (2025_12-49-gdb0c5d35)
 	
 	Lists processed samples from the NGSD.
 	
@@ -62,6 +62,8 @@
 	                             Default value: ''
 	  -no_bad_runs               If set, sequencing runs with 'bad' quality are excluded.
 	                             Default value: 'false'
+	  -ps_override <string>      Processed sample list separated by colon, e.g. 'NA12878_58;NA24385_03', or a file containing one processed sample per line.
+	                             Default value: ''
 	  -add_qc                    If set, QC columns are added to output.
 	                             Default value: 'false'
 	  -add_outcome               If set, diagnostic outcome columns are added to output.
@@ -99,8 +101,9 @@
 	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2025_03-80-g74f31dd7
+	NGSDExportSamples 2025_12-49-gdb0c5d35
 	
+	2025-12-12 Added 'ps_override' parameter.
 	2025-05-19 Added 'preset' and 'no_resequencing' parameters.
 	2024-08-21 Added 'add_study_column' flag.
 	2024-04-24 Added 'only_with_small_variants' flag.

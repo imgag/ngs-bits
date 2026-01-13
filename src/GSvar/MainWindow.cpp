@@ -261,7 +261,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.actionVirusDetection->setEnabled(false);
 
 	//debugging
-	if (Settings::boolean("debug_mode_enabled", true))
+	if (Helper::runningInQtCreator())
 	{
 		QToolButton* debug_btn = new QToolButton();
 		debug_btn->setObjectName("cfdna_btn");
@@ -281,7 +281,7 @@ MainWindow::MainWindow(QWidget *parent)
 		debug_btn->menu()->addAction("processed sample: DNA2405534A1_01", this, SLOT(openDebugTab()));
 		ui_.tools->addWidget(debug_btn);
 	}
-	ui_.actionEncrypt->setEnabled(Settings::boolean("debug_mode_enabled", true));
+	ui_.actionEncrypt->setEnabled(Helper::runningInQtCreator());
 
 	//signals and slots
     connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
@@ -320,8 +320,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_finalize.png"), "Finalize report configuration", this, SLOT(finalizeReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
-	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
-	connect(ui_.open_qc_files, SIGNAL(clicked(bool)), this, SLOT(openVariantListQcFiles()));
 	ui_.vars_ranking->setMenu(new QMenu());
 	ui_.vars_ranking->menu()->addAction("dominant model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_dominant");
 	ui_.vars_ranking->menu()->addAction("recessive model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_recessive");
@@ -685,7 +683,7 @@ void MainWindow::on_actionRegionToGenes_triggered()
 		dlg.setReadOnly(true);
 		dlg.setWordWrapMode(QTextOption::NoWrap);
 		dlg.appendLine("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene: std::as_const(genes))
 		{
 			QList<OmimInfo> omim_genes = db.omimInfo(gene);
 			foreach (const OmimInfo& omim_gene, omim_genes)
@@ -1566,76 +1564,6 @@ void MainWindow::on_actionGeneOmimInfo_triggered()
 	GeneOmimInfoWidget* widget = new GeneOmimInfoWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "OMIM information for genes");
 	dlg->exec();
-}
-
-void MainWindow::openVariantListFolder()
-{
-	if (filename_=="") return;
-
-	try
-	{
-		QString sample_folder;
-
-		if (GlobalServiceProvider::fileLocationProvider().isLocal())
-		{
-			sample_folder = QFileInfo(filename_).absolutePath();
-		}
-		else //client-server (allow opening folders if GSvar project paths are configured)
-		{
-			NGSD db;
-			if (variants_.type()==AnalysisType::GERMLINE_SINGLESAMPLE)
-			{
-				QString ps = variants_.mainSampleName();
-				QString ps_id = db.processedSampleId(ps);
-				QString project_type = db.getProcessedSampleData(ps_id).project_type;
-				QString project_folder = db.projectFolder(project_type).trimmed();
-				if (!project_folder.isEmpty())
-				{
-					sample_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
-					if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
-				}
-			}
-			else
-			{
-				THROW(Exception, "In client-server mode, opening analysis folders is only supported for germline single sample!");
-			}
-		}
-
-		QDesktopServices::openUrl(sample_folder);
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::information(this, "Open analysis folder", "Could not open analysis folder:\n" + e.message());
-	}
-}
-
-void MainWindow::openVariantListQcFiles()
-{
-	if (filename_=="") return;
-
-	const FileLocationProvider& flp = GlobalServiceProvider::fileLocationProvider();
-
-	foreach(const FileLocation& file, flp.getQcFiles())
-	{
-		if (flp.isLocal())
-		{
-			QDesktopServices::openUrl(QUrl::fromLocalFile(file.filename));
-		}
-		else
-		{
-			//create a local copy of the qcML file
-			VersatileFile in_file(file.filename);
-			in_file.open();
-			QByteArray file_contents = in_file.readAll();
-
-			QString tmp_filename = GSvarHelper::localQcFolder() + file.fileName();
-			QSharedPointer<QFile> tmp_file = Helper::openFileForWriting(tmp_filename);
-			tmp_file->write(file_contents);
-			tmp_file->close();
-
-			QDesktopServices::openUrl(QUrl::fromLocalFile(tmp_filename));
-		}
-	}
 }
 
 void MainWindow::on_actionReanalyze_triggered()
@@ -2548,7 +2476,7 @@ void MainWindow::openRunBatchTab(const QStringList& run_names)
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_ids);
 	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_names.join(", "), type, widget);
-	if (Settings::boolean("debug_mode_enabled"))
+	if (Helper::runningInQtCreator())
 	{
 		ui_.tabs->setTabToolTip(index, "NGSD ID: " + run_ids.join(", "));
 	}
@@ -3194,6 +3122,13 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		QString ps = info.name;
 		QString ps_id = db.processedSampleId(ps, false);
 		if (ps_id=="") continue;
+
+		//check scheduled for resequencing
+		QString resequencing = db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toString();
+		if (resequencing=="1")
+		{
+			issues << qMakePair(Log::LOG_WARNING, "Processed sample '" + ps + "' is scheduled for resequencing!");
+		}
 
 		//check quality
 		QString quality = db.getValue("SELECT quality FROM processed_sample WHERE id=" + ps_id).toString();
@@ -3959,7 +3894,7 @@ void MainWindow::generateReportSomaticRTF()
 	{
 		QStringList cnv_data = Helper::loadTextFile(cnvFile.filename, true, QChar::Null, true);
 
-		for (const QString& line: cnv_data)
+		foreach (const QString& line, cnv_data)
 		{
 			if (line.startsWith("##ploidy:"))
 			{
@@ -4911,7 +4846,7 @@ void MainWindow::on_actionExportSampleData_triggered()
 
 		db.exportSampleData(ps_id, sample_db_data);
 
-		for (QString single_query: sample_db_data)
+		foreach (QString single_query, std::as_const(sample_db_data))
 		{
 			output_stream << single_query.replace("\n", "\\n") << ";\n";
 		}
@@ -5242,7 +5177,7 @@ void MainWindow::calculateGapsByGenes()
 	NGSD db;
 	BedFile regions;
 	GeneSet genes = GeneSet::createFromStringList(text.split("\n"));
-	for(const QByteArray& gene: genes)
+	for(const QByteArray& gene: std::as_const(genes))
 	{
 		regions.add(db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true, false));
 	}
@@ -5264,7 +5199,7 @@ void MainWindow::showGapsClosingDialog(QString title, const BedFile& regions, co
 	}
 
 	//check for BAM file
-	QString ps = (type==SOMATIC_SINGLESAMPLE) ? variants_.getSampleHeader()[0].name : germlineReportSample();
+	QString ps = (type==SOMATIC_SINGLESAMPLE) ? variants_.getSampleHeader().value(0).name : germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
 	if (bams.empty())
 	{
@@ -5365,7 +5300,7 @@ void MainWindow::exportHerediCareVCF()
 
 		//add variants in ROI to VCF
 		int i_qual = variants_.annotationIndexByName("quality");
-		int i_geno = variants_.getSampleHeader()[0].column_index;
+		int i_geno = variants_.getSampleHeader().value(0).column_index;
 		int c_classified = 0;
 		for(int i=0; i<variants_.count(); ++i)
 		{
@@ -6484,7 +6419,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		if (i_genes!=-1)
 		{
 			GeneSet genes = GeneSet::createFromText(variant.annotations()[i_genes], ',');
-            for (const QByteArray& gene : genes)
+			for (const QByteArray& gene : std::as_const(genes))
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 				inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
@@ -6717,14 +6652,14 @@ void MainWindow::variantRanking()
 	{
 		//create phenotype list
 		QHash<Phenotype, BedFile> phenotype_rois;		
-		for (const Phenotype& pheno : phenotypes)
+		for (const Phenotype& pheno : std::as_const(phenotypes))
 		{
 			//pheno > genes
 			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 
 			//genes > roi
 			BedFile roi;
-            for (const QByteArray& gene : genes)
+			for (const QByteArray& gene : std::as_const(genes))
 			{
 				roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -6892,7 +6827,7 @@ void MainWindow::applyFilters(bool debug_time)
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
 
-            for (const QByteArray& gene : pheno_genes)
+			foreach (const QByteArray& gene, std::as_const(pheno_genes))
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}

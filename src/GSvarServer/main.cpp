@@ -641,7 +641,13 @@ int main(int argc, char **argv)
     try
     {
         ServerDB db = ServerDB();
-        db.initDbIfEmpty();
+		db.initDbIfEmpty();
+		if (db.getSchemaVersion() < db.EXPECTED_SCHEMA_VERSION)
+		{
+			Log::info("Schema has changed. Reinitializing the server database...");
+			db.reinitializeDb();
+			db.updateSchemaVersion(db.EXPECTED_SCHEMA_VERSION);
+		}
 
         QList<UrlEntity> restored_urls = db.getAllUrls();
         for (int u = 0; u < restored_urls.count(); u++)
