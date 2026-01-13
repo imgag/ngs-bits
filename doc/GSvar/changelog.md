@@ -1,5 +1,12 @@
 # GSvar change log
 
+## 2025_12-24 (13.01.2026)
+
+- general: added warning when opening sample that is scheduled for re-sequencing
+- general: removed sample folder button and QC button from main window (they are in the processed sample tab now)
+- processed sample tab: added button to show circos plot
+- CNVs filters: not keep CNVs bigger than 1MB and CNP filter is enabled by default
+
 ## 2025_12-24 (19.12.2025)
 
 - General: remove somatic variant classification (it was replaced by VICC)
