@@ -470,6 +470,9 @@
               <property name="text">
                <string/>
               </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+              </property>
              </widget>
             </item>
             <item row="6" column="0">
@@ -498,12 +501,18 @@
               <property name="text">
                <string/>
               </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+              </property>
              </widget>
             </item>
             <item row="8" column="1">
              <widget class="QLabel" name="batch_number">
               <property name="text">
                <string/>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>
@@ -521,6 +530,9 @@
              <widget class="QLabel" name="sequencing">
               <property name="text">
                <string/>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>
@@ -564,6 +576,9 @@
              <widget class="QLabel" name="urgent">
               <property name="text">
                <string/>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>
@@ -841,6 +856,9 @@
               <property name="text">
                <string/>
               </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+              </property>
              </widget>
             </item>
             <item row="13" column="0">
@@ -867,6 +885,9 @@
              <widget class="QLabel" name="tissue">
               <property name="text">
                <string/>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>
@@ -906,6 +927,9 @@
               <property name="text">
                <string/>
               </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+              </property>
              </widget>
             </item>
             <item row="4" column="0">
@@ -920,6 +944,9 @@
               <property name="text">
                <string/>
               </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+              </property>
              </widget>
             </item>
             <item row="5" column="0">
@@ -933,6 +960,9 @@
              <widget class="QLabel" name="order_date">
               <property name="text">
                <string/>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>
@@ -1033,6 +1063,9 @@
              <widget class="QLabel" name="status">
               <property name="text">
                <string/>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>
@@ -1189,6 +1222,9 @@
             <property name="text">
              <string/>
             </property>
+            <property name="textInteractionFlags">
+             <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+            </property>
            </widget>
           </item>
           <item row="1" column="0">
@@ -1205,6 +1241,9 @@
            <widget class="QLabel" name="kasp_swap">
             <property name="text">
              <string/>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
             </property>
            </widget>
           </item>
