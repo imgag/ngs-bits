@@ -1,0 +1,62 @@
+##fileformat=BEDPE_TUMOR_ONLY
+##ANALYSISTYPE=BEDPE_TUMOR_ONLY
+##fileDate=20251127
+##source=GenerateSVCandidates 1.6.1
+##reference=file:///tmp/local_ngs_data_GRCh38/GRCh38.fa
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrMT,length=16569>
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##cmdline=/opt/manta/bin/configManta.py --referenceFasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --runDir /tmp/1046104.1.default_srv010/megSAP_user_bioinf/vc_manta_Rfqzg2/mantaAnalysis --config /opt/manta/bin/configManta.py.ini --outputContig --exome --tumorBam /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DUMMY/DUMMY.cram
+##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=POS,Number=1,Type=Integer,Description="Position of the variant described in the original VCF file.">
+##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Confidence interval around POS">
+##INFO=<ID=CIEND,Number=2,Type=Integer,Description="Confidence interval around END">
+##INFO=<ID=CIGAR,Number=A,Type=String,Description="CIGAR alignment for each alternate indel allele">
+##INFO=<ID=MATEID,Number=.,Type=String,Description="ID of mate breakend">
+##INFO=<ID=EVENT,Number=1,Type=String,Description="ID of event associated to breakend">
+##INFO=<ID=HOMLEN,Number=.,Type=Integer,Description="Length of base pair identical homology at event breakpoints">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical homology at event breakpoints">
+##INFO=<ID=SVINSLEN,Number=.,Type=Integer,Description="Length of insertion">
+##INFO=<ID=SVINSSEQ,Number=.,Type=String,Description="Sequence of insertion">
+##INFO=<ID=LEFT_SVINSSEQ,Number=.,Type=String,Description="Known left side of insertion for an insertion of unknown length">
+##INFO=<ID=RIGHT_SVINSSEQ,Number=.,Type=String,Description="Known right side of insertion for an insertion of unknown length">
+##INFO=<ID=CONTIG,Number=1,Type=String,Description="Assembled contig sequence">
+##INFO=<ID=BND_DEPTH,Number=1,Type=Integer,Description="Read depth at local translocation breakend">
+##INFO=<ID=MATE_BND_DEPTH,Number=1,Type=Integer,Description="Read depth at remote translocation mate breakend">
+##INFO=<ID=INV3,Number=0,Type=Flag,Description="Inversion breakends open 3' of reported location">
+##INFO=<ID=INV5,Number=0,Type=Flag,Description="Inversion breakends open 5' of reported location">
+##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 base), the fraction of reads with MAPQ0 around either breakend exceeds 0.4">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
+##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	FILTER	NAME_A	REF_A	ALT_A	NAME_B	REF_B	ALT_B	INFO_A	INFO_B	FORMAT	DUMMY	GENES	GENES_BREAKPOINTS	GENE_INFO
+chr1	1310824	1310867	chr1	1310893	1310893	MantaDEL:32:0:0:0:0:0	.	.	.	DEL	PASS	MantaDEL:32:0:0:0:0:0	CGGCTCTGGGTCACAGGTACGGAGGATGACGGCTGTGCTGGTGGGTCACGGGCGGCTCTGGGTCACAGGT	C	.	.	.	END=1310893;SVTYPE=DEL;POS=1310824;SVLEN=-69;CIGAR=1M69D;CONTIG=CTTGGCTCTGGGTCGTGGGCGGCTCTGGGTCACAGGTACGGAGGATGACGGCTGTGCTGGTGGGTCACGGGCGGCTCTGGGTCACAGGTACGGAGGATGACGGCTGTGCTGGTGGCCGTGGGGCTGGGGGCTTTGGCACCTGCCCAGGTGAAGACGATTCTG;CIPOS=0,43;HOMLEN=43;HOMSEQ=GGCTCTGGGTCACAGGTACGGAGGATGACGGCTGTGCTGGTGG	.	PR:SR	131,0:529,4	ACAP3,INTS11,MIR6727,PUSL1	ACAP3,INTS11,MIR6727,PUSL1	ACAP3 (oe_lof=0.39 region=intronic/intergenic),INTS11 (oe_lof=0.72 region=intronic/intergenic),MIR6727 (oe_lof=n/a region=intronic/intergenic),PUSL1 (oe_lof=2.03 region=exonic/splicing)

@@ -903,7 +903,9 @@ public:
 	///Returns all PubMed IDs for a given variant id
 	QStringList pubmedIds(const QString& variant_id);
 
+	///Deletes somatic variants of a tumor-normal analysis or tumor-only analysis (if n_ps_id is empty)
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id);
+	///Deletes somatic variants of a certain type of a tumor-normal analysis or tumor-only analysis (if n_ps_id is empty)
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type);
 
 	///Adds a CNV to the NGSD. Returns the CNV ID.
