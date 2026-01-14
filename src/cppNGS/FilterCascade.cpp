@@ -536,7 +536,7 @@ QStringList FilterBase::getStringList(const QString& name, bool check_constraint
 		if (p.constraints.contains("valid"))
 		{
 			QStringList valid = p.constraints["valid"].split(',');
-            for (const QString& value : list)
+			for (const QString& value : std::as_const(list))
 			{
 				if (!valid.contains(value))
 				{
@@ -2859,13 +2859,15 @@ FilterCnvSize::FilterCnvSize()
 	description_ = QStringList() << "Filter for CNV size (kilobases).";
 	params_ << FilterParameter("size", FilterParameterType::DOUBLE, 0.0, "Minimum CNV size in kilobases");
 	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "FILTER,KEEP";
 
 	checkIsRegistered();
 }
 
 QString FilterCnvSize::toText() const
 {
-	return name() + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
+	return name() + " " + getString("action") + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
 }
 
 void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
@@ -2873,14 +2875,33 @@ void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
 	if (!enabled_) return;
 
 	double min_size_bases = getDouble("size") * 1000.0;
-	for(int i=0; i<cnvs.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
 
-		if (cnvs[i].size() < min_size_bases)
+	QString action = getString("action");
+	if (action=="FILTER")
+	{
+		for(int i=0; i<cnvs.count(); ++i)
 		{
-			result.flags()[i] = false;
+			if (!result.flags()[i]) continue;
+
+			if (cnvs[i].size() < min_size_bases)
+			{
+				result.flags()[i] = false;
+			}
 		}
+	}
+	else if (action=="KEEP")
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (cnvs[i].size() >= min_size_bases)
+			{
+				result.flags()[i] = true;
+			}
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Invalid action '" + action +"'provided!");
 	}
 }
 

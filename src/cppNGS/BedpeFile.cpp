@@ -615,28 +615,33 @@ void BedpeFile::sort()
 
 BedpeFileFormat BedpeFile::format() const
 {
+	//determine type by fileformat header line (current way)
 	foreach(const QByteArray& comment, headers_)
 	{
-		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
-		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
-		if(comment.contains("fileformat=BEDPE_GERMLINE_MULTI")) return BedpeFileFormat::BEDPE_GERMLINE_MULTI;
-        if(comment.contains("fileformat=BEDPE_GERMLINE_TRIO")) return BedpeFileFormat::BEDPE_GERMLINE_TRIO;
-		if(comment.contains("fileformat=BEDPE_RNA")) return BedpeFileFormat::BEDPE_RNA;
-		if(comment.contains("fileformat=BEDPE")) return BedpeFileFormat::BEDPE_GERMLINE_SINGLE;
+		if(comment.startsWith("##fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
+		if(comment.startsWith("##fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+		if(comment.startsWith("##fileformat=BEDPE_GERMLINE_MULTI")) return BedpeFileFormat::BEDPE_GERMLINE_MULTI;
+		if(comment.startsWith("##fileformat=BEDPE_GERMLINE_TRIO")) return BedpeFileFormat::BEDPE_GERMLINE_TRIO;
 	}
-	THROW(FileParseException, "Could not determine format of BEDPE file.");
+
+	//determine type based on cmdline header line (fallback)
+	foreach(const QByteArray& comment, headers_)
+	{
+		if(comment.startsWith("##cmdline=") && comment.contains("configManta.py"))
+		{
+			if (comment.contains("--tumorBam") && comment.contains("--normalBam")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+			if (comment.contains("--tumorBam") && !comment.contains("--normalBam")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+		}
+	}
+
+	//fallback to germline
+	return BedpeFileFormat::BEDPE_GERMLINE_SINGLE;
 }
 
 bool BedpeFile::isSomatic() const
 {
-	try
-	{
-		BedpeFileFormat f = format();
-		if (f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY) return true;
-	}
-	catch(...) {} //Nothing to do here
-
-	return false;
+	BedpeFileFormat f = format();
+	return f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
 }
 
 QByteArray BedpeFile::build() const

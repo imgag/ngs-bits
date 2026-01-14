@@ -1209,13 +1209,19 @@ private:
 
 		FilterResult result(cnvs.count());
 
-		//default
+		//FILTER action
 		FilterCnvSize filter;
 		filter.setDouble("size", 20.0);
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 2);
-	}
 
+		//KEEP action
+		filter.setDouble("size", 17.0);
+		filter.setString("action", "KEEP");
+		result.reset(false);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 3);
+	}
 
 	TEST_METHOD(FilterCnvRegions_apply)
 	{
