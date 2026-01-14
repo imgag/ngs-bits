@@ -24,13 +24,10 @@ private:
 		S_EQUAL(test_file_germl_[14].genes(test_file_germl_.annotationHeaders())[0], "CDK11A");
 		S_EQUAL(test_file_germl_[14].genes(test_file_germl_.annotationHeaders())[4], "SLC35E2B");
 
-
-
 		test_file_som_.load( TESTDATA("data_in/SV_Manta_somatic.bedpe") );
 		IS_TRUE( test_file_som_.isSomatic() );
 		I_EQUAL( test_file_som_.count(), 8 );
 		S_EQUAL( test_file_som_[0].toTsv(),"chr1\t9780838\t9780841\tchr1\t9781143\t9781143\tINV\tPASS\t50\t.\t108\t478\t3\t16\t325\t0\t964\t0\tINV5;SOMATIC\tT\t<INV>\t.\t.\tSVTYPE=INV;POS=9780838;SVLEN=305;END=9781143;CIPOS=0,3;CIEND=-3,0;HOMLEN=3;HOMSEQ=GGG;INV5;CONTIG=ACGGGCAGCTCCGGCCAGGAGCACAGCAGGTAGAGCATCTGGGGGGAGCCGAGGTCAGGCTTGGGGGCGGCCGGGGTCAGGGGAGCTGTATGAGCACGAGAAGGACCTGGTGTGGAAGCTGCGG;SOMATIC;SOMATICSCORE=50\t.\tMantaINV:89:0:0:7:0:0\t.");
-
 	}
 
 	TEST_METHOD(findMatch)

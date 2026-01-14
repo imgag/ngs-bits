@@ -1393,9 +1393,9 @@ CREATE TABLE IF NOT EXISTS `somatic_cnv`
   `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `start` INT(11) UNSIGNED NOT NULL,
   `end` INT(11) UNSIGNED NOT NULL,
-  `cn` FLOAT UNSIGNED NOT NULL COMMENT 'copy-number change in whole sample, including normal parts',
-  `tumor_cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number change normalized to tumor tissue only',
-  `tumor_clonality` FLOAT NOT NULL COMMENT 'tumor clonality, i.e. fraction of tumor cells',
+  `cn` FLOAT UNSIGNED NOT NULL COMMENT 'raw copy-number in tumor sample (based on tumor and normal reads)',
+  `tumor_cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number change normalized to tumor only',
+  `tumor_clonality` FLOAT NOT NULL COMMENT 'tumor clonality, i.e. fraction of tumor cells at the CNV locus (in contrast to tumor purity).',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `som_cnv_references_cnv_callset`

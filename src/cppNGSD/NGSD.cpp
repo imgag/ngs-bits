@@ -1753,7 +1753,7 @@ void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id)
 	deleteSomaticVariants(t_ps_id, n_ps_id, VariantType::SVS);
 }
 
-void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type) //TODO Marc add tests for tumor-only (small, CNVs, SVs) and tumor-normal SVs
+void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type)
 {
 	if(type==VariantType::SNVS_INDELS)
 	{
@@ -2751,6 +2751,7 @@ CopyNumberVariant NGSD::cnv(int cnv_id)
 
 QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const CnvList &cnv_list, double min_ll)
 {
+	//check type
 	CnvListType type = cnv_list.type();
 	if(type!=CnvListType::CLINCNV_TUMOR_NORMAL_PAIR && type!=CnvListType::CLINCNV_TUMOR_ONLY)
 	{
@@ -2758,31 +2759,51 @@ QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const 
 	}
 	bool is_tumor_only = (type==CnvListType::CLINCNV_TUMOR_ONLY);
 
-	//determin quality metrics to be included (determinend from columns in CNV file)
+	//determine quality metrics to be included (determinend from columns in CNV file)
+	static QSet<QString> qc_metric_cols = {"major_CN_allele", "minor_CN_allele", "loglikelihood", "Ontarget_RD_CI_lower", "Ontarget_RD_CI_upper","Offtarget_RD_CI_lower", "Offtarget_RD_CI_upper", "Lowmed_tumor_BAF", "Highmed_tumor_BAF", "BAF_qval_fdr", "Overall_qvalue", "Major allele", "Minor allele"};
 	QJsonObject quality_metrics;
 	quality_metrics.insert("regions", QString::number(cnv.regions()));
-	const QList<QString> qc_metric_cols = {"major_CN_allele", "minor_CN_allele", "loglikelihood", "regions", "Ontarget_RD_CI_lower", "Ontarget_RD_CI_upper","Offtarget_RD_CI_lower", "Offtarget_RD_CI_upper", "Lowmed_tumor_BAF", "Highmed_tumor_BAF", "BAF_qval_fdr", "Overall_qvalue"};
-	for(int i=0; i<cnv_list.annotationHeaders().count(); ++i)
+	for (int i=0; i<cnv_list.annotationHeaders().count(); ++i)
 	{
 		const QByteArray& col_name = cnv_list.annotationHeaders()[i];
+		if(!qc_metric_cols.contains(col_name)) continue;
+
 		const QByteArray& entry = cnv.annotations()[i];
 
-		if(qc_metric_cols.contains(col_name))
+		//filter by log-likelyhood
+		if(col_name == "loglikelihood")
 		{
-			if(col_name == "loglikelihood")
+			if (min_ll>0.0 && Helper::toDouble(entry, "log-likelihood")<min_ll)
 			{
-				if (min_ll>0.0 && Helper::toDouble(entry, "log-likelihood")<min_ll)
-				{
-					return "";
-				}
+				return "";
 			}
-			quality_metrics.insert(QString(col_name), QString(entry));
 		}
+		quality_metrics.insert(QString(col_name), QString(entry));
 	}
 
-	int tumor_cn = cnv.annotations()[cnv_list.annotationIndexByName("tumor_CN_change", true)].toInt();
-	double clonality = cnv.annotations()[cnv_list.annotationIndexByName("tumor_clonality", true)].toDouble();
-	double normal_cn = cnv.annotations()[cnv_list.annotationIndexByName("CN_change", true)].toDouble();
+	//determine copy-number and colonality
+	int tumor_cn = -1;
+	double tumor_clonality = -1.0;
+	double raw_cn = -1.0;
+	try
+	{
+		if (is_tumor_only)
+		{
+			raw_cn = Helper::toDouble(cnv.annotations()[cnv_list.annotationIndexByName("CN_change", true)]);
+			tumor_cn = Helper::toInt(cnv.annotations()[cnv_list.annotationIndexByName("Minor allele", true)]+cnv.annotations()[cnv_list.annotationIndexByName("Major allele", true)]);
+			tumor_clonality = Helper::toDouble(cnv.annotations()[cnv_list.annotationIndexByName("Purity", true)]);
+		}
+		else
+		{
+			raw_cn = Helper::toDouble(cnv.annotations()[cnv_list.annotationIndexByName("CN_change", true)]);
+			tumor_cn = Helper::toInt(cnv.annotations()[cnv_list.annotationIndexByName("tumor_CN_change", true)]);
+			tumor_clonality = Helper::toDouble(cnv.annotations()[cnv_list.annotationIndexByName("tumor_clonality", true)]);
+		}
+	}
+	catch (Exception& e)
+	{
+		THROW(ProgrammingException, "Could not determine copy-number/clonality from CNV table for CNV '"+cnv.toString()+"': " +e.message());
+	}
 
 	//insert data
 	SqlQuery query = getQuery();
@@ -2791,9 +2812,9 @@ QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const 
 	query.bindValue(1, cnv.chr().strNormalized(true));
 	query.bindValue(2, cnv.start());
 	query.bindValue(3, cnv.end());
-	query.bindValue(4, normal_cn);
+	query.bindValue(4, raw_cn);
 	query.bindValue(5, tumor_cn);
-	query.bindValue(6, clonality);
+	query.bindValue(6, tumor_clonality);
 	QJsonDocument json_doc;
 	json_doc.setObject(quality_metrics);
 	query.bindValue(7, json_doc.toJson(QJsonDocument::Compact));
@@ -2857,6 +2878,14 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 
 QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 {
+	//check type
+	BedpeFileFormat format = svs.format();
+	if(format!=BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL && format!=BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY)
+	{
+		THROW(ProgrammingException, "NGSD::addSomaticSv can only be used with tumor-normal or tumor-only SV calls.");
+	}
+	bool is_tumor_only = (format==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY);
+
 	//skip SVs on special chr
 	if (!sv.chr1().isNonSpecial() || !sv.chr2().isNonSpecial() )
 	{
@@ -2864,11 +2893,9 @@ QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile&
 		return "";
 	}
 
-	// parse qc data
+	//collect QC data
 	QJsonObject quality_metrics;
-	// get quality value
-	quality_metrics.insert("quality", QString(sv.annotations()[svs.annotationIndexByName("SOMATICSCORE")].trimmed()));
-	// get filter values
+	if (!is_tumor_only) quality_metrics.insert("quality", QString(sv.annotations()[svs.annotationIndexByName("SOMATICSCORE")].trimmed()));
 	quality_metrics.insert("filter", QString(sv.annotations()[svs.annotationIndexByName("FILTER")].trimmed()));
 	QJsonDocument json_doc;
 	json_doc.setObject(quality_metrics);
@@ -2879,14 +2906,13 @@ QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile&
 	{
 		// insert SV into the NGSD
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `" + table + "` (`somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) " +
-					  "VALUES (:0, :1,  :2, :3, :4, :5, :6)");
+		query.prepare("INSERT INTO `" + table + "` (`somatic_sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6)");
 		query.bindValue(0, callset_id);
 		query.bindValue(1, sv.chr1().strNormalized(true));
-		query.bindValue(2,  sv.start1());
-		query.bindValue(3,  sv.end1());
-		query.bindValue(4,  sv.start2());
-		query.bindValue(5,  sv.end2());
+		query.bindValue(2, sv.start1());
+		query.bindValue(3, sv.end1());
+		query.bindValue(4, sv.start2());
+		query.bindValue(5, sv.end2());
 		query.bindValue(6, quality_metrics_string);
 
 		query.exec();
@@ -2935,8 +2961,7 @@ QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile&
 		int ci_upper = std::max(std::max(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2())) - pos;
 		// insert SV into the NGSD
 		SqlQuery query = getQuery();
-		query.prepare(QByteArray() + "INSERT INTO " + table + " (`somatic_sv_callset_id`, `chr`, `pos`, `ci_upper`, `inserted_sequence`, "
-					  + "`known_left`, `known_right`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
+		query.prepare(QByteArray() + "INSERT INTO " + table + " (`somatic_sv_callset_id`, `chr`, `pos`, `ci_upper`, `inserted_sequence`, `known_left`, `known_right`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
 		query.bindValue(0, callset_id);
 		query.bindValue(1, sv.chr1().strNormalized(true));
 		query.bindValue(2, pos);
@@ -2955,8 +2980,7 @@ QString NGSD::addSomaticSv(int callset_id, const BedpeLine& sv, const BedpeFile&
 	{
 		// insert SV into the NGSD
 		SqlQuery query = getQuery();
-		query.prepare(QByteArray() + "INSERT INTO " + table + " (`somatic_sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `quality_metrics`)"
-					  + " VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
+		query.prepare(QByteArray() + "INSERT INTO " + table + " (`somatic_sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
 		query.bindValue(0, callset_id);
 		query.bindValue(1, sv.chr1().strNormalized(true));
 		query.bindValue(2, sv.start1());
@@ -3084,6 +3108,14 @@ QString NGSD::somaticSvId(const BedpeLine& sv, int callset_id, const BedpeFile& 
 
 BedpeLine NGSD::somaticSv(QString sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation, int* callset_id)
 {
+	//check type
+	BedpeFileFormat format = svs.format();
+	if(format!=BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL && format!=BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY)
+	{
+		THROW(ProgrammingException, "NGSD::addSomaticSv can only be used with tumor-normal or tumor-only SV calls.");
+	}
+	bool is_tumor_only = (format==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY);
+
 	BedpeLine sv;
 	QList<QByteArray> annotations;
 
@@ -3092,7 +3124,7 @@ BedpeLine NGSD::somaticSv(QString sv_id, StructuralVariantType type, const Bedpe
 	if (!no_annotation)
 	{
 		// determine indices for annotations
-		qual_idx = svs.annotationIndexByName("SOMATICSCORE");
+		if (!is_tumor_only) qual_idx = svs.annotationIndexByName("SOMATICSCORE");
 		filter_idx = svs.annotationIndexByName("FILTER");
 		alt_a_idx = svs.annotationIndexByName("ALT_A");
 		info_a_idx = svs.annotationIndexByName("INFO_A");
@@ -3123,7 +3155,7 @@ BedpeLine NGSD::somaticSv(QString sv_id, StructuralVariantType type, const Bedpe
 		{
 			// parse quality & filter
 			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
-			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			if (!is_tumor_only) annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
 			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
 		}
 
@@ -3146,7 +3178,7 @@ BedpeLine NGSD::somaticSv(QString sv_id, StructuralVariantType type, const Bedpe
 		{
 			// parse quality & filter
 			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
-			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			if (!is_tumor_only) annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
 			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
 
 			// get inserted sequences:
@@ -3197,7 +3229,7 @@ BedpeLine NGSD::somaticSv(QString sv_id, StructuralVariantType type, const Bedpe
 		{
 			// parse quality & filter
 			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
-			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			if (!is_tumor_only) annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
 			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
 		}
 

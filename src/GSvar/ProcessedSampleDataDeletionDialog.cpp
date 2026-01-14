@@ -170,7 +170,7 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		//somatic variants
 		foreach(const QString& ps_tumor_id, ps_ids_)
 		{
-			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id); //TODO add support for tumor-only?!
+			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
 			if (ui_.somatic_var_small->isChecked()) db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::SNVS_INDELS);
 			if (ui_.somatic_var_cnv->isChecked()) db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::CNVS);
 			if (ui_.somatic_var_sv->isChecked()) db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::SVS);

@@ -292,7 +292,7 @@ public:
 		}
 
 		//check if variants are already imported
-		QString previous_callset_id = db.getValue("SELECT id FROM somatic_sv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id, true ).toString();
+		QString previous_callset_id = db.getValue("SELECT id FROM somatic_sv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id " + (is_tumor_only ? "IS NULL" : "='"+n_ps_id+"'"), true).toString();
 		if(previous_callset_id!="" && !sv_force)
 		{
 			out << "NOTE: SVs were already imported for analysis '" << analysis_name << "' - skipping import" << QT_ENDL;

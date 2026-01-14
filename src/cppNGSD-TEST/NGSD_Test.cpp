@@ -2134,8 +2134,6 @@ private:
 		//log in user
 		LoginManager::login("ahmustm1", "", true);
 
-
-
 		//Test methods for somatic CNVs in NGSD
 		S_EQUAL(db.somaticCnv(1).toString(), "chr4:18000-200000");
 		//Test get CNV ID
@@ -2225,8 +2223,8 @@ private:
 		BedpeFile svs2;
 		svs2.load(TESTDATA("data_in/somatic_svs_manta_tumor_only.bedpe"));
 		sv_id = db.addSomaticSv(1, svs2[0], svs2);
-		S_EQUAL(sv_id, "6");
-		var = db.somaticSv("6", StructuralVariantType::DUP, svs2);
+		S_EQUAL(sv_id, "2");
+		var = db.somaticSv("2", StructuralVariantType::DEL, svs2);
 		S_EQUAL(var.chr1().strNormalized(true), "chr1");
 		I_EQUAL(var.start1(), 1310824);
 		I_EQUAL(var.end1(), 1310867);
@@ -2529,24 +2527,37 @@ private:
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 2); //one CNV is already inserted by NGSD init.
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_germl_var").toInt(), 2);
-
 		db.deleteSomaticReportConfig(config_id);
-
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 0);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_germl_var").toInt(), 0);
 
 
-		//Delete Variants
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 4);
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 2);
+		//deleteSomaticVariants - tumor-normal
 		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 1);
-		db.deleteSomaticVariants("4000", "3999");
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 2);
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 1);
+		db.deleteSomaticVariants("4000", "3999", VariantType::SNVS_INDELS);
 		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 0);
 
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 5);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 2);
+		db.deleteSomaticVariants("4000", "3999", VariantType::CNVS);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 1);
+
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_callset").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_deletion").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_duplication").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_insertion").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_inversion").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_translocation").toInt(), 1);
+		db.deleteSomaticVariants("4000", "3999", VariantType::SVS);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_callset").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_deletion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_duplication").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_insertion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_inversion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_translocation").toInt(), 0);
 
 		//Test somatic xml report
 		SomaticReportSettings settings;

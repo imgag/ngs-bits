@@ -1,7 +1,7 @@
 ##fileformat=BEDPE_TUMOR_ONLY
 ##ANALYSISTYPE=BEDPE_TUMOR_ONLY
 ##fileDate=20251127
-##source=GenerateSVCandidates 1.6.0
+##source=GenerateSVCandidates 1.6.1
 ##reference=file:///tmp/local_ngs_data_GRCh38/GRCh38.fa
 ##contig=<ID=chr1,length=248956422>
 ##contig=<ID=chr2,length=242193529>
