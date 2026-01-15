@@ -302,16 +302,15 @@ QList<int> RequestParser::getBoundaryStartPositions(const QByteArray& form, cons
 
 QString RequestParser::getMultipartFileName(const QByteArray& multipart_item) const
 {
-	QRegularExpression file_name_fragment_regexp("filename=\"[^<]+\"", QRegularExpression::CaseInsensitiveOption);
-	QRegularExpressionMatch file_name_fragment_match = file_name_fragment_regexp.match(multipart_item);
-	if (file_name_fragment_match.hasMatch())
-	{
-		QString multipart_filename = file_name_fragment_match.captured(0);
-		multipart_filename = multipart_filename.replace("filename=\"", "", Qt::CaseInsensitive);
-		multipart_filename = multipart_filename.remove(multipart_filename.length()-1,1);
-		return multipart_filename;
-	}
-	return "";
+	QByteArray key = "filename=\"";
+	int start = multipart_item.indexOf(key);
+	if (start == -1) return "";
+
+	start += key.size();
+	int end = multipart_item.indexOf('"', start);
+	if (end == -1) return "";
+
+	return QString::fromLatin1(multipart_item.mid(start, end - start));
 }
 
 QByteArray RequestParser::getMultipartFileContent(QByteArray& multipart_item) const
