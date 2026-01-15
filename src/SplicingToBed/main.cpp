@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "Transcript.h"
 
 #include <QTextStream>
 
@@ -58,6 +59,7 @@ public:
 
 
 	//get exon rank for transcript ID and base position
+	/*
 	int exonRank(NGSD& db, int tx_id, int pos, QByteArray strand="*")
 	{
 		int exon_rank = -1;
@@ -121,6 +123,7 @@ public:
 		}
 		return exons;
 	}
+	*/
 
 	//make list of "k:Ev" strings out of map
 	QList<QByteArray> mapToKvStr(QMap<QByteArray,int> map)
@@ -135,6 +138,7 @@ public:
 	}
 
 	//return gene symbols for genes overlapping with given position, strand-aware
+/*
 	QList<QByteArray> genesByOverlap(NGSD& db, Chromosome chr, int pos, QString strand="*")
 	{
 		QList<QByteArray> genes;
@@ -163,6 +167,7 @@ public:
 
 		return genes;
 	}
+	*/
 
 	//return string for common transcripts in two sets, with exon numbering
 	QMap<QByteArray, int> sharedTranscripts(QMap<QByteArray,int> a, QMap<QByteArray,int> b, QByteArray prefix_a="E", QByteArray prefix_b="E")
@@ -254,7 +259,8 @@ public:
 			if (overhang < min_overhang) continue;
 
 			//strand
-			QByteArray strand = strand_map[Helper::toInt(parts[3])];
+			QByteArray strand_str = strand_map[Helper::toInt(parts[3])];
+			Transcript::STRAND strand = (strand_str != "*") ? Transcript::stringToStrand(strand_str) : Transcript::STRAND::INVALID;
 
 			//intron motif
 			QByteArray motif = motif_map[Helper::toInt(parts[4])];
@@ -266,16 +272,34 @@ public:
 			int exonR_start = intron_end + 1;
 
 			//track all explanations
-			QMultiMap<QByteArray,QByteArray> expl;
-			QMap<int,QList<Explanation>> expl2;
+			QMap<int,QList<Explanation>> expl;
 			for (int lvl=0; lvl<=5; ++lvl)
 			{
-				expl2[0] = QList<Explanation>();
+				expl[0] = QList<Explanation>();
 			}
 
-			//exact matches
-			QMap<QByteArray, int> matchesL = exons(db, chr, exonL_end, "end", strand);
-			QMap<QByteArray, int> matchesR = exons(db, chr, exonR_start, "start", strand);
+			TranscriptList overlapping_transcripts = db.transcriptsOverlapping(chr, intron_start, intron_end, 1, Transcript::SOURCE::CCDS);
+			overlapping_transcripts.append(db.transcriptsOverlapping(chr, intron_start, intron_end, 1));
+			QMap<QByteArray, int> matchesL;
+			QMap<QByteArray, int> matchesR;
+			foreach (Transcript ot, overlapping_transcripts)
+			{
+				if (strand != Transcript::STRAND::INVALID && ot.strand() != strand) continue;
+				//exact exon matches:
+				for(int i=0; i<ot.regions().count(); i++)
+				{
+					BedLine exon = ot.regions()[i];
+					if (exon.start() == exonR_start)
+					{
+						matchesR.insert(ot.gene() + ":" + ot.nameWithVersion(), ot.exonNumber(exonR_start, exonR_start));
+					}
+
+					if (exon.end() == exonL_end)
+					{
+						matchesL.insert(ot.gene() + ":" + ot.nameWithVersion(), ot.exonNumber(exonL_end, exonL_end));
+					}
+				}
+			}
 
 			//same transcript found for left and right exon
 			QMap<QByteArray,int> matchesL_matchesR = sharedTranscripts(matchesL, matchesR);
@@ -284,32 +308,59 @@ public:
 				int diff = matchesL_matchesR.value(gene_tx);
 				if (diff == 1)
 				{
-					expl2[0].append({gene_tx, diff, "exact match", "exact match", QByteArrayList(), QByteArrayList()});
+					expl[0].append({gene_tx, diff, "exact match", "exact match", QByteArrayList(), QByteArrayList()});
 				}
 				else
 				{
-					expl2[2].append({gene_tx, diff, "exact match", "exact match", QByteArrayList(), QByteArrayList()});
+					expl[2].append({gene_tx, diff, "exact match", "exact match", QByteArrayList(), QByteArrayList()});
 				}
 			}
 
 			//both exons known, but no shared transcript
 			if (matchesL_matchesR.isEmpty() && !matchesL.isEmpty() && !matchesR.isEmpty())
 			{
-				expl2[4].append({"", -1, "exact match", "exact match", mapToKvStr(matchesL), mapToKvStr(matchesR)});
+				expl[4].append({"", -1, "exact match", "exact match", mapToKvStr(matchesL), mapToKvStr(matchesR)});
 			}
 			if (matchesL_matchesR.isEmpty())
 			{
-				//overlapping exons
-				QMap<QByteArray,int> overlapsR = exons(db, chr, intron_end, "overlap", strand);
-				QMap<QByteArray,int> overlapsL = exons(db, chr, intron_start, "overlap", strand);
+				QMap<QByteArray,int> overlapsR;
+				QMap<QByteArray,int> overlapsL;
+
+				QList<QByteArray> geneOverlapsL;
+				QList<QByteArray> geneOverlapsR;
+
+				foreach(Transcript ot, overlapping_transcripts)
+				{
+					if (strand != Transcript::STRAND::INVALID && ot.strand() != strand) continue;
+					//overlapping exons
+					for(int i=0; i<ot.regions().count(); i++)
+					{
+						BedLine exon = ot.regions()[i];
+						if (exon.start() <= intron_end && exon.end() >= intron_end)
+						{
+							overlapsR.insert(ot.gene() + ":" + ot.nameWithVersion(), ot.exonNumber(intron_end, intron_end));
+						}
+
+						if (exon.start() <= intron_start && exon.end() >= intron_start)
+						{
+							overlapsL.insert(ot.gene() + ":" + ot.nameWithVersion(), ot.exonNumber(intron_start, intron_start));
+						}
+					}
+					//overlapping genes:
+					if (ot.overlapsWith(intron_start, intron_start))
+					{
+						if (! geneOverlapsL.contains(ot.gene())) geneOverlapsL.append(ot.gene());
+					}
+					if (ot.overlapsWith(intron_end, intron_end))
+					{
+						if (! geneOverlapsR.contains(ot.gene())) geneOverlapsR.append(ot.gene());
+					}
+				}
 
 				//shared transcripts between matches and overlaps
 				QMap<QByteArray,int> matchesL_overlapsR = sharedTranscripts(matchesL, overlapsR);
 				QMap<QByteArray,int> overlapsL_matchesR = sharedTranscripts(overlapsL, matchesR);
 				QMap<QByteArray,int> overlapsL_overlapsR = sharedTranscripts(overlapsL, overlapsR);
-
-				QList<QByteArray> geneOverlapsL = genesByOverlap(db, chr, intron_start, strand);
-				QList<QByteArray> geneOverlapsR = genesByOverlap(db, chr, intron_end, strand);
 
 				//string representations
                 QByteArray matchesL_overlapsR_str = SET_TO_LIST(LIST_TO_SET(matchesL_overlapsR.keys())).join(",");
@@ -332,25 +383,25 @@ public:
 							int diff = matchesL_overlapsR.value(gene_tx);
 							if (diff == 1)
 							{
-								expl2[1].append({gene_tx, diff, "exact match", "exon overlap", QByteArrayList(), QByteArrayList()});
+								expl[1].append({gene_tx, diff, "exact match", "exon overlap", QByteArrayList(), QByteArrayList()});
 							}
 							else
 							{
-								expl2[3].append({gene_tx, diff, "exact match", "exon overlap", QByteArrayList(), QByteArrayList()});
+								expl[3].append({gene_tx, diff, "exact match", "exon overlap", QByteArrayList(), QByteArrayList()});
 							}
 						}
 					}
 					else if (!overlapsR.isEmpty() && matchesL_overlapsR.isEmpty())
 					{
-						expl2[4].append({"", -1, "exact match", "exon overlap", mapToKvStr(matchesL), mapToKvStr(overlapsR)});
+						expl[4].append({"", -1, "exact match", "exon overlap", mapToKvStr(matchesL), mapToKvStr(overlapsR)});
 					}
 					else if (overlapsR.isEmpty() && !geneOverlapsR.isEmpty())
 					{
-						expl2[4].append({"", -1, "exact match", "intron overlap", mapToKvStr(matchesL), geneOverlapsR});
+						expl[4].append({"", -1, "exact match", "intron overlap", mapToKvStr(matchesL), geneOverlapsR});
 					}
 					else if (overlapsR.isEmpty() && geneOverlapsR.isEmpty())
 					{
-						expl2[5].append({"", -1, "exact match", "intergenic", mapToKvStr(matchesL), QByteArrayList()});
+						expl[5].append({"", -1, "exact match", "intergenic", mapToKvStr(matchesL), QByteArrayList()});
 					}
 				}
 
@@ -363,26 +414,26 @@ public:
 							int diff = overlapsL_matchesR.value(gene_tx);
 							if (diff == 1)
 							{
-								expl2[1].append({gene_tx, diff, "exon overlap", "exact match", QByteArrayList(), QByteArrayList()});
+								expl[1].append({gene_tx, diff, "exon overlap", "exact match", QByteArrayList(), QByteArrayList()});
 							}
 							else
 							{
-								expl2[3].append({gene_tx, diff, "exon overlap", "exact match", QByteArrayList(), QByteArrayList()});
+								expl[3].append({gene_tx, diff, "exon overlap", "exact match", QByteArrayList(), QByteArrayList()});
 							}
 							
 						}
 					}
 					else if (!overlapsL.isEmpty() && overlapsL_matchesR.isEmpty())
 					{
-						expl2[4].append({"", -1, "exon overlap", "exact match", mapToKvStr(overlapsL), mapToKvStr(matchesR)});
+						expl[4].append({"", -1, "exon overlap", "exact match", mapToKvStr(overlapsL), mapToKvStr(matchesR)});
 					}
 					else if (overlapsL.isEmpty() && !geneOverlapsL.isEmpty())
 					{
-						expl2[4].append({"", -1, "intron overlap", "exact match", geneOverlapsL, mapToKvStr(matchesR)});
+						expl[4].append({"", -1, "intron overlap", "exact match", geneOverlapsL, mapToKvStr(matchesR)});
 					}
 					else if (overlapsL.isEmpty() && geneOverlapsL.isEmpty())
 					{
-						expl2[5].append({"", -1, "intergenic", "exact match", QByteArrayList(), mapToKvStr(matchesR)});
+						expl[5].append({"", -1, "intergenic", "exact match", QByteArrayList(), mapToKvStr(matchesR)});
 					}
 				}
 
@@ -395,55 +446,55 @@ public:
 							int diff = overlapsL_overlapsR.value(gene_tx);
 							if (diff == 1)
 							{
-								expl2[1].append({gene_tx, diff, "exon overlap", "exon overlap", QByteArrayList(), QByteArrayList()});
+								expl[1].append({gene_tx, diff, "exon overlap", "exon overlap", QByteArrayList(), QByteArrayList()});
 							}
 							else
 							{
-								expl2[3].append({gene_tx, diff, "exon overlap", "exon overlap", QByteArrayList(), QByteArrayList()});
+								expl[3].append({gene_tx, diff, "exon overlap", "exon overlap", QByteArrayList(), QByteArrayList()});
 							}
 							
 						}
 					}
 					else if (!overlapsL.isEmpty() && !overlapsR.isEmpty() && overlapsL_overlapsR.isEmpty())
 					{
-						expl2[4].append({"", -1, "exon overlap", "exon overlap", mapToKvStr(overlapsL), mapToKvStr(overlapsR)});
+						expl[4].append({"", -1, "exon overlap", "exon overlap", mapToKvStr(overlapsL), mapToKvStr(overlapsR)});
 					}
 					else if (!overlapsL.isEmpty() && overlapsR.isEmpty() && !geneOverlapsR.isEmpty())
 					{
-						expl2[4].append({"", -1, "exon overlap", "intronic", mapToKvStr(overlapsL), geneOverlapsR});
+						expl[4].append({"", -1, "exon overlap", "intronic", mapToKvStr(overlapsL), geneOverlapsR});
 					}
 					else if (!overlapsL.isEmpty() && overlapsR.isEmpty() && geneOverlapsR.isEmpty())
 					{
-						expl2[5].append({"", -1, "exon overlap", "intergenic", mapToKvStr(overlapsL), QByteArrayList()});
+						expl[5].append({"", -1, "exon overlap", "intergenic", mapToKvStr(overlapsL), QByteArrayList()});
 					}
 
 					
 					else if (!overlapsR.isEmpty() && overlapsL.isEmpty() && !geneOverlapsL.isEmpty())
 					{
-						expl2[4].append({"", -1, "intronic", "exon overlap", geneOverlapsL, mapToKvStr(overlapsR)});
+						expl[4].append({"", -1, "intronic", "exon overlap", geneOverlapsL, mapToKvStr(overlapsR)});
 					}
 					else if (!overlapsR.isEmpty() && overlapsL.isEmpty() && geneOverlapsL.isEmpty())
 					{
-						expl2[5].append({"", -1, "intergenic", "exon overlap", QByteArrayList(), mapToKvStr(overlapsR)});
+						expl[5].append({"", -1, "intergenic", "exon overlap", QByteArrayList(), mapToKvStr(overlapsR)});
 					}
 
 					else if (overlapsL.isEmpty() && overlapsR.isEmpty())
 					{
 						if (!geneOverlapsL.isEmpty() && !geneOverlapsR.isEmpty())
 						{
-							expl2[4].append({"", -1, "intronic", "intronic", geneOverlapsL, geneOverlapsR});
+							expl[4].append({"", -1, "intronic", "intronic", geneOverlapsL, geneOverlapsR});
 						}
 						else if (!geneOverlapsL.isEmpty() && geneOverlapsR.isEmpty())
 						{
-							expl2[5].append({"", -1, "intronic", "intergenic", geneOverlapsL, QByteArrayList()});
+							expl[5].append({"", -1, "intronic", "intergenic", geneOverlapsL, QByteArrayList()});
 						}
 						else if (geneOverlapsL.isEmpty() && !geneOverlapsR.isEmpty())
 						{
-							expl2[5].append({"", -1, "intergenic", "intronic", QByteArrayList(), geneOverlapsR});
+							expl[5].append({"", -1, "intergenic", "intronic", QByteArrayList(), geneOverlapsR});
 						}
 						else if (geneOverlapsL.isEmpty() && geneOverlapsR.isEmpty())
 						{
-							expl2[5].append({"", -1, "intergenic", "intergenic", QByteArrayList(), QByteArrayList()});
+							expl[5].append({"", -1, "intergenic", "intergenic", QByteArrayList(), QByteArrayList()});
 						}
 
 					}
@@ -455,41 +506,41 @@ public:
 			QByteArrayList infos;
 
 			// transcript support, perfect match
-			if (!expl2[0].isEmpty())
+			if (!expl[0].isEmpty())
 			{
 				event = "known";
-				foreach (Explanation e, expl2[0]) infos.append(e.transcript);
+				foreach (Explanation e, expl[0]) infos.append(e.transcript);
 			}
 			// transcript support, exon truncation
-			else if (!expl2[1].isEmpty())
+			else if (!expl[1].isEmpty())
 			{
 				event = "exon-truncation";
-				foreach (Explanation e, expl2[1]) infos.append(e.transcript);
+				foreach (Explanation e, expl[1]) infos.append(e.transcript);
 			}
 			// transcript support, exon skipping
-			else if (!expl2[2].isEmpty())
+			else if (!expl[2].isEmpty())
 			{
 				event = "exon-skip";
-				foreach (Explanation e, expl2[2]) infos.append(e.transcript);
+				foreach (Explanation e, expl[2]) infos.append(e.transcript);
 			}
 			// transcript support, exon truncation + exon skipping
-			else if (!expl2[3].isEmpty())
+			else if (!expl[3].isEmpty())
 			{
 				event = "exon-skip-truncation";
-				foreach (Explanation e, expl2[3]) infos.append(e.transcript);
+				foreach (Explanation e, expl[3]) infos.append(e.transcript);
 			}
 			// no transcript support, intronic
-			else if (!expl2[4].isEmpty())
+			else if (!expl[4].isEmpty())
 			{
 				event = "intronic-or-overlap-no-tx";
-				foreach (Explanation e, expl2[4])
+				foreach (Explanation e, expl[4])
 					infos.append(e.event_left + "=" + e.left.join("/") + "|" + e.event_right + "=" + e.right.join("/"));
 			}
 			// no transcript support
-			else if (!expl2[5].isEmpty())
+			else if (!expl[5].isEmpty())
 			{
 				event = "other";
-				foreach (Explanation e, expl2[5])
+				foreach (Explanation e, expl[5])
 					infos.append(e.event_left + "=" + e.left.join("/") + "|" + e.event_right + "=" + e.right.join("/"));
 			}
 
@@ -521,7 +572,7 @@ public:
 
 			//tabular output line
 			QByteArrayList out_line = QByteArrayList() <<
-				QByteArray(chr.str()) << QByteArray::number(intron_start) << QByteArray::number(intron_end) << strand <<
+				QByteArray(chr.str()) << QByteArray::number(intron_start) << QByteArray::number(intron_end) << strand_str <<
                 QByteArray::number(unique) << motif << genes.values().join(",") << event << info;
 			if (report != "") tsv_f->write(out_line.join("\t") + "\n");
 
@@ -532,7 +583,7 @@ public:
 				QByteArray::number(intron_end) << 
 				namecol_str <<
 				QByteArray::number(unique) <<
-				strand <<
+				strand_str <<
 				"." <<
 				"." <<
 				"224,2,31";
