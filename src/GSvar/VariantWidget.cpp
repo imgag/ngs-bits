@@ -133,7 +133,7 @@ void VariantWidget::updateGUI()
 				db = "<a href=\"" + url + "\">" + db + "</a>";
 			}
 
-			ui_.publication_class->setText(query4.value("class").toString() + " " + "(Uploaded to " + db + " by "+ query4.value("u_name").toString() +" on "+ query4.value("date").toString().replace("T", " ") +")");
+			ui_.publication_class->setText(query4.value("class").toString() + " " + "(Uploaded to " + db + " by "+ query4.value("u_name").toString() +" on "+ Helper::toString(query4.value("date").toDateTime(), ' ') +")");
 			ui_.publication_sample->setText(query4.value("s_name").toString());
 			ui_.publication_status->setText(query4.value("result").toString());
 		}
@@ -226,7 +226,7 @@ void VariantWidget::updateSampleTable()
 			addItem(row, 9, s_data.disease_group);
 			addItem(row, 10, s_data.disease_status);
 			QStringList pho_list;
-			for (const Phenotype& pheno : s_data.phenotypes)
+			for (const Phenotype& pheno : std::as_const(s_data.phenotypes))
 			{
 				pho_list << pheno.toString();
 			}
@@ -512,7 +512,7 @@ void VariantWidget::copyVariant()
 		NGSD db;
 		GeneSet genes = db.genesOverlapping(variant_.chr(), variant_.start(), variant_.end());
 		VariantHgvsAnnotator hgvs_annotator(genome_idx);
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 			Transcript trans = db.bestTranscript(db.geneId(gene));
 			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);

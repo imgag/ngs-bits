@@ -288,7 +288,7 @@ void MaintenanceDialog::appendOutputLine(QString line)
 {
 	while(line.endsWith(' ') || line.endsWith('\t') || line.endsWith('\r') || line.endsWith('\n')) line.chop(1);
 
-	if (!line.isEmpty()) line = QDateTime::currentDateTime().toString(Qt::ISODate).replace("T", " ") + "\t" + line;
+	if (!line.isEmpty()) line = Helper::toString(QDateTime::currentDateTime(), ' ') + "\t" + line;
 
 	ui_.output->append(line);
 

@@ -41,13 +41,11 @@
 #include "RohWidget.h"
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
-#include "DiseaseInfoWidget.h"
 #include "SmallVariantSearchWidget.h"
 #include "TSVFileStream.h"
 #include "OntologyTermCollection.h"
 #include "SvWidget.h"
 #include "VariantWidget.h"
-#include "SomaticReportConfigurationWidget.h"
 #include "Histogram.h"
 #include "ProcessedSampleWidget.h"
 #include "DBSelector.h"
@@ -99,7 +97,6 @@
 #include "GapClosingDialog.h"
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
-#include "Statistics.h"
 #include "CohortAnalysisWidget.h"
 #include "cfDNARemovedRegions.h"
 #include "CfDNAPanelBatchImport.h"
@@ -112,7 +109,6 @@
 #include "ExpressionOverviewWidget.h"
 #include "ExpressionExonWidget.h"
 #include "SplicingWidget.h"
-#include "VariantHgvsAnnotator.h"
 #include "VirusDetectionWidget.h"
 #include "SomaticcfDNAReport.h"
 #include "ClientHelper.h"
@@ -532,51 +528,45 @@ void MainWindow::userSpecificDebugFunction()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
-		QTextStream out(stdout);
-		QElapsedTimer timer;
-		QByteArray line = Helper::randomString(1024*1024-10).toLatin1() + "\n"; // 1 line == 1 MB
-		foreach(QByteArray filename, QByteArrayList() << "C:\\Marc\\test.txt" << "E:\\Marc\\test.txt")
+		//show imported somatic variant statistics for DNA2510181A1_01
+		NGSD db;
+		QString ps_id = "159881";
+		SqlQuery query = db.getQuery();
+
+		query.exec("SELECT * FROM somatic_snv_callset WHERE processed_sample_id_tumor="+ps_id);
+		while (query.next())
 		{
-			foreach(int lines, QList<int>() << 100 << 1000 << 10000)
-			{
-				out << filename << " - " << QString::number(lines) << " MB\n";
+			QString t_id = query.value("processed_sample_id_tumor").toString();
+			QString n_id = query.value("processed_sample_id_normal").isNull() ? "" : query.value("processed_sample_id_normal").toString();
+			qDebug() << "somatic_snv_callset" << "id="+query.value("id").toString() << "T="+t_id << "N="+n_id << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
 
-				//remove output file
-				if (QFile::exists(filename))
-				{
-					QFile::remove(filename);
-				}
+			QString add = (n_id=="") ? " IS NULL" : "="+n_id;
+			int count = db.getValue("SELECT count(*) FROM detected_somatic_variant WHERE processed_sample_id_tumor="+t_id+" AND processed_sample_id_normal"+add).toInt();
+			qDebug() << "  variants: " << count;
+		}
 
-				//write test
-				timer.start();
-				QFile file(filename);
-				file.open(QFile::ReadWrite);
-				for(int i=0; i<lines; ++i)
-				{
-					file.write(line);
-				}
-				file.close();
-				out << "  write: " << Helper::elapsedTime(timer, true) << "\n";
-				out.flush();
+		query.exec("SELECT * FROM somatic_cnv_callset WHERE ps_tumor_id="+ps_id);
+		while (query.next())
+		{
+			QString id = query.value("id").toString();
+			qDebug() << "somatic_cnv_callset" << "id="+id << "T="+query.value("ps_tumor_id").toString() << "N="+query.value("ps_normal_id").toString() << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
 
-				//read test
-				timer.start();
-				char c = 'x';
-				file.setFileName(filename);
-				file.open(QFile::ReadOnly);
-				while(!file.atEnd())
-				{
-					const int buf_size = 1024*1024;
-					char buf[buf_size];
-					qint64 chars_read = file.readLine(buf, buf_size);
-					if (chars_read!=-1)
-					{
-						c = buf[0];
-					}
-				}
-				out << "  read: " << Helper::elapsedTime(timer, true) << " (char=" << c << ")\n";
-				out.flush();
-			}
+			int count = db.getValue("SELECT count(*) FROM somatic_cnv WHERE somatic_cnv_callset_id="+id).toInt();
+			qDebug() << "  variants: " << count;
+		}
+
+		query.exec("SELECT * FROM somatic_sv_callset WHERE ps_tumor_id="+ps_id);
+		while (query.next())
+		{
+			QString id = query.value("id").toString();
+			qDebug() << "somatic_sv_callset" << "id="+id << "T="+query.value("ps_tumor_id").toString() << "N="+query.value("ps_normal_id").toString() << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
+
+			int count = db.getValue("SELECT count(*) FROM somatic_sv_deletion WHERE somatic_sv_callset_id="+id).toInt();
+			count += db.getValue("SELECT count(*) FROM somatic_sv_duplication WHERE somatic_sv_callset_id="+id).toInt();
+			count += db.getValue("SELECT count(*) FROM somatic_sv_insertion WHERE somatic_sv_callset_id="+id).toInt();
+			count += db.getValue("SELECT count(*) FROM somatic_sv_inversion WHERE somatic_sv_callset_id="+id).toInt();
+			count += db.getValue("SELECT count(*) FROM somatic_sv_translocation WHERE somatic_sv_callset_id="+id).toInt();
+			qDebug() << "  variants: " << count;
 		}
 	}
 	else if (user=="ahschul1")
@@ -6812,8 +6802,7 @@ void MainWindow::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			phenotype_roi_.clear();
-
-			foreach (const QByteArray& gene, std::as_const(pheno_genes))
+			for (const QByteArray& gene: std::as_const(pheno_genes))
 			{
 				phenotype_roi_.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}

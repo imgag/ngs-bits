@@ -215,7 +215,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobHistoryEntry
 
 	QString timeAsString() const
 	{
-		return time.toString(Qt::ISODate).replace('T', ' ').replace('Z', "");
+		return Helper::toString(time, ' ');
 	}
 };
 

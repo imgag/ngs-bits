@@ -872,7 +872,7 @@ void NGSD::addSampleDiseaseInfo(const QString& sample_id, const SampleDiseaseInf
 	query_insert.bindValue(0, entry.disease_info);
 	query_insert.bindValue(1, entry.type);
 	query_insert.bindValue(2, userId(entry.user));
-	query_insert.bindValue(3, entry.date.toString(Qt::ISODate).left(19));
+	query_insert.bindValue(3, Helper::toString(entry.date));
 	query_insert.exec();
 }
 
@@ -4278,13 +4278,9 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 			QVariant value = query_result.value(c);
 			QString value_as_string = value.isNull() ? ""  : value.toString();
 
-            #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			if (value.typeId()==QMetaType::QDateTime)
-            #else
-            if (value.type()==QVariant::DateTime)
-            #endif
 			{
-				value_as_string = value_as_string.replace("T", " ").replace(".000Z", "");
+				value_as_string = Helper::toString(value.toDateTime(), ' ');
 			}
 			if (c==pk_col_index)
 			{
@@ -4736,7 +4732,7 @@ KaspData NGSD::kaspData(const QString& processed_sample_id)
 	output.snps_evaluated = query.value("snps_evaluated").toInt();
 	output.snps_match = query.value("snps_match").toInt();
 	QVariant tmp = query.value("calculated_date");
-	output.calculated_date = tmp.isNull() ? "" : tmp.toDateTime().toString(Qt::ISODate).replace("T", " ");
+	output.calculated_date = tmp.isNull() ? "" : Helper::toString(tmp.toDateTime(), ' ');
 	tmp = query.value("calculated_by");
 	output.calculated_by = tmp.isNull() ? "" : getValue("SELECT name FROM user WHERE id=" + tmp.toString()).toString();
 
@@ -4886,11 +4882,7 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 		{
 			if(state == SomaticViccData::State::VICC_TRUE) return QVariant(true);
 			else if(state == SomaticViccData::State::VICC_FALSE) return QVariant(false);
-            #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
             return QVariant(QMetaType(QMetaType::Bool));
-            #else
-            return QVariant(QVariant::Bool);
-            #endif
 		};
 
 		query.bindValue( 0 , stateToVar( vicc_data.null_mutation_in_tsg ) );
@@ -5192,7 +5184,7 @@ QString NGSD::getVariantPublication(QString filename, const Variant& variant)
 	while (query.next())
 	{
 		output <<  "table: " + query.value("variant_table").toString() + " db: " + query.value("db").toString() + " class: " + query.value("class").toString() + " user: " + query.value("name").toString()
-				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
+				   + " date: " + Helper::toString(query.value("date").toDateTime(), ' ') + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
 				   + "\nresult: " + query.value("result").toString().replace(";-", "\n    - ").replace(";", ", ");
 	}
 
@@ -5230,7 +5222,7 @@ QString NGSD::getVariantPublication(QString filename, const CopyNumberVariant& c
 	while (query.next())
 	{
 		output <<  "table: " + query.value("variant_table").toString() + " db: " + query.value("db").toString() + " class: " + query.value("class").toString() + " user: " + query.value("name").toString()
-				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
+				   + " date: " + Helper::toString(query.value("date").toDateTime(), ' ') + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
 				   + "\nresult: " + query.value("result").toString().replace(";-", "\n    - ").replace(";", ", ");
 	}
 
@@ -5268,7 +5260,7 @@ QString NGSD::getVariantPublication(QString filename, const BedpeLine& sv, const
 	while (query.next())
 	{
 		output <<  "table: " + query.value("variant_table").toString() + " db: " + query.value("db").toString() + " class: " + query.value("class").toString() + " user: " + query.value("name").toString()
-				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
+				   + " date: " + Helper::toString(query.value("date").toDateTime(), ' ') + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
 				   + "\nresult: " + query.value("result").toString().replace(";-", "\n    - ").replace(";", ", ");
 	}
 
@@ -9239,11 +9231,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 		}
 		else
 		{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			query.bindValue(18, QVariant(QMetaType(QMetaType::Int)));
-#else
-			query.bindValue(18, QVariant(QVariant::Int));
-#endif
 		}
 
 		query.bindValue(19, config->includeMutationBurden());
@@ -9305,11 +9293,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 		}
 		else
 		{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			query.bindValue(22, QVariant(QMetaType(QMetaType::Int)));
-#else
-			query.bindValue(22, QVariant(QVariant::Int));
-#endif
 		}
 
 		query.bindValue(23, config->includeMutationBurden());
@@ -10310,12 +10294,7 @@ QString NGSD::escapeText(QString text)
 {
 	QSqlField f;
 
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     f.setMetaType(QMetaType(QMetaType::QString));
-    #else
-    f.setType(QVariant::String);
-    #endif
-
 	f.setValue(text);
 
 	return db_->driver()->formatValue(f);

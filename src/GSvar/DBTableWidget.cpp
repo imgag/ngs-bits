@@ -89,7 +89,7 @@ void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QStrin
 
 	//fomatting
 	GUIHelper::resizeTableCellWidths(this, max_col_width);
-	GUIHelper::resizeTableCellHeightsToFirst(this);
+	GUIHelper::resizeTableCellHeightsToMinimum(this, 200);
 }
 
 int DBTableWidget::columnIndex(const QString& column_header) const

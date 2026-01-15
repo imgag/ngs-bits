@@ -1,4 +1,4 @@
-#c++17 support (only needed for Qt5. Qt6 uses C++17 anyway)
+#c++17 support (kind of redundant becaus Qt6 uses C++17 by default)
 CONFIG += c++17
 
 #define project root folder

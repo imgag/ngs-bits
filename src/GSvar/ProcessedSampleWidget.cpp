@@ -300,7 +300,7 @@ void ProcessedSampleWidget::updateGUI()
 			}
 		}
 		dd_table.setColumn(dd_table.columnIndex("disease_info"), info_entries);
-		ui_->disease_details->setData(dd_table);
+		ui_->disease_details->setData(dd_table, 800);
 		GUIHelper::resizeTableHeight(ui_->disease_details);
 
 		//#### sample relations ####
