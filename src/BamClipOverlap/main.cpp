@@ -204,16 +204,16 @@ public:
 					}
 
 					//verbose mode
-                    if(verbose)	out << "forward read: name - " << forward_read.name() << ", region - " << reader.chromosome(forward_read.chromosomeID()).str() << ":" << (forward_read.start()-1) << "-" << forward_read.end() << ", insert size: "  << forward_read.insertSize() << " bp; mate: " << forward_read.mateStart() << ", CIGAR " << forward_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << QT_ENDL;
-                    if(verbose)	out << "reverse read: name - " << reverse_read.name() << ", region - " << reader.chromosome(reverse_read.chromosomeID()).str() << ":" << (reverse_read.start()-1) << "-" << reverse_read.end() << ", insert size: "  << reverse_read.insertSize() << " bp; mate: " << reverse_read.mateStart() << ", CIGAR " << reverse_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << QT_ENDL;
-                    if(verbose) out << "forward read bases " << forward_read.bases() << QT_ENDL;
-                    if(verbose) out << "forward read qualities " << forward_read.qualities() << QT_ENDL;
-                    if(verbose) out << "forward CIGAR " << forward_read.cigarDataAsString(true) << QT_ENDL;
-                    if(verbose) out << "reverse read bases " << reverse_read.bases() << QT_ENDL;
-                    if(verbose) out << "reverse read qualities " << reverse_read.qualities() << QT_ENDL;
-                    if(verbose) out << "reverse CIGAR " << reverse_read.cigarDataAsString(true) << QT_ENDL;
-                    if(verbose)	out << "  clip forward read from position " << (forward_read.end()-clip_forward_read+1) << " to " << forward_read.end() << QT_ENDL;
-                    if(verbose)	out << "  clip reverse read from position " << reverse_read.start() << " to " << (reverse_read.start()-1+clip_reverse_read) << QT_ENDL;
+                    if(verbose)	out << "forward read: name - " << forward_read.name() << ", region - " << reader.chromosome(forward_read.chromosomeID()).str() << ":" << (forward_read.start()-1) << "-" << forward_read.end() << ", insert size: "  << forward_read.insertSize() << " bp; mate: " << forward_read.mateStart() << ", CIGAR " << forward_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << Qt::endl;
+                    if(verbose)	out << "reverse read: name - " << reverse_read.name() << ", region - " << reader.chromosome(reverse_read.chromosomeID()).str() << ":" << (reverse_read.start()-1) << "-" << reverse_read.end() << ", insert size: "  << reverse_read.insertSize() << " bp; mate: " << reverse_read.mateStart() << ", CIGAR " << reverse_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << Qt::endl;
+                    if(verbose) out << "forward read bases " << forward_read.bases() << Qt::endl;
+                    if(verbose) out << "forward read qualities " << forward_read.qualities() << Qt::endl;
+                    if(verbose) out << "forward CIGAR " << forward_read.cigarDataAsString(true) << Qt::endl;
+                    if(verbose) out << "reverse read bases " << reverse_read.bases() << Qt::endl;
+                    if(verbose) out << "reverse read qualities " << reverse_read.qualities() << Qt::endl;
+                    if(verbose) out << "reverse CIGAR " << reverse_read.cigarDataAsString(true) << Qt::endl;
+                    if(verbose)	out << "  clip forward read from position " << (forward_read.end()-clip_forward_read+1) << " to " << forward_read.end() << Qt::endl;
+                    if(verbose)	out << "  clip reverse read from position " << reverse_read.start() << " to " << (reverse_read.start()-1+clip_reverse_read) << Qt::endl;
 
 					struct Overlap
 					{
@@ -269,7 +269,7 @@ public:
 					};
 
 					//check if bases in overlap match
-                    if(verbose)	out << "  overlap found from " << QString::number(overlap_start) << " to " << QString::number(overlap_end) << QT_ENDL;
+                    if(verbose)	out << "  overlap found from " << QString::number(overlap_start) << " to " << QString::number(overlap_end) << Qt::endl;
 
 					//
 					bool has_indel = false; //INDEL ist around the clipping position
@@ -321,8 +321,8 @@ public:
 							THROW(Exception, QByteArray("Unknown CIGAR character '") + forward_cigar[i] + "'")
 						}
 					}
-                    if(verbose)	out << "  finished reading overlap forward bases " << forward_overlap.getBases() << QT_ENDL;
-                    if(verbose)	out << "  finished reading overlap forward cigar " << forward_overlap.getCigar() << QT_ENDL;
+                    if(verbose)	out << "  finished reading overlap forward bases " << forward_overlap.getBases() << Qt::endl;
+                    if(verbose)	out << "  finished reading overlap forward cigar " << forward_overlap.getCigar() << Qt::endl;
 
 					genome_pos = reverse_read.start()-1;
 					read_pos = 0;
@@ -369,8 +369,8 @@ public:
 							THROW(Exception, QByteArray("Unknown CIGAR character '") + reverse_cigar[i] + "'");
 						}
 					}
-                    if(verbose)	out << "  finished reading overlap reverse bases " << reverse_overlap.getBases() << QT_ENDL;
-                    if(verbose)	out << "  finished reading overlap reverse cigar " << reverse_overlap.getCigar() << QT_ENDL;
+                    if(verbose)	out << "  finished reading overlap reverse bases " << reverse_overlap.getBases() << Qt::endl;
+                    if(verbose)	out << "  finished reading overlap reverse cigar " << reverse_overlap.getCigar() << Qt::endl;
 
 					//correct for insertions
 					for(int i=0;i<forward_overlap.length();++i)
@@ -385,10 +385,10 @@ public:
 							forward_overlap.insert(i, '+', 'I', '0', forward_overlap.genome_pos[i], forward_overlap.read_pos[i]);
 						}
 					}
-                    if(verbose)	out << "  finished indel correction forward bases " << forward_overlap.getBases() << QT_ENDL;
-                    if(verbose)	out << "  finished indel correction forward cigar " << forward_overlap.getCigar() << QT_ENDL;
-                    if(verbose)	out << "  finished indel correction reverse bases " << reverse_overlap.getBases() << QT_ENDL;
-                    if(verbose)	out << "  finished indel correction reverse cigar " << reverse_overlap.getCigar() << QT_ENDL;
+                    if(verbose)	out << "  finished indel correction forward bases " << forward_overlap.getBases() << Qt::endl;
+                    if(verbose)	out << "  finished indel correction forward cigar " << forward_overlap.getCigar() << Qt::endl;
+                    if(verbose)	out << "  finished indel correction reverse bases " << reverse_overlap.getBases() << Qt::endl;
+                    if(verbose)	out << "  finished indel correction reverse cigar " << reverse_overlap.getCigar() << Qt::endl;
 					if(forward_overlap.length()!=reverse_overlap.length()) //both cigar and base string should now be equally long
 					{
 						THROW(Exception, "Length mismatch between forward/reverse overlap - forward:" + QByteArray::number(forward_overlap.length()) + " reverse:" + QByteArray::number(reverse_overlap.length()) + " in read with name '" + al.name() + "'");
@@ -410,7 +410,7 @@ public:
 
 					if(verbose && !mm_pos.isEmpty())
 					{
-                        out << "  overlap mismatch for read pair " << forward_read.name() << " - " << forward_overlap.getBases() << " != " << reverse_overlap.getBases() << "!" << QT_ENDL;
+                        out << "  overlap mismatch for read pair " << forward_read.name() << " - " << forward_overlap.getBases() << " != " << reverse_overlap.getBases() << "!" << Qt::endl;
 					}
 
 					bool map = getFlag("overlap_mismatch_mapq");
@@ -424,13 +424,13 @@ public:
 							forward_read.setMappingQuality(0);
 							reverse_read.setMappingQuality(0);
 							reads_mismatch += 2;
-                            if(verbose) out << "  Set mapping quality to 0." << QT_ENDL;
+                            if(verbose) out << "  Set mapping quality to 0." << Qt::endl;
 						}
 						else if(!mm_pos.isEmpty() && rem)
 						{
 							reads_mismatch += 2;
 							skip_al = true;
-                            if(verbose) out << "   Removed pair." << QT_ENDL;
+                            if(verbose) out << "   Removed pair." << Qt::endl;
 						}
 						else if(!mm_pos.isEmpty() && base)
 						{
@@ -448,8 +448,8 @@ public:
 							}
 							forward_read.setQualities(new_for);
 							reverse_read.setQualities(new_rev);
-                            if(verbose) out << "   changed forward base qualities from " << orig_for << " to " << forward_read.qualities() << QT_ENDL;
-                            if(verbose) out << "   changed reverse base qualities from " << orig_rev << " to " << reverse_read.qualities() << QT_ENDL;
+                            if(verbose) out << "   changed forward base qualities from " << orig_for << " to " << forward_read.qualities() << Qt::endl;
+                            if(verbose) out << "   changed reverse base qualities from " << orig_rev << " to " << reverse_read.qualities() << Qt::endl;
 						}
 						else if(!mm_pos.isEmpty() && basen)
 						{
@@ -467,12 +467,12 @@ public:
 							}
 							forward_read.setBases(new_for);
 							reverse_read.setBases(new_rev);
-                            if(verbose) out << "   changed forward sequences from " << orig_for << " to " << forward_read.bases() << QT_ENDL;
-                            if(verbose) out << "   changed reverse sequences from " << orig_rev << " to " << reverse_read.bases() << QT_ENDL;
+                            if(verbose) out << "   changed forward sequences from " << orig_for << " to " << forward_read.bases() << Qt::endl;
+                            if(verbose) out << "   changed reverse sequences from " << orig_rev << " to " << reverse_read.bases() << Qt::endl;
 						}
 						else
 						{
-                            if(verbose)	out << "  no overlap mismatch for read pair " << forward_read.name() << QT_ENDL;
+                            if(verbose)	out << "  no overlap mismatch for read pair " << forward_read.name() << Qt::endl;
 						}
 					}
 
@@ -518,9 +518,9 @@ public:
 					reverse_read.setInsertSize(reverse_insert_size);	//negative value
 					reverse_read.setMateStart(forward_read.start());
 
-                    if(verbose)	out << "  clipped forward read: name - " << forward_read.name() << ", region - " << reader.chromosome(forward_read.chromosomeID()).str() << ":" << (forward_read.start()-1) << "-" << forward_end << ", insert size: "  << forward_read.insertSize() << " bp; mate: " << forward_read.mateStart() << ", CIGAR " << forward_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << QT_ENDL;
-                    if(verbose)	out << "  clipped reverse read: name - " << reverse_read.name() << ", region - " << reader.chromosome(reverse_read.chromosomeID()).str()  << ":" << (reverse_read.start()-1) << "-" << reverse_end << ", insert size: "  << reverse_read.insertSize() << " bp; mate: " << reverse_read.mateStart() << ", CIGAR " << reverse_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << QT_ENDL;
-                    if(verbose)	out << QT_ENDL;
+                    if(verbose)	out << "  clipped forward read: name - " << forward_read.name() << ", region - " << reader.chromosome(forward_read.chromosomeID()).str() << ":" << (forward_read.start()-1) << "-" << forward_end << ", insert size: "  << forward_read.insertSize() << " bp; mate: " << forward_read.mateStart() << ", CIGAR " << forward_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << Qt::endl;
+                    if(verbose)	out << "  clipped reverse read: name - " << reverse_read.name() << ", region - " << reader.chromosome(reverse_read.chromosomeID()).str()  << ":" << (reverse_read.start()-1) << "-" << reverse_end << ", insert size: "  << reverse_read.insertSize() << " bp; mate: " << reverse_read.mateStart() << ", CIGAR " << reverse_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << Qt::endl;
+                    if(verbose)	out << Qt::endl;
 
 					//return reads
 					bases_clipped += overlap;
@@ -549,9 +549,9 @@ public:
 
 		//step 4: write out statistics
 		if(reads_saved!=reads_count)	THROW(ToolFailedException, "Lost Reads: "+QString::number(reads_count-reads_saved)+"/"+QString::number(reads_count));
-        out << "Overlap mismatch filtering was used for " << QString::number(reads_mismatch) << " of " << QString::number(reads_count) << " reads (" << QString::number((double)reads_mismatch/(double)reads_count*100,'f',2) << " %)." << QT_ENDL;
-        out << "Softclipped " << QString::number(reads_clipped) << " of " << QString::number(reads_count) << " reads (" << QString::number(((double)reads_clipped/(double)reads_count*100),'f',2) << " %)." << QT_ENDL;
-        out << "Softclipped " << QString::number(bases_clipped) << " of " << QString::number(bases_count) << " basepairs (" << QString::number((double)bases_clipped/(double)bases_count*100,'f',2) << " %)." << QT_ENDL;
+        out << "Overlap mismatch filtering was used for " << QString::number(reads_mismatch) << " of " << QString::number(reads_count) << " reads (" << QString::number((double)reads_mismatch/(double)reads_count*100,'f',2) << " %)." << Qt::endl;
+        out << "Softclipped " << QString::number(reads_clipped) << " of " << QString::number(reads_count) << " reads (" << QString::number(((double)reads_clipped/(double)reads_count*100),'f',2) << " %)." << Qt::endl;
+        out << "Softclipped " << QString::number(bases_clipped) << " of " << QString::number(bases_count) << " basepairs (" << QString::number((double)bases_clipped/(double)bases_count*100,'f',2) << " %)." << Qt::endl;
 	}
 
 };

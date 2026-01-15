@@ -15,12 +15,8 @@ SvSearchWidget::SvSearchWidget(QWidget* parent)
 {
 	ui_.setupUi(this);
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
+	connect(ui_.rb_single_sv->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
 
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        connect(ui_.rb_single_sv->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
-    #else
-        connect(ui_.rb_single_sv->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
-    #endif
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);
@@ -158,7 +154,7 @@ void SvSearchWidget::search()
 		{
 			// (0) + (1) parse input and validate
 			GeneSet genes;
-            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS))
+            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), Qt::SkipEmptyParts))
 			{
 				QByteArray approved_gene_name = db_.geneToApproved(gene.toUtf8());
 				if (approved_gene_name == "") THROW(ArgumentException, "Invalid gene name '" + gene + "' given!");

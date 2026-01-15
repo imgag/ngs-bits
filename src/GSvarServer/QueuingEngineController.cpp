@@ -20,7 +20,7 @@ void QueuingEngineController::run()
 	QString engine = getEngineName();
 	try
 	{
-		if (debug_) QTextStream(stdout) << engine << " update started" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << engine << " update started" << Qt::endl;
 
 		NGSD db;
 
@@ -52,12 +52,12 @@ void QueuingEngineController::run()
 			}
 			catch (Exception& e)
 			{
-				if (debug_) QTextStream(stdout) << engine << " job (id=" << QString::number(job_id) << ") update failed: " << e.message() << QT_ENDL;
+				if (debug_) QTextStream(stdout) << engine << " job (id=" << QString::number(job_id) << ") update failed: " << e.message() << Qt::endl;
 				Log::info(engine + " job (id=" + QString::number(job_id) + ") update failed: " + e.message());
 			}
 			catch (...)
 			{
-				if (debug_) QTextStream(stdout) << engine << " job (id=" << QString::number(job_id) << ") update failed with unkown error" << QT_ENDL;
+				if (debug_) QTextStream(stdout) << engine << " job (id=" << QString::number(job_id) << ") update failed with unkown error" << Qt::endl;
 				Log::info(engine + " job (id=" + QString::number(job_id) + ") update failed with unkown error");
 			}
 		}
@@ -69,30 +69,30 @@ void QueuingEngineController::run()
 			QString job_id = query.value("id").toString();
 			if (debug_)
 			{
-				QTextStream(stdout) <<  "Removing job " << job_id << " because it is older than 60 days" << QT_ENDL;
+				QTextStream(stdout) <<  "Removing job " << job_id << " because it is older than 60 days" << Qt::endl;
 			}
 			db.getQuery().exec("DELETE FROM `analysis_job_history` WHERE analysis_job_id=" + job_id);
 			db.getQuery().exec("DELETE FROM `analysis_job_sample` WHERE analysis_job_id=" + job_id);
 			db.getQuery().exec("DELETE FROM `analysis_job` WHERE id=" + job_id);
 		}
 
-		if (debug_) QTextStream(stdout) << engine << " update done" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << engine << " update done" << Qt::endl;
 	}
 	catch (Exception& e)
 	{
-		if (debug_) QTextStream(stdout) << engine << " update failed: " << e.message() << QT_ENDL;
+		if (debug_) QTextStream(stdout) << engine << " update failed: " << e.message() << Qt::endl;
 		Log::info(engine + " status update failed: " + e.message());
 	}
 	catch (...)
 	{
-		if (debug_) QTextStream(stdout) << engine << " update failed with unkown error" << QT_ENDL;
+		if (debug_) QTextStream(stdout) << engine << " update failed with unkown error" << Qt::endl;
 		Log::info(engine + " status update failed with unkown error");
 	}
 }
 
 void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, int job_id)
 {
-	if (debug_) QTextStream(stdout) << "Starting job " << job_id << " (type: " << job.type << ")" << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Starting job " << job_id << " (type: " << job.type << ")" << Qt::endl;
 
 	//init
 	QString timestamp = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
@@ -188,7 +188,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		{
 			if (debug_)
 			{
-				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << Qt::endl;
 			}
 			return;
 		}
@@ -223,7 +223,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		{
 			if (debug_)
 			{
-				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << Qt::endl;
 			}
 			return;
 		}
@@ -254,7 +254,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		{
 			if (debug_)
 			{
-				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << QT_ENDL;
+				QTextStream(stdout) << "Job " << job_id << " (" << job.type << ") postponed because at least one single sample analysis is still running" << Qt::endl;
 			}
 			return;
 		}
@@ -336,7 +336,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 
 void QueuingEngineController::updateAnalysisStatus(NGSD &db, const AnalysisJob &job, int job_id)
 {
-	if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " QE-id: " << job.sge_id << ")" << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Updating status of job " << job_id << " (type: " << job.type << " QE-id: " << job.sge_id << ")" << Qt::endl;
 
 
 	//check if job is still running

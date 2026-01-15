@@ -76,11 +76,11 @@ public:
 		//write header
 		if (mode=="vcf" || mode=="gsvar")
 		{
-            out << "#file1\tfile2\toverlap_percent\tcorrelation\tibs2_percent\tcount1\tcount2\tcomments" << QT_ENDL;
+            out << "#file1\tfile2\toverlap_percent\tcorrelation\tibs2_percent\tcount1\tcount2\tcomments" << Qt::endl;
 		}
 		else if (mode=="bam")
 		{
-            out << "#file1\tfile2\tvariant_count\tcorrelation\tibs0_percent\tibs2_percent\tcomments" << QT_ENDL;
+            out << "#file1\tfile2\tvariant_count\tcorrelation\tibs0_percent\tibs2_percent\tcomments" << Qt::endl;
 		}
 		else
 		{
@@ -95,7 +95,7 @@ public:
 		if (roi_hg38_wes_wgs) roi_reg.load(":/Resources/hg38_coding_highconf_all_kits.bed");
 		if (debug)
 		{
-            out << "##loaded target region (took: " << Helper::elapsedTime(timer, true) << ")" << QT_ENDL;
+            out << "##loaded target region (took: " << Helper::elapsedTime(timer, true) << ")" << Qt::endl;
 			timer.restart();
 		}
 
@@ -106,7 +106,7 @@ public:
 		{
 			if (!QFile::exists(filename))
 			{
-                out << "##skipped missing file " << filename << QT_ENDL;
+                out << "##skipped missing file " << filename << Qt::endl;
 				continue;
 			}
 			if (mode=="vcf")
@@ -124,7 +124,7 @@ public:
 			}
 			if (debug)
 			{
-                out << "##loaded input file " << filename << " (took: " << Helper::elapsedTime(timer, true) << ")" << QT_ENDL;
+                out << "##loaded input file " << filename << " (took: " << Helper::elapsedTime(timer, true) << ")" << Qt::endl;
 				timer.restart();
 			}
 		}
@@ -158,12 +158,12 @@ public:
 					cols << QString::number(sc.ibs2Perc(), 'f', 2);
 				}
 				cols << sc.messages().join(", ");
-                out << cols.join("\t") << QT_ENDL;
+                out << cols.join("\t") << Qt::endl;
 			}
 		}
 		if (debug)
 		{
-            out << "##calculated similarity (took: " << Helper::elapsedTime(timer, true) << ")" << QT_ENDL;
+            out << "##calculated similarity (took: " << Helper::elapsedTime(timer, true) << ")" << Qt::endl;
 		}
 	}
 

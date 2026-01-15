@@ -640,7 +640,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			QStringList ids = anno.split(",");
 			ids.removeAll("");
 			text.clear();
-            for (int i = 0; i < std::min(SIZE_TO_INT(ids.size()), SIZE_TO_INT(2)); ++i)
+            for (int i = 0; i < std::min(static_cast<qsizetype>(ids.size()), static_cast<qsizetype>(2)); ++i)
 			{
 				QString id = ids.at(i).trimmed();
 				text += formatLink(id, "https://pubmed.ncbi.nlm.nih.gov/" + id + "/") + " ";

@@ -72,7 +72,7 @@ ThreadCoordinator::~ThreadCoordinator()
 
 void ThreadCoordinator::log(QString chr, QString message)
 {
-    out_ << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << "\t" << chr << "\t" << message << QT_ENDL;
+    out_ << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << "\t" << chr << "\t" << message << Qt::endl;
 }
 
 void ThreadCoordinator::error(QString chr, QString message)

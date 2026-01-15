@@ -185,8 +185,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	//load disease details from NGSD
 	QStringList tmp;
 	QList<SampleDiseaseInfo> disease_info = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps));
-
-    for (const SampleDiseaseInfo& entry : disease_info)
+	for (const SampleDiseaseInfo& entry : std::as_const(disease_info))
 	{
 		if(entry.type == "tumor fraction") tmp.append(entry.disease_info);
 	}
@@ -391,7 +390,7 @@ void SomaticReportHelper::germlineSnvForQbic(QString path_target_folder)
 	stream << "chr" << "\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t" << "genotype" << "\t";
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t" << "transcript" << "\t";
 	stream << "functional_class" << "\t" << "effect";
-    stream << QT_ENDL;
+    stream << Qt::endl;
 
 	saveReportData("QBIC_germline_snv.tsv", path_target_folder, content);
 }
@@ -406,7 +405,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 	stream << "chr" <<"\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t";
 	stream <<"allele_frequency_tumor" << "\t" << "coverage" << "\t";
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t";
-    stream << "transcript" << "\t" << "functional_class" << "\t" << "effect" << QT_ENDL;
+    stream << "transcript" << "\t" << "functional_class" << "\t" << "effect" << Qt::endl;
 
 	int i_tumor_af = somatic_vl_.annotationIndexByName("tumor_af",true,true);
 	int i_tumor_depth = somatic_vl_.annotationIndexByName("tumor_dp",true,true);
@@ -464,7 +463,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 
 		stream << effect;
 
-        stream << QT_ENDL;
+        stream << Qt::endl;
 	}
 	saveReportData("QBIC_somatic_snv.tsv", path_target_folder, content);
 }
@@ -476,7 +475,7 @@ void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t" << "transcript" << "\t";
 	stream << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect";
-    stream << QT_ENDL;
+    stream << Qt::endl;
 
 	saveReportData("QBIC_germline_cnv.tsv", path_target_folder, content);
 }
@@ -488,7 +487,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 	QTextStream stream(&content);
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t";
-    stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << QT_ENDL;
+    stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << Qt::endl;
 
 	for(int i=0; i < cnvs_.count(); ++i)
 	{
@@ -546,7 +545,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		stream << "\t";
 
 		QByteArrayList gene_effects;
-        for (const auto& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 			SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
 			if (! gene_role.isValid()) continue;
@@ -575,7 +574,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		}
 		stream << (gene_effects.empty() ? "NA" : gene_effects.join(";") );
 
-        stream << QT_ENDL;
+        stream << Qt::endl;
 	}
 	saveReportData("QBIC_somatic_cnv.tsv", path_target_folder, content);
 }
@@ -585,7 +584,7 @@ void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
 	QByteArray content;
 	QTextStream stream(&content);
 
-    stream << "type" << "\t" << "gene" << "\t" << "effect" << "\t" << "left_bp" << "\t" << "right_bp" << QT_ENDL;
+    stream << "type" << "\t" << "gene" << "\t" << "effect" << "\t" << "left_bp" << "\t" << "right_bp" << Qt::endl;
 
 	saveReportData("QBIC_somatic_sv.tsv", path_target_folder, content);
 }
@@ -596,7 +595,7 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	QTextStream stream(&content);
 
 	stream << "diagnosis" << "\t" << "tumor_content" << "\t" << "pathogenic_germline" << "\t" << "mutational_load" << "\t" << "chromosomal_instability" << "\t" << "quality_flags" << "\t" << "reference_genome";
-    stream << QT_ENDL;
+    stream << Qt::endl;
 
 	stream << settings_.icd10 << "\t" << (BasicStatistics::isValidFloat(histol_tumor_fraction_) ? QString::number(histol_tumor_fraction_, 'f', 4) : "NA") << "\t";
 
@@ -620,7 +619,7 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	stream << "\t";
 
 	stream << db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps)).genome;
-    stream << QT_ENDL;
+    stream << Qt::endl;
 
 	saveReportData("QBIC_metadata.tsv", path_target_folder, content);
 }
@@ -633,14 +632,14 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(NGSD& db, const V
 	//best
 	int current_best_quality = -1;
 	VariantTranscript best_transcript;
-    for (const VariantTranscript& trans : transcripts)
+	for (const VariantTranscript& trans : std::as_const(transcripts))
 	{
 		int quality;
 		int gene_id = db.geneId(trans.gene);
 		if (gene_id == -1) continue;
 		Transcript best = db.bestTranscript(db.geneId(trans.gene), transcripts, &quality);
 
-        for (const VariantTranscript& t : transcripts) // if "best transcript" is annotated take that (logic that is also used in GSvar)
+		for (const VariantTranscript& t : std::as_const(transcripts)) // if "best transcript" is annotated take that (logic that is also used in GSvar)
 		{
 			if (t.idWithoutVersion() == best.name() && current_best_quality < quality)
 			{
@@ -922,7 +921,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	QList<SampleDiseaseInfo> sample_disease_infos = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps), "Oncotree code");
 	QByteArrayList oncotree_codes;
 
-	for (const SampleDiseaseInfo& sdi : sample_disease_infos)
+	for (const SampleDiseaseInfo& sdi : std::as_const(sample_disease_infos))
 	{
 		oncotree_codes.append(sdi.disease_info.toUtf8());
 	}
@@ -973,7 +972,7 @@ RtfSourceCode SomaticReportHelper::partVirusTable()
 	RtfTable virus_table;
 	virus_table.addRow(RtfTableRow("Virale DNA",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
 	virus_table.addRow(RtfTableRow({"Virus","Gen","Genom","Region","Abdeckung","Bewertung"},{1000,1000,2000,1921,2000,2000},RtfParagraph().setBold(true)));
-    for (const auto& virus : validated_viruses_)
+	for (const auto& virus : std::as_const(validated_viruses_))
 	{
 		RtfTableRow row;
 
@@ -1201,7 +1200,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			//find somatic SNVs in the same gene: (to keep them at the start)
             QList<int> indices_sorted = indices.values();
 			std::sort(indices_sorted.begin(), indices_sorted.end());
-            for (int i : indices_sorted)
+			for (int i : std::as_const(indices_sorted))
 			{
 				const Variant& snv = somatic_vl_[i];
 
@@ -1238,7 +1237,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 	int i_tum_af = somatic_vl_.annotationIndexByName("tumor_af");
     QList<int> indices_sorted = indices.values();
 	std::sort(indices_sorted.begin(), indices_sorted.end());
-    for (int i : indices_sorted)
+	for (int i : std::as_const(indices_sorted))
 	{
 		if (snv_already_included.contains(i)) continue;
 
@@ -1314,8 +1313,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			QByteArray cnv_type = cnv.annotations()[i_cnv_type];
 
 			GeneSet genes = settings_.target_region_filter.genes.intersect(db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end()));
-
-            for (const auto& gene : genes)
+			for (const auto& gene : std::as_const(genes))
 			{
 				//skip genes without defined gene role
 				SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
@@ -1368,7 +1366,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 		//sort CNV rows according gene name
 		std::sort(cnv_rows.begin(), cnv_rows.end(), [](const RtfTableRow& rhs, const RtfTableRow& lhs){return rhs[0].format().content() < lhs[0].format().content();});
-        for (const auto& row : cnv_rows)
+		for (const auto& row : std::as_const(cnv_rows))
 		{
 			table.addRow(row);
 		}
@@ -1583,7 +1581,7 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 		QByteArrayList lines = stream.readAll().split('\n');
 		if (lines[0].startsWith("##")) //TSV format
 		{
-            for (QByteArray line : lines)
+			for (QByteArray line : std::as_const(lines))
 			{
 				line = line.trimmed();
 				if (line.isEmpty()) continue;
@@ -1941,7 +1939,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 
 	//Virus DNA status
 	QByteArrayList virus_names;
-    for (const auto& virus : validated_viruses_)
+	for (const auto& virus : std::as_const(validated_viruses_))
 	{
 		if (virus_names.contains(virus.virusName())) continue;
 		virus_names << virus.virusName();
@@ -2317,7 +2315,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
 					GeneSet genes_cnv = db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end());
-					for (const QByteArray& gene: genes_cnv)
+					for (const QByteArray& gene: std::as_const(genes_cnv))
 					{
 						if (!genes_pathway.contains(gene)) continue;
 						if (!cnv_high_impact_indices_[k].contains(gene)) continue;

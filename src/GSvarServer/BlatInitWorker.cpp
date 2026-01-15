@@ -44,14 +44,10 @@ void BlatInitWorker::run()
             Log::error(QString::fromUtf8(process->readAllStandardError()));
         });
 
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            QObject::connect(process, &QProcess::finished, [process](int exitCode, QProcess::ExitStatus status)
-            {
-                Log::info("Process finished with exit code " + QString::number(exitCode) + ", status: " + (status == QProcess::NormalExit ? "normal exit" : "crashed"));
-            });
-        #else
-            Log::warn("The server has been built with Qt 5");
-        #endif
+		QObject::connect(process, &QProcess::finished, [process](int exitCode, QProcess::ExitStatus status)
+		{
+			Log::info("Process finished with exit code " + QString::number(exitCode) + ", status: " + (status == QProcess::NormalExit ? "normal exit" : "crashed"));
+		});
 
         process->start(program, args);
         if (!process->waitForStarted())

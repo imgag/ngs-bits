@@ -195,7 +195,7 @@ public:
 		{
 			tmp.append(ids);
 		}
-        QSet<QByteArray> unique_output_ids = LIST_TO_SET(tmp);
+        QSet<QByteArray> unique_output_ids = Helper::listToSet(tmp);
 		if (unique_output_ids.size() < tmp.size())
 		{
 			THROW(FileParseException, "The given output INFO ids contain duplicates!")
@@ -225,14 +225,14 @@ public:
 					out << "INFO ids:\n";
 					for (int j = 0; j < meta.info_id_list[i].size(); j++)
 					{
-						out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << QT_ENDL;
+						out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << Qt::endl;
 					}
 				}
 			}
 		}
 
 		//create coordinator instance
-		if (params.debug) out << "Performing annotation" << QT_ENDL;
+		if (params.debug) out << "Performing annotation" << Qt::endl;
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }

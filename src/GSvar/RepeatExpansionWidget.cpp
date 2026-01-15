@@ -14,15 +14,8 @@
 #include "ClientHelper.h"
 #include "Log.h"
 #include "ReportVariantDialog.h"
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtSvg/QSvgRenderer>
 #include <QPainter>
-#else
-QT_CHARTS_USE_NAMESPACE
-#include <QSvgWidget>
-#include <QSvgRenderer>
-#endif
 
 RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_name)
 	: QWidget(parent)
@@ -166,7 +159,6 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		}
 		svg = file.readAll();
 
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         QSvgRenderer renderer(svg);
         if (!renderer.isValid()) {
             QMessageBox::warning(this, "SVG error", "Failed to load SVG file");
@@ -191,17 +183,6 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		scroll_area->setFrameStyle(QFrame::NoFrame);
         scroll_area->setWidget(label);
 		scroll_area->setMinimumSize(1200, 800);
-        #else
-        QSvgWidget* widget = new QSvgWidget();
-        widget->load(svg);
-        QRect rect = widget->renderer()->viewBox();
-        widget->setMinimumSize(rect.width(), rect.height());
-
-        QScrollArea* scroll_area = new QScrollArea(this);
-        scroll_area->setFrameStyle(QFrame::NoFrame);
-        scroll_area->setWidget(widget);
-        scroll_area->setMinimumSize(1200, 800);
-        #endif
 
 		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Histogram of " + getCell(row, "repeat ID").trimmed());
 		dlg->exec();
@@ -775,7 +756,7 @@ void RepeatExpansionWidget::setReportConfigHeaderIcons()
 {
 	if(report_config_==NULL) return;
 
-    QSet<int> report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::RES, false));
+    QSet<int> report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::RES, false));
 	for(int r=0; r<res_.count(); ++r)
 	{
         QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
@@ -886,7 +867,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 	//RC filter
 	if (ui_.filter_rc->isChecked() && report_config_!=NULL)
 	{
-        QSet<int> report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::RES, false));
+        QSet<int> report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::RES, false));
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			if (!report_variant_indices.contains(row)) hidden[row] = true;

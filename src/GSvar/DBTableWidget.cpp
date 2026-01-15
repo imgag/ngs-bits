@@ -199,12 +199,14 @@ void DBTableWidget::showTextAsTooltip(const QString& column_header)
 
 QSet<int> DBTableWidget::selectedRows() const
 {
-    return LIST_TO_SET(GUIHelper::selectedTableRows(this));
+	QList<int> selected_table_rows = GUIHelper::selectedTableRows(this);
+	return QSet<int>(selected_table_rows.begin(), selected_table_rows.end());
 }
 
 QSet<int> DBTableWidget::selectedColumns() const
 {
-    return LIST_TO_SET(GUIHelper::selectedTableColumns(this));
+	QList<int> selected_table_columns = GUIHelper::selectedTableColumns(this);
+	return QSet<int>(selected_table_columns.begin(), selected_table_columns.end());
 }
 
 const QString& DBTableWidget::getId(int r) const

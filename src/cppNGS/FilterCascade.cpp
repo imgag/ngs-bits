@@ -69,13 +69,7 @@ bool FilterParameter::operator==(const FilterParameter& rhs) const
 {
 	if (name!=rhs.name) return false;
 	if (type!=rhs.type) return false;
-
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     if (value.metaType()!=rhs.value.metaType()) return false;
-    #else
-    if (value.type()!=rhs.value.type()) return false;
-    #endif
-
 	if (valueAsString()!=rhs.valueAsString()) return false;
 
 	return true;
@@ -330,7 +324,7 @@ void FilterBase::setGeneric(const QString& name, const QString& value)
 	}
 	else if (type==FilterParameterType::STRINGLIST)
 	{
-        setStringList(name, value.split(',', QT_SKIP_EMPTY_PARTS));
+        setStringList(name, value.split(',', Qt::SkipEmptyParts));
 	}
 	else
 	{
@@ -2553,7 +2547,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
 	//pre-calculate genes with heterozygous variants
-    QSet<QString> types = LIST_TO_SET(getStringList("types"));
+    QSet<QString> types = Helper::listToSet(getStringList("types"));
 	GeneSet genes_comphet;
 	if (types.contains("comp-het"))
 	{
@@ -3910,7 +3904,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 {
 	if (!enabled_) return;
 
-    QSet<QString> filter_entries = LIST_TO_SET(getStringList("entries"));
+    QSet<QString> filter_entries = Helper::listToSet(getStringList("entries"));
 	QString action = getString("action");
 	int filter_col_index = svs.annotationIndexByName("FILTER");
 
@@ -3920,7 +3914,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		{
 			if (!result.flags()[i]) continue;
 
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3933,7 +3927,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		{
 			if (!result.flags()[i]) continue;
 
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3944,7 +3938,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 	{
 		for(int i=0; i<svs.count(); ++i)
 		{
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = true;
@@ -4852,7 +4846,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
     //pre-calculate genes with heterozygous variants
-    QSet<QString> types = LIST_TO_SET(getStringList("types"));
+    QSet<QString> types = Helper::listToSet(getStringList("types"));
     GeneSet genes_comphet;
     if (types.contains("comp-het"))
     {

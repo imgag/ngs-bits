@@ -90,10 +90,36 @@ private:
 		S_EQUAL(db.getValue("SELECT caller_version FROM somatic_cnv_callset WHERE ps_tumor_id='"+ps_t+"'").toString(), "v1.16.1");
 		S_EQUAL(db.getValue("SELECT call_date FROM somatic_cnv_callset WHERE ps_tumor_id='"+ps_t+"'").toDate().toString(Qt::ISODate), "2019-10-06");
 
-		//Cnvs already imported
+		//CNVs already imported
 		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
-		//Cnvs already imported force
+		//CNVs already imported - force
 		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -force -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
+	}
+
+	TEST_METHOD(test_cnvs_tumor_only)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsSomatic_init.sql"));
+		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in5.tsv"));
+
+		DBTable table = db.createTable("test", "SELECT * FROM somatic_cnv");
+
+		I_EQUAL(table.rowCount(), 1);
+		S_EQUAL(table.row(0).asString(';'), "1;1;chr1;3901206;5765702;1.4;0;0.3;{\"Major allele\":\"0\",\"Minor allele\":\"0\",\"loglikelihood\":\"226\",\"regions\":\"28\"}");
+
+		//test callset was imported correctly
+		QString ps_t = db.processedSampleId("DX184894_01");
+		S_EQUAL(db.getValue("SELECT caller FROM somatic_cnv_callset WHERE ps_tumor_id='"+ps_t+"'").toString(), "ClinCNV");
+		S_EQUAL(db.getValue("SELECT caller_version FROM somatic_cnv_callset WHERE ps_tumor_id='"+ps_t+"'").toString(), "v1.18.3");
+		S_EQUAL(db.getValue("SELECT call_date FROM somatic_cnv_callset WHERE ps_tumor_id='"+ps_t+"'").toDate().toString(Qt::ISODate), "2025-11-27");
+
+		//CNVs already imported
+		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in5.tsv"));
+		//CNVs already imported - force
+		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -force -t_ps DX184894_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in5.tsv"));
 	}
 
 	TEST_METHOD(test_svs)
@@ -109,8 +135,7 @@ private:
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_duplication").toInt(), 0);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_insertion").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_inversion").toInt(), 17);
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_deletion").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_deletion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_translocation").toInt(), 0);
 
 		//test callset was imported correctly
 		QString ps_t = db.processedSampleId("DX184894_01");
@@ -118,9 +143,36 @@ private:
 		S_EQUAL(db.getValue("SELECT caller_version FROM somatic_sv_callset WHERE ps_tumor_id='"+ps_t+"'").toString(), "1.6.0");
 		S_EQUAL(db.getValue("SELECT call_date FROM somatic_sv_callset WHERE ps_tumor_id='"+ps_t+"'").toDate().toString(Qt::ISODate), "2025-05-19");
 
-		//Cnvs already imported
-		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
-		//Cnvs already imported force
-		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -force -t_ps DX184894_01 -n_ps DX184263_01 -cnv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in2.tsv"));
+		//SVs already imported
+		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -n_ps DX184263_01 -sv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in4.bedpe"));
+		//SVs already imported - force
+		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -force -t_ps DX184894_01 -n_ps DX184263_01 -sv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in4.bedpe"));
+	}
+
+	TEST_METHOD(test_svs_tumor_only)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsSomatic_init.sql"));
+		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -sv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in6.bedpe"));
+
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_deletion").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_duplication").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_insertion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_inversion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_translocation").toInt(), 0);
+
+		//test callset was imported correctly
+		QString ps_t = db.processedSampleId("DX184894_01");
+		S_EQUAL(db.getValue("SELECT caller FROM somatic_sv_callset WHERE ps_tumor_id='"+ps_t+"'").toString(), "Manta");
+		S_EQUAL(db.getValue("SELECT caller_version FROM somatic_sv_callset WHERE ps_tumor_id='"+ps_t+"'").toString(), "1.6.1");
+		S_EQUAL(db.getValue("SELECT call_date FROM somatic_sv_callset WHERE ps_tumor_id='"+ps_t+"'").toDate().toString(Qt::ISODate), "2025-11-27");
+
+		//SVs already imported
+		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -debug -no_time -t_ps DX184894_01 -sv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in6.bedpe"));
+		//SVs already imported - force
+		EXECUTE("NGSDAddVariantsSomatic", "-test -debug -no_time -force -t_ps DX184894_01 -sv " + TESTDATA("data_in/NGSDAddVariantsSomatic_in6.bedpe"));
 	}
 };

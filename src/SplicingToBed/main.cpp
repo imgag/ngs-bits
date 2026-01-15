@@ -57,74 +57,6 @@ public:
 		changeLog(2020,  6,  24, "Initial version");
 	}
 
-
-	//get exon rank for transcript ID and base position
-	/*
-	int exonRank(NGSD& db, int tx_id, int pos, QByteArray strand="*")
-	{
-		int exon_rank = -1;
-		QString order = (strand == "-") ? "DESC" : "ASC";
-
-		SqlQuery query = db.getQuery();
-		query.exec("SET @row_number:=0;");
-		query.exec("SELECT txrows.exon_rank FROM ("
-							"SELECT @row_number:=@row_number+1 AS exon_rank, gene_exon.* "
-							"FROM gene_exon "
-							"WHERE transcript_id=" + QString::number(tx_id) + " ORDER BY start " + order + ") AS txrows "
-						"WHERE "
-							"txrows.start<=" + QString::number(pos) + " AND "
-							"txrows.end>=" + QString::number(pos));
-		if (query.next())
-		{
-			exon_rank = query.value(0).toInt();
-		}
-		return exon_rank;
-	}
-
-	//return all exons overlapping specified position, exons are given as gene_symbol:transcript_name:exon_rank
-	QMap<QByteArray, int> exons(NGSD& db, Chromosome chr, int pos, QByteArray pos_type="overlap", QByteArray strand="*")
-	{
-		if (pos_type != "start" && pos_type != "end" && pos_type != "overlap")
-		{
-			THROW(ArgumentException, "Invalid position type '" + pos_type + "'!");
-		}
-
-		QString q = "SELECT gene_transcript.id, gene_transcript.name, gene_transcript.version, gene.symbol "
-					"FROM gene_exon, gene_transcript, gene "
-					"WHERE "
-						"gene_exon.transcript_id=gene_transcript.id AND "
-						"gene_transcript.gene_id=gene.id AND "
-						"gene_transcript.chromosome='" + chr.strNormalized(false) + "' AND ";
-		
-		if (pos_type == "overlap")
-		{
-			q += "gene_exon.start <= " + QString::number(pos) + " AND gene_exon.end >= " + QString::number(pos);
-		}
-		else
-		{
-			q += "gene_exon." + pos_type + "=" + QString::number(pos);
-		}
-						
-		if (strand != "*") q.append(" AND gene_transcript.strand='" + strand + "'");
-
-		SqlQuery query = db.getQuery();
-		query.exec(q);
-
-		QMap<QByteArray, int> exons;
-		while (query.next())
-		{
-			int tx_id = query.value(0).toInt();
-			QByteArray tx_name = query.value(1).toByteArray();
-			QByteArray tx_version = query.value(2).toByteArray();
-			QByteArray gene_name = query.value(3).toByteArray();
-			int exon_rank = exonRank(db, tx_id, pos, strand);
-
-			exons.insert(gene_name + ":" + tx_name + '.' + tx_version, exon_rank);
-		}
-		return exons;
-	}
-	*/
-
 	//make list of "k:Ev" strings out of map
 	QList<QByteArray> mapToKvStr(QMap<QByteArray,int> map)
 	{
@@ -137,43 +69,11 @@ public:
 		return out;
 	}
 
-	//return gene symbols for genes overlapping with given position, strand-aware
-/*
-	QList<QByteArray> genesByOverlap(NGSD& db, Chromosome chr, int pos, QString strand="*")
-	{
-		QList<QByteArray> genes;
-		SqlQuery query = db.getQuery();
-
-		QString q = "SELECT gene_coord.symbol FROM "
-						"(	SELECT gene.symbol, MIN(gene_exon.start) AS start, MAX(gene_exon.end) AS end "
-							"FROM gene_exon, gene_transcript, gene "
-							"WHERE "
-								"gene_exon.transcript_id=gene_transcript.id AND "
-								"gene_transcript.gene_id=gene.id AND "
-								"gene_transcript.chromosome='" + chr.strNormalized(false) + "' ";
-		if (strand != "*") q.append(" AND gene_transcript.strand='" + strand + "' ");
-		q +=				"GROUP BY gene.symbol ) as gene_coord "
-						"WHERE "
-							"gene_coord.start <= " + QString::number(pos) + " AND "
-							"gene_coord.end >= " + QString::number(pos);
-		query.exec(q);
-	
-		while (query.next())
-		{
-			QByteArray gene_name = query.value(0).toByteArray();
-
-			genes.append(gene_name);
-		}
-
-		return genes;
-	}
-	*/
-
 	//return string for common transcripts in two sets, with exon numbering
 	QMap<QByteArray, int> sharedTranscripts(QMap<QByteArray,int> a, QMap<QByteArray,int> b, QByteArray prefix_a="E", QByteArray prefix_b="E")
 	{
 		QMap<QByteArray, int> result;
-        QSet<QByteArray> shared_transcripts = LIST_TO_SET(a.keys()).intersect(LIST_TO_SET(b.keys()));
+        QSet<QByteArray> shared_transcripts = Helper::listToSet(a.keys()).intersect(Helper::listToSet(b.keys()));
 		foreach (QByteArray gene_tx, shared_transcripts)
 		{
 			result.insert(gene_tx + ":" + prefix_a + QByteArray::number(a[gene_tx]) + "-" + prefix_b + QByteArray::number(b[gene_tx]),
@@ -303,7 +203,7 @@ public:
 
 			//same transcript found for left and right exon
 			QMap<QByteArray,int> matchesL_matchesR = sharedTranscripts(matchesL, matchesR);
-            foreach (QByteArray gene_tx, SET_TO_LIST(LIST_TO_SET(matchesL_matchesR.keys())))
+			foreach (QByteArray gene_tx, Helper::setToList(Helper::listToSet(matchesL_matchesR.keys()), true))
 			{
 				int diff = matchesL_matchesR.value(gene_tx);
 				if (diff == 1)
@@ -362,23 +262,11 @@ public:
 				QMap<QByteArray,int> overlapsL_matchesR = sharedTranscripts(overlapsL, matchesR);
 				QMap<QByteArray,int> overlapsL_overlapsR = sharedTranscripts(overlapsL, overlapsR);
 
-				//string representations
-                QByteArray matchesL_overlapsR_str = SET_TO_LIST(LIST_TO_SET(matchesL_overlapsR.keys())).join(",");
-                QByteArray overlapsL_matchesR_str = SET_TO_LIST(LIST_TO_SET(overlapsL_matchesR.keys())).join(",");
-                QByteArray overlapsL_overlapsR_str = SET_TO_LIST(LIST_TO_SET(overlapsL_overlapsR.keys())).join(",");
-				QByteArray matchesL_str = mapToKvStr(matchesL).join(",");
-				QByteArray matchesR_str = mapToKvStr(matchesR).join(",");
-				QByteArray overlapsL_str = mapToKvStr(overlapsL).join(",");
-				QByteArray overlapsR_str = mapToKvStr(overlapsR).join(",");
-
-				QByteArray geneOverlapsL_str = geneOverlapsL.join(",");
-				QByteArray geneOverlapsR_str = geneOverlapsR.join(",");
-
 				if (!matchesL.isEmpty() && matchesR.isEmpty())
 				{
 					if (!overlapsR.isEmpty() && !matchesL_overlapsR.isEmpty())
 					{
-                        foreach (QByteArray gene_tx, SET_TO_LIST(LIST_TO_SET(matchesL_overlapsR.keys())))
+						foreach (QByteArray gene_tx, Helper::setToList(Helper::listToSet(matchesL_overlapsR.keys()), true))
 						{
 							int diff = matchesL_overlapsR.value(gene_tx);
 							if (diff == 1)
@@ -409,7 +297,7 @@ public:
 				{
 					if (!overlapsL.isEmpty() && !overlapsL_matchesR.isEmpty())
 					{
-                        foreach (QByteArray gene_tx, SET_TO_LIST(LIST_TO_SET(overlapsL_matchesR.keys())))
+						foreach (QByteArray gene_tx, Helper::setToList(Helper::listToSet(overlapsL_matchesR.keys()), true))
 						{
 							int diff = overlapsL_matchesR.value(gene_tx);
 							if (diff == 1)
@@ -441,7 +329,7 @@ public:
 				{
 					if (!overlapsL.isEmpty() && !overlapsR.isEmpty() && !overlapsL_overlapsR.isEmpty())
 					{
-                        foreach (QByteArray gene_tx, SET_TO_LIST(LIST_TO_SET(overlapsL_overlapsR.keys())))
+						foreach (QByteArray gene_tx, Helper::setToList(Helper::listToSet(overlapsL_overlapsR.keys()), true))
 						{
 							int diff = overlapsL_overlapsR.value(gene_tx);
 							if (diff == 1)
@@ -614,7 +502,7 @@ public:
 		QMap<QByteArray, int>::const_iterator i = stats.constBegin();
 		while (i != stats.constEnd())
 		{
-            out << i.key() << "\t" << i.value() << "\t" << QByteArray::number(1. * i.value() / stats["all"], 'f', 4) << QT_ENDL;
+            out << i.key() << "\t" << i.value() << "\t" << QByteArray::number(1. * i.value() / stats["all"], 'f', 4) << Qt::endl;
 			++i;
 		}
 
@@ -622,7 +510,7 @@ public:
 		{
 			gene_f->write("#symbol\t" + keys.join("\t") + "\taberrant_frac\n");
 			//per-gene stats
-            foreach (QByteArray g, SET_TO_LIST(LIST_TO_SET(gene_stats.keys())))
+			foreach (QByteArray g, Helper::setToList(Helper::listToSet(gene_stats.keys()), true))
 			{
 				QList<QByteArray> fields;
 				fields.append(g);

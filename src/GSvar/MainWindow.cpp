@@ -139,13 +139,7 @@
 #include "MaintenanceDialog.h"
 #include <QStyleFactory>
 #include <QLibraryInfo>
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
-#else
-#include <QChartView>
-QT_CHARTS_USE_NAMESPACE
-#endif
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -4742,12 +4736,8 @@ void MainWindow::on_actionExportTestData_triggered()
 		if (file_name.isEmpty()) return;
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
-        QTextStream output_stream(file.data());
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        output_stream.setEncoding(QStringConverter::Utf8);
-        #else
-        output_stream.setCodec("UTF-8");
-        #endif
+		QTextStream output_stream(file.data());
+		output_stream.setEncoding(QStringConverter::Utf8);
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -4832,12 +4822,8 @@ void MainWindow::on_actionExportSampleData_triggered()
 		if (file_name.isEmpty()) return;
 
 		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
-		QTextStream output_stream(file.data());
-		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-		output_stream.setEncoding(QStringConverter::Utf8);
-		#else
-		output_stream.setCodec("UTF-8");
-		#endif
+		QTextStream output_stream(file.data());		
+		output_stream.setEncoding(QStringConverter::Utf8);		
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		timer.start();
@@ -6607,7 +6593,7 @@ void MainWindow::showNotification(QString text)
 	text = text.trimmed();
 
 	//update tooltip
-    QStringList tooltips = notification_label_->toolTip().split("\n", QT_SKIP_EMPTY_PARTS);
+    QStringList tooltips = notification_label_->toolTip().split("\n", Qt::SkipEmptyParts);
 	if (!tooltips.contains(text)) tooltips.prepend(text);
 	notification_label_->setToolTip(tooltips.join("<br>"));
 
@@ -6856,7 +6842,7 @@ void MainWindow::applyFilters(bool debug_time)
 		ReportConfigFilter rc_filter = ui_.filters->reportConfigurationFilter();
 		if (germlineReportSupported() && rc_filter!=ReportConfigFilter::NONE)
 		{
-            QSet<int> report_variant_indices = LIST_TO_SET(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
+            QSet<int> report_variant_indices = Helper::listToSet(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!filter_result_.flags()[i]) continue;
@@ -6873,7 +6859,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 		else if( somaticReportSupported() && rc_filter != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
 		{
-			QSet<int> report_variant_indices = LIST_TO_SET(somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
+			QSet<int> report_variant_indices = Helper::listToSet(somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if ( !filter_result_.flags()[i] ) continue;
