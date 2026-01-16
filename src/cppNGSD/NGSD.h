@@ -1093,10 +1093,15 @@ public:
 	///Sets the classification of a variant in the NGSD.
 	void setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info);
 
-	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Returns the VICC classification id of a variant, or -1 if it does not exist.
 	int getSomaticViccId(const Variant& variant);
+	///Returns the VICC classification of a variant
+	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Sets the VICC classification of a variant
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
-	//TODO Alexander: add method to delete VICC entry and allow deleting if from GSvar VICC dialog
+	///Deletes the VICC classification of a variant
+	void deleteSomaticViccData(const Variant& variant);
+	//TODO Alexander: allow deleting if from GSvar VICC dialog
 
 	///Returns a list of all somatic pathways.
 	QByteArrayList getSomaticPathways();

@@ -2698,9 +2698,10 @@ private:
 		new_vicc_data.benign_functional_studies = SomaticViccData::State::VICC_TRUE;
 		new_vicc_data.synonymous_mutation = SomaticViccData::State::VICC_TRUE;
 		new_vicc_data.comment = "This is a benign somatic variant.";
-		db.setSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C"), new_vicc_data, "ahmustm1");
+		Variant var_vicc("chr17", 59763465, 59763465, "T", "C");
+		db.setSomaticViccData(var_vicc, new_vicc_data, "ahmustm1");
 
-		SomaticViccData new_vicc_result = db.getSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C") );
+		SomaticViccData new_vicc_result = db.getSomaticViccData(var_vicc);
 		I_EQUAL(new_vicc_result.null_mutation_in_tsg, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(new_vicc_result.oncogenic_functional_studies, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(new_vicc_result.protein_length_change, SomaticViccData::State::VICC_FALSE);
@@ -2710,12 +2711,16 @@ private:
 		I_EQUAL(new_vicc_result.synonymous_mutation, SomaticViccData::State::VICC_TRUE);
 		S_EQUAL(new_vicc_result.comment, "This is a benign somatic variant.");
 
-		I_EQUAL(db.getSomaticViccId(Variant("chr17", 59763465, 59763465, "T", "C")), 5); //id of new inserted vicc data set is 5 in TEST-NGSD
+		I_EQUAL(db.getSomaticViccId(var_vicc), 5); //id of new inserted vicc data set is 5 in TEST-NGSD
 
 		//When updating one variant, all other data sets must not change (test case initially created for Bugfix)
-		db.setSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C"), new_vicc_data, "ahkerra1");
+		db.setSomaticViccData(var_vicc, new_vicc_data, "ahkerra1");
 		SomaticViccData vicc_data3 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T") );
 		S_EQUAL(vicc_data3.comment, vicc_data2.comment);
+
+		//test deleting VICC data
+		db.deleteSomaticViccData(var_vicc);
+		I_EQUAL(db.getSomaticViccId(var_vicc), -1); //id of new inserted vicc data set is 5 in TEST-NGSD
 
 		//somatic CNV gene role
 		I_EQUAL(db.getSomaticGeneRoleId("EPRS"), 3);

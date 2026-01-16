@@ -4925,6 +4925,12 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 	}
 }
 
+void NGSD::deleteSomaticViccData(const Variant& variant)
+{
+	QString variant_id = variantId(variant);
+	getQuery().exec("DELETE FROM somatic_vicc_interpretation WHERE variant_id='"+variant_id+"'");
+}
+
 
 QByteArrayList NGSD::getSomaticPathways()
 {

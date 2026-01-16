@@ -6179,17 +6179,20 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 
 void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int index)
 {
-	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(index, vl, this);
+	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(this, index, vl);
 	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
 	connect(interpreter, SIGNAL(stored(int, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(int, QString, QString)) );
-	connect(interpreter, SIGNAL(closeDialog() ), dlg.data(), SLOT(close()) );
-
 	dlg->exec();
 }
 
 void MainWindow::updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment)
 {
-	int i_vicc = variants_.annotationIndexByName("NGSD_som_vicc_interpretation");
+	int i_vicc = variants_.annotationIndexByName("NGSD_som_vicc_interpretation", true, false);
+	if (i_vicc<0)
+	{
+		qDebug() << "Could not update VICC data in GSvar file, because column 'NGSD_som_vicc_interpretation' is missing!";
+		return;
+	}
 	variants_[index].annotations()[i_vicc] = vicc_interpretation.toUtf8();
 
 	markVariantListChanged(variants_[index], "NGSD_som_vicc_interpretation", vicc_interpretation);
