@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QRegularExpression>
 #include "Settings.h"
+#include "VersatileFile.h"
 
 struct FilterDefinition
 {
@@ -185,13 +186,14 @@ public:
 		ChromosomalIndex<BedFile> roi_index(roi);
 
 		//open input/output streams
-		QString in = getInfile("in"); //TODO Marc: add support for VCF.GZ > use VersatileFile
+		QString in = getInfile("in");
 		QString out = getOutfile("out");
 		if(in!="" && in==out)
 		{
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
 		}
-		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
+		VersatileFile in_p(in, true);
+		in_p.open();
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
 		//init parameters
@@ -291,9 +293,9 @@ public:
 		// Read input
 		QTextStream std_err(stderr);
 		int column_count = 0;
-		while (!in_p->atEnd())
+		while (!in_p.atEnd())
 		{
-			QByteArray line = in_p->readLine();
+			QByteArray line = in_p.readLine(false);
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
@@ -531,7 +533,6 @@ public:
 		}
 
 		//close streams
-		in_p->close();
 		out_p->close();
 	}
 };
