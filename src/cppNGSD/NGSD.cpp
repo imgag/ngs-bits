@@ -201,6 +201,7 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 	//access restricted only for user role 'user_restricted'
 	if (getUserRole(user_id)!="user_restricted") return true;
 
+	cache_mutex_.lock();
 	QMap<int, QSet<int>>& user_can_access = getCache().user_can_access;
 	QSet<int> ps_ids;
 	if (user_can_access.contains(user_id))
@@ -236,6 +237,7 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 		if (user_can_access.contains(user_id)) ps_ids.unite(user_can_access.value(user_id));
 		user_can_access.insert(user_id, ps_ids);
 	}
+	cache_mutex_.unlock();
 	return ps_ids.contains(ps_id);
 }
 
@@ -10798,7 +10800,15 @@ void NGSD::clearCache()
 	cache_instance.gene_expression_id2gene.clear();
 	cache_instance.gene_expression_gene2id.clear();
 
+	clearUserPermissionsCache();
+}
+
+void NGSD::clearUserPermissionsCache()
+{
+	cache_mutex_.lock();
+	Cache& cache_instance = getCache();
 	cache_instance.user_can_access.clear();
+	cache_mutex_.unlock();
 }
 
 

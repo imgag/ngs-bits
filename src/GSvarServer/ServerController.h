@@ -95,10 +95,15 @@ public:
     /// Returns BLAT search results for the given genome and sequence
     static HttpResponse performBlatSearch(const HttpRequest& request);
 
-	// Returns some notification displayed to the users of the client application
+	/// Returns some notification displayed to the users of the client application
 	static HttpResponse getCurrentNotification(const HttpRequest& request);
 
+	/// Uploads a file to a given folder
     static HttpResponse uploadFileToFolder(QString upload_folder, const HttpRequest& request);
+
+	/// Removes the cache for user permissions
+	static HttpResponse clearPermissionsCache(const HttpRequest& request);
+
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);

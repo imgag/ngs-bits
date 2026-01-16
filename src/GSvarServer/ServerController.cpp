@@ -1902,3 +1902,10 @@ HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const H
     Log::error(EndpointManager::formatResponseMessage(request, "Upload folder does not exist: " + upload_folder));
     return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_PLAIN, EndpointManager::formatResponseMessage(request, "Upload destination does not exist on the server"));
 }
+
+HttpResponse ServerController::clearPermissionsCache(const HttpRequest &/*request*/)
+{
+	NGSD db;
+	db.clearUserPermissionsCache();
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User permissions cache has been cleared");
+}

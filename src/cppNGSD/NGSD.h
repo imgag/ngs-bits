@@ -7,6 +7,7 @@
 #include <QTextStream>
 #include <QDateTime>
 #include <QRegularExpression>
+#include <QMutex>
 #include "VariantList.h"
 #include "BedFile.h"
 #include "Transcript.h"
@@ -1244,6 +1245,9 @@ public:
 	//clearCache() should only be called outside of NGSD for tests!
 	void clearCache();
 
+	///Clears only the user permissions part of the cache
+	void clearUserPermissionsCache();
+
 signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
@@ -1303,6 +1307,9 @@ protected:
 	static Cache& getCache();
 	void initTranscriptCache();
 	void initGeneExpressionCache();
+
+private:
+	mutable QMutex cache_mutex_;
 };
 
 #endif // NGSD_H
