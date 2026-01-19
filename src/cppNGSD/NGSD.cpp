@@ -5639,25 +5639,24 @@ QString NGSD::analysisJobFolder(int job_id)
 
 FileInfo NGSD::analysisJobLatestLogInfo(int job_id)
 {
+	QString folder = analysisJobFolder(job_id);	
+	if (!QFile::exists(folder))  THROW(Exception, "Analysis job folder for '" + QString::number(job_id) + "' does not exist");
+
+	QStringList files = Helper::findFiles(folder, "*.log", false);
+	if (files.isEmpty()) THROW(Exception, "There are no log files for the job '" + QString::number(job_id) + "' does not exist");
+
 	FileInfo output;
-	QString folder = analysisJobFolder(job_id);
-	if (QFile::exists(folder))
-	{
-		QStringList files = Helper::findFiles(folder, "*.log", false);
-		if (!files.isEmpty())
+	QDateTime mod_time;
+	foreach(QString file, files)
+	{		
+		QFileInfo file_info(file);
+		mod_time = file_info.lastModified();
+		if (output.last_modiefied.isNull() || mod_time.toSecsSinceEpoch()>output.last_modiefied.toSecsSinceEpoch())
 		{
-			foreach(QString file, files)
-			{
-				QFileInfo file_info(file);
-                QDateTime mod_time = file_info.metadataChangeTime();
-				if (output.last_modiefied.isNull() || mod_time>output.last_modiefied)
-				{
-					output.file_name = file_info.fileName();
-					output.file_name_with_path = file_info.filePath();
-                    output.created = file_info.birthTime();
-					output.last_modiefied = mod_time;
-				}
-			}
+			output.file_name = file_info.fileName();
+			output.file_name_with_path = file_info.filePath();
+			output.created = file_info.birthTime();
+			output.last_modiefied = mod_time;
 		}
 	}
 	return output;

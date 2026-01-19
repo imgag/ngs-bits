@@ -207,12 +207,19 @@ void AnalysisStatusWidget::refreshStatus()
 			QColor bg_color = Qt::transparent;
 			if (status.startsWith("started ("))
 			{
-				FileInfo info = GlobalServiceProvider::database().analysisJobLatestLogInfo(job_id);
-				if (!info.isEmpty())
+				try
 				{
-					int sec = info.last_modiefied.secsTo(QDateTime::currentDateTime());
-					if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
-					last_update = timeHumanReadable(sec) + " ago (" + info.file_name + ")";
+					FileInfo info = GlobalServiceProvider::database().analysisJobLatestLogInfo(job_id);
+					if (!info.isEmpty())
+					{
+						int sec = info.last_modiefied.secsTo(QDateTime::currentDateTime());
+						if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
+						last_update = timeHumanReadable(sec) + " ago (" + info.file_name + ")";
+					}
+				}
+				catch (HttpException& e)
+				{
+					if (e.status_code() == 404) last_update = "File does not exist";
 				}
 			}
 			addItem(ui_.analyses, row, 8, last_update, bg_color);

@@ -691,6 +691,10 @@ HttpResponse ServerController::getAnalysisJobLastUpdate(const HttpRequest& reque
 		last_update_as_json_object.insert("latest_mod", QString::number(log_info.last_modiefied.toSecsSinceEpoch()));
 		last_update_as_json_object.insert("latest_created", QString::number(log_info.created.toSecsSinceEpoch()));
 	}
+	else
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Last update time is unknown"));
+	}
 	json_doc_output.setObject(last_update_as_json_object);
 
 	BasicResponseData response_data;
