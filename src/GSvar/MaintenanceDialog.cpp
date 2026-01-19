@@ -279,6 +279,7 @@ void MaintenanceDialog::replaceObsolteGeneSymbols()
 	fixGeneNames(db, "omim_preferred_phenotype", "gene");
 	fixGeneNames(db, "disease_gene", "gene");
 	fixGeneNames(db, "report_configuration_other_causal_variant", "gene");
+	fixGeneNames(db, "cspec_data", "gene");
 
 	//cannot be done because the gene names in the RNA reference cohort files differ then
 	//fixGeneNames(db, "expression_gene", "symbol");

@@ -4694,7 +4694,8 @@ void MainWindow::on_actionExportTestData_triggered()
 		"somatic_gene_role",
 		"runqc_read",
 		"runqc_lane",
-        "species"
+		"species",
+		"cspec_data"
 	};
 
 	try

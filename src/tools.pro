@@ -640,3 +640,6 @@ SUBDIRS += BedToEpigen
 tools-TEST.depends += BedToEpigen
 BedToEpigen.depends = cppNGS
 
+SUBDIRS += NGSDImportCSpec
+tools-TEST.depends += NGSDImportCSpec
+NGSDImportCSpec.depends = cppNGSD

@@ -174,4 +174,5 @@ SOURCES += \
     MantaVcfFix_Test.cpp \
     VcfReplaceSamples_Test.cpp \
     GenlabInfo_Test.cpp \
+    NGSDImportCSpec_Test.cpp \
     main.cpp
