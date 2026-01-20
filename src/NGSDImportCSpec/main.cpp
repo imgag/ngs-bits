@@ -38,27 +38,29 @@ public:
 
 		//determine unique set of genes
 		GeneSet genes;
+		GeneSet genes_skipped;
 		QSharedPointer<QFile> file_ptr = Helper::openFileForReading(getInfile("in"));
 		QJsonDocument doc = QJsonDocument::fromJson(file_ptr->readAll());
 		QJsonArray data = doc.object()["data"].toArray();
 		for (int i=0; i<data.count(); ++i)
 		{
-			QTextStream(stdout) << __LINE__ << i << "\n";
 			QJsonArray ruleset_array = data[i].toObject()["ld"].toObject()["RuleSet"].toArray();
 			for (int j=0; j<ruleset_array.count(); ++j)
 			{
-				QTextStream(stdout) << __LINE__ << j << "\n";
 				QJsonArray genes_array = ruleset_array[j].toObject()["entContent"].toObject()["genes"].toArray();
 				for (int k=0; k<genes_array.count(); ++k)
 				{
 					QByteArray gene = genes_array[j].toObject()["gene"].toString().toUtf8();
-					QTextStream(stdout) << __LINE__ << k << gene << "\n";
 
 					//convert to approved gene
-					gene = db.geneToApproved(gene);
-					if (gene.isEmpty()) continue;
+					QByteArray gene_approved = db.geneToApproved(gene);
+					if (gene_approved.isEmpty())
+					{
+						genes_skipped << gene;
+						continue;
+					}
 
-					genes << gene;
+					genes << gene_approved;
 				}
 			}
 		}
@@ -67,10 +69,15 @@ public:
 			q_ins.bindValue(0, gene);
 			q_ins.exec();
 		}
+		QTextStream out(stdout);
+		out << "Parset rulesets: " << data.count() << "\n";
+		out << "Imported genes: " << genes.count() << "\n";
+		out << "Skipped genes (not convertable to approved symbol): " << genes_skipped.count() << "\n";
 
 		//add DB import info
 		QString version = doc.object()["metadata"].toObject()["rendered"].toObject()["when"].toString().left(10);
 		db.getQuery().exec("INSERT INTO `db_import_info`(`name`, `version`, `import_date`) VALUES ('CSpec','"+version+"','"+QDate::currentDate().toString(Qt::ISODate)+"')");
+
 	}
 };
 
