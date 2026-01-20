@@ -423,7 +423,7 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index, int gt_index) const
 	//add genotype info if column in GSvar file is kown
 	if (gt_index!=-1)
 	{
-		//check colum exists
+		//check column exists
 		if (gt_index>=annotations().count()) THROW(ProgrammingException, "Invalid genotype column index given: '" + QString::number(gt_index) + "'");
 
 		//convert genotype

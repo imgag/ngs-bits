@@ -175,4 +175,5 @@ SOURCES += \
     VcfReplaceSamples_Test.cpp \
     GenlabInfo_Test.cpp \
     NGSDImportCSpec_Test.cpp \
+    TsvAnnotate_Test.cpp \
     main.cpp

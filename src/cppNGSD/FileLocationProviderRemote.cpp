@@ -2,9 +2,13 @@
 #include "ApiCaller.h"
 #include <QJsonDocument>
 
-FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id)
-	: sample_id_(sample_id)
+FileLocationProviderRemote::FileLocationProviderRemote(QString gsvarfile_url)
+	: folder_id_()
 {
+	//extract folder ID from URL - URL example: https://gsvar.img.med.uni-tuebingen.de:8443/v1/temp/32f2535a-7176-4aa4-b19e-2e1728de5178/NA12878_58.GSvar?token=c9c85076-600c-4363-96e5-f57a2270c92f
+	QStringList url_parts = gsvarfile_url.split("/");
+	if (url_parts.size()<2) THROW(ArgumentException, "Could not determined folder ID, as GSvar file URL is malformed: "+gsvarfile_url);
+	folder_id_ = url_parts[url_parts.size()-2].trimmed().toUtf8();
 }
 
 bool FileLocationProviderRemote::isLocal() const
@@ -69,23 +73,8 @@ FileLocation FileLocationProviderRemote::getMethylationCohortImage(QString locus
 
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
 {
-    FileLocationList output;
-	if (sample_id_.isEmpty())
-	{
-		THROW(ArgumentException, "File name has not been specified")
-		return output;
-	}
-
-	QStringList gsvar_filename_parts = sample_id_.split("/");
-	QString file_id;
-	if (gsvar_filename_parts.size()<2)
-	{
-		return output;
-	}
-	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
-
 	RequestUrlParams params;
-	params.insert("ps_url_id", file_id.toUtf8());
+	params.insert("ps_url_id", folder_id_);
 	params.insert("type", FileLocation::typeToString(type).toUtf8());
 	params.insert("multiple_files", "1");
 	params.insert("return_if_missing", (return_if_missing ? "1" : "0"));
@@ -94,29 +83,13 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonArray file_list = json_doc.array();
 
-	output = mapJsonArrayToFileLocationList(file_list, return_if_missing);
-	return output;
+	return mapJsonArrayToFileLocationList(file_list, return_if_missing);
 }
 
 FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type, QString locus) const
 {
-    FileLocation output;
-	if (sample_id_.isEmpty())
-	{
-		THROW(ArgumentException, "File name has not been specified")
-		return output;
-	}
-
-	QStringList gsvar_filename_parts = sample_id_.split("/");
-	QString file_id;
-	if (gsvar_filename_parts.size()<2)
-	{
-		return output;
-	}
-	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
-
 	RequestUrlParams params;
-	params.insert("ps_url_id", file_id.toUtf8());
+	params.insert("ps_url_id", folder_id_);
 	params.insert("type", FileLocation::typeToString(type).toUtf8());
 	params.insert("multiple_files", "0");
 	if (!locus.isEmpty()) params.insert("locus", locus.toUtf8());
@@ -132,8 +105,7 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 		THROW(Exception, "Could not find file info: " + FileLocation::typeToString(type));
 	}
 
-	output = mapJsonObjectToFileLocation(file_object);
-	return output;
+	return mapJsonObjectToFileLocation(file_object);
 }
 
 FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject obj) const

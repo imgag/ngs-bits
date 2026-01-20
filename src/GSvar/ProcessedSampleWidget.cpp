@@ -24,6 +24,8 @@
 #include <QInputDialog>
 #include "Settings.h"
 #include "CircosPlotWidget.h"
+#include "ClientHelper.h"
+#include "FileLocationProviderRemote.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: TabBaseClass(parent)
@@ -59,6 +61,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->analysis_info_btn, SIGNAL(clicked(bool)), this, SLOT(showAnalysisInfo()));
 	connect(ui_->circos_btn, SIGNAL(clicked(bool)), this, SLOT(showCircosPlot()));
 	connect(ui_->genlab_import_btn, SIGNAL(clicked(bool)), this, SLOT(genLabImportDialog()));
+
+	ui_->qcml_btn->setEnabled(ClientHelper::isClientServerMode());
 	ui_->genlab_import_btn->setEnabled(GenLabDB::isAvailable());
 
 	//check user has access rights
@@ -494,8 +498,8 @@ void ProcessedSampleWidget::openSampleFolder()
 
 void ProcessedSampleWidget::openSampleQcFiles()
 {
-	const FileLocationProvider& flp = GlobalServiceProvider::fileLocationProvider();
-
+	FileLocation location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);
+	FileLocationProviderRemote flp = FileLocationProviderRemote(location.filename);
 	foreach(const FileLocation& file, flp.getQcFiles())
 	{
 		if (flp.isLocal())
