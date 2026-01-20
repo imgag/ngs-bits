@@ -161,6 +161,10 @@ void GeneWidget::updateGUI()
 		ui_.hgnc_previous->setText(db.previousSymbols(gene_id).join(", "));
 		ui_.hgnc_synonymous->setText(db.synonymousSymbols(gene_id).join(", "));
 
+		//check if there is CSpec data available
+		QList<int> cspec_ids = db.getValuesInt("SELECT id FROM cspec_data WHERE gene='"+symbol_+"'");
+		ui_.cspec->setText(cspec_ids.isEmpty() ? "No criteria available" : "<b>Criteria available, see</b> <a href='https://cspec.genome.network/cspec/ui/svi/'>Criteria Specification Registry</a>");
+
 		//show phenotypes/diseases from HPO
 		hpo_lines.clear();
 		PhenotypeList pheno_list = db.phenotypes(symbol_);
