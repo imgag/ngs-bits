@@ -281,6 +281,10 @@ SUBDIRS += TsvMerge
 tools-TEST.depends += TsvMerge
 TsvMerge.depends = cppNGS
 
+SUBDIRS += TsvAnnotate
+tools-TEST.depends += TsvAnnotate
+TsvAnnotate.depends = cppNGS
+
 SUBDIRS += BedAnnotateFromBed
 tools-TEST.depends += BedAnnotateFromBed
 BedAnnotateFromBed.depends = cppNGS

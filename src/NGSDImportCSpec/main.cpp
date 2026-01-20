@@ -70,7 +70,7 @@ public:
 			q_ins.exec();
 		}
 		QTextStream out(stdout);
-		out << "Parset rulesets: " << data.count() << "\n";
+		out << "Parsed rulesets: " << data.count() << "\n";
 		out << "Imported genes: " << genes.count() << "\n";
 		out << "Skipped genes (not convertable to approved symbol): " << genes_skipped.count() << "\n";
 

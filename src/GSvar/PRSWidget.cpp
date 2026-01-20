@@ -85,7 +85,7 @@ void PRSWidget::initGui()
 		}
 	}
 
-	//color low depth colum if too many variants are low depth
+	//color low depth column if too many variants are low depth
 	int c_all = GUIHelper::columnIndex(ui_.prs, "variants_in_prs");
 	int c_low_depth = GUIHelper::columnIndex(ui_.prs, "variants_low_depth");
 	for (int r=0; r<prs_table_.count(); ++r)
