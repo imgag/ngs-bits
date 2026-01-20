@@ -138,6 +138,7 @@ public slots:
 
 	///NGSD menu
 	void on_actionStatistics_triggered();
+	void on_actionShowDatabaseInfo_triggered();
 	void on_actionDevice_triggered();
 	void on_actionGenome_triggered();
 	void on_actionMID_triggered();
