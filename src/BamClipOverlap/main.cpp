@@ -1,6 +1,5 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
-#include "Helper.h"
 #include <QTextStream>
 #include "NGSHelper.h"
 #include "BamWriter.h"

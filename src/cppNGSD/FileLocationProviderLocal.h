@@ -5,6 +5,7 @@
 #include "FileLocationProvider.h"
 #include "KeyValuePair.h"
 
+//File location provider for GSvar files located on in the file system, i.e. not located on the GSvar server
 class CPPNGSDSHARED_EXPORT FileLocationProviderLocal
 	: virtual public FileLocationProvider
 {
@@ -62,13 +63,12 @@ private:
 	//Returns base location for sample-specific files, i.e. the GSvar file name without extension. From the base locations other file names can be generated.
 	QList<KeyValuePair> getBaseLocations() const;
 
-	//Returns analysis path, i.e. the path of the GSvar file
-	QString getAnalysisPath() const;
 	//Returns the project path , i.e. the parent directory of the analysis path
 	QString getProjectPath() const;
 
 protected:
-	QString gsvar_file_;
+	QString ps_;
+	QString ps_folder_;
 	SampleHeaderInfo header_info_;
 	AnalysisType analysis_type_;
 };

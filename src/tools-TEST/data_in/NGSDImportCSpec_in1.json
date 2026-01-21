@@ -1,0 +1,2689 @@
+{
+  "data": [
+    {
+      "entContent": {
+        "title": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology"
+      },
+      "entId": "GN001",
+      "ld": {
+        "RuleSet": [
+          {
+            "entContent": {
+              "_uniqueProp": "001",
+              "ns": "001",
+              "rules": {
+                "mainRules": [
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule1, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule1, Condition2",
+                        "partitionPath": "Pathogenic.Strong"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule1"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule2, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "condition": ">=2",
+                        "label": "Rule2, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule2"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule3, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "condition": "==1",
+                        "label": "Rule3, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "condition": "==1",
+                        "label": "Rule3, Condition3",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule3"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule4, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "condition": ">=2",
+                        "label": "Rule4, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule4"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=2",
+                        "label": "Rule5, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule5"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule6, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "condition": ">=3",
+                        "label": "Rule6, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule6"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule7, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "condition": "==2",
+                        "label": "Rule7, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "condition": ">=2",
+                        "label": "Rule7, Condition3",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule7"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule8, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "condition": "==1",
+                        "label": "Rule8, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "condition": ">=4",
+                        "label": "Rule8, Condition3",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule8"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule10, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "condition": "==1",
+                        "label": "Rule10, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule10"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule11, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "condition": "==1",
+                        "label": "Rule11, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule11"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule12, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "condition": ">=2",
+                        "label": "Rule12, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule12"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=3",
+                        "label": "Rule13, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule13"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==2",
+                        "label": "Rule14, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "condition": ">=2",
+                        "label": "Rule14, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule14"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule15, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "condition": ">=4",
+                        "label": "Rule15, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule15"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=2",
+                        "label": "Rule16, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      }
+                    ],
+                    "inference": "Benign",
+                    "rule": "Rule16"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule17, Condition1",
+                        "partitionPath": "Benign.Stand Alone"
+                      }
+                    ],
+                    "inference": "Benign",
+                    "rule": "Rule17"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule18, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      },
+                      {
+                        "condition": "==1",
+                        "label": "Rule18, Condition2",
+                        "partitionPath": "Benign.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Benign",
+                    "rule": "Rule18"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=2",
+                        "label": "Rule19, Condition1",
+                        "partitionPath": "Benign.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Benign",
+                    "rule": "Rule19"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "==1",
+                        "label": "Rule20, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "condition": "==2",
+                        "label": "Rule20, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule20"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule21, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule21, Condition2",
+                        "partitionPath": "Pathogenic.Strong"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule21"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule22, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule22, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule22"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule23, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule23, Condition2",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule23"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule24, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule24, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule24"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule25, Condition1",
+                        "partitionPath": "Benign.Stand Alone"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule25, Condition2",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule25"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule26, Condition1",
+                        "partitionPath": "Benign.Stand Alone"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule26, Condition2",
+                        "partitionPath": "Pathogenic.Strong"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule26"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule27, Condition1",
+                        "partitionPath": "Benign.Stand Alone"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule27, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule27"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule28, Condition1",
+                        "partitionPath": "Benign.Stand Alone"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule28, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule28"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule29, Condition1",
+                        "partitionPath": "Benign.Supporting"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule29, Condition2",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule29"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule30, Condition1",
+                        "partitionPath": "Benign.Supporting"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule30, Condition2",
+                        "partitionPath": "Pathogenic.Strong"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule30"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule31, Condition1",
+                        "partitionPath": "Benign.Supporting"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule31, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule31"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=1",
+                        "label": "Rule32, Condition1",
+                        "partitionPath": "Benign.Supporting"
+                      },
+                      {
+                        "condition": ">=1",
+                        "label": "Rule32, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "rule": "Rule32"
+                  }
+                ],
+                "metaRules": [
+                  {
+                    "description": "Given set of evidence are not sufficient to make any assertions.",
+                    "inference": "Uncertain Significance - Insufficient Evidence",
+                    "metaRule": "MetaRule1",
+                    "numberOfAssertions": 0,
+                    "uniqueAssertions": []
+                  },
+                  {
+                    "description": "As the rules only suggest one assertion that is Pathogenic, the final assertion is Pathogenic",
+                    "inference": "Pathogenic",
+                    "metaRule": "MetaRule2",
+                    "numberOfAssertions": 1,
+                    "uniqueAssertions": [
+                      "Pathogenic"
+                    ]
+                  },
+                  {
+                    "description": "As the rules only suggest one assertion that is Benign, the final assertion is Benign",
+                    "inference": "Benign",
+                    "metaRule": "MetaRule3",
+                    "numberOfAssertions": 1,
+                    "uniqueAssertions": [
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "As the rules only suggest one assertion that is Likely Pathogenic, the final assertion is Likely Pathogenic",
+                    "inference": "Likely Pathogenic",
+                    "metaRule": "MetaRule4",
+                    "numberOfAssertions": 1,
+                    "uniqueAssertions": [
+                      "Likely Pathogenic"
+                    ]
+                  },
+                  {
+                    "description": "As the rules only suggest one assertion that is Likely Pathogenic, the final assertion is Likely Benign",
+                    "inference": "Likely Benign",
+                    "metaRule": "MetaRule5",
+                    "numberOfAssertions": 1,
+                    "uniqueAssertions": [
+                      "Likely Benign"
+                    ]
+                  },
+                  {
+                    "description": "As the rules only suggest one assertion that is Uncertain Significance - Conflicting Evidence - Insufficient Evidence, the final assertion is Uncertain Significance - Conflicting Evidence - Insufficient Evidence",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule6",
+                    "numberOfAssertions": 1,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence"
+                    ]
+                  },
+                  {
+                    "description": "Two assertions: Pathogenic and Likely Pathogenic were made. In such case the final call is the highest strength call, hence the allele is Pathogenic",
+                    "inference": "Pathogenic",
+                    "metaRule": "MetaRule7",
+                    "numberOfAssertions": 2,
+                    "uniqueAssertions": [
+                      "Pathogenic",
+                      "Likely Pathogenic"
+                    ]
+                  },
+                  {
+                    "description": "Two assertions: Benign and Likely Benign were made. In such case the final call is the highest strength call, hence the allele is Benign",
+                    "inference": "Benign",
+                    "metaRule": "MetaRule8",
+                    "numberOfAssertions": 2,
+                    "uniqueAssertions": [
+                      "Benign",
+                      "Likely Benign"
+                    ]
+                  },
+                  {
+                    "description": "Three assertions: Pathogenic, Likely Pathogenic and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule9",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Pathogenic",
+                      "Likely Pathogenic",
+                      "Uncertain Significance - Conflicting Evidence"
+                    ]
+                  },
+                  {
+                    "description": "Three assertions: Benign, Likely Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule10",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Benign",
+                      "Likely Benign",
+                      "Uncertain Significance - Conflicting Evidence"
+                    ]
+                  },
+                  {
+                    "description": "Two assertions: Pathogenic and Uncertain Significance - Conflicting Evidence were made. The final call in this case is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule11",
+                    "numberOfAssertions": 2,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Pathogenic"
+                    ]
+                  },
+                  {
+                    "description": "Two assertions: Likely Pathogenic and Uncertain Significance - Conflicting Evidence were made. The final call in this case is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule12",
+                    "numberOfAssertions": 2,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Likely Pathogenic"
+                    ]
+                  },
+                  {
+                    "description": "Two assertions: Benign and Uncertain Significance - Conflicting Evidence were made. The final call in this case is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule13",
+                    "numberOfAssertions": 2,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "Two assertions: Likely Benign and Uncertain Significance - Conflicting Evidence were made. The final call in this case is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule14",
+                    "numberOfAssertions": 2,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Likely Benign"
+                    ]
+                  },
+                  {
+                    "description": "Three assertions: Likely Pathogenic, Likely Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule15",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Likely Pathogenic",
+                      "Likely Benign",
+                      "Uncertain Significance - Conflicting Evidence"
+                    ]
+                  },
+                  {
+                    "description": "Three assertions: Likely Pathogenic, Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule16",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Likely Pathogenic",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "Three assertions: Pathogenic, Likely Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule17",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Pathogenic",
+                      "Likely Benign"
+                    ]
+                  },
+                  {
+                    "description": "Three assertions: Pathogenic, Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule18",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Pathogenic",
+                      "Benign",
+                      "Uncertain Significance - Conflicting Evidence"
+                    ]
+                  },
+                  {
+                    "description": "Four assertions: Likely Pathogenic, Pathogenic, Likely Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule19",
+                    "numberOfAssertions": 4,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Likely Pathogenic",
+                      "Likely Benign",
+                      "Pathogenic"
+                    ]
+                  },
+                  {
+                    "description": "Four assertions: Likely Pathogenic, Pathogenic, Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule20",
+                    "numberOfAssertions": 4,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Likely Pathogenic",
+                      "Pathogenic",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "Four assertions: Likely Pathogenic, Likely Benign, Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule21",
+                    "numberOfAssertions": 4,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Likely Pathogenic",
+                      "Likely Benign",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "Four assertions: Pathogenic, Likely Benign, Benign and Uncertain Significance - Conflicting Evidence were made. In such cases the final call is Uncertain Significance - Conflicting Evidence.",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule22",
+                    "numberOfAssertions": 4,
+                    "uniqueAssertions": [
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Pathogenic",
+                      "Likely Benign",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule27",
+                    "numberOfAssertions": 2,
+                    "uniqueAssertions": [
+                      "Pathogenic",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule28",
+                    "numberOfAssertions": 2,
+                    "uniqueAssertions": [
+                      "Likely Pathogenic",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule34",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Likely Benign",
+                      "Pathogenic",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule35",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Likely Benign",
+                      "Likely Pathogenic",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule37",
+                    "numberOfAssertions": 3,
+                    "uniqueAssertions": [
+                      "Pathogenic",
+                      "Likely Pathogenic",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule44",
+                    "numberOfAssertions": 4,
+                    "uniqueAssertions": [
+                      "Likely Benign",
+                      "Pathogenic",
+                      "Likely Pathogenic",
+                      "Benign"
+                    ]
+                  },
+                  {
+                    "description": "",
+                    "inference": "Uncertain Significance - Conflicting Evidence",
+                    "metaRule": "MetaRule23",
+                    "numberOfAssertions": 5,
+                    "uniqueAssertions": [
+                      "Likely Benign",
+                      "Pathogenic",
+                      "Likely Pathogenic",
+                      "Uncertain Significance - Conflicting Evidence",
+                      "Benign"
+                    ]
+                  }
+                ],
+                "pointRules": [
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=10",
+                        "label": "Rule1, Condition1"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule1"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=6",
+                        "label": "Rule2, Condition2"
+                      },
+                      {
+                        "condition": "<=9",
+                        "label": "Rule2, Condition1"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule2"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=0",
+                        "label": "Rule3, Condition1"
+                      },
+                      {
+                        "condition": "<=5",
+                        "label": "Rule3, Condition2"
+                      }
+                    ],
+                    "inference": "Uncertain Significance",
+                    "rule": "Rule3"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": ">=-6",
+                        "label": "Rule4, Condition1"
+                      },
+                      {
+                        "condition": "<=-1",
+                        "label": "Rule4, Condition2"
+                      }
+                    ],
+                    "inference": "Likely Benign",
+                    "rule": "Rule4"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "condition": "<=-7",
+                        "label": "Rule5, Condition1"
+                      }
+                    ],
+                    "inference": "Benign",
+                    "rule": "Rule5"
+                  }
+                ]
+              }
+            },
+            "entType": "RuleSet",
+            "ldhId": "135641113",
+            "ldhIri": "https://cspec.genome.network/cspec/RuleSet/id/135641113",
+            "modified": "2025-02-28T14:17:29.367Z",
+            "modifier": "cspecAdministrator",
+            "rev": "_jSxpWhi--A"
+          }
+        ]
+      },
+      "ldFor": {
+        "Organization": [
+          {
+            "entContent": {
+              "abbreviation": "ACMG",
+              "fullBaseName": "American College of Medical Genetics and Genomics",
+              "shortTitle": "ACMG",
+              "title": "American College of Medical Genetics and Genomics",
+              "type": "Expert Panel"
+            },
+            "entId": "ACMG",
+            "entIri": "https://www.acmg.net",
+            "entType": "Organization",
+            "ldhId": "647188063",
+            "ldhIri": "https://cspec.genome.network/cspec/Organization/id/647188063",
+            "modified": "2022-05-10T00:20:54.288Z",
+            "modifier": "neethus",
+            "rev": "_inf5B_G--U"
+          }
+        ]
+      },
+      "ldhId": "135637585"
+    },
+    {
+      "entContent": {
+        "states": [
+          {
+            "current": true,
+            "event": {
+              "modifiedBy": "makelly2",
+              "name": "cspec-released",
+              "prevState": "Approved For Release",
+              "timeStamp": "2024-04-22T15:42:55.213Z"
+            },
+            "name": "Released"
+          },
+          {
+            "current": false,
+            "event": {
+              "modifiedBy": "makelly2",
+              "name": "cspec-reopened",
+              "prevState": "Released",
+              "timeStamp": "2022-12-02T21:18:52.580Z"
+            },
+            "name": "Pilot Rules In Prep"
+          },
+          {
+            "current": false,
+            "event": {
+              "modifiedBy": "makelly2",
+              "name": "pilot-rules-submitted",
+              "prevState": "Pilot Rules In Prep",
+              "timeStamp": "2024-03-25T21:14:13.513Z"
+            },
+            "name": "Pilot Rules Submitted"
+          },
+          {
+            "current": false,
+            "event": {
+              "modifiedBy": "sharriso",
+              "name": "pilot-rules-reviewed",
+              "prevState": "Pilot Rules Submitted",
+              "timeStamp": "2024-02-05T15:43:53.213Z"
+            },
+            "name": "Pilot Rules In Prep"
+          },
+          {
+            "current": false,
+            "event": {
+              "modifiedBy": "sharriso",
+              "name": "pilot-rules-approved",
+              "prevState": "Pilot Rules Submitted",
+              "timeStamp": "2024-03-27T16:44:47.105Z"
+            },
+            "name": "Approved For Release"
+          }
+        ],
+        "title": "ClinGen Cardiomyopathy Expert Panel Specifications to the ACMG/AMP Variant Interpretation Guidelines for MYH7 Version 2.0.0"
+      },
+      "entId": "GN002",
+      "ld": {
+        "RuleSet": [
+          {
+            "entContent": {
+              "_uniqueProp": "002_nuclear_MYH7",
+              "geneType": "nuclear",
+              "genes": [
+                {
+                  "diseases": [
+                    {
+                      "preferredModeOfInheritance": "Autosomal dominant inheritance",
+                      "preferredMondoId": "MONDO:0005021",
+                      "preferredTitle": "dilated cardiomyopathy"
+                    },
+                    {
+                      "preferredModeOfInheritance": "Autosomal dominant inheritance",
+                      "preferredMondoId": "MONDO:0005045",
+                      "preferredTitle": "hypertrophic cardiomyopathy"
+                    }
+                  ],
+                  "gene": "MYH7"
+                }
+              ],
+              "ns": "002",
+              "references": [
+                {
+                  "auths": [
+                    "Richards S",
+                    "Aziz N",
+                    "et al."
+                  ],
+                  "doiStr": "10.1038/gim.2015.30",
+                  "id": "25741868",
+                  "iss": "(5)",
+                  "namespace": "pmid",
+                  "pages": "p. 405-24.",
+                  "source": "Genet Med",
+                  "title": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology.",
+                  "vol": "17",
+                  "year": "2015"
+                },
+                {
+                  "id": "c73e109e-b916-5a72-b7b1-1762446f3c11",
+                  "namespace": "url",
+                  "value": "https://clinicalgenome.org/working-groups/sequence-variant-interpretation/"
+                },
+                {
+                  "auths": [
+                    "Abou Tayoun AN",
+                    "Pesaran T",
+                    "et al."
+                  ],
+                  "doiStr": "10.1002/humu.23626",
+                  "id": "30192042",
+                  "iss": "(11)",
+                  "namespace": "pmid",
+                  "pages": "p. 1517-1524.",
+                  "source": "Hum Mutat",
+                  "title": "Recommendations for interpreting the loss of function PVS1 ACMG/AMP variant criterion.",
+                  "vol": "39",
+                  "year": "2018"
+                },
+                {
+                  "auths": [
+                    "Brnich SE",
+                    "Abou Tayoun AN",
+                    "et al."
+                  ],
+                  "doiStr": "10.1186/s13073-019-0690-2",
+                  "id": "31892348",
+                  "iss": "(1)",
+                  "namespace": "pmid",
+                  "pages": "p. 3.",
+                  "source": "Genome Med",
+                  "title": "Recommendations for application of the functional evidence PS3/BS3 criterion using the ACMG/AMP sequence variant interpretation framework.",
+                  "vol": "12",
+                  "year": "2019"
+                },
+                {
+                  "auths": [
+                    "Hershberger RE",
+                    "Morales A",
+                    "et al."
+                  ],
+                  "doiStr": "10.1161/CIRCGENETICS.117.001968",
+                  "id": "29212902",
+                  "iss": "(6)",
+                  "namespace": "pmid",
+                  "pages": "",
+                  "source": "Circ Cardiovasc Genet",
+                  "title": "Is Left Ventricular Noncompaction a Trait, Phenotype, or Disease? The Evidence Points to Phenotype.",
+                  "vol": "10",
+                  "year": "2017"
+                },
+                {
+                  "auths": [
+                    "Oechslin E",
+                    "Jenni R"
+                  ],
+                  "doiStr": "10.1016/j.cjca.2017.04.003",
+                  "id": "28545618",
+                  "iss": "(6)",
+                  "namespace": "pmid",
+                  "pages": "p. 701-704.",
+                  "source": "Can J Cardiol",
+                  "title": "Nosology of Noncompaction Cardiomyopathy: The Emperor Still Wears Clothes!",
+                  "vol": "33",
+                  "year": "2017"
+                },
+                {
+                  "auths": [
+                    "Ross SB",
+                    "Jones K",
+                    "et al."
+                  ],
+                  "doiStr": "10.1093/eurheartj/ehz317",
+                  "id": "31143950",
+                  "iss": "(14)",
+                  "namespace": "pmid",
+                  "pages": "p. 1428-1436.",
+                  "source": "Eur Heart J",
+                  "title": "A systematic review and meta-analysis of the prevalence of left ventricular non-compaction in adults.",
+                  "vol": "41",
+                  "year": "2020"
+                },
+                {
+                  "auths": [
+                    "Walsh R",
+                    "Thomson KL",
+                    "et al."
+                  ],
+                  "doiStr": "10.1038/gim.2016.90",
+                  "id": "27532257",
+                  "iss": "(2)",
+                  "namespace": "pmid",
+                  "pages": "p. 192-203.",
+                  "source": "Genet Med",
+                  "title": "Reassessment of Mendelian gene pathogenicity using 7,855 cardiomyopathy cases and 60,706 reference samples.",
+                  "vol": "19",
+                  "year": "2017"
+                },
+                {
+                  "auths": [
+                    "Anderson RH",
+                    "Jensen B",
+                    "et al."
+                  ],
+                  "doiStr": "10.1016/j.cjca.2017.01.017",
+                  "id": "28395867",
+                  "iss": "(6)",
+                  "namespace": "pmid",
+                  "pages": "p. 747-757.",
+                  "source": "Can J Cardiol",
+                  "title": "Key Questions Relating to Left Ventricular Noncompaction Cardiomyopathy: Is the Emperor Still Wearing Any Clothes?",
+                  "vol": "33",
+                  "year": "2017"
+                },
+                {
+                  "auths": [
+                    "Walsh R",
+                    "Mazzarotto F",
+                    "et al."
+                  ],
+                  "doiStr": "10.1186/s13073-019-0616-z",
+                  "id": "30696458",
+                  "iss": "(1)",
+                  "namespace": "pmid",
+                  "pages": "p. 5.",
+                  "source": "Genome Med",
+                  "title": "Quantitative approaches to variant classification increase the yield and precision of genetic testing in Mendelian diseases: the case of hypertrophic cardiomyopathy.",
+                  "vol": "11",
+                  "year": "2019"
+                },
+                {
+                  "auths": [
+                    "Kelly MA",
+                    "Caleshu C",
+                    "et al."
+                  ],
+                  "doiStr": "10.1038/gim.2017.218",
+                  "id": "29300372",
+                  "iss": "(3)",
+                  "namespace": "pmid",
+                  "pages": "p. 351-359.",
+                  "source": "Genet Med",
+                  "title": "Adaptation and validation of the ACMG/AMP variant classification framework for MYH7-associated inherited cardiomyopathies: recommendations by ClinGen's Inherited Cardiomyopathy Expert Panel.",
+                  "vol": "20",
+                  "year": "2018"
+                },
+                {
+                  "auths": [
+                    "Jarvik GP",
+                    "Browning BL"
+                  ],
+                  "doiStr": "10.1016/j.ajhg.2016.04.003",
+                  "id": "27236918",
+                  "iss": "(6)",
+                  "namespace": "pmid",
+                  "pages": "p. 1077-1081.",
+                  "source": "Am J Hum Genet",
+                  "title": "Consideration of Cosegregation in the Pathogenicity Classification of Genomic Variants.",
+                  "vol": "98",
+                  "year": "2016"
+                },
+                {
+                  "auths": [
+                    "Jaganathan K",
+                    "Kyriazopoulou Panagiotopoulou S",
+                    "et al."
+                  ],
+                  "doiStr": "10.1016/j.cell.2018.12.015",
+                  "id": "30661751",
+                  "iss": "(3)",
+                  "namespace": "pmid",
+                  "pages": "p. 535-548.e24.",
+                  "source": "Cell",
+                  "title": "Predicting Splicing from Primary Sequence with Deep Learning.",
+                  "vol": "176",
+                  "year": "2019"
+                },
+                {
+                  "auths": [
+                    "Ioannidis NM",
+                    "Rothstein JH",
+                    "et al."
+                  ],
+                  "doiStr": "10.1016/j.ajhg.2016.08.016",
+                  "id": "27666373",
+                  "iss": "(4)",
+                  "namespace": "pmid",
+                  "pages": "p. 877-885.",
+                  "source": "Am J Hum Genet",
+                  "title": "REVEL: An Ensemble Method for Predicting the Pathogenicity of Rare Missense Variants.",
+                  "vol": "99",
+                  "year": "2016"
+                },
+                {
+                  "auths": [
+                    "Tavtigian SV",
+                    "Harrison SM",
+                    "et al."
+                  ],
+                  "doiStr": "10.1002/humu.24088",
+                  "id": "32720330",
+                  "iss": "(10)",
+                  "namespace": "pmid",
+                  "pages": "p. 1734-1737.",
+                  "source": "Hum Mutat",
+                  "title": "Fitting a naturally scaled point system to the ACMG/AMP variant classification guidelines.",
+                  "vol": "41",
+                  "year": "2020"
+                },
+                {
+                  "auths": [
+                    "Tavtigian SV",
+                    "Greenblatt MS",
+                    "et al."
+                  ],
+                  "doiStr": "10.1038/gim.2017.210",
+                  "id": "29300386",
+                  "iss": "(9)",
+                  "namespace": "pmid",
+                  "pages": "p. 1054-1060.",
+                  "source": "Genet Med",
+                  "title": "Modeling the ACMG/AMP variant classification guidelines as a Bayesian classification framework.",
+                  "vol": "20",
+                  "year": "2018"
+                },
+                {
+                  "auths": [
+                    "Alfares AA",
+                    "Kelly MA",
+                    "et al."
+                  ],
+                  "doiStr": "10.1038/gim.2014.205",
+                  "id": "25611685",
+                  "iss": "(11)",
+                  "namespace": "pmid",
+                  "pages": "p. 880-8.",
+                  "source": "Genet Med",
+                  "title": "Results of clinical genetic testing of 2,912 probands with hypertrophic cardiomyopathy: expanded panels offer limited additional sensitivity.",
+                  "vol": "17",
+                  "year": "2015"
+                }
+              ],
+              "rules": {
+                "mainRules": [
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PP1_Strong"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule5, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule5"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule6, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": ">=3",
+                        "label": "Rule6, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule6"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule7, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==2",
+                        "label": "Rule7, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PM5_Supporting",
+                          "PP1",
+                          "PP3"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule7, Condition3",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule7"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule8, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule8, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PM5_Supporting",
+                          "PP1",
+                          "PP3"
+                        ],
+                        "condition": ">=4",
+                        "label": "Rule8, Condition3",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule8"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule11, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule11, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule11"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule12, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PM5_Supporting",
+                          "PP1",
+                          "PP3"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule12, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule12"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": ">=3",
+                        "label": "Rule13, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule13"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==2",
+                        "label": "Rule14, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PM5_Supporting",
+                          "PP1",
+                          "PP3"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule14, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule14"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule15, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PM5_Supporting",
+                          "PP1",
+                          "PP3"
+                        ],
+                        "condition": ">=4",
+                        "label": "Rule15, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule15"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule20, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==2",
+                        "label": "Rule20, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule20"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "BS1",
+                          "BS3",
+                          "BS4"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule16, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      }
+                    ],
+                    "inference": "Benign",
+                    "rule": "Rule16"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "BA1"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule17, Condition1",
+                        "partitionPath": "Benign.Stand Alone"
+                      }
+                    ],
+                    "inference": "Benign",
+                    "rule": "Rule17"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "BS1",
+                          "BS3",
+                          "BS4"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule18, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "BS3_Supporting",
+                          "BP2",
+                          "BP4",
+                          "BP7"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule18, Condition2",
+                        "partitionPath": "Benign.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Benign",
+                    "rule": "Rule18"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "BS3_Supporting",
+                          "BP2",
+                          "BP4",
+                          "BP7"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule19, Condition1",
+                        "partitionPath": "Benign.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Benign",
+                    "rule": "Rule19"
+                  }
+                ]
+              }
+            },
+            "entType": "RuleSet",
+            "ldhId": "135640453",
+            "ldhIri": "https://cspec.genome.network/cspec/RuleSet/id/135640453",
+            "modified": "2024-04-22T15:42:56.094Z",
+            "modifier": "makelly2",
+            "rev": "_inf5BHe--i"
+          }
+        ]
+      },
+      "ldFor": {
+        "Organization": [
+          {
+            "entContent": {
+              "approval": {
+                "step1": {
+                  "approved": true
+                },
+                "step2": {
+                  "approved": true
+                },
+                "step3": {
+                  "approved": true
+                },
+                "step4": {
+                  "approvalDate": "2017-04-29T00:00:00.000Z",
+                  "approved": true
+                }
+              },
+              "curationActivity": "Variant Pathogenicity",
+              "fullBaseName": "Cardiomyopathy",
+              "shortBaseName": "CMP",
+              "shortTitle": "Cardiomyopathy VCEP",
+              "title": "Cardiomyopathy Variant Curation Expert Panel",
+              "type": "Variant Curation Expert Panel"
+            },
+            "entId": "50002",
+            "entIri": "http://clinicalgenome.org/affiliation/50002",
+            "entType": "Organization",
+            "ldhId": "135637627",
+            "ldhIri": "https://cspec.genome.network/cspec/Organization/id/135637627",
+            "modified": "2023-04-07T14:55:06.014Z",
+            "modifier": "cspecAdministrator",
+            "rev": "_inf5B-2---"
+          }
+        ]
+      },
+      "ldhId": "135637574"
+    },
+    {
+      "entContent": {
+        "states": [
+          {
+            "current": true,
+            "event": {
+              "modifiedBy": "shengany",
+              "name": "cspec-released",
+              "prevState": "Approved For Release",
+              "timeStamp": "2024-03-14T15:55:27.954Z"
+            },
+            "name": "Released"
+          },
+          {
+            "current": false,
+            "event": {
+              "modifiedBy": "shengany",
+              "name": "cspec-reopened",
+              "prevState": "Released",
+              "timeStamp": "2024-03-04T20:35:28.682Z"
+            },
+            "name": "Pilot Rules In Prep"
+          },
+          {
+            "current": false,
+            "event": {
+              "modifiedBy": "shengany",
+              "name": "pilot-rules-submitted",
+              "prevState": "Pilot Rules In Prep",
+              "timeStamp": "2024-03-04T21:12:32.177Z"
+            },
+            "name": "Pilot Rules Submitted"
+          },
+          {
+            "current": false,
+            "event": {
+              "modifiedBy": "sharriso",
+              "name": "pilot-rules-reviewed",
+              "prevState": "Pilot Rules Submitted",
+              "timeStamp": "2023-02-23T20:17:15.118Z"
+            },
+            "name": "Pilot Rules In Prep"
+          },
+          {
+            "current": false,
+            "event": {
+              "modifiedBy": "proberts",
+              "name": "pilot-rules-approved",
+              "prevState": "Pilot Rules Submitted",
+              "timeStamp": "2024-03-14T13:32:01.006Z"
+            },
+            "name": "Approved For Release"
+          }
+        ],
+        "title": "ClinGen PTEN Expert Panel Specifications to the ACMG/AMP Variant Interpretation Guidelines for PTEN Version 3.1.0"
+      },
+      "entId": "GN003",
+      "ld": {
+        "RuleSet": [
+          {
+            "entContent": {
+              "_uniqueProp": "003_nuclear_PTEN",
+              "geneType": "nuclear",
+              "generalComments": "Minor Changes:\n1. Correct SpliceAI cutoff for BP4 rule   \n2. Correct the Rules for Combining Criteria\n3. Add BLOSUM matrix, Cleveland Clinic core and Pediatric score tables",
+              "genes": [
+                {
+                  "diseases": [],
+                  "gene": "PTEN"
+                }
+              ],
+              "ns": "003",
+              "references": [
+                {
+                  "auths": [
+                    "Costa HA",
+                    "Leitner MG",
+                    "et al."
+                  ],
+                  "doiStr": "10.1073/pnas.1422504112",
+                  "id": "26504226",
+                  "iss": "(45)",
+                  "namespace": "pmid",
+                  "pages": "p. 13976-81.",
+                  "source": "Proc Natl Acad Sci U S A",
+                  "title": "Discovery and functional characterization of a neomorphic PTEN mutation.",
+                  "vol": "112",
+                  "year": "2015"
+                },
+                {
+                  "auths": [
+                    "Gil A",
+                    "Rodríguez-Escudero I",
+                    "et al."
+                  ],
+                  "doiStr": "10.1371/journal.pone.0119287",
+                  "id": "25875300",
+                  "iss": "(4)",
+                  "namespace": "pmid",
+                  "pages": "p. e0119287.",
+                  "source": "PLoS One",
+                  "title": "A functional dissection of PTEN N-terminus: implications in PTEN subcellular targeting and tumor suppressor activity.",
+                  "vol": "10",
+                  "year": "2015"
+                },
+                {
+                  "auths": [
+                    "Han SY",
+                    "Kato H",
+                    "et al."
+                  ],
+                  "doiStr": "",
+                  "id": "10866302",
+                  "iss": "(12)",
+                  "namespace": "pmid",
+                  "pages": "p. 3147-51.",
+                  "source": "Cancer Res",
+                  "title": "Functional evaluation of PTEN missense mutations using in vitro phosphoinositide phosphatase assay.",
+                  "vol": "60",
+                  "year": "2000"
+                },
+                {
+                  "auths": [
+                    "He X",
+                    "Saji M",
+                    "et al."
+                  ],
+                  "doiStr": "10.1210/jc.2012-1991",
+                  "id": "22962422",
+                  "iss": "(11)",
+                  "namespace": "pmid",
+                  "pages": "p. E2179-87.",
+                  "source": "J Clin Endocrinol Metab",
+                  "title": "PTEN lipid phosphatase activity and proper subcellular localization are necessary and sufficient for down-regulating AKT phosphorylation in the nucleus in Cowden syndrome.",
+                  "vol": "97",
+                  "year": "2012"
+                },
+                {
+                  "auths": [
+                    "Henikoff S",
+                    "Henikoff JG"
+                  ],
+                  "doiStr": "10.1073/pnas.89.22.10915",
+                  "id": "1438297",
+                  "iss": "(22)",
+                  "namespace": "pmid",
+                  "pages": "p. 10915-9.",
+                  "source": "Proc Natl Acad Sci U S A",
+                  "title": "Amino acid substitution matrices from protein blocks.",
+                  "vol": "89",
+                  "year": "1992"
+                },
+                {
+                  "auths": [
+                    "Lobo GP",
+                    "Waite KA",
+                    "et al."
+                  ],
+                  "doiStr": "10.1093/hmg/ddp220",
+                  "id": "19457929",
+                  "iss": "(15)",
+                  "namespace": "pmid",
+                  "pages": "p. 2851-62.",
+                  "source": "Hum Mol Genet",
+                  "title": "Germline and somatic cancer-associated mutations in the ATP-binding motifs of PTEN influence its subcellular localization and tumor suppressive function.",
+                  "vol": "18",
+                  "year": "2009"
+                },
+                {
+                  "auths": [
+                    "Malek M",
+                    "Kielkowska A",
+                    "et al."
+                  ],
+                  "doiStr": "10.1016/j.molcel.2017.09.024",
+                  "id": "29056325",
+                  "iss": "(3)",
+                  "namespace": "pmid",
+                  "pages": "p. 566-580.e10.",
+                  "source": "Mol Cell",
+                  "title": "PTEN Regulates PI(3,4)P(2) Signaling Downstream of Class I PI3K.",
+                  "vol": "68",
+                  "year": "2017"
+                },
+                {
+                  "auths": [
+                    "Mighell TL",
+                    "Evans-Dutson S",
+                    "et al."
+                  ],
+                  "doiStr": "10.1016/j.ajhg.2018.03.018",
+                  "id": "29706350",
+                  "iss": "(5)",
+                  "namespace": "pmid",
+                  "pages": "p. 943-955.",
+                  "source": "Am J Hum Genet",
+                  "title": "A Saturation Mutagenesis Approach to Understanding PTEN Lipid Phosphatase Activity and Genotype-Phenotype Relationships.",
+                  "vol": "102",
+                  "year": "2018"
+                },
+                {
+                  "auths": [
+                    "Myers MP",
+                    "Pass I",
+                    "et al."
+                  ],
+                  "doiStr": "10.1073/pnas.95.23.13513",
+                  "id": "9811831",
+                  "iss": "(23)",
+                  "namespace": "pmid",
+                  "pages": "p. 13513-8.",
+                  "source": "Proc Natl Acad Sci U S A",
+                  "title": "The lipid phosphatase activity of PTEN is critical for its tumor supressor function.",
+                  "vol": "95",
+                  "year": "1998"
+                },
+                {
+                  "auths": [
+                    "Richards S",
+                    "Aziz N",
+                    "et al."
+                  ],
+                  "doiStr": "10.1038/gim.2015.30",
+                  "id": "25741868",
+                  "iss": "(5)",
+                  "namespace": "pmid",
+                  "pages": "p. 405-24.",
+                  "source": "Genet Med",
+                  "title": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology.",
+                  "vol": "17",
+                  "year": "2015"
+                },
+                {
+                  "auths": [
+                    "Rodríguez-Escudero I",
+                    "Oliver MD",
+                    "et al."
+                  ],
+                  "doiStr": "10.1093/hmg/ddr337",
+                  "id": "21828076",
+                  "iss": "(21)",
+                  "namespace": "pmid",
+                  "pages": "p. 4132-42.",
+                  "source": "Hum Mol Genet",
+                  "title": "A comprehensive functional analysis of PTEN mutations: implications in tumor- and autism-related syndromes.",
+                  "vol": "20",
+                  "year": "2011"
+                },
+                {
+                  "auths": [
+                    "Spinelli L",
+                    "Black FM",
+                    "et al."
+                  ],
+                  "doiStr": "10.1136/jmedgenet-2014-102803",
+                  "id": "25527629",
+                  "iss": "(2)",
+                  "namespace": "pmid",
+                  "pages": "p. 128-34.",
+                  "source": "J Med Genet",
+                  "title": "Functionally distinct groups of inherited PTEN mutations in autism and tumour syndromes.",
+                  "vol": "52",
+                  "year": "2015"
+                },
+                {
+                  "auths": [
+                    "Stambolic V",
+                    "Suzuki A",
+                    "et al."
+                  ],
+                  "doiStr": "10.1016/s0092-8674(00)81780-8",
+                  "id": "9778245",
+                  "iss": "(1)",
+                  "namespace": "pmid",
+                  "pages": "p. 29-39.",
+                  "source": "Cell",
+                  "title": "Negative regulation of PKB/Akt-dependent cell survival by the tumor suppressor PTEN.",
+                  "vol": "95",
+                  "year": "1998"
+                },
+                {
+                  "auths": [
+                    "Tavtigian SV",
+                    "Greenblatt MS",
+                    "et al."
+                  ],
+                  "doiStr": "10.1038/gim.2017.210",
+                  "id": "29300386",
+                  "iss": "(9)",
+                  "namespace": "pmid",
+                  "pages": "p. 1054-1060.",
+                  "source": "Genet Med",
+                  "title": "Modeling the ACMG/AMP variant classification guidelines as a Bayesian classification framework.",
+                  "vol": "20",
+                  "year": "2018"
+                },
+                {
+                  "auths": [
+                    "Tan MH",
+                    "Mester J",
+                    "et al."
+                  ],
+                  "doiStr": "10.1016/j.ajhg.2010.11.013",
+                  "id": "21194675",
+                  "iss": "(1)",
+                  "namespace": "pmid",
+                  "pages": "p. 42-56.",
+                  "source": "Am J Hum Genet",
+                  "title": "A clinical scoring system for selection of patients for PTEN mutation testing is proposed on the basis of a prospective study of 3042 probands.",
+                  "vol": "88",
+                  "year": "2011"
+                }
+              ],
+              "rules": {
+                "mainRules": [
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1",
+                          "PS2_Very Strong",
+                          "PS4_Very Strong",
+                          "PM6_Very Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule1, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Strong",
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PM6_Strong",
+                          "PP1_Strong"
+                        ],
+                        "condition": ">=1",
+                        "label": "Rule1, Condition2",
+                        "partitionPath": "Pathogenic.Strong"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule1"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1",
+                          "PS2_Very Strong",
+                          "PS4_Very Strong",
+                          "PM6_Very Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule2, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule2, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule2"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1",
+                          "PS2_Very Strong",
+                          "PS4_Very Strong",
+                          "PM6_Very Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule3, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule3, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PP1",
+                          "PP2",
+                          "PP3"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule3, Condition3",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule3"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1",
+                          "PS2_Very Strong",
+                          "PS4_Very Strong",
+                          "PM6_Very Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule4, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PP1",
+                          "PP2",
+                          "PP3"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule4, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule4"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Strong",
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PM6_Strong",
+                          "PP1_Strong"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule5, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule5"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Strong",
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PM6_Strong",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule6, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": ">=3",
+                        "label": "Rule6, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule6"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Strong",
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PM6_Strong",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule7, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==2",
+                        "label": "Rule7, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PP1",
+                          "PP2",
+                          "PP3"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule7, Condition3",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule7"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Strong",
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PM6_Strong",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule8, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule8, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PP1",
+                          "PP2",
+                          "PP3"
+                        ],
+                        "condition": ">=4",
+                        "label": "Rule8, Condition3",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Pathogenic",
+                    "rule": "Rule8"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1",
+                          "PS2_Very Strong",
+                          "PS4_Very Strong",
+                          "PM6_Very Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule10, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule10, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule10"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Strong",
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PM6_Strong",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule11, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule11, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule11"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Strong",
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PM6_Strong",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule12, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PP1",
+                          "PP2",
+                          "PP3"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule12, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule12"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": ">=3",
+                        "label": "Rule13, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule13"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==2",
+                        "label": "Rule14, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PP1",
+                          "PP2",
+                          "PP3"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule14, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule14"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule15, Condition1",
+                        "partitionPath": "Pathogenic.Moderate"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PP1",
+                          "PP2",
+                          "PP3"
+                        ],
+                        "condition": ">=4",
+                        "label": "Rule15, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule15"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Strong",
+                          "PS1",
+                          "PS2",
+                          "PS3",
+                          "PS4",
+                          "PM6_Strong",
+                          "PP1_Strong"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule20, Condition1",
+                        "partitionPath": "Pathogenic.Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1_Moderate",
+                          "PS3_Moderate",
+                          "PS4_Moderate",
+                          "PM1",
+                          "PM4",
+                          "PM5",
+                          "PM6",
+                          "PP1_Moderate"
+                        ],
+                        "condition": "==2",
+                        "label": "Rule20, Condition2",
+                        "partitionPath": "Pathogenic.Moderate"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule20"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "BS1",
+                          "BS2",
+                          "BS3",
+                          "BS4"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule16, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      }
+                    ],
+                    "inference": "Benign",
+                    "rule": "Rule16"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "BA1"
+                        ],
+                        "condition": "==1",
+                        "label": "Rule17, Condition1",
+                        "partitionPath": "Benign.Stand Alone"
+                      }
+                    ],
+                    "inference": "Benign",
+                    "rule": "Rule17"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "BS1_Supporting",
+                          "BS2_Supporting",
+                          "BS3_Supporting",
+                          "BS4_Supporting",
+                          "BP2",
+                          "BP4",
+                          "BP5",
+                          "BP7"
+                        ],
+                        "condition": ">=2",
+                        "label": "Rule19, Condition1",
+                        "partitionPath": "Benign.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Benign",
+                    "rule": "Rule19"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "BS1",
+                          "BS2",
+                          "BS3",
+                          "BS4"
+                        ],
+                        "condition": "==1",
+                        "getpartitionPath": "",
+                        "label": "Rule20, Condition1",
+                        "partitionPath": "Benign.Strong"
+                      }
+                    ],
+                    "inference": "Likely Benign",
+                    "rule": "Rule20"
+                  },
+                  {
+                    "conditions": [
+                      {
+                        "applicableCriteriaCodes": [
+                          "PVS1",
+                          "PS2_Very Strong",
+                          "PS4_Very Strong",
+                          "PM6_Very Strong"
+                        ],
+                        "condition": "==1",
+                        "getpartitionPath": "",
+                        "label": "Rule20, Condition1",
+                        "partitionPath": "Pathogenic.Very Strong"
+                      },
+                      {
+                        "applicableCriteriaCodes": [
+                          "PS3_Supporting",
+                          "PS4_Supporting",
+                          "PM2_Supporting",
+                          "PP1",
+                          "PP2",
+                          "PP3"
+                        ],
+                        "condition": "==1",
+                        "getpartitionPath": "",
+                        "label": "Rule20, Condition2",
+                        "partitionPath": "Pathogenic.Supporting"
+                      }
+                    ],
+                    "inference": "Likely Pathogenic",
+                    "rule": "Rule20"
+                  }
+                ]
+              }
+            },
+            "entType": "RuleSet",
+            "ldhId": "135640513",
+            "ldhIri": "https://cspec.genome.network/cspec/RuleSet/id/135640513",
+            "modified": "2024-03-14T15:55:28.514Z",
+            "modifier": "shengany",
+            "rev": "_inf5BHW--w"
+          }
+        ]
+      },
+      "ldFor": {
+        "Organization": [
+          {
+            "entContent": {
+              "approval": {
+                "step1": {
+                  "approved": true
+                },
+                "step2": {
+                  "approved": true
+                },
+                "step3": {
+                  "approvalDate": "2018-08-29T00:00:00.000Z",
+                  "approved": true
+                },
+                "step4": {
+                  "approvalDate": "2018-08-29T00:00:00.000Z",
+                  "approved": true
+                }
+              },
+              "curationActivity": "Variant Pathogenicity",
+              "fullBaseName": "PTEN",
+              "shortBaseName": "PTEN",
+              "shortTitle": "PTEN VCEP",
+              "title": "PTEN Variant Curation Expert Panel",
+              "type": "Variant Curation Expert Panel"
+            },
+            "entId": "50012",
+            "entIri": "http://clinicalgenome.org/affiliation/50012",
+            "entType": "Organization",
+            "ldhId": "135637636",
+            "ldhIri": "https://cspec.genome.network/cspec/Organization/id/135637636",
+            "modified": "2023-04-07T14:55:06.014Z",
+            "modifier": "cspecAdministrator",
+            "rev": "_inf5B_----"
+          }
+        ]
+      },
+      "ldhId": "135637575"
+    }
+  ],
+  "metadata": {
+    "rendered": {
+      "by": "https://cspec.genome.network/cspec/srvc",
+      "when": "2026-01-17T06:49:29.962Z"
+    }
+  },
+  "status": {
+    "code": 200,
+    "name": "OK"
+  }
+}
