@@ -2,6 +2,7 @@
 #define QUEUINGENGINECONTROLLERGENERIC_H
 
 #include "QueuingEngineController.h"
+#include "QueuingEngineApiHelper.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -22,7 +23,6 @@ protected:
 private:
 	QNetworkProxy proxy_;
 	QString qe_api_base_url_;
-	static QJsonObject convertAnalysisJobToJson(const AnalysisJob job);
 };
 
 

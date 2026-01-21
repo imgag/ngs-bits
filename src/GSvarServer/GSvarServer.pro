@@ -2,7 +2,7 @@ QT += core
 QT += network
 QT -= gui
 QT += sql
-QT += httpserver
+QT += httpserver websockets
 
 QTPLUGIN += QSQLMYSQL
 
@@ -26,7 +26,6 @@ DEFINES += "SERVER_VERSION=$$SVN_VER"
 
 SOURCES += \
         BlatInitWorker.cpp \
-        MockServer.cpp \
         QueuingEngineController.cpp \
         QueuingEngineControllerGeneric.cpp \
         QueuingEngineControllerSge.cpp \
@@ -42,7 +41,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     BlatInitWorker.h \
-    MockServer.h \
     QueuingEngineController.h \
     QueuingEngineControllerGeneric.h \
     QueuingEngineControllerSge.h \

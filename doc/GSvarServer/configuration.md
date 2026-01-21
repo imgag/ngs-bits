@@ -44,75 +44,51 @@ These are the seettings for the database:
 
 ## Using queuing engine HTTP API
 
-The endpoint can perform the following actions:
+The endpoint can perform the actions listed below. For each action you will need to submit a JSON object formatted in a specific way:
 
 1. `submit` (**POST** request) - Submits a new job
     
     ```
     {
         "action": "submit",
-        "threads": threads,
-        "queues": queues,
-        "pipeline_args": pipeline_args,
-        "project_folder": project_folder,
-        "script": script,
-        "job_id": job_id
+        "threads": number of threads to be used for running the analyisis,
+        "queues": [list of queues],
+        "script": pipeline script,
+        "pipeline_args": [list of command line arguments for the pipeline script],
+        "project_folder": project folder where the sample is stored,
+        "job_id": id from the analysis_job table in NGSD database (used by GSvar)
     }
     ```
+
 2. `update` (**POST** request) - Updates the status of a running job
     ```
     {
         "action": "update",
-        "job": {
-            "type": job.type,
-            "high_priority": job.high_priority,
-            "use_dragen": job.use_dragen,
-            "args": job.args,
-            "sge_id": job.sge_id,
-            "sge_queue": job.sge_queue,
-            "samples":
-            [
-                {
-                    "name": sample.name,
-                    "info": sample.info
-                }
-                ...
-            ],
-            "history":
-            [
-                {
-                    "time": history.timeAsString(),
-                    "user": history.user,
-                    "status": history.status,
-                    "output": QJsonArray::fromStringList(history.output)
-                }
-                ...
-            ]
-        },
-        "job_id": job_id
+        "qe_job_id": queuing engine job id,
+        "qe_job_queue": queuing engine job queue,
+        "job_id": id from the analysis_job table in NGSD database
     }
     ```
 
 3. `check` (**POST** request) - Performs job accounting after completion
     ```
-        {
-            "action": "check",
-            "qe_job_id": qe_job_id,
-            "stdout_stderr": json_stdout_stderr,
-            "job_id": job_id
-        }
+    {
+        "action": "check",
+        "qe_job_id": queuing engine job id,
+        "stdout_stderr": standard output that contains error messages (if there were errors),
+        "job_id": id from the analysis_job table in NGSD database
+    }
     ```
 
 4. `delete` (**POST** request) - Deletes a job
     ```
-        {
-            "action": "delete",
-            "job": analysis_job_json_object,
-            "job_id": job_id
-        }
+    {
+        "action": "delete",
+        "qe_job_id": queuing engine job id,
+        "qe_job_type": queuing engine job type (single sample/trio/multi sample/somatic),
+        "job_id": id from the analysis_job table in NGSD database
+    }
     ```
-
-
 
 ## Configuring GSvar
 

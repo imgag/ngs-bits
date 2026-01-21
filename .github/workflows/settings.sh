@@ -51,6 +51,7 @@ echo "thread_count = 2" >> ./bin/GSvarServer-TEST.ini
 echo "socket_read_timeout = 10" >> ./bin/GSvarServer-TEST.ini
 echo "socket_write_timeout = 10" >> ./bin/GSvarServer-TEST.ini
 echo "socket_encryption_timeout = 5" >> ./bin/GSvarServer-TEST.ini
+echo "qe_api_base_url = \"http://localhost:8000\"" >> ./bin/GSvarServer-TEST.ini
 cp ./bin/GSvarServer-TEST.ini ./bin/GSvarServer.ini
 
 sed -i '/CRYPT/d' src/cppCORE/cppCORE.pro
