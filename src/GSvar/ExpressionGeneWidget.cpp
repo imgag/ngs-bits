@@ -13,15 +13,7 @@
 #include "IgvSessionManager.h"
 #include <QDialogButtonBox>
 #include <QTextEdit>
-
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
-#else
-#include <QChartView>
-QT_CHARTS_USE_NAMESPACE
-#endif
-
 
 ExpressionGeneWidget::ExpressionGeneWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
 										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QWidget *parent) :

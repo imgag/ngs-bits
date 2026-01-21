@@ -138,6 +138,7 @@ public slots:
 
 	///NGSD menu
 	void on_actionStatistics_triggered();
+	void on_actionShowDatabaseInfo_triggered();
 	void on_actionDevice_triggered();
 	void on_actionGenome_triggered();
 	void on_actionMID_triggered();
@@ -463,7 +464,7 @@ public slots:
 	///Clears somatic report settings
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
 
-	///Edit somatic variant interpretation (VICC consortium)
+	///Edit somatic variant interpretation (VICC)
 	void editSomaticVariantInterpretation(const VariantList& vl, int index);
 	///Updates somatic variant interpreation annotation for specific variant of GSvar file
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);

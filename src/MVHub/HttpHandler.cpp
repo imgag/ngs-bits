@@ -9,7 +9,6 @@
 #include <QHttpMultiPart>
 #include <QMessageBox>
 
-
 HttpHandler::HttpHandler(bool internal, QObject* parent)
 	: QObject(parent)
 	, internal_(internal)

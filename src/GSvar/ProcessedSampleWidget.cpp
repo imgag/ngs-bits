@@ -3,7 +3,6 @@
 #include "DBQCWidget.h"
 #include "GUIHelper.h"
 #include "DiagnosticStatusWidget.h"
-#include "DiseaseInfoWidget.h"
 #include "SampleDiseaseInfoWidget.h"
 #include "SampleRelationDialog.h"
 #include "ProcessedSampleDataDeletionDialog.h"
@@ -24,6 +23,9 @@
 #include <QDesktopServices>
 #include <QInputDialog>
 #include "Settings.h"
+#include "CircosPlotWidget.h"
+#include "ClientHelper.h"
+#include "FileLocationProviderRemote.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: TabBaseClass(parent)
@@ -57,7 +59,10 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
 	connect(ui_->analysis_info_btn, SIGNAL(clicked(bool)), this, SLOT(showAnalysisInfo()));
+	connect(ui_->circos_btn, SIGNAL(clicked(bool)), this, SLOT(showCircosPlot()));
 	connect(ui_->genlab_import_btn, SIGNAL(clicked(bool)), this, SLOT(genLabImportDialog()));
+
+	ui_->qcml_btn->setEnabled(ClientHelper::isClientServerMode());
 	ui_->genlab_import_btn->setEnabled(GenLabDB::isAvailable());
 
 	//check user has access rights
@@ -144,6 +149,12 @@ void ProcessedSampleWidget::delayedInitialization()
 		menu->addSeparator();
     }
 	ui_->igv_btn->setMenu(menu);
+
+	//check if circos plot is present
+	if (GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::CIRCOS_PLOT).exists)
+	{
+		ui_->circos_btn->setEnabled(true);
+	}
 
     //init RNA menu
     ui_->rna_btn->setEnabled(false);
@@ -293,7 +304,7 @@ void ProcessedSampleWidget::updateGUI()
 			}
 		}
 		dd_table.setColumn(dd_table.columnIndex("disease_info"), info_entries);
-		ui_->disease_details->setData(dd_table);
+		ui_->disease_details->setData(dd_table, 800);
 		GUIHelper::resizeTableHeight(ui_->disease_details);
 
 		//#### sample relations ####
@@ -487,8 +498,8 @@ void ProcessedSampleWidget::openSampleFolder()
 
 void ProcessedSampleWidget::openSampleQcFiles()
 {
-	const FileLocationProvider& flp = GlobalServiceProvider::fileLocationProvider();
-
+	FileLocation location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);
+	FileLocationProviderRemote flp = FileLocationProviderRemote(location.filename);
 	foreach(const FileLocation& file, flp.getQcFiles())
 	{
 		if (flp.isLocal())
@@ -756,6 +767,17 @@ void ProcessedSampleWidget::openIgvTrack()
 
 	QString file = GlobalServiceProvider::database().processedSamplePath(ps_id_, type).filename;
     IgvSessionManager::get(0).loadFileInIGV(file, false);
+}
+
+void ProcessedSampleWidget::showCircosPlot()
+{
+	NGSD db;
+	QString filename = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::CIRCOS_PLOT).filename;
+
+	//show plot
+	CircosPlotWidget* widget = new CircosPlotWidget(filename);
+	auto dlg = GUIHelper::createDialog(widget, "Circos Plot of " + db.processedSampleName(ps_id_));
+	dlg->exec();
 }
 
 void ProcessedSampleWidget::somRepDeleted()

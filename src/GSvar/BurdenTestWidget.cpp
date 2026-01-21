@@ -265,7 +265,7 @@ void BurdenTestWidget::validateInputData()
 	}
 
 	// check overlap (samples)
-    overlap = LIST_TO_SET(sample_ids_cases.keys()) & LIST_TO_SET(sample_ids_controls.keys());
+    overlap = Helper::listToSet(sample_ids_cases.keys()) & Helper::listToSet(sample_ids_controls.keys());
 	if(overlap.size() > 0)
 	{
 		QStringList sample_names;
@@ -289,7 +289,7 @@ void BurdenTestWidget::validateInputData()
 	{
 		if(sample_ids_cases.value(s_id).size() > 1)
 		{
-            QSet<int> ps_ids = LIST_TO_SET(sample_ids_cases.value(s_id));
+            QSet<int> ps_ids = Helper::listToSet(sample_ids_cases.value(s_id));
 			QStringList ps_list;
 			foreach (int id, ps_ids) ps_list << db_.processedSampleName(QString::number(id));
 			int ps_id = getNewestProcessedSample(ps_ids);
@@ -307,7 +307,7 @@ void BurdenTestWidget::validateInputData()
 	{
 		if(sample_ids_controls.value(s_id).size() > 1)
 		{
-            QSet<int> ps_ids = LIST_TO_SET(sample_ids_controls.value(s_id));
+            QSet<int> ps_ids = Helper::listToSet(sample_ids_controls.value(s_id));
 			QStringList ps_list;
 			foreach (int id, ps_ids) ps_list << db_.processedSampleName(QString::number(id));
 			int ps_id = getNewestProcessedSample(ps_ids);
@@ -333,7 +333,7 @@ void BurdenTestWidget::validateInputData()
 		QSet<int> same_samples = db_.sameSamples(s_id, SameSampleMode::SAME_PATIENT);
 		//add sample itself
 		same_samples.insert(s_id);
-        QSet<int> same_sample_overlap = same_samples & LIST_TO_SET(sample_ids_cases.keys());
+        QSet<int> same_sample_overlap = same_samples & Helper::listToSet(sample_ids_cases.keys());
 		if (same_sample_overlap.size() > 1)
 		{
 			QStringList same_sample_list;
@@ -347,7 +347,7 @@ void BurdenTestWidget::validateInputData()
 			warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "cases" << "same-sample/same-patient relation" << same_sample_list.join(", ") << db_.sampleName(QString::number(newest_s_id)));
 		}
 		//check controls and remove all overlaps
-        same_sample_overlap = same_samples & LIST_TO_SET(sample_ids_controls.keys());
+        same_sample_overlap = same_samples & Helper::listToSet(sample_ids_controls.keys());
 		if (same_sample_overlap.size() > 0)
 		{
 			QStringList same_sample_list;
@@ -381,7 +381,7 @@ void BurdenTestWidget::validateInputData()
 		QSet<int> same_samples = db_.sameSamples(s_id, SameSampleMode::SAME_PATIENT);
 		//add sample itself
 		same_samples.insert(s_id);
-        QSet<int> same_sample_overlap = same_samples & LIST_TO_SET(sample_ids_controls.keys());
+        QSet<int> same_sample_overlap = same_samples & Helper::listToSet(sample_ids_controls.keys());
 		if (same_sample_overlap.size() > 1)
 		{
 			//add sample itself
@@ -415,7 +415,7 @@ void BurdenTestWidget::validateInputData()
 		stati_to_remove << "Unaffected" << "n/a";
 		foreach (const QString& relation, relation_types)
 		{
-            QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  LIST_TO_SET(sample_ids_cases.keys());
+            QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  Helper::listToSet(sample_ids_cases.keys());
 			if (related_sample_overlap.size() > 1)
 			{
 				QStringList related_sample_list;
@@ -442,7 +442,7 @@ void BurdenTestWidget::validateInputData()
 			}
 
 			//check/remove related samples from controls
-            related_sample_overlap = db_.relatedSamples(s_id, relation) &  LIST_TO_SET(sample_ids_controls.keys());
+            related_sample_overlap = db_.relatedSamples(s_id, relation) &  Helper::listToSet(sample_ids_controls.keys());
 			if (related_sample_overlap.size() > 1)
 			{
 				QStringList related_sample_list;
@@ -478,7 +478,7 @@ void BurdenTestWidget::validateInputData()
 		stati_to_remove << "Affected";
 		foreach (const QString& relation, relation_types)
 		{
-            QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  LIST_TO_SET(sample_ids_controls.keys());
+            QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  Helper::listToSet(sample_ids_controls.keys());
 			if (related_sample_overlap.size() > 1)
 			{
 				QStringList related_sample_list;
@@ -577,11 +577,11 @@ void BurdenTestWidget::validateInputData()
 	QSet<int> control_samples_to_keep;
 	foreach(int s_id, sample_ids_cases.keys())
 	{
-        case_samples_to_keep += LIST_TO_SET(sample_ids_cases.value(s_id));
+        case_samples_to_keep += Helper::listToSet(sample_ids_cases.value(s_id));
 	}
 	foreach(int s_id, sample_ids_controls.keys())
 	{
-        control_samples_to_keep += LIST_TO_SET(sample_ids_controls.value(s_id));
+        control_samples_to_keep += Helper::listToSet(sample_ids_controls.value(s_id));
 	}
 
 	QSet<int> case_samples_to_remove = case_samples_.subtract(case_samples_to_keep);
@@ -1105,8 +1105,8 @@ void BurdenTestWidget::performBurdenTest()
 //			std::sort(ps_names_controls_cnv.begin(), ps_names_controls_cnv.end());
 
 			//get combined counts
-            int n_cases_combined = (LIST_TO_SET(ps_names_cases.keys()) + LIST_TO_SET(ps_names_cases_cnv.keys())).size();
-            int n_controls_combined = (LIST_TO_SET(ps_names_controls.keys()) + LIST_TO_SET(ps_names_controls_cnv.keys())).size();
+            int n_cases_combined = (Helper::listToSet(ps_names_cases.keys()) + Helper::listToSet(ps_names_cases_cnv.keys())).size();
+            int n_controls_combined = (Helper::listToSet(ps_names_controls.keys()) + Helper::listToSet(ps_names_controls_cnv.keys())).size();
 
 			//calculate p-value (fisher) (SNPs only)
 			p_value = BasicStatistics::fishersExactTest(n_cases_combined, n_controls_combined, case_samples_.size(), control_samples_.size(), "greater");
@@ -1338,7 +1338,7 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 			if(rc_id < 0) continue;
 
 			//get all de-novo variants of this sample
-            QSet<int> de_novo_var_ids = LIST_TO_SET(db_.getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE de_novo=TRUE AND report_configuration_id=:0", QString::number(rc_id)));
+            QSet<int> de_novo_var_ids = Helper::listToSet(db_.getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE de_novo=TRUE AND report_configuration_id=:0", QString::number(rc_id)));
 			intersection = intersection.intersect(de_novo_var_ids);
 
 			//no de-novo variants

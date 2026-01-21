@@ -10,18 +10,19 @@ namespace Ui
 class SomaticVariantInterpreterWidget;
 }
 
-class SomaticVariantInterpreterWidget : public QWidget
+class SomaticVariantInterpreterWidget
+	: public QWidget
 {
 	Q_OBJECT
 public:
-	explicit SomaticVariantInterpreterWidget(int variant_index, const VariantList& vl,  QWidget *parent = nullptr);
+	SomaticVariantInterpreterWidget(QWidget* parent, int variant_index, const VariantList& vl);
 	~SomaticVariantInterpreterWidget();
 
 private:
 	Ui::SomaticVariantInterpreterWidget* ui_;
 
 	int variant_index_;
-	const Variant& snv_;
+	const Variant& variant_;
 	const VariantList& vl_;
 
 	///sets selection for a group of radiobuttons by name
@@ -36,8 +37,6 @@ private:
 signals:
 	///signal should be emitted when report was stored
 	void stored(int variant_index, QString result, QString comment);
-	///signal should be emitted if the dialog should be closed
-	void closeDialog();
 
 public slots:
 	void disableNGSD();
@@ -60,6 +59,8 @@ private slots:
 	void storeInNGSD();
 	///stores/updates VICC interpretation in NGSD and closes the window after
 	void storeAndClose();
+	///deletes VICC interpretation from NGSD
+	void deleteFromNGSD();
 	///preselects radiobutton according parameters in input SomaticViccData
 	void preselect(const SomaticViccData& data);
 	///sets qt labels for metadata stored in NGSD (created by, comment...)

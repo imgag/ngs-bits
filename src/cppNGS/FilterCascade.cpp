@@ -69,13 +69,7 @@ bool FilterParameter::operator==(const FilterParameter& rhs) const
 {
 	if (name!=rhs.name) return false;
 	if (type!=rhs.type) return false;
-
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     if (value.metaType()!=rhs.value.metaType()) return false;
-    #else
-    if (value.type()!=rhs.value.type()) return false;
-    #endif
-
 	if (valueAsString()!=rhs.valueAsString()) return false;
 
 	return true;
@@ -330,7 +324,7 @@ void FilterBase::setGeneric(const QString& name, const QString& value)
 	}
 	else if (type==FilterParameterType::STRINGLIST)
 	{
-        setStringList(name, value.split(',', QT_SKIP_EMPTY_PARTS));
+        setStringList(name, value.split(',', Qt::SkipEmptyParts));
 	}
 	else
 	{
@@ -542,7 +536,7 @@ QStringList FilterBase::getStringList(const QString& name, bool check_constraint
 		if (p.constraints.contains("valid"))
 		{
 			QStringList valid = p.constraints["valid"].split(',');
-            for (const QString& value : list)
+			for (const QString& value : std::as_const(list))
 			{
 				if (!valid.contains(value))
 				{
@@ -2553,7 +2547,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
 	//pre-calculate genes with heterozygous variants
-    QSet<QString> types = LIST_TO_SET(getStringList("types"));
+    QSet<QString> types = Helper::listToSet(getStringList("types"));
 	GeneSet genes_comphet;
 	if (types.contains("comp-het"))
 	{
@@ -2865,13 +2859,15 @@ FilterCnvSize::FilterCnvSize()
 	description_ = QStringList() << "Filter for CNV size (kilobases).";
 	params_ << FilterParameter("size", FilterParameterType::DOUBLE, 0.0, "Minimum CNV size in kilobases");
 	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "FILTER,KEEP";
 
 	checkIsRegistered();
 }
 
 QString FilterCnvSize::toText() const
 {
-	return name() + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
+	return name() + " " + getString("action") + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
 }
 
 void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
@@ -2879,14 +2875,33 @@ void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
 	if (!enabled_) return;
 
 	double min_size_bases = getDouble("size") * 1000.0;
-	for(int i=0; i<cnvs.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
 
-		if (cnvs[i].size() < min_size_bases)
+	QString action = getString("action");
+	if (action=="FILTER")
+	{
+		for(int i=0; i<cnvs.count(); ++i)
 		{
-			result.flags()[i] = false;
+			if (!result.flags()[i]) continue;
+
+			if (cnvs[i].size() < min_size_bases)
+			{
+				result.flags()[i] = false;
+			}
 		}
+	}
+	else if (action=="KEEP")
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (cnvs[i].size() >= min_size_bases)
+			{
+				result.flags()[i] = true;
+			}
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Invalid action '" + action +"'provided!");
 	}
 }
 
@@ -3889,7 +3904,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 {
 	if (!enabled_) return;
 
-    QSet<QString> filter_entries = LIST_TO_SET(getStringList("entries"));
+    QSet<QString> filter_entries = Helper::listToSet(getStringList("entries"));
 	QString action = getString("action");
 	int filter_col_index = svs.annotationIndexByName("FILTER");
 
@@ -3899,7 +3914,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		{
 			if (!result.flags()[i]) continue;
 
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3912,7 +3927,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		{
 			if (!result.flags()[i]) continue;
 
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3923,7 +3938,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 	{
 		for(int i=0; i<svs.count(); ++i)
 		{
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = true;
@@ -4831,7 +4846,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
     //pre-calculate genes with heterozygous variants
-    QSet<QString> types = LIST_TO_SET(getStringList("types"));
+    QSet<QString> types = Helper::listToSet(getStringList("types"));
     GeneSet genes_comphet;
     if (types.contains("comp-het"))
     {

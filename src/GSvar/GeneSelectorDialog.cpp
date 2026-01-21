@@ -273,11 +273,7 @@ GeneSet GeneSelectorDialog::genesForVariants()
 	return output;
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
 void GeneSelectorDialog::setGeneTableItem(int row, int col, QString text, Qt::Alignment alignment, Qt::ItemFlags flags)
-#else
-void GeneSelectorDialog::setGeneTableItem(int row, int col, QString text, int alignment, Qt::ItemFlags flags)
-#endif
 {
 	auto item = new QTableWidgetItem(text);
 
@@ -287,12 +283,7 @@ void GeneSelectorDialog::setGeneTableItem(int row, int col, QString text, int al
 		item->setCheckState(Qt::Unchecked);
 	}
 
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    item->setTextAlignment(Qt::Alignment(Qt::AlignVCenter|alignment));
-    #else
-	item->setTextAlignment(Qt::AlignVCenter|alignment);
-    #endif
-
+    item->setTextAlignment(Qt::Alignment(Qt::AlignVCenter|alignment));    
 	ui->details->setItem(row, col, item);
 }
 

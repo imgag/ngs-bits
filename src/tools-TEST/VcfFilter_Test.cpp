@@ -107,7 +107,7 @@ private:
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
-		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf") + " -out out/VcfFilter_out10.vcf" + " -sample GT%20is%201|1;DP%20>%20200");
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf.gz") + " -out out/VcfFilter_out10.vcf" + " -sample GT%20is%201|1;DP%20>%20200");
 		COMPARE_FILES("out/VcfFilter_out10.vcf", TESTDATA("data_out/VcfFilter_out10.vcf"));
 		VCF_IS_VALID_HG19("out/VcfFilter_out10.vcf");
 	}
@@ -116,7 +116,7 @@ private:
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
-		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf") + " -out out/VcfFilter_out11.vcf" + " -sample GT%20is%201|1;DP%20>%20200 -sample_one_match");
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf.gz") + " -out out/VcfFilter_out11.vcf" + " -sample GT%20is%201|1;DP%20>%20200 -sample_one_match");
         COMPARE_FILES("out/VcfFilter_out11.vcf", TESTDATA("data_out/VcfFilter_out11.vcf"));
 		VCF_IS_VALID_HG19("out/VcfFilter_out11.vcf");
     }

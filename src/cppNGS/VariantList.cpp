@@ -423,7 +423,7 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index, int gt_index) const
 	//add genotype info if column in GSvar file is kown
 	if (gt_index!=-1)
 	{
-		//check colum exists
+		//check column exists
 		if (gt_index>=annotations().count()) THROW(ProgrammingException, "Invalid genotype column index given: '" + QString::number(gt_index) + "'");
 
 		//convert genotype
@@ -938,12 +938,8 @@ void VariantList::store(QString filename) const
 {
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
-	QTextStream stream(file.data());
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	QTextStream stream(file.data());    
     stream.setEncoding(QStringConverter::Utf8);
-    #else
-    stream.setCodec("UTF-8");
-    #endif
 
 	//comments
 	if (comments_.count()>0)

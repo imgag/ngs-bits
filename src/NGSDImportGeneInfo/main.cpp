@@ -32,7 +32,7 @@ public:
 		db.tableExists("geneinfo_germline");
 
 		//update gene names to approved symbols
-        out << "Updating gene names..." << QT_ENDL;
+        out << "Updating gene names..." << Qt::endl;
 		{
 			SqlQuery query = db.getQuery();
 			query.exec("SELECT symbol FROM geneinfo_germline WHERE symbol NOT IN (SELECT symbol FROM gene)");
@@ -42,14 +42,14 @@ public:
 				auto approved = db.geneToApprovedWithMessage(symbol);
 				if (!approved.second.startsWith("KEPT:"))
 				{
-                    out << "  skipped " << symbol << ": " << approved.second << QT_ENDL;
+                    out << "  skipped " << symbol << ": " << approved.second << Qt::endl;
 				}
 			}
-            out << QT_ENDL;
+            out << Qt::endl;
 		}
 
 		//import gnomAD o/e scores
-        out << "Importing gnomAD constraints..." << QT_ENDL;
+        out << "Importing gnomAD constraints..." << Qt::endl;
 		{
 			int c_inserted = 0;
 
@@ -94,7 +94,7 @@ public:
 				auto approved = db.geneToApprovedWithMessage(gene);
 				if (approved.second.startsWith("ERROR:"))
 				{
-                    out << "  skipped " << gene << ": " << approved.second << QT_ENDL;
+                    out << "  skipped " << gene << ": " << approved.second << Qt::endl;
 					continue;
 				}
 				gene = approved.first;
@@ -102,12 +102,8 @@ public:
 
 				//gnomAD o/e
 				if (parts[i_syn]=="NA" || parts[i_syn]=="NaN")
-				{
-                    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                    update_query.bindValue(1,  QVariant(QMetaType(QMetaType::Double)));
-                    #else
-                    update_query.bindValue(1,  QVariant(QVariant::Double));
-                    #endif
+				{                    
+                    update_query.bindValue(1,  QVariant(QMetaType(QMetaType::Double)));                    
 				}
 				else
 				{
@@ -115,12 +111,8 @@ public:
 				}
 
 				if (parts[i_mis]=="NA" || parts[i_mis]=="NaN")
-				{
-                    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                    update_query.bindValue(2,  QVariant(QMetaType(QMetaType::Double)));
-                    #else
-                    update_query.bindValue(2,  QVariant(QVariant::Double));
-                    #endif
+				{                    
+                    update_query.bindValue(2,  QVariant(QMetaType(QMetaType::Double)));                    
 				}
 				else
 				{
@@ -129,12 +121,7 @@ public:
 
 				if (parts[i_lof]=="NA" || parts[i_lof]=="NaN")
 				{
-                    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                    update_query.bindValue(3,  QVariant(QMetaType(QMetaType::Double)));
-                    #else
-                    update_query.bindValue(3,  QVariant(QVariant::Double));
-                    #endif
-
+					update_query.bindValue(3,  QVariant(QMetaType(QMetaType::Double)));
 				}
 				else
 				{
@@ -145,13 +132,13 @@ public:
 				++c_inserted;
 			}
 
-            out << "  imported constraint info for " << c_inserted << " genes" << QT_ENDL;
-            out << QT_ENDL;
+            out << "  imported constraint info for " << c_inserted << " genes" << Qt::endl;
+            out << Qt::endl;
 		}
 
 		//gene inheritance from HPO info
-        out << QT_ENDL;
-        out << "Setting gene inheritance based on info from HPO..." << QT_ENDL;
+        out << Qt::endl;
+        out << "Setting gene inheritance based on info from HPO..." << Qt::endl;
 		{
 
 			SqlQuery update_query = db.getQuery();
@@ -184,7 +171,7 @@ public:
 						}
 						else
 						{
-                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << Qt::endl;
 						}
 					}
 					if (mode=="X-linked dominant inheritance")
@@ -195,7 +182,7 @@ public:
 						}
 						else
 						{
-                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << Qt::endl;
 						}
 					}
 					if (mode=="Mitochondrial inheritance")
@@ -206,7 +193,7 @@ public:
 						}
 						else
 						{
-                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << Qt::endl;
 						}
 					}
 					if (mode=="Autosomal recessive inheritance")
@@ -217,7 +204,7 @@ public:
 						}
 						else
 						{
-                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << Qt::endl;
 						}
 					}
 					if (mode=="Autosomal dominant inheritance")
@@ -228,7 +215,7 @@ public:
 						}
 						else
 						{
-                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << QT_ENDL;
+                            out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << Qt::endl;
 						}
 					}
 				}
@@ -256,15 +243,15 @@ public:
 				}
 				else
 				{
-                    out << "  check inheritance manually: gene=" << gene << " chr=" << chr << " old=" << inh_old << " new=" << inh_new << QT_ENDL;
+                    out << "  check inheritance manually: gene=" << gene << " chr=" << chr << " old=" << inh_old << " new=" << inh_new << Qt::endl;
 					++c_check;
 				}
 
 			}
-            out << "  genes without inheritance info: " << c_noinfo << QT_ENDL;
-            out << "  genes with unchanged inheritance: " << c_unchanged << QT_ENDL;
-            out << "  genes with updated inheritance: " << c_update << QT_ENDL;
-            out << "  genes that require manual check: " << c_check << QT_ENDL;
+            out << "  genes without inheritance info: " << c_noinfo << Qt::endl;
+            out << "  genes with unchanged inheritance: " << c_unchanged << Qt::endl;
+            out << "  genes with updated inheritance: " << c_update << Qt::endl;
+            out << "  genes that require manual check: " << c_check << Qt::endl;
 		}
 	}
 };

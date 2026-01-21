@@ -2614,9 +2614,9 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	if (debug)
 	{
 		QTextStream out(stdout);
-        out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << QT_ENDL;
-        out << "Creating " << bed_chunks.count() << " chunks took " << Helper::elapsedTime(timer) << QT_ENDL;
-        out << "Starting processing chunks with " << threads << " threads" << QT_ENDL;
+        out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << Qt::endl;
+        out << "Creating " << bed_chunks.count() << " chunks took " << Helper::elapsedTime(timer) << Qt::endl;
+        out << "Starting processing chunks with " << threads << " threads" << Qt::endl;
 	}
 
 	//create thread pool
@@ -2628,15 +2628,15 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	{
 		if (!random_access)
 		{
-            if (debug) QTextStream(stdout) << "Creating BED index" << QT_ENDL;
+            if (debug) QTextStream(stdout) << "Creating BED index" << Qt::endl;
 			ChromosomalIndex<BedFile> bed_index(bed_file);
 
-            if (debug) QTextStream(stdout) << "Starting worker " << i << QT_ENDL;
+            if (debug) QTextStream(stdout) << "Starting worker " << i << Qt::endl;
 			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bed_index, bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
 			thread_pool.start(worker);
 
 			//wait until finished
-            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << QT_ENDL;
+            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << Qt::endl;
 			thread_pool.waitForDone();
 		}
 		else
@@ -2645,13 +2645,13 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 			thread_pool.start(worker);
 
 			//wait until finished
-            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << QT_ENDL;
+            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << Qt::endl;
 			thread_pool.waitForDone();
 		}
 	}
 
 	//debug output
-    if (debug) QTextStream(stdout) << "Writing output" << QT_ENDL;
+    if (debug) QTextStream(stdout) << "Writing output" << Qt::endl;
 
 	//check for errors and merge results
 	BedFile output;
@@ -2785,8 +2785,8 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	if (debug)
 	{
 		QTextStream out(stdout);
-        out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << QT_ENDL;
-        out << "Creating " << chunks.count() << " chunks took " << Helper::elapsedTime(timer) << QT_ENDL;
+        out << "Using '" << (random_access ? "random access" : "sweep") << "' algorithm!" << Qt::endl;
+        out << "Creating " << chunks.count() << " chunks took " << Helper::elapsedTime(timer) << Qt::endl;
 	}
 
 	//create thread pool

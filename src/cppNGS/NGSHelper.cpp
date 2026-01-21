@@ -129,7 +129,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 					}
 					else
 					{
-                        QSet<QString> parts = LIST_TO_SET(line.trimmed().split('\t'));
+                        QSet<QString> parts = Helper::listToSet(line.trimmed().split('\t'));
 						for (int i=cols.count()-1; i>=0; --i)
 						{
 							if (!parts.contains(cols[i]))
@@ -513,7 +513,7 @@ void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, in
 	simplyfied.replace(":", " ");
 	simplyfied.replace(",", "");
 	simplyfied = simplyfied.trimmed();
-    QStringList parts = simplyfied.split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS);
+    QStringList parts = simplyfied.split(QRegularExpression("\\W+"), Qt::SkipEmptyParts);
 
 	//support for chrosomome only
 	if (allow_chr_only && parts.count()==1 && Chromosome(simplyfied).isNonSpecial())
@@ -1099,24 +1099,24 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 	if (settings.print_to_stdout)
 	{
 		QTextStream out(stdout);
-        out << "Parsed " << data.transcripts.geneCount() << " genes from GFF" << QT_ENDL;
-        out << "Parsed " << data.transcripts.count() << " transcripts from GFF" << QT_ENDL;
+        out << "Parsed " << data.transcripts.geneCount() << " genes from GFF" << Qt::endl;
+        out << "Parsed " << data.transcripts.count() << " transcripts from GFF" << Qt::endl;
 		if (c_skipped_special_chr>0)
 		{
-            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " genes on special chromosomes skipped: " << special_chrs.values().join(", ") << QT_ENDL;
+            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " genes on special chromosomes skipped: " << special_chrs.values().join(", ") << Qt::endl;
 		}
 		if (c_skipped_no_name_and_hgnc>0)
 		{
-            out << "Notice: " << QByteArray::number(c_skipped_no_name_and_hgnc) << " genes without symbol and HGNC identifier skipped." << QT_ENDL;
+            out << "Notice: " << QByteArray::number(c_skipped_no_name_and_hgnc) << " genes without symbol and HGNC identifier skipped." << Qt::endl;
 		}
 		if (c_skipped_not_hgnc>0)
 		{
-            out << "Notice: " << QByteArray::number(c_skipped_not_hgnc) << " genes without a HGNC identifier skipped." << QT_ENDL;
+            out << "Notice: " << QByteArray::number(c_skipped_not_hgnc) << " genes without a HGNC identifier skipped." << Qt::endl;
 		}
 		if (c_skipped_low_evidence>0)
 		{
 
-            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << QT_ENDL;
+            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << Qt::endl;
 		}
 	}
 

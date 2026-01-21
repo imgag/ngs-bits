@@ -155,7 +155,15 @@ The initial import of database content using ngs-bits.
 		> ngs-bits/bin/NGSDImportGeneInfo --help
 		> ngs-bits/bin/NGSDImportOMIM --help
 		> ngs-bits/bin/NGSDImportORPHA --help
+		> ngs-bits/bin/NGSDImportCSpec --help
+*Note:*  
+To call ngs-bits tools in a megSAP installation, you have to call the apptainer container like that `singularity exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
 
+*Note:*  
+The data links in these tools are updated roughly every 3 months.  
+We recommend to leave the data links unchanged, even if there is newer data available.  
+For the default links, we have verify that the linked data is in valid format for the import.  
+If you change the data links to perform an update to with newer data, there is a risk that the data format has changed and the imported data is corrupted or incomplete.
 
 ## Update of gene, transcript and disease data
 
@@ -170,21 +178,17 @@ To do that, update ngs-bits and re-run these import tools:
 		> ngs-bits/bin/NGSDImportGeneInfo --help
 		> ngs-bits/bin/NGSDImportOMIM --help
 		> ngs-bits/bin/NGSDImportORPHA --help
+		> ngs-bits/bin/NGSDImportCSpec --help
 
+*Note:*  
 After the update of gene and HPO data, you should run the maintenance tasks `Replace obsolete gene symbols` and `Replace obsolete HPO terms` in GSvar (NGSD > Admin > Maintenance).
 
-*Note:  
-Make sure to run the tools with the `-force` parameter to override the existing data!*
+*Note:*  
+Make sure to run the tools with the `-force` parameter to override the existing data!
 
-*Note:  
+*Note:*  
 You should perform a import into a test database first, to make sure the import works.   
-After the test import, you can check the NGSD data using GSvar (NGSD > Admin > Maintenance > Compare base data of test and production).*
-
-*Note:  
-The data links in these tools are updated roughly every 3 months.  
-We recommend to leave the data links unchanged, even if there is newer data available.  
-For the default links, we have verify that the linked data is in valid format for the import.  
-If you change the data links to perform an update to with newer data, there is a risk that the data format has changed and the imported data is corrupted or incomplete.*
+After the test import, you can check the NGSD data using GSvar (NGSD > Admin > Maintenance > Compare base data of test and production).
 
 ## Export NGSD annotation data
 

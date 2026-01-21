@@ -79,7 +79,7 @@ public:
 		//output
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
-        out << barcode_info.values().first() << QT_ENDL;
+        out << barcode_info.values().first() << Qt::endl;
 	}
 
 	bool isValidSequence(QByteArray barcode, int& length)

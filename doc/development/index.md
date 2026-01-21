@@ -28,7 +28,7 @@ The folder also contains project include files which are used to share settings 
 Other stuff:
 
 * [htslib](build_htslib.md)
-* [IGV](integrating_igv.md)
+* [IGV](../GSvar/install_igv.md)
 * [release checklist](checklist_new_release.md)
 
 [Back to main page](../../README.md)

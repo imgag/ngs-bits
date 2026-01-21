@@ -49,7 +49,7 @@ public:
 			}
 			catch (Exception& e)
 			{
-                messages << e.message() << QT_ENDL;
+                messages << e.message() << Qt::endl;
 			}
 		}
 

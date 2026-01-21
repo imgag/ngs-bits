@@ -474,6 +474,18 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"clear_cache",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Clear user permissions cache",
+						&ServerController::clearPermissionsCache
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"variant_annotation",
 						QMap<QString, ParamProps>{							
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}

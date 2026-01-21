@@ -475,13 +475,8 @@ template <typename NodeType, typename EdgeType>
 void Graph<NodeType, EdgeType>::store(const QString& file)
 {
     QSharedPointer<QFile> writer = Helper::openFileForWriting(file);
-	QTextStream stream(writer.data());
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	QTextStream stream(writer.data());    
     stream.setEncoding(QStringConverter::Utf8);
-    #else
-    stream.setCodec("UTF-8");
-    #endif
-
     QList<QPair<QString, QString>> sorted_edge_list = edge_list_.values();
 
     std::sort(sorted_edge_list.begin(), sorted_edge_list.end(),
@@ -497,7 +492,7 @@ void Graph<NodeType, EdgeType>::store(const QString& file)
     QPair<QString, QString> node_pair;
     foreach(node_pair, sorted_edge_list)
     {
-        stream << node_pair.first << "\t" << node_pair.second << QT_ENDL;
+        stream << node_pair.first << "\t" << node_pair.second << Qt::endl;
     }
 }
 

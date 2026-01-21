@@ -30,14 +30,8 @@ private slots:
 
 private:
 	Ui::GeneSelectorDialog *ui;	
-	QString sample_name_;
-
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+	QString sample_name_;    
     void setGeneTableItem(int row, int col, QString text, Qt::Alignment alignment = Qt::AlignLeft, Qt::ItemFlags flags = Qt::ItemIsEnabled);
-    #else
-    void setGeneTableItem(int row, int col, QString text, int alignment = Qt::AlignLeft, Qt::ItemFlags flags = Qt::ItemIsEnabled);
-    #endif
-
 	void updateSelectedGenesStatistics();
 	void updateError(QString title, QString text);
 };

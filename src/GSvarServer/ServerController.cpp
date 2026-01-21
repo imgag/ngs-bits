@@ -301,41 +301,45 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
         return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processed sample file does not exist"));
     }
 
-    // Check the cache first
-    ServerDB db = ServerDB();
-    if (db.hasFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing))
-    {
-        QJsonArray updated_cached_array;
-        QJsonDocument cache_doc = db.getFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
-        db.updateFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
-        QJsonArray cached_array = cache_doc.array();
-        for (const QJsonValue &value : cached_array)
-        {
-            if (value.isObject())
-            {
-                QJsonObject cached_object = value.toObject();
-                QString cached_filename = cached_object.value("filename").toString();
-                if (!cached_filename.isEmpty())
-                {
-                    cached_object.insert("filename", createTempUrl(cached_filename, request.getUrlParams()["token"]));
-                    updated_cached_array.append(cached_object);
-                }
-            }
-        }
+	ServerDB db = ServerDB();
+	// Check the cache first, if enabled
+	if (Settings::boolean("enable_file_metadata_caching", true))
+	{
+		QList<PathType> types_to_ignore = QList<PathType>() << PathType::IGV_SCREENSHOT;
+		if (db.hasFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing) && !types_to_ignore.contains(requested_type))
+		{
+			QJsonArray updated_cached_array;
+			QJsonDocument cache_doc = db.getFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
+			db.updateFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
+			QJsonArray cached_array = cache_doc.array();
+			for (const QJsonValue &value : cached_array)
+			{
+				if (value.isObject())
+				{
+					QJsonObject cached_object = value.toObject();
+					QString cached_filename = cached_object.value("filename").toString();
+					if (!cached_filename.isEmpty())
+					{
+						cached_object.insert("filename", createTempUrl(cached_filename, request.getUrlParams()["token"]));
+						updated_cached_array.append(cached_object);
+					}
+				}
+			}
 
-        // Ignore the cache entry, if no URLs were genereated
-        if (updated_cached_array.size()>0)
-        {
-            QJsonDocument updated_cached_doc;
-            updated_cached_doc.setArray(updated_cached_array);
+			// Ignore the cache entry, if no URLs were genereated
+			if (updated_cached_array.size()>0)
+			{
+				QJsonDocument updated_cached_doc;
+				updated_cached_doc.setArray(updated_cached_array);
 
-            BasicResponseData response_data;
-            response_data.length = updated_cached_doc.toJson().length();
-            response_data.content_type = request.getContentType();
-            response_data.is_downloadable = false;
-            return HttpResponse(response_data, updated_cached_doc.toJson());
-        }
-    }
+				BasicResponseData response_data;
+				response_data.length = updated_cached_doc.toJson().length();
+				response_data.content_type = request.getContentType();
+				response_data.is_downloadable = false;
+				return HttpResponse(response_data, updated_cached_doc.toJson());
+			}
+		}
+	}
 
 	if (found_file.isEmpty())
 	{
@@ -545,7 +549,10 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 	json_doc_output.setArray(json_list_output);
     json_doc_without_tokens.setArray(json_list_without_tokens);
 
-    db.addFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, static_cast<int>(multiple_files), static_cast<int>(return_if_missing), json_doc_without_tokens.toJson(QJsonDocument::Compact), QDateTime::currentDateTime());
+	if (Settings::boolean("enable_file_metadata_caching", true))
+	{
+		db.addFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, static_cast<int>(multiple_files), static_cast<int>(return_if_missing), json_doc_without_tokens.toJson(QJsonDocument::Compact), QDateTime::currentDateTime());
+	}
 
 	BasicResponseData response_data;
 	response_data.length = json_doc_output.toJson().length();
@@ -683,6 +690,10 @@ HttpResponse ServerController::getAnalysisJobLastUpdate(const HttpRequest& reque
 		last_update_as_json_object.insert("latest_file_with_path", log_info.file_name_with_path);
 		last_update_as_json_object.insert("latest_mod", QString::number(log_info.last_modiefied.toSecsSinceEpoch()));
 		last_update_as_json_object.insert("latest_created", QString::number(log_info.created.toSecsSinceEpoch()));
+	}
+	else
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Last update time is unknown"));
 	}
 	json_doc_output.setObject(last_update_as_json_object);
 
@@ -1766,7 +1777,7 @@ QString ServerController::getProcessedSampleFile(const int& ps_id, const PathTyp
     }
     catch (Exception& e)
     {
-        Log::error("Error opening processed sample from NGSD: " + e.message());
+		Log::error("Error getting processed sample file: " + e.message());
         THROW_HTTP(HttpException, e.message(), 500,  {}, {});
     }
     return found_file_path;
@@ -1894,4 +1905,11 @@ HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const H
 
     Log::error(EndpointManager::formatResponseMessage(request, "Upload folder does not exist: " + upload_folder));
     return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_PLAIN, EndpointManager::formatResponseMessage(request, "Upload destination does not exist on the server"));
+}
+
+HttpResponse ServerController::clearPermissionsCache(const HttpRequest &/*request*/)
+{
+	NGSD db;
+	db.clearUserPermissionsCache();
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User permissions cache has been cleared");
 }

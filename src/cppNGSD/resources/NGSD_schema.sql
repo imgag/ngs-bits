@@ -1357,7 +1357,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_cnv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ps_tumor_id` INT(11) NOT NULL,
-  `ps_normal_id` INT(11) NOT NULL,
+  `ps_normal_id` INT(11) NULL,
   `caller` ENUM('ClinCNV') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATE NOT NULL,
@@ -1393,9 +1393,9 @@ CREATE TABLE IF NOT EXISTS `somatic_cnv`
   `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `start` INT(11) UNSIGNED NOT NULL,
   `end` INT(11) UNSIGNED NOT NULL,
-  `cn` FLOAT UNSIGNED NOT NULL COMMENT 'copy-number change in whole sample, including normal parts',
-  `tumor_cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number change normalized to tumor tissue only',
-  `tumor_clonality` FLOAT NOT NULL COMMENT 'tumor clonality, i.e. fraction of tumor cells',
+  `cn` FLOAT UNSIGNED NOT NULL COMMENT 'raw copy-number in tumor sample (based on tumor and normal reads)',
+  `tumor_cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number change normalized to tumor only',
+  `tumor_clonality` FLOAT NOT NULL COMMENT 'tumor clonality, i.e. fraction of tumor cells at the CNV locus (in contrast to tumor purity).',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `som_cnv_references_cnv_callset`
@@ -1451,7 +1451,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ps_tumor_id` INT(11) NOT NULL,
-  `ps_normal_id` INT(11) NOT NULL,
+  `ps_normal_id` INT(11) NULL,
   `caller` ENUM('Manta', 'DRAGEN', 'Sniffles') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATE DEFAULT NULL,
@@ -2597,19 +2597,6 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
--- Table `db_info`
--- NOTE: THIS IS ALWAYS THE LAST TABLE THAT IS CREATED!
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `db_info`
-(
-  `name` ENUM('init_timestamp','is_production') NOT NULL,
-  `value` TEXT,
-  UNIQUE KEY `name` (`name`)
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
-
--- -----------------------------------------------------
 -- Table `oncotree_term`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `oncotree_term`
@@ -2855,7 +2842,45 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='somatic small variants call set';
 
+-- -----------------------------------------------------
+-- Table `cspec_data`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `cspec_data`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `gene_index` (`gene`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `db_import_info`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `db_import_info`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` ENUM('CSpec') NOT NULL,
+  `version` VARCHAR(100) NOT NULL COMMENT 'If not versioned, the ISO date of the data export/download is used',
+  `import_date` DATE NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `db_info`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `db_info`
+(
+  `name` ENUM('init_timestamp','is_production') NOT NULL,
+  `value` TEXT NOT NULL,
+  UNIQUE KEY `name` (`name`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- ----------------------------------------------------------------------------------------------------------
 -- RE-ENABLE CHECKS WE DISABLED AT START

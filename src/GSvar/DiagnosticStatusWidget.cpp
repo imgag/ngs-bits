@@ -19,7 +19,7 @@ DiagnosticStatusWidget::DiagnosticStatusWidget(QWidget *parent)
 
 void DiagnosticStatusWidget::setStatus(DiagnosticStatusData data)
 {
-	QString last_edit = data.user + " / " + data.date.toString(Qt::ISODate).replace('T', ' ');
+	QString last_edit = data.user + " / " + Helper::toString(data.date, ' ');
 	if (last_edit.trimmed()=="/") last_edit.clear();
 	ui.user_date->setText(last_edit);
 	ui.status->setCurrentText(data.dagnostic_status);

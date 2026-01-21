@@ -124,4 +124,4 @@ For each file GSvarServer creates a temporary URL. When not used for a specific 
 
 ## Integration with IGV
 
-For all the questions related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar/igv_integration.md).

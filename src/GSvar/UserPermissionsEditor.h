@@ -27,6 +27,7 @@ protected slots:
 	void remove();
 
 private:
+	void clearServerCache();
 	void createAddPermissionDialog(QString table_name);
 	void addPermissionToDatabase(QString permission, QString data, QString display_text);
 	NGSD db_;

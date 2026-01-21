@@ -23,8 +23,8 @@ QPair<int, int> MidCheck::lengthFromSamples(const QList<SampleMids>& mids)
 
 	foreach(const SampleMids& mid, mids)
 	{
-        index1 = std::min(SIZE_TO_INT(index1), SIZE_TO_INT(mid.mid1_seq.length()));
-        index2 = std::min(SIZE_TO_INT(index2), SIZE_TO_INT(mid.mid2_seq.length()));
+        index1 = std::min(static_cast<qsizetype>(index1), static_cast<qsizetype>(mid.mid1_seq.length()));
+        index2 = std::min(static_cast<qsizetype>(index2), static_cast<qsizetype>(mid.mid2_seq.length()));
 	}
 
 	return qMakePair(index1, index2);

@@ -1,5 +1,4 @@
 #include "TestFrameworkNGS.h"
-#include "Settings.h"
 #include "NGSD.h"
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
@@ -10,7 +9,6 @@
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
 #include "FileLocationProviderLocal.h"
-#include "VariantHgvsAnnotator.h"
 #include "OntologyTermCollection.h"
 #include "RepeatLocusList.h"
 #include <QThread>
@@ -675,7 +673,7 @@ private:
 
 		//getDiagnosticStatus
 		DiagnosticStatusData diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
-		S_EQUAL(diag_status.date.toString(Qt::ISODate).left(19), "2014-07-29T09:40:49"); //TODO remove .left(19) when migration to Qt6 is done
+		S_EQUAL(Helper::toString(diag_status.date, ' '), "2014-07-29 09:40:49");
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
@@ -1252,7 +1250,7 @@ private:
 		var_conf.causal = false;
 		var_conf.exclude_artefact = false;
 		report_conf2->set(var_conf);
-		conf_id2 = db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs, res);
+		db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs, res);
 		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, res);
 		var_conf = report_conf2->variantConfig()[1];
 		I_EQUAL(var_conf.id, 2)
@@ -2136,8 +2134,6 @@ private:
 		//log in user
 		LoginManager::login("ahmustm1", "", true);
 
-
-
 		//Test methods for somatic CNVs in NGSD
 		S_EQUAL(db.somaticCnv(1).toString(), "chr4:18000-200000");
 		//Test get CNV ID
@@ -2156,6 +2152,14 @@ private:
 		I_EQUAL(res_cnv.start(), 26582421);
 		I_EQUAL(res_cnv.end(), 27694430);
 
+		//test adding tumor-only CNV
+		CnvList cnvs2;
+		cnvs2.load(TESTDATA("data_in/somatic_cnvs_clincnv_tumor_only.tsv"));
+		cnv_id =  db.addSomaticCnv(1, cnvs2[0], cnvs2).toInt();
+		res_cnv = db.somaticCnv(cnv_id);
+		S_EQUAL(res_cnv.chr().strNormalized(true), "chr1");
+		I_EQUAL(res_cnv.start(), 3901206);
+		I_EQUAL(res_cnv.end(), 5765702);
 
 		//Test methods for somatic SVs in NGSD:
 		BedpeFile svs;
@@ -2214,6 +2218,19 @@ private:
 		S_EQUAL(var.chr2().strNormalized(true), "chr22");
 		I_EQUAL(var.start2(), 38103385);
 		I_EQUAL(var.end2(), 38103385);
+
+		//test adding tumor-only SV
+		BedpeFile svs2;
+		svs2.load(TESTDATA("data_in/somatic_svs_manta_tumor_only.bedpe"));
+		sv_id = db.addSomaticSv(1, svs2[0], svs2);
+		S_EQUAL(sv_id, "2");
+		var = db.somaticSv("2", StructuralVariantType::DEL, svs2);
+		S_EQUAL(var.chr1().strNormalized(true), "chr1");
+		I_EQUAL(var.start1(), 1310824);
+		I_EQUAL(var.end1(), 1310867);
+		S_EQUAL(var.chr2().strNormalized(true), "chr1");
+		I_EQUAL(var.start2(), 1310893);
+		I_EQUAL(var.end2(), 1310893);
 
 		//Test methods for somatic report configuration
 		VariantList vl;
@@ -2329,7 +2346,7 @@ private:
 
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
-		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
 
 		//test changing existing variant config:
 
@@ -2342,7 +2359,7 @@ private:
 
 		som_rep_conf->addSomaticVariantConfiguration(var2_changed);
 
-		config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will still be 52 in test NGSD
+		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, svs, vl_germl, "ahmustm1"); //id will still be 52 in test NGSD
 
 		S_EQUAL(som_rep_conf->variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet. Now published in NCBI:XYZ.");
 
@@ -2510,24 +2527,37 @@ private:
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 2); //one CNV is already inserted by NGSD init.
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_germl_var").toInt(), 2);
-
 		db.deleteSomaticReportConfig(config_id);
-
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 0);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_germl_var").toInt(), 0);
 
 
-		//Delete Variants
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 4);
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 2);
+		//deleteSomaticVariants - tumor-normal
 		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 1);
-		db.deleteSomaticVariants("4000", "3999");
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 2);
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 1);
+		db.deleteSomaticVariants("4000", "3999", VariantType::SNVS_INDELS);
 		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 0);
 
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 5);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 2);
+		db.deleteSomaticVariants("4000", "3999", VariantType::CNVS);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 1);
+
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_callset").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_deletion").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_duplication").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_insertion").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_inversion").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_translocation").toInt(), 1);
+		db.deleteSomaticVariants("4000", "3999", VariantType::SVS);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_callset").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_deletion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_duplication").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_insertion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_inversion").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_sv_translocation").toInt(), 0);
 
 		//Test somatic xml report
 		SomaticReportSettings settings;
@@ -2668,9 +2698,10 @@ private:
 		new_vicc_data.benign_functional_studies = SomaticViccData::State::VICC_TRUE;
 		new_vicc_data.synonymous_mutation = SomaticViccData::State::VICC_TRUE;
 		new_vicc_data.comment = "This is a benign somatic variant.";
-		db.setSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C"), new_vicc_data, "ahmustm1");
+		Variant var_vicc("chr17", 59763465, 59763465, "T", "C");
+		db.setSomaticViccData(var_vicc, new_vicc_data, "ahmustm1");
 
-		SomaticViccData new_vicc_result = db.getSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C") );
+		SomaticViccData new_vicc_result = db.getSomaticViccData(var_vicc);
 		I_EQUAL(new_vicc_result.null_mutation_in_tsg, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(new_vicc_result.oncogenic_functional_studies, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(new_vicc_result.protein_length_change, SomaticViccData::State::VICC_FALSE);
@@ -2680,12 +2711,16 @@ private:
 		I_EQUAL(new_vicc_result.synonymous_mutation, SomaticViccData::State::VICC_TRUE);
 		S_EQUAL(new_vicc_result.comment, "This is a benign somatic variant.");
 
-		I_EQUAL(db.getSomaticViccId(Variant("chr17", 59763465, 59763465, "T", "C")), 5); //id of new inserted vicc data set is 5 in TEST-NGSD
+		I_EQUAL(db.getSomaticViccId(var_vicc), 5); //id of new inserted vicc data set is 5 in TEST-NGSD
 
 		//When updating one variant, all other data sets must not change (test case initially created for Bugfix)
-		db.setSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C"), new_vicc_data, "ahkerra1");
+		db.setSomaticViccData(var_vicc, new_vicc_data, "ahkerra1");
 		SomaticViccData vicc_data3 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T") );
 		S_EQUAL(vicc_data3.comment, vicc_data2.comment);
+
+		//test deleting VICC data
+		db.deleteSomaticViccData(var_vicc);
+		I_EQUAL(db.getSomaticViccId(var_vicc), -1); //id of new inserted vicc data set is 5 in TEST-NGSD
 
 		//somatic CNV gene role
 		I_EQUAL(db.getSomaticGeneRoleId("EPRS"), 3);
@@ -3350,8 +3385,8 @@ private:
         db.init();
         db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
         SqlQuery import_query = db.getQuery();
-        for (const QString& single_query: db_dump)
-        {
+		for (const QString& single_query: std::as_const(db_dump))
+		{
             import_query.exec(single_query);
         }
 

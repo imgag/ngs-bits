@@ -8,12 +8,12 @@ InputWorker::InputWorker(AnalysisJob& job, QSharedPointer<VersatileFile> in_stre
 	, in_stream_(in_stream)
 	, params_(params)
 {
-    if (params_.debug) QTextStream(stdout) << "InputWorker(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "InputWorker(): " << job_.index << Qt::endl;
 }
 
 InputWorker::~InputWorker()
 {
-    if (params_.debug) QTextStream(stdout) << "~InputWorker(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "~InputWorker(): " << job_.index << Qt::endl;
 }
 
 void InputWorker::run()
