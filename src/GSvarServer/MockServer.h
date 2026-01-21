@@ -5,6 +5,9 @@
 #include <QTcpServer>
 
 
+#include <QtHttpServer/QHttpServer>
+#include <QtHttpServer/QHttpServerResponse>
+
 class QHttpServer;
 
 class MockServer : public QObject
@@ -13,11 +16,16 @@ class MockServer : public QObject
 
 public:
 	explicit MockServer(quint16 port, QObject* parent = nullptr);
-	bool is_running() const;
+	bool isRunning() const;
 
 private:
-	QHttpServer* httpServer_;
-	QTcpServer tcpServer_;
+	void setupRoutes();
+
+	QHttpServer m_httpServer;
+	QTcpServer  m_tcpServer;
 };
+
+
+
 
 #endif
