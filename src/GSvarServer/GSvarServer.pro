@@ -2,7 +2,7 @@ QT += core
 QT += network
 QT -= gui
 QT += sql
-QT += httpserver
+QT += httpserver websockets
 
 QTPLUGIN += QSQLMYSQL
 
