@@ -556,6 +556,7 @@
     <addaction name="separator"/>
     <addaction name="actionSampleCounts"/>
     <addaction name="actionStatistics"/>
+    <addaction name="actionShowDatabaseInfo"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuNGSD"/>
@@ -1500,6 +1501,11 @@
   <action name="actionExportSampleData">
    <property name="text">
     <string>Export sample data</string>
+   </property>
+  </action>
+  <action name="actionShowDatabaseInfo">
+   <property name="text">
+    <string>Show info about imported DBs</string>
    </property>
   </action>
  </widget>

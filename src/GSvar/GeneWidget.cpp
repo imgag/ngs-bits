@@ -168,7 +168,7 @@ void GeneWidget::updateGUI()
 		//show phenotypes/diseases from HPO
 		hpo_lines.clear();
 		PhenotypeList pheno_list = db.phenotypes(symbol_);
-		for (const Phenotype& pheno : pheno_list)
+		for (const Phenotype& pheno : std::as_const(pheno_list))
 		{
 			int pheno_id = db.phenotypeIdByAccession(pheno.accession());
 			QSet<QString> sources;
@@ -190,7 +190,7 @@ void GeneWidget::updateGUI()
 		//show OMIM info
 		omim_lines.clear();
 		QList<OmimInfo> omim_infos = db.omimInfo(symbol_);
-		for (const OmimInfo& omim : omim_infos)
+		for (const OmimInfo& omim : std::as_const(omim_infos))
 		{
 			QStringList omim_phenos;
 			for (const Phenotype& p : omim.phenotypes)

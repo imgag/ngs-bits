@@ -4458,6 +4458,22 @@ void MainWindow::on_actionImportHerediVar_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionShowDatabaseInfo_triggered()
+{
+	//get infos from NGSD
+	NGSD db;
+	DBTable db_table = db.createTable("db_import_info", "SELECT * FROM db_import_info");
+
+	//create table
+	DBTableWidget* table = new DBTableWidget(this);
+	table->setData(db_table);
+	table->setMinimumSize(800, 600);
+
+	//create and show dialog
+	QSharedPointer<QDialog> dialog  = GUIHelper::createDialog(table, "Database information", "Version and import date of external data sources imported into NGSD:", true);
+	dialog->exec();
+}
+
 void MainWindow::on_actionStatistics_triggered()
 {
 	try
