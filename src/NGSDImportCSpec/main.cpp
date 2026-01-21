@@ -76,8 +76,7 @@ public:
 
 		//add DB import info
 		QString version = doc.object()["metadata"].toObject()["rendered"].toObject()["when"].toString().left(10);
-		db.getQuery().exec("INSERT INTO `db_import_info`(`name`, `version`, `import_date`) VALUES ('CSpec','"+version+"','"+QDate::currentDate().toString(Qt::ISODate)+"') ON DUPLICATE KEY UPDATE version=VALUES(version), import_date=VALUES(import_date)");
-
+		db.setDatabaseInfo("CSpec", version);
 	}
 };
 

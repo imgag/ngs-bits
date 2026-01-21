@@ -31,6 +31,10 @@ private:
 		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA1"))
 		IS_FALSE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA2"))
 		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Autosomal dominant inheritance"), false, false).contains("PTEN"))
+
+		//check imported version
+		QString version = db.getValue("SELECT version FROM db_import_info WHERE name='HPO'").toString();
+		S_EQUAL(version, "2015-12-01");
 	}
 
 	TEST_METHOD(with_omim)

@@ -2861,7 +2861,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE TABLE IF NOT EXISTS `db_import_info`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` ENUM('CSpec') NOT NULL,
+  `name` ENUM('QC terms','HGNC','Ensembl','HPO','oncotree','gnomAD constraints','OMIM','ORPHA','CSpec') NOT NULL,
   `version` VARCHAR(100) NOT NULL COMMENT 'If not versioned, the ISO date of the data export/download is used',
   `import_date` DATE NOT NULL,
   PRIMARY KEY (`id`),

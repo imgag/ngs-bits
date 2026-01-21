@@ -140,12 +140,13 @@ public:
 		qi_gene.prepare("INSERT INTO disease_gene (disease_term_id, gene) VALUES (:0, :1)");
 
 		//import disease terms and genes
-        out << "Importing ORPHA information..." << Qt::endl;
+		out << "Importing ORPHA information..." << Qt::endl;
 		{
 			QString terms = getInfile("terms");
 			QSharedPointer<QFile> fp = Helper::openFileForReading(terms);
 			QXmlStreamReader xml(fp.data());
 			xml.readNextStartElement(); //root element JDBOR
+			QString version = xml.attributes().value("date").left(10).toString();
 			while (xml.readNextStartElement())
 			{
                 if (xml.name().toString()=="DisorderList")
@@ -249,6 +250,10 @@ public:
 				THROW(FileParseException, "Error parsing XML file " + terms + ":\n" + xml.errorString());
 			}
 			fp->close();
+
+
+			//add DB import info
+			db.setDatabaseInfo("ORPHA", version);
 		}
 
 		//output
