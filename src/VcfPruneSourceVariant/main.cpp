@@ -49,7 +49,7 @@ public:
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		FastaFileIndex reference(ref_file);
 
-		if (verbose) out_stream << "Source variant annotations deleted due to indel left align: " << QT_ENDL;
+		if (verbose) out_stream << "Source variant annotations deleted due to indel left align: " << Qt::endl;
 
 		while(!in_p->atEnd())
 		{
@@ -123,7 +123,7 @@ public:
 
 								if (var == var_source)
 								{
-									if (verbose) out_stream << source_variant << QT_ENDL;
+									if (verbose) out_stream << source_variant << Qt::endl;
 									++count;
 									continue;
 								}
@@ -141,7 +141,7 @@ public:
 			out_p->write(parts.join('\t').append('\n'));
 		}
 
-		if (verbose) out_stream << "Number of source variant annotations removed due to indel left align: " << count << QT_ENDL;
+		if (verbose) out_stream << "Number of source variant annotations removed due to indel left align: " << count << Qt::endl;
 	}
 };
 
