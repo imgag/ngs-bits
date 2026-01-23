@@ -140,7 +140,7 @@ public:
 				//do not extend over exclude regions
 				if (end>1 && start<end-1 && exclude_index.matchingIndex(var_info[end-1].chr, var_info[end-2].pos, var_info[end-1].pos)!=-1)
 				{
-					if (debug) out << "DEBUG - not extended: " << var_info[end-1].chr.str() << "\t" << var_info[end-2].pos << "\t" << var_info[end-1].pos << QT_ENDL;
+					if (debug) out << "DEBUG - not extended: " << var_info[end-1].chr.str() << "\t" << var_info[end-2].pos << "\t" << var_info[end-1].pos << Qt::endl;
 					--end;
 					break;
 				}
@@ -153,7 +153,7 @@ public:
 			if (region.qScore(var_info)>=roh_min_q)
 			{
 				output << region;
-				if (debug) out << "DEBUG - raw ROH: " << region.chr.str() << "\t" << region.start_pos << "\t" << region.end_pos << "\t" << region.sizeBases() << QT_ENDL;
+				if (debug) out << "DEBUG - raw ROH: " << region.chr.str() << "\t" << region.start_pos << "\t" << region.end_pos << "\t" << region.sizeBases() << Qt::endl;
 			}
 		}
 
@@ -235,8 +235,8 @@ public:
 		if (!exclude_file.isEmpty()) exclude.load(exclude_file);
 		ChromosomalIndex<BedFile> exclude_index(exclude);
 
-        out << "=== Loading input data ===" << QT_ENDL;
-        out << "Variants in VCF: " << vl.count() << QT_ENDL;
+        out << "=== Loading input data ===" << Qt::endl;
+        out << "Variants in VCF: " << vl.count() << Qt::endl;
 
 		//determine quality indices
 		if (!vl.vcfHeader().formatIdDefined("DP")) THROW(ArgumentException, "Could not find 'DP' annotation in vcf header!");
@@ -279,7 +279,7 @@ public:
 			//skip variants in exclude regions
 			if (exclude_index.matchingIndex(v.chr(), v.start(), v.end())!=-1)
 			{
-				if (debug) out << "DEBUG - skipped variant in exclude region: " << v.toString() << QT_ENDL;
+				if (debug) out << "DEBUG - skipped variant in exclude region: " << v.toString() << Qt::endl;
 				continue;
 			}
 
@@ -319,25 +319,25 @@ public:
 
 			var_info.append(VariantInfo{v.chr(), v.start(), geno_hom, af});
 		}
-        out << "Variants passing QC filters: " << var_info.count() << QT_ENDL;
+        out << "Variants passing QC filters: " << var_info.count() << Qt::endl;
 		double hom_perc = 100.0*vars_hom/var_info.count();
-        out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << QT_ENDL;
-        out << "Variants with AF annotation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << QT_ENDL;
-        out << QT_ENDL;
+        out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << Qt::endl;
+        out << "Variants with AF annotation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << Qt::endl;
+        out << Qt::endl;
 
 		//detect raw ROHs
-        out << "=== Detecting ROHs ===" << QT_ENDL;
+        out << "=== Detecting ROHs ===" << Qt::endl;
 		float roh_min_q = getFloat("roh_min_q");
 		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q, exclude_index, debug, out);
-        out << "Raw ROH count: " << regions.count() << QT_ENDL;
+        out << "Raw ROH count: " << regions.count() << Qt::endl;
 
 		//merge raw ROHs
 		double ext_marker_perc = getFloat("ext_marker_perc");
 		double ext_size_perc = getFloat("ext_size_perc");
 		double ext_max_het_perc = getFloat("ext_max_het_perc");
 		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc, ext_max_het_perc, exclude_index);
-        out << "Merged ROH count: " << regions.count() << QT_ENDL;
-        out << QT_ENDL;
+        out << "Merged ROH count: " << regions.count() << Qt::endl;
+        out << Qt::endl;
 
 		//filter regions
 		int roh_min_markers = getInt("roh_min_markers");
@@ -402,8 +402,8 @@ public:
 		}
 
 		//statistics output
-        out << "=== Statistics output ===" << QT_ENDL;
-        out << "Overall ROH count: " << regions.count() << QT_ENDL;
+        out << "=== Statistics output ===" << Qt::endl;
+        out << "Overall ROH count: " << regions.count() << Qt::endl;
 		int count_a = 0;
 		double sum_a = 0.0;
 		int count_b = 0;
@@ -429,22 +429,22 @@ public:
 				sum_c += bases;
 			}
 		}
-        out << "Overall ROH size sum: " << QString::number((sum_a+sum_b+sum_c)/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
-        out << "Class A: <0.5 Mb" << QT_ENDL;
-        out << "Class A ROH count: " << count_a << QT_ENDL;
-        out << "Class A ROH size sum: " << QString::number(sum_a/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
-        out << "Class B: >=0.5 Mb and <1.5 Mb" << QT_ENDL;
-        out << "Class B ROH count: " << count_b << QT_ENDL;
-        out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
-        out << "Class C: >=1.5 Mb" << QT_ENDL;
-        out << "Class C ROH count: " << count_c << QT_ENDL;
-        out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << QT_ENDL;
-        out << QT_ENDL;
+        out << "Overall ROH size sum: " << QString::number((sum_a+sum_b+sum_c)/1000000.0 ,'f', 2) << "Mb" << Qt::endl;
+        out << "Class A: <0.5 Mb" << Qt::endl;
+        out << "Class A ROH count: " << count_a << Qt::endl;
+        out << "Class A ROH size sum: " << QString::number(sum_a/1000000.0 ,'f', 2) << "Mb" << Qt::endl;
+        out << "Class B: >=0.5 Mb and <1.5 Mb" << Qt::endl;
+        out << "Class B ROH count: " << count_b << Qt::endl;
+        out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << Qt::endl;
+        out << "Class C: >=1.5 Mb" << Qt::endl;
+        out << "Class C ROH count: " << count_c << Qt::endl;
+        out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << Qt::endl;
+        out << Qt::endl;
 
 
 		//debug output
-        out << "=== Debug output ===" << QT_ENDL;
-        out << "Time: " << Helper::elapsedTime(timer) << QT_ENDL;
+        out << "=== Debug output ===" << Qt::endl;
+        out << "Time: " << Helper::elapsedTime(timer) << Qt::endl;
 	}
 };
 

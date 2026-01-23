@@ -43,7 +43,7 @@ void InputWorker::run()
 		{
 			job_.lines.append(in_stream_->readLine());
 		}
-        if (params_.debug) QTextStream(stdout) << "InputWorker(): " << job_.index << " job done!" << QT_ENDL;
+        if (params_.debug) QTextStream(stdout) << "InputWorker(): " << job_.index << " job done!" << Qt::endl;
 		emit done(job_.index);
 	}
 	catch(Exception& e)

@@ -259,15 +259,10 @@ void CnvList::store(QString filename)
 
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
-	QTextStream stream(file.data());
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    stream.setEncoding(QStringConverter::Utf8);
-    #else
-    stream.setCodec("UTF-8");
-    #endif
+	QTextStream stream(file.data());    
+    stream.setEncoding(QStringConverter::Utf8);   
 
 	//write header lines
-
 	//analysis type
 	stream << "##ANALYSISTYPE=" << typeAsString() << "\n";
 

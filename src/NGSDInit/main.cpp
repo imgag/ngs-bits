@@ -36,9 +36,9 @@ public:
 
 		//output
 		QTextStream out(stdout);
-        out << "Database initialization succesfully." << QT_ENDL;
-        out << "You are now able to login with user name 'admin' and password 'admin' via GSvar." << QT_ENDL;
-        out << "**Please change the password on first login!**" << QT_ENDL;
+        out << "Database initialization succesfully." << Qt::endl;
+        out << "You are now able to login with user name 'admin' and password 'admin' via GSvar." << Qt::endl;
+        out << "**Please change the password on first login!**" << Qt::endl;
 	}
 };
 

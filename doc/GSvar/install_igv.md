@@ -1,14 +1,24 @@
-# Integration with IGV
+# Installing new versions of IGV
 
-## Deploying a new version
+IGV is regularly updated (usually every couple of months). If you want to install the latest version of IGV, we recommend testing it first, (especially if you use a proxy server to access your data). Pay attention to the proxy configuration and to the BAM/CRAM tracks, since these are the most problematic things in IGV (at least while using it with `GSvar`).
 
-* Download IGV 2.19.1 from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/) (select `Command line IGV and igvtools for all platforms` variant)
-* Download a JDK that is reccomended for this particular version of IGV: IGV developers include JDK from [`Adoptium`](https://adoptium.net/de/marketplace/)
-* Place the unpacked JDK to the folder with IGV and edit `igv.bat` (for Windows). Change the last line to `start %JAVA_CMD% -showversion --module-path=%BatchPath%\lib -Xmx8g -Dproduction=true @%BatchPath%\igv.args -Djava.net.preferIPv4Stack=true -Dsun.java2d.noddraw=true --module=org.igv/org.broad.igv.ui.Main  %*`
-* The file `conf/net.properties` inside the JDK folder has to be adjusted: comment out the line `jdk.http.auth.tunneling.disabledSchemes=Basic`. This will enable the correct proxy authentication method.
+## Deployment
 
-## Configuring GSvar to use IGV
-To link IGV to the GSvar app, edit `igv_app` parameter in the config file. It should point to the script that starts IGV, which may be different depending on your operating system. For Windows it is `igv.bat`, for Mac and Linux a Bash script `igv.sh` is used.
+1. Download `Command line IGV and igvtools for all platforms` from the [official page](https://igv.org/doc/desktop/#DownloadPage/)
+
+2. Unpack the archive
+
+3. Download Open JDK, [Oracle Open JDK](jdk.java.net/archive/) is one of the most popular options. Select the version number which is required by IGV (newer version may need newer JDKs). There are many other Open JDK flavours: [`Adoptium Open JDK`](https://adoptium.net/de/temurin/releases), [Microsoft Open JDK](https://learn.microsoft.com/en-us/java/openjdk/download), [Amazon Open JDK](https://downloads.corretto.aws/#/overview), etc.
+
+4. Unpack the JDK archive to the folder with IGV (next to the `lib` folder)
+
+5. Make sure that `igv.bat` file contains the correct JDK location (it can be slightly different, depending on the release number)
+
+6. Try starting IGV by executing `igv.bat` file (for Mac and Linux the Bash script called `igv.sh` is used)
+
+7. Modify the path to IGV in GSvar config file `GSvar.ini`: adjust `igv_app` property accordingly
+
+8. Now it should be possible to launch IGV from GSvar. If you are behind an authenticating proxy and IGV cannot be launched from GSvar, you have to comment out `jdk.http.auth.tunneling.disabledSchemes=Basic` line in `net.properties` of JDK.
 
 ## Building a custom genome for IGV
 

@@ -49,7 +49,7 @@ public:
 		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		//process
-        out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS\tpopulation" << QT_ENDL;
+        out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS\tpopulation" << Qt::endl;
 		foreach(QString filename, in)
 		{
 			AncestryEstimates ancestry = Statistics::ancestry(build, filename, min_snps, score_cutoff, mad_dist);
@@ -59,7 +59,7 @@ public:
 				<< "\t" << QString::number(ancestry.eur, 'f', 4)
 				<< "\t" << QString::number(ancestry.sas, 'f', 4)
 				<< "\t" << QString::number(ancestry.eas, 'f', 4)
-                << "\t" << ancestry.population << QT_ENDL;
+                << "\t" << ancestry.population << Qt::endl;
 		}
 	}
 };

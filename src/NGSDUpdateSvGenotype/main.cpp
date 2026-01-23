@@ -116,7 +116,7 @@ public:
 		}
 
 		out << "Stats:\n";
-        out << "Multiple matches: " << QString::number(n_multiple_matches) << QT_ENDL;
+        out << "Multiple matches: " << QString::number(n_multiple_matches) << Qt::endl;
 
 	}
 };

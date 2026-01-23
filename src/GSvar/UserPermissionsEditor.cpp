@@ -4,6 +4,9 @@
 #include <QMessageBox>
 #include <QMenu>
 #include "DBSelector.h"
+#include "HttpHandler.h"
+#include "LoginManager.h"
+#include "ClientHelper.h"
 
 UserPermissionsEditor::UserPermissionsEditor(QString table, QString user_id, QWidget* parent) :
 	QWidget(parent)
@@ -160,6 +163,19 @@ void UserPermissionsEditor::remove()
 	}
 
 	updateTable();
+	clearServerCache();
+}
+
+void UserPermissionsEditor::clearServerCache()
+{
+	try
+	{
+		HttpHandler(true).post(ClientHelper::serverApiUrl() + "clear_cache?token=" + LoginManager::userToken(), QByteArray{});
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Failed to clear user permissions cache on the server", e.message());
+	}
 }
 
 void UserPermissionsEditor::createAddPermissionDialog(QString table_name)
@@ -193,4 +209,5 @@ void UserPermissionsEditor::addPermissionToDatabase(QString permission, QString 
 		QMessageBox::warning(this, "Adding new permission", "Error while adding a new permission to the database: " + e.message());
 	}
 	updateTable();
+	clearServerCache();
 }

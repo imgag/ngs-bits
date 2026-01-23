@@ -176,6 +176,9 @@ SOURCES += \
     MantaVcfFix_Test.cpp \
     VcfReplaceSamples_Test.cpp \
     GenlabInfo_Test.cpp \
+    NGSDImportCSpec_Test.cpp \
+    TsvAnnotate_Test.cpp \
+    NGSDImportOncotree_Test.cpp \
     VcfPruneSourceVariant_Test.cpp \
     VcfStoreSourceVariant_Test.cpp \
     main.cpp

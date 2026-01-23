@@ -51,9 +51,9 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
 
 	//schedule re-sequencing
-	action = new QAction("Schedule sample(s) for resequencing", this);
+	action = new QAction("Toggle resequencing for sample(s)", this);
 	ui_->samples->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(scheduleForResequencing()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(toggleScheduleForResequencing()));
 
 	if (is_batch_view_) initBatchView();
 
@@ -127,13 +127,7 @@ void SequencingRunWidget::initBatchView()
 			int run_id = run_ids_.at(c-1).toInt();
 			signal_mapper->setMapping(btn_edit, run_id);
 			connect(btn_edit, SIGNAL(clicked(bool)), signal_mapper, SLOT(map()));
-
-			#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-				connect(signal_mapper, SIGNAL(mappedInt(int)), this, SLOT(edit(int)));
-			#else
-				connect(signal_mapper, SIGNAL(mapped(int)), this, SLOT(edit(int)));
-			#endif
-
+			connect(signal_mapper, SIGNAL(mappedInt(int)), this, SLOT(edit(int)));
 
 			hbox->addWidget(btn_edit, 0, Qt::AlignLeft| Qt::AlignCenter);
 
@@ -310,8 +304,8 @@ void SequencingRunWidget::updateRunSampleTable()
 	samples.formatBooleanColumn(samples.columnIndex("scheduled_for_resequencing"), true);
 
 	// determine QC parameter based on sample types
-    QSet<QString> sample_types = LIST_TO_SET(samples.extractColumn(samples.columnIndex("sample_type")));
-    QSet<QString> system_types = LIST_TO_SET(samples.extractColumn(samples.columnIndex("sys_type")));
+    QSet<QString> sample_types = Helper::listToSet(samples.extractColumn(samples.columnIndex("sample_type")));
+    QSet<QString> system_types = Helper::listToSet(samples.extractColumn(samples.columnIndex("sys_type")));
 	setQCMetricAccessions(sample_types, system_types);
 
 	// update QC plot button
@@ -464,13 +458,15 @@ void SequencingRunWidget::setQuality()
 	updateGUI();
 }
 
-void SequencingRunWidget::scheduleForResequencing()
+void SequencingRunWidget::toggleScheduleForResequencing()
 {
 	NGSD db;
 
 	//prepare query
 	SqlQuery query = db.getQuery();
-	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=TRUE WHERE id=:0");
+	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=:0 WHERE id=:1");
+
+
 
 	int col = ui_->samples->columnIndex("sample");
     QList<int> selected_rows = ui_->samples->selectedRows().values();
@@ -478,7 +474,9 @@ void SequencingRunWidget::scheduleForResequencing()
 	{
 		QString ps_name = ui_->samples->item(row, col)->text();
 		QString ps_id = db.processedSampleId(ps_name);
-		query.bindValue(0, ps_id);
+		bool reseq_flag_set = db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toBool();
+		query.bindValue(0, ! reseq_flag_set ? "1" : "0");
+		query.bindValue(1, ps_id);
 		query.exec();
 	}
 
@@ -580,7 +578,7 @@ void SequencingRunWidget::sendStatusEmail()
 	if (is_batch_view_)
 	{
 		// get run status of all runs
-        QSet<QString> run_statuses = LIST_TO_SET(db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");"));
+        QSet<QString> run_statuses = Helper::listToSet(db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");"));
 		run_statuses.remove("analysis_finished");
 		run_statuses.remove("run_finished");
 

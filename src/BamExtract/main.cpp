@@ -42,7 +42,7 @@ public:
 			ids << line;
 		}
 		file->close();
-        stdout_stream << "Read IDs: " << ids.count() << QT_ENDL;
+        stdout_stream << "Read IDs: " << ids.count() << Qt::endl;
 
 		//open intput/output streams
 		BamReader reader(getInfile("in"), ref);
@@ -75,10 +75,10 @@ public:
 			}
 		}
 
-        stdout_stream << "Reads written to 'out': " << c_match<< QT_ENDL;
+        stdout_stream << "Reads written to 'out': " << c_match<< Qt::endl;
 		if (out2!="")
 		{
-            stdout_stream << "Reads written to 'out2': " << c_other << QT_ENDL;
+            stdout_stream << "Reads written to 'out2': " << c_other << Qt::endl;
 		}
 	}
 };

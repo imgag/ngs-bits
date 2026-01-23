@@ -17,7 +17,7 @@ void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList 
 
 	//Prepare sbatch arguments
     QStringList sbatch_args;
-	if (debug_) QTextStream(stdout) << "megSAP pipeline:\t " << script << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "megSAP pipeline:\t " << script << Qt::endl;
     if (script == "analyze_dragen.php") sbatch_args << "--cpus-per-task=1";
     else sbatch_args << "--cpus-per-task=" + QString::number(threads);
     sbatch_args << "-D" << project_folder;
@@ -55,7 +55,7 @@ void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList 
 	sbatch_args << command_sh;
 
 	// Debug output
-	if (debug_) QTextStream(stdout) << "Slurm command:\t sbatch " << sbatch_args.join(" ") << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Slurm command:\t sbatch " << sbatch_args.join(" ") << Qt::endl;
 
 	// Execute sbatch command
 	QByteArrayList result;
@@ -84,7 +84,7 @@ void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList 
 	//handle qsub output
 	if (Helper::isNumeric(slurm_id) && slurm_id.toInt()>0)
 	{
-		if (debug_) QTextStream(stdout) << "  Started with Slurm id " << slurm_id << QT_ENDL;
+		if (debug_) QTextStream(stdout) << "  Started with Slurm id " << slurm_id << Qt::endl;
 		db.getQuery().exec("UPDATE analysis_job SET sge_id='" + slurm_id + "' WHERE id="+QString::number(job_id));
 
 		db.addAnalysisHistoryEntry(job_id, "started", QByteArrayList());
@@ -122,7 +122,7 @@ bool QueuingEngineControllerSlurm::updateRunningJob(NGSD& db, const AnalysisJob 
 				if (parts.count()<8) continue;
 
 				QByteArray status = parts[4].trimmed().toLower();
-				if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << QT_ENDL;
+				if (debug_) QTextStream(stdout) << "  Job queued/running (state: " << status << " queue: " << job.sge_queue << ")" << Qt::endl;
 
 				if (status=="r" && job.sge_queue.isEmpty())
 				{
@@ -168,12 +168,12 @@ void QueuingEngineControllerSlurm::checkCompletedJob(NGSD& db, QString qe_job_id
 
 		if (slurm_exit_code == "0")
 		{
-			if (debug_) QTextStream(stdout) << "	Job finished successfully" << QT_ENDL;
+			if (debug_) QTextStream(stdout) << "	Job finished successfully" << Qt::endl;
 			db.addAnalysisHistoryEntry(job_id, "finished", stdout_stderr);
 		}
 		else
 		{
-			if (debug_) QTextStream(stdout) << "	Job failed with exit code: " << slurm_exit_code << QT_ENDL;
+			if (debug_) QTextStream(stdout) << "	Job failed with exit code: " << slurm_exit_code << Qt::endl;
 			stdout_stderr.prepend(("job exit code: " + slurm_exit_code).toLatin1());
 			db.addAnalysisHistoryEntry(job_id, "error", stdout_stderr);
 		}
@@ -186,7 +186,7 @@ void QueuingEngineControllerSlurm::checkCompletedJob(NGSD& db, QString qe_job_id
 
 void QueuingEngineControllerSlurm::deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const
 {
-	if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " Slurm-id: " << job.sge_id << ")" << QT_ENDL;
+	if (debug_) QTextStream(stdout) << "Canceling job " << job_id << " (type: " << job.type << " Slurm-id: " << job.sge_id << ")" << Qt::endl;
 
 	QByteArrayList result;
 	if (!job.sge_id.isEmpty())

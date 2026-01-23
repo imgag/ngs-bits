@@ -1,14 +1,15 @@
 #include "SomaticVariantInterpreterWidget.h"
+#include "QtWidgets/qwidget.h"
 #include "ui_SomaticVariantInterpreterWidget.h"
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "QMessageBox"
 
-SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(int variant_index, const VariantList& vl, QWidget *parent)
+SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(QWidget* parent, int variant_index, const VariantList& vl)
 	: QWidget(parent)
 	, ui_(new Ui::SomaticVariantInterpreterWidget)
 	, variant_index_(variant_index)
-	, snv_(vl[variant_index])
+	, variant_(vl[variant_index])
 	, vl_(vl)
 {
 	ui_->setupUi(this);
@@ -17,13 +18,8 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(int variant_ind
 
 	for(QButtonGroup* buttongroup: findChildren<QButtonGroup*>(QRegularExpression("^benign_*|onco_*")) )
 	{
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            connect(buttongroup, SIGNAL(idToggled(int,bool)), this, SLOT(disableUnapplicableParameters()));
-            connect(buttongroup, SIGNAL(idToggled(int,bool)), this, SLOT(predict()));
-        #else
-            connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(disableUnapplicableParameters()));
-            connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(predict()));
-        #endif
+		connect(buttongroup, SIGNAL(idToggled(int,bool)), this, SLOT(disableUnapplicableParameters()));
+		connect(buttongroup, SIGNAL(idToggled(int,bool)), this, SLOT(predict()));
 	}
 
 	QString variant_description = vl[variant_index].toString(QChar(), -1, true);
@@ -44,7 +40,7 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(int variant_ind
 	connect(ui_->button_select_from_NGSD, SIGNAL(clicked(bool)), this, SLOT(preselectFromNGSD()));
 	connect(ui_->button_store_in_ngsd, SIGNAL(clicked(bool)), this, SLOT(storeInNGSD()));
 	connect(ui_->button_store_and_close, SIGNAL(clicked(bool)), this, SLOT(storeAndClose()));
-
+	connect(ui_->button_delete_from_ngsd, SIGNAL(clicked(bool)), this, SLOT(deleteFromNGSD()));
 
 	//Preselect from NGSD, if not existing according annotations
 	if( !preselectFromNGSD() )	preselectFromInputAnno();
@@ -67,7 +63,7 @@ void SomaticVariantInterpreterWidget::disableNGSD()
 	ui_->comment->setEnabled(false);
 	ui_->button_select_from_NGSD->setEnabled(false);
 	ui_->button_store_in_ngsd->setEnabled(false);
-
+	ui_->button_delete_from_ngsd->setEnabled(false);
 }
 
 SomaticViccData SomaticVariantInterpreterWidget::getParameters()
@@ -132,7 +128,7 @@ void SomaticVariantInterpreterWidget::preselectFromInputAnno()
 		return;
 	}
 
-	SomaticViccData preselection = SomaticVariantInterpreter::predictViccValue(vl_, snv_);
+	SomaticViccData preselection = SomaticVariantInterpreter::predictViccValue(vl_, variant_);
 	preselect(preselection);
 }
 
@@ -140,9 +136,9 @@ bool SomaticVariantInterpreterWidget::preselectFromNGSD()
 {
 	if(!LoginManager::active()) return false;
 	NGSD db;
-	int id = db.getSomaticViccId(snv_);
+	int id = db.getSomaticViccId(variant_);
 	if(id == -1 ) return false;
-	preselect(db.getSomaticViccData(snv_) );
+	preselect(db.getSomaticViccData(variant_) );
 	return true;
 }
 
@@ -191,7 +187,7 @@ void SomaticVariantInterpreterWidget::storeInNGSD()
 			THROW(ArgumentException, "VICC data is not valid!");
 		}
 
-		NGSD().setSomaticViccData(snv_, vicc_data, LoginManager::userLogin());
+		NGSD().setSomaticViccData(variant_, vicc_data, LoginManager::userLogin());
 	}
 	catch(Exception e)
 	{
@@ -205,10 +201,32 @@ void SomaticVariantInterpreterWidget::storeInNGSD()
 	emit stored(variant_index_, SomaticVariantInterpreter::viccScoreAsString(vicc_data), vicc_data.comment);
 }
 
+
+
 void SomaticVariantInterpreterWidget::storeAndClose()
 {
 	storeInNGSD();
-	emit closeDialog();
+	parentWidget()->close();
+}
+
+void SomaticVariantInterpreterWidget::deleteFromNGSD()
+{
+	QString title = "Deleting VICC classifiation";
+
+	//check VICC data exists
+	NGSD db;
+	int vicc_id = db.getSomaticViccId(variant_);
+	if (vicc_id==-1)
+	{
+		QMessageBox::warning(this, title, "Error: Variant " + variant_.toString() + " does not have a VICC classifiation!");
+		return;
+	}
+
+	//delete
+	if (QMessageBox::question(this, title, "Do you really want to delete the VICC classifiation for this variant:\n"+variant_.toString()+"?")==QMessageBox::Yes)
+	{
+		db.deleteSomaticViccData(variant_);
+	}
 }
 
 
@@ -252,12 +270,12 @@ void SomaticVariantInterpreterWidget::setNGSDMetaData()
 	if(!LoginManager::active()) return;
 	NGSD db;
 
-	if(db.getSomaticViccId(snv_) == -1) return;
+	if(db.getSomaticViccId(variant_) == -1) return;
 
 	SomaticViccData vicc_from_ngsd;
 	try
 	{
-		vicc_from_ngsd = db.getSomaticViccData(snv_);
+		vicc_from_ngsd = db.getSomaticViccData(variant_);
 	}
 	catch(Exception)
 	{

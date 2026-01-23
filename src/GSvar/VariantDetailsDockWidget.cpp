@@ -10,7 +10,6 @@
 #include <QMenu>
 #include "Settings.h"
 #include "NGSD.h"
-#include "Log.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
@@ -22,7 +21,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	, ui(new Ui::VariantDetailsDockWidget)
 {
 	ui->setupUi(this);
-	ui->gene->setMaximumHeight(ui->gene->fontMetrics().height()); //TODO Marc: should no longer be needed after switch to Qt6 (see below)
+	ui->gene->setMaximumHeight(ui->gene->fontMetrics().height());
 
 	//signals + slots
 	connect(ui->trans_prev, SIGNAL(clicked(bool)), this, SLOT(previousTanscript()));
@@ -640,7 +639,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			QStringList ids = anno.split(",");
 			ids.removeAll("");
 			text.clear();
-            for (int i = 0; i < std::min(SIZE_TO_INT(ids.size()), SIZE_TO_INT(2)); ++i)
+            for (int i = 0; i < std::min(static_cast<qsizetype>(ids.size()), static_cast<qsizetype>(2)); ++i)
 			{
 				QString id = ids.at(i).trimmed();
 				text += formatLink(id, "https://pubmed.ncbi.nlm.nih.gov/" + id + "/") + " ";
@@ -653,7 +652,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			tooltip = ids.join(", ");
 
 		}
-		else if (name=="gene_info") //TODO Marc: after Qt6 switch use setTextElideMode (everywhere else too)
+		else if (name=="gene_info")
 		{
 			tooltip = QString(anno).replace(", ", "\n");
 

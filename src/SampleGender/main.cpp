@@ -78,7 +78,7 @@ public:
 				{
 					stream << "\t" << info.key;
 				}
-                stream << QT_ENDL;
+                stream << Qt::endl;
 				print_header = false;
 			}
 
@@ -88,7 +88,7 @@ public:
 			{
 				stream << "\t" << info.value;
 			}
-            stream << QT_ENDL;
+            stream << Qt::endl;
 		}
 	}
 };

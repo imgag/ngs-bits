@@ -1,5 +1,5 @@
-#c++14 support (only needed for Qt5. Qt6 is on C++17 or higher anyway)
-CONFIG += c++14
+#c++17 support (kind of redundant because Qt6 uses C++17 by default)
+CONFIG += c++17
 
 #define project root folder
 PROJECT_ROOT = $$absolute_path($$PWD/..)

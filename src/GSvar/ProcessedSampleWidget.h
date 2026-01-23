@@ -53,6 +53,7 @@ protected slots:
 	void showAnalysisInfo();
 
 	void openIgvTrack();
+	void showCircosPlot();
 	void somRepDeleted();
 
 	void openProcessedSampleTab(QString ps);

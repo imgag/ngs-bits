@@ -57,11 +57,14 @@ void IGVInitCacheWorker::process()
         }
     }
 
-    //Manta evidence file(s)
-    FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
-    foreach(const FileLocation& file, evidence_files)
+    if (analysis_type_ == GERMLINE_SINGLESAMPLE || analysis_type_ == GERMLINE_MULTISAMPLE || analysis_type_ == GERMLINE_TRIO)
     {
-        IgvSessionManager::get(0).addLocationToCache(file, false);
+        //Manta evidence file(s)
+        FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
+        foreach(const FileLocation& file, evidence_files)
+        {
+            IgvSessionManager::get(0).addLocationToCache(file, false);
+        }
     }
 
     //sample low-coverage
@@ -98,7 +101,7 @@ void IGVInitCacheWorker::process()
         QString sample_id = db.sampleId(current_filename_, false);
         if (sample_id!="")
         {
-			//related RNA tracks
+            //related RNA tracks
             foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
             {
                 // iterate over all processed RNA samples
@@ -119,16 +122,16 @@ void IGVInitCacheWorker::process()
             }
 
 
-			//Paraphase evidence file
-			if (db.getProcessedSampleData(db.processedSampleId(current_filename_)).processing_system_type == "lrGS")
-			{
-				FileLocationList paraphase_files = GlobalServiceProvider::fileLocationProvider().getParaphaseEvidenceFiles(true);
-				foreach(const FileLocation& file, paraphase_files)
-				{
-					IgvSessionManager::get(0).addLocationToCache(file, false);
-				}
-			}
-        }	
+            //Paraphase evidence file
+            if (db.getProcessedSampleData(db.processedSampleId(current_filename_)).processing_system_type == "lrGS")
+            {
+                FileLocationList paraphase_files = GlobalServiceProvider::fileLocationProvider().getParaphaseEvidenceFiles(true);
+                foreach(const FileLocation& file, paraphase_files)
+                {
+                    IgvSessionManager::get(0).addLocationToCache(file, false);
+                }
+            }
+        }
     }
 
     Log::info("Finished preloading IGV file information");

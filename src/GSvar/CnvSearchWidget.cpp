@@ -26,12 +26,7 @@ CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 
 	QAction* action = new QAction("Copy coordinates");
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoodinatesToClipboard()));
-
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        connect(ui_.rb_chr_pos->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
-    #else
-        connect(ui_.rb_chr_pos->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
-    #endif
+	connect(ui_.rb_chr_pos->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
 
 	ui_.table->addAction(action);
 
@@ -88,7 +83,7 @@ void CnvSearchWidget::search()
 		{
 			// parse genes
 			GeneSet genes;
-            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS))
+            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), Qt::SkipEmptyParts))
 			{
 				QByteArray approved_gene_name = db_.geneToApproved(gene.toUtf8());
 				if (approved_gene_name == "") THROW(ArgumentException, "Invalid gene name '" + gene + "' given!");

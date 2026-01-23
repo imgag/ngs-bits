@@ -12,12 +12,12 @@ ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, const Par
 	, params_(params)
 	, reference_(meta.reference)
 {
-    if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << Qt::endl;
 }
 
 ChunkProcessor::~ChunkProcessor()
 {
-    if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << Qt::endl;
 }
 
 // utility functions

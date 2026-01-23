@@ -22,7 +22,7 @@ void PipelineSettings::loadSettings(QString ini_file)
         }
 
         // Key-value pair
-        QStringList parts = line.split("=", QT_SKIP_EMPTY_PARTS);
+        QStringList parts = line.split("=", Qt::SkipEmptyParts);
 		if (parts.size() == 2)
         {
 			QString key = parts.at(0).trimmed();

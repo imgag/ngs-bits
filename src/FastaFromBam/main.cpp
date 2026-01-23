@@ -47,7 +47,7 @@ public:
 		{
 			line = line.trimmed();
 			if (!line.startsWith("@SQ")) continue;
-            out_stream << line << QT_ENDL;
+            out_stream << line << Qt::endl;
 
 			QString name = "";
 			QString md5 = "";
@@ -69,7 +69,7 @@ public:
 			if (name.isEmpty()) THROW(FileParseException, "Invalid @SQ line without name found: " + line)
 			if (md5.isEmpty())
 			{
-                out_stream << "Skipped chromosome '" << name << "': @SQ line contains no M5 entry" << QT_ENDL;
+                out_stream << "Skipped chromosome '" << name << "': @SQ line contains no M5 entry" << Qt::endl;
 				continue;
 			}
 
@@ -85,7 +85,7 @@ public:
 			}
 			catch (Exception& e)
 			{
-                out_stream << "Skipped chromosome '" << name << "': could not download " << url << QT_ENDL;
+                out_stream << "Skipped chromosome '" << name << "': could not download " << url << Qt::endl;
 			}
 		}
 	}

@@ -18,12 +18,7 @@ SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
 	ui_.setupUi(this);
 	setWindowFlags(Qt::Window);
 
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        connect(ui_.radio_region->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
-    #else
-        connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
-    #endif
-
+	connect(ui_.radio_region->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.variants, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(variantContextMenu(QPoint)));

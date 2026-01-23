@@ -131,14 +131,10 @@ int Sequence::addNoise(double error_probability, std::mt19937& gen)
 		{
 			do
 			{
-                #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                // we need to provide a random number generator explicitly
-                std::random_device rd;
-                std::mt19937 g(rd());
-                std::shuffle(bases.begin(), bases.end(), g);
-                #else
-				std::random_shuffle(bases.begin(), bases.end());
-                #endif
+				// we need to provide a random number generator explicitly
+				std::random_device rd;
+				std::mt19937 g(rd());
+				std::shuffle(bases.begin(), bases.end(), g);
 			}
 			while (at(i)==bases[0]);
 			operator[](i) = bases[0];

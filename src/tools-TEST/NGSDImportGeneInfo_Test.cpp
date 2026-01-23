@@ -79,6 +79,10 @@ private:
 		F_EQUAL(ginfo.oe_mis.toDouble(), 1.03);
 		S_EQUAL(ginfo.oe_lof, "n/a");
 		S_EQUAL(ginfo.inheritance, "n/a");
+
+		//check imported version
+		QString version = db.getValue("SELECT version FROM db_import_info WHERE name='gnomAD constraints'").toString();
+		S_EQUAL(version, "NGSDImportGeneInfo_constraint_2.1.1.txt");
 	}
 
 };

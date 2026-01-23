@@ -48,7 +48,7 @@ void IgvLogWidget::updateTable(QString name, QList<IGVCommand> commands)
 		QTableWidgetItem* item = GUIHelper::createTableItem(IGVSession::statusToString(command.status));
         item->setBackground(QBrush(QColor(IGVSession::statusToColor(command.status))));
 		ui_.table->setItem(row, 1, item);
-		ui_.table->setItem(row, 2, GUIHelper::createTableItem(command.execution_start_time.toString(Qt::ISODate).replace('T', ' ')));
+		ui_.table->setItem(row, 2, GUIHelper::createTableItem(Helper::toString(command.execution_start_time, ' ')));
 		ui_.table->setItem(row, 3, GUIHelper::createTableItem(QString::number(command.execution_duration_sec, 'f', 2)));
 		ui_.table->setItem(row, 4, GUIHelper::createTableItem(command.answer));
 		++row;

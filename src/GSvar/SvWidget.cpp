@@ -183,8 +183,8 @@ void SvWidget::initGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-    if((report_config_ != NULL) && !is_somatic_) report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::SVS, false));
-    if((som_report_config_ != NULL) && is_somatic_) report_variant_indices = LIST_TO_SET(som_report_config_->variantIndices(VariantType::SVS, false));
+    if((report_config_ != NULL) && !is_somatic_) report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::SVS, false));
+    if((som_report_config_ != NULL) && is_somatic_) report_variant_indices = Helper::listToSet(som_report_config_->variantIndices(VariantType::SVS, false));
 
 	//fill table widget with data from bedpe file
 	for(int row=0; row<svs_.count(); ++row)

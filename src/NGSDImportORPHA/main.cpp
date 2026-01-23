@@ -76,7 +76,7 @@ public:
 														}
 														else
 														{
-                                                            out << "Warning: Skipping non-approved gene name '" << gene << "' for term '" << number << "'!" << QT_ENDL;
+                                                            out << "Warning: Skipping non-approved gene name '" << gene << "' for term '" << number << "'!" << Qt::endl;
 														}
 													}
 													else xml.skipCurrentElement();
@@ -130,7 +130,7 @@ public:
 		}
 
 		//parse disease-gene relation
-        out << "Parsing gene-disease relations..." << QT_ENDL;
+        out << "Parsing gene-disease relations..." << Qt::endl;
 		QHash<QString, GeneSet> disease_genes = parseDiseaseGeneRelations(db, out);
 
 		//prepare SQL queries
@@ -140,12 +140,13 @@ public:
 		qi_gene.prepare("INSERT INTO disease_gene (disease_term_id, gene) VALUES (:0, :1)");
 
 		//import disease terms and genes
-        out << "Importing ORPHA information..." << QT_ENDL;
+		out << "Importing ORPHA information..." << Qt::endl;
 		{
 			QString terms = getInfile("terms");
 			QSharedPointer<QFile> fp = Helper::openFileForReading(terms);
 			QXmlStreamReader xml(fp.data());
 			xml.readNextStartElement(); //root element JDBOR
+			QString version = xml.attributes().value("date").left(10).toString();
 			while (xml.readNextStartElement())
 			{
                 if (xml.name().toString()=="DisorderList")
@@ -249,13 +250,17 @@ public:
 				THROW(FileParseException, "Error parsing XML file " + terms + ":\n" + xml.errorString());
 			}
 			fp->close();
+
+
+			//add DB import info
+			db.setDatabaseInfo("ORPHA", version);
 		}
 
 		//output
 		int c_disease = db.getValue("SELECT COUNT(*) FROM disease_term").toInt();
-        out << "Imported " << c_disease << " diseases" << QT_ENDL;
+        out << "Imported " << c_disease << " diseases" << Qt::endl;
 		int c_disease_gene = db.getValue("SELECT COUNT(*) FROM disease_gene").toInt();
-        out << "Imported " << c_disease_gene << " disease-gene relations" << QT_ENDL;
+        out << "Imported " << c_disease_gene << " disease-gene relations" << Qt::endl;
 	}
 };
 

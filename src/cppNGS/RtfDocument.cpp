@@ -445,5 +445,5 @@ void RtfTable::sortbyCols(const QList<int> &indices)
 
 void RtfTable::swapRows(int i_row_a, int i_row_b)
 {
-    QLIST_SWAP_ITEMS_AT(rows_, i_row_a, i_row_b);
+	rows_.swapItemsAt(i_row_a, i_row_b);
 }

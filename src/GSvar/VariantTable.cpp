@@ -99,7 +99,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	QAction* a_copy_genes = copy_menu->addAction("Genes");
 	QAction* a_cnv_sv = menu.addAction("Show CNVs/SVs in gene");
 	QAction* a_visualize = menu.addAction("Visualize");
-	a_visualize->setEnabled(Settings::boolean("debug_mode_enabled", true));
+	a_visualize->setEnabled(Helper::runningInQtCreator());
 	menu.addSeparator();
 
 	//Google and Google Scholar
@@ -780,7 +780,7 @@ QList<int> VariantTable::columnWidths() const
 
 void VariantTable::setColumnWidths(const QList<int>& widths)
 {
-    int col_count = std::min(SIZE_TO_INT(widths.count()), SIZE_TO_INT(columnCount()));
+    int col_count = std::min(static_cast<qsizetype>(widths.count()), static_cast<qsizetype>(columnCount()));
 	for (int c=0; c<col_count; ++c)
 	{
 		setColumnWidth(c, widths[c]);

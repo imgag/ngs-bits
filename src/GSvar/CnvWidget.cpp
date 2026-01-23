@@ -25,13 +25,7 @@
 #include <QInputDialog>
 #include "ColumnConfig.h"
 #include "SettingsDialog.h"
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
-#else
-#include <QChartView>
-QT_CHARTS_USE_NAMESPACE
-#endif
 
 CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, QSharedPointer<SomaticReportConfiguration> rep_conf_somatic, const GeneSet& het_hit_genes)
 	: QWidget(parent)
@@ -280,8 +274,8 @@ void CnvWidget::updateGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-    if(!is_somatic_) report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::CNVS, false));
-    else report_variant_indices = LIST_TO_SET(somatic_report_config_->variantIndices(VariantType::CNVS, false));
+    if(!is_somatic_) report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::CNVS, false));
+    else report_variant_indices = Helper::listToSet(somatic_report_config_->variantIndices(VariantType::CNVS, false));
 
 
 	//show variants

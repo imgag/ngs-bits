@@ -95,7 +95,7 @@ public:
 		}
 
 
-        std_out << "Collapsing SV density took " << QByteArray::number(debug_time_collapse_density/1000.0) << "s" << QT_ENDL;
+        std_out << "Collapsing SV density took " << QByteArray::number(debug_time_collapse_density/1000.0) << "s" << Qt::endl;
 	}
 
 	virtual void main()
@@ -145,7 +145,7 @@ public:
 
 
 		//get sample counts
-        std_out << "Get sample counts per processing system..." << QT_ENDL;
+        std_out << "Get sample counts per processing system..." << Qt::endl;
 		SqlQuery q_sample_counts = db.getQuery();
 		q_sample_counts.exec(QByteArray() + "SELECT ps.processing_system_id, COUNT(sc.id) FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
 							 + "WHERE ps.quality != 'bad' AND NOT EXISTS "
@@ -155,7 +155,7 @@ public:
 		{
 			sample_counts.insert(db.getProcessingSystemData(q_sample_counts.value(0).toInt()).name_short, q_sample_counts.value(1).toInt());
 		}
-        std_out << " done. " << Helper::elapsedTime(timer) << QT_ENDL;
+        std_out << " done. " << Helper::elapsedTime(timer) << Qt::endl;
 
 
 		//get all common processing systems (will be written in seperate files)
@@ -166,15 +166,15 @@ public:
 
 
 		//get all valid callset ids (are not bad quality and not merged)
-        std_out << "Get all valid callset ids..." << QT_ENDL;
+        std_out << "Get all valid callset ids..." << Qt::endl;
 
-        QSet<int> valid_cs_ids = LIST_TO_SET(db.getValuesInt(QByteArray() + "SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
+        QSet<int> valid_cs_ids = Helper::listToSet(db.getValuesInt(QByteArray() + "SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
 													+ "WHERE ps.quality != 'bad' AND NOT EXISTS "
                                                     + "(SELECT 1 FROM merged_processed_samples mps WHERE mps.processed_sample_id = sc.processed_sample_id)"));
 
-        std_out << " done. " << Helper::elapsedTime(timer) << QT_ENDL;
+        std_out << " done. " << Helper::elapsedTime(timer) << Qt::endl;
 
-        std_out << "NGSD preperation done. " << Helper::elapsedTime(timer) << QT_ENDL;
+        std_out << "NGSD preperation done. " << Helper::elapsedTime(timer) << Qt::endl;
 
 
 		foreach (StructuralVariantType sv_type, sv_types)
@@ -208,7 +208,7 @@ public:
 					THROW(ArgumentException, "Invalid SV type!");
 					break;
 			}
-            std_out << "Extract " << StructuralVariantTypeToString(sv_type) << "..." << QT_ENDL;
+            std_out << "Extract " << StructuralVariantTypeToString(sv_type) << "..." << Qt::endl;
 
 			//init output file
 			QString file_path = QDir(output_folder).filePath(table_name + ".bedpe");
@@ -242,7 +242,7 @@ public:
 			foreach (const QString& chr, chromosomes)
 			{
 				QList<int> ids = db.getValuesInt("SELECT `id` FROM `" + table_name + "`" + filter, chr);
-                std_out << QByteArray::number(ids.size()) << " " << StructuralVariantTypeToString(sv_type) << " for " + chr + " to export... " << Helper::elapsedTime(timer) << QT_ENDL;
+                std_out << QByteArray::number(ids.size()) << " " << StructuralVariantTypeToString(sv_type) << " for " + chr + " to export... " << Helper::elapsedTime(timer) << Qt::endl;
 				SqlQuery q_callset_id = db.getQuery();
 				q_callset_id.prepare("SELECT `sv_callset_id` FROM `" + table_name + "` WHERE id=:0");
 
@@ -404,7 +404,7 @@ public:
 						std_out << "\t getting processing system took " << QByteArray::number(debug_time_get_sys) << "s \n";
 						std_out << "\t write file took " << QByteArray::number(debug_time_write_file) << "s \n";
 						std_out << "\t extracting SV density took " << QByteArray::number(debug_time_extract_density) << "s \n";
-                        std_out << QT_ENDL;
+                        std_out << Qt::endl;
 					}
 				}
 

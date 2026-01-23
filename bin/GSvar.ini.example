@@ -46,9 +46,6 @@ gsvar_variantsheet_folder = ""
 gsvar_variant_export_folder = ""
 burden_test_files = ""
 
-#debugging
-debug_mode_enabled=false
-
 #somatic data transfer to MTB/QBIC
 mtb_xml_upload_url = ""
 qbic_data_path = ""

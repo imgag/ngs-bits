@@ -7,6 +7,7 @@
 #include <QTextStream>
 #include <QDateTime>
 #include <QRegularExpression>
+#include <QMutex>
 #include "VariantList.h"
 #include "BedFile.h"
 #include "Transcript.h"
@@ -215,7 +216,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobHistoryEntry
 
 	QString timeAsString() const
 	{
-		return time.toString(Qt::ISODate).replace('T', ' ').replace('Z', "");
+		return Helper::toString(time, ' ');
 	}
 };
 
@@ -903,7 +904,9 @@ public:
 	///Returns all PubMed IDs for a given variant id
 	QStringList pubmedIds(const QString& variant_id);
 
+	///Deletes somatic variants of a tumor-normal analysis or tumor-only analysis (if n_ps_id is empty)
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id);
+	///Deletes somatic variants of a certain type of a tumor-normal analysis or tumor-only analysis (if n_ps_id is empty)
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type);
 
 	///Adds a CNV to the NGSD. Returns the CNV ID.
@@ -1091,10 +1094,15 @@ public:
 	///Sets the classification of a variant in the NGSD.
 	void setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info);
 
-	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Returns the VICC classification id of a variant, or -1 if it does not exist.
 	int getSomaticViccId(const Variant& variant);
+	///Returns the VICC classification of a variant
+	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Sets the VICC classification of a variant
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
-	//TODO Alexander: add method to delete VICC entry and allow deleting if from GSvar VICC dialog
+	///Deletes the VICC classification of a variant
+	void deleteSomaticViccData(const Variant& variant);
+	//TODO Alexander: allow deleting if from GSvar VICC dialog
 
 	///Returns a list of all somatic pathways.
 	QByteArrayList getSomaticPathways();
@@ -1238,9 +1246,14 @@ public:
 	///Returns the (sorted) list of studies of a processed sample
 	QStringList studies(const QString& processed_sample_id);
 
+	///Sets database version of a data source imported into NGSD
+	void setDatabaseInfo(QString name, QString version, QDate import_date = QDate::currentDate());
 
 	//clearCache() should only be called outside of NGSD for tests!
 	void clearCache();
+
+	///Clears only the user permissions part of the cache
+	void clearUserPermissionsCache();
 
 signals:
 	void initProgress(QString text, bool percentage);
@@ -1301,6 +1314,9 @@ protected:
 	static Cache& getCache();
 	void initTranscriptCache();
 	void initGeneExpressionCache();
+
+private:
+	mutable QMutex cache_mutex_;
 };
 
 #endif // NGSD_H

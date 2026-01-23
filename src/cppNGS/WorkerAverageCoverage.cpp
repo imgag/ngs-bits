@@ -55,7 +55,7 @@ void WorkerAverageCoverage::run()
 		}
 
 		//debug output
-        if (debug_) QTextStream(stdout) << "Read processing for chunk with start/end " << chunk_.start << "/" << chunk_.end << " took " << Helper::elapsedTime(timer) << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Read processing for chunk with start/end " << chunk_.start << "/" << chunk_.end << " took " << Helper::elapsedTime(timer) << Qt::endl;
 	}
 	catch(Exception& e)
 	{
@@ -155,7 +155,7 @@ void WorkerAverageCoverageChr::run()
 		}
 
 		//debug output
-        if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " took " << Helper::elapsedTime(timer) << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " took " << Helper::elapsedTime(timer) << Qt::endl;
 	}
 	catch(Exception& e)
 	{

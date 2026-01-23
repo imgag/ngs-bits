@@ -30,7 +30,7 @@ protected slots:
 	void updateReadQualityTable();
 	void updateRunSampleTable();
 	void setQuality();
-	void scheduleForResequencing();
+	void toggleScheduleForResequencing();
 	void showPlot();
 	void edit();
 	//edit slot for batch view
