@@ -18,7 +18,7 @@ public:
 		setDescription("Prunes source variant annotations, if identical to shown variant.");
 
 		//optional
-		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
+		addInfile("in", "Input VCF file. If unset, reads from STDIN. Does not support multiallelic variants", true, true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addFlag("verbose", "Outputs number of source variant annotations deleted due to indel leftalignment");
@@ -73,6 +73,9 @@ public:
 				out_p->write(line);
 				continue;
 			}
+
+			//check for multiallelic variants
+			if (parts[VcfFile::ALT].contains(",")) THROW(ToolFailedException , "Found multiallelic variant at position '" + parts[VcfFile::POS] + "'. Multiallelic variants are not supported by this tool!");
 
 			QByteArray variant = parts[VcfFile::CHROM] + "&" + parts[VcfFile::POS] + "&" + parts[VcfFile::REF] + "&" + parts[VcfFile::ALT];
 			QByteArray info = parts[VcfFile::INFO];

@@ -78,7 +78,18 @@ public:
 			//split line and extract variant infos
 			QByteArrayList parts = line.trimmed().split('\t');
 			QByteArray info = parts[VcfFile::INFO];
-			QByteArray new_info = "SOURCE_VAR=" + parts[VcfFile::CHROM] + "&" + parts[VcfFile::POS] + "&" + parts[VcfFile::REF] + "&" + parts[VcfFile::ALT];
+
+			//handle multiallelic sites
+			QByteArrayList alts = parts[VcfFile::ALT].split(',');
+			QByteArray new_infos = "SOURCE_VAR=" + parts[VcfFile::CHROM] + "&" + parts[VcfFile::POS] + "&" + parts[VcfFile::REF] + "&" + alts[0];
+
+			if (alts.count() > 1)
+			{
+				for (int i = 1; i < alts.count(); i++)
+				{
+					new_infos.append("," + parts[VcfFile::CHROM] + "&" + parts[VcfFile::POS] + "&" + parts[VcfFile::REF] + "&" + alts[i]);
+				}
+			}
 
 			//remove old annotation if present
 			if (info.contains("SOURCE_VAR"))
@@ -94,8 +105,8 @@ public:
 			}
 
 			//add source variant annotation
-			if (info.isEmpty()) info.append(new_info);
-			else info.append(";" + new_info);
+			if (info.isEmpty()) info.append(new_infos);
+			else info.append(";" + new_infos);
 
 			parts[VcfFile::INFO] = info;
 
