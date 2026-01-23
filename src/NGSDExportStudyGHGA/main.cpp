@@ -514,6 +514,7 @@ public:
 		parent.insert("experiment_method_supporting_files", experiment_method_supporting_files);
 	}
 
+	//TODO Marc implement phenotypic features and ancestry
 	void addIndividuals(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;

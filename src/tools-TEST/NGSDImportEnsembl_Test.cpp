@@ -38,6 +38,10 @@ private:
 		I_EQUAL(count, 9);
 		count = db.getValue("SELECT count(ge.start) FROM gene_exon ge, gene_transcript gt WHERE ge.transcript_id=gt.id AND gt.name='CCDS9344'").toInt();
 		I_EQUAL(count, 26);
+
+		//check imported version
+		QString version = db.getValue("SELECT version FROM db_import_info WHERE name='Ensembl'").toString();
+		S_EQUAL(version, "NGSDImportEnsembl_in.gff3");
 	}
 
     TEST_METHOD(with_pseudogenes)

@@ -253,6 +253,16 @@ public:
             out << "  genes with updated inheritance: " << c_update << Qt::endl;
             out << "  genes that require manual check: " << c_check << Qt::endl;
 		}
+
+		//add DB import info (version parsed from filename; if parsing fails use full filename)
+		QString version = QFileInfo(getInfile("constraint")).fileName();
+		QString tmp = version;
+		tmp.replace("gnomad.v", "").replace(".lof_metrics.by_gene.txt", "").replace(".gz", "");
+		if (QRegularExpression("^[0-9.]+$").match(tmp).hasMatch())
+		{
+			version = tmp;
+		}
+		db.setDatabaseInfo("gnomAD constraints", version);
 	}
 };
 

@@ -93,6 +93,9 @@ private:
 		I_EQUAL(query.value(1).toInt(), 3999);
 		F_EQUAL2(query.value(2).toFloat(), 2.584, 0.00001);
 
+		//check imported version
+		QString version = db.getValue("SELECT version FROM db_import_info WHERE name='HGNC'").toString();
+		S_EQUAL(version, "NGSDImportHGNC_in1.txt");
 	}
 
 };
