@@ -197,6 +197,9 @@ deploy_server_nobuild:
 	@echo "#Update the user group"
 	chgrp -R f_ad_bi_l_medgen_access_storages $(SERVER_DEP_PATH)
 
+cloud_server_deploy_nobuild:
+	python3 src/GSvarServer/cloud_deploy.py $(SERVER_DEP_PATH)
+
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
 test_release:
