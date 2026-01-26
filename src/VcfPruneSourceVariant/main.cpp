@@ -134,6 +134,7 @@ public:
 					new_infos.append(p);
 				}
 
+				if (new_infos.isEmpty()) new_infos.append(".");
 				parts[VcfFile::INFO] = new_infos.join(";");
 			}
 
