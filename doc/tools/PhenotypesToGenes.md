@@ -1,5 +1,5 @@
 ### PhenotypesToGenes tool help
-	PhenotypesToGenes (2024_08-110-g317f43b9)
+	PhenotypesToGenes (2025_07-127-g60fc6b39)
 	
 	Converts a phenotype list to a list of matching genes.
 	
@@ -17,7 +17,7 @@
 	  -ignore_non_phenotype  Ignores HPO identifiers that are sub-terms of 'Mode of inheritance' or 'Frequency'
 	                         Default value: 'false'
 	  -source <string>       Comma-separated list of phenotype-gene source databases.
-	                         Default value: 'HPO,OMIM,ClinVar,Decipher,HGMD,GenCC'
+	                         Default value: 'HPO,OMIM,ClinVar,G2P,HGMD,GenCC'
 	  -evidence <string>     Comma-separated list of phenotype-gene evidence levels.
 	                         Default value: 'n/a,low,medium,high'
 	
@@ -29,7 +29,7 @@
 	  --settings [file]      Settings override file (no other settings files are used).
 	
 ### PhenotypesToGenes changelog
-	PhenotypesToGenes 2024_08-110-g317f43b9
+	PhenotypesToGenes 2025_07-127-g60fc6b39
 	
 	2020-11-23 Added parameter 'ignore_invalid'.
 	2020-05-24 First version.

@@ -6,15 +6,10 @@
 #include "VariantList.h"
 #include "BedFile.h"
 #include "NGSD.h"
-#include "BusyDialog.h"
-#include "IgvDialog.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
 #include "SomaticReportSettings.h"
-#include "FileLocationProviderLocal.h"
-#include "FileLocationProviderRemote.h"
-#include "VersatileTextStream.h"
 #include "Log.h"
 #include "ClickableLabel.h"
 #include "ImportDialog.h"
@@ -69,7 +64,7 @@ public:
 	static QString nobr();
 
 	///Edit classification of a variant
-	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
+	void editVariantClassification(VariantList& variant, int index);
 
 	///Returns if germline report is supported for current variant list. If error is given, it is filled with the error message, if false is returned.
 	bool germlineReportSupported(bool require_ngsd = true, QString* error=nullptr);
@@ -143,6 +138,7 @@ public slots:
 
 	///NGSD menu
 	void on_actionStatistics_triggered();
+	void on_actionShowDatabaseInfo_triggered();
 	void on_actionDevice_triggered();
 	void on_actionGenome_triggered();
 	void on_actionMID_triggered();
@@ -156,6 +152,7 @@ public slots:
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
 	void on_actionExportTestData_triggered();
+    void on_actionExportSampleData_triggered();
 	void on_actionImportSequencingRuns_triggered();
 	void on_actionImportTestData_triggered();
 	void on_actionImportMids_triggered();
@@ -195,12 +192,10 @@ public slots:
 	void on_actionSampleAncestry_triggered();
 	///Sample analysis status
 	void on_actionAnalysisStatus_triggered();
-	///Lookup gaps in low-coverage BED file
-	void on_actionGapsLookup_triggered();
-	///Calculate gaps based on current target region
-	void on_actionGapsRecalculate_triggered();
 	///VCF export
 	void exportVCF();
+	///VCF export for import into HerediCare
+	void exportHerediCareVCF();
 	///GSvar export
 	void exportGSvar();
 	///Preferred transcript list
@@ -273,10 +268,6 @@ public slots:
 	void on_actionMethylation_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
-	///Open folder of variant list in explorer.
-	void openVariantListFolder();
-	///Open variant list qcML files.
-	void openVariantListQcFiles();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
 	///Action for variant conversion (VCF > GSvar)
@@ -319,6 +310,13 @@ public slots:
 	void on_actionClearLogFile_triggered();
 	///Opens AppData folder of GSvar
 	void on_actionOpenGSvarDataFolder_triggered();
+
+	///Calculate gaps based on current target region filter
+	void calculateGapsByTargetRegionFilter();
+	///Calculate gaps based on genes
+	void calculateGapsByGenes();
+	///Shows the gap closing dialog with the given regions and genes
+	void showGapsClosingDialog(QString title, const BedFile& regions, const GeneSet& genes);
 
 	///Load report configuration
 	void loadReportConfig();
@@ -400,7 +398,7 @@ public slots:
 	///Open column settings dialog
 	void openColumnSettings();
 	///Open settings dialog on a specific page
-	void openSettingsDialog(QString page_name="general", QString section = "");
+	void openSettingsDialog(QString page_name="view", QString section = "");
 
 	///Subpanel design dialog
 	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());
@@ -466,7 +464,7 @@ public slots:
 	///Clears somatic report settings
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
 
-	///Edit somatic variant interpretation (VICC consortium)
+	///Edit somatic variant interpretation (VICC)
 	void editSomaticVariantInterpretation(const VariantList& vl, int index);
 	///Updates somatic variant interpreation annotation for specific variant of GSvar file
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
@@ -491,9 +489,14 @@ public slots:
     QString getJobStatus(int id);
     //Returns error messages for a background job by its id (if it failed)
     QString getJobMessages(int id);
+	///Opens IVG at the position of a CNV/SV
+	void jumpToCnvOrSvPosition(int row);
+	//Set application style
+	void setStyle(QString name);
 
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
+
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -542,6 +545,7 @@ private:
 	VariantList somatic_control_tissue_variants_;
 
 	bool cf_dna_available;
+	QToolButton* gap_btn_;
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
@@ -552,11 +556,10 @@ private:
 		QAction* a_report_edit;
 		QAction* a_report_del;
 		QAction* a_var_class;
-		QAction* a_var_class_somatic;
 		QAction* a_var_interpretation_somatic;
 		QAction* a_var_comment;
 		QAction* a_var_val;
-		QAction* seperator;
+		QAction* separator;
 	};
 	ContextMenuActions context_menu_actions_;
 	void registerCustomContextMenuActions();

@@ -1,10 +1,4 @@
-TEMPLATE = app
-QT       -= gui
-CONFIG   += console
-CONFIG   -= app_bundle
-
 include("../app_cli.pri")
-
 
 # Default rules for deployment.
 #qnx: target.path = /tmp/$${TARGET}/bin

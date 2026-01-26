@@ -3,7 +3,6 @@
 #include "FastqFileStream.h"
 #include "Helper.h"
 #include <QMap>
-#include <QSet>
 #include <QTextStream>
 
 struct SampleSheetEntry
@@ -92,7 +91,7 @@ public:
 		}
 
 		//create a sorted and unique list of values in the map
-        QList<int> values = SET_TO_LIST(LIST_TO_SET(counts.values()));
+		QList<int> values = Helper::setToList(Helper::listToSet(counts.values()));
 		std::sort(values.begin(), values.end(), std::greater<int>());
 
 		//print list ordered by counts
@@ -106,7 +105,7 @@ public:
 			{
 				if (sheet.count()==0)
 				{
-                    out << key << "\t" << value << QT_ENDL;
+                    out << key << "\t" << value << Qt::endl;
 				}
 				else
 				{
@@ -127,7 +126,7 @@ public:
 						}
 					}
 
-                    out << key << "\t" << value << "\t(nearest=" << min_dist_entry.mid << " name=" << min_dist_entry.name << " dist=" << min_dist_diff.count() << " diff_indices=" << min_dist_diff.join(',') << ")" << QT_ENDL;
+                    out << key << "\t" << value << "\t(nearest=" << min_dist_entry.mid << " name=" << min_dist_entry.name << " dist=" << min_dist_diff.count() << " diff_indices=" << min_dist_diff.join(',') << ")" << Qt::endl;
 				}
 
 				//abort when the maximum number of MIDs is reached

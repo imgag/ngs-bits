@@ -17,8 +17,8 @@
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include <QClipboard>
 #include <QSortFilterProxyModel>
+#include <QClipboard>
 
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
@@ -45,9 +45,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
 	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SLOT(reportConfigFilterChanged()));
 
-	QAction* action = new QAction(QIcon(":/Icons/Trash.png"), "clear");
-	connect(action, &QAction::triggered, this, &FilterWidget::clearTargetRegion);
-	ui_.roi->addAction(action);
+	connect(ui_.roi, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRoiContextMenu(QPoint)));
 
 	connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
@@ -148,6 +146,9 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 	roi.clear();
 
 	if (name.trimmed()=="") return;
+
+	//ROI history
+	GSvarHelper::updateRoiHistory(name);
 
 	if (name.startsWith("Sub-panel: "))
 	{
@@ -509,6 +510,9 @@ void FilterWidget::reportConfigFilterChanged()
 
 void FilterWidget::phenotypesChanged()
 {
+	//update phenotype history
+	GSvarHelper::updatePhenotypeHistory(phenotypes_);
+
 	//update phenotype list
 	QByteArrayList tmp;
     for (const Phenotype& pheno : phenotypes_)
@@ -611,7 +615,7 @@ void FilterWidget::showTargetRegionDetails()
 
 void FilterWidget::copyGenesToClipboard()
 {
-	QApplication::clipboard()->setText(roi_.genes.toStringList().join("\n"));
+	QApplication::clipboard()->setText(roi_.genes.toString("\n"));
 }
 
 void FilterWidget::copyTargetRegionToClipboard()
@@ -666,11 +670,18 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
-	QAction* a_load = LoginManager::active() ? menu.addAction(QIcon(":/Icons/NGSD.png"), "load from NGSD") : nullptr;
+	QAction* a_load = menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "load from sample");
+	a_load->setEnabled(LoginManager::active());
+	QMenu* history_menu = menu.addMenu("history");
+	foreach(const PhenotypeList& entry, GSvarHelper::phenotypeHistory())
+	{
+		history_menu->addAction(entry.toString());
+	}
+	QAction* a_clear = menu.addAction(QIcon(":/Icons/Trash.png"), "clear");
+	menu.addSeparator();
 	QAction* a_subpanel = LoginManager::active() ? menu.addAction("create sub-panel") : nullptr;
 	menu.addSeparator();
 	QAction* a_settings = menu.addAction(QIcon(":/Icons/settings.png"), "settings");
-	QAction* a_clear = phenotypes_.isEmpty() ? nullptr : menu.addAction(QIcon(":/Icons/Trash.png"), "clear");
 
 	//exec
 	QAction* action = menu.exec(ui_.hpo_terms->mapToGlobal(pos));
@@ -702,7 +713,15 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 			phenotypesChanged();
 		}
 	}
+	else if (action->parent()==history_menu)
+	{
+		foreach(const PhenotypeList& entry, GSvarHelper::phenotypeHistory())
+		{
+			if (action->text()==entry.toString()) setPhenotypes(entry);
+		}
+	}
 }
+
 
 void FilterWidget::showGeneContextMenu(QPoint pos)
 {
@@ -714,7 +733,7 @@ void FilterWidget::showGeneContextMenu(QPoint pos)
 	}
 	if (!ui_.gene->text().trimmed().isEmpty())
 	{
-		menu.addAction("clear");
+		menu.addAction(QIcon(":/Icons/Trash.png"), "clear");
 	}
 
 	//exec
@@ -740,6 +759,34 @@ void FilterWidget::showGeneContextMenu(QPoint pos)
 			QStringList genes = db.getValues("SELECT gene FROM disease_gene WHERE disease_term_id='" + selector->getId() +"'");
 			ui_.gene->setText(genes.join(", "));
 			geneChanged();
+		}
+	}
+}
+
+void FilterWidget::showRoiContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	QMenu* history_menu = menu.addMenu("history");
+	foreach(const QString& entry, GSvarHelper::roiHistory())
+	{
+		history_menu->addAction(entry);
+	}
+	QAction* a_clear = menu.addAction(QIcon(":/Icons/Trash.png"), "clear");
+
+	//exec
+	QAction* action = menu.exec(ui_.roi->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action==a_clear)
+	{
+		clearTargetRegion();
+	}
+	else if (action->parent()==history_menu)
+	{
+		foreach(const QString& entry, GSvarHelper::roiHistory())
+		{
+			if (action->text()==entry) setTargetRegionByDisplayName(entry);
 		}
 	}
 }

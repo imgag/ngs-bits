@@ -12,6 +12,7 @@
 #include "IgvSessionManager.h"
 #include "RnaReportFusionDialog.h"
 
+
 FusionWidget::FusionWidget(const QString& filename, const QString& rna_ps_name, NGSD& db, QWidget *parent) :
 	QWidget(parent),
 	db_(db),
@@ -61,7 +62,8 @@ FusionWidget::~FusionWidget()
 void FusionWidget::updateGUI()
 {
 	//get report variant indices
-	QSet<int> report_variant_indices = rna_report_config_.fusionIndices(false).toSet();
+    QList<int> var_idices_list = rna_report_config_.fusionIndices(false);
+    QSet<int> report_variant_indices(var_idices_list.begin(), var_idices_list.end());
 
 	QStringList column_names = fusions_.headers();
 	QStringList numeric_columns;
@@ -221,7 +223,7 @@ void FusionWidget::applyFilters(bool debug_time)
 
 			if (genes_joined.contains("*")) //with wildcards
 			{
-				QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+                QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 				for(int r=0; r<rows; ++r)
 				{
 					if (!filter_result.flags()[r]) continue;
@@ -229,7 +231,7 @@ void FusionWidget::applyFilters(bool debug_time)
 					bool match_found = false;
 					foreach(const QString& fusion_gene, QStringList() << fusions_.getFusion(r).symbol1().split(",") << fusions_.getFusion(r).symbol2().split(","))
 					{
-						if (reg.exactMatch(fusion_gene))
+                        if (reg.match(fusion_gene).hasMatch())
 						{
 							match_found = true;
 							break;
@@ -364,8 +366,8 @@ void FusionWidget::editRnaReportConfiguration(int row)
 		fusion_config.variant_index = row;
 	}
 
-	RnaReportFusionDialog* dlg = new RnaReportFusionDialog(fusions_.getFusion(row).toString(), fusion_config, this);
-	if(dlg->exec()!=QDialog::Accepted) return;
+    RnaReportFusionDialog dlg = RnaReportFusionDialog(fusions_.getFusion(row).toString(), fusion_config, this);
+    if(dlg.exec()!=QDialog::Accepted) return;
 
 	rna_report_config_.addRnaFusionConfiguration(fusion_config);
 	updateReportConfigHeaderIcon(row);
@@ -376,8 +378,8 @@ void FusionWidget::editRnaReportConfiguration(const QList<int> &rows)
 {
 	RnaReportFusionConfiguration fusion_config;
 
-	RnaReportFusionDialog* dlg = new RnaReportFusionDialog(QString::number(rows.count()) +" selected fusions", fusion_config, this);
-	if(dlg->exec() != QDialog::Accepted) return;
+    RnaReportFusionDialog dlg = RnaReportFusionDialog(QString::number(rows.count()) +" selected fusions", fusion_config, this);
+    if(dlg.exec() != QDialog::Accepted) return;
 
 	//Accepted was pressed -> see slot writeBackSettings()
 	for(int row : rows)

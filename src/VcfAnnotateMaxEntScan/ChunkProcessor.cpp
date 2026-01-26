@@ -1,18 +1,8 @@
 #include "ChunkProcessor.h"
-#include "VcfFile.h"
-#include "TabixIndexedFile.h"
-#include <zlib.h>
-#include <QFileInfo>
 
-#include "ToolBase.h"
 #include "Exceptions.h"
-#include "Helper.h"
 #include "Transcript.h"
 #include <QDebug>
-#include <QHash>
-#include <QRegularExpressionMatchIterator>
-#include "NGSHelper.h"
-#include "BasicStatistics.h"
 
 ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, const Parameters& params)
 	: QObject()
@@ -22,12 +12,12 @@ ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, const Par
 	, params_(params)
 	, reference_(meta.reference)
 {
-    if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << Qt::endl;
 }
 
 ChunkProcessor::~ChunkProcessor()
 {
-    if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << Qt::endl;
 }
 
 // utility functions

@@ -1,4 +1,5 @@
 #include "VariantType.h"
+#include "Exceptions.h"
 
 QString variantTypeToString(VariantType type)
 {

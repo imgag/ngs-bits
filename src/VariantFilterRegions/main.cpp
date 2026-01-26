@@ -1,9 +1,7 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
-#include "ChromosomalIndex.h"
 #include "VariantList.h"
 #include "BedFile.h"
-#include "Helper.h"
 #include "FilterCascade.h"
 
 class ConcreteTool
@@ -66,7 +64,7 @@ public:
 			VcfFile variants;
 			if (mark!="")
 			{
-                variants.load(getInfile("in"), true);
+				variants.load(getInfile("in"));
 				FilterResult filter_result(variants.count());
 				FilterRegions::apply(variants, roi, filter_result);
 				if (inv) filter_result.invert();
@@ -74,7 +72,8 @@ public:
 			}
 			else
 			{
-				variants.load(getInfile("in"), roi, true, inv);
+				variants.setRegion(roi, inv);
+				variants.load(getInfile("in"));
 			}
 			int compression_level = getInt("compression_level");
 			variants.store(getOutfile("out"), true, compression_level);

@@ -1,0 +1,178 @@
+#include "TestFrameworkNGS.h"
+#include "NGSD.h"
+
+TEST_CLASS(NGSDExtractRNACohort_Test)
+{
+private:
+
+	TEST_METHOD(germline)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExtractRNACohort_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+
+		EXECUTE("NGSDExtractRNACohort", "-test -ps RX001_01 -genes " + TESTDATA("data_in/NGSDExtractRNACohort_genes.txt") + " -out out/NGSDExtractRNACohort_cohort_out1.tsv");
+		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out1.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out1.tsv"))
+	}
+
+	TEST_METHOD(germline_project)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExtractRNACohort_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+
+		EXECUTE("NGSDExtractRNACohort", "-test -ps RX001_01 -cohort_strategy RNA_COHORT_GERMLINE_PROJECT -genes " + TESTDATA("data_in/NGSDExtractRNACohort_genes.txt")
+				+ " -out out/NGSDExtractRNACohort_cohort_out2.tsv");
+		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out2.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out2.tsv"))
+	}
+
+	TEST_METHOD(somatic)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExtractRNACohort_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+
+		EXECUTE("NGSDExtractRNACohort", "-test -ps RX001_01 -cohort_strategy RNA_COHORT_SOMATIC -genes " + TESTDATA("data_in/NGSDExtractRNACohort_genes.txt")
+				+ " -out out/NGSDExtractRNACohort_cohort_out3.tsv");
+		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out3.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out3.tsv"))
+	}
+
+	TEST_METHOD(germline_sample_file)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExtractRNACohort_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+
+		EXECUTE("NGSDExtractRNACohort", "-test -ps RX001_01 -genes " + TESTDATA("data_in/NGSDExtractRNACohort_genes.txt") + " -sample_expression "
+				+ TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv") + " -out out/NGSDExtractRNACohort_cohort_out4.tsv");
+		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out4.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out4.tsv"))
+	}
+
+	TEST_METHOD(germline_only_samples)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExtractRNACohort_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+
+		EXECUTE("NGSDExtractRNACohort", "-test -only_samples -ps RX001_01 -out out/NGSDExtractRNACohort_cohort_out5.tsv");
+		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out5.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out5.tsv"))
+	}
+
+	TEST_METHOD(somatic_only_samples)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExtractRNACohort_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX009_01", false, false);
+
+		EXECUTE("NGSDExtractRNACohort", "-test -only_samples -ps RX001_01 -cohort_strategy RNA_COHORT_SOMATIC -out out/NGSDExtractRNACohort_cohort_out6.tsv");
+		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out6.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out6.tsv"))
+	}
+
+	TEST_METHOD(somatic_only_samples_multiple_systems)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExtractRNACohort_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in8.tsv"), "RX008_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDExtractRNACohort_expr_in7.tsv"), "RX009_01", false, false);
+
+		EXECUTE("NGSDExtractRNACohort", "-test -only_samples -ps RX001_01 -cohort_strategy RNA_COHORT_SOMATIC -allowed_systems nebRNAU2_mrna2 -out out/NGSDExtractRNACohort_cohort_out7.tsv");
+		COMPARE_FILES("out/NGSDExtractRNACohort_cohort_out7.tsv", TESTDATA("data_out/NGSDExtractRNACohort_cohort_out7.tsv"))
+	}
+
+
+
+};
+
+

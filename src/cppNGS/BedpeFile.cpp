@@ -186,28 +186,28 @@ BedFile BedpeLine::affectedRegion(bool plus_one) const
 
 QString BedpeLine::toString(bool add_type) const
 {
-	BedFile region = affectedRegion(false);
-	if (add_type)
+	switch (type())
 	{
-		if(type() == StructuralVariantType::BND)
-		{
-			return "BND from " + region[0].toString(true) + " to " +region[1].toString(true);
-		}
-		else
-		{
-			return BedpeFile::typeToString(type()) + " at " + region[0].toString(true);
-		}
-	}
-	else
-	{
-		if(type() == StructuralVariantType::BND)
-		{
-			return region[0].toString(true) + " <> " +region[1].toString(true);
-		}
-		else
-		{
-			return region[0].toString(true);
-		}
+		case StructuralVariantType::INV:
+		case StructuralVariantType::DEL:
+		case StructuralVariantType::DUP:
+			// whole area
+			return (add_type ? (BedpeFile::typeToString(type()) + " at ") : "") + BedLine(chr1(), start1(), end2()).toString(true);
+			break;
+
+		case StructuralVariantType::BND:
+			// consider pos 1 and pos 2 seperately
+			return (add_type ? "BND from " : "") + BedLine(chr1(), start1(), end1()).toString(true) + " to " + BedLine(chr2(), start2(), end2()).toString(true);
+			break;
+
+		case StructuralVariantType::INS:
+			// compute CI of insertion
+			return (add_type ? "INS at " :"") + BedLine(chr1(), std::min(start1(), start2()),  std::max(end1(), end2())).toString(true); //workaround: CI of insertions is sometimes not defined correctly
+			break;
+
+		default:
+			THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(type()));
+			break;
 	}
 }
 
@@ -483,7 +483,7 @@ int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_misma
 QMap <QByteArray,QByteArray> BedpeFile::parseInfoField(QByteArray unparsed_fields)
 {
 	QMap<QByteArray,QByteArray> map = {};
-    QStringList tmp_list = QString(unparsed_fields).replace(">", "").replace("<", "").replace("##", "").simplified().split("\"", QT_SKIP_EMPTY_PARTS);
+    QStringList tmp_list = QString(unparsed_fields).replace(">", "").replace("<", "").replace("##", "").simplified().split("\"", Qt::SkipEmptyParts);
 	bool in_quotes = unparsed_fields.at(0) == '\"';
 
 	QStringList parts;
@@ -497,7 +497,7 @@ QMap <QByteArray,QByteArray> BedpeFile::parseInfoField(QByteArray unparsed_field
 		}
 		else //split by , if outside ""
 		{
-            parts.append(tmp.split(',', QT_SKIP_EMPTY_PARTS));
+            parts.append(tmp.split(',', Qt::SkipEmptyParts));
 		}
 		in_quotes = !in_quotes;
 	}
@@ -615,31 +615,36 @@ void BedpeFile::sort()
 
 BedpeFileFormat BedpeFile::format() const
 {
+	//determine type by fileformat header line (current way)
 	foreach(const QByteArray& comment, headers_)
 	{
-		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
-		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
-		if(comment.contains("fileformat=BEDPE_GERMLINE_MULTI")) return BedpeFileFormat::BEDPE_GERMLINE_MULTI;
-        if(comment.contains("fileformat=BEDPE_GERMLINE_TRIO")) return BedpeFileFormat::BEDPE_GERMLINE_TRIO;
-		if(comment.contains("fileformat=BEDPE_RNA")) return BedpeFileFormat::BEDPE_RNA;
-		if(comment.contains("fileformat=BEDPE")) return BedpeFileFormat::BEDPE_GERMLINE_SINGLE;
+		if(comment.startsWith("##fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
+		if(comment.startsWith("##fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+		if(comment.startsWith("##fileformat=BEDPE_GERMLINE_MULTI")) return BedpeFileFormat::BEDPE_GERMLINE_MULTI;
+		if(comment.startsWith("##fileformat=BEDPE_GERMLINE_TRIO")) return BedpeFileFormat::BEDPE_GERMLINE_TRIO;
 	}
-	THROW(FileParseException, "Could not determine format of BEDPE file.");
+
+	//determine type based on cmdline header line (fallback)
+	foreach(const QByteArray& comment, headers_)
+	{
+		if(comment.startsWith("##cmdline=") && comment.contains("configManta.py"))
+		{
+			if (comment.contains("--tumorBam") && comment.contains("--normalBam")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+			if (comment.contains("--tumorBam") && !comment.contains("--normalBam")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+		}
+	}
+
+	//fallback to germline
+	return BedpeFileFormat::BEDPE_GERMLINE_SINGLE;
 }
 
 bool BedpeFile::isSomatic() const
 {
-	try
-	{
-		BedpeFileFormat f = format();
-		if (f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY) return true;
-	}
-	catch(...) {} //Nothing to do here
-
-	return false;
+	BedpeFileFormat f = format();
+	return f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
 }
 
-QByteArray BedpeFile::build()
+QByteArray BedpeFile::build() const
 {
 	//Manta format   : ##reference=file:///tmp/local_ngs_data/GRCh37.fa
 	//DRAGEN format  : ##reference=file:///usr/local/illumina/install/genomes/GRCh38/DRAGEN/10
@@ -663,7 +668,7 @@ QByteArray BedpeFile::build()
 	return "";
 }
 
-QByteArray BedpeFile::caller()
+QByteArray BedpeFile::caller() const
 {
 	//Manta format   : ##source=GenerateSVCandidates 1.6.0
 	//DRAGEN format  : ##source=DRAGEN_SV
@@ -687,7 +692,7 @@ QByteArray BedpeFile::caller()
 	THROW(FileParseException, "Could not determine caller from " + filename_);
 }
 
-QByteArray BedpeFile::callerVersion()
+QByteArray BedpeFile::callerVersion() const
 {
 	//Manta format   : ##source=GenerateSVCandidates 1.6.0
 	//DRAGEN format  : ##DRAGENVersion=<ID=dragen,Version="SW: 4.3.16, HW: 10.131.732">
@@ -713,7 +718,7 @@ QByteArray BedpeFile::callerVersion()
 	THROW(FileParseException, "Could not determine caller version from " + filename_);
 }
 
-QDate BedpeFile::callingDate()
+QDate BedpeFile::callingDate() const
 {
 	//Manta/DRAGEN/Sniffles format: ##fileDate=20240127
 	foreach(const QByteArray& line, headers_)

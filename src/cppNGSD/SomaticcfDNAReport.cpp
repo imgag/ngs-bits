@@ -1,13 +1,9 @@
-#include <QDebug>
 #include <cmath>
 #include "NGSD.h"
 #include "SomaticcfDNAReport.h"
-#include "SomaticReportHelper.h"
-#include "TSVFileStream.h"
 #include "VariantHgvsAnnotator.h"
 #include "VariantList.h"
-
-
+#include "Settings.h"
 
 SomaticcfDNAReportData::SomaticcfDNAReportData(const SomaticReportSettings& other, const CfdnaDiseaseCourseTable& table_data)
 	: SomaticReportSettings(other)
@@ -143,7 +139,7 @@ RtfTable SomaticcfDnaReport::partSnvTable(int cfdna_idx_start, int cfdna_idx_end
 		if (co_sp_anno.trans.isValid())
 		{
 			change_string = co_sp_anno.consequence.hgvs_c + ", " + co_sp_anno.consequence.hgvs_p + "\n\\line\n" + co_sp_anno.trans.nameWithVersion();
-			type_string = co_sp_anno.consequence.typesToString();
+			type_string = co_sp_anno.consequence.typesToStringSimplified();
 		}
 		else
 		{

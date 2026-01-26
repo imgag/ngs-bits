@@ -1,14 +1,25 @@
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
-#include "SgeStatusUpdateWorker.h"
+#include "BlatInitWorker.h"
+#include "QueuingEngineController.h"
+#include <QStandardPaths>
+#include <QTimer>
+#include "SessionManager.h"
+#include "UrlManager.h"
+#include <QDir>
+#include <QFileSystemWatcher>
+#include "FileMetaCache.h"
+#include "PipelineSettings.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
+    , background_task_pool_()
     , cleanup_pool_()
-    , sge_status_pool_()
+    , qe_status_pool_()
 {
+    background_task_pool_.setMaxThreadCount(1);
     cleanup_pool_.setMaxThreadCount(1);
-    sge_status_pool_.setMaxThreadCount(1);
+    qe_status_pool_.setMaxThreadCount(1);
 
     QString ssl_certificate = Settings::string("ssl_certificate", true);
 	if (ssl_certificate.isEmpty())
@@ -73,10 +84,10 @@ ServerWrapper::ServerWrapper(const quint16& port)
             connect(session_timer, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));
             session_timer->start(60 * 5 * 1000); // every 5 minutes
 
-			// Update SGE status
-            QTimer *sge_status_update_timer = new QTimer(this);
-            connect(sge_status_update_timer, SIGNAL(timeout()), this, SLOT(updateSgeStatus()));
-			sge_status_update_timer->start(15 * 1000); // every 15 sec
+            // Update queing engine status
+            QTimer *qe_status_update_timer = new QTimer(this);
+            connect(qe_status_update_timer, SIGNAL(timeout()), this, SLOT(updateQueingEngineStatus()));
+            qe_status_update_timer->start(15 * 1000); // every 15 sec
 
             // ClinVar submission status automatic update on schedule
             QTimer *clinvar_timer = new QTimer(this);
@@ -88,13 +99,37 @@ ServerWrapper::ServerWrapper(const quint16& port)
             connect(log_check_timer, SIGNAL(timeout()), this, SLOT(switchLogFile()));
             log_check_timer->start(60 * 60 * 1000); // every 60 minutes
 
-            QFileSystemWatcher *watcher = new QFileSystemWatcher();
-            watcher->addPath(QCoreApplication::applicationDirPath());
-            connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
+            // Enables watching files with information for users
+            bool allow_notifying_users = Settings::boolean("allow_notifying_users", true);
+            if (allow_notifying_users)
+            {
+                QFileSystemWatcher *watcher = new QFileSystemWatcher();
+                watcher->addPath(QCoreApplication::applicationDirPath());
+                connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
+            }
 
             // Read the client version and notification information during the initialization
             SessionManager::setCurrentClientInfo(readClientInfoFromFile());
             SessionManager::setCurrentNotification(readUserNotificationFromFile());
+
+
+            // Initialize BLAT server, if the corresponding port is set
+            int blat_server_port = 0;
+            try
+            {
+                blat_server_port = Settings::integer("blat_server_port");
+            }
+            catch (Exception& e)
+            {
+                Log::info("BLAT server will not be started: " + e.message());
+            }
+            if (blat_server_port > 0)
+            {
+                Log::info("Starting BLAT server");
+                QString blat_folder = QCoreApplication::applicationDirPath() + "/blat";
+                BlatInitWorker *blat_init_worker = new BlatInitWorker(blat_server_port, blat_folder);
+                background_task_pool_.start(blat_init_worker);
+            }
         }
         else
         {
@@ -273,11 +308,11 @@ void ServerWrapper::cleanupSessionsAndUrls()
     }
 }
 
-void ServerWrapper::updateSgeStatus()
+void ServerWrapper::updateQueingEngineStatus()
 {
 	if (!Settings::boolean("queue_update_enabled", true)) return;
 
-	if (sge_status_pool_.activeThreadCount() > 0) return;
+    if (qe_status_pool_.activeThreadCount() > 0) return;
 
-	sge_status_pool_.start(new SgeStatusUpdateWorker());
+	qe_status_pool_.start(QueuingEngineController::create(PipelineSettings::queuingEngine()));
 }

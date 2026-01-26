@@ -21,7 +21,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports Ensembl/CCDS transcript information into NGSD.");
-		addInfile("in", "Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz).", false);
+		addInfile("in", "Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-115/gff3/homo_sapiens/Homo_sapiens.GRCh38.115.gff3.gz).", false);
 		//optional
 		addInfileList("pseudogenes", "Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt and http://pseudogene.org/psicube/data/gencode.v10.pgene.parents.txt).", true);
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts that do not have at least one of the flags 'GENCODE basic', 'Ensembl canonical', 'MANE select' or 'MANE plus clinical').");
@@ -70,7 +70,7 @@ public:
 		return query.value(0).toInt();
 	}
 
-	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, int version, const QByteArray& source, const Transcript& t, bool is_gencode_basic, bool is_ensembl_canonical, bool is_mane_select, bool is_mane_plus_clinical)
+	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, int version, const QByteArray& source, const Transcript& t, bool is_gencode_basic, bool is_gencode_primary, bool is_ensembl_canonical, bool is_mane_select, bool is_mane_plus_clinical)
 	{
 		query.bindValue(0, gene_id);
 		query.bindValue(1, name);
@@ -94,9 +94,10 @@ public:
 		query.bindValue(7, strand);
 		query.bindValue(8, Transcript::biotypeToString(t.biotype()));
 		query.bindValue(9, is_gencode_basic);
-		query.bindValue(10, is_ensembl_canonical);
-		query.bindValue(11, is_mane_select);
-		query.bindValue(12, is_mane_plus_clinical);
+		query.bindValue(10, is_gencode_primary);
+		query.bindValue(11, is_ensembl_canonical);
+		query.bindValue(12, is_mane_select);
+		query.bindValue(13, is_mane_plus_clinical);
 		query.exec();
 
 		return query.lastInsertId().toInt();
@@ -266,10 +267,10 @@ public:
 		QString constraint = protein_coding ? "g.type='protein-coding gene'" : "g.type!='protein-coding gene'";
 
 		QList<int> gene_ids = db.getValuesInt("SELECT id FROM gene g WHERE " + constraint);
-        out << "NGSD contains " << gene_ids.count() << " " << (protein_coding? "protein-coding" : "other") << " genes" << QT_ENDL;
-        out << "  - with at least one Ensembl transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='Ensembl'").count() << QT_ENDL;
-        out << "  - with a CCDS transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='CCDS'").count() << QT_ENDL;
-        out << "  - with MANE transcripts: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND (gt.is_mane_select=1 || gt.is_mane_plus_clinical=1)").count() << QT_ENDL;
+        out << "NGSD contains " << gene_ids.count() << " " << (protein_coding? "protein-coding" : "other") << " genes" << Qt::endl;
+        out << "  - with at least one Ensembl transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='Ensembl'").count() << Qt::endl;
+        out << "  - with a CCDS transcript: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND gt.source='CCDS'").count() << Qt::endl;
+		out << "  - with MANE transcripts: " << db.getValues("SELECT DISTINCT g.id FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND " + constraint + " AND (gt.is_mane_select=1 OR gt.is_mane_plus_clinical=1)").count() << Qt::endl;
 		GeneSet no_chr_genes;
 		GeneSet multi_chr_genes;
 		GeneSet duplicate_ensg;
@@ -289,9 +290,9 @@ public:
 				duplicate_ensg << db.geneSymbol(gene_id);
 			}
 		}
-        out << "  - without transcripts: " << no_chr_genes.count() << " (" << no_chr_genes.join(", ") << ")" << QT_ENDL;
-        out << "  - with transcripts on several chromosomes: " << multi_chr_genes.count() << " (" << multi_chr_genes.join(", ") << ")" << QT_ENDL;
-        out << "  - with transcripts from several ENSGs: " << duplicate_ensg.count() << " (" << duplicate_ensg.join(", ") << ")" << QT_ENDL;
+        out << "  - without transcripts: " << no_chr_genes.count() << " (" << no_chr_genes.join(", ") << ")" << Qt::endl;
+        out << "  - with transcripts on several chromosomes: " << multi_chr_genes.count() << " (" << multi_chr_genes.join(", ") << ")" << Qt::endl;
+        out << "  - with transcripts from several ENSGs: " << duplicate_ensg.count() << " (" << duplicate_ensg.join(", ") << ")" << Qt::endl;
 	}
 
 	virtual void main()
@@ -326,7 +327,7 @@ public:
 
 		// prepare queries
 		SqlQuery q_trans = db.getQuery();
-		q_trans.prepare("INSERT INTO gene_transcript (gene_id, name, version, source, chromosome, start_coding, end_coding, strand, biotype, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12)");
+		q_trans.prepare("INSERT INTO gene_transcript (gene_id, name, version, source, chromosome, start_coding, end_coding, strand, biotype, is_gencode_basic, is_gencode_primary, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13)");
 
 		SqlQuery q_exon = db.getQuery();
 		q_exon.prepare("INSERT INTO gene_exon (transcript_id, start, end) VALUES (:0, :1, :2);");
@@ -349,12 +350,13 @@ public:
         {
 			QByteArray transcript_id = t.name();
 			bool is_gencode_basic = t.isGencodeBasicTranscript();
+			bool is_gencode_primary = t.isGencodePrimaryTranscript();
 			bool is_ensembl_canonical = t.isEnsemblCanonicalTranscript();
 			bool is_mane_select = t.isManeSelectTranscript();
 			bool is_mane_plus_clinical = t.isManePlusClinicalTranscript();
 
 			//if not 'all' or has important flag > skip it
-			if (!all && !is_gencode_basic && !is_ensembl_canonical && !is_mane_select && !is_mane_plus_clinical) continue;
+			if (!all && !is_gencode_basic && !is_gencode_primary && !is_ensembl_canonical && !is_mane_select && !is_mane_plus_clinical) continue;
 
             //transform gene name to approved gene ID
 			QByteArray gene = t.gene();
@@ -368,19 +370,19 @@ public:
 				if (db.approvedGeneNames().contains(gene))
 				{
 					ngsd_gene_id = db.geneId(gene);
-                    out << "Notice: HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << " determined via gene name" << QT_ENDL;
+                    out << "Notice: HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << " determined via gene name" << Qt::endl;
 				}
 			}
 			if (ngsd_gene_id==-1) //fallback to gene symbol ID
             {
-                out << "Notice: Could not determine HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << QT_ENDL;
+                out << "Notice: Could not determine HGNC-approved symbol of gene " << gene << "/" << t.geneId() << "/" << t.hgncId() << Qt::endl;
                 continue;
             }
 
 			//skip transcripts in chrY PAR as it is masked - necessary since Ensembl 110 release: https://www.ensembl.info/2023/07/17/ensembl-110-has-been-released/
 			if (t.chr().isY() && par.overlapsWith(t.chr(), t.start(), t.end()))
 			{
-                out << "Notice: skipped chrY PAR transcript of " << gene << "/" << t.geneId() << "/" << t.hgncId() << QT_ENDL;
+                out << "Notice: skipped chrY PAR transcript of " << gene << "/" << t.geneId() << "/" << t.hgncId() << Qt::endl;
 				continue;
 			}
 
@@ -388,7 +390,7 @@ public:
 			gene2ensg[ngsd_gene_id] << t.geneId();
 
 			//add Ensembl transcript
-			int trans_id = addTranscript(q_trans, ngsd_gene_id, transcript_id, t.version(), "ensembl", t, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical);
+			int trans_id = addTranscript(q_trans, ngsd_gene_id, transcript_id, t.version(), "ensembl", t, is_gencode_basic, is_gencode_primary, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical);
             //add exons
             addExons(q_exon, trans_id, t.regions());
 
@@ -400,7 +402,7 @@ public:
 				QByteArray name = parts[0];
 				int version = Helper::toInt(parts[1], "CCDS transcript version");
 
-				int trans_id_ccds = addTranscript(q_trans, ngsd_gene_id, name, version, "ccds", t, false, false, false, false);
+				int trans_id_ccds = addTranscript(q_trans, ngsd_gene_id, name, version, "ccds", t, false, false, false, false, false);
                 //add exons (only coding part)
 				BedFile exons = t.regions();
                 //Transcript class encodes actual coding start (ATG), but coding_start < coding_end is required here
@@ -421,9 +423,19 @@ public:
 		}
 
 		//statistics output
-        out << "Imported " << db.getValue("SELECT count(*) FROM gene_transcript").toInt() << " transcripts into NGSD" << QT_ENDL;
+        out << "Imported " << db.getValue("SELECT count(*) FROM gene_transcript").toInt() << " transcripts into NGSD" << Qt::endl;
 		statistics(db, out, true, gene2ensg);
 		statistics(db, out, false, gene2ensg);
+
+		//add DB import info (version parsed from filename; if parsing fails use full filename)
+		QString version = QFileInfo(getInfile("in")).fileName();
+		QString tmp = version;
+		tmp.replace("Homo_sapiens.GRCh38.", "").replace(".gff3", "").replace(".gz", "");
+		if (Helper::isNumeric(tmp))
+		{
+			version = tmp;
+		}
+		db.setDatabaseInfo("Ensembl", version);
 	}
 };
 

@@ -1,23 +1,12 @@
 #ifndef SERVERCONTROLLER_H
 #define SERVERCONTROLLER_H
 
-#include <QFile>
-#include <QDebug>
-#include <QDir>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
 
 #include "Log.h"
-#include "Exceptions.h"
-#include "FileLocationProviderLocal.h"
 #include "VariantList.h"
 #include "HttpResponse.h"
 #include "HttpRequest.h"
-#include "ToolBase.h"
-#include "Statistics.h"
 #include "EndpointManager.h"
-#include "UrlManager.h"
 #include "FastFileInfo.h"
 
 
@@ -58,7 +47,7 @@ public:
 	static HttpResponse getAnalysisJobLastUpdate(const HttpRequest& request);
 	/// Locates a log file for a specific job
 	static HttpResponse getAnalysisJobLog(const HttpRequest& request);
-	/// Saves changes to the project file
+	/// Saves changes to a GSvar file
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	/// Saves qbic files in the folder on the server
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
@@ -82,6 +71,8 @@ public:
 	static HttpResponse validateCredentials(const HttpRequest& request);
 	/// Requests a toke to access the database credentials
 	static HttpResponse getDbToken(const HttpRequest& request);
+	/// Requests a random secret string to access sensitive data
+	static HttpResponse getRandomSecret(const HttpRequest& request);
 	/// Requests NGSD credentials for the GSvar application
 	static HttpResponse getNgsdCredentials(const HttpRequest& request);
 	/// Requests Genlab database credentials for the GSvar application
@@ -100,10 +91,19 @@ public:
 	static HttpResponse getRnaExpressionPlots(const HttpRequest& request);
 	/// Returns information about the latest available version of the desktop client
 	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
-	// Returns some notification displayed to the users of the client application
+
+    /// Returns BLAT search results for the given genome and sequence
+    static HttpResponse performBlatSearch(const HttpRequest& request);
+
+	/// Returns some notification displayed to the users of the client application
 	static HttpResponse getCurrentNotification(const HttpRequest& request);
 
+	/// Uploads a file to a given folder
     static HttpResponse uploadFileToFolder(QString upload_folder, const HttpRequest& request);
+
+	/// Removes the cache for user permissions
+	static HttpResponse clearPermissionsCache(const HttpRequest& request);
+
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);

@@ -1,14 +1,7 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
-#include "ChromosomalIndex.h"
-#include "VariantList.h"
-#include "BedFile.h"
 #include "NGSD.h"
 #include "Log.h"
-#include "Settings.h"
-#include "VcfFile.h"
-#include <QDir>
-#include <QElapsedTimer>
 
 class ConcreteTool
 		: public ToolBase
@@ -123,7 +116,7 @@ public:
 		}
 
 		out << "Stats:\n";
-        out << "Multiple matches: " << QString::number(n_multiple_matches) << QT_ENDL;
+        out << "Multiple matches: " << QString::number(n_multiple_matches) << Qt::endl;
 
 	}
 };

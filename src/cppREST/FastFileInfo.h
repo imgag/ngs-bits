@@ -3,10 +3,7 @@
 
 #include "cppREST_global.h"
 #include <QObject>
-#include <QFileInfo>
-#include "Exceptions.h"
-#include "FileMetaCache.h"
-#include "Settings.h"
+#include <QDateTime>
 
 class CPPRESTSHARED_EXPORT FastFileInfo : public QObject
 {
@@ -19,6 +16,7 @@ public:
     QString absoluteFilePath();
     QString absolutePath();
     QString fileName();
+    QDateTime lastModified();
 
 private:
     QString absolute_file_path_;
@@ -26,6 +24,7 @@ private:
     QString filename_;
     qint64 size_;
     bool exists_;
+    QDateTime last_modified_;
 };
 
 #endif // FASTFILEINFO_H

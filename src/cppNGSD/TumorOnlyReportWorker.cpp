@@ -6,6 +6,8 @@
 #include "Statistics.h"
 #include "LoginManager.h"
 #include "RtfDocument.h"
+#include "Settings.h"
+#include <QXmlStreamWriter>
 #include "XmlHelper.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
@@ -56,7 +58,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 
 	w.writeStartElement("ReportGeneration");
-	w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString("yyyy-MM-dd")) );
+	w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString(Qt::ISODate)) );
 	w.writeAttribute("user_name", (test ? "ahtest1" : LoginManager::userLogin() ) );
 	w.writeAttribute("software",  (test ? "cppNGSD-TEST-CASE" : QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()) );
 	w.writeEndElement();
@@ -442,16 +444,16 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		{
 			const BedLine& line = low_cov[i];
 
-			QStringList tmp_genes = db_.genesOverlapping(line.chr(), line.start(), line.end()).toStringList();
+			QByteArrayList tmp_genes = db_.genesOverlapping(line.chr(), line.start(), line.end()).toByteArrayList();
 
-			genes.append( tmp_genes.join(", ").toUtf8() );
+			genes.append(tmp_genes.join(", "));
 
 			if(config_.include_exon_number_per_gap)
 			{
 				QStringList tmp_exons;
-				for(const auto& tmp_gene : tmp_genes)
+				for(const QByteArray& tmp_gene : tmp_genes)
 				{
-					QByteArray exon = exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
+					QByteArray exon = exonNumber(tmp_gene , line.start(), line.end());
 					if(exon != "")
 					{
 						tmp_exons << exon;

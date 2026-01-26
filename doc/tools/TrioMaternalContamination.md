@@ -1,10 +1,10 @@
 ### TrioMaternalContamination tool help
-	TrioMaternalContamination (2024_08-110-g317f43b9)
+	TrioMaternalContamination (2025_05-79-g6c060cfd)
 	
 	Detects maternal contamination of a child using SNPs from parents.
 	
 	Determines the percentage of heterozygous SNPs passed on to the child from mother/father.
-	This percentage should be similar for mother/father. If it is not, maternal contamination is likely.
+	This percentage should be similar for mother/father. If it is much higher for the mother, maternal contamination is likely.
 	
 	Mandatory parameters:
 	  -bam_m <file>        Input BAM/CRAM file of mother.
@@ -32,8 +32,9 @@
 	  --settings [file]    Settings override file (no other settings files are used).
 	
 ### TrioMaternalContamination changelog
-	TrioMaternalContamination 2024_08-110-g317f43b9
+	TrioMaternalContamination 2025_05-79-g6c060cfd
 	
+	2025-05-30 Code refactoring and speed-up.
 	2020-11-27 Added CRAM support.
 	2020-06-18 Initial version of the tool.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

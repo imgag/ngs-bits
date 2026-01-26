@@ -1,4 +1,9 @@
 #include "RequestWorker.h"
+#include <QTemporaryFile>
+#include "HttpUtils.h"
+#include "EndpointManager.h"
+#include "RequestParser.h"
+#include "SessionManager.h"
 
 RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket, RequestWorkerParams params)
     : QRunnable()
@@ -12,6 +17,7 @@ RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket
 void RequestWorker::run()
 {
     QSslSocket *ssl_socket = new QSslSocket();
+    QTemporaryFile temp_bed_file;
 
     try
     {
@@ -191,11 +197,23 @@ void RequestWorker::run()
 
         Log::info(EndpointManager::formatResponseMessage(parsed_request, current_endpoint.comment + user_info + client_type));
 
-		if (response.isStream())
+        if (response.isStream())
         {
+            if (!response.getPayload().isEmpty())
+            {
+                QSharedPointer<QFile> roi_file;
+                if (temp_bed_file.open())
+                {
+                    Log::info("Temporary ROI file: " + temp_bed_file.fileName());
+                    response.setFilename(temp_bed_file.fileName());
+                    roi_file = Helper::openFileForWriting(response.getFilename());
+                    roi_file.data()->write(response.getPayload());
+                }
+            }
+
             Log::info(EndpointManager::formatResponseMessage(parsed_request, "Initiating a stream: " + response.getFilename() + user_info + client_type));
 
-			if (response.getFilename().isEmpty())
+            if (response.getFilename().isEmpty())
             {
                 QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Streaming request contains an empty file name");
 				Log::error(error_message + user_info + client_type);

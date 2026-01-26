@@ -10,13 +10,14 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QInputDialog>
-#include <QClipboard>
 #include "VariantHgvsAnnotator.h"
 #include "ClientHelper.h"
 #include "Background/VariantAnnotator.h"
+#include "Settings.h"
+#include <QClipboard>
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_()
 	, init_timer_(this, true)
 	, variant_(variant)
@@ -31,6 +32,7 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(tableCellDoubleClicked(int, int)));
 	connect(ui_.anno_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantInTab()));
+	connect(ui_.show_bad_quality, SIGNAL(stateChanged(int)),this, SLOT(updateSampleTable()));
 	ui_.anno_btn->setEnabled(ClientHelper::isClientServerMode());
 
 	//set up copy button for different formats
@@ -53,114 +55,148 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 
 void VariantWidget::updateGUI()
 {
-	//get variant id
-	NGSD db;
-	QString variant_id = db.variantId(variant_);
-
-	//variant base info
-    ui_.variant->setText(variant_.toString(QChar(), -1, true));
-
-	SqlQuery query1 = db.getQuery();
-	query1.exec("SELECT * FROM variant WHERE id=" + variant_id);
-	query1.next();
-	QString gnomad_af;
-	if (!query1.value("gnomad").isNull())
+	try
 	{
-		gnomad_af = QString::number(query1.value("gnomad").toDouble(), 'f', 5);
-	}
-	ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id + "\">" + gnomad_af + "</a>");
+		is_busy_ = true;
 
-	QVariant cadd = query1.value("cadd");
-	ui_.cadd->setText(cadd.isNull() ? "" : cadd.toString());
-	QVariant spliceai = query1.value("spliceai");
-	ui_.spliceai->setText(spliceai.isNull() ? "" : spliceai.toString());
+		//get variant id
+		NGSD db;
+		variant_id_ = db.variantId(variant_);
 
-	GenotypeCounts counts = db.genotypeCounts(variant_id);
-	QString text;
-	text += QString::number(counts.hom)+"x hom, ";
-	text += QString::number(counts.het)+"x het, ";
-	text += QString::number(counts.mosaic)+"x mosaic";
-	ui_.ngsd_counts->setText(text);
-	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
+		//variant base info
+		ui_.variant->setText(variant_.toString(QChar(), -1, true));
 
-	//PubMed ids
-	QStringList pubmed_ids = db.pubmedIds(variant_id);
-	QStringList pubmed_links;
-	foreach (const QString& id, pubmed_ids)
-	{
-		pubmed_links << "<a href=\"https://pubmed.ncbi.nlm.nih.gov/" + id + "/" "\">" + id + "</a>";
-	}
-
-	QString open_all;
-	if (pubmed_ids.size() > 2)
-	{
-		open_all = " <a href=\"openAll\"><i>[open all]</i></a>";
-	}
-	ui_.pubmed->setText(pubmed_links.join(", ") + open_all);
-	ui_.pubmed->setToolTip(pubmed_ids.join(", "));
-
-	//annotate consequence for each transcript
-	TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start(), variant_.end(), 5000);
-	transcripts.sortByRelevance();
-	FastaFileIndex genome_idx(Settings::string("reference_genome"));
-	VariantHgvsAnnotator hgvs_annotator(genome_idx);
-	ui_.transcripts->setRowCount(transcripts.count());
-	for(int i=0; i<transcripts.count(); ++i)
-	{
-		const Transcript& trans = transcripts[i];
-		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);
-
-		QLabel* label = GUIHelper::createLinkLabel("<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a>", false);
-		connect(label, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
-		ui_.transcripts->setCellWidget(i, 0, label);
-		ui_.transcripts->setItem(i, 1, GUIHelper::createTableItem(trans.nameWithVersion()));
-		ui_.transcripts->setItem(i, 2, GUIHelper::createTableItem(consequence.hgvs_c));
-		ui_.transcripts->setItem(i, 3, GUIHelper::createTableItem(consequence.hgvs_p));
-		ui_.transcripts->setItem(i, 4, GUIHelper::createTableItem(consequence.typesToString(", ")));
-		ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(trans.flags(false).join(", ")));
-	}
-	GUIHelper::resizeTableCellWidths(ui_.transcripts, 450);
-	GUIHelper::resizeTableCellHeightsToFirst(ui_.transcripts);
-
-
-	//classification
-	SqlQuery query4 = db.getQuery();
-	query4.exec("SELECT s.name as s_name, vp.db, vp.class, vp.date, vp.result, u.name as u_name FROM sample s, variant_publication vp, user u WHERE s.id=vp.sample_id AND vp.user_id=u.id AND variant_id=" + variant_id + " AND vp.replaced=0 ORDER BY vp.date DESC");
-	if (query4.next())
-	{
-		QString db = query4.value("db").toString();
-		if (db=="ClinVar")
+		SqlQuery query1 = db.getQuery();
+		query1.exec("SELECT gnomad, cadd, spliceai FROM variant WHERE id=" + variant_id_);
+		query1.next();
+		QString gnomad_af;
+		if (!query1.value("gnomad").isNull())
 		{
-			QString url = GSvarHelper::clinVarSearchLink(variant_, GSvarHelper::build());
-			db = "<a href=\"" + url + "\">" + db + "</a>";
+			gnomad_af = QString::number(query1.value("gnomad").toDouble(), 'f', 5);
+		}
+		ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id_ + "\">" + gnomad_af + "</a>");
+
+		QVariant cadd = query1.value("cadd");
+		ui_.cadd->setText(cadd.isNull() ? "" : cadd.toString());
+		QVariant spliceai = query1.value("spliceai");
+		ui_.spliceai->setText(spliceai.isNull() ? "" : spliceai.toString());
+
+		//PubMed ids
+		QStringList pubmed_ids = db.pubmedIds(variant_id_);
+		QStringList pubmed_links;
+		foreach (const QString& id, pubmed_ids)
+		{
+			pubmed_links << "<a href=\"https://pubmed.ncbi.nlm.nih.gov/" + id + "/" "\">" + id + "</a>";
 		}
 
-		ui_.publication_class->setText(query4.value("class").toString() + " " + "(Uploaded to " + db + " by "+ query4.value("u_name").toString() +" on "+ query4.value("date").toString().replace("T", " ") +")");
-		ui_.publication_sample->setText(query4.value("s_name").toString());
-		ui_.publication_status->setText(query4.value("result").toString());
+		QString open_all;
+		if (pubmed_ids.size() > 2)
+		{
+			open_all = " <a href=\"openAll\"><i>[open all]</i></a>";
+		}
+		ui_.pubmed->setText(pubmed_links.join(", ") + open_all);
+		ui_.pubmed->setToolTip(pubmed_ids.join(", "));
+
+		//annotate consequence for each transcript
+		TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start(), variant_.end(), 5000);
+		transcripts.sortByRelevance();
+		FastaFileIndex genome_idx(Settings::string("reference_genome"));
+		VariantHgvsAnnotator hgvs_annotator(genome_idx);
+		ui_.transcripts->setRowCount(transcripts.count());
+		for(int i=0; i<transcripts.count(); ++i)
+		{
+			const Transcript& trans = transcripts[i];
+			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);
+
+			QLabel* label = GUIHelper::createLinkLabel("<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a>", false);
+			connect(label, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
+			ui_.transcripts->setCellWidget(i, 0, label);
+			ui_.transcripts->setItem(i, 1, GUIHelper::createTableItem(trans.nameWithVersion()));
+			ui_.transcripts->setItem(i, 2, GUIHelper::createTableItem(consequence.hgvs_c));
+			ui_.transcripts->setItem(i, 3, GUIHelper::createTableItem(consequence.hgvs_p));
+			ui_.transcripts->setItem(i, 4, GUIHelper::createTableItem(consequence.typesToStringSimplified(", ")));
+			ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(variantImpactToString(consequence.impact)));
+			ui_.transcripts->setItem(i, 6, GUIHelper::createTableItem(trans.flags(false).join(", ")));
+		}
+		GUIHelper::resizeTableCellWidths(ui_.transcripts, 530);
+		GUIHelper::resizeTableCellHeightsToFirst(ui_.transcripts);
+
+		//ClinVar
+		SqlQuery query4 = db.getQuery();
+		query4.exec("SELECT s.name as s_name, vp.db, vp.class, vp.date, vp.result, u.name as u_name FROM sample s, variant_publication vp, user u WHERE s.id=vp.sample_id AND vp.user_id=u.id AND variant_id=" + variant_id_ + " AND vp.replaced=0 ORDER BY vp.date DESC");
+		if (query4.next())
+		{
+			QString db = query4.value("db").toString();
+			if (db=="ClinVar")
+			{
+				QString url = GSvarHelper::clinVarSearchLink(variant_);
+				db = "<a href=\"" + url + "\">" + db + "</a>";
+			}
+
+			ui_.publication_class->setText(query4.value("class").toString() + " " + "(Uploaded to " + db + " by "+ query4.value("u_name").toString() +" on "+ Helper::toString(query4.value("date").toDateTime(), ' ') +")");
+			ui_.publication_sample->setText(query4.value("s_name").toString());
+			ui_.publication_status->setText(query4.value("result").toString());
+		}
+
+		//germline classification
+		ClassificationInfo class_info = db.getClassification(variant_);
+		ui_.classification->setText(class_info.classification);
+		GSvarHelper::limitLines(ui_.classification_comment, class_info.comments);
+
+
+		//somatic classification
+		SomaticViccData vicc_info = db.getSomaticViccData(variant_, false);
+		ui_.classification_vicc->setText(SomaticVariantInterpreter::viccScoreAsString(vicc_info));
+		GSvarHelper::limitLines(ui_.classification_vicc_comment, vicc_info.comment);
+
+		//update GUI (next code block is slow)
+		qApp->processEvents();
+
+		//exact NGSD counts mathing the variants shown below
+		GenotypeCounts counts = db.genotypeCounts(variant_id_);
+		QString text;
+		text += QString::number(counts.hom)+"x hom, ";
+		text += QString::number(counts.het)+"x het, ";
+		text += QString::number(counts.mosaic)+"x mosaic";
+		ui_.ngsd_counts->setText(text);
+		GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
+
+		//update GUI (next code block is slow)
+		qApp->processEvents();
+
+		is_busy_ = false;
+
+		//samples table
+		updateSampleTable();
 	}
-
-	//classification
-	ClassificationInfo class_info = db.getClassification(variant_);
-	ui_.classification->setText(class_info.classification);
-	GSvarHelper::limitLines(ui_.classification_comment, class_info.comments);
-
-	//samples table
-	SqlQuery query2 = db.getQuery();
-	query2.exec("SELECT processed_sample_id, genotype, mosaic FROM detected_variant WHERE variant_id=" + variant_id);
-	bool fill_table = true;
-	if (query2.size()>250)
+	catch (Exception& e)
 	{
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the variant table might be slow.\nDo you want to fill the variant table?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        #else
-        int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the variant table might be slow.\nDo you want to fill the variant table?", QMessageBox::Yes, QMessageBox::No|QMessageBox::Default);
-        #endif
-		if (res!=QMessageBox::Yes) fill_table = false;
+		QMessageBox::warning(this, "Error", "Could not fill sample table:\n" + e.message());
+
+		is_busy_ = false;
 	}
+}
 
-	if (fill_table)
+void VariantWidget::updateSampleTable()
+{
+	try
 	{
+		//clear table
+		ui_.table->clearContents();
+		ui_.table->setRowCount(0);
+		ui_.table->setSortingEnabled(false); //inserting by row index not a good idea while the table is sorted...
+
+		//check if too many samples exist and ask the user in this case
+		NGSD db;
+		SqlQuery query2 = db.getQuery();
+		query2.exec("SELECT dv.processed_sample_id, dv.genotype, dv.mosaic FROM detected_variant dv, processed_sample ps WHERE ps.id=dv.processed_sample_id AND dv.variant_id=" + variant_id_ + (ui_.show_bad_quality->isChecked() ? "" : " AND ps.quality!='bad'"));
+		if (query2.size()>250)
+		{			
+			int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the sample table might be slow.\nDo you want to fill the sample table?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No);			
+			if (res!=QMessageBox::Yes) return;
+		}
+
+		is_busy_ = true;
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
 		//resize table
@@ -180,24 +216,25 @@ void VariantWidget::updateGUI()
 			addItem(row, 1,  s_data.name_external);
 			addItem(row, 2,  s_data.patient_identifier);
 			addItem(row, 3,  s_data.gender);
-			addItem(row, 4,  s_data.quality + " / " + ps_data.quality);
+			addItem(row, 4,  ps_data.ancestry);
+			addItem(row, 5,  s_data.quality + " / " + ps_data.quality);
 			QString genotype = query2.value(1).toString();
 			if (query2.value(2).toInt()==1) genotype += " (mosaic)";
-			addItem(row, 5, genotype);
-			addItem(row, 6, ps_data.processing_system);
-			addItem(row, 7, ps_data.project_name);
-			addItem(row, 8, s_data.disease_group);
-			addItem(row, 9, s_data.disease_status);
+			addItem(row, 6, genotype);
+			addItem(row, 7, ps_data.processing_system);
+			addItem(row, 8, ps_data.project_name);
+			addItem(row, 9, s_data.disease_group);
+			addItem(row, 10, s_data.disease_status);
 			QStringList pho_list;
-            for (const Phenotype& pheno : s_data.phenotypes)
+			for (const Phenotype& pheno : std::as_const(s_data.phenotypes))
 			{
 				pho_list << pheno.toString();
 			}
-			addItem(row, 10, pho_list.join("; "));
-			addItem(row, 11, diag_data.dagnostic_status);
-			addItem(row, 12, diag_data.user);
-			addItem(row, 13, s_data.comments, true);
-			addItem(row, 14, ps_data.comments, true);
+			addItem(row, 11, pho_list.join("; "));
+			addItem(row, 12, diag_data.dagnostic_status);
+			addItem(row, 13, diag_data.user);
+			addItem(row, 14, s_data.comments, true);
+			addItem(row, 15, ps_data.comments, true);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -207,7 +244,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_causal << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
-			addItem(row, 15, genes_causal.join(','));
+			addItem(row, 16, genes_causal.join(','));
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
@@ -216,35 +253,45 @@ void VariantWidget::updateGUI()
 			{
 				genes_candidate << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
-			addItem(row, 16, genes_candidate.join(','));
+			addItem(row, 17, genes_candidate.join(','));
 
 			//add report config comment of variant
 			QString rc_comment;
-			query3.exec("SELECT CONCAT(rcv.comments, ' // ', rcv.comments2) FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rc.processed_sample_id=" + ps_id + " AND rcv.variant_id=" + variant_id);
+			query3.exec("SELECT CONCAT(rcv.comments, ' // ', rcv.comments2) FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rc.processed_sample_id=" + ps_id + " AND rcv.variant_id=" + variant_id_);
 			if(query3.next())
 			{
 				rc_comment = query3.value(0).toString().trimmed();
 			}
-			addItem(row, 17, rc_comment, true);
+			addItem(row, 18, rc_comment, true);
 
 			//validation info
-			QString vv_id = db.getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + variant_id + "' AND variant_type='SNV_INDEL'").toString();
+			QString vv_id = db.getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + variant_id_ + "' AND variant_type='SNV_INDEL'").toString();
 			if (!vv_id.isEmpty())
 			{
-				addItem(row, 18, db.getValue("SELECT status FROM variant_validation WHERE id='" + vv_id + "'").toString());
+				addItem(row, 19, db.getValue("SELECT status FROM variant_validation WHERE id='" + vv_id + "'").toString());
 			}
 
 			++row;
 		}
 
 		//sort by processed sample name
-        ui_.table->sortByColumn(0, ui_.table->horizontalHeader()->sortIndicatorOrder());
+		ui_.table->sortByColumn(0, ui_.table->horizontalHeader()->sortIndicatorOrder());
+		ui_.table->setSortingEnabled(true);
 
 		//resize table cols
 		GUIHelper::resizeTableCellWidths(ui_.table, 200);
-		GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
+		GUIHelper::resizeTableCellHeightsToMinimum(ui_.table, 10);
 
 		QApplication::restoreOverrideCursor();
+		is_busy_ = false;
+	}
+	catch (Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::warning(this, "Error", "Could not update data:\n" + e.message());
+
+		is_busy_ = false;
 	}
 }
 
@@ -290,7 +337,7 @@ void VariantWidget::calculateSimilarity()
 		ps_names << ps;
 
 		QString ps_id = db.processedSampleId(ps);
-        ps_vars << LIST_TO_SET(db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0"));
+        ps_vars << Helper::listToSet(db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND mosaic=0"));
 	}
 
 	//calculate and show overlap
@@ -385,6 +432,7 @@ void VariantWidget::editComment()
 		if (!ok) return;
 
 		db.setComment(variant_, text);
+
 		updateGUI();
 	}
 	catch (DatabaseException& e)
@@ -464,7 +512,7 @@ void VariantWidget::copyVariant()
 		NGSD db;
 		GeneSet genes = db.genesOverlapping(variant_.chr(), variant_.start(), variant_.end());
 		VariantHgvsAnnotator hgvs_annotator(genome_idx);
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 			Transcript trans = db.bestTranscript(db.geneId(gene));
 			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);

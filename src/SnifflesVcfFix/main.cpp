@@ -1,11 +1,8 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
-#include "BedFile.h"
 #include "VcfFile.h"
-#include "ChromosomalIndex.h"
 #include "Helper.h"
 #include <QFile>
-#include <QRegularExpression>
 
 class ConcreteTool: public ToolBase
 {
@@ -30,6 +27,7 @@ public:
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 
 		changeLog(2025, 2, 14, "Initial implementation.");
+		changeLog(2025, 4, 8, "Added sorting of read names.");
 	}
 
 	virtual void main()
@@ -89,19 +87,33 @@ public:
 					// set filter column
 					if (parts[VcfFile::FILTER] == "PASS") parts[VcfFile::FILTER] = "LOW_EVIDENCE";
 					else	parts[VcfFile::FILTER].append(";LOW_EVIDENCE");
-
-					out_p->write(parts.join("\t")+"\n");
-					continue;
 				}
 			}
 
-			out_p->write(line);
+
+			if (parts.at(VcfFile::INFO).contains("RNAMES="))
+			{
+				//sort read names
+				QByteArrayList info_values = parts.at(VcfFile::INFO).split(';');
+				for (int i = 0; i < info_values.size(); ++i)
+				{
+					if (info_values[i].startsWith("RNAMES="))
+					{
+						QByteArrayList read_names = info_values[i].split('=').at(1).split(',');
+						std::sort(read_names.begin(), read_names.end());
+						info_values[i] = "RNAMES=" + read_names.join(',');
+						break;
+					}
+				}
+				parts[VcfFile::INFO] = info_values.join(";");
+			}
+
+
+
+			out_p->write(parts.join("\t")+"\n");
 
 		}
 
-		//close streams
-		in_p->close();
-		out_p->close();
 	}
 };
 

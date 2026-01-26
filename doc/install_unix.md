@@ -6,13 +6,16 @@
 ngs-bits depends on the following software to be installed
 
 * _g++_ (4.5 or higher)
-* _qmake_ (Qt 5.12 or higher, including xmlpatterns, charts and mysql package)
+* _qmake_ (Qt 6.4 or higher, including xmlpatterns, charts and mysql package)
 * _git_ (to extract the version hash)
 * __optional:__ python and matplotlib (for plot generation in QC tools)
 
-For example, the installation of the dependencies using Ubuntu 22.04 looks like that:
+### Qt
 
-        > sudo apt-get install git make g++ qtbase5-dev libqt5sql5-mysql libqt5sql5-odbc libqt5charts5-dev libqt5svg5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev pkg-config libxml2 libxml2-dev
+We recommend using Ubuntu 24.04, since it is the current LTS release of Ubuntu that has Qt 6 by default. On Ubuntu 24.04 ngs-bits requires the following packages:
+
+        > sudo apt-get install git make g++ qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev libssl-dev libdeflate-dev
+        
     
 ### Resolving proxy issues with git
 
@@ -33,10 +36,8 @@ Then you have to adapt your ~/.gitconfig file like that:
 Just execute the following make commands:
 
     > make build_3rdparty
-	> make build_libs_release
-	> make build_tools_release
-
-If you need to build a different version of [htslib](https://github.com/samtools/htslib), please follow [these instructions](build_htslib.md#linux_mac)
+    > make build_libs_release
+    > make build_tools_release
 
 ## Executing
 

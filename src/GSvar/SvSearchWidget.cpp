@@ -2,16 +2,10 @@
 #include "Exceptions.h"
 #include "Chromosome.h"
 #include "Helper.h"
-#include "FilterCascade.h"
 #include "NGSHelper.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QMessageBox>
-#include <QClipboard>
 #include <QAction>
 
 SvSearchWidget::SvSearchWidget(QWidget* parent)
@@ -21,8 +15,8 @@ SvSearchWidget::SvSearchWidget(QWidget* parent)
 {
 	ui_.setupUi(this);
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
+	connect(ui_.rb_single_sv->group(), SIGNAL(idToggled(int,bool)), this, SLOT(changeSearchType()));
 
-	connect(ui_.rb_single_sv->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);
@@ -69,7 +63,7 @@ void SvSearchWidget::search()
 		// define table columns
 		QByteArrayList selected_columns;
 		selected_columns << "sv.id" << "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample" << "s.gender" << "ps.quality as quality_sample "
-						 << "sys.name_manufacturer as system" << "s.disease_group" << "s.disease_status" << "s.id as 'HPO terms'" << "ds.outcome" << "sc.caller" << "sc.caller_version"
+						 << "sys.name_manufacturer as system_name" << "s.disease_group" << "s.disease_status" << "s.id as 'HPO terms'" << "ds.outcome" << "sc.caller" << "sc.caller_version"
 						 << "\"" + BedpeFile::typeToString(type) + "\" AS type" << "sv.genotype";
 
 		// define type specific table columns
@@ -86,11 +80,11 @@ void SvSearchWidget::search()
 			//(0) parse input
 
 			Chromosome chr1;
-			int start1, end1;
+			QByteArray start1, end1;
 			NGSHelper::parseRegion(ui_.coordinates1->text(), chr1, start1, end1);
 
 			Chromosome chr2;
-			int start2, end2;
+			QByteArray start2, end2;
 			NGSHelper::parseRegion(ui_.coordinates2->text(), chr2, start2, end2);
 
 			//(1) validate input
@@ -110,32 +104,26 @@ void SvSearchWidget::search()
 			// query for SV position
 			if(type==StructuralVariantType::BND)
 			{
-				query_same_position += "sv.chr1 = \"" + chr1.strNormalized(true) + "\" AND sv.start1 <= " + QByteArray::number(end1) + " AND ";
-				query_same_position += QByteArray::number(start1) + " <= sv.end1 AND sv.chr2 = \"" + chr2.strNormalized(true) + "\" AND sv.start2 <= ";
-				query_same_position +=  QByteArray::number(end2) + " AND " + QByteArray::number(start2) + " <= sv.end2 ";
+				query_same_position += "sv.chr1 = \"" + chr1.strNormalized(true) + "\" AND sv.start1 <= " + end1 + " AND " + start1 + " <= sv.end1";
+				query_same_position += " AND sv.chr2 = \"" + chr2.strNormalized(true) + "\" AND sv.start2 <= " + end2 + " AND " + start2 + " <= sv.end2 ";
 			}
 			else if(type==StructuralVariantType::INS)
 			{
-				int min_pos = std::min(start1, start2);
-				int max_pos = std::max(end1, end2);
-				query_same_position += "sv.chr = \"" + chr1.strNormalized(true) + "\" AND sv.pos <= " + QByteArray::number(max_pos) + " AND ";
-				query_same_position += QByteArray::number(min_pos) + " <= (sv.pos + sv.ci_upper) ";
+				int min_pos = std::min(start1.toInt(), start2.toInt());
+				int max_pos = std::max(end1.toInt(), end2.toInt());
+				query_same_position += "sv.chr = \"" + chr1.strNormalized(true) + "\" AND sv.pos <= " + QByteArray::number(max_pos) + " AND " + QByteArray::number(min_pos) + " <= (sv.pos + sv.ci_upper) ";
 			}
-			else
+			else //DEL, DUP or INV
 			{
-				//DEL, DUP or INV
 				bool perform_exact_match = (ui_.operation->currentText() == "exact match");
 				if(perform_exact_match)
 				{
-					query_same_position += "sv.chr = \"" + chr1.strNormalized(true) + "\" AND sv.start_min <= " + QByteArray::number(end1) + " AND ";
-					query_same_position += QByteArray::number(start1) + " <= sv.start_max AND sv.end_min <= " + QByteArray::number(end2) + " AND ";
-					query_same_position += QByteArray::number(start2) + " <= sv.end_max ";
+					query_same_position += "sv.chr = \"" + chr1.strNormalized(true) + "\" AND sv.start_min <= " + end1 + " AND " + start1 + " <= sv.start_max AND sv.end_min <= " + end2 + " AND " + start2 + " <= sv.end_max ";
 				}
 				else
 				{
 					//overlap
-					query_same_position += "sv.chr = \"" + chr1.strNormalized(true) + "\" AND sv.start_min <= " + QByteArray::number(end2) + " AND ";
-					query_same_position += QByteArray::number(start1) + " <= sv.end_max ";
+					query_same_position += "sv.chr = \"" + chr1.strNormalized(true) + "\" AND sv.start_min <= " + end2 + " AND " + start1 + " <= sv.end_max ";
 				}
 			}
 		}
@@ -143,34 +131,30 @@ void SvSearchWidget::search()
 		{
 			// (0) parse input
 			Chromosome chr;
-			int start, end;
+			QByteArray start, end;
 			NGSHelper::parseRegion(ui_.le_region->text(), chr, start, end);
 			if(!chr.isNonSpecial())	THROW(ArgumentException, "SVs on special chromosomes are not supported by the NGSD!");
 
 			//(1) define SQL query for position
 			if(type==StructuralVariantType::BND)
 			{
-				query_same_position += "(( sv.chr1 = \"" + chr.strNormalized(true) + "\" AND sv.start1 <= " + QByteArray::number(end) + " AND ";
-				query_same_position += QByteArray::number(start) + " <= sv.end1 ) OR ( sv.chr2 = \"" + chr.strNormalized(true) + "\" AND sv.start2 <= ";
-				query_same_position +=  QByteArray::number(end) + " AND " + QByteArray::number(start) + " <= sv.end2 )) ";
+				query_same_position += "(( sv.chr1 = \"" + chr.strNormalized(true) + "\" AND sv.start1 <= " + end + " AND " + start + " <= sv.end1 )";
+				query_same_position += " OR ( sv.chr2 = \"" + chr.strNormalized(true) + "\" AND sv.start2 <= " + end + " AND " + start + " <= sv.end2 )) ";
 			}
 			else if(type==StructuralVariantType::INS)
 			{
-				query_same_position += "sv.chr = \"" + chr.strNormalized(true) + "\" AND sv.pos <= " + QByteArray::number(end) + " AND ";
-				query_same_position += QByteArray::number(start) + " <= (sv.pos + sv.ci_upper) ";
+				query_same_position += "sv.chr = \"" + chr.strNormalized(true) + "\" AND sv.pos <= " + end + " AND " + start + " <= (sv.pos + sv.ci_upper) ";
 			}
-			else
+			else //DEL, DUP or INV
 			{
-				//DEL, DUP or INV
-				query_same_position += "sv.chr = \"" + chr.strNormalized(true) + "\" AND sv.start_min <= " + QByteArray::number(end) + " AND ";
-				query_same_position += QByteArray::number(start) + " <= sv.end_max ";
+				query_same_position += "sv.chr = \"" + chr.strNormalized(true) + "\" AND sv.start_min <= " + end + " AND " + start + " <= sv.end_max ";
 			}
 		}
-		else // ui_.rb_genes->isChecked()
+		else if (ui_.rb_genes->isChecked())
 		{
 			// (0) + (1) parse input and validate
 			GeneSet genes;
-            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS))
+            foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), Qt::SkipEmptyParts))
 			{
 				QByteArray approved_gene_name = db_.geneToApproved(gene.toUtf8());
 				if (approved_gene_name == "") THROW(ArgumentException, "Invalid gene name '" + gene + "' given!");
@@ -192,9 +176,8 @@ void SvSearchWidget::search()
 				for (int i = 0; i < region.count(); ++i)
 				{
 					QByteArray query_single_region;
-					query_single_region += "(( sv.chr1 = \"" + region[i].chr().strNormalized(true) + "\" AND sv.start1 <= " + QByteArray::number(region[i].end()) + " AND ";
-					query_single_region += QByteArray::number(region[i].start()) + " <= sv.end1 ) OR ( sv.chr2 = \"" + region[i].chr().strNormalized(true) + "\" AND sv.start2 <= ";
-					query_single_region +=  QByteArray::number(region[i].end()) + " AND " + QByteArray::number(region[i].start()) + " <= sv.end2 )) ";
+					query_single_region += "(( sv.chr1 = \"" + region[i].chr().strNormalized(true) + "\" AND sv.start1 <= " + QByteArray::number(region[i].end()) + " AND " + QByteArray::number(region[i].start()) + " <= sv.end1 )";
+					query_single_region += " OR ( sv.chr2 = \"" + region[i].chr().strNormalized(true) + "\" AND sv.start2 <= " + QByteArray::number(region[i].end()) + " AND " + QByteArray::number(region[i].start()) + " <= sv.end2 )) ";
 					query_pos_overlap.append(query_single_region);
 				}
 			}
@@ -208,9 +191,8 @@ void SvSearchWidget::search()
 					query_pos_overlap.append(query_single_region);
 				}
 			}
-			else
+			else //DEL, DUP or INV
 			{
-				//DEL, DUP or INV
 				for (int i = 0; i < region.count(); ++i)
 				{
 					QByteArray query_single_region;
@@ -223,6 +205,31 @@ void SvSearchWidget::search()
 			//concatinate single pos query
 			query_same_position += "(" + query_pos_overlap.join("OR ") + ") ";
 		}
+		else if (ui_.rb_breakpoint->isChecked())
+		{
+			// (0) parse input
+			Chromosome chr;
+			QByteArray start, end;
+			NGSHelper::parseRegion(ui_.le_breakpoint->text(), chr, start, end);
+			if(!chr.isNonSpecial())	THROW(ArgumentException, "SVs on special chromosomes are not supported by the NGSD!");
+
+			//(1) define SQL query for position
+			if(type==StructuralVariantType::BND)
+			{
+				query_same_position += "(( sv.chr1 = \"" + chr.strNormalized(true) + "\" AND sv.start1 <= " + end + " AND " + start + " <= sv.end1 )";
+				query_same_position += " OR ( sv.chr2 = \"" + chr.strNormalized(true) + "\" AND sv.start2 <= " + end + " AND " + start + " <= sv.end2 )) ";
+			}
+			else if(type==StructuralVariantType::INS)
+			{
+				query_same_position += "sv.chr = \"" + chr.strNormalized(true) + "\" AND sv.pos <= " + end + " AND " + start + " <= (sv.pos + sv.ci_upper) ";
+			}
+			else //DEL, DUP or INV
+			{
+				query_same_position += "(( sv.chr = \"" + chr.strNormalized(true) + "\" AND sv.start_min <= " + end + " AND " + start + " <= sv.start_max )";
+				query_same_position += " OR ( sv.chr = \"" + chr.strNormalized(true) + "\" AND sv.end_min <= " + end + " AND " + start + " <= sv.end_max )) ";
+			}
+		}
+
 		QStringList conditions;
 		conditions << query_same_position;
 
@@ -368,6 +375,7 @@ void SvSearchWidget::changeSearchType()
 	ui_.coordinates2->setEnabled(ui_.rb_single_sv->isChecked());
 	ui_.operation->setEnabled(ui_.rb_single_sv->isChecked());
 	ui_.le_region->setEnabled(ui_.rb_region->isChecked());
+	ui_.le_breakpoint->setEnabled(ui_.rb_breakpoint->isChecked());
 	ui_.le_genes->setEnabled(ui_.rb_genes->isChecked());
 }
 

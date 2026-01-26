@@ -10,7 +10,7 @@
 #include <QInputDialog>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_()
 	, db_()
 {
@@ -75,6 +75,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 void SampleSearchWidget::search()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
+	is_busy_ = true;
 
 	try
 	{
@@ -175,6 +176,7 @@ void SampleSearchWidget::search()
 		QMessageBox::warning(this, "Sample search error", "Error:\n" + e.message());
 	}
 
+	is_busy_ = false;
 	QApplication::restoreOverrideCursor();
 }
 

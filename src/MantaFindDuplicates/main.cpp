@@ -1,9 +1,7 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
 #include "NGSD.h"
-#include "BedFile.h"
 #include "VcfFile.h"
-#include "ChromosomalIndex.h"
 #include "Helper.h"
 #include <QFile>
 
@@ -59,13 +57,7 @@ public:
 			in_fallback = db.processedSamplePath(ps_id, PathType::GSVAR).chopped(6) + "_manta_var_structural.vcf.gz";
 		}
 
-
-		//static variables
-		static const int buffer_size = 1048576; //1MB buffer
-		static char* buffer = new char[buffer_size];
-
 		QTextStream out(stdout);
-
 		if (!QFile::exists(in))
 		{
 			//check fallback file path
@@ -84,28 +76,11 @@ public:
 		QMap<QByteArray,QByteArrayList> cache;
 
 		//open input steam
-		FILE* file = in.isEmpty() ? stdin : fopen(in.toUtf8().data(), "rb");
-		if (file==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
-		gzFile in_stream = gzdopen(fileno(file), "rb"); //always open in binary mode because windows and mac open in text mode
-		if (in_stream==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
-
-		//read lines
-		while(!gzeof(in_stream))
+		VersatileFile file(in, true);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		while(!file.atEnd())
 		{
-			char* char_array = gzgets(in_stream, buffer, buffer_size);
-
-			//handle errors like truncated GZ file
-			if (char_array==nullptr)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(in_stream, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading input: " + error_message);
-				}
-			}
-
-			QByteArray line = QByteArray(char_array);
+			QByteArray line = file.readLine(true);
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
@@ -118,7 +93,6 @@ public:
 
 			//get prefix of MantaID
 			QList<QByteArray> manta_id = parts.at(VcfFile::ID).split(':');
-//			QByteArray manta_id_prefix = parts.at(VcfFile::CHROM) + "_" + parts.at(VcfFile::POS) + "_" + manta_id.mid(0, 4).join(':');
 			if (manta_id.at(0).startsWith("Manta"))
 			{
 				manta_id[4] = "X";
@@ -153,9 +127,6 @@ public:
 
 			cache.insert(manta_id_prefix, parts);
 		}
-
-
-
 	}
 };
 

@@ -3,12 +3,9 @@
 
 #include "cppNGSD_global.h"
 #include "NGSD.h"
-#include "GeneSet.h"
-#include "SomaticReportConfiguration.h"
 #include "SomaticReportSettings.h"
-#include "RtfDocument.h"
-#include <QDate>
 #include <QXmlStreamWriter>
+#include "RtfDocument.h"
 
 ///Container for XML data exchange format
 struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
@@ -60,7 +57,6 @@ public:
 
 	///writes a ReportDocumentParts element
 	static void writeReportPartsElement(QXmlStreamWriter& w, QString name, RtfSourceCode rtf_part);
-
 
 };
 

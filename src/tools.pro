@@ -13,6 +13,10 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
+SUBDIRS += BamInfo
+tools-TEST.depends += BamInfo
+BamInfo.depends = cppNGS
+
 SUBDIRS += SampleAncestry
 tools-TEST.depends += SampleAncestry
 SampleAncestry.depends = cppNGS
@@ -120,6 +124,10 @@ VariantFilterRegions.depends = cppNGS
 SUBDIRS += VariantAnnotateFrequency
 tools-TEST.depends += VariantAnnotateFrequency
 VariantAnnotateFrequency.depends = cppNGS
+
+SUBDIRS += VcfAnnotateFrequency
+tools-TEST.depends += VcfAnnotateFrequency
+VcfAnnotateFrequency.depends = cppNGS
 
 SUBDIRS += MappingQC
 tools-TEST.depends += MappingQC
@@ -272,6 +280,10 @@ VcfAnnotateFromBed.depends = cppNGS
 SUBDIRS += TsvMerge
 tools-TEST.depends += TsvMerge
 TsvMerge.depends = cppNGS
+
+SUBDIRS += TsvAnnotate
+tools-TEST.depends += TsvAnnotate
+TsvAnnotate.depends = cppNGS
 
 SUBDIRS += BedAnnotateFromBed
 tools-TEST.depends += BedAnnotateFromBed
@@ -500,6 +512,10 @@ SUBDIRS += TsvToQC
 tools-TEST.depends += TsvToQC
 TsvToQC.depends = cppNGS
 
+SUBDIRS += TsvTo
+tools-TEST.depends += TsvTo
+TsvTo.depends = cppNGS
+
 SUBDIRS += NGSDImportGenlab
 tools-TEST.depends += NGSDImportGenlab
 NGSDImportGenlab.depends = cppNGS
@@ -620,3 +636,18 @@ SUBDIRS += SnifflesVcfFix
 tools-TEST.depends += SnifflesVcfFix
 SnifflesVcfFix.depends = cppNGSD
 
+SUBDIRS += VcfReplaceSamples
+tools-TEST.depends += VcfReplaceSamples
+VcfReplaceSamples.depends = cppNGS
+
+SUBDIRS += GenlabInfo
+tools-TEST.depends += GenlabInfo
+GenlabInfo.depends = cppNGS
+
+SUBDIRS += BedToEpigen
+tools-TEST.depends += BedToEpigen
+BedToEpigen.depends = cppNGS
+
+SUBDIRS += NGSDImportCSpec
+tools-TEST.depends += NGSDImportCSpec
+NGSDImportCSpec.depends = cppNGSD

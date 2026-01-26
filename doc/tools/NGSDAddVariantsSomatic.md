@@ -1,5 +1,5 @@
 ### NGSDAddVariantsSomatic tool help
-	NGSDAddVariantsSomatic (2025_01-55-gd44a7c92)
+	NGSDAddVariantsSomatic (2025_12-49-gdb0c5d35)
 	
 	Imports variants of a tumor-normal processed sample into the NGSD.
 	
@@ -9,17 +9,17 @@
 	Optional parameters:
 	  -n_ps <string>    Normal processed sample name
 	                    Default value: ''
-	  -var <file>       Small variant list (i.e. SNVs and small INDELs) in GSvar format (as produced by megSAP).
+	  -var <file>       Small variant list in GSvar format (as produced by megSAP).
 	                    Default value: ''
 	  -cnv <file>       CNV list in TSV format (as produced by megSAP).
 	                    Default value: ''
-	  -sv <file>        SV list in TSV format (as produced by megSAP).
+	  -sv <file>        SV list in BEDPE format (as produced by megSAP).
 	                    Default value: ''
 	  -force            Force import of variants, even if already imported.
 	                    Default value: 'false'
 	  -out <file>       Output file. If unset, writes to STDOUT.
 	                    Default value: ''
-	  -max_af <float>   Maximum allele frequency of small variants to import (gnomAD) for import of tumor-only.
+	  -max_af <float>   Maximum gnomAD allele frequency of small variants to import for tumor-only.
 	                    Default value: '0.05'
 	  -test             Uses the test database instead of on the production database.
 	                    Default value: 'false'
@@ -36,6 +36,6 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDAddVariantsSomatic changelog
-	NGSDAddVariantsSomatic 2025_01-55-gd44a7c92
+	NGSDAddVariantsSomatic 2025_12-49-gdb0c5d35
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

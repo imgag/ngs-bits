@@ -1,9 +1,14 @@
 bin/*
 build-*
+src/build/*
 *.pro.user*
 t.log
 *.crt
 *.key
-*.txt
+cppREST-TEST_urls.txt
 libxml2/include
 libxml2/libs
+htslib/build/
+htslib/include/
+htslib/lib/
+tools/deploy/

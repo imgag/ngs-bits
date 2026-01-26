@@ -1,4 +1,4 @@
-#symbol	HGNC id	type	name	transcripts coding (ensembl)	transcripts non-coding (ensembl)	gnomAD oe (syn)	gnomAD oe (mis)	gnomAD oe (lof)	inheritance	imprinting	pseudogenes
+#symbol	HGNC id	type	name	transcripts coding (ensembl)	transcripts non-coding (ensembl)	gnomAD oe (syn)	gnomAD oe (mis)	gnomAD oe (lof)	inheritance	imprinting_expressed_allele	pseudogenes
 AACS	HGNC:21298	protein-coding gene	acetoacetyl-CoA synthetase	5	0	0.97	0.94	0.80	AR		AACSP1
 AACSP1	HGNC:18226	pseudogene	acetoacetyl-CoA synthetase pseudogene 1	0	1						
 BRCA1	HGNC:1100	protein-coding gene	Breast cancer associated gene 1	12	2	0.22	0.11	0.33	AD		

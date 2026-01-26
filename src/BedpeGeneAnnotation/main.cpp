@@ -1,12 +1,9 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
 #include "ChromosomalIndex.h"
 #include "VariantList.h"
 #include "BedFile.h"
 #include "BedpeFile.h"
 #include "NGSD.h"
-#include "TSVFileStream.h"
-#include <QFileInfo>
 
 class ConcreteTool
 		: public ToolBase
@@ -59,7 +56,7 @@ public:
 		}
 		gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
-        out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << QT_ENDL;
+        out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << Qt::endl;
 		timer.restart();
 
 		//cache gnomAD o/e LOF values
@@ -76,7 +73,7 @@ public:
 				gene_oe_lof[gene_name] = "n/a";
 			}
 		}
-        out << "caching gnomAD o/e finished (runtime: " << Helper::elapsedTime(timer) << ")" << QT_ENDL;
+        out << "caching gnomAD o/e finished (runtime: " << Helper::elapsedTime(timer) << ")" << Qt::endl;
 		timer.restart();
 
 		// open input file
@@ -235,7 +232,7 @@ public:
 		sv_output_file->close();
 
 
-        out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << QT_ENDL;
+        out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << Qt::endl;
 
 	}
 };

@@ -3,8 +3,6 @@
 
 #include "cppNGSD_global.h"
 #include "StatisticsService.h"
-#include "Settings.h"
-#include "Exceptions.h"
 
 class CPPNGSDSHARED_EXPORT StatisticsServiceLocal
 	: virtual public StatisticsService

@@ -6,6 +6,8 @@
 #include "Helper.h"
 #include <QFile>
 #include <QRegularExpression>
+#include "Settings.h"
+#include "VersatileFile.h"
 
 struct FilterDefinition
 {
@@ -190,7 +192,8 @@ public:
 		{
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
 		}
-		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
+		VersatileFile in_p(in, true);
+		in_p.open();
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
 		//init parameters
@@ -290,9 +293,9 @@ public:
 		// Read input
 		QTextStream std_err(stderr);
 		int column_count = 0;
-		while (!in_p->atEnd())
+		while (!in_p.atEnd())
 		{
-			QByteArray line = in_p->readLine();
+			QByteArray line = in_p.readLine(false);
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
@@ -530,7 +533,6 @@ public:
 		}
 
 		//close streams
-		in_p->close();
 		out_p->close();
 	}
 };

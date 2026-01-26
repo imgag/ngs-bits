@@ -1,5 +1,8 @@
 #include "IGVInitCacheWorker.h"
 #include "GlobalServiceProvider.h"
+#include "Settings.h"
+#include "IgvSessionManager.h"
+#include "LoginManager.h"
 
 IGVInitCacheWorker::IGVInitCacheWorker(const AnalysisType analysis_type, const QString current_filename)
     : BackgroundWorkerBase("IGV cache initializer")
@@ -54,11 +57,14 @@ void IGVInitCacheWorker::process()
         }
     }
 
-    //Manta evidence file(s)
-    FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
-    foreach(const FileLocation& file, evidence_files)
+    if (analysis_type_ == GERMLINE_SINGLESAMPLE || analysis_type_ == GERMLINE_MULTISAMPLE || analysis_type_ == GERMLINE_TRIO)
     {
-        IgvSessionManager::get(0).addLocationToCache(file, false);
+        //Manta evidence file(s)
+        FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
+        foreach(const FileLocation& file, evidence_files)
+        {
+            IgvSessionManager::get(0).addLocationToCache(file, false);
+        }
     }
 
     //sample low-coverage
@@ -70,7 +76,7 @@ void IGVInitCacheWorker::process()
         {
             if(loc.filename.contains("somatic_custom_panel_stat"))
             {
-                IgvSessionManager::get(0).addLocationToCache(FileLocation{loc.id + " (somatic custom panel)", PathType::LOWCOV_BED, loc.filename, QFile::exists(loc.filename)}, igv_default_lowcov);
+                IgvSessionManager::get(0).addLocationToCache(FileLocation(loc.id + " (somatic custom panel)", PathType::LOWCOV_BED, loc.filename, loc.modified, loc.exists), igv_default_lowcov);
             }
             else
             {
@@ -87,7 +93,7 @@ void IGVInitCacheWorker::process()
         }
     }
 
-    //related RNA tracks
+
     if (LoginManager::active())
     {
         NGSD db;
@@ -95,6 +101,7 @@ void IGVInitCacheWorker::process()
         QString sample_id = db.sampleId(current_filename_, false);
         if (sample_id!="")
         {
+            //related RNA tracks
             foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
             {
                 // iterate over all processed RNA samples
@@ -113,7 +120,19 @@ void IGVInitCacheWorker::process()
                     if (rna_splicing_bed_file.exists) IgvSessionManager::get(0).addLocationToCache(rna_splicing_bed_file, false);
                 }
             }
+
+
+            //Paraphase evidence file
+            if (db.getProcessedSampleData(db.processedSampleId(current_filename_)).processing_system_type == "lrGS")
+            {
+                FileLocationList paraphase_files = GlobalServiceProvider::fileLocationProvider().getParaphaseEvidenceFiles(true);
+                foreach(const FileLocation& file, paraphase_files)
+                {
+                    IgvSessionManager::get(0).addLocationToCache(file, false);
+                }
+            }
         }
     }
+
     Log::info("Finished preloading IGV file information");
 }

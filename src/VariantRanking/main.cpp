@@ -16,17 +16,19 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotatates variants in GSvar format with a score/rank.");
+		setDescription("Rankes small variants in the context of a patients phenotype using an evidence-based model.");
 		addInfile("in", "Input variant list in GSvar format.", false);
 		addString("hpo_ids", "Comma-separated list of HPO identifiers.", false);
-		addOutfile("out", "Output variant list in GSvar format.", false);
-		addEnum("algorithm", "Algorithm used for ranking.", true, VariantScores::algorithms() , "GSvar_v1");
-		addFlag("add_explanation", "Add a third column with an explanation how that score was calculated.");
+		addOutfile("out", "Output variant list in GSvar format with rank/score columns.", false);
+		addEnum("algorithm", "Algorithm used for ranking.", false, VariantScores::algorithms());
+		//optional
+		addFlag("add_explanation", "Add a third output column with an explanation how that score was calculated.");
 		addFlag("use_blacklist", "Use variant blacklist from settings.ini file.");
 		addFlag("skip_ngsd_classifications", "Do not use variant classifications from NGSD.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
-		changeLog(2020, 11, 20, "Initial commit.");
+		changeLog(2023,  5,  5, "Implementation of v2.");
+		changeLog(2020, 11, 20, "Implementation of v1.");
 	}
 
 	virtual void main()

@@ -1,10 +1,6 @@
 #include "ToolBase.h"
 #include "ThreadCoordinator.h"
-#include "AnalysisWorker.h"
-#include "OutputWorker.h"
-#include "Helper.h"
 #include "BasicStatistics.h"
-#include <QThreadPool>
 
 class ConcreteTool
 		: public ToolBase
@@ -72,7 +68,7 @@ public:
         if (params.a1.size()<15) THROW(CommandLineParsingException, "Forward adapter " + params.a1 + " too short!");
 		params.a2 = getString("a2").trimmed().toUtf8();
         if (params.a2.size()<15) THROW(CommandLineParsingException, "Reverse adapter " + params.a2 + " too short!");
-        params.a_size = std::min(SIZE_TO_INT(20), std::min(SIZE_TO_INT(params.a1.size()), SIZE_TO_INT(params.a2.size())));
+        params.a_size = std::min(static_cast<qsizetype>(20), std::min(static_cast<qsizetype>(params.a1.size()), static_cast<qsizetype>(params.a2.size())));
 
 		params.match_perc = getFloat("match_perc");
 		params.mep = getFloat("mep");

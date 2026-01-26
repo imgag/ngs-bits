@@ -1,4 +1,5 @@
 #include "ApprovedGenesDialog.h"
+#include "NGSD.h"
 
 ApprovedGenesDialog::ApprovedGenesDialog(QWidget* parent)
 	: QDialog(parent)

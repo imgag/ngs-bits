@@ -1,11 +1,11 @@
 ### NGSDImportORPHA tool help
-	NGSDImportORPHA (2024_08-113-g94a3b440)
+	NGSDImportORPHA (2025_07-127-g60fc6b39)
 	
 	Imports ORPHA diseases/genes into the NGSD.
 	
 	Mandatory parameters:
-	  -terms <file>     Terms XML file from 'http://www.orphadata.com/data/xml/en_product1.xml'.
-	  -genes <file>     Terms<>genes XML file from 'http://www.orphadata.com/data/xml/en_product6.xml'.
+	  -terms <file>     Terms XML file from 'https://www.orphadata.com/data/xml/en_product1.xml'.
+	  -genes <file>     Terms<>genes XML file from 'https://www.orphadata.com/data/xml/en_product6.xml'.
 	
 	Optional parameters:
 	  -test             Uses the test database instead of on the production database.
@@ -21,7 +21,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDImportORPHA changelog
-	NGSDImportORPHA 2024_08-113-g94a3b440
+	NGSDImportORPHA 2025_07-127-g60fc6b39
 	
 	2019-09-30 Initial version
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -4,10 +4,8 @@
 #include <QWidget>
 #include <QTableWidgetItem>
 #include <QByteArray>
-#include <QByteArrayList>
 #include <NGSD.h>
 #include "BedpeFile.h"
-#include "FilterWidget.h"
 #include "ReportConfiguration.h"
 
 namespace Ui {
@@ -24,7 +22,7 @@ public:
 	//Constructor for germline
 	SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes);
 	//Constructor for somatic
-	SvWidget(QWidget* parent, const BedpeFile& bedpe_file, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes);
+	SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QSharedPointer<SomaticReportConfiguration> som_rep_conf, const GeneSet& het_hit_genes);
 	~SvWidget();
 
 signals:
@@ -107,7 +105,7 @@ private:
 	GeneSet var_het_genes_;
 
 	QSharedPointer<ReportConfiguration> report_config_;
-	SomaticReportConfiguration* som_report_config_;
+	QSharedPointer<SomaticReportConfiguration> som_report_config_;
 
     bool ngsd_user_logged_in_;
 	bool rc_enabled_;

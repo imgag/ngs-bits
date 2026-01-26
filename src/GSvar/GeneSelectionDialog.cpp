@@ -1,10 +1,11 @@
 #include "GeneSelectionDialog.h"
 #include "PhenotypeSelectionWidget.h"
 #include "ui_GeneSelectionDialog.h"
-
+#include "Settings.h"
 #include "GUIHelper.h"
 #include "NGSD.h"
-#include "GlobalServiceProvider.h"
+#include "Settings.h"
+#include "LoginManager.h"
 
 GeneSelectionDialog::GeneSelectionDialog(QWidget *parent) :
 	QDialog(parent),
@@ -133,7 +134,7 @@ void GeneSelectionDialog::determineGenes()
 		}
 
 		// set genes:
-		ui_->te_genes->setPlainText(genes.toStringList().join('\n'));
+		ui_->te_genes->setPlainText(genes.toString("\n"));
 
 		QApplication::restoreOverrideCursor();
 	}

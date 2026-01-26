@@ -1,27 +1,8 @@
-#c++11 support
-CONFIG += c++11
-
-#base settings
-QT       -= gui
-QT       += network
-CONFIG   += console
-CONFIG   -= app_bundle
-TEMPLATE = app
-DESTDIR = ../../bin/
-
-#enable O3 optimization
-QMAKE_CXXFLAGS_RELEASE -= -O
-QMAKE_CXXFLAGS_RELEASE -= -O1
-QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE *= -O3
-
-#include cppCORE library
-INCLUDEPATH += $$PWD/../cppCORE
-LIBS += -L$$PWD/../../bin -lcppCORE
+include("../test.pri")
 
 #include cppXML library
 INCLUDEPATH += $$PWD/cppXML
-LIBS += -L$$PWD/../bin -lcppXML
+LIBS += -L$$PWD/../../bin -lcppXML
 
 #include cppNGS library
 INCLUDEPATH += $$PWD/../cppNGS
@@ -37,49 +18,39 @@ win32: LIBS += -L$$PWD/../../libxml2/libs/ -lxml2
 unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
-#include cppTFW library
-INCLUDEPATH += $$PWD/../cppTFW
-
-#include zlib library
-LIBS += -lz
-
-#make the executable search for .so-files in the same folder under linux
-QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
-
-HEADERS += \
-    Chromosome_Test.h \
-    BedLine_Test.h \
-    BedFile_Test.h \
-    VariantList_Test.h \
-    FilterCascade_Test.h \
-    ChromosomalIndex_Test.h \
-    Statistics_Test.h \
-    Variant_Test.h \
-    NGSHelper_Test.h \
-    FastqFileStream_Test.h \
-    FastaFileIndex_Test.h \
-    QCCollection_Test.h \
-    StatisticsReads_Test.h \
-    GeneSet_Test.h \
-    OntologyTermCollection_Test.h \
-    BamReader_Test.h \
-    CnvList_Test.h \
-    StructuralVariantType_Test.h \
-    Transcript_Test.h \
-    BedpeLine_Test.h \
-    BedpeFile_Test.h \
-    Sequence_Test.h \
-    VCFLine_Test.h \
-    VcfFile_Test.h \
-    VariantScores_Test.h \
-    BamWriter_Test.h \
-    SomaticVariantInterpreter_Test.h \
-    Graph_Test.h \
-    ChainFileReader_Test.h \
-    BigWigReader_Test.h \
-    VariantHgvsAnnotator_Test.h \
-    TabIndexedFile_Test.h \
-    PipelineSettings_Test.h
-
 SOURCES += \
+        Chromosome_Test.cpp \
+        BedLine_Test.cpp \
+        BedFile_Test.cpp \
+        VariantList_Test.cpp \
+        FilterCascade_Test.cpp \
+        ChromosomalIndex_Test.cpp \
+        Statistics_Test.cpp \
+        Variant_Test.cpp \
+        NGSHelper_Test.cpp \
+        FastqFileStream_Test.cpp \
+        FastaFileIndex_Test.cpp \
+        QCCollection_Test.cpp \
+        StatisticsReads_Test.cpp \
+        GeneSet_Test.cpp \
+        OntologyTermCollection_Test.cpp \
+        BamReader_Test.cpp \
+        CnvList_Test.cpp \
+        StructuralVariantType_Test.cpp \
+        Transcript_Test.cpp \
+        BedpeLine_Test.cpp \
+        BedpeFile_Test.cpp \
+        Sequence_Test.cpp \
+        VCFLine_Test.cpp \
+        VcfFile_Test.cpp \
+        VariantScores_Test.cpp \
+        BamWriter_Test.cpp \
+        SomaticVariantInterpreter_Test.cpp \
+        Graph_Test.cpp \
+        ChainFileReader_Test.cpp \
+        BigWigReader_Test.cpp \
+        VariantHgvsAnnotator_Test.cpp \
+        TabIndexedFile_Test.cpp \
+        PipelineSettings_Test.cpp \
+        RepeatLocusList_Test.cpp \
         main.cpp

@@ -1,0 +1,32 @@
+##fileformat=VCFv4.2
+##SAMPLE=<ID=NA12878_03,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Other diseases,DiseaseStatus=affected>
+##contig=<ID=chr1,length=248956422,assembly=GRCh38.fa>
+##contig=<ID=chr3,length=198295559,assembly=GRCh38.fa>
+##contig=<ID=chr4,length=190214555,assembly=GRCh38.fa>
+##contig=<ID=chr5,length=181538259,assembly=GRCh38.fa>
+##contig=<ID=chr6,length=170805979,assembly=GRCh38.fa>
+##contig=<ID=chr7,length=159345973,assembly=GRCh38.fa>
+##contig=<ID=chr8,length=145138636,assembly=GRCh38.fa>
+##contig=<ID=chr9,length=138394717,assembly=GRCh38.fa>
+##contig=<ID=chr10,length=133797422,assembly=GRCh38.fa>
+##contig=<ID=chr11,length=135086622,assembly=GRCh38.fa>
+##contig=<ID=chr12,length=133275309,assembly=GRCh38.fa>
+##contig=<ID=chr13,length=114364328,assembly=GRCh38.fa>
+##contig=<ID=chr14,length=107043718,assembly=GRCh38.fa>
+##contig=<ID=chr15,length=101991189,assembly=GRCh38.fa>
+##contig=<ID=chr16,length=90338345,assembly=GRCh38.fa>
+##contig=<ID=chr17,length=83257441,assembly=GRCh38.fa>
+##contig=<ID=chr18,length=80373285,assembly=GRCh38.fa>
+##contig=<ID=chr19,length=58617616,assembly=GRCh38.fa>
+##contig=<ID=chr20,length=64444167,assembly=GRCh38.fa>
+##contig=<ID=chr21,length=46709983,assembly=GRCh38.fa>
+##contig=<ID=chr22,length=50818468,assembly=GRCh38.fa>
+##contig=<ID=chrX,length=156040895,assembly=GRCh38.fa>
+##contig=<ID=chrY,length=57227415,assembly=GRCh38.fa>
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03
+chr1	27355990	.	G	A	2181	PASS	.	GT	0/1
+chr1	27359572	.	G	C	6115	PASS	.	GT	1/1
+chr1	27360975	.	G	T	9743	PASS	.	GT	0/1
+chr1	27363868	.	T	C	1451	PASS	.	GT	0/1
+chr1	27363868	.	T	C	1451	PASS	.	GT	1/0

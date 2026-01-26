@@ -9,13 +9,7 @@
 #include "GenomeBuild.h"
 #include "VcfLine.h"
 #include "VariantImpact.h"
-
-///Variant caller information
-struct VariantCaller
-{
-	QString name;
-	QString version;
-};
+#include <QDebug>
 
 ///Transcript annotations e.g. from SnpEff/VEP.
 struct CPPNGSSHARED_EXPORT VariantTranscript
@@ -211,8 +205,8 @@ public:
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
 	/// Returns the HGVS.g notation of the variant.
 	QString toHGVS(const FastaFileIndex& genome_index) const;
-	/// Returns the VCF line notation of the variant up to the INFO column.
-	VcfLine toVCF(const FastaFileIndex& genome_index) const;
+	/// Returns the VCF line notation of the variant up to the INFO column. Id @p gt_index is given, this column index is used to determine and set the genotype in the returned VCF line.
+	VcfLine toVCF(const FastaFileIndex& genome_index, int gt_index=-1) const;
 	/// Returns the gnomAD notation of the variant.
 	QString toGnomAD(const FastaFileIndex& genome_index) const;
 
@@ -249,7 +243,11 @@ protected:
 };
 
 ///Debug output operator for Variant.
-QDebug operator<<(QDebug d, const Variant& v);
+inline QDebug operator<<(QDebug d, const Variant& v)
+{
+    d.nospace() << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << "=>" << v.obs();
+    return d.space();
+}
 
 ///Supported analysis types.
 enum AnalysisType
@@ -433,10 +431,12 @@ public:
 	QDate getCreationDate() const;
 	///Returns the analysis type from the header. Throws an error, if it could not be determined.
 	AnalysisType type(bool allow_fallback_germline_single_sample=true) const;
-	///Returns the variant caller from the file header in the format "[caller] [caller_version]". An empty string is returned, if it could not be determined.
-	VariantCaller getCaller() const;
+	///Returns the variant caller. An empty string is returned, if it could not be determined.
+	QByteArray caller() const;
+	///Returs the variant caller version. An empty string is returned, if it could not be determined.
+	QByteArray callerVersion() const;
 	///Returns the variant calling date from the file header. A invalid date is returened, if it could not be determined.
-	QDate getCallingDate() const;
+	QDate callingDate() const;
 
 	///Returns whether list contains variant with same chr, start, end, ref and obs. Warning: this is quite slow as is uses linear search - use ChromosomalIndex for quick access to variants.
 	bool contains(const Variant& var)

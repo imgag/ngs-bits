@@ -4,18 +4,10 @@
 #include "Helper.h"
 #include "ProxyDataService.h"
 #include "GUIHelper.h"
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QEventLoop>
 #include <QNetworkProxy>
 #include <QInputDialog>
-#include <QApplication>
-#include <QAuthenticator>
-#include <QFile>
-#include <QPointer>
 #include <QHttpMultiPart>
 #include <QMessageBox>
-
 
 HttpHandler::HttpHandler(bool internal, QObject* parent)
 	: QObject(parent)

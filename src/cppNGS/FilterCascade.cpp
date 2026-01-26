@@ -69,13 +69,7 @@ bool FilterParameter::operator==(const FilterParameter& rhs) const
 {
 	if (name!=rhs.name) return false;
 	if (type!=rhs.type) return false;
-
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     if (value.metaType()!=rhs.value.metaType()) return false;
-    #else
-    if (value.type()!=rhs.value.type()) return false;
-    #endif
-
 	if (valueAsString()!=rhs.valueAsString()) return false;
 
 	return true;
@@ -330,7 +324,7 @@ void FilterBase::setGeneric(const QString& name, const QString& value)
 	}
 	else if (type==FilterParameterType::STRINGLIST)
 	{
-        setStringList(name, value.split(',', QT_SKIP_EMPTY_PARTS));
+        setStringList(name, value.split(',', Qt::SkipEmptyParts));
 	}
 	else
 	{
@@ -547,7 +541,7 @@ QStringList FilterBase::getStringList(const QString& name, bool check_constraint
 		if (p.constraints.contains("valid"))
 		{
 			QStringList valid = p.constraints["valid"].split(',');
-            for (const QString& value : list)
+			for (const QString& value : std::as_const(list))
 			{
 				if (!valid.contains(value))
 				{
@@ -1031,6 +1025,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV break point density NGSD"] = &createInstance<FilterSvBreakpointDensityNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
 		output["SV CNV overlap"] = &createInstance<FilterSvCnvOverlap>;
+		output["SV annotated pathogenic"] = &createInstance<FilterSvPathogenic>;
 		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
 		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
 		output["RNA ASE depth"] = &createInstance<FilterVariantRNAAseDepth>;
@@ -2175,7 +2170,7 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 	params_ << FilterParameter("skip_high_impact", FilterParameterType::BOOL, false, "Do not apply this filter to variants with impact 'HIGH'.");
 	//cutoffs
 	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
-	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 20.0, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
+	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 22.7, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
@@ -2606,7 +2601,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
 	//pre-calculate genes with heterozygous variants
-    QSet<QString> types = LIST_TO_SET(getStringList("types"));
+    QSet<QString> types = Helper::listToSet(getStringList("types"));
 	GeneSet genes_comphet;
 	if (types.contains("comp-het"))
 	{
@@ -2918,13 +2913,15 @@ FilterCnvSize::FilterCnvSize()
 	description_ = QStringList() << "Filter for CNV size (kilobases).";
 	params_ << FilterParameter("size", FilterParameterType::DOUBLE, 0.0, "Minimum CNV size in kilobases");
 	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "FILTER,KEEP";
 
 	checkIsRegistered();
 }
 
 QString FilterCnvSize::toText() const
 {
-	return name() + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
+	return name() + " " + getString("action") + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
 }
 
 void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
@@ -2932,14 +2929,33 @@ void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
 	if (!enabled_) return;
 
 	double min_size_bases = getDouble("size") * 1000.0;
-	for(int i=0; i<cnvs.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
 
-		if (cnvs[i].size() < min_size_bases)
+	QString action = getString("action");
+	if (action=="FILTER")
+	{
+		for(int i=0; i<cnvs.count(); ++i)
 		{
-			result.flags()[i] = false;
+			if (!result.flags()[i]) continue;
+
+			if (cnvs[i].size() < min_size_bases)
+			{
+				result.flags()[i] = false;
+			}
 		}
+	}
+	else if (action=="KEEP")
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (cnvs[i].size() >= min_size_bases)
+			{
+				result.flags()[i] = true;
+			}
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Invalid action '" + action +"'provided!");
 	}
 }
 
@@ -3254,7 +3270,7 @@ FilterCnvCompHet::FilterCnvCompHet()
 {
 	name_ = "CNV compound-heterozygous";
 	type_ = VariantType::CNVS;
-	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and exactly one small variant hit (after other filters are applied).";
+	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detects genes with at least one CNV and at least one heterozygous small variant hit (after other filters are applied).";
 	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
 	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL";
 
@@ -3299,20 +3315,12 @@ void FilterCnvCompHet::apply(const CnvList& cnvs, FilterResult& result) const
 		}
 	}
 
-	//one CNV and one SNV/INDEL hit
+	//at least one CNV and at least one SNV/INDEL hit
 	else if (mode=="CNV-SNV/INDEL")
 	{
-		GeneSet single_hit_cnv;
 		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
 		{
-			if (it.value()==1)
-			{
-				single_hit_cnv.insert(it.key());
-			}
-		}
-
-        for (const QByteArray& gene : single_hit_cnv)
-		{
+			QByteArray gene = it.key();
 			if (het_hit_genes_.contains(gene))
 			{
 				comphet_hit.insert(gene);
@@ -3605,6 +3613,8 @@ FilterCnvPathogenicCnvOverlap::FilterCnvPathogenicCnvOverlap()
 	name_ = "CNV pathogenic CNV overlap";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for overlap with pathogenic CNVs from the NGSD i.e. the 'ngsd_pathogenic_cnvs' column is not empty.";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "FILTER,KEEP";
 
 	checkIsRegistered();
 }
@@ -3620,14 +3630,32 @@ void FilterCnvPathogenicCnvOverlap::apply(const CnvList& cnvs, FilterResult& res
 
 	int index = cnvs.annotationIndexByName("ngsd_pathogenic_cnvs", true);
 
-	for(int i=0; i<cnvs.count(); ++i)
+	QString action = getString("action");
+	if (action=="FILTER")
 	{
-		if (!result.flags()[i]) continue;
-
-		if (cnvs[i].annotations()[index].trimmed().isEmpty())
+		for(int i=0; i<cnvs.count(); ++i)
 		{
-			result.flags()[i] = false;
+			if (!result.flags()[i]) continue;
+
+			if (cnvs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
 		}
+	}
+	else if (action=="KEEP")
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!cnvs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = true;
+			}
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Invalid action '" + action +"'provided!");
 	}
 }
 
@@ -3930,7 +3958,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 {
 	if (!enabled_) return;
 
-    QSet<QString> filter_entries = LIST_TO_SET(getStringList("entries"));
+    QSet<QString> filter_entries = Helper::listToSet(getStringList("entries"));
 	QString action = getString("action");
 	int filter_col_index = svs.annotationIndexByName("FILTER");
 
@@ -3940,7 +3968,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		{
 			if (!result.flags()[i]) continue;
 
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3953,7 +3981,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		{
 			if (!result.flags()[i]) continue;
 
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3964,7 +3992,7 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 	{
 		for(int i=0; i<svs.count(); ++i)
 		{
-            QSet<QString> sv_entries = LIST_TO_SET(QString(svs[i].annotations()[filter_col_index]).split(';'));
+            QSet<QString> sv_entries = Helper::listToSet(QString(svs[i].annotations()[filter_col_index]).split(';'));
 			if (sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = true;
@@ -4511,7 +4539,7 @@ FilterSvCompHet::FilterSvCompHet()
 {
 	name_ = "SV compound-heterozygous";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Filter for compound-heterozygous SVs." << "Mode 'SV-SV' detects genes with two or more SV hits." << "Mode 'SV-SNV/INDEL' detectes genes with exactly one SV and exactly one small variant hit (after other filters are applied).";
+	description_ = QStringList() << "Filter for compound-heterozygous SVs." << "Mode 'SV-SV' detects genes with two or more SV hits." << "Mode 'SV-SNV/INDEL' detects genes with at least one SV and at least one small variant hit (after other filters are applied).";
 	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
 	params_.last().constraints["valid"] = "n/a,SV-SV,SV-SNV/INDEL";
 
@@ -4563,17 +4591,9 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	//one SV and one SNV/INDEL hit
 	else if (mode=="SV-SNV/INDEL")
 	{
-		GeneSet single_hit_sv;
 		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
 		{
-			if (it.value()==1)
-			{
-				single_hit_sv.insert(it.key());
-			}
-		}
-
-        for (const QByteArray& gene : single_hit_sv)
-		{
+			QByteArray gene = it.key();
 			if (het_hit_genes_.contains(gene))
 			{
 				comphet_hit.insert(gene);
@@ -4880,7 +4900,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
     //pre-calculate genes with heterozygous variants
-    QSet<QString> types = LIST_TO_SET(getStringList("types"));
+    QSet<QString> types = Helper::listToSet(getStringList("types"));
     GeneSet genes_comphet;
     if (types.contains("comp-het"))
     {
@@ -5838,7 +5858,8 @@ void FilterSvLrAF::apply(const BedpeFile& svs, FilterResult& result) const
 	double lower_limit = getDouble("min_af", false);
 
 
-	int col_index = svs.annotationIndexByName("AF");
+	int col_index = svs.annotationIndexByName("AF", false);
+	if (col_index == -1 ) col_index = svs.annotationIndexByName("VAF");
 
 	if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
 	{
@@ -5898,8 +5919,58 @@ void FilterSvLrSupportReads::apply(const BedpeFile& svs, FilterResult& result) c
 	}
 }
 
-/*************************************************** concrete filters for FUSIONs ***************************************************/
+FilterSvPathogenic::FilterSvPathogenic()
+{
+    name_ = "SV annotated pathogenic";
+    type_ = VariantType::SVS;
+    description_ = QStringList() << "Filter variants that are already annotated to be pathogenic in NGSD..";
+    params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+    params_.last().constraints["valid"] = "FILTER,KEEP";
 
+    checkIsRegistered();
+}
+
+QString FilterSvPathogenic::toText() const
+{
+    return name();
+}
+
+void FilterSvPathogenic::apply(const BedpeFile& svs, FilterResult& result) const
+{
+    if (!enabled_) return;
+
+    int index = svs.annotationIndexByName("NGSD_PATHOGENIC_SVS", true);
+
+    QString action = getString("action");
+    if (action=="FILTER")
+    {
+        for(int i=0; i<svs.count(); ++i)
+        {
+            if (!result.flags()[i]) continue;
+
+            if (svs[i].annotations()[index].trimmed().isEmpty())
+            {
+                result.flags()[i] = false;
+            }
+        }
+    }
+    else if (action=="KEEP")
+    {
+        for(int i=0; i<svs.count(); ++i)
+        {
+            if (!svs[i].annotations()[index].trimmed().isEmpty())
+            {
+                result.flags()[i] = true;
+            }
+        }
+    }
+    else
+    {
+        THROW(NotImplementedException, "Invalid action '" + action +"'provided!");
+    }
+}
+
+/* FUSION Filters */
 
 FilterFusionReadSupport::FilterFusionReadSupport()
 {
@@ -5917,7 +5988,7 @@ FilterFusionReadSupport::FilterFusionReadSupport()
 	params_ << FilterParameter("coverage2", FilterParameterType::INT, 5, "Minimum coverage at breakpoint 2");
 	params_.last().constraints["min"] = "0";
 
-	checkIsRegistered();
+    checkIsRegistered();
 }
 
 QString FilterFusionReadSupport::toText() const
@@ -6021,27 +6092,4 @@ void FilterFusionConfidence::apply(const ArribaFile& fusions, FilterResult& resu
 		result.flags()[i] = allowed.contains(fusions.getFusion(i).annotations()[idx_confidence]);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

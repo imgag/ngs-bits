@@ -11,12 +11,10 @@
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
-#include <QPushButton>
 #include <QFileDialog>
-#include <QHeaderView>
+#include "Settings.h"
 
-
-CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
+CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, QSharedPointer<SomaticReportConfiguration> somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),
 	ui_(new Ui::CfDNAPanelDesignDialog),
 	variants_(variants),
@@ -245,7 +243,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("MonitoringScore of the preselection tool.");
 
 	// get indices of report config
-	QList<int> report_config_indices = somatic_report_configuration_.variantIndices(VariantType::SNVS_INDELS, false);
+	QList<int> report_config_indices = somatic_report_configuration_->variantIndices(VariantType::SNVS_INDELS, false);
 
 	// get af/dp indices
 	int tumor_af_idx = variants_.annotationIndexByName("tumor_af");
@@ -309,7 +307,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 		SomaticReportVariantConfiguration var_conf;
 		if (report_config_indices.contains(i))
 		{
-			var_conf = somatic_report_configuration_.variantConfig(i, VariantType::SNVS_INDELS);
+			var_conf = somatic_report_configuration_->variantConfig(i, VariantType::SNVS_INDELS);
 		}
 
 		// create table
@@ -543,7 +541,7 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 {
 	// open BED file
 	BedFile hotspot_regions;
-	hotspot_regions.load("://Resources/" + buildToString(GSvarHelper::build()) + "_cfDNA_hotspot_regions.bed");
+	hotspot_regions.load("://Resources/hg38_cfDNA_hotspot_regions.bed");
 
 	// fill table
 
@@ -668,7 +666,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 	if (ui_->cb_sample_identifier->isChecked())
 	{
 		// get KASP SNPs
-		QStringList vcf_content = Helper::loadTextFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf", false,QChar::Null, false);
+		QStringList vcf_content = Helper::loadTextFile("://Resources/hg38_KASP_set2.vcf", false,QChar::Null, false);
 		if(variants_.type() == SOMATIC_SINGLESAMPLE)
 		{
 			//postprocess KASP file for tumor-only: remove FORMAT column of normal sample
@@ -971,7 +969,7 @@ void CfDNAPanelDesignDialog::writePanelToFile()
 	BedFile bed_file = createBedFile(vcf_file);
 
 	// write to disk
-	vcf_file.store(vcf_file_path, false, 10);
+	vcf_file.store(vcf_file_path);
 	bed_file.store(bed_file_path);
 }
 

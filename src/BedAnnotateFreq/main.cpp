@@ -1,9 +1,7 @@
 #include "BedFile.h"
 #include "ToolBase.h"
-#include "Statistics.h"
 #include <QFileInfo>
-
-#include "NGSHelper.h"
+#include "BamReader.h"
 #include <QTextStream>
 #include "Helper.h"
 #include "Exceptions.h"

@@ -9,6 +9,7 @@
 #include "BasicStatistics.h"
 #include "algorithm"
 #include "cmath"
+#include "VersatileFile.h"
 
 BedLine::BedLine()
 	: chr_()
@@ -123,14 +124,15 @@ void BedFile::load(QString filename, bool stdin_if_empty, bool read_annotations)
 	QHash<QByteArray, QByteArray> str_cache;
 
 	//parse from stream
-	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, stdin_if_empty);
-	while(!file->atEnd())
+
+	VersatileFile file(filename, stdin_if_empty);
+	file.open(QFile::ReadOnly | QIODevice::Text);
+	while(!file.atEnd())
 	{
-		QByteArray line = file->readLine();
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+		QByteArray line = file.readLine(true);
 
 		//skip empty lines
-		if(line.length()==0) continue;
+		if(line.isEmpty()) continue;
 
 		//store headers
 		if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser ") || line.startsWith("Chromosome\tStart\tEnd"))
@@ -179,6 +181,7 @@ void BedFile::store(QString filename, bool stdout_if_empty) const
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_empty);
 	QTextStream stream(file.data());
+    stream.setEncoding(QStringConverter::Utf8);    
 
 	//write headers
 	foreach(const QByteArray& header, headers_)

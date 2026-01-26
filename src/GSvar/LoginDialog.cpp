@@ -1,7 +1,6 @@
 #include "LoginDialog.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
-#include <QMessageBox>
 
 LoginDialog::LoginDialog(QWidget *parent)
 	: QDialog(parent)

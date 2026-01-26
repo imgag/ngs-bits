@@ -1,5 +1,7 @@
 #include "RtfDocument.h"
 #include "Helper.h"
+#include <QTextStream>
+#include <QDebug>
 
 RtfPicture::RtfPicture()
 	: png_data_("")
@@ -182,13 +184,14 @@ void RtfDocument::setMargins(int left, int top, int right, int bottom)
 void RtfDocument::save(const QByteArray &file_name)
 {
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(file_name);
+
 	QTextStream stream(outfile.data());
 
 	stream << header();
 
 	foreach(const RtfSourceCode& part, body_parts_)
 	{
-        stream << part << QT_ENDL;
+		stream << part << "\n";
 	}
 
 	stream << footer();
@@ -447,5 +450,5 @@ void RtfTable::sortbyCols(const QList<int> &indices)
 
 void RtfTable::swapRows(int i_row_a, int i_row_b)
 {
-    QLIST_SWAP_ITEMS_AT(rows_, i_row_a, i_row_b);
+	rows_.swapItemsAt(i_row_a, i_row_b);
 }

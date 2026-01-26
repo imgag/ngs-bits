@@ -3,16 +3,15 @@
 
 #include "cppNGSD_global.h"
 #include "FileLocationProvider.h"
-#include "LoginManager.h"
-#include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
 
+//File location provider for GSvar files located on a GSvar server
 class CPPNGSDSHARED_EXPORT FileLocationProviderRemote
 	: virtual public FileLocationProvider
 {
 public:
-	FileLocationProviderRemote(const QString sample_id);
+	FileLocationProviderRemote(QString gsvarfile_url);
 	virtual ~FileLocationProviderRemote() {}
 
 	bool isLocal() const override;
@@ -27,6 +26,7 @@ public:
 	FileLocationList getQcFiles() const override;
 	FileLocation getMethylationFile() const override;
 	FileLocation getMethylationImage(QString locus) const override;
+	FileLocation getMethylationCohortImage(QString locus) const override;
 
 	FileLocationList getBamFiles(bool return_if_missing) const override;
 	FileLocationList getViralBamFiles(bool return_if_missing) const override;
@@ -44,6 +44,7 @@ public:
 	FileLocationList getExpressionFiles(bool return_if_missing) const override;
 	FileLocationList getExonExpressionFiles(bool return_if_missing) const override;
 	FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const override;
+	FileLocationList getParaphaseEvidenceFiles(bool return_if_missing) const override;
 
 
 	FileLocation getSomaticCnvCoverageFile() const override;
@@ -64,7 +65,7 @@ private:
 	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array, bool return_if_missing) const;
 
 protected:
-	QString sample_id_;
+	QByteArray folder_id_;
 };
 
 #endif // FILELOCATIONPROVIDERSERVER_H

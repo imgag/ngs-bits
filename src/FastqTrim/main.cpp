@@ -1,6 +1,5 @@
 #include "ToolBase.h"
 #include "FastqFileStream.h"
-#include "Exceptions.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -22,6 +21,7 @@ public:
 		addInt("start", "Trim this number of bases from the start of the read.", true, 0);
 		addInt("end", "Trim this number of bases from the end of the read.", true, 0);
 		addInt("len", "Restrict read length to this value (after trimming from start/end).", true, 0);
+		addInt("max_len", "Only trim reads smaller than the given length. Used e.g. to remove UMIs at the read end from read-throughs.", true, 0);
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
 		addFlag("long_read", "Support long reads (> 1kb).");
 
@@ -37,6 +37,7 @@ public:
 		const int start = getInt("start");
 		const int end = getInt("end");
 		const int len = getInt("len");
+		const int max_len = getInt("max_len");
 
 		//process
 		int compression_level = getInt("compression_level");
@@ -46,6 +47,13 @@ public:
 		while (!stream.atEnd())
 		{
 			stream.readEntry(entry);
+
+			//if max_len is set, ignore read longer than given length
+			if (max_len > 0 && entry.bases.size() >= max_len)
+			{
+				outstream.write(entry);
+				continue;
+			}
 
 			if (start>0 || end>0)
 			{

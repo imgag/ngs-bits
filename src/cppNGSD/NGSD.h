@@ -3,11 +3,11 @@
 
 #include "cppNGSD_global.h"
 #include <QVariant>
-#include <QVariantList>
 #include <QSharedPointer>
 #include <QTextStream>
 #include <QDateTime>
 #include <QRegularExpression>
+#include <QMutex>
 #include "VariantList.h"
 #include "BedFile.h"
 #include "Transcript.h"
@@ -15,7 +15,6 @@
 #include "SqlQuery.h"
 #include "GeneSet.h"
 #include "PhenotypeList.h"
-#include "Helper.h"
 #include "DBTable.h"
 #include "ReportConfiguration.h"
 #include "SomaticReportConfiguration.h"
@@ -25,11 +24,9 @@
 #include "ArribaFile.h"
 #include "SomaticVariantInterpreter.h"
 #include "SomaticCnvInterpreter.h"
-#include "NGSHelper.h"
 #include "FileLocation.h"
 #include "FileInfo.h"
 #include "TsvFile.h"
-#include "HttpRequestHandler.h"
 
 const int MAX_VARIANT_SIZE = 500;
 
@@ -75,6 +72,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	{
 		BOOL,
 		INT,
+		LONG, //BIGINT
 		FLOAT,
 		TEXT, //multi-line text
 		VARCHAR, //one line text
@@ -220,7 +218,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobHistoryEntry
 
 	QString timeAsString() const
 	{
-		return time.toString(Qt::ISODate).replace('T', ' ');
+		return Helper::toString(time, ' ');
 	}
 };
 
@@ -229,6 +227,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJob
 {
 	QString type;
 	bool high_priority;
+	bool use_dragen;
 	QString args;
 	QString sge_id;
 	QString sge_queue;
@@ -358,10 +357,10 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//gnomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
 
-	//status of imprinting information
-	QString imprinting_status;
-	//sources allele of imprinted gene
-	QString imprinting_source_allele;
+	//expressed allele
+	QString imprinting_expressed_allele;
+	//confidence of imprinting information
+	QString imprinting_confidence;
 
 	//list of pseudogenes (not all are HGNC-approved symbols)
 	QStringList pseudogenes;
@@ -440,6 +439,9 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 
 	//filter output to processed samples that user has access to
 	QString restricted_user;
+
+	//filter override (processed sample names are provided and not determined by the filters above). The result table of the searched is ordered in the given order.
+	QStringList ps_override;
 
 	//output options
 	QString add_path;
@@ -707,6 +709,9 @@ public:
 	///Escapes SQL special characters in a text
 	QString escapeText(QString text);
 
+    /// Exports a given sample as SQL dump.
+    void exportSampleData(const QString& ps_id, QList<QString>& sql_data);
+
 	///Creates a SQL dump for a given table. sql_history is a hash table that keeps track of already exported records: table name > exported IDs set.
     void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr);
 
@@ -743,7 +748,7 @@ public:
 	void executeQueriesFromFile(QString filename);
 
 	///Returns all possible values for a enum column.
-	QStringList getEnum(QString table, QString column) const;
+	QStringList getEnum(QString table, QString column, bool use_cache=true) const;
 	///Checks if a table exists.
 	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
 	///Checks if a row the given id exists in the table.
@@ -764,10 +769,12 @@ public:
 	int geneId(const QByteArray& gene);
 	///Returns the gene ID of the transcript, or -1 if no gene could be determined.
 	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
-	///Returns the gene symbol for a gene ID.
+	///Returns the gene symbol for a gene ID. Throws a DatabaseException if the ID is not valid.
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);
+	//Returns the mapping from gene symbol to HGNC ID
+	QMap<int, QByteArray> geneIdsToHgnc();
 	///Returns the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the approved gene symbols.
@@ -788,7 +795,7 @@ public:
 	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
-	///Returns the chromosomal regions corresponding to the given transcript. Messages about unknown transcripts etc. are written to the steam, if given.
+	///Returns the chromosomal regions corresponding to the given transcript. Internally it uses the Transcript::toRegion() method.
 	BedFile transcriptToRegions(const QByteArray& name, QString mode);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
 	const Transcript& transcript(int id);
@@ -803,7 +810,7 @@ public:
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, ensemble canonical, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
 	/// The return_quality int is higher the higher the quality of the returned transcript is. Exact numbers may not be constant: preferred > MANE > canonical > longest coding , longest non-coding , not found
 	Transcript bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
-	//Return the transcript with the highest impact given the variant transcript impacts
+	///Return the transcript with the highest impact given the variant transcript impacts
 	Transcript highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene (best transcript, prefered transcripts, MANE select transcript, MANE plus clinical transcript)
 	TranscriptList relevantTranscripts(int gene_id);
@@ -821,6 +828,10 @@ public:
 	int phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error=true);
 	///Returns the NGSD database ID of the phenotype given. Returns -1 or throws a DatabaseException if term name does not exist. Prefer phenotypeIdByAccession whenever possible since it is faster!
 	int phenotypeIdByName(const QByteArray& name, bool throw_on_error=true);
+	///Returns the NGSD database ID of the replacement term. Returns -1 if there is no replacement term.
+	int phenotypeReplacementByAccession(const QByteArray& accession);
+	///Returns the NGSD database ID of the replacement term. Returns -1 if there is no replacement term.
+	int phenotypeReplacementByName(const QByteArray& name);
 	///Returns the phenotype for a given HPO accession.
 	const Phenotype& phenotype(int id);
 	///Returns the phenotypes of a gene
@@ -895,7 +906,9 @@ public:
 	///Returns all PubMed IDs for a given variant id
 	QStringList pubmedIds(const QString& variant_id);
 
+	///Deletes somatic variants of a tumor-normal analysis or tumor-only analysis (if n_ps_id is empty)
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id);
+	///Deletes somatic variants of a certain type of a tumor-normal analysis or tumor-only analysis (if n_ps_id is empty)
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type);
 
 	///Adds a CNV to the NGSD. Returns the CNV ID.
@@ -949,7 +962,7 @@ public:
 																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE, const QStringList& exclude_quality=QStringList() << "bad", bool debug=false);
 	///Determines the sample cohort for a given sample
 	QSet<int> getRNACohort(int sys_id, const QString& tissue_type, const QString& project="", const QString& ps_id="", RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE,
-						   const QByteArray& mode = "genes", const QStringList& exclude_quality=QStringList() << "bad", bool debug=false);
+						   const QByteArray& mode = "genes", const QStringList& exclude_quality=QStringList() << "bad", const QString& gender="all", bool debug=false);
 	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
 	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
 	///Creates a mapping from gene symbols to ENSG ensembl identifier
@@ -1035,6 +1048,8 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
+	///Returns if the sequencing type is LR
+	bool isLongRead(const QString& ps);
 
 	///Returns a path (including filename) for the processing system target region file. Returns an empty string if unset.
 	QString processingSystemRegionsFilePath(int sys_id);
@@ -1085,14 +1100,16 @@ public:
 	QMap<QString, ClassificationInfo> getAllClassifications();
 	///Sets the classification of a variant in the NGSD.
 	void setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info);
-	///Returns somatic classification information
-	ClassificationInfo getSomaticClassification(const Variant& variant);
-	///Sets the somatic classification of a variant in the NGSD.
-	void setSomaticClassification(const Variant& variant, ClassificationInfo info);
 
-	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Returns the VICC classification id of a variant, or -1 if it does not exist.
 	int getSomaticViccId(const Variant& variant);
+	///Returns the VICC classification of a variant
+	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Sets the VICC classification of a variant
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
+	///Deletes the VICC classification of a variant
+	void deleteSomaticViccData(const Variant& variant);
+	//TODO Alexander: allow deleting if from GSvar VICC dialog
 
 	///Returns a list of all somatic pathways.
 	QByteArrayList getSomaticPathways();
@@ -1101,11 +1118,12 @@ public:
 	///Returns a list of genes contained in the given pathway
 	GeneSet getSomaticPathwayGenes(QByteArray pathway_name);
 
-
 	///Returns the NGSD id of a somatic gene role
 	int getSomaticGeneRoleId(QByteArray gene_symbol);
 	///Returns the somatic gene role data for a gene. If there is no gene role definition and throw_on_fail=false, a invalid SomaticGeneRole instance is returned.
-	SomaticGeneRole getSomaticGeneRole(QByteArray gene, bool throw_on_fail = false);
+	SomaticGeneRole getSomaticGeneRole(const QByteArray& gene, bool throw_on_fail = false);
+	//Returns a full map of all somatic gene roles
+	QMap<QString, SomaticGeneRole> getSomaticGeneRoles(bool only_high_evidence = false);
 	///stores/updates somatic gene role data. "gene_role" has to contain valid gene
 	void setSomaticGeneRole(const SomaticGeneRole& gene_role);
 	///delete somatic gene role data for certain gene
@@ -1169,11 +1187,12 @@ public:
 	///Returns database ID of somatic report configuration, -1 if not present
 	int somaticReportConfigId(QString t_ps_id, QString n_ps_id);
 	///Sets/overwrites somatic report configuration for tumor-normal processed sample pair
-	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name);
-	///Removes a somatic report configuration from NGSD, including its variant configurations
+	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointer<SomaticReportConfiguration> config, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germl_snvs, QString user_name);
+	///Removes a somatic report configuration from NGSD, including its variant and cnv configurations
+
 	void deleteSomaticReportConfig(int id);
 	///Retrieve somatic report configuration using tumor and normal processed sample ids
-	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages);
+	QSharedPointer<SomaticReportConfiguration> somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const BedpeFile& svs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
 
@@ -1199,7 +1218,7 @@ public:
 	///Returns information about an analysis job
 	AnalysisJob analysisInfo(int job_id, bool throw_if_fails = true);
 	///Queues an analysis.
-	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples);
+	void queueAnalysis(QString type, bool high_priority, bool use_dragen, QStringList args, QList<AnalysisJobSample> samples);
 	///Canceles an analysis. Returns 'true' if it was canceled and 'false' if it was not running anymore.
 	bool cancelAnalysis(int job_id);
 	///Deletes the analysis job record. Returns 'true' if a job was deleted, i.e. a job with the given ID existed.
@@ -1244,9 +1263,20 @@ public:
 	///Returns the (sorted) list of studies of a processed sample
 	QStringList studies(const QString& processed_sample_id);
 
+	///Sets database version of a data source imported into NGSD
+	void setDatabaseInfo(QString name, QString version, QDate import_date = QDate::currentDate());
+
+	//clearCache() should only be called outside of NGSD for tests!
+	void clearCache();
+
+	///Clears only the user permissions part of the cache
+	void clearUserPermissionsCache();
+
 signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
+
+
 
 protected:
 	///Copy constructor "declared away".
@@ -1268,16 +1298,22 @@ protected:
 	{
 		Cache();
 
+		//REMEMBER TO ADD ALL MEMBER TO CLEAR CACHE FUNCTION
 		QMap<QString, TableInfo> table_infos;
 		QHash<int, QSet<int>> same_samples;
 		QHash<int, QSet<int>> same_patients;
 		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
 		QHash<QByteArray, int> gene2id;
+        QHash<int, QByteArray> id2gene;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;
 		QHash<QByteArray, int> phenotypes_accession_to_id;
+        QHash<int, QList<QByteArray>> hpo_genes;
+        QHash<int, QList<int>> hpo_parent;
+		QMap<QString, SomaticGeneRole> gene_symbol_to_somatic_gene_role;
+		QMap<int, QByteArray> gene_id_to_hgnc;
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
@@ -1287,11 +1323,17 @@ protected:
 		//gene expression
 		QMap<int, QByteArray> gene_expression_id2gene;
 		QMap<QByteArray, int> gene_expression_gene2id;
+
+        QMap<int, QSet<int>> user_can_access;
+
+
 	};
 	static Cache& getCache();
-	void clearCache();
 	void initTranscriptCache();
 	void initGeneExpressionCache();
+
+private:
+	mutable QMutex cache_mutex_;
 };
 
 #endif // NGSD_H

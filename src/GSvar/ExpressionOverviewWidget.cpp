@@ -1,13 +1,14 @@
 #include "ExpressionOverviewWidget.h"
 #include "FilterWidget.h"
 #include "ui_ExpressionOverviewWidget.h"
-#include "GlobalServiceProvider.h"
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "PhenotypeSelectionWidget.h"
 #include <QCheckBox>
 #include <QMessageBox>
+#include "Settings.h"
+#include <QMenu>
 
 struct ExpressioData
 {
@@ -39,7 +40,7 @@ ExpressionOverviewWidget::ExpressionOverviewWidget(FilterWidget* variant_filter_
 	connect(ui_->le_hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	connect(ui_->b_import_genes, SIGNAL(clicked(bool)), this, SLOT(applyGeneFilter()));
 	connect(ui_->b_apply, SIGNAL(clicked(bool)), this, SLOT(showExpressionData()));
-
+	connect(ui_->tw_expression, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(tableContextMenu(QPoint)));
 	if(variant_filter_widget_ != nullptr)
 	{
 		ui_->b_import_phenotype->setEnabled(true);
@@ -383,12 +384,27 @@ void ExpressionOverviewWidget::applyGeneFilter()
 		}
 
 		// set genes:
-		ui_->te_selected_genes->setPlainText(genes.toStringList().join('\n'));
+		ui_->te_selected_genes->setPlainText(genes.toString("\n"));
 
 		QApplication::restoreOverrideCursor();
 	}
 	catch (Exception& e)
 	{
 		GUIHelper::showException(this, e, "Error determine genes.");
+	}
+}
+
+void ExpressionOverviewWidget::tableContextMenu(QPoint pos)
+{
+	// create menu
+	QMenu menu(ui_->tw_expression);
+	QAction* a_copy_all = menu.addAction(QIcon(":/Icons/Clipboard.png"), "Copy table to clipboard");
+	QAction* action = menu.exec(ui_->tw_expression->viewport()->mapToGlobal(pos));
+	if (action == nullptr) return;
+
+	// react
+	if (action==a_copy_all)
+	{
+		GUIHelper::copyToClipboard(ui_->tw_expression);
 	}
 }

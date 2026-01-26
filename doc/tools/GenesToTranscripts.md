@@ -1,14 +1,14 @@
 ### GenesToTranscripts tool help
-	GenesToTranscripts (2024_08-113-g94a3b440)
+	GenesToTranscripts (2025_03-90-gd5865e32)
 	
-	Converts a text file with gene names to a TSV file with two columns (transcript, gene name).
+	Converts a text file with gene names to a TSV file with these columns: gene name, transcript name, biotype, exon count, flags
 	
 	Best transcript is determined according this order: 'preferred transcript in NGSD', 'MANE select', 'Ensembl canonical', 'longest coding transcript', 'longest transcript'
 	Relevant transcripts are: 'preferred transcript in NGSD', 'MANE select', 'MANE plus clinical', 'Ensembl canonical' (if none of those exist, the longest coding or longest transcript is used)
 	
 	Mandatory parameters:
-	  -mode <enum>      Mode: all = all transcripts, best = best transcript, relevant = all relevant transcripts.
-	                    Valid: 'all,best,relevant'
+	  -mode <enum>      Mode: all = all transcripts, best = best transcript, relevant = all relevant transcripts, mane_select = only MANE select transcripts.
+	                    Valid: 'all,best,relevant,mane_select'
 	
 	Optional parameters:
 	  -in <file>        Input TXT file with one gene symbol per line. If unset, reads from STDIN.
@@ -28,7 +28,8 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### GenesToTranscripts changelog
-	GenesToTranscripts 2024_08-113-g94a3b440
+	GenesToTranscripts 2025_03-90-gd5865e32
 	
+	2025-05-26 Added columns and reordered columns.
 	2023-05-26 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -1,6 +1,5 @@
 #include "BurdenTestWidget.h"
 #include "ui_BurdenTestWidget.h"
-#include "GlobalServiceProvider.h"
 #include <GUIHelper.h>
 #include <LoginManager.h>
 #include <NGSD.h>
@@ -9,7 +8,8 @@
 #include <QMessageBox>
 #include <QTextEdit>
 #include "GSvarHelper.h"
-
+#include "Settings.h"
+#include <QJsonObject>
 
 BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 	QWidget(parent),
@@ -81,7 +81,7 @@ void BurdenTestWidget::loadGeneList()
 	QTextEdit* te_genes = new QTextEdit();
 	if(selected_genes_.count() > 0)
 	{
-		te_genes->setText(selected_genes_.toStringList().join("\n"));
+		te_genes->setText(selected_genes_.toString("\n"));
 	}
 	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(te_genes, "Gene selection",
 															 "Paste the gene list (one gene per line).", true);
@@ -265,7 +265,7 @@ void BurdenTestWidget::validateInputData()
 	}
 
 	// check overlap (samples)
-    overlap = LIST_TO_SET(sample_ids_cases.keys()) & LIST_TO_SET(sample_ids_controls.keys());
+    overlap = Helper::listToSet(sample_ids_cases.keys()) & Helper::listToSet(sample_ids_controls.keys());
 	if(overlap.size() > 0)
 	{
 		QStringList sample_names;
@@ -289,7 +289,7 @@ void BurdenTestWidget::validateInputData()
 	{
 		if(sample_ids_cases.value(s_id).size() > 1)
 		{
-            QSet<int> ps_ids = LIST_TO_SET(sample_ids_cases.value(s_id));
+            QSet<int> ps_ids = Helper::listToSet(sample_ids_cases.value(s_id));
 			QStringList ps_list;
 			foreach (int id, ps_ids) ps_list << db_.processedSampleName(QString::number(id));
 			int ps_id = getNewestProcessedSample(ps_ids);
@@ -307,7 +307,7 @@ void BurdenTestWidget::validateInputData()
 	{
 		if(sample_ids_controls.value(s_id).size() > 1)
 		{
-            QSet<int> ps_ids = LIST_TO_SET(sample_ids_controls.value(s_id));
+            QSet<int> ps_ids = Helper::listToSet(sample_ids_controls.value(s_id));
 			QStringList ps_list;
 			foreach (int id, ps_ids) ps_list << db_.processedSampleName(QString::number(id));
 			int ps_id = getNewestProcessedSample(ps_ids);
@@ -333,7 +333,7 @@ void BurdenTestWidget::validateInputData()
 		QSet<int> same_samples = db_.sameSamples(s_id, SameSampleMode::SAME_PATIENT);
 		//add sample itself
 		same_samples.insert(s_id);
-        QSet<int> same_sample_overlap = same_samples & LIST_TO_SET(sample_ids_cases.keys());
+        QSet<int> same_sample_overlap = same_samples & Helper::listToSet(sample_ids_cases.keys());
 		if (same_sample_overlap.size() > 1)
 		{
 			QStringList same_sample_list;
@@ -347,7 +347,7 @@ void BurdenTestWidget::validateInputData()
 			warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "cases" << "same-sample/same-patient relation" << same_sample_list.join(", ") << db_.sampleName(QString::number(newest_s_id)));
 		}
 		//check controls and remove all overlaps
-        same_sample_overlap = same_samples & LIST_TO_SET(sample_ids_controls.keys());
+        same_sample_overlap = same_samples & Helper::listToSet(sample_ids_controls.keys());
 		if (same_sample_overlap.size() > 0)
 		{
 			QStringList same_sample_list;
@@ -381,7 +381,7 @@ void BurdenTestWidget::validateInputData()
 		QSet<int> same_samples = db_.sameSamples(s_id, SameSampleMode::SAME_PATIENT);
 		//add sample itself
 		same_samples.insert(s_id);
-        QSet<int> same_sample_overlap = same_samples & LIST_TO_SET(sample_ids_controls.keys());
+        QSet<int> same_sample_overlap = same_samples & Helper::listToSet(sample_ids_controls.keys());
 		if (same_sample_overlap.size() > 1)
 		{
 			//add sample itself
@@ -415,7 +415,7 @@ void BurdenTestWidget::validateInputData()
 		stati_to_remove << "Unaffected" << "n/a";
 		foreach (const QString& relation, relation_types)
 		{
-            QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  LIST_TO_SET(sample_ids_cases.keys());
+            QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  Helper::listToSet(sample_ids_cases.keys());
 			if (related_sample_overlap.size() > 1)
 			{
 				QStringList related_sample_list;
@@ -442,7 +442,7 @@ void BurdenTestWidget::validateInputData()
 			}
 
 			//check/remove related samples from controls
-            related_sample_overlap = db_.relatedSamples(s_id, relation) &  LIST_TO_SET(sample_ids_controls.keys());
+            related_sample_overlap = db_.relatedSamples(s_id, relation) &  Helper::listToSet(sample_ids_controls.keys());
 			if (related_sample_overlap.size() > 1)
 			{
 				QStringList related_sample_list;
@@ -478,7 +478,7 @@ void BurdenTestWidget::validateInputData()
 		stati_to_remove << "Affected";
 		foreach (const QString& relation, relation_types)
 		{
-            QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  LIST_TO_SET(sample_ids_controls.keys());
+            QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  Helper::listToSet(sample_ids_controls.keys());
 			if (related_sample_overlap.size() > 1)
 			{
 				QStringList related_sample_list;
@@ -577,11 +577,11 @@ void BurdenTestWidget::validateInputData()
 	QSet<int> control_samples_to_keep;
 	foreach(int s_id, sample_ids_cases.keys())
 	{
-        case_samples_to_keep += LIST_TO_SET(sample_ids_cases.value(s_id));
+        case_samples_to_keep += Helper::listToSet(sample_ids_cases.value(s_id));
 	}
 	foreach(int s_id, sample_ids_controls.keys())
 	{
-        control_samples_to_keep += LIST_TO_SET(sample_ids_controls.value(s_id));
+        control_samples_to_keep += Helper::listToSet(sample_ids_controls.value(s_id));
 	}
 
 	QSet<int> case_samples_to_remove = case_samples_.subtract(case_samples_to_keep);
@@ -746,9 +746,8 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 	while(query.next())
 	{
 		//filter by impact
-		QStringList parts = query.value("coding").toString().split(",");
-		QStringList parts_match;
-		foreach(const QString& part, parts)
+		bool at_least_one_part_matches = false;
+		foreach(const QString& part, query.value("coding").toString().split(","))
 		{
 			//skip empty enties
 			int index = part.indexOf(':');
@@ -771,9 +770,7 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 			{
 				if (part.contains(impact))
 				{
-					double cadd = query.value("cadd").toDouble();
-					double spliceai = query.value("spliceai").toDouble();
-					if (predict_pathogenic && (impact != "HIGH") && (cadd < 20) && (spliceai < 0.5))
+					if (predict_pathogenic && (impact != "HIGH") && (query.value("cadd").toDouble() < 20) && (query.value("spliceai").toDouble() < 0.5))
 					{
 						n_skipped_non_pathogenic++;
 						continue;
@@ -784,13 +781,14 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 			}
 			if (match)
 			{
-				parts_match << part;
+				at_least_one_part_matches = true;
+				break;
 			}
 
 			//TODO: filter by live-calculated impact?
 		}
 
-		if (parts_match.count()==0)
+		if (!at_least_one_part_matches)
 		{
 			n_skipped_impact++;
 			continue;
@@ -812,9 +810,8 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic)
 {
 	//prepare db queries
-	QString query_text = QString() + "SELECT v.* FROM variant v WHERE"
-			+ " (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd)
-			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")";
+	QString query_text = "SELECT * FROM variant WHERE (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd) + " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")";
+
 	//impacts
 	if(impacts.size() > 0)
 	{
@@ -824,11 +821,11 @@ QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, co
 		{
 			if (!predict_pathogenic || impact == "HIGH")
 			{
-				impact_query_statement << "(v.coding LIKE '%" + impact + "%')";
+				impact_query_statement << "(coding LIKE '%" + impact + "%')";
 			}
 			else
 			{
-				impact_query_statement << "(v.coding LIKE '%" + impact + "%' AND (v.cadd>=20 OR v.spliceai>=0.5))";
+				impact_query_statement << "(coding LIKE '%" + impact + "%' AND (cadd>=20 OR spliceai>=0.5))";
 			}
 		}
 		query_text += impact_query_statement.join(" OR ");
@@ -839,7 +836,7 @@ QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, co
 	QStringList chr_ranges;
 	for (int i = 0; i < regions.count(); ++i)
 	{
-		chr_ranges << "(v.chr='" + regions[i].chr().strNormalized(true) + "' AND v.end>=" + QString::number(regions[i].start()) + " AND v.start<=" + QString::number(regions[i].end()) + ")";
+		chr_ranges << "(chr='" + regions[i].chr().strNormalized(true) + "' AND end>=" + QString::number(regions[i].start()) + " AND start<=" + QString::number(regions[i].end()) + ")";
 	}
 	//collapse to final query
 	query_text += " AND (" + chr_ranges.join(" OR ") + ") ORDER BY start";
@@ -951,7 +948,7 @@ void BurdenTestWidget::performBurdenTest()
 
 	// get genes
 	QList<int> gene_ids;
-    for (QByteArray gene : selected_genes_)
+	for (const QByteArray& gene : selected_genes_)
 	{
 		gene_ids << db_.geneId(gene);
 	}
@@ -969,7 +966,7 @@ void BurdenTestWidget::performBurdenTest()
 		{
 			//get sample type
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
-			double min_correlation = (processing_system_type == "WGS")? 0.55: 0.9;
+			double min_correlation = (processing_system_type == "WGS") ? 0.35: 0.9;
 			cnv_callset_query.bindValue(0, ps_id);
 			cnv_callset_query.exec();
 			while(cnv_callset_query.next())
@@ -987,7 +984,7 @@ void BurdenTestWidget::performBurdenTest()
 		{
 			//get sample type
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
-			double min_correlation = (processing_system_type == "WGS")? 0.55: 0.9;
+			double min_correlation = (processing_system_type == "WGS") ? 0.35: 0.9;
 			cnv_callset_query.bindValue(0, ps_id);
 			cnv_callset_query.exec();
 			while(cnv_callset_query.next())
@@ -1016,7 +1013,6 @@ void BurdenTestWidget::performBurdenTest()
 	ChromosomalIndex<BedFile> cnv_polymorphism_region_index(cnv_polymorphism_region);
 
 	int i=0;
-	double n_sec_single_query = 0;
 	// perform search
 	foreach (int gene_id, gene_ids)
 	{
@@ -1056,7 +1052,6 @@ void BurdenTestWidget::performBurdenTest()
 		tmp_timer.start();
 		//get all variants for this gene
 		QSet<int> variant_ids = getVariantsForRegion(max_ngsd, max_gnomad_af, gene_regions, gene_name, impacts, predict_pathogenic);
-		n_sec_single_query += tmp_timer.elapsed();
 
 		qDebug() << i << "get var ids for gene " + gene_name + ": "<< variant_ids.size() << Helper::elapsedTime(timer);
 
@@ -1110,8 +1105,8 @@ void BurdenTestWidget::performBurdenTest()
 //			std::sort(ps_names_controls_cnv.begin(), ps_names_controls_cnv.end());
 
 			//get combined counts
-            int n_cases_combined = (LIST_TO_SET(ps_names_cases.keys()) + LIST_TO_SET(ps_names_cases_cnv.keys())).size();
-            int n_controls_combined = (LIST_TO_SET(ps_names_controls.keys()) + LIST_TO_SET(ps_names_controls_cnv.keys())).size();
+            int n_cases_combined = (Helper::listToSet(ps_names_cases.keys()) + Helper::listToSet(ps_names_cases_cnv.keys())).size();
+            int n_controls_combined = (Helper::listToSet(ps_names_controls.keys()) + Helper::listToSet(ps_names_controls_cnv.keys())).size();
 
 			//calculate p-value (fisher) (SNPs only)
 			p_value = BasicStatistics::fishersExactTest(n_cases_combined, n_controls_combined, case_samples_.size(), control_samples_.size(), "greater");
@@ -1210,7 +1205,7 @@ void BurdenTestWidget::copyToClipboard()
 	comments << "controls=" + control_sample_list.join(",");
 
 	//custom gene set
-	comments << "genes=" + selected_genes_.toStringList().join(",");
+	comments << "genes=" + selected_genes_.toString(",");
 	comments << "splice_region_size=" + QString::number(ui_->sb_splice_region_size->value());
 
 	//excluded regions
@@ -1236,10 +1231,9 @@ void BurdenTestWidget::copyToClipboard()
 	if(ui_->cb_include_cnvs->isChecked())
 	{
 		comments << "CNV_scaled_log_likelihood=15";
-		comments << "CNV_reference_correlation>=0.9(WES)|>=0.55(WGS)";
+		comments << "CNV_reference_correlation>=0.9(WES)|>=0.35(WGS)";
 		comments << "CNV_polymorphism_overlap<=0.95";
 		comments << "CNV_copy_number=0";
-
 	}
 
 	GUIHelper::copyToClipboard(ui_->tw_gene_table, false, comments);
@@ -1266,7 +1260,7 @@ void BurdenTestWidget::validateCCRGenes()
 
 	if(unsupported_genes.count() > 0)
 	{
-		GUIHelper::showMessage("Unsupported Genes", "The foillowing genes are not supported by the constrained coding region and will be removed:\n" + unsupported_genes.toStringList().join(", "));
+		GUIHelper::showMessage("Unsupported Genes", "The foillowing genes are not supported by the constrained coding region and will be removed:\n" + unsupported_genes.toString(", "));
 		selected_genes_.remove(unsupported_genes);
 		updateGeneCounts();
 	}
@@ -1344,7 +1338,7 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 			if(rc_id < 0) continue;
 
 			//get all de-novo variants of this sample
-            QSet<int> de_novo_var_ids = LIST_TO_SET(db_.getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE de_novo=TRUE AND report_configuration_id=:0", QString::number(rc_id)));
+            QSet<int> de_novo_var_ids = Helper::listToSet(db_.getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE de_novo=TRUE AND report_configuration_id=:0", QString::number(rc_id)));
 			intersection = intersection.intersect(de_novo_var_ids);
 
 			//no de-novo variants
@@ -1392,10 +1386,6 @@ countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const B
 {
 	ps_names.clear();
 
-	//debug logs:
-	int skipped_wrong_cn = 0;
-	int skipped_low_logll = 0;
-	int skipped_overlap_pmr = 0;
 	//get all cnvs intersecting the given region
 	//create query
 	QString query_text = QString("SELECT id FROM cnv WHERE ");
@@ -1424,22 +1414,14 @@ countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const B
 	{
 		//filter by CN
 		int cn = db_.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toInt();
-		if (cn != 0)
-		{
-			skipped_wrong_cn++;
-			continue;
-		}
+		if (cn != 0) continue;
 
 		//filter by logll
 		QJsonDocument json = QJsonDocument::fromJson(db_.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toByteArray());
 		int ll = json.object().value("loglikelihood").toInt();
 		int n_regions = (json.object().contains("regions"))?json.object().value("regions").toInt():json.object().value("no_of_regions").toInt();
 		double scaled_ll = (double) ll / n_regions;
-		if (scaled_ll < 15.0)
-		{
-			skipped_low_logll++;
-			continue;
-		}
+		if (scaled_ll < 15.0) continue;
 
 		//filter by polymorphim region
 		CopyNumberVariant cnv = db_.cnv(cnv_id);
@@ -1453,11 +1435,7 @@ countOccurencesCNV(const QSet<int>& callset_ids, const BedFile& regions, const B
 		overlap_regions.sort();
 		overlap_regions.merge();
 		double overlap = (double) overlap_regions.baseCount() / cnv.size();
-		if(overlap > 0.95)
-		{
-			skipped_overlap_pmr++;
-			continue;
-		}
+		if(overlap > 0.95) continue;
 
 		int ps_id = db_.getValue("SELECT cc.processed_sample_id FROM cnv c INNER JOIN cnv_callset cc ON cc.id=c.cnv_callset_id WHERE c.id=:0", false, QString::number(cnv_id)).toInt();
 

@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "ui_FilterWidget.h"
-#include "BedFile.h"
 #include "GeneSet.h"
 #include "PhenotypeList.h"
 #include "FilterCascade.h"
@@ -122,6 +121,7 @@ protected slots:
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
 	void showGeneContextMenu(QPoint pos);
+	void showRoiContextMenu(QPoint pos);
 	void setFilter(int index);
 	void clearTargetRegion();
 	void clearFilters();

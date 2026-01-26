@@ -87,7 +87,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//check gene names
 	bool ignore_gene_errors = ui_.ignore_gene_errors->isChecked();
 	GeneSet valid_genes;
-    for (const QString gene : genes_)
+	for (const QByteArray& gene : genes_)
 	{
 		QPair<QString, QString> geneinfo = db.geneToApprovedWithMessage(gene);
 		QByteArray gene_new = geneinfo.first.toLatin1();
@@ -114,16 +114,55 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 		addMessage(warning, false, false);
 	}
 
-	//create target region
+	//convert gene list to target region
+	regions_.clear();
 	QString mode = ui_.mode->currentText();
-	QString messages;
-	QTextStream stream(&messages);
-	regions_ = db.genesToRegions(genes_, Transcript::ENSEMBL, mode, ui_.fallback->isChecked(), false, &stream);
-	if (messages!="")
+	QString transcripts = ui_.transcripts->currentText();
+	if (transcripts=="all")
 	{
-		foreach(QString message, messages.split('\n'))
+		QString messages;
+		QTextStream stream(&messages);
+		regions_ = db.genesToRegions(genes_, Transcript::ENSEMBL, mode, ui_.fallback->isChecked(), false, &stream);
+		if (messages!="")
 		{
-			addMessage(message.trimmed(), !ignore_gene_errors, false);
+			foreach(QString message, messages.split('\n'))
+			{
+				addMessage(message.trimmed(), !ignore_gene_errors, false);
+			}
+		}
+	}
+	else if (transcripts=="best")
+	{
+		//determine transcripts
+		for(const QByteArray& gene: genes_)
+		{
+			int gene_id = db.geneId(gene);
+
+			Transcript trans = db.bestTranscript(gene_id);
+			if (!trans.isValid()) //invalid transcript is returned if none is found
+			{
+				addMessage("No transcripts found for gene '" + gene + "'. Skipping it!", !ignore_gene_errors, false);
+			}
+			else
+			{
+				regions_.add(trans.toRegion(mode, false));
+			}
+		}
+	}
+	else if (transcripts=="relevant")
+	{
+		for(const QByteArray& gene: genes_)
+		{
+			int gene_id = db.geneId(gene);
+			TranscriptList transcript_list = db.relevantTranscripts(gene_id);
+			if (transcript_list.isEmpty())
+			{
+				addMessage("No transcripts found for gene '" + gene + "'. Skipping it!", !ignore_gene_errors, false);
+			}
+			else foreach(const Transcript& t, transcript_list)
+			{
+				regions_.add(t.toRegion(mode, false));
+			}
 		}
 	}
 
@@ -149,6 +188,8 @@ void SubpanelDesignDialog::checkAndCreatePanel()
             }
         }
     }
+
+	//merge regions
 	regions_.merge();
 
 	//show message
@@ -174,7 +215,7 @@ void SubpanelDesignDialog::storePanel()
 	query.bindValue(2, QDate::currentDate().toString(Qt::ISODate));
 	query.bindValue(3, ui_.mode->currentText());
 	query.bindValue(4, ui_.flanking->currentText());
-	query.bindValue(5, genes_.toStringList().join("\n"));
+	query.bindValue(5, genes_.toString("\n"));
 	query.bindValue(6, regions_.toText());
 	query.exec();
 
@@ -221,7 +262,12 @@ QString SubpanelDesignDialog::getName(bool with_suffix) const
 
 	if (with_suffix)
 	{
-		output += "_" + ui_.mode->currentText() + ui_.flanking->currentText() + "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd");
+		output += "_" + ui_.mode->currentText() + ui_.flanking->currentText();
+		if (ui_.transcripts->currentText()!="all")
+		{
+			output += "_" + ui_.transcripts->currentText() + "Transcripts";
+		}
+		output += "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd");
 	}
 
 	return output;

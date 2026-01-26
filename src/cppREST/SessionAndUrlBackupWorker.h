@@ -1,11 +1,10 @@
 #ifndef SESSIONANDURLBACKUPWORKER_H
-#define SESSIONANDURLBACKUPwORKER_H
+#define SESSIONANDURLBACKUPWORKER_H
 
 #include "cppREST_global.h"
 #include <QRunnable>
-#include "Log.h"
-#include "Exceptions.h"
-#include "SessionManager.h"
+#include "Session.h"
+#include "UrlEntity.h"
 
 class CPPRESTSHARED_EXPORT SessionAndUrlBackupWorker
     : public QRunnable
@@ -21,4 +20,4 @@ private:
 
 };
 
-#endif // SESSIONANDURLBACKUPwORKER_H
+#endif // SESSIONANDURLBACKUPWORKER_H

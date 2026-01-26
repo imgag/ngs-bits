@@ -2,11 +2,7 @@
 #define DATABASESERVICEREMOTE_H
 
 #include "DatabaseService.h"
-#include "Exceptions.h"
-#include "LoginManager.h"
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
+#include "HttpRequestHandler.h"
 
 class DatabaseServiceRemote
 	: virtual public DatabaseService

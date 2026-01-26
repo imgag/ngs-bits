@@ -1,12 +1,8 @@
 #include "ChunkProcessor.h"
 #include "VcfFile.h"
-#include "ToolBase.h"
-#include <zlib.h>
-#include <QFileInfo>
 #include "Helper.h"
 #include "VcfFile.h"
 #include "VariantList.h"
-#include <QMutex>
 
 
 ChunkProcessor::ChunkProcessor(AnalysisJob &job, const MetaData& settings, const Parameters& params)
@@ -18,19 +14,19 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job, const MetaData& settings, const
 	, reference_(settings.reference)
 	, hgvs_anno_(reference_, settings_.annotation_parameters)
 {
-    if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << Qt::endl;
 }
 
 ChunkProcessor::~ChunkProcessor()
 {
-    if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << Qt::endl;
 }
 
 // single chunks are processed
 void ChunkProcessor::run()
 {
 	ChromosomalIndex<TranscriptList> transcript_index(settings_.transcripts);
-    if (params_.debug) QTextStream(stdout) << "ChunkProcessor::run() " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "ChunkProcessor::run() " << job_.index << Qt::endl;
 	try
 	{
 		// read vcf file
@@ -135,8 +131,8 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 			catch(Exception& e)
 			{
 				QTextStream out(stdout);
-                out << "Error processing variant " << variant.toString() << " and transcript " << t.nameWithVersion() << ":" << QT_ENDL;
-                out << "  " << e.message().replace("\n", "  \n") << QT_ENDL;
+                out << "Error processing variant " << variant.toString() << " and transcript " << t.nameWithVersion() << ":" << Qt::endl;
+                out << "  " << e.message().replace("\n", "  \n") << Qt::endl;
 			}
 		}
 	}
@@ -188,57 +184,7 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 {
 	QByteArrayList output;
 	output << allele;
-
-	//find variant consequence type with highest priority (apart from splicing)
-	VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
-	foreach(VariantConsequenceType csq_type, hgvs.types)
-	{
-		if(csq_type > max_csq_type &&
-				csq_type != VariantConsequenceType::SPLICE_REGION_VARIANT &&
-				csq_type != VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT &&
-				csq_type != VariantConsequenceType::SPLICE_DONOR_VARIANT &&
-				csq_type != VariantConsequenceType::NMD_TRANSCRIPT_VARIANT &&
-				csq_type != VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT)
-		{
-			max_csq_type = csq_type;
-		}
-	}
-	QByteArray consequence_type = VariantConsequence::typeToString(max_csq_type);
-
-	//additionally insert splice region consequence type (if present) and order types by impact
-	if(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT))
-	{
-		VariantConsequenceType splice_type = VariantConsequenceType::SPLICE_REGION_VARIANT;
-		if(hgvs.types.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT))
-		{
-			splice_type = VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT;
-		}
-		else if(hgvs.types.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT))
-		{
-			splice_type = VariantConsequenceType::SPLICE_DONOR_VARIANT;
-		}
-
-		if(splice_type > max_csq_type)
-		{
-			consequence_type.prepend(VariantConsequence::typeToString(splice_type) + "&");
-		}
-		else
-		{
-			consequence_type.append("&" + VariantConsequence::typeToString(splice_type));
-		}
-	}
-
-	//add transcript info (at end)
-	if (hgvs.types.contains(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT))
-	{
-		consequence_type.append("&" + VariantConsequence::typeToString(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT));
-	}
-	else if (hgvs.types.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT) && !hgvs.types.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT))
-	{
-		consequence_type.append("&" + VariantConsequence::typeToString(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT));
-	}
-
-	output << consequence_type;
+	output << hgvs.typesToStringSimplified();
 	output << variantImpactToString(hgvs.impact);
 
 	//gene symbol, HGNC ID, transcript ID, feature type

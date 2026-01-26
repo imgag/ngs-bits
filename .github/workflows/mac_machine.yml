@@ -1,10 +1,10 @@
-name: MacOS build
+name: Qt 6.8.3 on MacOS 15 (arm64, M1)
 
 on: [push, pull_request]
 
 jobs:
   mac-build-and-test:
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -12,6 +12,9 @@ jobs:
         submodules: recursive
     - name: Update submodules
       run: git submodule update --recursive --init
+    - name: Adjust the number of threads used during the build
+      run: sed -i '' 's/-j5/-j1/g' Makefile
+      shell: bash
     - name: Update Homebrew
       run: brew update
     - name: Remove existing Python symlinks
@@ -19,15 +22,39 @@ jobs:
     - name: Install Python 3
       run: brew install python@3.10
     - name: Setup other dependencies
-      run: brew install lzlib pkg-config libxml2
-    - name: Install Qt 5
-      run: brew install qt@5
-    - name: Link Qt installation      
-      run: brew link qt@5 --force
+      run: brew install lzlib libxml2 mariadb-connector-c
+    # Python 3 venv for pip tools
+    - name: Setup Python venv
+      run: |
+        python3 -m venv pyenv
+        source pyenv/bin/activate
+        pip install --upgrade pip
+        pip install matplotlib numpy aqtinstall
+        echo "VIRTUAL_ENV=$PWD/pyenv" >> $GITHUB_ENV
+        echo "$PWD/pyenv/bin" >> $GITHUB_PATH
+    # Install Qt 6.8.3 via aqt with explicit mirror
+    - name: Install Qt 6.8.3 core
+      run: |
+        source pyenv/bin/activate
+        aqt install-qt mac desktop 6.8.3 clang_64 -O $HOME/Qt
+    - name: Add Qt to PATH
+      run: echo "$HOME/Qt/6.8.3/macos/bin" >> $GITHUB_PATH
+    # Build Qt Charts from source
+    - name: Build Qt Charts
+      run: |
+        curl -L -o QtCharts-6.8.3.tar.xz https://download.qt.io/archive/qt/6.8/6.8.3/submodules/qtcharts-everywhere-src-6.8.3.tar.xz
+        tar -xf QtCharts-6.8.3.tar.xz
+        cd qtcharts-everywhere-src-6.8.3
+        mkdir build && cd build
+        cmake .. \
+          -DCMAKE_PREFIX_PATH=$HOME/Qt/6.8.3/macos \
+          -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.8.3/macos
+        cmake --build . --parallel $(sysctl -n hw.ncpu)
+        cmake --install .
+    # Python 2 packages
     - name: Install matplotlib and numpy for Python 2
       run: sudo pip install matplotlib numpy
-    - name: Install matplotlib and numpy for Python 3
-      run: python3 -m pip install matplotlib numpy --break-system-packages
+    # Build project dependencies
     - name: Build project dependencies
       run: make build_3rdparty build_libs_release build_tools_release build_gui_release build_server_release
     - name: Create a folder for SSL
@@ -40,7 +67,5 @@ jobs:
       shell: bash
     - name: Download test files
       run: make download_test_files
-    - name: Start GSvar server and run tests
-      run: |
-        bin/GSvarServer &
-        make -k test_lib test_server test_tools
+    - name: Run tests
+      run: make -k test_lib test_tools

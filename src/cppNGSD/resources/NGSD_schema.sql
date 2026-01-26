@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS `gene_transcript`
 `strand` enum('+', '-') NOT NULL,
 `biotype` enum('IG C gene', 'IG C pseudogene', 'IG D gene', 'IG J gene', 'IG J pseudogene', 'IG V gene', 'IG V pseudogene', 'IG pseudogene', 'Mt rRNA', 'Mt tRNA', 'TEC', 'TR C gene', 'TR D gene', 'TR J gene', 'TR J pseudogene', 'TR V gene', 'TR V pseudogene', 'lncRNA', 'miRNA', 'misc RNA', 'non stop decay', 'nonsense mediated decay', 'protein coding LoF', 'processed pseudogene', 'processed transcript', 'protein coding', 'pseudogene', 'rRNA', 'rRNA pseudogene', 'retained intron', 'ribozyme', 'sRNA', 'scRNA', 'scaRNA', 'snRNA', 'snoRNA', 'transcribed processed pseudogene', 'transcribed unitary pseudogene', 'transcribed unprocessed pseudogene', 'translated processed pseudogene', 'translated unprocessed pseudogene', 'unitary pseudogene', 'unprocessed pseudogene', 'vaultRNA', 'artifact') NOT NULL,
 `is_gencode_basic` TINYINT(1) NOT NULL DEFAULT 0,
+`is_gencode_primary` TINYINT(1) NOT NULL DEFAULT 0,
 `is_ensembl_canonical` TINYINT(1) NOT NULL DEFAULT 0,
 `is_mane_select` TINYINT(1) NOT NULL DEFAULT 0,
 `is_mane_plus_clinical` TINYINT(1) NOT NULL DEFAULT 0,
@@ -199,7 +200,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio', 'DNBSEQ-T7') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -217,7 +218,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','Illumina NovaSeqX 1.5B','Illumina NovaSeqX 10B','Illumina NovaSeqX 25B','PromethION FLO-PRO002','PromethION FLO-PRO114M','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','Illumina NovaSeqX 1.5B','Illumina NovaSeqX 10B','Illumina NovaSeqX 25B','PromethION FLO-PRO002','PromethION FLO-PRO114M','PromethION FLO-PRO114P','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
@@ -533,6 +534,7 @@ CREATE  TABLE IF NOT EXISTS `project`
   `preserve_fastqs` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Prevents FASTQ files from being deleted after mapping in this project.<br>Has no effect if megSAP is not configured to delete FASTQs automatically.<br>For diagnostics, do not check. For other project types ask the bioinformatician in charge.',
   `email_notification` varchar(200) DEFAULT NULL COMMENT 'List of email addresses (separated by semicolon) that are notified in addition to the project coordinator when new samples are available.',
   `archived` TINYINT(1) NOT NULL DEFAULT 0,
+  `matchmaking` ENUM('n/a','yes','no') NOT NULL DEFAULT 'n/a' COMMENT 'States if the samples in the project can be used for matchmaking in other projects.',
   `folder_override` TEXT NULL DEFAULT NULL COMMENT 'Override for project folder',
   `folder_override_client` TEXT NULL DEFAULT NULL COMMENT 'Override for project folder used in GSvar client',
 PRIMARY KEY (`id`),
@@ -566,7 +568,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `project_id` INT(11) NOT NULL,
   `processing_input` FLOAT NULL DEFAULT NULL,
   `molarity` FLOAT NULL DEFAULT NULL,
-  `processing_modus` ENUM('n/a','manual','Biomek i5','Biomek i7', 'Bravo') NOT NULL DEFAULT 'n/a',
+  `processing_modus` ENUM('n/a','manual','Biomek i5','Biomek i7', 'Bravo', 'Assist Plus', 'MGISP-Smart 8') NOT NULL DEFAULT 'n/a',
   `batch_number` VARCHAR(100) NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL COMMENT 'For tumor samples, a normal sample can be given here which is used as reference sample during the data analysis.',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
@@ -708,26 +710,6 @@ CONSTRAINT `fk_variant_classification_has_variant`
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
 INDEX `class` (`class` ASC)
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
-
--- -----------------------------------------------------
--- Table `somatic_variant_classification`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `somatic_variant_classification`
-(
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `variant_id` int(11) NOT NULL,
-  `class` ENUM('n/a','activating','likely_activating','inactivating','likely_inactivating','unclear','test_dependent') NOT NULL,
-  `comment` TEXT,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `somatic_variant_classification_has_variant` (`variant_id`),
-  CONSTRAINT `somatic_variant_classification_has_variant`
-    FOREIGN KEY (`variant_id`)
-    REFERENCES `variant` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -1124,6 +1106,7 @@ CREATE TABLE IF NOT EXISTS `analysis_job`
   `args` text NOT NULL,
   `sge_id` varchar(10) DEFAULT NULL,
   `sge_queue` varchar(50) DEFAULT NULL,
+  `use_dragen` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'defines if dragen pipeline should be used',
   PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB
@@ -1374,10 +1357,10 @@ CREATE  TABLE IF NOT EXISTS `somatic_cnv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ps_tumor_id` INT(11) NOT NULL,
-  `ps_normal_id` INT(11) NOT NULL,
+  `ps_normal_id` INT(11) NULL,
   `caller` ENUM('ClinCNV') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME NOT NULL,
+  `call_date` DATE NOT NULL,
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
@@ -1410,9 +1393,9 @@ CREATE TABLE IF NOT EXISTS `somatic_cnv`
   `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `start` INT(11) UNSIGNED NOT NULL,
   `end` INT(11) UNSIGNED NOT NULL,
-  `cn` FLOAT UNSIGNED NOT NULL COMMENT 'copy-number change in whole sample, including normal parts',
-  `tumor_cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number change normalized to tumor tissue only',
-  `tumor_clonality` FLOAT NOT NULL COMMENT 'tumor clonality, i.e. fraction of tumor cells',
+  `cn` FLOAT UNSIGNED NOT NULL COMMENT 'raw copy-number in tumor sample (based on tumor and normal reads)',
+  `tumor_cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number change normalized to tumor only',
+  `tumor_clonality` FLOAT NOT NULL COMMENT 'tumor clonality, i.e. fraction of tumor cells at the CNV locus (in contrast to tumor purity).',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `som_cnv_references_cnv_callset`
@@ -1462,16 +1445,16 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
--- Table `somatic_somatic_sv_callset`
+-- Table `somatic_sv_callset`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `somatic_sv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ps_tumor_id` INT(11) NOT NULL,
-  `ps_normal_id` INT(11) NOT NULL,
+  `ps_normal_id` INT(11) NULL,
   `caller` ENUM('Manta', 'DRAGEN', 'Sniffles') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
   INDEX `somatic_sv_caller` (`call_date` ASC),
@@ -1743,6 +1726,9 @@ CREATE TABLE IF NOT EXISTS `report_configuration_variant`
   `exclude_frequency` BOOLEAN NOT NULL,
   `exclude_phenotype` BOOLEAN NOT NULL,
   `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_hit2_missing` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_gus` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_used_other_var_type` BOOLEAN NOT NULL DEFAULT 0,
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
@@ -1808,7 +1794,7 @@ CREATE  TABLE IF NOT EXISTS `cnv_callset`
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('ClinCNV') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
@@ -1872,6 +1858,9 @@ CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
   `exclude_frequency` BOOLEAN NOT NULL,
   `exclude_phenotype` BOOLEAN NOT NULL,
   `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_hit2_missing` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_gus` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_used_other_var_type` BOOLEAN NOT NULL DEFAULT 0,
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
@@ -1906,7 +1895,7 @@ CREATE  TABLE IF NOT EXISTS `sv_callset`
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('Manta', 'DRAGEN', 'Sniffles') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
   UNIQUE KEY `sv_callset_references_processed_sample` (`processed_sample_id`),
@@ -2079,6 +2068,9 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `exclude_frequency` BOOLEAN NOT NULL,
   `exclude_phenotype` BOOLEAN NOT NULL,
   `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_hit2_missing` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_gus` BOOLEAN NOT NULL DEFAULT 0,
+  `exclude_used_other_var_type` BOOLEAN NOT NULL DEFAULT 0,
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
@@ -2186,7 +2178,7 @@ CREATE TABLE IF NOT EXISTS `preferred_transcripts`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(40) NOT NULL,
   `added_by` INT(11) NOT NULL,
-  `added_date` timestamp NOT NULL,
+  `added_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`name` ASC),
   CONSTRAINT `preferred_transcriptsg_created_by_user`
@@ -2584,7 +2576,7 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `expression_exon`
 (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `start` INT(11) UNSIGNED NOT NULL,
@@ -2600,19 +2592,6 @@ CREATE TABLE IF NOT EXISTS `expression_exon`
     REFERENCES `processed_sample` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
-
--- -----------------------------------------------------
--- Table `db_info`
--- NOTE: THIS IS ALWAYS THE LAST TABLE THAT IS CREATED!
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `db_info`
-(
-  `name` ENUM('init_timestamp','is_production') NOT NULL,
-  `value` TEXT,
-  UNIQUE KEY `name` (`name`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -2682,9 +2661,9 @@ CREATE  TABLE IF NOT EXISTS `small_variants_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `caller` ENUM('freebayes', 'DRAGEN', 'Clair3') NOT NULL,
+  `caller` ENUM('freebayes', 'DRAGEN', 'Clair3', 'DeepVariant') NOT NULL,
   `caller_version` VARCHAR(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
   UNIQUE KEY `small_variants_callset_references_processed_sample` (`processed_sample_id`),
@@ -2716,9 +2695,10 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `location` TEXT DEFAULT NULL COMMENT 'Location of repeat',
   `comments` TEXT DEFAULT NULL,
   `type` ENUM('diagnostic', 'low evidence') NOT NULL,
-  `inhouse_testing` BOOLEAN NOT NULL,
+  `inhouse_testing` BOOLEAN NOT NULL DEFAULT FALSE,
   `statisticial_cutoff_wgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for short-read WGS (this cutoff can deviate from min_pathogenic when RE length cannot be determined accurately from NGSD)',
   `statisticial_cutoff_lrgs` FLOAT DEFAULT NULL COMMENT 'NGS-based outlier cutoff for long-read WGS',
+  `strchive_link` VARCHAR(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `repeat_id` (`name` ASC),
   UNIQUE INDEX `region_unit` (`region` ASC, `repeat_unit` ASC)
@@ -2800,7 +2780,7 @@ CREATE  TABLE IF NOT EXISTS `re_callset`
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('ExpansionHunter', 'Straglr') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME DEFAULT NULL,
+  `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
   UNIQUE KEY `re_callset_references_processed_sample` (`processed_sample_id`),
@@ -2833,6 +2813,74 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='Variants that can be optionally added to a report';
 
+-- -----------------------------------------------------
+-- Table `somatic_snv_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `somatic_snv_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id_tumor` INT(11) NOT NULL,
+  `processed_sample_id_normal` INT(11) DEFAULT NULL,
+  `caller` ENUM('strelka2', 'DRAGEN', 'VarScan2', 'DeepSomatic') NOT NULL,
+  `caller_version` VARCHAR(25) NOT NULL,
+  `call_date` DATE DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `call_date` (`call_date` ASC),
+  UNIQUE KEY `somatic_snv_callset_tumor_and_normal_references_processed_sample` (`processed_sample_id_tumor`, `processed_sample_id_normal`),
+  CONSTRAINT `somatic_snv_callset_tumor_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id_tumor`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `somatic_snv_callset_normal_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id_normal`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='somatic small variants call set';
+
+-- -----------------------------------------------------
+-- Table `cspec_data`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `cspec_data`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `gene_index` (`gene`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `db_import_info`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `db_import_info`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` ENUM('QC terms','HGNC','Ensembl','HPO','oncotree','gnomAD constraints','OMIM','ORPHA','CSpec') NOT NULL,
+  `version` VARCHAR(100) NOT NULL,
+  `import_date` DATE NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `db_info`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `db_info`
+(
+  `name` ENUM('init_timestamp','is_production') NOT NULL,
+  `value` TEXT NOT NULL,
+  UNIQUE KEY `name` (`name`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `rna_fusion_callset`

@@ -1,0 +1,158 @@
+##fileformat=VCFv4.2
+##fileDate=20251125
+##source=DeepSomatic 1.9.0
+##reference=/mnt/storage2/megSAP/data//genomes/GRCh38.fa
+##fileformat=VCFv4.2
+##DeepVariant_version=1.9.0
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr11_KI270721v1_random,length=100316>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr14_GL000009v2_random,length=201709>
+##contig=<ID=chr14_GL000194v1_random,length=191469>
+##contig=<ID=chr14_GL000225v1_random,length=211173>
+##contig=<ID=chr14_KI270722v1_random,length=194050>
+##contig=<ID=chr14_KI270723v1_random,length=38115>
+##contig=<ID=chr14_KI270724v1_random,length=39555>
+##contig=<ID=chr14_KI270725v1_random,length=172810>
+##contig=<ID=chr14_KI270726v1_random,length=43739>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr15_KI270727v1_random,length=448248>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr16_KI270728v1_random,length=1872759>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr17_GL000205v2_random,length=185591>
+##contig=<ID=chr17_KI270729v1_random,length=280839>
+##contig=<ID=chr17_KI270730v1_random,length=112551>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr1_KI270706v1_random,length=175055>
+##contig=<ID=chr1_KI270707v1_random,length=32032>
+##contig=<ID=chr1_KI270708v1_random,length=127682>
+##contig=<ID=chr1_KI270709v1_random,length=66860>
+##contig=<ID=chr1_KI270710v1_random,length=40176>
+##contig=<ID=chr1_KI270711v1_random,length=42210>
+##contig=<ID=chr1_KI270712v1_random,length=176043>
+##contig=<ID=chr1_KI270713v1_random,length=40745>
+##contig=<ID=chr1_KI270714v1_random,length=41717>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chr22_KI270731v1_random,length=150754>
+##contig=<ID=chr22_KI270732v1_random,length=41543>
+##contig=<ID=chr22_KI270733v1_random,length=179772>
+##contig=<ID=chr22_KI270734v1_random,length=165050>
+##contig=<ID=chr22_KI270735v1_random,length=42811>
+##contig=<ID=chr22_KI270736v1_random,length=181920>
+##contig=<ID=chr22_KI270737v1_random,length=103838>
+##contig=<ID=chr22_KI270738v1_random,length=99375>
+##contig=<ID=chr22_KI270739v1_random,length=73985>
+##contig=<ID=chr2_KI270715v1_random,length=161471>
+##contig=<ID=chr2_KI270716v1_random,length=153799>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr3_GL000221v1_random,length=155397>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr4_GL000008v2_random,length=209709>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr5_GL000208v1_random,length=92689>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr9_KI270717v1_random,length=40062>
+##contig=<ID=chr9_KI270718v1_random,length=38054>
+##contig=<ID=chr9_KI270719v1_random,length=176845>
+##contig=<ID=chr9_KI270720v1_random,length=39050>
+##contig=<ID=chrEBV,length=171823>
+##contig=<ID=chrMT,length=16569>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrY_KI270740v1_random,length=37240>
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position (for use with symbolic alleles)">
+##INFO=<ID=dummy_info,Number=1,Type=String,Description="no description available">
+##INFO=<ID=N_AF,Number=1,Type=Float,Description="Variant allele frequency in normal sample">
+##FILTER=<ID=all-unknown,Description="Allele unknown">
+##FILTER=<ID=depth-tum,Description="Sequencing depth in tumor is too low (< 20)">
+##FILTER=<ID=freq-tum,Description="Allele frequency in tumor < 0.05">
+##FILTER=<ID=GERMLINE,Description="Non somatic variants">
+##FILTER=<ID=LowQual,Description="Confidence in this variant being real is below calling threshold.">
+##FILTER=<ID=lt-3-reads,Description="Less than 3 supporting tumor reads">
+##FILTER=<ID=NoCall,Description="Site has depth=0 resulting in no call.">
+##FILTER=<ID=PASS,Description="All filters passed">
+##FILTER=<ID=RefCall,Description="Genotyping model thinks this site is reference.">
+##FILTER=<ID=special-chromosome,Description="Special chromosome">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Read depth for each allele">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Conditional genotype quality">
+##FORMAT=<ID=MD,Number=R,Type=Integer,Description="Methylation depth for each of the reference and alternate allele">
+##FORMAT=<ID=MED_DP,Number=1,Type=Integer,Description="Median DP observed within the GVCF block rounded to the nearest integer.">
+##FORMAT=<ID=MF,Number=R,Type=Float,Description="Methylation fraction for each of the reference and alternate allele">
+##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum DP observed within the GVCF block.">
+##FORMAT=<ID=MT,Number=1,Type=String,Description="Methylation type: 0/0, 0/1=Heterozygous, 1/1=Methylated">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled genotype likelihoods rounded to the closest integer">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase set">
+##FORMAT=<ID=VAF,Number=A,Type=Float,Description="Variant allele fractions.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	TEST_SAMPLE_01
+chr1	13418	.	G	A	0.5	RefCall;lt-3-reads;depth-tum	N_AF=0.2857;dummy_info=1	GT:GQ:DP:AD:VAF:PL	./.:10:7:5,2:0.285714:0,9,40
+chr1	13613	.	T	A	0.5	RefCall	N_AF=0.0357	GT:GQ:DP:AD:VAF:PL	./.:10:55:50,5:0.0909091:0,9,32
+chr1	13684	.	C	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0385	GT:GQ:DP:AD:VAF:PL	0/0:23:43:41,2:0.0465116:0,22,48
+chr1	13813	.	T	G	1.6	RefCall;depth-tum	N_AF=0.1429	GT:GQ:DP:AD:VAF:PL	./.:5:10:5,5:0.5:0,3,37
+chr1	14752	.	G	A	0	RefCall;freq-tum;off-target	N_AF=0.0549	GT:GQ:DP:AD:VAF:PL	0/0:41:401:389,11:0.0274314:0,41,51
+chr1	14842	.	G	T	0	RefCall;lt-3-reads;freq-tum;off-target	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:52:114:112,2:0.0175439:0,55,54
+chr1	14907	.	A	G	0.7	RefCall;depth-tum;off-target	N_AF=0.3636	GT:GQ:DP:AD:VAF:PL	./.:8:10:7,3:0.3:0,7,36
+chr1	14976	.	G	A	1.4	RefCall;lt-3-reads;depth-tum;off-target	N_AF=1.0000	GT:GQ:DP:AD:VAF:PL	./.:6:4:2,2:0.5:0,4,37
+chr1	15676	.	A	C	0	RefCall;lt-3-reads;off-target	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:35:35:33,2:0.0571429:0,36,41
+chr1	15773	.	T	C	0	RefCall;freq-tum;off-target	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:41:128:123,4:0.03125:0,42,49
+chr1	15777	.	A	G	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:43:135:133,2:0.0148148:0,43,49
+chr1	15861	.	T	G	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:35:110:108,2:0.0181818:0,35,46
+chr1	15865	.	C	T	0	RefCall	N_AF=0.0526	GT:GQ:DP:AD:VAF:PL	0/0:26:104:92,12:0.115385:0,26,51
+chr1	16378	.	T	C	0.6	RefCall;lt-3-reads;depth-tum;off-target	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	./.:9:4:2,2:0.5:0,8,30
+chr1	16534	.	C	T	0	RefCall;lt-3-reads;off-target	N_AF=0.1765	GT:GQ:DP:AD:VAF:PL	0/0:21:20:18,2:0.1:0,21,39
+chr1	16651	.	T	G	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:49:118:116,2:0.0169492:0,50,53
+chr1	16657	.	A	C	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:45:119:117,2:0.0168067:0,45,51
+chr1	16658	.	C	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:45:119:117,2:0.0168067:0,46,50
+chr1	16659	.	A	C	0	RefCall;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:40:120:116,4:0.0333333:0,39,49
+chr1	16665	.	C	G	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:47:127:125,2:0.015748:0,48,51
+chr1	16668	.	G	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:49:130:128,2:0.0153846:0,51,52
+chr1	16670	.	T	G	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:44:130:128,2:0.0153846:0,45,50
+chr1	16680	.	G	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:35:134:132,2:0.0149254:0,35,47
+chr1	16682	.	G	A	0.8	RefCall	N_AF=0.1667	GT:GQ:DP:AD:VAF:PL	./.:8:137:115,20:0.145985:0,7,39
+chr1	16683	.	T	G	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0217	GT:GQ:DP:AD:VAF:PL	0/0:32:138:135,2:0.0144928:0,32,47
+chr1	16688	.	G	A	0.3	RefCall;freq-tum	N_AF=0.0638	GT:GQ:DP:AD:VAF:PL	./.:13:142:137,5:0.0352113:0,12,40
+chr1	16690	.	G	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:54:148:146,2:0.0135135:0,59,55
+chr1	16691	.	C	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:40:148:145,2:0.0135135:0,40,50
+chr1	16699	.	A	C	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:48:146:144,2:0.0136986:0,49,52
+chr1	16706	.	C	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:48:149:147,2:0.0134228:0,51,50
+chr1	16707	.	A	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:47:146:144,2:0.0136986:0,47,56
+chr1	16712	.	C	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:51:147:143,2:0.0136054:0,54,54
+chr1	16717	.	G	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:48:164:162,2:0.0121951:0,55,48
+chr1	16719	.	T	TG	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:49:146:142,2:0.0136986:0,53,51
+chr1	16722	.	T	G	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:54:165:157,3:0.0181818:0,57,56
+chr1	16725	.	T	G	0	RefCall;freq-tum	N_AF=0.0606	GT:GQ:DP:AD:VAF:PL	0/0:46:181:170,9:0.0497238:0,46,52
+chr1	16731	.	C	G	0	RefCall	N_AF=0.1591	GT:GQ:DP:AD:VAF:PL	0/0:48:209:189,19:0.0909091:0,49,53
+chr1	16734	.	T	G	0	RefCall	N_AF=0.1111	GT:GQ:DP:AD:VAF:PL	0/0:42:231:208,20:0.0865801:0,42,51
+chr1	16740	.	T	G	0	RefCall;freq-tum	N_AF=0.0417	GT:GQ:DP:AD:VAF:PL	0/0:55:282:272,8:0.0283688:0,59,57
+chr1	16800	.	G	T	0	RefCall;freq-tum;off-target	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:51:573:566,6:0.0104712:0,54,54
+chr1	16856	.	A	G	0	RefCall	N_AF=0.1220	GT:GQ:DP:AD:VAF:PL	0/0:39:422:367,55:0.130332:0,39,49
+chr1	16915	.	G	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:38:186:184,2:0.0107527:0,39,46
+chr1	16949	.	A	C	1.9	RefCall	N_AF=0.3571	GT:GQ:DP:AD:VAF:PL	./.:5:106:87,19:0.179245:0,2,43
+chr1	16963	.	G	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0769	GT:GQ:DP:AD:VAF:PL	0/0:41:91:88,3:0.032967:0,41,56
+chr1	16996	.	T	C	0	RefCall	N_AF=0.0263	GT:GQ:DP:AD:VAF:PL	0/0:41:74:68,6:0.0810811:0,41,47
+chr1	17020	.	G	A	0.3	RefCall	N_AF=0.3590	GT:GQ:DP:AD:VAF:PL	./.:11:61:46,15:0.245902:0,10,50
+chr1	17202	.	C	A	0	RefCall;lt-3-reads;freq-tum;off-target	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:40:43:41,2:0.0465116:0,41,46
+chr1	17269	.	G	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:48:76:74,2:0.0263158:0,49,54
+chr1	17273	.	G	T	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:42:80:78,2:0.025:0,43,50
+chr1	17285	.	T	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:42:91:88,2:0.021978:0,42,52
+chr1	17298	.	C	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:45:101:99,2:0.019802:0,46,49
+chr1	17301	.	C	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:49:102:100,2:0.0196078:0,50,53
+chr1	17347	.	C	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:41:106:104,2:0.0188679:0,45,43
+chr1	17370	.	T	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:44:80:78,2:0.025:0,45,48
+chr1	17372	.	C	A	0	RefCall;lt-3-reads;freq-tum	N_AF=0.0000	GT:GQ:DP:AD:VAF:PL	0/0:34:78:76,2:0.025641:0,34,41
+chr1	17436	.	A	C	0	RefCall;freq-tum	N_AF=0.0116	GT:GQ:DP:AD:VAF:PL	0/0:43:248:243,3:0.0120968:0,43,51
+chr1	17538	.	C	A	0	RefCall;off-target	N_AF=0.2479	GT:GQ:DP:AD:VAF:PL	0/0:26:225:195,29:0.128889:0,26,41

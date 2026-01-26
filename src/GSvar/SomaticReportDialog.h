@@ -4,10 +4,7 @@
 #include <QDialog>
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
-#include "BamReader.h"
 #include "ui_SomaticReportDialog.h"
-#include "MainWindow.h"
-#include "HttpHandler.h"
 
 class SomaticReportDialog
 		: public QDialog

@@ -5,7 +5,7 @@
 #include "BasicStatistics.h"
 #include "KeyValuePair.h"
 #include "NGSHelper.h"
-#include <QFileInfo>
+#include <QJsonObject>
 
 CopyNumberVariant::CopyNumberVariant()
 	: chr_()
@@ -60,7 +60,7 @@ int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool
 
 	if (throw_if_not_found)
 	{
-		THROW(ProgrammingException, "Copy-number could not be determine for CNV: " + toString());
+		THROW(ProgrammingException, "Copy-number could not be determined for CNV: " + toString());
 	}
 
 	return -1;
@@ -80,7 +80,7 @@ void CopyNumberVariant::setCopyNumber(int cn, const QByteArrayList& annotation_h
 
 	if (!found && throw_if_not_found)
 	{
-		THROW(ProgrammingException, "Copy-number could not be determine for CNV: " + toString());
+		THROW(ProgrammingException, "Copy-number could not be set for CNV: " + toString());
 	}
 }
 
@@ -259,10 +259,10 @@ void CnvList::store(QString filename)
 
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
-	QTextStream stream(file.data());
+	QTextStream stream(file.data());    
+    stream.setEncoding(QStringConverter::Utf8);   
 
 	//write header lines
-
 	//analysis type
 	stream << "##ANALYSISTYPE=" << typeAsString() << "\n";
 
@@ -333,14 +333,14 @@ void CnvList::store(QString filename)
 			// assemble CNV line
 			cnv_annotations.insert(2, QByteArray::number(variant.regions()));
 			cnv_annotations.insert(3, QByteArray::number(((variant.size() - 1)/1000.0), 'f', 3).rightJustified(8, ' '));
-			cnv_annotations.insert(5, variant.genes().toStringList().join(",").toUtf8());
+			cnv_annotations.insert(5, variant.genes().toString(","));
 		}
 		else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI)
 		{
 			// assemble CNV line
 			cnv_annotations.insert(0, "multi");
 			cnv_annotations.insert(1, QByteArray::number(variant.size() - 1));
-			cnv_annotations.insert(9, variant.genes().toStringList().join(", ").toUtf8());
+			cnv_annotations.insert(9, variant.genes().toString(", "));
 		}
 		else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 		{
@@ -348,14 +348,14 @@ void CnvList::store(QString filename)
 			cnv_annotations.insert(0, "somatic");
 			cnv_annotations.insert(1, QByteArray::number(variant.size()));
 			cnv_annotations.insert(9, QByteArray::number(variant.regions()));
-			cnv_annotations.insert(10, variant.genes().toStringList().join(",").toUtf8());
+			cnv_annotations.insert(10, variant.genes().toString(","));
 		}
 		else if(type() == CnvListType::CLINCNV_TUMOR_ONLY)
 		{
 			// assemble CNV line
 			cnv_annotations.insert(5, QByteArray::number(variant.regions()));
 			cnv_annotations.insert(6, QByteArray::number(((variant.size() - 1)/1000.0), 'f', 3).rightJustified(8, ' '));
-			cnv_annotations.insert(8, variant.genes().toStringList().join(",").toUtf8());
+			cnv_annotations.insert(8, variant.genes().toString(","));
 		}
 		stream << "\t" << cnv_annotations.join("\t") << "\n";
 	}
@@ -364,7 +364,7 @@ void CnvList::store(QString filename)
 	file.data()->close();
 }
 
-QString CnvList::typeAsString() const
+QByteArray CnvList::typeAsString() const
 {
 	if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) return "CLINCNV_GERMLINE_SINGLE";
 	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI) return "CLINCNV_GERMLINE_MULTI";
@@ -392,7 +392,7 @@ CnvCallerType CnvList::caller() const
 	}
 }
 
-QString CnvList::callerAsString() const
+QByteArray CnvList::callerAsString() const
 {
 	CnvCallerType caller_type = caller();
 	if (caller_type==CnvCallerType::CLINCNV)
@@ -403,6 +403,38 @@ QString CnvList::callerAsString() const
 	{
 		THROW(ProgrammingException, "CNV caller type not handled in CnvList::callerAsString()!");
 	}
+}
+
+QByteArray CnvList::callerVersion() const
+{
+	foreach(const QByteArray& line, comments_)
+	{
+		if (!line.contains(":")) continue;
+
+		KeyValuePair pair = split(line, ':');
+		if (pair.key.endsWith(" version"))
+		{
+			return pair.value.trimmed().toUtf8();
+		}
+	}
+
+	THROW(ProgrammingException, "CNV caller version could not be determined!");
+}
+
+QDate CnvList::callingDate() const
+{
+	foreach(const QByteArray& line, comments_)
+	{
+		if (!line.contains(":")) continue;
+
+		KeyValuePair pair = split(line, ':');
+		if (pair.key.endsWith(" finished on"))
+		{
+			return QDate::fromString(pair.value.left(10), "yyyy-MM-dd");
+		}
+	}
+
+	THROW(ProgrammingException, "CNV calling data could not be determined!");
 }
 
 QByteArray CnvList::build()
@@ -417,6 +449,25 @@ QByteArray CnvList::build()
 	}
 
 	return "";
+}
+
+QJsonDocument CnvList::qcJson() const
+{
+	QJsonObject obj;
+	foreach(const QByteArray& line, comments_)
+	{
+		if (!line.contains(":")) continue;
+
+		KeyValuePair pair = split(line, ':');
+		if (pair.key.endsWith(" version")) continue;
+		if (pair.key.endsWith(" finished on")) continue;
+
+		obj.insert(pair.key, pair.value);
+	}
+
+	QJsonDocument doc;
+	doc.setObject(obj);
+	return doc;
 }
 
 QByteArray CnvList::qcMetric(QString name, bool throw_if_missing) const
@@ -527,44 +578,6 @@ KeyValuePair CnvList::split(const QByteArray& string, char sep)
 	QString value = parts.join(sep).trimmed();
 
 	return KeyValuePair(key, value);
-}
-
-CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, bool ignore_inval_header_lines)
-{
-	//parse file header
-	CnvListCallData out;
-
-	out.caller = cnvs.callerAsString();
-
-	foreach(const QByteArray& line, cnvs.comments())
-	{
-		if (line.contains(":"))
-		{
-			KeyValuePair pair = split(line, ':');
-
-			if (pair.key.endsWith(" version"))
-			{
-				out.caller_version = pair.value;
-			}
-			else if (pair.key.endsWith(" finished on"))
-			{
-				out.call_date = QDateTime::fromString(pair.value, "yyyy-MM-dd hh:mm:ss");
-			}
-			else //quality metrics
-			{
-				out.quality_metrics.insert(pair.key, pair.value);
-			}
-		}
-		else if(!ignore_inval_header_lines)
-		{
-			THROW(FileParseException, "Invalid header line '" + line + "' in file '" + filename + "'!");
-		}
-	}
-
-	if (out.call_date.isNull()) THROW(ArgumentException, "Cannot determine date of CNV calling!");
-
-	return out;
-
 }
 
 int CnvList::determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender, GenomeBuild build)

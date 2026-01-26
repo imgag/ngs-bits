@@ -1,9 +1,9 @@
 #include "ToolBase.h"
 #include "Helper.h"
-#include "VcfFile.h"
 #include "Transcript.h"
 #include "NGSD.h"
 #include <QDate>
+#include "Settings.h"
 
 class ConcreteTool
 		: public ToolBase

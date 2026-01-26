@@ -151,15 +151,14 @@ void RepeatLocusList::load(QString filename)
 		if (header_line.key=="filedate")
 		{
 			QString value = header_line.value.trimmed();
-			call_date_ = QDateTime::fromString(value, Qt::ISODate);
+			call_date_ = QDate::fromString(value, Qt::ISODate);
 			if (!call_date_.isValid()) THROW(FileParseException, "Cannot convert 'filedate' header value to datetime: '" + value + "'");
-			call_date_.setTime(QTime()); //set the time to midnight - we use the date only anyway
 		}
 		//Straglr: ##fileDate=20240606
 		if (header_line.key=="fileDate")
 		{
 			QString value = header_line.value.trimmed();
-			call_date_ = QDateTime::fromString(value, "yyyyMMdd");
+			call_date_ = QDate::fromString(value, "yyyyMMdd");
 			if (!call_date_.isValid()) THROW(FileParseException, "Cannot convert 'fileDate' header value to datetime: '" + value + "'");
 		}
 	}
@@ -173,7 +172,6 @@ void RepeatLocusList::load(QString filename)
 
 		if (caller_==ReCallerType::STRAGLR)
 		{
-
 			//repeat ID
 			QByteArray repeat_id = re.info("LOCUS").trimmed();
 			rl.setName(repeat_id);
@@ -189,15 +187,88 @@ void RepeatLocusList::load(QString filename)
 			//filters
 			rl.setFilters(re.filters());
 
-			//genotype
-			QByteArrayList genotypes = re.formatValueFromSample("AC").trimmed().split('/');
-			rl.setAllele1(genotypes[0]);
-			if (genotypes.count()==2) rl.setAllele2(genotypes[1]);
-			else if (genotypes.count()>2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.formatValueFromSample("AC"));
+			if (caller_version_ == "V1.5.0" || caller_version_ == "V1.5.1")
+			{
+				//genotype
+				QByteArrayList genotypes = re.formatValueFromSample("AC").trimmed().split('/');
+				rl.setAllele1(genotypes[0]);
+				if (genotypes.count()==2) rl.setAllele2(genotypes[1]);
+				else if (genotypes.count()>2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.formatValueFromSample("AC"));
 
-			//genotype CI
-			QByteArray genotype_ci = re.formatValueFromSample("ACR").trimmed();
-			rl.setConfidenceIntervals(genotype_ci);
+				//genotype CI
+				QByteArray genotype_ci = re.formatValueFromSample("ACR").trimmed();
+				rl.setConfidenceIntervals(genotype_ci);
+			}
+			else if (caller_version_.startsWith("V1.5."))
+			{
+				QByteArrayList genotypes = re.info("RUC").trimmed().split(',');
+				QByteArrayList genotype_ci = re.info("CIRUC").trimmed().split(',');
+				QByteArrayList genotypes_wt = re.info("RUC_WT").trimmed().split(',');
+				if (genotype_ci.contains(".")) rl.setFilters(QByteArrayList() << rl.filters() << "CallIsLowerBound");
+
+				QByteArray format_genotype = re.formatValueFromSample("GT");
+				QByteArray genotype_ci_str;
+				if (format_genotype == "0/0")
+				{
+					//hom wildtype
+					if (genotypes_wt.count()!=1) THROW(ArgumentException, "Invalid number of wildtype genotypes in " + repeat_id +":" + re.info("RUC_WT"));
+					rl.setAllele1(genotypes_wt.at(0));
+					rl.setAllele2(genotypes_wt.at(0));
+					rl.setConfidenceIntervals("./.");
+				}
+				else if (format_genotype == "0")
+				{
+					//wildtype on male X/Y
+					if (genotypes_wt.count()!=1) THROW(ArgumentException, "Invalid number of wildtype genotypes in " + repeat_id +":" + re.info("RUC_WT"));
+					rl.setAllele1(genotypes_wt.at(0));
+					rl.setConfidenceIntervals(".");
+				}
+				else if (format_genotype == "0/1")
+				{
+					//het alt
+					if (genotypes_wt.count()!=1) THROW(ArgumentException, "Invalid number of wildtype genotypes in " + repeat_id +":" + re.info("RUC_WT"));
+					if (genotypes.count()!=1) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+					if (genotype_ci.count()!=2) THROW(ArgumentException, "Invalid number of CI genotypes in " + repeat_id +":" + re.info("CIRUC"));
+					rl.setAllele1(genotypes.at(0));
+					rl.setAllele2(genotypes_wt.at(0));
+					rl.setConfidenceIntervals(genotype_ci.at(0) + "-" + genotype_ci.at(1) + "/.");
+
+				}
+				else if (format_genotype == "1")
+				{
+					//alt on male X/Y
+					if (genotypes.count()!=1) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+					if (genotype_ci.count()!=2) THROW(ArgumentException, "Invalid number of CI genotypes in " + repeat_id +":" + re.info("CIRUC"));
+					rl.setAllele1(genotypes.at(0));
+					rl.setConfidenceIntervals(genotype_ci.at(0) + "-" + genotype_ci.at(1));
+				}
+				else if (format_genotype == "1/1")
+				{
+					//hom alt
+					if (genotypes.count()!=1) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+					if (genotype_ci.count()!=2) THROW(ArgumentException, "Invalid number of CI genotypes in " + repeat_id +":" + re.info("CIRUC"));
+					rl.setAllele1(genotypes.at(0));
+					rl.setAllele2(genotypes.at(0));
+					rl.setConfidenceIntervals(genotype_ci.at(0) + "-" + genotype_ci.at(1) + "/" + genotype_ci.at(0) + "-" + genotype_ci.at(1));
+				}
+				else if (format_genotype == "1/2")
+				{
+					//2 different alleles
+					if (genotypes.count()!=2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.info("RUC"));
+					if (genotype_ci.count()!=4) THROW(ArgumentException, "Invalid number of CI genotypes in " + repeat_id +":" + re.info("CIRUC"));
+					rl.setAllele1(genotypes.at(0));
+					rl.setAllele2(genotypes.at(1));
+					rl.setConfidenceIntervals(genotype_ci.at(0) + "-" + genotype_ci.at(1) + "/" + genotype_ci.at(2) + "-" + genotype_ci.at(3));
+				}
+				else
+				{
+					THROW(ArgumentException, "Invalid genotype entry '" + format_genotype + "' in " + repeat_id);
+				}
+			}
+			else
+			{
+				THROW(FileParseException, "Unsupported straglr version '" + caller_version_ + "'!");
+			}
 
 			//local coverage
 			QByteArray coverage = re.formatValueFromSample("DP").trimmed();
@@ -260,21 +331,21 @@ ReCallerType RepeatLocusList::caller() const
 	return caller_;
 }
 
-const QByteArray& RepeatLocusList::callerVersion() const
+QByteArray RepeatLocusList::callerAsString() const
+{
+	if (caller_==ReCallerType::INVALID) return "invalid";
+	if (caller_==ReCallerType::EXPANSIONHUNTER) return "ExpansionHunter";
+	if (caller_==ReCallerType::STRAGLR) return "Straglr";
+
+	THROW(ProgrammingException, "Unknown RE caller type '" + QString::number((int)caller_) + "'!");
+}
+
+const QByteArray RepeatLocusList::callerVersion() const
 {
 	return caller_version_;
 }
 
-const QDateTime& RepeatLocusList::callDate() const
+const QDate& RepeatLocusList::callingDate() const
 {
 	return call_date_;
-}
-
-QByteArray RepeatLocusList::typeToString(ReCallerType type)
-{
-	if (type==ReCallerType::INVALID) return "invalid";
-	if (type==ReCallerType::EXPANSIONHUNTER) return "ExpansionHunter";
-	if (type==ReCallerType::STRAGLR) return "Straglr";
-
-	THROW(ProgrammingException, "Unknown RE caller type '" + QString::number((int)type) + "'!");
 }

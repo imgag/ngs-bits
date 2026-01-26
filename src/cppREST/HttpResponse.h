@@ -4,12 +4,7 @@
 #include "cppREST_global.h"
 #include <QByteArray>
 #include <QString>
-#include <QDir>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include "HttpUtils.h"
-#include "HtmlEngine.h"
-#include "ServerHelper.h"
+#include "HttpParts.h"
 
 class CPPRESTSHARED_EXPORT HttpResponse : public QByteArray
 {

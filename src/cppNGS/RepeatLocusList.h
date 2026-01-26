@@ -3,7 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "BedFile.h"
-#include <QDateTime>
+#include <QDate>
 
 //Repeat locus
 class CPPNGSSHARED_EXPORT RepeatLocus
@@ -97,16 +97,19 @@ public:
 
 	//Returns the caller
 	ReCallerType caller() const;
-
+	//Returns the caller. Throws exception if invalid.
+	QByteArray callerAsString() const;
 	//Returns the caller version
-	const QByteArray& callerVersion() const;
-
+	const QByteArray callerVersion() const;
 	//Returns the calling date
-	const QDateTime& callDate() const;
+	const QDate& callingDate() const;
 
 	//Clears content
 	void clear()
 	{
+		caller_ = ReCallerType::INVALID;
+		caller_version_.clear();
+		call_date_ = QDate();
 		variants_.clear();
 	}
 
@@ -140,14 +143,11 @@ public:
 		variants_.append(add);
 	}
 
-	static QByteArray typeToString(ReCallerType type);
-
-
 protected:
 
 	ReCallerType caller_;
 	QByteArray caller_version_;
-	QDateTime call_date_;
+	QDate call_date_;
 	QList<RepeatLocus> variants_;
 };
 

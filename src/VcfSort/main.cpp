@@ -36,7 +36,7 @@ public:
 
 		//load
 		VcfFile vl;
-		vl.load(getInfile("in"), true);
+		vl.load(getInfile("in"));
 
 		//sort
 		if (fai=="")

@@ -10,8 +10,8 @@
 #include <QList>
 #include <QByteArrayList>
 #include <QMap>
-#include <QJsonObject>
-#include <QDateTime>
+#include <QJsonDocument>
+#include <QDate>
 
 ///Copy-number variant composed of sub-regions.
 class CPPNGSSHARED_EXPORT CopyNumberVariant
@@ -86,7 +86,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_);
 		}
 
-		///Convert cnv to string wit additional data (size, regions).
+		///Convert cnv to string with additional data (size, regions).
 		QString toStringWithMetaData() const;
 
 
@@ -133,14 +133,6 @@ enum class CnvListType
 	CLINCNV_TUMOR_ONLY
 };
 
-struct CnvListCallData
-{
-	QString caller = "";
-	QString caller_version = "";
-	QDateTime call_date;
-	QJsonObject quality_metrics;
-};
-
 ///CNV list
 class CPPNGSSHARED_EXPORT CnvList
 {
@@ -168,16 +160,22 @@ class CPPNGSSHARED_EXPORT CnvList
 			return type_;
 		}
 		///Returns the CNV list type
-		QString typeAsString() const;
+		QByteArray typeAsString() const;
 
 		///Returns the CNV caller
 		CnvCallerType caller() const;
-		///Returns the CNV caller as string
-		QString callerAsString() const;
-
+		///Returns the CNV caller as string. Throws error if not in header or invalid.
+		QByteArray callerAsString() const;
+		///Returns the caller version. Throws error if not in header.
+		QByteArray callerVersion() const;
+		///Returns the calling date. Throws error if not in header.
+		QDate callingDate() const;
 
 		///Returns the genome build from the header or an empty string if it could not be determined.
 		QByteArray build();
+
+		///Returns QC metrics as JSON document
+		QJsonDocument qcJson() const;
 
 		///Returns the comment header lines (with leading '##').
 		const QByteArrayList& comments() const
@@ -235,10 +233,6 @@ class CPPNGSSHARED_EXPORT CnvList
 
 		///Returns the size sum of all all CNVs
 		long long totalCnvSize() const;
-
-		///Returns call data from original file (e.g. version, caller...), specify ps_name in case of CNVHunter samples
-		static CnvListCallData getCallData(const CnvList& cnvs, QString filename, bool ignore_inval_header_lines = false);
-
 
 		///Returns the reference copy number for a given CNV
 		static int determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender, GenomeBuild build);

@@ -1,12 +1,8 @@
 #include "ChunkProcessor.h"
 #include "VcfFile.h"
-#include "ToolBase.h"
-#include <zlib.h>
 #include <QFileInfo>
-#include "Helper.h"
 #include "VcfFile.h"
 #include "VariantList.h"
-#include <QMutex>
 #include "BigWigReader.h"
 
 ChunkProcessor::ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& bw_filepath, const QString& modus)

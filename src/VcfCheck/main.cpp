@@ -2,7 +2,6 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "OntologyTermCollection.h"
 #include "VcfFile.h"
 
 class ConcreteTool
@@ -26,7 +25,9 @@ public:
 		addInt("lines", "Number of variant lines to check in the VCF file (unlimited if 0)", true, 5000);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("info", "Add general information about the input file to the output.");
+		addFlag("duplicates", "Check for variants occuring twice (input VCF needs to be sorted).");
 
+		changeLog(2025,  5, 30, "Added parameter 'duplicates'.");
 		changeLog(2019, 12, 13, "Added support for gzipped VCF files.");
 		changeLog(2019, 12, 11, "Added check for invalid characters in INFO column.");
 		changeLog(2018, 12, 3, "Initial implementation.");
@@ -42,6 +43,7 @@ public:
 		QTextStream out_stream(out_p.data());
 
 		bool info = getFlag("info");
+		bool duplicates = getFlag("duplicates");
 
 		int lines = getInt("lines");
 		if (lines<=0) lines = std::numeric_limits<int>::max();
@@ -51,7 +53,7 @@ public:
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
 		//check
-        if (!VcfFile::isValid(in, ref_file, out_stream, info, lines))
+		if (!VcfFile::isValid(in, ref_file, out_stream, info, lines, duplicates))
 		{
 			THROW(ToolFailedException, "VCF check failed - see 'out' file for details!");
 		}

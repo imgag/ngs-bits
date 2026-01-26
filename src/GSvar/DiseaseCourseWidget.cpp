@@ -1,13 +1,11 @@
 #include "DiseaseCourseWidget.h"
 #include "ui_DiseaseCourseWidget.h"
 #include "GUIHelper.h"
-#include "Settings.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include "VariantHgvsAnnotator.h"
-#include <QDir>
 #include <QMessageBox>
-
+#include "LoginManager.h"
+#include "GSvarHelper.h"
 
 DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidget *parent) :
 	QWidget(parent),
@@ -132,7 +130,7 @@ void DiseaseCourseWidget::createTableView()
 			coding_splicing_collapsed << entry.join(":");
 		}
 
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(genes.toStringList().join(",")));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(genes.toString(",")));
 		ui_->vars->setItem(row_idx, col_idx, GUIHelper::createTableItem(coding_splicing_collapsed.join(", ")));
 		ui_->vars->item(row_idx, col_idx++)->setToolTip(coding_splicing_collapsed.join("\n").replace(":", " "));
 

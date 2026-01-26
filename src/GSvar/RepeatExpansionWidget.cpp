@@ -1,31 +1,21 @@
 #include "RepeatExpansionWidget.h"
-#include <QDir>
 #include <QFile>
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QMenu>
 #include <QChartView>
-
+#include "LoginManager.h"
 #include "Helper.h"
 #include "GUIHelper.h"
-#include "TsvFile.h"
-#include "VcfFile.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include "GeneInfoDBs.h"
 #include "ClientHelper.h"
 #include "Log.h"
 #include "ReportVariantDialog.h"
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtSvg/QSvgRenderer>
 #include <QPainter>
-#else
-QT_CHARTS_USE_NAMESPACE
-#include <QSvgWidget>
-#include <QSvgRenderer>
-#endif
 
 RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_name)
 	: QWidget(parent)
@@ -135,6 +125,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	QAction* a_omim_gene = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM gene page");
 	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM disease page(s)");
 	QAction* a_stripy = menu.addAction("Open STRipy locus information");
+	QAction* a_strchive = menu.addAction(QIcon(":/Icons/strchive.png"), "Open STRchive locus information");
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
@@ -159,21 +150,15 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_show_hist)
 	{
-		QString filename;
 		QByteArray svg;
-		if (!ClientHelper::isClientServerMode())
+		VersatileFile file(hist_loc.filename);
+		if (!file.open(QIODevice::ReadOnly, false))
 		{
-			filename = QFileInfo(hist_loc.filename).absoluteFilePath();
-			VersatileFile file(hist_loc.filename);
-			file.open(QIODevice::ReadOnly);
-			svg = file.readAll();
+			QMessageBox::warning(this, "RE historgam", "Could not open histogram SVG file!");
+			return;
 		}
-		else
-		{
-			svg = VersatileFile(hist_loc.filename).readAll();
-		}
+		svg = file.readAll();
 
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         QSvgRenderer renderer(svg);
         if (!renderer.isValid()) {
             QMessageBox::warning(this, "SVG error", "Failed to load SVG file");
@@ -198,17 +183,6 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		scroll_area->setFrameStyle(QFrame::NoFrame);
         scroll_area->setWidget(label);
 		scroll_area->setMinimumSize(1200, 800);
-        #else
-        QSvgWidget* widget = new QSvgWidget();
-        widget->load(svg);
-        QRect rect = widget->renderer()->viewBox();
-        widget->setMinimumSize(rect.width(), rect.height());
-
-        QScrollArea* scroll_area = new QScrollArea(this);
-        scroll_area->setFrameStyle(QFrame::NoFrame);
-        scroll_area->setWidget(widget);
-        scroll_area->setMinimumSize(1200, 800);
-        #endif
 
 		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(scroll_area, "Histogram of " + getCell(row, "repeat ID").trimmed());
 		dlg->exec();
@@ -248,6 +222,23 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 		QString name = getCell(row, "repeat ID");
 		QDesktopServices::openUrl(QUrl("https://stripy.org/database/" + name));
 	}
+	else if (action==a_strchive)
+	{
+		QString name = getCell(row, "repeat ID");
+
+		NGSD db;
+		QString id = getRepeatId(db, row, false);
+		QString url = db.getValue("SELECT strchive_link FROM repeat_expansion WHERE id='"+id + "'").toString().trimmed();
+
+		if (url=="")
+		{
+			QMessageBox::warning(this, "STRchive", "No STRchive URL available in NGSD for repeat with name '"+name+"'");
+		}
+		else
+		{
+			QDesktopServices::openUrl(QUrl(url));
+		}
+	}
 	else if (action==a_comments)
 	{
 		//get comments
@@ -284,6 +275,16 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 			double max = lengths[max_bin];
 			double median = BasicStatistics::median(lengths, false);
 			if (2*median > max) max = 2*median;
+
+			//increase upper limit to show current RE
+			double cur_max = -1;
+			foreach (const QString& gt_str, getCell(row, "genotype").split("/"))
+			{
+				double gt = 1.1 * Helper::toDouble(gt_str, "genotype", title); //current genotype + 10% offset
+				cur_max = std::max(cur_max, gt);
+			}
+			max = std::max(max, cur_max);
+
 			double bin_size = (max-min)/40;
 
 			//create histogram
@@ -473,10 +474,12 @@ void RepeatExpansionWidget::displayRepeats()
 		setCell(row_idx, "repeat ID", re.name());
 
 		//region
-		setCell(row_idx, "region", re.region().toString(true));
+		QTableWidgetItem* item = setCell(row_idx, "region", re.region().toString(true));
+		item->setToolTip("region size: " + QString::number(re.region().length()));
 
 		//repreat unit
-		setCell(row_idx, "repeat unit", re.unit());
+		item = setCell(row_idx, "repeat unit", re.unit());
+		item->setToolTip("units in region: " + QString::number((double) re.region().length() / re.unit().trimmed().length(), 'f', 2));
 
 		//filters
 		setCell(row_idx, "filters", re.filters().join(","));
@@ -753,7 +756,7 @@ void RepeatExpansionWidget::setReportConfigHeaderIcons()
 {
 	if(report_config_==NULL) return;
 
-    QSet<int> report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::RES, false));
+    QSet<int> report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::RES, false));
 	for(int r=0; r<res_.count(); ++r)
 	{
         QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
@@ -864,7 +867,7 @@ void RepeatExpansionWidget::updateRowVisibility()
 	//RC filter
 	if (ui_.filter_rc->isChecked() && report_config_!=NULL)
 	{
-        QSet<int> report_variant_indices = LIST_TO_SET(report_config_->variantIndices(VariantType::RES, false));
+        QSet<int> report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::RES, false));
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
 			if (!report_variant_indices.contains(row)) hidden[row] = true;

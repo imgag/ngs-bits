@@ -2,6 +2,55 @@
 
 $dir = dirname(__FILE__);
 
+function find_dll($dll)
+{
+	$output = [];
+	exec("where {$dll}", $output, $exit_code);
+	if ($exit_code!=0) return "";
+	
+	return trim($output[0]); //using the first is not 100% correct because where uses path only, but close enough
+}
+
+function find_dependencies($exe, $level=1)
+{
+	global $loc_cache;
+	
+	if ($level==1) print $exe."\n";
+	
+	$output = [];
+	exec("C:\\Qt\\Tools\\mingw1310_64\\bin\\objdump.exe -p \"{$exe}\"", $output, $exit_code);
+	foreach($output as $line)
+	{
+		if (strpos($line, "DLL Name:")!==false)
+		{
+			$dll = trim(explode(":", $line, 2)[1]);
+			
+			if (isset($loc_cache[$dll]))
+			{
+				print str_repeat("  ", $level)."{$dll} > ".$loc_cache[$dll]." (SEE ABOVE)\n";
+			}
+			else
+			{
+				$loc = find_dll($dll);
+				if ($loc=="")
+				{
+					print str_repeat("  ", $level)."{$dll} > NOT FOUND!\n";
+					trigger_error("{$dll} not found in PATH!", E_USER_ERROR);
+				}
+				else
+				{
+					print str_repeat("  ", $level)."{$dll} > {$loc}\n";
+					$loc_cache[$dll] = $loc;
+					if (substr($loc, 0, 20)!="C:\\Windows\\System32\\") //do not follow system DLLs...
+					{
+						find_dependencies($loc, $level+1);
+					}
+				}
+			}
+		}
+	}
+}
+
 //get tools list
 $tools = array();
 $file = file("{$dir}/../../src/tools.pro");
@@ -15,59 +64,18 @@ foreach($file as $line)
 	}
 }
 
-//copy DLLs to bin folder under Windows;
+//add DLL folders to PATH under Windows
 if (PHP_OS=="WINNT")
-{
-	$dlls = array(
-				"{$dir}/../../htslib/lib/hts-3.dll",
-				"{$dir}/../../htslib/lib/hts.dll.a",
-				"{$dir}/../../htslib/lib/libbz2-1.dll",
-				"{$dir}/../../htslib/lib/libcurl-4.dll",
-				"{$dir}/../../htslib/lib/libcrypto-1_1-x64.dll",
-				"{$dir}/../../htslib/lib/libdeflate.dll",
-				"{$dir}/../../htslib/lib/liblzma-5.dll",
-				"{$dir}/../../htslib/lib/libsystre-0.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/Qt5Core.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/Qt5XmlPatterns.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/Qt5PrintSupport.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/Qt5Network.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/Qt5Sql.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/Qt5Xml.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/Qt5Gui.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/Qt5Widgets.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/libgcc_s_seh-1.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/libwinpthread-1.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/bin/libstdc++-6.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/plugins/platforms/qwindows.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/plugins/sqldrivers/qsqlmysql.dll",
-				"C:/Qt/Qt5.12.12/5.12.12/mingw73_64/plugins/printsupport/windowsprintersupport.dll",
-				);
-				
-	foreach($dlls as $source)
-	{
-		if (!file_exists($source))
-		{
-			trigger_error("Source file does not exist: {$source}", E_USER_ERROR);
-		}
-		
-		$dest = "{$dir}/../../bin/".basename($source);
-		if (!file_exists($dest))
-		{
-			print "copy $source\n";
-			if (!copy($source, $dest))
-			{
-				trigger_error("Could not copy file: {$source}", E_USER_ERROR);
-			}
-		}
-	}
+{	
+	putenv("PATH={$dir}\\..\\..\\bin\\;{$dir}\\..\\..\\htslib\\lib\\;{$dir}\\..\\..\\libxml2\\libs\\;C:\\Qt\\6.8.3\\mingw_64\\bin\\;C:\\Qt\\Tools\\mingw1310_64\\bin\\;".getenv('PATH'));
+	//debug missing DLLS
+	//find_dependencies("{$dir}\\..\\..\\bin\\BamInfo.exe");
 }
 
 //get tool list
 $tools_done = array("");
 foreach($tools as $tool)
 {
-	if (PHP_OS=="WINNT" && strpos($tool, "NGSDUpdateSvGenotype")!==FALSE) continue;
-	
 	//print tool name
 	$tools_done[] = $tool;
 	$exe = "{$dir}/../../bin/{$tool}";

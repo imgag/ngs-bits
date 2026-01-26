@@ -1,7 +1,6 @@
 #include "GeneOmimInfoWidget.h"
 #include "GUIHelper.h"
 #include "NGSD.h"
-#include <QTextDocument>
 #include <QClipboard>
 
 GeneOmimInfoWidget::GeneOmimInfoWidget(QWidget *parent)

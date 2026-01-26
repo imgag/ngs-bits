@@ -4,8 +4,6 @@
 #include <QFileInfo>
 #include <QFileInfo>
 #include "Exceptions.h"
-#include "Helper.h"
-#include "NGSHelper.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -41,6 +39,9 @@ public:
 
 		//open BAM file
 		BamReader reader(bam_file, ref_file);
+		reader.skipBases();
+		reader.skipQualities();
+		reader.skipTags();
 
 		//init coverage statistics data structure
 		QVector<qlonglong> read_count;

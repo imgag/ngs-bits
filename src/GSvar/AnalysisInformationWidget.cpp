@@ -2,8 +2,6 @@
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
-#include <QFileInfo>
-#include <QMessageBox>
 #include <QAction>
 
 AnalysisInformationWidget::AnalysisInformationWidget(QString ps_id, QWidget* parent)
@@ -72,20 +70,30 @@ void AnalysisInformationWidget::updateGUI()
             if (!file.exists) ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
+				//color build if not matching GSvar build
 				BamReader reader(file.filename);
-				try
-				{
-					GenomeBuild build = reader.build();
-					if (build!=GSvarHelper::build())
-					{
-						ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + buildToString(build) + ")");
-                        ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
-					}
+                BamInfo info = reader.info();
+				if (info.build!="" && info.build!=GSvarHelper::buildAsString())
+                {
+                    ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + info.build + ")");
+                    ui_.table->item(0,1)->setForeground(QBrush(QColor(Qt::red)));
 				}
-				catch(...) {} //do nothing (genome build could not be determined)
+
+				//show mapper
+				ui_.table->setItem(0, 4, GUIHelper::createTableItem(info.mapper + " " + info.mapper_version));
+				//add BAM/CRAM infos as tooltip
+				QString tooltip;
+				tooltip += "file format: " + info.file_format + "\n";
+				QString build = info.build;
+				build += " masked:" + QString(info.false_duplications_masked ? "yes" : "no");
+				build += " alt:" + QString(info.contains_alt_chrs ? "yes" : "no");
+				tooltip += "build: " + build + "\n";
+				tooltip += "paired-end: " + QString(info.paired_end ? "yes" : "no");
+				ui_.table->item(0, 4)->setToolTip(tooltip);
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
-			GUIHelper::resizeTableCellWidths(ui_.table);
+            if (file.exists) ui_.table->setItem(0, 3, GUIHelper::createTableItem(file.modifiedAsString(true)));
+            GUIHelper::resizeTableCellWidths(ui_.table);
 			GUIHelper::resizeTableCellHeightsToFirst(ui_.table);
 
 			//small variants
@@ -185,6 +193,7 @@ void AnalysisInformationWidget::updateGUI()
 				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+            if (file.exists) ui_.table->setItem(0, 3, GUIHelper::createTableItem(file.modifiedAsString(true)));
 
 			//counts
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COUNTS);
@@ -234,6 +243,7 @@ void AnalysisInformationWidget::updateGUI()
 				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+            if (file.exists) ui_.table->setItem(0, 3, GUIHelper::createTableItem(file.modifiedAsString(true)));
 
 			//small variants
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);

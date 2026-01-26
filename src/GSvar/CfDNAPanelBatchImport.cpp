@@ -191,7 +191,8 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	// parse VCF
 	QMap<QString, bool> selected_variants;
 	VcfFile input_file;
-	input_file.load(vcf_file_path, false);
+	input_file.setAllowMultiSample(false);
+	input_file.load(vcf_file_path);
 	for (int i = 0; i < input_file.count(); ++i)
 	{
 		const VcfLine& vcf_line = input_file[i];
@@ -371,7 +372,7 @@ void CfDNAPanelBatchImport::importPanels()
 	if (add_sample_identifier)
 	{
 		// get KASP SNPs
-		QStringList vcf_content = Helper::loadTextFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf", false,QChar::Null, false);
+		QStringList vcf_content = Helper::loadTextFile("://Resources/hg38_KASP_set2.vcf", false,QChar::Null, false);
 		general_sample_ids.fromText(vcf_content.join("\n").toUtf8());
 	}
 

@@ -1,6 +1,5 @@
 #include "FilterCascadeWidget.h"
 #include "FilterEditDialog.h"
-#include "Settings.h"
 #include "GSvarHelper.h"
 #include <QTextDocument>
 #include <QMenu>
@@ -226,7 +225,7 @@ void FilterCascadeWidget::addFilter()
 	//set genome build if the filter contains the parameter
 	if (filter->hasParameter("build", FilterParameterType::STRING))
 	{
-		filter->setString("build", buildToString(GSvarHelper::build()));
+		filter->setString("build", GSvarHelper::buildAsString());
 	}
 
 	//determine if filter should be added

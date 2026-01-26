@@ -2,7 +2,7 @@
 #include "Helper.h"
 #include "NGSD.h"
 #include "GenLabDB.h"
-#include <QTime>
+#include "Settings.h"
 #include <QMetaMethod>
 #include <QScrollBar>
 
@@ -107,7 +107,7 @@ void MaintenanceDialog::deleteUnusedVariants()
 	NGSD db;
 	QSet<QString> ref_tables = tablesReferencing(db, "variant");
 
-    QSet<int> var_ids_pub = LIST_TO_SET(db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'"));
+    QSet<int> var_ids_pub = Helper::listToSet(db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'"));
 
 	foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 	{
@@ -170,7 +170,7 @@ void MaintenanceDialog::importStudySamples()
 	}
 	appendOutputLine("Notice: The following studies are present in GenLab and not in NGSD: " + missing.join(", "));
 
-	//import study samples into NGSD
+	//import
 	foreach(const QString& study, studies_genlab)
 	{
 		if (missing.contains(study)) continue;
@@ -182,7 +182,7 @@ void MaintenanceDialog::importStudySamples()
 
 		//determine processed sample in study
 		QStringList errors;
-        QSet<int> genlab_ps_ids = LIST_TO_SET(genlab.studySamples(study, errors));
+        QSet<int> genlab_ps_ids = Helper::listToSet(genlab.studySamples(study, errors));
 		appendOutputLine("  Processed samples in study according to GenLab: " + QString::number(genlab_ps_ids.count()));
 
 		//add missing processed samples
@@ -201,7 +201,7 @@ void MaintenanceDialog::importStudySamples()
 		appendOutputLine("  Added processed sample to NGSD: " + QString::number(c_added));
 
 		//show samples that are only in study according to NGSD
-        QSet<int> extra_ids = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id='" + study_id + "'"));
+        QSet<int> extra_ids = Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id='" + study_id + "'"));
 		extra_ids.subtract(genlab_ps_ids);
 		if (extra_ids.count()>0)
 		{
@@ -219,8 +219,8 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 {
 	//init
 	NGSD db;
-    QSet<QString> hpo_terms_valid = LIST_TO_SET(db.getValues("SELECT hpo_id FROM hpo_term"));
-    QSet<QString> hpo_terms_obsolete = LIST_TO_SET(db.getValues("SELECT hpo_id FROM hpo_obsolete"));
+    QSet<QString> hpo_terms_valid = Helper::listToSet(db.getValues("SELECT hpo_id FROM hpo_term"));
+    QSet<QString> hpo_terms_obsolete = Helper::listToSet(db.getValues("SELECT hpo_id FROM hpo_obsolete"));
 
 	//process disease info
 	int c_valid = 0;
@@ -240,11 +240,10 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 		}
 		else if (hpo_terms_obsolete.contains(hpo_id)) //try to replace
 		{
-			QVariant replace_term_id = db.getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + hpo_id + "'", false);
-			if(!replace_term_id.isNull()) //replacement term available => replace
+			int replace_term_id = db.phenotypeReplacementByAccession(hpo_id);
+			if(replace_term_id!=-1) //replacement term available => replace
 			{
-				QString replace_term = db.getValue("SELECT hpo_id FROM hpo_term WHERE id='" + replace_term_id.toString() + "'", false).toString().trimmed();
-				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + replace_term + "' WHERE id=" + query.value("id").toByteArray());
+				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + db.phenotype(replace_term_id).accession() + "' WHERE id=" + query.value("id").toByteArray());
 				++c_replaced;
 			}
 			else
@@ -275,19 +274,22 @@ void MaintenanceDialog::replaceObsolteGeneSymbols()
 	fixGeneNames(db, "report_polymorphisms", "symbol");
 	fixGeneNames(db, "somatic_gene_role", "symbol");
 	fixGeneNames(db, "somatic_pathway_gene", "symbol");
-	//TODO Marc/Leon: fixGeneNames(db, "expression_gene", "symbol");
 	fixGeneNames(db, "hpo_genes", "gene");
 	fixGeneNames(db, "omim_gene", "gene");
 	fixGeneNames(db, "omim_preferred_phenotype", "gene");
 	fixGeneNames(db, "disease_gene", "gene");
 	fixGeneNames(db, "report_configuration_other_causal_variant", "gene");
+	fixGeneNames(db, "cspec_data", "gene");
+
+	//cannot be done because the gene names in the RNA reference cohort files differ then
+	//fixGeneNames(db, "expression_gene", "symbol");
 }
 
 void MaintenanceDialog::appendOutputLine(QString line)
 {
 	while(line.endsWith(' ') || line.endsWith('\t') || line.endsWith('\r') || line.endsWith('\n')) line.chop(1);
 
-	if (!line.isEmpty()) line = QDateTime::currentDateTime().toString(Qt::ISODate).replace("T", " ") + "\t" + line;
+	if (!line.isEmpty()) line = Helper::toString(QDateTime::currentDateTime(), ' ') + "\t" + line;
 
 	ui_.output->append(line);
 
@@ -414,7 +416,7 @@ void MaintenanceDialog::importYearOfBirth()
 	int c_imported = 0;
 	int c_not_in_genlab = 0;
 
-	//import study samples from GenLab
+	//import
 	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 	foreach(const QString& ps, ps_list)
 	{
@@ -457,7 +459,7 @@ void MaintenanceDialog::importTissue()
 	int c_imported = 0;
 	int c_not_in_genlab = 0;
 
-	//import study samples from GenLab
+	//import
 	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 	for(int i=0; i<ps_list.count(); ++i)
 	{
@@ -501,7 +503,7 @@ void MaintenanceDialog::importPatientIDs()
 	int c_not_in_genlab = 0;
 	int c_imported = 0;
 
-	//import study samples from GenLab
+	//import
 	SqlQuery query = db.getQuery();
 	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.patient_identifier, s.id as sample_id FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 
@@ -553,7 +555,7 @@ void MaintenanceDialog::importOrderAndSamplingDate()
 	int c_not_in_genlab = 0;
 	int c_imported = 0;
 
-	//import study samples from GenLab
+	//import
 	SqlQuery query = db.getQuery();
 	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, s.id as sample_id, s.order_date, s.sampling_date FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY ps.id ASC");
 
@@ -813,7 +815,7 @@ void MaintenanceDialog::deleteDataOfMergedSamples()
 	//delete QC metrics (except for read count)
 	QString qc_id_read_count = db.getValue("SELECT id FROM qc_terms WHERE qcml_id='QC:2000005'").toString();
 	c_deleted = 0;
-    QSet<int> ps_with_qc = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM processed_sample_qc"));
+    QSet<int> ps_with_qc = Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM processed_sample_qc"));
 	appendOutputLine("Found " + QString::number(ps_with_qc.count()) + " processed samples with QC data.");
 	foreach(int ps_id, ps_merged)
 	{
@@ -831,7 +833,7 @@ void MaintenanceDialog::deleteDataOfMergedSamples()
 
 	//delete KASP data
 	c_deleted = 0;
-    QSet<int> ps_with_kasp = LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM kasp_status"));
+    QSet<int> ps_with_kasp = Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM kasp_status"));
 	appendOutputLine("Found " + QString::number(ps_with_kasp.count()) + " processed samples with KASP data.");
 	foreach(int ps_id, ps_merged)
 	{
@@ -854,7 +856,7 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 	//check for missing tables
 	QStringList tables_p = db_p.tables();
 	QStringList tables_t = db_t.tables();
-    QSet<QString> tables_both = LIST_TO_SET(tables_p).intersect(LIST_TO_SET(tables_t));
+    QSet<QString> tables_both = Helper::listToSet(tables_p).intersect(Helper::listToSet(tables_t));
 	foreach(QString table_p, tables_p)
 	{
 		if (!tables_both.contains(table_p)) appendOutputLine("Missing table in test database: " + table_p);
@@ -873,7 +875,7 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 		//missing/extra columns
 		QStringList fields_p = info_p.fieldNames();
 		QStringList fields_t = info_t.fieldNames();
-        QSet<QString> fields_both = LIST_TO_SET(fields_p).intersect(LIST_TO_SET(fields_t));
+        QSet<QString> fields_both = Helper::listToSet(fields_p).intersect(Helper::listToSet(fields_t));
 		foreach(QString field_p, fields_p)
 		{
 			if (!fields_both.contains(field_p)) appendOutputLine("Missing field in test database: " + table+"/"+field_p);
@@ -886,11 +888,42 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 		//differing type/keys
 		foreach(QString field, fields_both)
 		{
-			if (info_p.fieldInfo(field).toString()!=info_t.fieldInfo(field).toString())
+			const TableFieldInfo& field_p = info_p.fieldInfo(field);
+			const TableFieldInfo& field_t = info_t.fieldInfo(field);
+
+			if (field_p.toString()!=field_t.toString())
 			{
 				appendOutputLine("differing type/key in "+table+"/"+field+" for production/test:");
-				appendOutputLine("  "+info_p.fieldInfo(field).toString());
-				appendOutputLine("  "+info_t.fieldInfo(field).toString());
+				appendOutputLine("  "+field_p.toString());
+				appendOutputLine("  "+field_t.toString());
+			}
+			else if (field_p.type==TableFieldInfo::ENUM)
+			{
+				QStringList values_p = field_p.type_constraints.valid_strings;
+				std::sort(values_p.begin(), values_p.end());
+				QStringList values_t = field_t.type_constraints.valid_strings;
+				std::sort(values_t.begin(), values_t.end());
+				if (values_p!=values_t)
+				{
+					appendOutputLine("differing ENUM values in "+table+"/"+field+" for production/test:");
+					appendOutputLine("  "+field_p.type_constraints.valid_strings.join(", "));
+					appendOutputLine("  "+field_t.type_constraints.valid_strings.join(", "));
+				}
+			}
+			else if (field_p.type==TableFieldInfo::VARCHAR)
+			{
+				if (field_p.type_constraints.max_length!=field_t.type_constraints.max_length)
+				{
+					appendOutputLine("differing VARCHAR max length in "+table+"/"+field+" for production/test:");
+					appendOutputLine("  "+QString::number(field_p.type_constraints.max_length));
+					appendOutputLine("  "+QString::number(field_t.type_constraints.max_length));
+				}
+				if (field_p.type_constraints.regexp.pattern()!=field_t.type_constraints.regexp.pattern())
+				{
+					appendOutputLine("differing VARCHAR regexp in "+table+"/"+field+" for production/test:");
+					appendOutputLine("  "+field_p.type_constraints.regexp.pattern());
+					appendOutputLine("  "+field_t.type_constraints.regexp.pattern());
+				}
 			}
 		}
 
@@ -946,10 +979,10 @@ QSet<int> MaintenanceDialog::psWithVariants(NGSD& db)
 {
 	QSet<int> ps_with_vars;
 
-    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT processed_sample_id FROM detected_variant"));
-    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM cnv_callset"));
-    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM sv_callset"));
-    ps_with_vars += LIST_TO_SET(db.getValuesInt("SELECT processed_sample_id FROM re_callset"));
+    ps_with_vars += Helper::listToSet(db.getValuesInt("SELECT DISTINCT processed_sample_id FROM detected_variant"));
+    ps_with_vars += Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM cnv_callset"));
+    ps_with_vars += Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM sv_callset"));
+    ps_with_vars += Helper::listToSet(db.getValuesInt("SELECT processed_sample_id FROM re_callset"));
 
 	return ps_with_vars;
 }
@@ -958,11 +991,11 @@ void MaintenanceDialog::clearUnusedReportConfigs(NGSD& db)
 {
 	//determine used report configs
 	QSet<int> used_rc_ids;
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_variant"));
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv"));
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_sv"));
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_re"));
-    used_rc_ids += LIST_TO_SET(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_other_causal_variant"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_variant"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_sv"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_re"));
+    used_rc_ids += Helper::listToSet(db.getValuesInt("SELECT DISTINCT report_configuration_id FROM report_configuration_other_causal_variant"));
 
 	//delete unused report configs
 	SqlQuery query = db.getQuery();
@@ -1067,6 +1100,7 @@ void MaintenanceDialog::compareBaseDataOfTestAndProduction()
 	appendOutputLine("transcripts (Ensembl): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE source='Ensembl'"));
 	appendOutputLine("transcripts (CCDS): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE source='CCDS'"));
 	appendOutputLine("transcripts (GenCode basic): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_gencode_basic='1'"));
+	appendOutputLine("transcripts (GenCode primary): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_gencode_primary='1'"));
 	appendOutputLine("transcripts (MANE select): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_mane_select='1'"));
 	appendOutputLine("transcripts (MANE plus clinical): " + compareCount(db_p, db_t, "SELECT count(*) FROM gene_transcript WHERE is_mane_plus_clinical='1'"));
 
@@ -1172,6 +1206,70 @@ void MaintenanceDialog::deleteInvalidVariants()
 	}
 }
 
+void MaintenanceDialog::addMissingGenderForRnaSamples()
+{
+	NGSD db;
+	int count_rna_no_gender = 0;
+	int count_gender_set = 0;
+
+	ProcessedSampleSearchParameters params;
+	params.s_type = "RNA";
+	params.p_type = "diagnostic";
+	DBTable table = db.processedSampleSearch(params);
+	int c_ps = table.columnIndex("name");
+	int c_gender = table.columnIndex("gender");
+	for (int r=0; r<table.rowCount(); ++r)
+	{
+		QString gender = table.row(r).value(c_gender);
+		if (gender!="n/a") continue;
+		++count_rna_no_gender;
+
+		//get related DNA samples
+		QString ps = table.row(r).value(c_ps);
+		int sample_id = db.sampleId(ps).toInt();
+		QSet<int> sample_ids_dna = db.relatedSamples(sample_id, "same sample", "DNA");
+		sample_ids_dna.unite(db.relatedSamples(sample_id, "same patient", "DNA"));
+		if (sample_ids_dna.count()==0)
+		{
+			appendOutputLine(ps + "\tskipped: no DNA samples found");
+			continue;
+		}
+
+		//determine gender from DNA samples
+		QSet<QString> genders;
+		foreach(int s_id, sample_ids_dna)
+		{
+			QString gender = db.getValue("SELECT gender FROM sample WHERE id='" + QString::number(s_id) + "'").toString();
+			if (gender=="n/a") continue;
+
+			genders << gender;
+		}
+		if (genders.count()==0)
+		{
+			appendOutputLine(ps + "\tskipped: no gender in DNA samples");
+			continue;
+		}
+		else if (genders.count()>1)
+		{
+			appendOutputLine(ps + "\tskipped: contradicting gender in DNA samples");
+			continue;
+		}
+
+		//set gender
+		QString gender_dna = *(genders.begin());
+		appendOutputLine(ps + "\tsetting gender '" + gender_dna + "'");
+		db.getQuery().exec("UPDATE sample SET gender='"+gender_dna+"' WHERE id='" + QString::number(sample_id) + "'");
+		++count_gender_set;
+	}
+
+	appendOutputLine("");
+	appendOutputLine("### summary ###");
+	appendOutputLine("diagnostic RNA samples: " + QString::number(table.rowCount()));
+	appendOutputLine("diagnostic RNA samples without gender: " + QString::number(count_rna_no_gender));
+	appendOutputLine("set gender for " + QString::number(count_gender_set) + " samples");
+	appendOutputLine("");
+}
+
 void MaintenanceDialog::updateDescription(QString text)
 {
 	ui_.description->clear();
@@ -1236,5 +1334,9 @@ void MaintenanceDialog::updateDescription(QString text)
 	else if (action=="replaceobsoltegenesymbols")
 	{
 		ui_.description->setText("Replaces outdated gene symbols with current approved symbol if possible.");
+	}
+	else if (action=="addmissinggenderforrnasamples")
+	{
+		ui_.description->setText("Tries to determine missing gender entries of diagnostic RNA samples based on related DNA samples.");
 	}
 }

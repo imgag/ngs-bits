@@ -2,11 +2,9 @@
 #include "VariantType.h"
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
-
-#include <QCheckBox>
+#include "Settings.h"
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QToolTip>
 
 ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 	: QWidget(parent)

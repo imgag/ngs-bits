@@ -37,14 +37,18 @@ The samples of the control cohort should fulfill the following criteria:
 
 ## Selecting genes
 
-The burden test is very time consuming because all variants of a lot of samples need to be queried for the NGSD.  
+The burden test is very time consuming because all variants of a lot of samples need to considered for each gene.   
 Thus, it is not possible to perform the burden test for all genes.  
-Please select not more than 200 genes unless you want to wait for a very long time
+Please select not more than 200 genes unless you want to wait for a very long time.
+
+By default only variants in the exon region +- 20 bases (splice region) are used for the is used for each gene.  
+You can adapt the size of the splice region in the dialog.
+
 
 ## Constrained coding regions (CCR)
 
-Constrained coding regions are conserved areas in the genome in which variant is more likely pathogenic. 
-Source: [A map of constrained coding regions in the human genome](https://www.nature.com/articles/s41588-018-0294-6)
+Constrained coding regions are conserved areas in the genome in which variant is more likely pathogenic.  
+Source: [A map of constrained coding regions in the human genome](https://www.nature.com/articles/s41588-018-0294-6).  
 We use a CCR score of 80 as our lower limit which results in a CCR of approx. 5 Mb. So to use this option you will need a large cohort to significant results.
 
 

@@ -6,18 +6,10 @@
 #include "VersatileFile.h"
 #include "LoginManager.h"
 #include "BedFile.h"
-#include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include <QMenu>
 #include <QMessageBox>
-#include <QTime>
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtCharts/QChartView>
-#else
-#include <QChartView>
-QT_CHARTS_USE_NAMESPACE
-#endif
 
 ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
 										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QWidget* parent):
@@ -74,20 +66,18 @@ void ExpressionExonWidget::loadExpressionFile()
 
 		//load TSV file
 		expression_data_ = TsvFile();
-		QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
 
 		//parse TSV file
 		QSet<QByteArray> imported_lines;
-		while (!expression_data_file->atEnd())
+		VersatileFile expression_data_file(tsv_filename_, false);
+		expression_data_file.open(QFile::ReadOnly | QIODevice::Text);
+		while (!expression_data_file.atEnd())
 		{
-			QString line = expression_data_file->readLine().replace("\n", "").replace("\r", "");
-			if (line == "")
-			{
-				// skip empty lines
-				continue;
-			}
+			QString line = expression_data_file.readLine(true);
+			if (line.isEmpty()) continue;
+
 			//Legacy support for old megSAP file format
-			else if (line.startsWith("#Total library size "))
+			if (line.startsWith("#Total library size "))
 			{
 				//parse special header line
 				expression_data_.addComment("#" + line);

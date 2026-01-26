@@ -1,4 +1,3 @@
-#include <QThread>
 #include "InputWorker.h"
 
 InputWorker::InputWorker(AnalysisJob& job, InputStreams& streams, const TrimmingParameters& params)

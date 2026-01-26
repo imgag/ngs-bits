@@ -44,11 +44,11 @@ public:
 		int provided_s_id = db.sampleId(ps_name).toInt();
 
 		//get filter parameter
-        QSet<QString> filter_sample_types = LIST_TO_SET(getString("sample_type").split(','));
+		QSet<QString> filter_sample_types = Helper::listToSet(getString("sample_type").split(','));
 		filter_sample_types.remove("");
-        QSet<QString> filter_system_types = LIST_TO_SET(getString("system_type").split(','));
+		QSet<QString> filter_system_types = Helper::listToSet(getString("system_type").split(','));
 		filter_system_types.remove("");
-        QSet<QString> filter_systems = LIST_TO_SET(getString("system").split(','));
+		QSet<QString> filter_systems = Helper::listToSet(getString("system").split(','));
 		filter_systems.remove("");
 
 		//validate filter parameters

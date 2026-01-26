@@ -3,11 +3,8 @@
 #include "Helper.h"
 #include <QFile>
 #include <QSharedPointer>
-#include <QThreadPool>
-#include "ChunkProcessor.h"
-#include "OutputWorker.h"
 #include "ThreadCoordinator.h"
-
+#include <htslib/tbx.h>
 
 class ConcreteTool
         : public ToolBase
@@ -42,6 +39,7 @@ public:
 		addInt("block_size", "Number of lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addFlag("debug", "Enables debug output (use only with one thread).");
+		addFlag("hts_version", "Prints used htlib version and exits.");
 
 		changeLog(2024, 5,  6, "Added option to annotate the existence of variants in the source file");
 		changeLog(2022, 7,  8, "Usability: changed parameter names and updated documentation.");
@@ -57,6 +55,14 @@ public:
     {
         //init
 		QTextStream out(stdout);
+
+		//version output
+		if (getFlag("hts_version"))
+		{
+			out << "htslib version: " << hts_version() << "\n";
+			quit();
+			return;
+		}
 
 		//parse parameters
 		Parameters params;
@@ -189,41 +195,44 @@ public:
 		{
 			tmp.append(ids);
 		}
-        QSet<QByteArray> unique_output_ids = LIST_TO_SET(tmp);
+        QSet<QByteArray> unique_output_ids = Helper::listToSet(tmp);
 		if (unique_output_ids.size() < tmp.size())
 		{
 			THROW(FileParseException, "The given output INFO ids contain duplicates!")
 		}
 
 		//write meta data to stdout
-		out << "Input file: \t" << params.in << "\n";
-		out << "Output file: \t" << params.out << "\n";
-		out << "Threads: \t" << params.threads << "\n";
-		out << "Block (Chunk) size: \t" << params.block_size << "\n";
+		if (params.debug)
+		{
+			out << "Input file: \t" << params.in << "\n";
+			out << "Output file: \t" << params.out << "\n";
+			out << "Threads: \t" << params.threads << "\n";
+			out << "Block (Chunk) size: \t" << params.block_size << "\n";
 
-		for(int i = 0; i < meta.annotation_file_list.size(); i++)
-        {
-			out << "Annotation file: " << meta.annotation_file_list[i] << "\n";
-			if (meta.annotate_only_existence[i])
+			for (int i=0; i<meta.annotation_file_list.size(); ++i)
 			{
-				out << "Existence-only annotation, INFO key name:\t" + meta.existence_name_list[i] + "\n";
-			}
-			else
-			{
-				if (meta.id_column_name_list[i] != "")
+				out << "Annotation file: " << meta.annotation_file_list[i] << "\n";
+				if (meta.annotate_only_existence[i])
 				{
-					out << "Id column:\n\t " << meta.id_column_name_list[i].leftJustified(12) << "\t -> \t" << meta.out_id_column_name_list[i] << "\n";
+					out << "Existence-only annotation, INFO key name:\t" + meta.existence_name_list[i] + "\n";
 				}
-				out << "INFO ids:\n";
-				for (int j = 0; j < meta.info_id_list[i].size(); j++)
+				else
 				{
-                    out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << QT_ENDL;
+					if (meta.id_column_name_list[i] != "")
+					{
+						out << "Id column:\n\t " << meta.id_column_name_list[i].leftJustified(12) << "\t -> \t" << meta.out_id_column_name_list[i] << "\n";
+					}
+					out << "INFO ids:\n";
+					for (int j = 0; j < meta.info_id_list[i].size(); j++)
+					{
+						out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << Qt::endl;
+					}
 				}
 			}
 		}
 
 		//create coordinator instance
-        out << "Performing annotation" << QT_ENDL;
+		if (params.debug) out << "Performing annotation" << Qt::endl;
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }

@@ -1,12 +1,13 @@
 #include "IGVSession.h"
 #include "IGVCommandWorker.h"
 #include "ClientHelper.h"
-#include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "Settings.h"
 #include "GlobalServiceProvider.h"
 #include "Background/IGVInitCacheWorker.h"
 #include <QMessageBox>
+#include <IgvDialog.h>
+#include "LoginManager.h"
 
 IGVSession::IGVSession(QWidget* parent, QString igv_name, QString igv_app, QString igv_host, int igv_port, QString genome)
 	: parent_(parent)

@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2024_08-113-g94a3b440)
+	SvFilterAnnotations (2025_09-112-ga53ff6f3d)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -33,6 +33,9 @@
 	                            Note: this filter should only be used for whole genome samples.
 	                            Parameters:
 	                              max_af - Maximum allele frequency in % [default=1] [min=0.0] [max=200.0]
+	SV annotated pathogenic     Filter variants that are already annotated to be pathogenic in NGSD..
+	                            Parameters:
+	                              action - Action to perform [default=FILTER] [valid=FILTER,KEEP]
 	SV break point density NGSD Filter based on the density of SV break points in the NGSD in the CI of the structural variant.
 	                            Parameters:
 	                              max_density - Maximum density in the confidence interval of the SV [default=20] [min=0]
@@ -40,7 +43,7 @@
 	                              only_system_specific - Filter only based on the density of breakpoint of the current processing system. [default=false]
 	SV compound-heterozygous    Filter for compound-heterozygous SVs.
 	                            Mode 'SV-SV' detects genes with two or more SV hits.
-	                            Mode 'SV-SNV/INDEL' detectes genes with exactly one SV and exactly one small variant hit (after other filters are applied).
+	                            Mode 'SV-SNV/INDEL' detects genes with at least one SV and at least one small variant hit (after other filters are applied).
 	                            Parameters:
 	                              mode - Compound-heterozygotes detection mode. [default=n/a] [valid=n/a,SV-SV,SV-SNV/INDEL]
 	SV count NGSD               Filter based on the hom/het occurances of a structural variant in the NGSD.
@@ -118,7 +121,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2024_08-113-g94a3b440
+	SvFilterAnnotations 2025_09-112-ga53ff6f3d
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

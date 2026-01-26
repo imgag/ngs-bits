@@ -2,7 +2,6 @@
 #define CHAINFILEREADER_H
 
 #include "cppNGS_global.h"
-#include "VersatileFile.h"
 #include "BedFile.h"
 
 
@@ -112,11 +111,9 @@ private:
 
 	//parse file and generate genomicAlignments
 	void load();
-	QList<QByteArray> getLines();
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 
 	QString filepath_;
-    QSharedPointer<VersatileFile> file_;
 	double percent_deletion_;
 
 	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_;

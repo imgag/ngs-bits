@@ -4,100 +4,124 @@ This manual assumes you have already retrieved a local copy of the [github respo
 
 ## Dependencies
 
+### Install Qt
+
 First, we need to install Qt and some basic dependencies:
 
-* Download and install [Qt 5.12.12](https://download.qt.io/archive/qt/5.12/5.12.12/) to the default location.  
-  Make sure to install `MinGW 7.3.0 64 bit`, `Qt Charts` and `Sources` from the `Qt 5.12.12` components as well. 
-* Download and install [Git](https://git-scm.com/download/win).  
-  It is needed to extract the repository version during the build process.  
-* **Optional:** To create plots in qcML files, install [WinPython](http://winpython.github.io/) and add the python directory to the PATH (it is inside the WinPython directory).
+* Download and launch [Qt online installer](https://www.qt.io/download-qt-installer-oss). The online installer requires to have a Qt Account: you can create it free of charge [here](https://login.qt.io/login).
+* During the installation you will need to login with your Qt credentials:
+![Qt login form](qt-installer-account.png)
+* The installer will also ask if you belong to an organization (as an individual developer, you may leave this field empty): ![Your organization](qt-installer-organization.png)
+* Select the `Custom installation`:
+![Custom Qt installation](qt-installer-custom.png)
+* Choose Qt 6.8.3 (select all components, since we will need them, especially the source code), build tools (MinGW 13.1.0 , CMake, Ninja, OpenSSL), Qt Creator (all components):
 
-### htslib
+  ![Selection Qt components](qt-installer-components.png)
+* The installation may take a while, its total duration mainly depends on your internet connection speed, since the installer downloads everything from the server (about 7GB).
+
+### Unpack htslib
 
 [htslib](https://github.com/samtools/htslib) is a third-party library that provides functionality for NGS data formats like BAM or VCF.
 
-We have pre-built `htslib 1.16.1` for Windows and it can be found inside the repository at `ngs-bits\htslib\htslib_win_64.zip`. Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
+We have pre-built `htslib` for Windows. The corresponding ZIP archive can be found in `ngs-bits\htslib\`.  
+Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 
-If you want to use a different version, e.g. when testing the latest version of htslib, there is a [manual on how to build htslib](build_htslib.md#windows) available.
+### Unpack libxml2
 
-### libxml2
-[libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2_win_64.zip` into `ngs-bits\`. Qt Creator will detect the library files and headers while compiling GSvar.
+[libxml2](https://github.com/GNOME/libxml2) is a library that allows to validate XML against a schema file. Unzip `ngs-bits\libxml2\libxml2_win_64.zip`. Qt Creator will detect the library files and headers while compiling ngs-bits and GSvar.
 
+### Build SQL plugin for Qt
 
-### MySQL driver
+The Qt distribution no longer contains a MySQL plugin, so we need to build it manually:
 
-The Qt distribution does not contains the MySQL driver.  
-Thus, we need to install it manually:
+* Download [MariaDB Connector C 64-bit](https://downloads.mariadb.com/Connectors/c/connector-c-3.4.7/mariadb-connector-c-3.4.7-win64.msi).
+* Run the installer and choose the `Complete` setup type.
 
-* Download the ZIP file of [MySQL Community Server 8.0.31](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\.  
-* Copy C:\Qt\mysql-8.0.31-winx64\lib\libmysql.dll to `ngs-bits\bin`
+Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html) on how to build the plugin. You may consult their page, if you encounter any issues.  
+We have summarized the tutorial, here:
 
-### MySQL plugin for Qt
+In the main Windows menu search, type `mingw` and open `Qt 6.8.3 (MinGW 13.1.0 64-bit)` terminal window.
+![MinGW terminal](mingw-terminal.png)
 
-The Qt distribution no longer contains a MySQL plugin.
+Assuiming you have installed Qt 6.8.3 into C:\Qt folder, run the following commands to build the database plugin (run them in `MinGW` terminal, not in the standard Windows CMD or PowerShell terminals):
+	
+	> cd C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers
+	> set PATH=C:\Qt\Tools\CMake_64\bin;%PATH%
+	> set PATH=C:\Qt\Tools\Ninja;%PATH%
+	> mkdir build-sqldrivers
+	> cd build-sqldrivers
+	> qt-cmake -G Ninja C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers -DMySQL_INCLUDE_DIR="C:\PROGRA~1\MariaDB\MARIAD~1\include" -DMySQL_LIBRARY="C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.lib" -DCMAKE_INSTALL_PREFIX="C:\Qt\mariadb_plugin"
+	> cmake --build .
+	> cmake --install .
+	> copy C:\Qt\mariadb_plugin\plugins\sqldrivers\qsqlmysql.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+	> copy C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
 
-Based on the [official instructions](https://doc.qt.io/qt-5/sql-driver.html#how-to-build-the-qmysql-plugin-on-windows), we have created these updated short instructions:
+Upon succesfull completion, `qsqlmysql.dll` and `libmariadb.dll` sould be located in `C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\`.
 
-* Open a Windows CMD window.
-* Add the Qt paths to the PATH: *set PATH=C:\Qt\Qt5.12.12\5.12.12\mingw73_64\bin\;C:\Qt\Qt5.12.12\Tools\mingw730_64\bin\;%PATH%*
-* Navigate to `C:\Qt\Qt5.12.12\5.12.12\Src\qtbase\src\plugins\sqldrivers\`.
-* Execute `qmake -- MYSQL_INCDIR="C:\Qt\mysql-8.0.31-winx64\include" MYSQL_LIBDIR="C:\Qt\mysql-8.0.31-winx64\lib"`
-* Execute `mingw32-make sub-mysql`
-* Execute `mingw32-make sub-mysql-install_subtargets`
+### Install Git
 
-## Build
+Download and install [Git](https://git-scm.com/download/win).  
+It is needed to extract the repository version during the build process.
 
-We can now build ngs-bits:
+### Install python
+
+To create plots in qcML files, install the portable version of [WinPython](https://github.com/winpython/winpython/releases/download/16.6.20250620final/Winpython64-3.13.5.0whl.7z) and add the directory containing the `python.exe` to the PATH.
+
+You have to install `maplotlib` in case it is not found:
+
+	> python.exe -m pip install matplotlib
+
+This is optional. If python is not installed, no plots are generated.
+
+## Build ngs-bits and GSvar
+
+we can now build ngs-bits:
 
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`. Make sure to build in release mode!  
 * Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`. Make sure to build in release mode!  
 
-*Attention: Make sure to compile the [CRYPT_KEY](../GSvar/encrypt_settings.md) into the GSvar binary when using it in client-server mode. The CRYPT_KEY is used for a handshake between client and server.*
+*Attention: Make sure to compile the [CRYPT_KEY](GSvar/encrypt_settings.md) into the GSvar binary when using it in client-server mode. The CRYPT_KEY is used for encrypting settings and for a handshake between client and server.*
 
 Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.  
 To use GSvar, it needs to be [configured](GSvar/configuration.md) first.
 
-## Making the ngs-bits tools portable
 
-To make the tools executable outside *QtCreator* and portable, you have to copy some files/folders into the `bin` folder:
+## Making the ngs-bits tools and GSvar portable
 
-<table>
-	<tr>
-		<td><b>from path</b></td>
-		<td><b>copy</b></td>
-	</tr>
-	<tr>
-		<td>ngs-bits\htslib\lib\</td>
-		<td>
-		.*.
-		</td>
-	</tr>
-	<tr>
-		<td>ngs-bits\libxml2\libs\</td>
-		<td>
-		*.*
-		</td>
-	</tr>
-	<tr>
-		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\bin\</td>
-		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Svg.dll, Qt5Widgets.dll, Qt5Xml.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
-	</tr>
-	<tr>
-		<td>C:\Qt\Qt5.12.12\5.12.12\mingw73_64\plugins\</td>
-		<td>platforms, sqldrivers, printsupport, imageformats, bearer, iconengines, styles</td>
-	</tr>
-	<tr>
-		<td>C:\Qt\Qt5.12.12\Tools\mingw730_64\opt\bin\</td>
-		<td>ssleay32.dll, libeay32.dll, libgcc_s_seh-1.dll</td>
-	</tr>
-	<tr>
-		<td>C:\Qt\mysql-8.0.31-winx64\lib\</td>
-		<td>libmysql.dll</td>
-	</tr>
-</table>
+To make the ngs-bits tools and GSvar executable outside *QtCreator* and portable, we provide a PHP script.
+
+If you do not have PHP installed, download the [zip](https://downloads.php.net/~windows/releases/archives/php-8.4.15-Win32-vs17-x64.zip) to `C:\PHP\` and unzip it.
+
+Now you can open a `CMD` terminal and execute the following commands:
+
+	> cd ngs-bits/tools/
+	> C:\PHP\php.exe deploy.php 
+
+After running the script, the portable executables are located in `ngs-bits/tools/deploy/`.
+
+*Attention: The script assumes that you have installed all software accoring to the documentation above. If you have installed different versions or changed the installations paths, you may have to adapt the script!*
+
+## FAQ
+
+### I get TLS errors when connecting to a SQL database
+
+The SQL database connection requires certificate authorities to validate the database server certificates.  
+If the operating system has not been configured to provide the certificate authorities, you may have to do so manually.
+
+For example, if the GSvar server is running on AWS, the `GSvar` client needs a `*.pem` file (e.g. `eu-central-1-bundle.pem`). Please visit the official [AWS RDS documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html) for more inforamtion.
+
+To manually add a the certificate authorities file, set the `db_ssl_ca` parameter in [GSvar settings] to your config and set its value to the CA bundle file path, for example `C:\\eu-central-1-bundle.pem`. Incorrect CA configuration will lead to TLS errors while connecting to the database server.
+
+More information about the database configuration, including SSL/TSL configuration, can be found [here](install_ngsd.md)
+
+### GSvar shows error messages when reading BAM/CRAM files
+
+All interactions with BAM/CRAM files are handled through `htslib` (visit [the official git repository](https://github.com/samtools/htslib) for more details), which uses `libcurl` to access files over HTTPS. `htslib` checks if HTTPS connections are secure by validating SSL certificates. Whenever somthing goes wrong during these checks, `htslib` fails to read BAM/CRAM files. It is worth checking `curl_ca_bundle` config parameter, which (if exist) provides information about certificate authorities needed for the SSL certificate validation. If your operating system does not have this information, you will have to set this parameter manually: it should contain CA bundle specific for your `GSvarServer` SSL certificate (see [this page](GSvarServer/index.md), if you need to deploy your own server).
+
+### After serveral hours of not using GSvar, it cannot load any files.
+
+For each file GSvarServer creates a temporary URL. When not used for a specific time period (depends on your server settings, but usually it is limited to several hours), URL expires, and becomes invalid. If it happens, you just need to reopen a sample.
 
 ## Integration with IGV
 
-For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
-
-
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar/igv_integration.md).

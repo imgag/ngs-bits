@@ -118,63 +118,37 @@ int FastqEntry::trimN(int num_n)
 
 FastqFileStream::FastqFileStream(QString filename, bool auto_validate, bool long_read)
 	: filename_(filename)
-	, gzfile_(NULL)
-	, buffer_(0)
-    , is_first_entry_(true)
-    , last_output_(NULL)
-    , entry_index_(-1)
-    , auto_validate_(auto_validate)
+	, gzfile_(filename)
+	, auto_validate_(auto_validate)
 	, long_read_(long_read)
 {
-    gzfile_ = gzopen(filename.toUtf8().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-    if (gzfile_ == NULL)
-    {
-		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-    }
-
-	buffer_size_ =  ((long_read_)?8388608:1024);
-
-	gzbuffer(gzfile_, 128*buffer_size_);
-
-	buffer_ = new char[buffer_size_];
+	int buffer_size = long_read_ ? 8388608 : 1024;
+	gzfile_.setGzBufferSize(buffer_size);
+	gzfile_.setGzBufferSizeInternal(128 * buffer_size);
+	gzfile_.open();
 }
 
 FastqFileStream::~FastqFileStream()
 {
-    gzclose(gzfile_);
-	delete[] buffer_;
 }
 
 void FastqFileStream::readEntry(FastqEntry& entry)
 {
-    //special cases handling
-    if (is_first_entry_)
-    {
-		last_output_ = gzgets(gzfile_, buffer_, buffer_size_);
-        is_first_entry_ = false;
-    }
-
-	//handle errors like truncated GZ file
-	if (last_output_==nullptr)
+	//special cases handling
+	if (is_first_entry_)
 	{
-		int error_no = Z_OK;
-		QByteArray error_message = gzerror(gzfile_, &error_no);
-		if (error_no==Z_OK || error_no==Z_STREAM_END)
-		{
-			entry.clear();
-			return;
-		}
-		else
-		{
-			THROW(FileParseException, "Error while reading file '" + filename_ + "': " + error_message);
-		}
+		last_output_ = gzfile_.readLine(true);
+		is_first_entry_ = false;
 	}
 
 	//read data
-	extractLine(entry.header);
-	extractLine(entry.bases);
-	extractLine(entry.header2);
-	extractLine(entry.qualities);
+	entry.header = last_output_;
+	entry.bases = gzfile_.readLine(true);
+	entry.header2 = gzfile_.readLine(true);
+	entry.qualities = gzfile_.readLine(true);
+	last_output_ = gzfile_.readLine(true);
+
+	if (entry.header.isEmpty() && entry.header.isEmpty() && entry.header.isEmpty() && entry.header.isEmpty()) return;
 
     //increase index.
     ++entry_index_;
@@ -182,26 +156,6 @@ void FastqFileStream::readEntry(FastqEntry& entry)
     //validate
 	if (auto_validate_) entry.validate(long_read_);
 }
-
-void FastqFileStream::extractLine(QByteArray& line)
-{
-	line = QByteArray(buffer_);
-	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
-
-	last_output_ = gzgets(gzfile_, buffer_, buffer_size_);
-
-	//handle errors like truncated GZ file
-	if (last_output_==nullptr)
-	{
-		int error_no = Z_OK;
-		QByteArray error_message = gzerror(gzfile_, &error_no);
-		if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-		{
-			THROW(FileParseException, "Error while reading file '" + filename_ + "': " + error_message);
-		}
-	}
-}
-
 
 FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level, int compression_strategy)
 	: filename_(filename)

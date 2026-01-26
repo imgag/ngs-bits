@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2024_08-110-g317f43b9)
+	NGSDExportSamples (2025_12-49-gdb0c5d35)
 	
 	Lists processed samples from the NGSD.
 	
@@ -15,6 +15,8 @@
 	  -no_normal                 If set, germline samples are excluded.
 	                             Default value: 'false'
 	  -no_ffpe                   If set, FFPE samples are excluded.
+	                             Default value: 'false'
+	  -no_resequencing           If set, samples that are scheduled for resequencing are excluded.
 	                             Default value: 'false'
 	  -match_external_names      If set, also samples for which the external name matches 'sample' are exported.
 	                             Default value: 'false'
@@ -60,6 +62,8 @@
 	                             Default value: ''
 	  -no_bad_runs               If set, sequencing runs with 'bad' quality are excluded.
 	                             Default value: 'false'
+	  -ps_override <string>      Processed sample list separated by colon, e.g. 'NA12878_58;NA24385_03', or a file containing one processed sample per line.
+	                             Default value: ''
 	  -add_qc                    If set, QC columns are added to output.
 	                             Default value: 'false'
 	  -add_outcome               If set, diagnostic outcome columns are added to output.
@@ -85,6 +89,9 @@
 	                             Default value: 'false'
 	  -test                      Uses the test database instead of on the production database.
 	                             Default value: 'false'
+	  -preset <enum>             Presets for different common searches. Note: presets are applied after argument parsing and thus override command line argument.
+	                             Default value: 'none'
+	                             Valid: 'none,germline'
 	
 	Special parameters:
 	  --help                     Shows this help and exits.
@@ -94,8 +101,10 @@
 	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2024_08-110-g317f43b9
+	NGSDExportSamples 2025_12-49-gdb0c5d35
 	
+	2025-12-12 Added 'ps_override' parameter.
+	2025-05-19 Added 'preset' and 'no_resequencing' parameters.
 	2024-08-21 Added 'add_study_column' flag.
 	2024-04-24 Added 'only_with_small_variants' flag.
 	2024-03-04 Added 'add_lab_columns' flag.

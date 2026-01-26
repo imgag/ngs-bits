@@ -5,7 +5,7 @@ QT += sql
 
 QTPLUGIN += QSQLMYSQL
 
-CONFIG += c++11 console
+CONFIG += console
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -24,9 +24,12 @@ SVN_VER= \\\"$$system(cd .. && git describe --tags)\\\"
 DEFINES += "SERVER_VERSION=$$SVN_VER"
 
 SOURCES += \
+        BlatInitWorker.cpp \
+        QueuingEngineController.cpp \
+        QueuingEngineControllerSge.cpp \
+        QueuingEngineControllerSlurm.cpp \
         ServerController.cpp \
         ServerWrapper.cpp \
-        SgeStatusUpdateWorker.cpp \
         main.cpp
 
 # Default rules for deployment.
@@ -35,19 +38,22 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    BlatInitWorker.h \
+    QueuingEngineController.h \
+    QueuingEngineControllerSge.h \
+    QueuingEngineControllerSlurm.h \
     ServerController.h \
-    ServerWrapper.h \
-    SgeStatusUpdateWorker.h
+    ServerWrapper.h
 
 include("../app_cli.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
-LIBS += -L$$PWD/../bin -lcppNGSD
+LIBS += -L$$PWD/../../bin -lcppNGSD
 
 #include REST library
 INCLUDEPATH += $$PWD/../cppREST
-LIBS += -L$$PWD/../bin -lcppREST
+LIBS += -L$$PWD/../../bin -lcppREST
 
 RESOURCES += \
     GSvarServer.qrc

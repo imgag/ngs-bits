@@ -1,178 +1,180 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2013-08-03T23:23:16
-#
-#-------------------------------------------------
-
-QT       -= gui
-QT       += sql
-
-CONFIG   += console
-CONFIG   -= app_bundle
-
-TEMPLATE = app
-
-#include zlib library
-LIBS += -lz
-
-#include cppTFW library
-INCLUDEPATH += $$PWD/../cppTFW
+include("../test.pri")
 
 #include cppNGSD library
+INCLUDEPATH += $$PWD/../cppNGS
+LIBS += -L$$PWD/../../bin -lcppNGS
+
+#include cppNGSD library
+QT       += sql
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../../bin -lcppNGSD
 
+#include htslib library
+INCLUDEPATH += $$PWD/../../htslib/include/
+LIBS += -L$$PWD/../../htslib/lib/ -lhts
+
+#include libxml2
+win32: INCLUDEPATH += $$PWD/../../libxml2/include/
+win32: LIBS += -L$$PWD/../../libxml2/libs/ -lxml2
+unix: INCLUDEPATH += $$system(pkg-config --cflags libxml-2.0)
+unix: !macx: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
+unix: LIBS += -lxml2
+
+#special treatment for VcfToBedpe
 INCLUDEPATH += $$PWD/../VcfToBedpe
 
-
-HEADERS += NGSDAddVariantsSomatic_Test.h \
-    BamRemoveVariants_Test.h \
-    CnvReferenceCohort_Test.h \
-    BedpeAnnotateBreakpointDensity_Test.h \
-    NGSDExportGff_Test.h \
-    FastqCheckUMI.h \
-    BedpeExtractGenotype_Test.h \
-    BedpeExtractInfoField_Test.h \
-    NGSDExportIgvGeneTrack_Test.h \
-    NGSDSameSample.h \
-    SampleAncestry_Test.h \
-    SnifflesVcfFix.h \
-    SvFilterAnnotations_Test.h \
-    UpdHunter_Test.h \
-    NGSDImportQC_Test.h \
-    NGSDExportGenes_Test.h \
-    BedAnnotateGenes_Test.h \
-    BedAnnotateGC_Test.h \
-    BedCoverage_Test.h \
-    BedHighCoverage_Test.h \
-    BedLowCoverage_Test.h \
-    BedMerge_Test.h \
-    BedInfo_Test.h \
-    BedExtend_Test.h \
-    BedSort_Test.h \
-    BedSubtract_Test.h \
-    BedShrink_Test.h \
-    SampleGender_Test.h \
-    FastaInfo_Test.h \
-    FastaMask_Test.h \
-    BedIntersect_Test.h \
-    SampleSimilarity_Test.h \
-    GenesToApproved_Test.h \
-    BedAnnotateFreq_Test.h \
-    GenesToBed_Test.h \
-    VariantAnnotateFrequency_Test.h \
-    VariantQC_Test.h \
-    MappingQC_Test.h \
-    FastqList_Test.h \
-    FastqExtract_Test.h \
-    FastqFormat_Test.h \
-    ReadQC_Test.h \
-    BedToFasta_Test.h \
-    VariantFilterRegions_Test.h \
-    FastqMidParser_Test.h \
-    FastqTrim_Test.h \
-    FastqConvert_Test.h \
-    BedGeneOverlap_Test.h \
-    SeqPurge_Test.h \
-    VcfStrip_Test.h \
-    VcfToTsv_Test.h \
-    BedChunk_Test.h \
-    VcfSort_Test.h \
-    NGSDExportSamples_Test.h \
-    TsvInfo_Test.h \
-    TsvSlice_Test.h \
-    TsvFilter_Test.h \
-    FastqToFasta_Test.h \
-    BamCleanHaloplex_Test.h \
-    BedAdd_Test.h \
-    NGSDImportHGNC_Test.h \
-    NGSDImportEnsembl_Test.h \
-    BamDownsample_Test.h \
-    BedReadCount_Test.h \
-    NGSDImportHPO_Test.h \
-    BamClipOverlap_Test.h \
-    FastqExtractBarcode_Test.h \
-    BamToFastq_Test.h \
-    VariantFilterAnnotations_Test.h \
-    VcfLeftNormalize_Test.h \
-    VcfStreamSort_Test.h \
-    NGSDInit_Test.h \
-    SomaticQC_Test.h \
-    NGSDImportGeneInfo_Test.h \
-    VcfAnnotateFromBed_Test.h \
-    TsvMerge_Test.h \
-    BedAnnotateFromBed_Test.h \
-    RohHunter_Test.h \
-    FastqExtractUMI_Test.h \
-    FastqAddBarcode_Test.h \
-    BamFilter_Test.h \
-    VcfCheck_Test.h \
-    VcfBreakMulti_Test.h \
-    VcfFilter_Test.h \
-    NGSDImportOMIM_Test.h \
-    VcfExtractSamples_Test.h \
-    FastqConcat_Test.h \
-    VcfToBedpe_Test.h \
-    NGSDImportORPHA_Test.h \
-    NGSDAddVariantsGermline_Test.h \
-    NGSDExportAnnotationData_Test.h \
-    VcfAnnotateFromVcf_Test.h \
-    NGSDExportCnvTrack_Test.h \
-    CnvGeneAnnotation_Test.h \
-    BedpeGeneAnnotation_Test.h \
-    BedpeAnnotateFromBed_Test.h \
-    NGSDAnnotateSV_Test.h \
-    NGSDAnnotateCNV_Test.h \
-    BedpeToBed_Test.h \
-    PhenotypesToGenes_Test.h \
-    CnvFilterAnnotations_Test.h \
-    PhenotypeSubtree_Test.h \
-    BedpeFilter_Test.h \
-    BedpeAnnotateCnvOverlap_Test.h \
-    TrioMaternalContamination_Test.h \
-    FastqDownsample_Test.h \
-    VcfCalculatePRS_Test.h \
-    VariantAnnotateASE_Test.h \
-    SplicingToBed_Test.h \
-    GraphStringDb_Test.h \
-    GenePrioritization_Test.h \
-    CfDnaQC_Test.h \
-    VcfAnnotateFromBigWig_Test.h \
-    BedLiftOver_Test.h \
-    BedpeSort_Test.h \
-    NGSDExportSV_Test.h \
-    BedpeAnnotateCounts_Test.h \
-    VcfAnnotateConsequence_Test.h \
-    HgvsToVcf_Test.h\
-    RnaQC_Test.h \
-    VcfAnnotateHexplorer_Test.h \
-    VcfAnnotateMaxEntScan_Test.h \
-    NGSDAnnotateRNA_Test.h \
-    NGSDAnnotateGeneExpression.h \
-    NGSDImportExpressionData_Test.h \
-    NGSDExtractRNACohort_Test.h \
-    VcfToBed_Test.h \
-    TsvToQC_Test.h \
-    VcfAdd_Test.h \
-    NGSDImportGenlab_Test.h \
-    NGSDExportStudyGHGA_Test.h \
-    VcfSubtract_Test.h \
-    TranscriptsToBed_Test.h \
-    GenesToTranscripts_Test.h \
-    TranscriptComparison_Test.h \
-    NGSDImportSampleQC_Test.h \
-    SamplePath_Test.h \
-    BamExtract_Test.h \
-    VcfSplit_Test.h \
-    VcfMerge_Test.h \
-    ExtractMethylationData_Test.h \
-    NGSDAddVariantsRNA_Test.h \
-    TsvDiff_Test.h \
-    QcToTsv_Test.h \
-    TrioMendelianErrors_Test.h \
-    MantaVcfFix_Test.h
-
 SOURCES += \
+    BedToEpigen_Test.cpp \
+    NGSDAddVariantsSomatic_Test.cpp \
+    BamInfo_Test.cpp \
+    BamRemoveVariants_Test.cpp \
+    CnvReferenceCohort_Test.cpp \
+    BedpeAnnotateBreakpointDensity_Test.cpp \
+    NGSDExportGff_Test.cpp \
+    FastqCheckUMI_Test.cpp \
+    BedpeExtractGenotype_Test.cpp \
+    BedpeExtractInfoField_Test.cpp \
+    NGSDExportIgvGeneTrack_Test.cpp \
+    NGSDSameSample_Test.cpp \
+    SampleAncestry_Test.cpp \
+    SnifflesVcfFix_Test.cpp \
+    SvFilterAnnotations_Test.cpp \
+    UpdHunter_Test.cpp \
+    NGSDImportQC_Test.cpp \
+    NGSDExportGenes_Test.cpp \
+    BedAnnotateGenes_Test.cpp \
+    BedAnnotateGC_Test.cpp \
+    BedCoverage_Test.cpp \
+    BedHighCoverage_Test.cpp \
+    BedLowCoverage_Test.cpp \
+    BedMerge_Test.cpp \
+    BedInfo_Test.cpp \
+    BedExtend_Test.cpp \
+    BedSort_Test.cpp \
+    BedSubtract_Test.cpp \
+    BedShrink_Test.cpp \
+    SampleGender_Test.cpp \
+    FastaInfo_Test.cpp \
+    FastaMask_Test.cpp \
+    BedIntersect_Test.cpp \
+    SampleSimilarity_Test.cpp \
+    GenesToApproved_Test.cpp \
+    BedAnnotateFreq_Test.cpp \
+    GenesToBed_Test.cpp \
+    VariantAnnotateFrequency_Test.cpp \
+    VcfAnnotateFrequency_Test.cpp \
+    VariantQC_Test.cpp \
+    MappingQC_Test.cpp \
+    FastqList_Test.cpp \
+    FastqExtract_Test.cpp \
+    FastqFormat_Test.cpp \
+    ReadQC_Test.cpp \
+    BedToFasta_Test.cpp \
+    VariantFilterRegions_Test.cpp \
+    FastqMidParser_Test.cpp \
+    FastqTrim_Test.cpp \
+    FastqConvert_Test.cpp \
+    BedGeneOverlap_Test.cpp \
+    SeqPurge_Test.cpp \
+    VcfStrip_Test.cpp \
+    VcfToTsv_Test.cpp \
+    BedChunk_Test.cpp \
+    VcfSort_Test.cpp \
+    NGSDExportSamples_Test.cpp \
+    TsvInfo_Test.cpp \
+    TsvSlice_Test.cpp \
+    TsvFilter_Test.cpp \
+    FastqToFasta_Test.cpp \
+    BamCleanHaloplex_Test.cpp \
+    BedAdd_Test.cpp \
+    NGSDImportHGNC_Test.cpp \
+    NGSDImportEnsembl_Test.cpp \
+    BamDownsample_Test.cpp \
+    BedReadCount_Test.cpp \
+    NGSDImportHPO_Test.cpp \
+    BamClipOverlap_Test.cpp \
+    FastqExtractBarcode_Test.cpp \
+    BamToFastq_Test.cpp \
+    VariantFilterAnnotations_Test.cpp \
+    VcfLeftNormalize_Test.cpp \
+    VcfStreamSort_Test.cpp \
+    NGSDInit_Test.cpp \
+    SomaticQC_Test.cpp \
+    NGSDImportGeneInfo_Test.cpp \
+    VcfAnnotateFromBed_Test.cpp \
+    TsvMerge_Test.cpp \
+    BedAnnotateFromBed_Test.cpp \
+    RohHunter_Test.cpp \
+    FastqExtractUMI_Test.cpp \
+    FastqAddBarcode_Test.cpp \
+    BamFilter_Test.cpp \
+    VcfCheck_Test.cpp \
+    VcfBreakMulti_Test.cpp \
+    VcfFilter_Test.cpp \
+    NGSDImportOMIM_Test.cpp \
+    VcfExtractSamples_Test.cpp \
+    FastqConcat_Test.cpp \
+    VcfToBedpe_Test.cpp \
+    NGSDImportORPHA_Test.cpp \
+    NGSDAddVariantsGermline_Test.cpp \
+    NGSDExportAnnotationData_Test.cpp \
+    VcfAnnotateFromVcf_Test.cpp \
+    NGSDExportCnvTrack_Test.cpp \
+    CnvGeneAnnotation_Test.cpp \
+    BedpeGeneAnnotation_Test.cpp \
+    BedpeAnnotateFromBed_Test.cpp \
+    NGSDAnnotateSV_Test.cpp \
+    NGSDAnnotateCNV_Test.cpp \
+    BedpeToBed_Test.cpp \
+    PhenotypesToGenes_Test.cpp \
+    CnvFilterAnnotations_Test.cpp \
+    PhenotypeSubtree_Test.cpp \
+    BedpeFilter_Test.cpp \
+    BedpeAnnotateCnvOverlap_Test.cpp \
+    TrioMaternalContamination_Test.cpp \
+    FastqDownsample_Test.cpp \
+    VcfCalculatePRS_Test.cpp \
+    VariantAnnotateASE_Test.cpp \
+    SplicingToBed_Test.cpp \
+    GraphStringDb_Test.cpp \
+    GenePrioritization_Test.cpp \
+    CfDnaQC_Test.cpp \
+    VcfAnnotateFromBigWig_Test.cpp \
+    BedLiftOver_Test.cpp \
+    BedpeSort_Test.cpp \
+    NGSDExportSV_Test.cpp \
+    BedpeAnnotateCounts_Test.cpp \
+    VcfAnnotateConsequence_Test.cpp \
+    HgvsToVcf_Test.cpp \
+    RnaQC_Test.cpp \
+    VcfAnnotateHexplorer_Test.cpp \
+    VcfAnnotateMaxEntScan_Test.cpp \
+    NGSDAnnotateRNA_Test.cpp \
+    NGSDAnnotateGeneExpression_Test.cpp \
+    NGSDImportExpressionData_Test.cpp \
+    NGSDExtractRNACohort_Test.cpp \
+    VcfToBed_Test.cpp \
+    TsvToQC_Test.cpp \
+    TsvTo_Test.cpp \
+    VcfAdd_Test.cpp \
+    NGSDImportGenlab_Test.cpp \
+    NGSDExportStudyGHGA_Test.cpp \
+    VcfSubtract_Test.cpp \
+    TranscriptsToBed_Test.cpp \
+    GenesToTranscripts_Test.cpp \
+    TranscriptComparison_Test.cpp \
+    NGSDImportSampleQC_Test.cpp \
+    SamplePath_Test.cpp \
+    BamExtract_Test.cpp \
+    VcfSplit_Test.cpp \
+    ExtractMethylationData_Test.cpp \
+    TsvDiff_Test.cpp \
+    QcToTsv_Test.cpp \
+    TrioMendelianErrors_Test.cpp \
+    MantaVcfFix_Test.cpp \
+    VcfReplaceSamples_Test.cpp \
+    GenlabInfo_Test.cpp \
+    NGSDImportCSpec_Test.cpp \
+    TsvAnnotate_Test.cpp \
+    NGSDImportOncotree_Test.cpp \
     main.cpp
-
-include("../app_cli.pri")

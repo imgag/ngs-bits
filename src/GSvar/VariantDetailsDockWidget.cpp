@@ -10,20 +10,18 @@
 #include <QMenu>
 #include "Settings.h"
 #include "NGSD.h"
-#include "Log.h"
-#include "HttpHandler.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include <QHeaderView>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::VariantDetailsDockWidget)
 {
 	ui->setupUi(this);
+	ui->gene->setMaximumHeight(ui->gene->fontMetrics().height());
 
 	//signals + slots
 	connect(ui->trans_prev, SIGNAL(clicked(bool)), this, SLOT(previousTanscript()));
@@ -34,7 +32,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
-	connect(ui->genome_nexus, SIGNAL(linkActivated(QString)), this, SLOT(genomeNexusClicked(QString)));
 	connect(ui->spliceai, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(spliceaiContextMenu(QPoint)));
 
 	//set up transcript buttons
@@ -72,7 +69,6 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_clinvar->setToolTip(vl.annotationDescriptionByName("ClinVar").description());
 	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false).description()); //optional
 	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false).description()); //optional
-	ui->label_cosmic->setToolTip(vl.annotationDescriptionByName("COSMIC").description());
 	ui->label_pubmed->setToolTip(vl.annotationDescriptionByName("PubMed", false).description()); //optional
 
 	//AFs
@@ -167,7 +163,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->clinvar, vl, index, "ClinVar");
 	setAnnotation(ui->hgmd, vl, index, "HGMD");
 	setAnnotation(ui->omim, vl, index, "OMIM");
-	setAnnotation(ui->cosmic, vl, index, "COSMIC");
 	setAnnotation(ui->pubmed, vl, index, "PubMed");
 
 	//public allel frequencies
@@ -349,31 +344,33 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
 		}
-		else if(name=="COSMIC")
-		{
-			QStringList ids = anno.split(",");
-			foreach(QString id, ids)
-			{
-				QString temp_id = id.mid(4).trimmed();
-				if(temp_id.isEmpty()) continue;
-
-				if(id.startsWith("COSM"))
-				{
-					text += formatLink(temp_id, "https://cancer.sanger.ac.uk/cosmic/mutation/overview?id=" + temp_id) + " ";
-				}
-				else if(id.startsWith("COSN"))
-				{
-					text += formatLink(temp_id, "https://cancer.sanger.ac.uk/cosmic/ncv/overview?id=" + temp_id) + " ";
-				}
-				else if(id.startsWith("COSV"))
-				{
-					text += formatLink(temp_id, "https://cancer.sanger.ac.uk/cosmic/search?q=COSV" + temp_id) + " ";
-				}
-			}
-		}
 		else if(name=="quality")
 		{
-			text = anno.replace(';', ' ');
+			QStringList show;
+			foreach(QString part, anno.split(';'))
+			{
+				part = part.trimmed();
+				if (part.isEmpty()) continue;
+
+				if (part.startsWith("QUAL="))
+				{
+					if (part.mid(5).toInt()<20)
+					{
+						part = formatText(part, YELLOW);
+					}
+				}
+				if (part.startsWith("DP="))
+				{
+					if (part.mid(3).toInt()<15)
+					{
+						part = formatText(part, YELLOW);
+					}
+				}
+
+				show << part;
+			}
+
+			text = show.join(' ');
 		}
 		else if(name=="filter")
 		{
@@ -392,15 +389,15 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				text = anno;
 			}
 		}
-		else if(name=="CADD")
+		else if(name=="CADD") //Cutoffs from https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/
 		{
 			bool ok = true;
 			double value = anno.toDouble(&ok);
-			if (ok && value>=20)
+			if (ok && value>=25.3)
 			{
 				text = formatText(anno, RED);
 			}
-			else if (ok && value>=15)
+			else if (ok && value>=22.7)
 			{
 				text = formatText(anno, ORANGE);
 			}
@@ -563,8 +560,15 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="CMC_mutation_significance")
 		{
-			if(anno == "1" || anno == "2" || anno == "3") text = formatText(anno, RED);
-			else text = anno;
+			if (anno!="")
+			{
+				Color bg_color = NONE;
+				if(anno == "1" || anno == "2" || anno == "3") bg_color = RED;
+
+				int a_index = vl.annotationIndexByName("CMC_MUTATION_ID", true, false);
+				QString cmc_var_id = vl[index].annotations()[a_index];
+				text = formatLink(anno, "https://cancer.sanger.ac.uk/cosmic/search?q="+cmc_var_id, bg_color);
+			}
 		}
 		else if(name == "NGSD_som_vicc_interpretation")
 		{
@@ -635,7 +639,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			QStringList ids = anno.split(",");
 			ids.removeAll("");
 			text.clear();
-            for (int i = 0; i < std::min(SIZE_TO_INT(ids.size()), SIZE_TO_INT(2)); ++i)
+            for (int i = 0; i < std::min(static_cast<qsizetype>(ids.size()), static_cast<qsizetype>(2)); ++i)
 			{
 				QString id = ids.at(i).trimmed();
 				text += formatLink(id, "https://pubmed.ncbi.nlm.nih.gov/" + id + "/") + " ";
@@ -647,6 +651,18 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 
 			tooltip = ids.join(", ");
 
+		}
+		else if (name=="gene_info")
+		{
+			tooltip = QString(anno).replace(", ", "\n");
+
+			anno.replace("n/a", "");
+			if(anno.size()>200)
+			{
+				anno = anno.left(200) + "...";
+			}
+
+			text = anno;
 		}
 		else //fallback: use complete annotations string
 		{
@@ -701,6 +717,8 @@ QString VariantDetailsDockWidget::colorToString(VariantDetailsDockWidget::Color 
 			return "rgba(255, 100, 0, 128)";
 		case RED:
 			return "rgba(255, 0, 0, 128)";
+		case YELLOW:
+			return "rgba(255, 255, 0, 128)";
 	};
 
 	THROW(ProgrammingException, "Unkonwn color!");
@@ -796,7 +814,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
+	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://www.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";
@@ -942,11 +960,6 @@ void VariantDetailsDockWidget::pubmedClicked(QString link)
 	}
 }
 
-void VariantDetailsDockWidget::genomeNexusClicked(QString link)
-{
-	QDesktopServices::openUrl(QUrl(link));
-}
-
 void VariantDetailsDockWidget::variantButtonClicked()
 {
 	if (variant_str.isEmpty()) return;
@@ -1078,8 +1091,6 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 
 void VariantDetailsDockWidget::spliceaiContextMenu(QPoint pos)
 {
-	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
-
 	QMenu menu;
 	QAction* a_lookup = menu.addAction("Open SpliceAI Lookup");
 

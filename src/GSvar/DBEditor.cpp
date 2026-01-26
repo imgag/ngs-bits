@@ -3,15 +3,13 @@
 #include "GUIHelper.h"
 #include "ProcessedSampleSelector.h"
 #include "ClickableLineEdit.h"
-
-#include <QFormLayout>
+#include <QPushButton>
 #include <QLabel>
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QComboBox>
 #include <QDialogButtonBox>
-#include <QPushButton>
 #include <QDialog>
 #include <QMessageBox>
 #include <QCalendarWidget>

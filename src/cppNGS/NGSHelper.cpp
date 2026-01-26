@@ -2,7 +2,7 @@
 #include "Helper.h"
 #include "FilterCascade.h"
 #include "Log.h"
-
+#include "VersatileTextStream.h"
 #include <QFileInfo>
 
 namespace {
@@ -63,7 +63,8 @@ VcfFile NGSHelper::getKnownVariants(GenomeBuild build, bool only_snvs, const Bed
 
 	//load
 	VcfFile output;
-	output.load(tmp, roi, false);
+	output.setRegion(roi);
+	output.load(tmp);
 
 	//remove temporary file
 	QFile::remove(tmp);
@@ -81,7 +82,8 @@ VcfFile NGSHelper::getKnownVariants(GenomeBuild build, bool only_snvs, double mi
 
 	//load
 	VcfFile output;
-	output.load(tmp, false);
+	output.setAllowMultiSample(false);
+	output.load(tmp);
 
 	//remove temporary file
 	QFile::remove(tmp);
@@ -127,7 +129,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 					}
 					else
 					{
-                        QSet<QString> parts = LIST_TO_SET(line.trimmed().split('\t'));
+                        QSet<QString> parts = Helper::listToSet(line.trimmed().split('\t'));
 						for (int i=cols.count()-1; i>=0; --i)
 						{
 							if (!parts.contains(cols[i]))
@@ -511,7 +513,7 @@ void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, in
 	simplyfied.replace(":", " ");
 	simplyfied.replace(",", "");
 	simplyfied = simplyfied.trimmed();
-    QStringList parts = simplyfied.split(QRegularExpression("\\W+"), QT_SKIP_EMPTY_PARTS);
+    QStringList parts = simplyfied.split(QRegularExpression("\\W+"), Qt::SkipEmptyParts);
 
 	//support for chrosomome only
 	if (allow_chr_only && parts.count()==1 && Chromosome(simplyfied).isNonSpecial())
@@ -533,6 +535,14 @@ void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, in
 	if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given in chromosomal range '" + text + "': " + parts[0]);
 	start = Helper::toInt(parts[1], "Start coordinate", text);
 	end = Helper::toInt(parts[2], "End coordinate", text);
+}
+
+void NGSHelper::parseRegion(const QString& text, Chromosome& chr, QByteArray& start, QByteArray& end, bool allow_chr_only)
+{
+	int i_start, i_end;
+	parseRegion(text, chr, i_start, i_end, allow_chr_only);
+	start = QByteArray::number(i_start);
+	end = QByteArray::number(i_end);
 }
 
 const BedFile& NGSHelper::centromeres(GenomeBuild build)
@@ -1046,6 +1056,7 @@ struct TranscriptData
 	QByteArray strand;
 	QByteArray biotype;
 	bool is_gencode_basic;
+	bool is_gencode_primary;
 	bool is_ensembl_canonical;
 	bool is_mane_select;
 	bool is_mane_plus_clinical;
@@ -1088,24 +1099,24 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 	if (settings.print_to_stdout)
 	{
 		QTextStream out(stdout);
-        out << "Parsed " << data.transcripts.geneCount() << " genes from GFF" << QT_ENDL;
-        out << "Parsed " << data.transcripts.count() << " transcripts from GFF" << QT_ENDL;
+        out << "Parsed " << data.transcripts.geneCount() << " genes from GFF" << Qt::endl;
+        out << "Parsed " << data.transcripts.count() << " transcripts from GFF" << Qt::endl;
 		if (c_skipped_special_chr>0)
 		{
-            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " genes on special chromosomes skipped: " << special_chrs.values().join(", ") << QT_ENDL;
+            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " genes on special chromosomes skipped: " << special_chrs.values().join(", ") << Qt::endl;
 		}
 		if (c_skipped_no_name_and_hgnc>0)
 		{
-            out << "Notice: " << QByteArray::number(c_skipped_no_name_and_hgnc) << " genes without symbol and HGNC identifier skipped." << QT_ENDL;
+            out << "Notice: " << QByteArray::number(c_skipped_no_name_and_hgnc) << " genes without symbol and HGNC identifier skipped." << Qt::endl;
 		}
 		if (c_skipped_not_hgnc>0)
 		{
-            out << "Notice: " << QByteArray::number(c_skipped_not_hgnc) << " genes without a HGNC identifier skipped." << QT_ENDL;
+            out << "Notice: " << QByteArray::number(c_skipped_not_hgnc) << " genes without a HGNC identifier skipped." << Qt::endl;
 		}
 		if (c_skipped_low_evidence>0)
 		{
 
-            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << QT_ENDL;
+            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << Qt::endl;
 		}
 	}
 
@@ -1121,30 +1132,11 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 	QHash<QByteArray, TranscriptData> transcripts;
 	QHash<QByteArray, QByteArray> gene_to_hgnc;
 
-
-	char* buffer = new char[8192];
-	gzFile gz_file = gzopen(filename.toUtf8().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-	if (gz_file == NULL) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	gzbuffer(gz_file, 131072);
-
-	while(!gzeof(gz_file))
+	VersatileTextStream stream(filename);
+	while(!stream.atEnd())
     {
-		char* line_raw  = gzgets(gz_file, buffer, 8192);
-
-		//handle errors like truncated GZ file
-		if (line_raw==nullptr)
-		{
-			int error_no = Z_OK;
-			QByteArray error_message = gzerror(gz_file, &error_no);
-			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-			{
-				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-			}
-		}
-
-		QByteArray line(buffer);
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
-        if (line.isEmpty()) continue;
+		QByteArray line = stream.readLine(true).toUtf8();
+		if (line.isEmpty()) continue;
 
         //section end => commit data
         if (line=="###")
@@ -1175,6 +1167,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
                 }
                 t.setRegions(t_data.exons, coding_start, coding_end);
 				t.setGencodeBasicTranscript(t_data.is_gencode_basic);
+				t.setGencodePrimaryTranscript(t_data.is_gencode_primary);
 				t.setEnsemblCanonicalTranscript(t_data.is_ensembl_canonical);
 				t.setManeSelectTranscript(t_data.is_mane_select);
 				t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);
@@ -1253,7 +1246,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 
 			// store GENCODE basic data
 			QByteArrayList tags = data.value("tag").split(',');
-			bool is_gencode_basic = tags.contains("basic");
+			bool is_gencode_basic = tags.contains("basic") || tags.contains("gencode_basic"); //The tag was changed from "basic" in Ensembl 112 to "gencode_basic" in Ensembl 113
 
 			if (!settings.include_all && !is_gencode_basic)
 			{
@@ -1277,6 +1270,7 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			tmp.strand = parts[6];
 			tmp.biotype = data["biotype"];
 			tmp.is_gencode_basic = is_gencode_basic;
+			tmp.is_gencode_primary = tags.contains("gencode_primary");
 			tmp.is_ensembl_canonical = tags.contains("Ensembl_canonical");
 			tmp.is_mane_select = tags.contains("MANE_Select");
 			tmp.is_mane_plus_clinical = tags.contains("MANE_Plus_Clinical");
@@ -1320,10 +1314,6 @@ void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSetti
 			}
 		}
 	}
-
-	//close buffers
-	delete[] buffer;
-	gzclose(gz_file);
 }
 
 
@@ -1347,28 +1337,11 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 	QHash<QByteArray, GeneInfo> geneid_to_data;
 	QHash<QByteArray, TranscriptData> transcripts; //ID > data
 
-	char* buffer = new char[8192];
-	gzFile gz_file = gzopen(filename.toUtf8().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-	if (gz_file == NULL) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	gzbuffer(gz_file, 131072);
 
-	while(!gzeof(gz_file))
+	VersatileTextStream stream(filename);
+	while(!stream.atEnd())
 	{
-		char* line_raw  = gzgets(gz_file, buffer, 8192);
-
-		//handle errors like truncated GZ file
-		if (line_raw==nullptr)
-		{
-			int error_no = Z_OK;
-			QByteArray error_message = gzerror(gz_file, &error_no);
-			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-			{
-				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-			}
-		}
-
-		QByteArray line(buffer);
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+		QByteArray line = stream.readLine().toUtf8();
 		if (line.isEmpty()) continue;
 
 		//skip header lines
@@ -1457,6 +1430,7 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 			tmp.strand = parts[6];
 			tmp.biotype = gene_data.biotype;
 			tmp.is_gencode_basic = false;
+			tmp.is_gencode_primary = false;
 			tmp.is_ensembl_canonical = false;
 			tmp.is_mane_select = false;
 			tmp.is_mane_plus_clinical = false;
@@ -1499,11 +1473,6 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 		}
 	}
 
-	//close buffers
-	delete[] buffer;
-	gzclose(gz_file);
-
-
 	//convert from TranscriptData to Transcript and append to list
 	output.transcripts.reserve(transcripts.count());
 	for(auto it = transcripts.begin(); it!=transcripts.end(); ++it)
@@ -1531,6 +1500,7 @@ void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettin
 		}
 		t.setRegions(t_data.exons, coding_start, coding_end);
 		t.setGencodeBasicTranscript(t_data.is_gencode_basic);
+		t.setGencodePrimaryTranscript(t_data.is_gencode_primary);
 		t.setEnsemblCanonicalTranscript(t_data.is_ensembl_canonical);
 		t.setManeSelectTranscript(t_data.is_mane_select);
 		t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);

@@ -1,14 +1,13 @@
 #include "GapClosingDialog.h"
 #include "Settings.h"
 #include "GUIHelper.h"
-#include "LoginManager.h"
 #include "GSvarHelper.h"
 #include "GapClosingEditDialog.h"
 #include <QDesktopServices>
 #include <QAction>
-#include <QClipboard>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QClipboard>
 
 GapClosingDialog::GapClosingDialog(QWidget* parent)
 	: QDialog(parent)
@@ -211,14 +210,6 @@ void GapClosingDialog::openPrimerDesign()
 			int start;
 			int end;
 			gapCoordinates(row, chr, start, end);
-
-			if(GSvarHelper::build()==GenomeBuild::HG19) //PrimerDesign supports HG38 only
-			{
-				BedLine region = GSvarHelper::liftOver(chr, start, end, true);
-				chr = region.chr();
-				start = region.start();
-				end = region.end();
-			}
 
 			QString url = Settings::string("PrimerDesign")+"/primer3/query?region="+chr.strNormalized(true)+":"+QString::number(start)+"-"+QString::number(end)+"";
 			QDesktopServices::openUrl(QUrl(url));

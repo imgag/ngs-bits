@@ -1,8 +1,4 @@
 #include "AnalysisStatusWidget.h"
-#include "MultiSampleDialog.h"
-#include "TrioDialog.h"
-#include "SomaticDialog.h"
-#include "SingleSampleAnalysisDialog.h"
 #include "GUIHelper.h"
 #include "cmath"
 #include "LoginManager.h"
@@ -11,16 +7,14 @@
 #include "GSvarHelper.h"
 #include "ClientHelper.h"
 #include <QMenu>
-#include <QFileInfo>
 #include <QDesktopServices>
-#include <QUrl>
 #include <QDir>
 #include <QMessageBox>
-#include <QMetaMethod>
 #include <QProcess>
+#include "Settings.h"
 
 AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_()
 {
 	//setup UI
@@ -38,11 +32,6 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.f_text, SIGNAL(returnPressed()), this, SLOT(applyFilters()));
 	connect(ui_.f_mine, SIGNAL(stateChanged(int)), this, SLOT(applyFilters()));
-}
-
-bool AnalysisStatusWidget::updateIsRunning() const
-{
-	return update_running_;
 }
 
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
@@ -81,7 +70,7 @@ void AnalysisStatusWidget::refreshStatus()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	update_running_ = true;
+	is_busy_ = true;
 
 	try
 	{
@@ -188,7 +177,7 @@ void AnalysisStatusWidget::refreshStatus()
 				parts << data.run_name;
 			}
 			parts.removeDuplicates();
-			addItem(ui_.analyses, row, 5, parts.count()==1 ? parts[0] : "");
+			addItem(ui_.analyses, row, 5, parts.join(", "));
 
 			//project(s)
 			parts.clear();
@@ -218,12 +207,19 @@ void AnalysisStatusWidget::refreshStatus()
 			QColor bg_color = Qt::transparent;
 			if (status.startsWith("started ("))
 			{
-				FileInfo info = GlobalServiceProvider::database().analysisJobLatestLogInfo(job_id);
-				if (!info.isEmpty())
+				try
 				{
-					int sec = info.last_modiefied.secsTo(QDateTime::currentDateTime());
-					if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
-					last_update = timeHumanReadable(sec) + " ago (" + info.file_name + ")";
+					FileInfo info = GlobalServiceProvider::database().analysisJobLatestLogInfo(job_id);
+					if (!info.isEmpty())
+					{
+						int sec = info.last_modiefied.secsTo(QDateTime::currentDateTime());
+						if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
+						last_update = timeHumanReadable(sec) + " ago (" + info.file_name + ")";
+					}
+				}
+				catch (HttpException& e)
+				{
+					if (e.status_code() == 404) last_update = "File does not exist";
 				}
 			}
 			addItem(ui_.analyses, row, 8, last_update, bg_color);
@@ -240,7 +236,7 @@ void AnalysisStatusWidget::refreshStatus()
 	GUIHelper::resizeTableCellWidths(ui_.analyses, 400);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.analyses);
 
-	update_running_ = false;
+	is_busy_ = false;
 
 	QApplication::restoreOverrideCursor();
 }
@@ -467,7 +463,9 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 				//create a local copy of the log file
 				QString tmp_filename = GSvarHelper::localLogFolder() + log_location.fileName();
 				QSharedPointer<QFile> tmp_file = Helper::openFileForWriting(tmp_filename);
-				tmp_file->write(VersatileFile(log_location.filename).readAll());
+				VersatileFile log_file(log_location.filename, false);
+				log_file.open(QFile::ReadOnly | QIODevice::Text);
+				tmp_file->write(log_file.readAll());
 				tmp_file->close();
 
 				//open local file in text editor
@@ -578,17 +576,19 @@ void AnalysisStatusWidget::updateDetails()
 	const AnalysisJob& job = jobs_[selected_rows[0]].job_data;
 
 	//properties
-	ui_.properties->setRowCount(5);
+	ui_.properties->setRowCount(6);
 	addItem(ui_.properties, 0, 0, "high_priority");
 	addItem(ui_.properties, 0, 1, job.high_priority ? "yes" : "no");
-	addItem(ui_.properties, 1, 0, "arguments");
-	addItem(ui_.properties, 1, 1, job.args);
-	addItem(ui_.properties, 2, 0, "SGE id");
-	addItem(ui_.properties, 2, 1, job.sge_id);
-	addItem(ui_.properties, 3, 0, "SGE queue");
-	addItem(ui_.properties, 3, 1, job.sge_queue);
-	addItem(ui_.properties, 4, 0, "run time");
-	addItem(ui_.properties, 4, 1, job.runTimeAsString());
+	addItem(ui_.properties, 1, 0, "dragen_analysis");
+	addItem(ui_.properties, 1, 1, job.use_dragen ? "yes" : "no");
+	addItem(ui_.properties, 2, 0, "arguments");
+	addItem(ui_.properties, 2, 1, job.args);
+	addItem(ui_.properties, 3, 0, "QE id");
+	addItem(ui_.properties, 3, 1, job.sge_id);
+	addItem(ui_.properties, 4, 0, "Queue");
+	addItem(ui_.properties, 4, 1, job.sge_queue);
+	addItem(ui_.properties, 5, 0, "run time");
+	addItem(ui_.properties, 5, 1, job.runTimeAsString());
 	GUIHelper::resizeTableCellWidths(ui_.properties);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.properties);
 

@@ -3,8 +3,8 @@
 
 #include <QObject>
 #include <QRunnable>
-#include <zlib.h>
 #include "Auxilary.h"
+#include "VersatileFile.h"
 
 class InputWorker
 	: public QObject
@@ -13,7 +13,7 @@ class InputWorker
 	Q_OBJECT
 
 public:
-	InputWorker(AnalysisJob& job, gzFile& in_stream, Parameters& params);
+	InputWorker(AnalysisJob& job, QSharedPointer<VersatileFile> in_stream, Parameters& params);
 	~InputWorker();
 	virtual void run() override;
 
@@ -24,7 +24,7 @@ signals:
 
 private:
 	AnalysisJob& job_;
-	gzFile& in_stream_;
+	QSharedPointer<VersatileFile> in_stream_;
 	Parameters& params_;
 };
 

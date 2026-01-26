@@ -1,5 +1,5 @@
 ### BedpeAnnotateBreakpointDensity tool help
-	BedpeAnnotateBreakpointDensity (2024_08-110-g317f43b9)
+	BedpeAnnotateBreakpointDensity (2025_03-80-g74f31dd7)
 	
 	Annotates a BEDPE file with breakpoint density.
 	
@@ -22,8 +22,9 @@
 	  --settings [file]   Settings override file (no other settings files are used).
 	
 ### BedpeAnnotateBreakpointDensity changelog
-	BedpeAnnotateBreakpointDensity 2024_08-110-g317f43b9
+	BedpeAnnotateBreakpointDensity 2025_03-80-g74f31dd7
 	
+	2025-03-25 Fixed crashes in std::max_element when QVector is empty.
 	2024-02-26 Added system-specific density.
 	2022-02-23 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

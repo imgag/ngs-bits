@@ -1,7 +1,6 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "NGSD.h"
-#include "HttpHandler.h"
 #include "Settings.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "MultiSampleDialog.h"
@@ -14,10 +13,7 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
-#include <QBuffer>
 #include <VariantHgvsAnnotator.h>
-#include "ClientHelper.h"
-#include "ApiCaller.h"
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -152,6 +148,11 @@ GenomeBuild GSvarHelper::build()
 	}
 
 	return GenomeBuild::HG38; //fallback in case of exception
+}
+
+QString GSvarHelper::buildAsString(bool grch)
+{
+	return buildToString(build(), grch);
 }
 
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
@@ -422,9 +423,9 @@ QString GSvarHelper::allOfUsLink(const Variant& v)
 }
 
 
-QString GSvarHelper::clinVarSearchLink(const Variant& v, GenomeBuild build)
+QString GSvarHelper::clinVarSearchLink(const Variant& v)
 {
-	return "https://www.ncbi.nlm.nih.gov/clinvar/?term=" + v.chr().strNormalized(false)+"[chr]+AND+" + QString::number(v.start()) + "%3A" + QString::number(v.end()) + (build==GenomeBuild::HG38? "[chrpos38]" : "[chrpos37]");
+	return "https://www.ncbi.nlm.nih.gov/clinvar/?term=" + v.chr().strNormalized(false)+"[chr]+AND+" + QString::number(v.start()) + "%3A" + QString::number(v.end()) + "[chrpos38]";
 }
 
 QString GSvarHelper::localRoiFolder()
@@ -488,7 +489,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		{
 			foreach(const AnalysisJobSample& sample,  dlg.samples())
 			{
-				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+				db.queueAnalysis("single sample", dlg.highPriority(), dlg.useDragen(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
 			}
 			return true;
 		}
@@ -499,7 +500,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			db.queueAnalysis("multi sample", dlg.highPriority(), false, dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}
@@ -511,7 +512,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		{
 			foreach(auto sample, dlg.samples()) qDebug() << "Sample: " << sample.name;
 
-			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			NGSD().queueAnalysis("trio", dlg.highPriority(), false, dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}
@@ -522,7 +523,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			db.queueAnalysis("somatic", dlg.highPriority(), dlg.useDragen(), dlg.arguments(), dlg.samples());
 			return true;
 		}
 	}
@@ -784,7 +785,7 @@ QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant
 		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant);
 
 		QStringList entry;
-		entry << trans.gene() << trans.nameWithVersion() << consequence.typesToString() << consequence.hgvs_c << consequence.hgvs_p;
+		entry << trans.gene() << trans.nameWithVersion() << consequence.typesToStringSimplified() << consequence.hgvs_c << consequence.hgvs_p;
 		genes << trans.gene();
 
 		if(add_flags)
@@ -832,5 +833,72 @@ QString GSvarHelper::appPathForTemplate(QString path)
         }
     }
 
-    return path;
+	return path;
+}
+
+void GSvarHelper::updatePhenotypeHistory(const PhenotypeList& phenos)
+{
+	if (phenos.isEmpty()) return;
+
+	QList<PhenotypeList>& history = instance().history_pheno;
+
+	//already  contained > shift to top
+	if (history.contains(phenos))
+	{
+		history.removeAll(phenos);
+		history.prepend(phenos);
+		return;
+	}
+
+	//new > prepend
+	history.prepend(phenos);
+	while(history.count()>10)
+	{
+		history.pop_back();
+	}
+}
+
+const QList<PhenotypeList>& GSvarHelper::phenotypeHistory()
+{
+	return instance().history_pheno;
+}
+
+void GSvarHelper::updateRoiHistory(QString name)
+{
+	name.replace("Sub-panel:", "");
+	name.replace("Processing system:", "");
+	name = name.trimmed();
+	if (name=="") return;
+
+	QStringList& history = instance().history_roi;
+
+	//already  contained > shift to top
+	if (history.contains(name))
+	{
+		history.removeAll(name);
+		history.prepend(name);
+		return;
+	}
+
+	//new > prepend
+	history.prepend(name);
+	while(history.count()>10)
+	{
+		history.pop_back();
+	}
+}
+
+const QStringList& GSvarHelper::roiHistory()
+{
+	return instance().history_roi;
+}
+
+GSvarHelper::GSvarHelper()
+{
+}
+
+GSvarHelper& GSvarHelper::instance()
+{
+	static GSvarHelper inst;
+	return inst;
 }

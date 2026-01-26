@@ -3,7 +3,6 @@
 #include <QMessageBox>
 #include <QAction>
 #include "ScrollableTextDialog.h"
-#include "GUIHelper.h"
 #include "NGSD.h"
 
 PreferredTranscriptsWidget::PreferredTranscriptsWidget(QWidget* parent)
@@ -158,10 +157,10 @@ void PreferredTranscriptsWidget::check()
 	{
 		int gene_id = it.key();
 
-        QSet<QString> mane = LIST_TO_SET(db.getValues("SELECT name FROM gene_transcript WHERE source='Ensembl' AND gene_id=" + QString::number(gene_id) + " AND is_mane_select=1"));
+        QSet<QString> mane = Helper::listToSet(db.getValues("SELECT name FROM gene_transcript WHERE source='Ensembl' AND gene_id=" + QString::number(gene_id) + " AND is_mane_select=1"));
 		if (mane.isEmpty()) continue;
 
-        QSet<QString> mane_not_pt = mane.subtract(LIST_TO_SET(it.value()));
+        QSet<QString> mane_not_pt = mane.subtract(Helper::listToSet(it.value()));
 		foreach(QString t, mane_not_pt)
 		{
 			invalid << t + " (" + db.geneSymbol(gene_id) + ")";

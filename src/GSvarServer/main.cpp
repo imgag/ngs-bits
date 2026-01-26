@@ -5,6 +5,50 @@
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "ServerController.h"
+#include "ServerDB.h"
+#include "UrlManager.h"
+#include "SessionManager.h"
+
+#include <csignal>
+#include <unistd.h>
+#include <sys/types.h>
+#include <cstdio>
+#include <array>
+#include <string>
+
+
+// find a PID for a BALT server instance
+int findBlatPid()
+{
+    #ifdef Q_OS_LINUX
+    std::string cmd = "pidof -s gfServer";
+    std::array<char, 128> buffer{};
+
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    if (!pipe) return -1;
+
+    if (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+    {
+        return std::stoi(buffer.data());
+    }
+    #endif
+    return -1;
+}
+
+// kill all instances of the BLAT server before the main app exits
+void handleExitSignal(int)
+{
+    #ifdef Q_OS_LINUX
+    pid_t pid = static_cast<pid_t>(findBlatPid());
+    while (pid > 0)
+    {
+        Log::info("Killing a BLAT process with PID " + QString::number(pid));
+        kill(pid, SIGKILL);
+        pid = static_cast<pid_t>(findBlatPid());
+    }
+    QCoreApplication::quit();
+    #endif
+}
 
 int main(int argc, char **argv)
 {
@@ -63,25 +107,25 @@ int main(int argc, char **argv)
 						&ServerController::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
-						"bam",
+                        "assets",
 						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the BAM file to be served"}}
+                           {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the asset file to be served"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_OCTET_STREAM,
 						AuthType::NONE,
-						"BAM file used for the testing purposes",
+                        "Asset file used for the testing purposes",
 						&ServerController::serveResourceAsset
 				   });
 	EndpointManager::appendEndpoint(Endpoint{
-						"bam",
+                        "assets",
 						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the BAM file to be served"}}
+                           {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the asset file to be served"}}
 						},
 						RequestMethod::HEAD,
 						ContentType::APPLICATION_OCTET_STREAM,
 						AuthType::NONE,
-						"Size of the BAM file used for the testing purposes",
+                        "Size of the asset file used for the testing purposes",
 						&ServerController::serveResourceAsset
 				   });
 
@@ -427,6 +471,18 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"clear_cache",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Clear user permissions cache",
+						&ServerController::clearPermissionsCache
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"variant_annotation",
 						QMap<QString, ParamProps>{							
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
@@ -437,6 +493,18 @@ int main(int argc, char **argv)
 						"Variant annotation by using megSAP",
 						&ServerController::annotateVariant
 					});
+
+    EndpointManager::appendEndpoint(Endpoint{
+                        "blat_search",
+                        QMap<QString, ParamProps> {
+                            {"sequence", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "sequence"}}
+                        },
+                        RequestMethod::GET,
+                        ContentType::APPLICATION_JSON,
+                        AuthType::NONE,
+                        "BLAT search for a given sequence and genome",
+                        &ServerController::performBlatSearch
+                    });
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"login",
@@ -476,7 +544,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"db_token",
 						QMap<QString, ParamProps>{
-							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "User name"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token to identify the session"}}
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
@@ -484,6 +552,17 @@ int main(int argc, char **argv)
 						"Secure token generation for accessing the database credentials",
 						&ServerController::getDbToken
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"secret",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token to identify the session"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::USER_TOKEN,
+						"Secret string used for extra security while requesting sensitive data",
+						&ServerController::getRandomSecret
+	});
 	EndpointManager::appendEndpoint(Endpoint{
 						"ngsd_credentials",
 						QMap<QString, ParamProps>{
@@ -521,6 +600,17 @@ int main(int argc, char **argv)
 					});
 
     int server_port = 0;
+	int server_internal_port = 0; // needed if we have a revese proxy, server_port will be used to create URL only
+	try
+	{
+		server_internal_port = Settings::integer("server_internal_port");
+	}
+	catch (Exception& e)
+	{
+		Log::info("Reverse proxy configuration will not be applied: " + e.message());
+		server_internal_port = 0;
+	}
+
 	if (!server_port_cli.isEmpty())
 	{
 		Log::info("HTTPS server port has been provided through the command line arguments:" + server_port_cli);
@@ -534,6 +624,7 @@ int main(int argc, char **argv)
 	}
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
+	if (server_internal_port>0) server_port = server_internal_port; // Use only, if we need a reverse proxy
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
 	{
@@ -562,7 +653,13 @@ int main(int argc, char **argv)
     try
     {
         ServerDB db = ServerDB();
-        db.initDbIfEmpty();
+		db.initDbIfEmpty();
+		if (db.getSchemaVersion() < db.EXPECTED_SCHEMA_VERSION)
+		{
+			Log::info("Schema has changed. Reinitializing the server database...");
+			db.reinitializeDb();
+			db.updateSchemaVersion(db.EXPECTED_SCHEMA_VERSION);
+		}
 
         QList<UrlEntity> restored_urls = db.getAllUrls();
         for (int u = 0; u < restored_urls.count(); u++)
@@ -587,6 +684,22 @@ int main(int argc, char **argv)
     catch (DatabaseException& e)
     {
         Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
+    }
+
+    int blat_server_port = 0;
+    try
+    {
+        blat_server_port = Settings::integer("blat_server_port");
+    }
+    catch (Exception& e)
+    {
+        Log::info("BLAT server will not be started: " + e.message());
+    }
+    if (blat_server_port > 0)
+    {
+        // Handle signals (Ctrl+C, kill, etc.), we need to kill the BLAT server before exiting
+        std::signal(SIGINT, handleExitSignal);
+        std::signal(SIGTERM, handleExitSignal);
     }
 
 	return app.exec();

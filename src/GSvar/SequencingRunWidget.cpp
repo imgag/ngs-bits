@@ -19,7 +19,7 @@
 #include <QMessageBox>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run_ids)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_(new Ui::SequencingRunWidget)
 	, run_ids_(run_ids)
 {
@@ -32,6 +32,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	ui_->splitter->setSizes(QList<int>() << 200 << 800);
 	connect(ui_->show_qc_cols, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 	connect(ui_->show_lab_cols, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
+	connect(ui_->show_disease_cols, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 	connect(ui_->sort_by_ps_id, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 	connect(ui_->show_sample_comment, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
@@ -50,9 +51,9 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
 
 	//schedule re-sequencing
-	action = new QAction("Schedule sample(s) for resequencing", this);
+	action = new QAction("Toggle resequencing for sample(s)", this);
 	ui_->samples->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(scheduleForResequencing()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(toggleScheduleForResequencing()));
 
 	if (is_batch_view_) initBatchView();
 
@@ -126,7 +127,7 @@ void SequencingRunWidget::initBatchView()
 			int run_id = run_ids_.at(c-1).toInt();
 			signal_mapper->setMapping(btn_edit, run_id);
 			connect(btn_edit, SIGNAL(clicked(bool)), signal_mapper, SLOT(map()));
-			connect(signal_mapper, SIGNAL(mapped(int)), this, SLOT(edit(int)));
+			connect(signal_mapper, SIGNAL(mappedInt(int)), this, SLOT(edit(int)));
 
 			hbox->addWidget(btn_edit, 0, Qt::AlignLeft| Qt::AlignCenter);
 
@@ -170,6 +171,8 @@ void SequencingRunWidget::initBatchView()
 
 void SequencingRunWidget::updateGUI()
 {
+	is_busy_ = true;
+
 	try
 	{
 		//#### run details ####
@@ -258,6 +261,7 @@ void SequencingRunWidget::updateGUI()
 		QMessageBox::warning(this, "Update failed", "Could not update data:\n" + e.message());
 	}
 
+	is_busy_ = false;
 }
 
 void SequencingRunWidget::updateRunSampleTable()
@@ -265,7 +269,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	//get data from NGSD
 	QStringList headers;
 	if (is_batch_view_) headers << "run";
-	headers << "lane" << "quality" << "sample" << "name external" << "is_tumor" << "is_ffpe" << "sample type" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "input [ng]" << "molarity [nM]" << "operator" << "processing modus" << "batch number" << "comments";
+	headers << "lane" << "quality" << "sample" << "name external" << "is_tumor" << "is_ffpe" << "sample type" << "project" << "disease group" << "disease status" << "MID i7" << "MID i5" << "species" << "processing system" << "input [ng]" << "molarity [nM]" << "operator" << "processing modus" << "batch number" << "comments";
 	if (ui_->show_sample_comment->isChecked())
 	{
 		headers << "sample comments";
@@ -278,7 +282,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	{
 		samples = db.createTable("processed_sample",  QString("SELECT ps.id, (SELECT name FROM sequencing_run WHERE id=ps.sequencing_run_id), ps.lane, ps.quality, ")
 														+ "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.gender, s.sample_type, "
-														+ "(SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), "
+														+ "(SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), s.disease_group, s.disease_status, "
 														+ "(SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), "
 														+ "sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), "
 														+ "ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "")
@@ -289,7 +293,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	else
 	{
 		samples = db.createTable("processed_sample", QString("SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.gender, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') ")
-													+ "FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') "
+													+ "FROM project WHERE id=ps.project_id), s.disease_group, s.disease_status, (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') "
 													+ "FROM mid WHERE id=ps.mid2_i5), sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + ", ps.urgent, ps.scheduled_for_resequencing "
 													+ "FROM processed_sample ps, sample s, processing_system sys, species sp WHERE sp.id=s.species_id AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') "
 													+ "ORDER BY ps.lane ASC, "+ (ui_->sort_by_ps_id->isChecked() ? "ps.id" : "ps.processing_system_id ASC, s.name ASC, ps.process_id"));
@@ -300,8 +304,8 @@ void SequencingRunWidget::updateRunSampleTable()
 	samples.formatBooleanColumn(samples.columnIndex("scheduled_for_resequencing"), true);
 
 	// determine QC parameter based on sample types
-    QSet<QString> sample_types = LIST_TO_SET(samples.extractColumn(samples.columnIndex("sample_type")));
-    QSet<QString> system_types = LIST_TO_SET(samples.extractColumn(samples.columnIndex("sys_type")));
+    QSet<QString> sample_types = Helper::listToSet(samples.extractColumn(samples.columnIndex("sample_type")));
+    QSet<QString> system_types = Helper::listToSet(samples.extractColumn(samples.columnIndex("sys_type")));
 	setQCMetricAccessions(sample_types, system_types);
 
 	// update QC plot button
@@ -313,7 +317,7 @@ void SequencingRunWidget::updateRunSampleTable()
 		ui_->plot_btn->menu()->addAction(name, this, SLOT(showPlot()))->setData(accession);
 	}
 
-	//remove columns not show but needed for QC
+	//remove columns not shown but needed for QC
 	QStringList genders = samples.takeColumn(samples.columnIndex("gender"));
 	QStringList sys_types = samples.takeColumn(samples.columnIndex("sys_type"));
 
@@ -389,6 +393,13 @@ void SequencingRunWidget::updateRunSampleTable()
 		samples.takeColumn(samples.columnIndex("resequencing"));
 	}
 
+	//remove disease columns
+	if (!ui_->show_disease_cols->isChecked())
+	{
+		samples.takeColumn(samples.columnIndex("disease group"));
+		samples.takeColumn(samples.columnIndex("disease status"));
+	}
+
 	//show table in GUI
 	QStringList quality_values = samples.takeColumn(samples.columnIndex("quality"));
 	ui_->samples->setData(samples);
@@ -447,13 +458,15 @@ void SequencingRunWidget::setQuality()
 	updateGUI();
 }
 
-void SequencingRunWidget::scheduleForResequencing()
+void SequencingRunWidget::toggleScheduleForResequencing()
 {
 	NGSD db;
 
 	//prepare query
 	SqlQuery query = db.getQuery();
-	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=TRUE WHERE id=:0");
+	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=:0 WHERE id=:1");
+
+
 
 	int col = ui_->samples->columnIndex("sample");
     QList<int> selected_rows = ui_->samples->selectedRows().values();
@@ -461,7 +474,9 @@ void SequencingRunWidget::scheduleForResequencing()
 	{
 		QString ps_name = ui_->samples->item(row, col)->text();
 		QString ps_id = db.processedSampleId(ps_name);
-		query.bindValue(0, ps_id);
+		bool reseq_flag_set = db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toBool();
+		query.bindValue(0, ! reseq_flag_set ? "1" : "0");
+		query.bindValue(1, ps_id);
 		query.exec();
 	}
 
@@ -563,7 +578,7 @@ void SequencingRunWidget::sendStatusEmail()
 	if (is_batch_view_)
 	{
 		// get run status of all runs
-        QSet<QString> run_statuses = LIST_TO_SET(db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");"));
+        QSet<QString> run_statuses = Helper::listToSet(db.getValues("SELECT status FROM sequencing_run WHERE id IN (" + run_ids_.join(", ") + ");"));
 		run_statuses.remove("analysis_finished");
 		run_statuses.remove("run_finished");
 
@@ -601,7 +616,7 @@ void SequencingRunWidget::sendStatusEmail()
 
 		body << "Hallo zusammen,";
 		body << "";
-		body << ((is_batch_view_)?"die Läufe " + run_name + " sind fertig analysiert:": "der Lauf " + run_name + " ist fertig analysiert:");
+		body << ((is_batch_view_)?"die Läufe " + run_name + " sind fertig analysiert.": "der Lauf " + run_name + " ist fertig analysiert.");
 
 		body << "";
 
@@ -611,36 +626,53 @@ void SequencingRunWidget::sendStatusEmail()
 		int idx_is_tumor = ui_->samples->columnIndex("is_tumor");
 		int idx_is_ffpe = ui_->samples->columnIndex("is_ffpe");
 		int idx_urgent = ui_->samples->columnIndex("urgent");
+		NGSD db;
 
-		QStringList diagnostic_table;
-		body << "Die folgenden Keimbahn DNA-Proben des Laufs haben schlechte Qualität:";
-		diagnostic_table << "Probe\tProjekt\tKommentar";
+		//bad/medium samples tables
+		QStringList table_bad;
+		table_bad << "Probe\tProjekt\tErkrankungsgruppe\tKommentar";
+		QStringList table_medium = table_bad;
 		for (int i=0; i < ui_->samples->rowCount(); i++)
 		{
 			if (ui_->samples->item(i, idx_is_tumor)->text() == "yes") continue;
 
 			QString ps_id = db.processedSampleId(ui_->samples->item(i, idx_sample)->text());
 			QByteArray quality = db.getValue("SELECT quality FROM processed_sample WHERE id = '" + ps_id + "'").toByteArray();
-			if (quality == "bad")
+			if (quality=="bad" || quality=="medium")
 			{
 				QString ffpe_text = ui_->samples->item(i, idx_is_ffpe)->text() == "yes" ? " [ffpe]" : "";
 				QString urgent = ui_->samples->item(i, idx_urgent)->text() == "yes" ? "[eilig] " : "";
-				diagnostic_table << ui_->samples->item(i, idx_sample)->text() + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + urgent + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
+				QString ps = ui_->samples->item(i, idx_sample)->text();
+				QString disease_group = db.getSampleData(db.sampleId(ps)).disease_group;
+				QString line = ps + ffpe_text + "\t" + ui_->samples->item(i, idx_project)->text() + "\t" + disease_group + "\t" + urgent + ui_->samples->item(i, idx_comment)->text().replace("\n", " ");
+				if (quality=="bad")
+				{
+					table_bad << line;
+				}
+				else
+				{
+					table_medium << line;
+				}
 			}
 		}
-		if (diagnostic_table.count() > 1)
-		{
-			foreach(QString line, diagnostic_table)
-			{
-				body << line;
-			}
-		}
-		else
-		{
-			body << "Keine Proben mit schlechter Qualität.";
-		}
 
+		body << "";
+		body << "Die folgenden Keimbahn-Proben des Laufs haben schlechte Qualität:";
+		if (table_bad.count() > 1)
+		{
+			body.append(table_bad);
+		}
+		else body << "  Keine Proben mit schlechter Qualität.";
 
+		body << "";
+		body << "Die folgenden Keimbahn-Proben des Laufs haben mittlere Qualität:";
+		if (table_medium.count() > 1)
+		{
+			body.append(table_medium);
+		}
+		else body << "Keine Proben mit mittlerer Qualität.";
+
+		//sample summary
 		SqlQuery query = db.getQuery();
 		query.exec("SELECT DISTINCT p.id, p.name, p.email_notification, p.internal_coordinator_id, p.analysis FROM project p, processed_sample ps WHERE ps.project_id=p.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') ORDER BY p.name ASC");
 		while(query.next())
@@ -684,7 +716,6 @@ void SequencingRunWidget::sendStatusEmail()
 	//send
 	EmailDialog dlg(this, to, subject, body);
 	dlg.exec();
-
 }
 
 void SequencingRunWidget::checkMids()
@@ -776,6 +807,7 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	qc_metric_accessions_ << "QC:2000021"; // on-target read percentage
 	qc_metric_accessions_ << "QC:2000024"; // duplicate read percentage
 	qc_metric_accessions_ << "QC:2000025"; // target region read depth
+	qc_metric_accessions_ << "QC:2000150"; // target region read depth no overlap
 	if (sample_types.contains("DNA") || sample_types.contains("RNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
 	{
 		qc_metric_accessions_ << "QC:2000027"; // target region 20x percentage
@@ -783,6 +815,7 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	if (system_types.contains("lrGS"))
 	{
 		qc_metric_accessions_ << "QC:2000131"; // N50 value
+		qc_metric_accessions_ << "QC:2000149"; // Basecall info
 	}
 	if (sample_types.contains("cfDNA"))
 	{

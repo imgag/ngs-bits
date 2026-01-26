@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "BasicStatistics.h"
 #include <QBitArray>
+#include <QSet>
 
 template<typename T>
 QString stringRepresentation(const T& element)
@@ -189,7 +190,7 @@ public:
 
 		void print(QTextStream& ostream) const
 		{
-            ostream << "Matrix: " << QT_ENDL;
+            ostream << "Matrix: " << Qt::endl;
 			foreach(const DirectionVector& element, data_)
 			{
 				for (int i=0; i<element.count(); ++i)
@@ -201,9 +202,9 @@ public:
 					if (d==Direction::LEFT) ostream << 'l';
 					if (d==Direction::LEFT_OR_TOP) ostream << 'x';
 				}
-                ostream << QT_ENDL;
+                ostream << Qt::endl;
 			}
-            ostream << QT_ENDL;
+            ostream << Qt::endl;
 		}
 
 		QList<QPair<int, int>> findMatchIndices()
@@ -243,7 +244,7 @@ public:
 		QVector<int> current = QVector<int>(matrix.m()+1, 0);
 		for (int i = 1; i <= matrix.n(); ++i)
 		{
-            if (i%10000==0) QTextStream(stderr) << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " " << i << QT_ENDL;
+            if (i%10000==0) QTextStream(stderr) << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " " << i << Qt::endl;
 			for (int j = 1; j <= matrix.m(); ++j)
 			{
 				if (is_equal(s1[i-1], s2[j-1], comp_settings))
@@ -289,7 +290,7 @@ public:
 		{
 			for (int i=0; i<n; ++i)
 			{
-                ostream << "-" << stringRepresentation(lines1[i]) << QT_ENDL;
+                ostream << "-" << stringRepresentation(lines1[i]) << Qt::endl;
 			}
 			return;
 		}
@@ -297,40 +298,40 @@ public:
 		{
 			for (int i=0; i<m; ++i)
 			{
-                ostream << "+" << stringRepresentation(lines2[i]) << QT_ENDL;
+                ostream << "+" << stringRepresentation(lines2[i]) << Qt::endl;
 			}
 			return;
 		}
 
 		//determine LCS
-        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " building matrix..." << QT_ENDL;
+        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " building matrix..." << Qt::endl;
 		Matrix matrix(n, m);
-        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " filling matrix..." << QT_ENDL;
+        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " filling matrix..." << Qt::endl;
 		fillMatrix(lines1, lines2, matrix, comp_settings);
 		if (debug==2)
 		{
 			matrix.print(estream);
 		}
-        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " determining matching pairs..." << QT_ENDL;
+        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " determining matching pairs..." << Qt::endl;
 		QList<QPair<int, int>> matches = matrix.findMatchIndices();
 		if (debug==2)
 		{
-            estream << "Line index matches:" << QT_ENDL;
-            foreach(auto m, matches) estream << m.first << "/" << m.second << QT_ENDL;
+            estream << "Line index matches:" << Qt::endl;
+            foreach(auto m, matches) estream << m.first << "/" << m.second << Qt::endl;
 		}
-        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " printing output..." << QT_ENDL;
+        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " printing output..." << Qt::endl;
 		
 		//special handling when there are no matches
 		if (matches.isEmpty())
 		{
 			for (int i=0; i<n; ++i)
 			{
-                ostream << "-" << stringRepresentation(lines1[i]) << QT_ENDL;
+                ostream << "-" << stringRepresentation(lines1[i]) << Qt::endl;
 				summary.removed += 1;
 			}
 			for (int i=0; i<m; ++i)
 			{
-                ostream << "+" << stringRepresentation(lines2[i]) << QT_ENDL;
+                ostream << "+" << stringRepresentation(lines2[i]) << Qt::endl;
 				summary.added += 1;
 			}
 			return;
@@ -339,12 +340,12 @@ public:
 		//before first match
 		for (int i=0; i<matches[0].first; ++i)
 		{
-            ostream << "-" << stringRepresentation(lines1[i]) << QT_ENDL;
+            ostream << "-" << stringRepresentation(lines1[i]) << Qt::endl;
 			summary.removed += 1;
 		}
 		for (int i=0; i<matches[0].second; ++i)
 		{
-            ostream << "+" << stringRepresentation(lines2[i]) << QT_ENDL;
+            ostream << "+" << stringRepresentation(lines2[i]) << Qt::endl;
 			summary.added += 1;
 		}
 
@@ -353,12 +354,12 @@ public:
 		{
 			for (int i=matches[m-1].first+1; i<matches[m].first; ++i)
 			{
-                ostream << "-" << stringRepresentation(lines1[i]) << QT_ENDL;
+                ostream << "-" << stringRepresentation(lines1[i]) << Qt::endl;
 				summary.removed += 1;
 			}
 			for (int i=matches[m-1].second+1; i<matches[m].second; ++i)
 			{
-                ostream << "+" << stringRepresentation(lines2[i]) << QT_ENDL;
+                ostream << "+" << stringRepresentation(lines2[i]) << Qt::endl;
 				summary.added += 1;
 			}
 		}
@@ -366,12 +367,12 @@ public:
 		//after matches
 		for (int i=matches.last().first+1; i<n; ++i)
 		{
-            ostream << "-" << stringRepresentation(lines1[i]) << QT_ENDL;
+            ostream << "-" << stringRepresentation(lines1[i]) << Qt::endl;
 			summary.removed += 1;
 		}
 		for (int i=matches.last().second+1; i<m; ++i)
 		{
-            ostream << "+" << stringRepresentation(lines2[i]) << QT_ENDL;
+            ostream << "+" << stringRepresentation(lines2[i]) << Qt::endl;
 			summary.added += 1;
 		}
 	}
@@ -382,7 +383,7 @@ public:
 		bool skip_comments = getFlag("skip_comments");
 		QStringList skip_comments_matching = getString("skip_comments_matching").split(",");
 		skip_comments_matching.removeAll("");
-        QSet<QString> skip_cols = LIST_TO_SET(getString("skip_cols").split(","));
+        QSet<QString> skip_cols = Helper::listToSet(getString("skip_cols").split(","));
 		skip_cols.remove("");
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream ostream(out.data());
@@ -395,19 +396,19 @@ public:
 		timer.start();
 
 		//load files
-        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Loading file 1..." << QT_ENDL;
+        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Loading file 1..." << Qt::endl;
 		TsvFile in1;
 		in1.load(getInfile("in1"), true);
-        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Loading file 2..." << QT_ENDL;
+        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Loading file 2..." << Qt::endl;
 		TsvFile in2;
 		in2.load(getInfile("in2"), true);
 
 		//determine columns used for comperison
-        QSet<QString> comp_cols = LIST_TO_SET(getString("comp").split(","));
+        QSet<QString> comp_cols = Helper::listToSet(getString("comp").split(","));
 		comp_cols.remove("");
 		if (comp_cols.isEmpty()) // "comp" not set => use all columns
 		{
-            comp_cols = LIST_TO_SET(in1.headers()) + LIST_TO_SET(in2.headers());
+            comp_cols = Helper::listToSet(in1.headers()) + Helper::listToSet(in2.headers());
 		}
 		foreach(QString col, skip_cols)
 		{
@@ -415,7 +416,7 @@ public:
 		}
 		if (!comp_cols.isEmpty())
 		{
-            if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Removing unused columns..." << QT_ENDL;
+            if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Removing unused columns..." << Qt::endl;
 			for(int i=in1.columnCount()-1; i>=0; --i)
 			{
 				if (!comp_cols.contains(in1.headers()[i]))
@@ -452,26 +453,26 @@ public:
 			removeComments(in1, skip_comments_matching);
 			removeComments(in2, skip_comments_matching);
 
-            if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Comparing comment lines..." << QT_ENDL;
+            if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Comparing comment lines..." << Qt::endl;
 			compare(in1.comments(), in2.comments(), ostream, summary_comments, comp_settings, debug);
 		}
 
 		//compare content lines
-        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Comparing content lines..." << QT_ENDL;
+        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Comparing content lines..." << Qt::endl;
 		compare(in1, in2, ostream, summary_content, comp_settings, debug);
 
 		//output
 		bool has_differences = summary_comments.hasDifferences() || summary_content.hasDifferences();
 		if (has_differences)
 		{
-            ostream << "Difference summary:" << QT_ENDL;
-            if (summary_comments.added) ostream << "comment lines added: "  << summary_comments.added << QT_ENDL;
-            if (summary_comments.removed) ostream << "comment lines removed: "  << summary_comments.removed << QT_ENDL;
-            if (summary_content.added) ostream << "content lines added: "  << summary_content.added << QT_ENDL;
-            if (summary_content.removed) ostream << "content lines removed: "  << summary_content.removed << QT_ENDL;
+            ostream << "Difference summary:" << Qt::endl;
+            if (summary_comments.added) ostream << "comment lines added: "  << summary_comments.added << Qt::endl;
+            if (summary_comments.removed) ostream << "comment lines removed: "  << summary_comments.removed << Qt::endl;
+            if (summary_content.added) ostream << "content lines added: "  << summary_content.added << Qt::endl;
+            if (summary_content.removed) ostream << "content lines removed: "  << summary_content.removed << Qt::endl;
 		}
 
-        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Overall runtime: " << Helper::elapsedTime(timer) << QT_ENDL;
+        if (debug) estream << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " Overall runtime: " << Helper::elapsedTime(timer) << Qt::endl;
 
 		//set exit code
 		if (has_differences && !no_error)

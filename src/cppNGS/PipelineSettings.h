@@ -1,8 +1,9 @@
 #ifndef PIPELINESETTINGS_H
 #define PIPELINESETTINGS_H
 
-#include <QVariant>
 #include "cppNGS_global.h"
+#include <QStringList>
+#include <QMap>
 
 ///Parses megSAP pipeline settings file (used for GSvar server only)
 class CPPNGSSHARED_EXPORT PipelineSettings
@@ -17,10 +18,12 @@ public:
 	static QString rootDir();
 	static QString projectFolder(QString type);
 	static QString dataFolder();
+    static QString queuingEngine();
 	static QStringList queuesDefault();
 	static QStringList queuesResearch();
 	static QStringList queuesHighPriority();
 	static QStringList queuesHighMemory();
+	static QStringList queuesDragen();
 
 private:
 	PipelineSettings();
@@ -29,11 +32,13 @@ private:
 
 	QString root_dir_;
 	QString data_folder_;
+    QString queuing_engine_;
 	QMap<QString, QString>  projects_folder_;
 	QStringList queues_default_;
 	QStringList queues_research_;
 	QStringList queues_high_priority_;
 	QStringList queues_high_mem_;
+	QStringList queues_dragen_;
 };
 
 #endif // PIPELINESETTINGS_H

@@ -4,19 +4,13 @@
 #include "VariantList.h"
 #include "GeneSet.h"
 #include "CnvList.h"
-#include "BedFile.h"
 #include "NGSD.h"
 #include "Settings.h"
 #include "QCCollection.h"
 #include "TSVFileStream.h"
-#include "OntologyTermCollection.h"
-#include "FilterCascade.h"
-#include <QMultiMap>
-#include <QDir>
 #include "RtfDocument.h"
 #include "BedpeFile.h"
 #include "SomaticReportSettings.h"
-#include "HttpRequestHandler.h"
 #include "SomaticXmlReportGenerator.h"
 
 struct CPPNGSDSHARED_EXPORT SomaticVirusInfo
@@ -321,7 +315,6 @@ private:
 
 	//indices for somatic variant file
 	int snv_index_coding_splicing_;
-
 
 	//indices for somatic CNV file
 	int cnv_index_cn_change_;

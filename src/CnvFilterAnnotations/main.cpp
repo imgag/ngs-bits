@@ -1,10 +1,6 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
-#include "ChromosomalIndex.h"
 #include "FilterCascade.h"
-#include "BedFile.h"
 #include "Helper.h"
-#include "NGSHelper.h"
 
 class ConcreteTool
 	: public ToolBase
@@ -52,7 +48,7 @@ public:
 		int max_len = 0;
 		foreach (QString name, filter_names)
 		{
-            max_len = std::max(SIZE_TO_INT(max_len), SIZE_TO_INT(name.length()));
+            max_len = std::max(static_cast<qsizetype>(max_len), static_cast<qsizetype>(name.length()));
 		}
 		//add filters
 		foreach (QString name, filter_names)

@@ -26,9 +26,13 @@ Other analysis
 
 - [IGV integration](igv_integration.md)
 - [Preferred transcripts](preferred_transcripts.md)
-- [Variant publication](variant_publication.md)
+- [Variant publication in ClinVar](variant_publication.md)
 - [Burden test](burden_test.md)
+- [HerediVar intregration](heredivar.md)
 - [Settings](settings.md)
-- [Configuration (for admins)](configuration.md)
 - [ChangeLog](changelog.md)
 - [FAQ](faq.md)
+
+## Installation/administration
+
+- [Configuration of GSvar](configuration.md)

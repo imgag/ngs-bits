@@ -30,7 +30,7 @@ public:
 		addOutfile("out_informative", "Output IGV file containing informative variants.", true, true);
 		addInfile("exclude", "BED file with regions to exclude, e.g. copy-number variant regions.", true);
 		addInt("var_min_dp", "Minimum depth (DP) of a variant (in all three samples).", true, 20);
-		addFloat("var_min_q", "Minimum quality (QUAL) of a variant.", true, 30);
+		addFloat("var_min_q", "Minimum quality (QUAL) of a variant.", true, 20);
 		addFlag("var_use_indels", "Also use InDels. The default is to use SNVs only.");
 		addFloat("ext_marker_perc", "Percentage of markers that can be spanned when merging adjacent regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of base size that can be spanned when merging adjacent regions.", true, 20.0);
@@ -209,7 +209,7 @@ public:
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
 		VcfFile variants;
-        variants.load(getInfile("in"), true);
+		variants.load(getInfile("in"));
 		variants.sort();
 		int skip_chr = 0;
 		int skip_qual = 0;
@@ -290,12 +290,12 @@ public:
 			}
 			output << entry;
 		}
-        stream << "Loaded " << output.count() << " of " << variants.count() << " variants" << QT_ENDL;
-        stream << "Skipped " << skip_chr << " variants not on autosomes" << QT_ENDL;
-        stream << "Skipped " << skip_qual << " variants because of low quality (<" << var_min_q << ")" << QT_ENDL;
-        stream << "Skipped " << skip_dp << " variants because of low depth (<" << var_min_dp << ")" << QT_ENDL;
-        stream << "Skipped " << skip_indel << " indels" << QT_ENDL;
-        stream << "Excluded " << c_excluded << " variants" << QT_ENDL;
+        stream << "Loaded " << output.count() << " of " << variants.count() << " variants" << Qt::endl;
+        stream << "Skipped " << skip_chr << " variants not on autosomes" << Qt::endl;
+        stream << "Skipped " << skip_qual << " variants because of low quality (<" << var_min_q << ")" << Qt::endl;
+        stream << "Skipped " << skip_dp << " variants because of low depth (<" << var_min_dp << ")" << Qt::endl;
+        stream << "Skipped " << skip_indel << " indels" << Qt::endl;
+        stream << "Excluded " << c_excluded << " variants" << Qt::endl;
 
 		return output;
 	}
@@ -313,12 +313,12 @@ public:
 			if ((entry.m==HOM && entry.c==WT) || (entry.m==WT && entry.c==HOM)) ++err_m;
 			if ((entry.m==HOM && entry.f==WT) || (entry.m==WT && entry.f==HOM)) ++err_fm;
 		}
-        stream << "Found " << err_f << " (" << QByteArray::number(100.0*err_f/data.count(), 'f', 2) << "%) mendelian errors for father-child pair" << QT_ENDL;
-        stream << "Found " << err_m << " (" << QByteArray::number(100.0*err_m/data.count(), 'f', 2) << "%) mendelian errors for mother-child pair" << QT_ENDL;
-        stream << "Found " << err_fm << " (" << QByteArray::number(100.0*err_fm/data.count(), 'f', 2) << "%) mendelian errors for father-mother pair (expected to be high)" << QT_ENDL;
+        stream << "Found " << err_f << " (" << QByteArray::number(100.0*err_f/data.count(), 'f', 2) << "%) mendelian errors for father-child pair" << Qt::endl;
+        stream << "Found " << err_m << " (" << QByteArray::number(100.0*err_m/data.count(), 'f', 2) << "%) mendelian errors for mother-child pair" << Qt::endl;
+        stream << "Found " << err_fm << " (" << QByteArray::number(100.0*err_fm/data.count(), 'f', 2) << "%) mendelian errors for father-mother pair (expected to be high)" << Qt::endl;
 		if (err_f>err_fm || err_m>err_fm)
 		{
-            stream << "Error: Mendelian error rates suggest a sample swap!" << QT_ENDL;
+            stream << "Error: Mendelian error rates suggest a sample swap!" << Qt::endl;
 			THROW(ArgumentException, "Mendelian error rates suggest a sample swap!");
 		}
 	}
@@ -366,12 +366,12 @@ public:
 			}
 		}
 
-        stream << "Detected " << output.count() << " raw ranges" << QT_ENDL;
+        stream << "Detected " << output.count() << " raw ranges" << Qt::endl;
 		if (debug)
 		{
 			foreach(const UpdRange& range, output)
 			{
-                stream << "  Range: " << range.toString() << QT_ENDL;
+                stream << "  Range: " << range.toString() << Qt::endl;
 			}
 		}
 
@@ -406,10 +406,10 @@ public:
 				{
 					if (debug)
 					{
-                        stream << "Merging ranges:" << QT_ENDL;
-                        stream << "  " << ranges[i].toString() << QT_ENDL;
-                        stream << "  " << ranges[i+1].toString() << QT_ENDL;
-                        stream << "  base_diff=" << base_diff << " marker_diff=" << marker_diff  << QT_ENDL;
+                        stream << "Merging ranges:" << Qt::endl;
+                        stream << "  " << ranges[i].toString() << Qt::endl;
+                        stream << "  " << ranges[i+1].toString() << Qt::endl;
+                        stream << "  base_diff=" << base_diff << " marker_diff=" << marker_diff  << Qt::endl;
 					}
 
 					ranges[i].end = ranges[i+1].end;
@@ -420,7 +420,7 @@ public:
 			}
 		}
 
-        stream << "Merged adjacent raw regions resulting in " << ranges.count() << " region(s)" << QT_ENDL;
+        stream << "Merged adjacent raw regions resulting in " << ranges.count() << " region(s)" << Qt::endl;
 	}
 
 	void writeOutput(QList<UpdRange>& ranges, double p_biparental, double p_upd, QTextStream& stream)
@@ -456,10 +456,10 @@ public:
 
 			if (debug)
 			{
-                stream << "  Range: " << range.toString() << QT_ENDL;
+                stream << "  Range: " << range.toString() << Qt::endl;
 			}
 		}
-        stream << "Written " << c_passing << " ranges that pass the filters" << QT_ENDL;
+        stream << "Written " << c_passing << " ranges that pass the filters" << Qt::endl;
 	}
 
 	void writeInformativeVariants(QList<VariantData>& data)
@@ -511,17 +511,17 @@ public:
 		QTextStream stream(stdout);
 
 		//load genotype data
-        stream << "### Loading variant/genotype data ###" << QT_ENDL;
+        stream << "### Loading variant/genotype data ###" << Qt::endl;
 		QList<VariantData> data = loadVariants(stream);
-        stream << QT_ENDL;
+        stream << Qt::endl;
 
 		//check medelian errors
-        stream << "### Checking for mendelian errors ###" << QT_ENDL;
+        stream << "### Checking for mendelian errors ###" << Qt::endl;
 		checkMendelianErrors(data, stream);
-        stream << QT_ENDL;
+        stream << Qt::endl;
 
 		//statistics
-        stream << "### Performing statistics ###" << QT_ENDL;
+        stream << "### Performing statistics ###" << Qt::endl;
 		int biparental = 0;
 		int upd = 0;
 		QMap<QByteArray, int> chr_upd;
@@ -541,16 +541,16 @@ public:
 			++chr_var[entry.chr.str()];
 		}
 		double p_biparental = 1.0 * biparental / data.count();
-        stream << "bi-parental variants: " << biparental <<  " (" << QByteArray::number(100.0*p_biparental, 'f', 3) << "%)" << QT_ENDL;
+        stream << "bi-parental variants: " << biparental <<  " (" << QByteArray::number(100.0*p_biparental, 'f', 3) << "%)" << Qt::endl;
 
 		int max =  *std::max_element(chr_upd.begin(), chr_upd.end());
 		QByteArray max_chr = chr_upd.key(max);
 		double p_upd = 1.0 * (upd-max) / (data.count()-chr_var[max_chr]);
-        stream << "UPD variants: " << (upd-max) <<  " (" << QByteArray::number(100.0*p_upd, 'f', 3) << "%) - excluded chromosome " << max_chr << " containing " << max <<  " (" << QByteArray::number(100.0*max/chr_var[max_chr], 'f', 3) << "%)" << QT_ENDL;
-        stream << QT_ENDL;
+        stream << "UPD variants: " << (upd-max) <<  " (" << QByteArray::number(100.0*p_upd, 'f', 3) << "%) - excluded chromosome " << max_chr << " containing " << max <<  " (" << QByteArray::number(100.0*max/chr_var[max_chr], 'f', 3) << "%)" << Qt::endl;
+        stream << Qt::endl;
 
 		//detection
-        stream << "### Detecting UPDs ###" << QT_ENDL;
+        stream << "### Detecting UPDs ###" << Qt::endl;
 		QList<UpdRange> ranges = detectRanges(data, stream);
 		mergeRanges(ranges, stream);
 

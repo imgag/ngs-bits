@@ -1,9 +1,22 @@
 #include "ServerController.h"
 #include "PipelineSettings.h"
-#include "FileMetaCache.h"
 #include <QUrl>
 #include <QProcess>
-#include <QTemporaryFile>
+#include <QDir>
+#include <QJsonArray>
+#include <QLibraryInfo>
+#include "HttpUtils.h"
+#include "Settings.h"
+#include "HtmlEngine.h"
+#include "ToolBase.h"
+#include "ServerHelper.h"
+#include "ClientHelper.h"
+#include "FileLocationList.h"
+#include "SessionManager.h"
+#include "UrlManager.h"
+#include "ServerDB.h"
+#include "Statistics.h"
+#include "FileLocationProviderLocal.h"
 
 ServerController::ServerController()
 {
@@ -216,7 +229,10 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		json_object.insert("version", ToolBase::version());
 		json_object.insert("api_version", ClientHelper::serverApiVersion());
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
-		json_doc.setObject(json_object);
+        json_object.insert("server_url", Settings::string("server_host", true));
+		json_object.insert("htslib_version", hts_version());
+        json_object.insert("qt_version", QLibraryInfo::version().toString());
+        json_doc.setObject(json_object);
 
 		BasicResponseData response_data;
 		response_data.length = json_doc.toJson().length();
@@ -225,7 +241,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 
 		return HttpResponse(response_data, json_doc.toJson());
 	}
-	else if (path_lower=="bam")
+    else if (path_lower=="assets")
 	{
 		QString filename;
 		if (request.getPathItems().count() > 0) filename = request.getPathItems()[0];
@@ -285,41 +301,45 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
         return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processed sample file does not exist"));
     }
 
-    // Check the cache first
-    ServerDB db = ServerDB();
-    if (db.hasFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing))
-    {
-        QJsonArray updated_cached_array;
-        QJsonDocument cache_doc = db.getFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
-        db.updateFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
-        QJsonArray cached_array = cache_doc.array();
-        for (const QJsonValue &value : cached_array)
-        {
-            if (value.isObject())
-            {
-                QJsonObject cached_object = value.toObject();
-                QString cached_filename = cached_object.value("filename").toString();
-                if (!cached_filename.isEmpty())
-                {
-                    cached_object.insert("filename", createTempUrl(cached_filename, request.getUrlParams()["token"]));
-                    updated_cached_array.append(cached_object);
-                }
-            }
-        }
+	ServerDB db = ServerDB();
+	// Check the cache first, if enabled
+	if (Settings::boolean("enable_file_metadata_caching", true))
+	{
+		QList<PathType> types_to_ignore = QList<PathType>() << PathType::IGV_SCREENSHOT;
+		if (db.hasFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing) && !types_to_ignore.contains(requested_type))
+		{
+			QJsonArray updated_cached_array;
+			QJsonDocument cache_doc = db.getFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
+			db.updateFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
+			QJsonArray cached_array = cache_doc.array();
+			for (const QJsonValue &value : cached_array)
+			{
+				if (value.isObject())
+				{
+					QJsonObject cached_object = value.toObject();
+					QString cached_filename = cached_object.value("filename").toString();
+					if (!cached_filename.isEmpty())
+					{
+						cached_object.insert("filename", createTempUrl(cached_filename, request.getUrlParams()["token"]));
+						updated_cached_array.append(cached_object);
+					}
+				}
+			}
 
-        // Ignore the cache entry, if no URLs were genereated
-        if (updated_cached_array.size()>0)
-        {
-            QJsonDocument updated_cached_doc;
-            updated_cached_doc.setArray(updated_cached_array);
+			// Ignore the cache entry, if no URLs were genereated
+			if (updated_cached_array.size()>0)
+			{
+				QJsonDocument updated_cached_doc;
+				updated_cached_doc.setArray(updated_cached_array);
 
-            BasicResponseData response_data;
-            response_data.length = updated_cached_doc.toJson().length();
-            response_data.content_type = request.getContentType();
-            response_data.is_downloadable = false;
-            return HttpResponse(response_data, updated_cached_doc.toJson());
-        }
-    }
+				BasicResponseData response_data;
+				response_data.length = updated_cached_doc.toJson().length();
+				response_data.content_type = request.getContentType();
+				response_data.is_downloadable = false;
+				return HttpResponse(response_data, updated_cached_doc.toJson());
+			}
+		}
+	}
 
 	if (found_file.isEmpty())
 	{
@@ -453,6 +473,16 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				}
 				file_list << file_locator->getMethylationImage(locus);
 				break;
+			case PathType::METHYLATION_COHORT_IMAGE:
+				if (locus.isEmpty())
+				{
+					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
+				}
+				file_list << file_locator->getMethylationCohortImage(locus);
+				break;
+			case PathType::PARAPHASE_EVIDENCE:
+				file_list = file_locator->getParaphaseEvidenceFiles(return_if_missing);
+				break;
 			case PathType::GSVAR:
 				file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);
 				break;
@@ -484,7 +514,8 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
         QJsonObject cur_json_item;
         QJsonObject cur_json_item_without_token;
 		cur_json_item.insert("id", file_list[i].id);
-		cur_json_item.insert("type", FileLocation::typeToString(file_list[i].type));
+        cur_json_item.insert("type", file_list[i].typeAsString());
+        cur_json_item.insert("modified", file_list[i].modifiedAsString());
         cur_json_item.insert("exists", file_list[i].exists);
 
         cur_json_item_without_token = cur_json_item;
@@ -518,7 +549,10 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 	json_doc_output.setArray(json_list_output);
     json_doc_without_tokens.setArray(json_list_without_tokens);
 
-    db.addFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, static_cast<int>(multiple_files), static_cast<int>(return_if_missing), json_doc_without_tokens.toJson(QJsonDocument::Compact), QDateTime::currentDateTime());
+	if (Settings::boolean("enable_file_metadata_caching", true))
+	{
+		db.addFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, static_cast<int>(multiple_files), static_cast<int>(return_if_missing), json_doc_without_tokens.toJson(QJsonDocument::Compact), QDateTime::currentDateTime());
+	}
 
 	BasicResponseData response_data;
 	response_data.length = json_doc_output.toJson().length();
@@ -562,7 +596,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
     }
 
     FastFileInfo file_info(found_file_path);
-    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.exists());
+    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.lastModified(), file_info.exists());
 
 	QJsonDocument json_doc_output;
 	QJsonArray file_location_as_json_list;
@@ -570,6 +604,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	file_location_as_json_object.insert("id", ps_name);
 	file_location_as_json_object.insert("type", project_file.typeAsString());
 	file_location_as_json_object.insert("filename", project_file.filename);
+    file_location_as_json_object.insert("modified", project_file.modifiedAsString());
 	file_location_as_json_object.insert("exists", project_file.exists);
 	file_location_as_json_list.append(file_location_as_json_object);
 	json_doc_output.setArray(file_location_as_json_list);
@@ -615,6 +650,7 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 	file_location_as_json_object.insert("id", ps_name);
 	file_location_as_json_object.insert("type", analysis_job_gsvar_file.typeAsString());
 	file_location_as_json_object.insert("filename", analysis_job_gsvar_file.filename);
+    file_location_as_json_object.insert("modified", analysis_job_gsvar_file.modifiedAsString());
 	file_location_as_json_object.insert("exists", analysis_job_gsvar_file.exists);
 	json_doc_output.setObject(file_location_as_json_object);
 
@@ -655,6 +691,10 @@ HttpResponse ServerController::getAnalysisJobLastUpdate(const HttpRequest& reque
 		last_update_as_json_object.insert("latest_mod", QString::number(log_info.last_modiefied.toSecsSinceEpoch()));
 		last_update_as_json_object.insert("latest_created", QString::number(log_info.created.toSecsSinceEpoch()));
 	}
+	else
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Last update time is unknown"));
+	}
 	json_doc_output.setObject(last_update_as_json_object);
 
 	BasicResponseData response_data;
@@ -677,7 +717,7 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
         QString log = db.analysisJobLatestLogInfo(job_id).file_name_with_path;
 
         FastFileInfo file_info(log);
-        analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.exists());
+        analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.lastModified(), file_info.exists());
 	}
     catch (DatabaseException& e)
     {
@@ -696,6 +736,7 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
 	file_location_as_json_object.insert("id", analysis_job_log_file.id);
 	file_location_as_json_object.insert("type", analysis_job_log_file.typeAsString());
 	file_location_as_json_object.insert("filename", analysis_job_log_file.filename);
+    file_location_as_json_object.insert("modified", analysis_job_log_file.modifiedAsString());
 	file_location_as_json_object.insert("exists", analysis_job_log_file.exists);
 	json_doc_output.setObject(file_location_as_json_object);
 
@@ -741,7 +782,6 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 	int ref_pos = -1;
 	int obs_pos = -1;
 	bool is_file_changed = false;
-
 	while(!in_stream.atEnd())
 	{
 		QString line = in_stream.readLine();
@@ -752,7 +792,7 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 		}
 
 		// Headers
-		if ((line.startsWith("#")) && (line.count("#") == 1))
+		if (line.startsWith("#"))
 		{
 			out_stream << line << "\n";
 			column_names = line.split("\t");
@@ -762,27 +802,27 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 			ref_pos = column_names.indexOf("ref");
 			obs_pos = column_names.indexOf("obs");
 
-			if ((chr_pos == -1) || (start_pos == -1) || (end_pos == -1) || (ref_pos == -1) || (obs_pos == -1))
+			if (chr_pos==-1 || start_pos==-1 || end_pos==-1 || ref_pos==-1 || obs_pos==-1)
             {
                 return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not identify key columns in GSvar file: " + ps_url_id));
 			}
 			continue;
 		}
 
-		QList<QString> line_columns = line.split("\t");
-		QString variant_in = line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos];
+		QStringList line_columns = line.split("\t");
+		QString variant_in = (line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos]).toLower().trimmed();
 		bool is_current_variant_changed = false;
 
-		for (int i = 0; i <  json_doc.array().size(); i++)
+		for (int i=0; i<json_doc.array().size(); i++)
 		{
 			try
 			{
-				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString().trimmed();
+				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString().toLower().trimmed();
 				QString column = json_doc.array().takeAt(i).toObject().value("column").toString().trimmed();
 				QString text = json_doc.array().takeAt(i).toObject().value("text").toString();
 
 				// Locating changed variant
-				if (variant_in.toLower().trimmed() == variant_changed.toLower())
+				if (variant_in == variant_changed)
 				{
 					// Locating changed column
 					if (column_names.indexOf(column) == -1)
@@ -792,7 +832,7 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 					is_current_variant_changed = true;
 					is_file_changed = true;
 
-					line_columns[column_names.indexOf(column)] = QUrl::toPercentEncoding(text); // text.replace("\n", " ").replace("\t", " ");
+					line_columns[column_names.indexOf(column)] = QUrl::toPercentEncoding(text);
 				}
 			}
 			catch (Exception& e)
@@ -811,28 +851,43 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 			out_stream << line_columns.join("\t") << "\n";
 		}
 	}
-
 	in_file.data()->close();
+	out_stream.flush();
 	out_file.data()->close();
 
+	//file was changed => update it on server
 	if (is_file_changed)
 	{
 		//remove original file
-		if (!in_file.data()->remove())
+		QString filename_orig = in_file.data()->fileName();
+		QString filename_backup = filename_orig + ".gsvarserver.bak";
+		if (!QFile::rename(filename_orig, filename_backup))
         {
-            Log::warn(EndpointManager::formatResponseMessage(request, "Could not remove: " + in_file.data()->fileName()));
+			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_orig + " to " + filename_backup));
 		}
-		//put the changed copy instead of the original
-		if (!out_file.data()->rename(url.filename_with_path))
-        {
-            Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename: " + out_file.data()->fileName()));
-		}
-	}
 
-	if (is_file_changed)
-	{
+		//rename changed copy to original file
+		if (!QFile::rename(tmp, filename_orig))
+		{
+			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + tmp + " to " + filename_orig));
+
+			if (!QFile::rename(filename_backup, filename_orig))
+			{
+				Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_backup + " to " + filename_orig));
+			}
+		}
+		else
+		{
+			QFile::remove(filename_backup);
+		}
+
 		return HttpResponse(ResponseStatus::OK, request.getContentType(), "Project file has been changed");
 	}
+	else
+	{
+		QFile::remove(tmp);
+	}
+
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "No changes to the file detected");
 }
 
@@ -949,7 +1004,7 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 	}
 
 	int threads = Settings::integer("threads");
-	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff, threads);
+	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff, 1, 0, threads);
 
 	QByteArray body = low_cov.toText().toUtf8();
 
@@ -984,11 +1039,12 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 	Statistics::avgCoverage(roi, bam_file_name, 1, threads);
 
     QByteArray body = roi.toText().toUtf8();
-
     BasicResponseData response_data;
     response_data.length = body.length();
     response_data.content_type = request.getContentType();
+    response_data.is_stream = (!body.isEmpty() ? true : false);
     response_data.is_downloadable = false;
+
     return HttpResponse(response_data, body);
 }
 
@@ -1158,7 +1214,7 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-    Session cur_session = Session(secure_token, user_id, user_login, user_real_name, QDateTime::currentDateTime(), false);
+	Session cur_session = Session(secure_token, user_id, user_login, user_real_name, Helper::randomString(128), QDateTime::currentDateTime(), false);
     SessionManager::addNewSession(cur_session);
     QByteArray body = secure_token.toUtf8();
 
@@ -1243,7 +1299,7 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
     }
 
     QString db_token = ServerHelper::generateUniqueStr();
-    Session cur_session = Session(db_token, user_session.user_id, user_session.user_login, user_session.user_name, QDateTime::currentDateTime(), true);
+	Session cur_session = Session(db_token, user_session.user_id, user_session.user_login, user_session.user_name, Helper::randomString(128), QDateTime::currentDateTime(), true);
     SessionManager::addNewSession(cur_session);
 	QByteArray body = db_token.toUtf8();
 
@@ -1252,6 +1308,23 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, body);
+}
+
+HttpResponse ServerController::getRandomSecret(const HttpRequest &request)
+{
+	QString token = EndpointManager::getTokenIfAvailable(request);
+	if (token.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to access this information"));
+	}
+	Session current_session = SessionManager::getSessionBySecureToken(token);
+
+	BasicResponseData response_data;
+	response_data.length = current_session.random_secret.length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, current_session.random_secret.toLocal8Bit());
 }
 
 HttpResponse ServerController::getNgsdCredentials(const HttpRequest& request)
@@ -1546,6 +1619,72 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
+{
+    if (Settings::integer("blat_server_port") == 0)
+    {
+        return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("BLAT server port number is not set, the search cannot be performed!")));
+    }
+
+    QString sequence = request.getUrlParams()["sequence"];
+    Log::info(sequence);
+    if (sequence.length()<20)
+    {
+        return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Input sequence too short! Must be at least 20 bases!")));
+    }
+
+    QString blat_search_query = Helper::tempFileName(".fa");
+    Helper::storeTextFile(blat_search_query, QStringList() << ">sequence_1" << sequence);
+    QString blat_search_out = Helper::tempFileName(".psl");
+    Helper::touchFile(blat_search_out);
+
+    QProcess blat_client;
+    blat_client.setProcessChannelMode(QProcess::MergedChannels);
+    blat_client.start(QCoreApplication::applicationDirPath() + "/blat/gfClient", {"localhost", QString::number(Settings::integer("blat_server_port")), QCoreApplication::applicationDirPath() + "/blat/", blat_search_query, blat_search_out});
+    bool success = blat_client.waitForFinished(-1);
+    QString command_out = blat_client.readAllStandardOutput().trimmed();
+    Log::info(command_out);
+
+    if (!success || blat_client.exitCode()>0)
+    {
+        command_out += blat_client.readAll().trimmed();
+        Log::error("BLAT search error: exit code " + QString::number(blat_client.exitCode()) + ", " + command_out);
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while performing BLAT search: " + command_out)));
+    }    
+
+    // reading results
+    QSharedPointer<QFile> out_file = Helper::openFileForReading(blat_search_out, false);
+    int line_count = 0;
+    QJsonDocument json_doc_output;
+    QJsonArray json_array;
+    while(!out_file->atEnd())
+    {
+        line_count++;
+        QString line = out_file->readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        if (line_count>=6)
+        {
+            QJsonObject json_object;
+            QStringList line_items = line.split("\t");
+
+            json_object.insert("matches", line_items[0].toInt());
+            json_object.insert("repMatches", line_items[2].toInt());
+            json_object.insert("strand", line_items[8]);
+            json_object.insert("tName", line_items[13]);
+            json_object.insert("tStart", line_items[15].toInt());
+            json_object.insert("tEnd", line_items[16].toInt());
+            json_array.append(json_object);
+        }
+    }
+    json_doc_output.setArray(json_array);
+
+    BasicResponseData response_data;
+    response_data.length = json_doc_output.toJson().length();
+    response_data.content_type = ContentType::APPLICATION_JSON;
+    return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 HttpResponse ServerController::getCurrentNotification(const HttpRequest& /*request*/)
 {
 	QJsonDocument json_doc_output;
@@ -1638,7 +1777,7 @@ QString ServerController::getProcessedSampleFile(const int& ps_id, const PathTyp
     }
     catch (Exception& e)
     {
-        Log::error("Error opening processed sample from NGSD: " + e.message());
+		Log::error("Error getting processed sample file: " + e.message());
         THROW_HTTP(HttpException, e.message(), 500,  {}, {});
     }
     return found_file_path;
@@ -1766,4 +1905,11 @@ HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const H
 
     Log::error(EndpointManager::formatResponseMessage(request, "Upload folder does not exist: " + upload_folder));
     return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_PLAIN, EndpointManager::formatResponseMessage(request, "Upload destination does not exist on the server"));
+}
+
+HttpResponse ServerController::clearPermissionsCache(const HttpRequest &/*request*/)
+{
+	NGSD db;
+	db.clearUserPermissionsCache();
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User permissions cache has been cleared");
 }

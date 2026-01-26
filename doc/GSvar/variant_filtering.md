@@ -13,10 +13,32 @@ A documentation of available filter steps and their parameters can be found [her
 
 To perform a single sample analysis, follow those steps:
 
-1. Open the analysis status dialog from the main tool bar ![alt text](analysis_status.png) and trigger the analysis using the single sample button ![alt text](single_sample.png).
-2. When the analysis is finished, open the GSvar variant list.
-3. For filtering the variant list, use one of the default `recessive` and `dominant` filters.
-4. Default filter can be modified and new filters created using the filter toolbar on the right.
+1. If the samples is not already analyzed, open the analysis status dialog from the main tool bar ![alt text](analysis_status.png) and trigger the analysis using the single sample button ![alt text](single_sample.png).
+2. When the analysis is finished, open the variant list of the sample using `File > Open by name`.
+3. Select one of the default filters `recessive` and `dominant`
+4. Set the patient's phenotype as filter (or load it from NGSD using the context menu of the phenotype filter).
+
+### Automated ranking of small variants
+
+GSvar has a built-in ranking algorithm for small variants, which scores and ranks variants in the context of the patient's phenotype.
+
+The input of the algorithm is the variant list of a sample and the phenotype information of the patient.  
+After loading a sample into GSvar and setting the phenotype filter, you can start the algorithm from the tool bar:  
+![alt text](ranking.png)
+
+The algorithm runs for a few seconds. It adds the three columns to the variant list:
+
+- GSvar_score: The score of the variant.
+- GSvar_rank: The rank of the variant based on the scores.
+- GSvar_score_explainations: A list of contributing criteria their part of the score.
+
+By default the top 10 variants are shown by the filter `GSvar score/rank`, which is automatically set after the ranking.  
+You can however change the number of variants that are shown in the filter widget.
+
+**Notes:**  
+
+- A detailled description of the ranking algorithm can be found in the documentation of the corresponding command-line tool [VariantRanking](https://github.com/imgag/ngs-bits/blob/master/doc/tools/VariantRanking/index.md).
+- More benchmarks can be found in the [aiDIVA paper](https://www.medrxiv.org/content/10.1101/2025.09.04.25335099v1), in which the algorithm is used to calculate the `evidence-based scores`.
 
 ### Mosaic variants
 
@@ -43,6 +65,27 @@ They are called on the following target region, depending on the processing syst
 
 Low mappability variants are filtered out by most default filters.  
 Use the filter 'low mappability' to look at them specifically.
+
+
+## Gaps in diagnostic target region
+
+A important part of diagnostics is to determine the gaps of the analysis.  
+Gaps are bases that are not covered by enough reads or by low mapping quality reads, i.e. they are not uniquely mapped.
+
+Gaps in the target region of the processing system of a sample are pre-calculated during the megSAP analysis using a cutoff of 20x.  
+The calculated gaps are annotated with gene names for easy lookup.
+
+### Lookup of gaps
+
+You can look up the pre-calculated gaps for a gene set or a target region using this button from the main toolbar:  
+![alt text](gaps_lookup.png)
+
+The dialog shows the gaps in the given target region, annotates them with gene names and highlights coding/splicing regions.
+
+**Note:**
+
+- By default only coding/splicing region gaps are shown.
+- When the processing system is not WGS, regions that are not part of the target region are shown as gaps independent of the depth.
 
 ## Trio analysis
 

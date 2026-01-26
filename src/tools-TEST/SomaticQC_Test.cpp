@@ -1,0 +1,67 @@
+#include "TestFrameworkNGS.h"
+#include "Settings.h"
+
+TEST_CLASS(SomaticQC_Test)
+{
+private:
+
+    TEST_METHOD(no_target)
+    {
+		SKIP_IF_NO_HG38_GENOME();
+
+		EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("../cppNGS-TEST/data_in/tumor.bam") + " -normal_bam " + TESTDATA("../cppNGS-TEST/data_in/normal.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in7.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -skip_plots -out out/SomaticQC_out1.qcML");
+        REMOVE_LINES("out/SomaticQC_out1.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/SomaticQC_out1.qcML", QRegularExpression("<binary>"));
+        COMPARE_FILES("out/SomaticQC_out1.qcML", TESTDATA("data_out/SomaticQC_out1.qcML"));
+    }
+
+    TEST_METHOD(exac)
+    {
+		SKIP_IF_NO_HG38_GENOME();
+
+		EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("../cppNGS-TEST/data_in/tumor.bam") + " -normal_bam " + TESTDATA("../cppNGS-TEST/data_in/normal.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in6.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -skip_plots -out out/SomaticQC_out2.qcML");
+        REMOVE_LINES("out/SomaticQC_out2.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/SomaticQC_out2.qcML", QRegularExpression("<binary>"));
+		COMPARE_FILES("out/SomaticQC_out2.qcML", TESTDATA("data_out/SomaticQC_out2.qcML"));
+    }
+
+	TEST_METHOD(tumor_content)
+    {
+		SKIP_IF_NO_HG38_GENOME();
+
+		EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("data_in/SomaticQC_in1_tum.bam") + " -normal_bam " + TESTDATA("data_in/SomaticQC_in1_nor.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in1.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -skip_plots -out out/SomaticQC_out3.qcML");
+        REMOVE_LINES("out/SomaticQC_out3.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/SomaticQC_out3.qcML", QRegularExpression("<binary>"));
+		COMPARE_FILES("out/SomaticQC_out3.qcML", TESTDATA("data_out/SomaticQC_out3.qcML"));
+    }
+
+    TEST_METHOD(target)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("../cppNGS-TEST/data_in/tumor.bam") + " -normal_bam " + TESTDATA("../cppNGS-TEST/data_in/normal.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in7.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -target_bed " + TESTDATA("data_in/SomaticQC_in8.bed") + " -out out/SomaticQC_out4.qcML"  + " -tsg_bed " + TESTDATA("data_in/SomaticQC_tmb_tsg.bed") + " -blacklist " + TESTDATA("data_in/SomaticQC_tmb_blacklist.bed") + " -target_exons " + TESTDATA("data_in/SomaticQC_tmb_exons.bed") );
+        REMOVE_LINES("out/SomaticQC_out4.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/SomaticQC_out4.qcML", QRegularExpression("<binary>"));
+		COMPARE_FILES("out/SomaticQC_out4.qcML", TESTDATA("data_out/SomaticQC_out4.qcML"));
+	}
+
+	TEST_METHOD(target_no_tmb)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("../cppNGS-TEST/data_in/tumor.bam") + " -normal_bam " + TESTDATA("../cppNGS-TEST/data_in/normal.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in7.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -target_bed " + TESTDATA("data_in/SomaticQC_in8.bed") + " -out out/SomaticQC_out5.qcML");
+        REMOVE_LINES("out/SomaticQC_out5.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/SomaticQC_out5.qcML", QRegularExpression("<binary>"));
+		COMPARE_FILES("out/SomaticQC_out5.qcML", TESTDATA("data_out/SomaticQC_out5.qcML"));
+	}
+
+    TEST_METHOD(mutect2)
+    {
+		SKIP_IF_NO_HG38_GENOME();
+
+        EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("../cppNGS-TEST/data_in/tumor.bam") + " -normal_bam " + TESTDATA("../cppNGS-TEST/data_in/normal.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in9.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -skip_plots -out out/SomaticQC_out6.qcML");
+        REMOVE_LINES("out/SomaticQC_out6.qcML", QRegularExpression("creation "));
+        REMOVE_LINES("out/SomaticQC_out6.qcML", QRegularExpression("<binary>"));
+        COMPARE_FILES("out/SomaticQC_out6.qcML", TESTDATA("data_out/SomaticQC_out6.qcML"));
+    }
+};

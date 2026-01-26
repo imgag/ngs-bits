@@ -2,23 +2,21 @@
 #define CLIENTHELPER_H
 
 #include "cppNGS_global.h"
-#include "Settings.h"
 #include "Helper.h"
-#include "HttpRequestHandler.h"
-#include "Log.h"
 #include <QString>
 #include <QDateTime>
-#include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 
 
 //Contains information about the GSvarServer (used in client-server mode)
 struct CPPNGSSHARED_EXPORT ServerInfo
 {
 	QString version; // server version
-	QString api_version; // server API version
 	QDateTime server_start_time; // date and time when the server was started
+    QString server_url; // server host / domain name
+	QString api_version; // server API version
+    QString htslib_version; // htslib version on the server
+    QString qt_version; // Qt version on the server
 
 	bool isEmpty()
 	{

@@ -2,13 +2,13 @@
 #define FILTERCASCADE_H
 
 #include "BedpeFile.h"
-#include "NGSHelper.h"
 #include "CnvList.h"
 #include "ArribaFile.h"
 #include "VariantType.h"
-
+#include "VcfFile.h"
+#include <QBitArray>
 #include <QRegularExpression>
-
+#include "NGSHelper.h"
 
 //Parameter type
 enum class FilterParameterType
@@ -1172,6 +1172,16 @@ class CPPNGSSHARED_EXPORT FilterSvCnvOverlap
 {
 	public:
 		FilterSvCnvOverlap();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+//Filter SVs that are annotated to be pathogenic in NGSD
+class CPPNGSSHARED_EXPORT FilterSvPathogenic
+	: public FilterBase
+{
+	public:
+		FilterSvPathogenic();
 		QString toText() const override;
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };

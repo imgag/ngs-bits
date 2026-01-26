@@ -1,5 +1,6 @@
 #include "ToolBase.h"
 #include "VcfFile.h"
+#include "VersatileFile.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -97,34 +98,12 @@ public:
 		int c_skip_genotype_unknown = 0;
 		int c_skip_genotype_invalid = 0;
 
-		//TODO Marc: implement a file stream (gzipped or normal) that returns lines (full or split by separator) and replace all uses of zlib with this class
 		//open stream
-		QByteArray vcf = getInfile("vcf").toUtf8();
-		FILE* instream = fopen(vcf.data(), "rb");
-		if (!instream) THROW(FileAccessException, "Could not open VCF file " + vcf);
-		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-		if (!file) THROW(FileAccessException, "Could not open VCF file " + vcf);
-
-		const int buffer_size = 1048576; //1MB buffer
-		char* buffer = new char[buffer_size];
-		while(!gzeof(file))
+		VersatileFile file(getInfile("vcf"));
+		file.open();
+		while(!file.atEnd())
 		{
-			// get next line
-			char* char_array = gzgets(file, buffer, buffer_size);
-
-			//handle errors like truncated GZ file
-			if (char_array==nullptr)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(file, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading file '" + vcf + "': " + error_message);
-				}
-			}
-			QByteArray line = QByteArray(char_array);
-
-			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+			QByteArray line = file.readLine(true);
 
 			//skip empty lines
 			if (line.isEmpty() || line.startsWith("##")) continue;

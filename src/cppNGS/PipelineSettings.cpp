@@ -22,7 +22,7 @@ void PipelineSettings::loadSettings(QString ini_file)
         }
 
         // Key-value pair
-        QStringList parts = line.split("=", QT_SKIP_EMPTY_PARTS);
+        QStringList parts = line.split("=", Qt::SkipEmptyParts);
 		if (parts.size() == 2)
         {
 			QString key = parts.at(0).trimmed();
@@ -58,6 +58,10 @@ void PipelineSettings::loadSettings(QString ini_file)
 				{
 					instance().data_folder_ = value;
 				}
+                if (key=="queuing_engine")
+                {
+                    instance().queuing_engine_ = value;
+                }
 				if (key=="queues_default")
 				{
 					QStringList tmp = value.split(',');
@@ -81,6 +85,12 @@ void PipelineSettings::loadSettings(QString ini_file)
 					QStringList tmp = value.split(',');
 					Helper::trim(tmp);
 					instance().queues_high_mem_ = tmp;
+				}
+				if (key=="queues_dragen")
+				{
+					QStringList tmp = value.split(',');
+					Helper::trim(tmp);
+					instance().queues_dragen_ = tmp;
 				}
 			}
 			else
@@ -121,6 +131,12 @@ QString PipelineSettings::dataFolder()
 	return instance().data_folder_;
 }
 
+QString PipelineSettings::queuingEngine()
+{
+    checkInitialized();
+    return instance().queuing_engine_;
+}
+
 QStringList PipelineSettings::queuesDefault()
 {
 	checkInitialized();
@@ -143,6 +159,12 @@ QStringList PipelineSettings::queuesHighMemory()
 {
 	checkInitialized();
 	return instance().queues_high_mem_;
+}
+
+QStringList PipelineSettings::queuesDragen()
+{
+	checkInitialized();
+	return instance().queues_dragen_;
 }
 
 PipelineSettings& PipelineSettings::instance()

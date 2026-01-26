@@ -2,8 +2,8 @@
 #include "Helper.h"
 #include "GUIHelper.h"
 #include <QDesktopServices>
-#include <QFile>
 #include <QMenu>
+#include <QUrl>
 
 PRSWidget::PRSWidget(QString filename, QWidget *parent)
 	: QWidget(parent)
@@ -83,6 +83,16 @@ void PRSWidget::initGui()
 		{
 			ui_.prs->setItem(r , c, GUIHelper::createTableItem(prs_table_[r][c].trimmed()));
 		}
+	}
+
+	//color low depth column if too many variants are low depth
+	int c_all = GUIHelper::columnIndex(ui_.prs, "variants_in_prs");
+	int c_low_depth = GUIHelper::columnIndex(ui_.prs, "variants_low_depth");
+	for (int r=0; r<prs_table_.count(); ++r)
+	{
+		int all = Helper::toInt(ui_.prs->item(r, c_all)->text(), "variants_in_prs");
+		int low_depth = Helper::toInt(ui_.prs->item(r, c_low_depth)->text(), "variants_low_depth");
+		if (low_depth>=0.1*all) ui_.prs->item(r, c_low_depth)->setBackground(Qt::yellow);
 	}
 
 	GUIHelper::resizeTableCellWidths(ui_.prs);

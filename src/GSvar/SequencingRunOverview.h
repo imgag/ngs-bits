@@ -4,9 +4,10 @@
 #include <QWidget>
 #include "ui_SequencingRunOverview.h"
 #include "DelayedInitializationTimer.h"
+#include "TabBaseClass.h"
 
 class SequencingRunOverview
-	: public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 

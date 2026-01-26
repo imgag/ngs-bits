@@ -4,11 +4,10 @@
 #include "Settings.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
-#include <QApplication>
 #include <QDesktopServices>
 #include <QJsonDocument>
-#include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonObject>
 
 void GeneInfoDBs::openUrl(QString db_name, QString gene_symbol)
 {

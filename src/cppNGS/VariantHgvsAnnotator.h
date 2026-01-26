@@ -4,11 +4,9 @@
 #include "cppNGS_global.h"
 #include "BedFile.h"
 #include "VariantList.h"
-#include "VcfFile.h"
 #include "FastaFileIndex.h"
 #include "Transcript.h"
 #include "Sequence.h"
-#include "NGSHelper.h"
 #include "Exceptions.h"
 #include "VariantImpact.h"
 
@@ -61,6 +59,8 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
 	QByteArray normalized; //normalized VCF representation after shifting according to 3' rule
 
 	QByteArray typesToString(QByteArray sep="&") const;
+	//Only shows most important type
+	QByteArray typesToStringSimplified(QByteArray sep="&") const;
 	static QByteArray typeToString(VariantConsequenceType type)
     {
         switch(type)
@@ -95,6 +95,9 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
 
 		THROW(ProgrammingException, "Unhandled variant consequence type " + QByteArray::number(static_cast<int>(type)) + "!");
     }
+
+	//Returns exon/intron number an total number of exons/introns
+	QByteArray exonOrIntron(const Transcript& trans);
 
 	QByteArray toString() const;
 };

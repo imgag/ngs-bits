@@ -5,13 +5,11 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
-#include <QDir>
-#include <QDesktopServices>
 #include <QDialog>
 #include <QMessageBox>
 
 ProcessingSystemWidget::ProcessingSystemWidget(QWidget* parent, int sys_id)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_()
 	, init_timer_(this, true)
 	, sys_id_(sys_id)
@@ -25,69 +23,78 @@ ProcessingSystemWidget::ProcessingSystemWidget(QWidget* parent, int sys_id)
 void ProcessingSystemWidget::updateGUI()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
+	is_busy_ = true;
 
-	//get variant id
-	NGSD db;
-	ProcessingSystemData ps_data = db.getProcessingSystemData(sys_id_);
-
-	//###base infos###
-	ui_.name_long->setText(ps_data.name);
-	ui_.name_short->setText(ps_data.name_short);
-	ui_.adapter1->setText(ps_data.adapter1_p5);
-	ui_.adapter2->setText(ps_data.adapter2_p7);
-	ui_.type->setText(ps_data.type);
-	ui_.shotgun->setText(ps_data.shotgun ? "yes" : "no");
-	ui_.umi->setText(ps_data.umi_type);
-
-	//genome build
-	QString build = ps_data.genome;
-	if (GSvarHelper::build()==GenomeBuild::HG38 && build=="GRCh37")
-	{
-		build = "<font color='red'>" + build + "</font>";
-	}
-	ui_.genome->setText(build);
-
-	//###target region infos###
 	try
 	{
-        BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, true);
-		if (!roi.isEmpty())
+		//get variant id
+		NGSD db;
+		ProcessingSystemData ps_data = db.getProcessingSystemData(sys_id_);
+
+		//###base infos###
+		ui_.name_long->setText(ps_data.name);
+		ui_.name_short->setText(ps_data.name_short);
+		ui_.adapter1->setText(ps_data.adapter1_p5);
+		ui_.adapter2->setText(ps_data.adapter2_p7);
+		ui_.type->setText(ps_data.type);
+		ui_.shotgun->setText(ps_data.shotgun ? "yes" : "no");
+		ui_.umi->setText(ps_data.umi_type);
+
+		//genome build
+		QString build = ps_data.genome;
+		if (build=="GRCh37")
 		{
-			ui_.roi_bases->setText(QString::number(roi.baseCount(), 'f', 0));
-			ui_.roi_regions->setText(QString::number(roi.count(), 'f', 0));
+			build = "<font color='red'>" + build + "</font>";
 		}
-        else
-        {
-            ui_.roi_bases->setText("n/a");
-            ui_.roi_regions->setText("n/a");
-        }
-	}
-	catch (Exception& e)
-	{
-		ui_.roi_bases->setText("<font color='red'>" + e.message() + "</font>");
-		ui_.roi_regions->setText("<font color='red'>" + e.message() + "</font>");
-	}
+		ui_.genome->setText(build);
 
-	try
-	{
-		if (ps_data.type!="WGS" && ps_data.type!="lrGS") //no genes file for WGS & lrGS
+		//###target region infos###
+		try
 		{
-			GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_, true);
-			if (!roi_genes.isEmpty())
+			BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, true);
+			if (!roi.isEmpty())
 			{
-				ui_.roi_genes->setText(QString::number(roi_genes.count(), 'f', 0));
+				ui_.roi_bases->setText(QString::number(roi.baseCount(), 'f', 0));
+				ui_.roi_regions->setText(QString::number(roi.count(), 'f', 0));
+			}
+			else
+			{
+				ui_.roi_bases->setText("n/a");
+				ui_.roi_regions->setText("n/a");
 			}
 		}
+		catch (Exception& e)
+		{
+			ui_.roi_bases->setText("<font color='red'>" + e.message() + "</font>");
+			ui_.roi_regions->setText("<font color='red'>" + e.message() + "</font>");
+		}
+
+		try
+		{
+			if (ps_data.type!="WGS" && ps_data.type!="lrGS") //no genes file for WGS & lrGS
+			{
+				GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_, true);
+				if (!roi_genes.isEmpty())
+				{
+					ui_.roi_genes->setText(QString::number(roi_genes.count(), 'f', 0));
+				}
+			}
+		}
+		catch (Exception& e)
+		{
+			ui_.roi_genes->setText("<font color='red'>" + e.message() + "</font>");
+		}
+
+		//###processed sample###
+		QString samples = db.getValue("SELECT COUNT(id) FROM processed_sample WHERE processing_system_id=" + QString::number(sys_id_) + " AND id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)").toString();
+		ui_.number_of_samples_processed->setText(samples);
 	}
 	catch (Exception& e)
 	{
-		ui_.roi_genes->setText("<font color='red'>" + e.message() + "</font>");
+		QMessageBox::warning(this, "Error", "Could not update data:\n" + e.message());
 	}
 
-	//###processed sample###
-	QString samples = db.getValue("SELECT COUNT(id) FROM processed_sample WHERE processing_system_id=" + QString::number(sys_id_) + " AND id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)").toString();
-	ui_.number_of_samples_processed->setText(samples);
-
+	is_busy_ = false;
 	QApplication::restoreOverrideCursor();
 }
 

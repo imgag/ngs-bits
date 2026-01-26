@@ -88,7 +88,7 @@ Thus only variants that match at least one of these criteria are included in the
 	- VEP impact HIGH, MODERATE or LOW
 	- annotated as pathogenic or likely pathogenic in ClinVar oder HGMD
 	- annotated as class 4, 5 or M in NGSD
-	- genomAD AF <= 2%
+	- gnomAD AF <= 2%
 	- on chrMT
 
 This means that common variants (AF>2%) that are intronic or intergenic are not included.

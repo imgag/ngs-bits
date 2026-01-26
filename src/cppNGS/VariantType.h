@@ -2,7 +2,6 @@
 #define VARIANTTYPE_H
 
 #include "cppNGS_global.h"
-#include "Exceptions.h"
 
 
 //Variant types

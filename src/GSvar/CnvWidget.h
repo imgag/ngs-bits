@@ -4,12 +4,11 @@
 #include "ui_CnvWidget.h"
 #include <QWidget>
 #include <QTableWidgetItem>
-#include <QMenu>
 #include "CnvList.h"
 #include "GeneSet.h"
-#include "FilterWidget.h"
-#include "VariantTable.h"
 #include "Settings.h"
+#include "ReportConfiguration.h"
+#include "SomaticReportConfiguration.h"
 
 namespace Ui {
 class CnvWidget;
@@ -22,7 +21,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, SomaticReportConfiguration* rep_conf_somatic, const GeneSet& het_hit_genes);
+	CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, QSharedPointer<SomaticReportConfiguration> rep_conf_somatic, const GeneSet& het_hit_genes);
 	~CnvWidget();
 
 protected:
@@ -82,7 +81,7 @@ private:
 	const CnvList& cnvs_;
 	QStringList special_cols_;
 	QSharedPointer<ReportConfiguration> report_config_;
-	SomaticReportConfiguration* somatic_report_config_;
+	QSharedPointer<SomaticReportConfiguration> somatic_report_config_;
 
 	GeneSet var_het_genes_;
 	QSet<QString> metrics_done_;

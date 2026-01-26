@@ -1,8 +1,6 @@
-#include <QDebug>
 #include <QMenu>
 #include "TumorOnlyReportDialog.h"
 #include "ui_TumorOnlyReportDialog.h"
-#include "SomaticReportHelper.h"
 #include "GUIHelper.h"
 
 

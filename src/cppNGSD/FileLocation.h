@@ -6,6 +6,7 @@
 #include "Helper.h"
 #include <QString>
 #include <QFileInfo>
+#include <QDateTime>
 
 enum class PathType
 {
@@ -63,6 +64,8 @@ enum class PathType
 	SIGNATURE_CNV,	// Somatic: resut from SigProfileExtractor for CNVs (CSV format)
 	METHYLATION, // Methylation calls (TSV format)
 	METHYLATION_IMAGE, // image of a given methylation locus (PNG format)
+	METHYLATION_COHORT_IMAGE, // cohort plot of a given methylation locus (PNG format)
+	PARAPHASE_EVIDENCE, //Corrected mapping of pseudo gene regions (BAM format)
 	OTHER // everything else
 };
 
@@ -71,12 +74,14 @@ struct FileLocation
 	QString id; //sample name (for single sample analyses) or analysis name (for multi-sample analyses)
 	PathType type = PathType::OTHER; //file type
 	QString filename; //file name
+    QDateTime modified; // the date of last modifiation
 	bool exists = false; // if filename actually exists or not
 
 	FileLocation()
 		: id()
 		, type(PathType::OTHER)
 		, filename()
+        , modified()
 		, exists(false)
 	{
 	}
@@ -84,10 +89,24 @@ struct FileLocation
 	FileLocation(const QString& id_, PathType type_, const QString& filename_, bool exists_)
 		: id(id_)
 		, type(type_)
-		, filename(filename_)
+        , filename(filename_)
+		, modified()
 		, exists(exists_)
 	{
+		if (!Helper::isHttpUrl(filename_))
+		{
+			modified = QFileInfo(filename_).lastModified();
+		}
 	}
+
+    FileLocation(const QString& id_, PathType type_, const QString& filename_, QDateTime modified_, bool exists_)
+        : id(id_)
+        , type(type_)
+        , filename(filename_)
+        , modified(modified_)
+        , exists(exists_)
+    {
+    }
 
 	//Returns if the file is a HTTP/HTTPS URL.
 	bool isHttpUrl() const
@@ -108,6 +127,17 @@ struct FileLocation
 
 		return output;
 	}
+
+    QString modifiedAsString(bool exclude_time=false) const
+    {
+        if (exclude_time) return modified.toString("yyyy-MM-dd");
+        return modified.toString("yyyy-MM-dd hh:mm:ss");
+    }
+
+    static QDateTime stringToModified(QString date_as_string)
+    {
+        return QDateTime::fromString(date_as_string,"yyyy-MM-dd hh:mm:ss");
+    }
 
 	QString typeAsString() const
 	{
@@ -219,6 +249,10 @@ struct FileLocation
 				return "METHYLATION";
 			case PathType::METHYLATION_IMAGE:
 				return "METHYLATION_IMAGE";
+			case PathType::METHYLATION_COHORT_IMAGE:
+				return "METHYLATION_COHORT_IMAGE";
+			case PathType::PARAPHASE_EVIDENCE:
+				return "PARAPHASE_EVIDENCE";
 
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
@@ -276,6 +310,8 @@ struct FileLocation
 		if (in_upper == "SIGNATURE_CNV") return PathType::SIGNATURE_CNV;
 		if (in_upper == "METHYLATION") return PathType::METHYLATION;
 		if (in_upper == "METHYLATION_IMAGE") return PathType::METHYLATION_IMAGE;
+		if (in_upper == "METHYLATION_COHORT_IMAGE") return PathType::METHYLATION_COHORT_IMAGE;
+		if (in_upper == "PARAPHASE_EVIDENCE") return PathType::PARAPHASE_EVIDENCE;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -379,6 +415,10 @@ struct FileLocation
 				return "methylation calls";
 			case PathType::METHYLATION_IMAGE:
 				return "image of a given methylation locus";
+			case PathType::METHYLATION_COHORT_IMAGE:
+				return "cohort plot of a given methylation locus";
+			case PathType::PARAPHASE_EVIDENCE:
+				return "Mapping of pseudo gene regions (Paraphase)";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

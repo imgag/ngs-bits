@@ -11,7 +11,7 @@ BackgroundJobDialog::BackgroundJobDialog(QWidget* parent)
 {
 	ui_.setupUi(this);
 
-	pool_.setMaxThreadCount(1);
+	pool_.setMaxThreadCount(3);
 }
 
 int BackgroundJobDialog::start(BackgroundWorkerBase* job, bool show_busy_dialog)
@@ -153,7 +153,7 @@ void BackgroundJobDialog::updateTable(int id)
 
 		ui_.jobs->setItem(r, 0, GUIHelper::createTableItem(job_info.name));
 
-		ui_.jobs->setItem(r, 1, GUIHelper::createTableItem(job_info.started.toString(Qt::ISODate).replace('T', ' ')));
+		ui_.jobs->setItem(r, 1, GUIHelper::createTableItem(Helper::toString(job_info.started, ' ')));
 
 		QTableWidgetItem* item = GUIHelper::createTableItem(job_info.status);
         if (job_info.status=="queued") item->setBackground(QBrush(QColor(Qt::lightGray)));

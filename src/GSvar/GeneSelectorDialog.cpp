@@ -2,10 +2,7 @@
 #include "ui_GeneSelectorDialog.h"
 #include "Helper.h"
 #include "NGSD.h"
-#include "NGSHelper.h"
 #include "GUIHelper.h"
-#include <QDebug>
-#include <QFileInfo>
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
@@ -66,10 +63,12 @@ void GeneSelectorDialog::updateGeneTable()
 		cnv_calls.merge();
 
 		//load skipped regions from SEG file
-		auto f = Helper::openVersatileFileForReading(seg_files[0]);
-		while(!f->atEnd())
+
+		VersatileFile file(seg_files[0], false);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		while(file.atEnd())
 		{
-			QByteArray line = f->readLine();
+			QByteArray line = file.readLine();
 
 			//skip empty and comment lines
 			if (line.trimmed().isEmpty() || line.startsWith('#')) continue;
@@ -274,11 +273,7 @@ GeneSet GeneSelectorDialog::genesForVariants()
 	return output;
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
 void GeneSelectorDialog::setGeneTableItem(int row, int col, QString text, Qt::Alignment alignment, Qt::ItemFlags flags)
-#else
-void GeneSelectorDialog::setGeneTableItem(int row, int col, QString text, int alignment, Qt::ItemFlags flags)
-#endif
 {
 	auto item = new QTableWidgetItem(text);
 
@@ -288,12 +283,7 @@ void GeneSelectorDialog::setGeneTableItem(int row, int col, QString text, int al
 		item->setCheckState(Qt::Unchecked);
 	}
 
-    #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    item->setTextAlignment(Qt::Alignment(Qt::AlignVCenter|alignment));
-    #else
-	item->setTextAlignment(Qt::AlignVCenter|alignment);
-    #endif
-
+    item->setTextAlignment(Qt::Alignment(Qt::AlignVCenter|alignment));    
 	ui->details->setItem(row, col, item);
 }
 

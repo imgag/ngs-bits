@@ -8,7 +8,7 @@
 #include <QAction>
 
 SequencingRunOverview::SequencingRunOverview(QWidget *parent)
-	: QWidget(parent)
+	: TabBaseClass(parent)
 	, ui_()
 	, init_timer_(this, true)
 {
@@ -45,59 +45,68 @@ void SequencingRunOverview::delayedInitialization()
 void SequencingRunOverview::updateTable()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
+	is_busy_ = true;
 
-	//create table
-	NGSD db;
-	DBTable table = db.createOverviewTable("sequencing_run", ui_.text_filter->text(), "name DESC");
+	try
+	{
+		//create table
+		NGSD db;
+		DBTable table = db.createOverviewTable("sequencing_run", ui_.text_filter->text(), "name DESC");
 
-	//project type filter
-	if (ui_.project_type->currentText()!="")
-	{
-		QStringList runs = db.getValues("SELECT DISTINCT r.name FROM sequencing_run r, processed_sample ps, project p WHERE r.id=ps.sequencing_run_id AND ps.project_id=p.id AND p.type='" + ui_.project_type->currentText() + "'");
-		int c = table.columnIndex("name");
-		table.filterRowsByColumn(c, runs);
-	}
-
-	//add sample count column (before status)
-	QHash<QString, QString> counts;
-	SqlQuery query = db.getQuery();
-	query.exec("SELECT r.id, COUNT(ps.id) FROM processed_sample ps, sequencing_run r WHERE ps.sequencing_run_id=r.id GROUP BY r.id");
-	while(query.next())
-	{
-		counts[query.value(0).toString()] = query.value(1).toString();
-	}
-	QStringList column;
-	for (int r=0; r<table.rowCount(); ++r)
-	{
-		column << counts.value(table.row(r).id());
-	}
-	table.insertColumn(table.columnIndex("status"), column, "sample count");
-
-	//mark runs where there is something to do with '...'
-	int status_col = table.columnIndex("status");
-	column = table.extractColumn(status_col);
-	for (int i=0; i<column.count(); ++i)
-	{
-		if (column[i]=="run_started" || column[i]=="run_finished" ||column[i]=="demultiplexing_started" ||column[i]=="analysis_started")
+		//project type filter
+		if (ui_.project_type->currentText()!="")
 		{
-			column[i] = column[i] + " ...";
+			QStringList runs = db.getValues("SELECT DISTINCT r.name FROM sequencing_run r, processed_sample ps, project p WHERE r.id=ps.sequencing_run_id AND ps.project_id=p.id AND p.type='" + ui_.project_type->currentText() + "'");
+			int c = table.columnIndex("name");
+			table.filterRowsByColumn(c, runs);
 		}
+
+		//add sample count column (before status)
+		QHash<QString, QString> counts;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT r.id, COUNT(ps.id) FROM processed_sample ps, sequencing_run r WHERE ps.sequencing_run_id=r.id GROUP BY r.id");
+		while(query.next())
+		{
+			counts[query.value(0).toString()] = query.value(1).toString();
+		}
+		QStringList column;
+		for (int r=0; r<table.rowCount(); ++r)
+		{
+			column << counts.value(table.row(r).id());
+		}
+		table.insertColumn(table.columnIndex("status"), column, "sample count");
+
+		//mark runs where there is something to do with '...'
+		int status_col = table.columnIndex("status");
+		column = table.extractColumn(status_col);
+		for (int i=0; i<column.count(); ++i)
+		{
+			if (column[i]=="run_started" || column[i]=="run_finished" ||column[i]=="demultiplexing_started" ||column[i]=="analysis_started")
+			{
+				column[i] = column[i] + " ...";
+			}
+		}
+		table.setColumn(status_col, column);
+
+		//show table (quality as icons)
+		QStringList quality_values = table.takeColumn(table.columnIndex("quality"));
+		ui_.table->setData(table);
+		ui_.table->setQualityIcons("name", quality_values);
+
+		//color
+		QColor yellow = QColor(255,255,0,125);
+		ui_.table->setBackgroundColorIfContains("status", yellow, "...");
+		QColor red = QColor(255,0,0,125);
+		ui_.table->setBackgroundColorIfEqual("status", red, "analysis_not_possible");
+		ui_.table->setBackgroundColorIfEqual("status", red, "run_aborted");
+		ui_.table->setBackgroundColorIfEqual("backup done", red, "no");
 	}
-	table.setColumn(status_col, column);
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Error", "Could not update data:\n" + e.message());
+	}
 
-	//show table (quality as icons)
-	QStringList quality_values = table.takeColumn(table.columnIndex("quality"));
-	ui_.table->setData(table);
-	ui_.table->setQualityIcons("name", quality_values);
-
-	//color
-	QColor yellow = QColor(255,255,0,125);
-	ui_.table->setBackgroundColorIfContains("status", yellow, "...");
-	QColor red = QColor(255,0,0,125);
-	ui_.table->setBackgroundColorIfEqual("status", red, "analysis_not_possible");
-	ui_.table->setBackgroundColorIfEqual("status", red, "run_aborted");
-	ui_.table->setBackgroundColorIfEqual("backup done", red, "no");
-
+	is_busy_ = false;
 	QApplication::restoreOverrideCursor();
 }
 
@@ -114,7 +123,7 @@ void SequencingRunOverview::openRunTab()
 	//single run:
 	if (rows.size() == 1)
 	{
-		QString name = ui_.table->item(SET_TO_LIST(rows).at(0), idx_name)->text();
+		QString name = ui_.table->item(Helper::setToList(rows).at(0), idx_name)->text();
 		GlobalServiceProvider::openRunTab(name);
 	}
 	else //multiple runs

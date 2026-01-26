@@ -1,4 +1,3 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
 #include "Helper.h"
 #include <QFile>
@@ -33,7 +32,7 @@ public:
 		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
 		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
-		addFlag("include_single_end_reads", "In bam mode: include reads which are not (properly) paired. Required e.g. for long-read input data.");
+		addFlag("long_read", "Support long reads (> 1kb) and uses single-end reads for gender calculation.");
 
 		//changelog
 		changeLog(2024,  2, 29, "Added parameter to include single-end reads (long-read).");
@@ -60,11 +59,11 @@ public:
 			GenderEstimate estimate;
 			if (method=="xy")
 			{
-				estimate = Statistics::genderXY(bam, getFloat("max_female"), getFloat("min_male"), getInfile("ref"), getFlag("include_single_end_reads"));
+				estimate = Statistics::genderXY(bam, getFloat("max_female"), getFloat("min_male"), getInfile("ref"));
 			}
 			else if (method=="hetx")
 			{
-				estimate = Statistics::genderHetX(build, bam, getFloat("max_male"), getFloat("min_female"), getInfile("ref"), getFlag("include_single_end_reads"));
+				estimate = Statistics::genderHetX(build, bam, getFloat("max_male"), getFloat("min_female"), getInfile("ref"), getFlag("long_read"));
 			}
 			else if (method=="sry")
 			{
@@ -79,7 +78,7 @@ public:
 				{
 					stream << "\t" << info.key;
 				}
-                stream << QT_ENDL;
+                stream << Qt::endl;
 				print_header = false;
 			}
 
@@ -89,7 +88,7 @@ public:
 			{
 				stream << "\t" << info.value;
 			}
-            stream << QT_ENDL;
+            stream << Qt::endl;
 		}
 	}
 };

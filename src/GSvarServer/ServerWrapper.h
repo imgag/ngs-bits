@@ -2,19 +2,11 @@
 #define SERVERWRAPPER_H
 
 #include <QObject>
-#include <QFile>
-#include <QSslCertificate>
 #include <QSslKey>
-#include <QSslConfiguration>
-#include <QSslSocket>
-#include <QStandardPaths>
-#include <QTimer>
-#include <QFileSystemWatcher>
-
+#include <QCoreApplication>
 #include "Log.h"
 #include "SslServer.h"
-#include "UrlManager.h"
-#include "FileMetaCache.h"
+#include "ClientHelper.h"
 
 class ServerWrapper : public QObject
 {
@@ -31,7 +23,7 @@ public slots:
 	void updateInfoForUsers(QString str);
     void switchLogFile();
     void cleanupSessionsAndUrls();
-    void updateSgeStatus();
+    void updateQueingEngineStatus();
 
 private:
 	ClientInfo readClientInfoFromFile();
@@ -39,8 +31,9 @@ private:
     QSslKey readPrivateKey(const QString &filePath, const QByteArray &passPhrase = QByteArray());
 	SslServer *server_;
     bool is_running_;
+    QThreadPool background_task_pool_;
     QThreadPool cleanup_pool_;
-    QThreadPool sge_status_pool_;
+    QThreadPool qe_status_pool_;
 };
 
 #endif // SERVERWRAPPER_H

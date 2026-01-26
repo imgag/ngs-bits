@@ -1,6 +1,4 @@
 #include "ToolBase.h"
-#include "FastqFileStream.h"
-#include "Helper.h"
 #include "TsvFile.h"
 #include "ExportCBioPortalStudy.h"
 #include <QFile>
@@ -97,7 +95,7 @@ public:
 				qDebug() << "\trna: " << rna_ps;
 
 				QString tumor_folder = db.processedSamplePath(tumor_id, PathType::SAMPLE_FOLDER);
-				tumor_folder.chop(1); // remove seperator at end
+				tumor_folder.chop(1); // remove separator at end
 
 				QString project_folder = QFileInfo(tumor_folder).dir().absolutePath();
 				QString somatic_prefix = tumor_ps + "-" + normal_ps;

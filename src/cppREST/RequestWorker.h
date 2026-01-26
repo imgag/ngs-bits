@@ -4,16 +4,10 @@
 #include "cppREST_global.h"
 #include <QRunnable>
 #include <QSslSocket>
-#include <QSslError>
 #include <QSslConfiguration>
-#include <QHostAddress>
-#include <QList>
+#include "ServerHelper.h"
 
-#include "Log.h"
-#include "Exceptions.h"
 #include "HttpResponse.h"
-#include "RequestParser.h"
-#include "EndpointManager.h"
 
 class CPPRESTSHARED_EXPORT RequestWorker
     : public QRunnable

@@ -2,7 +2,7 @@
 #include "NGSD.h"
 #include "Auxilary.h"
 #include "ThreadCoordinator.h"
-#include <QElapsedTimer>
+#include "Settings.h"
 
 class ConcreteTool
 		: public ToolBase

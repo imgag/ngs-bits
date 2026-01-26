@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include <QTableWidget>
-#include "PhenotypeList.h"
 #include "RepeatLocusList.h"
 #include "ui_RepeatExpansionWidget.h"
 #include "NGSD.h"
@@ -59,7 +58,6 @@ private:
 	QColor orange_ = QColor(255, 135, 60, 128);
 	QColor yellow_ = QColor(255, 255, 0, 128);
 
-	void loadDataFromVCF(QString vcf);
 	void displayRepeats();
 	void loadMetaDataFromNGSD();
 	void colorRepeatCountBasedOnCutoffs();

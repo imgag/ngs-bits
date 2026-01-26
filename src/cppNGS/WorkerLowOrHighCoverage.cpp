@@ -21,9 +21,13 @@ void WorkerLowOrHighCoverage::run()
 	{
         QElapsedTimer timer;
 		timer.start();
-        if (debug_) QTextStream(stdout) << "Processing chunk (" << chunk_.start << "-" << chunk_.end << ")" << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Processing chunk (" << chunk_.start << "-" << chunk_.end << ")" << Qt::endl;
 
 		BamReader reader(bam_file_, ref_file_);
+		reader.skipBases();
+		reader.skipTags();
+		if (min_baseq_<=0) reader.skipQualities();
+
 		for (int i=chunk_.start; i<=chunk_.end; ++i)
 		{
 			const BedLine& bed_line = chunk_.data[i];
@@ -104,7 +108,7 @@ void WorkerLowOrHighCoverage::run()
 		}
 
 		//debug output
-        if (debug_) QTextStream(stdout) << "Processing chunk (" << chunk_.start << "-" << chunk_.end << ") took " << Helper::elapsedTime(timer) << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Processing chunk (" << chunk_.start << "-" << chunk_.end << ") took " << Helper::elapsedTime(timer) << Qt::endl;
 	}
 	catch(Exception& e)
 	{
@@ -146,23 +150,23 @@ void WorkerLowOrHighCoverageChr::run()
 
 		//init
 		Chromosome chr = chunk_.data[chunk_.start].chr();
-        if (debug_) QTextStream(stdout) << "Sarting processing chromosome " << chr.str() << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Sarting processing chromosome " << chr.str() << Qt::endl;
         QElapsedTimer timer;
 		timer.start();
 
 		//open BAM file
-        if (debug_) QTextStream(stdout) << "Opening BAM reader for " << chr.str() << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Opening BAM reader for " << chr.str() << Qt::endl;
 		BamReader reader(bam_file_, ref_file_);
 
 		//fill coverage array
-        if (debug_) QTextStream(stdout) << "Determining chromosome size for " << chr.str() << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Determining chromosome size for " << chr.str() << Qt::endl;
 		int max_pos = reader.chromosomeSize(chr);
-        if (debug_) QTextStream(stdout) << "creating coverage array for " << chr.str() << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "creating coverage array for " << chr.str() << Qt::endl;
 		QVector<unsigned char> cov;
 		cov.fill(0, max_pos+1);
 
 		//iterate through all alignments
-        if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " - max position=" << max_pos << " start index=" << chunk_.start << " end index=" << chunk_.end << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " - max position=" << max_pos << " start index=" << chunk_.start << " end index=" << chunk_.end << Qt::endl;
 		BamAlignment al;
 		QBitArray base_qualities;
 		reader.setRegion(chr, 0, max_pos);
@@ -200,7 +204,7 @@ void WorkerLowOrHighCoverageChr::run()
 		}
 
 		//debug output
-        if (debug_) QTextStream(stdout) << "Creating output for chromosome " << chr.str() << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Creating output for chromosome " << chr.str() << Qt::endl;
 
 		//create low-coverage regions for processed chunk
 		for (int i=chunk_.start; i<=chunk_.end; ++i)
@@ -231,7 +235,7 @@ void WorkerLowOrHighCoverageChr::run()
 		}
 
 		//debug output
-        if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " took " << Helper::elapsedTime(timer) << QT_ENDL;
+        if (debug_) QTextStream(stdout) << "Processing chromosome " << chr.str() << " took " << Helper::elapsedTime(timer) << Qt::endl;
 	}
 	catch(Exception& e)
 	{

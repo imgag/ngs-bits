@@ -1,7 +1,7 @@
 #include "ToolBase.h"
-#include "Settings.h"
 #include "VcfFile.h"
 #include "Helper.h"
+#include "VersatileFile.h"
 
 class ConcreteTool
         : public ToolBase
@@ -18,7 +18,7 @@ public:
 	{
 		setDescription("Merges several VCF files into one VCF by appending one to the other.");
 		setExtendedDescription(QStringList() << "Variant lines from all other input files are appended to the first input file." << "VCF header lines are taken from the first input file only.");
-		addInfileList("in", "Input VCF ro VCG.GZ files to merge.", false);
+		addInfileList("in", "Input files to merge in VCF or VCG.GZ format.", false);
 
 		//optional
 		addOutfile("out", "Output VCF file with all variants.", true);
@@ -53,8 +53,6 @@ public:
 		QSet<QByteArray> filters_defined;
 		QSet<QByteArray> vars;
 		bool is_first = true;
-		const int buffer_size = 1048576; //1MB buffer
-		char* buffer = new char[buffer_size];
 		
 		//counts
 		int c_written = 0;
@@ -64,36 +62,11 @@ public:
 		//copy in to out
 		foreach(QString in, in_files)
 		{
-			FILE* instream = fopen(in.toUtf8().data(), "rb");
-			if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
-			gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-			if (file==nullptr) THROW(FileAccessException, "Could not open file '" + in + "' for reading!");
-
-			while(!gzeof(file))
+			VersatileFile file(in);
+			file.open();
+			while(!file.atEnd())
 			{
-				char* char_array = gzgets(file, buffer, buffer_size);
-				//handle errors like truncated GZ file
-				if (char_array==nullptr)
-				{
-					int error_no = Z_OK;
-					QByteArray error_message = gzerror(file, &error_no);
-					if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-					{
-						THROW(FileParseException, "Error while reading file '" + in + "': " + error_message);
-					}
-
-					continue;
-				}
-
-				//determine end of read line
-				int i=0;
-				while(i<buffer_size && char_array[i]!='\0' && char_array[i]!='\n' && char_array[i]!='\r')
-				{
-					++i;
-				}
-
-				QByteArray line = QByteArray::fromRawData(char_array, i);
-				while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+				QByteArray line = file.readLine(true);
 
 				//skip empty lines
 				if (line.isEmpty()) continue;
@@ -169,27 +142,25 @@ public:
 				out_p->write(line);
 				out_p->write("\n");
 			}
-			gzclose(file);
 
 			is_first = false;
 		}
 
 		//clean up
 		out_p->close();
-		delete[] buffer;
 
 		//statistics output (only if VCF output does not go to stdout)
 		if (out!="")
 		{
 			QTextStream stream(stdout);
-            stream << "Variants written: " << c_written << QT_ENDL;
+            stream << "Variants written: " << c_written << Qt::endl;
 			if (skip_duplicates)
 			{
-                stream << "Duplicate variants skipped: " << c_dup  << QT_ENDL;
+                stream << "Duplicate variants skipped: " << c_dup  << Qt::endl;
 			}
 			if (filter_used)
 			{
-                stream << "Filter entries added to variants: " << c_filter << QT_ENDL;
+                stream << "Filter entries added to variants: " << c_filter << Qt::endl;
 			}
 		}
 	}

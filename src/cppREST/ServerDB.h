@@ -3,23 +3,24 @@
 
 #include "Session.h"
 #include "UrlEntity.h"
-#include "ClientHelper.h"
 #include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QSqlRecord>
 #include <QJsonDocument>
+#include <QSharedPointer>
 
 class CPPRESTSHARED_EXPORT ServerDB
 {
 public:
+	const int EXPECTED_SCHEMA_VERSION = 1;
+
     ServerDB();
     ~ServerDB();
 
     void initDbIfEmpty();
     void reinitializeDb();
+	void updateSchemaVersion(int version);
+	int getSchemaVersion();
 
-    bool addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QDateTime login_time, const bool is_for_db_only);
+	bool addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QString random_secret, const QDateTime login_time, const bool is_for_db_only);
     bool addSession(const Session new_session);
     bool addSessions(const QList<Session> all_sessions);
     bool removeSession(const QString& string_id);

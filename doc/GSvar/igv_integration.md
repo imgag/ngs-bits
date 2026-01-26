@@ -98,6 +98,11 @@ If you are behind a authenticating proxy that uses `basic authentication`, you h
 To generate a custom genome for IGV with all Ensembl transcripts use the megSAP script [`create_igv_genome.php`](https://github.com/imgag/megSAP/blob/master/src/Auxilary/create_igv_genome.php).  
 The created JSON genome file must only be set as `igv_genome` in the `GSvar.ini` and then will always be loaded when you use IGV through GSvar.
 
+### How do I deploy the new IGV version?
+
+Please consult the [our deployment documentation for IGV](install_igv.md).
+
+
 --
 
 [back to main page](index.md)

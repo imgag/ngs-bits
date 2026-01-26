@@ -1,6 +1,7 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "BedFile.h"
+#include <QTextStream>
 
 class ConcreteTool
 		: public ToolBase
@@ -115,22 +116,22 @@ public:
 		//output summary
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream stream(outfile.data());
-        stream << "== general info ==" << QT_ENDL;
-        stream << "sequences : " << counts.count() << QT_ENDL;
+        stream << "== general info ==" << Qt::endl;
+        stream << "sequences : " << counts.count() << Qt::endl;
 		long long sum = 0;
 		foreach(const Counts& counts, counts)
 		{
 			sum += counts.all();
 		}
-        stream << "characters: " << sum << QT_ENDL;
-        stream << QT_ENDL;
+        stream << "characters: " << sum << Qt::endl;
+        stream << Qt::endl;
 
 		//output details
-        stream << "== characters per sequence ==" << QT_ENDL;
+        stream << "== characters per sequence ==" << Qt::endl;
 		foreach(const QByteArray& sequence, order)
 		{
 			const Counts& c = counts[sequence];
-            stream << sequence << ": " << c.all() << " (ACGT:" << c.acgt << " N:" << c.n << " other:" << c.other << ")" << QT_ENDL;
+            stream << sequence << ": " << c.all() << " (ACGT:" << c.acgt << " N:" << c.n << " other:" << c.other << ")" << Qt::endl;
 		}
 
 		//write BED files

@@ -7,6 +7,14 @@
 #include "cppNGSD_global.h"
 #include "PhenotypeList.h"
 #include "NGSD.h"
+#include <QSqlError> //Comment to prevent removal by fix_includes.php
+
+//accounting data
+struct AccountingData
+{
+	QString insurance_company;
+	QString accounting_mode;
+};
 
 /// GenLab database access (only views that serve as API)
 class CPPNGSDSHARED_EXPORT GenLabDB
@@ -21,6 +29,11 @@ public:
 	~GenLabDB();
 	///Returns if the database connection is (still) open
 	bool isOpen() const;
+
+	///Return table list
+	QStringList tables() const;
+	///Returns the field names of a table
+	QStringList fields(QString table) const;
 
 	///Returns if the database is available (i.e. the credentials are in the settings file)
 	static bool isAvailable();
@@ -83,6 +96,9 @@ public:
 
 	///Returns the tissue type of a sample, or an empty string if it could not be determined.
 	QString tissue(QString ps_name);
+
+	///Returns the accounting data.
+	AccountingData accountingData(QString ps_name);
 
 protected:
 	///Copy constructor "declared away".

@@ -1,13 +1,10 @@
 #include "VirusDetectionWidget.h"
 #include "GUIHelper.h"
 #include "TSVFileStream.h"
-#include "GlobalServiceProvider.h"
-#include "LoginManager.h"
 #include "IgvSessionManager.h"
-#include "ClientHelper.h"
 #include <QAction>
 #include <QMenu>
-#include <QMessageBox>
+#include <QKeyEvent>
 
 VirusDetectionWidget::VirusDetectionWidget(QString viral_file, QWidget* parent)
     : QTableWidget(parent)

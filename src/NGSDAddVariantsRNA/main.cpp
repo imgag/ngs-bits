@@ -1,7 +1,5 @@
 #include "ToolBase.h"
 #include "NGSD.h"
-#include "TSVFileStream.h"
-#include "KeyValuePair.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFileInfo>
@@ -38,9 +36,9 @@ public:
 		QString filename = getInfile("fusion");
 		if(filename=="") return;
 
-		out << endl;
-		out << "### importing fusion variants for " << ps_name << " ###" << endl;
-		out << "filename: " << filename << endl;
+        out << Qt::endl;
+        out << "### importing fusion variants for " << ps_name << " ###" << Qt::endl;
+        out << "filename: " << filename << Qt::endl;
 
 		QString ps_id = db.processedSampleId(ps_name);
 
@@ -53,7 +51,7 @@ public:
 			query.exec("SELECT * FROM rna_report_configuration_fusion WHERE rna_report_configuration_id=" + QString::number(rna_report_conf_id));
 			if(query.size()>0)
 			{
-				out << "Skipped import of fusion variants for sample " << ps_name << ": a rna report configuration with fusion variants exists for this sample!" << endl;
+                out << "Skipped import of fusion variants for sample " << ps_name << ": a rna report configuration with fusion variants exists for this sample!" << Qt::endl;
 				return;
 			}
 		}
@@ -69,7 +67,7 @@ public:
 		{
 			if (!fusion_force)
 			{
-				out << "Skipped import of fusion variants for sample " << ps_name << ": fusion callset already exists for this sample!" << endl;
+                out << "Skipped import of fusion variants for sample " << ps_name << ": fusion callset already exists for this sample!" << Qt::endl;
 				return;
 			}
 			else
@@ -80,7 +78,7 @@ public:
 					db.getQuery().exec("DELETE FROM rna_fusion WHERE rna_fusion_callset_id ='" + last_callset_id + "'");
 					db.getQuery().exec("DELETE FROM rna_fusion_callset WHERE id='" + last_callset_id + "'");
 
-					out << "Deleted previous rna fusion callset" << endl;
+                    out << "Deleted previous rna fusion callset" << Qt::endl;
 				}
 			}
 		}
@@ -90,13 +88,13 @@ public:
 		QString caller = "Arriba";
 		if(fusions.count() == 0)
 		{
-			out << "No fusion variants imported (empty arriba file)." << endl;
+            out << "No fusion variants imported (empty arriba file)." << Qt::endl;
 			return;
 		}
 
-		out << "caller: " << caller << endl;
-		out << "caller version: " << fusions.getCallerVersion() << endl;
-		out << "call date: " << fusions.getCallDate() << endl;
+        out << "caller: " << caller << Qt::endl;
+        out << "caller version: " << fusions.getCallerVersion() << Qt::endl;
+        out << "call date: " << fusions.getCallDate() << Qt::endl;
 
 		//Import rna fusion callset
 		SqlQuery q_set = db.getQuery();
@@ -115,11 +113,11 @@ public:
 			db.addRnaFusion(callset_id, fusions.getFusion(i));
 		}
 
-		out << "Imported rna fusions: " << fusions.count() << endl;
+        out << "Imported rna fusions: " << fusions.count() << Qt::endl;
 
 		if(!no_time)
 		{
-			out << "Import took: " << Helper::elapsedTime(timer) << endl;
+            out << "Import took: " << Helper::elapsedTime(timer) << Qt::endl;
 		}
 	}
 

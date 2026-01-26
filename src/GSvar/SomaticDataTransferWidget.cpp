@@ -1,15 +1,8 @@
-#include <QDir>
-#include <QDebug>
-#include <QPushButton>
-#include <QTimer>
 #include <QMessageBox>
-#include <QHttpMultiPart>
-#include <QNetworkReply>
 
 #include "SomaticDataTransferWidget.h"
 #include "Settings.h"
 #include "Exceptions.h"
-#include "Helper.h"
 #include "NGSD.h"
 #include "Settings.h"
 
@@ -74,9 +67,9 @@ void SomaticDataTransferWidget::uploadXML()
 			HttpHeaders add_headers;
 			add_headers.insert("Content-Type", "application/xml");
 
-			QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(xml_path_);
-			res =  http_handler_.post(xml_url_ + "/mtb_imgag", file->readAll(), add_headers);
-			file->close();
+			VersatileFile file(xml_path_, false);
+			file.open(QFile::ReadOnly | QIODevice::Text);
+			res =  http_handler_.post(xml_url_ + "/mtb_imgag", file.readAll(), add_headers);
 		}
 		catch(Exception& e)
 		{

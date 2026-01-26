@@ -5,9 +5,10 @@
 #include "ui_GeneWidget.h"
 #include "NGSD.h"
 #include "DelayedInitializationTimer.h"
+#include "TabBaseClass.h"
 
 class GeneWidget
-    : public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 

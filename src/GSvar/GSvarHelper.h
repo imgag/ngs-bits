@@ -6,12 +6,11 @@
 #include "VariantList.h"
 #include "GenomeBuild.h"
 #include "NGSD.h"
-#include "TsvFile.h"
 #include <QTableWidgetItem>
 #include <QLabel>
 
 
-///Helper class for GSvar
+///Helper class for GSvar (singleton)
 class GSvarHelper
 {
 public:
@@ -30,6 +29,8 @@ public:
 	static QString applicationBaseName();
 	//Returns the genome build used by GSvar.
 	static GenomeBuild build();
+	//Returns the genome build used by GSvar.
+	static QString buildAsString(bool grch=false);
 
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
@@ -49,7 +50,7 @@ public:
 	//Returns All of Us link for a variant
 	static QString allOfUsLink(const Variant& v);
 	//Returns ClinVar search link for a variant
-	static QString clinVarSearchLink(const Variant& v, GenomeBuild build);
+	static QString clinVarSearchLink(const Variant& v);
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();
@@ -73,8 +74,22 @@ public:
     //Returns a path for the settings file (Windows or Unix format), by substituting a placeholder with the current app path
     static QString appPathForTemplate(QString path);
 
+	//Updates phenotype history with new phenotype list
+	static void updatePhenotypeHistory(const PhenotypeList& phenos);
+	//Returns phenotype history
+	static const QList<PhenotypeList>& phenotypeHistory();
+
+	//Updates ROI history
+	static void updateRoiHistory(QString name);
+	//Returns ROI history
+	static const QStringList& roiHistory();
+
 protected:
-	GSvarHelper() = delete;
+	GSvarHelper();
+	static GSvarHelper& instance();
+
+	QList<PhenotypeList> history_pheno;
+	QStringList history_roi;
 };
 
 #endif // GSVARHELPER_H

@@ -1,4 +1,4 @@
-#include <QDebug>
+#include <QCoreApplication>
 #include <cmath>
 #include "NGSD.h"
 #include "SomaticRnaReport.h"
@@ -97,15 +97,20 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 			genes_with_var << gene;
 		}
 	}
+
+	int i_cnv_type = dna_cnvs_.annotationIndexByName("cnv_type", true);
 	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
+		int cn = dna_cnvs_[i].copyNumber(dna_cnvs_.annotationHeaders());
+		QByteArray cnv_type = dna_cnvs_[i].annotations()[i_cnv_type];
+
         for (const auto& gene : genes)
 		{
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
 			if (!role.isValid()) continue;
 
-			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_, dna_cnvs_[i], role) ) continue;
+			if( !SomaticCnvInterpreter::includeInReport(cn, cnv_type, role) ) continue;
 			if( !role.high_evidence) continue;
 
 			if( !genes_with_var.contains(gene) ) genes_with_var << gene;
@@ -326,11 +331,7 @@ RtfTable SomaticRnaReport::partSVs()
 	fusion_table.addRow(RtfTableRow("Strukturvarianten", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
 	fusion_table.addRow(RtfTableRow({"Gen", "Transkript", "Bruchpunkt 1", "Bruchpunkt 2", "Beschreibung"},{1600,1800,1400,1800,3321}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
-<<<<<<< HEAD
 	for(int i=0; i<svs_.count(); ++i)
-=======
-    for (const auto& sv : svs_)
->>>>>>> 874172136339db56f2a679abe8be10c6b57ec65d
 	{
 		const Fusion& sv = svs_.getFusion(i);
 		QByteArray gene1 = sv.symbol1().toUtf8();
@@ -371,7 +372,7 @@ RtfTableRow SomaticRnaReport::createSnvTableRow(const Variant& var, int i_co_sp,
 
 	//rna is mapped with the reads being RIGHT aligned!
 
-	VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var);
+    VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var, false);
 
 	RtfTableRow row;
 	//DNA data
@@ -461,13 +462,15 @@ RtfTable SomaticRnaReport::partSnvTable()
 RtfTable SomaticRnaReport::partCnvTable()
 {
 	int i_tum_clonality = dna_cnvs_.annotationIndexByName("tumor_clonality", true);
-	int i_size_desc = dna_cnvs_.annotationIndexByName("cnv_type", true);
-	//RNA annotations indices
+	int i_cnv_type = dna_cnvs_.annotationIndexByName("cnv_type", true);
 
 	RtfTable table;
+
 	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
 		const CopyNumberVariant& cnv = dna_cnvs_[i];
+		int cn = cnv.copyNumber(dna_cnvs_.annotationHeaders());
+		QByteArray cnv_type = cnv.annotations()[i_cnv_type];
 
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
 
@@ -476,15 +479,14 @@ RtfTable SomaticRnaReport::partCnvTable()
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
 			if (!role.isValid()) continue;
 
-			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_,cnv, role) ) continue;
+			if( !SomaticCnvInterpreter::includeInReport(cn, cnv_type, role) ) continue;
 			if( !role.high_evidence) continue;
 
 			ExpressionData expr_data = expression_per_gene_.value(gene, ExpressionData());
 
-
 			RtfTableRow temp;
 			temp.addCell(800, gene, RtfParagraph().setBold(true).setItalic(true).setFontSize(16));
-			temp.addCell(1900, cnv.chr().str() + " (" + cnv.annotations().at(i_size_desc).trimmed() + ")", RtfParagraph().setFontSize(16));
+			temp.addCell(1900, cnv.chr().str() + " (" + cnv_type.trimmed() + ")", RtfParagraph().setFontSize(16));
 
 			int tumor_cn = cnv.copyNumber(dna_cnvs_.annotationHeaders());
 			temp.addCell(1300, SomaticReportHelper::CnvTypeDescription(tumor_cn, true), RtfParagraph().setFontSize(16));
@@ -575,7 +577,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 {
 	RtfTable table;
 
-	table.addRow( RtfTableRow({"Expression ausgewählter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.addRow( RtfTableRow("Expression ausgewählter Gene", 9921, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"},	{1237, 1237, 1958, 1137, 1137, 937, 1137, 1141}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
@@ -674,7 +676,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	QList<ExpressionData> genes_to_be_reported;
 	genes_to_be_reported << activating_genes.mid(0, 10) << lof_genes.mid(0, 10);
 
-	table.addRow( RtfTableRow({"Top 10 Gene mit veränderter Expression"}, {9921}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.addRow( RtfTableRow("Top 10 Gene mit veränderter Expression", 9921, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 
 	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW-TPM", "Veränderung (x-fach)"},	{1488, 1488, 1388, 1388, 1188, 1488, 1492}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
@@ -745,7 +747,7 @@ RtfTable SomaticRnaReport::partGeneralInfo()
 
 	table.addRow( RtfTableRow({"Allgemeine Informationen", "Qualitätsparameter"}, {5061, 4861}, RtfParagraph().setFontSize(18).setBold(true)).setHeader() );
 
-	table.addRow( RtfTableRow( {"Auswertungsdatum:", data_.report_config.evaluationDate().toString("dd.MM.yyyy").toUtf8(), "Analysepipeline:", dna_snvs_.getPipeline().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Auswertungsdatum:", data_.report_config->evaluationDate().toString("dd.MM.yyyy").toUtf8(), "Analysepipeline:", dna_snvs_.getPipeline().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Proben-ID (Tumor-DNA):", data_.tumor_ps.toUtf8(), "Auswertungssoftware:",  QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Proben-ID (Tumor-RNA):", data_.rna_ps_name.toUtf8(), "Anzahl Reads ", data_.rna_qcml_data.value("QC:2000005",true).toString().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Prozessierungssystem:", db_.getProcessingSystemData( db_.processingSystemIdFromProcessedSample(data_.rna_ps_name) ).name.toUtf8(), "On-Target Read Percentage:", data_.rna_qcml_data.value("QC:2000021",true).toString().toUtf8() + "\%"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
@@ -805,8 +807,6 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 		if(vicc_result != SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE) continue;
 
 		RtfTableRow row = createSnvTableRow(var, i_co_sp, i_tum_af, bam_file);
-
-
 		table.addRow(row);
 	}
 	table.sortByCol(0);

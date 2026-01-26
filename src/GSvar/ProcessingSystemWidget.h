@@ -3,11 +3,11 @@
 
 #include <QWidget>
 #include "ui_ProcessingSystemWidget.h"
-#include "VariantList.h"
 #include "DelayedInitializationTimer.h"
+#include "TabBaseClass.h"
 
 class ProcessingSystemWidget
-	: public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 

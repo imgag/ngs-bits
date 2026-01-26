@@ -5,8 +5,8 @@
 #include "Chromosome.h"
 #include "BedFile.h"
 #include "GeneSet.h"
-#include "VcfFile.h"
 #include "TSVFileStream.h"
+#include "VariantList.h"
 
 enum StructuralVariantType
 {
@@ -27,7 +27,7 @@ class CPPNGSSHARED_EXPORT BedpeLine
 {
 public:
 	BedpeLine();
-	BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromosome& chr2, int start2, int end2, StructuralVariantType type, const QList<QByteArray>& annotations);
+	BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromosome& chr2, int start2, int end2, StructuralVariantType type, const QByteArrayList& annotations);
 
 	const Chromosome& chr1() const
 	{
@@ -85,11 +85,11 @@ public:
 		return type_;
 	}
 
-	const QList<QByteArray>& annotations() const
+	const QByteArrayList& annotations() const
 	{
 		return annotations_;
 	}
-	void setAnnotations(const QList<QByteArray>& annos)
+	void setAnnotations(const QByteArrayList& annos)
 	{
 		annotations_ = annos;
 	}
@@ -139,11 +139,11 @@ public:
 	QString toString(bool add_type=true) const;
 
 	///Returns the genotype in VCF/BEDPE format (empty string of error if GT entry in sample column is not found).
-	QByteArray genotype(const QList<QByteArray>& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;
+	QByteArray genotype(const QByteArrayList& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;
 	///Sets the genotype.
-	void setGenotype(const QList<QByteArray>& annotation_headers, QByteArray value, int sample_idx = 0);
+	void setGenotype(const QByteArrayList& annotation_headers, QByteArray value, int sample_idx = 0);
 	///Returns the genotype in human readable format (hom, het, wt or n/a);
-	QByteArray genotypeHumanReadable(const QList<QByteArray>& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;
+	QByteArray genotypeHumanReadable(const QByteArrayList& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;
 
 	///Returns a dictionary for the FORMAT data of a sample
 	QMap<QByteArray, QByteArray> getSampleFormatData(int anno_idx_format, int anno_idx_sample);
@@ -151,9 +151,9 @@ public:
 	QByteArray getSampleFormatData(int anno_idx_format, int anno_idx_sample, QByteArray key);
 
 	///Returns the genes.
-	GeneSet genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true) const;
+	GeneSet genes(const QByteArrayList& annotation_headers, bool error_on_mismatch=true) const;
 	///Sets the genes.
-	void setGenes(const QList<QByteArray>& annotation_headers, const GeneSet& genes);
+	void setGenes(const QByteArrayList& annotation_headers, const GeneSet& genes);
 
 
 protected:
@@ -167,7 +167,7 @@ protected:
 
 	StructuralVariantType type_;
 
-	QList<QByteArray> annotations_;
+	QByteArrayList annotations_;
 
 	/// Convert position to string representation
 	static QByteArray posToString(int in)
@@ -183,9 +183,8 @@ enum BedpeFileFormat
 	BEDPE_GERMLINE_SINGLE,
 	BEDPE_SOMATIC_TUMOR_ONLY,
 	BEDPE_SOMATIC_TUMOR_NORMAL,
-    BEDPE_GERMLINE_MULTI,
-    BEDPE_GERMLINE_TRIO,
-	BEDPE_RNA
+	BEDPE_GERMLINE_MULTI,
+	BEDPE_GERMLINE_TRIO
 };
 
 class CPPNGSSHARED_EXPORT BedpeFile
@@ -220,19 +219,19 @@ public:
 	{
 		return lines_.count();
 	}
-	const QList<QByteArray>& headers() const
+	const QByteArrayList& headers() const
 	{
 		return headers_;
 	}
 
 	///Returns the genome build from the header or an empty string if it could not be determined.
-	QByteArray build();
+	QByteArray build() const;
 	///Returns the variant caller. Throws an exception if it could not be determined.
-	QByteArray caller();
+	QByteArray caller() const;
 	///Returns the variant caller version. Throws an exception if it could not be determined.
-	QByteArray callerVersion();
+	QByteArray callerVersion() const;
 	///Returns the variant calling date. Throws an exception if it could not be determined.
-	QDate callingDate();
+	QDate callingDate() const;
 
 	///Read-only access to members
 	const BedpeLine& operator[](int index) const
@@ -261,12 +260,12 @@ public:
 	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true) const;
 
 	///returns annotation headers
-	const QList<QByteArray>& annotationHeaders() const
+	const QByteArrayList& annotationHeaders() const
 	{
 		return annotation_headers_;
 	}
 	///Sets the annotation headers for the BEDPE file
-	void setAnnotationHeaders(const QList<QByteArray>& annotation_headers)
+	void setAnnotationHeaders(const QByteArrayList& annotation_headers)
 	{
 		annotation_headers_ = annotation_headers;
 	}
@@ -322,10 +321,10 @@ private:
 	QString filename_;
 	void parseHeader(const TSVFileStream& stream);
     void parseSampleHeaderInfo();
-	QList<QByteArray> annotation_headers_;
+	QByteArrayList annotation_headers_;
     /// annotation description in file header: ##DESCRIPTION=KEY=VALUE
 	QMap<QByteArray, QByteArray> annotation_descriptions_;
-	QList<QByteArray> headers_;
+	QByteArrayList headers_;
     SampleHeaderInfo sample_header_info_; //contains sample info of trio/multisample
 	QList<BedpeLine> lines_;
 

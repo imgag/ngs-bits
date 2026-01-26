@@ -1,4 +1,5 @@
 #include "VariantHgvsAnnotator.h"
+#include "NGSHelper.h"
 
 VariantHgvsAnnotator::VariantHgvsAnnotator(const FastaFileIndex& genome_idx, Parameters params)
 	: params_(params)
@@ -1502,6 +1503,74 @@ QByteArray VariantConsequence::typesToString(QByteArray sep) const
 	std::sort(output.begin(), output.end());
 
 	return output.join(sep);
+}
+
+QByteArray VariantConsequence::typesToStringSimplified(QByteArray sep) const
+{
+	//find variant consequence type with highest priority (apart from splicing)
+	VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
+	foreach(VariantConsequenceType csq_type, types)
+	{
+		if(csq_type > max_csq_type &&
+			csq_type != VariantConsequenceType::SPLICE_REGION_VARIANT &&
+			csq_type != VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT &&
+			csq_type != VariantConsequenceType::SPLICE_DONOR_VARIANT &&
+			csq_type != VariantConsequenceType::NMD_TRANSCRIPT_VARIANT &&
+			csq_type != VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT)
+		{
+			max_csq_type = csq_type;
+		}
+	}
+	QByteArray output = VariantConsequence::typeToString(max_csq_type);
+
+	//additionally insert splice region consequence type (if present) and order types by impact
+	if(types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT))
+	{
+		VariantConsequenceType splice_type = VariantConsequenceType::SPLICE_REGION_VARIANT;
+		if(types.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT))
+		{
+			splice_type = VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT;
+		}
+		else if(types.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT))
+		{
+			splice_type = VariantConsequenceType::SPLICE_DONOR_VARIANT;
+		}
+
+		if(splice_type > max_csq_type)
+		{
+			output.prepend(VariantConsequence::typeToString(splice_type) + sep);
+		}
+		else
+		{
+			output.append(sep + VariantConsequence::typeToString(splice_type));
+		}
+	}
+
+	//add transcript info (at end)
+	if (types.contains(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT))
+	{
+		output.append(sep + VariantConsequence::typeToString(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT));
+	}
+	else if (types.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT) && !types.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT))
+	{
+		output.append(sep + VariantConsequence::typeToString(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT));
+	}
+
+	return output;
+}
+
+QByteArray VariantConsequence::exonOrIntron(const Transcript& trans)
+{
+	QByteArray output;
+	if (exon_number!=-1)
+	{
+		output = "exon"+QByteArray::number(exon_number)+"/"+QByteArray::number(trans.regions().count());
+	}
+	else if (intron_number!=-1)
+	{
+		output = "intron"+QByteArray::number(intron_number)+"/"+QByteArray::number(trans.regions().count());
+	}
+	return output;
 }
 
 QByteArray VariantConsequence::toString() const

@@ -4,7 +4,6 @@
 #include <QDialog>
 #include "ReportSettings.h"
 #include "VariantList.h"
-#include "FilterWidget.h"
 #include "ui_ReportDialog.h"
 #include "NGSD.h"
 

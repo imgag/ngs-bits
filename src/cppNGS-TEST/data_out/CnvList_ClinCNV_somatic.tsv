@@ -1,5 +1,8 @@
 ##ANALYSISTYPE=CLINCNV_TUMOR_NORMAL_PAIR
 ##  QC  0 , gender of sample: F clonality by BAF (if != 1): 0;0.725;0.85
+##GENOME_BUILD=GRCh38
+##NA12878_38 ClinCNV version: v1.18.3
+##Analysis finished on: 2025-05-27 09:05:46
 ##CGI_CANCER_TYPE=NSPH
 ##DESCRIPTION=cnv_type=Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.
 ##DESCRIPTION=CGI_genes=Genes which were included in CancerGenomeInterpreter.org analysis.

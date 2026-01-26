@@ -5,6 +5,7 @@ igv_host=127.0.0.1
 igv_port=60151
 igv_genome=1kg_v37
 igv_virus_genome = ""
+use_fixed_igv_port_number=false
 
 email_run_finished=""
 email_run_analyzed=""
@@ -44,9 +45,6 @@ gsvar_publication_folder = ""
 gsvar_variantsheet_folder = ""
 gsvar_variant_export_folder = ""
 burden_test_files = ""
-
-#debugging
-debug_mode_enabled=false
 
 #somatic data transfer to MTB/QBIC
 mtb_xml_upload_url = ""

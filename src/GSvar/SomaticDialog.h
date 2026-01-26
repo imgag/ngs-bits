@@ -25,6 +25,8 @@ public:
 	QStringList arguments() const;
 	//Returns if the analysis is to be performed with high priority
 	bool highPriority() const;
+	//Returns if the analysis is to be performed with illumina DRAGEN pipeline
+	bool useDragen() const;
 
 private slots:
 	void on_add_samples_clicked(bool);

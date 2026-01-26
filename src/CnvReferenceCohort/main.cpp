@@ -1,10 +1,10 @@
 #include "ToolBase.h"
 #include "Statistics.h"
 #include "BasicStatistics.h"
-#include <zlib.h>
 #include <QFileInfo>
 #include <QVector>
 #include <QElapsedTimer>
+#include "VersatileFile.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -82,38 +82,14 @@ public:
 	//Function to load a BED file with coverage data (.cov, .bed and gzipped possible)
 	QList<BedLineRepresentation> parseGzFileBedFile(const QString& filename)
 	{
-		const int buffer_size = 1048576;
-		std::vector<char> buffer(buffer_size);
 		QList<BedLineRepresentation> lines;
 
 		//open stream
-		FILE* instream = fopen(filename.toUtf8().data(), "rb");
-		if (!instream)
+		VersatileFile file(filename);
+		file.open();
+		while(!file.atEnd())
 		{
-			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-		}
-		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-		if (!file)
-		{
-			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-		}
-
-		while(!gzeof(file))
-		{
-			char* char_array = gzgets(file, buffer.data(), buffer_size);
-			//handle errors like truncated GZ file
-			if (!char_array)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(file, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-				}
-			}
-
-			QByteArray line(char_array);
-			line = line.trimmed();
+			QByteArray line = file.readLine(false).trimmed();
 			if(line.isEmpty()) continue;
 
 			//skip headers
@@ -142,48 +118,22 @@ public:
 			//append line
 			lines << BedLineRepresentation{fields[0], start, end, depth, fields[0] + "\t" + fields[1] + "\t" + fields[2]};
 		}
-		gzclose(file);
+
 		return lines;
 	}
 
 	//Function to load the coverage profile of a given file (QByteArray determining which lines to include must be provided as well as the number of lines of the main file)
 	void parseGzFileCovProfile(CoverageProfile& cov_profile, const QString& filename, const QBitArray& rows_to_use, int main_file_size, const QList<BedLineRepresentation>& main_file)
 	{
-		const int buffer_size = 1048576;
-		char* buffer = new char[buffer_size];
-
-		//open stream
-		FILE* instream = fopen(filename.toUtf8().data(), "rb");
-		if (!instream)
-		{
-			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-		}
-		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-		if (!file)
-		{
-			THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-		}
-
 		int line_index = -1;
 		int row_count = 0;
 
-		while(!gzeof(file))
+		VersatileFile file(filename);
+		file.open();
+		while(!file.atEnd())
 		{
-			char* char_array = gzgets(file, buffer, buffer_size);
-
-			//handle errors like truncated GZ file
-			if (char_array==nullptr)
-			{
-				int error_no = Z_OK;
-				QByteArray error_message = gzerror(file, &error_no);
-				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-				{
-					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-				}
-				continue;
-			}
-
-			QByteArray line(char_array);
+			QByteArray line = file.readLine(true);
+			if (line.isEmpty()) continue;
 
 			//skip headers
 			if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser "))
@@ -220,7 +170,6 @@ public:
 			++row_count;
 			if (!ok) THROW(ArgumentException, "Could not convert depth value " + line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1) + " to double in line: " + line);
 		}
-		gzclose(file);
 
 		++line_index;
 		if (line_index != main_file_size)
@@ -269,12 +218,12 @@ public:
 		}
 		merged_excludes.merge();
 		timer.restart();
-        if (debug) out << "merging excludes: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+        if (debug) out << "merging excludes: " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 
 		//Determine indices to use
 		//load main sample and determine row indices for correlation computation
 		QList<BedLineRepresentation> main_file = parseGzFileBedFile(in);
-        if (debug) out << "loading main sample: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+        if (debug) out << "loading main sample: " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 
 		//compute ChromosomalIndex from merged excludes
 		ChromosomalIndex<BedFile> exclude_idx(merged_excludes);
@@ -305,7 +254,7 @@ public:
 			//include the rest
 			correct_indices.setBit(i, is_valid);
 		}
-        if (debug) out << "computing used indices: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+        if (debug) out << "computing used indices: " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 
 		QMap<QByteArray, MinMaxIndex> chr_indices;
 		int row_count = 0;
@@ -326,7 +275,7 @@ public:
 			}
 		}
 
-        if (debug) out << "calculating min/max indices of chromosomes: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+        if (debug) out << "calculating min/max indices of chromosomes: " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 
 		//Create coverage profile for main_file
 		CoverageProfile cov1;
@@ -338,7 +287,7 @@ public:
 			cov1 << line.depth;
 		}
 
-        if (debug) out << "creating coverage profile of main sample: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+        if (debug) out << "creating coverage profile of main sample: " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 
 		//Load other samples and calculate correlation
         QElapsedTimer corr_timer;
@@ -353,7 +302,7 @@ public:
 
 			//load coverage profile for ref_file
 			parseGzFileCovProfile(cov2, ref_file, correct_indices, main_file.size(), main_file);
-            if (debug) out << "loading coverage profile for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+            if (debug) out << "loading coverage profile for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 
 			//calculate correlation between main_sample and current ref_file
 			QVector<double> corr;
@@ -371,7 +320,7 @@ public:
 			double median_correlation = 0.0;
 			if (corr.count()>0) median_correlation = BasicStatistics::median(corr);
 			file2corr << qMakePair(ref_file, median_correlation);
-            if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+            if (debug) out << "calculating correlation for " << QFileInfo(ref_file).fileName() << ": " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 		}
 
 		//sort all reference files by descending correlation coefficent
@@ -380,47 +329,40 @@ public:
 			return a.second > b.second;
 		});
 
-        if (debug) out << "loading all coverage profiles and compute correlation: " << Helper::elapsedTime(corr_timer.restart()) << QT_ENDL;
+        if (debug) out << "loading all coverage profiles and compute correlation: " << Helper::elapsedTime(corr_timer.restart()) << Qt::endl;
 
 		//write number of compared coverage files to stdout
-        out << "compared number of coverage files: " << file2corr.size() << QT_ENDL;
+        out << "compared number of coverage files: " << file2corr.size() << Qt::endl;
 
 		//select best n reference files by correlation + compute mean correlation
-        out << "Selected the following files as reference samples based on correlation: " << QT_ENDL;
+        out << "Selected the following files as reference samples based on correlation: " << Qt::endl;
 		QStringList best_ref_files;
 		double mean_correaltion = 0.0;
 		for (int i = 0; i<file2corr.size(); ++i)
 		{
 			best_ref_files << file2corr[i].first;
 			mean_correaltion += file2corr[i].second;
-            out << QFileInfo(file2corr[i].first).fileName() << ": " << file2corr[i].second << QT_ENDL;
+            out << QFileInfo(file2corr[i].first).fileName() << ": " << file2corr[i].second << Qt::endl;
 			if (best_ref_files.count()>= cov_max) break;
 		}
 		best_ref_files.sort();
 		mean_correaltion /= best_ref_files.size();
-        out << "Mean correlation to reference samples is: " << mean_correaltion << QT_ENDL;
+        out << "Mean correlation to reference samples is: " << mean_correaltion << Qt::endl;
 
-        if (debug) out << "determining best reference samples and calculating mean correlation: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+        if (debug) out << "determining best reference samples and calculating mean correlation: " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 
 		//Merge coverage profiles and store them in a tsv file
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
-		QVector<gzFile> files;
-		files << gzopen(in.toUtf8().constData(), "rb");
+		QList<QSharedPointer<VersatileFile>> files;
+		QSharedPointer<VersatileFile> file = QSharedPointer<VersatileFile>(new VersatileFile(in));
+		file->open();
+		files << file;
 		foreach(QString ref_file, best_ref_files)
 		{
-			gzFile file = gzopen(ref_file.toUtf8().constData(), "rb");
-			if (file)
-			{
-				files << file;
-			}
-			else
-			{
-				THROW(FileAccessException, "Could not open file for reading: '" + ref_file + "'!")
-			}
+			file = QSharedPointer<VersatileFile>(new VersatileFile(ref_file));
+			file->open();
+			files << file;
 		}
-
-		const int buffer_size = 1048576;
-		std::vector<char> buffer(buffer_size);
 
 		bool done = false;
 		while (!done)
@@ -428,33 +370,24 @@ public:
 			done = true;
 			for (int i = 0; i < files.size(); ++i)
 			{
-				if (gzgets(files[i], buffer.data(), buffer_size) != Z_NULL)
+				QByteArray line = files[i]->readLine();
+				if (line.isEmpty()) continue;
+				TabIndices tab_indices = getTabPosition(line);
+				if (i == 0)
 				{
-					QByteArray line(buffer.data());
-
-					TabIndices tab_indices = getTabPosition(line);
-
-					if (i == 0)
-					{
-						outstream->write(line.left(tab_indices.tab1) + '\t' + line.mid(tab_indices.tab1+1, tab_indices.tab2 - tab_indices.tab1-1) + '\t' + line.mid(tab_indices.tab2+1, tab_indices.tab3 - tab_indices.tab2-1));
-					}
-
-					outstream->write('\t' + line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1));
-					 // If a line was read, we're not done yet
-					done = false;
-
-					if (i == files.size()-1) outstream->write("\n");
+					outstream->write(line.left(tab_indices.tab1) + '\t' + line.mid(tab_indices.tab1+1, tab_indices.tab2 - tab_indices.tab1-1) + '\t' + line.mid(tab_indices.tab2+1, tab_indices.tab3 - tab_indices.tab2-1));
 				}
+
+				outstream->write('\t' + line.mid(tab_indices.tab3+1, tab_indices.tab4 - tab_indices.tab3-1));
+				 // If a line was read, we're not done yet
+				done = false;
+
+				if (i == files.size()-1) outstream->write("\n");
 			}
 		}
+		outstream->close();
 
-		foreach (gzFile file, files)
-		{
-			gzclose(file);
-		}
-		outstream -> close();
-
-        if (debug) out << "writing output: " << Helper::elapsedTime(timer.restart()) << QT_ENDL;
+        if (debug) out << "writing output: " << Helper::elapsedTime(timer.restart()) << Qt::endl;
 	}
 };
 

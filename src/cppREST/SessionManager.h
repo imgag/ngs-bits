@@ -2,12 +2,9 @@
 #define SESSIONMANAGER_H
 
 #include "cppREST_global.h"
-#include <QDateTime>
 #include "ClientHelper.h"
-#include "ServerHelper.h"
-#include "Exceptions.h"
-#include "ServerDB.h"
 #include "ThreadSafeHashMap.h"
+#include "Session.h"
 
 class CPPRESTSHARED_EXPORT SessionManager
 {

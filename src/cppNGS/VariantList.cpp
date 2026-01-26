@@ -4,15 +4,12 @@
 #include "Helper.h"
 #include "Log.h"
 #include "ChromosomalIndex.h"
-#include "NGSHelper.h"
 #include "VcfFile.h"
-
+#include "VersatileFile.h"
 #include <QFile>
+#include <QRegularExpression>
 #include <QTextStream>
-#include <QBitArray>
 #include <QUrl>
-
-#include <zlib.h>
 
 Variant::Variant()
 	: chr_()
@@ -142,7 +139,6 @@ QString Variant::toString(QChar sep, int max_sequence_length, bool chr_normalize
 	if (sep.isNull())
 	{
 		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref + ">" + obs;
-
 	}
 	else
 	{
@@ -463,7 +459,7 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
     THROW(ProgrammingException, "Could not convert variant " + toString(QChar(), -1, false) + " to string! This should not happen!");
 }
 
-VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
+VcfLine Variant::toVCF(const FastaFileIndex& genome_index, int gt_index) const
 {
 	int pos = start_;
 	Sequence ref = ref_;
@@ -498,7 +494,42 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
 		}
 	}
 
-	return VcfLine(chr_, pos, ref, QList<Sequence>() << alt);
+	VcfLine output(chr_, pos, ref, QList<Sequence>() << alt);
+
+	//add genotype info if column in GSvar file is kown
+	if (gt_index!=-1)
+	{
+		//check column exists
+		if (gt_index>=annotations().count()) THROW(ProgrammingException, "Invalid genotype column index given: '" + QString::number(gt_index) + "'");
+
+		//convert genotype
+		QByteArray gt = annotations()[gt_index].trimmed();
+		if(gt.isEmpty() || gt == "." || gt == "n/a")
+		{
+			gt = "./.";
+		}
+		else if(gt == "wt")
+		{
+			gt = "0/0";
+		}
+		else if(gt == "hom")
+		{
+			gt = "1/1";
+		}
+		else if(gt == "het")
+		{
+			gt = "0/1";
+		}
+		else
+		{
+			THROW(ArgumentException, "Genotype column in GSvar file contains invalid entry '" + gt + "'.");
+		}
+
+		output.setFormatKeys(QByteArrayList() << "GT");
+		output.addFormatValues(QByteArrayList() << gt);
+	}
+
+	return output;
 }
 
 QString Variant::toGnomAD(const FastaFileIndex& genome_index) const
@@ -882,12 +913,13 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 	clear();
 
 	//parse from stream
-	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
+	VersatileFile file(filename, true);
+	file.open(QFile::ReadOnly | QIODevice::Text);
+
 	int filter_index = -1;
-	while(!file->atEnd())
+	while(!file.atEnd())
 	{
-		QByteArray line = file->readLine();
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+		QByteArray line = file.readLine(true);
 
 		//skip empty lines
 		if(line.length()==0) continue;
@@ -982,7 +1014,8 @@ void VariantList::store(QString filename) const
 {
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
-	QTextStream stream(file.data());
+	QTextStream stream(file.data());    
+    stream.setEncoding(QStringConverter::Utf8);
 
 	//comments
 	if (comments_.count()>0)
@@ -1263,7 +1296,7 @@ AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
 }
 
-VariantCaller VariantList::getCaller() const
+QByteArray VariantList::caller() const
 {
 	foreach(const QString& line, comments_)
 	{
@@ -1271,14 +1304,29 @@ VariantCaller VariantList::getCaller() const
 		{
 			QString tmp = line.mid(9).trimmed() + ' ';
 			int sep_idx = tmp.indexOf(' ');
-			return VariantCaller{tmp.left(sep_idx).trimmed(), tmp.mid(sep_idx).trimmed()};
+			return tmp.left(sep_idx).trimmed().toUtf8();
 		}
 	}
 
-	return VariantCaller();
+	return "";
 }
 
-QDate VariantList::getCallingDate() const
+QByteArray VariantList::callerVersion() const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##SOURCE="))
+		{
+			QString tmp = line.mid(9).trimmed() + ' ';
+			int sep_idx = tmp.indexOf(' ');
+			return tmp.mid(sep_idx).trimmed().toUtf8();
+		}
+	}
+
+	return "";
+}
+
+QDate VariantList::callingDate() const
 {
 	foreach(const QString& line, comments_)
 	{
@@ -1437,13 +1485,6 @@ QList<VariantTranscript> Variant::parseTranscriptString(QByteArray text, bool al
 
 	return output;
 }
-
-QDebug operator<<(QDebug d, const Variant& v)
-{
-	d.nospace() << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << "=>" << v.obs();
-	return d.space();
-}
-
 
 QByteArray VariantTranscript::toString(char sep) const
 {

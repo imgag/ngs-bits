@@ -5,7 +5,7 @@
 ![Windows build status](https://github.com/imgag/ngs-bits/workflows/Windows%20build/badge.svg)  
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
-## Obtaining ngs-bits
+## Installation
 
 Binaries of *ngs-bits* are available via Bioconda:
 
@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_03
+	> git checkout 2025_12
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -24,17 +24,19 @@ Depending on your operating system, building instructions vary slightly:
 * Building from **sources** for [MacOS](doc/install_mac.md)
 * Building from **sources** for [Windows](doc/install_win.md)
 
+`GSvar` app requires a running server, instructions on how to deplpy it on a Linux machine can be found [here](doc/GSvarServer/index.md)
+
+
 ## Support
 
-Please report any issues or questions to the [ngs-bits issue 
-tracker](https://github.com/imgag/ngs-bits/issues).
+Please report any issues or questions to the [ngs-bits issue tracker](https://github.com/imgag/ngs-bits/issues).
 
 ## Documentation
 
-Have a look at the [ECCB'2018 poster](doc/data/poster_ECCB2018.pdf).
-
 The documentation of individual tools is linked in the tools list below.  
 For some tools the documentation pages contain only the command-line help, for other tools they contain more information.
+
+If you want to contribute, check the [development documentation](doc/development/index.md).
 
 ## License
 
@@ -45,6 +47,18 @@ For some tools the documentation pages contain only the command-line help, for o
 * [SimpleCrypt](https://wiki.qt.io/Simple_encryption_with_SimpleCrypt) for weak encryption
 * [QR-Code-generator](https://github.com/nayuki/QR-Code-generator) for QR code generation
 
+## ChangeLog
+
+Change log is available on the [releases](https://github.com/imgag/ngs-bits/releases) page.
+
+## Citing
+
+You can cite ngs-bits in using Zenodo DOIs:
+
+* 2025_12: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17877407.svg)](https://zenodo.org/records/17877407)
+* 2025_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17201254.svg)](https://zenodo.org/records/17201254)
+
+A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).
 
 ## Tools list
 
@@ -70,7 +84,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files.
 * [MappingQC](doc/tools/MappingQC/index.md) - Quality control tool for a BAM file.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
-* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
+* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
 * [TrioMendelianErrors](doc/tools/TrioMendelianErrors.md) - Determines mendelian error rate form a trio VCF file.
 * [RnaQC](doc/tools/RnaQC.md) - Calculates QC metrics for RNA samples.
@@ -83,6 +97,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BamExtract](doc/tools/BamExtract.md) - Extract reads from BAM/CRAM by read name.
 * [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
 * [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
+* [BamInfo](doc/tools/BamInfo.md) - Basic BAM information.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a coordinate-sorted BAM file to FASTQ files.
 * [FastaFromBam](doc/tools/FastaFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 
@@ -139,6 +154,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
+* [VcfReplaceSamples](doc/tools/VcfReplaceSamples.md) - Replaces sample identifiers in the VCF header.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
 * [VcfStrip](doc/tools/VcfStrip.md) - Removes unwanted information from a VCF file
@@ -179,17 +195,4 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
-
-## ChangeLog
-
-Change log is available on the [releases](https://github.com/imgag/ngs-bits/releases) page.
-
-## Citing
-
-You can cite ngs-bits in using Zenodo DOIs:
-
-
-* 2025_03: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15051584.svg)](https://doi.org/10.5281/zenodo.15051584)
-* 2025_01: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14747530.svg)](https://doi.org/10.5281/zenodo.14747530)
-* 2024_11: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14216792.svg)](https://doi.org/10.5281/zenodo.14216792)
-
+* [VariantRanking](doc/tools/VariantRanking/index.md) - Rankes small variants in the context of a patients phenotype using an evidence-based model (needs [NGSD](doc/install_ngsd.md)).

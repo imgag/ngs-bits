@@ -1,5 +1,96 @@
 # GSvar change log
 
+## 2025_12-24 (13.01.2026)
+
+- general: added warning when opening sample that is scheduled for re-sequencing
+- general: removed sample folder button and QC button from main window (they are in the processed sample tab now)
+- processed sample tab: added button to show circos plot
+- CNVs filters: not keep CNVs bigger than 1MB and CNP filter is enabled by default
+
+## 2025_12-24 (19.12.2025)
+
+- General: remove somatic variant classification (it was replaced by VICC)
+- BugFix: added support for Straglr 1.5.5
+
+## 2025_09-134 (08.12.2025)
+
+- General: improved burden test dialog
+- small variants search: added functionality to update variant consequences
+- RE dialog: added STRchive links (from NGSD)
+
+## 2025_09-122 (03.12.2025)
+
+- GSvar is now based on Qt6
+- General: Windows style can not be selected in settings
+- Report config: Added new exclude reasons to report configuration of germline small variants, CNVs and SVs
+- SV search: implemented search by breakpoint
+- CNV/SVs filters: added KEEP filter for pathogenic CNVs/SVs
+- SV dialog: added Decipher/UCSC context menu entry
+- Matching CNVs/SVs dialog: double clicking a row now jumps to the CNV/SV position in IGV
+- small variants table: Added context menu entry to copy variant or variant genes
+- filter dock widgets: added ROI and phenotype history via context menu
+- CNV/SV table: added PubMed search
+- Bugfix: BLAT search works again
+- Bugfix: Sample ancestry tool works again
+- Bugfix: Fixed crash because of estimated tumor content when storing somatic report config
+
+## 2025_09-38 (29.10.2025)
+
+- report config dialog is closable via 'X' button again. It now asks if the user wants to store changed data.
+
+## 2025_09-27 (22.10.2025)
+
+- variant details: removed germline COSMIC info
+- variant tab: no longer shows bad quality samples in genotype counts and sample table
+- variant tag: shows somatic VICC classification
+
+## 2025_09-12 (06.10.2025)
+
+- gap dialog: refactoring and updated documentation
+- sub-panel design dialog: added transcript selection and updated the default settings
+- general: added HerediCare VCF export and updated documentation
+- general: updated Ensembl-Refseq transcript matches
+
+## 2025_07-127 (24.09.2025)
+
+- Updated gene/transcript databases from Ensembl 112 to 115. There are may more transcripts now!
+	- Here the release notes: <https://www.ensembl.info/2025/09/02/ensembl-115-has-been-released/>
+	- Here the explaination of `GENCODE Primary`: <https://www.ensembl.info/2025/02/14/cool-stuff-ensembl-vep-can-do-reduce-the-number-of-human-transcripts-you-need-to-consider-without-missing-results/>
+
+## 2025_07-120 (18.09.2025)
+
+- RE search: added caller information
+
+## 2025_07-95 (15.09.2025)
+
+- added link for CMC mutation significance in variant details
+- updated tumor-only filter
+- updated trio relaxed filter
+
+## 2025_07-44 (20.08.2025)
+
+- project tag: added `matchmaking` field.
+- filters: updated comp-het CNV/SV filters to also show genes with more than two variants.
+- variant tag: added ancestry to sample overview.
+- germline report: only show active filters as filter criteria
+- filters: improved trio relaxed filter
+
+## 2025_05-32 (01.07.2025)
+
+- germline report: added HGNC ID to gene table.
+
+## 2025_05-16 (11.06.2025)
+
+- added support for new megSAP pipeline with separate DRAGEN and megSAP analysis
+
+## 2025_03-80 (20.05.25)
+
+- RE search: added order date and patient identifier to result table
+- report: float numbers in germline report are now formatted according to the selected report language
+- GenLab import: fixed study import (studies were not imported if a merged sample already contained the study)
+- updated CADD cutoffs according to <https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/>
+- report dialog: fixed bug in report dialog (REs not included in report dialog when calling data is not in RE file)
+
 ## 2025_03-20 (02.04.25)
 
 - improved support for DRAGEN 4.2 structural variant output
@@ -707,7 +798,7 @@
 
 ### 2019_09-80 (20.11.19)
 - CNVs: callset quality is now automatically set if it is good.
-- CNVs: added new CNV filters (genomAD o/e LOF, gene region).
+- CNVs: added new CNV filters (gnomAD o/e LOF, gene region).
 - CNVs: updated default filters.
 - Report: Added inheritance and classification to CNV table in report.
 

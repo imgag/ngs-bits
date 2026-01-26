@@ -10,7 +10,6 @@
 
 #include "QHash"
 
-#include "RefGenomeService.h"
 #include "htslib/sam.h"
 #include "htslib/cram.h"
 
@@ -73,9 +72,24 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		}
 
 		//Returns the read length.
+		//Note: For CRAM files, if bases and qualities are skipped, the length is determined from the CIGAR string. However if the read is unmapped, there is no CIGAR string. In this case -1 is returned.
 		int length() const
 		{
-			return aln_->core.l_qseq;
+			if (!length_initialized_)
+			{
+				if (!containsBases() && !containsQualities())
+				{
+					length_ = aln_->core.n_cigar ? bam_cigar2qlen(aln_->core.n_cigar, bam_get_cigar(aln_)) : -1;
+				}
+				else
+				{
+					length_ = aln_->core.l_qseq;
+				}
+
+				length_initialized_ = true;
+			}
+
+			return length_;
 		}
 
 		//Returns the insert size of the read pair.
@@ -185,9 +199,10 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Returns the n-th base.
 		char base(int n) const
 		{
+			if (!containsBases()) THROW(ProgrammingException, "BamAlignment does not contain bases, but base(int) used!");
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
 		}
-		//Fills the given vector with integer representations of bases ()
+		//Fills the given vector with integer representations of bases (faster than characters - A=1, C=2, G=4, T=8, N=15)
 		QVector<int> baseIntegers() const;
 
 		//Returns the sequence qualities - ASCII encoded in Illumina 1.8 format i.e. 0-41 equals '!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJ'
@@ -197,24 +212,26 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Returns the quality of the n-th base (integer value).
 		int quality(int n)const
 		{
+			if (!containsQualities()) THROW(ProgrammingException, "BamAlignment does not contain qualities, but quality(int) used!");
 			return bam_get_qual(aln_)[n];
 		}
 		//Fills a bit array representing base qualities - a bit is set if the base quality is >= min_baseq
 		//the array is of size al.end() - al.start() +1 and by that includes deletions
 		void qualities(QBitArray& qualities, int min_baseq, int len) const;
-		//Returns the string data of a tag.
+
+		//Returns a string tag. If the tag is not present, an empty string is returned. If the tag is not a string, i.e. type Z, an exception is thrown.
 		QByteArray tag(const QByteArray& tag) const;
 		//Adds a tag to the alignment.
 		void addTag(const QByteArray& tag, char type, const QByteArray& data);
-		//Returns the integer data of a tag with type 'i'.
-		int tagi(const QByteArray&) const;
+		//Returns a integer tag. If the tag is not present, 0 is returned.
+		int tagi(const QByteArray& tag) const;
 
 		/**************************** MATE functions ****************************/
 
-		//returnt the mate start position
+		//return the mate start position (1-based).
 		int mateStart() const
 		{
-			return aln_->core.mpos;
+			return aln_->core.mpos + 1;
 		}
 		void setMateStart(int start)
 		{
@@ -236,13 +253,12 @@ class CPPNGSSHARED_EXPORT BamAlignment
 			return aln_->core.flag & BAM_FMUNMAP;
 		}
 
-
 		/**
-		  @brief Returns the base and quality at a chromosomal position (1-based).
+		  @brief Returns the base and quality at a chromosomal position (1-based). If qualities are skipped, -1 is returned.
 		  @note If the base is deleted, '-' with quality 255 is returned. If the base is skipped/soft-clipped, '~' with quality -1 is returned.
-		*/
-		QPair<char, int> extractBaseByCIGAR(int pos);
-		QPair<char, int> extractBaseByCIGAR(int pos, int& actual_pos);
+          @note If 'index_in_read' is set, the index of the position in the read is returned.
+        */
+        QPair<char, int> extractBaseByCIGAR(int pos, int* index_in_read=nullptr);
 
 		/**
 		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.
@@ -251,8 +267,27 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		*/
 		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0);
 
+		//Indicates if bases were loaded (for CRAM).
+		bool containsBases() const
+		{
+			return loaded_fields_ & SAM_SEQ;
+		}
+		//Indicates if qualities were loaded (for CRAM).
+		bool containsQualities() const
+		{
+			return loaded_fields_ & SAM_QUAL;
+		}
+		//Indicates if tags were loaded (for CRAM).
+		bool containsTags() const
+		{
+			return loaded_fields_ & SAM_AUX;
+		}
+
 	protected:
 		bam1_t* aln_;
+		mutable int length_ = -1;
+		mutable bool length_initialized_ = false;
+		int loaded_fields_; //fields loaded (for CRAM)
 
 		//friends
 		friend class BamReader;
@@ -276,30 +311,50 @@ struct CPPNGSSHARED_EXPORT VariantDetails
 	int obs;
 };
 
+//General information about the BAM/CRAM.
+struct BamInfo
+{
+    QByteArray file_format; //'BAM' or 'CRAM' plus container version
+    QByteArray build; //hg38, hg19 or empty
+    bool false_duplications_masked = true; //checked for hg38 only
+    bool contains_alt_chrs = false;
+    bool paired_end;
+	QByteArray mapper; //the last mapper listed in the BAM header
+	QByteArray mapper_version; //the version of the mapper
+};
+
 //C++ wrapper for htslib BAM file access
 class CPPNGSSHARED_EXPORT BamReader
 {
 	public:
 		//Default constructor
 		BamReader(const QString& bam_file);
-		//CRAM Constructor with explicit reference genome
+        //CRAM Constructor with explicit reference genome
 		//reference genome is mandatory for CRAM support
         BamReader(const QString& bam_file, QString ref_genome);
-
 		//Destructor
 		~BamReader();
+
+		//Optimization of CRAM read times - see https://brentp.github.io/post/cram-speed/
+		//Do not load bases into alignments. If the file is not a CRAM file, this has no effect.
+        void skipBases();
+		//Do not load qualities into alignments. If the file is not a CRAM file, this has no effect.
+        void skipQualities();
+		//Do not load tags into alignments. If the file is not a CRAM file, this has no effect.
+		void skipTags();
+		//Used to re-active bases after skipping them. If the file is not a CRAM file, this has no effect.
+		void readBases();
+		//Used to re-active qualties after skipping them. If the file is not a CRAM file, this has no effect.
+		void readQualities();
+		//Used to re-active tgs after skipping them. If the file is not a CRAM file, this has no effect.
+		void readTags();
 
 		//Returns the BAM header lines
 		QByteArrayList headerLines() const;
 		//Returns the genome build based on the length of the chr1 (works for human only). Throws an exception if it could not be determined.
 		GenomeBuild build() const;
-		/**
-			@brief Returns true if reads from loaded BAM file are from long-read sequencing
-			@warning WARNING: function changes the set region, use before setting a region or re-set your region
-			@details Checks the BRCA1 locus for single-end reads
-			@param reads	number of reads which are checked
-		*/
-		bool is_single_end(int reads=100);
+		//Returns general information about a BAM file. Note: it changes the region, thus use before setting a region or re-set region afterwards
+		BamInfo info();
 
 		//Set region for alignment retrieval (1-based coordinates).
 		void setRegion(const Chromosome& chr, int start, int end);
@@ -312,6 +367,9 @@ class CPPNGSSHARED_EXPORT BamReader
 			{
 				THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
 			}
+
+			al.loaded_fields_ = requested_fields_;
+			al.length_initialized_ = false;
 
 			return res>=0;
 		}
@@ -331,18 +389,22 @@ class CPPNGSSHARED_EXPORT BamReader
 		/**
 		  @brief Returns the pileup at the given chromosomal position (1-based).
 		  @param indel_window The value controls how far up- and down-stream of the given postion, indels are considered to compensate for alignment differences. Indels are not reported when this parameter is set to -1.
-		  @param anom also uses reads which are not properly paired
+		  @param include_not_properly_paired also uses reads which are not properly paired. This flag has to be set when used on long-read data.
 		*/
-		Pileup getPileup(const Chromosome& chr, int pos, int indel_window = -1, int min_mapq = 1, bool anom = false, int min_baseq = 13);
+		Pileup getPileup(const Chromosome& chr, int pos, int indel_window = -1, int min_mapq = 1, bool include_not_properly_paired = false, int min_baseq = 13);
 
-		//Returns the depth/frequency for a variant (start, ref, obs in TSV style). If the depth is 0, quiet_NaN is returned as frequency.
-		VariantDetails getVariantDetails(const FastaFileIndex& reference, const Variant& variant);
+		/**
+			@bried Returns the depth/frequency for a variant (start, ref, obs in TSV style). If the depth is 0, quiet_NaN is returned as frequency.
+			@param include_not_properly_paired also uses reads which are not properly paired. This flag has to be set when used on long-read data.
+		*/
+		VariantDetails getVariantDetails(const FastaFileIndex& reference, const Variant& variant, bool include_not_properly_paired);
 
 		/**
 		  @brief Returns indels for a chromosomal range (1-based) and the depth of the region.
+		  @param include_not_properly_paired also uses reads which are not properly paired. This flag has to be set when used on long-read data.
 		  @note Insertions are prefixed with '+', deletions with '-'.
 		*/
-		void getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac);
+		void getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac, bool include_not_properly_paired);
 
 
 	protected:
@@ -353,6 +415,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		sam_hdr_t* header_ = nullptr;
 		hts_idx_t* index_ = nullptr;
 		hts_itr_t* iter_  = nullptr;
+		int requested_fields_ = SAM_QNAME | SAM_FLAG | SAM_RNAME | SAM_POS | SAM_MAPQ | SAM_CIGAR | SAM_RNEXT | SAM_PNEXT | SAM_TLEN | SAM_SEQ | SAM_QUAL | SAM_AUX | SAM_RGAUX;
 
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();

@@ -1,10 +1,5 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
-#include "ChromosomalIndex.h"
 #include "FilterCascade.h"
-#include "BedFile.h"
-#include "Helper.h"
-#include "NGSHelper.h"
 
 class ConcreteTool
 	: public ToolBase
@@ -20,12 +15,14 @@ public:
 	virtual void setup()
 	{
 		setDescription("Filter a variant list in GSvar format based on variant annotations.");
-		addInfile("in", "Input variant list in GSvar format.", false);
-		addOutfile("out", "Output variant list in GSvar format.", false);
 		addInfile("filters", "Filter definition file.", false);
+		//optional
+		addInfile("in", "Input variant list in GSvar format.", true);
+		addOutfile("out", "Output variant list in GSvar format.", true);
 
 		setExtendedDescription(extendedDescription());
 
+		changeLog(2025, 6,  5, "Made input and output files optional.");
 		changeLog(2018, 7, 30, "Replaced command-line parameters by INI file and added many new filters.");
 		changeLog(2017, 6, 14, "Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.");
 		changeLog(2017, 6, 14, "Added sub-population allele frequency filter.");
@@ -55,7 +52,7 @@ public:
 		int max_len = 0;
 		foreach (QString name, filter_names)
 		{
-            max_len = std::max(SIZE_TO_INT(max_len), SIZE_TO_INT(name.length()));
+            max_len = std::max(static_cast<qsizetype>(max_len), static_cast<qsizetype>(name.length()));
 		}
 		//add filters
 		foreach (QString name, filter_names)

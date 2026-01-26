@@ -4,7 +4,6 @@
 
 #include "cppNGSD_global.h"
 #include "VariantList.h"
-#include "Helper.h"
 #include "FileLocation.h"
 #include "FileLocationList.h"
 
@@ -37,6 +36,8 @@ public:
 	virtual FileLocation getMethylationFile() const = 0;
 	//Returns the methylation image of a given locus
 	virtual FileLocation getMethylationImage(QString locus) const = 0;
+	//Returns the methylation image of a given locus
+	virtual FileLocation getMethylationCohortImage(QString locus) const = 0;
 
 	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files
@@ -69,6 +70,8 @@ public:
 	virtual FileLocationList getExonExpressionFiles(bool return_if_missing) const = 0;
 	//Returns the somatic low coverage files in BED format
 	virtual FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific reads mapped to the correct pseudo gene (BAM format)
+	virtual FileLocationList getParaphaseEvidenceFiles(bool return_if_missing) const = 0;
 
 
 	//############################## somatic-only files ##############################

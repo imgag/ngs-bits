@@ -1,8 +1,8 @@
 #include "PhenotypeSelector.h"
 #include "ui_PhenotypeSelector.h"
-#include "GUIHelper.h"
 #include <QAction>
 #include <QTextEdit>
+#include <QKeyEvent>
 
 PhenotypeSelector::PhenotypeSelector(QWidget *parent)
 	: QWidget(parent)

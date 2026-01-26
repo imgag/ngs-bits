@@ -1,7 +1,5 @@
 #include "ToolBase.h"
-#include "NGSHelper.h"
 #include "Helper.h"
-#include "BasicStatistics.h"
 #include "BamWriter.h"
 #include <QTime>
 
@@ -63,7 +61,7 @@ public:
 				{
 					++c_se_pass;
 					writer.writeAlignment(al);
-                    if (test) out << "KEPT SE: " << al.name() << QT_ENDL;
+                    if (test) out << "KEPT SE: " << al.name() << Qt::endl;
 				}
 			}
 			else //paired-end reads
@@ -81,7 +79,7 @@ public:
 						++c_pe_pass;
 						writer.writeAlignment(al_cache.take(name));
 						writer.writeAlignment(al);
-                        if (test) out << "KEPT PE: " << name << QT_ENDL;
+                        if (test) out << "KEPT PE: " << name << Qt::endl;
 					}
 					else
 					{
@@ -92,11 +90,11 @@ public:
 		}
 
 		//write debug output
-        out << "SE reads                    : " << c_se << QT_ENDL;
-        out << "SE reads (written)          : " << c_se_pass << QT_ENDL;
-        out << "PE reads                    : " << c_pe << QT_ENDL;
-        out << "PE reads (written)          : " << c_pe_pass << QT_ENDL;
-        out << "PE reads unmatched (skipped): " << al_cache.size() << QT_ENDL;
+        out << "SE reads                    : " << c_se << Qt::endl;
+        out << "SE reads (written)          : " << c_se_pass << Qt::endl;
+        out << "PE reads                    : " << c_pe << Qt::endl;
+        out << "PE reads (written)          : " << c_pe_pass << Qt::endl;
+        out << "PE reads unmatched (skipped): " << al_cache.size() << Qt::endl;
 	}
 };
 

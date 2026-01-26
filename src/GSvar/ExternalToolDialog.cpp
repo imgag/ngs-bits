@@ -76,16 +76,15 @@ void ExternalToolDialog::browse()
 
 			//open BAM file
 			BamReader reader(filename);
-			bool is_single_end = reader.is_single_end();
 
 			GenderEstimate estimate;
 			if (mode_=="xy")
 			{
-				estimate = Statistics::genderXY(filename, 0.06, 0.09, QString(), is_single_end);
+				estimate = Statistics::genderXY(filename, 0.06, 0.09, QString());
 			}
 			else if (mode_=="hetx")
 			{
-				estimate = Statistics::genderHetX(GSvarHelper::build(), filename, 0.15, 0.24, QString(), is_single_end);
+				estimate = Statistics::genderHetX(GSvarHelper::build(), filename, 0.15, 0.24, QString(), !reader.info().paired_end);
 			}
 			else if (mode_=="sry")
 			{
@@ -116,8 +115,8 @@ void ExternalToolDialog::browse()
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 			if (mode_=="bam")
 			{
-				SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename1, 30, 500, false);
-				SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename2, 30, 500, false);
+				SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename1, 15, 500, false, "", true);
+				SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename2, 15, 500, false, "", true);
 
 				SampleSimilarity sc;
 				sc.calculateSimilarity(geno1, geno2);

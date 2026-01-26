@@ -1,5 +1,5 @@
 ### UpdHunter tool help
-	UpdHunter (2024_08-110-g317f43b9)
+	UpdHunter (2025_07-53-gefb5888f)
 	
 	UPD detection from trio variant data.
 	
@@ -18,7 +18,7 @@
 	  -var_min_dp <int>        Minimum depth (DP) of a variant (in all three samples).
 	                           Default value: '20'
 	  -var_min_q <float>       Minimum quality (QUAL) of a variant.
-	                           Default value: '30'
+	                           Default value: '20'
 	  -var_use_indels          Also use InDels. The default is to use SNVs only.
 	                           Default value: 'false'
 	  -ext_marker_perc <float> Percentage of markers that can be spanned when merging adjacent regions .
@@ -42,7 +42,7 @@
 	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### UpdHunter changelog
-	UpdHunter 2024_08-110-g317f43b9
+	UpdHunter 2025_07-53-gefb5888f
 	
 	2024-06-06 Added optional output file containing informative variants.
 	2020-08-07 VCF files only as input format for variant list.

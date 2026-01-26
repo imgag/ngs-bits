@@ -89,11 +89,11 @@ GeneSet GeneSet::createFromFile(QString filename)
 	return output;
 }
 
-GeneSet GeneSet::createFromText(const QByteArray& text, char seperator)
+GeneSet GeneSet::createFromText(const QByteArray& text, char separator)
 {
 	GeneSet output;
 
-	QList<QByteArray> lines = text.split(seperator);
+	QList<QByteArray> lines = text.split(separator);
     for (const QByteArray& line : lines)
 	{
 		if (line.startsWith("#")) continue;
@@ -115,13 +115,38 @@ GeneSet GeneSet::createFromStringList(const QStringList& list)
 	return output;
 }
 
-QStringList GeneSet::toStringList() const
+QByteArrayList GeneSet::toByteArrayList() const
 {
-	QStringList output;
+	QByteArrayList output;
 
     for (const QByteArray& gene : *this)
 	{
 		output.append(gene);
+	}
+
+	return output;
+}
+
+QStringList GeneSet::toStringList() const
+{
+	QStringList output;
+
+	for (const QByteArray& gene : *this)
+	{
+		output.append(gene);
+	}
+
+	return output;
+}
+
+QByteArray GeneSet::toString(QByteArray sep) const
+{
+	QByteArray output;
+
+	for (int i=0; i<this->count(); ++i)
+	{
+		if (i!=0) output.append(sep);
+		output.append(this->operator[](i));
 	}
 
 	return output;

@@ -1,0 +1,2 @@
+#filename	format	genome_build	genome_masked	genome_contains_alt	mapper	paired-end
+panel.bam	BAM	hg38	yes	no	bwa-mem2 2.1	yes

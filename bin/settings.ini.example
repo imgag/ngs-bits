@@ -56,3 +56,6 @@ nova_seq_x_keep_fastq = 1
 
 #location, used to enable site-specific adaptations
 location = ""
+
+#SSL certificate authorities to validate a connection to the database server
+db_ssl_ca = ""

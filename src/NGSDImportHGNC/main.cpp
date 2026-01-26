@@ -17,7 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports genes from the HGNC flat file.");
-		addInfile("in", "HGNC flat file (download https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt)", false);
+		addInfile("in", "HGNC flat file (download https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2025-09-02.tsv)", false);
 		addInfile("ensembl", "Ensembl gene file (gff3) to resolve duplicate ENSG identifier (same as NGSDImportEnsembl 'in' parameter).", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -44,7 +44,7 @@ public:
 	void updateTable(NGSD& db, QString table_name)
 	{
 		QTextStream out(stdout);
-        out << "Updating entries in " + table_name + " table..." << QT_ENDL;
+        out << "Updating entries in " + table_name + " table..." << Qt::endl;
 		//get all gene names
 		SqlQuery query = db.getQuery();
 		query.exec("SELECT symbol FROM " + table_name);
@@ -80,8 +80,8 @@ public:
 				}
 			}
 		}
-        out << "  updated  " << c_upd << " entries" << QT_ENDL;
-        out << "  deleted  " << c_del << " entries" << QT_ENDL;
+        out << "  updated  " << c_upd << " entries" << Qt::endl;
+        out << "  deleted  " << c_del << " entries" << Qt::endl;
 	}
 
 
@@ -171,7 +171,7 @@ public:
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("in"));
 
 		//get duplicate ENSG ids
-        out << "Extract duplicate ENSG ids..." << QT_ENDL;
+        out << "Extract duplicate ENSG ids..." << Qt::endl;
 		while (!fp->atEnd())
 		{
 			QByteArray line = fp->readLine().trimmed();
@@ -193,16 +193,16 @@ public:
 				ensg_ids.insert(ensg_id);
 			}
 		}
-        out << "ENSG IDs used for more than one gene (" << QByteArray::number(duplicate_ensg_ids.size()) << "): " << duplicate_ensg_ids.values().join(", ") << QT_ENDL;
+        out << "ENSG IDs used for more than one gene (" << QByteArray::number(duplicate_ensg_ids.size()) << "): " << duplicate_ensg_ids.values().join(", ") << Qt::endl;
 
 
 		//get ENSG->HGNC mapping from ensembl file
-        out << "Get ENSG -> HGNC mapping from ensembl file..." << QT_ENDL;
+        out << "Get ENSG -> HGNC mapping from ensembl file..." << Qt::endl;
 		QMap<QByteArray,QByteArray> ensg_hgnc_mapping;
 		if (duplicate_ensg_ids.size() > 0) ensg_hgnc_mapping = getEnsemblHGNCMapping(duplicate_ensg_ids, getInfile("ensembl"));
 
 		//final parse for import
-        out << "Parse HGNC file and import genes into the NGSD..." << QT_ENDL;
+        out << "Parse HGNC file and import genes into the NGSD..." << Qt::endl;
 		fp->seek(0);
 		int n_imported = 0;
 
@@ -274,12 +274,12 @@ public:
 			addAliases(alias_query, gene_id, parts[8], "synonym");
 		}
 
-        out << "  " << db.getValue("SELECT count(*) FROM gene").toInt() << " gene symbols imported into the NGSD:" << QT_ENDL;
+        out << "  " << db.getValue("SELECT count(*) FROM gene").toInt() << " gene symbols imported into the NGSD:" << Qt::endl;
 		foreach(QString type, valid_types)
 		{
-            out << "    " << db.getValue("SELECT count(*) FROM gene WHERE type='" + type + "'").toInt() << " genes of type '" << type + "'" << QT_ENDL;
+            out << "    " << db.getValue("SELECT count(*) FROM gene WHERE type='" + type + "'").toInt() << " genes of type '" << type + "'" << Qt::endl;
 		}
-        out << "    " << db.getValue("SELECT count(*) FROM gene WHERE ensembl_id IS NULL ").toInt() << " genes without Ensembl ID" << QT_ENDL;
+        out << "    " << db.getValue("SELECT count(*) FROM gene WHERE ensembl_id IS NULL ").toInt() << " genes without Ensembl ID" << Qt::endl;
 
 		//update gene symbols in geneinfo_germline and somatic_gene_role table
 		updateTable(db, "geneinfo_germline");
@@ -291,6 +291,15 @@ public:
 		//commit changes
 		db.commit();
 
+		//add DB import info (version parsed from filename; if parsing fails use full filename)
+		QString version = QFileInfo(getInfile("in")).fileName();
+		QString tmp = version;
+		tmp.replace("hgnc_complete_set_", "").replace(".tsv", "");
+		if (QDate::fromString(tmp, Qt::ISODate).isValid())
+		{
+			version = tmp;
+		}
+		db.setDatabaseInfo("HGNC", version);
 	}
 };
 

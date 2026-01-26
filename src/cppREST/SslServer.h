@@ -8,9 +8,7 @@
 #include <QSslConfiguration>
 #include <QList>
 #include <QThreadPool>
-#include "Exceptions.h"
 #include "RequestWorker.h"
-#include "Log.h"
 
 class CPPRESTSHARED_EXPORT SslServer : public QTcpServer
 {
@@ -28,6 +26,11 @@ Q_SIGNALS:
 	void verificationFailed(const QSslError &error);
 	void securelyConnected();
 
+
+private slots:
+    void resetEmailAlreadySentFlag();
+    void checkPoolStatus();
+
 protected:
     virtual void incomingConnection(qintptr socket);
 
@@ -36,6 +39,8 @@ private:
 	QString client_version_;
     QThreadPool thread_pool_;
     RequestWorkerParams worker_params_;
+    bool email_already_sent_;
+    int thread_pool_check_count_;
 
 };
 

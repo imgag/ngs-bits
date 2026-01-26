@@ -45,7 +45,7 @@ public:
 
 		QString type = getEnum("type");
 
-        QTextStream(stdout) << db.processedSamplePath(ps_id, FileLocation::stringToType(type)) << QT_ENDL;
+        QTextStream(stdout) << db.processedSamplePath(ps_id, FileLocation::stringToType(type)) << Qt::endl;
 	}
 };
 

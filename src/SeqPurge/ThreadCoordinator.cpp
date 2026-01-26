@@ -77,7 +77,7 @@ void ThreadCoordinator::printStatus()
 		if (job_pool_[i].status==TO_BE_ANALYZED) ++to_be_analyzed;
 		if (job_pool_[i].status==TO_BE_WRITTEN) ++to_be_written;
 	}
-    (*streams_out_.summary_stream)<< Helper::dateTime() << " progress - to_be_loaded:" << to_be_loaded << " to_be_analyzed:" << to_be_analyzed << " to_be_written:" << to_be_written << " processed_reads:" << stats_.read_num << QT_ENDL;
+    (*streams_out_.summary_stream)<< Helper::dateTime() << " progress - to_be_loaded:" << to_be_loaded << " to_be_analyzed:" << to_be_analyzed << " to_be_written:" << to_be_written << " processed_reads:" << stats_.read_num << Qt::endl;
 }
 
 void ThreadCoordinator::load(int i)
@@ -131,7 +131,7 @@ void ThreadCoordinator::checkDone()
 	timer_done_.stop();
 
 	//print trimming statistics
-    (*streams_out_.summary_stream) << Helper::dateTime() << " writing statistics summary" << QT_ENDL;
+    (*streams_out_.summary_stream) << Helper::dateTime() << " writing statistics summary" << Qt::endl;
 	stats_.writeStatistics((*streams_out_.summary_stream), params_);
 
 	//write qc output file
@@ -143,11 +143,11 @@ void ThreadCoordinator::checkDone()
 	//print error correction statistics
 	if (params_.ec)
 	{
-        if (params_.progress>0) (*streams_out_.summary_stream) << Helper::dateTime() << " writing error corrections summary" << QT_ENDL;
+        if (params_.progress>0) (*streams_out_.summary_stream) << Helper::dateTime() << " writing error corrections summary" << Qt::endl;
 		ec_stats_.writeStatistics((*streams_out_.summary_stream));
 	}
 
-    (*streams_out_.summary_stream) << Helper::dateTime() << " overall runtime: " << Helper::elapsedTime(timer_overall_) << QT_ENDL;
+    (*streams_out_.summary_stream) << Helper::dateTime() << " overall runtime: " << Helper::elapsedTime(timer_overall_) << Qt::endl;
 
 	emit finished();
 }

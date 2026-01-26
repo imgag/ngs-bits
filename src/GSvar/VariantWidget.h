@@ -5,9 +5,11 @@
 #include "ui_VariantWidget.h"
 #include "VariantList.h"
 #include "DelayedInitializationTimer.h"
+#include "TabBaseClass.h"
+#include "NGSD.h"
 
 class VariantWidget
-	: public QWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 
@@ -16,6 +18,7 @@ public:
 
 private slots:
 	void updateGUI();
+	void updateSampleTable();
 	void delayedInitialization();
 	void copyToClipboard();
 	void calculateSimilarity();
@@ -34,6 +37,7 @@ private:
 	Ui::VariantWidget ui_;
 	DelayedInitializationTimer init_timer_;
 	Variant variant_;
+	QString variant_id_;
 
 	QTableWidgetItem* addItem(int r, int c, QString text, bool also_as_tooltip=false);
 	QList<int> selectedRows() const;

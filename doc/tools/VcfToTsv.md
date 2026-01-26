@@ -1,5 +1,5 @@
 ### VcfToTsv tool help
-	VcfToTsv (2024_08-113-g94a3b440)
+	VcfToTsv (2025_07-127-g60fc6b39)
 	
 	Converts a VCF file to a tab-separated text file.
 	
@@ -7,7 +7,7 @@
 	Multi-sample VCFs are supported. For every combination of FORMAT and SAMPLE a seperate column is generated and named in the following way: <SAMPLEID>_<FORMATID>_<format>.
 	
 	Optional parameters:
-	  -in <file>        Input variant list in VCF format. If unset, reads from STDIN.
+	  -in <file>        Input variant list in VCF or VCF.GZ format. If unset, reads from STDIN.
 	                    Default value: ''
 	  -out <file>       Output variant list in TSV format. If unset, writes to STDOUT.
 	                    Default value: ''
@@ -20,7 +20,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfToTsv changelog
-	VcfToTsv 2024_08-113-g94a3b440
+	VcfToTsv 2025_07-127-g60fc6b39
 	
 	2022-11-03 Changed output variant style from GSvar to VCF.
 	2022-09-07 Added support for streaming (STDIN > STDOUT).

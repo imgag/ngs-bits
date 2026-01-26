@@ -20,6 +20,8 @@ public:
 
 	//Returns a secure token generated for the given user
 	static QString userToken();
+	//Random string used for extra security: it is linked to the user session
+	static QString randomSecret();
 	static QString userPassword();
 
 	//Returns if a user is logged in (and that the NGSD is enabled)
@@ -40,6 +42,7 @@ public:
 	static QString ngsdUser();
 	static QString ngsdPassword();
 
+    static bool hasGenlabInfo();
 	static bool genlab_mssql();
 	static QString genlabHost();
 	static int genlabPort();
@@ -64,6 +67,7 @@ private:
 	QString user_name_;
 	int user_id_;
 	QString user_token_;
+	QString random_secret_;
 	QString user_password_;
 
 	//Token for requesting database credentials

@@ -1,9 +1,9 @@
 #include "ToolBase.h"
 #include "FastqFileStream.h"
-#include "NGSHelper.h"
 #include "Helper.h"
 #include <QThreadPool>
 #include "OutputWorker.h"
+#include "BamReader.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -86,6 +86,7 @@ public:
 		timer.start();
 		QTextStream out(stdout);
 		BamReader reader(getInfile("in"), getInfile("ref"));
+		reader.skipTags();
 		QString out1 = getOutfile("out1");
 		QString out2 = getOutfile("out2");
 		bool fix = getFlag("fix");
@@ -189,7 +190,7 @@ public:
 					al = QSharedPointer<BamAlignment>(new BamAlignment());
 				}
 
-                max_cached = std::max(SIZE_TO_INT(max_cached), SIZE_TO_INT(al_cache.size()));
+                max_cached = std::max(static_cast<qsizetype>(max_cached), static_cast<qsizetype>(al_cache.size()));
 			}
 			else //single-end
 			{
@@ -203,25 +204,25 @@ public:
 		//write debug output
 		if(is_pe)
 		{
-            out << "Pair reads (written)            : " << c_paired << QT_ENDL;
-            out << "Unpaired reads (skipped)        : " << c_unpaired << QT_ENDL;
-            out << "Unmatched paired reads (skipped): " << al_cache.size() << QT_ENDL;
+            out << "Pair reads (written)            : " << c_paired << Qt::endl;
+            out << "Unpaired reads (skipped)        : " << c_unpaired << Qt::endl;
+            out << "Unmatched paired reads (skipped): " << al_cache.size() << Qt::endl;
 		}
 		else //single-end
 		{
-            out << "Reads (written)                 : " << c_single_end << QT_ENDL;
+            out << "Reads (written)                 : " << c_single_end << Qt::endl;
 		}
 		if (remove_duplicates)
 		{
-            out << "Duplicate tagged reads (skipped): " << c_duplicates << QT_ENDL;
+            out << "Duplicate tagged reads (skipped): " << c_duplicates << Qt::endl;
 		}
 		if (fix)
 		{
-            out << "Duplicate name reads (skipped)  : " << c_fixed << QT_ENDL;
+            out << "Duplicate name reads (skipped)  : " << c_fixed << Qt::endl;
 		}
-        out << QT_ENDL;
-        out << "Maximum cached reads            : " << max_cached << QT_ENDL;
-        out << "Time elapsed                    : " << Helper::elapsedTime(timer, true) << QT_ENDL;
+        out << Qt::endl;
+        out << "Maximum cached reads            : " << max_cached << Qt::endl;
+        out << "Time elapsed                    : " << Helper::elapsedTime(timer, true) << Qt::endl;
 
 		//terminate FASTQ writer after all reads are written
 		pair_pool.waitAllWritten();

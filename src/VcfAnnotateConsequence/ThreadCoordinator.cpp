@@ -4,6 +4,7 @@
 #include "ChunkProcessor.h"
 #include "OutputWorker.h"
 #include "Helper.h"
+#include "VersatileFile.h"
 
 ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaData meta)
 	: QObject(parent)
@@ -30,10 +31,8 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaDat
 	out_stream_ = Helper::openFileForWriting(params_.out, true);
 
 	//open input steam
-	FILE* instream = params_.in.isEmpty() ? stdin : fopen(params_.in.toLatin1().data(), "rb");
-	if (instream==nullptr) THROW(FileAccessException, "Could not open file '" + params_.in + "' for reading!");
-	in_stream_ = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
-	if (in_stream_==nullptr) THROW(FileAccessException, "Could not open file '" + params_.in + "' for reading!");
+	in_stream_ = QSharedPointer<VersatileFile>(new VersatileFile(params_.in, true));
+	in_stream_->open(QFile::ReadOnly|QFile::Text, false);
 
 	//initially fill thread pool with analysis jobs
 	for (int i=0; i<params_.prefetch; ++i)
@@ -44,12 +43,12 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaDat
 
 ThreadCoordinator::~ThreadCoordinator()
 {
-    if (params_.debug) QTextStream(stdout) << "Destroying ThreadCoordinator" << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "Destroying ThreadCoordinator" << Qt::endl;
 }
 
 void ThreadCoordinator::read(int i)
 {
-    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::read(" << i << ")" << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::read(" << i << ")" << Qt::endl;
 
 	InputWorker* worker = new InputWorker(job_pool_[i], in_stream_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
@@ -60,7 +59,7 @@ void ThreadCoordinator::read(int i)
 
 void ThreadCoordinator::annotate(int i)
 {
-    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::annotate(" << i << ")" << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::annotate(" << i << ")" << Qt::endl;
 
 	ChunkProcessor* worker = new ChunkProcessor(job_pool_[i], meta_, params_);
 
@@ -72,7 +71,7 @@ void ThreadCoordinator::annotate(int i)
 
 void ThreadCoordinator::write(int i)
 {
-    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::write(" << i << ")" << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::write(" << i << ")" << Qt::endl;
 
 	OutputWorker* worker = new OutputWorker(job_pool_[i], out_stream_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
@@ -104,12 +103,12 @@ void ThreadCoordinator::inputDone(int /*i*/)
 	connect(&timer_done_, SIGNAL(timeout()), this, SLOT(checkDone()));
 	timer_done_.start(100);
 
-    QTextStream(stdout) << "Reading input done" << QT_ENDL;
+    QTextStream(stdout) << "Reading input done" << Qt::endl;
 }
 
 void ThreadCoordinator::checkDone()
 {
-    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::checkDone()" << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::checkDone()" << Qt::endl;
 
 	//check if all jobs are done
 	for (int i=0; i<job_pool_.count(); ++i)
@@ -121,10 +120,10 @@ void ThreadCoordinator::checkDone()
 	timer_done_.stop();
 
 	QTextStream stream(stdout);
-    stream << "Annotation done" << QT_ENDL;
-    stream << "Annotated " << QString::number(c_annotated_) << " variants." << QT_ENDL;
-    stream << "Skipped " << QString::number(c_skipped_) << " invalid variants." << QT_ENDL;
-    stream << "Annotation took: " << Helper::elapsedTime(timer_annotation_) << QT_ENDL;
+    stream << "Annotation done" << Qt::endl;
+    stream << "Annotated " << QString::number(c_annotated_) << " variants." << Qt::endl;
+    stream << "Skipped " << QString::number(c_skipped_) << " invalid variants." << Qt::endl;
+    stream << "Annotation took: " << Helper::elapsedTime(timer_annotation_) << Qt::endl;
 
 	emit finished();
 }

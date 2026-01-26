@@ -27,7 +27,7 @@ jobs:
     - name: Update OS repositories
       run: sudo apt-get update
     - name: Setup test environment
-      run: sudo apt-get -y install wget make g++ git python3 python3-matplotlib qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev
+      run: sudo apt-get -y install wget make g++ git python3 python3-matplotlib qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev libssl-dev libdeflate-dev
     - name: Create symlink for qmake6
       run: sudo ln -fs /usr/bin/qmake6 /usr/bin/qmake
     - name: Create symlink for python

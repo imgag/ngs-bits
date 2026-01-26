@@ -33,7 +33,7 @@ The following image visualizes the algorihtm and show how it copes with a genoty
 ## Using external allele frequency sources
 
 Instead of using VEP annotations as source of allele frequency information, an external database of allele frequencies can be provided via the 'af_source' parameter.  
-We suggest to use [genomAD](https://gnomad.broadinstitute.org/downloads) in version 3.1 or higher as allele frequency database.
+We suggest to use [gnomAD](https://gnomad.broadinstitute.org/downloads) in version 3.1 or higher as allele frequency database.
 
 ### Pre-processing of the external database
 
@@ -49,7 +49,7 @@ Finally, the allele frequency database has to be compressed with [bgzip](http://
 
 Using an exteral allele frequency database increases the run-time of the tool, since all variants have to be looked up in the database.
 
-Our benchmarks show the following runtime increase when using the genomAD genome database:
+Our benchmarks show the following runtime increase when using the gnomAD genome database:
 
  - Exome (60K variants) from 4.3s (annotated) to ~100s.
  - Genome (4.8M variants) from 3.3m (annotated) to ~90m.
@@ -61,17 +61,10 @@ Thus, for genomes it is favorable to use annotated variants lists if available.
 
 Many large ROHs in a child can be a indicator for consanguinity of the parents.  
 
-This plot shows the ROH size sum of ROHs larger than 500kb for **WGS** (Illumina TruSeq DNA PCR-Free):
-![rohs_wes](roh_sum_wes.png) 
+This plot shows the distribution of the ROH sum for ROHs larger than 500kb in different sequencing approaches: **WGS** (Illumina TruSeq DNA PCR-Free), **WES** (Agilent SureSelect Human All Exon V7) and **long-read GS** (Oxford Nanopore Tech. Ligation Sequencing Kit V14):  
+![rohs_wes](roh_sum.png) 
 
-This plot shows the ROH size sum of ROHs larger than 500kb for **WES** (Agilent SureSelect Human All Exon V7):
-![rohs_wes](roh_sum_wes.png) 
-
-This plot shows the ROH size sum of ROHs larger than 500kb for **long-read WGS** (Oxford Nanopore Tech. Ligation Sequencing Kit V14).
-Note that the a mapping quality cutoff of 15 and a depth cuttoff of 15 are used for ONT lrGS and that the average ROH size sum is slightly higher than for WES/WGS.
-![roh_sum_lrGS](roh_sum_lrGS.png) 
-
-This plot shows  the ROH size sum of ROHs larger than 500kb for patients with different degrees of consanguinity:
+This plot shows the ROH sum of ROHs larger than 500kb for patients with different degrees of consanguinity:
 
 ![roh_sum_consanguinity](roh_sum_consanguinity.png) 
 

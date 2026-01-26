@@ -1,9 +1,6 @@
 #include "ToolBase.h"
-#include "Helper.h"
 #include "FastqFileStream.h"
-#include <QSet>
 #include <QFile>
-#include "Exceptions.h"
 
 class ConcreteTool
 		: public ToolBase

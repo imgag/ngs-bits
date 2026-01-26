@@ -1,7 +1,8 @@
 #include "BamReader.h"
 #include "Exceptions.h"
 #include "Helper.h"
-
+#include "VersatileFile.h"
+#include "RefGenomeService.h"
 /*
 External documentation used for the implementation:
 - reading BAM file: https://gist.github.com/PoisonAlien/350677acc03b2fbf98aa
@@ -24,6 +25,9 @@ BamAlignment::~BamAlignment()
 
 BamAlignment::BamAlignment(const BamAlignment& rhs)
 	: aln_(bam_dup1(rhs.aln_))
+	, length_(rhs.length_)
+	, length_initialized_(rhs.length_initialized_)
+	, loaded_fields_(rhs.loaded_fields_)
 {
 }
 
@@ -113,6 +117,7 @@ bool BamAlignment::cigarIsOnlyInsertion() const
 
 Sequence BamAlignment::bases() const
 {
+	if (!containsBases()) THROW(ProgrammingException, "BamAlignment does not contain bases, but bases() used!");
 	Sequence output;
 	output.resize(aln_->core.l_qseq);
 
@@ -127,6 +132,8 @@ Sequence BamAlignment::bases() const
 
 QVector<int> BamAlignment::baseIntegers() const
 {
+	if (!containsBases()) THROW(ProgrammingException, "BamAlignment does not contain bases, but baseIntegers() used!");
+
 	QVector<int> ints;
 	ints.resize(aln_->core.l_qseq);
 
@@ -202,6 +209,8 @@ void BamAlignment::setBases(const Sequence& bases)
 
 QByteArray BamAlignment::qualities() const
 {
+	if (!containsQualities()) THROW(ProgrammingException, "BamAlignment does not contain qualities, but qualities() used!");
+
 	QByteArray output;
 	output.resize(aln_->core.l_qseq);
 
@@ -276,18 +285,22 @@ void BamAlignment::setQualities(const QByteArray& qualities)
 
 QByteArray BamAlignment::tag(const QByteArray& tag) const
 {
+	if (!containsTags()) THROW(ProgrammingException, "BamAlignment does not contain tags, but tag(QByteArray) used!");
+
 	uint8_t* data_raw = bam_aux_get(aln_, tag);
 	if (data_raw==nullptr)
 	{
 		return QByteArray();
 	}
 	const char* data = reinterpret_cast<const char*>(data_raw);
-	if (data[0]!='Z') THROW(NotImplementedException, "BamAlignment::tag: Getting tag data other than 'Z' type is not implemented!");
-	return QByteArray(data);
+	if (data[0]!='Z') THROW(ProgrammingException, "BamAlignment::tag: Cannot return string for type '" + QString(data[0]) + "' tag!");
+	return QByteArray(data).mid(1);
 }
 
 int BamAlignment::tagi(const QByteArray& tag) const
 {
+	if (!containsTags()) THROW(ProgrammingException, "BamAlignment does not contain tags, but tagi(QByteArray) used!");
+
 	uint8_t* data_raw = bam_aux_get(aln_, tag);
 	if (data_raw==nullptr)
 	{
@@ -305,13 +318,7 @@ void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& va
 	}
 }
 
-QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
-{
-	int actual_pos = 0;
-	return extractBaseByCIGAR(pos, actual_pos);
-}
-
-QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int& actual_pos)
+QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
 {
 	int read_pos = 0;
 	int genome_pos = start()-1;
@@ -365,8 +372,12 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int& actual_pos)
 
 		if (genome_pos>=pos)
 		{
-			actual_pos = read_pos - (genome_pos + 1 - pos);
-			return qMakePair(base(actual_pos), quality(actual_pos));
+			int actual_pos = read_pos - (genome_pos + 1 - pos);
+            if (index_in_read!=nullptr)
+            {
+				(*index_in_read) = actual_pos;
+            }
+			return qMakePair(base(actual_pos), containsQualities() ? quality(actual_pos) : -1);
 		}
 	}
 
@@ -447,8 +458,11 @@ void BamReader::checkChromosomeLengths(const QString& ref_genome)
 	for(int32_t i = 0; i < number_chromosomes; ++i)
 	{
 		char* name_chromosome = header_->target_name[i];
+		Chromosome chr(name_chromosome);
+		if (!chr.isAutosome() && !chr.isGonosome()) continue; //check only autosomes and gonosomes
+
 		uint32_t length_chromosome = header_->target_len[i];
-		uint32_t length_reference_chromosome = (uint32_t)reference.lengthOf(Chromosome(name_chromosome));
+		uint32_t length_reference_chromosome = (uint32_t)reference.lengthOf(chr);
 
 		if(length_chromosome != length_reference_chromosome)
 		{
@@ -464,6 +478,10 @@ void BamReader::init(const QString& bam_file, QString ref_genome)
 	{
 		THROW(FileAccessException, "Could not open BAM/CRAM file " + bam_file_);
 	}
+
+	//apply optimizations
+	hts_set_cache_size(fp_, 100*1024*1024); //100MB - helps for repeated queries in nearby regions by avoiding repeated parsing and unpacking of the same BAM/CRAM block
+	hts_set_threads(fp_, 1); //one extra thread for decompression
 
 	//read header
 	header_ = sam_hdr_read(fp_);
@@ -513,7 +531,56 @@ BamReader::~BamReader()
 	clearIterator();
 	hts_idx_destroy(index_);
 	sam_hdr_destroy(header_);
-	hts_close(fp_);
+    hts_close(fp_);
+}
+
+void BamReader::skipQualities()
+{
+	if (!fp_->is_cram) return;
+
+	requested_fields_ = requested_fields_ & ~SAM_QUAL;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
+}
+
+void BamReader::skipBases()
+{
+	if (!fp_->is_cram) return;
+
+	requested_fields_ = requested_fields_ & ~SAM_SEQ;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
+}
+
+void BamReader::skipTags()
+{
+	if (!fp_->is_cram) return;
+
+	requested_fields_ = requested_fields_ & ~SAM_AUX;
+	requested_fields_ = requested_fields_ & ~SAM_RGAUX;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
+}
+
+void BamReader::readBases()
+{
+	if (!fp_->is_cram) return;
+
+	requested_fields_ = requested_fields_ | SAM_SEQ;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
+}
+
+void BamReader::readQualities()
+{
+	if (!fp_->is_cram) return;
+
+	requested_fields_ = requested_fields_ | SAM_QUAL;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
+}
+
+void BamReader::readTags()
+{
+	if (!fp_->is_cram) return;
+
+	requested_fields_ = requested_fields_ | SAM_AUX | SAM_RGAUX;
+	hts_set_opt(fp_, CRAM_OPT_REQUIRED_FIELDS, requested_fields_);
 }
 
 QByteArrayList BamReader::headerLines() const
@@ -535,38 +602,145 @@ GenomeBuild BamReader::build() const
 	THROW(Exception, "Could not determine genome build of BAM file '" + bam_file_ + "'!");
 }
 
-bool BamReader::is_single_end(int reads)
+BamInfo BamReader::info()
 {
-	if (build() == GenomeBuild::HG38)
-	{
-		setRegion(Chromosome("chr17"), 43091500, 43094000);
-	}
-	else //HG19
-	{
-		setRegion(Chromosome("chr17"), 41243500, 41246500);
-	}
+	//we don't need bases and qualities for this method - they are re-enabled at the end
+	int requested_fields_before = requested_fields_;
+	skipBases();
+	skipQualities();
+	skipTags();
 
-	//iterate through all alignments and create counts
-	BamAlignment al;
-	int n_all = 0;
-	int n_paired = 0;
+	BamInfo output;
+
+    //CRAM container version
+    VersatileFile f(bam_file_);
+    f.open(QFile::ReadOnly);
+    QByteArray header = f.read(6);
+    if (header.startsWith("CRAM"))
+    {
+        quint8 major = static_cast<quint8>(header[4]);
+        quint8 minor = static_cast<quint8>(header[5]);
+        output.file_format = "CRAM "+QByteArray::number(major) + "." + QByteArray::number(minor);
+    }
+    else
+    {
+        output.file_format = "BAM";
+    }
+    f.close();
+
+	//genome build
+	try
+	{
+		output.build = buildToString(build()).toUtf8();
+	}
+	catch (...) {}
+
+    //paired end
+	double n_all = 0;
+	double n_paired = 0;
+    clearIterator();
+    BamAlignment al;
 	while (getNextAlignment(al))
 	{
-		//ignore
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.isDuplicate()) continue;
-		if (al.isUnmapped()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
+        if (al.mappingQuality()<20) continue;
 
-		//count reads
-		n_all++;
-		if (al.isPaired()) n_paired++;
+		if (al.isPaired()) n_paired += 1.0;
 
-		if (n_all >= reads) break;
+		n_all += 1.0;
+		if (n_all >= 100.0) break;
+	}
+	output.paired_end = n_paired/n_all > 0.1;
+
+    //mapper
+    QByteArrayList headers = headerLines();
+    for(int i=headers.count()-1; i>=0; --i) //last @PG line is the most important
+    {
+        QByteArray line = headers[i];
+        if (!line.startsWith("@PG")) continue;
+
+        if (line.contains("PN:bwa-mem2"))
+        {
+            output.mapper = "bwa-mem2";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+        if (line.contains("PN:bwa"))
+        {
+            output.mapper = "bwa";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+        if (line.contains("ID: DRAGEN SW build"))
+        {
+            output.mapper = "DRAGEN";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:"))
+                {
+                    QByteArrayList parts = part.mid(3).trimmed().split('.');
+
+                    output.mapper_version = parts.mid(parts.count()-3).join('.');
+                }
+            }
+            break;
+        }
+        if (line.contains("PN:minimap2"))
+        {
+            output.mapper = "minimap2";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed();
+            }
+            break;
+        }
+
+        if (line.contains("PN:STAR"))
+        {
+            output.mapper = "STAR";
+            foreach(const QByteArray& part, line.split('\t'))
+            {
+                if (part.startsWith("VN:")) output.mapper_version = part.mid(3).trimmed().replace("STAR_", "");
+            }
+            break;
+        }
+    }
+
+    //false duplications masked (checks a masked region. Nothing is mapped there if mased. Works for WES/panel as well because of off-target reads).
+    if (output.build=="hg38")
+	{
+		try
+		{
+			setRegion("chr21", 5968000, 6160000);
+			while(getNextAlignment(al))
+			{
+				output.false_duplications_masked = false;
+				break;
+			}
+		}
+		catch(...) {} //sometimes an exception is thrown if the range is empty > catch that
 	}
 
-	//if less than 10% is paired return true
-	if (((float) n_paired/n_all) < 0.1) return true;
-	return false;
+    //alt chrs
+    foreach(const Chromosome& chr, chromosomes())
+    {
+        QByteArray name = chr.str().toLower();
+        if (name.endsWith("_alt") || name.endsWith("_hap1")) //_alt for hg38, _hap for hg19
+        {
+            output.contains_alt_chrs = true;
+            break;
+        }
+    }
+
+	requested_fields_ = requested_fields_before;
+
+	return output;
 }
 
 void BamReader::setRegion(const Chromosome& chr, int start, int end)
@@ -644,21 +818,26 @@ void BamReader::clearIterator()
 	iter_ = nullptr;
 }
 
-Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, int min_mapq, bool anom, int min_baseq)
+Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, int min_mapq, bool include_not_properly_paired, int min_baseq)
 {
 	//init
 	Pileup output;
 	int reads_mapped = 0;
 	int reads_mapq0 = 0;
 
-	//restrict region
+	//we don't need qualities for this method - they are re-enabled at the end
+	int requested_fields_before = requested_fields_;
+	if (min_baseq<=0) skipQualities();
+	skipTags();
+
+	//restrict to region
 	setRegion(chr, pos, pos);
 
 	//iterate through all alignments and create counts
 	BamAlignment al;
 	while (getNextAlignment(al))
 	{
-		if (!al.isProperPair() && anom==false) continue;
+		if (!al.isProperPair() && !include_not_properly_paired) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
 		if (al.isUnmapped()) continue;
@@ -670,7 +849,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 
 		//snps
 		QPair<char, int> base = al.extractBaseByCIGAR(pos);
-		if (base.second>=min_baseq)
+        if (base.second>=min_baseq)
 		{
 			output.inc(base.first);
 		}
@@ -684,17 +863,19 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 
 	output.setMapq0Frac((double)reads_mapq0 / reads_mapped);
 
+	requested_fields_ = requested_fields_before;
+
 	return output;
 }
 
 
-VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, const Variant& variant)
+VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, const Variant& variant, bool include_not_properly_paired)
 {
 	VariantDetails output;
 
 	if (variant.isSNV()) //SVN
 	{
-		Pileup pileup = getPileup(variant.chr(), variant.start(), -1);
+		Pileup pileup = getPileup(variant.chr(), variant.start(), -1, 1, include_not_properly_paired);
 		output.depth = pileup.depth(true);
 		if (output.depth!=0)
 		{
@@ -712,7 +893,7 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 
 		//get indels from region
 		QVector<Sequence> indels;
-		getIndels(reference, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac);
+		getIndels(reference, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac, include_not_properly_paired);
 		//qDebug() << "INDELS:" << indels.join(" ");
 
 		Variant variant_normalized = variant;
@@ -748,7 +929,7 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 }
 
 
-void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac)
+void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac, bool include_not_properly_paired)
 {
 	//init
 	indels.clear();
@@ -756,7 +937,12 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 	int reads_mapped = 0;
 	int reads_mapq0 = 0;
 
-	//restrict region
+	//we don't need qualities for this method - they are re-enabled at the end
+	int requested_fields_before = requested_fields_;
+	skipQualities();
+	skipTags();
+
+	//restrict to region
 	setRegion(chr, start, end);
 
 	//iterate through all alignments and create counts
@@ -765,7 +951,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 	{
 		//skip low-quality reads
 		if (al.isDuplicate()) continue;
-		if (!al.isProperPair()) continue;
+		if (!al.isProperPair() && !include_not_properly_paired) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isUnmapped()) continue;
 
@@ -848,4 +1034,6 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 	}
 
 	mapq0_frac = (double)reads_mapq0 / reads_mapped;
+
+	requested_fields_ = requested_fields_before;
 }

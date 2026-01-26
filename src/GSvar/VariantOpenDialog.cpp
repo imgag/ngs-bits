@@ -2,7 +2,7 @@
 #include "Helper.h"
 #include "NGSD.h"
 #include "GSvarHelper.h"
-#include <QPushButton>
+#include "Settings.h"
 
 VariantOpenDialog::VariantOpenDialog(QWidget* parent)
 	: QDialog(parent)

@@ -1,12 +1,7 @@
 #include "BedFile.h"
 #include "ToolBase.h"
-#include "NGSHelper.h"
-#include "Settings.h"
-#include "VcfFile.h"
 #include "BedpeFile.h"
-#include <QTextStream>
-#include <QFileInfo>
-#include <QElapsedTimer>
+#include "ChromosomalIndex.h"
 
 class ConcreteTool
 		: public ToolBase

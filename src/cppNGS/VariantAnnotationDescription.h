@@ -3,7 +3,6 @@
 
 #include "cppNGS_global.h"
 #include <QString>
-#include <QHash>
 #include <QSharedPointer>
 
 ///stores properties of a annotation.

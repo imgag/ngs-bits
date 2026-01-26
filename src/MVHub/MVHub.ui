@@ -9,9 +9,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
+    <width>1500</width>
     <height>800</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1500</width>
+    <height>800</height>
+   </size>
   </property>
   <property name="acceptDrops">
    <bool>true</bool>
@@ -24,95 +30,378 @@
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>3</number>
+    </property>
     <property name="leftMargin">
-     <number>6</number>
+     <number>3</number>
     </property>
     <property name="topMargin">
-     <number>6</number>
+     <number>3</number>
     </property>
     <property name="rightMargin">
-     <number>6</number>
+     <number>3</number>
     </property>
     <property name="bottomMargin">
-     <number>6</number>
+     <number>3</number>
     </property>
-    <item row="0" column="0">
-     <widget class="QPushButton" name="update_consent">
-      <property name="text">
-       <string>update consent data</string>
-      </property>
-     </widget>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>status:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="f_status">
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Keine Angabe</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rekrutiert</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Aktiv</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Abgebrochen</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Abgeschlossen</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Follow-Up</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>network:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="f_network">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>0</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Netzwerk Seltene Erkrankungen</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Deutsches Netzwerk für Personalisierte Medizin</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Deutsches Konsortium Familiärer Brust- und Eierstockkrebs</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>messages:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="f_messages">
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>none</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>exist</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>export status:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="f_export">
+        <item>
+         <property name="text">
+          <string/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>pending</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>in progress</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>done</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Policy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="f_ready_export">
+        <property name="text">
+         <string>ready for GRZ/KDK export</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="check_xml">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check XML fields in MVH cases are valid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>check XML</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="check_ps">
+        <property name="text">
+         <string>check PS</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Policy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="export_consent_data">
+        <property name="text">
+         <string>export consent data</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="0" column="2">
-     <widget class="QPushButton" name="api_redcap_se">
-      <property name="text">
-       <string>RedCap (SE)</string>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>3</number>
       </property>
-     </widget>
+      <item>
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>CM ID:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="f_cmid">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>several separated by '|'</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>text filter:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="f_text">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>250</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>String // RegExp if contains '|'</string>
+        </property>
+        <property name="placeholderText">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>exclude PS:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="f_exclude_ps">
+        <property name="maximumSize">
+         <size>
+          <width>250</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="filter_status">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="api_redcap_case">
-      <property name="text">
-       <string>RedCap (Case Management)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QPushButton" name="api_pseudo">
-      <property name="text">
-       <string>API Pseudonymisierung</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="3" rowspan="2">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="2">
-     <widget class="QPushButton" name="api_redcap_se_upload">
-      <property name="text">
-       <string>RedCap (SE) Upload</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0" colspan="4">
+    <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
-       <enum>Qt::Vertical</enum>
+       <enum>Qt::Orientation::Vertical</enum>
       </property>
       <widget class="QTableWidget" name="table">
        <property name="contextMenuPolicy">
-        <enum>Qt::CustomContextMenu</enum>
+        <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
        </property>
        <property name="selectionMode">
-        <enum>QAbstractItemView::ExtendedSelection</enum>
+        <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
        </property>
        <property name="selectionBehavior">
-        <enum>QAbstractItemView::SelectRows</enum>
+        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       </property>
+       <property name="wordWrap">
+        <bool>false</bool>
        </property>
        <column>
         <property name="text">
-         <string>PS</string>
+         <string>CM ID</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>type</string>
+         <string>CM Fallnummer</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>additional samples</string>
+         <string>CM Status</string>
         </property>
        </column>
        <column>
@@ -122,17 +411,77 @@
        </column>
        <column>
         <property name="text">
-         <string>CM ID</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
          <string>Netzwerk</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Consent</string>
+         <string>Netzwerk ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Sequenzierungsart</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Probeneingang</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Sequenzierungsstatus</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Befunddatum</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Kündigung TE</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>PS</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>PS tumor</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>consent signed [CM]</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>consent version [SE]</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>consent</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>messages</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>export status</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>export confirmation</string>
         </property>
        </column>
       </widget>
@@ -146,11 +495,41 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1100</width>
-     <height>21</height>
+     <width>1500</width>
+     <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionReloadData"/>
+    <addaction name="actionReloadExportStatus"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionReloadData">
+   <property name="text">
+    <string>Reload data</string>
+   </property>
+  </action>
+  <action name="actionReloadExportStatus">
+   <property name="text">
+    <string>Reload export status</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

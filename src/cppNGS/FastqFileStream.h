@@ -4,9 +4,8 @@
 #include "cppNGS_global.h"
 #include "Exceptions.h"
 #include "Sequence.h"
-#include <zlib.h>
 #include <QString>
-#include <QVector>
+#include "VersatileFile.h"
 
 ///Representation of a FASTQ entry.
 struct CPPNGSSHARED_EXPORT FastqEntry
@@ -52,9 +51,9 @@ public:
     ///Checks if the end of the file is reached.
     bool atEnd() const
     {
-        return gzeof(gzfile_);
-    }
-    ///Reads a line (or until the buffer is full).
+		return gzfile_.atEnd();
+	}
+	///Reads a line (or until the buffer is full).
 	void readEntry(FastqEntry& entry);
     ///Returns the 0-based index of the current entry, or -1 if no entry has been loaded.
     int index() const
@@ -70,15 +69,12 @@ public:
 
 protected:
 	QString filename_;
-	gzFile gzfile_;
-	char* buffer_;
-    bool is_first_entry_;
-    char* last_output_;
-    int entry_index_;
+	bool is_first_entry_ = true;
+	VersatileFile gzfile_;
+	QByteArray last_output_;
+	int entry_index_  = -1;
     bool auto_validate_;
 	bool long_read_;
-	int buffer_size_;
-	void extractLine(QByteArray& line);
 
     //declared away methods
 	FastqFileStream(const FastqFileStream& ) = delete;

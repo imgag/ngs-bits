@@ -1,9 +1,6 @@
 #include "ToolBase.h"
 #include "TSVFileStream.h"
 #include "Helper.h"
-#include "BasicStatistics.h"
-#include <QFileInfo>
-#include <QBitArray>
 
 class ConcreteTool
 		: public ToolBase
@@ -44,7 +41,7 @@ public:
 		//remove instead of extract > invert column selection
 		if (getFlag("rm"))
 		{
-            QSet<int> old = LIST_TO_SET(cols.toList());
+            QSet<int> old = Helper::listToSet(cols.toList());
 			cols.clear();
 			for (int c=0; c<instream.columns(); ++c)
 			{

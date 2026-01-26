@@ -43,7 +43,7 @@
     <item>
      <widget class="QTabWidget" name="tabs">
       <property name="contextMenuPolicy">
-       <enum>Qt::CustomContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
       </property>
       <property name="currentIndex">
        <number>0</number>
@@ -83,14 +83,14 @@
         <item>
          <widget class="QSplitter" name="splitter_2">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="childrenCollapsible">
            <bool>false</bool>
           </property>
           <widget class="QSplitter" name="splitter">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="childrenCollapsible">
             <bool>true</bool>
@@ -119,9 +119,30 @@
                  <number>1</number>
                 </property>
                 <item>
+                 <widget class="QToolButton" name="ps_details">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open processed sample tabs for all samples of the current analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="GSvar.qrc">
+                    <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="Line" name="line_3">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Vertical</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QToolButton" name="vars_copy_btn">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copy selection to clipboard.&lt;br/&gt;&lt;br/&gt;Use CTRL+SHIFT+C to split the quality values to separate columns.&lt;/p&gt;&lt;p&gt;Use CTRL+ALT+C to copy a single variant including the header.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copy selection to clipboard.&lt;br/&gt;&lt;br/&gt;Use CTRL+SHIFT+C to split the quality values to separate columns.&lt;/p&gt;&lt;p&gt;Use CTRL+ALT+C to copy a single value including the header.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>...</string>
@@ -135,7 +156,7 @@
                 <item>
                  <widget class="QToolButton" name="vars_export_btn">
                   <property name="toolTip">
-                   <string>Export filtered variant list.</string>
+                   <string>Export variants</string>
                   </property>
                   <property name="text">
                    <string>...</string>
@@ -145,42 +166,14 @@
                     <normaloff>:/Icons/Save.png</normaloff>:/Icons/Save.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="vars_folder_btn">
-                  <property name="toolTip">
-                   <string>Open variant list folder.</string>
-                  </property>
-                  <property name="text">
-                   <string>...</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="GSvar.qrc">
-                    <normaloff>:/Icons/Folder.png</normaloff>:/Icons/Folder.png</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="open_qc_files">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open variant list QC files (qcML) with your browser.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>...</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="GSvar.qrc">
-                    <normaloff>:/Icons/QC.png</normaloff>:/Icons/QC.png</iconset>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="Line" name="line">
                   <property name="orientation">
-                   <enum>Qt::Vertical</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                  </widget>
                 </item>
@@ -197,14 +190,14 @@
                     <normaloff>:/Icons/Resize_colums.png</normaloff>:/Icons/Resize_colums.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="Line" name="line_2">
                   <property name="orientation">
-                   <enum>Qt::Vertical</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                  </widget>
                 </item>
@@ -221,7 +214,7 @@
                     <normaloff>:/Icons/ranking.png</normaloff>:/Icons/ranking.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
@@ -238,28 +231,14 @@
                     <normaloff>:/Icons/AF_histogram.png</normaloff>:/Icons/AF_histogram.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="ps_details">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open processed sample tabs for all samples of the current analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>...</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="GSvar.qrc">
-                    <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="Line" name="line_5">
                   <property name="orientation">
-                   <enum>Qt::Vertical</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                  </widget>
                 </item>
@@ -276,14 +255,14 @@
                     <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
                   </property>
                   <property name="popupMode">
-                   <enum>QToolButton::InstantPopup</enum>
+                   <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                   <enum>Qt::Orientation::Horizontal</enum>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
@@ -305,19 +284,19 @@
                 </sizepolicy>
                </property>
                <property name="contextMenuPolicy">
-                <enum>Qt::CustomContextMenu</enum>
+                <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
                </property>
                <property name="editTriggers">
-                <set>QAbstractItemView::NoEditTriggers</set>
+                <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
                </property>
                <property name="alternatingRowColors">
                 <bool>true</bool>
                </property>
                <property name="selectionMode">
-                <enum>QAbstractItemView::ExtendedSelection</enum>
+                <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
                </property>
                <property name="selectionBehavior">
-                <enum>QAbstractItemView::SelectItems</enum>
+                <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
                </property>
                <property name="sortingEnabled">
                 <bool>false</bool>
@@ -369,7 +348,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -524,6 +503,7 @@
      <addaction name="separator"/>
      <addaction name="actionExportTestData"/>
      <addaction name="actionImportTestData"/>
+     <addaction name="actionExportSampleData"/>
      <addaction name="separator"/>
      <addaction name="actionPrepareGhgaUpload"/>
      <addaction name="separator"/>
@@ -576,6 +556,7 @@
     <addaction name="separator"/>
     <addaction name="actionSampleCounts"/>
     <addaction name="actionStatistics"/>
+    <addaction name="actionShowDatabaseInfo"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuNGSD"/>
@@ -613,8 +594,6 @@
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
    <addaction name="separator"/>
-   <addaction name="actionGapsLookup"/>
-   <addaction name="actionGapsRecalculate"/>
    <addaction name="actionGeneSelector"/>
    <addaction name="separator"/>
    <addaction name="actionCNV"/>
@@ -699,18 +678,6 @@
     <string>ChangeLog</string>
    </property>
   </action>
-  <action name="actionGapsLookup">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/Gaps_lookup.png</normaloff>:/Icons/Gaps_lookup.png</iconset>
-   </property>
-   <property name="text">
-    <string>Show gaps</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Look-up low-coverage regions in the pre-calcualated low-coverage BED file located in the sample folder.&lt;/p&gt;&lt;p&gt;Note: the gaps are based on the target region of the processing system, not the current target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </action>
   <action name="actionShowHGMD">
    <property name="checkable">
     <bool>true</bool>
@@ -727,18 +694,6 @@
   <action name="actionShowTranscripts">
    <property name="text">
     <string>Show</string>
-   </property>
-  </action>
-  <action name="actionGapsRecalculate">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/Gaps_calculate.png</normaloff>:/Icons/Gaps_calculate.png</iconset>
-   </property>
-   <property name="text">
-    <string>Recalculate gaps</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Determine low-coverage regions (gaps) and request closing the gaps if necessary.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionOpenDocumentation">
@@ -1157,7 +1112,7 @@
     <string>Show repeat expansions of the current sample.</string>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::WidgetShortcut</enum>
+    <enum>Qt::ShortcutContext::WidgetShortcut</enum>
    </property>
   </action>
   <action name="actionPRS">
@@ -1541,6 +1496,16 @@
   <action name="actionSampleCounts">
    <property name="text">
     <string>Sample counts</string>
+   </property>
+  </action>
+  <action name="actionExportSampleData">
+   <property name="text">
+    <string>Export sample data</string>
+   </property>
+  </action>
+  <action name="actionShowDatabaseInfo">
+   <property name="text">
+    <string>Show info about imported DBs</string>
    </property>
   </action>
  </widget>

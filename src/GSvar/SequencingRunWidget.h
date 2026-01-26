@@ -2,15 +2,16 @@
 #define SEQUENCINGRUNWIDGET_H
 
 #include <QWidget>
-#include <QAction>
 #include <QTableWidgetItem>
 #include "NGSD.h"
+#include "TabBaseClass.h"
 
 namespace Ui {
 class SequencingRunWidget;
 }
 
-class SequencingRunWidget : public QWidget
+class SequencingRunWidget
+	: public TabBaseClass
 {
 	Q_OBJECT
 
@@ -29,7 +30,7 @@ protected slots:
 	void updateReadQualityTable();
 	void updateRunSampleTable();
 	void setQuality();
-	void scheduleForResequencing();
+	void toggleScheduleForResequencing();
 	void showPlot();
 	void edit();
 	//edit slot for batch view

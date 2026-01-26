@@ -1,3 +1,11 @@
+# Build settings
+PROJECT_BUILD_DIR := ./src/build/
+PATH_TO_ROOT := ../../
+QMAKE_BIN := qmake6
+
+# Get the Qt version information
+QT_VERSION := $(shell $(QMAKE_BIN) --version)
+
 help:
 	@echo "General targets:"
 	@echo "  pull                  - Pulls current version from GitHub (including submodules)"
@@ -18,125 +26,134 @@ help:
 
 ##################################### build - DEBUG #####################################
 
+build_info:
+	@echo "**************************************************"
+	@echo "*"
+	@echo "* $(QT_VERSION)"
+	@echo "* Build dir: $(PROJECT_BUILD_DIR)"
+	@echo "* Source root: $(PATH_TO_ROOT)"
+	@echo "*"
+	@echo "**************************************************"
+
 build_libs_debug_noclean:
-	mkdir -p build-libs-Linux-Debug;
-	cd build-libs-Linux-Debug; \
-		qmake ../src/libs.pro "CONFIG+=debug" "CONFIG-=release"; \
+	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Debug;
+	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Debug; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make -j5;
 
 clean_libs_debug:
-	rm -rf build-libs-Linux-Debug;
+	rm -rf $(PROJECT_BUILD_DIR)build-libs-Linux-Debug;
 
-build_libs_debug: clean_libs_debug build_libs_debug_noclean
+build_libs_debug: build_info clean_libs_debug build_libs_debug_noclean
 
 build_tools_debug_noclean:
-	mkdir -p build-tools-Linux-Debug;
-	cd build-tools-Linux-Debug; \
-		qmake ../src/tools.pro "CONFIG+=debug" "CONFIG-=release"; \
+	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Debug;
+	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Debug; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make -j5;
 
 clean_tools_debug:
-	rm -rf build-tools-Linux-Debug;
+	rm -rf $(PROJECT_BUILD_DIR)build-tools-Linux-Debug;
 
-build_tools_debug: clean_tools_debug build_tools_debug_noclean
+build_tools_debug: build_info clean_tools_debug build_tools_debug_noclean
 
-build_server_debug:
-	rm -rf build-GSvarServer-Linux-Debug;
-	mkdir -p build-GSvarServer-Linux-Debug;
-	cd build-GSvarServer-Linux-Debug; \
-                qmake ../src/tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
+build_server_debug: build_info
+	rm -rf $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Debug;
+	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Debug;
+	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Debug; \
+                $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
                 make -j5;
 	
 #################################### build - RELEASE ####################################
 
-build_libs_release:
-	rm -rf build-libs-Linux-Release;
-	mkdir -p build-libs-Linux-Release;
-	cd build-libs-Linux-Release; \
-		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+build_libs_release: build_info
+	rm -rf $(PROJECT_BUILD_DIR)build-libs-Linux-Release;
+	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Release;
+	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Release; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
-build_tools_release:
-	rm -rf build-tools-Linux-Release;
-	mkdir -p build-tools-Linux-Release;
-	cd build-tools-Linux-Release; \
-		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+build_tools_release: build_info
+	rm -rf $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
+	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
+	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Release; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
-build_gui_release:
-	rm -rf build-tools_gui-Linux-Release;
-	mkdir -p build-tools_gui-Linux-Release;
-	cd build-tools_gui-Linux-Release; \
-		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+build_gui_release: build_info
+	rm -rf $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
+	mkdir -p $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
+	cd $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_libs_release_noclean:
-	mkdir -p build-libs-Linux-Release;
-	cd build-libs-Linux-Release; \
-		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Release;
+	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Release; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_tools_release_noclean:
-	mkdir -p build-tools-Linux-Release;
-	cd build-tools-Linux-Release; \
-		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
+	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Release; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_gui_release_noclean:
-	mkdir -p build-tools_gui-Linux-Release;
-	cd build-tools_gui-Linux-Release; \
-		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	mkdir -p $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
+	cd $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release; \
+		$(QMAKE_BIN) $(PATH_TO_ROOT)tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
 
 build_release_noclean: build_libs_release_noclean  build_tools_release_noclean build_gui_release_noclean
 
-build_server_release:
-	rm -rf build-GSvarServer-Linux-Release;
-	mkdir -p build-GSvarServer-Linux-Release;
-	cd build-GSvarServer-Linux-Release; \
-                qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+build_server_release: build_info
+	rm -rf $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release;
+	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release;
+	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release; \
+                $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 	
 build_server_release_noclean:
-	mkdir -p build-GSvarServer-Linux-Release;
-	cd build-GSvarServer-Linux-Release; \
-                qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release;
+	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release; \
+                $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 
 #################################### other targets ##################################
 
 clean:
 	find src -name "*.user" | xargs rm -rf
-	rm -rf build-* bin/out
-	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
+	rm -rf $(PROJECT_BUILD_DIR)build-* $(PROJECT_BUILD_DIR)bin/out
+	find $(PROJECT_BUILD_DIR)bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
-	cd bin && ./cppCORE-TEST && ./cppXML-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
+	cd ./bin && ./cppCORE-TEST && ./cppXML-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
 
 test_lib_windows:
-	cd bin && ./cppCORE-TEST.exe && ./cppXML-TEST.exe && ./cppNGS-TEST.exe && ./cppNGSD-TEST.exe && ./cppREST-TEST.exe
+	cd ./bin && ./cppCORE-TEST.exe && ./cppXML-TEST.exe && ./cppNGS-TEST.exe && ./cppNGSD-TEST.exe && ./cppREST-TEST.exe
 
 test_server:
-	cd bin && ./GSvarServer-TEST
+	cd ./bin && ./GSvarServer-TEST
 
 test_tools:
-	cd bin && ./tools-TEST
+	cd ./bin && ./tools-TEST
 
 test_tools_windows:
-	cd bin && ./tools-TEST.exe
+	cd ./bin && ./tools-TEST.exe
 
 test_single_tool:
-	cd bin && ./tools-TEST -s $(T)
+	cd ./bin && ./tools-TEST -s $(T)
 
-NGSBITS_VER = $(shell  bin/SeqPurge --version | cut -d' ' -f2)/
+NGSBITS_VER = $(shell  ./bin/SeqPurge --version | cut -d' ' -f2)/
 DEP_PATH=/mnt/storage2/megSAP/tools/ngs-bits-$(NGSBITS_VER)
 deploy_nobuild:
 	@echo "#Clean up source"
-	rm -rf bin/out bin/*-TEST
+	rm -rf ./bin/out ./bin/*-TEST
 	@echo ""
 	@echo "#Deploy binaries"
 	mkdir $(DEP_PATH)
-	find bin/ -type f  -or -type l | grep -v "settings" | xargs -I{} cp {} $(DEP_PATH)
+	find ./bin/ -type f  -or -type l | grep -v "settings" | xargs -I{} cp {} $(DEP_PATH)
 	cp htslib/lib/libhts.* $(DEP_PATH)
 	@echo ""
 	@echo "#Update permissions"
@@ -149,7 +166,7 @@ deploy_nobuild:
 	rm /mnt/storage2/megSAP/tools/ngs-bits-current && ln -s $(DEP_PATH) /mnt/storage2/megSAP/tools/ngs-bits-current
 	@echo ""
 	@echo "#Settings diff:"
-	diff bin/settings.ini $(DEP_PATH)settings.ini
+	diff ./bin/settings.ini $(DEP_PATH)settings.ini
 
 	
 SERVER_DEP_PATH=/opt/GSvarServer/GSvarServer-$(NGSBITS_VER)
@@ -159,11 +176,11 @@ deploy_server_nobuild:
 	@echo "Check configuration files"
 	diff /opt/GSvarServer/GSvarServer-current/GSvarServer.ini /mnt/storage2/megSAP/tools/ngs-bits-settings/GSvarServer.ini -s
 	@echo "#Clean up source"
-	rm -rf bin/out bin/*-TEST
+	rm -rf ./bin/out ./bin/*-TEST
 	@echo ""
 	@echo "#Deploy binaries"
 	mkdir $(SERVER_DEP_PATH)
-	find bin/ -type f  -or -type l | grep -v "settings" | xargs -I{} cp {} $(SERVER_DEP_PATH)
+	find ./bin/ -type f  -or -type l | grep -v "settings" | grep -v "blat" | xargs -I{} cp {} $(SERVER_DEP_PATH)
 	@echo ""
 	@echo "#Create a new link"
 	rm /opt/GSvarServer/GSvarServer-current && ln -s $(SERVER_DEP_PATH) /opt/GSvarServer/GSvarServer-current
@@ -233,16 +250,13 @@ download_test_files:
 #################################### 3rd party  ##################################
 
 build_htslib:
-	chmod 755 htslib/configure
-	cd htslib && ./configure --prefix=$(PWD)/htslib/ --enable-libcurl
-	cd htslib && make install
-	cd htslib && make clean
+	rm -rf htslib/build/
+	mkdir -p htslib/build/
+	unzip htslib/htslib_linux.zip -d ./htslib/build/
+	chmod 755 htslib/build/configure
+	cd htslib/build && ./configure --prefix=$(PWD)/htslib/ --enable-libcurl
+	cd htslib/build && make install
 	cp htslib/lib/libhts.* bin/
+	rm -rf htslib/build/ htslib/bin/ htslib/share/
 
-clean_htslib:
-	cd htslib && make clean
-	rm -rf htslib/share htslib/lib htslib/include htslib/bin bin/libhts*
-
-clean_3rdparty: clean_htslib
-
-build_3rdparty: clean_3rdparty build_htslib
+build_3rdparty: build_htslib

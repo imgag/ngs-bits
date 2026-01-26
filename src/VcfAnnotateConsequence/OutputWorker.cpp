@@ -1,6 +1,4 @@
 #include "OutputWorker.h"
-#include "Helper.h"
-#include <QThread>
 
 OutputWorker::OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream, Parameters& params)
 	: QRunnable()
@@ -8,12 +6,12 @@ OutputWorker::OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream, P
 	, out_stream_(out_stream)
 	, params_(params)
 {
-    if (params_.debug) QTextStream(stdout) << "OutputWorker(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "OutputWorker(): " << job_.index << Qt::endl;
 }
 
 OutputWorker::~OutputWorker()
 {
-    if (params_.debug) QTextStream(stdout) << "~OutputWorker(): " << job_.index << QT_ENDL;
+    if (params_.debug) QTextStream(stdout) << "~OutputWorker(): " << job_.index << Qt::endl;
 }
 
 
@@ -26,7 +24,7 @@ void OutputWorker::run()
 	{
 		if (job_.chunk_nr!=write_chunk)
 		{
-            if (params_.debug) QTextStream(stdout) << "OutputWorker::run() job: " << job_.index << " - Cannot write now wrong order. Job has chunk: " << job_.chunk_nr << " next chunk is " << write_chunk << QT_ENDL;
+            if (params_.debug) QTextStream(stdout) << "OutputWorker::run() job: " << job_.index << " - Cannot write now wrong order. Job has chunk: " << job_.chunk_nr << " next chunk is " << write_chunk << Qt::endl;
 			emit retry(job_.index);
 			return;
 		}

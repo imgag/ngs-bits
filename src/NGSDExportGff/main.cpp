@@ -1,5 +1,4 @@
 #include "ToolBase.h"
-#include <QDebug>
 #include "NGSD.h"
 #include "Helper.h"
 
@@ -39,10 +38,11 @@ public:
 
     virtual void main()
     {
-        // open output file
-        QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
+		//init
+		bool genes_flag = getFlag("genes");
 
-        // write header
+		//open output file
+        QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
         outfile->write("##gff-version 3\n");
 
         NGSD db(getFlag("test"));
@@ -54,7 +54,7 @@ public:
         QByteArray ed;
 
         const TranscriptList transcripts = db.transcripts();
-        const QHash<QString, QHash<QString, QByteArray>> genes = get_genes();
+		const QHash<QString, QHash<QString, QByteArray>> genes = get_genes(db);
 
         QByteArray last_gene_id = "-1";
 
@@ -75,13 +75,12 @@ public:
 				phase = QByteArray::number(3 - ((trans.end()-trans.codingStart()) % 3));
 			}
 
-            if (getFlag("genes") && (gene_id == "")) {
-                continue;
-            }
+			if (genes_flag && gene_id=="") continue;
 
-            const QHash<QString, QByteArray> gene = genes[gene_id];
+			const QHash<QString, QByteArray>& gene = genes[gene_id];
 
-            if (getFlag("genes") && (gene_id != last_gene_id)) {
+			if (genes_flag && gene_id!=last_gene_id)
+			{
                 // GENE LINE
                 geneId = "gene:" + trans.geneId();
                 parts.clear();
@@ -103,13 +102,13 @@ public:
             parts.clear();
 			parts.append("ID=" + transcriptId);
 			parts.append("Name=" + gene["symbol"]);
-            if (getFlag("genes")) {
-				parts.append("Parent=" + geneId);
-            }
+			if (genes_flag) parts.append("Parent=" + geneId);
             parts.append("transcript_id=" + trans.name());
             parts.append("biotype=" + biotype);
             const QByteArray is_gencode_basic = trans.isGencodeBasicTranscript() ? "1" : "0";
             parts.append("is_gencode_basic=" + is_gencode_basic);
+			const QByteArray is_gencode_primary = trans.isGencodePrimaryTranscript() ? "1" : "0";
+			parts.append("is_gencode_primary=" + is_gencode_primary);
             const QByteArray is_ensembl_canonical = trans.isEnsemblCanonicalTranscript() ? "1" : "0";
             parts.append("is_ensembl_canonical=" + is_ensembl_canonical);
             const QByteArray is_mane_select = trans.isManeSelectTranscript() ? "1" : "0";
@@ -189,10 +188,9 @@ public:
     }
 
     
-    QHash<QString, QHash<QString, QByteArray>> get_genes() 
+	QHash<QString, QHash<QString, QByteArray>> get_genes(NGSD& db)
     {
         QHash<QString, QHash<QString, QByteArray>> genes;
-        NGSD db(getFlag("test"));
         SqlQuery query = db.getQuery();
 		query.exec("SELECT id, symbol, hgnc_id, ensembl_id, type, name,"
 	                    "(SELECT MIN(start) start FROM ( "
@@ -225,7 +223,6 @@ public:
 
         }
 
-        //qDebug() << genes;
         return genes;
     }
 
