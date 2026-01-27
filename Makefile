@@ -200,6 +200,9 @@ deploy_server_nobuild:
 cloud_server_deploy_nobuild:
 	python3 src/GSvarServer/cloud_deploy.py $(SERVER_DEP_PATH)
 
+server_rollback:
+	python3 src/GSvarServer/roll-back-server.py /opt/GSvarServer/
+
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
 test_release:
