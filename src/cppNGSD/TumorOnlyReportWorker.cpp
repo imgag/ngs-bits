@@ -23,7 +23,7 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	i_ncg_oncogene_ = variants_.annotationIndexByName("ncg_oncogene");
 	i_ncg_tsg_ = variants_.annotationIndexByName("ncg_tsg");
 	i_germl_class_ = variants_.annotationIndexByName("classification");
-	i_somatic_class_ = variants_.annotationIndexByName("somatic_classification");
+    i_vicc_class_ = variants_.annotationIndexByName("NGSD_som_vicc_interpretation");
 
 	//Set up RTF file specifications
 	doc_.addColor(188,230,138);
@@ -36,7 +36,7 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 
 void TumorOnlyReportWorker::checkAnnotation(const VariantList &variants)
 {
-	const QStringList anns = {"coding_and_splicing", "tumor_af", "tumor_dp", "gene", "variant_type", "ncg_oncogene", "ncg_tsg", "classification", "somatic_classification"};
+    const QStringList anns = {"coding_and_splicing", "tumor_af", "tumor_dp", "gene", "variant_type", "ncg_oncogene", "ncg_tsg", "classification", "NGSD_som_vicc_interpretation"};
 
 	for(const auto& ann : anns)
 	{
@@ -190,7 +190,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		w.writeAttribute("allele_frequency", var.annotations()[i_tum_af_]);
 		w.writeAttribute("depth", var.annotations()[i_tum_dp_]);
 		if( !var.annotations()[i_germl_class_].isEmpty() ) w.writeAttribute("germline_class" , var.annotations()[i_germl_class_] );
-		if( !var.annotations()[i_somatic_class_].isEmpty() ) w.writeAttribute("somatic_class", var.annotations()[i_somatic_class_] );
+        if( !var.annotations()[i_vicc_class_].isEmpty() ) w.writeAttribute("somatic_class", var.annotations()[i_vicc_class_] );
 		QByteArrayList genes = var.annotations()[i_gene_].split(',');
 		QByteArrayList oncogenes = var.annotations()[i_ncg_oncogene_].split(',');
 		QByteArrayList tsg = var.annotations()[i_ncg_tsg_].split(',');
@@ -276,9 +276,9 @@ QByteArray TumorOnlyReportWorker::variantDescription(const Variant &var)
 	if(var.annotations()[i_germl_class_] == "4" || var.annotations()[i_germl_class_] == "5") out << "Keimbahn: Klasse " + var.annotations()[i_germl_class_];
 
 	//somatic in-house classification
-	if(!var.annotations()[i_somatic_class_].isEmpty() && var.annotations()[i_somatic_class_] != "n/a")
+    if( ! var.annotations()[i_vicc_class_].isEmpty() && var.annotations()[i_vicc_class_] != "n/a")
 	{
-		out << "Somatik: " +  trans(var.annotations()[i_somatic_class_]);
+        out << "Somatik: " +  trans(var.annotations()[i_vicc_class_]);
 	}
 
 	return out.join(", \\line\n");

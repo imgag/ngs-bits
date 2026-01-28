@@ -477,12 +477,11 @@
 										</xs:annotation>
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-												<xs:enumeration value="activating"/>
-												<xs:enumeration value="likely_activating"/>
-												<xs:enumeration value="inactivating"/>
-												<xs:enumeration value="likely_inactivating"/>
-												<xs:enumeration value="unclear"/>
-												<xs:enumeration value="test_dependent"/>
+											        <xs:enumeration value="ONCOGENIC"/>
+												<xs:enumeration value="LIKELY_ONCOGENIC"/>
+												<xs:enumeration value="UNCERTAIN_SIGNIFICANCE"/>
+												<xs:enumeration value="LIKELY_BENIGN"/>
+												<xs:enumeration value="BENIGN"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
