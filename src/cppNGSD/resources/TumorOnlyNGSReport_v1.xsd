@@ -473,7 +473,7 @@
 									</xs:attribute>
 									<xs:attribute name="somatic_class" use="optional">
 										<xs:annotation>
-											<xs:documentation>Somatic classification of the variant.</xs:documentation>
+										        <xs:documentation>VICC classification of the variant.</xs:documentation>
 										</xs:annotation>
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
