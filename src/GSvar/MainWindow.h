@@ -326,6 +326,10 @@ public slots:
 	void loadSomaticReportConfig();
 	///Store somatic report configuration
 	void storeSomaticReportConfig();
+    ///load RNA report configuration
+    void loadRnaReportConfig();
+    ///Store RNA report configuration
+    void storeRnaReportConfig();
 	///Prints a variant sheet based on the report configuration
 	void generateEvaluationSheet();
 	///Trigger somatic data transfer to MTB

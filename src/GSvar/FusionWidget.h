@@ -16,10 +16,11 @@ class FusionWidget : public QWidget
 	Q_OBJECT
 
 public:
-	explicit FusionWidget(const QString& filename, const QString& rna_ps_name, NGSD& db, QWidget *parent = 0);
+    explicit FusionWidget(const QString& filename, const QString& rna_ps_name, QSharedPointer<RnaReportConfiguration> rna_rep_conf,  QWidget *parent = 0);
 	~FusionWidget();
 
-	void storeRnaReportConfiguration();
+signals:
+    void storeRnaReportConfiguration();
 
 private slots:
 	void displayFusionImage();
@@ -43,8 +44,7 @@ private slots:
 
 private:
 	QList<QImage> imagesFromFiles(const QStringList& files);
-	NGSD& db_;
-	RnaReportConfiguration rna_report_config_;
+    QSharedPointer<RnaReportConfiguration> rna_report_config_;
 
 	QString filename_;
 	ArribaFile fusions_;

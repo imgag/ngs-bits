@@ -1280,12 +1280,18 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	QString ps_num = parts[1];
 	if (ps_num.size()>2) ps_num = ps_num.left(2);
 
+    qDebug() << filename << ": " << sample << " - " << ps_num;
+
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:0 AND ps.sample_id=s.id AND ps.process_id=:1");
-	query.bindValue(0, sample);
+    qDebug() << "before prepare";
+    query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:0 AND ps.sample_id=s.id AND ps.process_id=:1");
+    qDebug() << "before binding";
+    query.bindValue(0, sample);
 	query.bindValue(1, QString::number(ps_num.toInt()));
+    qDebug() << "before exec";
 	query.exec();
+    qDebug() << "after exec";
 	if (query.size()==0)
 	{
 		if(throw_if_fails)
@@ -1298,6 +1304,7 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 		}
 	}
 	query.next();
+    qDebug() << "end???";
 	return query.value(0).toString();
 }
 
@@ -9265,9 +9272,11 @@ int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 
 int NGSD::rnaReportConfigId(QString ps_id)
 {
+    qDebug() << "start";
 	QString query = "SELECT id FROM rna_report_configuration WHERE processed_sample_id='" + ps_id + "'";
 	QVariant id = getValue(query, true);
-	return id.isValid() ? id.toInt() : -1;
+    qDebug() << "getValue";
+    return id.isValid() ? id.toInt() : -1;
 }
 
 
@@ -9323,8 +9332,9 @@ RnaReportConfiguration NGSD::rnaReportConfig(QString rna_ps_id, const ArribaFile
 
 int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& config, const ArribaFile& fusions, QString user_name)
 {
+    qDebug() << "NGSD::setRnaReportConfig() start";
 	int id = rnaReportConfigId(rna_ps_id);
-
+    qDebug() << "NGSD::setRnaReportConfig() rnaReportConfigId: " << id;
 	if(id != -1) //delete old report if id exists
 	{
 		//Delete somatic report configuration variants that are assigned to report
@@ -9351,12 +9361,14 @@ int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& co
 	}
 
 	//store variants in NGSD:
-
+    qDebug() << "NGSD::setRnaReportConfig() storing variants";
 	SqlQuery query_fu = getQuery();
 	query_fu.prepare("INSERT INTO `rna_report_configuration_fusion` (`rna_report_configuration_id`, `rna_fusion_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_evidence`, `exclude_other_reason`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6)");
 
 	foreach(const auto& fu_conf, config.fusionConfig())
 	{
+        qDebug() <<  "NGSD::setRnaReportConfig() storing variants: var idx - " << fu_conf.variant_index;
+
 		//check whether indices exist in variant list
 		if(fu_conf.variant_index<0 || fu_conf.variant_index >= fusions.count())
 		{
@@ -9388,6 +9400,8 @@ int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& co
 
 		query_fu.exec();
 	}
+
+    qDebug() << "NGSD::setRnaReportConfig() finish";
 
 	return id;
 }

@@ -3276,6 +3276,47 @@ void MainWindow::loadReportConfig()
 	refreshVariantTable();
 }
 
+void MainWindow::storeReportConfig()
+{
+    //check if applicable
+    if (!germlineReportSupported()) return;
+
+    //check sample
+    NGSD db;
+    QString processed_sample_id = db.processedSampleId(germlineReportSample(), false);
+    if (processed_sample_id=="")
+    {
+        QMessageBox::warning(this, "Storing report configuration", "Sample was not found in the NGSD!");
+        return;
+    }
+
+    //check if config exists and not edited by other user
+    int conf_id = db.reportConfigId(processed_sample_id);
+    if (conf_id!=-1)
+    {
+        QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, res_);
+        if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
+        {
+            if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
+            {
+                return;
+            }
+        }
+    }
+
+    //store
+    try
+    {
+        report_settings_.report_config.data()->blockSignals(true); //block signals - otherwise the variantsChanged signal is emitted and storeReportConfig is called again, which leads to hanging of the application because of database locks
+        db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, svs_, res_);
+        report_settings_.report_config.data()->blockSignals(false);
+    }
+    catch (Exception& e)
+    {
+        QMessageBox::warning(this, "Storing report configuration", e.message());
+    }
+}
+
 void MainWindow::loadSomaticReportConfig()
 {
 	if(filename_ == "") return;
@@ -3380,46 +3421,16 @@ void MainWindow::storeSomaticReportConfig()
 	}
 }
 
-void MainWindow::storeReportConfig()
+void MainWindow::loadRnaReportConfig()
 {
-	//check if applicable
-	if (!germlineReportSupported()) return;
-
-	//check sample
-	NGSD db;
-	QString processed_sample_id = db.processedSampleId(germlineReportSample(), false);
-	if (processed_sample_id=="")
-	{
-		QMessageBox::warning(this, "Storing report configuration", "Sample was not found in the NGSD!");
-		return;
-	}
-
-	//check if config exists and not edited by other user
-	int conf_id = db.reportConfigId(processed_sample_id);
-	if (conf_id!=-1)
-	{
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, res_);
-		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
-		{
-			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
-			{
-				return;
-			}
-		}
-	}
-
-	//store
-	try
-	{
-		report_settings_.report_config.data()->blockSignals(true); //block signals - otherwise the variantsChanged signal is emitted and storeReportConfig is called again, which leads to hanging of the application because of database locks
-		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, svs_, res_);
-		report_settings_.report_config.data()->blockSignals(false);
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, "Storing report configuration", e.message());
-	}
+    //TODO
 }
+
+void MainWindow::storeRnaReportConfig()
+{
+    //TODO
+}
+
 
 void MainWindow::generateEvaluationSheet()
 {

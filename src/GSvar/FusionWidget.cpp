@@ -9,29 +9,22 @@
 #include "QImageReader"
 #include "QMessageBox"
 #include <HttpHandler.h>
-#include "IgvSessionManager.h"
 #include "RnaReportFusionDialog.h"
 
 
-FusionWidget::FusionWidget(const QString& filename, const QString& rna_ps_name, NGSD& db, QWidget *parent) :
+FusionWidget::FusionWidget(const QString& filename, const QString& rna_ps_name, QSharedPointer<RnaReportConfiguration> rna_rep_conf,  QWidget *parent) :
 	QWidget(parent),
-	db_(db),
-	filename_(filename),
-	fusions_(),
-	rna_ps_name_(rna_ps_name),
+    rna_report_config_(rna_rep_conf),
+    filename_(filename),
+    fusions_(),
+    rna_ps_name_(rna_ps_name),
+
 	ui_(new Ui::FusionWidget)
 {
 	ui_->setupUi(this);
 	fusions_.load(filename_);
 
 	QStringList messages;
-	int rna_report_config_id = db_.rnaReportConfigId(db_.processedSampleId(rna_ps_name));
-	if (rna_report_config_id != -1)
-	{
-		rna_report_config_ = db_.rnaReportConfig(db_.processedSampleId(rna_ps_name), fusions_, messages);
-	} else {
-		rna_report_config_ = RnaReportConfiguration();
-	}
 
 	if(!messages.isEmpty())
 	{
@@ -52,6 +45,8 @@ FusionWidget::FusionWidget(const QString& filename, const QString& rna_ps_name, 
 
 	QStringList images = GlobalServiceProvider::database().getRnaFusionPics(rna_ps_name_);
 	images_ = imagesFromFiles(images);
+
+    applyFilters();
 }
 
 FusionWidget::~FusionWidget()
@@ -62,7 +57,7 @@ FusionWidget::~FusionWidget()
 void FusionWidget::updateGUI()
 {
 	//get report variant indices
-    QList<int> var_idices_list = rna_report_config_.fusionIndices(false);
+    QList<int> var_idices_list = rna_report_config_->fusionIndices(false);
     QSet<int> report_variant_indices(var_idices_list.begin(), var_idices_list.end());
 
 	QStringList column_names = fusions_.headers();
@@ -108,7 +103,7 @@ void FusionWidget::updateGUI()
 		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(row_idx+1));
 		if (report_variant_indices.contains(row_idx))
 		{
-			const RnaReportFusionConfiguration& rc = rna_report_config_.get(row_idx);
+            const RnaReportFusionConfiguration& rc = rna_report_config_->get(row_idx);
 			header_item->setIcon(VariantTable::reportIcon(rc.showInReport(), true));
 		}
 		ui_->fusions->setVerticalHeaderItem(row_idx, header_item);
@@ -122,13 +117,10 @@ void FusionWidget::updateGUI()
 	ui_->fusions->resizeRowsToContents();
 }
 
-void FusionWidget::storeRnaReportConfiguration()
-{
-	db_.setRnaReportConfig(db_.processedSampleId(rna_ps_name_), rna_report_config_, fusions_, Helper::userName());
-}
-
 void FusionWidget::showContextMenu(QPoint p)
 {
+    qDebug() << "FusionWidget::showContextMenu()";
+
 	QMenu menu;
 
 	QList<int> selected_rows = GUIHelper::selectedTableRows(ui_->fusions);
@@ -139,7 +131,7 @@ void FusionWidget::showContextMenu(QPoint p)
 	bool any_exists = false;
 	foreach(int idx, selected_rows)
 	{
-		if (rna_report_config_.exists(idx))
+        if (rna_report_config_->exists(idx))
 		{
 			any_exists = true;
 			break;
@@ -161,13 +153,13 @@ void FusionWidget::showContextMenu(QPoint p)
 		//Delete som variant configuration for more than one variant
 		foreach(const auto& selected_row, selected_rows)
 		{
-			if (rna_report_config_.exists(selected_row))
+            if (rna_report_config_->exists(selected_row))
 			{
-				rna_report_config_.remove(selected_row);
+                rna_report_config_->remove(selected_row);
 				updateReportConfigHeaderIcon(selected_row);
 			}
 		}
-		storeRnaReportConfiguration();
+        emit storeRnaReportConfiguration();
 	}
 }
 
@@ -205,12 +197,12 @@ void FusionWidget::applyFilters(bool debug_time)
 				if (rc_filter==ReportConfigFilter::HAS_RC)
 				{
 
-					filter_result.flags()[r] = rna_report_config_.exists(r);
+                    filter_result.flags()[r] = rna_report_config_->exists(r);
 
 				}
 				else if (rc_filter==ReportConfigFilter::NO_RC)
 				{
-					filter_result.flags()[r] = !rna_report_config_.exists(r);
+                    filter_result.flags()[r] = !rna_report_config_->exists(r);
 				}
 			}
 		}
@@ -356,10 +348,10 @@ void FusionWidget::applyFilters(bool debug_time)
 void FusionWidget::editRnaReportConfiguration(int row)
 {
 	RnaReportFusionConfiguration fusion_config;
-	bool settings_exist = rna_report_config_.exists(row);
+    bool settings_exist = rna_report_config_->exists(row);
 	if(settings_exist)
 	{
-		fusion_config = rna_report_config_.get(row);
+        fusion_config = rna_report_config_->get(row);
 	}
 	else
 	{
@@ -369,13 +361,15 @@ void FusionWidget::editRnaReportConfiguration(int row)
     RnaReportFusionDialog dlg = RnaReportFusionDialog(fusions_.getFusion(row).toString(), fusion_config, this);
     if(dlg.exec()!=QDialog::Accepted) return;
 
-	rna_report_config_.addRnaFusionConfiguration(fusion_config);
+    rna_report_config_->addRnaFusionConfiguration(fusion_config);
 	updateReportConfigHeaderIcon(row);
-	storeRnaReportConfiguration();
+    emit storeRnaReportConfiguration();
 }
 
 void FusionWidget::editRnaReportConfiguration(const QList<int> &rows)
 {
+    qDebug() << "FusionWidget::editReportConfiguration()";
+    //TODO Seg fault somewhere?
 	RnaReportFusionConfiguration fusion_config;
 
     RnaReportFusionDialog dlg = RnaReportFusionDialog(QString::number(rows.count()) +" selected fusions", fusion_config, this);
@@ -387,7 +381,7 @@ void FusionWidget::editRnaReportConfiguration(const QList<int> &rows)
 		RnaReportFusionConfiguration temp_var_config = fusion_config;
 		temp_var_config.variant_index = row;
 
-		rna_report_config_.addRnaFusionConfiguration(temp_var_config);
+        rna_report_config_->addRnaFusionConfiguration(temp_var_config);
 
 		updateReportConfigHeaderIcon(row);
 	}
@@ -396,6 +390,7 @@ void FusionWidget::editRnaReportConfiguration(const QList<int> &rows)
 
 void FusionWidget::updateReportConfigHeaderIcon(int row)
 {
+    qDebug() << "FusionWidget::updateReportConfigHeaderIcon()";
 	//report config-based filter is on => update whole variant list
 	if (ui_->filter_widget->reportConfigurationFilter() != ReportConfigFilter::NONE)
 	{
@@ -404,9 +399,9 @@ void FusionWidget::updateReportConfigHeaderIcon(int row)
 	else //no filter => refresh icon only
 	{
 		QIcon report_icon;
-		if (rna_report_config_.exists(row))
+        if (rna_report_config_->exists(row))
 		{
-			const RnaReportFusionConfiguration& rc = rna_report_config_.get(row);
+            const RnaReportFusionConfiguration& rc = rna_report_config_->get(row);
 			report_icon = VariantTable::reportIcon(rc.showInReport(), true);
 		}
 
@@ -436,7 +431,7 @@ void FusionWidget::displayFusionImage()
 
 	if (row >= images_.count())
 	{
-		ui_->fusion_image->clearMask();
+        ui_->fusion_image->clearImage();
 		qDebug() <<"No image found for this fusion. Row > image count";
 		return;
 	}
