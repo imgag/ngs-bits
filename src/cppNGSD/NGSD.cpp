@@ -5609,9 +5609,9 @@ QString NGSD::analysisJobFolder(int job_id)
 			output += "Somatic_";
 			sample_sep = "-";
 		}
-		else if(job.samples.count() == 1) //Tumor only
+        else if(job.samples.count() == 1) //Tumor only
 		{
-			output += "Sample_";
+            output += "Somatic_";
 		}
 		else
 		{
