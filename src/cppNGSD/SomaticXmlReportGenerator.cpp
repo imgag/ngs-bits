@@ -73,7 +73,7 @@ SomaticXmlReportGenerator::SomaticXmlReportGenerator()
 
 void SomaticXmlReportGenerator::checkSomaticVariantAnnotation(const VariantList &vl)
 {
-	const QByteArrayList annos = {"tumor_af","tumor_dp", "normal_af", "normal_dp", "gene", "somatic_classification", "ncg_oncogene", "ncg_tsg", "coding_and_splicing"};
+    const QByteArrayList annos = {"tumor_af","tumor_dp", "normal_af", "normal_dp", "gene", "ncg_oncogene", "ncg_tsg", "coding_and_splicing"};
 
 	for(const auto& anno : annos)
 	{

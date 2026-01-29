@@ -14,6 +14,10 @@ public:
 	VariantAnnotator(const VariantList& variants);
 	void process() override;
 
+signals:
+	//signal that is emitted when the annotation is done (in addition to the regular finished() signal)
+	void loadFile(QString);
+
 private:
 	VariantList variants_;
 };

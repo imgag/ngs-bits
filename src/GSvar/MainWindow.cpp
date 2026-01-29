@@ -3023,8 +3023,6 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 	}
 	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR || type==CFDNA)
 	{
-		cols << "somatic_classification";
-		cols << "somatic_classification_comment";
 		cols << "NGSD_som_vicc_interpretation";
 		cols << "NGSD_som_vicc_comment";
 	}

@@ -64,7 +64,7 @@ private:
 	int i_ncg_oncogene_;
 	int i_ncg_tsg_;
 	int i_germl_class_;
-	int i_somatic_class_;
+    int i_vicc_class_;
 
 	///Returns variant description with information from NCG and in-house classification
 	QByteArray variantDescription(const Variant& var);
