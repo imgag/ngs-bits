@@ -43,16 +43,23 @@ public:
 		timer.start();
 
 		// generate whole gene BED file and index
-		GeneSet gene_names = db.approvedGeneNames();
-        out << "Getting gene regions from NGSD for " << gene_names.count() << " genes ..." << Qt::endl;
 		BedFile gene_regions;
-        for (const QByteArray& gene_name : gene_names)
+		for (const QByteArray& gene_name : db.approvedGeneNames())
 		{
-			gene_regions.add(getGeneRegion(gene_name, db, "gene"));
+			QByteArrayList annos = QByteArrayList() << gene_name;
+			int gene_id = db.geneId(gene_name);
+			foreach(const Transcript& t, db.transcripts(gene_id, Transcript::ENSEMBL, false))
+			{
+				if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript() || t.isGencodePrimaryTranscript())
+				{
+					gene_regions.append(BedLine(t.chr(), t.start(), t.end(), annos));
+				}
+			}
 		}
-		if (!gene_regions.isSorted()) gene_regions.sort();
+		gene_regions.extend(5000);
+		gene_regions.merge(true, true, true);
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
-        out << "preprocessing done (runtime: " << Helper::elapsedTime(timer) << ")" << Qt::endl;
+		out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << Qt::endl;
 		timer.restart();
 
         out << "annotating CNV file..." << Qt::endl;
@@ -97,23 +104,35 @@ public:
 			QByteArrayList gene_name_list;
 			foreach (int index, matching_indices)
 			{
-				QByteArray gene_name = gene_regions[index].annotations()[0];
+				const BedLine& gene_locus = gene_regions[index];
+
+				QByteArray gene_name = gene_locus.annotations()[0];
 				QByteArray gnomad_oe_lof = db.geneInfo(gene_name).oe_lof.toUtf8();
+
+				//determine overlap of CNV and gene
 				QByteArray covered_region;
-				if (start <= gene_regions[index].start() && end >= gene_regions[index].end())
+				if (start <= (gene_locus.start()+5000) && end >= (gene_locus.end()-5000)) //correct by 5000 because gene loci are extended by 5000 for correct gene annotation
 				{
-					// CNV convers the whole gene
 					covered_region = "complete";
 				}
 				else
 				{
-					// get exon/splicing region from database
-					if (!exon_regions.contains(gene_name))
+					if (!exon_regions.contains(gene_name)) //get exon/splicing region of gene
 					{
-						exon_regions[gene_name] = getGeneRegion(gene_name, db, "exon");
+						BedFile regions;
+						int gene_id = db.geneId(gene_name);
+						foreach(const Transcript& t, db.transcripts(gene_id, Transcript::ENSEMBL, false))
+						{
+							if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript() || t.isGencodePrimaryTranscript())
+							{
+								regions.add(t.regions());
+							}
+						}
+						regions.extend(20);
+						regions.merge();
+						exon_regions[gene_name] = regions;
 					}
 
-					// annotate overlap type
 					if (exon_regions[gene_name].overlapsWith(chr, start, end))
 					{
 						covered_region = "exonic/splicing";
@@ -160,33 +179,6 @@ public:
 private:
 	bool use_test_db_;
 	bool add_simple_gene_names_;
-
-	/*
-	 *	returns a BedLine containing the whole extended gene region for the given gene
-	 */
-	BedFile getGeneRegion(const QByteArray& gene_name, NGSD& db, const QByteArray& mode)
-	{
-		// calculate region
-		BedFile gene_regions = db.geneToRegions(gene_name, Transcript::ENSEMBL, mode, true, false);
-
-		if (mode=="gene")
-		{
-			gene_regions.extend(5000);
-			gene_regions.merge();
-		}
-		else
-		{
-			gene_regions.extend(20);
-		}
-
-		// add gene name annotation
-		for (int i = 0; i < gene_regions.count(); ++i)
-		{
-			gene_regions[i].annotations() = QByteArrayList() << gene_name;
-		}
-		return gene_regions;
-	}
-
 };
 
 #include "main.moc"
