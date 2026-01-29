@@ -57,7 +57,7 @@ public:
 			}
 		}
 		gene_regions.extend(5000);
-		gene_regions.merge(true, true, true);
+		gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
 		out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << Qt::endl;
 		timer.restart();
@@ -96,24 +96,21 @@ public:
 			int start = Helper::toInt(tsv_line[i_start], "start");
 			int end = Helper::toInt(tsv_line[i_end], "end");
 
-			// get all matching BED entries
-			QVector<int> matching_indices = gene_regions_index.matchingIndices(chr, start, end);
-
 			// iterate over all matching BED entries and check coverage
-			QByteArrayList gene_info;
-			QByteArrayList gene_name_list;
+			GeneSet matching_genes;
+			QHash<QByteArray, QByteArray> covered_regions;
+			QVector<int> matching_indices = gene_regions_index.matchingIndices(chr, start, end);
 			foreach (int index, matching_indices)
 			{
 				const BedLine& gene_locus = gene_regions[index];
 
 				QByteArray gene_name = gene_locus.annotations()[0];
-				QByteArray gnomad_oe_lof = db.geneInfo(gene_name).oe_lof.toUtf8();
 
 				//determine overlap of CNV and gene
-				QByteArray covered_region;
+				QByteArray overlap;
 				if (start <= (gene_locus.start()+5000) && end >= (gene_locus.end()-5000)) //correct by 5000 because gene loci are extended by 5000 for correct gene annotation
 				{
-					covered_region = "complete";
+					overlap = "complete";
 				}
 				else
 				{
@@ -135,25 +132,54 @@ public:
 
 					if (exon_regions[gene_name].overlapsWith(chr, start, end))
 					{
-						covered_region = "exonic/splicing";
+						overlap = "exonic/splicing";
 					}
 					else
 					{
-						covered_region = "intronic/intergenic";
+						overlap = "intronic/intergenic";
 					}
 				}
+				
+				//determine maximum overlap for gene
+				if (covered_regions.contains(gene_name))
+				{
+					QByteArray overlap_old = covered_regions[gene_name];
+					if (overlap != overlap_old)
+					{
+						if (overlap_old == "complete" || overlap == "complete")
+						{
+							covered_regions[gene_name] = "complete";
+						}
+						else if (overlap_old == "exonic/splicing" || overlap == "exonic/splicing")
+						{
+							covered_regions[gene_name] = "exonic/splicing";
+						}
+						// both 'intronic/intergenic' > nothing to do
+					}
+				}
+				else
+				{
+					covered_regions[gene_name] = overlap;
+				}
 
-				// add gene string
-				gene_info.append(gene_name + " (oe_lof=" + gnomad_oe_lof + " region=" + covered_region + ")");
 				// add gene name
-				gene_name_list.append(gene_name);
+				matching_genes << gene_name;
+			}
+			
+		
+			// add gene string
+			QByteArrayList gene_info;
+            for (const QByteArray& gene : matching_genes)
+			{
+				QByteArray gnomad_oe_lof = db.geneInfo(gene).oe_lof.toUtf8();
+				gene_info.append(gene + " (oe_lof=" + gnomad_oe_lof + " region=" + covered_regions[gene] + ")");
 			}
 
 			// update annotation
 			if (add_simple_gene_names_)
 			{
-				if (i_genes < 0) tsv_line.append(gene_name_list.join(","));
-				else tsv_line[i_genes] = gene_name_list.join(",");
+				if (i_genes < 0) tsv_line.append(matching_genes.join(","));
+				else tsv_line[i_genes] = matching_genes.join(",");
 			}
 			if (i_gene_info < 0) tsv_line.append(gene_info.join(","));
 			else tsv_line[i_gene_info] = gene_info.join(",");

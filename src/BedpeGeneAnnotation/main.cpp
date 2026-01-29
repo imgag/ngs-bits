@@ -61,7 +61,7 @@ public:
 			}
 		}
 		gene_regions.extend(5000);
-		gene_regions.merge(true, true, true);
+		gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
         out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << Qt::endl;
 		timer.restart();
