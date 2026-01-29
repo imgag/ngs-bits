@@ -19,7 +19,7 @@ chr1	1267383	1268206	3	6	1	0.823	0.055		0.00032	0	0.000	1p36 microdeletion syndr
 chr1	1323853	1324141	1	3	2	0.288	0.135		0.02722	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]			
 chr1	1374440	1375187	3	11	1	0.747	0.12		0	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]			
 chr17	32880617	32997524	0	0	0	0	0	BRCA1	0	0	0.0						BRCA1 (oe_lof=0.51 region=complete)
-chr17	32880617	32917524	0	0	0	0	0	BRCA1	0	0	0.0						BRCA1 (oe_lof=0.51 region=exonic/splicing)
+chr17	32880617	32917524	0	0	0	0	0	BRCA1	0	0	0.0						BRCA1 (oe_lof=0.51 region=complete)
 chr17	32889821	32889904	0	0	0	0	0	BRCA1	0	0	0.0						BRCA1 (oe_lof=0.51 region=exonic/splicing)
 chr17	32889517	32889600	0	0	0	0	0	BRCA1	0	0	0.0						BRCA1 (oe_lof=0.51 region=exonic/splicing)
 chr13	32883611	32979805	0	0	0	0	0	BRCA2	0	0	0.0						BRCA2 (oe_lof=0.51 region=complete)
@@ -38,7 +38,7 @@ chr2	189597852	189598852	0	0	0	0	0	DIRC1	0	0	0.0						DIRC1 (oe_lof=n/a region=i
 chr2	189654712	189654812	0	0	0	0	0	DIRC1	0	0	0.0						DIRC1 (oe_lof=n/a region=exonic/splicing)
 chr2	189654610	189654660	0	0	0	0	0	DIRC1	0	0	0.0						DIRC1 (oe_lof=n/a region=exonic/splicing)
 chr2	190643107	190748355	0	0	0	0	0	PMS1	0	0	0.0						PMS1 (oe_lof=0.76 region=complete)
-chr2	190649107	190742355	0	0	0	0	0	PMS1	0	0	0.0						PMS1 (oe_lof=0.76 region=exonic/splicing)
+chr2	190649107	190742355	0	0	0	0	0	PMS1	0	0	0.0						PMS1 (oe_lof=0.76 region=complete)
 chr2	190645107	190648107	0	0	0	0	0	PMS1	0	0	0.0						PMS1 (oe_lof=0.76 region=intronic/intergenic)
 chr2	190649215	190649319	0	0	0	0	0	PMS1	0	0	0.0						PMS1 (oe_lof=0.76 region=exonic/splicing)
 chr2	190741898	190741988	0	0	0	0	0	PMS1	0	0	0.0						PMS1 (oe_lof=0.76 region=exonic/splicing)
