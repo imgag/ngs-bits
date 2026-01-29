@@ -101,6 +101,10 @@ SUBDIRS += SampleSimilarity
 tools-TEST.depends += SampleSimilarity
 SampleSimilarity.depends = cppNGS
 
+SUBDIRS += SampleIdentity
+tools-TEST.depends += SampleIdentity
+SampleIdentity.depends = cppNGS
+
 SUBDIRS += SampleGender
 tools-TEST.depends += SampleGender
 SampleGender.depends = cppNGS

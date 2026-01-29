@@ -7441,7 +7441,6 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 		if (current_source==source && !output.isEmpty()) break;
 	}
 
-
 	if (output.isEmpty() && messages!=nullptr)
 	{
 		*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << Qt::endl;

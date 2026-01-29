@@ -4465,7 +4465,7 @@ void MainWindow::on_actionShowDatabaseInfo_triggered()
 	//create table
 	DBTableWidget* table = new DBTableWidget(this);
 	table->setData(db_table);
-	table->setMinimumSize(800, 600);
+	table->setMinimumSize(300, 300);
 
 	//create and show dialog
 	QSharedPointer<QDialog> dialog  = GUIHelper::createDialog(table, "Database information", "Version and import date of external data sources imported into NGSD:", true);
