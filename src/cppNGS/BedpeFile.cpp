@@ -432,16 +432,7 @@ void BedpeFile::loadHeaderOnly(const QString& file_name)
 
 bool BedpeFile::isValid() const
 {
-	try
-	{
-		format();
-	}
-	catch (Exception& e)
-	{
-		return false;
-	}
-
-	return true;
+	return !filename_.isEmpty();
 }
 
 int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_mismatch) const
