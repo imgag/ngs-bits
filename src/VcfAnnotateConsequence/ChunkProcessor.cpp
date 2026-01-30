@@ -5,6 +5,16 @@
 #include "VariantList.h"
 
 
+struct Var
+{
+	Chromosome chr;
+	int pos;
+	Sequence ref;
+	Sequence alt;
+	bool source;
+	QByteArray tag;
+};
+
 ChunkProcessor::ChunkProcessor(AnalysisJob &job, const MetaData& settings, const Parameters& params)
 	: QObject()
 	, QRunnable()
@@ -49,6 +59,7 @@ void ChunkProcessor::run()
 				if (line.startsWith("#CHROM"))
 				{
 					lines_new.append("##INFO=<ID=" + settings_.tag + ",Number=.,Type=String,Description=\"Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp\">\n");
+					if (params_.source != "refseq") lines_new.append("##INFO=<ID=" + settings_.tag + "_SOURCE" + ",Number=.,Type=String,Description=\"Source variant consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp\">\n");
 				}
 				lines_new.append(line + "\n");
 				continue;
@@ -78,95 +89,132 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 		THROW(FileParseException, "VCF line with too few columns: " + line);
 	}
 
-	Chromosome chr = parts[0];
-	int pos = Helper::toInt(parts[1], "VCF position");
-	Sequence ref = parts[3].toUpper();
-	Sequence alt = parts[4].toUpper();
+	QList<Var> variants;
 
-	//write out invalid without CSQ annotation
-	if(!VcfLine(chr, pos, ref, alt.split(',')).isValid())
+	if (line.contains("SOURCE_VAR") && params_.source != "refseq")
 	{
-		++lines_skipped_;
-		return line + "\n";
-	}
-	++lines_annotated_;
-
-	//get all transcripts where the variant is completely contained in the region
-	int region_start = std::max(pos - settings_.annotation_parameters.max_dist_to_transcript, 0);
-	int region_end = pos + ref.length() + settings_.annotation_parameters.max_dist_to_transcript;
-
-	QVector<int> indices = transcript_index.matchingIndices(chr, region_start, region_end-1);
-
-	QByteArrayList consequences;
-
-	//no transcripts in proximity: intergenic variant
-	if(indices.isEmpty())
-	{
-		foreach(const Sequence& alt_part, alt.split(','))
+		QByteArrayList infos = parts[7].split(';');
+		foreach (const QByteArray &p, infos)
 		{
-			VariantConsequence hgvs;
-			hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-			hgvs.impact = VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType::INTERGENIC_VARIANT);
-			Transcript t;
-			consequences << hgvsNomenclatureToString(csqAllele(ref, alt_part), hgvs, t);
-		}
-	}
-
-	//hgvs annotation for each transcript in proximity to variant
-	foreach(int idx, indices)
-	{
-		const Transcript& t = settings_.transcripts.at(idx);
-
-		VcfLine variant = VcfLine(chr, pos, ref, QList<Sequence>());
-
-		//treat each alternative allele of multi-allelic variants as a new variant
-		foreach(const Sequence& alt_part, alt.split(','))
-		{
-			try
+			if (p.startsWith("SOURCE_VAR"))
 			{
-				variant.setSingleAlt(alt_part);
-				VariantConsequence hgvs = hgvs_anno_.annotate(t, variant);
-				consequences << hgvsNomenclatureToString(csqAllele(ref, alt_part), hgvs, t);
-			}
-			catch(Exception& e)
-			{
-				QTextStream out(stdout);
-                out << "Error processing variant " << variant.toString() << " and transcript " << t.nameWithVersion() << ":" << Qt::endl;
-                out << "  " << e.message().replace("\n", "  \n") << Qt::endl;
+				QByteArrayList var_parts = p.split('=')[1].split('&');
+				Var source_var;
+
+				source_var.chr = var_parts[0];
+				source_var.pos = Helper::toInt(var_parts[1], "VCF position");
+				source_var.ref = var_parts[2].toUpper();
+				source_var.alt = var_parts[3].toUpper();
+				source_var.source = true;
+				source_var.tag = settings_.tag + "_SOURCE";
+
+				variants.append(source_var);
 			}
 		}
 	}
 
-	//add CSQ to INFO; keep all other infos
+	Var processed_var;
+	processed_var.chr = parts[0];
+	processed_var.pos = Helper::toInt(parts[1], "VCF position");
+	processed_var.ref = parts[3].toUpper();
+	processed_var.alt = parts[4].toUpper();
+	processed_var.source = false;
+	processed_var.tag = settings_.tag;
+
+	variants.append(processed_var);
+
 	QByteArrayList info_entries;
 	if(parts[7] != "" && parts[7] != ".")
 	{
 		info_entries = parts[7].split(';');
 	}
-	//replace entry if tag is already present
-	bool tag_found = false;
-	for(int i=0; i<info_entries.count(); ++i)
+
+	foreach (const Var &v, variants)
 	{
-		if(info_entries[i].startsWith(settings_.tag + "="))
+		//write out invalid without CSQ annotation
+		if(!VcfLine(v.chr, v.pos, v.ref, v.alt.split(',')).isValid())
 		{
-			info_entries[i] = settings_.tag + "=" + consequences.join(',');
-			tag_found = true;
-			break;
+			if (v.source) continue;
+			else
+			{
+				++lines_skipped_;
+				return line + "\n";
+			}
 		}
-	}
-	//append tag if not present
-	if(!tag_found)
-	{
-		info_entries << settings_.tag + "=" + consequences.join(',');
+
+		//get all transcripts where the variant is completely contained in the region
+		int region_start = std::max(v.pos - settings_.annotation_parameters.max_dist_to_transcript, 0);
+		int region_end = v.pos + v.ref.length() + settings_.annotation_parameters.max_dist_to_transcript;
+
+		QVector<int> indices = transcript_index.matchingIndices(v.chr, region_start, region_end-1);
+
+		QByteArrayList consequences;
+
+		//no transcripts in proximity: intergenic variant
+		if(indices.isEmpty())
+		{
+			foreach(const Sequence& alt_part, v.alt.split(','))
+			{
+				VariantConsequence hgvs;
+				hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+				hgvs.impact = VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType::INTERGENIC_VARIANT);
+				Transcript t;
+				consequences << hgvsNomenclatureToString(csqAllele(v.ref, alt_part), hgvs, t);
+			}
+		}
+
+		//hgvs annotation for each transcript in proximity to variant
+		foreach(int idx, indices)
+		{
+			const Transcript& t = settings_.transcripts.at(idx);
+
+			VcfLine variant = VcfLine(v.chr, v.pos, v.ref, QList<Sequence>());
+
+			//treat each alternative allele of multi-allelic variants as a new variant
+			foreach(const Sequence& alt_part, v.alt.split(','))
+			{
+				try
+				{
+					variant.setSingleAlt(alt_part);
+					VariantConsequence hgvs = hgvs_anno_.annotate(t, variant);
+					consequences << hgvsNomenclatureToString(csqAllele(v.ref, alt_part), hgvs, t);
+				}
+				catch(Exception& e)
+				{
+					QTextStream out(stdout);
+					out << "Error processing variant " << variant.toString() << " and transcript " << t.nameWithVersion() << ":" << Qt::endl;
+					out << "  " << e.message().replace("\n", "  \n") << Qt::endl;
+				}
+			}
+		}
+
+		//add CSQ to INFO; keep all other infos
+		//replace entry if tag is already present
+		bool tag_found = false;
+		for(int i=0; i<info_entries.count(); ++i)
+		{
+			if(info_entries[i].startsWith(v.tag + "="))
+			{
+				info_entries[i] = v.tag + "=" + consequences.join(',');
+				tag_found = true;
+				break;
+			}
+		}
+		//append tag if not present
+		if(!tag_found)
+		{
+			info_entries << v.tag + "=" + consequences.join(',');
+		}
 	}
 
 	//create annotated line:
+	++lines_annotated_;
 	QByteArrayList new_parts;
 	new_parts.append(parts[0]);
-	new_parts.append(QByteArray::number(pos));
+	new_parts.append(QByteArray::number(processed_var.pos));
 	new_parts.append(parts[2]);
-	new_parts.append(ref);
-	new_parts.append(alt);
+	new_parts.append(processed_var.ref);
+	new_parts.append(processed_var.alt);
 	new_parts.append(parts[5]);
 	new_parts.append(parts[6]);
 	new_parts.append(info_entries.join(';'));

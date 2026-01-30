@@ -88,4 +88,14 @@ private:
 		}
 	}
 
+	//test with source variants annotated
+	TEST_METHOD(source_variants)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in3.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out8.vcf -splice_region_in5 8 -splice_region_in3 8");
+
+		COMPARE_FILES("out/VcfAnnotateConsequence_out8.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out8.vcf"));
+	}
+
 };

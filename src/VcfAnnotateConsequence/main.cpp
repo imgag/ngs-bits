@@ -44,6 +44,7 @@ public:
 
 		changeLog(2024, 7, 26, "Added support for RefSeq GFF format (source parameter).");
 		changeLog(2022, 7,  7, "Change to event-driven multithreaded implementation.");
+		changeLog(2026, 1, 28, "Added annotation of source variants");
 	}
 
 	QStringList extendedDescription()
@@ -86,6 +87,7 @@ public:
 		params.threads = getInt("threads");
 		params.prefetch = getInt("prefetch");
 		params.debug = getFlag("debug");
+		params.source = getEnum("source");
 
 		// check parameter:
 		if (params.block_size < 1) THROW(ArgumentException, "Parameter 'block_size' has to be greater than zero!");
