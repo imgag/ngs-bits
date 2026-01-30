@@ -31,6 +31,7 @@ public:
 		addFlag("basename", "Use BAM/CRAM basename instead of full path in output.");
 		addFlag("add_correlation", "Output SNP correlation (based on AF) in addition to identity percentage (based on GT).");
 		addFlag("debug", "Add debug output to STDOUT. If used, make sure to provide a file for 'out'!");
+		addFlag("time", "Add timing output to STDOUT. If used, make sure to provide a file for 'out'!");
 
 		//changelog
 		changeLog(2026, 01, 30, "Initial commit.");
@@ -52,6 +53,7 @@ public:
 		bool basename = getFlag("basename");
 		bool add_correlation = getFlag("add_correlation");
 		bool debug = getFlag("debug");
+		bool time = getFlag("time");
 		QTextStream debug_stream(stdout);
 
 		//load SNPs
@@ -67,7 +69,10 @@ public:
 		}
 
 		//determine SNPs AFs from BAM/CRAMs
-		out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - loading SNPs from BAM/CRAMs..." << Qt::endl;
+		if (time)
+		{
+			out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - loading SNPs from BAM/CRAMs..." << Qt::endl;
+		}
 		QList<QString> labels;
 		labels.reserve(bams.count());
 		typedef QList<signed char> AfData; //AF rounded to int (0-100), or -1 for low coverage
@@ -128,7 +133,7 @@ public:
 				afs[i] = std::round(100.0*alt_c/(ref_c+alt_c));
 			}
 
-			if (debug)
+			if (time)
 			{
 				debug_stream << "Determining SNPs for " << bam << " took " << Helper::elapsedTime(timer.elapsed()) << Qt::endl;
 			}
@@ -137,7 +142,10 @@ public:
 		}
 
 		//determine sample identity (and correlation if requested)
-		out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - calculating correlations..." << Qt::endl;
+		if (time)
+		{
+			out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - calculating correlations..." << Qt::endl;
+		}
 		QVector<double> v1;
 		QVector<double> v2;
 		out_stream << "#file1\tfile2\tsnps_used\tidentity_percentage";
@@ -187,7 +195,10 @@ public:
 				out_stream << Qt::endl;
 			}
 		}
-		out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - done" << Qt::endl;
+		if (time)
+		{
+			out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - done" << Qt::endl;
+		}
 	}
 };
 
