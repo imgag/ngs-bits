@@ -381,6 +381,7 @@ void ImportDialog::import()
 
 			VariantAnnotator* worker = new VariantAnnotator(variants);
 			connect(worker, SIGNAL(failed()), this, SLOT(variantImportFailed()));
+			connect(worker, SIGNAL(loadFile(QString)), this, SLOT(loadFile(QString)));
 			GlobalServiceProvider::startJob(worker, true);
 		}
 		else if (type_==MIDS || type_==STUDY_SAMPLE || type_==RUNS || type_==PROCESSED_SAMPLES || type_==SAMPLE_RELATIONS || type_==SAMPLE_HPOS)
@@ -461,6 +462,10 @@ void ImportDialog::variantImportFailed()
 	QMessageBox::warning(this, "Variant import", "Variant import failed!\nCheck background job history in the lower right corner of the GSvar main window for details!");
 }
 
+void ImportDialog::loadFile(QString filename)
+{
+	GlobalServiceProvider::openGSvarFile(filename);
+}
 
 QStringList ImportDialog::extraValues(int r)
 {
