@@ -18,17 +18,18 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Calculates pairwise sample similarity metrics from VCF/BAM/CRAM files.");
-		setExtendedDescription(QStringList() << "This tool works for HG38 only!" << "It calculates the identity of 75 SNPs that are usually well covered in WGS, WES and RNA.");
+		setDescription("Tries to identify datasets that are from the same patient based on BAM/CRAM files of DNA/RNA sequencing.");
+		setExtendedDescription(QStringList() << "This tool works for HG38 only!" << "It calculates the identity of 53 SNPs that are usually well covered in WGS, WES and RNA. It is much faster and memory-efficient than the SampleSimilarity tool, but should be used for checking for duplicates only. It cannot give information about relatedness of samples.");
 
 		addInfileList("bams", "Input BAM/CRAM files. If only one file is given, it must be a text file with one BAM/CRAM path per line.", false, false);
 		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addInt("min_depth",  "Minimum depth to use a SNP for the sample comparison.",  true,  15);
 		addInt("min_snps",  "Minimum SNPs required to comare samples.",  true,  20);
+		addInt("min_identity",  "Minimum identity percentage to show sample pairs in output.",  true,  80);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("basename", "Use BAM/CRAM basename instead of full path in output.");
-		addFlag("add_correlation", "Report SNP correlation in addition to identity percentage.");
+		addFlag("add_correlation", "Output SNP correlation (based on AF) in addition to identity percentage (based on GT).");
 		addFlag("debug", "Add debug output to STDOUT. If used, make sure to provide a file for 'out'!");
 
 		//changelog
@@ -45,6 +46,7 @@ public:
 		}
 		int min_depth = getInt("min_depth");
 		int min_snps = getInt("min_snps");
+		int min_identity = getInt("min_identity");
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out_stream(outfile.data());
 		bool basename = getFlag("basename");
@@ -65,6 +67,7 @@ public:
 		}
 
 		//determine SNPs AFs from BAM/CRAMs
+		out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - loading SNPs from BAM/CRAMs..." << Qt::endl;
 		QList<QString> labels;
 		labels.reserve(bams.count());
 		typedef QList<signed char> AfData; //AF rounded to int (0-100), or -1 for low coverage
@@ -114,7 +117,11 @@ public:
 				//low depth => -1
 				if (ref_c+alt_c<min_depth)
 				{
-					afs << -1;
+					afs[i] = -1;
+					if (debug)
+					{
+						debug_stream << " low coverage for " << snps[i].toString() << " in " << bam << Qt::endl;
+					}
 					continue;
 				}
 
@@ -130,6 +137,7 @@ public:
 		}
 
 		//determine sample identity (and correlation if requested)
+		out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - calculating correlations..." << Qt::endl;
 		QVector<double> v1;
 		QVector<double> v2;
 		out_stream << "#file1\tfile2\tsnps_used\tidentity_percentage";
@@ -156,6 +164,10 @@ public:
 						if (af1<10 && af2<10) ++snps_identidy; //both wt
 						else if (af1>90 && af2>90) ++snps_identidy; //both hom
 						else if (af1>=10 && af1<=90 && af2>=10 && af2<=90) ++snps_identidy; //both het
+						else if (debug)
+						{
+							debug_stream << "Mismatch of " << snps[k].toString() << " af1=" << af1 << " af2=" << af2 << Qt::endl;
+						}
 						if (add_correlation)
 						{
 							v1 << af1;
@@ -164,13 +176,18 @@ public:
 					}
 				}
 
+				//check if we want to report the pair
 				if (snps_used<min_snps) continue;
+				double identity_perc = 100.0*snps_identidy/snps_used;
+				if (identity_perc<min_identity) continue;
 
-				out_stream << labels[i] << '\t' << labels[j] << '\t' << snps_used << '\t' << QString::number(100.0*snps_identidy/snps_used, 'f', 2);
+				//output
+				out_stream << labels[i] << '\t' << labels[j] << '\t' << snps_used << '\t' << QString::number(identity_perc, 'f', 2);
 				if (add_correlation) out_stream << '\t' <<  QString::number(BasicStatistics::correlation(v1, v2), 'f', 4);
 				out_stream << Qt::endl;
 			}
 		}
+		out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - done" << Qt::endl;
 	}
 };
 
