@@ -89,7 +89,7 @@ public:
 
 			//get AFs
 			QElapsedTimer timer;
-			if (debug) timer.start();
+			if (time) timer.start();
 
 			BamReader reader(bam, getInfile("ref"));
 			reader.skipQualities();
