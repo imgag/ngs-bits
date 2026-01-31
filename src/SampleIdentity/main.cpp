@@ -78,67 +78,77 @@ public:
 		typedef QList<signed char> AfData; //AF rounded to int (0-100), or -1 for low coverage
 		QList<AfData> af_data;
 		af_data.reserve(bams.count());
+
+		QElapsedTimer timer;
+		if (time) timer.start();
+		int bams_done = 0;
 		foreach(QString bam, bams)
 		{
 			//check BAM exists
 			if (!QFile::exists(bam))
 			{
-				out_stream << "##skipped missing file: " << bam << "\n";
+				out_stream << "##skipped " << bam << ": file does not exist\n";
 				continue;
 			}
 
 			//get AFs
-			QElapsedTimer timer;
-			if (time) timer.start();
-
-			BamReader reader(bam, getInfile("ref"));
-			reader.skipQualities();
-			reader.skipTags();
-
-			AfData afs;
-			afs.resize(snps.count());
-			for(int i=0; i<snps.count(); ++i)
+			try
 			{
-				const Chromosome& chr = snps[i].chr();
-				int pos = snps[i].start();
-				char ref = snps[i].ref()[0];
-				int ref_c = 0;
-				char alt = snps[i].alt()[0][0];
-				int alt_c = 0;
+				BamReader reader(bam, getInfile("ref"));
+				reader.skipQualities();
+				reader.skipTags();
 
-				reader.setRegion(chr, pos, pos);
-
-				//iterate through all alignments and create counts
-				BamAlignment al;
-				while (reader.getNextAlignment(al))
+				AfData afs;
+				afs.resize(snps.count());
+				for(int i=0; i<snps.count(); ++i)
 				{
-					if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
+					const Chromosome& chr = snps[i].chr();
+					int pos = snps[i].start();
+					char ref = snps[i].ref()[0];
+					int ref_c = 0;
+					char alt = snps[i].alt()[0][0];
+					int alt_c = 0;
 
-					QPair<char, int> base = al.extractBaseByCIGAR(pos);
-					if (base.first==ref) ++ref_c;
-					if (base.first==alt) ++alt_c;
-				}
+					reader.setRegion(chr, pos, pos);
 
-				//low depth => -1
-				if (ref_c+alt_c<min_depth)
-				{
-					afs[i] = -1;
-					if (debug)
+					//iterate through all alignments and create counts
+					BamAlignment al;
+					while (reader.getNextAlignment(al))
 					{
-						debug_stream << " low coverage for " << snps[i].toString() << " in " << bam << Qt::endl;
+						if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
+
+						QPair<char, int> base = al.extractBaseByCIGAR(pos);
+						if (base.first==ref) ++ref_c;
+						if (base.first==alt) ++alt_c;
 					}
-					continue;
+
+					//low depth => -1
+					if (ref_c+alt_c<min_depth)
+					{
+						afs[i] = -1;
+						if (debug)
+						{
+							debug_stream << " low coverage for " << snps[i].toString() << " in " << bam << Qt::endl;
+						}
+						continue;
+					}
+
+					afs[i] = std::round(100.0*alt_c/(ref_c+alt_c));
 				}
 
-				afs[i] = std::round(100.0*alt_c/(ref_c+alt_c));
-			}
+				af_data << afs;
+				labels << (basename ? QFileInfo(bam).baseName() : bam);
 
-			if (time)
-			{
-				debug_stream << "Determining SNPs for " << bam << " took " << Helper::elapsedTime(timer.elapsed()) << Qt::endl;
+				if (time)
+				{
+					++bams_done;
+					if (bams_done%100==0) debug_stream << "##Determining SNPs for 100 BAM/CRAM files took " << Helper::elapsedTime(timer.restart()) << Qt::endl;
+				}
 			}
-			af_data << afs;
-			labels << (basename ? QFileInfo(bam).baseName() : bam);
+			catch (Exception& e)
+			{
+				out_stream << "##skipped " << bam << " because of error: " << e.message().replace("\n", " ") << "\n";
+			}
 		}
 
 		//determine sample identity (and correlation if requested)
