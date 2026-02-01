@@ -147,7 +147,7 @@ public:
 			}
 			catch (Exception& e)
 			{
-				out_stream << "##skipped " << bam << " because of error: " << e.message().replace("\n", " ") << "\n";
+				out_stream << "##skipped " << bam << " because of error: " << e.message().replace("\n", " ") << Qt::endl;
 			}
 		}
 
