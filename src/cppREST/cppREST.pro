@@ -2,7 +2,7 @@ include("../lib.pri")
 
 #base settings
 QT       -= gui
-QT       += sql xml
+QT       += sql xml httpserver
 QTPLUGIN += QSQLMYSQL
 TARGET = cppREST
 DEFINES += CPPREST_LIBRARY
@@ -38,6 +38,7 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
+    BasicServer.cpp \
     EndpointManager.cpp \
     FastFileInfo.cpp \
     FileMetaCache.cpp \
@@ -45,6 +46,7 @@ SOURCES += \
     HttpUtils.cpp \
     HttpRequest.cpp \
     HttpResponse.cpp \
+    QueuingEngineApiHelper.cpp \
     RequestParser.cpp \
     RequestWorker.cpp \
     ServerDB.cpp \
@@ -55,6 +57,7 @@ SOURCES += \
     UrlManager.cpp
 
 HEADERS += \
+    BasicServer.h \
     EndpointManager.h \
     FastFileInfo.h \
     FileMetaCache.h \
@@ -63,6 +66,7 @@ HEADERS += \
     HttpUtils.h \
     HttpRequest.h \
     HttpResponse.h \
+    QueuingEngineApiHelper.h \
     RequestParser.h \
     RequestWorker.h \
     ServerDB.h \

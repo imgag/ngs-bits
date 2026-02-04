@@ -16,7 +16,6 @@
 #include <array>
 #include <string>
 
-
 // find a PID for a BALT server instance
 int findBlatPid()
 {
@@ -650,9 +649,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-    try
-    {
-        ServerDB db = ServerDB();
+	try
+	{
+		ServerDB db = ServerDB();
 		db.initDbIfEmpty();
 		if (db.getSchemaVersion() < db.EXPECTED_SCHEMA_VERSION)
 		{
@@ -661,46 +660,46 @@ int main(int argc, char **argv)
 			db.updateSchemaVersion(db.EXPECTED_SCHEMA_VERSION);
 		}
 
-        QList<UrlEntity> restored_urls = db.getAllUrls();
-        for (int u = 0; u < restored_urls.count(); u++)
-        {
-            if (u==0)
-            {
-                Log::info("Url backup found: " + QString::number(restored_urls.count()));
-            }
-            UrlManager::addNewUrl(restored_urls[u]);
-        }
+		QList<UrlEntity> restored_urls = db.getAllUrls();
+		for (int u = 0; u < restored_urls.count(); u++)
+		{
+			if (u==0)
+			{
+				Log::info("Url backup found: " + QString::number(restored_urls.count()));
+			}
+			UrlManager::addNewUrl(restored_urls[u]);
+		}
 
-        QList<Session> restored_sessions = db.getAllSessions();
-        for (int s = 0; s < restored_sessions.count(); s++)
-        {
-            if (s==0)
-            {
-                Log::info("Session backup found: " + QString::number(restored_sessions.count()));
-            }
-            SessionManager::addNewSession(restored_sessions[s]);
-        }
-    }
-    catch (DatabaseException& e)
-    {
-        Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
-    }
+		QList<Session> restored_sessions = db.getAllSessions();
+		for (int s = 0; s < restored_sessions.count(); s++)
+		{
+			if (s==0)
+			{
+				Log::info("Session backup found: " + QString::number(restored_sessions.count()));
+			}
+			SessionManager::addNewSession(restored_sessions[s]);
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
+	}
 
-    int blat_server_port = 0;
-    try
-    {
-        blat_server_port = Settings::integer("blat_server_port");
-    }
-    catch (Exception& e)
-    {
-        Log::info("BLAT server will not be started: " + e.message());
-    }
-    if (blat_server_port > 0)
-    {
-        // Handle signals (Ctrl+C, kill, etc.), we need to kill the BLAT server before exiting
-        std::signal(SIGINT, handleExitSignal);
-        std::signal(SIGTERM, handleExitSignal);
-    }
+	int blat_server_port = 0;
+	try
+	{
+		blat_server_port = Settings::integer("blat_server_port");
+	}
+	catch (Exception& e)
+	{
+		Log::info("BLAT server will not be started: " + e.message());
+	}
+	if (blat_server_port > 0)
+	{
+		// Handle signals (Ctrl+C, kill, etc.), we need to kill the BLAT server before exiting
+		std::signal(SIGINT, handleExitSignal);
+		std::signal(SIGTERM, handleExitSignal);
+	}
 
 	return app.exec();
 }

@@ -314,5 +314,16 @@ void ServerWrapper::updateQueingEngineStatus()
 
     if (qe_status_pool_.activeThreadCount() > 0) return;
 
-	qe_status_pool_.start(QueuingEngineController::create(PipelineSettings::queuingEngine()));
+	try
+	{
+		qe_status_pool_.start(QueuingEngineController::create(PipelineSettings::queuingEngine()));
+	}
+	catch(Exception& e)
+	{
+		Log::error("Error detected while processing analysis jobs: " + e.message());
+	}
+	catch (...)
+	{
+		Log::error("Unexpected error detected while processing analysis jobs");
+	}
 }
