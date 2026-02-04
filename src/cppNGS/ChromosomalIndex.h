@@ -47,6 +47,7 @@ ChromosomalIndex<T>::ChromosomalIndex(const T& container, int bin_size)
 	createIndex();
 }
 
+//TODO Marc check that container is sorted. Throw exception if not!
 template <class T>
 void ChromosomalIndex<T>::createIndex()
 {
