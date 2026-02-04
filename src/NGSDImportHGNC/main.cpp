@@ -291,6 +291,15 @@ public:
 		//commit changes
 		db.commit();
 
+		//add DB import info (version parsed from filename; if parsing fails use full filename)
+		QString version = QFileInfo(getInfile("in")).fileName();
+		QString tmp = version;
+		tmp.replace("hgnc_complete_set_", "").replace(".tsv", "");
+		if (QDate::fromString(tmp, Qt::ISODate).isValid())
+		{
+			version = tmp;
+		}
+		db.setDatabaseInfo("HGNC", version);
 	}
 };
 

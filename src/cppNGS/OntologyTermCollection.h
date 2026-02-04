@@ -120,25 +120,31 @@ public:
 	void add(const OntologyTerm& term);
 
 	///check whether Collection contains term with given id
-	bool containsByID(const QByteArray& id);
+	bool containsByID(const QByteArray& id) const;
 	///check whether Collection contains term with given name
 	bool containsByName(const QByteArray& name) const;
 
 	///Returns a term by index.
-	const OntologyTerm& get(int index);
+	const OntologyTerm& get(int index) const;
 	///finds obo term by ID in collection, if not found ArgumentException is thrown
-	const OntologyTerm& getByID(const QByteArray& id);
+	const OntologyTerm& getByID(const QByteArray& id) const;
 
 	///Returns the child IDs of the given term, if recursive is true all descendants are included.
-	QList<QByteArray> childIDs(const QByteArray& term_id, bool recursive);
+	QList<QByteArray> childIDs(const QByteArray& term_id, bool recursive) const;
 
 	///Returns the number of terms
-	int size()
+	int size() const
 	{
 		return ontology_terms_.length();
 	}
 
+	QString version() const
+	{
+		return version_;
+	}
+
 private:
+	QString version_;
 	QList<OntologyTerm> ontology_terms_;
 };
 

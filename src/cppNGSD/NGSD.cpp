@@ -5609,9 +5609,9 @@ QString NGSD::analysisJobFolder(int job_id)
 			output += "Somatic_";
 			sample_sep = "-";
 		}
-		else if(job.samples.count() == 1) //Tumor only
+        else if(job.samples.count() == 1) //Tumor only
 		{
-			output += "Sample_";
+            output += "Somatic_";
 		}
 		else
 		{
@@ -5893,6 +5893,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 	for(int i=0; i<terms.size(); ++i)
 	{
 		const OntologyTerm& term = terms.get(i);
+
 		//remove terms not for NGS
 		if (!term.id().startsWith("QC:2")) continue;
 		++c_terms_ngs;
@@ -5919,6 +5920,11 @@ void NGSD::updateQC(QString obo_file, bool debug)
 		qDebug() << "Terms for NGS: " << c_terms_ngs;
 		qDebug() << "Terms with valid types ("+valid_types.join(", ")+"): " << c_terms_valid_type;
 	}
+
+	//add DB import info
+	QString version = terms.version();
+	if (version.isEmpty()) version = QFileInfo(obo_file).fileName();
+	setDatabaseInfo("QC terms", version);
 }
 
 QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res)
@@ -6367,6 +6373,21 @@ QStringList NGSD::studies(const QString& processed_sample_id)
 	output.sort();
 
 	return output;
+}
+
+void NGSD::setDatabaseInfo(QString name, QString version, QDate import_date)
+{
+	//check name
+	QStringList valid_names = getEnum("db_import_info", "name");
+	if (!valid_names.contains(name)) THROW(ArgumentException, "Invalid database name '"+name+"' given in NGSD::setDatabaseInfo()");
+
+	//check version
+	if (version.length()>100) THROW(ArgumentException, "Too long version given in NGSD::setDatabaseInfo() - maximum size is 100: "+ version);
+
+	//check date
+	if (!import_date.isValid()) THROW(ArgumentException, "Invalid import date given in NGSD::setDatabaseInfo()");
+
+	getQuery().exec("INSERT INTO `db_import_info`(`name`, `version`, `import_date`) VALUES ('"+name+"','"+version+"','"+import_date.toString(Qt::ISODate)+"') ON DUPLICATE KEY UPDATE version=VALUES(version), import_date=VALUES(import_date)");
 }
 
 void NGSD::setComment(const Variant& variant, const QString& text)

@@ -426,6 +426,16 @@ public:
         out << "Imported " << db.getValue("SELECT count(*) FROM gene_transcript").toInt() << " transcripts into NGSD" << Qt::endl;
 		statistics(db, out, true, gene2ensg);
 		statistics(db, out, false, gene2ensg);
+
+		//add DB import info (version parsed from filename; if parsing fails use full filename)
+		QString version = QFileInfo(getInfile("in")).fileName();
+		QString tmp = version;
+		tmp.replace("Homo_sapiens.GRCh38.", "").replace(".gff3", "").replace(".gz", "");
+		if (Helper::isNumeric(tmp))
+		{
+			version = tmp;
+		}
+		db.setDatabaseInfo("Ensembl", version);
 	}
 };
 

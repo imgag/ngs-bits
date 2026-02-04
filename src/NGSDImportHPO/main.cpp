@@ -262,9 +262,10 @@ public:
 
 	};
 
-	QHash<QByteArray, int> importHpoOntology(const NGSD& db)
+	QHash<QByteArray, int> importHpoOntology(NGSD& db)
 	{
 		QTextStream out(stdout);
+
 		//prepare SQL queries
 		SqlQuery qi_obs = db.getQuery();
 		qi_obs.prepare("INSERT INTO hpo_obsolete (hpo_id, name, definition, replaced_by) VALUES (:0, :1, :2, :3);");
@@ -273,6 +274,7 @@ public:
 		SqlQuery qi_parent = db.getQuery();
 		qi_parent.prepare("INSERT INTO hpo_parent (parent, child) VALUES (:0, :1);");
 
+		//import terms
 		QHash<QByteArray, int> id2ngsd;
 		OntologyTermCollection terms(getInfile("obo"), false);
 		for (int i=0; i<terms.size(); ++i)
@@ -289,6 +291,11 @@ public:
 			id2ngsd.insert(term.id(), qi_term.lastInsertId().toInt());
 		}
         out << "Imported " << id2ngsd.count() << " non-obsolete HPO terms." << Qt::endl;
+
+		//add DB import info
+		QString version = terms.version();
+		version.replace("hp/", "").replace("releases/", "");
+		db.setDatabaseInfo("HPO", version);
 
 		//insert parent-child relations between (valid) terms
 		int c_ins_parent = 0;

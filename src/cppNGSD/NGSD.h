@@ -1246,6 +1246,8 @@ public:
 	///Returns the (sorted) list of studies of a processed sample
 	QStringList studies(const QString& processed_sample_id);
 
+	///Sets database version of a data source imported into NGSD
+	void setDatabaseInfo(QString name, QString version, QDate import_date = QDate::currentDate());
 
 	//clearCache() should only be called outside of NGSD for tests!
 	void clearCache();

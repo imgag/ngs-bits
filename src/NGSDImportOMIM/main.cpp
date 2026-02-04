@@ -57,12 +57,22 @@ public:
 
 		//import genes
         out << "Importing OMIM genes..." << Qt::endl;
+		QString version = "";
 		QMap<QByteArray, QByteArray> mim2gene_id;
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("gene"));
 		while(!fp->atEnd())
 		{
 			QByteArray line = fp->readLine().trimmed();
-			if (line.isEmpty() || line[0]=='#') continue;
+			if (line.isEmpty()) continue;
+
+			if (line[0]=='#')
+			{
+				if (line.startsWith("# Generated:"))
+				{
+					version = line.mid(12).trimmed();
+				}
+				continue;
+			}
 
 			QByteArrayList parts = line.split('\t'); //mim, type, NCBI ID, HGNC symbol, Ensembl ID
 			if (parts.count()<4) continue;
@@ -127,11 +137,13 @@ public:
 		}
 		fp->close();
 
-
 		//output
         out << "Imported " << db.getValue("SELECT COUNT(*) FROM omim_phenotype").toInt() << " phenotypes" << Qt::endl;
 		int c_genes_pheno = db.getValues("SELECT DISTINCT omim_gene_id FROM omim_phenotype").count();
         out << c_genes_pheno << " out of the " << c_genes << " genes have phenotype information" << Qt::endl;
+
+		//add DB import info
+		db.setDatabaseInfo("OMIM", version);
 	}
 };
 

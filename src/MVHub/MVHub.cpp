@@ -1198,7 +1198,7 @@ int MVHub::updateHpoTerms(int debug_level)
 								"		<redcap_repeat_instrument><![CDATA[hpo]]></redcap_repeat_instrument>"
 								"		<redcap_repeat_instance><![CDATA[new]]></redcap_repeat_instance>"
 								"		<hpo><![CDATA[" + hpo.accession() + "]]></hpo>"
-								"		<version_hpo><![CDATA[2025-03-03]]></version_hpo>"
+								"		<version_hpo><![CDATA["+db.getValue("SELECT version FROM db_import_info WHERE name='HPO'").toByteArray()+"]]></version_hpo>"
 								"		<beginn_symptome_nb___000_01><![CDATA[1]]></beginn_symptome_nb___000_01>"
 								"		<hpo_complete><![CDATA[2]]></hpo_complete>"
 								"	</item>"

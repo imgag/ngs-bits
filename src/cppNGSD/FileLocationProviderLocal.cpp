@@ -366,20 +366,36 @@ FileLocationList FileLocationProviderLocal::getRohFiles(bool return_if_missing) 
 
 FileLocation FileLocationProviderLocal::getSomaticCnvCoverageFile() const
 {
-	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
-	QString file = ps_folder_ + ps_ + "_cov.seg";
+    QString file;
+    if (analysis_type_ == SOMATIC_SINGLESAMPLE)
+    {
+        file = ps_folder_ + ps_ + "_clincnv.seg";
+    }
+    else
+    {
+        file = ps_folder_ + ps_ + + "_cov.seg";
+    }
 
-	return FileLocation{ps_ + " (coverage)", PathType::COPY_NUMBER_RAW_DATA, file, QFile::exists(file)};
+    return FileLocation{ps_ + " (coverage)", PathType::COPY_NUMBER_RAW_DATA, file, QFile::exists(file)};
 }
 
 FileLocation FileLocationProviderLocal::getSomaticCnvCallFile() const
 {
-	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCallFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCallFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
-	QString file = ps_folder_ + ps_ + "_cnvs.seg";
+    QString file;
+    if (analysis_type_ == SOMATIC_SINGLESAMPLE)
+    {
+        file = ps_folder_ + ps_ + + "_clincnv_cnvs.seg";
+    }
+    else
+    {
+        file = ps_folder_ + ps_ + + "_cnvs.seg";
+    }
 
-	return FileLocation{ps_ + " (copy number)", PathType::CNV_RAW_DATA_CALL_REGIONS, file, QFile::exists(file)};
+    return FileLocation{ps_ + " (copy number)", PathType::CNV_RAW_DATA_CALL_REGIONS, file, QFile::exists(file)};
 }
 
 FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
@@ -469,12 +485,12 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 {
     QList<KeyValuePair> output;
 
-    if (analysis_type_==GERMLINE_SINGLESAMPLE || analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==CFDNA)
+    if (analysis_type_==GERMLINE_SINGLESAMPLE || analysis_type_==CFDNA)
     {
         QString id = header_info_.begin()->name;
 		output << KeyValuePair(id, ps_folder_ + id);
     }
-    else if (analysis_type_==GERMLINE_TRIO || analysis_type_==GERMLINE_MULTISAMPLE || analysis_type_==SOMATIC_PAIR)
+    else if (analysis_type_==GERMLINE_TRIO || analysis_type_==GERMLINE_MULTISAMPLE || analysis_type_==SOMATIC_PAIR || analysis_type_==SOMATIC_SINGLESAMPLE)
     {
         QString project_folder = getProjectPath();
 

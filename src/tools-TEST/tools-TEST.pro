@@ -176,4 +176,5 @@ SOURCES += \
     GenlabInfo_Test.cpp \
     NGSDImportCSpec_Test.cpp \
     TsvAnnotate_Test.cpp \
+    NGSDImportOncotree_Test.cpp \
     main.cpp

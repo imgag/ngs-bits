@@ -37,7 +37,7 @@
             <TranscriptInformation transcript_id="ENST00000478300" gene="SYNPR" type="intron_variant" hgvs_c="c.600+2390G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000479198" gene="SYNPR" type="intron_variant" hgvs_c="c.*11+1153G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>
         </Variant>
-        <Variant chr="chr3" start="69964940" end="69964940" ref="G" obs="A" allele_frequency="0.4763" depth="1390" germline_class="4" somatic_class="activating">
+        <Variant chr="chr3" start="69964940" end="69964940" ref="G" obs="A" allele_frequency="0.4763" depth="1390" germline_class="4" somatic_class="LIKELY_ONCOGENIC">
             <Gene name="MITF" id="HGNC:7105">
                 <IsOncoGene source="Network of Cancer Genes" source_version="6.0"/>
             </Gene>

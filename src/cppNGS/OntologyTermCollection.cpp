@@ -49,6 +49,12 @@ OntologyTermCollection::OntologyTermCollection(QString filename, bool skip_obsol
 		OntologyTerm temp;
 		QByteArray line = fp->readLine().trimmed();
 
+		//parse version
+		if (line.startsWith("data-version:"))
+		{
+			version_ = line.mid(13).trimmed();
+		}
+
 		//A new set of terms always begins with [Term] followed by a set of tag:value pairs
 		if(line == "[Term]")
 		{
@@ -128,7 +134,7 @@ void OntologyTermCollection::add(const OntologyTerm& term)
 	ontology_terms_.append(term);
 }
 
-const OntologyTerm& OntologyTermCollection::getByID(const QByteArray& id)
+const OntologyTerm& OntologyTermCollection::getByID(const QByteArray& id) const
 {
 	foreach(const OntologyTerm& term, ontology_terms_)
 	{
@@ -140,7 +146,7 @@ const OntologyTerm& OntologyTermCollection::getByID(const QByteArray& id)
 	THROW(ArgumentException, "OntologyTermCollection::getByID: No term with id '" + id + "' found.");
 }
 
-bool OntologyTermCollection::containsByID(const QByteArray& id)
+bool OntologyTermCollection::containsByID(const QByteArray& id) const
 {
 	foreach(const OntologyTerm& term, ontology_terms_)
 	{
@@ -164,7 +170,7 @@ bool OntologyTermCollection::containsByName(const QByteArray& name) const
 	return false;
 }
 
-const OntologyTerm& OntologyTermCollection::get(int index)
+const OntologyTerm& OntologyTermCollection::get(int index) const
 {
 	if (index<0 || index>=size())
 	{
@@ -174,7 +180,7 @@ const OntologyTerm& OntologyTermCollection::get(int index)
 	return ontology_terms_[index];
 }
 
-QList<QByteArray> OntologyTermCollection::childIDs(const QByteArray& term_id, bool recursive)
+QList<QByteArray> OntologyTermCollection::childIDs(const QByteArray& term_id, bool recursive) const
 {
 	QList<QByteArray> ids;
 	foreach(const OntologyTerm& term, ontology_terms_)
