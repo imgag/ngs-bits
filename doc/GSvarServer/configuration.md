@@ -42,54 +42,6 @@ These are the seettings for the database:
 * `gsvar_server_db_user` - database user name
 * `gsvar_server_db_pass` - database user password
 
-## Using queuing engine HTTP API
-
-The endpoint can perform the actions listed below. For each action you will need to submit a JSON object formatted in a specific way:
-
-1. `submit` (**POST** request) - Submits a new job
-    
-    ```
-    {
-        "action": "submit",
-        "threads": number of threads to be used for running the analyisis,
-        "queues": [list of queues],
-        "script": pipeline script,
-        "pipeline_args": [list of command line arguments for the pipeline script],
-        "project_folder": project folder where the sample is stored,
-        "job_id": id from the analysis_job table in NGSD database (used by GSvar)
-    }
-    ```
-
-2. `update` (**POST** request) - Updates the status of a running job
-    ```
-    {
-        "action": "update",
-        "qe_job_id": queuing engine job id,
-        "qe_job_queue": queuing engine job queue,
-        "job_id": id from the analysis_job table in NGSD database
-    }
-    ```
-
-3. `check` (**POST** request) - Performs job accounting after completion
-    ```
-    {
-        "action": "check",
-        "qe_job_id": queuing engine job id,
-        "stdout_stderr": standard output that contains error messages (if there were errors),
-        "job_id": id from the analysis_job table in NGSD database
-    }
-    ```
-
-4. `delete` (**POST** request) - Deletes a job
-    ```
-    {
-        "action": "delete",
-        "qe_job_id": queuing engine job id,
-        "qe_job_type": queuing engine job type (single sample/trio/multi sample/somatic),
-        "job_id": id from the analysis_job table in NGSD database
-    }
-    ```
-
 ## Configuring GSvar
 
 To enable the communincation of the GSvar client with the GSvarServer, you have to adapt the `GSvar.ini` file of the client as well.  

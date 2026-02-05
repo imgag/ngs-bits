@@ -68,6 +68,10 @@ It is actually a good way to check, if the server is running. Web UI provides an
 
 Please see [Running a development server](development/development_instance.md).
 
+### Is it possible to commuincate with the queuing engine via some HTTP API?
+
+Yes, asolutely. To learn how to do it, please read the corresponding section from the [development documentation](development/qe_api.md).
+
 ### It looks like the server uses HTTPS. How do I deal with the SSL certificates?
 
 Yes, `GSvarServer` supports only HTTPS protocol and you will need to configure the server to use a SSL certificate. There are multiple ways to get one, we recommend acquiring certificates through [Let's Encrypt](https://letsencrypt.org/getting-started/)
