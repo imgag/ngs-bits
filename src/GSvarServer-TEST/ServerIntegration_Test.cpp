@@ -500,7 +500,7 @@ private:
 		int api_server_port = api_server_url.port();
 
 		BasicServer server(api_server_port);
-		server.addRoute("/info",  QHttpServerRequest::Method::Get, [] (const QHttpServerRequest &req) {
+		server.addRoute("/info",  QHttpServerRequest::Method::Get, [] () {
 			QJsonObject obj{
 				{"info", "This is a test"}
 			};

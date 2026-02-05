@@ -23,7 +23,8 @@ int findBlatPid()
     std::string cmd = "pidof -s gfServer";
     std::array<char, 128> buffer{};
 
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+	auto deleter = [](FILE* f) { if (f) pclose(f); };
+	std::unique_ptr<FILE, decltype(deleter)> pipe(popen(cmd.c_str(), "r"), deleter);
     if (!pipe) return -1;
 
     if (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
