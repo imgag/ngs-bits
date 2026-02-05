@@ -1907,7 +1907,7 @@ int NGSD::repeatExpansionGenotypeId(int repeat_expansion_id, int processed_sampl
 RepeatLocus NGSD::repeatExpansionGenotype(int id)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT re.region, re.repeat_unit, reg.allele1, reg.allele1 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
+	query.prepare("SELECT re.region, re.repeat_unit, reg.allele1, reg.allele2 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
 	query.bindValue(0, id);
 	query.exec();
 
