@@ -1,0 +1,57 @@
+# Using queuing engine HTTP API
+
+We have created `QueuingEngineControllerGeneric` class to allow working with a remote queuing engine via a simple HTTP API. Using this class you can send commands to the server defined in `qe_api_base_url` configuration parameter. Such a server should have an endpoint that accepts **POST** requests containing specific JSON objects. 4 actions are supported at the moment: submit, update, check, and delete. For each of them there is a predefined JSON object format:
+
+1. `submit` (**POST** request) - Submits a new job
+    
+    ```
+    {
+        "action": "submit",
+        "threads": number of threads to be used for running the analyisis,
+        "queues": [list of queues],
+        "script": pipeline script,
+        "pipeline_args": [list of command line arguments for the pipeline script],
+        "project_folder": project folder where the sample is stored,
+        "job_id": id from the analysis_job table in NGSD database (used by GSvar)
+    }
+    ```
+    __return code__ 200 - success
+
+2. `update` (**POST** request) - Updates the status of a running job
+    ```
+    {
+        "action": "update",
+        "qe_job_id": queuing engine job id,
+        "qe_job_queue": queuing engine job queue,
+        "job_id": id from the analysis_job table in NGSD database
+    }
+    ```
+    __return code__ 200 - job is finished, 201 - job is queued/running
+
+3. `check` (**POST** request) - Performs job accounting after completion
+    ```
+    {
+        "action": "check",
+        "qe_job_id": queuing engine job id,
+        "stdout_stderr": standard output that contains error messages (if there were errors),
+        "job_id": id from the analysis_job table in NGSD database
+    }
+    ```
+     __return code__ 200 - success
+
+4. `delete` (**POST** request) - Deletes a job
+    ```
+    {
+        "action": "delete",
+        "qe_job_id": queuing engine job id,
+        "qe_job_type": queuing engine job type (single sample/trio/multi sample/somatic),
+        "job_id": id from the analysis_job table in NGSD database
+    }
+    ```
+     __return code__ 200 - success
+     
+Please pay attention to the HTTP codes returned by the endpoint.
+
+--
+
+[back to main page](index.md)
