@@ -54,4 +54,4 @@ Please pay attention to the HTTP codes returned by the endpoint.
 
 --
 
-[back to main page](index.md)
+[back to main page](../index.md)
