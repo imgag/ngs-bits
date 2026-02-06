@@ -1,6 +1,6 @@
 # Using queuing engine HTTP API
 
-We have created `QueuingEngineControllerGeneric` class to allow working with a remote queuing engine via a simple HTTP API. Using this class you can send commands to the server defined in `qe_api_base_url` configuration parameter. Such a server should have an endpoint that accepts **POST** requests containing specific JSON objects. 4 actions are supported at the moment: submit, update, check, and delete. For each of them there is a predefined JSON object format:
+We have created `QueuingEngineControllerGeneric` class to allow working with a remote queuing engine via a simple HTTP API. Using this class, you can send commands to the server defined in `qe_api_base_url` configuration parameter. In addition to that, you need to set `qe_secure_token`, an authentication token for the API server (issued and validated by the very same server), to be able to access the API. Such a server should have an endpoint that accepts **POST** requests containing specific JSON objects. 4 actions are supported at the moment: submit, update, check, and delete. For each of them there is a predefined JSON object format:
 
 1. `submit` (**POST** request) - Submits a new job
     
