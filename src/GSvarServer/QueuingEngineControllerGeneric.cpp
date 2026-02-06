@@ -37,6 +37,7 @@ QueuingEngineControllerGeneric::QueuingEngineControllerGeneric()
 	}
 
 	qe_api_base_url_ = Settings::string("qe_api_base_url", true);
+	secure_token_ = Settings::string("qe_secure_token", true);
 }
 
 QString QueuingEngineControllerGeneric::getEngineName() const
@@ -54,10 +55,10 @@ void QueuingEngineControllerGeneric::submitJob(NGSD &/*db*/, int threads, QStrin
 
 	try
 	{
-		int status_code = QueuingEngineApiHelper(qe_api_base_url_, proxy_).submitJob(threads, queues, pipeline_args, project_folder, script, job_id);
-		if (status_code!=200)
+		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).submitJob(threads, queues, pipeline_args, project_folder, script, job_id);
+		if (reply.status_code!=200)
 		{
-			Log::error("There has been an error while submitting a job, response code: " + QString::number(status_code));
+			Log::error("There has been an error while submitting a job, response code: " + QString::number(reply.status_code));
 		}
 	}
 	catch(Exception e)
@@ -77,18 +78,18 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &/*db*/, const Analys
 
 	try
 	{
-		int status_code = QueuingEngineApiHelper(qe_api_base_url_, proxy_).updateRunningJob(job.sge_id, job.sge_queue, job_id);
-		if (status_code==200)
+		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).updateRunningJob(job.sge_id, job.sge_queue, job_id);
+		if (reply.status_code==200)
 		{
 			job_finished = true; // OK - the job is finished
 		}
-		else if (status_code==201) // CREATED - the job is queued/running
+		else if (reply.status_code==201) // CREATED - the job is queued/running
 		{
 			job_finished = false;
 		}
 		else
 		{
-			Log::error("There has been an error while updating a job, response code: " + QString::number(status_code));
+			Log::error("There has been an error while updating a job, response code: " + QString::number(reply.status_code));
 		}
 	}
 	catch(Exception e)
@@ -110,10 +111,10 @@ void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &/*db*/, QString qe_
 
 	try
 	{
-		int status_code = QueuingEngineApiHelper(qe_api_base_url_, proxy_).checkCompletedJob(qe_job_id, stdout_stderr, job_id);
-		if (status_code!=200)
+		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).checkCompletedJob(qe_job_id, stdout_stderr, job_id);
+		if (reply.status_code!=200)
 		{
-			Log::error("There has been an error while checking a completed job, response code: " + QString::number(status_code));
+			Log::error("There has been an error while checking a completed job, response code: " + QString::number(reply.status_code));
 		}
 	}
 	catch(Exception e)
@@ -132,10 +133,10 @@ void QueuingEngineControllerGeneric::deleteJob(NGSD &/*db*/, const AnalysisJob &
 
 	try
 	{
-		int status_code = QueuingEngineApiHelper(qe_api_base_url_, proxy_).deleteJob(job.sge_id, job.type, job_id);
-		if (status_code!=200)
+		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).deleteJob(job.sge_id, job.type, job_id);
+		if (reply.status_code!=200)
 		{
-			Log::error("There has been an error while deleting a job, response code: " + QString::number(status_code));
+			Log::error("There has been an error while deleting a job, response code: " + QString::number(reply.status_code));
 		}
 	}
 	catch(Exception e)

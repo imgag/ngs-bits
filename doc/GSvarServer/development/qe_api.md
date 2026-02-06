@@ -7,6 +7,7 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
     ```
     {
         "action": "submit",
+        "token": "security token to allow the action",
         "threads": number of threads to be used for running the analyisis,
         "queues": [list of queues],
         "script": pipeline script,
@@ -15,42 +16,53 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
         "job_id": id from the analysis_job table in NGSD database (used by GSvar)
     }
     ```
-    __return code__ 200 - success
+    __returns__ JSON object {"message": "some text on succes or error message on failure"}
+
+    __http status code__ 200 - success
 
 2. `update` (**POST** request) - Updates the status of a running job
     ```
     {
         "action": "update",
+        "token": "security token to allow the action",
         "qe_job_id": queuing engine job id,
         "qe_job_queue": queuing engine job queue,
         "job_id": id from the analysis_job table in NGSD database
     }
     ```
-    __return code__ 200 - job is finished, 201 - job is queued/running
+    __returns__ JSON object {"message": "some text on succes or error message on failure"}
+    
+    __http status code__ 200 - job is finished, 201 - job is queued/running
 
 3. `check` (**POST** request) - Performs job accounting after completion
     ```
     {
         "action": "check",
+        "token": "security token to allow the action",
         "qe_job_id": queuing engine job id,
         "stdout_stderr": standard output that contains error messages (if there were errors),
         "job_id": id from the analysis_job table in NGSD database
     }
     ```
-     __return code__ 200 - success
+    __returns__ JSON object {"message": "some text on succes or error message on failure"}
+
+    __http status code__ 200 - success
 
 4. `delete` (**POST** request) - Deletes a job
     ```
     {
         "action": "delete",
+        "token": "security token to allow the action",
         "qe_job_id": queuing engine job id,
         "qe_job_type": queuing engine job type (single sample/trio/multi sample/somatic),
         "job_id": id from the analysis_job table in NGSD database
     }
     ```
-     __return code__ 200 - success
+    __returns__ JSON object {"message": "some text on succes or error message on failure"}
+
+    __http status code__ 200 - success
      
-Please pay attention to the HTTP codes returned by the endpoint.
+Please pay attention to the HTTP codes and to error messages returned by the endpoint. It will help to process the output correctly.
 
 --
 

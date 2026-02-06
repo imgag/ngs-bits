@@ -16,42 +16,40 @@
 #include <QJsonObject>
 #include <QNetworkProxy>
 
-int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
+ServerReply sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
-    int status_code;
+	ServerReply server_reply;
     try
 	{
-        ServerReply server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers);
-        reply = server_reply.body;
-        status_code = server_reply.status_code;
+		server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers);
+		reply = server_reply.body;
 	}
     catch(HttpException& e)
     {
-        reply = e.body();
-        status_code = e.status_code();
-
-		Log::error(e.message());
+		server_reply.body = e.body();
+		server_reply.headers = e.headers();
+		server_reply.status_code = e.status_code();
+		Log::error(e.message() + ": code " + QString::number(e.status_code()));
 	}
-    return status_code;
+	return server_reply;
 }
 
-int sendPostRequest(QByteArray& reply, QString url, QByteArray data, HttpHeaders headers)
+ServerReply sendPostRequest(QByteArray& reply, QString url, QByteArray data, HttpHeaders headers)
 {
-	int status_code;
+	ServerReply server_reply;
 	try
 	{
-		ServerReply server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers);
+		server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers);
 		reply = server_reply.body;
-		status_code = server_reply.status_code;
 	}
 	catch(HttpException& e)
 	{
-		reply = e.body();
-		status_code = e.status_code();
-
-		Log::error(e.message());
+		server_reply.body = e.body();
+		server_reply.headers = e.headers();
+		server_reply.status_code = e.status_code();
+		Log::error(e.message() + ": code " + QString::number(e.status_code()));
 	}
-	return status_code;
+	return server_reply;
 }
 
 TEST_CLASS(Server_Integration_Test)
@@ -70,7 +68,7 @@ private:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -90,7 +88,7 @@ private:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=114-140,399-430");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -112,7 +110,7 @@ private:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=461-");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -133,7 +131,7 @@ private:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -186,13 +184,13 @@ private:
 		add_headers.clear();
 		add_headers.insert("Accept", "application/json");
         add_headers.insert("Content-Type", "application/json");
-		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session?token=" + token, add_headers);
+		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session?token=" + token, add_headers).status_code;
 		QJsonDocument session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 
 		reply.clear();
 		add_headers.insert("Authorization", "Bearer "+token.toUtf8());
-		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session", add_headers);
+		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session", add_headers).status_code;
 		session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 		bool is_db_token = session_json.object().value("is_db_token").toBool();
@@ -212,7 +210,7 @@ private:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/octet-stream");
         add_headers.insert("Content-Type", "application/octet-stream");
-		int code = sendGetRequest(reply, filename, add_headers);
+		int code = sendGetRequest(reply, filename, add_headers).status_code;
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -235,7 +233,7 @@ private:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
         add_headers.insert("Content-Type", "application/json");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "info", add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "info", add_headers).status_code;
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -262,7 +260,7 @@ private:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
         add_headers.insert("Content-Type", "application/json");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "current_client", add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "current_client", add_headers).status_code;
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -285,7 +283,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -316,7 +314,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -351,7 +349,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -381,7 +379,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -420,7 +418,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -464,7 +462,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-        int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -505,19 +503,36 @@ private:
 				{"info", "This is a test"}
 			};
 
-			return QHttpServerResponse(
-				"application/json",
-				QJsonDocument(obj).toJson(QJsonDocument::Compact)
-			);
+			return QHttpServerResponse("application/json", QJsonDocument(obj).toJson(QJsonDocument::Compact));
 		});
 
 		server.addRoute("/jobs",  QHttpServerRequest::Method::Post, [] (const QHttpServerRequest &req) {
 			QJsonDocument doc = QJsonDocument::fromJson(req.body());
-			if (!doc.isObject()) THROW(Exception, "Your input is not a valid JSON object");
+			QJsonObject error_reply;
+
+
+			if (!doc.isObject())
+			{
+				error_reply.insert("message", "Your input is not a valid JSON object");
+				return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::InternalServerError);
+			}
 			QJsonObject top_level_obj = doc.object();
-			if (!top_level_obj.contains("action")) THROW(Exception, "Action is not specified");
+			if (!top_level_obj.contains("action"))
+			{
+				error_reply.insert("message", "Action is not specified");
+				return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::InternalServerError);
+			}
+			if (!top_level_obj.contains("token"))
+			{
+				error_reply.insert("message", "Secutiry token has not been provided");
+				return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::Unauthorized);
+			}
 			QStringList allowed_actions = QStringList() << "submit" << "update" << "check" << "delete";
-			if (!allowed_actions.contains(top_level_obj.value("action").toString())) THROW(Exception, "Action '" + top_level_obj.value("action").toString() + "' is not allowed");
+			if (!allowed_actions.contains(top_level_obj.value("action").toString()))
+			{
+				error_reply.insert("message", "Action '" + top_level_obj.value("action").toString() + "' is not allowed");
+				return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::InternalServerError);
+			}
 
 			QStringList required_fields;
 			if (top_level_obj.value("action").toString() == "submit")
@@ -542,16 +557,22 @@ private:
 
 			for (QString field: required_fields)
 			{
-				if (!top_level_obj.contains(field)) THROW(Exception, "JSON does not contain '" + field + "' field");
+				if (!top_level_obj.contains(field))
+				{
+					error_reply.insert("message", "JSON does not contain '" + field + "' field");
+					return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::InternalServerError);
+				}
 			}
 
-			return QHttpServerResponse(
-				"application/json",
-				QJsonDocument::fromJson(req.body()).toJson(QJsonDocument::Compact));
+			QJsonObject success_reply;
+			success_reply.insert("message", top_level_obj.value("action").toString() + " action has been successful!");
+			return QHttpServerResponse("application/json", QJsonDocument(success_reply).toJson(QJsonDocument::Compact));
 		});
 
 		QByteArray reply;
-		int status_code = sendGetRequest(reply, api_server_url.toString() + "/info", HttpHeaders{});
+
+		ServerReply api_reply = sendGetRequest(reply, api_server_url.toString() + "/info", HttpHeaders{});
+		int status_code = api_reply.status_code;
 		I_EQUAL(status_code, 200);
 
 		QJsonDocument response_doc = QJsonDocument::fromJson(reply);
@@ -565,22 +586,73 @@ private:
 		QString project_folder = "CurrentProject";
 		QString script = "pipeline.php";
 		int job_id = 123;
+		QString security_token = "random_characters";
 
-		QueuingEngineApiHelper api_helper = QueuingEngineApiHelper(api_server_url.toString() + "/jobs", QNetworkProxy::NoProxy);
-		status_code = api_helper.submitJob(threads, queues, pipeline_args, project_folder, script, job_id);
+		QueuingEngineApiHelper api_helper = QueuingEngineApiHelper(api_server_url.toString() + "/jobs", QNetworkProxy::NoProxy, security_token);
+		status_code = api_helper.submitJob(threads, queues, pipeline_args, project_folder, script, job_id).status_code;
 		I_EQUAL(status_code, 200);
 
 		QString qe_job_id = "qe_job_id_1";
 		QString qe_job_queue = "qe_job_queue_1";
-		status_code = api_helper.updateRunningJob(qe_job_id, qe_job_queue, job_id);
+		status_code = api_helper.updateRunningJob(qe_job_id, qe_job_queue, job_id).status_code;
 		I_EQUAL(status_code, 200);
 
+		QJsonDocument json_doc_output;
+		QJsonObject top_level_json_object;
+		top_level_json_object.insert("action", "fake");
+		top_level_json_object.insert("token", security_token);
+		top_level_json_object.insert("qe_job_id", qe_job_id);
+		top_level_json_object.insert("qe_job_queue", qe_job_queue);
+		top_level_json_object.insert("job_id", job_id);
+		json_doc_output.setObject(top_level_json_object);
+		HttpHeaders add_headers;
+		add_headers.insert("Content-Type", "application/json");
+		IS_THROWN(HttpException, HttpRequestHandler(QNetworkProxy::NoProxy).post(api_server_url.toString() + "/jobs", json_doc_output.toJson(), add_headers));
+
+		ServerReply error_reply;
+		try
+		{
+			error_reply = HttpRequestHandler(QNetworkProxy::NoProxy).post(api_server_url.toString() + "/jobs", json_doc_output.toJson(), add_headers);
+		}
+		catch(HttpException& e)
+		{
+			error_reply.body = e.body();
+			error_reply.headers = e.headers();
+			error_reply.status_code = e.status_code();
+		}
+		I_EQUAL(error_reply.status_code, 500);
+		IS_TRUE(error_reply.body.contains("fake"));
+		QJsonDocument error_response_doc = QJsonDocument::fromJson(error_reply.body);
+		IS_TRUE(error_response_doc.isObject());
+		IS_TRUE(error_response_doc.object().contains("message"));
+
+		QJsonDocument json_doc_secure_output;
+		QJsonObject top_level_secure_json_object;
+		top_level_secure_json_object.insert("action", "fake");
+		json_doc_secure_output.setObject(top_level_secure_json_object);
+		try
+		{
+			error_reply = HttpRequestHandler(QNetworkProxy::NoProxy).post(api_server_url.toString() + "/jobs", json_doc_secure_output.toJson(), add_headers);
+		}
+		catch(HttpException& e)
+		{
+			error_reply.body = e.body();
+			error_reply.headers = e.headers();
+			error_reply.status_code = e.status_code();
+		}
+		I_EQUAL(error_reply.status_code, 401);
+
 		QByteArrayList stdout_stderr;
-		status_code = api_helper.checkCompletedJob(qe_job_id, stdout_stderr, job_id);
+		status_code = api_helper.checkCompletedJob(qe_job_id, stdout_stderr, job_id).status_code;
 		I_EQUAL(status_code, 200);
 
 		QString qe_job_type = "job_type";
-		status_code = api_helper.deleteJob(qe_job_id, qe_job_type, job_id);
+		ServerReply delete_reply = api_helper.deleteJob(qe_job_id, qe_job_type, job_id);
+		response_doc = QJsonDocument::fromJson(delete_reply.body);
+		IS_TRUE(response_doc.isObject());
+		IS_TRUE(response_doc.object().contains("message"));
+
+		status_code = delete_reply.status_code;
 		I_EQUAL(status_code, 200);
 
 	}
