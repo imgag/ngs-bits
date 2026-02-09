@@ -58,6 +58,7 @@ SOURCES += \
     FastaMask_Test.cpp \
     BedIntersect_Test.cpp \
     SampleSimilarity_Test.cpp \
+    SampleIdentity_Test.cpp \
     GenesToApproved_Test.cpp \
     BedAnnotateFreq_Test.cpp \
     GenesToBed_Test.cpp \
