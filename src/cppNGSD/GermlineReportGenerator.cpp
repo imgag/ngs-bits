@@ -2,7 +2,6 @@
 #include "Helper.h"
 #include "Settings.h"
 #include "Log.h"
-#include "Statistics.h"
 #include "LoginManager.h"
 #include "VariantHgvsAnnotator.h"
 #include <QCoreApplication>
@@ -55,7 +54,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	bool is_multi_with_extra_genotypes = data_.variants.type()==GERMLINE_MULTISAMPLE && !data_.report_settings.ps_additional.isEmpty();
 	if (is_multi_with_extra_genotypes)
 	{
-        for (QString ps : data_.report_settings.ps_additional)
+		for (const QString& ps : data_.report_settings.ps_additional)
 		{
 			info_additional <<  data_.variants.getSampleHeader().infoByID(ps);
 		}
@@ -82,7 +81,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (is_multi_with_extra_genotypes)
 	{
 		stream << "<br />" << Qt::endl;
-        for (const SampleInfo& info : info_additional)
+		for (const SampleInfo& info : std::as_const(info_additional))
 		{
 			stream << "<br />" << trans("Zusatzprobe") << ": "  << info.name << Qt::endl;
 		}
@@ -109,12 +108,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << Qt::endl;
 	stream << "<p><b>" << trans("Ph&auml;notyp") << "</b>" << Qt::endl;
 	QList<SampleDiseaseInfo> info = db_.getSampleDiseaseInfo(sample_id, "ICD10 code");
-    for (const SampleDiseaseInfo& entry : info)
+	for (const SampleDiseaseInfo& entry : std::as_const(info))
 	{
 		stream << "<br />ICD10: " << entry.disease_info << Qt::endl;
 	}
 	info = db_.getSampleDiseaseInfo(sample_id, "HPO term id");
-    for (const SampleDiseaseInfo& entry : info)
+	for (const SampleDiseaseInfo& entry : std::as_const(info))
 	{
 		int hpo_id = db_.phenotypeIdByAccession(entry.disease_info.toUtf8(), false);
 		if (hpo_id!=-1)
@@ -123,12 +122,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		}
 	}
 	info = db_.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
-    for (const SampleDiseaseInfo& entry : info)
+	for (const SampleDiseaseInfo& entry : std::as_const(info))
 	{
 		stream << "<br />OMIM: " << entry.disease_info << Qt::endl;
 	}
 	info = db_.getSampleDiseaseInfo(sample_id, "Orpha number");
-    for (const SampleDiseaseInfo& entry : info)
+	for (const SampleDiseaseInfo& entry : std::as_const(info))
 	{
 		stream << "<br />Orphanet: " << entry.disease_info << Qt::endl;
 	}
@@ -216,7 +215,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}
 	if (is_multi_with_extra_genotypes)
 	{
-        for (const SampleInfo& info : info_additional)
+		for (const SampleInfo& info : std::as_const(info_additional))
 		{
 			stream << "<td><b>" << trans("Genotyp") << " " << info.name << "</b></td>";
 		}
@@ -246,7 +245,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		}
 		if (is_multi_with_extra_genotypes)
 		{
-            for (const SampleInfo& info : info_additional)
+			for (const SampleInfo& info : std::as_const(info_additional))
 			{
 				stream << "<td>" << formatGenotype(data_.build, info.gender(), variant.annotations().at(info.column_index), variant) << "</td>";
 			}
@@ -292,7 +291,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (omim!="")
 		{
 			QStringList omim_parts = omim.append(" ").split("]; ");
-            for (QString omim_part : omim_parts)
+			for (const QString& omim_part : std::as_const(omim_parts))
 			{
                 if (omim_part.size()<10) continue;
 				omim = "OMIM ID: " + omim_part.left(6) + " Details: " + omim_part.mid(8);
@@ -587,7 +586,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			GeneSet genes_without_roi;
 			TargetRegionInfo exon_roi;
 			exon_roi.genes = data_.roi.genes;
-            for (const QByteArray& gene : exon_roi.genes)
+			for (const QByteArray& gene : std::as_const(exon_roi.genes))
 			{
 				int gene_id = db_.geneId(gene);
 				if (gene_id==-1)
@@ -602,7 +601,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					genes_without_roi << gene;
 					continue;
 				}
-                for (const Transcript& transcript : transcripts)
+				for (const Transcript& transcript : std::as_const(transcripts))
 				{
 					exon_roi.regions.add(transcript.isCoding() ? transcript.codingRegions() : transcript.regions());
 				}
@@ -646,7 +645,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			if (sample_data.disease_group!="n/a") preferred_phenotype_accession = db_.omimPreferredPhenotype(gene, sample_data.disease_group.toUtf8());
 
 			QList<OmimInfo> omim_infos = db_.omimInfo(gene);
-            for (const OmimInfo& omim_info : omim_infos)
+			for (const OmimInfo& omim_info : std::as_const(omim_infos))
 			{
 				QString preferred_phenotype_name ="";
 				QStringList names;
@@ -706,7 +705,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (data_.prs.count()>0)
 	{
 		stream << Qt::endl;
-		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b></p>" << Qt::endl;
+		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << (Settings::string("location", true)=="UKT" ? "*" : "") << "</b></p>" << Qt::endl;
 		stream << "<table>" << Qt::endl;
 		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>PRS</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << Qt::endl;
 		int id_idx = data_.prs.columnIndex("pgs_id");
@@ -774,6 +773,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		}
 		stream << "</table>" << Qt::endl;
 		stream << "<p>" << trans("Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs).") << "</p>" << Qt::endl;
+		if (Settings::string("location", true)=="UKT")
+		{
+			stream << "<p>" << trans("*Diese Analyse ist nicht Teil des Akkreditierungsumfangs.") << "</p>" << Qt::endl;
+		}
 	}
 
 	//close stream
@@ -821,7 +824,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	QHash<Chromosome, QString> table = NGSHelper::chromosomeMapping(data_.build);
 	QList<Chromosome> chr_list = table.keys();
 	std::sort(chr_list.begin(), chr_list.end());
-    for (const Chromosome& key : chr_list)
+	for (const Chromosome& key : std::as_const(chr_list))
 	{
 		w.writeStartElement("Chromosome");
 		w.writeAttribute("chr", key.str());
@@ -933,7 +936,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 			//omim info
 			QList<OmimInfo> omim_infos = db_.omimInfo(gene);
-            for (const OmimInfo& omim_info : omim_infos)
+			for (const OmimInfo& omim_info : std::as_const(omim_infos))
 			{
                 for (const Phenotype& pheno : omim_info.phenotypes)
 				{
@@ -1000,7 +1003,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		double allele_frequency = 0.0;
 		int depth = 0;
 		AnalysisType type = data_.variants.type();
-        for (QByteArray entry : variant.annotations()[qual_idx].split(';'))
+		for (const QByteArray& entry : variant.annotations()[qual_idx].split(';'))
 		{
 			if(entry.startsWith("AF="))
 			{
@@ -1079,7 +1082,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 			//annotate consequence to transcript
 			VariantHgvsAnnotator hgvs_annotator(genome_idx_);
-            for (const Transcript& trans : transcripts)
+			for (const Transcript& trans : std::as_const(transcripts))
 			{
 				VariantConsequence hgvs = hgvs_annotator.annotate(trans, variant);
 				VariantTranscript consequence;
@@ -1102,7 +1105,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 
 		GeneSet genes;
-        for (const VariantTranscript& trans : transcript_infos)
+		for (const VariantTranscript& trans : std::as_const(transcript_infos))
 		{
 			w.writeStartElement("TranscriptInformation");
 			w.writeAttribute("gene", trans.gene);
@@ -1146,7 +1149,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		//element GeneDiseaseInformation
 		if (var_conf.causal)
 		{
-            for (const QByteArray& gene : genes)
+			for (const QByteArray& gene : std::as_const(genes))
 			{
 				//OrphaNet
 				SqlQuery query = db_.getQuery();
@@ -1165,7 +1168,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 				//OMIM
 				QList<OmimInfo> omim_infos = db_.omimInfo(gene);
-                for (const OmimInfo& omim_info : omim_infos)
+				for (const OmimInfo& omim_info : std::as_const(omim_infos))
 				{
 					//gene
 					w.writeStartElement("GeneDiseaseInformation");
@@ -1196,7 +1199,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 
 		//element GeneInheritanceInformation
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 			GeneInfo gene_info = db_.geneInfo(gene);
 			if (gene_info.inheritance!="n/a")
@@ -1602,7 +1605,7 @@ BedFile GermlineReportGenerator::precalculatedGaps(const BedFile& gaps_roi, cons
 	//extract processing system ROI statistics
 	int regions = -1;
 	long long bases = -1;
-    for (QString line : gaps_roi.headers())
+	for (const QByteArray& line : gaps_roi.headers())
 	{
 		if (line.startsWith("#ROI bases: "))
 		{
@@ -1844,6 +1847,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["keine Genotypisierung weil Tiefe unter 20"] = "no genotyping as depth is below 20";
 		de2en["Tiefe"] = "depth";
 		de2en["Indikationsbezogene Polymorphismen"] = "Polymorphisms relevant for the patient's phenotype";
+		de2en["*Diese Analyse ist nicht Teil des Akkreditierungsumfangs."] = "This analysis is not part of the scope of accreditation.";
 	}
 
 	//translate
@@ -2100,7 +2104,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 	//get transcript-specific data of all relevant transcripts for all overlapping genes
 	VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
-    for (const QByteArray& gene : genes)
+	for (const QByteArray& gene : std::as_const(genes))
 	{
 		int gene_id = db_.geneId(gene);
         for (const Transcript& trans : db_.relevantTranscripts(gene_id))
@@ -2251,7 +2255,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	QList<SampleDiseaseInfo> disease_infos = db_.getSampleDiseaseInfo(sample_id);
 	QString clinical_phenotype;
 	QStringList infos;
-    for (const SampleDiseaseInfo& info : disease_infos)
+	for (const SampleDiseaseInfo& info : std::as_const(disease_infos))
 	{
 		if (info.type=="ICD10 code")
 		{
@@ -2480,7 +2484,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	QStringList types;
 	QStringList hgvs_cs;
 	QStringList hgvs_ps;
-    for (const QByteArray& gene : genes)
+	for (const QByteArray& gene : std::as_const(genes))
 	{
 		int gene_id = db_.geneId(gene);
 		Transcript trans = db_.bestTranscript(gene_id);
@@ -2750,7 +2754,7 @@ void GermlineReportGenerator::gapsByGene(const BedFile& low_cov, const GeneSet& 
 		const BedLine& line = low_cov[i];
 		GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
 		bool gene_match = false;
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 			if (roi_genes.contains(gene))
 			{

@@ -21,7 +21,7 @@ protected:
 	virtual QString getEngineName() const = 0;
 
 	// Submits a job to a queuing engine and returns an exit code
-	virtual void submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const = 0;
+	virtual void submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, int job_id) const = 0;
 
 	// Updates the status of a running job in NGSD and returns if the job is finished
 	virtual bool updateRunningJob(NGSD& db, const AnalysisJob &job, int job_id) const = 0;

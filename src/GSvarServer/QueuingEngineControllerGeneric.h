@@ -1,13 +1,17 @@
-#ifndef QUEUINGENGINECONTROLLERSLURM_H
-#define QUEUINGENGINECONTROLLERSLURM_H
+#ifndef QUEUINGENGINECONTROLLERGENERIC_H
+#define QUEUINGENGINECONTROLLERGENERIC_H
 
 #include "QueuingEngineController.h"
+#include "QueuingEngineApiHelper.h"
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
-class QueuingEngineControllerSlurm
+class QueuingEngineControllerGeneric
 	: public QueuingEngineController
 {
 public:
-	QueuingEngineControllerSlurm();
+	QueuingEngineControllerGeneric();
 
 protected:
 	QString getEngineName() const override;
@@ -15,6 +19,12 @@ protected:
 	bool updateRunningJob(NGSD& db, const AnalysisJob &job, int job_id) const override;
 	void checkCompletedJob(NGSD& db, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const override;
 	void deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const override;
+
+private:
+	QNetworkProxy proxy_;
+	QString qe_api_base_url_;
+	QString secure_token_;
 };
 
-#endif // QUEUINGENGINECONTROLLERSLURM_H
+
+#endif // QUEUINGENGINECONTROLLERGENERIC_H

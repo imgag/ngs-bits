@@ -51,6 +51,30 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.8.3/macos
         cmake --build . --parallel $(sysctl -n hw.ncpu)
         cmake --install .
+    # Build Qt HttpServer from source
+    - name: Build Qt Http Server
+      run: |
+        curl -L -o QtHttpServer-6.8.3.tar.xz https://download.qt.io/archive/qt/6.8/6.8.3/submodules/qthttpserver-everywhere-src-6.8.3.tar.xz
+        tar -xf QtHttpServer-6.8.3.tar.xz
+        cd qthttpserver-everywhere-src-6.8.3
+        mkdir build && cd build
+        cmake .. \
+          -DCMAKE_PREFIX_PATH=$HOME/Qt/6.8.3/macos \
+          -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.8.3/macos
+        cmake --build . --parallel $(sysctl -n hw.ncpu)
+        cmake --install .
+    # Build Qt WebSockets from source
+    - name: Build Qt Web Sockets
+      run: |
+        curl -L -o QtWebSockets-6.8.3.tar.xz https://download.qt.io/archive/qt/6.8/6.8.3/submodules/qtwebsockets-everywhere-src-6.8.3.tar.xz
+        tar -xf QtWebSockets-6.8.3.tar.xz
+        cd qtwebsockets-everywhere-src-6.8.3
+        mkdir build && cd build
+        cmake .. \
+          -DCMAKE_PREFIX_PATH=$HOME/Qt/6.8.3/macos \
+          -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.8.3/macos
+        cmake --build . --parallel $(sysctl -n hw.ncpu)
+        cmake --install .
     # Python 2 packages
     - name: Install matplotlib and numpy for Python 2
       run: sudo pip install matplotlib numpy
