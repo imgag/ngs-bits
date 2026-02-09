@@ -25,16 +25,16 @@ public:
 		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addInt("min_depth",  "Minimum depth to use a SNP for the sample comparison.",  true,  15);
-		addInt("min_snps",  "Minimum SNPs required to comare samples.",  true,  20);
-		addInt("min_identity",  "Minimum identity percentage to show sample pairs in output.",  true,  80);
+		addInt("min_snps",  "Minimum SNPs required to comare samples.",  true,  40);
+		addInt("min_identity",  "Minimum identity percentage to show sample pairs in output.",  true,  95);
+		addFloat("min_correlation",  "Minimum correlation to show sample pairs in output.",  true,  0.9);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("basename", "Use BAM/CRAM basename instead of full path in output.");
-		addFlag("add_correlation", "Output SNP correlation (based on AF) in addition to identity percentage (based on GT).");
 		addFlag("debug", "Add debug output to STDOUT. If used, make sure to provide a file for 'out'!");
 		addFlag("time", "Add timing output to STDOUT. If used, make sure to provide a file for 'out'!");
 
 		//changelog
-		changeLog(2026, 01, 30, "Initial commit.");
+		changeLog(2026,  2,  9, "Initial commit.");
 	}
 
 	virtual void main()
@@ -48,10 +48,10 @@ public:
 		int min_depth = getInt("min_depth");
 		int min_snps = getInt("min_snps");
 		int min_identity = getInt("min_identity");
+		int min_correlation = getFloat("min_correlation");
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out_stream(outfile.data());
 		bool basename = getFlag("basename");
-		bool add_correlation = getFlag("add_correlation");
 		bool debug = getFlag("debug");
 		bool time = getFlag("time");
 		QTextStream debug_stream(stdout);
@@ -158,8 +158,7 @@ public:
 		}
 		QVector<double> v1;
 		QVector<double> v2;
-		out_stream << "#file1\tfile2\tsnps_used\tidentity_percentage";
-		if (add_correlation) out_stream << "\tcorrelation";
+		out_stream << "#file1\tfile2\tsnps_used\tidentity_percentage\tcorrelation";
 		out_stream << Qt::endl;
 		for (int i=0; i<af_data.count(); ++i)
 		{
@@ -167,11 +166,8 @@ public:
 			{
 				int snps_used = 0;
 				int snps_identidy = 0;
-				if (add_correlation)
-				{
-					v1.clear();
-					v2.clear();
-				}
+				v1.clear();
+				v2.clear();
 				for(int k=0; k<af_data[i].count(); ++k)
 				{
 					signed char af1 = af_data[i][k];
@@ -186,11 +182,9 @@ public:
 						{
 							debug_stream << "Mismatch of " << snps[k].toString() << " af1=" << af1 << " af2=" << af2 << Qt::endl;
 						}
-						if (add_correlation)
-						{
-							v1 << af1;
-							v2 << af2;
-						}
+
+						v1 << af1;
+						v2 << af2;
 					}
 				}
 
@@ -198,11 +192,11 @@ public:
 				if (snps_used<min_snps) continue;
 				double identity_perc = 100.0*snps_identidy/snps_used;
 				if (identity_perc<min_identity) continue;
+				double correlation = BasicStatistics::correlation(v1, v2);
+				if (correlation<min_correlation) continue;
 
 				//output
-				out_stream << labels[i] << '\t' << labels[j] << '\t' << snps_used << '\t' << QString::number(identity_perc, 'f', 2);
-				if (add_correlation) out_stream << '\t' <<  QString::number(BasicStatistics::correlation(v1, v2), 'f', 4);
-				out_stream << Qt::endl;
+				out_stream << labels[i] << '\t' << labels[j] << '\t' << snps_used << '\t' << QString::number(identity_perc, 'f', 2) << '\t' <<  QString::number(correlation, 'f', 4) << Qt::endl;
 			}
 		}
 		if (time)

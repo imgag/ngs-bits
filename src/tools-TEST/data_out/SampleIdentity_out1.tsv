@@ -1,2 +1,2 @@
-#file1	file2	snps_used	identity_percentage
-SampleIdentity_in_wes	SampleIdentity_in_rna	34	100.00
+#file1	file2	snps_used	identity_percentage	correlation
+SampleIdentity_in_wes	SampleIdentity_in_rna	34	100.00	0.9804
