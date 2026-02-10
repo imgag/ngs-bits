@@ -91,7 +91,7 @@ Please do the following:
 ### BLAT search of other does not work.
 
 BLAT search tries to access a UCSC webservice over `https`.  
-If you are behind a authenticating proxy that uses `basic authentication`, you have to disable `jdk.http.auth.tunneling.disabledSchemes=Basic` in `net.properties` of JDK.
+If you are behind a authenticating proxy that uses `basic authentication`, you have to comment out the line `jdk.http.auth.tunneling.disabledSchemes=Basic` in `net.properties` of JDK.
 
 ### IGV gene track/genome
 
