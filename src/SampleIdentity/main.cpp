@@ -18,8 +18,8 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Tries to identify datasets that are from the same patient based on BAM/CRAM files of DNA/RNA sequencing.");
-		setExtendedDescription(QStringList() << "This tool works for HG38 only!" << "It calculates the identity of 53 SNPs that are usually well covered in WGS, WES and RNA. It is much faster and memory-efficient than the SampleSimilarity tool, but should be used for checking for duplicates only. It cannot give information about relatedness of samples.");
+		setDescription("Tries to identify datasets that are from the same patient based on BAM/CRAM files of WGS/WES/lrGS/RNA sequencing.");
+		setExtendedDescription(QStringList() << "This tool works for HG38 only!" << "It calculates the identity of 75 SNPs that are usually well covered in lrGS, WGS, WES and RNA. It is much faster and memory-efficient than the SampleSimilarity tool, but does not work for panels. It should be used for checking for sample identitiy only. It cannot give information about relatedness of samples.");
 
 		addInfileList("bams", "Input BAM/CRAM files. If only one file is given, it must be a text file with one BAM/CRAM path per line.", false, false);
 		//optional

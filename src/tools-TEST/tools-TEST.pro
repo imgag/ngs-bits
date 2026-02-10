@@ -178,4 +178,5 @@ SOURCES += \
     NGSDImportCSpec_Test.cpp \
     TsvAnnotate_Test.cpp \
     NGSDImportOncotree_Test.cpp \
+    NGSDExportSpliceAI_Test.cpp \
     main.cpp

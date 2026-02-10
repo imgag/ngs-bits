@@ -651,3 +651,7 @@ BedToEpigen.depends = cppNGS
 SUBDIRS += NGSDImportCSpec
 tools-TEST.depends += NGSDImportCSpec
 NGSDImportCSpec.depends = cppNGSD
+
+SUBDIRS += NGSDExportSpliceAI
+tools-TEST.depends += NGSDExportSpliceAI
+NGSDExportSpliceAI.depends = cppNGSD
