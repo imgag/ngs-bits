@@ -101,7 +101,9 @@ No, you just need to specify the port number BLAT server should be running on in
 
 ### How to configure a queuing engine?
 
-Two eueuing engines are supported: SGE and Slurm. For more information please consult [Slurm Queuing Engine page](install_slurm.md)
+Two qeueuing engines are supported natively: SGE and Slurm.  
+Additionally, a web-service can be used for other queuing engines or custom analysis queuing.  
+For more information please consult [Slurm Queuing Engine page](install_slurm.md)
 
 ### Is it possible to deploy GSvarServer in a cloud (e.g. in AWS or Hetzner)?
 
