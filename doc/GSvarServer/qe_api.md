@@ -1,4 +1,6 @@
-# Using queuing engine HTTP API
+# Using a custom queuing engine via HTTP API
+
+## HTTP API server implementation guidelines
 
 We have created `QueuingEngineControllerGeneric` class to allow working with a remote queuing engine via a simple HTTP API. Using this class, you can send commands to the server defined in `qe_api_base_url` configuration parameter. In addition to that, you need to set `qe_secure_token`, an authentication token for the API server (issued and validated by the very same server), to be able to access the API. Such a server should have an endpoint that accepts **POST** requests containing specific JSON objects. 4 actions are supported at the moment: submit, update, check, and delete. For each of them there is a predefined JSON object format:
 
@@ -63,6 +65,15 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
     __http status code__ 200 - success
      
 Please pay attention to the HTTP codes and to error messages returned by the endpoint. It will help to process the output correctly.
+
+## Set your custom queuing engine as the default one in megSAP
+
+Set the following line to "generic" in your megSAP settings.ini
+
+```bash
+queuing_engine = "generic"
+```
+    
 
 --
 

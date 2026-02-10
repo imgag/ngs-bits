@@ -70,7 +70,7 @@ Please see [Running a development server](development/development_instance.md).
 
 ### Is it possible to commuincate with the queuing engine via some HTTP API?
 
-Yes, asolutely. To learn how to do it, please read the corresponding section from the [development documentation](development/qe_api.md).
+Yes, asolutely. To learn how to do it, please read the corresponding section of this [documentation](qe_api.md).
 
 ### It looks like the server uses HTTPS. How do I deal with the SSL certificates?
 
@@ -101,9 +101,8 @@ No, you just need to specify the port number BLAT server should be running on in
 
 ### How to configure a queuing engine?
 
-Two qeueuing engines are supported natively: SGE and Slurm.  
-Additionally, a web-service can be used for other queuing engines or custom analysis queuing.  
-For more information please consult [Slurm Queuing Engine page](install_slurm.md)
+Two qeueuing engines are supported natively: [SGE](install_sge.md) and [Slurm](install_slurm.md).  
+Additionally, a web-service can be used for other queuing engines or custom analysis queuing: more information on how it works can be found [here](qe_api.md)
 
 ### Is it possible to deploy GSvarServer in a cloud (e.g. in AWS or Hetzner)?
 

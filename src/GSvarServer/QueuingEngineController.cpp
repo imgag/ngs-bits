@@ -1,6 +1,7 @@
 #include "QueuingEngineController.h"
 #include "QueuingEngineControllerSge.h"
 #include "QueuingEngineControllerSlurm.h"
+#include "QueuingEngineControllerGeneric.h"
 #include "Log.h"
 #include "PipelineSettings.h"
 
@@ -8,6 +9,7 @@ QueuingEngineController* QueuingEngineController::create(const QString& engine)
 {
 	if (engine.toLower() == "sge") return new QueuingEngineControllerSge();
 	else if (engine.toLower() == "slurm") return new QueuingEngineControllerSlurm();
+	else if (engine.toLower() == "generic") return new QueuingEngineControllerGeneric();
 	else
 	{
 		Log::error("Invalid queueing engine set in megSAP settings.ini: " + engine);

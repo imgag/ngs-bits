@@ -45,7 +45,7 @@ These are the seettings for the database:
 
 ## Using a custom queuing engine server
 
-Please refer to the [queuing engine server documenation](./development/qe_api.md) to learn more.
+Please refer to the [queuing engine server documenation](qe_api.md) to learn more.
 
 ## Configuring GSvar
 
