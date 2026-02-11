@@ -21,7 +21,7 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
     ```
     {
         "result": "some text on succes or error message on failure",
-        "qe_job_id": "text job identifier used by the queuing engine",
+        "qe_job_id": queuing engine job id,
         "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
     }
     ```
@@ -43,7 +43,7 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
         "result": "some text on succes or error message on failure",
         "status": should be "queued/running" on successful start,
 		"queue", "queue identifier",
-        "qe_job_id": "text job identifier used by the queuing engine",
+        "qe_job_id": queuing engine job id,
         "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
     }
     ```
@@ -64,7 +64,7 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
     {
         "result": "some text on succes or error message on failure",
         "qe_exit_code": queuing engine job execution exit code (0 means success, -1 means failure),
-        "qe_job_id": "text job identifier used by the queuing engine",
+        "qe_job_id": queuing engine job id,
         "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
     }
     ```
@@ -84,7 +84,7 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
     ```
     {
         "result": "some text on succes or error message on failure",
-        "qe_job_id": "text job identifier used by the queuing engine",
+        "qe_job_id": queuing engine job id,
         "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
     }
     ```
