@@ -513,59 +513,64 @@ private:
 
 			if (!doc.isObject())
 			{
-				error_reply.insert("message", "Your input is not a valid JSON object");
+				error_reply.insert("result", "Your input is not a valid JSON object");
 				return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::InternalServerError);
 			}
 			QJsonObject top_level_obj = doc.object();
 			if (!top_level_obj.contains("action"))
 			{
-				error_reply.insert("message", "Action is not specified");
+				error_reply.insert("result", "Action is not specified");
 				return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::InternalServerError);
 			}
 			if (!top_level_obj.contains("token"))
 			{
-				error_reply.insert("message", "Secutiry token has not been provided");
+				error_reply.insert("result", "Secutiry token has not been provided");
 				return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::Unauthorized);
 			}
 			QStringList allowed_actions = QStringList() << "submit" << "update" << "check" << "delete";
 			if (!allowed_actions.contains(top_level_obj.value("action").toString()))
 			{
-				error_reply.insert("message", "Action '" + top_level_obj.value("action").toString() + "' is not allowed");
+				error_reply.insert("result", "Action '" + top_level_obj.value("action").toString() + "' is not allowed");
 				return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::InternalServerError);
 			}
 
+			QJsonObject success_reply;
 			QStringList required_fields;
 			if (top_level_obj.value("action").toString() == "submit")
 			{
-				required_fields = QStringList() << "threads" << "queues" << "pipeline_args" << "project_folder" << "script" << "job_id";
+				required_fields = QStringList() << "threads" << "queues" << "pipeline_args" << "working_directory" << "script";
 			}
 
 			if (top_level_obj.value("action").toString() == "update")
 			{
-				required_fields = QStringList() << "qe_job_id" << "qe_job_queue" << "job_id";
+				required_fields = QStringList() << "qe_job_id" << "qe_job_queue";
+				success_reply.insert("status", "queued/running");
+				success_reply.insert("queue", "queue1");
 			}
 
 			if (top_level_obj.value("action").toString() == "check")
 			{
-				required_fields = QStringList() << "qe_job_id" << "stdout_stderr" << "job_id";
+				required_fields = QStringList() << "qe_job_id" << "stdout_stderr";
+				success_reply.insert("qe_exit_code", 0);
 			}
 
 			if (top_level_obj.value("action").toString() == "delete")
 			{
-				required_fields = QStringList() << "qe_job_id" << "qe_job_type" << "job_id";
+				required_fields = QStringList() << "qe_job_id" << "qe_job_type";
 			}
 
 			for (QString field: required_fields)
 			{
 				if (!top_level_obj.contains(field))
 				{
-					error_reply.insert("message", "JSON does not contain '" + field + "' field");
+					error_reply.insert("result", "JSON does not contain '" + field + "' field");
 					return QHttpServerResponse("application/json", QJsonDocument(error_reply).toJson(QJsonDocument::Compact), QHttpServerResponder::StatusCode::InternalServerError);
 				}
 			}
 
-			QJsonObject success_reply;
-			success_reply.insert("message", top_level_obj.value("action").toString() + " action has been successful!");
+			success_reply.insert("result", top_level_obj.value("action").toString() + " action has been successful!");
+			success_reply.insert("qe_job_id", "1");
+			success_reply.insert("cmd_exit_code", 0);
 			return QHttpServerResponse("application/json", QJsonDocument(success_reply).toJson(QJsonDocument::Compact));
 		});
 
@@ -584,17 +589,16 @@ private:
 		QStringList queues = QStringList() << "queue1" << "queue2" << "queue3";
 		QStringList pipeline_args =  QStringList() << "arg1" << "arg2" << "arg3";
 		QString project_folder = "CurrentProject";
-		QString script = "pipeline.php";
-		int job_id = 123;
+		QString script = "pipeline.php";		
 		QString security_token = "random_characters";
 
 		QueuingEngineApiHelper api_helper = QueuingEngineApiHelper(api_server_url.toString() + "/jobs", QNetworkProxy::NoProxy, security_token);
-		status_code = api_helper.submitJob(threads, queues, pipeline_args, project_folder, script, job_id).status_code;
+		status_code = api_helper.submitJob(threads, queues, pipeline_args, project_folder, script).status_code;
 		I_EQUAL(status_code, 200);
 
-		QString qe_job_id = "qe_job_id_1";
+		QString qe_job_id = "1";
 		QString qe_job_queue = "qe_job_queue_1";
-		status_code = api_helper.updateRunningJob(qe_job_id, qe_job_queue, job_id).status_code;
+		status_code = api_helper.updateRunningJob(qe_job_id, qe_job_queue).status_code;
 		I_EQUAL(status_code, 200);
 
 		QJsonDocument json_doc_output;
@@ -602,8 +606,7 @@ private:
 		top_level_json_object.insert("action", "fake");
 		top_level_json_object.insert("token", security_token);
 		top_level_json_object.insert("qe_job_id", qe_job_id);
-		top_level_json_object.insert("qe_job_queue", qe_job_queue);
-		top_level_json_object.insert("job_id", job_id);
+		top_level_json_object.insert("qe_job_queue", qe_job_queue);		
 		json_doc_output.setObject(top_level_json_object);
 		HttpHeaders add_headers;
 		add_headers.insert("Content-Type", "application/json");
@@ -624,7 +627,7 @@ private:
 		IS_TRUE(error_reply.body.contains("fake"));
 		QJsonDocument error_response_doc = QJsonDocument::fromJson(error_reply.body);
 		IS_TRUE(error_response_doc.isObject());
-		IS_TRUE(error_response_doc.object().contains("message"));
+		IS_TRUE(error_response_doc.object().contains("result"));
 
 		QJsonDocument json_doc_secure_output;
 		QJsonObject top_level_secure_json_object;
@@ -643,14 +646,14 @@ private:
 		I_EQUAL(error_reply.status_code, 401);
 
 		QByteArrayList stdout_stderr;
-		status_code = api_helper.checkCompletedJob(qe_job_id, stdout_stderr, job_id).status_code;
+		status_code = api_helper.checkCompletedJob(qe_job_id, stdout_stderr).status_code;
 		I_EQUAL(status_code, 200);
 
 		QString qe_job_type = "job_type";
-		ServerReply delete_reply = api_helper.deleteJob(qe_job_id, qe_job_type, job_id);
+		ServerReply delete_reply = api_helper.deleteJob(qe_job_id, qe_job_type);
 		response_doc = QJsonDocument::fromJson(delete_reply.body);
 		IS_TRUE(response_doc.isObject());
-		IS_TRUE(response_doc.object().contains("message"));
+		IS_TRUE(response_doc.object().contains("result"));
 
 		status_code = delete_reply.status_code;
 		I_EQUAL(status_code, 200);

@@ -101,7 +101,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 	QString engine = getEngineName();
 
 	//get processed sample data
-	QString project_folder;
+	QString working_directory;
 	QList<ProcessedSampleData> ps_data;
 	QList<QString> bams;
 	QList<QString> infos;
@@ -114,9 +114,9 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		infos << s.info;
 
 		//get project folder from first sample
-		if (project_folder.isEmpty())
+		if (working_directory.isEmpty())
 		{
-			project_folder = Helper::canonicalPath(QFileInfo(bams.last()).path()+"/../");
+			working_directory = Helper::canonicalPath(QFileInfo(bams.last()).path()+"/../");
 		}
 	}
 
@@ -201,7 +201,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		int m_idx = infos.indexOf("mother");
 
 		//create output folder
-		QString out_folder = project_folder + "/Trio_" + ps_data[c_idx].name + "_" + ps_data[f_idx].name + "_" + ps_data[m_idx].name + "/";
+		QString out_folder = working_directory + "/Trio_" + ps_data[c_idx].name + "_" + ps_data[f_idx].name + "_" + ps_data[m_idx].name + "/";
 		if (Helper::mkdir(out_folder)==1)
 		{
 			if (!Helper::set777(out_folder))
@@ -231,7 +231,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		}
 
 		//create output folder
-		QString out_folder = project_folder + "/Multi";
+		QString out_folder = working_directory + "/Multi";
 		foreach(const AnalysisJobSample& s, job.samples) out_folder += "_" + s.name;
 		if (Helper::mkdir(out_folder)==1)
 		{
@@ -270,11 +270,11 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 		QString out_folder;
 		if (n_idx!=-1)
 		{
-			out_folder = project_folder + "/Somatic_" + ps_data[t_idx].name + "-" + ps_data[n_idx].name + "/";
+			out_folder = working_directory + "/Somatic_" + ps_data[t_idx].name + "-" + ps_data[n_idx].name + "/";
 		}
 		else
 		{
-			out_folder = project_folder + "/Somatic_" + ps_data[t_idx].name + "/";
+			out_folder = working_directory + "/Somatic_" + ps_data[t_idx].name + "/";
 		}
 		if (Helper::mkdir(out_folder)==1)
 		{
@@ -339,7 +339,7 @@ void QueuingEngineController::startAnalysis(NGSD& db, const AnalysisJob& job, in
 	{
 		pipeline_args = job_args.split(' ') << pipeline_args;
 	}
-	submitJob(db, threads, queues, pipeline_args, project_folder, script, job_id);
+	submitJob(db, threads, queues, pipeline_args, working_directory, script, job_id);
 }
 
 void QueuingEngineController::updateAnalysisStatus(NGSD &db, const AnalysisJob &job, int job_id)

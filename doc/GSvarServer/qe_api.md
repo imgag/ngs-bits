@@ -14,11 +14,17 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
         "queues": [list of queues],
         "script": pipeline script,
         "pipeline_args": [list of command line arguments for the pipeline script],
-        "project_folder": project folder where the sample is stored,
-        "job_id": id from the analysis_job table in NGSD database (used by GSvar)
+        "working_directory": folder where the sample is stored
     }
     ```
-    __returns__ JSON object {"message": "some text on succes or error message on failure"}
+    __returns__ JSON object 
+    ```
+    {
+        "result": "some text on succes or error message on failure",
+        "qe_job_id": "text job identifier used by the queuing engine",
+        "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
+    }
+    ```
 
     __http status code__ 200 - success
 
@@ -28,13 +34,21 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
         "action": "update",
         "token": "security token to allow the action",
         "qe_job_id": queuing engine job id,
-        "qe_job_queue": queuing engine job queue,
-        "job_id": id from the analysis_job table in NGSD database
+        "qe_job_queue": queuing engine job queue  
     }
     ```
-    __returns__ JSON object {"message": "some text on succes or error message on failure"}
+    __returns__ JSON object 
+    ```
+    {
+        "result": "some text on succes or error message on failure",
+        "status": should be "queued/running" on successful start,
+		"queue", "queue identifier",
+        "qe_job_id": "text job identifier used by the queuing engine",
+        "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
+    }
+    ```
     
-    __http status code__ 200 - job is finished, 201 - job is queued/running
+    __http status code__ 200 - success
 
 3. `check` (**POST** request) - Performs job accounting after completion
     ```
@@ -42,11 +56,18 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
         "action": "check",
         "token": "security token to allow the action",
         "qe_job_id": queuing engine job id,
-        "stdout_stderr": standard output that contains error messages (if there were errors),
-        "job_id": id from the analysis_job table in NGSD database
+        "stdout_stderr": standard output that contains error messages (if there were errors)
     }
     ```
-    __returns__ JSON object {"message": "some text on succes or error message on failure"}
+    __returns__ JSON object 
+    ```
+    {
+        "result": "some text on succes or error message on failure",
+        "qe_exit_code": queuing engine job execution exit code (0 means success, -1 means failure),
+        "qe_job_id": "text job identifier used by the queuing engine",
+        "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
+    }
+    ```
 
     __http status code__ 200 - success
 
@@ -56,11 +77,17 @@ We have created `QueuingEngineControllerGeneric` class to allow working with a r
         "action": "delete",
         "token": "security token to allow the action",
         "qe_job_id": queuing engine job id,
-        "qe_job_type": queuing engine job type (single sample/trio/multi sample/somatic),
-        "job_id": id from the analysis_job table in NGSD database
+        "qe_job_type": queuing engine job type (single sample/trio/multi sample/somatic),        
     }
     ```
-    __returns__ JSON object {"message": "some text on succes or error message on failure"}
+    __returns__ JSON object 
+    ```
+    {
+        "result": "some text on succes or error message on failure",
+        "qe_job_id": "text job identifier used by the queuing engine",
+        "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
+    }
+    ```
 
     __http status code__ 200 - success
      

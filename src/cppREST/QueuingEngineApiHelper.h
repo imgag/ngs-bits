@@ -13,10 +13,10 @@ class CPPRESTSHARED_EXPORT QueuingEngineApiHelper
 public:
 	QueuingEngineApiHelper(QString api_base_url, QNetworkProxy proxy, QString secure_token);
 
-	ServerReply submitJob(int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, int job_id) const;
-	ServerReply updateRunningJob(QString sge_id, QString sge_queue, int job_id) const;
-	ServerReply checkCompletedJob(QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const;
-	ServerReply deleteJob(QString sge_id, QString type, int job_id) const;
+	ServerReply submitJob(int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script) const;
+	ServerReply updateRunningJob(QString sge_id, QString sge_queue) const;
+	ServerReply checkCompletedJob(QString qe_job_id, QByteArrayList stdout_stderr) const;
+	ServerReply deleteJob(QString sge_id, QString type) const;
 
 private:
 	QString api_base_url_;
