@@ -95,10 +95,6 @@ Yes, `GSvarServer` supports only HTTPS protocol and you will need to configure t
 
 The server can be built and started on Linux and Mac, Windows is not supported. Current version requires about 16GB of RAM and at least 2 core CPU for the compilation. For running the server, however, you may need significanlty less RAM - about 4GB should be sufficient. Memory consumption mainly depends on how many active users and active requests the server is processing simultaneoulsy.
 
-### Do I need to download, install, and configure BLAT server manually?
-
-No, you just need to specify the port number BLAT server should be running on in the server config file. `GSvarServer` will donwload and start BLAT server automatically. It will also turn BLAT server off, when `GSvarServer` is being stopped.
-
 ### How to configure a queuing engine?
 
 Two qeueuing engines are supported natively: [SGE](install_sge.md) and [Slurm](install_slurm.md).  

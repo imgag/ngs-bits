@@ -87,12 +87,6 @@ Please do the following:
 - Start IGV from the Windows start menu.
 - Set the proxy data as described in *IGV cannot load genomes*.
 
-
-### BLAT search of other does not work.
-
-BLAT search tries to access a UCSC webservice over `https`.  
-If you are behind a authenticating proxy that uses `basic authentication`, you have to comment out the line `jdk.http.auth.tunneling.disabledSchemes=Basic` in `net.properties` of JDK.
-
 ### IGV gene track/genome
 
 To generate a custom genome for IGV with all Ensembl transcripts use the megSAP script [`create_igv_genome.php`](https://github.com/imgag/megSAP/blob/master/src/Auxilary/create_igv_genome.php).  

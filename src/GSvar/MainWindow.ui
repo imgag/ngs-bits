@@ -1310,7 +1310,7 @@
   </action>
   <action name="actionBlatSearch">
    <property name="text">
-    <string>BLAT search</string>
+    <string>BLAT-like search</string>
    </property>
   </action>
   <action name="actionImportSampleHpoTerms">

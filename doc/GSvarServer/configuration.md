@@ -9,7 +9,6 @@ These are the most important config parameters:
 * `ssl_key` - location of your private key
 * `server_port` - port used by the server
 * `server_host` - domain name used be the server
-* `blat_server_port` - port where BLAT server should be running, BALT server will not be started, if the port is not set
 * `url_lifetime` - lifespan (seconds) of a temporary URL genereated by the server
 * `session_duration` - valid period (seconds) of a user session
 * `threads` - number of threads used for parallel calculations
