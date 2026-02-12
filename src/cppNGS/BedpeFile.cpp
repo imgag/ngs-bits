@@ -747,18 +747,18 @@ int BedpeFile::estimatedSvSize(int index) const
 
 int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_on_mismatch, bool compare_ci) const
 {
-	int alt_a_idx = -1, info_a_idx = -1, pos_min_query = -1, pos_max_query = -1;
+	int alt_a_idx = -1, info_a_idx = -1;
 	QByteArray left_seq_query, right_seq_query;
+
+	// precompute left-shift (for INS)
+	int pos_min_query = std::min(std::min(sv.start1(), sv.end1()), std::min(sv.start2(), sv.end2()));
+	int pos_max_query = std::max(std::max(sv.start1(), sv.end1()), std::max(sv.start2(), sv.end2()));
 
 	if(deep_ins_compare)
 	{
 		// get index columns
 		alt_a_idx = annotationIndexByName("ALT_A");
 		info_a_idx = annotationIndexByName("INFO_A");
-
-		// precompute left-shift
-		pos_min_query = std::min(std::min(sv.start1(), sv.end1()), std::min(sv.start2(), sv.end2()));
-		pos_max_query = std::max(std::max(sv.start1(), sv.end1()), std::max(sv.start2(), sv.end2()));
 
 		// extract partial sequences
 		foreach (const QByteArray entry, sv.annotations()[info_a_idx].split(';'))
@@ -775,12 +775,14 @@ int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_
 		if(lines_[i].chr1() != sv.chr1()) continue;
 		if(lines_[i].chr2() != sv.chr2()) continue;
 
+		//get min/max position for INS
+		int pos_min_ref = std::min(std::min(lines_[i].start1(), lines_[i].end1()), std::min(lines_[i].start2(), lines_[i].end2()));
+		int pos_max_ref = std::max(std::max(lines_[i].start1(), lines_[i].end1()), std::max(lines_[i].start2(), lines_[i].end2()));
+
 		if(sv.type() == StructuralVariantType::INS && deep_ins_compare)
 		{
 			//compare after left-shift
-			int pos_min_ref = std::min(std::min(lines_[i].start1(), lines_[i].end1()), std::min(lines_[i].start2(), lines_[i].end2()));
 			if(pos_min_query != pos_min_ref) continue;
-			int pos_max_ref = std::max(std::max(lines_[i].start1(), lines_[i].end1()), std::max(lines_[i].start2(), lines_[i].end2()));
 			if(pos_max_query != pos_max_ref) continue;
 
 			//compare sequence
@@ -806,8 +808,17 @@ int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_
 			if (compare_ci)
 			{
 				// perform fuzzy matching (CI overlap)
-				if (!BasicStatistics::rangeOverlaps(lines_[i].start1(), lines_[i].end1(), sv.start1(), sv.end1())) continue;
-				if (!BasicStatistics::rangeOverlaps(lines_[i].start2(), lines_[i].end2(), sv.start2(), sv.end2())) continue;
+				if(sv.type() == StructuralVariantType::INS)
+				{
+					//special handling of INS
+					if (!BasicStatistics::rangeOverlaps(pos_min_ref, pos_max_ref, pos_min_query, pos_max_query)) continue;
+				}
+				else
+				{
+					if (!BasicStatistics::rangeOverlaps(lines_[i].start1(), lines_[i].end1(), sv.start1(), sv.end1())) continue;
+					if (!BasicStatistics::rangeOverlaps(lines_[i].start2(), lines_[i].end2(), sv.start2(), sv.end2())) continue;
+				}
+
 				// fuzzy match found
 				return i;
 			}

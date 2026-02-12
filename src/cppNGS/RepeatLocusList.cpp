@@ -28,7 +28,7 @@ void RepeatLocus::setAllele1(const QByteArray& allele1)
 	allele1_ = allele1;
 }
 
-int RepeatLocus::allele1asInt()
+int RepeatLocus::allele1asInt() const
 {
 	QByteArray tmp = allele1_.trimmed();
 	if (tmp.contains('.')) tmp = tmp.left(tmp.indexOf('.'));
@@ -43,7 +43,7 @@ void RepeatLocus::setAllele2(const QByteArray& allele2)
 	allele2_ = allele2;
 }
 
-int RepeatLocus::allele2asInt()
+int RepeatLocus::allele2asInt() const
 {
 	QByteArray tmp = allele2_.trimmed();
 	if (tmp.contains('.')) tmp = tmp.left(tmp.indexOf('.'));

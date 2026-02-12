@@ -28,12 +28,12 @@ public:
 	const QByteArray& allele1() const { return allele1_; }
 	void setAllele1(const QByteArray& allele1);
 	//Returns the number of repeat units as integer. Throws an error, if casting to int is not possible.
-	int allele1asInt();
+	int allele1asInt() const;
 
 	const QByteArray& allele2() const { return allele2_; }
 	void setAllele2(const QByteArray& allele2);
 	//Returns the number of repeat units as integer. Throws an error, if casting to int is not possible.
-	int allele2asInt();
+	int allele2asInt() const;
 
 	//Returns the repeat lengths for all alleles. If allele 2 is missing, it is omitted.
 	QByteArray alleles() const;

@@ -145,6 +145,7 @@ void SequencingRunOverview::openRunTab()
 		else
 		{
 			//open batch view
+			run_names.sort();
 			GlobalServiceProvider::openRunBatchTab(run_names);
 		}
 	}
