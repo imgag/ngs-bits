@@ -1,0 +1,21 @@
+NA12878_05 (ps_id: 1) > NA12878_06 (ps_id: 2)
+	SNVs	all/match/missed/missed_excluded	4/3/0/1
+	CNVs	all/match/missed/missed_excluded	4/2/1/1
+	SVs	all/match/missed/missed_excluded	5/3/1/1
+	REs	all/match/missed/missed_excluded	5/3/1/1
+
+	#type	source				target
+	SNV/InDel	chr1-16957-16957-G-T	chr1-16957-16957-G-T
+	SNV/InDel	chr1-17407-17407-G-A	chr1-17407-17407-G-A
+	SNV/InDel	chr1-30411-30411-G-T	chr1-30411-30411-G-T
+	CNV	chr1:1179636-1179757	chr1:1179636-1179757 (not in NGSD yet)
+	CNV	chr1:1765207-1787457	chr1:1765207-1789457 (not in NGSD yet)
+	SV	DUP at chr1:1948974-1949086	DUP at chr1:1948974-1949086
+	SV	BND from chr1:9061390-9061394 to chr14:93246136-93246140	BND from chr1:9061390-9061394 to chr14:93246136-93246140
+	SV	DEL at chr1:26345031-26345084	DEL at chr1:26344831-26345084
+	RE	 - chr1:149390802-149390841/GGC (allele1:13 / allele2:18)	 - chr1:149390802-149390841/GGC (allele1:12 / allele2:18)
+	RE	 - chr4:3074876-3074933/CAG (allele1:16 / allele2:25)	 - chr4:3074876-3074933/CAG (allele1:16 / allele2:26)
+	RE	 - chr4:3074939-3074966/CCG (allele1:9 / allele2:12)	 - chr4:3074939-3074966/CCG (allele1:9 / allele2:12)
+ERROR: ReportConfig transfer NA12878_05>NA12878_06 is not possible!
+
+Exception: ReportConfig transfer NA12878_05>NA12878_06 is not possible!
