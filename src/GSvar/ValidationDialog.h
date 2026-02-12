@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include "ui_ValidationDialog.h"
-#include "VariantList.h"
 #include "NGSD.h"
 
 ///Dialog for variant validation
