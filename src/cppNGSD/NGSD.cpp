@@ -2725,8 +2725,6 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 
 		if(debug) qDebug() << "get ps_ids of cohort (somatic)" << Helper::elapsedTime(timer);
 		timer.restart();
-
-		if(cohort.size() < 1) THROW(DatabaseException, "No matching samples for cohort found. Cannot create statistics.");
 	}
 	else
 	{

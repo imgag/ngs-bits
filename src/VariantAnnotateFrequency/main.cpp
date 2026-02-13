@@ -6,6 +6,7 @@
 #include <cmath>
 #include "VariantList.h"
 #include "BamReader.h"
+#include "ChromosomalIndex.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -30,7 +31,10 @@ public:
 		addString("name", "Column header prefix in output file.", true, "");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("long_read", "Support long reads (> 1kb).");
+        addFlag("fragments", "Count based on fragments not reads.");
+        addInfile("target", "Only annotate variants within the target region given in BED format.", true, false);
 
+        changeLog(2026,   2,  6, "Added support for fragment counting and target region.");
 		changeLog(2025,   5, 21, "Added long-read support.");
 		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
@@ -44,18 +48,45 @@ public:
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		bool long_read = getFlag("long_read");
+        bool count_fragments = getFlag("fragments");
 
 		//load input
 		VariantList input;
 		input.load(getInfile("in"));
 		BamReader reader(getInfile("bam"), ref_file);
+        BedFile target;
+        if (getInfile("target") != "")
+        {
+            target.load(getInfile("target"));
+        }
+        ChromosomalIndex<BedFile> index(target);
 
 		//determine frequencies and depths
 		FastaFileIndex reference(ref_file);
 		for (int i=0; i<input.count(); ++i)
 		{
 			Variant& variant = input[i];
-			VariantDetails tmp = reader.getVariantDetails(reference, variant, long_read);
+
+            if (! target.isEmpty())
+            {
+                //if target is given ignore variants not within target region - add placeholders
+                if (index.matchingIndex(variant.chr(), variant.start(), variant.end()) == -1)
+                {
+                    variant.annotations().append(".");
+
+                    if (depth)
+                    {
+                        variant.annotations().append(".");
+                    }
+                    if (mapq0)
+                    {
+                        variant.annotations().append(".");
+                    }
+                    continue;
+                }
+            }
+
+            VariantDetails tmp = reader.getVariantDetails(reference, variant, long_read, count_fragments);
 
 			//annotate variant
 			if (tmp.depth==0 || !BasicStatistics::isValidFloat(tmp.frequency))

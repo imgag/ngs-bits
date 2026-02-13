@@ -24,7 +24,7 @@ private:
 
 		QString ref_file = Settings::string("reference_genome", true);
 
-		EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in1.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out2.tsv -ref " + ref_file);
+        EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in1.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out2.tsv -ref " + ref_file);
 		COMPARE_FILES("out/VariantAnnotateFrequency_out2.tsv", TESTDATA("data_out/VariantAnnotateFrequency_out2.tsv"));
 	}
 
@@ -35,9 +35,31 @@ private:
 
 		QString ref_file = Settings::string("reference_genome", true);
 
-		EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in2.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out3.tsv -mapq0 -ref " + ref_file);
+        EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in2.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out3.tsv -mapq0 -ref " + ref_file);
 		COMPARE_FILES("out/VariantAnnotateFrequency_out3.tsv", TESTDATA("data_out/VariantAnnotateFrequency_out3.tsv"));
 	}
+
+    //Test with fragments argument
+    TEST_METHOD(gsvar_fragment)
+    {
+        SKIP_IF_NO_HG38_GENOME();
+
+        QString ref_file = Settings::string("reference_genome", true);
+
+        EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in1.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out4.tsv -name bla -depth -fragments -ref " + ref_file);
+        COMPARE_FILES("out/VariantAnnotateFrequency_out4.tsv", TESTDATA("data_out/VariantAnnotateFrequency_out4.tsv"));
+    }
+
+    //Test with target argument
+    TEST_METHOD(gsvar_target)
+    {
+        SKIP_IF_NO_HG38_GENOME();
+
+        QString ref_file = Settings::string("reference_genome", true);
+
+        EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in1.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out5.tsv -name bla -target " + TESTDATA("data_in/VariantAnnotateFrequency_target.bed") + " -depth -ref " + ref_file);
+        COMPARE_FILES("out/VariantAnnotateFrequency_out5.tsv", TESTDATA("data_out/VariantAnnotateFrequency_out5.tsv"));
+    }
 
 };
 

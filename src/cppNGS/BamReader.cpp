@@ -818,7 +818,7 @@ void BamReader::clearIterator()
 	iter_ = nullptr;
 }
 
-Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, int min_mapq, bool include_not_properly_paired, int min_baseq)
+Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, int min_mapq, bool include_not_properly_paired, int min_baseq, bool count_fragments)
 {
 	//init
 	Pileup output;
@@ -833,6 +833,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	//restrict to region
 	setRegion(chr, pos, pos);
 
+    QMap<QByteArray, QPair<char, int>> read_names;
 	//iterate through all alignments and create counts
 	BamAlignment al;
 	while (getNextAlignment(al))
@@ -840,12 +841,40 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 		if (!al.isProperPair() && !include_not_properly_paired) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
-		if (al.isUnmapped()) continue;
+        if (al.isUnmapped()) continue;
 
 		reads_mapped += 1;
 		if (al.mappingQuality()==0) reads_mapq0 += 1;
 
 		if (al.mappingQuality()<min_mapq) continue;
+
+        if (count_fragments)
+        {
+            //check previously counted read: if differing bases count higher quality remove if same quality
+            if (read_names.contains(al.name()))
+            {
+                QPair<char, int> base_read1 = read_names.value(al.name());
+                QPair<char, int> base_read2 = al.extractBaseByCIGAR(pos);
+
+                if (base_read1.first != base_read2.first)
+                {
+                    if (base_read1.first == '-' || base_read2.first == '-')
+                    {
+                        //don't count either read if they disagree between base or deletion
+                        output.dec(base_read1.first);
+                    }
+                    else if (base_read1.second < base_read2.second)
+                    {
+                        //if they disagree in base count the higher quality
+                        output.dec(base_read1.first);
+                        output.inc(base_read2.first);
+                    }
+                }
+                read_names.remove(al.name()); //read info won't be used again after second read is handled: remove to save RAM
+                continue;
+            }
+            read_names.insert(al.name(), al.extractBaseByCIGAR(pos));
+        }
 
 		//snps
 		QPair<char, int> base = al.extractBaseByCIGAR(pos);
@@ -869,13 +898,13 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 }
 
 
-VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, const Variant& variant, bool include_not_properly_paired)
+VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, const Variant& variant, bool include_not_properly_paired, bool count_fragments)
 {
 	VariantDetails output;
 
 	if (variant.isSNV()) //SVN
 	{
-		Pileup pileup = getPileup(variant.chr(), variant.start(), -1, 1, include_not_properly_paired);
+        Pileup pileup = getPileup(variant.chr(), variant.start(), -1, 1, include_not_properly_paired, 13, count_fragments);
 		output.depth = pileup.depth(true);
 		if (output.depth!=0)
 		{
@@ -893,7 +922,7 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 
 		//get indels from region
 		QVector<Sequence> indels;
-		getIndels(reference, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac, include_not_properly_paired);
+        getIndels(reference, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac, include_not_properly_paired, count_fragments);
 		//qDebug() << "INDELS:" << indels.join(" ");
 
 		Variant variant_normalized = variant;
@@ -929,7 +958,7 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 }
 
 
-void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac, bool include_not_properly_paired)
+void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac, bool include_not_properly_paired, bool count_fragments)
 {
 	//init
 	indels.clear();
@@ -944,16 +973,17 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 
 	//restrict to region
 	setRegion(chr, start, end);
-
+    QMap<QByteArray, QPair<QByteArray, int>> read_names;
+    QList<int> indels_to_remove;
 	//iterate through all alignments and create counts
 	BamAlignment al;
 	while (getNextAlignment(al))
 	{
 		//skip low-quality reads
 		if (al.isDuplicate()) continue;
-		if (!al.isProperPair() && !include_not_properly_paired) continue;
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.isUnmapped()) continue;
+        if (!al.isProperPair() && !include_not_properly_paired) continue;
+        if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+        if (al.isUnmapped()) continue;
 
 		reads_mapped += 1;
 		if (al.mappingQuality()==0)
@@ -962,9 +992,13 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 			continue;
 		}
 
+
 		//skip reads that do not span the whole region
-		if (al.start()>start || al.end()<end ) continue;		
+        if (al.start()>start || al.end()<end ) continue;
 		++depth;
+
+        QByteArray read_variant = "NONE";
+        int indels_variant_idx = -1;
 
 		//run time optimization: skip reads that do not contain Indels
 		bool contains_indels_refskip = false;
@@ -977,7 +1011,33 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 				break;
 			}
 		}
-		if (!contains_indels_refskip) continue;
+        if (!contains_indels_refskip)
+        {
+            if (count_fragments)
+            {
+                if (read_names.contains(al.name()))
+                {
+                    //reads don't agree remove both from count
+                    if (read_names.value(al.name()).first != read_variant)
+                    {
+                        depth -= 2;
+                        indels_to_remove.append(read_names.value(al.name()).second);
+                        read_names.remove(al.name());
+                    }
+                    {
+                        read_names.remove(al.name());
+                        --depth;
+                    }
+                }
+                else
+                {
+                    read_names.insert(al.name(), qMakePair(read_variant, indels_variant_idx));
+                }
+            }
+            continue;
+        }
+
+
 
 		//look up indels
 		int read_pos = 0;
@@ -995,7 +1055,10 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 			{
 				if (genome_pos>=start && genome_pos<=end)
 				{
-					indels.append(QByteArray("+") + al.bases().mid(read_pos, op.Length));
+                    indels_variant_idx = indels.count();
+                    read_variant = QByteArray("+") + al.bases().mid(read_pos, op.Length);
+                    indels.append(read_variant);
+
 				}
 				read_pos += op.Length;
 			}
@@ -1003,7 +1066,10 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 			{
 				if (genome_pos>=start && genome_pos<=end)
 				{
-					indels.append("-" + reference.seq(chr.str(), genome_pos, op.Length));
+                    indels_variant_idx = indels.count();
+                    read_variant = "-" + reference.seq(chr.str(), genome_pos, op.Length);
+                    indels.append(read_variant);
+
 				}
 				genome_pos += op.Length;
 			}
@@ -1031,7 +1097,39 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 				THROW(Exception, "Unknown CIGAR operation " + QString::number(op.Type) + "!");
 			}
 		}
+
+        if (count_fragments)
+        {
+            if (read_names.contains(al.name()))
+            {
+                //reads don't agree remove both from count
+                if (read_names.value(al.name()).first != read_variant)
+                {
+                    depth -= 2;
+                    indels_to_remove.append(read_names.value(al.name()).second);
+                }
+                else // if they agree remove only the second one
+                {
+                    --depth;
+                    indels_to_remove.append(indels_variant_idx);
+                }
+                read_names.remove(al.name());
+            }
+            else
+            {
+                read_names.insert(al.name(), qMakePair(read_variant, indels_variant_idx));
+            }
+        }
 	}
+
+    std::sort(indels_to_remove.begin(), indels_to_remove.end());
+    std::reverse(indels_to_remove.begin(), indels_to_remove.end());
+
+    foreach(int idx, indels_to_remove)
+    {
+        if (idx == -1) continue;
+        indels.remove(idx);
+    }
 
 	mapq0_frac = (double)reads_mapq0 / reads_mapped;
 

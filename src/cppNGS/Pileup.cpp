@@ -31,6 +31,23 @@ void Pileup::inc(char base)
 	else THROW(ArgumentException, "Unknown base '" + QString(QChar(base)) + "' in pileup!");
 }
 
+void Pileup::dec(char base)
+{
+    if (base=='A') --a_;
+    else if (base=='C') --c_;
+    else if (base=='G') --g_;
+    else if (base=='T') --t_;
+    else if (base=='N') --n_;
+    else if (base=='-') --del_;
+    else if (base=='~') {}
+    else if (base=='a') --a_;
+    else if (base=='c') --c_;
+    else if (base=='g') --g_;
+    else if (base=='t') --t_;
+    else if (base=='n') --n_;
+    else THROW(ArgumentException, "Unknown base '" + QString(QChar(base)) + "' in pileup!");
+}
+
 void Pileup::clear()
 {
 	a_ = 0;
