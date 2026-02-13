@@ -1,41 +1,11 @@
 #include "QueuingEngineControllerGeneric.h"
 #include "HttpRequestHandler.h"
-#include "ProxyDataService.h"
 #include "Log.h"
 #include "Settings.h"
 
 QueuingEngineControllerGeneric::QueuingEngineControllerGeneric()
+	: proxy_(QNetworkProxy::NoProxy)
 {
-	proxy_ = QNetworkProxy::NoProxy;
-	if(!ProxyDataService::isConnected())
-	{
-		const QNetworkProxy& proxy = ProxyDataService::getProxy();
-		if(proxy.type() != QNetworkProxy::HttpProxy)
-		{
-			Log::error("No connection to the internet! Please check your proxy settings.");
-			return;
-		}
-		if(proxy.hostName().isEmpty() || (proxy.port() < 1))
-		{
-			Log::error("HTTP proxy without reqired host name or port provided!");
-			return;
-		}
-
-		//final check of the connection
-		if(!ProxyDataService::isConnected())
-		{
-			Log::error("No connection to the internet! Please check your proxy settings.");
-			return;
-		}
-	}
-
-	// set proxy for the file download, if needed
-	proxy_ = ProxyDataService::getProxy();
-	if (proxy_!=QNetworkProxy::NoProxy)
-	{
-		Log::info("Using Proxy: " + proxy_.hostName());
-	}
-
 	qe_api_base_url_ = Settings::string("qe_api_base_url", true);
 	secure_token_ = Settings::string("qe_secure_token", true);
 }
@@ -54,15 +24,14 @@ void QueuingEngineControllerGeneric::submitJob(NGSD &db, int threads, QStringLis
 		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).submitJob(threads, queues, pipeline_args, working_directory, script);
 		if (reply.status_code!=200)
 		{
-			Log::error("There has been an error while submitting a job, response code: " + QString::number(reply.status_code));
+			Log::error("There has been an error while submitting a job, response code: " + QString::number(reply.status_code)); //TODO throw
 		}
 
 		QJsonDocument reply_doc = QJsonDocument::fromJson(reply.body);
-		if (!passedInitialCheck(reply_doc, job_id)) return;
+		checkReplyIsValid(reply_doc, job_id, "submit");
 
+		int exit_code = getCommandExitCode(reply_doc);
 		bool ok = false;
-		int exit_code = getCommandExitCode(reply_doc, ok);
-		if (!ok) return;
 		QString qe_job_id = getJobId(reply_doc, ok);
 		if (exit_code!=0 || qe_job_id.isEmpty())
 		{
@@ -95,12 +64,11 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 		}
 
 		QJsonDocument reply_doc = QJsonDocument::fromJson(reply.body);
-		if (!passedInitialCheck(reply_doc, job_id)) return job_finished;
+		checkReplyIsValid(reply_doc, job_id, "update");
+
+		int exit_code = getCommandExitCode(reply_doc);
 
 		bool ok = false;
-		int exit_code = getCommandExitCode(reply_doc, ok);
-		if (!ok) return job_finished;
-
 		QString status = getStatus(reply_doc, ok);
 		if (!ok) return job_finished;
 
@@ -123,49 +91,11 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 		Log::error("There has been an error while updating a job: " + e.message());
 	}
 
-	return job_finished;
+	return job_finished; //TODO what happens when there is an error???
 }
 
 void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &db, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const
 {
-	if (!hasApiUrl()) return;
-
-	try
-	{
-		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).checkCompletedJob(qe_job_id, stdout_stderr);
-		if (reply.status_code!=200)
-		{
-			Log::error("There has been an error while checking a completed job, response code: " + QString::number(reply.status_code));
-		}
-
-		QJsonDocument reply_doc = QJsonDocument::fromJson(reply.body);
-		if (!passedInitialCheck(reply_doc, job_id)) return;
-
-		bool ok = false;
-		int exit_code = getCommandExitCode(reply_doc, ok);
-		if (!ok) return;
-
-		if (exit_code == 0)
-		{
-			int qe_exit_code = getEngineExitCode(reply_doc, ok);
-			if (!ok) return;
-
-			if (qe_exit_code == 0)
-			{
-				db.addAnalysisHistoryEntry(job_id, "finished", stdout_stderr);
-			}
-			else
-			{
-				stdout_stderr.prepend(("job exit code: " + QString::number(qe_exit_code)).toLatin1());
-				db.addAnalysisHistoryEntry(job_id, "error", stdout_stderr);
-			}
-		}
-
-	}
-	catch(Exception e)
-	{
-		Log::error("There has been an error while checking a completed job: " + e.message());
-	}
 }
 
 void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const
@@ -182,7 +112,7 @@ void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job,
 		}
 
 		QJsonDocument reply_doc = QJsonDocument::fromJson(reply.body);
-		if (!passedInitialCheck(reply_doc, job_id)) return;
+		checkReplyIsValid(reply_doc, job_id, "delete");
 
 		QByteArrayList results = getResults(reply_doc);
 		db.addAnalysisHistoryEntry(job_id, "canceled", results);
@@ -203,20 +133,37 @@ bool QueuingEngineControllerGeneric::hasApiUrl() const
 	return true;
 }
 
-bool QueuingEngineControllerGeneric::passedInitialCheck(QJsonDocument &reply_doc, int job_id) const
+void QueuingEngineControllerGeneric::checkReplyIsValid(QJsonDocument &reply_doc, int job_id, QByteArray action) const
 {
 	if (!reply_doc.isObject())
 	{
-		Log::warn("The queuing engine API replied with an invalid JSON object for the job '" + QString::number(job_id)+ "'");
-		return false;
+		THROW(ArgumentException, "API reply for action '"+action+"' of job ID '" + QString::number(job_id)+ "' not a valid JSON!");
 	}
-	QJsonObject reply_obj = reply_doc.object();
-	if (!reply_obj.contains("result"))
+
+	QByteArrayList fields;
+	fields << "result" << "exit_code";
+	if (action=="submit")
 	{
-		Log::warn("The queuing engine API reply for the job '" + QString::number(job_id)+ "' does not contain a message field");
-		return false;
+		fields << "qe_job_id";
 	}
-	return true;
+	else if (action=="update")
+	{
+		fields << "status" << "queue";
+	}
+	else if (action=="delete")
+	{
+		//no extra fields
+	}
+	else THROW(ProgrammingException, "Unknown action '" + action +"'!");
+
+	QJsonObject reply_obj = reply_doc.object();
+	foreach(QByteArray field, fields)
+	{
+		if (!reply_obj.contains("result"))
+		{
+			THROW(ArgumentException, "API reply for action '"+action+"' of job ID '" + QString::number(job_id)+ "' does not contain field '"+field+"'!");
+		}
+	}
 }
 
 QByteArrayList QueuingEngineControllerGeneric::getResults(QJsonDocument &reply_doc) const
@@ -241,7 +188,7 @@ QString QueuingEngineControllerGeneric::getJobId(QJsonDocument &reply_doc, bool 
 		return "";
 	}
 	ok = true;
-	return reply_obj.value("qe_job_id").toString();
+	return reply_obj.value("qe_job_id").toString().trimmed(); //TODO check that it is not empty, and not larger than 10 characters
 }
 
 QString QueuingEngineControllerGeneric::getStatus(QJsonDocument &reply_doc, bool &ok) const
@@ -257,17 +204,15 @@ QString QueuingEngineControllerGeneric::getStatus(QJsonDocument &reply_doc, bool
 	return reply_obj.value("status").toString();
 }
 
-int QueuingEngineControllerGeneric::getCommandExitCode(QJsonDocument &reply_doc, bool &ok) const
+int QueuingEngineControllerGeneric::getCommandExitCode(QJsonDocument &reply_doc) const
 {
 	QJsonObject reply_obj = reply_doc.object();
-	if (!reply_obj.contains("cmd_exit_code"))
-	{
-		Log::warn("The queuing engine API reply does not contain the exit code");
-		ok = false;
-		return -1;
-	}
-	ok = true;
-	return reply_obj.value("cmd_exit_code").toInt();
+
+	bool ok = false;
+	int exit_code = reply_obj.value("exit_code").toInt(&ok);
+	if (!ok)
+
+	return exit_code;
 }
 
 int QueuingEngineControllerGeneric::getEngineExitCode(QJsonDocument &reply_doc, bool &ok) const

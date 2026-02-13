@@ -543,7 +543,7 @@ private:
 			QStringList required_fields;
 			if (top_level_obj.value("action").toString() == "submit")
 			{
-				required_fields = QStringList() << "threads" << "queues" << "pipeline_args" << "working_directory" << "script";
+				required_fields = QStringList() << "threads" << "queues" << "script_args" << "working_directory" << "script";
 			}
 
 			if (top_level_obj.value("action").toString() == "update")
@@ -575,7 +575,7 @@ private:
 
 			success_reply.insert("result", top_level_obj.value("action").toString() + " action has been successful!");
 			success_reply.insert("qe_job_id", "1");
-			success_reply.insert("cmd_exit_code", 0);
+			success_reply.insert("exit_code", 0);
 			return QHttpServerResponse("application/json", QJsonDocument(success_reply).toJson(QJsonDocument::Compact));
 		});
 

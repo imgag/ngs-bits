@@ -18,7 +18,7 @@ ServerReply QueuingEngineApiHelper::submitJob(int threads, QStringList queues, Q
 	top_level_json_object.insert("token", secure_token_);
 	top_level_json_object.insert("threads", threads);
 	top_level_json_object.insert("queues", QJsonArray::fromStringList(queues));
-	top_level_json_object.insert("pipeline_args", QJsonArray::fromStringList(pipeline_args));
+	top_level_json_object.insert("script_args", QJsonArray::fromStringList(pipeline_args));
 	top_level_json_object.insert("working_directory", project_folder);
 	top_level_json_object.insert("script", script);	
 	json_doc_output.setObject(top_level_json_object);

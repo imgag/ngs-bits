@@ -13,7 +13,7 @@ QString QueuingEngineControllerSlurm::getEngineName() const
 
 void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString working_directory, QString script, int job_id) const
 {
-	QString slurm_out_base = PipelineSettings::dataFolder() + "/slurm/megSAP_slurm_job_" + QString::number(job_id);
+	QString slurm_out_base = PipelineSettings::dataFolder() + "/analysis_jobs_logs/" + QString::number(job_id);
 
 	//Prepare sbatch arguments
     QStringList sbatch_args;
