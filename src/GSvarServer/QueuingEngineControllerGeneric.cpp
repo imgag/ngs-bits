@@ -8,6 +8,8 @@ QueuingEngineControllerGeneric::QueuingEngineControllerGeneric()
 {
 	qe_api_base_url_ = Settings::string("qe_api_base_url", true);
 	secure_token_ = Settings::string("qe_secure_token", true);
+
+	//TODO check if URL and token are provided. Throw exception otherwise!
 }
 
 QString QueuingEngineControllerGeneric::getEngineName() const
@@ -17,8 +19,6 @@ QString QueuingEngineControllerGeneric::getEngineName() const
 
 void QueuingEngineControllerGeneric::submitJob(NGSD &db, int threads, QStringList queues, QStringList pipeline_args, QString working_directory, QString script, int job_id) const
 {
-	if (!hasApiUrl()) return;
-
 	try
 	{
 		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).submitJob(threads, queues, pipeline_args, working_directory, script);
@@ -52,9 +52,6 @@ void QueuingEngineControllerGeneric::submitJob(NGSD &db, int threads, QStringLis
 
 bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJob &job, int job_id) const
 {
-	bool job_finished = true;
-	if (!hasApiUrl()) return job_finished;
-
 	try
 	{
 		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).updateRunningJob(job.sge_id, job.sge_queue);
@@ -70,13 +67,13 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 
 		bool ok = false;
 		QString status = getStatus(reply_doc, ok);
-		if (!ok) return job_finished;
+		if (!ok) return false; //TODO
 
 		if (exit_code==0 && status=="queued/running")
 		{
 			job_finished = false;
 			QString queue = getQueue(reply_doc, ok);
-			if (!ok) return job_finished;
+			if (!ok) return false; //TODO
 
 			SqlQuery query = db.getQuery();
 			query.prepare("UPDATE analysis_job SET sge_queue=:0 WHERE id=:1");
@@ -91,7 +88,7 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 		Log::error("There has been an error while updating a job: " + e.message());
 	}
 
-	return job_finished; //TODO what happens when there is an error???
+	return false; //always return false otherwise 'checkCompletedJob' is called
 }
 
 void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &db, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const
@@ -100,8 +97,6 @@ void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &db, QString qe_job_
 
 void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const
 {
-	if (!hasApiUrl()) return;
-
 	try
 	{
 		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).deleteJob(job.sge_id, job.type);
@@ -121,16 +116,6 @@ void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job,
 	{
 		Log::error("There has been an error while deleting a job: " + e.message());
 	}
-}
-
-bool QueuingEngineControllerGeneric::hasApiUrl() const
-{
-	if (qe_api_base_url_.isEmpty())
-	{
-		Log::error("Could not delete a job: base URL for queuing engine API had not been set");
-		return false;
-	}
-	return true;
 }
 
 void QueuingEngineControllerGeneric::checkReplyIsValid(QJsonDocument &reply_doc, int job_id, QByteArray action) const
