@@ -13,41 +13,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <cstdio>
-#include <array>
-#include <string>
-
-// find a PID for a BALT server instance
-int findBlatPid()
-{
-    #ifdef Q_OS_LINUX
-    std::string cmd = "pidof -s gfServer";
-    std::array<char, 128> buffer{};
-
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
-    if (!pipe) return -1;
-
-    if (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-    {
-        return std::stoi(buffer.data());
-    }
-    #endif
-    return -1;
-}
-
-// kill all instances of the BLAT server before the main app exits
-void handleExitSignal(int)
-{
-    #ifdef Q_OS_LINUX
-    pid_t pid = static_cast<pid_t>(findBlatPid());
-    while (pid > 0)
-    {
-        Log::info("Killing a BLAT process with PID " + QString::number(pid));
-        kill(pid, SIGKILL);
-        pid = static_cast<pid_t>(findBlatPid());
-    }
-    QCoreApplication::quit();
-    #endif
-}
 
 int main(int argc, char **argv)
 {
@@ -598,7 +563,6 @@ int main(int argc, char **argv)
 						&ServerController::performLogout
 					});
 
-    int server_port = 0;
 	int server_internal_port = 0; // needed if we have a revese proxy, server_port will be used to create URL only
 	try
 	{
@@ -610,15 +574,19 @@ int main(int argc, char **argv)
 		server_internal_port = 0;
 	}
 
+	int server_port = 0;
 	if (!server_port_cli.isEmpty())
 	{
 		Log::info("HTTPS server port has been provided through the command line arguments:" + server_port_cli);
 		server_port = server_port_cli.toInt();
 	}
-    server_port = Settings::integer("server_port");
+	else
+	{
+		server_port = Settings::integer("server_port");
+	}
 	if (server_port == 0)
 	{
-        Log::error("HTTPS port number is missing or invalid");
+		Log::error("HTTPS port number is missing or invalid!");
 		return EXIT_FAILURE;
 	}
 
@@ -683,22 +651,6 @@ int main(int argc, char **argv)
 	catch (DatabaseException& e)
 	{
 		Log::error("A database error has been detected while restoring sessions and URLs: " + e.message());
-	}
-
-	int blat_server_port = 0;
-	try
-	{
-		blat_server_port = Settings::integer("blat_server_port");
-	}
-	catch (Exception& e)
-	{
-		Log::info("BLAT server will not be started: " + e.message());
-	}
-	if (blat_server_port > 0)
-	{
-		// Handle signals (Ctrl+C, kill, etc.), we need to kill the BLAT server before exiting
-		std::signal(SIGINT, handleExitSignal);
-		std::signal(SIGTERM, handleExitSignal);
 	}
 
 	return app.exec();

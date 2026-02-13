@@ -2,7 +2,6 @@
 server_host = localhost
 server_port = 8443
 reference_genome = ""
-blat_server_port = 8449
 
 #megSAP ini file used as source for additional settings
 megsap_settings_ini = ""
@@ -73,3 +72,4 @@ genlab_user = ""
 genlab_pass = ""
 queue_update_enabled = false
 qe_api_base_url = ""
+qe_secure_token = ""

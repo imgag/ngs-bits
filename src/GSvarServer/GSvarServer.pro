@@ -2,7 +2,7 @@ QT += core
 QT += network
 QT -= gui
 QT += sql
-QT += httpserver websockets
+QT += httpserver
 
 QTPLUGIN += QSQLMYSQL
 
@@ -25,7 +25,6 @@ SVN_VER= \\\"$$system(cd .. && git describe --tags)\\\"
 DEFINES += "SERVER_VERSION=$$SVN_VER"
 
 SOURCES += \
-        BlatInitWorker.cpp \
         QueuingEngineController.cpp \
         QueuingEngineControllerGeneric.cpp \
         QueuingEngineControllerSge.cpp \
@@ -40,7 +39,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    BlatInitWorker.h \
     QueuingEngineController.h \
     QueuingEngineControllerGeneric.h \
     QueuingEngineControllerSge.h \

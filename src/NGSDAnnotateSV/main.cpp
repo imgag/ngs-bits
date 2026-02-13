@@ -24,10 +24,10 @@ public:
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 
-		changeLog(2020, 2, 21, "Initial version.");
-		changeLog(2020, 2, 27, "Added temporary db table with same processing system.");
-		changeLog(2020, 3, 11, "Updated match computation for INS and BND");
-		changeLog(2020, 3, 12, "Bugfix in match computation for INS and BND");
+		changeLog(2020,  2, 21, "Initial version.");
+		changeLog(2020,  2, 27, "Added temporary db table with same processing system.");
+		changeLog(2020,  3, 11, "Updated match computation for INS and BND");
+		changeLog(2020,  3, 12, "Bugfix in match computation for INS and BND");
 		changeLog(2024, 12, 17, "Refactored to only annotate pathogenic SVs from NGSD");
 	}
 

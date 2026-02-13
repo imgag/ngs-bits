@@ -1,10 +1,10 @@
 ### NGSDImportOncotree tool help
-	NGSDImportOncotree (2024_08-113-g94a3b440)
+	NGSDImportOncotree (2025_12-104-g15d04bf0)
 	
 	Imports Oncotree terms and their relations into the NGSD.
 	
 	Mandatory parameters:
-	  -tree <file>      Oncotree JSON file from 'https://oncotree.mskcc.org/api/tumorTypes/tree'.
+	  -tree <file>      Oncotree JSON file from 'https://raw.githubusercontent.com/cBioPortal/oncotree/refs/heads/master/trees/oncotree_2025_10_03.json'.
 	
 	Optional parameters:
 	  -test             Uses the test database instead of on the production database.
@@ -22,6 +22,6 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDImportOncotree changelog
-	NGSDImportOncotree 2024_08-113-g94a3b440
+	NGSDImportOncotree 2025_12-104-g15d04bf0
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

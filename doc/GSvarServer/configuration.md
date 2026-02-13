@@ -9,7 +9,6 @@ These are the most important config parameters:
 * `ssl_key` - location of your private key
 * `server_port` - port used by the server
 * `server_host` - domain name used be the server
-* `blat_server_port` - port where BLAT server should be running, BALT server will not be started, if the port is not set
 * `url_lifetime` - lifespan (seconds) of a temporary URL genereated by the server
 * `session_duration` - valid period (seconds) of a user session
 * `threads` - number of threads used for parallel calculations
@@ -27,6 +26,7 @@ These are the most important config parameters:
 * `ngsd_pass` - NGSD user password
 * `queue_update_enabled` - turns on SGE/Slurm update worker (true/false). SGE or Slurm must be setup for this option (see [Slurm installation](install_slurm.md)).
 * `qe_api_base_url` - URL for the queuing engine HTTP API: submitting jobs, updating running jobs, cheking completed jobs, deleting jobs without interacting directly with the queuing engine
+* `qe_secure_token` - a token that is needed to access the queuing engine API server
 * `megsap_settings_ini` - path to the megSAP settings file (additional settings are extracted from this file)
 * `show_raw_request` - flag used for debugging, allows to print out entire HTTP requests in log files(true/false), may significantly increase log sizes, should not be used in productio
 * `enable_file_metadata_caching` - turns on/off (true/false) file metadata caching, the cache is needed to reduce the number of calls to a file system (e.g. file size, check if file exists, etc.)
@@ -42,53 +42,9 @@ These are the seettings for the database:
 * `gsvar_server_db_user` - database user name
 * `gsvar_server_db_pass` - database user password
 
-## Using queuing engine HTTP API
+## Using a custom queuing engine server
 
-The endpoint can perform the actions listed below. For each action you will need to submit a JSON object formatted in a specific way:
-
-1. `submit` (**POST** request) - Submits a new job
-    
-    ```
-    {
-        "action": "submit",
-        "threads": number of threads to be used for running the analyisis,
-        "queues": [list of queues],
-        "script": pipeline script,
-        "pipeline_args": [list of command line arguments for the pipeline script],
-        "project_folder": project folder where the sample is stored,
-        "job_id": id from the analysis_job table in NGSD database (used by GSvar)
-    }
-    ```
-
-2. `update` (**POST** request) - Updates the status of a running job
-    ```
-    {
-        "action": "update",
-        "qe_job_id": queuing engine job id,
-        "qe_job_queue": queuing engine job queue,
-        "job_id": id from the analysis_job table in NGSD database
-    }
-    ```
-
-3. `check` (**POST** request) - Performs job accounting after completion
-    ```
-    {
-        "action": "check",
-        "qe_job_id": queuing engine job id,
-        "stdout_stderr": standard output that contains error messages (if there were errors),
-        "job_id": id from the analysis_job table in NGSD database
-    }
-    ```
-
-4. `delete` (**POST** request) - Deletes a job
-    ```
-    {
-        "action": "delete",
-        "qe_job_id": queuing engine job id,
-        "qe_job_type": queuing engine job type (single sample/trio/multi sample/somatic),
-        "job_id": id from the analysis_job table in NGSD database
-    }
-    ```
+Please refer to the [queuing engine server documenation](qe_api.md) to learn more.
 
 ## Configuring GSvar
 

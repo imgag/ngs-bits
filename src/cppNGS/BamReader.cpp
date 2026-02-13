@@ -838,10 +838,8 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	BamAlignment al;
 	while (getNextAlignment(al))
 	{
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
 		if (!al.isProperPair() && !include_not_properly_paired) continue;
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.isDuplicate()) continue;
-        if (al.isUnmapped()) continue;
 
 		reads_mapped += 1;
 		if (al.mappingQuality()==0) reads_mapq0 += 1;
