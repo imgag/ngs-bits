@@ -17,6 +17,10 @@ LIBS += -L$$PWD/../../bin -lcppNGS
 INCLUDEPATH += $$PWD/../cppGUI
 LIBS += -L$$PWD/../../bin -lcppGUI
 
+#include cppPLOTS library
+INCLUDEPATH += $$PWD/../cppPLOTS
+LIBS += -L$$PWD/../../bin -lcppPLOTS
+
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts

@@ -1,0 +1,13 @@
+#ifndef CPPPLOTS_GLOBAL_H
+#define CPPPLOTS_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(CPPPLOTS_LIBRARY)
+#  define CPPPLOTSSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define CPPPLOTSSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+
+#endif // CPPPLOTS_GLOBAL_H

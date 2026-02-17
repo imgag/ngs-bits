@@ -10,6 +10,10 @@ RC_FILE	 = icon.rc
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../../bin -lcppNGSD
 
+#include cppPLOTS library
+INCLUDEPATH += $$PWD/../cppPLOTS
+LIBS += -L$$PWD/../../bin -lcppPLOTS
+
 #include VISUAL library
 INCLUDEPATH += $$PWD/../cppVISUAL
 LIBS += -L$$PWD/../../bin -lcppVISUAL

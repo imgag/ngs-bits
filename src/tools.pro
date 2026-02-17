@@ -4,10 +4,14 @@ CONFIG += console
 #Library targets and depdendencies
 SUBDIRS = cppCORE\
         cppXML \
+        cppPLOTS \
         cppNGS \
         cppNGSD
+
 cppXML.depends = cppCORE
+cppPLOTS.depends = cppCORE
 cppNGS.depends = cppXML
+cppNGS.depends = cppPLOTS
 cppNGSD.depends = cppNGS
 
 SUBDIRS += tools-TEST

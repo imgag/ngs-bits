@@ -1,6 +1,6 @@
 #include "LoginManager.h"
 #include "NGSD.h"
-#include "ToolBase.h"
+// #include "ToolBase.h"
 #include "Log.h"
 #include "ClientHelper.h"
 #include <QJsonDocument>

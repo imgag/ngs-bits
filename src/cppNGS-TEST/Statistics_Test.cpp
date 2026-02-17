@@ -3,6 +3,7 @@
 #include "QCCollection.h"
 #include "Statistics.h"
 #include "Settings.h"
+#include "ScatterPlot.h"
 
 TEST_CLASS(Statistics_Test)
 {

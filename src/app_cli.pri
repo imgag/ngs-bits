@@ -2,7 +2,7 @@ include("base.pri")
 
 #base settings
 QT += network
-QT       -= gui
+QT       += gui widgets charts
 CONFIG   += console
 CONFIG   -= app_bundle
 TEMPLATE = app
@@ -20,6 +20,10 @@ LIBS += -L$$PWD/../bin -lcppCORE
 #include cppXML library
 INCLUDEPATH += $$PWD/cppXML
 LIBS += -L$$PWD/../bin -lcppXML
+
+#include cppPLOTS library
+INCLUDEPATH += $$PWD/cppPLOTS
+LIBS += -L$$PWD/../bin -lcppPLOTS
 
 #include cppNGS library
 INCLUDEPATH += $$PWD/cppNGS

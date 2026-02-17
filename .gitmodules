@@ -14,3 +14,6 @@
 	path = src/cppTFW
 	url = https://github.com/marc-sturm/cppTFW.git
 	branch = master
+[submodule "src/cppPlots"]
+	path = src/cppPlots
+	url = https://github.com/imgag/cppPlots.git
