@@ -729,7 +729,6 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	plot.addLine(depth_dist.yCoords(true));
 	QString plotname = Helper::tempFileName(".png");
 	plot.store(plotname);
-	plot.store("/home/ubuntolog/lineplot.png");
 	addQcPlot(output, "QC:2000037", "depth distribution plot", plotname);
 	QFile::remove(plotname);
 
