@@ -8,7 +8,8 @@ SUBDIRS =   cppCORE \
             cppNGSD \
             cppNGSD-TEST \
             cppREST \
-            cppREST-TEST
+            cppREST-TEST \
+            cppPlots
 
 cppCORE-TEST.depends = cppCORE
 
@@ -26,3 +27,4 @@ cppREST.depends = cppXML
 cppREST.depends = cppNGS
 cppREST.depends = cppNGSD
 cppREST-TEST.depends = cppREST
+cppPlots.depends = cppCORE
