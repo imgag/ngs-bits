@@ -1860,7 +1860,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	}
 	addQcValue(output, "QC:2000054", "tumor content estimate", value);
 
-	// if(skip_plots)	return output;
+	if(skip_plots)	return output;
 
 	//plotting
 	QString tumor_id = QFileInfo(tumor_bam).baseName();
