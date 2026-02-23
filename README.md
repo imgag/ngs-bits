@@ -71,6 +71,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [SeqPurge](doc/tools/SeqPurge/index.md) - A highly-sensitive adapter trimmer for paired-end short-read data.
 * [SampleSimilarity](doc/tools/SampleSimilarity/index.md) - Calculates pairwise sample similarity metrics from VCF/BAM files.
+* [SampleIdentity](doc/tools/SampleIdentity.md) - Tries to identify datasets that are from the same patient based on BAM/CRAM files of WGS/WES/lrGS/RNA sequencing.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [SampleAncestry](doc/tools/SampleAncestry/index.md) - Estimates the ancestry of a sample based on variants.
 * [CnvHunter](doc/tools/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.

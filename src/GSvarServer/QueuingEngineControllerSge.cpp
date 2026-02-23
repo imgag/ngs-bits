@@ -11,7 +11,7 @@ QString QueuingEngineControllerSge::getEngineName() const
 	return "SGE";
 }
 
-void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString project_folder, QString script, QString job_args, int job_id) const
+void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString working_directory, QString script, int job_id) const
 {
 	//Prepare qsub command
 	QString sge_out_base = PipelineSettings::dataFolder() + "/sge/megSAP_sge_job_" + QString::number(job_id);
@@ -21,18 +21,13 @@ void QueuingEngineControllerSge::submitJob(NGSD& db, int threads, QStringList qu
     if (script == "analyze_dragen.php") qsub_args << "-pe" << "smp" << "1";
     else qsub_args << "-pe" << "smp" << QString::number(threads);
     qsub_args << "-b" << "y";
-    qsub_args << "-wd" << project_folder;
+	qsub_args << "-wd" << working_directory;
     qsub_args << "-m" << "n";
     qsub_args << "-e" << (sge_out_base + ".err");
     qsub_args << "-o" << (sge_out_base + ".out");
     qsub_args << "-q" << queues.join(",");
     qsub_args << "php";
     qsub_args << PipelineSettings::rootDir()+"/src/Pipelines/"+script;
-
-    if (!job_args.isEmpty())
-    {
-        qsub_args << job_args.split(' ');
-    }
     qsub_args << pipeline_args;
 
 	if (debug_) QTextStream(stdout) << "SGE command:\t qsub " << qsub_args.join(" ") << Qt::endl;
@@ -111,8 +106,8 @@ bool QueuingEngineControllerSge::updateRunningJob(NGSD& db, const AnalysisJob &j
 					query.bindValue(0, queue);
 					query.bindValue(1, job_id);
 					query.exec();
+					break;
 				}
-				break;
 			}
 		}
 	}

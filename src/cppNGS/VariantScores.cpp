@@ -143,7 +143,7 @@ QList<Variant> VariantScores::loadBlacklist()
 	QList<Variant> output;
 
 	QStringList entries = Settings::stringList("ranking_variant_blacklist", true);
-    for (const QString& entry : entries)
+	for (const QString& entry : std::as_const(entries))
 	{
 		output << Variant::fromString(entry);
 	}
@@ -339,7 +339,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		//get gene/transcript list
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		GeneSet genes;
-        for (const VariantTranscript& transcript : transcript_info)
+		for (const VariantTranscript& transcript : std::as_const(transcript_info))
 		{
 			genes << transcript.gene;
 		}
@@ -357,7 +357,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 
 		//impact
 		double impact_score = 0.0;
-        for (const VariantTranscript& transcript : transcript_info)
+		for (const VariantTranscript& transcript : std::as_const(transcript_info))
 		{
 			if(transcript.impact == VariantImpact::HIGH)
 			{
@@ -411,7 +411,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		{
 			double hgmd_score = 0.0;
 			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
-            for (const QByteArray& entry : hgmd)
+			for (const QByteArray& entry : std::as_const(hgmd))
 			{
 				if (entry.contains("DM?"))
 				{
@@ -433,7 +433,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		//ClinVar
 		double clinvar_score = 0.0;
 		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-        for (const QByteArray& entry : clinvar)
+		for (const QByteArray& entry : std::as_const(clinvar))
 		{
 			if (entry.contains("likely pathogenic"))
 			{
@@ -479,17 +479,16 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		bool inh_match = false;
 		double min_oe = 1;
 		QByteArrayList gene_infos = v.annotations()[i_gene_info].trimmed().split(',');
-
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
-            for (const QByteArray& gene_info : gene_infos)
+			for (const QByteArray& gene_info : std::as_const(gene_infos))
 			{
 				//use gene info for current gene only
 				if (!gene_info.startsWith(gene+" ")) continue;
 
 				int start = gene_info.indexOf('(');
 				QByteArrayList entries = gene_info.mid(start+1, gene_info.length()-start-2).split(' ');
-                for (const QByteArray& entry : entries)
+				for (const QByteArray& entry : std::as_const(entries))
 				{
 					if (entry.startsWith("inh="))
 					{
@@ -636,7 +635,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		{
 			double hgmd_score = 0.0;
 			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
-            for (const QByteArray& entry : hgmd)
+			for (const QByteArray& entry : std::as_const(hgmd))
 			{
 				if (entry.contains("DM?"))
 				{
@@ -659,7 +658,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		{
 			double clinvar_score = 0.0;
 			QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-            for (const QByteArray& entry : clinvar)
+			for (const QByteArray& entry : std::as_const(clinvar))
 			{
 				if (entry.contains("likely pathogenic"))
 				{
@@ -698,7 +697,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			if (!omim.isEmpty())
 			{
 				QByteArrayList entries = omim.split('&');
-                for (QByteArray entry : entries)
+				for (QByteArray entry : std::as_const(entries))
 				{
 					QByteArrayList parts = entry.replace("GENE=", "|").replace("_PHENOS=", "|").split('|');
 					if (parts.count()<3)
@@ -721,7 +720,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 
 		//impact (gene-specific)
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
-        for (const VariantTranscript& transcript : transcript_info)
+		for (const VariantTranscript& transcript : std::as_const(transcript_info))
 		{
 			if(transcript.impact==VariantImpact::HIGH)
 			{
@@ -755,7 +754,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 
 			QByteArray gene = gene_info.left(start-1).trimmed();
 			QByteArrayList entries = gene_info.mid(start+1).split(' ');
-            for (const QByteArray& entry : entries)
+			for (const QByteArray& entry : std::as_const(entries))
 			{
 				if (entry.startsWith("inh="))
 				{
@@ -843,7 +842,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		{
 			genes << transcript.gene;
 		}
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 			gene_hits_het[gene] += 1;
 		}
@@ -905,7 +904,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		{
 			double hgmd_score = 0.0;
 			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
-            for (const QByteArray& entry : hgmd)
+			for (const QByteArray& entry : std::as_const(hgmd))
 			{
 				if (entry.contains("DM?"))
 				{
@@ -928,7 +927,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		{
 			double clinvar_score = 0.0;
 			QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-            for (const QByteArray& entry : clinvar)
+			for (const QByteArray& entry : std::as_const(clinvar))
 			{
 				if (entry.contains("likely pathogenic"))
 				{
@@ -967,7 +966,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 			if (!omim.isEmpty())
 			{
 				QByteArrayList entries = omim.split('&');
-                for (QByteArray entry : entries)
+				for (QByteArray entry : std::as_const(entries))
 				{
 					QByteArrayList parts = entry.replace("GENE=", "|").replace("_PHENOS=", "|").split('|');
 					if (parts.count()<3)
@@ -990,7 +989,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 		//impact (gene-specific)
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
-        for (const VariantTranscript& transcript : transcript_info)
+		for (const VariantTranscript& transcript : std::as_const(transcript_info))
 		{
 			if(transcript.impact==VariantImpact::HIGH)
 			{
@@ -1025,7 +1024,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 			QByteArray gene = gene_info.left(start-1).trimmed();
 			QByteArrayList entries = gene_info.mid(start+1).split(' ');
-            for (const QByteArray& entry : entries)
+			for (const QByteArray& entry : std::as_const(entries))
 			{
 				if (entry.startsWith("inh="))
 				{
@@ -1058,7 +1057,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		}
 		if (v_genotype=="het")
 		{
-            for (const VariantTranscript& transcript : transcript_info)
+			for (const VariantTranscript& transcript : std::as_const(transcript_info))
 			{
 				const QByteArray& gene = transcript.gene;
 				if(gene_hits_het.value(gene, 0)>=2)

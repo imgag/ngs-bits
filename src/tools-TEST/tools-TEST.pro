@@ -58,6 +58,7 @@ SOURCES += \
     FastaMask_Test.cpp \
     BedIntersect_Test.cpp \
     SampleSimilarity_Test.cpp \
+    SampleIdentity_Test.cpp \
     GenesToApproved_Test.cpp \
     BedAnnotateFreq_Test.cpp \
     GenesToBed_Test.cpp \
@@ -177,4 +178,5 @@ SOURCES += \
     NGSDImportCSpec_Test.cpp \
     TsvAnnotate_Test.cpp \
     NGSDImportOncotree_Test.cpp \
+    NGSDExportSpliceAI_Test.cpp \
     main.cpp

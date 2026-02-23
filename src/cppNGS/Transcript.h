@@ -243,7 +243,7 @@ public:
 
 	///Returns a list of flags associated with the transcript (preferred transcript, MANE select, MANE plus clinical)
 	QStringList flags(bool add_square_brackets) const;
-
+	//Returns all exons (also non-coding)
 	const BedFile& regions() const
 	{
 		return regions_;

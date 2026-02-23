@@ -201,44 +201,42 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 	//access restricted only for user role 'user_restricted'
 	if (getUserRole(user_id)!="user_restricted") return true;
 
-	cache_mutex_.lock();
+	QMutexLocker locker(&cache_mutex_);
+
 	QMap<int, QSet<int>>& user_can_access = getCache().user_can_access;
-	QSet<int> ps_ids;
-	if (user_can_access.contains(user_id))
-	{
-		ps_ids = user_can_access.value(user_id);
-	}
-	else
+
+	//get user-specific data and store it in cache
+	if (!user_can_access.contains(user_id))
 	{		
 		//get permission list
+		QList<int> ps_ids;
 		SqlQuery query = getQuery();
 		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
 		while(query.next())
 		{
 			Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
-			QVariant data = query.value("data").toString();
+			QString data = query.value("data").toString();
 
 			switch(permission)
 			{
 				case Permission::PROJECT:
-				        ps_ids += Helper::listToSet(getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()));
+					ps_ids << getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data);
 					break;
 				case Permission::PROJECT_TYPE:
-				        ps_ids += Helper::listToSet(getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'"));
+					ps_ids << getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data + "'");
 					break;
 				case Permission::SAMPLE:
-				        ps_ids += Helper::listToSet(getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()));
+					ps_ids << getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data);
 					break;
 				case Permission::STUDY:
-				        ps_ids += Helper::listToSet(getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()));
+					ps_ids << getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data);
 					break;
 			}
 		}
-		if (user_can_access.contains(user_id)) ps_ids.unite(user_can_access.value(user_id));
-		user_can_access.insert(user_id, ps_ids);
+		user_can_access.insert(user_id, Helper::listToSet(ps_ids));
 	}
-	cache_mutex_.unlock();
-	return ps_ids.contains(ps_id);
+
+	return user_can_access.value(user_id).contains(ps_id);
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -1914,7 +1912,7 @@ int NGSD::repeatExpansionGenotypeId(int repeat_expansion_id, int processed_sampl
 RepeatLocus NGSD::repeatExpansionGenotype(int id)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT re.region, re.repeat_unit, reg.allele1, reg.allele1 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
+	query.prepare("SELECT re.region, re.repeat_unit, reg.allele1, reg.allele2 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
 	query.bindValue(0, id);
 	query.exec();
 
@@ -2732,8 +2730,6 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 
 		if(debug) qDebug() << "get ps_ids of cohort (somatic)" << Helper::elapsedTime(timer);
 		timer.restart();
-
-		if(cohort.size() < 1) THROW(DatabaseException, "No matching samples for cohort found. Cannot create statistics.");
 	}
 	else
 	{
@@ -7512,7 +7508,6 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 		if (current_source==source && !output.isEmpty()) break;
 	}
 
-
 	if (output.isEmpty() && messages!=nullptr)
 	{
 		*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << Qt::endl;
@@ -11038,12 +11033,10 @@ void NGSD::clearCache()
 
 void NGSD::clearUserPermissionsCache()
 {
-	cache_mutex_.lock();
+	QMutexLocker locker(&cache_mutex_);
 	Cache& cache_instance = getCache();
 	cache_instance.user_can_access.clear();
-	cache_mutex_.unlock();
 }
-
 
 NGSD::Cache::Cache()
 	: gene_transcripts()

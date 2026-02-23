@@ -143,7 +143,6 @@ public:
 			sv_density.insert(Chromosome(chr), QMap<int,int>());
 		}
 
-
 		//get sample counts
         std_out << "Get sample counts per processing system..." << Qt::endl;
 		SqlQuery q_sample_counts = db.getQuery();

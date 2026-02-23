@@ -1,5 +1,5 @@
 ### CnvFilterAnnotations tool help
-	CnvFilterAnnotations (2025_09-112-ga53ff6f3d)
+	CnvFilterAnnotations (2025_12-104-g15d04bf0)
 	
 	Filter a copy-number variant list in TSV format based on variant annotations.
 	
@@ -75,6 +75,7 @@
 	CNV size                   Filter for CNV size (kilobases).
 	                           Parameters:
 	                             size - Minimum CNV size in kilobases [default=0] [min=0]
+	                             action - Action to perform [default=FILTER] [valid=FILTER,KEEP]
 	CNV tumor CN change        Filter based on CNV tumor copy number.
 	                           Parameters:
 	                             min_tumor_cn - Minimum tumor copy number of the CNV [default=0]
@@ -93,7 +94,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### CnvFilterAnnotations changelog
-	CnvFilterAnnotations 2025_09-112-ga53ff6f3d
+	CnvFilterAnnotations 2025_12-104-g15d04bf0
 	
 	2020-05-25 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

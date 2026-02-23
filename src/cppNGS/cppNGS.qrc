@@ -14,5 +14,6 @@
         <file>Resources/hg38_cyto_band.bed</file>
         <file>Resources/hg38_ensembl_transcript_matches.tsv</file>
         <file>Resources/hg38_coding_highconf_all_kits.bed</file>
+        <file>Resources/hg38_snps_identity.vcf</file>
     </qresource>
 </RCC>
