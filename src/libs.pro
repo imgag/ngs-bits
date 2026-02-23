@@ -17,6 +17,7 @@ cppXML.depends = cppCORE
 cppXML-TEST.depends = cppXML
 
 cppNGS.depends = cppXML
+cppNGS.depends = cppPlots
 cppNGS-TEST.depends = cppNGS
 
 cppNGSD.depends = cppNGS
