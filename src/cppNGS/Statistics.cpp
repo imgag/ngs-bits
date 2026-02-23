@@ -1986,9 +1986,6 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	QString plot0bname = Helper::tempFileName(".png");
 	plot0b.store(plot0bname);
 
-	Log::error("plot0b.store");
-	plot0b.store("/home/ubuntolog/barplot.png");
-
 	addQcPlot(output, "QC:2000056","somatic SNV mutation types", plot0bname);
 	QFile::remove(plot0bname);
 
