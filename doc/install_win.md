@@ -41,26 +41,24 @@ Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html
 We have summarized the tutorial, here:
 
 Now you need to start a `mingw` session inside the Windows terminal. Open `cmd` and execute (assuiming you have installed Qt 6.8.3 into C:\Qt folder)
+
 ```
 	set PATH=C:\Qt\6.8.3\mingw_64\bin;C:\Qt\Tools\mingw1310_64\bin;%PATH%
-	cd /D C:\Qt\6.8.3\mingw_64
 ```
 
-![MinGW terminal](mingw-terminal.png)
-
 With the environment variables set, run the following commands to build the database plugin (run them in `MinGW` terminal, not in the standard Windows CMD or PowerShell terminals):
-	
-	> cd C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers
-	> set PATH=C:\Qt\Tools\CMake_64\bin;%PATH%
-	> set PATH=C:\Qt\Tools\Ninja;%PATH%
-	> mkdir build-sqldrivers
-	> cd build-sqldrivers
-	> qt-cmake -G Ninja C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers -DMySQL_INCLUDE_DIR="C:\PROGRA~1\MariaDB\MARIAD~1\include" -DMySQL_LIBRARY="C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.lib" -DCMAKE_INSTALL_PREFIX="C:\Qt\mariadb_plugin"
-	> cmake --build .
-	> cmake --install .
-	> copy C:\Qt\mariadb_plugin\plugins\sqldrivers\qsqlmysql.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
-	> copy C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
-
+```	
+	cd C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers
+	set PATH=C:\Qt\Tools\CMake_64\bin;%PATH%
+	set PATH=C:\Qt\Tools\Ninja;%PATH%
+	mkdir build-sqldrivers
+	cd build-sqldrivers
+	qt-cmake -G Ninja C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers -DMySQL_INCLUDE_DIR="C:\PROGRA~1\MariaDB\MARIAD~1\include" -DMySQL_LIBRARY="C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.lib" -DCMAKE_INSTALL_PREFIX="C:\Qt\mariadb_plugin"
+	cmake --build .
+	cmake --install .
+	copy C:\Qt\mariadb_plugin\plugins\sqldrivers\qsqlmysql.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+	copy C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+```
 Upon succesfull completion, `qsqlmysql.dll` and `libmariadb.dll` sould be located in `C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\`.
 
 ### Install Git
