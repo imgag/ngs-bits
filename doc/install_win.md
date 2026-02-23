@@ -40,10 +40,15 @@ The Qt distribution no longer contains a MySQL plugin, so we need to build it ma
 Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html) on how to build the plugin. You may consult their page, if you encounter any issues.  
 We have summarized the tutorial, here:
 
-In the main Windows menu search, type `mingw` and open `Qt 6.8.3 (MinGW 13.1.0 64-bit)` terminal window.
+Now you need to start a `mingw` session inside the Windows terminal. Open `cmd` and execute (assuiming you have installed Qt 6.8.3 into C:\Qt folder)
+```
+	set PATH=C:\Qt\6.8.3\mingw_64\bin;C:\Qt\Tools\mingw1310_64\bin;%PATH%
+	cd /D C:\Qt\6.8.3\mingw_64
+```
+
 ![MinGW terminal](mingw-terminal.png)
 
-Assuiming you have installed Qt 6.8.3 into C:\Qt folder, run the following commands to build the database plugin (run them in `MinGW` terminal, not in the standard Windows CMD or PowerShell terminals):
+With the environment variables set, run the following commands to build the database plugin (run them in `MinGW` terminal, not in the standard Windows CMD or PowerShell terminals):
 	
 	> cd C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers
 	> set PATH=C:\Qt\Tools\CMake_64\bin;%PATH%
