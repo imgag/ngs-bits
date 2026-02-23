@@ -1,5 +1,5 @@
 #include "HtmlEngine.h"
-#include "ToolBase.h"
+// #include "ToolBase.h"
 #include <QTextStream>
 
 HtmlEngine::HtmlEngine()
@@ -104,7 +104,7 @@ QString HtmlEngine::getPageFooter()
 	QString output;
 	QTextStream stream(&output);
 	stream << "			<hr>\n";
-	stream << "			<p>" << ToolBase::applicationName() << " version " << ToolBase::version() << "</p>\n";
+	stream << "			<p>" << "ToolBase::applicationName()" << " version " << "ToolBase::version()" << "</p>\n";
 	stream << "		</body>\n";
 	stream << "</html>\n";
 	return output;

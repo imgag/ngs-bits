@@ -1860,7 +1860,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	}
 	addQcValue(output, "QC:2000054", "tumor content estimate", value);
 
-	if(skip_plots)	return output;
+	// if(skip_plots)	return output;
 
 	//plotting
 	QString tumor_id = QFileInfo(tumor_bam).baseName();
@@ -1985,6 +1985,10 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	plot0b.setValues(counts, nuc_changes, colors);
 	QString plot0bname = Helper::tempFileName(".png");
 	plot0b.store(plot0bname);
+
+	Log::error("plot0b.store");
+	plot0b.store("/home/ubuntolog/barplot.png");
+
 	addQcPlot(output, "QC:2000056","somatic SNV mutation types", plot0bname);
 	QFile::remove(plot0bname);
 
