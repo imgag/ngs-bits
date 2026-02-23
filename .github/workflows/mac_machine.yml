@@ -92,4 +92,6 @@ jobs:
     - name: Download test files
       run: make download_test_files
     - name: Run tests
-      run: make -k test_lib test_tools
+      run: |
+        export QT_QPA_PLATFORM=offscreen
+        make -k test_lib test_tools

@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: windows-2025
+    env:
+      QT_QPA_PLATFORM: offscreen
     defaults:
       run:
         shell: msys2 {0}
