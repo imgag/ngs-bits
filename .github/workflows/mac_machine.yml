@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   mac-build-and-test:
     runs-on: macos-15
+    env:
+      QT_QPA_PLATFORM: offscreen
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -92,6 +94,4 @@ jobs:
     - name: Download test files
       run: make download_test_files
     - name: Run tests
-      run: |
-        export QT_QPA_PLATFORM=offscreen
-        make -k test_lib test_tools
+      run: make -k test_lib test_tools

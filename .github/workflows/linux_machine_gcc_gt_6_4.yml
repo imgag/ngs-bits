@@ -6,6 +6,9 @@ jobs:
   gcc-build-and-test:
     runs-on: ubuntu-24.04
 
+    env:
+      QT_QPA_PLATFORM: offscreen
+
     services:
       mysql:
         image: mysql:5.7
@@ -52,6 +55,5 @@ jobs:
       run: make download_test_files
     - name: Start GSvar server and run tests
       run: |
-        export QT_QPA_PLATFORM=offscreen
         bin/GSvarServer &
         make -k test_lib test_server test_tools
