@@ -9,15 +9,19 @@ SUBDIRS =   cppCORE \
             cppNGSD-TEST \
             cppREST \
             cppREST-TEST \
-            cppPlots
+            cppPLOTS \
+            cppPLOTS-TEST
 
 cppCORE-TEST.depends = cppCORE
 
 cppXML.depends = cppCORE
 cppXML-TEST.depends = cppXML
 
+cppPLOTS.depends = cppCORE
+cppPLOTS-TEST.depends = cppPLOTS
+
 cppNGS.depends = cppXML
-cppNGS.depends = cppPlots
+cppNGS.depends = cppPLOTS
 cppNGS-TEST.depends = cppNGS
 
 cppNGSD.depends = cppNGS
@@ -28,4 +32,3 @@ cppREST.depends = cppXML
 cppREST.depends = cppNGS
 cppREST.depends = cppNGSD
 cppREST-TEST.depends = cppREST
-cppPlots.depends = cppCORE

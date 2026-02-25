@@ -8,6 +8,10 @@ LIBS += -L$$PWD/../../bin -lcppXML
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
+#include cppPLOTS library
+INCLUDEPATH += $$PWD/../cppPLOTS
+LIBS += -L$$PWD/../../bin -lcppPLOTS
+
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts

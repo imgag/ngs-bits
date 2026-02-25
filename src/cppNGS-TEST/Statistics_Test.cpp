@@ -3,10 +3,52 @@
 #include "QCCollection.h"
 #include "Statistics.h"
 #include "Settings.h"
+#include "ScatterPlot.h"
 
 TEST_CLASS(Statistics_Test)
 {
 	private:
+
+	TEST_METHOD(scatter_plot)
+	{
+		ScatterPlot plot1_test;
+		plot1_test.setXLabel("tumor allele frequency");
+		plot1_test.setYLabel("normal allele frequency");
+		plot1_test.setXRange(-0.015,1.015);
+		plot1_test.setYRange(-0.015,1.015);
+
+
+
+		QList< std::pair<double,double> > points_test;
+
+
+		points_test << std::pair<double,double>{0.015, -0.01}
+					<< std::pair<double,double>{0.035, 0.015}
+					<< std::pair<double,double>{0.115, 0.025}
+					<< std::pair<double,double>{0.215, 0.315}
+					<< std::pair<double,double>{0.515, 0.5}
+					<< std::pair<double,double>{0.715, 0.05}
+					<< std::pair<double,double>{0.915, -0.01}
+					<< std::pair<double,double>{1.015, 0.7};
+
+		// QList<QString> colors_test({"g","k","r","g","c","y", "y", "y"});
+
+		QList<QString> colors_test({"green","black","red","green","cyan","yellow", "yellow", "yellow"});
+
+		// QList<QColor> colors_test;
+		// colors_test << Qt::blue << Qt::black << Qt::red << Qt::green << Qt::cyan << Qt::yellow;
+		plot1_test.setValues(points_test, colors_test);
+
+
+		QString g_test = "black";
+		QString b_test = "green";
+		plot1_test.addColorLegend(g_test, "all variants");
+		plot1_test.addColorLegend(b_test, "variants with filter PASS");
+
+		// QString plot1name = Helper::tempFileName(".png");
+		// plot1_test.store("/home/ubuntolog/scatter-test.png");
+		I_EQUAL(7, 7);
+	}
 
 	TEST_METHOD(somatic)
 	{

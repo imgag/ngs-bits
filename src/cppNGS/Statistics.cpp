@@ -1951,6 +1951,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	QList<int> counts({0,0,0,0,0,0});
 	QList<QString> nuc_changes({"C>A","C>G","C>T","T>A","T>G","T>C"});
 	QList<QString> colors({"b","k","r","g","c","y"});
+
+	QList<QString> colors_scatter({"blue","black","red","green","cyan","yellow"});
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if(!variants[i].filtersPassed()) continue;	//skip non-somatic variants
@@ -2106,7 +2108,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		colors.append(b);
 	}
 
-	plot1.setValues(points, colors);
+	plot1.setValues(points, colors_scatter);
 	plot1.addColorLegend(g,"all variants");
 	plot1.addColorLegend(b,"variants with filter PASS");
 
