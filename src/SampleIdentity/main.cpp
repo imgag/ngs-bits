@@ -1,9 +1,10 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "VcfFile.h"
-#include "BamReader.h"
 #include <QFileInfo>
 #include "BasicStatistics.h"
+#include "BamWorker.h"
+#include <QThreadPool>
 
 class ConcreteTool
 		: public ToolBase
@@ -27,6 +28,7 @@ public:
 		addInt("min_depth",  "Minimum depth to use a SNP for the sample comparison.",  true,  15);
 		addInt("min_snps",  "Minimum SNPs required to comare samples.",  true,  40);
 		addInt("min_identity",  "Minimum identity percentage to show sample pairs in output.",  true,  95);
+		addInt("threads", "Number of threads to calculate Allele  frequencies", true, 4);
 		addFloat("min_correlation",  "Minimum correlation to show sample pairs in output.",  true,  0.9);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("basename", "Use BAM/CRAM basename instead of full path in output.");
@@ -48,6 +50,7 @@ public:
 		int min_depth = getInt("min_depth");
 		int min_snps = getInt("min_snps");
 		int min_identity = getInt("min_identity");
+		int threads = getInt("threads");
 		double min_correlation = getFloat("min_correlation");
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out_stream(outfile.data());
@@ -55,6 +58,8 @@ public:
 		bool debug = getFlag("debug");
 		bool time = getFlag("time");
 		QTextStream debug_stream(stdout);
+
+		if (threads < 1) THROW(ArgumentException, "Parameter 'threads' has to be greater than 0");
 
 		//load SNPs
 		VcfFile snps;
@@ -74,82 +79,32 @@ public:
 			out_stream << "##" << Helper::toString(QDateTime::currentDateTime()) << " - loading SNPs from BAM/CRAMs..." << Qt::endl;
 		}
 		QList<QString> labels;
-		labels.reserve(bams.count());
+		labels.resize(bams.count());
 		typedef QList<signed char> AfData; //AF rounded to int (0-100), or -1 for low coverage
 		QList<AfData> af_data;
-		af_data.reserve(bams.count());
+		af_data.resize(bams.count());
 
 		QElapsedTimer timer;
 		if (time) timer.start();
 		int bams_done = 0;
-		foreach(QString bam, bams)
-		{
-			//check BAM exists
-			if (!QFile::exists(bam))
-			{
-				out_stream << "##skipped " << bam << ": file does not exist\n";
-				continue;
-			}
 
-			//get AFs
-			try
-			{
-				BamReader reader(bam, getInfile("ref"));
-				reader.skipQualities();
-				reader.skipTags();
+		QList<bool> valid_bams;
+		valid_bams.resize(bams.count());
+		QThreadPool job_pool;
+		QMutex out_stream_mtx;
+		QMutex debug_stream_mtx;
+		QMutex bams_done_mtx;
 
-				AfData afs;
-				afs.resize(snps.count());
-				for(int i=0; i<snps.count(); ++i)
-				{
-					const Chromosome& chr = snps[i].chr();
-					int pos = snps[i].start();
-					char ref = snps[i].ref()[0];
-					int ref_c = 0;
-					char alt = snps[i].alt()[0][0];
-					int alt_c = 0;
+		job_pool.setMaxThreadCount(threads);
 
-					reader.setRegion(chr, pos, pos);
-
-					//iterate through all alignments and create counts
-					BamAlignment al;
-					while (reader.getNextAlignment(al))
-					{
-						if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
-
-						QPair<char, int> base = al.extractBaseByCIGAR(pos);
-						if (base.first==ref) ++ref_c;
-						if (base.first==alt) ++alt_c;
-					}
-
-					//low depth => -1
-					if (ref_c+alt_c<min_depth)
-					{
-						afs[i] = -1;
-						if (debug)
-						{
-							debug_stream << " low coverage for " << snps[i].toString() << " in " << bam << Qt::endl;
-						}
-						continue;
-					}
-
-					afs[i] = std::round(100.0*alt_c/(ref_c+alt_c));
-				}
-
-				af_data << afs;
-				labels << (basename ? QFileInfo(bam).baseName() : bam);
-
-				if (time)
-				{
-					++bams_done;
-					if (bams_done%100==0) debug_stream << "##Determining SNPs for 100 BAM/CRAM files took " << Helper::elapsedTime(timer.restart()) << Qt::endl;
-				}
-			}
-			catch (Exception& e)
-			{
-				out_stream << "##skipped " << bam << " because of error: " << e.message().replace("\n", " ") << Qt::endl;
-			}
+		for (int i =0; i < bams.count(); ++i){
+			labels[i] = (basename ? QFileInfo(bams[i]).baseName() : bams[i]);
+			af_data[i].resize(snps.count());
+			job_pool.start(new BamWorker( {bams[i], af_data[i], valid_bams[i], snps, getInfile("ref"),
+										  out_stream, out_stream_mtx, debug_stream, debug_stream_mtx,
+										  timer, bams_done, bams_done_mtx, min_depth, debug, time } ) );
 		}
+		job_pool.waitForDone();
 
 		//determine sample identity (and correlation if requested)
 		if (time)
@@ -162,8 +117,10 @@ public:
 		out_stream << Qt::endl;
 		for (int i=0; i<af_data.count(); ++i)
 		{
+			if (!valid_bams[i]) continue;
 			for (int j=i+1; j<af_data.count(); ++j)
 			{
+				if (!valid_bams[j]) continue;
 				int snps_used = 0;
 				int snps_identidy = 0;
 				v1.clear();
