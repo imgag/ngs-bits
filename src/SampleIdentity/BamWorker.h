@@ -10,7 +10,7 @@
 typedef QList<signed char> AfData;
 
 struct BamWorkerArgs{
-	QString& bam;
+	QString bam;
 	AfData& output_af;
 	bool& is_valid;
 	const VcfFile& snps;
@@ -40,7 +40,7 @@ public:
 	void run();
 
 private:
-	QString& bam_;
+	QString bam_;
 	AfData& output_af_;
 	bool& is_valid_;
 	const VcfFile& snps_;
