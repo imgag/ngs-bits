@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QMutex>
 #include <QTextStream>
+#include <QElapsedTimer>
 
 class OutputHandler : public QObject
 {

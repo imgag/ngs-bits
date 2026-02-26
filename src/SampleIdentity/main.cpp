@@ -92,7 +92,8 @@ public:
 		job_pool.setMaxThreadCount(threads);
 		QString ref = getInfile("ref");
 
-		for (int i =0; i < bams.count(); ++i){
+		for (int i =0; i < bams.count(); ++i)
+		{
 			labels[i] = (basename ? QFileInfo(bams[i]).baseName() : bams[i]);
 			BamWorker* worker = new BamWorker( {bams[i], af_data[i], snps, ref, min_depth, debug, time } );
 			connect(worker, SIGNAL(debugMessage(QString)), &output_handler, SLOT(debugMessage(QString)));
