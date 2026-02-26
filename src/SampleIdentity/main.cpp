@@ -48,7 +48,7 @@ public:
 		int min_depth = getInt("min_depth");
 		int min_snps = getInt("min_snps");
 		int min_identity = getInt("min_identity");
-		int min_correlation = getFloat("min_correlation");
+		double min_correlation = getFloat("min_correlation");
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out_stream(outfile.data());
 		bool basename = getFlag("basename");

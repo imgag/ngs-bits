@@ -494,6 +494,11 @@ private:
 
 	TEST_METHOD(test_queuing_engine_api_endpoints)
 	{
+		if (Settings::string("qe_api_base_url", true).isEmpty())
+		{
+			SKIP("This test requieres a queuing engine API server base URL, which is not set in the config");
+		}
+
 		QUrl api_server_url = QUrl(Settings::string("qe_api_base_url", true));
 		int api_server_port = api_server_url.port();
 

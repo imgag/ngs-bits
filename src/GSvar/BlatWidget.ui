@@ -38,26 +38,19 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Search in hg38 genome</string>
+      <string>Here you can perform a BLAT-like search on the hg38 genome (BWA-mem2  is used instead of BLAT)</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>sequence (20-500 bp):</string>
      </property>
     </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-    </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>sequence (min 20 bases):</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="spacing">
       <number>3</number>
      </property>
@@ -87,34 +80,14 @@
    <item>
     <widget class="QTableWidget" name="table">
      <property name="contextMenuPolicy">
-      <enum>Qt::CustomContextMenu</enum>
+      <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
      </property>
      <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
+      <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
      </property>
      <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
+      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
      </property>
-     <column>
-      <property name="text">
-       <string>matches</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>matches repeat</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>strand</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>match coordinates</string>
-      </property>
-     </column>
     </widget>
    </item>
   </layout>

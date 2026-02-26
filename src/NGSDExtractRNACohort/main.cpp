@@ -109,6 +109,8 @@ public:
 			return;
 		}
 
+        if (cohort.count() == 0) THROW(DatabaseException, "No matching samples for cohort found. Cannot create statistics.");
+
 		//get list of genes
 		GeneSet genes = GeneSet::createFromFile(gene_file);
 
@@ -128,7 +130,6 @@ public:
 
 				sample_expression.insert(parts.at(gene_id_idx).trimmed(), Helper::toDouble(parts.at(tpm_idx)));
 			}
-
 		}
 
 		//remove given ps_id if manual file is provided

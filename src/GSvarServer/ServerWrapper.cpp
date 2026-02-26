@@ -1,6 +1,5 @@
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
-#include "BlatInitWorker.h"
 #include "QueuingEngineController.h"
 #include <QStandardPaths>
 #include <QTimer>
@@ -111,25 +110,6 @@ ServerWrapper::ServerWrapper(const quint16& port)
             // Read the client version and notification information during the initialization
             SessionManager::setCurrentClientInfo(readClientInfoFromFile());
             SessionManager::setCurrentNotification(readUserNotificationFromFile());
-
-
-            // Initialize BLAT server, if the corresponding port is set
-            int blat_server_port = 0;
-            try
-            {
-                blat_server_port = Settings::integer("blat_server_port");
-            }
-            catch (Exception& e)
-            {
-                Log::info("BLAT server will not be started: " + e.message());
-            }
-            if (blat_server_port > 0)
-            {
-                Log::info("Starting BLAT server");
-                QString blat_folder = QCoreApplication::applicationDirPath() + "/blat";
-                BlatInitWorker *blat_init_worker = new BlatInitWorker(blat_server_port, blat_folder);
-                background_task_pool_.start(blat_init_worker);
-            }
         }
         else
         {
