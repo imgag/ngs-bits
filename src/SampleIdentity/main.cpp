@@ -4,7 +4,9 @@
 #include <QFileInfo>
 #include "BasicStatistics.h"
 #include "BamWorker.h"
+#include "OutputHandler.h"
 #include <QThreadPool>
+#include <QObject>
 
 class ConcreteTool
 		: public ToolBase
@@ -84,25 +86,20 @@ public:
 		QList<AfData> af_data;
 		af_data.resize(bams.count());
 
-		QElapsedTimer timer;
-		if (time) timer.start();
-		int bams_done = 0;
-
-		QList<bool> valid_bams;
-		valid_bams.resize(bams.count());
 		QThreadPool job_pool;
-		QMutex out_stream_mtx;
-		QMutex debug_stream_mtx;
-		QMutex bams_done_mtx;
+		OutputHandler output_handler(out_stream, debug_stream);
 
 		job_pool.setMaxThreadCount(threads);
+		QString ref = getInfile("ref");
 
 		for (int i =0; i < bams.count(); ++i){
 			labels[i] = (basename ? QFileInfo(bams[i]).baseName() : bams[i]);
-			af_data[i].resize(snps.count());
-			job_pool.start(new BamWorker( {bams[i], af_data[i], valid_bams[i], snps, getInfile("ref"),
-										  out_stream, out_stream_mtx, debug_stream, debug_stream_mtx,
-										  timer, bams_done, bams_done_mtx, min_depth, debug, time } ) );
+			BamWorker* worker = new BamWorker( {bams[i], af_data[i], snps, ref, min_depth, debug, time } );
+			connect(worker, SIGNAL(debugMessage(QString)), &output_handler, SLOT(debugMessage(QString)));
+			connect(worker, SIGNAL(outputMessage(QString)), &output_handler, SLOT(outputMessage(QString)));
+			connect(worker, SIGNAL(bamDone()), &output_handler, SLOT(bamDone()));
+			if (time && i == 0) output_handler.timerStart();
+			job_pool.start(worker);
 		}
 		job_pool.waitForDone();
 
@@ -117,10 +114,12 @@ public:
 		out_stream << Qt::endl;
 		for (int i=0; i<af_data.count(); ++i)
 		{
-			if (!valid_bams[i]) continue;
+			if (af_data[i].count() == 0) continue;
+
 			for (int j=i+1; j<af_data.count(); ++j)
 			{
-				if (!valid_bams[j]) continue;
+				if (af_data[j].count() == 0) continue;
+
 				int snps_used = 0;
 				int snps_identidy = 0;
 				v1.clear();

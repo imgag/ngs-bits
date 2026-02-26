@@ -1,7 +1,9 @@
 include("../app_cli.pri")
 
 SOURCES += main.cpp \
-    BamWorker.cpp
+    BamWorker.cpp \
+    OutputHandler.cpp
 
 HEADERS += \
-    BamWorker.h
+    BamWorker.h \
+    OutputHandler.h
