@@ -85,6 +85,10 @@ SUBDIRS += BedSubtract
 tools-TEST.depends += BedSubtract
 BedSubtract.depends = cppNGS
 
+SUBDIRS += FastaChecksumUpdate
+tools-TEST.depends += FastaChecksumUpdate
+FastaChecksumUpdate.depends = cppNGS
+
 SUBDIRS += FastaInfo
 tools-TEST.depends += FastaInfo
 FastaInfo.depends = cppNGS
