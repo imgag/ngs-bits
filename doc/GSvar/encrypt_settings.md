@@ -13,7 +13,10 @@ To encrypt data in the settings file, we need to compile an encryption key into 
 
 ## Encoding strings
 
-Now *GSvar* can be used to encrypt any string with the encryption key using the dialog at `Help > Encrypt` (this menu entry is available only if GSvar is running from QtCreator).  
+Now *GSvar* can be used to encrypt any string with the encryption key using the dialog at `Help > Encrypt`.
+This menu entry is available when GSvar is run from QtCreator.  
+Alternatively, it can also be enabled by setting the environment variable `QTDIR=1`
+before starting GSvar (useful for installed/binary deployments).
 The encrypted string can then be used in the settings file with the prefix `encrypted:`.
 
 ## Example
@@ -26,10 +29,10 @@ Or, encrypted like this:
 
 	ngsd_pass = "encrypted:AwtUTQrbAFKiDzc="
 
-# GSvar cient/server handshake
+# GSvar client/server handshake
 
-In addition to the enrypting settings, the `CRYPT_KEY` is used for a handshake between GSvar cient and server.  
-Communincation between client and sever will be refused if the `CRYPT_KEYs` of client and server do not match.
+In addition to the encrypting settings, the `CRYPT_KEY` is used for a handshake between GSvar cient and server.  
+Communication between client and server will be refused if the `CRYPT_KEYs` of client and server do not match.
 
 --
 
