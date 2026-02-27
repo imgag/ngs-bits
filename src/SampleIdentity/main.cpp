@@ -30,7 +30,7 @@ public:
 		addInt("min_depth",  "Minimum depth to use a SNP for the sample comparison.",  true,  15);
 		addInt("min_snps",  "Minimum SNPs required to comare samples.",  true,  40);
 		addInt("min_identity",  "Minimum identity percentage to show sample pairs in output.",  true,  95);
-		addInt("threads", "Number of threads to calculate Allele  frequencies", true, 4);
+		addInt("threads", "Number of threads to calculate Allele frequencies", true, 4);
 		addFloat("min_correlation",  "Minimum correlation to show sample pairs in output.",  true,  0.9);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("basename", "Use BAM/CRAM basename instead of full path in output.");
@@ -87,11 +87,10 @@ public:
 		af_data.resize(bams.count());
 
 		QThreadPool job_pool;
-		OutputHandler output_handler(out_stream, debug_stream);
-
 		job_pool.setMaxThreadCount(threads);
 		QString ref = getInfile("ref");
 
+		OutputHandler output_handler(out_stream, debug_stream);
 		for (int i =0; i < bams.count(); ++i)
 		{
 			labels[i] = (basename ? QFileInfo(bams[i]).baseName() : bams[i]);
@@ -99,7 +98,6 @@ public:
 			connect(worker, SIGNAL(debugMessage(QString)), &output_handler, SLOT(debugMessage(QString)));
 			connect(worker, SIGNAL(outputMessage(QString)), &output_handler, SLOT(outputMessage(QString)));
 			connect(worker, SIGNAL(bamDone()), &output_handler, SLOT(bamDone()));
-			if (time && i == 0) output_handler.timerStart();
 			job_pool.start(worker);
 		}
 		job_pool.waitForDone();

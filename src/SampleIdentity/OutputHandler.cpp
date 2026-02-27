@@ -4,11 +4,6 @@
 OutputHandler::OutputHandler(QTextStream& out_stream, QTextStream& debug_stream)
 	:out_stream_(out_stream), debug_stream_(debug_stream), bams_done_(0)
 {
-
-}
-
-void OutputHandler::timerStart()
-{
 	timer_.start();
 }
 
