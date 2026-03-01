@@ -77,6 +77,8 @@ public:
 	void sort(bool use_quality = false);
 	///Sort according to chr/postion - chromosome order is taken from the given FAI file.
 	void sortByFile(QString fai_file);
+	///Returns if the variants are sorted by position (without quality).
+	bool isSorted() const;
 
 	///Returns the VCF line at the given position
 	const VcfLine& operator[](int index) const

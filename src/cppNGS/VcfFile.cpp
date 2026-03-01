@@ -508,6 +508,11 @@ void VcfFile::sortByFile(QString fai_file)
 	sortCustom(LessComparatorByFile(fai_file));
 }
 
+bool VcfFile::isSorted() const
+{
+	return std::is_sorted(vcf_lines_.begin(), vcf_lines_.end(), LessComparator(false));
+}
+
 void VcfFile::removeDuplicates(bool sort_by_quality)
 {
 	sort(sort_by_quality);
