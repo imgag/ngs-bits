@@ -217,7 +217,9 @@ private:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/sort_in.tsv"));
 		vl.checkValid();
+		IS_FALSE(vl.isSorted());
 		vl.sort();
+		IS_TRUE(vl.isSorted());
 		vl.store("out/sort_out.tsv");
 		COMPARE_FILES("out/sort_out.tsv",TESTDATA("data_out/sort_out.tsv"));
 	}
