@@ -9,7 +9,7 @@ class ConcreteTool
 
 public:
 	ConcreteTool(int& argc, char *argv[])
-		: ToolBase(argc, argv), crypt(QCryptographicHash::Md5), debug_stream(stdout)
+		: ToolBase(argc, argv), debug_stream(stdout), crypt(QCryptographicHash::Md5)
 	{
 	}
 
@@ -21,7 +21,7 @@ public:
 		addFlag("debug", "Write debug statements");
 
 		//changelog
-		changeLog(2026, 2, 27, "Initial version.");
+		changeLog(2026, 3, 2, "Initial version.");
 	}
 
 	virtual void main()
@@ -32,8 +32,6 @@ public:
 		in = Helper::openFileForReading(getInfile("in"));
 		out = Helper::openFileForWriting(getOutfile("out"));
 		debug = getFlag("debug");
-
-		QTextStream debug_stream(stdout);
 
 		QList<QByteArray> current_header;
 
@@ -47,23 +45,12 @@ public:
 
 			if (line.startsWith(">")) // init line
 			{
-				fixChecksum();
+				finalizePreviousHeader();
+				crypt.reset();
+				md5_checksum_pos = -1;
 
 				QByteArray header = line.mid(1).trimmed();
-				out->write(">");
-				auto header_list = header.split(' ');
-				for (int i =0; i < header_list.count(); ++i){
-					if (header_list[i].size() > 3 && header_list[i].left(3) == "M5:") //checksum column
-					{
-						md5_checksum_pos = out->pos();
-						stored_checksum = header_list[i].mid(3);
-					}
-					out->write(header_list[i]);
-					if (i == header_list.count() - 1) out->write("\n");
-					else out->write(" ");
-				}
-
-				crypt.reset();
+				writeHeader(header);
 			}
 			else
 			{
@@ -72,36 +59,53 @@ public:
 				out->write("\n");
 			}
 		}
-		fixChecksum();
+		finalizePreviousHeader();
 	}
 private:
+	QSharedPointer<QFile> in;
+	QSharedPointer<QFile> out;
+	QTextStream debug_stream;
+
 	QCryptographicHash crypt;
+
 	qint64 md5_checksum_pos = -1;
 	QByteArray stored_checksum;
 	bool debug;
-	QTextStream debug_stream;
-	QSharedPointer<QFile> in;
-	QSharedPointer<QFile> out;
 
-	void fixChecksum()
+	void finalizePreviousHeader()
 	{
-		if (md5_checksum_pos != -1)
-		{
-			QByteArray checksum = crypt.result().toHex();
-			if (debug)
-			{
-				debug_stream << "original checksum: " << stored_checksum << "\n";
-				debug_stream << "new checksum: " << checksum << "\n";
-			}
-			if (checksum != stored_checksum)
-			{
-				if (debug) debug_stream << "checksum mismatch! Rewriting.\n";
+		if (md5_checksum_pos == -1) return;
 
-				out->seek(md5_checksum_pos); //seek back to write the correct value
-				out->write("M5:");
-				out->write(checksum);
-				out->seek(out->size()); //seek to the end
+		QByteArray checksum = crypt.result().toHex();
+
+		if (debug)
+		{
+			debug_stream << "original checksum: " << stored_checksum << Qt::endl;
+			debug_stream << "calculated checksum: " << checksum << Qt::endl;
+		}
+		if (checksum != stored_checksum)
+		{
+			if (debug) debug_stream << "checksum mismatch! Rewriting." << Qt::endl;
+
+			out->seek(md5_checksum_pos); //seek back to write the correct value
+			out->write(checksum);
+			out->seek(out->size()); //seek to the end
+		}
+	}
+
+	void writeHeader(const QByteArray& header)
+	{
+		out->write(">");
+		auto header_list = header.split(' ');
+		for (int i =0; i < header_list.count(); ++i)
+		{
+			if (header_list[i].size() > 3 && header_list[i].left(3) == "M5:") //checksum column
+			{
+				md5_checksum_pos = out->pos() + 3; //store checksum write pos
+				stored_checksum = header_list[i].mid(3);
 			}
+			out->write(header_list[i]);
+			out->write((i == (header_list.count() - 1)) ? "\n" : " ");
 		}
 	}
 };
