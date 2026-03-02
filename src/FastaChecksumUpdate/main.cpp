@@ -33,19 +33,16 @@ public:
 		out = Helper::openFileForWriting(getOutfile("out"));
 		debug = getFlag("debug");
 
-		QList<QByteArray> current_header;
-
 		while(!in->atEnd())
 		{
-			QByteArray line = in->readLine();
-			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+			QByteArray line = in->readLine().trimmed();
 
 			//skip empty lines
 			if(line.isEmpty()) continue;
 
 			if (line.startsWith(">")) // init line
 			{
-				finalizePreviousHeader();
+				updatePreviousHeader();
 				crypt.reset();
 				md5_checksum_pos = -1;
 
@@ -59,7 +56,7 @@ public:
 				out->write("\n");
 			}
 		}
-		finalizePreviousHeader();
+		updatePreviousHeader();
 	}
 private:
 	QSharedPointer<QFile> in;
@@ -72,7 +69,7 @@ private:
 	QByteArray stored_checksum;
 	bool debug;
 
-	void finalizePreviousHeader()
+	void updatePreviousHeader()
 	{
 		if (md5_checksum_pos == -1) return;
 
