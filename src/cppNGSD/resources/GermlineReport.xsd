@@ -628,6 +628,18 @@
 												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
+										<xs:element name="dbSNP" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>dbSNP information</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="rs_number" use="required">
+													<xs:annotation>
+														<xs:documentation>rs number. Keep in mind that it does not identify a specific variant. It identifies a genomic locus only!</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="chr" use="required">
 										<xs:annotation>
@@ -1693,8 +1705,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="10"/>
-						<xs:maxInclusive value="10"/>
+						<xs:minInclusive value="11"/>
+						<xs:maxInclusive value="11"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
