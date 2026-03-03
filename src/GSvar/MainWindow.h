@@ -218,7 +218,7 @@ public slots:
 	void on_actionGeneInterpretability_triggered();
 	///Subpanel archive dialog
 	void on_actionManageSubpanels_triggered();
-	///Close current variant list
+	///Close current case
 	void on_actionClose_triggered();
 	///Close all meta data tabs
 	void on_actionCloseMetaDataTabs_triggered();

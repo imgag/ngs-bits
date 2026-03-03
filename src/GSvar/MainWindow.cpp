@@ -3460,7 +3460,7 @@ void MainWindow::generateEvaluationSheet()
 
 	//write sheet
 	PrsTable prs_table; //not needed
-	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GlobalServiceProvider::statistics());
 	GermlineReportGenerator generator(generator_data);
 	generator.writeEvaluationSheet(filename, evaluation_sheet_data);
 
@@ -3704,7 +3704,7 @@ void MainWindow::generateReportTumorOnly()
 	config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
 	config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
 	config.filter_result = filter_result_;
-	config.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	config.relevant_transcripts = GSvarHelper::relevantTranscripts();
 	config.build = GSvarHelper::build();
 
 	TumorOnlyReportDialog dlg(variants_, config, this);
@@ -3807,7 +3807,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
 
-	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	somatic_report_settings_.relevant_transcripts = GSvarHelper::relevantTranscripts();
 	somatic_report_settings_.report_config->setEvaluationDate(QDate::currentDate());
 
 	//load obo terms for filtering coding/splicing variants
@@ -4242,7 +4242,7 @@ void MainWindow::generateReportGermline()
 	FileLocationList prs_files = GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).filterById(ps_name);
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
-	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GlobalServiceProvider::statistics());
 	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name), false);
 	data.ps_bam = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::BAM).filename;
 	data.ps_lowcov = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::LOWCOV_BED).filename;
@@ -5385,8 +5385,8 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	auto dlg = GUIHelper::createDialog(widget, "Preferred transcripts");
 	dlg->exec();
 
-	//re-load preferred transcripts from NGSD
-	GSvarHelper::preferredTranscripts(true);
+	//re-load preferred transcripts from NGSD (only adds new PTs, for removing PTs GSvar needs to be restarted)
+	GSvarHelper::relevantTranscripts(true);
 }
 
 void MainWindow::on_actionEditSomaticGeneRoles_triggered()

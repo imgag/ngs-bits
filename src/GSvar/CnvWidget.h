@@ -6,7 +6,6 @@
 #include <QTableWidgetItem>
 #include "CnvList.h"
 #include "GeneSet.h"
-#include "Settings.h"
 #include "ReportConfiguration.h"
 #include "SomaticReportConfiguration.h"
 

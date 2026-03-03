@@ -92,7 +92,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 	int i_co_sp = variants_->annotationIndexByName("coding_and_splicing", true, true);
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
-	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+	const QMap<QByteArray, QByteArrayList>& relevant_transcripts = GSvarHelper::relevantTranscripts();
 
 	QMenu* copy_menu = menu.addMenu(QIcon("://Icons/Clipboard.png"), "Copy");
 	QAction* a_copy_variant = copy_menu->addAction("Variant");
@@ -109,7 +109,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	{
 		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
 		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
-		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
+		if (relevant_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			QFont font = action->font();
 			font.setBold(true);
@@ -150,7 +150,7 @@ void VariantTable::customContextMenu(QPoint pos)
 				QAction* action = sub_menu->addAction(transcript.idWithoutVersion() + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
 
 				//highlight preferred transcripts
-				if (preferred_transcripts.value(transcript.gene).contains(transcript.idWithoutVersion()))
+				if (relevant_transcripts.value(transcript.gene).contains(transcript.idWithoutVersion()))
 				{
 					QFont font = action->font();
 					font.setBold(true);

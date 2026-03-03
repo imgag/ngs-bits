@@ -96,7 +96,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 			transcript = transcripts[0];
 			for(int j=0; j<transcripts.count(); ++j)
 			{
-				if(settings_.preferred_transcripts.value( transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
+				if(settings_.relevant_transcripts.value(transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
 				{
 					transcript = transcripts[j];
 					break;
@@ -1161,7 +1161,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 				transcript = transcripts[0];
 				for(int j=0; j<transcripts.count(); ++j)
 				{
-					if(settings_.preferred_transcripts.value( transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
+					if(settings_.relevant_transcripts.value( transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
 					{
 						transcript = transcripts[j];
 						break;
