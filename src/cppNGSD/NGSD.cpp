@@ -201,7 +201,7 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 	//access restricted only for user role 'user_restricted'
 	if (getUserRole(user_id)!="user_restricted") return true;
 
-	QMutexLocker locker(&cache_mutex_);
+	QMutexLocker locker(&cache_mutex_user_access_);
 
 	QMap<int, QSet<int>>& user_can_access = getCache().user_can_access;
 
@@ -5050,7 +5050,7 @@ void NGSD::setSomaticGeneRole(const SomaticGeneRole& gene_role)
 
 		query.bindValue(1, gene_role.high_evidence);
 		if(!gene_role.comment.isEmpty()) query.bindValue(2, gene_role.comment);
-		else query.bindValue(2, QVariant::String);
+		else query.bindValue(2, QVariant(QMetaType::fromType<QString>()));
 
 		query.exec();
 	}
@@ -5064,7 +5064,7 @@ void NGSD::setSomaticGeneRole(const SomaticGeneRole& gene_role)
 
 		query.bindValue(2, gene_role.high_evidence);
 		if(!gene_role.comment.isEmpty()) query.bindValue(3, gene_role.comment);
-		else query.bindValue(3, QVariant::String);
+		else query.bindValue(3, QVariant(QMetaType::fromType<QString>()));
 
 		query.exec();
 	}
@@ -7197,19 +7197,21 @@ const GeneSet& NGSD::approvedGeneNames()
 	return output;
 }
 
-QMap<QByteArray, QByteArrayList> NGSD::getPreferredTranscripts()
+QMap<QByteArray, QByteArrayList> NGSD::relevantTranscripts()
 {
 	QMap<QByteArray, QByteArrayList> output;
 
-	SqlQuery query = getQuery();
-	query.exec("SELECT g.symbol, pt.name FROM gene g, gene_transcript gt, preferred_transcripts pt WHERE g.id=gt.gene_id AND gt.name=pt.name");
-	while(query.next())
+	GeneSet genes = approvedGeneNames();
+	for(const QByteArray& gene: genes)
 	{
-		QByteArray gene = query.value(0).toByteArray().trimmed();
-		QByteArray transcript = query.value(1).toByteArray().trimmed();
-		output[gene].append(transcript);
-	}
+		int gene_id = geneId(gene);
+		if (gene_id==-1) continue;
 
+		foreach(const Transcript& t, relevantTranscripts(gene_id))
+		{
+			output[gene] << t.name();
+		}
+	}
 	return output;
 }
 
@@ -7221,9 +7223,9 @@ bool NGSD::addPreferredTranscript(QByteArray transcript_name)
 	QVariant pt_id = getValue("SELECT id FROM preferred_transcripts WHERE name=:0", true, transcript_name);
 	if (pt_id.isValid()) return false;
 
-	//check if valid transcript name.
-	QVariant gt_id = getValue("SELECT id FROM gene_transcript WHERE name=:0 AND source='ensembl'", true, transcript_name);
-	if (!gt_id.isValid()) THROW(DatabaseException, "Invalid Ensembl transcript name '" + transcript_name + "' given in NGSD::addPreferredTranscript!");
+	//check if valid transcript name
+	int gt_id = transcriptId(transcript_name, false);
+	if (gt_id==-1) THROW(DatabaseException, "Invalid transcript name '" + transcript_name + "' given in NGSD::addPreferredTranscript!");
 
 	//insert
 	SqlQuery query = getQuery();
@@ -7478,19 +7480,22 @@ BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 	return trans.toRegion(mode);
 }
 
-int NGSD::transcriptId(QString name, bool throw_on_error)
+int NGSD::transcriptId(const QByteArray& name, bool throw_on_error)
 {
-	QVariant value = getValue("SELECT id FROM gene_transcript WHERE name=:0", true, name);
-	if (!value.isValid() && name.contains('.')) //if not found, try without version number (if present)
+	Cache& cache = getCache();
+	if (cache.gene_transcripts.isEmpty()) initTranscriptCache();
+
+	int id = cache.gene_transcripts_name2id.value(name, -1);
+	if (id==-1 && name.contains('.')) //if not found, try without version number (if present)
 	{
-		value = getValue("SELECT id FROM gene_transcript WHERE name=:0", true, name.left(name.indexOf('.')));
+		id = cache.gene_transcripts_name2id.value(name.left(name.indexOf('.')), -1);
 	}
-	if (!value.isValid())
+	if (id==-1)
 	{
 		if (!throw_on_error) return -1;
 		THROW(DatabaseException, "No transcript with name '" + name + "' found in NGSD!");
 	}
-	return value.toInt();
+	return id;
 }
 
 TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)
@@ -7537,67 +7542,57 @@ TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, in
 
 Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts, int *return_quality)
 {
-	TranscriptList list = transcripts(gene_id, Transcript::ENSEMBL, false);
+	TranscriptList gene_transcripts = transcripts(gene_id, Transcript::ENSEMBL, false);
+	TranscriptList tmp;
 
 	//preferred
-	list.sortByCodingBases();
-	TranscriptList list_lvl;
-
-	foreach(const Transcript& t, list)
+	foreach(const Transcript& t, gene_transcripts)
 	{
-		if (t.isPreferredTranscript()) list_lvl.append(t);
+		if (t.isPreferredTranscript()) tmp.append(t);
 	}
-
-	if (list_lvl.count() > 0)
+	if (tmp.count() > 0)
 	{
 		if (return_quality != nullptr) *return_quality = 5;
-		return highestImpactTranscript(list_lvl, var_transcripts);
+		return highestImpactTranscript(tmp, var_transcripts);
 	}
 
-
-	//MANE select
-	foreach(const Transcript& t, list)
+	//MANE select or MANE plus clinical
+	foreach(const Transcript& t, gene_transcripts)
 	{
-		if (t.isManeSelectTranscript() || t.isManePlusClinicalTranscript()) list_lvl.append(t);
+		if (t.isManeSelectTranscript() || t.isManePlusClinicalTranscript()) tmp.append(t);
 	}
-
-	if (list_lvl.count() > 0)
+	if (tmp.count() > 0)
 	{
 		if (return_quality != nullptr) *return_quality = 4;
-		return highestImpactTranscript(list_lvl, var_transcripts);
+		return highestImpactTranscript(tmp, var_transcripts);
 	}
-
-	//MANE plus clinical
-	//not necessary because each gene with MANE plus clinical also has a MANE select transcript
 
 	//Ensembl canonical
-	foreach(const Transcript& t, list)
+	foreach(const Transcript& t, gene_transcripts)
 	{
-
-		if (t.isEnsemblCanonicalTranscript()) list_lvl.append(t);
+		if (t.isEnsemblCanonicalTranscript()) tmp.append(t);
 	}
-
-	if (list_lvl.count() > 0)
+	if (tmp.count() > 0)
 	{
 		if (return_quality != nullptr) *return_quality = 3;
-		return highestImpactTranscript(list_lvl, var_transcripts);
+		return highestImpactTranscript(tmp, var_transcripts);
 	}
 
 	//longest coding
-	foreach(const Transcript& t, list)
+	gene_transcripts.sortByCodingBases();
+	foreach(const Transcript& t, gene_transcripts)
 	{
-		if (t.isCoding()) list_lvl.append(t);
+		if (t.isCoding()) tmp.append(t);
 	}
-
-	if (list_lvl.count() > 0)
+	if (tmp.count() > 0)
 	{
 		if (return_quality != nullptr) *return_quality = 2;
-		return highestImpactTranscript(list_lvl, var_transcripts);
+		return highestImpactTranscript(tmp, var_transcripts);
 	}
 
 	//longest
-	list.sortByBases();
-	foreach(const Transcript& t, list)
+	gene_transcripts.sortByBases();
+	foreach(const Transcript& t, gene_transcripts)
 	{
 		if (return_quality != nullptr) *return_quality = 1;
 		return t;
@@ -7644,15 +7639,30 @@ TranscriptList NGSD::relevantTranscripts(int gene_id)
 {
 	TranscriptList output;
 
-	Transcript best_trans = bestTranscript(gene_id);
-	if (best_trans.isValid()) output << best_trans;
-
-	foreach(const Transcript& t, transcripts(gene_id, Transcript::ENSEMBL, false))
+	//add transcripts ordered by importance
+	TranscriptList tmp = transcripts(gene_id, Transcript::ENSEMBL, false);
+	foreach(const Transcript& t, tmp)
 	{
-		if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript() || t.isEnsemblCanonicalTranscript())
-		{
-			if (!output.contains(t)) output << t;
-		}
+		if (t.isPreferredTranscript()) output << t;
+	}
+	foreach(const Transcript& t, tmp)
+	{
+		if (t.isManeSelectTranscript() && !output.contains(t)) output << t;
+	}
+	foreach(const Transcript& t, tmp)
+	{
+		if (t.isManePlusClinicalTranscript() && !output.contains(t)) output << t;
+	}
+	foreach(const Transcript& t, tmp)
+	{
+		if (t.isEnsemblCanonicalTranscript() && !output.contains(t)) output << t;
+	}
+
+	//fallback to longest coding or longest transcript
+	if (output.isEmpty())
+	{
+		Transcript best_trans = bestTranscript(gene_id);
+		if (best_trans.isValid() && !output.contains(best_trans)) output << best_trans;
 	}
 
 	return output;
@@ -10817,6 +10827,7 @@ void NGSD::clearCache()
 	cache_instance.gene_transcripts_index.createIndex();
 	cache_instance.gene_transcripts_id2index.clear();
 	cache_instance.gene_transcripts_symbol2indices.clear();
+	cache_instance.gene_transcripts_name2id.clear();
 
 	cache_instance.gene_expression_id2gene.clear();
 	cache_instance.gene_expression_gene2id.clear();
@@ -10826,7 +10837,7 @@ void NGSD::clearCache()
 
 void NGSD::clearUserPermissionsCache()
 {
-	QMutexLocker locker(&cache_mutex_);
+	QMutexLocker locker(&cache_mutex_user_access_);
 	Cache& cache_instance = getCache();
 	cache_instance.user_can_access.clear();
 }
@@ -10862,6 +10873,7 @@ void NGSD::initTranscriptCache()
 	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
 	QHash<int, int>& id2index = getCache().gene_transcripts_id2index;
 	QHash<QByteArray, QSet<int>>& symbol2indices = getCache().gene_transcripts_symbol2indices;
+	QHash<QByteArray, int>& name2id = getCache().gene_transcripts_name2id;
 
 
 	//get exon coordinates for each transcript from NGSD
@@ -10920,20 +10932,21 @@ void NGSD::initTranscriptCache()
 		tmp_name2id[transcript.name()] = trans_id;
 	}
 
-	//sort and build indices
+	//sort and build index
 	cache.sortByPosition();
+	index.createIndex();
+
+	//fill other hashes for fast lookup
 	for (int i=0; i<cache.count(); ++i)
 	{
 		const Transcript& trans = cache[i];
 
 		int trans_id = tmp_name2id[trans.name()];
 		id2index[trans_id] = i;
+		name2id[trans.name()] = trans_id;
 
 		symbol2indices[trans.gene()] << i;
 	}
-
-	//build index
-	index.createIndex();
 
 	initializing = false;
 }

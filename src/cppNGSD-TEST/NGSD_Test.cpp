@@ -524,11 +524,11 @@ private:
 
 
 		//relevantTranscripts
-		transcripts = db.relevantTranscripts(3); //NIPA1 (only best)
+		transcripts = db.relevantTranscripts(3); //NIPA1 (MANE + Ensembl canonical)
 		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
-		transcripts = db.relevantTranscripts(652410); //SPG7 (best plus MANE select)
+		transcripts = db.relevantTranscripts(652410); //SPG7 (best + MANE)
 		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "ENST00000341316");
 		S_EQUAL(transcripts[1].name(), "ENST00000268704");
@@ -1507,21 +1507,23 @@ private:
 		IS_TRUE(added);
 		IS_THROWN(DatabaseException, db.addPreferredTranscript("INVALID_TRANSCRIPT_NAME"));
 
-		//getPreferredTranscripts
-		QMap<QByteArray, QByteArrayList> pt = db.getPreferredTranscripts();
-		I_EQUAL(pt.count(), 4);
-		IS_TRUE(pt.contains("NIPA1"));
-		IS_TRUE(pt.contains("NON-CODING"));
-		I_EQUAL(pt["NIPA1"].count(), 2);
-		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR1"));
-		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR2"));
-		I_EQUAL(pt["NON-CODING"].count(), 1);
-		IS_TRUE(pt["NON-CODING"].contains("NON-CODING_TR1"));
-		I_EQUAL(pt["SPG7"].count(), 1);
-		IS_TRUE(pt["SPG7"].contains("ENST00000341316"));
-		I_EQUAL(pt["MT-CO2"].count(), 2);
-		IS_TRUE(pt["MT-CO2"].contains("MT-CO2_TR3"));
-		IS_TRUE(pt["MT-CO2"].contains("MT-CO2_TR4"));
+		//relevantTranscripts
+		QMap<QByteArray, QByteArrayList> relevant = db.relevantTranscripts();
+		I_EQUAL(relevant.count(), 8);
+		IS_TRUE(relevant.contains("NIPA1"));
+		IS_TRUE(relevant.contains("NON-CODING"));
+		I_EQUAL(relevant["NIPA1"].count(), 2);
+		IS_TRUE(relevant["NIPA1"].contains("NIPA1_TR1"));
+		IS_TRUE(relevant["NIPA1"].contains("NIPA1_TR2"));
+		I_EQUAL(relevant["NON-CODING"].count(), 1);
+		IS_TRUE(relevant["NON-CODING"].contains("NON-CODING_TR1"));
+		I_EQUAL(relevant["SPG7"].count(), 2);
+		IS_TRUE(relevant["SPG7"].contains("ENST00000341316"));
+		IS_TRUE(relevant["SPG7"].contains("ENST00000268704"));
+		I_EQUAL(relevant["MT-CO2"].count(), 3);
+		IS_TRUE(relevant["MT-CO2"].contains("MT-CO2_TR2"));
+		IS_TRUE(relevant["MT-CO2"].contains("MT-CO2_TR3"));
+		IS_TRUE(relevant["MT-CO2"].contains("MT-CO2_TR4"));
 
 		//addSampleRelation
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});
@@ -1901,10 +1903,8 @@ private:
 
 		FilterCascade filters;
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
-		QMap<QByteArray, QByteArrayList> preferred_transcripts;
-		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
 		QSharedPointer<StatisticsService> statistics_service = QSharedPointer<StatisticsService>(new StatisticsServiceLocal());
-		GermlineReportGeneratorData data(GenomeBuild::HG38, "NA12878_03", variants, cnvs, svs, res, prs, report_settings, filters, preferred_transcripts, *(statistics_service));
+		GermlineReportGeneratorData data(GenomeBuild::HG38, "NA12878_03", variants, cnvs, svs, res, prs, report_settings, filters, *(statistics_service));
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
 		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
 		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");
@@ -2860,7 +2860,7 @@ private:
 		somatic_report_settings.report_config->setEvaluationDate(QDate(2022,12,1));
 		somatic_report_settings.report_config->setLimitations("This text should appear as limitations!");
 		//preferred transcripts
-		somatic_report_settings.preferred_transcripts = db.getPreferredTranscripts();
+		somatic_report_settings.relevant_transcripts = db.relevantTranscripts();
 
 		OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
 		QList<QByteArray> ids;
@@ -2961,7 +2961,7 @@ private:
 		somatic_report_settings.report_config->setLimitations("This text should appear as limitations!");
 
 		//preferred transcripts
-		somatic_report_settings.preferred_transcripts = db.getPreferredTranscripts();
+		somatic_report_settings.relevant_transcripts = db.relevantTranscripts();
 
 		OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
 		QList<QByteArray> ids;
@@ -3017,7 +3017,7 @@ private:
 		TumorOnlyReportWorkerConfig config;
 		config.filter_result = filters.apply(vl);
 		config.low_coverage_file = TESTDATA("data_in/tumor_only_stat_lowcov.bed");
-		config.preferred_transcripts.insert("MITF", QByteArrayList() << "ENST00000314589");
+		config.relevant_transcripts.insert("MITF", QByteArrayList() << "ENST00000314589");
 
 		ProcessingSystemData sys;
 		sys.name = "tumor only test panel";

@@ -20,7 +20,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="GSvar.qrc">
+   <iconset>
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -127,7 +127,7 @@
                    <string>...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="GSvar.qrc">
+                   <iconset>
                     <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
                   </property>
                  </widget>
@@ -148,7 +148,7 @@
                    <string>...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="GSvar.qrc">
+                   <iconset>
                     <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
                   </property>
                  </widget>
@@ -162,7 +162,7 @@
                    <string>...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="GSvar.qrc">
+                   <iconset>
                     <normaloff>:/Icons/Save.png</normaloff>:/Icons/Save.png</iconset>
                   </property>
                   <property name="popupMode">
@@ -186,7 +186,7 @@
                    <string>...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="GSvar.qrc">
+                   <iconset>
                     <normaloff>:/Icons/Resize_colums.png</normaloff>:/Icons/Resize_colums.png</iconset>
                   </property>
                   <property name="popupMode">
@@ -210,7 +210,7 @@
                    <string>...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="GSvar.qrc">
+                   <iconset>
                     <normaloff>:/Icons/ranking.png</normaloff>:/Icons/ranking.png</iconset>
                   </property>
                   <property name="popupMode">
@@ -227,7 +227,7 @@
                    <string>...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="GSvar.qrc">
+                   <iconset>
                     <normaloff>:/Icons/AF_histogram.png</normaloff>:/Icons/AF_histogram.png</iconset>
                   </property>
                   <property name="popupMode">
@@ -251,7 +251,7 @@
                    <string>...</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="GSvar.qrc">
+                   <iconset>
                     <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
                   </property>
                   <property name="popupMode">
@@ -515,7 +515,7 @@
       <string>Batch import</string>
      </property>
      <property name="icon">
-      <iconset resource="GSvar.qrc">
+      <iconset>
        <normaloff>:/Icons/Add_batch.png</normaloff>:/Icons/Add_batch.png</iconset>
      </property>
      <addaction name="actionImportSequencingRuns"/>
@@ -747,7 +747,7 @@
   </action>
   <action name="actionCNV">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/CopyNumber.png</normaloff>:/Icons/CopyNumber.png</iconset>
    </property>
    <property name="text">
@@ -759,7 +759,7 @@
   </action>
   <action name="actionGeneSelector">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/List.png</normaloff>:/Icons/List.png</iconset>
    </property>
    <property name="text">
@@ -797,7 +797,7 @@
   </action>
   <action name="actionROH">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/RunsOfHomozygosity.png</normaloff>:/Icons/RunsOfHomozygosity.png</iconset>
    </property>
    <property name="text">
@@ -809,7 +809,7 @@
   </action>
   <action name="actionSV">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/StructuralVariant.png</normaloff>:/Icons/StructuralVariant.png</iconset>
    </property>
    <property name="text">
@@ -821,7 +821,7 @@
   </action>
   <action name="actionAnalysisStatus">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/Server.png</normaloff>:/Icons/Server.png</iconset>
    </property>
    <property name="text">
@@ -838,7 +838,7 @@
   </action>
   <action name="actionReanalyze">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/reanalysis.png</normaloff>:/Icons/reanalysis.png</iconset>
    </property>
    <property name="text">
@@ -850,7 +850,7 @@
   </action>
   <action name="actionOpenProcessedSampleTabByName">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
    </property>
    <property name="text">
@@ -870,7 +870,7 @@
   </action>
   <action name="actionOpenSequencingRunTabByName">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/NGSD_run.png</normaloff>:/Icons/NGSD_run.png</iconset>
    </property>
    <property name="text">
@@ -890,7 +890,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/Annotate_germline_somatic.png</normaloff>:/Icons/Annotate_germline_somatic.png</iconset>
    </property>
    <property name="text">
@@ -910,7 +910,7 @@
   </action>
   <action name="actionOpenGeneTabByName">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/NGSD_gene.png</normaloff>:/Icons/NGSD_gene.png</iconset>
    </property>
    <property name="text">
@@ -922,7 +922,7 @@
   </action>
   <action name="actionSampleSearch">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/NGSD_sample_search.png</normaloff>:/Icons/NGSD_sample_search.png</iconset>
    </property>
    <property name="text">
@@ -931,7 +931,7 @@
   </action>
   <action name="actionOpenVariantTab">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/NGSD_variant.png</normaloff>:/Icons/NGSD_variant.png</iconset>
    </property>
    <property name="text">
@@ -943,7 +943,7 @@
   </action>
   <action name="actionOpenProcessingSystemTab">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/NGSD_processing_system.png</normaloff>:/Icons/NGSD_processing_system.png</iconset>
    </property>
    <property name="text">
@@ -955,7 +955,7 @@
   </action>
   <action name="actionOpenProjectTab">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/NGSD_project.png</normaloff>:/Icons/NGSD_project.png</iconset>
    </property>
    <property name="text">
@@ -1007,7 +1007,7 @@
   </action>
   <action name="actionRunOverview">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/NGSD_run_overview.png</normaloff>:/Icons/NGSD_run_overview.png</iconset>
    </property>
    <property name="text">
@@ -1080,7 +1080,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/Circos.png</normaloff>:/Icons/Circos.png</iconset>
    </property>
    <property name="text">
@@ -1102,7 +1102,7 @@
   </action>
   <action name="actionRE">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/RepeatExpansion.png</normaloff>:/Icons/RepeatExpansion.png</iconset>
    </property>
    <property name="text">
@@ -1120,7 +1120,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/PolygenicRiskScores.png</normaloff>:/Icons/PolygenicRiskScores.png</iconset>
    </property>
    <property name="text">
@@ -1156,7 +1156,7 @@
   </action>
   <action name="actionShowPublishedVariants">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
    </property>
    <property name="text">
@@ -1214,7 +1214,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
    </property>
    <property name="text">
@@ -1231,7 +1231,7 @@
   </action>
   <action name="actionBatchExportClinVar">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
    </property>
    <property name="text">
@@ -1286,7 +1286,7 @@
   </action>
   <action name="actionMidClashDetection">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
    </property>
    <property name="text">
@@ -1340,7 +1340,7 @@
   </action>
   <action name="actionShowProcessingSystemCoverage">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/gnomAD.png</normaloff>:/Icons/gnomAD.png</iconset>
    </property>
    <property name="text">
@@ -1352,7 +1352,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
    </property>
    <property name="text">
@@ -1377,7 +1377,7 @@
   </action>
   <action name="actionUploadVariantToClinVar">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
    </property>
    <property name="text">
@@ -1386,7 +1386,7 @@
   </action>
   <action name="actionVirusDetection">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/Virus.png</normaloff>:/Icons/Virus.png</iconset>
    </property>
    <property name="text">
@@ -1440,7 +1440,7 @@
   </action>
   <action name="actionPathogenicWT">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/wt_pathogenic.png</normaloff>:/Icons/wt_pathogenic.png</iconset>
    </property>
    <property name="text">
@@ -1464,7 +1464,7 @@
   </action>
   <action name="actionImportHerediVar">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/HerediVar.png</normaloff>:/Icons/HerediVar.png</iconset>
    </property>
    <property name="text">
@@ -1486,7 +1486,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset>
      <normaloff>:/Icons/Methylation.png</normaloff>:/Icons/Methylation.png</iconset>
    </property>
    <property name="text">
@@ -1529,8 +1529,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="GSvar.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

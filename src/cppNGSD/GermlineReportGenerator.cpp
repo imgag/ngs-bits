@@ -9,7 +9,7 @@
 #include <QXmlStreamWriter>
 #include "XmlHelper.h"
 
-GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_)
+GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, StatisticsService& statistics_service_)
 	: build(build_)
 	, ps(ps_)
 	, variants(variants_)
@@ -19,7 +19,6 @@ GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QSt
 	, prs(prs_)
 	, report_settings(report_settings_)
 	, filters(filters_)
-	, preferred_transcripts(preferred_transcripts_)
 	, statistics_service(statistics_service_)
 {
 }

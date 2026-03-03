@@ -4,7 +4,7 @@ TEST_CLASS(SampleIdentity_Test)
 {
 private:
 	
-	TEST_METHOD(wes_rna_test_1_thread)
+	TEST_METHOD(wes_rna_test)
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
