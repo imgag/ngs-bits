@@ -1008,6 +1008,11 @@ void VariantList::sort()
 	sortCustom(LessComparator());
 }
 
+bool VariantList::isSorted() const
+{
+	return std::is_sorted(variants_.begin(), variants_.end(), LessComparator());
+}
+
 void VariantList::sortByAnnotation(int annotation_index)
 {
 	if (annotation_index<0 || annotation_index>=annotations().count())

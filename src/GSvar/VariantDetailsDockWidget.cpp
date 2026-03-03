@@ -739,7 +739,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	if(a_index==-1) return;
 
 	//parse transcript data
-    const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+	const QMap<QByteArray, QByteArrayList>& relevant_transcripts = GSvarHelper::relevantTranscripts();
 	try
 	{
 		trans_data = vl[index].transcriptAnnotations(a_index);
@@ -802,8 +802,8 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	foreach(const VariantTranscript& trans, trans_data)
 	{
 		//highlight preferred transcripts
-		bool is_pt = preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
-		tooltip += nobr() + (is_pt ? "<b>" : "") + trans.toString(' ') + (is_pt ? "</b>" : "");
+		bool is_relevant = relevant_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+		tooltip += nobr() + (is_relevant ? "<b>" : "") + trans.toString(' ') + (is_relevant ? "</b>" : "");
 	}
 	ui->trans->setToolTip(tooltip);
 }

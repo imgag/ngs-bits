@@ -123,7 +123,7 @@ void VariantOpenDialog::parseVariant(QString format, QString text, const FastaFi
 			if (sep_pos==-1) THROW(ArgumentException, "Invalid HGVS.c variant '" + text + "' - the format is [transcipt name]:[variant]");
 
 			//remove infos in brackets
-			QString transcript_name = text.left(sep_pos).trimmed();
+			QByteArray transcript_name = text.left(sep_pos).trimmed().toUtf8();
 			if (transcript_name.contains('(') && transcript_name.endsWith(')')) //remove gene name, e.g. NM_000260.4(MYO7A)
 			{
 				int pos = transcript_name.indexOf('(');
@@ -146,7 +146,7 @@ void VariantOpenDialog::parseVariant(QString format, QString text, const FastaFi
 					transcript_name = transcript_name.left(transcript_name.indexOf('.'));
 				}
 
-				foreach(const QByteArray& match, matches[transcript_name.toUtf8()])
+				foreach(const QByteArray& match, matches[transcript_name])
 				{
 					int match_id = db.transcriptId(match, false);
 					if (match_id!=-1)
@@ -157,7 +157,7 @@ void VariantOpenDialog::parseVariant(QString format, QString text, const FastaFi
 			}
 			if (trans_id==-1) //not found > try if it is a gene name and use 'MANE select' transcript
 			{
-				int gene_id = db.geneId(transcript_name.toUtf8());
+				int gene_id = db.geneId(transcript_name);
 				if (gene_id!=-1)
 				{
 					QVariant mane_select_id = db.getValue("SELECT id FROM gene_transcript WHERE gene_id=" + QString::number(gene_id) + " AND is_mane_select=1", true);

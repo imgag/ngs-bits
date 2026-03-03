@@ -390,6 +390,8 @@ public:
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs.
 	void sort();
+	///Returns if the varants are sorted by position.
+	bool isSorted() const;
 	///Sort list alphabetically by annotation
 	void sortByAnnotation(int annotation_index);
 	///Sorts the lines accoring to FASTA index file. The order is chromosome (as given in the file), position, ref, obs.
