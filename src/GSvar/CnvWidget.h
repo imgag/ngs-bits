@@ -9,6 +9,7 @@
 #include "Settings.h"
 #include "ReportConfiguration.h"
 #include "SomaticReportConfiguration.h"
+#include "AnalysisDataController.h"
 
 namespace Ui {
 class CnvWidget;
@@ -21,7 +22,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, QSharedPointer<SomaticReportConfiguration> rep_conf_somatic, const GeneSet& het_hit_genes);
+    CnvWidget(QWidget* parent, AnalysisDataController& data_controller, const GeneSet& het_hit_genes);
 	~CnvWidget();
 
 protected:
@@ -76,12 +77,15 @@ private:
 	void uploadToClinvar(int index1, int index2=-1);
 
 	Ui::CnvWidget* ui;
-	QString ps_id_; //processed sample database ID. '' if unknown or if NGSD is disabled.
+    AnalysisDataController& data_controller_;
+    QString ps_id_; //processed sample database ID. '' if unknown or if NGSD is disabled.
 	QString callset_id_; //CNV callset database ID. '' if unknown or if NGSD is disabled.
 	const CnvList& cnvs_;
 	QStringList special_cols_;
-	QSharedPointer<ReportConfiguration> report_config_;
-	QSharedPointer<SomaticReportConfiguration> somatic_report_config_;
+
+    QSharedPointer<ReportConfiguration> report_config_;
+    QSharedPointer<SomaticReportConfiguration> somatic_report_config_;
+
 
 	GeneSet var_het_genes_;
 	QSet<QString> metrics_done_;

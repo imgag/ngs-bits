@@ -3017,9 +3017,9 @@ private:
 		int fu_id =  db.addRnaFusion(1, fu2).toInt();
 		Fusion res_fu = db.rnaFusion(fu_id);
 		S_EQUAL(res_fu.breakpoint1().chr().strNormalized(true), "chr20");
-		S_EQUAL(res_fu.breakpoint1().pos(), 53256444);
+        I_EQUAL(res_fu.breakpoint1().pos(), 53256444);
 		S_EQUAL(res_fu.breakpoint2().chr().strNormalized(true), "chr20");
-		S_EQUAL(res_fu.breakpoint2().pos(), 53487144);
+        I_EQUAL(res_fu.breakpoint2().pos(), 53487144);
 		S_EQUAL(res_fu.symbol1(), "TSHZ2-1");
 		S_EQUAL(res_fu.symbol2(), "TSHZ2-2");
 		S_EQUAL(res_fu.transcript1(), "ENSG00000182463");
@@ -3403,35 +3403,35 @@ private:
 
 
 		//report config of RNA fusions:
-		RnaReportConfiguration rna_config;
-		rna_config.setCreatedAt(QDateTime(QDate(2000,1,1), QTime(11,11)));
-		rna_config.setCreatedBy("ahmustm1");
+        QSharedPointer<RnaReportConfiguration> rna_config(new RnaReportConfiguration);
+        rna_config->setCreatedAt(QDateTime(QDate(2000,1,1), QTime(11,11)));
+        rna_config->setCreatedBy("ahmustm1");
 
 		RnaReportFusionConfiguration fusion_config1;
 		fusion_config1.exclude_artefact = true;
 		fusion_config1.variant_index = 2;
 		fusion_config1.comment = "is an artifact";
-		rna_config.addRnaFusionConfiguration(fusion_config1);
+        rna_config->addRnaFusionConfiguration(fusion_config1);
 
 		RnaReportFusionConfiguration fusion_config2;
 		fusion_config2.variant_index = 0;
 		fusion_config2.comment = "is real and should be in the report";
 
-		rna_config.addRnaFusionConfiguration(fusion_config2); // add to report
+        rna_config->addRnaFusionConfiguration(fusion_config2); // add to report
 
 		db.setRnaReportConfig("10", rna_config, fusions, "ahmustm1");
 
 		QStringList messages;
-		RnaReportConfiguration loaded =  db.rnaReportConfig("10", fusions, messages);
+        QSharedPointer<RnaReportConfiguration> loaded =  db.rnaReportConfig("10", fusions, messages);
 
-		I_EQUAL(loaded.count(), 2);
-		RnaReportFusionConfiguration conf1 = loaded.get(0);
+        I_EQUAL(loaded->count(), 2);
+        RnaReportFusionConfiguration conf1 = loaded->get(0);
 		IS_FALSE(conf1.exclude_artefact);
 		S_EQUAL(conf1.comment, "is real and should be in the report");
-		RnaReportFusionConfiguration conf2 = loaded.get(2);
+        RnaReportFusionConfiguration conf2 = loaded->get(2);
 		IS_TRUE(conf2.exclude_artefact);
 		S_EQUAL(conf2.comment, "is an artifact");
-		IS_THROWN(ArgumentException, loaded.get(1));
+        IS_THROWN(ArgumentException, loaded->get(1));
 
 	}
 

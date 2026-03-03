@@ -129,7 +129,12 @@ public:
 
 	QByteArray getCallerVersion() const;
 	QByteArray getCaller() const;
-	QByteArray getCallDate() const;
+    QByteArray getCallDate() const;
+
+    bool isValid();
+
+private:
+    QString filename_;
 
 };
 

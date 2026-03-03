@@ -5,16 +5,12 @@
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "BedFile.h"
-#include "NGSD.h"
 #include "FilterCascade.h"
-#include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
-#include "SomaticReportSettings.h"
 #include "Log.h"
 #include "ClickableLabel.h"
-#include "ImportDialog.h"
-#include "RepeatLocusList.h"
 #include "Background/BackgroundJobDialog.h"
+#include "AnalysisDataController.h"
 
 ///Tab type
 enum class TabType
@@ -45,9 +41,6 @@ public:
 	/// Gets server API information to make sure ther the server is currently running
 	bool isServerRunning();
 
-    /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
-    void lazyLoadIGVfiles(QString current_file);
-
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
@@ -66,33 +59,17 @@ public:
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index);
 
-	///Returns if germline report is supported for current variant list. If error is given, it is filled with the error message, if false is returned.
-	bool germlineReportSupported(bool require_ngsd = true, QString* error=nullptr);
-	///Returns the processed sample name for which report configuration is set and the report is generated.
-	QString germlineReportSample();
-	///Returns if somatic tumor-normal report is supported for current variant list.
-	bool somaticReportSupported();
-	///Returns if somatic tumpr-only report is supported for current variant list.
-	bool tumoronlyReportSupported();
-
 	///Lets the user select a gene. If the user aborts, "" is returned.
 	static QString selectGene();
 	///Lets the user select a processed sample from the current variant list. If only one processed sample is contained, it is returned. If the user aborts, "" is returned.
 	QString selectProcessedSample();
 	///Target region information of filter widget.
 	const TargetRegionInfo& targetRegion();
-
-	///Returns the variant lists of the currently loaded sample
-	const VariantList& getSmallVariantList();
-	const CnvList& getCnvList();
-	const BedpeFile& getSvList();
-	const RepeatLocusList& getReList();
+    ///returns the filterWidget
 	FilterWidget* filterWidget();
 
 	/// Checks if there is a new client version available
 	void checkClientUpdates();
-    QString getCurrentFileName();
-    AnalysisType getCurrentAnalysisType();
 
 public slots:
 	///Upload variant to Clinvar
@@ -104,13 +81,13 @@ public slots:
 	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
 	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given
-	void loadFile(QString filename="", bool show_only_error_issues=false);
+    void loadFile(QString filename="");
 	///Checks if variant list is outdated
 	void checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Checks if processed samples have bad quality or other problems
 	void checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Shows a dialog with issues in analysis. Returns the DialogCode.
-	int showAnalysisIssues(QList<QPair<Log::LogLevel, QString> >& issues, bool show_only_error_issues);
+    int showAnalysisIssues(QList<QPair<Log::LogLevel, QString> >& issues);
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)
@@ -318,18 +295,10 @@ public slots:
 	///Shows the gap closing dialog with the given regions and genes
 	void showGapsClosingDialog(QString title, const BedFile& regions, const GeneSet& genes);
 
-	///Load report configuration
-	void loadReportConfig();
-	///Store report configuration
-	void storeReportConfig();
-	///Load somatic report configuration
-	void loadSomaticReportConfig();
-	///Store somatic report configuration
-	void storeSomaticReportConfig();
-    ///load RNA report configuration
-    void loadRnaReportConfig();
-    ///Store RNA report configuration
-    void storeRnaReportConfig();
+    ///Store report configuration
+    void storeGermlineReportConfig();
+    ///Store somatic report configuration
+    void storeSomaticReportConfig();
 	///Prints a variant sheet based on the report configuration
 	void generateEvaluationSheet();
 	///Trigger somatic data transfer to MTB
@@ -501,13 +470,15 @@ public slots:
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
 
+    void showError(QString title, QString text);
+    void showWarning(QString title, QString text);
+    void showInfo(QString title, QString text);
+
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
 	void closeEvent(QCloseEvent* event);
-	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
-	QString normalSampleName();
 	///	Wrapper function for QInputDialog::getItem to handle long URLs:
 	/// the list visible to the user will contain only file names (not entire URLs). It makes the
 	/// list easier to read and saves some screen real estate
@@ -516,6 +487,11 @@ protected:
     void performLogout();
 
 private:
+    bool getHetHitGenes(GeneSet& het_hit_genes);
+
+
+
+
 	//GUI
 	Ui::MainWindow ui_;
 	int var_last_;
@@ -525,28 +501,12 @@ private:
 	ClickableLabel* background_job_label_;
 	BackgroundJobDialog* bg_job_dialog_;
 
-	//DATA
-	QString filename_;
-	VariantList variants_;
-	struct VariantListChange
-	{
-		Variant variant;
-		QString column;
-		QString text;
-	};
-	QList<VariantListChange> variants_changed_;
-	CnvList cnvs_;
-	BedpeFile svs_;
-	RepeatLocusList res_;
-	FilterResult filter_result_;
+    AnalysisDataController data_controller_; //DATA
+    FilterResult filter_result_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_; //phenotypes used to generate phenotype ROI (needed to check if they changed)
 	PhenotypeSettings last_pheno_settings_; //phenotype settings used to generate phenotype ROI (needed to check if they changed)
 	BedFile phenotype_roi_;
-	ReportSettings report_settings_;
-	QString germline_report_ps_;
-	SomaticReportSettings somatic_report_settings_;
-	VariantList somatic_control_tissue_variants_;
 
 	bool cf_dna_available;
 	QToolButton* gap_btn_;

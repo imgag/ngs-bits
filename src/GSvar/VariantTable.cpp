@@ -124,7 +124,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
 		//BAM
-		if (variants_->type()==GERMLINE_SINGLESAMPLE)
+        if (variants_->type()==AnalysisType::GERMLINE_SINGLESAMPLE)
 		{
 			sub_menu->addAction("BAM");
 		}

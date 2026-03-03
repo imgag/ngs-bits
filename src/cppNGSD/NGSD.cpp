@@ -9267,17 +9267,17 @@ int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 
 int NGSD::rnaReportConfigId(QString ps_id)
 {
-    qDebug() << "start";
+    qDebug() << "rnaReportConfigId(): start";
 	QString query = "SELECT id FROM rna_report_configuration WHERE processed_sample_id='" + ps_id + "'";
 	QVariant id = getValue(query, true);
-    qDebug() << "getValue";
+    qDebug() << "rnaReportConfigId(): getValue() finished";
     return id.isValid() ? id.toInt() : -1;
 }
 
 
-RnaReportConfiguration NGSD::rnaReportConfig(QString rna_ps_id, const ArribaFile& fusions, QStringList& messages)
+QSharedPointer<RnaReportConfiguration> NGSD::rnaReportConfig(QString rna_ps_id, const ArribaFile& fusions, QStringList& messages)
 {
-	RnaReportConfiguration output;
+    QSharedPointer<RnaReportConfiguration> output = QSharedPointer<RnaReportConfiguration>(new RnaReportConfiguration());
 	int rna_config_id = rnaReportConfigId(rna_ps_id);
 
 	if(rna_config_id == -1)
@@ -9290,8 +9290,8 @@ RnaReportConfiguration NGSD::rnaReportConfig(QString rna_ps_id, const ArribaFile
 	query.exec("SELECT u.name, r.* FROM rna_report_configuration r, user u WHERE r.id=" + QByteArray::number(rna_config_id) + " AND u.id = r.created_by");
 	query.next();
 
-	output.setCreatedBy(query.value("name").toString());
-	output.setCreatedAt(query.value("created_date").toDateTime());
+    output->setCreatedBy(query.value("name").toString());
+    output->setCreatedAt(query.value("created_date").toDateTime());
 
 	//Load fusions
 	query.exec("SELECT * FROM rna_report_configuration_fusion WHERE rna_report_configuration_id=" + QString::number(rna_config_id));
@@ -9319,13 +9319,13 @@ RnaReportConfiguration NGSD::rnaReportConfig(QString rna_ps_id, const ArribaFile
 		fusion_conf.exclude_other_reason = query.value("exclude_other_reason").toBool();
 		fusion_conf.comment = query.value("comment").toString();
 
-		output.addRnaFusionConfiguration(fusion_conf);
+        output->addRnaFusionConfiguration(fusion_conf);
 	}
 
 	return output;
 }
 
-int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& config, const ArribaFile& fusions, QString user_name)
+int NGSD::setRnaReportConfig(QString rna_ps_id, QSharedPointer<RnaReportConfiguration> config, const ArribaFile& fusions, QString user_name)
 {
     qDebug() << "NGSD::setRnaReportConfig() start";
 	int id = rnaReportConfigId(rna_ps_id);
@@ -9348,8 +9348,8 @@ int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& co
 		query.prepare("INSERT INTO `rna_report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
 
 		query.bindValue(0, rna_ps_id);
-		query.bindValue(1, userId(config.createdBy()));
-		query.bindValue(2, config.createdAt());
+        query.bindValue(1, userId(config->createdBy()));
+        query.bindValue(2, config->createdAt());
 		query.bindValue(3, userId(user_name));
 		query.exec();
 		id = query.lastInsertId().toInt();
@@ -9360,7 +9360,7 @@ int NGSD::setRnaReportConfig(QString rna_ps_id, const RnaReportConfiguration& co
 	SqlQuery query_fu = getQuery();
 	query_fu.prepare("INSERT INTO `rna_report_configuration_fusion` (`rna_report_configuration_id`, `rna_fusion_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_evidence`, `exclude_other_reason`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6)");
 
-	foreach(const auto& fu_conf, config.fusionConfig())
+    foreach(const auto& fu_conf, config->fusionConfig())
 	{
         qDebug() <<  "NGSD::setRnaReportConfig() storing variants: var idx - " << fu_conf.variant_index;
 

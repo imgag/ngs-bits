@@ -229,11 +229,11 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 		//get genotype/AF index
 		int geno_index = -1;
 		AnalysisType type = vls[i].type();
-		if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR || type==CFDNA)
+        if (type==AnalysisType::SOMATIC_SINGLESAMPLE || type==AnalysisType::SOMATIC_PAIR || type==AnalysisType::CFDNA)
 		{
 			geno_index = vls[i].annotationIndexByName("tumor_af", true, true);
 		}
-		else if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+        else if (type==AnalysisType::GERMLINE_SINGLESAMPLE || type==AnalysisType::GERMLINE_TRIO || type==AnalysisType::GERMLINE_MULTISAMPLE)
 		{
 			QList<int> affected_cols = vls[i].getSampleHeader().sampleColumns(true);
 			if (affected_cols.count()==1)

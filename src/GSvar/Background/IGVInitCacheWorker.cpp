@@ -25,7 +25,7 @@ void IGVInitCacheWorker::process()
     FileLocationList bafs = GlobalServiceProvider::fileLocationProvider().getBafFiles(true);
     foreach(const FileLocation& file, bafs)
     {
-        if(analysis_type_ == SOMATIC_PAIR && !file.id.contains("somatic")) continue;
+        if(analysis_type_ == AnalysisType::SOMATIC_PAIR && !file.id.contains("somatic")) continue;
         IgvSessionManager::get(0).addLocationToCache(file, true);
     }
 
@@ -40,7 +40,7 @@ void IGVInitCacheWorker::process()
     IgvSessionManager::get(0).addLocationToCache(bedpe, igv_default_sv);
 
     //CNV files
-    if (analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==SOMATIC_PAIR)
+    if (analysis_type_==AnalysisType::SOMATIC_SINGLESAMPLE || analysis_type_==AnalysisType::SOMATIC_PAIR)
     {
         FileLocation file = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCoverageFile();
         IgvSessionManager::get(0).addLocationToCache(file, true);
@@ -57,7 +57,7 @@ void IGVInitCacheWorker::process()
         }
     }
 
-    if (analysis_type_ == GERMLINE_SINGLESAMPLE || analysis_type_ == GERMLINE_MULTISAMPLE || analysis_type_ == GERMLINE_TRIO)
+    if (analysis_type_ == AnalysisType::GERMLINE_SINGLESAMPLE || analysis_type_ == AnalysisType::GERMLINE_MULTISAMPLE || analysis_type_ == AnalysisType::GERMLINE_TRIO)
     {
         //Manta evidence file(s)
         FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
@@ -69,7 +69,7 @@ void IGVInitCacheWorker::process()
 
     //sample low-coverage
     bool igv_default_lowcov = Settings::boolean("igv_default_lowcov", true);
-    if (analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==SOMATIC_PAIR)
+    if (analysis_type_==AnalysisType::SOMATIC_SINGLESAMPLE || analysis_type_==AnalysisType::SOMATIC_PAIR)
     {
         FileLocationList som_low_cov_files = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
         foreach(const FileLocation& loc, som_low_cov_files)

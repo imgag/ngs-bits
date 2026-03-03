@@ -116,7 +116,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//determine genotype column index
 	int geno_i = -1;
 	AnalysisType type = vl.type();
-	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO)
+    if (type==AnalysisType::GERMLINE_SINGLESAMPLE || type==AnalysisType::GERMLINE_TRIO)
 	{
 		geno_i = vl.getSampleHeader().infoByStatus(true).column_index;
 	}

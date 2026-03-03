@@ -1,8 +1,10 @@
 #ifndef SOMATICREPORTCONFIGURATION_H
 #define SOMATICREPORTCONFIGURATION_H
+
+#include <QObject>
+
 #include "cppNGSD_global.h"
 #include "VariantType.h"
-#include "ReportConfiguration.h"
 #include "FilterCascade.h"
 #include <Chromosome.h>
 #include <QString>
@@ -64,7 +66,9 @@ struct CPPNGSDSHARED_EXPORT SomaticReportGermlineVariantConfiguration
 };
 
 class CPPNGSDSHARED_EXPORT SomaticReportConfiguration
+    : public QObject
 {
+    Q_OBJECT
 public:
 	SomaticReportConfiguration();
 
@@ -182,6 +186,9 @@ public:
 
 	QDate evaluationDate() const;
 	void setEvaluationDate(QDate date);
+
+signals:
+    void variantsChanged();
 
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;

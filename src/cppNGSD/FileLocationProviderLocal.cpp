@@ -41,7 +41,7 @@ FileLocation FileLocationProviderLocal::getAnalysisCnvFile() const
 {
 	QString base = ps_folder_ + ps_;
 
-	if (analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==SOMATIC_PAIR)
+    if (analysis_type_==AnalysisType::SOMATIC_SINGLESAMPLE || analysis_type_==AnalysisType::SOMATIC_PAIR)
 	{
 		QString file = base	+ "_clincnv.tsv";
 		return FileLocation{ps_, PathType::COPY_NUMBER_CALLS, file, QFile::exists(file)};
@@ -62,7 +62,7 @@ FileLocation FileLocationProviderLocal::getAnalysisMosaicCnvFile() const
 
 FileLocation FileLocationProviderLocal::getAnalysisUpdFile() const
 {
-	if (analysis_type_!=GERMLINE_TRIO) return FileLocation();
+    if (analysis_type_!=AnalysisType::GERMLINE_TRIO) return FileLocation();
 
 	QString file = ps_folder_ + ps_ + "_upd.tsv";
 
@@ -186,7 +186,7 @@ FileLocationList FileLocationProviderLocal::getBafFiles(bool return_if_missing) 
 		addToList(file, output, return_if_missing);
 	}
 
-	if (analysis_type_==SOMATIC_PAIR)
+    if (analysis_type_==AnalysisType::SOMATIC_PAIR)
 	{
 		QString file = ps_folder_ + ps_ + "_bafs.igv";
 		addToList( FileLocation{ps_ + " (somatic)", PathType::BAF, file, QFile::exists(file)}, output, return_if_missing);
@@ -308,7 +308,7 @@ FileLocationList FileLocationProviderLocal::getLowCoverageFiles(bool return_if_m
 
 FileLocationList FileLocationProviderLocal::getSomaticLowCoverageFiles(bool return_if_missing) const
 {
-	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_!=AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_!=AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	FileLocationList output;
 
@@ -366,10 +366,10 @@ FileLocationList FileLocationProviderLocal::getRohFiles(bool return_if_missing) 
 
 FileLocation FileLocationProviderLocal::getSomaticCnvCoverageFile() const
 {
-    if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_!=AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_!=AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
     QString file;
-    if (analysis_type_ == SOMATIC_SINGLESAMPLE)
+    if (analysis_type_ == AnalysisType::SOMATIC_SINGLESAMPLE)
     {
         file = ps_folder_ + ps_ + "_clincnv.seg";
     }
@@ -383,10 +383,10 @@ FileLocation FileLocationProviderLocal::getSomaticCnvCoverageFile() const
 
 FileLocation FileLocationProviderLocal::getSomaticCnvCallFile() const
 {
-    if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCallFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_!=AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_!=AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCallFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
     QString file;
-    if (analysis_type_ == SOMATIC_SINGLESAMPLE)
+    if (analysis_type_ == AnalysisType::SOMATIC_SINGLESAMPLE)
     {
         file = ps_folder_ + ps_ + + "_clincnv_cnvs.seg";
     }
@@ -400,7 +400,7 @@ FileLocation FileLocationProviderLocal::getSomaticCnvCallFile() const
 
 FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
 {
-	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_!=AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_!=AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString file = ps_folder_ + ps_ + "_stat_lowcov.bed";
 
@@ -409,7 +409,7 @@ FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
 
 FileLocation FileLocationProviderLocal::getSomaticMsiFile() const
 {
-	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticMsiFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_!=AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_!=AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticMsiFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString file = ps_folder_ + ps_ + "_msi.tsv";
 
@@ -418,7 +418,7 @@ FileLocation FileLocationProviderLocal::getSomaticMsiFile() const
 
 FileLocation FileLocationProviderLocal::getSomaticIgvScreenshotFile() const
 {
-	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticIgvScreenshotFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_ != AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_ != AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticIgvScreenshotFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString file = ps_folder_ + ps_ + "_igv_screenshot.png";
 
@@ -427,7 +427,7 @@ FileLocation FileLocationProviderLocal::getSomaticIgvScreenshotFile() const
 
 FileLocation FileLocationProviderLocal::getSomaticCfdnaCandidateFile() const
 {
-	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_ != AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_ != AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString file = ps_folder_ + ps_ + "_cfDNA_candidates" + "/" + "monitoring.vcf";
 
@@ -436,7 +436,7 @@ FileLocation FileLocationProviderLocal::getSomaticCfdnaCandidateFile() const
 
 FileLocation FileLocationProviderLocal::getSignatureSbsFile() const
 {
-	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_ != AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_ != AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString file = ps_folder_ + "snv_signatures" + "/" + "De_Novo_map_to_COSMIC_SBS96.csv";
 	if (!QFile::exists(file)) file = file.left(file.length()-4) + ".tsv"; //fallback to new TSV format
@@ -446,7 +446,7 @@ FileLocation FileLocationProviderLocal::getSignatureSbsFile() const
 
 FileLocation FileLocationProviderLocal::getSignatureIdFile() const
 {
-	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_ != AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_ != AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString file = ps_folder_ + "snv_signatures" + "/" + "De_Novo_map_to_COSMIC_ID83.csv";
 	if (!QFile::exists(file)) file = file.left(file.length()-4) + ".tsv"; //fallback to new TSV format
@@ -456,7 +456,7 @@ FileLocation FileLocationProviderLocal::getSignatureIdFile() const
 
 FileLocation FileLocationProviderLocal::getSignatureDbsFile() const
 {
-	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_ != AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_ != AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString file = ps_folder_ + "snv_signatures" + "/" + "De_Novo_map_to_COSMIC_DBS78.csv";
 	if (!QFile::exists(file)) file = file.left(file.length()-4) + ".tsv"; //fallback to new TSV format
@@ -466,7 +466,7 @@ FileLocation FileLocationProviderLocal::getSignatureDbsFile() const
 
 FileLocation FileLocationProviderLocal::getSignatureCnvFile() const
 {
-	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+    if (analysis_type_ != AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type_ != AnalysisType::SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString file = ps_folder_ + "cnv_signatures" + "/" + "De_Novo_map_to_COSMIC_CNV48.csv";
 	if (!QFile::exists(file)) file = file.left(file.length()-4) + ".tsv"; //fallback to new TSV format
@@ -485,12 +485,12 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 {
     QList<KeyValuePair> output;
 
-    if (analysis_type_==GERMLINE_SINGLESAMPLE || analysis_type_==CFDNA)
+    if (analysis_type_==AnalysisType::GERMLINE_SINGLESAMPLE || analysis_type_==AnalysisType::CFDNA)
     {
         QString id = header_info_.begin()->name;
 		output << KeyValuePair(id, ps_folder_ + id);
     }
-    else if (analysis_type_==GERMLINE_TRIO || analysis_type_==GERMLINE_MULTISAMPLE || analysis_type_==SOMATIC_PAIR || analysis_type_==SOMATIC_SINGLESAMPLE)
+    else if (analysis_type_==AnalysisType::GERMLINE_TRIO || analysis_type_==AnalysisType::GERMLINE_MULTISAMPLE || analysis_type_==AnalysisType::SOMATIC_PAIR || analysis_type_==AnalysisType::SOMATIC_SINGLESAMPLE)
     {
         QString project_folder = getProjectPath();
 

@@ -5,7 +5,7 @@
 #include <QString>
 #include <QList>
 
-enum ContentType
+enum class ContentType
 {
 	APPLICATION_OCTET_STREAM,
 	APPLICATION_JSON,
@@ -22,7 +22,7 @@ enum ContentType
 	APPLICATION_X_WWW_FORM_URLENCODED
 };
 
-enum ResponseStatus
+enum class ResponseStatus
 {
 	CONTINUE,
 	SWITCHING_PROTOCOLS,
@@ -67,7 +67,7 @@ enum ResponseStatus
 	UNKNOWN_STATUS_CODE
 };
 
-enum RequestMethod
+enum class RequestMethod
 {
 	GET,
 	POST,
@@ -86,7 +86,7 @@ struct CPPRESTSHARED_EXPORT ByteRange
 
 struct CPPRESTSHARED_EXPORT BasicResponseData
 {
-	ResponseStatus status = OK;
+    ResponseStatus status = ResponseStatus::OK;
 	qint64 length;
 	ContentType content_type;
 	QString filename;

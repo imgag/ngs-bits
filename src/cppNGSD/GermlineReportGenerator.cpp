@@ -42,7 +42,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	writeHtmlHeader(stream, data_.ps);
 
 	//get trio data
-	bool is_trio = data_.variants.type() == GERMLINE_TRIO;
+    bool is_trio = data_.variants.type() == AnalysisType::GERMLINE_TRIO;
 	QList<SampleInfo> info_additional;
 	if (is_trio)
 	{
@@ -51,7 +51,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}
 
 	//get multi data
-	bool is_multi_with_extra_genotypes = data_.variants.type()==GERMLINE_MULTISAMPLE && !data_.report_settings.ps_additional.isEmpty();
+    bool is_multi_with_extra_genotypes = data_.variants.type()==AnalysisType::GERMLINE_MULTISAMPLE && !data_.report_settings.ps_additional.isEmpty();
 	if (is_multi_with_extra_genotypes)
 	{
 		for (const QString& ps : data_.report_settings.ps_additional)
@@ -1008,7 +1008,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			if(entry.startsWith("AF="))
 			{
 				QByteArray value = entry.mid(3);
-				if (type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+                if (type==AnalysisType::GERMLINE_TRIO || type==AnalysisType::GERMLINE_MULTISAMPLE)
 				{
 					//determine index of report sample in quality entry
 					SampleHeaderInfo header_info = data_.variants.getSampleHeader();
@@ -1028,7 +1028,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			if(entry.startsWith("DP="))
 			{
 				QByteArray value = entry.mid(3);
-				if (type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+                if (type==AnalysisType::GERMLINE_TRIO || type==AnalysisType::GERMLINE_MULTISAMPLE)
 				{
 					//determine index of report sample in quality entry
 					SampleHeaderInfo header_info = data_.variants.getSampleHeader();

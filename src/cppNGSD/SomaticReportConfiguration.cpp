@@ -71,7 +71,8 @@ bool SomaticReportVariantConfiguration::manualSvEndBndValid() const
 
 
 SomaticReportConfiguration::SomaticReportConfiguration()
-	: variant_config_()
+    : QObject()
+    , variant_config_()
 	, germ_variant_config_()
 	, created_by_(Helper::userName())
 	, created_at_(QDateTime::currentDateTime())
@@ -191,6 +192,9 @@ void SomaticReportConfiguration::addSomaticVariantConfiguration(const SomaticRep
 	//set variant config (if not yet contained)
 	variant_config_ << config;
 	sortByPosition();
+
+    emit variantsChanged();
+
 	return;
 }
 

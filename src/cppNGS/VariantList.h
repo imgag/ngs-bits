@@ -250,14 +250,14 @@ inline QDebug operator<<(QDebug d, const Variant& v)
 }
 
 ///Supported analysis types.
-enum AnalysisType
+enum class AnalysisType
 {
 	GERMLINE_SINGLESAMPLE,
 	GERMLINE_TRIO,
 	GERMLINE_MULTISAMPLE,
 	SOMATIC_SINGLESAMPLE,
 	SOMATIC_PAIR,
-	CFDNA
+    CFDNA
 };
 ///Returns the string repesentation of the analysis type (or a human-readable version).
 QString CPPNGSSHARED_EXPORT analysisTypeToString(AnalysisType type, bool human_readable=false);

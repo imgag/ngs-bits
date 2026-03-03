@@ -30,7 +30,7 @@ void ColumnConfig::getOrder(const VariantList& variants, QStringList& col_order,
 		cols_gt << info.name;
 	}
 	AnalysisType type = variants.type();
-	if (type==SOMATIC_PAIR || type==SOMATIC_SINGLESAMPLE || type==CFDNA)
+    if (type==AnalysisType::SOMATIC_PAIR || type==AnalysisType::SOMATIC_SINGLESAMPLE || type==AnalysisType::CFDNA)
 	{
 		cols_gt << "tumor_af" << "tumor_dp" << "normal_af" << "normal_dp";
 	}
@@ -53,15 +53,15 @@ void ColumnConfig::getOrder(const VariantList& variants, QStringList& col_order,
 
 	//determine column order
 	col_order.clear();
-	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+    if (type==AnalysisType::GERMLINE_SINGLESAMPLE || type==AnalysisType::GERMLINE_TRIO || type==AnalysisType::GERMLINE_MULTISAMPLE)
 	{
 		col_order.append(cols_gt);
 	}
-	else if (type==SOMATIC_PAIR)
+    else if (type==AnalysisType::SOMATIC_PAIR)
 	{
 		col_order << "tumor_af" << "tumor_dp" << "normal_af" << "normal_dp";
 	}
-	else if (type==SOMATIC_SINGLESAMPLE || type==CFDNA)
+    else if (type==AnalysisType::SOMATIC_SINGLESAMPLE || type==AnalysisType::CFDNA)
 	{
 		col_order << "tumor_af" << "tumor_dp";
 	}

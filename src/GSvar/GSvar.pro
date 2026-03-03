@@ -22,6 +22,7 @@ ICON = Icons/Icon.icns
 }
 
 SOURCES += main.cpp\
+    AnalysisDataController.cpp \
     Background/BackgroundJobDialog.cpp \
     Background/BackgroundWorkerBase.cpp \
     Background/NGSDCacheInitializer.cpp \
@@ -158,6 +159,7 @@ SOURCES += main.cpp\
     RnaReportFusionDialog.cpp
 
 HEADERS += MainWindow.h \
+    AnalysisDataController.h \
     Background/BackgroundJobDialog.h \
     Background/BackgroundWorkerBase.h \
     Background/NGSDCacheInitializer.h \

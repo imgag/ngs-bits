@@ -481,7 +481,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 	//init NGSD
 	NGSD db;
 
-	if (type==GERMLINE_SINGLESAMPLE || type==CFDNA)
+    if (type==AnalysisType::GERMLINE_SINGLESAMPLE || type==AnalysisType::CFDNA)
 	{
 		SingleSampleAnalysisDialog dlg(parent);
 		if (samples.size() > 0) dlg.setSamples(samples);
@@ -494,7 +494,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 			return true;
 		}
 	}
-	else if (type==GERMLINE_MULTISAMPLE)
+    else if (type==AnalysisType::GERMLINE_MULTISAMPLE)
 	{
 		MultiSampleDialog dlg(parent);
 		dlg.setSamples(samples);
@@ -504,7 +504,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 			return true;
 		}
 	}
-	else if (type==GERMLINE_TRIO)
+    else if (type==AnalysisType::GERMLINE_TRIO)
 	{
 		TrioDialog dlg(parent);
 		dlg.setSamples(samples);
@@ -516,7 +516,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 			return true;
 		}
 	}
-	else if (type==SOMATIC_PAIR || type==SOMATIC_SINGLESAMPLE)
+    else if (type==AnalysisType::SOMATIC_PAIR || type==AnalysisType::SOMATIC_SINGLESAMPLE)
 	{
 		SomaticDialog dlg(parent);
 		dlg.setSamples(samples);

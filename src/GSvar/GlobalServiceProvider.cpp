@@ -122,25 +122,6 @@ void GlobalServiceProvider::addModelessDialog(QSharedPointer<QDialog> dlg, bool 
 {
 	mainWindow()->addModelessDialog(dlg, maximize);
 }
-const VariantList& GlobalServiceProvider::getSmallVariantList()
-{
-	return mainWindow()->getSmallVariantList();
-}
-
-const CnvList& GlobalServiceProvider::getCnvList()
-{
-	return mainWindow()->getCnvList();
-}
-
-const BedpeFile& GlobalServiceProvider::getSvList()
-{
-	return mainWindow()->getSvList();
-}
-
-const RepeatLocusList& GlobalServiceProvider::getReList()
-{
-	return mainWindow()->getReList();
-}
 
 MainWindow* GlobalServiceProvider::mainWindow()
 {

@@ -25,45 +25,40 @@
 #include <QApplication>
 #include <QClipboard>
 
-SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes)
+SvWidget::SvWidget(QWidget* parent, AnalysisDataController& data_controller, const GeneSet& het_hit_genes)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
-	, svs_(bedpe_file)
-	, ps_id_(ps_id)
-	, var_het_genes_(het_hit_genes)
-	, report_config_(rep_conf)
+    , data_controller_(data_controller)
+    , svs_(data_controller.getSvList())
+    , report_config_(data_controller.getGermlineReportConfig())
+    , somatic_report_config_(data_controller.getSomaticReportConfig())
+    , var_het_genes_(het_hit_genes)
     , ngsd_user_logged_in_(LoginManager::active())
-    , rc_enabled_(ngsd_user_logged_in_ && report_config_!=nullptr && !report_config_->isFinalized())
-	, is_somatic_(false)
-	, is_multisample_(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
+    , is_multisample_(svs_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || svs_.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
 {
+    is_somatic_ = svs_.isSomatic();
+
+    if (! is_somatic_)
+    {
+        rc_enabled_ = ngsd_user_logged_in_ && data_controller.germlineReportSupported() && ! data_controller.getGermlineReportConfig()->isFinalized();
+    }
+    else
+    {
+        rc_enabled_ = ngsd_user_logged_in_ && data_controller.somaticReportSupported();
+    }
+
 	setupUI();
 
-	initGUI();
-}
-
-SvWidget::SvWidget(QWidget* parent, const BedpeFile& bedpe_file, QSharedPointer<SomaticReportConfiguration> som_rep_conf, const GeneSet& het_hit_genes)
-	: QWidget(parent)
-	, ui(new Ui::SvWidget)
-	, svs_(bedpe_file)
-	, ps_id_()
-	, var_het_genes_(het_hit_genes)
-	, som_report_config_(som_rep_conf)
-    , ngsd_user_logged_in_(LoginManager::active())
-    , rc_enabled_(ngsd_user_logged_in_ && som_report_config_!=nullptr)
-	, is_somatic_(true)
-	, is_multisample_(false)
-{
-	setupUI();
-
-	//Disable filters that cannot apply for tumor normal pairs (data is expanded already)
-	if(svs_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
-	{
-		ui->info_a->setEnabled(false);
-		ui->info_b->setEnabled(false);
-		ui->sv_details->setEnabled(false);
-	}
-
+    if (is_somatic_)
+    {
+        //Disable filters that cannot apply for tumor normal pairs (data is expanded already)
+        if(svs_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+        {
+            ui->info_a->setEnabled(false);
+            ui->info_b->setEnabled(false);
+            ui->sv_details->setEnabled(false);
+        }
+    }
 	initGUI();
 }
 
@@ -183,8 +178,8 @@ void SvWidget::initGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-    if((report_config_ != NULL) && !is_somatic_) report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::SVS, false));
-    if((som_report_config_ != NULL) && is_somatic_) report_variant_indices = Helper::listToSet(som_report_config_->variantIndices(VariantType::SVS, false));
+    if(rc_enabled_ && ! is_somatic_) report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::SVS, false));
+    if(rc_enabled_ &&   is_somatic_) report_variant_indices = Helper::listToSet(somatic_report_config_->variantIndices(VariantType::SVS, false));
 
 	//fill table widget with data from bedpe file
 	for(int row=0; row<svs_.count(); ++row)
@@ -195,12 +190,12 @@ void SvWidget::initGUI()
 		{
 			if (! is_somatic_)
 			{
-				const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
+                const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
 				header_item->setIcon(VariantTable::reportIcon(rc.showInReport(), rc.causal));
 			}
-			else if (som_report_config_ != NULL)
+            else
 			{
-				const SomaticReportVariantConfiguration& rc = som_report_config_->get(VariantType::SVS, row);
+                const SomaticReportVariantConfiguration& rc = somatic_report_config_->get(VariantType::SVS, row);
 				header_item->setIcon(VariantTable::reportIcon(rc.showInReport(), false));
 			}
 		}
@@ -337,22 +332,22 @@ void SvWidget::applyFilters(bool debug_time)
 				{
 					if(is_somatic_)
 					{
-						filter_result.flags()[row] = som_report_config_->exists(VariantType::SVS, row);
+                        filter_result.flags()[row] = somatic_report_config_->exists(VariantType::SVS, row);
 					}
 					else
 					{
-						filter_result.flags()[row] = report_config_->exists(VariantType::SVS, row);
+                        filter_result.flags()[row] = report_config_->exists(VariantType::SVS, row);
 					}
 				}
 				else if (rc_filter==ReportConfigFilter::NO_RC)
 				{
 					if(is_somatic_)
 					{
-						filter_result.flags()[row] = !som_report_config_->exists(VariantType::SVS, row);
+                        filter_result.flags()[row] = !somatic_report_config_->exists(VariantType::SVS, row);
 					}
 					else
 					{
-						filter_result.flags()[row] = !report_config_->exists(VariantType::SVS, row);
+                        filter_result.flags()[row] = !report_config_->exists(VariantType::SVS, row);
 					}
 				}
 			}
@@ -408,7 +403,7 @@ void SvWidget::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			BedFile pheno_roi;
-            for (const QByteArray& gene : pheno_genes)
+            foreach(const QByteArray& gene, pheno_genes)
 			{
 				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -592,7 +587,7 @@ void SvWidget::editSvValidation(int row)
 
 void SvWidget::editGermlineReportConfiguration(int row)
 {
-	if(report_config_ == nullptr)
+    if(data_controller_.germlineReportSupported())
 	{
 		THROW(ProgrammingException, "ReportConfiguration in SvWidget is nullpointer.");
 	}
@@ -643,7 +638,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 void SvWidget::editSomaticReportConfiguration(int row)
 {
-	if(som_report_config_ == nullptr)
+    if(data_controller_.somaticReportSupported())
 	{
 		THROW(ProgrammingException, "SomaticReportConfiguration in SvWidget is nullpointer.");
 	}
@@ -658,9 +653,9 @@ void SvWidget::editSomaticReportConfiguration(int row)
 
 	//init/get config
 	SomaticReportVariantConfiguration var_config;
-	if (som_report_config_->exists(VariantType::SVS, row))
+    if (somatic_report_config_->exists(VariantType::SVS, row))
 	{
-		var_config = som_report_config_->get(VariantType::SVS, row);
+        var_config = somatic_report_config_->get(VariantType::SVS, row);
 	}
 	else
 	{
@@ -674,7 +669,7 @@ void SvWidget::editSomaticReportConfiguration(int row)
 	if (dlg.exec()!=QDialog::Accepted) return;
 
 	//update config, GUI and NGSD
-	som_report_config_->addSomaticVariantConfiguration(var_config);
+    somatic_report_config_->addSomaticVariantConfiguration(var_config);
 	emit updateSomaticReportConfiguration();
 	updateReportConfigHeaderIcon(row);
 }
@@ -953,7 +948,7 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	if (is_somatic_)
 	{
-		a_delete->setEnabled(som_report_config_->exists(VariantType::SVS, row));
+        a_delete->setEnabled(somatic_report_config_->exists(VariantType::SVS, row));
 	}
 	else
 	{
@@ -979,7 +974,7 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 		}
 		else
 		{
-			som_report_config_->remove(VariantType::SVS, row);
+            somatic_report_config_->remove(VariantType::SVS, row);
 			emit updateSomaticReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
@@ -1035,9 +1030,9 @@ void SvWidget::updateReportConfigHeaderIcon(int row)
 			const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
 			report_icon = VariantTable::reportIcon(rc.showInReport(), rc.causal);
 		}
-		else if (is_somatic_ && som_report_config_->exists(VariantType::SVS, row))
+        else if (is_somatic_ && somatic_report_config_->exists(VariantType::SVS, row))
 		{
-			const SomaticReportVariantConfiguration& rc = som_report_config_->get(VariantType::SVS, row);
+            const SomaticReportVariantConfiguration& rc = somatic_report_config_->get(VariantType::SVS, row);
 			report_icon = VariantTable::reportIcon(rc.showInReport(), false);
 		}
 		ui->svs->verticalHeaderItem(row)->setIcon(report_icon);
@@ -1265,7 +1260,7 @@ void SvWidget::showContextMenu(QPoint pos)
 
 	if (is_somatic_)
 	{
-        a_rep_del->setEnabled((som_report_config_ != nullptr) && ngsd_user_logged_in_ && som_report_config_->exists(VariantType::SVS, row));
+        a_rep_del->setEnabled((data_controller_.somaticReportSupported()) && ngsd_user_logged_in_ && somatic_report_config_->exists(VariantType::SVS, row));
 	}
 	else
 	{
@@ -1362,7 +1357,7 @@ void SvWidget::showContextMenu(QPoint pos)
 		}
 		else
 		{
-			som_report_config_->remove(VariantType::SVS, row);
+            somatic_report_config_->remove(VariantType::SVS, row);
 			emit updateSomaticReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);

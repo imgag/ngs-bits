@@ -863,7 +863,7 @@ void ProcessedSampleWidget::openFusionWidget()
 	FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS);
 	if (file_location.exists)
 	{
-		FusionWidget* widget = new FusionWidget(file_location.filename, sampleName(), db, this);
+        FusionWidget* widget = new FusionWidget(file_location.filename, sampleName(), nullptr, this);
 		auto dlg = GUIHelper::createDialog(widget, "Fusions of " + processedSampleName() + " (arriba)");
 		dlg->resize(1280, 800);
 		GlobalServiceProvider::addModelessDialog(dlg);

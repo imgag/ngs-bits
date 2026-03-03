@@ -174,3 +174,8 @@ QByteArray ArribaFile::getCallDate() const
 	return "";
 }
 
+bool ArribaFile::isValid()
+{
+    return TsvFile::isValid();
+}
+

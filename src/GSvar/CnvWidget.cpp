@@ -27,19 +27,19 @@
 #include "SettingsDialog.h"
 #include <QtCharts/QChartView>
 
-CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QSharedPointer<ReportConfiguration> rep_conf, QSharedPointer<SomaticReportConfiguration> rep_conf_somatic, const GeneSet& het_hit_genes)
+CnvWidget::CnvWidget(QWidget* parent, AnalysisDataController& data_controller, const GeneSet& het_hit_genes)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
-	, ps_id_(ps_id)
+    , data_controller_(data_controller)
 	, callset_id_("")
-	, cnvs_(cnvs)
+    , cnvs_(data_controller.getCnvList())
 	, special_cols_()
-	, report_config_(rep_conf)
-	, somatic_report_config_(rep_conf_somatic)
+    , report_config_(data_controller.getGermlineReportConfig())
+    , somatic_report_config_(data_controller.getSomaticReportConfig())
 	, var_het_genes_(het_hit_genes)
     , ngsd_user_logged_in_(LoginManager::active())
-    , rc_enabled_(ngsd_user_logged_in_ && ((report_config_!=nullptr && !report_config_->isFinalized()) || somatic_report_config_ != nullptr))
-	, is_somatic_(somatic_report_config_!=nullptr)
+    , rc_enabled_(ngsd_user_logged_in_ && ((data_controller.germlineReportSupported() && !report_config_->isFinalized()) || data_controller.somaticReportSupported()))
+    , is_somatic_(data_controller.getAnalysisType() == AnalysisType::SOMATIC_PAIR || data_controller.getAnalysisType() == AnalysisType::SOMATIC_SINGLESAMPLE)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
@@ -65,11 +65,15 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	ui->splitter->setStretchFactor(1, 1);
 
 	//determine callset ID
-    if (ngsd_user_logged_in_ && ps_id!="")
-	{
-		NGSD db;
-		callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_).toString();
-	}
+    if (data_controller_.germlineReportSupported())
+    {
+        NGSD db;
+        QString ps_id = db.processedSampleId(data_controller_.germlineReportSample(), false);
+        if (ngsd_user_logged_in_ && ps_id != "")
+        {
+            callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id).toString();
+        }
+    }
 	ui->quality->setEnabled(callset_id_!="");
 
 	//set up NGSD menu (before loading CNV - QC actions are inserted then)
@@ -487,7 +491,7 @@ void CnvWidget::applyFilters(bool debug_time)
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			BedFile pheno_roi;
 			timer.start();
-            for (const QByteArray& gene : pheno_genes)
+            foreach (const QByteArray& gene, pheno_genes)
 			{
 				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -1010,7 +1014,7 @@ void CnvWidget::clearTooltips()
 
 void CnvWidget::editGermlineReportConfiguration(int row)
 {
-	if(report_config_ == nullptr)
+    if(data_controller_.germlineReportSupported())
 	{
 		THROW(ProgrammingException, "ReportConfiguration in CnvWidget is nullpointer.");
 	}
@@ -1035,7 +1039,7 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 	if (i_genes!=-1)
 	{
 		GeneSet genes = GeneSet::createFromText(cnvs_[row].annotations()[i_genes], ',');
-        for (const QByteArray& gene : genes)
+        foreach (const QByteArray& gene, genes)
 		{
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
@@ -1054,7 +1058,7 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 
 void CnvWidget::editSomaticReportConfiguration(int row)
 {
-	if(somatic_report_config_ == nullptr)
+    if(data_controller_.somaticReportSupported())
 	{
 		THROW(ProgrammingException, "SomaticReportConfiguration in CnvWidget is null pointer.");
 	}
@@ -1137,7 +1141,7 @@ void CnvWidget::editCnvValidation(int row)
 
 void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 {
-	if(somatic_report_config_ == nullptr)
+    if(data_controller_.somaticReportSupported())
 	{
 		THROW(ProgrammingException, "SomaticReportConfiguration in CnvWidget is null pointer.");
 	}
@@ -1159,7 +1163,6 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 
 		updateReportConfigHeaderIcon(row);
 	}
-	emit storeSomaticReportConfiguration();
 }
 
 void CnvWidget::uploadToClinvar(int index1, int index2)

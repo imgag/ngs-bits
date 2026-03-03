@@ -7,7 +7,7 @@ private:
 
 	TEST_METHOD(stringConversion)
 	{
-		for ( int type_int = StructuralVariantType::DEL; type_int != StructuralVariantType::BND; type_int++ )
+        for ( int type_int = static_cast<int>(StructuralVariantType::DEL); type_int != static_cast<int>(StructuralVariantType::BND); type_int++ )
 		{
 		   StructuralVariantType type = static_cast<StructuralVariantType>(type_int);
 		   I_EQUAL(type, StructuralVariantTypeFromString(StructuralVariantTypeToString(type)));

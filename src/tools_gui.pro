@@ -2,6 +2,7 @@ TEMPLATE = subdirs
 
 #Library targets and depdendencies
 SUBDIRS = cppCORE\
+        GSvar-TEST \
         cppXML \
         cppNGS \
         cppGUI \

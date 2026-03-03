@@ -8,7 +8,7 @@
 #include "TSVFileStream.h"
 #include "VariantList.h"
 
-enum StructuralVariantType
+enum class StructuralVariantType
 {
 	DEL, //deletion
 	DUP, //duplication (tandem)

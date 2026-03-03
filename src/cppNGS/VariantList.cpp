@@ -660,16 +660,16 @@ QString VariantList::mainSampleName() const
 	QStringList samples;
 	switch(type())
 	{
-		case SOMATIC_SINGLESAMPLE:
-		case GERMLINE_SINGLESAMPLE:
-		case CFDNA:
+        case AnalysisType::SOMATIC_SINGLESAMPLE:
+        case AnalysisType::GERMLINE_SINGLESAMPLE:
+        case AnalysisType::CFDNA:
 			foreach(const SampleInfo& entry, getSampleHeader())
 			{
 				samples << entry.name;
 			}
 			break;
-		case GERMLINE_TRIO:
-		case GERMLINE_MULTISAMPLE:
+        case AnalysisType::GERMLINE_TRIO:
+        case AnalysisType::GERMLINE_MULTISAMPLE:
 			foreach(const SampleInfo& entry, getSampleHeader())
 			{
 				if (entry.isAffected())
@@ -678,7 +678,7 @@ QString VariantList::mainSampleName() const
 				}
 			}
 			break;
-		case SOMATIC_PAIR:
+        case AnalysisType::SOMATIC_PAIR:
 			foreach(const SampleInfo& entry, getSampleHeader())
 			{
 				if (entry.isTumor())
@@ -1231,7 +1231,7 @@ SampleHeaderInfo VariantList::getSampleHeader(bool thow_if_no_samples) const
 	AnalysisType analysis_type = type();
 	for (int i=0; i<output.count(); ++i)
 	{
-		output[i].column_index = annotationIndexByName(output[i].name, true, analysis_type!=SOMATIC_SINGLESAMPLE && analysis_type!=SOMATIC_PAIR && analysis_type!=CFDNA);
+        output[i].column_index = annotationIndexByName(output[i].name, true, analysis_type!=AnalysisType::SOMATIC_SINGLESAMPLE && analysis_type!=AnalysisType::SOMATIC_PAIR && analysis_type!=AnalysisType::CFDNA);
 	}
 
 	return output;
@@ -1290,7 +1290,7 @@ AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 	//fallback for old files without ANALYSISTYPE header and for default-constructed variant lists
 	if (allow_fallback_germline_single_sample)
 	{
-		return GERMLINE_SINGLESAMPLE;
+        return AnalysisType::GERMLINE_SINGLESAMPLE;
 	}
 
 	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
@@ -1532,34 +1532,34 @@ QString analysisTypeToString(AnalysisType type, bool human_readable)
 {
 	if (human_readable)
 	{
-		if (type==GERMLINE_SINGLESAMPLE) return "single-sample analysis";
-		if (type==GERMLINE_TRIO) return "trio analysis";
-		if (type==GERMLINE_MULTISAMPLE) return "multi-sample analysis";
-		if (type==SOMATIC_SINGLESAMPLE) return "tumor-only analysis";
-		if (type==SOMATIC_PAIR) return "tumor/normal analysis";
-		if (type==CFDNA) return "cfDNA analysis";
+        if (type==AnalysisType::GERMLINE_SINGLESAMPLE) return "single-sample analysis";
+        if (type==AnalysisType::GERMLINE_TRIO) return "trio analysis";
+        if (type==AnalysisType::GERMLINE_MULTISAMPLE) return "multi-sample analysis";
+        if (type==AnalysisType::SOMATIC_SINGLESAMPLE) return "tumor-only analysis";
+        if (type==AnalysisType::SOMATIC_PAIR) return "tumor/normal analysis";
+        if (type==AnalysisType::CFDNA) return "cfDNA analysis";
 	}
 	else
 	{
-		if (type==GERMLINE_SINGLESAMPLE) return "GERMLINE_SINGLESAMPLE";
-		if (type==GERMLINE_TRIO) return "GERMLINE_TRIO";
-		if (type==GERMLINE_MULTISAMPLE) return "GERMLINE_MULTISAMPLE";
-		if (type==SOMATIC_SINGLESAMPLE) return "SOMATIC_SINGLESAMPLE";
-		if (type==SOMATIC_PAIR) return "SOMATIC_PAIR";
-		if (type==CFDNA) return "CFDNA";
+        if (type==AnalysisType::GERMLINE_SINGLESAMPLE) return "GERMLINE_SINGLESAMPLE";
+        if (type==AnalysisType::GERMLINE_TRIO) return "GERMLINE_TRIO";
+        if (type==AnalysisType::GERMLINE_MULTISAMPLE) return "GERMLINE_MULTISAMPLE";
+        if (type==AnalysisType::SOMATIC_SINGLESAMPLE) return "SOMATIC_SINGLESAMPLE";
+        if (type==AnalysisType::SOMATIC_PAIR) return "SOMATIC_PAIR";
+        if (type==AnalysisType::CFDNA) return "CFDNA";
 	}
 
-	THROW(ProgrammingException, "Unhandled analysis type with integer value '" + QString::number(type) + "'!");
+    THROW(ProgrammingException, "Unhandled analysis type with integer value '" + QString::number(static_cast<int>(type)) + "'!");
 }
 
 AnalysisType stringToAnalysisType(QString type)
 {
-	if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
-	if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
-	if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
-	if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
-	if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
-	if (type=="CFDNA") return CFDNA;
+    if (type=="GERMLINE_SINGLESAMPLE") return AnalysisType::GERMLINE_SINGLESAMPLE;
+    if (type=="GERMLINE_TRIO") return AnalysisType::GERMLINE_TRIO;
+    if (type=="GERMLINE_MULTISAMPLE") return AnalysisType::GERMLINE_MULTISAMPLE;
+    if (type=="SOMATIC_SINGLESAMPLE") return AnalysisType::SOMATIC_SINGLESAMPLE;
+    if (type=="SOMATIC_PAIR") return AnalysisType::SOMATIC_PAIR;
+    if (type=="CFDNA") return AnalysisType::CFDNA;
 
 	THROW(ProgrammingException, "Unknown analysis type with string representation '" + type + "'!");
 }

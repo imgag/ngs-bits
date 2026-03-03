@@ -126,41 +126,48 @@ void FusionWidget::showContextMenu(QPoint p)
 	QList<int> selected_rows = GUIHelper::selectedTableRows(ui_->fusions);
 
 	//create menu
-	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	bool any_exists = false;
-	foreach(int idx, selected_rows)
-	{
-        if (rna_report_config_->exists(idx))
-		{
-			any_exists = true;
-			break;
-		}
-	}
-	a_rep_del->setEnabled(any_exists);
 
-	//exec menu
-	QAction* action = menu.exec(ui_->fusions->viewport()->mapToGlobal(p));
-	if (action==nullptr) return;
+    //report config:
+    QAction* a_rep_edit;
+    QAction* a_rep_del;
+    if (rna_report_config_)
+    {
+        a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+        a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
+        bool any_exists = false;
+        foreach(int idx, selected_rows)
+        {
+            if (rna_report_config_ && rna_report_config_->exists(idx))
+            {
+                any_exists = true;
+                break;
+            }
+        }
+        a_rep_del->setEnabled(any_exists);
+    }
 
-	//react on selection
-	if (action==a_rep_edit)
-	{
-		editRnaReportConfiguration(selected_rows);
-	}
-	else if (action==a_rep_del)
-	{
-		//Delete som variant configuration for more than one variant
-		foreach(const auto& selected_row, selected_rows)
-		{
+    //exec menu
+    QAction* action = menu.exec(ui_->fusions->viewport()->mapToGlobal(p));
+    if (action==nullptr) return;
+
+    //react on selection
+    if (action==a_rep_edit)
+    {
+        editRnaReportConfiguration(selected_rows);
+    }
+    else if (action==a_rep_del)
+    {
+        //Delete som variant configuration for more than one variant
+        foreach(const auto& selected_row, selected_rows)
+        {
             if (rna_report_config_->exists(selected_row))
-			{
+            {
                 rna_report_config_->remove(selected_row);
-				updateReportConfigHeaderIcon(selected_row);
-			}
-		}
+                updateReportConfigHeaderIcon(selected_row);
+            }
+        }
         emit storeRnaReportConfiguration();
-	}
+    }
 }
 
 void FusionWidget::applyFilters(bool debug_time)

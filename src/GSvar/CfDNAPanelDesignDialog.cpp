@@ -338,7 +338,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[gene_idx]));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_af_idx].toDouble(), 4));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_dp_idx].toInt()));
-		if(variants_.type() == SOMATIC_PAIR)
+        if(variants_.type() == AnalysisType::SOMATIC_PAIR)
 		{
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_af_idx].toDouble(), 4));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_dp_idx].toInt()));
@@ -667,7 +667,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 	{
 		// get KASP SNPs
 		QStringList vcf_content = Helper::loadTextFile("://Resources/hg38_KASP_set2.vcf", false,QChar::Null, false);
-		if(variants_.type() == SOMATIC_SINGLESAMPLE)
+        if(variants_.type() == AnalysisType::SOMATIC_SINGLESAMPLE)
 		{
 			//postprocess KASP file for tumor-only: remove FORMAT column of normal sample
 			QStringList corrected_vcf_content;
@@ -691,7 +691,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 		// extract ID SNPs from selected processing system
 		int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText().toUtf8());
 		BedFile target_region = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
-		VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id, target_region, (variants_.type() == SOMATIC_SINGLESAMPLE));
+        VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id, target_region, (variants_.type() == AnalysisType::SOMATIC_SINGLESAMPLE));
 
 		for (int i=0; i<sys_id_snps.count(); ++i)
 		{
