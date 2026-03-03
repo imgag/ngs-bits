@@ -20,7 +20,6 @@ QStringList Transcript::flags(bool add_square_brackets) const
 	QStringList output;
 
 	if (isPreferredTranscript()) output += "NGSD preferred transcript";
-	if (isGencodeBasicTranscript()) output << "GENCODE basic";
 	if (isGencodePrimaryTranscript()) output << "GENCODE primary";
 	if (isEnsemblCanonicalTranscript()) output << "Ensembl canonical";
 	if (isManeSelectTranscript()) output << "MANE select";
