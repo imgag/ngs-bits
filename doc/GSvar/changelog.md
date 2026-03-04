@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2025_12-139 (03.03.2026)
+
+- general: relevant transcripts are used where preferred transcripts were used before (we have MANE transcripts now and thus preferred transcripts are not longer needed for many genes)
+- BLAT search: now uses BWA and produces the same results as the actual mapping
+
 ## 2025_12-104 (05.02.2026)
 
 - general: update filters for small variants, CNVs and SVs

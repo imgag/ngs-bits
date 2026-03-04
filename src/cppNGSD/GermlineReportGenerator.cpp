@@ -807,7 +807,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "10");
+	w.writeAttribute("version", "11");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -980,6 +980,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	//element Variant
 	int geno_idx = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 	int qual_idx = data_.variants.annotationIndexByName("quality");
+	int dbsnp_idx = data_.variants.annotationIndexByName("dbSNP");
     for (const ReportVariantConfiguration& var_conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
@@ -1210,6 +1211,17 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				w.writeAttribute("inheritance", gene_info.inheritance);
 				w.writeEndElement();
 			}
+		}
+
+		//element dbSNP
+		for (QByteArray rs : variant.annotations()[dbsnp_idx].split(','))
+		{
+			rs = rs.trimmed();
+			if (rs.isEmpty()) continue;
+
+			w.writeStartElement("dbSNP");
+			w.writeAttribute("rs_number", rs);
+			w.writeEndElement();
 		}
 
 		//end of variant
