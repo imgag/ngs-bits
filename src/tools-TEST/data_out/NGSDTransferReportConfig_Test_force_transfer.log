@@ -1,8 +1,8 @@
 NA12878_05 (ps_id: 1) > NA12878_06 (ps_id: 2)
-	SNVs	all/match/missed/missed_excluded	4/3/0/1
-	CNVs	all/match/missed/missed_excluded	3/2/0/1
-	SVs	all/match/missed/missed_excluded	4/3/0/1
-	REs	all/match/missed/missed_excluded	4/3/0/1
+	SNVs	all/match/missed/missed_excluded	6/3/2/1
+	CNVs	all/match/missed/missed_excluded	5/2/2/1
+	SVs	all/match/missed/missed_excluded	6/3/2/1
+	REs	all/match/missed/missed_excluded	6/3/2/1
 
 The following variants can be transferred:
 	#type	source				target
@@ -20,10 +20,18 @@ The following variants can be transferred:
 
 The following variants cannot be transferred:
 	#type	source
+	SNV/InDel	chr1-451002-451002-C-A
+	SNV/InDel	chr1-873939-873939-C-T
 	SNV/InDel	chr1-948721-948721-A-C(excluded)
+	CNV	chr1:1332003-1332826
+	CNV	chr1:3836474-3836712
 	CNV	chr1:9871166-9871297(excluded)
+	SV	DEL at chr1:7829912-7829966
+	SV	INS at chr2:28973386-28973387
 	SV	INV at chr2:88861923-88897786(excluded)
+	RE	 - chr3:63912684-63912714/GCA (allele1:10 / allele2:12)
 	RE	 - chr6:16327633-16327723/TGC (allele1:30 / allele2:31)(excluded)
+	RE	 - chr6:170561906-170562017/GCA (allele1:37 / allele2:36)
 
-ReportConfig transfer NA12878_05>NA12878_06 is possible.
+WARNING: Only partial ReportConfig transfer NA12878_05>NA12878_06 possible!
 

@@ -1752,6 +1752,25 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `report_configuration_failed_transfer`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_failed_transfer`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `status` ENUM( 'open', 'not needed anymore', 'manually added') NOT NULL DEFAULT 'open',
+  `variant_description` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_processed_sample_id3`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `disease_term`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `disease_term`

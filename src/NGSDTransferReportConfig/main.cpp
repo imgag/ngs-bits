@@ -1,7 +1,7 @@
 #include "ToolBase.h"
 #include "NGSD.h"
 #include "qforeach.h"
-#include "BasicStatistics.h"
+#include "qsqlrecord.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -18,17 +18,16 @@ public:
 	{
 		setDescription("Transfers (germline) Report Configuration from one sample to another.");
 		addString("source_ps", "Processed sample name from which the ReportConfig is taken.", false);
-		addString("target_ps", "Processed sample name to which the ReportConfig is transfered to.", false);
+		addString("target_ps", "Processed sample name to which the ReportConfig is transferred to.", false);
 
 		//optional
+		addFlag("force", "Transfer report even if some variants aren't present in the target sample.(Missing variants will be written into the `report_configuration_failed_transfer` table.)");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
 	int getCNVIndex(const CnvList& cnvs, const CopyNumberVariant& cnv, int copy_number)
 	{
 		int idx = -1;
-		//debug
-		qDebug() << cnvs.count();
 		for (int i = 0; i < cnvs.count(); ++i)
 		{
 			if (cnvs[i].chr() != cnv.chr()) continue;
@@ -71,6 +70,47 @@ public:
 		return idx;
 	}
 
+	QString reportVariant2Text(const NGSD& db, int rvc_id, VariantType variant_type, const QString& variant_text, const QString& source_ps_name)
+	{
+		QStringList report_variant_info;
+
+		report_variant_info.append("SourceSample:" + source_ps_name);
+		report_variant_info.append("Variant:" + variant_text);
+
+		SqlQuery query = db.getQuery();
+		if (variant_type == VariantType::SNVS_INDELS) query.prepare("SELECT * FROM report_configuration_variant WHERE id= :id");
+		else if (variant_type == VariantType::CNVS) query.prepare("SELECT * FROM report_configuration_cnv WHERE id= :id");
+		else if (variant_type == VariantType::SVS) query.prepare("SELECT * FROM report_configuration_sv WHERE id= :id");
+		else if (variant_type == VariantType::RES) query.prepare("SELECT * FROM report_configuration_re WHERE id= :id");
+		else THROW(ArgumentException, "Invalid VariantType!");
+		query.bindValue(":id", rvc_id);
+		query.exec();
+
+		if (query.next())
+		{
+			QSqlRecord record = query.record();
+
+			for (int i = 0; i < record.count(); i++)
+			{
+				QString column = record.fieldName(i);
+				QString value = query.value(i).toString().replace("\t", " ");
+				// filter output
+				if (column.startsWith("exclude_")) continue;
+				if (value.isEmpty()) continue;
+
+				report_variant_info.append(column + ":" + value);
+			}
+		}
+		else
+		{
+			THROW(ArgumentException, "No ReportConfigurationVariant with id=" + QString::number(rvc_id) + " found!");
+		}
+
+		//return a single line
+		qDebug() << report_variant_info;
+		return report_variant_info.join('\t');
+	}
+
 	virtual void main()
 	{
 		//init
@@ -79,6 +119,7 @@ public:
 		QString source_ps_id = db.processedSampleId(source_ps_name);
 		QString target_ps_name = getString("target_ps");
 		QString target_ps_id = db.processedSampleId(target_ps_name);
+		bool force = getFlag("force");
 
 		//checks
 		if (source_ps_id == target_ps_id) THROW(ArgumentException, "Source and target sample cannot be the same!")
@@ -109,7 +150,6 @@ public:
 		if (rc_id == -1) THROW(ArgumentException, "Source sample doesn't have a ReportConfig!");
 		QSharedPointer<ReportConfiguration> source_report_config = db.reportConfig(rc_id, src_variants, src_cnvs, src_svs, src_res);
 		QList<ReportVariantConfiguration> src_report_variants = source_report_config->variantConfig();
-		//qDebug() << src_report_variants.size();
 
 
 		//load target variant files
@@ -232,8 +272,15 @@ public:
 		QStringList report;
 		report << "\t#type\tsource\t\t\t\ttarget";
 
+		//report for all missed variants
+		QStringList report_missed;
+		report_missed << "\t#type\tsource";
+
+		//db entries for missed variants
+		QStringList missed_variants;
+
 		// check if report variants are in target sample
-		bool transfer_possible = true;
+		bool complete_transfer_possible = true;
 		//SNVs/InDels
 		int n_match = 0;
 		int n_missed = 0;
@@ -244,7 +291,6 @@ public:
 			if (idx > -1)
 			{
 				n_match++;
-				// qDebug() << "Report variant " + pair.second.toString(' ') + " found in target sample.";
 				//transfer to new report
 				int ngsd_id = db.variantId(pair.second).toInt();
 				ReportVariantConfiguration rvc = pair.first;
@@ -257,23 +303,19 @@ public:
 			else
 			{
 				//only warn if variant was excluded
-				if (pair.first.exclude_artefact
-					|| pair.first.exclude_frequency
-					|| pair.first.exclude_gus
-					|| pair.first.exclude_hit2_missing
-					|| pair.first.exclude_mechanism
-					|| pair.first.exclude_other
-					|| pair.first.exclude_phenotype
-					|| pair.first.exclude_used_other_var_type)
+				if (!pair.first.showInReport())
 				{
 					qDebug() << "Warning: excuded report variant " + pair.second.toString(' ') + " not found in target sample!";
+					report_missed << "\tSNV/InDel\t" + pair.second.toString('-') + "(excluded)";
 					n_missed_excluded++;
 				}
 				else
 				{
 					qDebug() << "Error: report variant " + pair.second.toString(' ') + " not found in target sample!";
+					report_missed << "\tSNV/InDel\t" + pair.second.toString('-');
+					missed_variants.append(reportVariant2Text(db, pair.first.id, pair.first.variant_type, pair.second.toString('-'), source_ps_name));
 					n_missed++;
-					transfer_possible = false;
+					complete_transfer_possible = false;
 				}
 
 
@@ -293,8 +335,6 @@ public:
 		{
 
 			int idx = getCNVIndex(target_cnvs, pair.second, pair.second.copyNumber(src_cnvs.annotationHeaders()));
-			//Debug
-			// qDebug() << "CNV index extracted!";
 			if (idx > -1)
 			{
 				n_match++;
@@ -311,33 +351,28 @@ public:
 				else
 				{
 					// rvc.id = ngsd_id.toInt();
-					report << "\tCNV\t" + pair.second.toString() + "\t" + db.cnv(rvc.id).toString() + " (already in NGSD)";
+					report << "\tCNV\t" + pair.second.toString() + "\t" + db.cnv(ngsd_id.toInt()).toString() + " (already in NGSD)";
 				}
 
 				target_report_config->set(rvc);
-
 
 			}
 			else
 			{
 				//only warn if variant was excluded
-				if (pair.first.exclude_artefact
-					|| pair.first.exclude_frequency
-					|| pair.first.exclude_gus
-					|| pair.first.exclude_hit2_missing
-					|| pair.first.exclude_mechanism
-					|| pair.first.exclude_other
-					|| pair.first.exclude_phenotype
-					|| pair.first.exclude_used_other_var_type)
+				if (!pair.first.showInReport())
 				{
-					// qDebug() << "Warning: excuded report cnv " + pair.second.toString() + " not found in target sample!";
+					qDebug() << "Warning: excuded report cnv " + pair.second.toString() + " not found in target sample!";
+					report_missed << "\tCNV\t" + pair.second.toString() + "(excluded)";
 					n_missed_excluded++;
 				}
 				else
 				{
 					qDebug() << "Error: report cnv " + pair.second.toString() + " not found in target sample!";
+					report_missed << "\tCNV\t" + pair.second.toString();
+					missed_variants.append(reportVariant2Text(db, pair.first.id, pair.first.variant_type, pair.second.toString(), source_ps_name));
 					n_missed++;
-					transfer_possible = false;
+					complete_transfer_possible = false;
 				}
 			}
 		}
@@ -367,23 +402,19 @@ public:
 			else
 			{
 				//only warn if variant was excluded
-				if (pair.first.exclude_artefact
-					|| pair.first.exclude_frequency
-					|| pair.first.exclude_gus
-					|| pair.first.exclude_hit2_missing
-					|| pair.first.exclude_mechanism
-					|| pair.first.exclude_other
-					|| pair.first.exclude_phenotype
-					|| pair.first.exclude_used_other_var_type)
+				if (!pair.first.showInReport())
 				{
 					qDebug() << "Warning: excuded report sv " + pair.second.toString() + " not found in target sample!";
+					report_missed << "\tSV\t" + pair.second.toString(true) + "(excluded)";
 					n_missed_excluded++;
 				}
 				else
 				{
 					qDebug() << "Error: report sv " + pair.second.toString() + " not found in target sample!";
+					report_missed << "\tSV\t" + pair.second.toString(true);
+					missed_variants.append(reportVariant2Text(db, pair.first.id, pair.first.variant_type, pair.second.toString(true), source_ps_name));
 					n_missed++;
-					transfer_possible = false;
+					complete_transfer_possible = false;
 				}
 
 
@@ -418,23 +449,19 @@ public:
 			else
 			{
 				//only warn if variant was excluded
-				if (pair.first.exclude_artefact
-					|| pair.first.exclude_frequency
-					|| pair.first.exclude_gus
-					|| pair.first.exclude_hit2_missing
-					|| pair.first.exclude_mechanism
-					|| pair.first.exclude_other
-					|| pair.first.exclude_phenotype
-					|| pair.first.exclude_used_other_var_type)
+				if (!pair.first.showInReport())
 				{
 					qDebug() << "Warning: excuded report re " + pair.second.toString(true, true) + " not found in target sample!";
+					report_missed << "\tRE\t" + pair.second.toString(true, true) + "(excluded)";
 					n_missed_excluded++;
 				}
 				else
 				{
 					qDebug() << "Error: report re " + pair.second.toString(true, true) + " not found in target sample!";
+					report_missed << "\tRE\t" + pair.second.toString(true, true);
+					missed_variants.append(reportVariant2Text(db, pair.first.id, pair.first.variant_type, pair.second.toString(true, true), source_ps_name));
 					n_missed++;
-					transfer_possible = false;
+					complete_transfer_possible = false;
 				}
 
 
@@ -445,18 +472,46 @@ public:
 		std_out << "	REs	all/match/missed/missed_excluded	" + QString::number(res_to_transfer.size()) + "/" + QString::number(n_match) + "/" + QString::number(n_missed) + "/" + QString::number(n_missed_excluded) + "\n";
 
 		//Report variants to transfer
-		std_out << "\n";
-		std_out << report.join("\n");
+		if (report.size() > 1)
+		{
+			std_out << "\n";
+			std_out << "The following variants can be transferred:\n";
+			std_out << report.join("\n");
+			std_out << "\n";
+		}
+
+
+		//Report variants which cannot be transfered
+		if (report_missed.size() > 1)
+		{
+			std_out << "\n";
+			std_out << "The following variants cannot be transferred:\n";
+			std_out << report_missed.join("\n");
+			std_out << "\n";
+		}
+
 		std_out << "\n";
 
 		//Abort if transfer is not possibe
-		if (!transfer_possible)
+		if (!complete_transfer_possible)
 		{
-			std_out << "ERROR: ReportConfig transfer " + source_ps_name + ">" + target_ps_name + " is not possible!\n\n";
-			THROW(ArgumentException, "ReportConfig transfer " + source_ps_name + ">" + target_ps_name + " is not possible!");
+			if (force)
+			{
+				std_out << "WARNING: Only partial ReportConfig transfer " + source_ps_name + ">" + target_ps_name + " possible!\n\n";
+			}
+			else
+			{
+				std_out << "ERROR: ReportConfig transfer " + source_ps_name + ">" + target_ps_name + " is not possible!\n\n";
+				THROW(ArgumentException, "ReportConfig transfer " + source_ps_name + ">" + target_ps_name + " is not possible!");
+			}
+
+		}
+		else
+		{
+			std_out << "ReportConfig transfer " + source_ps_name + ">" + target_ps_name + " is possible.\n\n";
 		}
 
-		std_out << "ReportConfig transfer " + source_ps_name + ">" + target_ps_name + " is possible.\n\n";
+
 
 
 		//TODO: activate for production database
@@ -476,6 +531,19 @@ public:
 					query.exec("UPDATE `report_configuration` SET `finalized_by`='" + QString::number(db.userId(source_report_config->finalizedBy())) + "', `finalized_date`='"
 							   + source_report_config->finalizedAt().toString("yyyy-MM-dd HH:mm:ss") + "' WHERE id=" +  QString::number(target_report_config_id));
 				}
+				//save untransferable variants to NGSD
+				if (missed_variants.size() > 0)
+				{
+					query.prepare("INSERT INTO report_configuration_failed_transfer (processed_sample_id, status, variant_description) VALUES (:0, :1, :2)");
+					foreach (const QString& variant_description, missed_variants)
+					{
+						query.bindValue(0, target_ps_id.toInt());
+						query.bindValue(1, "open");
+						query.bindValue(2, variant_description);
+						query.exec();
+					}
+				}
+
 				db.commit();
 			}
 			catch(...)
