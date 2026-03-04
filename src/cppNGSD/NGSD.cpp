@@ -6995,6 +6995,17 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 		}
 	}
 
+	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes;
+	if (hpo_genes_cache.isEmpty())
+	{
+		SqlQuery hpo_pairs_query = getQuery();
+		hpo_pairs_query.exec("SELECT hpo_term_id, gene FROM hpo_genes");
+		while(hpo_pairs_query.next())
+		{
+			hpo_genes_cache[hpo_pairs_query.value(0).toInt()] << hpo_pairs_query.value(1).toByteArray();
+		}
+	}
+
 	//create output gene set
 	GeneSet genes;
 	SqlQuery pid2genes = getQuery();
@@ -7004,6 +7015,7 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 		int id = pheno_ids.takeLast();
 		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
 		QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
+		bool query_changed = false;
 
 		if (allowed_sources.size() > 0 && allowed_sources.count() < Phenotype::allSourceValues().count())
 		{
@@ -7014,6 +7026,7 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 			}
 			query.chop(4);
 			query.append(")");
+			query_changed = true;
 		}
 
 		if (allowed_evidences.size() > 0 && allowed_evidences.count() < Phenotype::allEvidenceValues(false).count())
@@ -7026,14 +7039,25 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 			}
 			query.chop(4);
 			query.append(")");
+			query_changed = true;
 		}
-		//pid2genes.bindValue(0, id);
-		pid2genes.exec(query);
 
-		while(pid2genes.next())
+		if (query_changed)
 		{
-			QByteArray gene = pid2genes.value(0).toByteArray();
-			genes.insert(geneToApproved(gene, true));
+			pid2genes.exec(query);
+			while(pid2genes.next())
+			{
+				QByteArray gene = pid2genes.value(0).toByteArray();
+				genes.insert(geneToApproved(gene, true));
+			}
+		}
+		else
+		{
+			for (const QByteArray& hpo_gene: hpo_genes_cache[id])
+			{
+
+				genes.insert(geneToApproved(hpo_gene, true));
+			}
 		}
 	}
 	return genes;
