@@ -51,6 +51,8 @@ public:
     bool existRes();
     bool existFusions();
 
+    bool existMosaicCnvs();
+
     bool variantListModified();
 
     bool germlineReportSupported(bool require_ngsd = true, QString* error=nullptr) const;
@@ -72,6 +74,7 @@ public:
     const RepeatLocusList& getReList() const;
     const VariantList& getControlTissueSmallVariants() const;
     const ArribaFile& getFusionList() const;
+    QStringList getMosaicCnvs() const;
 
     QSharedPointer<ReportConfiguration> getGermlineReportConfig();
     QSharedPointer<SomaticReportConfiguration> getSomaticReportConfig();

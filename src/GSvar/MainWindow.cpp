@@ -137,7 +137,7 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
-	, var_last_(-1)
+    , var_last_(-1)
 	, notification_label_(new QLabel())
 	, igv_history_label_(new ClickableLabel())
 	, background_job_label_(new ClickableLabel())
@@ -882,39 +882,35 @@ void MainWindow::on_actionCNV_triggered()
     if (! getHetHitGenes(het_hit_genes)) return;
 
     CnvWidget* cnv_widget = new CnvWidget(this, data_controller_, het_hit_genes);
-	connect(cnv_widget, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 
-	auto dlg = GUIHelper::createDialog(cnv_widget, "Copy number variants of " + variants_.analysisName());
+    auto dlg = GUIHelper::createDialog(cnv_widget, "Copy number variants of " + data_controller_.analysisName());
 	addModelessDialog(dlg);
 
 	//mosaic CNVs
-    if (type==AnalysisType::GERMLINE_SINGLESAMPLE)
+    if (data_controller_.getAnalysisType() == AnalysisType::GERMLINE_SINGLESAMPLE && data_controller_.existMosaicCnvs())
 	{
-		FileLocation mosaic_file = GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicCnvFile();
-		if (mosaic_file.exists)
-		{
-			QStringList mosaic_data = Helper::loadTextFile(mosaic_file.filename, false, '#', true);
-			if (!mosaic_data.isEmpty())
-			{
-				ScrollableTextDialog dlg(this, "Possible mosaic CNV(s) detected!");
-				dlg.appendLine("#CHR\tSTART\tEND\tCOPY NUMBER");
 
-				foreach (const QString& line, mosaic_data)
-				{
-					if(line.trimmed().isEmpty() || line.startsWith("#")) continue;
+        QStringList mosaic_data = data_controller_.getMosaicCnvs();
+        if (!mosaic_data.isEmpty())
+        {
+            ScrollableTextDialog dlg(this, "Possible mosaic CNV(s) detected!");
+            dlg.appendLine("#CHR\tSTART\tEND\tCOPY NUMBER");
 
-					QStringList parts = line.split("\t");
-					if(parts.length()<4)
-					{
-						Log::warn("Mosaic CNV file '" + mosaic_file.filename + "' has line with less than 4 elements: " + line);
-					}
-					else
-					{
-						dlg.appendLine(parts.mid(0, 4).join("\t"));
-					}
-				}
-				dlg.exec();
-			}
+            foreach (const QString& line, mosaic_data)
+            {
+                if(line.trimmed().isEmpty() || line.startsWith("#")) continue;
+
+                QStringList parts = line.split("\t");
+                if(parts.length()<4)
+                {
+                    Log::warn("Mosaic CNV file has line with less than 4 elements: " + line);
+                }
+                else
+                {
+                    dlg.appendLine(parts.mid(0, 4).join("\t"));
+                }
+            }
+            dlg.exec();
 		}
 	}
 }
@@ -6316,5 +6312,19 @@ void MainWindow::showWarning(QString title, QString text)
 void MainWindow::showInfo(QString title, QString text)
 {
     QMessageBox::information(this, title, text);
+}
+
+void MainWindow::updateButtonStatus()
+{
+    ui_.actionCNV->setEnabled(false);
+    ui_.actionSV->setEnabled(false);
+    ui_.actionROH->setEnabled(false);
+    ui_.actionRE->setEnabled(false);
+    ui_.actionPRS->setEnabled(false);
+    ui_.actionPathogenicWT->setEnabled(false);
+    ui_.actionCircos->setEnabled(false);
+    ui_.actionMethylation->setEnabled(false);
+    ui_.actionVirusDetection->setEnabled(false);
+
 }
 

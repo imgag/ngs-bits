@@ -156,7 +156,8 @@ SOURCES += main.cpp\
     BurdenTestWidget.cpp \
     OncoTreeSelector.cpp \
     FilterWidgetFusion.cpp \
-    RnaReportFusionDialog.cpp
+    RnaReportFusionDialog.cpp \
+    AnalysisDataController.cpp
 
 HEADERS += MainWindow.h \
     AnalysisDataController.h \
@@ -293,7 +294,8 @@ HEADERS += MainWindow.h \
     BurdenTestWidget.h \
     OncoTreeSelector.h \
     FilterWidgetFusion.h \
-    RnaReportFusionDialog.h
+    RnaReportFusionDialog.h \
+    AnalysisDataController.h
 
 FORMS    += MainWindow.ui \
     Background/BackgroundJobDialog.ui \

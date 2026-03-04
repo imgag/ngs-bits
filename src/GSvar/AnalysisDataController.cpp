@@ -698,6 +698,11 @@ bool AnalysisDataController::existFusions()
     return fusions_.isValid();
 }
 
+bool AnalysisDataController::existMosaicCnvs()
+{
+    return GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicCnvFile().exists;
+}
+
 bool AnalysisDataController::variantListModified()
 {
     return ! variants_changed_.isEmpty();
@@ -828,6 +833,13 @@ const VariantList& AnalysisDataController::getControlTissueSmallVariants() const
 const ArribaFile& AnalysisDataController::getFusionList() const
 {
     return fusions_;
+}
+
+QStringList AnalysisDataController::getMosaicCnvs() const
+{
+    FileLocation mosaic_file = GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicCnvFile();
+
+    return mosaic_file.exists ? Helper::loadTextFile(mosaic_file.filename, false, '#', true) : QStringList();
 }
 
 QSharedPointer<ReportConfiguration> AnalysisDataController::getGermlineReportConfig()

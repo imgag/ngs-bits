@@ -473,6 +473,8 @@ public slots:
     void showError(QString title, QString text);
     void showWarning(QString title, QString text);
     void showInfo(QString title, QString text);
+    ///enable\disable buttons depending on data status
+    void updateButtonStatus();
 
 
 protected:
