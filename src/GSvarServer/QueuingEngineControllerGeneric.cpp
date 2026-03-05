@@ -9,7 +9,14 @@ QueuingEngineControllerGeneric::QueuingEngineControllerGeneric()
 	qe_api_base_url_ = Settings::string("qe_api_base_url", true);
 	secure_token_ = Settings::string("qe_secure_token", true);
 
-	//TODO check if URL and token are provided. Throw exception otherwise!
+	if (qe_api_base_url_.isEmpty())
+	{
+		THROW(ArgumentException, "Base URL for the queuing engine API is not set");
+	}
+	if (qe_api_base_url_.isEmpty())
+	{
+		THROW(ArgumentException, "Secure token for the queuing engine API is not set");
+	}
 }
 
 QString QueuingEngineControllerGeneric::getEngineName() const
@@ -19,14 +26,17 @@ QString QueuingEngineControllerGeneric::getEngineName() const
 
 void QueuingEngineControllerGeneric::submitJob(NGSD &db, int threads, QStringList queues, QStringList pipeline_args, QString working_directory, QString script, int job_id) const
 {
+
+	ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).submitJob(threads, queues, pipeline_args, working_directory, script);
+	if (reply.status_code!=200)
+	{
+		QString error_message = "There has been an error while submitting a job, response code: " + QString::number(reply.status_code);
+		Log::error(error_message);
+		THROW(ProgrammingException, error_message);
+	}
+
 	try
 	{
-		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).submitJob(threads, queues, pipeline_args, working_directory, script);
-		if (reply.status_code!=200)
-		{
-			Log::error("There has been an error while submitting a job, response code: " + QString::number(reply.status_code)); //TODO throw
-		}
-
 		QJsonDocument reply_doc = QJsonDocument::fromJson(reply.body);
 		checkReplyIsValid(reply_doc, job_id, "submit");
 
@@ -52,14 +62,17 @@ void QueuingEngineControllerGeneric::submitJob(NGSD &db, int threads, QStringLis
 
 bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJob &job, int job_id) const
 {
+
+	ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).updateRunningJob(job.sge_id, job.sge_queue);
+	if (reply.status_code!=200)
+	{
+		QString error_message = "There has been an error while updating a job, response code: " + QString::number(reply.status_code);
+		Log::error(error_message);
+		THROW(ProgrammingException, error_message);
+	}
+
 	try
 	{
-		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).updateRunningJob(job.sge_id, job.sge_queue);
-		if (reply.status_code!=200)
-		{
-			Log::error("There has been an error while updating a job, response code: " + QString::number(reply.status_code));
-		}
-
 		QJsonDocument reply_doc = QJsonDocument::fromJson(reply.body);
 		checkReplyIsValid(reply_doc, job_id, "update");
 
@@ -71,7 +84,7 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 
 		if (exit_code==0 && status=="queued/running")
 		{
-			job_finished = false;
+
 			QString queue = getQueue(reply_doc, ok);
 			if (!ok) return false; //TODO
 
@@ -83,7 +96,6 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 		}
 	}
 	catch(Exception e)
-
 	{
 		Log::error("There has been an error while updating a job: " + e.message());
 	}
@@ -97,15 +109,16 @@ void QueuingEngineControllerGeneric::checkCompletedJob(NGSD &db, QString qe_job_
 
 void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const
 {
+	ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).deleteJob(job.sge_id, job.type);
+	if (reply.status_code!=200)
+	{
+		QString error_message = "There has been an error while deleting a job, response code: " + QString::number(reply.status_code);
+		Log::error(error_message);
+		THROW(ProgrammingException, error_message);
+	}
+
 	try
 	{
-		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).deleteJob(job.sge_id, job.type);
-		if (reply.status_code!=200)
-		{
-			Log::error("There has been an error while deleting a job, response code: " + QString::number(reply.status_code));
-
-		}
-
 		QJsonDocument reply_doc = QJsonDocument::fromJson(reply.body);
 		checkReplyIsValid(reply_doc, job_id, "delete");
 
@@ -173,7 +186,12 @@ QString QueuingEngineControllerGeneric::getJobId(QJsonDocument &reply_doc, bool 
 		return "";
 	}
 	ok = true;
-	return reply_obj.value("qe_job_id").toString().trimmed(); //TODO check that it is not empty, and not larger than 10 characters
+
+	QString qe_job_id = reply_obj.value("qe_job_id").toString().trimmed();
+	if (qe_job_id.isEmpty()) THROW(ArgumentException, "Empty job id has been sent in the reply");
+	if (qe_job_id.size()>10) THROW(ArgumentException, "Invalid job id has been sent in the reply");
+
+	return qe_job_id;
 }
 
 QString QueuingEngineControllerGeneric::getStatus(QJsonDocument &reply_doc, bool &ok) const
@@ -192,10 +210,7 @@ QString QueuingEngineControllerGeneric::getStatus(QJsonDocument &reply_doc, bool
 int QueuingEngineControllerGeneric::getCommandExitCode(QJsonDocument &reply_doc) const
 {
 	QJsonObject reply_obj = reply_doc.object();
-
-	bool ok = false;
-	int exit_code = reply_obj.value("exit_code").toInt(&ok);
-	if (!ok)
+	int exit_code = reply_obj.value("exit_code").toInt();
 
 	return exit_code;
 }
