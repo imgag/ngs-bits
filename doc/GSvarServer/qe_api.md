@@ -2,96 +2,74 @@
 
 ## HTTP API server implementation guidelines
 
-We have created `QueuingEngineControllerGeneric` class to allow working with a remote queuing engine via a simple HTTP API. Using this class, you can send commands to the server defined in `qe_api_base_url` configuration parameter. In addition to that, you need to set `qe_secure_token`, an authentication token for the API server (issued and validated by the very same server), to be able to access the API. Such a server should have an endpoint that accepts **POST** requests containing specific JSON objects. 4 actions are supported at the moment: submit, update, check, and delete. For each of them there is a predefined JSON object format:
+In addition to Slurm and SGE, other queuing engines are support using a generic HTTP API.
+To start analysis jobs, get the status of the jobs and cancel jobs, the GSvar server uses the API definded by the settings entry `qe_api_base_url`.  
+In addition to `qe_api_base_url`, you need to set `qe_secure_token`, an authentication token for the API server (issued and validated by the API), to be able to access the API.  
+The API must accept **POST** requests containing specific JSON objects for each of the three actions: submit, update and delete.  
+For each action there is a predefined JSON object format:
 
 1. `submit` (**POST** request) - Submits a new job
     
     ```
     {
         "action": "submit",
-        "token": "security token to allow the action",
-        "threads": number of threads to be used for running the analyisis,
-        "queues": [list of queues],
-        "script": pipeline script,
-        "pipeline_args": [list of command line arguments for the pipeline script],
-        "working_directory": folder where the sample is stored
+        "token": security token for authentication,
+        "threads": number of threads to be used for running the analysis,
+        "queues": [list of queues the analysis can run in],
+        "script": megSAP pipeline script,
+        "script_args": [list of command line arguments for the pipeline script],
+        "working_directory": working directory the script is executed in
     }
     ```
     __returns__ JSON object 
     ```
     {
-        "result": "some text on succes or error message on failure",
-        "qe_job_id": queuing engine job id,
-        "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
+        "result": text output about succcess or failure. Displayed in GSvar analysis job page.,
+        "qe_job_id": queuing engine job id (max 10 characters),
+        "exit_code": numeric job exit code (0 means job was started. Everything else means there was an error while starting the job)
     }
     ```
 
-    __http status code__ 200 - success
+    __http status code__ 200 - always return 200. Failure is detected from 'exit_code'.
 
-2. `update` (**POST** request) - Updates the status of a running job
+2. `update` (**POST** request) - Used to get the status of a started job and write it into NGSD
     ```
     {
         "action": "update",
-        "token": "security token to allow the action",
+        "token": security token for authentication,
         "qe_job_id": queuing engine job id,
-        "qe_job_queue": queuing engine job queue  
     }
     ```
     __returns__ JSON object 
     ```
     {
-        "result": "some text on succes or error message on failure",
-        "status": should be "queued/running" on successful start,
-		"queue", "queue identifier",
-        "qe_job_id": queuing engine job id,
-        "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
+        "result": some text on the job status,
+        "status": must be one of the enum 'status' in the NGSD table 'analysis_job_history',
+        "queue", "queue identifier where the job is running in (can be empty if not running yet)",
+        "exit_code": numeric job exit code (0 means job is waiting to run, running of successfully finished. Everything else means job failed)
     }
     ```
     
-    __http status code__ 200 - success
-
-3. `check` (**POST** request) - Performs job accounting after completion
-    ```
-    {
-        "action": "check",
-        "token": "security token to allow the action",
-        "qe_job_id": queuing engine job id,
-        "stdout_stderr": standard output that contains error messages (if there were errors)
-    }
-    ```
-    __returns__ JSON object 
-    ```
-    {
-        "result": "some text on succes or error message on failure",
-        "qe_exit_code": queuing engine job execution exit code (0 means success, -1 means failure),
-        "qe_job_id": queuing engine job id,
-        "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
-    }
-    ```
-
-    __http status code__ 200 - success
+    __http status code__ 200 - always return 200. Failure is detected from 'exit_code'.
 
 4. `delete` (**POST** request) - Deletes a job
     ```
     {
         "action": "delete",
-        "token": "security token to allow the action",
-        "qe_job_id": queuing engine job id,
-        "qe_job_type": queuing engine job type (single sample/trio/multi sample/somatic),        
+        "token": security token for authentication,
+        "qe_job_id": queuing engine job id
     }
     ```
     __returns__ JSON object 
     ```
     {
-        "result": "some text on succes or error message on failure",
-        "qe_job_id": queuing engine job id,
-        "cmd_exit_code": command submition exit code (0 means success, -1 means failure)
+        "result": "some text on success or error message on failure",
+        "exit_code": numeric job exit code (0 means the job was scheduled for deletion or deleted. Everything else means failure)
     }
     ```
 
-    __http status code__ 200 - success
-     
-Please pay attention to the HTTP codes and to error messages returned by the endpoint. It will help to process the output correctly.
+    __http status code__ 200 - always return 200. Failure is detected from 'exit_code'.
+
 
 ## Set your custom queuing engine as the default one in megSAP
 

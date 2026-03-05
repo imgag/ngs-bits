@@ -20,12 +20,12 @@ protected:
 	void checkCompletedJob(NGSD& db, QString qe_job_id, QByteArrayList stdout_stderr, int job_id) const override;
 	void deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const override;
 
-	bool hasApiUrl() const;
-	bool passedInitialCheck(QJsonDocument &reply_doc, int job_id) const;
+	void checkReplyIsValid(QJsonDocument &reply_doc, int job_id, QByteArray action) const;
+
 	QByteArrayList getResults(QJsonDocument &reply_doc) const;
 	QString getJobId(QJsonDocument &reply_doc, bool &ok) const;
 	QString getStatus(QJsonDocument &reply_doc, bool &ok) const;
-	int getCommandExitCode(QJsonDocument &reply_doc, bool &ok) const;
+	int getCommandExitCode(QJsonDocument &reply_doc) const;
 	int getEngineExitCode(QJsonDocument &reply_doc, bool &ok) const;
 	QString getQueue(QJsonDocument &reply_doc, bool &ok) const;
 

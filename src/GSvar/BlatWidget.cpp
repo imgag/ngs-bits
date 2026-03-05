@@ -69,7 +69,6 @@ void BlatWidget::performSearch()
 			}
 
 			//content
-			if (line.startsWith("*")) break; // to handle empty results
 			if (parts.count()!=cols) THROW(FileParseException, "BLAT search output contains line with "+QString::number(parts.count())+" columns. "+QString::number(cols) + "expected!");
 			int row = ui_.table->rowCount();
 			ui_.table->setRowCount(row+1);
