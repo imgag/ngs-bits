@@ -389,6 +389,8 @@ public:
 	void sortByCodingBases();
 	//sorts transcripts by chromosomal position
 	void sortByPosition();
+	//returns if the transcripts are sorted by position
+	bool isSorted() const;
 
 private:
 	//Comparator helper class used by sortByPosition

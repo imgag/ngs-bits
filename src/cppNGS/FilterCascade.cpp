@@ -4237,9 +4237,9 @@ void FilterSvSomaticscore::apply(const BedpeFile& svs, FilterResult& result) con
 
 
 	// get min somaticscore
-	int min_somaticscore = getInt("Somaticscore", false);
+    int min_somaticscore = getInt("Somaticscore", false);
 
-	int i_somaticscore = svs.annotationIndexByName("SOMATICSCORE");
+    int i_somaticscore = svs.annotationIndexByName("SOMATICSCORE");
 
 	if (i_somaticscore == -1) THROW(FileParseException, "No SOMATICSCORE column found in BEDPE file!");
 
@@ -4249,7 +4249,7 @@ void FilterSvSomaticscore::apply(const BedpeFile& svs, FilterResult& result) con
 		if (!result.flags()[i]) continue;
 
 		// get somaticscore
-		double somaticscore = Helper::toInt(svs[i].annotations()[i_somaticscore], "Somaticscore", QString::number(i));
+        double somaticscore = Helper::toDouble(svs[i].annotations()[i_somaticscore], "Somaticscore", QString::number(i));
 		// compare AF with filter
 		result.flags()[i] = (min_somaticscore <= somaticscore);
 	}
