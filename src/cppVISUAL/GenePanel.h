@@ -1,13 +1,12 @@
 #ifndef GENEPANEL_H
 #define GENEPANEL_H
 
+#include "GenomeData.h"
 #include "cppVISUAL_global.h"
 #include <QWidget>
 #include <QMouseEvent>
 #include "BedFile.h"
-#include "FastaFileIndex.h"
 #include "Transcript.h"
-#include "ChromosomalIndex.h"
 
 //Settings struct for gene panel
 struct CPPVISUALSHARED_EXPORT GenePanelSettings
@@ -28,7 +27,7 @@ public:
 	GenePanel(QWidget* parent);
 
 public slots:
-	void setDependencies(const FastaFileIndex& genome_idx, const TranscriptList& transcripts);
+    void setGenomeData(QSharedPointer<GenomeData> genome_data);
 	void setRegion(const BedLine& region);
 
 signals:
@@ -40,9 +39,7 @@ private slots:
 private:
 	//general members
 	GenePanelSettings settings_;
-	const FastaFileIndex* genome_idx_ = nullptr;
-	const TranscriptList* transcripts_ = nullptr;
-	ChromosomalIndex<TranscriptList>* transcripts_idx_;
+    QSharedPointer<GenomeData> genome_data_;
 	BedLine reg_;
 	//members needed for paint event - updated when resizing occurs
 	double pixels_per_base_;

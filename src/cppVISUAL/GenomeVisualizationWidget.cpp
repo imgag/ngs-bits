@@ -4,22 +4,14 @@
 #include "GUIHelper.h"
 #include <QToolTip>
 #include <QMessageBox>
-#include "Settings.h"
 
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
-	, genome_idx_(Settings::string("reference_genome", false))
+    , genome_data_()
 {
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter_gene_panel);
-
-	//init chromosome list (ordered correctly)
-	foreach(const Chromosome& chr, genome_idx_.chromosomes())
-	{
-		valid_chrs_ << chr.str();
-	}
-	ui_->chr_selector->addItems(valid_chrs_);
 
 	//connect signals and slots
 	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
@@ -31,14 +23,24 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 }
 
-void GenomeVisualizationWidget::setTranscripts(const TranscriptList& transcripts)
+void GenomeVisualizationWidget::setGenomeData(QSharedPointer<GenomeData> genome_data)
 {
-	transcripts_ = transcripts;
+    genome_data_ = genome_data;
+
+    //init chromosome list (ordered correctly)
+    ui_->chr_selector->blockSignals(true);
+    ui_->chr_selector->clear();
+    foreach(const Chromosome& chr, genome_data_->genome_index.chromosomes())
+    {
+        valid_chrs_ << chr.str();
+    }
+    ui_->chr_selector->addItems(valid_chrs_);
+    ui_->chr_selector->blockSignals(false);
 
 	//init gene and transcript list
-	for(int i=0; i<transcripts_.size(); ++i)
+    for(int i=0; i<genome_data_->transcripts.size(); ++i)
 	{
-		const Transcript& trans = transcripts_[i];
+        const Transcript& trans = genome_data_->transcripts[i];
 
 		if (trans.source()!=Transcript::ENSEMBL) continue;
 
@@ -47,7 +49,7 @@ void GenomeVisualizationWidget::setTranscripts(const TranscriptList& transcripts
 	}
 
 	//init panels
-	ui_->gene_panel->setDependencies(genome_idx_, transcripts_);
+    ui_->gene_panel->setGenomeData(genome_data);
 }
 
 void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int end)
@@ -73,9 +75,9 @@ void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int 
 		start = 1;
 		end = start + size - 1;
 	}
-	if (end>genome_idx_.lengthOf(chr))
+    if (end>genome_data_->genome_index.lengthOf(chr))
 	{
-		end = genome_idx_.lengthOf(chr);
+        end = genome_data_->genome_index.lengthOf(chr);
 		start = end - size + 1;
 		if (start<1) start = 1; //if size is bigger than chromosome, this can happen
 	}
@@ -96,7 +98,7 @@ void GenomeVisualizationWidget::setChromosomeRegion(QString chr)
 		QMessageBox::warning(this, __FUNCTION__, "Could not convert chromosome string '" + chr + "' to valid chromosome!");
 	}
 
-	setRegion(chr, 1, genome_idx_.lengthOf(c));
+    setRegion(chr, 1, genome_data_->genome_index.lengthOf(c));
 }
 
 void GenomeVisualizationWidget::search()
@@ -124,7 +126,7 @@ void GenomeVisualizationWidget::search()
 		BedFile roi;
 		foreach(int index, gene_to_trans_indices_[text.toUtf8()])
 		{
-			const Transcript& trans = transcripts_[index];
+            const Transcript& trans = genome_data_->transcripts[index];
 			roi.append(BedLine(trans.chr(), trans.start(), trans.end()));
 		}
 		roi.extend(settings_.transcript_padding);
@@ -142,7 +144,7 @@ void GenomeVisualizationWidget::search()
 	if (trans_to_index_.contains(text.toUtf8()))
 	{
 		int index = trans_to_index_[text.toUtf8()];
-		const Transcript& trans = transcripts_[index];
+        const Transcript& trans = genome_data_->transcripts[index];
 		setRegion(trans.chr(), trans.start()-settings_.transcript_padding, trans.end()+settings_.transcript_padding);
 		return;
 	}

@@ -69,7 +69,7 @@ public:
 		return name_ + '.' + QByteArray::number(version_);
 	}
 
-	//CCDS transcript name with version number (this field is only filled if the transcript was read with NGSHelper::loadGffFile)
+    //CCDS transcript name with version number (this field is only filled if the transcript was read with GffData::loadFile from a Ensembl file)
     const QByteArray& nameCcds() const
     {
         return name_ccds_;

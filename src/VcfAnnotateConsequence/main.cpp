@@ -1,6 +1,6 @@
 #include "ToolBase.h"
 #include "Settings.h"
-#include "NGSHelper.h"
+#include "GffData.h"
 #include "Helper.h"
 #include "VariantHgvsAnnotator.h"
 #include "Auxilary.h"
@@ -110,7 +110,7 @@ public:
 		gff_settings.print_to_stdout = true;
 		gff_settings.include_all = all;
 		gff_settings.skip_not_hgnc = skip_not_hgnc;
-		GffData data = NGSHelper::loadGffFile(gff_file, gff_settings);
+        GffData data = GffData::load(gff_file, gff_settings);
         stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << Qt::endl;
 
 		//ceate transcript index

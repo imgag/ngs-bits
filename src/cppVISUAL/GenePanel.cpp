@@ -14,11 +14,9 @@ GenePanel::GenePanel(QWidget *parent)
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
 }
 
-void GenePanel::setDependencies(const FastaFileIndex& genome_idx, const TranscriptList& transcripts)
+void GenePanel::setGenomeData(QSharedPointer<GenomeData> genome_data)
 {
-	genome_idx_ = &genome_idx;
-	transcripts_ = & transcripts;
-	transcripts_idx_ = new ChromosomalIndex<TranscriptList>(*transcripts_);
+    genome_data_ = genome_data;
 }
 
 void GenePanel::setRegion(const BedLine& region)
@@ -63,7 +61,7 @@ void GenePanel::contextMenu(QPoint pos)
 void GenePanel::paintEvent(QPaintEvent* /*event*/)
 {
 	//check
-	if (genome_idx_==nullptr || transcripts_==nullptr) THROW(ProgrammingException, "Dependencies not set!");
+    if (genome_data_.isNull()) THROW(ProgrammingException, "Genome data not set!");
 
 	//init
 	int h = height();
@@ -84,7 +82,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	//paint sequence (only if at lest one pixel per base is available)
 	if (pixels_per_base_ >= 1)
 	{
-		Sequence seq = genome_idx_->seq(reg_.chr(), reg_.start(), reg_.length());
+        Sequence seq = genome_data_->genome_index.seq(reg_.chr(), reg_.start(), reg_.length());
 		if (!settings_.strand_forward) seq.complement();
 		painter.setPen(Qt::transparent);
 
@@ -143,10 +141,10 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	trans_positions_.clear();
 
 	//paint preferred transcripts;
-	QVector<int> trans_indices = transcripts_idx_->matchingIndices(reg_.chr(), reg_.start(), reg_.end());
+    QVector<int> trans_indices = genome_data_->transcript_index.matchingIndices(reg_.chr(), reg_.start(), reg_.end());
 	foreach(int i, trans_indices)
 	{
-		const Transcript& trans = transcripts_->at(i);
+        const Transcript& trans = genome_data_->transcripts.at(i);
 		if (!trans.isPreferredTranscript()) continue;
 		if (trans.source()!=Transcript::ENSEMBL && settings_.show_only_ensembl) continue;
 		drawTranscript(painter, trans, y_content_start, QColor(130, 0, 50));
@@ -155,7 +153,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	//paint other transcripts
 	foreach(int i, trans_indices)
 	{
-		const Transcript& trans = transcripts_->at(i);
+        const Transcript& trans = genome_data_->transcripts.at(i);
 		if (trans.isPreferredTranscript()) continue;
 		if (trans.source()!=Transcript::ENSEMBL && settings_.show_only_ensembl) continue;
 		drawTranscript(painter, trans, y_content_start, QColor(0, 0, 178));

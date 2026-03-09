@@ -33,7 +33,8 @@ SOURCES += \
 
 HEADERS += \
     GenomeVisualizationWidget.h \
-    GenePanel.h
+    GenePanel.h \
+    GenomeData.h
 
 FORMS += \
     GenomeVisualizationWidget.ui

@@ -2,9 +2,8 @@
 #define GENOMEVISUALIZATIONWIDGET_H
 
 #include "cppVISUAL_global.h"
-#include "FastaFileIndex.h"
+#include "GenomeData.h"
 #include "BedFile.h"
-#include "Transcript.h"
 #include <QWidget>
 
 namespace Ui {
@@ -30,8 +29,8 @@ public:
 	//Defaukt constructor. Make sure to call setTranscrips before doing anything else!
 	GenomeVisualizationWidget(QWidget* parent);
 
-	//Sets transcripts (from GFF or NGSD)
-	void setTranscripts(const TranscriptList& transcripts);
+    //Sets genome data
+    void setGenomeData(QSharedPointer<GenomeData> data);
 
 	//Sets visualized region (1-based)
 	void setRegion(const Chromosome& chr, int start, int end);
@@ -56,9 +55,8 @@ signals:
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;
-	GenomeVisualizationSettings settings_;
-	FastaFileIndex genome_idx_;
-	TranscriptList transcripts_;
+    GenomeVisualizationSettings settings_;
+    QSharedPointer<GenomeData> genome_data_;
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;
