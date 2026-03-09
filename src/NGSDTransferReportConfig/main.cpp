@@ -1,3 +1,4 @@
+#include "SampleSimilarity.h"
 #include "ToolBase.h"
 #include "NGSD.h"
 #include "qforeach.h"
@@ -21,53 +22,8 @@ public:
 		addString("target_ps", "Processed sample name to which the ReportConfig is transferred to.", false);
 
 		//optional
-		addFlag("force", "Transfer report even if some variants aren't present in the target sample.(Missing variants will be written into the `report_configuration_failed_transfer` table.)");
+		addFlag("force", "Transfer report even if some variants aren't present in the target sample (Missing variants will be written into the `report_configuration_failed_transfer` table.)");
 		addFlag("test", "Uses the test database instead of on the production database.");
-	}
-
-	int getCNVIndex(const CnvList& cnvs, const CopyNumberVariant& cnv, int copy_number)
-	{
-		int idx = -1;
-		for (int i = 0; i < cnvs.count(); ++i)
-		{
-			if (cnvs[i].chr() != cnv.chr()) continue;
-			if (cnvs[i].copyNumber(cnvs.annotationHeaders()) != copy_number) continue;
-			if (!cnvs[i].overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
-			// compute overlap
-			int overlap_length = std::min(cnvs[i].end(), cnv.end()) - std::max(cnvs[i].start(), cnv.start());
-			double overlap_frac1 = (double) overlap_length / cnv.size();
-			double overlap_frac2 = (double) overlap_length / cnvs[i].size();
-			//overlap has to be at least 90% in both directions
-			if (overlap_frac1 < 0.9 || overlap_frac2 < 0.9) continue;
-
-			//else: match found
-			idx = i;
-			break;
-		}
-		return idx;
-	}
-
-	int getREIndex(const RepeatLocusList& res, const RepeatLocus& re)
-	{
-		int idx = -1;
-
-		for (int i = 0; i < res.count(); ++i)
-		{
-			if (!res[i].sameRegionAndLocus(re)) continue;
-			//fuzzy repeat match: at least 95% identity of max allele
-			int re1_max_allele = std::max(res[i].allele1asInt(), res[i].allele2asInt());
-			int re2_max_allele = std::max(re.allele1asInt(), re.allele2asInt());
-
-			double allele_frac = std::min((double) re1_max_allele/re2_max_allele, (double) re2_max_allele/re1_max_allele);
-
-
-			if (allele_frac >= 0.95)
-			{
-				idx = i;
-				break;
-			}
-		}
-		return idx;
 	}
 
 	QString reportVariant2Text(const NGSD& db, int rvc_id, VariantType variant_type, const QString& variant_text, const QString& source_ps_name)
@@ -76,6 +32,7 @@ public:
 
 		report_variant_info.append("SourceSample:" + source_ps_name);
 		report_variant_info.append("Variant:" + variant_text);
+		report_variant_info.append("VariantType:" +  variantTypeToString(variant_type));
 
 		SqlQuery query = db.getQuery();
 		if (variant_type == VariantType::SNVS_INDELS) query.prepare("SELECT * FROM report_configuration_variant WHERE id= :id");
@@ -93,7 +50,7 @@ public:
 			for (int i = 0; i < record.count(); i++)
 			{
 				QString column = record.fieldName(i);
-				QString value = query.value(i).toString().replace("\t", " ");
+				QString value = query.value(i).toString().replace("\t", " ").replace("\n", "<BR>").replace("\r", "").replace("\v", "").replace("\f", "");
 				// filter output
 				if (column.startsWith("exclude_")) continue;
 				if (value.isEmpty()) continue;
@@ -121,19 +78,26 @@ public:
 		QString target_ps_id = db.processedSampleId(target_ps_name);
 		bool force = getFlag("force");
 
-		//checks
-		if (source_ps_id == target_ps_id) THROW(ArgumentException, "Source and target sample cannot be the same!")
-		// check if target has ReportConfig
-		if (db.reportConfigId(target_ps_id) != -1) THROW(ArgumentException, "Target sample already has a ReportConfig!");
-		//check sample id
-		if (db.sampleId(source_ps_name) != db.sampleId(target_ps_name)) THROW(ArgumentException, "Source and target sample have to be from the same DNA!");
-		// check sample similarity?
-
-
-
 		//output
 		QTextStream std_out(stdout);
 		std_out << source_ps_name + " (ps_id: " + source_ps_id + ") > " + target_ps_name + " (ps_id: " + target_ps_id + ")\n";
+
+		//checks
+		if (source_ps_id == target_ps_id) THROW(ArgumentException, "Source and target sample cannot be the same!")
+		// check if source has ReportConfig
+		int rc_id = db.reportConfigId(source_ps_id);
+		if (rc_id == -1) THROW(ArgumentException, "Source sample doesn't have a ReportConfig!");
+		// check if target has ReportConfig
+		if (db.reportConfigId(target_ps_id) != -1) THROW(ArgumentException, "Target sample already has a ReportConfig!");
+		//check sample similariaty
+		BedFile roi;
+		roi.load(":/Resources/hg38_coding_highconf_all_kits.bed");
+		SampleSimilarity sc;
+		sc.calculateSimilarity(SampleSimilarity::genotypesFromGSvar(db.processedSamplePath(source_ps_id, PathType::GSVAR), false, roi),
+							   SampleSimilarity::genotypesFromGSvar(db.processedSamplePath(target_ps_id, PathType::GSVAR), false, roi));
+		std_out << "Sample correlation:\t" + QString::number(sc.sampleCorrelation(), 'f', 4) + " (vars:" + QString::number(sc.noVariants1()) + "/" + QString::number(sc.noVariants2()) + ")\n\n";
+
+
 
 		//load source variant files
 		VariantList src_variants;
@@ -145,9 +109,7 @@ public:
 		RepeatLocusList src_res;
 		src_res.load(db.processedSamplePath(source_ps_id, PathType::REPEAT_EXPANSIONS));
 
-		// get source report
-		int rc_id = db.reportConfigId(source_ps_id);
-		if (rc_id == -1) THROW(ArgumentException, "Source sample doesn't have a ReportConfig!");
+		// get source report		
 		QSharedPointer<ReportConfiguration> source_report_config = db.reportConfig(rc_id, src_variants, src_cnvs, src_svs, src_res);
 		QList<ReportVariantConfiguration> src_report_variants = source_report_config->variantConfig();
 
@@ -165,6 +127,7 @@ public:
 		//load callset IDs
 		int target_cnv_callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", false, target_ps_id).toInt();
 		int target_sv_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", false, target_ps_id).toInt();
+
 
 		//Debug
 		qDebug() << "Files loaded!";
@@ -334,7 +297,7 @@ public:
 		foreach (const auto pair, cnvs_to_transfer)
 		{
 
-			int idx = getCNVIndex(target_cnvs, pair.second, pair.second.copyNumber(src_cnvs.annotationHeaders()));
+			int idx = target_cnvs.findMatch(pair.second, pair.second.copyNumber(src_cnvs.annotationHeaders()), true);
 			if (idx > -1)
 			{
 				n_match++;
@@ -431,7 +394,8 @@ public:
 		n_missed_excluded = 0;
 		foreach (const auto pair, res_to_transfer)
 		{
-			int idx = getREIndex(target_res, pair.second);
+			// int idx = getREIndex(target_res, pair.second);
+			int idx = target_res.findMatch(pair.second, true);
 			if ( idx > -1)
 			{
 				n_match++;
@@ -481,7 +445,7 @@ public:
 		}
 
 
-		//Report variants which cannot be transfered
+		//Report variants which cannot be transferred
 		if (report_missed.size() > 1)
 		{
 			std_out << "\n";

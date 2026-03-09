@@ -160,7 +160,7 @@ private:
 		IS_TRUE(ocv1_query.value("comment_reviewer1") == ocv2_query.value("comment_reviewer1"));
 		IS_TRUE(ocv1_query.value("comment_reviewer2") == ocv2_query.value("comment_reviewer2"));
 
-		//check counts of transfered report config
+		//check counts of transferred report config
 		I_EQUAL(db.getValue("SELECT COUNT(id) FROM `report_configuration_variant` WHERE report_configuration_id=2").toInt(), 3);
 		I_EQUAL(db.getValue("SELECT COUNT(id) FROM `report_configuration_cnv` WHERE report_configuration_id=2").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT COUNT(id) FROM `report_configuration_sv` WHERE report_configuration_id=2").toInt(), 3);
@@ -206,12 +206,12 @@ private:
 
 		//check entries in report_configuration_failed_transfer
 		I_EQUAL(db.getValue("SELECT COUNT(id) FROM `report_configuration_failed_transfer` WHERE processed_sample_id=2").toInt(), 8);
-		S_EQUAL(db.getValue("SELECT variant_description FROM `report_configuration_failed_transfer` WHERE id=2").toString(), "SourceSample:NA12878_05	Variant:chr1-873939-873939-C-T	id:5	report_configuration_id:1	variant_id:23	type:diagnostic variant	causal:1	inheritance:n/a	de_novo:0	mosaic:0	compound_heterozygous:0	comments:missed not excluded	rna_info:n/a");
-		S_EQUAL(db.getValue("SELECT variant_description FROM `report_configuration_failed_transfer` WHERE id=4").toString(), "SourceSample:NA12878_05	Variant:chr1:3836474-3836712	id:4	report_configuration_id:1	cnv_id:4	type:diagnostic variant	causal:0	class:2	inheritance:AD	de_novo:0	mosaic:0	compound_heterozygous:0	comments:missed not excluded	rna_info:n/a	manual_start:0	manual_end:0	manual_cn:0");
-		S_EQUAL(db.getValue("SELECT variant_description FROM `report_configuration_failed_transfer` WHERE id=6").toString(), "SourceSample:NA12878_05	Variant:INS at chr2:28973386-28973387	id:5	report_configuration_id:1	sv_deletion_id:0	sv_duplication_id:0	sv_insertion_id:2	sv_inversion_id:0	sv_translocation_id:0	type:candidate variant	causal:1	class:4	inheritance:AR	de_novo:0	mosaic:0	compound_heterozygous:0	comments:missed	rna_info:n/a	manual_start:0	manual_end:0	manual_start_bnd:0	manual_end_bnd:0");
-		S_EQUAL(db.getValue("SELECT variant_description FROM `report_configuration_failed_transfer` WHERE id=8").toString(), "SourceSample:NA12878_05	Variant: - chr6:170561906-170562017/GCA (allele1:37 / allele2:36)	id:5	report_configuration_id:1	repeat_expansion_genotype_id:10	type:incidental finding	causal:1	inheritance:MT	de_novo:0	mosaic:0	compound_heterozygous:0	comments:missed	manual_allele1:0	manual_allele2:0");
+		S_EQUAL(db.getValue("SELECT variant_description FROM `report_configuration_failed_transfer` WHERE id=2").toString(), "SourceSample:NA12878_05	Variant:chr1-873939-873939-C-T	VariantType:small variant	id:5	report_configuration_id:1	variant_id:23	type:diagnostic variant	causal:1	inheritance:n/a	de_novo:0	mosaic:0	compound_heterozygous:0	comments:missed not excluded	rna_info:n/a");
+		S_EQUAL(db.getValue("SELECT variant_description FROM `report_configuration_failed_transfer` WHERE id=4").toString(), "SourceSample:NA12878_05	Variant:chr1:3836474-3836712	VariantType:CNV	id:4	report_configuration_id:1	cnv_id:4	type:diagnostic variant	causal:0	class:2	inheritance:AD	de_novo:0	mosaic:0	compound_heterozygous:0	comments:missed not excluded	rna_info:n/a	manual_start:0	manual_end:0	manual_cn:0");
+		S_EQUAL(db.getValue("SELECT variant_description FROM `report_configuration_failed_transfer` WHERE id=6").toString(), "SourceSample:NA12878_05	Variant:INS at chr2:28973386-28973387	VariantType:SV	id:5	report_configuration_id:1	sv_deletion_id:0	sv_duplication_id:0	sv_insertion_id:2	sv_inversion_id:0	sv_translocation_id:0	type:candidate variant	causal:1	class:4	inheritance:AR	de_novo:0	mosaic:0	compound_heterozygous:0	comments:missed	rna_info:n/a	manual_start:0	manual_end:0	manual_start_bnd:0	manual_end_bnd:0");
+		S_EQUAL(db.getValue("SELECT variant_description FROM `report_configuration_failed_transfer` WHERE id=8").toString(), "SourceSample:NA12878_05	Variant:TBP - chr6:170561906-170562017/GCA (allele1:37 / allele2:36)	VariantType:RE	id:5	report_configuration_id:1	repeat_expansion_genotype_id:10	type:incidental finding	causal:1	inheritance:MT	de_novo:0	mosaic:0	compound_heterozygous:0	comments:missed	manual_allele1:0	manual_allele2:0");
 
-		//check counts of transfered report config
+		//check counts of transferred report config
 		I_EQUAL(db.getValue("SELECT COUNT(id) FROM `report_configuration_variant` WHERE report_configuration_id=2").toInt(), 3);
 		I_EQUAL(db.getValue("SELECT COUNT(id) FROM `report_configuration_cnv` WHERE report_configuration_id=2").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT COUNT(id) FROM `report_configuration_sv` WHERE report_configuration_id=2").toInt(), 3);

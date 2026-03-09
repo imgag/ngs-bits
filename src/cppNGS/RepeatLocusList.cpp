@@ -349,3 +349,26 @@ const QDate& RepeatLocusList::callingDate() const
 {
 	return call_date_;
 }
+
+int RepeatLocusList::findMatch(const RepeatLocus& re, bool fuzzy_match) const
+{
+	for (int i = 0; i < variants_.size(); ++i)
+	{
+		// skipp other location
+		if (!variants_[i].sameRegionAndLocus(re)) continue;
+
+		//exact match:
+		if ((variants_[i].allele1() == re.allele1()) && (variants_[i].allele2() == re.allele2())) return i;
+
+		//fuzzy match: >95% identity on max alleles
+		if (fuzzy_match)
+		{
+			int re1_max_allele = std::max(variants_[i].allele1asInt(), variants_[i].allele2asInt());
+			int re2_max_allele = std::max(re.allele1asInt(), re.allele2asInt());
+
+			double allele_frac = std::min((double) re1_max_allele/re2_max_allele, (double) re2_max_allele/re1_max_allele);
+			if (allele_frac >= 0.95) return i;
+		}
+	}
+	return -1;
+}

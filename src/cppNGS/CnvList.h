@@ -234,6 +234,11 @@ class CPPNGSSHARED_EXPORT CnvList
 		///Returns the size sum of all all CNVs
 		long long totalCnvSize() const;
 
+		///Returns the (first) index of the CNV which matches the given CopyNumberVariant, -1 if not found
+		///     NOTICE: if 'copy_number' >= 0, also check for matching copy number in the result
+		///		NOTICE: if 'fuzzy_match' is set to true, also CNVs which overlap 90% (in both directions) are reported
+		int findMatch(const CopyNumberVariant& cnv, int copy_number = -1, bool fuzzy_match = false) const;
+
 		///Returns the reference copy number for a given CNV
 		static int determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender, GenomeBuild build);
 

@@ -4,8 +4,8 @@
 #include "TSVFileStream.h"
 #include "BasicStatistics.h"
 #include "KeyValuePair.h"
-#include "NGSHelper.h"
 #include <QJsonObject>
+#include "NGSHelper.h"
 
 CopyNumberVariant::CopyNumberVariant()
 	: chr_()
@@ -567,6 +567,41 @@ long long CnvList::totalCnvSize() const
 		total_size += variant.size();
 	}
 	return total_size;
+}
+
+int CnvList::findMatch(const CopyNumberVariant& cnv, int copy_number, bool fuzzy_match) const
+{
+	for (int i = 0; i < variants_.size(); ++i)
+	{
+		if ((variants_[i].chr() == cnv.chr()) && (variants_[i].start() == cnv.start()) && (variants_[i].end() == cnv.end()))
+		{
+			//exact match
+
+			// cn comparision is required and doesn't match:
+			if ((copy_number >= 0) && (variants_[i].copyNumber(annotation_headers_) != copy_number)) continue;
+
+			return i;
+		}
+		else if ((fuzzy_match) && variants_[i].overlapsWith(cnv.chr(), cnv.start(), cnv.end()))
+		{
+			//check overlap:
+			int overlap_length = std::min(variants_[i].end(), cnv.end()) - std::max(variants_[i].start(), cnv.start());
+			double overlap_frac1 = (double) overlap_length / cnv.size();
+			double overlap_frac2 = (double) overlap_length / variants_[i].size();
+			//overlap has to be at least 90% in both directions
+			if (overlap_frac1 < 0.9 || overlap_frac2 < 0.9) continue;
+
+			// cn comparision is required and doesn't match:
+			if ((copy_number >= 0) && (variants_[i].copyNumber(annotation_headers_) != copy_number)) continue;
+
+			// fuzzy match:
+			return i;
+		}
+		//else: no overlap or exact match required --> contuínue
+	}
+
+	//no match found:
+	return -1;
 }
 
 

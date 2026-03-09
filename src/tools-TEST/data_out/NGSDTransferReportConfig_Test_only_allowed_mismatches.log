@@ -1,4 +1,6 @@
 NA12878_05 (ps_id: 1) > NA12878_06 (ps_id: 2)
+Sample correlation:	1.0000 (vars:7/3)
+
 	SNVs	all/match/missed/missed_excluded	4/3/0/1
 	CNVs	all/match/missed/missed_excluded	3/2/0/1
 	SVs	all/match/missed/missed_excluded	4/3/0/1
@@ -14,16 +16,16 @@ The following variants can be transferred:
 	SV	DUP at chr1:1948974-1949086	DUP at chr1:1948974-1949086
 	SV	BND from chr1:9061390-9061394 to chr14:93246136-93246140	BND from chr1:9061390-9061394 to chr14:93246136-93246140
 	SV	DEL at chr1:26345031-26345084	DEL at chr1:26344831-26345084
-	RE	 - chr1:149390802-149390841/GGC (allele1:13 / allele2:18)	 - chr1:149390802-149390841/GGC (allele1:12 / allele2:18)
-	RE	 - chr4:3074876-3074933/CAG (allele1:16 / allele2:25)	 - chr4:3074876-3074933/CAG (allele1:16 / allele2:26)
-	RE	 - chr4:3074939-3074966/CCG (allele1:9 / allele2:12)	 - chr4:3074939-3074966/CCG (allele1:9 / allele2:12)
+	RE	NOTCH2NLC - chr1:149390802-149390841/GGC (allele1:13 / allele2:18)	NOTCH2NLC - chr1:149390802-149390841/GGC (allele1:12 / allele2:18)
+	RE	HTT - chr4:3074876-3074933/CAG (allele1:16 / allele2:25)	HTT - chr4:3074876-3074933/CAG (allele1:16 / allele2:26)
+	RE	HTT_CCG - chr4:3074939-3074966/CCG (allele1:9 / allele2:12)	HTT_CCG - chr4:3074939-3074966/CCG (allele1:9 / allele2:12)
 
 The following variants cannot be transferred:
 	#type	source
 	SNV/InDel	chr1-948721-948721-A-C(excluded)
 	CNV	chr1:9871166-9871297(excluded)
 	SV	INV at chr2:88861923-88897786(excluded)
-	RE	 - chr6:16327633-16327723/TGC (allele1:30 / allele2:31)(excluded)
+	RE	ATXN1 - chr6:16327633-16327723/TGC (allele1:30 / allele2:31)(excluded)
 
 ReportConfig transfer NA12878_05>NA12878_06 is possible.
 

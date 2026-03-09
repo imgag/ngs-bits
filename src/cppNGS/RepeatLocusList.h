@@ -143,6 +143,10 @@ public:
 		variants_.append(add);
 	}
 
+	///Returns the index of the repeat which matches the given RepeatLocus + allele count, -1 if not found
+	///		NOTICE: if 'fuzzy_match' is set to true, also repeats are reported where the max alleles match to above 95%
+	int findMatch(const RepeatLocus& re, bool fuzzy_match = false) const;
+
 protected:
 
 	ReCallerType caller_;
