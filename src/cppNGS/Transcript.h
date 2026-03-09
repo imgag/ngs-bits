@@ -293,12 +293,12 @@ public:
 	///Converts strand enum to string value.
     static QByteArray strandToString(STRAND strand);
 	///Converts string to strand enum.
-    static STRAND stringToStrand(QByteArray strand);
+	static STRAND stringToStrand(const QByteArray& strand);
 
 	///Converts biotype enum to string value.
 	static QByteArray biotypeToString(BIOTYPE biotype);
 	///Converts string to biotype enum.
-	static BIOTYPE stringToBiotype(QByteArray biotype);
+	static BIOTYPE stringToBiotype(const QByteArray& biotype);
 
 	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
 	int cDnaToGenomic(int coord) const;

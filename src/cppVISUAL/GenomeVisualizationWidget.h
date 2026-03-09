@@ -18,6 +18,8 @@ struct CPPVISUALSHARED_EXPORT GenomeVisualizationSettings
 	int transcript_padding = 2000;
 };
 
+//TODO Marc: make struct with genome, transcript data and all indices that can be used in all panels
+
 //Widget for genome visaulization, similar to IGV
 class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
 	: public QWidget
@@ -25,7 +27,11 @@ class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
 	Q_OBJECT
 
 public:
-	GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx, const TranscriptList& transcripts);
+	//Defaukt constructor. Make sure to call setTranscrips before doing anything else!
+	GenomeVisualizationWidget(QWidget* parent);
+
+	//Sets transcripts (from GFF or NGSD)
+	void setTranscripts(const TranscriptList& transcripts);
 
 	//Sets visualized region (1-based)
 	void setRegion(const Chromosome& chr, int start, int end);
@@ -51,8 +57,8 @@ signals:
 private:
 	Ui::GenomeVisualizationWidget* ui_;
 	GenomeVisualizationSettings settings_;
-	const FastaFileIndex& genome_idx_;
-	const TranscriptList& transcripts_;
+	FastaFileIndex genome_idx_;
+	TranscriptList transcripts_;
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;

@@ -1,7 +1,5 @@
 #include "TestFramework.h"
 #include "NGSHelper.h"
-#include "Settings.h"
-#include <iostream>
 
 TEST_CLASS(NGSHelper_Test)
 {

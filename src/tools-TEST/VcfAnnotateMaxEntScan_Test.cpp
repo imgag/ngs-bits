@@ -17,7 +17,7 @@ private:
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
-		EXECUTE("VcfAnnotateMaxEntScan", "-in " + TESTDATA("data_in/VcfAnnotateMaxEntScan_in2.vcf") + " -out out/VcfAnnotateMaxEntScan_out2.vcf" + " -gff " + TESTDATA("data_in/VcfAnnotateMaxEntScan_transcripts_2.gff3") + " -swa");
+		EXECUTE("VcfAnnotateMaxEntScan", "-in " + TESTDATA("data_in/VcfAnnotateMaxEntScan_in2.vcf") + " -out out/VcfAnnotateMaxEntScan_out2.vcf" + " -gff " + TESTDATA("data_in/VcfAnnotateMaxEntScan_transcripts_2.gff3.gz") + " -swa");
 		COMPARE_FILES("out/VcfAnnotateMaxEntScan_out2.vcf", TESTDATA("data_out/VcfAnnotateMaxEntScan_out2.vcf"));
 		VCF_IS_VALID("out/VcfAnnotateMaxEntScan_out2.vcf");
 	}
@@ -32,7 +32,7 @@ private:
 		{
 			QString suffix = QString::number(i) + "threads";
 
-			EXECUTE("VcfAnnotateMaxEntScan", "-in " + TESTDATA("data_in/VcfAnnotateMaxEntScan_in2.vcf") + " -out out/VcfAnnotateMaxEntScan_out_" + suffix +".vcf" + " -gff " + TESTDATA("data_in/VcfAnnotateMaxEntScan_transcripts_2.gff3") + " -swa -block_size 30 -threads " + QString::number(i) );
+			EXECUTE("VcfAnnotateMaxEntScan", "-in " + TESTDATA("data_in/VcfAnnotateMaxEntScan_in2.vcf") + " -out out/VcfAnnotateMaxEntScan_out_" + suffix +".vcf" + " -gff " + TESTDATA("data_in/VcfAnnotateMaxEntScan_transcripts_2.gff3.gz") + " -swa -block_size 30 -threads " + QString::number(i) );
 			COMPARE_FILES("out/VcfAnnotateMaxEntScan_out_" + suffix +".vcf", TESTDATA("data_out/VcfAnnotateMaxEntScan_out2.vcf"));
 			VCF_IS_VALID("out/VcfAnnotateMaxEntScan_out_" + suffix +".vcf");
 		}

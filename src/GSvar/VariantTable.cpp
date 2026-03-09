@@ -136,14 +136,14 @@ void VariantTable::customContextMenu(QPoint pos)
 		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
 
 		//genes
-        for (const QByteArray& g : genes)
+		for (const QByteArray& g : std::as_const(genes))
 		{
 			sub_menu->addAction(g);
 		}
 		sub_menu->addSeparator();
 
 		//transcripts
-        for (const VariantTranscript& transcript : transcripts)
+		for (const VariantTranscript& transcript : std::as_const(transcripts))
 		{
 			if  (transcript.id!="" && transcript.hgvs_c!="")
 			{
@@ -181,10 +181,10 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
-    for (const QByteArray& g : genes)
+	for (const QByteArray& g : std::as_const(genes))
 	{
 		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
-        for (const Phenotype& p : active_phenotypes_)
+		for (const Phenotype& p : std::as_const(active_phenotypes_))
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
 		}
@@ -198,7 +198,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	if (!genes.isEmpty())
 	{
 		menu.addSeparator();
-        for (const QByteArray& g : genes)
+		for (const QByteArray& g : std::as_const(genes))
 		{
 			sub_menu = menu.addMenu(g);
 			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in);
@@ -254,8 +254,8 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
-		FastaFileIndex genome_idx(Settings::string("reference_genome", false));
-		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this, genome_idx, NGSD().transcripts());
+		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+		widget->setTranscripts(NGSD().transcripts());
 		widget->setRegion(variant.chr(), variant.start(), variant.end());
 		auto dlg = GUIHelper::createDialog(widget, "GSvar Genome Viewer");
 		dlg->exec();
@@ -357,7 +357,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		else if (text=="Google")
 		{
 			QString query = gene + " AND (mutation";
-            for (const Phenotype& pheno : active_phenotypes_)
+			for (const Phenotype& pheno : std::as_const(active_phenotypes_))
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -373,7 +373,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	else if (parent_menu && parent_menu->title()=="Custom")
 	{
 		QStringList custom_entries = Settings::string("custom_menu_small_variants", true).trimmed().split("\t");
-        for (QString custom_entry : custom_entries)
+		for (const QString& custom_entry : std::as_const(custom_entries))
 		{
 			QStringList parts = custom_entry.split("|");
 			if (parts.count()==2 && parts[0]==text)
@@ -937,7 +937,7 @@ void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_r
 		return;
 	}
 
-	QTableWidgetSelectionRange range = selectedRanges()[0];
+	QTableWidgetSelectionRange range = selectedRanges().at(0);
 
 	//check quality column is present
 	QStringList quality_keys;

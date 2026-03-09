@@ -41,7 +41,6 @@ private:
 	{
 		I_EQUAL(Chromosome("1").num(), 1);
 		I_EQUAL(Chromosome("chr1").num(),1);
-		I_EQUAL(Chromosome("chr01").num(),1);
 		I_EQUAL(Chromosome("X").num(),1001);
 		I_EQUAL(Chromosome("CHRX").num(),1001);
 		I_EQUAL(Chromosome("Y").num(),1002);
@@ -55,13 +54,13 @@ private:
 		I_EQUAL(Chromosome("chrBLA2").num(),base+1);
 		I_EQUAL(Chromosome("BLA").num(),base);
 		I_EQUAL(Chromosome("BLA2").num(),base+1);
+		IS_TRUE(Chromosome("chr01").num()>1004);
 	}
 
 	TEST_METHOD(isNonSpecial)
 	{
 		IS_TRUE(Chromosome("1").isNonSpecial());
 		IS_TRUE(Chromosome("chr1").isNonSpecial());
-		IS_TRUE(Chromosome("chr01").isNonSpecial());
 		IS_TRUE(Chromosome("X").isNonSpecial());
 		IS_TRUE(Chromosome("CHRX").isNonSpecial());
 		IS_TRUE(Chromosome("Y").isNonSpecial());
@@ -72,6 +71,7 @@ private:
 		IS_FALSE(Chromosome("chrBLA2").isNonSpecial());
 		IS_FALSE(Chromosome("BLA").isNonSpecial());
 		IS_FALSE(Chromosome("BLA2").isNonSpecial());
+		IS_FALSE(Chromosome("chr01").isNonSpecial());
 	}
 
 	TEST_METHOD(isAutosome)

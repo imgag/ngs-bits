@@ -4,23 +4,15 @@
 #include "GUIHelper.h"
 #include <QToolTip>
 #include <QMessageBox>
+#include "Settings.h"
 
-GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx, const TranscriptList& transcripts)
+GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
-	, settings_()
-	, genome_idx_(genome_idx)
-	, transcripts_(transcripts)
-	, valid_chrs_()
-	, gene_to_trans_indices_()
-	, trans_to_index_()
-	, current_reg_()
+	, genome_idx_(Settings::string("reference_genome", false))
 {
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter_gene_panel);
-
-	//init panels
-	ui_->gene_panel->setDependencies(genome_idx_, transcripts_);
 
 	//init chromosome list (ordered correctly)
 	foreach(const Chromosome& chr, genome_idx_.chromosomes())
@@ -28,6 +20,20 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 		valid_chrs_ << chr.str();
 	}
 	ui_->chr_selector->addItems(valid_chrs_);
+
+	//connect signals and slots
+	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
+	connect(ui_->search, SIGNAL(editingFinished()), this, SLOT(search()));
+	connect(ui_->zoomin_btn, SIGNAL(clicked(bool)), this, SLOT(zoomIn()));
+	connect(ui_->zoomout_btn, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
+	connect(this, SIGNAL(regionChanged(BedLine)), this, SLOT(updateRegionWidgets(BedLine)));
+	connect(this, SIGNAL(regionChanged(BedLine)), ui_->gene_panel, SLOT(setRegion(BedLine)));
+	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
+}
+
+void GenomeVisualizationWidget::setTranscripts(const TranscriptList& transcripts)
+{
+	transcripts_ = transcripts;
 
 	//init gene and transcript list
 	for(int i=0; i<transcripts_.size(); ++i)
@@ -40,14 +46,8 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 		trans_to_index_[trans.name()] = i;
 	}
 
-	//connect signals and slots
-	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
-	connect(ui_->search, SIGNAL(editingFinished()), this, SLOT(search()));
-	connect(ui_->zoomin_btn, SIGNAL(clicked(bool)), this, SLOT(zoomIn()));
-	connect(ui_->zoomout_btn, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
-	connect(this, SIGNAL(regionChanged(BedLine)), this, SLOT(updateRegionWidgets(BedLine)));
-	connect(this, SIGNAL(regionChanged(BedLine)), ui_->gene_panel, SLOT(setRegion(BedLine)));
-	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
+	//init panels
+	ui_->gene_panel->setDependencies(genome_idx_, transcripts_);
 }
 
 void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int end)

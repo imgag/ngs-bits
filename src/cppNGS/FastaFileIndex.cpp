@@ -12,7 +12,7 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 	, index_name_(fasta_file + ".fai")
 	, file_(fasta_file)
 {
-	if (!isLocal())
+	if (!isLocal()) //TODO Marc: use VersatileFile OR remove URL support
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");

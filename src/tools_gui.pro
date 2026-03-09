@@ -19,3 +19,6 @@ GSvar.depends = cppNGSD cppVISUAL
 
 SUBDIRS += MVHub
 MVHub.depends = cppNGSD cppVISUAL
+
+SUBDIRS += GSviewer
+GSviewer.depends = cppNGSD cppVISUAL
