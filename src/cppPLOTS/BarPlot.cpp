@@ -35,10 +35,31 @@ void BarPlot::setValues(const QList<double>& values, const QList<QString>& label
 	}
 }
 
-
-void BarPlot::addColorLegend(QString color, QString desc)
+void BarPlot::setXLabel(const QString &x_label)
 {
-	color_legend_.insert(color, desc);
+	xlabel_ = x_label;
+}
+
+void BarPlot::setYLabel(const QString &y_label)
+{
+	ylabel_ = y_label;
+}
+
+void BarPlot::setXRange(double min, double max)
+{
+	xmin_ = min;
+	xmax_ = max;
+}
+
+void BarPlot::setYRange(double min, double max)
+{
+	ymin_ = min;
+	ymax_ = max;
+}
+
+void BarPlot::setLegendVisible(const bool &visible)
+{
+	is_legend_visible_ = visible;
 }
 
 void BarPlot::store(QString filename)
@@ -62,22 +83,28 @@ void BarPlot::store(QString filename)
 
 	for (int i = 0; i < bars_.size(); ++i)
 	{
-		QBarSet* set = new QBarSet("");
-		set->setColor(matplotlibColorToQColor(colors_[i]));
+		QBarSet* set = new QBarSet(labels_[i]);
+		set->setColor(QColor::fromString(colors_[i]));
 
-		for (int j = 0; j < bars_.size(); ++j)
+		if (is_legend_visible_)
 		{
-			if (j == i)
-				*set << bars_[i];
-			else
-				*set << 0.0;
+			*set << bars_[i];
+		}
+		else
+		{
+			for (int j = 0; j < bars_.size(); ++j)
+			{
+				if (j == i)
+					*set << bars_[i];
+				else
+					*set << 0.0;
+			}
 		}
 
 		series->append(set);
 	}
 
 	chart->addSeries(series);
-	chart->legend()->hide();
 
 	// X axis categories
 	QBarCategoryAxis* axisX = new QBarCategoryAxis();
@@ -88,9 +115,21 @@ void BarPlot::store(QString filename)
 		for (int i = 0; i < bars_.size(); ++i)
 			categories << QString::number(i);
 
-	axisX->append(categories);
-	if (!xlabel_.isEmpty()) axisX->setTitleText(xlabel_);
-	axisX->setLabelsAngle(-90);
+	// legend
+	chart->legend()->setVisible(is_legend_visible_);
+	chart->legend()->setAlignment(Qt::AlignRight);
+
+	if (is_legend_visible_)
+	{
+		axisX->append(QStringList(""));
+	}
+	else
+	{
+		axisX->append(categories);
+		if (!xlabel_.isEmpty()) axisX->setTitleText(xlabel_);
+		axisX->setLabelsAngle(-90);
+	}
+
 	chart->addAxis(axisX, Qt::AlignBottom);
 	series->attachAxis(axisX);
 
@@ -127,25 +166,6 @@ void BarPlot::store(QString filename)
 	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 
-	//delete chart;
-}
-
-QColor BarPlot::matplotlibColorToQColor(const QString &c)
-{
-	Log::error("Color = " + c);
-	if (c == "b") return QColor(0, 0, 255);
-	if (c == "k") return QColor(0, 0, 0);
-	if (c == "r") return QColor(255, 0, 0);
-	if (c == "g") return QColor(0, 128, 0);   // matplotlib green
-	if (c == "c") return QColor(0, 255, 255);
-	if (c == "y") return QColor(255, 255, 0);
-
-	// fallback: try Qt parsing (for hex colors etc.)
-	QColor qc(c);
-	if (qc.isValid()) return qc;
-
-	// last resort
-	Log::warn("Unknown color '" + c + "' — using black.");
-	return Qt::black;
+	delete chart;
 }
 

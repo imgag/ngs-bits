@@ -62,32 +62,28 @@ TEST_CLASS(PlotFiles_Test)
 
 	TEST_METHOD(bar_plot_exists)
 	{
-
 		QList<int> counts({5,2,10,15,4,7});
 		QList<QString> nuc_changes({"C>A","C>G","C>T","T>A","T>G","T>C"});
-		QList<QString> colors({"b","k","r","g","c","y"});
+		QList<QString> colors({"blue","black","red","green","cyan","yellow"});
 		int ymax = 0;
 		foreach(int c, counts)
 		{
-			if(c>ymax)	ymax = c;
+			if(c>ymax) ymax = c;
 		}
 
+		BarPlot bar_plot;
+		bar_plot.setXLabel("base change");
+		bar_plot.setYLabel("count");
 
-		BarPlot plot0b;
-		plot0b.setXLabel("base change");
-		plot0b.setYLabel("count");
-		QMap<QString,QString> color_map = QMap<QString,QString>{{"C>A","b"},{"C>G","k"},{"C>T","r"},{"T>A","g"},{"T>G","c"},{"T>C","y"}};
-		foreach(QString color, color_map)
-		{
-			plot0b.addColorLegend(color,color_map.key(color));
-		}
+		bar_plot.setLegendVisible(false);
 
+		bar_plot.setYRange(-ymax*0.02,ymax*1.2);
+		bar_plot.setXRange(-1.5,nuc_changes.count()+0.5);
+		bar_plot.setValues(counts, nuc_changes, colors);
+		QString bar_plot_name = Helper::tempFileName(".png");
+		bar_plot.store(bar_plot_name);
 
-		plot0b.setYRange(-ymax*0.02,ymax*1.2);
-		plot0b.setXRange(-1.5,nuc_changes.count()+0.5);
-		plot0b.setValues(counts, nuc_changes, colors);
-		QString plot0bname = Helper::tempFileName(".png");
-		plot0b.store(plot0bname);
-
+		IS_TRUE(QFile::exists(bar_plot_name));
+		IS_TRUE(QFile(bar_plot_name).size()>0);
 	}
 };

@@ -7,7 +7,7 @@
 #include <QApplication>
 
 ScatterPlot::ScatterPlot()
-	: yrange_set_(false), xrange_set_(false), yscale_log_(false), noxticks_(false)
+	: yrange_set_(false), xrange_set_(false), yscale_log_(false)//, noxticks_(false)
 {
 }
 
@@ -41,6 +41,11 @@ void ScatterPlot::setYRange(double ymin, double ymax)
 	ymin_ = ymin;
 	ymax_ = ymax;
 	yrange_set_ = true;
+}
+
+void ScatterPlot::setYLogScale(bool yscale_log)
+{
+	yscale_log_ = yscale_log;
 }
 
 void ScatterPlot::addColorLegend(QString color, QString desc)
