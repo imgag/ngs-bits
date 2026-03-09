@@ -58,24 +58,25 @@ void BarPlot::store(QString filename)
 		new QApplication(argc, argv);
 	}
 	QChart* chart = new QChart();
-	// chart->setTitle(title_);
-
 	QBarSeries* series = new QBarSeries();
 
-	// one QBarSet per bar for independent color
-
-	QBarSet* set = new QBarSet("");
-	set->setColor(Qt::blue);
 	for (int i = 0; i < bars_.size(); ++i)
 	{
-		*set << bars_[i];
+		QBarSet* set = new QBarSet("");
+		set->setColor(matplotlibColorToQColor(colors_[i]));
 
+		for (int j = 0; j < bars_.size(); ++j)
+		{
+			if (j == i)
+				*set << bars_[i];
+			else
+				*set << 0.0;
+		}
+
+		series->append(set);
 	}
 
-	series->append(set);
-
 	chart->addSeries(series);
-	// chart->legend()->setAlignment(Qt::AlignRight);
 	chart->legend()->hide();
 
 	// X axis categories
