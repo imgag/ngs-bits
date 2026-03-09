@@ -78,7 +78,9 @@ void TransferredVariantDialog::showDetailedView(int id)
 	for (auto [key, value] : transferred_variant_data_.value(id).asKeyValueRange())
 	{
 		if ((key == "id") || (key.endsWith("_id"))) continue;
-		layout->addRow(key + ":", new QLabel(value));
+		QLabel* value_label = new QLabel(value);
+		value_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+		layout->addRow(key + ":", value_label);
 	}
 	detail_view->setLayout(layout);
 

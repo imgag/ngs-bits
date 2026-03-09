@@ -8,9 +8,9 @@ Sample correlation:	1.0000 (vars:7/3)
 
 The following variants can be transferred:
 	#type	source				target
-	SNV/InDel	chr1-16957-16957-G-T	chr1-16957-16957-G-T
-	SNV/InDel	chr1-17407-17407-G-A	chr1-17407-17407-G-A
-	SNV/InDel	chr1-30411-30411-G-T	chr1-30411-30411-G-T
+	SNV/InDel	chr1:16957-16957 G>T	chr1:16957-16957 G>T
+	SNV/InDel	chr1:17407-17407 G>A	chr1:17407-17407 G>A
+	SNV/InDel	chr1:30411-30411 G>T	chr1:30411-30411 G>T
 	CNV	chr1:1179636-1179757	chr1:1179636-1179757 (not in NGSD yet)
 	CNV	chr1:1765207-1787457	chr1:1765207-1789457 (not in NGSD yet)
 	SV	DUP at chr1:1948974-1949086	DUP at chr1:1948974-1949086
@@ -22,9 +22,9 @@ The following variants can be transferred:
 
 The following variants cannot be transferred:
 	#type	source
-	SNV/InDel	chr1-451002-451002-C-A
-	SNV/InDel	chr1-873939-873939-C-T
-	SNV/InDel	chr1-948721-948721-A-C(excluded)
+	SNV/InDel	chr1:451002-451002 C>A
+	SNV/InDel	chr1:873939-873939 C>T
+	SNV/InDel	chr1:948721-948721 A>C(excluded)
 	CNV	chr1:1332003-1332826
 	CNV	chr1:3836474-3836712
 	CNV	chr1:9871166-9871297(excluded)

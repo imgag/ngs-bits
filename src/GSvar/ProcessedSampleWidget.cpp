@@ -263,7 +263,7 @@ void ProcessedSampleWidget::updateGUI()
 			int n_open_variants = db.getValue("SELECT COUNT(*) FROM `report_configuration_failed_transfer` WHERE `processed_sample_id`=:0 AND status='open'", false, ps_id_).toInt();
 			ui_->report_config->setText(db.reportConfigSummaryText(ps_id_, true) + "<BR> This report was transferred from another sample, but " + QString::number(n_non_transferable_variants)
 										+ " variants couldn't be found in target sample "
-										+ ((n_open_variants>0)?QString("<font color=red>(" + QString::number(n_non_transferable_variants) + " still in status 'open')</font>"):"")
+										+ ((n_open_variants>0)?QString("<font color=red>(" + QString::number(n_open_variants) + " still in status 'open')</font>"):"")
 										+ " <a href=\"" + ps_id_ + "\">show details...</a>");
 		}
 		else

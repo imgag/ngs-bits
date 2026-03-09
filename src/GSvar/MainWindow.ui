@@ -1508,14 +1508,6 @@
     <string>Show info about imported DBs</string>
    </property>
   </action>
-  <action name="actionShowNonTranferableVariants">
-   <property name="text">
-    <string>Show info about non-transferable variants from a previous report configuration</string>
-   </property>
-   <property name="toolTip">
-    <string>Show info about non-transferable variants from a previous report configuration</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

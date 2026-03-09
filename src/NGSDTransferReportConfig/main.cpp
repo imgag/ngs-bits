@@ -261,22 +261,22 @@ public:
 				rvc.variant_index = idx;
 				target_report_config->set(rvc);
 
-				report << "\tSNV/InDel\t" + pair.second.toString('-') + "\t" + db.variant(QString::number(ngsd_id)).toString('-');
+				report << "\tSNV/InDel\t" + pair.second.toString() + "\t" + db.variant(QString::number(ngsd_id)).toString();
 			}
 			else
 			{
 				//only warn if variant was excluded
 				if (!pair.first.showInReport())
 				{
-					qDebug() << "Warning: excuded report variant " + pair.second.toString(' ') + " not found in target sample!";
-					report_missed << "\tSNV/InDel\t" + pair.second.toString('-') + "(excluded)";
+					qDebug() << "Warning: excuded report variant " + pair.second.toString() + " not found in target sample!";
+					report_missed << "\tSNV/InDel\t" + pair.second.toString() + "(excluded)";
 					n_missed_excluded++;
 				}
 				else
 				{
-					qDebug() << "Error: report variant " + pair.second.toString(' ') + " not found in target sample!";
-					report_missed << "\tSNV/InDel\t" + pair.second.toString('-');
-					missed_variants.append(reportVariant2Text(db, pair.first.id, pair.first.variant_type, pair.second.toString('-'), source_ps_name));
+					qDebug() << "Error: report variant " + pair.second.toString() + " not found in target sample!";
+					report_missed << "\tSNV/InDel\t" + pair.second.toString();
+					missed_variants.append(reportVariant2Text(db, pair.first.id, pair.first.variant_type, pair.second.toString(), source_ps_name));
 					n_missed++;
 					complete_transfer_possible = false;
 				}
