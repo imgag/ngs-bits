@@ -26,6 +26,7 @@
 #include "CircosPlotWidget.h"
 #include "ClientHelper.h"
 #include "FileLocationProviderRemote.h"
+#include "TransferredVariantDialog.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: TabBaseClass(parent)
@@ -61,6 +62,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->analysis_info_btn, SIGNAL(clicked(bool)), this, SLOT(showAnalysisInfo()));
 	connect(ui_->circos_btn, SIGNAL(clicked(bool)), this, SLOT(showCircosPlot()));
 	connect(ui_->genlab_import_btn, SIGNAL(clicked(bool)), this, SLOT(genLabImportDialog()));
+	connect(ui_->report_config, SIGNAL(linkActivated(QString)), this, SLOT(openTransferredVariantDialog(QString)));
 
 	ui_->qcml_btn->setEnabled(ClientHelper::isClientServerMode());
 	ui_->genlab_import_btn->setEnabled(GenLabDB::isAvailable());
@@ -254,7 +256,22 @@ void ProcessedSampleWidget::updateGUI()
 		ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
 		ui_->outcome->setText(diag.outcome);
 		GSvarHelper::limitLines(ui_->comments_diag, diag.comments);
-		ui_->report_config->setText(db.reportConfigSummaryText(ps_id_, true));
+		int n_non_transferable_variants = db.getValue("SELECT COUNT(*) FROM `report_configuration_failed_transfer` WHERE `processed_sample_id`=:0", false, ps_id_).toInt();
+		if (n_non_transferable_variants > 0)
+		{
+			//show TransferredVariantDialog
+			int n_open_variants = db.getValue("SELECT COUNT(*) FROM `report_configuration_failed_transfer` WHERE `processed_sample_id`=:0 AND status='open'", false, ps_id_).toInt();
+			ui_->report_config->setText(db.reportConfigSummaryText(ps_id_, true) + "<BR> This report was transferred from another sample, but " + QString::number(n_non_transferable_variants)
+										+ " variants couldn't be found in target sample "
+										+ ((n_open_variants>0)?QString("<font color=red>(" + QString::number(n_non_transferable_variants) + " still in status 'open')</font>"):"")
+										+ " <a href=\"" + ps_id_ + "\">show details...</a>");
+		}
+		else
+		{
+			ui_->report_config->setText(db.reportConfigSummaryText(ps_id_, true));
+		}
+
+
 
 		//#### kasp status ####
 		try
@@ -803,6 +820,15 @@ void ProcessedSampleWidget::openProjectTab(QString project_name)
 void ProcessedSampleWidget::openProcessingSystemTab(QString system_short_name)
 {
 	GlobalServiceProvider::openProcessingSystemTab(system_short_name);
+}
+
+void ProcessedSampleWidget::openTransferredVariantDialog(QString ps_id)
+{
+	TransferredVariantDialog* widget = new TransferredVariantDialog(ps_id.toInt(), this);
+
+	auto dlg = GUIHelper::createDialog(widget, "Non-transferable variants of " + NGSD().processedSampleName(ps_id));
+	dlg->resize(800, dlg->height());
+	GlobalServiceProvider::addModelessDialog(dlg);
 }
 
 void ProcessedSampleWidget::openGeneExpressionWidget()

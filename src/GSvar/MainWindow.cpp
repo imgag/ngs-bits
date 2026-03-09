@@ -25,6 +25,7 @@
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
 #include "HttpHandler.h"
+#include "TransferredVariantDialog.h"
 #include "ValidationDialog.h"
 #include "ClassificationDialog.h"
 #include "BasicStatistics.h"
@@ -3105,13 +3106,6 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		QString ps_id = db.processedSampleId(ps, false);
 		if (ps_id=="") continue;
 
-		//check scheduled for resequencing
-		QString resequencing = db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toString();
-		if (resequencing=="1")
-		{
-			issues << qMakePair(Log::LOG_WARNING, "Processed sample '" + ps + "' is scheduled for resequencing!");
-		}
-
 		//check quality
 		QString quality = db.getValue("SELECT quality FROM processed_sample WHERE id=" + ps_id).toString();
 		if (quality=="bad")
@@ -3164,6 +3158,12 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		if (db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toBool())
 		{
 			issues << qMakePair(Log::LOG_WARNING, "The processed sample " + ps + " is scheduled for resequencing!");
+		}
+
+		//TODO: check for non-tansferable variants:
+		if (db.getValue("SELECT COUNT(id) FROM report_configuration_failed_transfer WHERE status='open' AND id=" + ps_id).toBool())
+		{
+			issues << qMakePair(Log::LOG_WARNING, "The processed sample " + ps + " contains non-transferable variants from a previous report configuration with status 'open'!");
 		}
 	}
 }
@@ -6135,6 +6135,17 @@ void MainWindow::on_actionClearLogFile_triggered()
 void MainWindow::on_actionOpenGSvarDataFolder_triggered()
 {
 	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
+}
+
+void MainWindow::on_actionShowNonTranferableVariants_triggered()
+{
+	if (!LoginManager::active()) return;
+	if(filename_ == "") return;
+	TransferredVariantDialog* widget = new TransferredVariantDialog(NGSD().processedSampleId(filename_).toInt(), this);
+
+	auto dlg = GUIHelper::createDialog(widget, "Non-transferable variants of " + variants_.analysisName());
+	addModelessDialog(dlg);
+
 }
 
 void MainWindow::editVariantClassification(VariantList& variants, int index)
