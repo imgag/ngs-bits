@@ -20,12 +20,10 @@ jobs:
     - name: Update Homebrew
       run: brew update
     - name: Setup other dependencies
-      run: brew install lzlib libxml2 mariadb-connector-c
+      run: brew install lzlib libxml2 mariadb-connector-c aqtinstall
     # Install Qt 6.8.3 via aqt with explicit mirror
     - name: Install Qt 6.8.3 core
-      run: |
-        source pyenv/bin/activate
-        aqt install-qt mac desktop 6.8.3 clang_64 -O $HOME/Qt
+      run: aqt install-qt mac desktop 6.8.3 clang_64 -O $HOME/Qt
     - name: Add Qt to PATH
       run: echo "$HOME/Qt/6.8.3/macos/bin" >> $GITHUB_PATH
     # Build Qt Charts from source
