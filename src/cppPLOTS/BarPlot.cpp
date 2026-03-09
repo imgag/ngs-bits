@@ -166,6 +166,6 @@ void BarPlot::store(QString filename)
 	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 
-	delete chart;
+	// delete chart;
 }
 
