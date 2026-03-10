@@ -24,7 +24,7 @@ For each action there is a predefined JSON object format:
     __returns__ JSON object 
     ```
     {
-        "result": text output about succcess or failure. Displayed in GSvar analysis job page.,
+        "result": log output of the attempt to start the job,
         "qe_job_id": queuing engine job id (max 10 characters),
         "exit_code": numeric job exit code (0 means job was started. Everything else means there was an error while starting the job)
     }
@@ -43,10 +43,9 @@ For each action there is a predefined JSON object format:
     __returns__ JSON object 
     ```
     {
-        "result": some text on the job status,
-        "status": must be one of the enum 'status' in the NGSD table 'analysis_job_history',
-        "queue", "queue identifier where the job is running in (can be empty if not running yet)",
-        "exit_code": numeric job exit code (0 means job is waiting to run, running of successfully finished. Everything else means job failed)
+        "result": log output of the job,
+        "status": must be one of 'started' (job is started and still running), 'finished' (job is successfully finished) or 'error' (job failed),
+        "queue", "queue identifier where the job is running or was running (can be empty if not running yet)",
     }
     ```
     
@@ -63,8 +62,8 @@ For each action there is a predefined JSON object format:
     __returns__ JSON object 
     ```
     {
-        "result": "some text on success or error message on failure",
-        "exit_code": numeric job exit code (0 means the job was scheduled for deletion or deleted. Everything else means failure)
+        "result":  log output of the attempt to delete the job,
+        "exit_code": numeric job exit code (0 means the job was deleted. Everything else means there was an error why trying to delete the job)
     }
     ```
 

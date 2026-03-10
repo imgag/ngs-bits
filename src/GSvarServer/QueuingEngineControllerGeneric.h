@@ -2,7 +2,6 @@
 #define QUEUINGENGINECONTROLLERGENERIC_H
 
 #include "QueuingEngineController.h"
-#include "QueuingEngineApiHelper.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -21,14 +20,7 @@ protected:
 	void deleteJob(NGSD &db, const AnalysisJob &job, int job_id) const override;
 
 	void checkReplyIsValid(QJsonDocument &reply_doc, int job_id, QByteArray action) const;
-
 	QByteArrayList getResults(QJsonDocument &reply_doc) const;
-	QString getJobId(QJsonDocument &reply_doc, bool &ok) const;
-	QString getStatus(QJsonDocument &reply_doc, bool &ok) const;
-	int getCommandExitCode(QJsonDocument &reply_doc) const;
-	int getEngineExitCode(QJsonDocument &reply_doc, bool &ok) const;
-	QString getQueue(QJsonDocument &reply_doc, bool &ok) const;
-
 
 private:
 	QNetworkProxy proxy_;
