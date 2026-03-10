@@ -70,4 +70,8 @@ private:
 //- zooming with the mouse
 //- scrolling by dragging
 //- base class for panels
-//  - panel that shows reads from BAM/CRAM
+//  - panel that shows chromosomal bands (including N regions, telomer, centromer, PAR)
+//  - panel that shows reads (BAM/CRAM file)
+//  - panel that shows CNV data from ClinCNV
+//  - panel that shows small variants (VCF file)
+//  - panel that shows structural variants (BEDPE file)
