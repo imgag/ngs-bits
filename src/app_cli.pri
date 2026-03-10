@@ -21,6 +21,10 @@ LIBS += -L$$PWD/../bin -lcppCORE
 INCLUDEPATH += $$PWD/cppXML
 LIBS += -L$$PWD/../bin -lcppXML
 
+#include cppPLOTS library
+INCLUDEPATH += $$PWD/cppPLOTS
+LIBS += -L$$PWD/../bin -lcppPLOTS
+
 #include cppNGS library
 INCLUDEPATH += $$PWD/cppNGS
 LIBS += -L$$PWD/../bin -lcppNGS

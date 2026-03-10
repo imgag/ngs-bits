@@ -11,10 +11,12 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 
 SOURCES += \
     BarPlot.cpp \
+    Histogram.cpp \
     LinePlot.cpp \
     ScatterPlot.cpp
 
 HEADERS += LinePlot.h \
     BarPlot.h \
+    Histogram.h \
     ScatterPlot.h
 	
