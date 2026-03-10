@@ -69,8 +69,8 @@ QHash<QByteArray, QByteArray> parseGffAttributes(const QByteArray& to_split)
         int split_index = part.indexOf('=');
         if (split_index==-1) continue;
 
-        QByteArray key = part.left(split_index).trimmed().toByteArray();
-        QByteArray value = part.mid(split_index+1).trimmed().toByteArray();
+		QByteArray key = part.first(split_index).trimmed().toByteArray();
+		QByteArray value = part.sliced(split_index+1).trimmed().toByteArray();
         output[key] = value;
     }
 
@@ -95,8 +95,8 @@ GeneData parseGeneLine(QByteArrayView to_split)
         int split_index = part.indexOf('=');
         if (split_index==-1) continue;
 
-        QByteArrayView key = part.left(split_index).trimmed();
-        QByteArrayView value = part.mid(split_index+1).trimmed();
+		QByteArrayView key = part.first(split_index).trimmed();
+		QByteArrayView value = part.sliced(split_index+1).trimmed();
         if (key=="Name")
         {
             output.gene_symbol = value.toByteArray();
@@ -115,7 +115,7 @@ GeneData parseGeneLine(QByteArrayView to_split)
                 int end = value.indexOf("]", start);
                 if (end!=-1)
                 {
-                    output.hgnc_id = value.mid(start, end-start).trimmed().toByteArray();
+					output.hgnc_id = value.sliced(start, end-start).trimmed().toByteArray();
                 }
             }
         }
@@ -157,12 +157,12 @@ TranscriptData parseTranscriptLine(QByteArrayView to_split)
         int split_index = part.indexOf('=');
         if (split_index==-1) continue;
 
-        QByteArrayView key = part.left(split_index).trimmed();
-        QByteArrayView value = part.mid(split_index+1).trimmed();
+		QByteArrayView key = part.first(split_index).trimmed();
+		QByteArrayView value = part.sliced(split_index+1).trimmed();
         if (key=="Parent")
         {
             int sep = value.indexOf(':');
-            output.gene_id = value.mid(sep+1).toByteArray();
+			output.gene_id = value.sliced(sep+1).toByteArray();
         }
         else if (key=="transcript_id")
         {
