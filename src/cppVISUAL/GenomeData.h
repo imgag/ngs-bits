@@ -10,7 +10,9 @@
 class CPPVISUALSHARED_EXPORT GenomeData
 {
 public:
+	//default constructor (loads only genome index)
     GenomeData();
+	//sets transcripts
     void setTranscripts(const TranscriptList& transcipts);
 
     //Returns the genome index

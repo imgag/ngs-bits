@@ -54,7 +54,6 @@ private:
 		I_EQUAL(Chromosome("chrBLA2").num(),base+1);
 		I_EQUAL(Chromosome("BLA").num(),base);
 		I_EQUAL(Chromosome("BLA2").num(),base+1);
-		qDebug() << Chromosome("chr01").num(); //TODO Marc
 		IS_TRUE(Chromosome("chr01").num()>=1004);
 	}
 

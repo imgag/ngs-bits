@@ -69,8 +69,10 @@ private:
 //TODO:
 //- zooming with the mouse
 //- scrolling by dragging
+//- gene panel: show AAs when enough space available (~600bp in IGV)
 //- base class for panels
-//  - panel that shows chromosomal bands (including N regions, telomer, centromer, PAR)
+//  - panel that shows BED file
+//  - panel that shows chromosomal bands (including N regions, telomer, centromer and PAR)
 //  - panel that shows reads (BAM/CRAM file)
 //  - panel that shows CNV data from ClinCNV
 //  - panel that shows small variants (VCF file)
