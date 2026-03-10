@@ -385,7 +385,7 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
             int enst_start = parts[8].indexOf("Parent=transcript:")+18;
             int enst_end = parts[8].indexOf(";", enst_start);
             if (enst_end==-1) enst_end=parts[8].size();
-            QByteArray parent_id = parts[8].mid(enst_start, enst_end-enst_start).toByteArray();
+			QByteArray parent_id = parts[8].sliced(enst_start, enst_end-enst_start).toByteArray();
 
             //skip exons of skipped transcripts
             if (!transcripts.contains(parent_id)) continue;
@@ -407,7 +407,7 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
             }
 
             //add coding exon
-            t_data.exons.append(BedLine(chr, start, end));
+			t_data.exons.append(BedLine(chr, start, end));
         }
     }
     return output;
