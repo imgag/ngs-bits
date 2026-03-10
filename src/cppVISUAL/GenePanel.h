@@ -13,7 +13,7 @@ struct CPPVISUALSHARED_EXPORT GenePanelSettings
 {
 	bool strand_forward = true;
 	bool show_translation = false;
-	bool show_only_ensembl = true;
+    bool show_only_primary = true;
 	int label_width  = 165;
 };
 

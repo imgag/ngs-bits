@@ -17,8 +17,6 @@ struct CPPVISUALSHARED_EXPORT GenomeVisualizationSettings
 	int transcript_padding = 2000;
 };
 
-//TODO Marc: make struct with genome, transcript data and all indices that can be used in all panels
-
 //Widget for genome visaulization, similar to IGV
 class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
 	: public QWidget
@@ -26,18 +24,19 @@ class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
 	Q_OBJECT
 
 public:
-	//Defaukt constructor. Make sure to call setTranscrips before doing anything else!
+    //Default constructor. Make sure to call setGenomeData before doing anything else!
 	GenomeVisualizationWidget(QWidget* parent);
 
     //Sets genome data
     void setGenomeData(QSharedPointer<GenomeData> data);
 
-	//Sets visualized region (1-based)
-	void setRegion(const Chromosome& chr, int start, int end);
+public slots:
+    //Sets visualized region (1-based)
+    void setRegion(const Chromosome& chr, int start, int end);
+    //Sets the region of the whole chromosome
+    void setChromosomeRegion(QString chromsome);
 
 protected slots:
-	//Sets the region of the whole chromosome.
-	void setChromosomeRegion(QString chromsome);
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)
 	void search();
 	//Zoom in
@@ -46,7 +45,7 @@ protected slots:
 	void zoomOut();
 	//Update widgets that show the current region
 	void updateRegionWidgets(const BedLine& reg);
-	//
+    //Uodate the label that shows the genomic coordinate under the cursor
 	void updateCoordinateLabel(QString text);
 
 signals:
@@ -65,3 +64,10 @@ private:
 };
 
 #endif // GENOMEVISUALIZATIONWIDGET_H
+
+
+//TODO:
+//- zooming with the mouse
+//- scrolling by dragging
+//- base class for panels
+//  - panel that shows reads from BAM/CRAM

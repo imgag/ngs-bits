@@ -30,7 +30,7 @@ void GenomeVisualizationWidget::setGenomeData(QSharedPointer<GenomeData> genome_
     //init chromosome list (ordered correctly)
     ui_->chr_selector->blockSignals(true);
     ui_->chr_selector->clear();
-    foreach(const Chromosome& chr, genome_data_->genome_index.chromosomes())
+    foreach(const Chromosome& chr, genome_data_->genome().chromosomes())
     {
         valid_chrs_ << chr.str();
     }
@@ -38,9 +38,9 @@ void GenomeVisualizationWidget::setGenomeData(QSharedPointer<GenomeData> genome_
     ui_->chr_selector->blockSignals(false);
 
 	//init gene and transcript list
-    for(int i=0; i<genome_data_->transcripts.size(); ++i)
+    for(int i=0; i<genome_data_->transcripts().size(); ++i)
 	{
-        const Transcript& trans = genome_data_->transcripts[i];
+        const Transcript& trans = genome_data_->transcripts()[i];
 
 		if (trans.source()!=Transcript::ENSEMBL) continue;
 
@@ -75,9 +75,9 @@ void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int 
 		start = 1;
 		end = start + size - 1;
 	}
-    if (end>genome_data_->genome_index.lengthOf(chr))
+    if (end>genome_data_->genome().lengthOf(chr))
 	{
-        end = genome_data_->genome_index.lengthOf(chr);
+        end = genome_data_->genome().lengthOf(chr);
 		start = end - size + 1;
 		if (start<1) start = 1; //if size is bigger than chromosome, this can happen
 	}
@@ -98,7 +98,7 @@ void GenomeVisualizationWidget::setChromosomeRegion(QString chr)
 		QMessageBox::warning(this, __FUNCTION__, "Could not convert chromosome string '" + chr + "' to valid chromosome!");
 	}
 
-    setRegion(chr, 1, genome_data_->genome_index.lengthOf(c));
+    setRegion(chr, 1, genome_data_->genome().lengthOf(c));
 }
 
 void GenomeVisualizationWidget::search()
@@ -126,7 +126,7 @@ void GenomeVisualizationWidget::search()
 		BedFile roi;
 		foreach(int index, gene_to_trans_indices_[text.toUtf8()])
 		{
-            const Transcript& trans = genome_data_->transcripts[index];
+            const Transcript& trans = genome_data_->transcripts()[index];
 			roi.append(BedLine(trans.chr(), trans.start(), trans.end()));
 		}
 		roi.extend(settings_.transcript_padding);
@@ -144,7 +144,7 @@ void GenomeVisualizationWidget::search()
 	if (trans_to_index_.contains(text.toUtf8()))
 	{
 		int index = trans_to_index_[text.toUtf8()];
-        const Transcript& trans = genome_data_->transcripts[index];
+        const Transcript& trans = genome_data_->transcripts()[index];
 		setRegion(trans.chr(), trans.start()-settings_.transcript_padding, trans.end()+settings_.transcript_padding);
 		return;
 	}

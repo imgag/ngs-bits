@@ -4,6 +4,7 @@ QT       += gui widgets network sql xml printsupport charts svg
 QTPLUGIN += QSQLMYSQL
 
 TARGET = GSviewer
+RC_FILE	 = icon.rc
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

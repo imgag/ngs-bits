@@ -195,7 +195,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>coordinate:</string>
+        <string>mouse oordinate:</string>
        </property>
       </widget>
      </item>

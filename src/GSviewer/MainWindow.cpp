@@ -22,18 +22,12 @@ MainWindow::MainWindow(QWidget *parent)
             gff_settings.skip_not_hgnc = false;
             gff_settings.print_to_stdout = true;
             GffData data = GffData::load(Settings::string("ensembl_gff", false), gff_settings);
-            genome_data_->transcripts = data.transcripts;
+            genome_data_->setTranscripts(data.transcripts);
         }
         qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
 
-        //sort and index transcripts
-        timer.restart();
-        genome_data_->transcripts.sortByPosition();
-        genome_data_->transcript_index.createIndex();
-        qDebug() << "Sorting and indexing transcripts took: " << Helper::elapsedTime(timer);
-
         ui_.gvw->setGenomeData(genome_data_);
-        ui_.gvw->setRegion("chr17", 43044295, 43125364);
+        ui_.gvw->setRegion("chr17", 43042292, 43172245);
     }
 	catch (Exception e)
 	{
@@ -41,8 +35,3 @@ MainWindow::MainWindow(QWidget *parent)
         exit(-1);
 	}
 }
-
-//TODO:
-//- no init region
-//- icon
-

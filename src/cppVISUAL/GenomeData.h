@@ -4,23 +4,37 @@
 #include "cppVISUAL_global.h"
 #include "Transcript.h"
 #include "FastaFileIndex.h"
-#include "Settings.h"
 #include "ChromosomalIndex.h"
 
-//Genome data for visualization
-struct CPPVISUALSHARED_EXPORT GenomeData
+//general genome data needed for visualization
+class CPPVISUALSHARED_EXPORT GenomeData
 {
-    GenomeData()
-        : genome_index(Settings::string("reference_genome", false))
-        , transcripts()
-        , transcript_index(transcripts)
+public:
+    GenomeData();
+    void setTranscripts(const TranscriptList& transcipts);
+
+    //Returns the genome index
+    const FastaFileIndex& genome() const
     {
+        return genome_index_;
     }
 
-    FastaFileIndex genome_index;
+    //Return transcripts
+    const TranscriptList& transcripts() const
+    {
+        return transcripts_;
+    }
 
-    TranscriptList transcripts;
-    ChromosomalIndex<TranscriptList> transcript_index;
+    //Return index of transcripts for fast access by chromosomal position
+    const ChromosomalIndex<TranscriptList>& transcriptsIndex() const
+    {
+        return transcripts_index_;
+    }
+
+protected:
+    FastaFileIndex genome_index_;
+    TranscriptList transcripts_;
+    ChromosomalIndex<TranscriptList> transcripts_index_;
 };
 
 #endif // GENOMEDATA_H
