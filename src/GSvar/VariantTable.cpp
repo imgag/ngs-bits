@@ -7,6 +7,7 @@
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
 #include "GenomeVisualizationWidget.h"
+#include "SharedData.h"
 #include "ColumnConfig.h"
 #include <QBitArray>
 #include <QApplication>
@@ -25,7 +26,7 @@ VariantTable::VariantTable(QWidget* parent)
 	//make sure the selection is visible when the table looses focus
 	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
 	QString bg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::Highlight));
-	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg).arg(bg));
+	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg, bg));
 	setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 }
@@ -254,11 +255,9 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
-        QSharedPointer<GenomeData> genome_data(new GenomeData());
-        genome_data->setTranscripts(NGSD().transcripts());
 		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
-        widget->setGenomeData(genome_data);
-		widget->setRegion(variant.chr(), variant.start(), variant.end());
+		SharedData::setTranscripts(NGSD().transcripts());
+		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
         auto dlg = GUIHelper::createDialog(widget, "GSviewer");
 		dlg->exec();
 	}

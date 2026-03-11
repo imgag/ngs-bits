@@ -1,21 +1,10 @@
 #ifndef GENEPANEL_H
 #define GENEPANEL_H
 
-#include "GenomeData.h"
 #include "cppVISUAL_global.h"
 #include <QWidget>
 #include <QMouseEvent>
-#include "BedFile.h"
 #include "Transcript.h"
-
-//Settings struct for gene panel
-struct CPPVISUALSHARED_EXPORT GenePanelSettings
-{
-	bool strand_forward = true;
-	bool show_translation = false;
-    bool show_only_primary = true;
-	int label_width  = 165;
-};
 
 //Panel that shows gene transcripts and nucleotides
 class CPPVISUALSHARED_EXPORT GenePanel
@@ -26,23 +15,22 @@ class CPPVISUALSHARED_EXPORT GenePanel
 public:
 	GenePanel(QWidget* parent);
 
-public slots:
-    void setGenomeData(QSharedPointer<GenomeData> genome_data);
-	void setRegion(const BedLine& region);
-
 signals:
 	void mouseCoordinate(QString);
 
 private slots:
 	void contextMenu(QPoint pos);
+	//Updates the region displayed by this widget
+	void updateRegion();
 
 private:
-	//general members
-	GenePanelSettings settings_;
-    QSharedPointer<GenomeData> genome_data_;
-	BedLine reg_;
+	//strand for which the bases are shown
+	bool strand_forward_ = true;
+	//show all three posible codon translations
+	bool show_translation_ = false;
 	//members needed for paint event - updated when resizing occurs
 	double pixels_per_base_;
+	//with of a character
 	QSize char_size_;
 	//transcript positions
 	struct TranscriptPosition
