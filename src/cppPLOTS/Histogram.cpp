@@ -265,44 +265,127 @@ void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histog
 		if(maxValue < h.maxValue())	maxValue = h.maxValue();
 	}
 
-	//create python script
-	QStringList script;
-	script.append("import matplotlib as mpl");
-	script.append("mpl.use('Agg')");
-	script.append("import matplotlib.pyplot as plt");
-	script.append("plt.figure(figsize=(10, 4), dpi=100)");
-	if(ylabel!="") script.append("plt.ylabel('" + ylabel + "')");
-	if(xlabel!="") script.append("plt.xlabel('" + xlabel + "')");
 
-	script.append("plt.tick_params(axis='x', which='both', bottom='off', top='off')");
-	script.append("plt.tick_params(axis='y', which='both', left='off', right='off')");
-	script.append("plt.ylim(" + QString::number(minValue) + "," + QString::number(maxValue + 0.1*maxValue) + ")");
-	script.append("plt.xlim(" + QString::number(min) + "," + QString::number(max) + ")");
+	QChart* chart = new QChart();
+	chart->legend()->setVisible(true);
+	chart->legend()->setAlignment(Qt::AlignRight);
 
-	//data
-	foreach(Histogram h, histograms)
+	if (!xlabel.isEmpty())
+		chart->setTitle(xlabel);
+
+	QBarSeries* series = new QBarSeries();
+
+	QStringList categories;
+
+	// assume all histograms share the same bins
+	if (!histograms.isEmpty())
 	{
-		QString yvaluestring = "";
-		QString xvaluestring = QString::number(h.min());
-		QVector<double> x = h.xCoords();
-		QVector<double> y = h.yCoords();
-		for (int i=0; i<x.size(); ++i)
-		{
-			for(int j=0; j<y[i];++j)
-			{
-				yvaluestring += "," + QString::number(x[i]);
-			}
-			xvaluestring += "," + QString::number(x[i]+0.5*h.binSize());
-		}
-		xvaluestring = "[" + xvaluestring + "]";	//remove first ','
-		yvaluestring = "[" + yvaluestring.remove(0,1) + "]";
-
-		script.append("plt.hist(" + yvaluestring + ", bins=" + xvaluestring + ", rwidth = 0.8, " + (h.color_.size()>0 ? "color=" + h.color_ + ", " : "") + (BasicStatistics::isValidFloat(h.alpha_) ? "alpha=" + QString::number(h.alpha_) + "," : "") + " edgecolor='none', label = '" + h.label_ + "')");
+		QVector<double> x = histograms.first().xCoords();
+		for (double v : x)
+			categories << QString::number(v);
 	}
-	script.append("plt.legend(loc='upper right',fontsize=10)");
 
-	//file handling
-	script.append("plt.savefig('" + filename.replace("\\", "/") + "', bbox_inches=\'tight\', dpi=100)");
+	// create one bar set per histogram
+	for (Histogram& h : histograms)
+	{
+		QBarSet* set = new QBarSet(h.label_);
+
+		QVector<double> y = h.yCoords();
+		for (double v : y)
+			*set << v;
+
+		// color
+		if (!h.color_.isEmpty())
+			set->setColor(QColor(h.color_));
+
+		// alpha
+		if (BasicStatistics::isValidFloat(h.alpha_))
+		{
+			QColor c = set->color();
+			c.setAlphaF(h.alpha_);
+			set->setColor(c);
+		}
+
+		series->append(set);
+	}
+
+	chart->addSeries(series);
+
+	// X axis
+	QBarCategoryAxis* axisX = new QBarCategoryAxis();
+	axisX->append(categories);
+	if (!xlabel.isEmpty())
+		axisX->setTitleText(xlabel);
+
+	// Y axis
+	QValueAxis* axisY = new QValueAxis();
+	axisY->setRange(minValue, maxValue + 0.1 * maxValue);
+	if (!ylabel.isEmpty())
+		axisY->setTitleText(ylabel);
+
+	chart->addAxis(axisX, Qt::AlignBottom);
+	chart->addAxis(axisY, Qt::AlignLeft);
+
+	series->attachAxis(axisX);
+	series->attachAxis(axisY);
+
+
+	// render
+	QChartView chartView(chart);
+	chartView.resize(1000, 400); // 10x4 inches @ 100 dpi
+
+	chartView.setRenderHint(QPainter::Antialiasing, true);
+	chartView.setRenderHint(QPainter::TextAntialiasing, true);
+	chartView.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+	// chartView.show();
+	QApplication::processEvents();
+
+	QPixmap pixmap = chartView.grab();
+
+
+	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
+		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
+
+
+	//create python script
+	// QStringList script;
+	// script.append("import matplotlib as mpl");
+	// script.append("mpl.use('Agg')");
+	// script.append("import matplotlib.pyplot as plt");
+	// script.append("plt.figure(figsize=(10, 4), dpi=100)");
+	// if(ylabel!="") script.append("plt.ylabel('" + ylabel + "')");
+	// if(xlabel!="") script.append("plt.xlabel('" + xlabel + "')");
+
+	// script.append("plt.tick_params(axis='x', which='both', bottom='off', top='off')");
+	// script.append("plt.tick_params(axis='y', which='both', left='off', right='off')");
+	// script.append("plt.ylim(" + QString::number(minValue) + "," + QString::number(maxValue + 0.1*maxValue) + ")");
+	// script.append("plt.xlim(" + QString::number(min) + "," + QString::number(max) + ")");
+
+	// //data
+	// foreach(Histogram h, histograms)
+	// {
+	// 	QString yvaluestring = "";
+	// 	QString xvaluestring = QString::number(h.min());
+	// 	QVector<double> x = h.xCoords();
+	// 	QVector<double> y = h.yCoords();
+	// 	for (int i=0; i<x.size(); ++i)
+	// 	{
+	// 		for(int j=0; j<y[i];++j)
+	// 		{
+	// 			yvaluestring += "," + QString::number(x[i]);
+	// 		}
+	// 		xvaluestring += "," + QString::number(x[i]+0.5*h.binSize());
+	// 	}
+	// 	xvaluestring = "[" + xvaluestring + "]";	//remove first ','
+	// 	yvaluestring = "[" + yvaluestring.remove(0,1) + "]";
+
+	// 	script.append("plt.hist(" + yvaluestring + ", bins=" + xvaluestring + ", rwidth = 0.8, " + (h.color_.size()>0 ? "color=" + h.color_ + ", " : "") + (BasicStatistics::isValidFloat(h.alpha_) ? "alpha=" + QString::number(h.alpha_) + "," : "") + " edgecolor='none', label = '" + h.label_ + "')");
+	// }
+	// script.append("plt.legend(loc='upper right',fontsize=10)");
+
+	// //file handling
+	// script.append("plt.savefig('" + filename.replace("\\", "/") + "', bbox_inches=\'tight\', dpi=100)");
 
 	//check if python is installed
 	// QString python_exe = Settings::path("python_exe", true);
