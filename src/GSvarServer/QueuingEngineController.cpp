@@ -355,7 +355,7 @@ void QueuingEngineController::updateAnalysisStatus(NGSD &db, const AnalysisJob &
 		//load stdout/stderr output
 		QByteArrayList stdout_stderr;
 		QString engine = getEngineName().toLower();
-		QString base = PipelineSettings::dataFolder() + "/" + engine + "/megSAP_" + engine + "_job_" + QString::number(job_id);
+		QString base = PipelineSettings::dataFolder() + "/analysis_jobs_logs/" + QString::number(job_id);
 		if (QFile::exists(base+".out"))
 		{
 			foreach(QString line, Helper::loadTextFile(base+".out"))

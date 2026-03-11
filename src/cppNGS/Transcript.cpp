@@ -8,6 +8,9 @@ Transcript::Transcript()
 	, start_(-1)
 	, end_(-1)
 	, is_preferred_transcript_(false)
+	, is_gencode_basic_(false)
+	, is_gencode_primary_(false)
+	, is_ensembl_canonical_(false)
 	, is_mane_select_(false)
 	, is_mane_plus_clinical_(false)
 	, coding_start_(0)
@@ -206,9 +209,8 @@ QByteArray Transcript::strandToString(Transcript::STRAND strand)
 	THROW(ProgrammingException, "Unhandled transcript strand enum value '" + QString::number(strand) + "!");
 }
 
-Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
+Transcript::STRAND Transcript::stringToStrand(const QByteArray& strand)
 {
-	strand = strand.toUpper();
 	if (strand=="+")
 	{
 		return PLUS;
@@ -273,7 +275,7 @@ QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)
 	THROW(ProgrammingException, "Unhandled transcript biotype enum value '" + QString::number(biotype) + "!");
 }
 
-Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
+Transcript::BIOTYPE Transcript::stringToBiotype(const QByteArray& biotype_orig)
 {
 	QByteArray biotype = biotype_orig.toUpper();
 	biotype.replace(' ', '_');

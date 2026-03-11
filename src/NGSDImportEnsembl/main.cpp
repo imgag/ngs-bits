@@ -4,7 +4,7 @@
 #include "Helper.h"
 #include "NGSHelper.h"
 #include "Transcript.h"
-
+#include "GffData.h"
 #include <QFileInfo>
 
 class ConcreteTool
@@ -343,7 +343,7 @@ public:
 		gff_settings.print_to_stdout = true;
 		gff_settings.include_all = true;
 		gff_settings.skip_not_hgnc = false;
-		GffData data = NGSHelper::loadGffFile(getInfile("in"), gff_settings);
+        GffData data = GffData::load(getInfile("in"), gff_settings);
         QSet<QByteArray> ccds_transcripts_added;
 		QHash<int, QSet<QByteArray>> gene2ensg;
 		foreach(const Transcript& t, data.transcripts)

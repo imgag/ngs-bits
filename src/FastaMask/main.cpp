@@ -17,6 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Mask regions in a FASTA file with N bases.");
+		setExtendedDescription(QStringList() << "Note: does not update the MD5 checksums. Use FastaChecksumUpdate for that!");
 		addInfile("in", "Input FASTA file.", false);
 		addInfile("reg", "Input BED file with regions to mask.", false);
 		addOutfile("out", "Output file.", false);
@@ -90,8 +91,6 @@ public:
 				out->write("\n");
 			}
 		}
-
-        //TODO: update MD5 checksum after masking
 	}
 };
 

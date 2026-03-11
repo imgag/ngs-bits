@@ -3,7 +3,7 @@
 #include "Helper.h"
 #include "ThreadCoordinator.h"
 #include "Settings.h"
-#include "NGSHelper.h"
+#include "GffData.h"
 
 class ConcreteTool
         : public ToolBase
@@ -96,7 +96,7 @@ public:
 		gff_settings.print_to_stdout = true;
 		gff_settings.include_all = all;
 		gff_settings.skip_not_hgnc = false;
-		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
+        GffData gff_file = GffData::load(gff_path, gff_settings);
         out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << Qt::endl;
         gff_file.transcripts.sortByPosition();
 

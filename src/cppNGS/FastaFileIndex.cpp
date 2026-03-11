@@ -12,44 +12,27 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 	, index_name_(fasta_file + ".fai")
 	, file_(fasta_file)
 {
-	if (!isLocal())
-	{
-		HttpHeaders add_headers;
-		add_headers.insert("Accept", "text/plain");
-        QByteArrayList reply_lines = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(index_name_, add_headers).body.trimmed().split('\n');
-		for (int i = 0; i < reply_lines.count(); i++)
-		{
-			if (reply_lines[i].length()==0 && i==reply_lines.count()-1) break;
-			QByteArrayList fields = reply_lines[i].split('\t');
-			if (fields.size()!=5)
-			{
-				THROW(FileParseException, "Malformed FASTA index line " + QString::number(i) + " in file '" + index_name_ + "'!");
-			}
-			saveEntryToIndex(fields);
-		}
-	}
-	else
-	{
-		//open FASTA file handle
-		if (!file_.open(QIODevice::ReadOnly | QIODevice::Text))
-		{
-			THROW(FileAccessException, "Could not open FASTA file '" + fasta_name_ + "' for reading!");
-		}
+    if (Helper::isHttpUrl(fasta_name_)) THROW(NotImplementedException, "FastaFileIndex does not support HTTP/HTTPS!");
 
-		//load index file
-		int linenum = 0;
-		QSharedPointer<QFile> file = Helper::openFileForReading(index_name_);
-		while(!file->atEnd())
-		{
-			++linenum;
-			QList<QByteArray> fields = file->readLine().split('\t');
-			if (fields.size()!=5)
-			{
-				THROW(FileParseException, "Malformed FASTA index line " + QString::number(linenum) + " in file '" + index_name_ + "'!");
-			}
-			saveEntryToIndex(fields);
-		}
-	}
+    //open FASTA file handle
+    if (!file_.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        THROW(FileAccessException, "Could not open FASTA file '" + fasta_name_ + "' for reading!");
+    }
+
+    //load index file
+    int linenum = 0;
+    QSharedPointer<QFile> file = Helper::openFileForReading(index_name_);
+    while(!file->atEnd())
+    {
+        ++linenum;
+        QList<QByteArray> fields = file->readLine().split('\t');
+        if (fields.size()!=5)
+        {
+            THROW(FileParseException, "Malformed FASTA index line " + QString::number(linenum) + " in file '" + index_name_ + "'!");
+        }
+        saveEntryToIndex(fields);
+    }
 
 	//throw error upon empty FAI file
 	if (index_.count()==0)
@@ -60,42 +43,25 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 
 FastaFileIndex::~FastaFileIndex()
 {
-	if (isLocal())
-	{
-		file_.close();
-	}
+    file_.close();
 }
 
 Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 {
 	const FastaIndexEntry& entry = index(chr);
 
-	if (isLocal())
-	{
-		//jump to postion
-		if (!file_.seek(entry.offset))
-		{
-			THROW(FileAccessException, "QFile::seek did not work on " + fasta_name_ + "'!");
-		}
-	}
+    //jump to postion
+    if (!file_.seek(entry.offset))
+    {
+        THROW(FileAccessException, "QFile::seek did not work on " + fasta_name_ + "'!");
+    }
 
 	//read data
 	int newlines_in_sequence = entry.length / entry.line_blen;
 	int seqlen = newlines_in_sequence  + entry.length;
 	Sequence output;
 
-	if (isLocal())
-	{
-		output = file_.read(seqlen).replace('\n', "");
-	}
-	else
-	{
-		QString byte_range = "bytes=" + QString::number(entry.offset) + "-" + QString::number(entry.offset + seqlen -1);
-		HttpHeaders add_headers;
-		add_headers.insert("Accept", "text/plain");
-		add_headers.insert("Range", byte_range.toUtf8());
-        output = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(fasta_name_, add_headers).body.replace("\n", 1, "", 0);
-	}
+    output = file_.read(seqlen).replace('\n', "");
 
 	//output
 	if (to_upper) output = output.toUpper();
@@ -130,13 +96,10 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	//jump to postion
 	int newlines_before = start > 0 ? (start - 1) / entry.line_blen : 0;
 	qint64 read_start_pos = entry.offset + newlines_before + start;
-	if (isLocal())
-	{
-		if (!file_.seek(read_start_pos))
-		{
-			THROW(FileAccessException, "QFile::seek did not work on " + fasta_name_ + "'!");
-		}
-	}
+    if (!file_.seek(read_start_pos))
+    {
+        THROW(FileAccessException, "QFile::seek did not work on " + fasta_name_ + "'!");
+    }
 
 	//read data
 	int newlines_by_end = (start + length - 1) / entry.line_blen;
@@ -144,18 +107,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	int seqlen = length + newlines_inside;
 	Sequence output {};
 
-	if (isLocal())
-	{
-		output = file_.read(seqlen).replace('\n', "");
-	}
-	else
-	{
-		QString byte_range = "bytes=" + QString::number(read_start_pos) + "-" + QString::number(read_start_pos + seqlen - 1);
-		HttpHeaders add_headers;
-		add_headers.insert("Accept", "text/plain");
-		add_headers.insert("Range", byte_range.toUtf8());
-        output = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(fasta_name_, add_headers).body.replace("\n", 1, "", 0);
-	}
+    output = file_.read(seqlen).replace('\n', "");
 
 	//output
 	if (to_upper) output = output.toUpper();
@@ -186,11 +138,6 @@ const FastaFileIndex::FastaIndexEntry& FastaFileIndex::index(const Chromosome& c
 		THROW(ArgumentException, "Unknown FASTA index chromosome '" + chr.str() + "' requested!");
 	}
 	return it.value();
-}
-
-bool FastaFileIndex::isLocal() const
-{
-	return !Helper::isHttpUrl(fasta_name_);
 }
 
 void FastaFileIndex::saveEntryToIndex(const QList<QByteArray>& fields)
