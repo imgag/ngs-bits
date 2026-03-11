@@ -1,27 +1,28 @@
 #include "SharedData.h"
 #include "Settings.h"
 
-void SharedData::setTranscripts(const TranscriptList& transcipts)
+void SharedData::setTranscripts(const TranscriptList& transcripts)
 {
+	SharedData* inst = instance();
+
 	//copy Ensembl transcripts
-	TranscriptList transcripts_ = instance()->transcripts_;
-    for(const Transcript& t: transcipts)
+	inst->transcripts_.clear();
+	for(const Transcript& t: transcripts)
     {
         if (t.source()!=Transcript::ENSEMBL) continue;
-		instance()->transcripts_ << t;
+		inst->transcripts_ << t;
     }
 
 	//sort transcripts
-	if (!instance()->transcripts_.isSorted())
+	if (!inst->transcripts_.isSorted())
 	{
-		instance()->transcripts_.sortByPosition();
+		inst->transcripts_.sortByPosition();
 	}
 
 	//index transcripts
-	instance()->transcripts_index_.createIndex();
+	inst->transcripts_index_.createIndex();
 
-	//emit signal
-	instance()->transcriptsChanged();
+	emit inst->transcriptsChanged();
 }
 
 void SharedData::setRegion(const Chromosome& chr, int start, int end)
@@ -60,7 +61,13 @@ void SharedData::setRegion(const Chromosome& chr, int start, int end)
 	if (new_reg==instance()->region_) return;
 
 	instance()->region_ = new_reg;
-	instance()->regionChanged(); //emit signal
+	emit instance()->regionChanged();
+}
+
+SharedData* SharedData::instance()
+{
+	static SharedData s;
+	return &s;
 }
 
 SharedData::SharedData(QObject* parent)

@@ -1,7 +1,4 @@
 #include "FilterWidgetSV.h"
-#include "Helper.h"
-#include "NGSD.h"
-#include "Log.h"
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
@@ -246,7 +243,7 @@ void FilterWidgetSV::phenotypesChanged()
 
 	//update GUI
 	QByteArrayList tmp;
-    for (const Phenotype& pheno : phenotypes_)
+	for (const Phenotype& pheno : std::as_const(phenotypes_))
 	{
 		tmp << pheno.name();
 	}
@@ -257,7 +254,7 @@ void FilterWidgetSV::phenotypesChanged()
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
-        for (const Phenotype& pheno : phenotypes_)
+		for (const Phenotype& pheno : std::as_const(phenotypes_))
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}

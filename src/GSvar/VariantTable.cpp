@@ -256,9 +256,12 @@ void VariantTable::customContextMenu(QPoint pos)
 	if (action==a_visualize)
 	{
 		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
-		SharedData::setTranscripts(NGSD().transcripts());
+		if (SharedData::transcripts().isEmpty())
+		{
+			SharedData::setTranscripts(NGSD().transcripts());
+		}
 		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
-        auto dlg = GUIHelper::createDialog(widget, "GSviewer");
+		auto dlg = GUIHelper::createDialog(widget, "GSviewer");
 		dlg->exec();
 	}
 	else if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))

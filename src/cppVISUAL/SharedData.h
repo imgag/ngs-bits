@@ -40,7 +40,7 @@ public:
 		return instance()->transcripts_;
 	}
 	//Sets transcripts and creates/updates indices
-	static void setTranscripts(const TranscriptList& transcipts);
+	static void setTranscripts(const TranscriptList& transcripts);
 
 	//Returns indices of transcripts in a region
 	static QVector<int> transcriptsInRegion(const Chromosome& chr, int start, int end)
@@ -56,7 +56,7 @@ public:
 	static void setSettings(const GlobalSettings& settings)
 	{
 		instance()->settings_ = settings;
-		instance()->settingsChanged(); //emit signal
+		emit instance()->settingsChanged();
 	}
 
 	//Return the currently displayed region
@@ -67,12 +67,8 @@ public:
 	static void setRegion(const Chromosome& chr, int start, int end);
 
 
-	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods
-	static SharedData* instance()
-	{
-		static SharedData s;
-		return &s;
-	};
+	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
+	static SharedData* instance();
 
 signals:
 	void transcriptsChanged();
