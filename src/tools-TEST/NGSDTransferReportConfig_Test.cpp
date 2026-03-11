@@ -234,5 +234,25 @@ private:
 		I_EQUAL(db.getValue("SELECT COUNT(id) FROM `report_configuration_re` WHERE comments='larger allele changes in allowed range'").toInt(), 2);
 	}
 
+	TEST_METHOD(fails_sample_similarity_check)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDTransferReportConfig_in1.sql"));
+		//set sample folder
+		db.getQuery().exec("UPDATE processed_sample SET folder_override='" + TESTDATA("data_in/NGSDTransferReportConfig/Sample_NA12878_05/") + "' WHERE id=1");
+		db.getQuery().exec("UPDATE processed_sample SET folder_override='" + TESTDATA("data_in/NGSDTransferReportConfig/Sample_NA12878_06_unrelated/") + "' WHERE id=2");
+
+		EXECUTE_FAIL("NGSDTransferReportConfig", "-test -source_ps NA12878_05 -target_ps NA12878_06");
+
+		//check stdout
+		REMOVE_LINES("out/NGSDTransferReportConfig_Test_line249.log", QRegularExpression("^NGSDTransferReportConfig "));
+		REMOVE_LINES("out/NGSDTransferReportConfig_Test_line249.log", QRegularExpression("^Location"));
+		COMPARE_FILES("out/NGSDTransferReportConfig_Test_line249.log", TESTDATA("data_out/NGSDTransferReportConfig_Test_fails_sample_similarity_check.log"));
+	}
+
 
 };

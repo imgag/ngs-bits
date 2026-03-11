@@ -89,13 +89,19 @@ public:
 		if (rc_id == -1) THROW(ArgumentException, "Source sample doesn't have a ReportConfig!");
 		// check if target has ReportConfig
 		if (db.reportConfigId(target_ps_id) != -1) THROW(ArgumentException, "Target sample already has a ReportConfig!");
+
 		//check sample similariaty
 		BedFile roi;
 		roi.load(":/Resources/hg38_coding_highconf_all_kits.bed");
 		SampleSimilarity sc;
 		sc.calculateSimilarity(SampleSimilarity::genotypesFromGSvar(db.processedSamplePath(source_ps_id, PathType::GSVAR), false, roi),
 							   SampleSimilarity::genotypesFromGSvar(db.processedSamplePath(target_ps_id, PathType::GSVAR), false, roi));
-		std_out << "Sample correlation:\t" + QString::number(sc.sampleCorrelation(), 'f', 4) + " (vars:" + QString::number(sc.noVariants1()) + "/" + QString::number(sc.noVariants2()) + ")\n\n";
+		std_out << "Sample correlation:\t" + QString::number(sc.sampleCorrelation(), 'f', 4) + " (overlapping variants: " + QString::number(sc.olCount()) + ")\n\n";
+		if (sc.sampleCorrelation() < 0.9)
+		{
+			THROW(ArgumentException, "Sample correlation between " + source_ps_name + " and " + target_ps_name + " to low! (" + QString::number(sc.sampleCorrelation(), 'f', 4)
+										 + ", should be above 0.9)");
+		}
 
 
 
@@ -477,48 +483,40 @@ public:
 
 
 
-
-		//TODO: activate for production database
 		//perform transfer
-		if (getFlag("test"))
+		try
 		{
-			try
+			db.transaction();
+			int target_report_config_id = db.setReportConfig(target_ps_id, target_report_config, target_variants, target_cnvs, target_svs, target_res);
+			//update lastEditBy/lastEditAt
+			SqlQuery query = db.getQuery();
+			query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + QString::number(db.userId(source_report_config->lastUpdatedBy())) + "', `last_edit_date`='"
+					   + source_report_config->lastUpdatedAt().toString("yyyy-MM-dd HH:mm:ss") + "' WHERE id=" +  QString::number(target_report_config_id));
+			if (source_report_config->isFinalized())
 			{
-				db.transaction();
-				int target_report_config_id = db.setReportConfig(target_ps_id, target_report_config, target_variants, target_cnvs, target_svs, target_res);
-				//update lastEditBy/lastEditAt
-				SqlQuery query = db.getQuery();
-				query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + QString::number(db.userId(source_report_config->lastUpdatedBy())) + "', `last_edit_date`='"
-						   + source_report_config->lastUpdatedAt().toString("yyyy-MM-dd HH:mm:ss") + "' WHERE id=" +  QString::number(target_report_config_id));
-				if (source_report_config->isFinalized())
+				query.exec("UPDATE `report_configuration` SET `finalized_by`='" + QString::number(db.userId(source_report_config->finalizedBy())) + "', `finalized_date`='"
+						   + source_report_config->finalizedAt().toString("yyyy-MM-dd HH:mm:ss") + "' WHERE id=" +  QString::number(target_report_config_id));
+			}
+			//save untransferable variants to NGSD
+			if (missed_variants.size() > 0)
+			{
+				query.prepare("INSERT INTO report_configuration_failed_transfer (processed_sample_id, status, variant_description) VALUES (:0, :1, :2)");
+				foreach (const QString& variant_description, missed_variants)
 				{
-					query.exec("UPDATE `report_configuration` SET `finalized_by`='" + QString::number(db.userId(source_report_config->finalizedBy())) + "', `finalized_date`='"
-							   + source_report_config->finalizedAt().toString("yyyy-MM-dd HH:mm:ss") + "' WHERE id=" +  QString::number(target_report_config_id));
+					query.bindValue(0, target_ps_id.toInt());
+					query.bindValue(1, "open");
+					query.bindValue(2, variant_description);
+					query.exec();
 				}
-				//save untransferable variants to NGSD
-				if (missed_variants.size() > 0)
-				{
-					query.prepare("INSERT INTO report_configuration_failed_transfer (processed_sample_id, status, variant_description) VALUES (:0, :1, :2)");
-					foreach (const QString& variant_description, missed_variants)
-					{
-						query.bindValue(0, target_ps_id.toInt());
-						query.bindValue(1, "open");
-						query.bindValue(2, variant_description);
-						query.exec();
-					}
-				}
+			}
 
-				db.commit();
-			}
-			catch(...)
-			{
-				db.rollback();
-				throw;
-			}
+			db.commit();
 		}
-
-
-
+		catch(...)
+		{
+			db.rollback();
+			throw;
+		}
 	}
 };
 

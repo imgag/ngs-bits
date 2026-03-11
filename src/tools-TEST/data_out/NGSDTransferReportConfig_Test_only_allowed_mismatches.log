@@ -1,5 +1,5 @@
 NA12878_05 (ps_id: 1) > NA12878_06 (ps_id: 2)
-Sample correlation:	1.0000 (vars:7/3)
+Sample correlation:	1.0000 (overlapping variants: 3)
 
 	SNVs	all/match/missed/missed_excluded	4/3/0/1
 	CNVs	all/match/missed/missed_excluded	3/2/0/1
