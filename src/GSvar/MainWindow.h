@@ -310,6 +310,8 @@ public slots:
 	void on_actionClearLogFile_triggered();
 	///Opens AppData folder of GSvar
 	void on_actionOpenGSvarDataFolder_triggered();
+	///Opens a table view showing reported variants from a previous sample
+	void on_actionShowNonTranferableVariants_triggered();
 
 	///Calculate gaps based on current target region filter
 	void calculateGapsByTargetRegionFilter();
