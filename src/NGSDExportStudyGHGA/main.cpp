@@ -20,15 +20,13 @@ public:
 	virtual void setup()
 	{
 		setDescription("Exports meta data of a study from NGSD to a JSON format for import into GHGA.");
-		addInfile("samples", "TSV file with pseudonym, SAP ID and processed sample ID (and optional sample folder)", false);
-		addInfile("data", "JSON file with data that is not contained in NGSD.", false);
+		addInfile("samples", "TSV file of samples. Columns: dataset pseudonym in study, processed sample ID, patient ID (mandatory for group_analyses), sample folder (mandatory for use_sample_folder)", false);
+		addInfile("data", "JSON file with general meta information about the study.", false);
 		addFlag("include_bam", "Add BAM files to output.");
 		addFlag("include_vcf", "Add VCF files to output.");
 		addFlag("use_sample_folder", "Use file names from sample folder provided in '-samples'.");
-		addFlag("group_analyses", "Combine all samples from one patient into a combined analysis (e. g. for tumor-normal).");
-
+		addFlag("group_analyses", "Combine all dataset from one patient into a combined analysis (e. g. for tumor-normal).");
 		addOutfile("out", "Output JSON file.", false, false);
-
 		//optional
 		addFlag("test", "Test mode: uses the test NGSD");
 
@@ -84,7 +82,6 @@ public:
 		if (sys_type=="WGS") return "short-read sequencing";
 		if (sys_type=="WES") return "short-read sequencing";
 		if (sys_type=="RNA") return "short-read sequencing";
-
 
 		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
 	}
@@ -362,6 +359,10 @@ public:
 				obj.insert("workflow_version", data.workflow_version);
 				obj.insert("workflow_repository", "https://github.com/imgag/megSAP");
 				obj.insert("workflow_doi", data.workflow_doi);
+				obj.insert("reference_name", "hg38");
+				obj.insert("reference_type", "GENOME");
+				obj.insert("reference_source", "1000 Genomes project");
+				obj.insert("reference_version", "GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna.gz");
 				//optional:
 				//obj.insert("workflow_tasks", "Pipeline?");
 				//obj.insert("parameters", QJsonArray());
@@ -818,45 +819,29 @@ public:
 
 		//load processed samples to export
         stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Loading processed sample list..." << Qt::endl;
-		auto handle = Helper::openFileForReading(getInfile("samples"), false);
-		while(!handle->atEnd())
+		VersatileFile file(getInfile("samples"), false);
+		file.open();
+		while(!file.atEnd())
 		{
-			QByteArray line = handle->readLine().trimmed();
+			QByteArray line = file.readLine(true);
 			if (line.isEmpty() || line[0]=='#') continue;
 
 			QByteArrayList parts = line.split('\t');
-			if (data.use_sample_folder)
-			{
-				//allow only 5 columns
-				if (parts.count()!=5) THROW(FileParseException, "Invalid sample line: " + line);
-			}
-			else
-			{
-				//allow only 3/4 columns
-				if (parts.count()<3) THROW(FileParseException, "Invalid sample line: " + line);
-				if (parts.count()>4) THROW(FileParseException, "Invalid sample line: " + line);
-			}
+			if (parts.count()!=4) THROW(FileParseException, "Invalid sample line (not 4 columns):" + line);
 
-
-			QString pseudonym = parts[0];
-
-			QString ps = parts[2].trimmed();
-			if(ps.startsWith("Skipped - ")) continue; // samples which were skipped in the preparation dialog
-
-			//patient id
-			QString patient_id = parts[0]; // use pseudonym if no patient id is provided
-			if (parts.count()>3) patient_id = parts[3];
-
-			QString ps_id = db.processedSampleId(ps);
-
-			QString s_id = db.sampleId(ps);
-
+			QString pseudonym = parts[0].trimmed();
+			QString ps = parts[1].trimmed();
+			QString patient_id = parts[2].trimmed();
+			if (patient_id.isEmpty()) patient_id = pseudonym; // use sample pseudonym as patient id if it is not provided
 			QString ps_folder;
 			if (data.use_sample_folder)
 			{
-				ps_folder = parts[4].trimmed();
-				if (ps_folder.isEmpty()) THROW(FileParseException, "No sample folder set in line: " + line);
+				ps_folder = parts[3].trimmed();
+				if (ps_folder.isEmpty()) THROW(FileParseException, "No sample folder given in line: " + line);
 			}
+
+			QString ps_id = db.processedSampleId(ps);
+			QString s_id = db.sampleId(ps);
 
 			data.ps_list << PSData{ps_id, ps, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id), patient_id, ps_folder, QStringList(), QStringList()};
 		}
