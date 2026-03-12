@@ -409,12 +409,15 @@ const BedFile& NGSHelper::pseudoAutosomalRegion(GenomeBuild build)
 
 const BedFile& NGSHelper::cytoBands(GenomeBuild build)
 {
-	static BedFile bands;
-	if (bands.count()==0)
+	static BedFile bands_hg19;
+	static BedFile bands_hg38;
+
+	BedFile* ptr = build==GenomeBuild::HG38 ? &bands_hg38 : &bands_hg19;
+	if (ptr->count()==0)
 	{
-		bands.load(":/Resources/" + buildToString(build) + "_cyto_band.bed");
+		ptr->load(":/Resources/" + buildToString(build) + "_cyto_band.bed");
 	}
-	return bands;
+	return *ptr;
 }
 
 QByteArray NGSHelper::cytoBand(GenomeBuild build, Chromosome chr, int pos)
@@ -435,13 +438,6 @@ QByteArray NGSHelper::cytoBand(GenomeBuild build, Chromosome chr, int pos)
 
 BedLine NGSHelper::cytoBandToRange(GenomeBuild build, QByteArray cytoband)
 {
-	//init
-	static BedFile bands;
-	if (bands.count()==0)
-	{
-		bands.load(":/Resources/" + buildToString(build) + "_cyto_band.bed");
-	}
-
 	//determine chromosome
 	if (cytoband.contains('-'))
 	{
@@ -472,6 +468,7 @@ BedLine NGSHelper::cytoBandToRange(GenomeBuild build, QByteArray cytoband)
 		if (!chr.isAutosome() && !chr.isGonosome()) THROW(ArgumentException, "Cytoband '" + cytoband + "' contains invalid chromosome '" + chr.str() + "'!");
 		QByteArray band = cytoband.mid(sep);
 
+		const BedFile& bands = cytoBands(build);
 		for (int i=0; i<bands.count(); ++i)
 		{
 			if (bands[i].chr()!=chr) continue;
