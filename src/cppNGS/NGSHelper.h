@@ -73,6 +73,8 @@ public:
 	///Returns the pseudoautomal regions on gnosomes.
 	static const BedFile& pseudoAutosomalRegion(GenomeBuild build);
 
+	///Returns the cytogenetic bands
+	static const BedFile& cytoBands(GenomeBuild build);
 	///Returns the cytogenetic band for to chromosomal position
 	static QByteArray cytoBand(GenomeBuild build, Chromosome chr, int pos);
 	///Returns the chromosomal range of a cytoband or cytoband range.

@@ -28,7 +28,7 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 	painter.fillRect(rect(), Qt::red);
 
 	//bands:
-	//NGSHelper::cytoBand
+	//NGSHelper::cytoBands
 	//TODO add band colors
 }
 

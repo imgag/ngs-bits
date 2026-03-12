@@ -407,16 +407,21 @@ const BedFile& NGSHelper::pseudoAutosomalRegion(GenomeBuild build)
 	return output[build];
 }
 
-QByteArray NGSHelper::cytoBand(GenomeBuild build, Chromosome chr, int pos)
+const BedFile& NGSHelper::cytoBands(GenomeBuild build)
 {
-	//init
 	static BedFile bands;
 	if (bands.count()==0)
 	{
 		bands.load(":/Resources/" + buildToString(build) + "_cyto_band.bed");
 	}
+	return bands;
+}
+
+QByteArray NGSHelper::cytoBand(GenomeBuild build, Chromosome chr, int pos)
+{
 
 	//search for band
+	const BedFile& bands = cytoBands(build);
 	for (int i=0; i<bands.count(); ++i)
 	{
 		if (bands[i].overlapsWith(chr, pos, pos))
