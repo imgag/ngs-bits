@@ -11,10 +11,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 	try
 	{
-		QElapsedTimer timer;
-        timer.start();
-
 		//load transcripts from GFF
+		QElapsedTimer timer;
+		timer.start();
         {
 			GffSettings gff_settings;
             gff_settings.source = "ensembl";
