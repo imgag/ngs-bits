@@ -151,6 +151,12 @@
     "individuals": [
         {
             "alias": "000111",
+            "ancestry_ids": [
+                "HANCESTRO:2003"
+            ],
+            "ancestry_terms": [
+                "European (EUR) reference superpopulation (1KGP)"
+            ],
             "sex": "FEMALE"
         },
         {

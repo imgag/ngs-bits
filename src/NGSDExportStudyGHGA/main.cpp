@@ -172,12 +172,12 @@ public:
 		THROW(NotImplementedException, "Unhandled gender '" + gender + "' in CV conversion!");
 	}
 
-	QString sampleAncestryToAncestry(QString ancestry) //TODO
+	QString sampleAncestryToAncestry(QString ancestry, bool return_name)
 	{
-		if (ancestry=="AFR") return "African";
-		if (ancestry=="EUR") return "European";
-		if (ancestry=="SAS") return " South Asian";
-		if (ancestry=="EAS") return "East Asian";
+		if (ancestry=="AFR") return return_name ? "African (AFR) reference superpopulation (1KGP)" : "HANCESTRO:2000";
+		if (ancestry=="EUR") return return_name ? "European (EUR) reference superpopulation (1KGP)" : "HANCESTRO:2003";
+		if (ancestry=="SAS") return return_name ? "South Asian (SAS) reference superpopulation (1KGP)" : "HANCESTRO:2004";
+		if (ancestry=="EAS") return return_name ? "East Asian (EAS) reference superpopulation (1KGP)" : "HANCESTRO:2002";
 		if (ancestry=="ADMIXED/UNKNOWN" || ancestry=="") return "";
 
 		THROW(NotImplementedException, "Unhandled ancestry '" + ancestry + "' in CV conversion!");
@@ -516,7 +516,6 @@ public:
 		parent.insert("experiment_method_supporting_files", experiment_method_supporting_files);
 	}
 
-	//TODO Marc implement phenotypic features and ancestry
 	void addIndividuals(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
@@ -529,16 +528,22 @@ public:
 			if (processed_ids.contains(ps_data.patient_id)) continue;
 			QJsonObject obj;
 			//optional:
-			//obj.insert("phenotypic_features_terms", QJsonValue());
-			//obj.insert("phenotypic_features_ids", QJsonValue());
+			//obj.insert("phenotypic_features_terms", QJsonValue()); //TODO
+			//obj.insert("phenotypic_features_ids", QJsonValue()); //TODO
 			//obj.insert("diagnosis_ids", QJsonValue());
 			//obj.insert("diagnosis_terms", QJsonValue());
 			obj.insert("sex", sampleGenderToSex(ps_data.s_info.gender).toUpper());
 			//optional:
 			//obj.insert("geographical_region_term", QJsonValue());
 			//obj.insert("geographical_region_id", QJsonValue())
-			//obj.insert("ancestry_terms", QJsonValue());
-			//obj.insert("ancestry_ids", QJsonValue());
+
+			QString ancestry_name = sampleAncestryToAncestry(ps_data.ps_info.ancestry, true);
+			QString ancestry_id = sampleAncestryToAncestry(ps_data.ps_info.ancestry, false);
+			if (ancestry_name!="" && ancestry_id!="")
+			{
+				obj.insert("ancestry_terms", QJsonArray({ancestry_name}));
+				obj.insert("ancestry_ids", QJsonArray({ancestry_id}));
+			}
 			obj.insert("alias", ps_data.patient_id);
 			array.append(obj);
 			processed_ids.insert(ps_data.patient_id);
