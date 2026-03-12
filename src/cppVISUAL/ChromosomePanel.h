@@ -3,7 +3,6 @@
 
 #include "cppVISUAL_global.h"
 #include <QWidget>
-#include "BedFile.h"
 
 //Panel that shows gene transcripts and nucleotides
 class CPPVISUALSHARED_EXPORT ChromosomePanel
@@ -14,17 +13,20 @@ class CPPVISUALSHARED_EXPORT ChromosomePanel
 public:
 	ChromosomePanel(QWidget* parent);
 
-public slots:
-	void setRegion(const BedLine& region);
-
 signals:
 	void mouseCoordinate(QString);
 
+private slots:
+	//Updates the region displayed by this widget
+	void updateRegion();
+
 private:
+	//members needed for paint event - updated when resizing occurs
+	double pixels_per_base_;
+
 	void paintEvent(QPaintEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
 
-	BedLine reg_;
 };
 
 #endif // CHROMOSOMEPANEL_H

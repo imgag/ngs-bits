@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
 {
-    ui_.setupUi(this);
+	ui_.setupUi(this);
 
 	try
 	{
@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
 		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
 
-		SharedData::setRegion("chr17", 43042292, 43172245);
+		SharedData::setRegion("chr17", 43091889, 43093530);
     }
 	catch (Exception e)
 	{

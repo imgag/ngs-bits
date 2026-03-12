@@ -1,5 +1,6 @@
 #include "SharedData.h"
 #include "Settings.h"
+#include <QPainter>
 
 void SharedData::setTranscripts(const TranscriptList& transcripts)
 {
@@ -77,5 +78,20 @@ SharedData::SharedData(QObject* parent)
 	, transcripts_index_(transcripts_)
 	, settings_()
 	, region_()
+	, char_size_(determineCharacterSize())
 {
+}
+
+QSize SharedData::determineCharacterSize()
+{
+	QPainter painter;
+	QFontMetrics fm(painter.font());
+
+	int w = 0;
+	int h = fm.height(); // font height already covers all characters
+	for (QChar c : QString("ACGTN"))
+	{
+		w = std::max(w, fm.horizontalAdvance(c));
+	}
+	return QSize(w, h);
 }
