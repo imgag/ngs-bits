@@ -393,7 +393,7 @@
         },
         {
             "alias": "SAM_Pseudonym011",
-            "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_age_at_sampling": 48,
             "biospecimen_tissue_id": "UNKNOWN",
             "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "CASE",
@@ -404,7 +404,7 @@
         },
         {
             "alias": "SAM_Pseudonym051",
-            "biospecimen_age_at_sampling": "UNKNOWN",
+            "biospecimen_age_at_sampling": 23,
             "biospecimen_tissue_id": "UNKNOWN",
             "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "CASE",

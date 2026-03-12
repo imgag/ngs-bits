@@ -30,8 +30,9 @@ public:
 		//optional
 		addFlag("test", "Test mode: uses the test NGSD");
 
-		changeLog(2025,  2, 7, "Added option to combine analyses.");
-		changeLog(2025,  2, 5, "Added option to read files from sample folder.");
+		changeLog(2026,  3, 12, "Updated schema to version 2.2.0.");
+		changeLog(2025,  2,  7, "Added option to combine analyses.");
+		changeLog(2025,  2,  5, "Added option to read files from sample folder.");
 		changeLog(2024,  9, 11, "Updated schema to version 2.0.0.");
 		changeLog(2023,  1, 31, "Initial implementation (version 0.9.0 of schema).");
 	}
@@ -108,7 +109,7 @@ public:
 		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
 	}
 
-	QString systemTypeToDatasetType(QString sys_type)
+	QString systemTypeToDatasetType(QString sys_type) //TODO
 	{
 		if (sys_type=="WGS") return "Whole genome sequencing";
 		if (sys_type=="WES") return "Exome sequencing";
@@ -171,7 +172,7 @@ public:
 		THROW(NotImplementedException, "Unhandled gender '" + gender + "' in CV conversion!");
 	}
 
-	QString sampleAncestryToAncestry(QString ancestry)
+	QString sampleAncestryToAncestry(QString ancestry) //TODO
 	{
 		if (ancestry=="AFR") return "African";
 		if (ancestry=="EUR") return "European";
@@ -738,10 +739,23 @@ public:
 			//obj.insert("biospecimen_name", QJsonValue());
 			//obj.insert("biospecimen_type", QJsonValue());
 			//obj.insert("biospecimen_description", QJsonValue());
-			obj.insert("biospecimen_age_at_sampling", "UNKNOWN");
+			bool ok = false;
+			int year_of_birth = ps_data.s_info.year_of_birth.left(4).toInt(&ok);
+			bool ok2 = false;
+			int year_of_sample = ps_data.s_info.sampling_date.right(4).toInt(&ok2);
+			if (!ok2) year_of_sample = ps_data.s_info.order_date.right(4).toInt(&ok2);
+			int age_at_sampling = year_of_sample-year_of_birth;
+			if (ok && ok2 && age_at_sampling>=0&&age_at_sampling<=150)
+			{
+				obj.insert("biospecimen_age_at_sampling", year_of_sample-year_of_birth);
+			}
+			else
+			{
+				obj.insert("biospecimen_age_at_sampling", "UNKNOWN");
+			}
 			//obj.insert("biospecimen_vital_status_at_sampling", QJsonValue());
-			obj.insert("biospecimen_tissue_term", "UNKNOWN");
-			obj.insert("biospecimen_tissue_id", "UNKNOWN");
+			obj.insert("biospecimen_tissue_term", "UNKNOWN"); //TODO Marc
+			obj.insert("biospecimen_tissue_id", "UNKNOWN"); //TODO Marc
 			//obj.insert("biospecimen_isolation", QJsonValue());
 			//obj.insert("biospecimen_storage", QJsonValue());
 			//obj.insert("attributes", QJsonArray());
