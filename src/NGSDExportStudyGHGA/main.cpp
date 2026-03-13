@@ -102,7 +102,7 @@ public:
 	{
 		if (sys_type=="WGS") return "WGS";
 		if (sys_type=="WES") return "WXS";
-		if (sys_type=="RNA") return "Total RNA";
+		if (sys_type=="RNA") return "TOTAL_RNA";
 		if (sys_type=="cfDNA") return "OTHER";
 		if (sys_type=="cfDNA (patient-specific)") return "OTHER";
 
@@ -222,6 +222,38 @@ public:
 		QStringList research_data_files;
 		QStringList processed_data_files;
 	};
+
+	QString getAgeAtSampling(const PSData& ps_data)
+	{
+		bool ok = false;
+		int year_of_birth = ps_data.s_info.year_of_birth.left(4).toInt(&ok);
+		bool ok2 = false;
+		int year_of_sample = ps_data.s_info.sampling_date.right(4).toInt(&ok2);
+		if (!ok2) year_of_sample = ps_data.s_info.order_date.right(4).toInt(&ok2);
+		int age_at_sampling = year_of_sample-year_of_birth;
+		if (!ok || !ok2 || age_at_sampling<0 || age_at_sampling>130)
+		{
+			return "UNKNOWN";
+		}
+
+		if (age_at_sampling<6) return "0_TO_5";
+		if (age_at_sampling<11) return "6_TO_10";
+		if (age_at_sampling<16) return "11_TO_15";
+		if (age_at_sampling<21) return "16_TO_20";
+		if (age_at_sampling<26) return "21_TO_25";
+		if (age_at_sampling<31) return "26_TO_30";
+		if (age_at_sampling<36) return "31_TO_35";
+		if (age_at_sampling<41) return "36_TO_40";
+		if (age_at_sampling<46) return "41_TO_45";
+		if (age_at_sampling<51) return "46_TO_50";
+		if (age_at_sampling<56) return "51_TO_55";
+		if (age_at_sampling<61) return "56_TO_60";
+		if (age_at_sampling<65) return "61_TO_65";
+		if (age_at_sampling<71) return "66_TO_70";
+		if (age_at_sampling<75) return "71_TO_75";
+		if (age_at_sampling<81) return "76_TO_80";
+		return "81_OR_OLDER";
+	}
 
 	//Common data helper struct
 	struct CommonData
@@ -756,21 +788,7 @@ public:
 			//obj.insert("biospecimen_name", QJsonValue());
 			//obj.insert("biospecimen_type", QJsonValue());
 			//obj.insert("biospecimen_description", QJsonValue());
-			bool ok = false;
-			int year_of_birth = ps_data.s_info.year_of_birth.left(4).toInt(&ok);
-			bool ok2 = false;
-			int year_of_sample = ps_data.s_info.sampling_date.right(4).toInt(&ok2);
-			if (!ok2) year_of_sample = ps_data.s_info.order_date.right(4).toInt(&ok2);
-			int age_at_sampling = year_of_sample-year_of_birth;
-			if (ok && ok2 && age_at_sampling>=0&&age_at_sampling<=150)
-			{
-				obj.insert("biospecimen_age_at_sampling", year_of_sample-year_of_birth);
-			}
-			else
-			{
-				obj.insert("biospecimen_age_at_sampling", "UNKNOWN");
-			}
-			//obj.insert("biospecimen_vital_status_at_sampling", QJsonValue());
+			obj.insert("biospecimen_age_at_sampling", getAgeAtSampling(ps_data));																																	//obj.insert("biospecimen_vital_status_at_sampling", QJsonValue());
 			QString tissue_term = sampleTissueToTissue(ps_data.s_info.tissue, true);
 			QString tissue_id = sampleTissueToTissue(ps_data.s_info.tissue, false);
 			if (tissue_term!="" && tissue_id!="")

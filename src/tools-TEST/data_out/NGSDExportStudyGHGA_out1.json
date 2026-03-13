@@ -122,7 +122,7 @@
             "library_selection_methods": [
                 "OTHER"
             ],
-            "library_type": "Total RNA",
+            "library_type": "TOTAL_RNA",
             "name": "EXPM_000222",
             "sequencing_layout": "PE",
             "type": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI"
@@ -251,7 +251,7 @@
     "samples": [
         {
             "alias": "SAM_000111",
-            "biospecimen_age_at_sampling": 48,
+            "biospecimen_age_at_sampling": "46_TO_50",
             "biospecimen_tissue_id": "BTO:0000089",
             "biospecimen_tissue_term": "blood",
             "case_control_status": "CASE",
@@ -262,7 +262,7 @@
         },
         {
             "alias": "SAM_000222",
-            "biospecimen_age_at_sampling": 23,
+            "biospecimen_age_at_sampling": "21_TO_25",
             "biospecimen_tissue_id": "BTO:0001253",
             "biospecimen_tissue_term": "skin",
             "case_control_status": "CASE",
