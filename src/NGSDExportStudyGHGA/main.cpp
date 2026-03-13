@@ -109,15 +109,6 @@ public:
 		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
 	}
 
-	QString systemTypeToDatasetType(QString sys_type) //TODO
-	{
-		if (sys_type=="WGS") return "Whole genome sequencing";
-		if (sys_type=="WES") return "Exome sequencing";
-		if (sys_type=="RNA") return "Transcriptome profiling by high-throughput sequencing";
-
-		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
-	}
-
 	QString deviceTypeToSequencingInstrument(QString device_type)
 	{
 		if (device_type=="NextSeq500") return "NEXTSEQ_500";
@@ -223,7 +214,6 @@ public:
 	struct CommonData
 	{
 		//general data
-		QString version;
 		bool test_mode;
 		bool include_vcf;
 		bool include_bam;
@@ -528,8 +518,18 @@ public:
 			if (processed_ids.contains(ps_data.patient_id)) continue;
 			QJsonObject obj;
 			//optional:
-			//obj.insert("phenotypic_features_terms", QJsonValue()); //TODO
-			//obj.insert("phenotypic_features_ids", QJsonValue()); //TODO
+			QJsonArray hpo_names;
+			QJsonArray hpo_ids;
+			foreach(const Phenotype& pheno, ps_data.phenotypes)
+			{
+				hpo_names.append(QString(pheno.name()));
+				hpo_ids.append(QString(pheno.accession()));
+			}
+			if (hpo_names.count()>0)
+			{
+				obj.insert("phenotypic_features_terms", hpo_names);
+				obj.insert("phenotypic_features_ids", hpo_ids);
+			}
 			//obj.insert("diagnosis_ids", QJsonValue());
 			//obj.insert("diagnosis_terms", QJsonValue());
 			obj.insert("sex", sampleGenderToSex(ps_data.s_info.gender).toUpper());
@@ -798,7 +798,6 @@ public:
 		QJsonObject data_obj = data_doc.object();
 
 		CommonData data;
-		data.version = "2.0.0";
 		data.test_mode = getFlag("test");
 		data.include_vcf = getFlag("include_vcf");
 		data.include_bam = getFlag("include_bam");

@@ -157,6 +157,14 @@
             "ancestry_terms": [
                 "European (EUR) reference superpopulation (1KGP)"
             ],
+            "phenotypic_features_ids": [
+                "HP:0033006",
+                "HP:0040049"
+            ],
+            "phenotypic_features_terms": [
+                "Diffuse alveolar damage",
+                "Macular edema"
+            ],
             "sex": "FEMALE"
         },
         {
