@@ -69,7 +69,6 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 	painter.fillRect(rect(), Qt::white);
 
 	QVector<int> idxes = map[region.chr()];
-	QTextStream(stdout) << region.chr().str() << ' ' << idxes.size() << ' ' << region.length() << Qt::endl;
 	if (idxes.size() >= 1)
 	{
 		int total_width = (w - label_width - 4);
