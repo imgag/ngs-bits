@@ -205,7 +205,8 @@ void ScatterPlot::store(QString filename)
 	QPixmap pixmap = chartView.grab();
 
 	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
+	{
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
-
+	}
 	delete chart;
 }

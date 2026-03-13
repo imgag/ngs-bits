@@ -25,7 +25,7 @@ public:
 	void store(QString filename);
 
 protected:
-	//line representation
+	// line representation
 	struct PlotLine
 	{
 		PlotLine();
@@ -34,7 +34,7 @@ protected:
 		QString label;
 	};
 
-	//variables to store the plot data
+	// variables to store the plot data
 	QVector<PlotLine> lines_;
 	QVector<double> xvalues_;
 	QString xlabel_;

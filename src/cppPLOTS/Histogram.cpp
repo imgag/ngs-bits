@@ -293,7 +293,11 @@ void Histogram::store(QString filename, bool x_log_scale, bool y_log_scale, doub
 	QApplication::processEvents();
 	QPixmap pixmap = chartView.grab();
 
-	if (!pixmap.save(filename.replace("\\", "/"), "PNG")) THROW(ProgrammingException, "Could not save histogram to file: " + filename);
+	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
+	{
+		THROW(ProgrammingException, "Could not save histogram to file: " + filename);
+	}
+	delete chart;
 }
 
 void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histograms, QString xlabel, QString ylabel)
@@ -354,8 +358,7 @@ void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histog
 	// X axis
 	QBarCategoryAxis* axisX = new QBarCategoryAxis();
 	// axisX->append(categories);
-	if (!xlabel.isEmpty())
-		axisX->setTitleText(xlabel);
+	if (!xlabel.isEmpty()) axisX->setTitleText(xlabel);
 
 	// Y axis
 	QValueAxis* axisY = new QValueAxis();
@@ -370,13 +373,12 @@ void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histog
 
 	// render
 	QChartView chartView(chart);
-	chartView.resize(1000, 400); // 10x4 inches @ 100 dpi
+	chartView.resize(1000, 400);
 
 	chartView.setRenderHint(QPainter::Antialiasing, true);
 	chartView.setRenderHint(QPainter::TextAntialiasing, true);
 	chartView.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-	// chartView.show();
 	QApplication::processEvents();
 	QPixmap pixmap = chartView.grab();
 
@@ -384,6 +386,7 @@ void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histog
 	{
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 	}
+	delete chart;
 }
 
 void Histogram::setYLabel(QString ylabel)

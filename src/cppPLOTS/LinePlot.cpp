@@ -56,7 +56,6 @@ void LinePlot::store(QString filename)
 		return;
 	}
 
-	// --- determine Y range (same logic as your Python version) ---
 	if (!yrange_set_)
 	{
 		double minVal = std::numeric_limits<double>::max();
@@ -166,8 +165,7 @@ void LinePlot::store(QString filename)
 	{
 		THROW(ProgrammingException, "Could not save plot to file: " + filename);
 	}
-
-	//delete chart; // prevent leak
+	delete chart;
 }
 
 

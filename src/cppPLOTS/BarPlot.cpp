@@ -84,10 +84,9 @@ void BarPlot::store(QString filename)
 	for (int i = 0; i < bars_.size(); ++i)
 	{
 		QBarSet* set = new QBarSet(labels_[i]);
-		QString current_color;
-		if (colors_.isEmpty()) current_color = "blue";
-		else current_color = colors_[i];
-		set->setColor(QColor::fromString(current_color));
+		QString color = (colors_.size() > 0) ? colors_[i] : "blue";
+
+		set->setColor(QColor::fromString(color));
 
 		if (is_legend_visible_)
 		{
@@ -97,10 +96,8 @@ void BarPlot::store(QString filename)
 		{
 			for (int j = 0; j < bars_.size(); ++j)
 			{
-				if (j == i)
-					*set << bars_[i];
-				else
-					*set << 0.0;
+				if (j == i) *set << bars_[i];
+				else *set << 0.0;
 			}
 		}
 
@@ -146,8 +143,7 @@ void BarPlot::store(QString filename)
 	QValueAxis* axisY = new QValueAxis();
 	if (!ylabel_.isEmpty()) axisY->setTitleText(ylabel_);
 
-	if (BasicStatistics::isValidFloat(ymin_) &&
-		BasicStatistics::isValidFloat(ymax_))
+	if (BasicStatistics::isValidFloat(ymin_) && BasicStatistics::isValidFloat(ymax_))
 	{
 		axisY->setRange(ymin_, ymax_);
 	}
@@ -155,13 +151,12 @@ void BarPlot::store(QString filename)
 	chart->addAxis(axisY, Qt::AlignLeft);
 	series->attachAxis(axisY);
 
-
 	axisX->setGridLineVisible(false);
 	axisY->setGridLineVisible(false);
 
 	// render
 	QChartView chartView(chart);
-	chartView.resize(1000, 400); // 10x4 inches @ 100 dpi
+	chartView.resize(1000, 400);
 
 	// antialiasing for smoother lines and text
 	chartView.setRenderHint(QPainter::Antialiasing, true);
@@ -176,6 +171,5 @@ void BarPlot::store(QString filename)
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 	}
 
-	// delete chart;
+	delete chart;
 }
-
