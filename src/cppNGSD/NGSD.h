@@ -833,8 +833,8 @@ public:
 	int phenotypeReplacementByName(const QByteArray& name);
 	///Returns the phenotype for a given HPO accession.
 	const Phenotype& phenotype(int id);
-	///Returns the phenotypes of a gene
-	PhenotypeList phenotypes(const QByteArray& symbol);
+	///Returns the phenotypes of a gene. Phenotypes are sorted by name or relevance (number of sources and evidence level).
+	PhenotypeList phenotypes(const QByteArray& symbol, bool sort_by_relevance=false);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
 	///Returns all genes associated to a phenotype. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.

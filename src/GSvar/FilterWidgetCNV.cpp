@@ -242,7 +242,7 @@ void FilterWidgetCNV::phenotypesChanged()
 
 	//update GUI
 	QByteArrayList tmp;
-    for (const Phenotype& pheno : phenotypes_)
+	for (const Phenotype& pheno : std::as_const(phenotypes_))
 	{
 		tmp << pheno.name();
 	}
@@ -253,7 +253,7 @@ void FilterWidgetCNV::phenotypesChanged()
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
-        for (const Phenotype& pheno : phenotypes_)
+		for (const Phenotype& pheno : std::as_const(phenotypes_))
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}

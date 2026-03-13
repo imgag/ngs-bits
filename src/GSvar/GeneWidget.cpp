@@ -167,7 +167,7 @@ void GeneWidget::updateGUI()
 
 		//show phenotypes/diseases from HPO
 		hpo_lines.clear();
-		PhenotypeList pheno_list = db.phenotypes(symbol_);
+		PhenotypeList pheno_list = db.phenotypes(symbol_, true);
 		for (const Phenotype& pheno : std::as_const(pheno_list))
 		{
 			int pheno_id = db.phenotypeIdByAccession(pheno.accession());
@@ -181,7 +181,6 @@ void GeneWidget::updateGUI()
 					source_part = source_part.mid(1, source_part.length()-2);
 					sources << source_part.split(',').at(0);
 				}
-
 			}
 			hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.values().join(", ") + ")";
 		}
@@ -318,6 +317,8 @@ void GeneWidget::updatePhenotypeSearch()
 
 void GeneWidget::updateTranscriptsTable(NGSD& db)
 {
+	qDebug() << __LINE__ << QDateTime::currentDateTime();
+
 	//clear
 	ui_.transcripts->setRowCount(0);
 	const QMap<QByteArray, QByteArrayList>&  matches = NGSHelper::transcriptMatches(GSvarHelper::build());
@@ -326,9 +327,11 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 	int gene_id = db.geneId(symbol_);
 	TranscriptList transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 
+	qDebug() << __LINE__ << QDateTime::currentDateTime();
 	//sort transcripts
 	transcripts.sortByRelevance();
 
+	qDebug() << __LINE__ << QDateTime::currentDateTime();
 	//display
 	foreach(const Transcript& transcript, transcripts)
 	{
@@ -381,8 +384,10 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		ui_.transcripts->setItem(row, 8, GUIHelper::createTableItem(flags.join(", ")));
 
 	}
+	qDebug() << __LINE__ << QDateTime::currentDateTime();
 
 	GUIHelper::resizeTableCellWidths(ui_.transcripts);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.transcripts);
 	GUIHelper::resizeTableHeight(ui_.transcripts);
+	qDebug() << __LINE__ << QDateTime::currentDateTime();
 }
