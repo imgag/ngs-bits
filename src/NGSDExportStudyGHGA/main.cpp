@@ -20,20 +20,19 @@ public:
 	virtual void setup()
 	{
 		setDescription("Exports meta data of a study from NGSD to a JSON format for import into GHGA.");
-		addInfile("samples", "TSV file with pseudonym, SAP ID and processed sample ID (and optional sample folder)", false);
-		addInfile("data", "JSON file with data that is not contained in NGSD.", false);
+		addInfile("samples", "TSV file of samples. Columns: dataset pseudonym in study, processed sample ID, patient ID (mandatory for group_analyses), sample folder (mandatory for use_sample_folder). If more columns are present they added as attributes to the 'sample' elements.", false);
+		addInfile("data", "JSON file with general meta information about the study.", false);
 		addFlag("include_bam", "Add BAM files to output.");
 		addFlag("include_vcf", "Add VCF files to output.");
 		addFlag("use_sample_folder", "Use file names from sample folder provided in '-samples'.");
-		addFlag("group_analyses", "Combine all samples from one patient into a combined analysis (e. g. for tumor-normal).");
-
+		addFlag("group_analyses", "Combine all dataset from one patient into a combined analysis (e. g. for tumor-normal).");
 		addOutfile("out", "Output JSON file.", false, false);
-
 		//optional
 		addFlag("test", "Test mode: uses the test NGSD");
 
-		changeLog(2025,  2, 7, "Added option to combine analyses.");
-		changeLog(2025,  2, 5, "Added option to read files from sample folder.");
+		changeLog(2026,  3, 12, "Updated schema to version 2.2.0.");
+		changeLog(2025,  2,  7, "Added option to combine analyses.");
+		changeLog(2025,  2,  5, "Added option to read files from sample folder.");
 		changeLog(2024,  9, 11, "Updated schema to version 2.0.0.");
 		changeLog(2023,  1, 31, "Initial implementation (version 0.9.0 of schema).");
 	}
@@ -85,7 +84,6 @@ public:
 		if (sys_type=="WES") return "short-read sequencing";
 		if (sys_type=="RNA") return "short-read sequencing";
 
-
 		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
 	}
 
@@ -104,18 +102,9 @@ public:
 	{
 		if (sys_type=="WGS") return "WGS";
 		if (sys_type=="WES") return "WXS";
-		if (sys_type=="RNA") return "Total RNA";
+		if (sys_type=="RNA") return "TOTAL_RNA";
 		if (sys_type=="cfDNA") return "OTHER";
 		if (sys_type=="cfDNA (patient-specific)") return "OTHER";
-
-		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
-	}
-
-	QString systemTypeToDatasetType(QString sys_type)
-	{
-		if (sys_type=="WGS") return "Whole genome sequencing";
-		if (sys_type=="WES") return "Exome sequencing";
-		if (sys_type=="RNA") return "Transcriptome profiling by high-throughput sequencing";
 
 		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
 	}
@@ -174,15 +163,28 @@ public:
 		THROW(NotImplementedException, "Unhandled gender '" + gender + "' in CV conversion!");
 	}
 
-	QString sampleAncestryToAncestry(QString ancestry)
+	QString sampleAncestryToAncestry(QString ancestry, bool return_name)
 	{
-		if (ancestry=="AFR") return "African";
-		if (ancestry=="EUR") return "European";
-		if (ancestry=="SAS") return " South Asian";
-		if (ancestry=="EAS") return "East Asian";
+		if (ancestry=="AFR") return return_name ? "African (AFR) reference superpopulation (1KGP)" : "HANCESTRO:2000";
+		if (ancestry=="EUR") return return_name ? "European (EUR) reference superpopulation (1KGP)" : "HANCESTRO:2003";
+		if (ancestry=="SAS") return return_name ? "South Asian (SAS) reference superpopulation (1KGP)" : "HANCESTRO:2004";
+		if (ancestry=="EAS") return return_name ? "East Asian (EAS) reference superpopulation (1KGP)" : "HANCESTRO:2002";
 		if (ancestry=="ADMIXED/UNKNOWN" || ancestry=="") return "";
 
 		THROW(NotImplementedException, "Unhandled ancestry '" + ancestry + "' in CV conversion!");
+	}
+
+	QString sampleTissueToTissue(QString tissue, bool return_name)
+	{
+		if (tissue=="blood") return return_name ? "blood" : "BTO:0000089";
+		if (tissue=="skin") return return_name ? "skin" : "BTO:0001253";
+		if (tissue=="muscle") return return_name ? "muscle" : "BTO:0000887";
+		if (tissue=="buccal mucosa") return return_name ? "buccal mucosa" : "BTO:0003833";
+		if (tissue=="fibroblast") return return_name ? "fibroblast" : "BTO:0000452";
+		if (tissue=="lymphocyte") return return_name ? "lymphocyte" : "BTO:0000775";
+		if (tissue=="n/a" || tissue=="") return "";
+
+		THROW(NotImplementedException, "Unhandled tissue '" + tissue + "' in CV conversion!");
 	}
 
 	QStringList getFilesFromFolder(const QString& folder, QString file_extension, bool allow_multiple=true, QString substring_filter = "")
@@ -219,13 +221,45 @@ public:
 		QString ps_folder;
 		QStringList research_data_files;
 		QStringList processed_data_files;
+		QMap<QString, QString> attributes;
 	};
+
+	QString getAgeAtSampling(const PSData& ps_data)
+	{
+		bool ok = false;
+		int year_of_birth = ps_data.s_info.year_of_birth.left(4).toInt(&ok);
+		bool ok2 = false;
+		int year_of_sample = ps_data.s_info.sampling_date.right(4).toInt(&ok2);
+		if (!ok2) year_of_sample = ps_data.s_info.order_date.right(4).toInt(&ok2);
+		int age_at_sampling = year_of_sample-year_of_birth;
+		if (!ok || !ok2 || age_at_sampling<0 || age_at_sampling>130)
+		{
+			return "UNKNOWN";
+		}
+
+		if (age_at_sampling<6) return "0_TO_5";
+		if (age_at_sampling<11) return "6_TO_10";
+		if (age_at_sampling<16) return "11_TO_15";
+		if (age_at_sampling<21) return "16_TO_20";
+		if (age_at_sampling<26) return "21_TO_25";
+		if (age_at_sampling<31) return "26_TO_30";
+		if (age_at_sampling<36) return "31_TO_35";
+		if (age_at_sampling<41) return "36_TO_40";
+		if (age_at_sampling<46) return "41_TO_45";
+		if (age_at_sampling<51) return "46_TO_50";
+		if (age_at_sampling<56) return "51_TO_55";
+		if (age_at_sampling<61) return "56_TO_60";
+		if (age_at_sampling<65) return "61_TO_65";
+		if (age_at_sampling<71) return "66_TO_70";
+		if (age_at_sampling<75) return "71_TO_75";
+		if (age_at_sampling<81) return "76_TO_80";
+		return "81_OR_OLDER";
+	}
 
 	//Common data helper struct
 	struct CommonData
 	{
 		//general data
-		QString version;
 		bool test_mode;
 		bool include_vcf;
 		bool include_bam;
@@ -362,6 +396,10 @@ public:
 				obj.insert("workflow_version", data.workflow_version);
 				obj.insert("workflow_repository", "https://github.com/imgag/megSAP");
 				obj.insert("workflow_doi", data.workflow_doi);
+				obj.insert("reference_name", "hg38");
+				obj.insert("reference_type", "GENOME");
+				obj.insert("reference_source", "1000 Genomes project");
+				obj.insert("reference_version", "GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna.gz");
 				//optional:
 				//obj.insert("workflow_tasks", "Pipeline?");
 				//obj.insert("parameters", QJsonArray());
@@ -514,7 +552,6 @@ public:
 		parent.insert("experiment_method_supporting_files", experiment_method_supporting_files);
 	}
 
-	//TODO Marc implement phenotypic features and ancestry
 	void addIndividuals(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
@@ -527,16 +564,31 @@ public:
 			if (processed_ids.contains(ps_data.patient_id)) continue;
 			QJsonObject obj;
 			//optional:
-			//obj.insert("phenotypic_features_terms", QJsonValue());
-			//obj.insert("phenotypic_features_ids", QJsonValue());
+			QJsonArray hpo_names;
+			QJsonArray hpo_ids;
+			for(const Phenotype& pheno: ps_data.phenotypes)
+			{
+				hpo_names.append(QString(pheno.name()));
+				hpo_ids.append(QString(pheno.accession()));
+			}
+			if (hpo_names.count()>0)
+			{
+				obj.insert("phenotypic_features_terms", hpo_names);
+				obj.insert("phenotypic_features_ids", hpo_ids);
+			}
 			//obj.insert("diagnosis_ids", QJsonValue());
 			//obj.insert("diagnosis_terms", QJsonValue());
 			obj.insert("sex", sampleGenderToSex(ps_data.s_info.gender).toUpper());
 			//optional:
 			//obj.insert("geographical_region_term", QJsonValue());
 			//obj.insert("geographical_region_id", QJsonValue())
-			//obj.insert("ancestry_terms", QJsonValue());
-			//obj.insert("ancestry_ids", QJsonValue());
+			QString ancestry_name = sampleAncestryToAncestry(ps_data.ps_info.ancestry, true);
+			QString ancestry_id = sampleAncestryToAncestry(ps_data.ps_info.ancestry, false);
+			if (ancestry_name!="" && ancestry_id!="")
+			{
+				obj.insert("ancestry_terms", QJsonArray({ancestry_name}));
+				obj.insert("ancestry_ids", QJsonArray({ancestry_id}));
+			}
 			obj.insert("alias", ps_data.patient_id);
 			array.append(obj);
 			processed_ids.insert(ps_data.patient_id);
@@ -737,13 +789,28 @@ public:
 			//obj.insert("biospecimen_name", QJsonValue());
 			//obj.insert("biospecimen_type", QJsonValue());
 			//obj.insert("biospecimen_description", QJsonValue());
-			obj.insert("biospecimen_age_at_sampling", "UNKNOWN");
-			//obj.insert("biospecimen_vital_status_at_sampling", QJsonValue());
-			obj.insert("biospecimen_tissue_term", "UNKNOWN");
-			obj.insert("biospecimen_tissue_id", "UNKNOWN");
+			obj.insert("biospecimen_age_at_sampling", getAgeAtSampling(ps_data));																																	//obj.insert("biospecimen_vital_status_at_sampling", QJsonValue());
+			QString tissue_term = sampleTissueToTissue(ps_data.s_info.tissue, true);
+			QString tissue_id = sampleTissueToTissue(ps_data.s_info.tissue, false);
+			if (tissue_term!="" && tissue_id!="")
+			{
+				obj.insert("biospecimen_tissue_term", tissue_term);
+				obj.insert("biospecimen_tissue_id", tissue_id);
+			}
 			//obj.insert("biospecimen_isolation", QJsonValue());
 			//obj.insert("biospecimen_storage", QJsonValue());
-			//obj.insert("attributes", QJsonArray());
+			QJsonArray attributes_array;
+			for (auto it=ps_data.attributes.begin(); it!=ps_data.attributes.end(); ++it)
+			{
+				QString key = it.key().trimmed();
+				if (key.isEmpty()) continue;
+
+				QJsonObject obj2;
+				obj2.insert("key", key);
+				obj2.insert("value", it.value());
+				attributes_array << obj2;
+			}
+			if (!attributes_array.isEmpty()) obj.insert("attributes", attributes_array);
 			obj.insert("alias", "SAM_" + ps_data.pseudonym);
 			array.append(obj);
 		}
@@ -778,7 +845,6 @@ public:
 		QJsonObject data_obj = data_doc.object();
 
 		CommonData data;
-		data.version = "2.0.0";
 		data.test_mode = getFlag("test");
 		data.include_vcf = getFlag("include_vcf");
 		data.include_bam = getFlag("include_bam");
@@ -818,47 +884,45 @@ public:
 
 		//load processed samples to export
         stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Loading processed sample list..." << Qt::endl;
-		auto handle = Helper::openFileForReading(getInfile("samples"), false);
-		while(!handle->atEnd())
+		VersatileFile file(getInfile("samples"), false);
+		QByteArrayList headers;
+		file.open();
+		while(!file.atEnd())
 		{
-			QByteArray line = handle->readLine().trimmed();
-			if (line.isEmpty() || line[0]=='#') continue;
+			QByteArray line = file.readLine(true);
+			if (line.isEmpty() || line.startsWith("##")) continue;
 
+			//parse header (for sample attributes)
+			if (line[0]=='#')
+			{
+				headers = line.mid(1).split('\t');
+				continue;
+			}
+
+			//parse sample data
 			QByteArrayList parts = line.split('\t');
-			if (data.use_sample_folder)
-			{
-				//allow only 5 columns
-				if (parts.count()!=5) THROW(FileParseException, "Invalid sample line: " + line);
-			}
-			else
-			{
-				//allow only 3/4 columns
-				if (parts.count()<3) THROW(FileParseException, "Invalid sample line: " + line);
-				if (parts.count()>4) THROW(FileParseException, "Invalid sample line: " + line);
-			}
-
-
-			QString pseudonym = parts[0];
-
-			QString ps = parts[2].trimmed();
-			if(ps.startsWith("Skipped - ")) continue; // samples which were skipped in the preparation dialog
-
-			//patient id
-			QString patient_id = parts[0]; // use pseudonym if no patient id is provided
-			if (parts.count()>3) patient_id = parts[3];
-
-			QString ps_id = db.processedSampleId(ps);
-
-			QString s_id = db.sampleId(ps);
-
+			if (parts.count()<4) THROW(FileParseException, "Invalid sample line (less than 4 columns):" + line);
+			if (parts.count()!=headers.count()) THROW(FileParseException, "Invalid sample line (expected "+QString::number(headers.count())+" based on header, but found "+QString::number(parts.count())+" columns):" + line);
+			QString pseudonym = parts[0].trimmed();
+			QString ps = parts[1].trimmed();
+			QString patient_id = parts[2].trimmed();
+			if (patient_id.isEmpty()) patient_id = pseudonym; // use sample pseudonym as patient id if it is not provided
 			QString ps_folder;
 			if (data.use_sample_folder)
 			{
-				ps_folder = parts[4].trimmed();
-				if (ps_folder.isEmpty()) THROW(FileParseException, "No sample folder set in line: " + line);
+				ps_folder = parts[3].trimmed();
+				if (ps_folder.isEmpty()) THROW(FileParseException, "No sample folder given in line: " + line);
+			}
+			QMap<QString, QString> attributes;
+			for (int i=4; i<parts.count(); ++i)
+			{
+				attributes[headers[i].trimmed()] = parts[i];
 			}
 
-			data.ps_list << PSData{ps_id, ps, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id), patient_id, ps_folder, QStringList(), QStringList()};
+			QString ps_id = db.processedSampleId(ps);
+			QString s_id = db.sampleId(ps);
+
+			data.ps_list << PSData{ps_id, ps, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id), patient_id, ps_folder, QStringList(), QStringList(), attributes};
 		}
         stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Writing JSON for " << data.ps_list.count() << " samples..." << Qt::endl;
 
