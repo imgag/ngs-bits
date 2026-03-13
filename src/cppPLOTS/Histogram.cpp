@@ -1,8 +1,8 @@
 #include "Histogram.h"
 
-// #include <cmath>
+#include <cmath>
 #include <limits>
-// #include <algorithm>
+#include <algorithm>
 
 #include "Exceptions.h"
 #include "BasicStatistics.h"
@@ -27,6 +27,45 @@ Histogram::Histogram(double min, double max, double bin_size)
 	}
 
 	bins_.resize(ceil((max_-min_)/bin_size_));
+}
+
+void Histogram::inc(double val, bool ignore_bounds_errors)
+{
+	bins_[binIndex(val, ignore_bounds_errors)]+=1;
+	bin_sum_ += 1;
+}
+
+void Histogram::inc(const QVector<double> &data, bool ignore_bounds_errors)
+{
+	for (int i=0; i<data.size(); ++i)
+	{
+		inc(data[i], ignore_bounds_errors);
+	}
+}
+
+double Histogram::min() const
+{
+	return min_;
+}
+
+double Histogram::max() const
+{
+	return max_;
+}
+
+double Histogram::binSize() const
+{
+	return bin_size_;
+}
+
+int Histogram::binCount() const
+{
+	return bins_.size();
+}
+
+long long Histogram::binSum()
+{
+	return bin_sum_;
 }
 
 double Histogram::maxValue(bool as_percentage) const
@@ -143,60 +182,104 @@ QVector<double> Histogram::yCoords(bool as_percentage)
 
 void Histogram::store(QString filename, bool x_log_scale, bool y_log_scale, double min_offset)
 {
-
-
-
-
-
-
-
-
-
-
 	QVector<double> x = xCoords();
 	QVector<double> y = yCoords();
 
-	QBarSeries* series = new QBarSeries();
-	QBarSet* set = new QBarSet("");
+	QBarSet *set = new QBarSet("histogram");
 
-	QStringList categories;
+	double y_min = minValue();
+	double x_min = min();
 
-	for (int i = 0; i < x.size(); ++i)
+	for(int i = 0; i < y.size(); ++i)
 	{
-		*set << y[i];                          // bin height
-		categories << QString::number(x[i]);   // bin label
+		double value = y[i];
+
+		if(y_log_scale && value == 0.0)
+			value += min_offset;
+
+		*set << value;
 	}
 
+	QBarSeries *series = new QBarSeries();
 	series->append(set);
 
-	QChart* chart = new QChart();
+	QChart *chart = new QChart();
 	chart->addSeries(series);
 	chart->legend()->hide();
 
-	if (!xlabel_.isEmpty())
-		chart->setTitle(xlabel_);
+	// if(!ylabel_.isEmpty()) chart->setTitle(ylabel_);
 
-	// X axis
-	QBarCategoryAxis* axisX = new QBarCategoryAxis();
-	axisX->append(categories);
-	if (!xlabel_.isEmpty())
-		axisX->setTitleText(xlabel_);
+	// ---- X axis ----
+	QAbstractAxis *axisX;
 
-	// Y axis
-	double y_min = minValue();
-	double y_max = maxValue() + 0.2 * maxValue();
+	if(x_log_scale)
+	{
+		QLogValueAxis *logAxis = new QLogValueAxis();
+		logAxis->setBase(10);
+		logAxis->setMinorTickCount(-1);
 
-	QValueAxis* axisY = new QValueAxis();
-	axisY->setRange(y_min, y_max);
+		if(x_min == 0.0) x_min += min_offset;
+		logAxis->setRange(x_min, max());
+
+		axisX = logAxis;
+	}
+	else
+	{
+		QValueAxis *valueAxis = new QValueAxis();
+		valueAxis->setRange(x_min, max());
+
+		axisX = valueAxis;
+	}
+
+	// if(!xlabel_.isEmpty()) axisX->setTitleText(xlabel_);
+
+	chart->addAxis(axisX, Qt::AlignBottom);
+	series->attachAxis(axisX);
+
+
+	// ---- Y axis ----
+	QAbstractAxis *axisY;
+
+	if(y_log_scale)
+	{
+		QLogValueAxis *logAxis = new QLogValueAxis();
+		logAxis->setBase(10);
+
+		if(y_min == 0.0) y_min += min_offset;
+		logAxis->setRange(y_min, maxValue() + 0.2 * maxValue());
+
+		axisY = logAxis;
+	}
+	else
+	{
+		QValueAxis *valueAxis = new QValueAxis();
+		valueAxis->setRange(y_min, maxValue() + 0.2 * maxValue());
+		axisY = valueAxis;
+	}
+
 
 	if (!ylabel_.isEmpty())
 		axisY->setTitleText(ylabel_);
 
-	chart->addAxis(axisX, Qt::AlignBottom);
 	chart->addAxis(axisY, Qt::AlignLeft);
-
-	series->attachAxis(axisX);
 	series->attachAxis(axisY);
+
+
+	// ---- X labels (bins) ----
+	QStringList categories;
+	for(double val : x)
+	{
+		categories << QString::number(static_cast<int>(std::round(val)));
+	}
+
+	QBarCategoryAxis *axisCat = new QBarCategoryAxis();
+	axisCat->append(categories);
+	if (!xlabel_.isEmpty()) axisCat->setTitleText(xlabel_);
+
+	// QFont font = axisCat->labelsFont();
+	// font.setPointSize(12);   // change font size
+	// axisCat->setLabelsFont(font);
+	chart->setAxisX(axisCat, series);
 
 
 	// render
@@ -207,47 +290,10 @@ void Histogram::store(QString filename, bool x_log_scale, bool y_log_scale, doub
 	chartView.setRenderHint(QPainter::TextAntialiasing, true);
 	chartView.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-	// chartView.show();
 	QApplication::processEvents();
-
 	QPixmap pixmap = chartView.grab();
 
-
-	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
-		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
-
-
-
-
-	//file handling
-	// script.append("plt.savefig('" + filename.replace("\\", "/") + "', bbox_inches=\'tight\', dpi=100)");
-
-	//check if python is installed
-	// QString python_exe = Settings::path("python_exe", true);
-	// if (python_exe=="") python_exe  = QStandardPaths::findExecutable("python3");
-	// if (python_exe!="")
-	// {
-	// 	QString scriptfile = Helper::tempFileName(".py");
-	// 	Helper::storeTextFile(scriptfile, script);
-
-	// 	//execute scipt
-	// 	QProcess process;
-	// 	process.setProcessChannelMode(QProcess::MergedChannels);
-	// 	process.start(python_exe, QStringList() << scriptfile);
-	// 	bool success = process.waitForFinished(-1);
-	// 	QByteArray output = process.readAll();
-	// 	if (!success || process.exitCode()>0)
-	// 	{
-	// 		THROW(ProgrammingException, "Could not execute python script:\n" + scriptfile + "\n Error message is: " + output);
-	// 	}
-
-	// 	//remove temporary file
-	// 	QFile::remove(scriptfile);
-	// }
-	// else
-	// {
-	// 	Log::warn("Python executable not found in PATH - skipping plot generation!");
-	// }
+	if (!pixmap.save(filename.replace("\\", "/"), "PNG")) THROW(ProgrammingException, "Could not save histogram to file: " + filename);
 }
 
 void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histograms, QString xlabel, QString ylabel)
@@ -265,38 +311,32 @@ void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histog
 		if(maxValue < h.maxValue())	maxValue = h.maxValue();
 	}
 
-
 	QChart* chart = new QChart();
 	chart->legend()->setVisible(true);
 	chart->legend()->setAlignment(Qt::AlignRight);
+	chart->legend()->hide();
 
-	if (!xlabel.isEmpty())
-		chart->setTitle(xlabel);
+	// if (!xlabel.isEmpty()) chart->setTitle(xlabel);
 
 	QBarSeries* series = new QBarSeries();
-
 	QStringList categories;
 
 	// assume all histograms share the same bins
 	if (!histograms.isEmpty())
 	{
 		QVector<double> x = histograms.first().xCoords();
-		for (double v : x)
-			categories << QString::number(v);
+		for (double v : x) categories << QString::number(v);
 	}
 
-	// create one bar set per histogram
-	for (Histogram& h : histograms)
+	//create one bar set per histogram
+	foreach (Histogram h,  histograms)
 	{
 		QBarSet* set = new QBarSet(h.label_);
-
 		QVector<double> y = h.yCoords();
-		for (double v : y)
-			*set << v;
+		for (double v : y) *set << v;
 
 		// color
-		if (!h.color_.isEmpty())
-			set->setColor(QColor(h.color_));
+		if (!h.color_.isEmpty()) set->setColor(QColor(h.color_));
 
 		// alpha
 		if (BasicStatistics::isValidFloat(h.alpha_))
@@ -313,22 +353,20 @@ void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histog
 
 	// X axis
 	QBarCategoryAxis* axisX = new QBarCategoryAxis();
-	axisX->append(categories);
+	// axisX->append(categories);
 	if (!xlabel.isEmpty())
 		axisX->setTitleText(xlabel);
 
 	// Y axis
 	QValueAxis* axisY = new QValueAxis();
 	axisY->setRange(minValue, maxValue + 0.1 * maxValue);
-	if (!ylabel.isEmpty())
-		axisY->setTitleText(ylabel);
+	if (!ylabel.isEmpty()) axisY->setTitleText(ylabel);
 
 	chart->addAxis(axisX, Qt::AlignBottom);
 	chart->addAxis(axisY, Qt::AlignLeft);
 
 	series->attachAxis(axisX);
 	series->attachAxis(axisY);
-
 
 	// render
 	QChartView chartView(chart);
@@ -340,78 +378,36 @@ void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histog
 
 	// chartView.show();
 	QApplication::processEvents();
-
 	QPixmap pixmap = chartView.grab();
 
-
 	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
+	{
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
+	}
+}
 
+void Histogram::setYLabel(QString ylabel)
+{
+	ylabel_ = ylabel;
+}
 
-	//create python script
-	// QStringList script;
-	// script.append("import matplotlib as mpl");
-	// script.append("mpl.use('Agg')");
-	// script.append("import matplotlib.pyplot as plt");
-	// script.append("plt.figure(figsize=(10, 4), dpi=100)");
-	// if(ylabel!="") script.append("plt.ylabel('" + ylabel + "')");
-	// if(xlabel!="") script.append("plt.xlabel('" + xlabel + "')");
+void Histogram::setXLabel(QString xlabel)
+{
+	xlabel_ = xlabel;
+}
 
-	// script.append("plt.tick_params(axis='x', which='both', bottom='off', top='off')");
-	// script.append("plt.tick_params(axis='y', which='both', left='off', right='off')");
-	// script.append("plt.ylim(" + QString::number(minValue) + "," + QString::number(maxValue + 0.1*maxValue) + ")");
-	// script.append("plt.xlim(" + QString::number(min) + "," + QString::number(max) + ")");
+void Histogram::setLabel(QString label)
+{
+	label_ = label;
+}
 
-	// //data
-	// foreach(Histogram h, histograms)
-	// {
-	// 	QString yvaluestring = "";
-	// 	QString xvaluestring = QString::number(h.min());
-	// 	QVector<double> x = h.xCoords();
-	// 	QVector<double> y = h.yCoords();
-	// 	for (int i=0; i<x.size(); ++i)
-	// 	{
-	// 		for(int j=0; j<y[i];++j)
-	// 		{
-	// 			yvaluestring += "," + QString::number(x[i]);
-	// 		}
-	// 		xvaluestring += "," + QString::number(x[i]+0.5*h.binSize());
-	// 	}
-	// 	xvaluestring = "[" + xvaluestring + "]";	//remove first ','
-	// 	yvaluestring = "[" + yvaluestring.remove(0,1) + "]";
+void Histogram::setColor(QString color)
+{
+	color_ = color;
+}
 
-	// 	script.append("plt.hist(" + yvaluestring + ", bins=" + xvaluestring + ", rwidth = 0.8, " + (h.color_.size()>0 ? "color=" + h.color_ + ", " : "") + (BasicStatistics::isValidFloat(h.alpha_) ? "alpha=" + QString::number(h.alpha_) + "," : "") + " edgecolor='none', label = '" + h.label_ + "')");
-	// }
-	// script.append("plt.legend(loc='upper right',fontsize=10)");
-
-	// //file handling
-	// script.append("plt.savefig('" + filename.replace("\\", "/") + "', bbox_inches=\'tight\', dpi=100)");
-
-	//check if python is installed
-	// QString python_exe = Settings::path("python_exe", true);
-	// if (python_exe=="") python_exe  = QStandardPaths::findExecutable("python3");
-	// if (python_exe!="")
-	// {
-	// 	QString scriptfile = Helper::tempFileName(".py");
-	// 	Helper::storeTextFile(scriptfile, script);
-
-	// 	//execute scipt
-	// 	QProcess process;
-	// 	process.setProcessChannelMode(QProcess::MergedChannels);
-	// 	process.start(python_exe, QStringList() << scriptfile);
-	// 	bool success = process.waitForFinished(-1);
-	// 	QByteArray output = process.readAll();
-	// 	if (!success || process.exitCode()>0)
-	// 	{
-	// 		THROW(ProgrammingException, "Could not execute python script:\n" + scriptfile + "\n Error message is: " + output);
-	// 	}
-
-	// 	//remove temporary file
-	// 	QFile::remove(scriptfile);
-	// }
-	// else
-	// {
-	// 	Log::warn("Python executable not found in PATH - skipping plot generation!");
-	// }
+void Histogram::setAlpha(double alpha)
+{
+	alpha_ = alpha;
 }
 

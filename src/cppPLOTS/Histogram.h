@@ -10,6 +10,7 @@
 #include <QtCharts/QBarSet>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QValueAxis>
+#include <QtCharts/QLogValueAxis>
 #include <QtCharts/QLegend>
 
 ///Histogram representation
@@ -20,47 +21,22 @@ public:
 	Histogram(double min, double max, double bin_size);
 
 	/// Increases the bin corresponding to value @p val by one
-	void inc(double val, bool ignore_bounds_errors=false)
-	{
-		bins_[binIndex(val, ignore_bounds_errors)]+=1;
-		bin_sum_ += 1;
-	}
+	void inc(double val, bool ignore_bounds_errors=false);
 
 	/// Increases the bin corresponding to the values in @p data by one
-	void inc(const QVector<double>& data, bool ignore_bounds_errors=false)
-	{
-		for (int i=0; i<data.size(); ++i)
-		{
-			inc(data[i], ignore_bounds_errors);
-		}
-	}
+	void inc(const QVector<double>& data, bool ignore_bounds_errors=false);
 
 	/// Returns the lower bound position (x-axis)
-	double min() const
-	{
-		return min_;
-	}
+	double min() const;
 	/// Returns the upper bound position (x-axis)
-	double max() const
-	{
-		return max_;
-	}
+	double max() const;
 	/// Returns the bin size
-	double binSize() const
-	{
-		return bin_size_;
-	}
+	double binSize() const;
 
 	/// Returns the number of bins
-	int binCount() const
-	{
-		return bins_.size();
-	}
+	int binCount() const;
 	/// Returns the sum of all bins (i.e. the number of data points added)
-	long long binSum()
-	{
-		return bin_sum_;
-	}
+	long long binSum();
 
 	/// Returns the bin a given position belongs to.
 	int binIndex(double val, bool ignore_bounds_errors=false) const;
@@ -91,30 +67,15 @@ public:
 	/// stores a combined histogram of different histograms
 	static void storeCombinedHistogram(QString filename, QList<Histogram> histograms, QString xlabel, QString ylabel);
 
-	void setYLabel(QString ylabel)
-	{
-		ylabel_ = ylabel;
-	}
+	void setYLabel(QString ylabel);
 
-	void setXLabel(QString xlabel)
-	{
-		xlabel_ = xlabel;
-	}
+	void setXLabel(QString xlabel);
 
-	void setLabel(QString label)
-	{
-		label_ = label;
-	}
+	void setLabel(QString label);
 
-	void setColor(QString color)
-	{
-		color_ = color;
-	}
+	void setColor(QString color);
 
-	void setAlpha(double alpha)
-	{
-		alpha_ = alpha;
-	}
+	void setAlpha(double alpha);
 
 protected:
 	/// lower bound position

@@ -84,7 +84,10 @@ void BarPlot::store(QString filename)
 	for (int i = 0; i < bars_.size(); ++i)
 	{
 		QBarSet* set = new QBarSet(labels_[i]);
-		set->setColor(QColor::fromString(colors_[i]));
+		QString current_color;
+		if (colors_.isEmpty()) current_color = "blue";
+		else current_color = colors_[i];
+		set->setColor(QColor::fromString(current_color));
 
 		if (is_legend_visible_)
 		{
@@ -110,10 +113,16 @@ void BarPlot::store(QString filename)
 	QBarCategoryAxis* axisX = new QBarCategoryAxis();
 	QStringList categories;
 	if (!labels_.isEmpty() && labels_.size() == bars_.size())
+	{
 		categories = labels_;
+	}
 	else
+	{
 		for (int i = 0; i < bars_.size(); ++i)
+		{
 			categories << QString::number(i);
+		}
+	}
 
 	// legend
 	chart->legend()->setVisible(is_legend_visible_);
@@ -154,17 +163,18 @@ void BarPlot::store(QString filename)
 	QChartView chartView(chart);
 	chartView.resize(1000, 400); // 10x4 inches @ 100 dpi
 
+	// antialiasing for smoother lines and text
 	chartView.setRenderHint(QPainter::Antialiasing, true);
 	chartView.setRenderHint(QPainter::TextAntialiasing, true);
 	chartView.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-	// chartView.show();
 	QApplication::processEvents();
-
 	QPixmap pixmap = chartView.grab();
 
 	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
+	{
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
+	}
 
 	// delete chart;
 }
