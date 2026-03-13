@@ -252,8 +252,8 @@
         {
             "alias": "SAM_000111",
             "biospecimen_age_at_sampling": 48,
-            "biospecimen_tissue_id": "UNKNOWN",
-            "biospecimen_tissue_term": "UNKNOWN",
+            "biospecimen_tissue_id": "BTO:0000089",
+            "biospecimen_tissue_term": "blood",
             "case_control_status": "CASE",
             "description": "Germline sample of 000111",
             "individual": "000111",
@@ -263,8 +263,8 @@
         {
             "alias": "SAM_000222",
             "biospecimen_age_at_sampling": 23,
-            "biospecimen_tissue_id": "UNKNOWN",
-            "biospecimen_tissue_term": "UNKNOWN",
+            "biospecimen_tissue_id": "BTO:0001253",
+            "biospecimen_tissue_term": "skin",
             "case_control_status": "CASE",
             "description": "Germline sample of 000222",
             "individual": "000222",

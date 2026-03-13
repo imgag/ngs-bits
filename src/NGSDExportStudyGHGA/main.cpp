@@ -174,6 +174,19 @@ public:
 		THROW(NotImplementedException, "Unhandled ancestry '" + ancestry + "' in CV conversion!");
 	}
 
+	QString sampleTissueToTissue(QString tissue, bool return_name)
+	{
+		if (tissue=="blood") return return_name ? "blood" : "BTO:0000089";
+		if (tissue=="skin") return return_name ? "skin" : "BTO:0001253";
+		if (tissue=="muscle") return return_name ? "muscle" : "BTO:0000887";
+		if (tissue=="buccal mucosa") return return_name ? "buccal mucosa" : "BTO:0003833";
+		if (tissue=="fibroblast") return return_name ? "fibroblast" : "BTO:0000452";
+		if (tissue=="lymphocyte") return return_name ? "lymphocyte" : "BTO:0000775";
+		if (tissue=="n/a" || tissue=="") return "";
+
+		THROW(NotImplementedException, "Unhandled tissue '" + tissue + "' in CV conversion!");
+	}
+
 	QStringList getFilesFromFolder(const QString& folder, QString file_extension, bool allow_multiple=true, QString substring_filter = "")
 	{
 		QStringList files = QDir(folder).entryList(QStringList() << "*." + file_extension, QDir::Files);
@@ -520,7 +533,7 @@ public:
 			//optional:
 			QJsonArray hpo_names;
 			QJsonArray hpo_ids;
-			foreach(const Phenotype& pheno, ps_data.phenotypes)
+			for(const Phenotype& pheno: ps_data.phenotypes)
 			{
 				hpo_names.append(QString(pheno.name()));
 				hpo_ids.append(QString(pheno.accession()));
@@ -536,7 +549,6 @@ public:
 			//optional:
 			//obj.insert("geographical_region_term", QJsonValue());
 			//obj.insert("geographical_region_id", QJsonValue())
-
 			QString ancestry_name = sampleAncestryToAncestry(ps_data.ps_info.ancestry, true);
 			QString ancestry_id = sampleAncestryToAncestry(ps_data.ps_info.ancestry, false);
 			if (ancestry_name!="" && ancestry_id!="")
@@ -759,8 +771,13 @@ public:
 				obj.insert("biospecimen_age_at_sampling", "UNKNOWN");
 			}
 			//obj.insert("biospecimen_vital_status_at_sampling", QJsonValue());
-			obj.insert("biospecimen_tissue_term", "UNKNOWN"); //TODO Marc
-			obj.insert("biospecimen_tissue_id", "UNKNOWN"); //TODO Marc
+			QString tissue_term = sampleTissueToTissue(ps_data.s_info.tissue, true);
+			QString tissue_id = sampleTissueToTissue(ps_data.s_info.tissue, false);
+			if (tissue_term!="" && tissue_id!="")
+			{
+				obj.insert("biospecimen_tissue_term", tissue_term);
+				obj.insert("biospecimen_tissue_id", tissue_id);
+			}
 			//obj.insert("biospecimen_isolation", QJsonValue());
 			//obj.insert("biospecimen_storage", QJsonValue());
 			//obj.insert("attributes", QJsonArray());

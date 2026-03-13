@@ -22,11 +22,11 @@ INSERT INTO processing_system (id, name_short, name_manufacturer, type, shotgun,
 INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status, tissue, year_of_birth, order_date, sampling_date) VALUES
 (11, 'SAMPLE1', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected', 'blood', 1977, '2025-03-12', NULL),
 (22, 'SAMPLE2', 'RNA', 1, 'male', '0', '0', 1, 'good', 'Neoplasms', 'Affected', 'skin', 1977, NULL, '2000-01-11'),
-(33, 'CFDNA1', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood', NULL, NULL, NULL),
-(44, 'CFDNA2', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood', NULL, NULL, NULL),
-(55, 'CFDNA3', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood', NULL, NULL, NULL),
-(66, 'CFDNA4', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood', NULL, NULL, NULL),
-(77, 'CFDNA5', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'blood', NULL, NULL, NULL);
+(33, 'CFDNA1', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'muscle', NULL, NULL, NULL),
+(44, 'CFDNA2', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'buccal mucosa', NULL, NULL, NULL),
+(55, 'CFDNA3', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'fibroblast', NULL, NULL, NULL),
+(66, 'CFDNA4', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'lymphocyte', NULL, NULL, NULL),
+(77, 'CFDNA5', 'cfDNA', 1, 'female', '0', '0', 1, 'good', 'n/a', 'Affected', 'n/a', NULL, NULL, NULL);
 
 -- sample_disease_info
 INSERT INTO sample_disease_info(id, sample_id, disease_info, type, user_id, date) VALUES
