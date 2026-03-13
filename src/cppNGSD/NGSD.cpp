@@ -1905,17 +1905,18 @@ int NGSD::repeatExpansionGenotypeId(int repeat_expansion_id, int processed_sampl
 RepeatLocus NGSD::repeatExpansionGenotype(int id)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT re.region, re.repeat_unit, reg.allele1, reg.allele2 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
+	query.prepare("SELECT re.region, re.repeat_unit, re.name, reg.allele1, reg.allele2 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
 	query.bindValue(0, id);
 	query.exec();
 
 	if (!query.next()) THROW(DatabaseException, "Repeat expansion with identifier '" + QString::number(id) + "' does not exist!");
 
 	RepeatLocus re;
-	re.setRegion(BedLine::fromString(query.value(0).toString()));
-	re.setUnit(query.value(1).toByteArray());
-	re.setAllele1(query.value(2).toByteArray());
-	re.setAllele2(query.value(3).toByteArray());
+	re.setRegion(BedLine::fromString(query.value("region").toString()));
+	re.setUnit(query.value("repeat_unit").toByteArray());
+	re.setName(query.value("name").toByteArray());
+	re.setAllele1(query.value("allele1").toByteArray());
+	re.setAllele2(query.value("allele2").toByteArray());
 
 	return re;
 }

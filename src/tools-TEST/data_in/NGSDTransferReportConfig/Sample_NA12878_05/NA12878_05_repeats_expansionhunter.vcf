@@ -1,0 +1,61 @@
+##fileformat=VCFv4.1
+##filedate=2023-05-10T18:46:23
+##source=ExpansionHunter v5.0.0
+##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant">
+##INFO=<ID=REF,Number=1,Type=Integer,Description="Reference copy number">
+##INFO=<ID=REPID,Number=1,Type=String,Description="Repeat identifier as specified in the variant catalog">
+##INFO=<ID=RL,Number=1,Type=Integer,Description="Reference length in bp">
+##INFO=<ID=RU,Number=1,Type=String,Description="Repeat unit in the reference orientation">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=VARID,Number=1,Type=String,Description="Variant identifier as specified in the variant catalog">
+##FILTER=<ID=LowDepth,Description="The overall locus depth is below 10x or number of reads spanning one or both breakends is below 5">
+##FILTER=<ID=PASS,Description="All filters passed">
+##FORMAT=<ID=ADFL,Number=1,Type=String,Description="Number of flanking reads consistent with the allele">
+##FORMAT=<ID=ADIR,Number=1,Type=String,Description="Number of in-repeat reads consistent with the allele">
+##FORMAT=<ID=ADSP,Number=1,Type=String,Description="Number of spanning reads consistent with the allele">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=LC,Number=1,Type=Float,Description="Locus coverage">
+##FORMAT=<ID=REPCI,Number=1,Type=String,Description="Confidence interval for REPCN">
+##FORMAT=<ID=REPCN,Number=1,Type=String,Description="Number of repeat units spanned by the allele">
+##FORMAT=<ID=SO,Number=1,Type=String,Description="Type of reads that support the allele; can be SPANNING, FLANKING, or INREPEAT meaning that the reads span, flank, or are fully contained in the repeat">
+##ALT=<ID=STR12,Description="Allele comprised of 12 repeat units">
+##ALT=<ID=STR13,Description="Allele comprised of 13 repeat units">
+##ALT=<ID=STR14,Description="Allele comprised of 14 repeat units">
+##ALT=<ID=STR16,Description="Allele comprised of 16 repeat units">
+##ALT=<ID=STR17,Description="Allele comprised of 17 repeat units">
+##ALT=<ID=STR18,Description="Allele comprised of 18 repeat units">
+##ALT=<ID=STR2,Description="Allele comprised of 2 repeat units">
+##ALT=<ID=STR20,Description="Allele comprised of 20 repeat units">
+##ALT=<ID=STR21,Description="Allele comprised of 21 repeat units">
+##ALT=<ID=STR25,Description="Allele comprised of 25 repeat units">
+##ALT=<ID=STR27,Description="Allele comprised of 27 repeat units">
+##ALT=<ID=STR31,Description="Allele comprised of 31 repeat units">
+##ALT=<ID=STR36,Description="Allele comprised of 36 repeat units">
+##ALT=<ID=STR5,Description="Allele comprised of 5 repeat units">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_05
+chr1	149390802	.	A	<STR18>	.	PASS	END=149390841;REF=13;RL=39;RU=GGC;VARID=NOTCH2NL;REPID=NOTCH2NL	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/1:SPANNING/SPANNING:13/18:13-13/18-18:24/18:55/62:0/0:46.004264
+chr2	190880872	.	C	<STR14>	.	LowDepth	END=190880920;REF=16;RL=48;RU=GCA;VARID=GLS;REPID=GLS	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	1/1:SPANNING/SPANNING:14/14:3-14/14-119:1/1:4/4:0/0:15.466951
+chr3	63912684	.	G	<STR12>	.	PASS	END=63912714;REF=10;RL=30;RU=GCA;VARID=ATXN7;REPID=ATXN7	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/1:SPANNING/SPANNING:10/12:10-10/12-12:5/1:15/16:0/0:51.292111
+chr3	63912714	.	A	.	.	PASS	END=63912726;REF=4;RL=12;RU=GCC;VARID=ATXN7_GCC;REPID=ATXN7_GCC	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/0:SPANNING/SPANNING:4/4:4-4/4-4:16/16:7/7:0/0:51.292111
+chr3	129172576	.	A	.	.	LowDepth	END=129172656;REF=20;RL=80;RU=CAGG;VARID=CNBP;REPID=CNBP	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:6.749600
+chr3	129172656	.	G	.	.	LowDepth	END=129172696;REF=10;RL=40;RU=CAGA;VARID=CNBP_CAGA;REPID=CNBP_CAGA	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:6.749600
+chr3	129172696	.	A	.	.	LowDepth	END=129172732;REF=18;RL=36;RU=CA;VARID=CNBP_CA;REPID=CNBP_CA	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:6.749600
+chr4	3074876	.	C	<STR16>,<STR18>	.	PASS	END=3074933;REF=19;RL=57;RU=CAG;VARID=HTT;REPID=HTT	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	1/2:SPANNING/SPANNING:16/25:16-16/25-25:8/16:59/62:0/0:17.383795
+chr4	3074939	.	G	<STR12>	.	PASS	END=3074966;REF=9;RL=27;RU=CCG;VARID=HTT_CCG;REPID=HTT_CCG	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/1:SPANNING/SPANNING:9/12:9-9/12-12:2/6:9/9:0/0:17.383795
+chr4	39348424	.	A	.	.	LowDepth	END=39348479;REF=11;RL=55;RU=AARRG;VARID=RFC1;REPID=RFC1	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.933333
+chr4	41745972	.	A	.	.	PASS	END=41746032;REF=20;RL=60;RU=GCN;VARID=PHOX2B;REPID=PHOX2B	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/0:SPANNING/SPANNING:20/20:20-20/20-20:13/13:60/60:0/0:44.814499
+chr5	146878727	.	A	<STR14>	.	PASS	END=146878757;REF=10;RL=30;RU=GCT;VARID=PPP2R2B;REPID=PPP2R2B	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/1:SPANNING/SPANNING:10/14:10-10/14-14:9/7:9/13:0/0:28.884861
+chr6	16327633	.	G	<STR31>	.	PASS	END=16327723;REF=30;RL=90;RU=TGC;VARID=ATXN1;REPID=ATXN1	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/1:SPANNING/SPANNING:30/31:29-30/30-31:8/1:159/161:0/0:279.594883
+chr6	170561906	.	G	<STR36>	.	PASS	END=170562017;REF=37;RL=111;RU=GCA;VARID=TBP;REPID=TBP	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/1:SPANNING/SPANNING:37/36:37-37/31-37:2/1:109/109:0/0:33.842217
+chr9	27573528	.	C	.	.	LowDepth	END=27573546;REF=3;RL=18;RU=GGCCCC;VARID=C9ORF72;REPID=C9ORF72	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:3.040512
+chr9	69037261	.	T	.	.	LowDepth	END=69037286;REF=25;RL=25;RU=A;VARID=FXN_A;REPID=FXN_A	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.559214
+chr9	69037286	.	A	.	.	LowDepth	END=69037304;REF=6;RL=18;RU=GAA;VARID=FXN;REPID=FXN	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.559214
+chr11	119206289	.	C	.	.	LowDepth	END=119206322;REF=11;RL=33;RU=CGG;VARID=CBL;REPID=CBL	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/0:SPANNING/SPANNING:11/11:11-183/0-11:1/1:3/3:0/0:12.254129
+chr12	6936716	.	C	.	.	PASS	END=6936773;REF=19;RL=57;RU=CAG;VARID=ATN1;REPID=ATN1	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/0:SPANNING/SPANNING:19/19:19-19/19-19:57/57:192/192:0/0:160.618337
+chr12	50505001	.	T	<STR16>	.	PASS	END=50505022;REF=7;RL=21;RU=GGC;VARID=DIP2B;REPID=DIP2B	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/1:SPANNING/SPANNING:7/16:7-7/16-16:12/4:3/6:0/0:10.773987
+chr12	111598949	.	G	.	.	LowDepth	END=111599018;REF=23;RL=69;RU=GCT;VARID=ATXN2;REPID=ATXN2	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:4.428571
+chr13	70139353	.	A	.	.	LowDepth	END=70139383;REF=10;RL=30;RU=CTA;VARID=ATXN8OS_CTA;REPID=ATXN8OS_CTA	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.066667
+chr13	70139383	.	A	.	.	LowDepth	END=70139428;REF=15;RL=45;RU=CTG;VARID=ATXN8OS;REPID=ATXN8OS	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.066667
+chr14	23321472	.	G	.	.	PASS	END=23321490;REF=6;RL=18;RU=GCG;VARID=PABPN1;REPID=PABPN1	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	0/0:SPANNING/SPANNING:6/6:6-6/6-6:59/59:25/25:0/0:49.507463
+chr14	92071009	.	C	<STR20>,<STR21>	.	PASS	END=92071042;REF=11;RL=33;RU=GCT;VARID=ATXN3;REPID=ATXN3	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	1/2:SPANNING/SPANNING:20/21:20-20/21-21:8/10:30/30:0/0:26.307036

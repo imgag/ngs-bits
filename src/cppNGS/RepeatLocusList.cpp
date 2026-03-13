@@ -28,7 +28,7 @@ void RepeatLocus::setAllele1(const QByteArray& allele1)
 	allele1_ = allele1;
 }
 
-int RepeatLocus::allele1asInt()
+int RepeatLocus::allele1asInt() const
 {
 	QByteArray tmp = allele1_.trimmed();
 	if (tmp.contains('.')) tmp = tmp.left(tmp.indexOf('.'));
@@ -43,7 +43,7 @@ void RepeatLocus::setAllele2(const QByteArray& allele2)
 	allele2_ = allele2;
 }
 
-int RepeatLocus::allele2asInt()
+int RepeatLocus::allele2asInt() const
 {
 	QByteArray tmp = allele2_.trimmed();
 	if (tmp.contains('.')) tmp = tmp.left(tmp.indexOf('.'));
@@ -348,4 +348,27 @@ const QByteArray RepeatLocusList::callerVersion() const
 const QDate& RepeatLocusList::callingDate() const
 {
 	return call_date_;
+}
+
+int RepeatLocusList::findMatch(const RepeatLocus& re, bool fuzzy_match) const
+{
+	for (int i = 0; i < variants_.size(); ++i)
+	{
+		// skipp other location
+		if (!variants_[i].sameRegionAndLocus(re)) continue;
+
+		//exact match:
+		if ((variants_[i].allele1() == re.allele1()) && (variants_[i].allele2() == re.allele2())) return i;
+
+		//fuzzy match: >95% identity on max alleles
+		if (fuzzy_match)
+		{
+			int re1_max_allele = std::max(variants_[i].allele1asInt(), variants_[i].allele2asInt());
+			int re2_max_allele = std::max(re.allele1asInt(), re.allele2asInt());
+
+			double allele_frac = std::min((double) re1_max_allele/re2_max_allele, (double) re2_max_allele/re1_max_allele);
+			if (allele_frac >= 0.95) return i;
+		}
+	}
+	return -1;
 }
