@@ -7,7 +7,9 @@
 #include <QApplication>
 
 ScatterPlot::ScatterPlot()
-	: yrange_set_(false), xrange_set_(false), yscale_log_(false)//, noxticks_(false)
+	: yrange_set_(false)
+	, xrange_set_(false)
+	, yscale_log_(false)
 {
 }
 
@@ -208,5 +210,4 @@ void ScatterPlot::store(QString filename)
 	{
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 	}
-	delete chart;
 }

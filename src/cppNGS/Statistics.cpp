@@ -342,7 +342,6 @@ QCCollection Statistics::phasing(const VcfFile& variants, bool filter, BedFile& 
 	//write to file
 	QString plotname = Helper::tempFileName(".png");
 	phasing_block_distribution.store(plotname, false, true, 0.5);
-	phasing_block_distribution.store("/home/ubuntolog/phasing.png", false, true, 0.5);
 	addQcPlot(output, "QC:2000137", "phasing block distribution plot", plotname);
 	QFile::remove(plotname);
 
@@ -1936,8 +1935,6 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	hist_all.setLabel("all variants");
 	hist_filtered.setLabel("variants with filter PASS");
 	Histogram::storeCombinedHistogram(plot0name, QList<Histogram>({hist_all,hist_filtered}),"tumor allele frequency","count");
-
-	Histogram::storeCombinedHistogram("/home/ubuntolog/somatic-qc.png", QList<Histogram>({hist_all,hist_filtered}),"tumor allele frequency","count");
 	addQcPlot(output, "QC:2000055","somatic SNVs allele frequency histogram", plot0name);
 	QFile::remove(plot0name);
 

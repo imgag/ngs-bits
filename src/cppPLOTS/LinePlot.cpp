@@ -165,7 +165,6 @@ void LinePlot::store(QString filename)
 	{
 		THROW(ProgrammingException, "Could not save plot to file: " + filename);
 	}
-	delete chart;
 }
 
 
