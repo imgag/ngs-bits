@@ -48,8 +48,8 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 	int w = width();
 	int label_width = SharedData::settings().label_width;
 	const BedLine& region = SharedData::region();
-	text_height_ = .3 * h;
-	chr_height_ = .2 * h;
+	text_height_ = .5 * h;
+	chr_height_ = .25 * h;
 
 	QPainter painter(this);
 	//bands:
@@ -67,8 +67,6 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 	static QMap<Chromosome, QVector<int>> map = buildMap(bands);
 
 	painter.fillRect(rect(), Qt::white);
-
-	// QVector<int> idxes = regions_idx.matchingIndices(region.chr(), region.start(), region.end());
 
 	QVector<int> idxes = map[region.chr()];
 	QTextStream(stdout) << region.chr().str() << ' ' << idxes.size() << ' ' << region.length() << Qt::endl;
@@ -155,7 +153,7 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 		if (is_dragging_)
 		{
 			float xt = std::min(drag_current_x_, drag_start_x_);
-			float y_start = 2 + chr_height_ + text_height_ + padding_;
+			float y_start = 2.;
 			float wid = std::abs(drag_current_x_ - drag_start_x_);
 			QRectF drag_rect(xt, y_start, wid, h - y_start);
 			QPen outlinePen(QColor(0, 120, 215));
@@ -195,6 +193,7 @@ void ChromosomePanel::mouseMoveEvent(QMouseEvent* event)
 	else
 	{
 		emit mouseCoordinate("");
+		unsetCursor();
 	}
 
 	if (is_dragging_)
@@ -209,19 +208,6 @@ void ChromosomePanel::mousePressEvent(QMouseEvent* event)
 	if (event->button() == Qt::LeftButton)
 	{
 		int x = event->pos().x();
-		// int y = event->pos().y();
-		// int w = width();
-		// int label_width = SharedData::settings().label_width;
-		// const BedLine& region = SharedData::region();
-
-		// if (x > label_width + 2 && x < w - 2 &&
-		// 	y >= 2 && y < 2 + chr_height_ + text_height_ + padding_)
-		// {
-		// 	// new center coordinate
-		// 	int coordinate = std::floor((double)(x-label_width - 2) / pixels_per_base_);
-		// 	SharedData::setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
-		// }
-
 		is_dragging_ = true;
 		drag_start_x_ = x;
 	}
