@@ -150,6 +150,21 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 		painter.setPen(QPen(Qt::red, 2));
 		painter.setBrush(Qt::NoBrush);
 		painter.drawRect(region_rect);
+
+		//draw drag region
+		if (is_dragging_)
+		{
+			float xt = std::min(drag_current_x_, drag_start_x_);
+			float y_start = 2 + chr_height_ + text_height_ + padding_;
+			float wid = std::abs(drag_current_x_ - drag_start_x_);
+			QRectF drag_rect(xt, y_start, wid, h - y_start);
+			QPen outlinePen(QColor(0, 120, 215));
+			outlinePen.setWidth(1);
+			outlinePen.setStyle(Qt::SolidLine);
+			painter.setPen(outlinePen);
+			painter.setBrush(QColor(135, 206, 235, 60));
+			painter.drawRect(drag_rect);
+		}
 	}
 }
 
@@ -181,6 +196,12 @@ void ChromosomePanel::mouseMoveEvent(QMouseEvent* event)
 	{
 		emit mouseCoordinate("");
 	}
+
+	if (is_dragging_)
+	{
+		drag_current_x_ = x;
+		update();
+	}
 }
 
 void ChromosomePanel::mousePressEvent(QMouseEvent* event)
@@ -188,41 +209,52 @@ void ChromosomePanel::mousePressEvent(QMouseEvent* event)
 	if (event->button() == Qt::LeftButton)
 	{
 		int x = event->pos().x();
-		int y = event->pos().y();
-		int w = width();
-		int label_width = SharedData::settings().label_width;
-		const BedLine& region = SharedData::region();
+		// int y = event->pos().y();
+		// int w = width();
+		// int label_width = SharedData::settings().label_width;
+		// const BedLine& region = SharedData::region();
 
-		if (x > label_width + 2 && x < w - 2 &&
-			y >= 2 && y < 2 + chr_height_ + text_height_ + padding_)
-		{
-			// new center coordinate
-			int coordinate = std::floor((double)(x-label_width - 2) / pixels_per_base_);
-			SharedData::setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
-		}
+		// if (x > label_width + 2 && x < w - 2 &&
+		// 	y >= 2 && y < 2 + chr_height_ + text_height_ + padding_)
+		// {
+		// 	// new center coordinate
+		// 	int coordinate = std::floor((double)(x-label_width - 2) / pixels_per_base_);
+		// 	SharedData::setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
+		// }
 
-		// is_dragging_ = true;
-		// drag_start_x_ = x;
+		is_dragging_ = true;
+		drag_start_x_ = x;
 	}
 }
 
-// void ChromosomePanel::mouseReleaseEvent(QMouseEvent* event)
-// {
-// 	int x = event->pos().x();
-// 	int y = event->pos().y();
-// 	int w = width();
-// 	int label_width = SharedData::settings().label_width;
-// 	const BedLine& region = SharedData::region();
+void ChromosomePanel::mouseReleaseEvent(QMouseEvent* event)
+{
+	int x = event->pos().x();
+	int y = event->pos().y();
+	int w = width();
+	int label_width = SharedData::settings().label_width;
+	const BedLine& region = SharedData::region();
 
-// 	if (event->button() == Qt::LeftButton && is_dragging_)
-// 	{
-// 		if (x > label_width + 2 && x < w - 2)
-// 		{
-// 			if (y >= 2 && y < 2 + chr_height_ + text_height_ + padding_ && abs(x - drag_start_x_) < 5)
-// 			{
-// 				int coordinate = std::floor((double)(x-label_width - 2) / pixels_per_base_);
-// 				SharedData::setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
-// 			}
-// 		}
-// 	}
-// }
+	if (event->button() == Qt::LeftButton && is_dragging_)
+	{
+		if (x > label_width + 2 && x < w - 2)
+		{
+			int y_end = 2 + chr_height_ + text_height_ + padding_;
+			if (y >= 2 && y < y_end && abs(x - drag_start_x_) < 5)
+			{
+				int coordinate = std::floor((double)(x-label_width - 2) / pixels_per_base_);
+				SharedData::setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
+			}
+
+			else if (abs(x - drag_start_x_) >= 5)
+			{
+				int start = std::floor((double)(drag_start_x_ -label_width - 2) / pixels_per_base_);
+				int end = std::floor((double)(x -label_width - 2) / pixels_per_base_);
+				SharedData::setRegion(region.chr(), std::min(start, end), std::max(start, end));
+			}
+		}
+	}
+
+	is_dragging_ = false;
+	update();
+}

@@ -26,13 +26,14 @@ private:
 	float chr_height_;
 	float text_height_;
 	int padding_ = 2;
-	// float drag_start_x_;
-	// bool is_dragging_ = false;
+	float drag_start_x_;
+	float drag_current_x_;
+	bool is_dragging_ = false;
 
 	void paintEvent(QPaintEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
-	// void mouseReleaseEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
 
 };
 
