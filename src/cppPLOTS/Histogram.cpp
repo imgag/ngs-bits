@@ -297,6 +297,7 @@ void Histogram::store(QString filename, bool x_log_scale, bool y_log_scale, doub
 	{
 		THROW(ProgrammingException, "Could not save histogram to file: " + filename);
 	}
+	delete chart;
 }
 
 void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histograms, QString xlabel, QString ylabel)
@@ -385,6 +386,7 @@ void Histogram::storeCombinedHistogram(QString filename, QList<Histogram> histog
 	{
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 	}
+	delete chart;
 }
 
 void Histogram::setYLabel(QString ylabel)

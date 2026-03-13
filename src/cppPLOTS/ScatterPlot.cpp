@@ -210,4 +210,5 @@ void ScatterPlot::store(QString filename)
 	{
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 	}
+	delete chart;
 }
