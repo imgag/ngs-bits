@@ -1,3 +1,3 @@
-#sample_pseudonym	ps_id	pat_id	sample_folder
-000111	SAMPLE1_02		
-000222	SAMPLE2_01		
+#sample_pseudonym	ps_id	pat_id	sample_folder	generic_col1	generic_col2
+000111	SAMPLE1_02			value1	value2
+000222	SAMPLE2_01			value3	value4

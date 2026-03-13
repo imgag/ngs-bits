@@ -20,7 +20,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Exports meta data of a study from NGSD to a JSON format for import into GHGA.");
-		addInfile("samples", "TSV file of samples. Columns: dataset pseudonym in study, processed sample ID, patient ID (mandatory for group_analyses), sample folder (mandatory for use_sample_folder)", false);
+		addInfile("samples", "TSV file of samples. Columns: dataset pseudonym in study, processed sample ID, patient ID (mandatory for group_analyses), sample folder (mandatory for use_sample_folder). If more columns are present they added as attributes to the 'sample' elements.", false);
 		addInfile("data", "JSON file with general meta information about the study.", false);
 		addFlag("include_bam", "Add BAM files to output.");
 		addFlag("include_vcf", "Add VCF files to output.");
@@ -221,6 +221,7 @@ public:
 		QString ps_folder;
 		QStringList research_data_files;
 		QStringList processed_data_files;
+		QMap<QString, QString> attributes;
 	};
 
 	QString getAgeAtSampling(const PSData& ps_data)
@@ -798,7 +799,18 @@ public:
 			}
 			//obj.insert("biospecimen_isolation", QJsonValue());
 			//obj.insert("biospecimen_storage", QJsonValue());
-			//obj.insert("attributes", QJsonArray());
+			QJsonArray attributes_array;
+			for (auto it=ps_data.attributes.begin(); it!=ps_data.attributes.end(); ++it)
+			{
+				QString key = it.key().trimmed();
+				if (key.isEmpty()) continue;
+
+				QJsonObject obj2;
+				obj2.insert("key", key);
+				obj2.insert("value", it.value());
+				attributes_array << obj2;
+			}
+			if (!attributes_array.isEmpty()) obj.insert("attributes", attributes_array);
 			obj.insert("alias", "SAM_" + ps_data.pseudonym);
 			array.append(obj);
 		}
@@ -873,15 +885,24 @@ public:
 		//load processed samples to export
         stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Loading processed sample list..." << Qt::endl;
 		VersatileFile file(getInfile("samples"), false);
+		QByteArrayList headers;
 		file.open();
 		while(!file.atEnd())
 		{
 			QByteArray line = file.readLine(true);
-			if (line.isEmpty() || line[0]=='#') continue;
+			if (line.isEmpty() || line.startsWith("##")) continue;
 
+			//parse header (for sample attributes)
+			if (line[0]=='#')
+			{
+				headers = line.mid(1).split('\t');
+				continue;
+			}
+
+			//parse sample data
 			QByteArrayList parts = line.split('\t');
-			if (parts.count()!=4) THROW(FileParseException, "Invalid sample line (not 4 columns):" + line);
-
+			if (parts.count()<4) THROW(FileParseException, "Invalid sample line (less than 4 columns):" + line);
+			if (parts.count()!=headers.count()) THROW(FileParseException, "Invalid sample line (expected "+QString::number(headers.count())+" based on header, but found "+QString::number(parts.count())+" columns):" + line);
 			QString pseudonym = parts[0].trimmed();
 			QString ps = parts[1].trimmed();
 			QString patient_id = parts[2].trimmed();
@@ -892,11 +913,16 @@ public:
 				ps_folder = parts[3].trimmed();
 				if (ps_folder.isEmpty()) THROW(FileParseException, "No sample folder given in line: " + line);
 			}
+			QMap<QString, QString> attributes;
+			for (int i=4; i<parts.count(); ++i)
+			{
+				attributes[headers[i].trimmed()] = parts[i];
+			}
 
 			QString ps_id = db.processedSampleId(ps);
 			QString s_id = db.sampleId(ps);
 
-			data.ps_list << PSData{ps_id, ps, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id), patient_id, ps_folder, QStringList(), QStringList()};
+			data.ps_list << PSData{ps_id, ps, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id), patient_id, ps_folder, QStringList(), QStringList(), attributes};
 		}
         stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Writing JSON for " << data.ps_list.count() << " samples..." << Qt::endl;
 

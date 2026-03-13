@@ -251,6 +251,16 @@
     "samples": [
         {
             "alias": "SAM_000111",
+            "attributes": [
+                {
+                    "key": "generic_col1",
+                    "value": "value1"
+                },
+                {
+                    "key": "generic_col2",
+                    "value": "value2"
+                }
+            ],
             "biospecimen_age_at_sampling": "46_TO_50",
             "biospecimen_tissue_id": "BTO:0000089",
             "biospecimen_tissue_term": "blood",
@@ -262,6 +272,16 @@
         },
         {
             "alias": "SAM_000222",
+            "attributes": [
+                {
+                    "key": "generic_col1",
+                    "value": "value3"
+                },
+                {
+                    "key": "generic_col2",
+                    "value": "value4"
+                }
+            ],
             "biospecimen_age_at_sampling": "21_TO_25",
             "biospecimen_tissue_id": "BTO:0001253",
             "biospecimen_tissue_term": "skin",
