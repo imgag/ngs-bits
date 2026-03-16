@@ -1,7 +1,6 @@
 #include "ChromosomePanel.h"
 #include "SharedData.h"
 #include "NGSHelper.h"
-#include "ChromosomalIndex.h"
 #include <QPainter>
 #include <QMouseEvent>
 
@@ -32,7 +31,7 @@ QColor cytobandColor(const QString& stain)
 	return QColor(255, 255, 255);
 }
 
-QMap<Chromosome, QVector<int>> buildMap(const BedFile& bands){
+QMap<Chromosome, QVector<int>> buildChrIndexMap(const BedFile& bands){
 	QMap<Chromosome, QVector<int>> map;
 	for (int i =0; i < bands.count(); ++i)
 	{
@@ -52,9 +51,6 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 	chr_height_ = .25 * h;
 
 	QPainter painter(this);
-	//bands:
-	//NGSHelper::cytoBands
-	//TODO add band colors
 
 	static BedFile bands = NGSHelper::cytoBands(GenomeBuild::HG38);
 	static bool sorted = false;
@@ -64,104 +60,24 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 		sorted = true;
 	}
 
-	static QMap<Chromosome, QVector<int>> map = buildMap(bands);
+	static QMap<Chromosome, QVector<int>> chrIdxMap = buildChrIndexMap(bands);
 
 	painter.fillRect(rect(), Qt::white);
 
-	QVector<int> idxes = map[region.chr()];
+	QVector<int> idxes = chrIdxMap[region.chr()];
 	if (idxes.size() >= 1)
 	{
 		int total_width = (w - label_width - 4);
-		float width_cum_sum = 0;
-		static char prev_arm = ' ';
-		char current_arm;
 		int total_length = bands[idxes[idxes.length() - 1]].end() - bands[idxes[0]].start() + 1;
-		pixels_per_base_ = (double)(w-label_width-4) / (double)total_length;
-		foreach (int i, idxes)
-		{
-			//drawing the band
-			current_arm = bands[i].annotations()[0].at(0);
+		pixels_per_base_ = (double)(total_width) / (double)total_length;
 
-			float frac = (float)bands[i].length() / (total_length);
-			float current_band_width = frac * total_width;
-			QRectF rect(label_width + 2 + width_cum_sum, 2, current_band_width, chr_height_);
-
-			// if color given in annotations - use that
-			if (bands[i].annotations().size() > 1)
-			{
-				painter.setBrush(cytobandColor(bands[i].annotations()[1]));
-			}
-			else
-			{
-				painter.setBrush((i % 2 == 0) ? Qt::black : Qt::darkGray);
-			}
-			// arm switch - draw triangle
-			if (current_arm == 'p' && i < bands.count()-1 && bands[i+1].annotations()[0].at(0) == 'q')
-			{
-				float p_start_x = label_width + 2 + width_cum_sum;
-				QPolygonF p_tri;
-				p_tri << QPointF(p_start_x, 2)
-					  << QPointF(p_start_x + current_band_width, (2+chr_height_)/2.0)
-					  << QPointF(p_start_x, 2 + chr_height_);
-				painter.drawPolygon(p_tri);
-			}
-			else if (prev_arm == 'p' && current_arm == 'q')
-			{
-
-				float q_start_x = label_width + 2 + width_cum_sum;
-				QPolygonF q_tri;
-				q_tri << QPointF(q_start_x + current_band_width, 2)
-					  << QPointF(q_start_x, (2 + chr_height_)/2.0)
-					  << QPointF(q_start_x + current_band_width, 2 + chr_height_);
-				painter.drawPolygon(q_tri);
-			}
-			else
-			{
-				painter.drawRect(rect);
-			}
-
-			prev_arm = current_arm;
-
-			//drawing the text
-			QFont font = painter.font();
-			font.setPointSize(8);
-			painter.setFont(font);
-
-			QRectF text_rect(label_width + 2 + width_cum_sum, 2 + chr_height_ + padding_, current_band_width, text_height_);
-			QString label = bands[i].annotations()[0];
-			int text_pixel_width = painter.fontMetrics().horizontalAdvance(label);
-			if (current_band_width > text_pixel_width)
-			{
-				painter.setPen(Qt::black);
-				painter.drawText(text_rect, Qt::AlignCenter, label);
-			}
-
-			width_cum_sum += current_band_width;
-		}
+		drawBands(&painter, bands, idxes, total_width, total_length);
 
 		//drawing rectangle for the region
-		float x_start = ((float)region.start() / total_length) * total_width;
-		float width = ((float)region.length() / total_length) * total_width;
-		QRectF region_rect(label_width + 2 + x_start, 2, width, chr_height_);
+		drawRegion(&painter, total_length);
 
-		painter.setPen(QPen(Qt::red, 2));
-		painter.setBrush(Qt::NoBrush);
-		painter.drawRect(region_rect);
 
-		//draw drag region
-		if (is_dragging_)
-		{
-			float xt = std::min(drag_current_x_, drag_start_x_);
-			float y_start = 2.;
-			float wid = std::abs(drag_current_x_ - drag_start_x_);
-			QRectF drag_rect(xt, y_start, wid, h - y_start);
-			QPen outlinePen(QColor(0, 120, 215));
-			outlinePen.setWidth(1);
-			outlinePen.setStyle(Qt::SolidLine);
-			painter.setPen(outlinePen);
-			painter.setBrush(QColor(135, 206, 235, 60));
-			painter.drawRect(drag_rect);
-		}
+		drawDragRegion(&painter);
 	}
 }
 
@@ -242,4 +158,110 @@ void ChromosomePanel::mouseReleaseEvent(QMouseEvent* event)
 
 	is_dragging_ = false;
 	update();
+}
+
+
+void ChromosomePanel::drawBands(QPainter* painter, const BedFile& bands, QVector<int> idxes,
+								int total_width, int total_length)
+{
+	int label_width = SharedData::settings().label_width;
+	float width_cum_sum = 0;
+	char prev_arm = ' ';
+	char current_arm;
+	foreach (int i, idxes)
+	{
+		//drawing the band
+		current_arm = bands[i].annotations()[0].at(0);
+
+		float frac = (float)bands[i].length() / (total_length);
+		float current_band_width = frac * total_width;
+		QRectF rect(label_width + 2 + width_cum_sum, 2, current_band_width, chr_height_);
+
+		// if color given in annotations - use that
+		if (bands[i].annotations().size() > 1)
+		{
+			painter->setBrush(cytobandColor(bands[i].annotations()[1]));
+		}
+		else
+		{
+			painter->setBrush((i % 2 == 0) ? Qt::black : Qt::darkGray);
+		}
+		// arm switch - draw triangle
+		if (current_arm == 'p' && i < bands.count()-1 && bands[i+1].annotations()[0].at(0) == 'q')
+		{
+			float p_start_x = label_width + 2 + width_cum_sum;
+			QPolygonF p_tri;
+			p_tri << QPointF(p_start_x, 2)
+				  << QPointF(p_start_x + current_band_width, (2+chr_height_)/2.0)
+				  << QPointF(p_start_x, 2 + chr_height_);
+			painter->drawPolygon(p_tri);
+		}
+		else if (prev_arm == 'p' && current_arm == 'q')
+		{
+
+			float q_start_x = label_width + 2 + width_cum_sum;
+			QPolygonF q_tri;
+			q_tri << QPointF(q_start_x + current_band_width, 2)
+				  << QPointF(q_start_x, (2 + chr_height_)/2.0)
+				  << QPointF(q_start_x + current_band_width, 2 + chr_height_);
+			painter->drawPolygon(q_tri);
+		}
+		else
+		{
+			painter->drawRect(rect);
+		}
+
+		prev_arm = current_arm;
+
+		//drawing the text
+		QFont font = painter->font();
+		font.setPointSize(8);
+		painter->setFont(font);
+
+		QRectF text_rect(label_width + 2 + width_cum_sum, 2 + chr_height_ + padding_, current_band_width, text_height_);
+		QString label = bands[i].annotations()[0];
+		int text_pixel_width = painter->fontMetrics().horizontalAdvance(label);
+		if (current_band_width > text_pixel_width)
+		{
+			painter->setPen(Qt::black);
+			painter->drawText(text_rect, Qt::AlignCenter, label);
+		}
+
+		width_cum_sum += current_band_width;
+	}
+}
+
+
+void ChromosomePanel::drawRegion(QPainter* painter, int total_length)
+{
+	int label_width = SharedData::settings().label_width;
+	const BedLine& region = SharedData::region();
+	int total_width = (width() - label_width - 4);
+
+
+	float x_start = ((float)region.start() / total_length) * total_width;
+	float width = ((float)region.length() / total_length) * total_width;
+	QRectF region_rect(label_width + 2 + x_start, 2, width, chr_height_);
+
+	painter->setPen(QPen(Qt::red, 2));
+	painter->setBrush(Qt::NoBrush);
+	painter->drawRect(region_rect);
+}
+
+
+void ChromosomePanel::drawDragRegion(QPainter* painter)
+{
+	if (is_dragging_)
+	{
+		float xt = std::min(drag_current_x_, drag_start_x_);
+		float y_start = 2.;
+		float width = std::abs(drag_current_x_ - drag_start_x_);
+		QRectF drag_rect(xt, y_start, width, height() - y_start);
+		QPen outlinePen(QColor(0, 120, 215));
+		outlinePen.setWidth(1);
+		outlinePen.setStyle(Qt::SolidLine);
+		painter->setPen(outlinePen);
+		painter->setBrush(QColor(135, 206, 235, 60));
+		painter->drawRect(drag_rect);
+	}
 }

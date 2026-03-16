@@ -1,7 +1,9 @@
 #ifndef CHROMOSOMEPANEL_H
 #define CHROMOSOMEPANEL_H
 
+#include "QtGui/qevent.h"
 #include "cppVISUAL_global.h"
+#include "BedFile.h"
 #include <QWidget>
 
 //Panel that shows gene transcripts and nucleotides
@@ -35,6 +37,11 @@ private:
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
+
+	void drawBands(QPainter* painter, const BedFile& bands, QVector<int> idxes,
+				   int total_width, int total_length);
+	void drawRegion(QPainter* painter, int total_length);
+	void drawDragRegion(QPainter* painter);
 };
 
 #endif // CHROMOSOMEPANEL_H
