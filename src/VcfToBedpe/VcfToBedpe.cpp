@@ -326,6 +326,23 @@ VcfToBedpe::BedpeLineInternal VcfToBedpe::convertSingleLine(const VcfToBedpe::Vc
 		res.samples << sample;
 	}
 
+	//special handling of Sniffles/DRAGEN insertion:
+	// move CI to A and called pos to B
+	if (res.TYPE == "INS")
+	{
+		if ((res.START_B != res.END_B) //Sniffles
+			||((res.START_B == res.END_B) && (res.START_A == res.END_A) && (res.START_A != res.START_B))) //DRAGEN/manta
+		{
+			//sort coordinates: min -> CI start, max -> CI end, 2nd -> (most-left) called pos
+			QVector<int> coords = QVector<int>() << res.START_A << res.START_B << res.END_A << res.END_B;
+			std::sort(coords.begin(), coords.end());
+			res.START_A = coords.at(0);
+			res.END_A = coords.at(3);
+			res.START_B = coords.at(1);
+			res.END_B = coords.at(1);
+		}
+	}
+
 	return res;
 }
 
