@@ -140,12 +140,15 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="QWidget" name="widget" native="true">
+     <widget class="BedPanel" name="bed_panel" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="mouseTracking">
+       <bool>true</bool>
       </property>
      </widget>
      <widget class="QScrollArea" name="scrollArea">
@@ -276,6 +279,12 @@
    <class>ChromosomePanel</class>
    <extends>QWidget</extends>
    <header location="global">ChromosomePanel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BedPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">BedPanel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

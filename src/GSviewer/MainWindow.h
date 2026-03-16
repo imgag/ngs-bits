@@ -17,6 +17,10 @@ public:
 
 private:
 	Ui::MainWindow ui_;
+	QMenu* file_menu_;
+
+	void createMenus();
+	void loadFiles();
 };
 
 #endif // MAINWINDOW_H

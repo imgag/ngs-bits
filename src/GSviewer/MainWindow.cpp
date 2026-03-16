@@ -2,6 +2,7 @@
 #include "Settings.h"
 #include "GffData.h"
 #include "SharedData.h"
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -12,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 	try
 	{
 		//load transcripts from GFF
+		createMenus();
 		QElapsedTimer timer;
 		timer.start();
         {
@@ -32,4 +34,23 @@ MainWindow::MainWindow(QWidget *parent)
 		qDebug() << e.message();
         exit(-1);
 	}
+}
+
+
+void MainWindow::createMenus()
+{
+	file_menu_ = menuBar()->addMenu(tr("&File"));
+	QAction* action = file_menu_->addAction("Load File");
+	connect(action, &QAction::triggered, this, &MainWindow::loadFiles);
+}
+
+void MainWindow::loadFiles()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)")); //
+
+	if (fileName.isEmpty()) {
+		return; // User canceled the dialog
+	}
+
+	SharedData::loadTrack(fileName);
 }

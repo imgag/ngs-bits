@@ -6,6 +6,7 @@
 #include "FastaFileIndex.h"
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
+#include "Track.h"
 #include <QSize>
 
 //Helper struct for globally used settings
@@ -43,10 +44,17 @@ public:
 	//Sets transcripts and creates/updates indices
 	static void setTranscripts(const TranscriptList& transcripts);
 
+	static void loadTrack(QString filename);
+
 	//Returns indices of transcripts in a region
 	static QVector<int> transcriptsInRegion(const Chromosome& chr, int start, int end)
 	{
 		return  instance()->transcripts_index_.matchingIndices(chr, start, end);
+	}
+
+	static QVector<Track> tracks()
+	{
+		return instance()->tracks_;
 	}
 
 	//Return the global settings
@@ -80,6 +88,7 @@ signals:
 	void transcriptsChanged();
 	void settingsChanged();
 	void regionChanged();
+	void tracksChanged();
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);
@@ -92,6 +101,7 @@ protected:
 	GlobalSettings settings_;
 	BedLine region_;
 	QSize char_size_;
+	QVector<Track> tracks_;
 };
 
 

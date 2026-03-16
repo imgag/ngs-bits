@@ -1,6 +1,7 @@
 #include "SharedData.h"
 #include "Settings.h"
 #include <QPainter>
+#include <QFileInfo>
 
 void SharedData::setTranscripts(const TranscriptList& transcripts)
 {
@@ -94,4 +95,29 @@ QSize SharedData::determineCharacterSize()
 		w = std::max(w, fm.horizontalAdvance(c));
 	}
 	return QSize(w, h);
+}
+
+void SharedData::loadTrack(QString filename)
+{
+	BedFile track;
+	track.load(filename);
+	track.sort();
+
+	/*
+	 * TODO: send an error somehow
+	 */
+	if (track.chromosomes().count() != 1) return; // discard
+
+	const QFileInfo info(filename);
+
+	instance()->tracks_.append(
+		{/*file path*/ filename,
+		 /*filename*/  info.fileName(),
+		 /*BedFile*/   track
+		}
+	);
+
+	// QTextStream(stdout) << "loaded: " << filename << Qt::endl;
+
+	emit instance()->tracksChanged();
 }
