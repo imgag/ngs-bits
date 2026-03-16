@@ -1,5 +1,4 @@
 #include "GeneWidget.h"
-#include "Helper.h"
 #include "SmallVariantSearchWidget.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
@@ -317,8 +316,6 @@ void GeneWidget::updatePhenotypeSearch()
 
 void GeneWidget::updateTranscriptsTable(NGSD& db)
 {
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
-
 	//clear
 	ui_.transcripts->setRowCount(0);
 	const QMap<QByteArray, QByteArrayList>&  matches = NGSHelper::transcriptMatches(GSvarHelper::build());
@@ -327,11 +324,9 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 	int gene_id = db.geneId(symbol_);
 	TranscriptList transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
 	//sort transcripts
 	transcripts.sortByRelevance();
 
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
 	//display
 	foreach(const Transcript& transcript, transcripts)
 	{
@@ -384,10 +379,8 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		ui_.transcripts->setItem(row, 8, GUIHelper::createTableItem(flags.join(", ")));
 
 	}
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
 
 	GUIHelper::resizeTableCellWidths(ui_.transcripts);
 	GUIHelper::resizeTableCellHeightsToFirst(ui_.transcripts);
 	GUIHelper::resizeTableHeight(ui_.transcripts);
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
 }

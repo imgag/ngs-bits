@@ -31,7 +31,6 @@ SOURCES += main.cpp\
     ColumnConfig.cpp \
     ColumnConfigWidget.cpp \
     DatabaseServiceRemote.cpp \
-    GHGAUploadDialog.cpp \
     GeneInterpretabilityDialog.cpp \
     GlobalServiceProvider.cpp \
     HerediVarImportDialog.cpp \
@@ -167,7 +166,6 @@ HEADERS += MainWindow.h \
     ColumnConfigWidget.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
-    GHGAUploadDialog.h \
     GeneInterpretabilityDialog.h \
     GlobalServiceProvider.h \
     HerediVarImportDialog.h \
@@ -296,7 +294,6 @@ FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ColumnConfigWidget.ui \
     ExternalToolDialog.ui \
-    GHGAUploadDialog.ui \
     GeneInterpretabilityDialog.ui \
     HerediVarImportDialog.ui \
     IgvLogWidget.ui \
