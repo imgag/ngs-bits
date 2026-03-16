@@ -155,6 +155,12 @@ public:
 	///Sets the genes.
 	void setGenes(const QByteArrayList& annotation_headers, const GeneSet& genes);
 
+	///Normalizes SV:
+	///   - sorts positions of BND
+	///   - checks for INS that CI is first position, called position 2nd
+	///   - checks for other SVs if pos1 < pos2
+	void normalize(const QByteArrayList& annotation_headers, bool switch_additional_columns=true);
+
 
 protected:
 	Chromosome chr1_;
@@ -316,6 +322,9 @@ public:
 	///		NOTICE: if 'compare_ci' is set to true, SVs which have overlapping confidence intervalls are also considered as match
 	///
 	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true, bool compare_ci=true) const;
+
+	///normalizes Bedpe file
+	void normalize();
 
 private:
 	QString filename_;
