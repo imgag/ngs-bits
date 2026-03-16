@@ -25,6 +25,7 @@ INCLUDEPATH += $$PWD/../VcfToBedpe
 
 SOURCES += \
     BedToEpigen_Test.cpp \
+    BedpeNormalize_Test.cpp \
     FastaChecksumUpdate_Test.cpp \
     NGSDAddVariantsSomatic_Test.cpp \
     BamInfo_Test.cpp \
