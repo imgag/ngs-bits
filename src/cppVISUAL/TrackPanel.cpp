@@ -10,14 +10,6 @@ TrackPanel::TrackPanel(QWidget* parent, Track track)
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
 }
 
-template <typename T1, typename T2>
-T2 map(T1 a, T1 min_, T1 max_, T2 c, T2 d)
-{
-	float p = (float)(a - min_)/(float)(max_ - min_);
-	p = std::clamp(p, 0.f, 1.f);
-	return c + (d - c) * p;
-}
-
 void TrackPanel::regionChanged()
 {
 	update();
@@ -26,7 +18,6 @@ void TrackPanel::regionChanged()
 void TrackPanel::paintEvent(QPaintEvent* /*event*/)
 {
 	const BedLine& region = SharedData::region();
-	// QTextStream(stdout) << "Track panel paint event called" << Qt::endl;
 	QPainter painter(this);
 
 	painter.fillRect(rect(), QColor(250, 250, 250));
@@ -50,20 +41,11 @@ void TrackPanel::paintEvent(QPaintEvent* /*event*/)
 
 	if (track.bedfile.chromosomes().count() != 1) return;
 
-	// QTextStream(stdout) << region.chr().str() << ' ' << track.bedfile.chromosomes().values()[0].str() << Qt::endl;
 	if (region.chr() == track.bedfile.chromosomes().values()[0])
 	{
-		// QTextStream(stdout) << "pass" << Qt::endl;
 
 		int w = width();
 		float total_width = w - label_width - 4;
-		// QVector<int> idxes = chrIdx.matchingIndices(region.chr(), region.start(), region.end());
-
-		// QTextStream(stdout) << idxes.count() << Qt::endl;
-
-		// if (idxes.count() > 0)
-		// {
-			// foreach (int idx, idxes)
 		for (int idx =0; idx < track.bedfile.count(); ++idx)
 			{
 				int st = std::max(track.bedfile[idx].start(), region.start());
