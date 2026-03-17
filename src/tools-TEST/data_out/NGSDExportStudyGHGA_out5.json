@@ -102,7 +102,7 @@
             "library_selection_methods": [
                 "OTHER"
             ],
-            "library_type": "Total RNA",
+            "library_type": "TOTAL_RNA",
             "name": "EXPM_Pseudonym051",
             "sequencing_layout": "PE",
             "type": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI"
@@ -372,8 +372,8 @@
         {
             "alias": "SAM_Pseudonym01",
             "biospecimen_age_at_sampling": "UNKNOWN",
-            "biospecimen_tissue_id": "UNKNOWN",
-            "biospecimen_tissue_term": "UNKNOWN",
+            "biospecimen_tissue_id": "BTO:0000887",
+            "biospecimen_tissue_term": "muscle",
             "case_control_status": "CASE",
             "description": "Germline sample of PAT1",
             "individual": "PAT1",
@@ -383,8 +383,6 @@
         {
             "alias": "SAM_Pseudonym05",
             "biospecimen_age_at_sampling": "UNKNOWN",
-            "biospecimen_tissue_id": "UNKNOWN",
-            "biospecimen_tissue_term": "UNKNOWN",
             "case_control_status": "CASE",
             "description": "Germline sample of PAT2",
             "individual": "PAT2",
@@ -393,9 +391,9 @@
         },
         {
             "alias": "SAM_Pseudonym011",
-            "biospecimen_age_at_sampling": "UNKNOWN",
-            "biospecimen_tissue_id": "UNKNOWN",
-            "biospecimen_tissue_term": "UNKNOWN",
+            "biospecimen_age_at_sampling": "46_TO_50",
+            "biospecimen_tissue_id": "BTO:0000089",
+            "biospecimen_tissue_term": "blood",
             "case_control_status": "CASE",
             "description": "Germline sample of PAT1",
             "individual": "PAT1",
@@ -404,9 +402,9 @@
         },
         {
             "alias": "SAM_Pseudonym051",
-            "biospecimen_age_at_sampling": "UNKNOWN",
-            "biospecimen_tissue_id": "UNKNOWN",
-            "biospecimen_tissue_term": "UNKNOWN",
+            "biospecimen_age_at_sampling": "21_TO_25",
+            "biospecimen_tissue_id": "BTO:0001253",
+            "biospecimen_tissue_term": "skin",
             "case_control_status": "CASE",
             "description": "Germline sample of PAT2",
             "individual": "PAT2",

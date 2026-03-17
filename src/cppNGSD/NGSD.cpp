@@ -6839,19 +6839,62 @@ GeneSet NGSD::synonymousSymbols(int id)
 	return output;
 }
 
-PhenotypeList NGSD::phenotypes(const QByteArray& symbol)
+PhenotypeList NGSD::phenotypes(const QByteArray& symbol, bool sort_by_relevance)
 {
 	PhenotypeList output;
 
-	SqlQuery query = getQuery();
-	query.prepare("SELECT hpo_term_id FROM hpo_genes WHERE gene=:0");
-	query.bindValue(0, symbol);
-	query.exec();
-	while(query.next())
+	//determine HPO database IDs
+	QList<int> hpo_ids;
+	if (sort_by_relevance)
 	{
-		output << phenotype(query.value(0).toInt());
+		//create list of id and score
+		QList<QPair<int, int>> id2score;
+		SqlQuery query = getQuery();
+		query.prepare("SELECT hpo_term_id, details FROM hpo_genes WHERE gene=:0");
+		query.bindValue(0, symbol);
+		query.exec();
+		while(query.next())
+		{
+			int id = query.value(0).toInt();
+			int score = 0;
+			foreach(QString part, query.value(1).toString().split(';'))
+			{
+				part = part.trimmed();
+				if (part.isEmpty()) continue;
+
+				if (part.endsWith("high)")) score += 4;
+				else if (part.endsWith("medium)")) score += 2;
+				else score += 1;
+			}
+			id2score << qMakePair(id, score);
+		}
+
+		//sort
+		std::sort(id2score.begin(), id2score.end(),
+				  [](const QPair<int,int>& a, const QPair<int,int>& b)
+				  {
+					  return a.second > b.second;
+				  });
+
+		for (const QPair<int, int>& pair: std::as_const(id2score))
+		{
+			hpo_ids << pair.first;
+		}
 	}
-	output.sortByName();
+	else
+	{
+		hpo_ids = getValuesInt("SELECT hpo_term_id FROM hpo_genes WHERE gene=:0", symbol);
+	}
+
+	//add phenotypes to output
+	for(int pheno_id:  std::as_const(hpo_ids))
+	{
+		output << phenotype(pheno_id);
+	}
+
+	//sort by name
+	if (!sort_by_relevance) output.sortByName();
+
 	return output;
 }
 

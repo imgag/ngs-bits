@@ -113,7 +113,6 @@
 #include "VirusDetectionWidget.h"
 #include "SomaticcfDNAReport.h"
 #include "ClientHelper.h"
-#include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
 #include "IgvLogWidget.h"
 #include "SettingsDialog.h"
@@ -5011,12 +5010,6 @@ void MainWindow::on_actionSampleCounts_triggered()
 void MainWindow::on_actionGaps_triggered()
 {
 	GapClosingDialog dlg(this);
-	dlg.exec();
-}
-
-void MainWindow::on_actionPrepareGhgaUpload_triggered()
-{
-	GHGAUploadDialog dlg(this);
 	dlg.exec();
 }
 

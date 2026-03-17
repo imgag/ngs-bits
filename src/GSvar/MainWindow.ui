@@ -348,7 +348,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -505,7 +505,6 @@
      <addaction name="actionImportTestData"/>
      <addaction name="actionExportSampleData"/>
      <addaction name="separator"/>
-     <addaction name="actionPrepareGhgaUpload"/>
      <addaction name="separator"/>
      <addaction name="actionMaintenance"/>
      <addaction name="actionNotifyUsers"/>
@@ -1401,11 +1400,6 @@
   <action name="actionNotifyUsers">
    <property name="text">
     <string>Notify users</string>
-   </property>
-  </action>
-  <action name="actionPrepareGhgaUpload">
-   <property name="text">
-    <string>Prepare GHGA upload</string>
    </property>
   </action>
   <action name="actionBurdenTest">
