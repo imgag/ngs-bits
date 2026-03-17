@@ -63,17 +63,12 @@ void ScatterPlot::addVLine(double x)
 void ScatterPlot::store(QString filename)
 {
 	// the code needs an instance of GUI app to work, we make sure it will work even without one
+	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QCoreApplication* app = QCoreApplication::instance();
-
 	static int argc = 1;
 	static char arg0[] = "test";
 	static char* argv[] = { arg0, nullptr };
-
-	if (!qobject_cast<QApplication*>(app))
-	{
-		qputenv("QT_QPA_PLATFORM", "offscreen");
-		new QApplication(argc, argv);
-	}
+	if (!qobject_cast<QApplication*>(app)) new QApplication(argc, argv);
 
 	if (!yrange_set_ && !points_.isEmpty())
 	{

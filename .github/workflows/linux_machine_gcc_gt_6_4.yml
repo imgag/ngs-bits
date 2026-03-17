@@ -6,9 +6,6 @@ jobs:
   gcc-build-and-test:
     runs-on: ubuntu-24.04
 
-    env:
-      QT_QPA_PLATFORM: offscreen
-
     services:
       mysql:
         image: mysql:5.7
