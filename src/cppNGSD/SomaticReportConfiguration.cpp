@@ -244,6 +244,7 @@ bool SomaticReportConfiguration::remove(VariantType type, int index)
 		if (var_conf.variant_index==index && var_conf.variant_type==type)
 		{
 			variant_config_.removeAt(i);
+            emit variantsChanged();
 			return true;
 		}
 	}

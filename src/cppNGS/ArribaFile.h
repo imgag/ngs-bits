@@ -131,7 +131,7 @@ public:
 	QByteArray getCaller() const;
     QByteArray getCallDate() const;
 
-    bool isValid();
+    bool isValid() const;
 
 private:
     QString filename_;

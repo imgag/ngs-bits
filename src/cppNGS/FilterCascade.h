@@ -282,7 +282,7 @@ class CPPNGSSHARED_EXPORT FilterCascade
 		//Creates a filter cascade from a tab-separated text (one filter with parameters per line).
 		static FilterCascade fromText(const QStringList& lines);
 		//Creates the filter cascade representation as a tab-seperated text (one filter with parameters per line).
-		QStringList toText();
+        QStringList toText() const;
 
 		//Equality operator (compares name/type/parameters only)
 		bool operator==(const FilterCascade& rhs) const;

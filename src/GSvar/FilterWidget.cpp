@@ -370,7 +370,7 @@ void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 	phenotypesChanged();
 }
 
-const PhenotypeSettings&FilterWidget::phenotypeSettings() const
+const PhenotypeSettings& FilterWidget::phenotypeSettings() const
 {
 	return phenotype_settings_;
 }

@@ -804,10 +804,10 @@ void FilterCascade::store(QString filename)
 	file->close();
 }
 
-QStringList FilterCascade::toText()
+QStringList FilterCascade::toText() const
 {
 	QStringList lines;
-    for (QSharedPointer<FilterBase> filter : filters_)
+    foreach (QSharedPointer<FilterBase> filter, filters_)
 	{
 		QStringList params;
         for (const FilterParameter& param : filter->parameters())

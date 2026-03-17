@@ -5155,6 +5155,181 @@ void NGSD::deleteSomaticGeneRole(QByteArray gene)
 
 }
 
+VariantValidation NGSD::variantValidationSmallVariant(QByteArray variant_id, QByteArray  sample_id, bool throw_on_fail)
+{
+    SqlQuery query = getQuery();
+    query.exec("SELECT * FROM variant_validation WHERE variant_id='" + variant_id + "' AND sample_id='" + sample_id + "'");
+
+    if (! query.next())
+    {
+        if (throw_on_fail)
+        {
+            THROW(ArgumentException, "There is no variant validation entry for sample '" + sample_id + "' and the variant: '" + variant_id);
+        }
+        VariantValidation var_val;
+        var_val.sample_id= Helper::toInt(sample_id);
+        var_val.variant_id= Helper::toInt(variant_id);
+        var_val.variant_type = "SNV_INDEL";
+        return var_val;
+    }
+
+    VariantValidation var_val;
+    var_val.val_id = query.value("id").toInt();
+    var_val.sample_id = sample_id.toInt();
+    var_val.variant_id = variant_id.toInt();
+    var_val.variant_type = query.value("variant_type").toByteArray();
+    var_val.user_id = query.value("user_id").toInt();
+    var_val.validation_method = query.value("validation_method").toByteArray();
+    var_val.status = query.value("status").toByteArray();
+    var_val.comment = query.value("comment").toByteArray();
+
+    return var_val;
+}
+
+VariantValidation NGSD::variantValidationCnvVariant(QByteArray cnv_id, QByteArray  sample_id, bool throw_on_fail)
+{
+    SqlQuery query = getQuery();
+    query.exec("SELECT * FROM variant_validation WHERE cnv_id='" + cnv_id + "' AND sample_id='" + sample_id + "'");
+
+    if (! query.next())
+    {
+        if (throw_on_fail)
+        {
+            THROW(ArgumentException, "There is no variant validation entry for sample '" + sample_id + "' and the CNV: '" + cnv_id);
+        }
+
+        VariantValidation var_val;
+        var_val.sample_id= Helper::toInt(sample_id);
+        var_val.cnv_id= Helper::toInt(cnv_id);
+        var_val.variant_type = "CNV";
+        return var_val;
+    }
+
+    VariantValidation var_val;
+    var_val.val_id = query.value("id").toInt();
+    var_val.sample_id = sample_id.toInt();
+    var_val.cnv_id = cnv_id.toInt();
+    var_val.variant_type = query.value("variant_type").toByteArray();
+    var_val.user_id = query.value("user_id").toInt();
+    var_val.validation_method = query.value("validation_method").toByteArray();
+    var_val.status = query.value("status").toByteArray();
+    var_val.comment = query.value("comment").toByteArray();
+
+    return var_val;
+}
+
+VariantValidation NGSD::variantValidationSvVariant(QByteArray sv_id, StructuralVariantType sv_type, QByteArray  sample_id, bool throw_on_fail)
+{
+
+    QByteArray column;
+    switch(sv_type)
+    {
+        case StructuralVariantType::DEL:
+            column = "sv_deletion_id";
+            break;
+        case StructuralVariantType::DUP:
+            column = "sv_duplication_id";
+            break;
+        case StructuralVariantType::INS:
+            column = "sv_insertion_id";
+            break;
+        case StructuralVariantType::INV:
+            column = "sv_invertion_id";
+            break;
+        case StructuralVariantType::BND:
+            column = "sv_translocation_id";
+            break;
+        default:
+            THROW(ProgrammingException, "Unhandled SV type or UNKNOWN in switch.");
+    }
+
+
+    SqlQuery query = getQuery();
+    query.exec("SELECT * FROM variant_validation WHERE " + column + "= '" + sv_id + "' AND sample_id='" + sample_id + "'");
+
+    if (! query.next())
+    {
+        if (throw_on_fail)
+        {
+            THROW(ArgumentException, "There is no variant validation entry for sample '" + sample_id + "' and the SV: '" + sv_id + "' of type: '" + StructuralVariantTypeToString(sv_type) + "'");
+        }
+
+        VariantValidation var_val;
+        var_val.sample_id= Helper::toInt(sample_id);
+        switch(sv_type)
+        {
+            case StructuralVariantType::DEL:
+                var_val.sv_deletion_id = sv_id.toInt();
+                break;
+            case StructuralVariantType::DUP:
+                var_val.sv_duplication_id = sv_id.toInt();
+                break;
+            case StructuralVariantType::INS:
+                var_val.sv_insertion_id = sv_id.toInt();
+                break;
+            case StructuralVariantType::INV:
+                var_val.sv_inversion_id = sv_id.toInt();
+                break;
+            case StructuralVariantType::BND:
+                var_val.sv_translocation_id = sv_id.toInt();
+                break;
+            default:
+                THROW(ProgrammingException, "Unhandled SV type in switch.");
+        }
+        var_val.variant_type = "SV";
+        return var_val;
+    }
+
+    VariantValidation var_val;
+    var_val.val_id = query.value("id").toInt();
+    var_val.sample_id = sample_id.toInt();
+    var_val.sv_deletion_id = query.value("sv_deletion_id").isNull() ? -1 : query.value("sv_deletion_id").toInt();
+    var_val.sv_duplication_id = query.value("sv_duplication_id").isNull() ? -1 : query.value("sv_duplication_id").toInt();
+    var_val.sv_insertion_id = query.value("sv_insertion_id").isNull() ? -1 : query.value("sv_insertion_id").toInt();
+    var_val.sv_inversion_id = query.value("sv_inversion_id").isNull() ? -1 : query.value("sv_inversion_id").toInt();
+    var_val.sv_translocation_id = query.value("sv_translocation_id").isNull() ? -1 : query.value("sv_translocation_id").toInt();
+    var_val.variant_type = query.value("variant_type").toByteArray();
+    var_val.user_id = query.value("user_id").toInt();
+    var_val.validation_method = query.value("validation_method").toByteArray();
+    var_val.status = query.value("status").toByteArray();
+    var_val.comment = query.value("comment").toByteArray();
+
+    return var_val;
+}
+
+void NGSD::storeVariantValidation(const VariantValidation& var_val, const QByteArray& user_id)
+{
+    if (var_val.val_id == -1)
+    {
+        //new variant validation
+        SqlQuery query = getQuery();
+        query.prepare("INSERT INTO variant_validation (user_id, sample_id, variant_type, genotype, status, method, comment, variant_id, cnv_id, sv_deletion_id, sv_duplication_id, sv_insertion_id, sv_invertion_id, sv_translocation_id) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13)");
+        query.bindValue(0, user_id);
+        query.bindValue(1, var_val.sample_id);
+        query.bindValue(2, var_val.variant_type);
+        query.bindValue(3, var_val.genotype);
+        query.bindValue(4, var_val.status);
+        query.bindValue(5, var_val.validation_method);
+        query.bindValue(6, var_val.comment);
+        query.bindValue(7, var_val.variant_id != -1 ? QByteArray::number(var_val.variant_id) : "NULL");
+        query.bindValue(8, var_val.cnv_id != -1 ? QByteArray::number(var_val.cnv_id) : "NULL");
+        query.bindValue(9, var_val.sv_deletion_id != -1 ? QByteArray::number(var_val.sv_deletion_id) : "NULL");
+        query.bindValue(10, var_val.sv_duplication_id != -1 ? QByteArray::number(var_val.sv_duplication_id) : "NULL");
+        query.bindValue(11, var_val.sv_insertion_id != -1 ? QByteArray::number(var_val.sv_insertion_id) : "NULL");
+        query.bindValue(12, var_val.sv_inversion_id != -1 ? QByteArray::number(var_val.sv_inversion_id) : "NULL");
+        query.bindValue(13, var_val.sv_translocation_id != -1 ? QByteArray::number(var_val.sv_translocation_id) : "NULL");
+    }
+    else
+    {
+        SqlQuery query = getQuery(); //use binding (user input)
+        query.prepare("UPDATE variant_validation SET validation_method=:0, status=:1, comment=:2 WHERE id='" + QByteArray::number(var_val.val_id) + "'");
+        query.bindValue(0, var_val.validation_method);
+        query.bindValue(1, var_val.status);
+        query.bindValue(2, var_val.comment);
+        query.exec();
+    }
+}
+
 
 int NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id)
 {

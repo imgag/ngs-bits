@@ -3,8 +3,7 @@
 
 #include <QDialog>
 #include "ui_ClinvarUploadDialog.h"
-
-#include "Phenotype.h"
+#include "AnalysisDataController.h"
 #include "NGSD.h"
 
 enum class ClinvarSubmissionType
@@ -63,8 +62,7 @@ class ClinvarUploadDialog
 	Q_OBJECT
 
 public:
-    ClinvarUploadDialog(QWidget *parent = 0);
-	void setData(ClinvarUploadData data);
+    ClinvarUploadDialog(AnalysisDataController& data_controller, int variant_index1=-1, int variant_index2=-1, QWidget *parent = 0);
 
 private slots:
     void initGui();
@@ -75,7 +73,7 @@ private slots:
 	void addCompHetVariant();
 	void removeCompHetVariant();
 	void selectVariantType(int i);
-	void updateGUI();
+    void updateButtons();
 	void setDiseaseInfo();
 	void addDiseaseInfo();
 	void removeDiseaseInfo();
@@ -84,6 +82,9 @@ private slots:
 private:
     Ui::ClinVarUploadDialog ui_;
     NGSD db_;
+    AnalysisDataController& data_controller_;
+    int var_index1_;
+    int var_index2_;
 	bool manual_upload_ = true;
     ClinvarUploadData clinvar_upload_data_;
 	bool upload_running_ = false;
@@ -93,6 +94,9 @@ private:
 	QString getHGVS();
 	///Returns db table name for variant
 	QString getDbTableName(bool var2 = false);
+
+    void loadData();
+    void updateGui();
 
     static QString getSettings(QString key);
 	static QString convertClassification(QString classification, bool reverse=false);

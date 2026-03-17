@@ -681,6 +681,28 @@ struct  NsxAnalysisSettings
 	bool dragen_analysis = true;
 };
 
+///Variant Validation details
+struct CPPNGSDSHARED_EXPORT VariantValidation
+{
+    int val_id = -1;
+    int user_id = -1;
+    QDateTime date;
+    int sample_id =-1;
+    QByteArray variant_type;
+    int variant_id =-1;
+    int cnv_id =-1;
+    int sv_deletion_id =-1;
+    int sv_duplication_id =-1;
+    int sv_insertion_id =-1;
+    int sv_inversion_id =-1;
+    int sv_translocation_id =-1;
+    QByteArray genotype;
+    QByteArray validation_method;
+    QByteArray status;
+    QByteArray comment;
+};
+
+
 ///NGSD access
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -1129,6 +1151,15 @@ public:
 	///delete somatic gene role data for certain gene
 	void deleteSomaticGeneRole(QByteArray gene);
 
+
+    ///return the Variant Validation data of small variant
+    VariantValidation variantValidationSmallVariant(QByteArray variant_id, QByteArray  sample_id, bool throw_on_fail=false);
+    ///return the Variant Validation data of CNV variant
+    VariantValidation variantValidationCnvVariant(QByteArray snv_id, QByteArray  sample_id, bool throw_on_fail=false);
+    ///return the Variant Validation data of SV variant
+    VariantValidation variantValidationSvVariant(QByteArray sv_id, StructuralVariantType sv_type, QByteArray  sample_id, bool throw_on_fail=false);
+    ///store variant validation in DB if already exists only updates method, status and comment
+    void storeVariantValidation(const VariantValidation& var_val, const QByteArray& user_id);
 
 	///Adds a variant publication
 	int addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);

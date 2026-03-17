@@ -3516,4 +3516,16 @@ private:
 		I_EQUAL(query.value("sample_id").toInt(), 1);
 		S_EQUAL(query.value("quality").toString(), "medium");
     }
+
+    TEST_METHOD(variant_validation)
+    {
+        S_EQUAL("TODO", "DONE");
+        //TODO: load and save the different types
+        //e.g.
+        //VariantValidation variantValidationSmallVariant(QByteArray variant_id, QByteArray  sample_id, bool throw_on_fail=false);
+        //VariantValidation variantValidationCnvVariant(QByteArray cnv_variant_id, QByteArray  sample_id, bool throw_on_fail=false);
+        //VariantValidation variantValidationSvVariant(QByteArray sv_variant_id, StructuralVariantType sv_type, QByteArray  sample_id, bool throw_on_fail=false);
+        //void storeVariantValidation(const VariantValidation& var_val, const QByteArray& user_id);
+
+    }
 };

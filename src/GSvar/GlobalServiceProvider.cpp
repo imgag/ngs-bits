@@ -159,3 +159,13 @@ const BedFile& GlobalServiceProvider::geneToRegions(QByteArray gene, NGSD& db)
 	}
 	return cache_[gene];
 }
+
+TargetRegionInfo GlobalServiceProvider::processingSystemTargetRegionInfo(QString name, NGSD& db)
+{
+    int sys_id = db.processingSystemId(name);
+    TargetRegionInfo roi_info;
+    roi_info.name = name;
+    roi_info.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
+    roi_info.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id, false);
+    return roi_info;
+}

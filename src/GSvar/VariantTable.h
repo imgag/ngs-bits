@@ -2,9 +2,7 @@
 #define VARIANTTABLE_H
 
 #include <QTableWidget>
-#include "FilterCascade.h"
-#include "ReportSettings.h"
-#include "SomaticReportSettings.h"
+#include "AnalysisDataController.h"
 
 //GUI representation of (filtered) variant table
 class VariantTable
@@ -16,13 +14,9 @@ public:
 	VariantTable(QWidget* parent);
 
 	///Update table
-	void update(VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants);
-	///Update table, determine report icons from SomaticReportSettings
-	void update(VariantList& variants, const FilterResult& filter_result, const SomaticReportSettings& report_settings, int max_variants);
+    void update(AnalysisDataController& data_controller, int max_variants);
 	///Update header icon (report config)
-	void updateVariantHeaderIcon(const ReportSettings& report_settings, int variant_index);
-	///Update header icon (SOMATIC report config)
-	void updateVariantHeaderIcon(const SomaticReportSettings& report_settings, int variant_index);
+    void updateVariantHeaderIcon(const AnalysisDataController& data_controller, int variant_index);
 
 	///Returns the current variant index, or -1 if no/several variants are selected. If @p gui_indices is true, GUI table indices are returned instead of variant list index.
 	int selectedVariantIndex(bool gui_indices = false) const;
@@ -84,19 +78,20 @@ signals:
 	void publishToClinvarTriggered(int index1, int index2=-1);
 	///Signal emitted when Alamut should be opened
 	void alamutTriggered(QAction* action);
-	///Signal to show CNVs/SVs matching a variant
-	void showMatchingCnvsAndSvs(BedLine region);
 
 protected:
 
 	///This method provides generic functionality independent of ReportSettings/SomaticReportSettings
-	void updateTable(VariantList& variants, const FilterResult& filter_result, const QHash<int, bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants);
+    void updateTable(AnalysisDataController& data_controller, const QHash<int, bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants);
 
 	///Override copy command
 	void keyPressEvent(QKeyEvent* event) override;
 
 private:
-	VariantList* variants_;
+    ///show a table with CNVs/SVs matching a variant
+    void showMatchingCnvsAndSvs(BedLine region);
+
+    AnalysisDataController* data_controller_;
 	QList<QAction*> registered_actions_;
 	PhenotypeList active_phenotypes_;
 };

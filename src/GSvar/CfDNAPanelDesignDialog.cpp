@@ -177,7 +177,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 
 
 	//activate KASP identifier
-	ui_->cb_sample_identifier->setCheckState((prev_id_snp_)?Qt::Checked:Qt::Unchecked);
+    ui_->cb_sample_identifier->setCheckState((prev_id_snp_) ? Qt::Checked : Qt::Unchecked);
 
 
 

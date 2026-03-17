@@ -32,6 +32,7 @@ SOURCES += main.cpp\
     ColumnConfig.cpp \
     ColumnConfigWidget.cpp \
     DatabaseServiceRemote.cpp \
+    FilterState.cpp \
     GHGAUploadDialog.cpp \
     GeneInterpretabilityDialog.cpp \
     GlobalServiceProvider.cpp \
@@ -157,7 +158,8 @@ SOURCES += main.cpp\
     OncoTreeSelector.cpp \
     FilterWidgetFusion.cpp \
     RnaReportFusionDialog.cpp \
-    AnalysisDataController.cpp
+    AnalysisDataController.cpp \
+    FilterState.cpp
 
 HEADERS += MainWindow.h \
     AnalysisDataController.h \
@@ -295,7 +297,8 @@ HEADERS += MainWindow.h \
     OncoTreeSelector.h \
     FilterWidgetFusion.h \
     RnaReportFusionDialog.h \
-    AnalysisDataController.h
+    AnalysisDataController.h \
+    FilterState.h
 
 FORMS    += MainWindow.ui \
     Background/BackgroundJobDialog.ui \

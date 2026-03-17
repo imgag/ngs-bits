@@ -4,11 +4,11 @@
 #include "VariantHgvsAnnotator.h"
 #include "Settings.h"
 
-ValidationDialog::ValidationDialog(QWidget* parent, int id)
+ValidationDialog::ValidationDialog(QWidget* parent, VariantValidation var_val)
 	: QDialog(parent)
 	, ui_()
 	, db_()
-	, val_id_(QString::number(id))
+    , var_val_(var_val)
 {
 	ui_.setupUi(this);
 
@@ -18,26 +18,24 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	{
 		ui_.method->addItem(m);
 	}
-	connect(ui_.status, SIGNAL(currentTextChanged(QString)), this, SLOT(statusChanged()));
+
+    connect(ui_.method, SIGNAL(currentTextChanged(QString)), this, SLOT(changed()));
+    connect(ui_.comment, SIGNAL(currentCharFormatChanged(QTextCharFormat)), this, SLOT(changed()));
+    //status doesnt need to directly update the object with changed() as statusChanged() modifys the comment and that change triggers the changed() function.
+    connect(ui_.status, SIGNAL(currentTextChanged(QString)), this, SLOT(statusChanged()));
+
 	QStringList status = db_.getEnum("variant_validation", "status");
 	foreach(QString s, status)
 	{
 		ui_.status->addItem(s);
 	}
 
-	//fill with data
-	SqlQuery query = db_.getQuery();
-	query.exec("SELECT * FROM variant_validation WHERE id=" + val_id_);
-	query.next();
-
-	// determine variant type
-	variant_type_ = query.value("variant_type").toString();
-	if (variant_type_ == "SNV_INDEL")
+    if (var_val_.variant_type == "SNV_INDEL")
 	{
 		ui_.variant_type->setText("SNV/Indel");
-		QString variant_id = query.value("variant_id").toString();
+        QString variant_id = QString::number(var_val_.variant_id);
 		Variant variant = db_.variant(variant_id);
-		QString text = variant.toString() + " (" + query.value("genotype").toString() + ") // HG19: ";
+        QString text = variant.toString() + " (" + var_val_.genotype + ") // HG19: ";
 		try
 		{
 			Variant variant_hg19 = GSvarHelper::liftOverVariant(variant, false);
@@ -73,40 +71,35 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 
 		ui_.transcript_info->setText(transcript_infos.join("<br>"));
 	}
-	else if (variant_type_ == "CNV")
+    else if (var_val_.variant_type == "CNV")
 	{
 		ui_.variant_type->setText("CNV");
-		int cnv_id = query.value("cnv_id").toInt();
+        int cnv_id = var_val_.variant_id;
 		CopyNumberVariant cnv = db_.cnv(cnv_id);
 		ui_.variant->setText(cnv.toString());
 	}
-	else // SV
+    else if (var_val_.variant_type == "SV")
 	{
 		ui_.variant_type->setText("SV");
-		int sv_id = -1;
-		if (!query.value("sv_deletion_id").isNull())
+        int sv_id = var_val_.variant_id;
+        if (var_val_.sv_deletion_id != -1)
 		{
-			sv_id = query.value("sv_deletion_id").toInt();
 			sv_type_ = StructuralVariantType::DEL;
 		}
-		else if (!query.value("sv_duplication_id").isNull())
+        else if (var_val_.sv_duplication_id != -1)
 		{
-			sv_id = query.value("sv_duplication_id").toInt();
-			sv_type_ = StructuralVariantType::DUP;
+            sv_type_ = StructuralVariantType::DUP;
 		}
-		else if (!query.value("sv_inversion_id").isNull())
+        else if (var_val_.sv_inversion_id != -1)
 		{
-			sv_id = query.value("sv_inversion_id").toInt();
-			sv_type_ = StructuralVariantType::INV;
+            sv_type_ = StructuralVariantType::INV;
 		}
-		else if (!query.value("sv_insertion_id").isNull())
+        else if (var_val_.sv_insertion_id != -1)
 		{
-			sv_id = query.value("sv_insertion_id").toInt();
-			sv_type_ = StructuralVariantType::INS;
+            sv_type_ = StructuralVariantType::INS;
 		}
-		else if (!query.value("sv_translocation_id").isNull())
+        else if (var_val_.sv_translocation_id != -1)
 		{
-			sv_id = query.value("sv_translocation_id").toInt();
 			sv_type_ = StructuralVariantType::BND;
 		}
 		else
@@ -119,27 +112,29 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 		BedpeLine sv = db_.structuralVariant(sv_id, sv_type_, bedpe_structure, true);
 		ui_.variant->setText(sv.toString());
 	}
+    else
+    {
+        THROW(ProgrammingException, "Unhandled variant type in ValidationDialog!");
+    }
 
+    ui_.sample->setText(db_.sampleName(QString::number(var_val_.sample_id)));
+    ui_.requested_by->setText(db_.getValue("SELECT name FROM user WHERE id=" + QString::number(var_val_.user_id)).toString());
 
-
-	ui_.sample->setText(db_.sampleName(query.value("sample_id").toString()));
-
-	ui_.requested_by->setText(db_.getValue("SELECT name FROM user WHERE id=" + query.value("user_id").toString()).toString());
-
-	ui_.method->setCurrentText(query.value("validation_method").toString());
-	ui_.status->setCurrentText(query.value("status").toString());
-
-	ui_.comment->setPlainText(query.value("comment").toString());
+    ui_.method->setCurrentText(var_val_.validation_method);
+    ui_.status->setCurrentText(var_val_.status);
+    ui_.comment->setPlainText(var_val_.comment);
 }
 
-void ValidationDialog::store()
+void ValidationDialog::changed()
 {
-	SqlQuery query = db_.getQuery(); //use binding (user input)
-	query.prepare("UPDATE variant_validation SET validation_method=:0, status=:1, comment=:2 WHERE id='" + val_id_ + "'");
-	query.bindValue(0, ui_.method->currentText());
-	query.bindValue(1, ui_.status->currentText());
-	query.bindValue(2, ui_.comment->toPlainText().trimmed());
-	query.exec();
+    var_val_.validation_method = ui_.method->currentText().toUtf8();
+    var_val_.status = ui_.status->currentText().toUtf8();
+    var_val_.comment = ui_.comment->toPlainText().toUtf8();
+}
+
+VariantValidation ValidationDialog::getValidation()
+{
+    return var_val_;
 }
 
 QString ValidationDialog::status()

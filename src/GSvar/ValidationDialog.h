@@ -13,24 +13,24 @@ class ValidationDialog
 
 public:
 	///Constructor
-	ValidationDialog(QWidget* parent, int id);
+    ValidationDialog(QWidget* parent, VariantValidation var_val);
 
-	///Stores the changed data to the NGSD
-	void store();
-
+    ///Returns the variant validation object
+    VariantValidation getValidation();
 	///Returns the current status.
 	QString status();
 
 private slots:
 	///Updates the validation comment when the status changes
 	void statusChanged();
+    ///Save changes in the gui to the object
+    void changed();
 
 private:
 	Ui::ValidationDialog ui_;
 	NGSD db_;
-	QString val_id_;
-	QString variant_type_;
-	StructuralVariantType sv_type_;
+    VariantValidation var_val_;
+    StructuralVariantType sv_type_;
 };
 
 #endif // VALIDATIONDIALOG_H

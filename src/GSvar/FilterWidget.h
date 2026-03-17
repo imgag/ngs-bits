@@ -7,14 +7,7 @@
 #include "PhenotypeList.h"
 #include "FilterCascade.h"
 #include "NGSHelper.h"
-
-//Filter settings for report configuration
-enum class ReportConfigFilter
-{
-	NONE,
-	NO_RC,
-	HAS_RC
-};
+#include "AnalysisDataController.h"
 
 //Filter manager dock widget
 //The filter list is not populated automatically, since we need to get the database

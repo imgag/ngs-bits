@@ -16,6 +16,7 @@
 #include "Settings.h"
 #include <QMetaMethod>
 #include <QClipboard>
+#include "TsvTableWidget.h"
 
 VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)
@@ -87,10 +88,11 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 
 	bool  ngsd_user_logged_in = LoginManager::active();
-	const Variant& variant = (*variants_)[index];
-	int i_gene = variants_->annotationIndexByName("gene", true, true);
+    const VariantList& variants = data_controller_->getSmallVariantList();
+    const Variant& variant = variants[index];
+    int i_gene = variants.annotationIndexByName("gene", true, true);
 	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
-	int i_co_sp = variants_->annotationIndexByName("coding_and_splicing", true, true);
+    int i_co_sp = variants.annotationIndexByName("coding_and_splicing", true, true);
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
@@ -124,7 +126,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
 		//BAM
-        if (variants_->type()==AnalysisType::GERMLINE_SINGLESAMPLE)
+        if (data_controller_->getAnalysisType()==AnalysisType::GERMLINE_SINGLESAMPLE)
 		{
 			sub_menu->addAction("BAM");
 		}
@@ -136,14 +138,14 @@ void VariantTable::customContextMenu(QPoint pos)
 		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
 
 		//genes
-        for (const QByteArray& g : genes)
+        foreach (const QByteArray& g, genes)
 		{
 			sub_menu->addAction(g);
 		}
 		sub_menu->addSeparator();
 
 		//transcripts
-        for (const VariantTranscript& transcript : transcripts)
+        foreach (const VariantTranscript& transcript, transcripts)
 		{
 			if  (transcript.id!="" && transcript.hgvs_c!="")
 			{
@@ -181,10 +183,10 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
-    for (const QByteArray& g : genes)
+    foreach(const QByteArray& g, genes)
 	{
 		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
-        for (const Phenotype& p : active_phenotypes_)
+        foreach(const Phenotype& p, active_phenotypes_)
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
 		}
@@ -198,7 +200,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	if (!genes.isEmpty())
 	{
 		menu.addSeparator();
-        for (const QByteArray& g : genes)
+        foreach (const QByteArray& g, genes)
 		{
 			sub_menu = menu.addMenu(g);
 			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in);
@@ -289,8 +291,8 @@ void VariantTable::customContextMenu(QPoint pos)
 			}
 		}
 
-		int i_dbsnp = variants_->annotationIndexByName("dbSNP", true, true);
-		QByteArray dbsnp = (*variants_)[index].annotations()[i_dbsnp].trimmed();
+        int i_dbsnp = data_controller_->getSmallVariantList().annotationIndexByName("dbSNP", true, true);
+        QByteArray dbsnp = data_controller_->getSmallVariantList()[index].annotations()[i_dbsnp].trimmed();
 		if (dbsnp!="")
 		{
 			query += " OR \"" + dbsnp + "\"";
@@ -357,7 +359,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		else if (text=="Google")
 		{
 			QString query = gene + " AND (mutation";
-            for (const Phenotype& pheno : active_phenotypes_)
+            foreach (const Phenotype& pheno, active_phenotypes_)
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -373,7 +375,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	else if (parent_menu && parent_menu->title()=="Custom")
 	{
 		QStringList custom_entries = Settings::string("custom_menu_small_variants", true).trimmed().split("\t");
-        for (QString custom_entry : custom_entries)
+        foreach (const QString& custom_entry, custom_entries)
 		{
 			QStringList parts = custom_entry.split("|");
 			if (parts.count()==2 && parts[0]==text)
@@ -395,14 +397,15 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 }
 
-void VariantTable::updateTable(VariantList& variants, const FilterResult& filter_result, const QHash<int,bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants)
+void VariantTable::updateTable(AnalysisDataController& data_controller, const QHash<int,bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants)
 {
 	//update local reference to the variants
-	variants_ = &variants;
+    data_controller_ = &data_controller;
+    const VariantList& variants = data_controller_->getSmallVariantList();
 
 	//set rows and cols
-	int row_count_new = std::min(filter_result.countPassing(), max_variants);
-	int col_count_new = 5 + variants.annotations().count();
+    int row_count_new = std::min(data_controller_->getSmallVariantsFilterState().passing_variants.countPassing(), max_variants);
+    int col_count_new = 5 + variants.annotations().count();
 	if (rowCount()!=row_count_new || columnCount()!=col_count_new)
 	{
 		//completely clear items (is faster than resizing)
@@ -428,7 +431,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_small_variant", true));
 	QStringList col_order;
 	QList<int> anno_index_order;
-	config.getOrder(variants, col_order, anno_index_order);
+    config.getOrder(variants, col_order, anno_index_order);
 	for (int i=0; i<col_order.count(); ++i)
 	{
 		QString anno = col_order[i];
@@ -487,7 +490,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	int r = -1;
 	for (int i=0; i<variants.count(); ++i)
 	{
-		if (!filter_result.passing(i)) continue;
+        if (!data_controller_->getSmallVariantsFilterState().passing_variants.passing(i)) continue;
 
 		++r;
 		if (r>=max_variants) break; //maximum number of variants reached > abort
@@ -646,56 +649,60 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	config.applyHidden(this);
 }
 
-void VariantTable::update(VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
+void VariantTable::update(AnalysisDataController& data_controller, int max_variants)
 {
 	//init
 	QHash<int, bool> index_show_report_icon;
 	QSet<int> index_causal;
-	foreach(int index, report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
-	{
-		const ReportVariantConfiguration& rc = report_settings.report_config->get(VariantType::SNVS_INDELS, index);
-		index_show_report_icon[index] = rc.showInReport();
-		if (rc.causal) index_causal << index;
-	}
+    AnalysisType type = data_controller.getAnalysisType();
 
-	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
+    if (type==AnalysisType::GERMLINE_SINGLESAMPLE || type==AnalysisType::GERMLINE_TRIO || type==AnalysisType::GERMLINE_MULTISAMPLE)
+    {
+        foreach(int index, data_controller.getGermlineReportConfig()->variantIndices(VariantType::SNVS_INDELS, false))
+        {
+            const ReportVariantConfiguration& rc = data_controller.getGermlineReportConfig()->get(VariantType::SNVS_INDELS, index);
+            index_show_report_icon[index] = rc.showInReport();
+            if (rc.causal) index_causal << index;
+        }
+    }
+    else if (type==AnalysisType::SOMATIC_SINGLESAMPLE || type==AnalysisType::SOMATIC_PAIR || type==AnalysisType::CFDNA)
+    {
+        foreach(int index, data_controller.getSomaticReportConfig()->variantIndices(VariantType::SNVS_INDELS, false))
+        {
+            index_show_report_icon[index] = data_controller.getSomaticReportConfig()->get(VariantType::SNVS_INDELS, index).showInReport();
+        }
+    }
+    else
+    {
+        THROW(ProgrammingException, "Unsupported analysis type in VariantTable::update()!");
+    }
+
+    updateTable(data_controller, index_show_report_icon, index_causal, max_variants);
 }
 
-void VariantTable::update(VariantList& variants, const FilterResult& filter_result, const SomaticReportSettings& report_settings, int max_variants)
-{
-	//init
-	QHash<int, bool> index_show_report_icon;
-	QSet<int> index_causal;
-	foreach(int index, report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
-	{
-		index_show_report_icon[index] = report_settings.report_config->get(VariantType::SNVS_INDELS, index).showInReport();
-	}
-
-	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
-}
-
-void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings, int variant_index)
-{
-	int row = variantIndexToRow(variant_index);
-
-	QIcon report_icon;
-	if (report_settings.report_config->exists(VariantType::SNVS_INDELS, variant_index))
-	{
-		const ReportVariantConfiguration& rc = report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index);
-		report_icon = reportIcon(rc.showInReport(), rc.causal);
-	}
-	verticalHeaderItem(row)->setIcon(report_icon);
-}
-
-void VariantTable::updateVariantHeaderIcon(const SomaticReportSettings &report_settings, int variant_index)
+void VariantTable::updateVariantHeaderIcon(const AnalysisDataController& data_controller, int variant_index)
 {
 	int row = variantIndexToRow(variant_index);
-	QIcon report_icon;
-	if(report_settings.report_config->exists(VariantType::SNVS_INDELS, variant_index))
-	{
-		report_icon = reportIcon(report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index).showInReport(), false);
-	}
-	verticalHeaderItem(row)->setIcon(report_icon);
+
+    if (data_controller_->germlineReportSupported())
+    {
+        QIcon report_icon;
+        if (data_controller_->getGermlineReportConfig()->exists(VariantType::SNVS_INDELS, variant_index))
+        {
+            const ReportVariantConfiguration& rc = data_controller_->getGermlineReportConfig()->get(VariantType::SNVS_INDELS, variant_index);
+            report_icon = reportIcon(rc.showInReport(), rc.causal);
+        }
+        verticalHeaderItem(row)->setIcon(report_icon);
+    }
+    else if (data_controller.somaticReportSupported())
+    {
+        QIcon report_icon;
+        if(data_controller_->getSomaticReportConfig()->exists(VariantType::SNVS_INDELS, variant_index))
+        {
+            report_icon = reportIcon(data_controller_->getSomaticReportConfig()->get(VariantType::SNVS_INDELS, variant_index).showInReport(), false);
+        }
+        verticalHeaderItem(row)->setIcon(report_icon);
+    }
 }
 
 int VariantTable::selectedVariantIndex(bool gui_indices) const
@@ -1044,4 +1051,86 @@ void VariantTable::keyPressEvent(QKeyEvent* event)
 	{
 		QTableWidget::keyPressEvent(event);
 	}
+}
+
+void VariantTable::showMatchingCnvsAndSvs(BedLine v_reg)
+{
+    try
+    {
+        //determine overlapping genes
+        NGSD db;
+        GeneSet genes = db.genesOverlapping(v_reg.chr(), v_reg.start(), v_reg.end());
+        if (genes.isEmpty()) THROW(Exception, "Could not find a gene overlapping the variant region (gene transcripts are not padded by 5000 bases)!");
+
+        //determine overlapping genes region
+        BedFile regions = db.genesToRegions(genes, Transcript::ENSEMBL, "gene", true);
+        regions.overlapping(v_reg); //sometimes genes have several loci due to duplicate gene names > exclude those
+        regions.merge();
+
+        //check target region
+        if (regions.count()==0) THROW(Exception, "Could not determine a target region overlapping variant from genes: " + genes.join(", "));
+        if (regions.count()>1) THROW(Exception, "Several target regions overlapping variant from genes: " + genes.join(", "));
+
+        //create table
+        TsvFile table;
+        table.addHeader("type");
+        table.addHeader("variant");
+        table.addHeader("genotype");
+        table.addHeader("details");
+
+        //TODO restructure data work - also move to data_controller?
+
+        const CnvList& cnvs_ = data_controller_->getCnvList();
+        const BedpeFile& svs_ = data_controller_->getSvList();
+
+        //select CNVs
+        {
+            const Chromosome& chr = regions[0].chr();
+            int start = regions[0].start();
+            int end = regions[0].end();
+            const QByteArrayList& headers = cnvs_.annotationHeaders();
+            for (int i=0; i<cnvs_.count(); ++i)
+            {
+                const CopyNumberVariant& v = cnvs_[i];
+                if (v.overlapsWith(chr, start, end))
+                {
+                    int cn = v.copyNumber(headers);
+                    QStringList row;
+                    row << (cn<=1 ? "CNV - DEL" : "CNV - DUP");
+                    row << v.toString();
+                    row << "cn="+QString::number(cn);
+                    row << "size="+QString::number(v.size()/1000.0, 'f', 3) + "kb regions="+QString::number(v.regions());
+                    table.addRow(row);
+                }
+            }
+        }
+
+        //select SVs
+        {
+            QList<QByteArray> headers = svs_.annotationHeaders();
+            for (int i=0; i<svs_.count(); ++i)
+            {
+                const BedpeLine& v = svs_[i];
+                if (v.intersectsWith(regions))
+                {
+                    QStringList row;
+                    row << ("SV - " + StructuralVariantTypeToString(v.type()));
+                    row << v.toString(false);
+                    row << "genotype="+v.genotypeHumanReadable(headers);
+                    row << "size="+QString::number(v.size()/1000.0, 'f', 3)+"kb";
+                    table.addRow(row);
+                }
+            }
+        }
+
+        //show table
+        TsvTableWidget* widget = new TsvTableWidget(table, this);
+        connect(widget, SIGNAL(rowDoubleClicked(int)), this, SLOT(jumpToCnvOrSvPosition(int)));
+        QSharedPointer<QDialog> dlg = GUIHelper::createDialog(widget, "CNVs and SVs matching " + v_reg.toString(true));
+        dlg->exec();
+    }
+    catch(Exception& e)
+    {
+        GUIHelper::showException(this, e, "Showing matching CNVs and SVs failed!");
+    }
 }

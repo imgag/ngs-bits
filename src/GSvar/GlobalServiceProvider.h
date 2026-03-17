@@ -39,11 +39,7 @@ public:
 	//add modeless dialog
 	static void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
 
-	//get sample variants
-	static const VariantList& getSmallVariantList();
-	static const CnvList& getCnvList();
-	static const BedpeFile& getSvList();
-	static const RepeatLocusList& getReList();
+    static TargetRegionInfo processingSystemTargetRegion(int sys_id);
 
 	//general
 	static MainWindow* mainWindow();
@@ -52,6 +48,7 @@ public:
 
 	//return gene locus padded by 5000 bases (cached)
 	static const BedFile& geneToRegions(QByteArray gene, NGSD& db);
+    static TargetRegionInfo processingSystemTargetRegionInfo(QString name, NGSD& db);
 
 protected:
 	GlobalServiceProvider();

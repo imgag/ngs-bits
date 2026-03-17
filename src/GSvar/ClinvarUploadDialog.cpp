@@ -3,7 +3,6 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "Log.h"
 #include "LoginManager.h"
 #include "GSvarHelper.h"
 #include "GUIHelper.h"
@@ -23,9 +22,12 @@
 const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
-ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
+ClinvarUploadDialog::ClinvarUploadDialog(AnalysisDataController& data_controller, int variant_index1, int variant_index2, QWidget *parent)
     : QDialog(parent)
     , ui_()
+    , data_controller_(data_controller)
+    , var_index1_(variant_index1)
+    , var_index2_(variant_index2)
 {
 	if (!LoginManager::active())
 	{
@@ -36,15 +38,140 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
 
     ui_.setupUi(this);
 	connect(ui_.tw_disease_info, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(diseaseContextMenu(QPoint)));
-
     initGui();
+    if (variant_index1 != -1)
+    {
+        loadData();
+        updateGui();
+    }
 }
 
-void ClinvarUploadDialog::setData(ClinvarUploadData data)
+void ClinvarUploadDialog::loadData()
 {
-	// store given data
-	clinvar_upload_data_ = data;
+    if(var_index1_ < 0)
+    {
+        THROW(ArgumentException, "A valid variant index for the first variant has to be provided!");
+    }
 
+    //abort if API key is missing
+    if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+    {
+        THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
+    }
+
+    NGSD db;
+
+    //(1) prepare data as far as we can
+    ClinvarUploadData data;
+    data.processed_sample = data_controller_.germlineReportSample();
+    data.variant_type1 = VariantType::SNVS_INDELS;
+    if(var_index2_ < 0)
+    {
+        //Single variant submission
+        data.submission_type = ClinvarSubmissionType::SingleVariant;
+        data.variant_type2 = VariantType::INVALID;
+    }
+    else
+    {
+        //CompHet variant submission
+        data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+        data.variant_type2 = VariantType::SNVS_INDELS;
+    }
+
+    QString sample_id = db.sampleId(data.processed_sample);
+    SampleData sample_data = db.getSampleData(sample_id);
+
+
+    //get disease info
+    data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+    data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
+    if (data.disease_info.length() < 1)
+    {
+        INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+    }
+
+    // get affected status
+    data.affected_status = sample_data.disease_status;
+
+    //get phenotype(s)
+    data.phenos = sample_data.phenotypes;
+
+    //get variant info
+    data.snv1 = data_controller_.getSmallVariantList()[var_index1_];
+    if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.snv2 = data_controller_.getSmallVariantList()[var_index2_];
+
+    // get report info
+    if ( ! data_controller_.getGermlineReportConfig()->exists(VariantType::SNVS_INDELS, var_index1_))
+    {
+        INFO(InformationMissingException, "The variant 1 has to be in the report configuration to be published!");
+    }
+    data.report_variant_config1 = data_controller_.getGermlineReportConfig()->get(VariantType::SNVS_INDELS, var_index1_);
+    if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+    {
+        if (data_controller_.getGermlineReportConfig()->exists(VariantType::SNVS_INDELS, var_index2_))
+        {
+            INFO(InformationMissingException, "The variant 2 has to be in the report configuration to be published!");
+        }
+        data.report_variant_config2 = data_controller_.getGermlineReportConfig()->get(VariantType::SNVS_INDELS, var_index2_);
+    }
+
+
+
+    //update classification
+    data.report_variant_config1.classification = db.getClassification(data.snv1).classification;
+    if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+    {
+        INFO(InformationMissingException, "The variant 1 has to be classified to be published!");
+    }
+    if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+    {
+        data.report_variant_config2.classification = db.getClassification(data.snv2).classification;
+        if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
+        {
+            INFO(InformationMissingException, "The variant 2 has to be classified to be published!");
+        }
+    }
+
+    //genes
+    int gene_idx = data_controller_.getSmallVariantList().annotationIndexByName("gene");
+    data.genes = GeneSet::createFromText(data.snv1.annotations()[gene_idx], ',');
+    if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  GeneSet::createFromText(data.snv2.annotations()[gene_idx], ',');
+
+    //determine NGSD ids of variant and report variant for variant 1
+    QString var_id = db.variantId(data.snv1, false);
+    if (var_id == "")
+    {
+        INFO(InformationMissingException, "The variant 1 has to be in NGSD and part of a report config to be published!");
+    }
+    data.variant_id1 = Helper::toInt(var_id);
+    //extract report variant id
+    int rc_id = db.reportConfigId(db.processedSampleId(data.processed_sample));
+    if (rc_id == -1 )
+    {
+        THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
+    }
+
+    data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+                                                     + QString::number(data.variant_id1), false).toInt();
+
+    if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+    {
+        //determine NGSD ids of variant and report variant for variant 2
+        var_id = db.variantId(data.snv2, false);
+        if (var_id == "")
+        {
+            INFO(InformationMissingException, "The variant 2 has to be in NGSD and part of a report config to be published!");
+        }
+        data.variant_id2 = Helper::toInt(var_id);
+
+        //extract report variant id
+        data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+                                                         + QString::number(data.variant_id2), false).toInt();
+    }
+}
+
+void ClinvarUploadDialog::updateGui()
+{
 	// set first variant data
 	if (clinvar_upload_data_.variant_type1 == VariantType::SNVS_INDELS)
 	{
@@ -63,8 +190,8 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 		{
 			ui_.le_start_snv1->setText(QString::number(clinvar_upload_data_.snv1.start()));
 			ui_.le_end_snv1->setText(QString::number(clinvar_upload_data_.snv1.end()));
-			ui_.le_ref_snv1->setText(data.snv1.ref());
-			ui_.le_obs_snv1->setText(data.snv1.obs());
+            ui_.le_ref_snv1->setText(clinvar_upload_data_.snv1.ref());
+            ui_.le_obs_snv1->setText(clinvar_upload_data_.snv1.obs());
 		}
 		else
 		{
@@ -79,7 +206,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 		}
 
 		// set genes
-		ui_.le_genes_snv1->setText(data.genes.join(","));
+        ui_.le_genes_snv1->setText(clinvar_upload_data_.genes.join(","));
 	}
 	else if(clinvar_upload_data_.variant_type1 == VariantType::CNVS)
 	{
@@ -96,7 +223,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 
 		ui_.le_cn_cnv1->setEnabled(false);
 		ui_.le_cn_cnv1->setText(QString::number(clinvar_upload_data_.cn1));
-		if(data.ref_cn1 < 0)
+        if(clinvar_upload_data_.ref_cn1 < 0)
 		{
 			ui_.le_rcn_cnv1->setEnabled(true);
 			ui_.le_rcn_cnv1->setText("");
@@ -104,11 +231,11 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 		else
 		{
 			ui_.le_rcn_cnv1->setEnabled(false);
-			ui_.le_rcn_cnv1->setText(QString::number(data.ref_cn1));
+            ui_.le_rcn_cnv1->setText(QString::number(clinvar_upload_data_.ref_cn1));
 		}
 
 		// set genes
-		ui_.le_genes_cnv1->setText(data.genes.join(","));
+        ui_.le_genes_cnv1->setText(clinvar_upload_data_.genes.join(","));
 	}
 	else if(clinvar_upload_data_.variant_type1 == VariantType::SVS)
 	{
@@ -138,7 +265,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	{
 		THROW(ArgumentException, "Invalid variant type provided!");
 	}
-	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+    if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 	{
 		//Compound heterozygote variant
 
@@ -204,7 +331,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 
 
 		}
-		else if(data.variant_type2 == VariantType::SVS)
+        else if(clinvar_upload_data_.variant_type2 == VariantType::SVS)
 		{
 			//set stacked widget to SNV page
 			ui_.sw_var2->setCurrentIndex(2);
@@ -247,11 +374,11 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     }
 
     // set classification
-	ui_.cb_clin_sig_desc->setEnabled(data.submission_type==ClinvarSubmissionType::CompoundHeterozygous);
-	ui_.cb_clin_sig_desc->setCurrentText(convertClassification(data.report_variant_config1.classification, false));
+    ui_.cb_clin_sig_desc->setEnabled(clinvar_upload_data_.submission_type==ClinvarSubmissionType::CompoundHeterozygous);
+    ui_.cb_clin_sig_desc->setCurrentText(convertClassification(clinvar_upload_data_.report_variant_config1.classification, false));
 
     // set inheritance mode (if available)
-	ui_.cb_inheritance->setCurrentText(convertInheritance(data.report_variant_config1.inheritance));
+    ui_.cb_inheritance->setCurrentText(convertInheritance(clinvar_upload_data_.report_variant_config1.inheritance));
 
 	// set allele origin for de novo variants
 	if(clinvar_upload_data_.report_variant_config1.de_novo)
@@ -282,7 +409,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	manual_upload_ = false;
 
 	// (de-)activate button to add comp-het variant
-	updateGUI();
+    updateButtons();
 
     //validate input
     checkGuiData();
@@ -392,7 +519,7 @@ void ClinvarUploadDialog::initGui()
 	menu->addAction("Orpha number", this, SLOT(addDiseaseInfo()));
 	ui_.btn_add_disease_info->setMenu(menu);
 
-	updateGUI();
+    updateButtons();
 }
 
 void ClinvarUploadDialog::upload()
@@ -937,7 +1064,7 @@ bool ClinvarUploadDialog::checkGuiData()
 
 	//check genes
 	QStringList invalid_genes;
-    for (QByteArray gene : gene_set)
+    foreach (QByteArray gene, gene_set)
 	{
 		gene = gene.trimmed();
 		QByteArray approved_gene_name = NGSD().geneToApproved(gene, false);
@@ -1236,7 +1363,7 @@ void ClinvarUploadDialog::addCompHetVariant()
 					THROW(ArgumentException, "Invalid variant type selected!")
 					break;
 			}
-			updateGUI();
+            updateButtons();
 		}
 	}
 	else
@@ -1269,8 +1396,7 @@ void ClinvarUploadDialog::addCompHetVariant()
 				clinvar_upload_data_.variant_id2 = report_variant.variant_id;
 			}
 
-
-			setData(clinvar_upload_data_);
+            updateGui();
 		}
 	}
 	checkGuiData();
@@ -1289,8 +1415,8 @@ void ClinvarUploadDialog::removeCompHetVariant()
 	clinvar_upload_data_.cnv2 = CopyNumberVariant();
 	clinvar_upload_data_.sv2 = BedpeLine();
 
-	if (!manual_upload_) setData(clinvar_upload_data_);
-	updateGUI();
+    if (!manual_upload_) updateGui();
+    updateButtons();
 	checkGuiData();
 }
 
@@ -1316,7 +1442,7 @@ void ClinvarUploadDialog::selectVariantType(int i)
 	checkGuiData();
 }
 
-void ClinvarUploadDialog::updateGUI()
+void ClinvarUploadDialog::updateButtons()
 {
 	// switch comp-het variant on/off
 	ui_.sw_var2->setVisible(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous);

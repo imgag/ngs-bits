@@ -9,16 +9,11 @@
 #include <QMessageBox>
 #include <QPushButton>
 
-ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const RepeatLocusList& res, const TargetRegionInfo& roi, QWidget* parent)
+ReportDialog::ReportDialog(QString ps, AnalysisDataController& data_controller, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, ps_(ps)
-	, settings_(settings)
-	, variants_(variants)
-	, cnvs_(cnvs)
-	, svs_(svs)
-	, res_(res)
-	, roi_(roi)
+    , data_controller_(data_controller)
 {
 	ui_.setupUi(this);
 	setWindowTitle(windowTitle() + ps);

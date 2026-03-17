@@ -5,7 +5,6 @@
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "BedFile.h"
-#include "FilterCascade.h"
 #include "DelayedInitializationTimer.h"
 #include "Log.h"
 #include "ClickableLabel.h"
@@ -57,7 +56,7 @@ public:
 	static QString nobr();
 
 	///Edit classification of a variant
-	void editVariantClassification(VariantList& variant, int index);
+    void editVariantClassification(int index);
 
 	///Lets the user select a gene. If the user aborts, "" is returned.
 	static QString selectGene();
@@ -293,7 +292,7 @@ public slots:
 	///Calculate gaps based on genes
 	void calculateGapsByGenes();
 	///Shows the gap closing dialog with the given regions and genes
-	void showGapsClosingDialog(QString title, const BedFile& regions, const GeneSet& genes);
+    void showGapsClosingDialog(const BedFile& regions, const GeneSet& genes);
 
     ///Store report configuration
     void storeGermlineReportConfig();
@@ -421,11 +420,6 @@ public slots:
 	///Updates the variant table icon for the variant with the given index
 	void updateReportConfigHeaderIcon(int index);
 
-	///Mark the current variant list as changed. It is stored when the sample is closed.
-	void markVariantListChanged(const Variant& variant, QString column, QString text);
-	///Store the current variant list. Do not call direclty - use markVariantListChanged instead!
-	void storeCurrentVariantList();
-
 	///Check for variant validations that need action.
 	void checkPendingVariantValidations();
 	///Shows a notification.
@@ -434,11 +428,8 @@ public slots:
 	///Rank variants by GSvar score.
 	void variantRanking();
 
-	///Clears somatic report settings
-	void clearSomaticReportSettings(QString ps_id_in_other_widget);
-
 	///Edit somatic variant interpretation (VICC)
-	void editSomaticVariantInterpretation(const VariantList& vl, int index);
+    void editSomaticVariantInterpretation(int index);
 	///Updates somatic variant interpreation annotation for specific variant of GSvar file
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
 	///Execute custom context menu actions (see also registerCustomContextMenuActions())
@@ -473,8 +464,16 @@ public slots:
     void showError(QString title, QString text);
     void showWarning(QString title, QString text);
     void showInfo(QString title, QString text);
-    ///enable\disable buttons depending on data status
-    void updateButtonStatus();
+    ///enable\disable variant buttons depending on data status
+    void updateVariantButtonStatus();
+    ///update the RNA menu depending on data status
+    void updateRnaMenu();
+    ///update the cfDNA menu depending on data status
+    void updateCfdnaMenu();
+    ///update panel design buttons depending on data status
+    void updatePanelButtons();
+    ///update analysis\gsvar buttons depending on data status
+    void updateGsvarButtons();
 
 
 protected:
@@ -504,7 +503,6 @@ private:
 	BackgroundJobDialog* bg_job_dialog_;
 
     AnalysisDataController data_controller_; //DATA
-    FilterResult filter_result_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_; //phenotypes used to generate phenotype ROI (needed to check if they changed)
 	PhenotypeSettings last_pheno_settings_; //phenotype settings used to generate phenotype ROI (needed to check if they changed)

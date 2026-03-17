@@ -13,6 +13,7 @@
 #include "ClientHelper.h"
 #include "GenLabDB.h"
 #include "GSvarHelper.h"
+#include "VersatileTextStream.h"
 
 AnalysisDataController::AnalysisDataController()
     : QObject(),
@@ -31,6 +32,7 @@ void AnalysisDataController::clear()
 
     filename_ = "";
     Settings::setPath("path_variantlists", "");
+    active_rna_ps_id_ = -1;
 
     processed_sample_names_.clear();
 
@@ -47,6 +49,8 @@ void AnalysisDataController::clear()
     rna_report_config_ = QSharedPointer<RnaReportConfiguration>(new RnaReportConfiguration);
 
     Log::perf("Clearing variant table took ", timer);
+
+    emit dataCleared();
 }
 
 
@@ -139,6 +143,17 @@ QStringList AnalysisDataController::loadFile(QString filename)
         }
         Log::perf("Loading RE list took ", timer);
     }
+
+    //load report config
+    if (germlineReportSupported())
+    {
+        loadGermlineReportConfig();
+    }
+    else if(LoginManager::active() && somaticReportSupported())
+    {
+        loadSomaticReportConfig();
+    }
+
 
     return errors;
 }
@@ -424,7 +439,7 @@ void AnalysisDataController::storeSmallVariantList()
 void AnalysisDataController::loadGermlineReportConfig()
 {
     //check if applicable
-    if (!germlineReportSupported()) return;
+    if (! isValid() || ! germlineReportSupported()) return;
 
     //check if report config exists
     NGSD db;
@@ -485,7 +500,7 @@ void AnalysisDataController::storeGermlineReportConfig()
 
 void AnalysisDataController::loadSomaticReportConfig()
 {
-    if(filename_ == "") return;
+    if (! isValid() || ! somaticReportSupported()) return;
 
     NGSD db;
 
@@ -517,15 +532,11 @@ void AnalysisDataController::loadSomaticReportConfig()
         emit thrownWarning("Could not load germline GSvar file", "Could not load germline GSvar file. No germline variants will be parsed for somatic report generation. Message: " + e.message());
     }
 
-
-
     //Continue loading report (only if existing in NGSD)
     if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1) return;
 
-
     QStringList messages;
     somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, svs_, somatic_control_tissue_variants_, messages);
-
 
     if(!messages.isEmpty())
     {
@@ -535,7 +546,7 @@ void AnalysisDataController::loadSomaticReportConfig()
     //Preselect target region bed file in NGSD
     if(somatic_report_settings_.report_config->targetRegionName()!="")
     {
-        // ui_.filters->setTargetRegionByDisplayName(somatic_report_settings_.report_config->targetRegionName());
+        ui_.filters->setTargetRegionByDisplayName(somatic_report_settings_.report_config->targetRegionName());
     }
 
     //Preselect filter from NGSD som. rep. conf.
@@ -612,101 +623,356 @@ void AnalysisDataController::storeRnaReportConfig()
 
 
 
-
-QString AnalysisDataController::normalSampleName()
+const FilterResult& AnalysisDataController::applySmallVariantFilter(const FilterCascade& filter_cascade, TargetRegionInfo target_region, GeneSet genes, QString text_filter, QString region_filter_text, PhenotypeList phenotypes, PhenotypeSettings pheno_settings, ReportConfigFilter rc_filter, bool debug_time)
 {
-    if(variants_.type() != AnalysisType::SOMATIC_PAIR) return "";
+    FilterState new_state;
 
-    foreach(const SampleInfo& info, variants_.getSampleHeader())
+    try
     {
-        if (!info.isTumor()) return info.name;
-    }
+        //apply main filter
+        QElapsedTimer timer;
+        timer.start();
 
-    return "";
-}
+        variants_filter_state_.passing_variants = filter_cascade.apply(variants_, false, debug_time);
+        new_state.filter_cascade_text = filter_cascade.toText();
+        emit markVariantFilters();
 
-QString AnalysisDataController::germlineReportSample()
-{
-    if (!germlineReportSupported(false) && Settings::string("location", true)!="MHH")
-    {
-        THROW(ProgrammingException, "germlineReportSample() cannot be used if germline report is not supported!");
-    }
-
-    //set sample for report
-    while (germline_report_ps_.isEmpty())
-    {
-        //determine affected sample names
-        QStringList affected_ps;
-        foreach(const SampleInfo& info, variants_.getSampleHeader())
+        if (debug_time)
         {
-            if(info.isAffected())
+            Log::perf("Applying annotation filters took ", timer);
+            timer.start();
+        }
+
+        //roi filter
+        if (target_region.isValid())
+        {
+            FilterRegions::apply(variants_, target_region.regions, variants_filter_state_.passing_variants);
+            new_state.target_region = target_region;
+
+            if (debug_time)
             {
-                affected_ps << info.name.trimmed();
+                Log::perf("Applying target region filter took ", timer);
+                timer.start();
             }
         }
 
-        if (affected_ps.isEmpty()) //no affected => error
+        //gene filter
+        if (!genes.isEmpty())
         {
-            THROW(ProgrammingException, "germlineReportSample() cannot be used if there is no affected sample!");
+            FilterGenes filter;
+            filter.setStringList("genes", genes.toStringList());
+            filter.apply(variants_, variants_filter_state_.passing_variants);
+            new_state.genes = genes;
+
+            if (debug_time)
+            {
+                Log::perf("Applying gene filter took ", timer);
+                timer.start();
+            }
         }
-        else if (affected_ps.count()==1) //one affected => auto-select
+
+        //text filter
+        if (!text_filter.isEmpty())
         {
-            germline_report_ps_ = affected_ps[0];
+            FilterAnnotationText filter;
+            filter.setString("term", text_filter);
+            filter.setString("action", "FILTER");
+            filter.apply(variants_, variants_filter_state_.passing_variants);
+            new_state.text_filter = text_filter;
+
+            if (debug_time)
+            {
+
+                Log::perf("Applying text filter took ", timer);
+                timer.start();
+            }
         }
-        else //several affected => let user select
+
+        BedLine region_filter = BedLine::fromString(region_filter_text);
+        if (!region_filter.isValid()) //check if valid chr
         {
-            // bool ok = false;
-            // QString selected = QInputDialog::getItem(this, "Report sample", "processed sample used for report:", affected_ps, 0, false, &ok); TODO
-            // if (ok)
-            // {
-                // germline_report_ps_ = selected;
-            // }
+            Chromosome chr(region_filter_text);
+            if (chr.isNonSpecial())
+            {
+                region_filter.setChr(chr);
+                region_filter.setStart(1);
+                region_filter.setEnd(999999999);
+            }
         }
+        //region filter
+        if (region_filter.isValid()) //valid region (chr,start, end or only chr)
+        {
+            BedFile tmp;
+            tmp.append(region_filter);
+            FilterRegions::apply(variants_, tmp, variants_filter_state_.passing_variants);
+            new_state.region_filter = region_filter;
+
+            if (debug_time)
+            {
+                Log::perf("Applying region filter took ", timer);
+                timer.start();
+            }
+        }
+
+        if (phenotypes != variants_filter_state_.phenotypes || pheno_settings != variants_filter_state_.phenotype_setting)
+        {
+            new_state.phenotypes = phenotypes;
+            new_state.phenotype_setting = pheno_settings;
+
+            //convert phenotypes to genes
+            NGSD db;
+            GeneSet pheno_genes;
+            int i = 0;
+            for (const Phenotype& pheno : phenotypes)
+            {
+                GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), pheno_settings.sources, pheno_settings.evidence_levels, true, false);
+
+                if (pheno_settings.mode==PhenotypeCombimnationMode::MERGE || (pheno_settings.mode==PhenotypeCombimnationMode::INTERSECT && i==0))
+                {
+                    pheno_genes << genes;
+                }
+                else
+                {
+                    pheno_genes = pheno_genes.intersect(genes);
+                }
+                ++i;
+            }
+
+            //convert genes to ROI (using a cache to speed up repeating queries)
+            new_state.phenotype_roi.clear();
+            for (const QByteArray& gene: std::as_const(pheno_genes))
+            {
+                new_state.phenotype_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
+            }
+            new_state.phenotype_roi.merge();
+
+            if (debug_time)
+            {
+                Log::perf("Updating phenotype filter took ", timer);
+                timer.start();
+            }
+        }
+        else
+        {
+            new_state.phenotypes = variants_filter_state_.phenotypes;
+            new_state.phenotype_setting = variants_filter_state_.phenotype_setting;
+            new_state.phenotype_roi = variants_filter_state_.phenotype_roi;
+        }
+
+        //phenotype filter
+        if (! new_state.phenotypes.isEmpty())
+        {
+            FilterRegions::apply(variants_, new_state.phenotype_roi, variants_filter_state_.passing_variants);
+
+            if (debug_time)
+            {
+                Log::perf("Applying phenotype filter took ", timer);
+                timer.start();
+            }
+        }
+
+        //report configuration filter (show only variants with report configuration)
+        if (germlineReportSupported() && rc_filter!=ReportConfigFilter::NONE)
+        {
+            QSet<int> report_variant_indices = Helper::listToSet(germline_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
+            for(int i=0; i<variants_.count(); ++i)
+            {
+                if (!variants_filter_state_.passing_variants.flags()[i]) continue;
+
+                if (rc_filter==ReportConfigFilter::HAS_RC)
+                {
+                    variants_filter_state_.passing_variants.flags()[i] = report_variant_indices.contains(i);
+                }
+                else if (rc_filter==ReportConfigFilter::NO_RC)
+                {
+                    variants_filter_state_.passing_variants.flags()[i] = !report_variant_indices.contains(i);
+                }
+            }
+        }
+        else if( somaticReportSupported() && rc_filter != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
+        {
+            QSet<int> report_variant_indices = Helper::listToSet(somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
+            for(int i=0; i<variants_.count(); ++i)
+            {
+                if ( !variants_filter_state_.passing_variants.flags()[i] ) continue;
+
+                if (rc_filter==ReportConfigFilter::HAS_RC)
+                {
+                    variants_filter_state_.passing_variants.flags()[i] = report_variant_indices.contains(i);
+                }
+                else if (rc_filter==ReportConfigFilter::NO_RC)
+                {
+                    variants_filter_state_.passing_variants.flags()[i] = !report_variant_indices.contains(i);
+                }
+            }
+        }
+
+        //keep somatic variants that are marked with "include" in report settings (overrides possible filtering for that variant)
+        if( somaticReportSupported() && rc_filter != ReportConfigFilter::NO_RC)
+        {
+            foreach(int index, somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false))
+            {
+                variants_filter_state_.passing_variants.flags()[index] = variants_filter_state_.passing_variants.flags()[index] || somatic_report_settings_.report_config->variantConfig(index, VariantType::SNVS_INDELS).showInReport();
+            }
+        }
+        new_state.rc_filter = rc_filter;
     }
+    catch(Exception& e)
+    {
+        emit thrownWarning("Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nPlease re-run the annotation steps for the analysis!");
 
-    return germline_report_ps_;
-
+        variants_filter_state_.passing_variants = FilterResult(variants_.count(), false);
+    }
 }
 
-bool AnalysisDataController::isValid()
+
+
+bool AnalysisDataController::isValid() const
 {
     return filename_ != "";
 }
 
-bool AnalysisDataController::isLocal()
+bool AnalysisDataController::isLocal() const
 {
-    return GlobalServiceProvider::fileLocationProvider().isLocal();
+    return isValid() && GlobalServiceProvider::fileLocationProvider().isLocal();
 }
 
-bool AnalysisDataController::existCnvs()
+bool AnalysisDataController::isRnaSet() const
 {
-    return cnvs_.isValid();
+    return isValid() && active_rna_ps_id_ != -1;
 }
 
-bool AnalysisDataController::existSvs()
+bool AnalysisDataController::existBam(QString ps_name) const
 {
-    return svs_.isValid();
+    if (ps_name == "")
+    {
+        ps_name = getMainSampleName();
+    }
+    return GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps_name).asStringList().count() > 0;
 }
 
-bool AnalysisDataController::existRes()
+bool AnalysisDataController::existCnvs() const
 {
-    return repeat_expansions_.isValid();
+    return isValid() && cnvs_.isValid();
 }
 
-bool AnalysisDataController::existFusions()
+bool AnalysisDataController::existSvs() const
 {
-    return fusions_.isValid();
+    return isValid() && svs_.isValid();
 }
 
-bool AnalysisDataController::existMosaicCnvs()
+bool AnalysisDataController::existRes() const
 {
-    return GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicCnvFile().exists;
+    return isValid() && repeat_expansions_.isValid();
 }
 
-bool AnalysisDataController::variantListModified()
+bool AnalysisDataController::existFusions() const
 {
-    return ! variants_changed_.isEmpty();
+    return isValid() && fusions_.isValid();
 }
+
+bool AnalysisDataController::existMosaicCnvs() const
+{
+    return isValid() &&GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicCnvFile().exists;
+}
+
+bool AnalysisDataController::variantListModified() const
+{
+    return isValid() && !variants_changed_.isEmpty();
+}
+
+bool AnalysisDataController::existCircos() const
+{
+    return (isValid() && (getAnalysisType()==AnalysisType::GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty()));
+}
+
+bool AnalysisDataController::existPrs() const
+{
+    return (isValid() && (getAnalysisType()==AnalysisType::GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty()));
+}
+
+bool AnalysisDataController::existRohs() const
+{
+    AnalysisType type = getAnalysisType();
+    if (!isValid() || (type!=AnalysisType::GERMLINE_SINGLESAMPLE && type!=AnalysisType::GERMLINE_MULTISAMPLE)) return false;
+    if (GlobalServiceProvider::fileLocationProvider().getRohFiles(false).filterById(germlineReportSample()).asStringList().isEmpty()) return false;
+
+    return true;
+}
+
+bool AnalysisDataController::existUpds() const
+{
+    return (isValid() && (getAnalysisType()==AnalysisType::GERMLINE_TRIO && GlobalServiceProvider::fileLocationProvider().getAnalysisUpdFile().exists));
+}
+
+bool AnalysisDataController::existPathogenicWt() const
+{
+    return (isValid() && (germlineReportSupported(false) && ! GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(germlineReportSample()).isEmpty()));
+}
+
+bool AnalysisDataController::existMethylation() const
+{
+    return (isValid() && (getAnalysisType()==AnalysisType::GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getMethylationFile().exists));
+}
+
+bool AnalysisDataController::existVirusDetection() const
+{
+    if (isValid() && (getAnalysisType()==AnalysisType::SOMATIC_PAIR && NGSD::isAvailable()))
+    {
+        QString ps_tumor = variants_.mainSampleName();
+        NGSD db;
+        QString ps_tumor_id = db.processedSampleId(ps_tumor, false);
+        if (GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL).exists)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AnalysisDataController::existCnvSegmentation(QString sample_id) const
+{
+    if (! isValid()) return false;
+
+    FileLocationList coverage = GlobalServiceProvider::fileLocationProvider().getCnvCoverageFiles(false);
+
+    if (sample_id != "") coverage = coverage.filterById(sample_id);
+
+    return coverage.count() > 0;
+}
+
+bool AnalysisDataController::existBaf(QString sample_id) const
+{
+
+}
+
+
+
+bool AnalysisDataController::existRnaSplicing(int rna_ps_id) const
+{
+    rna_ps_id = getValidRna(rna_ps_id);
+    return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::SPLICING_ANN).exists;
+
+}
+bool AnalysisDataController::existRnaFusions(int rna_ps_id) const
+{
+    rna_ps_id = getValidRna(rna_ps_id);
+    return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::FUSIONS).exists;
+
+}
+bool AnalysisDataController::existRnaExpressionGenes(int rna_ps_id) const
+{
+    rna_ps_id = getValidRna(rna_ps_id);
+    return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::EXPRESSION).exists;
+}
+bool AnalysisDataController::existRnaExpressionExons(int rna_ps_id) const
+{
+    rna_ps_id = getValidRna(rna_ps_id);
+    return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::EXPRESSION_EXON).exists;
+}
+
+
+
 
 bool AnalysisDataController::germlineReportSupported(bool require_ngsd, QString* error) const
 {
@@ -778,6 +1044,16 @@ bool AnalysisDataController::tumoronlyReportSupported() const
 
 
 
+void AnalysisDataController::setRnaSampleId(int rna_ps_id)
+{
+    if (! isValid() || ! getRelatedRnaProcessedSampleIds().contains(rna_ps_id))
+    {
+        THROW(ProgrammingException, "AnalysisDataController has not yet loaded an analysis or the given RNA processed sample id is not related to the main sample. Given RNA id: " + QString::number(rna_ps_id));
+    }
+
+    active_rna_ps_id_ = rna_ps_id;
+}
+
 
 
 const QString& AnalysisDataController::getFilename() const
@@ -791,6 +1067,88 @@ AnalysisType AnalysisDataController::getAnalysisType() const
 QString AnalysisDataController::getAnalysisName() const
 {
     return variants_.analysisName();
+}
+
+QString AnalysisDataController::getMainSampleName() const
+{
+    return variants_.mainSampleName();
+}
+
+QString AnalysisDataController::getNormalSampleName() const
+{
+    if (getAnalysisType() != AnalysisType::SOMATIC_PAIR)
+    {
+        THROW(ArgumentException, "The normal sample name is only available for somatic tumor normal analysis.");
+    }
+
+    foreach(const SampleInfo& info, variants_.getSampleHeader())
+    {
+        if (!info.isTumor()) return info.name;
+    }
+
+    THROW(ArgumentException, "The normal sample name was not found in the sample header of the GSvar file.");
+}
+
+QStringList AnalysisDataController::getSampleNames() const
+{
+    QStringList names;
+    foreach (const SampleInfo& info, variants_.getSampleHeader())
+    {
+        names << info.name.trimmed();
+    }
+    return names;
+}
+
+QString AnalysisDataController::germlineReportSample() const
+{
+    if (!germlineReportSupported(false) && Settings::string("location", true)!="MHH")
+    {
+        THROW(ProgrammingException, "germlineReportSample() cannot be used if germline report is not supported!");
+    }
+
+    //set sample for report
+    while (germline_report_ps_.isEmpty())
+    {
+        //determine affected sample names
+        QStringList affected_ps;
+        foreach(const SampleInfo& info, variants_.getSampleHeader())
+        {
+            if(info.isAffected())
+            {
+                affected_ps << info.name.trimmed();
+            }
+        }
+
+        if (affected_ps.isEmpty()) //no affected => error
+        {
+            THROW(ProgrammingException, "germlineReportSample() cannot be used if there is no affected sample!");
+        }
+        else if (affected_ps.count()==1) //one affected => auto-select
+        {
+            germline_report_ps_ = affected_ps[0];
+        }
+        else //several affected => let user select
+        {
+            // bool ok = false;
+            // QString selected = QInputDialog::getItem(this, "Report sample", "processed sample used for report:", affected_ps, 0, false, &ok); TODO
+            // if (ok)
+            // {
+            // germline_report_ps_ = selected;
+            // }
+        }
+    }
+
+    return germline_report_ps_;
+}
+
+QStringList AnalysisDataController::getBamFile(QString ps_name) const
+{
+    if (ps_name == "")
+    {
+        ps_name = getMainSampleName();
+    }
+
+    return GlobalServiceProvider::fileLocationProvider().getBamFiles(true).filterById(ps_name).asStringList();
 }
 
 
@@ -842,6 +1200,43 @@ QStringList AnalysisDataController::getMosaicCnvs() const
     return mosaic_file.exists ? Helper::loadTextFile(mosaic_file.filename, false, '#', true) : QStringList();
 }
 
+FileLocation AnalysisDataController::getMethylation() const
+{
+    return GlobalServiceProvider::fileLocationProvider().getMethylationFile();
+}
+
+FileLocation AnalysisDataController::getPrsFile() const
+{
+    return GlobalServiceProvider::fileLocationProvider().getPrsFiles(false)[0];
+}
+
+FileLocation AnalysisDataController::getPathogenicWildtype() const
+{
+    return GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(germlineReportSample())[0];
+}
+
+QStringList AnalysisDataController::getUpdFile() const
+{
+    FileLocation file_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisUpdFile();
+    return Helper::loadTextFile(file_loc.filename, false, QChar::Null, true);
+}
+
+FileLocation AnalysisDataController::getRohFile() const
+{
+   return GlobalServiceProvider::fileLocationProvider().getRohFiles(false).filterById(germlineReportSample())[0];
+}
+
+FileLocation AnalysisDataController::getCircosFile() const
+{
+    return GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false)[0];
+}
+
+FileLocation AnalysisDataController::getVirusDetectionFile() const
+{
+    NGSD db;
+    return GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(getMainSampleName()), PathType::VIRAL);
+}
+
 QSharedPointer<ReportConfiguration> AnalysisDataController::getGermlineReportConfig()
 {
     return germline_report_settings_.report_config;
@@ -864,6 +1259,118 @@ const SomaticReportSettings& AnalysisDataController::getSomaticReportSettings() 
     return somatic_report_settings_;
 }
 
+VariantValidation AnalysisDataController::getSmallVariantValidationEntry(int variant_idx, QString ps_name)
+{
+    Variant& variant = variants_[variant_idx];
+
+    NGSD db;
+
+    //get variant ID - add if missing
+    QString variant_id = db.variantId(variant, false);
+    if (variant_id=="")
+    {
+        variant_id = db.addVariant(variant, variants_);
+    }
+
+    //get sample ID
+    QString sample_id = db.sampleId(ps_name);
+
+    //get variant validation ID - add if missing
+    QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE variant_id='" + variant_id + "' AND sample_id='" + sample_id + "'", true);
+    if (!val_id.isValid())
+    {
+        VariantValidation var_val;
+
+        //get genotype
+        QByteArray genotype = "het";
+        int i_genotype = variants_.getSampleHeader().infoByID(ps_name).column_index;
+        if (i_genotype!=-1) //genotype column only available in germline, but not for somatic analysis.
+        {
+            genotype = variant.annotations()[i_genotype];
+        }
+        var_val.sample_id = Helper::toInt(sample_id);
+        var_val.variant_id = Helper::toInt(variant_id);
+        var_val.genotype = genotype;
+        var_val.variant_type = "SNV_INDEL";
+        var_val.status = "n/a";
+
+        return var_val;
+    }
+}
+
+void AnalysisDataController::storeVariantValidation(const VariantValidation& var_val)
+{
+
+}
+
+EvaluationSheetData AnalysisDataController::getEvaluationSheetData()
+{
+    if (! germlineReportSupported())
+    {
+        THROW(ArgumentException, "Evaluation sheet data can only be generated if the loaded analysis supports the germline report.");
+    }
+
+    NGSD db;
+    QString base_name = germlineReportSample();
+    QString sample_id = db.sampleId(base_name);
+    QString ps_id = db.processedSampleId(base_name);
+
+    EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(ps_id, false);
+    evaluation_sheet_data.build = GSvarHelper::build();
+    if (evaluation_sheet_data.ps_id == "") //No db entry found > init
+    {
+        evaluation_sheet_data.ps_id = db.processedSampleId(base_name);
+        evaluation_sheet_data.dna_rna = db.getSampleData(sample_id).name_external;
+        // make sure reviewer 1 contains name not user id
+        evaluation_sheet_data.reviewer1 = db.userName(db.userId(germline_report_settings_.report_config->createdBy()));
+        evaluation_sheet_data.review_date1 = germline_report_settings_.report_config->createdAt().date();
+        evaluation_sheet_data.reviewer2 = LoginManager::userName();
+        evaluation_sheet_data.review_date2 = QDate::currentDate();
+    }
+
+    return evaluation_sheet_data;
+}
+
+void AnalysisDataController::finalizeGermlineReportConfig(int user_id)
+{
+    NGSD db;
+    QString processed_sample_id = db.processedSampleId(germlineReportSample(), false);
+    if (processed_sample_id=="")
+    {
+        INFO(ArgumentException, "Sample was not found in the NGSD!");
+    }
+
+    //check config exists
+    int conf_id = db.reportConfigId(processed_sample_id);
+    if (conf_id==-1) INFO(ArgumentException, "No report configuration for this sample found in the NGSD!");
+
+    db.finalizeReportConfig(conf_id, user_id);
+
+    //update report settings data structure
+    germline_report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, repeat_expansions_);
+    connect(germline_report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeGermlineReportConfig()));
+}
+
+TumorOnlyReportWorkerConfig AnalysisDataController::getTumorOnlyReportWorkerConfig()
+{
+    NGSD db;
+    QString ps = getMainSampleName();
+    int sys_id = db.processingSystemIdFromProcessedSample(ps);
+
+    TumorOnlyReportWorkerConfig config;
+    config.threads = Settings::integer("threads");
+    config.sys = db.getProcessingSystemData(sys_id);
+    config.ps_data = db.getProcessedSampleData(db.processedSampleId(ps));
+    config.roi = variants_filter_state_.target_region;
+    config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
+    config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
+    config.filter_result = variants_filter_state_.passing_variants;
+    config.preferred_transcripts = GSvarHelper::preferredTranscripts();
+    config.build = GSvarHelper::build();
+
+    return config;
+}
+
 QStringList AnalysisDataController::getValidFilterEntries() const
 {
     //determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
@@ -874,7 +1381,147 @@ QStringList AnalysisDataController::getValidFilterEntries() const
     return valid_filter_entries;
 }
 
-GeneSet AnalysisDataController::getHetHitGenes(const FilterResult& filter_result) const
+QList<KeyValuePair> AnalysisDataController::inheritanceByGene(int variant_idx)
+{
+    NGSD db;
+    const Variant& variant = variants_[variant_idx];
+    QList<KeyValuePair> inheritance_by_gene;
+    int i_genes = variants_.annotationIndexByName("gene", true, false);
+
+    if (i_genes!=-1)
+    {
+        GeneSet genes = GeneSet::createFromText(variant.annotations()[i_genes], ',');
+        for (const QByteArray& gene : std::as_const(genes))
+        {
+            GeneInfo gene_info = db.geneInfo(gene);
+            inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
+        }
+    }
+    return inheritance_by_gene;
+}
+
+void AnalysisDataController::changeSmallVariantList(int variant_idx, QByteArray column, QByteArray new_text, bool throw_if_not_found)
+{
+    int idx_column = variants_.annotationIndexByName(column, true, throw_if_not_found);
+
+    if (idx_column!=-1)
+    {
+        Variant variant = variants_[variant_idx];
+        if(variant.annotations()[idx_column] != new_text)
+        {
+            variant.annotations()[idx_column] = new_text;
+            variants_changed_.append(VariantListChange{variant, column, new_text});
+
+            emit smallVariantsChanged();
+        }
+    }
+}
+
+void AnalysisDataController::changeSmallVariantListBatch(QList<int> variant_indicies, QByteArray column, QByteArrayList new_text, bool throw_if_not_found)
+{
+    if (variant_indicies.count() != new_text.count()) THROW(ProgrammingException, "Number of variants and number of annotation text must be the same!");
+
+    int idx_column = variants_.annotationIndexByName(column, true, throw_if_not_found);
+
+    if (idx_column!=-1)
+    {
+        for (int i; i<variant_indicies.count(); i++)
+        {
+            Variant variant = variants_[variant_indicies[i]];
+            if(variant.annotations()[idx_column] != new_text[i])
+            {
+                variant.annotations()[idx_column] = new_text[i];
+                variants_changed_.append(VariantListChange{variant, column, new_text[i]});
+            }
+        }
+        emit smallVariantsChanged();
+    }
+}
+
+void AnalysisDataController::setSmallVariantComment(int variant_idx, QByteArray new_comment)
+{
+    const Variant& variant = variants_[variant_idx];
+
+    //add variant if missing
+    NGSD db;
+    if (db.variantId(variant, false)=="")
+    {
+        db.addVariant(variant, variants_);
+    }
+
+    //update DB
+    db.setComment(variant, new_comment);
+
+    changeSmallVariantList(variant_idx, "comment", new_comment, false);
+}
+
+void AnalysisDataController::reannotateSomaticVariantInterpretation()
+{
+    AnalysisType type = getAnalysisType();
+    if (type!=AnalysisType::SOMATIC_SINGLESAMPLE && type!=AnalysisType::SOMATIC_PAIR) return;
+
+    QList<int> indicies;
+    QByteArrayList vicc_scores;
+    QByteArrayList vicc_comments;
+
+    NGSD db;
+    for(int i=0; i<variants_.count(); ++i)
+    {
+        //skip variants without VICC infos in NGSD
+        SomaticViccData vicc_data = db.getSomaticViccData(variants_[i], false);
+        if (vicc_data.created_by.isEmpty()) continue;
+
+        indicies << i;
+        vicc_scores << SomaticVariantInterpreter::viccScoreAsString(vicc_data).toUtf8();
+        vicc_comments << vicc_data.comment.toUtf8();
+    }
+    changeSmallVariantListBatch(indicies, "NGSD_som_vicc_interpretation", vicc_scores);
+    changeSmallVariantListBatch(indicies, "NGSD_som_vicc_comment", vicc_comments);
+}
+
+void AnalysisDataController::annotateVariantRankingScores(VariantScores::Result variant_scores, bool add_explanations)
+{
+    //check input
+    if (variants_.count()!=variant_scores.scores.count()) THROW(ProgrammingException, "Variant list and scoring result differ in count!");
+
+    //add columns if missing
+    if (add_explanations && variants_.annotationIndexByName("GSvar_score_explanations", true, false)==-1)
+    {
+        variants_.prependAnnotation("GSvar_score_explanations", "GSvar score explanations.");
+    }
+    if (variants_.annotationIndexByName("GSvar_score", true, false)==-1)
+    {
+        variants_.prependAnnotation("GSvar_score", "GSvar score (algorithm: " + variant_scores.algorithm + ", description:" + VariantScores::description(variant_scores.algorithm)+  ")");
+    }
+    if (variants_.annotationIndexByName("GSvar_rank", true, false)==-1)
+    {
+        variants_.prependAnnotation("GSvar_rank", "GSvar score based rank.");
+    }
+    int i_rank = variants_.annotationIndexByName("GSvar_rank");
+    int i_score = variants_.annotationIndexByName("GSvar_score");
+    int i_score_exp = add_explanations ? variants_.annotationIndexByName("GSvar_score_explanations") : -1;
+
+    //annotate
+    int c_scored = 0;
+    for (int i=0; i<variants_.count(); ++i)
+    {
+        QByteArray score_str;
+        QByteArray rank_str;
+        if (variant_scores.scores[i] >= 0)
+        {
+            score_str = QByteArray::number(variant_scores.scores[i], 'f', 2);
+            rank_str = QByteArray::number(variant_scores.ranks[i]);
+            ++c_scored;
+        }
+        variants_[i].annotations()[i_score] = score_str;
+        variants_[i].annotations()[i_rank] = rank_str;
+        if (add_explanations) variants_[i].annotations()[i_score_exp] = variant_scores.score_explanations[i].join(" ").toUtf8();
+    }
+
+    qDebug() << "annotateVariantRankingScores(): Scored " + QString::number(c_scored) + " variants.";
+}
+
+GeneSet AnalysisDataController::getHetHitGenes() const
 {
     //create list of genes with heterozygous variant hits
     GeneSet het_hit_genes;
@@ -886,7 +1533,7 @@ GeneSet AnalysisDataController::getHetHitGenes(const FilterResult& filter_result
     {
         for (int i=0; i<variants_.count(); ++i)
         {
-            if (!filter_result.passing(i)) continue;
+            if (! variants_filter_state_.passing_variants.passing(i)) continue;
 
             bool all_genos_het = true;
             foreach(int i_genotype, i_genotypes)
@@ -901,4 +1548,366 @@ GeneSet AnalysisDataController::getHetHitGenes(const FilterResult& filter_result
         }
     }
     return het_hit_genes;
+}
+
+double AnalysisDataController::calcMendelianErrorRate(int& used, int& errors) const
+{
+    if(getAnalysisType() != AnalysisType::GERMLINE_TRIO)
+    {
+        THROW(ProgrammingException, "Calculation of mendelian errors is only supported for trio analysis. Can't be called for the analysis type: " + analysisTypeToString(getAnalysisType()));
+    }
+
+    SampleHeaderInfo infos = variants_.getSampleHeader();
+    int i_c = infos.infoByStatus(true).column_index;
+    int i_f = infos.infoByStatus(false, "male").column_index;
+    int i_m = infos.infoByStatus(false, "female").column_index;
+
+    int i_qual = variants_.annotationIndexByName("quality");
+
+    used = 0;
+    errors = 0;
+    for (int i=0; i<variants_.count(); ++i)
+    {
+        const Variant& v = variants_[i];
+        if (!v.chr().isAutosome()) continue;
+
+        //remove no genotyping
+        QString geno_c = v.annotations()[i_c];
+        QString geno_f = v.annotations()[i_f];
+        QString geno_m = v.annotations()[i_m];
+        if (geno_c=="n/a" || geno_f=="n/a" || geno_m=="n/a") continue;
+
+        //remove filter entry
+        if (!v.filters().isEmpty()) continue;
+
+        //remove low depth
+        bool low_depth = false;
+        QByteArrayList entries = v.annotations()[i_qual].split(';');
+        foreach(const QByteArray& entry, entries)
+        {
+            if (!entry.startsWith("DP=")) continue;
+            foreach(const QByteArray& value, entry.mid(3).split(','))
+            {
+                if (value.toInt()<20) low_depth = true;
+            }
+        }
+        if (low_depth) continue;
+
+        ++used;
+
+        if ((geno_c=="wt" && (geno_f=="hom" || geno_m=="hom")) ||
+            (geno_c=="hom" && (geno_f=="wt" || geno_m=="wt")) ||
+            (geno_c!="hom" && (geno_f=="hom" && geno_m=="hom")) ||
+            (geno_c!="wt" && (geno_f=="wt" && geno_m=="wt")))
+        {
+            ++errors;
+            //qDebug() << v.toString() << geno_c << geno_f << geno_m << entries.join(" ");
+        }
+    }
+
+    double percentage = 100.0 * errors / used;
+    qDebug() << used << errors << percentage;
+
+    return percentage;
+}
+
+BedFile AnalysisDataController::genesToRegions(GeneSet genes)
+{
+    NGSD db;
+    BedFile regions;
+    for(const QByteArray& gene: std::as_const(genes))
+    {
+        regions.add(GlobalServiceProvider::geneToRegions(gene, db));
+    }
+    regions.extend(5000);
+    regions.merge();
+
+    return regions;
+}
+
+Histogram AnalysisDataController::afHistogram(bool filtered) const
+{
+    //create histogram
+    Histogram hist(0.0, 1.0, 0.05);
+    int col_quality = variants_.annotationIndexByName("quality");
+    for (int i=0; i<variants_.count(); ++i)
+    {
+        if (filtered && ! variants_filter_state_.passing_variants.passing(i)) continue;
+
+        QByteArrayList parts = variants_[i].annotations()[col_quality].split(';');
+        foreach(const QByteArray& part, parts)
+        {
+            if (part.startsWith("AF="))
+            {
+                bool ok;
+                QString value_str = part.mid(3);
+                if (getAnalysisType()==AnalysisType::GERMLINE_TRIO) value_str = value_str.split(',')[0];
+                double value = value_str.toDouble(&ok);
+                if (ok)
+                {
+                    hist.inc(value, true);
+                }
+            }
+        }
+    }
+    return hist;
+}
+
+Histogram AnalysisDataController::cnHistogram(QString sample_id, Chromosome chr, int start, int end) const
+{
+    FileLocation seg_file = GlobalServiceProvider::fileLocationProvider().getCnvCoverageFiles(false).filterById(sample_id)[0];
+
+    //determine CN values
+    QVector<double> cn_values;
+    VersatileTextStream stream(seg_file.filename);
+    while (!stream.atEnd())
+    {
+        QString line = stream.readLine();
+        QStringList parts = line.split("\t");
+        if (parts.count()<6) continue;
+
+        //check if range overlaps input interval
+        Chromosome chr2(parts[1]);
+        if (chr!=chr2) continue;
+
+        int start2 = Helper::toInt(parts[2], "Start coordinate");
+        int end2 = Helper::toInt(parts[3], "End coordinate");
+        if (!BasicStatistics::rangeOverlaps(start, end, start2, end2)) continue;
+
+        //skip invalid copy-numbers
+        QString cn_str = parts[5];
+        if (cn_str.toLower()=="nan") continue;
+        double cn = Helper::toDouble(cn_str, "Copy-number");
+        if (cn<0) continue;
+
+        cn_values << cn;
+    }
+
+    //create histogram
+    std::sort(cn_values.begin(), cn_values.end());
+    double median = BasicStatistics::median(cn_values,false);
+    double max = ceil(median*2+0.0001);
+    Histogram hist(0.0, max, max/40);
+    foreach(double cn, cn_values)
+    {
+        hist.inc(cn, true);
+    }
+
+    return hist;
+}
+
+Histogram AnalysisDataController::bafHistogram(QString sample_id, Chromosome chr, int start, int end) const
+{
+    FileLocation baf_file = GlobalServiceProvider::fileLocationProvider().getBafFiles(false).filterById(sample_id)[0];
+
+    //determine CN values
+    Histogram hist(0.0, 1.0, 0.025);
+    VersatileFile file(baf_file.filename, false);
+    file.open(QFile::ReadOnly | QIODevice::Text);
+    while (!file.atEnd())
+    {
+        QString line = file.readLine();
+        QStringList parts = line.split("\t");
+        if (parts.count()<5) continue;
+
+        //check if range overlaps input interval
+        Chromosome chr2(parts[0]);
+        if (chr!=chr2) continue;
+
+        int start2 = Helper::toInt(parts[1], "Start coordinate");
+        int end2 = Helper::toInt(parts[2], "End coordinate");
+        if (!BasicStatistics::rangeOverlaps(start, end, start2, end2)) continue;
+
+        double baf =  Helper::toDouble(parts[4], "BAF");
+        hist.inc(baf, true);
+    }
+}
+
+void AnalysisDataController::exportGsvar(QString file_name, bool as_vcf)
+{
+    //create new GSvar file with passing variants
+    VariantList output;
+    output.copyMetaData(variants_);
+    for(int i=0; i<variants_.count(); ++i)
+    {
+        if (variants_filter_state_.passing_variants.passing(i))
+        {
+            output.append(variants_[i]);
+        }
+    }
+
+    if (! as_vcf)
+    {
+        output.store(file_name);
+    }
+    else
+    {
+        //convert to VCF
+        QString ref_genome = Settings::string("reference_genome", false);
+        VcfFile vcf_file = VcfFile::fromGSvar(output, ref_genome);
+        vcf_file.store(file_name);
+    }
+    emit thrownInfo("GSvar export", QString("Exported GSvar file") + (as_vcf ? " as VCF" : "") + " with " + QString::number(output.count()) + " variants.");
+}
+
+void AnalysisDataController::exportHerediCareVCF(QString herediCare_id, QString file_name)
+{
+    GeneSet genes;
+    genes << "ABRAXAS1" << "APC" << "ATM" << "BARD1" << "BRCA1" << "BRCA2" << "BRIP1" << "CDH1" << "CDKN2A" << "CHEK2" << "EPCAM" << "FANCC" << "FANCM" << "HOXB13" << "MEN1" << "MLH1" << "MRE11" << "MSH2" << "MSH6" << "MUTYH" << "NBN" << "NF1" << "NTHL1" << "PALB2" << "PMS2" << "POLD1" << "POLE" << "PTEN" << "RAD50" << "RAD51C" << "RAD51D" << "SMARCA4" << "STK11" << "TP53";
+    FastaFileIndex ref_genome(Settings::string("reference_genome", false));
+
+
+    //convert gene list to exon regions
+    NGSD db;
+    BedFile roi = db.genesToRegions(genes, Transcript::ENSEMBL, "exon");
+    roi.extend(20);
+    roi.merge();
+    ChromosomalIndex<BedFile> roi_idx(roi);
+
+    //create VCF file and add header data
+    VcfFile vcf;
+    vcf.vcfHeader().addInfoLine(InfoFormatLine{"CLASS", "1", "String", "ACMG classification"});
+    vcf.vcfHeader().addFormatLine(InfoFormatLine{"GT", "1", "String", "Genotype in the sample."});
+    vcf.vcfHeader().addFormatLine(InfoFormatLine{"DP", "1", "Integer", "Depth at the variant location."});
+    vcf.vcfHeader().addFormatLine(InfoFormatLine{"AF", "1", "Float", "Allele frequency in the sample."});
+    vcf.setSampleNames(QByteArrayList() << herediCare_id.toUtf8());
+
+    //add variants in ROI to VCF
+    int i_qual = variants_.annotationIndexByName("quality");
+    int i_geno = variants_.getSampleHeader().value(0).column_index;
+    int c_classified = 0;
+    for(int i=0; i<variants_.count(); ++i)
+    {
+        const Variant& v = variants_[i];
+
+        //check ROI
+        if (roi_idx.matchingIndex(v.chr(), v.start(), v.end())==-1) continue;
+
+        VcfLine v2 = v.toVCF(ref_genome, i_geno);
+
+        //add quality, DP and AF
+        QByteArray qual;
+        QByteArray dp;
+        QByteArray af;
+        foreach(QByteArray entry, v.annotations()[i_qual].split(';'))
+        {
+            entry = entry.trimmed();
+            if (entry.startsWith("QUAL=")) qual = entry.mid(5);
+            if (entry.startsWith("DP=")) dp = entry.mid(3);
+            if (entry.startsWith("AF=")) af = entry.mid(3);
+        }
+        v2.setQual(Helper::toDouble(qual, "QUAL"));
+        v2.addFormatKeys(QByteArrayList() << "DP" << "AF");
+        v2.setFormatValues(0, QByteArrayList() << v2.formatValueFromSample("GT") << dp << af);
+
+        //add ACMG class
+        QByteArray c = db.getClassification(v).classification.toUtf8();
+        if (!c.isEmpty())
+        {
+            v2.setInfo(QByteArrayList() << "CLASS", QByteArrayList() << c);
+            ++c_classified;
+        }
+
+        vcf.append(v2);
+    }
+
+    vcf.store(file_name);
+    emit thrownInfo("HerediCare VCF export", "Exported " + QString::number(vcf.count()) + " variants in exons/splice region of the " + QString::number(genes.count()) + " genes:\n" + genes.join(", ") + "\n\n" + QString::number(c_classified) + " of the variants have a classification.");
+}
+
+
+int AnalysisDataController::getValidRna(int rna_ps_id) const
+{
+    if (rna_ps_id == -1 && active_rna_ps_id_ == -1)
+    {
+        THROW(ProgrammingException, "No RNA id specified and no RNA id set in AnalysisDataController while checking or getting for RNA file.");
+    }
+
+    if (rna_ps_id != -1) return rna_ps_id;
+
+    return active_rna_ps_id_;
+
+}
+
+int AnalysisDataController::getActiveRnaPsId() const
+{
+    return active_rna_ps_id_;
+}
+QString AnalysisDataController::getActiveRnaPsName() const
+{
+    if (! isRnaSet()) return "";
+
+    return NGSD().processedSampleName(QString::number(active_rna_ps_id_));
+}
+
+QSet<int> AnalysisDataController::getRelatedRnaSampleIds() const
+{
+    NGSD db;
+    QString sample = variants_.mainSampleName();
+    QString sample_id = db.sampleId(sample);
+
+    return db.relatedSamples(sample_id.toInt(), "same sample", "RNA");
+}
+
+QSet<int> AnalysisDataController::getRelatedRnaProcessedSampleIds() const
+{
+    QSet<int> ps_ids;
+    QSet<int> sample_ids = getRelatedRnaSampleIds();
+
+    NGSD db;
+
+    foreach (int s_id, sample_ids)
+    {
+        foreach (int ps_id, db.getValuesInt("SELECT id FROM processed_sample WHERE sample_id = '" + QString::number(s_id) + "'"))
+        {
+            ps_ids.insert(ps_id);
+        }
+    }
+    return ps_ids;
+}
+
+FileLocation AnalysisDataController::getRnaSplicing(int rna_ps_id) const
+{
+    rna_ps_id = getValidRna(rna_ps_id);
+    return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::SPLICING_ANN);
+}
+
+FileLocation AnalysisDataController::getRnaFusions(int rna_ps_id) const
+{
+    rna_ps_id = getValidRna(rna_ps_id);
+    return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::FUSIONS);
+}
+
+FileLocation AnalysisDataController::getRnaExpressionGenes(int rna_ps_id) const
+{
+    rna_ps_id = getValidRna(rna_ps_id);
+    return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::EXPRESSION);
+}
+
+FileLocation AnalysisDataController::getRnaExpressionExons(int rna_ps_id) const
+{
+    rna_ps_id = getValidRna(rna_ps_id);
+    return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::EXPRESSION_EXON);
+}
+
+QSet<int> AnalysisDataController::getRelatedCfdnaSampleIds() const
+{
+    NGSD db;
+    int sample_id = db.sampleId(getMainSampleName()).toInt();
+    QSet<int> same_sample_ids = db.relatedSamples(sample_id, "same sample");
+    same_sample_ids << sample_id; // add current sample id
+
+    // get all related cfDNA
+    QSet<int> cf_dna_sample_ids;
+    foreach (int cur_sample_id, same_sample_ids)
+    {
+        cf_dna_sample_ids.unite(db.relatedSamples(cur_sample_id, "tumor-cfDNA"));
+    }
+
+    return cf_dna_sample_ids;
+}
+
+const FilterState& AnalysisDataController::getSmallVariantsFilterState() const
+{
+    return variants_filter_state_;
 }
