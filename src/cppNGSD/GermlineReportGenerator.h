@@ -12,7 +12,7 @@
 struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 {
 	//constructor
-	GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_);
+	GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, StatisticsService& statistics_service_);
 
 	//genome build
 	GenomeBuild build;
@@ -39,7 +39,6 @@ struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 	//other data
 	const ReportSettings& report_settings;
 	const FilterCascade& filters;
-	const QMap<QByteArray, QByteArrayList>& preferred_transcripts;
 	const StatisticsService& statistics_service;
 };
 

@@ -9,7 +9,7 @@
 #include <QXmlStreamWriter>
 #include "XmlHelper.h"
 
-GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_)
+GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const RepeatLocusList& res_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, StatisticsService& statistics_service_)
 	: build(build_)
 	, ps(ps_)
 	, variants(variants_)
@@ -19,7 +19,6 @@ GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QSt
 	, prs(prs_)
 	, report_settings(report_settings_)
 	, filters(filters_)
-	, preferred_transcripts(preferred_transcripts_)
 	, statistics_service(statistics_service_)
 {
 }
@@ -808,7 +807,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "10");
+	w.writeAttribute("version", "11");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -981,6 +980,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	//element Variant
 	int geno_idx = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 	int qual_idx = data_.variants.annotationIndexByName("quality");
+	int dbsnp_idx = data_.variants.annotationIndexByName("dbSNP");
     for (const ReportVariantConfiguration& var_conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
@@ -1211,6 +1211,17 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				w.writeAttribute("inheritance", gene_info.inheritance);
 				w.writeEndElement();
 			}
+		}
+
+		//element dbSNP
+		for (QByteArray rs : variant.annotations()[dbsnp_idx].split(','))
+		{
+			rs = rs.trimmed();
+			if (rs.isEmpty()) continue;
+
+			w.writeStartElement("dbSNP");
+			w.writeAttribute("rs_number", rs);
+			w.writeEndElement();
 		}
 
 		//end of variant

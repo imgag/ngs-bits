@@ -126,7 +126,7 @@ void VariantConversionWidget::convert()
 
 				int sep_pos = line.indexOf(':');
 				if (sep_pos==-1) THROW(ArgumentException, "Invalid HGVS.c variant '" + line + "' - the format is [transcipt name]:[variant]");
-				QString transcript_name = line.left(sep_pos).trimmed();
+				QByteArray transcript_name = line.left(sep_pos).trimmed().toUtf8();
 				QString hgvs_c = line.mid(sep_pos+1);
 
 				int trans_id = db.transcriptId(transcript_name, false);
@@ -138,7 +138,7 @@ void VariantConversionWidget::convert()
 						transcript_name = transcript_name.left(transcript_name.indexOf('.'));
 					}
 
-					foreach(const QByteArray& match, matches[transcript_name.toUtf8()])
+					foreach(const QByteArray& match, matches[transcript_name])
 					{
 						int match_id = db.transcriptId(match, false);
 						if (match_id!=-1)

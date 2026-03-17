@@ -46,7 +46,7 @@ private:
 		double avg_depth;
 		GeneSet genes;
 		BedLine coding_overlap;
-		QString preferred_transcript;
+		QString relevant_transcript;
 
 		bool isExonicSplicing() const
 		{

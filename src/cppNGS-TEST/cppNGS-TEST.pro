@@ -57,4 +57,5 @@ SOURCES += \
         TabIndexedFile_Test.cpp \
         PipelineSettings_Test.cpp \
         RepeatLocusList_Test.cpp \
+        GffData_Test.cpp \
         main.cpp

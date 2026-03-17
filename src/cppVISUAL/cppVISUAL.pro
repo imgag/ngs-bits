@@ -33,11 +33,13 @@ unix: LIBS += -lxml2
 
 SOURCES += \
     GenomeVisualizationWidget.cpp \
-    GenePanel.cpp
+    GenePanel.cpp \
+    GenomeData.cpp
 
 HEADERS += \
     GenomeVisualizationWidget.h \
-    GenePanel.h
+    GenePanel.h \
+    GenomeData.h
 
 FORMS += \
     GenomeVisualizationWidget.ui

@@ -103,12 +103,21 @@ void AnalysisInformationWidget::updateGUI()
             if (!file.exists) ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
-				VariantList vl;
-				vl.loadHeaderOnly(file.filename);
-				if (vl.build()!=GSvarHelper::build())
+				try
 				{
-					ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + buildToString(vl.build()) + ")");
-                    ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
+					VariantList vl;
+					vl.loadHeaderOnly(file.filename);
+					if (vl.build()!=GSvarHelper::build())
+					{
+						ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + buildToString(vl.build()) + ")");
+						ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
+					}
+				}
+				catch(Exception& e)
+				{
+					qDebug() << e.message();
+					ui_.table->item(2,1)->setText(ui_.table->item(3,1)->text() + " (error loading file)");
+					ui_.table->item(2,1)->setForeground(QBrush(QColor(Qt::red)));
 				}
 			}
 			ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.small_variants) + " small variants" + rcData(db, "report_configuration_variant", rc_id)));
@@ -124,13 +133,22 @@ void AnalysisInformationWidget::updateGUI()
             if (!file.exists) ui_.table->item(2,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
-				CnvList cnvs;
-				cnvs.loadHeaderOnly(file.filename);
-				QByteArray genome = cnvs.build();
-				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				try
 				{
-					ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + genome + ")");
-                    ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
+					CnvList cnvs;
+					cnvs.loadHeaderOnly(file.filename);
+					QByteArray genome = cnvs.build();
+					if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+					{
+						ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + genome + ")");
+						ui_.table->item(1,1)->setForeground(QBrush(QColor(Qt::red)));
+					}
+				}
+				catch(Exception& e)
+				{
+					qDebug() << e.message();
+					ui_.table->item(2,1)->setText(ui_.table->item(3,1)->text() + " (error loading file)");
+					ui_.table->item(2,1)->setForeground(QBrush(QColor(Qt::red)));
 				}
 			}
 			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs" + rcData(db, "report_configuration_cnv", rc_id)));
@@ -145,13 +163,22 @@ void AnalysisInformationWidget::updateGUI()
             if (!file.exists) ui_.table->item(3,1)->setForeground(QBrush(QColor(Qt::red)));
 			if (file.exists && sample_data.species=="human")
 			{
-				BedpeFile bedpe;
-				bedpe.loadHeaderOnly(file.filename);
-				QByteArray genome = bedpe.build();
-				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				try
 				{
-					ui_.table->item(3,1)->setText(ui_.table->item(3,1)->text() + " (" + genome + ")");
-                    ui_.table->item(3,1)->setForeground(QBrush(QColor(Qt::red)));
+					BedpeFile bedpe;
+					bedpe.loadHeaderOnly(file.filename);
+					QByteArray genome = bedpe.build();
+					if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+					{
+						ui_.table->item(3,1)->setText(ui_.table->item(3,1)->text() + " (" + genome + ")");
+						ui_.table->item(3,1)->setForeground(QBrush(QColor(Qt::red)));
+					}
+				}
+				catch(Exception& e)
+				{
+					qDebug() << e.message();
+					ui_.table->item(3,1)->setText(ui_.table->item(3,1)->text() + " (error loading file)");
+					ui_.table->item(3,1)->setForeground(QBrush(QColor(Qt::red)));
 				}
 			}
 			ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.svs) + " SVs" + rcData(db, "report_configuration_sv", rc_id)));

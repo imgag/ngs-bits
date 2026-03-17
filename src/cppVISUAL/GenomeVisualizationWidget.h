@@ -2,9 +2,8 @@
 #define GENOMEVISUALIZATIONWIDGET_H
 
 #include "cppVISUAL_global.h"
-#include "FastaFileIndex.h"
+#include "GenomeData.h"
 #include "BedFile.h"
-#include "Transcript.h"
 #include <QWidget>
 
 namespace Ui {
@@ -25,14 +24,19 @@ class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
 	Q_OBJECT
 
 public:
-	GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx, const TranscriptList& transcripts);
+    //Default constructor. Make sure to call setGenomeData before doing anything else!
+	GenomeVisualizationWidget(QWidget* parent);
 
-	//Sets visualized region (1-based)
-	void setRegion(const Chromosome& chr, int start, int end);
+    //Sets genome data
+    void setGenomeData(QSharedPointer<GenomeData> data);
+
+public slots:
+    //Sets visualized region (1-based)
+    void setRegion(const Chromosome& chr, int start, int end);
+    //Sets the region of the whole chromosome
+    void setChromosomeRegion(QString chromsome);
 
 protected slots:
-	//Sets the region of the whole chromosome.
-	void setChromosomeRegion(QString chromsome);
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)
 	void search();
 	//Zoom in
@@ -41,7 +45,7 @@ protected slots:
 	void zoomOut();
 	//Update widgets that show the current region
 	void updateRegionWidgets(const BedLine& reg);
-	//
+    //Uodate the label that shows the genomic coordinate under the cursor
 	void updateCoordinateLabel(QString text);
 
 signals:
@@ -50,9 +54,8 @@ signals:
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;
-	GenomeVisualizationSettings settings_;
-	const FastaFileIndex& genome_idx_;
-	const TranscriptList& transcripts_;
+    GenomeVisualizationSettings settings_;
+    QSharedPointer<GenomeData> genome_data_;
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;
@@ -61,3 +64,16 @@ private:
 };
 
 #endif // GENOMEVISUALIZATIONWIDGET_H
+
+
+//TODO:
+//- zooming with the mouse
+//- scrolling by dragging
+//- gene panel: show AAs when enough space available (~600bp in IGV)
+//- base class for panels
+//  - panel that shows BED file
+//  - panel that shows chromosomal bands (including N regions, telomer, centromer and PAR)
+//  - panel that shows reads (BAM/CRAM file)
+//  - panel that shows CNV data from ClinCNV
+//  - panel that shows small variants (VCF file)
+//  - panel that shows structural variants (BEDPE file)

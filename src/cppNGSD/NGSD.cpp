@@ -201,7 +201,7 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 	//access restricted only for user role 'user_restricted'
 	if (getUserRole(user_id)!="user_restricted") return true;
 
-	QMutexLocker locker(&cache_mutex_);
+	QMutexLocker locker(&cache_mutex_user_access_);
 
 	QMap<int, QSet<int>>& user_can_access = getCache().user_can_access;
 
@@ -1905,17 +1905,18 @@ int NGSD::repeatExpansionGenotypeId(int repeat_expansion_id, int processed_sampl
 RepeatLocus NGSD::repeatExpansionGenotype(int id)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT re.region, re.repeat_unit, reg.allele1, reg.allele2 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
+	query.prepare("SELECT re.region, re.repeat_unit, re.name, reg.allele1, reg.allele2 FROM repeat_expansion_genotype reg, repeat_expansion re WHERE re.id=reg.repeat_expansion_id AND reg.id=:0");
 	query.bindValue(0, id);
 	query.exec();
 
 	if (!query.next()) THROW(DatabaseException, "Repeat expansion with identifier '" + QString::number(id) + "' does not exist!");
 
 	RepeatLocus re;
-	re.setRegion(BedLine::fromString(query.value(0).toString()));
-	re.setUnit(query.value(1).toByteArray());
-	re.setAllele1(query.value(2).toByteArray());
-	re.setAllele2(query.value(3).toByteArray());
+	re.setRegion(BedLine::fromString(query.value("region").toString()));
+	re.setUnit(query.value("repeat_unit").toByteArray());
+	re.setName(query.value("name").toByteArray());
+	re.setAllele1(query.value("allele1").toByteArray());
+	re.setAllele2(query.value("allele2").toByteArray());
 
 	return re;
 }
@@ -5050,7 +5051,7 @@ void NGSD::setSomaticGeneRole(const SomaticGeneRole& gene_role)
 
 		query.bindValue(1, gene_role.high_evidence);
 		if(!gene_role.comment.isEmpty()) query.bindValue(2, gene_role.comment);
-		else query.bindValue(2, QVariant::String);
+		else query.bindValue(2, QVariant(QMetaType::fromType<QString>()));
 
 		query.exec();
 	}
@@ -5064,7 +5065,7 @@ void NGSD::setSomaticGeneRole(const SomaticGeneRole& gene_role)
 
 		query.bindValue(2, gene_role.high_evidence);
 		if(!gene_role.comment.isEmpty()) query.bindValue(3, gene_role.comment);
-		else query.bindValue(3, QVariant::String);
+		else query.bindValue(3, QVariant(QMetaType::fromType<QString>()));
 
 		query.exec();
 	}
@@ -6838,19 +6839,62 @@ GeneSet NGSD::synonymousSymbols(int id)
 	return output;
 }
 
-PhenotypeList NGSD::phenotypes(const QByteArray& symbol)
+PhenotypeList NGSD::phenotypes(const QByteArray& symbol, bool sort_by_relevance)
 {
 	PhenotypeList output;
 
-	SqlQuery query = getQuery();
-	query.prepare("SELECT hpo_term_id FROM hpo_genes WHERE gene=:0");
-	query.bindValue(0, symbol);
-	query.exec();
-	while(query.next())
+	//determine HPO database IDs
+	QList<int> hpo_ids;
+	if (sort_by_relevance)
 	{
-		output << phenotype(query.value(0).toInt());
+		//create list of id and score
+		QList<QPair<int, int>> id2score;
+		SqlQuery query = getQuery();
+		query.prepare("SELECT hpo_term_id, details FROM hpo_genes WHERE gene=:0");
+		query.bindValue(0, symbol);
+		query.exec();
+		while(query.next())
+		{
+			int id = query.value(0).toInt();
+			int score = 0;
+			foreach(QString part, query.value(1).toString().split(';'))
+			{
+				part = part.trimmed();
+				if (part.isEmpty()) continue;
+
+				if (part.endsWith("high)")) score += 4;
+				else if (part.endsWith("medium)")) score += 2;
+				else score += 1;
+			}
+			id2score << qMakePair(id, score);
+		}
+
+		//sort
+		std::sort(id2score.begin(), id2score.end(),
+				  [](const QPair<int,int>& a, const QPair<int,int>& b)
+				  {
+					  return a.second > b.second;
+				  });
+
+		for (const QPair<int, int>& pair: std::as_const(id2score))
+		{
+			hpo_ids << pair.first;
+		}
 	}
-	output.sortByName();
+	else
+	{
+		hpo_ids = getValuesInt("SELECT hpo_term_id FROM hpo_genes WHERE gene=:0", symbol);
+	}
+
+	//add phenotypes to output
+	for(int pheno_id:  std::as_const(hpo_ids))
+	{
+		output << phenotype(pheno_id);
+	}
+
+	//sort by name
+	if (!sort_by_relevance) output.sortByName();
+
 	return output;
 }
 
@@ -6931,13 +6975,13 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 	pheno_ids << id;
 	if (recursive)
 	{
-        for (const Phenotype& pheno : phenotypeChildTerms(id, true))
+		for (const Phenotype& pheno : phenotypeChildTerms(id, true))
 		{
 			pheno_ids << phenotypeIdByAccession(pheno.accession());
 		}
 	}
 
-	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes;
+	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes; //TODO Marc/Alexandr: access caches through functions and initialize it once (using a mutex)
 	if (hpo_genes_cache.isEmpty())
 	{
 		SqlQuery hpo_pairs_query = getQuery();
@@ -6972,13 +7016,13 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 	{
 		int pheno_inh = phenotypeIdByAccession("HP:0000005"); //"Mode of inheritance"
 		ignored_terms_ids << pheno_inh;
-        for (const Phenotype& pheno : phenotypeChildTerms(pheno_inh, true))
+		for (const Phenotype& pheno : phenotypeChildTerms(pheno_inh, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}
 		int pheno_freq = phenotypeIdByAccession("HP:0040279"); //"Frequency"
 		ignored_terms_ids << pheno_freq;
-        for (const Phenotype& pheno : phenotypeChildTerms(pheno_freq, true))
+		for (const Phenotype& pheno : phenotypeChildTerms(pheno_freq, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}
@@ -6989,9 +7033,20 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 	pheno_ids << id;
 	if (recursive)
 	{
-        for (const Phenotype& pheno : phenotypeChildTerms(id, true))
+		for (const Phenotype& pheno : phenotypeChildTerms(id, true))
 		{
 			pheno_ids << phenotypeIdByAccession(pheno.accession());
+		}
+	}
+
+	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes;
+	if (hpo_genes_cache.isEmpty())
+	{
+		SqlQuery hpo_pairs_query = getQuery();
+		hpo_pairs_query.exec("SELECT hpo_term_id, gene FROM hpo_genes");
+		while(hpo_pairs_query.next())
+		{
+			hpo_genes_cache[hpo_pairs_query.value(0).toInt()] << hpo_pairs_query.value(1).toByteArray();
 		}
 	}
 
@@ -7004,6 +7059,7 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 		int id = pheno_ids.takeLast();
 		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
 		QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
+		bool restricted_relations = false;
 
 		if (allowed_sources.size() > 0 && allowed_sources.count() < Phenotype::allSourceValues().count())
 		{
@@ -7014,6 +7070,7 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 			}
 			query.chop(4);
 			query.append(")");
+			restricted_relations = true;
 		}
 
 		if (allowed_evidences.size() > 0 && allowed_evidences.count() < Phenotype::allEvidenceValues(false).count())
@@ -7026,14 +7083,25 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> 
 			}
 			query.chop(4);
 			query.append(")");
+			restricted_relations = true;
 		}
-		//pid2genes.bindValue(0, id);
-		pid2genes.exec(query);
 
-		while(pid2genes.next())
+		if (restricted_relations)
 		{
-			QByteArray gene = pid2genes.value(0).toByteArray();
-			genes.insert(geneToApproved(gene, true));
+			pid2genes.exec(query);
+			while(pid2genes.next())
+			{
+				QByteArray gene = pid2genes.value(0).toByteArray();
+				genes.insert(geneToApproved(gene, true));
+			}
+		}
+		else
+		{
+			for (const QByteArray& hpo_gene: hpo_genes_cache[id])
+			{
+
+				genes.insert(geneToApproved(hpo_gene, true));
+			}
 		}
 	}
 	return genes;
@@ -7197,19 +7265,21 @@ const GeneSet& NGSD::approvedGeneNames()
 	return output;
 }
 
-QMap<QByteArray, QByteArrayList> NGSD::getPreferredTranscripts()
+QMap<QByteArray, QByteArrayList> NGSD::relevantTranscripts()
 {
 	QMap<QByteArray, QByteArrayList> output;
 
-	SqlQuery query = getQuery();
-	query.exec("SELECT g.symbol, pt.name FROM gene g, gene_transcript gt, preferred_transcripts pt WHERE g.id=gt.gene_id AND gt.name=pt.name");
-	while(query.next())
+	GeneSet genes = approvedGeneNames();
+	for(const QByteArray& gene: genes)
 	{
-		QByteArray gene = query.value(0).toByteArray().trimmed();
-		QByteArray transcript = query.value(1).toByteArray().trimmed();
-		output[gene].append(transcript);
-	}
+		int gene_id = geneId(gene);
+		if (gene_id==-1) continue;
 
+		foreach(const Transcript& t, relevantTranscripts(gene_id))
+		{
+			output[gene] << t.name();
+		}
+	}
 	return output;
 }
 
@@ -7221,9 +7291,9 @@ bool NGSD::addPreferredTranscript(QByteArray transcript_name)
 	QVariant pt_id = getValue("SELECT id FROM preferred_transcripts WHERE name=:0", true, transcript_name);
 	if (pt_id.isValid()) return false;
 
-	//check if valid transcript name.
-	QVariant gt_id = getValue("SELECT id FROM gene_transcript WHERE name=:0 AND source='ensembl'", true, transcript_name);
-	if (!gt_id.isValid()) THROW(DatabaseException, "Invalid Ensembl transcript name '" + transcript_name + "' given in NGSD::addPreferredTranscript!");
+	//check if valid transcript name
+	int gt_id = transcriptId(transcript_name, false);
+	if (gt_id==-1) THROW(DatabaseException, "Invalid transcript name '" + transcript_name + "' given in NGSD::addPreferredTranscript!");
 
 	//insert
 	SqlQuery query = getQuery();
@@ -7478,19 +7548,22 @@ BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 	return trans.toRegion(mode);
 }
 
-int NGSD::transcriptId(QString name, bool throw_on_error)
+int NGSD::transcriptId(const QByteArray& name, bool throw_on_error)
 {
-	QVariant value = getValue("SELECT id FROM gene_transcript WHERE name=:0", true, name);
-	if (!value.isValid() && name.contains('.')) //if not found, try without version number (if present)
+	Cache& cache = getCache();
+	if (cache.gene_transcripts.isEmpty()) initTranscriptCache();
+
+	int id = cache.gene_transcripts_name2id.value(name, -1);
+	if (id==-1 && name.contains('.')) //if not found, try without version number (if present)
 	{
-		value = getValue("SELECT id FROM gene_transcript WHERE name=:0", true, name.left(name.indexOf('.')));
+		id = cache.gene_transcripts_name2id.value(name.left(name.indexOf('.')), -1);
 	}
-	if (!value.isValid())
+	if (id==-1)
 	{
 		if (!throw_on_error) return -1;
 		THROW(DatabaseException, "No transcript with name '" + name + "' found in NGSD!");
 	}
-	return value.toInt();
+	return id;
 }
 
 TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)
@@ -7537,67 +7610,57 @@ TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, in
 
 Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts, int *return_quality)
 {
-	TranscriptList list = transcripts(gene_id, Transcript::ENSEMBL, false);
+	TranscriptList gene_transcripts = transcripts(gene_id, Transcript::ENSEMBL, false);
+	TranscriptList tmp;
 
 	//preferred
-	list.sortByCodingBases();
-	TranscriptList list_lvl;
-
-	foreach(const Transcript& t, list)
+	foreach(const Transcript& t, gene_transcripts)
 	{
-		if (t.isPreferredTranscript()) list_lvl.append(t);
+		if (t.isPreferredTranscript()) tmp.append(t);
 	}
-
-	if (list_lvl.count() > 0)
+	if (tmp.count() > 0)
 	{
 		if (return_quality != nullptr) *return_quality = 5;
-		return highestImpactTranscript(list_lvl, var_transcripts);
+		return highestImpactTranscript(tmp, var_transcripts);
 	}
 
-
-	//MANE select
-	foreach(const Transcript& t, list)
+	//MANE select or MANE plus clinical
+	foreach(const Transcript& t, gene_transcripts)
 	{
-		if (t.isManeSelectTranscript() || t.isManePlusClinicalTranscript()) list_lvl.append(t);
+		if (t.isManeSelectTranscript() || t.isManePlusClinicalTranscript()) tmp.append(t);
 	}
-
-	if (list_lvl.count() > 0)
+	if (tmp.count() > 0)
 	{
 		if (return_quality != nullptr) *return_quality = 4;
-		return highestImpactTranscript(list_lvl, var_transcripts);
+		return highestImpactTranscript(tmp, var_transcripts);
 	}
-
-	//MANE plus clinical
-	//not necessary because each gene with MANE plus clinical also has a MANE select transcript
 
 	//Ensembl canonical
-	foreach(const Transcript& t, list)
+	foreach(const Transcript& t, gene_transcripts)
 	{
-
-		if (t.isEnsemblCanonicalTranscript()) list_lvl.append(t);
+		if (t.isEnsemblCanonicalTranscript()) tmp.append(t);
 	}
-
-	if (list_lvl.count() > 0)
+	if (tmp.count() > 0)
 	{
 		if (return_quality != nullptr) *return_quality = 3;
-		return highestImpactTranscript(list_lvl, var_transcripts);
+		return highestImpactTranscript(tmp, var_transcripts);
 	}
 
 	//longest coding
-	foreach(const Transcript& t, list)
+	gene_transcripts.sortByCodingBases();
+	foreach(const Transcript& t, gene_transcripts)
 	{
-		if (t.isCoding()) list_lvl.append(t);
+		if (t.isCoding()) tmp.append(t);
 	}
-
-	if (list_lvl.count() > 0)
+	if (tmp.count() > 0)
 	{
 		if (return_quality != nullptr) *return_quality = 2;
-		return highestImpactTranscript(list_lvl, var_transcripts);
+		return highestImpactTranscript(tmp, var_transcripts);
 	}
 
 	//longest
-	list.sortByBases();
-	foreach(const Transcript& t, list)
+	gene_transcripts.sortByBases();
+	foreach(const Transcript& t, gene_transcripts)
 	{
 		if (return_quality != nullptr) *return_quality = 1;
 		return t;
@@ -7644,15 +7707,30 @@ TranscriptList NGSD::relevantTranscripts(int gene_id)
 {
 	TranscriptList output;
 
-	Transcript best_trans = bestTranscript(gene_id);
-	if (best_trans.isValid()) output << best_trans;
-
-	foreach(const Transcript& t, transcripts(gene_id, Transcript::ENSEMBL, false))
+	//add transcripts ordered by importance
+	TranscriptList tmp = transcripts(gene_id, Transcript::ENSEMBL, false);
+	foreach(const Transcript& t, tmp)
 	{
-		if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript() || t.isEnsemblCanonicalTranscript())
-		{
-			if (!output.contains(t)) output << t;
-		}
+		if (t.isPreferredTranscript()) output << t;
+	}
+	foreach(const Transcript& t, tmp)
+	{
+		if (t.isManeSelectTranscript() && !output.contains(t)) output << t;
+	}
+	foreach(const Transcript& t, tmp)
+	{
+		if (t.isManePlusClinicalTranscript() && !output.contains(t)) output << t;
+	}
+	foreach(const Transcript& t, tmp)
+	{
+		if (t.isEnsemblCanonicalTranscript() && !output.contains(t)) output << t;
+	}
+
+	//fallback to longest coding or longest transcript
+	if (output.isEmpty())
+	{
+		Transcript best_trans = bestTranscript(gene_id);
+		if (best_trans.isValid() && !output.contains(best_trans)) output << best_trans;
 	}
 
 	return output;
@@ -10817,6 +10895,7 @@ void NGSD::clearCache()
 	cache_instance.gene_transcripts_index.createIndex();
 	cache_instance.gene_transcripts_id2index.clear();
 	cache_instance.gene_transcripts_symbol2indices.clear();
+	cache_instance.gene_transcripts_name2id.clear();
 
 	cache_instance.gene_expression_id2gene.clear();
 	cache_instance.gene_expression_gene2id.clear();
@@ -10826,7 +10905,7 @@ void NGSD::clearCache()
 
 void NGSD::clearUserPermissionsCache()
 {
-	QMutexLocker locker(&cache_mutex_);
+	QMutexLocker locker(&cache_mutex_user_access_);
 	Cache& cache_instance = getCache();
 	cache_instance.user_can_access.clear();
 }
@@ -10862,6 +10941,7 @@ void NGSD::initTranscriptCache()
 	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
 	QHash<int, int>& id2index = getCache().gene_transcripts_id2index;
 	QHash<QByteArray, QSet<int>>& symbol2indices = getCache().gene_transcripts_symbol2indices;
+	QHash<QByteArray, int>& name2id = getCache().gene_transcripts_name2id;
 
 
 	//get exon coordinates for each transcript from NGSD
@@ -10920,20 +11000,21 @@ void NGSD::initTranscriptCache()
 		tmp_name2id[transcript.name()] = trans_id;
 	}
 
-	//sort and build indices
+	//sort and build index
 	cache.sortByPosition();
+	index.createIndex();
+
+	//fill other hashes for fast lookup
 	for (int i=0; i<cache.count(); ++i)
 	{
 		const Transcript& trans = cache[i];
 
 		int trans_id = tmp_name2id[trans.name()];
 		id2index[trans_id] = i;
+		name2id[trans.name()] = trans_id;
 
 		symbol2indices[trans.gene()] << i;
 	}
-
-	//build index
-	index.createIndex();
 
 	initializing = false;
 }

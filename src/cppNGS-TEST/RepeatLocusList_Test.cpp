@@ -27,4 +27,22 @@ private:
 		S_EQUAL(res.callingDate().toString(Qt::ISODate), "2024-06-12");
 		I_EQUAL(res.count(), 30);
 	}
+
+	TEST_METHOD(findMatch)
+	{
+		RepeatLocusList res;
+		res.load(TESTDATA("data_in/RepeatLocusList_findMatch.vcf"));
+
+		RepeatLocus rl;
+		rl.setRegion(BedLine(Chromosome("chr4"), 3074876, 3074933));
+		rl.setUnit("CAG");
+		rl.setAllele1("34.4");
+		rl.setAllele2("17.2");
+
+		//exact match
+		I_EQUAL(res.findMatch(rl, false), 3);
+		rl.setAllele1("35");
+		I_EQUAL(res.findMatch(rl, false), -1);
+		I_EQUAL(res.findMatch(rl, true), 3);
+	}
 };

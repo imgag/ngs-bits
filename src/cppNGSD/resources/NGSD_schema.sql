@@ -1047,6 +1047,7 @@ CREATE TABLE IF NOT EXISTS `hpo_genes`
   `details` TEXT COMMENT 'Semicolon seperated pairs of database sources with evidences of where the connection was found (Source, Original Evidence, Evidence translated; Source2, ....)' NULL,
   `evidence` ENUM('n/a','low','medium','high') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`hpo_term_id`, `gene`),
+  INDEX `gene` (`gene` ASC),
   CONSTRAINT `hpo_genes_ibfk_1`
     FOREIGN KEY (`hpo_term_id`)
     REFERENCES `hpo_term` (`id`)
@@ -1747,6 +1748,25 @@ CREATE TABLE IF NOT EXISTS `report_configuration_variant`
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   UNIQUE INDEX `config_variant_combo_uniq` (`report_configuration_id` ASC, `variant_id` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `report_configuration_failed_transfer`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_failed_transfer`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `status` ENUM( 'open', 'not needed anymore', 'manually added') NOT NULL DEFAULT 'open',
+  `variant_description` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_processed_sample_id3`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
