@@ -14,10 +14,6 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppXML
 LIBS += -L$$PWD/../../bin -lcppXML
 
-#include cppPLOTS library
-INCLUDEPATH += $$PWD/../cppPLOTS
-LIBS += -L$$PWD/../../bin -lcppPLOTS
-
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts

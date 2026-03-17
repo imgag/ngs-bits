@@ -84,6 +84,7 @@ public:
 
 int main(int argc, char *argv[])
 {
+	qputenv("QT_QPA_PLATFORM", "offscreen");
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }

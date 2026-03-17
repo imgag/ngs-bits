@@ -102,6 +102,7 @@ private:
 
 int main(int argc, char *argv[])
 {
-    ConcreteTool tool(argc, argv);
+	qputenv("QT_QPA_PLATFORM", "offscreen");
+	ConcreteTool tool(argc, argv);
     return tool.execute();
 }

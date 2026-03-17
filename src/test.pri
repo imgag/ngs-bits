@@ -2,7 +2,8 @@ include("base.pri")
 
 #base settings
 TEMPLATE = app
-QT       -= gui
+# QT       -= gui
+QT       += gui widgets charts
 QT       += network
 CONFIG   += console
 CONFIG   -= app_bundle
