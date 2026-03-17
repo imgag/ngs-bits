@@ -64,7 +64,6 @@ public:
 		}
 
 		//return a single line
-		qDebug() << report_variant_info;
 		return report_variant_info.join('\t');
 	}
 
@@ -134,10 +133,6 @@ public:
 		int target_cnv_callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", false, target_ps_id).toInt();
 		int target_sv_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", false, target_ps_id).toInt();
 
-
-		//Debug
-		qDebug() << "Files loaded!";
-
 		//create target report and transfer meta data
 		QSharedPointer<ReportConfiguration> target_report_config = QSharedPointer<ReportConfiguration>(new ReportConfiguration());
 		target_report_config->setOtherCausalVariant(source_report_config->otherCausalVariant());
@@ -151,8 +146,6 @@ public:
 		QList<QPair<ReportVariantConfiguration,BedpeLine>> svs_to_transfer;
 		QList<QPair<ReportVariantConfiguration,RepeatLocus>> res_to_transfer;
 
-		//Debug
-		qDebug() << "Report meta data copied!";
 
 
 
@@ -234,8 +227,6 @@ public:
 			}
 		}
 
-		//Debug
-		qDebug() << "ReportConfig loaded!";
 
 		//report for all variants to transfer
 		QStringList report;
@@ -291,9 +282,6 @@ public:
 			}
 		}
 
-		//Debug
-		qDebug() << "Target SNVs checked!";
-
 		std_out << "	SNVs	all/match/missed/missed_excluded	" + QString::number(variants_to_transfer.size()) + "/" + QString::number(n_match) + "/" + QString::number(n_missed) + "/" + QString::number(n_missed_excluded) + "\n";
 
 		//CNVs
@@ -345,8 +333,6 @@ public:
 				}
 			}
 		}
-		//Debug
-		qDebug() << "Target CNVs checked!";
 		std_out << "	CNVs	all/match/missed/missed_excluded	" + QString::number(cnvs_to_transfer.size()) + "/" + QString::number(n_match) + "/" + QString::number(n_missed) + "/" + QString::number(n_missed_excluded) + "\n";
 
 		//SVs
@@ -390,7 +376,6 @@ public:
 			}
 		}
 		//Debug
-		qDebug() << "Target SVs checked!";
 		std_out << "	SVs	all/match/missed/missed_excluded	" + QString::number(svs_to_transfer.size()) + "/" + QString::number(n_match) + "/" + QString::number(n_missed) + "/" + QString::number(n_missed_excluded) + "\n";
 
 
@@ -405,7 +390,6 @@ public:
 			if ( idx > -1)
 			{
 				n_match++;
-				// qDebug() << "Report re " + pair.second.toString(true, true) + " found in target sample.";
 				//transfer to new report
 				int re_id = db.repeatExpansionId(pair.second.region(), pair.second.unit());
 				int ngsd_id = db.repeatExpansionGenotypeId(re_id, target_ps_id.toInt());
@@ -437,8 +421,7 @@ public:
 
 			}
 		}
-		//Debug
-		qDebug() << "Target REs checked!";
+
 		std_out << "	REs	all/match/missed/missed_excluded	" + QString::number(res_to_transfer.size()) + "/" + QString::number(n_match) + "/" + QString::number(n_missed) + "/" + QString::number(n_missed_excluded) + "\n";
 
 		//Report variants to transfer
