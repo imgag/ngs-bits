@@ -17,15 +17,15 @@ BedPanel::BedPanel(QWidget*)
 void BedPanel::tracksChanged()
 {
 	/*
-	 * TODO: this is adhoc and extremely inefficient,
-	 * this needs to be optimized.
+	 * TODO: this is adhoc and wrong,
+	 * needs to be fixed.
 	 */
-	// clearLayout();
 	QVector<Track> tracks = SharedData::tracks();
 
 	auto panel = new TrackPanel(this, tracks.last());
 	panel->setFixedHeight(height() / 30);
 	layout_->insertWidget(layout_->count() - 1, panel);
+	layout_->update();
 }
 
 void BedPanel::clearLayout()
@@ -38,13 +38,6 @@ void BedPanel::clearLayout()
 	}
 }
 
-void BedPanel::paintEvent(QPaintEvent*)
-{
-	// QTextStream(stdout) << "bed panel paint called" << Qt::endl;
-
-	// QPainter painter(this);
-	// painter.fillRect(rect(), Qt::black);
-}
 
 void BedPanel::mousePressEvent(QMouseEvent* event)
 {
@@ -83,8 +76,6 @@ void BedPanel::mouseMoveEvent(QMouseEvent* event)
 
 		update();
 	}
-	// QTextStream(stdout) << "Cx: " << x << Qt::endl;
-	current_mouse_x_ = x;
 }
 
 
@@ -112,59 +103,4 @@ void BedPanel::mouseReleaseEvent(QMouseEvent* event)
 
 	is_dragging_ = false;
 	update();
-}
-
-
-void BedPanel::wheelEvent(QWheelEvent* event)
-{
-	/*
-	 * TODO: This position based zooming in is too unstable, it needs to be fixed
-	 * until then the same logic as the buttons is used
-	 */
-	// int x = current_mouse_x_;
-	// int w = width();
-	// int label_width = SharedData::settings().label_width;
-	// float total_width = w - label_width - 4;
-
-	// static const float zoom_in_factor = 0.9f;
-	// static const float zoom_out_factor = 1.1f;
-
-	// const BedLine& region = SharedData::region();
-	// float region_length = region.length();
-	// float region_start = region.start();
-
-	// // Calculate how far the mouse is from the left of the region
-	// float mouse_pos_percentage = (x - label_width - 2) / total_width;
-	// float region_pos = region_start + mouse_pos_percentage * region_length;
-
-	// QTextStream(stdout) << x << ' ' << label_width  << ' ' << mouse_pos_percentage << ' ' << region_start << ' ' << region_pos << Qt::endl;
-
-	// (zoom in)
-	if (event->angleDelta().y() > 0)
-	{
-		// Zoom in: reduce the region size, centered around the mouse position
-		// float zoom_in_amount = region_length * zoom_in_factor * .5f;
-		// // float new_start = region_start + mouse_pos_percentage * zoom_in_amount;
-		// // float new_end = region_end - (1 - mouse_pos_percentage) * zoom_in_amount;
-		// float new_start = region_pos - zoom_in_amount;
-		// float new_end	= region_pos + zoom_in_amount;
-
-		// SharedData::setRegion(region.chr(), new_start, new_end);
-		const BedLine& reg = SharedData::region();
-		SharedData::setRegion(reg.chr(), reg.start()+reg.length()/4, reg.end()-reg.length()/4);
-	}
-	// (zoom out)
-	else
-	{
-		// Zoom out: increase the region size, centered around the mouse position
-		// float zoom_out_amount = region_length * zoom_out_factor * .5f;
-		// float new_start = region_pos - zoom_out_amount;
-		// float new_end	= region_pos + zoom_out_amount;
-
-		// SharedData::setRegion(region.chr(), new_start, new_end);
-		const BedLine& reg = SharedData::region();
-		SharedData::setRegion(reg.chr(), reg.start()-reg.length()/2, reg.end()+reg.length()/2);
-	}
-
-	event->accept();
 }

@@ -148,7 +148,7 @@
        </sizepolicy>
       </property>
       <property name="mouseTracking">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
      </widget>
      <widget class="QScrollArea" name="scrollArea">

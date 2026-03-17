@@ -117,7 +117,5 @@ void SharedData::loadTrack(QString filename)
 		}
 	);
 
-	// QTextStream(stdout) << "loaded: " << filename << Qt::endl;
-
 	emit instance()->tracksChanged();
 }
