@@ -8,6 +8,8 @@
 BedPanel::BedPanel(QWidget*)
 	:layout_(new QVBoxLayout(this))
 {
+	layout_->addStretch(1);
+	layout_->setContentsMargins(0, 0, 0, height());
 	connect(SharedData::instance(), SIGNAL(tracksChanged()), this, SLOT(tracksChanged()));
 }
 
@@ -18,18 +20,12 @@ void BedPanel::tracksChanged()
 	 * TODO: this is adhoc and extremely inefficient,
 	 * this needs to be optimized.
 	 */
-	clearLayout();
+	// clearLayout();
 	QVector<Track> tracks = SharedData::tracks();
 
-	for (int i =0; i < tracks.count(); ++i)
-	{
-		auto panel = new TrackPanel(this, tracks[i]);
-		panel->setFixedHeight(height() / 30);
-		layout_->addWidget(panel);
-
-	}
-	layout_->addStretch(1);
-	// QTextStream(stdout) << "Tracks changed " << tracks.count() << Qt::endl;
+	auto panel = new TrackPanel(this, tracks.last());
+	panel->setFixedHeight(height() / 30);
+	layout_->insertWidget(layout_->count() - 1, panel);
 }
 
 void BedPanel::clearLayout()
