@@ -59,8 +59,6 @@ private:
 		//test
 		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test " + "-use_sample_folder -group_analyses -include_vcf -out out/NGSDExportStudyGHGA_out4.json");
 		COMPARE_FILES("out/NGSDExportStudyGHGA_out4.json", TESTDATA("data_out/NGSDExportStudyGHGA_out4.json"));
-
-		//TODO Leon: fix grouping - validator gives errors like "Unknown reference(s) ['ANA_Pseudonym01']" (see /mnt/storage2/users/ahsturm1/scripts/2026_03_10_GoE_export_GHGA)
 	}
 
 	TEST_METHOD(test_fastq_only)

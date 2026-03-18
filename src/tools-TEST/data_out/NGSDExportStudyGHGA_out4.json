@@ -221,7 +221,7 @@
     "process_data_files": [
         {
             "alias": "VCF_Pseudonym01",
-            "analysis": "ANA_Pseudonym01",
+            "analysis": "ANA_PAT1",
             "dataset": "DS_Study4711",
             "format": "VCF",
             "included_in_submission": true,
@@ -229,7 +229,7 @@
         },
         {
             "alias": "VCF_Pseudonym05",
-            "analysis": "ANA_Pseudonym05",
+            "analysis": "ANA_PAT2",
             "dataset": "DS_Study4711",
             "format": "VCF",
             "included_in_submission": true,
@@ -237,7 +237,7 @@
         },
         {
             "alias": "VCF_Pseudonym011",
-            "analysis": "ANA_Pseudonym011",
+            "analysis": "ANA_PAT1",
             "dataset": "DS_Study4711",
             "format": "VCF",
             "included_in_submission": true,
@@ -245,7 +245,7 @@
         },
         {
             "alias": "VCF_Pseudonym051",
-            "analysis": "ANA_Pseudonym051",
+            "analysis": "ANA_PAT2",
             "dataset": "DS_Study4711",
             "format": "VCF",
             "included_in_submission": true,

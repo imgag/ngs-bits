@@ -617,7 +617,7 @@ public:
 			{
 				QJsonObject obj;
 				obj.insert("format", "BAM");
-				obj.insert("analysis", "ANA_" + ps_data.pseudonym);
+				obj.insert("analysis", "ANA_" + ((data.group_analyses)?ps_data.patient_id:ps_data.pseudonym));
 				if (data.use_sample_folder)
 				{
 					QString bam_file_name = getFilesFromFolder(ps_data.ps_folder, "bam", false, "").at(0);
@@ -642,7 +642,7 @@ public:
 			{
 				QJsonObject obj;
 				obj.insert("format", "VCF");
-				obj.insert("analysis", "ANA_" + ps_data.pseudonym);
+				obj.insert("analysis", "ANA_" + ((data.group_analyses)?ps_data.patient_id:ps_data.pseudonym));
 
 				if (data.use_sample_folder)
 				{
