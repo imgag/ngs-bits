@@ -28,20 +28,20 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
-    BedPanel.cpp \
     BedTrack.cpp \
     GenomeVisualizationWidget.cpp \
     GenePanel.cpp \
     ChromosomePanel.cpp \
+    Panel.cpp \
     PanelManager.cpp \
     SharedData.cpp
 
 HEADERS += \
-    BedPanel.h \
     BedTrack.h \
     GenomeVisualizationWidget.h \
     GenePanel.h \
     ChromosomePanel.h \
+    Panel.h \
     PanelManager.h \
     SharedData.h \
     Track.h

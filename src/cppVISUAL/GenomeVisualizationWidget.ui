@@ -182,7 +182,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="BedPanel" name="bed_panel" native="true"/>
+         <widget class="Panel" name="deafult_panel" native="true"/>
         </item>
        </layout>
       </widget>
@@ -318,15 +318,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>BedPanel</class>
-   <extends>QWidget</extends>
-   <header location="global">BedPanel.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>PanelManager</class>
    <extends>QSplitter</extends>
    <header location="global">PanelManager.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Panel</class>
+   <extends>QWidget</extends>
+   <header location="global">Panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

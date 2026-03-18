@@ -1,5 +1,5 @@
-#ifndef BEDPANEL_H
-#define BEDPANEL_H
+#ifndef PANEL_H
+#define PANEL_H
 
 #include "cppVISUAL_global.h"
 #include "Track.h"
@@ -8,13 +8,13 @@
 #include <QVBoxLayout>
 #include <QMouseEvent>
 
-class CPPVISUALSHARED_EXPORT BedPanel
+class CPPVISUALSHARED_EXPORT Panel
 	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	BedPanel(QWidget*);
+	Panel(QWidget*);
 
 public slots:
 	void trackAdded(Track);
@@ -26,4 +26,4 @@ private:
 };
 
 
-#endif // BEDPANEL_H
+#endif // PANEL_H
