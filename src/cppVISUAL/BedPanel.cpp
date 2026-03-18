@@ -23,7 +23,7 @@ void BedPanel::tracksChanged()
 	QVector<Track> tracks = SharedData::tracks();
 
 	auto panel = new TrackPanel(this, tracks.last());
-	panel->setFixedHeight(height() / 30);
+	panel->setMinimumHeight(30);
 	layout_->insertWidget(layout_->count() - 1, panel);
 	layout_->update();
 }
