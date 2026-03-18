@@ -961,19 +961,25 @@ const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
 	static QSet<int> empty_entry;
 	QHash<int, QSet<int>>& same_samples = (mode == SameSampleMode::SAME_PATIENT)? getCache().same_patients : getCache().same_samples;
 
-	//prepare iterative query
-	SqlQuery query_iterative = getQuery();
-	query_iterative.prepare(QString("SELECT sample1_id, sample2_id FROM sample_relations WHERE (relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient')": ")") + " AND (sample1_id=:0 OR sample2_id=:0)");
-
 	//init if empty
 	if (same_samples.isEmpty())
 	{
-		//sample relation
+		//get relation data and store it in a hash
+		QHash<int, QSet<int>> id2same;
 		SqlQuery query = getQuery();
-		query.exec(QString("SELECT sample1_id FROM sample_relations WHERE relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient'": ""));
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE (relation='same sample'" + QString(mode == SameSampleMode::SAME_PATIENT ? " OR relation='same patient')" : ")"));
 		while (query.next())
 		{
-			int sample1_id = query.value(0).toInt();
+			int id1 = query.value(0).toInt();
+			int id2 = query.value(1).toInt();
+			id2same[id1] << id2;
+			id2same[id2] << id1;
+		}
+
+		//sample relation
+		for (auto it=id2same.begin(); it!=id2same.end(); ++it)
+		{
+			int sample1_id = it.key();
 
 			//skip already checked samples
 			if (same_samples.contains(sample1_id)) continue;
@@ -981,19 +987,16 @@ const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
 			//look-up iteratively and get the same-sample cluster
 			QSet<int> cluster;
 			cluster << sample1_id;
-			int n_ids = 0;
-			while(n_ids != cluster.size())
+			int cluster_size_before = -1;
+			while(cluster_size_before!=cluster.size())
 			{
-				//store current set size
-				n_ids = cluster.size();
+				//store current size
+				cluster_size_before = cluster.size();
+
+				//add sample IDs
 				foreach (int id, cluster)
 				{
-					query_iterative.bindValue(0, id);
-					query_iterative.exec();
-					while (query_iterative.next())
-					{
-						cluster << query_iterative.value(0).toInt() << query_iterative.value(1).toInt();
-					}
+					cluster.unite(id2same[id]);
 				}
 			}
 			//set same samples for all samples of cluster (exclude key itself)
@@ -1043,7 +1046,6 @@ const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
 				}
 			}
 		}
-
 	}
 
 	if (same_samples.contains(sample_id))
@@ -1150,17 +1152,18 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	ProcessingSystemData output;
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.type, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
+	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.platform, sys.type, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
 	query.next();
 
 	output.name = query.value(0).toString();
 	output.name_short = query.value(1).toString();
-	output.type = query.value(2).toString();
-	output.adapter1_p5 = query.value(3).toString();
-	output.adapter2_p7 = query.value(4).toString();
-	output.shotgun = query.value(5).toString()=="1";
-	output.umi_type = query.value(6).toString();
-	output.genome = query.value(7).toString();
+	output.platform = query.value(2).toString();
+	output.type = query.value(3).toString();
+	output.adapter1_p5 = query.value(4).toString();
+	output.adapter2_p7 = query.value(5).toString();
+	output.shotgun = query.value(6).toString()=="1";
+	output.umi_type = query.value(7).toString();
+	output.genome = query.value(8).toString();
 
 	return output;
 }
@@ -1703,18 +1706,13 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 	QSet<int> samples_done_hom;
 	QSet<int> samples_done_mosaic;
 	SqlQuery query = getQuery();
-	query.exec("SELECT processed_sample_id, genotype, mosaic FROM detected_variant WHERE variant_id='" + variant_id + "'");
+
+	query.exec("SELECT ps.sample_id, dv.genotype, dv.mosaic FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id AND ps.quality!='bad'");
+
 	while(query.next())
 	{
-		SqlQuery query2 = getQuery();
-		query2.exec("SELECT sample_id, quality FROM processed_sample WHERE id=" + query.value(0).toString());
-		query2.next();
-
-		//skip bad quality
-		if (query2.value(1).toByteArray()=="bad") continue;
-
 		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
-		int sample_id = query2.value(0).toInt();
+		int sample_id = query.value(0).toInt();
 		QByteArray genotype = query.value(1).toByteArray();
 		if (genotype=="het")
 		{
