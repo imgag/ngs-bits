@@ -1152,17 +1152,18 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	ProcessingSystemData output;
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.type, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
+	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.platform, sys.type, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
 	query.next();
 
 	output.name = query.value(0).toString();
 	output.name_short = query.value(1).toString();
-	output.type = query.value(2).toString();
-	output.adapter1_p5 = query.value(3).toString();
-	output.adapter2_p7 = query.value(4).toString();
-	output.shotgun = query.value(5).toString()=="1";
-	output.umi_type = query.value(6).toString();
-	output.genome = query.value(7).toString();
+	output.platform = query.value(2).toString();
+	output.type = query.value(3).toString();
+	output.adapter1_p5 = query.value(4).toString();
+	output.adapter2_p7 = query.value(5).toString();
+	output.shotgun = query.value(6).toString()=="1";
+	output.umi_type = query.value(7).toString();
+	output.genome = query.value(8).toString();
 
 	return output;
 }

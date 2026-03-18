@@ -323,6 +323,7 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 {
 	QString name;
 	QString name_short;
+	QString platform;
 	QString adapter1_p5;
 	QString adapter2_p7;
 	bool shotgun;
