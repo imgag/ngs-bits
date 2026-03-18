@@ -1,4 +1,4 @@
-#include "TrackPanel.h"
+#include "BedTrack.h"
 #include "SharedData.h"
 
 #include <QActionGroup>
@@ -6,7 +6,7 @@
 #include <QMenu>
 
 
-TrackPanel::TrackPanel(QWidget* parent, Track track)
+BedTrack::BedTrack(QWidget* parent, Track track)
 	:QWidget(parent), track(track)
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
@@ -18,13 +18,15 @@ TrackPanel::TrackPanel(QWidget* parent, Track track)
 	qDebug() << "Num rows in " << track.name << ": " << num_rows_ << Qt::endl;
 }
 
-void TrackPanel::contextMenu(QPoint pos)
+void BedTrack::contextMenu(QPoint pos)
 {
 	// create menu
 	QMenu menu(this);
 
 	QAction* opt1 = menu.addAction("Collapsed");
 	QAction* opt2 = menu.addAction("Expanded");
+	menu.addSeparator();
+	QAction* del_opt = menu.addAction("Remove Track");
 
 	for (QAction *action : {opt1, opt2})
 	{
@@ -55,16 +57,20 @@ void TrackPanel::contextMenu(QPoint pos)
 		updateGeometry();
 		update();
 	}
+	else if (action == del_opt)
+	{
+		emit trackDeleted();
+	}
 }
 
 
-void TrackPanel::regionChanged()
+void BedTrack::regionChanged()
 {
 	updateGeometry();
 	update();
 }
 
-void TrackPanel::paintEvent(QPaintEvent* /*event*/)
+void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {
 	const BedLine& region = SharedData::region();
 	QPainter painter(this);
@@ -122,7 +128,7 @@ void TrackPanel::paintEvent(QPaintEvent* /*event*/)
 }
 
 
-QSize TrackPanel::sizeHint() const {
+QSize BedTrack::sizeHint() const {
 	int rowHeight = BLOCK_HEIGHT + BLOCK_PADDING;
 	int rowCount = 1;
 
@@ -135,7 +141,7 @@ QSize TrackPanel::sizeHint() const {
 }
 
 
-int TrackPanel::calculateNumRows()
+int BedTrack::calculateNumRows()
 {
 	int num_rows =0;
 	int last_row_end =-1;

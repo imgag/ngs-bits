@@ -44,7 +44,7 @@ public:
 	//Sets transcripts and creates/updates indices
 	static void setTranscripts(const TranscriptList& transcripts);
 
-	static void loadTrack(QString filename);
+	static void loadTrack(QString file_path);
 
 	//Returns indices of transcripts in a region
 	static QVector<int> transcriptsInRegion(const Chromosome& chr, int start, int end)
@@ -89,6 +89,7 @@ signals:
 	void settingsChanged();
 	void regionChanged();
 	void tracksChanged();
+	void trackAdded(Track);
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);

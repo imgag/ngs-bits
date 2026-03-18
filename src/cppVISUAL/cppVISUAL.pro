@@ -29,22 +29,22 @@ unix: LIBS += -lxml2
 
 SOURCES += \
     BedPanel.cpp \
+    BedTrack.cpp \
     GenomeVisualizationWidget.cpp \
     GenePanel.cpp \
     ChromosomePanel.cpp \
     PanelManager.cpp \
-    SharedData.cpp \
-    TrackPanel.cpp
+    SharedData.cpp
 
 HEADERS += \
     BedPanel.h \
+    BedTrack.h \
     GenomeVisualizationWidget.h \
     GenePanel.h \
     ChromosomePanel.h \
     PanelManager.h \
     SharedData.h \
-    Track.h \
-    TrackPanel.h
+    Track.h
 
 FORMS += \
     GenomeVisualizationWidget.ui

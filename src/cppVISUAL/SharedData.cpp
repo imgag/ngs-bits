@@ -97,25 +97,23 @@ QSize SharedData::determineCharacterSize()
 	return QSize(w, h);
 }
 
-void SharedData::loadTrack(QString filename)
+void SharedData::loadTrack(QString file_path)
 {
 	BedFile track;
-	track.load(filename);
-	track.sort();
+	const QFileInfo info(file_path);
+	if (info.isFile())
+	{
+		track.load(file_path);
+		track.sort();
 
-	/*
-	 * TODO: send an error somehow
-	 */
-	if (track.chromosomes().count() != 1) return; // discard
+		/*
+		 * TODO: send an error somehow
+		 */
+		if (track.chromosomes().count() != 1) return; // discard
 
-	const QFileInfo info(filename);
-
-	instance()->tracks_.append(
-		{/*file path*/ filename,
-		 /*filename*/  info.fileName(),
-		 /*BedFile*/   track
-		}
-	);
-
-	emit instance()->tracksChanged();
+		Track tr = {/*file path*/ file_path,
+					/*filename*/  info.fileName(),
+					/*BedFile*/   track};
+		emit instance()->trackAdded(tr);
+	}
 }

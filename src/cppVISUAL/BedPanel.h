@@ -2,6 +2,8 @@
 #define BEDPANEL_H
 
 #include "cppVISUAL_global.h"
+#include "Track.h"
+
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QMouseEvent>
@@ -15,7 +17,8 @@ public:
 	BedPanel(QWidget*);
 
 public slots:
-	void tracksChanged();
+	void trackAdded(Track);
+	void trackDeleted();
 
 private:
 	QVBoxLayout* layout_;

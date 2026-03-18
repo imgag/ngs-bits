@@ -1,5 +1,5 @@
-#ifndef TRACKPANEL_H
-#define TRACKPANEL_H
+#ifndef BEDTRACK_H
+#define BEDTRACK_H
 
 
 #include "cppVISUAL_global.h"
@@ -7,16 +7,19 @@
 #include <QWidget>
 
 
-class CPPVISUALSHARED_EXPORT TrackPanel
+class CPPVISUALSHARED_EXPORT BedTrack
 	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	TrackPanel(QWidget* parent, Track tack);
+	BedTrack(QWidget* parent, Track tack);
 
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override {return sizeHint();};
+
+signals:
+	void trackDeleted();
 
 public slots:
 	void regionChanged();
@@ -52,4 +55,4 @@ private:
 	static const int SPACING_BELOW = 20;
 };
 
-#endif // TRACKPANEL_H
+#endif // BEDTRACK_H

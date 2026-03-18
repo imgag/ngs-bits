@@ -1,6 +1,6 @@
 #include "BedPanel.h"
 #include "SharedData.h"
-#include "TrackPanel.h"
+#include "BedTrack.h"
 
 #include <QPainter>
 
@@ -10,22 +10,25 @@ BedPanel::BedPanel(QWidget*)
 {
 	layout_->addStretch(1);
 	layout_->setContentsMargins(0, 0, 0, height());
-	connect(SharedData::instance(), SIGNAL(tracksChanged()), this, SLOT(tracksChanged()));
+	connect(SharedData::instance(), SIGNAL(trackAdded(Track)), this, SLOT(trackAdded(Track)));
 }
 
-
-void BedPanel::tracksChanged()
+void BedPanel::trackAdded(Track tr)
 {
-	/*
-	 * TODO: this is adhoc and wrong,
-	 * needs to be fixed.
-	 */
-	QVector<Track> tracks = SharedData::tracks();
-
-	auto panel = new TrackPanel(this, tracks.last());
-	// panel->setMinimumHeight(30);
+	auto panel = new BedTrack(this, tr);
+	connect(panel, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 	layout_->insertWidget(layout_->count() - 1, panel);
 	layout_->update();
+}
+
+void BedPanel::trackDeleted()
+{
+	QWidget* senderPanel = qobject_cast<QWidget*>(sender());
+	if (senderPanel) {
+		layout_->removeWidget(senderPanel);
+		senderPanel->deleteLater();
+		layout_->update();
+	}
 }
 
 void BedPanel::clearLayout()
