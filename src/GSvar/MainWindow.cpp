@@ -6131,17 +6131,6 @@ void MainWindow::on_actionOpenGSvarDataFolder_triggered()
 	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
 }
 
-void MainWindow::on_actionShowNonTranferableVariants_triggered()
-{
-	if (!LoginManager::active()) return;
-	if(filename_ == "") return;
-	TransferredVariantDialog* widget = new TransferredVariantDialog(NGSD().processedSampleId(filename_).toInt(), this);
-
-	auto dlg = GUIHelper::createDialog(widget, "Non-transferable variants of " + variants_.analysisName());
-	addModelessDialog(dlg);
-
-}
-
 void MainWindow::editVariantClassification(VariantList& variants, int index)
 {
 	try
