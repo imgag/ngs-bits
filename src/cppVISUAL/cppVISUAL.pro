@@ -32,6 +32,7 @@ SOURCES += \
     GenomeVisualizationWidget.cpp \
     GenePanel.cpp \
     ChromosomePanel.cpp \
+    PanelManager.cpp \
     SharedData.cpp \
     TrackPanel.cpp
 
@@ -40,6 +41,7 @@ HEADERS += \
     GenomeVisualizationWidget.h \
     GenePanel.h \
     ChromosomePanel.h \
+    PanelManager.h \
     SharedData.h \
     Track.h \
     TrackPanel.h

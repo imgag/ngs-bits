@@ -2,7 +2,6 @@
 #define BEDPANEL_H
 
 #include "cppVISUAL_global.h"
-#include "BedFile.h"
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QMouseEvent>
@@ -21,14 +20,6 @@ public slots:
 private:
 	QVBoxLayout* layout_;
 	void clearLayout();
-
-	void mouseMoveEvent(QMouseEvent*) override;
-	void mousePressEvent(QMouseEvent*) override;
-	void mouseReleaseEvent(QMouseEvent*) override;
-
-	float drag_start_x_;
-	BedLine drag_start_region_;
-	float is_dragging_ = false;
 };
 
 
