@@ -1,5 +1,6 @@
 #include "PanelManager.h"
 #include "SharedData.h"
+#include "Panel.h"
 
 #include <QMouseEvent>
 
@@ -10,6 +11,8 @@ PanelManager::PanelManager(QWidget* parent)
 	setChildrenCollapsible(false);
 	setHandleWidth(2);
 	setMouseTracking(true);
+
+	connect(SharedData::instance(), SIGNAL(trackAdded(Track)), this, SLOT(trackAdded(Track)));
 }
 
 
@@ -77,4 +80,11 @@ void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 
 	is_dragging_ = false;
 	update();
+}
+
+void PanelManager::trackAdded(Track track)
+{
+	class Panel* new_panel = new class Panel(this);
+	new_panel->trackAdded(track);
+	insertWidget(0, new_panel);
 }
