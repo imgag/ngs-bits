@@ -7533,17 +7533,8 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 
 BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
 {
-	//get transcript id
-	int id = transcriptId(name, false);
-	if (id==-1)
-	{
-		THROW(ArgumentException, "Transcript '" + name + "' not found in NGSD.");
-	}
-
-	//get transcript
-	const Transcript& trans = transcript(id);
-
-	return trans.toRegion(mode);
+	int id = transcriptId(name, true);
+	return transcript(id).toRegion(mode);
 }
 
 int NGSD::transcriptId(const QByteArray& name, bool throw_on_error)
@@ -7760,7 +7751,7 @@ const Transcript& NGSD::transcript(int id)
 
 	//check transcript is in cache, i.e. in NGSD
 	int index = getCache().gene_transcripts_id2index.value(id, -1);
-	if (index==-1) THROW(DatabaseException, "Could not find transcript with identifer '" + QString::number(id) + "' in NGSD!");
+	if (index==-1) THROW(DatabaseException, "Could not find transcript with ID '" + QString::number(id) + "' in NGSD!");
 
 	return cache[index];
 }
