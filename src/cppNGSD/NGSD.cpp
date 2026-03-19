@@ -7606,7 +7606,7 @@ TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, in
 	return output;
 }
 
-Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts, int *return_quality)
+Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript>& var_transcripts, int *return_quality)
 {
 	TranscriptList gene_transcripts = transcripts(gene_id, Transcript::ENSEMBL, false);
 	TranscriptList tmp;
@@ -7618,14 +7618,25 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 	}
 	if (tmp.count() > 0)
 	{
+		if (return_quality != nullptr) *return_quality = 6;
+		return highestImpactTranscript(tmp, var_transcripts);
+	}
+
+	//MANE select
+	foreach(const Transcript& t, gene_transcripts)
+	{
+		if (t.isManeSelectTranscript()) tmp.append(t);
+	}
+	if (tmp.count() > 0)
+	{
 		if (return_quality != nullptr) *return_quality = 5;
 		return highestImpactTranscript(tmp, var_transcripts);
 	}
 
-	//MANE select or MANE plus clinical
+	//MANE plus clinical
 	foreach(const Transcript& t, gene_transcripts)
 	{
-		if (t.isManeSelectTranscript() || t.isManePlusClinicalTranscript()) tmp.append(t);
+		if (t.isManePlusClinicalTranscript()) tmp.append(t);
 	}
 	if (tmp.count() > 0)
 	{
@@ -7668,7 +7679,7 @@ Transcript NGSD::bestTranscript(int gene_id, const QList<VariantTranscript> var_
 	return Transcript();
 }
 
-Transcript NGSD::highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts)
+Transcript NGSD::highestImpactTranscript(const TranscriptList& transcripts, const QList<VariantTranscript>& var_transcripts)
 {
 	if (transcripts.count() == 0) return Transcript();
 

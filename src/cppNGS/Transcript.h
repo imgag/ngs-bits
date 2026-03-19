@@ -372,7 +372,7 @@ public:
 	bool contains(const QByteArray& name) const;
 
 	///Returns the transcript with the given id if contained. If not contained, an invalid transcript is returned.
-	Transcript getTranscript(const QByteArray& name);
+	const Transcript& getTranscript(const QByteArray& name) const;
 
 	///Returns the number of distinct gene names
 	int geneCount() const;
