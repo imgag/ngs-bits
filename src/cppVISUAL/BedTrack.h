@@ -4,8 +4,11 @@
 
 #include "cppVISUAL_global.h"
 #include "Track.h"
-#include <QWidget>
 
+#include <QWidget>
+#include <QMouseEvent>
+
+class Panel;
 
 class CPPVISUALSHARED_EXPORT BedTrack
 	: public QWidget
@@ -20,6 +23,7 @@ public:
 
 signals:
 	void trackDeleted();
+	void trackMoved();
 
 public slots:
 	void regionChanged();
@@ -27,7 +31,12 @@ public slots:
 
 private:
 	QSharedPointer<Track> track;
+
 	void paintEvent(QPaintEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+
+
 	/*
 	 * utility function for mapping
 	 * a \in [min_, max_] \to [c, d]
@@ -48,6 +57,9 @@ private:
 
 	DrawMode draw_mode_ = COLLAPSED;
 	int num_rows_;
+	QPoint drag_start_pos_;
+	Panel* source_panel_;
+
 	int calculateNumRows();
 
 	static const int BLOCK_HEIGHT = 10;

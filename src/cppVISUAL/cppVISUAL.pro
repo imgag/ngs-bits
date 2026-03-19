@@ -34,7 +34,8 @@ SOURCES += \
     ChromosomePanel.cpp \
     Panel.cpp \
     PanelManager.cpp \
-    SharedData.cpp
+    SharedData.cpp \
+    TrackManager.cpp
 
 HEADERS += \
     BedTrack.h \
@@ -44,7 +45,8 @@ HEADERS += \
     Panel.h \
     PanelManager.h \
     SharedData.h \
-    Track.h
+    Track.h \
+    TrackManager.h
 
 FORMS += \
     GenomeVisualizationWidget.ui

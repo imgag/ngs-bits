@@ -1,10 +1,16 @@
 #include "BedTrack.h"
 #include "SharedData.h"
+#include "TrackManager.h"
 
+#include <QApplication>
 #include <QActionGroup>
+#include <QDrag>
 #include <QPainter>
 #include <QMenu>
+#include <QMimeData>
 
+
+class Panel ;
 
 BedTrack::BedTrack(QWidget* parent, QSharedPointer<Track> track)
 	:QWidget(parent), track(track)
@@ -14,7 +20,7 @@ BedTrack::BedTrack(QWidget* parent, QSharedPointer<Track> track)
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
 
 	num_rows_ = calculateNumRows();
-
+	TrackManager::addTrackWidget(track->id, this);
 	qDebug() << "Num rows in " << track->name << ": " << num_rows_ << Qt::endl;
 }
 
@@ -154,4 +160,44 @@ int BedTrack::calculateNumRows()
 	}
 
 	return num_rows;
+}
+
+void BedTrack::mousePressEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::LeftButton)
+	{
+		drag_start_pos_ = event->pos();
+		// source_panel_ = dynamic_cast<Panel*>(parentWidget());
+	}
+}
+
+
+void BedTrack::mouseMoveEvent(QMouseEvent* event)
+{
+	if (!(event->buttons() & Qt::LeftButton)) return;
+	if ((event->pos() - drag_start_pos_).manhattanLength() < QApplication::startDragDistance()) return;
+
+	QDrag* drag = new QDrag(this);
+	QMimeData* mime_data = new QMimeData;
+	qDebug() << "Sending track id: " << track->id << Qt::endl;
+	mime_data->setData("application/track-data", track->id.toByteArray());
+	// QByteArray source_id = QByteArray::number(reinterpret_cast<quintptr>(this));
+	// mime_data->setData("application/track-data", mime_data);
+	drag->setMimeData(mime_data);
+
+
+	QPixmap pixmap(width(), height());
+	pixmap.fill(Qt::transparent);
+
+	QPainter painter(&pixmap);
+	QRect rect(0, 0, width(), height());
+	painter.setPen(QPen(QColor(0, 0, 0), 2));
+	painter.setBrush(Qt::NoBrush);
+
+	painter.drawRect(rect);
+
+	drag->setPixmap(pixmap);
+	drag->setHotSpot(event->pos());
+
+	drag->exec(Qt::MoveAction);
 }

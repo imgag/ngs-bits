@@ -21,12 +21,17 @@ public:
 public slots:
 	void trackAdded(QSharedPointer<Track>);
 	void trackDeleted();
+	void trackMoved();
 	void contextMenu(QPoint);
 
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
 	void clearLayout();
+	void removeTrack(QWidget*);
+
+	void dragEnterEvent(QDragEnterEvent*) override;
+	void dropEvent(QDropEvent*) override;
 };
 
 
