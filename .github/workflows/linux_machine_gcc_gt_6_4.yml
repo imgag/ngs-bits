@@ -5,7 +5,8 @@ on: [push, pull_request]
 jobs:
   gcc-build-and-test:
     runs-on: ubuntu-24.04
-
+    env:
+      QT_QPA_PLATFORM: offscreen
     services:
       mysql:
         image: mysql:5.7
@@ -21,7 +22,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Update OS repositories

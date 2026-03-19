@@ -24,8 +24,8 @@ private:
 		QJsonDocument json_doc = QJsonDocument::fromJson(response.getPayload());	;
 
 		IS_TRUE(response.getStatusLine().contains("200"));
-		S_EQUAL(json_doc.object()["name"].toString(), ToolBase::applicationName());
-		S_EQUAL(json_doc.object()["version"].toString(), ToolBase::version());
+		S_EQUAL(json_doc.object()["name"].toString(), ServerHelper::getAppName());
+		S_EQUAL(json_doc.object()["version"].toString(), ServerHelper::getServerVersion());
 		S_EQUAL(json_doc.object()["api_version"].toString(), ClientHelper::serverApiVersion());
     }
 

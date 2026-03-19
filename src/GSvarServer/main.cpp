@@ -17,7 +17,7 @@
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	QCoreApplication::setApplicationVersion(SERVER_VERSION);
+	QCoreApplication::setApplicationVersion(ServerHelper::getServerVersion());
 
 	QCommandLineParser parser;
 	parser.setApplicationDescription("GSvar server - documentation at https://github.com/imgag/ngs-bits/blob/master/doc/GSvarServer/index.md");
