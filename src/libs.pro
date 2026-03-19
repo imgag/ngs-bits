@@ -8,20 +8,14 @@ SUBDIRS =   cppCORE \
             cppNGSD \
             cppNGSD-TEST \
             cppREST \
-            cppREST-TEST \
-            cppPLOTS \
-            cppPLOTS-TEST
+            cppREST-TEST
 
 cppCORE-TEST.depends = cppCORE
 
 cppXML.depends = cppCORE
 cppXML-TEST.depends = cppXML
 
-cppPLOTS.depends = cppCORE
-cppPLOTS-TEST.depends = cppPLOTS
-
 cppNGS.depends = cppXML
-cppNGS.depends = cppPLOTS
 cppNGS-TEST.depends = cppNGS
 
 cppNGSD.depends = cppNGS
