@@ -59,6 +59,7 @@ private:
 	int num_rows_;
 	QPoint drag_start_pos_;
 	Panel* source_panel_;
+	bool is_dragging_;
 
 	int calculateNumRows();
 

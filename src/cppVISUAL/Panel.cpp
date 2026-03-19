@@ -131,19 +131,24 @@ void Panel::dropEvent(QDropEvent* event)
 	{
 		QByteArray track_data = event->mimeData()->data("application/track-data");
 		QUuid track_id = QUuid(track_data);
-		qDebug() << "Recevied track Id: " << track_id << Qt::endl;
-
-		qDebug() << "DROPPED" << Qt::endl;
 
 		if (TrackManager::hasTrackWidget(track_id))
 		{
-
 			BedTrack* source = qobject_cast<BedTrack*>(TrackManager::getTrackWidget(track_id));
 			if (!source) return;
-			qDebug() << "Source detected" << Qt::endl;
+
 			QWidget* old_panel = qobject_cast<QWidget*>(source->parentWidget());
-			if (!old_panel) qDebug() << "Old panel not detected" << Qt::endl;
-			if (!source->parentWidget()) qDebug() << "Old panel has no parent" << Qt::endl;
+
+			int drop_index =0;
+			int y = event->position().y();
+			for (int i = 0; i < layout_->count() - 1; ++i) {
+				QWidget* w = layout_->itemAt(i)->widget();
+				if (w && y > w->geometry().center().y()) {
+					drop_index = i + 1;
+				}
+			}
+			drop_index = std::max(0, std::min(drop_index, layout_->count() - 2));
+
 			if (old_panel && old_panel != content_widget_)
 			{
 				qDebug() << "Old Panel != this" << Qt::endl;
@@ -152,13 +157,15 @@ void Panel::dropEvent(QDropEvent* event)
 				source->setParent(this);
 				connect(source, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 				connect(source, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
-				layout_->insertWidget(layout_->count() - 1, source);
-				layout_->update();
 			}
 			else
 			{
 				qDebug() << "Old Panel is this" << Qt::endl;
+				layout_->removeWidget(source);
 			}
+
+			layout_->insertWidget(drop_index, source);
+			layout_->update();
 		}
 	}
 	event->acceptProposedAction();

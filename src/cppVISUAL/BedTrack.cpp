@@ -164,16 +164,26 @@ int BedTrack::calculateNumRows()
 
 void BedTrack::mousePressEvent(QMouseEvent* event)
 {
-	if (event->button() == Qt::LeftButton)
+	if (event->button() == Qt::LeftButton && event->pos().x() < SharedData::settings().label_width)
 	{
+		is_dragging_ = true;
 		drag_start_pos_ = event->pos();
 		// source_panel_ = dynamic_cast<Panel*>(parentWidget());
+	}
+	else
+	{
+		is_dragging_ = false;
+		event->ignore();
 	}
 }
 
 
 void BedTrack::mouseMoveEvent(QMouseEvent* event)
 {
+	if (!is_dragging_) {
+		event->ignore();
+		return;
+	};
 	if (!(event->buttons() & Qt::LeftButton)) return;
 	if ((event->pos() - drag_start_pos_).manhattanLength() < QApplication::startDragDistance()) return;
 
@@ -186,11 +196,12 @@ void BedTrack::mouseMoveEvent(QMouseEvent* event)
 	drag->setMimeData(mime_data);
 
 
-	QPixmap pixmap(width(), height());
+	int width = SharedData::settings().label_width;
+	QPixmap pixmap(width, height());
 	pixmap.fill(Qt::transparent);
 
 	QPainter painter(&pixmap);
-	QRect rect(0, 0, width(), height());
+	QRect rect(0, 0, width, height());
 	painter.setPen(QPen(QColor(0, 0, 0), 2));
 	painter.setBrush(Qt::NoBrush);
 
