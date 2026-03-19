@@ -25,7 +25,7 @@ Panel::Panel(QWidget* parent)
 	layout_->setContentsMargins(0, 0, 0, height());
 }
 
-void Panel::trackAdded(Track tr)
+void Panel::trackAdded(QSharedPointer<Track> tr)
 {
 	auto panel = new BedTrack(this, tr);
 	connect(panel, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
@@ -67,9 +67,9 @@ void Panel::contextMenu(QPoint pos)
 			 */
 			if (track.chromosomes().count() != 1) return; // discard
 
-			Track tr = {/*file path*/ file_path,
-						/*filename*/  info.fileName(),
-						/*BedFile*/   track};
+			QSharedPointer<Track> tr = QSharedPointer<Track>(new Track(/*file path*/ file_path,
+																	   /*filename*/  info.fileName(),
+																	   /*BedFile*/   track));
 			trackAdded(tr);
 		}
 	}

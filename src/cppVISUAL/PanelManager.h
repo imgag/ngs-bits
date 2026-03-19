@@ -26,7 +26,7 @@ public:
 	BedLine drag_start_region_;
 
 public slots:
-	void trackAdded(Track);
+	void trackAdded(QSharedPointer<Track>);
 };
 
 

@@ -89,7 +89,7 @@ signals:
 	void settingsChanged();
 	void regionChanged();
 	void tracksChanged();
-	void trackAdded(Track);
+	void trackAdded(QSharedPointer<Track>);
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);

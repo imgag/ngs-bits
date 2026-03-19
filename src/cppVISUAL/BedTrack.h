@@ -13,7 +13,7 @@ class CPPVISUALSHARED_EXPORT BedTrack
 	Q_OBJECT
 
 public:
-	BedTrack(QWidget* parent, Track tack);
+	BedTrack(QWidget* parent, QSharedPointer<Track> tack);
 
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override {return sizeHint();};
@@ -26,7 +26,7 @@ public slots:
 	void contextMenu(QPoint pos);
 
 private:
-	Track track;
+	QSharedPointer<Track> track;
 	void paintEvent(QPaintEvent* event) override;
 	/*
 	 * utility function for mapping

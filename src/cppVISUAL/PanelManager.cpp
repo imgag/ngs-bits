@@ -12,7 +12,7 @@ PanelManager::PanelManager(QWidget* parent)
 	setHandleWidth(2);
 	setMouseTracking(true);
 
-	connect(SharedData::instance(), SIGNAL(trackAdded(Track)), this, SLOT(trackAdded(Track)));
+	connect(SharedData::instance(), SIGNAL(trackAdded(QSharedPointer<Track>)), this, SLOT(trackAdded(QSharedPointer<Track>)));
 }
 
 
@@ -82,9 +82,10 @@ void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 	update();
 }
 
-void PanelManager::trackAdded(Track track)
+void PanelManager::trackAdded(QSharedPointer<Track> track)
 {
 	class Panel* new_panel = new class Panel(this);
+	qDebug() << "Signal received" << Qt::endl;
 	new_panel->trackAdded(track);
 	insertWidget(0, new_panel);
 }

@@ -110,10 +110,9 @@ void SharedData::loadTrack(QString file_path)
 		 * TODO: send an error somehow
 		 */
 		if (track.chromosomes().count() != 1) return; // discard
-
-		Track tr = {/*file path*/ file_path,
-					/*filename*/  info.fileName(),
-					/*BedFile*/   track};
+		qDebug() << "loading into track" << Qt::endl;
+		QSharedPointer<Track> tr = QSharedPointer<Track>(new Track(file_path, info.fileName(), track));
+		qDebug() << "loaded into track" << Qt::endl;
 		emit instance()->trackAdded(tr);
 	}
 }

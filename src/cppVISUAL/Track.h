@@ -2,8 +2,10 @@
 #define TRACK_H
 
 #include "BedFile.h"
+
 #include <QString>
 #include <QColor>
+#include <QUuid>
 
 
 /*
@@ -14,6 +16,8 @@
  */
 struct Track
 {
+	QUuid id;
+
 	/*must provide*/
 	QString filename;
 	QString name;
@@ -21,6 +25,12 @@ struct Track
 
 	/*optional*/
 	QColor color = QColor(0, 0, 125);
+
+	Track(QString filename, QString name, BedFile bedfile)
+		:id(QUuid::createUuid()), filename(filename), name(name),
+		bedfile(bedfile)
+	{
+	}
 };
 
 
