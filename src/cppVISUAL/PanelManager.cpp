@@ -12,7 +12,7 @@ PanelManager::PanelManager(QWidget* parent)
 	setHandleWidth(2);
 	setMouseTracking(true);
 
-	connect(SharedData::instance(), SIGNAL(trackAdded(QSharedPointer<Track>)), this, SLOT(trackAdded(QSharedPointer<Track>)));
+	connect(SharedData::instance(), SIGNAL(tracksAdded(TrackList)), this, SLOT(tracksAdded(TrackList)));
 }
 
 
@@ -82,9 +82,14 @@ void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 	update();
 }
 
-void PanelManager::trackAdded(QSharedPointer<TrackData> track)
+
+void PanelManager::tracksAdded(TrackList tracks)
 {
+	if (tracks.isEmpty()) return;
 	class Panel* new_panel = new class Panel(this);
-	new_panel->trackAdded(track);
+	foreach (QSharedPointer<TrackData> track, tracks)
+	{
+		new_panel->trackAdded(track);
+	}
 	insertWidget(0, new_panel);
 }

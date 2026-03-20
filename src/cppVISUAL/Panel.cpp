@@ -1,9 +1,7 @@
 #include "BedTrack.h"
-#include "BedFile.h"
-#include "Exceptions.h"
 #include "Panel.h"
-#include "SharedData.h"
 #include "TrackManager.h"
+#include "FileLoader.h"
 
 #include <QMenu>
 #include <QMessageBox>
@@ -76,34 +74,17 @@ void Panel::contextMenu(QPoint pos)
 
 	if (action == opt1)
 	{
-		QString file_path = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)")); //
+		QString file_path = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)"));
 
 		if (file_path.isEmpty()) return;
 
-		BedFile track;
-		const QFileInfo info(file_path);
-		if (info.isFile())
+		TrackList tracks = FileLoader::load(file_path);
+		if (!tracks.isEmpty())
 		{
-			try
+			foreach (QSharedPointer<TrackData> track, tracks)
 			{
-				track.load(file_path);
+				trackAdded(track);
 			}
-			catch (const FileParseException& e)
-			{
-				SharedData::displayError(e.message());
-				return;
-			}
-			if (track.chromosomes().count() == 0)
-			{
-				SharedData::displayError("Bed file does not contain any chromosomes, will be discarded");
-				return;
-			};
-
-			track.sort();
-			QSharedPointer<TrackData> tr = QSharedPointer<TrackData>(new TrackData(/*file path*/ file_path,
-																	   /*filename*/  info.fileName(),
-																	   /*BedFile*/   track));
-			trackAdded(tr);
 		}
 	}
 }

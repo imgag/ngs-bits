@@ -6,6 +6,7 @@
 #include <QString>
 #include <QColor>
 #include <QUuid>
+#include <QSharedPointer>
 
 
 /*
@@ -14,6 +15,7 @@
  * such as color, height, font size
  * maybe an ID so that it can be hashed
  */
+
 struct TrackData
 {
 	QUuid id;
@@ -32,6 +34,8 @@ struct TrackData
 	{
 	}
 };
+
+using TrackList = QVector<QSharedPointer<TrackData>>;
 
 
 #endif // TRACKDATA_H

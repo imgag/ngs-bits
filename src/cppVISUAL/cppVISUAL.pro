@@ -39,6 +39,7 @@ SOURCES += \
 
 HEADERS += \
     BedTrack.h \
+    FileLoader.h \
     GenomeVisualizationWidget.h \
     GenePanel.h \
     ChromosomePanel.h \

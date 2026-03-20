@@ -1,5 +1,7 @@
+#include "FileLoader.h"
 #include "SharedData.h"
 #include "Settings.h"
+
 #include <QPainter>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -100,26 +102,6 @@ QSize SharedData::determineCharacterSize()
 
 void SharedData::loadTrack(QString file_path)
 {
-	BedFile track;
-	const QFileInfo info(file_path);
-	if (info.isFile())
-	{
-		try
-		{
-			track.load(file_path);
-		}
-		catch (const FileParseException& e)
-		{
-			displayError(e.message());
-			return;
-		}
-		if (track.chromosomes().count() == 0)
-		{
-			displayError("Bed file does not contain any chromosomes, will be discarded.");
-			return;
-		}
-		track.sort();
-		QSharedPointer<TrackData> tr = QSharedPointer<TrackData>(new TrackData(file_path, info.fileName(), track));
-		emit instance()->trackAdded(tr);
-	}
+	TrackList tracks = FileLoader::load(file_path);
+	if (!tracks.empty()) emit instance()->tracksAdded(tracks);
 }

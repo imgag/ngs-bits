@@ -7,6 +7,7 @@
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
 #include "TrackData.h"
+
 #include <QSize>
 
 //Helper struct for globally used settings
@@ -94,7 +95,7 @@ signals:
 	void settingsChanged();
 	void regionChanged();
 	void tracksChanged();
-	void trackAdded(QSharedPointer<TrackData>);
+	void tracksAdded(TrackList);
 	void displayErrorReq(QString);
 
 protected:

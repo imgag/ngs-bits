@@ -42,6 +42,10 @@ private:
 				   int total_width, int total_length);
 	void drawRegion(QPainter* painter, int total_length);
 	void drawDragRegion(QPainter* painter);
+
+	using ChromosomeIndexMap = QHash<Chromosome, QVector<int>>;
+	ChromosomeIndexMap buildChrIndexMap(const BedFile& bands);
+	QColor cytobandColor(QString stain);
 };
 
 #endif // CHROMOSOMEPANEL_H

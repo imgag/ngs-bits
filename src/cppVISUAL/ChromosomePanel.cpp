@@ -17,7 +17,7 @@ void ChromosomePanel::updateRegion()
 }
 
 
-QColor cytobandColor(const QString& stain)
+QColor ChromosomePanel::cytobandColor(QString stain)
 {
 	if (stain == "gneg") return QColor(255, 255, 255);
 	if (stain == "gpos25") return QColor(191, 191, 191);
@@ -31,8 +31,8 @@ QColor cytobandColor(const QString& stain)
 	return QColor(255, 255, 255);
 }
 
-QMap<Chromosome, QVector<int>> buildChrIndexMap(const BedFile& bands){
-	QMap<Chromosome, QVector<int>> map;
+ChromosomePanel::ChromosomeIndexMap ChromosomePanel::buildChrIndexMap(const BedFile& bands){
+	ChromosomeIndexMap map;
 	for (int i =0; i < bands.count(); ++i)
 	{
 		map[bands[i].chr()].append(i);
@@ -60,11 +60,11 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 		sorted = true;
 	}
 
-	static QMap<Chromosome, QVector<int>> chrIdxMap = buildChrIndexMap(bands);
+	static ChromosomeIndexMap chr_idx_map = buildChrIndexMap(bands);
 
 	painter.fillRect(rect(), Qt::white);
 
-	QVector<int> idxes = chrIdxMap[region.chr()];
+	QVector<int> idxes = chr_idx_map[region.chr()];
 	if (idxes.size() >= 1)
 	{
 		int total_width = (w - label_width - 4);
