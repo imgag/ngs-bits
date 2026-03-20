@@ -3,6 +3,7 @@
 
 
 #include "cppVISUAL_global.h"
+#include "ChromosomalIndex.h"
 #include "TrackData.h"
 
 #include <QHash>
@@ -30,7 +31,8 @@ public slots:
 	void contextMenu(QPoint pos);
 
 private:
-	QSharedPointer<TrackData> track;
+	QSharedPointer<TrackData> track_;
+	ChromosomalIndex<BedFile> chr_index_;
 
 	void paintEvent(QPaintEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;

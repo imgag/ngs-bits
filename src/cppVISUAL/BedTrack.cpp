@@ -11,14 +11,15 @@
 
 
 BedTrack::BedTrack(QWidget* parent, QSharedPointer<TrackData> track)
-	:QWidget(parent), track(track)
+	:QWidget(parent), track_(track), chr_index_(track->bedfile)
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)) );
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
+	chr_index_.createIndex();
 
 	num_rows_ = calculateNumRows();
-	TrackManager::addTrackWidget(track->id, this);
+	TrackManager::addTrackWidget(track_->id, this);
 }
 
 void BedTrack::contextMenu(QPoint pos)
@@ -62,7 +63,7 @@ void BedTrack::contextMenu(QPoint pos)
 	}
 	else if (action == del_opt)
 	{
-		TrackManager::removeTrackWidget(track->id);
+		TrackManager::removeTrackWidget(track_->id);
 		emit trackDeleted();
 	}
 }
@@ -87,7 +88,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	QRectF text_rect(0, 0, label_width-2, height());
 
 	painter.setPen(Qt::black);
-	painter.drawText(text_rect, Qt::AlignLeft, track->name);
+	painter.drawText(text_rect, Qt::AlignLeft, track_->name);
 
 	// draw bounding box
 	QRectF bounding_rect(label_width + 2, 0, width() - label_width - 2, height() - 2);
@@ -98,34 +99,34 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	painter.setBrush(Qt::NoBrush);
 	painter.drawRect(bounding_rect);
 
-	if (track->bedfile.chromosomes().contains(region.chr()))
+	if (track_->bedfile.chromosomes().contains(region.chr()))
 	{
-
 		int w = width();
 		float total_width = w - label_width - 4;
 		int prev_row_end = -1;
 		float y_start = 0.0f;
-		for (int idx =0; idx < track->bedfile.count(); ++idx)
+		QVector<int> idxes = chr_index_.matchingIndices(region.chr(), region.start(), region.end());
+		foreach(int idx, idxes)
 			{
-				if (track->bedfile[idx].chr() != region.chr()) continue; //TODO: needs optimization!!
-
-				int st = std::max(track->bedfile[idx].start(), region.start());
-				int en = std::min(track->bedfile[idx].end(), region.end());
+				qDebug() << track_->bedfile[idx].chr().str() << Qt::endl;
+				int st = std::max(track_->bedfile[idx].start(), region.start());
+				int en = std::min(track_->bedfile[idx].end(), region.end());
 
 				float x_start = map(st, region.start(), region.end(), 0.0f, total_width);
 				float width = map(static_cast<float>(en - st), 0.0f, static_cast<float>(region.length()), 0.0f, total_width);
 
 				if (draw_mode_ == EXPANDED)
 				{
-					if (track->bedfile[idx].start() < prev_row_end)
+					if (track_->bedfile[idx].start() < prev_row_end)
 					{
 						y_start += (BLOCK_HEIGHT + BLOCK_PADDING);
 					}
-					prev_row_end = track->bedfile[idx].end();
+					prev_row_end = track_->bedfile[idx].end();
 				}
 
 				QRectF chr_rect(label_width + 2 + x_start, y_start, width, BLOCK_HEIGHT);
-				painter.setBrush(track->color);
+
+				painter.setBrush(track_->color);
 				painter.drawRect(chr_rect);
 			}
 	}
@@ -136,7 +137,7 @@ QSize BedTrack::sizeHint() const {
 	int rowHeight = BLOCK_HEIGHT + BLOCK_PADDING;
 	int rowCount = 1;
 
-	if (draw_mode_ == EXPANDED && track->bedfile.chromosomes().contains(SharedData::region().chr()))
+	if (draw_mode_ == EXPANDED && track_->bedfile.chromosomes().contains(SharedData::region().chr()))
 	{
 		rowCount = num_rows_[SharedData::region().chr()];
 	}
@@ -150,14 +151,14 @@ QHash<Chromosome, int> BedTrack::calculateNumRows()
 	int last_row_end =-1;
 
 
-	for (int i =0; i < track->bedfile.count(); ++i)
+	for (int i =0; i < track_->bedfile.count(); ++i)
 	{
-		if (track->bedfile[i].start() < last_row_end || last_row_end < 0) num_rows[track->bedfile[i].chr()]++;
-		last_row_end = track->bedfile[i].end();
+		if (track_->bedfile[i].start() < last_row_end || last_row_end < 0) num_rows[track_->bedfile[i].chr()]++;
+		last_row_end = track_->bedfile[i].end();
 
 		// chromosome change, start count again
-		if (i < track->bedfile.count() - 1 &&
-			track->bedfile[i+1].chr() != track->bedfile[i].chr())
+		if (i < track_->bedfile.count() - 1 &&
+			track_->bedfile[i+1].chr() != track_->bedfile[i].chr())
 		{
 			last_row_end = -1;
 		}
@@ -192,7 +193,7 @@ void BedTrack::mouseMoveEvent(QMouseEvent* event)
 
 	QDrag* drag = new QDrag(this);
 	QMimeData* mime_data = new QMimeData;
-	mime_data->setData("application/track-data", track->id.toByteArray());
+	mime_data->setData("application/track-data", track_->id.toByteArray());
 	drag->setMimeData(mime_data);
 
 
