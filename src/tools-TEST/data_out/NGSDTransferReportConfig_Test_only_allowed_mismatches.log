@@ -1,3 +1,7 @@
+Warning: excuded report variant chr1:948721-948721 A>C not found in target sample!
+Warning: excuded report cnv chr1:9871166-9871297 not found in target sample!
+Warning: excuded report sv INV at chr2:88861923-88897786 not found in target sample!
+Warning: excuded report re ATXN1 - chr6:16327633-16327723/TGC (allele1:30 / allele2:31) not found in target sample!
 NA12878_05 (ps_id: 1) > NA12878_06 (ps_id: 2)
 Sample correlation:	1.0000 (overlapping variants: 3)
 

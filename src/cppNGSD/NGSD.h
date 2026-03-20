@@ -323,6 +323,7 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 {
 	QString name;
 	QString name_short;
+	QString platform;
 	QString adapter1_p5;
 	QString adapter2_p7;
 	bool shotgun;
@@ -807,9 +808,9 @@ public:
 	TranscriptList transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend=0, Transcript::SOURCE source=Transcript::ENSEMBL);
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, ensemble canonical, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
 	/// The return_quality int is higher the higher the quality of the returned transcript is. Exact numbers may not be constant: preferred > MANE > canonical > longest coding , longest non-coding , not found
-	Transcript bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
+	Transcript bestTranscript(int gene_id, const QList<VariantTranscript>& var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
 	///Return the transcript with the highest impact given the variant transcript impacts
-	Transcript highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts);
+	Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene. The order is: preferred, MANE select, MANE plus clinical, Ensembl canonical. If none of those exist, the longest coding or longest transcript are used.
 	TranscriptList relevantTranscripts(int gene_id);
 	///Returns the map of gene symbol to relevant transcripts names. Relevant are preferred, MANE, Ensembl canonical. If non of them exst, the longest coding or longest transcript are used. Note: transcript names do not contain version numbers.
@@ -833,8 +834,8 @@ public:
 	int phenotypeReplacementByName(const QByteArray& name);
 	///Returns the phenotype for a given HPO accession.
 	const Phenotype& phenotype(int id);
-	///Returns the phenotypes of a gene
-	PhenotypeList phenotypes(const QByteArray& symbol);
+	///Returns the phenotypes of a gene. Phenotypes are sorted by name or relevance (number of sources and evidence level).
+	PhenotypeList phenotypes(const QByteArray& symbol, bool sort_by_relevance=false);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
 	///Returns all genes associated to a phenotype. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.

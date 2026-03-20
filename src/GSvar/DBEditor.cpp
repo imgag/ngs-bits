@@ -116,6 +116,8 @@ void DBEditor::createGUI()
 			if (field_info.is_nullable) items.prepend("");
 			selector->addItems(items);
 
+			connect(selector, SIGNAL(currentTextChanged(QString)), this, SLOT(check()));
+
 			widget = selector;
 		}
 		else if (field_info.type==TableFieldInfo::DATE)
@@ -454,6 +456,21 @@ void DBEditor::check(QString field)
 		//update GUI
 		edit->setToolTip(errors.join("\n"));
 		edit->setStyleSheet(errors.isEmpty() ?  "" : "QLineEdit {border: 2px solid red;}");
+	}
+	else if (field_info.type==TableFieldInfo::ENUM)
+	{
+		QComboBox* edit = getEditWidget<QComboBox*>(field);
+		QString value = edit->currentText();
+
+		//special handling of processing system platform (needs to be set)
+		if (field=="platform" && table_=="processing_system" && value=="n/a")
+		{
+			errors << "Platform needs to be specified!";
+		}
+
+		//update GUI
+		edit->setToolTip(errors.join("\n"));
+		edit->setStyleSheet(errors.isEmpty() ?  "" : "QComboBox {border: 2px solid red;}");
 	}
 	else
 	{

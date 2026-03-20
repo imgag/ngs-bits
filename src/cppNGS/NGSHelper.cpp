@@ -1040,7 +1040,6 @@ QHash<Chromosome, QString> NGSHelper::chromosomeMapping(GenomeBuild build)
 	return output;
 }
 
-
 bool SampleInfo::isAffected() const
 {
 	auto it = properties.cbegin();

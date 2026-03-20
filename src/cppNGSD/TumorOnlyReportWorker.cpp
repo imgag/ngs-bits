@@ -9,6 +9,7 @@
 #include "Settings.h"
 #include <QXmlStreamWriter>
 #include "XmlHelper.h"
+#include "SomaticReportHelper.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
 	: config_(config)
@@ -346,16 +347,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		if(!config_.filter_result.passing(i)) continue;
 
 		RtfTableRow row;
-		VariantTranscript trans = variants_[i].transcriptAnnotations(i_co_sp_).first();
-		for(const VariantTranscript& tmp_trans : variants_[i].transcriptAnnotations(i_co_sp_))
-		{
-			if(config_.relevant_transcripts.value(tmp_trans.gene).contains(tmp_trans.idWithoutVersion()))
-			{
-				trans = tmp_trans;
-				break;
-			}
-		}
-
+		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(db_, variants_[i].transcriptAnnotations(i_co_sp_));
 		row.addCell( 1000, trans.gene , RtfParagraph().setItalic(true) );
 		row.addCell( 2900, QByteArrayList() << trans.hgvs_c + ", " + trans.hgvs_p << RtfText(trans.id).setFontSize(14).RtfCode());
 		row.addCell( 1700, trans.type.replace("_variant", "").replace("&", ", ") );

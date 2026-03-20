@@ -113,7 +113,6 @@
 #include "VirusDetectionWidget.h"
 #include "SomaticcfDNAReport.h"
 #include "ClientHelper.h"
-#include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
 #include "IgvLogWidget.h"
 #include "SettingsDialog.h"
@@ -5014,12 +5013,6 @@ void MainWindow::on_actionGaps_triggered()
 	dlg.exec();
 }
 
-void MainWindow::on_actionPrepareGhgaUpload_triggered()
-{
-	GHGAUploadDialog dlg(this);
-	dlg.exec();
-}
-
 void MainWindow::on_actionMaintenance_triggered()
 {
 	try
@@ -6136,17 +6129,6 @@ void MainWindow::on_actionClearLogFile_triggered()
 void MainWindow::on_actionOpenGSvarDataFolder_triggered()
 {
 	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
-}
-
-void MainWindow::on_actionShowNonTranferableVariants_triggered()
-{
-	if (!LoginManager::active()) return;
-	if(filename_ == "") return;
-	TransferredVariantDialog* widget = new TransferredVariantDialog(NGSD().processedSampleId(filename_).toInt(), this);
-
-	auto dlg = GUIHelper::createDialog(widget, "Non-transferable variants of " + variants_.analysisName());
-	addModelessDialog(dlg);
-
 }
 
 void MainWindow::editVariantClassification(VariantList& variants, int index)
