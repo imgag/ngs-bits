@@ -1,7 +1,7 @@
 #ifndef TRACKMANAGER_H
 #define TRACKMANAGER_H
 
-#include "Track.h"
+#include "TrackData.h"
 
 #include <QHash>
 #include <QUuid>
@@ -14,13 +14,14 @@ class TrackManager : QObject
 	Q_OBJECT
 
 public:
-	static void addTrack(QSharedPointer<Track> track);
-	static bool hasTrack(QUuid);
-	static bool removeTrack(QUuid);
-
 	static void addTrackWidget(QUuid, QWidget*);
+	static void addTrackWidget(QSharedPointer<TrackData>, QWidget*);
+	static bool removeTrackWidget(QUuid);
+	static bool removeTrackWidget(QSharedPointer<TrackData>);
 	static bool hasTrackWidget(QUuid);
+	static bool hasTrackWidget(QSharedPointer<TrackData>);
 	static QWidget* getTrackWidget(QUuid);
+	static QWidget* getTrackWidget(QSharedPointer<TrackData>);
 
 private:
 	static TrackManager& instance()
@@ -28,10 +29,8 @@ private:
 		static TrackManager instance;
 		return instance;
 	}
-	using TrackMap = QHash<QUuid, QSharedPointer<Track>>;
 	using TrackWidgetMap = QHash<QUuid, QWidget*>;
 
-	TrackMap tracks;
 	TrackWidgetMap track_widgets_;
 };
 

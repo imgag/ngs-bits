@@ -2,7 +2,7 @@
 #define PANELMANAGER_H
 
 #include "BedFile.h"
-#include "Track.h"
+#include "TrackData.h"
 
 #include <QSplitter>
 
@@ -26,7 +26,7 @@ public:
 	BedLine drag_start_region_;
 
 public slots:
-	void trackAdded(QSharedPointer<Track>);
+	void trackAdded(QSharedPointer<TrackData>);
 };
 
 

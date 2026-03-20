@@ -3,12 +3,12 @@
 
 
 #include "cppVISUAL_global.h"
-#include "Track.h"
+#include "TrackData.h"
 
-#include <QWidget>
+#include <QHash>
 #include <QMouseEvent>
+#include <QWidget>
 
-class Panel;
 
 class CPPVISUALSHARED_EXPORT BedTrack
 	: public QWidget
@@ -16,7 +16,7 @@ class CPPVISUALSHARED_EXPORT BedTrack
 	Q_OBJECT
 
 public:
-	BedTrack(QWidget* parent, QSharedPointer<Track> tack);
+	BedTrack(QWidget* parent, QSharedPointer<TrackData> tack);
 
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override {return sizeHint();};
@@ -30,7 +30,7 @@ public slots:
 	void contextMenu(QPoint pos);
 
 private:
-	QSharedPointer<Track> track;
+	QSharedPointer<TrackData> track;
 
 	void paintEvent(QPaintEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
@@ -56,12 +56,14 @@ private:
 	};
 
 	DrawMode draw_mode_ = COLLAPSED;
-	int num_rows_;
+	// pre count of num rows required per chromosome
+	QHash<Chromosome, int> num_rows_;
+
 	QPoint drag_start_pos_;
-	Panel* source_panel_;
 	bool is_dragging_;
 
-	int calculateNumRows();
+	//utility function for calculating the nubmer of rows required/chr
+	QHash<Chromosome, int> calculateNumRows();
 
 	static const int BLOCK_HEIGHT = 10;
 	static const int BLOCK_PADDING = 5;

@@ -34,6 +34,8 @@ protected slots:
 	void updateIndices();
 	//Sets the region of the whole chromosome
 	void setChromosomeRegion(QString chromsome);
+	//display errors to user
+	void displayErrorReq(QString msg);
 
 signals:
 	//Emitted when the displayed region has changed.

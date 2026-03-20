@@ -45,7 +45,7 @@ HEADERS += \
     Panel.h \
     PanelManager.h \
     SharedData.h \
-    Track.h \
+    TrackData.h \
     TrackManager.h
 
 FORMS += \

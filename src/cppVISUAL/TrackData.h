@@ -1,5 +1,5 @@
-#ifndef TRACK_H
-#define TRACK_H
+#ifndef TRACKDATA_H
+#define TRACKDATA_H
 
 #include "BedFile.h"
 
@@ -14,7 +14,7 @@
  * such as color, height, font size
  * maybe an ID so that it can be hashed
  */
-struct Track
+struct TrackData
 {
 	QUuid id;
 
@@ -24,9 +24,9 @@ struct Track
 	BedFile bedfile;
 
 	/*optional*/
-	QColor color = QColor(0, 0, 125);
+	QColor color = QColor(0, 0, 178);
 
-	Track(QString filename, QString name, BedFile bedfile)
+	TrackData(QString filename, QString name, BedFile bedfile)
 		:id(QUuid::createUuid()), filename(filename), name(name),
 		bedfile(bedfile)
 	{
@@ -34,4 +34,4 @@ struct Track
 };
 
 
-#endif // TRACK_H
+#endif // TRACKDATA_H

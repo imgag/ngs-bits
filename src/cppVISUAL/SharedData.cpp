@@ -2,6 +2,7 @@
 #include "Settings.h"
 #include <QPainter>
 #include <QFileInfo>
+#include <QMessageBox>
 
 void SharedData::setTranscripts(const TranscriptList& transcripts)
 {
@@ -103,16 +104,22 @@ void SharedData::loadTrack(QString file_path)
 	const QFileInfo info(file_path);
 	if (info.isFile())
 	{
-		track.load(file_path);
+		try
+		{
+			track.load(file_path);
+		}
+		catch (const FileParseException& e)
+		{
+			displayError(e.message());
+			return;
+		}
+		if (track.chromosomes().count() == 0)
+		{
+			displayError("Bed file does not contain any chromosomes, will be discarded.");
+			return;
+		}
 		track.sort();
-
-		/*
-		 * TODO: send an error somehow
-		 */
-		if (track.chromosomes().count() != 1) return; // discard
-		qDebug() << "loading into track" << Qt::endl;
-		QSharedPointer<Track> tr = QSharedPointer<Track>(new Track(file_path, info.fileName(), track));
-		qDebug() << "loaded into track" << Qt::endl;
+		QSharedPointer<TrackData> tr = QSharedPointer<TrackData>(new TrackData(file_path, info.fileName(), track));
 		emit instance()->trackAdded(tr);
 	}
 }

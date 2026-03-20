@@ -82,10 +82,9 @@ void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 	update();
 }
 
-void PanelManager::trackAdded(QSharedPointer<Track> track)
+void PanelManager::trackAdded(QSharedPointer<TrackData> track)
 {
 	class Panel* new_panel = new class Panel(this);
-	qDebug() << "Signal received" << Qt::endl;
 	new_panel->trackAdded(track);
 	insertWidget(0, new_panel);
 }

@@ -6,7 +6,7 @@
 #include "FastaFileIndex.h"
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
-#include "Track.h"
+#include "TrackData.h"
 #include <QSize>
 
 //Helper struct for globally used settings
@@ -52,7 +52,7 @@ public:
 		return  instance()->transcripts_index_.matchingIndices(chr, start, end);
 	}
 
-	static QVector<Track> tracks()
+	static QVector<TrackData> tracks()
 	{
 		return instance()->tracks_;
 	}
@@ -81,6 +81,11 @@ public:
 		return  instance()->char_size_;
 	}
 
+	static void displayError(QString msg)
+	{
+		emit instance()->displayErrorReq(msg);
+	}
+
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();
 
@@ -89,7 +94,8 @@ signals:
 	void settingsChanged();
 	void regionChanged();
 	void tracksChanged();
-	void trackAdded(QSharedPointer<Track>);
+	void trackAdded(QSharedPointer<TrackData>);
+	void displayErrorReq(QString);
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);
@@ -102,7 +108,7 @@ protected:
 	GlobalSettings settings_;
 	BedLine region_;
 	QSize char_size_;
-	QVector<Track> tracks_;
+	QVector<TrackData> tracks_;
 };
 
 

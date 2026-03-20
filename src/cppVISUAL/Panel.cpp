@@ -1,9 +1,12 @@
-#include "Panel.h"
 #include "BedTrack.h"
 #include "BedFile.h"
+#include "Exceptions.h"
+#include "Panel.h"
+#include "SharedData.h"
 #include "TrackManager.h"
 
 #include <QMenu>
+#include <QMessageBox>
 #include <QMimeData>
 #include <QPainter>
 #include <QFileInfo>
@@ -21,6 +24,8 @@ Panel::Panel(QWidget* parent)
 
 	setWidgetResizable(true);
 
+	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
 
 	setAcceptDrops(true);
@@ -29,7 +34,7 @@ Panel::Panel(QWidget* parent)
 	layout_->setContentsMargins(0, 0, 0, height());
 }
 
-void Panel::trackAdded(QSharedPointer<Track> tr)
+void Panel::trackAdded(QSharedPointer<TrackData> tr)
 {
 	auto panel = new BedTrack(this, tr);
 	connect(panel, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
@@ -52,7 +57,6 @@ void Panel::trackDeleted()
 
 void Panel::trackMoved()
 {
-	qDebug() << "Track moved called" << Qt::endl;
 	QWidget* senderWidget = qobject_cast<QWidget*>(sender());
 	if (senderWidget){
 		disconnect(senderWidget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
@@ -80,15 +84,23 @@ void Panel::contextMenu(QPoint pos)
 		const QFileInfo info(file_path);
 		if (info.isFile())
 		{
-			track.load(file_path);
+			try
+			{
+				track.load(file_path);
+			}
+			catch (const FileParseException& e)
+			{
+				SharedData::displayError(e.message());
+				return;
+			}
+			if (track.chromosomes().count() == 0)
+			{
+				SharedData::displayError("Bed file does not contain any chromosomes, will be discarded");
+				return;
+			};
+
 			track.sort();
-
-			/*
-			 * TODO: send an error somehow
-			 */
-			if (track.chromosomes().count() != 1) return; // discard
-
-			QSharedPointer<Track> tr = QSharedPointer<Track>(new Track(/*file path*/ file_path,
+			QSharedPointer<TrackData> tr = QSharedPointer<TrackData>(new TrackData(/*file path*/ file_path,
 																	   /*filename*/  info.fileName(),
 																	   /*BedFile*/   track));
 			trackAdded(tr);
@@ -151,7 +163,6 @@ void Panel::dropEvent(QDropEvent* event)
 
 			if (old_panel && old_panel != content_widget_)
 			{
-				qDebug() << "Old Panel != this" << Qt::endl;
 				emit source->trackMoved();
 
 				source->setParent(this);
@@ -160,7 +171,6 @@ void Panel::dropEvent(QDropEvent* event)
 			}
 			else
 			{
-				qDebug() << "Old Panel is this" << Qt::endl;
 				layout_->removeWidget(source);
 			}
 

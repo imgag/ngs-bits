@@ -2,7 +2,7 @@
 #define PANEL_H
 
 #include "cppVISUAL_global.h"
-#include "Track.h"
+#include "TrackData.h"
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -19,7 +19,7 @@ public:
 	Panel(QWidget*);
 
 public slots:
-	void trackAdded(QSharedPointer<Track>);
+	void trackAdded(QSharedPointer<TrackData>);
 	void trackDeleted();
 	void trackMoved();
 	void contextMenu(QPoint);

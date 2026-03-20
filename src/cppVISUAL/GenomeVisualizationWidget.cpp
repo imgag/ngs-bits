@@ -23,7 +23,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 	connect(ui_->chr_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
-	// connect(SharedData::instance(), SIGNAL(trackAdded(Track)), ui_->deafult_panel, SLOT(trackAdded(Track)));
+	connect(SharedData::instance(), SIGNAL(displayErrorReq(QString)), this, SLOT(displayErrorReq(QString)));
 }
 
 
@@ -147,3 +147,8 @@ void GenomeVisualizationWidget::updateCoordinateLabel(QString text)
 	ui_->label_coordinate->setText(text);
 }
 
+
+void GenomeVisualizationWidget::displayErrorReq(QString msg)
+{
+	QMessageBox::critical(this, "Error", msg);
+}
