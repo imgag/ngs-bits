@@ -60,12 +60,13 @@ private:
 	DrawMode draw_mode_ = COLLAPSED;
 	// pre count of num rows required per chromosome
 	QHash<Chromosome, int> num_rows_;
+	QVector<int> row_idxes_;
 
 	QPoint drag_start_pos_;
 	bool is_dragging_;
 
 	//utility function for calculating the nubmer of rows required/chr
-	QHash<Chromosome, int> calculateNumRows();
+	void calculateNumRows();
 
 	static const int BLOCK_HEIGHT = 10;
 	static const int BLOCK_PADDING = 5;

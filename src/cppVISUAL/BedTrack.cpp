@@ -18,7 +18,7 @@ BedTrack::BedTrack(QWidget* parent, QSharedPointer<TrackData> track)
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
 	chr_index_.createIndex();
 
-	num_rows_ = calculateNumRows();
+	calculateNumRows();
 	TrackManager::addTrackWidget(track_->id, this);
 }
 
@@ -103,26 +103,18 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	{
 		int w = width();
 		float total_width = w - label_width - 4;
-		int prev_row_end = -1;
 		float y_start = 0.0f;
 		QVector<int> idxes = chr_index_.matchingIndices(region.chr(), region.start(), region.end());
 		foreach(int idx, idxes)
 			{
-				qDebug() << track_->bedfile[idx].chr().str() << Qt::endl;
 				int st = std::max(track_->bedfile[idx].start(), region.start());
 				int en = std::min(track_->bedfile[idx].end(), region.end());
 
 				float x_start = map(st, region.start(), region.end(), 0.0f, total_width);
 				float width = map(static_cast<float>(en - st), 0.0f, static_cast<float>(region.length()), 0.0f, total_width);
 
-				if (draw_mode_ == EXPANDED)
-				{
-					if (track_->bedfile[idx].start() < prev_row_end)
-					{
-						y_start += (BLOCK_HEIGHT + BLOCK_PADDING);
-					}
-					prev_row_end = track_->bedfile[idx].end();
-				}
+
+				if (draw_mode_ == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
 
 				QRectF chr_rect(label_width + 2 + x_start, y_start, width, BLOCK_HEIGHT);
 
@@ -145,26 +137,40 @@ QSize BedTrack::sizeHint() const {
 }
 
 
-QHash<Chromosome, int> BedTrack::calculateNumRows()
+void BedTrack::calculateNumRows()
 {
-	QHash<Chromosome, int> num_rows;
-	int last_row_end =-1;
-
+	QHash<Chromosome, QVector<int>> row_end_positions;
+	row_idxes_.clear();
 
 	for (int i =0; i < track_->bedfile.count(); ++i)
 	{
-		if (track_->bedfile[i].start() < last_row_end || last_row_end < 0) num_rows[track_->bedfile[i].chr()]++;
-		last_row_end = track_->bedfile[i].end();
+		Chromosome chr = track_->bedfile[i].chr();
 
-		// chromosome change, start count again
-		if (i < track_->bedfile.count() - 1 &&
-			track_->bedfile[i+1].chr() != track_->bedfile[i].chr())
+		bool placed = false;
+
+		for (int row =0; row < row_end_positions[chr].count(); ++row)
 		{
-			last_row_end = -1;
+			if (track_->bedfile[i].start() >= row_end_positions[chr][row])
+			{
+				placed = true;
+				row_end_positions[chr][row] = track_->bedfile[i].end();
+				row_idxes_ << row;
+				break;
+			}
+		}
+
+		if (!placed)
+		{
+			// create new row
+			row_end_positions[chr].append(track_->bedfile[i].end());
+			row_idxes_ << row_end_positions[chr].count() - 1;
 		}
 	}
 
-	return num_rows;
+	for (auto it = row_end_positions.begin(); it != row_end_positions.end(); ++it)
+	{
+		num_rows_[it.key()] = it.value().size();
+	}
 }
 
 void BedTrack::mousePressEvent(QMouseEvent* event)
