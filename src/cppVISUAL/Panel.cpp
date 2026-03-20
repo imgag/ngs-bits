@@ -146,7 +146,7 @@ void Panel::dropEvent(QDropEvent* event)
 			{
 				emit source->trackMoved();
 
-				source->setParent(this);
+				// source->setParent(content_widget_);
 				connect(source, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 				connect(source, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
 			}
@@ -155,6 +155,7 @@ void Panel::dropEvent(QDropEvent* event)
 				layout_->removeWidget(source);
 			}
 
+			// this changes the parent of the source
 			layout_->insertWidget(drop_index, source);
 			layout_->update();
 		}
