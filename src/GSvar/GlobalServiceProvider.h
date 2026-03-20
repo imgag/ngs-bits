@@ -42,8 +42,7 @@ public:
     static TargetRegionInfo processingSystemTargetRegion(int sys_id);
 
 	//general
-	static MainWindow* mainWindow();
-	static FilterWidget* filterWidget();
+    static MainWindow* mainWindow();
 	static void startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
 
 	//return gene locus padded by 5000 bases (cached)

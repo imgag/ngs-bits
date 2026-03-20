@@ -13,7 +13,7 @@ void PhenotypeSettingsDialog::setCombinationModeEnabled(bool enabled)
 	ui_.m_merge->setEnabled(enabled);
 }
 
-void PhenotypeSettingsDialog::set(PhenotypeSettings& settings)
+void PhenotypeSettingsDialog::set(const PhenotypeSettings& settings)
 {
 	//source
 	ui_.s_clinvar ->setChecked(settings.sources.contains(PhenotypeSource::CLINVAR));

@@ -15,7 +15,7 @@ public:
 	PhenotypeSettingsDialog(QWidget* parent);
 	void setCombinationModeEnabled(bool enabled);
 
-	void set(PhenotypeSettings& settings);
+    void set(const PhenotypeSettings& settings);
 	PhenotypeSettings get() const;
 
 private:

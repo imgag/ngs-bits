@@ -46,6 +46,8 @@ public:
 	//Returns a variant scores. Throws an error if the input is invalid.
 	static Result score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
 
+    static int annotate(VariantList& variants, const VariantScores::Result& result, bool add_explanations);
+
 private:
 	//Returns the variant blackist from the settings file.
 	static QList<Variant> loadBlacklist();

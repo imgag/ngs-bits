@@ -50,7 +50,7 @@ struct tmbInfo
 	}
 };
 
-SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReportSettings &settings, const CnvList& cnvs, const VariantList& germl_variants, QWidget *parent)
+SomaticReportDialog::SomaticReportDialog(AnalysisDataController& data_controller, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()
@@ -377,6 +377,10 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	}
 
 	updateIgvText();
+
+    setRNAids(data_controller_.getRelatedRnaProcessedSampleIds())
+
+        dlg.enableChoicecfDnaReportType(data_controller.getRelatedcfDNAProcessedSamples().count() > 0);
 }
 
 void SomaticReportDialog::disableGUI()

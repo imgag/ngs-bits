@@ -6,12 +6,12 @@
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
-#include "GlobalServiceProvider.h"
 #include <QCompleter>
 #include <QMenu>
 #include <QDialog>
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
+#include "FilterWidgetHelper.h"
 
 FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	: QWidget(parent)
@@ -43,7 +43,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	ui_.hpo->setEnabled(LoginManager::active());
 
-	FilterWidget::loadTargetRegions(ui_.roi);
+    FilterWidgetHelper::loadTargetRegions(ui_.roi);
 	loadFilters();
 	reset(true);
 }
@@ -197,7 +197,7 @@ void FilterWidgetCNV::roiSelectionChanged(int index)
 	QString roi_name = ui_.roi->itemData(index).toString().trimmed();
 	try
 	{
-		FilterWidget::loadTargetRegionData(roi_, roi_name);
+        FilterWidgetHelper::loadTargetRegionData(roi_, roi_name);
 	}
 	catch(Exception& e)
 	{
@@ -220,7 +220,7 @@ void FilterWidgetCNV::geneChanged()
 	if (genes()!=last_genes_)
 	{
 		last_genes_ = genes();
-		FilterWidget::checkGeneNames(last_genes_, ui_.gene);
+        FilterWidgetHelper::checkGeneNames(last_genes_, ui_.gene);
 		emit filtersChanged();
 	}
 }
@@ -238,7 +238,7 @@ void FilterWidgetCNV::regionChanged()
 void FilterWidgetCNV::phenotypesChanged()
 {
 	//update phenotype history
-	GSvarHelper::updatePhenotypeHistory(phenotypes_);
+    FilterWidgetHelper::updatePhenotypeHistory(phenotypes_);
 
 	//update GUI
 	QByteArrayList tmp;
@@ -286,7 +286,7 @@ void FilterWidgetCNV::showPhenotypeContextMenu(QPoint pos)
 	QAction* a_load = menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "load from sample");
 	a_load->setEnabled(LoginManager::active());
 	QMenu* history_menu = menu.addMenu("history");
-	foreach(const PhenotypeList& entry, GSvarHelper::phenotypeHistory())
+    foreach(const PhenotypeList& entry, FilterWidgetHelper::phenotypeHistory())
 	{
 		history_menu->addAction(entry.toString());
 	}
@@ -307,7 +307,7 @@ void FilterWidgetCNV::showPhenotypeContextMenu(QPoint pos)
 	}
 	else if (action->parent()==history_menu)
 	{
-		foreach(const PhenotypeList& entry, GSvarHelper::phenotypeHistory())
+        foreach(const PhenotypeList& entry, FilterWidgetHelper::phenotypeHistory())
 		{
 			if (action->text()==entry.toString()) setPhenotypes(entry);
 		}
@@ -319,7 +319,7 @@ void FilterWidgetCNV::showRoiContextMenu(QPoint pos)
 	//set up
 	QMenu menu;
 	QMenu* history_menu = menu.addMenu("history");
-	foreach(const QString& entry, GSvarHelper::roiHistory())
+    foreach(const QString& entry, FilterWidgetHelper::roiHistory())
 	{
 		history_menu->addAction(entry);
 	}
@@ -335,7 +335,7 @@ void FilterWidgetCNV::showRoiContextMenu(QPoint pos)
 	}
 	else if (action->parent()==history_menu)
 	{
-		foreach(const QString& entry, GSvarHelper::roiHistory())
+        foreach(const QString& entry, FilterWidgetHelper::roiHistory())
 		{
 			if (action->text()==entry) setTargetRegionByDisplayName(entry);
 		}

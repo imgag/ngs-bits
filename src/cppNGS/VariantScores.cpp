@@ -96,6 +96,48 @@ VariantScores::Result VariantScores::score(QString algorithm, const VariantList&
 	return result;
 }
 
+int VariantScores::annotate(VariantList& variants, const VariantScores::Result& result, bool add_explanations)
+{
+    //check input
+    if (variants.count()!=result.scores.count()) THROW(ProgrammingException, "Variant list and scoring result differ in count!");
+
+    //add columns if missing
+    if (add_explanations && variants.annotationIndexByName("GSvar_score_explanations", true, false)==-1)
+    {
+        variants.prependAnnotation("GSvar_score_explanations", "GSvar score explanations.");
+    }
+    if (variants.annotationIndexByName("GSvar_score", true, false)==-1)
+    {
+        variants.prependAnnotation("GSvar_score", "GSvar score (algorithm: " + result.algorithm + ", description:" + VariantScores::description(result.algorithm)+  ")");
+    }
+    if (variants.annotationIndexByName("GSvar_rank", true, false)==-1)
+    {
+        variants.prependAnnotation("GSvar_rank", "GSvar score based rank.");
+    }
+    int i_rank = variants.annotationIndexByName("GSvar_rank");
+    int i_score = variants.annotationIndexByName("GSvar_score");
+    int i_score_exp = add_explanations ? variants.annotationIndexByName("GSvar_score_explanations") : -1;
+
+    //annotate
+    int c_scored = 0;
+    for (int i=0; i<variants.count(); ++i)
+    {
+        QByteArray score_str;
+        QByteArray rank_str;
+        if (result.scores[i] >= 0)
+        {
+            score_str = QByteArray::number(result.scores[i], 'f', 2);
+            rank_str = QByteArray::number(result.ranks[i]);
+            ++c_scored;
+        }
+        variants[i].annotations()[i_score] = score_str;
+        variants[i].annotations()[i_rank] = rank_str;
+        if (add_explanations) variants[i].annotations()[i_score_exp] = result.score_explanations[i].join(" ").toUtf8();
+    }
+
+    return c_scored;
+}
+
 QList<Variant> VariantScores::loadBlacklist()
 {
 	QList<Variant> output;

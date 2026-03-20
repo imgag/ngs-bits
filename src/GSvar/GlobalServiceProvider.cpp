@@ -134,11 +134,6 @@ MainWindow* GlobalServiceProvider::mainWindow()
 	THROW(ProgrammingException, "Could not find main window!");
 }
 
-FilterWidget* GlobalServiceProvider::filterWidget()
-{
-	return mainWindow()->filterWidget();
-}
-
 void GlobalServiceProvider::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
 {
 	mainWindow()->startJob(worker, show_busy_dialog);
@@ -155,7 +150,6 @@ const BedFile& GlobalServiceProvider::geneToRegions(QByteArray gene, NGSD& db)
 		tmp.extend(5000);
 		tmp.merge();
 		cache_[gene] = tmp;
-
 	}
 	return cache_[gene];
 }

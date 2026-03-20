@@ -102,7 +102,7 @@ public:
 		BamReader reader(getInfile("bam"), ref_file);
 
 		//somatic: find tumor_af column, germline: find by sample name
-		bool somatic = input.type(false) == SOMATIC_PAIR || input.type(false) == SOMATIC_SINGLESAMPLE;
+        bool somatic = input.type(false) == AnalysisType::SOMATIC_PAIR || input.type(false) == AnalysisType::SOMATIC_SINGLESAMPLE;
 		QString col_name = somatic ? "tumor_af" : input.mainSampleName();
 		int col_idx = input.annotationIndexByName(col_name);
 

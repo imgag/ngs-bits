@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
+#include "AnalysisDataController.h"
 #include "ui_SomaticReportDialog.h"
 
 class SomaticReportDialog
@@ -13,7 +14,7 @@ class SomaticReportDialog
 
 public:
 	///constructor
-	SomaticReportDialog(QString project_filename, SomaticReportSettings& settings, const CnvList& cnvs, const VariantList& germl_variants, QWidget* parent = 0);
+    SomaticReportDialog(AnalysisDataController& data_controller, QWidget* parent = 0);
 
 	enum report_type
 	{

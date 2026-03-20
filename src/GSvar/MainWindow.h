@@ -40,8 +40,6 @@ public:
 	/// Gets server API information to make sure ther the server is currently running
 	bool isServerRunning();
 
-	///Returns the result of applying filters to the variant list
-	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
 	QStringList getLogFiles();	
 	///Adds a file to the recent processed sample list
@@ -62,10 +60,6 @@ public:
 	static QString selectGene();
 	///Lets the user select a processed sample from the current variant list. If only one processed sample is contained, it is returned. If the user aborts, "" is returned.
 	QString selectProcessedSample();
-	///Target region information of filter widget.
-	const TargetRegionInfo& targetRegion();
-    ///returns the filterWidget
-	FilterWidget* filterWidget();
 
 	/// Checks if there is a new client version available
 	void checkClientUpdates();
@@ -148,6 +142,7 @@ public slots:
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
 	void on_actionNotifyUsers_triggered();
+    void on_actionDesignSubpanel_triggered();
 
 
     ///Gender determination
@@ -372,17 +367,12 @@ public slots:
 	///Open settings dialog on a specific page
 	void openSettingsDialog(QString page_name="view", QString section = "");
 
-	///Subpanel design dialog
-	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());
-
 	///Adds and shows a modeless dialog
 	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
 	///Adds and shows a modeless dialog
 	void deleteClosedModelessDialogs();
 	///Imports phenotype data from NGSD
 	void importPhenotypesFromNGSD();
-	///Create sub-panel from phenotype
-	void createSubPanelFromPhenotypeFilter();
 
 	///Opens a sample based on the processed sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
@@ -491,7 +481,8 @@ private:
     bool getHetHitGenes(GeneSet& het_hit_genes);
 
 
-
+    //DATA
+    AnalysisDataController& data_controller_;
 
 	//GUI
 	Ui::MainWindow ui_;
@@ -502,13 +493,8 @@ private:
 	ClickableLabel* background_job_label_;
 	BackgroundJobDialog* bg_job_dialog_;
 
-    AnalysisDataController data_controller_; //DATA
 	QString last_report_path_;
-	PhenotypeList last_phenos_; //phenotypes used to generate phenotype ROI (needed to check if they changed)
-	PhenotypeSettings last_pheno_settings_; //phenotype settings used to generate phenotype ROI (needed to check if they changed)
-	BedFile phenotype_roi_;
 
-	bool cf_dna_available;
 	QToolButton* gap_btn_;
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;

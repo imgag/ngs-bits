@@ -3,53 +3,30 @@
 
 #include <QObject>
 
+#include "NGSD.h"
+
 #include "VariantList.h"
 #include "ArribaFile.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
 #include "RepeatLocusList.h"
+#include "FilterState.h"
 
 #include "ReportSettings.h"
 #include "SomaticReportSettings.h"
 #include "RnaReportConfiguration.h"
 #include "TumorOnlyReportWorker.h"
 
-#include "NGSD.h"
-
 #include "Histogram.h"
 #include "VariantScores.h"
 
-//Filter settings for report configuration
-enum class ReportConfigFilter
-{
-    NONE,
-    NO_RC,
-    HAS_RC
-};
-
-//filter state of variant lists
-struct FilterState
-{
-    QStringList filter_cascade_text;
-    TargetRegionInfo target_region;
-    GeneSet genes;
-    QString text_filter;
-    BedLine region_filter;
-    PhenotypeList phenotypes;
-    PhenotypeSettings phenotype_setting;
-    BedFile phenotype_roi;
-    ReportConfigFilter rc_filter;
-
-    FilterResult passing_variants;
-};
 
 class AnalysisDataController
     : public QObject
 {
     Q_OBJECT
 public:
-    AnalysisDataController();
-
+    static AnalysisDataController& instance();
     void clear();
 
     QStringList loadFile(QString filename="");
@@ -60,8 +37,9 @@ public:
     QList<QPair<Log::LogLevel, QString>> checkProcessedSamplesInNGSD();
 
     //Filtering
-    const FilterState& getSmallVariantsFilterState() const;
-    const FilterResult& applySmallVariantFilter(const FilterCascade& filter_cascade, TargetRegionInfo target_region, GeneSet genes, QString text_filter, QString region_filter_text, PhenotypeList phenotypes, PhenotypeSettings pheno_settings, ReportConfigFilter rc_filter, bool debug_time);
+    FilterState& getSmallVariantsFilterState();
+    const FilterResult& getSmallVariantsFilterResult() const;
+    const FilterResult& applySmallVariantFilter(bool debug_time=false);
     //const FilterResult& applyCnvFilter(const FilterCascade& filter_cascade, bool debug_time);
     //const FilterResult& applySvFilter(const FilterCascade& filter_cascade, bool debug_time);
     //const FilterResult& applyReFilter(const FilterCascade& filter_cascade, bool debug_time);
@@ -85,7 +63,6 @@ public:
 
     BedFile genesToRegions(GeneSet genes);
 
-    /// get
     Histogram afHistogram(bool filtered) const;
     Histogram cnHistogram(QString sample_id, Chromosome chr, int start, int end) const;
     Histogram bafHistogram(QString sample_id, Chromosome chr, int start, int end) const;
@@ -186,8 +163,13 @@ public:
     ///stores the variant validation entry as given after a validation check
     void storeVariantValidation(const VariantValidation& var_val);
 
+    void updateSomaticReportSettings();
+    void generateSomaticReport(QString filepath);
+    void generateSomaticRnaReport(QString filepath, QString rna_ps_name);
+    void generateSomaticCfDnaReport(QString filepath);
 
     EvaluationSheetData getEvaluationSheetData();
+    void generateGermlineReport(QString filepath, QString type);
     void finalizeGermlineReportConfig(int user_id);
 
     TumorOnlyReportWorkerConfig getTumorOnlyReportWorkerConfig();
@@ -212,8 +194,12 @@ signals:
     void thrownWarning(QString title, QString text);
     void thrownInfo(QString title, QString text);
 
+    void smallVariantsFilterResultChanged();
+    void markSmallVariantFilters();
     void smallVariantsChanged();
-    void loadedSmallVariantFilters(QString filter_name, FilterCascade filters, QString traget_region_name);
+
+protected:
+    AnalysisDataController();
 
 private:
     //changes:
@@ -223,6 +209,8 @@ private:
         QString column;
         QString text;
     };
+
+    static QList<RtfPicture> pngsFromFiles(QStringList files);
 
 
     ///Load germline report configuration
@@ -243,17 +231,22 @@ private:
 
     //variants
     VariantList variants_;
-    FilterState variants_filter_state_;
+    FilterState  variants_filter_state_;
+    FilterResult variants_filter_result_;
     QList<VariantListChange> variants_changed_;
     CnvList cnvs_;
-    FilterState cnvs_filter_state_;
+    FilterState  cnvs_filter_state_;
+    FilterResult cnvs_filter_result_;
     BedpeFile svs_;
-    FilterState svs_filter_state_;
+    FilterState  svs_filter_state_;
+    FilterResult svs_filter_result_;
     RepeatLocusList repeat_expansions_;
-    FilterState repeat_expansions_filter_state_;
+    FilterState  res_filter_state_;
+    FilterResult res_filter_result_;
     VariantList somatic_control_tissue_variants_;
     ArribaFile fusions_;
-    FilterState fusions_filter_state_;
+    FilterState  fusions_filter_state_;
+    FilterResult fusions_filter_result_;
 
     //Report data:
     ReportSettings germline_report_settings_;

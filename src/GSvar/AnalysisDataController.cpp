@@ -14,11 +14,25 @@
 #include "GenLabDB.h"
 #include "GSvarHelper.h"
 #include "VersatileTextStream.h"
+#include "SomaticReportHelper.h"
+#include "SomaticRnaReport.h"
+#include "SomaticcfDNAReport.h"
+#include "PrsTable.h"
+#include <QBuffer>
+#include "GermlineReportGenerator.h"
+#include "Background/ReportWorker.h"
+
+AnalysisDataController& AnalysisDataController::instance()
+{
+    static AnalysisDataController instance;
+
+    return instance;
+}
 
 AnalysisDataController::AnalysisDataController()
-    : QObject(),
-    db_()
+    : QObject()
 {
+    connect(&variants_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applySmallVariantFilter(bool)));
 }
 
 void AnalysisDataController::clear()
@@ -508,7 +522,7 @@ void AnalysisDataController::loadSomaticReportConfig()
     QString ps_tumor = variants_.mainSampleName();
     QString ps_tumor_id = db.processedSampleId(ps_tumor, false);
     if(ps_tumor_id == "") return;
-    QString ps_normal = normalSampleName();
+    QString ps_normal = getNormalSampleName();
     if(ps_normal.isEmpty()) return;
     QString ps_normal_id = db.processedSampleId(ps_normal, false);
     if(ps_normal_id == "") return;
@@ -550,8 +564,8 @@ void AnalysisDataController::loadSomaticReportConfig()
     }
 
     //Preselect filter from NGSD som. rep. conf.
-    if (somatic_report_settings_.report_config->filterName() != "") ui_.filters->setFilter( somatic_report_settings_.report_config->filterName());
-    if(somatic_report_settings_.report_config->filters().count() != 0) ui_.filters->setFilterCascade(somatic_report_settings_.report_config->filters());
+    if (somatic_report_settings_.report_config->filterName() != "") variants_filter_state_.setFilterName(somatic_report_settings_.report_config->filterName());
+    if(somatic_report_settings_.report_config->filters().count() != 0) variants_filter_state_.setFilterCascade(somatic_report_settings_.report_config->filters());
 
 
     somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
@@ -567,7 +581,7 @@ void AnalysisDataController::storeSomaticReportConfig()
 
     NGSD db;
     QString ps_tumor_id = db.processedSampleId(variants_.mainSampleName(), false);
-    QString ps_normal_id = db.processedSampleId(normalSampleName(), false);
+    QString ps_normal_id = db.processedSampleId(getNormalSampleName(), false);
 
     if(ps_tumor_id=="" || ps_normal_id == "")
     {
@@ -623,19 +637,17 @@ void AnalysisDataController::storeRnaReportConfig()
 
 
 
-const FilterResult& AnalysisDataController::applySmallVariantFilter(const FilterCascade& filter_cascade, TargetRegionInfo target_region, GeneSet genes, QString text_filter, QString region_filter_text, PhenotypeList phenotypes, PhenotypeSettings pheno_settings, ReportConfigFilter rc_filter, bool debug_time)
+const FilterResult& AnalysisDataController::applySmallVariantFilter(bool debug_time)
 {
-    FilterState new_state;
-
+    FilterResult& result = variants_filter_result_;
     try
     {
         //apply main filter
         QElapsedTimer timer;
         timer.start();
 
-        variants_filter_state_.passing_variants = filter_cascade.apply(variants_, false, debug_time);
-        new_state.filter_cascade_text = filter_cascade.toText();
-        emit markVariantFilters();
+        result = variants_filter_state_.getFilterCascade().apply(variants_, false, debug_time);
+        emit markSmallVariantFilters();
 
         if (debug_time)
         {
@@ -644,10 +656,9 @@ const FilterResult& AnalysisDataController::applySmallVariantFilter(const Filter
         }
 
         //roi filter
-        if (target_region.isValid())
+        if (variants_filter_state_.getTargetRegionInfo().isValid())
         {
-            FilterRegions::apply(variants_, target_region.regions, variants_filter_state_.passing_variants);
-            new_state.target_region = target_region;
+            FilterRegions::apply(variants_, variants_filter_state_.getTargetRegionInfo().regions, result);
 
             if (debug_time)
             {
@@ -657,12 +668,11 @@ const FilterResult& AnalysisDataController::applySmallVariantFilter(const Filter
         }
 
         //gene filter
-        if (!genes.isEmpty())
+        if (!variants_filter_state_.getGenes().isEmpty())
         {
             FilterGenes filter;
-            filter.setStringList("genes", genes.toStringList());
-            filter.apply(variants_, variants_filter_state_.passing_variants);
-            new_state.genes = genes;
+            filter.setStringList("genes", variants_filter_state_.getGenes().toStringList());
+            filter.apply(variants_, result);
 
             if (debug_time)
             {
@@ -672,40 +682,26 @@ const FilterResult& AnalysisDataController::applySmallVariantFilter(const Filter
         }
 
         //text filter
-        if (!text_filter.isEmpty())
+        if (!variants_filter_state_.getTextFilter().isEmpty())
         {
             FilterAnnotationText filter;
-            filter.setString("term", text_filter);
+            filter.setString("term", variants_filter_state_.getTextFilter());
             filter.setString("action", "FILTER");
-            filter.apply(variants_, variants_filter_state_.passing_variants);
-            new_state.text_filter = text_filter;
+            filter.apply(variants_, result);
 
             if (debug_time)
             {
-
                 Log::perf("Applying text filter took ", timer);
                 timer.start();
             }
         }
 
-        BedLine region_filter = BedLine::fromString(region_filter_text);
-        if (!region_filter.isValid()) //check if valid chr
-        {
-            Chromosome chr(region_filter_text);
-            if (chr.isNonSpecial())
-            {
-                region_filter.setChr(chr);
-                region_filter.setStart(1);
-                region_filter.setEnd(999999999);
-            }
-        }
         //region filter
-        if (region_filter.isValid()) //valid region (chr,start, end or only chr)
+        if (variants_filter_state_.getRegionFilter().isValid()) //valid region (chr,start, end or only chr)
         {
             BedFile tmp;
-            tmp.append(region_filter);
-            FilterRegions::apply(variants_, tmp, variants_filter_state_.passing_variants);
-            new_state.region_filter = region_filter;
+            tmp.append(variants_filter_state_.getRegionFilter());
+            FilterRegions::apply(variants_, tmp, result);
 
             if (debug_time)
             {
@@ -714,55 +710,10 @@ const FilterResult& AnalysisDataController::applySmallVariantFilter(const Filter
             }
         }
 
-        if (phenotypes != variants_filter_state_.phenotypes || pheno_settings != variants_filter_state_.phenotype_setting)
-        {
-            new_state.phenotypes = phenotypes;
-            new_state.phenotype_setting = pheno_settings;
-
-            //convert phenotypes to genes
-            NGSD db;
-            GeneSet pheno_genes;
-            int i = 0;
-            for (const Phenotype& pheno : phenotypes)
-            {
-                GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), pheno_settings.sources, pheno_settings.evidence_levels, true, false);
-
-                if (pheno_settings.mode==PhenotypeCombimnationMode::MERGE || (pheno_settings.mode==PhenotypeCombimnationMode::INTERSECT && i==0))
-                {
-                    pheno_genes << genes;
-                }
-                else
-                {
-                    pheno_genes = pheno_genes.intersect(genes);
-                }
-                ++i;
-            }
-
-            //convert genes to ROI (using a cache to speed up repeating queries)
-            new_state.phenotype_roi.clear();
-            for (const QByteArray& gene: std::as_const(pheno_genes))
-            {
-                new_state.phenotype_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
-            }
-            new_state.phenotype_roi.merge();
-
-            if (debug_time)
-            {
-                Log::perf("Updating phenotype filter took ", timer);
-                timer.start();
-            }
-        }
-        else
-        {
-            new_state.phenotypes = variants_filter_state_.phenotypes;
-            new_state.phenotype_setting = variants_filter_state_.phenotype_setting;
-            new_state.phenotype_roi = variants_filter_state_.phenotype_roi;
-        }
-
         //phenotype filter
-        if (! new_state.phenotypes.isEmpty())
+        if (! variants_filter_state_.getPhenotypes().isEmpty())
         {
-            FilterRegions::apply(variants_, new_state.phenotype_roi, variants_filter_state_.passing_variants);
+            FilterRegions::apply(variants_, variants_filter_state_.getPhenotypeRoi(), result);
 
             if (debug_time)
             {
@@ -772,57 +723,59 @@ const FilterResult& AnalysisDataController::applySmallVariantFilter(const Filter
         }
 
         //report configuration filter (show only variants with report configuration)
-        if (germlineReportSupported() && rc_filter!=ReportConfigFilter::NONE)
+        if (germlineReportSupported() && variants_filter_state_.getReportConfigFilter() != ReportConfigFilter::NONE)
         {
             QSet<int> report_variant_indices = Helper::listToSet(germline_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
             for(int i=0; i<variants_.count(); ++i)
             {
-                if (!variants_filter_state_.passing_variants.flags()[i]) continue;
+                if (!result.flags()[i]) continue;
 
-                if (rc_filter==ReportConfigFilter::HAS_RC)
+                if (variants_filter_state_.getReportConfigFilter()==ReportConfigFilter::HAS_RC)
                 {
-                    variants_filter_state_.passing_variants.flags()[i] = report_variant_indices.contains(i);
+                    result.flags()[i] = report_variant_indices.contains(i);
                 }
-                else if (rc_filter==ReportConfigFilter::NO_RC)
+                else if (variants_filter_state_.getReportConfigFilter()==ReportConfigFilter::NO_RC)
                 {
-                    variants_filter_state_.passing_variants.flags()[i] = !report_variant_indices.contains(i);
+                    result.flags()[i] = !report_variant_indices.contains(i);
                 }
             }
         }
-        else if( somaticReportSupported() && rc_filter != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
+        else if( somaticReportSupported() && variants_filter_state_.getReportConfigFilter() != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
         {
             QSet<int> report_variant_indices = Helper::listToSet(somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
             for(int i=0; i<variants_.count(); ++i)
             {
-                if ( !variants_filter_state_.passing_variants.flags()[i] ) continue;
+                if ( !variants_filter_result_.flags()[i] ) continue;
 
-                if (rc_filter==ReportConfigFilter::HAS_RC)
+                if (variants_filter_state_.getReportConfigFilter()==ReportConfigFilter::HAS_RC)
                 {
-                    variants_filter_state_.passing_variants.flags()[i] = report_variant_indices.contains(i);
+                    variants_filter_result_.flags()[i] = report_variant_indices.contains(i);
                 }
-                else if (rc_filter==ReportConfigFilter::NO_RC)
+                else if (variants_filter_state_.getReportConfigFilter()==ReportConfigFilter::NO_RC)
                 {
-                    variants_filter_state_.passing_variants.flags()[i] = !report_variant_indices.contains(i);
+                    variants_filter_result_.flags()[i] = !report_variant_indices.contains(i);
                 }
             }
         }
 
         //keep somatic variants that are marked with "include" in report settings (overrides possible filtering for that variant)
-        if( somaticReportSupported() && rc_filter != ReportConfigFilter::NO_RC)
+        if( somaticReportSupported() && variants_filter_state_.getReportConfigFilter() != ReportConfigFilter::NO_RC)
         {
             foreach(int index, somatic_report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false))
             {
-                variants_filter_state_.passing_variants.flags()[index] = variants_filter_state_.passing_variants.flags()[index] || somatic_report_settings_.report_config->variantConfig(index, VariantType::SNVS_INDELS).showInReport();
+                variants_filter_result_.flags()[index] = variants_filter_result_.flags()[index] || somatic_report_settings_.report_config->variantConfig(index, VariantType::SNVS_INDELS).showInReport();
             }
         }
-        new_state.rc_filter = rc_filter;
     }
     catch(Exception& e)
     {
         emit thrownWarning("Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nPlease re-run the annotation steps for the analysis!");
 
-        variants_filter_state_.passing_variants = FilterResult(variants_.count(), false);
+        result = FilterResult(variants_.count(), false);
     }
+
+    emit smallVariantsFilterResultChanged();
+    return result;
 }
 
 
@@ -1259,6 +1212,332 @@ const SomaticReportSettings& AnalysisDataController::getSomaticReportSettings() 
     return somatic_report_settings_;
 }
 
+void AnalysisDataController::updateSomaticReportSettings()
+{
+    if (! somaticReportSupported())
+    {
+        THROW(ArgumentException, "Somatic report settings can only be updated for an analysis of the type " + analysisTypeToString(AnalysisType::SOMATIC_PAIR) + ". Analysis has type: " + analysisTypeToString(getAnalysisType()));
+    }
+
+    NGSD db;
+    QString ps_tumor = getMainSampleName();
+    QString ps_tumor_id = db.processedSampleId(ps_tumor);
+    QString ps_normal = getNormalSampleName();
+    QString ps_normal_id = db.processedSampleId(ps_normal);
+
+
+    TargetRegionInfo target_region = variants_filter_state_.getTargetRegionInfo();
+    //Set data in somatic report settings
+    somatic_report_settings_.report_config->setTargetRegionName(target_region.name);
+
+    somatic_report_settings_.report_config->setFilterName((variants_filter_state_.getFilterName())); //filter name -> goes to NGSD som. rep. conf.
+    somatic_report_settings_.report_config->setFilters(variants_filter_state_.getFilterCascade()); //filter cascase -> goes to report helper
+
+    somatic_report_settings_.tumor_ps = ps_tumor;
+    somatic_report_settings_.normal_ps = ps_normal;
+
+    somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+    somatic_report_settings_.report_config->setEvaluationDate(QDate::currentDate());
+
+    //load obo terms for filtering coding/splicing variants
+    if (somatic_report_settings_.obo_terms_coding_splicing.size() == 0)
+    {
+        OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
+        QList<QByteArray> ids;
+        ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+        ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+        foreach(const QByteArray& id, ids)
+        {
+            somatic_report_settings_.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+        }
+    }
+
+    somatic_report_settings_.target_region_filter = target_region;
+    if(! target_region.isValid()) //use processing system data in case no filter is set
+    {
+        ProcessingSystemData sys_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps_tumor));
+
+        TargetRegionInfo generic_target;
+        if (sys_data.type == "WGS")
+        {
+            generic_target.regions = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
+            generic_target.genes = db.approvedGeneNames();
+            generic_target.name = sys_data.name;
+            somatic_report_settings_.target_region_filter = generic_target;
+
+        } else {
+            generic_target.regions = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
+            generic_target.genes = db.genesToApproved(GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor), false), true);
+            generic_target.name = sys_data.name;
+            somatic_report_settings_.target_region_filter = generic_target;
+        }
+    }
+
+    if (db.getValues("SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND (qc.qcml_id ='QC:2000062' OR qc.qcml_id ='QC:2000063' OR qc.qcml_id ='QC:2000064') ").size() < 3)
+    {
+        emit thrownWarning("No HRD score found", "Warning:\nNo hrd score values found in the imported QC of tumor sample. HRD score set to 0.");
+        somatic_report_settings_.report_config->setCnvLohCount(0);
+        somatic_report_settings_.report_config->setCnvTaiCount(0);
+        somatic_report_settings_.report_config->setCnvLstCount(0);
+    }
+    else
+    {
+        QString query = "SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND qc.qcml_id = :1";
+        somatic_report_settings_.report_config->setCnvLohCount( db.getValue(query, false, "QC:2000062").toInt() );
+        somatic_report_settings_.report_config->setCnvTaiCount( db.getValue(query, false, "QC:2000063").toInt() );
+        somatic_report_settings_.report_config->setCnvLstCount( db.getValue(query, false, "QC:2000064").toInt() );
+    }
+
+
+    //Preselect report settings if not already exists to most common values
+    if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1)
+    {
+        somatic_report_settings_.report_config->setIncludeTumContentByMaxSNV(true);
+        somatic_report_settings_.report_config->setIncludeTumContentByClonality(true);
+        somatic_report_settings_.report_config->setIncludeTumContentByHistological(true);
+        somatic_report_settings_.report_config->setMsiStatus(true);
+        somatic_report_settings_.report_config->setCnvBurden(true);
+    }
+
+    //Parse genome ploidy from ClinCNV file
+    FileLocation cnvFile = GlobalServiceProvider::fileLocationProvider().getAnalysisCnvFile();
+    if (cnvFile.exists)
+    {
+        QStringList cnv_data = Helper::loadTextFile(cnvFile.filename, true, QChar::Null, true);
+
+        foreach (const QString& line, cnv_data)
+        {
+            if (line.startsWith("##ploidy:"))
+            {
+                QStringList parts = line.split(':');
+                somatic_report_settings_.report_config->setPloidy(parts[1].toDouble());
+                break;
+            }
+
+            if (! line.startsWith("##"))
+            {
+                break;
+            }
+        }
+    }
+
+    //Get ICD10 diagnoses from NGSD
+    QStringList tmp_icd10;
+    QStringList tmp_phenotype;
+    QStringList tmp_rna_ref_tissue;
+    foreach(const auto& entry, db.getSampleDiseaseInfo(db.sampleId(ps_tumor)))
+    {
+        if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
+        if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
+        if(entry.type == "RNA reference tissue") tmp_rna_ref_tissue.append(entry.disease_info);
+    }
+    somatic_report_settings_.icd10 = tmp_icd10.join(", ");
+    somatic_report_settings_.phenotype = tmp_phenotype.join(", ");
+}
+
+void AnalysisDataController::generateSomaticReport(QString filepath)
+{
+    if(!SomaticReportHelper::checkGermlineSNVFile(somatic_control_tissue_variants_))
+    {
+        thrownWarning("Somatic report", "DNA report cannot be created because germline GSVar-file is invalid. Please check control tissue variant file.");
+        return;
+    }
+
+    SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, svs_, somatic_control_tissue_variants_, somatic_report_settings_);
+
+    //Store XML file with the same somatic report configuration settings
+    QElapsedTimer timer;
+
+    try
+    {
+        timer.start();
+        QString tmp_xml = Helper::tempFileName(".xml");
+        report.storeXML(tmp_xml);
+        Helper::moveFile(tmp_xml, Settings::path("gsvar_xml_folder") + "\\" + getMainSampleName() + "-" + getNormalSampleName() + ".xml");
+
+        Log::perf("Generating somatic report XML took ", timer);
+    }
+    catch(Exception e)
+    {
+        thrownWarning("creation of XML file failed", e.message());
+    }
+
+    //Generate RTF
+    timer.start();
+    QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
+    report.storeRtf(temp_filename);
+    Helper::moveFile(temp_filename, filepath);
+    Log::perf("Generating somatic report RTF took ", timer);
+
+    //Generate files for QBIC upload
+    timer.start();
+    QString path = getMainSampleName() + "-" + getNormalSampleName();
+    if (GlobalServiceProvider::fileLocationProvider().isLocal()) path = Settings::string("qbic_data_path") + "/" + path;
+    report.storeQbicData(path);
+    Log::perf("Generating somatic report QBIC data took ", timer);
+}
+
+//transforms png data into list of tuples (png data in hex format, width, height)
+QList<RtfPicture> AnalysisDataController::pngsFromFiles(QStringList files)
+{
+    QList<RtfPicture> pic_list;
+    foreach(const QString& path, files)
+    {
+        QImage pic;
+        if (path.startsWith("http", Qt::CaseInsensitive))
+        {
+            QByteArray response = HttpHandler(true).get(path);
+            if (!response.isEmpty()) pic.loadFromData(response);
+        }
+        else
+        {
+            pic = QImage(path);
+        }
+        if(pic.isNull()) continue;
+
+        QByteArray png_data = "";
+        QBuffer buffer(&png_data);
+        buffer.open(QIODevice::WriteOnly);
+        if (!pic.save(&buffer, "PNG")) continue;
+        buffer.close();
+
+        pic_list << RtfPicture(png_data.toHex(), pic.width(), pic.height());
+    }
+
+    return pic_list;
+}
+
+void AnalysisDataController::generateSomaticRnaReport(QString filepath, QString rna_ps_name)
+{
+    QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
+    NGSD db;
+    QString rna_ps_id = db.processedSampleId(rna_ps_name);
+
+    SomaticRnaReportSettings rna_report_data = somatic_report_settings_;
+    rna_report_data.rna_ps_name = rna_ps_name;
+    rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS).filename;
+    rna_report_data.rna_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION).filename;
+    rna_report_data.rna_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::BAM).filename;
+    rna_report_data.ref_genome_fasta_file = Settings::string("reference_genome");
+
+    try
+    {
+        QString filename = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_CORR).filename;
+        VersatileFile file(filename, false);
+        file.open(QFile::ReadOnly | QIODevice::Text);
+        rna_report_data.expression_correlation = Helper::toDouble(file.readAll());
+    }
+    catch(Exception)
+    {
+        rna_report_data.expression_correlation = std::numeric_limits<double>::quiet_NaN();
+    }
+
+    try
+    {
+        TSVFileStream expr_file(rna_report_data.rna_expression_file);
+        for (QByteArray comment: expr_file.comments()) {
+            if (comment.contains("cohort_size"))
+            {
+                bool ok;
+                int size = comment.split(':')[1].toInt(&ok);
+                if(ok)
+                {
+                    rna_report_data.cohort_size = size;
+                }
+            }
+        }
+    }
+    catch (Exception)
+    {
+    }
+
+    if (rna_report_data.cohort_size == 0)
+    {
+        try
+        {
+            TSVFileStream cohort_file( GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT).filename);
+            rna_report_data.cohort_size = cohort_file.header().count()-1;
+        }
+        catch(Exception)
+        {
+        }
+    }
+
+    rna_report_data.rna_qcml_data = db.getQCData(rna_ps_id);
+
+    //Add data from fusion pics
+    try
+    {
+        rna_report_data.fusion_pics = pngsFromFiles(GlobalServiceProvider::database().getRnaFusionPics(rna_ps_name));
+    }
+    catch(Exception) //Nothing to do here
+    {
+    }
+    //Add data from expression plots
+    try
+    {
+        rna_report_data.expression_plots = pngsFromFiles(GlobalServiceProvider::database().getRnaExpressionPlots(rna_ps_name));
+    }
+    catch(Exception)
+    {
+    }
+
+    //Look in tumor sample for HPA reference tissue
+    QStringList tmp_rna_ref_tissue;
+    foreach(const auto& entry, db.getSampleDiseaseInfo(db.sampleId(rna_ps_name), "RNA reference tissue"))
+    {
+        tmp_rna_ref_tissue.append(entry.disease_info);
+    }
+    tmp_rna_ref_tissue.removeDuplicates();
+    rna_report_data.rna_hpa_ref_tissue = tmp_rna_ref_tissue.join(", ");
+
+    SomaticRnaReport rna_report(variants_, cnvs_, svs_, somatic_control_tissue_variants_,  rna_report_data);
+
+    rna_report.writeRtf(temp_filename);
+    Helper::moveFile(temp_filename, filepath);
+}
+
+void AnalysisDataController::generateSomaticCfDnaReport(QString filepath)
+{
+    QStringList errors;
+    CfdnaDiseaseCourseTable table = GSvarHelper::cfdnaTable(getMainSampleName(), errors, true);
+    SomaticcfDNAReportData data(somatic_report_settings_, table);
+    SomaticcfDnaReport report(data);
+
+    QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
+    report.writeRtf(temp_filename);
+    Helper::moveFile(temp_filename, filepath);
+}
+
+void AnalysisDataController::generateGermlineReport(QString filepath, QString type)
+{
+    NGSD db;
+    QString ps_name = germlineReportSample();
+    QString ps_id = db.processedSampleId(ps_name);
+
+    //set report type
+    germline_report_settings_.report_type = type;
+
+    //prepare report generation data
+    PrsTable prs_table;
+    FileLocationList prs_files = GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).filterById(ps_name);
+    if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
+
+    GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, repeat_expansions_, prs_table, germline_report_settings_, variants_filter_state_.getFilterCascade(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+    data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name), false);
+    data.ps_bam = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
+    data.ps_lowcov = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::LOWCOV_BED).filename;
+    if (variants_filter_state_.getTargetRegionInfo().isValid())
+    {
+        data.roi = variants_filter_state_.getTargetRegionInfo();
+        data.roi.genes = db.genesToApproved(data.roi.genes, true);
+    }
+
+    //start worker in background
+    ReportWorker* worker = new ReportWorker(data, filepath);
+    startJob(worker, true);
+}
+
 VariantValidation AnalysisDataController::getSmallVariantValidationEntry(int variant_idx, QString ps_name)
 {
     Variant& variant = variants_[variant_idx];
@@ -1361,10 +1640,10 @@ TumorOnlyReportWorkerConfig AnalysisDataController::getTumorOnlyReportWorkerConf
     config.threads = Settings::integer("threads");
     config.sys = db.getProcessingSystemData(sys_id);
     config.ps_data = db.getProcessedSampleData(db.processedSampleId(ps));
-    config.roi = variants_filter_state_.target_region;
+    config.roi = variants_filter_state_.getTargetRegionInfo();
     config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
     config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
-    config.filter_result = variants_filter_state_.passing_variants;
+    config.filter_result = variants_filter_result_;
     config.preferred_transcripts = GSvarHelper::preferredTranscripts();
     config.build = GSvarHelper::build();
 
@@ -1481,44 +1760,7 @@ void AnalysisDataController::reannotateSomaticVariantInterpretation()
 
 void AnalysisDataController::annotateVariantRankingScores(VariantScores::Result variant_scores, bool add_explanations)
 {
-    //check input
-    if (variants_.count()!=variant_scores.scores.count()) THROW(ProgrammingException, "Variant list and scoring result differ in count!");
-
-    //add columns if missing
-    if (add_explanations && variants_.annotationIndexByName("GSvar_score_explanations", true, false)==-1)
-    {
-        variants_.prependAnnotation("GSvar_score_explanations", "GSvar score explanations.");
-    }
-    if (variants_.annotationIndexByName("GSvar_score", true, false)==-1)
-    {
-        variants_.prependAnnotation("GSvar_score", "GSvar score (algorithm: " + variant_scores.algorithm + ", description:" + VariantScores::description(variant_scores.algorithm)+  ")");
-    }
-    if (variants_.annotationIndexByName("GSvar_rank", true, false)==-1)
-    {
-        variants_.prependAnnotation("GSvar_rank", "GSvar score based rank.");
-    }
-    int i_rank = variants_.annotationIndexByName("GSvar_rank");
-    int i_score = variants_.annotationIndexByName("GSvar_score");
-    int i_score_exp = add_explanations ? variants_.annotationIndexByName("GSvar_score_explanations") : -1;
-
-    //annotate
-    int c_scored = 0;
-    for (int i=0; i<variants_.count(); ++i)
-    {
-        QByteArray score_str;
-        QByteArray rank_str;
-        if (variant_scores.scores[i] >= 0)
-        {
-            score_str = QByteArray::number(variant_scores.scores[i], 'f', 2);
-            rank_str = QByteArray::number(variant_scores.ranks[i]);
-            ++c_scored;
-        }
-        variants_[i].annotations()[i_score] = score_str;
-        variants_[i].annotations()[i_rank] = rank_str;
-        if (add_explanations) variants_[i].annotations()[i_score_exp] = variant_scores.score_explanations[i].join(" ").toUtf8();
-    }
-
-    qDebug() << "annotateVariantRankingScores(): Scored " + QString::number(c_scored) + " variants.";
+    VariantScores::annotate(variants_, variant_scores, add_explanations);
 }
 
 GeneSet AnalysisDataController::getHetHitGenes() const
@@ -1533,7 +1775,7 @@ GeneSet AnalysisDataController::getHetHitGenes() const
     {
         for (int i=0; i<variants_.count(); ++i)
         {
-            if (! variants_filter_state_.passing_variants.passing(i)) continue;
+            if (! variants_filter_result_.passing(i)) continue;
 
             bool all_genos_het = true;
             foreach(int i_genotype, i_genotypes)
@@ -1632,7 +1874,7 @@ Histogram AnalysisDataController::afHistogram(bool filtered) const
     int col_quality = variants_.annotationIndexByName("quality");
     for (int i=0; i<variants_.count(); ++i)
     {
-        if (filtered && ! variants_filter_state_.passing_variants.passing(i)) continue;
+        if (filtered && ! variants_filter_result_.passing(i)) continue;
 
         QByteArrayList parts = variants_[i].annotations()[col_quality].split(';');
         foreach(const QByteArray& part, parts)
@@ -1723,14 +1965,14 @@ Histogram AnalysisDataController::bafHistogram(QString sample_id, Chromosome chr
     }
 }
 
-void AnalysisDataController::exportGsvar(QString file_name, bool as_vcf)
+void AnalysisDataController::exportGSvar(QString file_name, bool as_vcf)
 {
     //create new GSvar file with passing variants
     VariantList output;
     output.copyMetaData(variants_);
     for(int i=0; i<variants_.count(); ++i)
     {
-        if (variants_filter_state_.passing_variants.passing(i))
+        if (variants_filter_result_.passing(i))
         {
             output.append(variants_[i]);
         }
@@ -1907,7 +2149,13 @@ QSet<int> AnalysisDataController::getRelatedCfdnaSampleIds() const
     return cf_dna_sample_ids;
 }
 
-const FilterState& AnalysisDataController::getSmallVariantsFilterState() const
+FilterState& AnalysisDataController::getSmallVariantsFilterState()
 {
     return variants_filter_state_;
 }
+
+const FilterResult& AnalysisDataController::getSmallVariantsFilterResult() const
+{
+    return variants_filter_result_;
+}
+
