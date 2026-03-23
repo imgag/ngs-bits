@@ -14,6 +14,8 @@ public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
 
+signals:
+	void loadFile(QString);
 
 private:
 	Ui::MainWindow ui_;

@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, ui_()
 {
 	ui_.setupUi(this);
+	connect(this, SIGNAL(loadFile(QString)), ui_.gvw, SIGNAL(loadFile(QString)));
 
 	try
 	{
@@ -47,10 +48,5 @@ void MainWindow::createMenus()
 void MainWindow::loadFiles()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)")); //
-
-	if (fileName.isEmpty()) {
-		return; // User canceled the dialog
-	}
-
-	SharedData::loadTrack(fileName);
+	emit loadFile(fileName);
 }
