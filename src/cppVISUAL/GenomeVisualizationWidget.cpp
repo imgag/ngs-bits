@@ -12,7 +12,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
 {
 	ui_->setupUi(this);
-	GUIHelper::styleSplitter(ui_->splitter_gene_panel);
+	GUIHelper::styleSplitter(ui_->panel_manager);
 
 	//connect signals and slots
 	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
@@ -24,7 +24,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 	connect(ui_->chr_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 	connect(SharedData::instance(), SIGNAL(displayErrorReq(QString)), this, SLOT(displayErrorReq(QString)));
-	connect(this, SIGNAL(loadFile(QString)), ui_->splitter_gene_panel, SLOT(loadFile(QString)));
+	connect(this, SIGNAL(loadFile(QString)), ui_->panel_manager, SLOT(loadFile(QString)));
 }
 
 

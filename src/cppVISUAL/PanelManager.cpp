@@ -12,8 +12,6 @@ PanelManager::PanelManager(QWidget* parent)
 	setChildrenCollapsible(false);
 	setHandleWidth(2);
 	setMouseTracking(true);
-
-	connect(SharedData::instance(), SIGNAL(addTracks(TrackList)), this, SLOT(addTracks(TrackList)));
 }
 
 

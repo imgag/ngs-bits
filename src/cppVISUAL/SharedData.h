@@ -45,17 +45,10 @@ public:
 	//Sets transcripts and creates/updates indices
 	static void setTranscripts(const TranscriptList& transcripts);
 
-	static void loadTrack(QString file_path);
-
 	//Returns indices of transcripts in a region
 	static QVector<int> transcriptsInRegion(const Chromosome& chr, int start, int end)
 	{
 		return  instance()->transcripts_index_.matchingIndices(chr, start, end);
-	}
-
-	static QVector<TrackData> tracks()
-	{
-		return instance()->tracks_;
 	}
 
 	//Return the global settings
@@ -94,8 +87,6 @@ signals:
 	void transcriptsChanged();
 	void settingsChanged();
 	void regionChanged();
-	void tracksChanged();
-	void addTracks(TrackList);
 	void displayErrorReq(QString);
 
 protected:
@@ -109,7 +100,6 @@ protected:
 	GlobalSettings settings_;
 	BedLine region_;
 	QSize char_size_;
-	QVector<TrackData> tracks_;
 };
 
 

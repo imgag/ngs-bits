@@ -133,60 +133,13 @@
     </widget>
    </item>
    <item>
-    <widget class="PanelManager" name="splitter_gene_panel">
+    <widget class="PanelManager" name="panel_manager">
      <property name="orientation">
       <enum>Qt::Orientation::Vertical</enum>
      </property>
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <!-- <widget class="QScrollArea" name="scrollArea1">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="verticalScrollBarPolicy">
-       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
-      </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="widgetResizable">
-       <bool>true</bool>
-      </property>
-      <widget class="QWidget" name="scrollAreaWidgetContents_2">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>1079</width>
-         <height>300</height>
-        </rect>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="Panel" name="deafult_panel" native="true"/>
-        </item>
-       </layout>
-      </widget>
-     </widget> -->
      <widget class="QScrollArea" name="scrollArea">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -209,7 +162,7 @@
          <x>0</x>
          <y>0</y>
          <width>1079</width>
-         <height>299</height>
+         <height>606</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -321,12 +274,6 @@
    <class>PanelManager</class>
    <extends>QSplitter</extends>
    <header location="global">PanelManager.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>Panel</class>
-   <extends>QWidget</extends>
-   <header location="global">Panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -99,9 +99,3 @@ QSize SharedData::determineCharacterSize()
 	}
 	return QSize(w, h);
 }
-
-void SharedData::loadTrack(QString file_path)
-{
-	TrackList tracks = FileLoader::load(file_path);
-	if (!tracks.empty()) emit instance()->addTracks(tracks);
-}
