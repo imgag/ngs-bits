@@ -118,6 +118,21 @@ void Panel::removeTrack(QWidget* widget)
 }
 
 
+inline int Panel::getDropIndex(int y)
+{
+	int drop_index =0;
+	for (int i = 0; i < layout_->count() - 1; ++i) {
+		QWidget* w = layout_->itemAt(i)->widget();
+		if (w && y > w->geometry().center().y()) {
+			drop_index = i + 1;
+		}
+	}
+	drop_index = std::max(0, std::min(drop_index, layout_->count() - 2));
+
+	return drop_index;
+}
+
+
 void Panel::dropEvent(QDropEvent* event)
 {
 	if (event->mimeData()->hasFormat("application/track-data"))
@@ -130,17 +145,12 @@ void Panel::dropEvent(QDropEvent* event)
 			BedTrack* source = qobject_cast<BedTrack*>(TrackManager::getTrackWidget(track_id));
 			if (!source) return;
 
-			QWidget* old_panel = qobject_cast<QWidget*>(source->parentWidget());
-
-			int drop_index =0;
-			int y = event->position().y();
-			for (int i = 0; i < layout_->count() - 1; ++i) {
-				QWidget* w = layout_->itemAt(i)->widget();
-				if (w && y > w->geometry().center().y()) {
-					drop_index = i + 1;
-				}
+			QWidget* old_panel = source->parentWidget();
+			if (!old_panel)
+			{
+				qDebug() << "Parent widget was not found for source on drop!" << Qt::endl;
+				return;
 			}
-			drop_index = std::max(0, std::min(drop_index, layout_->count() - 2));
 
 			if (old_panel && old_panel != content_widget_)
 			{
@@ -154,6 +164,8 @@ void Panel::dropEvent(QDropEvent* event)
 			{
 				layout_->removeWidget(source);
 			}
+
+			int drop_index = getDropIndex(event->position().y());
 
 			// this changes the parent of the source
 			layout_->insertWidget(drop_index, source);

@@ -32,6 +32,8 @@ private:
 
 	void dragEnterEvent(QDragEnterEvent*) override;
 	void dropEvent(QDropEvent*) override;
+
+	inline int getDropIndex(int y);
 };
 
 
