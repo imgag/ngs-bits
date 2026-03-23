@@ -19,7 +19,7 @@ public:
 	Panel(QWidget*);
 
 public slots:
-	void trackAdded(QSharedPointer<TrackData>);
+	void addTrack(QSharedPointer<TrackData>);
 	void trackDeleted();
 	void trackMoved();
 	void contextMenu(QPoint);

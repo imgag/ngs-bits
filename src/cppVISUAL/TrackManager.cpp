@@ -1,22 +1,22 @@
 #include "TrackManager.h"
 
-void TrackManager::addTrackWidget(QUuid id, QWidget* widget)
+void TrackManager::addTrackWidget(QUuid id, TrackWidget* widget)
 {
 	instance().track_widgets_[id] = widget;
 }
 
-void TrackManager::addTrackWidget(QSharedPointer<TrackData> track, QWidget* widget)
+void TrackManager::addTrackWidget(QSharedPointer<TrackData> track, TrackWidget* widget)
 {
 	if (track) addTrackWidget(track->id, widget);
 }
 
-QWidget* TrackManager::getTrackWidget(QUuid id)
+TrackWidget* TrackManager::getTrackWidget(QUuid id)
 {
 	return instance().track_widgets_[id];
 }
 
 
-QWidget* TrackManager::getTrackWidget(QSharedPointer<TrackData> track)
+TrackWidget* TrackManager::getTrackWidget(QSharedPointer<TrackData> track)
 {
 	if (track) return getTrackWidget(track->id);
 	return nullptr;

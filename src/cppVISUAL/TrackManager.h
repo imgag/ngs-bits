@@ -9,19 +9,21 @@
 #include <QObject>
 
 
+class TrackWidget;
+
 class TrackManager : QObject
 {
 	Q_OBJECT
 
 public:
-	static void addTrackWidget(QUuid, QWidget*);
-	static void addTrackWidget(QSharedPointer<TrackData>, QWidget*);
+	static void addTrackWidget(QUuid, TrackWidget*);
+	static void addTrackWidget(QSharedPointer<TrackData>, TrackWidget*);
 	static bool removeTrackWidget(QUuid);
 	static bool removeTrackWidget(QSharedPointer<TrackData>);
 	static bool hasTrackWidget(QUuid);
 	static bool hasTrackWidget(QSharedPointer<TrackData>);
-	static QWidget* getTrackWidget(QUuid);
-	static QWidget* getTrackWidget(QSharedPointer<TrackData>);
+	static TrackWidget* getTrackWidget(QUuid);
+	static TrackWidget* getTrackWidget(QSharedPointer<TrackData>);
 
 private:
 	static TrackManager& instance()
@@ -29,7 +31,7 @@ private:
 		static TrackManager instance;
 		return instance;
 	}
-	using TrackWidgetMap = QHash<QUuid, QWidget*>;
+	using TrackWidgetMap = QHash<QUuid, TrackWidget*>;
 
 	TrackWidgetMap track_widgets_;
 };

@@ -1,3 +1,4 @@
+#include "FileLoader.h"
 #include "PanelManager.h"
 #include "SharedData.h"
 #include "Panel.h"
@@ -12,7 +13,7 @@ PanelManager::PanelManager(QWidget* parent)
 	setHandleWidth(2);
 	setMouseTracking(true);
 
-	connect(SharedData::instance(), SIGNAL(tracksAdded(TrackList)), this, SLOT(tracksAdded(TrackList)));
+	connect(SharedData::instance(), SIGNAL(addTracks(TrackList)), this, SLOT(addTracks(TrackList)));
 }
 
 
@@ -83,13 +84,19 @@ void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 }
 
 
-void PanelManager::tracksAdded(TrackList tracks)
+void PanelManager::addTracks(TrackList tracks)
 {
 	if (tracks.isEmpty()) return;
 	class Panel* new_panel = new class Panel(this);
 	foreach (QSharedPointer<TrackData> track, tracks)
 	{
-		new_panel->trackAdded(track);
+		new_panel->addTrack(track);
 	}
 	insertWidget(0, new_panel);
+}
+
+void PanelManager::loadFile(QString file)
+{
+	TrackList tracks = FileLoader::load(file);
+	addTracks(tracks);
 }

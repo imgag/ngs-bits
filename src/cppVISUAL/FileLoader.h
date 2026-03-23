@@ -43,7 +43,7 @@ public:
 			}
 
 			file.sort();
-			out << QSharedPointer<TrackData>::create(file_path, info.fileName(), file);
+			out << QSharedPointer<BedFileTrackData>::create(file_path, info.fileName(), file);
 		}
 		return out;
 	}

@@ -95,7 +95,7 @@ signals:
 	void settingsChanged();
 	void regionChanged();
 	void tracksChanged();
-	void tracksAdded(TrackList);
+	void addTracks(TrackList);
 	void displayErrorReq(QString);
 
 protected:

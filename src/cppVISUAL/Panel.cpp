@@ -1,6 +1,6 @@
-#include "BedTrack.h"
 #include "Panel.h"
 #include "TrackManager.h"
+#include "TrackWidgetFactory.h"
 #include "FileLoader.h"
 
 #include <QMenu>
@@ -32,9 +32,10 @@ Panel::Panel(QWidget* parent)
 	layout_->setContentsMargins(0, 0, 0, height());
 }
 
-void Panel::trackAdded(QSharedPointer<TrackData> tr)
+void Panel::addTrack(QSharedPointer<TrackData> tr)
 {
-	auto panel = new BedTrack(this, tr);
+	TrackWidget* panel = TrackWidgetFactory::getTrackWidget(this, tr);
+	if (!panel) return;
 	connect(panel, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 	connect(panel, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
 	layout_->insertWidget(layout_->count() - 1, panel);
@@ -83,7 +84,7 @@ void Panel::contextMenu(QPoint pos)
 		{
 			foreach (QSharedPointer<TrackData> track, tracks)
 			{
-				trackAdded(track);
+				addTrack(track);
 			}
 		}
 	}
@@ -127,7 +128,7 @@ inline int Panel::getDropIndex(int y)
 			drop_index = i + 1;
 		}
 	}
-	drop_index = std::max(0, std::min(drop_index, layout_->count() - 2));
+	drop_index = std::max(0, std::min(drop_index, layout_->count() - 1));
 
 	return drop_index;
 }
@@ -142,7 +143,7 @@ void Panel::dropEvent(QDropEvent* event)
 
 		if (TrackManager::hasTrackWidget(track_id))
 		{
-			BedTrack* source = qobject_cast<BedTrack*>(TrackManager::getTrackWidget(track_id));
+			TrackWidget* source = TrackManager::getTrackWidget(track_id);
 			if (!source) return;
 
 			QWidget* old_panel = source->parentWidget();
@@ -156,7 +157,6 @@ void Panel::dropEvent(QDropEvent* event)
 			{
 				emit source->trackMoved();
 
-				// source->setParent(content_widget_);
 				connect(source, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 				connect(source, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
 			}

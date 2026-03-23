@@ -16,24 +16,40 @@
  * maybe an ID so that it can be hashed
  */
 
+enum TrackType
+{
+	BED_TRACK
+};
+
 struct TrackData
 {
+	//TODO to TrackWidget
 	QUuid id;
-
-	/*must provide*/
 	QString filename;
 	QString name;
-	BedFile bedfile;
 
-	/*optional*/
+	//TODO to BedTrack
 	QColor color = QColor(0, 0, 178);
 
-	TrackData(QString filename, QString name, BedFile bedfile)
-		:id(QUuid::createUuid()), filename(filename), name(name),
-		bedfile(bedfile)
+	TrackData(QString filename, QString name)
+		:id(QUuid::createUuid()), filename(filename), name(name)
+	{
+	}
+
+	virtual ~TrackData() = default;
+};
+
+
+struct BedFileTrackData : public TrackData
+{
+	BedFile bedfile;
+
+	BedFileTrackData(QString filename, QString name, BedFile bedfile)
+		:TrackData(filename, name), bedfile(bedfile)
 	{
 	}
 };
+
 
 using TrackList = QVector<QSharedPointer<TrackData>>;
 

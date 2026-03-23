@@ -35,7 +35,8 @@ SOURCES += \
     Panel.cpp \
     PanelManager.cpp \
     SharedData.cpp \
-    TrackManager.cpp
+    TrackManager.cpp \
+    TrackWidget.cpp
 
 HEADERS += \
     BedTrack.h \
@@ -47,7 +48,9 @@ HEADERS += \
     PanelManager.h \
     SharedData.h \
     TrackData.h \
-    TrackManager.h
+    TrackManager.h \
+    TrackWidget.h \
+    TrackWidgetFactory.h
 
 FORMS += \
     GenomeVisualizationWidget.ui
