@@ -14,14 +14,8 @@ public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
 
-signals:
-	void loadFile();
-
 private:
 	Ui::MainWindow ui_;
-	QMenu* file_menu_;
-
-	void createMenus();
 };
 
 #endif // MAINWINDOW_H

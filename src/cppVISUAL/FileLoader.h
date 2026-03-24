@@ -1,22 +1,22 @@
 #ifndef FILELOADER_H
 #define FILELOADER_H
 
-
-#include "ErrorHandler.h"
+#include "cppVISUAL_global.h"
 #include "TrackWidget.h"
 #include "BedTrack.h"
+#include "GenomeVisualizationWidget.h"
 
 #include <QSharedPointer>
 #include <QFileInfo>
 
-class FileLoader
+class CPPVISUALSHARED_EXPORT FileLoader
 {
 public:
 	static TrackWidgetList load(QString file_path, QWidget* parent = nullptr)
 	{
 		if (file_path.endsWith(".bed")) return loadBedFile(file_path, parent);
 
-		ErrorHandler::displayError("Unsupported file type.");
+		GenomeVisualizationWidget::displayError("Unsupported file type.");
 		return TrackWidgetList();
 	}
 
@@ -34,13 +34,7 @@ public:
 			}
 			catch (const FileParseException& e)
 			{
-				ErrorHandler::displayError(e.message());
-				return out;
-			}
-
-			if (file->chromosomes().count() == 0)
-			{
-				ErrorHandler::displayError("Bed file does not contain any chromosomes, will be discarded.");
+				GenomeVisualizationWidget::displayError(e.message());
 				return out;
 			}
 

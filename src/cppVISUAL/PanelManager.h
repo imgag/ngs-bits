@@ -2,10 +2,13 @@
 #define PANELMANAGER_H
 
 #include "BedFile.h"
+#include "Panel.h"
+#include "cppVISUAL_global.h"
 
 #include <QSplitter>
 
-class PanelManager : public QSplitter
+class CPPVISUALSHARED_EXPORT PanelManager :
+	public QSplitter
 {
 	Q_OBJECT
 public:
@@ -21,6 +24,11 @@ public:
 
 public slots:
 	void loadFile();
+	void addPanelAbove();
+	void addPanelBelow();
+
+private:
+	void connectSignals(class Panel*);
 };
 
 

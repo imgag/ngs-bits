@@ -3,18 +3,24 @@
 #include "GffData.h"
 #include "SharedData.h"
 #include <QFileDialog>
+#include <QStyleFactory>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
 {
 	ui_.setupUi(this);
-	connect(this, SIGNAL(loadFile()), ui_.gvw, SIGNAL(loadFile()));
+
+	//sginals and slots
+	connect(ui_.actionLoadFile, SIGNAL(triggered()), ui_.gvw, SLOT(loadFile()));
+
+	//set windows 10 style
+	QStyle* style = QStyleFactory::create("windowsvista");
+	QApplication::setStyle(style);
 
 	try
 	{
 		//load transcripts from GFF
-		createMenus();
 		QElapsedTimer timer;
 		timer.start();
         {
@@ -35,12 +41,4 @@ MainWindow::MainWindow(QWidget *parent)
 		qDebug() << e.message();
         exit(-1);
 	}
-}
-
-
-void MainWindow::createMenus()
-{
-	file_menu_ = menuBar()->addMenu(tr("&File"));
-	QAction* action = file_menu_->addAction("Load File");
-	connect(action, SIGNAL(triggered()), this, SIGNAL(loadFile()));
 }

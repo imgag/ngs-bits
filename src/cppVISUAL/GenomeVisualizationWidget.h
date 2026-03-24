@@ -19,6 +19,13 @@ public:
 	//Default constructor
 	GenomeVisualizationWidget(QWidget* parent);
 
+	//display errors to user
+	static void displayError(QString msg);
+
+public slots:
+	//Triggers the 'open file' dialog
+	void loadFile();
+
 protected slots:
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)
 	void search();
@@ -34,14 +41,10 @@ protected slots:
 	void updateIndices();
 	//Sets the region of the whole chromosome
 	void setChromosomeRegion(QString chromsome);
-	//display errors to user
-	void displayErrorReq(QString msg);
 
 signals:
 	//Emitted when the displayed region has changed.
 	void regionChanged(const BedLine& reg);
-	//emitted externally by Main window to load file
-	void loadFile();
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;

@@ -14,18 +14,23 @@ class CPPVISUALSHARED_EXPORT Panel
 	Q_OBJECT
 
 public:
-	Panel(QWidget* = nullptr);
+	explicit Panel(QWidget* = nullptr);
+	bool loadFile();
+
+signals:
+	void addPanelAbove();
+	void addPanelBelow();
 
 public slots:
 	void trackDeleted();
 	void trackMoved();
 	void contextMenu(QPoint);
-	bool loadFile();
 
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
 	void clearLayout();
+	void clearLayoutAndDelete();
 	void removeTrack(QWidget*);
 
 	void dragEnterEvent(QDragEnterEvent*) override;

@@ -83,11 +83,47 @@ void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 
 void PanelManager::loadFile()
 {
-	class Panel* new_panel = new class Panel();
+	class Panel* new_panel = new class Panel(); //TODO rename to TrackGroup
 	if (new_panel->loadFile())
 	{
-		new_panel->setParent(this);
+		connectSignals(new_panel);
 		insertWidget(0, new_panel);
 	}
 	else new_panel->deleteLater();
+}
+
+void PanelManager::addPanelAbove()
+{
+	QWidget* senderWidget = qobject_cast<QWidget*>(sender());
+	if (senderWidget)
+	{
+		int idx = indexOf(senderWidget);
+		if (idx >= 0)
+		{
+			class Panel* new_panel = new class Panel;
+			insertWidget(idx, new_panel);
+			connectSignals(new_panel);
+		}
+	}
+}
+
+void PanelManager::addPanelBelow()
+{
+	QWidget* senderWidget = qobject_cast<QWidget*>(sender());
+	if (senderWidget)
+	{
+		int idx = indexOf(senderWidget);
+		if (idx >= 0)
+		{
+			class Panel* new_panel = new class Panel;
+			insertWidget(std::min(idx + 1, count() - 1), new_panel);
+			connectSignals(new_panel);
+		}
+	}
+}
+
+void PanelManager::connectSignals(class Panel* panel)
+{
+	connect(panel, SIGNAL(addPanelAbove()), this, SLOT(addPanelAbove()));
+	connect(panel, SIGNAL(addPanelBelow()), this, SLOT(addPanelBelow()));
 }

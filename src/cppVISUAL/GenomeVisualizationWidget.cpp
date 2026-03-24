@@ -3,7 +3,6 @@
 #include "BedFile.h"
 #include "GUIHelper.h"
 #include "SharedData.h"
-#include "ErrorHandler.h"
 
 #include <QToolTip>
 #include <QMessageBox>
@@ -24,8 +23,11 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 	connect(ui_->chr_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
-	connect(ErrorHandler::instance(), SIGNAL(displayErrorReq(QString)), this, SLOT(displayErrorReq(QString)));
-	connect(this, SIGNAL(loadFile()), ui_->panel_manager, SLOT(loadFile()));
+}
+
+void GenomeVisualizationWidget::loadFile()
+{
+	ui_->panel_manager->loadFile();
 }
 
 
@@ -150,7 +152,8 @@ void GenomeVisualizationWidget::updateCoordinateLabel(QString text)
 }
 
 
-void GenomeVisualizationWidget::displayErrorReq(QString msg)
+void GenomeVisualizationWidget::displayError(QString msg)
 {
-	QMessageBox::critical(this, "Error", msg);
+	auto ptr = QApplication::instance()->findChild<GenomeVisualizationWidget*>();
+	QMessageBox::critical(ptr, "Error", msg);
 }

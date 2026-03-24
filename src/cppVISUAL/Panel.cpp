@@ -77,22 +77,42 @@ void Panel::contextMenu(QPoint pos)
 {
 	QMenu menu(this);
 	QAction* opt1 = menu.addAction("Load file");
+
+	menu.addSeparator();
+
+	QAction* opt2 = menu.addAction("Clear Panel");
+	QAction* opt3 = menu.addAction("Remove Panel");
+
+	menu.addSeparator();
+
+	QAction* opt4 = menu.addAction("Add Panel Above");
+	QAction* opt5 = menu.addAction("Add Panel Below");
+
 	QAction* action = menu.exec(mapToGlobal(pos));
 
-	if (action == opt1)
-	{
-		loadFile();
-	}
+	if (action == opt1)		 loadFile();
+	else if (action == opt2) clearLayout();
+	else if (action == opt3) clearLayoutAndDelete();
+	else if (action == opt4) emit addPanelAbove();
+	else if (action == opt5) emit addPanelBelow();
 }
 
 void Panel::clearLayout()
 {
-	if (!layout_) return;
-	while (QLayoutItem* item = layout_->takeAt(0))
+	if (layout_)
 	{
-		if (QWidget* widget = item->widget()) widget->deleteLater();
-		delete item;
+		while (QLayoutItem* item = layout_->takeAt(0))
+		{
+			if (QWidget* widget = item->widget()) widget->deleteLater();
+			delete item;
+		}
 	}
+}
+
+void Panel::clearLayoutAndDelete()
+{
+	clearLayout();
+	deleteLater();
 }
 
 

@@ -1,6 +1,7 @@
 #ifndef TRACKMANAGER_H
 #define TRACKMANAGER_H
 
+#include "cppVISUAL_global.h"
 
 #include <QHash>
 #include <QUuid>
@@ -9,7 +10,7 @@
 
 class TrackWidget;
 
-class TrackManager : QObject
+class CPPVISUALSHARED_EXPORT TrackManager : QObject
 {
 	Q_OBJECT
 

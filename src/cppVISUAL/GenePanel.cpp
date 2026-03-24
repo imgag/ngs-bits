@@ -180,6 +180,8 @@ void GenePanel::mouseMoveEvent(QMouseEvent* event)
 	{
 		emit mouseCoordinate("");
 	}
+
+	event->ignore();
 }
 
 bool GenePanel::event(QEvent* event)

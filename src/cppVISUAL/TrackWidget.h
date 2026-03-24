@@ -26,7 +26,7 @@ public:
 		TrackManager::removeTrackWidget(id_);
 	}
 
-	QUuid id() {return id_;}
+	const QUuid& id() {return id_;}
 
 signals:
 	void trackDeleted();
