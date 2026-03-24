@@ -2,7 +2,7 @@
 #define FILELOADER_H
 
 
-#include "SharedData.h"
+#include "ErrorHandler.h"
 #include "TrackWidget.h"
 #include "BedTrack.h"
 
@@ -16,7 +16,7 @@ public:
 	{
 		if (file_path.endsWith(".bed")) return loadBedFile(file_path, parent);
 
-		SharedData::displayError("Unsupported file type.");
+		ErrorHandler::displayError("Unsupported file type.");
 		return TrackWidgetList();
 	}
 
@@ -34,13 +34,13 @@ public:
 			}
 			catch (const FileParseException& e)
 			{
-				SharedData::displayError(e.message());
+				ErrorHandler::displayError(e.message());
 				return out;
 			}
 
 			if (file->chromosomes().count() == 0)
 			{
-				SharedData::displayError("Bed file does not contain any chromosomes, will be discarded.");
+				ErrorHandler::displayError("Bed file does not contain any chromosomes, will be discarded.");
 				return out;
 			}
 

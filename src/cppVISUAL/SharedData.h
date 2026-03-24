@@ -74,11 +74,6 @@ public:
 		return  instance()->char_size_;
 	}
 
-	static void displayError(QString msg)
-	{
-		emit instance()->displayErrorReq(msg);
-	}
-
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();
 
@@ -86,7 +81,6 @@ signals:
 	void transcriptsChanged();
 	void settingsChanged();
 	void regionChanged();
-	void displayErrorReq(QString);
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);
