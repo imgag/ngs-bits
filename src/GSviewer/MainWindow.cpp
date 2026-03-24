@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, ui_()
 {
 	ui_.setupUi(this);
-	connect(this, SIGNAL(loadFile(QString)), ui_.gvw, SIGNAL(loadFile(QString)));
+	connect(this, SIGNAL(loadFile()), ui_.gvw, SIGNAL(loadFile()));
 
 	try
 	{
@@ -42,11 +42,5 @@ void MainWindow::createMenus()
 {
 	file_menu_ = menuBar()->addMenu(tr("&File"));
 	QAction* action = file_menu_->addAction("Load File");
-	connect(action, &QAction::triggered, this, &MainWindow::loadFiles);
-}
-
-void MainWindow::loadFiles()
-{
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)")); //
-	emit loadFile(fileName);
+	connect(action, SIGNAL(triggered()), this, SIGNAL(loadFile()));
 }

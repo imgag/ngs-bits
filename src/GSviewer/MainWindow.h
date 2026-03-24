@@ -15,14 +15,13 @@ public:
 	MainWindow(QWidget* parent = 0);
 
 signals:
-	void loadFile(QString);
+	void loadFile();
 
 private:
 	Ui::MainWindow ui_;
 	QMenu* file_menu_;
 
 	void createMenus();
-	void loadFiles();
 };
 
 #endif // MAINWINDOW_H
