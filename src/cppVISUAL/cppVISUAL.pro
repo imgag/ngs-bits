@@ -47,10 +47,8 @@ HEADERS += \
     Panel.h \
     PanelManager.h \
     SharedData.h \
-    TrackData.h \
     TrackManager.h \
-    TrackWidget.h \
-    TrackWidgetFactory.h
+    TrackWidget.h
 
 FORMS += \
     GenomeVisualizationWidget.ui

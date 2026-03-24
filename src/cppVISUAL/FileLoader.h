@@ -3,6 +3,8 @@
 
 
 #include "SharedData.h"
+#include "TrackWidget.h"
+#include "BedTrack.h"
 
 #include <QSharedPointer>
 #include <QFileInfo>
@@ -10,25 +12,25 @@
 class FileLoader
 {
 public:
-	static TrackList load(QString file_path)
+	static TrackWidgetList load(QString file_path, QWidget* parent = nullptr)
 	{
-		if (file_path.endsWith(".bed")) return loadBedFile(file_path);
+		if (file_path.endsWith(".bed")) return loadBedFile(file_path, parent);
 
 		SharedData::displayError("Unsupported file type.");
-		return TrackList();
+		return TrackWidgetList();
 	}
 
-	static TrackList loadBedFile(QString file_path)
+	static TrackWidgetList loadBedFile(QString file_path, QWidget* parent)
 	{
-		TrackList out;
+		TrackWidgetList out;
 
-		BedFile file;
+		QSharedPointer<BedFile> file = QSharedPointer<BedFile>::create();
 		const QFileInfo info(file_path);
 		if (info.isFile())
 		{
 			try
 			{
-				file.load(file_path);
+				file->load(file_path);
 			}
 			catch (const FileParseException& e)
 			{
@@ -36,14 +38,14 @@ public:
 				return out;
 			}
 
-			if (file.chromosomes().count() == 0)
+			if (file->chromosomes().count() == 0)
 			{
 				SharedData::displayError("Bed file does not contain any chromosomes, will be discarded.");
 				return out;
 			}
 
-			file.sort();
-			out << QSharedPointer<BedFileTrackData>::create(file_path, info.fileName(), file);
+			file->sort();
+			out << new BedTrack(parent, file_path, info.fileName(), file);
 		}
 		return out;
 	}

@@ -96,7 +96,7 @@ void TrackWidget::mouseMoveEvent(QMouseEvent* event)
 
 	QDrag* drag = new QDrag(this);
 	QMimeData* mime_data = new QMimeData;
-	mime_data->setData("application/track-data", track_->id.toByteArray());
+	mime_data->setData("application/track-data", id_.toByteArray());
 	drag->setMimeData(mime_data);
 
 

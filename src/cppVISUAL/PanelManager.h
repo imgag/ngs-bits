@@ -2,7 +2,6 @@
 #define PANELMANAGER_H
 
 #include "BedFile.h"
-#include "TrackData.h"
 
 #include <QSplitter>
 

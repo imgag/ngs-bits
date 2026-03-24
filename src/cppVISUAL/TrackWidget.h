@@ -2,7 +2,6 @@
 #define TRACKWIDGET_H
 
 #include "cppVISUAL_global.h"
-#include "TrackData.h"
 #include "TrackManager.h"
 
 #include <QVector>
@@ -17,15 +16,17 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 	Q_OBJECT
 
 public:
-	explicit TrackWidget(QWidget* parent, QSharedPointer<TrackData> track)
-		:QWidget(parent), track_(track)
+	explicit TrackWidget(QWidget* parent, QString file_path, QString name)
+		:QWidget(parent), id_(QUuid::createUuid()), file_path_(file_path), name_(name)
 	{
-		TrackManager::addTrackWidget(track_->id, this);
+		TrackManager::addTrackWidget(id_, this);
 	}
 	~TrackWidget()
 	{
-		TrackManager::removeTrackWidget(track_->id);
+		TrackManager::removeTrackWidget(id_);
 	}
+
+	QUuid id() {return id_;}
 
 signals:
 	void trackDeleted();
@@ -46,13 +47,16 @@ protected:
 		EXPANDED
 	};
 
-	QSharedPointer<TrackData> track_;
-
 	DrawMode draw_mode_ = COLLAPSED;
 	QPoint drag_start_pos_;
 	bool is_dragging_;
 	QAction* opt1_;
 	QAction* opt2_;
+
+
+	QUuid id_;
+	QString file_path_;
+	QString name_;
 };
 
 using TrackWidgetList = QVector<TrackWidget*>;

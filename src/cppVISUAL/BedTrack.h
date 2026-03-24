@@ -3,8 +3,8 @@
 
 
 #include "cppVISUAL_global.h"
+#include "BedFile.h"
 #include "ChromosomalIndex.h"
-#include "TrackData.h"
 #include "TrackWidget.h"
 
 #include <QHash>
@@ -18,14 +18,15 @@ class CPPVISUALSHARED_EXPORT BedTrack
 	Q_OBJECT
 
 public:
-	BedTrack(QWidget* parent, QSharedPointer<BedFileTrackData> tack);
+	BedTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bedfile);
 
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override {return sizeHint();};
 
 private:
-	QSharedPointer<BedFileTrackData> bed_track_;
+	QSharedPointer<BedFile> bedfile_;
 	ChromosomalIndex<BedFile> chr_index_;
+	QColor color_ = QColor(0, 0, 178);
 
 	// pre count of num rows required per chromosome
 	QHash<Chromosome, int> num_rows_;

@@ -1,7 +1,6 @@
-#include "Panel.h"
 #include "TrackManager.h"
-#include "TrackWidgetFactory.h"
 #include "FileLoader.h"
+#include "Panel.h"
 
 #include <QMenu>
 #include <QMessageBox>
@@ -30,16 +29,6 @@ Panel::Panel(QWidget* parent)
 
 	layout_->addStretch(1);
 	layout_->setContentsMargins(0, 0, 0, height());
-}
-
-void Panel::addTrack(QSharedPointer<TrackData> tr)
-{
-	TrackWidget* panel = TrackWidgetFactory::getTrackWidget(this, tr);
-	if (!panel) return;
-	connect(panel, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
-	connect(panel, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
-	layout_->insertWidget(layout_->count() - 1, panel);
-	layout_->update();
 }
 
 void Panel::trackDeleted()
@@ -72,16 +61,16 @@ bool Panel::loadFile()
 	QString file_path = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)"));
 	if (file_path.isEmpty()) return false;
 
-	TrackList tracks = FileLoader::load(file_path);
-	if (!tracks.isEmpty())
+	TrackWidgetList widgets = FileLoader::load(file_path, this);
+	if (widgets.isEmpty()) return false;
+	foreach (TrackWidget* widget, widgets)
 	{
-		foreach (QSharedPointer<TrackData> track, tracks)
-		{
-			addTrack(track);
-		}
-		return true;
+		connect(widget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
+		connect(widget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+		layout_->insertWidget(layout_->count() - 1, widget);
+		layout_->update();
 	}
-	return false;
+	return true;
 }
 
 void Panel::contextMenu(QPoint pos)

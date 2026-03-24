@@ -10,8 +10,8 @@
 #include <QMimeData>
 
 
-BedTrack::BedTrack(QWidget* parent, QSharedPointer<BedFileTrackData> track)
-	:TrackWidget(parent, track), bed_track_(track), chr_index_(track->bedfile)
+BedTrack::BedTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bedfile)
+	:TrackWidget(parent, file_path, name), bedfile_(bedfile), chr_index_(*bedfile)
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)) );
@@ -35,7 +35,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	QRectF text_rect(0, 0, label_width-2, height());
 
 	painter.setPen(Qt::black);
-	painter.drawText(text_rect, Qt::AlignLeft, track_->name);
+	painter.drawText(text_rect, Qt::AlignLeft, name_);
 
 	// draw bounding box
 	QRectF bounding_rect(label_width + 2, 0, width() - label_width - 2, height() - 2);
@@ -46,16 +46,17 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	painter.setBrush(Qt::NoBrush);
 	painter.drawRect(bounding_rect);
 
-	if (bed_track_->bedfile.chromosomes().contains(region.chr()))
+	if (bedfile_->chromosomes().contains(region.chr()))
 	{
 		int w = width();
 		float total_width = w - label_width - 4;
 		float y_start = 0.0f;
+
 		QVector<int> idxes = chr_index_.matchingIndices(region.chr(), region.start(), region.end());
 		foreach(int idx, idxes)
 			{
-				int st = std::max(bed_track_->bedfile[idx].start(), region.start());
-				int en = std::min(bed_track_->bedfile[idx].end(), region.end());
+				int st = std::max((*bedfile_)[idx].start(), region.start());
+				int en = std::min((*bedfile_)[idx].end(), region.end());
 
 				float x_start = map(st, region.start(), region.end(), 0.0f, total_width);
 				float width = map(en - st, 0.0f, region.length(), 0.0f, total_width);
@@ -65,7 +66,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 
 				QRectF chr_rect(label_width + 2 + x_start, y_start, width, BLOCK_HEIGHT);
 
-				painter.setBrush(bed_track_->color);
+				painter.setBrush(color_);
 				painter.drawRect(chr_rect);
 			}
 	}
@@ -76,7 +77,7 @@ QSize BedTrack::sizeHint() const {
 	int rowHeight = BLOCK_HEIGHT + BLOCK_PADDING;
 	int rowCount = 1;
 
-	if (draw_mode_ == EXPANDED && bed_track_->bedfile.chromosomes().contains(SharedData::region().chr()))
+	if (draw_mode_ == EXPANDED && bedfile_->chromosomes().contains(SharedData::region().chr()))
 	{
 		rowCount = num_rows_[SharedData::region().chr()];
 	}
@@ -89,18 +90,18 @@ void BedTrack::calculateNumRows()
 	QHash<Chromosome, QVector<int>> row_end_positions;
 	row_idxes_.clear();
 
-	for (int i =0; i < bed_track_->bedfile.count(); ++i)
+	for (int i =0; i < bedfile_->count(); ++i)
 	{
-		Chromosome chr = bed_track_->bedfile[i].chr();
+		Chromosome chr = (*bedfile_)[i].chr();
 
 		bool placed = false;
 
 		for (int row =0; row < row_end_positions[chr].count(); ++row)
 		{
-			if (bed_track_->bedfile[i].start() >= row_end_positions[chr][row])
+			if ((*bedfile_)[i].start() >= row_end_positions[chr][row])
 			{
 				placed = true;
-				row_end_positions[chr][row] = bed_track_->bedfile[i].end();
+				row_end_positions[chr][row] = (*bedfile_)[i].end();
 				row_idxes_ << row;
 				break;
 			}
@@ -109,7 +110,7 @@ void BedTrack::calculateNumRows()
 		if (!placed)
 		{
 			// create new row
-			row_end_positions[chr].append(bed_track_->bedfile[i].end());
+			row_end_positions[chr].append((*bedfile_)[i].end());
 			row_idxes_ << row_end_positions[chr].count() - 1;
 		}
 	}

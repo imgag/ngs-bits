@@ -6,7 +6,6 @@
 #include "FastaFileIndex.h"
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
-#include "TrackData.h"
 
 #include <QSize>
 
