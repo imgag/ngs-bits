@@ -41,7 +41,7 @@ signals:
 	//Emitted when the displayed region has changed.
 	void regionChanged(const BedLine& reg);
 	//emitted externally by Main window to load file
-	void loadFile(QString path);
+	void loadFile();
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;

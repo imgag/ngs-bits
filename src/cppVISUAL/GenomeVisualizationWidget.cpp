@@ -24,7 +24,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 	connect(ui_->chr_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 	connect(SharedData::instance(), SIGNAL(displayErrorReq(QString)), this, SLOT(displayErrorReq(QString)));
-	connect(this, SIGNAL(loadFile(QString)), ui_->panel_manager, SLOT(loadFile(QString)));
+	connect(this, SIGNAL(loadFile()), ui_->panel_manager, SLOT(loadFile()));
 }
 
 

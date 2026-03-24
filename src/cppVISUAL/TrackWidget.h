@@ -5,6 +5,8 @@
 #include "TrackData.h"
 #include "TrackManager.h"
 
+#include <QVector>
+
 #include <QHash>
 #include <QMouseEvent>
 #include <QWidget>
@@ -52,6 +54,8 @@ protected:
 	QAction* opt1_;
 	QAction* opt2_;
 };
+
+using TrackWidgetList = QVector<TrackWidget*>;
 
 
 

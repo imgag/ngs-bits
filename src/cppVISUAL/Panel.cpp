@@ -67,6 +67,23 @@ void Panel::trackMoved()
 	}
 }
 
+bool Panel::loadFile()
+{
+	QString file_path = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)"));
+	if (file_path.isEmpty()) return false;
+
+	TrackList tracks = FileLoader::load(file_path);
+	if (!tracks.isEmpty())
+	{
+		foreach (QSharedPointer<TrackData> track, tracks)
+		{
+			addTrack(track);
+		}
+		return true;
+	}
+	return false;
+}
+
 void Panel::contextMenu(QPoint pos)
 {
 	QMenu menu(this);
@@ -75,18 +92,7 @@ void Panel::contextMenu(QPoint pos)
 
 	if (action == opt1)
 	{
-		QString file_path = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)"));
-
-		if (file_path.isEmpty()) return;
-
-		TrackList tracks = FileLoader::load(file_path);
-		if (!tracks.isEmpty())
-		{
-			foreach (QSharedPointer<TrackData> track, tracks)
-			{
-				addTrack(track);
-			}
-		}
+		loadFile();
 	}
 }
 
