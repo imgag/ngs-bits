@@ -1021,11 +1021,8 @@ void MainWindow::on_actionROH_triggered()
 {
 	if (filename_=="") return;
 
-	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
-
 	//trio special handling: show UPD file is not empty
-	if (type==GERMLINE_TRIO)
+	if ( variants_.type()==GERMLINE_TRIO)
 	{
 		//UPDs
 		FileLocation upd_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisUpdFile();
@@ -2844,35 +2841,13 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	//notify for variant validation
 	checkPendingVariantValidations();
 
-	//activate Circos plot menu item if plot is available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty())
-	{
-		ui_.actionCircos->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionCircos->setEnabled(false);
-	}
-
-	//activate repeat expansion menu item if RE calls are available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty())
-	{
-		ui_.actionRE->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionRE->setEnabled(false);
-	}
-
-	//activate PRS menu item if PRS are available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty())
-	{
-		ui_.actionPRS->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionPRS->setEnabled(false);
-	}
+	//activate buttons based on analysis type
+	ui_.actionROH->setEnabled(type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE);
+	ui_.actionRE->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty());
+	ui_.actionPRS->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty());
+	ui_.actionPathogenicWT->setEnabled(type==GERMLINE_SINGLESAMPLE);
+	ui_.actionCircos->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty());
+	ui_.actionMethylation->setEnabled(type==GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getMethylationFile().exists);
 
 	//activate virus table
 	ui_.actionVirusDetection->setEnabled(false);
@@ -2965,14 +2940,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 				}
 			}
 		}
-	}
-
-	//activate Methylation menu
-	if (type==GERMLINE_SINGLESAMPLE)
-	{
-		FileLocation met_loc = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
-		ui_.actionMethylation->setEnabled(met_loc.exists);
-
 	}
 }
 

@@ -9,7 +9,7 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -22,7 +22,7 @@ jobs:
         working-directory: ./htslib
         run: unzip htslib_win_64_qt6.zip
       - name: Copy htslib to bin folder
-        run: (cp htslib/lib/hts.dll.a bin/) && (cp htslib/lib/hts-3.dll bin/) && (cp htslib/lib/libhts.a bin/)
+        run: (cp htslib/lib/hts.dll.a bin/) && (cp htslib/lib/hts-3.dll bin/) && (cp htslib/lib/libhts.a bin/) && (cp htslib/lib/zlib1.dll bin/)
       - name: Unpack libxml2
         working-directory: ./libxml2
         run: unzip -o libxml2_win_64.zip
