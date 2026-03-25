@@ -358,91 +358,97 @@ void BedpeLine::normalize(const QByteArrayList& annotation_headers, bool switch_
 		if (!switch_additional_columns) return;
 
 		//switch additional columns
+		QByteArrayList additional_columns;
+		additional_columns << "STRAND" << "NAME" << "REF" << "ALT" << "INFO";
+		foreach (const QByteArray& col_prefix, additional_columns)
+		{
+			if (annotation_headers.contains(col_prefix + "_A") && annotation_headers.contains(col_prefix + "_B"))
+			{
+				//switch fields
+				QByteArray tmp = annotations_[annotation_headers.indexOf(col_prefix + "_A")];
+				annotations_[annotation_headers.indexOf(col_prefix + "_A")] = annotations_[annotation_headers.indexOf(col_prefix + "_B")];
+				annotations_[annotation_headers.indexOf(col_prefix + "_B")] = tmp;
+			}
+			else if (annotation_headers.contains(col_prefix + "_A") || annotation_headers.contains(col_prefix + "_B"))
+			{
+				THROW(ArgumentException, "Only one column of " + col_prefix + "_A/" + col_prefix + "_B available!");
+			}
+		}
+	}
+}
 
-		//strand
-		if (annotation_headers.contains("STRAND_A") && annotation_headers.contains("STRAND_B"))
-		{
-			//switch fields
-			QByteArray tmp = annotations_[annotation_headers.indexOf("STRAND_A")];
-			annotations_[annotation_headers.indexOf("STRAND_A")] = annotations_[annotation_headers.indexOf("STRAND_B")];
-			annotations_[annotation_headers.indexOf("STRAND_B")] = tmp;
-		}
-		else if (annotation_headers.contains("STRAND_A") || annotation_headers.contains("STRAND_B"))
-		{
-			THROW(ArgumentException, "Only one column of STRAND_A/STRAND_B available!");
-		}
+bool BedpeLine::isValid(bool error_if_fails) const
+{
+	// check pos1 & pos2 intervall
+	if (start1_ > end1_)
+	{
+		if (error_if_fails) THROW(ArgumentException, "Start of 1st position > end of 1st position!\n" + toString(true));
+		return false;
+	}
+	if (start2_ > end2_)
+	{
+		if (error_if_fails) THROW(ArgumentException, "Start of 2nd position > end of 2nd position!\n" + toString(true));
+		return false;
+	}
 
-		//name
-		if (annotation_headers.contains("NAME_A") && annotation_headers.contains("NAME_B"))
+	if (type_ == StructuralVariantType::BND)
+	{
+		if (chr1_ > chr2_)
 		{
-			//switch fields
-			QByteArray tmp = annotations_[annotation_headers.indexOf("NAME_A")];
-			annotations_[annotation_headers.indexOf("NAME_A")] = annotations_[annotation_headers.indexOf("NAME_B")];
-			annotations_[annotation_headers.indexOf("NAME_B")] = tmp;
+			if (error_if_fails) THROW(ArgumentException, "Chromosomes of BND not ordered!\n" + toString(true));
+			return false;
 		}
-		else if (annotation_headers.contains("NAME_A") || annotation_headers.contains("NAME_B"))
+		if (chr1_ == chr2_)
 		{
-			THROW(ArgumentException, "Only one column of NAME_A/NAME_B available!");
-		}
-
-		//ref
-		if (annotation_headers.contains("REF_A") && annotation_headers.contains("REF_B"))
-		{
-			//switch fields
-			QByteArray tmp = annotations_[annotation_headers.indexOf("REF_A")];
-			annotations_[annotation_headers.indexOf("REF_A")] = annotations_[annotation_headers.indexOf("REF_B")];
-			annotations_[annotation_headers.indexOf("REF_B")] = tmp;
-		}
-		else if (annotation_headers.contains("REF_A") || annotation_headers.contains("REF_B"))
-		{
-			THROW(ArgumentException, "Only one column of REF_A/REF_B available!");
-		}
-
-		//alt
-		if (annotation_headers.contains("ALT_A") && annotation_headers.contains("ALT_B"))
-		{
-			//switch fields
-			QByteArray tmp = annotations_[annotation_headers.indexOf("ALT_A")];
-			annotations_[annotation_headers.indexOf("ALT_A")] = annotations_[annotation_headers.indexOf("ALT_B")];
-			annotations_[annotation_headers.indexOf("ALT_B")] = tmp;
-		}
-		else if (annotation_headers.contains("ALT_A") || annotation_headers.contains("ALT_B"))
-		{
-			THROW(ArgumentException, "Only one column of ALT_A/ALT_B available!");
-		}
-
-		//info
-		if (annotation_headers.contains("INFO_A") && annotation_headers.contains("INFO_B"))
-		{
-			//switch fields
-			QByteArray tmp = annotations_[annotation_headers.indexOf("INFO_A")];
-			annotations_[annotation_headers.indexOf("INFO_A")] = annotations_[annotation_headers.indexOf("INFO_B")];
-			annotations_[annotation_headers.indexOf("INFO_B")] = tmp;
-		}
-		else if (annotation_headers.contains("INFO_A") || annotation_headers.contains("INFO_B"))
-		{
-			THROW(ArgumentException, "Only one column of INFO_A/INFO_B available!");
+			if (start1_ > start2_)
+			{
+				if (error_if_fails) THROW(ArgumentException, "Positions of BND not ordered!\n" + toString(true));
+				return false;
+			}
+			if (start1_ == start2_)
+			{
+				if (end1_ > end2_)
+				{
+					if (error_if_fails) THROW(ArgumentException, "Positions of BND not ordered!\n" + toString(true));
+					return false;
+				}
+			}
 		}
 	}
 	else
 	{
-		if (chr1_ != chr2_) THROW(ArgumentException, "SV contains start and end position on different chromosomes!\n" + toString(true));
+		//check chr
+		if (chr1_ != chr2_)
+		{
+			if (error_if_fails) THROW(ArgumentException, "SV contains start and end position on different chromosomes!\n" + toString(true));
+			return false;
+		}
+
+		// check INS
 		if (type_ == StructuralVariantType::INS)
 		{
-			if (start2_ != end2_) THROW(ArgumentException, "Position 2 doesn't describe INS point!\n" + toString(true));
-			if (!BedLine(chr1_, start1_, end1_).overlapsWith(end2_) || !BedLine(chr1_, start1_, end1_).overlapsWith(start2_))
+			if (start2_ != end2_)
 			{
-				qDebug() << "WARNING: Confidence interval doesn't overlap INS position!";
-				qDebug() << "Pos1:\t" + chr1_.str() + "\t" + QByteArray::number(start1_) + "\t" + QByteArray::number(end1_);
-				qDebug() << "Pos2:\t" + chr2_.str() + "\t" + QByteArray::number(start2_) + "\t" + QByteArray::number(end2_);
-				//THROW(ArgumentException, "Confidence interval doesn't overlap INS position!\n" + toString(true));
+				if (error_if_fails) THROW(ArgumentException, "Position 2 doesn't describe INS point!\n" + toString(true));
+				return false;
+			}
+			if (!BedLine(chr1_, start1_, end1_).overlapsWith(start2_))
+			{
+				if (error_if_fails) THROW(ArgumentException, "Confidence interval doesn't overlap INS position!\n" + toString(true));
+				return false;
 			}
 		}
 		else
 		{
-			if (BedLine(chr2_, start2_, end2_) < BedLine(chr1_, start1_, end1_)) THROW(ArgumentException, "Start and end positions are not sorted!\n" + toString(true));
+			if (BedLine(chr2_, start2_, end2_) < BedLine(chr1_, start1_, end1_))
+			{
+				if (error_if_fails) THROW(ArgumentException, "Start and end positions are not sorted!\n" + toString(true));
+				return false;
+			}
 		}
 	}
+
+	return true;
 }
 
 GeneSet BedpeLine::genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch) const
@@ -962,13 +968,27 @@ int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_
 	return -1;
 }
 
-void BedpeFile::normalize()
+void BedpeFile::normalize(bool validate)
 {
 	bool switch_additional_columns = !(caller() == "Sniffles");
 	for (int i = 0; i < lines_.count(); ++i)
 	{
 		lines_[i].normalize(annotation_headers_, switch_additional_columns);
+		if (validate) lines_[i].isValid(true);
 	}
+}
+
+bool BedpeFile::validate(bool error_if_fails) const
+{
+	bool valid = true;
+	foreach (const BedpeLine& sv, lines_)
+	{
+		if (!sv.isValid(error_if_fails))
+		{
+			valid = false;
+		}
+	}
+	return valid;
 }
 
 void BedpeFile::parseSampleHeaderInfo()

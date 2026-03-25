@@ -161,6 +161,14 @@ public:
 	///   - checks for other SVs if pos1 < pos2
 	void normalize(const QByteArrayList& annotation_headers, bool switch_additional_columns=true);
 
+	///checks if SV meets the following requirements:
+	///   - pos1 < pos2 (also for BNDs)
+	///   - INS: pos1 => CI (can be > 1bp), pos2: called position (=1bp)
+	///   - !BNDs: chr1 == chr2
+	///
+	/// return true if SV is valid
+	bool isValid(bool error_if_fails=true) const;
+
 
 protected:
 	Chromosome chr1_;
@@ -324,7 +332,11 @@ public:
 	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true, bool compare_ci=true) const;
 
 	///normalizes Bedpe file
-	void normalize();
+	void normalize(bool validate=true);
+
+	///validates Bedpe file
+	/// returns true if all SVs are valid
+	bool validate(bool error_if_fails=true) const;
 
 private:
 	QString filename_;

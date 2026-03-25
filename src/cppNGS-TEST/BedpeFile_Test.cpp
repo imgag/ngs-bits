@@ -6,6 +6,12 @@ TEST_CLASS(BedpeFile_Test)
 private:
 	BedpeFile test_file_germl_;
 	BedpeFile test_file_som_;
+	BedpeFile test_file_lrgs_;
+	BedpeFile test_file_normalize_manta_;
+	BedpeFile test_file_normalize_sniffles_;
+	BedpeFile test_file_validate_manta_;
+	BedpeFile test_file_validate_sniffles_;
+
 
 
 private:
@@ -86,6 +92,126 @@ private:
 		I_EQUAL( test_file_germl_.estimatedSvSize(43), 514);
 		//BND
 		I_EQUAL( test_file_germl_.estimatedSvSize(12), -1);
+	}
+
+	TEST_METHOD(normalize)
+	{
+
+		test_file_normalize_manta_.load(TESTDATA("data_in/BedpeFile_normalize_manta.bedpe"));
+		IS_FALSE(test_file_normalize_manta_.validate(false));
+		test_file_normalize_manta_.normalize();
+		IS_TRUE(test_file_normalize_manta_.validate());
+
+		//TODO: check single SVs
+		int idx_name_a = test_file_normalize_manta_.annotationIndexByName("NAME_A");
+		int idx_name_b = test_file_normalize_manta_.annotationIndexByName("NAME_B");
+		int idx_ref_a = test_file_normalize_manta_.annotationIndexByName("REF_A");
+		int idx_ref_b = test_file_normalize_manta_.annotationIndexByName("REF_B");
+		int idx_alt_a = test_file_normalize_manta_.annotationIndexByName("ALT_A");
+		int idx_alt_b = test_file_normalize_manta_.annotationIndexByName("ALT_B");
+		int idx_info_a = test_file_normalize_manta_.annotationIndexByName("INFO_A");
+		int idx_info_b = test_file_normalize_manta_.annotationIndexByName("INFO_B");
+
+		//already normalized
+		BedpeLine sv = test_file_normalize_manta_[2];
+		S_EQUAL(sv.chr1().str(), "chr1");
+		S_EQUAL(sv.chr2().str(), "chr3");
+		I_EQUAL(sv.start1(), 151769287);
+		I_EQUAL(sv.start2(), 56584016);
+		I_EQUAL(sv.end1(), 151769287);
+		I_EQUAL(sv.end2(), 56584016);
+		S_EQUAL(sv.annotations().at(idx_name_a), "MantaBND:1:78021:78022:1:0:0:0");
+		S_EQUAL(sv.annotations().at(idx_name_b), "MantaBND:1:78021:78022:1:0:0:1");
+		S_EQUAL(sv.annotations().at(idx_ref_a), "C");
+		S_EQUAL(sv.annotations().at(idx_ref_b), "G");
+		S_EQUAL(sv.annotations().at(idx_alt_a), "]CHR3:56584016]C");
+		S_EQUAL(sv.annotations().at(idx_alt_b), "G[CHR1:151769287[");
+		S_EQUAL(sv.annotations().at(idx_info_a), "SVTYPE=BND;MATEID=MantaBND:1:78021:78022:1:0:0:1;CONTIG=AAATCCGGCTTCGTGATCATGGCGCTTTCTCACTGAGCTCTTGGGTACACCTCCCAGACGGGGTGGCGGCCGGGCAGAGGGGCTCAGTTCCCAGAAGGGGCGGCCGGGCAGACGCACCCCCCACCTCCCGGAGGGGGCGGTGGCCGGGTGGGGGCTGCCCCCCACCTCCCTCCCGGAGGGGGCGGTGGCCGGGCGGGGGCTGCCCCCCACCTCCCTCCCGGACGGGGCGGCTGACCGGGCGGGGGCTGCCCGCCACCTCCCTCCCAGACGGGGCGGCTGACCGGGCGGGGGCTGCCCCCCACCTCCCGGACGGGGCAGCTGCCGGGCGGAGACGCTCCTCACTTCCCAGACGAAGCGGCTGCCGGGCGGAGGGGCTCCTCACTTCTCAGACAGGGCGGACGGGCAGAGATGCTCCTCACCTCCCAGATGGGGTCGCGGCTGGGCAGAGACACTCCTCAGTTCCCAGACAGGGTCGTGGCCGGGCAGAGGCGCTCCCCACATCCCAGACGATGGGCGGCTGGGCGGAGACGCTCCTCACTTCCTAGACGGGATGACGGCCGGGCAGAGGCGCTCCTCACATCCCAGACAATGGGCGGCCAGGCAGAGACGCTCCTCACTTCCCAGACGGGGTGGTGGCCGGGCAGAGGCTGCAATCTCGGCACTTTGGGAGGCCAAGGCAGGCGGCTGGGAGGTGGAGGTTGTAGCGAGCCGAGATCACGCCACTGCACTCCAGCC;BND_DEPTH=109;MATE_BND_DEPTH=158");
+		S_EQUAL(sv.annotations().at(idx_info_b), "SVTYPE=BND;MATEID=MantaBND:1:78021:78022:1:0:0:0;CONTIG=AAATCCGGCTTCGTGATCATGGCGCTTTCTCACTGAGCTCTTGGGTACACCTCCCAGACGGGGTGGCGGCCGGGCAGAGGGGCTCAGTTCCCAGAAGGGGCGGCCGGGCAGACGCACCCCCCACCTCCCGGAGGGGGCGGTGGCCGGGTGGGGGCTGCCCCCCACCTCCCTCCCGGAGGGGGCGGTGGCCGGGCGGGGGCTGCCCCCCACCTCCCTCCCGGACGGGGCGGCTGACCGGGCGGGGGCTGCCCGCCACCTCCCTCCCAGACGGGGCGGCTGACCGGGCGGGGGCTGCCCCCCACCTCCCGGACGGGGCAGCTGCCGGGCGGAGACGCTCCTCACTTCCCAGACGAAGCGGCTGCCGGGCGGAGGGGCTCCTCACTTCTCAGACAGGGCGGACGGGCAGAGATGCTCCTCACCTCCCAGATGGGGTCGCGGCTGGGCAGAGACACTCCTCAGTTCCCAGACAGGGTCGTGGCCGGGCAGAGGCGCTCCCCACATCCCAGACGATGGGCGGCTGGGCGGAGACGCTCCTCACTTCCTAGACGGGATGACGGCCGGGCAGAGGCGCTCCTCACATCCCAGACAATGGGCGGCCAGGCAGAGACGCTCCTCACTTCCCAGACGGGGTGGTGGCCGGGCAGAGGCTGCAATCTCGGCACTTTGGGAGGCCAAGGCAGGCGGCTGGGAGGTGGAGGTTGTAGCGAGCCGAGATCACGCCACTGCACTCCAGCC;BND_DEPTH=158;MATE_BND_DEPTH=109");
+
+		//should now be normalized
+		sv = test_file_normalize_manta_[22];
+		S_EQUAL(sv.chr1().str(), "chr3");
+		S_EQUAL(sv.chr2().str(), "chr6");
+		I_EQUAL(sv.start1(), 26428472);
+		I_EQUAL(sv.start2(), 77012442);
+		I_EQUAL(sv.end1(), 26428844);
+		I_EQUAL(sv.end2(), 77013004);
+		S_EQUAL(sv.annotations().at(idx_name_a), "MantaBND:36254:0:1:0:0:0:1");
+		S_EQUAL(sv.annotations().at(idx_name_b), "MantaBND:36254:0:1:0:0:0:0");
+		S_EQUAL(sv.annotations().at(idx_ref_a), "C");
+		S_EQUAL(sv.annotations().at(idx_ref_b), "A");
+		S_EQUAL(sv.annotations().at(idx_alt_a), "[CHR6:77012723[C");
+		S_EQUAL(sv.annotations().at(idx_alt_b), "[CHR3:26428658[A");
+		S_EQUAL(sv.annotations().at(idx_info_a), "SVTYPE=BND;MATEID=MantaBND:36254:0:1:0:0:0:0;IMPRECISE;CIPOS=-186,186;BND_DEPTH=115;MATE_BND_DEPTH=108");
+		S_EQUAL(sv.annotations().at(idx_info_b), "SVTYPE=BND;MATEID=MantaBND:36254:0:1:0:0:0:1;IMPRECISE;CIPOS=-281,281;BND_DEPTH=108;MATE_BND_DEPTH=115");
+
+		sv = test_file_normalize_manta_[47];
+		S_EQUAL(sv.chr1().str(), "chr3");
+		S_EQUAL(sv.chr2().str(), "chr16");
+		I_EQUAL(sv.start1(), 25897584);
+		I_EQUAL(sv.start2(), 19321304);
+		I_EQUAL(sv.end1(), 25898021);
+		I_EQUAL(sv.end2(), 19322082);
+		S_EQUAL(sv.annotations().at(idx_name_a), "MantaBND:16017:1:12:0:0:0:1");
+		S_EQUAL(sv.annotations().at(idx_name_b), "MantaBND:16017:1:12:0:0:0:0");
+		S_EQUAL(sv.annotations().at(idx_ref_a), "A");
+		S_EQUAL(sv.annotations().at(idx_ref_b), "A");
+		S_EQUAL(sv.annotations().at(idx_alt_a), "A[CHR16:19321693[");
+		S_EQUAL(sv.annotations().at(idx_alt_b), "]CHR3:25897802]A");
+		S_EQUAL(sv.annotations().at(idx_info_a), "SVTYPE=BND;MATEID=MantaBND:16017:1:12:0:0:0:0;IMPRECISE;CIPOS=-218,219;BND_DEPTH=98;MATE_BND_DEPTH=176");
+		S_EQUAL(sv.annotations().at(idx_info_b), "SVTYPE=BND;MATEID=MantaBND:16017:1:12:0:0:0:1;IMPRECISE;CIPOS=-389,389;BND_DEPTH=176;MATE_BND_DEPTH=98");
+
+		test_file_normalize_manta_.store("out/BedpeFile_normalize_out1_manta.bedpe");
+		COMPARE_FILES("out/BedpeFile_normalize_out1_manta.bedpe", TESTDATA("data_out/BedpeFile_normalize_out1_manta.bedpe"));
+
+		test_file_normalize_sniffles_.load(TESTDATA("data_in/BedpeFile_normalize_sniffles.bedpe"));
+		IS_FALSE(test_file_normalize_sniffles_.validate(false));
+		test_file_normalize_sniffles_.normalize();
+		IS_TRUE(test_file_normalize_sniffles_.validate());
+
+		test_file_normalize_sniffles_.store("out/BedpeFile_normalize_out2_sniffles.bedpe");
+		COMPARE_FILES("out/BedpeFile_normalize_out1_manta.bedpe", TESTDATA("data_out/BedpeFile_normalize_out1_manta.bedpe"));
+
+	}
+
+	TEST_METHOD(validate)
+	{
+		IS_FALSE(test_file_germl_.validate(false));
+		IS_TRUE(test_file_som_.validate(false));
+		test_file_lrgs_.load(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
+		IS_FALSE(test_file_lrgs_.validate(false));
+
+
+		//test single (invalid) SVs
+		test_file_validate_manta_.load(TESTDATA("data_in/BedpeFile_validate_manta.bedpe"));
+		IS_TRUE(test_file_validate_manta_[0].isValid()); //valid
+		IS_TRUE(test_file_validate_manta_[1].isValid()); //valid
+		IS_FALSE(test_file_validate_manta_[2].isValid(false)); //wrong order (same chr)
+		IS_FALSE(test_file_validate_manta_[3].isValid(false)); //wrong order
+		IS_TRUE(test_file_validate_manta_[4].isValid()); //valid
+		IS_TRUE(test_file_validate_manta_[5].isValid()); //valid
+		IS_FALSE(test_file_validate_manta_[6].isValid(false)); //pos2 > 1
+		IS_FALSE(test_file_validate_manta_[7].isValid(false)); //start1 > end1
+		IS_FALSE(test_file_validate_manta_[8].isValid(false)); //pos outside CI
+		IS_TRUE(test_file_validate_manta_[9].isValid()); //valid
+		IS_FALSE(test_file_validate_manta_[10].isValid(false)); //start2 > end2
+		IS_FALSE(test_file_validate_manta_[11].isValid(false)); //pos1 > pos2
+		IS_TRUE(test_file_validate_manta_[12].isValid()); //valid
+		IS_TRUE(test_file_validate_manta_[13].isValid()); //valid
+
+		test_file_validate_sniffles_.load(TESTDATA("data_in/BedpeFile_validate_sniffles.bedpe"));
+		IS_FALSE(test_file_validate_sniffles_[0].isValid(false)); //2nd intervall >1
+		IS_TRUE(test_file_validate_sniffles_[1].isValid(false)); //valid
+		IS_FALSE(test_file_validate_sniffles_[2].isValid(false)); //2nd pos outside CI♣
+		IS_FALSE(test_file_validate_sniffles_[3].isValid(false)); //break points not ordered
+		IS_FALSE(test_file_validate_sniffles_[4].isValid(false)); //break points not ordered
+		IS_FALSE(test_file_validate_sniffles_[5].isValid(false)); //break points not ordered
+		IS_TRUE(test_file_validate_sniffles_[6].isValid(false)); //valid
+		IS_TRUE(test_file_validate_sniffles_[7].isValid(false)); //valid
+		IS_FALSE(test_file_validate_sniffles_[8].isValid(false)); //DEL with 2 chrs
+		IS_FALSE(test_file_validate_sniffles_[9].isValid(false)); //pos1 > pos2
+
 	}
 
 };
