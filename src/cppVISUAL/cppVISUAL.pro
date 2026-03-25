@@ -29,12 +29,13 @@ unix: LIBS += -lxml2
 
 SOURCES += \
     BedTrack.cpp \
+    FileLoader.cpp \
     GenomeVisualizationWidget.cpp \
     GenePanel.cpp \
     ChromosomePanel.cpp \
-    Panel.cpp \
     PanelManager.cpp \
     SharedData.cpp \
+    TrackGroup.cpp \
     TrackManager.cpp \
     TrackWidget.cpp
 
@@ -44,9 +45,9 @@ HEADERS += \
     GenomeVisualizationWidget.h \
     GenePanel.h \
     ChromosomePanel.h \
-    Panel.h \
     PanelManager.h \
     SharedData.h \
+    TrackGroup.h \
     TrackManager.h \
     TrackWidget.h
 

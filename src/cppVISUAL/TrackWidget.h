@@ -16,15 +16,8 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 	Q_OBJECT
 
 public:
-	explicit TrackWidget(QWidget* parent, QString file_path, QString name)
-		:QWidget(parent), id_(QUuid::createUuid()), file_path_(file_path), name_(name)
-	{
-		TrackManager::addTrackWidget(id_, this);
-	}
-	~TrackWidget()
-	{
-		TrackManager::removeTrackWidget(id_);
-	}
+	explicit TrackWidget(QWidget* parent, QString file_path, QString name);
+	~TrackWidget();
 
 	const QUuid& id() {return id_;}
 

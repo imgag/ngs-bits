@@ -1,6 +1,6 @@
 #include "PanelManager.h"
 #include "SharedData.h"
-#include "Panel.h"
+#include "TrackGroup.h"
 
 #include <QMouseEvent>
 
@@ -83,7 +83,7 @@ void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 
 void PanelManager::loadFile()
 {
-	class Panel* new_panel = new class Panel(); //TODO rename to TrackGroup
+	TrackGroup* new_panel = new TrackGroup();
 	if (new_panel->loadFile())
 	{
 		connectSignals(new_panel);
@@ -100,7 +100,7 @@ void PanelManager::addPanelAbove()
 		int idx = indexOf(senderWidget);
 		if (idx >= 0)
 		{
-			class Panel* new_panel = new class Panel;
+			TrackGroup* new_panel = new TrackGroup;
 			insertWidget(idx, new_panel);
 			connectSignals(new_panel);
 		}
@@ -115,14 +115,14 @@ void PanelManager::addPanelBelow()
 		int idx = indexOf(senderWidget);
 		if (idx >= 0)
 		{
-			class Panel* new_panel = new class Panel;
+			TrackGroup* new_panel = new TrackGroup;
 			insertWidget(std::min(idx + 1, count() - 1), new_panel);
 			connectSignals(new_panel);
 		}
 	}
 }
 
-void PanelManager::connectSignals(class Panel* panel)
+void PanelManager::connectSignals(TrackGroup* panel)
 {
 	connect(panel, SIGNAL(addPanelAbove()), this, SLOT(addPanelAbove()));
 	connect(panel, SIGNAL(addPanelBelow()), this, SLOT(addPanelBelow()));

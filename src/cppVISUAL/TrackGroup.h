@@ -1,5 +1,5 @@
-#ifndef PANEL_H
-#define PANEL_H
+#ifndef TRACKGROUP_H
+#define TRACKGROUP_H
 
 #include "cppVISUAL_global.h"
 #include <QWidget>
@@ -8,13 +8,13 @@
 #include <QMouseEvent>
 #include <QPoint>
 
-class CPPVISUALSHARED_EXPORT Panel
+class CPPVISUALSHARED_EXPORT TrackGroup
 	: public QScrollArea
 {
 	Q_OBJECT
 
 public:
-	explicit Panel(QWidget* = nullptr);
+	explicit TrackGroup(QWidget* = nullptr);
 	bool loadFile();
 
 signals:
@@ -40,4 +40,4 @@ private:
 };
 
 
-#endif // PANEL_H
+#endif // TRACKGROUP_H

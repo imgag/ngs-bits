@@ -2,7 +2,7 @@
 #define PANELMANAGER_H
 
 #include "BedFile.h"
-#include "Panel.h"
+#include "TrackGroup.h"
 #include "cppVISUAL_global.h"
 
 #include <QSplitter>
@@ -28,7 +28,7 @@ public slots:
 	void addPanelBelow();
 
 private:
-	void connectSignals(class Panel*);
+	void connectSignals(TrackGroup*);
 };
 
 

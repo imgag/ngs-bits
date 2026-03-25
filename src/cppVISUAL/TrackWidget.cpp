@@ -8,6 +8,17 @@
 #include <QMimeData>
 #include <QPainter>
 
+TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name)
+	:QWidget(parent), id_(QUuid::createUuid()), file_path_(file_path), name_(name)
+{
+	TrackManager::addTrackWidget(id_, this);
+}
+
+TrackWidget::~TrackWidget()
+{
+	TrackManager::removeTrackWidget(id_);
+}
+
 void TrackWidget::regionChanged()
 {
 	updateGeometry();

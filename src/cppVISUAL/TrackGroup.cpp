@@ -1,6 +1,6 @@
 #include "TrackManager.h"
 #include "FileLoader.h"
-#include "Panel.h"
+#include "TrackGroup.h"
 
 #include <QMenu>
 #include <QMessageBox>
@@ -9,7 +9,7 @@
 #include <QFileInfo>
 #include <QFileDialog>
 
-Panel::Panel(QWidget* parent)
+TrackGroup::TrackGroup(QWidget* parent)
 	:QScrollArea(parent), layout_(new QVBoxLayout(this)), content_widget_(new QWidget(this))
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -31,7 +31,7 @@ Panel::Panel(QWidget* parent)
 	layout_->setContentsMargins(0, 0, 0, height());
 }
 
-void Panel::trackDeleted()
+void TrackGroup::trackDeleted()
 {
 	QWidget* senderWidget = qobject_cast<QWidget*>(sender());
 	if (senderWidget) {
@@ -43,7 +43,7 @@ void Panel::trackDeleted()
 	if (layout_->count() == 1) deleteLater();
 }
 
-void Panel::trackMoved()
+void TrackGroup::trackMoved()
 {
 	QWidget* senderWidget = qobject_cast<QWidget*>(sender());
 	if (senderWidget){
@@ -56,7 +56,7 @@ void Panel::trackMoved()
 	}
 }
 
-bool Panel::loadFile()
+bool TrackGroup::loadFile()
 {
 	QString file_path = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)"));
 	if (file_path.isEmpty()) return false;
@@ -73,7 +73,7 @@ bool Panel::loadFile()
 	return true;
 }
 
-void Panel::contextMenu(QPoint pos)
+void TrackGroup::contextMenu(QPoint pos)
 {
 	QMenu menu(this);
 	QAction* opt1 = menu.addAction("Load file");
@@ -97,7 +97,7 @@ void Panel::contextMenu(QPoint pos)
 	else if (action == opt5) emit addPanelBelow();
 }
 
-void Panel::clearLayout()
+void TrackGroup::clearLayout()
 {
 	if (layout_)
 	{
@@ -109,14 +109,14 @@ void Panel::clearLayout()
 	}
 }
 
-void Panel::clearLayoutAndDelete()
+void TrackGroup::clearLayoutAndDelete()
 {
 	clearLayout();
 	deleteLater();
 }
 
 
-void Panel::dragEnterEvent(QDragEnterEvent* event)
+void TrackGroup::dragEnterEvent(QDragEnterEvent* event)
 {
 	if (event->mimeData()->hasFormat("application/track-data"))
 	{
@@ -124,7 +124,7 @@ void Panel::dragEnterEvent(QDragEnterEvent* event)
 	}
 }
 
-void Panel::removeTrack(QWidget* widget)
+void TrackGroup::removeTrack(QWidget* widget)
 {
 	if (widget)
 	{
@@ -134,7 +134,7 @@ void Panel::removeTrack(QWidget* widget)
 }
 
 
-inline int Panel::getDropIndex(int y)
+inline int TrackGroup::getDropIndex(int y)
 {
 	int drop_index =0;
 	for (int i = 0; i < layout_->count() - 1; ++i) {
@@ -149,7 +149,7 @@ inline int Panel::getDropIndex(int y)
 }
 
 
-void Panel::dropEvent(QDropEvent* event)
+void TrackGroup::dropEvent(QDropEvent* event)
 {
 	if (event->mimeData()->hasFormat("application/track-data"))
 	{
