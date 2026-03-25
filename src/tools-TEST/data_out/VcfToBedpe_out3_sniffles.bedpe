@@ -1,0 +1,116 @@
+##fileformat=BEDPE
+##source=Sniffles2_2.7.1
+##command="/sniffles/sniffles_env/bin/sniffles --input /tmp/1051972.1.default_srv015/megSAP_user_bioinf/local_bamPJezOA/24067LRa002_01.bam --vcf /tmp/1051972.1.default_srv015/megSAP_user_bioinf/snifflesJ6SGll.vcf --threads 8 --reference /tmp/local_ngs_data_GRCh38//GRCh38.fa --allow-overwrite --sample-id 24067LRa002_01 --output-rnames --mosaic-include-germline"
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chr16_KI270728v1_random,length=1872759>
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=DUP,Description="Duplication">
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=BND,Description="Breakend; Translocation">
+##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
+##PIPELINE=megSAP 2025_10-77-gb0a190a1
+##SAMPLE=<ID=24067LRa002_01,Gender=male,ExternalSampleName=NA24385_HM24385_vial 2_*I1_GM0002063,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
+##longphaseVersion=1.7.3
+##commandline="phase -s /mnt/storage3/projects/test/24067_Coriell_HM/Sample_24067LRa002_01/24067LRa002_01_var.vcf.gz -b /tmp/1051972.1.default_srv015/megSAP_user_bioinf/local_bamPJezOA/24067LRa002_01.bam -r /tmp/local_ngs_data_GRCh38//GRCh38.fa -t 8 -o /tmp/1051972.1.default_srv015/megSAP_user_bioinf/longphasehwW0VI --ont --indels --sv-file /mnt/storage3/projects/test/24067_Coriell_HM/Sample_24067LRa002_01/24067LRa002_01_var_structural_variants.vcf.gz --mod-file /mnt/storage3/projects/test/24067_Coriell_HM/Sample_24067LRa002_01/24067LRa002_01_var_modcall.vcf "
+##INFO=<ID=PRECISE,Number=0,Type=Flag,Description="Structural variation with precise breakpoints">
+##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Structural variation with imprecise breakpoints">
+##INFO=<ID=MOSAIC,Number=0,Type=Flag,Description="Structural variation classified as putative mosaic">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Length of structural variation">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variation">
+##INFO=<ID=POS,Number=1,Type=Integer,Description="Position of the variant described in the original VCF file.">
+##INFO=<ID=CHR2,Number=1,Type=String,Description="Mate chromsome for BND SVs">
+##INFO=<ID=SUPPORT,Number=1,Type=Integer,Description="Number of reads supporting the structural variation">
+##INFO=<ID=SUPPORT_INLINE,Number=1,Type=Integer,Description="Number of reads supporting an INS/DEL SV (non-split events only)">
+##INFO=<ID=SUPPORT_SA,Number=1,Type=Integer,Description="Number of reads supporting a DEL SV through supplementary alignments (split events)">
+##INFO=<ID=SUPPORT_LONG,Number=1,Type=Integer,Description="Number of soft-clipped reads putatively supporting the long insertion SV">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of structural variation">
+##INFO=<ID=STDEV_POS,Number=1,Type=Float,Description="Standard deviation of structural variation start position">
+##INFO=<ID=STDEV_LEN,Number=1,Type=Float,Description="Standard deviation of structural variation length">
+##INFO=<ID=COVERAGE,Number=.,Type=Float,Description="Coverages near upstream, start, center, end, downstream of structural variation">
+##INFO=<ID=STRAND,Number=1,Type=String,Description="Strands of supporting reads for structural variant">
+##INFO=<ID=AC,Number=.,Type=Integer,Description="Allele count, summed up over all samples">
+##INFO=<ID=SUPP_VEC,Number=1,Type=String,Description="List of read support for all samples">
+##INFO=<ID=CONSENSUS_SUPPORT,Number=1,Type=Integer,Description="Number of reads that support the generated insertion (INS) consensus sequence">
+##INFO=<ID=RNAMES,Number=.,Type=String,Description="Names of supporting reads (if enabled with --output-rnames)">
+##INFO=<ID=VAF,Number=1,Type=Float,Description="Variant Allele Fraction">
+##INFO=<ID=COVERAGE_VAR,Number=1,Type=Float,Description="Variance of coverage across large events">
+##INFO=<ID=NM,Number=.,Type=Float,Description="Mean number of query alignment length adjusted mismatches of supporting reads">
+##INFO=<ID=PHASE,Number=.,Type=String,Description="Phasing information derived from supporting reads, represented as list of: HAPLOTYPE,PHASESET,HAPLOTYPE_SUPPORT,PHASESET_SUPPORT,HAPLOTYPE_FILTER,PHASESET_FILTER">
+##FILTER=<ID=PASS,Description="All filters passed">
+##FILTER=<ID=GT,Description="Genotype filter">
+##FILTER=<ID=SUPPORT_MIN,Description="Minimum read support filter">
+##FILTER=<ID=STDEV_POS,Description="SV Breakpoint standard deviation filter">
+##FILTER=<ID=STDEV_LEN,Description="SV length standard deviation filter">
+##FILTER=<ID=COV_MIN,Description="Minimum coverage filter">
+##FILTER=<ID=COV_MIN_GT,Description="Minimum coverage filter (missing genotype)">
+##FILTER=<ID=COV_CHANGE_DEL,Description="Coverage change filter for DEL">
+##FILTER=<ID=COV_CHANGE_DUP,Description="Coverage change filter for DUP">
+##FILTER=<ID=COV_CHANGE_INS,Description="Coverage change filter for INS">
+##FILTER=<ID=COV_CHANGE_FRAC_US,Description="Coverage fractional change filter: upstream-start">
+##FILTER=<ID=COV_CHANGE_FRAC_SC,Description="Coverage fractional change filter: start-center">
+##FILTER=<ID=COV_CHANGE_FRAC_CE,Description="Coverage fractional change filter: center-end">
+##FILTER=<ID=COV_CHANGE_FRAC_ED,Description="Coverage fractional change filter: end-downstream">
+##FILTER=<ID=COV_VAR,Description="Coverage variance exceeded">
+##FILTER=<ID=MOSAIC_VAF,Description="Mosaic variant allele fraction filter">
+##FILTER=<ID=NOT_MOSAIC_VAF,Description="Variant allele fraction filter for non-mosaic">
+##FILTER=<ID=ALN_NM,Description="Length adjusted mismatch filter">
+##FILTER=<ID=STRAND_BND,Description="Strand support filter for BNDs">
+##FILTER=<ID=STRAND,Description="Strand support filter for germline SVs">
+##FILTER=<ID=STRAND_MOSAIC,Description="Strand support filter for mosaic SVs">
+##FILTER=<ID=SVLEN_MIN,Description="SV length filter">
+##FILTER=<ID=SVLEN_MIN_MOSAIC,Description="SV length filter for mosaic SVs">
+##FILTER=<ID=SINGLE_BREAK,Description="A single break point was detected but not classified as an SV.">
+##FILTER=<ID=LOW_EVIDENCE,Description="Low evidence variants.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype quality">
+##FORMAT=<ID=DR,Number=1,Type=Integer,Description="Number of reference reads">
+##FORMAT=<ID=DV,Number=1,Type=Integer,Description="Number of variant reads">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase-block, zero if none or not phased">
+##FORMAT=<ID=ID,Number=1,Type=String,Description="Individual sample SV ID for multi-sample output">
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	FILTER	NAME_A	REF_A	ALT_A	NAME_B	REF_B	ALT_B	INFO_A	INFO_B	FORMAT	24067LRa002_01
+chr2	31823409	31823409	chr1	58630212	58630212	Sniffles2.BND.156ES1	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.156ES1	C	[CHR1:58630212[C	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=31823409;SUPPORT=6;RNAMES=175ab5e3-7b80-43e6-83c5-d278bf412e6a,2960d83e-5be1-4ce6-9cb5-cdb8ada83018,7aaab086-54e2-48c7-a02e-06aa5bbc2ab8,cbfd1890-4c0d-42d8-8dfa-a184503ce2d0,cd6af2b2-85ff-4169-8c71-68453e124a81,cdefd9f3-99af-400d-9fdc-2d41aeb3616e;COVERAGE=51,49,60,54,51;STRAND=+-;NM=0.006;CHR2=chr1;STDEV_POS=0.000;VAF=0.111	.	GT:GQ:DR:DV:PS	0/1:60:48:6:.
+chr2	87431448	87431462	chr1	144097143	144097143	Sniffles2.BND.1AEFS1	55	.	.	BND	PASS	Sniffles2.BND.1AEFS1	A	]CHR1:144097143]A	.	.	.	PRECISE;SVTYPE=BND;POS=87431455;SUPPORT=20;RNAMES=01cfe8b6-4c64-4a5c-9905-43284b278530,0ae05fc1-d81a-4c63-b8cf-67409b931206,0cfaf0d2-0e4b-4cd1-8a3a-cedd639c4d27,1774afd5-e252-42eb-960b-418827060322,1baace1a-6069-4077-b9c4-09768fff70c3,1dab1f28-88a3-4837-9c53-b6585679f874,2a3e64f5-13b3-4eaa-a4e1-91d19640f363,33592388-4b5d-4592-ae3e-77dc1ba398b4,3f0afa45-2645-4563-a649-29d3d8cd0e53,49dfb359-e09d-4df2-afb8-d8bfb65ee0d3,5b13711a-ae63-4b3e-8cc5-dbad8b06917f,5de44975-c6fe-4560-a913-457a1a42eda6,a0bea920-3276-403c-af47-441b7847c568,ae9a1af5-cf22-4f92-b4e8-02c22f6ddba5,c01a09ed-0b82-4f5b-9933-112f474f7150,c4e3ac94-4f25-47d4-8025-5f35abea4167,c7b63742-5348-4209-9ea5-66d009664be8,d88b2196-0fca-4322-b0e1-f00763c9381c,e7f6ab5f-542a-454c-a0e5-5eaacf2f01b3,ffbfc5d3-4161-4bdf-913e-c80608cef610;COVERAGE=100,85,43,41,43;STRAND=+-;NM=0.081;CHR2=chr1;STDEV_POS=14.980;VAF=0.357	.	GT:GQ:DR:DV:PS	0/1:60:36:20:.
+chr2	193212409	193212411	chr1	102103352	102103352	Sniffles2.BND.249BS1	57	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.249BS1	C	]CHR1:102103352]C	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=193212410;SUPPORT=9;RNAMES=0451c5ed-399b-452f-b3d1-3b14146af2f1,20918b30-c4b0-4673-a544-9d1b10109223,2fec9c83-0e99-425d-a712-3d6ef30c91f9,3105fd15-3e30-4603-b34f-b43ebcfd988d,435aa6cd-8526-4255-ad0f-1615aef19ada,a53e5705-6c64-4945-bc4a-aa33da8224f4,bff74083-36de-4933-8ee7-be789c75e0f3,e4af5da4-0081-4c13-84f9-a37f4d833f42,f12f2622-94f4-447e-8ee7-723f31bebf7c;COVERAGE=36,32,56,61,61;STRAND=+-;NM=0.005;CHR2=chr1;STDEV_POS=0.894;VAF=0.180	.	GT:GQ:DR:DV:PS	0/1:24:41:9:.
+chr2	193218447	193218447	chr1	10210154	10210154	Sniffles2.BND.24A6S1	41	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.24A6S1	C	C]CHR1:102101546]	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=193218447;SUPPORT=3;RNAMES=3184c3fd-4bae-40bf-a477-b7a66bc048a1,44905c49-4799-4b16-b040-c8bce55da4cd,ff8ddd7f-a799-43fe-a5f7-0ad4845b2904;COVERAGE=60,58,47,32,31;STRAND=+-;NM=0.004;CHR2=chr1;STDEV_POS=0.000;VAF=0.065	.	GT:GQ:DR:DV:PS	0|1:60:43:3:193217679
+chr4	102422588	102422588	chr1	10484381	10484381	Sniffles2.BND.19B4S3	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.19B4S3	T	T]CHR1:104843812]	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=102422588;SUPPORT=5;RNAMES=59194c0b-4844-4fa9-8fb5-4a4423d6535f,5ff842bd-ead4-4e44-be5e-9e1e741134cc,785deb89-0e4c-48bd-8988-a12c2a6d4381,8e663aa5-4256-4a01-bf83-632f73cc23c1,fdf5e340-33e3-4dd8-a00f-33911ac3f81a;COVERAGE=50,49,55,51,49;STRAND=+-;NM=0.002;CHR2=chr1;STDEV_POS=0.000;VAF=0.096	.	GT:GQ:DR:DV:PS	0/1:60:47:5:.
+chr5	90154962	90154966	chr1	18086679	18086679	Sniffles2.BND.1548S4	60	.	.	BND	PASS	Sniffles2.BND.1548S4	C	C]CHR1:180866793]	.	.	.	PRECISE;SVTYPE=BND;POS=90154964;SUPPORT=38;RNAMES=01ad2f05-3a12-441f-9bce-c8218d238aa7,0235dbea-dc39-499f-874a-a9dc6be13975,134d0518-ca02-43f9-96c0-b843d017ed5e,13faa717-561b-4709-8b49-df9413475b9d,219ad915-da0d-4288-9ed8-f24380263d83,2cc771b9-5caf-49d3-b8c6-c6e4bc672224,2f402172-aba8-48ed-aa91-f02a18ed3278,300345e1-cffd-4869-83c3-9918a7877f7f,34aac746-7167-4d08-879b-d956c799e53b,35b86383-40a1-47dd-b1b2-e86adc8c5953,35eb47f6-0c95-4b1a-8eeb-9270eb7ed47a,5bbf1328-698c-4e65-a372-53ca07072f03,6090922a-1e2d-4942-bf57-8cf7e337b97f,6205548b-a423-49d6-9733-ebb6f8819010,644d265b-08a9-4957-a91c-8c9924b98bb4,65370a4b-5ef5-47b7-9458-0ef47a5117e0,6af63b3b-9447-4e1c-b616-b5181f25d4c6,7b7026bb-747c-4ce3-a585-803e1fdd7c34,80478918-b9f1-4b5f-ad84-e0540012356a,883fc1eb-f3d9-45eb-90ce-72de0a4be124,8c9def75-62bb-4e7a-9d1d-10fb7541dab2,8dcb4dfc-6239-49ae-b272-17cf8439878c,8e2df372-d1bd-475f-a56c-6621e62c8d47,91714dde-760e-4b0c-9cb7-627a5abb98a2,93d9c54c-6228-4a6e-9588-9068925cb2dc,a2b56b51-96b1-4ecf-b40e-40bbc2b5bb9d,b618c62f-ff14-4733-a1ca-522371b8247d,b737a9f6-3b19-4066-aaf2-2fd98ca80577,bc226c40-7af1-40c5-b296-a8578c058e58,bd07bd2b-f783-484f-9874-4df5f3442667,c2150456-9067-41db-8f9a-db62273cf7fe,c4d47c22-8227-4eea-a6f3-46ed5dec1fb4,c5a69a55-9e82-4ffe-9b08-e0e5d6e2791d,d01a6156-76a0-4e23-ae23-287dfdc151b5,f03b4ae7-e18f-4df7-a36b-a1b66bd37d7b,f0bdf05d-4c60-4d56-887c-aa837f591d09,f6776126-4aa2-4342-8a65-4ca07a69928e,fa7007f1-8d40-43f9-8cb1-5f22da0c6369;COVERAGE=66,63,56,56,53;STRAND=+-;NM=0.005;CHR2=chr1;STDEV_POS=5.887;VAF=0.655	.	GT:GQ:DR:DV:PS	0/1:60:20:38:.
+chr5	134619342	134619344	chr1	151600015	151600015	Sniffles2.BND.196FS4	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.196FS4	A	[CHR1:151600015[A	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=134619343;SUPPORT=8;RNAMES=0acef415-5f2a-465a-b36b-a8e1645ee444,55e0717d-85a9-4f91-9f6b-eae78435ad41,671ec171-4909-449b-b704-79f43629810e,b362eba9-42b4-492b-b4a6-5c472d2b19fd,c9b93bb5-513b-4a88-9409-e320c8c9e785,d2b047bd-4c7b-4696-b0fc-7c06bab12c3a,dd6e8026-b725-4494-8483-1284dac6981e,f02ec95a-6602-404f-be5d-bb26b1cce932;COVERAGE=63,63,71,76,78;STRAND=+-;NM=0.004;CHR2=chr1;STDEV_POS=0.957;VAF=0.114	.	GT:GQ:DR:DV:PS	0/1:60:62:8:.
+chr6	3222174	3222474	chr1	4154456	4154456	Sniffles2.BND.D4AS5	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.D4AS5	C	C[CHR1:41544567[	.	.	.	IMPRECISE;MOSAIC;SVTYPE=BND;POS=3222324;SUPPORT=7;RNAMES=269b8ee5-23d6-43bd-b8b9-d79a58fbeaa6,4f63e3ae-2e7b-46da-9429-1c13408630d1,5baece78-3152-4a02-b180-9ff30b05e1be,9134ee5f-1a6e-4bfc-979b-f871f2604834,96b7cd84-425b-4328-9263-aa74a94a0b10,bf749e4d-ad5b-4f64-967e-2d7ba0502c7f,e6c2abba-87df-468a-93b6-258c9d8b4daa;COVERAGE=37,44,44,39,42;STRAND=+-;NM=0.006;CHR2=chr1;STDEV_POS=201.475;VAF=0.167	.	GT:GQ:DR:DV:PS	0/1:27:35:7:.
+chr7	29791576	29791576	chr1	15159950	15159950	Sniffles2.BND.1150S6	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.1150S6	A	A]CHR1:151599509]	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=29791576;SUPPORT=3;RNAMES=96005db8-f957-49de-9b8d-7e0aa9247296,ac9151cd-923d-434e-a191-a1ba7adab35a,b23dce1b-6b95-411a-9ac7-21b734f430cb;COVERAGE=58,55,60,56,55;STRAND=+-;NM=0.007;CHR2=chr1;STDEV_POS=0.000;VAF=0.053	.	GT:GQ:DR:DV:PS	0/1:60:54:3:.
+chr7	138611883	138611905	chr1	174348792	174348792	Sniffles2.BND.1B4BS6	60	.	.	BND	PASS	Sniffles2.BND.1B4BS6	G	]CHR1:174348792]G	.	.	.	PRECISE;SVTYPE=BND;POS=138611894;SUPPORT=12;RNAMES=0992214a-ee3c-47db-86f5-528f1b824cb0,0f393be5-e24c-4ec9-8315-c8af810c73f8,3428b912-e1af-46e8-8cda-6fc0a6fdf1b0,4d95286d-b0e2-4f07-a7cc-11a63f768087,522a6a2d-a72c-4807-a001-a46c9dcc3809,78aaa9da-71cd-40cf-9e9f-af2362f923f3,a1ea2895-8886-4bdf-98aa-71f8db6afc27,a4cf2de8-a6d7-46e8-acd0-489ed8c01f92,bad81bb3-4f4a-4499-8bd4-cfa01b4e1be4,be2c9a23-e7c3-431f-8337-db6f70ea7b10,f2c50c3b-8885-48b1-8a5a-140bffc1965a,faac9a3f-1795-416a-ac3e-9908efae3202;COVERAGE=47,45,43,54,51;STRAND=+-;NM=0.001;CHR2=chr1;STDEV_POS=18.623;VAF=0.255	.	GT:GQ:DR:DV:PS	0/1:22:35:12:.
+chr8	30248374	30248374	chr1	168451690	168451690	Sniffles2.BND.C6FS7	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.C6FS7	C	[CHR1:168451690[C	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=30248374;SUPPORT=6;RNAMES=0c84f52c-4b3a-4dbe-add8-8515c55c151c,14ec7cb6-cb11-4f24-8285-315b5ba20404,31aa554b-536d-4bf2-bf31-5d56267d1152,7c5aeaa1-4613-4bd1-a86e-4621774504d9,7c9309ef-0053-4b1f-9047-b347e331c2f9,80d5f5cc-e05b-4739-9035-71447d1675f5;COVERAGE=59,59,53,50,51;STRAND=+-;NM=0.007;CHR2=chr1;STDEV_POS=0.000;VAF=0.111	.	GT:GQ:DR:DV:PS	0|1:60:48:6:30248374
+chr8	62102872	62102872	chr1	632266	632266	Sniffles2.BND.F4AS7	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.F4AS7	A	]CHR1:632266]A	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=62102872;SUPPORT=4;RNAMES=209fd1bd-7959-4eb5-bc7e-87276c6b68b0,5a04bab6-1822-4559-b066-0cd53151fd39,89af16e8-fa39-4885-bae0-88bc01b6039e,acc533ca-6340-48b7-acd6-6f3dea74b9ab;COVERAGE=30,29,30,34,34;STRAND=+-;NM=0.005;CHR2=chr1;STDEV_POS=0.000;VAF=0.129	.	GT:GQ:DR:DV:PS	0/1:35:27:4:.
+chr11	176542	176542	chr1	180088	180088	Sniffles2.BND.988SA	50	.	.	BND	PASS	Sniffles2.BND.988SA	T	[CHR1:180088[T	.	.	.	PRECISE;SVTYPE=BND;POS=176542;SUPPORT=24;RNAMES=0a238f3a-8220-4186-9bd9-fffd61b5ad22,1146b541-aef5-4f62-94ef-1a7309322f54,1dde98a0-f1c6-4ee7-803d-c0049c3e3e7d,30a02948-26ca-4efd-bc46-1e52306cdbc4,45c86146-6abf-4847-a416-4f3612d577f0,5099eaaa-bf33-44d4-a846-de0dc35ab7e1,6cd816c1-0774-464b-88e1-c96ae803d98f,7095cc7d-13ec-4427-93fc-5202ef40763f,70ff1bce-0503-45fe-a96b-f3e3323e8080,82c1d7d4-864c-4d14-aede-7f3618e18f75,9e41f8f1-6836-46f3-a9d6-f658f06366ff,a8fd49cb-e0eb-4e94-b135-016e0785ea13,a9437766-4baa-49c3-a296-9dce23cfcbf8,b7c3d9c9-2125-4b14-abab-189333724925,cf3a0ca3-5c43-4bc0-b77d-592794bd8609,de3c819f-0552-4fb1-bee1-f56fc2016100,f15e5f5e-6e62-43f1-9d75-daacbd39632c,f1d4cb96-d503-4b9c-b322-a21c2cea55ab,f3fbfd67-61ba-4672-9281-16ad809a1b2f,f4b59690-bf13-4f1b-9c64-94333a031070,f7cb8bd1-b7fb-4564-8cea-6986948ffa09,fb59fceb-1f2f-406b-92a8-078ea2c4f124,fd378e77-6ee8-446b-9ea6-8adf09a57d18,fda0050c-e3c3-48c3-ba7a-cde869488fd3;COVERAGE=179,178,40,33,31;STRAND=+-;NM=0.071;CHR2=chr1;STDEV_POS=0.000;VAF=0.286	.	GT:GQ:DR:DV:PS	0|1:60:60:24:150983
+chr12	4633739	4633739	chr1	151599506	151599506	Sniffles2.BND.AB8SB	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.AB8SB	T	]CHR1:151599506]T	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=4633739;SUPPORT=3;RNAMES=5b937995-5a37-407c-87c4-a9a09ee1b575,7d985ca5-1719-445c-b4da-21f7ada7b2aa,b5f134d1-8a31-4298-81cc-23dd33a65cb9;COVERAGE=44,41,46,48,45;STRAND=+-;NM=0.005;CHR2=chr1;STDEV_POS=0.000;VAF=0.067	.	GT:GQ:DR:DV:PS	0/1:60:42:3:.
+chr12	55333430	55333430	chr1	7538101	7538101	Sniffles2.BND.FA9SB	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.FA9SB	T	T[CHR1:75381016[	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=55333430;SUPPORT=3;RNAMES=1015ed08-da15-436b-a0f2-7ef0c212d400,c5c02033-e212-475e-96fd-7cb13486b55d,f3252b9c-5b2e-425c-9ade-9954fdc2f692;COVERAGE=38,37,65,37,40;STRAND=+-;NM=0.002;CHR2=chr1;STDEV_POS=0.000;VAF=0.065	.	GT:GQ:DR:DV:PS	0/1:60:43:3:.
+chr12	55333430	55333430	chr1	15562666	15562666	Sniffles2.BND.FAASB	60	.	.	BND	PASS	Sniffles2.BND.FAASB	T	T]CHR1:155626664]	.	.	.	PRECISE;SVTYPE=BND;POS=55333430;SUPPORT=16;RNAMES=03ea34c0-2f01-4e82-9637-2cafb9d43b7a,21bdc51c-2b17-4671-b1cb-f8f934f0d3f4,21fc9bb4-f777-4b6f-94a9-e15f8f609fea,2c9de59f-41a0-46b6-8aef-8e99f66b8495,3e4f2825-2751-4590-baf2-bfe145a48056,69886434-b6a4-436c-aa8f-0c492f8e2e1a,854a124e-c13f-4b85-b036-3157944db4ff,996f27c0-309b-4a24-8e2a-312ab78249f3,a2c12f6b-8457-4e35-a7f6-9e7477f7e892,a63af23f-eaee-4d60-9f56-dc445c7b6bf3,afe3207c-a23d-408c-8d57-5d3cdf56992f,b43a2e18-f586-4ebf-93dc-5461a416fd2b,c5193ff9-33ab-4ce4-8791-3bb23dc24bf8,e1292c36-6485-4c80-967d-d99ecab29e8b,f4c07c50-0615-429a-aa24-327c697c50fe,fa85b2d9-7055-417e-a6af-4b2082b90bff;COVERAGE=38,37,65,37,40;STRAND=+-;NM=0.003;CHR2=chr1;STDEV_POS=0.000;VAF=0.348	.	GT:GQ:DR:DV:PS	0/1:60:30:16:.
+chr14	39405882	39405898	chr1	86679613	86679613	Sniffles2.BND.888SD	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.888SD	A	]CHR1:86679613]A	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=39405890;SUPPORT=4;RNAMES=082c0c67-b84e-4772-a37a-ce9f0050b2b8,29e24bac-4d66-4282-af90-e6cc37b55137,52183d7d-2621-4edc-b070-04d212d82e36,8df79796-2035-425e-ac49-97aa41d0b2ed;COVERAGE=47,47,46,49,57;STRAND=+-;NM=0.003;CHR2=chr1;STDEV_POS=7.778;VAF=0.085	.	GT:GQ:DR:DV:PS	0/1:60:43:4:.
+chr15	101981186	101981186	chr1	24894439	24894439	Sniffles2.BND.E6CSE	49	.	.	BND	PASS	Sniffles2.BND.E6CSE	G	G[CHR1:248944392[	.	.	.	PRECISE;SVTYPE=BND;POS=101981186;SUPPORT=6;RNAMES=40ed198d-c65d-4144-9610-a7229568e37e,520edac6-fcdb-446f-8a8d-9bc3fc2c3572,76dc2ffc-eb56-4032-982b-b4b6bfee615c,bbd6c157-15c8-4030-b873-043a0dd1d026,cb096912-dc8c-4fbb-8f38-5f9e895c4300,dff66d5a-5df8-4834-ae53-0da70233e092;COVERAGE=31,30,1,0,0;STRAND=+-;NM=0.001;CHR2=chr1;STDEV_POS=0.000;VAF=0.375	.	GT:GQ:DR:DV:PS	0/1:32:10:6:.
+chr19	23850382	23850382	chr1	168055346	168055346	Sniffles2.BND.9D5S12	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.9D5S12	T	[CHR1:168055346[T	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=23850382;SUPPORT=4;RNAMES=30df36bd-07da-4a13-b8ae-d9697d28dc8a,36f9b68e-8471-419d-8240-38385a4d25c8,7e5b4345-ddd7-45e4-8b74-46c353293865,db34e3bb-725a-4b6d-ae1c-43a015606785;COVERAGE=32,28,27,29,28;STRAND=+-;NM=0.007;CHR2=chr1;STDEV_POS=0.000;VAF=0.143	.	GT:GQ:DR:DV:PS	0/1:26:24:4:.
+chr21	18144984	18145008	chr1	8405237	8405237	Sniffles2.BND.951S14	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.951S14	T	T[CHR1:84052376[	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=18144996;SUPPORT=3;RNAMES=704cac3c-bc23-463d-b96a-a9b1e913ef0c,7bebe458-c19e-4db2-801c-a9d2f9ba06ab,c17b2f40-5ca4-4259-b6ac-b5f595d0b16a;COVERAGE=38,37,38,36,37;STRAND=+-;NM=0.003;CHR2=chr1;STDEV_POS=9.815;VAF=0.081	.	GT:GQ:DR:DV:PS	0/1:60:34:3:.
+chr21	43173711	43173711	chr1	24875283	24875283	Sniffles2.BND.B89S14	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.B89S14	A	A[CHR1:248752832[	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=43173711;SUPPORT=5;RNAMES=1fe885d0-5c92-4847-9ecd-b245ca577705,6e3cd51b-440b-4382-a04c-3e34916a5adb,830939d2-f482-4009-971c-18290c925e3e,b04c4faa-5091-4e98-982a-9ec01f54d739,f3a05d01-540a-4c98-960e-0500eb74a9af;COVERAGE=35,33,56,51,51;STRAND=+-;NM=0.004;CHR2=chr1;STDEV_POS=0.000;VAF=0.106	.	GT:GQ:DR:DV:PS	0/1:60:42:5:.
+chr22	11547337	11547337	chr1	242043956	242043956	Sniffles2.BND.628S15	60	.	.	BND	LOW_EVIDENCE	Sniffles2.BND.628S15	N	N[CHR1:242043956[	.	.	.	PRECISE;MOSAIC;SVTYPE=BND;POS=11547337;SUPPORT=4;RNAMES=62d3b2fb-6434-4556-9abf-58b64e7d99bb,8143c0a9-76e4-41bc-83f1-eac34f8f6909,919b21f4-f1d8-43d7-9ea7-46ffb216daf2,e6b551f5-9b79-47fb-95f8-3127deec3653;COVERAGE=0,0,17,24,29;STRAND=+-;NM=0.003;CHR2=chr1;STDEV_POS=0.000;VAF=0.200	.	GT:GQ:DR:DV:PS	0/1:4:16:4:.
