@@ -52,6 +52,8 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 
 	QPainter painter(this);
 
+	painter.setRenderHint(QPainter::Antialiasing, true);
+
 	static BedFile bands = NGSHelper::cytoBands(GenomeBuild::HG38);
 	static bool sorted = false;
 	if (!sorted)
@@ -62,7 +64,7 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 
 	static ChromosomeIndexMap chr_idx_map = buildChrIndexMap(bands);
 
-	painter.fillRect(rect(), Qt::white);
+	// painter.fillRect(rect(), Qt::white);
 
 	QVector<int> idxes = chr_idx_map[region.chr()];
 	if (idxes.size() >= 1)

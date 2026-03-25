@@ -61,6 +61,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	int label_width = SharedData::settings().label_width;
 	const BedLine& region = SharedData::region();
 	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing, true);
 	char_size_ = characterSize(painter.font());
 	pixels_per_base_ = (double)(w-label_width-4) / (double)region.length();
 	int y_content_start = 2;

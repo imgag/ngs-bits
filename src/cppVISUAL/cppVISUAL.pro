@@ -29,6 +29,7 @@ unix: LIBS += -lxml2
 
 SOURCES += \
     BedTrack.cpp \
+    ChromosomeContextPanel.cpp \
     FileLoader.cpp \
     GenomeVisualizationWidget.cpp \
     GenePanel.cpp \
@@ -41,6 +42,7 @@ SOURCES += \
 
 HEADERS += \
     BedTrack.h \
+    ChromosomeContextPanel.h \
     FileLoader.h \
     GenomeVisualizationWidget.h \
     GenePanel.h \
