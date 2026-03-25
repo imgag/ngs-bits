@@ -264,7 +264,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&data_controller_, SIGNAL(thrownInfo(QString, QString)), this, SLOT(showInfo(QString,QString)));
 
     connect(&data_controller_, SIGNAL(smallVariantsFilterResultChanged()), this, SLOT(refreshVariantTable()));
-
+	connect(&data_controller_, SIGNAL(smallVariantsChanged()), this, SLOT(refreshVariantTable()));
+	connect(&data_controller_, SIGNAL(smallVariantsChanged()), this, SLOT(refreshVariantTable()));
+	connect(&data_controller_, SIGNAL(chooseGermlineReportSample(QStringList)), this, SLOT(chooseGermlineReportSample(QStringList)));
 
 
     connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
@@ -2161,6 +2163,20 @@ void MainWindow::on_actionAbout_triggered()
 	QMessageBox::about(this, "About " + appName(), about_text);
 }
 
+void MainWindow::chooseGermlineReportSample(QStringList samples)
+{
+	bool ok = false;
+
+	while (! ok)
+	{
+		QString selected = QInputDialog::getItem(this, "Report sample", "processed sample used for report:", samples, 0, false, &ok);
+		if (ok)
+		{
+			data_controller_.setGermlineReportSample(selected);
+		}
+	}
+}
+
 void MainWindow::generateEvaluationSheet()
 {
     QString base_name = data_controller_.germlineReportSample();
@@ -2597,7 +2613,7 @@ void MainWindow::generateReportGermline()
 	}
 
 	//show report dialog
-    ReportDialog dialog(ps_name, data_controller_, this);
+	ReportDialog dialog(data_controller_, this);
 	if (!dialog.exec()) return;
 
 	//get export file name

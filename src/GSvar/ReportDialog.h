@@ -17,7 +17,7 @@ class ReportDialog
 	
 public:
 	///Constructor
-    ReportDialog(QString ps, AnalysisDataController& data_controller, QWidget* parent = 0);
+	ReportDialog(AnalysisDataController& data_controller, QWidget* parent = 0);
 
 	///Returns the report/variant type
 	QString type() const

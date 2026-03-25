@@ -289,10 +289,8 @@ public slots:
 	///Shows the gap closing dialog with the given regions and genes
     void showGapsClosingDialog(const BedFile& regions, const GeneSet& genes);
 
-    ///Store report configuration
-    void storeGermlineReportConfig();
-    ///Store somatic report configuration
-    void storeSomaticReportConfig();
+	///force user to choose germline report sample if multiple possibilities exist
+	void chooseGermlineReportSample(QStringList samples);
 	///Prints a variant sheet based on the report configuration
 	void generateEvaluationSheet();
 	///Trigger somatic data transfer to MTB

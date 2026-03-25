@@ -111,6 +111,7 @@ public:
 
     //Setter:
     void setRnaSampleId(int rna_id);
+	void setGermlineReportSample(QString ps);
 
     //Getters:
     const QString& getFilename() const;
@@ -155,8 +156,13 @@ public:
     QSharedPointer<SomaticReportConfiguration> getSomaticReportConfig();
     QSharedPointer<RnaReportConfiguration> getRnaReportConfig();
 
-    const ReportSettings& getGermlineReportSettings() const;
-    const SomaticReportSettings& getSomaticReportSettings() const;
+	ReportSettings& getGermlineReportSettings();
+	VariantList validateGermlineReportSmallVariants();
+	CnvList validateGermlineReportCnvs();
+	BedpeFile validateGermlineReportSvs();
+	RepeatLocusList validateGermlineReportRes();
+
+	SomaticReportSettings& getSomaticReportSettings();
 
     ///returns the variant validation entry for a small variant - if it doesnt exist returns empty object
     VariantValidation getSmallVariantValidationEntry(int variant_idx, QString ps_name="");
@@ -182,7 +188,7 @@ public slots:
     ///Store somatic report configuration
     void storeSomaticReportConfig();
     ///Store RNA report configuration
-    void storeRnaReportConfig();
+	// void storeRnaReportConfig();
 
 
 
@@ -194,9 +200,14 @@ signals:
     void thrownWarning(QString title, QString text);
     void thrownInfo(QString title, QString text);
 
+	void chooseGermlineReportSample(QStringList samples);
+
     void smallVariantsFilterResultChanged();
     void markSmallVariantFilters();
     void smallVariantsChanged();
+
+	void germlineReportConfigChanged();
+	void somaticReportConfigChanged();
 
 protected:
     AnalysisDataController();
@@ -212,13 +223,14 @@ private:
 
     static QList<RtfPicture> pngsFromFiles(QStringList files);
 
-
+	///choose the germline report sample if possible else send signal to have it chosen by the user
+	void chooseGermlineReportSample();
     ///Load germline report configuration
     void loadGermlineReportConfig();
     ///Load somatic report configuration
     void loadSomaticReportConfig();
     ///Load RNA report configuration
-    void loadRnaReportConfig(QString rna_ps_id);
+	// void loadRnaReportConfig(QString rna_ps_id);
 
     ///returns rna_id if != -1 else returns active_rna_ps_id if it is unequal -1. Throws if both are -1.
     int getValidRna(int rna_id) const;
@@ -228,6 +240,7 @@ private:
     QStringList processed_sample_names_;
     AnalysisType analysis_type_;
     int active_rna_ps_id_;
+	QString germline_report_ps_;
 
     //variants
     VariantList variants_;

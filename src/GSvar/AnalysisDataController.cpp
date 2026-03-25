@@ -449,6 +449,35 @@ void AnalysisDataController::storeSmallVariantList()
 }
 
 
+void AnalysisDataController::chooseGermlineReportSample()
+{
+	if (germline_report_ps_.isEmpty())
+	{
+		//determine affected sample names
+		QStringList affected_ps;
+		foreach(const SampleInfo& info, variants_.getSampleHeader())
+		{
+			if(info.isAffected())
+			{
+				affected_ps << info.name.trimmed();
+			}
+		}
+
+		if (affected_ps.isEmpty()) //no affected => error
+		{
+			THROW(ProgrammingException, "choosegermlineReportSample() cannot be used if there is no affected sample!");
+		}
+		else if (affected_ps.count()==1) //one affected => auto-select
+		{
+			germline_report_ps_ = affected_ps[0];
+		}
+		else //several affected => let user select
+		{
+			emit chooseGermlineReportSample(affected_ps);
+		}
+	}
+}
+
 
 void AnalysisDataController::loadGermlineReportConfig()
 {
@@ -463,11 +492,11 @@ void AnalysisDataController::loadGermlineReportConfig()
 
     //load
     germline_report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, repeat_expansions_);
-    //TODO route over mainWindow: variantsChanged -> 'check if overwrite?' -> storeGermlineReportConfig
-    // connect(germline_report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeGermlineReportConfig()));
 
-    //updateGUI
-    refreshVariantTable();
+	//TODO route over mainWindow: variantsChanged -> 'check if overwrite?' -> storeGermlineReportConfig
+	connect(germline_report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SIGNAL(germlineReportConfigChanged()));
+
+	applySmallVariantFilter();
 }
 
 void AnalysisDataController::storeGermlineReportConfig()
@@ -560,7 +589,7 @@ void AnalysisDataController::loadSomaticReportConfig()
     //Preselect target region bed file in NGSD
     if(somatic_report_settings_.report_config->targetRegionName()!="")
     {
-        ui_.filters->setTargetRegionByDisplayName(somatic_report_settings_.report_config->targetRegionName());
+		variants_filter_state_.setTargetRegionInfoByName(somatic_report_settings_.report_config->targetRegionName());
     }
 
     //Preselect filter from NGSD som. rep. conf.
@@ -568,9 +597,11 @@ void AnalysisDataController::loadSomaticReportConfig()
     if(somatic_report_settings_.report_config->filters().count() != 0) variants_filter_state_.setFilterCascade(somatic_report_settings_.report_config->filters());
 
 
-    somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
+	somatic_report_settings_.target_region_filter = variants_filter_state_.getTargetRegionInfo();
 
-    // refreshVariantTable();
+	connect(somatic_report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SIGNAL(somaticReportConfigChanged()));
+
+	applySmallVariantFilter();
 }
 
 void AnalysisDataController::storeSomaticReportConfig()
@@ -612,23 +643,25 @@ void AnalysisDataController::storeSomaticReportConfig()
     }
 }
 
-void AnalysisDataController::loadRnaReportConfig(QString rna_ps_id)
-{
-    if(filename_ == "") return;
+// void AnalysisDataController::loadRnaReportConfig(QString rna_ps_id)
+// {
+// 	error
+//     if(filename_ == "") return;
 
-    NGSD db;
+//     NGSD db;
 
 
-    QStringList messages;
-    // ArribaFile fusions =
-    //rna_report_config_ = db.rnaReportConfig(rna_ps_id, );
+//     QStringList messages;
+//     // ArribaFile fusions =
+//     //rna_report_config_ = db.rnaReportConfig(rna_ps_id, );
 
-}
+// }
 
-void AnalysisDataController::storeRnaReportConfig()
-{
-    //TODO
-}
+// void AnalysisDataController::storeRnaReportConfig()
+// {
+//     //TODO
+// 	error
+// }
 
 
 
@@ -774,7 +807,7 @@ const FilterResult& AnalysisDataController::applySmallVariantFilter(bool debug_t
         result = FilterResult(variants_.count(), false);
     }
 
-    emit smallVariantsFilterResultChanged();
+	emit smallVariantsFilterResultChanged();
     return result;
 }
 
@@ -896,10 +929,14 @@ bool AnalysisDataController::existCnvSegmentation(QString sample_id) const
 
 bool AnalysisDataController::existBaf(QString sample_id) const
 {
+	if (! isValid()) return false;
 
+	FileLocationList baf_files = GlobalServiceProvider::fileLocationProvider().getBafFiles(false);
+
+	if (sample_id != "") baf_files = baf_files.filterById(sample_id);
+
+	return baf_files.count() > 0;
 }
-
-
 
 bool AnalysisDataController::existRnaSplicing(int rna_ps_id) const
 {
@@ -907,17 +944,20 @@ bool AnalysisDataController::existRnaSplicing(int rna_ps_id) const
     return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::SPLICING_ANN).exists;
 
 }
+
 bool AnalysisDataController::existRnaFusions(int rna_ps_id) const
 {
     rna_ps_id = getValidRna(rna_ps_id);
     return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::FUSIONS).exists;
 
 }
+
 bool AnalysisDataController::existRnaExpressionGenes(int rna_ps_id) const
 {
     rna_ps_id = getValidRna(rna_ps_id);
     return GlobalServiceProvider::database().processedSamplePath(QString::number(rna_ps_id), PathType::EXPRESSION).exists;
 }
+
 bool AnalysisDataController::existRnaExpressionExons(int rna_ps_id) const
 {
     rna_ps_id = getValidRna(rna_ps_id);
@@ -1059,37 +1099,11 @@ QString AnalysisDataController::germlineReportSample() const
         THROW(ProgrammingException, "germlineReportSample() cannot be used if germline report is not supported!");
     }
 
-    //set sample for report
-    while (germline_report_ps_.isEmpty())
-    {
-        //determine affected sample names
-        QStringList affected_ps;
-        foreach(const SampleInfo& info, variants_.getSampleHeader())
-        {
-            if(info.isAffected())
-            {
-                affected_ps << info.name.trimmed();
-            }
-        }
-
-        if (affected_ps.isEmpty()) //no affected => error
-        {
-            THROW(ProgrammingException, "germlineReportSample() cannot be used if there is no affected sample!");
-        }
-        else if (affected_ps.count()==1) //one affected => auto-select
-        {
-            germline_report_ps_ = affected_ps[0];
-        }
-        else //several affected => let user select
-        {
-            // bool ok = false;
-            // QString selected = QInputDialog::getItem(this, "Report sample", "processed sample used for report:", affected_ps, 0, false, &ok); TODO
-            // if (ok)
-            // {
-            // germline_report_ps_ = selected;
-            // }
-        }
-    }
+	if (germline_report_ps_ == "")
+	{
+		//germline_report_ps_ should be set when loading an analysis that supports the germline report - either automatically or by user input using the signal "germlineReportSample(QStringList samples)"
+		THROW(ProgrammingException, "germlineReportSample() was called but germline_report_ps_ not set.");
+	}
 
     return germline_report_ps_;
 }
@@ -1203,11 +1217,108 @@ QSharedPointer<RnaReportConfiguration> AnalysisDataController::getRnaReportConfi
     return rna_report_config_;
 }
 
-const ReportSettings& AnalysisDataController::getGermlineReportSettings() const
+ReportSettings& AnalysisDataController::getGermlineReportSettings()
 {
     return germline_report_settings_;
 }
-const SomaticReportSettings& AnalysisDataController::getSomaticReportSettings() const
+
+VariantList AnalysisDataController::validateGermlineReportSmallVariants()
+{
+	NGSD db;
+	VariantList missing_variants;
+
+	int rc_id = db.reportConfigId(db.processedSampleId(germlineReportSample()));
+	QList<int> small_variant_ids = db.getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE report_configuration_id=:0", QString::number(rc_id));
+	foreach (int var_id, small_variant_ids)
+	{
+		//match report variant against variant list
+		Variant var = db.variant(QString::number(var_id));
+		bool match_found = false;
+		for (int i=0; i<getSmallVariantList().count(); ++i)
+		{
+			if (var==getSmallVariantList()[i])
+			{
+				match_found = true;
+				break;
+			}
+		}
+		if (!match_found) missing_variants.append(var);
+	}
+	return missing_variants;
+}
+
+CnvList AnalysisDataController::validateGermlineReportCnvs()
+{
+	NGSD db;
+	CnvList missing_variants;
+
+	int rc_id = db.reportConfigId(db.processedSampleId(germlineReportSample()));
+
+	QList<int> cnv_ids = db.getValuesInt("SELECT cnv_id FROM report_configuration_cnv WHERE report_configuration_id=:0", QString::number(rc_id));
+	foreach (int var_id, cnv_ids)
+	{
+		//match report variant against variant list
+		CopyNumberVariant cnv = db.cnv(var_id);
+		bool match_found = false;
+		for (int i=0; i<getCnvList().count(); ++i)
+		{
+			if (getCnvList()[i].hasSamePosition(cnv))
+			{
+				match_found = true;
+				break;
+			}
+		}
+		if (!match_found) missing_variants.append(cnv);
+	}
+	return missing_variants;
+}
+
+BedpeFile AnalysisDataController::validateGermlineReportSvs()
+{
+	NGSD db;
+	BedpeFile missing_variants;
+
+	int rc_id = db.reportConfigId(db.processedSampleId(germlineReportSample()));
+	foreach (StructuralVariantType type, QList<StructuralVariantType>() << StructuralVariantType::DEL << StructuralVariantType::DUP << StructuralVariantType::INS << StructuralVariantType::INV << StructuralVariantType::BND)
+	{
+		QString sv_table = db.svTableName(type);
+		QList<int> sv_ids = db.getValuesInt("SELECT " + sv_table + "_id FROM report_configuration_sv WHERE report_configuration_id=:0 AND " + sv_table + "_id IS NOT NULL", QString::number(rc_id));
+		foreach (int var_id, sv_ids)
+		{
+			//match report variant against variant list
+			BedpeLine sv = db.structuralVariant(var_id, type, getSvList());
+			if (getSvList().findMatch(sv, true, false) == -1) missing_variants.append(sv);
+		}
+	}
+	return missing_variants;
+}
+
+RepeatLocusList AnalysisDataController::validateGermlineReportRes()
+{
+	NGSD db;
+	RepeatLocusList missing_variants;
+
+	int rc_id = db.reportConfigId(db.processedSampleId(germlineReportSample()));
+	QList<int> re_ids = db.getValuesInt("SELECT cnv_id FROM report_configuration_re WHERE report_configuration_id=:0", QString::number(rc_id));
+	foreach (int var_id, re_ids)
+	{
+		//match report variant against variant list
+		RepeatLocus re = db.repeatExpansionGenotype(var_id);
+		bool match_found = false;
+		for (int i=0; i<getReList().count(); ++i)
+		{
+			if (getReList()[i].sameRegionAndLocus(re))
+			{
+				match_found = true;
+				break;
+			}
+		}
+		if (!match_found) missing_variants.append(re);
+	}
+	return missing_variants;
+}
+
+SomaticReportSettings& AnalysisDataController::getSomaticReportSettings()
 {
     return somatic_report_settings_;
 }
@@ -1535,7 +1646,7 @@ void AnalysisDataController::generateGermlineReport(QString filepath, QString ty
 
     //start worker in background
     ReportWorker* worker = new ReportWorker(data, filepath);
-    startJob(worker, true);
+	GlobalServiceProvider::startJob(worker, true);
 }
 
 VariantValidation AnalysisDataController::getSmallVariantValidationEntry(int variant_idx, QString ps_name)
@@ -1555,31 +1666,26 @@ VariantValidation AnalysisDataController::getSmallVariantValidationEntry(int var
     QString sample_id = db.sampleId(ps_name);
 
     //get variant validation ID - add if missing
-    QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE variant_id='" + variant_id + "' AND sample_id='" + sample_id + "'", true);
-    if (!val_id.isValid())
+	VariantValidation var_val = db.variantValidationSmallVariant(variant_id.toUtf8(), sample_id.toUtf8(), false);
+	if (var_val.val_id == -1)
     {
-        VariantValidation var_val;
-
-        //get genotype
+		//add genotype and status to newly created variant validation
         QByteArray genotype = "het";
         int i_genotype = variants_.getSampleHeader().infoByID(ps_name).column_index;
         if (i_genotype!=-1) //genotype column only available in germline, but not for somatic analysis.
         {
             genotype = variant.annotations()[i_genotype];
         }
-        var_val.sample_id = Helper::toInt(sample_id);
-        var_val.variant_id = Helper::toInt(variant_id);
-        var_val.genotype = genotype;
-        var_val.variant_type = "SNV_INDEL";
+		var_val.genotype = genotype;
         var_val.status = "n/a";
-
-        return var_val;
-    }
+	}
+	return var_val;
 }
 
 void AnalysisDataController::storeVariantValidation(const VariantValidation& var_val)
 {
-
+	NGSD db;
+	db.storeVariantValidation(var_val, QByteArray::number(LoginManager::userId()));
 }
 
 EvaluationSheetData AnalysisDataController::getEvaluationSheetData()
