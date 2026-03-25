@@ -864,7 +864,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 		{
 			ui->detail_domain->setToolTip(split_domain_string[1].replace("]", ""));
 		}
-		text = formatLink(split_domain_string[0], "https://pfam.xfam.org/family/" + split_domain_string[0]);
+		text = formatLink(split_domain_string[0], "https://www.ebi.ac.uk/interpro/entry/pfam/" + split_domain_string[0]);
 	}
 	ui->detail_domain->setText(text);
 
