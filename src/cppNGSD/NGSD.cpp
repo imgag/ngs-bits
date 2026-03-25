@@ -4617,6 +4617,9 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 		const BedLine& line = target_region[i];
 		if (line.annotations().size() > 0)
 		{
+			//ignore constant hotspot regions
+			if (line.annotations().at(0).startsWith("hotspot_region:")) continue;
+
 			//create variant
 			QByteArrayList variant_info = line.annotations().at(0).split('>');
 			if (variant_info.size() != 2)

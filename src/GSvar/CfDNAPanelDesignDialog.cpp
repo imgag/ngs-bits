@@ -761,6 +761,15 @@ BedFile CfDNAPanelDesignDialog::createBedFile(const VcfFile& vcf_file)
 		}
 	}
 
+	// get fixed hotspot regions from selected processing system
+	int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText().toUtf8());
+	BedFile processing_system_region = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
+	for (int i = 0; i < processing_system_region.count(); ++i)
+	{
+		if (processing_system_region[i].annotations().count() < 1) continue;
+		if (processing_system_region[i].annotations().at(0).startsWith("hotspot_region:")) bed_file.append(processing_system_region[i]);
+	}
+
 	// generate bed file
 	for (int i=0; i<vcf_file.count(); i++)
 	{
