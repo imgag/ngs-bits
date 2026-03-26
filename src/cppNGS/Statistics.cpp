@@ -158,7 +158,7 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 	}
 	else
 	{
-		if (!csq_info_exists)
+		if (!csq_info_exists && !csq2_info_exists)
 		{
 			addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (CSQ info field missing)");
 		}
@@ -169,13 +169,13 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 			{
 				if (!filter_result.passing(i)) continue;
 
-				if (variants[i].info("CSQ").contains("|HIGH|")) //works without splitting by transcript
+				if (csq_info_exists) //VEP annotation
 				{
-					++high_impact_count;
+					if (variants[i].info("CSQ").contains("|HIGH|")) ++high_impact_count;
 				}
-				else if (csq2_info_exists && variants[i].info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
+				else if (csq2_info_exists) //fallback to additional annotation with VcfAnnotateConsequence
 				{
-					++high_impact_count;
+					if (variants[i].info("CSQ2").contains("|HIGH|")) ++high_impact_count;
 				}
 
 			}
