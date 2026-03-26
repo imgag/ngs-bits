@@ -104,8 +104,7 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 	QCCollection output;
 
 	//init
-	bool csq_info_exists = variants.vcfHeader().infoIdDefined("CSQ"); //from VEP
-	bool csq2_info_exists = variants.vcfHeader().infoIdDefined("CSQ2"); //from VcfAnnotateConsequence
+	bool csq_info_exists = variants.vcfHeader().infoIdDefined("CSQ"); //VEP or VcfAnnotateConsequence annotation
 	bool rs_info_exists = variants.vcfHeader().infoIdDefined("RS"); //dbSNP rs number
 
 	//filter variants
@@ -158,7 +157,7 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 	}
 	else
 	{
-		if (!csq_info_exists && !csq2_info_exists)
+		if (!csq_info_exists)
 		{
 			addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (CSQ info field missing)");
 		}
@@ -169,14 +168,7 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 			{
 				if (!filter_result.passing(i)) continue;
 
-				if (csq_info_exists) //VEP annotation
-				{
-					if (variants[i].info("CSQ").contains("|HIGH|")) ++high_impact_count;
-				}
-				else if (csq2_info_exists) //fallback to additional annotation with VcfAnnotateConsequence
-				{
-					if (variants[i].info("CSQ2").contains("|HIGH|")) ++high_impact_count;
-				}
+				if (variants[i].info("CSQ").contains("|HIGH|")) ++high_impact_count;
 
 			}
 			addQcValue(output, "QC:2000015", "high-impact variants percentage", 100.0*high_impact_count/vars_passing_filter);
