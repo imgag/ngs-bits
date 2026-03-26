@@ -50,7 +50,6 @@ private slots:
 	void variantClicked(QString link);
 	void gnomadClicked(QString variant_string);
 	void transcriptClicked(QString link);
-	void pubmedClicked(QString link);
 	void variantButtonClicked();
 	void gnomadContextMenu(QPoint pos);
 	void spliceaiContextMenu(QPoint pos);
