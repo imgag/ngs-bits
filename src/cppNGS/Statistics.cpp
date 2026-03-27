@@ -1942,6 +1942,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	comb_hist << "max " + QString::number(hist_all.max());
 	comb_hist << "binCount " + QString::number(hist_all.binCount());
 	comb_hist << "bin_size " + QString::number(hist_all.binSize());
+	comb_hist << "bin_sum " + QString::number(hist_all.binSum());
 	comb_hist << "*************";
 
 	for (int ha=0; ha<hist_all.xCoords().size(); ha++)
@@ -1958,6 +1959,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	comb_hist << "max " + QString::number(hist_filtered.max());
 	comb_hist << "binCount " + QString::number(hist_filtered.binCount());
 	comb_hist << "bin_size " + QString::number(hist_filtered.binSize());
+	comb_hist << "bin_sum " + QString::number(hist_filtered.binSum());
 	comb_hist << "*************";
 
 	for (int hf=0; hf<hist_filtered.xCoords().size(); hf++)
