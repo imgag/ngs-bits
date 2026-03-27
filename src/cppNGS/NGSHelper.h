@@ -3,7 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "GenomeBuild.h"
-#include "Transcript.h"
+#include "BedpeFile.h"
 #include "GeneSet.h"
 #include "VcfFile.h"
 #include "BamReader.h"
@@ -104,6 +104,9 @@ public:
 
 	///Returns a mapping from chromosome names to RefSeq NC identifiers including version number
 	static QHash<Chromosome, QString> chromosomeMapping(GenomeBuild build);
+
+	///Returns support read AF for a SV. Returns -1 if it could not be determined.
+	static double supportReadAf(const BedpeFile& svs, int sv_index, QByteArray sample, QByteArray read_type);
 
 private:
 	///Constructor declared away
