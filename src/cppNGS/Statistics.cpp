@@ -1934,6 +1934,41 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	QString plot0name = Helper::tempFileName(".png");
 	hist_all.setLabel("all variants");
 	hist_filtered.setLabel("variants with filter PASS");
+
+
+	QStringList comb_hist;
+
+	comb_hist << "min " + QString::number(hist_all.min());
+	comb_hist << "max " + QString::number(hist_all.max());
+	comb_hist << "binCount " + QString::number(hist_all.binCount());
+	comb_hist << "bin_size " + QString::number(hist_all.binSize());
+	comb_hist << "*************";
+
+	for (int ha=0; ha<hist_all.xCoords().size(); ha++)
+	{
+		comb_hist << "(" + QString::number(hist_all.xCoords()[ha])+ ", " + QString::number(hist_all.yCoords()[ha]) + ")";
+	}
+
+	Helper::storeTextFile("hist_all.txt", comb_hist);
+
+	comb_hist.clear();
+
+
+	comb_hist << "min " + QString::number(hist_filtered.min());
+	comb_hist << "max " + QString::number(hist_filtered.max());
+	comb_hist << "binCount " + QString::number(hist_filtered.binCount());
+	comb_hist << "bin_size " + QString::number(hist_filtered.binSize());
+	comb_hist << "*************";
+
+	for (int hf=0; hf<hist_filtered.xCoords().size(); hf++)
+	{
+		comb_hist << "(" + QString::number(hist_filtered.xCoords()[hf])+ ", " + QString::number(hist_filtered.yCoords()[hf]) + ")";
+	}
+
+	Helper::storeTextFile("hist_filtered.txt", comb_hist);
+
+
+
 	Histogram::storeCombinedHistogram(plot0name, QList<Histogram>({hist_all,hist_filtered}),"tumor allele frequency","count");
 	addQcPlot(output, "QC:2000055","somatic SNVs allele frequency histogram", plot0name);
 	QFile::remove(plot0name);
