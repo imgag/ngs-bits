@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -172,7 +172,7 @@
          <x>0</x>
          <y>0</y>
          <width>1079</width>
-         <height>606</height>
+         <height>553</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -285,6 +285,11 @@
    <extends>QSplitter</extends>
    <header location="global">PanelManager.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ChromosomeContextPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">ChromosomeContextPanel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
