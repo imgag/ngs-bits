@@ -1,9 +1,8 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "VersatileFile.h"
-#include <NGSHelper.h>
-#include <QFileInfo.h>
-#include <VcfFile.h>
+#include "NGSHelper.h"
+#include <QFileInfo>
 
 class ConcreteTool
         : public ToolBase
@@ -11,25 +10,25 @@ class ConcreteTool
     Q_OBJECT
 
 public:
-	ConcreteTool(int& argc, char *argv[])
-		: ToolBase(argc, argv)
-	{
-	}
+    ConcreteTool(int& argc, char *argv[])
+        : ToolBase(argc, argv)
+    {
+    }
 
     //TODO also use to normalize VCFs in single sample pipelines? Support merging two het into one hom variant
+    //TODO add BAM files, to determine depth and AF for uncalled variants
 
-	virtual void setup()
-	{
+    virtual void setup()
+    {
         setDescription("Merges several VCF files into a multi-sample VCF file.");
         setExtendedDescription(QStringList() << "Input VCF have to be normalized (no multi-allelic variants, split into allelic primitives and indels left-aligned."
-                                             << "The output has no information in the QUAL, FILTER and INFO column. It contains the following FORMAT entries: GT, DP, AF, GQ, PS");
-		addInfileList("in", "Input files to merge in VCF or VCG.GZ format.", false);
-		//optional
+                                             << "The output has no information in the QUAL, FILTER and INFO column. It contains the following FORMAT entries: GT, DP, AF, GQ, PS, CT");
+        addInfileList("in", "Input files to merge in VCF or VCG.GZ format.", false);
+        //optional
         addOutfile("out", "Output multi-sample VCF. If unset, writes to STDOUT.", true);
         addFlag("trio", "Enables trio special handling. Expected sample order: child, father, mother.");
-        //TODO add BAM files, to determine depth and AF for uncalled variants
         changeLog(2026, 3, 29, "Initial implementation.");
-	}
+    }
 
     struct VariantDetails
     {
@@ -64,9 +63,8 @@ public:
         QByteArray dp = ".";
         QByteArray af = ".";
         QByteArray gq = ".";
-        QByteArray ps = ".";
-        bool is_mosaic = false;
-        bool is_low_mappability = false;
+        QByteArray ps = "."; //Phase set
+        QByteArray ct = "."; //Call type
     };
 
     struct VcfData
@@ -195,14 +193,20 @@ public:
                 if (i_ps!=-1) format.ps = format_values[i_ps];
                 QByteArrayList filters = parts[6].split(';');
                 std::for_each(filters.begin(), filters.end(), [](QByteArray& x) { x = x.trimmed(); });
-                format.is_low_mappability = filters.contains("low_mappability");
-                if (format.is_low_mappability) ++output.c_low_mappability;
-                format.is_mosaic = filters.contains("mosaic");
-                if (format.is_mosaic) ++output.c_mosaic;
+                if (filters.contains("low_mappability"))
+                {
+                    format.ct ="LM";
+                    ++output.c_low_mappability;
+                }
+                if (filters.contains("mosaic"))
+                {
+                    format.ct ="MO";
+                    ++output.c_mosaic;
+                }
                 output.tag_to_format.insert(tag, format);
 
                 //determine heterozygous SNV percentage on chrX (for gender)
-                if (chr.isX() && is_snv && !format.is_mosaic && !format.is_low_mappability)
+                if (chr.isX() && is_snv && format.ct==".")
                 {
                     if (!NGSHelper::pseudoAutosomalRegion(GenomeBuild::HG38).overlapsWith(chr, pos, pos))
                     {
@@ -238,15 +242,15 @@ public:
         debug << "\n";
     }
 
-	virtual void main()
-	{
+    virtual void main()
+    {
         //init
-		QStringList in_files = getInfileList("in");
-		QString out = getOutfile("out");
-		foreach(QString in, in_files)
-		{
+        QStringList in_files = getInfileList("in");
+        QString out = getOutfile("out");
+        foreach(QString in, in_files)
+        {
             if(in==out) THROW(ArgumentException, "Input and output files must be different!");
-		}
+        }
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
         QTextStream debug(out.isEmpty() ? stderr : stdout);
         bool trio = getFlag("trio");
@@ -270,6 +274,7 @@ public:
         out_p->write("##FORMAT=<ID=AF,Number=1,Type=Float,Description=\"Allele frequency of variant.\">\n");
         out_p->write("##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype quality.\">\n");
         out_p->write("##FORMAT=<ID=PS,Number=1,Type=Integer,Description=\"Phase set identifier.\">\n");
+        out_p->write("##FORMAT=<ID=CT,Number=1,Type=String,Description=\"Special variant calling flag: MO=mosaic, LM=low-mappabilty\">\n");
         for(const VcfData& entry: std::as_const(data))
         {
             if (entry.sample_desc.isEmpty()) continue;
@@ -293,19 +298,19 @@ public:
 
         //write variants
         for(const VariantDetails& v: std::as_const(var_details))
-		{
+        {
             QByteArray tag = v.tag();
-            out_p->write(tag + "\t30\tPASS\t.\tGT:DP:AF:GQ:PS");
+            out_p->write(tag + "\t30\tPASS\t.\tGT:DP:AF:GQ:PS:CT");
             for(const VcfData& entry: std::as_const(data))
             {
                 FormatData format = entry.tag_to_format.value(tag);
-                out_p->write("\t"+format.gt+":"+format.dp+":"+format.af+":"+format.gq+":"+format.ps);
+                out_p->write("\t"+format.gt+":"+format.dp+":"+format.af+":"+format.gq+":"+format.ps+":"+format.ct);
             }
             out_p->write("\n");
         }
 
-		//clean up
-		out_p->close();
+        //clean up
+        out_p->close();
 
         //statistics output
         debug << "output:\n";
@@ -327,13 +332,13 @@ public:
                 bool is_error = false;
                 QByteArray gt_c = "0/0";
                 FormatData format = data[0].tag_to_format.value(tag);
-                if (format.gt!="." && !format.is_low_mappability && !format.is_mosaic) gt_c = format.gt;
+                if (format.gt!="." && format.ct==".") gt_c = format.gt;
                 QByteArray gt_f = "0/0";
                 format = data[1].tag_to_format.value(tag);
-                if (format.gt!="." && !format.is_low_mappability && !format.is_mosaic) gt_f = format.gt;
+                if (format.gt!="." && format.ct==".") gt_f = format.gt;
                 QByteArray gt_m = "0/0";
                 format = data[2].tag_to_format.value(tag);
-                if (format.gt!="." && !format.is_low_mappability && !format.is_mosaic) gt_m = format.gt;
+                if (format.gt!="." && format.ct==".") gt_m = format.gt;
 
                 //hom, hom => het/wt
                 if (gt_f=="1/1" && gt_m=="1/1" && gt_c!="1/1") is_error = true;
@@ -358,7 +363,7 @@ public:
             debug << "  trio mendelian error rate of SNVs: " << QByteArray::number(100.0 * c_snv_error/c_snv, 'f', 2) << "%\n";
             debug << "  trio mendelian error rate of INDELs: " << QByteArray::number(100.0 * c_indel_error/c_indel, 'f', 2) << "%\n";
         }
-	}
+    }
 };
 
 #include "main.moc"
