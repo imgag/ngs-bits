@@ -14,6 +14,15 @@ PanelManager::PanelManager(QWidget* parent)
 }
 
 
+void PanelManager::reloadTracks()
+{
+	QList<TrackGroup*> track_groups = findChildren<TrackGroup*>();
+	foreach(TrackGroup* track_group, track_groups)
+	{
+		if (track_group) track_group->reloadTracks();
+	}
+}
+
 void PanelManager::mousePressEvent(QMouseEvent* event)
 {
 	if (event->button() == Qt::LeftButton)

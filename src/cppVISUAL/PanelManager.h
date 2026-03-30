@@ -14,6 +14,8 @@ class CPPVISUALSHARED_EXPORT PanelManager :
 public:
 	PanelManager(QWidget* parent =nullptr);
 
+	void reloadTracks();
+
 	void mouseMoveEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
@@ -29,6 +31,7 @@ public slots:
 
 private:
 	void connectSignals(TrackGroup*);
+	TrackGroup* default_panel_;
 };
 
 

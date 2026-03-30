@@ -1,4 +1,5 @@
 #include "BedTrack.h"
+#include "FileLoader.h"
 #include "SharedData.h"
 #include "TrackManager.h"
 
@@ -21,6 +22,22 @@ BedTrack::BedTrack(QWidget* parent, QString file_path, QString name, QSharedPoin
 	calculateNumRows();
 }
 
+
+void BedTrack::reloadTrack()
+{
+	bool success = FileLoader::loadBedFile(file_path_, bedfile_);
+	if (success)
+	{
+		chr_index_.createIndex();
+		calculateNumRows();
+		updateGeometry();
+		update();
+	}
+	else
+	{
+		emit trackDeleted();
+	}
+}
 
 void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {

@@ -27,10 +27,10 @@ void TrackWidget::regionChanged()
 
 void TrackWidget::populateContextMenu(QMenu& menu)
 {
-	opt1_ = menu.addAction("Collapsed");
-	opt2_ = menu.addAction("Expanded");
+	opts_[0] = menu.addAction("Collapsed");
+	opts_[1] = menu.addAction("Expanded");
 
-	for (QAction *action : {opt1_, opt2_})
+	for (QAction *action : {opts_[0], opts_[1]})
 	{
 		action->setCheckable(true);
 	}
@@ -38,27 +38,33 @@ void TrackWidget::populateContextMenu(QMenu& menu)
 	switch (draw_mode_)
 	{
 	case COLLAPSED:
-		opt1_->setChecked(true);
+		opts_[0]->setChecked(true);
 		break;
 	case EXPANDED:
-		opt2_->setChecked(true);
+		opts_[1]->setChecked(true);
 		break;
 	}
+
+	opts_[2] = menu.addAction("Reload Track");
 }
 
 void TrackWidget::handleContextMenuAction(QAction* action)
 {
-	if (action == opt1_)
+	if (action == opts_[0])
 	{
 		draw_mode_ = COLLAPSED;
 		updateGeometry();
 		update();
 	}
-	else if (action == opt2_)
+	else if (action == opts_[1])
 	{
 		draw_mode_ = EXPANDED;
 		updateGeometry();
 		update();
+	}
+	else if (action == opts_[2])
+	{
+		reloadTrack();
 	}
 }
 

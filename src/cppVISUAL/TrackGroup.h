@@ -16,6 +16,7 @@ class CPPVISUALSHARED_EXPORT TrackGroup
 public:
 	explicit TrackGroup(QWidget* = nullptr);
 	bool loadFile();
+	void reloadTracks();
 
 signals:
 	void addPanelAbove();
@@ -29,6 +30,7 @@ public slots:
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
+
 	void clearLayout();
 	void clearLayoutAndDelete();
 	void removeTrack(QWidget*);

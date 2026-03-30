@@ -25,6 +25,8 @@ public:
 public slots:
 	//Triggers the 'open file' dialog
 	void loadFile();
+	//Triggers reload tracks for all tracks
+	void reloadTracks();
 
 protected slots:
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)

@@ -22,6 +22,7 @@ public:
 
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override {return sizeHint();};
+	void reloadTrack() override;
 
 private:
 	QSharedPointer<BedFile> bedfile_;

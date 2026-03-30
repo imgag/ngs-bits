@@ -20,6 +20,7 @@ public:
 	~TrackWidget();
 
 	const QUuid& id() {return id_;}
+	virtual void reloadTrack(){}
 
 signals:
 	void trackDeleted();
@@ -43,8 +44,7 @@ protected:
 	DrawMode draw_mode_ = COLLAPSED;
 	QPoint drag_start_pos_;
 	bool is_dragging_;
-	QAction* opt1_;
-	QAction* opt2_;
+	QAction *opts_[3];
 
 
 	QUuid id_;

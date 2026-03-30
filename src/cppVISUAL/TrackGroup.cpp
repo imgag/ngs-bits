@@ -61,7 +61,7 @@ bool TrackGroup::loadFile()
 	QString file_path = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)"));
 	if (file_path.isEmpty()) return false;
 
-	TrackWidgetList widgets = FileLoader::load(file_path, this);
+	TrackWidgetList widgets = FileLoader::loadTracks(file_path, this);
 	if (widgets.isEmpty()) return false;
 	foreach (TrackWidget* widget, widgets)
 	{
@@ -71,6 +71,15 @@ bool TrackGroup::loadFile()
 		layout_->update();
 	}
 	return true;
+}
+
+void TrackGroup::reloadTracks()
+{
+	QList<TrackWidget*> track_widgets = findChildren<TrackWidget*>();
+	foreach (TrackWidget* track_widget, track_widgets)
+	{
+		track_widget->reloadTrack();
+	}
 }
 
 void TrackGroup::contextMenu(QPoint pos)

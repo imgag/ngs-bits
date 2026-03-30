@@ -30,6 +30,11 @@ void GenomeVisualizationWidget::loadFile()
 	ui_->panel_manager->loadFile();
 }
 
+void GenomeVisualizationWidget::reloadTracks()
+{
+	ui_->panel_manager->reloadTracks();
+}
+
 
 void GenomeVisualizationWidget::updateIndices()
 {
