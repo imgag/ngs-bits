@@ -46,8 +46,8 @@ private:
 	TEST_METHOD(with_fastq_output)
 	{
 		EXECUTE("ReadQC", "-in1 " + TESTDATA("data_in/ReadQC_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/ReadQC_in2.fastq.gz") + " -out1 out/ReadQC_out6_R1.fastq.gz -out2 out/ReadQC_out6_R2.fastq.gz -out out/ReadQC_out6.qcML");
-		COMPARE_GZ_FILES("out/ReadQC_out6_R1.fastq.gz", TESTDATA("data_in/ReadQC_in1.fastq.gz"));
-		COMPARE_GZ_FILES("out/ReadQC_out6_R2.fastq.gz", TESTDATA("data_in/ReadQC_in2.fastq.gz"));
+		COMPARE_FILES("out/ReadQC_out6_R1.fastq.gz", TESTDATA("data_in/ReadQC_in1.fastq.gz"));
+		COMPARE_FILES("out/ReadQC_out6_R2.fastq.gz", TESTDATA("data_in/ReadQC_in2.fastq.gz"));
 	}
 
 	TEST_METHOD(long_read_test)

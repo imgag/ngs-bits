@@ -13,8 +13,8 @@ private:
 				" -in_barcode " +
 				TESTDATA("data_in/FastqAddBarcode_in.fastq.gz") +
 				" -out1 out/FastqAddBarcode_out1.fastq.gz -out2 out/FastqAddBarcode_out2.fastq.gz");
-		COMPARE_GZ_FILES("out/FastqAddBarcode_out1.fastq.gz", TESTDATA("data_out/FastqAddBarcode_out1.fastq.gz"));
-		COMPARE_GZ_FILES("out/FastqAddBarcode_out2.fastq.gz", TESTDATA("data_out/FastqAddBarcode_out2.fastq.gz"));
+		COMPARE_FILES("out/FastqAddBarcode_out1.fastq.gz", TESTDATA("data_out/FastqAddBarcode_out1.fastq.gz"));
+		COMPARE_FILES("out/FastqAddBarcode_out2.fastq.gz", TESTDATA("data_out/FastqAddBarcode_out2.fastq.gz"));
 	}
 
 };
