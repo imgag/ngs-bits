@@ -21,11 +21,13 @@ public:
     {
         setDescription("Merges several VCF files into a multi-sample VCF file.");
         setExtendedDescription(QStringList() << "Input VCF have to be normalized (no multi-allelic variants, split into allelic primitives and indels left-aligned."
-                                             << "The output has no information in the QUAL, FILTER and INFO column. It contains the following FORMAT entries: GT, DP, AF, GQ, PS, CT");
+                                             << "The output has no information in the QUAL, FILTER and INFO column. It contains the following FORMAT entries: GT, DP, AF, GQ, PS, CT."
+                                             << "Supported file formats for short-read are: freebayes, DRAGEN, DeepVariant."
+                                             << "Supported file formats for long-read are: Clair3 (ONT), DeepVariant (PacBio)");
         addInfileList("in", "Input files to merge in VCF or VCG.GZ format.", false);
         //optional
         addOutfile("out", "Output multi-sample VCF. If unset, writes to STDOUT.", true);
-        addFlag("trio", "Enables trio special handling. Expected sample order: child, father, mother.");
+        addFlag("trio", "Enables trio mendelian error calculation. Expected sample order: child, father, mother.");
         addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. For each 'in' file, a BAM file has to be provided in the same order.", true);
         addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
