@@ -3,6 +3,7 @@
 #include "VersatileFile.h"
 #include "NGSHelper.h"
 #include <QFileInfo>
+#include "Settings.h"
 
 class ConcreteTool
         : public ToolBase
@@ -15,9 +16,7 @@ public:
     {
     }
 
-    //TODO also use to normalize VCFs in single sample pipelines? Support merging two het into one hom variant
-    //TODO add BAM files, to determine depth and AF for uncalled variants
-
+    //TODO Marc: also use to normalize VCFs in single sample pipelines? Support merging two het into one hom variant then (see vcf_fix.php)
     virtual void setup()
     {
         setDescription("Merges several VCF files into a multi-sample VCF file.");
@@ -27,7 +26,10 @@ public:
         //optional
         addOutfile("out", "Output multi-sample VCF. If unset, writes to STDOUT.", true);
         addFlag("trio", "Enables trio special handling. Expected sample order: child, father, mother.");
-        changeLog(2026, 3, 29, "Initial implementation.");
+        addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. For each 'in' file, a BAM file has to be provided in the same order.", true);
+        addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+
+        changeLog(2026, 3, 30, "Initial implementation.");
     }
 
     struct VariantDetails
@@ -37,6 +39,8 @@ public:
         QByteArray ref;
         QByteArray alt;
         bool is_snv;
+
+        QByteArray tag; //tag that identifies this variant
 
         bool operator<(const VariantDetails& rhs) const
         {
@@ -49,11 +53,6 @@ public:
             else if (alt<rhs.alt) return true; //compare obs sequence
             else if (alt>rhs.alt) return false;
             return false;
-        }
-
-        QByteArray tag() const
-        {
-            return chr.strNormalized(true)+'\t'+QByteArray::number(pos)+"\t.\t"+ref+'\t'+alt;
         }
     };
 
@@ -84,6 +83,7 @@ public:
         int c_mosaic = 0; //mosaic variant count
         int c_low_mappability = 0; //low_mappability variant count
         int c_skipped_wt = 0; //variants skipped because they are wild-type
+        int c_recall_no_wt = 0; //variants added during re-calling
     };
 
     VcfData loadVcf(QString filename, QList<VariantDetails>& var_details, QHash<QByteArray, int>& var_tag_to_index)
@@ -164,8 +164,9 @@ public:
                 //get index of variant in list
                 Chromosome chr(parts[0]);
                 int pos = Helper::toInt(parts[1], "variant position");
-                VariantDetails details{chr, pos, ref, alt, is_snv};
-                QByteArray tag = details.tag();
+
+                QByteArray tag = chr.strNormalized(true)+'\t'+parts[1]+"\t.\t"+ref+'\t'+alt;
+                VariantDetails details{chr, pos, ref, alt, is_snv, tag};
                 int index = var_tag_to_index.value(tag, -1);
 
                 //no index > insert variant to list
@@ -186,7 +187,7 @@ public:
                     QByteArray ao = format_values[i_ao];
                     if (Helper::isNumeric(dp) && Helper::isNumeric(ao))
                     {
-                        format.af = QByteArray::number(dp.toDouble() / ao.toDouble(), 'f', 3);
+                        format.af = QByteArray::number(ao.toDouble() / dp.toDouble(), 'f', 3);
                     }
                 }
                 if (i_gq!=-1) format.gq = format_values[i_gq];
@@ -226,7 +227,7 @@ public:
         return output;
     }
 
-    void printFileDebug(const VcfData& data, QTextStream& debug)
+    void printSampleDetails(const VcfData& data, QTextStream& debug)
     {
         debug << "input file: " << data.filename << "\n";
         debug << "  variants skipped (wild-type): " << QByteArray::number(data.c_skipped_wt) << "\n";
@@ -239,7 +240,95 @@ public:
         {
             debug << "  heterozygous SNVs on chrX ouside PAR: " << QByteArray::number(data.chrx_het_perc, 'f', 2) << "%\n";
         }
-        debug << "\n";
+        debug << Qt::endl;
+    }
+
+    void recallVariants(QString bam, QString ref_file, VcfData& data, const QList<VariantDetails>& var_details, QTextStream& debug)
+    {
+        debug << "Re-calling of variants for sample " << data.sample << "\n";
+        int c_added = 0;
+        int c_added_snv = 0;
+        int c_added_indel = 0;
+        BamReader reader(bam, ref_file);
+        for (const VariantDetails& var: std::as_const(var_details))
+        {
+            if (data.tag_to_format.contains(var.tag)) continue;
+
+            Pileup pileup = reader.getPileup(var.chr, var.pos, (var.is_snv ? -1 : 1), -1, false, -1);
+            int depth = pileup.depth(false);
+            QByteArray gt = "0/0";
+            QByteArray dp = QByteArray::number(depth);
+            QByteArray af = ".";
+            QByteArray ct = ".";
+
+            //determine AF and adapt GT if reasonable
+            if (var.is_snv)
+            {
+                double freq = pileup.frequency(var.ref[0], var.alt[0]);
+                if (BasicStatistics::isValidFloat(freq))
+                {
+                    af = QByteArray::number(freq, 'f', 3);
+                    if (depth>=10 || pileup.countOf(var.alt[0])>3)
+                    {
+                        if (freq>0.9) gt = "1/1";
+                        else if (freq>0.1) gt = "0/1";
+                    }
+                }
+            }
+            else if (var.ref.size()==1) //insertion
+            {
+                //count insertion with the same seqence
+                QByteArray expected = "+" +var.alt.mid(1);
+                int count = 0;
+                foreach(const Sequence& seq, pileup.indels())
+                {
+                    if (seq==expected) ++count;
+                }
+
+                //determine af
+                double freq = (double) count / (double) depth;
+                af = QByteArray::number(freq, 'f', 3);
+                if (depth>=10 || count>3)
+                {
+                    if (freq>0.9) gt = "1/1";
+                    else if (freq>0.1) gt = "0/1";
+                }
+            }
+            else if (var.alt.size()==1) //deletion
+            {
+                //count deletions of the right size
+                QByteArray expected = "-" +QByteArray::number(var.ref.size()-1);
+                int count = 0;
+                foreach(const Sequence& seq, pileup.indels())
+                {
+                    if (seq==expected) ++count;
+                }
+
+                //determine af
+                double freq = (double) count / (double) depth;
+                af = QByteArray::number(freq, 'f', 3);
+                if (depth>=10 || count>3)
+                {
+                    if (freq>0.9) gt = "1/1";
+                    else if (freq>0.1) gt = "0/1";
+                }
+            }
+
+            //flag added variants
+            if (gt!="0/0")
+            {
+                ++c_added;
+                if (var.is_snv) ++c_added_snv;
+                else ++c_added_indel;
+                ct = "RC";
+            }
+
+            data.tag_to_format[var.tag] = FormatData{gt, dp, af, ".", ".", ct};
+        }
+        debug << "  added variants: " << c_added << "\n";
+        debug << "    SNV: " << c_added_snv << "\n";
+        debug << "    INDEL: " << c_added_indel << "\n";
+        debug << Qt::endl;
     }
 
     virtual void main()
@@ -254,6 +343,17 @@ public:
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
         QTextStream debug(out.isEmpty() ? stderr : stdout);
         bool trio = getFlag("trio");
+        QStringList bam_files = getInfileList("bam");
+        if (!bam_files.isEmpty() && bam_files.count()!=in_files.count()) THROW(ArgumentException, "Number of 'bam' files has to be the same as the number 'in' files!");
+        QString ref_file = getInfile("ref");
+        if (ref_file=="") ref_file = Settings::string("reference_genome", true);
+        if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
+
+        //timing
+        QElapsedTimer timer;
+        QByteArray time_loading;
+        QByteArray time_recalling;
+        QByteArray time_writing;
 
         //load data into memory
         QList<VariantDetails> var_details;
@@ -261,9 +361,18 @@ public:
         QList<VcfData> data;
         foreach(QString in, in_files)
         {
+            timer.start();
             data << loadVcf(in, var_details, var_tag_to_index);
-            printFileDebug(data.last(), debug);
+            printSampleDetails(data.last(), debug);
         }
+        time_loading = Helper::elapsedTime(timer.restart());
+
+        //re-calling of uncalled variants
+        for (int i=0; i<bam_files.count(); ++i)
+        {
+            recallVariants(bam_files[i], ref_file, data[i], var_details, debug);
+        }
+        time_recalling = Helper::elapsedTime(timer.restart());
 
         //write comments
         out_p->write("##fileformat=VCFv4.3\n");
@@ -274,7 +383,7 @@ public:
         out_p->write("##FORMAT=<ID=AF,Number=1,Type=Float,Description=\"Allele frequency of variant.\">\n");
         out_p->write("##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype quality.\">\n");
         out_p->write("##FORMAT=<ID=PS,Number=1,Type=Integer,Description=\"Phase set identifier.\">\n");
-        out_p->write("##FORMAT=<ID=CT,Number=1,Type=String,Description=\"Special variant calling flag: MO=mosaic, LM=low-mappabilty\">\n");
+        out_p->write("##FORMAT=<ID=CT,Number=1,Type=String,Description=\"Special variant calling flag: MO=mosaic, LM=low-mappabilty, RC=added during re-calling\">\n");
         for(const VcfData& entry: std::as_const(data))
         {
             if (entry.sample_desc.isEmpty()) continue;
@@ -299,11 +408,10 @@ public:
         //write variants
         for(const VariantDetails& v: std::as_const(var_details))
         {
-            QByteArray tag = v.tag();
-            out_p->write(tag + "\t30\tPASS\t.\tGT:DP:AF:GQ:PS:CT");
+            out_p->write(v.tag + "\t30\tPASS\t.\tGT:DP:AF:GQ:PS:CT");
             for(const VcfData& entry: std::as_const(data))
             {
-                FormatData format = entry.tag_to_format.value(tag);
+                FormatData format = entry.tag_to_format.value(v.tag);
                 out_p->write("\t"+format.gt+":"+format.dp+":"+format.af+":"+format.gq+":"+format.ps+":"+format.ct);
             }
             out_p->write("\n");
@@ -311,10 +419,14 @@ public:
 
         //clean up
         out_p->close();
+        time_writing = Helper::elapsedTime(timer.restart());
 
-        //statistics output
+        //statistics about output
         debug << "output:\n";
         debug << "  variants written: " << QByteArray::number(var_details.count()) << "\n";
+        int c_snv_out = std::count_if(var_details.begin(), var_details.end(), [](const VariantDetails &v) { return v.is_snv;});
+        debug << "    SNV: " << QByteArray::number(c_snv_out) << "\n";
+        debug << "    INDEL: " << QByteArray::number(var_details.count()-c_snv_out) << Qt::endl;
 
         //trio: determine mendelian error rate
         if (trio)
@@ -328,18 +440,10 @@ public:
                 if (!v.chr.isAutosome()) continue;
 
                 //check if mendelian error
-                QByteArray tag = v.tag();
                 bool is_error = false;
-                QByteArray gt_c = "0/0";
-                FormatData format = data[0].tag_to_format.value(tag);
-                if (format.gt!="." && format.ct==".") gt_c = format.gt;
-                QByteArray gt_f = "0/0";
-                format = data[1].tag_to_format.value(tag);
-                if (format.gt!="." && format.ct==".") gt_f = format.gt;
-                QByteArray gt_m = "0/0";
-                format = data[2].tag_to_format.value(tag);
-                if (format.gt!="." && format.ct==".") gt_m = format.gt;
-
+                QByteArray gt_c = data[0].tag_to_format.value(v.tag).gt;
+                QByteArray gt_f = data[1].tag_to_format.value(v.tag).gt;
+                QByteArray gt_m = data[2].tag_to_format.value(v.tag).gt;
                 //hom, hom => het/wt
                 if (gt_f=="1/1" && gt_m=="1/1" && gt_c!="1/1") is_error = true;
                 //hom, x => wt
@@ -363,6 +467,12 @@ public:
             debug << "  trio mendelian error rate of SNVs: " << QByteArray::number(100.0 * c_snv_error/c_snv, 'f', 2) << "%\n";
             debug << "  trio mendelian error rate of INDELs: " << QByteArray::number(100.0 * c_indel_error/c_indel, 'f', 2) << "%\n";
         }
+        debug << Qt::endl;
+
+        //timing output
+        debug << "time loading VCFs: " << time_loading << "\n";
+        debug << "time re-calling variants: " << time_recalling << "\n";
+        debug << "time writing output: " << time_writing << "\n";
     }
 };
 
