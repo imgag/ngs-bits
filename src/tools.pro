@@ -663,3 +663,7 @@ NGSDTransferReportConfig.depends = cppNGSD
 SUBDIRS += NGSDExportSpliceAI
 tools-TEST.depends += NGSDExportSpliceAI
 NGSDExportSpliceAI.depends = cppNGSD
+
+SUBDIRS += VcfMerge
+tools-TEST.depends += VcfMerge
+VcfMerge.depends = cppNGS

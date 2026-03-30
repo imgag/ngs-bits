@@ -181,4 +181,5 @@ SOURCES += \
     TsvAnnotate_Test.cpp \
     NGSDImportOncotree_Test.cpp \
     NGSDExportSpliceAI_Test.cpp \
+    VcfMerge_Test.cpp \
     main.cpp

@@ -70,7 +70,7 @@ public:
 	///Converts a 3-letter amino acid code to a 1-letter amino acid code
 	static char oneLetterCode(const QByteArray& aa_tree_letter_code);
 
-	///Returns the pseudoautomal regions on gnosomes.
+	///Returns the pseudoautomal region (PAR) on chrX/chrY .
 	static const BedFile& pseudoAutosomalRegion(GenomeBuild build);
 
 	///Returns the cytogenetic band for to chromosomal position

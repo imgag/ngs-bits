@@ -137,7 +137,7 @@ public:
 				continue;
 			}
 
-			//not muli-allelic variants
+			//not multi-allelic variants
 			if (parts[VcfFile::ALT].contains(','))
 			{
 				++c_skip_multiallelic;
