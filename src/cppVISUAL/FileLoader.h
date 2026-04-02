@@ -16,7 +16,7 @@ public:
 	// loads Bed File - emits just one TrackWidget
 	static TrackWidgetList loadBedFileTracks(QString file_path, QWidget* parent = nullptr);
 	// loads bed file
-	static bool loadBedFile(QString file_path, QSharedPointer<BedFile>& bedfile);
+	static QSharedPointer<BedFile> loadBedFile(QString file_path);
 };
 
 #endif // FILELOADER_H

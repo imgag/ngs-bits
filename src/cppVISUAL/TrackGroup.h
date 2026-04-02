@@ -2,11 +2,14 @@
 #define TRACKGROUP_H
 
 #include "cppVISUAL_global.h"
+
+#include <QDomElement>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QScrollArea>
 #include <QMouseEvent>
 #include <QPoint>
+#include <QXmlStreamWriter>
 
 class CPPVISUALSHARED_EXPORT TrackGroup
 	: public QScrollArea
@@ -17,6 +20,8 @@ public:
 	explicit TrackGroup(QWidget* = nullptr);
 	bool loadFile();
 	void reloadTracks();
+	void writeToXml(QXmlStreamWriter&);
+	void loadFromXml(const QDomElement&);
 
 signals:
 	void addPanelAbove();

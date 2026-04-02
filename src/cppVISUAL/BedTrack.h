@@ -18,24 +18,26 @@ class CPPVISUALSHARED_EXPORT BedTrack
 	Q_OBJECT
 
 public:
-	BedTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bedfile);
+	explicit BedTrack(QWidget* parent, QString file_path, QString name);
+
+	bool load();
+	void setBedFile(QSharedPointer<BedFile> bedfile);
 
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override {return sizeHint();};
+
 	void reloadTrack() override;
+
+	QString getType() override {return "BED";}
 
 private:
 	QSharedPointer<BedFile> bedfile_;
-	ChromosomalIndex<BedFile> chr_index_;
+	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
 	QColor color_ = QColor(0, 0, 178);
 
 	// pre count of num rows required per chromosome
 	QHash<Chromosome, int> num_rows_;
 	QVector<int> row_idxes_;
-
-	static const int BLOCK_HEIGHT = 10;
-	static const int BLOCK_PADDING = 5;
-	static const int SPACING_BELOW = 20;
 
 	void paintEvent(QPaintEvent* event) override;
 

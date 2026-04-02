@@ -17,9 +17,18 @@ PanelManager::PanelManager(QWidget* parent)
 void PanelManager::reloadTracks()
 {
 	QList<TrackGroup*> track_groups = findChildren<TrackGroup*>();
-	foreach(TrackGroup* track_group, track_groups)
+	foreach (TrackGroup* track_group, track_groups)
 	{
 		if (track_group) track_group->reloadTracks();
+	}
+}
+
+void PanelManager::newSession()
+{
+	QList<TrackGroup*> track_groups = findChildren<TrackGroup*>();
+	foreach (TrackGroup* track_group, track_groups)
+	{
+		if (track_group) track_group->deleteLater();
 	}
 }
 
@@ -135,4 +144,26 @@ void PanelManager::connectSignals(TrackGroup* panel)
 {
 	connect(panel, SIGNAL(addPanelAbove()), this, SLOT(addPanelAbove()));
 	connect(panel, SIGNAL(addPanelBelow()), this, SLOT(addPanelBelow()));
+}
+
+
+void PanelManager::writeToXml(QXmlStreamWriter& writer)
+{
+	QList<TrackGroup*> track_groups = findChildren<TrackGroup*>();
+	foreach (TrackGroup* track_group, track_groups)
+	{
+		if (track_group) track_group->writeToXml(writer);
+	}
+}
+
+void PanelManager::loadFromXml(QDomElement& dom_element)
+{
+	QDomNodeList elements = dom_element.elementsByTagName("TrackGroup");
+	for (int i =0; i < elements.count(); ++i)
+	{
+		TrackGroup* panel = new TrackGroup;
+		panel->loadFromXml(elements.at(i).toElement());
+		connectSignals(panel);
+		insertWidget(count() - 1, panel);
+	}
 }

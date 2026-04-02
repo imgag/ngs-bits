@@ -27,6 +27,12 @@ public slots:
 	void loadFile();
 	//Triggers reload tracks for all tracks
 	void reloadTracks();
+	//Clears everything
+	void newSession();
+	//Save current session
+	void saveSession();
+	// load session from file, triggers 'open file dialog' and loads the session
+	void loadSession();
 
 protected slots:
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)

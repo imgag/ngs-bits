@@ -1,10 +1,14 @@
+#include "FileLoader.h"
 #include "TrackWidget.h"
 #include "SharedData.h"
 #include "TrackManager.h"
+#include "BedTrack.h"
+#include "GenomeVisualizationWidget.h"
 
 #include <QApplication>
 #include <QDrag>
 #include <QMenu>
+#include <QMetaEnum>
 #include <QMimeData>
 #include <QPainter>
 
@@ -132,4 +136,69 @@ void TrackWidget::mouseMoveEvent(QMouseEvent* event)
 	drag->setHotSpot(event->pos());
 
 	drag->exec(Qt::MoveAction);
+}
+
+void TrackWidget::writeToXml(QXmlStreamWriter& writer)
+{
+	writer.writeStartElement("Track");
+	writer.writeAttribute("type", getType());
+	writer.writeAttribute("file_name", file_path_);
+	writer.writeAttribute("display_name", name_);
+	auto settings = getSettings();
+	for (auto it = settings.begin(); it != settings.end(); ++it)
+	{
+		writer.writeStartElement("Settings");
+		writer.writeAttribute("key", it.key());
+		writer.writeAttribute("value", it.value().toString());
+		writer.writeEndElement(); // Settings
+	}
+	writer.writeEndElement(); // Track
+}
+
+TrackWidget* TrackWidget::loadFromXml(const QDomElement& track_element, QWidget* parent)
+{
+	QString type = track_element.attribute("type");
+	QString file_path = track_element.attribute("file_name");
+	QString display_name = track_element.attribute("display_name");
+
+	QDomNodeList settings = track_element.elementsByTagName("Settings");
+
+	if (type == "BED")
+	{
+		BedTrack* bed_track = new BedTrack(parent, file_path, display_name);
+		if (bed_track->load())
+		{
+			bed_track->loadSettingsFromXml(settings);
+			return bed_track;
+		}
+		else
+		{
+			bed_track->deleteLater();
+			return nullptr;
+		}
+	}
+
+	GenomeVisualizationWidget::displayError("Track type: " + type + " not supported.");
+	return nullptr;
+}
+
+QMap<QString, QVariant> TrackWidget::getSettings()
+{
+	QMap<QString, QVariant> settings;
+	settings["draw_mode"] = static_cast<int>(draw_mode_);
+	return settings;
+}
+
+void TrackWidget::loadSettingsFromXml(const QDomNodeList& settings)
+{
+	for (int i =0; i < settings.count(); ++i)
+	{
+		QDomElement item =  settings.at(i).toElement();
+		QString key = item.attribute("key");
+		if (key == "draw_mode")
+		{
+			int value = item.attribute("value").toInt();
+			if (value != -1) draw_mode_ = static_cast<DrawMode>(value);
+		}
+	}
 }

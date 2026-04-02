@@ -98,3 +98,24 @@ QSize SharedData::determineCharacterSize()
 	}
 	return QSize(w, h);
 }
+
+void SharedData::writeToXml(QXmlStreamWriter& writer)
+{
+
+	const BedLine& region = SharedData::region();
+	writer.writeStartElement("DisplayedRegion");
+	writer.writeAttribute("chr", region.chr().strNormalized(true));
+	writer.writeAttribute("start", QString::number(region.start()));
+	writer.writeAttribute("end", QString::number(region.end()));
+	writer.writeEndElement();  // DisplayRegion
+}
+
+void SharedData::loadFromXml(QDomElement& dom)
+{
+	QDomElement region_info = dom.elementsByTagName("DisplayedRegion").at(0).toElement();
+	QString chr = region_info.attribute("chr");
+	int start = region_info.attribute("start").toInt();
+	int end = region_info.attribute("end").toInt();
+
+	setRegion(chr, start, end);
+}

@@ -9,6 +9,10 @@ DEFINES += CPPVISUAL_LIBRARY
 INCLUDEPATH += $$PWD/../cppCORE
 LIBS += -L$$PWD/../../bin -lcppCORE
 
+#include cppCORE library
+INCLUDEPATH += $$PWD/../cppXML
+LIBS += -L$$PWD/../../bin -lcppXML
+
 #include cppNGS library
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
@@ -35,6 +39,7 @@ SOURCES += \
     GenePanel.cpp \
     ChromosomePanel.cpp \
     PanelManager.cpp \
+    SessionManager.cpp \
     SharedData.cpp \
     TrackGroup.cpp \
     TrackManager.cpp \
@@ -48,6 +53,7 @@ HEADERS += \
     GenePanel.h \
     ChromosomePanel.h \
     PanelManager.h \
+    SessionManager.h \
     SharedData.h \
     TrackGroup.h \
     TrackManager.h \
@@ -55,3 +61,6 @@ HEADERS += \
 
 FORMS += \
     GenomeVisualizationWidget.ui
+
+RESOURCES += \
+    cppVISUAL.qrc

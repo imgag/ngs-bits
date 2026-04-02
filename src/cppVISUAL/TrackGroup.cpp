@@ -199,4 +199,35 @@ void TrackGroup::dropEvent(QDropEvent* event)
 	event->acceptProposedAction();
 }
 
+void TrackGroup::writeToXml(QXmlStreamWriter& writer)
+{
+	writer.writeStartElement("TrackGroup");
+	QList<TrackWidget*> tracks = findChildren<TrackWidget*>();
+
+	foreach (TrackWidget* track, tracks)
+	{
+		track->writeToXml(writer);
+	}
+	writer.writeEndElement(); // TrackGroup
+}
+
+void TrackGroup::loadFromXml(const QDomElement& dom_element)
+{
+	QDomNodeList elements = dom_element.elementsByTagName("Track");
+	for (int i =0; i < elements.count(); ++i)
+	{
+		const QDomElement& track_element = elements.at(i).toElement();
+
+		QString type = track_element.attribute("type");
+		TrackWidget* track = TrackWidget::loadFromXml(track_element, this);
+		if (track)
+		{
+			connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
+			connect(track, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+			layout_->insertWidget(layout_->count() - 1, track);
+			layout_->update();
+		}
+	}
+}
+
 

@@ -13,6 +13,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 	//sginals and slots
 	connect(ui_.actionLoadFile, SIGNAL(triggered()), ui_.gvw, SLOT(loadFile()));
+	connect(ui_.actionReloadTracks, SIGNAL(triggered()), ui_.gvw, SLOT(reloadTracks()));
+	connect(ui_.actionNewSession, SIGNAL(triggered()), ui_.gvw, SLOT(newSession()));
+	connect(ui_.actionStore_session, SIGNAL(triggered()), ui_.gvw, SLOT(saveSession()));
+	connect(ui_.actionLoadSession, SIGNAL(triggered()), ui_.gvw, SLOT(loadSession()));
 
 	//set windows 10 style
 	QStyle* style = QStyleFactory::create("windowsvista");

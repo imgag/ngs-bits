@@ -10,33 +10,43 @@
 #include <QMenu>
 #include <QMimeData>
 
+static constexpr int BLOCK_HEIGHT  = 10;
+static constexpr int BLOCK_PADDING = 5;
+static constexpr int SPACING_BELOW = 20;
 
-BedTrack::BedTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bedfile)
-	:TrackWidget(parent, file_path, name), bedfile_(bedfile), chr_index_(*bedfile)
+
+BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
+	:TrackWidget(parent, file_path, name)
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)) );
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
-	chr_index_.createIndex();
-
-	calculateNumRows();
 }
 
 
 void BedTrack::reloadTrack()
 {
-	bool success = FileLoader::loadBedFile(file_path_, bedfile_);
-	if (success)
-	{
-		chr_index_.createIndex();
-		calculateNumRows();
-		updateGeometry();
-		update();
+	if (!load()) emit trackDeleted();
+}
+
+void BedTrack::setBedFile(QSharedPointer<BedFile> bedfile)
+{
+	bedfile_ = bedfile;
+	chr_index_ = std::make_unique<ChromosomalIndex<BedFile>>(*bedfile_);
+	chr_index_->createIndex();
+	calculateNumRows();
+	updateGeometry();
+	update();
+}
+
+bool BedTrack::load()
+{
+	QSharedPointer<BedFile> bedfile = FileLoader::loadBedFile(file_path_);
+	if (bedfile) {
+		setBedFile(bedfile);
+		return true;
 	}
-	else
-	{
-		emit trackDeleted();
-	}
+	return false;
 }
 
 void BedTrack::paintEvent(QPaintEvent* /*event*/)
@@ -69,7 +79,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 		float total_width = w - label_width - 4;
 		float y_start = 0.0f;
 
-		QVector<int> idxes = chr_index_.matchingIndices(region.chr(), region.start(), region.end());
+		QVector<int> idxes = chr_index_->matchingIndices(region.chr(), region.start(), region.end());
 		foreach(int idx, idxes)
 			{
 				int st = std::max((*bedfile_)[idx].start(), region.start());

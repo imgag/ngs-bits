@@ -8,6 +8,8 @@
 #include "BedFile.h"
 
 #include <QSize>
+#include <QXmlStreamWriter>
+#include <QDomDocument>
 
 //Helper struct for globally used settings
 struct CPPVISUALSHARED_EXPORT GlobalSettings
@@ -73,6 +75,10 @@ public:
 	{
 		return  instance()->char_size_;
 	}
+
+	// writes session information to xml
+	static void writeToXml(QXmlStreamWriter&);
+	static void loadFromXml(QDomElement&);
 
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();

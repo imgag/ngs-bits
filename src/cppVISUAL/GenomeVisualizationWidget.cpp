@@ -3,9 +3,11 @@
 #include "BedFile.h"
 #include "GUIHelper.h"
 #include "SharedData.h"
+#include "XmlHelper.h"
 
 #include <QToolTip>
 #include <QMessageBox>
+#include <QFileDialog>
 
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
@@ -35,6 +37,11 @@ void GenomeVisualizationWidget::reloadTracks()
 	ui_->panel_manager->reloadTracks();
 }
 
+
+void GenomeVisualizationWidget::newSession()
+{
+	ui_->panel_manager->newSession();
+}
 
 void GenomeVisualizationWidget::updateIndices()
 {
@@ -161,4 +168,79 @@ void GenomeVisualizationWidget::displayError(QString msg)
 {
 	auto ptr = QApplication::instance()->findChild<GenomeVisualizationWidget*>();
 	QMessageBox::critical(ptr, "Error", msg);
+}
+
+
+void GenomeVisualizationWidget::saveSession()
+{
+	QString file_path = QFileDialog::getSaveFileName(this, tr("Open Session"), "", tr("Session Files (*.xml)"));
+	if (file_path.isEmpty()) return;
+
+	if (!file_path.endsWith(".xml"))
+	{
+		displayError("Only XML files are supported");
+		return;
+	}
+
+	QFile file(file_path);
+	if (!file.open(QIODevice::WriteOnly)) {
+		displayError("Failed to open file for writing: " + file.errorString());
+		return;
+	}
+
+	QXmlStreamWriter writer(&file);
+	writer.setAutoFormatting(true);
+	writer.writeStartDocument();
+
+	writer.writeStartElement("GSviewerSession");
+
+	writer.writeAttribute("version", "1");
+
+	writer.writeStartElement("General");
+	SharedData::writeToXml(writer);
+	writer.writeEndElement(); // General
+
+	ui_->panel_manager->writeToXml(writer);
+
+	writer.writeEndElement(); // GSViewerSession
+	writer.writeEndDocument();
+
+	file.close();
+}
+
+
+void GenomeVisualizationWidget::loadSession()
+{
+	QString file_path = QFileDialog::getOpenFileName(this, tr("Load Session"), "", tr("Session Files (*.xml)"));
+	qDebug() << file_path << Qt::endl;
+	if (file_path.isEmpty()) return;
+
+	if (!file_path.endsWith(".xml"))
+	{
+		displayError("Only XML files are supported");
+		return;
+	}
+
+	QString error = XmlHelper::isValidXml(file_path, ":Resources/GSviewerSession.xsd");
+
+	if (!error.isEmpty())
+	{
+		displayError(error);
+		return;
+	}
+
+	// no error
+	newSession(); // clear everything
+
+	// load session
+	QDomDocument doc = XmlHelper::load(file_path);
+
+	QDomElement root = doc.documentElement(); //GSviewerSession
+	// do not need to validate anything because it satisifes the schema
+
+	QDomElement general = root.elementsByTagName("General").at(0).toElement();
+
+	SharedData::loadFromXml(general);
+
+	ui_->panel_manager->loadFromXml(root);
 }

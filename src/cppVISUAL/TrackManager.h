@@ -21,6 +21,8 @@ public:
 	static TrackWidget* getTrackWidget(QUuid);
 
 private:
+	explicit TrackManager(QObject* parent = nullptr)
+		: QObject(parent) {}
 	static TrackManager& instance()
 	{
 		static TrackManager instance;

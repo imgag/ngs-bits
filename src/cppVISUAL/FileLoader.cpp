@@ -13,29 +13,35 @@ TrackWidgetList FileLoader::loadTracks(QString file_path, QWidget* parent)
 TrackWidgetList FileLoader::loadBedFileTracks(QString file_path, QWidget* parent)
 {
 	TrackWidgetList out;
-	QSharedPointer<BedFile> bedfile = QSharedPointer<BedFile>::create();
-	bool success = loadBedFile(file_path, bedfile);
-	if (success)
+	QSharedPointer<BedFile> bedfile = loadBedFile(file_path);
+	if (bedfile)
 	{
 		const QFileInfo info(file_path);
-		out << new BedTrack(parent, file_path, info.fileName(), bedfile);
+		BedTrack* bedtrack = new BedTrack(parent, file_path, info.fileName());
+		bedtrack->setBedFile(bedfile);
+		out << bedtrack;
 	}
 	return out;
 }
 
-bool FileLoader::loadBedFile(QString file_path, QSharedPointer<BedFile>& bedfile)
+QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 {
 	const QFileInfo info(file_path);
-	if (!info.isFile()) return false;
+	if (!info.isFile())
+	{
+		GenomeVisualizationWidget::displayError(file_path + " not found");
+		return nullptr;
+	}
 	try
 	{
+		QSharedPointer<BedFile> bedfile = QSharedPointer<BedFile>::create();
 		bedfile->load(file_path);
 		bedfile->sort();
-		return true;
+		return bedfile;
 	}
 	catch (const FileParseException& e)
 	{
 		GenomeVisualizationWidget::displayError(e.message());
-		return false;
+		return nullptr;
 	}
 }

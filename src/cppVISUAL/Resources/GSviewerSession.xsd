@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2022 rel. 2 (x64) (http://www.altova.com) von Marc Sturm (Universitätsklinikum Tübingen) bearbeitet -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="GSviewerSession">
+		<xs:annotation>
+			<xs:documentation>A session of GSviewer</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="General">
+					<xs:annotation>
+						<xs:documentation>General session data</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DisplayedRegion">
+								<xs:annotation>
+									<xs:documentation>Genomic region that is opened when loading the session </xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="chr" use="required">
+										<xs:simpleType>
+											<xs:restriction base="xs:string"/>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="start" type="xs:int" use="required"/>
+									<xs:attribute name="end" type="xs:int" use="required"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="TrackGroup" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>A group of tracks</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Track" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>A single track</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Settings" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Track settings</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="key" use="required">
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="value" use="required">
+													<xs:simpleType>
+														<xs:restriction base="xs:string"/>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="type" use="required">
+										<xs:annotation>
+											<xs:documentation>Track type</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="BED"/>
+												<xs:enumeration value="BAM/CRAM"/>
+												<xs:enumeration value="VCF_SMALL"/>
+												<xs:enumeration value="VCF_SV"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="file_name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>Absolute fiel path including file name</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="display_name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>Display name</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" use="required">
+				<xs:annotation>
+					<xs:documentation>schema version</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

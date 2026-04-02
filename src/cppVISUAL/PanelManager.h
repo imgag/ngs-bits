@@ -6,8 +6,10 @@
 #include "cppVISUAL_global.h"
 
 #include <QSplitter>
+#include <QDomElement>
+#include <QXmlStreamWriter>
 
-class CPPVISUALSHARED_EXPORT PanelManager :
+class CPPVISUALSHARED_EXPORT PanelManager:
 	public QSplitter
 {
 	Q_OBJECT
@@ -15,6 +17,10 @@ public:
 	PanelManager(QWidget* parent =nullptr);
 
 	void reloadTracks();
+	void newSession();
+	//write current session data to xml
+	void writeToXml(QXmlStreamWriter&);
+	void loadFromXml(QDomElement&);
 
 	void mouseMoveEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
@@ -31,7 +37,6 @@ public slots:
 
 private:
 	void connectSignals(TrackGroup*);
-	TrackGroup* default_panel_;
 };
 
 

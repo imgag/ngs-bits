@@ -5,10 +5,11 @@
 #include "TrackManager.h"
 
 #include <QVector>
-
+#include <QDomElement>
 #include <QHash>
 #include <QMouseEvent>
 #include <QWidget>
+#include <QXmlStreamWriter>
 
 class CPPVISUALSHARED_EXPORT TrackWidget
 	: public QWidget
@@ -20,6 +21,10 @@ public:
 	~TrackWidget();
 
 	const QUuid& id() {return id_;}
+	virtual void writeToXml(QXmlStreamWriter&);
+	virtual QMap<QString, QVariant> getSettings();
+	virtual void loadSettingsFromXml(const QDomNodeList&);
+	static TrackWidget* loadFromXml(const QDomElement&, QWidget* parent);
 	virtual void reloadTrack(){}
 
 signals:
@@ -34,6 +39,7 @@ protected:
 	virtual void mouseMoveEvent(QMouseEvent* event) override;
 	virtual void populateContextMenu(QMenu&);
 	virtual void handleContextMenuAction(QAction*);
+	virtual QString getType() = 0;
 
 	enum DrawMode
 	{
