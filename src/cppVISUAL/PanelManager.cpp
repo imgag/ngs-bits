@@ -101,13 +101,12 @@ void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 
 void PanelManager::loadFile()
 {
-	TrackGroup* new_panel = new TrackGroup();
-	if (new_panel->loadFile())
+	TrackGroup* new_panel = TrackGroup::fromFile();
+	if (new_panel)
 	{
 		connectSignals(new_panel);
 		insertWidget(0, new_panel);
 	}
-	else new_panel->deleteLater();
 }
 
 void PanelManager::addPanelAbove()
@@ -156,7 +155,7 @@ void PanelManager::writeToXml(QXmlStreamWriter& writer)
 	}
 }
 
-void PanelManager::loadFromXml(QDomElement& dom_element)
+void PanelManager::loadFromXml(const QDomElement& dom_element)
 {
 	QDomNodeList elements = dom_element.elementsByTagName("TrackGroup");
 	for (int i =0; i < elements.count(); ++i)

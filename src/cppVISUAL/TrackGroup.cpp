@@ -1,6 +1,6 @@
-#include "TrackManager.h"
 #include "FileLoader.h"
 #include "TrackGroup.h"
+#include "GenomeVisualizationWidget.h"
 
 #include <QMenu>
 #include <QMessageBox>
@@ -56,13 +56,8 @@ void TrackGroup::trackMoved()
 	}
 }
 
-bool TrackGroup::loadFile()
+void TrackGroup::addTrackWidgets(TrackWidgetList widgets)
 {
-	QString file_path = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Bed Files(*.bed);;Text Files (*.txt);;All Files (*)"));
-	if (file_path.isEmpty()) return false;
-
-	TrackWidgetList widgets = FileLoader::loadTracks(file_path, this);
-	if (widgets.isEmpty()) return false;
 	foreach (TrackWidget* widget, widgets)
 	{
 		connect(widget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
@@ -70,7 +65,31 @@ bool TrackGroup::loadFile()
 		layout_->insertWidget(layout_->count() - 1, widget);
 		layout_->update();
 	}
-	return true;
+}
+
+void TrackGroup::loadTracksFromFile()
+{
+	TrackWidgetList widgets = loadTrackWidgetsFromFile();
+	addTrackWidgets(widgets);
+}
+
+TrackGroup* TrackGroup::fromFile()
+{
+	TrackWidgetList widgets = loadTrackWidgetsFromFile();
+	if (widgets.isEmpty()) return nullptr;
+
+	TrackGroup* tr = new TrackGroup;
+	tr->addTrackWidgets(widgets);
+	return tr;
+}
+
+TrackWidgetList TrackGroup::loadTrackWidgetsFromFile()
+{
+	QString file_path = GenomeVisualizationWidget::getOpenFileName(tr("Open File"), "", tr("Bed Files(*.bed)"));
+	if (file_path.isEmpty()) return TrackWidgetList();
+
+	TrackWidgetList widgets = FileLoader::loadTracks(file_path, nullptr);
+	return widgets;
 }
 
 void TrackGroup::reloadTracks()
@@ -84,7 +103,19 @@ void TrackGroup::reloadTracks()
 
 void TrackGroup::contextMenu(QPoint pos)
 {
+	cur_context_track_ = nullptr;
+
 	QMenu menu(this);
+
+	TrackWidget* track = getTrackUnderMouse(pos);
+	if (track)
+	{
+		QMenu* track_menu = new QMenu("Track", this);
+		track->populateContextMenu(*track_menu);
+		menu.addMenu(track_menu);
+		cur_context_track_ = track;
+	}
+
 	QAction* opt1 = menu.addAction("Load file");
 
 	menu.addSeparator();
@@ -99,11 +130,14 @@ void TrackGroup::contextMenu(QPoint pos)
 
 	QAction* action = menu.exec(mapToGlobal(pos));
 
-	if (action == opt1)		 loadFile();
+	if (action == opt1)		 loadTracksFromFile();
 	else if (action == opt2) clearLayout();
 	else if (action == opt3) clearLayoutAndDelete();
 	else if (action == opt4) emit addPanelAbove();
 	else if (action == opt5) emit addPanelBelow();
+	else if (cur_context_track_) cur_context_track_->handleContextMenuAction(action);
+
+	cur_context_track_ = nullptr;
 }
 
 void TrackGroup::clearLayout()
@@ -133,15 +167,6 @@ void TrackGroup::dragEnterEvent(QDragEnterEvent* event)
 	}
 }
 
-void TrackGroup::removeTrack(QWidget* widget)
-{
-	if (widget)
-	{
-		layout_->removeWidget(widget);
-		layout_->update();
-	}
-}
-
 
 inline int TrackGroup::getDropIndex(int y)
 {
@@ -155,6 +180,15 @@ inline int TrackGroup::getDropIndex(int y)
 	drop_index = std::max(0, std::min(drop_index, layout_->count() - 1));
 
 	return drop_index;
+}
+
+TrackWidget* TrackGroup::getTrackUnderMouse(QPoint pos)
+{
+	foreach (TrackWidget* track, findChildren<TrackWidget*>())
+	{
+		if (track->geometry().contains(pos)) return track;
+	}
+	return nullptr;
 }
 
 
@@ -219,7 +253,7 @@ void TrackGroup::loadFromXml(const QDomElement& dom_element)
 		const QDomElement& track_element = elements.at(i).toElement();
 
 		QString type = track_element.attribute("type");
-		TrackWidget* track = TrackWidget::loadFromXml(track_element, this);
+		TrackWidget* track = TrackWidget::fromXml(track_element, this);
 		if (track)
 		{
 			connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));

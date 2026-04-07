@@ -21,24 +21,32 @@ public:
 	~TrackWidget();
 
 	const QUuid& id() {return id_;}
+	// writes properties in XML
 	virtual void writeToXml(QXmlStreamWriter&);
+	// settings that should be written into XML
 	virtual QMap<QString, QVariant> getSettings();
+	// parses the DOM and loads corresponding settings
 	virtual void loadSettingsFromXml(const QDomNodeList&);
-	static TrackWidget* loadFromXml(const QDomElement&, QWidget* parent);
-	virtual void reloadTrack(){}
+	// function that should be overriden by child classes (re reading the file)
+	virtual void reloadTrack() = 0;
+
+	// creates TrackWidget by parsing XML
+	static TrackWidget* fromXml(const QDomElement&, QWidget* parent);
+	// creates a TrackWidget from a given type, e.g. "BED".
+	static TrackWidget* fromType(QString type, QWidget* parent, QString file_path, QString display_name);
+	virtual void populateContextMenu(QMenu&);
+	virtual void handleContextMenuAction(QAction*);
 
 signals:
 	void trackDeleted();
 	void trackMoved();
+
 public slots:
 	virtual void regionChanged();
-	virtual void contextMenu(QPoint pos);
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event) override;
 	virtual void mouseMoveEvent(QMouseEvent* event) override;
-	virtual void populateContextMenu(QMenu&);
-	virtual void handleContextMenuAction(QAction*);
 	virtual QString getType() = 0;
 
 	enum DrawMode
@@ -50,7 +58,7 @@ protected:
 	DrawMode draw_mode_ = COLLAPSED;
 	QPoint drag_start_pos_;
 	bool is_dragging_;
-	QAction *opts_[3];
+	QAction *opts_[4];
 
 
 	QUuid id_;

@@ -18,8 +18,6 @@ static constexpr int SPACING_BELOW = 20;
 BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	:TrackWidget(parent, file_path, name)
 {
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)) );
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
 }
 
@@ -146,4 +144,16 @@ void BedTrack::calculateNumRows()
 	{
 		num_rows_[it.key()] = it.value().size();
 	}
+}
+
+BedTrack* BedTrack::createTrack(QWidget* parent, QString file_path, QString name)
+{
+	QSharedPointer<BedFile> bedfile = FileLoader::loadBedFile(file_path);
+	if (bedfile)
+	{
+		BedTrack* track = new BedTrack(parent, file_path, name);
+		track->setBedFile(bedfile);
+		return track;
+	}
+	return nullptr;
 }

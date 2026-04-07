@@ -15,12 +15,14 @@ class CPPVISUALSHARED_EXPORT PanelManager:
 	Q_OBJECT
 public:
 	PanelManager(QWidget* parent =nullptr);
-
+	// calls reloadTracks for all TrackGroups
 	void reloadTracks();
+	// deletes all TrackGroups
 	void newSession();
-	//write current session data to xml
+	// writes current session data to xml
 	void writeToXml(QXmlStreamWriter&);
-	void loadFromXml(QDomElement&);
+	// loads data from Xml (Track Groups)
+	void loadFromXml(const QDomElement&);
 
 	void mouseMoveEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
@@ -31,11 +33,15 @@ public:
 	BedLine drag_start_region_;
 
 public slots:
+	// opens a file dialog and creates a TrackGroup if file is valid
 	void loadFile();
+	// creates empty panel above the panel that emitted this signal
 	void addPanelAbove();
+	// creates empty panel below the panel that emitted this signal
 	void addPanelBelow();
 
 private:
+	// connects addPanelAbove and addPanelBelow signals and slots to the TrackGroup
 	void connectSignals(TrackGroup*);
 };
 

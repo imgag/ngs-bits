@@ -13,14 +13,11 @@ TrackWidgetList FileLoader::loadTracks(QString file_path, QWidget* parent)
 TrackWidgetList FileLoader::loadBedFileTracks(QString file_path, QWidget* parent)
 {
 	TrackWidgetList out;
-	QSharedPointer<BedFile> bedfile = loadBedFile(file_path);
-	if (bedfile)
-	{
-		const QFileInfo info(file_path);
-		BedTrack* bedtrack = new BedTrack(parent, file_path, info.fileName());
-		bedtrack->setBedFile(bedfile);
-		out << bedtrack;
-	}
+	const QFileInfo info(file_path);
+
+	BedTrack* bed_track = BedTrack::createTrack(parent, file_path, info.fileName());
+	if (bed_track) out << bed_track;
+
 	return out;
 }
 

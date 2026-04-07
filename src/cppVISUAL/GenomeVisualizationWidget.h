@@ -21,6 +21,8 @@ public:
 
 	//display errors to user
 	static void displayError(QString msg);
+	//opens file file dialog and returns selected the file path
+	static QString getOpenFileName(QString caption, QString dir, QString options);
 
 public slots:
 	//Triggers the 'open file' dialog

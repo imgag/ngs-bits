@@ -20,12 +20,18 @@ class CPPVISUALSHARED_EXPORT BedTrack
 public:
 	explicit BedTrack(QWidget* parent, QString file_path, QString name);
 
-	bool load();
+	// creates a BedTrack, same as the constructor above but
+	// tries to load file_path first into a bed file if that fails
+	// returns nullptr.
+	static BedTrack* createTrack(QWidget* parent, QString file_path, QString name);
+
+	// sets bedFile, re creates chromosome index, re calculates row numbers, updates geometry
 	void setBedFile(QSharedPointer<BedFile> bedfile);
 
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override {return sizeHint();};
 
+	// reloads the file, if failed deletes the track
 	void reloadTrack() override;
 
 	QString getType() override {return "BED";}
@@ -37,7 +43,10 @@ private:
 
 	// pre count of num rows required per chromosome
 	QHash<Chromosome, int> num_rows_;
+	// array for storing the draw index of each band
 	QVector<int> row_idxes_;
+	// reloads bedfile_ from file_path_, returns true if successful.
+	bool load();
 
 	void paintEvent(QPaintEvent* event) override;
 

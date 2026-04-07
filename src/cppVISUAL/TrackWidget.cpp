@@ -50,6 +50,9 @@ void TrackWidget::populateContextMenu(QMenu& menu)
 	}
 
 	opts_[2] = menu.addAction("Reload Track");
+
+	menu.addSeparator();
+	opts_[3] = menu.addAction("Remove Track");
 }
 
 void TrackWidget::handleContextMenuAction(QAction* action)
@@ -70,24 +73,10 @@ void TrackWidget::handleContextMenuAction(QAction* action)
 	{
 		reloadTrack();
 	}
-}
-
-
-void TrackWidget::contextMenu(QPoint pos)
-{
-	// create menu
-	QMenu menu(this);
-
-	populateContextMenu(menu);
-
-	menu.addSeparator();
-	QAction* del_opt = menu.addAction("Remove Track");
-
-
-	QAction* action = menu.exec(mapToGlobal(pos));
-
-	if (action == del_opt) emit trackDeleted();
-	else handleContextMenuAction(action);
+	else if (action == opts_[3])
+	{
+		emit trackDeleted();
+	}
 }
 
 
@@ -155,7 +144,7 @@ void TrackWidget::writeToXml(QXmlStreamWriter& writer)
 	writer.writeEndElement(); // Track
 }
 
-TrackWidget* TrackWidget::loadFromXml(const QDomElement& track_element, QWidget* parent)
+TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* parent)
 {
 	QString type = track_element.attribute("type");
 	QString file_path = track_element.attribute("file_name");
@@ -163,21 +152,18 @@ TrackWidget* TrackWidget::loadFromXml(const QDomElement& track_element, QWidget*
 
 	QDomNodeList settings = track_element.elementsByTagName("Settings");
 
+	TrackWidget* track = TrackWidget::fromType(type, parent, file_path, display_name);
+	if (track) track->loadSettingsFromXml(settings);
+
+	return track;
+}
+
+TrackWidget* TrackWidget::fromType(QString type, QWidget* parent, QString file_path, QString display_name)
+{
 	if (type == "BED")
 	{
-		BedTrack* bed_track = new BedTrack(parent, file_path, display_name);
-		if (bed_track->load())
-		{
-			bed_track->loadSettingsFromXml(settings);
-			return bed_track;
-		}
-		else
-		{
-			bed_track->deleteLater();
-			return nullptr;
-		}
+		return BedTrack::createTrack(parent, file_path, display_name);
 	}
-
 	GenomeVisualizationWidget::displayError("Track type: " + type + " not supported.");
 	return nullptr;
 }

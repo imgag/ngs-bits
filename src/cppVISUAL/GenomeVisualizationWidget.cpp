@@ -170,6 +170,12 @@ void GenomeVisualizationWidget::displayError(QString msg)
 	QMessageBox::critical(ptr, "Error", msg);
 }
 
+QString GenomeVisualizationWidget::getOpenFileName(QString caption, QString dir, QString filter)
+{
+	auto ptr = QApplication::instance()->findChild<GenomeVisualizationWidget*>();
+	return QFileDialog::getOpenFileName(ptr, caption, dir, filter);
+}
+
 
 void GenomeVisualizationWidget::saveSession()
 {
