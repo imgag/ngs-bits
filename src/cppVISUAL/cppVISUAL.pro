@@ -39,7 +39,6 @@ SOURCES += \
     GenePanel.cpp \
     ChromosomePanel.cpp \
     PanelManager.cpp \
-    SessionManager.cpp \
     SharedData.cpp \
     TrackGroup.cpp \
     TrackManager.cpp \
@@ -53,7 +52,6 @@ HEADERS += \
     GenePanel.h \
     ChromosomePanel.h \
     PanelManager.h \
-    SessionManager.h \
     SharedData.h \
     TrackGroup.h \
     TrackManager.h \

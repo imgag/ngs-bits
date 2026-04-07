@@ -212,7 +212,6 @@ void GenomeVisualizationWidget::saveSession()
 void GenomeVisualizationWidget::loadSession()
 {
 	QString file_path = QFileDialog::getOpenFileName(this, tr("Load Session"), "", tr("Session Files (*.xml)"));
-	qDebug() << file_path << Qt::endl;
 	if (file_path.isEmpty()) return;
 
 	if (!file_path.endsWith(".xml"))
@@ -236,6 +235,7 @@ void GenomeVisualizationWidget::loadSession()
 	QDomDocument doc = XmlHelper::load(file_path);
 
 	QDomElement root = doc.documentElement(); //GSviewerSession
+
 	// do not need to validate anything because it satisifes the schema
 
 	QDomElement general = root.elementsByTagName("General").at(0).toElement();
