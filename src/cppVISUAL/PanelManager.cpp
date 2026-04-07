@@ -148,10 +148,15 @@ void PanelManager::connectSignals(TrackGroup* panel)
 
 void PanelManager::writeToXml(QXmlStreamWriter& writer)
 {
-	QList<TrackGroup*> track_groups = findChildren<TrackGroup*>();
-	foreach (TrackGroup* track_group, track_groups)
+	for (int i = 0; i < count(); ++i)
 	{
-		if (track_group) track_group->writeToXml(writer);
+		QWidget* widget = this->widget(i);
+		TrackGroup* track_group = qobject_cast<TrackGroup*>(widget);
+
+		if (track_group)
+		{
+			track_group->writeToXml(writer);
+		}
 	}
 }
 
