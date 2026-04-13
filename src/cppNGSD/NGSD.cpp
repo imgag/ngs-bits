@@ -1319,16 +1319,16 @@ void NGSD::removeInitData()
 
 QString NGSD::projectFolder(QString type)
 {
-    //GSvar server: use megSAP settings
-    if (ClientHelper::isRunningOnServer())
-    {
-        return PipelineSettings::projectFolder(type);
-    }
+	//GSvar server: use megSAP settings
+	if (ClientHelper::isRunningOnServer())
+	{
+		return PipelineSettings::projectFolder(type);
+	}
 
 	//current type-specific project folder settings
 	if (Settings::contains("projects_folder_"+type))
 	{
-		   return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
+		return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
 	}
 
 	//fallback to legacy project folder settings
@@ -1340,12 +1340,36 @@ QString NGSD::projectFolder(QString type)
 	THROW(ProgrammingException, "Found no project folder entry in settings.ini file for project type '" + type + "'!");
 }
 
-QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType type)
+QString NGSD::projectFolderById(int id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT name, type, folder_override FROM project WHERE id=" + QString::number(id));
+	if (query.size()==0) THROW(DatabaseException, "Project with id '" + QString::number(id) + "' not found in NGSD!");
+	query.next();
+	QString name = query.value(0).toString();
+	QString type = query.value(1).toString();
+	QString folder_override = query.value(2).toString();
+
+	if (!folder_override.isEmpty()) return folder_override;
+
+	QString standard_path = projectFolder(type) + QDir::separator() + name;
+	if (!QDir(standard_path).exists()) THROW(Exception, "Project folder for '" + name + "' does not exist!");
+
+	return standard_path;
+}
+
+QList<int> NGSD::processedSampleIdListByProjectId(int id)
+{
+	QList<int> processed_sample_list = getValuesInt("SELECT id FROM processed_sample WHERE project_id="+QString::number(id));
+
+	return processed_sample_list;
+}
+
+QString NGSD::processedSampleFolder(const QString &processed_sample_id, QString& ps_name, QString& sys_name_short)
 {
 	//create query
 	QString query_str ="SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short, ";
 	bool is_client = ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer();
-//	is_client = (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer()) || !ClientHelper::isClientServerMode(); //activate for debug
 	query_str += is_client ? "ps.folder_override_client, p.folder_override_client" : "ps.folder_override, p.folder_override";
 	query_str += " FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0";
 
@@ -1358,7 +1382,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	query.next();
 
 	//create sample folder
-	QString ps_name = query.value(0).toString();
+	ps_name = query.value(0).toString();
 	QString ps_folder_override = query.value(4).toString();
 	QString p_folder_override = query.value(5).toString();
 	QString output;
@@ -1380,7 +1404,15 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 		QString p_name = query.value(2).toString();
 		output += p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 	}
-	QString sys_name_short = query.value(3).toString();
+	sys_name_short = query.value(3).toString();
+	return output;
+}
+
+QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType type)
+{	
+	QString ps_name;
+	QString sys_name_short;
+	QString output = processedSampleFolder(processed_sample_id, ps_name, sys_name_short);
 
 	//append file name if requested
 	if (type==PathType::BAM)
@@ -1442,8 +1474,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 			output += ps_name + "_repeats.vcf";
 		}
 	}
-	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";
-	else if (type==PathType::MANTA_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
+	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";	
 	else if (type==PathType::PARAPHASE_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
 	else if (type==PathType::SAMPLE_FOLDER)
 	{

@@ -618,6 +618,80 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::checkProjectFolder(const HttpRequest &request)
+{
+	int id = request.getUrlParams()["id"].toInt();
+	QString project_folder_path;
+	bool has_data = false;
+
+	QJsonArray project_folder_options;
+	try
+	{
+		Session current_session = SessionManager::getSessionBySecureToken(EndpointManager::getTokenIfAvailable(request));
+		if (current_session.isEmpty()) THROW_HTTP(HttpException, "You are not logged in", 401,  {}, {});
+
+		// access is restricted only for the user role 'admin'
+		NGSD db;
+		QString role = db.getUserRole(current_session.user_id);
+		if (role!="admin")
+		{
+			THROW_HTTP(HttpException, "You do not have permissions to change projects!", 401,  {}, {});
+		}
+
+		project_folder_path = db.projectFolderById(id);
+
+		QStringList project_types = {"diagnostic", "research", "test", "external"};
+		for (QString& current_type: project_types)
+		{
+			QString suggested_path = db.projectFolder(current_type);
+
+			QJsonObject current_project_path;
+			current_project_path.insert("type", current_type);
+			current_project_path.insert("path", suggested_path);
+			project_folder_options.append(current_project_path);
+		}
+
+		QList<int> proccessed_samples = db.processedSampleIdListByProjectId(id);
+		for (int i=0; i<proccessed_samples.size(); i++)
+		{
+			QString ps_name;
+			QString empty_sys_name_short;
+			QString ps_folder = db.processedSampleFolder(QString::number(proccessed_samples[i]), ps_name, empty_sys_name_short);
+
+			if (!QDir(ps_folder).entryList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty())
+			{
+				has_data = true;
+				break;
+			}
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		Log::error("Database error while locating a project folder: " + e.message());
+		THROW_HTTP(HttpException, e.message(), 404,  {}, {});
+	}
+	catch (Exception& e)
+	{
+		Log::error("Error while locating a project folder: " + e.message());
+		THROW_HTTP(HttpException, e.message(), 404,  {}, {});
+	}
+
+	QJsonDocument json_doc_output;
+	QJsonObject folder_info_object;
+	folder_info_object.insert("project_id", id);
+	folder_info_object.insert("project_folder", project_folder_path);
+	folder_info_object.insert("has_data", has_data);
+	folder_info_object.insert("override_options", project_folder_options);
+	json_doc_output.setObject(folder_info_object);
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
 {
 	QString ps_name;

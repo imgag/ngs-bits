@@ -16,7 +16,14 @@ public:
 	DBEditor(QWidget* parent, QString table, int id=-1);
 
 	//Store the DB item.
-	void store();
+	void store(const QHash<QString, QString> &replace_fields = QHash<QString, QString>());
+
+	//returns True if the data has been changed by a user
+	bool hasChanges();
+	//returns a list of changed fields
+	QList<QString> getChangedFields();
+	//returns a hash map of fields with their current values
+	QHash<QString, QVariant> getCurrentValues();
 
 protected slots:
 	//creates the layout and the widgets
@@ -45,8 +52,11 @@ private:
 	QString table_;
 	int id_;
 	QHash<QString, QStringList> errors_;
+	QHash<QString, bool> edit_attempted_; // marks fields which a user tried to modify (even if the change has been reverted)
+	QHash<QString, QVariant> values_from_db_; // initial values taken from the database
+	QHash<QString, QVariant> values_from_user_; // values entered by a user
 
-	//returns if the for data is valid (based on 'errors_')
+	//returns if the data is valid (based on 'errors_')
 	bool dataIsValid() const;
 
 	//updates the surrounding dialog ok button

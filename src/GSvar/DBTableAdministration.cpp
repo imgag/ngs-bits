@@ -8,8 +8,13 @@
 #include "UserPermissionsEditor.h"
 #include "GenLabDB.h"
 #include "ScrollableTextDialog.h"
+#include "HttpHandler.h"
+#include "ClientHelper.h"
 #include <QMessageBox>
 #include <QAction>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QDir>
 
 DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	: QWidget(parent)
@@ -134,12 +139,75 @@ void DBTableAdministration::edit(int row)
 	//edit
 	int id = ui_.table->getId(row).toInt();
 	DBEditor* editor = new DBEditor(this, table_, id);
+
 	auto dlg = GUIHelper::createDialog(editor, "Edit " + table_display_name_, "", true);
 	if (dlg->exec()==QDialog::Accepted)
 	{
+		// special case of handling the project folder change
+		QHash<QString, QString> fields_to_override;
+		if (table_=="project")
+		{
+			QList<QString> critical_fields = {"name", "type"}; // confirmation is needed to save these fileds
+			QList<QString> changed_fields = editor->getChangedFields();
+			bool need_change_confirmation = false;
+			foreach(const QString& field, critical_fields)
+			{
+				if (changed_fields.contains(field))
+				{
+					need_change_confirmation = true;
+					break;
+				}
+			}
+
+			QJsonObject response;
+			try
+			{
+				HttpHeaders add_headers;
+				response = QJsonDocument::fromJson(HttpHandler(true).get(ClientHelper::serverApiUrl() + "project_folder?id=" + QString::number(id) + "&token=" + LoginManager::userToken(), add_headers)).object();
+			}
+			catch (HttpException& e)
+			{
+				QMessageBox::warning(this, "Error while checking the project folder", "The following error has happend while reading the project folder:\n" + e.message());
+			}
+
+
+			if (changed_fields.contains("type") && response.contains("override_options"))
+			{
+				if (editor->getCurrentValues()["folder_override"].toString().trimmed().isEmpty())
+				{
+					QString folder_override_value = "";
+					QJsonArray path_override_options = response.value("override_options").toArray();
+					for (const QJsonValue& override_path: path_override_options)
+					{
+						if (override_path.toObject().value("type").toString() == editor->getCurrentValues()["type"].toString())
+						{
+							folder_override_value = override_path.toObject().value("path").toString();
+							if (!folder_override_value.endsWith(QDir::separator())) folder_override_value+=QDir::separator();
+							break;
+						}
+					}					
+
+					fields_to_override.insert("folder_override", folder_override_value+editor->getCurrentValues()["name"].toString());
+				}
+			}
+
+			QString confirmation_message = "You are attempting to modify the following field(s) in the selected project: " + changed_fields.join(", ") + ".";
+			if (response.contains("has_data"))
+			{
+				if (response.value("has_data").toBool()) confirmation_message+=" This project has non-empty processed sample folders. You will have to manually move the files into appropriate locations.";
+			}
+
+			if (need_change_confirmation)
+			{
+				confirmation_message+="\nDo you really want to save the changes?";
+				int res = QMessageBox::question(this, "Project change", confirmation_message);
+				if (res!=QMessageBox::Yes) return;
+			}
+		}
+
 		try
 		{
-			editor->store();
+			editor->store(fields_to_override);
 			updateTable();
 		}
 		catch (DatabaseException e)

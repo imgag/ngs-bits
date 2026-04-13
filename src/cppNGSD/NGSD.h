@@ -865,6 +865,12 @@ public:
 
 	///Returns the project folder for a project type
 	QString projectFolder(QString type);
+	///Returns the project folder for a project specific project by its ID
+	QString projectFolderById(int id);
+	///Returns a list of processed sample IDs for a specific project
+	QList<int> processedSampleIdListByProjectId(int id);
+	///Returns the path to the folder of a specific processed sample
+	QString processedSampleFolder(const QString& processed_sample_id, QString& ps_name, QString& sys_name_short);
 	///Returns the path of certain file of a processed sample (type)
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the path to secondary analyses of the processed samples.
