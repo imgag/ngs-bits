@@ -198,19 +198,27 @@ void SmallVariantSearchWidget::updateConsequences()
 			if (!trans.isGencodePrimaryTranscript()) continue;
 			if (mane_only && !(trans.isManeSelectTranscript() || trans.isManePlusClinicalTranscript())) continue;
 
-			VariantConsequence consequence = hgvs_annotator.annotate(trans, var);
-			QString type = consequence.typesToStringSimplified();
-			if (!types.contains(type)) types << type;
+			try
+			{
+				VariantConsequence consequence = hgvs_annotator.annotate(trans, var);
+				QString type = consequence.typesToStringSimplified();
+				if (!types.contains(type)) types << type;
 
-			QStringList tmp;
-			tmp << trans.gene();
-			tmp << trans.nameWithVersion();
-			tmp << type;
-			tmp << variantImpactToString(consequence.impact);
-			tmp << consequence.exonOrIntron(trans);
-			tmp << consequence.hgvs_c;
-			tmp << consequence.hgvs_p;
-			consequence_strings << tmp.join(":");
+				QStringList tmp;
+				tmp << trans.gene();
+				tmp << trans.nameWithVersion();
+				tmp << type;
+				tmp << variantImpactToString(consequence.impact);
+				tmp << consequence.exonOrIntron(trans);
+				tmp << consequence.hgvs_c;
+				tmp << consequence.hgvs_p;
+				consequence_strings << tmp.join(":");
+			}
+			catch(Exception& e)
+			{
+				qDebug() << e.message();
+				qDebug() << var.toString();
+			}
 		}
 		ui_.variants->setItem(r, c_type, GUIHelper::createTableItem(types.join(", ")));
 		ui_.variants->setItem(r, c_coding, GUIHelper::createTableItem(consequence_strings.join(", ")));

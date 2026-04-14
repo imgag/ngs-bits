@@ -520,7 +520,6 @@ void MVHub::updateTableFilters()
 	{
 		int c_exp_status = colOf("export status");
 		int c_exp_conf = colOf("export confirmation");
-		int c_case_status = colOf("CM Status");
 		QString export_filter = ui_.f_export->currentText();
 		for (int r=0; r<rows; ++r)
 		{
@@ -535,10 +534,6 @@ void MVHub::updateTableFilters()
 			bool upload_done = (!todo_kdk || (todo_kdk && conf_kdk)) && (!todo_grz || (todo_grz && conf_grz));
 
 			if (export_filter=="pending" && status!="")
-			{
-				visible[r] = false;
-			}
-			if (export_filter=="pending" && getString(r, c_case_status)=="Abgebrochen" && getNetwork(r)!=SE)
 			{
 				visible[r] = false;
 			}
