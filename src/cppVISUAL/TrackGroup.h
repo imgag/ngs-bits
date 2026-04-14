@@ -41,6 +41,10 @@ public slots:
 	void trackMoved();
 	void contextMenu(QPoint);
 
+protected:
+	void dragEnterEvent(QDragEnterEvent*) override;
+	void dropEvent(QDropEvent*) override;
+
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
@@ -54,10 +58,6 @@ private:
 	void loadTracksFromFile();
 	// adds track widgets to TrackGroup, called by loadTracksFromFile or the static function fromFile
 	void addTrackWidgets(TrackWidgetList widgets);
-
-	void dragEnterEvent(QDragEnterEvent*) override;
-	void dropEvent(QDropEvent*) override;
-
 	// gives the index of the track on top of which the drop happend
 	inline int getDropIndex(int y);
 	// gives the TrackWidget which is at the specified pos, if none this returns nullptr

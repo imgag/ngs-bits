@@ -22,6 +22,8 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 	int min_window_size = 40;
 	//How many bases genes/transcripts are padded with, e.g. after search
 	int transcript_padding = 2000;
+	//Max region length for bam tracks
+	int bam_max_region_len = 30000;
 };
 
 //Singleton for data shared by all widgets for visualization.

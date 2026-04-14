@@ -127,6 +127,19 @@ void TrackWidget::mouseMoveEvent(QMouseEvent* event)
 	drag->exec(Qt::MoveAction);
 }
 
+void TrackWidget::drawLabel(QPainter& painter)
+{
+
+	int label_width = SharedData::settings().label_width;
+
+	// draw text
+	QRectF text_rect(0, 0, label_width-2, height());
+
+	painter.setPen(Qt::black);
+	painter.drawText(text_rect, Qt::AlignLeft, name_);
+
+}
+
 void TrackWidget::writeToXml(QXmlStreamWriter& writer)
 {
 	writer.writeStartElement("Track");

@@ -28,7 +28,7 @@ public:
 	// parses the DOM and loads corresponding settings
 	virtual void loadSettingsFromXml(const QDomNodeList&);
 	// function that should be overriden by child classes (re reading the file)
-	virtual void reloadTrack() = 0;
+	virtual void reloadTrack() {};
 
 	// creates TrackWidget by parsing XML
 	static TrackWidget* fromXml(const QDomElement&, QWidget* parent);
@@ -47,6 +47,8 @@ public slots:
 protected:
 	virtual void mousePressEvent(QMouseEvent* event) override;
 	virtual void mouseMoveEvent(QMouseEvent* event) override;
+	// this is same for all track widgets
+	void drawLabel(QPainter&);
 	virtual QString getType() = 0;
 
 	enum DrawMode

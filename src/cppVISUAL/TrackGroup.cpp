@@ -1,6 +1,6 @@
 #include "FileLoader.h"
-#include "TrackGroup.h"
 #include "GenomeVisualizationWidget.h"
+#include "TrackGroup.h"
 
 #include <QMenu>
 #include <QMessageBox>
@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QFileInfo>
 #include <QFileDialog>
+
 
 TrackGroup::TrackGroup(QWidget* parent)
 	:QScrollArea(parent), layout_(new QVBoxLayout(this)), content_widget_(new QWidget(this))
@@ -23,12 +24,14 @@ TrackGroup::TrackGroup(QWidget* parent)
 
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
 
 	setAcceptDrops(true);
 
 	layout_->addStretch(1);
-	layout_->setContentsMargins(0, 0, 0, height());
+	layout_->setContentsMargins(0, 0, 0, 0);
 }
 
 void TrackGroup::trackDeleted()
@@ -85,7 +88,7 @@ TrackGroup* TrackGroup::fromFile()
 
 TrackWidgetList TrackGroup::loadTrackWidgetsFromFile()
 {
-	QString file_path = GenomeVisualizationWidget::getOpenFileName(tr("Open File"), "", tr("Bed Files(*.bed)"));
+	QString file_path = GenomeVisualizationWidget::getOpenFileName(tr("Open File"), "", tr("Bed Files(*.bed);;Bam Files(*.bam);;Cram Files(*.cram)"));
 	if (file_path.isEmpty()) return TrackWidgetList();
 
 	TrackWidgetList widgets = FileLoader::loadTracks(file_path, nullptr);

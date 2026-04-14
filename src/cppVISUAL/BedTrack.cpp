@@ -57,10 +57,11 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	int label_width = SharedData::settings().label_width;
 
 	// draw text
-	QRectF text_rect(0, 0, label_width-2, height());
+	// QRectF text_rect(0, 0, label_width-2, height());
 
-	painter.setPen(Qt::black);
-	painter.drawText(text_rect, Qt::AlignLeft, name_);
+	// painter.setPen(Qt::black);
+	// painter.drawText(text_rect, Qt::AlignLeft, name_);
+	drawLabel(painter);
 
 	// draw bounding box
 	QRectF bounding_rect(label_width + 2, 0, width() - label_width - 2, height() - 2);
@@ -71,6 +72,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	painter.setBrush(Qt::NoBrush);
 	painter.drawRect(bounding_rect);
 
+	// draw bands
 	if (bedfile_->chromosomes().contains(region.chr()))
 	{
 		int w = width();
@@ -79,21 +81,21 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 
 		QVector<int> idxes = chr_index_->matchingIndices(region.chr(), region.start(), region.end());
 		foreach(int idx, idxes)
-			{
-				int st = std::max((*bedfile_)[idx].start(), region.start());
-				int en = std::min((*bedfile_)[idx].end(), region.end());
+		{
+			int st = std::max((*bedfile_)[idx].start(), region.start());
+			int en = std::min((*bedfile_)[idx].end(), region.end());
 
-				float x_start = map(st, region.start(), region.end(), 0.0f, total_width);
-				float width = map(en - st, 0.0f, region.length(), 0.0f, total_width);
+			float x_start = map(st, region.start(), region.end(), 0.0f, total_width);
+			float width = map(en - st, 0.0f, region.length(), 0.0f, total_width);
 
 
-				if (draw_mode_ == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
+			if (draw_mode_ == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
 
-				QRectF chr_rect(label_width + 2 + x_start, y_start, width, BLOCK_HEIGHT);
+			QRectF chr_rect(label_width + 2 + x_start, y_start, width, BLOCK_HEIGHT);
 
-				painter.setBrush(color_);
-				painter.drawRect(chr_rect);
-			}
+			painter.setBrush(color_);
+			painter.drawRect(chr_rect);
+		}
 	}
 }
 

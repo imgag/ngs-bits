@@ -32,6 +32,8 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
+    BamAlignmentTrack.cpp \
+    BamCoverageTrack.cpp \
     BedTrack.cpp \
     ChromosomeContextPanel.cpp \
     FileLoader.cpp \
@@ -40,11 +42,14 @@ SOURCES += \
     ChromosomePanel.cpp \
     PanelManager.cpp \
     SharedData.cpp \
+    TrackData.cpp \
     TrackGroup.cpp \
     TrackManager.cpp \
     TrackWidget.cpp
 
 HEADERS += \
+    BamAlignmentTrack.h \
+    BamCoverageTrack.h \
     BedTrack.h \
     ChromosomeContextPanel.h \
     FileLoader.h \
@@ -53,6 +58,7 @@ HEADERS += \
     ChromosomePanel.h \
     PanelManager.h \
     SharedData.h \
+    TrackData.h \
     TrackGroup.h \
     TrackManager.h \
     TrackWidget.h
