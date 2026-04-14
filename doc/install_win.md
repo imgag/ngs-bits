@@ -40,22 +40,25 @@ The Qt distribution no longer contains a MySQL plugin, so we need to build it ma
 Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html) on how to build the plugin. You may consult their page, if you encounter any issues.  
 We have summarized the tutorial, here:
 
-In the main Windows menu search, type `mingw` and open `Qt 6.8.3 (MinGW 13.1.0 64-bit)` terminal window.
-![MinGW terminal](mingw-terminal.png)
+Now you need to start a `mingw` session inside the Windows terminal. Open `cmd` and execute (assuiming you have installed Qt 6.8.3 into C:\Qt folder)
 
-Assuiming you have installed Qt 6.8.3 into C:\Qt folder, run the following commands to build the database plugin (run them in `MinGW` terminal, not in the standard Windows CMD or PowerShell terminals):
-	
-	> cd C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers
-	> set PATH=C:\Qt\Tools\CMake_64\bin;%PATH%
-	> set PATH=C:\Qt\Tools\Ninja;%PATH%
-	> mkdir build-sqldrivers
-	> cd build-sqldrivers
-	> qt-cmake -G Ninja C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers -DMySQL_INCLUDE_DIR="C:\PROGRA~1\MariaDB\MARIAD~1\include" -DMySQL_LIBRARY="C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.lib" -DCMAKE_INSTALL_PREFIX="C:\Qt\mariadb_plugin"
-	> cmake --build .
-	> cmake --install .
-	> copy C:\Qt\mariadb_plugin\plugins\sqldrivers\qsqlmysql.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
-	> copy C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+```
+	set PATH=C:\Qt\6.8.3\mingw_64\bin;C:\Qt\Tools\mingw1310_64\bin;%PATH%
+```
 
+With the environment variables set, run the following commands to build the database plugin (run them in `MinGW` terminal, not in the standard Windows CMD or PowerShell terminals):
+```	
+	cd C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers
+	set PATH=C:\Qt\Tools\CMake_64\bin;%PATH%
+	set PATH=C:\Qt\Tools\Ninja;%PATH%
+	mkdir build-sqldrivers
+	cd build-sqldrivers
+	qt-cmake -G Ninja C:\Qt\6.8.3\Src\qtbase\src\plugins\sqldrivers -DMySQL_INCLUDE_DIR="C:\PROGRA~1\MariaDB\MARIAD~1\include" -DMySQL_LIBRARY="C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.lib" -DCMAKE_INSTALL_PREFIX="C:\Qt\mariadb_plugin"
+	cmake --build .
+	cmake --install .
+	copy C:\Qt\mariadb_plugin\plugins\sqldrivers\qsqlmysql.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+	copy C:\PROGRA~1\MariaDB\MARIAD~1\lib\libmariadb.* C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\
+```
 Upon succesfull completion, `qsqlmysql.dll` and `libmariadb.dll` sould be located in `C:\Qt\6.8.3\mingw_64\plugins\sqldrivers\`.
 
 ### Install Git
@@ -80,7 +83,7 @@ we can now build ngs-bits:
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`. Make sure to build in release mode!  
 * Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`. Make sure to build in release mode!  
 
-*Attention: Make sure to compile the [CRYPT_KEY](GSvar/encrypt_settings.md) into the GSvar binary when using it in client-server mode. The CRYPT_KEY is used for encrypting settings and for a handshake between client and server.*
+*Attention: Make sure to compile the [CRYPT_KEY](GSvar/encrypt_settings.md) into the GSvar binary. The CRYPT_KEY is used for encrypting/decrypting settings.*
 
 Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.  
 To use GSvar, it needs to be [configured](GSvar/configuration.md) first.

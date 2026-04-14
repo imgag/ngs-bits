@@ -505,7 +505,6 @@
      <addaction name="actionImportTestData"/>
      <addaction name="actionExportSampleData"/>
      <addaction name="separator"/>
-     <addaction name="actionPrepareGhgaUpload"/>
      <addaction name="separator"/>
      <addaction name="actionMaintenance"/>
      <addaction name="actionNotifyUsers"/>
@@ -804,7 +803,7 @@
     <string>ROH</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show runs of homozygosity of the current sample.&lt;br/&gt;&lt;br/&gt;For trios, ROHs of the child (index) are shown and also UPDs are shown (if detected).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show runs of homozygosity of the current sample.&lt;br/&gt;&lt;br/&gt;For trios, ROHs of the child (index) are shown and also UPDs are shown (if detected).&lt;br/&gt;For multi-sample, ROHs of the sample selected for reporting are shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionSV">
@@ -1310,7 +1309,7 @@
   </action>
   <action name="actionBlatSearch">
    <property name="text">
-    <string>BLAT search</string>
+    <string>BLAT-like search</string>
    </property>
   </action>
   <action name="actionImportSampleHpoTerms">
@@ -1401,11 +1400,6 @@
   <action name="actionNotifyUsers">
    <property name="text">
     <string>Notify users</string>
-   </property>
-  </action>
-  <action name="actionPrepareGhgaUpload">
-   <property name="text">
-    <string>Prepare GHGA upload</string>
    </property>
   </action>
   <action name="actionBurdenTest">

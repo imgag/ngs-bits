@@ -3,7 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "GenomeBuild.h"
-#include "Transcript.h"
+#include "BedpeFile.h"
 #include "GeneSet.h"
 #include "VcfFile.h"
 #include "BamReader.h"
@@ -38,29 +38,6 @@ struct TargetRegionInfo
 
 };
 
-//Settings for Gff parser
-struct GffSettings
-{
-	QString source = "ensembl"; //source of the GFF file (Ensembl or RefSeq)
-	bool include_all = false; //if set to false, skips transcripts that are not flagged as "GENCODE basic" (Ensembl) or are not from origin RefSeq/BestRefSeq (RefSeq)
-	bool skip_not_hgnc = false; //skip transcripts without HGNC ID
-	bool print_to_stdout = true; //print infos to stdout
-};
-
-//Output of Ensembl GFF file parser
-struct GffData
-{
-	//Transcripts
-	TranscriptList transcripts;
-
-	//Map from ENST to ENSG.
-	QHash<QByteArray, QByteArray> enst2ensg;
-
-	//Map from ENSG to gene symbol
-	QHash<QByteArray, QByteArray> ensg2symbol;
-};
-
-
 //Impact of MaxEntScan prediction
 enum MaxEntScanImpact
 {
@@ -93,7 +70,7 @@ public:
 	///Converts a 3-letter amino acid code to a 1-letter amino acid code
 	static char oneLetterCode(const QByteArray& aa_tree_letter_code);
 
-	///Returns the pseudoautomal regions on gnosomes.
+	///Returns the pseudoautomal region (PAR) on chrX/chrY .
 	static const BedFile& pseudoAutosomalRegion(GenomeBuild build);
 
 	///Returns the cytogenetic band for to chromosomal position
@@ -117,9 +94,6 @@ public:
 	///Converts the 3letter ancestry code to a human-readable text, see http://m.ensembl.org/Help/Faq?id=532
 	static QString populationCodeToHumanReadable(QString code);
 
-	///Returns transcripts with features from a Ensembl GFF file, transcript_gene_relation (ENST>ENSG) and gene_name_relation (ENSG>gene symbol).
-	static GffData loadGffFile(QString filename, GffSettings settings);
-
 	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
 	static const QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
 
@@ -131,13 +105,12 @@ public:
 	///Returns a mapping from chromosome names to RefSeq NC identifiers including version number
 	static QHash<Chromosome, QString> chromosomeMapping(GenomeBuild build);
 
+	///Returns support read AF for a SV. Returns -1 if it could not be determined.
+	static double supportReadAf(const BedpeFile& svs, int sv_index, QByteArray sample, QByteArray read_type);
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;
-
-	static void loadGffEnsembl(QString filename, GffData& data, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc);
-	static void loadGffRefseq(QString filename, GffData& data, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc);
-
 };
 
 #endif // NGSHELPER_H

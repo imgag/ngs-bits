@@ -67,7 +67,6 @@ void GapDialog::calculteGaps()
 	//init
 	QStringList output;
 	int cutoff = 20;
-	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 	gaps_.clear();
 
 	//calculation
@@ -79,7 +78,7 @@ void GapDialog::calculteGaps()
 	{
 		GeneSet genes_invalid;
 		GeneSet genes_no_transcript;
-        for (const QByteArray& gene : genes_)
+		for (const QByteArray& gene : std::as_const(genes_))
 		{
 			int gene_id = db_.geneId(gene);
 			if (gene_id==-1)
@@ -191,7 +190,7 @@ void GapDialog::calculteGaps()
 
 			//use relevant transcripts
 			BedFile coding_overlap;
-            for (const QByteArray& gene : info.genes)
+			for (const QByteArray& gene : std::as_const(info.genes))
 			{
 				int gene_id = db_.geneId(gene);
 				if (gene_id==-1) continue;
@@ -217,57 +216,43 @@ void GapDialog::calculteGaps()
 			}
 
 			//check if overlapping with preferred transcript
-			BedFile pt_exon_regions;
-            for (const QByteArray& gene : info.genes)
+			BedFile relevant_exon_regions;
+			for (const QByteArray& gene : std::as_const(info.genes))
 			{
-				if (preferred_transcripts.contains(gene))
+				int gene_id = db_.geneId(gene);
+				TranscriptList transcripts = db_.relevantTranscripts(gene_id);
+				foreach(const Transcript& transcript, transcripts)
 				{
-					int gene_id = db_.geneId(gene);
-					TranscriptList transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
-					foreach(const Transcript& transcript, transcripts)
-					{
-						if (transcript.isPreferredTranscript())
-						{
-							pt_exon_regions.add(transcript.regions());
-						}
-					}
+					relevant_exon_regions.add(transcript.regions());
 				}
 			}
-			pt_exon_regions.merge();
+			relevant_exon_regions.merge();
 
-			if (pt_exon_regions.count()==0) //no preferred transcripts defined
+			//check for overlap with coding region
+			if (relevant_exon_regions.overlapsWith(info.region.chr(), info.region.start(), info.region.end()))
 			{
-				info.preferred_transcript = "not defined";
+				info.relevant_transcript = "yes";
 			}
 			else
 			{
-				//check for overlap with coding region
-				if (pt_exon_regions.overlapsWith(info.region.chr(), info.region.start(), info.region.end()))
+				//check for overlap with splice region
+				BedFile pt_splice_regions = relevant_exon_regions;
+				pt_splice_regions.extend(20);
+				pt_splice_regions.merge();
+				pt_splice_regions.subtract(relevant_exon_regions);
+
+				if (pt_splice_regions.overlapsWith(info.region.chr(), info.region.start(), info.region.end()))
 				{
-					info.preferred_transcript = "yes";
+					info.relevant_transcript = "yes (splice region)";
 				}
 				else
 				{
-					//check for overlap with splice region
-					BedFile pt_splice_regions = pt_exon_regions;
-					pt_splice_regions.extend(20);
-					pt_splice_regions.merge();
-					pt_splice_regions.subtract(pt_exon_regions);
-
-					if (pt_splice_regions.overlapsWith(info.region.chr(), info.region.start(), info.region.end()))
-					{
-						info.preferred_transcript = "yes (splice region)";
-					}
-					else
-					{
-						info.preferred_transcript = "no";
-					}
+					info.relevant_transcript = "no";
 				}
 			}
 
 			gaps_.append(info);
 		}
-
 
 		//init GUI
 		ui_.gaps->setRowCount(gaps_.count());
@@ -301,8 +286,8 @@ void GapDialog::calculteGaps()
 			ui_.gaps->setItem(i, 4, item);
 
 			//preferred transcripts
-			item = GUIHelper::createTableItem(gap.preferred_transcript);
-			if (gap.preferred_transcript.startsWith("yes")) highlightItem(item);
+			item = GUIHelper::createTableItem(gap.relevant_transcript);
+			if (gap.relevant_transcript.startsWith("yes")) highlightItem(item);
 			ui_.gaps->setItem(i, 5, item);
 
 			//suggested action

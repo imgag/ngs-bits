@@ -1,0 +1,52 @@
+Error: report variant chr1:451002-451002 C>A not found in target sample!
+Error: report variant chr1:873939-873939 C>T not found in target sample!
+Warning: excuded report variant chr1:948721-948721 A>C not found in target sample!
+Error: report cnv chr1:1332003-1332826 not found in target sample!
+Error: report cnv chr1:3836474-3836712 not found in target sample!
+Warning: excuded report cnv chr1:9871166-9871297 not found in target sample!
+Error: report sv DEL at chr1:7829912-7829966 not found in target sample!
+Error: report sv INS at chr2:28973386-28973387 not found in target sample!
+Warning: excuded report sv INV at chr2:88861923-88897786 not found in target sample!
+Error: report re ATXN7 - chr3:63912684-63912714/GCA (allele1:10 / allele2:12) not found in target sample!
+Warning: excuded report re ATXN1 - chr6:16327633-16327723/TGC (allele1:30 / allele2:31) not found in target sample!
+Error: report re TBP - chr6:170561906-170562017/GCA (allele1:37 / allele2:36) not found in target sample!
+NA12878_05 (ps_id: 1) > NA12878_06 (ps_id: 2)
+Sample correlation:	1.0000 (overlapping variants: 3)
+
+	SNVs	all/match/missed/missed_excluded	6/3/2/1
+	CNVs	all/match/missed/missed_excluded	5/2/2/1
+	SVs	all/match/missed/missed_excluded	6/3/2/1
+	REs	all/match/missed/missed_excluded	6/3/2/1
+
+The following variants can be transferred:
+	#type	source				target
+	SNV/InDel	chr1:16957-16957 G>T	chr1:16957-16957 G>T
+	SNV/InDel	chr1:17407-17407 G>A	chr1:17407-17407 G>A
+	SNV/InDel	chr1:30411-30411 G>T	chr1:30411-30411 G>T
+	CNV	chr1:1179636-1179757	chr1:1179636-1179757 (not in NGSD yet)
+	CNV	chr1:1765207-1787457	chr1:1765207-1789457 (not in NGSD yet)
+	SV	DUP at chr1:1948974-1949086	DUP at chr1:1948974-1949086
+	SV	BND from chr1:9061390-9061394 to chr14:93246136-93246140	BND from chr1:9061390-9061394 to chr14:93246136-93246140
+	SV	DEL at chr1:26345031-26345084	DEL at chr1:26344831-26345084
+	RE	NOTCH2NLC - chr1:149390802-149390841/GGC (allele1:13 / allele2:18)	NOTCH2NLC - chr1:149390802-149390841/GGC (allele1:12 / allele2:18)
+	RE	HTT - chr4:3074876-3074933/CAG (allele1:16 / allele2:25)	HTT - chr4:3074876-3074933/CAG (allele1:16 / allele2:26)
+	RE	HTT_CCG - chr4:3074939-3074966/CCG (allele1:9 / allele2:12)	HTT_CCG - chr4:3074939-3074966/CCG (allele1:9 / allele2:12)
+
+The following variants cannot be transferred:
+	#type	source
+	SNV/InDel	chr1:451002-451002 C>A
+	SNV/InDel	chr1:873939-873939 C>T
+	SNV/InDel	chr1:948721-948721 A>C(excluded)
+	CNV	chr1:1332003-1332826
+	CNV	chr1:3836474-3836712
+	CNV	chr1:9871166-9871297(excluded)
+	SV	DEL at chr1:7829912-7829966
+	SV	INS at chr2:28973386-28973387
+	SV	INV at chr2:88861923-88897786(excluded)
+	RE	ATXN7 - chr3:63912684-63912714/GCA (allele1:10 / allele2:12)
+	RE	ATXN1 - chr6:16327633-16327723/TGC (allele1:30 / allele2:31)(excluded)
+	RE	TBP - chr6:170561906-170562017/GCA (allele1:37 / allele2:36)
+
+ERROR: ReportConfig transfer NA12878_05>NA12878_06 is not possible!
+
+Exception: ReportConfig transfer NA12878_05>NA12878_06 is not possible!

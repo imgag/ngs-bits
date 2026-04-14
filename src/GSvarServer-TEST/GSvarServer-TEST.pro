@@ -1,7 +1,7 @@
 include("../app_cli.pri")
 
 #base settings
-QT += sql
+QT += sql httpserver
 
 QTPLUGIN += QSQLMYSQL
 

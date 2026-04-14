@@ -8,6 +8,9 @@ Transcript::Transcript()
 	, start_(-1)
 	, end_(-1)
 	, is_preferred_transcript_(false)
+	, is_gencode_basic_(false)
+	, is_gencode_primary_(false)
+	, is_ensembl_canonical_(false)
 	, is_mane_select_(false)
 	, is_mane_plus_clinical_(false)
 	, coding_start_(0)
@@ -20,7 +23,6 @@ QStringList Transcript::flags(bool add_square_brackets) const
 	QStringList output;
 
 	if (isPreferredTranscript()) output += "NGSD preferred transcript";
-	if (isGencodeBasicTranscript()) output << "GENCODE basic";
 	if (isGencodePrimaryTranscript()) output << "GENCODE primary";
 	if (isEnsemblCanonicalTranscript()) output << "Ensembl canonical";
 	if (isManeSelectTranscript()) output << "MANE select";
@@ -207,9 +209,8 @@ QByteArray Transcript::strandToString(Transcript::STRAND strand)
 	THROW(ProgrammingException, "Unhandled transcript strand enum value '" + QString::number(strand) + "!");
 }
 
-Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
+Transcript::STRAND Transcript::stringToStrand(const QByteArray& strand)
 {
-	strand = strand.toUpper();
 	if (strand=="+")
 	{
 		return PLUS;
@@ -274,7 +275,7 @@ QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)
 	THROW(ProgrammingException, "Unhandled transcript biotype enum value '" + QString::number(biotype) + "!");
 }
 
-Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
+Transcript::BIOTYPE Transcript::stringToBiotype(const QByteArray& biotype_orig)
 {
 	QByteArray biotype = biotype_orig.toUpper();
 	biotype.replace(' ', '_');
@@ -1003,14 +1004,15 @@ bool TranscriptList::contains(const QByteArray& name) const
 	return false;
 }
 
-Transcript TranscriptList::getTranscript(const QByteArray& name)
+const Transcript &TranscriptList::getTranscript(const QByteArray& name) const
 {
 	for (auto it=begin(); it!=end(); ++it)
 	{
 		if (it->name()==name) return *it;
 	}
 
-	return Transcript();
+	static Transcript invalid_transcript;
+	return invalid_transcript;
 }
 
 int TranscriptList::geneCount() const
@@ -1057,14 +1059,17 @@ void TranscriptList::sortByCodingBases()
 
 void TranscriptList::sortByRelevance()
 {
-	TranscriptRelevanceComparator comparator;
-	std::stable_sort(begin(), end(), comparator);
+	std::stable_sort(begin(), end(), TranscriptRelevanceComparator());
 }
 
 void TranscriptList::sortByPosition()
 {
-	TranscriptPositionComparator comparator;
-	std::stable_sort(begin(), end(), comparator);
+	std::stable_sort(begin(), end(), TranscriptPositionComparator());
+}
+
+bool TranscriptList::isSorted() const
+{
+	return std::is_sorted(begin(), end(), TranscriptPositionComparator());
 }
 
 bool TranscriptList::TranscriptPositionComparator::operator()(const Transcript& a, const Transcript& b) const

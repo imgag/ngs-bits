@@ -69,7 +69,7 @@ public:
 		return name_ + '.' + QByteArray::number(version_);
 	}
 
-	//CCDS transcript name with version number (this field is only filled if the transcript was read with NGSHelper::loadGffFile)
+    //CCDS transcript name with version number (this field is only filled if the transcript was read with GffData::loadFile from a Ensembl file)
     const QByteArray& nameCcds() const
     {
         return name_ccds_;
@@ -243,7 +243,7 @@ public:
 
 	///Returns a list of flags associated with the transcript (preferred transcript, MANE select, MANE plus clinical)
 	QStringList flags(bool add_square_brackets) const;
-
+	//Returns all exons (also non-coding)
 	const BedFile& regions() const
 	{
 		return regions_;
@@ -293,12 +293,12 @@ public:
 	///Converts strand enum to string value.
     static QByteArray strandToString(STRAND strand);
 	///Converts string to strand enum.
-    static STRAND stringToStrand(QByteArray strand);
+	static STRAND stringToStrand(const QByteArray& strand);
 
 	///Converts biotype enum to string value.
 	static QByteArray biotypeToString(BIOTYPE biotype);
 	///Converts string to biotype enum.
-	static BIOTYPE stringToBiotype(QByteArray biotype);
+	static BIOTYPE stringToBiotype(const QByteArray& biotype);
 
 	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
 	int cDnaToGenomic(int coord) const;
@@ -372,7 +372,7 @@ public:
 	bool contains(const QByteArray& name) const;
 
 	///Returns the transcript with the given id if contained. If not contained, an invalid transcript is returned.
-	Transcript getTranscript(const QByteArray& name);
+	const Transcript& getTranscript(const QByteArray& name) const;
 
 	///Returns the number of distinct gene names
 	int geneCount() const;
@@ -389,6 +389,8 @@ public:
 	void sortByCodingBases();
 	//sorts transcripts by chromosomal position
 	void sortByPosition();
+	//returns if the transcripts are sorted by position
+	bool isSorted() const;
 
 private:
 	//Comparator helper class used by sortByPosition

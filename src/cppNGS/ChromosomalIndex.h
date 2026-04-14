@@ -6,6 +6,7 @@
 #include <QHash>
 #include <QVector>
 #include <QPair>
+#include "Exceptions.h"
 
 ///Chromosomal index for fast access to @em sorted containers with chromosomal range elements like BedFile and VariantList.
 template <class T>
@@ -15,7 +16,7 @@ public:
 	///Constructor.
 	ChromosomalIndex(const T& container, int bin_size = 30);
 
-	///Re-creates the index (only needed if the container content changed after calling the index constructor).
+	///Re-creates the index (only needed if the container content changed after calling the index constructor). Throws an exception if the container is not sorted.
 	void createIndex();
 
 	///Returns the underlying container
@@ -50,6 +51,12 @@ ChromosomalIndex<T>::ChromosomalIndex(const T& container, int bin_size)
 template <class T>
 void ChromosomalIndex<T>::createIndex()
 {
+	//make sure input is sorted
+	if (!container_.isSorted())
+	{
+		THROW(ArgumentException, "ChromosomalIndex::createIndex called on unsorted container!");
+	}
+
 	//clear index
 	index_.clear();
 	max_length_ = -1;

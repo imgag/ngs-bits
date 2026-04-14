@@ -68,6 +68,10 @@ It is actually a good way to check, if the server is running. Web UI provides an
 
 Please see [Running a development server](development/development_instance.md).
 
+### Is it possible to commuincate with the queuing engine via some HTTP API?
+
+Yes, asolutely. To learn how to do it, please read the corresponding section of this [documentation](qe_api.md).
+
 ### It looks like the server uses HTTPS. How do I deal with the SSL certificates?
 
 Yes, `GSvarServer` supports only HTTPS protocol and you will need to configure the server to use a SSL certificate. There are multiple ways to get one, we recommend acquiring certificates through [Let's Encrypt](https://letsencrypt.org/getting-started/)
@@ -91,13 +95,10 @@ Yes, `GSvarServer` supports only HTTPS protocol and you will need to configure t
 
 The server can be built and started on Linux and Mac, Windows is not supported. Current version requires about 16GB of RAM and at least 2 core CPU for the compilation. For running the server, however, you may need significanlty less RAM - about 4GB should be sufficient. Memory consumption mainly depends on how many active users and active requests the server is processing simultaneoulsy.
 
-### Do I need to download, install, and configure BLAT server manually?
-
-No, you just need to specify the port number BLAT server should be running on in the server config file. `GSvarServer` will donwload and start BLAT server automatically. It will also turn BLAT server off, when `GSvarServer` is being stopped.
-
 ### How to configure a queuing engine?
 
-Two eueuing engines are supported: SGE and Slurm. For more information please consult [Slurm Queuing Engine page](install_slurm.md)
+Two qeueuing engines are supported natively: [SGE](install_sge.md) and [Slurm](install_slurm.md).  
+Additionally, a web-service can be used for other queuing engines or custom analysis queuing: more information on how it works can be found [here](qe_api.md)
 
 ### Is it possible to deploy GSvarServer in a cloud (e.g. in AWS or Hetzner)?
 

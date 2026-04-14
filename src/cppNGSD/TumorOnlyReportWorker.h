@@ -27,7 +27,7 @@ struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 	bool include_coverage_per_gap = false;
 	bool include_exon_number_per_gap = false;
 
-	QMap<QByteArray, QByteArrayList> preferred_transcripts;
+	QMap<QByteArray, QByteArrayList> relevant_transcripts;
 
 	bool use_test_db = false;
 
@@ -64,7 +64,7 @@ private:
 	int i_ncg_oncogene_;
 	int i_ncg_tsg_;
 	int i_germl_class_;
-	int i_somatic_class_;
+    int i_vicc_class_;
 
 	///Returns variant description with information from NCG and in-house classification
 	QByteArray variantDescription(const Variant& var);

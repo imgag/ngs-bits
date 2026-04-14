@@ -73,7 +73,7 @@ SomaticXmlReportGenerator::SomaticXmlReportGenerator()
 
 void SomaticXmlReportGenerator::checkSomaticVariantAnnotation(const VariantList &vl)
 {
-	const QByteArrayList annos = {"tumor_af","tumor_dp", "normal_af", "normal_dp", "gene", "somatic_classification", "ncg_oncogene", "ncg_tsg", "coding_and_splicing"};
+    const QByteArrayList annos = {"tumor_af","tumor_dp", "normal_af", "normal_dp", "gene", "ncg_oncogene", "ncg_tsg", "coding_and_splicing"};
 
 	for(const auto& anno : annos)
 	{
@@ -126,40 +126,34 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	}
 
 	QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(tumor_s_id);
-	if(!disease_infos.empty())
+	for (const SampleDiseaseInfo& disease_info : std::as_const(disease_infos))
 	{
-            for (const auto& disease_info : disease_infos)
-		{
-			QString type = disease_info.type;
-			if (type=="HPO term id") type = "HPO";
-			else if (type=="ICD10 code") type = "ICD10";
-			else if (type=="Orpha number") type = "ORPHA";
-			else if (type=="Oncotree code") type = "ONCOTREE";
-			else continue;
+		QString type = disease_info.type;
+		if (type=="HPO term id") type = "HPO";
+		else if (type=="ICD10 code") type = "ICD10";
+		else if (type=="Orpha number") type = "ORPHA";
+		else if (type=="Oncotree code") type = "ONCOTREE";
+		else continue;
 
-			w.writeStartElement("DiseaseInfo");
-			w.writeAttribute("type", type);
-			w.writeAttribute("identifier", disease_info.disease_info);
-			w.writeEndElement();
-		}
+		w.writeStartElement("DiseaseInfo");
+		w.writeAttribute("type", type);
+		w.writeAttribute("identifier", disease_info.disease_info);
+		w.writeEndElement();
 	}
 
 	disease_infos = db.getSampleDiseaseInfo(normal_s_id);
-	if(!disease_infos.empty())
+	foreach(const SampleDiseaseInfo& disease_info, std::as_const(disease_infos))
 	{
-		foreach(const auto& disease_info, disease_infos)
-		{
-			QString type = disease_info.type;
-			if (type=="HPO term id") type = "HPO";
-			else if (type=="ICD10 code") type = "ICD10";
-			else if (type=="Orpha number") type = "ORPHA";
-			else continue;
+		QString type = disease_info.type;
+		if (type=="HPO term id") type = "HPO";
+		else if (type=="ICD10 code") type = "ICD10";
+		else if (type=="Orpha number") type = "ORPHA";
+		else continue;
 
-			w.writeStartElement("DiseaseInfoGermline");
-			w.writeAttribute("type", type);
-			w.writeAttribute("identifier", disease_info.disease_info);
-			w.writeEndElement();
-		}
+		w.writeStartElement("DiseaseInfoGermline");
+		w.writeAttribute("type", type);
+		w.writeAttribute("identifier", disease_info.disease_info);
+		w.writeEndElement();
 	}
 
 
@@ -381,7 +375,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			}
 
 			//Elements transcript information
-			VariantTranscript selected_transcript = SomaticReportHelper::selectSomaticTranscript(db, snv, i_co_sp);
+			VariantTranscript selected_transcript = SomaticReportHelper::selectSomaticTranscript(db, snv.transcriptAnnotations(i_co_sp));
 			for (const auto& trans : snv.transcriptAnnotations(i_co_sp) )
 			{
 				w.writeStartElement("TranscriptInformation");
@@ -447,7 +441,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeAttribute("exon", trans.exon);
 			w.writeAttribute("variant_type", trans.type);
 
-			bool is_main_transcript = data.settings.preferred_transcripts.contains(trans.gene) && data.settings.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+			bool is_main_transcript = data.settings.relevant_transcripts.contains(trans.gene) && data.settings.relevant_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
 			w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
 
 			w.writeEndElement();
@@ -507,7 +501,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			GeneSet genes = db.genesToApproved(cnv.genes(), false); // remove gene that cannot be approved
 			GeneSet tsg = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_tsg], ',' ), true);
 			GeneSet oncogenes = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_oncogene], ',' ), true);
-			for(const auto& gene : genes)
+			for(const QByteArray& gene : std::as_const(genes))
 			{
 				if(!target_region_genes.contains(gene)) continue; //Include genes from target filter only
 

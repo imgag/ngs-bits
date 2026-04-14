@@ -50,10 +50,17 @@ public:
 		BedFile gene_regions;
         for (const QByteArray& gene_name : db.approvedGeneNames())
 		{
-			BedFile regions = db.geneToRegions(gene_name, Transcript::ENSEMBL, "gene", true, false);
-			regions.extend(5000);
-			gene_regions.add(regions);
+			QByteArrayList annos = QByteArrayList() << gene_name;
+			int gene_id = db.geneId(gene_name);
+			foreach(const Transcript& t, db.transcripts(gene_id, Transcript::ENSEMBL, false))
+			{
+				if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript() || t.isGencodePrimaryTranscript())
+				{
+					gene_regions.append(BedLine(t.chr(), t.start(), t.end(), annos));
+				}
+			}
 		}
+		gene_regions.extend(5000);
 		gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
         out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << Qt::endl;
@@ -116,24 +123,35 @@ public:
 				foreach (int index, matching_indices)
 				{
 					const BedLine& gene_locus = gene_regions[index];
+
 					// store gene name
 					QByteArray gene_name = gene_locus.annotations()[0];
 					matching_genes.insert(gene_name);
 
 					// determine overlap of SV and gene
 					QByteArray overlap;
-					if (sv_region.start() <= gene_locus.start() && sv_region.end() >= gene_locus.end())
+					if (sv_region.start() <= (gene_locus.start()+5000) && sv_region.end() >= (gene_locus.end()-5000)) //correct by 5000 because gene loci are extended by 5000 for correct gene annotation
 					{
 						overlap = "complete";
 					}
 					else
 					{
-						if (!exon_regions.contains(gene_name))
+						if (!exon_regions.contains(gene_name)) //get exon/splicing region of gene
 						{
-							BedFile regions = db.geneToRegions(gene_name, Transcript::ENSEMBL, "exon", true, false);
+							BedFile regions;
+							int gene_id = db.geneId(gene_name);
+							foreach(const Transcript& t, db.transcripts(gene_id, Transcript::ENSEMBL, false))
+							{
+								if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript() || t.isGencodePrimaryTranscript())
+								{
+									regions.add(t.regions());
+								}
+							}
 							regions.extend(20);
+							regions.merge();
 							exon_regions[gene_name] = regions;
 						}
+
 						if (exon_regions[gene_name].overlapsWith(sv_region.chr(), sv_region.start(), sv_region.end()))
 						{
 							overlap = "exonic/splicing";

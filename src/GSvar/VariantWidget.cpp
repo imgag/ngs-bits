@@ -67,7 +67,7 @@ void VariantWidget::updateGUI()
 		ui_.variant->setText(variant_.toString(QChar(), -1, true));
 
 		SqlQuery query1 = db.getQuery();
-		query1.exec("SELECT gnomad, cadd, spliceai FROM variant WHERE id=" + variant_id_);
+		query1.exec("SELECT gnomad, cadd, spliceai, comment FROM variant WHERE id=" + variant_id_);
 		query1.next();
 		QString gnomad_af;
 		if (!query1.value("gnomad").isNull())
@@ -142,7 +142,6 @@ void VariantWidget::updateGUI()
 		ClassificationInfo class_info = db.getClassification(variant_);
 		ui_.classification->setText(class_info.classification);
 		GSvarHelper::limitLines(ui_.classification_comment, class_info.comments);
-
 
 		//somatic classification
 		SomaticViccData vicc_info = db.getSomaticViccData(variant_, false);

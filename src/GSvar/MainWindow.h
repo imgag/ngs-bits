@@ -168,7 +168,6 @@ public slots:
 	void on_actionStudy_triggered();
 	void on_actionSampleCounts_triggered();
 	void on_actionGaps_triggered();
-	void on_actionPrepareGhgaUpload_triggered();
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
 	void on_actionNotifyUsers_triggered();
@@ -218,7 +217,7 @@ public slots:
 	void on_actionGeneInterpretability_triggered();
 	///Subpanel archive dialog
 	void on_actionManageSubpanels_triggered();
-	///Close current variant list
+	///Close current case
 	void on_actionClose_triggered();
 	///Close all meta data tabs
 	void on_actionCloseMetaDataTabs_triggered();

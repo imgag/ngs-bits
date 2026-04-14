@@ -1,6 +1,6 @@
 # GSvarServer settings and GSvar settings
 
-## configuring the GSvar server
+## Configuring the GSvar server
 
 To run GSvarServer, you have to configure it using the `GSvarServer.ini` file.  
 These are the most important config parameters:
@@ -9,7 +9,6 @@ These are the most important config parameters:
 * `ssl_key` - location of your private key
 * `server_port` - port used by the server
 * `server_host` - domain name used be the server
-* `blat_server_port` - port where BLAT server should be running, BALT server will not be started, if the port is not set
 * `url_lifetime` - lifespan (seconds) of a temporary URL genereated by the server
 * `session_duration` - valid period (seconds) of a user session
 * `threads` - number of threads used for parallel calculations
@@ -26,6 +25,8 @@ These are the most important config parameters:
 * `ngsd_user` - NGSD database user name
 * `ngsd_pass` - NGSD user password
 * `queue_update_enabled` - turns on SGE/Slurm update worker (true/false). SGE or Slurm must be setup for this option (see [Slurm installation](install_slurm.md)).
+* `qe_api_base_url` - URL for the queuing engine HTTP API: submitting jobs, updating running jobs, cheking completed jobs, deleting jobs without interacting directly with the queuing engine
+* `qe_secure_token` - a token that is needed to access the queuing engine API server
 * `megsap_settings_ini` - path to the megSAP settings file (additional settings are extracted from this file)
 * `show_raw_request` - flag used for debugging, allows to print out entire HTTP requests in log files(true/false), may significantly increase log sizes, should not be used in productio
 * `enable_file_metadata_caching` - turns on/off (true/false) file metadata caching, the cache is needed to reduce the number of calls to a file system (e.g. file size, check if file exists, etc.)
@@ -41,7 +42,11 @@ These are the seettings for the database:
 * `gsvar_server_db_user` - database user name
 * `gsvar_server_db_pass` - database user password
 
-## configuring GSvar
+## Using a custom queuing engine server
+
+Please refer to the [queuing engine server documenation](qe_api.md) to learn more.
+
+## Configuring GSvar
 
 To enable the communincation of the GSvar client with the GSvarServer, you have to adapt the `GSvar.ini` file of the client as well.  
 See the [GSvar configuration](../GSvar/configuration.md) for details.

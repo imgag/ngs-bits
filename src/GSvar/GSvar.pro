@@ -31,7 +31,6 @@ SOURCES += main.cpp\
     ColumnConfig.cpp \
     ColumnConfigWidget.cpp \
     DatabaseServiceRemote.cpp \
-    GHGAUploadDialog.cpp \
     GeneInterpretabilityDialog.cpp \
     GlobalServiceProvider.cpp \
     HerediVarImportDialog.cpp \
@@ -53,6 +52,7 @@ SOURCES += main.cpp\
     SampleCountWidget.cpp \
     SettingsDialog.cpp \
     TabBaseClass.cpp \
+    TransferredVariantDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
     UserPermissionsEditor.cpp \
@@ -166,7 +166,6 @@ HEADERS += MainWindow.h \
     ColumnConfigWidget.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
-    GHGAUploadDialog.h \
     GeneInterpretabilityDialog.h \
     GlobalServiceProvider.h \
     HerediVarImportDialog.h \
@@ -186,6 +185,7 @@ HEADERS += MainWindow.h \
     SampleCountWidget.h \
     SettingsDialog.h \
     TabBaseClass.h \
+    TransferredVariantDialog.h \
     TrioDialog.h \
     HttpHandler.h \
     UserPermissionsEditor.h \
@@ -294,7 +294,6 @@ FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ColumnConfigWidget.ui \
     ExternalToolDialog.ui \
-    GHGAUploadDialog.ui \
     GeneInterpretabilityDialog.ui \
     HerediVarImportDialog.ui \
     IgvLogWidget.ui \
@@ -308,6 +307,7 @@ FORMS    += MainWindow.ui \
     ReportDialog.ui \
     SampleCountWidget.ui \
     SettingsDialog.ui \
+    TransferredVariantDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     UserPermissionsEditor.ui \

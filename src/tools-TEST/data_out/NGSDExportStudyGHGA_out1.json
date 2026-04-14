@@ -30,6 +30,10 @@
             "alias": "ANAM_000111",
             "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
             "name": "ANAM_000111",
+            "reference_name": "hg38",
+            "reference_source": "1000 Genomes project",
+            "reference_type": "GENOME",
+            "reference_version": "GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna.gz",
             "type": "custom analysis",
             "workflow_doi": "doi.123",
             "workflow_name": "megSAP",
@@ -40,6 +44,10 @@
             "alias": "ANAM_000222",
             "description": "custom analysis using megSAP: https://github.com/imgag/megSAP",
             "name": "ANAM_000222",
+            "reference_name": "hg38",
+            "reference_source": "1000 Genomes project",
+            "reference_type": "GENOME",
+            "reference_version": "GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna.gz",
             "type": "custom analysis",
             "workflow_doi": "doi.123",
             "workflow_name": "megSAP",
@@ -114,7 +122,7 @@
             "library_selection_methods": [
                 "OTHER"
             ],
-            "library_type": "Total RNA",
+            "library_type": "TOTAL_RNA",
             "name": "EXPM_000222",
             "sequencing_layout": "PE",
             "type": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI"
@@ -143,6 +151,20 @@
     "individuals": [
         {
             "alias": "000111",
+            "ancestry_ids": [
+                "HANCESTRO:2003"
+            ],
+            "ancestry_terms": [
+                "European (EUR) reference superpopulation (1KGP)"
+            ],
+            "phenotypic_features_ids": [
+                "HP:0033006",
+                "HP:0040049"
+            ],
+            "phenotypic_features_terms": [
+                "Diffuse alveolar damage",
+                "Macular edema"
+            ],
             "sex": "FEMALE"
         },
         {
@@ -229,9 +251,19 @@
     "samples": [
         {
             "alias": "SAM_000111",
-            "biospecimen_age_at_sampling": "UNKNOWN",
-            "biospecimen_tissue_id": "UNKNOWN",
-            "biospecimen_tissue_term": "UNKNOWN",
+            "attributes": [
+                {
+                    "key": "generic_col1",
+                    "value": "value1"
+                },
+                {
+                    "key": "generic_col2",
+                    "value": "value2"
+                }
+            ],
+            "biospecimen_age_at_sampling": "46_TO_50",
+            "biospecimen_tissue_id": "BTO:0000089",
+            "biospecimen_tissue_term": "blood",
             "case_control_status": "CASE",
             "description": "Germline sample of 000111",
             "individual": "000111",
@@ -240,9 +272,19 @@
         },
         {
             "alias": "SAM_000222",
-            "biospecimen_age_at_sampling": "UNKNOWN",
-            "biospecimen_tissue_id": "UNKNOWN",
-            "biospecimen_tissue_term": "UNKNOWN",
+            "attributes": [
+                {
+                    "key": "generic_col1",
+                    "value": "value3"
+                },
+                {
+                    "key": "generic_col2",
+                    "value": "value4"
+                }
+            ],
+            "biospecimen_age_at_sampling": "21_TO_25",
+            "biospecimen_tissue_id": "BTO:0001253",
+            "biospecimen_tissue_term": "skin",
             "case_control_status": "CASE",
             "description": "Germline sample of 000222",
             "individual": "000222",

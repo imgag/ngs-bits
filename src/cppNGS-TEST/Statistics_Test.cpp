@@ -271,7 +271,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[24].name(), QString("GC bias plot"));
 		IS_TRUE(stats[24].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[25].name(), QString("chrY/chrX read ratio"));
-		S_EQUAL(stats[25].toString(), QString("0.0000"));
+		S_EQUAL(stats[25].toString(), QString("0.0001"));
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -800,11 +800,11 @@ TEST_CLASS(Statistics_Test)
 		GenderEstimate estimate = Statistics::genderXY(TESTDATA("data_in/panel.bam"));
 		I_EQUAL(estimate.add_info.count(), 3);
 		S_EQUAL(estimate.add_info[0].key, "reads_chry");
-		S_EQUAL(estimate.add_info[0].value, "0");
+		S_EQUAL(estimate.add_info[0].value, "2");
 		S_EQUAL(estimate.add_info[1].key, "reads_chrx");
-		S_EQUAL(estimate.add_info[1].value, "30528");
+		S_EQUAL(estimate.add_info[1].value, "30645");
 		S_EQUAL(estimate.add_info[2].key, "ratio_chry_chrx");
-		S_EQUAL(estimate.add_info[2].value, "0.0000");
+		S_EQUAL(estimate.add_info[2].value, "0.0001");
 		S_EQUAL(estimate.gender, "female");
 
 		//longread test

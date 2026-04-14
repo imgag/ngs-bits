@@ -28,10 +28,10 @@ public:
 		addInfile("ann_folder", "Input folder containing NGSD count flat files.", false, true);
 
 		//optional
-		addString("ps_name", "Processed sample name of the associated input file", true);
-		addString("processing_system", "Processing system short name of the processed sample", true);
-		addString("disease_group", "Disease group of the input sample", true);
-		addFlag("test", "Uses NGSD test db instead of the production db");
+		addString("ps_name", "Processed sample name of the associated input file.", true);
+		addString("processing_system", "Processing system short name of the processed sample.", true);
+		addString("disease_group", "Disease group of the input sample.", true);
+		addFlag("test", "Uses NGSD test db instead of the production db.");
 
 		changeLog(2022, 2, 11, "Initial commit.");
 		changeLog(2025, 1, 13, "Added annotation of counts and AF grouped by disease group");
@@ -164,7 +164,6 @@ public:
 		// iterate over all structural variants
 		for (int i=0; i < bedpe_input_file.count(); i++)
 		{
-
 			BedpeLine sv = bedpe_input_file[i];
 
 			QList<QByteArray> sv_annotations = sv.annotations();

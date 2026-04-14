@@ -35,6 +35,7 @@ echo "thread_count = 2" >> ./bin/settings.ini
 echo "socket_read_timeout = 10" >> ./bin/settings.ini
 echo "socket_write_timeout = 10" >> ./bin/settings.ini
 echo "socket_encryption_timeout = 5" >> ./bin/settings.ini
+echo "location = \"UKT\"" >> ./bin/settings.ini
 
 touch ./bin/GSvarServer-TEST.ini
 echo "url_lifetime = 5" >> ./bin/GSvarServer-TEST.ini
@@ -51,7 +52,5 @@ echo "thread_count = 2" >> ./bin/GSvarServer-TEST.ini
 echo "socket_read_timeout = 10" >> ./bin/GSvarServer-TEST.ini
 echo "socket_write_timeout = 10" >> ./bin/GSvarServer-TEST.ini
 echo "socket_encryption_timeout = 5" >> ./bin/GSvarServer-TEST.ini
+echo "qe_api_base_url = \"http://localhost:8000\"" >> ./bin/GSvarServer-TEST.ini
 cp ./bin/GSvarServer-TEST.ini ./bin/GSvarServer.ini
-
-sed -i '/CRYPT/d' src/cppCORE/cppCORE.pro
-echo 'DEFINES += "CRYPT_KEY=\\\"0xf0a0c1ba2b7b7a82\\\""' >> ./src/cppCORE/cppCORE.pro

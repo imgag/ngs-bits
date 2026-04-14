@@ -1,8 +1,8 @@
 #include "VariantAnnotator.h"
 #include "LoginManager.h"
 #include "ApiCaller.h"
-#include "GlobalServiceProvider.h"
 #include "Settings.h"
+#include "VcfFile.h"
 
 VariantAnnotator::VariantAnnotator(const VariantList& variants)
 	: BackgroundWorkerBase("Variant annnotation")
@@ -36,5 +36,5 @@ void VariantAnnotator::process()
 	Helper::storeTextFile(gsvar_file, QStringList() << reply);
 
 	//open GSvar
-	GlobalServiceProvider::openGSvarFile(gsvar_file);
+	emit loadFile(gsvar_file);
 }

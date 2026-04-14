@@ -25,6 +25,7 @@
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
 #include "HttpHandler.h"
+#include "TransferredVariantDialog.h"
 #include "ValidationDialog.h"
 #include "ClassificationDialog.h"
 #include "BasicStatistics.h"
@@ -112,7 +113,6 @@
 #include "VirusDetectionWidget.h"
 #include "SomaticcfDNAReport.h"
 #include "ClientHelper.h"
-#include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
 #include "IgvLogWidget.h"
 #include "SettingsDialog.h"
@@ -1021,11 +1021,8 @@ void MainWindow::on_actionROH_triggered()
 {
 	if (filename_=="") return;
 
-	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
-
 	//trio special handling: show UPD file is not empty
-	if (type==GERMLINE_TRIO)
+	if ( variants_.type()==GERMLINE_TRIO)
 	{
 		//UPDs
 		FileLocation upd_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisUpdFile();
@@ -2844,35 +2841,13 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	//notify for variant validation
 	checkPendingVariantValidations();
 
-	//activate Circos plot menu item if plot is available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty())
-	{
-		ui_.actionCircos->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionCircos->setEnabled(false);
-	}
-
-	//activate repeat expansion menu item if RE calls are available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty())
-	{
-		ui_.actionRE->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionRE->setEnabled(false);
-	}
-
-	//activate PRS menu item if PRS are available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty())
-	{
-		ui_.actionPRS->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionPRS->setEnabled(false);
-	}
+	//activate buttons based on analysis type
+	ui_.actionROH->setEnabled(type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE);
+	ui_.actionRE->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty());
+	ui_.actionPRS->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty());
+	ui_.actionPathogenicWT->setEnabled(type==GERMLINE_SINGLESAMPLE);
+	ui_.actionCircos->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty());
+	ui_.actionMethylation->setEnabled(type==GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getMethylationFile().exists);
 
 	//activate virus table
 	ui_.actionVirusDetection->setEnabled(false);
@@ -2966,14 +2941,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			}
 		}
 	}
-
-	//activate Methylation menu
-	if (type==GERMLINE_SINGLESAMPLE)
-	{
-		FileLocation met_loc = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
-		ui_.actionMethylation->setEnabled(met_loc.exists);
-
-	}
 }
 
 void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
@@ -3023,8 +2990,6 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 	}
 	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR || type==CFDNA)
 	{
-		cols << "somatic_classification";
-		cols << "somatic_classification_comment";
 		cols << "NGSD_som_vicc_interpretation";
 		cols << "NGSD_som_vicc_comment";
 	}
@@ -3107,13 +3072,6 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		QString ps_id = db.processedSampleId(ps, false);
 		if (ps_id=="") continue;
 
-		//check scheduled for resequencing
-		QString resequencing = db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toString();
-		if (resequencing=="1")
-		{
-			issues << qMakePair(Log::LOG_WARNING, "Processed sample '" + ps + "' is scheduled for resequencing!");
-		}
-
 		//check quality
 		QString quality = db.getValue("SELECT quality FROM processed_sample WHERE id=" + ps_id).toString();
 		if (quality=="bad")
@@ -3166,6 +3124,13 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		if (db.getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=" + ps_id).toBool())
 		{
 			issues << qMakePair(Log::LOG_WARNING, "The processed sample " + ps + " is scheduled for resequencing!");
+		}
+
+		//check for non-tansferable variants:
+		if (db.getValue("SELECT COUNT(id) FROM report_configuration_failed_transfer WHERE status='open' AND processed_sample_id=" + ps_id).toInt() > 0)
+		{
+			issues << qMakePair(Log::LOG_WARNING, "The processed sample " + ps + " contains non-transferable variants from a previous report configuration with status 'open'!<BR>"
+								+ "    (see ProcessedSample tab -> report configuration for details)");
 		}
 	}
 }
@@ -3462,7 +3427,7 @@ void MainWindow::generateEvaluationSheet()
 
 	//write sheet
 	PrsTable prs_table; //not needed
-	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GlobalServiceProvider::statistics());
 	GermlineReportGenerator generator(generator_data);
 	generator.writeEvaluationSheet(filename, evaluation_sheet_data);
 
@@ -3706,7 +3671,7 @@ void MainWindow::generateReportTumorOnly()
 	config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
 	config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
 	config.filter_result = filter_result_;
-	config.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	config.relevant_transcripts = GSvarHelper::relevantTranscripts();
 	config.build = GSvarHelper::build();
 
 	TumorOnlyReportDialog dlg(variants_, config, this);
@@ -3809,7 +3774,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
 
-	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	somatic_report_settings_.relevant_transcripts = GSvarHelper::relevantTranscripts();
 	somatic_report_settings_.report_config->setEvaluationDate(QDate::currentDate());
 
 	//load obo terms for filtering coding/splicing variants
@@ -4244,7 +4209,7 @@ void MainWindow::generateReportGermline()
 	FileLocationList prs_files = GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).filterById(ps_name);
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
-	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, res_, prs_table, report_settings_, ui_.filters->filters(), GlobalServiceProvider::statistics());
 	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name), false);
 	data.ps_bam = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::BAM).filename;
 	data.ps_lowcov = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::LOWCOV_BED).filename;
@@ -4467,7 +4432,7 @@ void MainWindow::on_actionShowDatabaseInfo_triggered()
 	//create table
 	DBTableWidget* table = new DBTableWidget(this);
 	table->setData(db_table);
-	table->setMinimumSize(800, 600);
+	table->setMinimumSize(300, 300);
 
 	//create and show dialog
 	QSharedPointer<QDialog> dialog  = GUIHelper::createDialog(table, "Database information", "Version and import date of external data sources imported into NGSD:", true);
@@ -5015,12 +4980,6 @@ void MainWindow::on_actionGaps_triggered()
 	dlg.exec();
 }
 
-void MainWindow::on_actionPrepareGhgaUpload_triggered()
-{
-	GHGAUploadDialog dlg(this);
-	dlg.exec();
-}
-
 void MainWindow::on_actionMaintenance_triggered()
 {
 	try
@@ -5387,8 +5346,8 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	auto dlg = GUIHelper::createDialog(widget, "Preferred transcripts");
 	dlg->exec();
 
-	//re-load preferred transcripts from NGSD
-	GSvarHelper::preferredTranscripts(true);
+	//re-load preferred transcripts from NGSD (only adds new PTs, for removing PTs GSvar needs to be restarted)
+	GSvarHelper::relevantTranscripts(true);
 }
 
 void MainWindow::on_actionEditSomaticGeneRoles_triggered()

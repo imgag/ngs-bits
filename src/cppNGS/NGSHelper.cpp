@@ -2,7 +2,6 @@
 #include "Helper.h"
 #include "FilterCascade.h"
 #include "Log.h"
-#include "VersatileTextStream.h"
 #include <QFileInfo>
 
 namespace {
@@ -491,7 +490,7 @@ const QMap<QByteArray, ImprintingInfo>& NGSHelper::imprintingGenes()
 		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
 		foreach(const QString& line, lines)
 		{
-			QStringList parts = line.split("\t");
+			QStringList parts = line.split('\t');
 			if (parts.count()==3)
 			{
 				QByteArray gene = parts[0].toUtf8().trimmed();
@@ -934,10 +933,10 @@ double NGSHelper::maxSpliceAiScore(QString annotation_string, QString* tooltip)
 	//new format - comma-speparated list of predictions, e.g. BABAM1|0.03|0.00|0.01|0.00|-2|2|41|2,CTD-2278I10.6|0.03|0.00|0.01|0.00|-2|2|41|2 (GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL)
 	max_score = -1.0;
 	QStringList tooltip_lines;
-	QStringList entries = annotation_string.split(",");
+	QStringList entries = annotation_string.split(',');
 	foreach(QString entry, entries)
 	{
-		QStringList parts = entry.split("|");
+		QStringList parts = entry.split('|');
 		if (parts.count()!=9)
 		{
 			Log::warn("Invalid SpliceAI annotation (not 9 fields): " + entry);
@@ -1041,471 +1040,28 @@ QHash<Chromosome, QString> NGSHelper::chromosomeMapping(GenomeBuild build)
 	return output;
 }
 
-//Helper struct for GFF parsing
-struct TranscriptData
+double NGSHelper::supportReadAf(const BedpeFile &svs, int sv_index, QByteArray sample, QByteArray read_type)
 {
-	QByteArray name;
-	int version = 0;
-	QByteArray name_ccds;
-	QByteArray gene_symbol;
-	QByteArray gene_id;
-	QByteArray hgnc_id;
-	Chromosome chr;
-	int start_coding = 0;
-	int end_coding = 0;
-	QByteArray strand;
-	QByteArray biotype;
-	bool is_gencode_basic;
-	bool is_gencode_primary;
-	bool is_ensembl_canonical;
-	bool is_mane_select;
-	bool is_mane_plus_clinical;
+	if (read_type!="SR" && read_type!="PR") THROW(ArgumentException, "Invalid read type '"+read_type+"' given in NGSHelper::supportReadAf()");
 
-	BedFile exons;
-};
-
-
-QHash<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes)
-{
-	QHash<QByteArray, QByteArray> output;
-
-	QByteArrayList parts = attributes.split(';');
-	foreach(const QByteArray& part, parts)
+	try
 	{
-		int split_index = part.indexOf('=');
-		QByteArray key = part.left(split_index).trimmed();
-		QByteArray value = part.mid(split_index+1).trimmed();
-		output[key] = value;
+		//get sample data
+		int i_format = svs.annotationIndexByName("FORMAT");
+		int i_sample = svs.annotationIndexByName(sample);
+		QByteArrayList values = svs[sv_index].getSampleFormatData(i_format, i_sample, read_type).split(',');
+		if(values.count()!=2) THROW(ArgumentException, "Value of '"+read_type+"' could not be split in two parts!");
+
+		//get counts
+		int count_ref = Helper::toInt(values[0], "ref count");
+		int count_alt = Helper::toInt(values[1], "alt count");
+		if(count_alt+count_ref==0) return 0;
+
+		return (double)count_alt / (count_alt+count_ref);
 	}
-
-	return output;
-}
-
-GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
-{
-	int c_skipped_special_chr = 0;
-	QSet<QByteArray> special_chrs;
-	int c_skipped_no_name_and_hgnc = 0;
-	int c_skipped_low_evidence = 0;
-	int c_skipped_not_hgnc = 0;
-
-	//load data
-	GffData data;
-	if (settings.source=="ensembl") loadGffEnsembl(filename, data, settings, c_skipped_special_chr, special_chrs, c_skipped_no_name_and_hgnc, c_skipped_low_evidence, c_skipped_not_hgnc);
-	else if (settings.source=="refseq") loadGffRefseq(filename, data, settings, c_skipped_special_chr, special_chrs, c_skipped_no_name_and_hgnc, c_skipped_low_evidence, c_skipped_not_hgnc);
-	else THROW(ArgumentException, "Invalid GFF source '" + settings.source + "'!");
-
-	//text output
-	if (settings.print_to_stdout)
+	catch (Exception& e)
 	{
-		QTextStream out(stdout);
-        out << "Parsed " << data.transcripts.geneCount() << " genes from GFF" << Qt::endl;
-        out << "Parsed " << data.transcripts.count() << " transcripts from GFF" << Qt::endl;
-		if (c_skipped_special_chr>0)
-		{
-            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " genes on special chromosomes skipped: " << special_chrs.values().join(", ") << Qt::endl;
-		}
-		if (c_skipped_no_name_and_hgnc>0)
-		{
-            out << "Notice: " << QByteArray::number(c_skipped_no_name_and_hgnc) << " genes without symbol and HGNC identifier skipped." << Qt::endl;
-		}
-		if (c_skipped_not_hgnc>0)
-		{
-            out << "Notice: " << QByteArray::number(c_skipped_not_hgnc) << " genes without a HGNC identifier skipped." << Qt::endl;
-		}
-		if (c_skipped_low_evidence>0)
-		{
-
-            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << Qt::endl;
-		}
-	}
-
-	return data;
-}
-
-
-void NGSHelper::loadGffEnsembl(QString filename, GffData& output, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc)
-{
-	output.transcripts.reserve(100000);
-
-	//init
-	QHash<QByteArray, TranscriptData> transcripts;
-	QHash<QByteArray, QByteArray> gene_to_hgnc;
-
-	VersatileTextStream stream(filename);
-	while(!stream.atEnd())
-    {
-		QByteArray line = stream.readLine(true).toUtf8();
-		if (line.isEmpty()) continue;
-
-        //section end => commit data
-        if (line=="###")
-        {
-            //convert from TranscriptData to Transcript and append to list
-			for(auto it = transcripts.begin(); it!=transcripts.end(); ++it)
-            {
-				TranscriptData& t_data = it.value();
-				t_data.exons.merge();
-
-                Transcript t;
-                t.setGene(t_data.gene_symbol);
-                t.setGeneId(t_data.gene_id);
-                t.setHgncId(t_data.hgnc_id);
-                t.setName(t_data.name);
-                t.setVersion(t_data.version);
-                t.setNameCcds(t_data.name_ccds);
-                t.setSource(Transcript::ENSEMBL);
-				t.setStrand(Transcript::stringToStrand(t_data.strand));
-				t.setBiotype(Transcript::stringToBiotype(t_data.biotype));
-                int coding_start = t_data.start_coding;
-                int coding_end = t_data.end_coding;
-                if(t.strand() == Transcript::MINUS)
-                {
-                   int temp = coding_start;
-                   coding_start = coding_end;
-                   coding_end = temp;
-                }
-                t.setRegions(t_data.exons, coding_start, coding_end);
-				t.setGencodeBasicTranscript(t_data.is_gencode_basic);
-				t.setGencodePrimaryTranscript(t_data.is_gencode_primary);
-				t.setEnsemblCanonicalTranscript(t_data.is_ensembl_canonical);
-				t.setManeSelectTranscript(t_data.is_mane_select);
-				t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);
-
-				output.transcripts << t;
-			}
-
-            //clear cache
-            transcripts.clear();
-            continue;
-        }
-
-        //skip header lines
-		if (line.startsWith("#")) continue;
-
-		QByteArrayList parts = line.split('\t');
-		Chromosome chr = parts[0];
-		const QByteArray& details = parts[8];
-
-        //gene line
-		if (details.startsWith("ID=gene:"))
-        {
-
-			QHash<QByteArray, QByteArray> data = parseGffAttributes(details);
-
-			const QByteArray& gene = data["Name"];
-
-			// store mapping for pseudogene table
-			const QByteArray& gene_id = data["gene_id"];
-			output.ensg2symbol.insert(gene_id, gene);
-
-			if (!chr.isNonSpecial())
-            {
-				special_chrs << chr.str();
-				++c_skipped_special_chr;
-                continue;
-            }
-
-            //extract HGNC identifier
-			QByteArray hgnc_id = "";
-			const QByteArray& description = data["description"];
-			int start = description.indexOf("[Source:HGNC Symbol%3BAcc:");
-            if (start!=-1)
-            {
-                start += 26;
-				int end = description.indexOf("]", start);
-                if (end!=-1)
-                {
-					hgnc_id = description.mid(start, end-start).trimmed();
-                }
-            }
-
-			if (gene.isEmpty() && hgnc_id.isEmpty())
-			{
-				++c_skipped_no_name_and_hgnc;
-				continue;
-			}
-
-			if (settings.skip_not_hgnc && hgnc_id.isEmpty())
-			{
-				++c_skipped_not_hgnc;
-				continue;
-			}
-
-			gene_to_hgnc[gene_id] = hgnc_id;
-        }
-
-        //transcript line
-		else if (details.startsWith("ID=transcript:"))
-        {
-			QHash<QByteArray, QByteArray> data = parseGffAttributes(details);
-
-			// store mapping for pseudogene table
-			const QByteArray& transcript_id = data["transcript_id"];
-			output.enst2ensg.insert(transcript_id, data["Parent"].split(':').at(1));
-
-			// store GENCODE basic data
-			QByteArrayList tags = data.value("tag").split(',');
-			bool is_gencode_basic = tags.contains("basic") || tags.contains("gencode_basic"); //The tag was changed from "basic" in Ensembl 112 to "gencode_basic" in Ensembl 113
-
-			if (!settings.include_all && !is_gencode_basic)
-			{
-				++c_skipped_low_evidence;
-				continue;
-			}
-
-			QByteArray parent_id = data["Parent"].split(':').at(1);
-
-			//skip transcripts of skipped genes
-			if(!gene_to_hgnc.contains(parent_id)) continue;
-
-			TranscriptData tmp;
-			tmp.name = transcript_id;
-			tmp.version = Helper::toInt(data["version"], "transcript version");
-			tmp.name_ccds = data.value("ccdsid");
-			tmp.gene_symbol = output.ensg2symbol[parent_id];
-			tmp.gene_id = parent_id;
-			tmp.hgnc_id = gene_to_hgnc[parent_id];
-			tmp.chr = chr;
-			tmp.strand = parts[6];
-			tmp.biotype = data["biotype"];
-			tmp.is_gencode_basic = is_gencode_basic;
-			tmp.is_gencode_primary = tags.contains("gencode_primary");
-			tmp.is_ensembl_canonical = tags.contains("Ensembl_canonical");
-			tmp.is_mane_select = tags.contains("MANE_Select");
-			tmp.is_mane_plus_clinical = tags.contains("MANE_Plus_Clinical");
-			transcripts[data["ID"]] = tmp;
-		}
-
-        //exon lines
-		else
-		{
-			QByteArray type = parts[2];
-			if (type=="CDS" || type=="exon" || type=="three_prime_UTR" || type=="five_prime_UTR" )
-			{
-				int enst_start = details.indexOf("Parent=")+7;
-				int enst_end = details.indexOf(";", enst_start);
-                if (enst_end==-1) enst_end=details.size();
-				QByteArray parent_id = details.mid(enst_start, enst_end-enst_start);
-
-				//skip exons of skipped genes
-				if (!transcripts.contains(parent_id)) continue;
-
-				TranscriptData& t_data = transcripts[parent_id];
-
-				//check chromosome matches
-				if (chr!=t_data.chr)
-				{
-					THROW(FileParseException, "Chromosome mismatch between transcript and exon!");
-				}
-
-				//update coding start/end
-				int start = Helper::toInt(parts[3], "start position");
-				int end = Helper::toInt(parts[4], "end position");
-
-				if (type=="CDS")
-				{
-					t_data.start_coding = (t_data.start_coding==0) ? start : std::min(start, t_data.start_coding);
-					t_data.end_coding = (t_data.end_coding==0) ? end : std::max(end, t_data.end_coding);
-				}
-
-				//add coding exon
-				t_data.exons.append(BedLine(chr, start, end));
-			}
-		}
-	}
-}
-
-
-void NGSHelper::loadGffRefseq(QString filename, GffData& output, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc)
-{
-	//init
-	QHash<QByteArray, Chromosome> id2chr; //refseq chromosome ID to normal chromosome name
-	{
-		QHash<Chromosome, QString> tmp = NGSHelper::chromosomeMapping(GenomeBuild::HG38);
-		foreach (Chromosome key, tmp.keys())
-		{
-			id2chr.insert(tmp[key].toUtf8(), key);
-		}
-	}
-	struct GeneInfo
-	{
-		QByteArray symbol;
-		QByteArray hgnc;
-		QByteArray biotype;
-	};
-	QHash<QByteArray, GeneInfo> geneid_to_data;
-	QHash<QByteArray, TranscriptData> transcripts; //ID > data
-
-
-	VersatileTextStream stream(filename);
-	while(!stream.atEnd())
-	{
-		QByteArray line = stream.readLine().toUtf8();
-		if (line.isEmpty()) continue;
-
-		//skip header lines
-		if (line.startsWith("#")) continue;
-
-		QByteArrayList parts = line.split('\t');
-
-		QByteArray source = parts[1];
-		if (!settings.include_all && !source.contains("RefSeq"))
-		{
-			++c_skipped_low_evidence;
-			continue;
-		}
-
-		const QByteArray& chr_string = parts[0];
-		Chromosome chr = id2chr[chr_string];
-		const QByteArray& details = parts[8];
-
-		//gene line
-		if (details.startsWith("ID=gene-"))
-		{
-			QHash<QByteArray, QByteArray> data = parseGffAttributes(details);
-
-
-			if (!chr.isNonSpecial())
-			{
-				special_chrs << chr_string;
-				++c_skipped_special_chr;
-				continue;
-			}
-
-			//extract HGNC identifier
-			QByteArray hgnc_id;
-			foreach(QByteArray entry, data["Dbxref"].split(','))
-			{
-				if (entry.startsWith("HGNC:"))
-				{
-					hgnc_id = entry.mid(5);
-				}
-			}
-
-			const QByteArray& gene = data["Name"];
-			if (gene.isEmpty() && hgnc_id.isEmpty())
-			{
-				++c_skipped_no_name_and_hgnc;
-				continue;
-			}
-
-			if (settings.skip_not_hgnc && hgnc_id.isEmpty())
-			{
-				++c_skipped_not_hgnc;
-				continue;
-			}
-
-			const QByteArray& id = data["ID"];
-			const QByteArray& gene_biotype = data["gene_biotype"];
-			geneid_to_data[id] = GeneInfo{gene, hgnc_id, gene_biotype};
-		}
-
-		//transcript line
-		else if (details.startsWith("ID=rna-"))
-		{
-			QHash<QByteArray, QByteArray> data = parseGffAttributes(details);
-
-			//skip transcripts of skipped genes
-			const QByteArray& gene_id = data["Parent"];
-			if(!geneid_to_data.contains(gene_id)) continue;
-
-			QByteArray name = data["Name"];
-			int version = 0;
-			int sep_idx = name.lastIndexOf('.');
-			if (sep_idx!=-1)
-			{
-				version = Helper::toInt(name.mid(sep_idx+1), "transcript version", name);
-				name = name.left(sep_idx);
-			}
-			TranscriptData tmp;
-			tmp.name = name;
-			tmp.version = version;
-			tmp.name_ccds = "";
-			tmp.gene_id = gene_id;
-			const GeneInfo& gene_data = geneid_to_data[gene_id];
-			tmp.gene_symbol = gene_data.symbol;
-			tmp.hgnc_id = gene_data.hgnc;
-			tmp.chr = chr;
-			tmp.strand = parts[6];
-			tmp.biotype = gene_data.biotype;
-			tmp.is_gencode_basic = false;
-			tmp.is_gencode_primary = false;
-			tmp.is_ensembl_canonical = false;
-			tmp.is_mane_select = false;
-			tmp.is_mane_plus_clinical = false;
-			transcripts[data["ID"]] = tmp;
-		}
-
-		//exon lines
-		else
-		{
-			QByteArray type = parts[2];
-			if (type=="CDS" || type=="exon" || type=="miRNA")
-			{
-				QHash<QByteArray, QByteArray> data = parseGffAttributes(details);
-
-				//skip exons of skipped genes
-				QByteArray transcript_id = data["Parent"];
-				if (!transcripts.contains(transcript_id)) continue;
-
-				TranscriptData& t_data = transcripts[transcript_id];
-
-				//check chromosome matches
-				if (chr!=t_data.chr)
-				{
-					THROW(FileParseException, "Chromosome mismatch between transcript and exon!");
-				}
-
-				//update coding start/end
-				int start = Helper::toInt(parts[3], "start position");
-				int end = Helper::toInt(parts[4], "end position");
-
-				if (type=="CDS")
-				{
-					t_data.start_coding = (t_data.start_coding==0) ? start : std::min(start, t_data.start_coding);
-					t_data.end_coding = (t_data.end_coding==0) ? end : std::max(end, t_data.end_coding);
-				}
-
-				//add coding exon
-				t_data.exons.append(BedLine(chr, start, end));
-			}
-		}
-	}
-
-	//convert from TranscriptData to Transcript and append to list
-	output.transcripts.reserve(transcripts.count());
-	for(auto it = transcripts.begin(); it!=transcripts.end(); ++it)
-	{
-		TranscriptData& t_data = it.value();
-		t_data.exons.merge();
-
-		Transcript t;
-		t.setGene(t_data.gene_symbol);
-		t.setGeneId(t_data.gene_id);
-		t.setHgncId(t_data.hgnc_id);
-		t.setName(t_data.name);
-		t.setVersion(t_data.version);
-		t.setNameCcds(t_data.name_ccds);
-		t.setSource(Transcript::ENSEMBL);
-		t.setStrand(Transcript::stringToStrand(t_data.strand));
-		t.setBiotype(Transcript::stringToBiotype(t_data.biotype));
-		int coding_start = t_data.start_coding;
-		int coding_end = t_data.end_coding;
-		if(t.strand() == Transcript::MINUS)
-		{
-		   int temp = coding_start;
-		   coding_start = coding_end;
-		   coding_end = temp;
-		}
-		t.setRegions(t_data.exons, coding_start, coding_end);
-		t.setGencodeBasicTranscript(t_data.is_gencode_basic);
-		t.setGencodePrimaryTranscript(t_data.is_gencode_primary);
-		t.setEnsemblCanonicalTranscript(t_data.is_ensembl_canonical);
-		t.setManeSelectTranscript(t_data.is_mane_select);
-		t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);
-
-		output.transcripts << t;
+		return -1;
 	}
 }
 

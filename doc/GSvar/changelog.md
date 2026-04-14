@@ -1,5 +1,19 @@
 # GSvar change log
 
+## 2025_12-139 (03.03.2026)
+
+- general: relevant transcripts are used where preferred transcripts were used before (we have MANE transcripts now and thus preferred transcripts are not longer needed for many genes)
+- BLAT search: now uses BWA and produces the same results as the actual mapping
+
+## 2025_12-104 (05.02.2026)
+
+- general: update filters for small variants, CNVs and SVs
+- gene tab: added info about gene-specific variant classification criteria (CSpec)
+- VICC dialog: added button to delete VICC classification to VICC dialog
+- NGSD: added table with database version and import date of all external data sources
+- Bugfix: fixed crash when using variant import
+
+
 ## 2025_12-24 (13.01.2026)
 
 - general: added warning when opening sample that is scheduled for re-sequencing

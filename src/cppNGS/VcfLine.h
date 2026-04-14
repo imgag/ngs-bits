@@ -238,7 +238,6 @@ public:
 			if (error_if_key_absent) THROW(ArgumentException, "Key ' " + key + "' not found in INFO entries of variant " + toString());
 			return Helper::empty();
 		}
-		//qDebug() << __FILE__ << __LINE__ << key << info_pos << info_.count();
 
 		return info_.at(info_pos);
 	}

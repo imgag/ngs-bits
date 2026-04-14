@@ -50,11 +50,10 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/CnvGeneAnnotation_init.sql"));
 
 		//reannotate
-		EXECUTE("CnvGeneAnnotation", "-test -in out/CnvGeneAnnotation_out2_temp.tsv -out out/CnvGeneAnnotation_out2.tsv");
+		EXECUTE("CnvGeneAnnotation", "-test -in out/CnvGeneAnnotation_out2_temp.tsv -out out/CnvGeneAnnotation_out3.tsv");
 
-		COMPARE_FILES("out/CnvGeneAnnotation_out2.tsv", TESTDATA("data_out/CnvGeneAnnotation_out1.tsv"));
+		COMPARE_FILES("out/CnvGeneAnnotation_out3.tsv", TESTDATA("data_out/CnvGeneAnnotation_out1.tsv"));
 	}
-
 
 };
 

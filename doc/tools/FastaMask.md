@@ -1,7 +1,9 @@
 ### FastaMask tool help
-	FastaMask (2024_08-113-g94a3b440)
+	FastaMask (2025_12-175-gc2187ef59)
 	
 	Mask regions in a FASTA file with N bases.
+	
+	Note: does not update the MD5 checksums. Use FastaChecksumUpdate for that!
 	
 	Mandatory parameters:
 	  -in <file>        Input FASTA file.
@@ -16,7 +18,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### FastaMask changelog
-	FastaMask 2024_08-113-g94a3b440
+	FastaMask 2025_12-175-gc2187ef59
 	
 	2024-08-17 Initial version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

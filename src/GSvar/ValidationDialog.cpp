@@ -1,6 +1,4 @@
 #include "ValidationDialog.h"
-#include "NGSD.h"
-#include "Helper.h"
 #include "LoginManager.h"
 #include "GSvarHelper.h"
 #include "VariantHgvsAnnotator.h"

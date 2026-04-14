@@ -71,6 +71,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [SeqPurge](doc/tools/SeqPurge/index.md) - A highly-sensitive adapter trimmer for paired-end short-read data.
 * [SampleSimilarity](doc/tools/SampleSimilarity/index.md) - Calculates pairwise sample similarity metrics from VCF/BAM files.
+* [SampleIdentity](doc/tools/SampleIdentity.md) - Tries to identify datasets that are from the same patient based on BAM/CRAM files of WGS/WES/lrGS/RNA sequencing.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [SampleAncestry](doc/tools/SampleAncestry/index.md) - Estimates the ancestry of a sample based on variants.
 * [CnvHunter](doc/tools/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.
@@ -192,6 +193,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 ### Misc tools
 
 * [FastqFromBam](doc/tools/FastqFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
+* [FastaChecksumUpdate](doc/tools/FastaChecksumUpdate.md) - Fixes MD5 checksums in FASTA sequence headers.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).

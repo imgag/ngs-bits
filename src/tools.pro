@@ -85,6 +85,10 @@ SUBDIRS += BedSubtract
 tools-TEST.depends += BedSubtract
 BedSubtract.depends = cppNGS
 
+SUBDIRS += FastaChecksumUpdate
+tools-TEST.depends += FastaChecksumUpdate
+FastaChecksumUpdate.depends = cppNGS
+
 SUBDIRS += FastaInfo
 tools-TEST.depends += FastaInfo
 FastaInfo.depends = cppNGS
@@ -100,6 +104,10 @@ FastaFromBam.depends = cppNGS
 SUBDIRS += SampleSimilarity
 tools-TEST.depends += SampleSimilarity
 SampleSimilarity.depends = cppNGS
+
+SUBDIRS += SampleIdentity
+tools-TEST.depends += SampleIdentity
+SampleIdentity.depends = cppNGS
 
 SUBDIRS += SampleGender
 tools-TEST.depends += SampleGender
@@ -655,3 +663,15 @@ BedToEpigen.depends = cppNGS
 SUBDIRS += NGSDImportCSpec
 tools-TEST.depends += NGSDImportCSpec
 NGSDImportCSpec.depends = cppNGSD
+
+SUBDIRS += NGSDTransferReportConfig
+tools-TEST.depends += NGSDTransferReportConfig
+NGSDTransferReportConfig.depends = cppNGSD
+
+SUBDIRS += NGSDExportSpliceAI
+tools-TEST.depends += NGSDExportSpliceAI
+NGSDExportSpliceAI.depends = cppNGSD
+
+SUBDIRS += VcfMerge
+tools-TEST.depends += VcfMerge
+VcfMerge.depends = cppNGS

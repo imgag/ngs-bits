@@ -50,8 +50,6 @@ private:
 		COMPARE_FILES("out/BedpeGeneAnnotation_out3.bedpe", TESTDATA("data_out/BedpeGeneAnnotation_out2.bedpe"));
 	}
 
-
-
 };
 
 

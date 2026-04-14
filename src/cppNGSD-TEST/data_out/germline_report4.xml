@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DiagnosticNgsReport version="10" type="all">
+<DiagnosticNgsReport version="12" type="all">
     <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
     <ChromosomeAliases>
         <Chromosome chr="chr1" refseq="NC_000001.11"/>
@@ -57,12 +57,20 @@
     <VariantList overall_number="319" genome_build="GRCh38">
         <Variant chr="chr13" start="40793233" end="40793233" ref="T" obs="A" allele_frequency="0.48" depth="268" genotype="hom" causal="false" de_novo="false" comp_het="true" mosaic="false" rna_info="splicing effect validated by RNA dataset" report_type="diagnostic variant">
             <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:10985" transcript_id="ENST00000338625.1" type="missense_variant" hgvs_c="7T&gt;A" hgvs_p="Ser3Thr" exon="Exon 2/7" main_transcript="true"/>
+            <CADD score="15.89"/>
+            <REVEL score="0.22"/>
         </Variant>
         <Variant chr="chr16" start="89531961" end="89531961" ref="G" obs="A" allele_frequency="0.28" depth="43" genotype="het" causal="true" de_novo="true" comp_het="false" mosaic="true" rna_info="n/a" report_type="diagnostic variant">
             <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17" main_transcript="true"/>
             <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000341316.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/10" main_transcript="false"/>
             <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM gene" identifier="602783" name="SPG7"/>
             <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
+            <dbSNP rs_number="rs141659620"/>
+            <ClinVar text="6819 [pathogenic/likely pathogenic DISEASE=Hereditary spastic paraplegia 7,not provided];"/>
+            <gnomAD af="0.0008"/>
+            <CADD score="26.40"/>
+            <REVEL score="0.95"/>
+            <SpliceAI score="0.02"/>
         </Variant>
     </VariantList>
     <CnvList cnv_caller="ClinCNV" overall_number="2" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996">
@@ -78,11 +86,11 @@
         </Cnv>
     </CnvList>
     <SvList sv_caller="Manta" overall_number="87" genome_build="GRCh38">
-        <Sv type="Insertion" chr="chr1" start="934143" end="934144" start_band="1p36.33" end_band="1p36.33" genotype="hom" ins_sequence="GGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGG" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="RNA dataset not usable" report_type="diagnostic variant">
+        <Sv type="Insertion" chr="chr1" start="934143" end="934144" start_band="1p36.33" end_band="1p36.33" genotype="hom" qual="999" af_pe="0.00" af_split="0.68" ins_sequence="GGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGG" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="RNA dataset not usable" report_type="diagnostic variant">
             <Gene name="HES4" identifier="n/a"/>
         </Sv>
-        <Sv type="Breakend" chr="chr1" start="1584540" end="1584550" start_band="1p36.33" end_band="19p13.3" genotype="hom" bnd_chr2="chr19" bnd_start2="2301860" bnd_end2="2301870" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="n/a" report_type="diagnostic variant" hgvs_type="sv_type" hgvs_suffix="sv_suffix"/>
-        <Sv type="Deletion" chr="chr1" start="1598413" end="1598580" start_band="1p36.33" end_band="1p36.33" genotype="hom" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="n/a" report_type="diagnostic variant">
+        <Sv type="Breakend" chr="chr1" start="1584540" end="1584550" start_band="1p36.33" end_band="19p13.3" genotype="hom" qual="999" af_pe="0.05" af_split="0.43" bnd_chr2="chr19" bnd_start2="2301860" bnd_end2="2301870" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="n/a" report_type="diagnostic variant" hgvs_type="sv_type" hgvs_suffix="sv_suffix"/>
+        <Sv type="Deletion" chr="chr1" start="1598413" end="1598580" start_band="1p36.33" end_band="1p36.33" genotype="hom" qual="999" af_pe="1.00" af_split="0.98" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="n/a" report_type="diagnostic variant">
             <Gene name="SLC35E2B" identifier="n/a"/>
         </Sv>
     </SvList>
