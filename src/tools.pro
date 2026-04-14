@@ -663,3 +663,7 @@ NGSDTransferReportConfig.depends = cppNGSD
 SUBDIRS += NGSDExportSpliceAI
 tools-TEST.depends += NGSDExportSpliceAI
 NGSDExportSpliceAI.depends = cppNGSD
+
+SUBDIRS += BedExtractMethylation
+tools-TEST.depends += BedExtractMethylation
+BedExtractMethylation.depends = cppNGS
