@@ -1,11 +1,10 @@
 #include "RohWidget.h"
 #include "ui_RohWidget.h"
-#include "Helper.h"
 #include "GUIHelper.h"
 #include "VariantDetailsDockWidget.h"
 #include "GSvarHelper.h"
-#include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
+#include "AnalysisDataController.h"
 #include <QBitArray>
 #include <QMenu>
 #include <QDesktopServices>
@@ -15,7 +14,7 @@ RohWidget::RohWidget(QWidget* parent, QString filename)
 	: QWidget(parent)
 	, ui_(new Ui::RohWidget)
 	, rohs_()
-	, var_filters_(GlobalServiceProvider::filterWidget())
+	, var_filters_( & AnalysisDataController::instance().getSmallVariantsFilterState())
 {
 	ui_->setupUi(this);
 	connect(ui_->rohs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(rohDoubleClicked(QTableWidgetItem*)));
@@ -33,7 +32,7 @@ RohWidget::RohWidget(QWidget* parent, QString filename)
 	connect(ui_->f_anno_op, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui_->f_anno_op, SIGNAL(currentIndexChanged(int)), this, SLOT(annotationFilterOperationChanged()));
 	connect(ui_->f_anno_value, SIGNAL(textEdited(QString)), this, SLOT(filtersChanged()));
-	connect(var_filters_, SIGNAL(filtersChanged()), this, SLOT(variantFiltersChanged()));
+	connect(var_filters_, SIGNAL(filterStateChanged()), this, SLOT(variantFiltersChanged()));
 	connect(var_filters_, SIGNAL(targetRegionChanged()), this, SLOT(variantFiltersChanged()));
 
 	//load ROHs
@@ -205,14 +204,14 @@ void RohWidget::filtersChanged()
 		{
 			if (!pass[r]) continue;
 
-			pass[r] = rohs_[r].genes().intersectsWith(var_filters_->genes());
+			pass[r] = rohs_[r].genes().intersectsWith(var_filters_->getGenes());
 		}
 	}
 
 	//filter by ROI
 	if (ui_->f_roi->isChecked())
 	{
-		const BedFile& roi =  var_filters_->targetRegion().regions;
+		const BedFile& roi =  var_filters_->getTargetRegionInfo().regions;
 
 		for(int r=0; r<rows; ++r)
 		{
@@ -275,10 +274,10 @@ void RohWidget::filtersChanged()
 
 void RohWidget::variantFiltersChanged()
 {
-	ui_->f_genes->setEnabled(!var_filters_->genes().isEmpty());
+	ui_->f_genes->setEnabled(!var_filters_->getGenes().isEmpty());
 	if (!ui_->f_genes->isEnabled()) ui_->f_genes->setChecked(false);
 
-	ui_->f_roi->setEnabled(var_filters_->targetRegion().isValid());
+	ui_->f_roi->setEnabled(var_filters_->getTargetRegionInfo().isValid());
 	if (!ui_->f_roi->isEnabled()) ui_->f_roi->setChecked(false);
 
 	//re-apply filters in case the genes/target region changed
@@ -338,7 +337,7 @@ void RohWidget::showContextMenu(QPoint p)
 	//Region filter
 	if (text.startsWith("Use as variant filter region"))
 	{
-		var_filters_->setRegion(rohs_[row].toString());
+		var_filters_->setTargetRegionInfoByName(rohs_[row].toString());
 	}
 }
 

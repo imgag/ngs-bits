@@ -948,7 +948,7 @@ public:
 	///Adds a SV to the NGSD. Returns the SV ID.
 	int addSv(int callset_id, const BedpeLine& structuralVariant, const BedpeFile& svs);
 	///Returns the NGSD ID for a SV. Returns '' or throws an exception if the ID cannot be determined.
-	QString svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
+	int svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
 	///Returns the SV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	///		'no_annotation' will only return the SV position
 	BedpeLine structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false, int* callset_id = 0);
@@ -1155,7 +1155,7 @@ public:
     ///return the Variant Validation data of small variant
     VariantValidation variantValidationSmallVariant(QByteArray variant_id, QByteArray  sample_id, bool throw_on_fail=false);
     ///return the Variant Validation data of CNV variant
-    VariantValidation variantValidationCnvVariant(QByteArray snv_id, QByteArray  sample_id, bool throw_on_fail=false);
+	VariantValidation variantValidationCnvVariant(QByteArray cnv_id, QByteArray  sample_id, bool throw_on_fail=false);
     ///return the Variant Validation data of SV variant
     VariantValidation variantValidationSvVariant(QByteArray sv_id, StructuralVariantType sv_type, QByteArray  sample_id, bool throw_on_fail=false);
     ///store variant validation in DB if already exists only updates method, status and comment

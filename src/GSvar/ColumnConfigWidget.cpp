@@ -1,10 +1,11 @@
 #include "ColumnConfigWidget.h"
 #include "VariantType.h"
-#include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
 #include "Settings.h"
+#include "AnalysisDataController.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QMenu>
 
 ColumnConfigWidget::ColumnConfigWidget(QWidget* parent)
 	: QWidget(parent)
@@ -65,10 +66,12 @@ void ColumnConfigWidget::addColumnsFromSample()
 	//add missing columns
 	int c_added = 0;
 	VariantType type = stringToVariantType(ui_.type->currentText());
+	const AnalysisDataController& data_controller = AnalysisDataController::instance();
+
 	if (type==VariantType::SNVS_INDELS)
 	{
 		//make sure we do not add genotype columns
-		const VariantList& vars = GlobalServiceProvider::getSmallVariantList();
+		const VariantList& vars = data_controller.getSmallVariantList();
 		foreach(SampleInfo info, vars.getSampleHeader(false))
 		{
 			current_names << info.name;
@@ -89,7 +92,7 @@ void ColumnConfigWidget::addColumnsFromSample()
 	else if (type==VariantType::CNVS)
 	{
 		//add missing columns
-		const CnvList& vars = GlobalServiceProvider::getCnvList();
+		const CnvList& vars = data_controller.getCnvList();
 		foreach(const QByteArray& name, vars.annotationHeaders())
 		{
 			if (!current_names.contains(name))
@@ -102,7 +105,7 @@ void ColumnConfigWidget::addColumnsFromSample()
 	else if (type==VariantType::SVS)
 	{
 		//make sure we do not add genotype columns
-		const BedpeFile& vars = GlobalServiceProvider::getSvList();
+		const BedpeFile& vars = data_controller.getSvList();
 		foreach(QString sample_name, vars.sampleHeaderInfo().sampleNames())
 		{
 			current_names << sample_name;

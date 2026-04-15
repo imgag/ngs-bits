@@ -273,10 +273,11 @@ QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
     }
 
     //target region
-	if (main_window->targetRegion().isValid())
+	AnalysisDataController& data_controller = AnalysisDataController::instance();
+	if (data_controller.getSmallVariantsFilterState().getTargetRegionInfo().isValid())
     {
-		QString roi_file = GSvarHelper::localRoiFolder() + main_window->targetRegion().name + ".bed";
-		main_window->targetRegion().regions.store(roi_file);
+		QString roi_file = GSvarHelper::localRoiFolder() + data_controller.getSmallVariantsFilterState().getTargetRegionInfo().name + ".bed";
+		data_controller.getSmallVariantsFilterState().getTargetRegionInfo().regions.store(roi_file);
 
         dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi_file, true}, true);
     }

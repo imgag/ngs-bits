@@ -55,7 +55,7 @@ void VariantTable::customContextMenu(QPoint pos)
 		bool ngsd_user_logged_in = LoginManager::active();
 		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote variant in ClinVar");
 		QMetaMethod signal = QMetaMethod::fromSignal(&VariantTable::publishToClinvarTriggered);
-		a_clinvar_pub->setEnabled(ngsd_user_logged_in && isSignalConnected(signal) && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+		a_clinvar_pub->setEnabled(ngsd_user_logged_in && isSignalConnected(signal) && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty() && AnalysisDataController::instance().germlineReportSupported());
 
 		//execute menu
 		QAction* action = menu.exec(pos);
@@ -176,7 +176,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
 	QMetaMethod signal = QMetaMethod::fromSignal(&VariantTable::publishToClinvarTriggered);
-	a_clinvar_pub->setEnabled(ngsd_user_logged_in && isSignalConnected(signal) && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+	a_clinvar_pub->setEnabled(ngsd_user_logged_in && isSignalConnected(signal) && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty() && AnalysisDataController::instance().germlineReportSupported());
 
 	//varsome
 	QAction* a_varsome = menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
@@ -404,7 +404,7 @@ void VariantTable::updateTable(AnalysisDataController& data_controller, const QH
     const VariantList& variants = data_controller_->getSmallVariantList();
 
 	//set rows and cols
-    int row_count_new = std::min(data_controller_->getSmallVariantsFilterState().passing_variants.countPassing(), max_variants);
+	int row_count_new = std::min(data_controller_->getSmallVariantsFilterResult().countPassing(), max_variants);
     int col_count_new = 5 + variants.annotations().count();
 	if (rowCount()!=row_count_new || columnCount()!=col_count_new)
 	{
@@ -490,7 +490,7 @@ void VariantTable::updateTable(AnalysisDataController& data_controller, const QH
 	int r = -1;
 	for (int i=0; i<variants.count(); ++i)
 	{
-        if (!data_controller_->getSmallVariantsFilterState().passing_variants.passing(i)) continue;
+		if (!data_controller_->getSmallVariantsFilterResult().passing(i)) continue;
 
 		++r;
 		if (r>=max_variants) break; //maximum number of variants reached > abort

@@ -19,6 +19,7 @@
 
 #include "Histogram.h"
 #include "VariantScores.h"
+#include "ClinvarUploadData.h"
 
 
 class AnalysisDataController
@@ -74,6 +75,12 @@ public:
     QStringList getValidFilterEntries() const;
     ///
     QList<KeyValuePair> inheritanceByGene(int variant_idx);
+	///Prepares and returns the data for the Clinvar upload
+	ClinvarUploadData getClinvarUploadData(int var_idx1, int var_idx2, VariantType type);
+	ClinvarUploadData getClinvarUploadDataSmallVariant(int var_idx1, int var_idx2);
+	ClinvarUploadData getClinvarUploadDataCnv(int var_idx1, int var_idx2);
+	ClinvarUploadData getClinvarUploadDataSv(int var_idx1, int var_idx2);
+	ClinvarUploadData getClinvarUploadData(int var_pub_id);
 
     //status functions showing state/type of current loaded data
     bool isValid() const;
@@ -117,8 +124,16 @@ public:
     const QString& getFilename() const;
     AnalysisType getAnalysisType() const;
     QString getAnalysisName() const;
+	QString getSystemName(bool throw_if_invalid=true) const;
+	QString getSystemType(bool throw_if_invalid=true) const;
 
+
+	///Returns the Report base sample for the loaded analysis
     QString getMainSampleName() const;
+	///Return the processed sample ID of the main sample
+	QString getMainProcessedSampleId() const;
+	///Returns the sample ID of the main sample
+	QString getMainSampleId() const;
     ///Determines normal sample name from filename_, throws otherwise (tumor-normal pairs)
     QString getNormalSampleName() const;
     QStringList getSampleNames() const;
@@ -166,7 +181,11 @@ public:
 
     ///returns the variant validation entry for a small variant - if it doesnt exist returns empty object
     VariantValidation getSmallVariantValidationEntry(int variant_idx, QString ps_name="");
-    ///stores the variant validation entry as given after a validation check
+	///returns the variant validation entry for a CNV - if it doesnt exist returns empty object
+	VariantValidation getCnvValidationEntry(int variant_idx, QString ps_name="");
+	///returns the variant validation entry for a SV - if it doesnt exist returns empty object
+	VariantValidation getSvValidationEntry(int variant_idx, QString ps_name="");
+	///stores the variant validation entry as given after a validation check
     void storeVariantValidation(const VariantValidation& var_val);
 
     void updateSomaticReportSettings();

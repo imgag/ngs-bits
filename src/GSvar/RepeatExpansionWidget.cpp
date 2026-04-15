@@ -12,24 +12,24 @@
 #include "IgvSessionManager.h"
 #include "GeneInfoDBs.h"
 #include "ClientHelper.h"
-#include "Log.h"
 #include "ReportVariantDialog.h"
 #include <QtSvg/QSvgRenderer>
 #include <QPainter>
 
-RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_name)
+RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_()
-	, res_(res)
-	, sys_name_(sys_name)
+	, res_(AnalysisDataController::instance().getReList())
+	, sys_name_(AnalysisDataController::instance().getSystemName())
+	, sys_type_(AnalysisDataController::instance().getSystemType(false))
 	, sys_type_cutoff_col_("")
-	, report_config_(report_config)
+	, report_config_(AnalysisDataController::instance().getGermlineReportConfig())
     , ngsd_user_logged_in_(LoginManager::active())
     , rc_enabled_(ngsd_user_logged_in_ && report_config_!=nullptr && !report_config_->isFinalized())
 {
     ui_.setupUi(this);
     ui_.filter_hpo->setEnabled(ngsd_user_logged_in_);
-	ui_.filter_hpo->setEnabled(!GlobalServiceProvider::filterWidget()->phenotypes().isEmpty());
+	ui_.filter_hpo->setEnabled(!AnalysisDataController::instance().getSmallVariantsFilterState().getPhenotypes().isEmpty());
 
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(cellDoubleClicked(int, int)));
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
@@ -43,8 +43,6 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	connect(ui_.table->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
 
 	//allow statistical filtering only if there is a cutoff for the system type
-	NGSD db;
-	sys_type_ = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer LIKE '" + sys_name_ + "'").toString();
 	if (sys_type_=="WGS")
 	{
 		sys_type_cutoff_col_ = "statisticial_cutoff_wgs";
@@ -575,7 +573,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         QStringList disease_ids_omim = getRepeatExpansionFieldById(re_table, "disease_ids_omim", id).split(",");
         QString omim_like_clause = "";
         QString omim_when_clause = "";
-        for (const QString &id : disease_ids_omim)
+		foreach (const QString &id, disease_ids_omim)
         {
             QString disease_id = id.trimmed();
             if (disease_id.isEmpty()) continue;
@@ -629,7 +627,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         //HPO terms
         QStringList hpo_terms = getRepeatExpansionFieldById(re_table, "hpo_terms", id).split(",");
         QString hpo_like_clause = "";
-        for (const QString &term : hpo_terms)
+		foreach (const QString &term, hpo_terms)
         {
             if (!hpo_like_clause.isEmpty()) hpo_like_clause += " OR ";
             hpo_like_clause += "hpo_id LIKE '" + term.trimmed() + "'";
@@ -835,9 +833,9 @@ void RepeatExpansionWidget::updateRowVisibility()
 	if (ui_.filter_hpo->isChecked())
 	{
 		//determine hpo subtree of patient
-		PhenotypeList pheno_subtrees = GlobalServiceProvider::filterWidget()->phenotypes();
+		PhenotypeList pheno_subtrees = AnalysisDataController::instance().getSmallVariantsFilterState().getPhenotypes();
 		NGSD db;
-        for (const Phenotype& pheno : GlobalServiceProvider::filterWidget()->phenotypes())
+		foreach (const Phenotype& pheno, AnalysisDataController::instance().getSmallVariantsFilterState().getPhenotypes())
 		{
 			pheno_subtrees << db.phenotypeChildTerms(db.phenotypeIdByAccession(pheno.accession()), true);
 		}

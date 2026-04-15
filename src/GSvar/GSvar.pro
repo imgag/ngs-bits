@@ -22,7 +22,6 @@ ICON = Icons/Icon.icns
 }
 
 SOURCES += main.cpp\
-    AnalysisDataController.cpp \
     Background/BackgroundJobDialog.cpp \
     Background/BackgroundWorkerBase.cpp \
     Background/NGSDCacheInitializer.cpp \
@@ -159,18 +158,16 @@ SOURCES += main.cpp\
     OncoTreeSelector.cpp \
     FilterWidgetFusion.cpp \
     RnaReportFusionDialog.cpp \
-    AnalysisDataController.cpp \
-    FilterState.cpp \
-    FilterWidgetHelper.cpp
+    AnalysisDataController.cpp
 
 HEADERS += MainWindow.h \
-    AnalysisDataController.h \
     Background/BackgroundJobDialog.h \
     Background/BackgroundWorkerBase.h \
     Background/NGSDCacheInitializer.h \
     Background/VariantAnnotator.h \
     Background/IGVInitCacheWorker.h \
     CfDNAPanelBatchImport.h \
+    ClinvarUploadData.h \
     ColumnConfig.h \
     ColumnConfigWidget.h \
     DatabaseServiceRemote.h \
@@ -301,8 +298,7 @@ HEADERS += MainWindow.h \
     FilterWidgetFusion.h \
     RnaReportFusionDialog.h \
     AnalysisDataController.h \
-    FilterState.h \
-    FilterWidgetHelper.h
+    FilterState.h
 
 FORMS    += MainWindow.ui \
     Background/BackgroundJobDialog.ui \

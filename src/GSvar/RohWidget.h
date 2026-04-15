@@ -4,8 +4,7 @@
 #include <QWidget>
 #include <QTableWidgetItem>
 #include "RohList.h"
-#include "FilterWidget.h"
-#include "VariantList.h"
+#include "FilterState.h"
 
 namespace Ui {
 class RohWidget;
@@ -38,7 +37,7 @@ private:
 
 	Ui::RohWidget* ui_;
 	RohList rohs_;
-	FilterWidget* var_filters_;
+	FilterState* var_filters_;
 	QMap<QString, int> annotation_col_indices_;
 };
 

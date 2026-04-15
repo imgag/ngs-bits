@@ -3435,7 +3435,7 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 
 }
 
-QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails)
+int NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails)
 {
 	QString db_table_name = svTableName(sv.type());
 	SqlQuery query = getQuery();
@@ -3531,13 +3531,13 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 
 	if(query.size() < 1)
 	{
-		if(!throw_if_fails) return "";
+		if(!throw_if_fails) return -1;
 
 		THROW(DatabaseException, "SV " + BedpeFile::typeToString(sv.type()) + " at " + sv.positionRange() + " for callset with id '" + QString::number(callset_id) + "' not found in NGSD!");
 	}
 
 	query.next();
-	return query.value("id").toString();
+	return query.value("id").toInt();
 
 }
 
@@ -5186,7 +5186,7 @@ VariantValidation NGSD::variantValidationSmallVariant(QByteArray variant_id, QBy
     return var_val;
 }
 
-VariantValidation NGSD::variantValidationCnvVariant(QByteArray cnv_id, QByteArray  sample_id, bool throw_on_fail)
+VariantValidation NGSD::variantValidationCnvVariant(QByteArray cnv_id, QByteArray sample_id, bool throw_on_fail)
 {
     SqlQuery query = getQuery();
     query.exec("SELECT * FROM variant_validation WHERE cnv_id='" + cnv_id + "' AND sample_id='" + sample_id + "'");
@@ -5380,14 +5380,14 @@ int NGSD::addVariantPublication(QString processed_sample, const BedpeLine& sv, c
 	QString s_id = sampleId(processed_sample, true);
 	QString ps_id = processedSampleId(processed_sample, true);
 	QString callset_id = getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", false, ps_id).toString();
-	QString sv_id = svId(sv, callset_id.toInt(), svs, true);
+	int sv_id = svId(sv, callset_id.toInt(), svs, true);
 	if (user_id < 0) user_id = LoginManager::userId();
 
 	//insert
 	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO variant_publication (sample_id, variant_id, variant_table, db, class, details, user_id) VALUES (:0, :1, :2, :3, :4, :5, :6)");
 	query.bindValue(0, s_id);
-	query.bindValue(1, sv_id);
+	query.bindValue(1, QString::number(sv_id));
 	query.bindValue(2, svTableName(sv.type()));
 	query.bindValue(3, database);
 	query.bindValue(4, classification);
@@ -5492,10 +5492,10 @@ QString NGSD::getVariantPublication(QString filename, const BedpeLine& sv, const
 		QString callset_id = getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, QString::number(ps_id)).toString();
 		if (callset_id.isEmpty()) continue;
 
-		QString sv_id = svId(sv, callset_id.toInt(), svs, false);
-		if (sv_id.isEmpty()) continue;
+		int sv_id = svId(sv, callset_id.toInt(), svs, false);
+		if (sv_id == -1) continue;
 
-		sv_ids.append(sv_id);
+		sv_ids.append(QString::number(sv_id));
 	}
 
 	if (sv_ids.size() == 0) return "";
@@ -8749,10 +8749,10 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 
 				//get SV id and table (add SV if not in DB)
 				const BedpeLine& sv = svs[var_conf.variant_index];
-				QString sv_id = svId(sv, callset_id.toInt(), svs, false);
-				if (sv_id == "")
+				int sv_id = svId(sv, callset_id.toInt(), svs, false);
+				if (sv_id == -1)
 				{
-					sv_id = QByteArray::number(addSv(callset_id.toInt(), sv, svs));
+					sv_id = addSv(callset_id.toInt(), sv, svs);
 				}
 
 				//check if update or new import
@@ -8760,7 +8760,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				{
 					//check if sv-report config combination is already imported
 					QString var_conf_id_str = getValue("SELECT id FROM `report_configuration_sv` WHERE `report_configuration_id`=" + QString::number(report_config_id)
-												   + " AND `" + svTableName(sv.type()) + "_id`=:0", true, sv_id).toString();
+					                                                           + " AND `" + svTableName(sv.type()) + "_id`=:0", true, QString::number(sv_id)).toString();
 					if (!var_conf_id_str.isEmpty())
 					{
 						// report-sv combination is already imported -> update

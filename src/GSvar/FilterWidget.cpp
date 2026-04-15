@@ -186,26 +186,26 @@ bool FilterWidget::setTargetRegionByName(QString name)
 }
 
 
-void FilterWidget::setReportConfigFilter(const ReportConfigFilter& rc_config)
-{
-    if (rc_config == ReportConfigFilter::NONE)
-    {
-        ui_.report_config->setCurrentIndex(0);
-        ui_.report_config->setEnabled(false);
-    }
-    else if (rc_config == ReportConfigFilter::HAS_RC)
-    {
-        ui_.report_config->setCurrentIndex(1);
-    }
-    else if (rc_config == ReportConfigFilter::NO_RC)
-    {
-        ui_.report_config->setCurrentIndex(2);
-    }
-    else
-    {
-        THROW(ArgumentException, "Unhandeled ReportConfigFilter type!");
-    }
-}
+// void FilterWidget::setReportConfigFilter(const ReportConfigFilter& rc_config)
+// {
+//     if (rc_config == ReportConfigFilter::NONE)
+//     {
+//         ui_.report_config->setCurrentIndex(0);
+//         ui_.report_config->setEnabled(false);
+//     }
+//     else if (rc_config == ReportConfigFilter::HAS_RC)
+//     {
+//         ui_.report_config->setCurrentIndex(1);
+//     }
+//     else if (rc_config == ReportConfigFilter::NO_RC)
+//     {
+//         ui_.report_config->setCurrentIndex(2);
+//     }
+//     else
+//     {
+//         THROW(ArgumentException, "Unhandeled ReportConfigFilter type!");
+//     }
+// }
 
 void FilterWidget::updateFilterName()
 {

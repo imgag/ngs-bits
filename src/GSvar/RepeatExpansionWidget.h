@@ -13,7 +13,7 @@ class RepeatExpansionWidget
 	Q_OBJECT
 
 public:
-	RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_name);
+	RepeatExpansionWidget(QWidget* parent);
 
 private slots:
     ///Context menu that shall appear if right click on repeat expansion

@@ -1,6 +1,6 @@
 include("../test.pri")
 
-#include cppNGSD library
+#include cppNGS library
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 

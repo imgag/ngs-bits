@@ -1,11 +1,10 @@
 include("../test.pri")
 
 QT       += sql
-QT       -= gui
 QTPLUGIN += QSQLMYSQL
 
 #include cppXML library
-INCLUDEPATH += $$PWD/cppXML
+INCLUDEPATH += $$PWD/../cppXML
 LIBS += -L$$PWD/../../bin -lcppXML
 
 #include cppNGS library
@@ -18,7 +17,6 @@ LIBS += -L$$PWD/../../bin -lcppNGSD
 
 #include GSvar as library
 INCLUDEPATH += $$PWD/../GSvar
-LIBS += -L$$PWD/../../bin -lGSvar
 
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/

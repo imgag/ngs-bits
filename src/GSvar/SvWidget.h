@@ -21,7 +21,7 @@ class SvWidget
 
 public:
 	//Constructor for germline
-    SvWidget(QWidget* parent, AnalysisDataController& data_controller, const GeneSet& het_hit_genes);
+	SvWidget(QWidget* parent);
 	~SvWidget();
 
 signals:

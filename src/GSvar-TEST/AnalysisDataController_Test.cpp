@@ -15,6 +15,3 @@ TEST_METHOD(report_configs)
 }
 
 };
-
-
-#include "AnalysisDataController_Test.moc"

@@ -25,14 +25,14 @@
 #include <QApplication>
 #include <QClipboard>
 
-SvWidget::SvWidget(QWidget* parent, AnalysisDataController& data_controller, const GeneSet& het_hit_genes)
+SvWidget::SvWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
-    , data_controller_(data_controller)
-    , svs_(data_controller.getSvList())
-    , report_config_(data_controller.getGermlineReportConfig())
-    , somatic_report_config_(data_controller.getSomaticReportConfig())
-    , var_het_genes_(het_hit_genes)
+	, data_controller_(AnalysisDataController::instance())
+	, svs_(data_controller_.getSvList())
+	, report_config_(data_controller_.getGermlineReportConfig())
+	, somatic_report_config_(data_controller_.getSomaticReportConfig())
+	, var_het_genes_(data_controller_.getHetHitGenes())
     , ngsd_user_logged_in_(LoginManager::active())
     , is_multisample_(svs_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || svs_.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
 {
@@ -40,11 +40,11 @@ SvWidget::SvWidget(QWidget* parent, AnalysisDataController& data_controller, con
 
     if (! is_somatic_)
     {
-        rc_enabled_ = ngsd_user_logged_in_ && data_controller.germlineReportSupported() && ! data_controller.getGermlineReportConfig()->isFinalized();
+		rc_enabled_ = ngsd_user_logged_in_ && data_controller_.germlineReportSupported() && ! data_controller_.getGermlineReportConfig()->isFinalized();
     }
     else
     {
-        rc_enabled_ = ngsd_user_logged_in_ && data_controller.somaticReportSupported();
+		rc_enabled_ = ngsd_user_logged_in_ && data_controller_.somaticReportSupported();
     }
 
 	setupUI();
@@ -535,47 +535,13 @@ double SvWidget::alleleFrequency(int row, QByteArray sample, QByteArray read_typ
 
 void SvWidget::editSvValidation(int row)
 {
-	BedpeLine& sv = svs_[row];
-
 	try
 	{
-		NGSD db;
-
-		//get SV ID
-		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
-		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id_ + "!");
-		QString sv_id = db.svId(sv, Helper::toInt(callset_id, "callset_id"), svs_);
-		if (sv_id == "") THROW(DatabaseException, "SV not found in the NGSD! ");
-
-
-		//get sample ID
-		QString sample_id = db.sampleId(db.processedSampleName(ps_id_));
-
-		//get variant validation ID - add if missing
-		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE "+ db.svTableName(sv.type()) + "_id='" + sv_id + "' AND sample_id='" + sample_id + "'", true);
-		bool added_validation_entry = false;
-		if (!val_id.isValid())
-		{
-			//insert
-			SqlQuery query = db.getQuery();
-			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, " + db.svTableName(sv.type()) + "_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','SV','" + sv_id + "','n/a')");
-			val_id = query.lastInsertId();
-
-			added_validation_entry = true;
-		}
-
-		ValidationDialog dlg(this, val_id.toInt());
+		ValidationDialog dlg(this, data_controller_.getSvValidationEntry(row));
 
 		if (dlg.exec())
 		{
-			//update DB
-			dlg.store();
-		}
-		else if (added_validation_entry)
-		{
-			// remove created but empty validation if ValidationDialog is aborted
-			SqlQuery query = db.getQuery();
-			query.exec("DELETE FROM variant_validation WHERE id=" + val_id.toString());
+			data_controller_.storeVariantValidation(dlg.getValidation());
 		}
 	}
 	catch (DatabaseException& e)
@@ -691,125 +657,7 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 			THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
 		}
 
-		NGSD db;
-
-		//(1) prepare data as far as we can
-		ClinvarUploadData data;
-		data.processed_sample = db.processedSampleName(ps_id_);
-		data.variant_type1 = VariantType::SVS;
-		if(index2 < 0)
-		{
-			//Single variant submission
-			data.submission_type = ClinvarSubmissionType::SingleVariant;
-			data.variant_type2 = VariantType::INVALID;
-		}
-		else
-		{
-			//CompHet variant submission
-			data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
-			data.variant_type2 = VariantType::SVS;
-		}
-
-		QString sample_id = db.sampleId(data.processed_sample);
-		SampleData sample_data = db.getSampleData(sample_id);
-
-		//get disease info
-		data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
-		data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
-		if (data.disease_info.length() < 1)
-		{
-			INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
-		}
-
-		// get affected status
-		data.affected_status = sample_data.disease_status;
-
-		//get phenotype(s)
-		data.phenos = sample_data.phenotypes;
-
-		//get sv variant info
-		data.sv1 = svs_[index1];
-		if(data.sv1.type() == StructuralVariantType::BND)
-			WARNING(NotImplementedException, "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.");
-
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
-		{
-			data.sv2 = svs_[index2];
-			if(data.sv2.type() == StructuralVariantType::BND)
-				WARNING(NotImplementedException, "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.");
-		}
-
-		// get report info
-		if (!report_config_.data()->exists(VariantType::SVS, index1))
-		{
-			INFO(InformationMissingException, "The SV has to be in the report configuration to be published!");
-		}
-		data.report_variant_config1 = report_config_.data()->get(VariantType::SVS, index1);
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
-		{
-			if (!report_config_.data()->exists(VariantType::SVS, index2))
-			{
-				INFO(InformationMissingException, "The SV 2 has to be in the report configuration to be published!");
-			}
-			data.report_variant_config2 = report_config_.data()->get(VariantType::SVS, index2);
-		}
-
-		//check classification
-		if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
-		{
-			INFO(InformationMissingException, "The SV has to be classified to be published!");
-		}
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
-		{
-			if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
-			{
-				INFO(InformationMissingException, "The SV 2 has to be classified to be published!");
-			}
-		}
-
-		//genes
-		data.genes = data.sv1.genes(svs_.annotationHeaders());
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  data.sv2.genes(svs_.annotationHeaders());
-
-		//get callset id
-		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
-		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id_ + "!");
-
-		//determine NGSD ids of variant and report variant for variant 1
-		QString sv_id = db.svId(data.sv1, callset_id.toInt(), svs_, false);
-		if (sv_id == "")
-		{
-			INFO(InformationMissingException, "The SV has to be in NGSD and part of a report config to be published!");
-		}
-
-
-		data.variant_id1 = Helper::toInt(sv_id);
-		//extract report variant id
-		int rc_id = db.reportConfigId(ps_id_);
-		if (rc_id == -1 )
-		{
-			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
-		}
-
-		data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
-											 + db.svTableName(data.sv1.type())+ "_id=" + QString::number(data.variant_id1), false).toInt();
-
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
-		{
-			//determine NGSD ids of sv for variant 2
-			sv_id = db.svId(data.sv2, callset_id.toInt(), svs_, true);
-			if (sv_id == "")
-			{
-				INFO(InformationMissingException, "The SV 2 has to be in NGSD and part of a report config to be published!");
-			}
-			data.variant_id2 = Helper::toInt(sv_id);
-
-			//extract report variant id
-			data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
-												 + db.svTableName(data.sv2.type())+ "_id=" + QString::number(data.variant_id2), false).toInt();
-		}
-
-
+		ClinvarUploadData data = data_controller_.getClinvarUploadDataSv(index1, index2);
 		// (2) show dialog
 		ClinvarUploadDialog dlg(this);
 		dlg.setData(data);
@@ -1241,7 +1089,8 @@ void SvWidget::showContextMenu(QPoint pos)
 	{
 		//ClinVar publication
 		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
-        a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+		a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty() && data_controller_.germlineReportSupported());
+
 
 		//execute menu
 		QAction* action = menu.exec(ui->svs->viewport()->mapToGlobal(pos));
@@ -1291,7 +1140,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-    a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+	a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty() && data_controller_.germlineReportSupported());
 
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");

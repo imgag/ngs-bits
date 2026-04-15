@@ -3,57 +3,9 @@
 
 #include <QDialog>
 #include "ui_ClinvarUploadDialog.h"
-#include "AnalysisDataController.h"
+#include "ClinvarUploadData.h"
 #include "NGSD.h"
 
-enum class ClinvarSubmissionType
-{
-	SingleVariant,
-	CompoundHeterozygous
-};
-
-//Datastructure for upload data
-struct ClinvarUploadData
-{
-    //sample data
-	int variant_id1;
-	int variant_id2 = -1;
-	int report_variant_config_id1;
-	int report_variant_config_id2 = -1;
-	ReportVariantConfiguration report_variant_config1;
-	ReportVariantConfiguration report_variant_config2;
-	QString processed_sample;
-
-    //disease data
-    QList<SampleDiseaseInfo> disease_info;
-    QString affected_status;
-
-    //phenotype data
-    PhenotypeList phenos;
-
-	//type data
-	ClinvarSubmissionType submission_type = ClinvarSubmissionType::SingleVariant;
-	VariantType variant_type1 = VariantType::INVALID;
-	VariantType variant_type2 = VariantType::INVALID;
-
-    //variant data
-	Variant snv1;
-	Variant snv2;
-	CopyNumberVariant cnv1;
-	int cn1;
-	int ref_cn1 = 2;
-	CopyNumberVariant cnv2;
-	int cn2;
-	int ref_cn2 = 2;
-	BedpeLine sv1;
-	BedpeLine sv2;
-    GeneSet genes;
-
-	//additional info for re-upload
-	QString stable_id;
-	int user_id = -1;
-	int variant_publication_id = -1;
-};
 
 ///ClinVar upload dialog
 class ClinvarUploadDialog
@@ -62,7 +14,8 @@ class ClinvarUploadDialog
 	Q_OBJECT
 
 public:
-    ClinvarUploadDialog(AnalysisDataController& data_controller, int variant_index1=-1, int variant_index2=-1, QWidget *parent = 0);
+	ClinvarUploadDialog(QWidget *parent = 0);
+	void setData(ClinvarUploadData data);
 
 private slots:
     void initGui();
@@ -82,9 +35,6 @@ private slots:
 private:
     Ui::ClinVarUploadDialog ui_;
     NGSD db_;
-    AnalysisDataController& data_controller_;
-    int var_index1_;
-    int var_index2_;
 	bool manual_upload_ = true;
     ClinvarUploadData clinvar_upload_data_;
 	bool upload_running_ = false;

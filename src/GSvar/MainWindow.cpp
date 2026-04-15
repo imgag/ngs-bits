@@ -690,7 +690,7 @@ void MainWindow::on_actionSearchREs_triggered()
 }
 void MainWindow::on_actionUploadVariantToClinVar_triggered()
 {
-    QSharedPointer<QDialog> dlg = QSharedPointer<QDialog>(new ClinvarUploadDialog(data_controller_, -1, -1, this));
+	QSharedPointer<QDialog> dlg = QSharedPointer<QDialog>(new ClinvarUploadDialog(this));
 	addModelessDialog(dlg);
 }
 
@@ -808,7 +808,7 @@ void MainWindow::on_actionDeleteIgvFolder_triggered()
 	}
 }
 
-bool MainWindow::getHetHitGenes(GeneSet& het_hit_genes)
+bool MainWindow::checkHetHitGenes()
 {
     int i_genes = data_controller_.getSmallVariantList().annotationIndexByName("gene", true, false);
     QList<int> i_genotypes = data_controller_.getSmallVariantList().getSampleHeader().sampleColumns(true);
@@ -822,11 +822,11 @@ bool MainWindow::getHetHitGenes(GeneSet& het_hit_genes)
             int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " small variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
             if(res==QMessageBox::No) return false;
         }
-        het_hit_genes = data_controller_.getHetHitGenes();
     }
     else if (data_controller_.getAnalysisType()!=AnalysisType::SOMATIC_PAIR && data_controller_.getAnalysisType()!=AnalysisType::SOMATIC_SINGLESAMPLE)
     {
         QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
+		return false;
     }
 
     return true;
@@ -842,12 +842,10 @@ void MainWindow::on_actionSV_triggered()
 
 	try
 	{
-        GeneSet het_hit_genes;
-        if (! getHetHitGenes(het_hit_genes)) return;
+		if (! checkHetHitGenes()) return;
 
 		//open SV widget
-        SvWidget* sv_widget = new SvWidget(this, data_controller_, het_hit_genes);
-
+		SvWidget* sv_widget = new SvWidget(this);
         auto dlg = GUIHelper::createDialog(sv_widget, "Structural variants of " + data_controller_.getAnalysisName());
 		addModelessDialog(dlg);
 	}
@@ -869,10 +867,9 @@ void MainWindow::on_actionCNV_triggered()
 		return;
 	}
 
-    GeneSet het_hit_genes;
-    if (! getHetHitGenes(het_hit_genes)) return;
+	if (! checkHetHitGenes()) return;
 
-    CnvWidget* cnv_widget = new CnvWidget(this, data_controller_, het_hit_genes);
+	CnvWidget* cnv_widget = new CnvWidget(this);
 
     auto dlg = GUIHelper::createDialog(cnv_widget, "Copy number variants of " + data_controller_.getAnalysisName());
 	addModelessDialog(dlg);
@@ -1078,14 +1075,7 @@ void MainWindow::on_actionMethylation_triggered()
 void MainWindow::on_actionRE_triggered()
 {
 	//show dialog
-	QString sys_name = "";
-	if (LoginManager::active())
-	{
-		NGSD db;
-        QString ps_id = db.processedSampleId(data_controller_.germlineReportSample());
-		sys_name = db.getProcessedSampleData(ps_id).processing_system;
-	}
-    RepeatExpansionWidget* widget = new RepeatExpansionWidget(this, data_controller_.getReList(), data_controller_.getGermlineReportConfig(), sys_name);
+	RepeatExpansionWidget* widget = new RepeatExpansionWidget(this);
     auto dlg = GUIHelper::createDialog(widget, "Repeat expansions of " + data_controller_.getAnalysisName());
 
 	addModelessDialog(dlg, true);
@@ -3721,7 +3711,8 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 
         try
         {
-            ClinvarUploadDialog dlg(data_controller_, variant_index1, variant_index2, this);
+			ClinvarUploadDialog dlg(this);
+			dlg.setData(data_controller_.getClinvarUploadDataSmallVariant(variant_index1, variant_index2));
             dlg.exec();
         }
         catch(Exception& e)
@@ -3729,8 +3720,6 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
             GUIHelper::showException(this, e, "ClinVar submission error");
         }
     }
-
-
 }
 
 void MainWindow::updateSecureToken()

@@ -22,7 +22,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-    CnvWidget(QWidget* parent, AnalysisDataController& data_controller, const GeneSet& het_hit_genes);
+	CnvWidget(QWidget* parent);
 	~CnvWidget();
 
 protected:

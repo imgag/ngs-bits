@@ -1062,9 +1062,77 @@ QString AnalysisDataController::getAnalysisName() const
     return variants_.analysisName();
 }
 
+QString AnalysisDataController::getSystemName(bool throw_if_invalid) const
+{
+
+	if (!isValid() || !LoginManager::active())
+	{
+		if (throw_if_invalid) THROW(ProgrammingException, "AnalysisDataController can't determine system of empty data or NGSD is not available");
+
+		return "";
+	}
+
+	QString sys_name = "";
+	QString ps;
+	if (germlineReportSupported(false))
+	{
+		ps = germlineReportSample();
+	}
+	else
+	{
+		ps = getMainSampleName();
+	}
+
+	if (LoginManager::active())
+	{
+		NGSD db;
+		QString ps_id = db.processedSampleId(germlineReportSample());
+		sys_name = db.getProcessedSampleData(ps_id).processing_system;
+	}
+
+	return sys_name;
+}
+
+QString AnalysisDataController::getSystemType(bool throw_if_invalid) const
+{
+	if (!isValid() || !LoginManager::active())
+	{
+		if (throw_if_invalid) THROW(ProgrammingException, "AnalysisDataController can't determine system of empty data or NGSD is not available");
+
+		return "";
+	}
+
+	QString sys_name = getSystemName(throw_if_invalid);
+
+	NGSD db;
+	QString sys_type_ = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer LIKE '" + sys_name + "'").toString();
+
+	return sys_type_;
+}
+
 QString AnalysisDataController::getMainSampleName() const
 {
-    return variants_.mainSampleName();
+	if (!isValid()) THROW(ProgrammingException, "AnalysisDataController can't determine main sample if no data is loaded.");
+
+	if (germlineReportSupported(false))
+	{
+		return germlineReportSample();
+	}
+	else
+	{
+		return variants_.mainSampleName();
+	}
+}
+QString AnalysisDataController::getMainProcessedSampleId() const
+{
+	NGSD db;
+	return db.processedSampleId(getMainSampleName());
+}
+
+QString AnalysisDataController::getMainSampleId() const
+{
+	NGSD db;
+	return db.sampleId(getMainSampleName());
 }
 
 QString AnalysisDataController::getNormalSampleName() const
@@ -1651,6 +1719,8 @@ void AnalysisDataController::generateGermlineReport(QString filepath, QString ty
 
 VariantValidation AnalysisDataController::getSmallVariantValidationEntry(int variant_idx, QString ps_name)
 {
+	if (ps_name == "") ps_name = getMainSampleName();
+
     Variant& variant = variants_[variant_idx];
 
     NGSD db;
@@ -1680,6 +1750,73 @@ VariantValidation AnalysisDataController::getSmallVariantValidationEntry(int var
         var_val.status = "n/a";
 	}
 	return var_val;
+}
+
+VariantValidation AnalysisDataController::getCnvValidationEntry(int variant_idx, QString ps_name)
+{
+	if (ps_name == "") ps_name = getMainSampleName();
+
+	NGSD db;
+	const CopyNumberVariant& cnv = getCnvList()[variant_idx];
+	QString ps_id = db.processedSampleId(ps_name, false);
+
+	//get CNV ID
+	QString callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
+	if (callset_id == "") THROW(DatabaseException, "No CNV callset found for processed sample id " + ps_id + "!");
+	QString cnv_id = db.cnvId(cnv, Helper::toInt(callset_id, "callset_id"), false);
+	if (cnv_id == "")
+	{
+		// import CNV into NGSD
+		cnv_id = db.addCnv(Helper::toInt(callset_id, "callset_id"), cnv, cnvs_);
+	}
+
+	QString sample_id = db.sampleId(db.processedSampleName(ps_id));
+
+	VariantValidation cnv_val = db.variantValidationCnvVariant(cnv_id.toUtf8(), sample_id.toUtf8(), false);
+
+	//add missing fields if newly created
+	if (cnv_val.val_id == -1)
+	{
+		cnv_val.status = "n/a";
+		cnv_val.user_id = LoginManager::userIdAsString().toInt();
+	}
+
+	return cnv_val;
+}
+
+VariantValidation AnalysisDataController::getSvValidationEntry(int variant_idx, QString ps_name)
+{
+	if (ps_name == "") ps_name = getMainSampleName();
+
+	NGSD db;
+	const BedpeLine& sv = svs_[variant_idx];
+	QString ps_id = db.processedSampleId(ps_name, false);
+
+	//get SV ID
+	QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
+	if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id + "!");
+	int sv_id = db.svId(sv, Helper::toInt(callset_id, "callset_id"), svs_);
+	if (sv_id == -1)
+	{
+		sv_id = db.addSv(Helper::toInt(callset_id), sv, svs_);
+		THROW(DatabaseException, "SV not found in the NGSD! ");
+	}
+
+	//get sample ID
+	QString sample_id = db.sampleId(db.processedSampleName(ps_id));
+
+	//get variant validation ID - add if missing
+	QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE "+ db.svTableName(sv.type()) + "_id='" + QString::number(sv_id) + "' AND sample_id='" + sample_id + "'", true);
+	VariantValidation sv_val = db.variantValidationSvVariant(QByteArray::number(sv_id), sv.type(), sample_id.toUtf8(), false);
+
+	//add missing fields if newly created
+	if (sv_val.val_id == -1)
+	{
+		sv_val.status = "n/a";
+		sv_val.user_id = LoginManager::userIdAsString().toInt();
+	}
+
+	return sv_val;
 }
 
 void AnalysisDataController::storeVariantValidation(const VariantValidation& var_val)
@@ -1785,6 +1922,666 @@ QList<KeyValuePair> AnalysisDataController::inheritanceByGene(int variant_idx)
     return inheritance_by_gene;
 }
 
+ClinvarUploadData AnalysisDataController::getClinvarUploadData(int var_idx1, int var_idx2, VariantType type)
+{
+
+
+	if (type == VariantType::SNVS_INDELS)
+	{
+		return getClinvarUploadDataSmallVariant(var_idx1, var_idx2);
+	}
+	else if (type == VariantType::CNVS)
+	{
+		return getClinvarUploadDataCnv(var_idx1, var_idx2);
+	}
+	else if (type == VariantType::SVS)
+	{
+		return getClinvarUploadDataSv(var_idx1, var_idx2);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Unsupported VariantType in getClinvarUploadData()! VariantType: " + variantTypeToString(type));
+	}
+}
+
+ClinvarUploadData AnalysisDataController::getClinvarUploadDataSmallVariant(int var_idx1, int var_idx2)
+{
+	if(var_idx1 < 0)
+	{
+		THROW(ArgumentException, "A valid variant index for the first variant has to be provided!");
+	}
+
+	//abort if API key is missing
+	if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+	{
+		THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
+	}
+
+	NGSD db;
+
+	//(1) prepare data as far as we can
+	ClinvarUploadData data;
+	data.processed_sample = germlineReportSample();
+	data.variant_type1 = VariantType::SNVS_INDELS;
+	if(var_idx2 < 0)
+	{
+		//Single variant submission
+		data.submission_type = ClinvarSubmissionType::SingleVariant;
+		data.variant_type2 = VariantType::INVALID;
+	}
+	else
+	{
+		//CompHet variant submission
+		data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+		data.variant_type2 = VariantType::SNVS_INDELS;
+	}
+
+	QString sample_id = db.sampleId(data.processed_sample);
+	SampleData sample_data = db.getSampleData(sample_id);
+
+
+	//get disease info
+	data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+	data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
+	if (data.disease_info.length() < 1)
+	{
+		INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+	}
+
+	// get affected status
+	data.affected_status = sample_data.disease_status;
+
+	//get phenotype(s)
+	data.phenos = sample_data.phenotypes;
+
+	//get variant info
+	data.snv1 = getSmallVariantList()[var_idx1];
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.snv2 = getSmallVariantList()[var_idx2];
+
+	// get report info
+	if ( ! getGermlineReportConfig()->exists(VariantType::SNVS_INDELS, var_idx1))
+	{
+		INFO(InformationMissingException, "The variant 1 has to be in the report configuration to be published!");
+	}
+	data.report_variant_config1 = getGermlineReportConfig()->get(VariantType::SNVS_INDELS, var_idx1);
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		if (getGermlineReportConfig()->exists(VariantType::SNVS_INDELS, var_idx2))
+		{
+			INFO(InformationMissingException, "The variant 2 has to be in the report configuration to be published!");
+		}
+		data.report_variant_config2 = getGermlineReportConfig()->get(VariantType::SNVS_INDELS, var_idx2);
+	}
+
+	//update classification
+	data.report_variant_config1.classification = db.getClassification(data.snv1).classification;
+	if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+	{
+		INFO(InformationMissingException, "The variant 1 has to be classified to be published!");
+	}
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		data.report_variant_config2.classification = db.getClassification(data.snv2).classification;
+		if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
+		{
+			INFO(InformationMissingException, "The variant 2 has to be classified to be published!");
+		}
+	}
+
+	//genes
+	int gene_idx = getSmallVariantList().annotationIndexByName("gene");
+	data.genes = GeneSet::createFromText(data.snv1.annotations()[gene_idx], ',');
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  GeneSet::createFromText(data.snv2.annotations()[gene_idx], ',');
+
+	//determine NGSD ids of variant and report variant for variant 1
+	QString var_id = db.variantId(data.snv1, false);
+	if (var_id == "")
+	{
+		INFO(InformationMissingException, "The variant 1 has to be in NGSD and part of a report config to be published!");
+	}
+	data.variant_id1 = Helper::toInt(var_id);
+	//extract report variant id
+	int rc_id = db.reportConfigId(db.processedSampleId(data.processed_sample));
+	if (rc_id == -1 )
+	{
+		THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
+	}
+
+	data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+													 + QString::number(data.variant_id1), false).toInt();
+
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		//determine NGSD ids of variant and report variant for variant 2
+		var_id = db.variantId(data.snv2, false);
+		if (var_id == "")
+		{
+			INFO(InformationMissingException, "The variant 2 has to be in NGSD and part of a report config to be published!");
+		}
+		data.variant_id2 = Helper::toInt(var_id);
+
+		//extract report variant id
+		data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+														 + QString::number(data.variant_id2), false).toInt();
+	}
+
+	return data;
+}
+
+ClinvarUploadData AnalysisDataController::getClinvarUploadDataCnv(int var_idx1, int var_idx2)
+{
+	if(var_idx1 <0)
+	{
+		THROW(ArgumentException, "A valid index for the first CNV has to be provided!");
+	}
+	//abort if API key is missing
+	if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+	{
+		THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
+	}
+
+	NGSD db;
+
+	//(1) prepare data as far as we can
+	ClinvarUploadData data;
+	data.processed_sample = getMainSampleName();
+	data.variant_type1 = VariantType::CNVS;
+	if(var_idx1 < 0)
+	{
+		//Single variant submission
+		data.submission_type = ClinvarSubmissionType::SingleVariant;
+		data.variant_type2 = VariantType::INVALID;
+	}
+	else
+	{
+		//CompHet variant submission
+		data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+		data.variant_type2 = VariantType::CNVS;
+	}
+
+	QString sample_id = db.sampleId(data.processed_sample);
+	SampleData sample_data = db.getSampleData(sample_id);
+
+	//get disease info
+	data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+	data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
+	if (data.disease_info.length() < 1)
+	{
+		INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+	}
+
+	// get affected status
+	data.affected_status = sample_data.disease_status;
+
+	//get phenotype(s)
+	data.phenos = sample_data.phenotypes;
+
+	//get copy number variant info
+	data.cnv1 = cnvs_[var_idx1];
+	data.cn1 = data.cnv1.copyNumber(cnvs_.annotationHeaders());
+	data.ref_cn1 = CnvList::determineReferenceCopyNumber(data.cnv1, sample_data.gender, GSvarHelper::build());
+
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		data.cnv2 = cnvs_[var_idx1];
+		data.cn2 = data.cnv2.copyNumber(cnvs_.annotationHeaders());
+		data.ref_cn2 = CnvList::determineReferenceCopyNumber(data.cnv2, sample_data.gender, GSvarHelper::build());
+	}
+
+	// get report info
+	if (!getGermlineReportConfig()->exists(VariantType::CNVS, var_idx1))
+	{
+		INFO(InformationMissingException, "The CNV has to be in the report configuration to be published!");
+	}
+	data.report_variant_config1 = getGermlineReportConfig()->get(VariantType::CNVS, var_idx1);
+
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		if (!getGermlineReportConfig()->exists(VariantType::CNVS, var_idx2))
+		{
+			INFO(InformationMissingException, "The CNV 2 has to be in the report configuration to be published!");
+		}
+		data.report_variant_config2 = getGermlineReportConfig()->get(VariantType::CNVS, var_idx2);
+	}
+
+	//check classification
+	if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+	{
+		INFO(InformationMissingException, "The CNV has to be classified to be published!");
+	}
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
+		{
+			INFO(InformationMissingException, "The CNV 2 has to be classified to be published!");
+		}
+	}
+
+	//genes
+	data.genes = data.cnv1.genes();
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  data.cnv2.genes();
+
+	//determine NGSD ids of variant and report variant for variant 1
+	int callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + getMainProcessedSampleId()).toInt();
+	QString cnv_id = db.cnvId(data.cnv1, callset_id, false);
+	if (cnv_id == "")
+	{
+		INFO(InformationMissingException, "The CNV has to be in NGSD and part of a report config to be published!");
+	}
+	data.variant_id1 = Helper::toInt(cnv_id);
+	//extract report variant id
+	int rc_id = db.reportConfigId(getMainProcessedSampleId());
+	if (rc_id == -1 )
+	{
+		THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
+	}
+
+	data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id="
+													 + QString::number(data.variant_id1), false).toInt();
+
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		//determine NGSD ids of cnv for variant 2
+		cnv_id = db.cnvId(data.cnv2, callset_id, false);
+		if (cnv_id == "")
+		{
+			INFO(InformationMissingException, "The CNV 2 has to be in NGSD and part of a report config to be published!");
+		}
+		data.variant_id2 = Helper::toInt(cnv_id);
+
+		//extract report variant id
+		data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id="
+														 + QString::number(data.variant_id2), false).toInt();
+	}
+
+	return data;
+}
+
+ClinvarUploadData AnalysisDataController::getClinvarUploadDataSv(int var_idx1, int var_idx2)
+{
+	//abort if 1st index is missing
+	if(var_idx1 <0)
+	{
+		THROW(ArgumentException, "A valid index for the first SV has to be provided!");
+	}
+	//abort if API key is missing
+	if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+	{
+		THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
+	}
+
+	NGSD db;
+	QString ps_id = getMainProcessedSampleId();
+
+	//(1) prepare data as far as we can
+	ClinvarUploadData data;
+	data.processed_sample = getMainSampleName();
+	data.variant_type1 = VariantType::SVS;
+	if(var_idx2 < 0)
+	{
+		//Single variant submission
+		data.submission_type = ClinvarSubmissionType::SingleVariant;
+		data.variant_type2 = VariantType::INVALID;
+	}
+	else
+	{
+		//CompHet variant submission
+		data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+		data.variant_type2 = VariantType::SVS;
+	}
+
+	QString sample_id = db.sampleId(data.processed_sample);
+	SampleData sample_data = db.getSampleData(sample_id);
+
+	//get disease info
+	data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+	data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
+	if (data.disease_info.length() < 1)
+	{
+		INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+	}
+
+	// get affected status
+	data.affected_status = sample_data.disease_status;
+
+	//get phenotype(s)
+	data.phenos = sample_data.phenotypes;
+
+	//get sv variant info
+	data.sv1 = svs_[var_idx1];
+	if(data.sv1.type() == StructuralVariantType::BND)
+		WARNING(NotImplementedException, "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.");
+
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		data.sv2 = svs_[var_idx2];
+		if(data.sv2.type() == StructuralVariantType::BND)
+			WARNING(NotImplementedException, "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.");
+	}
+
+	// get report info
+	if (!getGermlineReportConfig()->exists(VariantType::SVS, var_idx1))
+	{
+		INFO(InformationMissingException, "The SV has to be in the report configuration to be published!");
+	}
+	data.report_variant_config1 = getGermlineReportConfig()->get(VariantType::SVS, var_idx1);
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		if (!getGermlineReportConfig()->exists(VariantType::SVS, var_idx2))
+		{
+			INFO(InformationMissingException, "The SV 2 has to be in the report configuration to be published!");
+		}
+		data.report_variant_config2 = getGermlineReportConfig()->get(VariantType::SVS, var_idx2);
+	}
+
+	//check classification
+	if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+	{
+		INFO(InformationMissingException, "The SV has to be classified to be published!");
+	}
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
+		{
+			INFO(InformationMissingException, "The SV 2 has to be classified to be published!");
+		}
+	}
+
+	//genes
+	data.genes = data.sv1.genes(svs_.annotationHeaders());
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  data.sv2.genes(svs_.annotationHeaders());
+
+	//get callset id
+	QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
+	if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id + "!");
+
+	//determine NGSD ids of variant and report variant for variant 1
+	QString sv_id = db.svId(data.sv1, callset_id.toInt(), svs_, false);
+	if (sv_id == "")
+	{
+		INFO(InformationMissingException, "The SV has to be in NGSD and part of a report config to be published!");
+	}
+
+
+	data.variant_id1 = Helper::toInt(sv_id);
+	//extract report variant id
+	int rc_id = db.reportConfigId(ps_id);
+	if (rc_id == -1 )
+	{
+		THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
+	}
+
+	data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
+													 + db.svTableName(data.sv1.type())+ "_id=" + QString::number(data.variant_id1), false).toInt();
+
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		//determine NGSD ids of sv for variant 2
+		sv_id = db.svId(data.sv2, callset_id.toInt(), svs_, true);
+		if (sv_id == "")
+		{
+			INFO(InformationMissingException, "The SV 2 has to be in NGSD and part of a report config to be published!");
+		}
+		data.variant_id2 = Helper::toInt(sv_id);
+
+		//extract report variant id
+		data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
+														 + db.svTableName(data.sv2.type())+ "_id=" + QString::number(data.variant_id2), false).toInt();
+	}
+
+	return data;
+}
+
+ClinvarUploadData AnalysisDataController::getClinvarUploadData(int var_pub_id)
+{
+	ClinvarUploadData data;
+	NGSD db;
+
+	data.variant_publication_id = var_pub_id;
+
+	// get publication data
+	SqlQuery query = db.getQuery();
+	query.prepare("SELECT sample_id, variant_id, variant_table, details, user_id, linked_id FROM variant_publication WHERE id=:0");
+	query.bindValue(0, var_pub_id);
+	query.exec();
+
+	if (query.size() != 1) THROW(DatabaseException, "Invalid variant publication id!");
+	query.next();
+
+	QString sample_id = query.value("sample_id").toString();
+	QString variant_table = query.value("variant_table").toString();
+	QString variant_table2;
+	data.variant_id1 = query.value("variant_id").toInt();
+	QStringList details = query.value("details").toString().split(';');
+	data.user_id = query.value("user_id").toInt();
+	QString linked_id = query.value("linked_id").toString();
+
+
+	//parse details entry
+	data.report_variant_config_id1 = -1;
+	data.report_variant_config_id2 = -1;
+	bool switch_variants = false;
+	foreach (const QString& kv_pair, details)
+	{
+		//determine submission type
+		if (kv_pair.startsWith("submission_type="))
+		{
+			QString submission_type = kv_pair.split('=').at(1).trimmed();
+			if (submission_type=="SingleVariant") data.submission_type = ClinvarSubmissionType::SingleVariant;
+			else if(submission_type=="CompoundHeterozygous") data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+			else THROW(DatabaseException, "Invalid submission type!");
+		}
+
+		//get variant order
+		if (kv_pair.startsWith("variant_id1="))
+		{
+			int var_id1 = Helper::toInt(kv_pair.split('=').at(1), "variant_id1");
+			switch_variants = (var_id1 != data.variant_id1);
+		}
+		if (kv_pair.startsWith("variant_id2="))
+		{
+			data.variant_id2 = Helper::toInt(kv_pair.split('=').at(1), "variant_id2");
+		}
+
+		//get variant report config id
+		if (kv_pair.startsWith("variant_rc_id1="))
+		{
+			QString rvc_str = kv_pair.split('=').at(1);
+			if (rvc_str.contains(':')) rvc_str = rvc_str.split(':').at(1);
+			data.report_variant_config_id1 = Helper::toInt(rvc_str, "variant_rc_id1");
+		}
+		if (kv_pair.startsWith("variant_rc_id2="))
+		{
+			QString rvc_str = kv_pair.split('=').at(1);
+			if (rvc_str.contains(':'))
+			{
+				variant_table2 = rvc_str.split(':').at(0);
+				rvc_str = rvc_str.split(':').at(1);
+			}
+			data.report_variant_config_id2 = Helper::toInt(rvc_str, "variant_rc_id2");
+		}
+
+		//legacy support: get variant report config id
+		if (kv_pair.startsWith("variant_rc_id="))
+		{
+			QString rvc_str = kv_pair.split('=').at(1);
+			if (rvc_str.contains(':')) rvc_str = rvc_str.split(':').at(1);
+			data.report_variant_config_id1 = Helper::toInt(rvc_str, "variant_rc_id");
+		}
+
+	}
+	if (data.report_variant_config_id1 < 0) THROW(DatabaseException, "No report variant config id information found in variant publication!");
+	if ((data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) && (data.report_variant_config_id2 < 0))
+	{
+		THROW(DatabaseException, "No report variant config id for second variant information found in variant publication!");
+	}
+
+
+	//get variant info
+	if (variant_table == "variant")
+	{
+		data.variant_type1 = VariantType::SNVS_INDELS;
+		data.snv1 = db.variant(QString::number(data.variant_id1));
+	}
+	else if(variant_table == "cnv")
+	{
+		data.variant_type1 = VariantType::CNVS;
+		data.cnv1 = db.cnv(data.variant_id1);
+	}
+	else //SNV
+	{
+		data.variant_type1 = VariantType::SVS;
+		StructuralVariantType sv_type;
+		if(variant_table == "sv_deletion") sv_type = StructuralVariantType::DEL;
+		else if(variant_table == "sv_duplication") sv_type = StructuralVariantType::DUP;
+		else if(variant_table == "sv_insertion") sv_type = StructuralVariantType::INS;
+		else if(variant_table == "sv_invertion") sv_type = StructuralVariantType::INV;
+		else if(variant_table == "sv_translocation" ) sv_type = StructuralVariantType::BND;
+		else THROW(ArgumentException, "Invalid SV table '" + variant_table + "'!");
+
+		data.sv1 = db.structuralVariant(data.variant_id1, sv_type, getSvList());
+	}
+
+	if (data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		if (linked_id == "") THROW(DatabaseException, "No linked variant provided for compound heterozygous variant publication!");
+		//get publication data of second variant
+		query.bindValue(0, var_pub_id);
+		query.exec();
+		if (query.size() != 1) THROW(DatabaseException, "Invalid variant publication id of second variant!");
+		query.next();
+
+
+		//get variant info for 2nd var from details field
+		if (variant_table2 == "variant")
+		{
+			data.variant_type2 = VariantType::SNVS_INDELS;
+			data.snv2 = db.variant(QString::number(data.variant_id2));
+		}
+		else if(variant_table2 == "cnv")
+		{
+			data.variant_type2 = VariantType::CNVS;
+			data.cnv2 = db.cnv(data.variant_id2);
+		}
+		else //SNV
+		{
+			data.variant_type2 = VariantType::SVS;
+			StructuralVariantType sv_type;
+			if(variant_table2 == "sv_deletion") sv_type = StructuralVariantType::DEL;
+			else if(variant_table2 == "sv_duplication") sv_type = StructuralVariantType::DUP;
+			else if(variant_table2 == "sv_insertion") sv_type = StructuralVariantType::INS;
+			else if(variant_table2 == "sv_invertion") sv_type = StructuralVariantType::INV;
+			else if(variant_table2 == "sv_translocation" ) sv_type = StructuralVariantType::BND;
+			else THROW(ArgumentException, "Invalid SV table '" + variant_table2 + "'!");
+
+			data.sv2 = db.structuralVariant(data.variant_id2, sv_type, getSvList());
+		}
+	}
+
+	//switch order of variants
+	if (switch_variants)
+	{
+		int variant_id2 = data.variant_id1;
+		int report_config_variant_id2 = data.report_variant_config_id1;
+		ReportVariantConfiguration report_variant_config2 = data.report_variant_config1;
+		VariantType variant_type2 = data.variant_type1;
+		Variant snv2 = data.snv1;
+		CopyNumberVariant cnv2 = data.cnv1;
+		int cn2 = data.cn1;
+		int ref_cn2 = data.ref_cn1;
+		BedpeLine sv2 = data.sv1;
+
+		data.variant_id1 = data.variant_id2;
+		data.report_variant_config_id1 = data.report_variant_config_id2;
+		data.report_variant_config1 = data.report_variant_config2;
+		data.variant_type1 = data.variant_type2;
+		data.snv1 = data.snv2;
+		data.cnv1 = data.cnv2;
+		data.cn1 = data.cn2;
+		data.ref_cn1 = data.ref_cn2;
+		data.sv1 = data.sv2;
+
+		data.variant_id2 = variant_id2;
+		data.report_variant_config_id2 = report_config_variant_id2;
+		data.report_variant_config2 = report_variant_config2;
+		data.variant_type2 = variant_type2;
+		data.snv2 = snv2;
+		data.cnv2 = cnv2;
+		data.cn2 = cn2;
+		data.ref_cn2 = ref_cn2;
+		data.sv2 = sv2;
+	}
+
+	//get sample data
+	SampleData sample_data = db.getSampleData(sample_id);
+
+	//get disease info
+	data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+	data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
+	if (data.disease_info.length() < 1)
+	{
+		emit thrownWarning("No disease info", "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+	}
+
+	// get affected status
+	data.affected_status = sample_data.disease_status;
+
+	//get phenotype(s)
+	data.phenos = sample_data.phenotypes;
+
+	//get variant report config
+	QStringList messages;
+	data.report_variant_config1 = db.reportVariantConfiguration(data.report_variant_config_id1, data.variant_type1, messages);
+	if (data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		data.report_variant_config2 = db.reportVariantConfiguration(data.report_variant_config_id2, data.variant_type2, messages);
+	}
+
+	if (messages.size() > 0) emit thrownWarning("Report Variant Configuration", messages.join('\n'));
+
+	//update snv_indel classification
+	if(data.variant_type1 == VariantType::SNVS_INDELS)
+	{
+		data.report_variant_config1.classification = db.getClassification(data.snv1).classification;
+		if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+		{
+			emit thrownWarning("No Classification", "The variant has to have a classification to be published!");
+		}
+	}
+
+	// get report config
+	int rc_id = -1;
+	if (data.variant_type1 == VariantType::SNVS_INDELS)
+	{
+		rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_variant WHERE id=" + QString::number(data.report_variant_config_id1) + " AND variant_id="
+								+ QString::number(data.variant_id1), false).toInt();
+	}
+	else if (data.variant_type1 == VariantType::CNVS)
+	{
+		rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_cnv WHERE id=" + QString::number(data.report_variant_config_id1) + " AND variant_id="
+								+ QString::number(data.variant_id1), false).toInt();
+	}
+	else if (data.variant_type1 == VariantType::SVS)
+	{
+		rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_sv WHERE id=" + QString::number(data.report_variant_config_id1) + " AND " + db.svTableName(data.sv1.type())
+							+ "_id=" + QString::number(data.variant_id1), false).toInt();
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid variant type!");
+	}
+
+	//get genes
+	data.genes = db.genesOverlapping(data.snv1.chr(), data.snv1.start(), data.snv1.end(), 5000);
+
+	//get processed sample id
+	data.processed_sample = db.processedSampleName(db.getValue("SELECT processed_sample_id FROM report_configuration WHERE id=" + QString::number(rc_id)).toString());
+
+	return data;
+}
+
+
+
 void AnalysisDataController::changeSmallVariantList(int variant_idx, QByteArray column, QByteArray new_text, bool throw_if_not_found)
 {
     int idx_column = variants_.annotationIndexByName(column, true, throw_if_not_found);
@@ -1810,7 +2607,7 @@ void AnalysisDataController::changeSmallVariantListBatch(QList<int> variant_indi
 
     if (idx_column!=-1)
     {
-        for (int i; i<variant_indicies.count(); i++)
+		for (int i=0; i < variant_indicies.count(); i++)
         {
             Variant variant = variants_[variant_indicies[i]];
             if(variant.annotations()[idx_column] != new_text[i])
@@ -2069,6 +2866,8 @@ Histogram AnalysisDataController::bafHistogram(QString sample_id, Chromosome chr
         double baf =  Helper::toDouble(parts[4], "BAF");
         hist.inc(baf, true);
     }
+
+	return hist;
 }
 
 void AnalysisDataController::exportGSvar(QString file_name, bool as_vcf)

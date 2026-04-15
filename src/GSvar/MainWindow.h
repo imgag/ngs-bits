@@ -476,7 +476,7 @@ protected:
     void performLogout();
 
 private:
-    bool getHetHitGenes(GeneSet& het_hit_genes);
+	bool checkHetHitGenes();
 
 
     //DATA

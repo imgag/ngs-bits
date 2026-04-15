@@ -27,19 +27,19 @@
 #include "SettingsDialog.h"
 #include <QtCharts/QChartView>
 
-CnvWidget::CnvWidget(QWidget* parent, AnalysisDataController& data_controller, const GeneSet& het_hit_genes)
+CnvWidget::CnvWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
-    , data_controller_(data_controller)
+	, data_controller_(AnalysisDataController::instance())
 	, callset_id_("")
-    , cnvs_(data_controller.getCnvList())
+	, cnvs_(data_controller_.getCnvList())
 	, special_cols_()
-    , report_config_(data_controller.getGermlineReportConfig())
-    , somatic_report_config_(data_controller.getSomaticReportConfig())
-	, var_het_genes_(het_hit_genes)
+	, report_config_(data_controller_.getGermlineReportConfig())
+	, somatic_report_config_(data_controller_.getSomaticReportConfig())
+	, var_het_genes_(data_controller_.getHetHitGenes())
     , ngsd_user_logged_in_(LoginManager::active())
-    , rc_enabled_(ngsd_user_logged_in_ && ((data_controller.germlineReportSupported() && !report_config_->isFinalized()) || data_controller.somaticReportSupported()))
-    , is_somatic_(data_controller.getAnalysisType() == AnalysisType::SOMATIC_PAIR || data_controller.getAnalysisType() == AnalysisType::SOMATIC_SINGLESAMPLE)
+	, rc_enabled_(ngsd_user_logged_in_ && ((data_controller_.germlineReportSupported() && !report_config_->isFinalized()) || data_controller_.somaticReportSupported()))
+	, is_somatic_(data_controller_.getAnalysisType() == AnalysisType::SOMATIC_PAIR || data_controller_.getAnalysisType() == AnalysisType::SOMATIC_SINGLESAMPLE)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
@@ -68,10 +68,10 @@ CnvWidget::CnvWidget(QWidget* parent, AnalysisDataController& data_controller, c
     if (data_controller_.germlineReportSupported())
     {
         NGSD db;
-        QString ps_id = db.processedSampleId(data_controller_.germlineReportSample(), false);
-        if (ngsd_user_logged_in_ && ps_id != "")
+		ps_id_ = db.processedSampleId(data_controller_.germlineReportSample(), false);
+		if (ngsd_user_logged_in_ && ps_id_ != "")
         {
-            callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id).toString();
+			callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_).toString();
         }
     }
 	ui->quality->setEnabled(callset_id_!="");
@@ -561,7 +561,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	{
 		//ClinVar publication
 		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
-        a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+		a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty() &&  data_controller_.germlineReportSupported());
 
 		//execute menu
 		QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
@@ -599,7 +599,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	QMenu*sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-    a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+	a_clinvar_pub->setEnabled(ngsd_user_logged_in_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty() && data_controller_.germlineReportSupported());
 
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
@@ -1085,51 +1085,13 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 
 void CnvWidget::editCnvValidation(int row)
 {
-	const CopyNumberVariant& cnv = cnvs_[row];
-
 	try
 	{
-		NGSD db;
-
-		//get CNV ID
-		QString callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
-		if (callset_id == "") THROW(DatabaseException, "No CNV callset found for processed sample id " + ps_id_ + "!");
-		QString cnv_id = db.cnvId(cnv, Helper::toInt(callset_id, "callset_id"), false);
-		if (cnv_id == "")
-		{
-			// import CNV into NGSD
-			cnv_id = db.addCnv(Helper::toInt(callset_id, "callset_id"), cnv, cnvs_);
-		}
-
-
-		//get sample ID
-		QString sample_id = db.sampleId(db.processedSampleName(ps_id_));
-
-		//get variant validation ID - add if missing
-		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE cnv_id='" + cnv_id + "' AND sample_id='" + sample_id + "'", true);
-		bool added_validation_entry = false;
-		if (!val_id.isValid())
-		{
-			//insert
-			SqlQuery query = db.getQuery();
-			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, cnv_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','CNV','" + cnv_id + "','n/a')");
-			val_id = query.lastInsertId();
-
-			added_validation_entry = true;
-		}
-
-		ValidationDialog dlg(this, val_id.toInt());
+		ValidationDialog dlg(this, data_controller_.getCnvValidationEntry(row));
 
 		if (dlg.exec())
 		{
-			//update DB
-			dlg.store();
-		}
-		else if (added_validation_entry)
-		{
-			// remove created but empty validation if ValidationDialog is aborted
-			SqlQuery query = db.getQuery();
-			query.exec("DELETE FROM variant_validation WHERE id=" + val_id.toString());
+			data_controller_.storeVariantValidation(dlg.getValidation());
 		}
 	}
 	catch (DatabaseException& e)
@@ -1170,132 +1132,8 @@ void CnvWidget::uploadToClinvar(int index1, int index2)
     if (!ngsd_user_logged_in_) return;
 	try
 	{
-		if(index1 <0)
-		{
-			THROW(ArgumentException, "A valid index for the first CNV has to be provided!");
-		}
-		//abort if API key is missing
-		if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
-		{
-			THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
-		}
-
-		NGSD db;
-
-		//(1) prepare data as far as we can
-		ClinvarUploadData data;
-		data.processed_sample = db.processedSampleName(ps_id_);
-		data.variant_type1 = VariantType::CNVS;
-		if(index2 < 0)
-		{
-			//Single variant submission
-			data.submission_type = ClinvarSubmissionType::SingleVariant;
-			data.variant_type2 = VariantType::INVALID;
-		}
-		else
-		{
-			//CompHet variant submission
-			data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
-			data.variant_type2 = VariantType::CNVS;
-		}
-
-		QString sample_id = db.sampleId(data.processed_sample);
-		SampleData sample_data = db.getSampleData(sample_id);
-
-		//get disease info
-		data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
-		data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
-		if (data.disease_info.length() < 1)
-		{
-			INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
-		}
-
-		// get affected status
-		data.affected_status = sample_data.disease_status;
-
-		//get phenotype(s)
-		data.phenos = sample_data.phenotypes;
-
-		//get copy number variant info
-		data.cnv1 = cnvs_[index1];
-		data.cn1 = data.cnv1.copyNumber(cnvs_.annotationHeaders());
-		data.ref_cn1 = CnvList::determineReferenceCopyNumber(data.cnv1, sample_data.gender, GSvarHelper::build());
-
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
-		{
-			data.cnv2 = cnvs_[index2];
-			data.cn2 = data.cnv2.copyNumber(cnvs_.annotationHeaders());
-			data.ref_cn2 = CnvList::determineReferenceCopyNumber(data.cnv2, sample_data.gender, GSvarHelper::build());
-		}
-
-		// get report info
-		if (!report_config_.data()->exists(VariantType::CNVS, index1))
-		{
-			INFO(InformationMissingException, "The CNV has to be in the report configuration to be published!");
-		}
-		data.report_variant_config1 = report_config_.data()->get(VariantType::CNVS, index1);
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
-		{
-			if (!report_config_.data()->exists(VariantType::CNVS, index2))
-			{
-				INFO(InformationMissingException, "The CNV 2 has to be in the report configuration to be published!");
-			}
-			data.report_variant_config2 = report_config_.data()->get(VariantType::CNVS, index2);
-		}
-
-		//check classification
-		if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
-		{
-			INFO(InformationMissingException, "The CNV has to be classified to be published!");
-		}
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
-		{
-			if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
-			{
-				INFO(InformationMissingException, "The CNV 2 has to be classified to be published!");
-			}
-		}
-
-		//genes
-		data.genes = data.cnv1.genes();
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  data.cnv2.genes();
-
-		//determine NGSD ids of variant and report variant for variant 1
-		QString cnv_id = db.cnvId(data.cnv1, callset_id_.toInt(), false);
-		if (cnv_id == "")
-		{
-			INFO(InformationMissingException, "The CNV has to be in NGSD and part of a report config to be published!");
-		}
-		data.variant_id1 = Helper::toInt(cnv_id);
-		//extract report variant id
-		int rc_id = db.reportConfigId(ps_id_);
-		if (rc_id == -1 )
-		{
-			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
-		}
-
-		data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id="
-													 + QString::number(data.variant_id1), false).toInt();
-
-		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
-		{
-			//determine NGSD ids of cnv for variant 2
-			cnv_id = db.cnvId(data.cnv2, callset_id_.toInt(), false);
-			if (cnv_id == "")
-			{
-				INFO(InformationMissingException, "The CNV 2 has to be in NGSD and part of a report config to be published!");
-			}
-			data.variant_id2 = Helper::toInt(cnv_id);
-
-			//extract report variant id
-			data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id="
-														 + QString::number(data.variant_id2), false).toInt();
-		}
-
-
-		// (2) show dialog
 		ClinvarUploadDialog dlg(this);
-		dlg.setData(data);
+		dlg.setData(data_controller_.getClinvarUploadDataCnv(index1, index2));
 		dlg.exec();
 	}
 	catch(Exception& e)
