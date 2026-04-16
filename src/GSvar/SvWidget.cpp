@@ -32,11 +32,13 @@ SvWidget::SvWidget(QWidget* parent)
 	, svs_(data_controller_.getSvList())
 	, report_config_(data_controller_.getGermlineReportConfig())
 	, somatic_report_config_(data_controller_.getSomaticReportConfig())
-	, var_het_genes_(data_controller_.getHetHitGenes())
     , ngsd_user_logged_in_(LoginManager::active())
     , is_multisample_(svs_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO || svs_.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)
 {
     is_somatic_ = svs_.isSomatic();
+
+	//precalculate het hit genes in data controller for filtering of the CNVs.
+	data_controller_.getHetHitGenes();
 
     if (! is_somatic_)
     {

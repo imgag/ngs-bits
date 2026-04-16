@@ -65,7 +65,7 @@ public slots:
     void updateTextFilter();
     void updateReportConfigfilter();
 
-
+	void phenotypesChanged();
 
 	void addRoi();
 	void addRoiTemp();

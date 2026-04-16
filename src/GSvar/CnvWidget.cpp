@@ -31,12 +31,12 @@ CnvWidget::CnvWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
 	, data_controller_(AnalysisDataController::instance())
+	, state_(data_controller_.getCnvFilterState())
 	, callset_id_("")
 	, cnvs_(data_controller_.getCnvList())
 	, special_cols_()
 	, report_config_(data_controller_.getGermlineReportConfig())
 	, somatic_report_config_(data_controller_.getSomaticReportConfig())
-	, var_het_genes_(data_controller_.getHetHitGenes())
     , ngsd_user_logged_in_(LoginManager::active())
 	, rc_enabled_(ngsd_user_logged_in_ && ((data_controller_.germlineReportSupported() && !report_config_->isFinalized()) || data_controller_.somaticReportSupported()))
 	, is_somatic_(data_controller_.getAnalysisType() == AnalysisType::SOMATIC_PAIR || data_controller_.getAnalysisType() == AnalysisType::SOMATIC_SINGLESAMPLE)
@@ -47,13 +47,11 @@ CnvWidget::CnvWidget(QWidget* parent)
 	connect(ui->flag_invisible_cnvs_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagInvisibleSomaticCnvsAsArtefacts()) );
 	connect(ui->flag_visible_cnvs_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagVisibleSomaticCnvsAsArtefacts()) );
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
-	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
-	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+	connect(&state_, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
 	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(annotateTargetRegionGeneOverlap()));
 	connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
-	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 
 	ui->resize_btn->setMenu(new QMenu());
 	ui->resize_btn->menu()->addAction("Open column settings", this, SLOT(openColumnSettings()));
@@ -83,6 +81,9 @@ CnvWidget::CnvWidget(QWidget* parent)
 
 	ui->cnvs->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
+	//precalculate het hit genes in data controller for filtering of the CNVs.
+	data_controller_.getHetHitGenes();
+
 	initGUI();
 }
 
@@ -104,9 +105,6 @@ void CnvWidget::initGUI()
 		ui->flag_invisible_cnvs_artefacts->setEnabled(true);
 		ui->flag_visible_cnvs_artefacts->setEnabled(true);
 	}
-
-	//apply filters
-	applyFilters();
 }
 
 CnvWidget::~CnvWidget()
@@ -342,208 +340,6 @@ void CnvWidget::updateGUI()
 	updateQuality();
 }
 
-void CnvWidget::applyFilters(bool debug_time)
-{
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-	const int rows = cnvs_.count();
-	FilterResult filter_result(rows);
-
-	try
-	{
-        QElapsedTimer timer;
-		timer.start();
-
-		//apply main filter
-		const FilterCascade& filter_cascade = ui->filter_widget->filters();
-		//set comp-het gene list the first time the filter is applied
-		for(int i=0; i<filter_cascade.count(); ++i)
-		{
-			const FilterCnvCompHet* comphet_filter = dynamic_cast<const FilterCnvCompHet*>(filter_cascade[i].data());
-			if (comphet_filter!=nullptr && comphet_filter->hetHitGenes().count()!=var_het_genes_.count())
-			{
-				comphet_filter->setHetHitGenes(var_het_genes_);
-			}
-		}
-		filter_result = filter_cascade.apply(cnvs_, false, debug_time);
-		ui->filter_widget->markFailedFilters();
-
-		if (debug_time)
-		{
-			Log::perf("Applying annotation filters took ", timer);
-			timer.start();
-		}
-
-		//filter by report config
-		ReportConfigFilter rc_filter = ui->filter_widget->reportConfigurationFilter();
-		if (rc_filter!=ReportConfigFilter::NONE)
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-
-				if (rc_filter==ReportConfigFilter::HAS_RC)
-				{
-					if(is_somatic_)
-					{
-						filter_result.flags()[r] = somatic_report_config_->exists(VariantType::CNVS, r);
-					}
-					else
-					{
-						filter_result.flags()[r] = report_config_->exists(VariantType::CNVS, r);
-					}
-				}
-				else if (rc_filter==ReportConfigFilter::NO_RC)
-				{
-					if(is_somatic_)
-					{
-						filter_result.flags()[r] = !somatic_report_config_->exists(VariantType::CNVS, r);
-					}
-					else
-					{
-						filter_result.flags()[r] = !report_config_->exists(VariantType::CNVS, r);
-					}
-				}
-			}
-		}
-
-		//filter by genes
-		GeneSet genes = ui->filter_widget->genes();
-		if (!genes.isEmpty())
-		{
-			QByteArray genes_joined = genes.join('|');
-
-			if (genes_joined.contains("*")) //with wildcards
-			{
-                QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
-				for(int r=0; r<rows; ++r)
-				{
-					if (!filter_result.flags()[r]) continue;
-
-					bool match_found = false;
-                    for (const QByteArray& cnv_gene : cnvs_[r].genes())
-					{
-                        if (reg.match(cnv_gene).hasMatch())
-						{
-							match_found = true;
-							break;
-						}
-					}
-					filter_result.flags()[r] = match_found;
-				}
-			}
-			else //without wildcards
-			{
-				for(int r=0; r<rows; ++r)
-				{
-					if (!filter_result.flags()[r]) continue;
-
-					filter_result.flags()[r] = cnvs_[r].genes().intersectsWith(genes);
-				}
-			}
-		}
-
-		//filter by ROI
-		if (ui->filter_widget->targetRegion().isValid())
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-
-				filter_result.flags()[r] = ui->filter_widget->targetRegion().regions.overlapsWith(cnvs_[r].chr(), cnvs_[r].start(), cnvs_[r].end());
-			}
-		}
-
-		//filter by region
-		QString region_text = ui->filter_widget->region();
-		BedLine region = BedLine::fromString(region_text);
-		if (!region.isValid()) //check if valid chr
-		{
-			Chromosome chr(region_text);
-			if (chr.isNonSpecial())
-			{
-				region.setChr(chr);
-				region.setStart(1);
-				region.setEnd(999999999);
-			}
-		}
-		if (region.isValid()) //valid region (chr,start, end or only chr)
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-
-				filter_result.flags()[r] = region.overlapsWith(cnvs_[r].chr(), cnvs_[r].start(), cnvs_[r].end());
-			}
-		}
-
-		//filter by phenotype (via genes, not genomic regions)
-		PhenotypeList phenotypes = ui->filter_widget->phenotypes();
-		if (!phenotypes.isEmpty())
-		{
-			//convert phenotypes to genes
-			NGSD db;
-			GeneSet pheno_genes;
-            for (const Phenotype& pheno : phenotypes)
-			{
-				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
-			}
-
-			//convert genes to ROI (using a cache to speed up repeating queries)
-			BedFile pheno_roi;
-			timer.start();
-            foreach (const QByteArray& gene, pheno_genes)
-			{
-				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
-			}
-			pheno_roi.merge();
-
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-
-				filter_result.flags()[r] = pheno_roi.overlapsWith(cnvs_[r].chr(), cnvs_[r].start(), cnvs_[r].end());
-			}
-		}
-
-		//filter annotations by text
-		QByteArray text = ui->filter_widget->text().trimmed().toLower();
-		if (text!="")
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-
-				bool match = false;
-				foreach(const QByteArray& anno, cnvs_[r].annotations())
-				{
-					if (anno.toLower().contains(text))
-					{
-						match = true;
-						break;
-					}
-				}
-				filter_result.flags()[r] = match;
-			}
-		}
-
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n "
-							 + "If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
-
-		filter_result = FilterResult(cnvs_.count(), false);
-	}
-
-	//update GUI
-	for(int r=0; r<rows; ++r)
-	{
-		ui->cnvs->setRowHidden(r, !filter_result.flags()[r]);
-	}
-	updateStatus(filter_result.countPassing());
-	QApplication::restoreOverrideCursor();
-}
-
 void CnvWidget::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui->cnvs);
@@ -606,7 +402,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	for (const QByteArray& g : cnvs_[row].genes())
 	{
 		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
-		for (const Phenotype& p : ui->filter_widget->phenotypes())
+		for (const Phenotype& p : state_.getPhenotypes())
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
 		}
@@ -717,7 +513,7 @@ void CnvWidget::showContextMenu(QPoint p)
 		else if (db_name=="Google")
 		{
 			QString query = gene + " AND (mutation";
-            for (const Phenotype& pheno : ui->filter_widget->phenotypes())
+			for (const Phenotype& pheno : state_.getPhenotypes())
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -843,9 +639,9 @@ void CnvWidget::showQcMetricHistogram()
 void CnvWidget::updateReportConfigHeaderIcon(int row)
 {
 	//report config-based filter is on => update whole variant list
-	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
+	if (state_.getReportConfigFilter()!=ReportConfigFilter::NONE)
 	{
-		applyFilters();
+		updateGUI();
 	}
 	else //no filter => refresh icon only
 	{
@@ -965,7 +761,7 @@ void CnvWidget::importPhenotypesFromNGSD()
 	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
 	PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
-	ui->filter_widget->setPhenotypes(phenotypes);
+	state_.setPhenotypes(phenotypes);
 }
 
 void CnvWidget::annotateTargetRegionGeneOverlap()
@@ -973,7 +769,7 @@ void CnvWidget::annotateTargetRegionGeneOverlap()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//generate gene regions and index
-	BedFile roi_genes = NGSD().genesToRegions(ui->filter_widget->targetRegion().genes, Transcript::ENSEMBL, "gene", true);
+	BedFile roi_genes = NGSD().genesToRegions(state_.getTargetRegionInfo().genes, Transcript::ENSEMBL, "gene", true);
 	roi_genes.extend(5000);
 	ChromosomalIndex<BedFile> roi_genes_index(roi_genes);
 

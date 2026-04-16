@@ -810,6 +810,7 @@ void MainWindow::on_actionDeleteIgvFolder_triggered()
 
 bool MainWindow::checkHetHitGenes()
 {
+	//list is generated and used to filter variants
     int i_genes = data_controller_.getSmallVariantList().annotationIndexByName("gene", true, false);
     QList<int> i_genotypes = data_controller_.getSmallVariantList().getSampleHeader().sampleColumns(true);
     i_genotypes.removeAll(-1);
@@ -2015,8 +2016,8 @@ void MainWindow::loadFile(QString filename)
         //reset GUI and data structures
         setWindowTitle(appName());
 
-        connect(data_controller_.getGermlineReportConfig().data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
-        connect(data_controller_.getSomaticReportConfig().data(), SIGNAL(variantsChanged()), this, SLOT(storeSomaticReportConfig()));
+		connect(data_controller_.getGermlineReportConfig().data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
+		connect(data_controller_.getSomaticReportConfig().data(), SIGNAL(variantsChanged()), this, SLOT(storeSomaticReportConfig()));
 
         ui_.tabs->setCurrentIndex(0);
         ui_.filters->reset(true);

@@ -33,6 +33,10 @@ AnalysisDataController::AnalysisDataController()
     : QObject()
 {
     connect(&variants_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applySmallVariantFilter(bool)));
+	connect(&cnvs_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applyCnvFilter(bool)));
+	connect(&svs_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applySvFilter(bool)));
+	connect(&res_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applyReFilter(bool)));
+	connect(&fusions_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applyFusionFilter(bool)));
 }
 
 void AnalysisDataController::clear()
@@ -50,14 +54,31 @@ void AnalysisDataController::clear()
 
     processed_sample_names_.clear();
 
+	//variants
     variants_.clear();
     variants_changed_.clear();
-    cnvs_.clear();
+	var_het_genes_uptodate_ = false;
+	var_het_genes_.clear();
+	cnvs_.clear();
     svs_.clear();
     repeat_expansions_.clear();
     somatic_control_tissue_variants_.clear();
     fusions_ = ArribaFile();
 
+	//Filters
+	variants_filter_state_.clearFilters(true);
+	cnvs_filter_state_.clearFilters(true);
+	svs_filter_state_.clearFilters(true);
+	res_filter_state_.clearFilters(true);
+	fusions_filter_state_.clearFilters(true);
+
+	variants_filter_result_.reset();
+	cnvs_filter_result_.reset();
+	svs_filter_result_.reset();
+	res_filter_result_.reset();
+	fusions_filter_result_.reset();
+
+	//reports:
     germline_report_settings_ = ReportSettings();
     somatic_report_settings_ = SomaticReportSettings();
     rna_report_config_ = QSharedPointer<RnaReportConfiguration>(new RnaReportConfiguration);
@@ -493,7 +514,7 @@ void AnalysisDataController::loadGermlineReportConfig()
     //load
     germline_report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, repeat_expansions_);
 
-	//TODO route over mainWindow: variantsChanged -> 'check if overwrite?' -> storeGermlineReportConfig
+	//route over SIGNAL to save over mainWindow: variantsChanged -> check if user in case of overwrite -> storeGermlineReportConfig
 	connect(germline_report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SIGNAL(germlineReportConfigChanged()));
 
 	applySmallVariantFilter();
@@ -672,6 +693,8 @@ void AnalysisDataController::storeSomaticReportConfig()
 
 const FilterResult& AnalysisDataController::applySmallVariantFilter(bool debug_time)
 {
+	var_het_genes_uptodate_ = false;
+
     FilterResult& result = variants_filter_result_;
     try
     {
@@ -810,6 +833,193 @@ const FilterResult& AnalysisDataController::applySmallVariantFilter(bool debug_t
 	emit smallVariantsFilterResultChanged();
     return result;
 }
+
+
+const FilterResult& AnalysisDataController::applyCnvFilter(bool debug_time)
+{
+	int rows = cnvs_.count();
+
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	try
+	{
+		QElapsedTimer timer;
+		timer.start();
+
+		//apply main filter
+		const FilterCascade& filter_cascade = cnvs_filter_state_.getFilterCascade();
+		//set comp-het gene list the first time the filter is applied
+		for(int i=0; i<filter_cascade.count(); ++i)
+		{
+			const FilterCnvCompHet* comphet_filter = dynamic_cast<const FilterCnvCompHet*>(filter_cascade[i].data());
+			if (comphet_filter!=nullptr && comphet_filter->hetHitGenes().count()!=getHetHitGenes().count())
+			{
+				comphet_filter->setHetHitGenes(getHetHitGenes());
+			}
+		}
+		cnvs_filter_result_ = filter_cascade.apply(cnvs_, false, debug_time);
+		emit markCnvFilters();
+
+		if (debug_time)
+		{
+			Log::perf("Applying annotation filters took ", timer);
+			timer.start();
+		}
+
+		//filter by report config
+		ReportConfigFilter rc_filter = cnvs_filter_state_.getReportConfigFilter();
+		if (rc_filter!=ReportConfigFilter::NONE)
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!cnvs_filter_result_.flags()[r]) continue;
+
+				if (rc_filter==ReportConfigFilter::HAS_RC)
+				{
+					if(somaticReportSupported())
+					{
+						cnvs_filter_result_.flags()[r] = getSomaticReportConfig()->exists(VariantType::CNVS, r);
+					}
+					else
+					{
+						cnvs_filter_result_.flags()[r] = getGermlineReportConfig()->exists(VariantType::CNVS, r);
+					}
+				}
+				else if (rc_filter==ReportConfigFilter::NO_RC)
+				{
+					if(somaticReportSupported())
+					{
+						cnvs_filter_result_.flags()[r] = !getSomaticReportConfig()->exists(VariantType::CNVS, r);
+					}
+					else
+					{
+						cnvs_filter_result_.flags()[r] = !getGermlineReportConfig()->exists(VariantType::CNVS, r);
+					}
+				}
+			}
+		}
+
+		//filter by genes
+		GeneSet genes = cnvs_filter_state_.getGenes();
+		if (!genes.isEmpty())
+		{
+			QByteArray genes_joined = genes.join('|');
+
+			if (genes_joined.contains("*")) //with wildcards
+			{
+				QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+				for(int r=0; r<rows; ++r)
+				{
+					if (!cnvs_filter_result_.flags()[r]) continue;
+
+					bool match_found = false;
+					for (const QByteArray& cnv_gene : cnvs_[r].genes())
+					{
+						if (reg.match(cnv_gene).hasMatch())
+						{
+							match_found = true;
+							break;
+						}
+					}
+					cnvs_filter_result_.flags()[r] = match_found;
+				}
+			}
+			else //without wildcards
+			{
+				for(int r=0; r<rows; ++r)
+				{
+					if (!cnvs_filter_result_.flags()[r]) continue;
+
+					cnvs_filter_result_.flags()[r] = cnvs_[r].genes().intersectsWith(genes);
+				}
+			}
+		}
+
+		//filter by ROI
+		if (cnvs_filter_state_.getTargetRegionInfo().isValid())
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!cnvs_filter_result_.flags()[r]) continue;
+
+				cnvs_filter_result_.flags()[r] = cnvs_filter_state_.getTargetRegionInfo().regions.overlapsWith(cnvs_[r].chr(), cnvs_[r].start(), cnvs_[r].end());
+			}
+		}
+
+		//filter by region
+		BedLine region = cnvs_filter_state_.getRegionFilter();
+		if (region.isValid()) //valid region (chr,start, end or only chr)
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!cnvs_filter_result_.flags()[r]) continue;
+
+				cnvs_filter_result_.flags()[r] = region.overlapsWith(cnvs_[r].chr(), cnvs_[r].start(), cnvs_[r].end());
+			}
+		}
+
+		//filter by phenotype (via genes, not genomic regions)
+		PhenotypeList phenotypes = cnvs_filter_state_.getPhenotypes();
+		if (!phenotypes.isEmpty())
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!cnvs_filter_result_.flags()[r]) continue;
+
+				cnvs_filter_result_.flags()[r] = cnvs_filter_state_.getPhenotypeRoi().overlapsWith(cnvs_[r].chr(), cnvs_[r].start(), cnvs_[r].end());
+			}
+		}
+
+		//filter annotations by text
+		QByteArray text = cnvs_filter_state_.getTextFilter().toUtf8().trimmed().toLower();
+		if (text!="")
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!cnvs_filter_result_.flags()[r]) continue;
+
+				bool match = false;
+				foreach(const QByteArray& anno, cnvs_[r].annotations())
+				{
+					if (anno.toLower().contains(text))
+					{
+						match = true;
+						break;
+					}
+				}
+				cnvs_filter_result_.flags()[r] = match;
+			}
+		}
+
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		thrownWarning("Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
+
+		cnvs_filter_result_ = FilterResult(cnvs_.count(), false);
+	}
+
+	QApplication::restoreOverrideCursor();
+	return cnvs_filter_result_;
+}
+
+const FilterResult& AnalysisDataController::applySvFilter(bool debug_time)
+{
+
+}
+
+
+const FilterResult& AnalysisDataController::applyReFilter(bool debug_time)
+{
+
+}
+
+
+const FilterResult& AnalysisDataController::applyFusionFilter(bool debug_time)
+{
+
+}
+
 
 
 
@@ -2296,8 +2506,8 @@ ClinvarUploadData AnalysisDataController::getClinvarUploadDataSv(int var_idx1, i
 	if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id + "!");
 
 	//determine NGSD ids of variant and report variant for variant 1
-	QString sv_id = db.svId(data.sv1, callset_id.toInt(), svs_, false);
-	if (sv_id == "")
+	int sv_id = db.svId(data.sv1, callset_id.toInt(), svs_, false);
+	if (sv_id == -1)
 	{
 		INFO(InformationMissingException, "The SV has to be in NGSD and part of a report config to be published!");
 	}
@@ -2318,7 +2528,7 @@ ClinvarUploadData AnalysisDataController::getClinvarUploadDataSv(int var_idx1, i
 	{
 		//determine NGSD ids of sv for variant 2
 		sv_id = db.svId(data.sv2, callset_id.toInt(), svs_, true);
-		if (sv_id == "")
+		if (sv_id == -1)
 		{
 			INFO(InformationMissingException, "The SV 2 has to be in NGSD and part of a report config to be published!");
 		}
@@ -2666,10 +2876,12 @@ void AnalysisDataController::annotateVariantRankingScores(VariantScores::Result 
     VariantScores::annotate(variants_, variant_scores, add_explanations);
 }
 
-GeneSet AnalysisDataController::getHetHitGenes() const
+const GeneSet& AnalysisDataController::getHetHitGenes()
 {
+	if (var_het_genes_uptodate_) return var_het_genes_;
+
     //create list of genes with heterozygous variant hits
-    GeneSet het_hit_genes;
+	var_het_genes_.clear();
     int i_genes = variants_.annotationIndexByName("gene", true, false);
     QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
     i_genotypes.removeAll(-1);
@@ -2689,10 +2901,19 @@ GeneSet AnalysisDataController::getHetHitGenes() const
                 }
             }
             if (!all_genos_het) continue;
-            het_hit_genes.insert(GeneSet::createFromText(variants_[i].annotations()[i_genes], ','));
+			var_het_genes_.insert(GeneSet::createFromText(variants_[i].annotations()[i_genes], ','));
         }
     }
-    return het_hit_genes;
+	var_het_genes_uptodate_ = true;
+	return var_het_genes_;
+}
+
+PhenotypeList AnalysisDataController::getSamplePhenotypes()
+{
+	QString ps_name = getMainSampleName();
+	NGSD db;
+	QString sample_id = db.sampleId(ps_name);
+	return db.getSampleData(sample_id).phenotypes;
 }
 
 double AnalysisDataController::calcMendelianErrorRate(int& used, int& errors) const

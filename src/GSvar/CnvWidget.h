@@ -33,7 +33,6 @@ signals:
 
 private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);
-	void applyFilters(bool debug_time=false);
 	void copyToClipboard();
 	void showContextMenu(QPoint p);
 	void proposeQualityIfUnset();
@@ -78,6 +77,7 @@ private:
 
 	Ui::CnvWidget* ui;
     AnalysisDataController& data_controller_;
+	FilterState& state_;
     QString ps_id_; //processed sample database ID. '' if unknown or if NGSD is disabled.
 	QString callset_id_; //CNV callset database ID. '' if unknown or if NGSD is disabled.
 	const CnvList& cnvs_;

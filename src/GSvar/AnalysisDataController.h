@@ -39,12 +39,22 @@ public:
 
     //Filtering
     FilterState& getSmallVariantsFilterState();
+	FilterState& getCnvFilterState();
+	FilterState& getSvFilterState();
+	FilterState& getReFilterState();
+	FilterState& getFusionFilterState();
+
     const FilterResult& getSmallVariantsFilterResult() const;
+	const FilterResult& getCnvFilterResult() const;
+	const FilterResult& getSVFilterResult() const;
+	const FilterResult& getReFilterResult() const;
+	const FilterResult& getFusionFilterResult() const;
+
     const FilterResult& applySmallVariantFilter(bool debug_time=false);
-    //const FilterResult& applyCnvFilter(const FilterCascade& filter_cascade, bool debug_time);
-    //const FilterResult& applySvFilter(const FilterCascade& filter_cascade, bool debug_time);
-    //const FilterResult& applyReFilter(const FilterCascade& filter_cascade, bool debug_time);
-    //const FilterResult& applyFusionFilter(const FilterCascade& filter_cascade, bool debug_time);
+	const FilterResult& applyCnvFilter(bool debug_time=false);
+	const FilterResult& applySvFilter(bool debug_time=false);
+	const FilterResult& applyReFilter(bool debug_time=false);
+	const FilterResult& applyFusionFilter(bool debug_time=false);
 
     ///change the annotation of variants in the small variant list:
     void changeSmallVariantList(int variant_idx, QByteArray column, QByteArray new_text, bool throw_if_not_found=true);
@@ -58,7 +68,9 @@ public:
     void annotateVariantRankingScores(VariantScores::Result variant_scores, bool add_explanations);
 
     /// return the list of het hit genes
-    GeneSet getHetHitGenes() const;
+	const GeneSet& getHetHitGenes();
+	/// return phenotypes set for analysis in NGSD
+	PhenotypeList getSamplePhenotypes();
     /// calculate the mendelian errors in a trio analysis
     double calcMendelianErrorRate(int& used, int& errors) const;
 
@@ -225,6 +237,22 @@ signals:
     void markSmallVariantFilters();
     void smallVariantsChanged();
 
+	void CnvFilterResultChanged();
+	void markCnvFilters();
+	void CnvsChanged();
+
+	void SvFilterResultChanged();
+	void markSvFilters();
+	void SvsChanged();
+
+	void ReFilterResultChanged();
+	void markReFilters();
+	void ResChanged();
+
+	void FusionFilterResultChanged();
+	void markFusionFilters();
+	void FusionsChanged();
+
 	void germlineReportConfigChanged();
 	void somaticReportConfigChanged();
 
@@ -266,6 +294,9 @@ private:
     FilterState  variants_filter_state_;
     FilterResult variants_filter_result_;
     QList<VariantListChange> variants_changed_;
+	bool var_het_genes_uptodate_;
+	GeneSet var_het_genes_;
+
     CnvList cnvs_;
     FilterState  cnvs_filter_state_;
     FilterResult cnvs_filter_result_;

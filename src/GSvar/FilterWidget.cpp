@@ -30,22 +30,23 @@ FilterWidget::FilterWidget(QWidget *parent)
 	ui_.setupUi(this);
 	ui_.cascade_widget->setSubject(VariantType::SNVS_INDELS);
 
-	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
-    connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterCascade()));
-	connect(ui_.cascade_widget, SIGNAL(customFilterLoaded()), this, SLOT(customFilterLoaded()));
+
 	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
 	ui_.lab_modified->setHidden(true);
 
-	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
-	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
-	connect(ui_.roi_remove, SIGNAL(clicked()), this, SLOT(removeRoi()));
-    connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTargetRegionFilter(int)));
+	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
+	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterCascade()));
+	connect(ui_.cascade_widget, SIGNAL(customFilterLoaded()), this, SLOT(customFilterLoaded()));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTargetRegionFilter(int)));
     connect(&state_, SIGNAL(targetRegionChanged(const TargetRegionInfo&)), this, SLOT(updateGeneWarning()));
-
     connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(updateGeneFilter()));
     connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(updateTextFilter()));
     connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(updateRegionFilter()));
     connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SLOT(updateReportConfigfilter()));
+
+	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
+	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
+	connect(ui_.roi_remove, SIGNAL(clicked()), this, SLOT(removeRoi()));
 
 	connect(ui_.roi, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRoiContextMenu(QPoint)));
 
@@ -63,7 +64,6 @@ FilterWidget::FilterWidget(QWidget *parent)
 	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/Clipboard.png"),"Copy target region to clipboard", this, SLOT(copyTargetRegionToClipboard()));
 	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/Clipboard.png"),"Copy genes to clipboard", this, SLOT(copyGenesToClipboard()));
 	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/IGV.png"),"Open target region in IGV", this, SLOT(openTargetRegionInIGV()));
-
 
     // connect changes in state to the gui
     connect(&state_, SIGNAL(filterNameChanged(const QString&)), this, SLOT(updateFilterName()));
@@ -185,28 +185,6 @@ bool FilterWidget::setTargetRegionByName(QString name)
     return FilterWidgetHelper::setTargetRegionByName(name, ui_.roi);
 }
 
-
-// void FilterWidget::setReportConfigFilter(const ReportConfigFilter& rc_config)
-// {
-//     if (rc_config == ReportConfigFilter::NONE)
-//     {
-//         ui_.report_config->setCurrentIndex(0);
-//         ui_.report_config->setEnabled(false);
-//     }
-//     else if (rc_config == ReportConfigFilter::HAS_RC)
-//     {
-//         ui_.report_config->setCurrentIndex(1);
-//     }
-//     else if (rc_config == ReportConfigFilter::NO_RC)
-//     {
-//         ui_.report_config->setCurrentIndex(2);
-//     }
-//     else
-//     {
-//         THROW(ArgumentException, "Unhandeled ReportConfigFilter type!");
-//     }
-// }
-
 void FilterWidget::updateFilterName()
 {
     if (ui_.filters->currentText()=="[none]")
@@ -319,6 +297,64 @@ void FilterWidget::updateReportConfigfilter()
     {
         THROW(ArgumentException, "Value in report config QComboBox coundn't be translated to a ReportConfigFilter type");
     }
+}
+
+void FilterWidget::phenotypesChanged()
+{
+	//update phenotype history
+	FilterWidgetHelper::updatePhenotypeHistory(state_.getPhenotypes());
+
+	//update phenotype list
+	QByteArrayList tmp;
+	for (const Phenotype& pheno : state_.getPhenotypes())
+	{
+		tmp << pheno.name();
+	}
+	ui_.hpo_terms->setText(tmp.join("; "));
+
+	//update tooltip
+	QString tooltip = "Phenotype filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on phenotype-associated gene loci including 5000 flanking bases.";
+	if (!state_.getPhenotypes().isEmpty())
+	{
+		tooltip += "<br><br><nobr>Selected HPO terms:</nobr>";
+		for (const Phenotype& pheno : state_.getPhenotypes())
+		{
+			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
+		}
+
+		tooltip += "<br><br><nobr>Selected phenotype-gene sources:</nobr>";
+		tooltip += "<br><nobr>";
+		for (const PhenotypeSource& s : state_.getPhenotypeSettings().sources)
+		{
+			tooltip += Phenotype::sourceToString(s) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+
+		tooltip += "<br><br><nobr>Selected phenotype-gene evidence levels:</nobr>";
+		tooltip += "<br><nobr>";
+		foreach(const PhenotypeEvidenceLevel& e, state_.getPhenotypeSettings().evidence_levels)
+		{
+			tooltip += Phenotype::evidenceToString(e) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+
+		tooltip += "<br><br><nobr>Selected phenotype combination mode:</nobr>";
+		tooltip += QString("<br>") + (state_.getPhenotypeSettings().mode==PhenotypeCombimnationMode::MERGE ? "merge" : "intersect");
+	}
+	ui_.hpo_terms->setToolTip(tooltip);
+
+	//show icon if settings are changed
+	static QAction* settings_action = new QAction(QIcon(":/Icons/settings.png"), "");
+	if (state_.getPhenotypeSettings() != PhenotypeSettings())
+	{
+		ui_.hpo_terms->addAction(settings_action, QLineEdit::TrailingPosition);
+	}
+	else
+	{
+		ui_.hpo_terms->removeAction(settings_action);
+	}
 }
 
 
@@ -542,12 +578,7 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	}
 	else if (action==a_load)
 	{
-        QString ps_name = data_controller_.germlineReportSupported() ? data_controller_.germlineReportSample() : data_controller_.getMainSampleName();
-        NGSD db;
-        QString sample_id = db.sampleId(ps_name);
-        PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
-
-        state_.setPhenotypes(phenotypes, false);
+		state_.setPhenotypes(data_controller_.getSamplePhenotypes());
 	}
 	else if (action==a_subpanel)
 	{
@@ -568,7 +599,7 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	{
         foreach(const PhenotypeList& entry, FilterWidgetHelper::phenotypeHistory())
 		{
-            if (action->text()==entry.toString()) state_.setPhenotypes(entry, false);
+			if (action->text()==entry.toString()) state_.setPhenotypes(entry);
 		}
 	}
 }
