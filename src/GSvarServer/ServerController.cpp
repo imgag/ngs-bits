@@ -1017,6 +1017,7 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 
 HttpResponse ServerController::annotateVariant(const HttpRequest& request)
 {
+	//validate VCF
     QString input_vcf = Helper::tempFileName(".vcf");
     Helper::storeTextFile(input_vcf, QStringList() << request.getBody());
     QString validation_result;
@@ -1026,22 +1027,33 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Invalid input VCF data: " + validation_result));
     }
 
-    QProcess process;
-    process.setProcessChannelMode(QProcess::MergedChannels);
-    QString an_vep_out = Helper::tempFileName(".vcf");
-    Log::info("Running megSAP >> an_vep.php: " + an_vep_out);
-	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/an_vep.php" << "-in" << input_vcf << "-out" << an_vep_out);
+	//annotate VCF
+	QString an_vcf_out = Helper::tempFileName(".vcf");
+	Log::info("Running megSAP >> an_vcf.php: " + an_vcf_out);
+	QStringList an_vcf_args;
+	an_vcf_args << PipelineSettings::rootDir() + "/src/Tools/an_vcf.php";
+	an_vcf_args << "-in" << input_vcf;
+	an_vcf_args << "-out" << an_vcf_out;
+	an_vcf_args << "-threads" << QString::number(Settings::integer("threads"));
+	QProcess process;
+	process.setProcessChannelMode(QProcess::MergedChannels);
+	process.start("php", an_vcf_args);
     bool success = process.waitForFinished(-1);
     Log::error("Exit code = " + QString::number(process.exitCode()));
     if (!success || process.exitCode()>0)
     {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_vep.php: " + process.readAll())));
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_vcf.php: " + process.readAll())));
     }
     Log::info(process.readAll());
 
-    QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
-    Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
-	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
+	//convert VCF to GSvar
+	QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
+	Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
+	QStringList vcf2gsvar_args;
+	vcf2gsvar_args << PipelineSettings::rootDir() + "/src/Tools/vcf2gsvar.php";
+	vcf2gsvar_args << "-in" << an_vcf_out;
+	vcf2gsvar_args << "-out" << vcf2gsvar_out;
+	process.start("php", vcf2gsvar_args);
     success = process.waitForFinished(-1);
     if (!success || process.exitCode()>0)
     {
@@ -1051,6 +1063,7 @@ HttpResponse ServerController::annotateVariant(const HttpRequest& request)
 
     return createStaticStreamResponse(vcf2gsvar_out, true);
 }
+
 HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 {
 	BedFile roi;
