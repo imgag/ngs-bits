@@ -774,8 +774,8 @@ public:
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);
-	//Returns the mapping from gene symbol to HGNC ID
-	QMap<int, QByteArray> geneIdsToHgnc();
+	///Returns NGSD gene ID for a HGNC identifier
+	int hgncIdToGeneId(QByteArray hgnc_id);
 	///Returns the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the approved gene symbols.
@@ -1300,6 +1300,7 @@ protected:
         QHash<int, QList<int>> hpo_parent;
 		QMap<QString, SomaticGeneRole> gene_symbol_to_somatic_gene_role;
 		QMap<int, QByteArray> gene_id_to_hgnc;
+		QMap<QByteArray, int> hgnc_id_to_gene_id;
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;

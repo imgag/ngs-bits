@@ -6604,10 +6604,7 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 	}
 
 	//not found
-	if (throw_on_error)
-	{
-		THROW(DatabaseException, "No transcript with name '" + name + "' found in NGSD!");
-	}
+	if (throw_on_error) THROW(DatabaseException, "No transcript with name '" + name + "' found in NGSD!");
 
 	return -1; //invalid
 }
@@ -6628,10 +6625,7 @@ QByteArray NGSD::geneSymbol(int id)
 	}
 
 	//exception if invalid ID
-	if (!id2gene.contains(id))
-	{
-		THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
-	}
+	if (!id2gene.contains(id)) THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
 
 	return id2gene[id];
 }
@@ -6639,34 +6633,46 @@ QByteArray NGSD::geneSymbol(int id)
 QByteArray NGSD::geneHgncId(int id)
 {
 	QMap<int, QByteArray>& cache = getCache().gene_id_to_hgnc;
+
+	//fill the cache, if it is empty
 	if (cache.isEmpty())
 	{
-		cache = geneIdsToHgnc();
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, hgnc_id FROM gene");
+		while(query.next())
+		{
+			cache.insert(query.value(0).toInt(), "HGNC:" + query.value(1).toByteArray());
+		}
 	}
 
-	if (! cache.contains(id))
-	{
-		THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
-	}
+	if (!cache.contains(id)) THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
 
 	return cache[id];
-
-	return "HGNC:" + getValue("SELECT hgnc_id FROM gene WHERE id=" + QString::number(id), false).toByteArray();
 }
 
-QMap<int, QByteArray> NGSD::geneIdsToHgnc()
+int NGSD::hgncIdToGeneId(QByteArray hgnc_id)
 {
-	SqlQuery query = getQuery();
-	QString query_str = "SELECT id, hgnc_id FROM gene";
-	query.exec(query_str);
+	QMap<QByteArray, int>& cache = getCache().hgnc_id_to_gene_id;
 
-	QMap<int, QByteArray> gene_id2hgnc;
-
-	while(query.next())
+	//fill the cache, if it is empty
+	if (cache.isEmpty())
 	{
-		gene_id2hgnc.insert(query.value(0).toInt(), "HGNC:" + query.value(1).toByteArray());
+		SqlQuery query = getQuery();
+		query.exec("SELECT hgnc_id, id FROM gene");
+		while(query.next())
+		{
+			cache.insert("HGNC:" + query.value(0).toByteArray(), query.value(1).toInt());
+		}
 	}
-	return gene_id2hgnc;
+
+	//make sure the HGNC prefix is present
+	hgnc_id = hgnc_id.trimmed();
+	if (!hgnc_id.startsWith("HGNC:")) hgnc_id = "HGNC:"+hgnc_id;
+
+	if (!cache.contains(hgnc_id)) THROW(DatabaseException, "No gene with HGNC ID '" + hgnc_id + "' in NGSD!");
+
+	return cache[hgnc_id];
+
 }
 
 QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconvertable)
@@ -10892,6 +10898,7 @@ void NGSD::clearCache()
 	cache_instance.hpo_parent.clear();
 	cache_instance.gene_symbol_to_somatic_gene_role.clear();
 	cache_instance.gene_id_to_hgnc.clear();
+	cache_instance.hgnc_id_to_gene_id.clear();
 
 	cache_instance.gene_transcripts.clear();
 	cache_instance.gene_transcripts_index.createIndex();
