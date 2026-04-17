@@ -318,7 +318,7 @@ void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& va
 	}
 }
 
-QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
+QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read) const
 {
 	int read_pos = 0;
 	int genome_pos = start()-1;
@@ -388,7 +388,7 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
 	THROW(Exception, "Could not find position " + QString::number(pos) + " in read " + name() + " with start position " + QString::number(start()) + "!");
 }
 
-QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
+QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window) const
 {
 	//init
 	QList<Sequence> output;
