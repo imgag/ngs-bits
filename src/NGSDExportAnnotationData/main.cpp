@@ -30,6 +30,7 @@ public:
 		addInt("max_vcf_lines", "Maximum number of VCF lines to write per chromosome - for debugging.", true, -1);
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2026,  4, 17, "Gene info entries now contains only keys with a value.");
 		changeLog(2023,  6, 18, "Refactoring of command line parameters and parallelization of somatic export.");
 		changeLog(2023,  6, 16, "Added support for 'germline_mosaic' column in 'variant' table and added parallelization.");
 		changeLog(2021,  7, 19, "Code and parameter refactoring.");

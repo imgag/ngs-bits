@@ -9889,13 +9889,14 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	}
 
 	//get infos from 'geneinfo_germline' table
-	query.exec("SELECT inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments FROM geneinfo_germline WHERE symbol='" + output.symbol + "'");
+	query.exec("SELECT inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, gnomad_pli, comments FROM geneinfo_germline WHERE symbol='" + output.symbol + "'");
 	if (query.size()==0)
 	{
 		output.inheritance = "n/a";
 		output.oe_syn = "n/a";
 		output.oe_mis = "n/a";
 		output.oe_lof = "n/a";
+		output.pli = "n/a";
 		output.comments = "";
 	}
 	else
@@ -9905,7 +9906,8 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 		output.oe_syn = query.value(1).isNull() ? "n/a" : QString::number(query.value(1).toDouble(), 'f', 2);
 		output.oe_mis = query.value(2).isNull() ? "n/a" : QString::number(query.value(2).toDouble(), 'f', 2);
 		output.oe_lof = query.value(3).isNull() ? "n/a" : QString::number(query.value(3).toDouble(), 'f', 2);
-		output.comments = query.value(4).toString();
+		output.pli = query.value(4).isNull() ? "n/a" : QString::number(query.value(4).toDouble(), 'f', 2);
+		output.comments = query.value(5).toString();
 	}
 
 	//imprinting info
@@ -9935,7 +9937,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 void NGSD::setGeneInfo(GeneInfo info)
 {
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments) VALUES (:0, :1, NULL, NULL, NULL, :2) ON DUPLICATE KEY UPDATE inheritance=VALUES(inheritance), comments=VALUES(comments)");
+	query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, comments) VALUES (:0, :1, :2) ON DUPLICATE KEY UPDATE inheritance=VALUES(inheritance), comments=VALUES(comments)");
 	query.bindValue(0, info.symbol);
 	query.bindValue(1, info.inheritance);
 	query.bindValue(2, info.comments);

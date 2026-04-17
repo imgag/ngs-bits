@@ -355,6 +355,8 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString oe_mis;
 	//gnomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
+	//gnomAD pLi score for loss-of-function variants (default is NULL).
+	QString pli;
 
 	//expressed allele
 	QString imprinting_expressed_allele;
@@ -370,7 +372,7 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//returns the main gene information as a string
 	QString toString()
 	{
-		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + ")";
+		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + " pLI=" + pli + ")";
 	}
 };
 
