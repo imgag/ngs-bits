@@ -45,6 +45,11 @@ public:
 		return alignments_;
 	}
 
+	const Sequence& getReferenceSeq()
+	{
+		return ref_seq_;
+	}
+
 	void setBamReader(QSharedPointer<BamReader> reader)
 	{
 		bam_reader_ = reader;
@@ -60,6 +65,7 @@ public slots:
 private:
 	QSharedPointer<BamReader> bam_reader_;
 	QVector<BamAlignment> alignments_;
+	Sequence ref_seq_;
 
 	void updateData();
 };

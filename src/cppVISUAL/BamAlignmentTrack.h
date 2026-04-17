@@ -39,10 +39,13 @@ private:
 	void drawZoomInText(QPainter&);
 	void calculateRows();
 	void drawAlignment(QPainter&, const BamAlignment& al, int row_y,
-					   float scale, int x0, int x_max);
+					   int x0, int total_width);
+	void drawVariants(QPainter&, const BamAlignment& al, int row_y,
+					  int x0, int total_width);
 
-	static QColor baseColor(char base);
+	static QColor baseColor(QChar base);
 	static QColor strandColor(bool is_reverse);
+	static QSize characterSize(QFont font);
 
 	QVector<int> row_idxes_;
 	int num_rows_ = 1;
@@ -50,7 +53,7 @@ private:
 	//utility function for mapping a \in [min_, max_] to [c, d]
 	inline float map(float a, float min_, float max_, float c, float d)
 	{
-		float p = (float)(a - min_)/(float)(max_ - min_);
+		float p = ((float)(a - min_))/(float)(max_ - min_);
 		p = std::clamp(p, 0.f, 1.f);
 		return c + (d - c) * p;
 	}

@@ -13,6 +13,7 @@ struct BaseCoverage
 	int c =0;
 	int g =0;
 	int t =0;
+	bool is_variant =false;
 
 	int total() const {return a + c + g + t;}
 

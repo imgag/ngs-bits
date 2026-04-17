@@ -2,8 +2,6 @@
 #include "SharedData.h"
 
 #include <QPainter>
-#include <_mingw_mac.h>
-
 
 static int MAX_REGION_LENGTH = 30'000;
 
@@ -76,19 +74,18 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	{
 		int label_width = SharedData::settings().label_width;
 		int total_width = width() - label_width - 4;
-		int x_max = width() - 2;
 		int x0 = label_width + 2;
-		float scale = (float)region.length()/total_width;
-
-		QRectF bounds(x0, 0, total_width, height());
-
-		painter.setClipRect(bounds);
 
 		const QVector<BamAlignment>& alns = track_data_->getAlignments();
 		for (int i =0; i < alns.size(); ++i)
 		{
+			const BamAlignment& al = alns[i];
+			if (al.end() < region.start()) continue;
+			if (al.start() > region.end()) continue;
+
 			int row_y = row_idxes_[i] * (ROW_HEIGHT + ROW_PADDING);
-			drawAlignment(painter, alns[i], row_y, scale, x0, x_max);
+			drawAlignment(painter, al, row_y, x0, total_width);
+			drawVariants(painter, al, row_y, x0, total_width);
 		}
 	}
 }
@@ -100,50 +97,121 @@ void BamAlignmentTrack::drawZoomInText(QPainter& painter)
 	painter.setFont(font);
 	QPen pen = painter.pen(); // store pen
 	painter.setPen(Qt::black);
-	painter.drawText(rect(), Qt::AlignCenter, "Zoom In To See Aligments");
+	painter.drawText(rect(), Qt::AlignHCenter, "Zoom In To See Aligments");
 	painter.setPen(pen); // restore pen
 }
 
 QColor BamAlignmentTrack::strandColor(bool is_reversed)
 {
-	return is_reversed ? QColor(210, 150, 150) : QColor(150, 180, 210);
+	// return is_reversed ? QColor(210, 150, 150) : QColor(150, 180, 210);
+	return is_reversed ? QColor(175, 175, 235, 200) : QColor(235, 175, 175, 200);
 }
 
-void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignment& al, int row_y, float scale, int x0, int x_max)
+void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignment& al, int row_y, int x0, int total_width)
 {
 	const BedLine& region = SharedData::region();
-	int total_width = x_max - x0;
 
 	int st = std::max(al.start(), region.start());
-	int en = std::min(al.end(), region.end());
+	int en = std::min(al.end(), region.end() + 1);
 
-	float x_start = map(st, region.start(), region.end(), 0.0f, total_width);
-	float width = map(en - st, 0.f, region.length(), 0.f, total_width);
+	// float x_start = map(st, region.start(), region.end() + 1, 0.0f, total_width);
+	float x_start = ((float)(st - region.start()))/region.length() * total_width + x0;
+	float width = ((float)(en - st))/region.length() * total_width;
+	// float width = map(en - st, 0.f, region.length(), 0.f, total_width);
 
 	painter.setBrush(strandColor(al.isReverseStrand()));
 	painter.setPen(Qt::NoPen);
-	painter.drawRect(x0 + x_start, row_y, width, ROW_HEIGHT);
+	painter.drawRect(x_start, row_y, width, ROW_HEIGHT);
+	float tri_w = std::min(6.f, width / 3);
+	QColor body = strandColor(al.isReverseStrand());
+	painter.setBrush(body.darker(130));
+	QPolygon arrow;
+	int mid = row_y + ROW_HEIGHT / 2;
+	if (!al.isReverseStrand())
 	{
-		int tri_w = std::min(6.f, width / 3);
-		if (tri_w >= 2)
+		arrow << QPoint(x_start + width, mid)
+			  << QPoint(x_start + width - tri_w, row_y)
+			  << QPoint(x_start + width - tri_w, row_y + ROW_HEIGHT);
+	}
+	else
+	{
+		arrow << QPoint(x_start, mid)
+		<< QPoint(x_start + tri_w, row_y)
+		<< QPoint(x_start + tri_w, row_y + ROW_HEIGHT);
+	}
+	painter.drawPolygon(arrow);
+}
+
+QColor BamAlignmentTrack::baseColor(QChar base)
+{
+	if (base=='A' || base=='a') return QColor(0, 150, 0);
+	if (base=='C' || base=='c') return QColor(0, 0, 255);
+	if (base=='G' || base=='g') return QColor(209, 113, 5);
+	if (base=='T' || base=='t') return QColor(255, 0, 0);
+	if (base=='N' || base=='n') return QColor(128, 128, 128);
+
+	return Qt::black;
+}
+
+QSize BamAlignmentTrack::characterSize(QFont font)
+{
+	QFontMetrics fm(font);
+
+	int w = -1;
+	w = std::max(w, fm.boundingRect("A").width());
+	w = std::max(w, fm.boundingRect("C").width());
+	w = std::max(w, fm.boundingRect("G").width());
+	w = std::max(w, fm.boundingRect("T").width());
+	w = std::max(w, fm.boundingRect("N").width());
+
+	int h = -1;
+	h = std::max(h, fm.boundingRect("C").height());
+	h = std::max(h, fm.boundingRect("A").height());
+	h = std::max(h, fm.boundingRect("G").height());
+	h = std::max(h, fm.boundingRect("T").height());
+	h = std::max(h, fm.boundingRect("N").height());
+
+	return QSize(w, h);
+}
+
+void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignment& al, int row_y, int x0, int total_width)
+{
+	const auto& seq = track_data_->getReferenceSeq();
+	const auto& region = SharedData::region();
+	float scale = (float)region.length() / total_width;
+	//TODO: this can be optimized
+	double pixels_per_base = (double)(total_width) / (double)region.length();
+	for (int pos = al.start(); pos < al.end(); ++pos)
+	{
+		int idx = pos - region.start();
+		if (idx < 0 || idx >= region.length()) continue;
+
+		char ref_base = seq[idx] | 32;
+		char base = al.extractBaseByCIGAR(pos).first | 32;
+		if (ref_base != base && base != '-')
 		{
-			QColor body = strandColor(al.isReverseStrand());
-			painter.setBrush(body.darker(130));
-			QPolygon arrow;
-			int mid = row_y + ROW_HEIGHT / 2;
-			if (!al.isReverseStrand())
+			int x_start = x0 + (int)((float)idx / scale);
+			int endX = x0 + (int)((float)(idx + 1) / scale);
+			int dX = std::max(1, endX - x_start);
+			QColor color = baseColor(base);
+			QFont font = painter.font();
+			font.setPointSize(ROW_HEIGHT);
+			font.setBold(true);
+			QSize char_size = characterSize(font);
+
+			if (pixels_per_base >= char_size.width())
 			{
-				arrow << QPoint(x0 + x_start + width, mid)
-					  << QPoint(x0 + x_start + width - tri_w, row_y)
-					  << QPoint(x0 + x_start + width - tri_w, row_y + ROW_HEIGHT);
+				painter.setFont(font);
+				painter.setPen(color);
+				QRectF text_rect(x_start, row_y - 5, dX, ROW_HEIGHT + 10);
+				painter.drawText(text_rect, Qt::AlignHCenter, QString(base).toUpper());
 			}
 			else
 			{
-				arrow << QPoint(x0 + x_start, mid)
-				<< QPoint(x0 + x_start + tri_w, row_y)
-				<< QPoint(x0 + x_start + tri_w, row_y + ROW_HEIGHT);
+				painter.setBrush(color);
+				QRectF rect(x_start, row_y, dX, ROW_HEIGHT);
+				painter.drawRect(rect);
 			}
-			painter.drawPolygon(arrow);
 		}
 	}
 }
