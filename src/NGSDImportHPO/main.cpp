@@ -552,12 +552,42 @@ public:
 		int c_not_omim = 0;
 		int c_invalid_hgnc = 0;
 		int c_no_evidence = 0;
-		for(const QByteArray& line: std::as_const(lines))
+		int c_wrong_number_of_parts = 0;
+		for(QByteArray line: std::as_const(lines))
 		{
 			//split and check
 			QByteArrayList parts = line.split('\t');
-			if (parts.count()!=31) THROW(FileParseException, "GenCC line does not have 31 parts:\n" + line);
-			
+
+			if (parts.count()!=31)
+			{
+				//try and remove tabs within double quotes...
+				bool in_quotes = false;
+				for (int i = 0; i < line.size(); )
+				{
+					if (line[i] == '"')
+					{
+						in_quotes = !in_quotes;
+						++i;
+					}
+					else if (in_quotes && line[i] == '\t')
+					{
+						line.remove(i, 1); // remove tab inside quotes
+					}
+					else
+					{
+						++i;
+					}
+				}
+				parts = line.split('\t');
+
+				//if not fixable > skip line
+				if (parts.count()!=31)
+				{
+					++c_wrong_number_of_parts;
+					continue;
+				}
+			}
+
 			//only OMIM entries
 			QByteArray disease = parts[6].trimmed();
 			if (!disease.startsWith("OMIM:"))
@@ -593,6 +623,7 @@ public:
         out << "  Skipped " << c_not_omim << " lines without OMIM term." << Qt::endl;
 		out << "  Skipped " << c_no_evidence << " lines without evidence." << Qt::endl;
 		out << "  Skipped " << c_invalid_hgnc << " lines without valid HGNC ID." << Qt::endl;
+		out << "  Skipped " << c_wrong_number_of_parts << " lines without invalid part count." << Qt::endl;
 	}
 
 	QByteArrayList reconstructStrings(const QByteArrayList& parts, int expected_size=-1)
@@ -1061,7 +1092,7 @@ public:
 			int added_t2g = 0;
 			if (debug) out << "Parsing HGMD phenbase dump file..." << Qt::endl;
 			// define look-up tables
-            QMultiMap<int, QByteArray> phenid2gene_mapping = QMultiMap<int, QByteArray>();
+			QMultiMap<int, QByteArray> phenid2gene_mapping = QMultiMap<int, QByteArray>();
             QMultiMap<QByteArray,int> cui2phenid_mapping = QMultiMap<QByteArray,int>();
             QMultiMap<QByteArray,QByteArray> hpo2cui_mapping = QMultiMap<QByteArray,QByteArray>();
 
