@@ -35,7 +35,7 @@
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="childrenCollapsible">
       <bool>false</bool>
@@ -76,10 +76,10 @@
          <item>
           <spacer name="horizontalSpacer_5">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
+            <enum>QSizePolicy::Policy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -99,10 +99,10 @@
          <item>
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
+            <enum>QSizePolicy::Policy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -122,10 +122,10 @@
          <item>
           <spacer name="horizontalSpacer_3">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
+            <enum>QSizePolicy::Policy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -145,7 +145,7 @@
          <item>
           <widget class="QDateEdit" name="f_date">
            <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
+            <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
            </property>
            <property name="calendarPopup">
             <bool>true</bool>
@@ -155,10 +155,10 @@
          <item>
           <spacer name="horizontalSpacer_4">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
+            <enum>QSizePolicy::Policy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -171,7 +171,7 @@
          <item>
           <widget class="QPushButton" name="refresh">
            <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
+            <enum>Qt::FocusPolicy::NoFocus</enum>
            </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Refresh analysis status taking filter options into account.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -191,7 +191,7 @@
          <item>
           <widget class="QPushButton" name="copy_btn">
            <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
+            <enum>Qt::FocusPolicy::NoFocus</enum>
            </property>
            <property name="toolTip">
             <string>Copy analysis data to clipboard.</string>
@@ -208,7 +208,7 @@
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -328,19 +328,19 @@
           </size>
          </property>
          <property name="contextMenuPolicy">
-          <enum>Qt::CustomContextMenu</enum>
+          <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Sunken</enum>
+          <enum>QFrame::Shadow::Sunken</enum>
          </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::ExtendedSelection</enum>
+          <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
          </property>
          <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
+          <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
          </property>
          <property name="gridStyle">
-          <enum>Qt::SolidLine</enum>
+          <enum>Qt::PenStyle::SolidLine</enum>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -431,7 +431,7 @@
           </size>
          </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
+          <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -466,10 +466,10 @@
           </size>
          </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
+          <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
          </property>
          <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectItems</enum>
+          <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -504,10 +504,10 @@
           </size>
          </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
+          <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
          </property>
          <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectItems</enum>
+          <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -576,7 +576,7 @@
  <connections>
   <connection>
    <sender>f_repeated</sender>
-   <signal>stateChanged(int)</signal>
+   <signal>checkStateChanged(Qt::CheckState)</signal>
    <receiver>refresh</receiver>
    <slot>animateClick()</slot>
    <hints>
