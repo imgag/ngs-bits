@@ -39,6 +39,8 @@ public:
 	static HttpResponse locateFileByType(const HttpRequest& request);
 	/// Returns the location of the processed sample
     static HttpResponse getProcessedSamplePath(const HttpRequest& request);
+	/// Checks every processed sample folder inside the given project folder: if a processed sample has any files (needed to handle project folder change)
+	static HttpResponse checkProjectFolder(const HttpRequest& request);
     /// Returns the location id (hash) of the processed sample
     static HttpResponse getProcessedSampleHash(const HttpRequest& request);
 	/// Locates a GSvar file related to the specified job
