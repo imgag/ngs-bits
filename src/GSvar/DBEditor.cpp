@@ -71,7 +71,6 @@ void DBEditor::createGUI()
 		if (field_info.type==TableFieldInfo::BOOL)
 		{
 			QCheckBox* box = new QCheckBox(this);
-			connect(box, SIGNAL(stateChanged(int)), this, SLOT(check()));
 
 			widget = box;
 		}
@@ -92,7 +91,6 @@ void DBEditor::createGUI()
 		else if (field_info.type==TableFieldInfo::TEXT)
 		{
 			QTextEdit* edit =  new QTextEdit(this);
-			connect(edit, SIGNAL(textChanged()), this, SLOT(check()));
 
 			widget = edit;
 		}
@@ -169,7 +167,6 @@ void DBEditor::createGUI()
 					selector->setStyleSheet("QComboBox {border: 2px solid red;}");
 				}
 
-				connect(selector, SIGNAL(currentTextChanged(QString)), this, SLOT(check()));
 				widget = selector;
 			}
 		}
@@ -308,8 +305,7 @@ void DBEditor::fillFormWithItemData()
 	query.next();
 	if (query.size()!=1) THROW(ProgrammingException, "Table '" + table_ + "' contains no row with 'id' " + QString::number(id_) + "!");
 
-	values_from_db_.clear();
-	values_from_user_.clear();
+	values_from_db_.clear();	
 	foreach(const QString& field, table_info.fieldNames())
 	{
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
@@ -318,8 +314,7 @@ void DBEditor::fillFormWithItemData()
 		if (field_info.is_hidden) continue;
 
 		QVariant value = query.value(field);
-		values_from_db_.insert(field, value);
-		values_from_user_.insert(field, value);
+		values_from_db_.insert(field, value);		
 		bool is_null = query.isNull(field);
 
 		if (field_info.type==TableFieldInfo::BOOL)
@@ -397,7 +392,7 @@ void DBEditor::check()
 
 void DBEditor::check(QString field)
 {
-	QStringList errors;	
+	QStringList errors;
 
 	const TableFieldInfo& field_info = db_.tableInfo(table_).fieldInfo(field);
 	//qDebug() << __FUNCTION__ << __LINE__ << field  << field_info.toString();
@@ -406,7 +401,6 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-		values_from_user_[field] = value;
 		errors = db_.checkValue(table_, field, value, id_==-1);
 
 		//update GUI
@@ -417,7 +411,6 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-		values_from_user_[field] = value;
 		errors = db_.checkValue(table_, field, value, id_==-1);
 
 		//update GUI
@@ -428,24 +421,16 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-		values_from_user_[field] = value;
 		errors = db_.checkValue(table_, field, value, id_==-1);
 
 		//update GUI
 		edit->setToolTip(errors.join("\n"));
 		edit->setStyleSheet(errors.isEmpty() ?  "" : "QLineEdit {border: 2px solid red;}");
 	}
-	else if (field_info.type==TableFieldInfo::TEXT)
-	{
-		QTextEdit* edit =  getEditWidget<QTextEdit*>(field);
-		QString value = edit->toPlainText().trimmed();
-		values_from_user_[field] = value;
-	}
 	else if (field_info.type==TableFieldInfo::VARCHAR)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-		values_from_user_[field] = value;
 		errors = db_.checkValue(table_, field, value, id_==-1);
 
 		//special handling of gene columns
@@ -465,7 +450,6 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-		values_from_user_[field] = value;
 		if (value!=NGSD::passwordReplacement() || id_==-1)
 		{
 			errors = db_.checkValue(table_, field, value, id_==-1);
@@ -479,7 +463,6 @@ void DBEditor::check(QString field)
 	{
 		QComboBox* edit = getEditWidget<QComboBox*>(field);
 		QString value = edit->currentText();
-		values_from_user_[field] = value;
 
 		//special handling of processing system platform (needs to be set)
 		if (field=="platform" && table_=="processing_system" && value=="n/a")
@@ -550,24 +533,13 @@ void DBEditor::editProcessedSample()
 	}
 }
 
-bool DBEditor::hasChanges()
-{
-	QList<QString> fields = values_from_db_.keys();
-	foreach(QString field_name, fields)
-	{
-		if (values_from_db_[field_name]!=values_from_user_[field_name]) return true;
-	}
-
-	return false;
-}
-
-QList<QString> DBEditor::getChangedFields()
-{
+QStringList DBEditor::getChangedFields()
+{	
 	QList<QString> result;
-	QList<QString> fields = values_from_db_.keys();
-	foreach(QString field_name, fields)
-	{		
-		if (values_from_db_[field_name]!=values_from_user_[field_name]) result.append(field_name);
+	QHash<QString, QVariant> current_values = getCurrentValues();
+	foreach(QString field_name, values_from_db_.keys())
+	{
+		if (values_from_db_[field_name]!=current_values[field_name]) result << field_name;
 	}
 
 	return result;
@@ -575,7 +547,63 @@ QList<QString> DBEditor::getChangedFields()
 
 QHash<QString, QVariant> DBEditor::getCurrentValues()
 {
-	return values_from_user_;
+	QHash<QString, QVariant> current_values;
+	const TableInfo& table_info = db_.tableInfo(table_);
+	foreach(const QString& field, table_info.fieldNames())
+	{
+		const TableFieldInfo& field_info = table_info.fieldInfo(field);
+		//skip non-editable fields
+		if (field_info.is_hidden) continue;
+
+		if (field_info.type==TableFieldInfo::BOOL)
+		{
+			current_values.insert(field, getEditWidget<QCheckBox*>(field)->isChecked());
+		}
+		else if (field_info.type==TableFieldInfo::INT)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::FLOAT)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::TEXT)
+		{
+			current_values.insert(field, getEditWidget<QTextEdit*>(field)->toPlainText());
+		}
+		else if (field_info.type==TableFieldInfo::VARCHAR)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::ENUM)
+		{
+			current_values.insert(field, getEditWidget<QComboBox*>(field)->currentText());
+		}
+		else if (field_info.type==TableFieldInfo::DATE)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::FK)
+		{
+			if (field_info.fk_table == "processed_sample")
+			{
+				current_values.insert(field, getEditWidget<ClickableLineEdit*>(field)->text());
+			}
+			else
+			{
+				current_values.insert(field, getEditWidget<DBComboBox*>(field)->getCurrentId());
+			}
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unhandled table field type '" + field_info.typeAsString() + "'!");
+		}
+	}
+	return current_values;
 }
 
 void DBEditor::showEvent(QShowEvent* event)
@@ -615,7 +643,7 @@ void DBEditor::updateParentDialogButtonBox()
 	}
 }
 
-void DBEditor::store(const QHash<QString, QString> &replace_fields)
+void DBEditor::store()
 {
 	if (!dataIsValid()) THROW(ProgrammingException, "Cannot store data that is invalid to the database!");
 
@@ -634,13 +662,6 @@ void DBEditor::store(const QHash<QString, QString> &replace_fields)
 		if (field_info.is_readonly && id_!=-1) continue;
 
 		fields << field;
-
-		// sometimes we need to override specific fields automatically (e.g. project folder override)
-		if (replace_fields.contains(field))
-		{
-			values << replace_fields[field];
-			continue;
-		}
 
 		if (field_info.type==TableFieldInfo::BOOL)
 		{

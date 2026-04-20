@@ -227,7 +227,19 @@ int main(int argc, char **argv)
 						AuthType::USER_TOKEN,
 						"Reads the project folder on the server and checks if there is any data every processed sample folder",
 						&ServerController::checkProjectFolder
-	});
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"project_folder_settings",
+						QMap<QString, ParamProps> {
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Reads the server configuration and returns a list of locations for all exisitng project types",
+						&ServerController::getProjectFolderSettings
+					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"analysis_job_gsvar_file",

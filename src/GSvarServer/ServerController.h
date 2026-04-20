@@ -41,6 +41,8 @@ public:
     static HttpResponse getProcessedSamplePath(const HttpRequest& request);
 	/// Checks every processed sample folder inside the given project folder: if a processed sample has any files (needed to handle project folder change)
 	static HttpResponse checkProjectFolder(const HttpRequest& request);
+	/// Reads the server configuration and returns a list of locations for all exisitng project types (diagnostic, test, external, research)
+	static HttpResponse getProjectFolderSettings(const HttpRequest& request);
     /// Returns the location id (hash) of the processed sample
     static HttpResponse getProcessedSampleHash(const HttpRequest& request);
 	/// Locates a GSvar file related to the specified job
