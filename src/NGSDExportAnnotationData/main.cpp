@@ -48,12 +48,11 @@ public:
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
-		//annotate
+		//set export parameters
 		ExportParameters params;
 		params.ref_file = ref_file;
 		params.germline = getOutfile("germline");
 		params.somatic = getOutfile("somatic");
-		if (params.germline.isEmpty() && params.somatic.isEmpty()) THROW(CommandLineParsingException, "At least one of the parameters 'germline' and 'somatic' needs to be given!");
 		params.vicc_config_details = getFlag("vicc_config_details");
 		params.max_af = getFloat("max_af");
 		if (params.max_af < 0) THROW(CommandLineParsingException, "Maximum AF has to be a positive value!");
@@ -67,6 +66,11 @@ public:
 		params.verbose = getFlag("verbose");
 		params.version = version();
 		params.datetime = QDateTime::currentDateTime().toString("yyyyMMddHHmmss");
+		
+		//check parameters
+		if (params.germline.isEmpty() && params.somatic.isEmpty() && params.genes.isEmpty()) THROW(CommandLineParsingException, "At least one of the parameters 'germline', 'somatic' or 'genes' needs to be given!");
+		
+		//annotate
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
 		setExitEventLoopAfterMain(false);
