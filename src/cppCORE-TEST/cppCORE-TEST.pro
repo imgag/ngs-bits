@@ -6,6 +6,6 @@ SOURCES += \
         Plots_Test.cpp \
         TSVFileStream_Test.cpp \
         Settings_Test.cpp \
-        VersatileFileLocal_Test.cpp \
+        VersatileFile_Test.cpp \
         VersatileTextStream_Test.cpp \
         main.cpp

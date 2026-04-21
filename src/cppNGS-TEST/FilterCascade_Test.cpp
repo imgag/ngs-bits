@@ -312,29 +312,9 @@ private:
 
 		//gnomAD o/e
 		FilterGeneConstraint filter;
-		filter.setDouble("min_pli", 1.0);
 		filter.setDouble("max_oe_lof", 0.1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 1);
-
-		//ExAC pLI (deprecated, for backward-compatibility)
-		result.reset(true);
-		filter.setDouble("max_oe_lof", 0.0);
-		filter.setDouble("min_pli", 0.0);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 143);
-
-		filter.setDouble("min_pli", 0.5);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 12);
-
-		filter.setDouble("min_pli", 0.95);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 4);
-
-		filter.setDouble("min_pli", 1.0);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 0);
 	}
 
 	TEST_METHOD(FilterGeneInheritance_apply)

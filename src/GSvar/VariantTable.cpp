@@ -25,7 +25,7 @@ VariantTable::VariantTable(QWidget* parent)
 	//make sure the selection is visible when the table looses focus
 	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
 	QString bg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::Highlight));
-	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg).arg(bg));
+	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg, bg));
 	setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 }
@@ -115,6 +115,27 @@ void VariantTable::customContextMenu(QPoint pos)
 			font.setBold(true);
 			action->setFont(font);
 			action2->setFont(font);
+		}
+	}
+
+	//LitVar2
+	sub_menu = menu.addMenu(QIcon("://Icons/LitVar2.png"), "LitVar2");
+	QList<QAction*> litvar_actions;
+	int i_dbsnp = variants_->annotationIndexByName("dbSNP", true, true);
+	QByteArray dbsnp = (*variants_)[index].annotations()[i_dbsnp].trimmed();
+	if (dbsnp!="")
+	{
+		litvar_actions << sub_menu->addAction("Search by: "+dbsnp);
+	}
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		if (relevant_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
+		{
+			QByteArray protein_change = trans.hgvs_p.mid(2).trimmed();
+			if (protein_change!="")
+			{
+				litvar_actions << sub_menu->addAction("Search by: "+trans.gene + " " + trans.hgvs_p);
+			}
 		}
 	}
 
@@ -337,6 +358,11 @@ void VariantTable::customContextMenu(QPoint pos)
 		obs.replace("-", "");
 		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
 		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/hg38/" + var));
+	}
+	else if (litvar_actions.contains(action))
+	{
+		QString query = (action->text() + ":").split(':').at(1);
+		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/research/litvar2/?query=" + query));
 	}
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{

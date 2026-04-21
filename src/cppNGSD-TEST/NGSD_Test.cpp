@@ -148,6 +148,13 @@ private:
 		gene_app_id = db.geneId("BLABLA");
 		I_EQUAL(gene_app_id, -1);
 
+		//geneHgncId
+		S_EQUAL(db.geneHgncId(433223), "HGNC:9605");
+
+		//hgncIdToGeneId
+		I_EQUAL(db.hgncIdToGeneId("HGNC:9605"), 433223);
+		I_EQUAL(db.hgncIdToGeneId("9605"), 433223);
+
 		//genesOverlapping
 		GeneSet genes = db.genesOverlapping("chr13", 90, 95, 0); //nearby left
 		I_EQUAL(genes.count(), 0);

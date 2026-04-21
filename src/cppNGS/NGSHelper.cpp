@@ -1040,6 +1040,30 @@ QHash<Chromosome, QString> NGSHelper::chromosomeMapping(GenomeBuild build)
 	return output;
 }
 
+double NGSHelper::supportReadAf(const BedpeFile &svs, int sv_index, QByteArray sample, QByteArray read_type)
+{
+	if (read_type!="SR" && read_type!="PR") THROW(ArgumentException, "Invalid read type '"+read_type+"' given in NGSHelper::supportReadAf()");
+
+	try
+	{
+		//get sample data
+		int i_format = svs.annotationIndexByName("FORMAT");
+		int i_sample = svs.annotationIndexByName(sample);
+		QByteArrayList values = svs[sv_index].getSampleFormatData(i_format, i_sample, read_type).split(',');
+		if(values.count()!=2) THROW(ArgumentException, "Value of '"+read_type+"' could not be split in two parts!");
+
+		//get counts
+		int count_ref = Helper::toInt(values[0], "ref count");
+		int count_alt = Helper::toInt(values[1], "alt count");
+		if(count_alt+count_ref==0) return 0;
+
+		return (double)count_alt / (count_alt+count_ref);
+	}
+	catch (Exception& e)
+	{
+		return -1;
+	}
+}
 
 bool SampleInfo::isAffected() const
 {

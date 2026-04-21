@@ -18,6 +18,11 @@ public:
 	//Store the DB item.
 	void store();
 
+	//returns a list of changed fields
+	QSet<QString> getChangedFields();
+	//returns a hash map of fields with their current values
+	QHash<QString, QVariant> getCurrentValues();
+
 protected slots:
 	//creates the layout and the widgets
 	void createGUI();
@@ -45,8 +50,9 @@ private:
 	QString table_;
 	int id_;
 	QHash<QString, QStringList> errors_;
+	QHash<QString, QVariant> values_from_db_; // initial values taken from the database
 
-	//returns if the for data is valid (based on 'errors_')
+	//returns if the data is valid (based on 'errors_')
 	bool dataIsValid() const;
 
 	//updates the surrounding dialog ok button

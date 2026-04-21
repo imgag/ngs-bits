@@ -26,10 +26,6 @@ Or, encrypted like this:
 
 	ngsd_pass = "encrypted:AwtUTQrbAFKiDzc="
 
-# GSvar client/server handshake
-
-`CRYPT_KEY` is no longer used for a handshake between the client application and the server.  
-
 --
 
 [back to main page](index.md)

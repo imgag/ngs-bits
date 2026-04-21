@@ -323,6 +323,7 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 {
 	QString name;
 	QString name_short;
+	QString platform;
 	QString adapter1_p5;
 	QString adapter2_p7;
 	bool shotgun;
@@ -354,6 +355,8 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString oe_mis;
 	//gnomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
+	//gnomAD pLi score for loss-of-function variants (default is NULL).
+	QString pli;
 
 	//expressed allele
 	QString imprinting_expressed_allele;
@@ -369,7 +372,7 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//returns the main gene information as a string
 	QString toString()
 	{
-		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + ")";
+		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + " pLI=" + pli + ")";
 	}
 };
 
@@ -771,8 +774,8 @@ public:
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);
-	//Returns the mapping from gene symbol to HGNC ID
-	QMap<int, QByteArray> geneIdsToHgnc();
+	///Returns NGSD gene ID for a HGNC identifier
+	int hgncIdToGeneId(QByteArray hgnc_id);
 	///Returns the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the approved gene symbols.
@@ -807,9 +810,9 @@ public:
 	TranscriptList transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend=0, Transcript::SOURCE source=Transcript::ENSEMBL);
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, ensemble canonical, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
 	/// The return_quality int is higher the higher the quality of the returned transcript is. Exact numbers may not be constant: preferred > MANE > canonical > longest coding , longest non-coding , not found
-	Transcript bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
+	Transcript bestTranscript(int gene_id, const QList<VariantTranscript>& var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
 	///Return the transcript with the highest impact given the variant transcript impacts
-	Transcript highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts);
+	Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene. The order is: preferred, MANE select, MANE plus clinical, Ensembl canonical. If none of those exist, the longest coding or longest transcript are used.
 	TranscriptList relevantTranscripts(int gene_id);
 	///Returns the map of gene symbol to relevant transcripts names. Relevant are preferred, MANE, Ensembl canonical. If non of them exst, the longest coding or longest transcript are used. Note: transcript names do not contain version numbers.
@@ -1297,6 +1300,7 @@ protected:
         QHash<int, QList<int>> hpo_parent;
 		QMap<QString, SomaticGeneRole> gene_symbol_to_somatic_gene_role;
 		QMap<int, QByteArray> gene_id_to_hgnc;
+		QMap<QByteArray, int> hgnc_id_to_gene_id;
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;

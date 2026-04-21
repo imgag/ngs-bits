@@ -104,8 +104,7 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 	QCCollection output;
 
 	//init
-	bool csq_info_exists = variants.vcfHeader().infoIdDefined("CSQ"); //from VEP
-	bool csq2_info_exists = variants.vcfHeader().infoIdDefined("CSQ2"); //from VcfAnnotateConsequence
+	bool csq_info_exists = variants.vcfHeader().infoIdDefined("CSQ"); //VEP or VcfAnnotateConsequence annotation
 	bool rs_info_exists = variants.vcfHeader().infoIdDefined("RS"); //dbSNP rs number
 
 	//filter variants
@@ -169,14 +168,7 @@ QCCollection Statistics::variantList(const VcfFile& variants, bool filter)
 			{
 				if (!filter_result.passing(i)) continue;
 
-				if (variants[i].info("CSQ").contains("|HIGH|")) //works without splitting by transcript
-				{
-					++high_impact_count;
-				}
-				else if (csq2_info_exists && variants[i].info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
-				{
-					++high_impact_count;
-				}
+				if (variants[i].info("CSQ").contains("|HIGH|")) ++high_impact_count;
 
 			}
 			addQcValue(output, "QC:2000015", "high-impact variants percentage", 100.0*high_impact_count/vars_passing_filter);
@@ -2677,7 +2669,6 @@ double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 	while(reader.getNextAlignment(al))
 	{
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.mappingQuality()<30) continue;
 		reads_y += 1.0;
 	}
 	if (count_y!=nullptr) *count_y = reads_y;
@@ -2688,7 +2679,6 @@ double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 	while(reader.getNextAlignment(al))
 	{
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.mappingQuality()<30) continue;
 		reads_x += 1.0;
 	}
 	if (count_x!=nullptr) *count_x = reads_x;

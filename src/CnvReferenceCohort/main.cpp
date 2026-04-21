@@ -1,10 +1,13 @@
 #include "ToolBase.h"
-#include "Statistics.h"
 #include "BasicStatistics.h"
 #include <QFileInfo>
 #include <QVector>
 #include <QElapsedTimer>
+#include <QBitArray>
 #include "VersatileFile.h"
+#include "BedFile.h"
+#include "Helper.h"
+#include "ChromosomalIndex.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -30,10 +33,10 @@ public:
 
 	struct TabIndices
 	{
-		int tab1;
-		int tab2;
-		int tab3;
-		int tab4;
+		int tab1 = -1;;
+		int tab2 = -1;;
+		int tab3 = -1;;
+		int tab4 = -1;;
 	};
 
 	struct MinMaxIndex
@@ -56,11 +59,6 @@ public:
 	TabIndices getTabPosition(const QByteArray& line)
 	{
 		TabIndices tab_indices;
-
-		tab_indices.tab1 = -1;
-		tab_indices.tab2 = -1;
-		tab_indices.tab3 = -1;
-		tab_indices.tab4 = -1;
 		int tab_num = 0;
 		for (int i = 0; i < line.size(); ++i)
 		{
@@ -74,7 +72,7 @@ public:
 			}
 		}
 
-		if (tab_indices.tab4==-1) tab_indices.tab4 = line.size()-1;
+		if (tab_indices.tab4==-1) tab_indices.tab4 = line.size();
 
 		return tab_indices;
 	}
@@ -370,7 +368,7 @@ public:
 			done = true;
 			for (int i = 0; i < files.size(); ++i)
 			{
-				QByteArray line = files[i]->readLine();
+				QByteArray line = files[i]->readLine(true); //trim line endings
 				if (line.isEmpty()) continue;
 				TabIndices tab_indices = getTabPosition(line);
 				if (i == 0)

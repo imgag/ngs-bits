@@ -807,7 +807,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "11");
+	w.writeAttribute("version", "12");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -981,6 +981,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	int geno_idx = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 	int qual_idx = data_.variants.annotationIndexByName("quality");
 	int dbsnp_idx = data_.variants.annotationIndexByName("dbSNP");
+	int clinvar_idx = data_.variants.annotationIndexByName("ClinVar");
+	int gnomad_idx = data_.variants.annotationIndexByName("gnomAD");
+	int cadd_idx = data_.variants.annotationIndexByName("CADD");
+	int revel_idx = data_.variants.annotationIndexByName("Revel");
+	int spliceai_idx = data_.variants.annotationIndexByName("SpliceAI");
     for (const ReportVariantConfiguration& var_conf : data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
@@ -1224,6 +1229,66 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			w.writeEndElement();
 		}
 
+		//element ClinVar
+		for (QString clinvar_text : QString(variant.annotations()[clinvar_idx]).split("; "))
+		{
+			clinvar_text = clinvar_text.trimmed();
+			if (clinvar_text.isEmpty()) continue;
+
+			w.writeStartElement("ClinVar");
+			w.writeAttribute("text", clinvar_text);
+			w.writeEndElement();
+		}
+
+		//element gnomAD
+		QString gnomad_af = variant.annotations()[gnomad_idx].trimmed();
+		if (Helper::isNumeric(gnomad_af))
+		{
+			w.writeStartElement("gnomAD");
+			w.writeAttribute("af", gnomad_af);
+			w.writeEndElement();
+		}
+
+		//element CADD
+		QString cadd_score = variant.annotations()[cadd_idx].trimmed();
+		if (Helper::isNumeric(cadd_score))
+		{
+			w.writeStartElement("CADD");
+			w.writeAttribute("score", cadd_score);
+			w.writeEndElement();
+		}
+
+		//element REVEL
+		QString revel_score = variant.annotations()[revel_idx].trimmed();
+		if (Helper::isNumeric(revel_score))
+		{
+			w.writeStartElement("REVEL");
+			w.writeAttribute("score", revel_score);
+			w.writeEndElement();
+		}
+
+		//element SpliceAI
+		double max_spliceai = -1.0;
+		for (const QByteArray& spliceai_data : variant.annotations()[spliceai_idx].split(','))
+		{
+			QByteArrayList parts = spliceai_data.split('|');
+			if (parts.count()<5) continue;
+			for (int i=1; i<5; ++i)
+			{
+				QByteArray score = parts[i];
+				if (Helper::isNumeric(score))
+				{
+					max_spliceai = std::max(max_spliceai, score.toDouble());
+				}
+			}
+		}
+		if(max_spliceai>0)
+		{
+			w.writeStartElement("SpliceAI");
+			w.writeAttribute("score", QString::number(max_spliceai, 'f', 2));
+			w.writeEndElement();
+		}
+
 		//end of variant
 		w.writeEndElement();
 	}
@@ -1361,6 +1426,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 
 		BedpeLine sv = data_.svs[var_conf.variant_index];
+		int i_qual = data_.svs.annotationIndexByName("QUAL");
 
 		//manual curation
 		if (var_conf.isManuallyCurated()) var_conf.updateSv(sv, data_.svs.annotationHeaders(), db_);
@@ -1416,6 +1482,21 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 		QByteArray sv_gt = sv.genotypeHumanReadable(data_.svs.annotationHeaders(), false);
 		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender, sv_gt, v));
+
+		if (i_qual!=-1)
+		{
+			w.writeAttribute("qual", sv.annotations()[i_qual]);
+		}
+		double af_pe = NGSHelper::supportReadAf(data_.svs, var_conf.variant_index, data_.ps.toUtf8(), "PR");
+		if (af_pe>=0)
+		{
+			w.writeAttribute("af_pe", QString::number(af_pe, 'f', 2));
+		}
+		double af_split = NGSHelper::supportReadAf(data_.svs, var_conf.variant_index, data_.ps.toUtf8(), "SR");
+		if (af_split>=0)
+		{
+			w.writeAttribute("af_split", QString::number(af_split, 'f', 2));
+		}
 
 		if (sv.type() == StructuralVariantType::INS)
 		{

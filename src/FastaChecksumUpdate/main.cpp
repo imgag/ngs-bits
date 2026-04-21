@@ -15,7 +15,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Fix Checksums in a FASTA file.");
+		setDescription("Fixes MD5 checksums in FASTA sequence headers.");
 		addInfile("in", "Input FASTA file.", false);
 		addOutfile("out", "Output file.", false);
 		addFlag("debug", "Write debug statements");

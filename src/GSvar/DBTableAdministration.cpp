@@ -8,8 +8,13 @@
 #include "UserPermissionsEditor.h"
 #include "GenLabDB.h"
 #include "ScrollableTextDialog.h"
+#include "HttpHandler.h"
+#include "ClientHelper.h"
 #include <QMessageBox>
 #include <QAction>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QDir>
 
 DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	: QWidget(parent)
@@ -134,12 +139,75 @@ void DBTableAdministration::edit(int row)
 	//edit
 	int id = ui_.table->getId(row).toInt();
 	DBEditor* editor = new DBEditor(this, table_, id);
+
 	auto dlg = GUIHelper::createDialog(editor, "Edit " + table_display_name_, "", true);
 	if (dlg->exec()==QDialog::Accepted)
-	{
+	{		
+		QString folder_override_value = "";
+
+		if (table_=="project")
+		{
+			QSet<QString> changed_fields = editor->getChangedFields();
+			if (!changed_fields.intersect(QSet<QString> {"name", "type"}).isEmpty()) // confirmation is needed to save these fileds
+			{
+				// check project folder
+				QJsonObject folder_check_response;
+				try
+				{
+					HttpHeaders add_headers;
+					folder_check_response = QJsonDocument::fromJson(HttpHandler(true).get(ClientHelper::serverApiUrl() + "project_folder?id=" + QString::number(id) + "&token=" + LoginManager::userToken(), add_headers)).object();
+				}
+				catch (HttpException& e)
+				{
+					QMessageBox::warning(this, "Error while checking the project folder", "The following error has happend while checking the project folder:\n" + e.message());
+					return;
+				}
+
+				if (!folder_check_response.value("safe_to_change").toBool())
+				{
+					// getting project folder locations
+					QJsonArray settings_response;
+					try
+					{
+						HttpHeaders add_headers;
+						settings_response = QJsonDocument::fromJson(HttpHandler(true).get(ClientHelper::serverApiUrl() + "project_folder_settings?token=" + LoginManager::userToken(), add_headers)).array();
+					}
+					catch (HttpException& e)
+					{
+						QMessageBox::warning(this, "Error while reading settings", "The following error has happend while reading project folder settings:\n" + e.message());
+						return;
+					}
+
+					if (!settings_response.isEmpty())
+					{
+						QHash<QString, QVariant> current_values = editor->getCurrentValues();
+						if (current_values["folder_override"].toString().trimmed().isEmpty())
+						{
+							for (const QJsonValue& override_path: settings_response)
+							{
+								if (override_path.toObject().value("type").toString() == current_values["type"].toString())
+								{
+									folder_override_value = override_path.toObject().value("path").toString();
+									if (!folder_override_value.endsWith(QDir::separator())) folder_override_value+=QDir::separator();
+									folder_override_value+=current_values["name"].toString().trimmed()+QDir::separator();
+									break;
+								}
+							}
+						}
+					}
+					QStringList confirmation_message = QStringList() << "You are attempting to modify the following field(s) in the selected project: " + QStringList(changed_fields.begin(), changed_fields.end()).join(", ") + ".";
+					confirmation_message << " " + folder_check_response.value("message").toString() + " You will have to manually resolve the issues.";
+					confirmation_message << "\nDo you really want to save the changes?";
+					int res = QMessageBox::question(this, "Project change", confirmation_message.join(""));
+					if (res!=QMessageBox::Yes) return;
+				}
+			}
+		}
+
 		try
 		{
 			editor->store();
+			if (!folder_override_value.isEmpty()) NGSD().getQuery().exec("UPDATE project SET folder_override='"+folder_override_value+"' WHERE id=" + QString::number(id));
 			updateTable();
 		}
 		catch (DatabaseException e)

@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS `geneinfo_germline`
 `gnomad_oe_syn` FLOAT NULL,
 `gnomad_oe_mis` FLOAT NULL,
 `gnomad_oe_lof` FLOAT NULL,
+`gnomad_pli` FLOAT NULL,
 `comments` text NOT NULL,
 PRIMARY KEY `symbol` (`symbol`)
 )
@@ -174,6 +175,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name_short` VARCHAR(50) NOT NULL,
   `name_manufacturer` VARCHAR(100) NOT NULL,
+  `platform` ENUM('n/a','Illumina','MGI','ONT','PacBio') NOT NULL DEFAULT 'n/a',
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
   `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA', 'lrGS') NOT NULL,

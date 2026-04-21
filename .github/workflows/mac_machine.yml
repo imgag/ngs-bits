@@ -9,7 +9,7 @@ jobs:
       QT_QPA_PLATFORM: offscreen
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Update submodules

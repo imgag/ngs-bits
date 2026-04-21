@@ -245,12 +245,24 @@ void ThreadCoordinator::exportGeneInformation()
 	//process all genes
 	NGSD db(params_.use_test_db);
 	GeneSet genes = db.approvedGeneNames();
-    for (const QByteArray& gene : genes)
+	for (const QByteArray& gene : genes)
 	{
 		//get gene infos
 		GeneInfo gene_info = db.geneInfo(gene);
-		QByteArrayList annotations;
-		annotations << gene + " (inh=" + gene_info.inheritance.toUtf8()  + " oe_syn=" + gene_info.oe_syn.toUtf8() + " oe_mis="+ gene_info.oe_mis.toUtf8() + " oe_lof=" + gene_info.oe_lof.toUtf8() + ")";
+		QByteArrayList details;
+		QByteArray inheritance = gene_info.inheritance.toUtf8().trimmed();
+		if (!inheritance.isEmpty() && inheritance!="n/a") details << ("inh="+inheritance);
+		QByteArray oe_syn = gene_info.oe_syn.toUtf8().trimmed();
+		if (!oe_syn.isEmpty() && oe_syn!="n/a") details << ("oe_syn="+oe_syn);
+		QByteArray oe_mis = gene_info.oe_mis.toUtf8().trimmed();
+		if (!oe_mis.isEmpty() && oe_mis!="n/a") details << ("oe_mis="+oe_mis);
+		QByteArray oe_lof = gene_info.oe_lof.toUtf8().trimmed();
+		if (!oe_lof.isEmpty() && oe_lof!="n/a") details << ("oe_lof="+oe_lof);
+		QByteArray pli = gene_info.pli.toUtf8().trimmed();
+		if (!pli.isEmpty() && pli!="n/a") details << ("pli="+pli);
+
+		QByteArray anno = gene;
+		if (!details.isEmpty()) anno += " (" + details.join(" ") + ")";
 
 		//calculate region - several is sometimes also possible
 		BedFile gene_region = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
@@ -260,7 +272,7 @@ void ThreadCoordinator::exportGeneInformation()
 		//write regions with annotations
 		for(int i=0; i<gene_region.count(); ++i)
 		{
-			output_bed_file.append(BedLine(gene_region[i].chr().strNormalized(true), gene_region[i].start(), gene_region[i].end(), annotations));
+			output_bed_file.append(BedLine(gene_region[i].chr().strNormalized(true), gene_region[i].start(), gene_region[i].end(), QByteArrayList() << anno));
 		}
 	}
 

@@ -1021,11 +1021,8 @@ void MainWindow::on_actionROH_triggered()
 {
 	if (filename_=="") return;
 
-	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
-
 	//trio special handling: show UPD file is not empty
-	if (type==GERMLINE_TRIO)
+	if ( variants_.type()==GERMLINE_TRIO)
 	{
 		//UPDs
 		FileLocation upd_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisUpdFile();
@@ -2844,35 +2841,13 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	//notify for variant validation
 	checkPendingVariantValidations();
 
-	//activate Circos plot menu item if plot is available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty())
-	{
-		ui_.actionCircos->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionCircos->setEnabled(false);
-	}
-
-	//activate repeat expansion menu item if RE calls are available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty())
-	{
-		ui_.actionRE->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionRE->setEnabled(false);
-	}
-
-	//activate PRS menu item if PRS are available
-	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty())
-	{
-		ui_.actionPRS->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionPRS->setEnabled(false);
-	}
+	//activate buttons based on analysis type
+	ui_.actionROH->setEnabled(type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE);
+	ui_.actionRE->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty());
+	ui_.actionPRS->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty());
+	ui_.actionPathogenicWT->setEnabled(type==GERMLINE_SINGLESAMPLE);
+	ui_.actionCircos->setEnabled(type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty());
+	ui_.actionMethylation->setEnabled(type==GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getMethylationFile().exists);
 
 	//activate virus table
 	ui_.actionVirusDetection->setEnabled(false);
@@ -2965,14 +2940,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 				}
 			}
 		}
-	}
-
-	//activate Methylation menu
-	if (type==GERMLINE_SINGLESAMPLE)
-	{
-		FileLocation met_loc = GlobalServiceProvider::fileLocationProvider().getMethylationFile();
-		ui_.actionMethylation->setEnabled(met_loc.exists);
-
 	}
 }
 
@@ -5259,6 +5226,13 @@ void MainWindow::exportHerediCareVCF()
 
 	try
 	{
+		//get report config
+		NGSD db;
+		QString ps = germlineReportSample();
+		QString ps_id = db.processedSampleId(ps);
+		int rc_id = db.reportConfigId(ps_id);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, res_);
+
 		//get HerediCare ID from user
 		QString id = QInputDialog::getText(this, title, "HerediCare ID (used in VCF header):");
 		if (id.isEmpty()) return;
@@ -5269,7 +5243,6 @@ void MainWindow::exportHerediCareVCF()
 		if (file_name.isEmpty()) return;
 
 		//convert gene list to exon regions
-		NGSD db;
 		BedFile roi = db.genesToRegions(genes, Transcript::ENSEMBL, "exon");
 		roi.extend(20);
 		roi.merge();
@@ -5287,16 +5260,27 @@ void MainWindow::exportHerediCareVCF()
 		int i_qual = variants_.annotationIndexByName("quality");
 		int i_geno = variants_.getSampleHeader().value(0).column_index;
 		int c_classified = 0;
+		int c_excluded = 0;
 		for(int i=0; i<variants_.count(); ++i)
 		{
 			const Variant& v = variants_[i];
 
-			//check ROI
+			//filter by ROI
 			if (roi_idx.matchingIndex(v.chr(), v.start(), v.end())==-1) continue;
 
-			VcfLine v2 = v.toVCF(ref_genome, i_geno);
+			//filter out excluded variants
+			if (report_config->exists(VariantType::SNVS_INDELS, i))
+			{
+				const ReportVariantConfiguration& rcv = report_config->get(VariantType::SNVS_INDELS, i);
+				if (!rcv.showInReport())
+				{
+					++c_excluded;
+					continue;
+				}
+			}
 
-			//add quality, DP and AF
+			//create VCF-sytle variant with QUAL, DP and AF
+			VcfLine v2 = v.toVCF(ref_genome, i_geno);
 			QByteArray qual;
 			QByteArray dp;
 			QByteArray af;
@@ -5323,7 +5307,7 @@ void MainWindow::exportHerediCareVCF()
 		}
 
 		vcf.store(file_name);
-		QMessageBox::information(this, title, "Exported " + QString::number(vcf.count()) + " variants in exons/splice region of the " + QString::number(genes.count()) + " genes:\n" + genes.join(", ") + "\n\n" + QString::number(c_classified) + " of the variants have a classification.");
+		QMessageBox::information(this, title, "Exported " + QString::number(vcf.count()) + " variants in exons/splice region of the " + QString::number(genes.count()) + " genes:\n" + genes.join(", ") + "\n\n" + QString::number(c_classified) + " of the variants have a classification\n\n" + QString::number(c_excluded) + " variants were excluded based on the report configuration.");
 	}
 	catch(Exception& e)
 	{
@@ -6129,17 +6113,6 @@ void MainWindow::on_actionClearLogFile_triggered()
 void MainWindow::on_actionOpenGSvarDataFolder_triggered()
 {
 	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
-}
-
-void MainWindow::on_actionShowNonTranferableVariants_triggered()
-{
-	if (!LoginManager::active()) return;
-	if(filename_ == "") return;
-	TransferredVariantDialog* widget = new TransferredVariantDialog(NGSD().processedSampleId(filename_).toInt(), this);
-
-	auto dlg = GUIHelper::createDialog(widget, "Non-transferable variants of " + variants_.analysisName());
-	addModelessDialog(dlg);
-
 }
 
 void MainWindow::editVariantClassification(VariantList& variants, int index)

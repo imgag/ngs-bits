@@ -1004,14 +1004,15 @@ bool TranscriptList::contains(const QByteArray& name) const
 	return false;
 }
 
-Transcript TranscriptList::getTranscript(const QByteArray& name)
+const Transcript &TranscriptList::getTranscript(const QByteArray& name) const
 {
 	for (auto it=begin(); it!=end(); ++it)
 	{
 		if (it->name()==name) return *it;
 	}
 
-	return Transcript();
+	static Transcript invalid_transcript;
+	return invalid_transcript;
 }
 
 int TranscriptList::geneCount() const
