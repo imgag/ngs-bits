@@ -47,7 +47,7 @@ VariantImpact stringToVariantImpact(QString str)
 	}
 	else
 	{
-		THROW(ArgumentException, "Unknown string for variant impact! String:" + str);
+		THROW(ArgumentException, "Unknown string '"+str+"' for variant impact!");
 	}
 }
 

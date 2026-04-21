@@ -745,12 +745,9 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			//remove bracket at end
 			gene_info.chop(1);
 
+			//skip entry if no info available
 			int start = gene_info.indexOf('(');
-			if (start==-1)
-			{
-				qDebug() << v.toString() << ": Invalid gene info " << v.annotations()[i_gene_info];
-				continue;
-			}
+			if (start==-1) continue;
 
 			QByteArray gene = gene_info.left(start-1).trimmed();
 			QByteArrayList entries = gene_info.mid(start+1).split(' ');
@@ -1015,12 +1012,9 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 			//remove bracket at end
 			gene_info.chop(1);
 
+			//skip entry if no info available
 			int start = gene_info.indexOf('(');
-			if (start==-1)
-			{
-				qDebug() << v.toString() << ": Invalid gene info " << v.annotations()[i_gene_info];
-				continue;
-			}
+			if (start==-1) continue;
 
 			QByteArray gene = gene_info.left(start-1).trimmed();
 			QByteArrayList entries = gene_info.mid(start+1).split(' ');

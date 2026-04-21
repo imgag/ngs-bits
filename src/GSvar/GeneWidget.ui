@@ -233,6 +233,19 @@
         </property>
        </widget>
       </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="ids">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="openExternalLinks">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
       <item row="4" column="0">
        <widget class="QLabel" name="label_14">
         <property name="toolTip">
@@ -383,7 +396,7 @@
       <item row="11" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>gnomAD o/e (synonymous):</string>
+         <string>gnomAD gene constraints:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
@@ -391,7 +404,7 @@
        </widget>
       </item>
       <item row="11" column="1">
-       <widget class="QLabel" name="oe_syn">
+       <widget class="QLabel" name="gnomad_constraints">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -407,58 +420,23 @@
        </widget>
       </item>
       <item row="12" column="0">
-       <widget class="QLabel" name="label_9">
+       <widget class="QLabel" name="label_15">
         <property name="text">
-         <string>gnomAD o/e (missense):</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
+         <string>Special classification criteria:</string>
         </property>
        </widget>
       </item>
       <item row="12" column="1">
-       <widget class="QLabel" name="oe_mis">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+       <widget class="QLabel" name="cspec">
         <property name="text">
          <string/>
         </property>
-        <property name="textInteractionFlags">
-         <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+        <property name="openExternalLinks">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="13" column="0">
-       <widget class="QLabel" name="label_10">
-        <property name="text">
-         <string>gnomAD o/e (loss-of-function):</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
-        </property>
-       </widget>
-      </item>
-      <item row="13" column="1">
-       <widget class="QLabel" name="oe_lof">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
-        </property>
-       </widget>
-      </item>
-      <item row="15" column="0">
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Comment:</string>
@@ -468,7 +446,7 @@
         </property>
        </widget>
       </item>
-      <item row="15" column="1">
+      <item row="13" column="1">
        <widget class="QLabel" name="comments">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -487,36 +465,6 @@
         </property>
         <property name="textInteractionFlags">
          <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="ids">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="openExternalLinks">
-         <bool>true</bool>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
-        </property>
-       </widget>
-      </item>
-      <item row="14" column="0">
-       <widget class="QLabel" name="label_15">
-        <property name="text">
-         <string>Special classification criteria:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="14" column="1">
-       <widget class="QLabel" name="cspec">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="openExternalLinks">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
