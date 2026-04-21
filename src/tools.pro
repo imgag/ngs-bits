@@ -664,6 +664,10 @@ SUBDIRS += NGSDExportSpliceAI
 tools-TEST.depends += NGSDExportSpliceAI
 NGSDExportSpliceAI.depends = cppNGSD
 
+SUBDIRS += VcfMerge
+tools-TEST.depends += VcfMerge
+VcfMerge.depends = cppNGS
+
 SUBDIRS += BedExtractMethylation
 tools-TEST.depends += BedExtractMethylation
 BedExtractMethylation.depends = cppNGS

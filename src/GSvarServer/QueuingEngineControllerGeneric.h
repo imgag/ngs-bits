@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QNetworkProxy>
 
 class QueuingEngineControllerGeneric
 	: public QueuingEngineController

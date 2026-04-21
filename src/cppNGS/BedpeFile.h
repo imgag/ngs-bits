@@ -148,7 +148,7 @@ public:
 	///Returns a dictionary for the FORMAT data of a sample
 	QMap<QByteArray, QByteArray> getSampleFormatData(int anno_idx_format, int anno_idx_sample);
 	///Returns a single value from the FORMAT data of a sample
-	QByteArray getSampleFormatData(int anno_idx_format, int anno_idx_sample, QByteArray key);
+	QByteArray getSampleFormatData(int anno_idx_format, int anno_idx_sample, QByteArray key) const;
 
 	///Returns the genes.
 	GeneSet genes(const QByteArrayList& annotation_headers, bool error_on_mismatch=true) const;

@@ -1426,6 +1426,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 
 		BedpeLine sv = data_.svs[var_conf.variant_index];
+		int i_qual = data_.svs.annotationIndexByName("QUAL");
 
 		//manual curation
 		if (var_conf.isManuallyCurated()) var_conf.updateSv(sv, data_.svs.annotationHeaders(), db_);
@@ -1481,6 +1482,21 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 		QByteArray sv_gt = sv.genotypeHumanReadable(data_.svs.annotationHeaders(), false);
 		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender, sv_gt, v));
+
+		if (i_qual!=-1)
+		{
+			w.writeAttribute("qual", sv.annotations()[i_qual]);
+		}
+		double af_pe = NGSHelper::supportReadAf(data_.svs, var_conf.variant_index, data_.ps.toUtf8(), "PR");
+		if (af_pe>=0)
+		{
+			w.writeAttribute("af_pe", QString::number(af_pe, 'f', 2));
+		}
+		double af_split = NGSHelper::supportReadAf(data_.svs, var_conf.variant_index, data_.ps.toUtf8(), "SR");
+		if (af_split>=0)
+		{
+			w.writeAttribute("af_split", QString::number(af_split, 'f', 2));
+		}
 
 		if (sv.type() == StructuralVariantType::INS)
 		{

@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS `geneinfo_germline`
 `gnomad_oe_syn` FLOAT NULL,
 `gnomad_oe_mis` FLOAT NULL,
 `gnomad_oe_lof` FLOAT NULL,
+`gnomad_pli` FLOAT NULL,
 `comments` text NOT NULL,
 PRIMARY KEY `symbol` (`symbol`)
 )

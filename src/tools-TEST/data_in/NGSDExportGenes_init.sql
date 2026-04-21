@@ -32,10 +32,10 @@ INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `version`, `source`, `ch
 (1502681, 616286, 'ENST00000545511', '1', 'ensembl', '12', 125609523, 125626775, '+'),
 (1556965, 616287, 'ENST00000503486', '1', 'ensembl', '5', NULL, NULL, '-');
 
-INSERT INTO `geneinfo_germline` (`symbol`, `inheritance`, `gnomad_oe_mis`, `gnomad_oe_syn`, `gnomad_oe_lof`, `comments`) VALUES
-('BRCA1', 'AD', 0.11, 0.22, 0.33, '28.04.2016 ahmustm1]\nHPO: Autosomal dominant inheritance'),
-('ZNF597', 'n/a', 1.1, 1.1, 0.38, ''),
-('AACS', 'AR', 0.94, 0.97, 0.8, '');
+INSERT INTO `geneinfo_germline` (`symbol`, `inheritance`, `gnomad_oe_mis`, `gnomad_oe_syn`, `gnomad_oe_lof`, `gnomad_pli`, `comments`) VALUES
+('BRCA1', 'AD', 0.11, 0.22, 0.33, 0.44, '28.04.2016 ahmustm1]\nHPO: Autosomal dominant inheritance'),
+('ZNF597', 'n/a', 1.1, 1.1, 0.38, 0.55, ''),
+('AACS', 'AR', 0.94, 0.97, 0.8, 0.66, '');
 
 INSERT INTO `gene_pseudogene_relation` (`id`, `parent_gene_id`, `pseudogene_gene_id`, `gene_name`) VALUES
 (899, 616286, 616287, NULL);

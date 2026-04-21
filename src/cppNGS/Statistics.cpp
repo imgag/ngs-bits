@@ -2676,7 +2676,6 @@ double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 	while(reader.getNextAlignment(al))
 	{
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.mappingQuality()<30) continue;
 		reads_y += 1.0;
 	}
 	if (count_y!=nullptr) *count_y = reads_y;
@@ -2687,7 +2686,6 @@ double Statistics::yxRatio(BamReader& reader, double* count_x, double* count_y)
 	while(reader.getNextAlignment(al))
 	{
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		if (al.mappingQuality()<30) continue;
 		reads_x += 1.0;
 	}
 	if (count_x!=nullptr) *count_x = reads_x;

@@ -37,7 +37,7 @@ void fastqStatistics(QString fastq, QString out)
 
 	//output
 	QFile output(out);
-	if (!output.open(QIODevice::WriteOnly | QIODevice::Text))
+	if (!output.open(QIODevice::WriteOnly))
 	{
 		THROW(FileAccessException, "Cannot open FASTQ statistics output file '" + out + "'");
 	}
@@ -102,8 +102,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out1.fastq.gz -out2 out/SeqPurge_out2.fastq.gz -ncut 0 -qcut 0 -min_len 15 -qc out/SeqPurge_out1.qcML -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out1.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out2.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out1.fastq.gz", TESTDATA("data_out/SeqPurge_out1.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out2.fastq.gz", TESTDATA("data_out/SeqPurge_out2.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out1.fastq.gz", TESTDATA("data_out/SeqPurge_out1.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out2.fastq.gz", TESTDATA("data_out/SeqPurge_out2.fastq.gz"));
 
 		//qc comparison
         REMOVE_LINES("out/SeqPurge_out1.qcML", QRegularExpression("creation "));
@@ -118,8 +118,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in3.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in4.fastq.gz") + " -out1 out/SeqPurge_out3.fastq.gz -out2 out/SeqPurge_out4.fastq.gz -ncut 0 -qcut 0 -min_len 15 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out3.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out4.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out3.fastq.gz", TESTDATA("data_out/SeqPurge_out3.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out4.fastq.gz", TESTDATA("data_out/SeqPurge_out4.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out3.fastq.gz", TESTDATA("data_out/SeqPurge_out3.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out4.fastq.gz", TESTDATA("data_out/SeqPurge_out4.fastq.gz"));
 	}
 	
 	//HiSeq 101 cycles - test data where the adapter sequences are not obvious for sequence hits
@@ -128,8 +128,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in5.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in6.fastq.gz") + " -out1 out/SeqPurge_out5.fastq.gz -out2 out/SeqPurge_out6.fastq.gz -ncut 0 -qcut 0 -min_len 15 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out5.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out6.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out5.fastq.gz", TESTDATA("data_out/SeqPurge_out5.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out6.fastq.gz", TESTDATA("data_out/SeqPurge_out6.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out5.fastq.gz", TESTDATA("data_out/SeqPurge_out5.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out6.fastq.gz", TESTDATA("data_out/SeqPurge_out6.fastq.gz"));
 	}
 	
 	//HiSeq 151 cycles - test data where reads have different lengths due to trimming by Illumina
@@ -138,8 +138,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in7.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in8.fastq.gz") + " -out1 out/SeqPurge_out7.fastq.gz -out2 out/SeqPurge_out8.fastq.gz -a1 CTGTCTCTTATACACATCT -a2 CTGTCTCTTATACACATCT -ncut 0 -qcut 0 -min_len 15 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out7.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out8.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out7.fastq.gz", TESTDATA("data_out/SeqPurge_out7.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out8.fastq.gz", TESTDATA("data_out/SeqPurge_out8.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out7.fastq.gz", TESTDATA("data_out/SeqPurge_out7.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out8.fastq.gz", TESTDATA("data_out/SeqPurge_out8.fastq.gz"));
 	}
 	
 	//MiSeq 151 cycles - with quality trimming
@@ -148,8 +148,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out9.fastq.gz -out2 out/SeqPurge_out10.fastq.gz -qcut 15 -ncut 0 -min_len 15 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out9.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out10.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out9.fastq.gz", TESTDATA("data_out/SeqPurge_out9.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out10.fastq.gz", TESTDATA("data_out/SeqPurge_out10.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out9.fastq.gz", TESTDATA("data_out/SeqPurge_out9.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out10.fastq.gz", TESTDATA("data_out/SeqPurge_out10.fastq.gz"));
 	}
 	
 	//MiSeq 151 cycles - with N trimming
@@ -158,8 +158,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out11.fastq.gz -out2 out/SeqPurge_out12.fastq.gz -ncut 7 -qcut 0 -min_len 15 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out11.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out12.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out11.fastq.gz", TESTDATA("data_out/SeqPurge_out11.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out12.fastq.gz", TESTDATA("data_out/SeqPurge_out12.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out11.fastq.gz", TESTDATA("data_out/SeqPurge_out11.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out12.fastq.gz", TESTDATA("data_out/SeqPurge_out12.fastq.gz"));
 	}
 
 	//MiSeq 151 cycles - with quality trimming and N trimming - with singleton output
@@ -168,13 +168,13 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out13.fastq.gz -out2 out/SeqPurge_out14.fastq.gz -out3 out/SeqPurge_out15 -qcut 25 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out13.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out14.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out13.fastq.gz", TESTDATA("data_out/SeqPurge_out13.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out14.fastq.gz", TESTDATA("data_out/SeqPurge_out14.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out13.fastq.gz", TESTDATA("data_out/SeqPurge_out13.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out14.fastq.gz", TESTDATA("data_out/SeqPurge_out14.fastq.gz"));
 	
 		IS_TRUE(QFile::exists("out/SeqPurge_out15_R1.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out15_R2.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out15_R1.fastq.gz", TESTDATA("data_out/SeqPurge_out15_R1.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out15_R2.fastq.gz", TESTDATA("data_out/SeqPurge_out15_R2.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out15_R1.fastq.gz", TESTDATA("data_out/SeqPurge_out15_R1.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out15_R2.fastq.gz", TESTDATA("data_out/SeqPurge_out15_R2.fastq.gz"));
 	}
 
 	//MiSeq 300 cycles - test with very long reads (factorial overflow bug)
@@ -183,8 +183,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in9.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in10.fastq.gz") + " -out1 out/SeqPurge_out16.fastq.gz -out2 out/SeqPurge_out17.fastq.gz -min_len 15 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out16.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out17.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out16.fastq.gz", TESTDATA("data_out/SeqPurge_out16.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out17.fastq.gz", TESTDATA("data_out/SeqPurge_out17.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out16.fastq.gz", TESTDATA("data_out/SeqPurge_out16.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out17.fastq.gz", TESTDATA("data_out/SeqPurge_out17.fastq.gz"));
 	}
 
 	//GAIIx 76/77cycles - different read length bug
@@ -193,8 +193,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in11.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in12.fastq.gz") + " -out1 out/SeqPurge_out18.fastq.gz -out2 out/SeqPurge_out19.fastq.gz -min_len 15 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out18.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out19.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out18.fastq.gz", TESTDATA("data_out/SeqPurge_out18.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out19.fastq.gz", TESTDATA("data_out/SeqPurge_out19.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out18.fastq.gz", TESTDATA("data_out/SeqPurge_out18.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out19.fastq.gz", TESTDATA("data_out/SeqPurge_out19.fastq.gz"));
 	}
 
 	//MiSeq 151 cycles - with error correction
@@ -203,8 +203,8 @@ private:
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out20.fastq.gz -out2 out/SeqPurge_out21.fastq.gz -ncut 0 -qcut 0 -ec -min_len 15 -block_size 100 -block_prefetch 1");
 		IS_TRUE(QFile::exists("out/SeqPurge_out20.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out21.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out20.fastq.gz", TESTDATA("data_out/SeqPurge_out20.fastq.gz"));
-		COMPARE_GZ_FILES("out/SeqPurge_out21.fastq.gz", TESTDATA("data_out/SeqPurge_out21.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out20.fastq.gz", TESTDATA("data_out/SeqPurge_out20.fastq.gz"));
+		COMPARE_FILES("out/SeqPurge_out21.fastq.gz", TESTDATA("data_out/SeqPurge_out21.fastq.gz"));
 	}
 
 	//multi-thread test

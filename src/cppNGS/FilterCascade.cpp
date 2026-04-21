@@ -1581,6 +1581,7 @@ void FilterGeneInheritance::apply(const VariantList& variants, FilterResult& res
         for (const QByteArray& gene : genes)
 		{
 			int start = gene.indexOf('(');
+			if (start==-1) continue; //no infos > skip
 			QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
             for (const QByteArray& entry : entries)
 			{
@@ -1604,22 +1605,18 @@ void FilterGeneInheritance::apply(const VariantList& variants, FilterResult& res
 FilterGeneConstraint::FilterGeneConstraint()
 {
 	name_ = "Gene constraint";
-	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/" << "Note: ExAC pLI is deprected and support for backward compatibility with old GSvar files.";
+	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/";
 
-	params_ << FilterParameter("max_oe_lof", FilterParameterType::DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
+	params_ << FilterParameter("max_oe_lof", FilterParameterType::DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants. Set below 0 to disable.");
 	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
-
-	params_ << FilterParameter("min_pli",FilterParameterType:: DOUBLE, 0.9, "Minumum ExAC pLI score");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	params_.last().constraints["max"] = "4.0";
 
 	checkIsRegistered();
 }
 
 QString FilterGeneConstraint::toText() const
 {
-	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof", false), 'f', 2) + " (pLI&ge;" + QString::number(getDouble("min_pli", false), 'f', 2) + ")";
+	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof", false), 'f', 2);
 }
 
 void FilterGeneConstraint::apply(const VariantList& variants, FilterResult& result) const
@@ -1628,7 +1625,6 @@ void FilterGeneConstraint::apply(const VariantList& variants, FilterResult& resu
 
 	//get column indices
 	int i_geneinfo = annotationColumn(variants, "gene_info");
-	double min_pli = getDouble("min_pli");
 	double max_oe_lof = getDouble("max_oe_lof");
 
 	//filter
@@ -1636,31 +1632,22 @@ void FilterGeneConstraint::apply(const VariantList& variants, FilterResult& resu
 	{
 		if (!result.flags()[i]) continue;
 
-		//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a oe_lof=)
+		//parse gene_info entry - example: CPT2 (inh=AR+AD oe_syn=0.98 oe_mis=0.94 oe_lof=0.76 pli=0.00), CZIB (oe_syn=1.10 oe_mis=0.91 oe_lof=0.92 pli=0.00), CZIB-DT
 		QByteArrayList genes = variants[i].annotations()[i_geneinfo].split(',');
 		bool any_gene_passed = false;
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene: std::as_const(genes))
 		{
 			int start = gene.indexOf('(');
+			if (start==-1) continue; //no infos > skip
+
 			QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-            for (const QByteArray& entry : entries)
+			for (const QByteArray& entry: std::as_const(entries))
 			{
-				if (entry.startsWith("pLI="))
-				{
-					bool ok;
-					double pli = entry.mid(4).toDouble(&ok);
-					if (!ok) pli = 0.0; // value 'n/a' > pass
-					if (pli>=min_pli)
-					{
-						any_gene_passed = true;
-					}
-				}
 				if (entry.startsWith("oe_lof="))
 				{
 					bool ok;
 					double oe = entry.mid(7).toDouble(&ok);
-					if (!ok) oe = 1.0; // value 'n/a' > pass
-					if (oe<=max_oe_lof)
+					if (ok && oe<=max_oe_lof)
 					{
 						any_gene_passed = true;
 					}
@@ -3404,6 +3391,7 @@ void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) c
         for (const QByteArray& gene : gene_entries)
 		{
 			int start = gene.indexOf('(');
+			if (start==-1) continue; //no infos > skip
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
             for (const QByteArray& term : term_entries)
 			{
@@ -3528,6 +3516,7 @@ void FilterCnvGeneOverlap::apply(const CnvList& cnvs, FilterResult& result) cons
         for (const QByteArray& gene : gene_entries)
 		{
 			int start = gene.indexOf('(');
+			if (start==-1) continue; //no infos > skip
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
             for (const QByteArray& term : term_entries)
 			{
@@ -4299,6 +4288,7 @@ void FilterSvGeneConstraint::apply(const BedpeFile& svs, FilterResult& result) c
         for (const QByteArray& gene : gene_entries)
 		{
 			int start = gene.indexOf('(');
+			if (start==-1) continue; //no infos > skip
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
             for (const QByteArray& term : term_entries)
 			{
