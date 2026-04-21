@@ -305,7 +305,6 @@ void DBEditor::fillFormWithItemData()
 	query.next();
 	if (query.size()!=1) THROW(ProgrammingException, "Table '" + table_ + "' contains no row with 'id' " + QString::number(id_) + "!");
 
-	values_from_db_.clear();	
 	foreach(const QString& field, table_info.fieldNames())
 	{
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
@@ -533,9 +532,9 @@ void DBEditor::editProcessedSample()
 	}
 }
 
-QStringList DBEditor::getChangedFields()
+QSet<QString> DBEditor::getChangedFields()
 {	
-	QList<QString> result;
+	QSet<QString> result;
 	QHash<QString, QVariant> current_values = getCurrentValues();
 	foreach(QString field_name, values_from_db_.keys())
 	{

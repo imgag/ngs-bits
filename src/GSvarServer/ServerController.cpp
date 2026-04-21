@@ -649,7 +649,7 @@ HttpResponse ServerController::checkProjectFolder(const HttpRequest &request)
 			if (!QDir(ps_folder).entryList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty())
 			{
 				safe_to_change = false;
-				non_empty_ps_folders << QString::number(ps_id);
+				non_empty_ps_folders << db.processedSampleName(QString::number(ps_id));
 			}
 		}
 

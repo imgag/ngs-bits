@@ -225,7 +225,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
 						AuthType::USER_TOKEN,
-						"Reads the project folder on the server and checks if there is any data every processed sample folder",
+						"Reads the project folder on the server and checks if there is any data in every processed sample folder",
 						&ServerController::checkProjectFolder
 					});
 

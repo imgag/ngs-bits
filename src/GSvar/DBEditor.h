@@ -19,7 +19,7 @@ public:
 	void store();
 
 	//returns a list of changed fields
-	QStringList getChangedFields();
+	QSet<QString> getChangedFields();
 	//returns a hash map of fields with their current values
 	QHash<QString, QVariant> getCurrentValues();
 
