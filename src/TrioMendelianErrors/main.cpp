@@ -25,9 +25,11 @@ public:
 		addOutfile("out", "Output text file. If unset, writes to STDOUT.", true);
 		addInt("min_dp", "Minimum depth in each sample.", true, 0);
 		addFloat("min_qual", "Minimum QUAL of variants.", true, 0.0);
+		addFlag("dot_as_wt", "Treat '.' in GT field as '0'.");
 		addFlag("debug", "Enable debug output");
 
 		//changelog
+		changeLog(2026,  4, 21, "Added parameter 'dot_as_wt'.");
 		changeLog(2025,  2, 18, "Initial version of the tool.");
 	}
 
@@ -40,7 +42,7 @@ public:
 		INVALID
 	};
 
-	Genotype genotype(const QByteArrayList& parts, int index)
+	Genotype genotype(const QByteArrayList& parts, int index, bool dot_as_wt)
 	{
 		QByteArray format = parts[index];
 		int i_sep = format.indexOf(':');
@@ -48,6 +50,7 @@ public:
 
 		//normalize
 		gt.replace('|', '/');
+		if (dot_as_wt) gt.replace('.', '0');
 
 		//convert
 		if (gt=="1/1") return Genotype::HOM;
@@ -79,6 +82,7 @@ public:
 		int min_dp = getInt("min_dp");
 		double min_qual = getFloat("min_qual");
 		bool debug = getFlag("debug");
+		bool dot_as_wt = getFlag("dot_as_wt");
 
 		//column indices
 		int i_format = VcfFile::FORMAT;
@@ -188,9 +192,9 @@ public:
 			}
 
 			//determine genotypes
-			Genotype gt_c = genotype(parts, i_c);
-			Genotype gt_f = genotype(parts, i_f);
-			Genotype gt_m = genotype(parts, i_m);
+			Genotype gt_c = genotype(parts, i_c, dot_as_wt);
+			Genotype gt_f = genotype(parts, i_f, dot_as_wt);
+			Genotype gt_m = genotype(parts, i_m, dot_as_wt);
 			if (gt_c==Genotype::UNKNOWN || gt_f==Genotype::UNKNOWN || gt_m==Genotype::UNKNOWN)
 			{
 				++c_skip_genotype_unknown;
