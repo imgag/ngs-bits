@@ -1319,16 +1319,16 @@ void NGSD::removeInitData()
 
 QString NGSD::projectFolder(QString type)
 {
-    //GSvar server: use megSAP settings
-    if (ClientHelper::isRunningOnServer())
-    {
-        return PipelineSettings::projectFolder(type);
-    }
+	//GSvar server: use megSAP settings
+	if (ClientHelper::isRunningOnServer())
+	{
+		return PipelineSettings::projectFolder(type);
+	}
 
 	//current type-specific project folder settings
 	if (Settings::contains("projects_folder_"+type))
 	{
-		   return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
+		return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
 	}
 
 	//fallback to legacy project folder settings
@@ -1443,7 +1443,6 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 		}
 	}
 	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";
-	else if (type==PathType::MANTA_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
 	else if (type==PathType::PARAPHASE_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
 	else if (type==PathType::SAMPLE_FOLDER)
 	{

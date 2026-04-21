@@ -618,6 +618,119 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::checkProjectFolder(const HttpRequest &request)
+{
+	int id = request.getUrlParams()["id"].toInt();
+	bool safe_to_change = true;
+	QStringList messages;
+
+	try
+	{
+		Session current_session = SessionManager::getSessionBySecureToken(EndpointManager::getTokenIfAvailable(request));
+		if (current_session.isEmpty()) THROW_HTTP(HttpException, "You are not logged in", 401,  {}, {});
+
+		// access is restricted only for the user role 'admin'
+		NGSD db;
+		QString role = db.getUserRole(current_session.user_id);
+		if (role!="admin")
+		{
+			THROW_HTTP(HttpException, "You do not have permissions to change projects!", 401,  {}, {});
+		}
+
+		SqlQuery query = db.getQuery();
+		QString query_str = "SELECT ps.id, ps.folder_override FROM processed_sample ps INNER JOIN project p ON ps.project_id=p.id WHERE ps.project_id=" + QString::number(id);
+		query.exec(query_str);		
+		QStringList non_empty_ps_folders;
+		while(query.next())
+		{
+			int ps_id = query.value(0).toInt();			
+			QString ps_folder = db.processedSamplePath(QString::number(ps_id), PathType::SAMPLE_FOLDER);
+
+			if (!QDir(ps_folder).entryList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty())
+			{
+				safe_to_change = false;
+				non_empty_ps_folders << db.processedSampleName(QString::number(ps_id));
+			}
+		}
+
+		if (!non_empty_ps_folders.isEmpty()) messages << "The following processed samples contain some files: " + non_empty_ps_folders.join(", ") + ".";
+	}
+	catch (DatabaseException& e)
+	{
+		Log::error("Database error while locating a processed sample folder: " + e.message());
+		THROW_HTTP(HttpException, e.message(), 404,  {}, {});
+	}
+	catch (Exception& e)
+	{
+		Log::error("Error while locating a processed sample folder: " + e.message());
+		THROW_HTTP(HttpException, e.message(), 404,  {}, {});
+	}
+
+	QJsonDocument json_doc_output;
+	QJsonObject folder_info_object;
+	folder_info_object.insert("project_id", id);
+	folder_info_object.insert("safe_to_change", safe_to_change);
+	folder_info_object.insert("message", messages.join(" "));
+
+	json_doc_output.setObject(folder_info_object);
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::getProjectFolderSettings(const HttpRequest &request)
+{
+	QJsonArray project_folder_options;
+	try
+	{
+		Session current_session = SessionManager::getSessionBySecureToken(EndpointManager::getTokenIfAvailable(request));
+		if (current_session.isEmpty()) THROW_HTTP(HttpException, "You are not logged in", 401,  {}, {});
+
+		// access is restricted only for the user role 'admin'
+		NGSD db;
+		QString role = db.getUserRole(current_session.user_id);
+		if (role!="admin")
+		{
+			THROW_HTTP(HttpException, "You do not have permissions to change projects!", 401,  {}, {});
+		}
+
+		QStringList project_types = db.getEnum("project", "type");
+		for (QString& current_type: project_types)
+		{
+			QString suggested_path = db.projectFolder(current_type);
+
+			QJsonObject current_project_path;
+			current_project_path.insert("type", current_type);
+			current_project_path.insert("path", suggested_path);
+			project_folder_options.append(current_project_path);
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		Log::error("Database error while locating a project folder: " + e.message());
+		THROW_HTTP(HttpException, e.message(), 404,  {}, {});
+	}
+	catch (Exception& e)
+	{
+		Log::error("Error while locating a project folder: " + e.message());
+		THROW_HTTP(HttpException, e.message(), 404,  {}, {});
+	}
+
+	QJsonDocument json_doc_output;
+	json_doc_output.setArray(project_folder_options);
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
 {
 	QString ps_name;
