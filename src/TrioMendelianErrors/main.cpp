@@ -46,7 +46,7 @@ public:
 	{
 		QByteArray format = parts[index];
 		int i_sep = format.indexOf(':');
-		QByteArray gt = format.left(i_sep);
+		QByteArray gt = i_sep==-1 ? format : format.left(i_sep);
 
 		//normalize
 		gt.replace('|', '/');
@@ -131,8 +131,7 @@ public:
 			}
 
 			//check that FORMAT is ok
-			if (!parts[i_format].startsWith("GT:")) THROW(FileParseException, "Invalid FORMAT column! GT is not first entry: '" + parts[i_format] + "'!");
-
+			if (parts[i_format]!="GT" && !parts[i_format].startsWith("GT:")) THROW(FileParseException, "Invalid FORMAT column! GT is not first entry: '" + parts[i_format] + "'!");
 
 			//only variants on autosomes
 			if (!Chromosome(parts[0]).isAutosome())
