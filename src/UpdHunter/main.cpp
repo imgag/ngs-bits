@@ -229,11 +229,14 @@ public:
 			}
 
 			//filter by quality
-			if (v.qual() < 0) THROW(ArgumentException, "Quality '" + QString::number(v.qual()) + "' is not given in " + v.toString(true));
-			if (v.qual()<var_min_q)
+			if (var_min_q>0)
 			{
-				++skip_qual;
-				continue;
+				if (v.qual() < 0) THROW(ArgumentException, "Quality not available for variant " + v.toString(true));
+				if (v.qual()<var_min_q)
+				{
+					++skip_qual;
+					continue;
+				}
 			}
 
 			//filter by depth
