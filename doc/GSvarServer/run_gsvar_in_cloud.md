@@ -61,7 +61,16 @@ server_host = "localhost"
 server_port = 8443
 threads = 6
 ```
+
 `GSvar` app will need to have an access to the [trusted CA](https://en.wikipedia.org/wiki/Certificate_authority). Usually it is a `*.crt` file (see `curl_ca_bundle` in the example above). `libcurl` is responsible for establishing a HTTPS connection.
+
+### Deployment scripts
+
+There are two automation scripts in `src/GSvarServer`, which are meant to simplify the deployment process. The scripts assume that the production instance is running in `/opt/GSvarServer/GSvarServer-current` and the default settings are stored in `/opt/GSvarServer/default-settings`. To better understand the deployment process, please have a look at the `deploy_server_nobuild` target from the `Makefile`. 
+
+- `cloud_deploy.py` - deploys a new version of GSvar server
+
+- `roll-back-server.py` - rolls back (changes the symbolic link) to the previous version of the server
 
 --
 
