@@ -23,6 +23,8 @@ private:
 
 		IS_TRUE(QFile(plot_file_name).exists());
 		IS_TRUE(QFile(plot_file_name).size()>0);
+
+		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/lineplot_test.png"));
 	}
 
 	TEST_METHOD(create_scatterplot)
@@ -30,12 +32,12 @@ private:
 		ScatterPlot test_plot;
 		test_plot.setXLabel("tumor allele frequency");
 		test_plot.setYLabel("normal allele frequency");
-		test_plot.setXRange(-0.015,1.015);
-		test_plot.setYRange(-0.015,1.015);
+		test_plot.setXRange(0,1.015);
+		test_plot.setYRange(0,1.015);
 
 		QList<std::pair<double,double>> points;
-		points.append(std::pair<double, double>(0.0, 0.1));
-		points.append(std::pair<double, double>(0.1, 0.3));
+		points.append(std::pair<double, double>(0.1, 0.2));
+		points.append(std::pair<double, double>(0.3, 0.3));
 		points.append(std::pair<double, double>(0.4, 0.2));
 		points.append(std::pair<double, double>(0.5, 0.4));
 		points.append(std::pair<double, double>(0.7, 0.45));
@@ -49,6 +51,8 @@ private:
 
 		IS_TRUE(QFile(plot_file_name).exists());
 		IS_TRUE(QFile(plot_file_name).size()>0);
+
+		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/scatterplot_test.png"));
 	}
 
 	TEST_METHOD(create_regular_histogram)
@@ -72,6 +76,8 @@ private:
 
 		IS_TRUE(QFile(plot_file_name).exists());
 		IS_TRUE(QFile(plot_file_name).size()>0);
+
+		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/regular_histogram_test.png"));
 	}
 
 	TEST_METHOD(create_combined_histogram)
@@ -106,6 +112,8 @@ private:
 
 		IS_TRUE(QFile(plot_file_name).exists());
 		IS_TRUE(QFile(plot_file_name).size()>0);
+
+		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/combined_histogram_test.png"));
 	}
 
 	TEST_METHOD(create_barplot)
@@ -118,7 +126,7 @@ private:
 		BarPlot test_plot;
 		test_plot.setXLabel("base change");
 		test_plot.setYLabel("count");
-		test_plot.setYRange(-ymax*0.02,ymax*1.2);
+		test_plot.setYRange(0,ymax*1.2);
 		test_plot.setXRange(-1.5,nuc_changes.count()+0.5);
 		test_plot.setValues(counts, nuc_changes, colors);
 
@@ -165,7 +173,7 @@ private:
 		BarPlot test_plot2;
 		test_plot2.setXLabel("x axis");
 		test_plot2.setYLabel("count");
-		test_plot2.setYRange(-ymax*0.02,ymax*1.2);
+		test_plot2.setYRange(0,ymax*1.2);
 		test_plot2.setXRange(-1.5,frequencies.count()+0.5);
 		test_plot2.setValues(frequencies, labels, colors);
 
@@ -174,6 +182,8 @@ private:
 
 		IS_TRUE(QFile(plot_file_name2).exists());
 		IS_TRUE(QFile(plot_file_name2).size()>0);
+
+		COMPARE_PNG_FILES(plot_file_name2, TESTDATA("data_out/barplot_test2.png"));
 	}
 
 };
