@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2025_12-187 (20.04.2026)
+
+- general: replaced PMIDs in GSvar file by LitVar2 search in context menu of variants
+- gene tab: now sorts HPO terms according to relevance now
+
 ## 2025_12-139 (03.03.2026)
 
 - general: relevant transcripts are used where preferred transcripts were used before (we have MANE transcripts now and thus preferred transcripts are not longer needed for many genes)
@@ -1201,3 +1206,5 @@
 --
 
 [back to main page](index.md)
+
+
