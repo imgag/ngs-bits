@@ -30,12 +30,12 @@ ngs-bits depends on the following software to be installed
 * _XCode_
 * _qmake_ (Qt 6)
 * _git_ (to extract the version hash)
-* __optional:__ python and matplotlib (for plot generation in QC tools)
+* __optional:__ python (for server scripts)
 * home brew (to install other dependencies)
 
 This documentation assumes that you install dependencies using _Brew_. First of all, you are going to need Qt.
 
-	> brew install qt python@3.10 lzlib pkg-config libxml2 qt-mariadb
+	> brew install qt lzlib pkg-config libxml2 qt-mariadb
 
 If you want to develop under MacOS, you need to install Qt Creator IDE:
 

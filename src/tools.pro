@@ -6,7 +6,6 @@ SUBDIRS = cppCORE\
         cppXML \
         cppNGS \
         cppNGSD
-
 cppXML.depends = cppCORE
 cppNGS.depends = cppXML
 cppNGSD.depends = cppNGS
