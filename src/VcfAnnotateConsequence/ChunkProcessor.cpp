@@ -82,6 +82,7 @@ void ChunkProcessor::run()
 
 QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const ChromosomalIndex<TranscriptList>& transcript_index)
 {
+
 	//split line and extract variant infos
 	QList<QByteArray> parts = line.split('\t');
 	if (parts.count()<VcfFile::MIN_COLS)
@@ -98,7 +99,7 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 		{
 			if (p.startsWith("SOURCE_VAR"))
 			{
-				QByteArrayList var_parts = p.split('=')[1].split('&');
+				QByteArrayList var_parts = p.split('=')[1].split('_');
 				Var source_var;
 
 				source_var.chr = var_parts[0];
@@ -176,7 +177,7 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 				try
 				{
 					variant.setSingleAlt(alt_part);
-					VariantConsequence hgvs = hgvs_anno_.annotate(t, variant);
+					VariantConsequence hgvs = hgvs_anno_.annotate(t, variant, true);
 					consequences << hgvsNomenclatureToString(csqAllele(v.ref, alt_part), hgvs, t);
 				}
 				catch(Exception& e)

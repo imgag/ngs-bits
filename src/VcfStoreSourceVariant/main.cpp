@@ -81,13 +81,13 @@ public:
 
 			//handle multiallelic sites
 			QByteArrayList alts = parts[VcfFile::ALT].split(',');
-			QByteArray new_infos = "SOURCE_VAR=" + parts[VcfFile::CHROM] + "&" + parts[VcfFile::POS] + "&" + parts[VcfFile::REF] + "&" + alts[0];
+			QByteArray new_infos = "SOURCE_VAR=" + parts[VcfFile::CHROM] + "_" + parts[VcfFile::POS] + "_" + parts[VcfFile::REF] + "_" + alts[0];
 
 			if (alts.count() > 1)
 			{
 				for (int i = 1; i < alts.count(); i++)
 				{
-					new_infos.append("," + parts[VcfFile::CHROM] + "&" + parts[VcfFile::POS] + "&" + parts[VcfFile::REF] + "&" + alts[i]);
+					new_infos.append("," + parts[VcfFile::CHROM] + "_" + parts[VcfFile::POS] + "_" + parts[VcfFile::REF] + "_" + alts[i]);
 				}
 			}
 

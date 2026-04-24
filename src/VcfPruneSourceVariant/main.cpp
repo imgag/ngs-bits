@@ -77,7 +77,7 @@ public:
 			//check for multiallelic variants
 			if (parts[VcfFile::ALT].contains(",")) THROW(ToolFailedException , "Found multiallelic variant at position '" + parts[VcfFile::POS] + "'. Multiallelic variants are not supported by this tool!");
 
-			QByteArray variant = parts[VcfFile::CHROM] + "&" + parts[VcfFile::POS] + "&" + parts[VcfFile::REF] + "&" + parts[VcfFile::ALT];
+			QByteArray variant = parts[VcfFile::CHROM] + "_" + parts[VcfFile::POS] + "_" + parts[VcfFile::REF] + "_" + parts[VcfFile::ALT];
 			QByteArray info = parts[VcfFile::INFO];
 
 			//get annotated source variant and remove if identical with variant
@@ -100,7 +100,7 @@ public:
 						else
 						{
 							//Check if new variant came from left normalize
-							QByteArrayList sv = source_variant.split('&');
+							QByteArrayList sv = source_variant.split('_');
 							if (sv.count() != 4) { new_infos.append(p); continue; }
 
 							Chromosome chr = sv[0];
