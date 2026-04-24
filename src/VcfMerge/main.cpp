@@ -28,7 +28,7 @@ public:
         //optional
         addOutfile("out", "Output multi-sample VCF. If unset, writes to STDOUT.", true);
         addFlag("trio", "Enables trio mendelian error calculation. Expected sample order: child, father, mother.");
-        addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. For each 'in' file, a BAM file has to be provided in the same order.", true);
+		addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. If not given, no re-calling is performed. For each 'in' file, a BAM file has to be provided in the same order.", true);
         addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
         changeLog(2026, 3, 30, "Initial implementation.");
@@ -234,8 +234,8 @@ public:
         debug << "input file: " << data.filename << "\n";
         debug << "  variants skipped (wild-type): " << QByteArray::number(data.c_skipped_wt) << "\n";
         debug << "  variants loaded: " << QByteArray::number(data.tag_to_format.count()) << "\n";
-        debug << "    SNV: " << QByteArray::number(data.c_snv) << "\n";
-        debug << "    INDEL: " << QByteArray::number(data.c_indel) << "\n";
+		debug << "    SNVs: " << QByteArray::number(data.c_snv) << "\n";
+		debug << "    INDELs: " << QByteArray::number(data.c_indel) << "\n";
         debug << "    mosaic: " << QByteArray::number(data.c_mosaic) << "\n";
         debug << "    low-mappability: " << QByteArray::number(data.c_low_mappability) << "\n";
         if (data.chrx_het_perc>=0)
@@ -254,6 +254,7 @@ public:
         BamReader reader(bam, ref_file);
         for (const VariantDetails& var: std::as_const(var_details))
         {
+			//skip called variants
             if (data.tag_to_format.contains(var.tag)) continue;
 
             Pileup pileup = reader.getPileup(var.chr, var.pos, (var.is_snv ? -1 : 1), -1, false, -1);
@@ -289,12 +290,15 @@ public:
 
                 //determine af
                 double freq = (double) count / (double) depth;
-                af = QByteArray::number(freq, 'f', 3);
-                if (depth>=10 || count>3)
-                {
-                    if (freq>0.9) gt = "1/1";
-                    else if (freq>0.1) gt = "0/1";
-                }
+				if (BasicStatistics::isValidFloat(freq))
+				{
+					af = QByteArray::number(freq, 'f', 3);
+					if (depth>=10 || count>3)
+					{
+						if (freq>0.9) gt = "1/1";
+						else if (freq>0.1) gt = "0/1";
+					}
+				}
             }
             else if (var.alt.size()==1) //deletion
             {
@@ -308,12 +312,15 @@ public:
 
                 //determine af
                 double freq = (double) count / (double) depth;
-                af = QByteArray::number(freq, 'f', 3);
-                if (depth>=10 || count>3)
-                {
-                    if (freq>0.9) gt = "1/1";
-                    else if (freq>0.1) gt = "0/1";
-                }
+				if (BasicStatistics::isValidFloat(freq))
+				{
+					if (depth>0) af = QByteArray::number(freq, 'f', 3);
+					if (depth>=10 || count>3)
+					{
+						if (freq>0.9) gt = "1/1";
+						else if (freq>0.1) gt = "0/1";
+					}
+				}
             }
 
             //flag added variants
@@ -327,9 +334,7 @@ public:
 
             data.tag_to_format[var.tag] = FormatData{gt, dp, af, ".", ".", ct};
         }
-        debug << "  added variants: " << c_added << "\n";
-        debug << "    SNV: " << c_added_snv << "\n";
-        debug << "    INDEL: " << c_added_indel << "\n";
+		debug << "  added uncalled variants: " << c_added << " (SNVs: " << c_added_snv << " INDELs: " << c_added_indel << ")\n";
         debug << Qt::endl;
     }
 
@@ -410,7 +415,7 @@ public:
         //write variants
         for(const VariantDetails& v: std::as_const(var_details))
         {
-            out_p->write(v.tag + "\t30\tPASS\t.\tGT:DP:AF:GQ:PS:CT");
+			out_p->write(v.tag + "\t.\tPASS\t.\tGT:DP:AF:GQ:PS:CT");
             for(const VcfData& entry: std::as_const(data))
             {
                 FormatData format = entry.tag_to_format.value(v.tag);
@@ -427,8 +432,8 @@ public:
         debug << "output:\n";
         debug << "  variants written: " << QByteArray::number(var_details.count()) << "\n";
         int c_snv_out = std::count_if(var_details.begin(), var_details.end(), [](const VariantDetails &v) { return v.is_snv;});
-        debug << "    SNV: " << QByteArray::number(c_snv_out) << "\n";
-        debug << "    INDEL: " << QByteArray::number(var_details.count()-c_snv_out) << Qt::endl;
+		debug << "    SNVs: " << QByteArray::number(c_snv_out) << "\n";
+		debug << "    INDELs: " << QByteArray::number(var_details.count()-c_snv_out) << Qt::endl;
 
         //trio: determine mendelian error rate
         if (trio)
@@ -473,7 +478,7 @@ public:
 
         //timing output
         debug << "time loading VCFs: " << time_loading << "\n";
-        debug << "time re-calling variants: " << time_recalling << "\n";
+		if (!bam_files.isEmpty()) debug << "time re-calling variants: " << time_recalling << "\n";
         debug << "time writing output: " << time_writing << "\n";
     }
 };

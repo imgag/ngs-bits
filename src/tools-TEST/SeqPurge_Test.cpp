@@ -37,7 +37,7 @@ void fastqStatistics(QString fastq, QString out)
 
 	//output
 	QFile output(out);
-	if (!output.open(QIODevice::WriteOnly | QIODevice::Text))
+	if (!output.open(QIODevice::WriteOnly))
 	{
 		THROW(FileAccessException, "Cannot open FASTQ statistics output file '" + out + "'");
 	}

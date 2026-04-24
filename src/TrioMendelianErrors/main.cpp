@@ -25,9 +25,11 @@ public:
 		addOutfile("out", "Output text file. If unset, writes to STDOUT.", true);
 		addInt("min_dp", "Minimum depth in each sample.", true, 0);
 		addFloat("min_qual", "Minimum QUAL of variants.", true, 0.0);
+		addFlag("dot_as_wt", "Treat '.' in GT field as '0'.");
 		addFlag("debug", "Enable debug output");
 
 		//changelog
+		changeLog(2026,  4, 21, "Added parameter 'dot_as_wt'.");
 		changeLog(2025,  2, 18, "Initial version of the tool.");
 	}
 
@@ -40,14 +42,15 @@ public:
 		INVALID
 	};
 
-	Genotype genotype(const QByteArrayList& parts, int index)
+	Genotype genotype(const QByteArrayList& parts, int index, bool dot_as_wt)
 	{
 		QByteArray format = parts[index];
 		int i_sep = format.indexOf(':');
-		QByteArray gt = format.left(i_sep);
+		QByteArray gt = i_sep==-1 ? format : format.left(i_sep);
 
 		//normalize
 		gt.replace('|', '/');
+		if (dot_as_wt) gt.replace('.', '0');
 
 		//convert
 		if (gt=="1/1") return Genotype::HOM;
@@ -79,6 +82,7 @@ public:
 		int min_dp = getInt("min_dp");
 		double min_qual = getFloat("min_qual");
 		bool debug = getFlag("debug");
+		bool dot_as_wt = getFlag("dot_as_wt");
 
 		//column indices
 		int i_format = VcfFile::FORMAT;
@@ -87,8 +91,10 @@ public:
 		int i_m = -1;
 
 		//output counts
-		int c_vars_checked = 0;
-		int c_vars_mer = 0;
+		int c_vars_checked_snv = 0;
+		int c_vars_checked_indel = 0;
+		int c_vars_mer_snv = 0;
+		int c_vars_mer_indel = 0;
 		int c_skip_not_autosome = 0;
 		int c_skip_multiallelic = 0;
 		int c_skip_depth_low = 0;
@@ -127,8 +133,7 @@ public:
 			}
 
 			//check that FORMAT is ok
-			if (!parts[i_format].startsWith("GT:")) THROW(FileParseException, "Invalid FORMAT column! GT is not first entry: '" + parts[i_format] + "'!");
-
+			if (parts[i_format]!="GT" && !parts[i_format].startsWith("GT:")) THROW(FileParseException, "Invalid FORMAT column! GT is not first entry: '" + parts[i_format] + "'!");
 
 			//only variants on autosomes
 			if (!Chromosome(parts[0]).isAutosome())
@@ -188,9 +193,9 @@ public:
 			}
 
 			//determine genotypes
-			Genotype gt_c = genotype(parts, i_c);
-			Genotype gt_f = genotype(parts, i_f);
-			Genotype gt_m = genotype(parts, i_m);
+			Genotype gt_c = genotype(parts, i_c, dot_as_wt);
+			Genotype gt_f = genotype(parts, i_f, dot_as_wt);
+			Genotype gt_m = genotype(parts, i_m, dot_as_wt);
 			if (gt_c==Genotype::UNKNOWN || gt_f==Genotype::UNKNOWN || gt_m==Genotype::UNKNOWN)
 			{
 				++c_skip_genotype_unknown;
@@ -202,17 +207,25 @@ public:
 				continue;
 			}
 
-			//perform emndelian error check
-			++c_vars_checked;
+			//perform mendelian error check
+			bool is_snv = parts[VcfFile::REF].length()==1 && parts[VcfFile::ALT].length()==1;
+			if (is_snv) ++c_vars_checked_snv;
+			else ++c_vars_checked_indel;
 
 			//hom, hom => het/wt
-			if (gt_f==Genotype::HOM && gt_m==Genotype::HOM && gt_c!=Genotype::HOM) ++c_vars_mer;
+			bool error = false;
+			if (gt_f==Genotype::HOM && gt_m==Genotype::HOM && gt_c!=Genotype::HOM) error = true;
 			//hom, x => wt
-			else if ((gt_f==Genotype::HOM || gt_m==Genotype::HOM) && gt_c==Genotype::WT) ++c_vars_mer;
+			else if ((gt_f==Genotype::HOM || gt_m==Genotype::HOM) && gt_c==Genotype::WT) error = true;
 			//wt, x => hom
-			else if ((gt_f==Genotype::WT || gt_m==Genotype::WT) && gt_c==Genotype::HOM) ++c_vars_mer;
+			else if ((gt_f==Genotype::WT || gt_m==Genotype::WT) && gt_c==Genotype::HOM) error = true;
 			//wt, wt  => het/hom
-			else if (gt_f==Genotype::WT && gt_m==Genotype::WT && gt_c!=Genotype::WT) ++c_vars_mer;
+			else if (gt_f==Genotype::WT && gt_m==Genotype::WT && gt_c!=Genotype::WT) error = true;
+			if (error)
+			{
+				if (is_snv) ++c_vars_mer_snv;
+				else ++c_vars_mer_indel;
+			}
 		}
 
 		//output
@@ -232,8 +245,10 @@ public:
 		out->write("Skipped variants with invalid genotype: " + QByteArray::number(c_skip_genotype_invalid) + "\n");
 		out->write("\n");
 
-		out->write("Variants checked: " + QByteArray::number(c_vars_checked) + "\n");
-		out->write("Mendelian error rate: " + QByteArray::number(100.0*c_vars_mer/c_vars_checked, 'f', 2) + "%\n");
+		out->write("Variants checked: " + QByteArray::number(c_vars_checked_snv+c_vars_checked_indel) + " (SNVs: " + QByteArray::number(c_vars_checked_snv) +" InDels: " + QByteArray::number(c_vars_checked_indel) +")\n");
+		out->write("Mendelian error rate: " + QByteArray::number(100.0*(c_vars_mer_snv+c_vars_mer_indel)/(c_vars_checked_snv+c_vars_checked_indel), 'f', 2) + "%\n");
+		out->write("Mendelian error rate SNVs: " + QByteArray::number(100.0*c_vars_mer_snv/c_vars_checked_snv, 'f', 2) + "%\n");
+		out->write("Mendelian error rate InDels: " + QByteArray::number(100.0*c_vars_mer_indel/c_vars_checked_indel, 'f', 2) + "%\n");
 	}
 };
 

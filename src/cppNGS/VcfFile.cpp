@@ -408,7 +408,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	foreach(const VcfLine& v, vcf_lines_)
 	{
 		//normalize variants and set symbol for empty sequence
-		stream << v.chr().str() << "\t" << QByteArray::number(v.start()) << "\t" << v.ref() << "\t" << v.altString() << "\t" << v.id().join(';') << "\t" << QByteArray::number(v.qual());
+		stream << v.chr().str() << "\t" << QByteArray::number(v.start()) << "\t" << v.ref() << "\t" << v.altString() << "\t" << v.id().join(';') << "\t" << (v.qual()<0 ? "." :QByteArray::number(v.qual()));
 		if(v.filters().isEmpty())
 		{
 			stream << "\t.";

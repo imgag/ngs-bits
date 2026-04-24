@@ -3,5 +3,7 @@ Skipped variants with multi-allelic alt: 529
 Skipped variants with (partially) unknown genotype: 3524
 Skipped variants with invalid genotype: 0
 
-Variants checked: 43796
+Variants checked: 43796 (SNVs: 39300 InDels: 4496)
 Mendelian error rate: 4.02%
+Mendelian error rate SNVs: 3.42%
+Mendelian error rate InDels: 9.23%
