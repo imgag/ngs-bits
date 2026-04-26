@@ -5,7 +5,7 @@
 ##FORMAT=<ID=AF,Number=1,Type=Float,Description="Allele frequency of variant.">
 ##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype quality.">
 ##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase set identifier.">
-##FORMAT=<ID=CT,Number=1,Type=String,Description="Special variant calling flag: MO=mosaic, LM=low-mappabilty, RC=added during re-calling">
+##FORMAT=<ID=CT,Number=1,Type=String,Description="Calling type flag: MO=mosaic calling, LM=low-mappabilty calling, RC=added during re-calling in VcfMerge.">
 ##SAMPLE=<ID=NA12878_58,Gender=female,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
 ##SAMPLE=<ID=NA12891_25,Gender=male,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
 ##SAMPLE=<ID=NA12892_28,Gender=female,ExternalSampleName=pos K,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>

@@ -40,4 +40,16 @@ private:
         COMPARE_FILES("out/VcfMerge_out3.vcf", TESTDATA("data_out/VcfMerge_out3.vcf"));
         VCF_IS_VALID("out/VcfMerge_out3.vcf");
     }
+
+	TEST_METHOD(trio_no_special_calls_qual20)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
+
+		EXECUTE("VcfMerge", "-trio -in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out4.vcf -no_special_calls -min_qual 20");
+		REMOVE_LINES("out/VcfMerge_out4.vcf", QRegularExpression("fileDate"));
+		COMPARE_FILES("out/VcfMerge_out4.vcf", TESTDATA("data_out/VcfMerge_out4.vcf"));
+		VCF_IS_VALID("out/VcfMerge_out4.vcf");
+	}
 };

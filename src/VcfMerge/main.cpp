@@ -28,9 +28,12 @@ public:
         //optional
         addOutfile("out", "Output multi-sample VCF. If unset, writes to STDOUT.", true);
         addFlag("trio", "Enables trio mendelian error calculation. Expected sample order: child, father, mother.");
+		addFlag("no_special_calls", "Ignores special variant calls in input VCF files (mosaic and low-mappabilty).");
+		addFloat("min_qual", "If set, ignores input variants with less than the given QUAL cutoff.", true, 0.0);
 		addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. If not given, no re-calling is performed. For each 'in' file, a BAM file has to be provided in the same order.", true);
         addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
+		changeLog(2026, 4, 26, "Added 'min_qual' and 'no_special_calls' parameters.");
         changeLog(2026, 3, 30, "Initial implementation.");
     }
 
@@ -85,10 +88,12 @@ public:
         int c_mosaic = 0; //mosaic variant count
         int c_low_mappability = 0; //low_mappability variant count
         int c_skipped_wt = 0; //variants skipped because they are wild-type
+		int c_skipped_qual = 0; //variants skipped because they have too low quality
+		int c_skipped_special = 0; //variants skipped because they are special calls
         int c_recall_no_wt = 0; //variants added during re-calling
     };
 
-    VcfData loadVcf(QString filename, QList<VariantDetails>& var_details, QHash<QByteArray, int>& var_tag_to_index)
+	VcfData loadVcf(QString filename, QList<VariantDetails>& var_details, QHash<QByteArray, int>& var_tag_to_index, double min_qual, bool no_special_calls)
     {
         //init
         VcfData output;
@@ -133,6 +138,18 @@ public:
                 const QByteArray& alt = parts[4];
                 if (alt.contains(',')) THROW(FileParseException, "Input file '" + filename + "' contains multi-allelic variant: "+line);
 
+				//filter by QUAL
+				if (min_qual>0)
+				{
+					bool ok = false;
+					double qual = parts[5].toDouble(&ok);
+					if (ok && qual<min_qual)
+					{
+						++output.c_skipped_qual;
+						continue;
+					}
+				}
+
                 //parse format data
                 QByteArrayList format_keys = parts[8].split(':');
                 int i_gt = format_keys.indexOf("GT");
@@ -158,25 +175,12 @@ public:
                 if (gt!="0/1" && gt!="1/1") THROW(FileParseException, "Input file '" + filename + "' has invalid unsupported 'GT' format: " +line);
 
                 //determine variant type
-                const QByteArray& ref = parts[3];
-                bool is_snv = ref.length()==1 && alt.length()==1;
-                if (is_snv) ++output.c_snv;
-                else ++output.c_indel;
+				const QByteArray& ref = parts[3];
+				bool is_snv = ref.length()==1 && alt.length()==1;
 
-                //get index of variant in list
+				//get chr/pos
                 Chromosome chr(parts[0]);
-                int pos = Helper::toInt(parts[1], "variant position");
-
-                QByteArray tag = chr.strNormalized(true)+'\t'+parts[1]+"\t.\t"+ref+'\t'+alt;
-                VariantDetails details{chr, pos, ref, alt, is_snv, tag};
-                int index = var_tag_to_index.value(tag, -1);
-
-                //no index > insert variant to list
-                if (index==-1)
-                {
-                    var_details << details;
-                    var_tag_to_index.insert(tag, var_details.count()-1);
-                }
+				int pos = Helper::toInt(parts[1], "variant position");
 
                 //determine FORMAT data
                 FormatData format;
@@ -198,17 +202,43 @@ public:
                 std::for_each(filters.begin(), filters.end(), [](QByteArray& x) { x = x.trimmed(); });
                 if (filters.contains("low_mappability"))
                 {
+					if (no_special_calls)
+					{
+						++output.c_skipped_special;
+						continue;
+					}
                     format.ct ="LM";
                     ++output.c_low_mappability;
                 }
                 if (filters.contains("mosaic"))
                 {
-                    format.ct ="MO";
+					if (no_special_calls)
+					{
+						++output.c_skipped_special;
+						continue;
+					}
+					format.ct ="MO";
                     ++output.c_mosaic;
                 }
-                output.tag_to_format.insert(tag, format);
 
-                //determine heterozygous SNV percentage on chrX (for gender)
+				//add variant format data
+				QByteArray tag = chr.strNormalized(true)+'\t'+parts[1]+"\t.\t"+ref+'\t'+alt;
+				output.tag_to_format.insert(tag, format);
+
+				//insert variant to merged variant list if encountered first time
+				int index = var_tag_to_index.value(tag, -1);
+				if (index==-1)
+				{
+					var_details << VariantDetails{chr, pos, ref, alt, is_snv, tag};
+					var_tag_to_index.insert(tag, var_details.count()-1);
+				}
+
+				//statistics: count variant types
+				if (is_snv) ++output.c_snv;
+				else ++output.c_indel;
+
+
+				//statistics: determine heterozygous SNV percentage on chrX (for gender)
                 if (chr.isX() && is_snv && format.ct==".")
                 {
                     if (!NGSHelper::pseudoAutosomalRegion(GenomeBuild::HG38).overlapsWith(chr, pos, pos))
@@ -233,6 +263,8 @@ public:
     {
         debug << "input file: " << data.filename << "\n";
         debug << "  variants skipped (wild-type): " << QByteArray::number(data.c_skipped_wt) << "\n";
+		debug << "  variants skipped (low qualuty): " << QByteArray::number(data.c_skipped_qual) << "\n";
+		debug << "  variants skipped (special calls): " << QByteArray::number(data.c_skipped_special) << "\n";
         debug << "  variants loaded: " << QByteArray::number(data.tag_to_format.count()) << "\n";
 		debug << "    SNVs: " << QByteArray::number(data.c_snv) << "\n";
 		debug << "    INDELs: " << QByteArray::number(data.c_indel) << "\n";
@@ -350,6 +382,8 @@ public:
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
         QTextStream debug(out.isEmpty() ? stderr : stdout);
         bool trio = getFlag("trio");
+		bool no_special_calls = getFlag("no_special_calls");
+		double min_qual = getFloat("min_qual");
         QStringList bam_files = getInfileList("bam");
         if (!bam_files.isEmpty() && bam_files.count()!=in_files.count()) THROW(ArgumentException, "Number of 'bam' files has to be the same as the number 'in' files!");
         QString ref_file = getInfile("ref");
@@ -369,7 +403,7 @@ public:
         foreach(QString in, in_files)
         {
             timer.start();
-            data << loadVcf(in, var_details, var_tag_to_index);
+			data << loadVcf(in, var_details, var_tag_to_index, min_qual, no_special_calls);
             printSampleDetails(data.last(), debug);
         }
         time_loading = Helper::elapsedTime(timer.restart());
@@ -390,7 +424,7 @@ public:
         out_p->write("##FORMAT=<ID=AF,Number=1,Type=Float,Description=\"Allele frequency of variant.\">\n");
         out_p->write("##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype quality.\">\n");
         out_p->write("##FORMAT=<ID=PS,Number=1,Type=Integer,Description=\"Phase set identifier.\">\n");
-        out_p->write("##FORMAT=<ID=CT,Number=1,Type=String,Description=\"Special variant calling flag: MO=mosaic, LM=low-mappabilty, RC=added during re-calling\">\n");
+		out_p->write("##FORMAT=<ID=CT,Number=1,Type=String,Description=\"Calling type flag: MO=mosaic calling, LM=low-mappabilty calling, RC=added during re-calling in VcfMerge.\">\n");
         for(const VcfData& entry: std::as_const(data))
         {
             if (entry.sample_desc.isEmpty()) continue;
