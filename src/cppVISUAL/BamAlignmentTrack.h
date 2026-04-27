@@ -5,6 +5,7 @@
 #include "TrackData.h"
 #include "cppVISUAL_global.h"
 #include "TrackWidget.h"
+#include "RowPacker.h"
 
 #include <QSharedPointer>
 
@@ -47,7 +48,10 @@ private:
 	static QColor strandColor(bool is_reverse);
 	static QSize characterSize(QFont font);
 
-	QVector<int> row_idxes_;
+	// QVector<int> row_idxes_;
+	QHash<BamAlignmentWrapper, int> row_idxes_;
+	RowPacker row_packer_;
+
 	int num_rows_ = 1;
 
 	//utility function for mapping a \in [min_, max_] to [c, d]

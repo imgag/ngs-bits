@@ -41,6 +41,7 @@ SOURCES += \
     GenePanel.cpp \
     ChromosomePanel.cpp \
     PanelManager.cpp \
+    RowPacker.cpp \
     SharedData.cpp \
     TrackData.cpp \
     TrackGroup.cpp \
@@ -57,6 +58,7 @@ HEADERS += \
     GenePanel.h \
     ChromosomePanel.h \
     PanelManager.h \
+    RowPacker.h \
     SharedData.h \
     TrackData.h \
     TrackGroup.h \

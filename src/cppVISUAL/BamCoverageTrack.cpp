@@ -5,13 +5,13 @@
 
 static constexpr int TRACK_HEIGHT = 50;
 static constexpr int SPACING_BELOW = 4;
-static constexpr int MAX_REGION_LENGTH = 30'000;
 
 BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
 	max_coverage_ = 0;
-	coverage_.fill(BaseCoverage(), MAX_REGION_LENGTH);
+	int max_region_length = SharedData::settings().bam_max_region_len;
+	coverage_.fill(BaseCoverage(), max_region_length);
 }
 
 QSize BamCoverageTrack::sizeHint() const
@@ -22,8 +22,11 @@ QSize BamCoverageTrack::sizeHint() const
 
 void BamCoverageTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
 {
-	track_data_ = track_data;
-	connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
+	if(track_data)
+	{
+		track_data_ = track_data;
+		connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
+	}
 }
 
 void BamCoverageTrack::dataReady()
@@ -41,11 +44,13 @@ void BamCoverageTrack::storeCoverage()
 	const BedLine& region = SharedData::region();
 	if (region.length() > max_region_len || !track_data_) return;
 
-	const QVector<BamAlignment>& aligns = track_data_->getAlignments();
+	const QVector<BamAlignmentWrapper>& aligns = track_data_->getAlignments();
 
 	//store coverage
-	foreach (const BamAlignment& al, aligns)
+	// foreach (const BamAlignment& al, aligns)
+	for (int i =0; i < aligns.count(); ++i)
 	{
+		const BamAlignment& al = aligns[i].alignment;
 		if (al.end() < region.start()) continue;
 		if (al.start() > region.end()) continue;
 
@@ -84,7 +89,7 @@ void BamCoverageTrack::storeCoverage()
 			case 'G': case 'g': base_count = cov.g; break;
 			case 'T': case 't': base_count = cov.t; break;
 		}
-		cov.is_variant = (total_count - base_count >= 3) && (((double)base_count / total_count) < 0.8);
+		cov.is_variant = (((double)base_count / total_count) < 0.8);
 	}
 }
 
@@ -94,7 +99,8 @@ void BamCoverageTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	const BedLine& region = SharedData::region();
 	drawLabel(painter);
-	if (region.length() > MAX_REGION_LENGTH) drawZoomInText(painter);
+	int max_region_length = SharedData::settings().bam_max_region_len;
+	if (region.length() > max_region_length) drawZoomInText(painter);
 	else drawCoverage(painter);
 }
 

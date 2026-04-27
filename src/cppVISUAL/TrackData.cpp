@@ -35,13 +35,8 @@ void BamTrackData::updateData()
 	while (bam_reader_->getNextAlignment(al))
 	{
 		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment()) continue;
-		alignments_ << al;
+		alignments_ << BamAlignmentWrapper(al);
 	}
-
-	// std::sort(alignments_.begin(), alignments_.end(), [](const BamAlignment& a, const BamAlignment& b) {
-	// 	return a.start() < b.start();  // Compare the start positions of two alignments
-	// });
-
 	const BedLine& region = SharedData::region();
 	ref_seq_ = SharedData::genome().seq(region.chr(), region.start(), region.length());
 	emit onDataUpdate();

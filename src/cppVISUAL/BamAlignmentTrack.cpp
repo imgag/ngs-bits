@@ -3,8 +3,6 @@
 
 #include <QPainter>
 
-static int MAX_REGION_LENGTH = 30'000;
-
 BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
@@ -25,36 +23,23 @@ void BamAlignmentTrack::dataReady()
 
 void BamAlignmentTrack::calculateRows()
 {
-	row_idxes_.clear();
-	QVector<int> row_ends;
+	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
 
-	const QVector<BamAlignment>& alns = track_data_->getAlignments();
-
-	for (int i =0; i < alns.count(); ++i)
+	row_packer_.clear();
+	foreach (const BamAlignmentWrapper& w, alns)
 	{
-		int aln_start = alns[i].start();
-		int aln_end   = alns[i].end();
-
-		bool placed = false;
-
-		for (int row =0; row < row_ends.count(); ++row)
-		{
-			if (aln_start >= row_ends[row])
-			{
-				row_ends[row] = aln_end;
-				row_idxes_ << row;
-				placed = true;
-				break;
-			}
-		}
-
-		if (!placed)
-		{
-			row_ends.append(aln_end);
-			row_idxes_ << row_ends.count() - 1;
-		}
+		if (!row_idxes_.contains(w)) continue;
+		row_packer_.restore(row_idxes_[w], w.alignment.start(), w.alignment.end());
 	}
-	if (row_ends.count() > num_rows_) num_rows_ = row_ends.count();
+
+	foreach (const BamAlignmentWrapper& w, alns)
+	{
+		if (row_idxes_.contains(w)) continue;
+		int row = row_packer_.insert(w.alignment.start(), w.alignment.end());
+		row_idxes_[w] = row;
+	}
+
+	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
 }
 
 QSize BamAlignmentTrack::sizeHint() const
@@ -69,21 +54,22 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
 	const BedLine& region = SharedData::region();
-	if (region.length() > MAX_REGION_LENGTH) drawZoomInText(painter);
+	int max_region_len = SharedData::settings().bam_max_region_len;
+	if (region.length() > max_region_len) drawZoomInText(painter);
 	else
 	{
 		int label_width = SharedData::settings().label_width;
 		int total_width = width() - label_width - 4;
 		int x0 = label_width + 2;
 
-		const QVector<BamAlignment>& alns = track_data_->getAlignments();
+		const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
 		for (int i =0; i < alns.size(); ++i)
 		{
-			const BamAlignment& al = alns[i];
+			const BamAlignment& al = alns[i].alignment;
 			if (al.end() < region.start()) continue;
 			if (al.start() > region.end()) continue;
 
-			int row_y = row_idxes_[i] * (ROW_HEIGHT + ROW_PADDING);
+			int row_y = row_idxes_[alns[i]] * (ROW_HEIGHT + ROW_PADDING);
 			drawAlignment(painter, al, row_y, x0, total_width);
 			drawVariants(painter, al, row_y, x0, total_width);
 		}
@@ -187,13 +173,15 @@ void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignment& al, 
 		if (idx < 0 || idx >= region.length()) continue;
 
 		char ref_base = seq[idx] | 32;
-		char base = al.extractBaseByCIGAR(pos).first | 32;
+		auto [base, qual] = al.extractBaseByCIGAR(pos);
+		base = base | 32;
 		if (ref_base != base && base != '-')
 		{
 			int x_start = x0 + (int)((float)idx / scale);
 			int endX = x0 + (int)((float)(idx + 1) / scale);
 			int dX = std::max(1, endX - x_start);
 			QColor color = baseColor(base);
+			color = QColor(color.red(), color.green(), color.blue(), ((float)qual/40)*255);
 			QFont font = painter.font();
 			font.setPointSize(ROW_HEIGHT);
 			font.setBold(true);
