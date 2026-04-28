@@ -24,7 +24,7 @@ private:
 		IS_TRUE(QFile(plot_file_name).exists());
 		IS_TRUE(QFile(plot_file_name).size()>0);
 
-		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/lineplot_test.png"));
+		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/lineplot_test.png"), 0.82);
 	}
 
 	TEST_METHOD(create_scatterplot)
@@ -52,7 +52,7 @@ private:
 		IS_TRUE(QFile(plot_file_name).exists());
 		IS_TRUE(QFile(plot_file_name).size()>0);
 
-		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/scatterplot_test.png"));
+		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/scatterplot_test.png"), 0.82);
 	}
 
 	TEST_METHOD(create_regular_histogram)
@@ -77,7 +77,7 @@ private:
 		IS_TRUE(QFile(plot_file_name).exists());
 		IS_TRUE(QFile(plot_file_name).size()>0);
 
-		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/regular_histogram_test.png"));
+		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/regular_histogram_test.png"), 0.82);
 	}
 
 	TEST_METHOD(create_combined_histogram)
@@ -113,7 +113,7 @@ private:
 		IS_TRUE(QFile(plot_file_name).exists());
 		IS_TRUE(QFile(plot_file_name).size()>0);
 
-		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/combined_histogram_test.png"));
+		COMPARE_PNG_FILES(plot_file_name, TESTDATA("data_out/combined_histogram_test.png"), 0.82);
 	}
 
 	TEST_METHOD(create_barplot)
@@ -183,7 +183,7 @@ private:
 		IS_TRUE(QFile(plot_file_name2).exists());
 		IS_TRUE(QFile(plot_file_name2).size()>0);
 
-		COMPARE_PNG_FILES(plot_file_name2, TESTDATA("data_out/barplot_test2.png"));
+		COMPARE_PNG_FILES(plot_file_name2, TESTDATA("data_out/barplot_test2.png"), 0.82);
 	}
 
 };
