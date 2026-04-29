@@ -1169,6 +1169,29 @@ CREATE TABLE IF NOT EXISTS `analysis_job_history`
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
+-- -----------------------------------------------------
+-- Table `analysis_time`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `analysis_time`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('single','multi','tumor-only', 'tumor-normal') NOT NULL,
+  `samples` VARCHAR(512) NOT NULL,
+  `processing_system_id` INT(11) NOT NULL,
+  `server` VARCHAR(100) NOT NULL,
+  `threads` INT(11) UNSIGNED NOT NULL,
+  `min` FLOAT UNSIGNED NOT NULL,
+  `datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `analysis_time_processing_system_id`
+    FOREIGN KEY (`processing_system_id`)
+    REFERENCES `processing_system` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
 -- Table `omim_gene`
