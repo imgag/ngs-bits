@@ -66,9 +66,15 @@ The screenshot below shows a 6Mb heterozygous deletion, indicated by the selecti
 
 If the analysis is a trio-analysis, UPDs are called in addition to ROHs using the [UpdHunter tool](https://github.com/imgag/ngs-bits/blob/master/doc/tools/UpdHunter.md).  
 
-In case UPDs are called, a dialog with the UPD type and locus is shown when opening the RE dialog.
-
-
+In case UPDs are called, a dialog with the UPD type and locus is shown when opening the RE dialog.  
+The followint information is show:
+- UPD coordinates
+- size_kb: UPD size in kilobases
+- size_markers: UPD size in SNVs
+- upd_markers: the number of markers that indicate a UPD
+- source: source of the UPD markers
+- het_percentage: percentage of markers with heterozygous genotype
+- q-score: quality of the UPD call (Phred-scaled)
 
 --
 

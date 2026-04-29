@@ -21,7 +21,7 @@ public:
 		//optional
 		addInfile("in", "Input BEDPE file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BEDPE file. If unset, writes to STDOUT.", true);
-		addInfile("bed", "BED file that is used as ROI.", true);
+		addInfile("bed", "BED file that is used as ROI. Only one of the SV breakpoint has to be in the target region!", true);
 
 		changeLog(2020, 6, 5, "Initial commit.");
 	}
@@ -73,7 +73,6 @@ public:
 
 		// write output
 		bedpe_file.store(out);
-
 	}
 
 };

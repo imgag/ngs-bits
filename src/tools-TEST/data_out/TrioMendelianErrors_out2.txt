@@ -5,5 +5,7 @@ Skipped variants for which no depth could be determined: 0
 Skipped variants with (partially) unknown genotype: 500
 Skipped variants with invalid genotype: 0
 
-Variants checked: 29721
+Variants checked: 29721 (SNVs: 26815 InDels: 2906)
 Mendelian error rate: 1.15%
+Mendelian error rate SNVs: 0.79%
+Mendelian error rate InDels: 4.47%

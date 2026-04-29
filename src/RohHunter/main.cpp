@@ -273,8 +273,12 @@ public:
 			int dp_value = v.formatValueFromSample("DP").toInt(&ok);
 			if (!ok) continue; //GENE_CONVERSION events from DRAGEN
 			if (dp_value < var_min_dp) continue;
-			int qual_value = v.qual();
-			if (qual_value < var_min_q) continue;
+			//filter by quality
+			if (var_min_q>0)
+			{
+				if (v.qual() < 0) THROW(ArgumentException, "Quality not available for variant " + v.toString(true));
+				if (v.qual()<var_min_q) continue;
+			}
 
 			//skip variants in exclude regions
 			if (exclude_index.matchingIndex(v.chr(), v.start(), v.end())!=-1)
