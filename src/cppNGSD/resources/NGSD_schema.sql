@@ -1177,8 +1177,9 @@ CREATE TABLE IF NOT EXISTS `analysis_time`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('single','multi','tumor-only', 'tumor-normal') NOT NULL,
-  `samples` VARCHAR(512) NOT NULL,
+  `samples` VARCHAR(512) NOT NULL COMMENT 'Space-separated string of processed sample names',
   `processing_system_id` INT(11) NOT NULL,
+  `dragen_used` BOOLEAN NOT NULL COMMENT 'Flag if DRAGEN was used for the primary data analysis',
   `server` VARCHAR(100) NOT NULL,
   `threads` INT(11) UNSIGNED NOT NULL,
   `min` FLOAT UNSIGNED NOT NULL,
