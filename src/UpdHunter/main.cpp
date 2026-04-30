@@ -1,7 +1,6 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "VariantList.h"
 #include "VcfFile.h"
 #include "BasicStatistics.h"
 #include <QTextStream>
@@ -215,7 +214,8 @@ public:
 		int skip_qual = 0;
 		int skip_dp = 0;
 		int skip_indel = 0;
-		int c_excluded = 0;
+		int skip_excluded = 0;
+		bool dp_format_exists = variants.vcfHeader().formatIdDefined("DP");
 
 		for (int i=0; i<variants.count(); ++i)
 		{
@@ -240,7 +240,7 @@ public:
 			}
 
 			//filter by depth
-			if(variants.vcfHeader().formatIdDefined("DP"))
+			if(dp_format_exists)
 			{
 				QByteArray tmp = v.formatValueFromSample("DP", c);
 
@@ -285,7 +285,7 @@ public:
 			{
 				entry.type = EXCLUDED;
 				entry.source = NONE;
-				++c_excluded;
+				++skip_excluded;
 			}
 			else
 			{
@@ -294,11 +294,11 @@ public:
 			output << entry;
 		}
         stream << "Loaded " << output.count() << " of " << variants.count() << " variants" << Qt::endl;
-        stream << "Skipped " << skip_chr << " variants not on autosomes" << Qt::endl;
-        stream << "Skipped " << skip_qual << " variants because of low quality (<" << var_min_q << ")" << Qt::endl;
-        stream << "Skipped " << skip_dp << " variants because of low depth (<" << var_min_dp << ")" << Qt::endl;
-        stream << "Skipped " << skip_indel << " indels" << Qt::endl;
-        stream << "Excluded " << c_excluded << " variants" << Qt::endl;
+		stream << "  Skipped " << skip_chr << " variants not on autosomes" << Qt::endl;
+		stream << "  Skipped " << skip_qual << " variants because of low quality (<" << var_min_q << ")" << Qt::endl;
+		stream << "  Skipped " << skip_dp << " variants because of low depth (<" << var_min_dp << ")" << Qt::endl;
+		stream << "  Skipped " << skip_indel << " indels" << Qt::endl;
+		stream << "  Skipped " << skip_excluded << " variants in exclude region." << Qt::endl;
 
 		return output;
 	}

@@ -32,7 +32,9 @@ public:
 		addFloat("min_qual", "If set, ignores input variants with less than the given QUAL cutoff.", true, 0.0);
 		addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. If not given, no re-calling is performed. For each 'in' file, a BAM file has to be provided in the same order.", true);
         addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addFlag("no_genotype_correction", "Do not perform genotype correction during re-calling..");
 
+		changeLog(2026, 4, 30, "Added 'no_genotype_correction' parameter.");
 		changeLog(2026, 4, 26, "Added 'min_qual' and 'no_special_calls' parameters.");
         changeLog(2026, 3, 30, "Initial implementation.");
     }
@@ -277,7 +279,7 @@ public:
         debug << Qt::endl;
     }
 
-    void recallVariants(QString bam, QString ref_file, VcfData& data, const QList<VariantDetails>& var_details, QTextStream& debug)
+	void recallVariants(QString bam, QString ref_file, VcfData& data, const QList<VariantDetails>& var_details, bool no_genotype_correction, QTextStream& debug)
     {
         debug << "Re-calling of variants for sample " << data.sample << "\n";
         int c_added = 0;
@@ -303,11 +305,14 @@ public:
                 if (BasicStatistics::isValidFloat(freq))
                 {
                     af = QByteArray::number(freq, 'f', 3);
-                    if (depth>=10 || pileup.countOf(var.alt[0])>3)
-                    {
-                        if (freq>0.9) gt = "1/1";
-                        else if (freq>0.1) gt = "0/1";
-                    }
+					if (!no_genotype_correction)
+					{
+						if (depth>=10 || pileup.countOf(var.alt[0])>3)
+						{
+							if (freq>0.9) gt = "1/1";
+							else if (freq>0.1) gt = "0/1";
+						}
+					}
                 }
             }
             else if (var.ref.size()==1) //insertion
@@ -325,10 +330,13 @@ public:
 				if (BasicStatistics::isValidFloat(freq))
 				{
 					af = QByteArray::number(freq, 'f', 3);
-					if (depth>=10 || count>3)
+					if (!no_genotype_correction)
 					{
-						if (freq>0.9) gt = "1/1";
-						else if (freq>0.1) gt = "0/1";
+						if (depth>=10 || count>3)
+						{
+							if (freq>0.9) gt = "1/1";
+							else if (freq>0.1) gt = "0/1";
+						}
 					}
 				}
             }
@@ -347,10 +355,13 @@ public:
 				if (BasicStatistics::isValidFloat(freq))
 				{
 					if (depth>0) af = QByteArray::number(freq, 'f', 3);
-					if (depth>=10 || count>3)
+					if (!no_genotype_correction)
 					{
-						if (freq>0.9) gt = "1/1";
-						else if (freq>0.1) gt = "0/1";
+						if (depth>=10 || count>3)
+						{
+							if (freq>0.9) gt = "1/1";
+							else if (freq>0.1) gt = "0/1";
+						}
 					}
 				}
             }
@@ -386,7 +397,8 @@ public:
 		double min_qual = getFloat("min_qual");
         QStringList bam_files = getInfileList("bam");
         if (!bam_files.isEmpty() && bam_files.count()!=in_files.count()) THROW(ArgumentException, "Number of 'bam' files has to be the same as the number 'in' files!");
-        QString ref_file = getInfile("ref");
+		bool no_genotype_correction = getFlag("no_genotype_correction");
+		QString ref_file = getInfile("ref");
         if (ref_file=="") ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
@@ -411,7 +423,7 @@ public:
         //re-calling of uncalled variants
         for (int i=0; i<bam_files.count(); ++i)
         {
-            recallVariants(bam_files[i], ref_file, data[i], var_details, debug);
+			recallVariants(bam_files[i], ref_file, data[i], var_details, no_genotype_correction, debug);
         }
         time_recalling = Helper::elapsedTime(timer.restart());
 
