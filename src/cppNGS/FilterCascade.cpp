@@ -2431,7 +2431,7 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 				QByteArrayList dps = part.mid(3).split(',');
 				for (const QByteArray& dp : std::as_const(dps))
 				{
-					if (dp=='.') continue;
+					if (dp==".") continue;
 
 					if (dp.toInt()<depth) result.flags()[i] = false;
 				}
@@ -2441,7 +2441,7 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 				QByteArrayList gqs = part.mid(3).split(',');
 				for (const QByteArray& gq : std::as_const(gqs))
 				{
-					if (gq=='.') continue;
+					if (gq==".") continue;
 
 					if (gq.toInt()<min_gq) result.flags()[i] = false;
 				}
@@ -2451,7 +2451,7 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 				QByteArrayList afs = part.mid(3).split(',');
 				for (const QByteArray& af : std::as_const(afs))
 				{
-					if (af=='.') continue;
+					if (af==".") continue;
 
 					double af_num = af.toDouble();
 					if (min_af>0 && af_num < min_af) result.flags()[i] = false;
@@ -2463,7 +2463,7 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 				QByteArrayList cts = part.mid(3).split(',');
 				for (const QByteArray& ct : std::as_const(cts))
 				{
-					if (ct=='.') continue;
+					if (ct==".") continue;
 
 					result.flags()[i] = false;
 				}
