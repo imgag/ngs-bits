@@ -105,7 +105,7 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	return output;
 }
 
-FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) const
+FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(int job_id) const
 {
 	RequestUrlParams params;
 	params.insert("job_id", QString::number(job_id).toUtf8());
@@ -127,7 +127,7 @@ FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) cons
 	return FileInfo();
 }
 
-FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) const
+FileLocation DatabaseServiceRemote::analysisJobGSvarFile(int job_id) const
 {
 	RequestUrlParams params;
 	params.insert("job_id", QString::number(job_id).toUtf8());
@@ -148,7 +148,7 @@ FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) cons
 	return FileLocation{};
 }
 
-FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
+FileLocation DatabaseServiceRemote::analysisJobLogFile(int job_id) const
 {
 	RequestUrlParams params;
 	params.insert("job_id", QString::number(job_id).toUtf8());

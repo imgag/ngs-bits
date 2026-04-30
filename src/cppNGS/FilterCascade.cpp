@@ -757,7 +757,7 @@ void FilterCascade::store(QString filename)
 QStringList FilterCascade::toText()
 {
 	QStringList lines;
-    for (QSharedPointer<FilterBase> filter : filters_)
+	for (const QSharedPointer<FilterBase>& filter : std::as_const(filters_))
 	{
 		QStringList params;
         for (const FilterParameter& param : filter->parameters())
@@ -818,7 +818,7 @@ QStringList FilterCascadeFile::names(QString filename)
 {
 	QStringList output;
 
-    for (QString line : Helper::loadTextFile(filename, true, QChar::Null, true))
+	for (const QString& line : Helper::loadTextFile(filename, true, QChar::Null, true))
 	{
 		if (line.startsWith("#"))
 		{
@@ -836,7 +836,7 @@ FilterCascade FilterCascadeFile::load(QString filename, QString filter)
 	//extract text of filter
 	QStringList filter_text;
 	bool in_filter = false;
-    for (const QString& line : filter_file)
+	for (const QString& line : std::as_const(filter_file))
 	{
 		if (line.startsWith("#"))
 		{
@@ -1087,7 +1087,7 @@ void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
 
 			GeneSet var_genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 			bool match_found = false;
-            for (const QByteArray& var_gene : var_genes)
+			for (const QByteArray& var_gene : std::as_const(var_genes))
 			{
                 if (reg.match(var_gene).hasMatch())
 				{
@@ -1279,7 +1279,7 @@ void FilterSubpopulationAlleleFrequency::apply(const VariantList& variants, Filt
 		if (!result.flags()[i]) continue;
 
 		QByteArrayList parts = variants[i].annotations()[i_gnomad].split(',');
-        for (const QByteArray& part : parts)
+		for (const QByteArray& part : std::as_const(parts))
 		{
 			if (part.toDouble()>max_af)
 			{
@@ -1323,7 +1323,7 @@ void FilterVariantImpact::apply(const VariantList& variants, FilterResult& resul
 		if (!result.flags()[i]) continue;
 
 		bool pass_impact = false;
-        for (const QByteArray& impact : impacts)
+		for (const QByteArray& impact : std::as_const(impacts))
 		{
 			if (variants[i].annotations()[i_co_sp].contains(impact))
 			{
@@ -1388,7 +1388,7 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 			if (!result.flags()[i]) continue;
 
 			bool var_is_hom = false;
-            for (int index : geno_indices)
+			for (int index : std::as_const(geno_indices))
 			{
 				const QByteArray& var_geno = variants[i].annotations()[index];
 				if (var_geno=="hom")
@@ -1578,17 +1578,17 @@ void FilterGeneInheritance::apply(const VariantList& variants, FilterResult& res
 		//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a)
 		QByteArrayList genes = variants[i].annotations()[i_geneinfo].split(',');
 		bool any_gene_passed = false;
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 			int start = gene.indexOf('(');
 			if (start==-1) continue; //no infos > skip
 			QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-            for (const QByteArray& entry : entries)
+			for (const QByteArray& entry : std::as_const(entries))
 			{
 				if (entry.startsWith("inh="))
 				{
 					QStringList modes = QString(entry.mid(4)).split('+');
-                    for (const QString& mode : modes)
+					for (const QString& mode : std::as_const(modes))
 					{
 						if (modes_passing.contains(mode))
 						{
@@ -1704,7 +1704,7 @@ void FilterGenotypeControl::apply(const VariantList& variants, FilterResult& res
 		}
 		else
 		{
-            for (int index : geno_indices)
+			for (int index : std::as_const(geno_indices))
 			{
 				QString geno = variants[i].annotations()[index];
 				if (!genotypes.contains(geno))
@@ -1797,7 +1797,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 			}
 			else
 			{
-                for (int index : geno_indices)
+				for (int index : std::as_const(geno_indices))
 				{
 					QString geno = variants[i].annotations()[index];
 					if (!genotypes.contains(geno))
@@ -1835,7 +1835,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 			if (geno_all=="het")
 			{
 				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
-                for (const QByteArray& gene : genes)
+				for (const QByteArray& gene : std::as_const(genes))
 				{
 					//init hash:
 					if (!gene_to_het_phase1.contains(gene.trimmed())) gene_to_het_phase1[gene.trimmed()] = 0;
@@ -1882,7 +1882,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 			if (geno_all=="het")
 			{
 				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
-                for (const QByteArray& gene : genes)
+				for (const QByteArray& gene : std::as_const(genes))
 				{
 					if (genotypes.contains("comp-het"))
 					{
@@ -2311,19 +2311,19 @@ void FilterVariantType::apply(const VariantList& variants, FilterResult& result)
 	if (!enabled_) return;
 
 	QByteArrayList types;
-    for (QString type : getStringList("HIGH"))
+	for (const QString& type : getStringList("HIGH"))
 	{
 		types.append(type.trimmed().toUtf8());
 	}
-    for (QString type : getStringList("MODERATE"))
+	for (const QString& type : getStringList("MODERATE"))
 	{
 		types.append(type.trimmed().toUtf8());
 	}
-    for (QString type : getStringList("LOW"))
+	for (const QString& type : getStringList("LOW"))
 	{
 		types.append(type.trimmed().toUtf8());
 	}
-    for (QString type : getStringList("MODIFIER"))
+	for (const QString& type : getStringList("MODIFIER"))
 	{
 		types.append(type.trimmed().toUtf8());
 	}
@@ -2351,126 +2351,122 @@ void FilterVariantType::apply(const VariantList& variants, FilterResult& result)
 FilterVariantQC::FilterVariantQC()
 {
 	name_ = "Variant quality";
-	description_ = QStringList() << "Filter for variant quality";
-	params_ << FilterParameter("qual", FilterParameterType::INT, 250, "Minimum variant quality score (Phred)");
+	description_ = QStringList() << "Filter variant quality column.";
+	params_ << FilterParameter("apply_to", FilterParameterType::STRING, "all", "Apply the filters to the given variant type only.");
+	params_.last().constraints["valid"] = "all,SNV,INDEL";
+	params_ << FilterParameter("qual", FilterParameterType::INT, 20, "Minimum variant quality score (QUAL). Set to 0 to disable filter.");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("depth", FilterParameterType::INT, 0, "Minimum depth");
+	params_ << FilterParameter("depth", FilterParameterType::INT, 0, "Minimum depth (DP). Set to 0 to disable filter.");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("mapq", FilterParameterType::INT, 40, "Minimum mapping quality of alternate allele (Phred)");
+	params_ << FilterParameter("min_gq", FilterParameterType::INT, 0, "Minimum genotype quality (GQ). Set to 0 to disable filter.");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("strand_bias", FilterParameterType::INT, 20, "Maximum strand bias Phred score of alternate allele (set -1 to disable)");
-	params_.last().constraints["min"] = "-1";
-	params_ << FilterParameter("allele_balance", FilterParameterType::INT, 40, "Maximum allele balance Phred score (set -1 to disable)");
-	params_.last().constraints["min"] = "-1";
-	params_ << FilterParameter("min_occurences", FilterParameterType::INT, 1, "Minimum occurences of the variant per strand");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimum allele frequency of the variant in the sample");
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimum allele frequency (AF) of the variant in the sample. Set to 0 to disable filter.");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency of the variant in the sample");
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency (AF) of the variant in the sample. Set to 1 to disable filter.");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("remove_special_calls", FilterParameterType::BOOL, false, "Remove special calls (CT), e.g. mosaic calls or low-mappability calls.");
 
 	checkIsRegistered();
 }
 
 QString FilterVariantQC::toText() const
 {
-	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false)) + " min_occurences&ge;" + QString::number(getInt("min_occurences", false)) + " min_af&ge;" + QString::number(getDouble("min_af", false)) + " max_af&le;" + QString::number(getDouble("max_af", false));
+	QString output = name();
+	QString apply_to = getString("apply_to", false);
+	if (apply_to!="all") output = apply_to + " quality";
+
+	int qual = getInt("qual", false);
+	if (qual>0) output += " qual&ge;" + QString::number(qual);
+	int depth = getInt("depth", false);
+	if (depth>0) output += " depth&ge;" + QString::number(depth);
+	int min_gq = getInt("min_gq", false);
+	if (min_gq>0) output += " min_gq&ge;" + QString::number(min_gq);
+	double min_af = getDouble("min_af", false);
+	if (min_af>0) output += " min_af&ge;" + QString::number(min_af);
+	double max_af = getDouble("max_af", false);
+	if (max_af<1) output += " max_af&le;" + QString::number(max_af);
+	bool remove_special_calls = getBool("remove_special_calls");
+	if (remove_special_calls) output += " remove_special_calls";
+
+	return output;
 }
 
 void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) const
 {
 	if (!enabled_) return;
 
+	QString apply_to = getString("apply_to");
 	int index = annotationColumn(variants, "quality");
 	int qual = getInt("qual");
 	int depth = getInt("depth");
-	int mapq = getInt("mapq");
-	int strand_bias = getInt("strand_bias");
-	int allele_balance = getInt("allele_balance");
+	int min_gq = getInt("min_gq");
 	double min_af = getDouble("min_af");
 	double max_af = getDouble("max_af");
-	int min_occ = getInt("min_occurences");
-
+	bool remove_special_calls = getBool("remove_special_calls");
 
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
+
+		if (apply_to=="SNV" && !variants[i].isSNV()) continue;
+		if (apply_to=="INDEL" && variants[i].isSNV()) continue;
+
 		QByteArrayList parts = variants[i].annotations()[index].split(';');
-        for (const QByteArray& part : parts)
+		for (const QByteArray& part : std::as_const(parts))
 		{
-			if (part.startsWith("QUAL="))
+			if (qual>0 && part.startsWith("QUAL=")) //one for single, none for multi-sample and trio
 			{
-				//also handle floats (should not be necessary, but floats were used due to a bug in the somatic single-sample pipeline)
-				QByteArray qual_str = part.mid(5);
+				QByteArray qual_str = part.mid(5).trimmed();
+				if (qual_str==".") continue;
+
+				//convert float to int (should not be necessary, but floats were used due to a bug in the somatic single-sample pipeline)
 				if (qual_str.contains('.')) qual_str = qual_str.left(qual_str.indexOf('.'));
 
-				if (qual_str.toInt()<qual)
-				{
-					result.flags()[i] = false;
-				}
+				if (qual_str.toInt()<qual) result.flags()[i] = false;
 			}
-			else if (part.startsWith("DP="))
+			else if (depth>0 && part.startsWith("DP=")) //multiple in case of multi-sample GSvar
 			{
-				if (!part.contains(',')) //single-sample analysis
+				QByteArrayList dps = part.mid(3).split(',');
+				for (const QByteArray& dp : std::as_const(dps))
 				{
-					if (part.mid(3).toInt()<depth)
-					{
-						result.flags()[i] = false;
-					}
-				}
-				else //multi-sample analysis (comma-separed depth values)
-				{
-					QByteArrayList dps = part.mid(3).split(',');
-                    for (const QByteArray& dp : dps)
-					{
-						if (dp.toInt()<depth)
-						{
-							result.flags()[i] = false;
-						}
-					}
+					if (dp=='.') continue;
+
+					if (dp.toInt()<depth) result.flags()[i] = false;
 				}
 			}
-			else if (part.startsWith("MQM="))
+			else if (min_gq>0 && part.startsWith("GQ=")) //multiple in case of multi-sample GSvar
 			{
-				if (part.mid(4).toInt()<mapq)
+				QByteArrayList gqs = part.mid(3).split(',');
+				for (const QByteArray& gq : std::as_const(gqs))
 				{
-					result.flags()[i] = false;
+					if (gq=='.') continue;
+
+					if (gq.toInt()<min_gq) result.flags()[i] = false;
 				}
 			}
-			else if (strand_bias>=0 && part.startsWith("SAP="))
-			{
-				if (part.mid(4).toInt()>strand_bias)
-				{
-					result.flags()[i] = false;
-				}
-			}
-			else if (allele_balance>=0 && part.startsWith("ABP="))
-			{
-				if (part.mid(4).toInt()>allele_balance)
-				{
-					result.flags()[i] = false;
-				}
-			}
-			else if (min_occ > 0 && (part.startsWith("SAR=") || part.startsWith("SAF=")))
-			{
-				if (part.mid(4).toInt() < min_occ)
-				{
-					result.flags()[i] = false;
-				}
-			}
-			else if ((min_af > 0 || max_af < 1) && part.startsWith("AF="))
+			else if ((min_af>0 || max_af<1) && part.startsWith("AF="))  //multiple in case of multi-sample GSvar
 			{
 				QByteArrayList afs = part.mid(3).split(',');
-				bool af_in_interval = false;
-                for (const QByteArray& entry : afs)
+				for (const QByteArray& af : std::as_const(afs))
 				{
-					double af = entry.toDouble();
-					if (af >= min_af && max_af >= af) af_in_interval = true;
+					if (af=='.') continue;
 
+					double af_num = af.toDouble();
+					if (min_af>0 && af_num < min_af) result.flags()[i] = false;
+					if (max_af<1 && af_num > max_af) result.flags()[i] = false;
 				}
-				if (!af_in_interval) result.flags()[i] = false;
+			}
+			else if (remove_special_calls && part.startsWith("CT=")) //multiple in case of multi-sample GSvar
+			{
+				QByteArrayList cts = part.mid(3).split(',');
+				for (const QByteArray& ct : std::as_const(cts))
+				{
+					if (ct=='.') continue;
+
+					result.flags()[i] = false;
+				}
 			}
 		}
 	}
@@ -2651,7 +2647,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 			if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
 			{
 				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
-                for (const QByteArray& gene : genes)
+				for (const QByteArray& gene : std::as_const(genes))
 				{
 					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="maternal")
 					{
@@ -2662,7 +2658,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 			if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
 			{
 				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
-                for (const QByteArray& gene : genes)
+				for (const QByteArray& gene : std::as_const(genes))
 				{
 					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="paternal")
 					{
@@ -2684,7 +2680,7 @@ void FilterTrio::correctedGenotypes(const Variant& v, QByteArray& geno_c, QByteA
 
 	//correct genotypes based on AF
 	QByteArrayList q_parts = v.annotations()[i_quality].split(';');
-    for (const QByteArray& part : q_parts)
+	for (const QByteArray& part : std::as_const(q_parts))
 	{
 		if (part.startsWith("AF="))
 		{
@@ -2950,7 +2946,7 @@ void FilterCnvCopyNumber::apply(const CnvList& cnvs, FilterResult& result) const
 
 	bool cn_5plus = false;
 	QSet<QByteArray> cn_exp;
-    for (QString cn : getStringList("cn"))
+	for (const QString& cn : getStringList("cn"))
 	{
 		cn_exp << cn.toUtf8();
 		if (cn=="5+") cn_5plus = true;
@@ -3109,7 +3105,7 @@ void FilterCnvLoglikelihood::apply(const CnvList& cnvs, FilterResult& result) co
 			if (!result.flags()[i]) continue;
 
 			QByteArrayList lls = cnvs[i].annotations()[i_ll].split(',');
-            for (const QByteArray& ll : lls)
+			for (const QByteArray& ll : std::as_const(lls))
 			{
 				if (scale_by_regions)
 				{
@@ -3182,7 +3178,7 @@ void FilterCnvQvalue::apply(const CnvList& cnvs, FilterResult& result) const
 			if (!result.flags()[i]) continue;
 
 			QByteArrayList qs = cnvs[i].annotations()[i_q].split(',');
-            for (const QByteArray& q : qs)
+			for (const QByteArray& q : std::as_const(qs))
 			{
 				if (q.toDouble()>max_q)
 				{
@@ -3388,12 +3384,12 @@ void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) c
 		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
 		QByteArrayList gene_entries= cnvs[i].annotations()[i_geneinfo].split(',');
 		bool any_gene_passed = false;
-        for (const QByteArray& gene : gene_entries)
+		for (const QByteArray& gene : std::as_const(gene_entries))
 		{
 			int start = gene.indexOf('(');
 			if (start==-1) continue; //no infos > skip
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-            for (const QByteArray& term : term_entries)
+			for (const QByteArray& term : std::as_const(term_entries))
 			{
 				if (term.startsWith("oe_lof="))
 				{
@@ -3513,12 +3509,12 @@ void FilterCnvGeneOverlap::apply(const CnvList& cnvs, FilterResult& result) cons
 		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
 		QByteArrayList gene_entries = cnvs[i].annotations()[i_geneinfo].split(',');
 		bool any_gene_passed = false;
-        for (const QByteArray& gene : gene_entries)
+		for (const QByteArray& gene : std::as_const(gene_entries))
 		{
 			int start = gene.indexOf('(');
 			if (start==-1) continue; //no infos > skip
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-            for (const QByteArray& term : term_entries)
+			for (const QByteArray& term : std::as_const(term_entries))
 			{
 				if (term.startsWith("region="))
 				{
@@ -3719,7 +3715,7 @@ void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) 
 		}
 
 		QSet<QString> genotypes_all;
-        for (int data_idx : format_data_indices)
+		for (int data_idx : std::as_const(format_data_indices))
 		{
 			QByteArrayList format_values = svs[i].annotations()[data_idx].split(':');
 
@@ -3801,7 +3797,7 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 		}
 
 		QSet<QString> genotypes_all;
-        for (int data_idx : format_data_indices)
+		for (int data_idx : std::as_const(format_data_indices))
 		{
 			QByteArrayList format_values = svs[i].annotations()[data_idx].split(':');
 
@@ -4285,12 +4281,12 @@ void FilterSvGeneConstraint::apply(const BedpeFile& svs, FilterResult& result) c
 		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
 		QByteArrayList gene_entries= svs[i].annotations()[i_gene_info].split(',');
 		bool any_gene_passed = false;
-        for (const QByteArray& gene : gene_entries)
+		for (const QByteArray& gene : std::as_const(gene_entries))
 		{
 			int start = gene.indexOf('(');
 			if (start==-1) continue; //no infos > skip
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-            for (const QByteArray& term : term_entries)
+			for (const QByteArray& term : std::as_const(term_entries))
 			{
 				if (term.startsWith("oe_lof="))
 				{
@@ -4350,11 +4346,11 @@ void FilterSvGeneOverlap::apply(const BedpeFile& svs, FilterResult& result) cons
 		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
 		QByteArrayList gene_entries = svs[i].annotations()[i_gene_info].split(',');
 		bool any_gene_passed = false;
-        for (const QByteArray& gene : gene_entries)
+		for (const QByteArray& gene : std::as_const(gene_entries))
 		{
 			int start = gene.indexOf('(');
 			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-            for (const QByteArray& term : term_entries)
+			for (const QByteArray& term : std::as_const(term_entries))
 			{
 				if (term.startsWith("region="))
 				{
@@ -4504,7 +4500,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 		if (!result.flags()[i]) continue;
 
 		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 			gene_count[gene] += 1;
 		}
@@ -4635,7 +4631,7 @@ void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 			int ngsd_count_hom = Helper::toInt(svs[i].annotations()[idx_ngsd_hom], "NGSD count hom", QString::number(i));
 			int ngsd_count_het = Helper::toInt(svs[i].annotations()[idx_ngsd_het], "NGSD count het", QString::number(i));
 
-            for (const int& idx_format_data : indices_format_data)
+			for (int idx_format_data : std::as_const(indices_format_data))
 			{
 				QByteArrayList format_values = svs[i].annotations()[idx_format_data].split(':');
 
@@ -4969,7 +4965,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
             if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
             {
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
-                for (const QByteArray& gene : genes)
+				for (const QByteArray& gene : std::as_const(genes))
                 {
 					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="maternal")
                     {
@@ -4980,7 +4976,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
             if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
             {
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
-                for (const QByteArray& gene : genes)
+				for (const QByteArray& gene : std::as_const(genes))
                 {
 					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="paternal")
                     {
@@ -5328,7 +5324,7 @@ bool FilterSpliceEffect::applySpliceAi_(const QByteArray& sai_anno, double min_s
 			QList<int> indices;
 			indices << 2 << 4;
 			if (!splice_site_only) indices << 1 << 3;
-            for (const int& i : indices)
+			for (int i :std::as_const(indices))
 			{
 				QString score = parts[i];
 				if (parts.count()!=9) THROW(ProgrammingException, "Invalid SpliceAI annotation - score with index "+QString::number(i)+" is not numeric: " + entry);
@@ -5536,7 +5532,7 @@ void FilterVariantRNAAberrantSplicing::apply(const VariantList& variants, Filter
 
 		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
 		result.flags()[i] = false;
-        for (const QByteArray& fraction_string : fraction_strings)
+		for (const QByteArray& fraction_string : std::as_const(fraction_strings))
 		{
 			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
 
@@ -5578,7 +5574,7 @@ void FilterVariantRNAGeneExpression::apply(const VariantList& variants, FilterRe
 
 		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
 		result.flags()[i] = false;
-        for (const QByteArray& fraction_string : fraction_strings)
+		for (const QByteArray& fraction_string : std::as_const(fraction_strings))
 		{
             if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
 
@@ -5620,7 +5616,7 @@ void FilterVariantRNAExpressionFC::apply(const VariantList& variants, FilterResu
 
 		QList<QByteArray> fc_strings = variants[i].annotations()[idx_fc].split(',');
 		result.flags()[i] = false;
-        for (const QByteArray& fc_string : fc_strings)
+		for (const QByteArray& fc_string : std::as_const(fc_strings))
 		{
 			if(fc_string.isEmpty() || fc_string.startsWith("n/a")) continue;
 
@@ -5662,7 +5658,7 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 
 		QList<QByteArray> zscore_strings = variants[i].annotations()[idx_zscore].split(',');
 		result.flags()[i] = false;
-        for (const QByteArray& zscore_string : zscore_strings)
+		for (const QByteArray& zscore_string : std::as_const(zscore_strings))
 		{
 			if(zscore_string.isEmpty() || zscore_string.startsWith("n/a")) continue;
 

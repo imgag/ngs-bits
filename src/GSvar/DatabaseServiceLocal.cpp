@@ -53,13 +53,13 @@ FileLocation DatabaseServiceLocal::processedSamplePath(const QString& processed_
 	return FileLocation(id, type, filename, QFile::exists(filename));
 }
 
-FileInfo DatabaseServiceLocal::analysisJobLatestLogInfo(const int& job_id) const
+FileInfo DatabaseServiceLocal::analysisJobLatestLogInfo(int job_id) const
 {
     checkEnabled(__PRETTY_FUNCTION__);
     return NGSD().analysisJobLatestLogInfo(job_id);
 }
 
-FileLocation DatabaseServiceLocal::analysisJobGSvarFile(const int& job_id) const
+FileLocation DatabaseServiceLocal::analysisJobGSvarFile(int job_id) const
 {
     checkEnabled(__PRETTY_FUNCTION__);
     NGSD db;
@@ -69,7 +69,7 @@ FileLocation DatabaseServiceLocal::analysisJobGSvarFile(const int& job_id) const
 	return FileLocation(id, PathType::GSVAR, filename, QFile::exists(filename));
 }
 
-FileLocation DatabaseServiceLocal::analysisJobLogFile(const int& job_id) const
+FileLocation DatabaseServiceLocal::analysisJobLogFile(int job_id) const
 {
     checkEnabled(__PRETTY_FUNCTION__);
     NGSD db;

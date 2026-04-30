@@ -36,7 +36,7 @@ IGVSession* IgvSessionManager::create(QWidget* parent, const QString& name, cons
 	return session.data();
 }
 
-IGVSession& IgvSessionManager::get(const int& session_index)
+IGVSession& IgvSessionManager::get(int session_index)
 {
 	QSharedPointer<IGVSession> session;
 

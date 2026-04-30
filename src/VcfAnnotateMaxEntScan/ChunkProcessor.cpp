@@ -136,7 +136,7 @@ float ChunkProcessor::score_maxent(const Sequence& sequence, float (ChunkProcess
 }
 
 
-QPair<float, int> ChunkProcessor::get_max_score(const Sequence& context, const float& window_size, float (ChunkProcessor::*scorefunc)(const Sequence&))
+QPair<float, int> ChunkProcessor::get_max_score(const Sequence& context, float window_size, float (ChunkProcessor::*scorefunc)(const Sequence&))
 {
 	float maxscore = -1.0 *std::numeric_limits<int>::max();
 	int frame = -1;

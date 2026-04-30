@@ -19,7 +19,7 @@ public:
 
 private:
 	const int STREAM_CHUNK_SIZE = 1024*10;
-	QString intToHex(const int &input);
+	QString intToHex(int input);
 
 	void closeConnection(QSslSocket* socket);
     void sendResponseDataPart(QSslSocket *socket, const QByteArray& data);

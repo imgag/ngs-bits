@@ -7131,7 +7131,7 @@ PhenotypeList NGSD::phenotypeChildTerms(int term_id, bool recursive)
 	{
 		int id = term_ids.takeLast();
 		QList<int> hpo_children = hpo_parent[id];
-		foreach(const int& id_child, hpo_children)
+		foreach(int id_child, hpo_children)
 		{
 			output << phenotype(id_child);
 			if (recursive)

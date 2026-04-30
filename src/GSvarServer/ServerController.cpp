@@ -1839,7 +1839,7 @@ bool ServerController::hasOverlappingRanges(const QList<ByteRange>& ranges)
 	return false;
 }
 
-QString ServerController::getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token)
+QString ServerController::getProcessedSampleFile(int ps_id, const PathType& type, const QString& token)
 {
     QString found_file_path;
     try

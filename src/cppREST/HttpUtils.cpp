@@ -202,7 +202,7 @@ int HttpUtils::convertResponseStatusToStatusCodeNumber(const ResponseStatus& res
 	}
 }
 
-QString HttpUtils::convertResponseStatusCodeNumberToStatusClass(const int& status_code_number)
+QString HttpUtils::convertResponseStatusCodeNumberToStatusClass(int status_code_number)
 {
 	if ((status_code_number >= 100) && (status_code_number <= 199))
 	{
