@@ -76,6 +76,7 @@ double Pileup::frequency(QChar wt, QChar mut) const
 	else if (wt=='C') w = c_;
 	else if (wt=='G') w = g_;
 	else if (wt=='T') w = t_;
+	else if (wt=='N') w = n_;
 	else THROW(ArgumentException, "Unknown wild-type base '" + QString(wt) + "' in frequency calculation!");
 
 	double m;
@@ -83,6 +84,7 @@ double Pileup::frequency(QChar wt, QChar mut) const
 	else if (mut=='C') m = c_;
 	else if (mut=='G') m = g_;
 	else if (mut=='T') m = t_;
+	else if (mut=='N') m = n_;
 	else THROW(ArgumentException, "Unknown mutant base '" + QString(mut) + "' in frequency calculation!");
 
 	if (w+m==0)

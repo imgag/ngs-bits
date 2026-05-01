@@ -31,8 +31,8 @@ public:
 		addFlag("no_special_calls", "Ignores special variant calls in input VCF files (mosaic and low-mappabilty).");
 		addFloat("min_qual", "If set, ignores input variants with less than the given QUAL cutoff.", true, 0.0);
 		addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. If not given, no re-calling is performed. For each 'in' file, a BAM file has to be provided in the same order.", true);
-        addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addFlag("no_genotype_correction", "Do not perform genotype correction during re-calling..");
+		addFlag("no_genotype_correction", "Do not perform genotype correction during re-calling, only calculate DP and AF.");
+		addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
 		changeLog(2026, 4, 30, "Added 'no_genotype_correction' parameter.");
 		changeLog(2026, 4, 26, "Added 'min_qual' and 'no_special_calls' parameters.");
