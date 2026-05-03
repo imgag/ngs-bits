@@ -3,6 +3,7 @@
 
 #include <QRunnable>
 #include <QMutex>
+#include <QTextStream>
 #include "Auxilary.h"
 
 class ReCallingWorker
