@@ -3,38 +3,46 @@
 #include "BamReader.h"
 #include <QMutexLocker>
 
-ReCallingWorker::ReCallingWorker(QString bam, QString ref_file, VcfData& data, const QList<VariantDefinition>& var_defs, bool no_genotype_correction, QMutex& mutex, QTextStream& debug, bool& errors)
+ReCallingWorker::ReCallingWorker(const Chromosome &chr, QString bam, QString ref_file, VcfData& data, const QList<VariantDefinition>& var_defs, bool no_genotype_correction, OutputData& out_data)
 	: QRunnable()
+	, chr_(chr)
 	, bam_(bam)
 	, ref_file_(ref_file)
 	, data_(data)
 	, var_defs_(var_defs)
 	, no_genotype_correction_(no_genotype_correction)
-	, mutex_(mutex)
-	, debug_(debug)
-	, errors_(errors)
+	, out_data_(out_data)
 {
 }
 
 // single chunks are processed
 void ReCallingWorker::run()
 {
+	QElapsedTimer timer;
+	timer.start();
 	try
 	{
-		log_ << ("re-calling of variants for sample " + data_.sample);
-
 		//init
-		int c_added = 0;
 		int c_added_snv = 0;
 		int c_added_indel = 0;
-		QElapsedTimer timer;
-		timer.start();
 
+		//get tags of called variants (own scope for QMutexLocker)
+		QSet<QByteArray> called_vars;
+		{
+			QMutexLocker locker(data_.tag_to_format_mutex);
+			called_vars = Helper::listToSet(data_.tag_to_format.keys());
+		}
+
+		//re-call
+		QHash<QByteArray, FormatData> tmp; //we used a tmp variable so that we need to lock only once
 		BamReader reader(bam_, ref_file_);
 		for (const VariantDefinition& var: std::as_const(var_defs_))
 		{
+			//skip wrong chromosomes
+			if (var.chr!=chr_) continue;
+
 			//skip called variants
-			if (data_.tag_to_format.contains(var.tag)) continue;
+			if (called_vars.contains(var.tag)) continue;
 
 			Pileup pileup = reader.getPileup(var.chr, var.pos, (var.is_snv ? -1 : 1), -1, false, -1);
 			int depth = pileup.depth(false);
@@ -114,40 +122,40 @@ void ReCallingWorker::run()
 			//flag added variants
 			if (gt!="0/0")
 			{
-				++c_added;
 				if (var.is_snv) ++c_added_snv;
 				else ++c_added_indel;
 				ct = "RC";
 			}
 
-			data_.tag_to_format[var.tag] = FormatData{gt, dp, af, ".", ".", ct};
+			tmp[var.tag] = FormatData{gt, dp, af, ".", ".", ct};
 		}
-		log_ << ("  updated GT of variants: " + QString::number(c_added) + " (SNVs: " + QString::number(c_added_snv) + " INDELs: " + QString::number(c_added_indel) + ")");
-		log_ << ("  time re-calling (single thread): " + Helper::elapsedTime(timer.restart()));
 
-		writeLog();
+		//insert variants (own scope for QMutexLocker)
+		{
+			QMutexLocker locker(data_.tag_to_format_mutex);
+			data_.tag_to_format.insert(tmp);
+		}
+
+		writeLog(timer.restart(), "updated GT of " + QString::number(c_added_snv) + " SNVs and " + QString::number(c_added_indel) + " INDELs");
 	}
 	catch(Exception& e)
 	{
-		writeLog(e.message());
+		writeLog(timer.restart(), "", e.message());
 	}
 }
 
-void ReCallingWorker::writeLog(QString error_message)
+void ReCallingWorker::writeLog(qint64 time, QString log, QString error_message)
 {
-	QMutexLocker locker(&mutex_);
+	QMutexLocker locker(out_data_.mutex);
 
-	for(const QString& line: std::as_const(log_))
-	{
-		debug_ << line << "\n";
-	}
-
+	out_data_.stream << "re-calling of variants for " + data_.sample + "/" + chr_.str() + " - time: " + Helper::elapsedTime(time);
+	if (!log.isEmpty()) out_data_.stream << " - " << log;
 	if (!error_message.isEmpty())
 	{
-		debug_ << "  Error in re-calling worker: " << error_message << "\n";
-		errors_ = true;
+		out_data_.stream << " - error: " << error_message;
+		out_data_.error_occurred = true;
 	}
 
-	debug_ << Qt::endl;
+	out_data_.stream << Qt::endl;
 }
 

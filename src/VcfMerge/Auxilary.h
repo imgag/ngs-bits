@@ -2,6 +2,8 @@
 #define AUXILARY_H
 
 #include "Chromosome.h"
+#include <QMutex>
+#include <QTextStream>
 
 struct VariantDefinition
 {
@@ -46,6 +48,7 @@ struct VcfData
 
 	//hash from tag to FORMAT data
 	QHash<QByteArray, FormatData> tag_to_format;
+	QMutex* tag_to_format_mutex = new QMutex(); //mutex because we access 'tag_to_format' from several threads in parallel
 
 	//statistics data
 	double chrx_het_perc = -1; //heteroyzgous chrX SNVs used to estimate the gender
@@ -57,6 +60,13 @@ struct VcfData
 	int c_skipped_qual = 0; //variants skipped because they have too low quality
 	int c_skipped_special = 0; //variants skipped because they are special calls
 	int c_recall_no_wt = 0; //variants added during re-calling
+};
+
+struct OutputData
+{
+	QMutex* mutex;
+	QTextStream stream;
+	bool error_occurred;
 };
 
 #endif // AUXILARY_H

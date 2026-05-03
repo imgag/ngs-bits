@@ -238,7 +238,7 @@ public:
             if(in==out) THROW(ArgumentException, "Input and output files must be different!");
         }
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
-        QTextStream debug(out.isEmpty() ? stderr : stdout);
+		OutputData out_data{new QMutex(), QTextStream(out.isEmpty() ? stderr : stdout), false};
         bool trio = getFlag("trio");
 		bool no_special_calls = getFlag("no_special_calls");
 		double min_qual = getFloat("min_qual");
@@ -258,37 +258,48 @@ public:
         {
             timer.start();
 			data << loadVcf(in, var_details, var_tag_to_index, min_qual, no_special_calls);
-            printSampleDetails(data.last(), debug);
+			printSampleDetails(data.last(), out_data.stream);
         }
-		debug << "time loading VCFs: " <<  Helper::elapsedTime(timer.restart()) << "\n";
+		out_data.stream << "time loading VCFs: " <<  Helper::elapsedTime(timer.restart()) << "\n";
 
         //re-calling of uncalled variants
 		if (!bam_files.isEmpty())
 		{
-			debug << "starting re-calling variants with " <<  getInt("threads") << " threads\n\n";
+			//init
+			out_data.stream << "starting re-calling variants with " <<  getInt("threads") << " threads\n\n";
 			QThreadPool pool;
-			QMutex mutex; //for using debug and errors
-			bool errors = false;
-
 			pool.setMaxThreadCount(getInt("threads"));
+
+			//determine chromosomes
+			QSet<Chromosome> chrs;
+			for(const VariantDefinition& v: std::as_const(var_details))
+			{
+				chrs << v.chr;
+			}
+
+			//start workers - on per sample and chromosome
 			for (int i=0; i<bam_files.count(); ++i)
 			{
-				ReCallingWorker* worker = new ReCallingWorker(bam_files[i], ref_file, data[i], var_details, no_genotype_correction, mutex, debug, errors);
-				pool.start(worker);
+				foreach(const Chromosome& chr, chrs)
+				{
+					ReCallingWorker* worker = new ReCallingWorker(chr, bam_files[i], ref_file, data[i], var_details, no_genotype_correction, out_data);
+					pool.start(worker);
+				}
 			}
 			pool.waitForDone();
 
-			if (errors) //error in re-calling threads > abort
+			//error in re-calling threads > abort
+			if (out_data.error_occurred)
 			{
-				debug << "Aborted because of errors in re-calling threads (see above)\n";
+				out_data.stream << "Aborted because of errors in re-calling threads (see above)\n";
 				QCoreApplication::exit(1);
 			}
-			debug << "time re-calling variants (all): " <<  Helper::elapsedTime(timer.restart()) << "\n";
+			out_data.stream << "time re-calling variants (all): " <<  Helper::elapsedTime(timer.restart()) << "\n";
 		}
 
 		//sort variants
 		std::sort(var_details.begin(), var_details.end());
-		debug << "time sorting output variants: " << Helper::elapsedTime(timer.restart()) << "\n";
+		out_data.stream << "time sorting output variants: " << Helper::elapsedTime(timer.restart()) << "\n";
 
         //write comments
         out_p->write("##fileformat=VCFv4.3\n");
@@ -333,15 +344,15 @@ public:
 
         //clean up
         out_p->close();
-		debug << "time writing output: " << Helper::elapsedTime(timer.restart()) << "\n";
-		debug << Qt::endl;
+		out_data.stream << "time writing output: " << Helper::elapsedTime(timer.restart()) << "\n";
+		out_data.stream << Qt::endl;
 
         //statistics about output
-        debug << "output:\n";
-        debug << "  variants written: " << QByteArray::number(var_details.count()) << "\n";
+		out_data.stream << "output:\n";
+		out_data.stream << "  variants written: " << QByteArray::number(var_details.count()) << "\n";
 		int c_snv_out = std::count_if(var_details.begin(), var_details.end(), [](const VariantDefinition &v) { return v.is_snv;});
-		debug << "    SNVs: " << QByteArray::number(c_snv_out) << "\n";
-		debug << "    INDELs: " << QByteArray::number(var_details.count()-c_snv_out) << Qt::endl;
+		out_data.stream << "    SNVs: " << QByteArray::number(c_snv_out) << "\n";
+		out_data.stream << "    INDELs: " << QByteArray::number(var_details.count()-c_snv_out) << Qt::endl;
 
         //trio: determine mendelian error rate
         if (trio)
@@ -379,10 +390,10 @@ public:
                     if (is_error) ++c_indel_error;
                 }
             }
-            debug << "  trio mendelian error rate of SNVs: " << QByteArray::number(100.0 * c_snv_error/c_snv, 'f', 2) << "%\n";
-            debug << "  trio mendelian error rate of INDELs: " << QByteArray::number(100.0 * c_indel_error/c_indel, 'f', 2) << "%\n";
+			out_data.stream << "  trio mendelian error rate of SNVs: " << QByteArray::number(100.0 * c_snv_error/c_snv, 'f', 2) << "%\n";
+			out_data.stream << "  trio mendelian error rate of INDELs: " << QByteArray::number(100.0 * c_indel_error/c_indel, 'f', 2) << "%\n";
         }
-        debug << Qt::endl;
+		out_data.stream << Qt::endl;
     }
 };
 
