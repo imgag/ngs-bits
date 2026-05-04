@@ -20,10 +20,11 @@ void BamTrackData::updateRegion()
 		return;
 	}
 
-	int padding = region.length();
+	int padding = region.length() / 3;
 	int start = region.start() - padding;
+	int end = region.end() + padding;
 
-	bam_reader_->setRegion(region.chr(), start, region.end());
+	bam_reader_->setRegion(region.chr(), start, end);
 	updateData();
 }
 
@@ -34,7 +35,7 @@ void BamTrackData::updateData()
 	BamAlignment al;
 	while (bam_reader_->getNextAlignment(al))
 	{
-		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment()) continue;
+		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		alignments_ << BamAlignmentWrapper(al);
 	}
 	const BedLine& region = SharedData::region();

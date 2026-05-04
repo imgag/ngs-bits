@@ -9,6 +9,14 @@
 
 #include <QSharedPointer>
 
+struct ReadPair
+{
+	int first =-1;
+	int second =-1;
+	int start = INT_MAX;
+	int end = INT_MIN;
+};
+
 class CPPVISUALSHARED_EXPORT BamAlignmentTrack
 	: public TrackWidget
 {
@@ -24,6 +32,8 @@ public:
 
 protected:
 	void paintEvent(QPaintEvent*) override;
+	void populateContextMenu(QMenu&) override;
+	void handleContextMenuAction(QAction*) override;
 
 private:
 	//constants
@@ -34,33 +44,37 @@ private:
 	static constexpr float CIGAR_DETAIL_SCALE = 20.0f;
 	static constexpr float BASE_DETAIL_SCALE  = 1.0f;
 
-	// QSharedPointer<BamReader> reader_;
 	QSharedPointer<BamTrackData> track_data_;
 
 	void drawZoomInText(QPainter&);
 	void calculateRows();
+	void calculateRowsNormalMode();
+	void calculateRowsPairMode();
+
+	void drawNormalMode(QPainter& painter, const BedLine& region);
+	void drawPairMode(QPainter& painter, const BedLine& region);
+
 	void drawAlignment(QPainter&, const BamAlignment& al, int row_y,
 					   int x0, int total_width);
 	void drawVariants(QPainter&, const BamAlignment& al, int row_y,
 					  int x0, int total_width);
+	void makePairs();
 
 	static QColor baseColor(QChar base);
 	static QColor strandColor(bool is_reverse);
 	static QSize characterSize(QFont font);
 
-	// QVector<int> row_idxes_;
 	QHash<BamAlignmentWrapper, int> row_idxes_;
+	QHash<QString, int> pair_row_idxes_;
+	QHash<QString, bool> row_stored_with_pair_;
 	RowPacker row_packer_;
+	using PairMap = QHash<QString, QPair<int, int>>;
+	PairMap pair_map_;
+	QVector<ReadPair> read_pairs_;
 
 	int num_rows_ = 1;
-
-	//utility function for mapping a \in [min_, max_] to [c, d]
-	inline float map(float a, float min_, float max_, float c, float d)
-	{
-		float p = ((float)(a - min_))/(float)(max_ - min_);
-		p = std::clamp(p, 0.f, 1.f);
-		return c + (d - c) * p;
-	}
+	bool view_as_pairs_ = false;
+	QAction* pairs_action_;
 
 private slots:
 	void dataReady();
