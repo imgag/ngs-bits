@@ -1,5 +1,4 @@
 #include "HtmlEngine.h"
-#include <QCoreApplication>
 #include <QTextStream>
 
 HtmlEngine::HtmlEngine()
@@ -104,7 +103,7 @@ QString HtmlEngine::getPageFooter()
 	QString output;
 	QTextStream stream(&output);
 	stream << "			<hr>\n";
-	stream << "			<p>" << QCoreApplication::applicationName() << " version " << QString(LIB_VERSION) << "</p>\n";
+	stream << "			<p>GSvar Server 2026</p>\n";
 	stream << "		</body>\n";
 	stream << "</html>\n";
 	return output;

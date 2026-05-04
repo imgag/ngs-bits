@@ -15,6 +15,7 @@
 #include "UrlManager.h"
 #include "ServerDB.h"
 #include "Statistics.h"
+#include "ToolBase.h"
 #include "FileLocationProviderLocal.h"
 
 ServerController::ServerController()
@@ -225,7 +226,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 
 		json_object.insert("name", ServerHelper::getAppName());
 		json_object.insert("description", "GSvar server");
-		json_object.insert("version", ServerHelper::getServerVersion());
+		json_object.insert("version", ToolBase::version());
 		json_object.insert("api_version", ClientHelper::serverApiVersion());
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
         json_object.insert("server_url", Settings::string("server_host", true));

@@ -8,6 +8,7 @@
 #include "ServerDB.h"
 #include "UrlManager.h"
 #include "SessionManager.h"
+#include "ToolBase.h"
 
 #include <csignal>
 #include <unistd.h>
@@ -17,7 +18,7 @@
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	QCoreApplication::setApplicationVersion(ServerHelper::getServerVersion());
+	QCoreApplication::setApplicationVersion(ToolBase::version());
 
 	QCommandLineParser parser;
 	parser.setApplicationDescription("GSvar server - documentation at https://github.com/imgag/ngs-bits/blob/master/doc/GSvarServer/index.md");

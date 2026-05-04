@@ -18,7 +18,6 @@ class CPPRESTSHARED_EXPORT ServerHelper
 {
 public:
 	static QString getAppName();
-	static QString getServerVersion();
 	static int strToInt(const QString& in);
 	static bool canConvertToInt(const QString& in);
 	static QString generateUniqueStr();	

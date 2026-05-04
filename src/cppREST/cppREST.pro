@@ -7,10 +7,6 @@ QTPLUGIN += QSQLMYSQL
 TARGET = cppREST
 DEFINES += CPPREST_LIBRARY
 
-#compose version string
-SVN_VER= \\\"$$system(cd .. && git describe --tags)\\\"
-DEFINES += "LIB_VERSION=$$SVN_VER"
-
 #include cppCORE library
 INCLUDEPATH += $$PWD/../cppCORE
 LIBS += -L$$PWD/../../bin -lcppCORE
