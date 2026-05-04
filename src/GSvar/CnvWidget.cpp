@@ -835,8 +835,9 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 	if (i_genes!=-1)
 	{
 		GeneSet genes = GeneSet::createFromText(cnvs_[row].annotations()[i_genes], ',');
-        foreach (const QByteArray& gene, genes)
+		for (int i=0; i<genes.count(); i++)
 		{
+			const QByteArray& gene = genes[i];
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
 		}
