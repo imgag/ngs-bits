@@ -39,7 +39,7 @@ enum class PathType
 	CNV_RAW_DATA_CALL_REGIONS,//Copy number raw data for call regions (SEG format)
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
-	REPEAT_EXPANSION_HISTOGRAM, //python plot of the lenth distribution of a locus (SVG format)
+	REPEAT_EXPANSION_HISTOGRAM, //plot of the length distribution of a locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
 	FUSIONS_BAM, //gene fusion evidence alignments determined from RNA (BAM format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)

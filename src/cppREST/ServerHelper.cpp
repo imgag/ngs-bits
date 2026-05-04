@@ -14,6 +14,11 @@ QString ServerHelper::getAppName()
 	return QCoreApplication::applicationName();
 }
 
+QString ServerHelper::getServerVersion()
+{
+	return QString(LIB_VERSION);
+}
+
 int ServerHelper::strToInt(const QString& in)
 {
 	bool ok;

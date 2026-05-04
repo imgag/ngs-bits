@@ -8,7 +8,7 @@ ngs-bits depends on the following software to be installed
 * _g++_ (4.5 or higher)
 * _qmake_ (Qt 6.4 or higher, including xmlpatterns, charts and mysql package)
 * _git_ (to extract the version hash)
-* __optional:__ python and matplotlib (for plot generation in QC tools)
+* __optional:__ python (for server scripts)
 
 ### Qt
 
