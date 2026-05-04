@@ -30,7 +30,6 @@ ngs-bits depends on the following software to be installed
 * _XCode_
 * _qmake_ (Qt 6)
 * _git_ (to extract the version hash)
-* __optional:__ python (for server scripts)
 * home brew (to install other dependencies)
 
 This documentation assumes that you install dependencies using _Brew_. First of all, you are going to need Qt.
