@@ -66,16 +66,6 @@ Upon succesfull completion, `qsqlmysql.dll` and `libmariadb.dll` sould be locate
 Download and install [Git](https://git-scm.com/download/win).  
 It is needed to extract the repository version during the build process.
 
-### Install python
-
-To create plots in qcML files, install the portable version of [WinPython](https://github.com/winpython/winpython/releases/download/16.6.20250620final/Winpython64-3.13.5.0whl.7z) and add the directory containing the `python.exe` to the PATH.
-
-You have to install `maplotlib` in case it is not found:
-
-	> python.exe -m pip install matplotlib
-
-This is optional. If python is not installed, no plots are generated.
-
 ## Build ngs-bits and GSvar
 
 we can now build ngs-bits:

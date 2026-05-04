@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   mac-build-and-test:
     runs-on: macos-15
+    env:
+      QT_QPA_PLATFORM: offscreen
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
@@ -17,26 +19,11 @@ jobs:
       shell: bash
     - name: Update Homebrew
       run: brew update
-    - name: Remove existing Python symlinks
-      run: rm /usr/local/bin/2to3 /usr/local/bin/idle3 /usr/local/bin/pydoc3 /usr/local/bin/python3 /usr/local/bin/python3-config /usr/local/bin/2to3-3.11 /usr/local/bin/idle3.11 /usr/local/bin/pydoc3.11 /usr/local/bin/python3.11 /usr/local/bin/python3.11-config /usr/local/bin/2to3-3.12 /usr/local/bin/idle3.12 /usr/local/bin/pydoc3.12 /usr/local/bin/python3.12 /usr/local/bin/python3.12-config
-    - name: Install Python 3
-      run: brew install python@3.10
     - name: Setup other dependencies
-      run: brew install lzlib libxml2 mariadb-connector-c
-    # Python 3 venv for pip tools
-    - name: Setup Python venv
-      run: |
-        python3 -m venv pyenv
-        source pyenv/bin/activate
-        pip install --upgrade pip
-        pip install matplotlib numpy aqtinstall
-        echo "VIRTUAL_ENV=$PWD/pyenv" >> $GITHUB_ENV
-        echo "$PWD/pyenv/bin" >> $GITHUB_PATH
+      run: brew install lzlib libxml2 mariadb-connector-c aqtinstall
     # Install Qt 6.8.3 via aqt with explicit mirror
     - name: Install Qt 6.8.3 core
-      run: |
-        source pyenv/bin/activate
-        aqt install-qt mac desktop 6.8.3 clang_64 -O $HOME/Qt
+      run: aqt install-qt mac desktop 6.8.3 clang_64 -O $HOME/Qt
     - name: Add Qt to PATH
       run: echo "$HOME/Qt/6.8.3/macos/bin" >> $GITHUB_PATH
     # Build Qt Charts from source
@@ -75,9 +62,6 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.8.3/macos
         cmake --build . --parallel $(sysctl -n hw.ncpu)
         cmake --install .
-    # Python 2 packages
-    - name: Install matplotlib and numpy for Python 2
-      run: sudo pip install matplotlib numpy
     # Build project dependencies
     - name: Build project dependencies
       run: make build_3rdparty build_libs_release build_tools_release build_gui_release build_server_release

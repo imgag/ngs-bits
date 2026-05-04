@@ -1926,6 +1926,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	QString plot0name = Helper::tempFileName(".png");
 	hist_all.setLabel("all variants");
 	hist_filtered.setLabel("variants with filter PASS");
+
 	Histogram::storeCombinedHistogram(plot0name, QList<Histogram>({hist_all,hist_filtered}),"tumor allele frequency","count");
 	addQcPlot(output, "QC:2000055","somatic SNVs allele frequency histogram", plot0name);
 	QFile::remove(plot0name);
@@ -1933,16 +1934,12 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	//plot0b: absolute count mutation distribution
 	BarPlot plot0b;
 	plot0b.setXLabel("base change");
-	plot0b.setYLabel("count");
-	QMap<QString,QString> color_map = QMap<QString,QString>{{"C>A","b"},{"C>G","k"},{"C>T","r"},{"T>A","g"},{"T>G","c"},{"T>C","y"}};
-	foreach(QString color, color_map)
-	{
-		plot0b.addColorLegend(color,color_map.key(color));
-	}
+	plot0b.setYLabel("count");	
 
 	QList<int> counts({0,0,0,0,0,0});
 	QList<QString> nuc_changes({"C>A","C>G","C>T","T>A","T>G","T>C"});
-	QList<QString> colors({"b","k","r","g","c","y"});
+	QList<QString> colors({"blue","black","red","green","cyan","yellow"});
+
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if(!variants[i].filtersPassed()) continue;	//skip non-somatic variants
@@ -1977,6 +1974,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	plot0b.setValues(counts, nuc_changes, colors);
 	QString plot0bname = Helper::tempFileName(".png");
 	plot0b.store(plot0bname);
+
 	addQcPlot(output, "QC:2000056","somatic SNV mutation types", plot0bname);
 	QFile::remove(plot0bname);
 
@@ -2085,8 +2083,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
     QList< std::pair<double,double> > points;
 	points  << points_black << points_green;
 
-	QString g = "k";
-	QString b = "g";
+	QString g = "black";
+	QString b = "green";
 	colors.clear();
 	for(int i=0;i<points_black.count();++i)
 	{
@@ -2110,11 +2108,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	BarPlot plot2;
 	plot2.setXLabel("triplett");
 	plot2.setYLabel("count");
-	color_map = QMap<QString,QString>{{"C>A","b"},{"C>G","k"},{"C>T","r"},{"T>A","g"},{"T>G","c"},{"T>C","y"}};
-	foreach(QString color, color_map)
-	{
-		plot2.addColorLegend(color,color_map.key(color));
-	}
+	QMap<QString,QString> color_map = QMap<QString,QString>{{"C>A","blue"},{"C>G","black"},{"C>T","red"},{"T>A","green"},{"T>G","cyan"},{"T>C","yellow"}};
 	QList<Sequence> codons;
 	counts.clear();
 	QList<double> counts_normalized;
@@ -2319,8 +2313,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		}
 
 		plot3.setYRange(0.975,max*100);
-		plot3.setXRange(0,1);
-		plot3.noXTicks();
+		plot3.setXRange(0,1);		
 		plot3.setValues(points3);
 		QString plot3name = Helper::tempFileName(".png");
 		plot3.store(plot3name);
