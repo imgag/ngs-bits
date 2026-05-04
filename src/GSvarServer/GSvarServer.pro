@@ -29,6 +29,7 @@ SOURCES += \
         QueuingEngineControllerGeneric.cpp \
         QueuingEngineControllerSge.cpp \
         QueuingEngineControllerSlurm.cpp \
+        ScheduledCacheCleaner.cpp \
         ServerController.cpp \
         ServerWrapper.cpp \
         main.cpp
@@ -43,6 +44,7 @@ HEADERS += \
     QueuingEngineControllerGeneric.h \
     QueuingEngineControllerSge.h \
     QueuingEngineControllerSlurm.h \
+    ScheduledCacheCleaner.h \
     ServerController.h \
     ServerWrapper.h
 
