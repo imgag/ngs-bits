@@ -8,6 +8,7 @@ private:
 	TEST_METHOD(test_01)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
