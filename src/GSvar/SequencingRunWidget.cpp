@@ -46,9 +46,14 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 
 	//set quality
-	action = new QAction("Set quality", this);
+	action = new QAction("Set quality manually", this);
 	ui_->samples->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityManually()));
+
+	//automatically determine quality, based on the available QC values
+	action = new QAction("Set quality automatically", this);
+	ui_->samples->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityAutomatically()));
 
 	//schedule re-sequencing
 	action = new QAction("Toggle resequencing for sample(s)", this);
@@ -318,7 +323,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	}
 
 	//remove columns not shown but needed for QC
-	QStringList genders = samples.takeColumn(samples.columnIndex("gender"));
+	samples.takeColumn(samples.columnIndex("gender"));
 	QStringList sys_types = samples.takeColumn(samples.columnIndex("sys_type"));
 
 	//add QC data
@@ -408,15 +413,27 @@ void SequencingRunWidget::updateRunSampleTable()
 	//colors
 	QColor orange = QColor(255,150,0,125);
 	QColor red = QColor(255,0,0,125);
+	int tumor_column = ui_->samples->columnIndex("is_tumor");
 	if (ui_->show_qc_cols->isChecked())
 	{
 		foreach(const QString& accession, qc_metric_accessions_)
 		{
 			int c = ui_->samples->columnIndex(metric2header[accession]);
+			int ps = ui_->samples->columnIndex("processing system");
 
 			for (int r=0; r<ui_->samples->rowCount(); ++r)
 			{
-				GSvarHelper::colorQcItem(ui_->samples->item(r,c), accession, sys_types[r], genders[r]);
+				QString ps_name_manufacturer = ui_->samples->item(r,ps)->text();
+				QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_name_manufacturer).toString();
+
+				bool is_tumor = false;
+				if (tumor_column>-1) is_tumor = ui_->samples->item(r,tumor_column)->text()=="yes" ? true : false;
+
+				bool ok = false;
+				double qc_value = ui_->samples->item(r,c)->text().toDouble(&ok);
+				if (!ok) continue;
+				QString qc_class = GSvarHelper::getQcFromRule(qc_value, name_short, accession, sys_types[r], is_tumor);
+				GSvarHelper::colorQcItem(ui_->samples->item(r,c), qc_class);
 			}
 		}
 	}
@@ -431,7 +448,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	ui_->sample_count->setText(QString::number(samples.rowCount()) + " samples (" + QString::number(imported_qc.count()) + " with QC, " + QString::number(imported_vars.count()) + " with variants)");
 }
 
-void SequencingRunWidget::setQuality()
+void SequencingRunWidget::setQualityManually()
 {
 	NGSD db;
 	QStringList qualities = db.getEnum("processed_sample", "quality");
@@ -456,6 +473,59 @@ void SequencingRunWidget::setQuality()
 	}
 
 	updateGUI();
+}
+
+void SequencingRunWidget::setQualityAutomatically()
+{
+	if (ui_->show_qc_cols->isChecked())
+	{
+		int sample_column = ui_->samples->columnIndex("sample");
+		int tumor_column = ui_->samples->columnIndex("is_tumor");
+		int ps_column = ui_->samples->columnIndex("processing system");
+		NGSD db;
+
+		QList<int> selected_rows = ui_->samples->selectedRows().values();
+		int good_count = 0;
+		int medium_count = 0;
+		int bad_count = 0;
+		foreach (int row, selected_rows)
+		{
+			QString ps_name = ui_->samples->item(row, sample_column)->text();
+			QString ps_id = db.processedSampleId(ps_name);
+
+			SqlQuery select_query = db.getQuery();
+			select_query.exec("SELECT qc_t.name, qc_t.qcml_id, ps_qc.value FROM processed_sample_qc ps_qc INNER JOIN qc_terms qc_t ON ps_qc.qc_terms_id=qc_t.id  WHERE ps_qc.processed_sample_id="+ps_id);
+			QString quality = "good";
+
+			while(select_query.next())
+			{
+				QString qc_name = select_query.value(0).toString();
+				QString qcml_id = select_query.value(1).toString();
+				double qc_value = select_query.value(2).toDouble();
+				if (qc_metric_accessions_.contains(qcml_id))
+				{
+					bool is_tumor = false;
+					if (tumor_column>-1) is_tumor = ui_->samples->item(row,tumor_column)->text()=="yes" ? true : false;
+
+					QString ps_name_manufacturer = ui_->samples->item(row,ps_column)->text();
+					QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_name_manufacturer).toString();
+					QString sys_type = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer=:0", true, ps_name_manufacturer).toString();
+
+					QString qc_class = GSvarHelper::getQcFromRule(qc_value, name_short, qcml_id, sys_type, is_tumor);
+					if (qc_class=="bad") quality = qc_class;
+					if ((qc_class=="medium") && (quality != "bad")) quality = qc_class;
+
+					Log::error(qc_name + ", " + qcml_id + ", " + QString::number(qc_value) + "qc_class = " + qc_class);
+				}
+			}
+			if (quality == "good") good_count++;
+			if (quality == "medium") medium_count++;
+			if (quality == "bad") bad_count++;
+			SqlQuery update_query = db.getQuery();
+			update_query.exec("UPDATE processed_sample SET quality='"+quality+"' WHERE id='"+ps_id+"'");
+		}
+		QMessageBox::information(this, "Setting quality automatically", "The quality has been automatically set to " + QString::number(good_count+medium_count+bad_count) + " sample(s): \n good - " + QString::number(good_count) + "\n medium - " + QString::number(medium_count) + "\n bad - " +QString::number(bad_count));
+	}
 }
 
 void SequencingRunWidget::toggleScheduleForResequencing()

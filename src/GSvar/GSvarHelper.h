@@ -32,10 +32,13 @@ public:
 	//Returns the genome build used by GSvar.
 	static QString buildAsString(bool grch=false);
 
+	//determines QC using rules described in XML
+	static QString getQcFromRule(const double& qc_value, const QString& name_short, const QString& accession, const QString& sys_type, bool is_tumor);
+
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
 	//colors QC metric item background. Returns if the item was assigned a background color.
-	static bool colorQcItem(QTableWidgetItem* item, const QString& accession, const QString& sys_type, const QString& gender);
+	static bool colorQcItem(QTableWidgetItem* item, const QString& qc_class);
 
 	//limit QLabel to certain number of lines
 	static void limitLines(QLabel* label, QString text, int max_lines=15);

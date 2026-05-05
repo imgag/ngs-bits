@@ -45,6 +45,7 @@ SOURCES += main.cpp\
     MethylationWidget.cpp \
     NsxSettingsDialog.cpp \
     PathogenicWtDialog.cpp \
+    QcRuleMatcher.cpp \
     ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
     ReportDialog.cpp \
@@ -178,6 +179,7 @@ HEADERS += MainWindow.h \
     MethylationWidget.h \
     NsxSettingsDialog.h \
     PathogenicWtDialog.h \
+    QcRuleMatcher.h \
     ReSearchWidget.h \
     RepeatExpansionWidget.h \
     ReportDialog.h \
