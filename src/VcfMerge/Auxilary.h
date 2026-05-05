@@ -56,6 +56,7 @@ struct VcfData
 	int c_indel = 0; //INDEL count
 	int c_mosaic = 0; //mosaic variant count
 	int c_low_mappability = 0; //low_mappability variant count
+	int c_targeted = 0; //targeted variant count
 	int c_skipped_wt = 0; //variants skipped because they are wild-type
 	int c_skipped_qual = 0; //variants skipped because they have too low quality
 	int c_skipped_special = 0; //variants skipped because they are special calls

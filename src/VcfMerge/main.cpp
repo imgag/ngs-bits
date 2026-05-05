@@ -158,7 +158,7 @@ public:
 						++output.c_skipped_special;
 						continue;
 					}
-                    format.ct ="LM";
+					format.ct = "LM";
                     ++output.c_low_mappability;
                 }
                 if (filters.contains("mosaic"))
@@ -168,9 +168,19 @@ public:
 						++output.c_skipped_special;
 						continue;
 					}
-					format.ct ="MO";
+					format.ct = "MO";
                     ++output.c_mosaic;
-                }
+				}
+				if (filters.contains("targeted"))
+				{
+					if (no_special_calls)
+					{
+						++output.c_skipped_special;
+						continue;
+					}
+					format.ct = "TA";
+					++output.c_targeted;
+				}
 
 				//add variant format data
 				QByteArray tag = chr.strNormalized(true)+'\t'+parts[1]+"\t.\t"+ref+'\t'+alt;
@@ -214,13 +224,14 @@ public:
     {
         debug << "input file: " << data.filename << "\n";
         debug << "  variants skipped (wild-type): " << QByteArray::number(data.c_skipped_wt) << "\n";
-		debug << "  variants skipped (low qualuty): " << QByteArray::number(data.c_skipped_qual) << "\n";
+		debug << "  variants skipped (low quality): " << QByteArray::number(data.c_skipped_qual) << "\n";
 		debug << "  variants skipped (special calls): " << QByteArray::number(data.c_skipped_special) << "\n";
         debug << "  variants loaded: " << QByteArray::number(data.tag_to_format.count()) << "\n";
 		debug << "    SNVs: " << QByteArray::number(data.c_snv) << "\n";
 		debug << "    INDELs: " << QByteArray::number(data.c_indel) << "\n";
         debug << "    mosaic: " << QByteArray::number(data.c_mosaic) << "\n";
         debug << "    low-mappability: " << QByteArray::number(data.c_low_mappability) << "\n";
+		debug << "    targeted: " << QByteArray::number(data.c_targeted) << "\n";
         if (data.chrx_het_perc>=0)
         {
             debug << "  heterozygous SNVs on chrX ouside PAR: " << QByteArray::number(data.chrx_het_perc, 'f', 2) << "%\n";
@@ -310,7 +321,7 @@ public:
         out_p->write("##FORMAT=<ID=AF,Number=1,Type=Float,Description=\"Allele frequency of variant.\">\n");
         out_p->write("##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype quality.\">\n");
         out_p->write("##FORMAT=<ID=PS,Number=1,Type=Integer,Description=\"Phase set identifier.\">\n");
-		out_p->write("##FORMAT=<ID=CT,Number=1,Type=String,Description=\"Calling type flag: MO=mosaic calling, LM=low-mappabilty calling, RC=added during re-calling in VcfMerge.\">\n");
+		out_p->write("##FORMAT=<ID=CT,Number=1,Type=String,Description=\"Calling type flag: MO=mosaic calling, LM=low-mappabilty calling, TA=targeted calling, RC=added during re-calling in VcfMerge.\">\n");
         for(const VcfData& entry: std::as_const(data))
         {
             if (entry.sample_desc.isEmpty()) continue;

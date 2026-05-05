@@ -5,7 +5,7 @@
 ##FORMAT=<ID=AF,Number=1,Type=Float,Description="Allele frequency of variant.">
 ##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype quality.">
 ##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase set identifier.">
-##FORMAT=<ID=CT,Number=1,Type=String,Description="Calling type flag: MO=mosaic calling, LM=low-mappabilty calling, RC=added during re-calling in VcfMerge.">
+##FORMAT=<ID=CT,Number=1,Type=String,Description="Calling type flag: MO=mosaic calling, LM=low-mappabilty calling, TA=targeted calling, RC=added during re-calling in VcfMerge.">
 ##SAMPLE=<ID=NA12878_58,Gender=female,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
 ##SAMPLE=<ID=NA12891_25,Gender=male,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
 ##SAMPLE=<ID=NA12892_28,Gender=female,ExternalSampleName=pos K,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
@@ -13,7 +13,7 @@
 chr22	15528424	.	T	C	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:222:0.207:160:.:LM	0/0:222:0.207:.:.:.	0/0:222:0.207:.:.:.
 chr22	15528472	.	A	C	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:178:0.129:160:.:LM	0/0:178:0.129:.:.:.	0/0:178:0.129:.:.:.
 chr22	15528754	.	G	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:258:0.163:139:.:LM	0/0:255:0.161:.:.:.	0/0:255:0.161:.:.:.
-chr22	15528913	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:255:0.000:.:.:.	0/1:165:0.4606:29:.:.	0/0:255:0.000:.:.:.
+chr22	15528913	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:255:0.000:.:.:.	0/1:165:0.4606:29:.:TA	0/0:255:0.000:.:.:.
 chr22	15528960	.	A	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:304:0.115:136:.:LM	0/0:304:0.115:.:.:.	0/0:304:0.115:.:.:.
 chr22	15690314	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:497:0.178:.:.:.	0/0:497:0.178:.:.:.	0/1:205:0.161:22:.:.
 chr22	15690617	.	C	A	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:326:0.236:140:.:LM	0/1:547:0.185:22:.:LM	0/1:449:0.370:22:.:LM
