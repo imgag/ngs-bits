@@ -663,3 +663,7 @@ NGSDTransferReportConfig.depends = cppNGSD
 SUBDIRS += NGSDExportSpliceAI
 tools-TEST.depends += NGSDExportSpliceAI
 NGSDExportSpliceAI.depends = cppNGSD
+
+SUBDIRS += TranscriptToProtein
+tools-TEST.depends += TranscriptToProtein
+TranscriptToProtein.depends = cppNGS
