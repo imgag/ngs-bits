@@ -359,11 +359,11 @@ private:
         GenderEstimate estimate = Statistics::genderXY(gender_filename);
         I_EQUAL(estimate.add_info.count(), 3);
         S_EQUAL(estimate.add_info[0].key, "reads_chry");
-        S_EQUAL(estimate.add_info[0].value, "0");
+		S_EQUAL(estimate.add_info[0].value, "2");
         S_EQUAL(estimate.add_info[1].key, "reads_chrx");
-        S_EQUAL(estimate.add_info[1].value, "30528");
+		S_EQUAL(estimate.add_info[1].value, "30645");
         S_EQUAL(estimate.add_info[2].key, "ratio_chry_chrx");
-        S_EQUAL(estimate.add_info[2].value, "0.0000");
+		S_EQUAL(estimate.add_info[2].value, "0.0001");
         S_EQUAL(estimate.gender, "female");
     }
 

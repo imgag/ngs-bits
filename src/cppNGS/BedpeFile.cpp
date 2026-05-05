@@ -315,7 +315,7 @@ QMap<QByteArray, QByteArray> BedpeLine::getSampleFormatData(int anno_idx_format,
 	return output;
 }
 
-QByteArray BedpeLine::getSampleFormatData(int anno_idx_format, int anno_idx_sample, QByteArray key)
+QByteArray BedpeLine::getSampleFormatData(int anno_idx_format, int anno_idx_sample, QByteArray key) const
 {
 	if (anno_idx_format>=annotations().count()) THROW(ArgumentException, "Format index out of bounds in BedpeLine::getSampleFormatData");
 	if (anno_idx_sample>=annotations().count()) THROW(ArgumentException, "Sample index out of bounds in BedpeLine::getSampleFormatData");

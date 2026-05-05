@@ -355,6 +355,8 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString oe_mis;
 	//gnomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
+	//gnomAD pLi score for loss-of-function variants (default is NULL).
+	QString pli;
 
 	//expressed allele
 	QString imprinting_expressed_allele;
@@ -370,7 +372,7 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//returns the main gene information as a string
 	QString toString()
 	{
-		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + ")";
+		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + " pLI=" + pli + ")";
 	}
 };
 
@@ -772,8 +774,8 @@ public:
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);
-	//Returns the mapping from gene symbol to HGNC ID
-	QMap<int, QByteArray> geneIdsToHgnc();
+	///Returns NGSD gene ID for a HGNC identifier
+	int hgncIdToGeneId(QByteArray hgnc_id);
 	///Returns the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the approved gene symbols.
@@ -1298,6 +1300,7 @@ protected:
         QHash<int, QList<int>> hpo_parent;
 		QMap<QString, SomaticGeneRole> gene_symbol_to_somatic_gene_role;
 		QMap<int, QByteArray> gene_id_to_hgnc;
+		QMap<QByteArray, int> hgnc_id_to_gene_id;
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;

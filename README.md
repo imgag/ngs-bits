@@ -80,7 +80,8 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 ### QC tools
 
-The default output format of the quality control tools is [qcML](https://pubmed.ncbi.nlm.nih.gov/24760958/), an XML-based format for -omics quality control, that consists of an [XML schema](https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML_0.0.8.xsd), which defined the overall structure of the format, and an [ontology](https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo) which defines the QC metrics that can be used.
+The default output format of the quality control tools is [qcML](https://pubmed.ncbi.nlm.nih.gov/24760958/), an XML-based format for -omics quality control, that consists of an [XML schema](https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML_0.0.8.xsd), which defined the overall structure of the format, and an [ontology](https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo) which defines the QC metrics that can be used.  
+You can open the a qcML file in Firefox and to show a human-readable version of the XML content (this does not work in other browsers though since no other browser supports XSLT embedded in a XML file).
 
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files.
 * [MappingQC](doc/tools/MappingQC/index.md) - Quality control tool for a BAM file.
@@ -193,6 +194,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 ### Misc tools
 
 * [FastqFromBam](doc/tools/FastqFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
+* [FastaChecksumUpdate](doc/tools/FastaChecksumUpdate.md) - Fixes MD5 checksums in FASTA sequence headers.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).

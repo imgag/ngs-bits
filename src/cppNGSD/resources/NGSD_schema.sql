@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS `geneinfo_germline`
 `gnomad_oe_syn` FLOAT NULL,
 `gnomad_oe_mis` FLOAT NULL,
 `gnomad_oe_lof` FLOAT NULL,
+`gnomad_pli` FLOAT NULL,
 `comments` text NOT NULL,
 PRIMARY KEY `symbol` (`symbol`)
 )
@@ -1168,6 +1169,30 @@ CREATE TABLE IF NOT EXISTS `analysis_job_history`
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
+-- -----------------------------------------------------
+-- Table `analysis_time`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `analysis_time`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('single','trio','rna','tumor-only','tumor-normal') NOT NULL,
+  `samples` VARCHAR(512) NOT NULL COMMENT 'Space-separated string of processed sample names',
+  `processing_system_id` INT(11) NOT NULL,
+  `dragen_used` BOOLEAN NOT NULL COMMENT 'Flag if DRAGEN was used for the primary data analysis',
+  `server` VARCHAR(100) NOT NULL,
+  `threads` INT(11) UNSIGNED NOT NULL,
+  `min` FLOAT UNSIGNED NOT NULL,
+  `datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `analysis_time_processing_system_id`
+    FOREIGN KEY (`processing_system_id`)
+    REFERENCES `processing_system` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
 -- Table `omim_gene`

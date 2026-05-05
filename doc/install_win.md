@@ -66,16 +66,6 @@ Upon succesfull completion, `qsqlmysql.dll` and `libmariadb.dll` sould be locate
 Download and install [Git](https://git-scm.com/download/win).  
 It is needed to extract the repository version during the build process.
 
-### Install python
-
-To create plots in qcML files, install the portable version of [WinPython](https://github.com/winpython/winpython/releases/download/16.6.20250620final/Winpython64-3.13.5.0whl.7z) and add the directory containing the `python.exe` to the PATH.
-
-You have to install `maplotlib` in case it is not found:
-
-	> python.exe -m pip install matplotlib
-
-This is optional. If python is not installed, no plots are generated.
-
 ## Build ngs-bits and GSvar
 
 we can now build ngs-bits:
@@ -83,7 +73,7 @@ we can now build ngs-bits:
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`. Make sure to build in release mode!  
 * Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`. Make sure to build in release mode!  
 
-*Attention: Make sure to compile the [CRYPT_KEY](GSvar/encrypt_settings.md) into the GSvar binary when using it in client-server mode. The CRYPT_KEY is used for encrypting settings and for a handshake between client and server.*
+*Attention: Make sure to compile the [CRYPT_KEY](GSvar/encrypt_settings.md) into the GSvar binary. The CRYPT_KEY is used for encrypting/decrypting settings.*
 
 Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.  
 To use GSvar, it needs to be [configured](GSvar/configuration.md) first.

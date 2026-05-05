@@ -1,7 +1,7 @@
 #include "StatisticsReads.h"
 #include "LinePlot.h"
 #include "Helper.h"
-#include <BarPlot.h>
+#include "BarPlot.h"
 
 
 StatisticsReads::StatisticsReads(bool long_read)

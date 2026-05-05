@@ -8,13 +8,12 @@ ngs-bits depends on the following software to be installed
 * _g++_ (4.5 or higher)
 * _qmake_ (Qt 6.4 or higher, including xmlpatterns, charts and mysql package)
 * _git_ (to extract the version hash)
-* __optional:__ python and matplotlib (for plot generation in QC tools)
 
 ### Qt
 
 We recommend using Ubuntu 24.04, since it is the current LTS release of Ubuntu that has Qt 6 by default. On Ubuntu 24.04 ngs-bits requires the following packages:
 
-        > sudo apt-get install git make g++ qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev libssl-dev libdeflate-dev qt6-httpserver-dev qt6-websockets-dev
+        > sudo apt-get install git make g++ unzip qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev libssl-dev libdeflate-dev qt6-httpserver-dev qt6-websockets-dev
         
     
 ### Resolving proxy issues with git

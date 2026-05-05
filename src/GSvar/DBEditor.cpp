@@ -313,6 +313,7 @@ void DBEditor::fillFormWithItemData()
 		if (field_info.is_hidden) continue;
 
 		QVariant value = query.value(field);
+		values_from_db_.insert(field, value);		
 		bool is_null = query.isNull(field);
 
 		if (field_info.type==TableFieldInfo::BOOL)
@@ -529,6 +530,79 @@ void DBEditor::editProcessedSample()
 	{
 		edit->setText(dlg.processedSampleName());
 	}
+}
+
+QSet<QString> DBEditor::getChangedFields()
+{	
+	QSet<QString> result;
+	QHash<QString, QVariant> current_values = getCurrentValues();
+	foreach(QString field_name, values_from_db_.keys())
+	{
+		if (values_from_db_[field_name]!=current_values[field_name]) result << field_name;
+	}
+
+	return result;
+}
+
+QHash<QString, QVariant> DBEditor::getCurrentValues()
+{
+	QHash<QString, QVariant> current_values;
+	const TableInfo& table_info = db_.tableInfo(table_);
+	foreach(const QString& field, table_info.fieldNames())
+	{
+		const TableFieldInfo& field_info = table_info.fieldInfo(field);
+		//skip non-editable fields
+		if (field_info.is_hidden) continue;
+
+		if (field_info.type==TableFieldInfo::BOOL)
+		{
+			current_values.insert(field, getEditWidget<QCheckBox*>(field)->isChecked());
+		}
+		else if (field_info.type==TableFieldInfo::INT)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::FLOAT)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::TEXT)
+		{
+			current_values.insert(field, getEditWidget<QTextEdit*>(field)->toPlainText());
+		}
+		else if (field_info.type==TableFieldInfo::VARCHAR)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::ENUM)
+		{
+			current_values.insert(field, getEditWidget<QComboBox*>(field)->currentText());
+		}
+		else if (field_info.type==TableFieldInfo::DATE)
+		{
+			current_values.insert(field, getEditWidget<QLineEdit*>(field)->text());
+		}
+		else if (field_info.type==TableFieldInfo::FK)
+		{
+			if (field_info.fk_table == "processed_sample")
+			{
+				current_values.insert(field, getEditWidget<ClickableLineEdit*>(field)->text());
+			}
+			else
+			{
+				current_values.insert(field, getEditWidget<DBComboBox*>(field)->getCurrentId());
+			}
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unhandled table field type '" + field_info.typeAsString() + "'!");
+		}
+	}
+	return current_values;
 }
 
 void DBEditor::showEvent(QShowEvent* event)

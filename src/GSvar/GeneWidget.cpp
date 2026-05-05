@@ -144,10 +144,8 @@ void GeneWidget::updateGUI()
 			}
 		}
 
-		//show gnomAD o/e score
-		ui_.oe_mis->setText(info.oe_mis);
-		ui_.oe_syn->setText(info.oe_syn);
-		ui_.oe_lof->setText(info.oe_lof);
+		//show gnomAD o/e and pLI
+		ui_.gnomad_constraints->setText("o/e syn: " +info.oe_syn + ", o/e mis: " + info.oe_mis + ", o/e lof: " + info.oe_lof + ", pLI: " + info.pli);
 
 		//show notice if necessary
 		if (!info.symbol_notice.startsWith("KEPT:"))

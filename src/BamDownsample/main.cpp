@@ -2,6 +2,7 @@
 #include "Helper.h"
 #include "BamWriter.h"
 #include <QTime>
+#include "Settings.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -36,9 +37,11 @@ public:
 		double percentage = getFloat("percentage");
 		if (percentage<=0 || percentage>=100) THROW(CommandLineParsingException, "Invalid percentage " + QString::number(percentage) +"!");
 
-		BamReader reader(getInfile("in"), getInfile("ref"));
 
-		BamWriter writer(getOutfile("out"), getInfile("ref"));
+		QString ref_file = getInfile("ref");
+		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
+		BamReader reader(getInfile("in"), ref_file);
+		BamWriter writer(getOutfile("out"), ref_file);
 		writer.writeHeader(reader);
 
 		//process alignments
