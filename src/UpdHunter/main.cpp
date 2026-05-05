@@ -312,10 +312,10 @@ public:
 		}
         stream << "Loaded " << output.count() << " of " << variants.count() << " variants" << Qt::endl;
 		stream << "  Skipped " << skip_chr << " variants not on autosomes" << Qt::endl;
+		stream << "  Skipped " << skip_indel << " indels" << Qt::endl;
 		stream << "  Skipped " << skip_qual << " variants because of low quality (<" << var_min_q << ")" << Qt::endl;
 		stream << "  Skipped " << skip_dp << " variants because of low depth (<" << var_min_dp << ")" << Qt::endl;
 		stream << "  Skipped " << skip_ct << " variants because flagged as special call" << Qt::endl;
-		stream << "  Skipped " << skip_indel << " indels" << Qt::endl;
 		stream << "  Skipped " << skip_excluded << " variants in exclude region." << Qt::endl;
 
 		return output;

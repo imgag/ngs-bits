@@ -31,13 +31,15 @@ public:
         //optional
         addOutfile("out", "Output multi-sample VCF. If unset, writes to STDOUT.", true);
         addFlag("trio", "Enables trio mendelian error calculation. Expected sample order: child, father, mother.");
-		addFlag("no_special_calls", "Ignores special variant calls in input VCF files (mosaic and low-mappabilty).");
+		addFlag("no_special_calls", "Ignores special variant calls in input VCF files (mosaic, low-mappabilty, targeted, etc).");
 		addFloat("min_qual", "If set, ignores input variants with less than the given QUAL cutoff.", true, 0.0);
 		addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. If not given, no re-calling is performed. For each 'in' file, a BAM file has to be provided in the same order.", true);
 		addFlag("no_genotype_correction", "Do not perform genotype correction during re-calling, only calculate DP and AF.");
 		addInt("threads", "Number of threads used for re-calling", true, 1);
 		addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
+		changeLog(2026, 5,  5, "Added 'long_read' parameter.");
 		changeLog(2026, 5,  3, "Added 'threads' parameter.");
 		changeLog(2026, 4, 30, "Added 'no_genotype_correction' parameter.");
 		changeLog(2026, 4, 26, "Added 'min_qual' and 'no_special_calls' parameters.");
@@ -256,6 +258,7 @@ public:
         QStringList bam_files = getInfileList("bam");
         if (!bam_files.isEmpty() && bam_files.count()!=in_files.count()) THROW(ArgumentException, "Number of 'bam' files has to be the same as the number 'in' files!");
 		bool no_genotype_correction = getFlag("no_genotype_correction");
+		bool long_read = getFlag("long_read");
 		QString ref_file = getInfile("ref");
         if (ref_file=="") ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
@@ -293,7 +296,7 @@ public:
 			{
 				foreach(const Chromosome& chr, chrs)
 				{
-					ReCallingWorker* worker = new ReCallingWorker(chr, bam_files[i], ref_file, data[i], var_details, no_genotype_correction, out_data);
+					ReCallingWorker* worker = new ReCallingWorker(chr, bam_files[i], ref_file, data[i], var_details, no_genotype_correction, long_read, out_data);
 					pool.start(worker);
 				}
 			}

@@ -11,7 +11,7 @@ class ReCallingWorker
 {
 
 public:
-	ReCallingWorker(const Chromosome& chr, QString bam, QString ref_file, VcfData& data, const QList<VariantDefinition>& var_defs, bool no_genotype_correction, OutputData& out_data);
+	ReCallingWorker(const Chromosome& chr, QString bam, QString ref_file, VcfData& data, const QList<VariantDefinition>& var_defs, bool no_genotype_correction, bool long_read, OutputData& out_data);
 	void run() override;
 
 protected:
@@ -21,6 +21,7 @@ protected:
 	VcfData& data_;
 	const QList<VariantDefinition>& var_defs_;
 	bool no_genotype_correction_;
+	bool long_read_;
 	OutputData& out_data_;
 
 	void writeLog(qint64 time, QString log, QString error_message = QString());
