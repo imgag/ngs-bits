@@ -30,7 +30,6 @@ public:
         addInfileList("in", "Input files to merge in VCF or VCG.GZ format.", false);
         //optional
         addOutfile("out", "Output multi-sample VCF. If unset, writes to STDOUT.", true);
-        addFlag("trio", "Enables trio mendelian error calculation. Expected sample order: child, father, mother.");
 		addFlag("no_special_calls", "Ignores special variant calls in input VCF files (mosaic, low-mappabilty, targeted, etc).");
 		addFloat("min_qual", "If set, ignores input variants with less than the given QUAL cutoff.", true, 0.0);
 		addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. If not given, no re-calling is performed. For each 'in' file, a BAM file has to be provided in the same order.", true);
@@ -252,7 +251,6 @@ public:
         }
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 		OutputData out_data{new QMutex(), QTextStream(out.isEmpty() ? stderr : stdout), false};
-        bool trio = getFlag("trio");
 		bool no_special_calls = getFlag("no_special_calls");
 		double min_qual = getFloat("min_qual");
         QStringList bam_files = getInfileList("bam");
@@ -367,47 +365,6 @@ public:
 		int c_snv_out = std::count_if(var_details.begin(), var_details.end(), [](const VariantDefinition &v) { return v.is_snv;});
 		out_data.stream << "    SNVs: " << QByteArray::number(c_snv_out) << "\n";
 		out_data.stream << "    INDELs: " << QByteArray::number(var_details.count()-c_snv_out) << Qt::endl;
-
-        //trio: determine mendelian error rate
-        if (trio)
-        {
-            int c_snv = 0;
-            int c_snv_error = 0;
-            int c_indel = 0;
-            int c_indel_error = 0;
-			for(const VariantDefinition& v: std::as_const(var_details))
-            {
-                if (!v.chr.isAutosome()) continue;
-
-                //check if mendelian error
-                bool is_error = false;
-                QByteArray gt_c = data[0].tag_to_format.value(v.tag).gt;
-                QByteArray gt_f = data[1].tag_to_format.value(v.tag).gt;
-                QByteArray gt_m = data[2].tag_to_format.value(v.tag).gt;
-                //hom, hom => het/wt
-                if (gt_f=="1/1" && gt_m=="1/1" && gt_c!="1/1") is_error = true;
-                //hom, x => wt
-                else if ((gt_f=="1/1" || gt_m=="1/1") && gt_c=="0/0") is_error = true;
-                //wt, x => hom
-                else if ((gt_f=="0/0" || gt_m=="0/0") && gt_c=="1/1") is_error = true;
-                //wt, wt  => het/hom
-                else if (gt_f=="0/0" && gt_m=="0/0" && gt_c!="0/0") is_error = true;
-
-                if (v.is_snv)
-                {
-                    ++c_snv;
-                    if (is_error) ++c_snv_error;
-                }
-                else
-                {
-                    ++c_indel;
-                    if (is_error) ++c_indel_error;
-                }
-            }
-			out_data.stream << "  trio mendelian error rate of SNVs: " << QByteArray::number(100.0 * c_snv_error/c_snv, 'f', 2) << "%\n";
-			out_data.stream << "  trio mendelian error rate of INDELs: " << QByteArray::number(100.0 * c_indel_error/c_indel, 'f', 2) << "%\n";
-        }
-		out_data.stream << Qt::endl;
     }
 };
 

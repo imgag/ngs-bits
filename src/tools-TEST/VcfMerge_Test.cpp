@@ -23,7 +23,7 @@ private:
 
         QString ref_file = Settings::string("reference_genome", true);
 
-        EXECUTE("VcfMerge", "-trio -in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out2.vcf");
+		EXECUTE("VcfMerge", "-in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out2.vcf");
         REMOVE_LINES("out/VcfMerge_out2.vcf", QRegularExpression("fileDate"));
         COMPARE_FILES("out/VcfMerge_out2.vcf", TESTDATA("data_out/VcfMerge_out2.vcf"));
         VCF_IS_VALID("out/VcfMerge_out2.vcf");
@@ -35,7 +35,7 @@ private:
 
         QString ref_file = Settings::string("reference_genome", true);
 
-		EXECUTE("VcfMerge", "-trio -threads 3 -in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out3.vcf -bam " + TESTDATA("data_in/VcfMerge.cram") + " " + TESTDATA("data_in/VcfMerge.cram") + " " + TESTDATA("data_in/VcfMerge.cram"));
+		EXECUTE("VcfMerge", "-threads 3 -in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out3.vcf -bam " + TESTDATA("data_in/VcfMerge.cram") + " " + TESTDATA("data_in/VcfMerge.cram") + " " + TESTDATA("data_in/VcfMerge.cram"));
         REMOVE_LINES("out/VcfMerge_out3.vcf", QRegularExpression("fileDate"));
         COMPARE_FILES("out/VcfMerge_out3.vcf", TESTDATA("data_out/VcfMerge_out3.vcf"));
         VCF_IS_VALID("out/VcfMerge_out3.vcf");
@@ -47,7 +47,7 @@ private:
 
 		QString ref_file = Settings::string("reference_genome", true);
 
-		EXECUTE("VcfMerge", "-trio -in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out4.vcf -no_special_calls -min_qual 20");
+		EXECUTE("VcfMerge", "-in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out4.vcf -no_special_calls -min_qual 20");
 		REMOVE_LINES("out/VcfMerge_out4.vcf", QRegularExpression("fileDate"));
 		COMPARE_FILES("out/VcfMerge_out4.vcf", TESTDATA("data_out/VcfMerge_out4.vcf"));
 		VCF_IS_VALID("out/VcfMerge_out4.vcf");
@@ -59,7 +59,7 @@ private:
 
 		QString ref_file = Settings::string("reference_genome", true);
 
-		EXECUTE("VcfMerge", "-trio -no_genotype_correction -in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out5.vcf -bam " + TESTDATA("data_in/VcfMerge.cram") + " " + TESTDATA("data_in/VcfMerge.cram") + " " + TESTDATA("data_in/VcfMerge.cram"));
+		EXECUTE("VcfMerge", "-no_genotype_correction -in " + TESTDATA("data_in/VcfMerge_SR_FB.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DR.vcf.gz") + " " + TESTDATA("data_in/VcfMerge_SR_DV.vcf.gz") + " -out out/VcfMerge_out5.vcf -bam " + TESTDATA("data_in/VcfMerge.cram") + " " + TESTDATA("data_in/VcfMerge.cram") + " " + TESTDATA("data_in/VcfMerge.cram"));
 		REMOVE_LINES("out/VcfMerge_out5.vcf", QRegularExpression("fileDate"));
 		COMPARE_FILES("out/VcfMerge_out5.vcf", TESTDATA("data_out/VcfMerge_out5.vcf"));
 		VCF_IS_VALID("out/VcfMerge_out5.vcf");
