@@ -1,0 +1,94 @@
+##fileformat=VCFv4.2
+##DRAGENCommandLine=<ID=HashTableBuild,Version="SW: 00.000.000.4.4.6, HashTableVersion: 11",CommandLineOptions="/opt/dragen/4.4.6/bin/dragen --build-hash-table true --ht-reference /staging/genomes/GRCh38/GRCh38.fa --output-dir /staging/genomes/GRCh38/dragen44/ --enable-cnv true --ht-num-threads 40 --ht-build-hla-hashtable true">
+##DRAGENCommandLine=<ID=dragen,Version="SW: 07.031.779.4.4.6, HW: 07.031.779",Date="Tue May 05 13:41:23 CEST 2026",CommandLineOptions="--fastq-list /tmp/1101773.1.dragen_srv027/megSAP_user_ahschul1/analyze_dragen_XtjjCr.csv -r /staging/genomes/GRCh38/dragen44/ --validate-pangenome-reference=false --ora-reference /mnt/storage2/megSAP/data//dbs/oradata/ --output-directory /staging/data//megSAP_working_dir/ --output-file-prefix NA12878-WGS-DRAGEN_01 --output-format CRAM --enable-map-align-output true --enable-cram-indexing true --enable-rh false --enable-duplicate-marking true --enable-variant-caller true --vc-enable-mosaic-detect true --enable-targeted true --targeted-merge-vc true --enable-hla true --vc-emit-ref-confidence GVCF --vc-enable-vcf-output true --enable-cnv true --cnv-enable-self-normalization true --enable-sv true --repeat-genotype-enable true">
+##EVENTTYPE=<ID=GENE_CONVERSION,Description="Gene conversion event">
+##EVENTTYPE=<ID=VARIANT_IN_HOMOLOGY_REGION,Description="Variant in homology region">
+##referenceSexKaryotype=XX
+##ML=PackageVersion=15,ModelVersion=0,ModelCRC=0
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrMT,length=16569>
+##reference=file:///staging/genomes/GRCh38/dragen44//reference.bin
+##source=DRAGEN_SNV
+##source=DRAGEN_TARGETED
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
+##PIPELINE=megSAP 2025_10-200-g83143f6e
+##SAMPLE=<ID=NA12878-WGS-DRAGEN_01,Gender=female,ExternalSampleName=HG001,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test to detect strand bias">
+##INFO=<ID=HML,Number=0,Type=Flag,Description="Variant in homology region">
+##INFO=<ID=MOSAIC,Number=0,Type=Flag,Description="Potential mosaic variant">
+##INFO=<ID=QD,Number=1,Type=Float,Description="Variant Confidence/Quality by Depth">
+##INFO=<ID=SOR,Number=1,Type=Float,Description="Symmetric Odds Ratio of 2x2 contingency table to detect strand bias">
+##INFO=<ID=TARGETED,Number=0,Type=Flag,Description="The call is from a targeted caller">
+##INFO=<ID=ALLELE_ID,Number=R,Type=String,Description="Identifier for each allele">
+##INFO=<ID=JIDS,Number=.,Type=String,Description="IDs (from ID column) of calls associated with a joint genotype call in duplicated regions">
+##INFO=<ID=EVENT,Number=A,Type=String,Description="Event name">
+##INFO=<ID=EVENTTYPE,Number=A,Type=String,Description="Type of associated event">
+##INFO=<ID=Recombinant,Number=0,Type=Flag,Description="The call is at a recombinant site.">
+##INFO=<ID=TargetedCaller,Number=1,Type=String,Description="Targeted Caller Name">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (informative and non-informative); some reads may have been filtered based on mapq etc.">
+##INFO=<ID=FractionInformativeReads,Number=1,Type=Float,Description="The fraction of informative reads out of the total reads">
+##INFO=<ID=MQ,Number=1,Type=Float,Description="RMS Mapping Quality">
+##INFO=<ID=MQRankSum,Number=1,Type=Float,Description="Z-score From Wilcoxon rank sum test of Alt vs. Ref read mapping qualities">
+##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt vs. Ref read position bias">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FILTER=<ID=targeted,Description="Variant is called by targeted caller.">
+##FILTER=<ID=targeted_low_conf,Description="Variant doesn't pass QC of targeted caller.">
+##FILTER=<ID=mosaic,Description="Variant is called by mosaic caller.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths (counting only informative reads out of the total reads) for the ref and alt alleles in the order listed">
+##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions for alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with ">
+##FORMAT=<ID=F1R2,Number=R,Type=Integer,Description="Count of reads in F1R2 pair orientation supporting each allele">
+##FORMAT=<ID=F2R1,Number=R,Type=Integer,Description="Count of reads in F2R1 pair orientation supporting each allele">
+##FORMAT=<ID=GP,Number=G,Type=Float,Description="Phred-scaled posterior probabilities for genotypes as defined in the VCF specification">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=MB,Number=4,Type=Integer,Description="Per-sample component statistics to detect mate bias">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=PRI,Number=G,Type=Float,Description="Phred-scaled prior probabilities for genotypes">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=SB,Number=4,Type=Integer,Description="Per-sample component statistics which comprise the Fisher's Exact Test to detect strand bias">
+##FORMAT=<ID=QL,Number=1,Type=Float,Description="Phred-scaled likelihood for homozygous reference genotype call">
+##FORMAT=<ID=VQL,Number=1,Type=Float,Description="Phred-scaled likelihood for nonvariant genotype call where overlapping deletion (*) ALT alleles are not considered to be variant.">
+##FORMAT=<ID=JGT,Number=1,Type=String,Description="Joint genotype in duplicated regions. Defined analogously to FORMAT/GT in the VCF specification">
+##FORMAT=<ID=JGQ,Number=1,Type=Integer,Description="Quality of joint genotype in duplicated regions">
+##FORMAT=<ID=JPL,Number=.,Type=Integer,Description="Normalized, Phred-scaled likelihoods for joint genotypes in duplicated regions. Defined analogously to FORMAT/PL in the VCF specification">
+##FORMAT=<ID=JQL,Number=1,Type=Float,Description="Phred-scaled likelihood for homozygous reference joint genotype call">
+##FORMAT=<ID=JVQL,Number=1,Type=Float,Description="Phred-scaled likelihood for nonvariant joint genotype call where overlapping deletion (*) ALT alleles are not considered to be variant.">
+##FORMAT=<ID=JDP,Number=1,Type=Integer,Description="Total depth from all alleles in duplicated regions">
+##FORMAT=<ID=JAD,Number=R,Type=Integer,Description="Total read depth for each allele in duplicated regions">
+##FORMAT=<ID=JAF,Number=A,Type=Float,Description="Allele frequency for each alt allele in duplicated regions">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878-WGS-DRAGEN_01
+chr1	155214276	.	C	T	11.56	PASS	TARGETED;JIDS=chr1_155234903_155234903,chr1_155214276_155214276;TargetedCaller=gba;Recombinant	GT:GQ:QL:VQL:PL:JGT:JGQ:JQL:JVQL:JPL:JDP:JAD:JAF	1/1:5:11.56:11.56:10,4,0:0/0/1/1:42:150.00:150.00:150,42,0,85,150:103:56,47:0.46
+chr1	155214576	.	C	G	11.56	PASS	TARGETED;JIDS=chr1_155235203_155235203,chr1_155214576_155214576;TargetedCaller=gba;Recombinant	GT:GQ:QL:VQL:PL:JGT:JGQ:JQL:JVQL:JPL:JDP:JAD:JAF	1/1:5:11.56:11.56:10,4,0:0/0/1/1:33:150.00:150.00:150,33,0,109,150:116:66,50:0.43
+chr1	155214590	.	C	G	11.55	PASS	TARGETED;JIDS=chr1_155235217_155235217,chr1_155214590_155214590;TargetedCaller=gba;Recombinant	GT:GQ:QL:VQL:PL:JGT:JGQ:JQL:JVQL:JPL:JDP:JAD:JAF	1/1:5:11.55:11.55:10,4,0:0/0/1/1:25:150.00:150.00:150,25,0,110,150:110:64,46:0.42
+chr1	155235379	.	A	G	67.7	PASS	TARGETED;JIDS=chr1_155235379_155235379,chr1_155214752_155214752;TargetedCaller=gba;Recombinant	GT:GQ:QL:VQL:PL:JGT:JGQ:JQL:JVQL:JPL:JDP:JAD:JAF	0/0:0:67.70:67.70:65,0,0:0/1/1/1:67:150.00:150.00:150,150,67,0,150:111:27,84:0.76
+chr1	158440235	.	C	T	13.09	PASS	AC=1;AF=0.500;AN=2;DP=43;FS=5.491;MQ=250.00;MQRankSum=2.837;QD=0.30;ReadPosRankSum=1.168;SOR=2.128;FractionInformativeReads=1.000;MOSAIC	GT:AD:AF:DP:F1R2:F2R1:GQ:PL:GP:PRI:SB:MB	0/1:40,3:0.0698:43:15,2:25,1:13:48,0,77:1.3089e+01,2.1868e-01,8.0000e+01:0.00,34.77,37.78:24,16,3,0:17,23,2,1
+chr1	158474238	.	C	A	7.78	PASS	AC=1;AF=0.500;AN=2;DP=29;FS=27.110;MQ=250.00;MQRankSum=3.688;QD=0.27;ReadPosRankSum=0.458;SOR=3.895;FractionInformativeReads=1.000;MOSAIC	GT:AD:AF:DP:F1R2:F2R1:GQ:PL:GP:PRI:SB:MB	0/1:23,6:0.2069:29:15,2:8,4:8:42,0,76:7.7766e+00,7.9280e-01,8.0000e+01:0.00,34.77,37.78:17,6,0,6:15,8,4,2
+chr1	162434977	.	A	G	27.46	PASS	AC=1;AF=0.500;AN=2;DP=45;FS=0.000;MQ=250.00;MQRankSum=3.250;QD=0.61;ReadPosRankSum=0.499;SOR=0.648;FractionInformativeReads=1.000;MOSAIC	GT:AD:AF:DP:F1R2:F2R1:GQ:PL:GP:PRI:SB:MB	0/1:41,4:0.0889:45:21,1:20,3:27:62,0,77:2.7464e+01,7.7935e-03,8.0000e+01:0.00,34.77,37.78:20,21,2,2:24,17,3,1
+chr1	162444087	.	G	A	15.01	PASS	AC=1;AF=0.500;AN=2;DP=38;FS=0.000;MQ=250.00;MQRankSum=2.815;QD=0.40;ReadPosRankSum=0.974;SOR=0.507;FractionInformativeReads=1.000;MOSAIC	GT:AD:AF:DP:F1R2:F2R1:GQ:PL:GP:PRI:SB:MB	0/1:35,3:0.0789:38:23,1:12,2:15:50,0,77:1.5010e+01,1.3922e-01,8.0000e+01:0.00,34.77,37.78:23,12,2,1:21,14,2,1
