@@ -45,9 +45,10 @@ public:
 			{
 				++c_reads_mapped;
 				int sum_m = 0;
-				for (CigarOp& op : al.cigarData())
+				CigarData cigar = al.cigarData();
+				for(uint32_t i=0; i<cigar.size(); ++i)
 				{
-					if (op.Type==BAM_CMATCH) sum_m += op.Length;
+					if (cigar.opType(i)==BAM_CMATCH) sum_m += cigar.opLength(i);
 				}
 				if (sum_m<min_match)
 				{

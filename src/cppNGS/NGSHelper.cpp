@@ -687,22 +687,18 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 		THROW(ToolFailedException, "End position " + QString::number(end_ref_pos) + " not within alignment (" + QString::number(al.start()) + ":" + QString::number(al.end()) + ").");
 	}
 
-	QList<CigarOp> old_CIGAR = al.cigarData();
-	for(const CigarOp& op: old_CIGAR)
-	{
-		if(op.Type!=BAM_CDEL && op.Type!=BAM_CSOFT_CLIP && op.Type!=BAM_CMATCH && op.Type!=BAM_CINS && op.Type!=BAM_CHARD_CLIP)
-		{
-			THROW(ToolFailedException, "Unsupported CIGAR type '" + QString::number(op.Type) + "'");
-		}
-	}
 
 	//generate CIGAR char matrix from CIGAR
 	QList<QPair<int,int>> matrix;
-	for(const CigarOp& op: old_CIGAR)
+	CigarData old_CIGAR = al.cigarData();
+	for(uint32_t i=0; i<old_CIGAR.size(); ++i)
 	{
-		for(int j=0; j<op.Length; ++j)
+		uint32_t op = old_CIGAR.opType(i);
+		if(op!=BAM_CDEL && op!=BAM_CSOFT_CLIP && op!=BAM_CMATCH && op!=BAM_CINS && op!=BAM_CHARD_CLIP) THROW(ToolFailedException, "Unsupported CIGAR type '" + QString(old_CIGAR.opTypeAsChar(i)) + "'");
+
+		for(uint32_t j=0; j< old_CIGAR.opLength(i); ++j)
 		{
-			matrix.append(qMakePair(op.Type, op.Type));
+			matrix.append(qMakePair(op, op));
 		}
 	}
 

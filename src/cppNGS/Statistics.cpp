@@ -439,13 +439,15 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 			const int start_pos = al.start();
 			const int end_pos = al.end();
 			bases_mapped += length;
-			for(const CigarOp& op: al.cigarData())
+			CigarData cigar = al.cigarData();
+			for(uint32_t i=0; i<cigar.size(); ++i)
 			{
-				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
+				uint32_t op = cigar.opType(i);
+				if (op==BAM_CSOFT_CLIP || op==BAM_CHARD_CLIP)
 				{
-					bases_clipped += op.Length;
+					bases_clipped += cigar.opLength(i);
 				}
-				else if (op.Type==BAM_CREF_SKIP)
+				else if (op==BAM_CREF_SKIP)
 				{
 					spliced_alignment = true;
 				}
@@ -851,13 +853,15 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 
 			//calculate soft/hard-clipped bases
 			bases_mapped += length;
-			for(const CigarOp& op: al.cigarData())
+			CigarData cigar = al.cigarData();
+			for(uint32_t i=0; i<cigar.size(); ++i)
 			{
-				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
+				uint32_t op = cigar.opType(i);
+				if (op==BAM_CSOFT_CLIP || op==BAM_CHARD_CLIP)
 				{
-					bases_clipped += op.Length;
+					bases_clipped += cigar.opLength(i);
 				}
-				else if (op.Type==BAM_CREF_SKIP)
+				else if (op==BAM_CREF_SKIP)
 				{
 					spliced_alignment = true;
 				}
@@ -1084,13 +1088,15 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 
 			//calculate soft/hard-clipped bases
 			bases_mapped += length;
-			for(const CigarOp& op: al.cigarData())
+			CigarData cigar = al.cigarData();
+			for(uint32_t i=0; i<cigar.size(); ++i)
 			{
-				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
+				uint32_t op = cigar.opType(i);
+				if (op==BAM_CSOFT_CLIP || op==BAM_CHARD_CLIP)
 				{
-					bases_clipped += op.Length;
+					bases_clipped += cigar.opLength(i);
 				}
-				else if (op.Type==BAM_CREF_SKIP)
+				else if (op==BAM_CREF_SKIP)
 				{
 					spliced_alignment = true;
 				}
@@ -2016,15 +2022,11 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		else if( variants.vcfHeader().formatIdDefined("TIR") && !variants[i].formatValueFromSample("TIR", tumor_id.toUtf8()).isEmpty() )	//indels strelka
 		{
 			//TIR + TAR tumor
-			count_mut = 0;
-			count_all = 0;
 			count_mut = variants[i].formatValueFromSample("TIR", tumor_id.toUtf8()).split(',')[0].toInt();
 			count_all = variants[i].formatValueFromSample("TAR", tumor_id.toUtf8()).split(',')[0].toInt() + count_mut;
 			if(count_all>0)	af_tumor = (double)count_mut/count_all;
 
 			//TIR + TAR normal
-			count_mut = 0;
-			count_all = 0;
 			count_mut = variants[i].formatValueFromSample("TIR", normal_id.toUtf8()).split(',')[0].toInt();
 			count_all = variants[i].formatValueFromSample("TAR", normal_id.toUtf8()).split(',')[0].toInt() + count_mut;
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
@@ -2301,7 +2303,6 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			if((tmp_chr != variants[i].chr().str()) && i>0)	//if a different chromosome is found => udpate offset
 			{
 				if(!chrom_starts_norm.contains(variants[i].chr()))	continue; //skip invalid chromosomes
-				tmp_pos = 0;
 				tmp_offset = chrom_starts_norm[tmp_chr];
 			}
 
