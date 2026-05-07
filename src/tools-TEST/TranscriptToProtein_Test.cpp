@@ -15,7 +15,7 @@ private:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/TranscriptToProtein_in.sql"));
 
-		EXECUTE("TranscriptToProtein", "-in " + TESTDATA("data_in/TranscriptToProtein_in.txt") + " -out out/TranscriptToProtein_out.txt");
+		EXECUTE("TranscriptToProtein", "-test -in " + TESTDATA("data_in/TranscriptToProtein_in.txt") + " -out out/TranscriptToProtein_out.txt");
 		COMPARE_FILES("out/TranscriptToProtein_out.txt", TESTDATA("data_out/TranscriptToProtein_out.txt"));
 	}
 	
