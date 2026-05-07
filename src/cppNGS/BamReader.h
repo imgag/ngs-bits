@@ -11,7 +11,6 @@
 #include "QHash"
 
 #include "htslib/sam.h"
-#include "htslib/cram.h"
 
 //Representation of a CIGAR operation
 struct CPPNGSSHARED_EXPORT CigarOp
@@ -287,7 +286,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		bam1_t* aln_;
 		mutable int length_ = -1;
 		mutable bool length_initialized_ = false;
-		int loaded_fields_; //fields loaded (for CRAM)
+		int loaded_fields_ = 0; //fields loaded (for CRAM)
 
 		//friends
 		friend class BamReader;

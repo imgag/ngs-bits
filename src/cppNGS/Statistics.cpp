@@ -439,8 +439,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 			const int start_pos = al.start();
 			const int end_pos = al.end();
 			bases_mapped += length;
-			const QList<CigarOp> cigar_data = al.cigarData();
-			foreach(const CigarOp& op, cigar_data)
+			for(const CigarOp& op: al.cigarData())
 			{
 				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
 				{
@@ -852,8 +851,7 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 
 			//calculate soft/hard-clipped bases
 			bases_mapped += length;
-			const QList<CigarOp> cigar_data = al.cigarData();
-			foreach(const CigarOp& op, cigar_data)
+			for(const CigarOp& op: al.cigarData())
 			{
 				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
 				{
@@ -1086,8 +1084,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 
 			//calculate soft/hard-clipped bases
 			bases_mapped += length;
-			const QList<CigarOp> cigar_data = al.cigarData();
-			foreach(const CigarOp& op, cigar_data)
+			for(const CigarOp& op: al.cigarData())
 			{
 				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
 				{

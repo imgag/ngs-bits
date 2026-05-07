@@ -34,8 +34,7 @@ public:
 	{
 		int n_gaps = 0;
 		int indel_size = 0;
-		QList<CigarOp> cigar = al.cigarData();
-		foreach(CigarOp op, cigar)
+		for(const CigarOp& op: al.cigarData())
 		{
 			if (op.Type == 1 || op.Type == 2)
 			{

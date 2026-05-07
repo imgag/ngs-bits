@@ -35,7 +35,7 @@ QList<CigarOp> BamAlignment::cigarData() const
 {
 	QList<CigarOp> output;
 
-	const auto cigar = bam_get_cigar(aln_);
+	uint32_t* cigar = bam_get_cigar(aln_);
 	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
 	{
 		output << CigarOp { (int)bam_cigar_op(cigar[i]), (int)bam_cigar_oplen(cigar[i]) };
@@ -81,22 +81,19 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 {
 	QByteArray output;
 
-	const auto cigar = bam_get_cigar(aln_);
+	uint32_t* cigar = bam_get_cigar(aln_);
 	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
 	{
+		uint32_t len = bam_cigar_oplen(cigar[i]);
+		uint32_t base = bam_cigar_opchr(cigar[i]);
 		if (expand)
 		{
-			int len = bam_cigar_oplen(cigar[i]);
-			char base = bam_cigar_opchr(cigar[i]);
-			for (int j=0; j<len; ++j)
-			{
-				output.append(base);
-			}
+			output.append(QByteArray(len, base));
 		}
 		else
 		{
-            output.append(QString::number(bam_cigar_oplen(cigar[i])).toUtf8());
-			output.append(bam_cigar_opchr(cigar[i]));
+			output.append(QByteArray::number(len));
+			output.append(base);
 		}
 	}
 
@@ -105,10 +102,10 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 
 bool BamAlignment::cigarIsOnlyInsertion() const
 {
-	const auto cigar = bam_get_cigar(aln_);
+	uint32_t* cigar = bam_get_cigar(aln_);
 	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
 	{
-		int op = (int)bam_cigar_op(cigar[i]);
+		uint32_t op = bam_cigar_op(cigar[i]);
 		if (op!=BAM_CINS && op!=BAM_CSOFT_CLIP) return false;
 	}
 
@@ -233,8 +230,7 @@ void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
 	//position in the genome (e.g. contains deletions)
 	int genome_position_index = 0;
 
-	const QList<CigarOp> cigar_data = cigarData();
-	foreach(const CigarOp& op, cigar_data)
+	for(const CigarOp& op: cigarData())
 	{
 		if (op.Type==BAM_CMATCH)
 		{
@@ -264,7 +260,6 @@ void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
 		{
 			alignment_index += op.Length;
 		}
-
 	}
 }
 
@@ -326,8 +321,7 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
 	//sometimes reads consist of insertions only > skip them
 	if (cigarIsOnlyInsertion()) return qMakePair('~', -1);
 
-	const QList<CigarOp> cigar_data = cigarData();
-	foreach(const CigarOp& op, cigar_data)
+	for(const CigarOp& op: cigarData())
 	{
 		//update positions
 		if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF)
@@ -381,10 +375,6 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
 		}
 	}
 
-	foreach(const CigarOp& op, cigar_data)
-	{
-		qDebug() <<  op.Type << op.Length;
-	}
 	THROW(Exception, "Could not find position " + QString::number(pos) + " in read " + name() + " with start position " + QString::number(start()) + "!");
 }
 
@@ -399,9 +389,8 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 	//look up indels
 	int read_pos = 0;
 	int genome_pos = start();
-	const QList<CigarOp> cigar_data = cigarData();
 	const QByteArray sequence = bases();
-	foreach(const CigarOp& op, cigar_data)
+	for(const CigarOp& op: cigarData())
 	{
 		//update positions
 		if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF) //match or mismatch
@@ -833,7 +822,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	//restrict to region
 	setRegion(chr, pos, pos);
 
-    QMap<QByteArray, QPair<char, int>> read_names;
+	QHash<QByteArray, QPair<char, int>> read_names;
 	//iterate through all alignments and create counts
 	BamAlignment al;
 	while (getNextAlignment(al))
@@ -847,11 +836,12 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 		if (al.mappingQuality()<min_mapq) continue;
 
         if (count_fragments)
-        {
+		{
             //check previously counted read: if differing bases count higher quality remove if same quality
-            if (read_names.contains(al.name()))
+			QByteArray name = al.name();
+			if (read_names.contains(name))
             {
-                QPair<char, int> base_read1 = read_names.value(al.name());
+				QPair<char, int> base_read1 = read_names.value(name);
                 QPair<char, int> base_read2 = al.extractBaseByCIGAR(pos);
 
                 if (base_read1.first != base_read2.first)
@@ -868,10 +858,10 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
                         output.inc(base_read2.first);
                     }
                 }
-                read_names.remove(al.name()); //read info won't be used again after second read is handled: remove to save RAM
+				read_names.remove(name); //read info won't be used again after second read is handled: remove to save RAM
                 continue;
             }
-            read_names.insert(al.name(), al.extractBaseByCIGAR(pos));
+			read_names.insert(name, al.extractBaseByCIGAR(pos));
         }
 
 		//snps
@@ -971,7 +961,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 
 	//restrict to region
 	setRegion(chr, start, end);
-    QMap<QByteArray, QPair<QByteArray, int>> read_names;
+	QHash<QByteArray, QPair<QByteArray, int>> read_names;
     QList<int> indels_to_remove;
 	//iterate through all alignments and create counts
 	BamAlignment al;
@@ -1000,8 +990,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 
 		//run time optimization: skip reads that do not contain Indels
 		bool contains_indels_refskip = false;
-		const QList<CigarOp> cigar_data = al.cigarData();
-		foreach(const CigarOp& op, cigar_data)
+		for(const CigarOp& op: al.cigarData())
 		{
 			if (op.Type==BAM_CINS || op.Type==BAM_CDEL || op.Type==BAM_CREF_SKIP)
 			{
@@ -1013,23 +1002,24 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
         {
             if (count_fragments)
             {
-                if (read_names.contains(al.name()))
+				QByteArray name = al.name();
+				if (read_names.contains(name))
                 {
                     //reads don't agree remove both from count
-                    if (read_names.value(al.name()).first != read_variant)
+					if (read_names.value(name).first != read_variant)
                     {
                         depth -= 2;
-                        indels_to_remove.append(read_names.value(al.name()).second);
-                        read_names.remove(al.name());
+						indels_to_remove.append(read_names.value(name).second);
+						read_names.remove(name);
                     }
                     {
-                        read_names.remove(al.name());
+						read_names.remove(name);
                         --depth;
                     }
                 }
                 else
                 {
-                    read_names.insert(al.name(), qMakePair(read_variant, indels_variant_idx));
+					read_names.insert(name, qMakePair(read_variant, indels_variant_idx));
                 }
             }
             continue;
@@ -1040,8 +1030,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 		//look up indels
 		int read_pos = 0;
 		int genome_pos = al.start();
-		const QList<CigarOp> cigar_data2 = al.cigarData();
-		foreach(const CigarOp& op, cigar_data2)
+		for(const CigarOp& op: al.cigarData())
 		{
 			//update positions
 			if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF)
