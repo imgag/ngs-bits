@@ -69,8 +69,6 @@ private:
 	// reloads bedfile_ from file_path_, returns true if successful.
 	bool load();
 
-	// displays string info in the pop up on global position
-	void showInfoPopup(QPointF global_pos, QString info);
 	// calls the appropriate function depending on the current draw mode
 	QString getBandText(const BedLine& region, int row, int x);
 	// gets the information of the band at position x in row 0 if row is not 0, returns empty string

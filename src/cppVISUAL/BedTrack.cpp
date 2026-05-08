@@ -6,9 +6,6 @@
 #include <QApplication>
 #include <QActionGroup>
 #include <QDrag>
-#include <QDialog>
-#include <QVBoxLayout>
-#include <QLabel>
 #include <QPainter>
 #include <QMenu>
 #include <QMimeData>
@@ -201,25 +198,6 @@ void BedTrack::mouseReleaseEvent(QMouseEvent* event)
 	}
 
 	TrackWidget::mouseReleaseEvent(event);
-}
-
-void BedTrack::showInfoPopup(QPointF global_pos, QString text)
-{
-	QDialog* popup = new QDialog(this, Qt::Popup);
-
-	popup->setAttribute(Qt::WA_DeleteOnClose);
-
-	QVBoxLayout* layout = new QVBoxLayout(popup);
-
-	QLabel* label = new QLabel(text);
-	label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	label->setWordWrap(false);
-
-	layout->addWidget(label);
-
-	popup->move(global_pos.x(), global_pos.y());
-
-	popup->show();
 }
 
 QString BedTrack::getBandText(const BedLine& region, int row, int x)

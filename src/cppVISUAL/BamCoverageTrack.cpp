@@ -1,6 +1,7 @@
 #include "BamCoverageTrack.h"
 #include "SharedData.h"
 
+#include <QApplication>
 #include <QPainter>
 
 static constexpr int TRACK_HEIGHT = 50;
@@ -47,7 +48,6 @@ void BamCoverageTrack::storeCoverage()
 	const QVector<BamAlignmentWrapper>& aligns = track_data_->getAlignments();
 
 	//store coverage
-	// foreach (const BamAlignment& al, aligns)
 	for (int i =0; i < aligns.count(); ++i)
 	{
 		const BamAlignment& al = aligns[i].alignment;
@@ -57,19 +57,33 @@ void BamCoverageTrack::storeCoverage()
 		int al_start = std::max(al.start(), region.start());
 		int al_end	 = std::min(al.end(), region.end() + 1);
 
-		for (int pos = al_start; pos < al_end; ++pos)
+		for (int pos = al_start; pos <= al_end; ++pos)
 		{
 			int idx = pos - region.start();
 			char base;
 			auto base_info = al.extractBaseByCIGAR(pos);
 			base = base_info.first;
-			switch (base)
+			if (!al.isReverseStrand())
 			{
-				case 'A': case 'a':  ++coverage_[idx].a; break;
-				case 'C': case 'c':  ++coverage_[idx].c; break;
-				case 'G': case 'g':  ++coverage_[idx].g; break;
-				case 'T': case 't':  ++coverage_[idx].t; break;
-				default: break;
+				switch (base)
+				{
+					case 'A': case 'a':  ++coverage_[idx].forward_a; break;
+					case 'C': case 'c':  ++coverage_[idx].forward_c; break;
+					case 'G': case 'g':  ++coverage_[idx].forward_g; break;
+					case 'T': case 't':  ++coverage_[idx].forward_t; break;
+					default: break;
+				}
+			}
+			else
+			{
+				switch (base)
+				{
+					case 'A': case 'a':  ++coverage_[idx].reverse_a; break;
+					case 'C': case 'c':  ++coverage_[idx].reverse_c; break;
+					case 'G': case 'g':  ++coverage_[idx].reverse_g; break;
+					case 'T': case 't':  ++coverage_[idx].reverse_t; break;
+					default: break;
+				}
 			}
 			if (coverage_[idx].total() > max_coverage_) max_coverage_ = coverage_[idx].total();
 		}
@@ -84,10 +98,10 @@ void BamCoverageTrack::storeCoverage()
 		int base_count = 0;
 		switch (ref_base)
 		{
-			case 'A': case 'a': base_count = cov.a; break;
-			case 'C': case 'c': base_count = cov.c; break;
-			case 'G': case 'g': base_count = cov.g; break;
-			case 'T': case 't': base_count = cov.t; break;
+			case 'A': case 'a': base_count = cov.a(); break;
+			case 'C': case 'c': base_count = cov.c(); break;
+			case 'G': case 'g': base_count = cov.g(); break;
+			case 'T': case 't': base_count = cov.t(); break;
 		}
 		cov.is_variant = (((double)base_count / total_count) < 0.8);
 	}
@@ -144,10 +158,10 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 		else
 		{
 			QPen pen = painter.pen();
-			int a_height = bar_h * ((float)cov.a / total_count);
-			int c_height = bar_h * ((float)cov.c / total_count);
-			int g_height = bar_h * ((float)cov.g / total_count);
-			int t_height = bar_h * ((float)cov.t / total_count);
+			int a_height = bar_h * ((float)cov.a() / total_count);
+			int c_height = bar_h * ((float)cov.c() / total_count);
+			int g_height = bar_h * ((float)cov.g() / total_count);
+			int t_height = bar_h * ((float)cov.t() / total_count);
 
 			int y_start = draw_height - a_height;
 			if (region.length() >= 1500) painter.setPen(QColor(0, 150, 0));
@@ -171,4 +185,77 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 			painter.setPen(pen);
 		}
 	}
+}
+
+
+QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_idx)
+{
+	const BedLine& region = SharedData::region();
+	int coverage_pos = region.start() + coverage_idx;
+
+	QString info = QString("%1:%2\nTotal count: %3\n")
+					   .arg(region.chr().str())
+					   .arg(coverage_pos)
+					   .arg(cov.total());
+
+	// Helper struct
+	struct BaseInfo {
+		char symbol;
+		int count;
+		int fwd;
+		int rev;
+	};
+
+	BaseInfo bases[] = {
+		{'A', cov.a(), cov.forward_a, cov.reverse_a},
+		{'C', cov.c(), cov.forward_c, cov.reverse_c},
+		{'G', cov.g(), cov.forward_g, cov.reverse_g},
+		{'T', cov.t(), cov.forward_t, cov.reverse_t}
+	};
+
+	for (const auto& b : bases) {
+		int total = cov.total();
+		int percent = (total > 0) ? static_cast<int>(100.0 * b.count / total) : 0;
+		info += QString("%1: %2 (%3%, %4+, %5-)\n")
+					.arg(b.symbol)
+					.arg(b.count)
+					.arg(percent)
+					.arg(b.fwd)
+					.arg(b.rev);
+	}
+
+	return info;
+}
+
+void BamCoverageTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
+{
+	const BedLine& region = SharedData::region();
+	int label_width = SharedData::settings().label_width;
+	int total_width = width() - label_width - 4;
+	float p = (float)(local_pos.x() - label_width - 2)/(total_width);
+	int x = region.length() * p;
+
+	if (x >= coverage_.length()) return;
+
+	const BaseCoverage& cov = coverage_[x];
+	QString info = getCoverageText(cov, x);
+	showInfoPopup(global_pos, info);
+}
+
+void BamCoverageTrack::mousePressEvent(QMouseEvent* event)
+{
+	mouse_press_pos_ = event->pos();
+	TrackWidget::mousePressEvent(event);
+}
+
+void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)
+{
+	bool dragging =	((event->pos() - mouse_press_pos_).manhattanLength() >= QApplication::startDragDistance());
+
+	if (!dragging)
+	{
+		handlePopupRequest(event->pos(), event->globalPosition());
+	}
+
+	TrackWidget::mouseReleaseEvent(event);
 }

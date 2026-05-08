@@ -9,15 +9,26 @@
 
 struct BaseCoverage
 {
-	int a =0;
-	int c =0;
-	int g =0;
-	int t =0;
+	int forward_a =0;
+	int forward_c =0;
+	int forward_g =0;
+	int forward_t =0;
+
+	int reverse_a =0;
+	int reverse_c =0;
+	int reverse_g =0;
+	int reverse_t =0;
+
+	int a() const {return forward_a + reverse_a;}
+	int c() const {return forward_c + reverse_c;}
+	int g() const {return forward_g + reverse_g;}
+	int t() const {return forward_t + reverse_t;}
+
 	bool is_variant =false;
 
-	int total() const {return a + c + g + t;}
+	int total() const {return a() + c() + g() + t();}
 
-	int max() const {return std::max({a, c, g, t});}
+	int max() const {return std::max({a(), c(), g(), t()});}
 };
 
 class CPPVISUALSHARED_EXPORT BamCoverageTrack
@@ -34,6 +45,8 @@ public:
 
 protected:
 	void paintEvent(QPaintEvent*) override;
+	void mousePressEvent(QMouseEvent*) override;
+	void mouseReleaseEvent(QMouseEvent*) override;
 
 private:
 	QSharedPointer<BamTrackData> track_data_;
@@ -47,6 +60,10 @@ private:
 
 	void drawZoomInText(QPainter&);
 	void drawCoverage(QPainter&);
+	void handlePopupRequest(QPointF local_pos, QPointF global_pos);
+	QString getCoverageText(const BaseCoverage& coverage, int coverage_idx);
+
+	QPoint mouse_press_pos_;
 
 private slots:
 	void dataReady();

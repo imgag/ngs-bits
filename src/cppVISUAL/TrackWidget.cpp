@@ -7,10 +7,13 @@
 
 #include <QApplication>
 #include <QDrag>
+#include <QDialog>
+#include <QLabel>
 #include <QMenu>
 #include <QMetaEnum>
 #include <QMimeData>
 #include <QPainter>
+#include <QVBoxLayout>
 
 TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name)
 	:QWidget(parent), id_(QUuid::createUuid()), file_path_(file_path), name_(name)
@@ -138,6 +141,25 @@ void TrackWidget::drawLabel(QPainter& painter)
 	painter.setPen(Qt::black);
 	painter.drawText(text_rect, Qt::AlignLeft, name_);
 
+}
+
+void TrackWidget::showInfoPopup(QPointF global_pos, QString info)
+{
+	QDialog* popup = new QDialog(this, Qt::Popup);
+
+	popup->setAttribute(Qt::WA_DeleteOnClose);
+
+	QVBoxLayout* layout = new QVBoxLayout(popup);
+
+	QLabel* label = new QLabel(info);
+	label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	label->setWordWrap(false);
+
+	layout->addWidget(label);
+
+	popup->move(global_pos.x(), global_pos.y());
+
+	popup->show();
 }
 
 void TrackWidget::writeToXml(QXmlStreamWriter& writer)

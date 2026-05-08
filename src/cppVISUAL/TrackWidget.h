@@ -47,6 +47,8 @@ public slots:
 protected:
 	virtual void mousePressEvent(QMouseEvent* event) override;
 	virtual void mouseMoveEvent(QMouseEvent* event) override;
+	// creates a pop up at global_pos and display info text on that
+	virtual void showInfoPopup(QPointF global_pos, QString info);
 	// this is same for all track widgets
 	void drawLabel(QPainter&);
 	virtual QString getType() = 0;
