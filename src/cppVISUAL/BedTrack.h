@@ -36,19 +36,49 @@ public:
 
 	QString getType() override {return "BED";}
 
+protected:
+	void paintEvent(QPaintEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+
 private:
+	// band data in row
+	struct BandData
+	{
+		int start; // band start
+		int end; // band end
+		int ind; // idx in bedfile
+	};
+
+
 	QSharedPointer<BedFile> bedfile_;
 	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
 	QColor color_ = QColor(0, 0, 178);
 
+	QPointF mouse_press_pos_;
+
 	// pre count of num rows required per chromosome
 	QHash<Chromosome, int> num_rows_;
+
+	//hash map from row to vector of data of bands stored in that row
+	using RowInfoType = QHash<int, QVector<BandData>>;
+	RowInfoType row_store_;
+
 	// array for storing the draw index of each band
 	QVector<int> row_idxes_;
 	// reloads bedfile_ from file_path_, returns true if successful.
 	bool load();
 
-	void paintEvent(QPaintEvent* event) override;
+	// displays string info in the pop up on global position
+	void showInfoPopup(QPointF global_pos, QString info);
+	// calls the appropriate function depending on the current draw mode
+	QString getBandText(const BedLine& region, int row, int x);
+	// gets the information of the band at position x in row 0 if row is not 0, returns empty string
+	QString getBandTextCollapsedMode(const BedLine& region, int row, int x);
+	// same as collapsed mode but returns text based on row
+	QString getBandTextExpandedMode(const BedLine& region, int row, int x);
+	// returns the location plus annonations for the bedline as a string
+	QString getBandString(const BedLine&);
 
 	//utility function for calculating the nubmer of rows required/chr
 	void calculateNumRows();

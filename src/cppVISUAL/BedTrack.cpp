@@ -6,9 +6,13 @@
 #include <QApplication>
 #include <QActionGroup>
 #include <QDrag>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QLabel>
 #include <QPainter>
 #include <QMenu>
 #include <QMimeData>
+#include <QToolTip>
 
 static constexpr int BLOCK_HEIGHT  = 10;
 static constexpr int BLOCK_PADDING = 5;
@@ -40,7 +44,8 @@ void BedTrack::setBedFile(QSharedPointer<BedFile> bedfile)
 bool BedTrack::load()
 {
 	QSharedPointer<BedFile> bedfile = FileLoader::loadBedFile(file_path_);
-	if (bedfile) {
+	if (bedfile)
+	{
 		setBedFile(bedfile);
 		return true;
 	}
@@ -57,10 +62,6 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	int label_width = SharedData::settings().label_width;
 
 	// draw text
-	// QRectF text_rect(0, 0, label_width-2, height());
-
-	// painter.setPen(Qt::black);
-	// painter.drawText(text_rect, Qt::AlignLeft, name_);
 	drawLabel(painter);
 
 	// draw bounding box
@@ -115,13 +116,17 @@ QSize BedTrack::sizeHint() const {
 void BedTrack::calculateNumRows()
 {
 	QHash<Chromosome, QVector<int>> row_end_positions;
+
 	row_idxes_.clear();
+	row_store_.clear();
 
 	for (int i =0; i < bedfile_->count(); ++i)
 	{
 		Chromosome chr = (*bedfile_)[i].chr();
 
 		bool placed = false;
+		int start = (*bedfile_)[i].start();
+		int end = (*bedfile_)[i].end();
 
 		for (int row =0; row < row_end_positions[chr].count(); ++row)
 		{
@@ -130,6 +135,7 @@ void BedTrack::calculateNumRows()
 				placed = true;
 				row_end_positions[chr][row] = (*bedfile_)[i].end();
 				row_idxes_ << row;
+				row_store_[row] << BandData{start, end, i};
 				break;
 			}
 		}
@@ -139,6 +145,7 @@ void BedTrack::calculateNumRows()
 			// create new row
 			row_end_positions[chr].append((*bedfile_)[i].end());
 			row_idxes_ << row_end_positions[chr].count() - 1;
+			row_store_[row_end_positions[chr].count() - 1] << BandData{start, end, i};
 		}
 	}
 
@@ -146,6 +153,134 @@ void BedTrack::calculateNumRows()
 	{
 		num_rows_[it.key()] = it.value().size();
 	}
+}
+
+
+void BedTrack::mousePressEvent(QMouseEvent* event)
+{
+	if (event->button() != Qt::LeftButton)
+	{
+		TrackWidget::mousePressEvent(event);
+		return;
+	}
+
+	mouse_press_pos_ = event->pos();
+	TrackWidget::mousePressEvent(event);
+}
+
+void BedTrack::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (event->button() != Qt::LeftButton)
+	{
+		TrackWidget::mouseReleaseEvent(event);
+		return;
+	}
+
+	float dist = (event->pos() - mouse_press_pos_).manhattanLength();
+	bool dragging = dist >= QApplication::startDragDistance();
+
+	if (!dragging)
+	{
+		int row = event->pos().y() / (BLOCK_HEIGHT + BLOCK_PADDING);
+
+		const BedLine& region = SharedData::region();
+
+		int label_width = SharedData::settings().label_width;
+		int total_width = width() - 4 - label_width;
+
+		float p = ((float)(event->pos().x() - label_width - 2) / total_width);
+
+		int x = region.start() + (region.end() - region.start()) * p;
+
+		QString info = getBandText(region, row, x);
+
+		if (!info.isEmpty())
+		{
+			showInfoPopup(event->globalPosition(), info);
+		}
+	}
+
+	TrackWidget::mouseReleaseEvent(event);
+}
+
+void BedTrack::showInfoPopup(QPointF global_pos, QString text)
+{
+	QDialog* popup = new QDialog(this, Qt::Popup);
+
+	popup->setAttribute(Qt::WA_DeleteOnClose);
+
+	QVBoxLayout* layout = new QVBoxLayout(popup);
+
+	QLabel* label = new QLabel(text);
+	label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	label->setWordWrap(false);
+
+	layout->addWidget(label);
+
+	popup->move(global_pos.x(), global_pos.y());
+
+	popup->show();
+}
+
+QString BedTrack::getBandText(const BedLine& region, int row, int x)
+{
+	if (draw_mode_ == COLLAPSED) return getBandTextCollapsedMode(region, row, x);
+	else return getBandTextExpandedMode(region, row, x);
+}
+
+QString BedTrack::getBandTextExpandedMode(const BedLine& region, int row, int x)
+{
+	QString collected_info;
+	// int resolution = region.length() * .001;
+	foreach (const BandData& data, row_store_[row])
+	{
+		if (x >= data.start &&
+			x <= data.end)
+		{
+			const BedLine& bd = (*bedfile_)[data.ind];
+			if (bd.chr() == region.chr())
+			{
+				collected_info += getBandString(bd);
+				collected_info += "\n";
+			}
+		}
+	}
+	return collected_info;
+}
+
+QString BedTrack::getBandTextCollapsedMode(const BedLine& region, int row, int x)
+{
+	QString collected_info;
+
+	if (row != 0) return collected_info;
+
+	QVector<int> idxes = chr_index_->matchingIndices(region.chr(), x - 20, x + 20);
+
+	foreach (int idx, idxes)
+	{
+		const BedLine& bd = (*bedfile_)[idx];
+		collected_info += getBandString(bd);
+		collected_info += "\n";
+	}
+
+	return collected_info;
+}
+
+QString BedTrack::getBandString(const BedLine& bd)
+{
+	QString info;
+
+	info += "Location: "
+		 + bd.chr().str() + ":"
+		 + QString::number(bd.start()) + "-"
+		 + QString::number(bd.end());
+
+	foreach (const QByteArray& a, bd.annotations())
+	{
+		info += "\t" + a;
+	}
+
+	return info;
 }
 
 BedTrack* BedTrack::createTrack(QWidget* parent, QString file_path, QString name)
