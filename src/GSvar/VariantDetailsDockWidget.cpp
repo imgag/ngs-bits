@@ -31,7 +31,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->gnomad, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(gnomadContextMenu(QPoint)));
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
-	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 	connect(ui->spliceai, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(spliceaiContextMenu(QPoint)));
 
 	//set up transcript buttons
@@ -69,7 +68,6 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_clinvar->setToolTip(vl.annotationDescriptionByName("ClinVar").description());
 	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false).description()); //optional
 	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false).description()); //optional
-	ui->label_pubmed->setToolTip(vl.annotationDescriptionByName("PubMed", false).description()); //optional
 
 	//AFs
 	ui->label_gnomad->setToolTip(vl.annotationDescriptionByName("gnomAD").description());
@@ -163,7 +161,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->clinvar, vl, index, "ClinVar");
 	setAnnotation(ui->hgmd, vl, index, "HGMD");
 	setAnnotation(ui->omim, vl, index, "OMIM");
-	setAnnotation(ui->pubmed, vl, index, "PubMed");
 
 	//public allel frequencies
 	setAnnotation(ui->gnomad, vl, index, "gnomAD");
@@ -634,24 +631,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				}
 			}
 		}
-		else if(name=="PubMed")
-		{
-			QStringList ids = anno.split(",");
-			ids.removeAll("");
-			text.clear();
-            for (int i = 0; i < std::min(static_cast<qsizetype>(ids.size()), static_cast<qsizetype>(2)); ++i)
-			{
-				QString id = ids.at(i).trimmed();
-				text += formatLink(id, "https://pubmed.ncbi.nlm.nih.gov/" + id + "/") + " ";
-			}
-			if (ids.size() > 2)
-			{
-				text += "... " + formatLink("<i>(open all " + QString::number(ids.size()) + ")</i> ", "openAll") + " ";
-			}
-
-			tooltip = ids.join(", ");
-
-		}
 		else if (name=="gene_info")
 		{
 			tooltip = QString(anno).replace(", ", "\n");
@@ -663,6 +642,31 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			}
 
 			text = anno;
+		}
+		else if(name=="regulatory")
+		{
+			QStringList display;
+			QStringList entries = anno.split(",");
+			foreach(QString entry, entries)
+			{
+				entry = entry.trimmed();
+				if (entry.isEmpty()) continue;
+
+				QStringList parts = entry.split("|");
+				if (parts.count()==3)//new format, e.g. "ENSR1_98CZN|promoter|CLCNKB"
+				{
+					QString link = "https://regulation.ensembl.org/2025-05/regulatory_features/homo_sapiens/" + parts[0].trimmed();
+					QString link_text = parts[1].trimmed();
+					QString genes = parts[2].trimmed();
+					if (!genes.isEmpty()) link_text += "("+genes+")";
+					display << formatLink(link_text, link);
+				}
+				else
+				{
+					display << entry;
+				}
+			}
+			text = display.join(", ");
 		}
 		else //fallback: use complete annotations string
 		{
@@ -864,7 +868,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 		{
 			ui->detail_domain->setToolTip(split_domain_string[1].replace("]", ""));
 		}
-		text = formatLink(split_domain_string[0], "https://pfam.xfam.org/family/" + split_domain_string[0]);
+		text = formatLink(split_domain_string[0], "https://www.ebi.ac.uk/interpro/entry/pfam/" + split_domain_string[0]);
 	}
 	ui->detail_domain->setText(text);
 
@@ -940,23 +944,6 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 	else //gene
 	{
 		GlobalServiceProvider::openGeneTab(link);
-	}
-}
-
-void VariantDetailsDockWidget::pubmedClicked(QString link)
-{
-	if (Helper::isHttpUrl(link)) //transcript
-	{
-		QDesktopServices::openUrl(QUrl(link));
-	}
-	else //gene
-	{
-		//open all publications
-		QStringList pubmed_ids = ui->pubmed->toolTip().split(", ");
-		foreach (QString id, pubmed_ids)
-		{
-			QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/" + id + "/"));
-		}
 	}
 }
 

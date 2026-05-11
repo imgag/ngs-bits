@@ -7,14 +7,36 @@
 #include "VariantList.h"
 #include "FastaFileIndex.h"
 #include "QBitArray"
-
 #include "QHash"
-
 #include "htslib/sam.h"
-#include "htslib/cram.h"
 
-//Representation of a CIGAR operation
-struct CPPNGSSHARED_EXPORT CigarOp
+//Fast wrapper for htslib cigar data to make use more convenient. Note that the wrapper can only be used as long as the underlying BamAlignment exists.
+class CPPNGSSHARED_EXPORT CigarData
+{
+public:
+	CigarData(const uint32_t* cigar, uint32_t size)
+		: cigar_(cigar)
+		, size_(size)
+	{
+	}
+
+	//returns the number of operations
+	uint32_t size() const { return size_; }
+	//returns the i'th operation type
+	uint32_t opType(uint32_t i) const { return bam_cigar_op(cigar_[i]); }
+	//returns the i'th operation type as character
+	char opTypeAsChar(uint32_t i) const { return BAM_CIGAR_STR[bam_cigar_op(cigar_[i])]; }
+	//returns the i'th operation length
+	uint32_t opLength(uint32_t i) const { return bam_cigar_oplen(cigar_[i]); }
+
+private:
+	CigarData() = delete;
+	const uint32_t* cigar_;
+	uint32_t size_;
+};
+
+//CigarOp (used for setting CIGAR string only)
+struct CigarOp
 {
 	int Type;
 	int Length;
@@ -183,8 +205,9 @@ class CPPNGSSHARED_EXPORT BamAlignment
 			return aln_->core.flag & BAM_FREVERSE;
 		}
 
-		//Returns the CIGAR data.
-		QList<CigarOp> cigarData() const;
+		//Returns the CIGAR data wrapper.
+		CigarData cigarData() const { return CigarData{bam_get_cigar(aln_), aln_->core.n_cigar}; }
+
 		//Sets the CIGAR data.
 		void setCigarData(const QList<CigarOp>& cigar);
 		//Returns the CIGAR data as a string.
@@ -287,7 +310,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		bam1_t* aln_;
 		mutable int length_ = -1;
 		mutable bool length_initialized_ = false;
-		int loaded_fields_; //fields loaded (for CRAM)
+		int loaded_fields_ = 0; //fields loaded (for CRAM)
 
 		//friends
 		friend class BamReader;

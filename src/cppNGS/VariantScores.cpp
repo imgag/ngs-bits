@@ -156,7 +156,7 @@ QStringList VariantScores::prefilters(const Parameters& parameters)
 	QStringList filters;
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
-			<< "Variant quality	qual=20	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
+			<< "Variant quality	qual=20	depth=1"
 			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	splice_site_only=false	action=KEEP"
@@ -306,7 +306,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 	QStringList filters;
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
-			<< "Variant quality	qual=20	depth=5	mapq=20	strand_bias=-1	allele_balance=-1"
+			<< "Variant quality	qual=20	depth=5"
 			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
@@ -745,12 +745,9 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			//remove bracket at end
 			gene_info.chop(1);
 
+			//skip entry if no info available
 			int start = gene_info.indexOf('(');
-			if (start==-1)
-			{
-				qDebug() << v.toString() << ": Invalid gene info " << v.annotations()[i_gene_info];
-				continue;
-			}
+			if (start==-1) continue;
 
 			QByteArray gene = gene_info.left(start-1).trimmed();
 			QByteArrayList entries = gene_info.mid(start+1).split(' ');
@@ -1015,12 +1012,9 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 			//remove bracket at end
 			gene_info.chop(1);
 
+			//skip entry if no info available
 			int start = gene_info.indexOf('(');
-			if (start==-1)
-			{
-				qDebug() << v.toString() << ": Invalid gene info " << v.annotations()[i_gene_info];
-				continue;
-			}
+			if (start==-1) continue;
 
 			QByteArray gene = gene_info.left(start-1).trimmed();
 			QByteArrayList entries = gene_info.mid(start+1).split(' ');

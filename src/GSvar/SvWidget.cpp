@@ -408,7 +408,7 @@ void SvWidget::applyFilters(bool debug_time)
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			BedFile pheno_roi;
-            for (const QByteArray& gene : pheno_genes)
+			for (const QByteArray& gene : std::as_const(pheno_genes))
 			{
 				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
 			}
@@ -447,7 +447,7 @@ void SvWidget::applyFilters(bool debug_time)
 						GeneSet sv_genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
 
 						bool match_found = false;
-                        for (const QByteArray& sv_gene : sv_genes)
+						for (const QByteArray& sv_gene : std::as_const(sv_genes))
 						{
                             if (reg.match(sv_gene).hasMatch())
 							{
@@ -511,31 +511,6 @@ void SvWidget::applyFilters(bool debug_time)
 
 	//Set number of filtered / total SVs
 	ui->number_of_svs->setText(QByteArray::number(filter_result.flags().count(true)) + "/" + QByteArray::number(row_count));
-}
-
-double SvWidget::alleleFrequency(int row, QByteArray sample, QByteArray read_type)
-{
-	if (read_type!="SR" && read_type!="PR") THROW(ArgumentException, "Invalid read type '"+read_type+"' given in SvWidget::alleleFrequency!");
-
-	try
-	{
-		//get sample data
-		int i_format = svs_.annotationIndexByName("FORMAT");
-		int i_sample = svs_.annotationIndexByName(sample);
-		QByteArrayList values = svs_[row].getSampleFormatData(i_format, i_sample, read_type).split(',');
-		if(values.count()!=2) THROW(ArgumentException, "Value of '"+read_type+"' could not be split in two parts!");
-
-		//get counts
-		int count_ref = Helper::toInt(values[0], "ref count");
-		int count_alt = Helper::toInt(values[1], "alt count");
-		if(count_alt+count_ref==0) return 0;
-
-		return (double)count_alt / (count_alt+count_ref);
-	}
-	catch (Exception& e)
-	{
-		return -1;
-	}
 }
 
 void SvWidget::editSvValidation(int row)
@@ -623,7 +598,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	if (i_genes!=-1)
 	{
 		GeneSet genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
-        for (const QByteArray& gene : genes)
+		for (const QByteArray& gene : std::as_const(genes))
 		{
 
 			GeneInfo gene_info = db.geneInfo(gene);
@@ -1116,9 +1091,9 @@ void SvWidget::updateFormatAndInfoTables()
 		QVector<double> sr_af;
 		foreach (QString ps, ps_names_)
 		{
-			double af = alleleFrequency(row, ps.toUtf8(), "PR");
+			double af = NGSHelper::supportReadAf(svs_, row, ps.toUtf8(), "PR");
 			if (af >= 0.0) pe_af.append(af);
-			af = alleleFrequency(row, ps.toUtf8(), "SR");
+			af = NGSHelper::supportReadAf(svs_, row, ps.toUtf8(), "SR");
 			if (af >= 0.0) sr_af.append(af);
 		}
 
@@ -1144,9 +1119,9 @@ void SvWidget::updateFormatAndInfoTables()
 	else
 	{
 		QByteArray ps = ps_names_[0].toLatin1();
-		ui->label_sr_af->setText("Split Read AF: " + QString::number(alleleFrequency(row, ps, "SR"), 'f',2));
+		ui->label_sr_af->setText("Split Read AF: " + QString::number(NGSHelper::supportReadAf(svs_, row, ps, "SR"), 'f',2));
 		//Display Paired End Read AF of variant
-		ui->label_pe_af->setText("Paired End Read AF: " + QString::number(alleleFrequency(row, ps, "PR"), 'f',2));
+		ui->label_pe_af->setText("Paired End Read AF: " + QString::number(NGSHelper::supportReadAf(svs_, row, ps, "PR"), 'f',2));
 	}
 }
 
@@ -1327,7 +1302,7 @@ void SvWidget::showContextMenu(QPoint pos)
 			menu.addSeparator();
 
 			int gene_nr = 1;
-            for (const QByteArray& gene : genes)
+			for (const QByteArray& gene : std::as_const(genes))
 			{
 				++gene_nr;
 				if (gene_nr>=10) break; //don't show too many sub-menues for large variants!

@@ -94,6 +94,10 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::relevantTranscripts(bool re
 		if (!initialized)
 		{
 			output = db.relevantTranscripts();
+
+			//NGSDCacheInitializer not finished > abort
+			if (output.isEmpty()) return output;
+
 			initialized = true;
 		}
 

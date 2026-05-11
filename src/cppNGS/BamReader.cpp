@@ -31,19 +31,6 @@ BamAlignment::BamAlignment(const BamAlignment& rhs)
 {
 }
 
-QList<CigarOp> BamAlignment::cigarData() const
-{
-	QList<CigarOp> output;
-
-	const auto cigar = bam_get_cigar(aln_);
-	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
-	{
-		output << CigarOp { (int)bam_cigar_op(cigar[i]), (int)bam_cigar_oplen(cigar[i]) };
-	}
-
-	return output;
-}
-
 void BamAlignment::setCigarData(const QList<CigarOp>& cigar)
 {
 	//create new CIGAR datastructur for htslib
@@ -81,22 +68,19 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 {
 	QByteArray output;
 
-	const auto cigar = bam_get_cigar(aln_);
+	uint32_t* cigar = bam_get_cigar(aln_);
 	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
 	{
+		uint32_t len = bam_cigar_oplen(cigar[i]);
+		uint32_t base = bam_cigar_opchr(cigar[i]);
 		if (expand)
 		{
-			int len = bam_cigar_oplen(cigar[i]);
-			char base = bam_cigar_opchr(cigar[i]);
-			for (int j=0; j<len; ++j)
-			{
-				output.append(base);
-			}
+			output.append(QByteArray(len, base));
 		}
 		else
 		{
-            output.append(QString::number(bam_cigar_oplen(cigar[i])).toUtf8());
-			output.append(bam_cigar_opchr(cigar[i]));
+			output.append(QByteArray::number(len));
+			output.append(base);
 		}
 	}
 
@@ -105,10 +89,10 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 
 bool BamAlignment::cigarIsOnlyInsertion() const
 {
-	const auto cigar = bam_get_cigar(aln_);
+	uint32_t* cigar = bam_get_cigar(aln_);
 	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
 	{
-		int op = (int)bam_cigar_op(cigar[i]);
+		uint32_t op = bam_cigar_op(cigar[i]);
 		if (op!=BAM_CINS && op!=BAM_CSOFT_CLIP) return false;
 	}
 
@@ -233,12 +217,15 @@ void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
 	//position in the genome (e.g. contains deletions)
 	int genome_position_index = 0;
 
-	const QList<CigarOp> cigar_data = cigarData();
-	foreach(const CigarOp& op, cigar_data)
+	CigarData cigar = cigarData();
+	for(uint32_t i=0; i<cigar.size(); ++i)
 	{
-		if (op.Type==BAM_CMATCH)
+		uint32_t op = cigar.opType(i);
+		uint32_t len = cigar.opLength(i);
+
+		if (op==BAM_CMATCH)
 		{
-			for(int i=0; i < op.Length; ++i)
+			for(uint32_t i=0; i < len; ++i)
 			{
 				if(q[alignment_index] < min_baseq)
 				{
@@ -248,23 +235,22 @@ void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
 				++genome_position_index;
 			}
 		}
-		else if (op.Type==BAM_CDEL)
+		else if (op==BAM_CDEL)
 		{
-			genome_position_index += op.Length;
+			genome_position_index += len;
 		}
-		else if(op.Type==BAM_CINS)
+		else if(op==BAM_CINS)
 		{
-			alignment_index += op.Length;
+			alignment_index += len;
 		}
-		else if(op.Type==BAM_CREF_SKIP)
+		else if(op==BAM_CREF_SKIP)
 		{
-			genome_position_index += op.Length;
+			genome_position_index += len;
 		}
-		else if(op.Type==BAM_CSOFT_CLIP)
+		else if(op==BAM_CSOFT_CLIP)
 		{
-			alignment_index += op.Length;
+			alignment_index += len;
 		}
-
 	}
 }
 
@@ -326,48 +312,51 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read) c
 	//sometimes reads consist of insertions only > skip them
 	if (cigarIsOnlyInsertion()) return qMakePair('~', -1);
 
-	const QList<CigarOp> cigar_data = cigarData();
-	foreach(const CigarOp& op, cigar_data)
+	CigarData cigar = cigarData();
+	for(uint32_t i=0; i<cigar.size(); ++i)
 	{
+		uint32_t op = cigar.opType(i);
+		uint32_t len = cigar.opLength(i);
+
 		//update positions
-		if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF)
+		if (op==BAM_CMATCH || op==BAM_CEQUAL || op==BAM_CDIFF)
 		{
-			genome_pos += op.Length;
-			read_pos += op.Length;
+			genome_pos += len;
+			read_pos += len;
 		}
-		else if(op.Type==BAM_CINS)
+		else if(op==BAM_CINS)
 		{
-			read_pos += op.Length;
+			read_pos += len;
 		}
-		else if(op.Type==BAM_CDEL)
+		else if(op==BAM_CDEL)
 		{
-			genome_pos += op.Length;
+			genome_pos += len;
 
 			//base is deleted
 			if (genome_pos>=pos) return qMakePair('-', 255);
 		}
-		else if(op.Type==BAM_CREF_SKIP) //skipped reference bases (for RNA)
+		else if(op==BAM_CREF_SKIP) //skipped reference bases (for RNA)
 		{
-			genome_pos += op.Length;
+			genome_pos += len;
 
 			//base is skipped
 			if (genome_pos>=pos) return qMakePair('~', -1);
 		}
-		else if(op.Type==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
+		else if(op==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
 		{
-			read_pos += op.Length;
+			read_pos += len;
 
 			//base is soft-clipped
 			//Nb: reads that are mapped in paired end mode and completely soft-clipped (e.g. 7I64S, 71S) keep their original left-most (genomic) position
 			if(read_pos>=length())	return qMakePair('~', -1);
 		}
-		else if(op.Type==BAM_CHARD_CLIP) //hard-clipped (only at the beginning/end)
+		else if(op==BAM_CHARD_CLIP) //hard-clipped (only at the beginning/end)
 		{
 			//can be ignored as hard-clipped bases are not considered in the position or sequence
 		}
 		else
 		{
-			THROW(Exception, "Unknown CIGAR operation " + QString::number(op.Type) + "!");
+			THROW(Exception, "Unknown CIGAR operation " + QString::number(cigar.opTypeAsChar(i)) + "!");
 		}
 
 		if (genome_pos>=pos)
@@ -381,10 +370,6 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read) c
 		}
 	}
 
-	foreach(const CigarOp& op, cigar_data)
-	{
-		qDebug() <<  op.Type << op.Length;
-	}
 	THROW(Exception, "Could not find position " + QString::number(pos) + " in read " + name() + " with start position " + QString::number(start()) + "!");
 }
 
@@ -399,48 +384,51 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window) co
 	//look up indels
 	int read_pos = 0;
 	int genome_pos = start();
-	const QList<CigarOp> cigar_data = cigarData();
 	const QByteArray sequence = bases();
-	foreach(const CigarOp& op, cigar_data)
+	CigarData cigar = cigarData();
+	for(uint32_t i=0; i<cigar.size(); ++i)
 	{
+		uint32_t op = cigar.opType(i);
+		uint32_t len = cigar.opLength(i);
+
 		//update positions
-		if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF) //match or mismatch
+		if (op==BAM_CMATCH || op==BAM_CEQUAL || op==BAM_CDIFF) //match or mismatch
 		{
-			genome_pos += op.Length;
-			read_pos += op.Length;
+			genome_pos += len;
+			read_pos += len;
 		}
-		else if(op.Type==BAM_CINS) //insert
+		else if(op==BAM_CINS) //insert
 		{
 			if ((!use_window && genome_pos==pos) || (use_window && genome_pos>=window_start && genome_pos<=window_end))
 			{
-				output.append("+" + sequence.mid(read_pos, op.Length));
+				output.append("+" + sequence.mid(read_pos, len));
 			}
 
-			read_pos += op.Length;
+			read_pos += len;
 		}
-		else if(op.Type==BAM_CDEL) //deletion
+		else if(op==BAM_CDEL) //deletion
 		{
 			if ((!use_window && genome_pos==pos) || (use_window && genome_pos>=window_start && genome_pos<=window_end))
 			{
-				output.append("-" + QByteArray::number(op.Length));
+				output.append("-" + QByteArray::number(len));
 			}
-			genome_pos += op.Length;
+			genome_pos += len;
 		}
-		else if(op.Type==BAM_CREF_SKIP) //skipped reference bases (for RNA)
+		else if(op==BAM_CREF_SKIP) //skipped reference bases (for RNA)
 		{
-			genome_pos += op.Length;
+			genome_pos += len;
 		}
-		else if(op.Type==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
+		else if(op==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
 		{
-			read_pos += op.Length;
+			read_pos += len;
 		}
-		else if(op.Type==BAM_CHARD_CLIP) //hard-clipped (only at the beginning/end)
+		else if(op==BAM_CHARD_CLIP) //hard-clipped (only at the beginning/end)
 		{
 			//can be ignored as hard-clipped bases are not considered in the position or sequence
 		}
 		else
 		{
-			THROW(Exception, "Unknown CIGAR operation " + QString::number(op.Type) + "!");
+			THROW(Exception, "Unknown CIGAR operation " + QString::number(cigar.opTypeAsChar(i)) + "!");
 		}
 
 		//abort if we are behind the indel position
@@ -833,7 +821,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	//restrict to region
 	setRegion(chr, pos, pos);
 
-    QMap<QByteArray, QPair<char, int>> read_names;
+	QHash<QByteArray, QPair<char, int>> read_names;
 	//iterate through all alignments and create counts
 	BamAlignment al;
 	while (getNextAlignment(al))
@@ -847,11 +835,12 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 		if (al.mappingQuality()<min_mapq) continue;
 
         if (count_fragments)
-        {
+		{
             //check previously counted read: if differing bases count higher quality remove if same quality
-            if (read_names.contains(al.name()))
+			QByteArray name = al.name();
+			if (read_names.contains(name))
             {
-                QPair<char, int> base_read1 = read_names.value(al.name());
+				QPair<char, int> base_read1 = read_names.value(name);
                 QPair<char, int> base_read2 = al.extractBaseByCIGAR(pos);
 
                 if (base_read1.first != base_read2.first)
@@ -868,10 +857,10 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
                         output.inc(base_read2.first);
                     }
                 }
-                read_names.remove(al.name()); //read info won't be used again after second read is handled: remove to save RAM
+				read_names.remove(name); //read info won't be used again after second read is handled: remove to save RAM
                 continue;
             }
-            read_names.insert(al.name(), al.extractBaseByCIGAR(pos));
+			read_names.insert(name, al.extractBaseByCIGAR(pos));
         }
 
 		//snps
@@ -971,7 +960,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 
 	//restrict to region
 	setRegion(chr, start, end);
-    QMap<QByteArray, QPair<QByteArray, int>> read_names;
+	QHash<QByteArray, QPair<QByteArray, int>> read_names;
     QList<int> indels_to_remove;
 	//iterate through all alignments and create counts
 	BamAlignment al;
@@ -1000,10 +989,11 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 
 		//run time optimization: skip reads that do not contain Indels
 		bool contains_indels_refskip = false;
-		const QList<CigarOp> cigar_data = al.cigarData();
-		foreach(const CigarOp& op, cigar_data)
+		CigarData cigar = al.cigarData();
+		for(uint32_t i=0; i<cigar.size(); ++i)
 		{
-			if (op.Type==BAM_CINS || op.Type==BAM_CDEL || op.Type==BAM_CREF_SKIP)
+			uint32_t op = cigar.opType(i);
+			if (op==BAM_CINS || op==BAM_CDEL || op==BAM_CREF_SKIP)
 			{
 				contains_indels_refskip = true;
 				break;
@@ -1013,23 +1003,24 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
         {
             if (count_fragments)
             {
-                if (read_names.contains(al.name()))
+				QByteArray name = al.name();
+				if (read_names.contains(name))
                 {
                     //reads don't agree remove both from count
-                    if (read_names.value(al.name()).first != read_variant)
+					if (read_names.value(name).first != read_variant)
                     {
                         depth -= 2;
-                        indels_to_remove.append(read_names.value(al.name()).second);
-                        read_names.remove(al.name());
+						indels_to_remove.append(read_names.value(name).second);
+						read_names.remove(name);
                     }
                     {
-                        read_names.remove(al.name());
+						read_names.remove(name);
                         --depth;
                     }
                 }
                 else
                 {
-                    read_names.insert(al.name(), qMakePair(read_variant, indels_variant_idx));
+					read_names.insert(name, qMakePair(read_variant, indels_variant_idx));
                 }
             }
             continue;
@@ -1040,59 +1031,62 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 		//look up indels
 		int read_pos = 0;
 		int genome_pos = al.start();
-		const QList<CigarOp> cigar_data2 = al.cigarData();
-		foreach(const CigarOp& op, cigar_data2)
+		CigarData cigar2 = al.cigarData();
+		for(uint32_t i=0; i<cigar2.size(); ++i)
 		{
+			uint32_t op = cigar2.opType(i);
+			uint32_t len = cigar2.opLength(i);
+
 			//update positions
-			if (op.Type==BAM_CMATCH || op.Type==BAM_CEQUAL || op.Type==BAM_CDIFF)
+			if (op==BAM_CMATCH || op==BAM_CEQUAL || op==BAM_CDIFF)
 			{
-				genome_pos += op.Length;
-				read_pos += op.Length;
+				genome_pos += len;
+				read_pos += len;
 			}
-			else if(op.Type==BAM_CINS)
-			{
-				if (genome_pos>=start && genome_pos<=end)
-				{
-                    indels_variant_idx = indels.count();
-                    read_variant = QByteArray("+") + al.bases().mid(read_pos, op.Length);
-                    indels.append(read_variant);
-
-				}
-				read_pos += op.Length;
-			}
-			else if(op.Type==BAM_CDEL)
+			else if(op==BAM_CINS)
 			{
 				if (genome_pos>=start && genome_pos<=end)
 				{
                     indels_variant_idx = indels.count();
-                    read_variant = "-" + reference.seq(chr.str(), genome_pos, op.Length);
+					read_variant = QByteArray("+") + al.bases().mid(read_pos, len);
                     indels.append(read_variant);
 
 				}
-				genome_pos += op.Length;
+				read_pos += len;
 			}
-			else if(op.Type==BAM_CREF_SKIP) //skipped reference bases (for RNA)
+			else if(op==BAM_CDEL)
+			{
+				if (genome_pos>=start && genome_pos<=end)
+				{
+                    indels_variant_idx = indels.count();
+					read_variant = "-" + reference.seq(chr.str(), genome_pos, len);
+                    indels.append(read_variant);
+
+				}
+				genome_pos += len;
+			}
+			else if(op==BAM_CREF_SKIP) //skipped reference bases (for RNA)
 			{
 				//remove read from depth if ref_skip spans indel region:
-				if (genome_pos<=start && (genome_pos+op.Length)>=end)
+				if (genome_pos<=start && (genome_pos+(int)len)>=end)
 				{
 					// revert depth count:
 					depth--;
 				}
 
-				genome_pos += op.Length;				
+				genome_pos += len;
 			}
-			else if(op.Type==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
+			else if(op==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
 			{
-				read_pos += op.Length;
+				read_pos += len;
 			}
-			else if(op.Type==BAM_CHARD_CLIP) //hard-clipped (only at the beginning/end)
+			else if(op==BAM_CHARD_CLIP) //hard-clipped (only at the beginning/end)
 			{
 				//can be ignored as hard-clipped bases are not considered in the position or sequence
 			}
 			else
 			{
-				THROW(Exception, "Unknown CIGAR operation " + QString::number(op.Type) + "!");
+				THROW(Exception, "Unknown CIGAR operation " + QString::number(cigar.opTypeAsChar(i)) + "!");
 			}
 		}
 

@@ -52,13 +52,15 @@ private:
 		S_EQUAL(al.cigarDataAsString(), "151M");
 		QByteArray cigar_exp = al.cigarDataAsString(true);
 		S_EQUAL(cigar_exp, "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
-		QList<CigarOp> cigar_data = al.cigarData();
+
 		int i = 0;
-		foreach(const CigarOp& op, cigar_data)
+		CigarData cigar_data = al.cigarData();
+		for(uint32_t j=0; j<cigar_data.size(); ++j)
 		{
-			for(int j=0; j<op.Length; ++j)
+			char op = cigar_data.opTypeAsChar(j);
+			for(uint32_t l=0; l<cigar_data.opLength(j); ++l)
 			{
-				S_EQUAL(cigar_exp.data()[i], op.typeAsChar());
+				S_EQUAL(cigar_exp.data()[i], op);
 				++i;
 			}
 		}
@@ -433,13 +435,16 @@ private:
 		S_EQUAL(al.cigarDataAsString(), "130M");
 		QByteArray cigar_exp = al.cigarDataAsString(true);
 		S_EQUAL(cigar_exp, "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
-		QList<CigarOp> cigar_data = al.cigarData();
+
+
 		int i = 0;
-		foreach(const CigarOp& op, cigar_data)
+		CigarData cigar_data = al.cigarData();
+		for(uint32_t j=0; j<cigar_data.size(); ++j)
 		{
-			for(int j=0; j<op.Length; ++j)
+			char op = cigar_data.opTypeAsChar(j);
+			for(uint32_t l=0; l<cigar_data.opLength(j); ++l)
 			{
-				S_EQUAL(cigar_exp.data()[i], op.typeAsChar());
+				S_EQUAL(cigar_exp.data()[i], op);
 				++i;
 			}
 		}

@@ -1,5 +1,4 @@
 #include "GeneWidget.h"
-#include "Helper.h"
 #include "SmallVariantSearchWidget.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
@@ -145,10 +144,8 @@ void GeneWidget::updateGUI()
 			}
 		}
 
-		//show gnomAD o/e score
-		ui_.oe_mis->setText(info.oe_mis);
-		ui_.oe_syn->setText(info.oe_syn);
-		ui_.oe_lof->setText(info.oe_lof);
+		//show gnomAD o/e and pLI
+		ui_.gnomad_constraints->setText("o/e syn: " +info.oe_syn + ", o/e mis: " + info.oe_mis + ", o/e lof: " + info.oe_lof + ", pLI: " + info.pli);
 
 		//show notice if necessary
 		if (!info.symbol_notice.startsWith("KEPT:"))
@@ -167,7 +164,7 @@ void GeneWidget::updateGUI()
 
 		//show phenotypes/diseases from HPO
 		hpo_lines.clear();
-		PhenotypeList pheno_list = db.phenotypes(symbol_);
+		PhenotypeList pheno_list = db.phenotypes(symbol_, true);
 		for (const Phenotype& pheno : std::as_const(pheno_list))
 		{
 			int pheno_id = db.phenotypeIdByAccession(pheno.accession());
@@ -181,7 +178,6 @@ void GeneWidget::updateGUI()
 					source_part = source_part.mid(1, source_part.length()-2);
 					sources << source_part.split(',').at(0);
 				}
-
 			}
 			hpo_lines << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.values().join(", ") + ")";
 		}

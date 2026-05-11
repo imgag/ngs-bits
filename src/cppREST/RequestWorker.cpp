@@ -399,7 +399,7 @@ void RequestWorker::run()
 	}
 }
 
-QString RequestWorker::intToHex(const int& input)
+QString RequestWorker::intToHex(int input)
 {
 	return QString("%1").arg(input, 10, 16, QLatin1Char('0')).toUpper();
 }

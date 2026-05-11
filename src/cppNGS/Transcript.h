@@ -281,6 +281,8 @@ public:
 	{
 		return utr_5prime_;
 	}
+	//Returns the protein sequence of the transcript AA code - only works for PROTEIN_CODING genes with coding regions.
+	QByteArray proteinSequence(const FastaFileIndex& genome_idx, bool use_three_letter_code, bool end_at_stop) const;
 
 	//Returns the exon number of a region. Error codes: -1 if no exon overlaps, -2 if several exons overlap
 	int exonNumber(int start, int end) const;
@@ -372,7 +374,7 @@ public:
 	bool contains(const QByteArray& name) const;
 
 	///Returns the transcript with the given id if contained. If not contained, an invalid transcript is returned.
-	Transcript getTranscript(const QByteArray& name);
+	const Transcript& getTranscript(const QByteArray& name) const;
 
 	///Returns the number of distinct gene names
 	int geneCount() const;

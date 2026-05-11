@@ -34,7 +34,8 @@ public:
 
 protected slots:
 	void VariantDoubleClicked(QTableWidgetItem* item);
-	void copyToClipboard();
+    void copyVariantTableToClipboard();
+	void copyMRDTableToClipboard();
 
 
 private:

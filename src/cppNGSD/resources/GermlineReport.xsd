@@ -633,9 +633,69 @@
 												<xs:documentation>dbSNP information</xs:documentation>
 											</xs:annotation>
 											<xs:complexType>
-												<xs:attribute name="rs_number" use="required">
+												<xs:attribute name="rs_number" type="xs:string" use="required">
 													<xs:annotation>
 														<xs:documentation>rs number. Keep in mind that it does not identify a specific variant. It identifies a genomic locus only!</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="ClinVar" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>ClinVar nformation</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="text" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>ClinVar text</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="gnomAD" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>gnomAD data</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="af" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>gnomAD allele frequency</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="CADD" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>CADD data</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="score" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>CADD score</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="REVEL" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>REVEL data</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="score" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>REVEL score</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="SpliceAI" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>SpliceAI information</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="score" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>Maximum SpliceAI score of all predicted score for acceptor/donor loss/gain</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
 											</xs:complexType>
@@ -1256,6 +1316,38 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
+									<xs:attribute name="qual">
+										<xs:annotation>
+											<xs:documentation>QUAL value</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="af_pe">
+										<xs:annotation>
+											<xs:documentation>AF of paired-end support</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:double">
+												<xs:minInclusive value="0"/>
+												<xs:maxInclusive value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="af_split">
+										<xs:annotation>
+											<xs:documentation>AF of split read support</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:double">
+												<xs:minInclusive value="0"/>
+												<xs:maxInclusive value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
 									<xs:attribute name="ins_sequence" type="xs:string">
 										<xs:annotation>
 											<xs:documentation>inserted sequence (only for insertion)</xs:documentation>
@@ -1705,8 +1797,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="11"/>
-						<xs:maxInclusive value="11"/>
+						<xs:minInclusive value="12"/>
+						<xs:maxInclusive value="12"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

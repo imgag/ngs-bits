@@ -34,12 +34,14 @@ public:
 	{
 		int n_gaps = 0;
 		int indel_size = 0;
-		QList<CigarOp> cigar = al.cigarData();
-		foreach(CigarOp op, cigar)
+
+		CigarData cigar = al.cigarData();
+		for(uint32_t i=0; i<cigar.size(); ++i)
 		{
-			if (op.Type == 1 || op.Type == 2)
+			uint32_t op = cigar.opType(i);
+			if (op==BAM_CINS || op==BAM_CDEL)
 			{
-				indel_size += op.Length; //add length of indel
+				indel_size += cigar.opLength(i); //add length of indel
 				++n_gaps; //count +1 for indel
 			}
 		}

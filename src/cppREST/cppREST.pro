@@ -1,7 +1,7 @@
 include("../lib.pri")
 
 #base settings
-QT       -= gui
+QT       += gui widgets
 QT       += sql xml httpserver
 QTPLUGIN += QSQLMYSQL
 TARGET = cppREST

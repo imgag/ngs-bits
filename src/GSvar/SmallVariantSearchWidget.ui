@@ -577,7 +577,7 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variant consequence annotations shown after search are stored in NGSD.&lt;br/&gt;Variant consequence in NGSD are only update when the variant is imported into NGSD through a new case.&lt;/p&gt;&lt;p&gt;So they can be quite old, possibly even based on a outdated Ensembl build.&lt;br/&gt;To get up-to-date variants consequence annotations, you can re-calcualted variant consequences using this button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
-        <string>update conseqences</string>
+        <string>update consequences</string>
        </property>
        <property name="popupMode">
         <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>

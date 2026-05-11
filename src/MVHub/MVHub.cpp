@@ -520,7 +520,6 @@ void MVHub::updateTableFilters()
 	{
 		int c_exp_status = colOf("export status");
 		int c_exp_conf = colOf("export confirmation");
-		int c_case_status = colOf("CM Status");
 		QString export_filter = ui_.f_export->currentText();
 		for (int r=0; r<rows; ++r)
 		{
@@ -535,10 +534,6 @@ void MVHub::updateTableFilters()
 			bool upload_done = (!todo_kdk || (todo_kdk && conf_kdk)) && (!todo_grz || (todo_grz && conf_grz));
 
 			if (export_filter=="pending" && status!="")
-			{
-				visible[r] = false;
-			}
-			if (export_filter=="pending" && getString(r, c_case_status)=="Abgebrochen" && getNetwork(r)!=SE)
 			{
 				visible[r] = false;
 			}
@@ -1151,6 +1146,14 @@ int MVHub::updateHpoTerms(int debug_level)
 				if (hpo_name=="Monocytopenia") hpo_name = "Decreased total monocyte count"; //renamed
 				if (hpo_name=="Eosinophilia") hpo_name = "Increased total eosinophil count"; //renamed
 				if (hpo_name=="Poor motor coordination") hpo_name = "Incoordination"; //obsolete and replaced
+				if (hpo_name=="Eosinophilia") hpo_name = "Increased total eosinophil count"; //renamed
+				if (hpo_name=="Bone spicule pigmentation of the retina") hpo_name = "Spicular pigmentation of the retina"; //renamed
+				if (hpo_name=="Intellectual disability, borderline") hpo_name = "Borderline intellectual disability"; //renamed
+				if (hpo_name=="Intellectual disability, mild") hpo_name = "Mild intellectual disability"; //renamed
+				if (hpo_name=="Sleep abnormality") hpo_name = "Sleep disturbance"; //renamed
+				if (hpo_name=="Vitelliform-like macular lesions") hpo_name = "Vitelliform macular lesion"; //renamed
+				if (hpo_name=="Choroideremia") hpo_name = "Chorioretinal scalloped atrophy"; //renamed
+				if (hpo_name=="Hypoplastic left heart") hpo_name = "Hypoplastic left ventricle"; //renamed
 
 				//handle terms with accession instead of name (RedCap bug in Ontology handling)
 				if (hpo_name.startsWith("HP:"))

@@ -232,12 +232,30 @@ public:
 			if(cohort_strategy != RNA_COHORT_SOMATIC) THROW(ArgumentException, "HPA annotation only supported for somatic samples!");
 
 			//get hpa tissue
-			QStringList sample_hpa_tissues = db.getValues(QByteArray() + "SELECT DISTINCT sdi.disease_info FROM sample s "
-											 + "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
-											 + "LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id "
-											 + "WHERE s.id=:0 AND sdi.type='RNA reference tissue' AND (sr.relation='same sample' OR sr.relation IS NULL)", s_id);
-			if (sample_hpa_tissues.size() == 0) THROW(DatabaseException, "No HPA reference tissue set for sample '" + ps_name + "'!");
-			if (sample_hpa_tissues.size() > 1) THROW(DatabaseException, "Multiple HPA reference tissues set for sample '" + ps_name + "'! Cannot perform annotation.");
+			QString sample_hpa_tissue = "";
+			QList<SampleDiseaseInfo> sdi = db.getSampleDiseaseInfo(db.sampleId(ps_name), "RNA reference tissue");
+			if (sdi.size() > 1) THROW(DatabaseException, "Multiple HPA reference tissues set for sample '" + ps_name + "'! Cannot perform annotation.");
+			if (sdi.size() == 1) sample_hpa_tissue = sdi[0].disease_info;
+
+			QSet<int> same_samples = db.sameSamples(db.sampleId(ps_name).toInt(), SameSampleMode::SAME_SAMPLE);
+			foreach(int same_sample_id, same_samples)
+			{
+				QList<SampleDiseaseInfo> sdi = db.getSampleDiseaseInfo(QString::number(same_sample_id), "RNA reference tissue");
+				if (sdi.size() > 1) THROW(DatabaseException, "Multiple HPA reference tissues set for related 'same sample' '" + db.sampleName(QString::number(same_sample_id)) + "'! Cannot perform annotation.");
+				if (sdi.size() == 1)
+				{
+					if (sample_hpa_tissue == "")
+					{
+						sample_hpa_tissue = sdi[0].disease_info;
+					}
+					else if (sample_hpa_tissue != sdi[0].disease_info) //check annotation is consistent
+					{
+						THROW(DatabaseException, "Differing HPA reference tissue set for related 'same sample' '" + db.sampleName(QString::number(same_sample_id)) + "'! Cannot perform annotation.");
+					}
+				}
+			}
+
+			if (sample_hpa_tissue == "") THROW(DatabaseException, "No HPA reference tissue set for sample '" + ps_name + "' or 'same sample' relations!");
 
 			//parse HPA file
 
@@ -260,13 +278,13 @@ public:
 
 				double tpm = Helper::toDouble(line.at(tpm_idx), "nTPM (hpa_file)", ensg);
 
-				if(tissue == sample_hpa_tissues.at(0))
+				if(tissue == sample_hpa_tissue)
 				{
 					hpa_data.insert(ensg, tpm);
 				}
 			}
 
-			if(hpa_data.size() == 0) THROW(ArgumentException, "No HPA gene expression found for HPA reference tissue '" + sample_hpa_tissues.at(0) + "'! Please check if it is a valid HPA tissue.");
+			if(hpa_data.size() == 0) THROW(ArgumentException, "No HPA gene expression found for HPA reference tissue '" + sample_hpa_tissue + "'! Please check if it is a valid HPA tissue.");
 
 			hpa_annotation = true;
 		}

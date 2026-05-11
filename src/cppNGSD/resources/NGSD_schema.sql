@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS `geneinfo_germline`
 `gnomad_oe_syn` FLOAT NULL,
 `gnomad_oe_mis` FLOAT NULL,
 `gnomad_oe_lof` FLOAT NULL,
+`gnomad_pli` FLOAT NULL,
 `comments` text NOT NULL,
 PRIMARY KEY `symbol` (`symbol`)
 )
@@ -174,6 +175,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name_short` VARCHAR(50) NOT NULL,
   `name_manufacturer` VARCHAR(100) NOT NULL,
+  `platform` ENUM('n/a','Illumina','MGI','ONT','PacBio') NOT NULL DEFAULT 'n/a',
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
   `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA', 'lrGS') NOT NULL,
@@ -1047,6 +1049,7 @@ CREATE TABLE IF NOT EXISTS `hpo_genes`
   `details` TEXT COMMENT 'Semicolon seperated pairs of database sources with evidences of where the connection was found (Source, Original Evidence, Evidence translated; Source2, ....)' NULL,
   `evidence` ENUM('n/a','low','medium','high') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`hpo_term_id`, `gene`),
+  INDEX `gene` (`gene` ASC),
   CONSTRAINT `hpo_genes_ibfk_1`
     FOREIGN KEY (`hpo_term_id`)
     REFERENCES `hpo_term` (`id`)
@@ -1166,6 +1169,30 @@ CREATE TABLE IF NOT EXISTS `analysis_job_history`
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
+-- -----------------------------------------------------
+-- Table `analysis_time`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `analysis_time`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('single','trio','rna','tumor-only','tumor-normal') NOT NULL,
+  `samples` VARCHAR(512) NOT NULL COMMENT 'Space-separated string of processed sample names',
+  `processing_system_id` INT(11) NOT NULL,
+  `dragen_used` BOOLEAN NOT NULL COMMENT 'Flag if DRAGEN was used for the primary data analysis',
+  `server` VARCHAR(100) NOT NULL,
+  `threads` INT(11) UNSIGNED NOT NULL,
+  `min` FLOAT UNSIGNED NOT NULL,
+  `datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `analysis_time_processing_system_id`
+    FOREIGN KEY (`processing_system_id`)
+    REFERENCES `processing_system` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
 -- Table `omim_gene`
@@ -1747,6 +1774,25 @@ CREATE TABLE IF NOT EXISTS `report_configuration_variant`
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   UNIQUE INDEX `config_variant_combo_uniq` (`report_configuration_id` ASC, `variant_id` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `report_configuration_failed_transfer`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_failed_transfer`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `status` ENUM( 'open', 'not needed anymore', 'manually added') NOT NULL DEFAULT 'open',
+  `variant_description` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_processed_sample_id3`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;

@@ -607,9 +607,9 @@ void BurdenTestWidget::validateInputData()
 					   + ((control_ps_to_remove.size()>0)?"Controls:\n" + control_ps_to_remove.join(", ") + "\n\n":"")
 					   + "Would you like to procreed?");
 		label->setWordWrap(true);
+		label->setTextInteractionFlags(Qt::TextInteractionFlag::TextSelectableByMouse);
 		auto dlg = GUIHelper::createDialog(label, "Removing samples", "The following related samples can be removed automatically:\n ", true);
-		int btn = dlg->exec();
-		if (btn == 1)
+		if (dlg->exec() == QDialog::Accepted)
 		{
 			case_samples_ = case_samples_to_keep;
 			control_samples_ = control_samples_to_keep;

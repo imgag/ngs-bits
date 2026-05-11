@@ -11,7 +11,7 @@
 #include "VariantImpact.h"
 #include <QDebug>
 
-///Transcript annotations e.g. from SnpEff/VEP.
+///Transcript-specific consequence of a variant e.g. from VariantAnnotateConseqence or VEP
 struct CPPNGSSHARED_EXPORT VariantTranscript
 {
 	QByteArray gene;

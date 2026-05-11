@@ -1,0 +1,4 @@
+NA12878_05 (ps_id: 1) > NA12878_06 (ps_id: 2)
+Sample correlation:	-1.0000 (overlapping variants: 3)
+
+Exception: Sample correlation between NA12878_05 and NA12878_06 to low! (-1.0000, should be above 0.9)

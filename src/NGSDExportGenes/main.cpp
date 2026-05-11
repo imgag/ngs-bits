@@ -21,8 +21,9 @@ public:
 		addFlag("add_disease_info", "Annotate with disease information from HPO, OrphaNet and OMIM (slow).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
-		changeLog(2021,  4,  13, "Added more information (imprinting, pseudogenes, OrphaNet, OMIM).");
-		changeLog(2019,  9,  20, "Added several columns with gene details.");
+		changeLog(2026,  4, 17, "Added genomAD pLI.");
+		changeLog(2021,  4, 13, "Added more information (imprinting, pseudogenes, OrphaNet, OMIM).");
+		changeLog(2019,  9, 20, "Added several columns with gene details.");
 		changeLog(2018,  5,  3 , "First version");
 	}
 
@@ -43,6 +44,7 @@ public:
 		output->write("\tgnomAD oe (syn)");
 		output->write("\tgnomAD oe (mis)");
 		output->write("\tgnomAD oe (lof)");
+		output->write("\tgnomAD pLI");
 		output->write("\tinheritance");
 		output->write("\timprinting_expressed_allele");
 		output->write("\tpseudogenes");
@@ -73,6 +75,7 @@ public:
 			output->write(gene_info.oe_syn.replace("n/a", "").toUtf8() + "\t");
 			output->write(gene_info.oe_mis.replace("n/a", "").toUtf8() + "\t");
 			output->write(gene_info.oe_lof.replace("n/a", "").toUtf8() + "\t");
+			output->write(gene_info.pli.replace("n/a", "").toUtf8() + "\t");
 			output->write(gene_info.inheritance.replace("n/a", "").toUtf8() + "\t");
 			QString inprinting_info = "";
 			if(!gene_info.imprinting_expressed_allele.isEmpty() || !gene_info.imprinting_confidence.isEmpty())
@@ -90,7 +93,7 @@ public:
 				//HPO terms
 				QByteArrayList hpos;
 				PhenotypeList phenos = db.phenotypes(gene_symbol);
-                for (const Phenotype& pheno : phenos)
+				for (const Phenotype& pheno : std::as_const(phenos))
 				{
 					hpos << pheno.toString();
 				}

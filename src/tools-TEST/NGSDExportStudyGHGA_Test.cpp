@@ -43,8 +43,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportStudyGHGA_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test "
-				+ "-use_sample_folder -include_bam -include_vcf -out out/NGSDExportStudyGHGA_out3.json");
+		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test " + "-use_sample_folder -include_bam -include_vcf -out out/NGSDExportStudyGHGA_out3.json");
 		COMPARE_FILES("out/NGSDExportStudyGHGA_out3.json", TESTDATA("data_out/NGSDExportStudyGHGA_out3.json"));
 	}
 
@@ -58,8 +57,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportStudyGHGA_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test "
-				+ "-use_sample_folder -group_analyses -include_vcf -out out/NGSDExportStudyGHGA_out4.json");
+		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test " + "-use_sample_folder -group_analyses -include_vcf -out out/NGSDExportStudyGHGA_out4.json");
 		COMPARE_FILES("out/NGSDExportStudyGHGA_out4.json", TESTDATA("data_out/NGSDExportStudyGHGA_out4.json"));
 	}
 
@@ -73,8 +71,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportStudyGHGA_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test "
-				+ "-use_sample_folder -out out/NGSDExportStudyGHGA_out5.json");
+		EXECUTE("NGSDExportStudyGHGA", "-data " + TESTDATA("data_in/NGSDExportStudyGHGA_in1.json") + " -samples " + TESTDATA("data_in/NGSDExportStudyGHGA_in3.tsv") + " -test " + "-use_sample_folder -out out/NGSDExportStudyGHGA_out5.json");
 		COMPARE_FILES("out/NGSDExportStudyGHGA_out5.json", TESTDATA("data_out/NGSDExportStudyGHGA_out5.json"));
 	}
 
