@@ -31,8 +31,16 @@ struct BedTrackData : public TrackData
 
 struct BamAlignmentWrapper
 {
+	struct VariantInfo
+	{
+		int idx;
+		char base;
+		int quality;
+	};
+
 	QString id; // for hashing
 	BamAlignment alignment;
+	QVector<VariantInfo> variants;
 
 	BamAlignmentWrapper(BamAlignment aln)
 		: id(makeId(aln)), alignment(aln)
@@ -42,6 +50,30 @@ struct BamAlignmentWrapper
 	BamAlignmentWrapper(BamAlignment&& aln)
 		: id(makeId(aln)), alignment(std::move(aln))
 	{
+	}
+
+	void storeVariants(const Sequence& ref_seq)
+	{
+		variants.clear();
+		const auto& region = SharedData::region();
+		for (int pos = alignment.start(); pos < alignment.end(); ++pos)
+		{
+			int idx = pos - region.start();
+			if (idx < 0 || idx >= region.length()) continue;
+
+			char ref_base = ref_seq[idx] | 32;
+			auto [base, qual] = alignment.extractBaseByCIGAR(pos);
+			base |= 32;
+			if (base != ref_base && base != '-')
+			{
+				variants << VariantInfo{idx, base, qual};
+			}
+		}
+	}
+
+	const QVector<VariantInfo>& getVariants() const
+	{
+		return variants;
 	}
 
 	bool operator==(const BamAlignmentWrapper& other) const

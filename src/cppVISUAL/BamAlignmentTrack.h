@@ -34,16 +34,10 @@ protected:
 	void paintEvent(QPaintEvent*) override;
 	void populateContextMenu(QMenu&) override;
 	void handleContextMenuAction(QAction*) override;
+	void mousePressEvent(QMouseEvent*) override;
+	void mouseReleaseEvent(QMouseEvent*) override;
 
 private:
-	//constants
-	static constexpr int ROW_HEIGHT = 10;
-	static constexpr int ROW_PADDING = 2;
-	static constexpr int SPACING_BELOW = 4;
-
-	static constexpr float CIGAR_DETAIL_SCALE = 20.0f;
-	static constexpr float BASE_DETAIL_SCALE  = 1.0f;
-
 	QSharedPointer<BamTrackData> track_data_;
 
 	void drawZoomInText(QPainter&);
@@ -56,25 +50,31 @@ private:
 
 	void drawAlignment(QPainter&, const BamAlignment& al, int row_y,
 					   int x0, int total_width);
-	void drawVariants(QPainter&, const BamAlignment& al, int row_y,
+	void drawVariants(QPainter&, const BamAlignmentWrapper& al, int row_y,
 					  int x0, int total_width);
 	void makePairs();
 
 	static QColor baseColor(QChar base);
 	static QColor strandColor(bool is_reverse);
 	static QSize characterSize(QFont font);
+	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 
-	QHash<BamAlignmentWrapper, int> row_idxes_;
-	QHash<QString, int> pair_row_idxes_;
-	QHash<QString, bool> row_stored_with_pair_;
+	QHash<BamAlignmentWrapper, int> row_idxes_; // BamAlignmentWrapper -> row index
+	QHash<QString, int> pair_row_idxes_; // Pair Name -> row index
+
+	QHash<QString, bool> row_stored_with_pair_; // Pair Name -> bool, used for checking if alignment with name was stored as a pair or not
+
+	QHash<int, QVector<int>> normal_row_store_; // row -> vector of alignment indices
+	QHash<int, QVector<int>> pair_row_store_; // row -> vector of pair indices
+
+
 	RowPacker row_packer_;
-	using PairMap = QHash<QString, QPair<int, int>>;
-	PairMap pair_map_;
-	QVector<ReadPair> read_pairs_;
+	QVector<ReadPair> read_pairs_; // vector of pairs
 
 	int num_rows_ = 1;
 	bool view_as_pairs_ = false;
 	QAction* pairs_action_;
+	QPoint mouse_press_pos_;
 
 private slots:
 	void dataReady();

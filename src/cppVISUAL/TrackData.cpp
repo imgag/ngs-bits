@@ -32,13 +32,15 @@ void BamTrackData::updateRegion()
 void BamTrackData::updateData()
 {
 	alignments_.clear();
+	const BedLine& region = SharedData::region();
+	ref_seq_ = SharedData::genome().seq(region.chr(), region.start(), region.length());
 	BamAlignment al;
 	while (bam_reader_->getNextAlignment(al))
 	{
 		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		alignments_ << BamAlignmentWrapper(al);
+		BamAlignmentWrapper wrapped_alignment(al);
+		wrapped_alignment.storeVariants(ref_seq_);
+		alignments_ << wrapped_alignment;
 	}
-	const BedLine& region = SharedData::region();
-	ref_seq_ = SharedData::genome().seq(region.chr(), region.start(), region.length());
 	emit onDataUpdate();
 }

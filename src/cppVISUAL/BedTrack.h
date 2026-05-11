@@ -56,6 +56,14 @@ private:
 	QColor color_ = QColor(0, 0, 178);
 
 	QPointF mouse_press_pos_;
+	/*
+	 * it is more efficient to have two maps here
+	 * one from index of the band to the rows --> this makes painting efficient
+	 * because of the use of ChromosomalIndex
+	 *
+	 * the other map is from rows to vectors of bands stored in that row
+	 * this makes look up faster when the user clicks one of the bands
+	 */
 
 	// pre count of num rows required per chromosome
 	QHash<Chromosome, int> num_rows_;

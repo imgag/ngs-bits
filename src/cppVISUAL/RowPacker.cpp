@@ -24,6 +24,26 @@ void RowPacker::restore(int row, int start, int end)
 	insertIntoRow(row, start, end);
 }
 
+int RowPacker::find(int row, int pos) const
+{
+	if (row >= rows_.size()) return -1;
+
+	const auto& intervals = rows_[row];
+	int lo = 0, hi = intervals.size();
+
+	while (lo < hi)
+	{
+		int mid = (lo + hi) / 2;
+		if (pos >= intervals[mid].first && pos <= intervals[mid].second)
+			return mid;        // found the interval
+		if (pos < intervals[mid].first)
+			hi = mid;
+		else
+			lo = mid + 1;
+	}
+	return -1; // not found
+}
+
 
 int RowPacker::insertionPoint(int row, int start) const
 {

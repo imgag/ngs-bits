@@ -71,7 +71,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	painter.drawRect(bounding_rect);
 
 	// draw bands
-	if (bedfile_->chromosomes().contains(region.chr()))
+	if (bedfile_ && bedfile_->chromosomes().contains(region.chr()))
 	{
 		int w = width();
 		float total_width = w - label_width - 4;

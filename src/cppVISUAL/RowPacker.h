@@ -19,6 +19,7 @@ public:
 
 	void restore(int row, int start, int end);
 
+	int find(int row, int pos) const;
 
 
 private:
