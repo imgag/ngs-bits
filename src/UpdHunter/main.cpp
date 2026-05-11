@@ -27,7 +27,7 @@ public:
 		addOutfile("out", "Output TSV file containing the detected UPDs.", false, true);
 		//optional
 		addOutfile("out_informative", "Output IGV file containing informative variants.", true, true);
-		addInfile("exclude", "BED file with regions to exclude, e.g. copy-number variant regions.", true);
+		addInfileList("exclude", "BED file with regions to exclude, e.g. regions with N base or copy-number variant regions of the sample.", true);
 		addInt("var_min_dp", "Minimum depth (DP) of a variant (in all three samples).", true, 20);
 		addFloat("var_min_q", "Minimum quality (QUAL) of a variant.", true, 20);
 		addFlag("var_use_indels", "Also use InDels. The default is to use SNVs only.");
@@ -202,12 +202,14 @@ public:
 		bool var_use_special_calls = getFlag("var_use_special_calls");
 
 		//load BED file to exclude
-		QString exclude = getInfile("exclude");
 		BedFile exclude_regions;
-		if (exclude!="")
+		foreach(QString filename, getInfileList("exclude"))
 		{
-			exclude_regions.load(exclude);
+			BedFile tmp;
+			tmp.load(filename);
+			exclude_regions.add(tmp);
 		}
+		exclude_regions.merge();
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
 		VcfFile variants;
