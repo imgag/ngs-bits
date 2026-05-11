@@ -33,6 +33,7 @@ public:
 		addFlag("no_special_calls", "Ignores special variant calls in input VCF files (mosaic, low-mappabilty, targeted, etc).");
 		addFloat("min_qual", "If set, ignores input variants with less than the given QUAL cutoff.", true, 0.0);
 		addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. If not given, no re-calling is performed. For each 'in' file, a BAM file has to be provided in the same order.", true);
+		addInt("min_mapq", "Minimum mapping quality for re-calling.", true, 1);
 		addFlag("no_genotype_correction", "Do not perform genotype correction during re-calling, only calculate DP and AF.");
 		addInt("threads", "Number of threads used for re-calling", true, 1);
 		addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
@@ -255,6 +256,7 @@ public:
 		double min_qual = getFloat("min_qual");
         QStringList bam_files = getInfileList("bam");
         if (!bam_files.isEmpty() && bam_files.count()!=in_files.count()) THROW(ArgumentException, "Number of 'bam' files has to be the same as the number 'in' files!");
+		int min_mapq = getInt("min_mapq");
 		bool no_genotype_correction = getFlag("no_genotype_correction");
 		bool long_read = getFlag("long_read");
 		QString ref_file = getInfile("ref");
@@ -294,7 +296,7 @@ public:
 			{
 				foreach(const Chromosome& chr, chrs)
 				{
-					ReCallingWorker* worker = new ReCallingWorker(chr, bam_files[i], ref_file, data[i], var_details, no_genotype_correction, long_read, out_data);
+					ReCallingWorker* worker = new ReCallingWorker(chr, bam_files[i], ref_file, data[i], var_details, min_mapq, no_genotype_correction, long_read, out_data);
 					pool.start(worker);
 				}
 			}
