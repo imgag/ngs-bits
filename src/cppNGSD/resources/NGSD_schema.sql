@@ -2734,6 +2734,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `repeat_unit` VARCHAR(50) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
   `max_normal` INT(10) DEFAULT NULL,
   `min_pathogenic` INT(10) DEFAULT NULL,
+  `min_pathogenic_hom` INT(10) DEFAULT NULL COMMENT 'Additional pathogenicity cutoff in case the RE is homozygous (lower then default cutoff).',
   `inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') DEFAULT NULL,
   `disease_names` TEXT COMMENT 'Comma-separated list of diease names',
   `disease_ids_omim` TEXT COMMENT 'Comma-separated list of OMIM disease identifiers',
