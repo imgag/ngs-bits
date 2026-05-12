@@ -281,6 +281,8 @@ public:
 	{
 		return utr_5prime_;
 	}
+	//Returns the protein sequence of the transcript AA code - only works for PROTEIN_CODING genes with coding regions.
+	QByteArray proteinSequence(const FastaFileIndex& genome_idx, bool use_three_letter_code, bool end_at_stop) const;
 
 	//Returns the exon number of a region. Error codes: -1 if no exon overlaps, -2 if several exons overlap
 	int exonNumber(int start, int end) const;

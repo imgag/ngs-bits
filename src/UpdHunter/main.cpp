@@ -1,7 +1,6 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "VariantList.h"
 #include "VcfFile.h"
 #include "BasicStatistics.h"
 #include <QTextStream>
@@ -28,10 +27,11 @@ public:
 		addOutfile("out", "Output TSV file containing the detected UPDs.", false, true);
 		//optional
 		addOutfile("out_informative", "Output IGV file containing informative variants.", true, true);
-		addInfile("exclude", "BED file with regions to exclude, e.g. copy-number variant regions.", true);
+		addInfileList("exclude", "BED file with regions to exclude, e.g. regions with N base or copy-number variant regions of the sample.", true);
 		addInt("var_min_dp", "Minimum depth (DP) of a variant (in all three samples).", true, 20);
 		addFloat("var_min_q", "Minimum quality (QUAL) of a variant.", true, 20);
 		addFlag("var_use_indels", "Also use InDels. The default is to use SNVs only.");
+		addFlag("var_use_special_calls", "Also use variant calls with special call type (FORMAT entry CT from VcfMerge). The default is to skip where at least one call is flagged as special call.");
 		addFloat("ext_marker_perc", "Percentage of markers that can be spanned when merging adjacent regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of base size that can be spanned when merging adjacent regions.", true, 20.0);
 		addFloat("reg_min_kb", "Mimimum size in kilo-bases required for a UPD region.",  true, 1000.0);
@@ -39,6 +39,7 @@ public:
 		addFloat("reg_min_q", "Mimimum Q-score required for a UPD region.",  true, 20.0);
 		addFlag("debug", "Enable verbose debug output.");
 
+		changeLog(2026,  5,  5, "Added parameter 'var_use_special_calls'.");
 		changeLog(2024,  6,  6, "Added optional output file containing informative variants.");
 		changeLog(2020,  8,  7, "VCF files only as input format for variant list.");
 		changeLog(2018,  6, 11, "First working version.");
@@ -198,14 +199,17 @@ public:
 		int var_min_dp = getInt("var_min_dp");
 		double var_min_q = getFloat("var_min_q");
 		bool var_use_indels = getFlag("var_use_indels");
+		bool var_use_special_calls = getFlag("var_use_special_calls");
 
 		//load BED file to exclude
-		QString exclude = getInfile("exclude");
 		BedFile exclude_regions;
-		if (exclude!="")
+		foreach(QString filename, getInfileList("exclude"))
 		{
-			exclude_regions.load(exclude);
+			BedFile tmp;
+			tmp.load(filename);
+			exclude_regions.add(tmp);
 		}
+		exclude_regions.merge();
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
 		VcfFile variants;
@@ -214,8 +218,9 @@ public:
 		int skip_chr = 0;
 		int skip_qual = 0;
 		int skip_dp = 0;
+		int skip_ct = 0;
 		int skip_indel = 0;
-		int c_excluded = 0;
+		int skip_excluded = 0;
 
 		for (int i=0; i<variants.count(); ++i)
 		{
@@ -225,6 +230,13 @@ public:
 			if (!v.chr().isAutosome())
 			{
 				++skip_chr;
+				continue;
+			}
+
+			//filter indels
+			if (!var_use_indels && !v.isSNV())
+			{
+				++skip_indel;
 				continue;
 			}
 
@@ -240,16 +252,17 @@ public:
 			}
 
 			//filter by depth
-			if(variants.vcfHeader().formatIdDefined("DP"))
+			if (var_min_dp>0)
 			{
 				QByteArray tmp = v.formatValueFromSample("DP", c);
-
 				bool ok = true;
 				int dp1 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
 				if (!ok) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + v.toString(true));
+
 				tmp = v.formatValueFromSample("DP", f);
 				int dp2 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
 				if (!ok) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + v.toString(true));
+
 				tmp = v.formatValueFromSample("DP", m);
 				int dp3 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
 				if (!ok) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + v.toString(true));
@@ -260,11 +273,20 @@ public:
 				}
 			}
 
-			//filter indels
-			if (!var_use_indels && !v.isSNV())
+			//filter special calls
+			if(!var_use_special_calls)
 			{
-				++skip_indel;
-				continue;
+				QByteArray ct_c = v.formatValueFromSample("CT", c);
+				if (ct_c==".") ct_c= "";
+				QByteArray ct_f = v.formatValueFromSample("CT", f);
+				if (ct_f==".") ct_f= "";
+				QByteArray ct_m = v.formatValueFromSample("CT", m);
+				if (ct_m==".") ct_m= "";
+				if (ct_c!="" || ct_f!="" || ct_m!="")
+				{
+					++skip_ct;
+					continue;
+				}
 			}
 
 			VariantData entry;
@@ -273,19 +295,16 @@ public:
 			entry.end = v.end();
 			entry.ref = v.ref();
 			entry.obs = v.altString();
-			if(variants.vcfHeader().formatIdDefined("GT"))
-			{
-				entry.c = str2geno(v.formatValueFromSample("GT", c));
-				entry.f = str2geno(v.formatValueFromSample("GT", f));
-				entry.m = str2geno(v.formatValueFromSample("GT", m));
-			}
+			entry.c = str2geno(v.formatValueFromSample("GT", c));
+			entry.f = str2geno(v.formatValueFromSample("GT", f));
+			entry.m = str2geno(v.formatValueFromSample("GT", m));
 
 			//filter by exclude regions
 			if (exclude_regions.count() && exclude_idx.matchingIndex(v.chr(), v.start(), v.end())!=-1)
 			{
 				entry.type = EXCLUDED;
 				entry.source = NONE;
-				++c_excluded;
+				++skip_excluded;
 			}
 			else
 			{
@@ -294,11 +313,12 @@ public:
 			output << entry;
 		}
         stream << "Loaded " << output.count() << " of " << variants.count() << " variants" << Qt::endl;
-        stream << "Skipped " << skip_chr << " variants not on autosomes" << Qt::endl;
-        stream << "Skipped " << skip_qual << " variants because of low quality (<" << var_min_q << ")" << Qt::endl;
-        stream << "Skipped " << skip_dp << " variants because of low depth (<" << var_min_dp << ")" << Qt::endl;
-        stream << "Skipped " << skip_indel << " indels" << Qt::endl;
-        stream << "Excluded " << c_excluded << " variants" << Qt::endl;
+		stream << "  Skipped " << skip_chr << " variants not on autosomes" << Qt::endl;
+		stream << "  Skipped " << skip_indel << " indels" << Qt::endl;
+		stream << "  Skipped " << skip_qual << " variants because of low quality (<" << var_min_q << ")" << Qt::endl;
+		stream << "  Skipped " << skip_dp << " variants because of low depth (<" << var_min_dp << ")" << Qt::endl;
+		stream << "  Skipped " << skip_ct << " variants because flagged as special call" << Qt::endl;
+		stream << "  Skipped " << skip_excluded << " variants in exclude region." << Qt::endl;
 
 		return output;
 	}

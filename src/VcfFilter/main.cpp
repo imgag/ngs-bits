@@ -142,11 +142,14 @@ public:
 		addFlag("filter_clear", "Remove filter entries of all variants, i.e. sets filter to PASS.");
 		addFlag("filter_empty", "Removes entries with non-empty FILTER column.");
 		addString("info", "Filter by INFO column entries - use ';' as separator for several filters, e.g. 'DP > 5;AO > 2' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
+        addString("info_flags", "Filter by INFO flag(s) - keep matches (comma-separated list of flags)", true);
+        addString("info_flags_exclude", "Filter by INFO flag(s) - exclude matches (comma-separated list of flags)", true);
 		addString("sample", "Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addFlag("sample_one_match", "If set, a line will pass if one sample passes all filters (default behaviour is that all samples have to pass all filters).");
 		addFlag("no_special_chr", "Removes variants that are on special chromosomes, i.e. not on autosomes, not on gonosomes and not on chrMT.");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
+        changeLog(2026,  5,  7, "Added option to filter by INFO flags.");
 		changeLog(2024,  7, 11, "Added flag 'filter_clear'.");
 		changeLog(2023, 11, 21, "Added flag 'no_special_chr'.");
 		changeLog(2018, 10, 31, "Initial implementation.");
@@ -213,7 +216,18 @@ public:
 			THROW(ArgumentException, "Variant type " + variant_type + " is not a supported variant type!");
 		}
 		QString info = getString("info");
-		QString sample = getString("sample");
+
+        //get INFO flags as QSet
+        QByteArrayList tmp = getString("info_flags").toUtf8().split(',');
+        tmp.removeAll(QByteArray());
+        QSet<QByteArray> info_flags_keep(tmp.constBegin(), tmp.constEnd());
+
+        tmp = getString("info_flags_exclude").toUtf8().split(',');
+        tmp.removeAll(QByteArray());
+        QSet<QByteArray> info_flags_exclude(tmp.constBegin(), tmp.constEnd());
+
+
+        QString sample = getString("sample");
 
 		QRegularExpression filter_re;
 		if (filter != "")
@@ -452,34 +466,51 @@ public:
 			}
 
 			//filter by info operators in INFO column
-			if (!info_filters.isEmpty())
+            if (!info_filters.isEmpty() || !info_flags_keep.isEmpty() || !info_flags_exclude.isEmpty())
 			{
 				QByteArrayList info_parts = col(parts, VcfFile::INFO).split(';');
-
+                QSet<QByteArray> var_info_flags;
 				bool passes_filters = true;
+
 				foreach(const QByteArray& info_part, info_parts)
 				{
 					int sep_index = info_part.indexOf('=');
-					if (sep_index==-1) continue; //skip flags without value
+                    if (sep_index==-1)
+                    {
+                        var_info_flags.insert(info_part);
+                    }
+                    else
+                    {
+                        //filter by INFO key-value
+                        if (!info_filters.isEmpty())
+                        {
+                            QByteArray name = info_part.left(sep_index);
+                            foreach(const FilterDefinition& filter, info_filters)
+                            {
+                                if (filter.field==name)
+                                {
+                                    if (!satisfiesFilter(info_part.mid(sep_index+1), filter, line))
+                                    {
+                                        passes_filters = false;
+                                    }
+                                }
+                            }
+                        }
 
-					QByteArray name = info_part.left(sep_index);
-					foreach(const FilterDefinition& filter, info_filters)
-					{
-						if (filter.field==name)
-						{
-							if (!satisfiesFilter(info_part.mid(sep_index+1), filter, line))
-							{
-								passes_filters = false;
-							}
-						}
-					}
-					if (!passes_filters) break;
+                    }
+                    if (!passes_filters) break;
 				}
 
 				if (!passes_filters)
 				{
 					continue;
 				}
+
+                //Filter by INFO flag
+                //keep
+                if (!info_flags_keep.isEmpty() && !var_info_flags.intersects(info_flags_keep)) continue;
+                //exclude
+                if (var_info_flags.intersects(info_flags_exclude)) continue;
 			}
 
 			//filter by sample operators in the SAMPLE column

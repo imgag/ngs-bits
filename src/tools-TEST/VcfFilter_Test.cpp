@@ -148,6 +148,24 @@ private:
 		VCF_IS_VALID_HG19("out/VcfFilter_out16.vcf");
 	}
 
+    TEST_METHOD(info_flag)
+    {
+        SKIP_IF_NO_HG38_GENOME();
+
+        EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in04.vcf") + " -out out/VcfFilter_out17.vcf" + " -info_flags TARGETED,MOSAIC");
+        COMPARE_FILES("out/VcfFilter_out17.vcf", TESTDATA("data_out/VcfFilter_out17.vcf"));
+        VCF_IS_VALID("out/VcfFilter_out17.vcf");
+    }
+
+    TEST_METHOD(info_flag_exclude)
+    {
+        SKIP_IF_NO_HG38_GENOME();
+
+        EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in04.vcf") + " -out out/VcfFilter_out18.vcf" + " -info_flags_exclude MOSAIC");
+        COMPARE_FILES("out/VcfFilter_out18.vcf", TESTDATA("data_out/VcfFilter_out18.vcf"));
+        VCF_IS_VALID("out/VcfFilter_out18.vcf");
+    }
+
 /************************************ BUGS ************************************/
 
 	TEST_METHOD(bugfix_tab_before_column_returned)

@@ -244,7 +244,6 @@ public:
 		QVector<int> current = QVector<int>(matrix.m()+1, 0);
 		for (int i = 1; i <= matrix.n(); ++i)
 		{
-            if (i%10000==0) QTextStream(stderr) << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " " << i << Qt::endl;
 			for (int j = 1; j <= matrix.m(); ++j)
 			{
 				if (is_equal(s1[i-1], s2[j-1], comp_settings))

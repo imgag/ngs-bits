@@ -23,7 +23,8 @@ DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidg
 
 	//link signal and slots
 	connect(ui_->vars,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(VariantDoubleClicked(QTableWidgetItem*)));
-	connect(ui_->btn_copyToClipboard,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
+    connect(ui_->btn_copyToClipboard,SIGNAL(clicked()),this,SLOT(copyVariantTableToClipboard()));
+    connect(ui_->btn_copyMrdToClipboard,SIGNAL(clicked()),this,SLOT(copyMRDTableToClipboard()));
 
 	createTableView();
 }
@@ -57,9 +58,14 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 
 }
 
-void DiseaseCourseWidget::copyToClipboard()
+void DiseaseCourseWidget::copyVariantTableToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_->vars);
+}
+
+void DiseaseCourseWidget::copyMRDTableToClipboard()
+{
+    GUIHelper::copyToClipboard(ui_->mrd);
 }
 
 

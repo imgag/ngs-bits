@@ -716,116 +716,113 @@ private:
 
 		FilterResult result(vl.count());
 
-		//qual
+		//no filter
 		FilterVariantQC filter;
-		filter.setInteger("qual", 200);
+		filter.setString("apply_to", "all");
+		filter.setInteger("qual", 0);
 		filter.setInteger("depth", 0);
-		filter.setInteger("mapq", 0);
-		filter.setInteger("strand_bias", -1);
-		filter.setInteger("allele_balance", -1);
-		filter.setInteger("min_occurences", 0);
+		filter.setInteger("min_gq", 0);
 		filter.setDouble("min_af", 0);
 		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 143);
+
+		//qual
+		result.reset();
+		filter.setString("apply_to", "all");
+		filter.setInteger("qual", 200);
+		filter.setInteger("depth", 0);
+		filter.setInteger("min_gq", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 138);
 
-		//depth
+		//qual (apply to SNV)
 		result.reset();
-		filter.setInteger("qual", 0);
-		filter.setInteger("depth", 20);
-		filter.setInteger("mapq", 0);
-		filter.setInteger("strand_bias", -1);
-		filter.setInteger("allele_balance", -1);
-		filter.setInteger("min_occurences", 0);
+		filter.setString("apply_to", "SNV");
+		filter.setInteger("qual", 200);
+		filter.setInteger("depth", 0);
+		filter.setInteger("min_gq", 0);
 		filter.setDouble("min_af", 0);
 		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 139);
+
+		//qual (apply to INDEL)
+		result.reset();
+		filter.setString("apply_to", "INDEL");
+		filter.setInteger("qual", 200);
+		filter.setInteger("depth", 0);
+		filter.setInteger("min_gq", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 142);
+
+		//depth
+		result.reset();
+		filter.setString("apply_to", "all");
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 20);
+		filter.setInteger("min_gq", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 136);
 
-		//mapq
+		//GQ
 		result.reset();
+		filter.setString("apply_to", "all");
 		filter.setInteger("qual", 0);
 		filter.setInteger("depth", 0);
-		filter.setInteger("mapq", 55);
-		filter.setInteger("strand_bias", -1);
-		filter.setInteger("allele_balance", -1);
-		filter.setInteger("min_occurences", 0);
+		filter.setInteger("min_gq", 20);
 		filter.setDouble("min_af", 0);
 		filter.setDouble("max_af", 1);
-
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 131);
-
-		//strand bias
-		result.reset();
-		filter.setInteger("qual", 0);
-		filter.setInteger("depth", 0);
-		filter.setInteger("mapq", 0);
-		filter.setInteger("strand_bias", 20);
-		filter.setInteger("allele_balance", -1);
-		filter.setInteger("min_occurences", 0);
-		filter.setDouble("min_af", 0);
-		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 142);
 
-		//allele bias
+		//min AF
 		result.reset();
+		filter.setString("apply_to", "all");
 		filter.setInteger("qual", 0);
 		filter.setInteger("depth", 0);
-		filter.setInteger("mapq", 0);
-		filter.setInteger("strand_bias", -1);
-		filter.setInteger("allele_balance", 20);
-		filter.setInteger("min_occurences", 0);
+		filter.setInteger("min_gq", 0);
+		filter.setDouble("min_af", 0.3);
+		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 133);
+
+		//max AF
+		result.reset();
+		filter.setString("apply_to", "all");
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("min_gq", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 0.3);
+		filter.setBool("remove_special_calls", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 10);
+
+		//remove_special_calls
+		result.reset();
+		filter.setString("apply_to", "all");
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("min_gq", 0);
 		filter.setDouble("min_af", 0);
 		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", true);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 142);
-
-		//combined
-		result.reset();
-		filter.setInteger("qual", 500);
-		filter.setInteger("depth", 20);
-		filter.setInteger("mapq", 55);
-		filter.setInteger("strand_bias", 20);
-		filter.setInteger("allele_balance", 20);
-		filter.setDouble("min_af", 0);
-		filter.setDouble("max_af", 1);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 113);
-
-		// new test File
-		vl.clear();
-		vl.load(TESTDATA("data_in/VariantFilter_in1.GSvar"));
-		result = FilterResult(vl.count());
-
-		//min occurences per strand
-		result.reset();
-		filter.setInteger("qual", 0);
-		filter.setInteger("depth", 0);
-		filter.setInteger("mapq", 0);
-		filter.setInteger("strand_bias", -1);
-		filter.setInteger("allele_balance", -1);
-		filter.setInteger("min_occurences", 3);
-		filter.setDouble("min_af", 0);
-		filter.setDouble("max_af", 1);
-
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 6);
-
-
-		//Allele frequency
-		result.reset();
-		filter.setInteger("qual", 0);
-		filter.setInteger("depth", 0);
-		filter.setInteger("mapq", 0);
-		filter.setInteger("strand_bias", -1);
-		filter.setInteger("allele_balance", -1);
-		filter.setInteger("min_occurences", 0);
-		filter.setDouble("min_af", 0.02);
-		filter.setDouble("max_af", 0.1);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 6);
 	}
 
 	TEST_METHOD(FilterVariantQC_apply_multiSample)
@@ -835,12 +832,52 @@ private:
 
 		FilterResult result(vl.count());
 
+		//no filter
 		FilterVariantQC filter;
+		filter.setString("apply_to", "all");
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("min_gq", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 256);
+
+		//QUAL+depth
+		filter.setString("apply_to", "all");
 		filter.setInteger("qual", 20);
 		filter.setInteger("depth", 20);
-		filter.setInteger("mapq", 60);
+		filter.setInteger("min_gq", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 125);
+		I_EQUAL(result.countPassing(), 193);
+
+		//GQ
+		result.reset();
+		filter.setString("apply_to", "all");
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("min_gq", 20);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 254);
+
+		//remove_special_calls
+		result.reset();
+		filter.setString("apply_to", "all");
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("min_gq", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+		filter.setBool("remove_special_calls", true);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 254);
 	}
 
 	TEST_METHOD(FilterTrio_apply)

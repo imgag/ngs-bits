@@ -117,7 +117,7 @@ private:
 	/// not allowed, according to the HTTP specification
     static bool hasOverlappingRanges(const QList<ByteRange>& ranges);
     /// Finds filename with full path for a given processed sample
-    static QString getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token);
+    static QString getProcessedSampleFile(int ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
     static QString createTempUrl(FastFileInfo& file_info, const QString& token);

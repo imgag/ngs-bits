@@ -671,3 +671,6 @@ VcfMerge.depends = cppNGS
 SUBDIRS += BedExtractMethylation
 tools-TEST.depends += BedExtractMethylation
 BedExtractMethylation.depends = cppNGS
+SUBDIRS += TranscriptToProtein
+tools-TEST.depends += TranscriptToProtein
+TranscriptToProtein.depends = cppNGS
