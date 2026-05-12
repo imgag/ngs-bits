@@ -22,7 +22,7 @@ public:
 
 		//optional
 		addOutfile("out", "Output file containing the result string. If unset, writes to STDOUT.", true);
-		addInt("lines", "Number of lines which should be checked. (default: 10)", true, 10);
+		addInt("lines", "Number of lines which should be checked.", true, 10);
 
 		changeLog(2023, 10, 5, "Initial commit.");
 	}
