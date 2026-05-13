@@ -136,6 +136,7 @@
 #include <QStyleFactory>
 #include <QLibraryInfo>
 #include <QtCharts/QChartView>
+#include "Background/PingWorker.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1618,6 +1619,10 @@ void MainWindow::delayedInitialization()
 			return;
 		}
 	}
+
+	//ping
+	PingWorker* workter = new PingWorker();
+	startJob(workter, false);
 
     if (NGSD::isAvailable())
     {
