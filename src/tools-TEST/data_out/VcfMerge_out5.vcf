@@ -10,6 +10,12 @@
 ##SAMPLE=<ID=NA12891_25,Gender=male,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
 ##SAMPLE=<ID=NA12892_28,Gender=female,ExternalSampleName=pos K,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_58	NA12891_25	NA12892_28
+chr6	160618676	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:.:.:15:.:TA	0/0:0:.:.:.:.
+chr6	160624222	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:.:.:15:.:TA	0/0:0:.:.:.:.
+chr6	160629766	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:.:.:15:.:TA	0/0:0:.:.:.:.
+chr6	160635315	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:.:.:15:.:TA	0/0:0:.:.:.:.
+chr6	160640859	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:.:.:15:.:TA	0/0:0:.:.:.:.
+chr6	160646406	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:.:.:15:.:TA	0/0:0:.:.:.:.
 chr22	15528424	.	T	C	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:222:0.207:160:.:LM	0/0:94:0.213:.:.:.	0/0:94:0.213:.:.:.
 chr22	15528472	.	A	C	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:178:0.129:160:.:LM	0/0:46:0.000:.:.:.	0/0:46:0.000:.:.:.
 chr22	15528754	.	G	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:258:0.163:139:.:LM	0/0:93:0.000:.:.:.	0/0:93:0.000:.:.:.
@@ -850,8 +856,9 @@ chr22	42077599	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:312:0.462:160:.:.	0/0:0:.:.:
 chr22	42077856	.	C	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/0:0:.:.:.:.	0/1:230:0.465:22:.:.
 chr22	42090719	.	G	A	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:428:0.5164:48:.:.	0/1:399:0.504:22:.:.
 chr22	42126611	.	C	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:213:0.498:141:.:.	1/1:327:1.0000:980:.:.	0/1:297:0.498:22:.:.
+chr22	42126658	.	AGTGGGCACC	GGCGGCCACG	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	1/1:.:.:4:.:TA	0/0:0:.:.:.:.
 chr22	42127001	.	G	A	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:293:0.2457:17:.:.	0/1:205:0.459:22:.:.
-chr22	42127526	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:688:0.230:160:.:.	0/1:385:0.2182:10:.:.	0/0:0:.:.:.:.
+chr22	42127526	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:688:0.230:160:.:.	0/1:95:0.33:150:.:TA	0/0:0:.:.:.:.
 chr22	42127941	.	G	A	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.	0/1:400:0.4700:48:.:.	0/1:191:0.497:22:.:.
 chr22	42128241	.	CT	C	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:284:0.408:160:.:.	0/0:0:.:.:.:.	0/1:187:0.545:22:.:.
 chr22	42128945	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:642:0.290:160:.:.	0/1:423:0.3617:40:.:.	0/0:0:.:.:.:.
