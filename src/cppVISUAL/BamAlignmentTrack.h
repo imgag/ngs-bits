@@ -28,7 +28,15 @@ public:
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override {return sizeHint();}
 
-	QString getType() override {return "BAM/CRAM";}
+	static QString staticType() {return "BAM/CRAM";}
+	QString getType() override {return staticType();}
+
+	virtual QMap<QString, QVariant> getSettings() override;
+	virtual void loadKeyValueFromXml(QString key, const QDomElement&) override;
+
+	virtual void reloadTrack() override;
+
+	static BamAlignmentTrack* createTrack(QWidget* parent, QString file_path, QString name);
 
 protected:
 	void paintEvent(QPaintEvent*) override;
@@ -37,21 +45,35 @@ protected:
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
 
+
+
 private:
 	QSharedPointer<BamTrackData> track_data_;
 
 	void drawZoomInText(QPainter&);
+
+	// assigns rows to alignments and calculates number of rows
+	// calls the right method depending on view mode
 	void calculateRows();
+	// assigns rows for normal mode
 	void calculateRowsNormalMode();
+	// assigns rows to pairs for pair mode
 	void calculateRowsPairMode();
 
-	void drawNormalMode(QPainter& painter, const BedLine& region);
+	void drawNormalMode(QPainter& painter, const BedLine&);
 	void drawPairMode(QPainter& painter, const BedLine& region);
+
+	void drawAlignmentAndVariants(QPainter&, const BamAlignmentWrapper& al, int row_y,
+								  int x0, int total_width);
 
 	void drawAlignment(QPainter&, const BamAlignment& al, int row_y,
 					   int x0, int total_width);
+	// draws bases in BamAlignment that do not match the reference base
+	// which are pre calculated in the AlignmentWrapper
 	void drawVariants(QPainter&, const BamAlignmentWrapper& al, int row_y,
 					  int x0, int total_width);
+	QString getBamAlignmentText(const BamAlignment& al);
+	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
 	void makePairs();
 
 	static QColor baseColor(QChar base);

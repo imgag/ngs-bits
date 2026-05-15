@@ -22,13 +22,17 @@ public:
 
 	const QUuid& id() {return id_;}
 	// writes properties in XML
-	virtual void writeToXml(QXmlStreamWriter&);
+	void writeToXml(QXmlStreamWriter&);
 	// settings that should be written into XML
-	virtual QMap<QString, QVariant> getSettings();
+	virtual QMap<QString, QVariant> getSettings() {
+		return QMap<QString, QVariant>();
+	};
 	// parses the DOM and loads corresponding settings
-	virtual void loadSettingsFromXml(const QDomNodeList&);
+	void loadSettingsFromXml(const QDomNodeList&);
 	// function that should be overriden by child classes (re reading the file)
 	virtual void reloadTrack() {};
+	// mathod for loading a setting from XML
+	virtual void loadKeyValueFromXml(QString, const QDomElement&){}
 
 	// creates TrackWidget by parsing XML
 	static TrackWidget* fromXml(const QDomElement&, QWidget* parent);
@@ -53,16 +57,9 @@ protected:
 	void drawLabel(QPainter&);
 	virtual QString getType() = 0;
 
-	enum DrawMode
-	{
-		COLLAPSED,
-		EXPANDED
-	};
-
-	DrawMode draw_mode_ = COLLAPSED;
 	QPoint drag_start_pos_;
 	bool is_dragging_;
-	QAction *opts_[4];
+	QAction *opts_[2];
 
 
 	QUuid id_;

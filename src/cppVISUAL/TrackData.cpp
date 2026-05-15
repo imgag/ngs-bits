@@ -1,4 +1,5 @@
 #include "TrackData.h"
+#include "FileLoader.h"
 
 void BamTrackData::updateRegion()
 {
@@ -43,4 +44,15 @@ void BamTrackData::updateData()
 		alignments_ << wrapped_alignment;
 	}
 	emit onDataUpdate();
+}
+
+void BamTrackData::reload()
+{
+	if (is_loading_) return;
+	is_loading_ = true;
+
+	QSharedPointer<BamReader> reader = FileLoader::loadBamFile(file_path);
+	if (reader) setBamReader(reader);
+
+	is_loading_ = false;
 }

@@ -133,11 +133,11 @@ void TrackGroup::contextMenu(QPoint pos)
 
 	QAction* action = menu.exec(mapToGlobal(pos));
 
-	if (action == opt1)		 loadTracksFromFile();
-	else if (action == opt2) clearLayout();
-	else if (action == opt3) clearLayoutAndDelete();
-	else if (action == opt4) emit addPanelAbove();
-	else if (action == opt5) emit addPanelBelow();
+	if (action == opt1)		 loadTracksFromFile(); // load file opt
+	else if (action == opt2) clearLayout(); // Clear Panel opt
+	else if (action == opt3) clearLayoutAndDelete(); // Remove Panel opt
+	else if (action == opt4) emit addPanelAbove(); // Add Panel Above
+	else if (action == opt5) emit addPanelBelow(); // Add Panel Below
 	else if (cur_context_track_) cur_context_track_->handleContextMenuAction(action);
 
 	cur_context_track_ = nullptr;

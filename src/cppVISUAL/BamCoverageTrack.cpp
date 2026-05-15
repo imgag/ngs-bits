@@ -1,4 +1,5 @@
 #include "BamCoverageTrack.h"
+#include "BamTrackDataManager.h"
 #include "SharedData.h"
 
 #include <QApplication>
@@ -15,6 +16,19 @@ BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString n
 	coverage_.fill(BaseCoverage(), max_region_length);
 }
 
+BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_path, QString name)
+{
+	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(file_path);
+	if (data)
+	{
+		auto track = new BamCoverageTrack(parent, file_path, name);
+		track->setTrackData(data);
+		return track;
+	}
+
+	return nullptr;
+}
+
 QSize BamCoverageTrack::sizeHint() const
 {
 	return QSize(parentWidget() ? parentWidget()->width() : 200,
@@ -27,7 +41,13 @@ void BamCoverageTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
 	{
 		track_data_ = track_data;
 		connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
+		dataReady();
 	}
+}
+
+void BamCoverageTrack::reloadTrack()
+{
+	BamTrackDataManager::reload(file_path_);
 }
 
 void BamCoverageTrack::dataReady()

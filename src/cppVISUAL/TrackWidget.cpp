@@ -1,8 +1,9 @@
-#include "FileLoader.h"
 #include "TrackWidget.h"
 #include "SharedData.h"
 #include "TrackManager.h"
 #include "BedTrack.h"
+#include "BamAlignmentTrack.h"
+#include "BamCoverageTrack.h"
 #include "GenomeVisualizationWidget.h"
 
 #include <QApplication>
@@ -34,49 +35,20 @@ void TrackWidget::regionChanged()
 
 void TrackWidget::populateContextMenu(QMenu& menu)
 {
-	opts_[0] = menu.addAction("Collapsed");
-	opts_[1] = menu.addAction("Expanded");
-
-	for (QAction *action : {opts_[0], opts_[1]})
-	{
-		action->setCheckable(true);
-	}
-
-	switch (draw_mode_)
-	{
-	case COLLAPSED:
-		opts_[0]->setChecked(true);
-		break;
-	case EXPANDED:
-		opts_[1]->setChecked(true);
-		break;
-	}
-
-	opts_[2] = menu.addAction("Reload Track");
+	opts_[0] = menu.addAction("Reload Track");
 
 	menu.addSeparator();
-	opts_[3] = menu.addAction("Remove Track");
+
+	opts_[1] = menu.addAction("Remove Track");
 }
 
 void TrackWidget::handleContextMenuAction(QAction* action)
 {
 	if (action == opts_[0])
 	{
-		draw_mode_ = COLLAPSED;
-		updateGeometry();
-		update();
-	}
-	else if (action == opts_[1])
-	{
-		draw_mode_ = EXPANDED;
-		updateGeometry();
-		update();
-	}
-	else if (action == opts_[2])
-	{
 		reloadTrack();
 	}
-	else if (action == opts_[3])
+	else if (action == opts_[1])
 	{
 		emit trackDeleted();
 	}
@@ -195,19 +167,12 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 
 TrackWidget* TrackWidget::fromType(QString type, QWidget* parent, QString file_path, QString display_name)
 {
-	if (type == "BED")
-	{
-		return BedTrack::createTrack(parent, file_path, display_name);
-	}
+	if (type == BedTrack::staticType()) return BedTrack::createTrack(parent, file_path, display_name);
+	if (type == BamAlignmentTrack::staticType()) return BamAlignmentTrack::createTrack(parent, file_path, display_name);
+	if (type == BamCoverageTrack::staticType()) return BamCoverageTrack::createTrack(parent, file_path, display_name);
+
 	GenomeVisualizationWidget::displayError("Track type: " + type + " not supported.");
 	return nullptr;
-}
-
-QMap<QString, QVariant> TrackWidget::getSettings()
-{
-	QMap<QString, QVariant> settings;
-	settings["draw_mode"] = static_cast<int>(draw_mode_);
-	return settings;
 }
 
 void TrackWidget::loadSettingsFromXml(const QDomNodeList& settings)
@@ -216,10 +181,6 @@ void TrackWidget::loadSettingsFromXml(const QDomNodeList& settings)
 	{
 		QDomElement item =  settings.at(i).toElement();
 		QString key = item.attribute("key");
-		if (key == "draw_mode")
-		{
-			int value = item.attribute("value").toInt();
-			if (value != -1) draw_mode_ = static_cast<DrawMode>(value);
-		}
+		loadKeyValueFromXml(key, item);
 	}
 }

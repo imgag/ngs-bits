@@ -28,23 +28,24 @@ TrackWidgetList FileLoader::loadBamFileTracks(QString file_path, QWidget* parent
 {
 	TrackWidgetList out;
 	QFileInfo info(file_path);
-	QSharedPointer<BamReader> reader = loadBamFile(file_path);
-	if (reader)
-	{
-		BamAlignmentTrack* align_track = new BamAlignmentTrack(parent, file_path, info.fileName());
-		BamCoverageTrack* cov_track	   = new BamCoverageTrack(parent, file_path, info.fileName() + " Coverage");
-		QSharedPointer<BamTrackData> track_data = QSharedPointer<BamTrackData>::create(file_path, info.fileName());
-		cov_track->setTrackData(track_data);
-		align_track->setTrackData(track_data);
-		track_data->setBamReader(reader);
-		out << cov_track << align_track;
-	}
+	BamAlignmentTrack* align_track = BamAlignmentTrack::createTrack(parent, file_path, info.fileName());
+	BamCoverageTrack* cov_track	   = BamCoverageTrack::createTrack(parent, file_path, info.fileName() + " Coverage");
+	if (cov_track) out << cov_track;
+	if (align_track) out << align_track;
+
 	return out;
 }
 
 QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 {
+	// static QHash<QString, QWeakPointer<BedFile>> cache;
+
 	const QFileInfo info(file_path);
+
+	const QString abs_path = info.absoluteFilePath();
+
+	// if (cache.contains(abs_path) && !reload) return cache[abs_path];
+
 	if (!info.isFile())
 	{
 		GenomeVisualizationWidget::displayError(file_path + " not found");
@@ -55,6 +56,7 @@ QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 		QSharedPointer<BedFile> bedfile = QSharedPointer<BedFile>::create();
 		bedfile->load(file_path);
 		bedfile->sort();
+		// cache[abs_path] = bedfile;
 		return bedfile;
 	}
 	catch (const FileParseException& e)
@@ -66,7 +68,18 @@ QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 
 QSharedPointer<BamReader> FileLoader::loadBamFile(QString file_path)
 {
+	// /*TODO it might be good to have this*/ static QHash<QString, QWeakPointer<BamReader>> cache;
+
 	const QFileInfo info(file_path);
+
+	const QString abs_path = info.absoluteFilePath();
+
+	// if (cache.contains(abs_path) && !reload)
+	// {
+	// 	auto existing = cache[abs_path].lock();
+	// 	if (existing) return existing;
+	// }
+
 	if (!info.isFile())
 	{
 		GenomeVisualizationWidget::displayError(file_path + " not found");
@@ -75,6 +88,7 @@ QSharedPointer<BamReader> FileLoader::loadBamFile(QString file_path)
 	try
 	{
 		QSharedPointer<BamReader> reader = QSharedPointer<BamReader>::create(file_path);
+		// cache[abs_path] = reader.toWeakRef();
 		return reader;
 	}
 	catch (const FileParseException& e)

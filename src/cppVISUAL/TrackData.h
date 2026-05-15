@@ -123,6 +123,8 @@ public:
 		updateRegion();
 	}
 
+	void reload();
+
 signals:
 	void onDataUpdate();
 
@@ -135,6 +137,8 @@ private:
 	Sequence ref_seq_;
 
 	void updateData();
+
+	bool is_loading_;
 };
 
 #endif // TRACKDATA_H

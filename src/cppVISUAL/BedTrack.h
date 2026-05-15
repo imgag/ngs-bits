@@ -34,12 +34,18 @@ public:
 	// reloads the file, if failed deletes the track
 	void reloadTrack() override;
 
-	QString getType() override {return "BED";}
+	static QString staticType() {return "BED";}
+	QString getType() override {return staticType();}
+
+	QMap<QString, QVariant> getSettings() override;
+	void loadKeyValueFromXml(QString, const QDomElement&) override;
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
+	void populateContextMenu(QMenu& menu) override;
+	void handleContextMenuAction(QAction* action) override;
 
 private:
 	// band data in row
@@ -96,6 +102,15 @@ private:
 		p = std::clamp(p, 0.f, 1.f);
 		return c + (d - c) * p;
 	}
+
+	enum DrawMode
+	{
+		COLLAPSED,
+		EXPANDED
+	};
+
+	DrawMode draw_mode_ = COLLAPSED;
+	QAction* opts_[2];
 };
 
 #endif // BEDTRACK_H

@@ -1,4 +1,5 @@
 #include "BamAlignmentTrack.h"
+#include "BamTrackDataManager.h"
 #include "SharedData.h"
 
 #include <QApplication>
@@ -15,10 +16,42 @@ BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString
 {
 }
 
+BamAlignmentTrack* BamAlignmentTrack::createTrack(QWidget* parent, QString file_path, QString name)
+{
+	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(file_path);
+	if (data)
+	{
+		auto track = new BamAlignmentTrack(parent, file_path, name);
+		track->setTrackData(data);
+		return track;
+	}
+
+	else return nullptr;
+}
+
+QMap<QString, QVariant> BamAlignmentTrack::getSettings()
+{
+	auto settings = TrackWidget::getSettings();
+	settings["view_as_pairs"] = view_as_pairs_;
+	return settings;
+}
+
+void BamAlignmentTrack::loadKeyValueFromXml(QString key, const QDomElement& item)
+{
+	if (key == "view_as_pairs") view_as_pairs_ = (item.attribute("value") == "true");
+	if (view_as_pairs_)
+	{
+		calculateRows();
+		updateGeometry();
+		update();
+	}
+}
+
 void BamAlignmentTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
 {
 	track_data_ = track_data;
 	connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
+	dataReady();
 }
 
 void BamAlignmentTrack::dataReady()
@@ -66,21 +99,24 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 
 void BamAlignmentTrack::calculateRowsPairMode()
 {
+	/*
+	 * TODO: this has a bug, if there are no pairs
+	 * then the unpaired strands are always assigned a new row
+	 *
+	 */
 	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
 
 	row_packer_.clear();
 	pair_row_store_.clear();
+	// restore the ones we already have (only the pairs)
 	foreach (const ReadPair& read_pair, read_pairs_)
 	{
 		const auto& al = alns[read_pair.first].alignment;
 
 		int row = pair_row_idxes_.value(al.name(), -1);
-		if (row != -1)
+		if (row != -1 && row_stored_with_pair_.value(al.name(), false))
 		{
-			if (row_stored_with_pair_.value(al.name(), false))
-			{
-				row_packer_.restore(row, read_pair.start, read_pair.end);
-			}
+			row_packer_.restore(row, read_pair.start, read_pair.end);
 		}
 	}
 
@@ -104,11 +140,6 @@ void BamAlignmentTrack::calculateRowsPairMode()
 			row_stored_with_pair_[al1.name()] = true;
 		}
 
-		if (read_pair.first != -1 && read_pair.second != -1)
-		{
-			if (alns[read_pair.first].alignment.name() !=
-				alns[read_pair.second].alignment.name()) qDebug() << "Name mismatch b/w alignment names!" << Qt::endl;
-		}
 		pair_row_store_[row].append(i);
 	}
 	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
@@ -118,6 +149,11 @@ QSize BamAlignmentTrack::sizeHint() const
 {
 	return QSize(parentWidget() ? parentWidget()->width() : 200,
 				 num_rows_ * (ROW_HEIGHT * ROW_PADDING) + SPACING_BELOW);
+}
+
+void BamAlignmentTrack::reloadTrack()
+{
+	BamTrackDataManager::reload(file_path_);
 }
 
 void BamAlignmentTrack::paintEvent(QPaintEvent*)
@@ -135,7 +171,21 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	}
 }
 
-void BamAlignmentTrack::drawNormalMode(QPainter& painter, const BedLine& region)
+void BamAlignmentTrack::drawAlignmentAndVariants(QPainter& painter, const BamAlignmentWrapper& al,
+												 int row_y, int x0, int total_width)
+{
+	if (row_y < 0) qDebug() << "bug: draw received negative row_y" << Qt::endl;
+
+	const BedLine& region = SharedData::region();
+
+	if (al.alignment.end() < region.start() ||
+		al.alignment.start() > region.end()) return;
+
+	drawAlignment(painter, al.alignment, row_y, x0, total_width);
+	drawVariants(painter, al, row_y, x0, total_width);
+}
+
+void BamAlignmentTrack::drawNormalMode(QPainter& painter, const BedLine&)
 {
 	int label_width = SharedData::settings().label_width;
 	int total_width = width() - label_width - 4;
@@ -145,13 +195,15 @@ void BamAlignmentTrack::drawNormalMode(QPainter& painter, const BedLine& region)
 	for (int i =0; i < alns.size(); ++i)
 	{
 		const BamAlignmentWrapper& al_w = alns[i];
-		const BamAlignment& al = al_w.alignment;
-		if (al.end() < region.start()) continue;
-		if (al.start() > region.end()) continue;
+		// const BamAlignment& al = al_w.alignment;
+		// if (al.end() < region.start()) continue;
+		// if (al.start() > region.end()) continue;
 
 		int row_y = row_idxes_[alns[i]] * (ROW_HEIGHT + ROW_PADDING);
-		drawAlignment(painter, al, row_y, x0, total_width);
-		drawVariants(painter, al_w, row_y, x0, total_width);
+		// drawAlignment(painter, al, row_y, x0, total_width);
+		// drawVariants(painter, al_w, row_y, x0, total_width);
+
+		drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
 	}
 }
 
@@ -168,28 +220,33 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 		if (read_pair.first != -1)
 		{
 			const BamAlignmentWrapper& al_w = alns[read_pair.first];
-			const BamAlignment& al = alns[read_pair.first].alignment;
-			if (al.end() >= region.start() && al.start() <= region.end())
-			{
-				int row_y = pair_row_idxes_.value(al.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
-				if (row_y >= 0)
-				{
-					drawAlignment(painter, al, row_y, x0, total_width);
-					drawVariants(painter, al_w, row_y, x0, total_width);
-				}
-			}
+			int row_y = pair_row_idxes_.value(al_w.alignment.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
+			// const BamAlignment& al = alns[read_pair.first].alignment;
+			// if (al.end() >= region.start() && al.start() <= region.end())
+			// {
+			// 	int row_y = pair_row_idxes_.value(al.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
+			// 	// if (row_y >= 0)
+			// 	// {
+			// 	// 	drawAlignment(painter, al, row_y, x0, total_width);
+			// 	// 	drawVariants(painter, al_w, row_y, x0, total_width);
+			// 	// }
+			// 	drawAlignmentAndVariants(painter, )
+			// }
+			drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
 		}
 
 		if (read_pair.second != -1)
 		{
 			const BamAlignmentWrapper& al_w = alns[read_pair.second];
 			const BamAlignment& al = alns[read_pair.second].alignment;
-			if (al.end() >= region.start() && al.start() <= region.end() && pair_row_idxes_.contains(al.name()))
-			{
-				int row_y = pair_row_idxes_[al.name()] * (ROW_HEIGHT + ROW_PADDING);
-				drawAlignment(painter, al, row_y, x0, total_width);
-				drawVariants(painter, al_w, row_y, x0, total_width);
-			}
+			int row_y = pair_row_idxes_[al.name()] * (ROW_HEIGHT + ROW_PADDING);
+			drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
+			// if (al.end() >= region.start() && al.start() <= region.end() && pair_row_idxes_.contains(al.name()))
+			// {
+			// 	int row_y = pair_row_idxes_[al.name()] * (ROW_HEIGHT + ROW_PADDING);
+			// 	drawAlignment(painter, al, row_y, x0, total_width);
+			// 	drawVariants(painter, al_w, row_y, x0, total_width);
+			// }
 		}
 
 		//draw line
@@ -253,8 +310,8 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignment& al,
 	if (!al.isReverseStrand())
 	{
 		arrow << QPoint(x_start + width, mid)
-			  << QPoint(x_start + width - tri_w, row_y)
-			  << QPoint(x_start + width - tri_w, row_y + ROW_HEIGHT);
+		<< QPoint(x_start + width - tri_w, row_y)
+		<< QPoint(x_start + width - tri_w, row_y + ROW_HEIGHT);
 	}
 	else
 	{
@@ -392,6 +449,15 @@ void BamAlignmentTrack::mousePressEvent(QMouseEvent* event)
 	TrackWidget::mousePressEvent(event);
 }
 
+QString BamAlignmentTrack::getBamAlignmentText(const BamAlignment& al)
+{
+	return QString("%1\nStart: %2  End: %3\nStrand: %4\n")
+	.arg(al.name())
+		.arg(al.start())
+		.arg(al.end())
+		.arg(al.isReverseStrand() ? "Reverse" : "Forward");
+}
+
 void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 {
 	int y = local_pos.y();
@@ -421,13 +487,13 @@ void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 			if (rp.first != -1)
 			{
 				const BamAlignment& aln1 = alns[rp.first].alignment;
-				info += QString("Read 1: %1\nStart: %2  End: %3\n").arg(aln1.name()).arg(aln1.start()).arg(aln1.end());
+				info += QString("Read 1: %1").arg(getBamAlignmentText(aln1));
 			}
 
 			if (rp.second != -1)
 			{
 				const BamAlignment& aln2 = alns[rp.second].alignment;
-				info += QString("Read 2: %1\nStart: %2  End: %3\n").arg(aln2.name()).arg(aln2.start()).arg(aln2.end());
+				info += QString("Read 2: %1").arg(getBamAlignmentText(aln2));
 			}
 
 			showInfoPopup(global_pos, info);
@@ -437,11 +503,7 @@ void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 			int aln_idx = normal_row_store_[row][interval_idx];
 			const BamAlignment& aln = alns[aln_idx].alignment;
 
-			QString info = QString("Read: %1\nStart: %2  End: %3\nStrand: %4")
-							   .arg(aln.name())
-							   .arg(aln.start())
-							   .arg(aln.end())
-							   .arg(aln.isReverseStrand() ? "Reverse" : "Forward");
+			QString info = QString("Read: %1").arg(getBamAlignmentText(aln));
 
 			showInfoPopup(global_pos, info);
 		}
@@ -465,4 +527,3 @@ void BamAlignmentTrack::mouseReleaseEvent(QMouseEvent* event)
 
 	TrackWidget::mouseReleaseEvent(event);
 }
-

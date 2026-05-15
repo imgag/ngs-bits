@@ -34,6 +34,7 @@ unix: LIBS += -lxml2
 SOURCES += \
     BamAlignmentTrack.cpp \
     BamCoverageTrack.cpp \
+    BamTrackDataManager.cpp \
     BedTrack.cpp \
     ChromosomeContextPanel.cpp \
     FileLoader.cpp \
@@ -51,6 +52,7 @@ SOURCES += \
 HEADERS += \
     BamAlignmentTrack.h \
     BamCoverageTrack.h \
+    BamTrackDataManager.h \
     BedTrack.h \
     ChromosomeContextPanel.h \
     FileLoader.h \

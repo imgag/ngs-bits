@@ -49,6 +49,65 @@ bool BedTrack::load()
 	return false;
 }
 
+QMap<QString, QVariant> BedTrack::getSettings()
+{
+	QMap<QString, QVariant> settings;
+	settings["draw_mode"] = static_cast<int>(draw_mode_);
+	return settings;
+}
+
+void BedTrack::loadKeyValueFromXml(QString key, const QDomElement& item)
+{
+	if (key == "draw_mode")
+	{
+		int value = item.attribute("value").toInt();
+		if (value != -1) draw_mode_ = static_cast<DrawMode>(value);
+	}
+}
+
+void BedTrack::populateContextMenu(QMenu& menu)
+{
+	opts_[0] = menu.addAction("Collapsed");
+	opts_[1] = menu.addAction("Expanded");
+
+	for (QAction *action : {opts_[0], opts_[1]})
+	{
+		action->setCheckable(true);
+	}
+
+	switch (draw_mode_)
+	{
+	case COLLAPSED:
+		opts_[0]->setChecked(true);
+		break;
+	case EXPANDED:
+		opts_[1]->setChecked(true);
+		break;
+	}
+	menu.addSeparator();
+	TrackWidget::populateContextMenu(menu);
+}
+
+void BedTrack::handleContextMenuAction(QAction* action)
+{
+	if (action == opts_[0])
+	{
+		draw_mode_ = COLLAPSED;
+		updateGeometry();
+		update();
+	}
+	else if (action == opts_[1])
+	{
+		draw_mode_ = EXPANDED;
+		updateGeometry();
+		update();
+	}
+	else
+	{
+		TrackWidget::handleContextMenuAction(action);
+	}
+}
+
 void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {
 	const BedLine& region = SharedData::region();
