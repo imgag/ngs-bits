@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2025_05-79-g6c060cfd)
+	VariantFilterAnnotations (2025_12-266-g396e1fe11)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -54,10 +54,8 @@
 	Gene constraint                    Filter based on gene constraint (gnomAD o/e score for LOF variants).
 	                                   Note that gene constraint is most helpful for early-onset severe diseases.
 	                                   For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/
-	                                   Note: ExAC pLI is deprected and support for backward compatibility with old GSvar files.
 	                                   Parameters:
-	                                     max_oe_lof - Maximum gnomAD o/e score for LoF variants [default=0.35] [min=0.0] [max=1.0]
-	                                     min_pli - Minumum ExAC pLI score [default=0.9] [min=0.0] [max=1.0]
+	                                     max_oe_lof - Maximum gnomAD o/e score for LoF variants. Set below 0 to disable. [default=0.35] [min=0.0] [max=4.0]
 	Gene inheritance                   Filter based on gene inheritance.
 	                                   Parameters:
 	                                     modes - Inheritance mode(s) [valid=AR,AD,XLR,XLD,MT,n/a] [non-empty]
@@ -149,16 +147,15 @@
 	                                   Parameters:
 	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
 	                                     hom_af_range - Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
-	Variant quality                    Filter for variant quality
+	Variant quality                    Filter variant quality column.
 	                                   Parameters:
-	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
-	                                     depth - Minimum depth [default=0] [min=0]
-	                                     mapq - Minimum mapping quality of alternate allele (Phred) [default=40] [min=0]
-	                                     strand_bias - Maximum strand bias Phred score of alternate allele (set -1 to disable) [default=20] [min=-1]
-	                                     allele_balance - Maximum allele balance Phred score (set -1 to disable) [default=40] [min=-1]
-	                                     min_occurences - Minimum occurences of the variant per strand [default=1] [min=0]
-	                                     min_af - Minimum allele frequency of the variant in the sample [default=0] [min=0.0] [max=1.0]
-	                                     max_af - Maximum allele frequency of the variant in the sample [default=1] [min=0.0] [max=1.0]
+	                                     apply_to - Apply the filters to the given variant type only. [default=all] [valid=all,SNV,INDEL]
+	                                     qual - Minimum variant quality score (QUAL). Set to 0 to disable filter. [default=20] [min=0]
+	                                     depth - Minimum depth (DP). Set to 0 to disable filter. [default=0] [min=0]
+	                                     min_gq - Minimum genotype quality (GQ). Set to 0 to disable filter. [default=0] [min=0]
+	                                     min_af - Minimum allele frequency (AF) of the variant in the sample. Set to 0 to disable filter. [default=0] [min=0.0] [max=1.0]
+	                                     max_af - Maximum allele frequency (AF) of the variant in the sample. Set to 1 to disable filter. [default=1] [min=0.0] [max=1.0]
+	                                     remove_special_calls - Remove special calls (CT), e.g. mosaic calls or low-mappability calls. [default=false]
 	Variant type                       Filter for variant types as defined by sequence ontology.
 	                                   For details see http://www.sequenceontology.org/browser/obob.cgi
 	                                   Parameters:
@@ -187,7 +184,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2025_05-79-g6c060cfd
+	VariantFilterAnnotations 2025_12-266-g396e1fe11
 	
 	2025-06-05 Made input and output files optional.
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.

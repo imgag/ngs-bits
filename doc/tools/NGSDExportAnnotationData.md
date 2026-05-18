@@ -1,5 +1,5 @@
 ### NGSDExportAnnotationData tool help
-	NGSDExportAnnotationData (2024_08-110-g317f43b9)
+	NGSDExportAnnotationData (2025_12-266-g396e1fe11)
 	
 	Export information aboug germline variants, somatic variants and genes form NGSD for use as annotation source, e.g. in megSAP.
 	
@@ -35,8 +35,9 @@
 	  --settings [file]     Settings override file (no other settings files are used).
 	
 ### NGSDExportAnnotationData changelog
-	NGSDExportAnnotationData 2024_08-110-g317f43b9
+	NGSDExportAnnotationData 2025_12-266-g396e1fe11
 	
+	2026-04-17 Gene info entries now contains only keys with a value.
 	2023-06-18 Refactoring of command line parameters and parallelization of somatic export.
 	2023-06-16 Added support for 'germline_mosaic' column in 'variant' table and added parallelization.
 	2021-07-19 Code and parameter refactoring.

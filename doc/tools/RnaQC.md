@@ -1,5 +1,5 @@
 ### RnaQC tool help
-	RnaQC (2024_08-110-g317f43b9)
+	RnaQC (2025_12-266-g396e1fe11)
 	
 	Calculates QC metrics for RNA samples.
 	
@@ -19,7 +19,7 @@
 	                             Default value: ''
 	  -ref <file>                Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                             Default value: ''
-	  -min_mapq <int>            Set minimal mapping quality (default:1)
+	  -min_mapq <int>            Set minimal mapping quality.
 	                             Default value: '1'
 	  -txt                       Writes TXT format instead of qcML.
 	                             Default value: 'false'
@@ -32,7 +32,7 @@
 	  --settings [file]          Settings override file (no other settings files are used).
 	
 ### RnaQC changelog
-	RnaQC 2024_08-110-g317f43b9
+	RnaQC 2025_12-266-g396e1fe11
 	
 	2023-03-22 Added optional target region.
 	2022-07-12 Made housekeeping genes optional.

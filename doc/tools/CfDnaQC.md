@@ -1,5 +1,5 @@
 ### CfDnaQC tool help
-	CfDnaQC (2024_08-110-g317f43b9)
+	CfDnaQC (2025_12-266-g396e1fe11)
 	
 	Calculates QC metrics for cfDNA samples.
 	
@@ -21,7 +21,7 @@
 	                           Valid: 'hg19,hg38'
 	  -ref <file>              Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                           Default value: ''
-	  -min_mapq <int>          Set minimal mapping quality (default:0)
+	  -min_mapq <int>          Set minimal mapping quality.
 	                           Default value: '0'
 	  -txt                     Writes TXT format instead of qcML.
 	                           Default value: 'false'
@@ -36,7 +36,7 @@
 	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### CfDnaQC changelog
-	CfDnaQC 2024_08-110-g317f43b9
+	CfDnaQC 2025_12-266-g396e1fe11
 	
 	2022-09-16 Added 'threads' parameter.
 	2021-12-03 Added correllation between cfDNA samples.
