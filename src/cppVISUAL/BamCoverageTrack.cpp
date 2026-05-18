@@ -252,10 +252,14 @@ void BamCoverageTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 	const BedLine& region = SharedData::region();
 	int label_width = SharedData::settings().label_width;
 	int total_width = width() - label_width - 4;
+
+	if (local_pos.x() < label_width + 2 ||
+		local_pos.x() > total_width) return;
+
 	float p = (float)(local_pos.x() - label_width - 2)/(total_width);
 	int x = region.length() * p;
 
-	if (x >= coverage_.length()) return;
+	if (x < 0 || x >= coverage_.length()) return;
 
 	const BaseCoverage& cov = coverage_[x];
 	QString info = getCoverageText(cov, x);
@@ -270,6 +274,11 @@ void BamCoverageTrack::mousePressEvent(QMouseEvent* event)
 
 void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)
 {
+	if (event->button() != Qt::LeftButton)
+	{
+		TrackWidget::mouseReleaseEvent(event);
+		return;
+	}
 	bool dragging =	((event->pos() - mouse_press_pos_).manhattanLength() >= QApplication::startDragDistance());
 
 	if (!dragging)

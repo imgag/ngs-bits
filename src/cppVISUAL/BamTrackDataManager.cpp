@@ -3,6 +3,9 @@
 
 #include "QFileInfo"
 
+/*
+ * TODO: even though this uses a weak ptr, it's better to switch to LRUCache
+ */
 static QHash<QString, QWeakPointer<BamTrackData>> cache_;
 
 QSharedPointer<BamTrackData> BamTrackDataManager::getOrCreate(QString file_path)

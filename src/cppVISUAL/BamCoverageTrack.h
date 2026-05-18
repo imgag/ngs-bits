@@ -54,20 +54,26 @@ protected:
 	void mouseReleaseEvent(QMouseEvent*) override;
 
 private:
+	// track_data shared b/w coverage/alignment tracks
 	QSharedPointer<BamTrackData> track_data_;
-	// QSharedPointer<BamReader> reader_;
 	// vector for stroing the coverage everytime the region changes
 	// so that we don't have to recalulate every coverage paintEvent
 	QVector<BaseCoverage> coverage_;
 	long long max_coverage_;
 
+	// calculates coverage per base and caches it in coverage_
 	void storeCoverage();
 
 	void drawZoomInText(QPainter&);
 	void drawCoverage(QPainter&);
+
+	// displays info at global_pos that was request at local_pos
 	void handlePopupRequest(QPointF local_pos, QPointF global_pos);
+
+	// converts BaseCoverage into a string for the pop up info (TODO: this can also be HTML)
 	QString getCoverageText(const BaseCoverage& coverage, int coverage_idx);
 
+	// used for checking if user is dragging or not
 	QPoint mouse_press_pos_;
 
 private slots:
