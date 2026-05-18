@@ -1,5 +1,5 @@
 ### UpdHunter tool help
-	UpdHunter (2025_07-53-gefb5888f)
+	UpdHunter (2025_12-266-g396e1fe11)
 	
 	UPD detection from trio variant data.
 	
@@ -13,13 +13,15 @@
 	Optional parameters:
 	  -out_informative <file>  Output IGV file containing informative variants.
 	                           Default value: ''
-	  -exclude <file>          BED file with regions to exclude, e.g. copy-number variant regions.
+	  -exclude <filelist>      BED file with regions to exclude, e.g. regions with N base or copy-number variant regions of the sample.
 	                           Default value: ''
 	  -var_min_dp <int>        Minimum depth (DP) of a variant (in all three samples).
 	                           Default value: '20'
 	  -var_min_q <float>       Minimum quality (QUAL) of a variant.
 	                           Default value: '20'
 	  -var_use_indels          Also use InDels. The default is to use SNVs only.
+	                           Default value: 'false'
+	  -var_use_special_calls   Also use variant calls with special call type (FORMAT entry CT from VcfMerge). The default is to skip where at least one call is flagged as special call.
 	                           Default value: 'false'
 	  -ext_marker_perc <float> Percentage of markers that can be spanned when merging adjacent regions .
 	                           Default value: '1'
@@ -42,8 +44,9 @@
 	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### UpdHunter changelog
-	UpdHunter 2025_07-53-gefb5888f
+	UpdHunter 2025_12-266-g396e1fe11
 	
+	2026-05-05 Added parameter 'var_use_special_calls'.
 	2024-06-06 Added optional output file containing informative variants.
 	2020-08-07 VCF files only as input format for variant list.
 	2018-06-11 First working version.

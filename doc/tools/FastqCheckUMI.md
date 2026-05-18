@@ -1,5 +1,5 @@
 ### FastqCheckUMI tool help
-	FastqCheckUMI (2024_08-113-g94a3b440)
+	FastqCheckUMI (2025_12-266-g396e1fe11)
 	
 	Returns the UMI info of a FastQ file on STDOUT.
 	
@@ -9,7 +9,7 @@
 	Optional parameters:
 	  -out <file>       Output file containing the result string. If unset, writes to STDOUT.
 	                    Default value: ''
-	  -lines <int>      Number of lines which should be checked. (default: 10)
+	  -lines <int>      Number of lines which should be checked.
 	                    Default value: '10'
 	
 	Special parameters:
@@ -20,7 +20,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### FastqCheckUMI changelog
-	FastqCheckUMI 2024_08-113-g94a3b440
+	FastqCheckUMI 2025_12-266-g396e1fe11
 	
 	2023-10-05 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

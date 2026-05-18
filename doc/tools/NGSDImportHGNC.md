@@ -1,10 +1,10 @@
 ### NGSDImportHGNC tool help
-	NGSDImportHGNC (2025_07-127-g60fc6b39)
+	NGSDImportHGNC (2025_12-266-g396e1fe11)
 	
 	Imports genes from the HGNC flat file.
 	
 	Mandatory parameters:
-	  -in <file>        HGNC flat file (download https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2025-09-02.tsv)
+	  -in <file>        HGNC flat file (download https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2026-04-07.tsv)
 	  -ensembl <file>   Ensembl gene file (gff3) to resolve duplicate ENSG identifier (same as NGSDImportEnsembl 'in' parameter).
 	
 	Optional parameters:
@@ -21,6 +21,6 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDImportHGNC changelog
-	NGSDImportHGNC 2025_07-127-g60fc6b39
+	NGSDImportHGNC 2025_12-266-g396e1fe11
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
