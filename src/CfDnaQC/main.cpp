@@ -30,7 +30,7 @@ public:
 		addInfile("error_rates", "Input TSV containing umiVar error rates.", true, true);
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addInt("min_mapq", "Set minimal mapping quality (default:0)", true, 0);
+		addInt("min_mapq", "Set minimal mapping quality.", true, 0);
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addInt("threads", "The number of threads used for coverage calculation.", true, 1);
 

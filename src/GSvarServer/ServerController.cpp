@@ -8,7 +8,6 @@
 #include "HttpUtils.h"
 #include "Settings.h"
 #include "HtmlEngine.h"
-#include "ToolBase.h"
 #include "ServerHelper.h"
 #include "ClientHelper.h"
 #include "FileLocationList.h"
@@ -16,6 +15,7 @@
 #include "UrlManager.h"
 #include "ServerDB.h"
 #include "Statistics.h"
+#include "ToolBase.h"
 #include "FileLocationProviderLocal.h"
 
 ServerController::ServerController()
@@ -224,7 +224,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		QJsonDocument json_doc;
 		QJsonObject json_object;
 
-		json_object.insert("name", ToolBase::applicationName());
+		json_object.insert("name", ServerHelper::getAppName());
 		json_object.insert("description", "GSvar server");
 		json_object.insert("version", ToolBase::version());
 		json_object.insert("api_version", ClientHelper::serverApiVersion());
@@ -1839,7 +1839,7 @@ bool ServerController::hasOverlappingRanges(const QList<ByteRange>& ranges)
 	return false;
 }
 
-QString ServerController::getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token)
+QString ServerController::getProcessedSampleFile(int ps_id, const PathType& type, const QString& token)
 {
     QString found_file_path;
     try

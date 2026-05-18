@@ -2,6 +2,7 @@
 PROJECT_BUILD_DIR := ./src/build/
 PATH_TO_ROOT := ../../
 QMAKE_BIN := qmake6
+THREADS := 10
 
 # Get the Qt version information
 QT_VERSION := $(shell $(QMAKE_BIN) --version)
@@ -39,7 +40,7 @@ build_libs_debug_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Debug;
 	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Debug; \
 		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG+=debug" "CONFIG-=release"; \
-		make -j5;
+		make -j$(THREADS);
 
 clean_libs_debug:
 	rm -rf $(PROJECT_BUILD_DIR)build-libs-Linux-Debug;
@@ -50,7 +51,7 @@ build_tools_debug_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Debug;
 	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Debug; \
 		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG+=debug" "CONFIG-=release"; \
-		make -j5;
+		make -j$(THREADS);
 
 clean_tools_debug:
 	rm -rf $(PROJECT_BUILD_DIR)build-tools-Linux-Debug;
@@ -62,7 +63,7 @@ build_server_debug: build_info
 	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Debug;
 	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Debug; \
                 $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
-                make -j5;
+                make -j$(THREADS);
 	
 #################################### build - RELEASE ####################################
 
@@ -71,39 +72,39 @@ build_libs_release: build_info
 	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Release; \
 		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make -j5;
+		make -j$(THREADS);
 
 build_tools_release: build_info
 	rm -rf $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Release; \
 		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make -j5;
+		make -j$(THREADS);
 
 build_gui_release: build_info
 	rm -rf $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release; \
 		$(QMAKE_BIN) $(PATH_TO_ROOT)tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make -j5;
+		make -j$(THREADS);
 
 build_libs_release_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-libs-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-libs-Linux-Release; \
 		$(QMAKE_BIN) $(PATH_TO_ROOT)libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make -j5;
+		make -j$(THREADS);
 
 build_tools_release_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-tools-Linux-Release; \
 		$(QMAKE_BIN) $(PATH_TO_ROOT)tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make -j5;
+		make -j$(THREADS);
 
 build_gui_release_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-tools_gui-Linux-Release; \
 		$(QMAKE_BIN) $(PATH_TO_ROOT)tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make -j5;
+		make -j$(THREADS);
 
 build_release_noclean: build_libs_release_noclean  build_tools_release_noclean build_gui_release_noclean
 
@@ -112,13 +113,13 @@ build_server_release: build_info
 	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release; \
                 $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-                make -j5;
+                make -j$(THREADS);
 	
 build_server_release_noclean:
 	mkdir -p $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release;
 	cd $(PROJECT_BUILD_DIR)build-GSvarServer-Linux-Release; \
                 $(QMAKE_BIN) $(PATH_TO_ROOT)tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-                make -j5;
+                make -j$(THREADS);
 
 #################################### other targets ##################################
 

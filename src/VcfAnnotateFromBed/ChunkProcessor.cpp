@@ -2,9 +2,9 @@
 #include "VcfFile.h"
 #include <QFileInfo>
 #include "VcfFile.h"
-#include "VariantList.h"
+//#include "VariantList.h"
 
-ChunkProcessor::ChunkProcessor(AnalysisJob &job_, QByteArray name_, const BedFile& bed_file_, const ChromosomalIndex<BedFile>& bed_index_, QByteArray bed_file_path_, QByteArray sep_)
+ChunkProcessor::ChunkProcessor(AnalysisJob &job_, QByteArray name_, const BedFile& bed_file_, const ChromosomalIndex<BedFile>& bed_index_, QByteArray bed_file_path_, QByteArray sep_, QByteArray desc_)
 
 	:QRunnable()
 	, terminate_(false)
@@ -14,6 +14,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job_, QByteArray name_, const BedFil
 	, bed_index(bed_index_)
 	, bed_file_path(bed_file_path_)
 	, sep(sep_)
+	, desc(desc_)
 {
 }
 
@@ -38,7 +39,15 @@ void ChunkProcessor::run()
 			//append header line for new annotation
 			if (line.startsWith("#CHROM"))
 			{
-				job.current_chunk_processed.append("##INFO=<ID=" + name + ",Number=.,Type=String,Description=\"Annotation from " + QFileInfo(bed_file_path).fileName().toLatin1() + " delimited by '" + sep + "'\">\n");
+				if (desc.trimmed().isEmpty())
+				{
+					job.current_chunk_processed.append("##INFO=<ID=" + name + ",Number=.,Type=String,Description=\"Annotation from " + QFileInfo(bed_file_path).fileName().toLatin1() + " delimited by '" + sep + "'\">\n");
+				}
+				else
+				{
+					job.current_chunk_processed.append("##INFO=<ID=" + name + ",Number=.,Type=String,Description=\"" + desc.replace("_", " ") + "\">\n");
+				}
+
 			}
 			job.current_chunk_processed.append(line + "\n");
 			continue;

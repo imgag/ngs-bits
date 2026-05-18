@@ -63,6 +63,8 @@ public:
 	///Translates a codon to the 1-letter amino acid code
 	static char translateCodon(const QByteArray& codon, bool use_mito_table=false);
 	static QByteArray translateCodonThreeLetterCode(const QByteArray& codon, bool use_mito_table=false);
+	///Translates a sequence of DNA bases into their respective aminoacid sequence
+	static QByteArray translateSequence(const Sequence& sequence, bool use_three_letter_code=false, bool use_mito_table=false, bool end_at_stop=true);
 
 	///Converts a 1-letter amino acid code to a 3-letter amino acid code
 	static QByteArray threeLetterCode(char aa_one_letter_code);

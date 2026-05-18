@@ -123,6 +123,8 @@ public:
 	{
 		if (flowcell_type=="Illumina NovaSeq S2") return "ILLUMINA_NOVA_SEQ_S2";
 		if (flowcell_type=="Illumina NovaSeq S4") return "ILLUMINA_NOVA_SEQ_S4";
+		if (flowcell_type=="Illumina NovaSeqX 10B") return "ILLUMINA_NOVA_SEQ_XPLUS_10B";
+		if (flowcell_type=="Illumina NovaSeqX 25B") return "ILLUMINA_NOVA_SEQ_XPLUS_25B";
 		if (flowcell_type=="Illumina NovaSeq S1") return "OTHER";
 		if (flowcell_type=="Illumina NovaSeq SP") return "OTHER";
 		if (flowcell_type=="n/a") return "OTHER";

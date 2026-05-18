@@ -415,7 +415,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
   `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA','cfDNA') NOT NULL,
-  `tissue` ENUM('n/a','blood','buccal mucosa','cortical neuron','fibroblast','induced pluripotent stem cell','lymphocyte','peripheral blood mononuclear cell','skin','muscle') NOT NULL DEFAULT 'n/a' COMMENT 'tissue according to BRENDA Tissue Ontology',
+  `tissue` ENUM('n/a','blood','buccal mucosa','cortical neuron','fibroblast','induced pluripotent stem cell','lymphocyte','peripheral blood mononuclear cell','skin','muscle','amniocyte') NOT NULL DEFAULT 'n/a' COMMENT 'tissue according to BRENDA Tissue Ontology',
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,
@@ -1169,6 +1169,30 @@ CREATE TABLE IF NOT EXISTS `analysis_job_history`
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
+-- -----------------------------------------------------
+-- Table `analysis_time`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `analysis_time`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('single','trio','rna','tumor-only','tumor-normal') NOT NULL,
+  `samples` VARCHAR(512) NOT NULL COMMENT 'Space-separated string of processed sample names',
+  `processing_system_id` INT(11) NOT NULL,
+  `dragen_used` BOOLEAN NOT NULL COMMENT 'Flag if DRAGEN was used for the primary data analysis',
+  `server` VARCHAR(100) NOT NULL,
+  `threads` INT(11) UNSIGNED NOT NULL,
+  `min` FLOAT UNSIGNED NOT NULL,
+  `datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `analysis_time_processing_system_id`
+    FOREIGN KEY (`processing_system_id`)
+    REFERENCES `processing_system` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
 -- Table `omim_gene`
@@ -2710,6 +2734,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `repeat_unit` VARCHAR(50) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
   `max_normal` INT(10) DEFAULT NULL,
   `min_pathogenic` INT(10) DEFAULT NULL,
+  `min_pathogenic_hom` INT(10) DEFAULT NULL COMMENT 'Additional pathogenicity cutoff in case the RE is homozygous (lower then default cutoff).',
   `inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') DEFAULT NULL,
   `disease_names` TEXT COMMENT 'Comma-separated list of diease names',
   `disease_ids_omim` TEXT COMMENT 'Comma-separated list of OMIM disease identifiers',

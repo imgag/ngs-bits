@@ -1,5 +1,5 @@
 ### BedpeAnnotateFromBed tool help
-	BedpeAnnotateFromBed (2024_08-110-g317f43b9)
+	BedpeAnnotateFromBed (2025_12-266-g396e1fe11)
 	
 	Annotates a BEDPE file with information from a BED file.
 	
@@ -11,7 +11,7 @@
 	                       Default value: ''
 	  -out <file>          Output BEDPE file. If unset, writes to STDOUT.
 	                       Default value: ''
-	  -col <int>           Annotation source column (default: 4).
+	  -col <int>           Annotation source column.
 	                       Default value: '4'
 	  -col_name <string>   Name of the annotated column
 	                       Default value: 'ANNOTATION'
@@ -34,7 +34,7 @@
 	  --settings [file]    Settings override file (no other settings files are used).
 	
 ### BedpeAnnotateFromBed changelog
-	BedpeAnnotateFromBed 2024_08-110-g317f43b9
+	BedpeAnnotateFromBed 2025_12-266-g396e1fe11
 	
 	2022-02-17 Added 'max_value' parameter.
 	2020-01-27 Initial commit.

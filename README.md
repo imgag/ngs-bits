@@ -5,15 +5,18 @@
 ![Windows build status](https://github.com/imgag/ngs-bits/workflows/Windows%20build/badge.svg)  
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
-## Installation
+## Downloading ngs-bits
 
-Binaries of *ngs-bits* are available via Bioconda:
+Binaries and Docker containers of *ngs-bits* are available via [Bioconda](https://bioconda.github.io/recipes/ngs-bits/README.html).
 
-* **Binaries** for [Linux/macOS](doc/install_bioconda.md)
+Apptainer/Singularity containers are available for the [megSAP server](https://megsap.de/download/container/ngs-bits.php).
 
-Alternatively, *ngs-bits* can be built from sources. Use git to clone the most recent release (the source code package of GitHub does not contains required sub-modules):
+## Installing ngs-bits
 
-    > git clone --recursive https://github.com/imgag/ngs-bits.git
+*ngs-bits* can also be built from sources.  
+Use git to clone the most recent release (the source code package of GitHub does not contains required sub-modules):
+
+	> git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
 	> git checkout 2025_12
 	> git submodule update --recursive --init
@@ -199,3 +202,4 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
 * [VariantRanking](doc/tools/VariantRanking/index.md) - Rankes small variants in the context of a patients phenotype using an evidence-based model (needs [NGSD](doc/install_ngsd.md)).
+

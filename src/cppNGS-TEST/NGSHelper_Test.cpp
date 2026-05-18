@@ -123,6 +123,86 @@ private:
 		S_EQUAL(al.cigarDataAsString(), "10S131M10S5H");
 	}
 
+	TEST_METHOD(translateCodon)
+	{
+		//non-mito
+		S_EQUAL(NGSHelper::translateCodon("TTG", false), "L");
+		S_EQUAL(NGSHelper::translateCodon("TCC", false), "S");
+		S_EQUAL(NGSHelper::translateCodon("TAC", false), "Y");
+		S_EQUAL(NGSHelper::translateCodon("TGG", false), "W");
+		S_EQUAL(NGSHelper::translateCodon("CAC", false), "H");
+		S_EQUAL(NGSHelper::translateCodon("CGG", false), "R");
+		S_EQUAL(NGSHelper::translateCodon("ATG", false), "M");
+		S_EQUAL(NGSHelper::translateCodon("AAC", false), "N");
+		S_EQUAL(NGSHelper::translateCodon("GTG", false), "V");
+		S_EQUAL(NGSHelper::translateCodon("GAC", false), "D");
+		S_EQUAL(NGSHelper::translateCodon("GGG", false), "G");
+		S_EQUAL(NGSHelper::translateCodon("AGA", false), "R");
+		S_EQUAL(NGSHelper::translateCodon("AGG", false), "R");
+		S_EQUAL(NGSHelper::translateCodon("ATA", false), "I");
+		S_EQUAL(NGSHelper::translateCodon("TGA", false), "*");
+
+		//mito:
+		S_EQUAL(NGSHelper::translateCodon("AGA", true), "*");
+		S_EQUAL(NGSHelper::translateCodon("AGG", true), "*");
+		S_EQUAL(NGSHelper::translateCodon("ATA", true), "M");
+		S_EQUAL(NGSHelper::translateCodon("TGA", true), "W");
+
+	}
+
+	TEST_METHOD(translateCodonThreeLetterCode)
+	{
+		//non-mito
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("TTG", false), "Leu");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("TCC", false), "Ser");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("TAC", false), "Tyr");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("TGG", false), "Trp");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("CAC", false), "His");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("CGG", false), "Arg");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("ATG", false), "Met");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("AAC", false), "Asn");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("GTG", false), "Val");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("GAC", false), "Asp");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("GGG", false), "Gly");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("AGA", false), "Arg");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("AGG", false), "Arg");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("ATA", false), "Ile");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("TGA", false), "Ter");
+
+		//mito:
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("AGA", true), "Ter");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("AGG", true), "Ter");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("ATA", true), "Met");
+		S_EQUAL(NGSHelper::translateCodonThreeLetterCode("TGA", true), "Trp");
+
+	}
+
+	TEST_METHOD(translateSequence)
+	{
+		//one letter code:
+		//no mito, don't end at stop
+		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", false, false, false), "MICRAEGS*P*RP")
+		//no mito, end at stop
+		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", false, false, true),  "MICRAEGS*")
+		//MITO
+		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", false, true, false),  "MMCRAEGSWP**P")
+		//MITO
+		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", false, true, true),  "MMCRAEGSWP*")
+
+		//three letter code:
+		//no mito, don't end at stop
+		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", true, false, false), "MetIleCysArgAlaGluGlySerTerProTerArgPro")
+		//no mito, end at stop
+		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", true, false, true),  "MetIleCysArgAlaGluGlySerTer")
+		//MITO
+		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", true, true, false),  "MetMetCysArgAlaGluGlySerTrpProTerTerPro")
+		//MITO
+		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", true, true, true),   "MetMetCysArgAlaGluGlySerTrpProTer")
+	}
+
+
+
+
 	TEST_METHOD(pseudoAutosomalRegion)
 	{
 		BedFile par = NGSHelper::pseudoAutosomalRegion(GenomeBuild::HG19);

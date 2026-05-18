@@ -64,6 +64,7 @@ allow_report_with_all_types = false
 gsvar_file_outdated_before = 2021-12-01
 interpretability_regions = 
 text_editor = 
+burden_test_cnp_regions = 
 
 #GSVar server settings
 server_host = ""
