@@ -254,7 +254,7 @@ void BamCoverageTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 	int total_width = width() - label_width - 4;
 
 	if (local_pos.x() < label_width + 2 ||
-		local_pos.x() > total_width) return;
+		local_pos.x() > width() - 2) return;
 
 	float p = (float)(local_pos.x() - label_width - 2)/(total_width);
 	int x = region.length() * p;

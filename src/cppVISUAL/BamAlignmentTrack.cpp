@@ -467,7 +467,7 @@ void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	int label_width = SharedData::settings().label_width;
 	int total_width = width() - label_width - 4;
 
-	if (x < label_width + 2 || x > total_width) return;
+	if (x < label_width + 2 || x > width() - 2) return;
 
 	const BedLine& region = SharedData::region();
 
