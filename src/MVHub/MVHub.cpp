@@ -12,6 +12,7 @@
 #include <QDesktopServices>
 #include <QInputDialog>
 #include "ExportHistoryDialog.h"
+#include "AboutDialog.h"
 #include <QClipboard>
 #include <QStandardPaths>
 #include "HttpRequestHandler.h"
@@ -926,9 +927,10 @@ void MVHub::on_actionReloadExportStatus_triggered()
 
 void MVHub::on_actionAbout_triggered()
 {
-	QString about_text = QApplication::applicationName() + " " + QCoreApplication::applicationVersion();
-
-	QMessageBox::about(this, "About " + QApplication::applicationName(), about_text);
+	AboutDialog dlg(this);
+	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setDescription("A KDK/GRZ uploading tool for Modellvorhaben Genomsequenzierung.<br>See the <a href='https://www.bfarm.de/DE/Das-BfArM/Aufgaben/Modellvorhaben-Genomsequenzierung/_node.html'>BfArM project page</a> for information about the Modellvorhaben.");
+	dlg.exec();
 }
 
 void MVHub::determineProcessedSamples(int debug_level)
