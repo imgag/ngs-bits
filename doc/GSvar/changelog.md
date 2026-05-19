@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2025_12-266 (19.05.2026)
+
+- repeat expansions: added a additional threshold in case both alleles are extended
+- filters lrGS: updated default filters for CVNs and SVs
+- HerediVar VCF export: excluded variants are not longer exported
+
 ## 2025_12-187 (20.04.2026)
 
 - general: replaced PMIDs in GSvar file by LitVar2 search in context menu of variants
@@ -1206,5 +1212,6 @@
 --
 
 [back to main page](index.md)
+
 
 
