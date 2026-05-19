@@ -48,6 +48,7 @@ SOURCES += main.cpp\
     MethylationWidget.cpp \
     NsxSettingsDialog.cpp \
     PathogenicWtDialog.cpp \
+    Background/PingWorker.cpp \
     ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
     ReportDialog.cpp \
@@ -55,6 +56,7 @@ SOURCES += main.cpp\
     SampleCountWidget.cpp \
     SettingsDialog.cpp \
     TabBaseClass.cpp \
+    TransferredVariantDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
     UserPermissionsEditor.cpp \
@@ -186,6 +188,7 @@ HEADERS += MainWindow.h \
     MethylationWidget.h \
     NsxSettingsDialog.h \
     PathogenicWtDialog.h \
+    Background/PingWorker.h \
     ReSearchWidget.h \
     RepeatExpansionWidget.h \
     ReportDialog.h \
@@ -193,6 +196,7 @@ HEADERS += MainWindow.h \
     SampleCountWidget.h \
     SettingsDialog.h \
     TabBaseClass.h \
+    TransferredVariantDialog.h \
     TrioDialog.h \
     HttpHandler.h \
     UserPermissionsEditor.h \
@@ -305,7 +309,6 @@ FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ColumnConfigWidget.ui \
     ExternalToolDialog.ui \
-    GHGAUploadDialog.ui \
     GeneInterpretabilityDialog.ui \
     HerediVarImportDialog.ui \
     IgvLogWidget.ui \
@@ -319,6 +322,7 @@ FORMS    += MainWindow.ui \
     ReportDialog.ui \
     SampleCountWidget.ui \
     SettingsDialog.ui \
+    TransferredVariantDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     UserPermissionsEditor.ui \

@@ -1,5 +1,21 @@
 # GSvar change log
 
+## 2025_12-266 (19.05.2026)
+
+- repeat expansions: added a additional threshold in case both alleles are extended
+- filters lrGS: updated default filters for CVNs and SVs
+- HerediVar VCF export: excluded variants are not longer exported
+
+## 2025_12-187 (20.04.2026)
+
+- general: replaced PMIDs in GSvar file by LitVar2 search in context menu of variants
+- gene tab: now sorts HPO terms according to relevance now
+
+## 2025_12-139 (03.03.2026)
+
+- general: relevant transcripts are used where preferred transcripts were used before (we have MANE transcripts now and thus preferred transcripts are not longer needed for many genes)
+- BLAT search: now uses BWA and produces the same results as the actual mapping
+
 ## 2025_12-104 (05.02.2026)
 
 - general: update filters for small variants, CNVs and SVs
@@ -1196,3 +1212,6 @@
 --
 
 [back to main page](index.md)
+
+
+

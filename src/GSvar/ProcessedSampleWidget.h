@@ -60,6 +60,7 @@ protected slots:
 	void openRunTab(QString name);
 	void openProjectTab(QString project_name);
 	void openProcessingSystemTab(QString system_short_name);
+	void openTransferredVariantDialog(QString ps_id);
 
 	//RNA menu
 	void openGeneExpressionWidget();

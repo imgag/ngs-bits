@@ -27,7 +27,7 @@ struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 	bool include_coverage_per_gap = false;
 	bool include_exon_number_per_gap = false;
 
-	QMap<QByteArray, QByteArrayList> preferred_transcripts;
+	QMap<QByteArray, QByteArrayList> relevant_transcripts;
 
 	bool use_test_db = false;
 

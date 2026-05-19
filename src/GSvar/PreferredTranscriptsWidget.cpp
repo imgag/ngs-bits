@@ -170,6 +170,24 @@ void PreferredTranscriptsWidget::check()
 	output << invalid.join(", ");
 	output << "";
 
+	//check preferred transcripts that are not GENCODE primary
+	invalid.clear();
+	for(auto it=pts_by_gene_id.begin(); it!=pts_by_gene_id.end(); ++it)
+	{
+		int gene_id = it.key();
+		foreach(QString name,  it.value())
+		{
+			int id = db.transcriptId(name.toUtf8());
+			if (!db.transcript(id).isGencodePrimaryTranscript())
+			{
+				invalid << name + " (" + db.geneSymbol(gene_id) + ")";
+			}
+		}
+	}
+	output << "Preferred transcripts that are not GENCODE primary:";
+	output << invalid.join(", ");
+	output << "";
+
 	//show output
 	ScrollableTextDialog dlg(this, "Preferred transcripts check");
 	dlg.appendLines(output);

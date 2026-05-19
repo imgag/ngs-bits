@@ -16,10 +16,14 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports gene-specific information into NGSD.");
-		addInfile("constraint", "gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1.1/constraint/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz).", false);
+		addInfile("constraint", "gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1.1/constraint/gnomad.v4.1.1.constraint_metrics.tsv.bgz).", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
+
+		changeLog(2026,  4, 17, "Update to gnomAD 4.1.1 constraints.");
+		changeLog(2019,  7, 16, "Update to gnomAD 2.1.1 constraints.");
+		changeLog(2016, 11, 23, "First version.");
 	}
 
 	virtual void main()
@@ -29,79 +33,90 @@ public:
 		QTextStream out(stdout);
 
 		//check tables exist
+		db.tableExists("gene");
 		db.tableExists("geneinfo_germline");
 
-		//update gene names to approved symbols
-        out << "Updating gene names..." << Qt::endl;
+		//check for outdated gene names in table
+		QStringList genes = db.getValues("SELECT symbol FROM geneinfo_germline WHERE symbol NOT IN (SELECT symbol FROM gene)");
+		if (!genes.isEmpty())
 		{
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT symbol FROM geneinfo_germline WHERE symbol NOT IN (SELECT symbol FROM gene)");
-			while(query.next())
-			{
-				QString symbol = query.value(0).toString();
-				auto approved = db.geneToApprovedWithMessage(symbol);
-				if (!approved.second.startsWith("KEPT:"))
-				{
-                    out << "  skipped " << symbol << ": " << approved.second << Qt::endl;
-				}
-			}
-            out << Qt::endl;
+			out << "Note: 'geneinfo_germline' contains gene symbols that are not approved genes names: " << genes.join(", ") << Qt::endl;
+			out << Qt::endl;
 		}
 
-		//import gnomAD o/e scores
-        out << "Importing gnomAD constraints..." << Qt::endl;
+		//get gene mapping
+		out << "Getting ENSG to gene name mapping from NGSD..." << Qt::endl;
+		QHash<QByteArray, QByteArray> ensg2symbol;
+		{
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT ensembl_id, symbol FROM gene");
+			while(query.next())
+			{
+				ensg2symbol.insert(query.value(0).toByteArray(), query.value(1).toByteArray());
+			}
+		}
+
+		//clear constraints
+		db.getQuery().exec("UPDATE geneinfo_germline SET gnomad_oe_syn=NULL, gnomad_oe_mis=NULL, gnomad_oe_lof=NULL, gnomad_pli=NULL");
+
+		//import gnomAD o/e and pLI
+		out << "Importing gnomAD constraints..." << Qt::endl;
 		{
 			int c_inserted = 0;
+			int c_skipped_no_gene_symbol = 0;
 
 			SqlQuery update_query = db.getQuery();
-			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments) VALUES (:0, 'n/a', :1, :2, :3, '') ON DUPLICATE KEY UPDATE gnomad_oe_syn=VALUES(gnomad_oe_syn), gnomad_oe_mis=VALUES(gnomad_oe_mis), gnomad_oe_lof=VALUES(gnomad_oe_lof)");
+			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, gnomad_pli, comments) VALUES (:0, 'n/a', :1, :2, :3, :4, '') ON DUPLICATE KEY UPDATE gnomad_oe_syn=VALUES(gnomad_oe_syn), gnomad_oe_mis=VALUES(gnomad_oe_mis), gnomad_oe_lof=VALUES(gnomad_oe_lof), gnomad_pli=VALUES(gnomad_pli)");
 			int i_syn = -1;
 			int i_mis = -1;
 			int i_lof = -1;
-			int i_can = -1;
+			int i_pli = -1;
+			int i_canonical = -1;
+			int i_mane = -1;
 
-			auto file = Helper::openFileForReading(getInfile("constraint"));
-			while(!file->atEnd())
+			VersatileFile file(getInfile("constraint"));
+			file.open(QFile::ReadOnly|QIODevice::Text);
+			while(!file.atEnd())
 			{
-				QString line = file->readLine().trimmed();
+				QByteArray line = file.readLine(true);
 				if (line.isEmpty()) continue;
 
-				QStringList parts = line.split('\t');
-				if (parts.count()<25) continue;
+				QByteArrayList parts = line.split('\t');
+				if (parts.count()<111) continue;
 
-				//header
+				//header line
 				if (parts[0]=="gene")
 				{
-					i_syn = parts.indexOf("oe_syn");
-					i_mis = parts.indexOf("oe_mis");
-					i_lof = parts.indexOf("oe_lof");
-					i_can = parts.indexOf("canonical");
+					i_syn = parts.indexOf("syn.oe");
+					i_mis = parts.indexOf("mis.oe");
+					i_lof = parts.indexOf("lof.oe");
+					i_pli = parts.indexOf("lof.pLI");
+					i_canonical = parts.indexOf("canonical");
+					i_mane = parts.indexOf("mane_select");
 
 					//check that headers are ok
-					if (i_syn==-1 || i_mis==-1 || i_lof==-1)
+					if (i_syn==-1 || i_mis==-1 || i_lof==-1 || i_pli==-1 || i_canonical==-1 || i_mane==-1)
 					{
-						THROW(FileParseException, "Could not determine column indices for o/e columns in header line!");
+						THROW(FileParseException, "Could not determine column indices for mandatory columns in header line: " + line);
 					}
 
 					continue;
 				}
 
-				//skip canonical transcripts (for downward-compatibility with version 2.1)
-				if  (i_can!=-1 && parts[i_can].trimmed()!="true") continue;
+				//skip not relevent transcripts
+				if  (parts[i_canonical].trimmed()!="true" && parts[i_mane].trimmed()!="true") continue;
 
 				//gene
-				QString gene = parts[0];
-				auto approved = db.geneToApprovedWithMessage(gene);
-				if (approved.second.startsWith("ERROR:"))
+				QByteArray gene = ensg2symbol.value(parts[1], "");
+				if (gene.isEmpty())
 				{
-                    out << "  skipped " << gene << ": " << approved.second << Qt::endl;
+					++c_skipped_no_gene_symbol;
 					continue;
 				}
-				gene = approved.first;
 				update_query.bindValue(0, gene);
 
 				//gnomAD o/e
-				if (parts[i_syn]=="NA" || parts[i_syn]=="NaN")
+				if (parts[i_syn]=="NA")
 				{                    
                     update_query.bindValue(1,  QVariant(QMetaType(QMetaType::Double)));                    
 				}
@@ -110,7 +125,7 @@ public:
 					update_query.bindValue(1, QString::number(Helper::toDouble(parts[i_syn], "gnomad o/e (syn)"), 'f', 2));
 				}
 
-				if (parts[i_mis]=="NA" || parts[i_mis]=="NaN")
+				if (parts[i_mis]=="NA")
 				{                    
                     update_query.bindValue(2,  QVariant(QMetaType(QMetaType::Double)));                    
 				}
@@ -119,7 +134,7 @@ public:
 					update_query.bindValue(2, QString::number(Helper::toDouble(parts[i_mis], "gnomad o/e (mis)"), 'f', 2));
 				}
 
-				if (parts[i_lof]=="NA" || parts[i_lof]=="NaN")
+				if (parts[i_lof]=="NA")
 				{
 					update_query.bindValue(3,  QVariant(QMetaType(QMetaType::Double)));
 				}
@@ -127,12 +142,24 @@ public:
 				{
 					update_query.bindValue(3, QString::number(Helper::toDouble(parts[i_lof], "gnomad o/e (lof)"), 'f', 2));
 				}
+
+
+				if (parts[i_lof]=="NA")
+				{
+					update_query.bindValue(4,  QVariant(QMetaType(QMetaType::Double)));
+				}
+				else
+				{
+					update_query.bindValue(4, QString::number(Helper::toDouble(parts[i_pli], "gnomad o/e (pLi)"), 'f', 3));
+				}
+
 				update_query.exec();
 
 				++c_inserted;
 			}
 
-            out << "  imported constraint info for " << c_inserted << " genes" << Qt::endl;
+			out << "  skipped " << c_skipped_no_gene_symbol << " lines because no gene symbol could be determined based on ENSG" << Qt::endl;
+			out << "  imported constraint info for " << c_inserted << " genes" << Qt::endl;
             out << Qt::endl;
 		}
 
@@ -142,7 +169,7 @@ public:
 		{
 
 			SqlQuery update_query = db.getQuery();
-			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments) VALUES (:0, :1, NULL, NULL, NULL, '') ON DUPLICATE KEY UPDATE inheritance=VALUES(inheritance)");
+			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, comments) VALUES (:0, :1, '') ON DUPLICATE KEY UPDATE inheritance=VALUES(inheritance)");
 
 			int c_noinfo = 0;
 			int c_unchanged = 0;
@@ -257,7 +284,7 @@ public:
 		//add DB import info (version parsed from filename; if parsing fails use full filename)
 		QString version = QFileInfo(getInfile("constraint")).fileName();
 		QString tmp = version;
-		tmp.replace("gnomad.v", "").replace(".lof_metrics.by_gene.txt", "").replace(".gz", "");
+		tmp.replace("gnomad.v", "").replace(".constraint_metrics.tsv", "").replace(".bgz", "").replace("NGSDImportGeneInfo_", "");
 		if (QRegularExpression("^[0-9.]+$").match(tmp).hasMatch())
 		{
 			version = tmp;

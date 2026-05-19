@@ -75,4 +75,18 @@ private:
 		COMPARE_FILES("out/CnvList_ClinCNV_somatic.tsv", TESTDATA("data_out/CnvList_ClinCNV_somatic.tsv"));
 	}
 
+	TEST_METHOD(find_match)
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		I_EQUAL(cnvs.findMatch(CopyNumberVariant(Chromosome("chr1"),1534694, 1551033)), 12);
+		I_EQUAL(cnvs.findMatch(CopyNumberVariant(Chromosome("chr1"),1534694, 1551033), 3), 12);
+		I_EQUAL(cnvs.findMatch(CopyNumberVariant(Chromosome("chr1"),1534694, 1551033), 1), -1);
+		I_EQUAL(cnvs.findMatch(CopyNumberVariant(Chromosome("chr1"),1535194, 1552533), 3), -1);
+		I_EQUAL(cnvs.findMatch(CopyNumberVariant(Chromosome("chr1"),1535194, 1552533), 3, true), 12);
+		I_EQUAL(cnvs.findMatch(CopyNumberVariant(Chromosome("chr1"),1535194, 1552533), -3, true), 12);
+		I_EQUAL(cnvs.findMatch(CopyNumberVariant(Chromosome("chr1"),1535194, 1553533), 3, true), -1);
+	}
+
 };

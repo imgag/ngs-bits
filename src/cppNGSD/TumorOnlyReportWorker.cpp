@@ -9,6 +9,7 @@
 #include "Settings.h"
 #include <QXmlStreamWriter>
 #include "XmlHelper.h"
+#include "SomaticReportHelper.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
 	: config_(config)
@@ -116,7 +117,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		{
 			const BedLine& line = low_cov[i];
 			GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-            for (const QByteArray& gene : genes)
+			for (const QByteArray& gene : std::as_const(genes))
 			{
 				gaps_by_gene[gene].append(line);
 			}
@@ -139,7 +140,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 		//omim info
 		QList<OmimInfo> omim_infos = db_.omimInfo(gene);
-        for (const OmimInfo& omim_info : omim_infos)
+		for (const OmimInfo& omim_info : std::as_const(omim_infos))
 		{
             for (const Phenotype& pheno : omim_info.phenotypes)
 			{
@@ -225,7 +226,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		for(int i=0; i < var.transcriptAnnotations(i_co_sp_).count(); ++i )
 		{
 
-			const auto trans = var.transcriptAnnotations(i_co_sp_)[i];
+			const auto trans = var.transcriptAnnotations(i_co_sp_).at(i);
 			w.writeStartElement("TranscriptInformation");
 			w.writeAttribute("transcript_id", QString(trans.id));
 			w.writeAttribute("gene", QString(trans.gene) );
@@ -235,7 +236,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 			w.writeAttribute("exon", QString(trans.exon) ) ;
 			w.writeAttribute("variant_type", QString(trans.type) );
 
-			bool is_main_transcript = config_.preferred_transcripts.contains(trans.gene) && config_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+			bool is_main_transcript = config_.relevant_transcripts.contains(trans.gene) && config_.relevant_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
 			w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
 			w.writeEndElement();
 		}
@@ -312,16 +313,12 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 	TranscriptList transcripts;
 	try
 	{
-		if(config_.preferred_transcripts.contains(gene))
+		if(config_.relevant_transcripts.contains(gene))
 		{
-			for(QByteArray preferred_trans : config_.preferred_transcripts.value(gene))
+			for(const QByteArray& preferred_trans : config_.relevant_transcripts.value(gene))
 			{
 				transcripts << db_.transcript(db_.transcriptId(preferred_trans));
 			}
-		}
-		else //fallback to longest coding transcript
-		{
-			transcripts << db_.bestTranscript(gene_id);
 		}
 	}
 	catch(Exception)
@@ -331,7 +328,7 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 
 	//calculate exon number
 	QByteArrayList out;
-	for(const Transcript& trans : transcripts)
+	for(const Transcript& trans : std::as_const(transcripts))
 	{
 		int exon_number = trans.exonNumber(start, end);
 		if(exon_number<=0) continue;
@@ -350,16 +347,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		if(!config_.filter_result.passing(i)) continue;
 
 		RtfTableRow row;
-		VariantTranscript trans = variants_[i].transcriptAnnotations(i_co_sp_).first();
-		for(const VariantTranscript& tmp_trans : variants_[i].transcriptAnnotations(i_co_sp_))
-		{
-			if(config_.preferred_transcripts.value(tmp_trans.gene).contains(tmp_trans.idWithoutVersion()))
-			{
-				trans = tmp_trans;
-				break;
-			}
-		}
-
+		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(db_, variants_[i].transcriptAnnotations(i_co_sp_));
 		row.addCell( 1000, trans.gene , RtfParagraph().setItalic(true) );
 		row.addCell( 2900, QByteArrayList() << trans.hgvs_c + ", " + trans.hgvs_p << RtfText(trans.id).setFontSize(14).RtfCode());
 		row.addCell( 1700, trans.type.replace("_variant", "").replace("&", ", ") );
@@ -451,7 +439,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 			if(config_.include_exon_number_per_gap)
 			{
 				QStringList tmp_exons;
-				for(const QByteArray& tmp_gene : tmp_genes)
+				for(const QByteArray& tmp_gene : std::as_const(tmp_genes))
 				{
 					QByteArray exon = exonNumber(tmp_gene , line.start(), line.end());
 					if(exon != "")

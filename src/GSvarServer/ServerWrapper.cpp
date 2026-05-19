@@ -9,6 +9,7 @@
 #include <QFileSystemWatcher>
 #include "FileMetaCache.h"
 #include "PipelineSettings.h"
+#include "ScheduledCacheCleaner.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
@@ -77,6 +78,10 @@ ServerWrapper::ServerWrapper(const quint16& port)
         {
             is_running_ = true;
             Log::info("GSvar server is running on port #" + QString::number(port));
+
+
+			// Permissions cache cleaner task that runs on schedule
+			new ScheduledCacheCleaner(this);
 
             // Remove expired sessions and URLs on schedule
             QTimer *session_timer = new QTimer(this);

@@ -325,6 +325,7 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 {
 	QString name;
 	QString name_short;
+	QString platform;
 	QString adapter1_p5;
 	QString adapter2_p7;
 	bool shotgun;
@@ -356,6 +357,8 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString oe_mis;
 	//gnomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
+	//gnomAD pLi score for loss-of-function variants (default is NULL).
+	QString pli;
 
 	//expressed allele
 	QString imprinting_expressed_allele;
@@ -371,7 +374,7 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//returns the main gene information as a string
 	QString toString()
 	{
-		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + ")";
+		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + " pLI=" + pli + ")";
 	}
 };
 
@@ -795,8 +798,8 @@ public:
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);
-	//Returns the mapping from gene symbol to HGNC ID
-	QMap<int, QByteArray> geneIdsToHgnc();
+	///Returns NGSD gene ID for a HGNC identifier
+	int hgncIdToGeneId(QByteArray hgnc_id);
 	///Returns the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the approved gene symbols.
@@ -822,7 +825,7 @@ public:
 	///Returns transcript by id. Throws an exception if not found in NGSD.
 	const Transcript& transcript(int id);
 	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.
-	int transcriptId(QString name, bool throw_on_error=true);
+	int transcriptId(const QByteArray& name, bool throw_on_error=true);
 	///Returns all transcripts in the database;
 	const TranscriptList& transcripts();
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
@@ -831,17 +834,18 @@ public:
 	TranscriptList transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend=0, Transcript::SOURCE source=Transcript::ENSEMBL);
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, ensemble canonical, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
 	/// The return_quality int is higher the higher the quality of the returned transcript is. Exact numbers may not be constant: preferred > MANE > canonical > longest coding , longest non-coding , not found
-	Transcript bestTranscript(int gene_id, const QList<VariantTranscript> var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
+	Transcript bestTranscript(int gene_id, const QList<VariantTranscript>& var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
 	///Return the transcript with the highest impact given the variant transcript impacts
-	Transcript highestImpactTranscript(TranscriptList transcripts, const QList<VariantTranscript> var_transcripts);
-	///Returns a list of the most relevant transcripts for the gene (best transcript, prefered transcripts, MANE select transcript, MANE plus clinical transcript)
+	Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
+	///Returns a list of the most relevant transcripts for the gene. The order is: preferred, MANE select, MANE plus clinical, Ensembl canonical. If none of those exist, the longest coding or longest transcript are used.
 	TranscriptList relevantTranscripts(int gene_id);
+	///Returns the map of gene symbol to relevant transcripts names. Relevant are preferred, MANE, Ensembl canonical. If non of them exst, the longest coding or longest transcript are used. Note: transcript names do not contain version numbers.
+	QMap<QByteArray, QByteArrayList> relevantTranscripts();
+
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
-	///Returns the map of gene to preferred transcripts (note: transcript names do not contain version numbers)
-	QMap<QByteArray, QByteArrayList> getPreferredTranscripts();
 	///Adds a preferred transcript. Returns if it was added, i.e. it was not already present. Throws an exception, if the transcript name is not valid.
 	bool addPreferredTranscript(QByteArray transcript_name);
 
@@ -856,8 +860,8 @@ public:
 	int phenotypeReplacementByName(const QByteArray& name);
 	///Returns the phenotype for a given HPO accession.
 	const Phenotype& phenotype(int id);
-	///Returns the phenotypes of a gene
-	PhenotypeList phenotypes(const QByteArray& symbol);
+	///Returns the phenotypes of a gene. Phenotypes are sorted by name or relevance (number of sources and evidence level).
+	PhenotypeList phenotypes(const QByteArray& symbol, bool sort_by_relevance=false);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
 	///Returns all genes associated to a phenotype. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.
@@ -1131,7 +1135,6 @@ public:
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 	///Deletes the VICC classification of a variant
 	void deleteSomaticViccData(const Variant& variant);
-	//TODO Alexander: allow deleting if from GSvar VICC dialog
 
 	///Returns a list of all somatic pathways.
 	QByteArrayList getSomaticPathways();
@@ -1331,7 +1334,7 @@ protected:
 	{
 		Cache();
 
-		//REMEMBER TO ADD ALL MEMBER TO CLEAR CACHE FUNCTION
+		//REMEMBER TO ADD ALL MEMBERS TO THE FUNCTION clearCache()!
 		QMap<QString, TableInfo> table_infos;
 		QHash<int, QSet<int>> same_samples;
 		QHash<int, QSet<int>> same_patients;
@@ -1347,26 +1350,26 @@ protected:
         QHash<int, QList<int>> hpo_parent;
 		QMap<QString, SomaticGeneRole> gene_symbol_to_somatic_gene_role;
 		QMap<int, QByteArray> gene_id_to_hgnc;
+		QMap<QByteArray, int> hgnc_id_to_gene_id;
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
 		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
 		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
+		QHash<QByteArray, int> gene_transcripts_name2id; //transcript name > transcript ID in NGSD
 
 		//gene expression
 		QMap<int, QByteArray> gene_expression_id2gene;
 		QMap<QByteArray, int> gene_expression_gene2id;
 
         QMap<int, QSet<int>> user_can_access;
-
-
 	};
 	static Cache& getCache();
 	void initTranscriptCache();
 	void initGeneExpressionCache();
 
 private:
-	mutable QMutex cache_mutex_;
+	mutable QMutex cache_mutex_user_access_; //mutex for Cache::user_can_access
 };
 
 #endif // NGSD_H

@@ -52,7 +52,6 @@ protected:
 	mutable QHash<Chromosome, int> n_; //cache for N bases (slow, so it should not be calcualted more than once)
 	mutable QFile file_;
 	const FastaIndexEntry& index(const Chromosome& chr) const;
-	bool isLocal() const;
 	void saveEntryToIndex(const QList<QByteArray>& fields);
 };
 

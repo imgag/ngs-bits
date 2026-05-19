@@ -29,11 +29,11 @@ public:
 	//Returns a FileLocation for a given file type of a processed sample
 	virtual FileLocation processedSamplePath(const QString& processed_sample_id, PathType type) const = 0;
 	//Return metdata for the logs of an analysis job by its id
-	virtual FileInfo analysisJobLatestLogInfo(const int& job_id) const = 0;
+	virtual FileInfo analysisJobLatestLogInfo(int job_id) const = 0;
 	//Returns a location for a GSvar file based on the corresponding job id
-	virtual FileLocation analysisJobGSvarFile(const int& job_id) const = 0;	
+	virtual FileLocation analysisJobGSvarFile(int job_id) const = 0;	
 	//Returns a log file location object for a specific job based on its id
-	virtual FileLocation analysisJobLogFile(const int& job_id) const = 0;
+	virtual FileLocation analysisJobLogFile(int job_id) const = 0;
 	//Returns a list of analysis names for multi-sample analyses
 	virtual QList<MultiSampleAnalysisInfo> getMultiSampleAnalysisInfo(QStringList& analyses) const = 0;
 

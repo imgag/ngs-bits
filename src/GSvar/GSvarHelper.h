@@ -20,8 +20,8 @@ public:
 	static const GeneSet& hi0Genes();
 	//Returns genes that have one or more pseudogenes.
 	static const GeneSet& genesWithPseudogene();
-	//Returns gene to preferred transcripts map (note: transcript names do not contain version numbers)
-    static const QMap<QByteArray, QByteArrayList>& preferredTranscripts(bool reload=false);
+	//Returns gene to relevant transcripts map (note: transcript names do not contain version numbers). The data is cached!
+	static const QMap<QByteArray, QByteArrayList>& relevantTranscripts(bool reload_preferred_transcripts=false);
     //Returns a list of special regions that are to be added to sub-panel designs for a given gene
 	static const QMap<QByteArray, QList<BedLine>>& specialRegions();
 

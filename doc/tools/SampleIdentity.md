@@ -1,5 +1,5 @@
 ### SampleIdentity tool help
-	SampleIdentity (2025_12-104-g15d04bf0)
+	SampleIdentity (2025_12-175-gc2187ef59)
 	
 	Tries to identify datasets that are from the same patient based on BAM/CRAM files of WGS/WES/lrGS/RNA sequencing.
 	
@@ -18,6 +18,8 @@
 	                           Default value: '40'
 	  -min_identity <int>      Minimum identity percentage to show sample pairs in output.
 	                           Default value: '95'
+	  -threads <int>           Number of threads to calculate Allele frequencies
+	                           Default value: '4'
 	  -min_correlation <float> Minimum correlation to show sample pairs in output.
 	                           Default value: '0.9'
 	  -ref <file>              Reference genome for CRAM support (mandatory if CRAM is used).
@@ -37,7 +39,7 @@
 	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### SampleIdentity changelog
-	SampleIdentity 2025_12-104-g15d04bf0
+	SampleIdentity 2025_12-175-gc2187ef59
 	
 	2026-02-09 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

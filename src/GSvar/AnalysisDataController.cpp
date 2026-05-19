@@ -1625,7 +1625,7 @@ void AnalysisDataController::updateSomaticReportSettings()
     somatic_report_settings_.tumor_ps = ps_tumor;
     somatic_report_settings_.normal_ps = ps_normal;
 
-    somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	somatic_report_settings_.relevant_transcripts = GSvarHelper::relevantTranscripts();
     somatic_report_settings_.report_config->setEvaluationDate(QDate::currentDate());
 
     //load obo terms for filtering coding/splicing variants
@@ -1912,7 +1912,8 @@ void AnalysisDataController::generateGermlineReport(QString filepath, QString ty
     FileLocationList prs_files = GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).filterById(ps_name);
     if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
-    GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, repeat_expansions_, prs_table, germline_report_settings_, variants_filter_state_.getFilterCascade(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, repeat_expansions_, prs_table, germline_report_settings_, variants_filter_state_.getFilterCascade(), GlobalServiceProvider::statistics());
+
     data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name), false);
     data.ps_bam = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
     data.ps_lowcov = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::LOWCOV_BED).filename;
@@ -2097,7 +2098,7 @@ TumorOnlyReportWorkerConfig AnalysisDataController::getTumorOnlyReportWorkerConf
     config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
     config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
     config.filter_result = variants_filter_result_;
-    config.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	config.relevant_transcripts = GSvarHelper::relevantTranscripts();
     config.build = GSvarHelper::build();
 
     return config;
@@ -3120,10 +3121,14 @@ void AnalysisDataController::exportGSvar(QString file_name, bool as_vcf)
 
 void AnalysisDataController::exportHerediCareVCF(QString herediCare_id, QString file_name)
 {
-    GeneSet genes;
+	//get HerediCare ID from user
+	QString id = QInputDialog::getText(this, title, "HerediCare ID (used in VCF header):");
+	if (id.isEmpty()) return;
+
+	QSharedPointer<ReportConfiguration> report_config = getGermlineReportConfig();
+	GeneSet genes;
     genes << "ABRAXAS1" << "APC" << "ATM" << "BARD1" << "BRCA1" << "BRCA2" << "BRIP1" << "CDH1" << "CDKN2A" << "CHEK2" << "EPCAM" << "FANCC" << "FANCM" << "HOXB13" << "MEN1" << "MLH1" << "MRE11" << "MSH2" << "MSH6" << "MUTYH" << "NBN" << "NF1" << "NTHL1" << "PALB2" << "PMS2" << "POLD1" << "POLE" << "PTEN" << "RAD50" << "RAD51C" << "RAD51D" << "SMARCA4" << "STK11" << "TP53";
     FastaFileIndex ref_genome(Settings::string("reference_genome", false));
-
 
     //convert gene list to exon regions
     NGSD db;
@@ -3144,6 +3149,7 @@ void AnalysisDataController::exportHerediCareVCF(QString herediCare_id, QString 
     int i_qual = variants_.annotationIndexByName("quality");
     int i_geno = variants_.getSampleHeader().value(0).column_index;
     int c_classified = 0;
+	int c_excluded = 0;
     for(int i=0; i<variants_.count(); ++i)
     {
         const Variant& v = variants_[i];
@@ -3151,9 +3157,19 @@ void AnalysisDataController::exportHerediCareVCF(QString herediCare_id, QString 
         //check ROI
         if (roi_idx.matchingIndex(v.chr(), v.start(), v.end())==-1) continue;
 
-        VcfLine v2 = v.toVCF(ref_genome, i_geno);
+		//filter out excluded variants
+		if (report_config->exists(VariantType::SNVS_INDELS, i))
+		{
+			const ReportVariantConfiguration& rcv = report_config->get(VariantType::SNVS_INDELS, i);
+			if (!rcv.showInReport())
+			{
+				++c_excluded;
+				continue;
+			}
+		}
 
-        //add quality, DP and AF
+		//create VCF-sytle variant with QUAL, DP and AF
+		VcfLine v2 = v.toVCF(ref_genome, i_geno);
         QByteArray qual;
         QByteArray dp;
         QByteArray af;
@@ -3180,7 +3196,7 @@ void AnalysisDataController::exportHerediCareVCF(QString herediCare_id, QString 
     }
 
     vcf.store(file_name);
-    emit thrownInfo("HerediCare VCF export", "Exported " + QString::number(vcf.count()) + " variants in exons/splice region of the " + QString::number(genes.count()) + " genes:\n" + genes.join(", ") + "\n\n" + QString::number(c_classified) + " of the variants have a classification.");
+	emit thrownInfo("HerediCare VCF export", "Exported " + QString::number(vcf.count()) + " variants in exons/splice region of the " + QString::number(genes.count()) + " genes:\n" + genes.join(", ") + "\n\n" + QString::number(c_classified) + " of the variants have a classification.\n\n" + QString::number(c_excluded) + " variants were excluded based on the report configuration.");
 }
 
 

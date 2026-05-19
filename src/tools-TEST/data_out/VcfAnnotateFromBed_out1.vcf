@@ -58,6 +58,7 @@
 ##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
 ##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
 ##FORMAT=<ID=MIN,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+##INFO=<ID=OMIM,Number=.,Type=String,Description="Custom header description!">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878
 chr1	27687466	.	G	T	9673	.	MQM=60	GT:DP:AO	0/1:722:371
 chr1	45797505	.	C	G	3077	.	MQM=60;OMIM=604933_[MUTYH_(provisional)_Adenomas%2Cmultiple_colorectal|Gastric_cancer%2Csomatic|Colorectal_adenomatous_polyposis%2Cautosomal_recessive%2Cwith_pilomatricomas]	GT:DP:AO	0/1:228:115

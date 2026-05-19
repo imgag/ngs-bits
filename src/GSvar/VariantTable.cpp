@@ -26,7 +26,7 @@ VariantTable::VariantTable(QWidget* parent)
 	//make sure the selection is visible when the table looses focus
 	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
 	QString bg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::Highlight));
-	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg).arg(bg));
+	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg, bg));
 	setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 }
@@ -70,6 +70,8 @@ void VariantTable::customContextMenu(QPoint pos)
 	//else: standard case: 1 variant selected
 
 	int index = indices[0];
+	QString selected_text;
+	if (!selectedItems().empty()) selected_text = selectedItems().at(0)->text().trimmed();
 
 	if (registered_actions_.count() > 0)
 	{
@@ -94,7 +96,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
     int i_co_sp = variants.annotationIndexByName("coding_and_splicing", true, true);
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
-	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+	const QMap<QByteArray, QByteArrayList>& relevant_transcripts = GSvarHelper::relevantTranscripts();
 
 	QMenu* copy_menu = menu.addMenu(QIcon("://Icons/Clipboard.png"), "Copy");
 	QAction* a_copy_variant = copy_menu->addAction("Variant");
@@ -104,6 +106,21 @@ void VariantTable::customContextMenu(QPoint pos)
 	a_visualize->setEnabled(Helper::runningInQtCreator());
 	menu.addSeparator();
 
+	//add web links
+	QMenu* links_sub_menu = menu.addMenu("Open link");
+	bool cell_contains_links = false;
+
+	foreach (const QString& entry, selected_text.split(", "))
+	{
+		if (Helper::isHttpUrl(entry))
+		{
+			links_sub_menu->addAction(entry);
+			cell_contains_links = true;
+		}
+	}
+	if (!cell_contains_links) links_sub_menu->setEnabled(false);
+	menu.addSeparator();
+
 	//Google and Google Scholar
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
 	QMenu* sub_menu2 = menu.addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
@@ -111,12 +128,33 @@ void VariantTable::customContextMenu(QPoint pos)
 	{
 		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
 		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
-		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
+		if (relevant_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			QFont font = action->font();
 			font.setBold(true);
 			action->setFont(font);
 			action2->setFont(font);
+		}
+	}
+
+	//LitVar2
+	sub_menu = menu.addMenu(QIcon("://Icons/LitVar2.png"), "LitVar2");
+	QList<QAction*> litvar_actions;
+	int i_dbsnp = variants.annotationIndexByName("dbSNP", true, true);
+	QByteArray dbsnp = variants[index].annotations()[i_dbsnp].trimmed();
+	if (dbsnp!="")
+	{
+		litvar_actions << sub_menu->addAction("Search by: "+dbsnp);
+	}
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		if (relevant_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
+		{
+			QByteArray protein_change = trans.hgvs_p.mid(2).trimmed();
+			if (protein_change!="")
+			{
+				litvar_actions << sub_menu->addAction("Search by: "+trans.gene + " " + trans.hgvs_p);
+			}
 		}
 	}
 
@@ -138,21 +176,22 @@ void VariantTable::customContextMenu(QPoint pos)
 		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
 
 		//genes
-        foreach (const QByteArray& g, genes)
+		for (const QByteArray& g : std::as_const(genes))
 		{
 			sub_menu->addAction(g);
 		}
 		sub_menu->addSeparator();
 
 		//transcripts
-        foreach (const VariantTranscript& transcript, transcripts)
+		for (const VariantTranscript& transcript : std::as_const(transcripts))
+
 		{
 			if  (transcript.id!="" && transcript.hgvs_c!="")
 			{
 				QAction* action = sub_menu->addAction(transcript.idWithoutVersion() + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
 
 				//highlight preferred transcripts
-				if (preferred_transcripts.value(transcript.gene).contains(transcript.idWithoutVersion()))
+				if (relevant_transcripts.value(transcript.gene).contains(transcript.idWithoutVersion()))
 				{
 					QFont font = action->font();
 					font.setBold(true);
@@ -183,10 +222,11 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
-    foreach(const QByteArray& g, genes)
+	for (const QByteArray& g : std::as_const(genes))
 	{
 		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
-        foreach(const Phenotype& p, active_phenotypes_)
+		for (const Phenotype& p : std::as_const(active_phenotypes_))
+
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
 		}
@@ -200,7 +240,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	if (!genes.isEmpty())
 	{
 		menu.addSeparator();
-        foreach (const QByteArray& g, genes)
+		for (const QByteArray& g : std::as_const(genes))
 		{
 			sub_menu = menu.addMenu(g);
 			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in);
@@ -256,11 +296,17 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
-		FastaFileIndex genome_idx(Settings::string("reference_genome", false));
-		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this, genome_idx, NGSD().transcripts());
+        QSharedPointer<GenomeData> genome_data(new GenomeData());
+        genome_data->setTranscripts(NGSD().transcripts());
+		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+        widget->setGenomeData(genome_data);
 		widget->setRegion(variant.chr(), variant.start(), variant.end());
-		auto dlg = GUIHelper::createDialog(widget, "GSvar Genome Viewer");
+        auto dlg = GUIHelper::createDialog(widget, "GSviewer");
 		dlg->exec();
+	}
+	else if (parent_menu && parent_menu->title()=="Open link")
+	{
+		QDesktopServices::openUrl(QUrl(action->text()));
 	}
 	else if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
 	{
@@ -338,6 +384,11 @@ void VariantTable::customContextMenu(QPoint pos)
 		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
 		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/hg38/" + var));
 	}
+	else if (litvar_actions.contains(action))
+	{
+		QString query = (action->text() + ":").split(':').at(1);
+		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/research/litvar2/?query=" + query));
+	}
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{
 		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + text));
@@ -359,7 +410,8 @@ void VariantTable::customContextMenu(QPoint pos)
 		else if (text=="Google")
 		{
 			QString query = gene + " AND (mutation";
-            foreach (const Phenotype& pheno, active_phenotypes_)
+			for (const Phenotype& pheno : std::as_const(active_phenotypes_))
+
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -375,7 +427,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	else if (parent_menu && parent_menu->title()=="Custom")
 	{
 		QStringList custom_entries = Settings::string("custom_menu_small_variants", true).trimmed().split("\t");
-        foreach (const QString& custom_entry, custom_entries)
+		for (const QString& custom_entry : std::as_const(custom_entries))
 		{
 			QStringList parts = custom_entry.split("|");
 			if (parts.count()==2 && parts[0]==text)
@@ -431,7 +483,8 @@ void VariantTable::updateTable(AnalysisDataController& data_controller, const QH
 	ColumnConfig config = ColumnConfig::fromString(Settings::string("column_config_small_variant", true));
 	QStringList col_order;
 	QList<int> anno_index_order;
-    config.getOrder(variants, col_order, anno_index_order);
+	config.getOrder(variants, col_order, anno_index_order);
+
 	for (int i=0; i<col_order.count(); ++i)
 	{
 		QString anno = col_order[i];
@@ -944,7 +997,7 @@ void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_r
 		return;
 	}
 
-	QTableWidgetSelectionRange range = selectedRanges()[0];
+	QTableWidgetSelectionRange range = selectedRanges().at(0);
 
 	//check quality column is present
 	QStringList quality_keys;

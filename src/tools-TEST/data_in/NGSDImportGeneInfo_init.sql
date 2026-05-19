@@ -1,9 +1,9 @@
 
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES 
-(1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene'),
-(2,1002, 'BRCA2','Breast cancer associated gene 2', 'protein-coding gene'),
-(3,1003, 'OR4F5', 'olfactory receptor family 4 subfamily F member 5', 'protein-coding gene'),
-(4,1004, 'DIRC1', 'disrupted in renal carcinoma 1', 'protein-coding gene');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VALUES 
+(1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene', 'ENSG00000012048'),
+(2,1002, 'BRCA2','Breast cancer associated gene 2', 'protein-coding gene', 'ENSG00000139618'),
+(3,1003, 'OR4F5', 'olfactory receptor family 4 subfamily F member 5', 'protein-coding gene', 'ENSG00000186092'),
+(4,1004, 'WDR45', 'WD repeat domain 45', 'protein-coding gene', 'ENSG00000196998');
 
 INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `version`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
 (1, 3, 'ENST00000335137', '1', 'ensembl', '1', 69091, 70008, '+'),

@@ -1,5 +1,4 @@
 #include "TestFrameworkNGS.h"
-#include "Settings.h"
 #include "NGSD.h"
 
 TEST_CLASS(NGSDExportAnnotationData_Test)

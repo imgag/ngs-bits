@@ -25,6 +25,7 @@ INCLUDEPATH += $$PWD/../VcfToBedpe
 
 SOURCES += \
     BedToEpigen_Test.cpp \
+    FastaChecksumUpdate_Test.cpp \
     NGSDAddVariantsSomatic_Test.cpp \
     BamInfo_Test.cpp \
     BamRemoveVariants_Test.cpp \
@@ -36,6 +37,7 @@ SOURCES += \
     BedpeExtractInfoField_Test.cpp \
     NGSDExportIgvGeneTrack_Test.cpp \
     NGSDSameSample_Test.cpp \
+    NGSDTransferReportConfig_Test.cpp \
     SampleAncestry_Test.cpp \
     SnifflesVcfFix_Test.cpp \
     SvFilterAnnotations_Test.cpp \
@@ -179,4 +181,6 @@ SOURCES += \
     TsvAnnotate_Test.cpp \
     NGSDImportOncotree_Test.cpp \
     NGSDExportSpliceAI_Test.cpp \
+    VcfMerge_Test.cpp \
+    TranscriptToProtein_Test.cpp \
     main.cpp

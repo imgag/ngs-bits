@@ -36,7 +36,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	//height of IGV snapshot in pixels
 	int igv_snapshot_height;
 
-	QMap<QByteArray, QByteArrayList> preferred_transcripts;
+	QMap<QByteArray, QByteArrayList> relevant_transcripts;
 
 	//Sequence ontology that contains the SO IDs of coding and splicing transcripts
 	OntologyTermCollection obo_terms_coding_splicing;

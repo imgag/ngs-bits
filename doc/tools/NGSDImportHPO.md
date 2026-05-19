@@ -1,24 +1,24 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (2025_07-127-g60fc6b39)
+	NGSDImportHPO (2025_12-266-g396e1fe11)
 	
 	Imports HPO terms and gene-phenotype relations into the NGSD.
 	
 	Mandatory parameters:
-	  -obo <file>       HPO ontology file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2025-09-01/hp.obo
-	  -anno <file>      HPO annotations file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2025-09-01/phenotype_to_genes.txt
+	  -obo <file>       HPO ontology file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-02-16/hp.obo
+	  -anno <file>      HPO annotations file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-02-16/phenotype_to_genes.txt
 	
 	Optional parameters:
 	  -omim <file>      OMIM 'morbidmap.txt' file for additional disease-gene information, from https://omim.org/downloads/
 	                    Default value: ''
-	  -clinvar <file>   ClinVar VCF file for additional disease-gene information. Download and unzip from https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2025/clinvar_20250907.vcf.gz
+	  -clinvar <file>   ClinVar VCF file for additional disease-gene information. Download and unzip from https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2026/clinvar_20260329.vcf.gz
 	                    Default value: ''
-	  -hgmd <file>      HGMD phenbase file (Manually download 'hgmd_phenbase-2025.2.dump.gz').
+	  -hgmd <file>      HGMD phenbase file (Manually download 'hgmd_phenbase-2026.1.dump.gz').
 	                    Default value: ''
-	  -hpophen <file>   HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2025-09-01/phenotype.hpoa
+	  -hpophen <file>   HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-02-16/phenotype.hpoa
 	                    Default value: ''
-	  -gencc <file>     gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. (Manually download from https://search.thegencc.org/download).
+	  -gencc <file>     gencc 'gencc-submissions.tsv' file for additional disease-gene evidence information. (Manually download from https://search.thegencc.org/download).
 	                    Default value: ''
-	  -g2p <file>       DDG2P file for additional gene-disease-phenotype evidence information. Download from http://ftp.ebi.ac.uk/pub/databases/gene2phenotype/G2P_data_downloads/2025_08_28/DDG2P_2025-08-28.csv.gz
+	  -g2p <file>       DDG2P file for additional gene-disease-phenotype evidence information. Download from http://ftp.ebi.ac.uk/pub/databases/gene2phenotype/G2P_data_downloads/2026_03_28/allG2P_2026-03-28.csv.gz
 	                    Default value: ''
 	  -test             Uses the test database instead of on the production database.
 	                    Default value: 'false'
@@ -35,8 +35,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 2025_07-127-g60fc6b39
+	NGSDImportHPO 2025_12-266-g396e1fe11
 	
+	2026-04-17 Updated to GenCC TSV (new format).
 	2025-09-23 Renamed '-decipher' to '-g2p' and adapted parser to new G2P format.
 	2021-12-22 Added support for GenCC and DECIPHER.
 	2020-07-07 Added support of HGMD gene-phenotype relations.

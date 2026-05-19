@@ -1,5 +1,5 @@
 ### NGSDExportGenes tool help
-	NGSDExportGenes (2024_08-110-g317f43b9)
+	NGSDExportGenes (2025_12-266-g396e1fe11)
 	
 	Lists genes from NGSD.
 	
@@ -19,8 +19,9 @@
 	  --settings [file]  Settings override file (no other settings files are used).
 	
 ### NGSDExportGenes changelog
-	NGSDExportGenes 2024_08-110-g317f43b9
+	NGSDExportGenes 2025_12-266-g396e1fe11
 	
+	2026-04-17 Added genomAD pLI.
 	2021-04-13 Added more information (imprinting, pseudogenes, OrphaNet, OMIM).
 	2019-09-20 Added several columns with gene details.
 	2018-05-03 First version

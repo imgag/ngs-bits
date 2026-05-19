@@ -19,6 +19,9 @@ public:
 		QStringList output_options;
 		output_options << "intersect" << "in" << "in2";
 		addEnum("mode", "Output mode: intersect of both files (intersect), original entry of file 1 (in) or original entry of file 2 (in2).", true, output_options, "intersect");
+		QStringList anno_options;
+		output_options << "none" << "in" << "in2";
+		addEnum("annotation", "In intersect mode the annotations are removed by default. Setting this option to 'in' or 'in2' keeps the annotation of the respective file.", true, output_options, "none");
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
@@ -37,8 +40,23 @@ public:
 		if (mode=="intersect")
 		{
 			if (!in2.isMergedAndSorted()) in2.merge();
-			in.intersect(in2);
-			in.store(getOutfile("out"));
+
+			QString anno = getEnum("annotation");
+			if (anno == "none")
+			{
+				in.intersect(in2);
+				in.store(getOutfile("out"));
+			}
+			else if (anno == "in")
+			{
+				in.intersect(in2, true);
+				in.store(getOutfile("out"));
+			}
+			else if (anno == "in2")
+			{
+				in2.intersect(in, true);
+				in2.store(getOutfile("out"));
+			}
 		}
 		else if (mode=="in")
 		{

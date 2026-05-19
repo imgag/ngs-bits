@@ -67,7 +67,7 @@ void VariantWidget::updateGUI()
 		ui_.variant->setText(variant_.toString(QChar(), -1, true));
 
 		SqlQuery query1 = db.getQuery();
-		query1.exec("SELECT gnomad, cadd, spliceai FROM variant WHERE id=" + variant_id_);
+		query1.exec("SELECT gnomad, cadd, spliceai, comment FROM variant WHERE id=" + variant_id_);
 		query1.next();
 		QString gnomad_af;
 		if (!query1.value("gnomad").isNull())
@@ -106,17 +106,25 @@ void VariantWidget::updateGUI()
 		for(int i=0; i<transcripts.count(); ++i)
 		{
 			const Transcript& trans = transcripts[i];
-			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);
-
 			QLabel* label = GUIHelper::createLinkLabel("<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a>", false);
 			connect(label, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 			ui_.transcripts->setCellWidget(i, 0, label);
 			ui_.transcripts->setItem(i, 1, GUIHelper::createTableItem(trans.nameWithVersion()));
-			ui_.transcripts->setItem(i, 2, GUIHelper::createTableItem(consequence.hgvs_c));
-			ui_.transcripts->setItem(i, 3, GUIHelper::createTableItem(consequence.hgvs_p));
-			ui_.transcripts->setItem(i, 4, GUIHelper::createTableItem(consequence.typesToStringSimplified(", ")));
-			ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(variantImpactToString(consequence.impact)));
 			ui_.transcripts->setItem(i, 6, GUIHelper::createTableItem(trans.flags(false).join(", ")));
+
+			try
+			{
+				VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);
+				ui_.transcripts->setItem(i, 2, GUIHelper::createTableItem(consequence.hgvs_c));
+				ui_.transcripts->setItem(i, 3, GUIHelper::createTableItem(consequence.hgvs_p));
+				ui_.transcripts->setItem(i, 4, GUIHelper::createTableItem(consequence.typesToStringSimplified(", ")));
+				ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(variantImpactToString(consequence.impact)));
+			}
+			catch(Exception& e)
+			{
+				qDebug() << variant_.toString();
+				qDebug() << e.message();
+			}
 		}
 		GUIHelper::resizeTableCellWidths(ui_.transcripts, 530);
 		GUIHelper::resizeTableCellHeightsToFirst(ui_.transcripts);
@@ -142,7 +150,6 @@ void VariantWidget::updateGUI()
 		ClassificationInfo class_info = db.getClassification(variant_);
 		ui_.classification->setText(class_info.classification);
 		GSvarHelper::limitLines(ui_.classification_comment, class_info.comments);
-
 
 		//somatic classification
 		SomaticViccData vicc_info = db.getSomaticViccData(variant_, false);

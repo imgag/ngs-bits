@@ -1,5 +1,5 @@
 ### VariantAnnotateFrequency tool help
-	VariantAnnotateFrequency (2025_03-80-g74f31dd7)
+	VariantAnnotateFrequency (2025_12-175-gc2187ef59)
 	
 	Annotates a variant list with variant frequencies from a BAM/CRAM file.
 	
@@ -19,6 +19,10 @@
 	                    Default value: ''
 	  -long_read        Support long reads (> 1kb).
 	                    Default value: 'false'
+	  -fragments        Count based on fragments not reads.
+	                    Default value: 'false'
+	  -target <file>    Only annotate variants within the target region given in BED format.
+	                    Default value: ''
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -28,8 +32,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VariantAnnotateFrequency changelog
-	VariantAnnotateFrequency 2025_03-80-g74f31dd7
+	VariantAnnotateFrequency 2025_12-175-gc2187ef59
 	
+	2026-02-06 Added support for fragment counting and target region.
 	2025-05-21 Added long-read support.
 	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

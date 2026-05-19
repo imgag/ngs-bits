@@ -34,6 +34,7 @@ void ProcessingSystemWidget::updateGUI()
 		//###base infos###
 		ui_.name_long->setText(ps_data.name);
 		ui_.name_short->setText(ps_data.name_short);
+		ui_.platform->setText(ps_data.platform);
 		ui_.adapter1->setText(ps_data.adapter1_p5);
 		ui_.adapter2->setText(ps_data.adapter2_p7);
 		ui_.type->setText(ps_data.type);

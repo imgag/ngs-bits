@@ -11,8 +11,8 @@ private:
 				 " -in2 " +
 				 TESTDATA("data_in/FastqExtractBarcode_in2.fastq.gz") +
 				 " -out1 out/FastqExtractUMI_out1.fastq.gz -out2 out/FastqExtractUMI_out2.fastq.gz");
-		COMPARE_GZ_FILES("out/FastqExtractUMI_out1.fastq.gz", TESTDATA("data_out/FastqExtractUMI_out1.fastq.gz"));
-		COMPARE_GZ_FILES("out/FastqExtractUMI_out2.fastq.gz", TESTDATA("data_out/FastqExtractUMI_out2.fastq.gz"));
+		COMPARE_FILES("out/FastqExtractUMI_out1.fastq.gz", TESTDATA("data_out/FastqExtractUMI_out1.fastq.gz"));
+		COMPARE_FILES("out/FastqExtractUMI_out2.fastq.gz", TESTDATA("data_out/FastqExtractUMI_out2.fastq.gz"));
 	}
 
 	TEST_METHOD(test_02)
@@ -22,7 +22,7 @@ private:
 				 " -in2 " +
 				 TESTDATA("data_in/FastqExtractBarcode_in2.fastq.gz") +
 				 " -out1 out/FastqExtractUMI_out3.fastq.gz -out2 out/FastqExtractUMI_out4.fastq.gz");
-		COMPARE_GZ_FILES("out/FastqExtractUMI_out3.fastq.gz", TESTDATA("data_out/FastqExtractUMI_out3.fastq.gz"));
-		COMPARE_GZ_FILES("out/FastqExtractUMI_out4.fastq.gz", TESTDATA("data_out/FastqExtractUMI_out4.fastq.gz"));
+		COMPARE_FILES("out/FastqExtractUMI_out3.fastq.gz", TESTDATA("data_out/FastqExtractUMI_out3.fastq.gz"));
+		COMPARE_FILES("out/FastqExtractUMI_out4.fastq.gz", TESTDATA("data_out/FastqExtractUMI_out4.fastq.gz"));
 	}
 };

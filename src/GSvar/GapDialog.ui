@@ -93,7 +93,7 @@
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -117,7 +117,7 @@
         <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -162,7 +162,7 @@
          <string/>
         </property>
         <property name="textFormat">
-         <enum>Qt::RichText</enum>
+         <enum>Qt::TextFormat::RichText</enum>
         </property>
        </widget>
       </item>
@@ -215,7 +215,7 @@
       <item row="0" column="2">
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -278,13 +278,13 @@
    <item>
     <widget class="QTableWidget" name="gaps">
      <property name="contextMenuPolicy">
-      <enum>Qt::CustomContextMenu</enum>
+      <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
      </property>
      <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
+      <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
      </property>
      <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
+      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
      </property>
      <column>
       <property name="text">
@@ -325,10 +325,10 @@
      </column>
      <column>
       <property name="text">
-       <string>preferred transcript</string>
+       <string>relevant transcript</string>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows if the gap overlaps a preferred transcript.&lt;/p&gt;&lt;p&gt;Gaps overlapping the splice region (up to 20 bases from coding region), are marked with '&lt;span style=&quot; font-style:italic;&quot;&gt;yes (splice region)&lt;/span&gt;'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;If no preferred transcripts are defined for the gene(s), 'not defined' is shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows if the gap overlaps a relevant transcript, i.e. a preferrred transcript, a MANE transcript, a Ensembl canonical transcript (or if none of those exist, the longest transcript).&lt;/p&gt;&lt;p&gt;Gaps overlapping the splice region (up to 20 bases from coding region), are marked with '&lt;span style=&quot; font-style:italic;&quot;&gt;yes (splice region)&lt;/span&gt;'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </column>
      <column>

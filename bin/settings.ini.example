@@ -10,6 +10,10 @@ reference_genome_hg19 = ""
 liftover_hg19_hg38 = ""
 liftover_hg38_hg19 = ""
 
+#proxy credentials (if a authenticating proxy is used to access non-local files)
+proxy_user = ""
+proxy_password = ""
+
 ############################ internal settings ############################
 #   If you do not know what these settings mean, leave them unchanged!    #
 ###########################################################################

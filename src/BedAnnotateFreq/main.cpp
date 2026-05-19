@@ -25,7 +25,7 @@ public:
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
-		addInt("min_mapq", "Minimum mapping quality.", true, 1);
+		addInt("min_mapq", "Minimum mapping quality.", true, 20);
 		addInt("min_baseq", "Minimum base quality.", true, 25);
 		addFlag("long_read", "Support long reads (> 1kb).");
 

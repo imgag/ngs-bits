@@ -35,7 +35,6 @@ The most important settings are:
 - *threads*: number of threads used
 - *clinvar_api_key.*: API key for Clinvar upload of variants
 - *analysis_steps_...*: Analysis steps of queuing of analysis on cluster for different analysis types
-- *proxy_...*: Proxy settings (if GSvar is running behind a proxy server)
 - *gsvar_...*: Output folders for different documents `GSvar` creates, e.g. reports.
 - *email_run_...*: semicolon-separated list of additional email addresses that are used when the email button on the run tab is pressed.
 - *custom_menu_small_variants*: tab-separated list of custom context menu entries. Each entry constists of `name|URL`. The name is shown in the context menu. The URL is opened and the following strings are replaced by values from the variant: `[chr]`, `[start]`, `[end]`, `[ref]`, `[obs]`.
@@ -64,8 +63,6 @@ If you want to run GSvar with a GSvar server, you need to provide these settings
 - *server_port*: Server port.
 - *curl_ca_bundle*: Path to the certificate bundle `.crt` file used by the server. If not provided, the GSvar and/or IGV cannot access BAM files over HTTPS.
 - *display_user_notifications*: Enable/Disable showing user notifications from the server in the client.
-- *use_proxy_for_gsvar_server*: for using an external GSvar server should be set to True (if your network is behind a HTTP proxy server).
-
 
 ## Filters
 

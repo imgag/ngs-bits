@@ -42,7 +42,9 @@ public:
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addInt("debug", "Enables debug output at the given interval in milliseconds (disabled by default, cannot be combined with writing to STDOUT).", true, -1);
+		addString("desc", "Custom INFO header description. If unset auto-generated string with file name and separator is used. (Use underscore instead of spaces.)", true, "");
 
+		changeLog(2026,  5, 13, "Added 'desc' parameter to set custom INFO header.");
 		changeLog(2021,  9, 18, "Prefetch only part of input file (to save memory).");
 		changeLog(2021,  8, 24, "Added multithread support.");
 		changeLog(2021,  6, 15, "Added 'sep' parameter.");
@@ -58,6 +60,7 @@ public:
 		QByteArray bed = getInfile("bed").toUtf8();
 		QByteArray name = getString("name").toUtf8().trimmed();
 		QByteArray sep = getString("sep").toUtf8().trimmed();
+		QByteArray desc = getString("desc").toUtf8().trimmed();
 		int block_size = getInt("block_size");
 		int threads = getInt("threads");
 		int prefetch = getInt("prefetch");
@@ -146,7 +149,7 @@ public:
 								vcf_line_idx++;
 							}
 							vcf_line_idx = 0;
-							analysis_pool.start(new ChunkProcessor(job, name, bed_data, bed_index, bed, sep));
+							analysis_pool.start(new ChunkProcessor(job, name, bed_data, bed_index, bed, sep, desc));
 							++current_chunk;
 							break;
 

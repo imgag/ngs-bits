@@ -607,9 +607,9 @@ void BurdenTestWidget::validateInputData()
 					   + ((control_ps_to_remove.size()>0)?"Controls:\n" + control_ps_to_remove.join(", ") + "\n\n":"")
 					   + "Would you like to procreed?");
 		label->setWordWrap(true);
+		label->setTextInteractionFlags(Qt::TextInteractionFlag::TextSelectableByMouse);
 		auto dlg = GUIHelper::createDialog(label, "Removing samples", "The following related samples can be removed automatically:\n ", true);
-		int btn = dlg->exec();
-		if (btn == 1)
+		if (dlg->exec() == QDialog::Accepted)
 		{
 			case_samples_ = case_samples_to_keep;
 			control_samples_ = control_samples_to_keep;
@@ -999,16 +999,11 @@ void BurdenTestWidget::performBurdenTest()
 		}
 
 		//read polymorphism region
-		QStringList igv_tracks = Settings::stringList("igv_menu"); //TODO Leon: seperate entry!
-		foreach (const QString& track, igv_tracks)
-		{
-			QStringList columns = track.split('\t');
-			if (columns.at(0).startsWith("Copy-number polymorphism regions"))
-			{
-				cnv_polymorphism_region.load(columns.at(2).trimmed());
-			}
-		}
-
+		cnv_polymorphism_region.load(Settings::string("burden_test_cnp_regions"));
+		cnv_polymorphism_region.sort();
+		qDebug() << "path:" << Settings::string("burden_test_cnp_regions");
+		qDebug() << "Base count:" << cnv_polymorphism_region.baseCount();
+		qDebug() << "is sorted:" << cnv_polymorphism_region.isMergedAndSorted();
 	}
 	ChromosomalIndex<BedFile> cnv_polymorphism_region_index(cnv_polymorphism_region);
 

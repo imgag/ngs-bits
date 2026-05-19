@@ -33,7 +33,7 @@ private:
 	float score3_consensus(const Sequence& sequence);
 	float score3_rest(const Sequence& sequence);
 	float score_maxent(const Sequence& sequence, float (ChunkProcessor::*scorefunc)(const Sequence&));
-	QPair<float, int> get_max_score(const Sequence& context, const float& window_size, float (ChunkProcessor::*scorefunc)(const Sequence&));
+	QPair<float, int> get_max_score(const Sequence& context, float window_size, float (ChunkProcessor::*scorefunc)(const Sequence&));
 	QList<QByteArray> runMES(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts);
 	QList<QByteArray> runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts);
 	QByteArray format_score(float score);

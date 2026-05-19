@@ -1,5 +1,5 @@
 #include "ToolBase.h"
-#include "NGSHelper.h"
+#include "GffData.h"
 #include "NGSD.h"
 
 class ConcreteTool
@@ -135,7 +135,7 @@ public:
 		//load GFFs
         stream << "### loading Ensembl transcripts from GFF ###" << Qt::endl;
 		GffSettings s_e;
-		TranscriptList trans_e = NGSHelper::loadGffFile(getInfile("ensembl"), s_e).transcripts;
+        TranscriptList trans_e = GffData::load(getInfile("ensembl"), s_e).transcripts;
 		trans_e.sortByPosition();
         stream << "took " << Helper::elapsedTime(timer.restart(), true) << Qt::endl;
         stream << Qt::endl;
@@ -143,7 +143,7 @@ public:
         stream << "### loading RefSeq transcripts from GFF ###" << Qt::endl;
 		GffSettings s_r;
 		s_r.source = "refseq";
-		TranscriptList trans_r = NGSHelper::loadGffFile(getInfile("refseq"), s_r).transcripts;
+        TranscriptList trans_r = GffData::load(getInfile("refseq"), s_r).transcripts;
 		trans_r.sortByPosition();
 		ChromosomalIndex<TranscriptList> idx_r(trans_r);
         stream << "took " << Helper::elapsedTime(timer.restart(), true) << Qt::endl;

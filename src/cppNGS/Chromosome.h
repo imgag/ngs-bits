@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QString>
+#include <QHash>
 
 ///Chromosome class that assigns a numeric value to each chromosome string.
 ///The numeric representation is unique for each normalized string representation!
@@ -19,6 +20,8 @@ class CPPNGSSHARED_EXPORT Chromosome
 		Chromosome(const char* chr);
 		///Constructor.
 		Chromosome(const std::string& chr);
+		///Constructor.
+		Chromosome(QByteArrayView chr);
 
 		///Less-than operator.
 		bool operator<(const Chromosome& rhs) const
@@ -86,7 +89,7 @@ class CPPNGSSHARED_EXPORT Chromosome
 		///Returns the normalized string representation (upper-case letters, 'chr' on demand only).
 		QByteArray strNormalized(bool prepend_chr) const
 		{
-			return (prepend_chr ? "chr" : "") + normalizedStringRepresentation();
+			return (prepend_chr ? "chr" : "") + (num2str_cache_.contains(num_) ? num2str_cache_[num_] : normalizedStringRepresentation());
 		}
 
         //numeric representation (0=invalid, 1-1000=autosome, 1001=X, 1002=Y, 1003=M, 1004+=other non-numeric chromosomes)
@@ -96,6 +99,8 @@ class CPPNGSSHARED_EXPORT Chromosome
 		}
 
 	private:
+		static const QHash<QByteArray, int> str2num_cache_;
+		static const QHash<int, QByteArray> num2str_cache_;
 		QByteArray str_;
 		int num_;
 

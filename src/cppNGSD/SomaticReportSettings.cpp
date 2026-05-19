@@ -33,14 +33,13 @@ VariantTranscript SomaticReportSettings::selectGermlineTranscript(const Variant&
 		transcript = transcripts[0];
 		for(int j=0; j<transcripts.count(); ++j)
 		{
-			if(preferred_transcripts.value( transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
+			if(relevant_transcripts.value( transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
 			{
 				transcript = transcripts[j];
 				break;
 			}
 		}
 	}
-
 	return transcript;
 }
 

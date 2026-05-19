@@ -130,5 +130,6 @@
         <file>Icons/Icon.icns</file>
         <file>Icons/Methylation.png</file>
         <file>Icons/strchive.png</file>
+        <file>Icons/LitVar2.png</file>
     </qresource>
 </RCC>

@@ -1,5 +1,4 @@
 #include "GenePanel.h"
-#include "Helper.h"
 #include "NGSHelper.h"
 #include <QPainter>
 #include <QMenu>
@@ -14,11 +13,9 @@ GenePanel::GenePanel(QWidget *parent)
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
 }
 
-void GenePanel::setDependencies(const FastaFileIndex& genome_idx, const TranscriptList& transcripts)
+void GenePanel::setGenomeData(QSharedPointer<GenomeData> genome_data)
 {
-	genome_idx_ = &genome_idx;
-	transcripts_ = & transcripts;
-	transcripts_idx_ = new ChromosomalIndex<TranscriptList>(*transcripts_);
+    genome_data_ = genome_data;
 }
 
 void GenePanel::setRegion(const BedLine& region)
@@ -35,9 +32,9 @@ void GenePanel::contextMenu(QPoint pos)
 	QAction* a_show_translation = menu.addAction("Show translation");
 	a_show_translation->setCheckable(true);
 	a_show_translation->setChecked(settings_.show_translation);
-	QAction* a_show_ensebl_only = menu.addAction("Show only Ensembl transcripts");
+    QAction* a_show_ensebl_only = menu.addAction("Show only GENCODE primary");
 	a_show_ensebl_only->setCheckable(true);
-	a_show_ensebl_only->setChecked(settings_.show_only_ensembl);
+    a_show_ensebl_only->setChecked(settings_.show_only_primary);
 
 	//show menu
 	QAction* action = menu.exec(mapToGlobal(pos));
@@ -55,7 +52,7 @@ void GenePanel::contextMenu(QPoint pos)
 	}
 	else if (action==a_show_ensebl_only)
 	{
-		settings_.show_only_ensembl = !settings_.show_only_ensembl;
+        settings_.show_only_primary = !settings_.show_only_primary;
 		update();
 	}
 }
@@ -63,7 +60,7 @@ void GenePanel::contextMenu(QPoint pos)
 void GenePanel::paintEvent(QPaintEvent* /*event*/)
 {
 	//check
-	if (genome_idx_==nullptr || transcripts_==nullptr) THROW(ProgrammingException, "Dependencies not set!");
+    if (genome_data_.isNull()) THROW(ProgrammingException, "Genome data not set!");
 
 	//init
 	int h = height();
@@ -84,7 +81,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	//paint sequence (only if at lest one pixel per base is available)
 	if (pixels_per_base_ >= 1)
 	{
-		Sequence seq = genome_idx_->seq(reg_.chr(), reg_.start(), reg_.length());
+        Sequence seq = genome_data_->genome().seq(reg_.chr(), reg_.start(), reg_.length());
 		if (!settings_.strand_forward) seq.complement();
 		painter.setPen(Qt::transparent);
 
@@ -142,22 +139,30 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	y_content_start += 2;
 	trans_positions_.clear();
 
-	//paint preferred transcripts;
-	QVector<int> trans_indices = transcripts_idx_->matchingIndices(reg_.chr(), reg_.start(), reg_.end());
+    //paint important transcripts on top
+    QVector<int> trans_indices = genome_data_->transcriptsIndex().matchingIndices(reg_.chr(), reg_.start(), reg_.end());
+    QSet<int> rest;
 	foreach(int i, trans_indices)
 	{
-		const Transcript& trans = transcripts_->at(i);
-		if (!trans.isPreferredTranscript()) continue;
-		if (trans.source()!=Transcript::ENSEMBL && settings_.show_only_ensembl) continue;
-		drawTranscript(painter, trans, y_content_start, QColor(130, 0, 50));
+        const Transcript& trans = genome_data_->transcripts().at(i);
+
+        //only GENCODE primary
+        if (settings_.show_only_primary && !trans.isGencodePrimaryTranscript()) continue;
+
+        if (trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript())
+        {
+            drawTranscript(painter, trans, y_content_start, QColor(130, 0, 50));
+        }
+        else
+        {
+            rest << i;
+        }
 	}
 
-	//paint other transcripts
-	foreach(int i, trans_indices)
+    //paint other transcripts
+    foreach(int i, rest)
 	{
-		const Transcript& trans = transcripts_->at(i);
-		if (trans.isPreferredTranscript()) continue;
-		if (trans.source()!=Transcript::ENSEMBL && settings_.show_only_ensembl) continue;
+        const Transcript& trans = genome_data_->transcripts().at(i);
 		drawTranscript(painter, trans, y_content_start, QColor(0, 0, 178));
 	}
 }
@@ -191,7 +196,10 @@ bool GenePanel::event(QEvent* event)
 		{
 			if (trans_pos.rect.contains(pos))
 			{
-				QToolTip::showText(helpEvent->globalPos(), "<nobr><b>"+trans_pos.trans.gene()+" ("+trans_pos.trans.name()+")</b></nobr>");
+                QString text = "<nobr><b>"+trans_pos.trans.gene()+" ("+trans_pos.trans.name()+")</b></nobr>";
+                QString tags = trans_pos.trans.flags(false).join(", ").trimmed();
+                if (!tags.isEmpty()) text += "<br><nobr>Tags: "+tags+"</nobr>";
+                QToolTip::showText(helpEvent->globalPos(), text);
 				tooltip_shown = true;
 				break;
 			}

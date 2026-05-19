@@ -19,9 +19,9 @@ public:
 	virtual QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type) const override;
 
 	virtual FileLocation processedSamplePath(const QString& processed_sample_id, PathType type) const override;
-	virtual FileInfo analysisJobLatestLogInfo(const int& job_id) const override;
-	virtual FileLocation analysisJobGSvarFile(const int& job_id) const override;
-	virtual FileLocation analysisJobLogFile(const int& job_id) const override;
+	virtual FileInfo analysisJobLatestLogInfo(int job_id) const override;
+	virtual FileLocation analysisJobGSvarFile(int job_id) const override;
+	virtual FileLocation analysisJobLogFile(int job_id) const override;
 	virtual QList<MultiSampleAnalysisInfo> getMultiSampleAnalysisInfo(QStringList& analyses) const override;
 
 	virtual QStringList getRnaFusionPics(const QString& rna_id) const override;

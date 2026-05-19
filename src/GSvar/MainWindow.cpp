@@ -23,6 +23,7 @@
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
 #include "HttpHandler.h"
+#include "TransferredVariantDialog.h"
 #include "ValidationDialog.h"
 #include "ClassificationDialog.h"
 #include "ApprovedGenesDialog.h"
@@ -99,7 +100,6 @@
 #include "SplicingWidget.h"
 #include "VirusDetectionWidget.h"
 #include "ClientHelper.h"
-#include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
 #include "IgvLogWidget.h"
 #include "SettingsDialog.h"
@@ -122,6 +122,9 @@
 #include <QtCharts/QChartView>
 #include "FilterCascade.h"
 #include "FilterWidgetHelper.h"
+#include "Background/PingWorker.h"
+#include "AboutDialog.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -906,7 +909,6 @@ void MainWindow::on_actionCNV_triggered()
 
 void MainWindow::on_actionROH_triggered()
 {
-
 	//trio special handling: show UPD file is not empty
     if (data_controller_.getAnalysisType() == AnalysisType::GERMLINE_TRIO)
 	{
@@ -1244,6 +1246,10 @@ void MainWindow::delayedInitialization()
 			return;
 		}
 	}
+
+	//ping
+	PingWorker* workter = new PingWorker();
+	startJob(workter, false);
 
     if (NGSD::isAvailable())
     {
@@ -2074,7 +2080,6 @@ void MainWindow::loadFile(QString filename)
 	//notify for variant validation
 	checkPendingVariantValidations();
 
-
 }
 
 int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues)
@@ -2114,44 +2119,36 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues)
 
 void MainWindow::on_actionAbout_triggered()
 {
-	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
-
-	about_text += "\n\nA free decision support system for germline and somatic variants.";
-
-	//general infos
-	about_text += "\n";
-	about_text += "\nGenome build: " + GSvarHelper::buildAsString();
-	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
-	about_text += "\nhtslib version: " + QString(hts_version());
-	about_text += "\nQt version: " + QLibraryInfo::version().toString();
-
-	//client-server infos
-	about_text += "\n";
+	//Prepare server infos
+	QString add_info = "Mode: stand-alone (no server)";
 	if (ClientHelper::isClientServerMode())
 	{
-		about_text += "\nServer information:";
-        int status_code = -1;
-        ServerInfo server_info = ClientHelper::getServerInfo(status_code);
-        if (status_code!=200)
-        {
-            about_text += "\nServer returned " + QString::number(status_code);
-        }
-        else
-        {
-			about_text += "\n  version: " + server_info.version;
-			about_text += "\n  start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-			about_text += "\n  API URL: " + server_info.server_url;
-			about_text += "\n  API version: " + server_info.api_version;
-			about_text += "\n  htslib version: " + server_info.htslib_version;
-			about_text += "\n  Qt version: " + server_info.qt_version;
+		add_info = "Server information:";
+		int status_code = -1;
+		ServerInfo server_info = ClientHelper::getServerInfo(status_code);
+		if (status_code!=200)
+		{
+			add_info += "<br>&nbsp;&nbsp;Server error: " + QString::number(status_code);
 		}
-    }
-	else
-	{
-		about_text += "\nMode: stand-alone (no server)";
+		else
+		{
+			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version;
+			add_info += "<br>&nbsp;&nbsp;start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
+			add_info += "<br>&nbsp;&nbsp;API URL: " + server_info.server_url;
+			add_info += "<br>&nbsp;&nbsp;API version: " + server_info.api_version;
+			add_info += "<br>&nbsp;&nbsp;htslib version: " + server_info.htslib_version;
+			add_info += "<br>&nbsp;&nbsp;Qt version: " + server_info.qt_version;
+		}
 	}
 
-	QMessageBox::about(this, "About " + appName(), about_text);
+	//show dialog
+	AboutDialog dlg(this);
+	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setDescription("A free decision support system for germline and somatic variants.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/index.md'>GitHub page</a> for details.");
+	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
+	dlg.addLibVersionLine("Genome build: " + GSvarHelper::buildAsString());
+	dlg.setAddInfo(add_info);
+	dlg.exec();
 }
 
 void MainWindow::chooseGermlineReportSample(QStringList samples)
@@ -2204,8 +2201,9 @@ void MainWindow::generateEvaluationSheet()
 
 	//write sheet
 	PrsTable prs_table; //not needed
-    GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, data_controller_.getSmallVariantList(), data_controller_.getCnvList(), data_controller_.getSvList(), data_controller_.getReList(), prs_table, data_controller_.getGermlineReportSettings(), data_controller_.getSmallVariantsFilterState().getFilterCascade(), GSvarHelper::preferredTranscripts(), GlobalServiceProvider::statistics());
+	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, data_controller_.getSmallVariantList(), data_controller_.getCnvList(), data_controller_.getSvList(), data_controller_.getReList(), prs_table, data_controller_.getGermlineReportSettings(), data_controller_.getSmallVariantsFilterState().getFilterCascade(), GlobalServiceProvider::statistics());
     GermlineReportGenerator generator(generator_data);
+
 	generator.writeEvaluationSheet(filename, evaluation_sheet_data);
 
 	if (QMessageBox::question(this, "Evaluation sheet", "Evaluation sheet generated successfully!\nDo you want to open it in your browser?")==QMessageBox::Yes)
@@ -2403,8 +2401,8 @@ void MainWindow::generateReportTumorOnly()
 
 	//get report settings
     TumorOnlyReportWorkerConfig config = data_controller_.getTumorOnlyReportWorkerConfig();
+	TumorOnlyReportDialog dlg(data_controller_.getSmallVariantList(), config, this);
 
-    TumorOnlyReportDialog dlg(data_controller_.getSmallVariantList(), config, this);
 	if(!dlg.exec()) return;
 
 	//get RTF file name
@@ -2453,7 +2451,7 @@ void MainWindow::generateReportTumorOnly()
 
 void MainWindow::generateReportSomaticRTF()
 {
-    data_controller_.updateSomaticReportSettings();
+	data_controller_.updateSomaticReportSettings();
 
     SomaticReportDialog dlg(data_controller_, this); //widget for settings
 
@@ -3343,12 +3341,6 @@ void MainWindow::on_actionGaps_triggered()
 	dlg.exec();
 }
 
-void MainWindow::on_actionPrepareGhgaUpload_triggered()
-{
-	GHGAUploadDialog dlg(this);
-	dlg.exec();
-}
-
 void MainWindow::on_actionMaintenance_triggered()
 {
 	try
@@ -3557,6 +3549,7 @@ void MainWindow::exportHerediCareVCF()
         if (file_name.isEmpty()) return;
 
         data_controller_.exportHerediCareVCF(id, file_name);
+
 	}
 	catch(Exception& e)
 	{
@@ -3596,8 +3589,8 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	auto dlg = GUIHelper::createDialog(widget, "Preferred transcripts");
 	dlg->exec();
 
-	//re-load preferred transcripts from NGSD
-	GSvarHelper::preferredTranscripts(true);
+	//re-load preferred transcripts from NGSD (only adds new PTs, for removing PTs GSvar needs to be restarted)
+	GSvarHelper::relevantTranscripts(true);
 }
 
 void MainWindow::on_actionEditSomaticGeneRoles_triggered()

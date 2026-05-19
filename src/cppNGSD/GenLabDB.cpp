@@ -4,7 +4,6 @@
 #include "Helper.h"
 #include "Settings.h"
 #include "Exceptions.h"
-#include "Log.h"
 #include "ClientHelper.h"
 
 GenLabDB::GenLabDB()
@@ -364,7 +363,7 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, ProcessedSampleSearchPara
 	//convert DNA number to processed sample names
 	QSet<QString> output;
 	NGSD db;
-	for (const QString& dna_nr : dna_nrs)
+	for (const QString& dna_nr : std::as_const(dna_nrs))
 	{
 		params.s_name = dna_nr;
 		DBTable res = db.processedSampleSearch(params);

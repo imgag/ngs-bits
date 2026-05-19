@@ -39,6 +39,10 @@ public:
 	static HttpResponse locateFileByType(const HttpRequest& request);
 	/// Returns the location of the processed sample
     static HttpResponse getProcessedSamplePath(const HttpRequest& request);
+	/// Checks every processed sample folder inside the given project folder: if a processed sample has any files (needed to handle project folder change)
+	static HttpResponse checkProjectFolder(const HttpRequest& request);
+	/// Reads the server configuration and returns a list of locations for all exisitng project types (diagnostic, test, external, research)
+	static HttpResponse getProjectFolderSettings(const HttpRequest& request);
     /// Returns the location id (hash) of the processed sample
     static HttpResponse getProcessedSampleHash(const HttpRequest& request);
 	/// Locates a GSvar file related to the specified job
@@ -113,7 +117,7 @@ private:
 	/// not allowed, according to the HTTP specification
     static bool hasOverlappingRanges(const QList<ByteRange>& ranges);
     /// Finds filename with full path for a given processed sample
-    static QString getProcessedSampleFile(const int& ps_id, const PathType& type, const QString& token);
+    static QString getProcessedSampleFile(int ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
     static QString createTempUrl(FastFileInfo& file_info, const QString& token);

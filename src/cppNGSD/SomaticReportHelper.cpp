@@ -53,7 +53,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		QByteArray vicc = variant.annotations()[i_som_vicc];
 		if(vicc == "ONCOGENIC" || vicc == "LIKELY_ONCOGENIC")
 		{
-			important_genes << settings_.selectSomaticTranscript(db_, variant, snv_index_coding_splicing_).gene;
+			important_genes << selectSomaticTranscript(db_, variant.transcriptAnnotations(snv_index_coding_splicing_)).gene;
 		}
 	}
 
@@ -89,21 +89,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	{
 		const Variant& var = filtered_germline_vl_[i];
 
-		QList<VariantTranscript> transcripts = var.transcriptAnnotations(i_germl_co_sp);
-		VariantTranscript transcript;
-		if(!transcripts.isEmpty())
-		{
-			transcript = transcripts[0];
-			for(int j=0; j<transcripts.count(); ++j)
-			{
-				if(settings_.preferred_transcripts.value( transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
-				{
-					transcript = transcripts[j];
-					break;
-				}
-			}
-		}
-
+        VariantTranscript transcript = SomaticReportHelper::selectSomaticTranscript(db_, var.transcriptAnnotations(i_germl_co_sp));
 		if (transcript.gene != "")
 		{
 			important_genes << transcript.gene;
@@ -120,7 +106,8 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	//create lists of important and not imporant variants
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
-		QByteArray gene = settings_.selectSomaticTranscript(db_, somatic_vl_[i], snv_index_coding_splicing_).gene;
+		QByteArray gene = selectSomaticTranscript(db_, somatic_vl_[i].transcriptAnnotations(snv_index_coding_splicing_)).gene;
+
 		Variant var = somatic_vl_[i];
 
 		if(important_genes.contains(gene))
@@ -312,7 +299,7 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		temp_row.addCell(400,QByteArray::number(variant.copyNumber(cnvs_.annotationHeaders())), RtfParagraph().setFontSize(14).setHorizontalAlignment("c"));
 
 		//tumor clonality
-		temp_row.addCell(800,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","), RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
+		temp_row.addCell(800,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2), RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
 
 		temp_row.addCell(5121,genes.join(", "), RtfParagraph().setItalic(true).setFontSize(14));
 
@@ -423,7 +410,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 		stream << variant.annotations().at(i_tumor_depth) << "\t";
 
 		//determine transcript, usually first coding/splicing
-		VariantTranscript transcript = settings_.selectSomaticTranscript(db_, variant, snv_index_coding_splicing_);
+		VariantTranscript transcript = selectSomaticTranscript(db_, variant.transcriptAnnotations(snv_index_coding_splicing_));
 
 		//affected gene
 		stream << transcript.gene << "\t";
@@ -624,6 +611,45 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	saveReportData("QBIC_metadata.tsv", path_target_folder, content);
 }
 
+
+VariantTranscript SomaticReportHelper::selectSomaticTranscript(NGSD& db, const QList<VariantTranscript>& transcripts)
+{
+	if (transcripts.isEmpty()) return VariantTranscript();
+
+	//determine best transcript
+	int current_best_quality = -1;
+	VariantTranscript best_transcript;
+	for (const VariantTranscript& trans : std::as_const(transcripts))
+	{
+		int quality;
+		int gene_id = db.geneId(trans.gene);
+		if (gene_id == -1) continue;
+		Transcript best = db.bestTranscript(gene_id, transcripts, &quality);
+		for (const VariantTranscript& t : std::as_const(transcripts)) // if "best transcript" is annotated take that (logic that is also used in GSvar)
+		{
+			if (t.idWithoutVersion() == best.name() && current_best_quality < quality)
+			{
+				current_best_quality = quality;
+				best_transcript = t;
+			}
+		}
+	}
+
+	//best transcript found - return it
+	if (current_best_quality!=-1)
+	{
+		return best_transcript;
+	}
+
+	//return first transcript if possible
+	if(!transcripts.isEmpty())
+	{
+		return transcripts[0];
+	}
+
+	return VariantTranscript();
+}
+
 void SomaticReportHelper::addColors(RtfDocument& doc)
 {
 	doc.addColor(188,230,138);
@@ -754,7 +780,7 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 
 	row.addCell(col_widths[2], cnv_type);
 
-	row.addCell(col_widths[3], QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","),RtfParagraph().setHorizontalAlignment("c"));
+	row.addCell(col_widths[3], QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2),RtfParagraph().setHorizontalAlignment("c"));
 	row.addCell(col_widths[4], CnvDescription(cnv, db_.getSomaticGeneRole(gene), snv_tumor_af));
 	row.addCell(col_widths[5], db_.getSomaticPathwayGenes(gene).join(", "));
 
@@ -824,19 +850,33 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	RtfSourceCode out = RtfParagraph("Allgemeine Informationen").setBold(true).RtfCode();
 
 	RtfTable metadata;
-	metadata.addRow(RtfTableRow( {"", RtfText("Tumor").setFontSize(14).setUnderline(true).RtfCode(), RtfText("Normal").setFontSize(14).setUnderline(true).RtfCode(), "Prozessierungssystem:", processing_system_data_.name.toUtf8()}, {2000,1480,1480,1480,3481}, RtfParagraph().setFontSize(14)) );
+	metadata.addRow(RtfTableRow( {"", RtfText("Tumor").setFontSize(14).setUnderline(true).RtfCode(), RtfText("Normal").setFontSize(14).setUnderline(true).RtfCode(), "", ""}, {2000,1480,1480,1480,3481}, RtfParagraph().setFontSize(14)) );
+	metadata.addRow(RtfTableRow({"Proben-ID", settings_.tumor_ps.toUtf8(), settings_.normal_ps.toUtf8(), "Prozessierungssystem:", processing_system_data_.name.toUtf8()}, {2000,1480,1480,1480,3481} , RtfParagraph().setFontSize(14)) );
 
-	if(settings_.target_region_filter.name == "")
+	QByteArray panel_header = "";
+	QByteArray panel_desc = "";
+	if(settings_.target_region_filter.name != "")
 	{
-		metadata.addRow(RtfTableRow({"Proben-ID", settings_.tumor_ps.toUtf8(), settings_.normal_ps.toUtf8(), "", ""}, {2000,1480,1480,1480,3481} , RtfParagraph().setFontSize(14)) );
-	}
-	else
-	{
-		QString panel_size = QString::number(settings_.target_region_filter.regions.baseCount()/1000000.0, 'f', 2);
-		metadata.addRow(RtfTableRow({"Proben-ID", settings_.tumor_ps.toUtf8(), settings_.normal_ps.toUtf8(), "Genpanel:", settings_.target_region_filter.name.toUtf8() + "\n\\line\n(" + panel_size.toUtf8() + " MB, Gennamen s. letzte Seite)"}, {2000,1480,1480,1480,3481} , RtfParagraph().setFontSize(14)) );
+		panel_header = "Genpanel:";
+		QByteArray panel_size = QByteArray::number(settings_.target_region_filter.regions.baseCount()/1000000.0, 'f', 2);
+		panel_desc = settings_.target_region_filter.name.toUtf8() + "\n\\line\n(" + panel_size + " MB, Gennamen s. letzte Seite)";
 	}
 
-	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Auswertungsdatum:", settings_.report_config->evaluationDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,1480,3481}) );
+	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", panel_header, panel_desc}, {2000,1480,1480,1480,3481}) );
+
+	RtfSourceCode tum_depth_no_ol = "n/a";
+	RtfSourceCode nor_depth_no_ol = "n/a";
+
+	try
+	{
+		tum_depth_no_ol = tumor_qcml_data_.value("QC:2000150",true).toString().toUtf8() + "x";
+		nor_depth_no_ol = normal_qcml_data_.value("QC:2000150",true).toString().toUtf8() + "x";
+	}
+	catch(Exception) //nothing to do here
+	{
+	}
+
+	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe ohne Read Überlapp:", tum_depth_no_ol, nor_depth_no_ol, "Auswertungsdatum:", settings_.report_config->evaluationDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,1480,3481}) );
 	metadata.addRow(RtfTableRow({"Durchschnittliche Insert size:", tumor_qcml_data_.value("QC:2000023",true).toString().toUtf8(), normal_qcml_data_.value("QC:2000023",true).toString().toUtf8(), "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
@@ -920,7 +960,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	metadata.addRow(RtfTableRow({"Coverage 20x:", "" , nor_cov_20x, "MSI-Score:", (!BasicStatistics::isValidFloat(msi_unstable_percent_) || !settings_.report_config->msiStatus() ? "n/a" : QByteArray::number(msi_unstable_percent_,'f',2) + "%")}, {2000,1480,1480,1480,3481}));
 	metadata.addRow(RtfTableRow({"Coverage Genpanel 20x:", "" , nor_panel_cov_20x, "Tumor-Ploidie:", (settings_.report_config->ploidy() == 0 ? "n/a" : QByteArray::number(settings_.report_config->ploidy(),'f',3))}, {2000,1480,1480,1480,3481}));
 
-	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >10% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
+	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >10% im Tumorgewebe mit einer Sensitivität >95.0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
 
 	metadata.setUniqueFontSize(14);
 	out.append(metadata.RtfCode());
@@ -1115,10 +1155,8 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			RtfTableRow row;
 
 			//Select germline transcript
-			QList<VariantTranscript> transcripts = var.transcriptAnnotations(i_germl_co_sp);
-			VariantTranscript transcript = settings_.selectGermlineTranscript(var, i_germl_co_sp);
 
-
+			VariantTranscript transcript = SomaticReportHelper::selectSomaticTranscript(db_, var.transcriptAnnotations(i_germl_co_sp));
 			QByteArray gene_txt = "";
 			if (transcript.gene != "")
 			{
@@ -1130,10 +1168,9 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			}
 
 			row.addCell(col_widths[0], gene_txt + "\\super#", RtfParagraph().setItalic(true) );
-
 			row.addCell(col_widths[1], QByteArrayList() << transcript.hgvs_c + ", " + transcript.hgvs_p << RtfText(transcript.id).setFontSize(14).RtfCode());
 			row.addCell(col_widths[2], transcript.type.replace("_variant",""));
-			row.addCell(col_widths[3], QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c"));
+			row.addCell(col_widths[3], QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2), RtfParagraph().setHorizontalAlignment("c"));
 
 			//Description of germline variant
 			QByteArray germl_desc = "pathogene Variante";
@@ -1153,8 +1190,8 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			for (int i : std::as_const(indices_sorted))
 			{
 				const Variant& snv = somatic_vl_[i];
+				VariantTranscript som_transcript = selectSomaticTranscript(db_, snv.transcriptAnnotations(snv_index_coding_splicing_));
 
-				VariantTranscript som_transcript = settings_.selectSomaticTranscript(db_, snv, snv_index_coding_splicing_);
 				som_transcript.type = som_transcript.type.replace("_variant","");
 				som_transcript.type.replace("&",", ");
 
@@ -1192,8 +1229,8 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 		if (snv_already_included.contains(i)) continue;
 
 		const Variant& snv = somatic_vl_[i];
+		VariantTranscript transcript = selectSomaticTranscript(db_, snv.transcriptAnnotations(snv_index_coding_splicing_));
 
-		VariantTranscript transcript = settings_.selectSomaticTranscript(db_, snv, snv_index_coding_splicing_);
 		transcript.type = transcript.type.replace("_variant","");
 		transcript.type.replace("&",", ");
 
@@ -1299,7 +1336,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 				if(!cnv_type.contains("focal") && !cnv_type.contains("cluster")) cnv_type = "non-focal";
 				row.addCell(col_widths[2], cnv_type);
 
-				QByteArray tumor_clonality = QByteArray::number( cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2 ).replace(".", ",");
+				QByteArray tumor_clonality = QByteArray::number( cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2 );
 				row.addCell(col_widths[3], tumor_clonality, RtfParagraph().setHorizontalAlignment("c"));
 
 				row.addCell(col_widths[4], CnvDescription(cnv, gene_role));
@@ -1377,7 +1414,7 @@ RtfTableRow SomaticReportHelper::snvRow(const Variant& snv, const VariantTranscr
 
 	row.addCell(col_widths[2], prepareTranscriptType(transcript.type));
 
-	row.addCell(col_widths[3],QByteArray::number(snv.annotations().at(i_tum_af).toDouble(), 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c")); //tumor allele frequency
+	row.addCell(col_widths[3],QByteArray::number(snv.annotations().at(i_tum_af).toDouble(), 'f', 2), RtfParagraph().setHorizontalAlignment("c")); //tumor allele frequency
 
 	QByteArray var_description = trans(snv.annotations()[i_vicc]);
 	row.addCell(col_widths[4], (var_description.isEmpty() ? "nicht bewertet" : var_description) );
@@ -1590,9 +1627,9 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 			{
 				RtfTableRow row;
 				row.addCell(cell_widths[0], sig.key.toLatin1());
-				row.addCell(cell_widths[1], sig.value.toLatin1().replace(".", ",").trimmed());
-				row.addCell(cell_widths[2], correlation.replace(".", ",").trimmed());
-				row.addCell(cell_widths[3], cos_similarity.replace(".", ",").trimmed());
+				row.addCell(cell_widths[1], sig.value.toLatin1().trimmed());
+				row.addCell(cell_widths[2], correlation.trimmed());
+				row.addCell(cell_widths[3], cos_similarity.trimmed());
 				row.addCell(cell_widths[4], descriptions[sig.key.toLatin1()]);
 
 				table.addRow(row);
@@ -1832,7 +1869,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	RtfText mutation_burden_text;
 	if (settings_.report_config->includeMutationBurden())
 	{
-		mutation_burden_text.setContent(QByteArray::number(mutation_burden_).replace(".", ",") + " Var/Mbp");
+		mutation_burden_text.setContent(QByteArray::number(mutation_burden_) + " Var/Mbp");
 		if(settings_.report_config->tmbReferenceText() != "")
 		{
 			mutation_burden_text.append(";");
@@ -2196,11 +2233,12 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				for (int g=0; g<filtered_germline_vl_.count(); ++g)
 				{
 					const Variant& variant = filtered_germline_vl_[g];
-					VariantTranscript transcript = settings_.selectSomaticTranscript(db_, variant, germline_index_coding_splicing);
+					VariantTranscript transcript = selectSomaticTranscript(db_, variant.transcriptAnnotations(germline_index_coding_splicing));
+
 					if (genes_pathway.contains(transcript.gene))
 					{
 						QByteArray variant_text;
-						if(!transcript.hgvs_p.trimmed().isEmpty())
+						if(!transcript.hgvs_p.trimmed().isEmpty() && transcript.hgvs_p.trimmed() != "p.?")
 						{
 							variant_text = transcript.hgvs_p;
 						}
@@ -2221,7 +2259,8 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				for(int v=0; v<somatic_vl_.count(); ++v)
 				{
 					const Variant& variant = somatic_vl_[v];
-					VariantTranscript transcript = settings_.selectSomaticTranscript(db_, variant, snv_index_coding_splicing_);
+					VariantTranscript transcript = selectSomaticTranscript(db_, variant.transcriptAnnotations(snv_index_coding_splicing_));
+
 					if (genes_pathway.contains(transcript.gene))
 					{
 						QByteArray variant_text;

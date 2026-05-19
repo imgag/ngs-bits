@@ -10,7 +10,9 @@ private:
 	{
 		VcfFile vl,vl2;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
+		IS_FALSE(vl.isSorted());
 		vl.sort();
+		IS_TRUE(vl.isSorted());
 		vl2.load(TESTDATA("data_in/variantList_removeDuplicates.vcf"));
 		vl2.removeDuplicates(true);
 		//after removal of duplicates (and numerical sorting of vl), vl and vl2 should be the same

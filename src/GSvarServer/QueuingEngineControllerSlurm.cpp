@@ -13,7 +13,7 @@ QString QueuingEngineControllerSlurm::getEngineName() const
 
 void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList queues, QStringList pipeline_args, QString working_directory, QString script, int job_id) const
 {
-	QString slurm_out_base = PipelineSettings::dataFolder() + "/slurm/megSAP_slurm_job_" + QString::number(job_id);
+	QString slurm_out_base = PipelineSettings::dataFolder() + "/analysis_jobs_logs/" + QString::number(job_id);
 
 	//Prepare sbatch arguments
     QStringList sbatch_args;
@@ -36,14 +36,13 @@ void QueuingEngineControllerSlurm::submitJob(NGSD& db, int threads, QStringList 
 	QString command_sh = slurm_out_base + "_cmd.sh";
 
 	QFile file(command_sh);
-	if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+	if (file.open(QIODevice::WriteOnly))
 	{
 		QTextStream out(&file);
 		out << "#!/bin/sh\n";
 		out << command_php << "\n";
 		file.close();
-		QFile::setPermissions(command_sh, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser |
-										   QFileDevice::ReadGroup | QFileDevice::ReadOther);
+		QFile::setPermissions(command_sh, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ReadGroup | QFileDevice::ReadOther);
 	}
 	else QTextStream(stderr) << "Failed to write command script: " << command_sh << "\n";
 
