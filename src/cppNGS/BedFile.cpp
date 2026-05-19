@@ -428,7 +428,7 @@ void BedFile::subtract(const BedFile& file2)
 	if (removed_lines!=0) removeInvalidLines();
 }
 
-void BedFile::intersect(const BedFile& file2)
+void BedFile::intersect(const BedFile& file2, bool keep_anno)
 {
 	//check target region is merged/sorted and create index
 	if (!file2.isMergedAndSorted())
@@ -438,7 +438,7 @@ void BedFile::intersect(const BedFile& file2)
 	ChromosomalIndex<BedFile> file2_idx(file2);
 
 	//remove annotations and headers
-	clearAnnotations();
+	if (! keep_anno) clearAnnotations();
 
 	//intersect
 	int lines_original = lines_.count();
@@ -462,9 +462,15 @@ void BedFile::intersect(const BedFile& file2)
 
 		//intersect with more regions (insert new lines => we must not use the 'line' variable inside the loop because the vector can be reallocated!)
 		Chromosome chr_original = line.chr();
+		QByteArrayList anno;
+		if (keep_anno)
+		{
+			anno = line.annotations();
+			qDebug() << "annotations set to: '" << anno.join(", ") << "'";
+		}
 		for (int j=1; j<matches.count(); ++j)
 		{
-			lines_.append(BedLine(chr_original, std::max(start_original, file2[matches[j]].start()), std::min(end_original, file2[matches[j]].end()) ));
+			lines_.append(BedLine(chr_original, std::max(start_original, file2[matches[j]].start()), std::min(end_original, file2[matches[j]].end()), anno));
 		}
 	}
 

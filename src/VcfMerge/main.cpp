@@ -115,17 +115,34 @@ public:
                 QByteArrayList format_values = parts[9].split(':');
                 if (format_keys.count()!=format_values.count()) THROW(FileParseException, "Input file '" + filename + "' has differing format key/value count: " +line);
 
+				//parse filters
+				QByteArrayList filters = parts[6].split(';');
+				std::for_each(filters.begin(), filters.end(), [](QByteArray& x) { x = x.trimmed(); });
+
                 //normalize GT
                 QByteArray gt = format_values[0].trimmed();
                 gt = gt.replace('|', '/').replace('.', '0');
                 if (gt=="1/0") gt = "0/1";
-                if (gt=="1") gt = "1/1"; //Clair3 returns only one allele for chrMT
-                if (gt=="0/0" || gt=="0") //WT > variant not in sample
+				if (gt!="0/1" && gt!="1/1" && filters.contains("targeted")) //special handling for DRAGEN targeted calls: all numbers of alleles are possible
+				{
+					int count_1 = gt.count("1");
+					if(count_1==0)
+					{
+						gt = "0/0";
+					}
+					else
+					{
+						int count_0 = gt.count("0");
+						gt = count_0>0 ? "0/1" : "1/1";
+					}
+				}
+				if (gt=="1") gt = "1/1"; //special handling for Clair3: it returns only one allele for chrMT
+				if (gt=="0/0" || gt=="0") //WT > variant not in sample
                 {
                     ++output.c_skipped_wt;
                     continue;
                 }
-                if (gt!="0/1" && gt!="1/1") THROW(FileParseException, "Input file '" + filename + "' has invalid unsupported 'GT' format: " +line);
+				if (gt!="0/1" && gt!="1/1") THROW(FileParseException, "Input file '" + filename + "' has unsupported 'GT' format: " +line);
 
                 //determine variant type
 				const QByteArray& ref = parts[3];
@@ -150,9 +167,7 @@ public:
                     }
                 }
                 if (i_gq!=-1) format.gq = format_values[i_gq];
-                if (i_ps!=-1) format.ps = format_values[i_ps];
-                QByteArrayList filters = parts[6].split(';');
-                std::for_each(filters.begin(), filters.end(), [](QByteArray& x) { x = x.trimmed(); });
+				if (i_ps!=-1) format.ps = format_values[i_ps];
                 if (filters.contains("low_mappability"))
                 {
 					if (no_special_calls)

@@ -1,10 +1,10 @@
 ### NGSDImportGeneInfo tool help
-	NGSDImportGeneInfo (2024_08-110-g317f43b9)
+	NGSDImportGeneInfo (2025_12-266-g396e1fe11)
 	
 	Imports gene-specific information into NGSD.
 	
 	Mandatory parameters:
-	  -constraint <file> gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1.1/constraint/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz).
+	  -constraint <file> gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1.1/constraint/gnomad.v4.1.1.constraint_metrics.tsv.bgz).
 	
 	Optional parameters:
 	  -test              Uses the test database instead of on the production database.
@@ -20,6 +20,9 @@
 	  --settings [file]  Settings override file (no other settings files are used).
 	
 ### NGSDImportGeneInfo changelog
-	NGSDImportGeneInfo 2024_08-110-g317f43b9
+	NGSDImportGeneInfo 2025_12-266-g396e1fe11
 	
+	2026-04-17 Update to gnomAD 4.1.1 constraints.
+	2019-07-16 Update to gnomAD 2.1.1 constraints.
+	2016-11-23 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

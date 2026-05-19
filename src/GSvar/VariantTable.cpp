@@ -69,6 +69,8 @@ void VariantTable::customContextMenu(QPoint pos)
 	//else: standard case: 1 variant selected
 
 	int index = indices[0];
+	QString selected_text;
+	if (!selectedItems().empty()) selected_text = selectedItems().at(0)->text().trimmed();
 
 	if (registered_actions_.count() > 0)
 	{
@@ -100,6 +102,21 @@ void VariantTable::customContextMenu(QPoint pos)
 	QAction* a_cnv_sv = menu.addAction("Show CNVs/SVs in gene");
 	QAction* a_visualize = menu.addAction("Visualize");
 	a_visualize->setEnabled(Helper::runningInQtCreator());
+	menu.addSeparator();
+
+	//add web links
+	QMenu* links_sub_menu = menu.addMenu("Open link");
+	bool cell_contains_links = false;
+
+	foreach (const QString& entry, selected_text.split(", "))
+	{
+		if (Helper::isHttpUrl(entry))
+		{
+			links_sub_menu->addAction(entry);
+			cell_contains_links = true;
+		}
+	}
+	if (!cell_contains_links) links_sub_menu->setEnabled(false);
 	menu.addSeparator();
 
 	//Google and Google Scholar
@@ -283,6 +300,10 @@ void VariantTable::customContextMenu(QPoint pos)
         auto dlg = GUIHelper::createDialog(widget, "GSviewer");
 		dlg->exec();
 	}
+	else if (parent_menu && parent_menu->title()=="Open link")
+	{
+		QDesktopServices::openUrl(QUrl(action->text()));
+	}
 	else if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
 	{
 		QByteArray query;
@@ -457,6 +478,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	QStringList col_order;
 	QList<int> anno_index_order;
 	config.getOrder(variants, col_order, anno_index_order);
+
 	for (int i=0; i<col_order.count(); ++i)
 	{
 		QString anno = col_order[i];

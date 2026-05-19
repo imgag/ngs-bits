@@ -136,6 +136,8 @@
 #include <QStyleFactory>
 #include <QLibraryInfo>
 #include <QtCharts/QChartView>
+#include "Background/PingWorker.h"
+#include "AboutDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1618,6 +1620,10 @@ void MainWindow::delayedInitialization()
 			return;
 		}
 	}
+
+	//ping
+	PingWorker* workter = new PingWorker();
+	startJob(workter, false);
 
     if (NGSD::isAvailable())
     {
@@ -3172,44 +3178,36 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues,
 
 void MainWindow::on_actionAbout_triggered()
 {
-	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
-
-	about_text += "\n\nA free decision support system for germline and somatic variants.";
-
-	//general infos
-	about_text += "\n";
-	about_text += "\nGenome build: " + GSvarHelper::buildAsString();
-	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
-	about_text += "\nhtslib version: " + QString(hts_version());
-	about_text += "\nQt version: " + QLibraryInfo::version().toString();
-
-	//client-server infos
-	about_text += "\n";
+	//Prepare server infos
+	QString add_info = "Mode: stand-alone (no server)";
 	if (ClientHelper::isClientServerMode())
 	{
-		about_text += "\nServer information:";
-        int status_code = -1;
-        ServerInfo server_info = ClientHelper::getServerInfo(status_code);
-        if (status_code!=200)
-        {
-            about_text += "\nServer returned " + QString::number(status_code);
-        }
-        else
-        {
-			about_text += "\n  version: " + server_info.version;
-			about_text += "\n  start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-			about_text += "\n  API URL: " + server_info.server_url;
-			about_text += "\n  API version: " + server_info.api_version;
-			about_text += "\n  htslib version: " + server_info.htslib_version;
-			about_text += "\n  Qt version: " + server_info.qt_version;
+		add_info = "Server information:";
+		int status_code = -1;
+		ServerInfo server_info = ClientHelper::getServerInfo(status_code);
+		if (status_code!=200)
+		{
+			add_info += "<br>&nbsp;&nbsp;Server error: " + QString::number(status_code);
 		}
-    }
-	else
-	{
-		about_text += "\nMode: stand-alone (no server)";
+		else
+		{
+			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version;
+			add_info += "<br>&nbsp;&nbsp;start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
+			add_info += "<br>&nbsp;&nbsp;API URL: " + server_info.server_url;
+			add_info += "<br>&nbsp;&nbsp;API version: " + server_info.api_version;
+			add_info += "<br>&nbsp;&nbsp;htslib version: " + server_info.htslib_version;
+			add_info += "<br>&nbsp;&nbsp;Qt version: " + server_info.qt_version;
+		}
 	}
 
-	QMessageBox::about(this, "About " + appName(), about_text);
+	//show dialog
+	AboutDialog dlg(this);
+	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setDescription("A free decision support system for germline and somatic variants.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/index.md'>GitHub page</a> for details.");
+	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
+	dlg.addLibVersionLine("Genome build: " + GSvarHelper::buildAsString());
+	dlg.setAddInfo(add_info);
+	dlg.exec();
 }
 
 void MainWindow::loadReportConfig()
