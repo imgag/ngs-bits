@@ -36,7 +36,7 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 {
     try
 	{
-        return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers).body;
+        return HttpRequestHandler().post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers).body;
 	}
     catch (HttpException& e)
 	{
@@ -51,7 +51,7 @@ QByteArray LoginManager::sendGetApiRequest(QString path, HttpHeaders add_headers
     QByteArray reply;
     try
 	{
-        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + path, add_headers).body;
+        reply = HttpRequestHandler().get(ClientHelper::serverApiUrl() + path, add_headers).body;
 	}
     catch (HttpException& e)
 	{

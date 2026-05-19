@@ -5,7 +5,6 @@
 #include "QueuingEngineApiHelper.h"
 
 QueuingEngineControllerGeneric::QueuingEngineControllerGeneric()
-	: proxy_(QNetworkProxy::NoProxy)
 {
 	qe_api_base_url_ = Settings::string("qe_api_base_url", true);
 	secure_token_ = Settings::string("qe_secure_token", true);
@@ -29,7 +28,7 @@ void QueuingEngineControllerGeneric::submitJob(NGSD &db, int threads, QStringLis
 {
 	try
 	{
-		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).submitJob(threads, queues, pipeline_args, working_directory, script);
+		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, secure_token_).submitJob(threads, queues, pipeline_args, working_directory, script);
 		//this should not happen - we expect 200 if the API answers
 		if (reply.status_code!=200) THROW(ProgrammingException, "Invalid status code: " + QString::number(reply.status_code));
 
@@ -59,7 +58,7 @@ bool QueuingEngineControllerGeneric::updateRunningJob(NGSD &db, const AnalysisJo
 {
 	try
 	{
-		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).updateRunningJob(job.sge_id, job.sge_queue);
+		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, secure_token_).updateRunningJob(job.sge_id, job.sge_queue);
 		//this should not happen - we expect 200 if the API answers
 		if (reply.status_code!=200) THROW(ProgrammingException, "Invalid status code: " + QString::number(reply.status_code));
 
@@ -114,7 +113,7 @@ void QueuingEngineControllerGeneric::deleteJob(NGSD &db, const AnalysisJob &job,
 {
 	try
 	{
-		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, proxy_, secure_token_).deleteJob(job.sge_id, job.type);
+		ServerReply reply = QueuingEngineApiHelper(qe_api_base_url_, secure_token_).deleteJob(job.sge_id, job.type);
 		//this should not happen - we expect 200 if the API answers
 		if (reply.status_code!=200) THROW(ProgrammingException, "Invalid status code: " + QString::number(reply.status_code));
 

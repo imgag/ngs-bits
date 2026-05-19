@@ -79,8 +79,6 @@ void SettingsDialog::closeEvent(QCloseEvent* e)
 void SettingsDialog::loadSettings()
 {
 	//general
-	ui_.proxy_host->setText(Settings::string("proxy_host", true));
-	ui_.proxy_port->setText(Settings::string("proxy_port", true));
 	ui_.proxy_user->setText(Settings::string("proxy_user", true));
 	ui_.proxy_password->setText(Settings::string("proxy_password", true));
 
@@ -104,8 +102,6 @@ void SettingsDialog::loadSettings()
 void SettingsDialog::storeSettings()
 {
 	//general
-	Settings::setString("proxy_host", ui_.proxy_host->text());
-	Settings::setString("proxy_port", ui_.proxy_port->text());
 	Settings::setString("proxy_user", ui_.proxy_user->text());
 	Settings::setString("proxy_password", ui_.proxy_password->text());
 

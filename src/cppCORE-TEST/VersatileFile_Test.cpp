@@ -1,7 +1,7 @@
 #include "TestFramework.h"
 #include "VersatileFile.h"
-#include <QNetworkProxyFactory>
 #include "Settings.h"
+#include <QNetworkProxy>
 
 TEST_CLASS(VersatileFile_Test)
 {

@@ -21,7 +21,7 @@ ServerReply sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 	ServerReply server_reply;
     try
 	{
-		server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers);
+		server_reply = HttpRequestHandler().get(url, headers);
 		reply = server_reply.body;
 	}
     catch(HttpException& e)
@@ -39,7 +39,7 @@ ServerReply sendPostRequest(QByteArray& reply, QString url, QByteArray data, Htt
 	ServerReply server_reply;
 	try
 	{
-		server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers);
+		server_reply = HttpRequestHandler().post(url, data, headers);
 		reply = server_reply.body;
 	}
 	catch(HttpException& e)
@@ -143,7 +143,7 @@ private:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
-        IS_THROWN(HttpException, HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl(), add_headers));
+        IS_THROWN(HttpException, HttpRequestHandler().get(ClientHelper::serverApiUrl(), add_headers));
 	}	
 
 	TEST_METHOD(test_token_based_authentication)
@@ -162,7 +162,7 @@ private:
 
         try
         {
-            ServerReply server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + "login", data, add_headers);
+            ServerReply server_reply = HttpRequestHandler().post(ClientHelper::serverApiUrl() + "login", data, add_headers);
             code = server_reply.status_code;
             reply = server_reply.body;
         }
@@ -595,7 +595,7 @@ private:
 		QString script = "pipeline.php";		
 		QString security_token = "random_characters";
 
-		QueuingEngineApiHelper api_helper = QueuingEngineApiHelper(api_server_url.toString() + "/jobs", QNetworkProxy::NoProxy, security_token);
+		QueuingEngineApiHelper api_helper = QueuingEngineApiHelper(api_server_url.toString() + "/jobs", security_token);
 		ServerReply submit_reply = api_helper.submitJob(threads, queues, script_args, working_directory, script);
 		I_EQUAL(submit_reply.status_code, 200);
 		QJsonDocument submit_json = QJsonDocument::fromJson(submit_reply.body);
@@ -624,12 +624,12 @@ private:
 		json_doc_output.setObject(top_level_json_object);
 		HttpHeaders add_headers;
 		add_headers.insert("Content-Type", "application/json");
-		IS_THROWN(HttpException, HttpRequestHandler(QNetworkProxy::NoProxy).post(api_server_url.toString() + "/jobs", json_doc_output.toJson(), add_headers));
+		IS_THROWN(HttpException, HttpRequestHandler().post(api_server_url.toString() + "/jobs", json_doc_output.toJson(), add_headers));
 
 		ServerReply error_reply;
 		try
 		{
-			error_reply = HttpRequestHandler(QNetworkProxy::NoProxy).post(api_server_url.toString() + "/jobs", json_doc_output.toJson(), add_headers);
+			error_reply = HttpRequestHandler().post(api_server_url.toString() + "/jobs", json_doc_output.toJson(), add_headers);
 		}
 		catch(HttpException& e)
 		{
@@ -649,7 +649,7 @@ private:
 		json_doc_secure_output.setObject(top_level_secure_json_object);
 		try
 		{
-			error_reply = HttpRequestHandler(QNetworkProxy::NoProxy).post(api_server_url.toString() + "/jobs", json_doc_secure_output.toJson(), add_headers);
+			error_reply = HttpRequestHandler().post(api_server_url.toString() + "/jobs", json_doc_secure_output.toJson(), add_headers);
 		}
 		catch(HttpException& e)
 		{

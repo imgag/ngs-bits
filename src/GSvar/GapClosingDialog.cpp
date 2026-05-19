@@ -161,7 +161,8 @@ void GapClosingDialog::edit()
 		return;
 	}
 
-    edit(rows.values().first());
+	int row = Helper::setToList(rows).at(0);
+	edit(row);
 }
 
 void GapClosingDialog::edit(int row)
@@ -190,7 +191,7 @@ void GapClosingDialog::addComment()
 	QString comment = QInputDialog::getText(this, "Comment", "Comment text:").trimmed();
 	if (comment.isEmpty()) return;
 
-    int row = rows.values().first();
+	int row = Helper::setToList(rows).at(0);
 	int id = ui_.table->getId(row).toInt();
 	db_.addGapComment(id, comment);
 

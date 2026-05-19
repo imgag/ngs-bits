@@ -2,12 +2,8 @@
 #define PUBLISHEDVARIANTSWIDGET_H
 
 #include "ClinvarUploadDialog.h"
-#include "HttpHandler.h"
-
 #include <QWidget>
-
-
-
+#include "HttpRequestHandler.h"
 
 namespace Ui {
 class PublishedVariantsWidget;
@@ -34,7 +30,7 @@ private slots:
 
 private:
 	Ui::PublishedVariantsWidget* ui_;
-	HttpHandler http_handler_;
+	HttpRequestHandler http_handler_;
 	ClinvarUploadData getClinvarUploadData(int var_pub_id);
 	QJsonObject createJsonForClinvarDeletion(QString stable_id);
 
