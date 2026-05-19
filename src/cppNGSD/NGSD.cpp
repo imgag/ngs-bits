@@ -5154,6 +5154,29 @@ void NGSD::deleteSomaticGeneRole(QByteArray gene)
 	query.exec("DELETE FROM somatic_gene_role WHERE id = " + QByteArray::number(id));
 
 }
+VariantValidation NGSD::variantValidation(int validation_id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM variant_validation WHERE variant_id='" + QByteArray::number(validation_id));
+
+	if (! query.next())
+	{
+		THROW(ArgumentException, "There is no variant validation entry with the given id: '" + QByteArray::number(validation_id) + "'");
+	}
+
+	VariantValidation var_val;
+	var_val.val_id = query.value("id").toInt();
+	var_val.sample_id = query.value("sample_id").toInt();
+	var_val.variant_id = query.value("variant_id").toInt();
+	var_val.variant_type = query.value("variant_type").toByteArray();
+	var_val.user_id = query.value("user_id").toInt();
+	var_val.validation_method = query.value("validation_method").toByteArray();
+	var_val.status = query.value("status").toByteArray();
+	var_val.comment = query.value("comment").toByteArray();
+
+	return var_val;
+}
+
 
 VariantValidation NGSD::variantValidationSmallVariant(QByteArray variant_id, QByteArray  sample_id, bool throw_on_fail)
 {

@@ -1152,6 +1152,8 @@ public:
 	void deleteSomaticGeneRole(QByteArray gene);
 
 
+	///return the Variant Validation with the given ID
+	VariantValidation variantValidation(int validation_id);
     ///return the Variant Validation data of small variant
     VariantValidation variantValidationSmallVariant(QByteArray variant_id, QByteArray  sample_id, bool throw_on_fail=false);
     ///return the Variant Validation data of CNV variant

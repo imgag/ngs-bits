@@ -140,10 +140,13 @@ void VariantValidationWidget::edit(int row)
 {
 	//edit
 	int id = ui_.table->getId(row).toInt();
-	ValidationDialog dlg(this, id);
-	if (!dlg.exec()) return;
+	ValidationDialog dlg(this, NGSD().variantValidation(id));
 
-	dlg.store();
+	if (dlg.exec())
+	{
+		data_controller_.storeVariantValidation(dlg.getValidation());
+	}
+
 	updateTable();
 }
 

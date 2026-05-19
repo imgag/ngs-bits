@@ -478,7 +478,6 @@ protected:
 private:
 	bool checkHetHitGenes();
 
-
     //DATA
     AnalysisDataController& data_controller_;
 
