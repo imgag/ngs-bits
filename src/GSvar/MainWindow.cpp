@@ -24,7 +24,6 @@
 #include "Background/ReportWorker.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
-#include "TransferredVariantDialog.h"
 #include "ValidationDialog.h"
 #include "ClassificationDialog.h"
 #include "BasicStatistics.h"
@@ -1674,9 +1673,11 @@ void MainWindow::delayedInitialization()
 		}
 		else if (i==1) //first argument: sample to open
 		{
+			bool opened = false;
 			if (QFile::exists(arg)) //file path
 			{
 				loadFile(arg);
+				opened = true;
 			}
 			else if (LoginManager::active()) //processed sample name (via NGSD)
 			{
@@ -1684,17 +1685,17 @@ void MainWindow::delayedInitialization()
 				if (db.processedSampleId(arg, false)!="")
 				{
 					openProcessedSampleFromNGSD(arg, false);
+					opened = true;
 				}
 				else if (db.sampleId(arg, false)!="")
 				{
 					openSampleFromNGSD(arg);
+					opened = true;
 				}
-            }
+			}
+			if (!opened) qDebug() << "Could not open sample: " << arg;
 		}
-		else
-		{
-			qDebug() << "Unprocessed argument: " << arg;
-		}
+		else qDebug() << "Unprocessed command-line argument: " << arg;
 	}
 }
 
