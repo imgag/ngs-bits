@@ -16,12 +16,14 @@
 #include <QJsonObject>
 #include <QNetworkProxy>
 
-ServerReply sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
+int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
 	ServerReply server_reply;
     try
 	{
-		server_reply = HttpRequestHandler().get(url, headers);
+		HttpRequestHandler http_handler;
+		http_handler.disableProxy();
+		server_reply = http_handler.get(url, headers);
 		reply = server_reply.body;
 	}
     catch(HttpException& e)
@@ -31,25 +33,7 @@ ServerReply sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 		server_reply.status_code = e.status_code();
 		Log::error(e.message() + ": code " + QString::number(e.status_code()));
 	}
-	return server_reply;
-}
-
-ServerReply sendPostRequest(QByteArray& reply, QString url, QByteArray data, HttpHeaders headers)
-{
-	ServerReply server_reply;
-	try
-	{
-		server_reply = HttpRequestHandler().post(url, data, headers);
-		reply = server_reply.body;
-	}
-	catch(HttpException& e)
-	{
-		server_reply.body = e.body();
-		server_reply.headers = e.headers();
-		server_reply.status_code = e.status_code();
-		Log::error(e.message() + ": code " + QString::number(e.status_code()));
-	}
-	return server_reply;
+	return server_reply.status_code;
 }
 
 TEST_CLASS(Server_Integration_Test)
@@ -68,7 +52,7 @@ private:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -88,7 +72,7 @@ private:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=114-140,399-430");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -110,7 +94,7 @@ private:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=461-");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -131,7 +115,7 @@ private:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -184,13 +168,13 @@ private:
 		add_headers.clear();
 		add_headers.insert("Accept", "application/json");
         add_headers.insert("Content-Type", "application/json");
-		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session?token=" + token, add_headers).status_code;
+		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session?token=" + token, add_headers);
 		QJsonDocument session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 
 		reply.clear();
 		add_headers.insert("Authorization", "Bearer "+token.toUtf8());
-		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session", add_headers).status_code;
+		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session", add_headers);
 		session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 		bool is_db_token = session_json.object().value("is_db_token").toBool();
@@ -210,7 +194,7 @@ private:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/octet-stream");
         add_headers.insert("Content-Type", "application/octet-stream");
-		int code = sendGetRequest(reply, filename, add_headers).status_code;
+		int code = sendGetRequest(reply, filename, add_headers);
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -233,7 +217,7 @@ private:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
         add_headers.insert("Content-Type", "application/json");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "info", add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "info", add_headers);
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -260,7 +244,7 @@ private:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
         add_headers.insert("Content-Type", "application/json");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "current_client", add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "current_client", add_headers);
         if (code == 0)
 		{
 			SKIP("This test requieres a running server");
@@ -283,7 +267,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -314,7 +298,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -349,7 +333,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -379,7 +363,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -418,7 +402,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -462,7 +446,7 @@ private:
         add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
         add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers).status_code;
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
         if (code == 0)
         {
             SKIP("This test requieres a running server");
@@ -579,8 +563,7 @@ private:
 
 		QByteArray reply;
 
-		ServerReply api_reply = sendGetRequest(reply, api_server_url.toString() + "/info", HttpHeaders{});
-		int status_code = api_reply.status_code;
+		int status_code = sendGetRequest(reply, api_server_url.toString() + "/info", HttpHeaders{});
 		I_EQUAL(status_code, 200);
 
 		QJsonDocument response_doc = QJsonDocument::fromJson(reply);
