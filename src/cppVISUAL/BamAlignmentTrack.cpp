@@ -174,7 +174,11 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 void BamAlignmentTrack::drawAlignmentAndVariants(QPainter& painter, const BamAlignmentWrapper& al,
 												 int row_y, int x0, int total_width)
 {
-	if (row_y < 0) qDebug() << "bug: draw received negative row_y" << Qt::endl;
+	if (row_y < 0)
+	{
+		qDebug() << "bug: draw received negative row_y" << Qt::endl;
+		return;
+	}
 
 	const BedLine& region = SharedData::region();
 
@@ -361,10 +365,14 @@ void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignmentWrappe
 	double pixels_per_base = (double)(total_width) / (double)region.length();
 
 	const auto& variants = al.getVariants();
-	foreach (auto variant_data, variants)
+	foreach (const auto& variant_data, variants)
 	{
-		int x_start = x0 + (int)((float)variant_data.idx / scale);
-		int endX = x0 + (int)((float)(variant_data.idx + 1) / scale);
+		int idx = variant_data.genomic_pos - region.start();
+		int x_start = x0 + (int)((float)idx / scale);
+		int endX = x0 + (int)((float)(idx + 1) / scale);
+
+		if (x_start < x0 || endX > x0 + total_width) continue;
+
 		int dX = std::max(1, endX - x_start);
 		QColor color = baseColor(variant_data.base);
 		color = QColor(color.red(), color.green(), color.blue(), ((float)variant_data.quality/40)*255);

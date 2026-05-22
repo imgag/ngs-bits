@@ -67,6 +67,8 @@ void BamCoverageTrack::storeCoverage()
 
 	const QVector<BamAlignmentWrapper>& aligns = track_data_->getAlignments();
 
+	int ref_start =  track_data_->getRefSeqStart();
+
 	//store coverage
 	for (int i =0; i < aligns.count(); ++i)
 	{
@@ -114,7 +116,8 @@ void BamCoverageTrack::storeCoverage()
 	{
 		BaseCoverage& cov = coverage_[idx];
 		int total_count = cov.total();
-		char ref_base = ref_seq[idx];
+		int offset = region.start() - ref_start;
+		char ref_base = ref_seq[idx + offset];
 		int base_count = 0;
 		switch (ref_base)
 		{
